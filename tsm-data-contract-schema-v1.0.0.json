@@ -1,0 +1,367 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tuckerinc82.org/schemas/data-contract/v1.0.0.json",
+  "title": "TuckerInc.82 / Tri-State Systems Manager Data Contract Schema",
+  "description": "Machine-readable dataset contract specification aligned with the State of Indiana Data Strategy 2024, NIST AI RMF, and public-interest governance requirements for the Tri-State River Valley. Version 1.0.0 — 2026-08-19.",
+  "type": "object",
+  "required": [
+    "id",
+    "title",
+    "description",
+    "owner",
+    "authoritative_source",
+    "jurisdiction",
+    "domain",
+    "classification",
+    "legal_basis",
+    "collection_method",
+    "spatial_extent",
+    "temporal_extent",
+    "update_frequency",
+    "schema_version",
+    "lineage",
+    "quality",
+    "license",
+    "retention",
+    "permitted_uses",
+    "prohibited_uses",
+    "privacy_controls",
+    "provenance",
+    "validation_status"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9\\-\\.]*[a-z0-9]$",
+      "minLength": 3,
+      "maxLength": 128,
+      "description": "Unique, stable identifier for the dataset contract (e.g., tsm-hydro-001)."
+    },
+    "title": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 256,
+      "description": "Human-readable title of the dataset."
+    },
+    "description": {
+      "type": "string",
+      "minLength": 20,
+      "maxLength": 4000,
+      "description": "Clear description of the dataset content, purpose, and coverage."
+    },
+    "owner": {
+      "type": "object",
+      "required": ["organization"],
+      "properties": {
+        "organization": { "type": "string", "minLength": 2 },
+        "contact": { "type": "string", "format": "email" },
+        "org_id": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "authoritative_source": {
+      "type": "object",
+      "required": ["system"],
+      "properties": {
+        "system": { "type": "string" },
+        "uri": { "type": "string", "format": "uri" },
+        "agency_code": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "jurisdiction": {
+      "type": "string",
+      "enum": ["Indiana", "Illinois", "Kentucky", "Federal", "Tri-State", "Multi-State"],
+      "description": "Primary legal jurisdiction governing the data."
+    },
+    "domain": {
+      "type": "string",
+      "enum": [
+        "hydrology",
+        "infrastructure",
+        "public-safety",
+        "health",
+        "demographics",
+        "energy",
+        "transportation",
+        "environment",
+        "emergency-management",
+        "social-services",
+        "other"
+      ]
+    },
+    "classification": {
+      "type": "string",
+      "enum": ["public", "internal", "restricted", "confidential"],
+      "description": "Data classification level. Must drive access controls and encryption requirements."
+    },
+    "sensitivity": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["none", "PII", "PHI", "CUI", "critical-infrastructure"]
+      },
+      "uniqueItems": true,
+      "default": ["none"]
+    },
+    "legal_basis": {
+      "type": "string",
+      "minLength": 5,
+      "description": "Statutory or regulatory authority authorizing collection and use (e.g., Indiana Code citation or federal mandate)."
+    },
+    "collection_method": {
+      "type": "string",
+      "description": "How the data is acquired (e.g., Automated river gauges, Survey, Derived model output)."
+    },
+    "spatial_extent": {
+      "type": "object",
+      "required": ["description"],
+      "properties": {
+        "geometry_ref": { "type": "string" },
+        "description": { "type": "string" },
+        "bbox": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "crs": { "type": "string", "default": "EPSG:4326" }
+      },
+      "additionalProperties": false
+    },
+    "temporal_extent": {
+      "type": "object",
+      "required": ["start"],
+      "properties": {
+        "start": { "type": "string", "format": "date-time" },
+        "end": { "type": ["string", "null"], "format": "date-time" }
+      },
+      "additionalProperties": false
+    },
+    "update_frequency": {
+      "type": "string",
+      "enum": [
+        "real-time",
+        "hourly",
+        "daily",
+        "weekly",
+        "monthly",
+        "quarterly",
+        "annually",
+        "on-demand",
+        "static"
+      ]
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version of the data schema itself (not this contract schema)."
+    },
+    "lineage": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source_id"],
+        "properties": {
+          "source_id": { "type": "string" },
+          "transformation": { "type": "string" },
+          "timestamp": { "type": "string", "format": "date-time" },
+          "actor": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "quality": {
+      "type": "object",
+      "required": ["score"],
+      "properties": {
+        "score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Overall quality score (0.0–1.0)."
+        },
+        "completeness": { "type": "number", "minimum": 0, "maximum": 1 },
+        "accuracy": { "type": "number", "minimum": 0, "maximum": 1 },
+        "timeliness": { "type": "number", "minimum": 0, "maximum": 1 },
+        "notes": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "license": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string" },
+        "uri": { "type": "string", "format": "uri" },
+        "spdx_id": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "retention": {
+      "type": "object",
+      "required": ["policy"],
+      "properties": {
+        "policy": { "type": "string" },
+        "retention_period_days": { "type": ["integer", "null"], "minimum": 0 },
+        "disposition": {
+          "type": "string",
+          "enum": ["retain-indefinitely", "archive", "destroy", "review"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "permitted_uses": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "planning",
+          "research",
+          "operations",
+          "public-information",
+          "emergency-response",
+          "modeling",
+          "reporting"
+        ]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "prohibited_uses": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "individual_targeting",
+          "surveillance",
+          "commercial-resale",
+          "discriminatory-profiling",
+          "autonomous-decision-without-human-oversight"
+        ]
+      },
+      "uniqueItems": true,
+      "default": ["individual_targeting", "autonomous-decision-without-human-oversight"]
+    },
+    "privacy_controls": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "none",
+          "aggregation",
+          "k-anonymity",
+          "differential-privacy",
+          "de-identification",
+          "access-logging",
+          "purpose-limitation"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["evidence_id", "content_hash", "created_at"],
+      "properties": {
+        "evidence_id": { "type": "string" },
+        "source_uri": { "type": "string", "format": "uri" },
+        "content_hash": {
+          "type": "string",
+          "pattern": "^(sha256:)?[a-fA-F0-9]{64}$",
+          "description": "SHA-256 content hash of the dataset or contract payload."
+        },
+        "created_at": { "type": "string", "format": "date-time" },
+        "created_by": { "type": "string" },
+        "signature": { "type": "string", "description": "Optional detached digital signature." }
+      },
+      "additionalProperties": false
+    },
+    "validation_status": {
+      "type": "string",
+      "enum": ["draft", "pending-review", "validated", "rejected", "retired"],
+      "default": "draft"
+    },
+    "risk_classification": {
+      "type": "string",
+      "enum": ["low", "moderate", "high", "critical"],
+      "description": "Overall risk classification for AI/RMF and critical-infrastructure mapping."
+    },
+    "human_oversight_required": {
+      "type": "boolean",
+      "default": true,
+      "description": "Must remain true for any dataset used in decision-support affecting public safety or critical infrastructure."
+    },
+    "ai_rmf_controls": {
+      "type": "object",
+      "description": "Optional mapping to NIST AI RMF Govern/Map/Measure/Manage controls.",
+      "properties": {
+        "govern": { "type": "array", "items": { "type": "string" } },
+        "map": { "type": "array", "items": { "type": "string" } },
+        "measure": { "type": "array", "items": { "type": "string" } },
+        "manage": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "retired_at": { "type": ["string", "null"], "format": "date-time" }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "id": "tsm-hydro-001",
+      "title": "Tri-State River Stage Observations",
+      "description": "Time-series river stage data for the Tri-River Valley basin.",
+      "owner": {
+        "organization": "Indiana Department of Natural Resources",
+        "contact": "hydrology@in.gov"
+      },
+      "authoritative_source": {
+        "system": "USGS NWIS",
+        "uri": "https://waterdata.usgs.gov/nwis"
+      },
+      "jurisdiction": "Indiana",
+      "domain": "hydrology",
+      "classification": "restricted",
+      "sensitivity": ["none"],
+      "legal_basis": "State water monitoring mandate",
+      "collection_method": "Automated river gauges",
+      "spatial_extent": {
+        "geometry_ref": "ptdt:tri-river-valley",
+        "description": "Tri-River Valley river network"
+      },
+      "temporal_extent": {
+        "start": "2010-01-01T00:00:00Z",
+        "end": "2026-08-19T00:00:00Z"
+      },
+      "update_frequency": "hourly",
+      "schema_version": "1.0.0",
+      "lineage": [
+        {
+          "source_id": "USGS-03378500",
+          "transformation": "In-stream calibration filter"
+        }
+      ],
+      "quality": { "score": 0.92 },
+      "license": { "name": "Open Government License" },
+      "retention": { "policy": "Indefinite historical ledger" },
+      "permitted_uses": ["planning", "research", "emergency-response"],
+      "prohibited_uses": ["individual_targeting", "autonomous-decision-without-human-oversight"],
+      "privacy_controls": ["aggregation"],
+      "provenance": {
+        "evidence_id": "EV-STATIC-001",
+        "source_uri": "https://usgs.gov",
+        "content_hash": "sha256:a2b4c6d8e0f2a4b6c8d0e2f4a6b8c0d2e4f6a8b0c2d4e6f8a0b2c4d6e8f0a1b2",
+        "created_at": "2026-08-19T12:00:00Z"
+      },
+      "validation_status": "validated",
+      "risk_classification": "moderate",
+      "human_oversight_required": true
+    }
+  ]
+}
