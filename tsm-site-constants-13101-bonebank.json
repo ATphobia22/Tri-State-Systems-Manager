@@ -1,26 +1,51 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://tuckerinc82.org/schemas/site-constants/v1.0.0.json",
-  "title": "TuckerInc.82 Sovereign Site Constants — 13101 Bonebank Road",
-  "description": "Authoritative spatial, hydraulic, and regulatory constants for the Tri-State Digital Twin centered on 13101 Bonebank Road, Point Township, Posey County, Indiana. Normalized to EPSG:2966 / NAVD88. Version 1.0.0 — 2026-08-19.",
+  "title": "TuckerInc.82 Sovereign Site Constants \u2014 13101 Bonebank Road",
+  "description": "Authoritative spatial, hydraulic, and regulatory constants for the Tri-State Digital Twin centered on 13101 Bonebank Road, Point Township, Posey County, Indiana. Normalized to EPSG:2966 / NAVD88. Version 1.0.0 \u2014 2026-08-19.",
   "type": "object",
-  "required": ["site", "crs", "elevations", "apn", "gauges", "regulatory"],
+  "required": [
+    "site",
+    "crs",
+    "elevations",
+    "apn",
+    "gauges",
+    "regulatory"
+  ],
   "properties": {
     "site": {
       "type": "object",
       "properties": {
-        "address": { "const": "13101 Bonebank Road" },
-        "township": { "const": "Point Township" },
-        "county": { "const": "Posey County" },
-        "state": { "const": "Indiana" },
-        "region": { "const": "Tri-State River Valley" },
+        "address": {
+          "const": "13101 Bonebank Road"
+        },
+        "township": {
+          "const": "Point Township"
+        },
+        "county": {
+          "const": "Posey County"
+        },
+        "state": {
+          "const": "Indiana"
+        },
+        "region": {
+          "const": "Tri-State River Valley"
+        },
         "bounding_envelope": {
           "type": "object",
           "properties": {
-            "min_lon": { "const": -88.0150 },
-            "min_lat": { "const": 37.8920 },
-            "max_lon": { "const": -87.9850 },
-            "max_lat": { "const": 37.9150 }
+            "min_lon": {
+              "const": -88.015
+            },
+            "min_lat": {
+              "const": 37.892
+            },
+            "max_lon": {
+              "const": -87.985
+            },
+            "max_lat": {
+              "const": 37.915
+            }
           }
         }
       }
@@ -79,9 +104,15 @@
       "items": {
         "type": "object",
         "properties": {
-          "usgs_id": { "type": "string" },
-          "name": { "type": "string" },
-          "role": { "type": "string" }
+          "usgs_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          }
         }
       },
       "default": [
@@ -100,7 +131,10 @@
     "noaa_gauge": {
       "nws_id": "MTVI3",
       "name": "Ohio River at Mount Vernon",
-      "coordinates": { "lat": 37.9286, "lon": -87.8956 },
+      "coordinates": {
+        "lat": 37.9286,
+        "lon": -87.8956
+      },
       "stages_ft": {
         "action": 28,
         "minor": 35,
@@ -117,7 +151,7 @@
         "new_harmony": "180210"
       },
       "flood_insurance_study": "Posey County, Indiana and Incorporated Areas",
-      "no_rise_tolerance_ft": 0.0000,
+      "no_rise_tolerance_ft": 0.0,
       "usace_guidance": "EM 1110-2-1601",
       "idnr_jurisdiction": "Best Available Floodplain Layer (BAFM) / State Floodway"
     },

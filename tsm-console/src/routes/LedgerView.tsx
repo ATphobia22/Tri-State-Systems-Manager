@@ -1,3 +1,4 @@
+import { AuthorityBadge } from '../components/AuthorityBadge';
 import { useLoaderData, Form, useNavigation } from 'react-router';
 import type { LedgerLoaderData } from '../types/loaders';
 
@@ -80,8 +81,11 @@ export default function LedgerView() {
                     <span style={{ fontSize: '0.65rem', color: '#64748b' }}>Tier {b.tier}</span>
                   </div>
                   <div style={{ fontSize: '0.85rem', color: '#e2e8f0' }}>{b.source_org}</div>
-                  <div style={{ fontSize: '0.7rem', color: '#64748b', fontFamily: 'monospace' }}>
-                    {b.sha256_hash.slice(0, 24)}…
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 4 }}>
+                    <AuthorityBadge authority_class={b.validation_status === 'pending' ? 'OBSERVATION' : 'OBSERVATION'} />
+                    <span style={{ fontSize: '0.7rem', color: '#64748b', fontFamily: 'monospace' }}>
+                      {b.sha256_hash.slice(0, 24)}…
+                    </span>
                   </div>
                 </div>
               ))

@@ -2,7 +2,7 @@
   "name": "tsm-console",
   "version": "0.2.0",
   "private": true,
-  "description": "Tri-State Systems Manager — Infinite Orchestration Console",
+  "description": "Tri-State Systems Manager \u2014 Infinite Orchestration Console",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,7 +10,8 @@
     "dev:all": "node server/token-proxy.mjs & vite",
     "build": "tsc -b --noEmit 2>/dev/null || true; vite build",
     "preview": "vite preview",
-    "proxy": "node server/token-proxy.mjs"
+    "proxy": "node server/token-proxy.mjs",
+    "ingest": "node -e \"import('./server/ingestion/workers.mjs').then(m => m.runHydrologicBatch().then(r => console.log(JSON.stringify(r,null,2))))\""
   },
   "dependencies": {
     "react": "^19.0.0",

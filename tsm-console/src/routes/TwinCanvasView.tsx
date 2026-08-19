@@ -9,6 +9,7 @@ import { OrbitControls, Sky, Grid, Text } from '@react-three/drei';
 import { useLoaderData } from 'react-router';
 import type { MapTwinLoaderData } from '../types/loaders';
 import { useMemo } from 'react';
+import { AuthorityBadge, SimulationDemoBanner } from '../components/AuthorityBadge';
 
 function Terrain({ bfe, lag, ffe, berm }: { bfe: number; lag: number; ffe: number; berm: number }) {
   // Relative heights (ft above BFE for visualization scale)
@@ -73,12 +74,14 @@ export default function TwinCanvasView() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 56px)' }}>
+      {data.stage.source === 'MOCK' && <div style={{ padding: '0.5rem 1.25rem' }}><SimulationDemoBanner /></div>}
       <div style={{ padding: '0.75rem 1.25rem', background: '#020617', borderBottom: '1px solid #1e293b', display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.8rem' }}>
         <span style={{ color: '#38bdf8', fontWeight: 700 }}>{data.site.address}</span>
         <span style={{ color: '#64748b' }}>APN {data.site.apn}</span>
         <span style={{ color: '#94a3b8' }}>
           BFE {elev.bfe_ft} · LAG {elev.lag_ft} (+{elev.clearanceAboveBfe_ft}) · FFE {elev.ffe_ft} · Berm {elev.bermCrest_ft}
         </span>
+        <AuthorityBadge authority_class={data.stage.source === 'MOCK' ? 'SIMULATION_DEMO' : 'OBSERVATION'} is_simulation_demo={data.stage.source === 'MOCK'} />
         <span style={{ color: statusColor }}>
           Stage: {data.stage.source} {data.stage.value_ft != null ? `${data.stage.value_ft} ft` : 'n/a'} ({data.stage.floodCategory})
         </span>
