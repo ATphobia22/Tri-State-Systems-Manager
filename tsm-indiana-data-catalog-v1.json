@@ -1,0 +1,136 @@
+{
+  "title": "TSM Indiana & Federal Data Catalog",
+  "version": "1.0.0",
+  "updated": "2026-08-19",
+  "principle": "Catalog surfaces sources for Human Needs / Benefit / Governance planes. No silent determinations.",
+  "sources": [
+    {
+      "id": "stats-indiana",
+      "name": "STATS Indiana",
+      "url": "https://www.stats.indiana.edu/",
+      "owner": "Indiana Business Research Center (IU Kelley)",
+      "use": "County/metro demographic and economic profiles for Human Needs Graph",
+      "status": "VERIFIED",
+      "tsm_plane": "GOVERNANCE_DECISION / PUBLIC"
+    },
+    {
+      "id": "hoosierdata",
+      "name": "Hoosiers by the Numbers (HoosierData)",
+      "url": "https://www.hoosierdata.in.gov/",
+      "owner": "Indiana DWD / STATS Indiana",
+      "use": "Labor market, employment, county workforce dashboards",
+      "status": "VERIFIED",
+      "tsm_plane": "HUMAN_NEEDS"
+    },
+    {
+      "id": "data-in-gov",
+      "name": "data.in.gov / State open data",
+      "url": "http://data.in.gov/",
+      "owner": "State of Indiana",
+      "use": "Agency open datasets index",
+      "status": "VERIFIED",
+      "tsm_plane": "EVIDENCE"
+    },
+    {
+      "id": "gisdata-in-gov",
+      "name": "gisdata.in.gov ArcGIS Enterprise",
+      "url": "https://gisdata.in.gov/",
+      "owner": "IGIO",
+      "use": "BAFM MapServer, Data Harvest FeatureServers, locators",
+      "status": "VERIFIED",
+      "endpoints": {
+        "bafm_mapserver": "https://gisdata.in.gov/server/rest/services/Best_Available_Flood_Hazard_Layer/MapServer",
+        "parcels_2025": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer",
+        "roads_2025": "https://gisdata.in.gov/server/rest/services/Hosted/Road_Centerlines_of_Indiana_2025/FeatureServer"
+      }
+    },
+    {
+      "id": "fema-nfhl",
+      "name": "FEMA NFHL MapServer",
+      "url": "https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer",
+      "status": "VERIFIED",
+      "note": "Insurance/effective SFHA; separate from Indiana BAFM"
+    },
+    {
+      "id": "infip",
+      "name": "Indiana Floodplain Information Portal",
+      "url": "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/indiana-floodplain-information-portal",
+      "status": "VERIFIED",
+      "use": "FARA generation; BFE display; human permitting support"
+    },
+    {
+      "id": "nass-indiana",
+      "name": "USDA NASS Indiana Agriculture Overview",
+      "url": "https://www.nass.usda.gov/Quick_Stats/Ag_Overview/stateOverview.php?state=INDIANA",
+      "status": "VERIFIED",
+      "snapshot_2025": {
+        "farms": 51500,
+        "acres_operated": 14500000,
+        "hogs_inventory": 4450000,
+        "corn_grain_production_bu": 1066920000,
+        "soybeans_production_bu": 323085000
+      },
+      "tsm_plane": "COMMUNITY_BENEFIT / AGRICULTURE CONTEXT"
+    },
+    {
+      "id": "isda",
+      "name": "Indiana State Department of Agriculture",
+      "url": "https://www.in.gov/isda/",
+      "status": "VERIFIED",
+      "use": "State ag policy and programs context"
+    },
+    {
+      "id": "in-doe",
+      "name": "Indiana Department of Education",
+      "url": "https://www.in.gov/doe/",
+      "related": ["https://indianagps.doe.in.gov/"],
+      "status": "VERIFIED",
+      "use": "Education indicators for Human Needs Graph"
+    },
+    {
+      "id": "fssa-data",
+      "name": "FSSA Data and Analytics",
+      "url": "https://www.in.gov/fssa/fssa-data-and-analytics/",
+      "status": "VERIFIED",
+      "use": "Health & human services indicators (careful with PHI — never store individual PHI in TSM public plane)"
+    },
+    {
+      "id": "mph-hub",
+      "name": "MPH Hub (inmap dashboards)",
+      "url": "https://hub.mph.in.gov/",
+      "related": ["https://inmap.maps.arcgis.com/"],
+      "status": "VERIFIED",
+      "use": "Public health mapping context"
+    },
+    {
+      "id": "indiana-data-tracker",
+      "name": "Indiana Data Tracker",
+      "url": "https://indianadatatracker.org/",
+      "browse": "https://indianadatatracker.org/browse-datasets/",
+      "status": "VERIFIED",
+      "use": "Cross-agency dataset discovery"
+    },
+    {
+      "id": "ihie",
+      "name": "Indiana Health Information Exchange",
+      "url": "https://www.ihie.org/",
+      "status": "VERIFIED",
+      "use": "Clinical exchange context only — out of scope for public TSM evidence without BAA/governance"
+    },
+    {
+      "id": "tmf-fit",
+      "name": "Federal Technology Modernization Fund — Agency & project fit",
+      "url": "https://tmf.cio.gov/fit/",
+      "status": "VERIFIED",
+      "note": "Federal agencies only (5 USC 551). Not a direct funding path for state/local TSM build, but informs federal partner modernization patterns (permitting tech, AI adoption 2026 call).",
+      "tsm_plane": "GOVERNANCE reference"
+    },
+    {
+      "id": "hec-ras",
+      "name": "HEC-RAS (USACE HEC)",
+      "url": "https://www.hec.usace.army.mil/software/hec-ras/",
+      "status": "VERIFIED",
+      "use": "2D hydraulics Scientific Plane; terrain from IGIO DEM; outputs MODEL_OUTPUT artifacts"
+    }
+  ]
+}

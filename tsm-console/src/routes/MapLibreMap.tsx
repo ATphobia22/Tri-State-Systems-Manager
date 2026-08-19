@@ -11,6 +11,7 @@ import type { MapTwinLoaderData } from '../types/loaders';
 import { SITE } from '../types/site';
 import { AuthorityBadge, SimulationDemoBanner } from '../components/AuthorityBadge';
 import { JURISDICTION_RULES, assessClearanceSupport, type JurisdictionId } from '../lib/jurisdiction-rules';
+import { MAP_LAYERS } from '../lib/map-layers';
 
 const CENTER: [number, number] = [
   (SITE.boundingEnvelope.minLon + SITE.boundingEnvelope.maxLon) / 2,
@@ -277,6 +278,16 @@ export default function MapLibreMap() {
             {assessment.code}: {assessment.finding}
           </div>
         </div>
+      </div>
+
+      <div style={{ padding: '0.5rem 1rem', background: '#020617', borderTop: '1px solid #1e293b', fontSize: '0.7rem', color: '#94a3b8' }}>
+        <strong style={{ color: '#64748b' }}>LAYER CATALOG (add via MapServer export / future vector tiles): </strong>
+        {MAP_LAYERS.filter((l) => l.id !== 'osm-base').map((l) => (
+          <span key={l.id} style={{ marginRight: 10 }}>
+            {l.title} [{l.authority_class}]
+          </span>
+        ))}
+        · FEMA NFHL and Indiana BAFM must both remain available and never collapsed.
       </div>
     </div>
   );

@@ -322,6 +322,43 @@
         "name": "Parcel Boundaries of Indiana 2025 (IGIO Data Harvest)",
         "status": "VERIFIED",
         "feature_server": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer"
+      },
+      {
+        "id": "bafm-mapserver",
+        "name": "Best Available Flood Hazard Layer MapServer",
+        "url": "https://gisdata.in.gov/server/rest/services/Best_Available_Flood_Hazard_Layer/MapServer",
+        "status": "VERIFIED"
+      },
+      {
+        "id": "fema-nfhl-mapserver",
+        "name": "FEMA NFHL public MapServer",
+        "url": "https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer",
+        "status": "VERIFIED"
+      },
+      {
+        "id": "stats-indiana",
+        "name": "STATS Indiana",
+        "url": "https://www.stats.indiana.edu/",
+        "status": "VERIFIED"
+      },
+      {
+        "id": "hoosierdata",
+        "name": "Hoosiers by the Numbers",
+        "url": "https://www.hoosierdata.in.gov/",
+        "status": "VERIFIED"
+      },
+      {
+        "id": "nass-in-ag",
+        "name": "USDA NASS Indiana Ag Overview",
+        "url": "https://www.nass.usda.gov/Quick_Stats/Ag_Overview/stateOverview.php?state=INDIANA",
+        "status": "VERIFIED"
+      },
+      {
+        "id": "tmf-fit",
+        "name": "Federal TMF Agency Fit",
+        "url": "https://tmf.cio.gov/fit/",
+        "status": "VERIFIED",
+        "note": "Federal agencies only"
       }
     ],
     "provisional": [
