@@ -16,6 +16,7 @@ import BenefitView from '../routes/BenefitView';
 import LineageView from '../routes/LineageView';
 import SandboxView from '../routes/SandboxView';
 import TwinCanvasView from '../routes/TwinCanvasView';
+import MapLibreEocView from '../routes/MapLibreEocView';
 import type {
   RootLoaderData,
   CharterLoaderData,
@@ -306,7 +307,7 @@ export const router = createBrowserRouter([
       { path: 'lineage', loader: lineageLoader, action: lineageAction, element: <LineageView /> },
       { path: 'sandbox', loader: sandboxLoader, action: sandboxAction, element: <SandboxView /> },
       { path: 'benefit', loader: benefitLoader, action: benefitAction, element: <BenefitView /> },
-      { path: 'map', loader: mapTwinLoader, element: <MapTwinView /> },
+      { path: 'map', loader: mapTwinLoader, element: <MapLibreEocView /> },
       { path: 'twin', loader: mapTwinLoader, element: <TwinCanvasView /> },
       { path: 'login', element: <Placeholder title="Login" /> },
     ],
