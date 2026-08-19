@@ -83,7 +83,9 @@
       "id": "in-doe",
       "name": "Indiana Department of Education",
       "url": "https://www.in.gov/doe/",
-      "related": ["https://indianagps.doe.in.gov/"],
+      "related": [
+        "https://indianagps.doe.in.gov/"
+      ],
       "status": "VERIFIED",
       "use": "Education indicators for Human Needs Graph"
     },
@@ -92,13 +94,15 @@
       "name": "FSSA Data and Analytics",
       "url": "https://www.in.gov/fssa/fssa-data-and-analytics/",
       "status": "VERIFIED",
-      "use": "Health & human services indicators (careful with PHI — never store individual PHI in TSM public plane)"
+      "use": "Health & human services indicators (careful with PHI \u2014 never store individual PHI in TSM public plane)"
     },
     {
       "id": "mph-hub",
       "name": "MPH Hub (inmap dashboards)",
       "url": "https://hub.mph.in.gov/",
-      "related": ["https://inmap.maps.arcgis.com/"],
+      "related": [
+        "https://inmap.maps.arcgis.com/"
+      ],
       "status": "VERIFIED",
       "use": "Public health mapping context"
     },
@@ -115,11 +119,11 @@
       "name": "Indiana Health Information Exchange",
       "url": "https://www.ihie.org/",
       "status": "VERIFIED",
-      "use": "Clinical exchange context only — out of scope for public TSM evidence without BAA/governance"
+      "use": "Clinical exchange context only \u2014 out of scope for public TSM evidence without BAA/governance"
     },
     {
       "id": "tmf-fit",
-      "name": "Federal Technology Modernization Fund — Agency & project fit",
+      "name": "Federal Technology Modernization Fund \u2014 Agency & project fit",
       "url": "https://tmf.cio.gov/fit/",
       "status": "VERIFIED",
       "note": "Federal agencies only (5 USC 551). Not a direct funding path for state/local TSM build, but informs federal partner modernization patterns (permitting tech, AI adoption 2026 call).",
@@ -131,6 +135,50 @@
       "url": "https://www.hec.usace.army.mil/software/hec-ras/",
       "status": "VERIFIED",
       "use": "2D hydraulics Scientific Plane; terrain from IGIO DEM; outputs MODEL_OUTPUT artifacts"
+    },
+    {
+      "id": "igio-portal",
+      "name": "Indiana GIO",
+      "url": "https://www.in.gov/gis/",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "indot",
+      "name": "INDOT",
+      "url": "https://www.in.gov/indot/",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "511in",
+      "name": "Indiana 511",
+      "url": "https://511in.org/",
+      "status": "VERIFIED",
+      "use": "Traveler / ESF-1 situational awareness"
+    },
+    {
+      "id": "igws",
+      "name": "Indiana Geological and Water Survey",
+      "url": "https://igws.iu.edu/",
+      "data": "https://data.igws.indiana.edu/",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "forms-in-gov",
+      "name": "forms.in.gov Agency List",
+      "url": "https://forms.in.gov/Agencylist.aspx",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "fema-esf",
+      "name": "FEMA ESF Response Framework",
+      "url": "https://www.fema.gov/emergency-managers/national-preparedness/frameworks/response",
+      "status": "VERIFIED"
+    },
+    {
+      "id": "harvest-current-addresses",
+      "name": "Address Points Current",
+      "url": "https://gisdata.in.gov/server/rest/services/Hosted/Address_Points_of_Indiana_Current/FeatureServer",
+      "status": "VERIFIED"
     }
   ]
 }
