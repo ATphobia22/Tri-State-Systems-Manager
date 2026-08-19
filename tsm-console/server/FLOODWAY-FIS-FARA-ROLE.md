@@ -67,3 +67,18 @@ Most other listed repos are large upstream mirrors/forks (node, jdk, ffmpeg, cad
 1. From `TuckerInc.82-`: reuse CONTRIBUTING / SECURITY / charter stewardship wording where it matches Memorial Charter
 2. From `ansible-aws-vpc-ha-wordpress`: reference as IaC option for production VPC when deploying token-proxy + evidence store — keep out of Scientific Plane
 
+
+
+## 5. Additional GitHub repos scanned (tooling only)
+
+All of the following are **forks** under ATphobia22 — not TSM source of truth:
+
+| Repo | Optional use |
+|------|----------------|
+| langfuse | LLM observability if TSM later adds governed AI assistants |
+| pgadmin4 | Admin UI pattern for PostgreSQL evidence store |
+| cpp-httplib | Lightweight C++ HTTP if native edge services appear |
+| FlyEnv / envkit-releases | Local dev environment convenience |
+| anybuild / prism32 | Generic build/assistant experiments — out of TSM scope |
+
+Do **not** vendor these into the Scientific or Evidence planes. Prefer official upstream packages as dependencies when needed.
