@@ -1,17 +1,16 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://tuckerinc82.org/schemas/authority-registry/v35.json",
-  "title": "TSM / PTDT Authority Registry — v35 Authoritative Resync (PARTIAL)",
+  "title": "TSM / PTDT Authority Registry \u2014 v35 Authoritative Resync (PARTIAL)",
   "description": "Executable authority matrix after independent verification of PTDT v35 resync audit. Status: AUTHORITATIVE_RESYNC_PARTIAL / REQUIRES_ENDPOINT_VALIDATION. SHA-256 proves integrity, not scientific truth or FRE 702 admissibility.",
   "version": "35.0.0",
   "resync_status": "AUTHORITATIVE_RESYNC_PARTIAL",
   "resync_date": "2026-08-19",
   "human_oversight_required": true,
-
   "critical_corrections": [
     {
       "id": "usgs-03322000",
-      "finding": "03322000 is Ohio River at Evansville, IN — NOT Uniontown KY / John T. Myers Locks & Dam",
+      "finding": "03322000 is Ohio River at Evansville, IN \u2014 NOT Uniontown KY / John T. Myers Locks & Dam",
       "action": "RENAME_METADATA",
       "verified": true,
       "sources": [
@@ -51,7 +50,6 @@
       "verified": false
     }
   ],
-
   "hydrologic_nodes": [
     {
       "node_id": "wabash-new-harmony",
@@ -60,8 +58,14 @@
       "county": "Posey",
       "state": "IN",
       "role": "PRIMARY_WABASH_OBSERVATION",
-      "parameters": ["00065", "00060"],
-      "parameter_names": ["Gage height, ft", "Discharge, cfs"],
+      "parameters": [
+        "00065",
+        "00060"
+      ],
+      "parameter_names": [
+        "Gage height, ft",
+        "Discharge, cfs"
+      ],
       "provisional": true,
       "authority_class": "OBSERVATION",
       "nwis_url": "https://waterdata.usgs.gov/monitoring-location/USGS-03378500/",
@@ -74,8 +78,12 @@
       "county": "Vanderburgh",
       "state": "IN",
       "role": "PRIMARY_OHIO_REGIONAL_OBSERVATION",
-      "parameters": ["00065"],
-      "parameter_names": ["Gage height, ft"],
+      "parameters": [
+        "00065"
+      ],
+      "parameter_names": [
+        "Gage height, ft"
+      ],
       "provisional": true,
       "authority_class": "OBSERVATION",
       "corrected_from": "Incorrectly labeled as Ohio River at Uniontown KY / John T. Myers",
@@ -97,7 +105,10 @@
       "county": "Posey",
       "state": "IN",
       "role": "PRIMARY_SITE_FORECAST_AND_STAGE",
-      "coordinates": { "lat": 37.9286, "lon": -87.8956 },
+      "coordinates": {
+        "lat": 37.9286,
+        "lon": -87.8956
+      },
       "authority_class": "FORECAST_AND_OBSERVATION",
       "nwps_url": "https://water.noaa.gov/gauges/mtvi3",
       "nwps_api_path": "/v1/gauges/MTVI3",
@@ -111,12 +122,11 @@
       "flood_impact_note": "45 ft: Large portions of Point Township in Posey County are flooded."
     }
   ],
-
   "hydrologic_architecture": {
     "description": "Observation vs prediction separation is mandatory.",
     "flow": [
-      "USGS observations → Observation Evidence Bus",
-      "NOAA NWPS forecasts + NOAA NWS weather → parallel inputs",
+      "USGS observations \u2192 Observation Evidence Bus",
+      "NOAA NWPS forecasts + NOAA NWS weather \u2192 parallel inputs",
       "Hydrologic Fusion Layer (provenance + uncertainty)",
       "Evidence Ledger (SHA-256 sealed)",
       "Human review gate",
@@ -124,7 +134,6 @@
     ],
     "rule": "Never treat forecast stage as equivalent to observed gage height in regulatory or LOMA workflows."
   },
-
   "floodplain_authority_hierarchy": {
     "layers": [
       {
@@ -136,7 +145,7 @@
       {
         "id": "indiana-bafm",
         "name": "Indiana DNR Best Available Floodplain Layer (BAFM/BAFL)",
-        "authority": "State — more stream miles than NFHL; includes BFE and floodway",
+        "authority": "State \u2014 more stream miles than NFHL; includes BFE and floodway",
         "portal": "INFIP",
         "fara": true,
         "efara": true,
@@ -155,13 +164,12 @@
       {
         "id": "usgs-3dep-hydro",
         "name": "USGS 3DEP terrain + hydrology context",
-        "authority": "Elevation / supporting analysis — not a floodplain determination by itself",
+        "authority": "Elevation / supporting analysis \u2014 not a floodplain determination by itself",
         "do_not_collapse": true
       }
     ],
     "composition": "Regulatory Evidence Graph = FEMA NFHL + Indiana BAFM + FARA/eFARA + USGS terrain/hydro (each retained as distinct authority nodes)"
   },
-
   "data_sources": {
     "verified_authoritative": [
       {
@@ -187,9 +195,9 @@
       {
         "id": "indiana-gio-imagery",
         "name": "Indiana GIO current orthophotography",
-        "use": "4-band (RGB+NIR) 2022–2025; CIR and NDVI raster functions",
+        "use": "4-band (RGB+NIR) 2022\u20132025; CIR and NDVI raster functions",
         "status": "VERIFIED",
-        "gpu_pipeline": "Ingest tiles → preserve band metadata + CRS + acquisition epoch → SHA-256 manifest → GPU buffer → derived NDVI (derived product only)"
+        "gpu_pipeline": "Ingest tiles \u2192 preserve band metadata + CRS + acquisition epoch \u2192 SHA-256 manifest \u2192 GPU buffer \u2192 derived NDVI (derived product only)"
       },
       {
         "id": "indiana-dnr-infip-bafm",
@@ -230,6 +238,30 @@
         "use": "Active federal funding pathway for rural essential facilities",
         "status": "VERIFIED",
         "note": "Verify Indiana-specific eligibility at application time"
+      },
+      {
+        "id": "indiana-elevation-catalog",
+        "name": "Indiana Statewide Elevation Catalog (IGIO / AWS)",
+        "use": "LiDAR LAS 2011-2013 and 2016-2020; 2025-2028 cycle; DEM/terrain",
+        "status": "VERIFIED",
+        "s3": "s3://giselevationingov",
+        "arn": "arn:aws:s3:::giselevationingov",
+        "region": "us-east-2",
+        "license": "CC0",
+        "docs": "https://elevation.gio.in.gov/",
+        "contact": "sscholer@iot.in.gov"
+      },
+      {
+        "id": "ifa-flood-control",
+        "name": "IFA Flood Control Revolving Fund",
+        "use": "State-only flood mitigation loans (IC 5-1.2-13); not EPA-funded",
+        "status": "VERIFIED",
+        "url": "https://www.in.gov/ifa/srf/flood-control",
+        "contact": "cmeiners@ifa.in.gov",
+        "loan_min_usd": 100000,
+        "loan_max_usd": 250000,
+        "interest_1_to_5_yr_pct": 2.0,
+        "interest_5_to_10_yr_pct": 2.5
       }
     ],
     "provisional": [
@@ -241,12 +273,10 @@
       }
     ],
     "needs_endpoint_validation": [
-      "Exact Indiana elevation service URL/REST layer",
       "Exact FEMA NFHL service layer per regulatory query",
       "Exact NWPS gauge identifier mapping for each PTDT hydrologic node beyond MTVI3 / 03322000 / 03378500"
     ]
   },
-
   "grant_state_machine": [
     "DISCOVERED",
     "ELIGIBILITY_REVIEW",
@@ -257,7 +287,6 @@
     "NOT_AWARDED",
     "HISTORICAL"
   ],
-
   "evidence_record_minimum_fields": [
     "artifact_id",
     "source_authority",
@@ -279,9 +308,7 @@
     "supersedes",
     "superseded_by"
   ],
-
   "evidence_integrity_rule": "SHA-256 proves artifact integrity only. It does not prove scientific truth, legal admissibility, or FRE 702 compliance. Human review status is required before any regulatory or decision-support use.",
-
   "pipeline": [
     "Authority Registry",
     "Endpoint Discovery",
@@ -296,7 +323,6 @@
     "Human Governance Gate",
     "Public Visualization"
   ],
-
   "site_anchor": {
     "address": "13101 Bonebank Road",
     "township": "Point Township",
