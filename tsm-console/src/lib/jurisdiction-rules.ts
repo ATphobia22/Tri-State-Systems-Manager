@@ -134,3 +134,19 @@ export const DNR_FLOODPLAIN_RESOURCES = {
   model_library: 'Indiana Hydrology and Hydraulics Model Library (FIS, floodway, FARA models)',
   flood_control_act: 'IC 14-28-1',
 };
+
+
+/** Explicit TSM boundary on FARA */
+export const TSM_FARA_ROLE = {
+  may: [
+    'Deep-link INFIP',
+    'Store user-provided FARA PDF as EvidenceArtifact',
+    'Display FARA trigger conditions as guidance',
+  ],
+  must_not: [
+    'Generate FARA',
+    'Approve floodway permits',
+    'Issue No-Rise certification',
+    'Substitute for DNR ESC or local floodplain administrator',
+  ],
+} as const;
