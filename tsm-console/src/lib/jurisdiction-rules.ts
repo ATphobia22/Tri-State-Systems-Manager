@@ -150,3 +150,14 @@ export const TSM_FARA_ROLE = {
     'Substitute for DNR ESC or local floodplain administrator',
   ],
 } as const;
+
+
+/** Indiana cumulative surcharge policy citations */
+export const INDIANA_CUMULATIVE_SURCHARGE = {
+  dnr_policy_ft: 0.14,
+  iac_adverse_threshold_ft: 0.15,
+  iac_citation: '312 IAC 10-2-3',
+  fema_floodway_development: '0.00 ft No-Rise or CLOMR/LOMR (44 CFR 60.3(d)(3) practice)',
+  cumulative_means: 'proposed + existing + anticipated development',
+  human_gate: true as const,
+} as const;
