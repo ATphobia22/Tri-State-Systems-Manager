@@ -262,6 +262,66 @@
         "loan_max_usd": 250000,
         "interest_1_to_5_yr_pct": 2.0,
         "interest_5_to_10_yr_pct": 2.5
+      },
+      {
+        "id": "igio-s3-elevation-structure",
+        "name": "IGIO S3 Elevation Structure",
+        "status": "VERIFIED",
+        "bucket": "giselevationingov",
+        "prefixes": [
+          "las/statewide/2011-2020",
+          "copc/",
+          "mosaic/dem/",
+          "dsmoptimized/",
+          "ndhmoptimized/",
+          "metadata/"
+        ],
+        "docs": "https://elevation.gio.in.gov/"
+      },
+      {
+        "id": "infip-bafm",
+        "name": "INFIP / Best Available Floodplain Mapping",
+        "status": "VERIFIED",
+        "url": "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/indiana-floodplain-information-portal",
+        "bafm": "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/the-indiana-best-available-floodplain-mapping/",
+        "note": "Do not collapse FEMA NFHL with BAFM; FARA for Zone A / unmapped / DA>1 sq mi"
+      },
+      {
+        "id": "posey-firm-2014",
+        "name": "Posey County FIS/FIRM",
+        "status": "VERIFIED",
+        "effective": "2014-11-05",
+        "note": "SFHA per Posey flood ordinance; check FEMA MSC for later revisions"
+      },
+      {
+        "id": "lare-dnr",
+        "name": "LARE Lake and River Enhancement",
+        "status": "VERIFIED",
+        "url": "https://www.in.gov/dnr/fishwild/2364.htm",
+        "application_window_note": "Typically due January 15",
+        "cost_share_sponsor_min_pct": 20
+      },
+      {
+        "id": "usace-cap-204",
+        "name": "USACE CAP Section 204 Beneficial Use of Dredged Material",
+        "status": "VERIFIED",
+        "authority": "WRDA 1992 \u00a7204",
+        "feasibility_cost": "100% federal",
+        "construction_cost_share": "65% federal / 35% sponsor (typical)",
+        "note": "Requires nexus to federal navigation dredging; not for mitigation requirements"
+      },
+      {
+        "id": "hec-hms-terrain",
+        "name": "HEC-HMS Terrain Data Guides",
+        "status": "VERIFIED",
+        "url": "https://www.hec.usace.army.mil/confluence/hmsdocs/hmsguides/gis-tools-and-terrain-data",
+        "use": "Prepare DEM from IGIO elevation for Scientific Simulation Plane"
+      },
+      {
+        "id": "parcel-boundaries-in-2025",
+        "name": "Parcel Boundaries of Indiana 2025 (IGIO Data Harvest)",
+        "status": "VERIFIED",
+        "feature_server": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer"
       }
     ],
     "provisional": [
