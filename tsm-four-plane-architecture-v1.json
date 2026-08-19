@@ -1,0 +1,94 @@
+{
+  "title": "TSM Four-Plane Architecture",
+  "version": "1.0.0",
+  "decision": "FULL_STACK",
+  "decision_rationale": "Repository becomes the complete Tri-State Systems Manager including ingestion workers, evidence ledger, APIs, and public client. Current React console is the first operational client — not the source of scientific truth.",
+  "approved": "2026-08-19",
+  "planes": [
+    {
+      "id": "EVIDENCE_DATA_GOVERNANCE",
+      "name": "Evidence & Data Governance Plane",
+      "owns": [
+        "USGS NWIS / NOAA NWPS ingestion",
+        "Indiana GIO / 3DEP imagery and elevation",
+        "FEMA NFHL / INFIP / cadastral sources",
+        "immutable source snapshots",
+        "SHA-256 content addressing",
+        "provenance manifests",
+        "validation and freshness states",
+        "fail-closed ingestion"
+      ],
+      "authoritative": true,
+      "client_may_own": false
+    },
+    {
+      "id": "SCIENTIFIC_SIMULATION",
+      "name": "Scientific & Simulation Plane",
+      "owns": [
+        "versioned model inputs",
+        "explicit uncertainty propagation",
+        "HAZUS/BCA as traceable model adapters",
+        "explicit CRS/datum transformations",
+        "derived geometry tagged DERIVED not AUTHORITATIVE"
+      ],
+      "authoritative": false,
+      "client_may_own": false
+    },
+    {
+      "id": "GOVERNANCE_DECISION",
+      "name": "Governance & Decision Plane",
+      "owns": [
+        "IN/IL/KY jurisdiction profiles",
+        "federal overlays",
+        "versioned machine-readable policies",
+        "human approval gates",
+        "AI governance and model cards",
+        "evidence ledger adjudication",
+        "public accountability/audit trail"
+      ],
+      "rules": [
+        "No AI-generated result silently becomes a regulatory determination",
+        "FRE 702 is an evidentiary framework — not a claim that a hash makes evidence admissible",
+        "BCA ratios and HAZUS losses require source/version/assumptions provenance"
+      ],
+      "authoritative": true,
+      "client_may_own": false
+    },
+    {
+      "id": "PUBLIC_EXPERIENCE_VISUALIZATION",
+      "name": "Public Experience / Visualization Plane",
+      "owns": [
+        "MapLibre / WebGPU / R3F clients",
+        "2D/3D terrain and cross sections",
+        "telemetry displays",
+        "accessibility-first interfaces",
+        "low-bandwidth/public mode",
+        "downloadable evidence packages",
+        "source provenance visible in UI"
+      ],
+      "authoritative": false,
+      "client_may_own": true,
+      "note": "Current tsm-console lives here"
+    }
+  ],
+  "critical_prototype_corrections": [
+    "Math.random forbidden for evidence IDs/hashes — use crypto",
+    "Displayed 0x... values must be real SHA-256 hex (64 chars) or labeled non-hash",
+    "Client-side state is cache/demo only — not immutable ledger",
+    "Hard-coded sensor values labeled SIMULATION_DEMO",
+    "USGS/NOAA/GIO claims require actual endpoint ingestion",
+    "EPSG:2966 and NAVD88 are separate: horizontal CRS vs vertical datum",
+    "Jurisdiction rules need authoritative-source verification before compliance logic",
+    "Water-stage slider is visualization control — not engineering prediction",
+    "HAZUS/BCA hard-coded numbers require provenance or demo label",
+    "Frontend never owns authoritative regulatory/evidence state"
+  ],
+  "distinction_chain": [
+    "AUTHORITY",
+    "OBSERVATION",
+    "DERIVATION",
+    "MODEL",
+    "INFERENCE",
+    "VISUALIZATION"
+  ]
+}

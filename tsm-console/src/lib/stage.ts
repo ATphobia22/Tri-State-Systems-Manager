@@ -1,8 +1,9 @@
 /**
  * Live NOAA / USGS stage fetch with graceful fallback
- * Primary: NOAA water.weather.gov / water.noaa.gov for MTVI3
- * Fallback: USGS NWIS instantaneous values
+ * MOCK results are SIMULATION_DEMO — not engineering predictions.
+ * Observed vs forecast must never be collapsed.
  */
+
 
 import { SITE } from '../types/site';
 import type { MapTwinLoaderData } from '../types/loaders';
@@ -44,27 +45,28 @@ export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
     // fall through
   }
 
-  // USGS NWIS instantaneous (03378500 Wabash at New Harmony as regional proxy)
-  try {
-    const usgsId = '03378500';
-    const url = `https://waterservices.usgs.gov/nwis/iv/?format=json&sites=${usgsId}&parameterCd=00065&siteStatus=all`;
-    const res = await fetch(url, { signal: AbortSignal.timeout(4000) });
-    if (res.ok) {
-      const json = await res.json();
-      const v = json?.value?.timeSeries?.[0]?.values?.[0]?.value?.[0];
-      const value = v ? parseFloat(v.value) : NaN;
-      if (!Number.isNaN(value)) {
-        return {
-          source: 'USGS',
-          gaugeId: usgsId,
-          value_ft: value,
-          timestamp: v.dateTime || new Date().toISOString(),
-          floodCategory: categorize(value),
-        };
+  // USGS NWIS instantaneous — 03378500 Wabash New Harmony, then 03322000 Ohio Evansville (corrected)
+  for (const usgsId of ['03378500', '03322000'] as const) {
+    try {
+      const url = `https://waterservices.usgs.gov/nwis/iv/?format=json&sites=${usgsId}&parameterCd=00065&siteStatus=all`;
+      const res = await fetch(url, { signal: AbortSignal.timeout(4000) });
+      if (res.ok) {
+        const json = await res.json();
+        const v = json?.value?.timeSeries?.[0]?.values?.[0]?.value?.[0];
+        const value = v ? parseFloat(v.value) : NaN;
+        if (!Number.isNaN(value)) {
+          return {
+            source: 'USGS',
+            gaugeId: usgsId,
+            value_ft: value,
+            timestamp: v.dateTime || new Date().toISOString(),
+            floodCategory: categorize(value),
+          };
+        }
       }
+    } catch {
+      // try next
     }
-  } catch {
-    // fall through
   }
 
   return {
@@ -73,5 +75,6 @@ export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
     value_ft: null,
     timestamp: null,
     floodCategory: 'unknown',
+    // SIMULATION_DEMO — not live telemetry
   };
 }

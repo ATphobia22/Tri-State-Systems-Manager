@@ -1,0 +1,313 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tuckerinc82.org/schemas/authority-registry/v35.json",
+  "title": "TSM / PTDT Authority Registry — v35 Authoritative Resync (PARTIAL)",
+  "description": "Executable authority matrix after independent verification of PTDT v35 resync audit. Status: AUTHORITATIVE_RESYNC_PARTIAL / REQUIRES_ENDPOINT_VALIDATION. SHA-256 proves integrity, not scientific truth or FRE 702 admissibility.",
+  "version": "35.0.0",
+  "resync_status": "AUTHORITATIVE_RESYNC_PARTIAL",
+  "resync_date": "2026-08-19",
+  "human_oversight_required": true,
+
+  "critical_corrections": [
+    {
+      "id": "usgs-03322000",
+      "finding": "03322000 is Ohio River at Evansville, IN — NOT Uniontown KY / John T. Myers Locks & Dam",
+      "action": "RENAME_METADATA",
+      "verified": true,
+      "sources": [
+        "https://waterdata.usgs.gov/monitoring-location/USGS-03322000/",
+        "https://water.noaa.gov/gauges/03322000"
+      ]
+    },
+    {
+      "id": "usgs-03378500",
+      "finding": "03378500 is Wabash River at New Harmony, IN (Posey County). Gage height 00065, discharge 00060. Provisional real-time.",
+      "action": "KEEP",
+      "verified": true,
+      "sources": [
+        "https://waterdata.usgs.gov/monitoring-location/USGS-03378500/"
+      ]
+    },
+    {
+      "id": "noaa-nwps",
+      "finding": "Authoritative hydrologic prediction API is National Water Prediction Service (NWPS) API",
+      "action": "ADD_FORECAST_LAYER",
+      "verified": true,
+      "api_docs": "https://api.water.noaa.gov/nwps/v1/docs/"
+    },
+    {
+      "id": "epa-brownfields-fy2026",
+      "finding": "FY2026 competition closed 2026-01-28. FY2027 Assessment/RLF/Cleanup anticipated fall 2026.",
+      "action": "MOVE_FY2026_TO_HISTORICAL_TRACK_FY2027",
+      "verified": true,
+      "sources": [
+        "https://www.epa.gov/brownfields/marc-grant-application-resources"
+      ]
+    },
+    {
+      "id": "xsoft-posey",
+      "finding": "Endpoint not independently retrieved; must not be marked verified.",
+      "action": "PROVISIONAL",
+      "verified": false
+    }
+  ],
+
+  "hydrologic_nodes": [
+    {
+      "node_id": "wabash-new-harmony",
+      "usgs_id": "03378500",
+      "name": "Wabash River at New Harmony, IN",
+      "county": "Posey",
+      "state": "IN",
+      "role": "PRIMARY_WABASH_OBSERVATION",
+      "parameters": ["00065", "00060"],
+      "parameter_names": ["Gage height, ft", "Discharge, cfs"],
+      "provisional": true,
+      "authority_class": "OBSERVATION",
+      "nwis_url": "https://waterdata.usgs.gov/monitoring-location/USGS-03378500/",
+      "iv_url_template": "https://waterservices.usgs.gov/nwis/iv/?format=json&sites=03378500&parameterCd=00065,00060"
+    },
+    {
+      "node_id": "ohio-evansville",
+      "usgs_id": "03322000",
+      "name": "Ohio River at Evansville, IN",
+      "county": "Vanderburgh",
+      "state": "IN",
+      "role": "PRIMARY_OHIO_REGIONAL_OBSERVATION",
+      "parameters": ["00065"],
+      "parameter_names": ["Gage height, ft"],
+      "provisional": true,
+      "authority_class": "OBSERVATION",
+      "corrected_from": "Incorrectly labeled as Ohio River at Uniontown KY / John T. Myers",
+      "nwis_url": "https://waterdata.usgs.gov/monitoring-location/USGS-03322000/",
+      "nwps_gauge": "03322000",
+      "flood_categories_ft": {
+        "action": 24,
+        "minor": 42,
+        "moderate": 48,
+        "major": 52,
+        "record": 53.75,
+        "record_date": "1937-01-31"
+      }
+    },
+    {
+      "node_id": "ohio-mount-vernon",
+      "nws_id": "MTVI3",
+      "name": "Ohio River at Mount Vernon",
+      "county": "Posey",
+      "state": "IN",
+      "role": "PRIMARY_SITE_FORECAST_AND_STAGE",
+      "coordinates": { "lat": 37.9286, "lon": -87.8956 },
+      "authority_class": "FORECAST_AND_OBSERVATION",
+      "nwps_url": "https://water.noaa.gov/gauges/mtvi3",
+      "nwps_api_path": "/v1/gauges/MTVI3",
+      "flood_categories_ft": {
+        "action": 28,
+        "minor": 35,
+        "moderate": 45,
+        "major": 52,
+        "record": 59.21
+      },
+      "flood_impact_note": "45 ft: Large portions of Point Township in Posey County are flooded."
+    }
+  ],
+
+  "hydrologic_architecture": {
+    "description": "Observation vs prediction separation is mandatory.",
+    "flow": [
+      "USGS observations → Observation Evidence Bus",
+      "NOAA NWPS forecasts + NOAA NWS weather → parallel inputs",
+      "Hydrologic Fusion Layer (provenance + uncertainty)",
+      "Evidence Ledger (SHA-256 sealed)",
+      "Human review gate",
+      "Digital Twin visualization (derived only)"
+    ],
+    "rule": "Never treat forecast stage as equivalent to observed gage height in regulatory or LOMA workflows."
+  },
+
+  "floodplain_authority_hierarchy": {
+    "layers": [
+      {
+        "id": "fema-nfhl",
+        "name": "FEMA National Flood Hazard Layer",
+        "authority": "Federal regulatory FIRM/FIS",
+        "do_not_collapse": true
+      },
+      {
+        "id": "indiana-bafm",
+        "name": "Indiana DNR Best Available Floodplain Layer (BAFM/BAFL)",
+        "authority": "State — more stream miles than NFHL; includes BFE and floodway",
+        "portal": "INFIP",
+        "fara": true,
+        "efara": true,
+        "do_not_collapse": true,
+        "sources": [
+          "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/the-indiana-best-available-floodplain-mapping/",
+          "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/indiana-floodplain-information-portal"
+        ]
+      },
+      {
+        "id": "fara-efara",
+        "name": "FARA / eFARA",
+        "authority": "Site-specific regulatory assessment for permitting and LOMA support",
+        "do_not_collapse": true
+      },
+      {
+        "id": "usgs-3dep-hydro",
+        "name": "USGS 3DEP terrain + hydrology context",
+        "authority": "Elevation / supporting analysis — not a floodplain determination by itself",
+        "do_not_collapse": true
+      }
+    ],
+    "composition": "Regulatory Evidence Graph = FEMA NFHL + Indiana BAFM + FARA/eFARA + USGS terrain/hydro (each retained as distinct authority nodes)"
+  },
+
+  "data_sources": {
+    "verified_authoritative": [
+      {
+        "id": "usgs-nwis",
+        "name": "USGS Water Data / NWIS",
+        "use": "Hydrologic observations",
+        "status": "VERIFIED"
+      },
+      {
+        "id": "noaa-nwps",
+        "name": "NOAA National Water Prediction Service",
+        "use": "Operational hydrologic forecasts and observations",
+        "api": "https://api.water.noaa.gov/nwps/v1/",
+        "status": "VERIFIED"
+      },
+      {
+        "id": "noaa-nws-api",
+        "name": "NOAA NWS API",
+        "use": "Meteorological forecast/alert; /points/{lat},{lon} discovery",
+        "status": "VERIFIED",
+        "note": "Grid endpoints should be periodically re-resolved"
+      },
+      {
+        "id": "indiana-gio-imagery",
+        "name": "Indiana GIO current orthophotography",
+        "use": "4-band (RGB+NIR) 2022–2025; CIR and NDVI raster functions",
+        "status": "VERIFIED",
+        "gpu_pipeline": "Ingest tiles → preserve band metadata + CRS + acquisition epoch → SHA-256 manifest → GPU buffer → derived NDVI (derived product only)"
+      },
+      {
+        "id": "indiana-dnr-infip-bafm",
+        "name": "Indiana DNR INFIP / BAFM",
+        "use": "State floodplain regulatory and mapping information; FARA",
+        "status": "VERIFIED"
+      },
+      {
+        "id": "usgs-3dep",
+        "name": "USGS 3DEP / The National Map",
+        "use": "1-m DEM elevation products",
+        "status": "VERIFIED"
+      },
+      {
+        "id": "fema-gis",
+        "name": "FEMA GIS services",
+        "use": "Official FEMA GIS directory / NFHL",
+        "status": "VERIFIED"
+      },
+      {
+        "id": "indiana-ifa-srf",
+        "name": "Indiana Finance Authority SRF",
+        "use": "IUP and Project Priority Lists including SFY 2027",
+        "status": "VERIFIED",
+        "note": "Do not treat matrix as FY2026-only; SFY2027 PPLs published"
+      },
+      {
+        "id": "epa-brownfields",
+        "name": "EPA Brownfields",
+        "use": "Grant cycle intelligence",
+        "status": "VERIFIED",
+        "fy2026": "CLOSED (deadline 2026-01-28)",
+        "fy2027": "Solicitations anticipated fall 2026"
+      },
+      {
+        "id": "usda-community-facilities",
+        "name": "USDA Rural Development Community Facilities",
+        "use": "Active federal funding pathway for rural essential facilities",
+        "status": "VERIFIED",
+        "note": "Verify Indiana-specific eligibility at application time"
+      }
+    ],
+    "provisional": [
+      {
+        "id": "xsoft-posey-parcels",
+        "name": "XSoft Posey parcel API",
+        "status": "PROVISIONAL",
+        "reason": "Endpoint response not independently captured"
+      }
+    ],
+    "needs_endpoint_validation": [
+      "Exact Indiana elevation service URL/REST layer",
+      "Exact FEMA NFHL service layer per regulatory query",
+      "Exact NWPS gauge identifier mapping for each PTDT hydrologic node beyond MTVI3 / 03322000 / 03378500"
+    ]
+  },
+
+  "grant_state_machine": [
+    "DISCOVERED",
+    "ELIGIBILITY_REVIEW",
+    "OPEN",
+    "DEADLINE_APPROACHING",
+    "CLOSED",
+    "AWARDED",
+    "NOT_AWARDED",
+    "HISTORICAL"
+  ],
+
+  "evidence_record_minimum_fields": [
+    "artifact_id",
+    "source_authority",
+    "source_uri",
+    "retrieved_at",
+    "source_timestamp",
+    "content_type",
+    "source_version",
+    "crs",
+    "vertical_datum",
+    "transformation_chain",
+    "software_version",
+    "input_hash",
+    "artifact_hash",
+    "validation_status",
+    "uncertainty",
+    "authority_class",
+    "human_review_status",
+    "supersedes",
+    "superseded_by"
+  ],
+
+  "evidence_integrity_rule": "SHA-256 proves artifact integrity only. It does not prove scientific truth, legal admissibility, or FRE 702 compliance. Human review status is required before any regulatory or decision-support use.",
+
+  "pipeline": [
+    "Authority Registry",
+    "Endpoint Discovery",
+    "Health Check",
+    "Schema Validation",
+    "Freshness Validation",
+    "CRS / Datum Validation",
+    "Artifact Acquisition",
+    "SHA-256",
+    "Evidence Ledger",
+    "Derived Products",
+    "Human Governance Gate",
+    "Public Visualization"
+  ],
+
+  "site_anchor": {
+    "address": "13101 Bonebank Road",
+    "township": "Point Township",
+    "county": "Posey County",
+    "state": "Indiana",
+    "apn": "65-19-08-100-008.001-010",
+    "crs_horizontal": "EPSG:2966",
+    "vertical_datum": "NAVD88",
+    "bfe_ft": 375.0,
+    "lag_ft": 377.2,
+    "ffe_ft": 382.5,
+    "berm_crest_ft": 379.8
+  }
+}

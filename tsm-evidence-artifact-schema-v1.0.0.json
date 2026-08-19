@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tuckerinc82.org/schemas/evidence-artifact/v1.0.0.json",
+  "title": "TSM EvidenceArtifact",
+  "description": "Canonical artifact for Evidence & Data Governance Plane. AUTHORITY→OBSERVATION→DERIVATION→MODEL→INFERENCE→VISUALIZATION must not be collapsed. SHA-256 proves integrity only.",
+  "type": "object",
+  "required": [
+    "artifact_id",
+    "artifact_type",
+    "source_authority",
+    "source_uri",
+    "retrieved_at",
+    "spatial_reference",
+    "vertical_reference",
+    "content_hash_sha256",
+    "parent_artifacts",
+    "transformation_chain",
+    "validation_status",
+    "authority_class",
+    "derivation_class",
+    "governance_status"
+  ],
+  "properties": {
+    "artifact_id": { "type": "string" },
+    "artifact_type": { "type": "string" },
+    "source_authority": { "type": "string" },
+    "source_uri": { "type": "string", "format": "uri" },
+    "source_identifier": { "type": "string" },
+    "retrieved_at": { "type": "string", "format": "date-time" },
+    "observation_time": { "type": ["string", "null"], "format": "date-time" },
+    "spatial_reference": {
+      "type": "object",
+      "required": ["horizontal_crs"],
+      "properties": {
+        "horizontal_crs": { "type": "string", "description": "e.g. EPSG:2966 — never conflate with vertical datum" },
+        "horizontal_crs_name": { "type": "string" },
+        "units": { "type": "string" }
+      }
+    },
+    "vertical_reference": {
+      "type": "object",
+      "required": ["vertical_datum"],
+      "properties": {
+        "vertical_datum": { "type": "string", "description": "e.g. NAVD88" },
+        "units": { "type": "string" }
+      }
+    },
+    "source_version": { "type": "string" },
+    "content_hash_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "parent_artifacts": { "type": "array", "items": { "type": "string" } },
+    "transformation_chain": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["step", "operation", "from", "to"],
+        "properties": {
+          "step": { "type": "integer" },
+          "operation": { "type": "string" },
+          "from": { "type": "string" },
+          "to": { "type": "string" },
+          "software": { "type": "string" },
+          "parameters": { "type": "object" }
+        }
+      }
+    },
+    "validation_status": {
+      "type": "string",
+      "enum": ["pending", "validated", "rejected", "stale", "provisional", "failed_closed"]
+    },
+    "uncertainty": {
+      "type": "object",
+      "properties": {
+        "value": { "type": "number" },
+        "unit": { "type": "string" },
+        "method": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    },
+    "authority_class": {
+      "type": "string",
+      "enum": ["OBSERVATION", "FORECAST", "REGULATORY", "DERIVED", "MODEL_OUTPUT", "INFERENCE", "VISUALIZATION", "SIMULATION_DEMO"]
+    },
+    "derivation_class": {
+      "type": "string",
+      "enum": ["RAW", "TRANSFORMED", "AGGREGATED", "MODELED", "INFERRED", "RENDERED"]
+    },
+    "model_version": { "type": "string" },
+    "software_version": { "type": "string" },
+    "operator_or_service_identity": { "type": "string" },
+    "governance_status": {
+      "type": "string",
+      "enum": ["draft", "human_review_required", "human_authorized", "published", "superseded", "withdrawn"]
+    },
+    "supersedes": { "type": ["string", "null"] },
+    "superseded_by": { "type": ["string", "null"] },
+    "is_simulation_demo": { "type": "boolean" },
+    "human_review_status": { "type": "string" },
+    "notes": { "type": "string" }
+  },
+  "additionalProperties": false
+}

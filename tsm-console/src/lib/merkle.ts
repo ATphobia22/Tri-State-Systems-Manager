@@ -1,6 +1,11 @@
 /**
  * Persistent Merkle store for Evidence Ledger
  *
+ * CLIENT-SIDE LEDGER IS NOT AUTHORITATIVE.
+ * Production authoritative state lives on the Evidence & Data Governance Plane
+ * (server API / PostgreSQL). Browser store is a local cache + demo only.
+ * Math.random is forbidden for evidence IDs; use crypto.randomUUID.
+ *
  * Phase 1 (browser): IndexedDB via idb-keyval-style thin wrapper (localStorage fallback).
  * Production: replace storage backend with server API (POST /api/ledger/append).
  *
@@ -78,7 +83,7 @@ export async function appendEvidence(payload: {
 }): Promise<{ evidence_id: string; sha256_hash: string; merkleRoot: string }> {
   state = loadState();
 
-  const evidence_id = `EV-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const evidence_id = `EV-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
   const canonical = JSON.stringify({
     ...payload,
     evidence_id,
