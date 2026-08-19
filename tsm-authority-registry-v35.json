@@ -359,6 +359,27 @@
         "url": "https://tmf.cio.gov/fit/",
         "status": "VERIFIED",
         "note": "Federal agencies only"
+      },
+      {
+        "id": "infip-fara-workflow",
+        "name": "INFIP FARA workflow",
+        "status": "VERIFIED",
+        "portal": "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/indiana-floodplain-information-portal",
+        "triggers": [
+          "Zone A",
+          "DA>1 sq mi",
+          "unmapped",
+          "flood-prone",
+          "LOMA support"
+        ],
+        "tsm_role": "Deep-link + optional EvidenceArtifact for user-saved FARA; never auto-issue FARA"
+      },
+      {
+        "id": "dnr-hh-model-library",
+        "name": "Indiana Hydrology and Hydraulics Model Library",
+        "status": "VERIFIED",
+        "parent": "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/state-engineering-resources",
+        "use": "Prior FIS/floodway/FARA models for Scientific Plane reference"
       }
     ],
     "provisional": [

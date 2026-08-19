@@ -108,3 +108,29 @@ export function assessClearanceSupport(opts: {
     note: 'Not a regulatory determination. Slider/stage inputs may be SIMULATION_DEMO.',
   };
 }
+
+
+/** Indiana FARA triggers (DNR Division of Water / INFIP) — citations only */
+export const FARA_TRIGGERS = {
+  source: 'Indiana DNR Division of Water — INFIP',
+  portal: 'https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/indiana-floodplain-information-portal',
+  short_links: ['https://www.in.gov/infip', 'https://www.in.gov/fip'],
+  required_when: [
+    'Development in FEMA Zone A',
+    'LOMA applications in Zone A',
+    'Upstream drainage area greater than 1 square mile',
+    'Unmapped on FIRM',
+    'Known flood-prone areas',
+  ],
+  outputs: ['BFE (NAVD88)', 'Flood zone on FIRM', 'Best Available / BAFL status', 'Local floodplain administrator contact'],
+  human_gate: true as const,
+  note: 'TSM may deep-link to INFIP and store user-saved FARA PDFs as EvidenceArtifacts. TSM does not issue FARA determinations.',
+};
+
+export const DNR_FLOODPLAIN_RESOURCES = {
+  state_engineering: 'https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/state-engineering-resources',
+  homeowner_info: 'https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/floodplain-management-and-homeowner-information',
+  modeling_guidelines: 'State Engineering Resources → Modeling Guidelines',
+  model_library: 'Indiana Hydrology and Hydraulics Model Library (FIS, floodway, FARA models)',
+  flood_control_act: 'IC 14-28-1',
+};
