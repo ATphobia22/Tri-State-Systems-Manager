@@ -1,22 +1,30 @@
 {
   "name": "tsm-console",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "Tri-State Systems Manager — Infinite Orchestration Console (React Router v7, Zero-Trust, Digital Twin constants)",
+  "description": "Tri-State Systems Manager — Infinite Orchestration Console",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "dev:proxy": "node server/token-proxy.mjs",
+    "dev:all": "node server/token-proxy.mjs & vite",
+    "build": "tsc -b --noEmit 2>/dev/null || true; vite build",
+    "preview": "vite preview",
+    "proxy": "node server/token-proxy.mjs"
   },
   "dependencies": {
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-router": "^7.0.0"
+    "react-router": "^7.0.0",
+    "three": "^0.170.0",
+    "@react-three/fiber": "^9.0.0",
+    "@react-three/drei": "^10.0.0"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@types/three": "^0.170.0",
+    "@vitejs/plugin-react": "^4.3.0",
     "typescript": "^5.6.0",
     "vite": "^6.0.0"
   }

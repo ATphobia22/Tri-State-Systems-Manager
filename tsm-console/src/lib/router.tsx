@@ -15,6 +15,7 @@ import LedgerView from '../routes/LedgerView';
 import BenefitView from '../routes/BenefitView';
 import LineageView from '../routes/LineageView';
 import SandboxView from '../routes/SandboxView';
+import TwinCanvasView from '../routes/TwinCanvasView';
 import type {
   RootLoaderData,
   CharterLoaderData,
@@ -306,7 +307,7 @@ export const router = createBrowserRouter([
       { path: 'sandbox', loader: sandboxLoader, action: sandboxAction, element: <SandboxView /> },
       { path: 'benefit', loader: benefitLoader, action: benefitAction, element: <BenefitView /> },
       { path: 'map', loader: mapTwinLoader, element: <MapTwinView /> },
-      { path: 'twin', loader: mapTwinLoader, element: <MapTwinView /> },
+      { path: 'twin', loader: mapTwinLoader, element: <TwinCanvasView /> },
       { path: 'login', element: <Placeholder title="Login" /> },
     ],
   },

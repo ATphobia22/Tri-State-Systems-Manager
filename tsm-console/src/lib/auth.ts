@@ -140,16 +140,32 @@ export async function login(opts?: { returnTo?: string }): Promise<void> {
  * Handle OIDC callback: exchange code for tokens, map claims → AuthContext.
  * Production: backend token proxy + claim mapping required.
  */
-export async function handleOidcCallback(_code: string, state: string): Promise<AuthContext> {
+export async function handleOidcCallback(code: string, state: string): Promise<AuthContext> {
   if (typeof window !== 'undefined') {
     const expected = sessionStorage.getItem('tsm_oidc_state');
     if (!expected || expected !== state) {
       throw new Error('OIDC state mismatch');
     }
   }
-  throw new Error(
-    'OIDC token exchange not yet wired. Configure backend token proxy and claim mapping for your IdP (Auth0/Keycloak/Entra).'
-  );
+
+  const code_verifier =
+    typeof window !== 'undefined' ? sessionStorage.getItem('tsm_oidc_verifier') || undefined : undefined;
+  const redirect_uri = config.redirectUri;
+
+  const res = await fetch('/api/auth/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code, code_verifier, redirect_uri }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || 'Token exchange failed');
+  }
+
+  const auth = data.auth as AuthContext;
+  setSession(auth);
+  return auth;
 }
 
 export function logout(): void {

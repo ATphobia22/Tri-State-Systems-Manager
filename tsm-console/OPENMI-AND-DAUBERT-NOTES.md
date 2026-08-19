@@ -67,3 +67,49 @@ Machine-generated outputs offered as expert-like evidence may be required to sat
 ---
 
 *God First • Serve Everyone • Open Source for the Common Good*
+
+---
+
+## 4. Phase 1 OpenMI Coupling Contract (Metadata)
+
+Until live solvers are sealed, TSM uses descriptor-only contracts:
+
+```typescript
+interface OpenMIExchangeItemDescriptor {
+  id: string;
+  caption: string;
+  description: string;
+  valueDefinition: { type: 'Quantity' | 'Quality'; unit?: string; valueType: string };
+  spatialDefinition: string;
+  temporalDefinition: string;
+  providerComponentId: string;
+}
+```
+
+Example future links:
+
+| Provider | Exchange Item | Consumer |
+|----------|---------------|----------|
+| HEC-RAS 2D | Water surface elevation (ft NAVD88) | No-Rise Certifier |
+| MODFLOW 6 | Groundwater head | Geotechnical FoS |
+| USGS NWIS | Observed stage | EnKF assimilator |
+| NOAA MTVI3 | Forecast stage | Cinematic / Map overlays |
+
+All runtime exchanges MUST emit Evidence Ledger events before influencing a human decision surface.
+
+## 5. Token Proxy & Courtroom Chain of Custody
+
+The backend token proxy (`server/token-proxy.mjs`):
+
+1. Holds `client_secret` server-side only.
+2. Exchanges authorization codes for tokens.
+3. Maps claims → `AuthContext` (uid, roles, clearance, tenant).
+4. Optionally accepts authoritative ledger appends.
+
+For Daubert packages, export:
+
+- Merkle root + leaf list (`exportLedgerJson`)
+- Auth session metadata (uid, authenticatedAt — no tokens)
+- Model version / Data Contract IDs
+- Human authorization records
+
