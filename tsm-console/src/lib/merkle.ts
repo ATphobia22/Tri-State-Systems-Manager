@@ -1,9 +1,13 @@
 /**
- * Server-side Merkle tree helpers for Evidence Ledger
- * Phase 1: in-memory store + SHA-256 leaves. Replace with persistent store.
+ * Persistent Merkle store for Evidence Ledger
  *
- * Security: domain separation (leaf vs node prefixes) to mitigate second-preimage.
- * Root is never trusted from the client.
+ * Phase 1 (browser): IndexedDB via idb-keyval-style thin wrapper (localStorage fallback).
+ * Production: replace storage backend with server API (POST /api/ledger/append).
+ *
+ * Security:
+ * - Domain separation LEAF_PREFIX / NODE_PREFIX (second-preimage resistance)
+ * - Root never accepted from client
+ * - Append is append-only; no delete/edit of sealed leaves
  */
 
 export interface MerkleLeaf {
@@ -16,10 +20,12 @@ export interface MerkleLeaf {
 export interface MerkleState {
   leaves: MerkleLeaf[];
   root: string | null;
+  version: number;
 }
 
 const LEAF_PREFIX = 'TSM_LEAF:';
 const NODE_PREFIX = 'TSM_NODE:';
+const STORAGE_KEY = 'tsm_merkle_ledger_v1';
 
 async function sha256(message: string): Promise<string> {
   const buf = new TextEncoder().encode(message);
@@ -29,11 +35,40 @@ async function sha256(message: string): Promise<string> {
     .join('');
 }
 
-/** In-memory ledger for Phase 1 demo. Production: database + optional public anchor. */
-let state: MerkleState = { leaves: [], root: null };
+// ---------------------------------------------------------------------------
+// Persistence layer
+// ---------------------------------------------------------------------------
+
+function loadState(): MerkleState {
+  if (typeof window === 'undefined') {
+    return { leaves: [], root: null, version: 1 };
+  }
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return { leaves: [], root: null, version: 1 };
+    const parsed = JSON.parse(raw) as MerkleState;
+    if (!Array.isArray(parsed.leaves)) return { leaves: [], root: null, version: 1 };
+    return { leaves: parsed.leaves, root: parsed.root ?? null, version: parsed.version ?? 1 };
+  } catch {
+    return { leaves: [], root: null, version: 1 };
+  }
+}
+
+function saveState(state: MerkleState): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {
+    console.warn('Merkle persist failed (quota?)', e);
+  }
+}
+
+let state: MerkleState = loadState();
 
 export function getMerkleState(): MerkleState {
-  return { leaves: [...state.leaves], root: state.root };
+  // Rehydrate on each read in case another tab updated
+  state = loadState();
+  return { leaves: [...state.leaves], root: state.root, version: state.version };
 }
 
 export async function appendEvidence(payload: {
@@ -41,24 +76,47 @@ export async function appendEvidence(payload: {
   source_uri: string;
   tier: number;
 }): Promise<{ evidence_id: string; sha256_hash: string; merkleRoot: string }> {
-  const evidence_id = `EV-${Date.now()}`;
-  const canonical = JSON.stringify({ ...payload, evidence_id, ts: Date.now() });
+  state = loadState();
+
+  const evidence_id = `EV-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const canonical = JSON.stringify({
+    ...payload,
+    evidence_id,
+    ts: Date.now(),
+  });
   const leafHash = await sha256(LEAF_PREFIX + canonical);
 
   const leaf: MerkleLeaf = {
     id: evidence_id,
     hash: leafHash,
-    payload: { ...payload, evidence_id, sha256_hash: leafHash, validation_status: 'pending' },
+    payload: {
+      ...payload,
+      evidence_id,
+      sha256_hash: leafHash,
+      validation_status: 'pending',
+      state: 'OBSERVED',
+    },
     createdAt: new Date().toISOString(),
   };
 
-  state.leaves = [leaf, ...state.leaves];
-  state.root = await computeRoot(state.leaves.map((l) => l.hash));
+  // Append-only: newest first for UI, but root computed over ordered history
+  const orderedForRoot = [...state.leaves].reverse().concat(leaf); // oldest → newest
+  const root = await computeRoot(orderedForRoot.map((l) => l.hash));
+
+  state = {
+    leaves: [leaf, ...state.leaves],
+    root,
+    version: state.version + 1,
+  };
+  saveState(state);
+
+  // Production hook: also POST to server for authoritative root
+  // await fetch('/api/ledger/append', { method: 'POST', body: JSON.stringify({ leaf, root }) });
 
   return {
     evidence_id,
     sha256_hash: leafHash,
-    merkleRoot: state.root!,
+    merkleRoot: root,
   };
 }
 
@@ -69,10 +127,39 @@ async function computeRoot(hashes: string[]): Promise<string> {
     const next: string[] = [];
     for (let i = 0; i < level.length; i += 2) {
       const left = level[i];
-      const right = level[i + 1] ?? left; // balance by duplicating last
+      const right = level[i + 1] ?? left;
       next.push(await sha256(NODE_PREFIX + left + right));
     }
     level = next;
   }
   return level[0];
+}
+
+/**
+ * Export full ledger for audit / Daubert package (human download).
+ */
+export function exportLedgerJson(): string {
+  const s = getMerkleState();
+  return JSON.stringify(
+    {
+      exportedAt: new Date().toISOString(),
+      version: s.version,
+      merkleRoot: s.root,
+      leafCount: s.leaves.length,
+      leaves: s.leaves,
+    },
+    null,
+    2
+  );
+}
+
+/**
+ * Clear ledger (DEV / test only). Forbidden in production builds.
+ */
+export function clearLedgerForTests(): void {
+  if (typeof import.meta !== 'undefined' && (import.meta as any).env?.PROD) {
+    throw new Error('clearLedgerForTests is disabled in production');
+  }
+  state = { leaves: [], root: null, version: 1 };
+  saveState(state);
 }

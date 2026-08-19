@@ -13,6 +13,8 @@ import CharterView from '../routes/CharterView';
 import NeedsView from '../routes/NeedsView';
 import LedgerView from '../routes/LedgerView';
 import BenefitView from '../routes/BenefitView';
+import LineageView from '../routes/LineageView';
+import SandboxView from '../routes/SandboxView';
 import type {
   RootLoaderData,
   CharterLoaderData,
@@ -25,12 +27,20 @@ import type {
   MapTwinLoaderData,
   EvidenceBlock,
   InterventionRecord,
+  DataContractSummary,
 } from '../types/loaders';
 
 let interventions: InterventionRecord[] = [];
+let contracts: import('../types/loaders').DataContractSummary[] = [
+  { id: 'tsm-hydro-001', title: 'Tri-State River Stage Observations', owner: 'Indiana DNR / USGS NWIS', classification: 'restricted', jurisdiction: 'Indiana', validation_status: 'validated', content_hash: 'sha256:pending' },
+  { id: 'tsm-fema-posey-001', title: 'Posey County FIS / FIRM Reference', owner: 'FEMA', classification: 'public', jurisdiction: 'Federal', validation_status: 'validated', content_hash: 'sha256:pending' },
+  { id: 'tsm-site-001', title: '13101 Bonebank Site Constants', owner: 'TuckerInc.82', classification: 'restricted', jurisdiction: 'Indiana', validation_status: 'validated', content_hash: 'sha256:site-v1' },
+];
+let sandboxProjects: import('../types/loaders').SandboxProject[] = [];
+
 
 async function rootLoader(): Promise<RootLoaderData> {
-  const auth = await authLoader();
+  const auth = await authLoader({});
   return {
     auth,
     systemClock: new Date().toISOString(),
@@ -129,17 +139,42 @@ async function ledgerAction({ request }: ActionFunctionArgs) {
 }
 
 async function lineageLoader(): Promise<LineageLoaderData> {
-  return {
-    contracts: [
-      { id: 'tsm-hydro-001', title: 'Tri-State River Stage Observations', owner: 'Indiana DNR / USGS NWIS', classification: 'restricted', jurisdiction: 'Indiana', validation_status: 'validated', content_hash: 'sha256:pending' },
-      { id: 'tsm-fema-posey-001', title: 'Posey County FIS / FIRM Reference', owner: 'FEMA', classification: 'public', jurisdiction: 'Federal', validation_status: 'validated', content_hash: 'sha256:pending' },
-      { id: 'tsm-site-001', title: '13101 Bonebank Site Constants', owner: 'TuckerInc.82', classification: 'restricted', jurisdiction: 'Indiana', validation_status: 'validated', content_hash: 'sha256:site-v1' },
-    ],
-  };
+  return { contracts: [...contracts] };
+}
+
+async function lineageAction({ request }: ActionFunctionArgs) {
+  const form = await request.formData();
+  const id = String(form.get('id') || '').trim();
+  const title = String(form.get('title') || '').trim();
+  const owner = String(form.get('owner') || '').trim();
+  const classification = String(form.get('classification') || 'internal') as DataContractSummary['classification'];
+  const jurisdiction = String(form.get('jurisdiction') || 'Indiana').trim();
+  if (!id || !title || !owner) return { error: 'Missing fields' };
+  contracts = [{
+    id, title, owner, classification, jurisdiction,
+    validation_status: 'pending',
+    content_hash: 'sha256:pending',
+  }, ...contracts];
+  return redirect('/lineage');
 }
 
 async function sandboxLoader(): Promise<SandboxLoaderData> {
-  return { projects: [] };
+  return { projects: [...sandboxProjects] };
+}
+
+async function sandboxAction({ request }: ActionFunctionArgs) {
+  const form = await request.formData();
+  const title = String(form.get('title') || '').trim();
+  const pi = String(form.get('pi') || '').trim();
+  const irb_status = String(form.get('irb_status') || 'pending');
+  const sandbox_tier = String(form.get('sandbox_tier') || 'deidentified');
+  if (!title || !pi) return { error: 'Missing fields' };
+  sandboxProjects = [{
+    id: `SBX-${Date.now()}`,
+    title, pi, irb_status, sandbox_tier,
+    status: irb_status === 'approved' ? 'active' : 'pending',
+  }, ...sandboxProjects];
+  return redirect('/sandbox');
 }
 
 async function benefitLoader(): Promise<BenefitLoaderData> {
@@ -267,8 +302,8 @@ export const router = createBrowserRouter([
       { path: 'architecture', loader: architectureLoader, element: <ArchitectureView /> },
       { path: 'needs', loader: needsLoader, element: <NeedsView /> },
       { path: 'ledger', loader: ledgerLoader, action: ledgerAction, element: <LedgerView /> },
-      { path: 'lineage', loader: lineageLoader, element: <Placeholder title="Data Contract Catalog" /> },
-      { path: 'sandbox', loader: sandboxLoader, element: <Placeholder title="Medical Sandbox" /> },
+      { path: 'lineage', loader: lineageLoader, action: lineageAction, element: <LineageView /> },
+      { path: 'sandbox', loader: sandboxLoader, action: sandboxAction, element: <SandboxView /> },
       { path: 'benefit', loader: benefitLoader, action: benefitAction, element: <BenefitView /> },
       { path: 'map', loader: mapTwinLoader, element: <MapTwinView /> },
       { path: 'twin', loader: mapTwinLoader, element: <MapTwinView /> },
