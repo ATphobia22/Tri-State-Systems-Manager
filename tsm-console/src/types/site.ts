@@ -57,7 +57,7 @@ export const SITE: SiteConstants = {
   region: 'Tri-State River Valley',
   apn: '65-19-08-100-008.001-010',
   crs: {
-    horizontalEpsg: 2966,
+    horizontalEpsg: 2966, // NEVER 2967 — Omni Canvas prototype error
     horizontalName: 'NAD83 / Indiana West (ftUS)',
     verticalDatum: 'NAVD88',
   },

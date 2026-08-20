@@ -380,6 +380,15 @@
         "status": "VERIFIED",
         "parent": "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/state-engineering-resources",
         "use": "Prior FIS/floodway/FARA models for Scientific Plane reference"
+      },
+      {
+        "id": "omni-canvas-resync",
+        "name": "Omni-Ecosystem Canvas prototype resync",
+        "status": "VERIFIED_PARTIAL",
+        "corrections": [
+          "EPSG:2967 \u2192 EPSG:2966"
+        ],
+        "note": "UI prototype only; medical/PCM panels out of public Evidence plane"
       }
     ],
     "provisional": [
@@ -453,5 +462,13 @@
     "lag_ft": 377.2,
     "ffe_ft": 382.5,
     "berm_crest_ft": 379.8
+  },
+  "geodetic": {
+    "horizontal_epsg": 2966,
+    "horizontal_name": "NAD83 / Indiana West (US survey feet)",
+    "vertical_datum": "NAVD88",
+    "reject_epsg": [
+      2967
+    ]
   }
 }
