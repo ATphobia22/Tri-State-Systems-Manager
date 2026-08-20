@@ -1,0 +1,9 @@
+# Generate TypeScript via protoc-gen-es (Buf / protobuf-es)
+version: v2
+inputs:
+  - directory: proto
+plugins:
+  - local: protoc-gen-es
+    out: src/gen
+    opt:
+      - target=ts

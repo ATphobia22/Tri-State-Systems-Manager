@@ -1,26 +1,121 @@
 /**
- * Evidence Ledger — virtualized list for large block counts
- * Uses @tanstack/react-virtual (open-source virtual scroll)
+ * Evidence Ledger — performance-focused virtual list
+ * - @tanstack/react-virtual (windowing)
+ * - Memoized row component
+ * - Stable virtualizer options
  */
 
-import { useRef } from 'react';
+import { memo, useCallback, useMemo, useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { AuthorityBadge } from '../components/AuthorityBadge';
 import { useLoaderData, Form, useNavigation } from 'react-router';
 import type { LedgerLoaderData } from '../types/loaders';
 
+type Block = LedgerLoaderData['blocks'][number];
+
+const ROW_HEIGHT = 88;
+const LIST_HEIGHT = 420;
+const OVERSCAN = 6;
+
+const LedgerRow = memo(function LedgerRow({
+  block,
+  style,
+}: {
+  block: Block;
+  style: React.CSSProperties;
+}) {
+  return (
+    <div style={style}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+        <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: '#38bdf8' }}>
+          {block.evidence_id}
+        </span>
+        <span style={{ fontSize: '0.65rem', color: '#64748b' }}>Tier {block.tier}</span>
+      </div>
+      <div style={{ fontSize: '0.85rem', color: '#e2e8f0' }}>{block.source_org}</div>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 4 }}>
+        <AuthorityBadge authority_class="OBSERVATION" />
+        <span style={{ fontSize: '0.7rem', color: '#64748b', fontFamily: 'monospace' }}>
+          {block.sha256_hash.slice(0, 24)}…
+        </span>
+      </div>
+    </div>
+  );
+});
+
+function VirtualBlockList({ blocks }: { blocks: Block[] }) {
+  const parentRef = useRef<HTMLDivElement>(null);
+  const count = blocks.length;
+
+  const estimateSize = useCallback(() => ROW_HEIGHT, []);
+  const getScrollElement = useCallback(() => parentRef.current, []);
+
+  const virtualizer = useVirtualizer({
+    count,
+    getScrollElement,
+    estimateSize,
+    overscan: OVERSCAN,
+    getItemKey: (index) => blocks[index]?.evidence_id ?? index,
+  });
+
+  const items = virtualizer.getVirtualItems();
+  const totalSize = virtualizer.getTotalSize();
+
+  if (count === 0) {
+    return (
+      <div ref={parentRef} style={{ height: LIST_HEIGHT, overflow: 'auto' }}>
+        <p style={{ padding: '2rem', textAlign: 'center', color: '#475569', fontSize: '0.85rem' }}>
+          Ledger empty. Append the first evidence block.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div ref={parentRef} style={{ height: LIST_HEIGHT, overflow: 'auto', contain: 'strict' }}>
+      <div
+        style={{
+          height: totalSize,
+          width: '100%',
+          position: 'relative',
+        }}
+      >
+        {items.map((row) => {
+          const block = blocks[row.index];
+          if (!block) return null;
+          return (
+            <LedgerRow
+              key={row.key}
+              block={block}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: row.size,
+                transform: `translateY(${row.start}px)`,
+                padding: '0.85rem 1.25rem',
+                borderBottom: '1px solid #0f172a',
+                boxSizing: 'border-box',
+              }}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function LedgerView() {
   const data = useLoaderData() as LedgerLoaderData;
   const navigation = useNavigation();
   const busy = navigation.state !== 'idle';
-  const parentRef = useRef<HTMLDivElement>(null);
 
-  const rowVirtualizer = useVirtualizer({
-    count: data.blocks.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 88,
-    overscan: 8,
-  });
+  const blocks = useMemo(() => data.blocks, [data.blocks]);
+  const rootPreview = useMemo(
+    () => (data.merkleRoot ? `${data.merkleRoot.slice(0, 32)}…` : null),
+    [data.merkleRoot]
+  );
 
   return (
     <div style={{ padding: '1.5rem 2rem', maxWidth: 1100, margin: '0 auto' }}>
@@ -28,7 +123,7 @@ export default function LedgerView() {
         Evidence Ledger
       </h1>
       <p style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '1.25rem' }}>
-        Cryptographic provenance · SHA-256 · Merkle root · virtualized log · Daubert-ready
+        Cryptographic provenance · SHA-256 · Merkle · virtualized · memoized rows
       </p>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: '1.5rem' }}>
@@ -90,10 +185,10 @@ export default function LedgerView() {
           >
             <span style={{ fontWeight: 600, color: '#f8fafc' }}>Immutable Log</span>
             <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
-              {data.totalCount} blocks · virtual scroll
+              {data.totalCount} blocks · windowed
             </span>
           </div>
-          {data.merkleRoot && (
+          {rootPreview && (
             <div
               style={{
                 padding: '0.5rem 1.25rem',
@@ -103,58 +198,10 @@ export default function LedgerView() {
                 background: '#0f172a',
               }}
             >
-              Merkle Root: {data.merkleRoot.slice(0, 32)}…
+              Merkle Root: {rootPreview}
             </div>
           )}
-          <div ref={parentRef} style={{ height: 420, overflow: 'auto' }}>
-            {data.blocks.length === 0 ? (
-              <p style={{ padding: '2rem', textAlign: 'center', color: '#475569', fontSize: '0.85rem' }}>
-                Ledger empty. Append the first evidence block.
-              </p>
-            ) : (
-              <div
-                style={{
-                  height: `${rowVirtualizer.getTotalSize()}px`,
-                  width: '100%',
-                  position: 'relative',
-                }}
-              >
-                {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-                  const b = data.blocks[virtualRow.index];
-                  return (
-                    <div
-                      key={b.evidence_id}
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: `${virtualRow.size}px`,
-                        transform: `translateY(${virtualRow.start}px)`,
-                        padding: '0.85rem 1.25rem',
-                        borderBottom: '1px solid #0f172a',
-                        boxSizing: 'border-box',
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                        <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: '#38bdf8' }}>
-                          {b.evidence_id}
-                        </span>
-                        <span style={{ fontSize: '0.65rem', color: '#64748b' }}>Tier {b.tier}</span>
-                      </div>
-                      <div style={{ fontSize: '0.85rem', color: '#e2e8f0' }}>{b.source_org}</div>
-                      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 4 }}>
-                        <AuthorityBadge authority_class="OBSERVATION" />
-                        <span style={{ fontSize: '0.7rem', color: '#64748b', fontFamily: 'monospace' }}>
-                          {b.sha256_hash.slice(0, 24)}…
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+          <VirtualBlockList blocks={blocks} />
         </div>
       </div>
     </div>
