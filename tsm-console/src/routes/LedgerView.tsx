@@ -1,3 +1,10 @@
+/**
+ * Evidence Ledger — virtualized list for large block counts
+ * Uses @tanstack/react-virtual (open-source virtual scroll)
+ */
+
+import { useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { AuthorityBadge } from '../components/AuthorityBadge';
 import { useLoaderData, Form, useNavigation } from 'react-router';
 import type { LedgerLoaderData } from '../types/loaders';
@@ -6,6 +13,14 @@ export default function LedgerView() {
   const data = useLoaderData() as LedgerLoaderData;
   const navigation = useNavigation();
   const busy = navigation.state !== 'idle';
+  const parentRef = useRef<HTMLDivElement>(null);
+
+  const rowVirtualizer = useVirtualizer({
+    count: data.blocks.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 88,
+    overscan: 8,
+  });
 
   return (
     <div style={{ padding: '1.5rem 2rem', maxWidth: 1100, margin: '0 auto' }}>
@@ -13,11 +28,10 @@ export default function LedgerView() {
         Evidence Ledger
       </h1>
       <p style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '1.25rem' }}>
-        Cryptographic provenance · SHA-256 · Merkle root · Daubert-ready
+        Cryptographic provenance · SHA-256 · Merkle root · virtualized log · Daubert-ready
       </p>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: '1.5rem' }}>
-        {/* Append form */}
         <div style={{ background: '#1e293b', borderRadius: 16, padding: '1.25rem' }}>
           <h2 style={{ fontSize: '0.9rem', color: '#38bdf8', margin: '0 0 1rem' }}>
             Append Evidence Block
@@ -25,13 +39,11 @@ export default function LedgerView() {
           <Form method="post" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <label style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
               Source Organization
-              <input name="source_org" required placeholder="e.g., Indiana DNR"
-                style={inputStyle} />
+              <input name="source_org" required placeholder="e.g., Indiana DNR" style={inputStyle} />
             </label>
             <label style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
               Source URI
-              <input name="source_uri" required placeholder="e.g., usgs.gov/nwis/..."
-                style={inputStyle} />
+              <input name="source_uri" required placeholder="e.g., usgs.gov/nwis/..." style={inputStyle} />
             </label>
             <label style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
               Epistemology Tier (0–6)
@@ -45,10 +57,20 @@ export default function LedgerView() {
                 <option value="6">6 — Community Observation</option>
               </select>
             </label>
-            <button type="submit" disabled={busy} style={{
-              marginTop: 8, padding: '0.6rem', background: '#0284c7', color: '#fff',
-              border: 'none', borderRadius: 8, fontWeight: 600, cursor: busy ? 'wait' : 'pointer',
-            }}>
+            <button
+              type="submit"
+              disabled={busy}
+              style={{
+                marginTop: 8,
+                padding: '0.6rem',
+                background: '#0284c7',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 8,
+                fontWeight: 600,
+                cursor: busy ? 'wait' : 'pointer',
+              }}
+            >
               {busy ? 'Sealing…' : 'Sign & Append (Server Merkle)'}
             </button>
           </Form>
@@ -57,38 +79,80 @@ export default function LedgerView() {
           </p>
         </div>
 
-        {/* Ledger table */}
         <div style={{ background: '#1e293b', borderRadius: 16, overflow: 'hidden' }}>
-          <div style={{ padding: '0.85rem 1.25rem', borderBottom: '1px solid #334155', display: 'flex', justifyContent: 'space-between' }}>
+          <div
+            style={{
+              padding: '0.85rem 1.25rem',
+              borderBottom: '1px solid #334155',
+              display: 'flex',
+              justifyContent: 'space-between',
+            }}
+          >
             <span style={{ fontWeight: 600, color: '#f8fafc' }}>Immutable Log</span>
-            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{data.totalCount} blocks</span>
+            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+              {data.totalCount} blocks · virtual scroll
+            </span>
           </div>
           {data.merkleRoot && (
-            <div style={{ padding: '0.5rem 1.25rem', fontSize: '0.65rem', fontFamily: 'monospace', color: '#34d399', background: '#0f172a' }}>
+            <div
+              style={{
+                padding: '0.5rem 1.25rem',
+                fontSize: '0.65rem',
+                fontFamily: 'monospace',
+                color: '#34d399',
+                background: '#0f172a',
+              }}
+            >
               Merkle Root: {data.merkleRoot.slice(0, 32)}…
             </div>
           )}
-          <div style={{ maxHeight: 420, overflow: 'auto' }}>
+          <div ref={parentRef} style={{ height: 420, overflow: 'auto' }}>
             {data.blocks.length === 0 ? (
               <p style={{ padding: '2rem', textAlign: 'center', color: '#475569', fontSize: '0.85rem' }}>
                 Ledger empty. Append the first evidence block.
               </p>
             ) : (
-              data.blocks.map((b) => (
-                <div key={b.evidence_id} style={{ padding: '0.85rem 1.25rem', borderBottom: '1px solid #0f172a' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: '#38bdf8' }}>{b.evidence_id}</span>
-                    <span style={{ fontSize: '0.65rem', color: '#64748b' }}>Tier {b.tier}</span>
-                  </div>
-                  <div style={{ fontSize: '0.85rem', color: '#e2e8f0' }}>{b.source_org}</div>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 4 }}>
-                    <AuthorityBadge authority_class={b.validation_status === 'pending' ? 'OBSERVATION' : 'OBSERVATION'} />
-                    <span style={{ fontSize: '0.7rem', color: '#64748b', fontFamily: 'monospace' }}>
-                      {b.sha256_hash.slice(0, 24)}…
-                    </span>
-                  </div>
-                </div>
-              ))
+              <div
+                style={{
+                  height: `${rowVirtualizer.getTotalSize()}px`,
+                  width: '100%',
+                  position: 'relative',
+                }}
+              >
+                {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                  const b = data.blocks[virtualRow.index];
+                  return (
+                    <div
+                      key={b.evidence_id}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: `${virtualRow.size}px`,
+                        transform: `translateY(${virtualRow.start}px)`,
+                        padding: '0.85rem 1.25rem',
+                        borderBottom: '1px solid #0f172a',
+                        boxSizing: 'border-box',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                        <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: '#38bdf8' }}>
+                          {b.evidence_id}
+                        </span>
+                        <span style={{ fontSize: '0.65rem', color: '#64748b' }}>Tier {b.tier}</span>
+                      </div>
+                      <div style={{ fontSize: '0.85rem', color: '#e2e8f0' }}>{b.source_org}</div>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 4 }}>
+                        <AuthorityBadge authority_class="OBSERVATION" />
+                        <span style={{ fontSize: '0.7rem', color: '#64748b', fontFamily: 'monospace' }}>
+                          {b.sha256_hash.slice(0, 24)}…
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
         </div>
@@ -98,7 +162,14 @@ export default function LedgerView() {
 }
 
 const inputStyle: React.CSSProperties = {
-  display: 'block', width: '100%', marginTop: 4, padding: '0.5rem 0.65rem',
-  background: '#0f172a', border: '1px solid #334155', borderRadius: 8,
-  color: '#e2e8f0', fontSize: '0.85rem', boxSizing: 'border-box',
+  display: 'block',
+  width: '100%',
+  marginTop: 4,
+  padding: '0.5rem 0.65rem',
+  background: '#0f172a',
+  border: '1px solid #334155',
+  borderRadius: 8,
+  color: '#e2e8f0',
+  fontSize: '0.85rem',
+  boxSizing: 'border-box',
 };

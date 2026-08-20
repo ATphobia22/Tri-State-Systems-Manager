@@ -21,7 +21,9 @@
     "@react-three/fiber": "^9.0.0",
     "@react-three/drei": "^10.0.0",
     "maplibre-gl": "^4.7.1",
-    "lucide-react": "^0.468.0"
+    "lucide-react": "^0.468.0",
+    "@tanstack/react-virtual": "^3.11.0",
+    "@bufbuild/protobuf": "^2.2.0"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",

@@ -1,0 +1,75 @@
+// TSM EvidenceArtifact — Protocol Buffers schema (v1)
+// Aligns with tsm-evidence-artifact-schema-v1.0.0.json
+// Serialization for Evidence Plane workers / future ConnectRPC — not a regulatory determination.
+
+syntax = "proto3";
+package tsm.evidence.v1;
+
+option java_package = "org.tuckerinc82.tsm.evidence.v1";
+
+enum AuthorityClass {
+  AUTHORITY_CLASS_UNSPECIFIED = 0;
+  OBSERVATION = 1;
+  FORECAST = 2;
+  REGULATORY = 3;
+  DERIVED = 4;
+  MODEL_OUTPUT = 5;
+  INFERENCE = 6;
+  VISUALIZATION = 7;
+  SIMULATION_DEMO = 8;
+}
+
+enum ValidationStatus {
+  VALIDATION_UNSPECIFIED = 0;
+  PENDING = 1;
+  VALIDATED = 2;
+  REJECTED = 3;
+  STALE = 4;
+  PROVISIONAL = 5;
+  FAILED_CLOSED = 6;
+}
+
+enum GovernanceStatus {
+  GOVERNANCE_UNSPECIFIED = 0;
+  DRAFT = 1;
+  HUMAN_REVIEW_REQUIRED = 2;
+  HUMAN_AUTHORIZED = 3;
+  PUBLISHED = 4;
+  SUPERSEDED = 5;
+  WITHDRAWN = 6;
+}
+
+message SpatialReference {
+  string horizontal_crs = 1;  // e.g. EPSG:2966
+  string horizontal_crs_name = 2;
+  string units = 3;
+}
+
+message VerticalReference {
+  string vertical_datum = 1;  // e.g. NAVD88 — never conflate with horizontal CRS
+  string units = 2;
+}
+
+message EvidenceArtifact {
+  string artifact_id = 1;
+  string artifact_type = 2;
+  string source_authority = 3;
+  string source_uri = 4;
+  string source_identifier = 5;
+  string retrieved_at = 6;       // ISO-8601
+  string observation_time = 7;
+  SpatialReference spatial_reference = 8;
+  VerticalReference vertical_reference = 9;
+  string source_version = 10;
+  string content_hash_sha256 = 11;  // 64-char lowercase hex
+  repeated string parent_artifacts = 12;
+  ValidationStatus validation_status = 13;
+  AuthorityClass authority_class = 14;
+  string derivation_class = 15;
+  string model_version = 16;
+  string software_version = 17;
+  string operator_or_service_identity = 18;
+  GovernanceStatus governance_status = 19;
+  bool is_simulation_demo = 20;
+  string notes = 21;
+}
