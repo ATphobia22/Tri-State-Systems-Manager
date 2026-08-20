@@ -23,3 +23,13 @@ Evaluated against listed technologies. **Only implement what serves public-inter
 3. `@tanstack/react-virtual` + virtualized ledger list  
 4. This alignment document
 
+
+## Buf commands
+
+```bash
+npm run buf:lint
+npm run buf:gen
+npm run proto:all   # lint + generate
+npm run buf:breaking
+```
+

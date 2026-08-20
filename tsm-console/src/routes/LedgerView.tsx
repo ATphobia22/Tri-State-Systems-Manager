@@ -1,8 +1,8 @@
 /**
- * Evidence Ledger — performance-focused virtual list
- * - @tanstack/react-virtual (windowing)
- * - Memoized row component
- * - Stable virtualizer options
+ * Evidence Ledger — high-performance virtual list
+ * - useFlushSync: false → React 19 safe (no flushSync-in-render warning)
+ * - directDomUpdates: true → skip re-renders on pure scroll; virtualizer owns transform
+ * - memoized rows + stable keys
  */
 
 import { memo, useCallback, useMemo, useRef } from 'react';
@@ -17,15 +17,9 @@ const ROW_HEIGHT = 88;
 const LIST_HEIGHT = 420;
 const OVERSCAN = 6;
 
-const LedgerRow = memo(function LedgerRow({
-  block,
-  style,
-}: {
-  block: Block;
-  style: React.CSSProperties;
-}) {
+const LedgerRow = memo(function LedgerRow({ block }: { block: Block }) {
   return (
-    <div style={style}>
+    <>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
         <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: '#38bdf8' }}>
           {block.evidence_id}
@@ -39,7 +33,7 @@ const LedgerRow = memo(function LedgerRow({
           {block.sha256_hash.slice(0, 24)}…
         </span>
       </div>
-    </div>
+    </>
   );
 });
 
@@ -49,17 +43,25 @@ function VirtualBlockList({ blocks }: { blocks: Block[] }) {
 
   const estimateSize = useCallback(() => ROW_HEIGHT, []);
   const getScrollElement = useCallback(() => parentRef.current, []);
+  const getItemKey = useCallback(
+    (index: number) => blocks[index]?.evidence_id ?? index,
+    [blocks]
+  );
 
   const virtualizer = useVirtualizer({
     count,
     getScrollElement,
     estimateSize,
     overscan: OVERSCAN,
-    getItemKey: (index) => blocks[index]?.evidence_id ?? index,
+    getItemKey,
+    // React 19: avoid flushSync-during-render warnings; batch scroll updates
+    useFlushSync: false,
+    // Skip React re-renders for pure scroll; write transform directly to DOM
+    directDomUpdates: true,
+    directDomUpdatesMode: 'transform',
   });
 
   const items = virtualizer.getVirtualItems();
-  const totalSize = virtualizer.getTotalSize();
 
   if (count === 0) {
     return (
@@ -72,33 +74,34 @@ function VirtualBlockList({ blocks }: { blocks: Block[] }) {
   }
 
   return (
-    <div ref={parentRef} style={{ height: LIST_HEIGHT, overflow: 'auto', contain: 'strict' }}>
-      <div
-        style={{
-          height: totalSize,
-          width: '100%',
-          position: 'relative',
-        }}
-      >
+    <div
+      ref={parentRef}
+      style={{ height: LIST_HEIGHT, overflow: 'auto', contain: 'strict' }}
+    >
+      {/* containerRef required for directDomUpdates — do not set height in style */}
+      <div ref={virtualizer.containerRef} style={{ position: 'relative', width: '100%' }}>
         {items.map((row) => {
           const block = blocks[row.index];
           if (!block) return null;
           return (
-            <LedgerRow
+            <div
               key={row.key}
-              block={block}
+              data-index={row.index}
+              ref={virtualizer.measureElement}
               style={{
                 position: 'absolute',
                 top: 0,
                 left: 0,
                 width: '100%',
+                // height from estimate; main-axis position owned by virtualizer (transform)
                 height: row.size,
-                transform: `translateY(${row.start}px)`,
                 padding: '0.85rem 1.25rem',
                 borderBottom: '1px solid #0f172a',
                 boxSizing: 'border-box',
               }}
-            />
+            >
+              <LedgerRow block={block} />
+            </div>
           );
         })}
       </div>
@@ -123,7 +126,7 @@ export default function LedgerView() {
         Evidence Ledger
       </h1>
       <p style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '1.25rem' }}>
-        Cryptographic provenance · SHA-256 · Merkle · virtualized · memoized rows
+        SHA-256 · Merkle · virtualized · directDomUpdates · React 19–safe scroll
       </p>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: '1.5rem' }}>
@@ -185,7 +188,7 @@ export default function LedgerView() {
           >
             <span style={{ fontWeight: 600, color: '#f8fafc' }}>Immutable Log</span>
             <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
-              {data.totalCount} blocks · windowed
+              {data.totalCount} blocks · direct DOM scroll
             </span>
           </div>
           {rootPreview && (
