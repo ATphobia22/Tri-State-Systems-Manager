@@ -389,6 +389,16 @@
           "EPSG:2967 \u2192 EPSG:2966"
         ],
         "note": "UI prototype only; medical/PCM panels out of public Evidence plane"
+      },
+      {
+        "id": "epsg-2966",
+        "name": "EPSG:2966 NAD83 / Indiana West (ftUS)",
+        "status": "VERIFIED",
+        "url": "https://epsg.io/2966",
+        "includes_posey": true,
+        "reject": [
+          "EPSG:2967"
+        ]
       }
     ],
     "provisional": [
@@ -465,10 +475,11 @@
   },
   "geodetic": {
     "horizontal_epsg": 2966,
-    "horizontal_name": "NAD83 / Indiana West (US survey feet)",
+    "horizontal_name": "NAD83 / Indiana West (ftUS)",
     "vertical_datum": "NAVD88",
     "reject_epsg": [
       2967
-    ]
+    ],
+    "proj4_approx": "+proj=tmerc +lat_0=37.5 +lon_0=-87.0833333333333 +k=0.999966667 +x_0=900000 +y_0=249999.9998984 +ellps=GRS80 +units=us-ft +no_defs"
   }
 }
