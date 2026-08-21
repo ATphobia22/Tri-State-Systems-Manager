@@ -16,7 +16,9 @@
     "buf:gen": "buf generate",
     "buf:breaking": "buf breaking --against \".git#branch=main\"",
     "proto:all": "buf lint && buf generate",
-    "postinstall": "echo \"[tsm] Optional: npm run proto:all after installing @bufbuild/buf\""
+    "postinstall": "echo \"[tsm] Optional: npm run proto:all after installing @bufbuild/buf\"",
+    "test": "node --test tests/geodetic-pipeline.test.mjs",
+    "test:geodetic": "node --test tests/geodetic-pipeline.test.mjs"
   },
   "dependencies": {
     "react": "^19.0.0",
