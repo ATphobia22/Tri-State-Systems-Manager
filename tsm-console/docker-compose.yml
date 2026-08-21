@@ -1,47 +1,76 @@
-# TSM portable stack — no proprietary low-code runtime
-# Usage: docker compose up (after npm build artifacts as needed)
+# Tri-State Systems Manager — portable local stack
+#
+# Profiles:
+#   (default)     API + web  (file-backed evidence)
+#   --profile db  adds PostgreSQL for Prisma path
+#
+# Examples:
+#   docker compose up
+#   docker compose --profile db up
+#   docker compose up api
+#
+# No proprietary low-code runtime required.
+
+name: tsm
 
 services:
-  web_client:
+  # ── Evidence / token API (Phase 1) ─────────────────────────
+  api:
     image: node:20-alpine
-    working_dir: /usr/src/app
+    working_dir: /app
     volumes:
-      - ./:/usr/src/app
-    command: sh -c "npm install && npm run build && npm run preview -- --host 0.0.0.0 --port 3000"
-    ports:
-      - "3000:3000"
-    environment:
-      - VITE_API_URL=http://api_server:8787
-    depends_on:
-      - api_server
-    restart: unless-stopped
-
-  api_server:
-    image: node:20-alpine
-    working_dir: /usr/src/app
-    volumes:
-      - ./:/usr/src/app
-      - tsm_evidence_data:/usr/src/app/.data
+      - ./:/app
+      - evidence_data:/app/.data
     command: sh -c "npm install && node server/token-proxy.mjs"
     ports:
       - "8787:8787"
     environment:
-      - PORT=8787
-      - TSM_EVIDENCE_DIR=/usr/src/app/.data
+      PORT: "8787"
+      TSM_EVIDENCE_DIR: /app/.data
+      # Set when using profile db:
+      # DATABASE_URL: postgresql://tsm:tsm@db:5432/tsm_evidence
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8787/api/policies"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     restart: unless-stopped
 
-  # Optional Postgres when evidence-store migrates off file backend
-  # database_node:
-  #   image: postgres:16-alpine
-  #   environment:
-  #     POSTGRES_USER: tsm
-  #     POSTGRES_PASSWORD: change_me
-  #     POSTGRES_DB: tsm_evidence
-  #   volumes:
-  #     - tsm_pg_data:/var/lib/postgresql/data
-  #   ports:
-  #     - "5432:5432"
+  # ── Vite console (preview) ────────────────────────────────
+  web:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: sh -c "npm install && npm run build && npm run preview -- --host 0.0.0.0 --port 3000"
+    ports:
+      - "3000:3000"
+    environment:
+      VITE_API_URL: http://localhost:8787
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  # ── Optional Postgres (Prisma) ─────────────────────────────
+  db:
+    profiles: ["db"]
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: tsm
+      POSTGRES_PASSWORD: tsm
+      POSTGRES_DB: tsm_evidence
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tsm -d tsm_evidence"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
 
 volumes:
-  tsm_evidence_data:
-  # tsm_pg_data:
+  evidence_data:
+  pg_data:

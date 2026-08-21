@@ -1,0 +1,93 @@
+// TSM Evidence Plane — optional PostgreSQL backend
+// Generate: npx prisma generate
+// Migrate:  npx prisma migrate dev --name init_evidence
+// Runtime remains fail-closed (hash + CRS guards in application code).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// EvidenceArtifact — AUTHORITY → OBSERVATION → DERIVATION → MODEL → …
+model EvidenceArtifact {
+  id                   String   @id @default(cuid())
+  artifactId           String   @unique @map("artifact_id")
+  artifactType         String   @map("artifact_type")
+  sourceAuthority      String   @map("source_authority")
+  sourceUri            String   @map("source_uri")
+  sourceIdentifier     String?  @map("source_identifier")
+  retrievedAt          DateTime @map("retrieved_at")
+  observationTime      DateTime? @map("observation_time")
+
+  horizontalCrs        String   @map("horizontal_crs") // e.g. EPSG:2966
+  verticalDatum        String   @map("vertical_datum") // NAVD88
+
+  contentHashSha256    String   @map("content_hash_sha256")
+  parentArtifacts      String[] @map("parent_artifacts")
+  transformationChain  Json     @default("[]") @map("transformation_chain")
+
+  validationStatus     String   @map("validation_status")
+  authorityClass       String   @map("authority_class")
+  derivationClass      String   @map("derivation_class")
+  governanceStatus     String   @map("governance_status")
+
+  uncertainty          Json?
+  modelVersion         String?  @map("model_version")
+  softwareVersion      String?  @map("software_version")
+  operatorIdentity     String?  @map("operator_or_service_identity")
+  isSimulationDemo     Boolean  @default(false) @map("is_simulation_demo")
+  notes                String?
+
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  verifications        HashVerification[]
+  merkleLeaves         MerkleLeaf[]
+
+  @@index([authorityClass])
+  @@index([retrievedAt])
+  @@map("evidence_artifacts")
+}
+
+model HashVerification {
+  id           String   @id @default(cuid())
+  artifactId   String   @map("artifact_id")
+  expectedHash String   @map("expected_hash")
+  computedHash String   @map("computed_hash")
+  matched      Boolean
+  verifiedAt   DateTime @default(now()) @map("verified_at")
+  source       String?  // e.g. api/evidence/verify
+
+  artifact     EvidenceArtifact @relation(fields: [artifactId], references: [artifactId], onDelete: Cascade)
+
+  @@index([artifactId])
+  @@map("hash_verifications")
+}
+
+model MerkleLeaf {
+  id           String   @id @default(cuid())
+  artifactId   String   @map("artifact_id")
+  leafHash     String   @map("leaf_hash")
+  sequence     Int
+  rootAfter    String?  @map("root_after")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  artifact     EvidenceArtifact @relation(fields: [artifactId], references: [artifactId], onDelete: Cascade)
+
+  @@unique([sequence])
+  @@index([artifactId])
+  @@map("merkle_leaves")
+}
+
+model MerkleRootSnapshot {
+  id        String   @id @default(cuid())
+  rootHash  String   @map("root_hash")
+  leafCount Int      @map("leaf_count")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("merkle_root_snapshots")
+}

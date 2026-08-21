@@ -1,3 +1,4 @@
+-- SQL reference for file-store era. Optional Prisma path: ../../prisma/schema.prisma
 -- TSM Authoritative Evidence Store
 -- PostGIS-ready. Phase 1 may run on SQLite/JSON; production targets PostgreSQL + PostGIS.
 -- SHA-256 proves integrity only — not scientific truth or FRE 702 admissibility.
