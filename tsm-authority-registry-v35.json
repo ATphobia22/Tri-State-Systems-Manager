@@ -399,6 +399,24 @@
         "reject": [
           "EPSG:2967"
         ]
+      },
+      {
+        "id": "ngs-htdp",
+        "name": "NGS HTDP",
+        "status": "REFERENCE",
+        "use": "Epoch/coseismic transforms \u2014 low relevance Posey"
+      },
+      {
+        "id": "itrf2014",
+        "name": "ITRF2014",
+        "status": "REFERENCE",
+        "epoch": "2010.0"
+      },
+      {
+        "id": "nadcon5",
+        "name": "NADCON5",
+        "status": "REFERENCE",
+        "use": "Horizontal datum shift grids + formal sigma"
       }
     ],
     "provisional": [
@@ -480,6 +498,9 @@
     "reject_epsg": [
       2967
     ],
-    "proj4_approx": "+proj=tmerc +lat_0=37.5 +lon_0=-87.0833333333333 +k=0.999966667 +x_0=900000 +y_0=249999.9998984 +ellps=GRS80 +units=us-ft +no_defs"
+    "proj4_approx": "+proj=tmerc +lat_0=37.5 +lon_0=-87.0833333333333 +k=0.999966667 +x_0=900000 +y_0=249999.9998984 +ellps=GRS80 +units=us-ft +no_defs",
+    "htdp_coseismic_relevant_to_posey": false,
+    "itrf_analysis_frame": false,
+    "note": "Analysis frame is NAD83/2966+NAVD88. HTDP/ITRF/NADCON5 only via explicit transformation_chain on EvidenceArtifacts."
   }
 }
