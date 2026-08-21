@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PTDT-v33 USD SceneState Affidavit Renderer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#030712] text-slate-100 min-h-screen font-sans p-8 flex flex-col items-center justify-center">
+    <div class="max-w-2xl w-full bg-[#0f172a] border border-slate-800 rounded-xl p-6 shadow-2xl space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+            <h1 class="text-sm font-bold text-slate-200">Cinematic Forensic Affidavit</h1>
+            <span class="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded font-mono">AFF-8F4C91A02E7B</span>
+        </div>
+        <div class="space-y-2 text-xs font-mono text-slate-400">
+            <div class="flex justify-between"><span>Sequence:</span> <span class="text-slate-200">1045</span></div>
+            <div class="flex justify-between"><span>Pipeline Version:</span> <span class="text-slate-200">v33.4.1</span></div>
+            <div class="flex justify-between"><span>Cryptographic Seal:</span> <span class="text-cyan-400 truncate w-96">sha256:8f4c91a02e7b149afbf4c8996fb924e3...</span></div>
+        </div>
+        <div class="bg-slate-950 border border-slate-900 rounded p-4 text-xs text-slate-300 leading-relaxed font-sans">
+            "This cinematic frame at sequence 1045 was rendered directly from cryptographically sealed authoritative PTDT-v33 SceneState. Authoritative State SHA-256 Seal verified."
+        </div>
+        <div class="flex justify-end pt-2">
+            <button onclick="window.print()" class="bg-sky-500 hover:bg-sky-400 text-slate-950 font-semibold px-4 py-2 rounded text-xs transition">Export Certified Frame</button>
+        </div>
+    </div>
+</body>
+</html>

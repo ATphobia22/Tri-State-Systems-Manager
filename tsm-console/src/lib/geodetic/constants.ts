@@ -30,6 +30,10 @@ export const VELOCITY_MODELS = {
   ifdm_alias: 'IFVM2022',
   posey_coseismic_relevant: false,
   stable_interior_mm_per_yr_order: 15,
+  /** Prototype UI illustrative rates — NOT NGS official for Bonebank */
+  illustrative_stable_vn_mm_yr: -2.1,
+  illustrative_stable_ve_mm_yr: 0.8,
+  illustrative_stable_vu_mm_yr: -0.15,
   /** NATRF2022 beta EPP (mas/yr) — reference; use NGS beta tables in production */
   natrf2022_epp_mas_per_yr: { omega_x: 0.046, omega_y: -0.704, omega_z: -0.047 },
   natrf_epoch: 2020.0,
