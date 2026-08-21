@@ -154,6 +154,7 @@ const server = http.createServer(async (req, res) => {
           validation_status: 'pending',
           governance_status: 'human_review_required',
           is_simulation_demo: Boolean(body.is_simulation_demo),
+          transformation_chain: body.transformation_chain || [],
           payload: body,
           _canonical_for_verify: 'TSM_LEAF:' + content,
         });

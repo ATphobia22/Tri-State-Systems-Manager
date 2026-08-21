@@ -1,3 +1,4 @@
+import { GEODETIC_POLICY, AUTHORITATIVE_HORIZONTAL_EPSG, PROJ4_EPSG_2966 } from '../lib/geodetic';
 import { useLoaderData, Form, useNavigation } from 'react-router';
 import type { SandboxLoaderData, SandboxProject } from '../types/loaders';
 
@@ -111,7 +112,19 @@ export default function SandboxView() {
           </div>
         </div>
       </div>
-    </div>
+    
+      <div style={{ marginTop: 24, padding: 16, background: '#0f172a', borderRadius: 12, border: '1px solid #1e293b' }}>
+        <h3 style={{ margin: '0 0 8px', color: '#38bdf8', fontSize: 14 }}>Geodetic policy (wired)</h3>
+        <pre style={{ fontSize: 11, color: '#94a3b8', whiteSpace: 'pre-wrap', margin: 0 }}>
+{JSON.stringify(GEODETIC_POLICY, null, 2)}
+{`EPSG:${AUTHORITATIVE_HORIZONTAL_EPSG}`}
+{PROJ4_EPSG_2966}
+        </pre>
+        <p style={{ fontSize: 11, color: '#64748b', marginTop: 8 }}>
+          NAD83→ITRF2014 uses offline NGS Helmert+HTDP; browser only records transformation_chain.
+        </p>
+      </div>
+</div>
   );
 }
 

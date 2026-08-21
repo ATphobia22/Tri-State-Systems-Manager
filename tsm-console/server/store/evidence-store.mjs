@@ -8,6 +8,7 @@
  */
 
 import { createHash, randomUUID } from 'node:crypto';
+import { validateSpatialFields } from './geodetic-guard.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -66,6 +67,13 @@ export function appendArtifact(raw) {
       throw err;
     }
   }
+  const geo = validateSpatialFields(raw);
+  if (!geo.ok) {
+    const err = new Error(geo.error);
+    err.code = 'FAIL_CLOSED';
+    throw err;
+  }
+
   if (!HASH_RE.test(raw.content_hash_sha256)) {
     const err = new Error('fail-closed: content_hash_sha256 must be 64-char lowercase hex');
     err.code = 'FAIL_CLOSED';

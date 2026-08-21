@@ -1,3 +1,4 @@
+import { siteSpatialReference, siteVerticalReference } from './geodetic';
 /**
  * Live NOAA / USGS stage fetch with graceful fallback
  * MOCK results are SIMULATION_DEMO — not engineering predictions.
@@ -76,5 +77,15 @@ export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
     timestamp: null,
     floodCategory: 'unknown',
     // SIMULATION_DEMO — not live telemetry
+  };
+}
+
+
+/** Stamp authoritative CRS on any stage payload for evidence packaging */
+export function withSiteGeodesy<T extends Record<string, unknown>>(payload: T) {
+  return {
+    ...payload,
+    spatial_reference: siteSpatialReference(),
+    vertical_reference: siteVerticalReference(),
   };
 }
