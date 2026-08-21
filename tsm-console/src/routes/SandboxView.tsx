@@ -1,3 +1,4 @@
+import { DataMetricsCard } from '../components/DataMetricsCard';
 import { GEODETIC_POLICY, AUTHORITATIVE_HORIZONTAL_EPSG, PROJ4_EPSG_2966 } from '../lib/geodetic';
 import { useLoaderData, Form, useNavigation } from 'react-router';
 import type { SandboxLoaderData, SandboxProject } from '../types/loaders';
@@ -122,6 +123,12 @@ export default function SandboxView() {
         </pre>
         <p style={{ fontSize: 11, color: '#64748b', marginTop: 8 }}>
           NAD83→ITRF2014 uses offline NGS Helmert+HTDP; browser only records transformation_chain.
+        </p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 12, marginTop: 16 }}>
+        <DataMetricsCard title="Evidence blocks" metricValue="—" trendPercentage={0} isPositiveTrend isSimulationDemo />
+        <DataMetricsCard title="Site BFE" metricValue="375.0 ft" trendPercentage={0} isPositiveTrend isSimulationDemo />
+      </div>
+        <p style={{ fontSize: 11, color: '#64748b', marginTop: 8, display: 'none' }}>
         </p>
       </div>
 </div>

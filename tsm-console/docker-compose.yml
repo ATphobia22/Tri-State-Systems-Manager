@@ -1,0 +1,47 @@
+# TSM portable stack — no proprietary low-code runtime
+# Usage: docker compose up (after npm build artifacts as needed)
+
+services:
+  web_client:
+    image: node:20-alpine
+    working_dir: /usr/src/app
+    volumes:
+      - ./:/usr/src/app
+    command: sh -c "npm install && npm run build && npm run preview -- --host 0.0.0.0 --port 3000"
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://api_server:8787
+    depends_on:
+      - api_server
+    restart: unless-stopped
+
+  api_server:
+    image: node:20-alpine
+    working_dir: /usr/src/app
+    volumes:
+      - ./:/usr/src/app
+      - tsm_evidence_data:/usr/src/app/.data
+    command: sh -c "npm install && node server/token-proxy.mjs"
+    ports:
+      - "8787:8787"
+    environment:
+      - PORT=8787
+      - TSM_EVIDENCE_DIR=/usr/src/app/.data
+    restart: unless-stopped
+
+  # Optional Postgres when evidence-store migrates off file backend
+  # database_node:
+  #   image: postgres:16-alpine
+  #   environment:
+  #     POSTGRES_USER: tsm
+  #     POSTGRES_PASSWORD: change_me
+  #     POSTGRES_DB: tsm_evidence
+  #   volumes:
+  #     - tsm_pg_data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+
+volumes:
+  tsm_evidence_data:
+  # tsm_pg_data:
