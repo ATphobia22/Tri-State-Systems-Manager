@@ -417,6 +417,24 @@
         "name": "NADCON5",
         "status": "REFERENCE",
         "use": "Horizontal datum shift grids + formal sigma"
+      },
+      {
+        "id": "geoid18",
+        "name": "NGS GEOID18",
+        "status": "VERIFIED",
+        "use": "NAD83 h \u2192 NAVD88 H"
+      },
+      {
+        "id": "vertcon3",
+        "name": "VERTCON 3.0 (via NCAT)",
+        "status": "VERIFIED",
+        "use": "NGVD29 \u2194 NAVD88"
+      },
+      {
+        "id": "napsg2022-watch",
+        "name": "NAPGD2022 / NSRS modernization",
+        "status": "WATCH",
+        "use": "Future vertical datum"
       }
     ],
     "provisional": [
@@ -501,6 +519,11 @@
     "proj4_approx": "+proj=tmerc +lat_0=37.5 +lon_0=-87.0833333333333 +k=0.999966667 +x_0=900000 +y_0=249999.9998984 +ellps=GRS80 +units=us-ft +no_defs",
     "htdp_coseismic_relevant_to_posey": false,
     "itrf_analysis_frame": false,
-    "note": "Analysis frame is NAD83/2966+NAVD88. HTDP/ITRF/NADCON5 only via explicit transformation_chain on EvidenceArtifacts."
+    "note": "Analysis frame is NAD83/2966+NAVD88. HTDP/ITRF/NADCON5 only via explicit transformation_chain on EvidenceArtifacts.",
+    "vertical_models": {
+      "authoritative": "NAVD88",
+      "geoid": "GEOID18",
+      "ngvd29_bridge": "VERTCON3"
+    }
   }
 }

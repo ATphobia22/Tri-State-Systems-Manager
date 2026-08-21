@@ -124,3 +124,31 @@ export const GEODETIC_POLICY = {
   htdp_coseismic_relevant_to_posey: false,
   reject_epsg: REJECTED_HORIZONTAL_EPSG,
 } as const;
+
+
+/** Vertical datum models — names only; grids stay offline (NCAT / NGS) */
+export const VERTICAL_MODELS = {
+  authoritative: 'NAVD88',
+  ellipsoid_to_orthometric: 'GEOID18',
+  ngvd29_to_navd88: 'VERTCON3',
+  future: 'NAPGD2022',
+  reject_new_without_chain: ['NAVD29', 'NGVD29'],
+} as const;
+
+export function buildEllipsoidToNavd88Chain(opts: {
+  geoidModel?: string;
+  software?: string;
+}): TransformationStep[] {
+  const model = opts.geoidModel ?? 'GEOID18';
+  const soft = opts.software ?? 'NGS NCAT / GEOID18';
+  return [
+    {
+      step: 1,
+      operation: 'geoid_separation',
+      from: 'NAD83 ellipsoid height h',
+      to: 'NAVD88 orthometric H',
+      software: soft,
+      parameters: { model, relation: 'H ≈ h - N' },
+    },
+  ];
+}
