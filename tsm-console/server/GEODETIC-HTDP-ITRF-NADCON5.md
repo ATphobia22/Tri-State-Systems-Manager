@@ -89,3 +89,77 @@ authority_class                    # OBSERVATION | DERIVED | ...
 
 Human authority remains final for any regulatory coordinate claim.
 
+
+## 6. NAD 83 → ITRF2014 — NGS mathematical sequence
+
+Plate-fixed **NAD 83** → global **ITRF2014** requires both a frame shift and an epoch change. NGS-style pipeline:
+
+### Step 1 — Geodetic → ECEF (at observation epoch \(t_1\))
+
+Geographic \((arphi, \lambda, h)\) on the NAD 83 ellipsoid → Earth-Centered Earth-Fixed Cartesian \((X,Y,Z)_{\mathrm{NAD83}}(t_1)\).
+
+Datum operations are performed in 3D Cartesian space, not on the map-projection plane.
+
+### Step 2 — 14-parameter Helmert frame shift (at \(t_1\))
+
+\[
+\begin{bmatrix} X \\ Y \\ Z \end{bmatrix}_{\mathrm{ITRF}}(t_1)
+=
+(1+s)\,R(\omega_x,\omega_y,\omega_z)\,
+\begin{bmatrix} X \\ Y \\ Z \end{bmatrix}_{\mathrm{NAD83}}(t_1)
++
+\begin{bmatrix} T_x \\ T_y \\ T_z \end{bmatrix}
+\]
+
+with **rates** applied so parameters are evaluated at \(t_1\):
+
+| Group | Count | Role |
+|-------|-------|------|
+| Translations \(T_x,T_y,T_z\) | 3 | Origin shift |
+| Rotations \(\omega_x,\omega_y,\omega_z\) | 3 | Axis tilt |
+| Scale \(s\) | 1 | Frame size |
+| Rates \(\dot T, \dot\omega, \dot s\) | 7 | Annual drift of the seven |
+
+Result: ITRF2014 coordinates **still at epoch \(t_1\)**.
+
+### Step 3 — Temporal propagation (HTDP) to target epoch \(t_2\)
+
+Example target: ITRF2014 reference epoch **2010.0**.
+
+- Interseismic velocity integrated over \((t_2 - t_1)\)
+- Coseismic (Okada) jumps if \(t_1\tot_2\) crosses a modeled event **and** the point lies inside that event’s radius of influence; otherwise coseismic term = **0**
+
+Modern NGS tooling often embeds **both** the 14-parameter definitions and the kinematic grids inside the HTDP-family workflow (frame jump + time travel).
+
+### Step 4 — ECEF → geodetic
+
+\((X,Y,Z)_{\mathrm{ITRF}}(t_2)\) → \((arphi, \lambda, h)\) on the ITRF/GRS80-compatible ellipsoid at epoch \(t_2\).
+
+### Inverse path
+
+ITRF2014 \((t_2)\) → NAD 83 \((t_1)\) reverses the same chain (time back, then inverse Helmert, then geodetic).
+
+### Projected CRS (EPSG:2966) caveat
+
+**EPSG:2966** is Transverse Mercator on **NAD 83** (US ft). A correct global-frame export is:
+
+1. Inverse project 2966 → NAD 83 geodetic (or geocentric)
+2. Run Steps 1–4 (or official NGS software)
+3. Never apply Helmert parameters directly to easting/northing in feet
+
+### TSM EvidenceArtifact requirements for this chain
+
+```
+transformation_chain: [
+  { step: "inverse_tm_2966", software, version },
+  { step: "geodetic_to_ecef", ellipsoid: "GRS80/NAD83", epoch: t1 },
+  { step: "helmert_14_nad83_to_itrf2014", epoch: t1, param_set_id },
+  { step: "htdp_propagate", t1, t2, coseismic_applied: false },  // typical for Posey
+  { step: "ecef_to_geodetic_itrf", epoch: t2 }
+]
+content_hash_sha256: <hash of input + output + param set>
+authority_class: DERIVED
+```
+
+Site **BFE / LAG / FFE** remain **NAVD88** orthometric (or local published) values — this sequence does not redefine those elevations.
+

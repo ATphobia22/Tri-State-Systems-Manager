@@ -55,3 +55,7 @@ Human gate before any regulatory use. Browser WebGPU/Three water meshes are **SI
 Reproducibility flow: pinned lock → SHA-256 verify → platform detect (no silent override) → environment manifest JSON → smoke tests.  
 Maps to TSM ingestion: Authority Registry → health check → schema → hash → ledger.
 
+## NAD83 ↔ ITRF2014
+
+Full NGS sequence (geodetic→ECEF → 14-parameter Helmert → HTDP epoch → geodetic) is specified in `GEODETIC-HTDP-ITRF-NADCON5.md` §6.  
+Do not Helmert-transform raw EPSG:2966 eastings/northings.
