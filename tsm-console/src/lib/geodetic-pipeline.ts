@@ -1,7 +1,4 @@
-/**
- * Re-exports pipeline API from streamlined geodetic.ts
- * @deprecated Import from './geodetic' directly.
- */
+/** @deprecated Prefer import from './geodetic' */
 export {
   TransformationContractViolationError,
   PARAM_SET_ID,
@@ -15,6 +12,7 @@ export {
   sealGeodeticEvidence,
   buildNad83ToItrf2014Chain,
   buildEllipsoidToNavd88Chain,
+  buildModernizationWatchChain,
   GEODETIC_POLICY,
   VELOCITY_MODELS,
   VERTICAL_MODELS,
