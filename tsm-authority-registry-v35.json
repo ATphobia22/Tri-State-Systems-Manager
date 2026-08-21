@@ -523,7 +523,14 @@
     "vertical_models": {
       "authoritative": "NAVD88",
       "geoid": "GEOID18",
-      "ngvd29_bridge": "VERTCON3"
+      "geoid18_sigma_cm": 1.27,
+      "future": "NAPGD2022"
+    },
+    "velocity_models": {
+      "htdp_interseismic": "HTDP-velocity-field",
+      "epp2022": "EPP2022",
+      "ifdm2022": "IFDM2022",
+      "posey_coseismic_relevant": false
     }
   }
 }
