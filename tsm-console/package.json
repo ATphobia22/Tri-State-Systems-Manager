@@ -2,7 +2,7 @@
   "name": "tsm-console",
   "version": "0.2.0",
   "private": true,
-  "description": "Tri-State Systems Manager \u2014 Infinite Orchestration Console",
+  "description": "Tri-State Systems Manager — Infinite Orchestration Console",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -17,8 +17,9 @@
     "buf:breaking": "buf breaking --against \".git#branch=main\"",
     "proto:all": "buf lint && buf generate",
     "postinstall": "echo \"[tsm] Optional: npm run proto:all after installing @bufbuild/buf\"",
-    "test": "node --test tests/geodetic-pipeline.test.mjs",
-    "test:geodetic": "node --test tests/geodetic-pipeline.test.mjs"
+    "test": "node --test tests/geodetic-pipeline.test.mjs tests/solar-engine.test.mjs",
+    "test:geodetic": "node --test tests/geodetic-pipeline.test.mjs",
+    "test:solar": "node --test tests/solar-engine.test.mjs"
   },
   "dependencies": {
     "react": "^19.0.0",
