@@ -1,4 +1,5 @@
 import type { FloodScenarioId, SceneState, SolarLightingState } from './scene-state';
+import { DEFAULT_FLOOD_SCENARIOS } from './scene-state';
 import { TriStateSolarEngine } from './solar-engine';
 
 export function setActiveFloodScenario(state: SceneState, id: FloodScenarioId): SceneState {
@@ -19,7 +20,7 @@ export function createInitialSceneState(): SceneState {
     timestamp: new Date().toISOString(),
     orthophoto: null,
     activeFloodScenario: 'live',
-    floodScenarios: [],
+    floodScenarios: DEFAULT_FLOOD_SCENARIOS,
     solar: engine.calculate(new Date()),
   };
 }
