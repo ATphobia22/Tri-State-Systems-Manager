@@ -1,0 +1,42 @@
+{
+  "short_name": "BonebankTwin",
+  "name": "13101 Bonebank Road - Digital Twin Simulation Engine",
+  "description": "High-fidelity 3D digital twin and hydrological visualization engine for the lower Wabash and Ohio River valley basin.",
+  "id": "/bonebank-digital-twin-engine",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#05070B",
+  "theme_color": "#0A0F1A",
+  "prefer_related_applications": false,
+  "categories": ["infrastructure", "simulation", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Launch Live Simulator",
+      "short_name": "Live Twin",
+      "description": "Open the simulator in live telemetry mode.",
+      "url": "./index.html?mode=live"
+    },
+    {
+      "name": "Historical Flood Analysis",
+      "short_name": "Flood Models",
+      "description": "Open the historical and recurrence-analysis interface.",
+      "url": "./index.html?mode=analysis"
+    }
+  ],
+  "icons": [
+    {"src": "assets/icon-192.png", "type": "image/png", "sizes": "192x192", "purpose": "any"},
+    {"src": "assets/icon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "any"},
+    {"src": "assets/icon-maskable.png", "type": "image/png", "sizes": "512x512", "purpose": "maskable"}
+  ],
+  "file_handlers": [
+    {
+      "action": "./index.html",
+      "accept": {
+        "application/json": [".json"],
+        "application/vnd.las": [".las"],
+        "application/octet-stream": [".laz"]
+      }
+    }
+  ]
+}
