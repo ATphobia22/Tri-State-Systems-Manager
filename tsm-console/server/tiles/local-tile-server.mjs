@@ -1,9 +1,10 @@
 import { createReadStream, existsSync, statSync } from 'node:fs';
-import { resolve, extname, sep } from 'node:path';
 import { createServer } from 'node:http';
+import { extname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = resolve(process.env.TSM_TILE_ROOT ?? new URL('../public/data/tiles', import.meta.url));
+const defaultRoot = fileURLToPath(new URL('../public/data/tiles', import.meta.url));
+const root = resolve(process.env.TSM_TILE_ROOT ?? defaultRoot);
 const host = process.env.TSM_TILE_HOST ?? '127.0.0.1';
 const port = Number(process.env.TSM_TILE_PORT ?? 8788);
 const allowed = new Set(['.png', '.jpg', '.jpeg', '.webp', '.pbf', '.json', '.terrain']);
@@ -23,8 +24,7 @@ function safePath(urlPath) {
 
 const server = createServer((request, response) => {
   try {
-    const pathname = request.url ?? '/';
-    const path = safePath(pathname);
+    const path = safePath(request.url ?? '/');
     if (!path || !existsSync(path) || !statSync(path).isFile()) {
       response.writeHead(404, { 'content-type': 'application/json' });
       response.end(JSON.stringify({ error: 'tile-not-found' }));
@@ -38,8 +38,8 @@ const server = createServer((request, response) => {
     });
     createReadStream(path).pipe(response);
   } catch {
-    response.writeHead(500, { 'content-type': 'application/json' });
-    response.end(JSON.stringify({ error: 'tile-server-error' }));
+    response.writeHead(400, { 'content-type': 'application/json' });
+    response.end(JSON.stringify({ error: 'invalid-tile-request' }));
   }
 });
 
