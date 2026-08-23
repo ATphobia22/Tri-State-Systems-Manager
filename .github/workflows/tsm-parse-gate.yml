@@ -1,0 +1,22 @@
+name: TSM Parse Gate
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  parse-and-typecheck:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tsm-console
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: tsm-console/package.json
+      - run: npm install --ignore-scripts
+      - run: npm run check:parse
+      - run: npm run check:type
