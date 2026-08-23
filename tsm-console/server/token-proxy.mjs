@@ -1,13 +1,13 @@
 /**
- * TSM Backend API — Token Proxy + Evidence + Ingestion + Policy
+ * TSM Backend API — Token Proxy + Evidence + Ingestion + Policy + Engineering
  * Port 8787. Fail-closed evidence writes.
  */
 
 import http from 'node:http';
-import { createHash, randomUUID } from 'node:crypto';
 import { appendArtifact, listArtifacts, getArtifact, verifyProvenance, recordVerification, sha256Hex } from './store/evidence-store.mjs';
 import { runHydrologicBatch, ingestUsgsNode, ingestNwpsGauge } from './ingestion/workers.mjs';
-import { evaluatePolicies, getPolicy, POLICIES } from './policy/jurisdiction-engine.mjs';
+import { evaluatePolicies, POLICIES } from './policy/jurisdiction-engine.mjs';
+import { evaluateCompensatoryStorage, buildCompensatoryStorageCanonical } from './engineering/compensatory-storage.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
 const TOKEN_URL = process.env.IDP_TOKEN_URL || '';
@@ -24,29 +24,17 @@ function json(res, status, body) {
   res.end(JSON.stringify(body));
 }
 
-function readBody(req) {
-  return new Promise((resolve, reject) => {
-    const chunks = [];
-    req.on('data', (c) => chunks.push(c));
-    req.on('end', () => {
-      try {
-        resolve(Buffer.concat(chunks).toString('utf8') ? JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}') : {});
-      } catch (e) { reject(e); }
-    });
-    req.on('error', reject);
-  });
-}
-
-// Fix readBody - need to accumulate properly
 function readBodyFixed(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
-    req.on('data', (c) => chunks.push(c));
+    req.on('data', (chunk) => chunks.push(chunk));
     req.on('end', () => {
       try {
         const raw = Buffer.concat(chunks).toString('utf8');
         resolve(raw ? JSON.parse(raw) : {});
-      } catch (e) { reject(e); }
+      } catch (error) {
+        reject(error);
+      }
     });
     req.on('error', reject);
   });
@@ -62,7 +50,7 @@ const server = http.createServer(async (req, res) => {
         ok: true,
         service: 'tsm-api',
         idp_configured: Boolean(TOKEN_URL && CLIENT_ID && CLIENT_SECRET),
-        planes: ['EVIDENCE', 'GOVERNANCE', 'AUTH'],
+        planes: ['EVIDENCE', 'GOVERNANCE', 'AUTH', 'ENGINEERING'],
       });
     }
 
@@ -78,29 +66,64 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === 'GET' && url.pathname.startsWith('/api/evidence/') && url.pathname !== '/api/evidence/verify') {
       const id = url.pathname.split('/').pop();
-      const a = getArtifact(id);
-      if (!a) return json(res, 404, { error: 'not found' });
-      return json(res, 200, a);
+      const artifact = getArtifact(id);
+      if (!artifact) return json(res, 404, { error: 'not found' });
+      return json(res, 200, artifact);
     }
 
     if (req.method === 'POST' && url.pathname === '/api/evidence') {
       const body = await readBodyFixed(req);
       try {
-        const artifact = appendArtifact(body);
-        return json(res, 201, artifact);
-      } catch (e) {
-        return json(res, e.code === 'FAIL_CLOSED' ? 422 : 500, { error: e.message, code: e.code });
+        return json(res, 201, appendArtifact(body));
+      } catch (error) {
+        return json(res, error.code === 'FAIL_CLOSED' ? 422 : 500, { error: error.message, code: error.code });
       }
     }
 
     if (req.method === 'POST' && url.pathname === '/api/evidence/verify') {
       const body = await readBodyFixed(req);
       const { artifact_id, canonical } = body;
-      const a = getArtifact(artifact_id);
-      if (!a) return json(res, 404, { error: 'artifact not found' });
-      const result = verifyProvenance(a, canonical || a.payload);
+      const artifact = getArtifact(artifact_id);
+      if (!artifact) return json(res, 404, { error: 'artifact not found' });
+      const result = verifyProvenance(artifact, canonical || artifact.payload);
       recordVerification(artifact_id, result.expected, result.computed, 'api/evidence/verify');
       return json(res, result.ok ? 200 : 422, result);
+    }
+
+    // --- Engineering solver ---
+    if (req.method === 'POST' && url.pathname === '/api/v1/engineering/compensatory-storage') {
+      const body = await readBodyFixed(req);
+      try {
+        const result = evaluateCompensatoryStorage(body);
+        const canonical = `TSM_ENGINE_LEAF:${buildCompensatoryStorageCanonical(body)}`;
+        const artifact = appendArtifact({
+          artifact_type: 'engineering_compensatory_storage',
+          source_authority: 'TSM Engineering Solver',
+          source_uri: 'internal://tsm/engineering/compensatory-storage',
+          source_identifier: body.plan_id,
+          retrieved_at: new Date().toISOString(),
+          horizontal_crs: body.horizontal_crs || 'EPSG:2966',
+          horizontal_crs_name: body.horizontal_crs_name || 'NAD83 / Indiana West (ftUS)',
+          vertical_datum: body.vertical_datum || 'NAVD88',
+          content_hash_sha256: result.evidence_artifact_hash.slice('sha256:'.length),
+          validation_status: 'provisional',
+          authority_class: 'MODEL_OUTPUT',
+          derivation_class: 'DERIVED',
+          software_version: 'tsm-engineering@0.1.0',
+          operator_or_service_identity: 'compensatory-storage-api',
+          governance_status: 'human_review_required',
+          is_simulation_demo: false,
+          human_review_status: 'pending',
+          transformation_chain: [],
+          payload: result,
+          _canonical_for_verify: canonical,
+          notes: 'Configurable storage-ratio analysis. Not a regulatory determination; verify governing permit criteria and engineering basis.',
+        });
+        return json(res, 200, { ...result, evidence_artifact_id: artifact.artifact_id });
+      } catch (error) {
+        const status = error instanceof TypeError || error instanceof RangeError ? 400 : 422;
+        return json(res, status, { error: error.message, code: error.code || 'ENGINEERING_VALIDATION_ERROR' });
+      }
     }
 
     // --- Ingestion ---
@@ -139,7 +162,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'POST' && url.pathname === '/api/ledger/append') {
       const body = await readBodyFixed(req);
       const content = JSON.stringify(body);
-      const hash = sha256Hex('TSM_LEAF:' + content);
+      const hash = sha256Hex(`TSM_LEAF:${content}`);
       try {
         const artifact = appendArtifact({
           artifact_type: 'evidence_block',
@@ -156,23 +179,24 @@ const server = http.createServer(async (req, res) => {
           is_simulation_demo: Boolean(body.is_simulation_demo),
           transformation_chain: body.transformation_chain || [],
           payload: body,
-          _canonical_for_verify: 'TSM_LEAF:' + content,
+          _canonical_for_verify: `TSM_LEAF:${content}`,
         });
         return json(res, 201, artifact);
-      } catch (e) {
-        return json(res, 422, { error: e.message, code: e.code });
+      } catch (error) {
+        return json(res, 422, { error: error.message, code: error.code });
       }
     }
 
-    json(res, 404, { error: 'not found' });
-  } catch (e) {
-    json(res, 500, { error: e.message || 'internal error' });
+    return json(res, 404, { error: 'not found' });
+  } catch (error) {
+    return json(res, 500, { error: error.message || 'internal error' });
   }
 });
 
 server.listen(PORT, () => {
   console.log(`TSM API on http://localhost:${PORT}`);
   console.log('  Evidence: GET/POST /api/evidence  POST /api/evidence/verify');
+  console.log('  Engineering: POST /api/v1/engineering/compensatory-storage');
   console.log('  Ingest:   POST /api/ingest/hydrologic | usgs | nwps');
   console.log('  Policy:   GET /api/policies  POST /api/policies/evaluate');
 });
