@@ -1,0 +1,49 @@
+name: Open World Twin Validation
+
+on:
+  pull_request:
+    paths:
+      - 'tsm-console/src/lib/cinematic/**'
+      - 'tsm-console/src/gpu/**'
+      - 'tsm-console/server/tiles/**'
+      - 'tsm-console/server/telemetry/**'
+      - 'tools/ortho/**'
+      - 'tsm-console/package.json'
+      - 'tsm-console/app-manifest.json'
+      - '.github/workflows/open-world-twin.yml'
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install JavaScript dependencies
+        working-directory: tsm-console
+        run: npm install --no-audit --no-fund
+      - name: TypeScript validation
+        working-directory: tsm-console
+        run: npx tsc --noEmit
+      - name: Cinematic tests
+        working-directory: tsm-console
+        run: npm run test:cinematic
+      - name: WGSL structural validation
+        working-directory: tsm-console
+        run: |
+          test -s src/gpu/ultimate-twin-pipeline.wgsl
+          grep -q '@vertex' src/gpu/ultimate-twin-pipeline.wgsl
+          grep -q '@fragment' src/gpu/ultimate-twin-pipeline.wgsl
+          grep -q 'floodDepthTexture' src/gpu/ultimate-twin-pipeline.wgsl
+          ! grep -Eq '375\\.0|379\\.4|382\\.1' src/gpu/ultimate-twin-pipeline.wgsl
+      - name: Application manifest validation
+        working-directory: tsm-console
+        run: node -e "JSON.parse(require('fs').readFileSync('app-manifest.json','utf8'))"
+      - name: Python syntax validation
+        run: python -m py_compile tools/ortho/ortho_processor.py

@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "1.0.0",
+  "application": {
+    "id": "tri-state-systems-manager",
+    "name": "Tri-State Systems Manager",
+    "entry": "tsm-console",
+    "mode": "desktop-capable-web",
+    "security": {
+      "tileServerBind": "127.0.0.1",
+      "browserAuthoritativeSealing": false
+    }
+  },
+  "runtime": {
+    "webgpu": { "optional": true, "shader": "tsm-console/src/gpu/ultimate-twin-pipeline.wgsl" },
+    "map": { "engine": "MapLibre", "localTileEndpoint": "http://127.0.0.1:8788" },
+    "tiles": { "root": "tsm-console/public/data/tiles", "formats": ["PNG", "JPEG", "WEBP", "PBF", "JSON", "TERRAIN"] }
+  },
+  "cinematic": {
+    "sceneStateSchema": "1.0.0",
+    "solarEngine": "tsm-console/src/lib/cinematic/solar-engine.ts",
+    "orthophotoProcessor": "tools/ortho/ortho_processor.py",
+    "floodScenarios": ["live", "100-year", "500-year", "1937-historic"]
+  },
+  "telemetry": {
+    "riverAlert": "tsm-console/server/telemetry/river-alert.mjs",
+    "usgsParameter": "00065",
+    "baselineConfiguration": "TSM_STRUCTURE_BASELINE_FT"
+  },
+  "evidence": {
+    "requiredForFloodScenarioBinding": true,
+    "requiredForOrthophotoAuthority": true,
+    "hashAlgorithm": "SHA-256"
+  }
+}

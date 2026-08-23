@@ -4,9 +4,7 @@
   "private": true,
   "description": "Tri-State Systems Manager — Infinite Orchestration Console",
   "type": "module",
-  "engines": {
-    "node": ">=20.0.0"
-  },
+  "engines": { "node": ">=20.0.0" },
   "scripts": {
     "dev": "vite",
     "dev:proxy": "node server/token-proxy.mjs",
@@ -17,6 +15,7 @@
     "build": "npm run check && vite build",
     "preview": "vite preview",
     "proxy": "node server/token-proxy.mjs",
+    "tiles": "node server/tiles/local-tile-server.mjs",
     "ingest": "node -e \"import('./server/ingestion/workers.mjs').then(m => m.runHydrologicBatch().then(r => console.log(JSON.stringify(r,null,2))))\"",
     "buf:lint": "buf lint",
     "buf:gen": "buf generate",
@@ -27,7 +26,8 @@
     "test:geodetic": "node --test tests/geodetic-pipeline.test.mjs",
     "test:solar": "node --test tests/solar-engine.test.mjs",
     "test:engineering": "node --test tests/compensatory-storage.test.mjs",
-    "test:router": "node --test tests/router-source.test.mjs"
+    "test:router": "node --test tests/router-source.test.mjs",
+    "test:cinematic": "vitest run tests/cinematic-contracts.test.ts"
   },
   "dependencies": {
     "react": "^19.0.0",
@@ -48,6 +48,7 @@
     "@vitejs/plugin-react": "^4.3.0",
     "typescript": "^5.6.0",
     "vite": "^6.0.0",
+    "vitest": "^2.1.8",
     "@bufbuild/buf": "^1.47.0",
     "@bufbuild/protoc-gen-es": "^2.2.0"
   }

@@ -1,0 +1,8 @@
+{
+  "schemaVersion": "1.0.0",
+  "host": "127.0.0.1",
+  "port": 8788,
+  "root": "../public/data/tiles",
+  "allowedExtensions": [".png", ".jpg", ".jpeg", ".webp", ".pbf", ".json", ".terrain"],
+  "cacheControl": "public, max-age=3600, immutable"
+}
