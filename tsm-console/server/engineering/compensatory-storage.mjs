@@ -7,7 +7,7 @@ function requireFiniteNumber(value, field) {
   return value;
 }
 
-export function evaluateCompensatoryStorage(req) {
+export function normalizeCompensatoryStorageRequest(req) {
   if (typeof req?.plan_id !== 'string' || req.plan_id.trim() === '') {
     throw new TypeError('plan_id is required');
   }
@@ -20,19 +20,28 @@ export function evaluateCompensatoryStorage(req) {
     throw new RangeError('volumes must be non-negative and required_ratio must be greater than zero');
   }
 
-  const requiredExcavation = fillVolume * ratio;
-  const deficit = Math.max(0, requiredExcavation - excavationVolume);
-  const isCompliant = deficit <= 0.0001;
-  const canonical = JSON.stringify({
+  return {
     plan_id: req.plan_id,
     fill_volume_cuft: fillVolume,
     excavation_volume_cuft: excavationVolume,
     required_ratio: ratio,
-  });
+  };
+}
+
+export function buildCompensatoryStorageCanonical(req) {
+  return JSON.stringify(normalizeCompensatoryStorageRequest(req));
+}
+
+export function evaluateCompensatoryStorage(req) {
+  const normalized = normalizeCompensatoryStorageRequest(req);
+  const requiredExcavation = normalized.fill_volume_cuft * normalized.required_ratio;
+  const deficit = Math.max(0, requiredExcavation - normalized.excavation_volume_cuft);
+  const isCompliant = deficit <= 0.0001;
+  const canonical = JSON.stringify(normalized);
   const computedHash = createHash('sha256').update(`TSM_ENGINE_LEAF:${canonical}`).digest('hex');
 
   return {
-    plan_id: req.plan_id,
+    plan_id: normalized.plan_id,
     required_excavation_cuft: requiredExcavation,
     measured_volume_deficit_cuft: deficit,
     is_compliant: isCompliant,
