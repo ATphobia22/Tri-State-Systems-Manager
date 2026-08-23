@@ -3,7 +3,7 @@
  * Auth gate + typed loaders + actions for ledger/benefit + live stage
  */
 
-import { createBrowserRouter, redirect, type ActionFunctionArgs } from 'react-router';
+import { createBrowserRouter, redirect, type ActionFunctionArgs, useLoaderData } from 'react-router';
 import { authLoader } from './auth';
 import { SITE } from '../types/site';
 import { appendEvidence, getMerkleState } from './merkle';
@@ -40,7 +40,6 @@ let contracts: import('../types/loaders').DataContractSummary[] = [
   { id: 'tsm-site-001', title: '13101 Bonebank Site Constants', owner: 'TuckerInc.82', classification: 'restricted', jurisdiction: 'Indiana', validation_status: 'validated', content_hash: 'sha256:site-v1' },
 ];
 let sandboxProjects: import('../types/loaders').SandboxProject[] = [];
-
 
 async function rootLoader(): Promise<RootLoaderData> {
   const auth = await authLoader({});
@@ -224,7 +223,6 @@ async function mapTwinLoader(): Promise<MapTwinLoaderData> {
 }
 
 function ArchitectureView() {
-  const { useLoaderData } = require('react-router') as typeof import('react-router');
   const data = useLoaderData() as ArchitectureLoaderData;
   return (
     <div style={{ padding: '1.5rem 2rem', maxWidth: 800, margin: '0 auto' }}>
@@ -242,7 +240,6 @@ function ArchitectureView() {
 }
 
 function MapTwinView() {
-  const { useLoaderData } = require('react-router') as typeof import('react-router');
   const data = useLoaderData() as MapTwinLoaderData;
   return (
     <div style={{ padding: '1.5rem 2rem', maxWidth: 900, margin: '0 auto' }}>
