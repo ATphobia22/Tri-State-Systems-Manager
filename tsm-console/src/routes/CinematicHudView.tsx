@@ -1,8 +1,10 @@
 import { Suspense, useEffect, useRef, useState } from 'react';
-import { Activity, Compass, Cpu, Database, Layers, Lock, Map, Radio, RefreshCw, Shield, Users, Video, Zap } from 'lucide-react';
+import { Activity, Layers, Lock, Map, RefreshCw, Users, Video, Zap } from 'lucide-react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Grid, OrbitControls, Sky } from '@react-three/drei';
 import * as THREE from 'three';
+import { POSEY_2020_ASSETS } from '../geospatial/site-asset-manifest';
+import { POSEY_DISPLAY_SCALE, PoseyTerrainMesh, type PoseyTerrainState } from '../geospatial/terrain-mesh';
 
 const CONFIG = {
   PROJECT_NODE: '13101 Bonebank Road, Point Township, Posey County, Indiana',
@@ -20,19 +22,19 @@ const CONFIG = {
 type Tab = 'twin' | 'heritage' | 'medical' | 'power' | 'cinematic';
 type Finding = 'NOMINAL' | 'BFE_EXCEEDED' | 'CRITICAL_INUNDATION';
 
-function CinematicWaterPlane({ waterStageFt }: { waterStageFt: number }) {
+function CinematicWaterPlane({ waterStageFt, elevationOriginFt }: { waterStageFt: number; elevationOriginFt: number }) {
   const meshRef = useRef<THREE.Mesh>(null);
 
   useFrame((state) => {
     if (!meshRef.current) return;
-    const targetY = Math.max(0, (waterStageFt - CONFIG.BFE_FT) * 0.8) + Math.sin(state.clock.elapsedTime * 2) * 0.2;
+    const targetY = (waterStageFt - elevationOriginFt) * POSEY_DISPLAY_SCALE + Math.sin(state.clock.elapsedTime * 2) * 0.05;
     meshRef.current.position.y = THREE.MathUtils.lerp(meshRef.current.position.y, targetY, 0.08);
   });
 
   return (
     <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-      <planeGeometry args={[1000, 1000, 64, 64]} />
-      <meshPhysicalMaterial color="#0ea5e9" roughness={0.1} metalness={0.2} transmission={0.9} ior={1.333} transparent opacity={0.85} />
+      <planeGeometry args={[600, 600, 64, 64]} />
+      <meshPhysicalMaterial color="#0ea5e9" roughness={0.1} metalness={0.2} transmission={0.9} ior={1.333} transparent opacity={0.78} />
     </mesh>
   );
 }
@@ -58,10 +60,13 @@ export default function CinematicHudView() {
   const [waterStageFt, setWaterStageFt] = useState(376.4);
   const [dischargeCfs, setDischargeCfs] = useState(128000);
   const [finding, setFinding] = useState<Finding>('NOMINAL');
+  const [terrainState, setTerrainState] = useState<PoseyTerrainState | null>(null);
+  const [terrainError, setTerrainError] = useState<string | null>(null);
   const [logs, setLogs] = useState<string[]>([
     '[INIT] Tri-State Systems Manager cinematic subsystem initialized.',
     '[EVIDENCE] Evidence ledger interface active; values shown here are model/UI state until sealed by backend.',
     '[GEODESY] EPSG:2966 horizontal CRS / NAVD88 vertical datum labels loaded.',
+    '[GEOSPATIAL] Posey 2020 terrain/orthophoto source binding queued.',
     '[HYDRAULICS] Hydraulic visualization linked to local simulation state.',
   ]);
 
@@ -69,6 +74,19 @@ export default function CinematicHudView() {
     const timestamp = new Date().toISOString().slice(11, 19);
     setLogs((previous) => [`[${timestamp}Z] ${critical ? '[CRITICAL] ' : ''}${message}`, ...previous].slice(0, 50));
   };
+
+  useEffect(() => {
+    if (!terrainState) return;
+    const min = Math.min(...terrainState.grid.elevations);
+    const max = Math.max(...terrainState.grid.elevations);
+    addLog(`Bound real Posey terrain: ${terrainState.grid.width}×${terrainState.grid.height} source-derived NAVD88 grid; elevation range ${min.toFixed(2)}–${max.toFixed(2)} ft.`);
+    addLog(`Bound 2020 NAIP orthophoto to the same EPSG:2966 AOI.`);
+  }, [terrainState]);
+
+  useEffect(() => {
+    if (!terrainError) return;
+    addLog(`Posey geospatial asset load failed: ${terrainError}`, true);
+  }, [terrainError]);
 
   useEffect(() => {
     const next: Finding = waterStageFt >= CONFIG.LAG_FT ? 'CRITICAL_INUNDATION' : waterStageFt >= CONFIG.BFE_FT ? 'BFE_EXCEEDED' : 'NOMINAL';
@@ -127,14 +145,22 @@ export default function CinematicHudView() {
             <div style={{ display: 'grid', gap: 14 }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,2fr) minmax(280px,1fr)', gap: 14, minHeight: 520 }}>
                 <div style={{ ...panelStyle, overflow: 'hidden', position: 'relative', minHeight: 520 }}>
-                  <div style={{ position: 'absolute', zIndex: 5, top: 14, left: 14, background: 'rgba(0,0,0,.82)', border: '1px solid rgba(34,211,238,.3)', borderRadius: 8, padding: '6px 9px', color: '#22d3ee', fontSize: 9, fontFamily: 'ui-monospace,monospace', fontWeight: 800 }}>THREE.JS / WEBGL SPATIAL RENDER · {CONFIG.CRS}</div>
+                  <div style={{ position: 'absolute', zIndex: 5, top: 14, left: 14, background: 'rgba(0,0,0,.82)', border: '1px solid rgba(34,211,238,.3)', borderRadius: 8, padding: '6px 9px', color: '#22d3ee', fontSize: 9, fontFamily: 'ui-monospace,monospace', fontWeight: 800 }}>THREE.JS / REAL TERRAIN RENDER · {CONFIG.CRS}</div>
+                  <div style={{ position: 'absolute', zIndex: 5, top: 48, left: 14, background: 'rgba(0,0,0,.82)', border: '1px solid #1e293b', borderRadius: 8, padding: '5px 8px', color: terrainState ? '#34d399' : terrainError ? '#fb7185' : '#fbbf24', fontSize: 8, fontFamily: 'ui-monospace,monospace', fontWeight: 800 }}>
+                    {terrainState ? 'OBSERVATION BOUND · 2020 TERRAIN + NAIP' : terrainError ? 'SOURCE LOAD ERROR' : 'FETCHING AUTHORITATIVE RASTER'}
+                  </div>
                   <div style={{ position: 'absolute', zIndex: 5, bottom: 14, left: 14, background: 'rgba(0,0,0,.82)', border: '1px solid #1e293b', borderRadius: 8, padding: 9, fontSize: 9, fontFamily: 'ui-monospace,monospace', lineHeight: 1.7 }}>
                     <div>BFE: <b style={{ color: '#fbbf24' }}>{CONFIG.BFE_FT.toFixed(2)} FT</b></div><div>LAG: <b style={{ color: '#34d399' }}>{CONFIG.LAG_FT.toFixed(2)} FT</b></div><div>FFE: <b style={{ color: '#fb7185' }}>{CONFIG.FFE_FT.toFixed(2)} FT</b></div>
+                    {terrainState && <div>Terrain origin: <b style={{ color: '#22d3ee' }}>{terrainState.elevationOriginFt.toFixed(0)} FT NAVD88</b></div>}
                   </div>
-                  <Canvas camera={{ position: [0, 60, 180], fov: 45 }} shadows gl={{ antialias: true }} style={{ height: '100%', minHeight: 520 }}>
+                  <Canvas camera={{ position: [0, 80, 220], fov: 45 }} shadows gl={{ antialias: true }} style={{ height: '100%', minHeight: 520 }}>
                     <color attach="background" args={['#020409']} /><ambientLight intensity={0.5} /><directionalLight castShadow position={[100, 200, 50]} intensity={2} /><Sky distance={450000} sunPosition={[0, 1, 0]} inclination={0.2} azimuth={0.25} />
-                    <Suspense fallback={null}><CinematicWaterPlane waterStageFt={waterStageFt} /><Grid infiniteGrid fadeDistance={400} sectionColor="#1e293b" cellColor="#0f172a" position={[0, -0.1, 0]} /></Suspense>
-                    <OrbitControls maxPolarAngle={Math.PI / 2.05} minDistance={20} maxDistance={400} />
+                    <Suspense fallback={null}>
+                      <PoseyTerrainMesh onLoaded={setTerrainState} onError={setTerrainError} />
+                      {terrainState && <CinematicWaterPlane waterStageFt={waterStageFt} elevationOriginFt={terrainState.elevationOriginFt} />}
+                      <Grid infiniteGrid fadeDistance={500} sectionColor="#1e293b" cellColor="#0f172a" position={[0, -0.05, 0]} />
+                    </Suspense>
+                    <OrbitControls maxPolarAngle={Math.PI / 2.05} minDistance={20} maxDistance={600} target={[0, 2, 0]} />
                   </Canvas>
                 </div>
 
@@ -149,6 +175,7 @@ export default function CinematicHudView() {
                     <Metric label="Modeled discharge" value={`${dischargeCfs.toLocaleString()} CFS`} />
                     <Metric label="Status finding" value={finding} />
                     <Metric label="Compensatory storage" value={`${CONFIG.COMPENSATORY_STORAGE_RATIO.toFixed(2)}x · configured policy value`} />
+                    <Metric label="Terrain source" value={terrainState ? '2020 QL2 DEM · OBSERVATION' : 'LOADING'} />
                   </div>
                   <button onClick={() => { setWaterStageFt(375); setDischargeCfs(128000); addLog('Reset hydraulic simulation to configured BFE baseline.'); }} style={{ marginTop: 'auto', padding: 11, borderRadius: 10, border: '1px solid #334155', background: '#0f172a', color: '#cbd5e1', fontWeight: 800, cursor: 'pointer' }}><RefreshCw size={14} style={{ verticalAlign: 'middle', marginRight: 7 }} />Reset Baseline State</button>
                 </div>
@@ -157,7 +184,8 @@ export default function CinematicHudView() {
                 <Metric label={`USGS ${CONFIG.USGS_STATION} stage display`} value={`${(waterStageFt - 353.92).toFixed(2)} FT · modeled`} />
                 <Metric label="Posey County parcel" value={`APN ${CONFIG.VERIFIED_APN}`} />
                 <Metric label="Vertical reference" value={CONFIG.VERTICAL_DATUM} />
-                <Metric label="Evidence state" value="MODEL-ONLY · NOT SEALED" />
+                <Metric label="Geospatial AOI" value="2,680,000–2,685,000 E / 940,000–945,000 N" />
+                <Metric label="Evidence state" value="MODEL/UI · BACKEND-SEAL REQUIRED" />
               </div>
             </div>
           )}
@@ -175,3 +203,5 @@ export default function CinematicHudView() {
 function SubsystemPanel({ icon, title, description, children }: { icon: JSX.Element; title: string; description: string; children: React.ReactNode }) {
   return <div style={{ ...panelStyle, padding: 28, minHeight: 520 }}><h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 10, fontSize: 20, textTransform: 'uppercase', letterSpacing: '.06em' }}>{icon}{title}</h2><p style={{ color: '#94a3b8', maxWidth: 850, lineHeight: 1.7, fontSize: 13 }}>{description}</p><div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 12, marginTop: 30 }}>{children}</div></div>;
 }
+
+void POSEY_2020_ASSETS;
