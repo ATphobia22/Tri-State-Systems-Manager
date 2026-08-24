@@ -1,8 +1,21 @@
-import { POSEY_2020_ASSETS, POSEY_SITE_BOUNDS, isWithinPoseyBounds } from '../../src/geospatial/site-asset-manifest.ts';
+import manifest from '../../data/manifests/posey-2020-site-assets.json' with { type: 'json' };
 
+const POSEY_2020_ASSETS = manifest;
+const POSEY_SITE_BOUNDS = manifest.bounds;
 const ALLOWED_HOSTS = new Set(['di-ingov.img.arcgis.com', 'imagery.geoplatform.gov']);
 const MAX_DIMENSION = 4096;
 const MAX_PIXELS = 12_000_000;
+
+function isWithinPoseyBounds(bounds) {
+  return (
+    bounds.minX >= POSEY_SITE_BOUNDS.minX &&
+    bounds.minY >= POSEY_SITE_BOUNDS.minY &&
+    bounds.maxX <= POSEY_SITE_BOUNDS.maxX &&
+    bounds.maxY <= POSEY_SITE_BOUNDS.maxY &&
+    bounds.minX < bounds.maxX &&
+    bounds.minY < bounds.maxY
+  );
+}
 
 function parseBounds(raw) {
   const values = String(raw || '').split(',').map(Number);
