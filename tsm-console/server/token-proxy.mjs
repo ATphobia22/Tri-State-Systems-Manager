@@ -8,6 +8,7 @@ import { appendArtifact, listArtifacts, getArtifact, verifyProvenance, recordVer
 import { runHydrologicBatch, ingestUsgsNode, ingestNwpsGauge } from './ingestion/workers.mjs';
 import { evaluatePolicies, POLICIES } from './policy/jurisdiction-engine.mjs';
 import { evaluateCompensatoryStorage, buildCompensatoryStorageCanonical } from './engineering/compensatory-storage.mjs';
+import { servePoseyAsset } from './geospatial/posey-assets.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
 const TOKEN_URL = process.env.IDP_TOKEN_URL || '';
@@ -52,6 +53,40 @@ const server = http.createServer(async (req, res) => {
         idp_configured: Boolean(TOKEN_URL && CLIENT_ID && CLIENT_SECRET),
         planes: ['EVIDENCE', 'GOVERNANCE', 'AUTH', 'ENGINEERING'],
       });
+    }
+
+    // --- Geospatial asset plane ---
+    if (req.method === 'GET' && url.pathname === '/api/geospatial/posey/site') {
+      return json(res, 200, {
+        ok: true,
+        site_id: 'posey-point-township-bonebank-5000ft',
+        horizontal_crs: 'EPSG:2966',
+        horizontal_crs_name: 'NAD83 / Indiana West (ftUS)',
+        vertical_datum: 'NAVD88',
+        bounds: { minX: 2680000, minY: 940000, maxX: 2685000, maxY: 945000 },
+        terrain: {
+          source_uri: 'https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_2016_2020_DEM/ImageServer',
+          reference_lidar_uri: 'https://lidar.digitalforestry.org/QL2_3DEP_LiDAR_IN_2017_2019/Posey_Co_2020_3DEP/Elev20_LAS1.4SPW_IN/IN2020_26800940_12.las',
+          acquisition_year: 2020,
+          authority_class: 'OBSERVATION',
+          derivation_class: 'RAW',
+        },
+        orthophoto: {
+          source_uri: 'https://imagery.geoplatform.gov/iipp/rest/services/NAIP/NAIP2020_CONUS/ImageServer',
+          acquisition_year: 2020,
+          authority_class: 'OBSERVATION',
+          derivation_class: 'RAW',
+        },
+      });
+    }
+
+    if (req.method === 'GET' && url.pathname === '/api/geospatial/posey/raster') {
+      try {
+        return await servePoseyAsset(req, res);
+      } catch (error) {
+        const status = error instanceof RangeError ? 400 : 502;
+        return json(res, status, { error: error.message, code: status === 400 ? 'GEOSPATIAL_REQUEST_INVALID' : 'GEOSPATIAL_SOURCE_UNAVAILABLE' });
+      }
     }
 
     // --- Evidence store ---
@@ -196,6 +231,7 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => {
   console.log(`TSM API on http://localhost:${PORT}`);
   console.log('  Evidence: GET/POST /api/evidence  POST /api/evidence/verify');
+  console.log('  Geospatial: GET /api/geospatial/posey/site  GET /api/geospatial/posey/raster');
   console.log('  Engineering: POST /api/v1/engineering/compensatory-storage');
   console.log('  Ingest:   POST /api/ingest/hydrologic | usgs | nwps');
   console.log('  Policy:   GET /api/policies  POST /api/policies/evaluate');
