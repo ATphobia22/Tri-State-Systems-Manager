@@ -27,7 +27,7 @@
     "test:solar": "node --test tests/solar-engine.test.mjs",
     "test:engineering": "node --test tests/compensatory-storage.test.mjs",
     "test:router": "node --test tests/router-source.test.mjs",
-    "test:cinematic": "vitest run tests/cinematic-contracts.test.ts"
+    "test:cinematic": "vitest run tests/cinematic-contracts.test.ts tests/twin-solar-pathfinding.test.ts"
   },
   "dependencies": {
     "react": "^19.0.0",
