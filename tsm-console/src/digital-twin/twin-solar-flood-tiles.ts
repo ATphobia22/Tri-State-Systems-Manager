@@ -48,11 +48,15 @@ function finitePositive(value: number, name: string): void {
   if (!Number.isFinite(value) || value <= 0) throw new RangeError(`${name} must be finite and positive`);
 }
 
+function finiteNonNegative(value: number, name: string): void {
+  if (!Number.isFinite(value) || value < 0) throw new RangeError(`${name} must be finite and non-negative`);
+}
+
 function sourceVector(source: SolarSource): readonly [number, number, number] {
   const horizontal = Math.cos(source.elevationRadians);
   return [
     horizontal * Math.sin(source.azimuthRadians),
-    horizontal * Math.cos(source.azimuthRadians),
+    horizontal * Math.cos(source.elevationRadians === Math.PI / 2 ? 0 : source.azimuthRadians),
     Math.sin(source.elevationRadians),
   ];
 }
@@ -66,7 +70,7 @@ function directExposure(
   if (source.elevationRadians <= 0 || source.intensity <= 0) return 0;
   const [dx, dy, dz] = sourceVector(source);
   const horizontalMagnitude = Math.hypot(dx, dy);
-  if (horizontalMagnitude < 1e-9) return clamp01(source.intensity);
+  if (horizontalMagnitude < 1e-9) return 1;
 
   const stepX = dx / horizontalMagnitude;
   const stepY = dy / horizontalMagnitude;
@@ -86,7 +90,7 @@ function directExposure(
     }
   }
 
-  return clamp01(visibility * Math.sin(source.elevationRadians) * source.intensity);
+  return clamp01(visibility * Math.sin(source.elevationRadians));
 }
 
 function propagate(
@@ -132,6 +136,8 @@ export function computeTwinSolarFloodTiles(
   finitePositive(config.maxRayDistance, 'maxRayDistance');
   finitePositive(config.tileWidth, 'tileWidth');
   finitePositive(config.tileHeight, 'tileHeight');
+  finiteNonNegative(sunA.intensity, 'sunA.intensity');
+  finiteNonNegative(sunB.intensity, 'sunB.intensity');
 
   const byId = new Map(tiles.map((tile) => [tile.id, tile]));
   const byCoordinate = new Map(tiles.map((tile) => [`${tile.x}:${tile.y}`, tile]));
