@@ -1,15 +1,28 @@
 import { useEffect, useState } from 'react';
 import * as THREE from 'three';
+import { aStar } from '../pathfinding/grid-pathfinding';
+import { computeTwinSolarFloodTiles } from '../digital-twin/twin-solar-flood-tiles';
 import { createOrthophotoTexture } from './orthophoto-texture';
+import { terrainGridToPathfindingGrid } from './pathfinding-terrain-adapter';
+import { terrainGridToSolarTiles, terrainGridTileDimensions } from './tile-grid-adapter';
 import { sampleTerrainGrid, type TerrainGrid } from './terrain-grid';
 import { decodeTerrainGeoTiff } from './terrain-raster';
 
 export const POSEY_DISPLAY_SCALE = 0.08;
 
+export interface PoseySolarTelemetry {
+  readonly tileCount: number;
+  readonly maxTotalSolarYield: number;
+  readonly meanTotalSolarYield: number;
+  readonly walkableCount: number;
+  readonly pathNodeCount: number;
+}
+
 export interface PoseyTerrainState {
   readonly grid: TerrainGrid;
   readonly elevationOriginFt: number;
   readonly orthophotoTexture: THREE.Texture;
+  readonly solarTelemetry: PoseySolarTelemetry;
 }
 
 function createTerrainGeometry(grid: TerrainGrid, elevationOriginFt: number): THREE.BufferGeometry {
@@ -49,6 +62,44 @@ function createTerrainGeometry(grid: TerrainGrid, elevationOriginFt: number): TH
   return geometry;
 }
 
+function buildSolarAndPathTelemetry(grid: TerrainGrid): PoseySolarTelemetry {
+  const tiles = terrainGridToSolarTiles(grid);
+  const dimensions = terrainGridTileDimensions(grid);
+  const solar = computeTwinSolarFloodTiles(
+    tiles,
+    { azimuthRadians: Math.PI / 4, elevationRadians: Math.PI / 4, intensity: 1 },
+    { azimuthRadians: Math.PI * 1.25, elevationRadians: Math.PI / 6, intensity: 0.65 },
+    undefined,
+    {
+      falloff: 0.85,
+      propagationSteps: 32,
+      maxRayDistance: 64,
+      tileWidth: dimensions.tileWidth,
+      tileHeight: dimensions.tileHeight,
+    },
+  );
+
+  let maxTotalSolarYield = 0;
+  let sumTotalSolarYield = 0;
+  for (const tile of solar.tiles) {
+    maxTotalSolarYield = Math.max(maxTotalSolarYield, tile.total_solar_yield);
+    sumTotalSolarYield += tile.total_solar_yield;
+  }
+
+  const pathfinding = terrainGridToPathfindingGrid(grid, 3);
+  const start = pathfinding.grid.node(0, 0);
+  const goal = pathfinding.grid.node(grid.width - 1, grid.height - 1);
+  const path = start?.walkable && goal?.walkable ? aStar(pathfinding.grid, start, goal).path : [];
+
+  return {
+    tileCount: solar.tiles.length,
+    maxTotalSolarYield,
+    meanTotalSolarYield: solar.tiles.length > 0 ? sumTotalSolarYield / solar.tiles.length : 0,
+    walkableCount: pathfinding.walkableCount,
+    pathNodeCount: path.length,
+  };
+}
+
 export function PoseyTerrainMesh({
   onLoaded,
   onError,
@@ -72,11 +123,13 @@ export function PoseyTerrainMesh({
         const grid = sampleTerrainGrid(terrainRaster, 128, 128);
         const orthophotoResponse = await fetch(`/api/geospatial/posey/raster?kind=orthophoto&bbox=${bounds}&width=2048&height=2048`);
         texture = await createOrthophotoTexture(orthophotoResponse);
-        const minElevation = Math.min(...grid.elevations);
+        let minElevation = Infinity;
+        for (const elevation of grid.elevations) minElevation = Math.min(minElevation, elevation);
         const nextState: PoseyTerrainState = {
           grid,
           elevationOriginFt: Math.floor(minElevation),
           orthophotoTexture: texture,
+          solarTelemetry: buildSolarAndPathTelemetry(grid),
         };
         if (cancelled) {
           texture.dispose();
