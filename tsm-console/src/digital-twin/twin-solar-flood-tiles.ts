@@ -56,7 +56,7 @@ function sourceVector(source: SolarSource): readonly [number, number, number] {
   const horizontal = Math.cos(source.elevationRadians);
   return [
     horizontal * Math.sin(source.azimuthRadians),
-    horizontal * Math.cos(source.elevationRadians === Math.PI / 2 ? 0 : source.azimuthRadians),
+    horizontal * Math.cos(source.azimuthRadians),
     Math.sin(source.elevationRadians),
   ];
 }
