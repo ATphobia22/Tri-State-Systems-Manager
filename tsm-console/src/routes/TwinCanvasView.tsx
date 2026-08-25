@@ -1,10 +1,17 @@
 import CinematicHudView from './CinematicHudView';
+import PoseyResilienceDashboard from './PoseyResilienceDashboard';
 
 /**
  * Digital Twin route entry point.
- * The cinematic HUD is now the primary interactive twin surface while
- * backend loaders and evidence contracts remain owned by the router.
+ * The public-interest Posey resilience dashboard is presented first so
+ * engineering capability is directly connected to community benefit.
+ * The existing cinematic twin remains available below it.
  */
 export default function TwinCanvasView() {
-  return <CinematicHudView />;
+  return (
+    <>
+      <PoseyResilienceDashboard />
+      <CinematicHudView />
+    </>
+  );
 }
