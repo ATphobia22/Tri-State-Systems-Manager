@@ -1,7 +1,7 @@
 # PTDT v35 — Local Test Stack (PostGIS + API smoke)
 # Usage:
 #   docker compose up -d --build
-#   docker compose exec api python scripts/verify-backend-invariants.py
+#   docker compose logs api
 #   docker compose down -v
 
 services:
@@ -20,7 +20,8 @@ services:
       test: ["CMD-SHELL", "pg_isready -U ptdt -d ptdt_v35"]
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 12
+      start_period: 10s
 
   api:
     build:
@@ -31,15 +32,16 @@ services:
       PTDT_CRS: EPSG:2966
       PTDT_BFE_FT: "375.0"
       PTDT_LAG_FT: "377.2"
-    ports:
-      - "8000:8000"
+      PYTHONPATH: /app
     depends_on:
       db:
         condition: service_healthy
     volumes:
       - ./backend:/app/backend:ro
       - ./scripts:/app/scripts:ro
-    command: ["python", "scripts/verify-backend-invariants.py"]
+    # One-shot verification; container exits 0 on PASS
+    command: ["python", "/app/scripts/verify-backend-invariants.py"]
+    restart: "no"
 
 volumes:
   ptdt_pgdata:

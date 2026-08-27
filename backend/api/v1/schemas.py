@@ -9,7 +9,6 @@ from pydantic import (
     Field,
     field_validator,
     model_validator,
-    ValidationError,
 )
 
 BFE_FT: Final[float] = 375.0

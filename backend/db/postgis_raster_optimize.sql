@@ -1,25 +1,42 @@
--- PTDT v35 - Optimized PostGIS GiST + Raster Tiling
--- Target: 128x128 tiles, FILLFACTOR 70, REINDEX CONCURRENTLY after bulk loads
+-- PTDT v35 - PostGIS GiST + Raster (init-safe for docker-entrypoint-initdb.d)
+-- NOTE: CREATE INDEX CONCURRENTLY cannot run inside a transaction block.
+--       Init scripts run in a transaction — use non-concurrent forms here.
+--       Run REINDEX CONCURRENTLY manually after bulk loads in production.
+
 CREATE EXTENSION IF NOT EXISTS postgis;
 CREATE EXTENSION IF NOT EXISTS postgis_raster;
 
--- GiST spatial index with reduced fillfactor for update-heavy DEM workloads
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_ptdt_spatial_nodes_geom
+-- Stub tables so index creation succeeds on fresh DB
+CREATE TABLE IF NOT EXISTS public.ptdt_spatial_nodes (
+    node_id          bigserial PRIMARY KEY,
+    geom_center      geometry(Point, 2966),
+    parcel_apn       text,
+    bfe_ft_navd88    double precision DEFAULT 375.0,
+    lag_ft_navd88    double precision DEFAULT 377.2,
+    created_at       timestamptz DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS public.ptdt_dem_raster (
+    rid    serial PRIMARY KEY,
+    rast   raster
+);
+
+-- Non-concurrent GiST (init-safe). Prefer FILLFACTOR 70 for update-heavy DEM.
+CREATE INDEX IF NOT EXISTS idx_ptdt_spatial_nodes_geom
   ON public.ptdt_spatial_nodes
   USING GIST (geom_center)
   WITH (FILLFACTOR = 70);
 
--- Primary tile size for ST_Value random access (128x128)
--- Load example:
--- raster2pgsql -s 2966 -t 128x128 -I -C -M -Y dem.tif public.ptdt_dem_raster | psql ...
+-- Optional: constrain CRS on geometry column when PostGIS supports it
+-- ALTER TABLE public.ptdt_spatial_nodes
+--   ADD CONSTRAINT enforce_srid_2966 CHECK (ST_SRID(geom_center) = 2966);
 
--- Performance pattern: filter first, then extract
--- SELECT ST_Value(rast, ST_Transform(ST_SetSRID(ST_MakePoint(-88.0142, 37.8348), 4326), 2966))
---   FROM public.ptdt_dem_raster
---  WHERE ST_Intersects(rast, ST_Transform(ST_SetSRID(ST_MakePoint(-88.0142, 37.8348), 4326), 2966));
+ANALYZE public.ptdt_spatial_nodes;
 
--- Mandatory post-bulk maintenance (run after every DEM / ledger load)
-REINDEX TABLE CONCURRENTLY public.ptdt_spatial_nodes;
-REINDEX TABLE CONCURRENTLY public.ptdt_dem_raster;
-ANALYZE public.ptdt_spatial_nodes, public.ptdt_dem_raster;
-VACUUM (ANALYZE) public.ptdt_dem_raster;
+-- ---------------------------------------------------------------------------
+-- Production maintenance (run OUTSIDE init, after bulk DEM/ledger loads):
+--   REINDEX TABLE CONCURRENTLY public.ptdt_spatial_nodes;
+--   REINDEX TABLE CONCURRENTLY public.ptdt_dem_raster;
+--   ANALYZE public.ptdt_spatial_nodes, public.ptdt_dem_raster;
+--   VACUUM (ANALYZE) public.ptdt_dem_raster;
+-- ---------------------------------------------------------------------------
