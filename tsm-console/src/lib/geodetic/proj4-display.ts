@@ -20,11 +20,18 @@ export function registerEpsg2966(proj4: {
  * Mark results provisional for evidence packaging.
  */
 export function wgs84ToEpsg2966Approx(
-  proj4: { forward?: unknown; } & ((from: string, to: string, coord: number[]) => number[]),
+  proj4: ((from: string, to: string, coord: number[]) => number[]) & {
+    defs?: (code: string, def?: string) => unknown;
+  },
   lon: number,
   lat: number
 ): { x_usft: number; y_usft: number; provisional: true } {
-  registerEpsg2966(proj4 as { defs: (c: string, d?: string) => unknown });
+  registerEpsg2966({
+    defs: (code, def) => {
+      if (!proj4.defs) throw new Error('proj4 instance does not expose defs()');
+      return proj4.defs(code, def);
+    },
+  });
   const [x, y] = proj4('WGS84', `EPSG:${AUTHORITATIVE_HORIZONTAL_EPSG}`, [lon, lat]);
   return { x_usft: x, y_usft: y, provisional: true };
 }
