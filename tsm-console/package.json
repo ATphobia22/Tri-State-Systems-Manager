@@ -25,7 +25,7 @@
     "proto:all": "buf lint && buf generate",
     "postinstall": "echo \\\"[tsm] Optional: npm run proto:all after installing @bufbuild/buf\\\"",
     "test": "node --test tests/geodetic-pipeline.test.mjs tests/solar-engine.test.mjs tests/compensatory-storage.test.mjs tests/router-source.test.mjs tests/geospatial-api.test.mjs",
-    "test:posey": "vitest run tests/posey-evidence.test.ts tests/posey-dashboard.test.ts",
+    "test:posey": "vitest run tests/posey-evidence.test.ts tests/posey-dashboard.test.ts tests/posey-ledger.test.ts",
     "test:geodetic": "node --test tests/geodetic-pipeline.test.mjs",
     "test:solar": "node --test tests/solar-engine.test.mjs",
     "test:engineering": "node --test tests/compensatory-storage.test.mjs",
