@@ -13,9 +13,10 @@
   },
   "geodesy": {
     "horizontal_crs": "EPSG:2966",
-    "horizontal_datum": "NAD83 (2011) Indiana West (US Feet)",
+    "horizontal_datum": "NAD83 / Indiana West (US survey feet)",
     "vertical_datum": "NAVD88 (GEOID18)",
-    "centroid": { "lat": 37.8348, "lon": -88.0142 }
+    "centroid": { "lat": 37.8348, "lon": -88.0142 },
+    "epsg_note": "Transverse Mercator; units us-ft; covers Posey County"
   },
   "invariants": {
     "base_flood_elevation_ft": 375.0,
@@ -24,12 +25,6 @@
     "natural_clearance_ft": 2.2,
     "floor_elevation_ft": 382.5,
     "berm_crest_ft": 379.8
-  },
-  "hydrology": {
-    "primary_source": "Wabash River",
-    "secondary_source": "Ohio River",
-    "risk_band": "Zone AE",
-    "usgs_gauge": "03378500"
   },
   "cadastral": {
     "apn": "65-19-08-100-008.001-010",

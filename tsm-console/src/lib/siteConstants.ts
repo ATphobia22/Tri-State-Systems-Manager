@@ -1,16 +1,12 @@
 /**
- * PTDT v35 - Site Constants & Geodetic Anchors
- * Horizontal: EPSG:2966 | Vertical: NAVD88
- * NFIP CIDs verified FEMA CIS 2026
+ * PTDT v35 — Site Constants (aligned with tsm-site-constants JSON)
+ * EPSG:2966 = NAD83 / Indiana West (US survey feet)
+ * FFE locked at 382.5 ft NAVD88
  */
-
 export const BONEBANK_SITE = {
   name: "13101 Bonebank Road",
   county: "Posey",
   state: "IN",
-  section: "35",
-  township: "T7S",
-  range: "R14W",
   lat: 37.8348,
   lon: -88.0142,
   center: [-88.0142, 37.8348] as [number, number],
