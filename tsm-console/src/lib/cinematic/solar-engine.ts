@@ -83,7 +83,9 @@ export class TriStateSolarEngine {
       latitudeDegrees: this.latitudeDegrees,
       longitudeDegrees: this.longitudeDegrees,
       timezoneOffsetMinutes: this.timezoneOffsetMinutes,
-      ...position,
+      solarAzimuthDegrees: position.azimuthDegrees,
+      solarElevationDegrees: position.elevationDegrees,
+      sunDirection: position.sunDirection,
       ambientIntensity: position.elevationDegrees < 0 ? 0.08 : 0.18,
     };
   }
