@@ -1,0 +1,26 @@
+{
+  "apn_dashed": "65-19-08-100-008.001-010",
+  "apn_normalized_50_iac": "651908100008001010",
+  "legal_admissibility_standard": "Daubert Standard Compliance (FRE 702)",
+  "manifest_seal": "b4782912564e70e863a7938bb3700647580830fb5a81e910a0db49a20f73b32e",
+  "system_node": "PTDT v35 Sovereign Core",
+  "wth_gis_spatial_metadata": {
+    "authority": "Local Municipal GIS Gateway",
+    "display_standard": "EPSG:2966 (NAD83 / Indiana West ftUS)",
+    "non_mutation_status": "SOVEREIGN_NON_MUTATION_VERIFIED",
+    "portal_url": "https://poseyin.wthgis.com/",
+    "target_county": "Posey County, Indiana"
+  },
+  "xsoft_engage_metadata": {
+    "AssessedValueImprovements": 185300.0,
+    "AssessedValueLand": 42500.0,
+    "LegalDescription": "PT NE NE SEC 8-T8S-R14W",
+    "NormalizedParcelId": "651908100008001010",
+    "Owner": "Hoehn Nancy A.",
+    "ParcelNumber": "65-19-08-100-008.001-010",
+    "SiteAddress": "13101 Bonebank Road, Point Township, Posey County, Indiana",
+    "TaxingDistrict": "Point Township",
+    "TotalAssessedValue": 227800.0,
+    "VerificationAuthority": "Nancy A. Hoehn, Posey County Assessor"
+  }
+}

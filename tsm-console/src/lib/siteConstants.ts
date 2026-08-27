@@ -1,8 +1,7 @@
 /**
- * Point Township Digital Twin (PTDT) v35 - Site Constants & Geodetic Anchors
- * Target: 13101 Bonebank Road, Point Township, Posey County, Indiana
- * Horizontal: EPSG:2966 (NAD83 / Indiana West ftUS)
- * Vertical: NAVD88 (strict)
+ * PTDT v35 - Site Constants & Geodetic Anchors
+ * Horizontal: EPSG:2966 | Vertical: NAVD88
+ * NFIP CIDs verified FEMA CIS 2026
  */
 
 export const BONEBANK_SITE = {
@@ -18,18 +17,15 @@ export const BONEBANK_SITE = {
   zoom: 16.5,
   bbox: [-88.035, 37.82, -88.005, 37.84] as [number, number, number, number],
 
-  // Authoritative physical elevation baselines (ft NAVD88)
   bfe_ft_navd88: 375.0,
   lag_ft_navd88: 377.2,
   ffe_ft_navd88: 382.5,
   berm_crest_ft_navd88: 379.8,
 
-  // Property registration
   parcel_apn_raw: "65-19-08-100-008.001-010",
   parcel_apn_normalized: "651908100008001010",
   assessor_authority: "Posey County Assessor (Nancy A. Hoehn)",
 
-  // NFIP Community IDs (verified FEMA CIS 2026)
   cid_posey_unincorporated: "180209",
   cid_mount_vernon: "180389",
   cid_new_harmony: "180210",
