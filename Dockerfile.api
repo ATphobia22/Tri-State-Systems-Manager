@@ -1,0 +1,17 @@
+# PTDT v35 — API / solver test image (pure-Python path)
+FROM python:3.12-slim
+
+WORKDIR /app
+
+COPY backend/requirements.txt /app/backend/requirements.txt
+RUN pip install --no-cache-dir -r backend/requirements.txt
+
+COPY backend /app/backend
+COPY scripts /app/scripts
+
+ENV PYTHONPATH=/app
+ENV PTDT_CRS=EPSG:2966
+ENV PTDT_BFE_FT=375.0
+ENV PTDT_LAG_FT=377.2
+
+CMD ["python", "scripts/verify-backend-invariants.py"]
