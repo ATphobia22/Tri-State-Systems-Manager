@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 import * as THREE from 'three';
 import { aStar } from '../pathfinding/grid-pathfinding';
 import { computeTwinSolarFloodTiles } from '../digital-twin/twin-solar-flood-tiles';
@@ -105,7 +105,7 @@ export function PoseyTerrainMesh({
   onError,
 }: {
   onLoaded: (state: PoseyTerrainState) => void;
-  onError: (error: Error) => void;
+  onError: Dispatch<SetStateAction<string | null>>;
 }) {
   const [state, setState] = useState<PoseyTerrainState | null>(null);
 
@@ -122,6 +122,7 @@ export function PoseyTerrainMesh({
         const terrainRaster = await decodeTerrainGeoTiff(terrainBuffer);
         const grid = sampleTerrainGrid(terrainRaster, 128, 128);
         const orthophotoResponse = await fetch(`/api/geospatial/posey/raster?kind=orthophoto&bbox=${bounds}&width=2048&height=2048`);
+        if (!orthophotoResponse.ok) throw new Error(`Orthophoto request failed: HTTP ${orthophotoResponse.status}`);
         texture = await createOrthophotoTexture(orthophotoResponse);
         let minElevation = Infinity;
         for (const elevation of grid.elevations) minElevation = Math.min(minElevation, elevation);
@@ -138,7 +139,7 @@ export function PoseyTerrainMesh({
         setState(nextState);
         onLoaded(nextState);
       } catch (error) {
-        if (!cancelled) onError(error instanceof Error ? error : new Error(String(error)));
+        if (!cancelled) onError(error instanceof Error ? error.message : String(error));
       }
     }
 
