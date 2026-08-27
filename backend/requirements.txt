@@ -1,0 +1,11 @@
+# PTDT v35 Sovereign Backend — minimal runtime
+# Core (always)
+# No hard runtime deps for pure-Python Saint-Venant path
+
+# Optional HEC-RAS bridge (Windows + licensed HEC-RAS install)
+# hecrasapi>=0.1.0
+
+# Optional spatial / DEM
+# rasterio>=1.3
+# psycopg2-binary>=2.9
+# postgis (system)

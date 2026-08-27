@@ -16,9 +16,13 @@ COMMUNITY_ID: Final[str] = "180209"
 
 def assert_invariants() -> None:
     """Fail-closed geodetic and cryptographic invariant check."""
-    assert BFE_FT == 375.0 and LAG_FT == 377.2
-    assert abs(LAG_FT - BFE_FT - 2.2) < 1e-6
-    assert HORIZONTAL_CRS == "EPSG:2966"           # hard ban residual EPSG:2967
-    assert VERTICAL_DATUM == "NAVD88"
-    assert len(MASTER_SEAL) == 64 and all(c in "0123456789abcdef" for c in MASTER_SEAL)
-    assert PARCEL_APN == "65-19-08-100-008.001-010"
+    assert BFE_FT == 375.0 and LAG_FT == 377.2, "BFE/LAG mismatch"
+    assert abs(LAG_FT - BFE_FT - 2.2) < 1e-6, "Freeboard clearance must be +2.2 ft"
+    assert HORIZONTAL_CRS == "EPSG:2966", "HORIZONTAL_CRS must be EPSG:2966 (reject 2967)"
+    assert VERTICAL_DATUM == "NAVD88", "Vertical datum must be NAVD88"
+    assert len(MASTER_SEAL) == 64 and all(c in "0123456789abcdef" for c in MASTER_SEAL), "Invalid MASTER_SEAL"
+    assert PARCEL_APN == "65-19-08-100-008.001-010", "APN mismatch"
+
+if __name__ == "__main__":
+    assert_invariants()
+    print("[site_constants] invariants OK — EPSG:2966 / BFE 375.0 / LAG 377.2")

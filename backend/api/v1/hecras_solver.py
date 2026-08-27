@@ -1,17 +1,31 @@
 # PTDT v35 - Refactored HEC-RAS 2D Python API Integration
 # Preferred: hecrasapi / win32com against validated 2D project
 # Fallback: pure-Python Saint-Venant + Manning + Bishop (identical contract)
-from typing import Dict, Any
-import site_constants as sc
+from __future__ import annotations
+
+from typing import Any, Dict
 
 try:
-    from hecrasapi import HECRASController
+    from backend.gov import site_constants as sc
+except ImportError:
+    # Allow direct script execution from repo root
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+    from backend.gov import site_constants as sc  # type: ignore
+
+try:
+    from hecrasapi import HECRASController  # type: ignore
     HAS_HECRASAPI = True
 except ImportError:
     HAS_HECRASAPI = False
 
-def run_hecras_2d(stage_ft: float, fill_volume_cy: float = 0.0,
-                  project_path: str = r"C:\PTDT\models\Bonebank_2D.prj") -> Dict[str, Any]:
+
+def run_hecras_2d(
+    stage_ft: float,
+    fill_volume_cy: float = 0.0,
+    project_path: str = r"C:\PTDT\models\Bonebank_2D.prj",
+) -> Dict[str, Any]:
     """Execute 2D hydraulic solver. Never mutates regulatory ledger."""
     sc.assert_invariants()
 
@@ -23,7 +37,7 @@ def run_hecras_2d(stage_ft: float, fill_volume_cy: float = 0.0,
     required_cut_cy = fill_volume_cy * 1.20
     bishop_fos = 1.68
 
-    result = {
+    result: Dict[str, Any] = {
         "engine": "pure_python_saint_venant",
         "hydraulic_area_sqft": round(hydraulic_area, 2),
         "velocity_fps": round(velocity_fps, 3),
@@ -46,3 +60,8 @@ def run_hecras_2d(stage_ft: float, fill_volume_cy: float = 0.0,
         result["engine"] = "hecrasapi_2d"
 
     return result
+
+
+if __name__ == "__main__":
+    out = run_hecras_2d(stage_ft=373.5, fill_volume_cy=0.0)
+    print(out)
