@@ -1,6 +1,7 @@
-// PTDT v35 - WebGPU Compute + Fragment Shader (non-mutating)
-// DEM ray-march + volumetric water mask relative to locked BFE 375.0 / LAG 377.2
-// Strict presentation-only; writes only to transient buffers
+// PTDT v35 — WebGPU Terrain Rendering (non-mutating)
+// DEM ray-march + water mask relative to locked BFE 375.0 / LAG 377.2
+// QL2 vertical accuracy bound: RMSEZ ≤ 0.328 ft (USGS 3DEP)
+// Writes only to transient buffers — never to PostGIS / HEC-RAS state
 
 struct Uniforms {
   viewProj: mat4x4<f32>,
@@ -30,8 +31,7 @@ fn terrainSDF(p: vec3<f32>) -> f32 {
 
 @compute @workgroup_size(8, 8, 1)
 fn cs_main(@builtin(global_invocation_id) id: vec3<u32>) {
-  // Optional compute pre-pass: generate displacement / FOST heat-map
-  // Write only to transient storage buffer; never to authoritative DEM
+  // Optional pre-pass: displacement / FOST heat-map into transient storage only
 }
 
 @fragment
@@ -51,9 +51,12 @@ fn fs_main(@builtin(position) frag: vec4<f32>) -> @location(0) vec4<f32> {
   }
 
   let height = sampleHeight(p.xz);
+  // Water mask relative to locked BFE (presentation only)
   let waterMask = select(0.0, 1.0, height < (u.stageFt - u.bfeFt) * 0.3048);
   var col = mix(vec3<f32>(0.12, 0.22, 0.10), vec3<f32>(0.04, 0.25, 0.42), waterMask);
-  // ACES-inspired tone map
-  col = col / (col + vec3<f32>(1.0));
+  // Freeboard visual cue vs LAG
+  let freeboardHint = select(0.0, 0.15, height > (u.lagFt - u.bfeFt) * 0.3048);
+  col = mix(col, vec3<f32>(0.2, 0.6, 0.3), freeboardHint * (1.0 - waterMask));
+  col = col / (col + vec3<f32>(1.0)); // ACES-inspired
   return vec4<f32>(pow(col, vec3<f32>(1.0 / 2.2)), 1.0);
 }

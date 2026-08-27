@@ -1,21 +1,29 @@
-# PTDT v35 — Pydantic Validation Strategies (fail-closed)
+# PTDT v35 — Pydantic V2 Validation (fail-closed)
+# Requires: pydantic>=2.5
 from __future__ import annotations
 
 from typing import Final, Literal, Optional
-from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_validator,
+    model_validator,
+    ValidationError,
+)
 
-# Locked invariants (mirror site_constants)
 BFE_FT: Final[float] = 375.0
 LAG_FT: Final[float] = 377.2
 HORIZONTAL_CRS: Final[str] = "EPSG:2966"
 MASTER_SEAL_LEN: Final[int] = 64
+QL2_RMSEZ_FT: Final[float] = 0.328  # USGS 3DEP QL2 non-vegetated
 
 
 class SiteElevations(BaseModel):
-    model_config = ConfigDict(frozen=True, extra="forbid")
+    model_config = ConfigDict(frozen=True, extra="forbid", str_strip_whitespace=True)
 
-    bfe_ft: float = Field(default=BFE_FT, description="Base Flood Elevation NAVD88")
-    lag_ft: float = Field(default=LAG_FT, description="Lowest Adjacent Grade NAVD88")
+    bfe_ft: float = Field(default=BFE_FT)
+    lag_ft: float = Field(default=LAG_FT)
     ffe_ft: float = Field(default=382.5)
     berm_crest_ft: float = Field(default=379.8)
 
@@ -34,7 +42,7 @@ class SiteElevations(BaseModel):
         return v
 
     @model_validator(mode="after")
-    def freeboard_clearance(self) -> "SiteElevations":
+    def freeboard_clearance(self) -> SiteElevations:
         if abs(self.lag_ft - self.bfe_ft - 2.2) > 1e-6:
             raise ValueError("LAG - BFE must equal +2.2 ft natural clearance")
         return self
@@ -64,7 +72,7 @@ class GeodeticFrame(BaseModel):
 class HydraulicRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    stage_ft: float = Field(..., ge=300.0, le=400.0, description="River stage ft NAVD88")
+    stage_ft: float = Field(..., ge=300.0, le=400.0)
     fill_volume_cy: float = Field(default=0.0, ge=0.0)
     project_path: Optional[str] = None
 
@@ -108,11 +116,10 @@ class CompensatoryStorageRequest(BaseModel):
     safety_factor: float = Field(default=1.20, ge=1.20, le=1.50)
 
     @model_validator(mode="after")
-    def no_rise_check(self) -> "CompensatoryStorageRequest":
+    def no_rise_check(self) -> CompensatoryStorageRequest:
         required = self.fill_volume_cy * self.safety_factor
         if self.actual_cut_cy < required:
             raise ValueError(
-                f"No-Rise violation: actual_cut_cy {self.actual_cut_cy} < required {required:.2f} "
-                f"(fill * {self.safety_factor})"
+                f"No-Rise violation: actual_cut_cy {self.actual_cut_cy} < required {required:.2f}"
             )
         return self
