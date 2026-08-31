@@ -7,9 +7,9 @@ export const BONEBANK_SITE = {
   name: "13101 Bonebank Road",
   county: "Posey",
   state: "IN",
-  lat: 37.8348,
-  lon: -88.0142,
-  center: [-88.0142, 37.8348] as [number, number],
+  lat: 37.84589,
+  lon: -88.0051,
+  center: [-88.0051, 37.84589] as [number, number],
   zoom: 16.5,
   bbox: [-88.035, 37.82, -88.005, 37.84] as [number, number, number, number],
 
@@ -25,7 +25,7 @@ export const BONEBANK_SITE = {
   cid_posey_unincorporated: "180209",
   cid_mount_vernon: "180389",
   cid_new_harmony: "180210",
-  firm_panel: "18129C0215D",
+  firm_panel: "18129C0215C",
 
   bca_bcr_ratio: 2.45,
 } as const;

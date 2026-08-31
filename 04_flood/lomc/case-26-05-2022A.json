@@ -1,0 +1,39 @@
+{
+  "case_number": "26-05-2022A",
+  "community_number": "180209",
+  "community_name": "Posey County (Unincorporated Areas)",
+  "property": {
+    "address": "13101 Bonebank Road",
+    "apn": "65-19-08-100-008.001-010",
+    "firm_panel": "18129C0215C"
+  },
+  "type": "Pure_LOMA_natural_high_ground",
+  "status": "IN_PROGRESS",
+  "portal_application_id": "5918599025038",
+  "portal_account": "atphobia82@gmail.com",
+  "case_created": "2026-08-26",
+  "portal_verified": "2026-08-31",
+  "portal": "https://hazards.fema.gov/femaportal/onlinelomc/onlinelomc.htm",
+  "elevations_claimed_ft_navd88": {
+    "bfe": 375.0,
+    "lag": 377.2,
+    "delta_z": 2.2
+  },
+  "tsm_role": "Track and inform only — TSM does not submit or amend LOMA filings",
+  "human_gates": [
+    "Reconcile Map Pack BFE vs INFIP point BFE",
+    "Verify effective panel + LOMCs on MSC",
+    "Certified survey elevations only",
+    "Local floodplain administrator coordination",
+    "Submit only via FEMA Online LOMC"
+  ],
+  "related_historical": {
+    "lomc_valid": "07-05-0734V",
+    "bonebank_corridor_case": "08-05-3793A",
+    "nfip_regular_entry": "1987-01-01"
+  },
+  "support": {
+    "phone": "1-877-FEMA-MAP"
+  },
+  "updated": "2026-08-31T15:19:00-04:00"
+}
