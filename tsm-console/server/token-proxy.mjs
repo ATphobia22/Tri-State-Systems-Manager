@@ -9,6 +9,7 @@ import { runHydrologicBatch, ingestUsgsNode, ingestNwpsGauge } from './ingestion
 import { evaluatePolicies, POLICIES } from './policy/jurisdiction-engine.mjs';
 import { evaluateCompensatoryStorage, buildCompensatoryStorageCanonical } from './engineering/compensatory-storage.mjs';
 import { servePoseyAsset } from './geospatial/posey-assets.mjs';
+import { handleFirmRoute } from './geospatial/firm-routes.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
 const TOKEN_URL = process.env.IDP_TOKEN_URL || '';
@@ -46,6 +47,8 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url || '/', `http://localhost:${PORT}`);
 
   try {
+    if (handleFirmRoute(req, res, url, json)) return;
+
     if (req.method === 'GET' && url.pathname === '/api/auth/health') {
       return json(res, 200, {
         ok: true,
@@ -232,6 +235,7 @@ server.listen(PORT, () => {
   console.log(`TSM API on http://localhost:${PORT}`);
   console.log('  Evidence: GET/POST /api/evidence  POST /api/evidence/verify');
   console.log('  Geospatial: GET /api/geospatial/posey/site  GET /api/geospatial/posey/raster');
+  console.log('  FIRM: GET /api/geospatial/firm/panels/:panelId  GET /api/geospatial/firm/panels/:panelId/layers');
   console.log('  Engineering: POST /api/v1/engineering/compensatory-storage');
   console.log('  Ingest:   POST /api/ingest/hydrologic | usgs | nwps');
   console.log('  Policy:   GET /api/policies  POST /api/policies/evaluate');
