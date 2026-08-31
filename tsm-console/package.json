@@ -8,7 +8,7 @@
     "dev": "vite",
     "dev:proxy": "node server/token-proxy.mjs",
     "dev:all": "node server/token-proxy.mjs & vite",
-    "build": "tsc -b --noEmit 2>/dev/null || true; vite build",
+    "build": "vite build",
     "preview": "vite preview",
     "proxy": "node server/token-proxy.mjs",
     "ingest": "node -e \"import('./server/ingestion/workers.mjs').then(m => m.runHydrologicBatch().then(r => console.log(JSON.stringify(r,null,2))))\"",
@@ -16,14 +16,17 @@
     "buf:gen": "buf generate",
     "buf:breaking": "buf breaking --against \".git#branch=main\"",
     "proto:all": "buf lint && buf generate",
-    "postinstall": "echo \"[tsm] Optional: npm run proto:all after installing @bufbuild/buf\"",
+    "postinstall": "node scripts/postinstall-check.mjs",
     "test": "node --test tests/geodetic-pipeline.test.mjs",
     "test:geodetic": "node --test tests/geodetic-pipeline.test.mjs",
-    "test:firm": "node --test tests/firm-world-file.test.mjs tests/firm-api.test.mjs tests/firm-ingestion.test.mjs tests/firm-grant-linkage.test.mjs",
     "ingest:ras": "node scripts/ras-geotiff-ingest.mjs",
     "check:parse": "node scripts/parse-check.mjs",
-    "check:type": "tsc --noEmit",
-    "test:cinematic": "node --test tests/cinematic-contracts.test.ts 2>/dev/null || node --test tests/*.test.mjs"
+    "check:type": "npx tsc --noEmit",
+    "test:cinematic": "node --test tests/cinematic-contracts.test.ts 2>/dev/null || node --test tests/*.test.mjs",
+    "scan:loma": "node scripts/loma-candidate-scan.mjs",
+    "etl:posey": "node server/ingestion/posey-parcel-nfhl-etl.mjs",
+    "resync": "npm install --no-audit --no-fund && node scripts/postinstall-check.mjs && node scripts/parse-check.mjs",
+    "ci": "npm run check:parse && npx tsc --noEmit && npm run build"
   },
   "dependencies": {
     "react": "^19.0.0",
@@ -35,7 +38,8 @@
     "maplibre-gl": "^4.7.1",
     "lucide-react": "^0.468.0",
     "@tanstack/react-virtual": "^3.11.0",
-    "@bufbuild/protobuf": "^2.2.0"
+    "@bufbuild/protobuf": "^2.2.0",
+    "h3-js": "^4.1.0"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",
@@ -47,5 +51,8 @@
     "@bufbuild/buf": "^1.47.0",
     "@bufbuild/protoc-gen-es": "^2.2.0",
     "@webgpu/types": "^0.1.60"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }
