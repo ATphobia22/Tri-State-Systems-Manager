@@ -19,7 +19,7 @@
     "postinstall": "echo \"[tsm] Optional: npm run proto:all after installing @bufbuild/buf\"",
     "test": "node --test tests/geodetic-pipeline.test.mjs",
     "test:geodetic": "node --test tests/geodetic-pipeline.test.mjs",
-    "test:firm": "node --test tests/firm-world-file.test.mjs tests/firm-api.test.mjs tests/firm-ingestion.test.mjs",
+    "test:firm": "node --test tests/firm-world-file.test.mjs tests/firm-api.test.mjs tests/firm-ingestion.test.mjs tests/firm-grant-linkage.test.mjs",
     "ingest:ras": "node scripts/ras-geotiff-ingest.mjs",
     "check:parse": "node scripts/parse-check.mjs",
     "check:type": "tsc --noEmit",
