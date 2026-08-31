@@ -2,10 +2,16 @@ name: TSM Parse Gate
 
 on:
   push:
+    branches: [main]
   pull_request:
+    branches: [main]
 
 permissions:
   contents: read
+
+concurrency:
+  group: tsm-parse-gate-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   parse-and-typecheck:
@@ -15,11 +21,24 @@ jobs:
         working-directory: tsm-console
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
+          registry-url: https://registry.npmjs.org
           cache: npm
           cache-dependency-path: tsm-console/package-lock.json
-      - run: npm ci --ignore-scripts --no-audit --no-fund
-      - run: npm run check:parse
-      - run: npm run check:type
+      - name: Configure public npm registry
+        run: npm config set registry https://registry.npmjs.org
+      - name: Verify lockfile registry provenance
+        run: |
+          if grep -Eqi '35\.245\.43\.102|/npm/' package-lock.json; then
+            echo 'ERROR: package-lock.json contains a non-public npm mirror URL.'
+            grep -Ein '35\.245\.43\.102|/npm/' package-lock.json | head -20
+            exit 1
+          fi
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
+      - name: Parse gate
+        run: npm run check:parse
+      - name: Typecheck
+        run: npm run check:type
