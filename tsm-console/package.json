@@ -26,14 +26,15 @@
     "ingest:ras": "node scripts/ras-geotiff-ingest.mjs",
     "check:parse": "node scripts/parse-check.mjs",
     "check:type": "npx tsc --noEmit",
+    "check:integrity": "node scripts/repository-integrity-check.mjs",
     "test:cinematic": "node --test tests/cinematic-contracts.test.ts 2>/dev/null || node --test tests/*.test.mjs",
     "scan:loma": "node scripts/loma-candidate-scan.mjs",
     "etl:posey": "node server/ingestion/posey-parcel-nfhl-etl.mjs",
     "geospatial:fetch": "node scripts/geospatial/fetch-posey-assets.mjs",
     "geospatial:validate": "node scripts/geospatial/validate-raster-manifest.mjs",
     "resync": "npm install --no-audit --no-fund && node scripts/postinstall-check.mjs && node scripts/parse-check.mjs",
-    "ci": "npm run check:parse && npm run check:type && npm run build",
-    "ci:full": "npm run check:parse && npm run check:type && npm run build && npm run test:all"
+    "ci": "npm run check:integrity && npm run check:parse && npm run check:type && npm run build",
+    "ci:full": "npm run check:integrity && npm run check:parse && npm run check:type && npm run build && npm run test:all"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.0",
