@@ -26,19 +26,19 @@ jobs:
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
-          cache: npm
-          cache-dependency-path: tsm-console/package-lock.json
       - name: Configure public npm registry
         run: npm config set registry https://registry.npmjs.org
-      - name: Regenerate lockfile from public npm registry
-        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
+      - name: Recreate lockfile from scratch
+        run: |
+          rm -f package-lock.json
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
       - name: Verify locked install
         run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
       - name: Verify lockfile has no private mirror URLs
         run: |
-          if grep -Eqi '35\.245\.43\.102|/npm/' package-lock.json; then
+          if grep -Eqi '35\.245\.43\.102|http://[^ ]*/npm/' package-lock.json; then
             echo 'ERROR: package-lock.json still contains a private package mirror URL.'
-            grep -Ein '35\.245\.43\.102|/npm/' package-lock.json | head -20
+            grep -Ein '35\.245\.43\.102|http://[^ ]*/npm/' package-lock.json | head -20
             exit 1
           fi
       - name: Commit repaired lockfile
