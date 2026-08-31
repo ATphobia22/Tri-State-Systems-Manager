@@ -2,22 +2,23 @@
 
 **Repository:** https://github.com/ATphobia22/Tri-State-Systems-Manager  
 **Console path:** `tsm-console/`  
-**Node:** >= 20 (CI uses 22)  
+**Node:** >= 22  
 **Purpose:** Public-interest evidence, maps, and digital twin for Posey County / Tri-State River Valley.
 
 ## Principles
 
 1. **Human authority remains final** — this system informs; it does not issue LOMA/LOMR or grant awards.
 2. **No auto-filing** — FEMA Case 26-05-2022A is tracked only.
-3. **Open source** — Apache-2.0 intended; reproducible builds via `npm ci`.
+3. **Open source** — Apache-2.0; reproducible builds use the committed `package-lock.json` with `npm ci`.
 
 ## One-command local run
 
 ```bash
 git clone https://github.com/ATphobia22/Tri-State-Systems-Manager.git
 cd Tri-State-Systems-Manager/tsm-console
-npm ci || npm install
+npm ci
 npm run check:parse
+npm run check:type
 npm run build
 npm run preview
 # open http://localhost:4173
@@ -30,17 +31,12 @@ npm run dev          # Vite on :5173
 npm run proxy        # optional token proxy :8787
 ```
 
-### Optional tile stack
-
-```bash
-docker compose --profile tiles up postgis martin
-```
-
 ## What builds without credentials
 
 | Command | Requires secrets? |
 |---------|-------------------|
 | `npm run check:parse` | No |
+| `npm run check:type` | No |
 | `npm run build` | No |
 | `npm run preview` | No |
 | `npm run scan:loma` | No (uses local catalog JSON) |
@@ -64,4 +60,4 @@ docker compose --profile tiles up postgis martin
 
 ## License / contribution
 
-See root README and SECURITY.md. DCO for contributions.
+The repository is licensed under Apache-2.0; see `LICENSE`. Security reporting and dependency policy are documented in `SECURITY.md`.
