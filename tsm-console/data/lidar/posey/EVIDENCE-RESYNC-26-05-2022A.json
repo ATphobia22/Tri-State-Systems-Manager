@@ -1,0 +1,65 @@
+{
+  "artifact_type": "tsm.evidence.loma_resync.v1",
+  "site": "13101 Bonebank Road, Mount Vernon, IN 47620",
+  "apn": "65-19-08-100-008.001-010",
+  "centroid": {
+    "lat": 37.84589,
+    "lon": -88.0051
+  },
+  "fema_loma_case": {
+    "case_number": "26-05-2022A",
+    "status": "IN_PROGRESS",
+    "created": "2026-08-26",
+    "authority_class": "OBSERVATION",
+    "note": "Operator-reported case status \u2014 confirm on FEMA Online LOMC"
+  },
+  "elevations_navd88_ft": {
+    "bfe_map_pack": 375.0,
+    "lag_certified_survey": 377.2,
+    "clearance_ft": 2.2,
+    "infip_query_nearby_note_ft": 368.7,
+    "bfe_conflict_note": "INFIP nearby Wabash reach 368.7 ft is NOT automatically substituted for structural Map Pack BFE 375.0 \u2014 human reconciliation required"
+  },
+  "lidar": {
+    "bucket": "s3://giselevationingov",
+    "prefix": "las/statewide/2020/SPW/ql2/",
+    "primary_tile": "IN2020_26800940_12.las",
+    "primary_tile_bytes": 319327723,
+    "primary_tile_max_ground_ft_note": 366.5,
+    "lag_outside_primary_tile": true,
+    "adjacent_candidates": [
+      "IN2020_26800945_12.las",
+      "IN2020_26800935_12.las",
+      "IN2020_26800970_12.las",
+      "IN2020_26800975_12.las",
+      "IN2020_26850940_12.las"
+    ],
+    "metadata_sha256": {
+      "IN2020_26800935_12.metadata.json": "346bcb0b31394ff020c0a40b01de24c42a5eeaf5b7b3435a461f9d1287cfe62b",
+      "IN2020_26800940_12.metadata.json": "1899d39cf931d8494794351a3607040d764d7cf297d1cd4a8a3d573c49a6e8d0",
+      "IN2020_26800945_12.metadata.json": "4ceef8c166028d938b223a7705065f1a6939bb842734f03e1e5e7cfc192bb858",
+      "IN2020_26800970_12.metadata.json": "13caba31e8c076490b58dc7d48512de9f578725f3af5e1c28dd38cbc455d0765",
+      "IN2020_26800975_12.metadata.json": "c5e595e6069ddf696bd2cc1c7dad9f21fddd18a9e6c72aab94ecd4d67e47b731",
+      "IN2020_26850940_12.metadata.json": "83d27ac9db1ee06da02ec2a9bbb79180ef1f022fbc5f48efcf75e128b0cfba02"
+    },
+    "las_download_script": "scripts/download-posey-lidar-tiles.sh",
+    "las_sha256_status": "PENDING_OPERATOR_DOWNLOAD"
+  },
+  "gauges": {
+    "primary": "USGS 03378500 Wabash River at New Harmony, IN",
+    "parameters": [
+      "00065 gage height",
+      "00060 discharge"
+    ],
+    "provisional": true
+  },
+  "next_human_steps": [
+    "Run download-posey-lidar-tiles.sh and seal SHA256SUMS-las.txt",
+    "PDAL crop foundation buffer + Classification == 2 + min Z",
+    "Generate FARA via INFIP (infip.dnr.in.gov) and FIRMette",
+    "Upload Map Pack under FEMA case 26-05-2022A \u2014 no automated submit"
+  ],
+  "authority_class": "DERIVATION",
+  "human_authority_final": true,
+  "generated_at": "2026-08-31T14:11:19.581064+00:00"
+}
