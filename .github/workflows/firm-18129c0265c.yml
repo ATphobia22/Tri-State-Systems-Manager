@@ -2,6 +2,16 @@ name: TSM FEMA FIRM 18129C0265C Verification
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - 'data/fema/18129C0265C/**'
+      - 'tsm-console/server/geospatial/world-file.mjs'
+      - 'tsm-console/server/geospatial/firm-validation.mjs'
+      - 'tsm-console/server/geospatial/firm-panel.mjs'
+      - 'tsm-console/server/geospatial/firm-routes.mjs'
+      - 'tsm-console/tests/firm-*.test.mjs'
+      - 'db/migrations/009_firm_assets.sql'
+      - '.github/workflows/firm-18129c0265c.yml'
   push:
     paths:
       - 'data/fema/18129C0265C/**'
@@ -25,8 +35,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-          cache-dependency-path: tsm-console/package-lock.json
 
       - run: npm install --ignore-scripts
       - run: npm run test:firm
