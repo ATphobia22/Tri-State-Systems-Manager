@@ -4,6 +4,7 @@
   "private": true,
   "description": "Tri-State Systems Manager — Infinite Orchestration Console",
   "type": "module",
+  "packageManager": "npm@10.9.2",
   "scripts": {
     "dev": "vite",
     "dev:proxy": "node server/token-proxy.mjs",
