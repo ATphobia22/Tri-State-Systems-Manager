@@ -3,11 +3,21 @@ name: TSM Posey Geospatial Assets
 on:
   workflow_dispatch:
   push:
+    branches: [main]
     paths:
       - 'tsm-console/scripts/geospatial/**'
       - 'tsm-console/src/geospatial/**'
       - 'tsm-console/data/manifests/posey-2020-site-assets.json'
+      - 'tsm-console/package.json'
+      - 'tsm-console/package-lock.json'
       - '.github/workflows/posey-geospatial-assets.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: posey-geospatial-assets-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   materialize-validate:
@@ -16,18 +26,20 @@ jobs:
       run:
         working-directory: tsm-console
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
-          cache-dependency-path: tsm-console/package.json
-      - run: npm install --ignore-scripts
+          cache-dependency-path: tsm-console/package-lock.json
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
       - run: npm run geospatial:fetch -- --width 2048 --height 2048
       - run: npm run geospatial:validate
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@v6
         with:
           name: posey-2020-geospatial-assets-${{ github.sha }}
           path: tsm-console/data/geospatial/cache/posey-2020/
           retention-days: 7
           compression-level: 0
+          if-no-files-found: error
