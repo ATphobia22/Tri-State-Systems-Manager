@@ -20,6 +20,7 @@
     "test": "node --test tests/geodetic-pipeline.test.mjs",
     "test:posey": "vitest run tests/posey-ledger.test.ts",
     "test:geodetic": "node --test tests/geodetic-pipeline.test.mjs",
+    "test:firm": "node --test tests/firm-*.test.mjs",
     "ingest:ras": "node scripts/ras-geotiff-ingest.mjs",
     "check:parse": "node scripts/parse-check.mjs",
     "check:type": "npx tsc --noEmit",
