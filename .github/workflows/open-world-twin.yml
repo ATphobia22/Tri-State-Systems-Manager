@@ -9,6 +9,7 @@ on:
       - 'tsm-console/server/telemetry/**'
       - 'tools/ortho/**'
       - 'tsm-console/package.json'
+      - 'tsm-console/package-lock.json'
       - 'tsm-console/app-manifest.json'
       - '.github/workflows/open-world-twin.yml'
   push:
@@ -17,26 +18,29 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: open-world-twin-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: tsm-console/package-lock.json
-      - name: Install JavaScript dependencies
+      - name: Install locked JavaScript dependencies
         working-directory: tsm-console
-        run: npm ci --no-audit --no-fund
+        run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
       - name: TypeScript validation
         working-directory: tsm-console
         run: npx tsc --noEmit
       - name: Cinematic tests
         working-directory: tsm-console
-        continue-on-error: true
-        run: npm run test:cinematic || true
+        run: npm run test:cinematic
       - name: WGSL structural validation
         working-directory: tsm-console
         run: |
