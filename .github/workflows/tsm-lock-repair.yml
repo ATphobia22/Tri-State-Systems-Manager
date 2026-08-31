@@ -1,0 +1,37 @@
+name: TSM Lockfile Repair
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tsm-console/package.json'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tsm-console
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - name: Regenerate lockfile from public npm registry
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
+      - name: Commit repaired lockfile
+        working-directory: .
+        run: |
+          if git diff --quiet -- tsm-console/package-lock.json; then
+            echo 'Lockfile already synchronized.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tsm-console/package-lock.json
+          git commit -m 'build: regenerate npm lockfile from public registry'
+          git push
