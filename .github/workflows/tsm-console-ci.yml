@@ -11,6 +11,9 @@ on:
     paths:
       - 'tsm-console/**'
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,21 +22,21 @@ jobs:
         working-directory: tsm-console
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: '22'
+          node-version: 22
           cache: npm
           cache-dependency-path: tsm-console/package-lock.json
-      - name: Install
-        run: npm ci --no-audit --no-fund || npm install --no-audit --no-fund
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Parse gate
         run: npm run check:parse
       - name: Typecheck
-        run: npx tsc --noEmit
+        run: npm run check:type
       - name: Production build
         run: npm run build
       - name: Upload dist
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: tsm-console-dist
           path: tsm-console/dist
