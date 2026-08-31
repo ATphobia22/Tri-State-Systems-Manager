@@ -1,0 +1,27 @@
+{
+  "timestamp": "2026-07-19T21:12:28.608Z",
+  "node": "13101_BONEBANK_RD",
+  "projection_recorded": "EPSG:3857 / NAVD88",
+  "projection_analysis_frame": "EPSG:2966 / NAVD88",
+  "projection_note": "Web map viewState uses Web Mercator (3857). Analysis/LOMA remains EPSG:2966. Do not mix vertical NAVD88 into horizontal 3857 metadata carelessly.",
+  "viewState": {
+    "center": [-88.0051, 37.8459],
+    "zoom": 15,
+    "pitch": 60,
+    "bearing": 15
+  },
+  "simulatedFloodMetrics": {
+    "floodStageFeet": 330,
+    "floodStageMeters": 100.584,
+    "impactStatus": "SECURE",
+    "is_simulation_demo": true,
+    "note": "330 ft is not BFE 375 / LAG 377.2 — demo telemetry only"
+  },
+  "localGaugesTelemetry": {
+    "wabashNewHarmony": "6.55 ft",
+    "ohioMyersDam": "18.32 ft",
+    "is_simulation_demo": true
+  },
+  "renderedOvertureBuildingsCount": 0,
+  "renderedOvertureBuildingsSample": []
+}

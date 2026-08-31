@@ -1,0 +1,39 @@
+{
+  "pipeline": [
+    {
+      "type": "readers.las",
+      "tag": "src",
+      "filename": "IN2020_26800940_12.las",
+      "default_srs": "EPSG:2966",
+      "threads": 8
+    },
+    {
+      "type": "filters.crop",
+      "tag": "buffer",
+      "inputs": ["src"],
+      "polygon": "POLYGON((0 0,1 0,1 1,0 1,0 0))",
+      "a_srs": "EPSG:2966"
+    },
+    {
+      "type": "filters.expression",
+      "tag": "ground",
+      "inputs": ["buffer"],
+      "expression": "Classification == 2"
+    },
+    {
+      "type": "filters.stats",
+      "tag": "zstats",
+      "inputs": ["ground"],
+      "dimensions": "Z",
+      "global": "Z"
+    },
+    {
+      "type": "writers.text",
+      "tag": "out",
+      "inputs": ["ground"],
+      "filename": "outputs/lag_class2_z.csv",
+      "order": "Z",
+      "keep_unspecified": false
+    }
+  ]
+}

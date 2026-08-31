@@ -1,34 +1,235 @@
 {
-  "site_metadata": {
-    "anchor_name": "13101 Bonebank Road Homestead",
-    "jurisdiction": {
-      "county": "Posey",
-      "township": "Point",
-      "state": "Indiana",
-      "zip": "47620"
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tuckerinc82.org/schemas/site-constants/v1.0.0.json",
+  "title": "TuckerInc.82 Sovereign Site Constants \u2014 13101 Bonebank Road",
+  "description": "Authoritative spatial, hydraulic, and regulatory constants for the Tri-State Digital Twin centered on 13101 Bonebank Road, Point Township, Posey County, Indiana. Normalized to EPSG:2966 / NAVD88. Version 1.0.0 \u2014 2026-08-19.",
+  "type": "object",
+  "required": [
+    "site",
+    "crs",
+    "elevations",
+    "apn",
+    "gauges",
+    "regulatory"
+  ],
+  "properties": {
+    "site": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "const": "13101 Bonebank Road"
+        },
+        "township": {
+          "const": "Point Township"
+        },
+        "county": {
+          "const": "Posey County"
+        },
+        "state": {
+          "const": "Indiana"
+        },
+        "region": {
+          "const": "Tri-State River Valley"
+        },
+        "bounding_envelope": {
+          "type": "object",
+          "properties": {
+            "min_lon": {
+              "const": -88.015
+            },
+            "min_lat": {
+              "const": 37.892
+            },
+            "max_lon": {
+              "const": -87.985
+            },
+            "max_lat": {
+              "const": 37.915
+            }
+          }
+        }
+      }
     },
-    "fema_community_id": "180209",
-    "usace_district": "Louisville (LRL)",
-    "firm_panel": "18129C0215D"
+    "crs": {
+      "type": "object",
+      "properties": {
+        "horizontal": {
+          "epsg": 2966,
+          "name": "NAD83 / Indiana West (ftUS)",
+          "units": "US survey feet"
+        },
+        "vertical": {
+          "datum": "NAVD88",
+          "name": "North American Vertical Datum of 1988"
+        }
+      }
+    },
+    "elevations": {
+      "type": "object",
+      "description": "All elevations in feet NAVD88. These constants drive modeling, evidence generation, regulatory gating, and visualization.",
+      "properties": {
+        "BFE": {
+          "value": 375.0,
+          "unit": "ft NAVD88",
+          "description": "Base Flood Elevation"
+        },
+        "LAG": {
+          "value": 377.2,
+          "unit": "ft NAVD88",
+          "description": "Lowest Adjacent Grade"
+        },
+        "FFE": {
+          "value": 382.5,
+          "unit": "ft NAVD88",
+          "description": "Finished Floor Elevation"
+        },
+        "berm_crest": {
+          "value": 379.8,
+          "unit": "ft NAVD88",
+          "description": "Berm Crest Elevation"
+        },
+        "clearance_above_bfe": {
+          "value": 2.2,
+          "unit": "ft",
+          "description": "LAG - BFE = 377.2 - 375.0 = +2.2 ft natural clearance (LOMA-relevant)"
+        }
+      }
+    },
+    "apn": {
+      "value": "65-19-08-100-008.001-010",
+      "description": "Verified Assessor Parcel Number"
+    },
+    "gauges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "usgs_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          }
+        }
+      },
+      "default": [
+        {
+          "usgs_id": "03378500",
+          "name": "Wabash River at New Harmony, IN",
+          "role": "Primary upstream / regional stage reference"
+        },
+        {
+          "usgs_id": "03322000",
+          "name": "Related basin gauge",
+          "role": "Secondary / supporting telemetry"
+        }
+      ]
+    },
+    "noaa_gauge": {
+      "nws_id": "MTVI3",
+      "name": "Ohio River at Mount Vernon",
+      "coordinates": {
+        "lat": 37.9286,
+        "lon": -87.8956
+      },
+      "stages_ft": {
+        "action": 28,
+        "minor": 35,
+        "moderate": 45,
+        "major": 52,
+        "record": 59.21,
+        "record_date": "1937-02-01"
+      }
+    },
+    "regulatory": {
+      "fema_community": {
+        "mount_vernon": "180389",
+        "posey_unincorporated": "180209",
+        "new_harmony": "180210"
+      },
+      "flood_insurance_study": "Posey County, Indiana and Incorporated Areas",
+      "no_rise_tolerance_ft": 0.0,
+      "usace_guidance": "EM 1110-2-1601",
+      "idnr_jurisdiction": "Best Available Floodplain Layer (BAFM) / State Floodway"
+    },
+    "multi_physics": {
+      "solvers": [
+        "HEC-RAS 2D (Saint-Venant)",
+        "MODFLOW 6 (groundwater)",
+        "SWMM (urban routing)",
+        "Bishop Method (slope stability)",
+        "Sediment & scour"
+      ],
+      "coupling": "OpenMI 2.0",
+      "tick_hz": 120,
+      "determinism": "IEEE-754 strict + fixed-seed Xoshiro256++"
+    },
+    "data_sources_priority": [
+      {
+        "tier": 1,
+        "source": "FEMA NFHL / FIRM / FIS",
+        "use": "BFE, floodway, Zone A/AE, LOMA/LOMR gating"
+      },
+      {
+        "tier": 1,
+        "source": "USACE Louisville District",
+        "use": "Peak discharge, hydraulic models, EM 1110-2-1601"
+      },
+      {
+        "tier": 1,
+        "source": "USGS 3DEP + NWIS",
+        "use": "1-m DEM, real-time stage, high-water marks"
+      },
+      {
+        "tier": 1,
+        "source": "NOAA / NWS MTVI3 + MRMS",
+        "use": "Official stage forecasts, precipitation"
+      },
+      {
+        "tier": 1,
+        "source": "Indiana DNR / INFIP / BAFM / DoWORC",
+        "use": "State floodplain layer, HEC-RAS library, permits"
+      },
+      {
+        "tier": 2,
+        "source": "ArcGIS / IndianaMap / Indiana GIO",
+        "use": "Orthoimagery, parcels, infrastructure, soils (SSURGO)"
+      }
+    ],
+    "version": "1.0.0",
+    "created_at": "2026-08-19T15:37:00Z",
+    "human_oversight_required": true
   },
-  "geodesy": {
-    "horizontal_crs": "EPSG:2966",
-    "horizontal_datum": "NAD83 / Indiana West (US survey feet)",
-    "vertical_datum": "NAVD88 (GEOID18)",
-    "centroid": { "lat": 37.8348, "lon": -88.0142 },
-    "epsg_note": "Transverse Mercator; units us-ft; covers Posey County"
+  "loma_map_pack": {
+    "tile_id": "IN2020_26800940_12",
+    "s3_uri": "s3://giselevationingov/las/statewide/2020/SPW/ql2/IN2020_26800940_12.las",
+    "portal": "https://elevation.gio.in.gov/",
+    "tile_max_ground_ft": 366.5,
+    "buffer_min_ft_150ft": 337.22,
+    "claimed_lag_ft": 377.2,
+    "bfe_ft": 375.0,
+    "lag_outside_low_ground_tile": true,
+    "note": "Structure LAG 377.2 ft lies outside this low-ground tile",
+    "generated": "2026-08-22"
   },
-  "invariants": {
-    "base_flood_elevation_ft": 375.0,
-    "lowest_adjacent_grade_ft": 377.2,
-    "regulatory_freeboard_ft": 2.0,
-    "natural_clearance_ft": 2.2,
-    "floor_elevation_ft": 382.5,
-    "berm_crest_ft": 379.8
-  },
-  "cadastral": {
-    "apn": "65-19-08-100-008.001-010",
-    "apn_normalized": "651908100008001010"
-  },
-  "master_seal": "b4782912564e70e863a7938bb3700647580830fb5a81e910a0db49a20f73b32e"
+  "version": "1.1.0",
+  "lidar_3dep": {
+    "quality_level": "QL2",
+    "rmsez_nonvegetated_ft": 0.328,
+    "nva_95_ft": 0.643,
+    "vva_95_ft": 0.984,
+    "practical_within_ft": 1.0,
+    "aoi_nssda_required": true,
+    "products": [
+      "LAS1.4",
+      "DEM_hydroflattened",
+      "breaklines",
+      "intensity",
+      "county_mosaic"
+    ],
+    "source_sheet": "Indiana 3DEP Lidar Data Products, Data Accuracy, and Data Access (2021-06-08)"
+  }
 }

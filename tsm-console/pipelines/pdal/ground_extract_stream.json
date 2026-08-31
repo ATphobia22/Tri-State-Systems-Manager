@@ -1,0 +1,25 @@
+{
+  "pipeline": [
+    {
+      "type": "readers.las",
+      "filename": "/data/spatial/posey_county/raw_lidar/*.las",
+      "default_srs": "EPSG:2966",
+      "threads": 8
+    },
+    {
+      "type": "filters.merge"
+    },
+    {
+      "type": "filters.expression",
+      "expression": "Classification == 2"
+    },
+    {
+      "type": "writers.las",
+      "filename": "/data/spatial/posey_county/processed/PoseyCounty_PureGround.laz",
+      "compression": "laszip",
+      "forward": "all",
+      "minor_version": 4,
+      "dataformat_id": 6
+    }
+  ]
+}
