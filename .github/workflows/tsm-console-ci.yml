@@ -6,13 +6,20 @@ on:
     paths:
       - 'tsm-console/**'
       - '.github/workflows/tsm-console-ci.yml'
+      - '.github/workflows/tsm-lock-repair.yml'
   pull_request:
     branches: [main]
     paths:
       - 'tsm-console/**'
+      - '.github/workflows/tsm-console-ci.yml'
+      - '.github/workflows/tsm-lock-repair.yml'
 
 permissions:
   contents: read
+
+concurrency:
+  group: tsm-console-ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -22,13 +29,23 @@ jobs:
         working-directory: tsm-console
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
+          registry-url: https://registry.npmjs.org
           cache: npm
           cache-dependency-path: tsm-console/package-lock.json
+      - name: Configure public npm registry
+        run: npm config set registry https://registry.npmjs.org
+      - name: Verify lockfile registry provenance
+        run: |
+          if grep -Eqi '35\.245\.43\.102|/npm/' package-lock.json; then
+            echo 'ERROR: package-lock.json contains a non-public npm mirror URL.'
+            grep -Ein '35\.245\.43\.102|/npm/' package-lock.json | head -20
+            exit 1
+          fi
       - name: Install locked dependencies
-        run: npm ci --ignore-scripts --no-audit --no-fund
+        run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
       - name: Parse gate
         run: npm run check:parse
       - name: Typecheck
@@ -36,7 +53,8 @@ jobs:
       - name: Production build
         run: npm run build
       - name: Upload dist
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: tsm-console-dist
           path: tsm-console/dist
+          if-no-files-found: error
