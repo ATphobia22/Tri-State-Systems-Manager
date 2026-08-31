@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0.0",
+  "anchor_id": "posey-point-township",
+  "name": "Point Township",
+  "county": "Posey County",
+  "state": "Indiana",
+  "scope": "civil-township boundary",
+  "authority": {
+    "organization": "Indiana Geographic Information Office",
+    "dataset": "Township Boundaries of Indiana",
+    "service": "https://gisdata.in.gov/server/rest/services/Hosted/Township_Boundaries_of_Indiana/FeatureServer/0",
+    "spatial_reference": "EPSG:4269",
+    "query": "mcd_name='Point' AND cnty_name='Posey'"
+  },
+  "visual_reference_center": {
+    "longitude": -87.9931,
+    "latitude": 37.8421,
+    "source": "Mapcarta/GeoNames locality reference",
+    "status": "visualization_reference_only"
+  },
+  "case_sites": [
+    {
+      "address": "13101 Bonebank Road, Mount Vernon, IN 47620",
+      "apn": "65-19-08-100-008.001-010",
+      "fema_lomc_case": "26-05-2022A",
+      "role": "case_evidence_site",
+      "not_anchor": true
+    }
+  ],
+  "governance": {
+    "do_not_generalize_case_site_values": true,
+    "do_not_use_case_elevation_as_township_surface": true,
+    "boundary_geometry_must_be_loaded_from_authoritative_service": true,
+    "human_review_required_for_regulatory_conclusions": true
+  }
+}
