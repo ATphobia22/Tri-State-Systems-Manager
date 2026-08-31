@@ -1,11 +1,24 @@
 /**
- * Cinematic EOC / Twin viewport configuration (refined)
- * Authoritative elevations from site constants; stage UI is SIMULATION_DEMO until live USGS.
+ * Cinematic EOC / Twin viewport configuration.
+ *
+ * Geographic anchor: Point Township, Posey County, Indiana.
+ * Bonebank/LOMA values remain case evidence and are never generalized to
+ * the township-wide anchor.
  */
 
 export const VIEWPORT_CONFIG = {
-  projectNode:
-    '13101 Bonebank Road, Point Township, Posey County, Indiana',
+  projectNode: 'Point Township, Posey County, Indiana',
+  anchorBoundary: {
+    authority: 'Indiana Geographic Information Office',
+    service:
+      'https://gisdata.in.gov/server/rest/services/Hosted/Township_Boundaries_of_Indiana/FeatureServer/0',
+    query: "mcd_name='Point' AND cnty_name='Posey'",
+    spatialReference: 'EPSG:4269',
+  },
+  caseEvidence: {
+    label: 'FEMA Online LOMC Case 26-05-2022A — 13101 Bonebank Road',
+    apn: '65-19-08-100-008.001-010',
+  },
   crs: {
     horizontalEpsg: 2966,
     horizontalName: 'NAD83 / Indiana West (ftUS)',
@@ -17,6 +30,7 @@ export const VIEWPORT_CONFIG = {
     ffeFt: 382.5,
     bermCrestFt: 379.8,
     clearanceLagMinusBfeFt: 2.2,
+    authorityScope: 'case evidence only — not township-wide authoritative elevation',
   },
   parcel: {
     apn: '65-19-08-100-008.001-010',
@@ -37,7 +51,7 @@ export const VIEWPORT_CONFIG = {
     bufferMinFt: 337.22,
     lagOutsideLowGroundTile: true,
     note:
-      'Structure LAG 377.2 ft lies outside this low-ground tile — require adjacent higher-ground tiles + sealed survey for LOMA.',
+      'Case-site LAG 377.2 ft is retained as case evidence; require adjacent higher-ground tiles + sealed survey for LOMA review.',
   },
   camera: {
     defaultPosition: [0, 60, 180] as [number, number, number],
@@ -52,7 +66,6 @@ export const VIEWPORT_CONFIG = {
     opacity: 0.85,
     isSimulationDemo: true,
   },
-  /** Presentation vs evidence boundary */
   separation: {
     evidenceMutationsAllowedInViewport: false,
     stageSliderIsLiveUsgs: false,
@@ -67,7 +80,6 @@ export const VIEWPORT_CONFIG = {
       'Viewport does not mutate PostGIS / HEC-RAS / Evidence Ledger',
   },
   portable: {
-    /** Invariants checked by USB bootstrap (Gate 5) */
     requiredEpsg: 2966,
     requiredVertical: 'NAVD88',
     requiredBfeFt: 375.0,
@@ -114,7 +126,7 @@ export function verifyPortableInvariants(input: {
     failures.push(`LAG expected ${p.requiredLagFt}, got ${input.lagFt}`);
   }
   if (input.apn !== undefined && input.apn !== p.requiredApn) {
-    failures.push(`APN mismatch`);
+    failures.push('APN mismatch');
   }
   return { ok: failures.length === 0, failures };
 }
