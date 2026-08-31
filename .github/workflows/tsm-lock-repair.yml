@@ -1,6 +1,7 @@
 name: TSM Lockfile Repair
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
@@ -8,6 +9,10 @@ on:
 
 permissions:
   contents: write
+
+concurrency:
+  group: tsm-lock-repair-main
+  cancel-in-progress: false
 
 jobs:
   repair:
@@ -17,17 +22,30 @@ jobs:
         working-directory: tsm-console
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
+          cache: npm
+          cache-dependency-path: tsm-console/package-lock.json
+      - name: Configure public npm registry
+        run: npm config set registry https://registry.npmjs.org
       - name: Regenerate lockfile from public npm registry
         run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
+      - name: Verify locked install
+        run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
+      - name: Verify lockfile has no private mirror URLs
+        run: |
+          if grep -Eqi '35\.245\.43\.102|/npm/' package-lock.json; then
+            echo 'ERROR: package-lock.json still contains a private package mirror URL.'
+            grep -Ein '35\.245\.43\.102|/npm/' package-lock.json | head -20
+            exit 1
+          fi
       - name: Commit repaired lockfile
         working-directory: .
         run: |
           if git diff --quiet -- tsm-console/package-lock.json; then
-            echo 'Lockfile already synchronized.'
+            echo 'Lockfile already synchronized with the public registry.'
             exit 0
           fi
           git config user.name 'github-actions[bot]'
