@@ -1,0 +1,39 @@
+name: TSM FEMA FIRM 18129C0265C Verification
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'data/fema/18129C0265C/**'
+      - 'tsm-console/server/geospatial/world-file.mjs'
+      - 'tsm-console/server/geospatial/firm-validation.mjs'
+      - 'tsm-console/server/geospatial/firm-panel.mjs'
+      - 'tsm-console/server/geospatial/firm-routes.mjs'
+      - 'tsm-console/tests/firm-*.test.mjs'
+      - 'db/migrations/009_firm_assets.sql'
+      - '.github/workflows/firm-18129c0265c.yml'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tsm-console
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: tsm-console/package-lock.json
+
+      - run: npm install --ignore-scripts
+      - run: npm run test:firm
+
+      - name: Verify source hashes
+        working-directory: .
+        run: |
+          echo 'f7d6bfe398f92f7d7f8c1dc0e97f9adf1191dd074b2ca7370ddcededd373f978  data/fema/18129C0265C/18129C0265C.jpeg' | sha256sum -c -
+          test "$(sha256sum data/fema/18129C0265C/18129C0300C.pgw | cut -d' ' -f1)" = 'b79280265b7461f5ab161ed304c0a331fed9b077febc1df9d3bf0d56e6815a14'
+          test "$(sha256sum data/fema/18129C0265C/18129C0255C.pgw | cut -d' ' -f1)" = 'fb099f52ae541cac0cdcd76429d31cc9c022eff00dbb8b46e8004cffbd94ca45'
