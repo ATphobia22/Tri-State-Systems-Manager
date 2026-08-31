@@ -22,6 +22,7 @@
     "test:posey": "vitest run tests/posey-ledger.test.ts",
     "test:geodetic": "node --test tests/geodetic-pipeline.test.mjs",
     "test:firm": "node --test tests/firm-*.test.mjs",
+    "test:all": "npm test && npm run test:posey && npm run test:firm",
     "ingest:ras": "node scripts/ras-geotiff-ingest.mjs",
     "check:parse": "node scripts/parse-check.mjs",
     "check:type": "npx tsc --noEmit",
@@ -31,7 +32,8 @@
     "geospatial:fetch": "node scripts/geospatial/fetch-posey-assets.mjs",
     "geospatial:validate": "node scripts/geospatial/validate-raster-manifest.mjs",
     "resync": "npm install --no-audit --no-fund && node scripts/postinstall-check.mjs && node scripts/parse-check.mjs",
-    "ci": "npm run check:parse && npx tsc --noEmit && npm run build"
+    "ci": "npm run check:parse && npm run check:type && npm run build",
+    "ci:full": "npm run check:parse && npm run check:type && npm run build && npm run test:all"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.0",
