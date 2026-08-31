@@ -1,6 +1,11 @@
 export type ReviewDisposition = 'authoritative_pending_agency' | 'project_assertion' | 'requires_engineering_verification' | 'requires_agency_confirmation' | 'draft_only';
 
-export interface Posey408ReviewItem { id: string; claim: string; disposition: ReviewDisposition; requiredEvidence: string[]; }
+export interface Posey408ReviewItem {
+  id: string;
+  claim: string;
+  disposition: ReviewDisposition;
+  requiredEvidence: string[];
+}
 
 export const POSEY_408_REVIEW: readonly Posey408ReviewItem[] = [
   { id: 'bfe-375', claim: 'BFE 375.00 ft NAVD88 for the proposed site', disposition: 'requires_agency_confirmation', requiredEvidence: ['effective FEMA FIRM/FIS record', 'panel effective date', 'survey datum/control tie'] },

@@ -1,5 +1,15 @@
 export type PoseyAcquisitionStatus = 'ready' | 'requires_download' | 'site_specific' | 'program_specific';
-export interface PoseyDataAsset { id: string; dataset: string; authority: string; purpose: string; status: PoseyAcquisitionStatus; sourceUrl: string; validation: string[]; }
+
+export interface PoseyDataAsset {
+  id: string;
+  dataset: string;
+  authority: string;
+  purpose: string;
+  status: PoseyAcquisitionStatus;
+  sourceUrl: string;
+  validation: string[];
+}
+
 export const POSEY_DATA_ASSETS: readonly PoseyDataAsset[] = [
   { id: 'fema-effective-mapping', dataset: 'FEMA effective FIRM/FIS/NFHL', authority: 'FEMA', purpose: 'Federal flood-regulatory evidence', status: 'requires_download', sourceUrl: 'https://msc.fema.gov/', validation: ['effective date', 'panel/FIS identifier', 'horizontal CRS', 'vertical datum', 'source hash'] },
   { id: 'indiana-bafl', dataset: 'Indiana Best Available Flood Hazard Layer', authority: 'Indiana DNR', purpose: 'State flood-hazard planning/regulatory context', status: 'requires_download', sourceUrl: 'https://gisdata.in.gov/server/rest/services/Best_Available_Flood_Hazard_Layer/MapServer/0', validation: ['native CRS EPSG:26916', 'layer metadata', 'feature provenance', 'source hash'] },
