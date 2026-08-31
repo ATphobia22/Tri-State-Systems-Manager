@@ -1,0 +1,39 @@
+name: TSM Console CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tsm-console/**'
+      - '.github/workflows/tsm-console-ci.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tsm-console/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tsm-console
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tsm-console/package-lock.json
+      - name: Install
+        run: npm ci --no-audit --no-fund || npm install --no-audit --no-fund
+      - name: Parse gate
+        run: npm run check:parse
+      - name: Typecheck
+        run: npx tsc --noEmit
+      - name: Production build
+        run: npm run build
+      - name: Upload dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: tsm-console-dist
+          path: tsm-console/dist

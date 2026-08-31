@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0.0",
+  "panel_number": "18129C0265C",
+  "community": "Posey County, Indiana",
+  "effective_date": "2014-11-05",
+  "source_authority": "FEMA Flood Map Service Center / National Flood Insurance Program",
+  "source_artifact": {
+    "filename": "18129C0265C.jpeg",
+    "media_type": "image/jpeg",
+    "sha256": "f7d6bfe398f92f7d7f8c1dc0e97f9adf1191dd074b2ca7370ddcededd373f978",
+    "dimensions_px": [1536, 1103],
+    "classification": "AUTHORITATIVE_SOURCE_ARTIFACT",
+    "validation_status": "provisional"
+  },
+  "world_file_candidates": [
+    {
+      "filename": "18129C0300C.pgw",
+      "media_type": "application/octet-stream",
+      "sha256": "b79280265b7461f5ab161ed304c0a331fed9b077febc1df9d3bf0d56e6815a14",
+      "declared_panel_from_filename": "18129C0300C",
+      "association_status": "REJECTED_PANEL_ID_MISMATCH"
+    },
+    {
+      "filename": "18129C0255C.pgw",
+      "media_type": "application/octet-stream",
+      "sha256": "fb099f52ae541cac0cdcd76429d31cc9c022eff00dbb8b46e8004cffbd94ca45",
+      "declared_panel_from_filename": "18129C0255C",
+      "association_status": "REJECTED_PANEL_ID_MISMATCH"
+    }
+  ],
+  "georeferencing": {
+    "status": "FAILED_CLOSED_MISSING_MATCHING_WORLD_FILE",
+    "horizontal_crs": null,
+    "vertical_reference": null,
+    "transformation_chain": []
+  },
+  "governance": {
+    "human_review_status": "required",
+    "publication_status": "source-only",
+    "notes": "Do not georeference panel 18129C0265C using either supplied PGW candidate. Obtain the matching FEMA world file or authoritative digital panel geometry before spatial publication."
+  }
+}

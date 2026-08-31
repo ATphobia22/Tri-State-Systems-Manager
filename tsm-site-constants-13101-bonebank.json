@@ -231,5 +231,19 @@
       "county_mosaic"
     ],
     "source_sheet": "Indiana 3DEP Lidar Data Products, Data Accuracy, and Data Access (2021-06-08)"
+  },
+  "loma_case": {
+    "case_number": "26-05-2022A",
+    "status": "IN_PROGRESS",
+    "created": "2026-08-26",
+    "type": "Pure_LOMA_natural_high_ground",
+    "portal": "FEMA Online LOMC",
+    "note": "Confirm live status on FEMA portal; TSM does not auto-submit"
+  },
+  "elevations_notes": {
+    "bfe_map_pack_ft": 375.0,
+    "lag_certified_ft": 377.2,
+    "infip_nearby_reported_ft": 368.7,
+    "reconcile": "Human must reconcile Map Pack BFE vs INFIP point BFE before filing"
   }
 }

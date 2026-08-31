@@ -46,6 +46,18 @@ export const MAP_LAYERS: MapLayerSpec[] = [
     defaultVisible: false,
   },
   {
+    id: 'fema-firm-panels',
+    title: 'FEMA FIRM Panels',
+    authority_class: 'REGULATORY',
+    type: 'arcgis-mapserver',
+    url: 'https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer',
+    attribution: 'FEMA NFHL / FIRM Panel data',
+    notes:
+      'FIRM Panels are maintained as a distinct FEMA source layer. Panel 18129C0265C is registered locally as source evidence; no local raster georeferencing is published until a matching world file or authoritative digital geometry is validated.',
+    defaultVisible: false,
+    maplibre: { arcgisLayerId: 3, panelId: '18129C0265C' },
+  },
+  {
     id: 'indiana-bafm',
     title: 'Indiana Best Available Flood Hazard Layer',
     authority_class: 'REGULATORY',

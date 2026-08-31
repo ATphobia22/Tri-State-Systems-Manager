@@ -1,0 +1,65 @@
+name: TSM FEMA FIRM 18129C0265C Verification
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'data/fema/18129C0265C/**'
+      - 'tsm-console/server/geospatial/world-file.mjs'
+      - 'tsm-console/server/geospatial/firm-validation.mjs'
+      - 'tsm-console/server/geospatial/firm-panel.mjs'
+      - 'tsm-console/server/geospatial/firm-routes.mjs'
+      - 'tsm-console/tests/firm-*.test.mjs'
+      - 'db/migrations/009_firm_assets.sql'
+      - '.github/workflows/firm-18129c0265c.yml'
+  push:
+    paths:
+      - 'data/fema/18129C0265C/**'
+      - 'tsm-console/server/geospatial/world-file.mjs'
+      - 'tsm-console/server/geospatial/firm-validation.mjs'
+      - 'tsm-console/server/geospatial/firm-panel.mjs'
+      - 'tsm-console/server/geospatial/firm-routes.mjs'
+      - 'tsm-console/tests/firm-*.test.mjs'
+      - 'db/migrations/009_firm_assets.sql'
+      - '.github/workflows/firm-18129c0265c.yml'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tsm-console
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm install --ignore-scripts
+      - run: npm run test:firm
+
+      - name: Verify evidence manifest integrity
+        working-directory: .
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const manifest = JSON.parse(fs.readFileSync('data/fema/18129C0265C/manifest.json', 'utf8'));
+          if (manifest.panel_number !== '18129C0265C') throw new Error('unexpected panel number');
+          if (!/^[a-f0-9]{64}$/.test(manifest.source_artifact.sha256)) throw new Error('invalid source hash');
+          for (const candidate of manifest.world_file_candidates) {
+            if (!/^[a-f0-9]{64}$/.test(candidate.sha256)) throw new Error(`invalid candidate hash: ${candidate.filename}`);
+            if (candidate.declared_panel_from_filename === manifest.panel_number) throw new Error(`unexpectedly associated candidate: ${candidate.filename}`);
+          }
+          if (manifest.georeferencing.status !== 'FAILED_CLOSED_MISSING_MATCHING_WORLD_FILE') {
+            throw new Error('georeferencing must remain fail-closed until matching authoritative metadata exists');
+          }
+          console.log('FIRM manifest governance checks passed');
+          NODE
+
+      - name: Verify recorded source hashes
+        working-directory: .
+        run: |
+          test "$(awk 'NR==1 {print $1}' data/fema/18129C0265C/SOURCE-BUNDLE.sha256)" = 'f7d6bfe398f92f7d7f8c1dc0e97f9adf1191dd074b2ca7370ddcededd373f978'
+          test "$(awk 'NR==2 {print $1}' data/fema/18129C0265C/SOURCE-BUNDLE.sha256)" = 'b79280265b7461f5ab161ed304c0a331fed9b077febc1df9d3bf0d56e6815a14'
+          test "$(awk 'NR==3 {print $1}' data/fema/18129C0265C/SOURCE-BUNDLE.sha256)" = 'fb099f52ae541cac0cdcd76429d31cc9c022eff00dbb8b46e8004cffbd94ca45'
