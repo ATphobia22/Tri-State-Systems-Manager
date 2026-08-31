@@ -15,6 +15,7 @@ concurrency:
 
 env:
   NODE_VERSION: '22'
+  NPM_VERSION: '10.9.2'
   NPM_REGISTRY: 'https://registry.npmjs.org'
 
 jobs:
@@ -36,8 +37,17 @@ jobs:
           cache: npm
           cache-dependency-path: tsm-console/package-lock.json
 
+      - name: Pin npm toolchain
+        run: npm install --global "npm@${NPM_VERSION}"
+
       - name: Configure public npm registry
         run: npm config set registry "$NPM_REGISTRY"
+
+      - name: Verify toolchain
+        run: |
+          node --version
+          npm --version
+          test "$(npm --version)" = "$NPM_VERSION"
 
       - name: Verify lockfile registry provenance
         run: |
@@ -56,6 +66,9 @@ jobs:
 
       - name: Install locked dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund --registry="$NPM_REGISTRY"
+
+      - name: Repository integrity gate
+        run: npm run check:integrity
 
       - name: Parse gate
         run: npm run check:parse
