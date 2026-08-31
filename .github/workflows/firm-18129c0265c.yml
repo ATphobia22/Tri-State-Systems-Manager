@@ -11,6 +11,8 @@ on:
       - 'tsm-console/server/geospatial/firm-routes.mjs'
       - 'tsm-console/tests/firm-*.test.mjs'
       - 'db/migrations/009_firm_assets.sql'
+      - 'tsm-console/package.json'
+      - 'tsm-console/package-lock.json'
       - '.github/workflows/firm-18129c0265c.yml'
   push:
     paths:
@@ -21,7 +23,16 @@ on:
       - 'tsm-console/server/geospatial/firm-routes.mjs'
       - 'tsm-console/tests/firm-*.test.mjs'
       - 'db/migrations/009_firm_assets.sql'
+      - 'tsm-console/package.json'
+      - 'tsm-console/package-lock.json'
       - '.github/workflows/firm-18129c0265c.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: firm-18129c0265c-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   verify:
@@ -30,13 +41,16 @@ jobs:
       run:
         working-directory: tsm-console
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tsm-console/package-lock.json
 
-      - run: npm install --ignore-scripts
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
       - run: npm run test:firm
 
       - name: Verify evidence manifest integrity
