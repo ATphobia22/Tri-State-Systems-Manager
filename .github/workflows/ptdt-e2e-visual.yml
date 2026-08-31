@@ -33,7 +33,7 @@ jobs:
         run: npm run check
 
       - name: Cache Cypress binary
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/Cypress
           key: ${{ runner.os }}-cypress-${{ hashFiles('tsm-console/package-lock.json', 'tsm-console/package.json') }}
