@@ -2,7 +2,7 @@ name: TSM Parse Gate
 
 on:
   push:
-    branches: [main]
+    branches: ['**']
   pull_request:
     branches: [main]
 
@@ -13,22 +13,42 @@ concurrency:
   group: tsm-parse-gate-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  NODE_VERSION: '22'
+  NPM_VERSION: '10.9.2'
+  NPM_REGISTRY: 'https://registry.npmjs.org'
+
 jobs:
-  parse-and-typecheck:
+  parse-type-build-test:
+    name: Parse / Typecheck / Build / Test
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: tsm-console
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
         with:
-          node-version: 22
-          registry-url: https://registry.npmjs.org
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: ${{ env.NPM_REGISTRY }}
           cache: npm
           cache-dependency-path: tsm-console/package-lock.json
+
+      - name: Pin npm toolchain
+        run: npm install --global "npm@${NPM_VERSION}"
+
       - name: Configure public npm registry
-        run: npm config set registry https://registry.npmjs.org
+        run: npm config set registry "$NPM_REGISTRY"
+
+      - name: Verify toolchain
+        run: |
+          node --version
+          npm --version
+          test "$(npm --version)" = "$NPM_VERSION"
+
       - name: Verify lockfile registry provenance
         run: |
           if grep -Eqi '35\.245\.43\.102|/npm/' package-lock.json; then
@@ -36,9 +56,28 @@ jobs:
             grep -Ein '35\.245\.43\.102|/npm/' package-lock.json | head -20
             exit 1
           fi
+
+      - name: Verify lockfile reproducibility
+        run: |
+          cp package-lock.json package-lock.json.ci-baseline
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund --registry="$NPM_REGISTRY"
+          diff -u package-lock.json.ci-baseline package-lock.json
+          rm package-lock.json.ci-baseline
+
       - name: Install locked dependencies
-        run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
+        run: npm ci --ignore-scripts --no-audit --no-fund --registry="$NPM_REGISTRY"
+
+      - name: Repository integrity gate
+        run: npm run check:integrity
+
       - name: Parse gate
         run: npm run check:parse
+
       - name: Typecheck
         run: npm run check:type
+
+      - name: Production build
+        run: npm run build
+
+      - name: Test suite
+        run: npm run test:all

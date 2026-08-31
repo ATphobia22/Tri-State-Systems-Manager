@@ -2,9 +2,9 @@
 /**
  * TSM parser gate.
  *
- * Detects malformed JSON, invalid JavaScript modules, and missing runtime
- * requirements before Vite/ingestion orchestration obscures the root cause.
- * TypeScript syntax is validated separately by `tsc --noEmit`.
+ * Detects malformed JSON and invalid JavaScript modules before Vite/ingestion
+ * orchestration obscures the root cause. TypeScript syntax/type safety is
+ * validated separately by `tsc --noEmit`.
  */
 
 import fs from 'node:fs';
@@ -14,19 +14,17 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const failures = [];
+const files = [];
 
 function walk(dir) {
-  const entries = fs.readdirSync(dir, { withFileTypes: true });
-  for (const entry of entries) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     if (entry.name === 'node_modules' || entry.name === 'dist' || entry.name.startsWith('.git')) continue;
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) walk(full);
-    else yieldFile(full);
+    else files.push(full);
   }
 }
 
-const files = [];
-function yieldFile(file) { files.push(file); }
 walk(root);
 
 for (const file of files) {
@@ -37,21 +35,21 @@ for (const file of files) {
     try {
       JSON.parse(fs.readFileSync(file, 'utf8'));
     } catch (error) {
-      failures.push(`${rel}: invalid JSON: ${error.message}`);
+      failures.push(`${rel}: invalid JSON: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
   if (ext === '.mjs' || ext === '.js') {
     const result = spawnSync(process.execPath, ['--check', file], { encoding: 'utf8' });
     if (result.status !== 0) {
-      failures.push(`${rel}: JavaScript syntax check failed:\n${(result.stderr || result.stdout).trim()}`);
+      failures.push(`${rel}: JavaScript syntax check failed:\n${(result.stderr || result.stdout || '').trim()}`);
     }
   }
 }
 
-const major = Number(process.versions.node.split('.')[0]);
-if (!Number.isFinite(major) || major < 20) {
-  failures.push(`Node.js ${process.versions.node} is unsupported; TSM requires Node.js >= 20.`);
+const [major] = process.versions.node.split('.').map(Number);
+if (!Number.isFinite(major) || major < 22) {
+  failures.push(`Node.js ${process.versions.node} is unsupported; TSM requires Node.js >= 22.`);
 }
 
 if (failures.length) {
