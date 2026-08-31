@@ -1,0 +1,57 @@
+{
+  "pipeline": [
+    {
+      "type": "readers.las",
+      "tag": "src",
+      "filename": "input.laz",
+      "default_srs": "EPSG:2966"
+    },
+    {
+      "type": "filters.assign",
+      "tag": "reset",
+      "inputs": ["src"],
+      "value": "Classification = 0"
+    },
+    {
+      "type": "filters.elm",
+      "tag": "elm",
+      "inputs": ["reset"]
+    },
+    {
+      "type": "filters.outlier",
+      "tag": "noise",
+      "inputs": ["elm"],
+      "method": "statistical",
+      "mean_k": 8,
+      "multiplier": 3.0
+    },
+    {
+      "type": "filters.smrf",
+      "tag": "smrf",
+      "inputs": ["noise"],
+      "returns": "last,only",
+      "ignore": "Classification[7:7]",
+      "cell": 3.0,
+      "slope": 0.15,
+      "window": 60.0,
+      "threshold": 1.5,
+      "scalar": 1.2,
+      "ground_class": 2,
+      "other_class": 1
+    },
+    {
+      "type": "filters.expression",
+      "tag": "ground_only",
+      "inputs": ["smrf"],
+      "expression": "Classification == 2"
+    },
+    {
+      "type": "writers.las",
+      "tag": "out",
+      "inputs": ["ground_only"],
+      "filename": "ground_only.laz",
+      "compression": "laszip",
+      "forward": "all"
+    }
+  ]
+}
