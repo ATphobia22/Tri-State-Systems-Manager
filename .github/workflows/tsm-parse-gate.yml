@@ -5,6 +5,7 @@ on:
     branches: ['**']
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -28,7 +29,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
@@ -36,48 +36,52 @@ jobs:
           registry-url: ${{ env.NPM_REGISTRY }}
           cache: npm
           cache-dependency-path: tsm-console/package-lock.json
-
       - name: Pin npm toolchain
         run: npm install --global "npm@${NPM_VERSION}"
-
-      - name: Configure public npm registry
-        run: npm config set registry "$NPM_REGISTRY"
-
       - name: Verify toolchain
         run: |
           node --version
           npm --version
           test "$(npm --version)" = "$NPM_VERSION"
-
+      - name: Configure public npm registry
+        run: npm config set registry "$NPM_REGISTRY"
       - name: Verify lockfile registry provenance
         run: |
-          if grep -Eqi '35\.245\.43\.102|/npm/' package-lock.json; then
-            echo 'ERROR: package-lock.json contains a non-public npm mirror URL.'
-            grep -Ein '35\.245\.43\.102|/npm/' package-lock.json | head -20
-            exit 1
-          fi
-
+          node <<'NODE'
+          const fs = require('fs');
+          const lockfile = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
+          const violations = [];
+          for (const [packagePath, metadata] of Object.entries(lockfile.packages ?? {})) {
+            if (typeof metadata?.resolved !== 'string') continue;
+            try {
+              const url = new URL(metadata.resolved);
+              if (url.hostname !== 'registry.npmjs.org') violations.push(`${packagePath}: ${metadata.resolved}`);
+            } catch {
+              violations.push(`${packagePath}: invalid resolved URL ${metadata.resolved}`);
+            }
+          }
+          if (violations.length) {
+            console.error('ERROR: package-lock.json contains non-public resolved package URLs.');
+            for (const violation of violations.slice(0, 20)) console.error(violation);
+            process.exit(1);
+          }
+          console.log('Lockfile provenance check passed.');
+          NODE
       - name: Verify lockfile reproducibility
         run: |
           cp package-lock.json package-lock.json.ci-baseline
           npm install --package-lock-only --ignore-scripts --no-audit --no-fund --registry="$NPM_REGISTRY"
           diff -u package-lock.json.ci-baseline package-lock.json
           rm package-lock.json.ci-baseline
-
       - name: Install locked dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund --registry="$NPM_REGISTRY"
-
       - name: Repository integrity gate
         run: npm run check:integrity
-
       - name: Parse gate
         run: npm run check:parse
-
       - name: Typecheck
         run: npm run check:type
-
       - name: Production build
         run: npm run build
-
       - name: Test suite
         run: npm run test:all
