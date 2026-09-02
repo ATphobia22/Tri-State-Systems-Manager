@@ -186,21 +186,9 @@ If Actions is red: open the failed job log first; do not weaken fail-closed gate
 
 ## 8. Branch hygiene (run locally with push rights)
 
-Merged feature branches still present on origin should be deleted after confirm:
 
-```bash
-git push origin --delete ci/lockfile-repair-2026-08-31
-git push origin --delete feat/firm-18129c0265c-integration
-git push origin --delete feat/point-township-anchor-2026-08-31
-git push origin --delete feat/posey-benefit-first-platform
-git push origin --delete feat/repository-scale-engineering-hardening-2026-08-31
-git push origin --delete feature/open-world-twin-solar-flood-tiles
-git push origin --delete fix/parse-gates
-git push origin --delete integration/posey-final
-git push origin --delete integration/repository-wide
-# optional leftover:
-git push origin --delete feat/external-capability-integration
-```
+
+
 
 Keep **`main`** as the sole long-lived line of truth.
 
