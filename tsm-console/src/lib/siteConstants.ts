@@ -1,7 +1,8 @@
 /**
- * PTDT v35 — Site Constants (aligned with tsm-site-constants JSON)
+ * PTDT v35 — Site Constants (aligned with FIRM SSOT)
  * EPSG:2966 = NAD83 / Indiana West (US survey feet)
  * FFE locked at 382.5 ft NAVD88
+ * FIRM panel: PENDING_MSC_VERIFY — see firm-panel-ssot.ts
  */
 export const BONEBANK_SITE = {
   name: "13101 Bonebank Road",
@@ -25,7 +26,10 @@ export const BONEBANK_SITE = {
   cid_posey_unincorporated: "180209",
   cid_mount_vernon: "180389",
   cid_new_harmony: "180210",
-  firm_panel: "18129C0215C",
+  /** Canonical effective panel remains null until MSC human verify */
+  firm_panel_effective: null as string | null,
+  firm_panel_candidates: ["18129C0265C", "18129C0215C", "18129C0215D"] as const,
+  firm_verification_status: "PENDING_MSC_VERIFY" as const,
 
   bca_bcr_ratio: 2.45,
 } as const;
