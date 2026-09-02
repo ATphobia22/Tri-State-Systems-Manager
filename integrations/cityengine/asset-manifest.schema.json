@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tri-state-systems-manager.example/schemas/cityengine-asset-manifest.schema.json",
+  "title": "TSM CityEngine/Unreal Asset Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["asset_id", "engine", "cityengine_ref", "format", "crs", "vertical_datum", "source_reference", "sha256"],
+  "properties": {
+    "asset_id": {"type": "string", "minLength": 1},
+    "engine": {"enum": ["cityengine", "unreal"]},
+    "cityengine_ref": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "format": {"enum": ["GLB", "glTF", "3D Tiles"]},
+    "crs": {"type": "string", "minLength": 1},
+    "vertical_datum": {"type": "string", "minLength": 1},
+    "source_reference": {"type": "string", "minLength": 1},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}
