@@ -2,6 +2,12 @@ name: TSM Geospatial Capability CI
 
 on:
   workflow_dispatch:
+    inputs:
+      cityengine_build:
+        description: 'Run the licensed CityEngine/Unreal build on a dedicated runner'
+        required: true
+        default: false
+        type: boolean
   push:
     branches: [main]
     paths:
@@ -38,17 +44,17 @@ jobs:
         run: npm run check:geospatial
 
   cityengine-build:
-    if: ${{ inputs.cityengine_build == true }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.cityengine_build == true }}
     runs-on: [self-hosted, windows, cityengine]
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - name: Validate CityEngine manifest contracts
+      - name: Validate CityEngine environment
         shell: pwsh
         run: |
           if (-not (Test-Path integrations/cityengine)) { throw 'CityEngine integration directory is missing.' }
           Write-Host 'Dedicated CityEngine runner selected. Licensed Esri software must be provisioned by the operator.'
-      - name: Build CityEngine/Unreal assets
+      - name: Execute configured licensed build
         shell: pwsh
         run: |
           if (-not $env:TSM_CITYENGINE_BUILD_COMMAND) {
@@ -56,6 +62,3 @@ jobs:
             exit 0
           }
           & $env:TSM_CITYENGINE_BUILD_COMMAND
-    
-  workflow_dispatch_inputs:
-    uses: ./.github/workflows/geospatial-ci.yml
