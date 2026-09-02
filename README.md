@@ -1,218 +1,362 @@
 # Tri-State Systems Manager (TSM)
 
-**Public-interest engineering decision-support system** for the Ohio–Wabash Tri-State River Valley  
-**Anchor site:** Point Township, Posey County, Indiana 47620
-**License:** Apache-2.0 · **Charter:** Beverly Ann Tucker Memorial Stewardship  
-**HEAD (document as of):** 2026-09-02
+**Public-interest engineering decision-support and evidence platform for the Ohio–Wabash Tri-State River Valley**  
+**Anchor engineering node:** Point Township, Posey County, Indiana 47620  
+**License:** Apache-2.0  
+**Repository status:** `main` is the long-lived source of truth
 
-> **Governing rule:** Technology informs people; it does not silently govern people.  
-> **Human authority is final** (ADR-004). TSM does **not** issue LOMA, No-Rise, FARA, or floodplain permits.
+> **Governing principle:** Technology informs people; it does not silently govern people. Human authority remains final.
 
----
+TSM is designed for government engineers, GIS professionals, emergency-management personnel, planners, researchers, and authorized community partners who need a reproducible way to inspect evidence, visualize spatial conditions, compare engineering quantities, and document uncertainty.
 
-## 1. Mission for government agencies
-
-TSM is a **fail-closed, evidence-first cockpit** so local, state, and federal practitioners can:
-
-1. Observe live river stage with correct **vertical datum hygiene**
-2. Compare structure elevations (BFE / LAG / FFE) in **NAVD88** only after conversion
-3. Cite **Indiana 312 IAC 10**, Posey ordinances, and FEMA NFIP products without inventing determinations
-4. Preserve a **Merkle / EvidenceArtifact** chain for audits
-5. Operate under **Zero-Trust** identity (Keycloak PKCE public client) with **no proprietary cloud AI secrets** in-repo
+**TSM is not a regulatory authority.** It does not issue FEMA LOMA/LOMR/CLOMR determinations, No-Rise determinations, Indiana FARA approvals, floodplain permits, or other agency decisions. Formal regulatory submissions and sealed engineering products remain subject to the applicable agency and licensed-professional processes.
 
 ---
 
-## 2. Four-plane architecture (ADR-005)
+## 1. Operating doctrine
 
-| Plane | Role | Mutates governance? |
-|-------|------|---------------------|
-| **Evidence & Data Governance** | USGS / NOAA / FEMA / IGIO ingestion, SHA-256, provisional flags | Only via human-gated append |
-| **Scientific & Simulation** | Models, CRS/datum, uncertainty, Class-2 LiDAR support | No auto-regulatory write |
-| **Governance & Decision** | Jurisdiction rules, ADR-004/006 gates, citations | Human final |
-| **Public Visualization** | React cockpit, MapLibre, engineering-sim HUD | Visualization only |
+TSM follows six engineering controls:
 
-**Agentic policy (ADR-006):** default **S1** (no agency). **S2** = prescribed tools + human gate. **S3** deferred.
+1. **Evidence before inference** — source observations remain distinguishable from derived calculations and simulations.
+2. **Explicit datum and units** — horizontal CRS, vertical datum, units, and transformation method travel with derived data.
+3. **Fail closed** — missing or contradictory authority metadata prevents unsafe interpretation.
+4. **Human-gated governance** — software and AI do not silently exercise regulatory authority.
+5. **Least privilege** — browser applications do not receive proprietary provider secrets.
+6. **Reproducibility** — dependency resolution, validation commands, schemas, and source provenance are version controlled.
+
+See `docs/REPOSITORY-STRUCTURE.md` and `docs/CHANGE-CONTROL.md` for repository and change-control requirements.
 
 ---
 
-## 3. Authoritative site mathematics (Bonebank)
+## 2. System architecture
 
-All elevations **NAVD88** unless labeled otherwise.
+TSM uses the four-plane architecture defined by ADR-005.
 
-| Quantity | Value | Note |
-|----------|-------|------|
-| BFE | **375.0 ft** | Base Flood Elevation |
-| LAG | **377.2 ft** | Lowest Adjacent Grade |
-| **LAG − BFE clearance** | **+2.2 ft** | Site lock |
-| FFE | **382.5 ft** | Finished Floor Elevation |
-| Berm crest | **379.8 ft** | |
-| Horizontal CRS | **EPSG:2966** | NAD83 / Indiana West (ftUS) |
-| Vertical datum | **NAVD88** | Site geometry only |
-| Indiana freeboard (practice) | **+2.0 ft** | Separate from LAG−BFE clearance |
-| FEMA floodway No-Rise | **0.00 ft** | or CLOMR/LOMR |
-| IDNR adverse effect | **0.15 ft** | 312 IAC 10-2-3 |
-| Posey compensatory storage | **1.0×** equal volume | Subdivision ordinance |
+| Plane | Engineering responsibility | Authority boundary |
+|---|---|---|
+| **Evidence & Data Governance** | Ingestion, provenance, hashing, evidence artifacts, source status | Human-gated append; no silent regulatory mutation |
+| **Scientific & Simulation** | Hydrology/hydraulics, geospatial processing, uncertainty, digital-twin simulation | Calculations/simulations are not automatically regulatory determinations |
+| **Governance & Decision** | Jurisdiction rules, authority registry, review gates, citations | Human authority remains final |
+| **Public Experience** | React console, maps, accessible displays, engineering visualization | Presentation only; visualization is not evidence by itself |
 
-### Gage height → water-surface elevation
+### Agentic and AI boundary
 
+ADR-006 defines the autonomy ladder:
+
+- **S1:** no agency — default operating mode.
+- **S2:** prescribed tools with an explicit human gate.
+- **S3:** deferred; not an approved autonomous governance mode.
+
+AI output is advisory unless a separately authorized human process accepts it. AI must not silently write regulatory state, file government instruments, or bypass evidence controls.
+
+### Quantum boundary
+
+Quantum and quantum-inspired research remains experimental. The repository's quantum boundary validator prevents experimental code from becoming an implicit production/regulatory dependency.
+
+---
+
+## 3. Engineering data hierarchy
+
+TSM distinguishes the following states:
+
+| State | Meaning | Regulatory status |
+|---|---|---|
+| **Observation** | Direct external measurement/telemetry | Evidence input only |
+| **Calculation** | Deterministic transformation of documented inputs | Engineering analysis |
+| **Simulation** | Model output under stated assumptions | Engineering/research analysis |
+| **Evidence artifact** | Versioned, provenance-linked record | Reviewable evidence |
+| **Regulatory determination** | Decision by the responsible authority | Outside TSM automation; human/agency process |
+
+A map-service identify result is not a sealed LOMA. A live river stage is not a structure-inundation determination. A digital-twin visualization is not a survey.
+
+---
+
+## 4. Hydrologic and geodetic controls
+
+### Vertical datum rule
+
+**Raw gage height is not NAVD88.** USGS parameter `00065` and NWS observed stage are source-product measurements and must retain their source datum. A derived NAVD88 water-surface elevation requires an explicit, product-matched gage-zero conversion.
+
+Conceptually:
+
+```text
+WSE_NAVD88 = source_gage_height + validated_gage_zero_NAVD88
 ```
-WSE_NAVD88 ≈ gage_height_ft + gage_zero_navd88_ft
-```
 
-Raw USGS parameter **00065** / NWS observed primary is **GAGE_DATUM**, never auto-labeled NAVD88.
+The conversion must preserve source station, observation time, source datum, target datum, conversion source, units, and validation status.
 
-| ID | Name | Gage zero NAVD88 | Source (2026-09-02) |
-|----|------|------------------|---------------------|
-| **03378500** | Wabash @ New Harmony | **352.71 ft** | USGS site `alt_va` / NAVD88 |
-| **03322000** | Ohio @ Evansville | **328.32–328.38 ft** | USGS 328.32; NWS EVVI3 328.38 |
-| **MTVI3** | Ohio @ Mount Vernon | **318.59 ft** | NWS vertical datum table |
-| **UNWK2 / 03322420** | John T. Myers L&D | **311.31 ft** (NWS) / **310.95 ft** (USGS alt) | Prefer product-matched zero |
+### Bonebank engineering reference values
 
-Example: New Harmony stage **8.23 ft** (live sample) → WSE ≈ **360.94 ft NAVD88** — still **below** Bonebank BFE 375; do not treat as structure inundation without PE review.
+The repository currently uses these project reference values; they are engineering inputs, not an independent regulatory determination:
 
----
+| Quantity | Reference value | Datum / unit |
+|---|---:|---|
+| BFE | 375.0 ft | NAVD88 |
+| LAG | 377.2 ft | NAVD88 |
+| LAG − BFE | +2.2 ft | ft |
+| FFE | 382.5 ft | NAVD88 |
+| Berm crest | 379.8 ft | NAVD88 |
+| Horizontal CRS | EPSG:2966 | NAD83 / Indiana West (ftUS) |
 
-## 4. Government agencies, tools, and sources
+The canonical site-contract file is `data/schemas/tsm-site-constants-13101-bonebank.json`. Any discrepancy between project inputs and an agency product must be surfaced and reconciled by the responsible engineer; software must not silently choose a regulatory value.
 
-### Federal
+### FEMA panel reference
 
-| Agency | Products used in TSM |
-|--------|----------------------|
-| **FEMA** | NFHL MapServer, MSC, FIRM/FIS, LOMC; CID **180209**; panel **18129C0300C** (NFHL REST 2026-09-02, EFF 2014-11-05) |
-| **USGS** | NWIS IV/DV/site; gauges 03378500, 03322000, 03322420 |
-| **NOAA / NWS** | NWPS / AHPS gauges MTVI3, UNWK2, EVVI3; vertical datum tables |
-| **USACE** | John T. Myers Locks & Dam (Louisville District); navigation context |
-| **NIST** | AI RMF (Govern–Map–Measure–Manage); SP 800-207 Zero Trust |
+The current TSM FIRM SSOT records **18129C0300C** as the NFHL-identified canonical panel for the Bonebank lookup coordinates, with an effective date of 2014-11-05. See `tsm-console/src/lib/firm-panel-ssot.ts`.
 
-### State (Indiana)
-
-| Entity | Role |
-|--------|------|
-| **IDNR Division of Water** | 312 IAC 10, IC 14-28-1 / 14-28-3, INFIP, Best Available Floodplain, FARA |
-| **Indiana GIO** | elevation.gio.in.gov QL2 LiDAR |
-| **Posey County** | Flood Hazard Ordinance; Subdivision Ordinance (equal-volume fill offset); APC / Floodplain Administrator |
-
-### Conservation nodes (Posey)
-
-- **Hovey Lake FWA** (~7,404 ac) — IDNR Fish & Wildlife  
-- **Twin Swamps Nature Preserve** (~598 ac) — IDNR Nature Preserves  
-- Registry: `tsm-console/data/posey/idnr-posey-registry.json`
-
-### NFHL MapServer layers (selected)
-
-Base: `https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer`
-
-| ID | Name |
-|----|------|
-| 3 | FIRM Panels |
-| 28 | Flood Hazard Zones |
-| 16 | Base Flood Elevations |
-| 1 / 2 | LOMRs / LOMAs |
-| 14 | Cross-Sections |
-| 23 | Levees |
-
-### OSS runtime stack (credential-minimized)
-
-| Need | Choice |
-|------|--------|
-| IAM | Keycloak (Apache-2.0), Authorization Code + **PKCE**, public client |
-| Maps | MapLibre GL JS (BSD-3) |
-| Local AI | Ollama / llama.cpp (MIT) — optional, offline |
-| Tiles path | Martin / PMTiles / PostGIS (scale-up) |
+The NFHL digital representation does not replace the controlling FEMA FIRM/FIS hierarchy for formal regulatory use.
 
 ---
 
-## 5. Repository map
+## 5. Authoritative and high-value external sources
 
-```
+TSM is designed around primary-source government data wherever practical.
+
+| Source | Primary use | Local contract / guide |
+|---|---|---|
+| **FEMA NFHL / MSC / FIRM / FIS / LOMC** | Flood hazard mapping, BFEs, panels, regulatory products | `docs/NFHL-REST-AND-USGS-WATER-TOOLS.md` |
+| **USGS NWIS** | Streamgage observations and metadata | `docs/INFIP-AND-USGS-GAUGES.md` |
+| **NOAA / NWS NWPS** | Forecast/observed stage and datum metadata | `tsm-console/src/lib/gage-datums.ts` |
+| **USACE Louisville District** | Navigation, hydraulic and river-system context | Project source registry |
+| **Indiana DNR Division of Water** | State floodplain/floodway requirements and INFIP/BAFM | Project authority registry |
+| **Indiana GIO / 3DEP** | LiDAR, elevation, orthophotography and geospatial inputs | `tools/ortho/`, geospatial validation scripts |
+| **Posey County** | Local ordinances and administration | Project authority registry |
+| **NIST** | AI risk management and zero-trust reference controls | ADR/governance documentation |
+
+Source URLs and access procedures are maintained in the repository's source guides rather than embedded as undocumented assumptions in application logic.
+
+---
+
+## 6. Canonical repository map
+
+```text
 .
-├── .github/workflows/     # ci, parse-gate, quantum, deploy-pages, firm, geospatial, …
-├── tsm-console/           # React Router v7 SPA + Node token-proxy + ingestion
-│   ├── src/lib/           # gage-datums, firm-panel-ssot, jurisdiction-rules, stage, auth
-│   ├── src/components/    # StageAuthorityBanner, EngineeringSimSettings, RootLayout
-│   └── server/            # evidence store, workers, token-proxy
-├── backend/               # Python gov helpers / site constants
-├── data/                  # LOMC, Posey catalogs, staged inventories
-├── docs/                  # ADRs, NFHL/USGS guides, visual doctrine, analytics
-├── scripts/               # CI gates, health checks
-├── tsm-*-schema*.json     # Data contract + EvidenceArtifact schemas
-├── tsm-authority-registry-v35.json
-├── tsm-site-constants-13101-bonebank.json
-└── GOVERNMENT_QUICKSTART.md
+├── .github/workflows/        # CI/CD and automated policy enforcement
+├── backend/                  # Server-side Python helpers and domain services
+├── data/                     # Controlled datasets, registries, schemas, provenance
+├── db/                       # Database migrations and persistence definitions
+├── docs/                     # ADRs, procedures, evidence guidance, engineering records
+├── packages/                 # Shared schemas and contracts
+├── scripts/                  # Validation, CI, ingestion, GIS, operational tooling
+├── tools/                    # Specialized engineering/data tools
+├── tsm-console/              # React/TypeScript console, Node services, ingestion, tests
+├── GOVERNMENT_QUICKSTART.md  # Government operator/developer quick start
+├── SECURITY.md               # Security reporting and policy
+└── README.md                 # Government engineering entry point
 ```
 
-### Key code contracts
+### Key contracts
 
-| File | Purpose |
-|------|--------|
-| `tsm-console/src/lib/gage-datums.ts` | Published zeros + conversion |
-| `tsm-console/src/lib/firm-panel-ssot.ts` | FIRM **18129C0300C** SSOT |
-| `tsm-console/src/lib/jurisdiction-rules.ts` | 0.00 / 0.15 ft, Posey **1.0×** |
-| `tsm-console/server/ingestion/workers.mjs` | Fail-closed OBSERVATION ingest |
-| `docs/ADR-006-*.md` | Agentic ladder |
-| `docs/NFHL-REST-AND-USGS-WATER-TOOLS.md` | API recipes |
+| Path | Responsibility |
+|---|---|
+| `tsm-console/src/lib/gage-datums.ts` | Datum-aware gage conversions and published station references |
+| `tsm-console/src/lib/firm-panel-ssot.ts` | FEMA FIRM panel single-source-of-truth record |
+| `tsm-console/src/lib/jurisdiction-rules.ts` | Jurisdictional thresholds and governance rules |
+| `tsm-console/server/ingestion/workers.mjs` | Observation ingestion and validation boundary |
+| `data/schemas/tsm-site-constants-13101-bonebank.json` | Site engineering constants and metadata |
+| `tsm-data-contract-schema-v1.0.0.json` | Data contract |
+| `tsm-evidence-artifact-schema-v1.0.0.json` | Evidence artifact contract |
+| `tsm-authority-registry-v35.json` | Authority/source registry |
+| `docs/ADR-006-Agentic-Autonomy-Ladder-and-Tool-Scope-Policy.md` | Agentic autonomy policy |
 
 ---
 
-## 6. Quick start (operators)
+## 7. Local engineering setup
+
+### Prerequisites
+
+- Node.js **22 or later**
+- npm compatible with the repository's `packageManager` declaration
+- Git
+- Optional: local Keycloak for authenticated development
+- Optional: local Ollama/llama.cpp for governed offline AI experimentation
+
+### Reproducible install
 
 ```bash
-git pull origin main
-cd tsm-console
-npm ci
-npm run proxy    # :8787 OIDC/ledger assist
-npm run dev      # :5173 cockpit
-
-# Observation-only health (no governance write)
-node scripts/hydrologic-health-check.mjs
+git clone https://github.com/ATphobia22/Tri-State-Systems-Manager.git
+cd Tri-State-Systems-Manager/tsm-console
+npm ci --no-audit --no-fund
 ```
 
-Identity: configure Keycloak public client + PKCE per `.env.example` / `GOVERNMENT_QUICKSTART.md`.  
-**No** Auth0/OpenAI/Mapbox secrets required for core operation.
+### Development
+
+```bash
+npm run dev
+```
+
+Optional Node token proxy:
+
+```bash
+npm run proxy
+```
+
+### Production-equivalent preview
+
+```bash
+npm run build
+npm run preview
+```
+
+### Full validation
+
+```bash
+npm run ci:full
+```
+
+The full command includes repository integrity, capability, workflow-boundary, artifact, quantum-isolation, shell-safety, site-consistency, parse, TypeScript, geospatial, build, and test gates.
 
 ---
 
-## 7. CI / workflows
+## 8. Authentication and secret handling
 
-Primary pipeline: `.github/workflows/ci.yml`
+The supported government-friendly identity pattern is a self-hosted OIDC provider such as Keycloak using **Authorization Code + PKCE** with a public browser client.
 
-- Node 22, `npm ci`, capability / boundary / parse / typecheck / build / test  
-- **Commit binding** on `main` push: `git fetch origin main --depth=1` then HEAD == `GITHUB_SHA` == `FETCH_HEAD`  
-- Additional workflows: parse-gate, quantum-ci, deploy-pages, geospatial, firm panel, container
+Rules:
 
-If Actions is red: open the failed job log first; do not weaken fail-closed gates to force green.
+- Never commit `.env` files containing secrets.
+- Never put provider client secrets, API keys, bearer tokens, private keys, or passwords in browser bundles.
+- Core build/test paths must remain usable without a paid AI provider.
+- If a credential is ever committed, treat it as compromised: revoke/rotate it at the issuer and remove the secret from repository history using the organization's approved procedure.
 
----
-
-## 8. Branch hygiene (run locally with push rights)
-
-
-
-
-
-Keep **`main`** as the sole long-lived line of truth.
+Production identity deployments must use TLS, dedicated realms/tenants as appropriate, least-privilege roles, and organization-approved session/access policies.
 
 ---
 
-## 9. What TSM must never do
+## 9. CI/CD controls
 
-- Auto-file LOMA / LOMR / CLOMR  
-- Label raw gage height as NAVD88  
-- Collapse observation into regulatory determination  
-- Store proprietary IdP client secrets in the browser path  
-- Treat NFHL identify as a sealed LOMA  
-- Run decorative open-world animation as “engineering truth”
+The primary workflow is `.github/workflows/ci.yml`.
+
+Required controls include:
+
+- Node 22 and `npm ci`;
+- exact commit binding for pushes to `main`;
+- capability registry validation;
+- workflow security-boundary validation;
+- shell-safety validation;
+- artifact contract validation;
+- quantum isolation validation;
+- repository integrity validation;
+- site-consistency validation;
+- geospatial contract validation;
+- parse and TypeScript checks;
+- production build;
+- complete test suites.
+
+Workflow jobs use least-privilege permissions. A failing gate must be diagnosed, not disabled to obtain a green build.
+
+Production deployment must consume a verified build artifact or a commit that passed the required production validation gates.
 
 ---
 
-## 10. Compliance pointers
+## 10. Government engineering workflow
 
-- `COMPLIANCE.md` · `SECURITY.md` · `GOVERNMENT_QUICKSTART.md`  
-- NIST AI RMF mapping in technical addenda / ADR set  
-- Evidence schemas: `tsm-evidence-artifact-schema-v1.0.0.json`, `tsm-data-contract-schema-v1.0.0.json`
+For a new engineering question:
 
-**Contact for sealed survey / LOMA packages:** licensed PE + Posey Floodplain Administrator + IDNR as required by statute.
+1. **Identify authority** — determine which agency, ordinance, standard, or professional authority controls the decision.
+2. **Identify evidence** — record source, version/date, station/product ID, units, CRS, vertical datum, and provenance.
+3. **Validate inputs** — run applicable repository and domain gates.
+4. **Perform calculation/simulation** — preserve assumptions, software version, parameters, and uncertainty.
+5. **Separate result from determination** — label outputs as observation, calculation, simulation, or evidence artifact.
+6. **Human review** — the responsible engineer/official determines whether the evidence supports an action.
+7. **Archive evidence** — preserve hashes, source identifiers, timestamps, and review status.
+
+Formal sealed engineering products and agency submissions remain outside automated TSM authority.
 
 ---
 
-*Tri-State Systems Manager — built to serve the people of the Tri-State River Valley with science, evidence, and humility under law.*
+## 11. Security, safety, and reliability
+
+TSM treats the following as high-risk classes:
+
+- identity and authorization;
+- geospatial datum/CRS transformations;
+- floodplain and floodway interpretation;
+- external telemetry ingestion;
+- AI-generated recommendations;
+- evidence integrity;
+- automated deployment.
+
+Changes affecting these classes require explicit validation and should be classified under the repository's change-control procedure in `docs/CHANGE-CONTROL.md`.
+
+Security reporting procedures are in `SECURITY.md`.
+
+---
+
+## 12. Performance engineering
+
+The current console uses explicit vendor chunking for large mapping and 3D dependencies. MapLibre and Three.js are intentionally substantial client-side dependencies. Bundle-size warnings are performance work items, not permission to remove engineering functionality without profiling.
+
+Future performance work should use measured bundle analysis, route-level loading, cache policy, asset compression, and WebGL/WebGPU profiling rather than speculative dependency removal.
+
+---
+
+## 13. Troubleshooting
+
+### CI is red
+
+1. Open the failed job and identify the first failing gate.
+2. Reproduce the corresponding npm script locally.
+3. Determine whether the failure is code, dependency, repository state, data contract, or GitHub platform configuration.
+4. Do not weaken a fail-closed gate to force green.
+
+### Gage/WSE values disagree
+
+Check, in order:
+
+1. station/product identity;
+2. observation timestamp;
+3. source gage datum;
+4. target vertical datum;
+5. published datum conversion;
+6. units;
+7. whether the value is an observation or a derived WSE.
+
+Never fix a datum discrepancy by changing a label.
+
+### FEMA products disagree
+
+Preserve both source records, record effective dates/product identifiers, and escalate to the responsible floodplain professional/authority. NFHL identify results do not by themselves create a regulatory determination.
+
+### Build works locally but CI fails
+
+Compare Node version, npm version, lockfile, working directory, environment variables, and the exact commit SHA. The repository is designed so `npm ci` and the CI validation sequence expose drift rather than silently correcting it.
+
+---
+
+## 14. Change management and cleanup
+
+`main` is the long-lived source of truth. See:
+
+- `docs/REPOSITORY-STRUCTURE.md` — directory ownership and cleanup rules
+- `docs/CHANGE-CONTROL.md` — engineering change classes and evidence requirements
+- `docs/REPOSITORY-CLEANUP-LEDGER.md` — recorded structural cleanup decisions
+- `docs/superpowers/specs/` — approved architecture/design records
+- `docs/superpowers/plans/` — implementation plans
+
+Files are not deleted merely because they appear unused. Imports, scripts, workflows, documentation links, schemas, migrations, deployment manifests, and runtime loaders must be checked first.
+
+---
+
+## 15. Professional and regulatory limitations
+
+TSM is decision-support software. It is not a substitute for:
+
+- a licensed professional engineer where professional engineering judgment is required;
+- a land surveyor where a boundary/elevation survey is required;
+- the responsible local floodplain administrator;
+- Indiana DNR Division of Water;
+- FEMA or another controlling agency;
+- the controlling FIRM/FIS, permit, order, or legally adopted ordinance.
+
+When an output will be used for a regulatory filing, permit, design certification, or public-safety decision, the responsible professional must verify the source products, datum, assumptions, calculations, and applicable law independently.
+
+---
+
+## 16. License and stewardship
+
+TSM is released under the Apache License 2.0. See `LICENSE` for the complete license text.
+
+The project is maintained as a public-interest engineering system. Its design objective is to make evidence, assumptions, uncertainty, and authority visible rather than hiding them behind automation.
+
+**Technology informs people. It does not silently govern people.**
