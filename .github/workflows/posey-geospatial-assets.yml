@@ -36,7 +36,7 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
       - run: npm run geospatial:fetch -- --width 2048 --height 2048
       - run: npm run geospatial:validate
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: posey-2020-geospatial-assets-${{ github.sha }}
           path: tsm-console/data/geospatial/cache/posey-2020/

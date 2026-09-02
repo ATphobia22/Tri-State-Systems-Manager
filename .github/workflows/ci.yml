@@ -100,7 +100,7 @@ jobs:
         run: npm run test:all
 
       - name: Upload production artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: tsm-console-dist
           path: tsm-console/dist
