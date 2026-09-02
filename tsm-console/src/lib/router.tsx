@@ -20,9 +20,6 @@ import LedgerView from '../routes/LedgerView';
 import BenefitView from '../routes/BenefitView';
 import LineageView from '../routes/LineageView';
 import SandboxView from '../routes/SandboxView';
-import TwinCanvasView from '../routes/TwinCanvasView';
-import MapLibreEocView from '../routes/MapLibreEocView';
-import MapLibreMap from '../routes/MapLibreMap';
 import type {
   RootLoaderData,
   CharterLoaderData,
@@ -334,9 +331,27 @@ export const router = createBrowserRouter([
       { path: 'lineage', loader: lineageLoader, action: lineageAction, element: <LineageView /> },
       { path: 'sandbox', loader: sandboxLoader, action: sandboxAction, element: <SandboxView /> },
       { path: 'benefit', loader: benefitLoader, action: benefitAction, element: <BenefitView /> },
-      { path: 'map', loader: mapTwinLoader, element: <MapLibreMap /> },
-      { path: 'eoc', loader: mapTwinLoader, element: <MapLibreEocView /> },
-      { path: 'twin', loader: mapTwinLoader, element: <TwinCanvasView /> },
+      {
+        path: 'map',
+        loader: mapTwinLoader,
+        lazy: async () => ({
+          Component: (await import('../routes/MapLibreMap')).default,
+        }),
+      },
+      {
+        path: 'eoc',
+        loader: mapTwinLoader,
+        lazy: async () => ({
+          Component: (await import('../routes/MapLibreEocView')).default,
+        }),
+      },
+      {
+        path: 'twin',
+        loader: mapTwinLoader,
+        lazy: async () => ({
+          Component: (await import('../routes/TwinCanvasView')).default,
+        }),
+      },
       { path: 'digital-twin', loader: mapTwinLoader, element: <MapTwinView /> },
       { path: 'placeholder', element: <Placeholder title="Tri-State Systems Manager" /> },
     ],
