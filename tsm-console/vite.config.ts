@@ -19,5 +19,25 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            {
+              name: 'three-vendor',
+              test: /[\\/]node_modules[\\/](?:three|@react-three)[\\/]/,
+            },
+            {
+              name: 'maplibre-vendor',
+              test: /[\\/]node_modules[\\/]maplibre-gl[\\/]/,
+            },
+            {
+              name: 'geospatial-vendor',
+              test: /[\\/]node_modules[\\/]geotiff[\\/]/,
+            },
+          ],
+        },
+      },
+    },
   },
 });
