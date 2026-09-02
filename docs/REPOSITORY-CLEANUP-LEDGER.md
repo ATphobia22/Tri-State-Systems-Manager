@@ -10,6 +10,8 @@
 | `README.md` | Rewritten | Previous README mixed operator, promotional, and engineering language and contained stale/ambiguous quickstart references | Current package scripts, FIRM SSOT, ADR-005/006, CI workflow |
 | `GOVERNMENT_QUICKSTART.md` | Rewritten | Corrected stale FIRM panel reference and removed nonexistent `scan:loma` command; aligned commands with package scripts | `tsm-console/package.json`; `tsm-console/src/lib/firm-panel-ssot.ts` |
 | `.github/workflows/ci.yml` | Hardened | Added bounded primary-job execution while preserving existing fail-closed gates and `contents: read` permissions | Existing green CI design and workflow inspection |
+| `.github/workflows/tsm-lock-repair.yml` | Hardened | Removed automatic `contents: write` permission and automatic pushes to branches; converted the workflow to read-only lockfile synchronization verification | Workflow inspection showed push-capable automation on `main` and pull requests |
+| `tsm-console/package.json` | Corrected metadata | Replaced promotional console description with government-engineering role description | Package metadata inspection |
 | `docs/REPOSITORY-STRUCTURE.md` | Added | Establish canonical directory ownership and cleanup rules | Current repository layout |
 | `docs/CHANGE-CONTROL.md` | Added | Establish government-engineering change evidence requirements | Current governance model |
 | `docs/superpowers/specs/2026-09-02-repository-remediation-design.md` | Added | Record approved remediation design | Approved 2026-09-02 remediation scope |
