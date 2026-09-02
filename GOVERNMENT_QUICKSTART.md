@@ -10,6 +10,24 @@
 1. **Human authority remains final** — this system informs; it does not issue LOMA/LOMR or grant awards.
 2. **No auto-filing** — FEMA Case 26-05-2022A is tracked only.
 3. **Open source** — Apache-2.0; reproducible builds use the committed `package-lock.json` with `npm ci`.
+4. **Credential minimization** — the repository contains no provider API keys or proprietary identity-provider secrets.
+5. **Local-first AI** — AI integrations must use local/open-source runtimes unless an explicitly governed external provider is approved.
+
+## Open-source infrastructure replacements
+
+| Capability | Replacement | License / model | Credentials required |
+|---|---|---|---|
+| OIDC / IAM / SSO | Keycloak | Apache-2.0 | No application client secret; use public client + PKCE |
+| Local LLM runtime | Ollama | MIT | No API key for local runtime |
+| Portable LLM inference | llama.cpp | MIT | No API key for local runtime |
+| Browser mapping | MapLibre GL JS | BSD-3-Clause | No Mapbox token |
+
+Official projects:
+
+- https://github.com/keycloak/keycloak
+- https://github.com/ollama/ollama
+- https://github.com/ggml-org/llama.cpp
+- https://github.com/maplibre/maplibre-gl-js
 
 ## One-command local run
 
@@ -28,19 +46,46 @@ npm run preview
 
 ```bash
 npm run dev          # Vite on :5173
-npm run proxy        # optional token proxy :8787
+npm run proxy        # optional API :8787
 ```
+
+### Keycloak development identity provider
+
+The console is configured for a self-hosted Keycloak realm when `VITE_IDP_PROVIDER=keycloak`.
+
+Keycloak exposes standard OIDC discovery, authorization, token, userinfo, logout, and certificate endpoints. The browser client uses Authorization Code + PKCE and does not require a client secret.
+
+Example environment:
+
+```bash
+VITE_IDP_PROVIDER=keycloak
+VITE_IDP_AUTHORITY=http://localhost:8080/realms/tsm
+VITE_IDP_CLIENT_ID=tsm-console
+VITE_IDP_REDIRECT_URI=http://localhost:5173/login/callback
+VITE_IDP_SCOPES="openid profile email"
+```
+
+For production, run Keycloak behind TLS, create a dedicated realm, register `tsm-console` as a public client, enable PKCE with `S256`, and apply organization-specific roles and policies.
 
 ## What builds without credentials
 
-| Command | Requires secrets? |
-|---------|-------------------|
+| Command | Requires provider secrets? |
+|---------|----------------------------|
 | `npm run check:parse` | No |
 | `npm run check:type` | No |
 | `npm run build` | No |
 | `npm run preview` | No |
 | `npm run scan:loma` | No (uses local catalog JSON) |
-| OIDC / Auth0 | Yes — set `VITE_IDP_*` in `.env` from `.env.example` |
+| Keycloak OIDC | No application client secret; Keycloak itself must be deployed/configured |
+| Local Ollama / llama.cpp | No API key |
+
+## Credential security policy
+
+Do **not** commit API keys, client secrets, bearer tokens, passwords, private keys, or `.env` files.
+
+If a credential has ever been committed, assume it is compromised: revoke/rotate it at the issuing service and remove it from repository history using an appropriate history-rewrite procedure.
+
+The repository's runtime defaults must remain usable without paid AI or identity-provider APIs.
 
 ## Key operational facts (Bonebank node)
 
