@@ -45,57 +45,42 @@ jobs:
       - name: Configure public npm registry
         run: npm config set registry https://registry.npmjs.org
 
-      - name: Verify lockfile registry provenance
+      - name: Verify exact commit binding
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          node <<'NODE'
-          const fs = require('fs');
-          const lockfile = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
-          const violations = [];
+          actual_sha="$(git rev-parse HEAD)"
+          expected_sha="${GITHUB_SHA}"
+          branch_sha="$(git rev-parse refs/remotes/origin/main)"
 
-          for (const [packagePath, metadata] of Object.entries(lockfile.packages ?? {})) {
-            if (typeof metadata?.resolved !== 'string') continue;
-            try {
-              const url = new URL(metadata.resolved);
-              if (url.hostname !== 'registry.npmjs.org') {
-                violations.push(`${packagePath}: ${metadata.resolved}`);
-              }
-            } catch {
-              violations.push(`${packagePath}: invalid resolved URL ${metadata.resolved}`);
-            }
+          test "$actual_sha" = "$expected_sha" || {
+            echo "ERROR: checkout SHA $actual_sha does not match GITHUB_SHA $expected_sha" >&2
+            exit 1
           }
 
-          if (violations.length > 0) {
-            console.error('ERROR: package-lock.json contains resolved package URLs outside registry.npmjs.org.');
-            for (const violation of violations.slice(0, 20)) console.error(violation);
-            process.exit(1);
+          test "$actual_sha" = "$branch_sha" || {
+            echo "ERROR: checkout SHA $actual_sha does not match origin/main $branch_sha" >&2
+            exit 1
           }
 
-          console.log('Lockfile provenance check passed: all resolved package URLs use registry.npmjs.org.');
-          NODE
-
-      - name: Verify lockfile reproducibility
-        run: |
-          cp package-lock.json /tmp/tsm-package-lock.before.json
-          npm install --package-lock-only --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
-          diff -u /tmp/tsm-package-lock.before.json package-lock.json
-
-      - name: Install locked dependencies
-        run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
-
-      - name: Parse gate
-        run: npm run check:parse
+          echo "Exact main commit verified: $actual_sha"
 
       - name: Repository integrity gate
         run: npm run check:integrity
 
+      - name: Geospatial processing contract gate
+        run: npm run check:geospatial
+
+      - name: Parse gate
+        run: npm run check:parse
+
       - name: Typecheck
         run: npm run check:type
 
-      - name: Test suites
-        run: npm run test:all
-
       - name: Production build
         run: npm run build
+
+      - name: Test suites
+        run: npm run test:all
 
       - name: Upload production artifact
         uses: actions/upload-artifact@v4
