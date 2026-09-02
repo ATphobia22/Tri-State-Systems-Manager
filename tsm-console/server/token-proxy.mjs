@@ -1,6 +1,10 @@
 /**
- * TSM Backend API — Token Proxy + Evidence + Ingestion + Policy + Engineering
+ * TSM Backend API — Evidence + Ingestion + Policy + Engineering + Geospatial
  * Port 8787. Fail-closed evidence writes.
+ *
+ * Authentication model: Keycloak public client + Authorization Code + PKCE.
+ * The SPA exchanges tokens directly with Keycloak. This process never holds
+ * or proxies client secrets. No IDP_TOKEN_URL / IDP_CLIENT_SECRET paths remain.
  */
 
 import http from 'node:http';
@@ -12,9 +16,6 @@ import { servePoseyAsset } from './geospatial/posey-assets.mjs';
 import { handleFirmRoute } from './geospatial/firm-routes.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
-const TOKEN_URL = process.env.IDP_TOKEN_URL || '';
-const CLIENT_ID = process.env.VITE_IDP_CLIENT_ID || process.env.IDP_CLIENT_ID || '';
-const CLIENT_SECRET = process.env.IDP_CLIENT_SECRET || '';
 
 function json(res, status, body) {
   res.writeHead(status, {
@@ -53,8 +54,11 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, {
         ok: true,
         service: 'tsm-api',
-        idp_configured: Boolean(TOKEN_URL && CLIENT_ID && CLIENT_SECRET),
-        planes: ['EVIDENCE', 'GOVERNANCE', 'AUTH', 'ENGINEERING'],
+        auth_model: 'keycloak_public_client_pkce',
+        client_secret_required: false,
+        token_proxy_path: null,
+        planes: ['EVIDENCE', 'GOVERNANCE', 'ENGINEERING', 'GEOSPATIAL'],
+        note: 'Browser uses Authorization Code + PKCE against Keycloak. No application client secret is stored or proxied.',
       });
     }
 
@@ -192,11 +196,7 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, evaluatePolicies(body));
     }
 
-    // --- Legacy token + ledger stubs ---
-    if (req.method === 'POST' && url.pathname === '/api/auth/token') {
-      return json(res, 503, { error: 'Configure IDP_TOKEN_URL and IDP_CLIENT_SECRET for OIDC exchange' });
-    }
-
+    // --- Ledger append (evidence plane convenience) ---
     if (req.method === 'POST' && url.pathname === '/api/ledger/append') {
       const body = await readBodyFixed(req);
       const content = JSON.stringify(body);
@@ -233,6 +233,7 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log(`TSM API on http://localhost:${PORT}`);
+  console.log('  Auth model: keycloak_public_client_pkce (no client secret)');
   console.log('  Evidence: GET/POST /api/evidence  POST /api/evidence/verify');
   console.log('  Geospatial: GET /api/geospatial/posey/site  GET /api/geospatial/posey/raster');
   console.log('  FIRM: GET /api/geospatial/firm/panels/:panelId  GET /api/geospatial/firm/panels/:panelId/layers');
