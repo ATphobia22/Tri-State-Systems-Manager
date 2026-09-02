@@ -1,2 +1,41 @@
+# Project-specific generated artifacts
 TuckerInc.82 Loves the TriState.pdf
 tsm-console/data/geospatial/cache/
+
+# Node / frontend build outputs
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+.vite/
+coverage/
+.nyc_output/
+
+# Python caches / virtual environments
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.venv/
+venv/
+ENV/
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+*.local
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Temporary engineering / generated data
+*.tmp
+*.temp
+*.log
+*.swp
+*.swo
