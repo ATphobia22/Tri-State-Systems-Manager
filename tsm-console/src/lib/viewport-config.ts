@@ -1,14 +1,12 @@
 /**
  * Tri-State Engineering Simulator viewport configuration
- * Farming Simulator–class grounded world: practical Posey / Ohio–Wabash replica.
- * No decorative animation loops. Math remains authoritative.
+ * Math authoritative. Compensatory ratio aligned to Posey 1.0× equal-volume (2026-09-02).
  */
 
 export const VIEWPORT_CONFIG = {
   projectNode:
     '13101 Bonebank Road, Point Township, Posey County, Indiana',
   visualDoctrine: 'tri-state-engineering-sim' as const,
-  /** FS17-class: readable landscape, real assets, operator HUD — not fantasy open-world */
   renderPolicy: {
     headlessAnimationLoops: false,
     decorativeWaterBob: false,
@@ -33,7 +31,9 @@ export const VIEWPORT_CONFIG = {
   hydrology: {
     primaryUsgs: '03378500',
     primaryUsgsName: 'Wabash River at New Harmony, IN',
-    compensatoryStorageRatio: 1.2,
+    primaryNws: 'MTVI3',
+    myersNws: 'UNWK2',
+    compensatoryStorageRatio: 1.0,
     idnrFloodwaySurchargeFt: 0.15,
     indianaFreeboardFt: 2.0,
   },
@@ -100,10 +100,6 @@ export function stageFinding(stageFt: number): StageFinding {
   return 'NOMINAL';
 }
 
-/**
- * Visual water plane Y from stage — static engineering surface.
- * No sine bob / headless animation (renderPolicy.decorativeWaterBob = false).
- */
 export function visualWaterY(stageFt: number, _elapsedSec = 0): number {
   const { bfeFt } = VIEWPORT_CONFIG.elevations;
   return Math.max(0, (stageFt - bfeFt) * 0.8);

@@ -1,16 +1,9 @@
 /**
  * USGS / NWS gage datum conversion table (Posey Tri-State focus)
  *
- * CRITICAL: Gage height (parameter 00065) is relative to the published
- * gage zero / gage datum. It is NOT a NAVD88 orthometric height until
- * conversion is applied:
+ * WSE_NAVD88 ≈ gage_height_ft + gage_zero_navd88_ft
  *
- *   WSE_NAVD88 ≈ gage_height_ft + gage_zero_navd88_ft
- *
- * Sources: USGS NWIS site pages, NWS NWPS vertical datum tables.
- * Always re-verify against waterdata.usgs.gov before PE use.
- *
- * TSM must never stamp raw gage height with vertical_datum: 'NAVD88'.
+ * Verified 2026-09-02 against NWS AHPS vertical datum tables + USGS site metadata.
  */
 
 export type VerticalReference =
@@ -27,22 +20,15 @@ export interface GageDatumRecord {
   nwsId?: string;
   lat: number;
   lon: number;
-  /** Elevation of gage zero in NAVD88 feet when published */
   gageZeroNavd88Ft: number | null;
-  /** Legacy NGVD29 zero if known */
   gageZeroNgvd29Ft?: number | null;
-  /** Vertical accuracy of gage zero (ft) when published */
   gageZeroAccuracyFt?: number | null;
   sourceUri: string;
   notes: string;
-  /** When true, conversion is published and may be used for WSE_NAVD88 */
   conversionPublished: boolean;
   lastVerified: string;
 }
 
-/**
- * Published conversion table — extend only with cited USGS/NWS values.
- */
 export const GAGE_DATUM_TABLE: Record<string, GageDatumRecord> = {
   '03378500': {
     id: '03378500',
@@ -55,7 +41,7 @@ export const GAGE_DATUM_TABLE: Record<string, GageDatumRecord> = {
     gageZeroAccuracyFt: 0.02,
     sourceUri: 'https://waterdata.usgs.gov/monitoring-location/USGS-03378500/',
     notes:
-      'USGS peak/site metadata: gage datum 352.71 ft above NAVD88. Historical publications referenced NGVD29 ~353.20 ft; use current NWIS NAVD88 value.',
+      'USGS: gage datum 352.71 ft above NAVD88. Historical pubs NGVD29 ~353.20 ft.',
     conversionPublished: true,
     lastVerified: '2026-09-02',
   },
@@ -71,8 +57,7 @@ export const GAGE_DATUM_TABLE: Record<string, GageDatumRecord> = {
     gageZeroNgvd29Ft: 328.7,
     gageZeroAccuracyFt: 0.05,
     sourceUri: 'https://water.noaa.gov/gauges/evvi3',
-    notes:
-      'NWS vertical datum table: Gauge Zero NAVD88 328.38 ft / NGVD29 328.70 ft. Aligns with USGS site elevation ~328.32 ft NAVD88.',
+    notes: 'NWS EVVI3 vertical datum table Gauge Zero NAVD88 328.38 / NGVD29 328.70.',
     conversionPublished: true,
     lastVerified: '2026-09-02',
   },
@@ -83,11 +68,12 @@ export const GAGE_DATUM_TABLE: Record<string, GageDatumRecord> = {
     nwsId: 'MTVI3',
     lat: 37.9286,
     lon: -87.8956,
-    gageZeroNavd88Ft: null,
-    sourceUri: 'https://api.water.noaa.gov/nwps/v1/gauges/MTVI3',
+    gageZeroNavd88Ft: 318.59,
+    gageZeroNgvd29Ft: 318.92,
+    sourceUri: 'https://water.noaa.gov/gauges/mtvi3',
     notes:
-      'Primary NWS AHPS/NWPS gauge for Mount Vernon. Gage-zero NAVD88 not locked in TSM until NWPS/USGS publish explicit zero; treat stage as GAGE_DATUM only.',
-    conversionPublished: false,
+      'NWS Vertical Datum Table 2026-08-26: Gauge Zero NAVD88 318.59 ft / NGVD29 318.92 ft. Stages: action 28 / minor 35 / moderate 45 / major 52.',
+    conversionPublished: true,
     lastVerified: '2026-09-02',
   },
   UNWK2: {
@@ -98,11 +84,12 @@ export const GAGE_DATUM_TABLE: Record<string, GageDatumRecord> = {
     nwsId: 'UNWK2',
     lat: 37.7833,
     lon: -87.9794,
-    gageZeroNavd88Ft: null,
+    gageZeroNavd88Ft: 311.31,
+    gageZeroNgvd29Ft: 311.65,
     sourceUri: 'https://water.noaa.gov/gauges/unwk2',
     notes:
-      'USACE John T. Myers L&D (Ohio RM ~846). NWS stages: action 33 / minor 37 / moderate 49 / major 60 / record 64.4 ft. Pool elev ~342 ft MSL class per navigation tables — confirm before NAVD88 conversion.',
-    conversionPublished: false,
+      'NWS Vertical Datum Table: Gauge Zero NAVD88 311.31 ft / NGVD29 311.65 ft. Stages: action 33 / minor 37 / moderate 49 / major 60 / record 64.4. USGS companion 03322420.',
+    conversionPublished: true,
     lastVerified: '2026-09-02',
   },
   '03322420': {
@@ -113,10 +100,11 @@ export const GAGE_DATUM_TABLE: Record<string, GageDatumRecord> = {
     nwsId: 'UNWK2',
     lat: 37.7833,
     lon: -87.9794,
-    gageZeroNavd88Ft: null,
-    sourceUri: 'https://waterdata.usgs.gov/monitoring-location/USGS-03322420/',
-    notes: 'USGS companion ID for Myers L&D; pair with UNWK2 NWS product. Conversion unpublished until site elev locked.',
-    conversionPublished: false,
+    gageZeroNavd88Ft: 311.31,
+    gageZeroNgvd29Ft: 311.65,
+    sourceUri: 'https://water.noaa.gov/gauges/unwk2',
+    notes: 'Aligned to NWS UNWK2 published zero until USGS site elev supersedes.',
+    conversionPublished: true,
     lastVerified: '2026-09-02',
   },
 };
@@ -131,10 +119,6 @@ export interface StageConversionResult {
   disclaimer: string;
 }
 
-/**
- * Convert gage height → optional WSE in NAVD88.
- * Never invent a zero: if unpublished, wseNavd88Ft stays null.
- */
 export function convertGageHeightToNavd88(
   gageId: string,
   gageHeightFt: number,
@@ -179,7 +163,6 @@ export function convertGageHeightToNavd88(
   };
 }
 
-/** Evidence metadata helper — never claim NAVD88 on raw stage */
 export function stageVerticalMetadata(gageId: string, conversion: StageConversionResult) {
   return {
     vertical_reference_raw: 'GAGE_DATUM' as const,

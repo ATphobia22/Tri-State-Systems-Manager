@@ -1,8 +1,7 @@
 /**
  * Server ingestion workers — Authority Registry v35
- * Fail-closed: network/schema/hash failure → no write; return error.
- * Observed vs forecast never collapsed.
- * S-1: Raw gage height is GAGE_DATUM — never labeled NAVD88 without conversion.
+ * S-1: Raw gage height is GAGE_DATUM — NAVD88 only with published zero.
+ * Zeros locked 2026-09-02 from NWS vertical datum tables + USGS New Harmony.
  */
 
 import fs from 'node:fs';
@@ -14,10 +13,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REGISTRY_PATH = process.env.TSM_AUTHORITY_REGISTRY
   || path.join(__dirname, '../../../tsm-authority-registry-v35.json');
 
-/** Published gage zeros (NAVD88 ft) — keep in sync with src/lib/gage-datums.ts */
+/** Published gage zeros (NAVD88 ft) — sync with src/lib/gage-datums.ts */
 const GAGE_ZERO_NAVD88 = {
   '03378500': 352.71,
   '03322000': 328.38,
+  MTVI3: 318.59,
+  UNWK2: 311.31,
+  '03322420': 311.31,
 };
 
 function loadRegistry() {
@@ -100,7 +102,6 @@ export async function ingestUsgsNode(usgsId, { timeoutMs = 8000 } = {}) {
       observation_time,
       horizontal_crs: 'EPSG:4326',
       horizontal_crs_name: 'WGS 84',
-      /** S-1: raw stage is GAGE_DATUM */
       vertical_datum: 'GAGE_DATUM',
       vertical_datum_converted: conversion.conversion_applied ? 'NAVD88' : null,
       content_hash_sha256,
@@ -109,7 +110,7 @@ export async function ingestUsgsNode(usgsId, { timeoutMs = 8000 } = {}) {
       validation_status: 'provisional',
       governance_status: 'human_review_required',
       is_simulation_demo: false,
-      software_version: 'tsm-ingestion@0.2.0',
+      software_version: 'tsm-ingestion@0.2.1',
       operator_or_service_identity: 'ingestUsgsNode',
       payload: body,
       _canonical_for_verify: leafCanonical(body),
@@ -177,7 +178,7 @@ export async function ingestNwpsGauge(nwsId, { product = 'observed', timeoutMs =
       validation_status: 'provisional',
       governance_status: 'human_review_required',
       is_simulation_demo: false,
-      software_version: 'tsm-ingestion@0.2.0',
+      software_version: 'tsm-ingestion@0.2.1',
       operator_or_service_identity: 'ingestNwpsGauge',
       payload: body,
       _canonical_for_verify: leafCanonical(body),

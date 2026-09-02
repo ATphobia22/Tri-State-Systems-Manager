@@ -1,11 +1,9 @@
 /**
  * Multi-state regulatory profiles — CITATIONS only, never silent determinations.
- * human_gate: true for all compliance findings.
  *
- * Indiana compensatory storage policy (S-3):
- * Single published ratio for TSM decision-support UI = 1.2× with ordinance verify gate.
- * 312 IAC 10-2-3 adverse effect = 0.15 ft regulatory flood rise.
- * FEMA-mapped floodway practice = 0.00 ft No-Rise or CLOMR/LOMR.
+ * Posey compensatory (verified 2026-09-02):
+ * Subdivision Ordinance — fill in floodplain offset by equal volume of cutting (1.0×).
+ * TSM default ratio updated to 1.0 to match Posey text; PE may still require more.
  */
 
 export type JurisdictionId = 'INDIANA' | 'ILLINOIS' | 'KENTUCKY';
@@ -22,16 +20,23 @@ export interface JurisdictionRule {
   human_gate: true;
 }
 
-/** S-3 published compensatory storage policy (Indiana design default in TSM) */
+/** S-3 Posey-aligned compensatory storage policy */
 export const INDIANA_COMPENSATORY_STORAGE_POLICY = {
-  ratio: 1.2,
-  ratio_label: '1.2× cut volume relative to fill in regulated floodplain storage',
-  citation_primary: 'Local floodplain ordinance + IDNR Division of Water practice (verify Posey ordinance text)',
-  citation_iac_adverse: '312 IAC 10-2-3 — adverse effect ≥ 0.15 ft regulatory flood elevation increase',
-  citation_fema_floodway: '44 CFR 60.3(d) practice — 0.00 ft No-Rise or CLOMR/LOMR in FEMA floodway',
-  citation_building: '312 IAC 10-3-5 — buildings >400 ft² require flood protection grade (commonly BFE+2 ft freeboard in local/state practice)',
+  ratio: 1.0,
+  ratio_label:
+    '1.0× equal volume of cutting to offset floodplain fill (Posey Subdivision Ordinance)',
+  citation_primary:
+    'Posey County Subdivision Ordinance — volume of filling in the floodplain shall be off-set by an equal volume of cutting so as not to increase the BFE',
+  citation_source:
+    'https://www.poseycountyin.gov/wp-content/uploads/2020/09/New-Subdivision-Ordinance-7-01-2013.pdf',
+  citation_iac_adverse:
+    '312 IAC 10-2-3 — adverse effect ≥ 0.15 ft regulatory flood elevation increase',
+  citation_fema_floodway:
+    '44 CFR 60.3(d) practice — 0.00 ft No-Rise or CLOMR/LOMR in FEMA floodway',
+  citation_building:
+    '312 IAC 10-3-5 / Posey Flood Hazard Ordinance — flood protection grade (commonly BFE+2 ft)',
   note:
-    'TSM default ratio is 1.2× for decision-support packaging only. PE and local floodplain administrator may require different ratios by elevation band. Never auto-approve cut-fill balance.',
+    'Posey text is equal-volume (1.0×). PE or IDNR license conditions may require higher ratios or incremental banding. Never auto-approve cut-fill balance. Floodway work still needs IDNR/USACE written approval.',
   human_gate: true as const,
 } as const;
 
@@ -39,13 +44,13 @@ export const JURISDICTION_RULES: Record<JurisdictionId, JurisdictionRule> = {
   INDIANA: {
     id: 'INDIANA',
     name: 'Indiana DNR & FEMA Region V',
-    code: 'IDNR 312 IAC 10 / IC 14-28-1 / IC 14-28-3 / 44 CFR Part 60',
+    code: 'IDNR 312 IAC 10 / IC 14-28-1 / IC 14-28-3 / 44 CFR Part 60 / Posey Flood Hazard Ordinance',
     source_uri: 'https://www.in.gov/dnr/water/',
     no_rise_threshold_ft: 0.0,
     compensatory_ratio: INDIANA_COMPENSATORY_STORAGE_POLICY.ratio,
     freeboard_req_ft: 2.0,
     description:
-      'FEMA floodway: 0.00 ft No-Rise or CLOMR/LOMR. IDNR adverse effect definition 0.15 ft (312 IAC 10-2-3). Compensatory storage default 1.2× (verify local ordinance). Building freeboard commonly +2.0 ft (312 IAC 10-3-5 flood protection grade practice).',
+      'FEMA floodway: 0.00 ft No-Rise or CLOMR/LOMR. IDNR adverse 0.15 ft (312 IAC 10-2-3). Posey fill offset equal volume (1.0×). Building freeboard commonly +2.0 ft.',
     human_gate: true,
   },
   ILLINOIS: {
@@ -72,7 +77,6 @@ export const JURISDICTION_RULES: Record<JurisdictionId, JurisdictionRule> = {
   },
 };
 
-/** Decision-support finding only — not a regulatory determination */
 export function assessClearanceSupport(opts: {
   jurisdiction: JurisdictionId;
   waterStageFt: number;
