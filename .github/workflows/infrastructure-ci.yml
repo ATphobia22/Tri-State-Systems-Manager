@@ -1,0 +1,45 @@
+name: TSM Infrastructure Capability CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'infrastructure/**'
+      - 'scripts/ci/**'
+      - '.github/workflows/infrastructure-ci.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tsm-infrastructure-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Validate capability registry
+        run: node scripts/ci/validate-capability-registry.mjs
+      - name: Validate workflow boundaries
+        run: node scripts/ci/validate-workflow-boundaries.mjs
+      - name: Validate shell safety
+        run: bash scripts/ci/validate-shell-safety.sh
+      - name: Validate infrastructure syntax where tools exist
+        run: |
+          if command -v ansible-playbook >/dev/null 2>&1; then
+            find infrastructure -type f -name '*.yml' -o -name '*.yaml' | while read -r playbook; do
+              ansible-playbook --syntax-check "$playbook"
+            done
+          else
+            echo 'Ansible not installed on hosted runner; registry and shell gates remain authoritative.'
+          fi
