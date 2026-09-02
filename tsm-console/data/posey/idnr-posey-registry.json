@@ -1,0 +1,96 @@
+{
+  "title": "Posey County IDNR / USACE / NWS hydrologic & conservation registry",
+  "updated": "2026-09-02",
+  "county": "Posey",
+  "state": "IN",
+  "fips": "18129",
+  "disclaimer": "Informational registry for TSM Evidence and Visualization planes. Not a permit, license, or regulatory determination. Verify current IDNR and USACE publications.",
+  "hydrologic_nodes": [
+    {
+      "id": "MTVI3",
+      "name": "Ohio River at Mount Vernon",
+      "nws_id": "MTVI3",
+      "role": "primary_local_ohio_stage",
+      "lat": 37.9286,
+      "lon": -87.8956,
+      "stages_ft": { "action": 28, "minor": 35, "moderate": 45, "major": 52, "record": 59.21 }
+    },
+    {
+      "id": "UNWK2",
+      "name": "Ohio River at John T. Myers Lock and Dam",
+      "nws_id": "UNWK2",
+      "usgs_id": "03322420",
+      "role": "usace_navigation_control_structure",
+      "lat": 37.7833,
+      "lon": -87.9794,
+      "river_mile_approx": 846.0,
+      "stages_ft": { "action": 33, "minor": 37, "moderate": 49, "major": 60, "record": 64.4 },
+      "notes": "USACE Louisville District navigation lock/dam; pool elevation ~342 ft class per navigation tables; flood impacts include Uniontown levee context."
+    },
+    {
+      "id": "03378500",
+      "name": "Wabash River at New Harmony",
+      "usgs_id": "03378500",
+      "role": "wabash_boundary_stage_discharge",
+      "lat": 38.13089124,
+      "lon": -87.9414145,
+      "gage_zero_navd88_ft": 352.71
+    },
+    {
+      "id": "03322000",
+      "name": "Ohio River at Evansville",
+      "usgs_id": "03322000",
+      "nws_id": "EVVI3",
+      "role": "downstream_ohio_context",
+      "lat": 37.9722644,
+      "lon": -87.5764045,
+      "gage_zero_navd88_ft": 328.38
+    }
+  ],
+  "idnr_properties": [
+    {
+      "id": "hovey-lake-fwa",
+      "name": "Hovey Lake Fish & Wildlife Area",
+      "manager": "IDNR Division of Fish & Wildlife",
+      "acres_approx": 7404,
+      "features": ["1400-acre oxbow lake", "bottomland hardwood", "sloughs", "marshes", "hunting", "fishing", "wildlife watching"],
+      "flood_note": "Entire property subject to Ohio/Wabash floodplain inundation; access may close during high water.",
+      "access": "SR 69 south of Mt. Vernon to Hovey Lake FWA entrance",
+      "uri": "https://www.in.gov/dnr/fish-and-wildlife/properties/hovey-lake-fwa/"
+    },
+    {
+      "id": "twin-swamps-np",
+      "name": "Twin Swamps Nature Preserve",
+      "manager": "IDNR Division of Nature Preserves",
+      "acres_approx": 598,
+      "features": ["bald cypress swamp", "overcup oak swamp", "southern flatwoods", "boardwalk", "observation deck"],
+      "flood_note": "River-bottom wetland community; one of few remaining Ohio–Wabash valley swamp remnants.",
+      "access": "West of Mt. Vernon via SR 69 to Hovey area; Raben Rd / Walls Rd parking",
+      "uri": "https://www.in.gov/dnr/nature-preserves/"
+    },
+    {
+      "id": "harmonie-state-park",
+      "name": "Harmonie State Park",
+      "manager": "IDNR",
+      "notes": "Wabash River corridor context north of Point Township; camping, trails, river access.",
+      "uri": "https://www.in.gov/dnr/state-parks/"
+    }
+  ],
+  "idnr_portals": {
+    "infip": "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/indiana-floodplain-information-portal",
+    "best_available_floodplain": "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/the-indiana-best-available-floodplain-mapping/",
+    "state_engineering": "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/state-engineering-resources",
+    "elevation_gio": "https://elevation.gio.in.gov/",
+    "flood_control_act": "IC 14-28-1",
+    "floodplain_management_act": "IC 14-28-3",
+    "iac_article": "312 IAC 10"
+  },
+  "usace": {
+    "myers_lock_dam": {
+      "name": "John T. Myers Locks and Dam",
+      "district": "Louisville District",
+      "nws_id": "UNWK2",
+      "usgs_id": "03322420"
+    }
+  }
+}
