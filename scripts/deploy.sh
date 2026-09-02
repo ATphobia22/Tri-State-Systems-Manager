@@ -23,23 +23,26 @@ echo "======================================================================"
 echo " TRI-STATE SYSTEMS MANAGER — PRODUCTION CONSOLE"
 echo "======================================================================"
 
-echo "[1/6] Installing locked dependencies..."
+echo "[1/7] Installing locked dependencies..."
 cd "${CONSOLE_DIR}"
 npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
 
-echo "[2/6] Repository integrity..."
+echo "[2/7] Repository integrity..."
 npm run check:integrity
 
-echo "[3/6] Parse gate..."
+echo "[3/7] Site consistency..."
+npm run check:site-consistency
+
+echo "[4/7] Parse gate..."
 npm run check:parse
 
-echo "[4/6] TypeScript gate..."
+echo "[5/7] TypeScript gate..."
 npm run check:type
 
-echo "[5/6] Tests..."
+echo "[6/7] Tests..."
 npm run test:all
 
-echo "[6/6] Production Vite build..."
+echo "[7/7] Production Vite build..."
 npm run build
 
 test -f dist/index.html

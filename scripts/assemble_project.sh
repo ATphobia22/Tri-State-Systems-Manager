@@ -13,17 +13,18 @@ success(){ echo "[SUCCESS] $*" | tee -a "$LOG"; }
 : > "$LOG"
 info "Verifying Node.js..."
 command -v node >/dev/null || error "Node.js missing"
+NODE_MAJOR="$(node -p 'process.versions.node.split(".")[0]')"
+if [ "$NODE_MAJOR" -lt 22 ]; then
+  error "Node.js >=22 required; found $(node --version)"
+fi
 
 cd "$CONSOLE"
 if [ ! -d node_modules ]; then
-  info "Installing dependencies..."
-  npm install --no-audit --no-fund
+  info "Installing locked dependencies..."
+  npm ci --no-audit --no-fund
 fi
 
-info "Running parse + typecheck gate..."
-npm run check
-
-info "Building production bundle (Vite)..."
-npm run build
+info "Running full repository CI gate..."
+npm run ci
 
 success "Assembly complete: $CONSOLE/dist"

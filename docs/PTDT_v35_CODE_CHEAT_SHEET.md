@@ -12,7 +12,8 @@
 
 ## 2. Core Implementation Artifacts
 
-- `backend/gov/site_constants.py` — single source of truth for BFE/LAG/CRS/seal
+- `backend/gov/site_constants.py` — backend geodetic/regulatory invariant checks
+- `tsm-console/src/lib/firm-panel-ssot.ts` — FIRM panel identity and verification state
 - `backend/db/postgis_raster_optimize.sql` — GiST + raster maintenance
 - `backend/api/v1/hecras_solver.py` — HEC-RAS bridge + pure-Python fallback
 - `tsm-console/src/gpu/photorealTerrain.wgsl` — WebGPU compute/fragment
@@ -30,15 +31,15 @@
 **Site Bedrock (Locked)**  
 BFE 375.00 ft | LAG 377.20 ft | FFE 382.50 ft | Berm 379.80 ft  
 **HORIZONTAL_CRS = "EPSG:2966"** | NAVD88 | APN `65-19-08-100-008.001-010`  
-FIRM 18129C0215D | CID 180209 | Pure LOMA (44 CFR Part 70)  
+FIRM 18129C0300C | CID 180209 | NFHL REST verified; not a LOMA determination  
 MASTER_SEAL `b4782912564e70e863a7938bb3700647580830fb5a81e910a0db49a20f73b32e`  
 Compensatory 1.20x–1.30x | Bishop FoS >= 1.50 (cert 1.68) | FOST < 1.10 | V_net < 0
 
 **Verification**
 ```bash
-# Node/TS gate (existing CI)
-cd tsm-console && npm run check
+# Full Node/TypeScript/geospatial/build/test gate
+cd tsm-console && npm run ci:full
 
 # Backend invariant + solver smoke test
-python scripts/verify-backend-invariants.py
+cd .. && python scripts/verify-backend-invariants.py
 ```

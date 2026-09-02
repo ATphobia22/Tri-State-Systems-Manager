@@ -21,7 +21,7 @@ logger = logging.getLogger("PTDT_BACKEND")
 
 SITE_INVARIANTS = {
     "project_node": "13101 Bonebank Road, Point Township, Posey County, Indiana",
-    "coordinates": [-88.0142, 37.8348],
+    "coordinates": [-88.0051, 37.84589],
     "crs_horiz": "EPSG:2966",
     "vertical_datum": "NAVD88",
     "bfe_ft": 375.0,
@@ -74,9 +74,9 @@ app = FastAPI(title="PTDT v35 Sovereign API", version="35.1.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 telemetry_manager = TelemetryConnectionManager()
@@ -217,9 +217,3 @@ async def websocket_telemetry_endpoint(websocket: WebSocket):
             )
     except WebSocketDisconnect:
         telemetry_manager.disconnect(websocket)
-
-
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=True)

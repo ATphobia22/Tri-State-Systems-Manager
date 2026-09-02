@@ -1,49 +1,61 @@
 # Indiana FIRM map updates (Posey / Tri-State)
 
-## Authority hierarchy
+## Authority and data hierarchy
 
-1. **Effective FIRM + FIS** (hardcopy / MSC products) control NFIP rating and many statutory references.  
-2. **NFHL** is the digital representation used for GIS identify (TSM SSOT assist).  
-3. **Community Status Book (CSB)** records Init FHBM, Init FIRM, **Current Effective Map Date**, and Regular Program entry.  
-4. **LOMC** (LOMA/LOMR) may supersede the map at a structure or polygon.
+1. **FEMA effective FIRM + FIS** are the federal NFIP products used for FEMA flood-hazard/rating purposes. Confirm the effective product in the FEMA Map Service Center (MSC).
+2. **NFHL** is FEMA's digital National Flood Hazard Layer representation and is useful for GIS identification; a digital identify result does not replace review of the effective FIRM/FIS and any LOMC.
+3. **FEMA Community Status Book (CSB)** records the community's initial and current effective map dates and program history.
+4. **LOMC** products (LOMA, LOMR-F, LOMR, etc.) can modify or remove mapped conditions for the affected property or mapped area without necessarily reissuing an entire FIRM panel.
+5. **Indiana DNR Best Available Floodplain Data / Layer** combines FEMA FIRM information with DNR studies and provides additional floodplain/floodway information used for Indiana floodplain administration. It is a separate state/local regulatory data product and must not be silently substituted for the federal NFIP product.
 
-TSM **does not** adopt maps for the community; only the local floodplain administrator / governing body does under 44 CFR and Indiana statute.
+TSM stores these layers separately and never converts a mapping observation into an automatic regulatory determination.
 
-## Posey County (working TSM locks)
+## Posey County working TSM locks
 
 | Item | Value |
-|------|--------|
+|------|-------|
 | Unincorporated CID | **180209** |
 | County FIPS | **18129** |
-| NFHL FIRM panel (Bonebank identify) | **18129C0300C** |
-| Panel EFF_DATE (NFHL) | **2014-11-05** |
-| Ordinance alignment | Posey maps/ordinance cite **2014-11-05** |
-| Regular Program history | FHBM 1977-06-24 → initial FIRM ~1987-01-01 (historical) |
+| Bonebank NFHL FIRM panel identify | **18129C0300C** |
+| NFHL panel EFF_DATE recorded by TSM | **2014-11-05** |
+| FEMA Community Status Book current effective map date | **11/05/2014** |
+| Regular Program entry | **01/01/1987** |
 
-Other Posey CIDs (Mount Vernon, New Harmony, Cynthiana, etc.) have **separate** community status rows—do not apply unincorporated panel logic to incorporated places without checking CSB.
+The FEMA CSB report currently published for Indiana confirms the unincorporated Posey County CID **180209** and current effective map date **11/05/2014**.
 
-## How Indiana communities receive map updates
+The TSM repository's NFHL identify record reports panel **18129C0300C** at the Bonebank coordinate and an EFF_DATE corresponding to 2014-11-05. Treat that panel identity as the **TSM digital SSOT**, not as a substitute for downloading the effective FIRM/FIS from MSC before a regulatory filing.
 
-1. FEMA study / restudy or Physical Map Revision (PMR) / Countywide update  
-2. Preliminary maps → appeal/protest period  
-3. Letter of Final Determination (LFD)  
-4. Community **adopts** floodplain management regulations consistent with new maps by effective date or risks **NFIP suspension**  
-5. Effective date appears on FIRM panel title block, FIS, CSB “Curr Eff Map Date”, and NFHL `EFF_DATE`
+## What has changed in Indiana mapping practice
 
-Watch: [FEMA communities eligible for suspension](https://www.fema.gov/flood-insurance/work-with-nfip/community-status-book/public-notification/communities-list) and Indiana CSB extracts.
+Indiana DNR's current floodplain program maintains and updates the Indiana Best Available Floodplain Layer and incorporates FEMA updates. INFIP displays both FEMA and DNR floodplain information and can generate a Floodplain Analysis and Regulatory Assessment (FARA).
 
-As of 2026-09-02 research, **no evidence** of a newer countywide Posey effective FIRM superseding the 2014-11-05 panel set for Bonebank; always re-check MSC + CSB before regulatory filings.
+DNR describes Best Available Data as including the FEMA FIRM plus DNR studies. DNR also provides mechanisms to request review or submit technical information when the mapped information needs correction or refinement.
+
+For TSM, this means **FIRM/NFHL and DNR Best Available mapping are parallel evidence layers with explicit provenance**, not competing versions that should be merged into one polygon. A parcel can require both federal NFIP review and Indiana floodway/state-permitting analysis.
+
+## FIRM update lifecycle
+
+1. FEMA study / restudy, Risk MAP project, Physical Map Revision (PMR), or countywide mapping update.
+2. Preliminary mapping and community review/appeal/protest processes.
+3. Letter of Final Determination (LFD), when applicable.
+4. Community adoption/maintenance of required floodplain-management provisions for NFIP participation.
+5. Effective FIRM/FIS date becomes the controlling federal map date for the affected community/product set.
+6. LOMC products can later modify mapped conditions for a property or area.
 
 ## TSM operator checklist when maps change
 
-1. Download new panel from **msc.fema.gov**  
-2. Update `data/schemas/tsm-site-constants-13101-bonebank.json` and `firm-panel-ssot.ts`  
-3. Re-run NFHL layer 3 identify at structure coordinates  
-4. Re-inventory LOMC (LOMA/LOMR) affecting the parcel  
-5. Stamp EvidenceArtifacts as OBSERVATION until PE / floodplain admin accepts  
-6. Never auto-file LOMA from map change alone
+1. Check the **FEMA Map Service Center** for the current effective FIRM/FIS and LOMC history.
+2. Check the **FEMA Community Status Book** for the community's current effective map date.
+3. Run an NFHL identify at the structure coordinates and record the panel/product metadata.
+4. Check **Indiana INFIP / Best Available Floodplain Data** for the state/local floodway and floodplain context.
+5. Re-inventory LOMA/LOMR/LOMR-F records affecting the parcel.
+6. Store downloaded source artifacts and hashes in the Evidence Ledger with authority/derivation metadata.
+7. Require floodplain-administrator / engineering review before promoting an observation to a regulatory conclusion.
 
-## Related Indiana geospatial
+## Official resources
 
-- Indiana GIO / IndianaMap for parcels, ortho, LiDAR (not NFIP effective maps)  
-- IDNR Best Available Floodplain data may **inform** but does not replace the effective FIRM unless adopted under state/local process
+- FEMA Map Service Center: https://msc.fema.gov/portal/home
+- FEMA Community Status Book — Indiana: https://www.fema.gov/cis/IN.pdf
+- Indiana Floodplain Information Portal (INFIP): https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/indiana-floodplain-information-portal/
+- Indiana Best Available Floodplain Mapping: https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/the-indiana-best-available-floodplain-mapping/
+- Indiana DNR LOMR/CLOMR Review Partner: https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/fema-lomr-review-partner

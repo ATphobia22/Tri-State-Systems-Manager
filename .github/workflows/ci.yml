@@ -3,18 +3,8 @@ name: Tri-State Systems Manager CI Pipeline
 on:
   push:
     branches: [main, 'v*']
-    paths:
-      - 'tsm-console/**'
-      - 'integrations/**'
-      - 'scripts/ci/**'
-      - '.github/workflows/ci.yml'
   pull_request:
     branches: [main]
-    paths:
-      - 'tsm-console/**'
-      - 'integrations/**'
-      - 'scripts/ci/**'
-      - '.github/workflows/ci.yml'
   workflow_dispatch:
 
 permissions:
@@ -90,6 +80,9 @@ jobs:
 
       - name: Repository integrity gate
         run: npm run check:integrity
+
+      - name: Site consistency gate
+        run: npm run check:site-consistency
 
       - name: Geospatial processing contract gate
         run: npm run check:geospatial

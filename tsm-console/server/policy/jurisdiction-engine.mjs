@@ -79,7 +79,7 @@ export const POLICIES = [
 export function evaluatePolicies(context = {}) {
   const { state = 'Indiana', involvesFloodplain = false, involvesLOMA = false } = context;
   const applicable = POLICIES.filter((p) => {
-    if (p.jurisdiction === 'Federal') return involvesFloodplain || involvesLOMA || true;
+    if (p.jurisdiction === 'Federal') return involvesFloodplain || involvesLOMA;
     if (p.jurisdiction === 'Tri-State Systems Manager') return true;
     if (state && p.jurisdiction === state) return true;
     return false;

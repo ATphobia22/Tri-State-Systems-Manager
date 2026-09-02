@@ -16,40 +16,51 @@ name: tsm
 services:
   # ── Evidence / token API (Phase 1) ─────────────────────────
   api:
-    image: node:20-alpine
+    image: node:22-alpine
     working_dir: /app
     volumes:
       - ./:/app
+      - node_modules:/app/node_modules
       - evidence_data:/app/.data
-    command: sh -c "npm install && node server/token-proxy.mjs"
+    command: sh -c "npm ci --no-audit --no-fund && node server/token-proxy.mjs"
     ports:
       - "8787:8787"
     environment:
+      NODE_ENV: production
       PORT: "8787"
+      ALLOW_DEMO_TOKENS: "false"
       TSM_EVIDENCE_DIR: /app/.data
       # Set when using profile db:
       # DATABASE_URL: postgresql://tsm:tsm@db:5432/tsm_evidence
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8787/api/policies"]
-      interval: 30s
+      interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 20s
+      retries: 12
+      start_period: 15s
     restart: unless-stopped
 
   # ── Vite console (preview) ────────────────────────────────
   web:
-    image: node:20-alpine
+    image: node:22-alpine
     working_dir: /app
     volumes:
       - ./:/app
-    command: sh -c "npm install && npm run build && npm run preview -- --host 0.0.0.0 --port 3000"
+      - node_modules:/app/node_modules
+    command: sh -c "npm ci --no-audit --no-fund && npm run build && npm run preview -- --host 0.0.0.0 --port 3000"
     ports:
       - "3000:3000"
     environment:
       VITE_API_URL: http://localhost:8787
     depends_on:
-      - api
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/" ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
     restart: unless-stopped
 
   # ── Optional Postgres (Prisma) ─────────────────────────────
@@ -73,4 +84,5 @@ services:
 
 volumes:
   evidence_data:
+  node_modules:
   pg_data:
