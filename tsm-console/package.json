@@ -25,7 +25,7 @@
     "test:all": "npm test && npm run test:posey && npm run test:firm",
     "ingest:ras": "node scripts/ras-geotiff-ingest.mjs",
     "check:parse": "node scripts/parse-check.mjs",
-    "check:type": "npx tsc --noEmit",
+    "check:type": "tsc --noEmit",
     "check:integrity": "node scripts/repository-integrity-check.mjs",
     "check:geospatial": "node scripts/geospatial/validate-processing-contract.mjs",
     "test:cinematic": "node --test tests/cinematic-contracts.test.ts 2>/dev/null || node --test tests/*.test.mjs",
