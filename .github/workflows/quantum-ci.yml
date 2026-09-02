@@ -1,0 +1,43 @@
+name: TSM Quantum Research CI
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_quantum_tests:
+        description: 'Run isolated quantum research checks'
+        required: true
+        default: false
+        type: boolean
+  push:
+    branches: [main]
+    paths:
+      - 'integrations/quantum/**'
+      - 'scripts/ci/validate-quantum-boundary.mjs'
+      - '.github/workflows/quantum-ci.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tsm-quantum-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  boundary:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Validate quantum boundary
+        run: node scripts/ci/validate-quantum-boundary.mjs
+
+  research-tests:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_quantum_tests == true }}
+    needs: boundary
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Run research-only contract tests
+        run: |
+          node -e "const fs=require('fs'); const p='integrations/quantum/optimization-contract.schema.json'; JSON.parse(fs.readFileSync(p,'utf8')); console.log('Quantum research contract parsed successfully.');"
