@@ -29,6 +29,7 @@ import type {
   LineageLoaderData,
   SandboxLoaderData,
   BenefitLoaderData,
+  MapTwinLoaderData,
   EvidenceBlock,
   InterventionRecord,
   DataContractSummary,
