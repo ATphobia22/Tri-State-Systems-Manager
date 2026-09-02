@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "purpose": "Open-source geospatial toolchain contract for agency-reviewable processing",
+  "tools": {
+    "pdal": {
+      "role": "point-cloud ingestion, filtering, reprojection and rasterization",
+      "minimum_version": "2.10.2",
+      "container": "pdal/pdal:2.10.2",
+      "upstream": "https://github.com/PDAL/PDAL"
+    },
+    "gdal": {
+      "role": "raster inspection, conversion and metadata validation",
+      "upstream": "https://github.com/OSGeo/gdal"
+    },
+    "mapnik": {
+      "role": "cartographic rendering",
+      "upstream": "https://github.com/mapnik/mapnik"
+    },
+    "h3": {
+      "role": "hierarchical spatial indexing",
+      "upstream": "https://github.com/uber/h3"
+    },
+    "martin": {
+      "role": "PostGIS/vector tile serving",
+      "upstream": "https://github.com/maplibre/martin"
+    }
+  },
+  "policy": {
+    "raw_lidar_committed": false,
+    "derived_artifacts_committed": false,
+    "source_provenance_required": true,
+    "engineering_values_are_not_certified_by_ci": true
+  }
+}
