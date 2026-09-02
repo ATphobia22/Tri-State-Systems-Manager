@@ -1,0 +1,52 @@
+{
+  "pipeline": [
+    {
+      "type": "readers.las",
+      "filename": "data/lidar/raw/IN2020_26800940_12.las",
+      "default_srs": "EPSG:2966"
+    },
+    {
+      "type": "readers.las",
+      "filename": "data/lidar/raw/IN2020_26800970_12.las",
+      "default_srs": "EPSG:2966"
+    },
+    {
+      "type": "readers.las",
+      "filename": "data/lidar/raw/IN2020_26800975_12.las",
+      "default_srs": "EPSG:2966"
+    },
+    {
+      "type": "readers.las",
+      "filename": "data/lidar/raw/IN2020_26850940_12.las",
+      "default_srs": "EPSG:2966"
+    },
+    { "type": "filters.merge" },
+    {
+      "type": "filters.expression",
+      "expression": "Classification == 2"
+    },
+    {
+      "type": "filters.reprojection",
+      "out_srs": "EPSG:6345"
+    },
+    {
+      "type": "filters.crop",
+      "point": "POINT(417804.204 4194255.696)",
+      "distance": 15.24,
+      "a_srs": "EPSG:6345"
+    },
+    {
+      "type": "writers.las",
+      "filename": "data/lidar/processed/bonebank_lag_cropped_ground.las",
+      "forward": "all"
+    },
+    {
+      "type": "writers.gdal",
+      "filename": "data/lidar/processed/bonebank_lag_dem_05ft.tif",
+      "resolution": 0.1524,
+      "output_type": "min",
+      "data_type": "float32",
+      "gdaldriver": "GTiff"
+    }
+  ]
+}
