@@ -1,0 +1,128 @@
+name: TSM Production Pages Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+  NPM_REGISTRY: https://registry.npmjs.org
+  CONSOLE_DIR: tsm-console
+
+jobs:
+  build:
+    name: Verify and build production console
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: ${{ env.NPM_REGISTRY }}
+          cache: npm
+          cache-dependency-path: ${{ env.CONSOLE_DIR }}/package-lock.json
+
+      - name: Configure public npm registry
+        working-directory: ${{ env.CONSOLE_DIR }}
+        run: npm config set registry ${{ env.NPM_REGISTRY }}
+
+      - name: Install native GIS/build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends gdal-bin libgdal-dev proj-bin libproj-dev
+
+      - name: Verify lockfile registry provenance
+        working-directory: ${{ env.CONSOLE_DIR }}
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const lockfile = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
+          const violations = [];
+          for (const [packagePath, metadata] of Object.entries(lockfile.packages ?? {})) {
+            if (typeof metadata?.resolved !== 'string') continue;
+            try {
+              const url = new URL(metadata.resolved);
+              if (url.hostname !== 'registry.npmjs.org') {
+                violations.push(`${packagePath}: ${metadata.resolved}`);
+              }
+            } catch {
+              violations.push(`${packagePath}: invalid resolved URL ${metadata.resolved}`);
+            }
+          }
+          if (violations.length) {
+            console.error('ERROR: package-lock.json contains non-public resolved package URLs.');
+            for (const violation of violations.slice(0, 20)) console.error(violation);
+            process.exit(1);
+          }
+          console.log('Lockfile provenance check passed.');
+          NODE
+
+      - name: Verify lockfile reproducibility
+        working-directory: ${{ env.CONSOLE_DIR }}
+        run: |
+          cp package-lock.json package-lock.json.ci-baseline
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund --registry=${{ env.NPM_REGISTRY }}
+          diff -u package-lock.json.ci-baseline package-lock.json
+          rm package-lock.json.ci-baseline
+
+      - name: Install locked dependencies
+        working-directory: ${{ env.CONSOLE_DIR }}
+        run: npm ci --ignore-scripts --no-audit --no-fund --registry=${{ env.NPM_REGISTRY }}
+
+      - name: Repository integrity gate
+        working-directory: ${{ env.CONSOLE_DIR }}
+        run: npm run check:integrity
+
+      - name: Parse gate
+        working-directory: ${{ env.CONSOLE_DIR }}
+        run: npm run check:parse
+
+      - name: TypeScript gate
+        working-directory: ${{ env.CONSOLE_DIR }}
+        run: npm run check:type
+
+      - name: Test suite
+        working-directory: ${{ env.CONSOLE_DIR }}
+        run: npm run test:all
+
+      - name: Production Vite build
+        working-directory: ${{ env.CONSOLE_DIR }}
+        run: npm run build
+
+      - name: Validate Pages artifact
+        working-directory: ${{ env.CONSOLE_DIR }}
+        run: test -f dist/index.html
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ${{ env.CONSOLE_DIR }}/dist
+
+  deploy:
+    name: Deploy production console
+    needs: build
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
