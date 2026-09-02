@@ -23,6 +23,20 @@ function readJson(file) {
   }
 }
 
+function validateLockfileProvenance(lock) {
+  for (const [packagePath, metadata] of Object.entries(lock?.packages ?? {})) {
+    if (typeof metadata?.resolved !== 'string') continue;
+    try {
+      const url = new URL(metadata.resolved);
+      if (url.hostname !== 'registry.npmjs.org') {
+        failures.push(`package-lock.json: non-public resolved package URL at ${packagePath}: ${metadata.resolved}`);
+      }
+    } catch {
+      failures.push(`package-lock.json: invalid resolved package URL at ${packagePath}: ${metadata.resolved}`);
+    }
+  }
+}
+
 const pkg = readJson(packagePath);
 const lock = readJson(lockPath);
 
@@ -42,10 +56,7 @@ if (lock) {
   if (lock.lockfileVersion !== 3) {
     failures.push(`package-lock.json: expected lockfileVersion 3, found ${String(lock.lockfileVersion)}`);
   }
-  const serialized = JSON.stringify(lock);
-  if (/35\.245\.43\.102|\/npm\//i.test(serialized)) {
-    failures.push('package-lock.json: prohibited private npm mirror URL detected');
-  }
+  validateLockfileProvenance(lock);
 }
 
 const workflowsRoot = path.resolve(root, '..', '.github', 'workflows');
