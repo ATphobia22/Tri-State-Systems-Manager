@@ -34,7 +34,7 @@
     "check:quantum-boundary": "node ../scripts/ci/validate-quantum-boundary.mjs",
     "check:shell-safety": "bash ../scripts/ci/validate-shell-safety.sh",
     "check:site-consistency": "node ../scripts/ci/validate-site-consistency.mjs",
-    "test:cinematic": "node --test tests/cinematic-contracts.test.ts 2>/dev/null || node --test tests/*.test.mjs",
+    "test:cinematic": "vitest run tests/cinematic-contracts.test.ts",
     "geospatial:fetch": "node scripts/geospatial/fetch-posey-assets.mjs",
     "geospatial:validate": "node scripts/geospatial/validate-raster-manifest.mjs",
     "resync": "npm ci --no-audit --no-fund && node scripts/postinstall-check.mjs && node scripts/parse-check.mjs",
