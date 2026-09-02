@@ -1,13 +1,17 @@
 import { siteSpatialReference, siteVerticalReference } from './geodetic';
 /**
  * Live NOAA / USGS stage fetch with graceful fallback
+ * Raw stage is always GAGE_DATUM — never labeled NAVD88 without conversion.
  * MOCK results are SIMULATION_DEMO — not engineering predictions.
  * Observed vs forecast must never be collapsed.
  */
 
-
 import { SITE } from '../types/site';
 import type { MapTwinLoaderData } from '../types/loaders';
+import {
+  convertGageHeightToNavd88,
+  stageVerticalMetadata,
+} from './gage-datums';
 
 function categorize(ft: number | null): MapTwinLoaderData['stage']['floodCategory'] {
   if (ft == null) return 'unknown';
@@ -19,13 +23,45 @@ function categorize(ft: number | null): MapTwinLoaderData['stage']['floodCategor
   return 'normal';
 }
 
+function packageStage(
+  source: 'NOAA' | 'USGS' | 'MOCK',
+  gaugeId: string,
+  value_ft: number | null,
+  timestamp: string | null,
+  floodCategory: MapTwinLoaderData['stage']['floodCategory'],
+): MapTwinLoaderData['stage'] & Record<string, unknown> {
+  const conversion =
+    value_ft != null
+      ? convertGageHeightToNavd88(gaugeId, value_ft)
+      : null;
+
+  return {
+    source,
+    gaugeId,
+    value_ft,
+    timestamp,
+    floodCategory,
+    /** Raw reading is always gage datum */
+    vertical_reference: 'GAGE_DATUM',
+    wse_navd88_ft: conversion?.wseNavd88Ft ?? null,
+    gage_zero_navd88_ft: conversion?.gageZeroNavd88Ft ?? null,
+    conversion_applied: conversion?.conversionApplied ?? false,
+    provisional: source !== 'MOCK',
+    is_simulation_demo: source === 'MOCK',
+    disclaimer:
+      conversion?.disclaimer ??
+      'PROVISIONAL data subject to revision. Not a regulatory determination.',
+    regulatory_banner:
+      'NOT A REGULATORY DETERMINATION — decision support only. Human authority final.',
+    ...(conversion ? stageVerticalMetadata(gaugeId, conversion) : {}),
+  };
+}
+
 /**
  * Attempt live stage. Returns mock/unknown on network failure so the UI never breaks.
  */
 export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
-  // NOAA AHPS / water.noaa.gov observed data (best-effort)
   try {
-    // Public observed data endpoint pattern (may change; treat as best-effort)
     const url = `https://api.water.noaa.gov/nwps/v1/gauges/${SITE.noaaGauge.nwsId}`;
     const res = await fetch(url, { signal: AbortSignal.timeout(4000) });
     if (res.ok) {
@@ -33,21 +69,20 @@ export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
       const obs = json?.status?.observed?.primary;
       const value = typeof obs === 'number' ? obs : parseFloat(obs);
       if (!Number.isNaN(value)) {
-        return {
-          source: 'NOAA',
-          gaugeId: SITE.noaaGauge.nwsId,
-          value_ft: value,
-          timestamp: json?.status?.observed?.primaryTime || new Date().toISOString(),
-          floodCategory: categorize(value),
-        };
+        return packageStage(
+          'NOAA',
+          SITE.noaaGauge.nwsId,
+          value,
+          json?.status?.observed?.primaryTime || new Date().toISOString(),
+          categorize(value),
+        ) as MapTwinLoaderData['stage'];
       }
     }
   } catch {
     // fall through
   }
 
-  // USGS NWIS instantaneous — 03378500 Wabash New Harmony, then 03322000 Ohio Evansville (corrected)
-  for (const usgsId of ['03378500', '03322000'] as const) {
+  for (const usgsId of ['03378500', '03322000', '03322420'] as const) {
     try {
       const url = `https://waterservices.usgs.gov/nwis/iv/?format=json&sites=${usgsId}&parameterCd=00065&siteStatus=all`;
       const res = await fetch(url, { signal: AbortSignal.timeout(4000) });
@@ -56,13 +91,13 @@ export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
         const v = json?.value?.timeSeries?.[0]?.values?.[0]?.value?.[0];
         const value = v ? parseFloat(v.value) : NaN;
         if (!Number.isNaN(value)) {
-          return {
-            source: 'USGS',
-            gaugeId: usgsId,
-            value_ft: value,
-            timestamp: v.dateTime || new Date().toISOString(),
-            floodCategory: categorize(value),
-          };
+          return packageStage(
+            'USGS',
+            usgsId,
+            value,
+            v.dateTime || new Date().toISOString(),
+            categorize(value),
+          ) as MapTwinLoaderData['stage'];
         }
       }
     } catch {
@@ -70,22 +105,15 @@ export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
     }
   }
 
-  return {
-    source: 'MOCK',
-    gaugeId: SITE.noaaGauge.nwsId,
-    value_ft: null,
-    timestamp: null,
-    floodCategory: 'unknown',
-    // SIMULATION_DEMO — not live telemetry
-  };
+  return packageStage('MOCK', SITE.noaaGauge.nwsId, null, null, 'unknown') as MapTwinLoaderData['stage'];
 }
-
 
 /** Stamp authoritative CRS on any stage payload for evidence packaging */
 export function withSiteGeodesy<T extends Record<string, unknown>>(payload: T) {
   return {
     ...payload,
     spatial_reference: siteSpatialReference(),
-    vertical_reference: siteVerticalReference(),
+    /** Site elevations remain NAVD88; raw stage remains GAGE_DATUM unless converted */
+    vertical_reference_site: siteVerticalReference(),
   };
 }
