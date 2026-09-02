@@ -10,6 +10,8 @@ on:
 permissions:
   contents: read
 
+auto_cancel: true
+
 concurrency:
   group: tsm-parse-gate-${{ github.ref }}
   cancel-in-progress: true
@@ -77,6 +79,8 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund --registry="$NPM_REGISTRY"
       - name: Repository integrity gate
         run: npm run check:integrity
+      - name: Site consistency gate
+        run: npm run check:site-consistency
       - name: Geospatial processing contract gate
         run: npm run check:geospatial
       - name: Parse gate
