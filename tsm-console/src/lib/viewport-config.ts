@@ -1,11 +1,20 @@
 /**
- * Cinematic EOC / Twin viewport configuration (refined)
- * Authoritative elevations from site constants; stage UI is SIMULATION_DEMO until live USGS.
+ * Tri-State Engineering Simulator viewport configuration
+ * Farming Simulator–class grounded world: practical Posey / Ohio–Wabash replica.
+ * No decorative animation loops. Math remains authoritative.
  */
 
 export const VIEWPORT_CONFIG = {
   projectNode:
     '13101 Bonebank Road, Point Township, Posey County, Indiana',
+  visualDoctrine: 'tri-state-engineering-sim' as const,
+  /** FS17-class: readable landscape, real assets, operator HUD — not fantasy open-world */
+  renderPolicy: {
+    headlessAnimationLoops: false,
+    decorativeWaterBob: false,
+    openWorldEntertainmentMode: false,
+    engineeringReplicaMode: true,
+  },
   crs: {
     horizontalEpsg: 2966,
     horizontalName: 'NAD83 / Indiana West (ftUS)',
@@ -28,6 +37,15 @@ export const VIEWPORT_CONFIG = {
     idnrFloodwaySurchargeFt: 0.15,
     indianaFreeboardFt: 2.0,
   },
+  infrastructureLayers: [
+    'flood_surfaces',
+    'utilities_water',
+    'power_corridors',
+    'roads_centerlines',
+    'parcels',
+    'locks_dams',
+    'idnr_properties',
+  ] as const,
   loma: {
     tileId: 'IN2020_26800940_12',
     s3Uri:
@@ -52,7 +70,6 @@ export const VIEWPORT_CONFIG = {
     opacity: 0.85,
     isSimulationDemo: true,
   },
-  /** Presentation vs evidence boundary */
   separation: {
     evidenceMutationsAllowedInViewport: false,
     stageSliderIsLiveUsgs: false,
@@ -60,14 +77,13 @@ export const VIEWPORT_CONFIG = {
   },
   labels: {
     simulationBanner:
-      'SIMULATION_DEMO — stage slider is not live USGS until loader binds',
+      'ENGINEERING SIM — stage is GAGE_DATUM unless conversion applied; not entertainment open-world',
     authorityBanner:
       'Human authority final · Technology informs, does not govern',
     evidencePresentationBoundary:
       'Viewport does not mutate PostGIS / HEC-RAS / Evidence Ledger',
   },
   portable: {
-    /** Invariants checked by USB bootstrap (Gate 5) */
     requiredEpsg: 2966,
     requiredVertical: 'NAVD88',
     requiredBfeFt: 375.0,
@@ -84,14 +100,15 @@ export function stageFinding(stageFt: number): StageFinding {
   return 'NOMINAL';
 }
 
-/** Visual water plane Y from stage — not regulatory geometry */
-export function visualWaterY(stageFt: number, elapsedSec = 0): number {
+/**
+ * Visual water plane Y from stage — static engineering surface.
+ * No sine bob / headless animation (renderPolicy.decorativeWaterBob = false).
+ */
+export function visualWaterY(stageFt: number, _elapsedSec = 0): number {
   const { bfeFt } = VIEWPORT_CONFIG.elevations;
-  const base = Math.max(0, (stageFt - bfeFt) * 0.8);
-  return base + Math.sin(elapsedSec * 2.0) * 0.2;
+  return Math.max(0, (stageFt - bfeFt) * 0.8);
 }
 
-/** Gate 5 invariant check for portable / EOC boot */
 export function verifyPortableInvariants(input: {
   epsg?: number;
   vertical?: string;
