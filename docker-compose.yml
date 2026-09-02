@@ -1,6 +1,22 @@
-version: "3.8"
-
 services:
+  postgis_db:
+    image: postgis/postgis:16-3.4-alpine
+    environment:
+      POSTGRES_USER: sovereign
+      POSTGRES_PASSWORD: sovereign_pass
+      POSTGRES_DB: ptdt_v35
+    ports:
+      - "5432:5432"
+    volumes:
+      - ptdt_postgis_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sovereign -d ptdt_v35"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
   backend_api:
     image: python:3.11-slim
     working_dir: /app
@@ -14,19 +30,8 @@ services:
     environment:
       - PTDT_POSTGIS_DSN=dbname=ptdt_v35 user=sovereign host=postgis_db port=5432 password=sovereign_pass
     depends_on:
-      - postgis_db
-    restart: unless-stopped
-
-  postgis_db:
-    image: postgis/postgis:16-3.4-alpine
-    environment:
-      POSTGRES_USER: sovereign
-      POSTGRES_PASSWORD: sovereign_pass
-      POSTGRES_DB: ptdt_v35
-    ports:
-      - "5432:5432"
-    volumes:
-      - ptdt_postgis_data:/var/lib/postgresql/data
+      postgis_db:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:
