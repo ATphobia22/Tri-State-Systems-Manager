@@ -33,11 +33,12 @@
     "check:artifacts": "node ../scripts/ci/validate-artifact-manifests.mjs",
     "check:quantum-boundary": "node ../scripts/ci/validate-quantum-boundary.mjs",
     "check:shell-safety": "bash ../scripts/ci/validate-shell-safety.sh",
+    "check:site-consistency": "node ../scripts/ci/validate-site-consistency.mjs",
     "test:cinematic": "node --test tests/cinematic-contracts.test.ts 2>/dev/null || node --test tests/*.test.mjs",
     "geospatial:fetch": "node scripts/geospatial/fetch-posey-assets.mjs",
     "geospatial:validate": "node scripts/geospatial/validate-raster-manifest.mjs",
     "resync": "npm ci --no-audit --no-fund && node scripts/postinstall-check.mjs && node scripts/parse-check.mjs",
-    "ci": "npm run check:integrity && npm run check:capabilities && npm run check:workflow-boundaries && npm run check:artifacts && npm run check:quantum-boundary && npm run check:shell-safety && npm run check:parse && npm run check:type && npm run check:geospatial && npm run build",
+    "ci": "npm run check:integrity && npm run check:capabilities && npm run check:workflow-boundaries && npm run check:artifacts && npm run check:quantum-boundary && npm run check:shell-safety && npm run check:site-consistency && npm run check:parse && npm run check:type && npm run check:geospatial && npm run build",
     "ci:full": "npm run ci && npm run test:all"
   },
   "dependencies": {
