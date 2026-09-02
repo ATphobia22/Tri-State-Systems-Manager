@@ -110,18 +110,15 @@ jobs:
           if-no-files-found: error
 
       - name: Configure GitHub Pages
-        if: ${{ vars.GITHUB_PAGES_ENABLED == 'true' }}
         uses: actions/configure-pages@v5
 
       - name: Upload Pages artifact
-        if: ${{ vars.GITHUB_PAGES_ENABLED == 'true' }}
         uses: actions/upload-pages-artifact@v4
         with:
           path: ${{ env.CONSOLE_DIR }}/dist
 
   deploy:
     name: Deploy production console
-    if: ${{ vars.GITHUB_PAGES_ENABLED == 'true' }}
     needs: build
     runs-on: ubuntu-24.04
     environment:
