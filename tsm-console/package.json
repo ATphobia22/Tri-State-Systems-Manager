@@ -2,7 +2,7 @@
   "name": "tsm-console",
   "version": "0.2.1",
   "private": true,
-  "description": "Tri-State Systems Manager — Infinite Orchestration Console",
+  "description": "Tri-State Systems Manager — government engineering decision-support console",
   "type": "module",
   "packageManager": "npm@10.9.2",
   "scripts": {
