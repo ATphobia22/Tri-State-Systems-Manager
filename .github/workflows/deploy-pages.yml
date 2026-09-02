@@ -1,4 +1,4 @@
-name: TSM Production Pages Deploy
+name: TSM Production Build & Pages Deploy
 
 on:
   push:
@@ -98,22 +98,30 @@ jobs:
         working-directory: ${{ env.CONSOLE_DIR }}
         run: npm run build
 
-      - name: Validate Pages artifact
+      - name: Validate production artifact
         working-directory: ${{ env.CONSOLE_DIR }}
         run: test -f dist/index.html
 
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
+      - name: Upload production artifact
+        uses: actions/upload-artifact@v4
         with:
-          enablement: true
+          name: tsm-console-production
+          path: ${{ env.CONSOLE_DIR }}/dist
+          if-no-files-found: error
+
+      - name: Configure GitHub Pages
+        if: ${{ vars.GITHUB_PAGES_ENABLED == 'true' }}
+        uses: actions/configure-pages@v5
 
       - name: Upload Pages artifact
+        if: ${{ vars.GITHUB_PAGES_ENABLED == 'true' }}
         uses: actions/upload-pages-artifact@v4
         with:
           path: ${{ env.CONSOLE_DIR }}/dist
 
   deploy:
     name: Deploy production console
+    if: ${{ vars.GITHUB_PAGES_ENABLED == 'true' }}
     needs: build
     runs-on: ubuntu-24.04
     environment:
