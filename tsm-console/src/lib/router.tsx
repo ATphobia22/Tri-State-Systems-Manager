@@ -3,7 +3,12 @@
  * Auth gate + typed loaders + actions for ledger/benefit + live stage
  */
 
-import { createBrowserRouter, redirect, type ActionFunctionArgs } from 'react-router';
+import {
+  createBrowserRouter,
+  redirect,
+  useLoaderData,
+  type ActionFunctionArgs,
+} from 'react-router';
 import { authLoader } from './auth';
 import { SITE } from '../types/site';
 import { appendEvidence, getMerkleState } from './merkle';
@@ -34,13 +39,36 @@ import type {
 } from '../types/loaders';
 
 let interventions: InterventionRecord[] = [];
-let contracts: import('../types/loaders').DataContractSummary[] = [
-  { id: 'tsm-hydro-001', title: 'Tri-State River Stage Observations', owner: 'Indiana DNR / USGS NWIS', classification: 'restricted', jurisdiction: 'Indiana', validation_status: 'validated', content_hash: 'sha256:pending' },
-  { id: 'tsm-fema-posey-001', title: 'Posey County FIS / FIRM Reference', owner: 'FEMA', classification: 'public', jurisdiction: 'Federal', validation_status: 'validated', content_hash: 'sha256:pending' },
-  { id: 'tsm-site-001', title: '13101 Bonebank Site Constants', owner: 'TuckerInc.82', classification: 'restricted', jurisdiction: 'Indiana', validation_status: 'validated', content_hash: 'sha256:site-v1' },
+let contracts: DataContractSummary[] = [
+  {
+    id: 'tsm-hydro-001',
+    title: 'Tri-State River Stage Observations',
+    owner: 'Indiana DNR / USGS NWIS',
+    classification: 'restricted',
+    jurisdiction: 'Indiana',
+    validation_status: 'validated',
+    content_hash: 'sha256:pending',
+  },
+  {
+    id: 'tsm-fema-posey-001',
+    title: 'Posey County FIS / FIRM Reference',
+    owner: 'FEMA',
+    classification: 'public',
+    jurisdiction: 'Federal',
+    validation_status: 'validated',
+    content_hash: 'sha256:pending',
+  },
+  {
+    id: 'tsm-site-001',
+    title: '13101 Bonebank Site Constants',
+    owner: 'TuckerInc.82',
+    classification: 'restricted',
+    jurisdiction: 'Indiana',
+    validation_status: 'validated',
+    content_hash: 'sha256:site-v1',
+  },
 ];
 let sandboxProjects: import('../types/loaders').SandboxProject[] = [];
-
 
 async function rootLoader(): Promise<RootLoaderData> {
   const auth = await authLoader({});
@@ -135,7 +163,7 @@ async function ledgerAction({ request }: ActionFunctionArgs) {
   const form = await request.formData();
   const source_org = String(form.get('source_org') || '').trim();
   const source_uri = String(form.get('source_uri') || '').trim();
-  const tier = parseInt(String(form.get('tier') || '1'), 10);
+  const tier = Number.parseInt(String(form.get('tier') || '1'), 10);
   if (!source_org || !source_uri) return { error: 'Missing fields' };
   await appendEvidence({ source_org, source_uri, tier });
   return redirect('/ledger');
@@ -161,7 +189,7 @@ async function lineageAction({ request }: ActionFunctionArgs) {
   return redirect('/lineage');
 }
 
-async function sandboxLoader(): Promise<SandboxLoaderData> {
+async function sandboxLoader(): Promise<import('../types/loaders').SandboxLoaderData> {
   return { projects: [...sandboxProjects] };
 }
 
@@ -224,7 +252,6 @@ async function mapTwinLoader(): Promise<MapTwinLoaderData> {
 }
 
 function ArchitectureView() {
-  const { useLoaderData } = require('react-router') as typeof import('react-router');
   const data = useLoaderData() as ArchitectureLoaderData;
   return (
     <div style={{ padding: '1.5rem 2rem', maxWidth: 800, margin: '0 auto' }}>
@@ -242,7 +269,6 @@ function ArchitectureView() {
 }
 
 function MapTwinView() {
-  const { useLoaderData } = require('react-router') as typeof import('react-router');
   const data = useLoaderData() as MapTwinLoaderData;
   return (
     <div style={{ padding: '1.5rem 2rem', maxWidth: 900, margin: '0 auto' }}>
@@ -310,3 +336,9 @@ export const router = createBrowserRouter([
       { path: 'benefit', loader: benefitLoader, action: benefitAction, element: <BenefitView /> },
       { path: 'map', loader: mapTwinLoader, element: <MapLibreMap /> },
       { path: 'eoc', loader: mapTwinLoader, element: <MapLibreEocView /> },
+      { path: 'twin', loader: mapTwinLoader, element: <TwinCanvasView /> },
+      { path: 'digital-twin', loader: mapTwinLoader, element: <MapTwinView /> },
+      { path: 'placeholder', element: <Placeholder title="Tri-State Systems Manager" /> },
+    ],
+  },
+]);
