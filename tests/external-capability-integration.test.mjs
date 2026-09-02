@@ -1,11 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const registry = JSON.parse(await readFile('integrations/registry/capabilities.json', 'utf8'));
-const threeDContract = JSON.parse(await readFile('integrations/geospatial/3d-asset-contract.schema.json', 'utf8'));
-const cityEngineContract = JSON.parse(await readFile('integrations/cityengine/asset-manifest.schema.json', 'utf8'));
-const quantumContract = JSON.parse(await readFile('integrations/quantum/optimization-contract.schema.json', 'utf8'));
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const readRepoFile = (relativePath) => readFile(path.join(repoRoot, relativePath), 'utf8');
+
+const registry = JSON.parse(await readRepoFile('integrations/registry/capabilities.json'));
+const threeDContract = JSON.parse(await readRepoFile('integrations/geospatial/3d-asset-contract.schema.json'));
+const cityEngineContract = JSON.parse(await readRepoFile('integrations/cityengine/asset-manifest.schema.json'));
+const quantumContract = JSON.parse(await readRepoFile('integrations/quantum/optimization-contract.schema.json'));
 
 test('registry contains exactly the seven approved capability sources', () => {
   assert.equal(registry.capabilities.length, 7);
