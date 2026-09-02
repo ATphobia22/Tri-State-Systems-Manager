@@ -19,8 +19,17 @@ for (const name of await readdir(WORKFLOW_DIR)) {
   const text = await readFile(path, 'utf8');
   for (const pattern of forbidden) if (pattern.test(text)) errors.push(`${name}: forbidden remote execution pattern`);
   if (governed.has(name) && !requiredPermission.test(text)) errors.push(`${name}: missing explicit contents: read permission`);
-  if (name === 'quantum-ci.yml' && /runs-on:\s*(?!ubuntu)/.test(text)) errors.push('quantum-ci.yml: quantum research must use a controlled hosted runner unless explicitly isolated');
-  if (name === 'geospatial-ci.yml' && /cityengine|unreal/i.test(text) && !/workflow_dispatch/.test(text)) errors.push('geospatial-ci.yml: specialized tooling must be independently dispatchable');
+  if (name === 'quantum-ci.yml') {
+    const runners = [...text.matchAll(/runs-on:\s*([^\n#]+)/g)].map((match) => match[1].trim());
+    if (runners.length === 0) {
+      errors.push('quantum-ci.yml: missing runs-on declaration');
+    } else if (runners.some((runner) => !/^ubuntu([-\w.]*)?$/i.test(runner))) {
+      errors.push('quantum-ci.yml: quantum research must use a controlled hosted ubuntu runner unless explicitly isolated');
+    }
+  }
+  if (name === 'geospatial-ci.yml' && /cityengine|unreal/i.test(text) && !/workflow_dispatch/.test(text)) {
+    errors.push('geospatial-ci.yml: specialized tooling must be independently dispatchable');
+  }
 }
 
 if (errors.length) {

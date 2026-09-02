@@ -40,25 +40,24 @@ interface OidcUserInfo {
   [claim: string]: unknown;
 }
 
-const env = (): Record<string, unknown> => {
+function readEnv(): Record<string, unknown> {
   if (typeof import.meta === 'undefined') return {};
   return ((import.meta as ImportMeta & { env?: Record<string, unknown> }).env ?? {});
-};
+}
+
+function envString(key: string): string | undefined {
+  const value = readEnv()[key];
+  return typeof value === 'string' ? value : undefined;
+}
 
 const DEFAULT_CONFIG: IdPConfig = {
-  provider: env().VITE_IDP_PROVIDER === 'keycloak' ? 'keycloak' : 'mock',
-  authority: typeof env().VITE_IDP_AUTHORITY === 'string' ? env().VITE_IDP_AUTHORITY : undefined,
-  clientId: typeof env().VITE_IDP_CLIENT_ID === 'string' ? env().VITE_IDP_CLIENT_ID : undefined,
+  provider: envString('VITE_IDP_PROVIDER') === 'keycloak' ? 'keycloak' : 'mock',
+  authority: envString('VITE_IDP_AUTHORITY'),
+  clientId: envString('VITE_IDP_CLIENT_ID'),
   redirectUri:
-    typeof env().VITE_IDP_REDIRECT_URI === 'string'
-      ? env().VITE_IDP_REDIRECT_URI
-      : typeof window !== 'undefined'
-        ? `${window.location.origin}/login/callback`
-        : undefined,
-  scopes:
-    typeof env().VITE_IDP_SCOPES === 'string'
-      ? env().VITE_IDP_SCOPES
-      : 'openid profile email',
+    envString('VITE_IDP_REDIRECT_URI') ??
+    (typeof window !== 'undefined' ? `${window.location.origin}/login/callback` : undefined),
+  scopes: envString('VITE_IDP_SCOPES') ?? 'openid profile email',
   sessionMaxAgeSec: 8 * 60 * 60,
 };
 
