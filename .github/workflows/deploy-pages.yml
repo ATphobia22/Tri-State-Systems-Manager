@@ -103,7 +103,7 @@ jobs:
         run: test -f dist/index.html
 
       - name: Upload production artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: tsm-console-production
           path: ${{ env.CONSOLE_DIR }}/dist
