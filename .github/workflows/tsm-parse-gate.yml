@@ -21,7 +21,7 @@ env:
 
 jobs:
   parse-type-build-test:
-    name: Parse / Typecheck / Build / Test
+    name: Parse / Typecheck / Geospatial Contract / Build / Test
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -77,6 +77,8 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund --registry="$NPM_REGISTRY"
       - name: Repository integrity gate
         run: npm run check:integrity
+      - name: Geospatial processing contract gate
+        run: npm run check:geospatial
       - name: Parse gate
         run: npm run check:parse
       - name: Typecheck
