@@ -1,0 +1,61 @@
+name: TSM Geospatial Capability CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'integrations/geospatial/**'
+      - 'integrations/cityengine/**'
+      - 'integrations/registry/**'
+      - 'scripts/geospatial/**'
+      - 'scripts/ci/**'
+      - '.github/workflows/geospatial-ci.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tsm-geospatial-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contracts:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Validate capability registry
+        run: node scripts/ci/validate-capability-registry.mjs
+      - name: Validate 3D asset manifests
+        run: node scripts/ci/validate-artifact-manifests.mjs
+      - name: Validate geospatial processing contract
+        working-directory: tsm-console
+        run: npm run check:geospatial
+
+  cityengine-build:
+    if: ${{ inputs.cityengine_build == true }}
+    runs-on: [self-hosted, windows, cityengine]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Validate CityEngine manifest contracts
+        shell: pwsh
+        run: |
+          if (-not (Test-Path integrations/cityengine)) { throw 'CityEngine integration directory is missing.' }
+          Write-Host 'Dedicated CityEngine runner selected. Licensed Esri software must be provisioned by the operator.'
+      - name: Build CityEngine/Unreal assets
+        shell: pwsh
+        run: |
+          if (-not $env:TSM_CITYENGINE_BUILD_COMMAND) {
+            Write-Host 'No licensed build command configured; contract-only execution completed.'
+            exit 0
+          }
+          & $env:TSM_CITYENGINE_BUILD_COMMAND
+    
+  workflow_dispatch_inputs:
+    uses: ./.github/workflows/geospatial-ci.yml
