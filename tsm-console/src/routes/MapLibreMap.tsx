@@ -4,13 +4,13 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import maplibregl from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useLoaderData } from 'react-router';
 import type { MapTwinLoaderData } from '../types/loaders';
 import { SITE } from '../types/site';
 import { AuthorityBadge, SimulationDemoBanner } from '../components/AuthorityBadge';
-import { JURISDICTION_RULES, assessClearanceSupport, type JurisdictionId } from '../lib/jurisdiction-rules';
+import { assessClearanceSupport, type JurisdictionId } from '../lib/jurisdiction-rules';
 import { MAP_LAYERS } from '../lib/map-layers';
 
 const CENTER: [number, number] = [
@@ -19,38 +19,39 @@ const CENTER: [number, number] = [
 ];
 
 function buildWaterMesh(stageFt: number, exaggeration: number) {
-  const c = CENTER;
+  const [centerLon, centerLat] = CENTER;
   const delta = Math.max(0.001, (stageFt - 365) * 0.0012);
-  const h = Math.max(0, (stageFt - 360) * exaggeration * 0.5);
-  const bfeH = Math.max(0, (SITE.elevations.bfe_ft - 360) * exaggeration * 0.5);
+  const height = Math.max(0, (stageFt - 360) * exaggeration * 0.5);
+  const bfeHeight = Math.max(0, (SITE.elevations.bfe_ft - 360) * exaggeration * 0.5);
+
   return {
     type: 'FeatureCollection' as const,
     features: [
       {
         type: 'Feature' as const,
-        properties: { type: 'water-plane', height: h, base_height: 0 },
+        properties: { type: 'water-plane', height, base_height: 0 },
         geometry: {
           type: 'Polygon' as const,
           coordinates: [[
-            [c[0] - delta * 2, c[1] - delta],
-            [c[0] + delta, c[1] - delta * 1.5],
-            [c[0] + delta * 2.5, c[1] + delta * 2],
-            [c[0] - delta, c[1] + delta * 2.2],
-            [c[0] - delta * 2, c[1] - delta],
+            [centerLon - delta * 2, centerLat - delta],
+            [centerLon + delta, centerLat - delta * 1.5],
+            [centerLon + delta * 2.5, centerLat + delta * 2],
+            [centerLon - delta, centerLat + delta * 2.2],
+            [centerLon - delta * 2, centerLat - delta],
           ]],
         },
       },
       {
         type: 'Feature' as const,
-        properties: { type: 'bfe-contour', height: bfeH + 2, base_height: bfeH },
+        properties: { type: 'bfe-contour', height: bfeHeight + 2, base_height: bfeHeight },
         geometry: {
           type: 'Polygon' as const,
           coordinates: [[
-            [c[0] - 0.005, c[1] - 0.003],
-            [c[0] + 0.004, c[1] - 0.004],
-            [c[0] + 0.006, c[1] + 0.005],
-            [c[0] - 0.003, c[1] + 0.006],
-            [c[0] - 0.005, c[1] - 0.003],
+            [centerLon - 0.005, centerLat - 0.003],
+            [centerLon + 0.004, centerLat - 0.004],
+            [centerLon + 0.006, centerLat + 0.005],
+            [centerLon - 0.003, centerLat + 0.006],
+            [centerLon - 0.005, centerLat - 0.003],
           ]],
         },
       },
@@ -69,17 +70,16 @@ export default function MapLibreMap() {
 
   const live = data.stage.value_ft;
   const usingLive = live != null && data.stage.source !== 'MOCK';
-  const displayStage = usingLive ? live! : stageFt;
+  const displayStage = usingLive ? live : stageFt;
 
   const assessment = useMemo(
-    () =>
-      assessClearanceSupport({
-        jurisdiction,
-        waterStageFt: displayStage,
-        bfeFt: SITE.elevations.bfe_ft,
-        lagFt: SITE.elevations.lag_ft,
-      }),
-    [jurisdiction, displayStage]
+    () => assessClearanceSupport({
+      jurisdiction,
+      waterStageFt: displayStage,
+      bfeFt: SITE.elevations.bfe_ft,
+      lagFt: SITE.elevations.lag_ft,
+    }),
+    [jurisdiction, displayStage],
   );
 
   useEffect(() => {
@@ -141,8 +141,8 @@ export default function MapLibreMap() {
         .setLngLat(CENTER)
         .setPopup(
           new maplibregl.Popup().setHTML(
-            `<strong>${SITE.address}</strong><br/>APN ${SITE.apn}<br/>BFE ${SITE.elevations.bfe_ft} ft NAVD88`
-          )
+            `<strong>${SITE.address}</strong><br/>APN ${SITE.apn}<br/>BFE ${SITE.elevations.bfe_ft} ft NAVD88`,
+          ),
         )
         .addTo(map);
 
@@ -160,133 +160,53 @@ export default function MapLibreMap() {
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapReady) return;
-    const src = map.getSource('water-mesh') as maplibregl.GeoJSONSource | undefined;
-    if (src) src.setData(buildWaterMesh(displayStage, exaggeration));
+    const source = map.getSource('water-mesh') as maplibregl.GeoJSONSource | undefined;
+    source?.setData(buildWaterMesh(displayStage, exaggeration));
   }, [displayStage, exaggeration, mapReady]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 56px)' }}>
-      <div
-        style={{
-          padding: '0.6rem 1rem',
-          background: '#020617',
-          borderBottom: '1px solid #1e293b',
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: 12,
-          alignItems: 'center',
-          fontSize: '0.75rem',
-        }}
-      >
+      <div style={{ padding: '0.6rem 1rem', background: '#020617', borderBottom: '1px solid #1e293b', display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', fontSize: '0.75rem' }}>
         <strong style={{ color: '#38bdf8' }}>MapLibre GL · {SITE.address}</strong>
-        <AuthorityBadge
-          authority_class={usingLive ? 'OBSERVATION' : 'SIMULATION_DEMO'}
-          is_simulation_demo={!usingLive}
-        />
-        <span style={{ color: '#94a3b8' }}>
-          Stage {displayStage.toFixed(2)} ft · {data.stage.source} {data.stage.gaugeId}
-        </span>
-        <span style={{ color: '#64748b' }}>
-          Mesh = VISUALIZATION only · not engineering prediction
-        </span>
+        <AuthorityBadge authority_class={usingLive ? 'OBSERVATION' : 'SIMULATION_DEMO'} is_simulation_demo={!usingLive} />
+        <span style={{ color: '#94a3b8' }}>Stage {displayStage.toFixed(2)} ft · {data.stage.source} {data.stage.gaugeId}</span>
+        <span style={{ color: '#64748b' }}>Mesh = VISUALIZATION only · not engineering prediction</span>
       </div>
 
-      {!usingLive && (
-        <div style={{ padding: '0.35rem 1rem' }}>
-          <SimulationDemoBanner />
-        </div>
-      )}
+      {!usingLive && <div style={{ padding: '0.35rem 1rem' }}><SimulationDemoBanner /></div>}
 
       <div style={{ flex: 1, position: 'relative', minHeight: 320 }}>
         <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
       </div>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr 1fr',
-          gap: 12,
-          padding: '0.75rem 1rem',
-          background: '#0f172a',
-          borderTop: '1px solid #1e293b',
-          fontSize: '0.8rem',
-        }}
-      >
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, padding: '0.75rem 1rem', background: '#0f172a', borderTop: '1px solid #1e293b', fontSize: '0.8rem' }}>
         <div>
           <div style={{ color: '#94a3b8', fontSize: '0.65rem', marginBottom: 4 }}>DEMO STAGE (ft NAVD88)</div>
-          <input
-            type="range"
-            min={365}
-            max={390}
-            step={0.05}
-            value={stageFt}
-            onChange={(e) => setStageFt(parseFloat(e.target.value))}
-            style={{ width: '100%' }}
-            disabled={usingLive}
-          />
+          <input type="range" min={365} max={390} step={0.05} value={stageFt} onChange={(event) => setStageFt(parseFloat(event.target.value))} style={{ width: '100%' }} disabled={usingLive} />
           <div style={{ color: '#38bdf8', fontFamily: 'monospace' }}>{stageFt.toFixed(2)}</div>
         </div>
         <div>
           <div style={{ color: '#94a3b8', fontSize: '0.65rem', marginBottom: 4 }}>Z EXAGGERATION</div>
           <div style={{ display: 'flex', gap: 6 }}>
             {[1, 2.5, 5].map((z) => (
-              <button
-                key={z}
-                type="button"
-                onClick={() => setExaggeration(z)}
-                style={{
-                  flex: 1,
-                  padding: '0.35rem',
-                  borderRadius: 6,
-                  border: exaggeration === z ? '1px solid #22d3ee' : '1px solid #334155',
-                  background: exaggeration === z ? 'rgba(34,211,238,0.15)' : '#1e293b',
-                  color: '#e2e8f0',
-                  cursor: 'pointer',
-                  fontSize: '0.75rem',
-                }}
-              >
-                {z}x
-              </button>
+              <button key={z} type="button" onClick={() => setExaggeration(z)} style={{ flex: 1, padding: '0.35rem', borderRadius: 6, border: exaggeration === z ? '1px solid #22d3ee' : '1px solid #334155', background: exaggeration === z ? 'rgba(34,211,238,0.15)' : '#1e293b', color: '#e2e8f0', cursor: 'pointer', fontSize: '0.75rem' }}>{z}x</button>
             ))}
           </div>
         </div>
         <div>
           <div style={{ color: '#94a3b8', fontSize: '0.65rem', marginBottom: 4 }}>JURISDICTION (citations)</div>
           <div style={{ display: 'flex', gap: 4 }}>
-            {(['INDIANA', 'ILLINOIS', 'KENTUCKY'] as JurisdictionId[]).map((j) => (
-              <button
-                key={j}
-                type="button"
-                onClick={() => setJurisdiction(j)}
-                style={{
-                  flex: 1,
-                  padding: '0.35rem',
-                  fontSize: '0.65rem',
-                  fontWeight: 700,
-                  borderRadius: 6,
-                  border: jurisdiction === j ? '1px solid #a78bfa' : '1px solid #334155',
-                  background: jurisdiction === j ? 'rgba(167,139,250,0.15)' : '#1e293b',
-                  color: jurisdiction === j ? '#a78bfa' : '#94a3b8',
-                  cursor: 'pointer',
-                }}
-              >
-                {j.slice(0, 3)}
-              </button>
+            {(['INDIANA', 'ILLINOIS', 'KENTUCKY'] as JurisdictionId[]).map((currentJurisdiction) => (
+              <button key={currentJurisdiction} type="button" onClick={() => setJurisdiction(currentJurisdiction)} style={{ flex: 1, padding: '0.35rem', fontSize: '0.65rem', fontWeight: 700, borderRadius: 6, border: jurisdiction === currentJurisdiction ? '1px solid #a78bfa' : '1px solid #334155', background: jurisdiction === currentJurisdiction ? 'rgba(167,139,250,0.15)' : '#1e293b', color: jurisdiction === currentJurisdiction ? '#a78bfa' : '#94a3b8', cursor: 'pointer' }}>{currentJurisdiction.slice(0, 3)}</button>
             ))}
           </div>
-          <div style={{ marginTop: 6, fontSize: '0.7rem', color: '#cbd5e1' }}>
-            {assessment.code}: {assessment.finding}
-          </div>
+          <div style={{ marginTop: 6, fontSize: '0.7rem', color: '#cbd5e1' }}>{assessment.code}: {assessment.finding}</div>
         </div>
       </div>
 
       <div style={{ padding: '0.5rem 1rem', background: '#020617', borderTop: '1px solid #1e293b', fontSize: '0.7rem', color: '#94a3b8' }}>
         <strong style={{ color: '#64748b' }}>LAYER CATALOG (add via MapServer export / future vector tiles): </strong>
-        {MAP_LAYERS.filter((l) => l.id !== 'osm-base').map((l) => (
-          <span key={l.id} style={{ marginRight: 10 }}>
-            {l.title} [{l.authority_class}]
-          </span>
-        ))}
+        {MAP_LAYERS.filter((layer) => layer.id !== 'osm-base').map((layer) => <span key={layer.id} style={{ marginRight: 10 }}>{layer.title} [{layer.authority_class}]</span>)}
         · FEMA NFHL and Indiana BAFM must both remain available and never collapsed.
       </div>
     </div>
