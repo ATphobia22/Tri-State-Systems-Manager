@@ -13,7 +13,7 @@ TSM stores these layers separately and never converts a mapping observation into
 ## Posey County working TSM locks
 
 | Item | Value |
-|------|--------|
+|------|-------|
 | Unincorporated CID | **180209** |
 | County FIPS | **18129** |
 | Bonebank NFHL FIRM panel identify | **18129C0300C** |
@@ -21,15 +21,15 @@ TSM stores these layers separately and never converts a mapping observation into
 | FEMA Community Status Book current effective map date | **11/05/2014** |
 | Regular Program entry | **01/01/1987** |
 
-The FEMA CSB report currently published for Indiana confirms the unincorporated Posey County CID **180209** and current effective map date **11/05/2014**. citeturn6search4turn6search5
+The FEMA CSB report currently published for Indiana confirms the unincorporated Posey County CID **180209** and current effective map date **11/05/2014**.
 
 The TSM repository's NFHL identify record reports panel **18129C0300C** at the Bonebank coordinate and an EFF_DATE corresponding to 2014-11-05. Treat that panel identity as the **TSM digital SSOT**, not as a substitute for downloading the effective FIRM/FIS from MSC before a regulatory filing.
 
 ## What has changed in Indiana mapping practice
 
-Indiana DNR's current floodplain program maintains and updates the Indiana Best Available Floodplain Layer and incorporates FEMA updates. INFIP displays both FEMA and DNR floodplain information and can generate a Floodplain Analysis and Regulatory Assessment (FARA). citeturn7search0turn7search1
+Indiana DNR's current floodplain program maintains and updates the Indiana Best Available Floodplain Layer and incorporates FEMA updates. INFIP displays both FEMA and DNR floodplain information and can generate a Floodplain Analysis and Regulatory Assessment (FARA).
 
-DNR describes Best Available Data as including the FEMA FIRM plus DNR studies. DNR also provides mechanisms to request review or submit technical information when the mapped information needs correction or refinement. citeturn7search2turn7search6
+DNR describes Best Available Data as including the FEMA FIRM plus DNR studies. DNR also provides mechanisms to request review or submit technical information when the mapped information needs correction or refinement.
 
 For TSM, this means **FIRM/NFHL and DNR Best Available mapping are parallel evidence layers with explicit provenance**, not competing versions that should be merged into one polygon. A parcel can require both federal NFIP review and Indiana floodway/state-permitting analysis.
 
