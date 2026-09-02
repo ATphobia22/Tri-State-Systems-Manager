@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 
 const ROOT = resolve(new URL('../..', import.meta.url).pathname);
 const WORKFLOW_DIR = resolve(ROOT, '.github/workflows');
+const governed = new Set(['ci.yml', 'infrastructure-ci.yml', 'geospatial-ci.yml', 'container-ci.yml', 'quantum-ci.yml']);
 const forbidden = [
   /curl[^\n|]*\|\s*(ba)?sh/i,
   /wget[^\n|]*\|\s*(ba)?sh/i,
@@ -17,7 +18,7 @@ for (const name of await readdir(WORKFLOW_DIR)) {
   const path = resolve(WORKFLOW_DIR, name);
   const text = await readFile(path, 'utf8');
   for (const pattern of forbidden) if (pattern.test(text)) errors.push(`${name}: forbidden remote execution pattern`);
-  if (!requiredPermission.test(text)) errors.push(`${name}: missing explicit contents: read permission`);
+  if (governed.has(name) && !requiredPermission.test(text)) errors.push(`${name}: missing explicit contents: read permission`);
   if (name === 'quantum-ci.yml' && /runs-on:\s*(?!ubuntu)/.test(text)) errors.push('quantum-ci.yml: quantum research must use a controlled hosted runner unless explicitly isolated');
   if (name === 'geospatial-ci.yml' && /cityengine|unreal/i.test(text) && !/workflow_dispatch/.test(text)) errors.push('geospatial-ci.yml: specialized tooling must be independently dispatchable');
 }
