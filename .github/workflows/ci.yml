@@ -5,11 +5,15 @@ on:
     branches: [main, 'v*']
     paths:
       - 'tsm-console/**'
+      - 'integrations/**'
+      - 'scripts/ci/**'
       - '.github/workflows/ci.yml'
   pull_request:
     branches: [main]
     paths:
       - 'tsm-console/**'
+      - 'integrations/**'
+      - 'scripts/ci/**'
       - '.github/workflows/ci.yml'
   workflow_dispatch:
 
@@ -54,18 +58,24 @@ jobs:
           actual_sha="$(git rev-parse HEAD)"
           expected_sha="${GITHUB_SHA}"
           branch_sha="$(git rev-parse refs/remotes/origin/main)"
-
-          test "$actual_sha" = "$expected_sha" || {
-            echo "ERROR: checkout SHA $actual_sha does not match GITHUB_SHA $expected_sha" >&2
-            exit 1
-          }
-
-          test "$actual_sha" = "$branch_sha" || {
-            echo "ERROR: checkout SHA $actual_sha does not match origin/main $branch_sha" >&2
-            exit 1
-          }
-
+          test "$actual_sha" = "$expected_sha"
+          test "$actual_sha" = "$branch_sha"
           echo "Exact main commit verified: $actual_sha"
+
+      - name: Capability registry gate
+        run: npm run check:capabilities
+
+      - name: Workflow security boundary gate
+        run: npm run check:workflow-boundaries
+
+      - name: Shell safety gate
+        run: npm run check:shell-safety
+
+      - name: 3D artifact contract gate
+        run: npm run check:artifacts
+
+      - name: Quantum isolation gate
+        run: npm run check:quantum-boundary
 
       - name: Repository integrity gate
         run: npm run check:integrity
