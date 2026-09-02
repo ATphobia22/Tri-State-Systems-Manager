@@ -23,9 +23,9 @@ test('heavy geospatial routes use React Router route-level lazy loading', () => 
 });
 
 test('heavy route lazy loading preserves the shared mapTwin loader contract', () => {
-  assert.match(routerSource, /\{ path: 'map', loader: mapTwinLoader, lazy:/);
-  assert.match(routerSource, /\{ path: 'eoc', loader: mapTwinLoader, lazy:/);
-  assert.match(routerSource, /\{ path: 'twin', loader: mapTwinLoader, lazy:/);
+  for (const route of ['map', 'eoc', 'twin']) {
+    assert.match(routerSource, new RegExp(`path: '${route}',\\s*loader: mapTwinLoader,\\s*lazy:`, 's'));
+  }
 });
 
 test('lightweight core routes remain eagerly imported', () => {
