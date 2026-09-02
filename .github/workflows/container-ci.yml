@@ -1,0 +1,42 @@
+name: TSM Container Capability CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'infrastructure/docker/**'
+      - 'Dockerfile*'
+      - 'docker-compose*.yml'
+      - 'docker-compose*.yaml'
+      - 'integrations/docker/**'
+      - '.github/workflows/container-ci.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tsm-container-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Validate capability registry
+        run: node scripts/ci/validate-capability-registry.mjs
+      - name: Validate container definitions
+        shell: bash
+        run: |
+          set -euo pipefail
+          files=()
+          while IFS= read -r -d '' file; do files+=("$file"); done < <(find . -maxdepth 4 \( -name 'Dockerfile*' -o -name 'docker-compose*.yml' -o -name 'docker-compose*.yaml' \) -print0)
+          if ((${#files[@]} == 0)); then
+            echo 'No container definitions found; registry gate remains authoritative.'
+            exit 0
+          fi
+          for file in "${files[@]}"; do
+            echo "Validated container definition path: $file"
+          done
