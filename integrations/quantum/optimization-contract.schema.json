@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tri-state-systems-manager.example/schemas/quantum-optimization-contract.schema.json",
+  "title": "TSM Quantum Research Optimization Contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["request_id", "problem_class", "input_digest", "solver", "output_classification", "authoritative_mutation"],
+  "properties": {
+    "request_id": {"type": "string", "minLength": 1},
+    "problem_class": {"enum": ["research", "benchmark", "optimization"]},
+    "input_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "solver": {"type": "string", "minLength": 1},
+    "output_classification": {"const": "research-only"},
+    "authoritative_mutation": {"const": false},
+    "deterministic_seed": {"type": "integer", "minimum": 0}
+  }
+}
