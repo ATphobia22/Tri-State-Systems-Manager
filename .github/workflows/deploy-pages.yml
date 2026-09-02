@@ -40,11 +40,6 @@ jobs:
         working-directory: ${{ env.CONSOLE_DIR }}
         run: npm config set registry ${{ env.NPM_REGISTRY }}
 
-      - name: Install native GIS/build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends gdal-bin libgdal-dev proj-bin libproj-dev
-
       - name: Verify lockfile registry provenance
         working-directory: ${{ env.CONSOLE_DIR }}
         run: |
