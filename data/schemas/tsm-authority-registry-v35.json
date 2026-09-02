@@ -1,0 +1,7 @@
+{
+  "schema": "tsm-authority-registry",
+  "version": "35",
+  "note": "Canonical copy lives at data/schemas/tsm-authority-registry-v35.json. Re-sync from repository root historical file if fields diverge.",
+  "relocated": "2026-09-02",
+  "see": "https://raw.githubusercontent.com/ATphobia22/Tri-State-Systems-Manager/main/tsm-authority-registry-v35.json"
+}
