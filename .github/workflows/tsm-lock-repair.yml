@@ -1,4 +1,4 @@
-name: TSM Lockfile Repair
+name: TSM Lockfile Verification
 
 on:
   workflow_dispatch:
@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - 'tsm-console/package.json'
+      - 'tsm-console/package-lock.json'
   pull_request:
     branches: [main]
     paths:
@@ -14,65 +15,53 @@ on:
       - '.github/workflows/tsm-lock-repair.yml'
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: tsm-lock-repair-${{ github.ref }}
-  cancel-in-progress: false
+  group: tsm-lock-verification-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  repair:
-    runs-on: ubuntu-latest
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: tsm-console
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout repository
+        uses: actions/checkout@v6
         with:
-          ref: ${{ github.head_ref || github.ref_name }}
-          fetch-depth: 0
-      - uses: actions/setup-node@v7
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tsm-console/package-lock.json
           registry-url: https://registry.npmjs.org
+
       - name: Configure public npm registry
         run: npm config set registry https://registry.npmjs.org
-      - name: Recreate lockfile from scratch
-        run: |
-          rm -f package-lock.json
-          npm install --package-lock-only --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
+
       - name: Verify locked install
         run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
+
       - name: Verify lockfile has no private mirror URLs
         run: |
           if grep -Eqi '35\.245\.43\.102|http://[^ ]*/npm/' package-lock.json; then
-            echo 'ERROR: package-lock.json still contains a private package mirror URL.'
+            echo 'ERROR: package-lock.json contains a private or insecure package mirror URL.'
             grep -Ein '35\.245\.43\.102|http://[^ ]*/npm/' package-lock.json | head -20
             exit 1
           fi
-      - name: Commit repaired lockfile to source branch
-        if: ${{ github.event_name == 'pull_request' }}
-        working-directory: .
+
+      - name: Verify package metadata and lockfile are synchronized
         run: |
-          if git diff --quiet -- tsm-console/package-lock.json; then
-            echo 'Lockfile already synchronized with the public registry.'
-            exit 0
+          cp package-lock.json /tmp/tsm-package-lock.json
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
+          if ! cmp -s package-lock.json /tmp/tsm-package-lock.json; then
+            echo 'ERROR: package-lock.json is not synchronized with package.json.'
+            git --no-pager diff -- package-lock.json
+            exit 1
           fi
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add tsm-console/package-lock.json
-          git commit -m 'build: regenerate npm lockfile from public registry'
-          git push origin "HEAD:${{ github.head_ref }}"
-      - name: Commit repaired lockfile to main
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-        working-directory: .
-        run: |
-          if git diff --quiet -- tsm-console/package-lock.json; then
-            echo 'Lockfile already synchronized with the public registry.'
-            exit 0
-          fi
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add tsm-console/package-lock.json
-          git commit -m 'build: regenerate npm lockfile from public registry'
-          git push
