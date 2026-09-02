@@ -1,32 +1,51 @@
 #!/usr/bin/env bash
-# PTDT v35 — One-click deploy (backend + PostGIS)
+# Tri-State Systems Manager — production console verification/package
 set -euo pipefail
 
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+CONSOLE_DIR="${ROOT_DIR}/tsm-console"
+
+if [[ ! -f "${CONSOLE_DIR}/package.json" || ! -f "${CONSOLE_DIR}/package-lock.json" ]]; then
+  echo "ERROR: tsm-console package manifest or lockfile is missing."
+  exit 1
+fi
+
+command -v node >/dev/null 2>&1 || { echo "ERROR: Node.js 22+ is required."; exit 1; }
+command -v npm >/dev/null 2>&1 || { echo "ERROR: npm is required."; exit 1; }
+
+NODE_MAJOR="$(node -p 'process.versions.node.split(".")[0]')"
+if (( NODE_MAJOR < 22 )); then
+  echo "ERROR: Node.js 22+ is required; found $(node --version)."
+  exit 1
+fi
+
 echo "======================================================================"
-echo " PTDT v35 SOVEREIGN STACK — DEPLOY"
+echo " TRI-STATE SYSTEMS MANAGER — PRODUCTION CONSOLE"
 echo "======================================================================"
 
-command -v docker >/dev/null 2>&1 || { echo "Docker required"; exit 1; }
+echo "[1/6] Installing locked dependencies..."
+cd "${CONSOLE_DIR}"
+npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
 
-echo "[1/3] Launching compose stack..."
-docker compose up -d --build
+echo "[2/6] Repository integrity..."
+npm run check:integrity
 
-echo "[2/3] Waiting for API health..."
-for i in $(seq 1 20); do
-  if curl -sf http://localhost:8000/api/v1/health | grep -q ONLINE_ACTIVE; then
-    echo "  API healthy"
-    break
-  fi
-  sleep 2
-  if [ "$i" -eq 20 ]; then
-    echo "API health timeout"
-    docker compose logs backend_api
-    exit 1
-  fi
-done
+echo "[3/6] Parse gate..."
+npm run check:parse
 
-echo "[3/3] Done"
-echo "  API:  http://localhost:8000/docs"
-echo "  WS:   ws://localhost:8000/ws/telemetry"
-echo "  DB:   localhost:5432 (ptdt_v35)"
-echo "  Lock: BFE 375.0 | LAG 377.2 | FFE 382.5 | EPSG:2966 | CID 180209"
+echo "[4/6] TypeScript gate..."
+npm run check:type
+
+echo "[5/6] Tests..."
+npm run test:all
+
+echo "[6/6] Production Vite build..."
+npm run build
+
+test -f dist/index.html
+
+echo
+echo "Production artifact ready: ${CONSOLE_DIR}/dist/index.html"
+echo "For GitHub Pages, enable the repository Pages source and set"
+echo "GITHUB_PAGES_ENABLED=true as documented in docs/DEPLOYMENT.md."
+echo "This script does not claim backend/API/PostGIS deployment."
