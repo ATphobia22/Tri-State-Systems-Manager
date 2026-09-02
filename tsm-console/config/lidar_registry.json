@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "dataset_id": "IN2020_QL2_BONEBANK_POINT_TOWNSHIP",
+  "license": "CC0-1.0",
+  "s3_bucket_base": "s3://giselevationingov/las/statewide/2020/SPW/ql2/",
+  "site_parameters": {
+    "centroid_address": "13101 Bonebank Road, Posey County, IN",
+    "base_flood_elevation_navd88_ft": 375.0,
+    "lowest_adjacent_grade_navd88_ft": 377.2,
+    "freeboard_margin_ft": 2.2,
+    "lag_status": "UNVERIFIED_SOURCE_PROVIDED",
+    "vertical_datum": "NAVD88"
+  },
+  "primary_tiles": [
+    {
+      "tile_id": "IN2020_26800940_12.las",
+      "description": "Primary low-ground alluvial floodway tile",
+      "approx_size_mb": 305,
+      "elevation_range_navd88_ft": [337.0, 367.0],
+      "s3_path": "s3://giselevationingov/las/statewide/2020/SPW/ql2/IN2020_26800940_12.las"
+    }
+  ],
+  "adjacent_tiles": [
+    {
+      "tile_id": "IN2020_26800970_12.las",
+      "description": "North adjacent high-ground tile",
+      "s3_path": "s3://giselevationingov/las/statewide/2020/SPW/ql2/IN2020_26800970_12.las"
+    },
+    {
+      "tile_id": "IN2020_26800975_12.las",
+      "description": "North-East adjacent high-ground tile",
+      "s3_path": "s3://giselevationingov/las/statewide/2020/SPW/ql2/IN2020_26800975_12.las"
+    },
+    {
+      "tile_id": "IN2020_26850940_12.las",
+      "description": "East adjacent high-ground tile",
+      "s3_path": "s3://giselevationingov/las/statewide/2020/SPW/ql2/IN2020_26850940_12.las"
+    }
+  ],
+  "reference_sources": {
+    "lidar": "https://lidar.digitalforestry.org/QL2_3DEP_LiDAR_IN_2017_2019/Posey_Co_2020_3DEP/Elev20_LAS1.4SPW_IN/IN2020_26800940_12.las",
+    "dem": "https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_2016_2020_DEM/ImageServer",
+    "naip": "https://imagery.geoplatform.gov/iipp/rest/services/NAIP/NAIP2020_CONUS/ImageServer"
+  }
+}
