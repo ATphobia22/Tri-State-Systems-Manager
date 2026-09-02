@@ -10,8 +10,6 @@ on:
 permissions:
   contents: read
 
-auto_cancel: true
-
 concurrency:
   group: tsm-parse-gate-${{ github.ref }}
   cancel-in-progress: true
