@@ -6,12 +6,18 @@ on:
     branches: [main]
     paths:
       - 'tsm-console/package.json'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tsm-console/package.json'
+      - 'tsm-console/package-lock.json'
+      - '.github/workflows/tsm-lock-repair.yml'
 
 permissions:
   contents: write
 
 concurrency:
-  group: tsm-lock-repair-main
+  group: tsm-lock-repair-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -22,6 +28,9 @@ jobs:
         working-directory: tsm-console
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+          fetch-depth: 0
       - uses: actions/setup-node@v6
         with:
           node-version: 22
@@ -41,7 +50,21 @@ jobs:
             grep -Ein '35\.245\.43\.102|http://[^ ]*/npm/' package-lock.json | head -20
             exit 1
           fi
-      - name: Commit repaired lockfile
+      - name: Commit repaired lockfile to source branch
+        if: ${{ github.event_name == 'pull_request' }}
+        working-directory: .
+        run: |
+          if git diff --quiet -- tsm-console/package-lock.json; then
+            echo 'Lockfile already synchronized with the public registry.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tsm-console/package-lock.json
+          git commit -m 'build: regenerate npm lockfile from public registry'
+          git push origin "HEAD:${{ github.head_ref }}"
+      - name: Commit repaired lockfile to main
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         working-directory: .
         run: |
           if git diff --quiet -- tsm-console/package-lock.json; then
