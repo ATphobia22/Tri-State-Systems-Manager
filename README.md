@@ -1,7 +1,7 @@
 # Tri-State Systems Manager (TSM)
 
 **Public-interest engineering decision-support system** for the Ohio–Wabash Tri-State River Valley  
-**Anchor site:** 13101 Bonebank Road, Point Township, Posey County, Indiana (APN `65-19-08-100-008.001-010`)  
+**Anchor site:** Point Township, Posey County, Indiana 47620
 **License:** Apache-2.0 · **Charter:** Beverly Ann Tucker Memorial Stewardship  
 **HEAD (document as of):** 2026-09-02
 
