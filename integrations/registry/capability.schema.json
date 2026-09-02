@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tri-state-systems-manager.example/schemas/capability.schema.json",
+  "title": "TSM External Capability Registry",
+  "type": "object",
+  "required": ["$schema", "schema_version", "canonical_repository", "capabilities"],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schema_version": {"type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$"},
+    "generated_at": {"type": "string"},
+    "canonical_repository": {"type": "string", "minLength": 1},
+    "capabilities": {
+      "type": "array",
+      "minItems": 7,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "source", "url", "ref_type", "ref", "role", "classification", "allowed_use", "forbidden_use", "license_policy", "runtime_boundary", "security"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+          "source": {"type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"},
+          "url": {"type": "string", "format": "uri", "pattern": "^https://github\\.com/"},
+          "ref_type": {"const": "commit"},
+          "ref": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+          "default_branch_at_review": {"type": "string"},
+          "role": {"type": "string", "minLength": 1},
+          "classification": {"type": "string", "minLength": 1},
+          "allowed_use": {"type": "array", "items": {"type": "string"}},
+          "forbidden_use": {"type": "array", "items": {"type": "string"}},
+          "license_policy": {"type": "string", "minLength": 1},
+          "runtime_boundary": {"type": "string", "minLength": 1},
+          "platform": {"type": "array", "items": {"type": "string"}},
+          "toolchain": {"type": "array", "items": {"type": "string"}},
+          "security": {"type": "string", "minLength": 1},
+          "upstream_status": {"type": "string"}
+        }
+      }
+    }
+  }
+}
