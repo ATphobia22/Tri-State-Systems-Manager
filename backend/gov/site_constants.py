@@ -11,8 +11,9 @@ PARCEL_APN: Final[str] = "65-19-08-100-008.001-010"
 MASTER_SEAL: Final[str] = "b4782912564e70e863a7938bb3700647580830fb5a81e910a0db49a20f73b32e"
 FFE_FT: Final[float] = 382.5
 BERM_CREST_FT: Final[float] = 379.8
-FIRM_PANEL: Final[str] = "18129C0215D"
+FIRM_PANEL: Final[str] = "18129C0300C"
 COMMUNITY_ID: Final[str] = "180209"
+
 
 def assert_invariants() -> None:
     """Fail-closed geodetic and cryptographic invariant check."""
@@ -22,7 +23,9 @@ def assert_invariants() -> None:
     assert VERTICAL_DATUM == "NAVD88", "Vertical datum must be NAVD88"
     assert len(MASTER_SEAL) == 64 and all(c in "0123456789abcdef" for c in MASTER_SEAL), "Invalid MASTER_SEAL"
     assert PARCEL_APN == "65-19-08-100-008.001-010", "APN mismatch"
+    assert FIRM_PANEL == "18129C0300C", "FIRM panel mismatch"
+
 
 if __name__ == "__main__":
     assert_invariants()
-    print("[site_constants] invariants OK — EPSG:2966 / BFE 375.0 / LAG 377.2")
+    print("[site_constants] invariants OK — EPSG:2966 / BFE 375.0 / LAG 377.2 / FIRM 18129C0300C")
