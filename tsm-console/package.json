@@ -15,7 +15,7 @@
     "ingest": "node -e \"import('./server/ingestion/workers.mjs').then(m => m.runHydrologicBatch().then(r => console.log(JSON.stringify(r,null,2))))\"",
     "buf:lint": "buf lint",
     "buf:gen": "buf generate",
-    "buf:breaking": "buf breaking --against \\".git#branch=main\\"",
+    "buf:breaking": "buf breaking --against \".git#branch=main\"",
     "proto:all": "buf lint && buf generate",
     "postinstall": "node scripts/postinstall-check.mjs",
     "test": "node --test tests/geodetic-pipeline.test.mjs",
