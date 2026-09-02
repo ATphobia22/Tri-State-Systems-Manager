@@ -52,14 +52,25 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
 
+      # actions/checkout detaches HEAD at GITHUB_SHA; refs/remotes/origin/main
+      # may be absent. Fetch main explicitly and compare via FETCH_HEAD.
       - name: Verify exact commit binding
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        working-directory: .
         run: |
+          git fetch origin main --depth=1
           actual_sha="$(git rev-parse HEAD)"
           expected_sha="${GITHUB_SHA}"
-          branch_sha="$(git rev-parse refs/remotes/origin/main)"
-          test "$actual_sha" = "$expected_sha"
-          test "$actual_sha" = "$branch_sha"
+          branch_sha="$(git rev-parse FETCH_HEAD)"
+
+          if [ "$actual_sha" != "$expected_sha" ] || [ "$actual_sha" != "$branch_sha" ]; then
+            echo "Commit mismatch detected!"
+            echo "HEAD: $actual_sha"
+            echo "GITHUB_SHA: $expected_sha"
+            echo "FETCH_HEAD: $branch_sha"
+            exit 1
+          fi
+
           echo "Exact main commit verified: $actual_sha"
 
       - name: Capability registry gate
