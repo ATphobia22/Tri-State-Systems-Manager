@@ -4,6 +4,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+// MapLibre 6 is ESM-only; namespace import preserves the package's actual module contract.
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useLoaderData } from 'react-router';
