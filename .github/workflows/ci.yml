@@ -22,20 +22,20 @@ concurrency:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: tsm-console
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
           cache: npm
@@ -44,16 +44,6 @@ jobs:
 
       - name: Configure public npm registry
         run: npm config set registry https://registry.npmjs.org
-
-      - name: Install native GIS/build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            libgdal-dev \
-            libproj-dev \
-            proj-data \
-            proj-bin \
-            build-essential
 
       - name: Verify lockfile registry provenance
         run: |
