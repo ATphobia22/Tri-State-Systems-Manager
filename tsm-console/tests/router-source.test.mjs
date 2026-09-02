@@ -28,6 +28,13 @@ test('heavy route lazy loading preserves the shared mapTwin loader contract', ()
   }
 });
 
+test('existing data-router loaders and actions remain attached to their routes', () => {
+  assert.match(routerSource, /path: 'ledger', loader: ledgerLoader, action: ledgerAction, element: <LedgerView \/>/);
+  assert.match(routerSource, /path: 'lineage', loader: lineageLoader, action: lineageAction, element: <LineageView \/>/);
+  assert.match(routerSource, /path: 'sandbox', loader: sandboxLoader, action: sandboxAction, element: <SandboxView \/>/);
+  assert.match(routerSource, /path: 'benefit', loader: benefitLoader, action: benefitAction, element: <BenefitView \/>/);
+});
+
 test('lightweight core routes remain eagerly imported', () => {
   for (const route of ['CharterView', 'NeedsView', 'LedgerView', 'BenefitView', 'LineageView', 'SandboxView']) {
     assert.match(routerSource, new RegExp(`import ${route} from ['\"]\\.\\.\\/routes\\/${route}['\"]`));
