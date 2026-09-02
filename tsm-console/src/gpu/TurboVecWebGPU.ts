@@ -60,9 +60,19 @@ export class TurboVecWebGPU {
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
 
-    this.device.queue.writeBuffer(bufferA, 0, bandA);
-    this.device.queue.writeBuffer(bufferB, 0, bandB);
-    this.device.queue.writeBuffer(paramsBuffer, 0, new Uint32Array([width, height]));
+    // WebGPU's current TypeScript definitions distinguish owned ArrayBuffer
+    // storage from ArrayBufferLike views. Own the upload buffers explicitly so
+    // strict TypeScript and browser implementations agree on the source type.
+    const bandABuffer = new ArrayBuffer(bandA.byteLength);
+    new Float32Array(bandABuffer).set(bandA);
+    const bandBBuffer = new ArrayBuffer(bandB.byteLength);
+    new Float32Array(bandBBuffer).set(bandB);
+    const dimensionsBuffer = new ArrayBuffer(8);
+    new Uint32Array(dimensionsBuffer).set([width, height]);
+
+    this.device.queue.writeBuffer(bufferA, 0, bandABuffer);
+    this.device.queue.writeBuffer(bufferB, 0, bandBBuffer);
+    this.device.queue.writeBuffer(paramsBuffer, 0, dimensionsBuffer);
 
     const bindGroup = this.device.createBindGroup({
       layout: pipeline.getBindGroupLayout(0),
