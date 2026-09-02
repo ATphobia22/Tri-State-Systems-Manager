@@ -2,7 +2,7 @@ name: Tri-State Systems Manager CI Pipeline
 
 on:
   push:
-    branches: [main, dev, 'v*']
+    branches: [main, 'v*']
     paths:
       - 'tsm-console/**'
       - '.github/workflows/ci.yml'
@@ -57,11 +57,31 @@ jobs:
 
       - name: Verify lockfile registry provenance
         run: |
-          if grep -Eqi '35\.245\.43\.102|/npm/' package-lock.json; then
-            echo 'ERROR: package-lock.json contains a non-public npm mirror URL.'
-            grep -Ein '35\.245\.43\.102|/npm/' package-lock.json | head -20
-            exit 1
-          fi
+          node <<'NODE'
+          const fs = require('fs');
+          const lockfile = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
+          const violations = [];
+
+          for (const [packagePath, metadata] of Object.entries(lockfile.packages ?? {})) {
+            if (typeof metadata?.resolved !== 'string') continue;
+            try {
+              const url = new URL(metadata.resolved);
+              if (url.hostname !== 'registry.npmjs.org') {
+                violations.push(`${packagePath}: ${metadata.resolved}`);
+              }
+            } catch {
+              violations.push(`${packagePath}: invalid resolved URL ${metadata.resolved}`);
+            }
+          }
+
+          if (violations.length > 0) {
+            console.error('ERROR: package-lock.json contains resolved package URLs outside registry.npmjs.org.');
+            for (const violation of violations.slice(0, 20)) console.error(violation);
+            process.exit(1);
+          }
+
+          console.log('Lockfile provenance check passed: all resolved package URLs use registry.npmjs.org.');
+          NODE
 
       - name: Verify lockfile reproducibility
         run: |
