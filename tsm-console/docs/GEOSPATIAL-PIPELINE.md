@@ -24,7 +24,7 @@ The repository records source URIs, processing configuration, provenance metadat
 6. Write a cropped ground LAS artifact.
 7. Rasterize the minimum ground elevation to a GeoTIFF at 0.1524 m (0.5 ft) cell size.
 
-EPSG:6345 is metric; therefore the 0.5 ft output resolution is represented as 0.1524 m in the PDAL writer. EPSG:6345 is **not** a US-survey-foot CRS. citehttps://epsg.io/6345
+EPSG:6345 is metric; therefore the 0.5 ft output resolution is represented as 0.1524 m in the PDAL writer. EPSG:6345 is **not** a US-survey-foot CRS. See the EPSG definition at https://epsg.io/6345.
 
 ## Engineering-value boundary
 
