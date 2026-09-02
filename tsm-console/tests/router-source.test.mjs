@@ -13,18 +13,31 @@ test('router imports useLoaderData instead of CommonJS require', () => {
 });
 
 test('heavy geospatial routes use React Router route-level lazy loading', () => {
-  for (const route of ['TwinCanvasView', 'MapLibreEocView', 'MapLibreMap']) {
+  for (const route of ['TwinCanvasView', 'MapLibreEocView', 'MapLibreMap', 'MapTwinView']) {
     assert.doesNotMatch(
       routerSource,
       new RegExp(`import ${route} from ['\"]\\.\\.\\/routes\\/${route}['\"]`),
     );
-    assert.match(routerSource, new RegExp(`lazy:\\s*async \\(\\) => \\({\\s*Component:\\s*\\(await import\\(['\"]\\.\\.\\/routes\\/${route}['\"]\\)\\)\\.default`, 's'));
+    assert.match(
+      routerSource,
+      new RegExp(
+        `lazy:\\s*async \\(\\) => \\({\\s*Component:\\s*\\(await import\\(['\"]\\.\\.\\/routes\\/${route}['\"]\\)\\)\\.default`,
+        's',
+      ),
+    );
   }
 });
 
+test('digital-twin is not backed by a local eager route component', () => {
+  assert.doesNotMatch(routerSource, /function MapTwinView\s*\(/);
+});
+
 test('heavy route lazy loading preserves the shared mapTwin loader contract', () => {
-  for (const route of ['map', 'eoc', 'twin']) {
-    assert.match(routerSource, new RegExp(`path: '${route}',\\s*loader: mapTwinLoader,\\s*lazy:`, 's'));
+  for (const route of ['map', 'eoc', 'twin', 'digital-twin']) {
+    assert.match(
+      routerSource,
+      new RegExp(`path: '${route}',\\s*loader: mapTwinLoader,\\s*lazy:`, 's'),
+    );
   }
 });
 
