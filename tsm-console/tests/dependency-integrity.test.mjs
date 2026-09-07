@@ -18,7 +18,9 @@ test('install scripts require explicit review', () => {
   assert.equal(validateDependencyIntegrity({ packageJson: base, lockJson, allowlist: { root: true, dependencies: ['react'] }, nodeVersion: 'v22.20.0', npmVersion: '10.9.2' }).ok, true);
 });
 
-test('npx policy flags unpinned remote execution', () => {
+test('npx policy allows exact versions and local-only execution', () => {
   assert.equal(findUnsafeNpx('run: npx eslint@9.1.0 .').length, 0);
+  assert.equal(findUnsafeNpx('run: npx --no-install eslint .').length, 0);
   assert.equal(findUnsafeNpx('run: npx eslint .').length, 1);
+  assert.equal(findUnsafeNpx('- name: npx supply-chain policy gate').length, 0);
 });
