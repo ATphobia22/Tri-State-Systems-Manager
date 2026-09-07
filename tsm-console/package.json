@@ -41,8 +41,11 @@
     "test:cinematic": "vitest run tests/cinematic-contracts.test.ts",
     "geospatial:fetch": "node scripts/geospatial/fetch-posey-assets.mjs",
     "geospatial:validate": "node scripts/geospatial/validate-raster-manifest.mjs",
+    "check:dependency-integrity": "node scripts/dependency-integrity.mjs",
+    "check:npx-policy": "node scripts/npx-policy-check.mjs",
+    "generate:sbom": "node scripts/generate-sbom.mjs",
     "resync": "npm ci --no-audit --no-fund && node scripts/postinstall-check.mjs && node scripts/parse-check.mjs",
-    "ci": "npm run check:integrity && npm run check:capabilities && npm run check:workflow-boundaries && npm run check:artifacts && npm run check:quantum-boundary && npm run check:shell-safety && npm run check:site-consistency && npm run check:mock-data && npm run check:parse && npm run check:type && npm run check:geospatial && npm run build",
+    "ci": "npm run check:dependency-integrity && npm run check:npx-policy && npm run check:integrity && npm run check:capabilities && npm run check:workflow-boundaries && npm run check:artifacts && npm run check:quantum-boundary && npm run check:shell-safety && npm run check:site-consistency && npm run check:mock-data && npm run check:parse && npm run check:type && npm run check:geospatial && npm run build",
     "ci:full": "npm run ci && npm run test:all"
   },
   "dependencies": {
