@@ -1,7 +1,7 @@
 import { redirect } from 'react-router';
 import type { AuthContext } from '../types/loaders';
 
-/** Keycloak public client + Authorization Code + PKCE. No mock identity path exists in production. */
+/** Keycloak public client + Authorization Code + PKCE. No development identity fallback exists in production. */
 export type IdPProvider = 'keycloak';
 export interface IdPConfig { provider: IdPProvider; authority?: string; clientId?: string; redirectUri?: string; scopes?: string; sessionMaxAgeSec?: number; }
 interface OidcTokenResponse { access_token: string; token_type: string; expires_in: number; refresh_token?: string; refresh_expires_in?: number; id_token?: string; scope?: string; }
