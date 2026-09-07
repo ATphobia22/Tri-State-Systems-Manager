@@ -1,0 +1,42 @@
+name: TSM Reliability Maintenance
+
+on:
+  schedule:
+    - cron: '17 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tsm-reliability-maintenance
+  cancel-in-progress: true
+
+jobs:
+  npm-health:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: tsm-console
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tsm-console/package-lock.json
+          registry-url: https://registry.npmjs.org
+      - name: Pin npm CLI
+        run: npm install --global npm@10.9.2 --no-audit --no-fund
+      - name: Verify npm environment
+        run: |
+          test "$(npm --version)" = "10.9.2"
+          npm config set registry https://registry.npmjs.org
+          npm doctor
+      - name: Verify npm cache integrity
+        run: npm cache verify
