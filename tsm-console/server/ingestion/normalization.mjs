@@ -5,7 +5,9 @@ export function normalizeSourceRecord(input) {
     ...input,
     sourceId: String(input.sourceId),
     sourceUri: String(input.sourceUri),
-    observedAt: new Date(input.observedAt).toISOString(),
+    // Preserve the provider's timestamp representation for provenance fidelity.
+    // Date.parse validation remains enforced by assertSourceRecord.
+    observedAt: String(input.observedAt),
     retrievedAt: new Date(input.retrievedAt).toISOString(),
   };
   assertSourceRecord(record);
