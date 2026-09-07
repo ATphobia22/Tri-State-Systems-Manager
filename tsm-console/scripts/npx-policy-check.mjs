@@ -14,7 +14,8 @@ function workflowFiles() {
 export function findUnsafeNpx(text) {
   const findings = [];
   for (const [index, lineText] of text.split('\n').entries()) {
-    if (!/^\s*(?:run:\s*)?/.test(lineText) || !/\bnpx\s+/.test(lineText)) continue;
+    if (/^\s*-\s*name:/.test(lineText)) continue;
+    if (!/^\s*(?:run:\s*|npx\s+)/.test(lineText) || !/\bnpx\s+/.test(lineText)) continue;
     const match = lineText.match(NPX_COMMAND);
     if (!match) continue;
     const command = match[1].trim();
