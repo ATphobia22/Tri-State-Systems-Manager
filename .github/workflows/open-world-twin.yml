@@ -37,7 +37,7 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
       - name: TypeScript validation
         working-directory: tsm-console
-        run: npx tsc --noEmit
+        run: npx --no-install tsc --noEmit
       - name: Cinematic tests
         working-directory: tsm-console
         run: npm run test:cinematic
