@@ -4,7 +4,7 @@ import path from 'node:path';
 const REPO_ROOT = path.resolve(process.cwd(), '..');
 const WORKFLOW_ROOT = path.join(REPO_ROOT, '.github', 'workflows');
 const NPX_COMMAND = /\bnpx\s+(?:--yes\s+)?(.+?)(?=\s*(?:$|&&|\|\||;))/;
-const PINNED = /(?:^|\s)@[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?(?:\s|$)/;
+const PINNED = /@[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?(?:\s|$)/;
 
 function workflowFiles() {
   if (!fs.existsSync(WORKFLOW_ROOT)) return [];
