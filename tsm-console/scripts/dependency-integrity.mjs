@@ -9,7 +9,7 @@ const EXPECTED_NPM = '10.9.2';
 
 function fail(message) { throw new Error(`dependency integrity failure: ${message}`); }
 function packageNameFromLockPath(lockPath) {
-  const marker = '/node_modules/';
+  const marker = 'node_modules/';
   const index = lockPath.lastIndexOf(marker);
   if (index < 0) return null;
   const tail = lockPath.slice(index + marker.length).split('/');
