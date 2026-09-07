@@ -21,14 +21,12 @@ jobs:
     defaults:
       run:
         working-directory: tsm-console
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
           fetch-depth: 0
-
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
@@ -36,15 +34,10 @@ jobs:
           cache: npm
           cache-dependency-path: tsm-console/package-lock.json
           registry-url: https://registry.npmjs.org
-
       - name: Configure public npm registry
         run: npm config set registry https://registry.npmjs.org
-
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
-
-      # actions/checkout detaches HEAD at GITHUB_SHA; refs/remotes/origin/main
-      # may be absent. Fetch main explicitly and compare via FETCH_HEAD.
       - name: Verify exact commit binding
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         working-directory: .
@@ -53,53 +46,36 @@ jobs:
           actual_sha="$(git rev-parse HEAD)"
           expected_sha="${GITHUB_SHA}"
           branch_sha="$(git rev-parse FETCH_HEAD)"
-
           if [ "$actual_sha" != "$expected_sha" ] || [ "$actual_sha" != "$branch_sha" ]; then
-            echo "Commit mismatch detected!"
-            echo "HEAD: $actual_sha"
-            echo "GITHUB_SHA: $expected_sha"
-            echo "FETCH_HEAD: $branch_sha"
-            exit 1
+            echo "Commit mismatch detected!"; echo "HEAD: $actual_sha"; echo "GITHUB_SHA: $expected_sha"; echo "FETCH_HEAD: $branch_sha"; exit 1
           fi
-
           echo "Exact main commit verified: $actual_sha"
-
       - name: Capability registry gate
         run: npm run check:capabilities
-
       - name: Workflow security boundary gate
         run: npm run check:workflow-boundaries
-
       - name: Shell safety gate
         run: npm run check:shell-safety
-
       - name: 3D artifact contract gate
         run: npm run check:artifacts
-
       - name: Quantum isolation gate
         run: npm run check:quantum-boundary
-
       - name: Repository integrity gate
         run: npm run check:integrity
-
       - name: Site consistency gate
         run: npm run check:site-consistency
-
       - name: Geospatial processing contract gate
         run: npm run check:geospatial
-
+      - name: Authoritative source and production-data gate
+        run: npm run check:mock-data
       - name: Parse gate
         run: npm run check:parse
-
       - name: Typecheck
         run: npm run check:type
-
       - name: Production build
         run: npm run build
-
       - name: Test suites
         run: npm run test:all
-
       - name: Upload production artifact
         uses: actions/upload-artifact@v7
         with:
