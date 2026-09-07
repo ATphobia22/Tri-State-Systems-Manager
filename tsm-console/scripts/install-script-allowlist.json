@@ -1,0 +1,6 @@
+{
+  "root": true,
+  "dependencies": [
+    "@bufbuild/buf"
+  ]
+}
