@@ -9,8 +9,12 @@ const EXPECTED_NPM = '10.9.2';
 
 function fail(message) { throw new Error(`dependency integrity failure: ${message}`); }
 function packageNameFromLockPath(lockPath) {
-  if (!lockPath.startsWith('node_modules/')) return null;
-  return lockPath.slice('node_modules/'.length).replace(/\/node_modules\/.*$/, '');
+  const marker = '/node_modules/';
+  const index = lockPath.lastIndexOf(marker);
+  if (index < 0) return null;
+  const tail = lockPath.slice(index + marker.length).split('/');
+  if (tail[0]?.startsWith('@')) return tail.length >= 2 ? `${tail[0]}/${tail[1]}` : null;
+  return tail[0] || null;
 }
 
 export function validateDependencyIntegrity({ packageJson, lockJson, allowlist = { root: true, dependencies: [] }, nodeVersion = process.version, npmVersion = EXPECTED_NPM } = {}) {
