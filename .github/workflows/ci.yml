@@ -18,6 +18,10 @@ jobs:
   build-and-test:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
     defaults:
       run:
         working-directory: tsm-console
@@ -61,9 +65,14 @@ jobs:
           set -e
           cat artifacts/npm-audit.json
           exit "$status"
-      - name: npm audit signatures evidence
-        continue-on-error: true
-        run: npm audit signatures --json > artifacts/npm-audit-signatures.json
+      - name: npm audit signatures evidence and gate
+        run: |
+          set +e
+          npm audit signatures --json > artifacts/npm-audit-signatures.json
+          status=$?
+          set -e
+          cat artifacts/npm-audit-signatures.json
+          node -e "const fs=require('fs'); const r=JSON.parse(fs.readFileSync('artifacts/npm-audit-signatures.json','utf8')); const invalid=Array.isArray(r.invalid)?r.invalid.length:0; const missing=Array.isArray(r.missing)?r.missing.length:0; if(invalid||missing||(${status})!==0){console.error(JSON.stringify({invalid,missing,command_exit:${status}})); process.exit(1)}"
       - name: Verify exact commit binding
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         working-directory: .
@@ -102,6 +111,15 @@ jobs:
         run: npm run build
       - name: Test suites
         run: npm run test:all
+      - name: Package production artifact for attestation
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: tar -czf artifacts/tsm-console-dist.tar.gz -C dist .
+      - name: Generate GitHub artifact and SBOM attestation
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/attest@v4
+        with:
+          subject-path: tsm-console/artifacts/tsm-console-dist.tar.gz
+          sbom-path: tsm-console/artifacts/tsm-console-sbom.json
       - name: Upload reliability and supply-chain evidence
         if: always()
         uses: actions/upload-artifact@v7

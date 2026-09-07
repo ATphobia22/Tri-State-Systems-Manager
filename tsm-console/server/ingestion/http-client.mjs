@@ -1,5 +1,7 @@
+import { randomUUID } from 'node:crypto';
 import { createCircuitBreaker, CircuitOpenError } from '../reliability/circuit-breaker.mjs';
 import { isRetryableStatus, parseRetryAfter, retryDelayMs } from '../reliability/retry-policy.mjs';
+import { recordSourceHealth } from './source-health.mjs';
 
 const DEFAULT_TIMEOUT_MS = 10_000;
 const DEFAULT_MAX_BYTES = 2_000_000;
@@ -14,7 +16,8 @@ export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sl
     const maxBytes = options.maxBytes ?? DEFAULT_MAX_BYTES;
     const retries = options.retries ?? DEFAULT_RETRIES;
     const sourceId = options.sourceId || new URL(url).hostname;
-    const headers = { accept: 'application/json', ...(options.headers || {}) };
+    const requestId = options.requestId || randomUUID();
+    const headers = { accept: 'application/json', 'x-tsm-request-id': requestId, ...(options.headers || {}) };
     let lastError;
     circuitBreaker.beforeRequest(sourceId);
     const startedAt = Date.now();
@@ -39,6 +42,7 @@ export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sl
           if (Buffer.byteLength(text, 'utf8') > maxBytes) throw new Error(`response exceeds size limit (${maxBytes} bytes)`);
           const payload = JSON.parse(text);
           circuitBreaker.recordSuccess(sourceId);
+          recordSourceHealth(sourceId, { ok: true, latencyMs: Date.now() - startedAt, requestId });
           return payload;
         } catch (error) {
           lastError = error;
@@ -48,9 +52,10 @@ export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sl
         }
       }
       circuitBreaker.recordFailure(sourceId);
+      recordSourceHealth(sourceId, { ok: false, latencyMs: Date.now() - startedAt, requestId, errorCode: lastError?.code || `HTTP_${lastError?.status || 'UNKNOWN'}` });
       throw lastError;
     } finally {
-      if (options.onMetrics) options.onMetrics({ sourceId, latencyMs: Date.now() - startedAt, ok: !lastError });
+      if (options.onMetrics) options.onMetrics({ sourceId, requestId, latencyMs: Date.now() - startedAt, ok: !lastError });
     }
   };
 }
