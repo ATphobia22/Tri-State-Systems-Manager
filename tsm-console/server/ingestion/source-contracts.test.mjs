@@ -26,7 +26,7 @@ test('source record requires identity, timestamps, status, units, CRS/datum, and
   }));
 });
 
-test('source record rejects missing provenance fields', async () => {
+test('source record rejects missing source identity before provenance validation', async () => {
   const { assertSourceRecord } = await loadContracts();
 
   assert.throws(() => assertSourceRecord({
@@ -38,7 +38,7 @@ test('source record rejects missing provenance fields', async () => {
     unit: 'ft',
     crs: 'EPSG:4326',
     verticalDatum: 'GAGE_DATUM',
-  }), /provenance/i);
+  }), /sourceUri/i);
 });
 
 test('source record rejects unsupported data classes', async () => {
