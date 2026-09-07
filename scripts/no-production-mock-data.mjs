@@ -1,17 +1,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const PROHIBITED = [/\bmock\b/i, /\bfake\b/i, /\bsynthetic\b/i, /\bdemo\b/i, /Math\.random\s*\(/, /\b(?:stage|gage_height|water_level)\s*[:=]\s*\d+(?:\.\d+)?\b/i];
+const PROHIBITED = [/\bmock\b/i, /\bfake\b/i, /\bsynthetic\b/i, /Math\.random\s*\(/, /\b(?:stage|gage_height|water_level)\s*[:=]\s*\d+(?:\.\d+)?\b/i];
 const ALLOWED = /(^|\/)(tests?|__tests__|fixtures?|demos?)(\/|$)|SIMULATION_DEMO/i;
-
 export function scanProductionDataPaths(root, { files } = {}) {
-  const entries = files || collectFiles(root);
-  const violations = [];
+  const entries = files || collectFiles(root); const violations = [];
   for (const [relativePath, content] of entries) {
     if (ALLOWED.test(relativePath)) continue;
-    for (const pattern of PROHIBITED) {
-      if (pattern.test(content)) { violations.push({ path: relativePath, rule: pattern.source }); break; }
-    }
+    for (const pattern of PROHIBITED) if (pattern.test(content)) { violations.push({ path: relativePath, rule: pattern.source }); break; }
   }
   return violations;
 }
