@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { appendArtifact, sha256Hex, recordVerification } from '../store/evidence-store.mjs';
 import { fetchUsgsInstantaneousValues } from './usgs-nwis.mjs';
 import { fetchNoaaStageFlow } from './noaa-nwps.mjs';
+import { classifySourceFreshness } from '../reliability/source-policies.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REGISTRY_PATH = process.env.TSM_AUTHORITY_REGISTRY || path.join(__dirname, '../../../tsm-authority-registry-v35.json');
@@ -36,7 +37,7 @@ function appendObservation(record, extra = {}) {
     horizontal_crs: record.crs, vertical_datum: record.verticalDatum, vertical_datum_converted: extra.wse_navd88_ft != null ? 'NAVD88' : null,
     content_hash_sha256: hash, authority_class: record.dataClass === 'forecast' ? 'FORECAST' : 'OBSERVATION', derivation_class: 'RAW',
     validation_status: record.status === 'current' ? 'provisional' : record.status, governance_status: 'human_review_required',
-    is_simulation_demo: false, software_version: 'tsm-ingestion@0.3.0', operator_or_service_identity: 'authoritative-data-fabric',
+    is_simulation_demo: false, software_version: 'tsm-ingestion@0.4.0', operator_or_service_identity: 'authoritative-data-fabric',
     payload, _canonical_for_verify: canonical, notes: 'Authoritative source observation. Not a regulatory determination.',
   });
 }
@@ -48,10 +49,11 @@ export async function ingestUsgsNode(usgsId, { timeoutMs = 10000 } = {}) {
     const records = await fetchUsgsInstantaneousValues({ stationIds: [usgsId], parameterCodes: ['00065'], endTime: undefined });
     const latest = records.at(-1);
     if (!latest) return { ok: false, code: 'FAIL_CLOSED', error: 'USGS returned no 00065 observation' };
+    const freshnessState = classifySourceFreshness('USGS_NWIS_OBSERVATION', { observedAt: latest.observedAt, retrievedAt: latest.retrievedAt });
     const conversion = navd88FromGage(usgsId, latest.value);
-    const artifact = appendObservation(latest, { ...conversion, stationName: node.name, role: node.role, timeoutMs });
+    const artifact = appendObservation(latest, { ...conversion, freshness_state: freshnessState, stationName: node.name, role: node.role, timeoutMs });
     recordVerification(artifact.artifact_id, artifact.content_hash_sha256, artifact.content_hash_sha256, 'authoritative-data-fabric');
-    return { ok: true, artifact, sourceRecord: latest };
+    return { ok: true, artifact, sourceRecord: latest, freshness_state: freshnessState };
   } catch (error) { return { ok: false, code: error.code || 'FAIL_CLOSED', error: error.message }; }
 }
 
@@ -61,9 +63,10 @@ export async function ingestNwpsGauge(nwsId, { product = 'observed', timeoutMs =
     const records = await fetchNoaaStageFlow({ identifier: nwsId, product });
     const latest = records.at(-1);
     if (!latest) return { ok: false, code: 'FAIL_CLOSED', error: `NOAA ${product} returned no records` };
+    const freshnessState = classifySourceFreshness(product === 'observed' ? 'NOAA_NWPS_OBSERVATION' : 'NOAA_NWPS_FORECAST', { observedAt: latest.observedAt, retrievedAt: latest.retrievedAt });
     const conversion = product === 'observed' ? navd88FromGage(nwsId, latest.value) : { conversion_applied: false, wse_navd88_ft: null, gage_zero_navd88_ft: null };
-    const artifact = appendObservation(latest, { ...conversion, timeoutMs });
-    return { ok: true, artifact, sourceRecord: latest };
+    const artifact = appendObservation(latest, { ...conversion, freshness_state: freshnessState, timeoutMs });
+    return { ok: true, artifact, sourceRecord: latest, freshness_state: freshnessState };
   } catch (error) { return { ok: false, code: error.code || 'FAIL_CLOSED', error: error.message }; }
 }
 
