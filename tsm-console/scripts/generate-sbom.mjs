@@ -8,8 +8,8 @@ const SBOM_PATH = path.join(OUT_DIR, 'tsm-console-sbom.json');
 const MANIFEST_PATH = path.join(OUT_DIR, 'tsm-console-provenance.json');
 
 fs.mkdirSync(OUT_DIR, { recursive: true });
-execFileSync(process.env.npm_execpath || 'npm', ['sbom', '--package-lock-only', '--sbom-format', 'cyclonedx', '--omit', 'optional'], { stdio: ['ignore', 'pipe', 'inherit'], encoding: 'utf8' });
-const sbom = execFileSync(process.env.npm_execpath || 'npm', ['sbom', '--package-lock-only', '--sbom-format', 'cyclonedx', '--omit', 'optional'], { encoding: 'utf8' });
+const npmCommand = process.env.npm_execpath || 'npm';
+const sbom = execFileSync(npmCommand, ['sbom', '--package-lock-only', '--sbom-format', 'cyclonedx', '--omit', 'optional'], { encoding: 'utf8' });
 fs.writeFileSync(SBOM_PATH, sbom);
 const sha256 = createHash('sha256').update(sbom).digest('hex');
 const manifest = {
