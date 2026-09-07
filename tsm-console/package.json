@@ -25,7 +25,7 @@
     "test:geodetic": "node --test tests/geodetic-pipeline.test.mjs",
     "test:firm": "node --test tests/firm-*.test.mjs",
     "test:mock-data": "node --test ../scripts/no-production-mock-data.test.mjs",
-    "check:mock-data": "node ../scripts/no-production-mock-data.mjs tsm-console",
+    "check:mock-data": "node ../scripts/no-production-mock-data.mjs .",
     "test:all": "node ../tests/external-capability-integration.test.mjs && npm test && npm run test:router && npm run test:ingestion && npm run test:posey && npm run test:firm && npm run test:mock-data",
     "ingest:ras": "node scripts/ras-geotiff-ingest.mjs",
     "check:parse": "node scripts/parse-check.mjs",
