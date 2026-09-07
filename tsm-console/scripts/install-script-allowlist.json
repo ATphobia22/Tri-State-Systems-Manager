@@ -1,6 +1,7 @@
 {
   "root": true,
   "dependencies": [
-    "@bufbuild/buf"
+    "@bufbuild/buf",
+    "fsevents"
   ]
 }
