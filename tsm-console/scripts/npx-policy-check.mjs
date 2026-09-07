@@ -3,8 +3,8 @@ import path from 'node:path';
 
 const REPO_ROOT = path.resolve(process.cwd(), '..');
 const WORKFLOW_ROOT = path.join(REPO_ROOT, '.github', 'workflows');
-const REMOTE_NPX = /\bnpx\s+(?:--yes\s+)?(?:@[^\s]+\/)?[A-Za-z0-9._-]+(?:@[^\s]+)?/g;
-const PINNED = /@[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?(?:\s|$)/;
+const NPX_COMMAND = /\bnpx\s+(?:--yes\s+)?(.+?)(?=\s*(?:$|&&|\|\||;))/;
+const PINNED = /(?:^|\s)@[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?(?:\s|$)/;
 
 function workflowFiles() {
   if (!fs.existsSync(WORKFLOW_ROOT)) return [];
@@ -13,9 +13,14 @@ function workflowFiles() {
 
 export function findUnsafeNpx(text) {
   const findings = [];
-  for (const match of text.matchAll(REMOTE_NPX)) {
-    const line = text.slice(0, match.index).split('\n').length;
-    if (!PINNED.test(match[0])) findings.push({ line, command: match[0].trim() });
+  for (const [index, lineText] of text.split('\n').entries()) {
+    if (!/^\s*(?:run:\s*)?/.test(lineText) || !/\bnpx\s+/.test(lineText)) continue;
+    const match = lineText.match(NPX_COMMAND);
+    if (!match) continue;
+    const command = match[1].trim();
+    if (command.startsWith('--no-install ')) continue;
+    if (PINNED.test(command)) continue;
+    findings.push({ line: index + 1, command: `npx ${command}` });
   }
   return findings;
 }
