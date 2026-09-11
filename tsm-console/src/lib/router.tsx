@@ -19,7 +19,6 @@ import NeedsView from '../routes/NeedsView';
 import LedgerView from '../routes/LedgerView';
 import BenefitView from '../routes/BenefitView';
 import LineageView from '../routes/LineageView';
-import SandboxView from '../routes/SandboxView';
 import type {
   RootLoaderData,
   CharterLoaderData,
@@ -27,7 +26,6 @@ import type {
   NeedsLoaderData,
   LedgerLoaderData,
   LineageLoaderData,
-  SandboxLoaderData,
   BenefitLoaderData,
   MapTwinLoaderData,
   EvidenceBlock,
@@ -65,7 +63,6 @@ let contracts: DataContractSummary[] = [
     content_hash: 'sha256:site-v1',
   },
 ];
-let sandboxProjects: import('../types/loaders').SandboxProject[] = [];
 
 async function rootLoader(): Promise<RootLoaderData> {
   const auth = await authLoader({});
@@ -98,7 +95,7 @@ async function architectureLoader(): Promise<ArchitectureLoaderData> {
     trustPlanes: [
       { level: 1, name: 'Physical & Digital Infrastructure', description: 'USGS 3DEP, telemetry, Tucker Power PCM grids.' },
       { level: 2, name: 'Evidence, Provenance & Audit', description: 'Cryptographic ledgers, SHA-256, Merkle roots, Daubert-ready workflows.' },
-      { level: 3, name: 'Security, Privacy & Identity', description: 'Zero-Trust (NIST SP 800-207), PII/PHI isolation.' },
+      { level: 3, name: 'Security, Privacy & Identity', description: 'Zero-Trust (NIST SP 800-207), privacy-by-design access controls.' },
       { level: 4, name: 'Data Fabric & Metadata Lineage', description: 'Indiana Data Strategy contracts, schema registries.' },
       { level: 5, name: 'Analytics & Knowledge Graph', description: 'De-identified asset hierarchies and human needs.' },
       { level: 6, name: 'AI, Science & Simulation', description: 'HEC-RAS, Bishop, multi-physics under NIST AI RMF; OpenMI 2.0 coupling.' },
@@ -186,25 +183,6 @@ async function lineageAction({ request }: ActionFunctionArgs) {
   return redirect('/lineage');
 }
 
-async function sandboxLoader(): Promise<import('../types/loaders').SandboxLoaderData> {
-  return { projects: [...sandboxProjects] };
-}
-
-async function sandboxAction({ request }: ActionFunctionArgs) {
-  const form = await request.formData();
-  const title = String(form.get('title') || '').trim();
-  const pi = String(form.get('pi') || '').trim();
-  const irb_status = String(form.get('irb_status') || 'pending');
-  const sandbox_tier = String(form.get('sandbox_tier') || 'deidentified');
-  if (!title || !pi) return { error: 'Missing fields' };
-  sandboxProjects = [{
-    id: `SBX-${Date.now()}`,
-    title, pi, irb_status, sandbox_tier,
-    status: irb_status === 'approved' ? 'active' : 'pending',
-  }, ...sandboxProjects];
-  return redirect('/sandbox');
-}
-
 async function benefitLoader(): Promise<BenefitLoaderData> {
   return { interventions: [...interventions] };
 }
@@ -265,15 +243,6 @@ function ArchitectureView() {
   );
 }
 
-function Card({ label, value }: { label: string; value: string }) {
-  return (
-    <div style={{ background: '#1e293b', borderRadius: 10, padding: '0.85rem' }}>
-      <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{label}</div>
-      <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#38bdf8' }}>{value}</div>
-    </div>
-  );
-}
-
 function Placeholder({ title }: { title: string }) {
   return (
     <div style={{ padding: '2rem', color: '#94a3b8' }}>
@@ -295,7 +264,6 @@ export const router = createBrowserRouter([
       { path: 'needs', loader: needsLoader, element: <NeedsView /> },
       { path: 'ledger', loader: ledgerLoader, action: ledgerAction, element: <LedgerView /> },
       { path: 'lineage', loader: lineageLoader, action: lineageAction, element: <LineageView /> },
-      { path: 'sandbox', loader: sandboxLoader, action: sandboxAction, element: <SandboxView /> },
       { path: 'benefit', loader: benefitLoader, action: benefitAction, element: <BenefitView /> },
       {
         path: 'map',
