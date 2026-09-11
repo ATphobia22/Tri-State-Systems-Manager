@@ -2,7 +2,7 @@ const DATA_CLASSES = new Set(['observation', 'forecast', 'simulation', 'derived'
 const STATUSES = new Set(['current', 'provisional', 'stale', 'unavailable', 'error']);
 
 export const SOURCE_CATALOG = Object.freeze([
-  Object.freeze({ id: 'USGS-NWIS-IV', authority: 'USGS', endpoint: 'https://waterservices.usgs.gov/nwis/iv/', cadence: 'real-time', formats: ['JSON', 'RDB'], authorityNote: 'Raw stage parameter 00065 remains GAGE_DATUM.' }),
+  Object.freeze({ id: 'USGS-NWIS-IV', authority: 'USGS', endpoint: 'https://api.waterdata.usgs.gov/ogcapi/v0/collections/latest-continuous', cadence: 'real-time', formats: ['JSON', 'GeoJSON'], authorityNote: 'Modern USGS Water Data API; raw stage parameter 00065 remains GAGE_DATUM. Legacy WaterServices is not used.' }),
   Object.freeze({ id: 'USGS-TNM', authority: 'USGS National Map / 3DEP', endpoint: 'https://tnmaccess.nationalmap.gov/api/v1/products', cadence: 'on-demand', formats: ['JSON', 'LAS', 'LAZ', 'GeoTIFF'], authorityNote: 'Product metadata and quality references are retained.' }),
   Object.freeze({ id: 'NOAA-NWPS', authority: 'NOAA/NWS', endpoint: 'https://api.water.noaa.gov/nwps/v1/', cadence: 'real-time', formats: ['JSON'], authorityNote: 'Observed and forecast products remain separate.' }),
   Object.freeze({ id: 'FEMA-NFHL', authority: 'FEMA', endpoint: 'https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer', cadence: 'reference', formats: ['JSON', 'GeoJSON', 'PBF'], authorityNote: 'Regulatory-reference layers; TSM does not issue determinations.' }),
