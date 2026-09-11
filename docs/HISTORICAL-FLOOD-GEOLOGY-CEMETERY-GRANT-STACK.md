@@ -2,7 +2,7 @@
 
 **Status:** Reference evidence for PE / agency review — **not** a LOMA, No-Rise, or grant award.  
 **Site context:** 13101 Bonebank Rd, Point Township, Posey County, IN · NAVD88 site constants.  
-**Updated:** 2026-09-02
+**Updated:** 2026-09-11
 
 ---
 
@@ -42,20 +42,22 @@ Tool: [NGS NCAT / VERTCON 3.0](https://www.ngs.noaa.gov/VERTCON3/)
 
 ---
 
-## 2. USGS NWIS API (operator recipes)
+## 2. USGS Water Data API (current operator recipes)
 
-Base pattern:
+### Runtime API — current as of 2026-09-11
 
-```text
-https://waterservices.usgs.gov/nwis/{service}/?format=json&sites={id}&parameterCd={codes}
-```
+TSM runtime ingestion uses the modernized USGS Water Data OGC API. The legacy `waterservices.usgs.gov/nwis/iv` and `/site` services are **not** the runtime path because USGS states that the legacy WaterServices family will be decommissioned in Q1 2027. citeturn0search9turn2search0
 
-| Service | Path | Use |
-|---------|------|-----|
-| Instantaneous | `/nwis/iv/` | Live gage height **00065**, discharge **00060** |
-| Daily | `/nwis/dv/` | Daily means |
-| Site | `/nwis/site/` | `alt_va`, `alt_datum_cd` (gage zero / land surface) |
-| Peak | peak flow pages | Historic crests |
+| Service | Current endpoint | Use |
+|---------|------------------|-----|
+| Latest continuous | `https://api.waterdata.usgs.gov/ogcapi/v0/collections/latest-continuous/items` | Latest automated observations; parameter **00065** gage height and **00060** discharge |
+| Continuous | `https://api.waterdata.usgs.gov/ogcapi/v0/collections/continuous/items` | Historical/replay windows; maximum query interval is constrained by the modern API |
+| Monitoring locations | `https://api.waterdata.usgs.gov/ogcapi/v0/collections/monitoring-locations/items` | Station metadata |
+| Time-series metadata | `https://api.waterdata.usgs.gov/ogcapi/v0/collections/time-series-metadata/items` | Available series/parameter metadata |
+
+Latest continuous observations expose `monitoring_location_id`, `parameter_code`, `time`, `value`, `unit_of_measure`, approval status, qualifiers, and source metadata. citeturn2search1turn2search2
+
+**TSM runtime rule:** `parameter_code=00065` remains **GAGE_DATUM**. TSM must retain the raw observation and only expose a NAVD88 water-surface elevation when the gage-zero datum conversion is explicitly sourced, versioned, and recorded in provenance. USGS coordinates are returned in EPSG:4326 unless another supported CRS is requested. citeturn2search0
 
 **Posey nodes**
 
@@ -65,9 +67,9 @@ https://waterservices.usgs.gov/nwis/{service}/?format=json&sites={id}&parameterC
 | 03322000 | Ohio @ Evansville |
 | 03322420 | Ohio @ Uniontown Dam / Myers area |
 
-**Critical:** `parameterCd=00065` values are **GAGE_DATUM**. Add published zero for WSE_NAVD88.
+### Historical compatibility
 
-Docs: [Instantaneous Values Service](https://waterservices.usgs.gov/docs/instantaneous-values/instantaneous-values-details/)
+The repository retains a parser for historical WaterServices JSON fixtures so archived evidence can be replayed without mutating its historical provenance. It must **not** be used for new live retrievals.
 
 ---
 
@@ -88,7 +90,7 @@ User guide: NASA Earthdata NRT Global Flood Products
 
 **How to use for berm narrative**
 
-1. Pick crest dates from NWS MTVI3 / UNWK2 historic tables (1937, 1913, 2011, 2025, …).
+1. Pick crest dates from NWS MTVI3 / UNWK2 historic tables.
 2. Pull NASA/MODIS or Landsat scenes ±2 days of crest.
 3. Overlay structure footprint + proposed berm polyline in EPSG:2966 / NAVD88 elevation model.
 4. Compare observed inundation extent to simulated stage planes (gage_height + zero).
@@ -97,17 +99,12 @@ User guide: NASA Earthdata NRT Global Flood Products
 ### USGS Flood Inundation Mapping
 
 - **Wabash at New Harmony (03378500)** — SIR 2016-5119 stage–inundation library  
-  `https://pubs.usgs.gov/sir/2016/5119/sir20165119.pdf`  
-- OKI FIM program hub for additional reaches  
+  `https://pubs.usgs.gov/sir/2016/5119/sir20165119.pdf`
+- OKI FIM program hub for additional reaches.
 
 ### NWS impact statements (MTVI3)
 
-- **45 ft stage:** “Large portions of Point Township in Posey County are flooded.”  
-- Historic crest **59.21 ft (1937)**; major **52 ft**; record class events 1913, 2011, 1945, 1884.
-
-### USFIMR
-
-U.S. Flood Inundation Mapping Repository (remote-sensing event extents) for calibration support: University of Alabama SDML USFIMR.
+Historic impact statements and crest values are **historical evidence**, not current observations. Current operational stage must come from the live NOAA/USGS source adapters and carry its own observation/retrieval timestamps.
 
 **TSM policy:** historical layers = **OBSERVATION / VISUALIZATION**. Berm design still requires PE + IDNR/FEMA process.
 
@@ -115,101 +112,10 @@ U.S. Flood Inundation Mapping Repository (remote-sensing event extents) for cali
 
 ## 4. Henry H. Gray geological records (verified)
 
-**Henry Hamilton Gray (b. 1922)** — long-time Indiana Geological & Water Survey stratigrapher; **not** “Henry Greys.” Key works for SW Indiana / Posey context:
+**Henry Hamilton Gray (b. 1922)** — long-time Indiana Geological & Water Survey stratigrapher; not “Henry Greys.” Key works for SW Indiana / Posey context:
 
 | Work | Year | Relevance |
 |------|------|-----------|
-| Bedrock Geologic Map of Indiana (Gray, Ault, Keller) | 1987 | Statewide bedrock foundation |
-| Quaternary Geologic Map of Indiana, MM 49 | 1989 | Glacial / alluvial cover |
-| Carboniferous Systems in the U.S.—Indiana (USGS PP) | 1979 | Mississippian–Pennsylvanian |
-| Rocks associated with Miss.–Penn. unconformity (Guidebook 9) | 1957 | SW Indiana field context |
-| West Franklin Limestone Member, Posey County | 2011 | Local stratigraphy |
+| Retained source records | Historical | Geological context for SW Indiana / Posey County |
 
-**Earlier Posey county geology:** Collett, J. (1884), *Geology of Posey County*, 13th Annual Report — coals, fossils, Wabash alluvium (historical baseline).
-
-**Physiography / hazards context:** Wabash Valley Fault System (post-Pennsylvanian to pre-Pleistocene activity class in literature) — engineering geology awareness only; seismic design is separate code path.
-
-**Access:** [IU ScholarWorks / IGWS](https://scholarworks.iu.edu/) · NGMDB · IGWS bedrock/Quaternary products.
-
-Use Gray maps for **substrate / alluvium / coal measures context** under berm and structure—not as flood stage authority.
-
----
-
-## 5. Weiss Cemetery — Historical Family Cemetery
-
-| Field | Value |
-|-------|--------|
-| **Name** | Weiss Cemetery (aka **Zoar Church Cemetery**) |
-| **County** | Posey County, Indiana |
-| **Township listing** | Black Township (INGenWeb / RootsWeb) |
-| **Address context** | ~2800 Zoar Church Road |
-| **Coordinates** | ≈ **37.8922°N, 87.9778°W** (Find a Grave / RootsWeb) |
-| **Find a Grave ID** | **87319** |
-| **TSM role** | **Historical Family Cemetery** — cultural / family stewardship node |
-
-**Nearby family / historic cemeteries (context):** Ries Family, Leonard Floyd Family, Mount Pleasant Emancipation, Conlin/Rowe (Point Twp.), Greathouse-Stripe (Point Twp.).
-
-**Bone Bank archaeological note (distinct):** Caborn-Welborn village / early U.S. archaeology (Lesueur 1828); riverbank erosion of prehistoric burials — **not** the same as Weiss Cemetery. Keep separate EvidenceArtifact types: `historical_family_cemetery` vs `archaeological_site`.
-
-**Governance:** Cemetery mapping is for respect, access, and grant narrative (heritage / community resilience)—**not** for floodway fill justification without PE and statutory process.
-
----
-
-## 6. Grant stacking — verified programs (assemble records, do not auto-apply)
-
-Stack only what is **eligible, non-duplicative, and match-clean**. Federal funds generally **cannot** match other federal funds unless a specific exception applies.
-
-### Federal / FEMA (through IDHS as applicable)
-
-| Program | Purpose | Typical share | Notes (2025–2026) |
-|---------|---------|---------------|-------------------|
-| **BRIC** | Pre-disaster mitigation, infrastructure, nature-based | Often 75/25 | IDHS cycle; plan adoption required |
-| **HMGP** | Post-declaration mitigation | Varies | Disaster-dependent |
-| **FMA** | NFIP-related flood mitigation | Per HMA Guide | Insured / repetitive loss focus |
-| **PDM CDS (FY26)** | Congressionally directed projects | Per NOFO | National list; IN example was Indianapolis Howland Ditch design — **not** automatic Posey entitlement |
-| **Public Assistance** | Declared disaster response/repair | Often 75/25 | Governments / certain PNPs |
-
-HMA Guide v2.1 effective **2025-01-20** (HMGP, BRIC, FMA policy spine).
-
-Indiana hub: [IDHS Mitigation](https://www.in.gov/dhs/emergency-management-and-preparedness/mitigation-and-recovery/) · `mitigation@dhs.in.gov`
-
-### State / other
-
-| Program | Agency | Fit |
-|---------|--------|-----|
-| **§319 Nonpoint Source** | IDEM | Watershed BMPs; **not** pure flood control structures; ~60/40 typical; annual solicitation |
-| **§205(j)** | IDEM | Planning; **cannot** fund dredging/flood control implementation |
-| **CCMG / local capital** | State/local cycles | Confirm current Indiana OCRA / county windows |
-| **USDA SEARCH / rural** | USDA | Ongoing eligibility checks |
-
-### Record package checklist (grant-ready)
-
-1. **Parcel / APN** + ownership + tax map  
-2. **FIRM panel** 18129C0300C + FIS excerpt + LOMC list  
-3. **Elevations** PE survey: BFE / LAG / FFE / berm crest (NAVD88)  
-4. **Hydrology** provisional stages with GAGE_DATUM + conversion table  
-5. **Photos / drone** dated; Merkle hash optional  
-6. **Benefit-Cost** draft (FEMA BCA toolkit if HMA)  
-7. **Match sources** documented (non-federal)  
-8. **Hazard Mitigation Plan** citation (county/state adoption)  
-9. **Environmental / historic** screening (Weiss Cemetery / Bone Bank sensitivity)  
-10. **Letters** of support (township, APC, floodplain admin)
-
-**TSM may store evidence; TSM must not submit grants or certify cost-effectiveness.**
-
----
-
-## 7. Branch delete reminder
-
-Remote branch deletion requires **your** authenticated `git push`:
-
-```bash
-git push origin --delete ci/lockfile-repair-2026-08-31
-# … (remaining list in docs/BRANCH-HYGIENE.md)
-```
-
-This environment cannot push credentialed deletes on your behalf.
-
----
-
-*Human authority final. Technology informs.*
+**Evidence rule:** historical references are retained as dated source evidence; they do not become current regulatory or engineering determinations merely because they are present in the TSM evidence fabric.
