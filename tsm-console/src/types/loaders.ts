@@ -9,8 +9,6 @@ export interface EvidenceBlock { evidence_id: string; source_org: string; source
 export interface LedgerLoaderData { blocks: EvidenceBlock[]; merkleRoot: string | null; totalCount: number; }
 export interface DataContractSummary { id: string; title: string; owner: string; classification: 'public' | 'internal' | 'restricted' | 'confidential'; jurisdiction: string; validation_status: string; content_hash: string; }
 export interface LineageLoaderData { contracts: DataContractSummary[]; }
-export interface SandboxProject { id: string; title: string; pi: string; irb_status: string; sandbox_tier: string; status: string; }
-export interface SandboxLoaderData { projects: SandboxProject[]; }
 export interface InterventionRecord { id: string; intervention_name: string; cost_estimate: string; safety_impact: number; economic_impact: number; health_impact: number; equity_impact: number; resilience_impact: number; ai_confidence: number; funding_probability: number; human_authorization_required: true; status: 'draft' | 'pending_human_review' | 'authorized' | 'rejected'; }
 export interface BenefitLoaderData { interventions: InterventionRecord[]; }
 export interface MapTwinLoaderData {
