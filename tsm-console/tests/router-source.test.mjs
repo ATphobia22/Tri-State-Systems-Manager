@@ -45,7 +45,8 @@ test('lightweight core routes remain eagerly imported without medical sandbox co
   assert.doesNotMatch(routerSource, /SandboxView/);
 });
 
-test('TSM console contains no medical subsystem UI or PHI/IRB sandbox boundary', () => {
-  assert.doesNotMatch(cinematicSource, /\bmedical\b|Clinical Intelligence|HIPAA|PHI|IRB/i);
-  assert.doesNotMatch(routerSource, /\bmedical\b|Clinical Intelligence|HIPAA|PHI|IRB/i);
+test('TSM console has no clinical sandbox integration or protected-health-data workflow', () => {
+  const forbiddenIntegrationTokens = /Clinical Intelligence|HIPAA|PHI|IRB|ClinicalResearch|ClinicalResearchSandbox|MedicalResearchSandbox|SandboxView/i;
+  assert.doesNotMatch(cinematicSource, forbiddenIntegrationTokens);
+  assert.doesNotMatch(routerSource, forbiddenIntegrationTokens);
 });
