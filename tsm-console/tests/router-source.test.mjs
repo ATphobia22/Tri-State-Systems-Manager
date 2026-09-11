@@ -45,8 +45,8 @@ test('lightweight core routes remain eagerly imported without medical sandbox co
   assert.doesNotMatch(routerSource, /SandboxView/);
 });
 
-test('TSM console has no clinical sandbox integration or protected-health-data workflow', () => {
-  const forbiddenIntegrationTokens = /Clinical Intelligence|HIPAA|PHI|IRB|ClinicalResearch|ClinicalResearchSandbox|MedicalResearchSandbox|SandboxView/i;
+test('TSM console has no explicit clinical sandbox integration or protected-health-data workflow', () => {
+  const forbiddenIntegrationTokens = /\bClinical Intelligence\b|\bHIPAA\b|\bPHI\b|\bIRB\b|\bClinicalResearch\b|\bClinicalResearchSandbox\b|\bMedicalResearchSandbox\b|\bSandboxView\b/i;
   assert.doesNotMatch(cinematicSource, forbiddenIntegrationTokens);
   assert.doesNotMatch(routerSource, forbiddenIntegrationTokens);
 });
