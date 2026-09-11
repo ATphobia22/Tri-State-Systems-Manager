@@ -36,9 +36,9 @@ At MTVI3 (NWS published table):
 
 **Rule for TSM:** never mix datums in one clearance equation. Convert first, then compare to BFE/LAG (NAVD88).
 
-VERTCON is a **model** (~2 cm RMS class for mapping). **Construction / LOMA** needs PE leveling or published NAVD88 bench marks—not VERTCON alone.
+VERTCON is a **model**. **Construction / LOMA** needs PE leveling or published NAVD88 bench marks—not VERTCON alone.
 
-Tool: [NGS NCAT / VERTCON 3.0](https://www.ngs.noaa.gov/VERTCON3/)
+Tool: https://www.ngs.noaa.gov/VERTCON3/
 
 ---
 
@@ -46,18 +46,18 @@ Tool: [NGS NCAT / VERTCON 3.0](https://www.ngs.noaa.gov/VERTCON3/)
 
 ### Runtime API — current as of 2026-09-11
 
-TSM runtime ingestion uses the modernized USGS Water Data OGC API. The legacy `waterservices.usgs.gov/nwis/iv` and `/site` services are **not** the runtime path because USGS states that the legacy WaterServices family will be decommissioned in Q1 2027. citeturn0search9turn2search0
+TSM runtime ingestion uses the modernized USGS Water Data OGC API. The legacy `waterservices.usgs.gov/nwis/iv` and `/site` services are **not** the runtime path because USGS has announced decommissioning of the legacy WaterServices family in Q1 2027.
 
 | Service | Current endpoint | Use |
 |---------|------------------|-----|
 | Latest continuous | `https://api.waterdata.usgs.gov/ogcapi/v0/collections/latest-continuous/items` | Latest automated observations; parameter **00065** gage height and **00060** discharge |
-| Continuous | `https://api.waterdata.usgs.gov/ogcapi/v0/collections/continuous/items` | Historical/replay windows; maximum query interval is constrained by the modern API |
+| Continuous | `https://api.waterdata.usgs.gov/ogcapi/v0/collections/continuous/items` | Historical/replay windows |
 | Monitoring locations | `https://api.waterdata.usgs.gov/ogcapi/v0/collections/monitoring-locations/items` | Station metadata |
 | Time-series metadata | `https://api.waterdata.usgs.gov/ogcapi/v0/collections/time-series-metadata/items` | Available series/parameter metadata |
 
-Latest continuous observations expose `monitoring_location_id`, `parameter_code`, `time`, `value`, `unit_of_measure`, approval status, qualifiers, and source metadata. citeturn2search1turn2search2
+Latest continuous observations expose `monitoring_location_id`, `parameter_code`, `time`, `value`, `unit_of_measure`, approval status, qualifiers, and source metadata.
 
-**TSM runtime rule:** `parameter_code=00065` remains **GAGE_DATUM**. TSM must retain the raw observation and only expose a NAVD88 water-surface elevation when the gage-zero datum conversion is explicitly sourced, versioned, and recorded in provenance. USGS coordinates are returned in EPSG:4326 unless another supported CRS is requested. citeturn2search0
+**TSM runtime rule:** `parameter_code=00065` remains **GAGE_DATUM**. TSM must retain the raw observation and only expose a NAVD88 water-surface elevation when the gage-zero datum conversion is explicitly sourced, versioned, and recorded in provenance. USGS coordinates are returned in EPSG:4326 unless another supported CRS is requested.
 
 **Posey nodes**
 
@@ -85,8 +85,7 @@ Use these as **observation layers**, not as proof that a berm “should have bee
 | **VIIRS NRT Global Flood** | Near-real-time successor path |
 | Landsat event pairs | e.g. May 2011 Ohio–Wabash confluence inundation (NASA Earth Observatory / Landsat 5) |
 
-LAADS: `https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/61/MCDWD_L3/`  
-User guide: NASA Earthdata NRT Global Flood Products
+LAADS: https://ladsweb.modaps.eosdis.nasa.gov/archive/allData/61/MCDWD_L3/
 
 **How to use for berm narrative**
 
@@ -98,8 +97,7 @@ User guide: NASA Earthdata NRT Global Flood Products
 
 ### USGS Flood Inundation Mapping
 
-- **Wabash at New Harmony (03378500)** — SIR 2016-5119 stage–inundation library  
-  `https://pubs.usgs.gov/sir/2016/5119/sir20165119.pdf`
+- **Wabash at New Harmony (03378500)** — SIR 2016-5119 stage–inundation library: https://pubs.usgs.gov/sir/2016/5119/sir20165119.pdf
 - OKI FIM program hub for additional reaches.
 
 ### NWS impact statements (MTVI3)
@@ -112,10 +110,6 @@ Historic impact statements and crest values are **historical evidence**, not cur
 
 ## 4. Henry H. Gray geological records (verified)
 
-**Henry Hamilton Gray (b. 1922)** — long-time Indiana Geological & Water Survey stratigrapher; not “Henry Greys.” Key works for SW Indiana / Posey context:
-
-| Work | Year | Relevance |
-|------|------|-----------|
-| Retained source records | Historical | Geological context for SW Indiana / Posey County |
+**Henry Hamilton Gray (b. 1922)** — long-time Indiana Geological & Water Survey stratigrapher; not “Henry Greys.” Key works for SW Indiana / Posey context remain retained as historical source evidence.
 
 **Evidence rule:** historical references are retained as dated source evidence; they do not become current regulatory or engineering determinations merely because they are present in the TSM evidence fabric.
