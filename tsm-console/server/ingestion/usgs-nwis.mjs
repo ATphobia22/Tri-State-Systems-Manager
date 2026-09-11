@@ -2,8 +2,52 @@ import { requestJson } from './http-client.mjs';
 import { normalizeSourceRecord } from './normalization.mjs';
 import { recordSourceHealth } from './source-health.mjs';
 
-const BASE_URL = 'https://waterservices.usgs.gov/nwis/iv/';
+// WaterServices /nwis/iv is scheduled for decommissioning in Q1 2027.
+// TSM therefore uses the modernized USGS Water Data OGC API for runtime reads.
+const BASE_URL = 'https://api.waterdata.usgs.gov/ogcapi/v0/collections/latest-continuous';
+const MONITORING_LOCATIONS_URL = 'https://api.waterdata.usgs.gov/ogcapi/v0/collections/monitoring-locations';
 
+function normalizeModernFeature(feature, retrievedAt) {
+  const properties = feature?.properties || {};
+  const stationId = properties.monitoring_location_number || String(properties.monitoring_location_id || '').replace(/^USGS-/, '');
+  const parameterCode = properties.parameter_code;
+  const unit = properties.unit_of_measure;
+  const observedAt = properties.time;
+  const rawValue = properties.value;
+  if (!stationId || !parameterCode || !unit || !observedAt || rawValue == null) throw new TypeError('USGS latest-continuous feature missing station, parameter, unit, time, or value');
+  const numeric = Number(rawValue);
+  if (!Number.isFinite(numeric)) throw new TypeError('USGS latest-continuous value is not numeric');
+  const approval = String(properties.approval_status || '').toLowerCase();
+  return normalizeSourceRecord({
+    sourceId: `USGS-NWIS-${stationId}-${parameterCode}`,
+    sourceUri: BASE_URL,
+    observedAt,
+    retrievedAt,
+    status: approval.includes('provisional') ? 'provisional' : 'current',
+    dataClass: 'observation',
+    unit,
+    crs: 'EPSG:4326',
+    verticalDatum: parameterCode === '00065' ? 'GAGE_DATUM' : 'not-applicable',
+    value: numeric,
+    provenance: {
+      provider: 'USGS Water Data API',
+      stationId,
+      parameterCode,
+      approvalStatus: properties.approval_status || null,
+      qualifier: properties.qualifier || null,
+      lastModified: properties.last_modified || null,
+      monitoringLocationId: properties.monitoring_location_id || null,
+    },
+  });
+}
+
+export function parseUsgsLatestContinuous(payload, retrievedAt) {
+  const features = Array.isArray(payload?.features) ? payload.features : [];
+  if (!features.length) throw new TypeError('USGS latest-continuous payload missing features');
+  return features.map((feature) => normalizeModernFeature(feature, retrievedAt));
+}
+
+/** Legacy WaterServices parser retained only for historical fixtures/replay compatibility. */
 export function parseUsgsInstantaneousValues(payload, retrievedAt) {
   const series = payload?.value?.timeSeries;
   if (!Array.isArray(series)) throw new TypeError('USGS payload missing timeSeries');
@@ -19,21 +63,44 @@ export function parseUsgsInstantaneousValues(payload, retrievedAt) {
       if (value?.value == null || !value?.dateTime) throw new TypeError('USGS value missing numeric value or timestamp');
       const numeric = Number(value.value);
       if (!Number.isFinite(numeric)) throw new TypeError('USGS value is not numeric');
-      records.push(normalizeSourceRecord({ sourceId: `USGS-NWIS-${stationId}-${parameterCode}`, sourceUri: BASE_URL, observedAt: value.dateTime, retrievedAt, status: value.qualifiers?.includes('P') ? 'provisional' : 'current', dataClass: 'observation', unit, crs: 'EPSG:4326', verticalDatum: parameterCode === '00065' ? 'GAGE_DATUM' : 'not-applicable', value: numeric, provenance: { provider: 'USGS NWIS', stationId, parameterCode, qualifiers: value.qualifiers || [] } }));
+      records.push(normalizeSourceRecord({ sourceId: `USGS-NWIS-${stationId}-${parameterCode}`, sourceUri: BASE_URL, observedAt: value.dateTime, retrievedAt, status: value.qualifiers?.includes('P') ? 'provisional' : 'current', dataClass: 'observation', unit, crs: 'EPSG:4326', verticalDatum: parameterCode === '00065' ? 'GAGE_DATUM' : 'not-applicable', value: numeric, provenance: { provider: 'USGS NWIS legacy fixture', stationId, parameterCode, qualifiers: value.qualifiers || [] } }));
     }
   }
   return records;
 }
+
 export async function fetchUsgsInstantaneousValues({ stationIds, parameterCodes = ['00065', '00060'], startTime, endTime, signal, request = requestJson }) {
   if (!Array.isArray(stationIds) || stationIds.length === 0) throw new TypeError('at least one USGS stationId is required');
-  const url = new URL(BASE_URL); url.searchParams.set('format', 'json'); url.searchParams.set('sites', stationIds.join(',')); url.searchParams.set('parameterCd', parameterCodes.join(',')); url.searchParams.set('siteStatus', 'all');
-  if (startTime) url.searchParams.set('startDT', startTime); if (endTime) url.searchParams.set('endDT', endTime);
+  const url = new URL(`${BASE_URL}/items`);
+  url.searchParams.set('f', 'json');
+  url.searchParams.set('monitoring_location_id', stationIds.map((id) => `USGS-${id}`).join(','));
+  url.searchParams.set('parameter_code', parameterCodes.join(','));
+  url.searchParams.set('limit', '100');
+  // latest-continuous is intentionally used for the runtime path. Historical interval reads belong on /continuous.
+  if (startTime || endTime) {
+    // Preserve caller intent without silently switching APIs: /latest-continuous cannot provide arbitrary historical intervals.
+    const error = new RangeError('USGS latest-continuous does not support arbitrary historical intervals; use the /continuous collection for replay');
+    error.code = 'USGS_HISTORICAL_QUERY_REQUIRES_CONTINUOUS_API';
+    throw error;
+  }
   const retrievedAt = new Date().toISOString();
-  try { const payload = await request(url, { signal, timeoutMs: 10000, maxBytes: 2_000_000 }); const records = parseUsgsInstantaneousValues(payload, retrievedAt); for (const stationId of stationIds) recordSourceHealth(`USGS-NWIS-${stationId}`, { ok: true, recordCount: records.filter((r) => r.provenance.stationId === stationId).length }); return records; }
-  catch (error) { for (const stationId of stationIds) recordSourceHealth(`USGS-NWIS-${stationId}`, { ok: false, error: error.message }); throw error; }
+  try {
+    const payload = await request(url, { signal, timeoutMs: 10000, maxBytes: 2_000_000 });
+    const records = parseUsgsLatestContinuous(payload, retrievedAt).filter((record) => stationIds.includes(record.provenance.stationId) && parameterCodes.includes(record.provenance.parameterCode));
+    if (!records.length) throw new TypeError('USGS latest-continuous returned no requested observations');
+    for (const stationId of stationIds) recordSourceHealth(`USGS-NWIS-${stationId}`, { ok: records.some((r) => r.provenance.stationId === stationId), recordCount: records.filter((r) => r.provenance.stationId === stationId).length });
+    return records;
+  } catch (error) {
+    for (const stationId of stationIds) recordSourceHealth(`USGS-NWIS-${stationId}`, { ok: false, error: error.message });
+    throw error;
+  }
 }
+
 export async function fetchUsgsStationMetadata({ stationId, signal, request = requestJson }) {
-  const url = new URL('https://waterservices.usgs.gov/nwis/site/'); url.searchParams.set('format', 'json'); url.searchParams.set('sites', stationId); url.searchParams.set('siteOutput', 'expanded');
+  const url = new URL(`${MONITORING_LOCATIONS_URL}/items`);
+  url.searchParams.set('f', 'json');
+  url.searchParams.set('id', `USGS-${stationId}`);
+  url.searchParams.set('limit', '1');
   const payload = await request(url, { signal, timeoutMs: 10000, maxBytes: 1_000_000 });
-  return { sourceId: `USGS-NWIS-STATION-${stationId}`, stationId, sourceUri: url.toString(), retrievedAt: new Date().toISOString(), dataClass: 'evidence', payload, provenance: { provider: 'USGS NWIS' } };
+  return { sourceId: `USGS-NWIS-STATION-${stationId}`, stationId, sourceUri: url.toString(), retrievedAt: new Date().toISOString(), dataClass: 'evidence', payload, provenance: { provider: 'USGS Water Data API' } };
 }
