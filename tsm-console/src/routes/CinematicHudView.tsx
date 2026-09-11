@@ -19,7 +19,7 @@ const CONFIG = {
   COMPENSATORY_STORAGE_RATIO: 1.2,
 } as const;
 
-type Tab = 'twin' | 'heritage' | 'medical' | 'power' | 'cinematic';
+type Tab = 'twin' | 'heritage' | 'power' | 'cinematic';
 type Finding = 'NOMINAL' | 'BFE_EXCEEDED' | 'CRITICAL_INUNDATION';
 
 function CinematicWaterPlane({ waterStageFt, elevationOriginFt }: { waterStageFt: number; elevationOriginFt: number }) {
@@ -100,7 +100,6 @@ export default function CinematicHudView() {
   const nav: Array<{ id: Tab; icon: JSX.Element; label: string }> = [
     { id: 'twin', icon: <Map size={16} />, label: '3D Digital Twin Viewport' },
     { id: 'heritage', icon: <Users size={16} />, label: 'Family Lineage Vault' },
-    { id: 'medical', icon: <Activity size={16} />, label: 'Medical Integration' },
     { id: 'power', icon: <Zap size={16} />, label: 'Tucker Power & PCM' },
     { id: 'cinematic', icon: <Video size={16} />, label: 'Natron / Blender Pipeline' },
   ];
@@ -191,7 +190,6 @@ export default function CinematicHudView() {
           )}
 
           {activeTab === 'heritage' && <SubsystemPanel icon={<Users size={24} />} title="Digital Lineage Twin & Family Heritage Vault" description="A protected interface for authorized lineage and property records. The frontend does not itself establish legal ownership, identity, or evidentiary authenticity."><Metric label="Site anchor" value={CONFIG.PROJECT_NODE} /><Metric label="Parcel" value={CONFIG.VERIFIED_APN} /><Metric label="CRS / vertical datum" value={`${CONFIG.CRS} / ${CONFIG.VERTICAL_DATUM}`} /></SubsystemPanel>}
-          {activeTab === 'medical' && <SubsystemPanel icon={<Activity size={24} />} title="Clinical Intelligence & Research Engine" description="Integration boundary for authorized clinical research, RAG, multi-omics workflows, and HIPAA-controlled services. Clinical decisions remain outside the UI and require authorized professionals."><Metric label="Clinical data boundary" value="PHI/PII ISOLATED" /><Metric label="Research mode" value="DE-IDENTIFIED / CONTROLLED" /><Metric label="Human authority" value="REQUIRED" /></SubsystemPanel>}
           {activeTab === 'power' && <SubsystemPanel icon={<Zap size={24} />} title="Tucker Power & Thermal PCM Battery" description="Telemetry visualization boundary for industrial energy and thermal storage systems. Values are placeholders until authenticated Modbus/SCADA ingestion supplies observations."><Metric label="Telemetry state" value="AWAITING AUTHENTICATED FEED" /><Metric label="Protocol boundary" value="MODBUS / SCADA" /><Metric label="Safety mode" value="FAIL-CLOSED" /></SubsystemPanel>}
           {activeTab === 'cinematic' && <SubsystemPanel icon={<Video size={24} />} title="Natron & Blender Cinematic Pipeline" description="Production control surface for ACEScg, OpenEXR, simulation passes, and render-farm orchestration. Dispatch remains a backend-authorized operation."><Metric label="Color management" value="ACESCG / 32-BIT LINEAR" /><Metric label="Render format" value="OPENEXR MULTI-PASS" /><button onClick={() => addLog('Render dispatch requested; backend authorization is required before execution.')} style={{ padding: 12, borderRadius: 10, border: '1px solid #0e7490', background: '#0891b2', color: '#001018', fontWeight: 900, cursor: 'pointer' }}><Layers size={17} style={{ verticalAlign: 'middle', marginRight: 7 }} />Request Render-Farm Dispatch</button></SubsystemPanel>}
         </main>
