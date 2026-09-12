@@ -1,141 +1,26 @@
-/**
- * MapLibre layer catalog — Public Visualization Plane
- * REGULATORY layers are display-only; never sole basis for determination without human gate.
- */
+/** MapLibre layer catalog — Public Visualization Plane. Regulatory/effective layers are display-only. */
+export type LayerAuthority = 'OBSERVATION' | 'REGULATORY' | 'DERIVED' | 'VISUALIZATION' | 'CONTEXT';
+export interface MapLayerSpec { id: string; title: string; authority_class: LayerAuthority; type: 'raster' | 'raster-dem' | 'vector-tile' | 'geojson' | 'arcgis-mapserver'; url: string; attribution?: string; notes?: string; defaultVisible?: boolean; maplibre?: Record<string, unknown>; }
 
-export type LayerAuthority =
-  | 'OBSERVATION'
-  | 'REGULATORY'
-  | 'DERIVED'
-  | 'VISUALIZATION'
-  | 'CONTEXT';
-
-export interface MapLayerSpec {
-  id: string;
-  title: string;
-  authority_class: LayerAuthority;
-  type: 'raster' | 'raster-dem' | 'vector-tile' | 'geojson' | 'arcgis-mapserver';
-  url: string;
-  attribution?: string;
-  notes?: string;
-  defaultVisible?: boolean;
-  /** MapLibre source config hints */
-  maplibre?: Record<string, unknown>;
-}
-
-/** Authoritative + context layers for Tri-State / Posey */
 export const MAP_LAYERS: MapLayerSpec[] = [
-  {
-    id: 'osm-base',
-    title: 'OpenStreetMap',
-    authority_class: 'CONTEXT',
-    type: 'raster',
-    url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-    attribution: '© OpenStreetMap',
-    defaultVisible: true,
-  },
-  {
-    id: 'fema-nfhl',
-    title: 'FEMA National Flood Hazard Layer',
-    authority_class: 'REGULATORY',
-    type: 'arcgis-mapserver',
-    url: 'https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer',
-    attribution: 'FEMA NFHL',
-    notes:
-      'Effective FIRM/SFHA for insurance. Layer 28 Flood Hazard Zones typical. Do not use alone for Indiana local regulatory where BAFM differs.',
-    defaultVisible: false,
-  },
-  {
-    id: 'fema-firm-panels',
-    title: 'FEMA FIRM Panels',
-    authority_class: 'REGULATORY',
-    type: 'arcgis-mapserver',
-    url: 'https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer',
-    attribution: 'FEMA NFHL / FIRM Panel data',
-    notes:
-      'FIRM Panels are maintained as a distinct FEMA source layer. Panel 18129C0265C is registered locally as source evidence; no local raster georeferencing is published until a matching world file or authoritative digital geometry is validated.',
-    defaultVisible: false,
-    maplibre: { arcgisLayerId: 3, panelId: '18129C0265C' },
-  },
-  {
-    id: 'indiana-bafm',
-    title: 'Indiana Best Available Flood Hazard Layer',
-    authority_class: 'REGULATORY',
-    type: 'arcgis-mapserver',
-    url: 'https://gisdata.in.gov/server/rest/services/Best_Available_Flood_Hazard_Layer/MapServer',
-    attribution: 'Indiana DNR Division of Water',
-    notes:
-      'DNR-approved studies beyond NFHL. Planning/construction; NOT for flood insurance. Never collapse with FEMA NFHL.',
-    defaultVisible: false,
-  },
-  {
-    id: 'in-parcels-2025',
-    title: 'Parcel Boundaries of Indiana 2025',
-    authority_class: 'CONTEXT',
-    type: 'arcgis-mapserver',
-    url: 'https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_Current/FeatureServer',
-    attribution: 'IGIO Data Harvest',
-    notes: 'Not a survey product; accuracy varies by county.',
-    defaultVisible: false,
-  },
-  {
-    id: 'in-roads-2025',
-    title: 'Road Centerlines of Indiana 2025',
-    authority_class: 'CONTEXT',
-    type: 'arcgis-mapserver',
-    url: 'https://gisdata.in.gov/server/rest/services/Hosted/Road_Centerlines_of_Indiana_Current/FeatureServer',
-    attribution: 'IGIO Data Harvest',
-    defaultVisible: false,
-  },
-  {
-    id: 'indiana-imagery',
-    title: 'Indiana Current Imagery (ImageServer)',
-    authority_class: 'OBSERVATION',
-    type: 'raster',
-    url: 'https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_Current_Imagery/ImageServer',
-    attribution: 'IGIO',
-    notes: '4-band COG; may require token/CORS for browser.',
-    defaultVisible: false,
-  },
-  {
-    id: 'in-addresses-current',
-    title: 'Address Points of Indiana Current',
-    authority_class: 'CONTEXT',
-    type: 'arcgis-mapserver',
-    url: 'https://gisdata.in.gov/server/rest/services/Hosted/Address_Points_of_Indiana_Current/FeatureServer',
-    attribution: 'IGIO Data Harvest',
-    defaultVisible: false,
-  },
-  {
-    id: 'in-admin-current',
-    title: 'Administrative Boundaries of Indiana Current',
-    authority_class: 'CONTEXT',
-    type: 'arcgis-mapserver',
-    url: 'https://gisdata.in.gov/server/rest/services/Hosted/Administrative_Boundaries_of_Indiana_Current/FeatureServer',
-    attribution: 'IGIO Data Harvest',
-    defaultVisible: false,
-  },
+  { id: 'osm-base', title: 'OpenStreetMap', authority_class: 'CONTEXT', type: 'raster', url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '© OpenStreetMap', defaultVisible: true },
+  { id: 'fema-nfhl', title: 'FEMA National Flood Hazard Layer', authority_class: 'REGULATORY', type: 'arcgis-mapserver', url: 'https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer', attribution: 'FEMA NFHL', notes: 'Effective FIRM/SFHA for insurance. Layer 28 Flood Hazard Zones typical. Do not use alone for Indiana local planning where BAFM differs.', defaultVisible: false },
+  { id: 'fema-firm-panels', title: 'FEMA FIRM Panels', authority_class: 'REGULATORY', type: 'arcgis-mapserver', url: 'https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer', attribution: 'FEMA NFHL / FIRM Panel data', notes: 'FIRM panels remain a distinct FEMA evidence layer; no local raster georeferencing is published without validated authoritative geometry.', defaultVisible: false, maplibre: { arcgisLayerId: 3, panelId: '18129C0265C' } },
+  { id: 'indiana-bafm', title: 'Indiana Best Available Flood Hazard Layer', authority_class: 'REGULATORY', type: 'arcgis-mapserver', url: 'https://gisdata.in.gov/server/rest/services/Best_Available_Flood_Hazard_Layer/MapServer', attribution: 'Indiana DNR Division of Water', notes: 'DNR-approved Best Available data for planning/construction and Indiana Flood Control Act jurisdiction; NOT for flood insurance. Never collapse with FEMA NFHL.', defaultVisible: false, maplibre: { arcgisLayerId: 438 } },
+  { id: 'in-parcels-current', title: 'Indiana Current Parcel Boundaries', authority_class: 'CONTEXT', type: 'arcgis-mapserver', url: 'https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_Current/FeatureServer', attribution: 'IGIO Data Harvest', notes: 'Current statewide harvest layer released 2024-11-13. Not a survey product; county accuracy varies.', defaultVisible: false },
+  { id: 'in-roads-current', title: 'Indiana Current Road Centerlines', authority_class: 'CONTEXT', type: 'arcgis-mapserver', url: 'https://gisdata.in.gov/server/rest/services/Hosted/Road_Centerlines_of_Indiana_Current/FeatureServer', attribution: 'IGIO Data Harvest', defaultVisible: false },
+  { id: 'indiana-imagery', title: 'Indiana Current Imagery (ImageServer)', authority_class: 'OBSERVATION', type: 'raster', url: 'https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_Current_Imagery/ImageServer', attribution: 'IGIO', notes: 'Current imagery source; browser access may require service-compatible CORS/authentication.', defaultVisible: false },
+  { id: 'in-addresses-current', title: 'Address Points of Indiana Current', authority_class: 'CONTEXT', type: 'arcgis-mapserver', url: 'https://gisdata.in.gov/server/rest/services/Hosted/Address_Points_of_Indiana_Current/FeatureServer', attribution: 'IGIO Data Harvest', defaultVisible: false },
+  { id: 'in-plss', title: 'Indiana PLSS State Boundary', authority_class: 'CONTEXT', type: 'arcgis-mapserver', url: 'https://gisdata.in.gov/server/rest/services/Hosted/PLSS_Indiana_State_Boundary/FeatureServer', attribution: 'IGIO / DNR', defaultVisible: false },
+  { id: 'posey-cslf', title: 'Posey Changes Since Last FIRM', authority_class: 'CONTEXT', type: 'arcgis-mapserver', url: 'https://gisdata.in.gov/server/rest/services/Hosted/Posey_CSLF_Feb2025/FeatureServer', attribution: 'Indiana GIS / Posey CSLF', notes: 'Preliminary/pending map-change evidence; not equivalent to effective NFHL.', defaultVisible: false },
+  { id: 'usgs-3dep-index', title: 'USGS 3DEP Elevation Index', authority_class: 'OBSERVATION', type: 'arcgis-mapserver', url: 'https://index.nationalmap.gov/arcgis/rest/services/3DEPElevationIndex/MapServer', attribution: 'USGS 3DEP', defaultVisible: false },
+  { id: 'usgs-basemaps', title: 'USGS National Map Basemaps', authority_class: 'CONTEXT', type: 'raster', url: 'https://basemap.nationalmap.gov/arcgis/rest/services', attribution: 'USGS National Map', defaultVisible: false },
 ];
 
-/** HEC-RAS / Scientific plane integration notes (not executed in browser) */
 export const HECRAS_INTEGRATION = {
   role: 'Scientific & Simulation Plane — offline / server adapters',
-  inputs: [
-    'IGIO S3 DEM / LAS → Terrain GeoTIFF (NAVD88 preferred)',
-    'Channel bathymetry merge via RAS Mapper XS interpolation when available',
-    'Land use / Manning n from external layers',
-  ],
-  workflow: [
-    '1. Acquire DEM from s3://giselevationingov (mosaic/dem or derived)',
-    '2. Clip to AOI; reproject as needed (HEC-RAS project CRS)',
-    '3. RAS Mapper → Create New RAS Terrain',
-    '4. Define 2D Flow Areas; optional 1D/2D coupling',
-    '5. Unsteady flow with USGS/NWPS boundary conditions',
-    '6. Export inundation rasters → EvidenceArtifact MODEL_OUTPUT with model_version',
-  ],
+  inputs: ['3DEP / IGIO terrain with explicit CRS and vertical-datum provenance', 'Channel bathymetry merge via RAS Mapper XS interpolation when available', 'Land use / Manning n from external layers'],
+  workflow: ['1. Acquire DEM/LiDAR metadata from TNMAccess', '2. Clip to AOI; reproject only with recorded transformation', '3. RAS Mapper → Create New RAS Terrain', '4. Define 2D Flow Areas; optional 1D/2D coupling', '5. Use USGS/NWPS boundary conditions', '6. Export inundation rasters → EvidenceArtifact MODEL_OUTPUT with model_version and PROVISIONAL/SIMULATION_DEMO status'],
   openmi: 'Future OpenMI 2.0 contracts couple HEC-RAS outputs to TSM Evidence Bus — human gate before regulatory use',
-  references: [
-    'https://www.hec.usace.army.mil/software/hec-ras/',
-    'https://www.hec.usace.army.mil/confluence/hmsdocs/hmsguides/gis-tools-and-terrain-data',
-  ],
+  references: ['https://www.hec.usace.army.mil/software/hec-ras/']
 };
