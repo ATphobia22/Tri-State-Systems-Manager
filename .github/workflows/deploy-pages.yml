@@ -2,8 +2,7 @@ name: TSM Production Build & Pages Deploy
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -13,7 +12,7 @@ permissions:
 
 concurrency:
   group: github-pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 env:
   NODE_VERSION: '22'
@@ -27,7 +26,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
@@ -35,11 +33,9 @@ jobs:
           registry-url: ${{ env.NPM_REGISTRY }}
           cache: npm
           cache-dependency-path: ${{ env.CONSOLE_DIR }}/package-lock.json
-
       - name: Configure public npm registry
         working-directory: ${{ env.CONSOLE_DIR }}
         run: npm config set registry ${{ env.NPM_REGISTRY }}
-
       - name: Verify lockfile registry provenance
         working-directory: ${{ env.CONSOLE_DIR }}
         run: |
@@ -49,23 +45,12 @@ jobs:
           const violations = [];
           for (const [packagePath, metadata] of Object.entries(lockfile.packages ?? {})) {
             if (typeof metadata?.resolved !== 'string') continue;
-            try {
-              const url = new URL(metadata.resolved);
-              if (url.hostname !== 'registry.npmjs.org') {
-                violations.push(`${packagePath}: ${metadata.resolved}`);
-              }
-            } catch {
-              violations.push(`${packagePath}: invalid resolved URL ${metadata.resolved}`);
-            }
+            try { const url = new URL(metadata.resolved); if (url.hostname !== 'registry.npmjs.org') violations.push(`${packagePath}: ${metadata.resolved}`); }
+            catch { violations.push(`${packagePath}: invalid resolved URL ${metadata.resolved}`); }
           }
-          if (violations.length) {
-            console.error('ERROR: package-lock.json contains non-public resolved package URLs.');
-            for (const violation of violations.slice(0, 20)) console.error(violation);
-            process.exit(1);
-          }
+          if (violations.length) { console.error('ERROR: package-lock.json contains non-public resolved package URLs.'); for (const violation of violations.slice(0, 20)) console.error(violation); process.exit(1); }
           console.log('Lockfile provenance check passed.');
           NODE
-
       - name: Verify lockfile reproducibility
         working-directory: ${{ env.CONSOLE_DIR }}
         run: |
@@ -73,45 +58,37 @@ jobs:
           npm install --package-lock-only --ignore-scripts --no-audit --no-fund --registry=${{ env.NPM_REGISTRY }}
           diff -u package-lock.json.ci-baseline package-lock.json
           rm package-lock.json.ci-baseline
-
       - name: Install locked dependencies
         working-directory: ${{ env.CONSOLE_DIR }}
         run: npm ci --ignore-scripts --no-audit --no-fund --registry=${{ env.NPM_REGISTRY }}
-
       - name: Repository integrity gate
         working-directory: ${{ env.CONSOLE_DIR }}
         run: npm run check:integrity
-
       - name: Parse gate
         working-directory: ${{ env.CONSOLE_DIR }}
         run: npm run check:parse
-
       - name: TypeScript gate
         working-directory: ${{ env.CONSOLE_DIR }}
         run: npm run check:type
-
       - name: Test suite
         working-directory: ${{ env.CONSOLE_DIR }}
         run: npm run test:all
-
       - name: Production Vite build
         working-directory: ${{ env.CONSOLE_DIR }}
         run: npm run build
-
       - name: Validate production artifact
         working-directory: ${{ env.CONSOLE_DIR }}
         run: test -f dist/index.html
-
       - name: Upload production artifact
         uses: actions/upload-artifact@v7
         with:
           name: tsm-console-production
           path: ${{ env.CONSOLE_DIR }}/dist
           if-no-files-found: error
-
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v6
-
+        with:
+          enablement: true
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
