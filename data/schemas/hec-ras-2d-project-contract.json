@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:tsm:hec-ras-2d-project-contract:v1",
+  "title": "TSM HEC-RAS 2D Project Contract",
+  "type": "object",
+  "required": ["contract_version", "terrain", "mesh_refinement", "breaklines", "site_constants", "boundary_conditions", "authority"],
+  "properties": {
+    "contract_version": { "const": "1.0.0" },
+    "terrain": {
+      "type": "object", "required": ["source", "resolution_m", "hydro_enforced", "horizontal_crs", "vertical_datum"],
+      "properties": {
+        "source": { "enum": ["USGS_3DEP", "BEST_AVAILABLE_LIDAR"] },
+        "resolution_m": { "type": "number", "exclusiveMaximum": 2 },
+        "hydro_enforced": { "const": true },
+        "horizontal_crs": { "type": "string", "minLength": 1 },
+        "vertical_datum": { "const": "NAVD88" }
+      }
+    },
+    "mesh_refinement": {
+      "type": "object", "required": ["channel_conveyance_ft", "near_berm_structures_lag_ft", "active_floodplain_ft", "overbank_ag_ft"],
+      "properties": {
+        "channel_conveyance_ft": { "type": "object", "required": ["min", "max"] },
+        "near_berm_structures_lag_ft": { "type": "object", "required": ["min", "max"] },
+        "active_floodplain_ft": { "type": "object", "required": ["min", "max"] },
+        "overbank_ag_ft": { "type": "object", "required": ["min", "max"] }
+      }
+    },
+    "breaklines": { "type": "array", "items": { "enum": ["channel_centerline", "left_bank", "right_bank", "berm_crest", "structure_edges", "roadway_crest"] }, "minItems": 4, "uniqueItems": true },
+    "site_constants": {
+      "type": "object", "required": ["lag_ft", "bfe_ft", "berm_crest_ft", "ffe_ft", "no_rise_tolerance_ft"],
+      "properties": {
+        "lag_ft": { "const": 377.2 }, "bfe_ft": { "const": 375 }, "berm_crest_ft": { "const": 379.8 }, "ffe_ft": { "const": 382.5 }, "no_rise_tolerance_ft": { "const": 0 }
+      }
+    },
+    "boundary_conditions": { "$ref": "hec-ras-2d-boundary-conditions.schema.json" },
+    "authority": { "$ref": "hec-ras-2d-evidence-artifact.schema.json#/$defs/modelAuthority" }
+  }
+}
