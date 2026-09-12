@@ -85,11 +85,11 @@ jobs:
           name: tsm-console-production
           path: ${{ env.CONSOLE_DIR }}/dist
           if-no-files-found: error
-      - name: Configure GitHub Pages
+      - name: Configure GitHub Pages when repository Pages is enabled
+        if: vars.TSM_PAGES_ENABLED == 'true'
         uses: actions/configure-pages@v6
-        with:
-          enablement: true
-      - name: Upload Pages artifact
+      - name: Upload Pages artifact when repository Pages is enabled
+        if: vars.TSM_PAGES_ENABLED == 'true'
         uses: actions/upload-pages-artifact@v5
         with:
           path: ${{ env.CONSOLE_DIR }}/dist
@@ -97,7 +97,11 @@ jobs:
   deploy:
     name: Deploy production console
     needs: build
+    if: vars.TSM_PAGES_ENABLED == 'true'
     runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
