@@ -5,8 +5,16 @@ on:
     paths:
       - 'tsm-console/src/lib/cinematic/**'
       - 'tsm-console/src/gpu/**'
+      - 'tsm-console/src/components/RealWorldTwinMap.tsx'
+      - 'tsm-console/src/lib/twin-map-style.ts'
+      - 'tsm-console/src/lib/map-layers.ts'
+      - 'tsm-console/src/lib/hec-ras-contracts.ts'
+      - 'tsm-console/src/routes/TwinCanvasView.tsx'
       - 'tsm-console/server/tiles/**'
       - 'tsm-console/server/telemetry/**'
+      - 'tsm-console/config/terrain-pipeline.json'
+      - 'data/schemas/hec-ras-2d-*.json'
+      - 'docs/OPEN-WORLD-3D-TWIN-AND-HECRAS-MESH-v1.0.md'
       - 'tools/ortho/**'
       - 'tsm-console/package.json'
       - 'tsm-console/package-lock.json'
@@ -38,6 +46,12 @@ jobs:
       - name: TypeScript validation
         working-directory: tsm-console
         run: npx --no-install tsc --noEmit
+      - name: Real-source twin contract tests
+        working-directory: tsm-console
+        run: npm run test:twin
+      - name: HEC-RAS contract tests
+        working-directory: tsm-console
+        run: npm run test:hec-ras
       - name: Cinematic tests
         working-directory: tsm-console
         run: npm run test:cinematic
@@ -48,9 +62,17 @@ jobs:
           grep -q '@vertex' src/gpu/ultimate-twin-pipeline.wgsl
           grep -q '@fragment' src/gpu/ultimate-twin-pipeline.wgsl
           grep -q 'floodDepthTexture' src/gpu/ultimate-twin-pipeline.wgsl
-          ! grep -Eq '375\\.0|379\\.4|382\\.1' src/gpu/ultimate-twin-pipeline.wgsl
+          ! grep -Eq '375\.0|379\.4|382\.1' src/gpu/ultimate-twin-pipeline.wgsl
       - name: Application manifest validation
         working-directory: tsm-console
         run: node -e "JSON.parse(require('fs').readFileSync('app-manifest.json','utf8'))"
+      - name: HEC-RAS schemas parse
+        run: python - <<'PY'
+          import json
+          from pathlib import Path
+          for path in Path('data/schemas').glob('hec-ras-2d-*.json'):
+              json.loads(path.read_text())
+              print(path)
+          PY
       - name: Python syntax validation
         run: python -m py_compile tools/ortho/ortho_processor.py
