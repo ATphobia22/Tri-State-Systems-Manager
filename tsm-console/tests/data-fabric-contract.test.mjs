@@ -13,7 +13,6 @@ test('Indiana data catalog is wired to authoritative source classes and contains
   const ids = new Set(catalog.sources.map((source) => source.id));
   for (const required of ['usgs-waterdata-apis', 'noaa-nwps-api', 'fema-nfhl', 'indiana-bafm', 'usace-nld', 'usgs-tnm-access']) assert.ok(ids.has(required), `missing ${required}`);
   assert.ok(catalog.sources.some((source) => source.url?.includes('Parcel_Boundaries_of_Indiana_Current/FeatureServer')));
-  assert.ok(catalog.sources.some((source) => source.url?.includes('Indiana_Current_Imagery/ImageServer')));
   assert.doesNotMatch(JSON.stringify(catalog), /\bHIPAA\b|\bPHI\b|\bIRB\b|\bClinicalResearch\b/i);
 });
 
@@ -37,4 +36,10 @@ test('current Indiana parcel FeatureServer is the primary parcel layer', () => {
   const source = read('src/lib/map-layers.ts');
   assert.match(source, /Indiana Current Parcel Boundaries/);
   assert.match(source, /Parcel_Boundaries_of_Indiana_Current\/FeatureServer/);
+});
+
+test('current Indiana imagery is registered in the runtime geospatial source plane', () => {
+  const source = read('src/lib/map-layers.ts');
+  assert.match(source, /Indiana_Current_Imagery\/ImageServer/);
+  assert.match(source, /Indiana Current Imagery/);
 });
