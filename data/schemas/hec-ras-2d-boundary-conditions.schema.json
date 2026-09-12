@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:tsm:hec-ras-2d-boundary-conditions:v1",
+  "title": "TSM HEC-RAS 2D Boundary Conditions",
+  "type": "object",
+  "required": ["gage", "upstream", "downstream", "manning_n", "compensatory_storage_ratio"],
+  "properties": {
+    "gage": { "type": "object", "required": ["usgs_id", "nws_id", "stage_source_order"], "properties": { "usgs_id": { "const": "03378500" }, "nws_id": { "const": "NHRI3" }, "stage_source_order": { "const": ["NOAA_NWPS", "USGS_WATER_DATA"] } } },
+    "upstream": { "type": "object", "required": ["boundary_type", "provenance"], "properties": { "boundary_type": { "enum": ["FLOW", "STAGE_FLOW"] }, "provenance": { "type": "string", "minLength": 1 } } },
+    "downstream": { "type": "object", "required": ["boundary_type", "provenance"], "properties": { "boundary_type": { "enum": ["STAGE", "NORMAL_DEPTH", "RATING_CURVE"] }, "provenance": { "type": "string", "minLength": 1 } } },
+    "manning_n": { "type": "object", "required": ["source", "values"], "properties": { "source": { "type": "string", "minLength": 1 }, "values": { "type": "array", "items": { "type": "number", "exclusiveMinimum": 0 }, "minItems": 1 } } },
+    "compensatory_storage_ratio": { "type": "object", "required": ["minimum", "maximum"], "properties": { "minimum": { "const": 1.2 }, "maximum": { "const": 1.3 } } },
+    "no_rise_tolerance_ft": { "const": 0 }
+  }
+}
