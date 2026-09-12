@@ -35,7 +35,6 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       pitch: 55,
       bearing: -15,
       maxPitch: 85,
-      attributionControl: true,
     });
     map.addControl(new maplibregl.NavigationControl(), 'top-right');
     map.on('load', () => {
