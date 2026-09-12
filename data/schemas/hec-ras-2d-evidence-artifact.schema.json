@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:tsm:hec-ras-2d-evidence-artifact:v1",
+  "title": "TSM HEC-RAS 2D Evidence Artifact",
+  "type": "object",
+  "required": ["artifact_type", "source_authority", "source_uri", "retrieved_at", "content_hash_sha256", "authority_class", "derivation_class", "validation_status", "governance_status", "is_simulation_demo", "human_review_status", "transformation_chain"],
+  "properties": {
+    "artifact_type": { "type": "string", "minLength": 1 },
+    "source_authority": { "type": "string", "minLength": 1 },
+    "source_uri": { "type": "string", "minLength": 1 },
+    "retrieved_at": { "type": "string", "format": "date-time" },
+    "content_hash_sha256": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "authority_class": { "enum": ["SIMULATION_DEMO", "MODEL_OUTPUT"] },
+    "derivation_class": { "enum": ["RAW", "DERIVED"] },
+    "validation_status": { "enum": ["pending", "provisional", "verified", "rejected"] },
+    "governance_status": { "const": "human_review_required" },
+    "is_simulation_demo": { "const": true },
+    "human_review_status": { "enum": ["pending", "approved", "rejected"] },
+    "transformation_chain": { "type": "array", "items": { "type": "string" } }
+  },
+  "$defs": {
+    "modelAuthority": {
+      "type": "object", "required": ["authority_class", "governance_status", "is_simulation_demo", "human_review_status"],
+      "properties": {
+        "authority_class": { "enum": ["SIMULATION_DEMO", "MODEL_OUTPUT"] },
+        "governance_status": { "const": "human_review_required" },
+        "is_simulation_demo": { "const": true },
+        "human_review_status": { "enum": ["pending", "approved", "rejected"] }
+      }
+    }
+  }
+}
