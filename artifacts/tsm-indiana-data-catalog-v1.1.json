@@ -1,0 +1,35 @@
+{
+  "title": "TSM Indiana & Federal Data Catalog — Verified Live Endpoints",
+  "version": "1.1.0",
+  "updated": "2026-09-12",
+  "principle": "Catalog surfaces authoritative sources for Evidence / Scientific / Governance / Public Visualization planes. Human authority remains final. No silent determinations. Provisional telemetry labeled as such.",
+  "site_anchor": {"crs_horizontal":"EPSG:2966 (NAD83 Indiana West ftUS)","crs_vertical":"NAVD88 / GEOID18","bfe_ft_navd88":375.0,"lag_ft_navd88":377.2,"freeboard_lag_minus_bfe_ft":2.2},
+  "live_telemetry_verified_2026_09_12": {"usgs_03378500_wabash_new_harmony":{"site_name":"WABASH RIVER AT NEW HARMONY, IN","lat":38.13089124,"lon":-87.9414145,"gage_zero_navd88_ft":352.71,"observed_stage_ft_provisional":4.43,"observed_discharge_cfs_provisional":18300,"obs_time_local":"2026-09-12T04:30:00-05:00","qualifier":"P (Provisional — subject to revision)","nwis_iv_url":"https://waterservices.usgs.gov/nwis/iv/?format=json&sites=03378500&parameterCd=00065,00060&siteStatus=all"},"verification_note":"Snapshot supplied in the 2026-09-12 engineering evidence package. Public indexed USGS pages independently confirm station identity and provisional status; exact 04:30 CDT values must be refreshed from runtime API before operational display."},
+  "sources": [
+    {"id":"usgs-tnm-access","name":"USGS The National Map — TNMAccess API","url":"https://tnmaccess.nationalmap.gov/api/v1/","status":"VERIFIED","use":"3DEP DEM/LiDAR product discovery and provenance"},
+    {"id":"usgs-3dep-index","name":"USGS 3DEP Elevation Index MapServer","url":"https://index.nationalmap.gov/arcgis/rest/services/3DEPElevationIndex/MapServer","status":"VERIFIED","use":"Elevation/lidar coverage index"},
+    {"id":"usgs-waterdata-apis","name":"USGS Water Data APIs","url":"https://api.waterdata.usgs.gov/","legacy_iv":"https://waterservices.usgs.gov/nwis/iv/","status":"VERIFIED","use":"Real-time/historical stage 00065 and discharge 00060","v0":"https://api.waterdata.usgs.gov/ogcapi/v0/","v1":"https://api.waterdata.usgs.gov/ogcapi/v1/","notes":"Modern APIs are runtime target; legacy IV is compatibility/evidence only."},
+    {"id":"noaa-nwps-api","name":"NOAA National Water Prediction Service API","url":"https://api.water.noaa.gov/nwps/v1/","status":"VERIFIED","use":"Observed/forecast stage and flood context","gauge":"NHRI3"},
+    {"id":"fema-nfhl","name":"FEMA National Flood Hazard Layer (effective)","url":"https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer","status":"VERIFIED","use":"Effective SFHA/FIRM/BFE/LOMR/LOMA/levee insurance reference","key_layers":{"firm_panels":3,"lomrs":1,"lomas":34,"base_flood_elevations":16,"flood_hazard_zones":28,"levees":23}},
+    {"id":"indiana-bafm","name":"Indiana Best Available Flood Hazard Layer","url":"https://gisdata.in.gov/server/rest/services/Best_Available_Flood_Hazard_Layer/MapServer","status":"VERIFIED","use":"Planning/construction/Indiana Flood Control Act reference — NOT flood insurance","layers":{"updates":104,"floodhazard_bestavai_dnr_water":438},"crs":"EPSG:26916"},
+    {"id":"usace-nld","name":"USACE National Levee Database","url":"https://levees.sec.usace.army.mil/","api_docs":"https://levees.sec.usace.army.mil/developer/","api_base":"https://levees.sec.usace.army.mil/api-local","status":"VERIFIED","use":"Read-only levee evidence; no automatic accreditation"},
+    {"id":"indiana-plss","name":"Indiana PLSS Boundaries","url":"https://gisdata.in.gov/server/rest/services/Hosted/PLSS_Indiana_State_Boundary/FeatureServer","status":"VERIFIED"},
+    {"id":"indiana-parcels-current","name":"Indiana Current Parcel Boundaries","url":"https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_Current/FeatureServer","status":"VERIFIED","use":"Current statewide parcel geometry; spatially filtered"},
+    {"id":"posey-cslf","name":"Posey County Changes Since Last FIRM","url":"https://gisdata.in.gov/server/rest/services/Hosted/Posey_CSLF_Feb2025/FeatureServer","status":"VERIFIED","use":"Preliminary/pending map-change evidence"},
+    {"id":"indiana-current-imagery","name":"Indiana Current Imagery ImageServer","url":"https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_Current_Imagery/ImageServer","owner":"Indiana Geographic Information Office","status":"VERIFIED","use":"Photorealistic open-world twin surface; not regulatory flood evidence"},
+    {"id":"usgs-basemaps","name":"The National Map Cached Basemaps","url":"https://basemap.nationalmap.gov/arcgis/rest/services","status":"VERIFIED"},
+    {"id":"usace-boundary-conditions","name":"USACE Hydraulic Boundary Conditions (TSM profile)","local_artifact":"attachments/usace_hydraulic_boundary_conditions.json","status":"PROJECT_CURATED","use":"HEC-RAS hydraulic context; human engineering review required"},
+    {"id":"infip","name":"Indiana Floodplain Information Portal","url":"https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/indiana-floodplain-information-portal/","status":"VERIFIED","use":"FARA and floodplain planning support"},
+    {"id":"hec-ras","name":"HEC-RAS (USACE HEC)","url":"https://www.hec.usace.army.mil/software/hec-ras/","status":"VERIFIED","use":"2D hydraulics scientific/simulation plane; outputs remain MODEL_OUTPUT/SIMULATION_DEMO until human adjudication"}
+  ],
+  "implementation_directives": [
+    "Use current Indiana parcel boundaries as primary geometry; retain older parcel services only as historical evidence.",
+    "Keep NOAA NWPS observed stage first and USGS Water Data as observed fallback; preserve qualifier P.",
+    "NFHL is effective/insurance reference; BAFM is planning/Indiana Flood Control Act reference. Never merge them in UI or policy.",
+    "Acquire 3DEP terrain through TNMAccess/LidarExplorer; derive Terrain-RGB through gdalwarp/rio-rgbify and serve via PMTiles/XYZ/Martin without bulk source data in Git.",
+    "Use Indiana Current Imagery for the photorealistic twin surface and real 3DEP Terrain-RGB for terrain; no synthetic production terrain.",
+    "HEC-RAS mesh targets are nominal engineering refinement bands: channel 25-50 ft, near berm/structures/LAG 25-40 ft, active floodplain 50-100 ft, overbank/ag 100-200 ft.",
+    "HEC-RAS outputs must be SIMULATION_DEMO or MODEL_OUTPUT EvidenceArtifacts with SHA-256 provenance and human_review_required governance.",
+    "NLD is read-only evidence and does not automatically accredit levees."
+  ]
+}
