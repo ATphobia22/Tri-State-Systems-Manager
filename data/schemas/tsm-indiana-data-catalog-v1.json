@@ -1,184 +1,33 @@
 {
-  "title": "TSM Indiana & Federal Data Catalog",
-  "version": "1.0.0",
-  "updated": "2026-08-19",
-  "principle": "Catalog surfaces sources for Human Needs / Benefit / Governance planes. No silent determinations.",
+  "title": "TSM Indiana & Federal Data Catalog — Verified Live Endpoints",
+  "version": "1.1.0",
+  "updated": "2026-09-12",
+  "principle": "Catalog surfaces authoritative sources for Evidence / Scientific / Governance / Public Visualization planes. Human authority remains final. No silent determinations. Provisional telemetry labeled as such.",
+  "site_anchor": {"address":"13101 Bonebank Road, Point Township, Posey County, IN","centroid_wgs84":{"lat":37.84589,"lon":-88.00510},"crs_horizontal":"EPSG:2966 (NAD83 Indiana West ftUS)","crs_vertical":"NAVD88 / GEOID18","bfe_ft_navd88":375.0,"lag_ft_navd88":377.2,"freeboard_lag_minus_bfe_ft":2.2},
+  "live_telemetry_verified_2026_09_12": {"usgs_03378500_wabash_new_harmony":{"site_name":"WABASH RIVER AT NEW HARMONY, IN","lat":38.13089124,"lon":-87.9414145,"gage_zero_navd88_ft":352.71,"observed_stage_ft_provisional":4.43,"observed_discharge_cfs_provisional":18300,"obs_time_local":"2026-09-12T04:30:00-05:00","qualifier":"P (Provisional — subject to revision)","nwis_iv_url":"https://waterservices.usgs.gov/nwis/iv/?format=json&sites=03378500&parameterCd=00065,00060&siteStatus=all"},"verification_note":"Snapshot supplied in the 2026-09-12 engineering evidence package. Public indexed USGS pages independently confirm the station identity and provisional status; exact 04:30 CDT values should be refreshed from the runtime API before operational display."},
   "sources": [
-    {
-      "id": "stats-indiana",
-      "name": "STATS Indiana",
-      "url": "https://www.stats.indiana.edu/",
-      "owner": "Indiana Business Research Center (IU Kelley)",
-      "use": "County/metro demographic and economic profiles for Human Needs Graph",
-      "status": "VERIFIED",
-      "tsm_plane": "GOVERNANCE_DECISION / PUBLIC"
-    },
-    {
-      "id": "hoosierdata",
-      "name": "Hoosiers by the Numbers (HoosierData)",
-      "url": "https://www.hoosierdata.in.gov/",
-      "owner": "Indiana DWD / STATS Indiana",
-      "use": "Labor market, employment, county workforce dashboards",
-      "status": "VERIFIED",
-      "tsm_plane": "HUMAN_NEEDS"
-    },
-    {
-      "id": "data-in-gov",
-      "name": "data.in.gov / State open data",
-      "url": "http://data.in.gov/",
-      "owner": "State of Indiana",
-      "use": "Agency open datasets index",
-      "status": "VERIFIED",
-      "tsm_plane": "EVIDENCE"
-    },
-    {
-      "id": "gisdata-in-gov",
-      "name": "gisdata.in.gov ArcGIS Enterprise",
-      "url": "https://gisdata.in.gov/",
-      "owner": "IGIO",
-      "use": "BAFM MapServer, Data Harvest FeatureServers, locators",
-      "status": "VERIFIED",
-      "endpoints": {
-        "bafm_mapserver": "https://gisdata.in.gov/server/rest/services/Best_Available_Flood_Hazard_Layer/MapServer",
-        "parcels_2025": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer",
-        "roads_2025": "https://gisdata.in.gov/server/rest/services/Hosted/Road_Centerlines_of_Indiana_2025/FeatureServer"
-      }
-    },
-    {
-      "id": "fema-nfhl",
-      "name": "FEMA NFHL MapServer",
-      "url": "https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer",
-      "status": "VERIFIED",
-      "note": "Insurance/effective SFHA; separate from Indiana BAFM"
-    },
-    {
-      "id": "infip",
-      "name": "Indiana Floodplain Information Portal",
-      "url": "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/indiana-floodplain-information-portal",
-      "status": "VERIFIED",
-      "use": "FARA generation; BFE display; human permitting support"
-    },
-    {
-      "id": "nass-indiana",
-      "name": "USDA NASS Indiana Agriculture Overview",
-      "url": "https://www.nass.usda.gov/Quick_Stats/Ag_Overview/stateOverview.php?state=INDIANA",
-      "status": "VERIFIED",
-      "snapshot_2025": {
-        "farms": 51500,
-        "acres_operated": 14500000,
-        "hogs_inventory": 4450000,
-        "corn_grain_production_bu": 1066920000,
-        "soybeans_production_bu": 323085000
-      },
-      "tsm_plane": "COMMUNITY_BENEFIT / AGRICULTURE CONTEXT"
-    },
-    {
-      "id": "isda",
-      "name": "Indiana State Department of Agriculture",
-      "url": "https://www.in.gov/isda/",
-      "status": "VERIFIED",
-      "use": "State ag policy and programs context"
-    },
-    {
-      "id": "in-doe",
-      "name": "Indiana Department of Education",
-      "url": "https://www.in.gov/doe/",
-      "related": [
-        "https://indianagps.doe.in.gov/"
-      ],
-      "status": "VERIFIED",
-      "use": "Education indicators for Human Needs Graph"
-    },
-    {
-      "id": "fssa-data",
-      "name": "FSSA Data and Analytics",
-      "url": "https://www.in.gov/fssa/fssa-data-and-analytics/",
-      "status": "VERIFIED",
-      "use": "Health & human services indicators (careful with PHI \u2014 never store individual PHI in TSM public plane)"
-    },
-    {
-      "id": "mph-hub",
-      "name": "MPH Hub (inmap dashboards)",
-      "url": "https://hub.mph.in.gov/",
-      "related": [
-        "https://inmap.maps.arcgis.com/"
-      ],
-      "status": "VERIFIED",
-      "use": "Public health mapping context"
-    },
-    {
-      "id": "indiana-data-tracker",
-      "name": "Indiana Data Tracker",
-      "url": "https://indianadatatracker.org/",
-      "browse": "https://indianadatatracker.org/browse-datasets/",
-      "status": "VERIFIED",
-      "use": "Cross-agency dataset discovery"
-    },
-    {
-      "id": "ihie",
-      "name": "Indiana Health Information Exchange",
-      "url": "https://www.ihie.org/",
-      "status": "VERIFIED",
-      "use": "Clinical exchange context only \u2014 out of scope for public TSM evidence without BAA/governance"
-    },
-    {
-      "id": "tmf-fit",
-      "name": "Federal Technology Modernization Fund \u2014 Agency & project fit",
-      "url": "https://tmf.cio.gov/fit/",
-      "status": "VERIFIED",
-      "note": "Federal agencies only (5 USC 551). Not a direct funding path for state/local TSM build, but informs federal partner modernization patterns (permitting tech, AI adoption 2026 call).",
-      "tsm_plane": "GOVERNANCE reference"
-    },
-    {
-      "id": "hec-ras",
-      "name": "HEC-RAS (USACE HEC)",
-      "url": "https://www.hec.usace.army.mil/software/hec-ras/",
-      "status": "VERIFIED",
-      "use": "2D hydraulics Scientific Plane; terrain from IGIO DEM; outputs MODEL_OUTPUT artifacts"
-    },
-    {
-      "id": "igio-portal",
-      "name": "Indiana GIO",
-      "url": "https://www.in.gov/gis/",
-      "status": "VERIFIED"
-    },
-    {
-      "id": "indot",
-      "name": "INDOT",
-      "url": "https://www.in.gov/indot/",
-      "status": "VERIFIED"
-    },
-    {
-      "id": "511in",
-      "name": "Indiana 511",
-      "url": "https://511in.org/",
-      "status": "VERIFIED",
-      "use": "Traveler / ESF-1 situational awareness"
-    },
-    {
-      "id": "igws",
-      "name": "Indiana Geological and Water Survey",
-      "url": "https://igws.iu.edu/",
-      "data": "https://data.igws.indiana.edu/",
-      "status": "VERIFIED"
-    },
-    {
-      "id": "forms-in-gov",
-      "name": "forms.in.gov Agency List",
-      "url": "https://forms.in.gov/Agencylist.aspx",
-      "status": "VERIFIED"
-    },
-    {
-      "id": "fema-esf",
-      "name": "FEMA ESF Response Framework",
-      "url": "https://www.fema.gov/emergency-managers/national-preparedness/frameworks/response",
-      "status": "VERIFIED"
-    },
-    {
-      "id": "harvest-current-addresses",
-      "name": "Address Points Current",
-      "url": "https://gisdata.in.gov/server/rest/services/Hosted/Address_Points_of_Indiana_Current/FeatureServer",
-      "status": "VERIFIED"
-    }
+    {"id":"usgs-tnm-access","name":"USGS The National Map — TNMAccess API","url":"https://tnmaccess.nationalmap.gov/api/v1/","docs":"https://tnmaccess.nationalmap.gov/api/v1/docs","owner":"USGS National Geospatial Program","use":"Programmatic discovery and download links for 3DEP DEMs, Lidar Point Cloud (LPC), US Topo, hydrography","status":"VERIFIED","endpoints":{"datasets":"https://tnmaccess.nationalmap.gov/api/v1/datasets","products":"https://tnmaccess.nationalmap.gov/api/v1/products","services":"https://tnmaccess.nationalmap.gov/api/v1/services"},"notes":"No API key required for product search. LidarExplorer UI and public EPT/STAC remain discovery paths."},
+    {"id":"usgs-3dep-index","name":"USGS 3DEP Elevation Index MapServer","url":"https://index.nationalmap.gov/arcgis/rest/services/3DEPElevationIndex/MapServer","status":"VERIFIED","use":"Coverage footprints for 1m / 1/3 arc-second / 1 arc-second DEM and lidar availability"},
+    {"id":"usgs-waterdata-apis","name":"USGS Water Data APIs (modernized) + legacy WaterServices","url":"https://api.waterdata.usgs.gov/","legacy_iv":"https://waterservices.usgs.gov/nwis/iv/","owner":"USGS Water Mission Area","status":"VERIFIED","use":"Real-time and historical instantaneous and daily values for gage height (00065) and discharge (00060)","primary_gages_tsm":["03378500","03322000"],"notes":"Modern Water Data APIs are the runtime path. Legacy IV remains operational as of 2026-09 but is scheduled for decommissioning in early 2027; retain only for historical compatibility/verification.","v1":"https://api.waterdata.usgs.gov/ogcapi/v1/","v0":"https://api.waterdata.usgs.gov/ogcapi/v0/"},
+    {"id":"noaa-nwps-api","name":"NOAA National Water Prediction Service (NWPS) API","url":"https://api.water.noaa.gov/nwps/v1/","docs":"https://api.water.noaa.gov/nwps/v1/docs/","owner":"NOAA / NWS Office of Water Prediction","status":"VERIFIED","use":"Official NWS stage/flow observations, forecasts, flood categories, crests, impacts, NWM guidance","endpoints":{"gauges_list":"/v1/gauges","gauge_meta":"/v1/gauges/{lid}","stageflow":"/v1/gauges/{lid}/stageflow"},"notes":"Replaced AHPS in 2024. Prefer NWPS for forecasts; USGS Water Data for instantaneous observed stage/discharge."},
+    {"id":"fema-nfhl","name":"FEMA National Flood Hazard Layer (effective)","url":"https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer","alt":"https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer","owner":"FEMA","status":"VERIFIED","use":"Effective SFHA / FIRM panels / BFE / LOMR / LOMA — insurance/effective reference only","key_layers":{"firm_panels":3,"lomrs":1,"lomas":34,"base_flood_elevations":16,"flood_hazard_zones":28,"levees":23,"cross_sections":14},"wms":"https://hazards.fema.gov/arcgis/services/public/NFHLWMS/MapServer/WMSServer","notes":"Official FIRM/FIS controls regulatory insurance determinations; TSM does not issue those determinations."},
+    {"id":"indiana-bafm","name":"Indiana Best Available Flood Hazard Layer (BAFM / BAFL)","url":"https://gisdata.in.gov/server/rest/services/Best_Available_Flood_Hazard_Layer/MapServer","owner":"Indiana DNR Division of Water","status":"VERIFIED","use":"Planning, construction, Indiana Flood Control Act jurisdiction — NOT for flood insurance","layers":{"updates":104,"floodhazard_bestavai_dnr_water":438},"crs":"EPSG:26916 (NAD83 UTM 16N meters)","download_by_county":"https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/the-indiana-best-available-floodplain-mapping/","infip":"https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/indiana-floodplain-information-portal/","notes":"Generally more recent than effective NFHL in many reaches; retain its planning/jurisdictional distinction."},
+    {"id":"usace-nld","name":"USACE National Levee Database (NLD2)","url":"https://levees.sec.usace.army.mil/","api_docs":"https://levees.sec.usace.army.mil/developer/","api_base":"https://levees.sec.usace.army.mil/api-local","feature_service_note":"Public ArcGIS Feature/Map services and OGC OWS are exposed through NLD data-services pages","owner":"USACE","status":"VERIFIED","use":"Levee system geometries, inspections, and published accreditation context — Evidence plane only; no automatic regulatory determination"},
+    {"id":"indiana-plss","name":"Indiana PLSS Boundaries (IGIO / DNR)","url":"https://gisdata.in.gov/server/rest/services/Hosted/PLSS_Indiana_State_Boundary/FeatureServer","status":"VERIFIED","use":"Public Land Survey System reference for parcel legal descriptions"},
+    {"id":"indiana-parcels-harvest","name":"Indiana Data Harvest Current Parcel Boundaries","url":"https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_Current/FeatureServer","related":["https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2022/FeatureServer","https://gisdata.in.gov/server/rest/services/Hosted/Address_Points_of_Indiana_Current/FeatureServer"],"owner":"IGIO / County assessors via Data Harvest","status":"VERIFIED","use":"Statewide parcel polygons for spatial queries; Posey subset via geometry filter. County-level live services preferred when available.","notes":"Current statewide harvest layer released 2024-11-13; geometry-filtered spatial queries. 2023 remains historical fallback, not the primary current layer."},
+    {"id":"posey-cslf","name":"Posey County Changes Since Last FIRM (CSLF)","url":"https://gisdata.in.gov/server/rest/services/Hosted/Posey_CSLF_Feb2025/FeatureServer","status":"VERIFIED","use":"Track preliminary / pending map changes for Posey"},
+    {"id":"usgs-basemaps","name":"The National Map Cached Basemaps","url":"https://basemap.nationalmap.gov/arcgis/rest/services","status":"VERIFIED","services":["USGSTopo","USGSImageryTopo","USGSImageryOnly","USGSShadedReliefOnly","USGSHydroCached"]},
+    {"id":"usace-boundary-conditions","name":"USACE Hydraulic Boundary Conditions (TSM profile)","local_artifact":"attachments/usace_hydraulic_boundary_conditions.json","status":"PROJECT_CURATED","use":"Gage datums, flood stages, Manning n defaults, John T. Myers lock/dam operating pools, compensatory storage multipliers for HEC-RAS 2D context","notes":"Curated project constants require source provenance and human engineering review before regulatory use."},
+    {"id":"stats-indiana","name":"STATS Indiana","url":"https://www.stats.indiana.edu/","status":"VERIFIED","use":"County/metro demographic and economic profiles"},
+    {"id":"infip","name":"Indiana Floodplain Information Portal","url":"https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/indiana-floodplain-information-portal/","status":"VERIFIED","use":"FARA generation; BFE display; human permitting support"},
+    {"id":"hec-ras","name":"HEC-RAS (USACE HEC)","url":"https://www.hec.usace.army.mil/software/hec-ras/","status":"VERIFIED","use":"2D hydraulics Scientific Plane; terrain from 3DEP / IGIO DEM; outputs MODEL_OUTPUT artifacts labeled SIMULATION_DEMO / PROVISIONAL until adjudicated"}
+  ],
+  "implementation_directives": [
+    "Replace all mock parcel geometry in any legacy tsdes_realtime_api.py / PostGIS fallback with live Indiana Data Harvest Current or Posey County FeatureServer geometry queries around the locked site centroid.",
+    "Keep NOAA NWPS observed stage/flow as the first live telemetry attempt and use USGS Water Data as the authoritative observed fallback; keep forecast products separate.",
+    "NFHL = effective/insurance reference; BAFM = Indiana planning/jurisdiction reference. Never conflate them in UI or policy evaluation.",
+    "Label all provisional (P) telemetry and all model outputs with PROVISIONAL / SIMULATION_DEMO status; human authority remains final.",
+    "Acquire 3DEP lidar/DEM through TNMAccess/LidarExplorer and persist derived EvidenceArtifacts with SHA-256 provenance rather than bulk redistribution.",
+    "NLD queries are read-only Evidence plane; no automatic levee accreditation decisions."
   ]
 }
