@@ -1,0 +1,29 @@
+{
+  "version": "1.0.0",
+  "source": {
+    "provider": "USGS 3DEP",
+    "discovery_api": "https://tnmaccess.nationalmap.gov/api/v1/",
+    "index_service": "https://index.nationalmap.gov/arcgis/rest/services/3DEPElevationIndex/MapServer",
+    "preferred_resolution_m": 1,
+    "require_hydro_enforced": true
+  },
+  "processing": {
+    "reprojection": "gdalwarp",
+    "rgb_encoding": "rio-rgbify",
+    "tile_container": "PMTiles",
+    "tile_server": "Martin",
+    "browser_source_type": "raster-dem",
+    "encoding": "mapbox"
+  },
+  "runtime": {
+    "environment_variable": "VITE_TSM_TERRAIN_RGB_URL_TEMPLATE",
+    "example_template": "https://tiles.example.invalid/terrain/{z}/{x}/{y}.png",
+    "required_before_operational_terrain": true,
+    "fail_closed_when_missing": true
+  },
+  "evidence": {
+    "hash_algorithm": "SHA-256",
+    "required_fields": ["source_uri", "retrieved_at", "content_hash_sha256", "horizontal_crs", "vertical_datum", "transformation_chain"],
+    "bulk_source_data_committed_to_git": false
+  }
+}
