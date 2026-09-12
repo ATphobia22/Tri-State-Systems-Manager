@@ -1,7 +1,7 @@
 /** Typed loader contracts for the TSM public-interest engineering console. */
 import type { SiteConstants } from './site';
 export interface AuthContext { uid: string; tenantId: string; roles: string[]; classificationMax: 'public' | 'internal' | 'restricted' | 'confidential'; authenticatedAt: string; }
-export interface RootLoaderData { auth: AuthContext | null; systemClock: string; siteSummary: { address: string; apn: string; bfe: number; lag: number; clearanceAboveBfe: number }; }
+export interface RootLoaderData { auth: AuthContext | null; systemClock: string; siteSummary: { address: string; apn: string; bfe: number; lag: number; clearanceAboveBfe: number }; stage: MapTwinLoaderData['stage']; }
 export interface CharterLoaderData { charterVersion: string; memorialName: string; principle: string; humanAuthorityRule: string; }
 export interface ArchitectureLoaderData { trustPlanes: Array<{ level: number; name: string; description: string }>; coreFlow: string[]; }
 export interface NeedsLoaderData { selectedLocation: { id: string; level: 'region' | 'county' | 'township' | 'municipality'; name: string }; metrics: { housing: number; mobility: number; healthcare: number; employment: number; food: number; education: number; safety: number }; dataContractId: string; deidentified: true; source: string; }
@@ -15,9 +15,11 @@ export interface MapTwinLoaderData {
   site: SiteConstants;
   stage: {
     source: 'NOAA' | 'USGS' | 'UNAVAILABLE'; gaugeId: string; value_ft: number | null; timestamp: string | null;
-    retrievedAt: string | null; status: 'current' | 'provisional' | 'stale' | 'unavailable';
+    retrievedAt: string | null; status: 'current' | 'provisional' | 'stale' | 'unavailable'; qualifier: 'P' | string | null;
+    discharge_cfs: number | null; discharge_observedAt: string | null; discharge_status: 'current' | 'provisional' | 'stale' | 'unavailable' | null;
     floodCategory: 'normal' | 'action' | 'minor' | 'moderate' | 'major' | 'unknown';
     vertical_reference: 'GAGE_DATUM'; wse_navd88_ft: number | null; gage_zero_navd88_ft: number | null; conversion_applied: boolean;
+    sourceUri?: string | null;
   };
   fema: { communityNumber: string; bfe_ft: number; lag_ft: number; clearance_ft: number; noRiseTolerance_ft: number };
   boundingEnvelope: { minLon: number; minLat: number; maxLon: number; maxLat: number };
