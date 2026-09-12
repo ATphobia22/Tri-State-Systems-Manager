@@ -1,29 +1,33 @@
 {
-  "version": "1.0.0",
+  "schema_version": "1.0.0",
   "source": {
-    "provider": "USGS 3DEP",
-    "discovery_api": "https://tnmaccess.nationalmap.gov/api/v1/",
-    "index_service": "https://index.nationalmap.gov/arcgis/rest/services/3DEPElevationIndex/MapServer",
+    "authority": "USGS 3DEP",
+    "tnmaccess": "https://tnmaccess.nationalmap.gov/api/v1/products",
+    "index": "https://index.nationalmap.gov/arcgis/rest/services/3DEPElevationIndex/MapServer",
     "preferred_resolution_m": 1,
-    "require_hydro_enforced": true
+    "require_hydro_enforced": true,
+    "minimum_vertical_datum": "NAVD88"
   },
   "processing": {
-    "reprojection": "gdalwarp",
-    "rgb_encoding": "rio-rgbify",
+    "steps": ["gdalwarp", "hydro-enforcement", "rio-rgbify", "pmtiles-or-xyz", "martin-optional", "maplibre-raster-dem"],
     "tile_container": "PMTiles",
-    "tile_server": "Martin",
     "browser_source_type": "raster-dem",
-    "encoding": "mapbox"
+    "encoding": "mapbox",
+    "tile_size": 256,
+    "terrain_exaggeration": 1.0,
+    "browser_crs": "EPSG:3857"
   },
   "runtime": {
     "environment_variable": "VITE_TSM_TERRAIN_RGB_URL_TEMPLATE",
     "example_template": "https://tiles.example.invalid/terrain/{z}/{x}/{y}.png",
     "required_before_operational_terrain": true,
-    "fail_closed_when_missing": true
+    "fail_closed_when_missing": true,
+    "bulk_source_rasters_in_repository": false,
+    "bulk_tile_pyramids_in_repository": false
   },
   "evidence": {
     "hash_algorithm": "SHA-256",
-    "required_fields": ["source_uri", "retrieved_at", "content_hash_sha256", "horizontal_crs", "vertical_datum", "transformation_chain"],
+    "required_fields": ["source_uri", "source_identifier", "source_version", "retrieved_at", "content_hash_sha256", "horizontal_crs", "vertical_datum", "transformation_chain", "validation_status", "human_review_status"],
     "bulk_source_data_committed_to_git": false
   }
 }
