@@ -27,6 +27,7 @@ function readBodyFixed(req) {
   });
 }
 const healthBody = () => ({ ok: true, service: 'tsm-api', build_sha: BUILD_SHA, node: process.version, uptime_s: Math.round(process.uptime()), planes: ['EVIDENCE', 'GOVERNANCE', 'ENGINEERING', 'GEOSPATIAL', 'DATA_FABRIC'] });
+const latestRecord = (records, parameterCode = null) => records.filter((record) => parameterCode === null || record.provenance?.parameterCode === parameterCode).sort((a, b) => Date.parse(a.observedAt) - Date.parse(b.observedAt)).at(-1) || null;
 
 const server = http.createServer(async (req, res) => {
   const requestId = req.headers['x-tsm-request-id'] || randomUUID();
@@ -47,12 +48,42 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === 'GET' && url.pathname === '/api/hydrologic/live') {
       const usgsId = url.searchParams.get('usgs_id') || '03378500';
-      const nwsId = url.searchParams.get('nws_id') || 'UNWK2';
-      const source = url.searchParams.get('source') || 'usgs';
-      const records = source === 'noaa' ? await fetchNoaaStageFlow({ identifier: nwsId, product: 'observed' }) : await fetchUsgsInstantaneousValues({ stationIds: [usgsId], parameterCodes: ['00065'] });
-      const latest = records.at(-1);
-      if (!latest) return json(res, 503, { ok: false, status: 'unavailable', sourceId: source === 'noaa' ? `NOAA-NWPS-${nwsId}-observed` : `USGS-NWIS-${usgsId}-00065` }, requestId);
-      return json(res, 200, { ok: true, ...latest, source: source.toUpperCase(), freshness: { observedAt: latest.observedAt, retrievedAt: latest.retrievedAt }, requestId }, requestId);
+      const nwsId = url.searchParams.get('nws_id') || 'NHRI3';
+      const source = url.searchParams.get('source') || 'auto';
+      let records;
+      let selectedSource;
+      if (source === 'noaa') {
+        records = await fetchNoaaStageFlow({ identifier: nwsId, product: 'observed' });
+        selectedSource = 'NOAA';
+      } else if (source === 'usgs') {
+        records = await fetchUsgsInstantaneousValues({ stationIds: [usgsId], parameterCodes: ['00065', '00060'] });
+        selectedSource = 'USGS';
+      } else if (source === 'auto') {
+        try {
+          records = await fetchNoaaStageFlow({ identifier: nwsId, product: 'observed' });
+          selectedSource = 'NOAA';
+        } catch (noaaError) {
+          records = await fetchUsgsInstantaneousValues({ stationIds: [usgsId], parameterCodes: ['00065', '00060'] });
+          selectedSource = 'USGS';
+        }
+      } else {
+        return json(res, 400, { error: 'source must be auto, noaa, or usgs' }, requestId);
+      }
+      const stage = selectedSource === 'USGS' ? latestRecord(records, '00065') : latestRecord(records);
+      const discharge = selectedSource === 'USGS' ? latestRecord(records, '00060') : null;
+      if (!stage) return json(res, 503, { ok: false, status: 'unavailable', sourceId: selectedSource === 'NOAA' ? `NOAA-NWPS-${nwsId}-observed` : `USGS-NWIS-${usgsId}-00065` }, requestId);
+      return json(res, 200, {
+        ok: true,
+        ...stage,
+        source: selectedSource,
+        gaugeId: selectedSource === 'NOAA' ? nwsId : usgsId,
+        qualifier: stage.provenance?.qualifier || (stage.status === 'provisional' ? 'P' : null),
+        discharge_cfs: discharge?.value ?? null,
+        discharge_observedAt: discharge?.observedAt ?? null,
+        discharge_status: discharge?.status ?? null,
+        freshness: { observedAt: stage.observedAt, retrievedAt: stage.retrievedAt },
+        requestId,
+      }, requestId);
     }
     if (req.method === 'GET' && url.pathname === '/api/data-sources/health') return json(res, 200, { build_sha: BUILD_SHA, sources: listSourceHealth(), circuits: listUpstreamCircuitHealth() }, requestId);
     if (req.method === 'GET' && url.pathname === '/api/geospatial/posey/site') return json(res, 200, { ok: true, site_id: 'posey-point-township-bonebank-5000ft', horizontal_crs: 'EPSG:2966', horizontal_crs_name: 'NAD83 / Indiana West (ftUS)', vertical_datum: 'NAVD88', bounds: { minX: 2680000, minY: 940000, maxX: 2685000, maxY: 945000 }, terrain: { source_uri: 'https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_2016_2020_DEM/ImageServer', acquisition_year: 2020, authority_class: 'OBSERVATION', derivation_class: 'RAW' }, orthophoto: { source_uri: 'https://imagery.geoplatform.gov/iipp/rest/services/NAIP/NAIP2020_CONUS/ImageServer', acquisition_year: 2020, authority_class: 'OBSERVATION', derivation_class: 'RAW' } }, requestId);
