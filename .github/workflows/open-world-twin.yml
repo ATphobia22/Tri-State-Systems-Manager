@@ -28,7 +28,7 @@ permissions:
 
 concurrency:
   group: open-world-twin-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   validate:
