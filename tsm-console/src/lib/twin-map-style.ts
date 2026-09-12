@@ -13,15 +13,17 @@ export const TWIN_ENGINEERING_CONSTANTS = Object.freeze({
   no_rise_tolerance_ft: 0.0,
 });
 
+const ARCGIS_EXPORT_QUERY = 'bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=512,512&format=png32&transparent=false&f=image';
+
 export function buildTwinStyle(): StyleSpecification {
   const imageryUrl = imagery?.url;
   if (!imageryUrl) throw new Error('Indiana current imagery source contract is missing');
   const sources: StyleSpecification['sources'] = {
     'indiana-current-imagery': {
       type: 'raster',
-      tiles: [`${imageryUrl}/tile/{z}/{y}/{x}`],
-      tileSize: 256,
-      attribution: imagery?.attribution || 'Indiana Geographic Information Office',
+      tiles: [`${imageryUrl}/export?${ARCGIS_EXPORT_QUERY}`],
+      tileSize: 512,
+      attribution: imagery?.attribution || 'Indiana Geographic Information Office (CC0)',
     },
   };
   const layers: StyleSpecification['layers'] = [
@@ -40,8 +42,8 @@ export function applyTwinTerrain(map: Map): boolean {
 }
 
 export function addFloodAuthorityLayers(map: Map): void {
-  map.addSource('fema-nfhl', { type: 'raster', tiles: ['https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/export?bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=1024,1024&format=png32&transparent=true&layers=show:28,16,3,1,34,23&f=image'], tileSize: 256 });
-  map.addSource('indiana-bafm', { type: 'raster', tiles: ['https://gisdata.in.gov/server/rest/services/Best_Available_Flood_Hazard_Layer/MapServer/export?bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=1024,1024&format=png32&transparent=true&layers=show:104,438&f=image'], tileSize: 256 });
+  map.addSource('fema-nfhl', { type: 'raster', tiles: ['https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/export?bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=512,512&format=png32&transparent=true&layers=show:28,16,3,1,34,23&f=image'], tileSize: 512 });
+  map.addSource('indiana-bafm', { type: 'raster', tiles: ['https://gisdata.in.gov/server/rest/services/Best_Available_Flood_Hazard_Layer/MapServer/export?bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=512,512&format=png32&transparent=true&layers=show:104,438&f=image'], tileSize: 512 });
   map.addLayer({ id: 'fema-nfhl-overlay', type: 'raster', source: 'fema-nfhl', paint: { 'raster-opacity': 0.45 }, layout: { visibility: 'none' } });
   map.addLayer({ id: 'indiana-bafm-overlay', type: 'raster', source: 'indiana-bafm', paint: { 'raster-opacity': 0.45 }, layout: { visibility: 'none' } });
 }
