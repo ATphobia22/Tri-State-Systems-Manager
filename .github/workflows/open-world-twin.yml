@@ -67,7 +67,8 @@ jobs:
         working-directory: tsm-console
         run: node -e "JSON.parse(require('fs').readFileSync('app-manifest.json','utf8'))"
       - name: HEC-RAS schemas parse
-        run: python - <<'PY'
+        run: |
+          python - <<'PY'
           import json
           from pathlib import Path
           for path in Path('data/schemas').glob('hec-ras-2d-*.json'):
