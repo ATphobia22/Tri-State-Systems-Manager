@@ -16,7 +16,7 @@ export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
     if (!response.ok) throw new Error(`TSM hydrologic API HTTP ${response.status}`);
     const record = await response.json() as Record<string, unknown>;
     const value = typeof record.value === 'number' ? record.value : null;
-    const conversion = record.source === 'USGS' && value != null ? convertGageHeightToNavd88('03378500', value) : null;
+    const conversion = value != null ? convertGageHeightToNavd88('03378500', value) : null;
     return {
       source: record.source === 'NOAA' || record.source === 'USGS' ? record.source : 'UNAVAILABLE',
       gaugeId: typeof record.gaugeId === 'string' ? record.gaugeId : '03378500', value_ft: value,
