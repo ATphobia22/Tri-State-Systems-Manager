@@ -1,0 +1,15 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://tuckerinc82.org/schemas/engineering-section/v1.0.0.json",
+  "title":"TSM Subsurface-to-Finished-Grade Engineering Section",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["sectionId","verticalDatum","layers"],
+  "properties":{
+    "sectionId":{"type":"string","minLength":1},
+    "verticalDatum":{"type":"string","const":"NAVD88"},
+    "horizontalCrs":{"type":"string","minLength":1},
+    "layers":{"type":"array","minItems":1,"items":{"type":"object","additionalProperties":true,"required":["type","sourceId"],"properties":{"type":{"type":"string"},"sourceId":{"type":"string","minLength":1},"elevationTopFt":{"type":["number","null"]},"elevationBottomFt":{"type":["number","null"]},"materialClass":{"type":["string","null"]},"designParameters":{"type":"object","additionalProperties":true}}}},
+    "instrumentation":{"type":"array","items":{"type":"object","additionalProperties":true}}
+  }
+}
