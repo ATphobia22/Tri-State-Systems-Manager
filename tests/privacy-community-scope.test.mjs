@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { spawn } from 'node:child_process';
 
 const PUBLIC_SOURCE_PATHS = [
   'backend',
@@ -19,7 +21,7 @@ const FORBIDDEN_PUBLIC_IDENTIFIERS = [
 
 const listGitFiles = async () => {
   const { stdout } = await new Promise((resolve, reject) => {
-    const child = require('node:child_process').spawn('git', ['ls-files', ...PUBLIC_SOURCE_PATHS], {
+    const child = spawn('git', ['ls-files', ...PUBLIC_SOURCE_PATHS], {
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     let stdout = '';
@@ -37,7 +39,7 @@ test('public source tree contains no private residence anchor identifiers', asyn
   const violations = [];
 
   for (const file of files) {
-    const content = await import('node:fs/promises').then((fs) => fs.readFile(file, 'utf8'));
+    const content = await readFile(file, 'utf8');
     for (const identifier of FORBIDDEN_PUBLIC_IDENTIFIERS) {
       if (content.includes(identifier)) {
         violations.push(`${file}: ${identifier}`);
