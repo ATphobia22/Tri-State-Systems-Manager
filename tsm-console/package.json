@@ -9,6 +9,7 @@
     "dev": "vite",
     "dev:proxy": "node server/token-proxy.mjs",
     "dev:all": "node server/token-proxy.mjs & vite",
+    "telemetry:server": "node server/telemetry-server.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "proxy": "node server/token-proxy.mjs",
