@@ -2,7 +2,8 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "dataset_id": "IN2020_QL2_POSEY_POINT_TOWNSHIP_COMMUNITY",
   "license": "CC0-1.0",
-  "scope": "community-scale lower Wabash–Ohio confluence engineering context",
+  "scope": "community",
+  "scope_description": "Community-scale lower Wabash–Ohio confluence engineering context",
   "s3_bucket_base": "s3://giselevationingov/las/statewide/2020/SPW/ql2/",
   "site_parameters": {
     "scope": "community",
