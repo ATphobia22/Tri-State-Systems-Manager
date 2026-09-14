@@ -1,0 +1,7 @@
+{$ALERTMANAGER_HOST:localhost} {
+    tls {$ALERTMANAGER_TLS_CERT} {$ALERTMANAGER_TLS_KEY}
+
+    basicauth / {$ALERTMANAGER_USER} {$ALERTMANAGER_PASSWORD_HASH}
+
+    reverse_proxy 127.0.0.1:9093
+}
