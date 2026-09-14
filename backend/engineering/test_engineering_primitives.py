@@ -36,7 +36,7 @@ class EngineeringPrimitiveTests(unittest.TestCase):
             self.assertEqual(len(refs), 1)
             self.assertEqual(read_water_surface(base, dataset), [100.0, 101.0, 102.0])
             result = compare_water_surface(base, proposed, criterion_ft=0.01)
-            self.assertEqual(result.max_rise_ft, 0.005)
+            self.assertAlmostEqual(result.max_rise_ft, 0.005, places=9)
             self.assertTrue(result.compliant)
             self.assertEqual(len(result.base_model_hash), 64)
 
