@@ -34,7 +34,7 @@
     "test:geodetic": "node --test tests/geodetic-pipeline.test.mjs",
     "test:firm": "node --test tests/firm-*.test.mjs",
     "test:mock-data": "node ../scripts/no-production-mock-data.test.mjs",
-    "test:geospatial-tile-fabric": "node --test tests/geospatial-tile-fabric-contract.test.mjs tests/geospatial-tile-source-resolver.test.mjs tests/open-world-terrain-imagery.test.mjs tests/open-world-overlays.test.mjs tests/open-world-hydrology.test.mjs tests/open-world-visual-layer-contract.test.mjs tests/historical-point-township.test.mjs tests/tile-health-contract.test.mjs",
+    "test:geospatial-tile-fabric": "node --test tests/geospatial-tile-fabric-contract.test.mjs tests/geospatial-tile-source-resolver.test.mjs tests/open-world-terrain-imagery.test.mjs tests/open-world-overlays.test.mjs tests/open-world-hydrology.test.mjs tests/open-world-visual-layer-contract.test.mjs tests/historical-point-township.test.mjs tests/tile-health-contract.test.mjs tests/open-world-live-tile.test.mjs",
     "check:tile-health": "node scripts/geospatial/tile-health-check.mjs",
     "check:mock-data": "node ../scripts/no-production-mock-data.mjs .",
     "check:parse": "node scripts/parse-check.mjs",
@@ -78,6 +78,7 @@
     "@types/three": "^0.170.0",
     "@vitejs/plugin-react": "^6.1.1",
     "typescript": "^7.0.2",
+    "vite": "^8.2.2",
     "vitest": "^5.0.0"
   },
   "engines": { "node": ">=22" }
