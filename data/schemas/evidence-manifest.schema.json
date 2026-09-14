@@ -1,0 +1,23 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://tuckerinc82.org/schemas/evidence-manifest/v1.0.0.json",
+  "title":"TSM Engineering Evidence Manifest",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["artifactId","scenarioId","sources","crs","verticalDatum","modelVersion","equationSetId","reviewerRole","reviewState","inputSha256","outputSha256","manifestSha256"],
+  "properties":{
+    "artifactId":{"type":"string","minLength":1},
+    "scenarioId":{"type":"string","minLength":1},
+    "sources":{"type":"array","items":{"type":"object","additionalProperties":true}},
+    "crs":{"type":"string","minLength":1},
+    "verticalDatum":{"type":"string","minLength":1},
+    "modelVersion":{"type":"string","minLength":1},
+    "equationSetId":{"type":"string","minLength":1},
+    "numericalTolerance":{"type":["number","null"],"minimum":0},
+    "reviewerRole":{"type":"string","minLength":1},
+    "reviewState":{"type":"string","enum":["MODEL_OUTPUT","ENGINEERING_REVIEW_READY","ENGINEER_ACCEPTED","AGENCY_ACCEPTED"]},
+    "inputSha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},
+    "outputSha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},
+    "manifestSha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}
+  }
+}
