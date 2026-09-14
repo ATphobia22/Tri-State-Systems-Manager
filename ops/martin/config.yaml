@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/maplibre/martin/main/schemas/config.json
+# TSM Martin tile-plane configuration.
+# Secrets are supplied through environment variables; no credentials belong here.
+
+base_path: /tiles
+listen_addresses:
+  - 0.0.0.0:3000
+
+cache:
+  size_mb: 512
+
+postgres:
+  connection_string: ${TSM_MARTIN_DATABASE_URL}
+  pool_size: 20
+  reload_interval: 10m
+  retry_timeout: 30s
+  cache:
+    minzoom: 0
+    maxzoom: 16
+
+pmtiles:
+  paths:
+    - /data/pmtiles
+  recursive: true
+  reload_interval: 10m
+
+styles:
+  paths:
+    - /data/styles
+
+# The authoritative imagery, terrain, FEMA, Indiana DNR, USGS and USACE
+# services remain registered in TSM. Only approved materialized derivatives
+# are mounted here; restricted government imagery is not committed to Git.
