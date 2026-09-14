@@ -3,6 +3,7 @@ import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { MapTwinLoaderData } from '../types/loaders';
 import { buildTwinStyle, applyTwinTerrain, addFloodAuthorityLayers, applyLiveStageMetadata, TWIN_ENGINEERING_CONSTANTS } from '../lib/twin-map-style';
+import { buildArcGisWmsTileTemplate, INDIANA_CURRENT_IMAGERY_WMS, USGS_3DEP_ELEVATION_WMS } from '../lib/open-world-wms';
 
 interface RealWorldTwinMapProps { data: MapTwinLoaderData; }
 const NEW_HARMONY_GAGE: [number, number] = [-87.9414145, 38.13089124];
@@ -39,6 +40,43 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
     map.addControl(new maplibregl.NavigationControl(), 'top-right');
     map.on('load', () => {
       applyTwinTerrain(map);
+
+      const imagerySourceId = 'indiana-current-imagery-live';
+      if (!map.getSource(imagerySourceId)) {
+        map.addSource(imagerySourceId, {
+          type: 'raster',
+          tiles: [buildArcGisWmsTileTemplate(INDIANA_CURRENT_IMAGERY_WMS)],
+          tileSize: 512,
+          attribution: 'Indiana Geographic Information Office — Current Orthophotography (CC0)',
+        });
+      }
+      if (!map.getLayer('indiana-current-imagery-live-layer')) {
+        map.addLayer({
+          id: 'indiana-current-imagery-live-layer',
+          type: 'raster',
+          source: imagerySourceId,
+          paint: { 'raster-opacity': 1 },
+        }, map.getLayer('fema-nfhl-overlay') ? 'fema-nfhl-overlay' : undefined);
+      }
+
+      const elevationSourceId = 'usgs-3dep-hillshade-live';
+      if (!map.getSource(elevationSourceId)) {
+        map.addSource(elevationSourceId, {
+          type: 'raster',
+          tiles: [buildArcGisWmsTileTemplate(USGS_3DEP_ELEVATION_WMS, '0')],
+          tileSize: 512,
+          attribution: 'USGS National Map 3DEP',
+        });
+      }
+      if (!map.getLayer('usgs-3dep-hillshade-live-layer')) {
+        map.addLayer({
+          id: 'usgs-3dep-hillshade-live-layer',
+          type: 'raster',
+          source: elevationSourceId,
+          paint: { 'raster-opacity': 0.16 },
+        }, map.getLayer('fema-nfhl-overlay') ? 'fema-nfhl-overlay' : undefined);
+      }
+
       addFloodAuthorityLayers(map);
       applyLiveStageMetadata(map, data);
       new maplibregl.Marker().setLngLat(NEW_HARMONY_GAGE).setPopup(buildGagePopup(data)).addTo(map);
@@ -50,7 +88,9 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    for (const [id, visible] of [['fema-nfhl-overlay', femaVisible], ['indiana-bafm-overlay', bafmVisible]] as const) map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
+    for (const [id, visible] of [['fema-nfhl-overlay', femaVisible], ['indiana-bafm-overlay', bafmVisible]] as const) {
+      if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
+    }
   }, [femaVisible, bafmVisible]);
 
   const stage = data.stage.value_ft;
@@ -60,9 +100,9 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
   return (
     <section aria-label="Real-source Indiana open-world digital twin" style={{ position: 'relative', height: '100%', minHeight: 480, background: '#020617' }}>
       <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
-      <div style={{ position: 'absolute', left: 12, top: 12, zIndex: 2, maxWidth: 500, padding: 12, borderRadius: 10, background: 'rgba(2,6,23,0.9)', color: '#e2e8f0', fontSize: 12, lineHeight: 1.5 }}>
+      <div style={{ position: 'absolute', left: 12, top: 12, zIndex: 2, maxWidth: 520, padding: 12, borderRadius: 10, background: 'rgba(2,6,23,0.9)', color: '#e2e8f0', fontSize: 12, lineHeight: 1.5 }}>
         <strong>Real-source open-world twin</strong>
-        <div>Indiana Current Imagery · 3DEP Terrain-RGB {terrainConfigured ? 'connected' : 'not configured'}</div>
+        <div>Indiana Current Imagery: live WMS · USGS 3DEP: dynamic elevation/hillshade · Configured terrain mesh: {terrainConfigured ? 'yes' : 'no'}</div>
         <div>FEMA NFHL: effective / insurance · Indiana BAFM: planning / Flood Control Act</div>
         <div>Stage: {stage == null ? 'unavailable' : `${stage.toFixed(2)} ft`} {data.stage.qualifier ? `(${data.stage.qualifier})` : ''} · {data.stage.source}</div>
         <div>WSE NAVD88: {wse == null ? 'unavailable' : `${wse.toFixed(2)} ft`} · Discharge: {data.stage.discharge_cfs == null ? 'unavailable' : `${data.stage.discharge_cfs.toLocaleString()} cfs`}</div>
