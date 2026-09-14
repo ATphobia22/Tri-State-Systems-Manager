@@ -1,6 +1,6 @@
 /**
- * Sovereign site constants for 13101 Bonebank Road
- * Source of truth: tsm-site-constants-13101-bonebank.json
+ * Community region constants used by the console.
+ * No private residence, parcel/APN, or house-specific engineering target is stored here.
  */
 
 export interface SiteConstants {
@@ -16,11 +16,11 @@ export interface SiteConstants {
     verticalDatum: string;
   };
   elevations: {
-    bfe_ft: number;
-    lag_ft: number;
-    ffe_ft: number;
-    bermCrest_ft: number;
-    clearanceAboveBfe_ft: number;
+    bfe_ft: number | null;
+    lag_ft: number | null;
+    ffe_ft: number | null;
+    bermCrest_ft: number | null;
+    clearanceAboveBfe_ft: number | null;
   };
   boundingEnvelope: {
     minLon: number;
@@ -38,7 +38,7 @@ export interface SiteConstants {
       minor: number;
       moderate: number;
       major: number;
-      record: number;
+      record: number | null;
     };
   };
   femaCommunities: {
@@ -48,43 +48,42 @@ export interface SiteConstants {
   };
 }
 
-/** Runtime constant object — never mutate at runtime */
 export const SITE: SiteConstants = {
-  address: '13101 Bonebank Road',
-  township: 'Point Township',
+  address: 'Lower Wabash-Ohio Confluence Community',
+  township: 'Point Township / regional community scope',
   county: 'Posey County',
   state: 'Indiana',
   region: 'Tri-State River Valley',
-  apn: '65-19-08-100-008.001-010',
+  apn: 'COMMUNITY_SCOPE',
   crs: {
-    horizontalEpsg: 2966, // NEVER 2967 — Omni Canvas prototype error
+    horizontalEpsg: 2966,
     horizontalName: 'NAD83 / Indiana West (ftUS)',
     verticalDatum: 'NAVD88',
   },
   elevations: {
-    bfe_ft: 375.0,
-    lag_ft: 377.2,
-    ffe_ft: 382.5,
-    bermCrest_ft: 379.8,
-    clearanceAboveBfe_ft: 2.2,
+    bfe_ft: null,
+    lag_ft: null,
+    ffe_ft: null,
+    bermCrest_ft: null,
+    clearanceAboveBfe_ft: null,
   },
   boundingEnvelope: {
-    minLon: -88.0150,
-    minLat: 37.8920,
-    maxLon: -87.9850,
-    maxLat: 37.9150,
+    minLon: -88.35,
+    minLat: 37.55,
+    maxLon: -87.55,
+    maxLat: 38.35,
   },
   noaaGauge: {
-    nwsId: 'MTVI3',
-    name: 'Ohio River at Mount Vernon',
-    lat: 37.9286,
-    lon: -87.8956,
+    nwsId: 'NHRI3',
+    name: 'Wabash River at New Harmony',
+    lat: 38.13089124398878,
+    lon: -87.94141452141561,
     stages: {
-      action: 28,
-      minor: 35,
-      moderate: 45,
-      major: 52,
-      record: 59.21,
+      action: 0,
+      minor: 0,
+      moderate: 0,
+      major: 0,
+      record: null,
     },
   },
   femaCommunities: {
