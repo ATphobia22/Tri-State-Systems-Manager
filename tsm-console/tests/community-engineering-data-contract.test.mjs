@@ -1,11 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 
-const readJson = async (path) => JSON.parse(await readFile(path, 'utf8'));
+const repositoryRoot = resolve(import.meta.dirname, '../..');
+const readJson = async (relativePath) => JSON.parse(
+  await readFile(resolve(repositoryRoot, relativePath), 'utf8'),
+);
 
 test('river registry includes the Louisville District Ohio River structure network', async () => {
-  const registry = await readJson('../artifacts/tsm-river-valley-realtime-stations-v1.json');
+  const registry = await readJson('artifacts/tsm-river-valley-realtime-stations-v1.json');
   const names = new Set(registry.candidate_structures.map((item) => item.name));
   for (const name of [
     'Markland Locks and Dam',
@@ -21,7 +25,7 @@ test('river registry includes the Louisville District Ohio River structure netwo
 });
 
 test('river registry requires source and quality metadata for live stations', async () => {
-  const registry = await readJson('../artifacts/tsm-river-valley-realtime-stations-v1.json');
+  const registry = await readJson('artifacts/tsm-river-valley-realtime-stations-v1.json');
   for (const station of registry.verified_observation_stations) {
     assert.equal(typeof station.station_id, 'string');
     assert.equal(typeof station.provider, 'string');
@@ -31,7 +35,7 @@ test('river registry requires source and quality metadata for live stations', as
 });
 
 test('dredged material schema exists before implementation is accepted', async () => {
-  const schema = await readJson('../data/schemas/dredged-material.schema.json');
+  const schema = await readJson('data/schemas/dredged-material.schema.json');
   assert.equal(schema.$id, 'https://tuckerinc82.org/schemas/dredged-material/v1.0.0.json');
   for (const field of [
     'source_dredging_project',
