@@ -1,6 +1,10 @@
 import RiverGaugeBoard from '../components/RiverGaugeBoard';
 import EngineeringSectionCutaway, { type EngineeringSectionModel } from '../components/EngineeringSectionCutaway';
 
+const EVIDENCE_AUTHORITY_BOUNDARY = 'MODEL/UI · BACKEND-SEAL REQUIRED';
+const EVIDENCE_OBSERVATION_BOUNDARY = 'OBSERVATION BOUND';
+const EVIDENCE_BACKEND_SEAL_REQUIRED = 'BACKEND-SEAL REQUIRED';
+
 const COMMUNITY_SECTION: EngineeringSectionModel = {
   sectionId: 'community-section-review-input', verticalDatum: 'NAVD88', horizontalCrs: 'EPSG:2966', reviewState: 'INPUT_INCOMPLETE',
   layers: [
@@ -18,6 +22,9 @@ export default function CinematicHudView(): JSX.Element {
     <header style={{ border: '1px solid #334155', borderRadius: 16, padding: 18, background: '#07111c' }}>
       <h1 style={{ margin: 0, fontSize: '1.35rem' }}>Tri-State River Valley Engineering Console</h1>
       <p style={{ marginBottom: 0, color: '#cbd5e1' }}>Community-scale evidence, river observations and engineering review. Observations, forecasts, models and simulations remain explicitly separated.</p>
+      <p aria-label="Evidence authority boundary" style={{ marginBottom: 0 }}>{EVIDENCE_AUTHORITY_BOUNDARY}</p>
+      <p aria-label="Observation boundary" style={{ marginBottom: 0 }}>{EVIDENCE_OBSERVATION_BOUNDARY}</p>
+      <p aria-label="Backend evidence seal status" style={{ marginBottom: 0 }}>{EVIDENCE_BACKEND_SEAL_REQUIRED}</p>
     </header>
     <RiverGaugeBoard />
     <EngineeringSectionCutaway model={COMMUNITY_SECTION} />
