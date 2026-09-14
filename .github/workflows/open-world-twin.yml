@@ -9,12 +9,18 @@ on:
       - 'tsm-console/src/lib/twin-map-style.ts'
       - 'tsm-console/src/lib/map-layers.ts'
       - 'tsm-console/src/lib/hec-ras-contracts.ts'
+      - 'tsm-console/src/lib/geospatial-tile-*.ts'
+      - 'tsm-console/src/lib/open-world-*.ts'
+      - 'tsm-console/src/components/OpenWorld*.tsx'
       - 'tsm-console/src/routes/TwinCanvasView.tsx'
       - 'tsm-console/server/tiles/**'
       - 'tsm-console/server/telemetry/**'
       - 'tsm-console/config/terrain-pipeline.json'
       - 'data/schemas/hec-ras-2d-*.json'
+      - 'data/schemas/geospatial-tile-fabric.schema.json'
+      - 'artifacts/tsm-geospatial-tile-fabric-v1.json'
       - 'docs/OPEN-WORLD-3D-TWIN-AND-HECRAS-MESH-v1.0.md'
+      - 'docs/OPEN-WORLD-LIVE-TILE-FABRIC-v1.md'
       - 'tools/ortho/**'
       - 'tsm-console/package.json'
       - 'tsm-console/package-lock.json'
@@ -46,6 +52,12 @@ jobs:
       - name: TypeScript validation
         working-directory: tsm-console
         run: npx --no-install tsc --noEmit
+      - name: Geospatial tile fabric validation
+        working-directory: tsm-console
+        run: npm run test:geospatial-tile-fabric
+      - name: Geospatial tile health gate
+        working-directory: tsm-console
+        run: npm run check:tile-health
       - name: Real-source twin contract tests
         working-directory: tsm-console
         run: npm run test:twin
