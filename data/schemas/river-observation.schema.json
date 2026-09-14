@@ -1,0 +1,24 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://tuckerinc82.org/schemas/river-observation/v1.0.0.json",
+  "title":"TSM River Observation",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["stationId","provider","observedAt","retrievedAt","value","unit","sourceUri","freshness","provisional"],
+  "properties":{
+    "stationId":{"type":"string","minLength":1},
+    "provider":{"type":"string","enum":["USGS","NOAA"]},
+    "observedAt":{"type":"string","format":"date-time"},
+    "retrievedAt":{"type":"string","format":"date-time"},
+    "value":{"type":"number"},
+    "unit":{"type":"string","minLength":1},
+    "parameterCode":{"type":["string","null"]},
+    "qualifier":{"type":["string","null"]},
+    "provisional":{"type":"boolean"},
+    "verticalDatum":{"type":["string","null"]},
+    "sourceUri":{"type":"string","format":"uri"},
+    "freshness":{"type":"string","enum":["current","stale"]},
+    "dischargeCfs":{"type":["number","null"]},
+    "dischargeObservedAt":{"type":["string","null"],"format":"date-time"}
+  }
+}
