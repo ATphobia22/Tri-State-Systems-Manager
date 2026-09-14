@@ -10,6 +10,7 @@ import { appendArtifact, sha256Hex, recordVerification } from '../store/evidence
 import { fetchUsgsInstantaneousValues } from './usgs-nwis.mjs';
 import { fetchNoaaStageFlow } from './noaa-nwps.mjs';
 import { classifySourceFreshness } from '../reliability/source-policies.mjs';
+import { incrementTelemetryCounter } from '../telemetry/prometheus-exporter.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REGISTRY_PATH = process.env.TSM_AUTHORITY_REGISTRY || path.join(__dirname, '../../../tsm-authority-registry-v35.json');
@@ -31,22 +32,24 @@ function appendObservation(record, extra = {}) {
   const payload = { ...record, ...extra };
   const canonical = leafCanonical(payload);
   const hash = sha256Hex(canonical);
-  return appendArtifact({
+  const artifact = appendArtifact({
     artifact_type: 'authoritative_source_record', source_authority: record.provenance.provider, source_uri: record.sourceUri,
     source_identifier: record.sourceId, retrieved_at: record.retrievedAt, observation_time: record.observedAt,
     horizontal_crs: record.crs, vertical_datum: record.verticalDatum, vertical_datum_converted: extra.wse_navd88_ft != null ? 'NAVD88' : null,
     content_hash_sha256: hash, authority_class: record.dataClass === 'forecast' ? 'FORECAST' : 'OBSERVATION', derivation_class: 'RAW',
     validation_status: record.status === 'current' ? 'provisional' : record.status, governance_status: 'human_review_required',
-    is_simulation_demo: false, software_version: 'tsm-ingestion@0.4.0', operator_or_service_identity: 'authoritative-data-fabric',
+    is_simulation_demo: false, software_version: 'tsm-ingestion@0.5.0', operator_or_service_identity: 'authoritative-data-fabric',
     payload, _canonical_for_verify: canonical, notes: 'Authoritative source observation. Not a regulatory determination.',
   });
+  incrementTelemetryCounter('tsm_telemetry_ingest_total', { provider: record.provenance.provider, data_class: record.dataClass });
+  return artifact;
 }
 
 export async function ingestUsgsNode(usgsId, { timeoutMs = 10000 } = {}) {
   const node = (loadRegistry().hydrologic_nodes || []).find((candidate) => candidate.usgs_id === usgsId);
   if (!node) return { ok: false, code: 'FAIL_CLOSED', error: `usgs_id ${usgsId} not in Authority Registry` };
   try {
-    const records = await fetchUsgsInstantaneousValues({ stationIds: [usgsId], parameterCodes: ['00065'], endTime: undefined });
+    const records = await fetchUsgsInstantaneousValues({ stationIds: [usgsId], parameterCodes: ['00065'], signal: AbortSignal.timeout(timeoutMs) });
     const latest = records.at(-1);
     if (!latest) return { ok: false, code: 'FAIL_CLOSED', error: 'USGS returned no 00065 observation' };
     const freshnessState = classifySourceFreshness('USGS_NWIS_OBSERVATION', { observedAt: latest.observedAt, retrievedAt: latest.retrievedAt });
@@ -60,7 +63,7 @@ export async function ingestUsgsNode(usgsId, { timeoutMs = 10000 } = {}) {
 export async function ingestNwpsGauge(nwsId, { product = 'observed', timeoutMs = 10000 } = {}) {
   if (!['observed', 'forecast'].includes(product)) return { ok: false, code: 'INVALID_PRODUCT', error: 'product must be observed or forecast' };
   try {
-    const records = await fetchNoaaStageFlow({ identifier: nwsId, product });
+    const records = await fetchNoaaStageFlow({ identifier: nwsId, product, signal: AbortSignal.timeout(timeoutMs) });
     const latest = records.at(-1);
     if (!latest) return { ok: false, code: 'FAIL_CLOSED', error: `NOAA ${product} returned no records` };
     const freshnessState = classifySourceFreshness(product === 'observed' ? 'NOAA_NWPS_OBSERVATION' : 'NOAA_NWPS_FORECAST', { observedAt: latest.observedAt, retrievedAt: latest.retrievedAt });
@@ -71,10 +74,12 @@ export async function ingestNwpsGauge(nwsId, { product = 'observed', timeoutMs =
 }
 
 export async function runHydrologicBatch() {
-  return [
-    { node: '03378500', ...(await ingestUsgsNode('03378500')) },
-    { node: '03322000', ...(await ingestUsgsNode('03322000')) },
-    { node: 'MTVI3', ...(await ingestNwpsGauge('MTVI3')) },
-    { node: 'UNWK2', ...(await ingestNwpsGauge('UNWK2')) },
+  const jobs = [
+    ['03378500', () => ingestUsgsNode('03378500')],
+    ['03322000', () => ingestUsgsNode('03322000')],
+    ['MTVI3', () => ingestNwpsGauge('MTVI3')],
+    ['UNWK2', () => ingestNwpsGauge('UNWK2')],
   ];
+  const results = await Promise.all(jobs.map(async ([node, job]) => ({ node, ...(await job()) })));
+  return results;
 }
