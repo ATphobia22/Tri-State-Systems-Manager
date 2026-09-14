@@ -17,7 +17,7 @@ concurrency:
 jobs:
   build-and-test:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 35
     permissions:
       contents: read
       id-token: write
@@ -111,6 +111,30 @@ jobs:
         run: npm run build
       - name: Test suites
         run: npm run test:all
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - name: Install backend engineering dependencies
+        working-directory: .
+        run: python -m pip install --upgrade pip && python -m pip install -r backend/requirements.txt
+      - name: Backend engineering primitive tests
+        working-directory: .
+        run: python -m unittest backend.engineering.test_engineering_primitives -v
+      - name: Validate Alertmanager configuration
+        working-directory: .
+        run: |
+          docker run --rm -v "$PWD/ops/alertmanager:/config:ro" prom/alertmanager:latest amtool check-config /config/alertmanager.yml
+      - name: Validate Prometheus configuration when present
+        working-directory: .
+        run: |
+          if [ -f ops/prometheus/prometheus.yml ]; then
+            docker run --rm -v "$PWD/ops/prometheus:/config:ro" prom/prometheus:latest promtool check config /config/prometheus.yml
+          else
+            echo 'No Prometheus runtime configuration committed; exporter contract remains application-owned.'
+          fi
       - name: Package production artifact for attestation
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: tar -czf artifacts/tsm-console-dist.tar.gz -C dist .
