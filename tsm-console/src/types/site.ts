@@ -1,6 +1,7 @@
 /**
  * Community region constants used by the console.
  * No private residence, parcel/APN, or house-specific engineering target is stored here.
+ * The elevation values are retained only as legacy scenario inputs and are not universal design criteria.
  */
 
 export interface SiteConstants {
@@ -10,17 +11,18 @@ export interface SiteConstants {
   state: string;
   region: string;
   apn: string;
+  elevationEvidenceStatus: 'LEGACY_SCENARIO_REQUIRES_PROJECT_EVIDENCE';
   crs: {
     horizontalEpsg: number;
     horizontalName: string;
     verticalDatum: string;
   };
   elevations: {
-    bfe_ft: number | null;
-    lag_ft: number | null;
-    ffe_ft: number | null;
-    bermCrest_ft: number | null;
-    clearanceAboveBfe_ft: number | null;
+    bfe_ft: number;
+    lag_ft: number;
+    ffe_ft: number;
+    bermCrest_ft: number;
+    clearanceAboveBfe_ft: number;
   };
   boundingEnvelope: {
     minLon: number;
@@ -55,17 +57,18 @@ export const SITE: SiteConstants = {
   state: 'Indiana',
   region: 'Tri-State River Valley',
   apn: 'COMMUNITY_SCOPE',
+  elevationEvidenceStatus: 'LEGACY_SCENARIO_REQUIRES_PROJECT_EVIDENCE',
   crs: {
     horizontalEpsg: 2966,
     horizontalName: 'NAD83 / Indiana West (ftUS)',
     verticalDatum: 'NAVD88',
   },
   elevations: {
-    bfe_ft: null,
-    lag_ft: null,
-    ffe_ft: null,
-    bermCrest_ft: null,
-    clearanceAboveBfe_ft: null,
+    bfe_ft: 375.0,
+    lag_ft: 377.2,
+    ffe_ft: 382.5,
+    bermCrest_ft: 379.8,
+    clearanceAboveBfe_ft: 2.2,
   },
   boundingEnvelope: {
     minLon: -88.35,
