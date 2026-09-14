@@ -1,0 +1,29 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "artifact_type":"tsm.historical.community_flood_evidence.v1",
+  "version":"1.0.0",
+  "status":"HISTORICAL_RECORDED",
+  "provenanceClass":"HISTORICAL_COMMUNITY_EVIDENCE",
+  "source":{"name":"Tucker Family Flood History and Heritage — Point Township Indiana.xlsx","fileHash":null},
+  "privacyRedacted":true,
+  "scope":"Point Township and lower Wabash-Ohio confluence community history",
+  "events":[
+    {"eventId":"community-flood-1950","eventYear":1950,"observations":["Flood crest recorded in family/community historical table"]},
+    {"eventId":"community-flood-1958","eventYear":1958,"observations":["Flood crest recorded in family/community historical table"]},
+    {"eventId":"community-flood-1961","eventYear":1961,"observations":["Community/family isolation documented May 12-20","Swain Bridge reported with approximately 1 ft of water over the bridge","Approximately 8 days of isolation documented"],"communityImpact":["road and bridge access interruption","family/community isolation"]},
+    {"eventId":"community-flood-1962","eventYear":1962,"observations":["Community/family isolation documented March 7-15","Approximately 8.5 inches of water reported over bridge floor"],"communityImpact":["road and bridge access interruption","family/community isolation"]},
+    {"eventId":"community-flood-1963","eventYear":1963,"observations":["Community/family isolation documented March 17-30","Approximately 1.5 ft of water reported over bridge floor","Historical stationary-river observation recorded"],"communityImpact":["road and bridge access interruption","family/community isolation"]},
+    {"eventId":"community-flood-1964","eventYear":1964,"observations":["Extreme flood documented March 13-27","Top banister of Swain Bridge reported out of water","Road reported crossed by floodwater in eight locations","Historical record describes this as the most severe shutdown on record at that time"],"communityImpact":["extended road isolation","bridge access interruption","agricultural access impact"]},
+    {"eventId":"community-flood-1967","eventYear":1967,"observations":["Flood crest recorded in family/community historical table"]},
+    {"eventId":"community-flood-1969","eventYear":1969,"observations":["Record Wabash flood described","Historical note says rivers crested simultaneously","Agricultural and culvert impacts documented"],"communityImpact":["agricultural impact","transportation drainage impact"]},
+    {"eventId":"community-flood-1970","eventYear":1970,"observations":["Flood crest recorded in family/community historical table"]},
+    {"eventId":"community-flood-1979","eventYear":1979,"observations":["Flood crest recorded in family/community historical table"]},
+    {"eventId":"community-flood-1981","eventYear":1981,"observations":["Flood crest recorded in family/community historical table"]},
+    {"eventId":"community-flood-1982","eventYear":1982,"observations":["Flood crest recorded in family/community historical table"]},
+    {"eventId":"community-flood-1983","eventYear":1983,"observations":["Flood crest recorded in family/community historical table"]},
+    {"eventId":"community-flood-2011","eventYear":2011,"observations":["Family/community daily readings span March 28-April 15","Workbook records J.T. Myers, Shawneetown and New Harmony observations","Workbook peak shown for J.T. Myers is 54.27 ft"],"communityImpact":["flood monitoring","transportation/access concern"]},
+    {"eventId":"community-flood-2018","eventYear":2018,"observations":["Workbook readings span February 21-March 3","Cross-location observations include a recorded peak of 52.61 ft","Workbook notes road remained passable at 52.3 ft"],"communityImpact":["transportation/access monitoring"]}
+  ],
+  "engineeringUse":"Historical replay and community resilience evidence only. Values are not substituted for agency records, survey control, regulatory determinations, or calibrated model inputs.",
+  "excludedFromPublicArchitecture":["private residence address","parcel/APN identifiers","house-specific trigger levels"]
+}
