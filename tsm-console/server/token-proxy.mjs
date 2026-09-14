@@ -7,6 +7,7 @@ import { fetchNoaaStageFlow } from './ingestion/noaa-nwps.mjs';
 import { listSourceHealth } from './ingestion/source-health.mjs';
 import { listUpstreamCircuitHealth } from './ingestion/http-client.mjs';
 import { listAuthoritativeSources, fetchAuthoritativeJson } from './ingestion/source-fabric.mjs';
+import { fetchRiverNetwork } from './ingestion/river-network-api.mjs';
 import { evaluatePolicies, POLICIES } from './policy/jurisdiction-engine.mjs';
 import { evaluateCompensatoryStorage, buildCompensatoryStorageCanonical } from './engineering/compensatory-storage.mjs';
 import { servePoseyAsset } from './geospatial/posey-assets.mjs';
@@ -15,7 +16,7 @@ import { handleFirmRoute } from './geospatial/firm-routes.mjs';
 const PORT = Number(process.env.PORT || 8787);
 const BUILD_SHA = process.env.GITHUB_SHA || process.env.TSM_BUILD_SHA || 'local';
 function json(res, status, body, requestId) {
-  res.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'X-TSM-Request-ID': requestId || 'unknown', 'Access-Control-Allow-Origin': process.env.CORS_ORIGIN || 'http://localhost:5173', 'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-TSM-Request-ID', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS' });
+  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-TSM-Request-ID': requestId || 'unknown', 'Access-Control-Allow-Origin': process.env.CORS_ORIGIN || 'http://localhost:5173', 'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-TSM-Request-ID', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS' });
   res.end(JSON.stringify(body));
 }
 function readBodyFixed(req) {
@@ -45,6 +46,11 @@ const server = http.createServer(async (req, res) => {
       if (!sourceId || !sourceUrl) return json(res, 400, { error: 'source_id and url are required' }, requestId);
       const result = await fetchAuthoritativeJson(sourceId, sourceUrl, { requestId });
       return json(res, 200, { ...result, data_authority: 'authoritative-source-response', regulatory_determination: false }, requestId);
+    }
+    if (req.method === 'GET' && url.pathname === '/api/hydrologic/community') {
+      const stationIds = url.searchParams.getAll('station_id');
+      const network = await fetchRiverNetwork({ stationIds: stationIds.length ? stationIds : null, includeNoaa: true });
+      return json(res, 200, { ok: true, ...network, requestId }, requestId);
     }
     if (req.method === 'GET' && url.pathname === '/api/hydrologic/live') {
       const usgsId = url.searchParams.get('usgs_id') || '03378500';
@@ -86,7 +92,7 @@ const server = http.createServer(async (req, res) => {
       }, requestId);
     }
     if (req.method === 'GET' && url.pathname === '/api/data-sources/health') return json(res, 200, { build_sha: BUILD_SHA, sources: listSourceHealth(), circuits: listUpstreamCircuitHealth() }, requestId);
-    if (req.method === 'GET' && url.pathname === '/api/geospatial/posey/site') return json(res, 200, { ok: true, site_id: 'posey-point-township-bonebank-5000ft', horizontal_crs: 'EPSG:2966', horizontal_crs_name: 'NAD83 / Indiana West (ftUS)', vertical_datum: 'NAVD88', bounds: { minX: 2680000, minY: 940000, maxX: 2685000, maxY: 945000 }, terrain: { source_uri: 'https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_2016_2020_DEM/ImageServer', acquisition_year: 2020, authority_class: 'OBSERVATION', derivation_class: 'RAW' }, orthophoto: { source_uri: 'https://imagery.geoplatform.gov/iipp/rest/services/NAIP/NAIP2020_CONUS/ImageServer', acquisition_year: 2020, authority_class: 'OBSERVATION', derivation_class: 'RAW' } }, requestId);
+    if (req.method === 'GET' && url.pathname === '/api/geospatial/posey/site') return json(res, 200, { ok: true, site_id: 'posey-lower-wabash-ohio-community', horizontal_crs: 'EPSG:2966', horizontal_crs_name: 'NAD83 / Indiana West (ftUS)', vertical_datum: 'NAVD88', bounds: { minX: 2680000, minY: 940000, maxX: 2685000, maxY: 945000 }, terrain: { source_uri: 'https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_2016_2020_DEM/ImageServer', acquisition_year: 2020, authority_class: 'OBSERVATION', derivation_class: 'RAW' }, orthophoto: { source_uri: 'https://imagery.geoplatform.gov/iipp/rest/services/NAIP/NAIP2020_CONUS/ImageServer', acquisition_year: 2020, authority_class: 'OBSERVATION', derivation_class: 'RAW' } }, requestId);
     if (req.method === 'GET' && url.pathname === '/api/geospatial/posey/raster') { try { return await servePoseyAsset(req, res); } catch (error) { return json(res, error instanceof RangeError ? 400 : 502, { error: error.message, code: error instanceof RangeError ? 'GEOSPATIAL_REQUEST_INVALID' : 'GEOSPATIAL_SOURCE_UNAVAILABLE' }, requestId); } }
     if (req.method === 'GET' && url.pathname === '/api/evidence') { const authority_class = url.searchParams.get('authority_class') || undefined; const demo = url.searchParams.get('is_simulation_demo'); return json(res, 200, { artifacts: listArtifacts({ limit: 100, authority_class, is_simulation_demo: demo === null ? undefined : demo === 'true' }) }, requestId); }
     if (req.method === 'GET' && url.pathname.startsWith('/api/evidence/') && url.pathname !== '/api/evidence/verify') { const id = url.pathname.split('/').pop(); const artifact = getArtifact(id); return artifact ? json(res, 200, artifact, requestId) : json(res, 404, { error: 'not found' }, requestId); }
