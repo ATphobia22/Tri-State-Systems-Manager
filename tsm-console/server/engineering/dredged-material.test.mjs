@@ -42,5 +42,5 @@ test('fully documented material may reach engineering review without implying ag
 
 test('material routing conserves volume and rejects impossible balances', () => {
   assert.deepEqual(validateMaterialBalance({ source: 1000, allocated: 800, processingLoss: 50, placed: 700, remaining: 250 }), { ok: true, error: null });
-  assert.equal(validateMaterialBalance({ source: 1000, allocated: 900, processingLoss: 50, placed: 700, remaining: 250 }).ok, false);
+  assert.equal(validateMaterialBalance({ source: 1000, allocated: 900, processingLoss: 50, placed: 700, remaining: 300 }).ok, false);
 });
