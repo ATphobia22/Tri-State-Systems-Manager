@@ -35,6 +35,7 @@
     "test:firm": "node --test tests/firm-*.test.mjs",
     "test:mock-data": "node ../scripts/no-production-mock-data.test.mjs",
     "test:geospatial-tile-fabric": "node --test tests/geospatial-tile-fabric-contract.test.mjs tests/geospatial-tile-source-resolver.test.mjs tests/open-world-terrain-imagery.test.mjs tests/open-world-overlays.test.mjs tests/open-world-hydrology.test.mjs tests/open-world-visual-layer-contract.test.mjs tests/historical-point-township.test.mjs tests/tile-health-contract.test.mjs tests/open-world-live-tile.test.mjs tests/open-world-wms.test.mjs",
+    "test:all": "node ../tests/external-capability-integration.test.mjs && npm test && npm run test:router && npm run test:data-fabric && npm run test:twin && npm run test:hec-ras && npm run test:evidence && npm run test:ingestion && npm run test:engineering && npm run test:community-river && npm run test:community-privacy && npm run test:deployment && npm run test:reliability && npm run test:posey && npm run test:firm && npm run test:mock-data && npm run test:geospatial-tile-fabric",
     "check:tile-health": "node scripts/geospatial/tile-health-check.mjs",
     "check:mock-data": "node ../scripts/no-production-mock-data.mjs .",
     "check:parse": "node scripts/parse-check.mjs",
