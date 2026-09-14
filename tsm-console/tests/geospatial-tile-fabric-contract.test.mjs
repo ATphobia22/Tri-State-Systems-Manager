@@ -9,7 +9,7 @@ const schemaPath = path.join(root, 'data', 'schemas', 'geospatial-tile-fabric.sc
 
 test('geospatial tile manifest exists and contains required authoritative layers', () => {
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-  assert.equal(manifest.schemaVersion, '1.0.0');
+  assert.equal(manifest.schemaVersion, '1.1.0');
   const ids = new Set(manifest.assets.map((asset) => asset.id));
   for (const id of [
     'fema-effective',
@@ -19,6 +19,8 @@ test('geospatial tile manifest exists and contains required authoritative layers
     'indiana-current-imagery',
     'usgs-3dep-terrain',
     'usgs-03378500',
+    'usgs-03322000',
+    'usgs-03322420',
     'noaa-nwps',
     'point-township-historical',
   ]) assert.equal(ids.has(id), true, `missing ${id}`);
