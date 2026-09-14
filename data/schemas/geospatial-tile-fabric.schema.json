@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tri-state-systems-manager.org/schemas/geospatial-tile-fabric.schema.json",
+  "title": "TSM Geospatial Tile Fabric",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "generatedAt", "assets"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "assets": { "type": "array", "items": { "$ref": "#/$defs/GeospatialTileAsset" }, "minItems": 1 }
+  },
+  "$defs": {
+    "GeospatialTileAsset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id", "dataset", "authority", "authorityClass", "purpose", "layerType",
+        "sourceUrl", "status", "crs", "verticalDatum", "tileScheme", "provenanceClass",
+        "currentTruth", "freshnessPolicy", "verification"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]+$" },
+        "dataset": { "type": "string", "minLength": 1 },
+        "authority": { "type": "string", "minLength": 1 },
+        "authorityClass": { "type": "string", "enum": ["FEDERAL_REGULATORY", "STATE_FLOODPLAIN", "STATE_CADASTRAL", "STATE_IMAGERY", "FEDERAL_ELEVATION", "HYDROLOGIC_OBSERVATION", "HYDROLOGIC_FORECAST", "FEDERAL_INFRASTRUCTURE", "HISTORICAL_REFERENCE"] },
+        "purpose": { "type": "string", "minLength": 1 },
+        "layerType": { "type": "string", "enum": ["raster", "terrain", "vector", "live-observation", "live-forecast", "historical-raster"] },
+        "sourceUrl": { "type": "string", "format": "uri" },
+        "status": { "type": "string", "enum": ["PUBLISHED", "PROGRAM_PENDING", "REQUIRES_DOWNLOAD", "SITE_SPECIFIC"] },
+        "crs": { "type": "string", "minLength": 1 },
+        "verticalDatum": { "type": "string", "minLength": 1 },
+        "tileScheme": { "type": "string", "enum": ["WEB_MERCATOR_XYZ", "SERVICE_NATIVE", "NONE"] },
+        "provenanceClass": { "type": "string", "minLength": 1 },
+        "currentTruth": { "type": "boolean" },
+        "acquiredAt": { "type": ["string", "null"], "format": "date-time" },
+        "effectiveAt": { "type": ["string", "null"], "format": "date-time" },
+        "freshnessPolicy": { "type": "string", "minLength": 1 },
+        "verification": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "checkedAt", "sourceHashPolicy"],
+          "properties": {
+            "state": { "type": "string", "enum": ["VERIFIED", "PROVISIONAL", "PENDING", "HISTORICAL_REFERENCE"] },
+            "checkedAt": { "type": "string", "format": "date-time" },
+            "sourceHashPolicy": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    }
+  }
+}
