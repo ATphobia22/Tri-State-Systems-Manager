@@ -42,11 +42,8 @@ export const COMMUNITY_RIVER_GAUGES: readonly RiverGaugeDefinition[] = [
   { id: 'usgs-03294500', provider: 'USGS', name: 'Ohio River at Louisville, KY', river: 'Ohio River', usgsId: '03294500', variables: ['00065', '00060'], status: 'active' },
 ];
 
-export function gaugeEndpoint(definition: RiverGaugeDefinition): string {
-  const params = new URLSearchParams({ source: definition.provider === 'NOAA_NWS' ? 'noaa' : 'usgs' });
-  if (definition.usgsId) params.set('usgs_id', definition.usgsId);
-  if (definition.nwsId) params.set('nws_id', definition.nwsId);
-  return `/api/hydrologic/live?${params.toString()}`;
+export function gaugeEndpoint(_definition?: RiverGaugeDefinition): string {
+  return '/api/hydrologic/community';
 }
 
 function isFresh(observedAt: string | null, nowMs: number, maxAgeMs: number): boolean {
@@ -55,16 +52,57 @@ function isFresh(observedAt: string | null, nowMs: number, maxAgeMs: number): bo
   return Number.isFinite(timestamp) && nowMs - timestamp >= 0 && nowMs - timestamp <= maxAgeMs;
 }
 
-export async function fetchCommunityGauge(
-  definition: RiverGaugeDefinition,
+function unavailable(definition: RiverGaugeDefinition, nowMs: number, error?: string): RiverGaugeObservation {
+  return {
+    gaugeId: definition.usgsId ?? definition.nwsId ?? definition.id,
+    provider: definition.provider,
+    name: definition.name,
+    river: definition.river,
+    value: null,
+    unit: null,
+    observedAt: null,
+    retrievedAt: new Date(nowMs).toISOString(),
+    qualifier: null,
+    provisional: false,
+    status: 'unavailable',
+    dischargeCfs: null,
+    sourceUri: null,
+    ...(error ? { error } : {}),
+  };
+}
+
+function normalizeObservation(definition: RiverGaugeDefinition, payload: Record<string, unknown>, nowMs: number, maxAgeMs: number): RiverGaugeObservation {
+  const observedAt = typeof payload.observedAt === 'string' ? payload.observedAt : null;
+  const value = typeof payload.value === 'number' ? payload.value : null;
+  const provider: GaugeProvider | 'UNKNOWN' = payload.provider === 'NOAA' ? 'NOAA_NWS' : payload.provider === 'USGS' ? 'USGS' : 'UNKNOWN';
+  return {
+    gaugeId: typeof payload.stationId === 'string' ? payload.stationId : definition.usgsId ?? definition.nwsId ?? definition.id,
+    provider,
+    name: definition.name,
+    river: definition.river,
+    value,
+    unit: typeof payload.observation === 'object' && payload.observation !== null && typeof (payload.observation as Record<string, unknown>).unit === 'string' ? String((payload.observation as Record<string, unknown>).unit) : 'ft',
+    observedAt,
+    retrievedAt: typeof payload.retrievedAt === 'string' ? payload.retrievedAt : new Date(nowMs).toISOString(),
+    qualifier: typeof payload.qualifier === 'string' ? payload.qualifier : null,
+    provisional: payload.qualifier === 'P',
+    status: isFresh(observedAt, nowMs, maxAgeMs) && value !== null ? 'current' : 'stale',
+    dischargeCfs: typeof payload.dischargeCfs === 'number' ? payload.dischargeCfs : null,
+    sourceUri: typeof payload.sourceUri === 'string' ? payload.sourceUri : null,
+  };
+}
+
+export async function fetchCommunityGauges(
+  definitions: readonly RiverGaugeDefinition[] = COMMUNITY_RIVER_GAUGES,
   options: { fetcher?: typeof fetch; nowMs?: number; maxAgeMs?: number } = {},
-): Promise<RiverGaugeObservation> {
+): Promise<RiverGaugeObservation[]> {
   const fetcher = options.fetcher ?? fetch;
   const nowMs = options.nowMs ?? Date.now();
   const maxAgeMs = options.maxAgeMs ?? 30 * 60 * 1000;
-
-  if (definition.status !== 'active') {
-    return {
+  const activeDefinitions = definitions.filter((definition) => definition.status === 'active');
+  const result = new Map<string, RiverGaugeObservation>();
+  for (const definition of definitions.filter((item) => item.status !== 'active')) {
+    result.set(definition.usgsId ?? definition.nwsId ?? definition.id, {
       gaugeId: definition.usgsId ?? definition.nwsId ?? definition.id,
       provider: definition.provider,
       name: definition.name,
@@ -78,53 +116,23 @@ export async function fetchCommunityGauge(
       status: 'candidate',
       dischargeCfs: null,
       sourceUri: null,
-    };
+    });
   }
-
   try {
-    const response = await fetcher(gaugeEndpoint(definition), { headers: { Accept: 'application/json' }, cache: 'no-store' });
+    const response = await fetcher(gaugeEndpoint(), { headers: { Accept: 'application/json' }, cache: 'no-store' });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const payload = await response.json() as Record<string, unknown>;
-    const observedAt = typeof payload.observedAt === 'string' ? payload.observedAt : null;
-    const value = typeof payload.value === 'number' ? payload.value : null;
-    return {
-      gaugeId: typeof payload.gaugeId === 'string' ? payload.gaugeId : definition.usgsId ?? definition.nwsId ?? definition.id,
-      provider: payload.source === 'NOAA' ? 'NOAA_NWS' : payload.source === 'USGS' ? 'USGS' : 'UNKNOWN',
-      name: definition.name,
-      river: definition.river,
-      value,
-      unit: typeof payload.unit === 'string' ? payload.unit : 'ft',
-      observedAt,
-      retrievedAt: typeof payload.retrievedAt === 'string' ? payload.retrievedAt : new Date(nowMs).toISOString(),
-      qualifier: typeof payload.qualifier === 'string' ? payload.qualifier : null,
-      provisional: payload.status === 'provisional' || payload.qualifier === 'P',
-      status: isFresh(observedAt, nowMs, maxAgeMs) && value !== null ? 'current' : 'stale',
-      dischargeCfs: typeof payload.discharge_cfs === 'number' ? payload.discharge_cfs : null,
-      sourceUri: typeof payload.sourceUri === 'string' ? payload.sourceUri : null,
-    };
+    const payload = await response.json() as { observations?: Array<Record<string, unknown>> };
+    const observations = Array.isArray(payload.observations) ? payload.observations : [];
+    for (const definition of activeDefinitions) {
+      const key = definition.usgsId ?? definition.nwsId ?? definition.id;
+      const remote = observations.find((item) => item.stationId === key);
+      result.set(key, remote ? normalizeObservation(definition, remote, nowMs, maxAgeMs) : unavailable(definition, nowMs, 'Station not returned by community endpoint'));
+    }
   } catch (error) {
-    return {
-      gaugeId: definition.usgsId ?? definition.nwsId ?? definition.id,
-      provider: definition.provider,
-      name: definition.name,
-      river: definition.river,
-      value: null,
-      unit: null,
-      observedAt: null,
-      retrievedAt: new Date(nowMs).toISOString(),
-      qualifier: null,
-      provisional: false,
-      status: 'unavailable',
-      dischargeCfs: null,
-      sourceUri: null,
-      error: error instanceof Error ? error.message : 'Unknown upstream error',
-    };
+    for (const definition of activeDefinitions) {
+      const key = definition.usgsId ?? definition.nwsId ?? definition.id;
+      result.set(key, unavailable(definition, nowMs, error instanceof Error ? error.message : 'Unknown upstream error'));
+    }
   }
-}
-
-export async function fetchCommunityGauges(
-  definitions: readonly RiverGaugeDefinition[] = COMMUNITY_RIVER_GAUGES,
-  options: { fetcher?: typeof fetch; nowMs?: number; maxAgeMs?: number } = {},
-): Promise<RiverGaugeObservation[]> {
-  return Promise.all(definitions.map((definition) => fetchCommunityGauge(definition, options)));
+  return definitions.map((definition) => result.get(definition.usgsId ?? definition.nwsId ?? definition.id) ?? unavailable(definition, nowMs));
 }
