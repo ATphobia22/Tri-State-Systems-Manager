@@ -1,0 +1,19 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: tsm-webhook
+  group_by: [alertname, source, station]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+
+receivers:
+  - name: tsm-webhook
+    webhook_configs:
+      - url: http://127.0.0.1:8787/internal/alerts
+        send_resolved: true
+
+# Alertmanager is intentionally not exposed directly to the public network.
+# Authentication/TLS belongs at the reverse-proxy boundary; credentials are
+# supplied only through deployment secrets/environment variables.
