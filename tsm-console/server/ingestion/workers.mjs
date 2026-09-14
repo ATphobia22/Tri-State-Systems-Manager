@@ -11,7 +11,7 @@ import { appendArtifact, sha256Hex, recordVerification } from '../store/evidence
 import { fetchUsgsInstantaneousValues } from './usgs-nwis.mjs';
 import { fetchNoaaStageFlow } from './noaa-nwps.mjs';
 import { classifySourceFreshness } from '../reliability/source-policies.mjs';
-import { incrementTelemetryCounter } from '../telemetry/prometheus-exporter.mjs';
+import { incrementTelemetryCounter, observeTelemetryMetric } from '../telemetry/prometheus-exporter.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REGISTRY_PATH = process.env.TSM_AUTHORITY_REGISTRY || path.join(__dirname, '../../../tsm-authority-registry-v35.json');
@@ -28,19 +28,9 @@ function leafCanonical(obj) { return `TSM_LEAF:${JSON.stringify(obj)}`; }
 function navd88FromGage(node, gageHeightFt) {
   const zero = node?.gage_zero_navd88_ft;
   if (zero == null || !Number.isFinite(gageHeightFt) || !Number.isFinite(Number(zero)) || !node.vertical_conversion_source) {
-    return {
-      conversion_applied: false,
-      wse_navd88_ft: null,
-      gage_zero_navd88_ft: null,
-      vertical_conversion_source: null,
-    };
+    return { conversion_applied: false, wse_navd88_ft: null, gage_zero_navd88_ft: null, vertical_conversion_source: null };
   }
-  return {
-    conversion_applied: true,
-    wse_navd88_ft: gageHeightFt + Number(zero),
-    gage_zero_navd88_ft: Number(zero),
-    vertical_conversion_source: node.vertical_conversion_source,
-  };
+  return { conversion_applied: true, wse_navd88_ft: gageHeightFt + Number(zero), gage_zero_navd88_ft: Number(zero), vertical_conversion_source: node.vertical_conversion_source };
 }
 
 function appendObservation(record, extra = {}) {
@@ -48,26 +38,13 @@ function appendObservation(record, extra = {}) {
   const canonical = leafCanonical(payload);
   const hash = sha256Hex(canonical);
   const artifact = appendArtifact({
-    artifact_type: 'authoritative_source_record',
-    source_authority: record.provenance.provider,
-    source_uri: record.sourceUri,
-    source_identifier: record.sourceId,
-    retrieved_at: record.retrievedAt,
-    observation_time: record.observedAt,
-    horizontal_crs: record.crs,
-    vertical_datum: record.verticalDatum,
-    vertical_datum_converted: extra.wse_navd88_ft != null ? 'NAVD88' : null,
-    content_hash_sha256: hash,
-    authority_class: record.dataClass === 'forecast' ? 'FORECAST' : 'OBSERVATION',
-    derivation_class: 'RAW',
-    validation_status: record.status,
-    governance_status: 'human_review_required',
-    is_simulation_demo: false,
-    software_version: 'tsm-ingestion@0.6.0',
-    operator_or_service_identity: 'authoritative-data-fabric',
-    payload,
-    _canonical_for_verify: canonical,
-    notes: 'Authoritative source observation. Not a regulatory determination.',
+    artifact_type: 'authoritative_source_record', source_authority: record.provenance.provider, source_uri: record.sourceUri,
+    source_identifier: record.sourceId, retrieved_at: record.retrievedAt, observation_time: record.observedAt,
+    horizontal_crs: record.crs, vertical_datum: record.verticalDatum, vertical_datum_converted: extra.wse_navd88_ft != null ? 'NAVD88' : null,
+    content_hash_sha256: hash, authority_class: record.dataClass === 'forecast' ? 'FORECAST' : 'OBSERVATION', derivation_class: 'RAW',
+    validation_status: record.status, governance_status: 'human_review_required', is_simulation_demo: false,
+    software_version: 'tsm-ingestion@0.6.0', operator_or_service_identity: 'authoritative-data-fabric',
+    payload, _canonical_for_verify: canonical, notes: 'Authoritative source observation. Not a regulatory determination.',
   });
   incrementTelemetryCounter('tsm_telemetry_ingest_total', { provider: record.provenance.provider, data_class: record.dataClass });
   return artifact;
@@ -83,16 +60,9 @@ export async function ingestUsgsNode(usgsId, { timeoutMs = 10000 } = {}) {
     const freshnessState = classifySourceFreshness('USGS_NWIS_OBSERVATION', { observedAt: stage.observedAt, retrievedAt: stage.retrievedAt });
     const conversion = navd88FromGage(node, stage.value);
     const discharge = records.filter((record) => record.provenance.parameterCode === '00060').at(-1) || null;
-    const artifact = appendObservation(stage, {
-      ...conversion,
-      freshness_state: freshnessState,
-      stationName: node.name,
-      role: node.role,
-      relatedInfrastructure: node.related_infrastructure || null,
-      discharge_cfs: discharge?.value ?? null,
-      discharge_observedAt: discharge?.observedAt ?? null,
-      timeoutMs,
-    });
+    observeTelemetryMetric('ptdt_usgs_gauge_stage_feet', stage.value, { site_id: usgsId, datum: 'GAGE_DATUM' });
+    if (discharge) observeTelemetryMetric('ptdt_usgs_discharge_cfs', discharge.value, { site_id: usgsId });
+    const artifact = appendObservation(stage, { ...conversion, freshness_state: freshnessState, stationName: node.name, role: node.role, relatedInfrastructure: node.related_infrastructure || null, discharge_cfs: discharge?.value ?? null, discharge_observedAt: discharge?.observedAt ?? null, timeoutMs });
     recordVerification(artifact.artifact_id, artifact.content_hash_sha256, artifact.content_hash_sha256, 'authoritative-data-fabric');
     return { ok: true, artifact, sourceRecord: stage, dischargeRecord: discharge, freshness_state: freshnessState };
   } catch (error) {
