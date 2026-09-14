@@ -30,9 +30,9 @@ def _file_hash(path: Path) -> str:
     return digest.hexdigest()
 
 
-def compare_water_surface(base_hdf: str | Path, proposed_hdf: str | Path, *, criterion_ft: float = 0.01, time_index: int = -1, dataset_path: str | None = None) -> NoRiseResult:
-    if criterion_ft < 0:
-        raise ValueError("criterion_ft cannot be negative")
+def compare_water_surface(base_hdf: str | Path, proposed_hdf: str | Path, *, criterion_ft: float, time_index: int = -1, dataset_path: str | None = None) -> NoRiseResult:
+    if not math.isfinite(criterion_ft) or criterion_ft < 0:
+        raise ValueError("criterion_ft must be a finite non-negative value supplied by the governing design/regulatory basis")
     base = Path(base_hdf)
     proposed = Path(proposed_hdf)
     if dataset_path is None:
@@ -52,10 +52,7 @@ def compare_water_surface(base_hdf: str | Path, proposed_hdf: str | Path, *, cri
     deltas = [p - b for b, p in zip(base_values, proposed_values) if math.isfinite(b) and math.isfinite(p)]
     if not deltas:
         raise ValueError("no finite paired Water Surface values were available")
-    return NoRiseResult(
-        max(deltas), min(deltas), sum(deltas) / len(deltas), len(deltas), max(deltas) <= criterion_ft,
-        criterion_ft, _file_hash(base), _file_hash(proposed),
-    )
+    return NoRiseResult(max(deltas), min(deltas), sum(deltas) / len(deltas), len(deltas), max(deltas) <= criterion_ft, criterion_ft, _file_hash(base), _file_hash(proposed))
 
 
 def result_manifest(result: NoRiseResult) -> str:
