@@ -15,6 +15,7 @@ test('geospatial tile manifest exists and contains required authoritative layers
     'fema-effective',
     'indiana-bafm',
     'indiana-parcels-2025',
+    'indiana-parcels-current',
     'indiana-current-imagery',
     'usgs-3dep-terrain',
     'usgs-03378500',
