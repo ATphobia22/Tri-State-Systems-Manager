@@ -1,8 +1,13 @@
 const metrics = new Map();
+const HELP = new Map([
+  ['tsm_telemetry_ingest_total', 'Number of telemetry records accepted by the ingestion boundary.'],
+  ['ptdt_usgs_gauge_stage_feet', 'Latest accepted USGS gage-height observation in feet, relative to the source gage datum.'],
+  ['ptdt_usgs_discharge_cfs', 'Latest accepted USGS discharge observation in cubic feet per second.'],
+]);
 
 function metricKey(name, labels) {
   const ordered = Object.entries(labels ?? {}).sort(([a], [b]) => a.localeCompare(b));
-  return `${name}{${ordered.map(([key, value]) => `${key}="${String(value).replaceAll('\\', '\\\\').replaceAll('"', '\\"') }"`).join(',')}}`;
+  return `${name}{${ordered.map(([key, value]) => `${key}="${String(value).replaceAll('\\', '\\\\').replaceAll('"', '\\"')}"`).join(',')}}`;
 }
 
 export function observeTelemetryMetric(name, value, labels = {}) {
@@ -18,11 +23,12 @@ export function incrementTelemetryCounter(name, labels = {}, delta = 1) {
 }
 
 export function renderPrometheusMetrics() {
-  const lines = [
-    '# HELP tsm_telemetry_ingest_total Number of telemetry records accepted by the ingestion boundary.',
-    '# TYPE tsm_telemetry_ingest_total counter',
-  ];
-  for (const [key, value] of metrics) lines.push(`${key} ${value}`);
+  const lines = [];
+  for (const [name, help] of HELP) {
+    const type = name.endsWith('_total') ? 'counter' : 'gauge';
+    lines.push(`# HELP ${name} ${help}`, `# TYPE ${name} ${type}`);
+    for (const [key, value] of metrics) if (key.startsWith(`${name}{`)) lines.push(`${key} ${value}`);
+  }
   return `${lines.join('\n')}\n`;
 }
 
