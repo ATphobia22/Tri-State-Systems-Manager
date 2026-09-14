@@ -35,6 +35,7 @@
     "test:firm": "node --test tests/firm-*.test.mjs",
     "test:mock-data": "node ../scripts/no-production-mock-data.test.mjs",
     "test:geospatial-tile-fabric": "node --test tests/geospatial-tile-fabric-contract.test.mjs tests/geospatial-tile-source-resolver.test.mjs tests/open-world-terrain-imagery.test.mjs tests/open-world-overlays.test.mjs tests/open-world-hydrology.test.mjs tests/open-world-visual-layer-contract.test.mjs tests/historical-point-township.test.mjs",
+    "check:tile-health": "node scripts/geospatial/tile-health-check.mjs",
     "check:mock-data": "node ../scripts/no-production-mock-data.mjs .",
     "check:parse": "node scripts/parse-check.mjs",
     "check:type": "tsc --noEmit",
@@ -53,7 +54,7 @@
     "check:npx-policy": "node scripts/npx-policy-check.mjs",
     "generate:sbom": "node scripts/generate-sbom.mjs",
     "resync": "npm ci --no-audit --no-fund && node scripts/postinstall-check.mjs && node scripts/parse-check.mjs",
-    "ci": "npm run check:dependency-integrity && npm run check:npx-policy && npm run check:integrity && npm run check:capabilities && npm run check:workflow-boundaries && npm run check:artifacts && npm run check:quantum-boundary && npm run check:shell-safety && npm run check:site-consistency && npm run check:mock-data && npm run check:parse && npm run check:type && npm run check:geospatial && npm run build",
+    "ci": "npm run check:dependency-integrity && npm run check:npx-policy && npm run check:integrity && npm run check:capabilities && npm run check:workflow-boundaries && npm run check:artifacts && npm run check:quantum-boundary && npm run check:shell-safety && npm run check:site-consistency && npm run check:mock-data && npm run check:tile-health && npm run check:parse && npm run check:type && npm run check:geospatial && npm run build",
     "ci:full": "npm run ci && npm run test:all"
   },
   "dependencies": {
