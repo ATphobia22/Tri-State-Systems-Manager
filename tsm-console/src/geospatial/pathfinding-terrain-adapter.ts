@@ -20,7 +20,13 @@ export function terrainGridToPathfindingGrid(grid: TerrainGrid, maxStepFt = 3): 
       if (x + 1 < grid.width) neighbors.push(index + 1);
       if (y > 0) neighbors.push(index - grid.width);
       if (y + 1 < grid.height) neighbors.push(index + grid.width);
-      if (neighbors.some((neighborIndex) => Math.abs(grid.elevations[neighborIndex] - elevation) > maxStepFt)) walkable[index] = false;
+
+      // Treat the steep cell itself as an obstacle. Do not invalidate its
+      // lower-elevation neighbors merely because the blocked edge exists;
+      // otherwise a single steep cell can incorrectly erase an entire route.
+      if (neighbors.some((neighborIndex) => Math.abs(grid.elevations[neighborIndex] - elevation) > maxStepFt && grid.elevations[neighborIndex] > elevation)) {
+        walkable[index] = false;
+      }
     }
   }
 
