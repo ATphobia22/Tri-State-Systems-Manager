@@ -2,10 +2,10 @@ import { requestJson } from './http-client.mjs';
 import { normalizeSourceRecord } from './normalization.mjs';
 import { recordSourceHealth } from './source-health.mjs';
 
-// WaterServices /nwis/iv is scheduled for decommissioning in Q1 2027.
-// TSM therefore uses the modernized USGS Water Data OGC API for runtime reads.
-const BASE_URL = 'https://api.waterdata.usgs.gov/ogcapi/v0/collections/latest-continuous';
-const MONITORING_LOCATIONS_URL = 'https://api.waterdata.usgs.gov/ogcapi/v0/collections/monitoring-locations';
+// USGS Water Data API V1 is the production source. WaterServices is scheduled
+// for decommissioning during NWISWeb Decommission Campaign 3.
+const BASE_URL = 'https://api.waterdata.usgs.gov/ogcapi/v1/collections/latest-continuous';
+const MONITORING_LOCATIONS_URL = 'https://api.waterdata.usgs.gov/ogcapi/v1/collections/monitoring-locations';
 
 function normalizeModernFeature(feature, retrievedAt) {
   const properties = feature?.properties || {};
@@ -14,23 +14,39 @@ function normalizeModernFeature(feature, retrievedAt) {
   const unit = properties.unit_of_measure;
   const observedAt = properties.time;
   const rawValue = properties.value;
-  if (!stationId || !parameterCode || !unit || !observedAt || rawValue == null) throw new TypeError('USGS latest-continuous feature missing station, parameter, unit, time, or value');
+  if (!stationId || !parameterCode || !unit || !observedAt || rawValue == null) {
+    throw new TypeError('USGS latest-continuous feature missing station, parameter, unit, time, or value');
+  }
   const numeric = Number(rawValue);
   if (!Number.isFinite(numeric)) throw new TypeError('USGS latest-continuous value is not numeric');
-  const approvalStatus = String(properties.approval_status || properties.approvals_status || '').trim();
-  const qualifier = String(properties.qualifier || '').trim() || (approvalStatus.toLowerCase().includes('provisional') ? 'P' : null);
+  const approvalStatus = String(properties.approval_status || '').trim();
+  const qualifier = String(properties.qualifier || '').trim() || (approvalStatus.toLowerCase() === 'provisional' ? 'P' : null);
+  const verticalDatum = parameterCode === '00065'
+    ? String(properties.vertical_datum_name || properties.vertical_datum || 'GAGE_DATUM')
+    : 'not-applicable';
   return normalizeSourceRecord({
     sourceId: `USGS-NWIS-${stationId}-${parameterCode}`,
     sourceUri: `${BASE_URL}/items`,
     observedAt,
     retrievedAt,
-    status: qualifier === 'P' || approvalStatus.toLowerCase().includes('provisional') ? 'provisional' : 'current',
+    status: approvalStatus.toLowerCase() === 'provisional' || qualifier === 'P' ? 'provisional' : 'current',
     dataClass: 'observation',
     unit,
     crs: 'EPSG:4326',
-    verticalDatum: parameterCode === '00065' ? 'GAGE_DATUM' : 'not-applicable',
+    verticalDatum,
     value: numeric,
-    provenance: { provider: 'USGS Water Data API', stationId, parameterCode, approvalStatus: approvalStatus || null, qualifier, lastModified: properties.last_modified || null, monitoringLocationId: properties.monitoring_location_id || null },
+    provenance: {
+      provider: 'USGS Water Data API V1',
+      stationId,
+      parameterCode,
+      approvalStatus: approvalStatus || null,
+      qualifier,
+      lastModified: properties.last_modified || null,
+      monitoringLocationId: properties.monitoring_location_id || null,
+      monitoringLocationName: properties.monitoring_location_name || null,
+      verticalDatumCode: properties.vertical_datum || null,
+      verticalDatumName: properties.vertical_datum_name || null,
+    },
   });
 }
 
@@ -95,5 +111,5 @@ export async function fetchUsgsStationMetadata({ stationId, signal, request = re
   url.searchParams.set('id', `USGS-${stationId}`);
   url.searchParams.set('limit', '1');
   const payload = await request(url, { signal, timeoutMs: 10000, maxBytes: 1_000_000 });
-  return { sourceId: `USGS-NWIS-STATION-${stationId}`, stationId, sourceUri: url.toString(), retrievedAt: new Date().toISOString(), dataClass: 'evidence', payload, provenance: { provider: 'USGS Water Data API' } };
+  return { sourceId: `USGS-NWIS-STATION-${stationId}`, stationId, sourceUri: url.toString(), retrievedAt: new Date().toISOString(), dataClass: 'evidence', payload, provenance: { provider: 'USGS Water Data API V1' } };
 }
