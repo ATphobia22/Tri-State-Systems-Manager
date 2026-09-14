@@ -7,60 +7,11 @@
   "required": ["schemaVersion", "source", "station", "parameter", "observation", "provenance", "quality"],
   "properties": {
     "schemaVersion": {"const": "1.0"},
-    "source": {
-      "type": "object", "additionalProperties": false,
-      "required": ["provider", "sourceId", "sourceUri"],
-      "properties": {
-        "provider": {"type": "string", "minLength": 1},
-        "sourceId": {"type": "string", "minLength": 1},
-        "sourceUri": {"type": "string", "format": "uri"}
-      }
-    },
-    "station": {
-      "type": "object", "additionalProperties": false,
-      "required": ["id"],
-      "properties": {"id": {"type": "string", "minLength": 1}, "name": {"type": "string"}}
-    },
-    "parameter": {
-      "type": "object", "additionalProperties": false,
-      "required": ["code", "name", "unit"],
-      "properties": {
-        "code": {"type": "string", "minLength": 1},
-        "name": {"type": "string", "minLength": 1},
-        "unit": {"type": "string", "minLength": 1}
-      }
-    },
-    "observation": {
-      "type": "object", "additionalProperties": false,
-      "required": ["value", "observedAt", "receivedAt", "temporalClass"],
-      "properties": {
-        "value": {"type": "number", "finite": true},
-        "observedAt": {"type": "string", "format": "date-time"},
-        "receivedAt": {"type": "string", "format": "date-time"},
-        "temporalClass": {"enum": ["OBSERVED", "FORECAST", "DERIVED", "MODEL_OUTPUT"]},
-        "gageDatum": {"type": ["string", "null"]},
-        "verticalDatum": {"type": ["string", "null"]},
-        "horizontalCrs": {"type": ["string", "null"]}
-      }
-    },
-    "provenance": {
-      "type": "object", "additionalProperties": false,
-      "required": ["retrievalId", "retrievedAt", "contentHashSha256"],
-      "properties": {
-        "retrievalId": {"type": "string", "minLength": 1},
-        "retrievedAt": {"type": "string", "format": "date-time"},
-        "contentHashSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
-        "upstreamLastModified": {"type": ["string", "null"]}
-      }
-    },
-    "quality": {
-      "type": "object", "additionalProperties": false,
-      "required": ["status", "freshnessState"],
-      "properties": {
-        "status": {"enum": ["CURRENT", "PROVISIONAL", "APPROVED", "ESTIMATED", "UNAVAILABLE"]},
-        "freshnessState": {"enum": ["LIVE", "FRESH", "STALE", "SOURCE_UNAVAILABLE"]},
-        "qualifiers": {"type": "array", "items": {"type": "string"}}
-      }
-    }
+    "source": {"type":"object","additionalProperties":false,"required":["provider","sourceId","sourceUri"],"properties":{"provider":{"type":"string","minLength":1},"sourceId":{"type":"string","minLength":1},"sourceUri":{"type":"string","format":"uri"}}},
+    "station": {"type":"object","additionalProperties":false,"required":["id"],"properties":{"id":{"type":"string","minLength":1},"name":{"type":"string"}}},
+    "parameter": {"type":"object","additionalProperties":false,"required":["code","name","unit"],"properties":{"code":{"type":"string","minLength":1},"name":{"type":"string","minLength":1},"unit":{"type":"string","minLength":1}}},
+    "observation": {"type":"object","additionalProperties":false,"required":["value","observedAt","receivedAt","temporalClass"],"properties":{"value":{"type":"number"},"observedAt":{"type":"string","format":"date-time"},"receivedAt":{"type":"string","format":"date-time"},"temporalClass":{"enum":["OBSERVED","FORECAST","DERIVED","MODEL_OUTPUT"]},"gageDatum":{"type":["string","null"]},"verticalDatum":{"type":["string","null"]},"horizontalCrs":{"type":["string","null"]}}},
+    "provenance": {"type":"object","additionalProperties":false,"required":["retrievalId","retrievedAt","contentHashSha256"],"properties":{"retrievalId":{"type":"string","minLength":1},"retrievedAt":{"type":"string","format":"date-time"},"contentHashSha256":{"type":"string","pattern":"^[0-9a-f]{64}$"},"upstreamLastModified":{"type":["string","null"]}}},
+    "quality": {"type":"object","additionalProperties":false,"required":["status","freshnessState"],"properties":{"status":{"enum":["CURRENT","PROVISIONAL","APPROVED","ESTIMATED","UNAVAILABLE"]},"freshnessState":{"enum":["LIVE","FRESH","STALE","SOURCE_UNAVAILABLE"]},"qualifiers":{"type":"array","items":{"type":"string"}}}}
   }
 }
