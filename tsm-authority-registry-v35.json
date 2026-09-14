@@ -1,41 +1,108 @@
 {
-  "registry_version": "35.0.1",
+  "registry_version": "35.0.2",
   "trust_model": "FAIL_CLOSED",
   "authorities": [
+    {
+      "id": "AUTH_USGS_WDFN",
+      "name": "USGS Water Data for the Nation",
+      "role": "Authoritative hydrologic observations and metadata",
+      "endpoints": ["https://api.waterdata.usgs.gov/"],
+      "verification": "USGS Water Data API V1"
+    },
     {
       "id": "AUTH_USGS_3DEP",
       "name": "USGS 3D Elevation Program",
       "role": "Topography / LiDAR Source",
       "endpoints": ["https://www.usgs.gov/3d-elevation-program"],
-      "verification": "SHA-256 Manifest / QL2 RMSEZ"
+      "verification": "SHA-256 Manifest / source product metadata"
     },
     {
       "id": "AUTH_IN_GIO",
       "name": "Indiana Geographic Information Office",
       "role": "Statewide Orthoimagery & LiDAR",
       "endpoints": ["https://www.in.gov/gis/", "https://elevation.gio.in.gov/"],
-      "verification": "State Certificate"
+      "verification": "State source metadata"
     },
     {
-      "id": "AUTH_NOAA_NWS",
-      "name": "National Weather Service",
-      "role": "Hydrologic Prediction (AHPS)",
-      "endpoints": ["https://water.weather.gov/ahps/"],
-      "verification": "TLS 1.3"
+      "id": "AUTH_NOAA_NWPS",
+      "name": "National Weather Service National Water Prediction Service",
+      "role": "Official hydrologic observations and forecasts",
+      "endpoints": ["https://water.noaa.gov/about/api"],
+      "verification": "Official NWPS API"
     },
     {
       "id": "AUTH_FEMA_MSC",
-      "name": "FEMA Map Service Center",
-      "role": "Regulatory Flood Hazard Layers (NFHL)",
+      "name": "FEMA Map Service Center / National Flood Hazard Layer",
+      "role": "Effective regulatory flood hazard layers",
       "endpoints": ["https://msc.fema.gov/portal/search"],
-      "verification": "Official NFHL WMS/WFS"
+      "verification": "Official FEMA NFHL services"
     },
     {
       "id": "AUTH_IDNR_INFIP",
       "name": "Indiana DNR Floodplain Information Portal",
-      "role": "Best Available / FARA",
+      "role": "Indiana Best Available Floodplain / FARA",
       "endpoints": ["https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/indiana-floodplain-information-portal"],
-      "verification": "State regulatory"
+      "verification": "Indiana DNR Division of Water"
+    }
+  ],
+  "hydrologic_nodes": [
+    {
+      "id": "03378500",
+      "name": "Wabash River at New Harmony, IN",
+      "usgs_id": "03378500",
+      "role": "wabash_boundary_stage_discharge",
+      "lat": 38.13089124,
+      "lon": -87.9414145,
+      "parameters": ["00065", "00060"],
+      "gage_zero_navd88_ft": null,
+      "vertical_conversion_source": null
+    },
+    {
+      "id": "03322000",
+      "name": "Ohio River at Evansville, IN",
+      "usgs_id": "03322000",
+      "nws_id": "EVVI3",
+      "role": "downstream_ohio_context",
+      "lat": 37.97228264107407,
+      "lon": -87.57640285193835,
+      "parameters": ["00065", "00060"],
+      "gage_zero_navd88_ft": null,
+      "vertical_conversion_source": null
+    },
+    {
+      "id": "03322420",
+      "name": "OHIO RIVER AT UNIONTOWN DAM, KY",
+      "usgs_id": "03322420",
+      "nws_id": "UNWK2",
+      "role": "usgs_tailwater_observation_related_to_john_t_myers_locks_and_dam",
+      "lat": 37.7971555584685,
+      "lon": -87.9983356426059,
+      "parameters": ["00065"],
+      "gage_zero_navd88_ft": null,
+      "vertical_conversion_source": null,
+      "related_infrastructure": "John T. Myers Locks and Dam"
+    },
+    {
+      "id": "MTVI3",
+      "name": "Ohio River at Mount Vernon, IN",
+      "nws_id": "MTVI3",
+      "role": "primary_local_ohio_stage",
+      "lat": 37.9286,
+      "lon": -87.8956,
+      "gage_zero_navd88_ft": null,
+      "vertical_conversion_source": null
+    },
+    {
+      "id": "UNWK2",
+      "name": "Ohio River at John T. Myers Locks and Dam (NWS context)",
+      "nws_id": "UNWK2",
+      "usgs_id": "03322420",
+      "role": "navigation_control_structure_context",
+      "lat": 37.7833,
+      "lon": -87.9794,
+      "gage_zero_navd88_ft": null,
+      "vertical_conversion_source": null,
+      "related_infrastructure": "John T. Myers Locks and Dam"
     }
   ],
   "nfip_cids": {
