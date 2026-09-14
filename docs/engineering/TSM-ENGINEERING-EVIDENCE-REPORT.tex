@@ -1,0 +1,52 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{hyperref}
+\usepackage{siunitx}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Tri-State Systems Manager}
+\lhead{Engineering Evidence Package}
+\cfoot{Page \thepage\ of \pageref{LastPage}}
+
+\title{Community River Valley Engineering Evidence Package}
+\author{Tri-State Systems Manager}
+\date{Generated from a versioned evidence manifest}
+
+\begin{document}
+\maketitle
+
+\section*{Authority and review boundary}
+This document is a reproducible engineering evidence package. It is not a professional engineering certification, permit, flood-insurance determination, levee accreditation, emergency order, or agency acceptance. Human engineers and the responsible agencies retain final authority.
+
+\section{Project identity}
+Project ID: \texttt{\detokenize{<PROJECT_ID>}}\\
+Model version: \texttt{\detokenize{<MODEL_VERSION>}}\\
+Equation set: \texttt{\detokenize{<EQUATION_SET>}}\\
+Numerical tolerance: \texttt{\detokenize{<NUMERICAL_TOLERANCE>}}\\
+Generated: \texttt{\detokenize{<GENERATED_AT>}}
+
+\section{Hydrology and hydraulics}
+Record the observed station IDs, observation timestamps, parameter codes, units, vertical datum, terrain source, boundary conditions, Manning roughness assumptions, mesh/breakline metadata, structure representation, water-surface elevations, depths, velocities, shear stresses, no-rise comparison and uncertainty/sensitivity results. Every value must reference an evidence identifier.
+
+\section{Subsurface-to-finished-grade section}
+Record survey control, mapped-soil context, site investigation, groundwater/pore pressure, weak or organic strata, foundation preparation, geosynthetics/drainage, qualified fill, compacted lifts, pavement/aggregate, drainage structures, design crest/freeboard, erosion/scour protection and instrumentation. Generalized soil mapping is context and does not replace site investigation.
+
+\section{Dredged-material qualification}
+Record dredging source and campaign, sample chain of custody, gradation, moisture, Atterberg limits, organic content, density, compaction, shear strength, consolidation/compressibility, hydraulic conductivity, contaminant/leachability testing, dewatering/processing, blending and acceptance. Structural placement remains prohibited until the applicable engineering and environmental gates are satisfied.
+
+\section{Regulatory and funding gates}
+Record applicable Indiana DNR, FEMA, Clean Water Act, navigation, wetlands/species/cultural-resource, right-of-way, utility, stormwater, professional survey/engineering and grant-program requirements. Each gate must contain its authoritative source, current verification date and unresolved actions.
+
+\section{Cryptographic provenance}
+Input SHA-256: \texttt{\detokenize{<INPUT_HASH>}}\\
+Output SHA-256: \texttt{\detokenize{<OUTPUT_HASH>}}\\
+Manifest SHA-256: \texttt{\detokenize{<MANIFEST_HASH>}}
+
+\section{Review state}
+Software-generated packages use \texttt{ENGINEERING\_REVIEW\_READY} as the highest automated state. Any \texttt{ENGINEER\_ACCEPTED} or \texttt{AGENCY\_ACCEPTED} state must be recorded from an authorized human reviewer and never inferred by software.
+
+\end{document}
