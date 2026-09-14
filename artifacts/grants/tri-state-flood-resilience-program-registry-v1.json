@@ -1,0 +1,63 @@
+{
+  "artifact_type":"tsm.grant_program_registry.v1",
+  "version":"1.0.0",
+  "verified_at":"2026-09-14T02:00:00Z",
+  "verification_policy":"Current official source required; similarity to a past award does not establish eligibility.",
+  "programs":[
+    {
+      "program_id":"USACE-CAP-204",
+      "agency":"USACE",
+      "program":"Continuing Authorities Program Section 204 - Beneficial Use of Dredged Material",
+      "status":"AUTHORITY_PATHWAY_CANDIDATE",
+      "eligible_activity":"Projects connected to dredging for construction/operation/maintenance of an existing authorized federal navigation project, subject to statutory scope and project-specific review.",
+      "match":"Project-specific; verify current USACE feasibility/cost-share requirements.",
+      "environmental_review":"Required as applicable.",
+      "engineering_evidence":["navigation-project relationship","dredged-material characterization","beneficial-use feasibility","hydraulic/environmental analysis","sponsor/cost-share evidence"],
+      "source_uri":"https://www.sas.usace.army.mil/Missions/CAP/Section-204-Beneficial-Use-of-Dredged-Material/"
+    },
+    {
+      "program_id":"FEMA-BRIC-DTA",
+      "agency":"FEMA",
+      "program":"Building Resilient Infrastructure and Communities Direct Technical Assistance",
+      "status":"CURRENT_SOURCE_VERIFIED_SUPPORT_PATH",
+      "eligible_activity":"Non-financial assistance for community climate/hazard resilience planning, engagement, partnerships and mitigation project design.",
+      "match":"Not a conventional construction grant; support is technical assistance.",
+      "environmental_review":"Project-specific if subsequent funded construction is pursued.",
+      "engineering_evidence":["community needs assessment","hazard mitigation/resilience planning","project concept and data evidence"],
+      "source_uri":"https://www.fema.gov/grants/mitigation/learn/building-resilient-infrastructure-communities/direct-technical-assistance"
+    },
+    {
+      "program_id":"USDA-NRCS-WFPO",
+      "agency":"USDA NRCS",
+      "program":"Watershed Protection and Flood Prevention Operations",
+      "status":"CURRENT_SOURCE_VERIFIED_SUPPORT_PATH",
+      "eligible_activity":"Authorized watershed projects for flood prevention, watershed protection, agricultural water management and related purposes.",
+      "match":"Local sponsor and program-specific contribution requirements apply.",
+      "environmental_review":"Watershed planning and project authorization required.",
+      "engineering_evidence":["preliminary feasibility study","watershed plan","benefit evidence","hydraulic/environmental analysis","sponsor and O&M evidence"],
+      "source_uri":"https://www.nrcs.usda.gov/programs-initiatives/watershed-protection-and-flood-prevention-operations-program"
+    },
+    {
+      "program_id":"USDA-NRCS-EWP",
+      "agency":"USDA NRCS",
+      "program":"Emergency Watershed Protection",
+      "status":"CURRENT_SOURCE_VERIFIED_SUPPORT_PATH",
+      "eligible_activity":"Emergency recovery and stabilization after qualifying natural disasters, including streambank, drainage, culvert/bridge and certain levee/structure work.",
+      "match":"Program-specific sponsor contribution rules apply.",
+      "environmental_review":"Program-specific review required; work before a cooperative agreement is not funded.",
+      "engineering_evidence":["damage/threat documentation","eligible sponsor request","site assessment","design and environmental evidence"],
+      "source_uri":"https://www.nrcs.usda.gov/programs-initiatives/emergency-watershed-protection"
+    },
+    {
+      "program_id":"FHWA-PROTECT-FY2026",
+      "agency":"FHWA",
+      "program":"PROTECT Formula Program",
+      "status":"CURRENT_FY2026_SOURCE_VERIFIED",
+      "eligible_activity":"Transportation resilience planning and eligible resilience projects under federal-aid requirements.",
+      "match":"Federal-aid statutory and program-specific requirements apply.",
+      "environmental_review":"Applicable federal/state transportation environmental and project-development requirements apply.",
+      "engineering_evidence":["transportation asset inventory","risk/resilience analysis","design evidence","INDOT eligibility and programming evidence"],
+      "source_uri":"https://highways.fhwa.dot.gov/iija/funding/fy-2026-computational-tables/table-11"
+    }
+  ]
+}

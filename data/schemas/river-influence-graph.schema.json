@@ -1,0 +1,13 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://tuckerinc82.org/schemas/river-influence-graph/v1.0.0.json",
+  "title":"TSM River and Dam Influence Graph",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["nodes","edges","generatedAt"],
+  "properties":{
+    "generatedAt":{"type":"string","format":"date-time"},
+    "nodes":{"type":"array","items":{"type":"object","additionalProperties":true,"required":["id","type","name"],"properties":{"id":{"type":"string"},"type":{"type":"string","enum":["GAUGE","DAM","RIVER_REACH","CONFLUENCE","COMMUNITY_ASSET"]},"name":{"type":"string"}}}},
+    "edges":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["from","to","relationshipType","confidence","evidenceIds"],"properties":{"from":{"type":"string"},"to":{"type":"string"},"relationshipType":{"type":"string","enum":["HYDRAULIC_CONNECTIVITY","UPSTREAM_CONTROL","DOWNSTREAM_BACKWATER","TRIBUTARY_INFLOW","MODEL_DERIVED_RESPONSE","GEOGRAPHIC_CONTEXT"]},"confidence":{"type":"string","enum":["UNVERIFIED","LOW","MEDIUM","HIGH"]},"evidenceIds":{"type":"array","items":{"type":"string"}},"derivedAt":{"type":["string","null"],"format":"date-time"}}}}
+  }
+}

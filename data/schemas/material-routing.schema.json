@@ -1,0 +1,22 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://tuckerinc82.org/schemas/material-routing/v1.0.0.json",
+  "title":"TSM Dredged Material Routing",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["routing_id","material_id","source_volume_cy","allocated_volume_cy","placed_volume_cy","remaining_volume_cy","legs"],
+  "properties":{
+    "routing_id":{"type":"string","minLength":1},
+    "material_id":{"type":"string","minLength":1},
+    "source_volume_cy":{"type":"number","minimum":0},
+    "allocated_volume_cy":{"type":"number","minimum":0},
+    "placed_volume_cy":{"type":"number","minimum":0},
+    "processing_loss_cy":{"type":"number","minimum":0},
+    "remaining_volume_cy":{"type":"number","minimum":0},
+    "unit_basis":{"type":"string","enum":["cubic_yard","cubic_feet","tonne","short_ton"]},
+    "legs":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["from","to","volume_cy","provenance_id"],"properties":{"from":{"type":"string"},"to":{"type":"string"},"volume_cy":{"type":"number","minimum":0},"provenance_id":{"type":"string","minLength":1}}}},
+    "placement_cell":{"type":["string","null"]},
+    "compacted_lifts":{"type":"array","items":{"type":"object","additionalProperties":true}},
+    "monitoring_ids":{"type":"array","items":{"type":"string"}}
+  }
+}

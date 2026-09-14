@@ -1,0 +1,21 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://tuckerinc82.org/schemas/authority-pathway/v1.0.0.json",
+  "title":"TSM Conditional Authority Pathway",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["pathway_id","authority","status","conditions","evidence_ids"],
+  "properties":{
+    "pathway_id":{"type":"string","minLength":1},
+    "authority":{"type":"string","minLength":1},
+    "status":{"type":"string","enum":["CANDIDATE","REQUIRES_APPLICABILITY_REVIEW","REQUIRES_ENVIRONMENTAL_REVIEW","REQUIRES_SPONSOR_AND_COST_SHARE","ENGINEERING_REVIEW_READY","ACCEPTED_BY_AUTHORITY"]},
+    "conditions":{"type":"array","items":{"type":"string","minLength":1}},
+    "eligible_activity_scope":{"type":"array","items":{"type":"string"}},
+    "sponsor_role":{"type":["string","null"]},
+    "cost_share":{"type":["string","null"]},
+    "environmental_review":{"type":["string","null"]},
+    "evidence_ids":{"type":"array","items":{"type":"string"}},
+    "source_uris":{"type":"array","items":{"type":"string","format":"uri"}},
+    "verified_at":{"type":["string","null"],"format":"date-time"}
+  }
+}

@@ -1,11 +1,10 @@
 /**
- * Tri-State Engineering Simulator viewport configuration
- * Math authoritative. Compensatory ratio aligned to Posey 1.0× equal-volume (2026-09-02).
+ * Tri-State River Valley engineering viewport configuration.
+ * Legacy scenario elevations remain explicit and are not universal design criteria.
  */
 
 export const VIEWPORT_CONFIG = {
-  projectNode:
-    '13101 Bonebank Road, Point Township, Posey County, Indiana',
+  projectNode: 'Lower Wabash-Ohio Confluence Community',
   visualDoctrine: 'tri-state-engineering-sim' as const,
   renderPolicy: {
     headlessAnimationLoops: false,
@@ -24,15 +23,13 @@ export const VIEWPORT_CONFIG = {
     ffeFt: 382.5,
     bermCrestFt: 379.8,
     clearanceLagMinusBfeFt: 2.2,
-  },
-  parcel: {
-    apn: '65-19-08-100-008.001-010',
+    evidenceStatus: 'LEGACY_SCENARIO_REQUIRES_PROJECT_EVIDENCE' as const,
   },
   hydrology: {
     primaryUsgs: '03378500',
     primaryUsgsName: 'Wabash River at New Harmony, IN',
-    primaryNws: 'MTVI3',
-    myersNws: 'UNWK2',
+    primaryNws: 'NHRI3',
+    relatedGauges: ['03322000', '03304300', '03322420', '03381700', '03399800', '03303280', '03612600', '03277200', '03293600', '03294500'] as const,
     compensatoryStorageRatio: 1.0,
     idnrFloodwaySurchargeFt: 0.15,
     indianaFreeboardFt: 2.0,
@@ -46,17 +43,6 @@ export const VIEWPORT_CONFIG = {
     'locks_dams',
     'idnr_properties',
   ] as const,
-  loma: {
-    tileId: 'IN2020_26800940_12',
-    s3Uri:
-      's3://giselevationingov/las/statewide/2020/SPW/ql2/IN2020_26800940_12.las',
-    portal: 'https://elevation.gio.in.gov/',
-    tileMaxGroundFt: 366.5,
-    bufferMinFt: 337.22,
-    lagOutsideLowGroundTile: true,
-    note:
-      'Structure LAG 377.2 ft lies outside this low-ground tile — require adjacent higher-ground tiles + sealed survey for LOMA.',
-  },
   camera: {
     defaultPosition: [0, 60, 180] as [number, number, number],
     fov: 45,
@@ -76,19 +62,15 @@ export const VIEWPORT_CONFIG = {
     usdExportAuthorityClass: 'VISUALIZATION' as const,
   },
   labels: {
-    simulationBanner:
-      'ENGINEERING SIM — stage is GAGE_DATUM unless conversion applied; not entertainment open-world',
-    authorityBanner:
-      'Human authority final · Technology informs, does not govern',
-    evidencePresentationBoundary:
-      'Viewport does not mutate PostGIS / HEC-RAS / Evidence Ledger',
+    simulationBanner: 'ENGINEERING SIM — observed, forecast, model and simulation states remain distinct',
+    authorityBanner: 'Human authority final · Technology informs, does not govern',
+    evidencePresentationBoundary: 'Viewport does not mutate PostGIS / HEC-RAS / Evidence Ledger',
   },
   portable: {
     requiredEpsg: 2966,
     requiredVertical: 'NAVD88',
     requiredBfeFt: 375.0,
     requiredLagFt: 377.2,
-    requiredApn: '65-19-08-100-008.001-010',
   },
 } as const;
 
@@ -110,24 +92,12 @@ export function verifyPortableInvariants(input: {
   vertical?: string;
   bfeFt?: number;
   lagFt?: number;
-  apn?: string;
 }): { ok: boolean; failures: string[] } {
   const p = VIEWPORT_CONFIG.portable;
   const failures: string[] = [];
-  if (input.epsg !== undefined && input.epsg !== p.requiredEpsg) {
-    failures.push(`EPSG expected ${p.requiredEpsg}, got ${input.epsg}`);
-  }
-  if (input.vertical !== undefined && input.vertical !== p.requiredVertical) {
-    failures.push(`Vertical expected ${p.requiredVertical}, got ${input.vertical}`);
-  }
-  if (input.bfeFt !== undefined && input.bfeFt !== p.requiredBfeFt) {
-    failures.push(`BFE expected ${p.requiredBfeFt}, got ${input.bfeFt}`);
-  }
-  if (input.lagFt !== undefined && input.lagFt !== p.requiredLagFt) {
-    failures.push(`LAG expected ${p.requiredLagFt}, got ${input.lagFt}`);
-  }
-  if (input.apn !== undefined && input.apn !== p.requiredApn) {
-    failures.push(`APN mismatch`);
-  }
+  if (input.epsg !== undefined && input.epsg !== p.requiredEpsg) failures.push(`EPSG expected ${p.requiredEpsg}, got ${input.epsg}`);
+  if (input.vertical !== undefined && input.vertical !== p.requiredVertical) failures.push(`Vertical expected ${p.requiredVertical}, got ${input.vertical}`);
+  if (input.bfeFt !== undefined && input.bfeFt !== p.requiredBfeFt) failures.push(`BFE expected ${p.requiredBfeFt}, got ${input.bfeFt}`);
+  if (input.lagFt !== undefined && input.lagFt !== p.requiredLagFt) failures.push(`LAG expected ${p.requiredLagFt}, got ${input.lagFt}`);
   return { ok: failures.length === 0, failures };
 }

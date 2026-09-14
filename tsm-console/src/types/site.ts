@@ -1,6 +1,7 @@
 /**
- * Sovereign site constants for 13101 Bonebank Road
- * Source of truth: tsm-site-constants-13101-bonebank.json
+ * Community region constants used by the console.
+ * No private residence, parcel/APN, or house-specific engineering target is stored here.
+ * The elevation values are retained only as legacy scenario inputs and are not universal design criteria.
  */
 
 export interface SiteConstants {
@@ -10,6 +11,7 @@ export interface SiteConstants {
   state: string;
   region: string;
   apn: string;
+  elevationEvidenceStatus: 'LEGACY_SCENARIO_REQUIRES_PROJECT_EVIDENCE';
   crs: {
     horizontalEpsg: number;
     horizontalName: string;
@@ -38,7 +40,7 @@ export interface SiteConstants {
       minor: number;
       moderate: number;
       major: number;
-      record: number;
+      record: number | null;
     };
   };
   femaCommunities: {
@@ -48,16 +50,16 @@ export interface SiteConstants {
   };
 }
 
-/** Runtime constant object — never mutate at runtime */
 export const SITE: SiteConstants = {
-  address: '13101 Bonebank Road',
-  township: 'Point Township',
+  address: 'Lower Wabash-Ohio Confluence Community',
+  township: 'Point Township / regional community scope',
   county: 'Posey County',
   state: 'Indiana',
   region: 'Tri-State River Valley',
-  apn: '65-19-08-100-008.001-010',
+  apn: 'COMMUNITY_SCOPE',
+  elevationEvidenceStatus: 'LEGACY_SCENARIO_REQUIRES_PROJECT_EVIDENCE',
   crs: {
-    horizontalEpsg: 2966, // NEVER 2967 — Omni Canvas prototype error
+    horizontalEpsg: 2966,
     horizontalName: 'NAD83 / Indiana West (ftUS)',
     verticalDatum: 'NAVD88',
   },
@@ -69,22 +71,22 @@ export const SITE: SiteConstants = {
     clearanceAboveBfe_ft: 2.2,
   },
   boundingEnvelope: {
-    minLon: -88.0150,
-    minLat: 37.8920,
-    maxLon: -87.9850,
-    maxLat: 37.9150,
+    minLon: -88.35,
+    minLat: 37.55,
+    maxLon: -87.55,
+    maxLat: 38.35,
   },
   noaaGauge: {
-    nwsId: 'MTVI3',
-    name: 'Ohio River at Mount Vernon',
-    lat: 37.9286,
-    lon: -87.8956,
+    nwsId: 'NHRI3',
+    name: 'Wabash River at New Harmony',
+    lat: 38.13089124398878,
+    lon: -87.94141452141561,
     stages: {
-      action: 28,
-      minor: 35,
-      moderate: 45,
-      major: 52,
-      record: 59.21,
+      action: 0,
+      minor: 0,
+      moderate: 0,
+      major: 0,
+      record: null,
     },
   },
   femaCommunities: {
