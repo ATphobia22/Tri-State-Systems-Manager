@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-09-14T16:30:00Z",
+  "purpose": "Open-world photorealistic visualization and geospatial tile delivery",
+  "deliveryPlane": {
+    "server": "ATphobia22/martin",
+    "role": "2D vector/raster/coverage tile delivery and cache",
+    "runtimeBasePath": "/tiles",
+    "configPath": "ops/martin/config.yaml"
+  },
+  "standards": {
+    "ogc3DTiles": "1.1",
+    "ogcApiTiles": "1.0",
+    "tileMatrixSet": "OGC Two Dimensional Tile Matrix Set 2.0",
+    "vectorTile": "Mapbox Vector Tile / MVT"
+  },
+  "renderingContracts": [
+    {
+      "id": "photorealistic-imagery",
+      "sourceAssetId": "indiana-current-imagery",
+      "renderRole": "current-aerial-imagery",
+      "delivery": "authoritative-service-or-approved-derived-cache",
+      "engineeringUse": false,
+      "regulatoryUse": false,
+      "provenanceRequired": true
+    },
+    {
+      "id": "terrain-3dep",
+      "sourceAssetId": "usgs-3dep-terrain",
+      "renderRole": "terrain-elevation",
+      "delivery": "authoritative-service-or-approved-derived-cache",
+      "engineeringUse": false,
+      "regulatoryUse": false,
+      "provenanceRequired": true
+    },
+    {
+      "id": "flood-visualization",
+      "sourceAssetId": "indiana-bafm",
+      "renderRole": "floodplain-context",
+      "delivery": "martin-vector-tile-or-authoritative-service",
+      "engineeringUse": false,
+      "regulatoryUse": false,
+      "provenanceRequired": true
+    },
+    {
+      "id": "photogrammetry-and-3d-objects",
+      "sourceAssetId": null,
+      "renderRole": "ogc-3d-tiles",
+      "delivery": "explicitly-registered-3d-tileset",
+      "engineeringUse": false,
+      "regulatoryUse": false,
+      "provenanceRequired": true,
+      "status": "PROGRAMMATIC_SOURCE_REQUIRED"
+    }
+  ],
+  "provenance": {
+    "requiredFields": [
+      "sourceUrl",
+      "sourceAssetId",
+      "retrievedAt",
+      "sourceVersionOrEffectiveDate",
+      "crs",
+      "verticalDatum",
+      "transformation",
+      "softwareVersion",
+      "contentHashSha256"
+    ]
+  },
+  "safetyBoundary": "Visualization tiles never substitute for HEC-RAS hydraulic results, survey-grade engineering terrain, FEMA effective regulatory mapping, or professional engineering determinations."
+}
