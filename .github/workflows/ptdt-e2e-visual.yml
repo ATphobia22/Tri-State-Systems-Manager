@@ -62,7 +62,7 @@ jobs:
 
       - name: Install pinned Cypress runtime
         if: ${{ steps.cypress.outputs.configured == 'true' }}
-        run: npm install --no-save --package-lock=false cypress@16.0.0 --ignore-scripts=false --no-audit --no-fund --registry=https://registry.npmjs.org
+        run: npm install --no-save --package-lock=false --legacy-peer-deps cypress@16.0.0 --ignore-scripts=false --no-audit --no-fund --registry=https://registry.npmjs.org
 
       - name: Cache Cypress binary
         if: ${{ steps.cypress.outputs.configured == 'true' }}
