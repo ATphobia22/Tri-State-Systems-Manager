@@ -1,0 +1,19 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://tuckerinc82.org/schemas/historical-event/v1.0.0.json",
+  "title":"TSM Historical Flood Event",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["eventId","status","provenanceClass","source","observations"],
+  "properties":{
+    "eventId":{"type":"string","minLength":1},
+    "eventDate":{"type":["string","null"],"format":"date"},
+    "eventYear":{"type":["integer","null"],"minimum":1800},
+    "status":{"type":"string","enum":["HISTORICAL_RECORDED","AGENCY_OBSERVED","DERIVED","MODEL_INPUT","MODEL_OUTPUT","SIMULATION_DEMO","ENGINEERING_REVIEW_READY","ENGINEER_ACCEPTED","AGENCY_ACCEPTED"]},
+    "provenanceClass":{"type":"string","enum":["HISTORICAL_COMMUNITY_EVIDENCE","AGENCY_OBSERVED","DERIVED"]},
+    "source":{"type":"object","additionalProperties":false,"required":["name"],"properties":{"name":{"type":"string"},"fileHash":{"type":["string","null"]},"stationId":{"type":["string","null"]},"uri":{"type":["string","null"]}}},
+    "observations":{"type":"array","items":{"type":"object","additionalProperties":true}},
+    "communityImpact":{"type":"array","items":{"type":"string"}},
+    "privacyRedacted":{"type":"boolean","const":true}
+  }
+}
