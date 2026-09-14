@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const OUTPUT_DEFAULT = path.join(ROOT, 'data/geospatial/cache/posey-2020');
 const BOUNDS = Object.freeze({ minX: 2680000, minY: 940000, maxX: 2685000, maxY: 945000 });
+const BOUNDS_CSV = '2680000,940000,2685000,945000';
 const DEM_SERVICE = 'https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_2016_2020_DEM/ImageServer/exportImage';
 const NAIP_SERVICE = 'https://imagery.geoplatform.gov/iipp/rest/services/NAIP/NAIP2020_CONUS/ImageServer/exportImage';
 
@@ -33,7 +34,7 @@ function assertBounds(bounds) {
 
 function exportUrl(service, format, width, height) {
   const params = new URLSearchParams({
-    bbox: `${BOUNDS.minX},${BOUNDS.minY},${BOUNDS.maxX},${BOUNDS.maxY}`,
+    bbox: BOUNDS_CSV,
     bboxSR: '2966',
     imageSR: '2966',
     size: `${width},${height}`,
@@ -48,8 +49,8 @@ function exportUrl(service, format, width, height) {
 async function download(url, destination, overwrite) {
   if (!overwrite) {
     try {
-      await readFile(destination);
-      return { skipped: true, bytes: (await readFile(destination)).byteLength, sha256: sha256(await readFile(destination)) };
+      const bytes = await readFile(destination);
+      return { skipped: true, bytes: bytes.byteLength, sha256: sha256(bytes) };
     } catch {
       // Materialize below.
     }
