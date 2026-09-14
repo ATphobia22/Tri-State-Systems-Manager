@@ -1,7 +1,7 @@
 /** Typed loader contracts for the TSM public-interest engineering console. */
 import type { SiteConstants } from './site';
 export interface AuthContext { uid: string; tenantId: string; roles: string[]; classificationMax: 'public' | 'internal' | 'restricted' | 'confidential'; authenticatedAt: string; }
-export interface RootLoaderData { auth: AuthContext | null; systemClock: string; siteSummary: { address: string; apn: string; bfe: number; lag: number; clearanceAboveBfe: number }; stage: MapTwinLoaderData['stage']; }
+export interface RootLoaderData { auth: AuthContext | null; systemClock: string; communitySummary: { scope: string; township: string; county: string; region: string }; stage: MapTwinLoaderData['stage']; }
 export interface CharterLoaderData { charterVersion: string; memorialName: string; principle: string; humanAuthorityRule: string; }
 export interface ArchitectureLoaderData { trustPlanes: Array<{ level: number; name: string; description: string }>; coreFlow: string[]; }
 export interface NeedsLoaderData { selectedLocation: { id: string; level: 'region' | 'county' | 'township' | 'municipality'; name: string }; metrics: { housing: number; mobility: number; healthcare: number; employment: number; food: number; education: number; safety: number }; dataContractId: string; deidentified: true; source: string; }
