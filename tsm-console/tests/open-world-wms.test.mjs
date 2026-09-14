@@ -5,7 +5,7 @@ const fs = await import('node:fs/promises');
 const source = await fs.readFile(new URL('../src/lib/open-world-wms.ts', import.meta.url), 'utf8');
 
 test('ArcGIS WMS tile template uses MapLibre Web Mercator bbox token', () => {
-  assert.match(source, /bbox=\{bbox-epsg-3857\}/);
+  assert.match(source, /BBOX=\{bbox-epsg-3857\}/);
   assert.match(source, /CRS=EPSG:3857/);
   assert.match(source, /FORMAT=image\/png/);
 });
