@@ -30,6 +30,19 @@ for (const name of await readdir(WORKFLOW_DIR)) {
   if (name === 'geospatial-ci.yml' && /cityengine|unreal/i.test(text) && !/workflow_dispatch/.test(text)) {
     errors.push('geospatial-ci.yml: specialized tooling must be independently dispatchable');
   }
+  if (name === 'ci.yml') {
+    const alertmanagerCheck = /docker run[\s\S]*?prom\/alertmanager:v0\.34\.0@sha256:[0-9a-f]{64}[\s\S]*?check-config[\s\S]*?--enable-feature=utf8-strict-mode/m.test(text);
+    if (!alertmanagerCheck || !/--entrypoint=\/bin\/amtool/.test(text)) {
+      errors.push('ci.yml: Alertmanager validation must invoke the pinned amtool binary with UTF-8 strict validation');
+    }
+    const prometheusCheck = /docker run[\s\S]*?prom\/prometheus:v3\.14\.0@sha256:[0-9a-f]{64}[\s\S]*?check config[\s\S]*?\/config\/prometheus\.yml/m.test(text);
+    if (!prometheusCheck || !/--entrypoint=\/bin\/promtool/.test(text)) {
+      errors.push('ci.yml: Prometheus validation must invoke the pinned promtool binary when a config exists');
+    }
+    if (/prom\/(?:alertmanager|prometheus):latest\b/.test(text)) {
+      errors.push('ci.yml: monitoring validation must not use floating :latest image tags');
+    }
+  }
 }
 
 if (errors.length) {
