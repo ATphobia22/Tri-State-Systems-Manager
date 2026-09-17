@@ -15,6 +15,17 @@ TSM has two runtime planes:
 
 The browser and API are intentionally separately deployable. GitHub Pages can host the static browser plane; live river observations require the Node API to be published over HTTPS and selected with `VITE_TSM_API_BASE_URL`.
 
+The Open World Twin geospatial plane also integrates:
+
+- Indiana current imagery through the current ArcGIS ImageServer/WMS fabric;
+- USGS 3DEP elevation/hillshade visualization;
+- Indiana current and 2025 parcel services;
+- FEMA NFHL and Indiana BAFM as separate flood-authority planes;
+- USGS/NOAA live hydrologic observations;
+- historical Point Township plat/FIRM material as reference-only evidence.
+
+The live imagery and 3DEP visual layers are source-bound visualization products. They do **not** silently become survey-grade terrain, regulatory determinations or engineering design surfaces. MapLibre 3D terrain remains fail-closed behind the configured `VITE_TSM_TERRAIN_RGB_URL_TEMPLATE` contract until a materialized, provenance-controlled Terrain-RGB/raster-dem service is available.
+
 ## Community River Watch
 
 The River Watch uses the registered USGS/NOAA station fabric and displays measured observations with explicit provenance and freshness states. The current network includes New Harmony, Evansville, Newburgh, Old Shawneetown, Smithland, Cannelton, Olmsted, Markland, McAlpine and Louisville. J.T. Myers is retained as a candidate station until its live runtime availability is independently verified.
@@ -97,8 +108,9 @@ Important runtime files:
 - `tsm-console/src/components/RiverGaugeBoard.tsx` — accessible River Watch display
 - `tsm-console/src/components/EngineeringSectionCutaway.tsx` — engineering vertical section visualization
 - `artifacts/tsm-river-valley-realtime-stations-v1.json` — station/structure registry
+- `artifacts/tsm-geospatial-tile-fabric-v1.json` — governed live/historical geospatial asset manifest
 - `artifacts/tsm-regulatory-gates-v1.json` — regulatory review gates
-- `docs/engineering/TSM-ENGINEERING-EVIDENCE-REPORT.tex` — reproducible LaTeX evidence template
+- `docs/OPEN-WORLD-LIVE-TILE-FABRIC-v1.md` — live imagery/elevation/Open World tile architecture
 - `docs/DEPLOYMENT-AND-OPERATIONS.md` — deployment and operations runbook
 - `COMPLIANCE.md` — authority and non-certification boundaries
 
@@ -136,15 +148,26 @@ Then use:
 
 For hosted deployment, set the browser build variable `VITE_TSM_API_BASE_URL` to the HTTPS API origin and restrict `CORS_ORIGIN` to the exact HTTPS web origin.
 
-## Verification
+## CI, actions and deployment verification
 
-The canonical CI sequence is:
+The canonical application validation sequence is:
 
 ```bash
+cd tsm-console
 npm run ci:full
 ```
 
-It includes dependency integrity, supply-chain policy, SBOM/provenance, repository integrity, workflow security, artifact contracts, quantum isolation, shell safety, source-data contracts, parsing, TypeScript, geospatial validation, production build and the full test suite.
+The main CI workflow additionally validates backend engineering primitives and the monitoring configuration. Alertmanager and Prometheus checks invoke their bundled `amtool`/`promtool` binaries explicitly and use version-pinned container digests; they must not rely on the monitoring images' server entrypoints or floating `:latest` tags.
+
+The GitHub Pages workflow always performs the production build and uploads a normal production artifact. The actual Pages deployment is intentionally conditional on the repository variable:
+
+```text
+TSM_PAGES_ENABLED=true
+```
+
+When that variable is not enabled, the production build remains verified and the Pages deployment job is skipped rather than falsely reporting a deployment. Enabling Pages also requires GitHub repository Pages configuration; the workflow does not fabricate or bypass that repository-level setting.
+
+The CI suite includes dependency integrity, supply-chain policy, SBOM/provenance, repository integrity, workflow security, artifact contracts, quantum isolation, shell safety, source-data contracts, parsing, TypeScript, geospatial validation, production build and the full test suite.
 
 Do not weaken or bypass a failing gate.
 
