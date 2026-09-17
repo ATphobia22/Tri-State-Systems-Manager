@@ -126,12 +126,20 @@ jobs:
       - name: Validate Alertmanager configuration
         working-directory: .
         run: |
-          docker run --rm -v "$PWD/ops/alertmanager:/config:ro" prom/alertmanager:latest amtool check-config /config/alertmanager.yml
+          docker run --rm \
+            --entrypoint=/bin/amtool \
+            -v "$PWD/ops/alertmanager:/config:ro" \
+            prom/alertmanager:v0.34.0@sha256:690c7b525f4367aa91f73e2f91c632206d32e97c6384bdbf2fb7a861b420340d \
+            check-config /config/alertmanager.yml --enable-feature=utf8-strict-mode
       - name: Validate Prometheus configuration when present
         working-directory: .
         run: |
           if [ -f ops/prometheus/prometheus.yml ]; then
-            docker run --rm -v "$PWD/ops/prometheus:/config:ro" prom/prometheus:latest promtool check config /config/prometheus.yml
+            docker run --rm \
+              --entrypoint=/bin/promtool \
+              -v "$PWD/ops/prometheus:/config:ro" \
+              prom/prometheus:v3.14.0@sha256:5ce7540c3c00ef4ab0c9d2c995c6a5b9c421f44b4a115d97a2c7af3b1c21cbb0 \
+              check config /config/prometheus.yml
           else
             echo 'No Prometheus runtime configuration committed; exporter contract remains application-owned.'
           fi
