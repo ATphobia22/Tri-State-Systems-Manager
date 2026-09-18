@@ -17,8 +17,9 @@ import { normalizeTelemetryEvent, validateTelemetryIngress } from './telemetry/i
 
 const PORT = Number(process.env.PORT || 8787);
 const BUILD_SHA = process.env.GITHUB_SHA || process.env.TSM_BUILD_SHA || 'local';
+const ALLOWED_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
 function json(res, status, body, requestId) {
-  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-TSM-Request-ID': requestId || 'unknown', 'Access-Control-Allow-Origin': process.env.CORS_ORIGIN || 'http://localhost:5173', 'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-TSM-Request-ID', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS' });
+  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-TSM-Request-ID': requestId || 'unknown', 'Access-Control-Allow-Origin': ALLOWED_ORIGIN, 'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-TSM-Request-ID', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS' });
   res.end(JSON.stringify(body));
 }
 function readBodyFixed(req) {
