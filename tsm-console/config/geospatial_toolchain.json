@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "purpose": "Open-source geospatial toolchain contract for agency-reviewable processing",
   "tools": {
     "pdal": {
@@ -23,12 +23,61 @@
     "martin": {
       "role": "PostGIS/vector tile serving",
       "upstream": "https://github.com/maplibre/martin"
+    },
+    "3d-tiles-renderer": {
+      "role": "OGC 3D Tiles browser renderer for Three.js/React Three Fiber",
+      "package": "3d-tiles-renderer",
+      "pinned_version": "0.5.2",
+      "upstream": "https://github.com/NASA-AMMOS/3DTilesRendererJS",
+      "license": "Apache-2.0"
+    },
+    "h3-js": {
+      "role": "client-side H3 spatial indexing and aggregation",
+      "package": "h3-js",
+      "pinned_version": "4.5.0",
+      "upstream": "https://github.com/uber/h3-js",
+      "license": "Apache-2.0"
+    },
+    "pmtiles": {
+      "role": "browser/server PMTiles archive access and MapLibre protocol integration",
+      "package": "pmtiles",
+      "pinned_version": "4.5.0",
+      "upstream": "https://github.com/protomaps/PMTiles",
+      "license": "BSD-3-Clause"
+    },
+    "protomaps": {
+      "role": "reproducible OSM/Natural Earth basemap PMTiles generation",
+      "upstream": "https://github.com/protomaps/basemaps",
+      "license": "BSD-3-Clause",
+      "dataLicense": "ODbL for OSM-derived tiles",
+      "attributionRequired": true
+    },
+    "samgeo": {
+      "role": "offline/async geospatial image segmentation; AI-derived output only",
+      "upstream": "https://github.com/opengeos/segment-geospatial",
+      "license": "MIT",
+      "humanReviewRequired": true
+    },
+    "tooljet": {
+      "role": "isolated internal operations/admin console",
+      "upstream": "https://github.com/ToolJet/ToolJet",
+      "license": "AGPL-3.0",
+      "deploymentBoundary": "separate-service"
+    },
+    "mercator": {
+      "role": "architecture/dependency-graph reference only",
+      "upstream": "https://github.com/mercator-hq/mercator",
+      "sourceIntegration": "do-not-vendor-application"
     }
   },
   "policy": {
     "raw_lidar_committed": false,
     "derived_artifacts_committed": false,
     "source_provenance_required": true,
-    "engineering_values_are_not_certified_by_ci": true
+    "engineering_values_are_not_certified_by_ci": true,
+    "ai_derived_results_require_human_review": true,
+    "osm_derived_tiles_require_visible_attribution": true,
+    "agpl_services_must_remain_process_isolated": true,
+    "3d_tiles_renderer_is_visualization_only": true
   }
 }
