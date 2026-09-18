@@ -11,10 +11,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import * as tsModule from 'typescript';
-
-const ts = tsModule.default ?? tsModule;
-
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const failures = [];
 const files = [];
