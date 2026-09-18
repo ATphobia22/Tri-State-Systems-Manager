@@ -59,6 +59,7 @@ export function addMartinHydraulicLayer(
   currentWseNavd88Ft: number | null,
 ): boolean {
   const martinBaseUrl = import.meta.env.VITE_TSM_MARTIN_BASE_URL?.trim() || '';
+  const martinRoutePrefix = import.meta.env.VITE_TSM_MARTIN_ROUTE_PREFIX?.trim() || '';
   if (!martinBaseUrl || currentWseNavd88Ft == null || !Number.isFinite(currentWseNavd88Ft)) {
     return false;
   }
@@ -67,7 +68,7 @@ export function addMartinHydraulicLayer(
   const layerId = 'tsm-hydraulic-extrusion';
 
   if (!map.getSource(sourceId)) {
-    const source = createHydraulicSource('get_parcel_tiles', martinBaseUrl);
+    const source = createHydraulicSource('get_parcel_tiles', martinBaseUrl, martinRoutePrefix);
     map.addSource(sourceId, {
       type: source.type,
       tiles: source.tiles,
