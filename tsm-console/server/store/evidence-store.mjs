@@ -124,6 +124,7 @@ export function appendArtifact(raw) {
     superseded_by: raw.superseded_by || null,
     is_simulation_demo: Boolean(raw.is_simulation_demo),
     human_review_status: raw.human_review_status || 'pending',
+    human_authorization: raw.human_authorization || null,
     notes: raw.notes || null,
     payload: raw.payload || null,
     created_at: new Date().toISOString(),
