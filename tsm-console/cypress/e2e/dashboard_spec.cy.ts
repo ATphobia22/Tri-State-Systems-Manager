@@ -35,8 +35,10 @@ describe("PTDT v35 Dashboard - E2E Integration Suite", () => {
       assets.forEach((asset) => {
         const resolved = new URL(asset, document.baseURI);
         expect(resolved.pathname, `asset ${asset}`).to.match(
-          new RegExp(`^${basePath.replace(/[.*+?^${}()|[\]\\]/g, '\\      assets.forEach((asset) => {
-        expect(asset, `asset ${asset}`).to.not.match(/^\/(?!Tri-State-Systems-Manager\/)/);
+          new RegExp(`^${basePath.replace(/[.*+?^${}()|[\]\\]/g, '\\      const basePath = new URL('./', document.baseURI).pathname;
+      assets.forEach((asset) => {
+        const resolved = new URL(asset, document.baseURI);
+        expect(resolved.pathname.startsWith(basePath), `asset ${asset}`).to.equal(true);
       });')}`),
         );
       });
