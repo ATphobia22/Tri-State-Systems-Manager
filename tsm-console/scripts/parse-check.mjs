@@ -53,7 +53,7 @@ for (const file of files) {
       fileName: file,
       reportDiagnostics: true,
       compilerOptions: {
-        jsx: ts.JsxEmit.ReactJSX,
+        jsx: ts.JsxEmit?.ReactJSX ?? 4,
         module: ts.ModuleKind.ESNext,
         target: ts.ScriptTarget.ES2022,
         moduleResolution: ts.ModuleResolutionKind.Bundler,
