@@ -81,38 +81,11 @@ jobs:
         run: npm run check:site-consistency
       - name: Geospatial processing contract gate
         run: npm run check:geospatial
-      - name: Parse diagnostic report
-        if: always()
-        run: |
-          mkdir -p artifacts
-          set +e
-          npm run check:parse > artifacts/parse-gate.txt 2>&1
-          status=$?
-          set -e
-          cat artifacts/parse-gate.txt
-          if [ "$status" -ne 0 ]; then echo "Parse diagnostic captured; authoritative parse gate remains fail-closed."; fi
       - name: Parse gate
         run: npm run check:parse
-      - name: Upload parse diagnostic
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: tsm-parse-diagnostic
-          path: tsm-console/artifacts/parse-gate.txt
-          if-no-files-found: warn
       - name: Typecheck
         run: npm run check:type
       - name: Production build
         run: npm run build
-      - name: Test suite diagnostic report
-        if: always()
-        run: |
-          mkdir -p artifacts
-          set +e
-          npm run test:all > artifacts/test-all.txt 2>&1
-          status=$?
-          set -e
-          cat artifacts/test-all.txt
-          if [ "$status" -ne 0 ]; then echo "Test diagnostic captured; authoritative test suite remains fail-closed."; fi
       - name: Test suite
         run: npm run test:all
