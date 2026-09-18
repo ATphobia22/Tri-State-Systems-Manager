@@ -29,7 +29,12 @@ export function readParcelProvenance(
   };
 }
 
+const provenanceInspectorMaps = new WeakSet<Map>();
+
 export function setupParcelProvenanceInspector(map: Map): void {
+  if (provenanceInspectorMaps.has(map)) return;
+  provenanceInspectorMaps.add(map);
+
   map.on('click', 'tsm-hydraulic-extrusion', (event) => {
     const provenance = readParcelProvenance(map, event);
     if (!provenance) return;
