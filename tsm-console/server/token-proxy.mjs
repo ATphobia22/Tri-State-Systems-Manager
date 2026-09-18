@@ -32,12 +32,10 @@ function readBodyFixed(req) {
 const healthBody = () => ({ ok: true, service: 'tsm-api', build_sha: BUILD_SHA, node: process.version, uptime_s: Math.round(process.uptime()), planes: ['EVIDENCE', 'GOVERNANCE', 'ENGINEERING', 'GEOSPATIAL', 'DATA_FABRIC'] });
 const latestRecord = (records, parameterCode = null) => records.filter((record) => parameterCode === null || record.provenance?.parameterCode === parameterCode).sort((a, b) => Date.parse(a.observedAt) - Date.parse(b.observedAt)).at(-1) || null;
 const acceptedTelemetryEvents = new Map();
+function hasTelemetryEvent(eventId) { return acceptedTelemetryEvents.has(eventId); }
 function rememberTelemetryEvent(eventId, now = Date.now()) {
-  const existing = acceptedTelemetryEvents.get(eventId);
-  if (existing) return false;
   acceptedTelemetryEvents.set(eventId, now);
   while (acceptedTelemetryEvents.size > 4096) acceptedTelemetryEvents.delete(acceptedTelemetryEvents.keys().next().value);
-  return true;
 }
 
 const server = http.createServer(async (req, res) => {
@@ -62,7 +60,7 @@ const server = http.createServer(async (req, res) => {
       if (!auth.ok) return json(res, auth.status, { ok: false, code: auth.code }, requestId);
       try {
         const event = normalizeTelemetryEvent(await readBodyFixed(req));
-        if (!rememberTelemetryEvent(event.event_id)) return json(res, 200, { ok: true, duplicate: true, event_id: event.event_id }, requestId);
+        if (hasTelemetryEvent(event.event_id)) return json(res, 200, { ok: true, duplicate: true, event_id: event.event_id }, requestId);
         const artifact = appendArtifact({
           artifact_type: 'telemetry_event',
           source_authority: event.source_id,
@@ -82,6 +80,7 @@ const server = http.createServer(async (req, res) => {
           payload: event,
           notes: 'Event-driven telemetry ingress. Source authority and regulatory meaning remain source-defined; TSM does not certify incoming sensor/radar products.',
         });
+        rememberTelemetryEvent(event.event_id);
         return json(res, 202, { ok: true, accepted: true, event_id: event.event_id, artifact_id: artifact.artifact_id }, requestId);
       } catch (error) {
         return json(res, error instanceof TypeError ? 400 : 422, { ok: false, code: error.code || 'TELEMETRY_EVENT_INVALID', error: error.message }, requestId);
