@@ -4,6 +4,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import type { MapTwinLoaderData } from '../types/loaders';
 import { buildTwinStyle, applyTwinTerrain, addFloodAuthorityLayers, applyLiveStageMetadata, addMartinHydraulicLayer, TWIN_ENGINEERING_CONSTANTS } from '../lib/twin-map-style';
 import { buildArcGisWmsTileTemplate, INDIANA_CURRENT_IMAGERY_WMS, USGS_3DEP_ELEVATION_WMS } from '../lib/open-world-wms';
+import { setupParcelProvenanceInspector } from '../lib/parcel-provenance';
 
 interface RealWorldTwinMapProps { data: MapTwinLoaderData; }
 const NEW_HARMONY_GAGE: [number, number] = [-87.9414145, 38.13089124];
@@ -81,6 +82,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       applyLiveStageMetadata(map, data);
       // Hydraulic rendering is fail-closed: only an explicitly derived NAVD88 WSE drives water height.
       addMartinHydraulicLayer(map, data.stage.conversion_applied ? data.stage.wse_navd88_ft : null);
+      if (map.getLayer('tsm-hydraulic-extrusion')) setupParcelProvenanceInspector(map);
       new maplibregl.Marker().setLngLat(NEW_HARMONY_GAGE).setPopup(buildGagePopup(data)).addTo(map);
       mapRef.current = map;
     });
