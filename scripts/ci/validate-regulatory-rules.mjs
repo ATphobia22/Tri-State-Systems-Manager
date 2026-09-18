@@ -11,7 +11,7 @@ if (!Array.isArray(registry.rules) || registry.rules.length === 0) {
 const ids = new Set();
 for (const rule of registry.rules) {
   for (const key of ['id', 'jurisdiction', 'authority', 'citation', 'title', 'applicability', 'sourceUrl', 'status']) {
-    if (!rule[key]) throw new Error(rule.id ?? '<unknown>' + ': missing ' + key);
+    if (!rule[key]) throw new Error((rule.id ?? '<unknown>') + ': missing ' + key);
   }
   if (ids.has(rule.id)) throw new Error('duplicate regulatory rule id: ' + rule.id);
   ids.add(rule.id);
