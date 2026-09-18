@@ -62,7 +62,8 @@
     "ci:full": "npm run ci && npm run test:all",
     "check:v35.1": "tsc -p tsconfig.v35.1.json --noEmit",
     "sign:evidence": "node --experimental-strip-types ../scripts/sign-evidence.ts",
-    "build:loma": "python3 ../tools/build_loma_packet.py"
+    "build:loma": "python3 ../tools/build_loma_packet.py",
+    "test:v35.1": "vitest run tests/v35.1-contracts.test.ts"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.0",
