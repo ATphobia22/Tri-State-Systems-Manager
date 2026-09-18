@@ -11,7 +11,7 @@ export default function MapLibreMap() {
   const [stageOverride, setStageOverride] = useState(data.stage.value_ft ?? data.site.elevations.bfe_ft);
   const usingLive = data.stage.value_ft != null && data.stage.source !== 'UNAVAILABLE';
   const displayStage = usingLive ? data.stage.value_ft as number : stageOverride;
-  const assessment = useMemo(() => assessClearanceSupport({ jurisdiction, waterStageFt: displayStage, bfeFt: TWIN_ENGINEERING_CONSTANTS.bfe_ft, lagFt: TWIN_ENGINEERING_CONSTANTS.lag_ft }), [jurisdiction, displayStage]);
+  const assessment = useMemo(() => assessClearanceSupport({ jurisdiction, waterStageFt: displayStage, bfeFt: data.site.elevations.bfe_ft, lagFt: data.site.elevations.lag_ft }), [jurisdiction, displayStage]);
 
   return (
     <main style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 56px)', minHeight: 0, background: '#020617' }}>
