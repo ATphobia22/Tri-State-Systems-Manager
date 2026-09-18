@@ -53,27 +53,20 @@ for (const file of files) {
 
 const tsFiles = files.filter((file) => ['.ts', '.tsx'].includes(path.extname(file).toLowerCase()));
 if (tsFiles.length) {
+  // Use the supported TypeScript CLI rather than compiler-internal parser APIs.
+  // TypeScript 7 removed several internal entry points; the project typecheck
+  // remains the canonical syntax/type validation gate.
   const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
   const result = spawnSync(npx, [
     '--no-install',
     'tsc',
     '--noEmit',
-    '--ignoreConfig',
-    '--noCheck',
-    '--noResolve',
     '--skipLibCheck',
     '--pretty',
     'false',
-    '--jsx',
-    'react-jsx',
-    '--module',
-    'ESNext',
-    '--target',
-    'ES2022',
-    ...tsFiles,
   ], { cwd: root, encoding: 'utf8' });
   if (result.status !== 0) {
-    failures.push(`TypeScript syntax gate failed:\\n${(result.stderr || result.stdout || '').trim()}`);
+    failures.push(`TypeScript gate failed:\\n${(result.stderr || result.stdout || '').trim()}`);
   }
 }
 
