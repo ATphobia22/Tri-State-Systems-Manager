@@ -69,23 +69,15 @@ export function createRiverCircuitBreaker(options: ResiliencyOptions = {}) {
 }
 
 function finiteOrNull(value: number | null): number | null {
-  if (value === null) {
-    return null;
-  }
-  if (!Number.isFinite(value)) {
-    throw new TypeError('hydrologic value must be finite or null');
-  }
+  if (value === null) return null;
+  if (!Number.isFinite(value)) throw new TypeError('hydrologic value must be finite or null');
   return value;
 }
 
 function parseObservedAt(observedAt: string | null): number {
-  if (observedAt === null) {
-    return Number.POSITIVE_INFINITY;
-  }
+  if (observedAt === null) return Number.POSITIVE_INFINITY;
   const timestamp = Date.parse(observedAt);
-  if (!Number.isFinite(timestamp)) {
-    return Number.POSITIVE_INFINITY;
-  }
+  if (!Number.isFinite(timestamp)) return Number.POSITIVE_INFINITY;
   const age = (Date.now() - timestamp) / 1000;
   return age >= 0 ? age : Number.POSITIVE_INFINITY;
 }
@@ -99,12 +91,16 @@ function readFreshCache(
   stationId: string,
   maxCacheAgeSeconds: number,
 ): Promise<RiverObservation | null> {
-  return cache.read(stationId).then((cached) => {
-    if (!cached) {
-      return null;
-    }
+  return cache.read(stationId).then((cached): RiverObservation | null => {
+    if (!cached) return null;
     const age = cacheAge(cached);
-    return age <= maxCacheAgeSeconds ? { ...cached, status: 'STALE', cacheAgeSeconds: age } : null;
+    if (age > maxCacheAgeSeconds) return null;
+    const stale: RiverObservation = {
+      ...cached,
+      status: 'STALE',
+      cacheAgeSeconds: age,
+    };
+    return stale;
   }).catch(() => null);
 }
 
@@ -115,9 +111,7 @@ export async function ingestRiverObservation(
   breaker: ReturnType<typeof createRiverCircuitBreaker>,
   options: ResiliencyOptions = {},
 ): Promise<RiverObservation> {
-  if (!stationId) {
-    throw new TypeError('stationId is required');
-  }
+  if (!stationId) throw new TypeError('stationId is required');
 
   const timeoutMs = options.requestTimeoutMs ?? 10_000;
   const maxCacheAgeSeconds = options.maxCacheAgeSeconds ?? 86_400;
@@ -168,8 +162,7 @@ export async function ingestRiverObservation(
     try {
       await cache.write(live);
     } catch {
-      // A cache write failure must not convert an otherwise valid live source
-      // observation into a false source failure.
+      // Cache persistence failure does not invalidate a valid live source observation.
     }
 
     return live;
