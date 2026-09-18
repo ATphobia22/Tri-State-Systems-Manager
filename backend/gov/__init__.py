@@ -1,27 +1,23 @@
-# PTDT v35 Government / Invariant Plane
+"""Government/source-boundary exports for TSM.
+
+Only globally defensible invariants are exported here. Site-specific elevations,
+parcel identifiers, and vertical datums must come from project evidence.
+"""
 from .site_constants import (
-    BFE_FT,
-    LAG_FT,
     HORIZONTAL_CRS,
     VERTICAL_DATUM,
     PARCEL_APN,
     MASTER_SEAL,
-    FFE_FT,
-    BERM_CREST_FT,
     FIRM_PANEL,
     COMMUNITY_ID,
     assert_invariants,
 )
 
 __all__ = [
-    "BFE_FT",
-    "LAG_FT",
     "HORIZONTAL_CRS",
     "VERTICAL_DATUM",
     "PARCEL_APN",
     "MASTER_SEAL",
-    "FFE_FT",
-    "BERM_CREST_FT",
     "FIRM_PANEL",
     "COMMUNITY_ID",
     "assert_invariants",
