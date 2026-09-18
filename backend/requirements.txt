@@ -1,6 +1,7 @@
 # PTDT v35 Sovereign Backend
 pydantic>=2.13.5,<3
 h5py>=3.12,<4
+numpy>=2.2,<3
 
 # Optional HEC-RAS bridge (Windows + licensed HEC-RAS)
 # hecrasapi>=0.1.0
