@@ -27,12 +27,12 @@ jobs:
         working-directory: tsm-console
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           submodules: recursive
           fetch-depth: 0
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '22'
           cache: npm
@@ -154,19 +154,19 @@ jobs:
         run: tar -czf artifacts/tsm-console-dist.tar.gz -C dist .
       - name: Generate GitHub artifact and SBOM attestation
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/attest@v4
+        uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4.2.1
         with:
           subject-path: tsm-console/artifacts/tsm-console-dist.tar.gz
           sbom-path: tsm-console/artifacts/tsm-console-sbom.json
       - name: Upload reliability and supply-chain evidence
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: tsm-reliability-evidence
           path: tsm-console/artifacts
           if-no-files-found: warn
       - name: Upload production artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: tsm-console-dist
           path: tsm-console/dist
