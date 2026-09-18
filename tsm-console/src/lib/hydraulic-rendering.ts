@@ -93,7 +93,7 @@ export function createHydraulicSource(
   }
 
   const base = baseUrl.toString().replace(/\/$/, '');
-  if (!/^\/?[a-zA-Z0-9._/-]*$/.test(martinRoutePrefix)) {
+  if (!/^\/?[a-zA-Z0-9._/-]*$/.test(martinRoutePrefix) || martinRoutePrefix.includes('..')) {
     throw new Error('Invalid Martin route prefix.');
   }
   const routePrefix = martinRoutePrefix ? `/${martinRoutePrefix.replace(/^\\/+|\\/+$/g, '')}` : '';
