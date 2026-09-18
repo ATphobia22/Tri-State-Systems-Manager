@@ -74,9 +74,9 @@ def build_pdf(manifest: dict[str, object], output: Path) -> None:
         ),
         Spacer(1, 12),
     ]
-    rows = [["Path", "Bytes", "SHA-256"]]
-    for item in manifest["source_files"]:
-        rows.append([item["path"], str(item["bytes"]), item["sha256"]])
+    rows = [[Paragraph('<b>Path</b>', styles['BodyText']), Paragraph('<b>Bytes</b>', styles['BodyText']), Paragraph('<b>SHA-256</b>', styles['BodyText'])]]
+    for item in manifest['source_files']:
+        rows.append([Paragraph(str(item['path']), styles['BodyText']), str(item['bytes']), Paragraph(str(item['sha256']), styles['BodyText'])])
     table = Table(rows, repeatRows=1, colWidths=[3.2 * inch, 0.8 * inch, 3.0 * inch])
     table.setStyle(
         TableStyle(
@@ -86,7 +86,6 @@ def build_pdf(manifest: dict[str, object], output: Path) -> None:
                 ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
                 ("FONTSIZE", (0, 0), (-1, -1), 7),
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("WORDWRAP", (0, 0), (-1, -1), "CJK"),
             ]
         )
     )
