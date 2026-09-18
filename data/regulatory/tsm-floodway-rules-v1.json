@@ -31,6 +31,19 @@
       "status": "VERIFIED_OFFICIAL_SOURCE"
     },
     {
+      "id": "IN-DNR-CUMULATIVE-SURCHARGE-0.14FT",
+      "jurisdiction": "IN",
+      "authority": "Indiana Department of Natural Resources",
+      "citation": "Indiana DNR Floodway No-Rise guidance / Flood Control Act administration",
+      "title": "DNR cumulative surcharge administration",
+      "metric": "cumulative_surcharge_ft",
+      "threshold": 0.14,
+      "comparison": "less_than_or_equal",
+      "applicability": "Indiana DNR Flood Control Act administration; this is distinct from FEMA's floodway no-rise pathway and must not be substituted for it",
+      "sourceUrl": "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/no-rise/",
+      "status": "VERIFIED_OFFICIAL_SOURCE"
+    },
+    {
       "id": "IL-PART-3700-FLOODWAYS",
       "jurisdiction": "IL",
       "authority": "Illinois Department of Natural Resources",
