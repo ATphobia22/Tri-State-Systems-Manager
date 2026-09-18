@@ -66,7 +66,7 @@ export const DigitalTwinMap: React.FC = () => {
         this.renderer.autoClear = false;
       },
 
-      render(_gl: WebGL2RenderingContext, args: maplibregl.CustomRenderMethodInput) {
+      render(_gl, args) {
         if (!this.renderer || !this.scene || !this.camera) return;
         this.camera.projectionMatrix = new THREE.Matrix4().fromArray(args.defaultProjectionData.mainMatrix);
         this.renderer.resetState();
