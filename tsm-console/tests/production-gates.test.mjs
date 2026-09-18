@@ -74,6 +74,14 @@ test('human authorization creates an immutable child artifact bound to the raw h
   assert.equal(authorized.human_authorization.reviewed_artifact_hash, raw.content_hash_sha256);
   assert.match(authorized.content_hash_sha256, /^[a-f0-9]{64}$/);
   assert.notEqual(authorized.artifact_id, raw.artifact_id);
+  const { validateAuthorizedArtifact } = await import('../server/ingestion/governance-transition.mjs');
+  assert.equal(validateAuthorizedArtifact(authorized), true);
+
+  const tampered = { ...authorized, review_reason: 'tampered' };
+  assert.throws(
+    () => validateAuthorizedArtifact(tampered),
+    /integrity seal/,
+  );
 });
 
 test('evidence store rejects direct human authorization bypass', async () => {
