@@ -32,7 +32,7 @@ function ensureDir() {
 function load() {
   ensureDir();
   if (!fs.existsSync(STORE_FILE)) {
-    return { artifacts: [], verifications: [], merkleRoots: [] };
+    return { artifacts: [], verifications: [], merkleRoots: [], merkleLeaves: [] };
   }
   return JSON.parse(fs.readFileSync(STORE_FILE, 'utf8'));
 }
@@ -158,6 +158,50 @@ export function listArtifacts({ limit = 50, authority_class, is_simulation_demo 
 
 export function getArtifact(id) {
   return load().artifacts.find((a) => a.artifact_id === id) || null;
+}
+
+export function appendMerkleLeaf(artifact) {
+  if (!artifact || artifact.governance_status !== 'human_authorized' || artifact.human_review_status !== 'signed') {
+    const err = new Error('fail-closed: only human-authorized signed artifacts may enter the Merkle ledger');
+    err.code = 'FAIL_CLOSED';
+    throw err;
+  }
+
+  const state = load();
+  if (!Array.isArray(state.merkleLeaves)) state.merkleLeaves = [];
+  if (state.merkleLeaves.some((leaf) => leaf.artifact_id === artifact.artifact_id)) {
+    const err = new Error('fail-closed: artifact already exists in Merkle ledger');
+    err.code = 'FAIL_CLOSED';
+    throw err;
+  }
+
+  const leafHash = sha256Hex(`TSM_LEAF:${artifact.content_hash_sha256}`);
+  const leaves = [...state.merkleLeaves, { artifact_id: artifact.artifact_id, leaf_hash: leafHash }];
+  let level = leaves.map((leaf) => leaf.leaf_hash);
+  if (level.length === 0) level = [sha256Hex('TSM_NODE:EMPTY')];
+
+  while (level.length > 1) {
+    const next = [];
+    for (let i = 0; i < level.length; i += 2) {
+      const left = level[i];
+      const right = level[i + 1] || left;
+      next.push(sha256Hex(`TSM_NODE:${left}${right}`));
+    }
+    level = next;
+  }
+
+  const root = level[0];
+  const sequence = leaves.length;
+  state.merkleLeaves = leaves;
+  state.merkleRoots.unshift({
+    sequence,
+    root_hash: root,
+    leaf_count: sequence,
+    created_at: new Date().toISOString(),
+  });
+  save(state);
+
+  return { sequence, leaf_hash: leafHash, root_hash: root, leaf_count: sequence };
 }
 
 export function recordVerification(artifact_id, expected, computed, verifier = 'tsm-server') {
