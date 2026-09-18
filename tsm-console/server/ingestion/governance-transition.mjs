@@ -126,6 +126,7 @@ export async function publishAuthorizedArtifact(authorizedArtifact) {
   const canonical = `TSM_AUTHORIZED_ARTIFACT:${stableStringify(unsignedArtifact)}`;
   const stored = appendArtifact({
     ...authorizedArtifact,
+    _governance_transition: true,
     _canonical_for_verify: canonical,
   });
 
