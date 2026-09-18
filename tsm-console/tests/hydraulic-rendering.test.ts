@@ -33,5 +33,13 @@ describe('hydraulic rendering', () => {
       maxzoom: 20,
     });
     expect(() => createHydraulicSource('get_parcel_tiles', 'file:///tmp/martin')).toThrow(/HTTP or HTTPS/);
+    expect(createHydraulicSource('get_parcel_tiles', 'https://tiles.example', '/api/v1')).toEqual({
+      id: 'get_parcel_tiles',
+      type: 'vector',
+      tiles: ['https://tiles.example/api/v1/get_parcel_tiles/{z}/{x}/{y}'],
+      minzoom: 12,
+      maxzoom: 20,
+    });
+    expect(() => createHydraulicSource('get_parcel_tiles', 'https://tiles.example', '/api/../bad')).toThrow(/route prefix/);
   });
 });
