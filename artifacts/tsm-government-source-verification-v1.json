@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "verifiedAt": "2026-09-18T09:33:24Z",
+  "verifiedAt": "2026-09-18T09:44:08Z",
   "purpose": "Machine-readable record of government geospatial and hydrologic source verification used by TSM peer-review gates.",
   "sources": [
     {
@@ -80,6 +80,8 @@
     "verticalDatumMayNotBeInferredFromStatewideProductNames": true,
     "femaEffectiveAndIndianaBestAvailableRemainSeparate": true,
     "forecastAndObservationRecordsRemainDistinct": true,
-    "engineeringCertificationIsOutsideCi": true
+    "engineeringCertificationIsOutsideCi": true,
+    "verificationMethod": "official-service-metadata-or-official-agency-documentation",
+    "noThirdPartyEndpointSubstitution": true
   }
 }
