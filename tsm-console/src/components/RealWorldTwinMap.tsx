@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { MapTwinLoaderData } from '../types/loaders';
-import { buildTwinStyle, applyTwinTerrain, addFloodAuthorityLayers, applyLiveStageMetadata, TWIN_ENGINEERING_CONSTANTS } from '../lib/twin-map-style';
+import { buildTwinStyle, applyTwinTerrain, addFloodAuthorityLayers, applyLiveStageMetadata, addMartinHydraulicLayer, TWIN_ENGINEERING_CONSTANTS } from '../lib/twin-map-style';
 import { buildArcGisWmsTileTemplate, INDIANA_CURRENT_IMAGERY_WMS, USGS_3DEP_ELEVATION_WMS } from '../lib/open-world-wms';
 
 interface RealWorldTwinMapProps { data: MapTwinLoaderData; }
@@ -79,6 +79,8 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
 
       addFloodAuthorityLayers(map);
       applyLiveStageMetadata(map, data);
+      // Hydraulic rendering is fail-closed: only an explicitly derived NAVD88 WSE drives water height.
+      addMartinHydraulicLayer(map, data.stage.conversion_applied ? data.stage.wse_navd88_ft : null);
       new maplibregl.Marker().setLngLat(NEW_HARMONY_GAGE).setPopup(buildGagePopup(data)).addTo(map);
       mapRef.current = map;
     });
@@ -105,7 +107,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
         <div>Indiana Current Imagery: live WMS · USGS 3DEP: dynamic elevation/hillshade · Configured terrain mesh: {terrainConfigured ? 'yes' : 'no'}</div>
         <div>FEMA NFHL: effective / insurance · Indiana BAFM: planning / Flood Control Act</div>
         <div>Stage: {stage == null ? 'unavailable' : `${stage.toFixed(2)} ft`} {data.stage.qualifier ? `(${data.stage.qualifier})` : ''} · {data.stage.source}</div>
-        <div>WSE NAVD88: {wse == null ? 'unavailable' : `${wse.toFixed(2)} ft`} · Discharge: {data.stage.discharge_cfs == null ? 'unavailable' : `${data.stage.discharge_cfs.toLocaleString()} cfs`}</div>
+        <div>WSE NAVD88: {wse == null ? 'unavailable' : `${wse.toFixed(2)} ft`} · Hydraulic extrusion: {data.stage.conversion_applied && wse != null ? 'enabled' : 'blocked — verified datum conversion required'} · Discharge: {data.stage.discharge_cfs == null ? 'unavailable' : `${data.stage.discharge_cfs.toLocaleString()} cfs`}</div>
         <div>Site: LAG {TWIN_ENGINEERING_CONSTANTS.lag_ft} · BFE {TWIN_ENGINEERING_CONSTANTS.bfe_ft} · Berm {TWIN_ENGINEERING_CONSTANTS.berm_crest_ft} · FFE {TWIN_ENGINEERING_CONSTANTS.ffe_ft}</div>
         <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
           <button type="button" aria-pressed={femaVisible} onClick={() => setFemaVisible((value) => !value)}>FEMA NFHL {femaVisible ? 'ON' : 'OFF'}</button>
