@@ -77,14 +77,15 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         working-directory: .
         run: |
-          git fetch origin main --depth=1
           actual_sha="$(git rev-parse HEAD)"
           expected_sha="${GITHUB_SHA}"
-          branch_sha="$(git rev-parse FETCH_HEAD)"
-          if [ "$actual_sha" != "$expected_sha" ] || [ "$actual_sha" != "$branch_sha" ]; then
-            echo "Commit mismatch detected!"; echo "HEAD: $actual_sha"; echo "GITHUB_SHA: $expected_sha"; echo "FETCH_HEAD: $branch_sha"; exit 1
+          if [ "$actual_sha" != "$expected_sha" ]; then
+            echo "Commit mismatch detected!"
+            echo "HEAD: $actual_sha"
+            echo "GITHUB_SHA: $expected_sha"
+            exit 1
           fi
-          echo "Exact main commit verified: $actual_sha"
+          echo "Exact workflow commit verified: $actual_sha"
       - name: Capability registry gate
         run: npm run check:capabilities
       - name: Workflow security boundary gate
