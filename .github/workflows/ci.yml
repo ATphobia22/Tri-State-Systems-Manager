@@ -107,6 +107,17 @@ jobs:
         run: npm run check:parse
       - name: Typecheck
         run: npm run check:type
+      - name: V35.1 strict contract typecheck
+        run: npm run check:v35.1
+      - name: V35.1 contract tests
+        run: npx vitest run tests/v35.1-contracts.test.ts
+      - name: V35.1 deterministic evidence manifest
+        run: |
+          mkdir -p artifacts/v35.1
+          npm run sign:evidence -- --output artifacts/v35.1/evidence-manifest.json package.json package-lock.json
+      - name: V35.1 deterministic LOMA packet
+        run: |
+          python3 ../tools/build_loma_packet.py --output artifacts/v35.1/loma-evidence.zip package.json package-lock.json
       - name: Production build
         run: npm run build
       - name: Test suites
