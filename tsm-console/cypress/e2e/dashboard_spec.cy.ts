@@ -23,7 +23,7 @@ describe("PTDT v35 Dashboard - E2E Integration Suite", () => {
     cy.document().then((document) => {
       const assets = Array.from(
         document.querySelectorAll<HTMLScriptElement | HTMLLinkElement>(
-          'script[src], link[href]',
+          "script[src], link[href]",
         ),
       )
         .map((element) => element.getAttribute("src") ?? element.getAttribute("href"))
@@ -31,16 +31,14 @@ describe("PTDT v35 Dashboard - E2E Integration Suite", () => {
         .filter((value) => !value.startsWith("data:") && !value.startsWith("http"));
 
       expect(assets.length).to.be.greaterThan(0);
-      const basePath = new URL('./', document.baseURI).pathname;
+      const basePath = new URL("./", document.baseURI).pathname;
+
       assets.forEach((asset) => {
         const resolved = new URL(asset, document.baseURI);
-        expect(resolved.pathname, `asset ${asset}`).to.match(
-          new RegExp(`^${basePath.replace(/[.*+?^${}()|[\]\\]/g, '\\      const basePath = new URL('./', document.baseURI).pathname;
-      assets.forEach((asset) => {
-        const resolved = new URL(asset, document.baseURI);
-        expect(resolved.pathname.startsWith(basePath), `asset ${asset}`).to.equal(true);
-      });')}`),
-        );
+        expect(
+          resolved.pathname.startsWith(basePath),
+          `asset ${asset}`,
+        ).to.equal(true);
       });
     });
 
