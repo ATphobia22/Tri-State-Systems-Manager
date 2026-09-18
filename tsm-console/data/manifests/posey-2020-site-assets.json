@@ -14,7 +14,7 @@
   "terrain": {
     "assetId": "in-2016-2020-elevation-posey-26800940",
     "title": "Indiana 2016–2020 elevation raster — Posey County",
-    "sourceUri": "https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_2016_2020_Elevation/ImageServer",
+    "sourceUri": "https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_2016_2020_DEM/ImageServer",
     "referenceLidarUri": "https://lidar.digitalforestry.org/QL2_3DEP_LiDAR_IN_2017_2019/Posey_Co_2020_3DEP/Elev20_LAS1.4SPW_IN/IN2020_26800940_12.las",
     "authorityClass": "OBSERVATION",
     "derivationClass": "RAW",
