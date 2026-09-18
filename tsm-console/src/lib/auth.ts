@@ -33,5 +33,13 @@ export async function handleOidcCallback(code: string, state: string): Promise<A
 export function logout(): void { const storage = browserStorage(); const idTokenHint = storage?.getItem('tsm_oidc_id_token'); setSession(null); clearOidcState(); if (typeof window === 'undefined') return; try { const { clientId, redirectUri } = assertKeycloakConfig(); const params = new URLSearchParams({ client_id: clientId, post_logout_redirect_uri: typeof window !== 'undefined' ? window.location.origin + '/' : redirectUri }); if (idTokenHint) params.set('id_token_hint', idTokenHint); window.location.assign(`${keycloakEndpoint('logout')}?${params.toString()}`); } catch { /* local session already cleared */ } }
 export function getAccessToken(): string | null { return browserStorage()?.getItem(ACCESS_TOKEN_KEY) ?? null; }
 export async function authLoader({ request }: { request?: Request } = {}): Promise<AuthContext> { const session = getSession(); if (session) return session; const returnTo = request && typeof URL !== 'undefined' ? new URL(request.url).pathname + new URL(request.url).search : '/'; throw redirect(`/login?from=${encodeURIComponent(returnTo)}`); }
+
+/** Public read access is intentional. Mutations remain authenticated and human-authorized. */
+export function requireAuthenticatedMutation(request?: Request): AuthContext {
+  const session = getSession();
+  if (session) return session;
+  const returnTo = request && typeof URL !== 'undefined' ? new URL(request.url).pathname + new URL(request.url).search : '/';
+  throw redirect(`/login?from=${encodeURIComponent(returnTo)}`);
+}
 export function requireClassification(auth: AuthContext, required: AuthContext['classificationMax']): void { const order = ['public', 'internal', 'restricted', 'confidential'] as const; if (order.indexOf(auth.classificationMax) < order.indexOf(required)) throw new Response('Insufficient classification clearance', { status: 403 }); }
 export function requireRole(auth: AuthContext, roles: string[]): void { if (!roles.some((role) => auth.roles.includes(role))) throw new Response('Insufficient role', { status: 403 }); }
