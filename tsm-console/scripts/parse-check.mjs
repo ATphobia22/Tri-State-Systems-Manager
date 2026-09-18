@@ -49,10 +49,6 @@ for (const file of files) {
     }
   }
 
-  if (ext === '.ts' || ext === '.tsx') {
-    files.push(full);
-  }
-
 }
 
 const tsFiles = files.filter((file) => ['.ts', '.tsx'].includes(path.extname(file).toLowerCase()));
