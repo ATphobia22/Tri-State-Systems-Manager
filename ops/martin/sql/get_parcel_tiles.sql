@@ -1,5 +1,5 @@
 -- TSM dynamic cadastral MVT source for Martin.
--- Geometry storage is expected to be EPSG:2966 (Indiana East State Plane).
+-- Geometry storage is expected to be EPSG:2966 (NAD83 / Indiana West, ftUS).
 -- Elevation attributes are explicitly in feet NAVD88; the browser converts them
 -- to meters only at the MapLibre rendering boundary.
 
