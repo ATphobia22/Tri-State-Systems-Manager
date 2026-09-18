@@ -176,3 +176,119 @@ Do not weaken or bypass a failing gate.
 TSM is an engineering decision-support and evidence system. It does not certify a berm, road, bridge, levee, floodway analysis, survey, geotechnical report, environmental determination or regulatory filing. Construction decisions require the responsible licensed professionals and applicable federal, state and local authorities.
 
 Likewise, live observations are not emergency instructions. During an active event, official emergency-management and National Weather Service instructions control.
+
+## Production-readiness controls added in v35 hardening
+
+### Frontend loading and rendering
+
+The router already uses route-level dynamic imports for the heavy spatial views (TwinCanvasView, MapLibreEocView, MapLibreMap, and MapTwinView). A source-level regression contract prevents those modules from becoming eager router imports again.
+
+Hardware capability detection is explicit:
+
+WebGPU → WebGL2 → Canvas 2D
+
+The application must remain usable without WebGPU. The 3D terrain mesh remains fail-closed when a provenance-controlled Terrain-RGB/raster-dem source is not configured.
+
+### Authentication and browser environment
+
+Keycloak is configured as a public browser client using Authorization Code + PKCE (S256). The canonical public build variables are:
+
+- VITE_KEYCLOAK_URL
+- VITE_KEYCLOAK_REALM
+- VITE_KEYCLOAK_CLIENT_ID
+- VITE_IDP_REDIRECT_URI
+
+No client secret belongs in a VITE_* variable.
+
+For GitHub Pages production builds, these values plus VITE_TSM_API_BASE_URL are supplied from repository Variables. When Pages deployment is enabled, the workflow fails closed if the required browser bindings are absent.
+
+### Content Security Policy
+
+Vite now injects a deployment-aware CSP covering:
+
+- WebAssembly via wasm-unsafe-eval without enabling general unsafe-eval;
+- MapLibre/Web Worker blob: workers;
+- USGS, NOAA/NWS, FEMA, Indiana ArcGIS and OpenStreetMap connections;
+- the configured Keycloak origin;
+- object-src 'none' and explicit base-uri, form-action, image, font and media policies.
+
+GitHub Pages is a static host; HTTP response headers remain the responsibility of the hosting/reverse-proxy layer. The build therefore also carries the CSP as a document-level policy.
+
+### Live hydrology resilience
+
+The Node ingestion fabric now combines:
+
+- bounded request timeouts;
+- retry/backoff and Retry-After handling;
+- circuit breaking;
+- source-health telemetry;
+- bounded last-known-good cache;
+- explicit STALE responses when upstream sources are unavailable.
+
+A stale observation is never relabeled as live. If no valid cached observation exists, the API returns an explicit unavailable response.
+
+### Vertical datum reconciliation
+
+A dedicated normalization middleware now accepts only:
+
+- source datum;
+- target datum;
+- numeric transformation offset; and
+- provenance for the published transformation.
+
+Identity conversions are permitted. NGVD29/gage-zero/local-datum conversions without a supplied, station/product-specific published transformation are blocked, not guessed.
+
+USGS documentation recognizes that gages can use NAVD88, NGVD29, or an arbitrary gage datum; therefore a raw gage-height value must not be silently relabeled as NAVD88.
+
+### Event bus
+
+A fail-closed Kafka REST Proxy-compatible telemetry bridge is available behind:
+
+TSM_EVENT_BUS_ENABLED=true
+
+Configuration remains server-side:
+
+- TSM_KAFKA_REST_URL
+- TSM_KAFKA_TOPIC
+- TSM_KAFKA_USERNAME
+- TSM_KAFKA_PASSWORD
+
+Hydrologic observations publish normalized, provenance-linked events. Event-bus outages do not corrupt the authoritative source artifact; the source observation remains independently recorded and the event result is reported separately.
+
+### FEMA panel 18129C0265C
+
+A dedicated BFE reconciliation contract now rejects mismatches between an authoritative FEMA BFE evidence value and the hydraulic mesh BFE value. The contract requires NAVD88 and source provenance.
+
+The repository's existing panel evidence remains fail-closed until the exact matching authoritative world/georeferencing artifact and current FEMA source metadata are available. The contract does not fabricate a panel BFE from a screenshot.
+
+### FEMA LOMC / LOMA evidence packet
+
+tools/loma/build_loma_packet.py assembles supplied evidence files into:
+
+- a SHA-256 manifest;
+- a deterministic evidence-index PDF;
+- a ZIP packet containing the manifest, PDF and supplied source files.
+
+scripts/evidence/sign-evidence.mjs provides detached Ed25519 signing when the operator supplies TSM_EVIDENCE_SIGNING_KEY_PEM. Signing keys are never committed.
+
+The packet builder intentionally does not generate a survey, FARA, FEMA determination, community acknowledgment, engineering certification or regulatory approval.
+
+### Databricks lakehouse CD
+
+.github/workflows/databricks-lakehouse.yml defines an OIDC-gated production deployment contract. It is disabled until repository variable TSM_DATABRICKS_ENABLED=true.
+
+Required production environment variables:
+
+- DATABRICKS_HOST
+- DATABRICKS_CLIENT_ID
+
+The workflow uses GitHub OIDC workload identity federation rather than a long-lived Databricks PAT/client secret and verifies the pinned Databricks CLI release before installation.
+
+See docs/DATABRICKS-CI-CD.md.
+
+### Current geospatial CRS boundary
+
+The TSM engineering analysis frame is EPSG:2966 + NAVD88. Native government source services may legitimately expose other CRSs (for example, Indiana BAFM's native service CRS); those are source-native and must be explicitly transformed before entering the TSM engineering frame.
+
+A geospatial audit found and corrected the HEC-RAS project contract's erroneous EPSG:26916 declaration to EPSG:2966.
+
