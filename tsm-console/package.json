@@ -67,7 +67,8 @@
     "check:schemas": "node ../scripts/ci/validate-json-schemas.mjs",
     "check:client-bundle-secrets": "node scripts/check-client-bundle-secrets.mjs",
     "test:production-gates": "node --test tests/production-gates.test.mjs",
-    "check:government-sources": "node scripts/geospatial/validate-government-sources.mjs"
+    "check:government-sources": "node scripts/geospatial/validate-government-sources.mjs",
+    "check:regulatory-rules": "node ../scripts/ci/validate-regulatory-rules.mjs"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.0",
