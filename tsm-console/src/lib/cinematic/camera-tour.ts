@@ -18,11 +18,15 @@ export const DEFAULT_CONFLUENCE_TOUR: readonly CinematicCameraKeyframe[] = [
 export function playCinematicTour(
   map: Map,
   keyframes: readonly CinematicCameraKeyframe[] = DEFAULT_CONFLUENCE_TOUR,
-): void {
-  if (keyframes.length === 0) return;
+): () => void {
+  if (keyframes.length === 0) return () => {};
 
   let index = 0;
+  let stopped = false;
+  let timer: number | undefined;
+
   const advance = (): void => {
+    if (stopped) return;
     const frame = keyframes[index];
     map.easeTo({
       center: frame.center,
@@ -35,10 +39,18 @@ export function playCinematicTour(
     index = (index + 1) % keyframes.length;
   };
 
-  advance();
-  const listener = (): void => {
-    map.off('moveend', listener);
-    window.setTimeout(advance, 350);
+  const onMoveEnd = (): void => {
+    if (stopped) return;
+    timer = window.setTimeout(advance, 350);
   };
-  map.on('moveend', listener);
+
+  map.on('moveend', onMoveEnd);
+  advance();
+
+  return () => {
+    stopped = true;
+    map.off('moveend', onMoveEnd);
+    if (timer !== undefined) window.clearTimeout(timer);
+    map.stop();
+  };
 }
