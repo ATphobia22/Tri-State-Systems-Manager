@@ -292,3 +292,51 @@ The TSM engineering analysis frame is EPSG:2966 + NAVD88. Native government sour
 
 A geospatial audit found and corrected the HEC-RAS project contract's erroneous EPSG:26916 declaration to EPSG:2966.
 
+## Open-World Twin: visual and cinematic layer contract
+
+The Twin treats visualization as a governed rendering plane rather than a source of truth. The current visual stack is designed around explicit source state:
+
+1. **Terrain** — source-derived elevation, rendered through MapLibre terrain when a verified Terrain-RGB/raster-dem source is configured.
+2. **Current imagery** — authoritative Indiana imagery source, kept distinct from elevation.
+3. **Parcels** — Martin/PostGIS vector tiles with provenance attributes; geometry and evidence remain separate from hydraulic model output.
+4. **FEMA effective flood hazards** — regulatory reference layer, never replaced by simulated WSE.
+5. **Indiana BAFM/INFIP** — state floodplain mapping reference plane.
+6. **Hydraulic scenario output** — model WSE displayed as MODEL_OUTPUT and subject to review; it is not silently promoted to FEMA regulatory evidence.
+7. **Live hydrology** — USGS/NOAA observations with freshness and datum state.
+8. **Historical evidence** — clearly labeled historical/reference material.
+9. **Atmosphere and lighting** — sky, fog, illumination and terrain exaggeration are presentation parameters only and never alter source values.
+10. **Cinematic camera** — an interruptible confluence fly-through is available from the Twin UI. Camera motion is non-authoritative and can be stopped by the operator.
+
+### Vertical-data rule
+
+Terrain-RGB is encoded in meters and must be generated from an elevation raster whose vertical datum has already been verified. The renderer does not infer NAVD88 from an arbitrary raster or orthophoto. Orthophotography is color imagery, not elevation.
+
+### Engineering/model boundary
+
+FEMA BFE, flood-zone evidence, observed stage, datum-converted WSE, and HEC-RAS scenario WSE are different data products. They must remain different records, schemas and visual states. A scenario may be compared with regulatory evidence, but it may not overwrite it.
+
+### Visual quality without fabricated data
+
+The project supports cinematic presentation—terrain, current imagery, atmospheric sky/fog, lighting, 3D extrusion and camera tours—while retaining fail-closed behavior when authoritative source material is absent. No placeholder tile provider, invented BFE, synthetic insurance premium, guessed datum conversion, or fabricated 3D terrain is promoted to production truth.
+
+### Evidence and signing
+
+Audit/evidence signatures use canonical JSON and Ed25519 with externally supplied private keys. A valid signature establishes authenticity/tamper evidence for the signed record; immutable storage and retention controls are separate infrastructure responsibilities.
+
+## Development acceptance checklist
+
+Before calling a release production-ready, verify all of the following:
+
+- [ ] `npm run ci:full` passes from a clean checkout.
+- [ ] Browser build contains no credentials or signing keys.
+- [ ] Terrain source metadata identifies horizontal CRS, vertical datum, resolution and provenance.
+- [ ] FEMA/BAFM layers retain authoritative source identity and effective/acquisition metadata.
+- [ ] Model WSE records contain scenario/model/version/datum/timestep/evidence metadata.
+- [ ] Regulatory BFE records cannot be overwritten by model ingestion.
+- [ ] Martin routes and source-layer identifiers match the deployed server configuration.
+- [ ] Current imagery and terrain are independently validated.
+- [ ] Live hydrology freshness and datum states are visible.
+- [ ] Cinematic controls are cancellable and do not mutate source data.
+- [ ] Evidence signatures verify against an independently retained public key.
+- [ ] Immutable evidence retention is configured for the deployment environment.
+- [ ] Production deployment uses pinned dependencies/images and documented secrets management.
