@@ -101,6 +101,8 @@ jobs:
         run: npm run check:site-consistency
       - name: Geospatial processing contract gate
         run: npm run check:geospatial
+      - name: Canonical JSON schema contract gate
+        run: npm run check:schemas
       - name: Authoritative source and production-data gate
         run: npm run check:mock-data
       - name: Parse gate
@@ -117,6 +119,10 @@ jobs:
           npm run sign:evidence -- --output artifacts/v35.1/evidence-manifest.json package.json package-lock.json
       - name: Production build
         run: npm run build
+      - name: Zero-trust browser credential gate
+        run: npm run check:client-bundle-secrets
+      - name: Hydrologic ingestion smoke
+        run: npm run ingest
       - name: Test suites
         run: npm run test:all
       - name: Setup Python
