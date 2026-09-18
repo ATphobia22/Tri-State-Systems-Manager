@@ -1,6 +1,6 @@
 {
-  "schemaVersion": "1.1.0",
-  "generatedAt": "2026-09-14T16:30:00Z",
+  "schemaVersion": "1.2.0",
+  "generatedAt": "2026-09-18T04:10:00Z",
   "scope": "Point Township / lower Wabash-Ohio community, expandable across Tri-State River Valley",
   "assets": [
     {"id":"fema-effective","dataset":"FEMA effective NFHL/FIRM/FIS","authority":"FEMA","authorityClass":"FEDERAL_REGULATORY","purpose":"Effective federal flood-hazard and insurance reference","layerType":"raster","sourceUrl":"https://msc.fema.gov/portal/search","status":"PUBLISHED","crs":"SOURCE_NATIVE_DECLARED","verticalDatum":"SOURCE_PRODUCT_DECLARED","tileScheme":"SERVICE_NATIVE","provenanceClass":"FEMA_EFFECTIVE","currentTruth":true,"acquiredAt":null,"effectiveAt":null,"freshnessPolicy":"Use the current effective FEMA product; preserve FIRM panel and effective-date identifiers; never substitute historical screenshots for current regulatory mapping.","verification":{"state":"VERIFIED","checkedAt":"2026-09-14T16:30:00Z","sourceHashPolicy":"Hash downloaded product/metadata manifests; preserve FEMA panel and effective-date identifiers."}},
