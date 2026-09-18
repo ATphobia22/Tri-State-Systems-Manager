@@ -28,9 +28,9 @@ export interface PoseyAssetManifest {
   readonly bounds: SiteBounds2966;
   readonly horizontalCrs: 'EPSG:2966';
   readonly horizontalCrsName: 'NAD83 / Indiana West (ftUS)';
-  readonly verticalDatum: 'NAVD88';
+  readonly verticalDatum: string | null;
   readonly terrain: GeospatialAsset & {
-    readonly servicePixelSizeMeters: number;
+    readonly servicePixelSizeMeters: number | null;
   };
   readonly orthophoto: GeospatialAsset & {
     readonly groundSampleDistanceMeters: number;
@@ -45,8 +45,8 @@ export const POSEY_SITE_BOUNDS: SiteBounds2966 = {
   maxY: 945_000,
 };
 
-const INDIANA_DEM_IMAGE_SERVER =
-  'https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_2016_2020_DEM/ImageServer';
+const INDIANA_ELEVATION_IMAGE_SERVER =
+  'https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_2016_2020_Elevation/ImageServer';
 
 const NAIP_2020_IMAGE_SERVER =
   'https://imagery.geoplatform.gov/iipp/rest/services/NAIP/NAIP2020_CONUS/ImageServer';
@@ -55,26 +55,26 @@ const POSEY_2020_REFERENCE_LIDAR =
   'https://lidar.digitalforestry.org/QL2_3DEP_LiDAR_IN_2017_2019/Posey_Co_2020_3DEP/Elev20_LAS1.4SPW_IN/IN2020_26800940_12.las';
 
 export const POSEY_2020_ASSETS: PoseyAssetManifest = {
-  manifestVersion: '1.0.0',
+  manifestVersion: '1.1.0',
   siteId: 'posey-point-township-bonebank-5000ft',
   bounds: POSEY_SITE_BOUNDS,
   horizontalCrs: 'EPSG:2966',
   horizontalCrsName: 'NAD83 / Indiana West (ftUS)',
-  verticalDatum: 'NAVD88',
+  verticalDatum: null,
   terrain: {
-    assetId: 'in-2016-2020-dem-posey-26800940',
-    title: 'Indiana 2016–2020 hydro-flattened bare-earth DEM — Posey County',
-    sourceUri: INDIANA_DEM_IMAGE_SERVER,
+    assetId: 'in-2016-2020-elevation-posey-26800940',
+    title: 'Indiana 2016–2020 elevation raster — Posey County',
+    sourceUri: INDIANA_ELEVATION_IMAGE_SERVER,
     referenceLidarUri: POSEY_2020_REFERENCE_LIDAR,
     authorityClass: 'OBSERVATION',
     derivationClass: 'RAW',
     acquisitionYear: 2020,
     format: 'ArcGIS ImageServer / GeoTIFF export',
     horizontalCrs: 'EPSG:2966',
-    verticalDatum: 'NAVD88',
-    servicePixelSizeMeters: 0.30480060960121846,
+    verticalDatum: null,
+    servicePixelSizeMeters: null,
     notes:
-      'Authoritative runtime terrain surface. The Purdue LAS tile is retained as source provenance/reference and is not committed to Git because it is approximately 305 MB.',
+      'Published Indiana elevation service. Runtime service metadata must be captured before asserting source vertical datum, pixel size, or a regulatory/engineering datum relationship. The reference LAS tile is retained as source provenance and is not committed to Git because it is approximately 305 MB.',
   },
   orthophoto: {
     assetId: 'usda-naip-2020-indiana-posey',
