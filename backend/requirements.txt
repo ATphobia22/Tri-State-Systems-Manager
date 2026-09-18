@@ -8,3 +8,4 @@ h5py>=3.12,<4
 # Optional spatial / DEM / DB
 # rasterio>=1.3
 # psycopg2-binary>=2.9
+reportlab==5.0.1
