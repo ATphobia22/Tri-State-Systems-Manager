@@ -3,7 +3,6 @@ import { useLoaderData } from 'react-router';
 import type { MapTwinLoaderData } from '../types/loaders';
 import RealWorldTwinMap from '../components/RealWorldTwinMap';
 import { assessClearanceSupport, type JurisdictionId } from '../lib/jurisdiction-rules';
-import { TWIN_ENGINEERING_CONSTANTS } from '../lib/twin-map-style';
 
 export default function MapLibreMap() {
   const data = useLoaderData() as MapTwinLoaderData;
