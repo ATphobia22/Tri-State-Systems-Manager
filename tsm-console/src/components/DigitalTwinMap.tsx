@@ -1,14 +1,21 @@
 import React, { useEffect, useRef } from 'react';
-import maplibregl from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
 import * as THREE from 'three';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 const POINT_TOWNSHIP_CENTER: [number, number] = [-87.9312, 37.8825];
+const DEFAULT_MAP_STYLE = 'https://demotiles.maplibre.org/style.json';
 
 type ThreeLayer = maplibregl.CustomLayerInterface & {
   camera?: THREE.Camera;
   scene?: THREE.Scene;
   renderer?: THREE.WebGLRenderer;
+};
+
+const getMapStyle = (): string => {
+  const env = (import.meta as ImportMeta & { env?: Record<string, unknown> }).env ?? {};
+  const configured = env.VITE_MAP_STYLE_URL;
+  return typeof configured === 'string' && configured.trim() ? configured : DEFAULT_MAP_STYLE;
 };
 
 export const DigitalTwinMap: React.FC = () => {
@@ -21,7 +28,7 @@ export const DigitalTwinMap: React.FC = () => {
 
     const map = new maplibregl.Map({
       container,
-      style: 'https://demotiles.maplibre.org/style.json',
+      style: getMapStyle(),
       center: POINT_TOWNSHIP_CENTER,
       zoom: 14,
       pitch: 60,
@@ -35,7 +42,7 @@ export const DigitalTwinMap: React.FC = () => {
       type: 'custom',
       renderingMode: '3d',
 
-      onAdd(mapInstanceForLayer, gl) {
+      onAdd(mapInstanceForLayer: maplibregl.Map, gl: WebGLRenderingContext) {
         this.camera = new THREE.PerspectiveCamera();
         this.scene = new THREE.Scene();
 
@@ -59,7 +66,7 @@ export const DigitalTwinMap: React.FC = () => {
         this.renderer.autoClear = false;
       },
 
-      render(_gl, matrix) {
+      render(_gl: WebGLRenderingContext, matrix: number[]) {
         if (!this.renderer || !this.scene || !this.camera) return;
         this.camera.projectionMatrix = new THREE.Matrix4().fromArray(matrix);
         this.renderer.resetState();
@@ -68,13 +75,12 @@ export const DigitalTwinMap: React.FC = () => {
       },
 
       onRemove() {
-        this.scene?.traverse((object) => {
-          if (object instanceof THREE.Mesh) {
-            object.geometry.dispose();
-            const material = object.material;
-            if (Array.isArray(material)) material.forEach((item) => item.dispose());
-            else material.dispose();
-          }
+        this.scene?.traverse((object: THREE.Object3D) => {
+          if (!(object instanceof THREE.Mesh)) return;
+          object.geometry.dispose();
+          const material = object.material;
+          if (Array.isArray(material)) material.forEach((item: THREE.Material) => item.dispose());
+          else material.dispose();
         });
         this.renderer?.dispose();
         this.renderer = undefined;
