@@ -7,7 +7,7 @@ export interface TerrainGrid {
   readonly elevations: Float32Array;
   readonly crs: 'EPSG:2966';
   readonly verticalDatum: 'NAVD88';
-  readonly source: 'INDIANA_2016_2020_DEM';
+  readonly source: 'INDIANA_2016_2020_ELEVATION';
 }
 
 export function sampleTerrainGrid(raster: TerrainRaster, targetWidth = 128, targetHeight = 128): TerrainGrid {
@@ -31,7 +31,7 @@ export function sampleTerrainGrid(raster: TerrainRaster, targetWidth = 128, targ
     elevations,
     crs: 'EPSG:2966',
     verticalDatum: 'NAVD88',
-    source: 'INDIANA_2016_2020_DEM',
+    source: 'INDIANA_2016_2020_ELEVATION',
   };
 }
 
