@@ -13,6 +13,7 @@ import { fetchNoaaStageFlow } from './noaa-nwps.mjs';
 import { classifySourceFreshness } from '../reliability/source-policies.mjs';
 import { incrementTelemetryCounter, observeTelemetryMetric } from '../telemetry/prometheus-exporter.mjs';
 import { publishTelemetryEvent } from '../telemetry/event-bus.mjs';
+import { normalizeVerticalDatum } from './vertical-datum.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REGISTRY_PATH = process.env.TSM_AUTHORITY_REGISTRY || path.join(__dirname, '../../../tsm-authority-registry-v35.json');
@@ -33,10 +34,21 @@ async function publishEventSafely(event) {
 
 function navd88FromGage(node, gageHeightFt) {
   const zero = node?.gage_zero_navd88_ft;
-  if (zero == null || !Number.isFinite(gageHeightFt) || !Number.isFinite(Number(zero)) || !node.vertical_conversion_source) {
-    return { conversion_applied: false, wse_navd88_ft: null, gage_zero_navd88_ft: null, vertical_conversion_source: null };
+  const source = node?.vertical_conversion_source;
+  if (zero == null || !Number.isFinite(gageHeightFt) || !Number.isFinite(Number(zero)) || !source) {
+    return { conversion_applied: false, wse_navd88_ft: null, gage_zero_navd88_ft: null, vertical_conversion_source: null, vertical_conversion_status: 'CONVERSION_BLOCKED' };
   }
-  return { conversion_applied: true, wse_navd88_ft: gageHeightFt + Number(zero), gage_zero_navd88_ft: Number(zero), vertical_conversion_source: node.vertical_conversion_source };
+  const normalized = normalizeVerticalDatum({
+    valueFt: gageHeightFt,
+    sourceDatum: 'GAGE_DATUM',
+    targetDatum: 'NAVD88',
+    offsetFt: Number(zero),
+    offsetSource: source,
+  });
+  if (!normalized.conversionApplied) {
+    return { conversion_applied: false, wse_navd88_ft: null, gage_zero_navd88_ft: null, vertical_conversion_source: null, vertical_conversion_status: normalized.status };
+  }
+  return { conversion_applied: true, wse_navd88_ft: normalized.valueFt, gage_zero_navd88_ft: normalized.offsetFt, vertical_conversion_source: normalized.offsetSource, vertical_conversion_status: normalized.status };
 }
 
 function appendObservation(record, extra = {}) {
