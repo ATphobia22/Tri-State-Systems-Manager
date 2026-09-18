@@ -155,6 +155,23 @@ export default function LedgerView() {
                 <option value="6">6 — Community Observation</option>
               </select>
             </label>
+            <div style={{ borderTop: '1px solid #334155', paddingTop: 12, marginTop: 4 }}>
+              <div style={{ fontSize: '0.75rem', color: '#fbbf24', fontWeight: 700, marginBottom: 8 }}>
+                Human Authority Sign — required before Merkle append
+              </div>
+              <label style={{ display: 'flex', gap: 8, alignItems: 'flex-start', fontSize: '0.7rem', color: '#cbd5e1' }}>
+                <input type="checkbox" name="human_authorization" value="true" required />
+                I reviewed this evidence and authorize its append to the Evidence Ledger.
+              </label>
+              <label style={{ display: 'block', fontSize: '0.7rem', color: '#94a3b8', marginTop: 8 }}>
+                Reviewer identity
+                <input name="reviewer_identity" required placeholder="Official reviewer identity" style={inputStyle} />
+              </label>
+              <label style={{ display: 'block', fontSize: '0.7rem', color: '#94a3b8', marginTop: 8 }}>
+                Review reason
+                <textarea name="review_reason" required minLength={10} placeholder="State what was reviewed and why it may be sealed." style={{ ...inputStyle, minHeight: 72, resize: 'vertical' }} />
+              </label>
+            </div>
             <button
               type="submit"
               disabled={busy}
