@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0.0",
+  "description": "TSM FEMA FIRM panel validation target registry. Membership does not assert current regulatory effectiveness.",
+  "source_authority": "FEMA",
+  "county_fips": "18129",
+  "horizontal_crs": "EPSG:2966",
+  "vertical_datum": null,
+  "targets": [
+    {"panel_id":"18129C0217C","verification_status":"PENDING_SOURCE_VERIFICATION"},
+    {"panel_id":"18129C0236C","verification_status":"PENDING_SOURCE_VERIFICATION"},
+    {"panel_id":"18129C0240C","verification_status":"PENDING_SOURCE_VERIFICATION"},
+    {"panel_id":"18129C0245C","verification_status":"PENDING_SOURCE_VERIFICATION"},
+    {"panel_id":"18129C0265C","verification_status":"PENDING_SOURCE_VERIFICATION"},
+    {"panel_id":"18129C0300C","verification_status":"NFHL_REST_VERIFIED"}
+  ]
+}
