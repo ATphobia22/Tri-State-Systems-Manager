@@ -2,7 +2,8 @@ describe("PTDT v35 Dashboard - E2E Integration Suite", () => {
   beforeEach(() => {
     cy.visit("/", {
       onBeforeLoad(win) {
-        // Soft-mock WebGPU when unavailable in CI
+        // The production console requires OIDC authentication. Keep browser
+        // capabilities deterministic in CI without fabricating an identity.
         if (!(win.navigator as Navigator & { gpu?: unknown }).gpu) {
           Object.defineProperty(win.navigator, "gpu", {
             value: undefined,
@@ -13,18 +14,14 @@ describe("PTDT v35 Dashboard - E2E Integration Suite", () => {
     });
   });
 
-  it("Verification Gate 1: geodetic anchors visible when app loads", () => {
-    // Soft assertions — app shell may not expose all strings yet
-    cy.get("body").should("exist");
+  it("protects the engineering console with the OIDC login boundary", () => {
+    cy.location("pathname").should("eq", "/login");
+    cy.get("#login-title").should("contain", "TSM Console Sign-In");
+    cy.contains("Continue with Keycloak").should("be.visible");
   });
 
-  it("Verification Gate 2.1: canvas present for visual baseline (optional)", () => {
-    cy.get("body").then(($body) => {
-      if ($body.find("canvas").length) {
-        cy.get("canvas").first().should("be.visible");
-        cy.wait(300);
-        // cy.get("canvas").compareSnapshot("ptdt-v35-isometric-hud-baseline");
-      }
-    });
+  it("does not require WebGPU for the unauthenticated shell", () => {
+    cy.get("body").should("exist");
+    cy.get("canvas").should("not.exist");
   });
 });
