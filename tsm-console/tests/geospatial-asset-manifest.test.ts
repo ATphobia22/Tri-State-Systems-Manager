@@ -6,7 +6,9 @@ describe('Posey 2020 geospatial asset manifest', () => {
     expect(POSEY_2020_ASSETS.bounds).toEqual(POSEY_SITE_BOUNDS);
     expect(POSEY_2020_ASSETS.horizontalCrs).toBe('EPSG:2966');
     expect(POSEY_2020_ASSETS.verticalDatum).toBeNull();
+    expect(POSEY_2020_ASSETS.verticalDatumVerified).toBe(false);
     expect(POSEY_2020_ASSETS.terrain.verticalDatum).toBeNull();
+    expect(POSEY_2020_ASSETS.terrain.verticalDatumVerified).toBe(false);
     expect(POSEY_2020_ASSETS.terrain.servicePixelSizeMeters).toBeNull();
   });
 
