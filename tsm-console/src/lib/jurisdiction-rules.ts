@@ -13,9 +13,9 @@ export interface JurisdictionRule {
   name: string;
   code: string;
   source_uri?: string;
-  no_rise_threshold_ft: number;
-  compensatory_ratio: number;
-  freeboard_req_ft: number;
+  no_rise_threshold_ft?: number;
+  compensatory_ratio?: number;
+  freeboard_req_ft?: number;
   description: string;
   human_gate: true;
 }
@@ -23,57 +23,37 @@ export interface JurisdictionRule {
 /** S-3 Posey-aligned compensatory storage policy */
 export const INDIANA_COMPENSATORY_STORAGE_POLICY = {
   ratio: 1.0,
-  ratio_label:
-    '1.0× equal volume of cutting to offset floodplain fill (Posey Subdivision Ordinance)',
-  citation_primary:
-    'Posey County Subdivision Ordinance — volume of filling in the floodplain shall be off-set by an equal volume of cutting so as not to increase the BFE',
-  citation_source:
-    'https://www.poseycountyin.gov/wp-content/uploads/2020/09/New-Subdivision-Ordinance-7-01-2013.pdf',
-  citation_iac_adverse:
-    '312 IAC 10-2-3 — adverse effect ≥ 0.15 ft regulatory flood elevation increase',
-  citation_fema_floodway:
-    '44 CFR 60.3(d) practice — 0.00 ft No-Rise or CLOMR/LOMR in FEMA floodway',
-  citation_building:
-    '312 IAC 10-3-5 / Posey Flood Hazard Ordinance — flood protection grade (commonly BFE+2 ft)',
-  note:
-    'Posey text is equal-volume (1.0×). PE or IDNR license conditions may require higher ratios or incremental banding. Never auto-approve cut-fill balance. Floodway work still needs IDNR/USACE written approval.',
+  ratio_label: 'Equal-volume cutting offset; source-bound local rule reference only.',
+  citation_source: 'https://www.poseycountyin.gov/wp-content/uploads/2020/09/New-Subdivision-Ordinance-7-01-2013.pdf',
   human_gate: true as const,
 } as const;
 
 export const JURISDICTION_RULES: Record<JurisdictionId, JurisdictionRule> = {
   INDIANA: {
     id: 'INDIANA',
-    name: 'Indiana DNR & FEMA Region V',
-    code: 'IDNR 312 IAC 10 / IC 14-28-1 / IC 14-28-3 / 44 CFR Part 60 / Posey Flood Hazard Ordinance',
+    name: 'Indiana DNR / FEMA',
+    code: '312 IAC 10 / IC 14-28-1 / applicable FEMA requirements',
     source_uri: 'https://www.in.gov/dnr/water/',
     no_rise_threshold_ft: 0.0,
     compensatory_ratio: INDIANA_COMPENSATORY_STORAGE_POLICY.ratio,
-    freeboard_req_ft: 2.0,
-    description:
-      'FEMA floodway: 0.00 ft No-Rise or CLOMR/LOMR. IDNR adverse 0.15 ft (312 IAC 10-2-3). Posey fill offset equal volume (1.0×). Building freeboard commonly +2.0 ft.',
     human_gate: true,
+    description: 'Numeric criteria are source-bound and pathway-specific; 0.00 ft applies to the applicable FEMA floodway no-rise pathway, while Indiana DNR criteria are evaluated separately.',
   },
   ILLINOIS: {
     id: 'ILLINOIS',
-    name: 'Illinois DNR Office of Water Resources',
-    code: '17 Ill. Adm. Code Part 3700 / Part 3708',
-    no_rise_threshold_ft: 0.1,
-    compensatory_ratio: 1.0,
-    freeboard_req_ft: 1.0,
-    description:
-      '0.10 ft stage threshold criterion often cited for regulatory floodway impacts. Confirm current IDNR OWR rules.',
+    name: 'Illinois Department of Natural Resources',
+    code: '17 Ill. Adm. Code Part 3700',
+    source_uri: 'https://dnr.illinois.gov/waterresources/3700rule.html',
     human_gate: true,
+    description: 'Rule registry is authoritative for the citation; no unsupported numeric threshold is hard-coded here.',
   },
   KENTUCKY: {
     id: 'KENTUCKY',
-    name: 'Kentucky Energy & Environment Cabinet',
-    code: '401 KAR 4:060 Floodplain Management',
-    no_rise_threshold_ft: 0.0,
-    compensatory_ratio: 1.0,
-    freeboard_req_ft: 1.0,
-    description:
-      'Strict no-impact standard commonly applied for ordinary floodway encroachments. Confirm current KAR text.',
+    name: 'Kentucky Administrative Regulations',
+    code: '401 KAR 4:060',
+    source_uri: 'https://apps.legislature.ky.gov/law/kar/titles/401/004/060/',
     human_gate: true,
+    description: 'Rule text is authoritative; no unsupported numeric threshold is hard-coded here.',
   },
 };
 
@@ -105,10 +85,10 @@ export function assessClearanceSupport(opts: {
   } else if (clearanceFt < 0) {
     isViolationSupport = true;
     finding = 'STRUCTURAL INUNDATION (LAG BREACHED) — decision support only';
-  } else if (opts.jurisdiction === 'ILLINOIS' && stageAboveBfe > rule.no_rise_threshold_ft) {
+  } else if (opts.jurisdiction === 'ILLINOIS' && rule.no_rise_threshold_ft !== undefined && stageAboveBfe > rule.no_rise_threshold_ft) {
     isViolationSupport = true;
     finding = 'EXCEEDS IL THRESHOLD CITATION — human review required';
-  } else if (opts.jurisdiction === 'KENTUCKY' && stageAboveBfe > rule.no_rise_threshold_ft) {
+  } else if (opts.jurisdiction === 'KENTUCKY' && rule.no_rise_threshold_ft !== undefined && stageAboveBfe > rule.no_rise_threshold_ft) {
     isViolationSupport = true;
     finding = 'EXCEEDS KY NO-IMPACT CITATION — human review required';
   } else if (opts.jurisdiction === 'INDIANA' && stageAboveBfe > 0) {
