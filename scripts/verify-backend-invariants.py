@@ -9,37 +9,76 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from backend.gov.site_constants import assert_invariants, HORIZONTAL_CRS, BFE_FT, LAG_FT, MASTER_SEAL
+from backend.gov.site_constants import HORIZONTAL_CRS, MASTER_SEAL, assert_invariants
 from backend.api.v1.hecras_solver import run_hecras_2d
-from backend.api.v1.schemas import SiteElevations, GeodeticFrame, HydraulicRequest, CompensatoryStorageRequest
+from backend.api.v1.schemas import (
+    CompensatoryStorageRequest,
+    GeodeticFrame,
+    HydraulicRequest,
+    SiteElevations,
+)
 
 
 def main() -> int:
     assert_invariants()
     assert HORIZONTAL_CRS == "EPSG:2966"
-    assert BFE_FT == 375.0 and LAG_FT == 377.2
     assert len(MASTER_SEAL) == 64
-    SiteElevations()
-    GeodeticFrame()
+
+    # Explicit test fixture only; these values are not application/site defaults.
+    SiteElevations(
+        bfe_ft=375.0,
+        lag_ft=377.2,
+        ffe_ft=382.5,
+        berm_crest_ft=379.8,
+        vertical_datum="NAVD88",
+    )
+    GeodeticFrame(vertical_datum="NAVD88")
     HydraulicRequest(stage_ft=373.5, fill_volume_cy=0.0)
-    CompensatoryStorageRequest(fill_volume_cy=1000.0, actual_cut_cy=1200.0)
+    CompensatoryStorageRequest(
+        fill_volume_cy=1000.0,
+        actual_cut_cy=1200.0,
+        required_cut_cy=1000.0,
+        rule_id="TEST-SOURCE-BOUND-RULE",
+        jurisdiction="IN",
+    )
 
     try:
-        GeodeticFrame(horizontal_crs="EPSG:2967")
+        GeodeticFrame(horizontal_crs="EPSG:2967", vertical_datum="NAVD88")
         return 1
     except Exception:
         pass
+
     try:
-        CompensatoryStorageRequest(fill_volume_cy=1000.0, actual_cut_cy=1100.0)
+        CompensatoryStorageRequest(
+            fill_volume_cy=1000.0,
+            actual_cut_cy=900.0,
+            required_cut_cy=1000.0,
+            rule_id="TEST-SOURCE-BOUND-RULE",
+            jurisdiction="IN",
+        )
         return 1
     except Exception:
         pass
+
+    try:
+        SiteElevations(
+            bfe_ft=375.0,
+            lag_ft=377.2,
+            ffe_ft=382.5,
+            berm_crest_ft=379.8,
+            vertical_datum="UNVERIFIED",
+        )
+        return 1
+    except Exception:
+        pass
+
     try:
         run_hecras_2d(stage_ft=373.5, fill_volume_cy=0.0)
         print("FAIL: synthetic HEC-RAS fallback was accepted")
         return 1
     except Exception:
         pass
+
     print("[verify-backend-invariants] PASS — geodetic invariants and HEC-RAS fail-closed boundary verified")
     return 0
 
