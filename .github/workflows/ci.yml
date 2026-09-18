@@ -143,6 +143,16 @@ jobs:
         run: npm run check:client-bundle-secrets
       - name: Hydrologic ingestion smoke
         run: npm run ingest
+      - name: Test suite diagnostic report
+        if: always()
+        run: |
+          mkdir -p artifacts
+          set +e
+          npm run test:all > artifacts/test-all.txt 2>&1
+          status=$?
+          set -e
+          cat artifacts/test-all.txt
+          if [ "$status" -ne 0 ]; then echo "Test diagnostic captured; authoritative test suite remains fail-closed."; fi
       - name: Test suites
         run: npm run test:all
       - name: Setup Python
