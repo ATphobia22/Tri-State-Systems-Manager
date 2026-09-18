@@ -150,7 +150,7 @@ export async function ingestRiverObservation(
 
   try {
     const observation = await source.fetch(controller.signal);
-    const validated = {
+    const validated: Omit<RiverObservation, 'status' | 'cacheAgeSeconds'> = {
       ...observation,
       stageFt: finiteOrNull(observation.stageFt),
       dischargeCfs: finiteOrNull(observation.dischargeCfs),
