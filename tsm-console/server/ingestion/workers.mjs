@@ -14,6 +14,7 @@ import { classifySourceFreshness } from '../reliability/source-policies.mjs';
 import { incrementTelemetryCounter, observeTelemetryMetric } from '../telemetry/prometheus-exporter.mjs';
 import { publishTelemetryEvent } from '../telemetry/event-bus.mjs';
 import { normalizeVerticalDatum } from './vertical-datum.mjs';
+import { validateAuthorizedArtifact } from './governance-transition.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REGISTRY_PATH = process.env.TSM_AUTHORITY_REGISTRY || path.join(__dirname, '../../../tsm-authority-registry-v35.json');
@@ -28,25 +29,11 @@ function loadRegistry() {
 function leafCanonical(obj) { return `TSM_LEAF:${JSON.stringify(obj)}`; }
 
 /**
- * Validate an evidence artifact at the authoritative server boundary.
- * Raw source observations intentionally remain human_review_required until
- * an authorized reviewer signs the evidence artifact; this validator is for
- * payloads attempting to cross that governance boundary.
+ * Validate only artifacts attempting to cross the human-authorization boundary.
+ * Raw ingestion remains human_review_required and is intentionally not passed here.
  */
 export function validateEvidenceArtifact(payload) {
-  if (!payload || typeof payload !== 'object') {
-    throw new Error('FAIL_CLOSED: Evidence artifact rejected. Payload is not an object.');
-  }
-  if (payload.governance_status !== 'human_authorized' || payload.human_review_status !== 'signed') {
-    throw new Error('FAIL_CLOSED: Evidence artifact rejected. Missing human authorization status.');
-  }
-  if (!payload.reviewer_identity || !payload.review_reason || !payload.reviewed_at) {
-    throw new Error('FAIL_CLOSED: Evidence artifact rejected. Incomplete human signature metadata.');
-  }
-  if (!payload.source_provenance || !payload.source_hash) {
-    throw new Error('FAIL_CLOSED: Evidence artifact rejected. Missing cryptographic provenance.');
-  }
-  return true;
+  return validateAuthorizedArtifact(payload);
 }
 
 async function publishEventSafely(event) {
