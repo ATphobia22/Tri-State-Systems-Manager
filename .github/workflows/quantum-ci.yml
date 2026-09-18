@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       - name: Validate quantum boundary
         run: node scripts/ci/validate-quantum-boundary.mjs
 
@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       - name: Run research-only contract tests
         run: |
           node -e "const fs=require('fs'); const p='integrations/quantum/optimization-contract.schema.json'; JSON.parse(fs.readFileSync(p,'utf8')); console.log('Quantum research contract parsed successfully.');"
