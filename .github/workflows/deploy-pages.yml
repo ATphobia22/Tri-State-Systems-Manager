@@ -78,6 +78,17 @@ jobs:
       - name: Repository integrity gate
         working-directory: ${{ env.CONSOLE_DIR }}
         run: npm run check:integrity
+      - name: Parse diagnostic report
+        working-directory: ${{ env.CONSOLE_DIR }}
+        if: always()
+        run: |
+          mkdir -p artifacts
+          set +e
+          npm run check:parse > artifacts/parse-gate.txt 2>&1
+          status=$?
+          set -e
+          cat artifacts/parse-gate.txt
+          if [ "$status" -ne 0 ]; then echo "Parse diagnostic captured; authoritative parse gate remains fail-closed."; fi
       - name: Parse gate
         working-directory: ${{ env.CONSOLE_DIR }}
         run: npm run check:parse
