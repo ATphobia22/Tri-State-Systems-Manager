@@ -12,8 +12,5 @@ COPY scripts /app/scripts
 
 ENV PYTHONPATH=/app
 ENV PTDT_CRS=EPSG:2966
-ENV PTDT_BFE_FT=375.0
-ENV PTDT_LAG_FT=377.2
-
 # Default: run invariant smoke test (override in compose as needed)
 CMD ["python", "/app/scripts/verify-backend-invariants.py"]
