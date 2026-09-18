@@ -90,7 +90,7 @@
     "node": ">=22"
   },
   "overrides": {
-    "@types/react": "19.3.0",
+    "@types/react": "19.2.18",
     "@types/react-dom": "19.2.7"
   }
 }
