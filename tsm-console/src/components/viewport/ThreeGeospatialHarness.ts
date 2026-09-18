@@ -5,7 +5,7 @@
  * - MVT/PBF is decoded as protobuf; bytes are never interpreted as Float32 terrain.
  * - Horizontal coordinates are transformed from Web Mercator tile space to EPSG:2966.
  * - EPSG:2966 is horizontal only; NAVD88 elevation is a separate, explicitly supplied value.
- * - No synthetic elevation or regulatory determination is generated.
+ * - No fabricated elevation or regulatory determination is generated.
  * - Rendering uses a local floating origin while authoritative coordinates remain in EPSG:2966.
  */
 
