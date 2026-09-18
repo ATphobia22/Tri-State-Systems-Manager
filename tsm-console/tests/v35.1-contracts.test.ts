@@ -1,4 +1,3 @@
-import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import { ACTIVE_RIVER_GAUGES, createUnavailableGauge } from '../frontend/river-gauges';
 import { computeDatumProvenanceSha256, reconcileVerticalDatum } from '../../backend/datum-middleware';
