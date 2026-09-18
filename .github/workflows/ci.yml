@@ -143,7 +143,6 @@ jobs:
         run: |
           python -m py_compile tools/geospatial/indiana_elevation.py tools/validation/validate_fema_panels.py
           python tools/geospatial/indiana_elevation.py --help >/dev/null
-          python tools/validation/validate_fema_panels.py --help >/dev/null 2>&1 || true
       - name: Backend engineering primitive tests
         working-directory: .
         run: python -m unittest backend.engineering.test_engineering_primitives -v
