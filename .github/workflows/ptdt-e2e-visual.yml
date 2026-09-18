@@ -74,7 +74,7 @@ jobs:
 
       - name: Cache Cypress binary
         if: ${{ steps.cypress.outputs.configured == 'true' }}
-        uses: actions/cache@v6
+        uses: actions/cache@3edfce9056124e459a23f683a21433670d47daca # v6.1.0
         with:
           path: ~/.cache/Cypress
           key: ${{ runner.os }}-cypress-16.0.0-${{ hashFiles('tsm-console/package-lock.json') }}
