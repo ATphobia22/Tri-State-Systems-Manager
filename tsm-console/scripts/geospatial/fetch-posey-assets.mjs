@@ -8,7 +8,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const OUTPUT_DEFAULT = path.join(ROOT, 'data/geospatial/cache/posey-2020');
 const BOUNDS = Object.freeze({ minX: 2680000, minY: 940000, maxX: 2685000, maxY: 945000 });
 const BOUNDS_CSV = '2680000,940000,2685000,945000';
-const DEM_SERVICE = 'https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_2016_2020_Elevation/ImageServer/exportImage';
+const DEM_SERVICE = 'https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_2016_2020_DEM/ImageServer/exportImage';
 const NAIP_SERVICE = 'https://imagery.geoplatform.gov/iipp/rest/services/NAIP/NAIP2020_CONUS/ImageServer/exportImage';
 
 function parseArgs(argv) {
