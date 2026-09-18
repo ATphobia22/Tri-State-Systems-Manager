@@ -35,7 +35,7 @@ BEGIN
             p.owner_name,
             p.acreage,
             p.site_address,
-            p.ground_elevation_navd88_ft,
+            p.ground_elevation_navd88 AS ground_elevation_navd88_ft,
             p.evidence_sha256,
             ST_AsMVTGeom(
                 ST_Transform(p.geom, 3857),
