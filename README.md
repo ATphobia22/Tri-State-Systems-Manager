@@ -2,7 +2,7 @@
 
 **Community-scale engineering decision-support and evidence platform for the Ohio–Wabash Tri-State River Valley.**
 
-TSM combines authoritative river observations, geospatial evidence, engineering-model contracts, provenance, uncertainty and human review into one auditable system for communities, farms, transportation corridors, flood-resilience projects and public agencies.
+TSM combines authoritative river observations, geospatial evidence, engineering-model contracts, provenance, uncertainty and human review into an auditable decision-support system for communities, farms, transportation corridors, flood-resilience projects and public agencies. TSM is not a substitute for licensed engineering, surveying, regulatory review, emergency management, or other professional authority.
 
 > **Governing principle:** Technology informs people; it does not silently govern people. Human authority remains final.
 
@@ -22,7 +22,11 @@ The Open World Twin geospatial plane also integrates:
 - Indiana current and 2025 parcel services;
 - FEMA NFHL and Indiana BAFM as separate flood-authority planes;
 - USGS/NOAA live hydrologic observations;
-- historical Point Township plat/FIRM material as reference-only evidence.
+- historical Point Township plat/FIRM material as reference-only evidence;
+- H3 spatial indexing (`h3-js` 4.5.0) for bounded spatial aggregation;
+- PMTiles archive access (`pmtiles` 4.5.0) for portable tiled-data distribution;
+- NASA-AMMOS `3d-tiles-renderer` 0.5.2 for browser-side 3D Tiles visualization;
+- Protomaps basemap generation as a governed OSM/Natural Earth pipeline, with required OSM attribution.
 
 The live imagery and 3DEP visual layers are source-bound visualization products. They do **not** silently become survey-grade terrain, regulatory determinations or engineering design surfaces. MapLibre 3D terrain remains fail-closed behind the configured `VITE_TSM_TERRAIN_RGB_URL_TEMPLATE` contract until a materialized, provenance-controlled Terrain-RGB/raster-dem service is available.
 
@@ -177,6 +181,10 @@ TSM is an engineering decision-support and evidence system. It does not certify 
 
 Likewise, live observations are not emergency instructions. During an active event, official emergency-management and National Weather Service instructions control.
 
+## Geospatial toolchain and licensing boundaries
+
+The governed open-source geospatial toolchain is recorded in `tsm-console/config/geospatial_toolchain.json`. Current browser integrations include `h3-js` 4.5.0 (Apache-2.0), `pmtiles` 4.5.0 (BSD-3-Clause), and `3d-tiles-renderer` 0.5.2 (Apache-2.0). Protomaps basemap generation is retained as a reproducible source pipeline; OSM-derived tiles require the applicable ODbL attribution. AI segmentation via SamGeo/`segment-geospatial` remains human-review-required, and ToolJet remains process-isolated because of its AGPL licensing boundary. Visualization libraries do not acquire engineering authority merely by rendering an authoritative dataset.
+
 ## Production-readiness controls added in v35 hardening
 
 ### Frontend loading and rendering
@@ -286,9 +294,11 @@ The workflow uses GitHub OIDC workload identity federation rather than a long-li
 
 See docs/DATABRICKS-CI-CD.md.
 
-### Current geospatial CRS boundary
+### Current geospatial CRS and vertical-datum boundary
 
-The TSM engineering analysis frame is EPSG:2966 + NAVD88. Native government source services may legitimately expose other CRSs (for example, Indiana BAFM's native service CRS); those are source-native and must be explicitly transformed before entering the TSM engineering frame.
+The TSM horizontal engineering analysis frame is **EPSG:2966 (NAD83 / Indiana West, US survey feet)**. EPSG:2966 is a horizontal projected CRS; **NAVD88 is not encoded by EPSG:2966 and is therefore tracked separately as vertical-reference metadata**. Native government services may legitimately expose other CRSs (for example, Indiana BAFM's native service CRS or Web Mercator imagery/elevation services); those coordinates must be explicitly transformed before entering the TSM engineering frame.
+
+A NAVD88 elevation or water-surface value is accepted only when its source/product-specific vertical reference or a validated transformation is documented. TSM does not infer NAVD88 merely because a layer is an elevation product. USGS 3DEP source catalog records can explicitly declare NAVD88 for individual source products, demonstrating why the datum must remain source metadata rather than an assumption applied to every raster. citeturn0search2
 
 A geospatial audit found and corrected the HEC-RAS project contract's erroneous EPSG:26916 declaration to EPSG:2966.
 
