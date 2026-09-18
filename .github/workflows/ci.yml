@@ -108,7 +108,7 @@ jobs:
         run: |
           mkdir -p artifacts
           set +e
-          node ../scripts/no-production-mock-data.mjs . > artifacts/mock-data-scan.json 2>&1
+          node ../scripts/no-production-mock-data.mjs . > artifacts/mock-data-scan.txt 2>&1
           status=$?
           set -e
           cat artifacts/mock-data-scan.json
