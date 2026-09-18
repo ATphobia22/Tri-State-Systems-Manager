@@ -33,7 +33,26 @@ export function buildTwinStyle(): StyleSpecification {
   if (terrainTemplate) {
     sources['tsm-terrain-rgb'] = { type: 'raster-dem', tiles: [terrainTemplate], tileSize: 256, encoding: 'mapbox' };
   }
-  return { version: 8, sources, layers };
+  return {
+    version: 8,
+    sources,
+    layers,
+    light: {
+      anchor: 'viewport',
+      color: '#fff7e6',
+      intensity: 0.65,
+      position: [1.15, 215, 35],
+    },
+    sky: {
+      'sky-color': '#6b7da8',
+      'sky-horizon-blend': 0.55,
+      'horizon-color': '#dbeafe',
+      'horizon-fog-blend': 0.65,
+      'fog-color': '#cbd5e1',
+      'fog-ground-blend': 0.35,
+      'atmosphere-blend': 0.7,
+    },
+  };
 }
 
 export function applyTwinTerrain(map: Map): boolean {
