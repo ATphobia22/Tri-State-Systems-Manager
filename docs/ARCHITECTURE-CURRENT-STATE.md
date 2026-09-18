@@ -50,7 +50,7 @@ The initial verified rule set includes:
 - **Illinois:** 17 Ill. Adm. Code Part 3700, Construction in Floodways of Rivers, Lakes and Streams.
 - **Kentucky:** 401 KAR 4:060, Stream construction criteria. The regulation includes a technical-data certification requirement for floodway encroachments and defines its regulatory-floodway standard in the regulation itself.
 
-The rule registry records authority, citation, applicability, effective/retrieval metadata, source URL and calculation semantics. A rule may only be used for a regulatory comparison when the requested jurisdiction and applicability conditions match the rule record.
+The rule registry records authority, citation, applicability, verification metadata, source URL and calculation semantics. A rule may only be used for a regulatory comparison when the requested jurisdiction and applicability conditions match the rule record.
 
 ## 4. Engineering computation boundary
 
