@@ -35,7 +35,7 @@ from urllib.request import Request, urlopen
 
 DEFAULT_IMAGE_SERVER = (
     "https://di-ingov.img.arcgis.com/arcgis/rest/services/"
-    "DynamicWebMercator/Indiana_2016_2020_Elevation/ImageServer"
+    "DynamicWebMercator/Indiana_2016_2020_DEM/ImageServer"
 )
 DEFAULT_OUTPUT_SRID = 2966
 MAX_PIXELS = 16_000_000
