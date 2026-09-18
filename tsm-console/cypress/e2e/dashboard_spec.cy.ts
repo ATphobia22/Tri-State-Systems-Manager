@@ -2,8 +2,7 @@ describe("PTDT v35 Dashboard - E2E Integration Suite", () => {
   beforeEach(() => {
     cy.visit("/", {
       onBeforeLoad(win) {
-        // The production console requires OIDC authentication. Keep browser
-        // capabilities deterministic in CI without fabricating an identity.
+        // Keep browser capabilities deterministic in CI without fabricating an identity.
         if (!(win.navigator as Navigator & { gpu?: unknown }).gpu) {
           Object.defineProperty(win.navigator, "gpu", {
             value: undefined,
@@ -15,9 +14,42 @@ describe("PTDT v35 Dashboard - E2E Integration Suite", () => {
   });
 
   it("allows anonymous public read access to the engineering console", () => {
-    cy.location("pathname").should("eq", "/");
+    cy.location("pathname").should("match", /\/$/);
     cy.get("body").should("contain.text", "Beverly Ann Tucker Memorial Stewardship Charter");
     cy.get("body").should("not.contain.text", "TSM Console Sign-In");
+  });
+
+  it("resolves production assets under the configured deployment base path", () => {
+    cy.document().then((document) => {
+      const assets = Array.from(
+        document.querySelectorAll<HTMLScriptElement | HTMLLinkElement>(
+          'script[src], link[href]',
+        ),
+      )
+        .map((element) => element.getAttribute("src") ?? element.getAttribute("href"))
+        .filter((value): value is string => Boolean(value))
+        .filter((value) => !value.startsWith("data:") && !value.startsWith("http"));
+
+      expect(assets.length).to.be.greaterThan(0);
+      assets.forEach((asset) => {
+        expect(asset, `asset ${asset}`).to.not.match(/^\/(?!Tri-State-Systems-Manager\/)/);
+      });
+    });
+
+    cy.window().then((win) => {
+      expect(win.performance.getEntriesByType("resource")).to.not.be.empty;
+    });
+  });
+
+  it("supports public deep-link navigation for map, EOC, and twin routes", () => {
+    const routes = ["/map", "/eoc", "/twin"];
+
+    routes.forEach((route) => {
+      cy.visit(route);
+      cy.location("pathname").should("include", route);
+      cy.get("body").should("exist");
+      cy.get("body").should("not.contain.text", "TSM Console Sign-In");
+    });
   });
 
   it("does not require WebGPU for the unauthenticated shell", () => {
