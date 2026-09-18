@@ -4,7 +4,7 @@
  * Raw telemetry remains immutable and human_review_required.
  */
 import { createHash, randomUUID } from 'node:crypto';
-import { appendArtifact, getArtifact, recordVerification } from '../store/evidence-store.mjs';
+import { appendArtifact, getArtifact, recordVerification, appendMerkleLeaf } from '../store/evidence-store.mjs';
 
 const HASH_RE = /^[a-f0-9]{64}$/;
 const MAX_CLOCK_SKEW_MS = 5 * 60 * 1000;
