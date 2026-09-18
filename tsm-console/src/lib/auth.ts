@@ -8,7 +8,7 @@ interface OidcTokenResponse { access_token: string; token_type: string; expires_
 interface OidcUserInfo { sub: string; email?: string; preferred_username?: string; name?: string; [claim: string]: unknown; }
 function readEnv(): Record<string, unknown> { return ((import.meta as ImportMeta & { env?: Record<string, unknown> }).env ?? {}); }
 function envString(key: string): string | undefined { const value = readEnv()[key]; return typeof value === 'string' ? value : undefined; }
-const DEFAULT_CONFIG: IdPConfig = { provider: 'keycloak', authority: envString('VITE_IDP_AUTHORITY'), clientId: envString('VITE_IDP_CLIENT_ID'), redirectUri: envString('VITE_IDP_REDIRECT_URI') ?? (typeof window !== 'undefined' ? `${window.location.origin}/login/callback` : undefined), scopes: envString('VITE_IDP_SCOPES') ?? 'openid profile email', sessionMaxAgeSec: 8 * 60 * 60 };
+const DEFAULT_CONFIG: IdPConfig = { provider: 'keycloak', authority: envString('VITE_KEYCLOAK_URL') ?? envString('VITE_IDP_AUTHORITY'), clientId: envString('VITE_KEYCLOAK_CLIENT_ID') ?? envString('VITE_IDP_CLIENT_ID'), redirectUri: envString('VITE_IDP_REDIRECT_URI') ?? (typeof window !== 'undefined' ? `${window.location.origin}/login/callback` : undefined), scopes: envString('VITE_IDP_SCOPES') ?? 'openid profile email', sessionMaxAgeSec: 8 * 60 * 60 };
 let config: IdPConfig = { ...DEFAULT_CONFIG };
 export function configureIdP(partial: Partial<IdPConfig>): void { config = { ...config, ...partial }; }
 export function getIdPConfig(): IdPConfig { return { ...config }; }
@@ -22,7 +22,7 @@ function persistSession(session: AuthContext | null, maxAgeSec?: number): void {
 let currentSession: AuthContext | null = null;
 export function getSession(): AuthContext | null { if (currentSession) return currentSession; currentSession = loadSession(); return currentSession; }
 export function setSession(session: AuthContext | null): void { currentSession = session; persistSession(session); }
-function assertKeycloakConfig(): Required<Pick<IdPConfig, 'authority' | 'clientId' | 'redirectUri'>> { if (!config.authority || !config.clientId || !config.redirectUri) throw new Error('Keycloak is not configured: set VITE_IDP_AUTHORITY, VITE_IDP_CLIENT_ID, and VITE_IDP_REDIRECT_URI'); return { authority: config.authority.replace(/\/$/, ''), clientId: config.clientId, redirectUri: config.redirectUri }; }
+function assertKeycloakConfig(): Required<Pick<IdPConfig, 'authority' | 'clientId' | 'redirectUri'>> { if (!config.authority || !config.clientId || !config.redirectUri) throw new Error('Keycloak is not configured: set VITE_KEYCLOAK_URL, VITE_KEYCLOAK_CLIENT_ID, and VITE_IDP_REDIRECT_URI'); return { authority: config.authority.replace(/\/$/, ''), clientId: config.clientId, redirectUri: config.redirectUri }; }
 function keycloakEndpoint(path: string): string { return `${assertKeycloakConfig().authority}/protocol/openid-connect/${path}`; }
 function persistOidcState(state: string, verifier: string, returnTo: string): void { const storage = browserStorage(); if (!storage) return; storage.setItem(STATE_KEY, state); storage.setItem(VERIFIER_KEY, verifier); storage.setItem(RETURN_KEY, returnTo); }
 function clearOidcState(): void { const storage = browserStorage(); if (!storage) return; storage.removeItem(STATE_KEY); storage.removeItem(VERIFIER_KEY); storage.removeItem(RETURN_KEY); }
