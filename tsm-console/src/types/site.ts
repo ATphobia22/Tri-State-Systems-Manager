@@ -36,10 +36,10 @@ export interface SiteConstants {
     lat: number;
     lon: number;
     stages: {
-      action: number;
-      minor: number;
-      moderate: number;
-      major: number;
+      action: number | null;
+      minor: number | null;
+      moderate: number | null;
+      major: number | null;
       record: number | null;
     };
   };
@@ -82,10 +82,10 @@ export const SITE: SiteConstants = {
     lat: 38.13089124398878,
     lon: -87.94141452141561,
     stages: {
-      action: 0,
-      minor: 0,
-      moderate: 0,
-      major: 0,
+      action: null,
+      minor: null,
+      moderate: null,
+      major: null,
       record: null,
     },
   },
