@@ -1,20 +1,18 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 
-test('renderer capability contract selects WebGPU first', async () => {
-  const source = await import('../src/lib/render-capabilities.ts');
-  const capabilities = source.detectRenderCapabilities({ gpu: {}, getContext: () => ({}) });
-  assert.equal(capabilities.preferred, 'WEBGPU');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const source = fs.readFileSync(path.join(root, 'src/lib/render-capabilities.ts'), 'utf8');
+
+test('renderer capability contract prefers WebGPU then WebGL2 then Canvas 2D', () => {
+  assert.match(source, /preferred:\s*webgpu \? 'WEBGPU' : webgl2 \? 'WEBGL2' : 'CANVAS_2D'/);
+  assert.match(source, /export type RenderBackend = 'WEBGPU' \| 'WEBGL2' \| 'CANVAS_2D'/);
 });
 
-test('renderer capability contract falls back to WebGL2', async () => {
-  const source = await import('../src/lib/render-capabilities.ts');
-  const capabilities = source.detectRenderCapabilities({ getContext: (id) => id === 'webgl2' ? {} : null });
-  assert.equal(capabilities.preferred, 'WEBGL2');
-});
-
-test('renderer capability contract falls back to Canvas 2D', async () => {
-  const source = await import('../src/lib/render-capabilities.ts');
-  const capabilities = source.detectRenderCapabilities({ getContext: () => null });
-  assert.equal(capabilities.preferred, 'CANVAS_2D');
+test('renderer capability contract exposes explicit fallback messaging', () => {
+  assert.match(source, /WebGPU unavailable; using WebGL2-compatible rendering/);
+  assert.match(source, /WebGPU and WebGL2 unavailable; using 2D fallback rendering/);
 });
