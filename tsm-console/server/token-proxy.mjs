@@ -6,6 +6,7 @@ import { fetchUsgsInstantaneousValues } from './ingestion/usgs-nwis.mjs';
 import { fetchNoaaStageFlow } from './ingestion/noaa-nwps.mjs';
 import { listSourceHealth } from './ingestion/source-health.mjs';
 import { listUpstreamCircuitHealth } from './ingestion/http-client.mjs';
+import { getStaleCache, putStaleCache } from './reliability/stale-cache.mjs';
 import { listAuthoritativeSources, fetchAuthoritativeJson } from './ingestion/source-fabric.mjs';
 import { fetchRiverNetwork } from './ingestion/river-network-api.mjs';
 import { evaluatePolicies, POLICIES } from './policy/jurisdiction-engine.mjs';
@@ -56,40 +57,59 @@ const server = http.createServer(async (req, res) => {
       const usgsId = url.searchParams.get('usgs_id') || '03378500';
       const nwsId = url.searchParams.get('nws_id') || 'NHRI3';
       const source = url.searchParams.get('source') || 'auto';
+      const cacheKey = `hydro:${usgsId}:${nwsId}`;
       let records;
       let selectedSource;
-      if (source === 'noaa') {
-        records = await fetchNoaaStageFlow({ identifier: nwsId, product: 'observed' });
-        selectedSource = 'NOAA';
-      } else if (source === 'usgs') {
-        records = await fetchUsgsInstantaneousValues({ stationIds: [usgsId], parameterCodes: ['00065', '00060'] });
-        selectedSource = 'USGS';
-      } else if (source === 'auto') {
-        try {
+      try {
+        if (source === 'noaa') {
           records = await fetchNoaaStageFlow({ identifier: nwsId, product: 'observed' });
           selectedSource = 'NOAA';
-        } catch (noaaError) {
+        } else if (source === 'usgs') {
           records = await fetchUsgsInstantaneousValues({ stationIds: [usgsId], parameterCodes: ['00065', '00060'] });
           selectedSource = 'USGS';
+        } else if (source === 'auto') {
+          try {
+            records = await fetchNoaaStageFlow({ identifier: nwsId, product: 'observed' });
+            selectedSource = 'NOAA';
+          } catch {
+            records = await fetchUsgsInstantaneousValues({ stationIds: [usgsId], parameterCodes: ['00065', '00060'] });
+            selectedSource = 'USGS';
+          }
+        } else {
+          return json(res, 400, { error: 'source must be auto, noaa, or usgs' }, requestId);
         }
-      } else {
-        return json(res, 400, { error: 'source must be auto, noaa, or usgs' }, requestId);
+
+        const stage = selectedSource === 'USGS' ? latestRecord(records, '00065') : latestRecord(records);
+        const discharge = selectedSource === 'USGS' ? latestRecord(records, '00060') : null;
+        if (!stage) throw Object.assign(new Error('no stage observation returned'), { code: 'HYDRO_NO_STAGE' });
+        const payload = {
+          ok: true,
+          ...stage,
+          source: selectedSource,
+          gaugeId: selectedSource === 'NOAA' ? nwsId : usgsId,
+          qualifier: stage.provenance?.qualifier || (stage.status === 'provisional' ? 'P' : null),
+          discharge_cfs: discharge?.value ?? null,
+          discharge_observedAt: discharge?.observedAt ?? null,
+          discharge_status: discharge?.status ?? null,
+          freshness: { observedAt: stage.observedAt, retrievedAt: stage.retrievedAt },
+          requestId,
+        };
+        putStaleCache(cacheKey, payload);
+        return json(res, 200, payload, requestId);
+      } catch (error) {
+        const stale = getStaleCache(cacheKey);
+        if (stale) {
+          return json(res, 200, {
+            ...stale.value,
+            ok: true,
+            status: 'stale',
+            freshness: { ...stale.value.freshness, staleSince: stale.cachedAt, staleAgeMs: stale.ageMs },
+            source_status: 'UPSTREAM_UNAVAILABLE_LAST_KNOWN_GOOD',
+            requestId,
+          }, requestId);
+        }
+        return json(res, 503, { ok: false, status: 'unavailable', code: error?.code || 'HYDRO_SOURCE_UNAVAILABLE', sourceId: `NOAA-NWPS-${nwsId}-observed / USGS-NWIS-${usgsId}-00065`, requestId }, requestId);
       }
-      const stage = selectedSource === 'USGS' ? latestRecord(records, '00065') : latestRecord(records);
-      const discharge = selectedSource === 'USGS' ? latestRecord(records, '00060') : null;
-      if (!stage) return json(res, 503, { ok: false, status: 'unavailable', sourceId: selectedSource === 'NOAA' ? `NOAA-NWPS-${nwsId}-observed` : `USGS-NWIS-${usgsId}-00065` }, requestId);
-      return json(res, 200, {
-        ok: true,
-        ...stage,
-        source: selectedSource,
-        gaugeId: selectedSource === 'NOAA' ? nwsId : usgsId,
-        qualifier: stage.provenance?.qualifier || (stage.status === 'provisional' ? 'P' : null),
-        discharge_cfs: discharge?.value ?? null,
-        discharge_observedAt: discharge?.observedAt ?? null,
-        discharge_status: discharge?.status ?? null,
-        freshness: { observedAt: stage.observedAt, retrievedAt: stage.retrievedAt },
-        requestId,
-      }, requestId);
     }
     if (req.method === 'GET' && url.pathname === '/api/data-sources/health') return json(res, 200, { build_sha: BUILD_SHA, sources: listSourceHealth(), circuits: listUpstreamCircuitHealth() }, requestId);
     if (req.method === 'GET' && url.pathname === '/api/geospatial/posey/site') return json(res, 200, { ok: true, site_id: 'posey-lower-wabash-ohio-community', horizontal_crs: 'EPSG:2966', horizontal_crs_name: 'NAD83 / Indiana West (ftUS)', vertical_datum: 'NAVD88', bounds: { minX: 2680000, minY: 940000, maxX: 2685000, maxY: 945000 }, terrain: { source_uri: 'https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_2016_2020_DEM/ImageServer', acquisition_year: 2020, authority_class: 'OBSERVATION', derivation_class: 'RAW' }, orthophoto: { source_uri: 'https://imagery.geoplatform.gov/iipp/rest/services/NAIP/NAIP2020_CONUS/ImageServer', acquisition_year: 2020, authority_class: 'OBSERVATION', derivation_class: 'RAW' } }, requestId);
