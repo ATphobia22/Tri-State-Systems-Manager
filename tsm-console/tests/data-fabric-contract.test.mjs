@@ -9,7 +9,7 @@ const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), 'u
 
 test('Indiana data catalog is wired to authoritative source classes and contains no clinical integration', () => {
   const catalog = JSON.parse(read('../data/schemas/tsm-indiana-data-catalog-v1.json'));
-  assert.equal(catalog.version, '1.1.0');
+  assert.equal(catalog.version, '1.2.0');
   const ids = new Set(catalog.sources.map((source) => source.id));
   for (const required of ['usgs-waterdata-apis', 'noaa-nwps-api', 'fema-nfhl', 'indiana-bafm', 'usace-nld', 'usgs-tnm-access']) assert.ok(ids.has(required), `missing ${required}`);
   assert.ok(catalog.sources.some((source) => source.url?.includes('Parcel_Boundaries_of_Indiana_Current/FeatureServer')));
