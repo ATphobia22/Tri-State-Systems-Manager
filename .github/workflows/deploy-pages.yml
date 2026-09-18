@@ -92,6 +92,13 @@ jobs:
       - name: Parse gate
         working-directory: ${{ env.CONSOLE_DIR }}
         run: npm run check:parse
+      - name: Upload parse diagnostic
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: tsm-pages-parse-diagnostic
+          path: tsm-console/artifacts/parse-gate.txt
+          if-no-files-found: warn
       - name: TypeScript gate
         working-directory: ${{ env.CONSOLE_DIR }}
         run: npm run check:type
