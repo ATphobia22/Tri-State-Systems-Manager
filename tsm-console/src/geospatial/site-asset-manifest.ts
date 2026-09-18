@@ -17,7 +17,8 @@ export interface GeospatialAsset {
   readonly acquisitionYear: number;
   readonly format: string;
   readonly horizontalCrs: string;
-  readonly verticalDatum?: string;
+  readonly verticalDatum?: string | null;
+  readonly verticalDatumVerified?: boolean;
   readonly referenceLidarUri?: string;
   readonly notes: string;
 }
@@ -29,6 +30,7 @@ export interface PoseyAssetManifest {
   readonly horizontalCrs: 'EPSG:2966';
   readonly horizontalCrsName: 'NAD83 / Indiana West (ftUS)';
   readonly verticalDatum: string | null;
+  readonly verticalDatumVerified: boolean;
   readonly terrain: GeospatialAsset & {
     readonly servicePixelSizeMeters: number | null;
   };
@@ -61,6 +63,7 @@ export const POSEY_2020_ASSETS: PoseyAssetManifest = {
   horizontalCrs: 'EPSG:2966',
   horizontalCrsName: 'NAD83 / Indiana West (ftUS)',
   verticalDatum: null,
+  verticalDatumVerified: false,
   terrain: {
     assetId: 'in-2016-2020-elevation-posey-26800940',
     title: 'Indiana 2016–2020 elevation raster — Posey County',
@@ -72,6 +75,7 @@ export const POSEY_2020_ASSETS: PoseyAssetManifest = {
     format: 'ArcGIS ImageServer / GeoTIFF export',
     horizontalCrs: 'EPSG:2966',
     verticalDatum: null,
+    verticalDatumVerified: false,
     servicePixelSizeMeters: null,
     notes:
       'Published Indiana elevation service. Runtime service metadata must be captured before asserting source vertical datum, pixel size, or a regulatory/engineering datum relationship. The reference LAS tile is retained as source provenance and is not committed to Git because it is approximately 305 MB.',
