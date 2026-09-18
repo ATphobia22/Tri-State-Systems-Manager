@@ -7,7 +7,11 @@ import { tsmApiUrl } from './api-base';
 function categorize(ft: number | null): MapTwinLoaderData['stage']['floodCategory'] {
   if (ft == null) return 'unknown';
   const s = SITE.noaaGauge.stages;
-  if (ft >= s.major) return 'major'; if (ft >= s.moderate) return 'moderate'; if (ft >= s.minor) return 'minor'; if (ft >= s.action) return 'action'; return 'normal';
+  if (s.major != null && ft >= s.major) return 'major';
+  if (s.moderate != null && ft >= s.moderate) return 'moderate';
+  if (s.minor != null && ft >= s.minor) return 'minor';
+  if (s.action != null && ft >= s.action) return 'action';
+  return s.major == null && s.moderate == null && s.minor == null && s.action == null ? 'unknown' : 'normal';
 }
 
 export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
