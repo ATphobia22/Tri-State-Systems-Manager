@@ -115,9 +115,6 @@ jobs:
         run: |
           mkdir -p artifacts/v35.1
           npm run sign:evidence -- --output artifacts/v35.1/evidence-manifest.json package.json package-lock.json
-      - name: V35.1 deterministic LOMA packet
-        run: |
-          python3 ../tools/build_loma_packet.py --output artifacts/v35.1/loma-evidence.zip package.json package-lock.json
       - name: Production build
         run: npm run build
       - name: Test suites
@@ -128,6 +125,10 @@ jobs:
           python-version: '3.12'
           cache: pip
           cache-dependency-path: backend/requirements.txt
+      - name: V35.1 deterministic LOMA packet
+        run: |
+          mkdir -p artifacts/v35.1
+          python3 ../tools/build_loma_packet.py --output artifacts/v35.1/loma-evidence.zip package.json package-lock.json
       - name: Install backend engineering dependencies
         working-directory: .
         run: python -m pip install --upgrade pip && python -m pip install -r backend/requirements.txt
