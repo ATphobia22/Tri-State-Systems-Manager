@@ -16,7 +16,7 @@ describe('terrain-derived pathfinding grid', () => {
       ]),
       crs: 'EPSG:2966',
       verticalDatum: 'NAVD88',
-      source: 'INDIANA_2016_2020_DEM',
+      source: 'INDIANA_2016_2020_ELEVATION',
     };
     const result = terrainGridToPathfindingGrid(grid, 3);
     expect(result.grid.node(1, 1)?.walkable).toBe(false);
