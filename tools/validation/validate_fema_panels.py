@@ -19,6 +19,7 @@ failure rather than silently skipped.
 from __future__ import annotations
 
 import json
+import math
 import os
 import sys
 from dataclasses import dataclass
@@ -165,10 +166,10 @@ class FEMAPanelValidator:
                 panel_id,
                 CASE WHEN geom IS NULL THEN NULL ELSE ST_SRID(geom) END,
                 CASE WHEN geom IS NULL THEN NULL ELSE ST_GeometryType(geom) END,
-                ST_IsValid(geom),
-                ST_IsEmpty(geom),
-                ST_XMin(ST_Envelope(geom)),
-                ST_YMin(ST_Envelope(geom)),
+                CASE WHEN geom IS NULL THEN NULL ELSE ST_IsValid(geom) END,
+                CASE WHEN geom IS NULL THEN NULL ELSE ST_IsEmpty(geom) END,
+                CASE WHEN geom IS NULL THEN NULL ELSE ST_XMin(ST_Envelope(geom)) END,
+                CASE WHEN geom IS NULL THEN NULL ELSE ST_YMin(ST_Envelope(geom)) END,
                 CASE WHEN geom IS NULL THEN NULL ELSE ST_XMax(ST_Envelope(geom)) END,
                 CASE WHEN geom IS NULL THEN NULL ELSE ST_YMax(ST_Envelope(geom)) END
             FROM {}.{}
@@ -278,7 +279,12 @@ def parse_bbox(value: str | None) -> tuple[float, float, float, float] | None:
         raise ValueError(
             "TSM_FEMA_EXPECTED_BBOX_2966 must contain four comma-separated numbers."
         )
-    numbers = tuple(float(part) for part in parts)
+    try:
+        numbers = tuple(float(part) for part in parts)
+    except ValueError as exc:
+        raise ValueError("FEMA EPSG:2966 bounds must contain numeric values.") from exc
+    if not all(math.isfinite(number) for number in numbers):
+        raise ValueError("FEMA EPSG:2966 bounds must contain finite values.")
     min_x, min_y, max_x, max_y = numbers
     if not min_x < max_x or not min_y < max_y:
         raise ValueError("FEMA EPSG:2966 bounds must have min values below max values.")
