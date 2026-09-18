@@ -93,6 +93,13 @@ jobs:
           if [ "$status" -ne 0 ]; then echo "Parse diagnostic captured; authoritative parse gate remains fail-closed."; fi
       - name: Parse gate
         run: npm run check:parse
+      - name: Upload parse diagnostic
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: tsm-parse-diagnostic
+          path: tsm-console/artifacts/parse-gate.txt
+          if-no-files-found: warn
       - name: Typecheck
         run: npm run check:type
       - name: Production build
