@@ -15,14 +15,14 @@ export interface SiteConstants {
   crs: {
     horizontalEpsg: number;
     horizontalName: string;
-    verticalDatum: string;
+    verticalDatum: 'UNVERIFIED' | string;
   };
   elevations: {
-    bfe_ft: number;
-    lag_ft: number;
-    ffe_ft: number;
-    bermCrest_ft: number;
-    clearanceAboveBfe_ft: number;
+    bfe_ft: number | null;
+    lag_ft: number | null;
+    ffe_ft: number | null;
+    bermCrest_ft: number | null;
+    clearanceAboveBfe_ft: number | null;
   };
   boundingEnvelope: {
     minLon: number;
@@ -61,14 +61,14 @@ export const SITE: SiteConstants = {
   crs: {
     horizontalEpsg: 2966,
     horizontalName: 'NAD83 / Indiana West (ftUS)',
-    verticalDatum: 'NAVD88',
+    verticalDatum: 'UNVERIFIED',
   },
   elevations: {
-    bfe_ft: 375.0,
-    lag_ft: 377.2,
-    ffe_ft: 382.5,
-    bermCrest_ft: 379.8,
-    clearanceAboveBfe_ft: 2.2,
+    bfe_ft: null,
+    lag_ft: null,
+    ffe_ft: null,
+    bermCrest_ft: null,
+    clearanceAboveBfe_ft: null,
   },
   boundingEnvelope: {
     minLon: -88.35,
