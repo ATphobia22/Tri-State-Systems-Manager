@@ -165,7 +165,17 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'POST' && url.pathname === '/api/ingest/nwps') { const body = await readBodyFixed(req); if (!body.nws_id) return json(res, 400, { error: 'nws_id required' }, requestId); return json(res, 200, await ingestNwpsGauge(body.nws_id, { product: body.product }), requestId); }
     if (req.method === 'GET' && url.pathname === '/api/policies') return json(res, 200, { policies: POLICIES }, requestId);
     if (req.method === 'POST' && url.pathname === '/api/policies/evaluate') return json(res, 200, evaluatePolicies(await readBodyFixed(req)), requestId);
-    if (req.method === 'POST' && url.pathname === '/api/ledger/append') {\n      const body = await readBodyFixed(req);\n      if (!body.artifact_id) return json(res, 400, { error: 'artifact_id is required; raw artifacts must be ingested before authorization' }, requestId);\n      if (!body.human_authorization || typeof body.human_authorization !== 'object') return json(res, 400, { error: 'human_authorization is required' }, requestId);\n      try {\n        const publication = await authorizeAndPublishArtifact(body.artifact_id, body.human_authorization);\n        return json(res, 201, publication, requestId);\n      } catch (error) {\n        return json(res, error.code === 'NOT_FOUND' ? 404 : 422, { error: error.message, code: error.code || 'GOVERNANCE_FAULT' }, requestId);\n      }\n    }
+    if (req.method === 'POST' && url.pathname === '/api/ledger/append') {
+      const body = await readBodyFixed(req);
+      if (!body.artifact_id) return json(res, 400, { error: 'artifact_id is required; raw artifacts must be ingested before authorization' }, requestId);
+      if (!body.human_authorization || typeof body.human_authorization !== 'object') return json(res, 400, { error: 'human_authorization is required' }, requestId);
+      try {
+        const publication = await authorizeAndPublishArtifact(body.artifact_id, body.human_authorization);
+        return json(res, 201, publication, requestId);
+      } catch (error) {
+        return json(res, error.code === 'NOT_FOUND' ? 404 : 422, { error: error.message, code: error.code || 'GOVERNANCE_FAULT' }, requestId);
+      }
+    }
     return json(res, 404, { error: 'not found' }, requestId);
   } catch (error) { return json(res, error instanceof Error && error.code === 'CIRCUIT_OPEN' ? 503 : 502, { error: error.message || 'upstream source unavailable', code: error.code || 'SOURCE_UNAVAILABLE', requestId }, requestId); }
 });
