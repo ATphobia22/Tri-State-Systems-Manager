@@ -96,7 +96,7 @@ export function createHydraulicSource(
   if (!/^\/?[a-zA-Z0-9._/-]*$/.test(martinRoutePrefix) || martinRoutePrefix.includes('..')) {
     throw new Error('Invalid Martin route prefix.');
   }
-  const routePrefix = martinRoutePrefix ? `/${martinRoutePrefix.replace(/^\\/+|\\/+$/g, '')}` : '';
+  const routePrefix = martinRoutePrefix ? `/${martinRoutePrefix.replace(/^\/+|\/+$/g, '')}` : '';
 
   return {
     id: sourceId,
