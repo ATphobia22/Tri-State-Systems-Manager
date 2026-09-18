@@ -21,7 +21,7 @@
   ],
   "reference_sources": {
     "lidar": "https://lidar.digitalforestry.org/QL2_3DEP_LiDAR_IN_2017_2019/Posey_Co_2020_3DEP/Elev20_LAS1.4SPW_IN/IN2020_26800940_12.las",
-    "dem": "https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_2016_2020_Elevation/ImageServer",
+    "dem": "https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_2016_2020_DEM/ImageServer",
     "naip": "https://imagery.geoplatform.gov/iipp/rest/services/NAIP/NAIP2020_CONUS/ImageServer"
   }
 }
