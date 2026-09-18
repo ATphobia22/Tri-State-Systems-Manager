@@ -5,6 +5,7 @@ const POSEY_SITE_BOUNDS = manifest.bounds;
 const ALLOWED_HOSTS = new Set(['di-ingov.img.arcgis.com', 'imagery.geoplatform.gov']);
 const MAX_DIMENSION = 4096;
 const MAX_PIXELS = 12_000_000;
+const MAX_RESPONSE_BYTES = 128 * 1024 * 1024;
 
 function isWithinPoseyBounds(bounds) {
   return (
@@ -32,7 +33,7 @@ function parseDimension(raw, name) {
   return value;
 }
 
-function buildExportUrl(sourceUri, bounds, width, height, format, pixelType) {
+function buildExportUrl(sourceUri, bounds, width, height, format, pixelType, interpolation) {
   const source = new URL(sourceUri);
   if (!ALLOWED_HOSTS.has(source.hostname)) throw new Error(`Upstream host is not allowlisted: ${source.hostname}`);
   const endpoint = new URL(`${source.toString().replace(/\/$/, '')}/exportImage`);
@@ -42,14 +43,23 @@ function buildExportUrl(sourceUri, bounds, width, height, format, pixelType) {
   endpoint.searchParams.set('size', `${width},${height}`);
   endpoint.searchParams.set('format', format);
   endpoint.searchParams.set('pixelType', pixelType);
-  endpoint.searchParams.set('interpolation', 'RSP_Bilinear');
+  endpoint.searchParams.set('interpolation', interpolation);
   endpoint.searchParams.set('f', 'image');
   return endpoint;
 }
 
 async function fetchSource(url) {
-  const response = await fetch(url, { redirect: 'follow' });
+  const response = await fetch(url, { redirect: 'manual' });
+  if (response.status >= 300 && response.status < 400) throw new Error('Upstream raster redirect rejected.');
   if (!response.ok) throw new Error(`Upstream raster request failed: HTTP ${response.status}`);
+  const contentType = response.headers.get('content-type')?.toLowerCase() || '';
+  if (contentType.includes('json') || contentType.startsWith('text/')) {
+    throw new Error(`Upstream raster returned an unexpected content type: ${contentType || 'unknown'}`);
+  }
+  const contentLength = Number(response.headers.get('content-length') || '0');
+  if (Number.isFinite(contentLength) && contentLength > MAX_RESPONSE_BYTES) {
+    throw new Error('Upstream raster response exceeds the configured byte budget.');
+  }
   return response;
 }
 
@@ -68,7 +78,7 @@ export function buildPoseyAssetResponse(requestUrl) {
       height,
       contentType: 'image/tiff',
       source: POSEY_2020_ASSETS.terrain,
-      upstream: buildExportUrl(POSEY_2020_ASSETS.terrain.sourceUri, bounds, width, height, 'tiff', 'F32'),
+      upstream: buildExportUrl(POSEY_2020_ASSETS.terrain.sourceUri, bounds, width, height, 'tiff', 'F32', 'RSP_NearestNeighbor'),
     };
   }
   if (kind === 'orthophoto') {
@@ -78,7 +88,7 @@ export function buildPoseyAssetResponse(requestUrl) {
       height,
       contentType: 'image/png',
       source: POSEY_2020_ASSETS.orthophoto,
-      upstream: buildExportUrl(POSEY_2020_ASSETS.orthophoto.sourceUri, bounds, width, height, 'png32', 'U8'),
+      upstream: buildExportUrl(POSEY_2020_ASSETS.orthophoto.sourceUri, bounds, width, height, 'png32', 'U8', 'RSP_BilinearInterpolation'),
     };
   }
   throw new RangeError('kind must be terrain or orthophoto');
@@ -88,6 +98,7 @@ export async function servePoseyAsset(req, res) {
   const request = buildPoseyAssetResponse(req.url || '/');
   const response = await fetchSource(request.upstream);
   const bytes = Buffer.from(await response.arrayBuffer());
+  if (bytes.byteLength === 0 || bytes.byteLength > MAX_RESPONSE_BYTES) throw new Error('Upstream raster response is empty or exceeds the configured byte budget.');
   res.writeHead(200, {
     'Content-Type': request.contentType,
     'Content-Length': String(bytes.byteLength),
@@ -96,7 +107,8 @@ export async function servePoseyAsset(req, res) {
     'X-TSM-Source-URI': request.source.sourceUri,
     'X-TSM-Reference-LiDAR-URI': POSEY_2020_ASSETS.terrain.referenceLidarUri || '',
     'X-TSM-CRS': 'EPSG:2966',
-    'X-TSM-Vertical-Datum': 'NAVD88',
+    'X-TSM-Vertical-Datum': request.source.verticalDatum || 'UNVERIFIED',
+    'X-TSM-Vertical-Datum-Verified': request.source.verticalDatum ? 'true' : 'false',
     'X-TSM-Acquisition-Year': String(request.source.acquisitionYear),
     'X-TSM-Authority-Class': request.source.authorityClass,
     'X-TSM-Derivation-Class': request.source.derivationClass,
