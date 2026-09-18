@@ -130,6 +130,12 @@ function readField(bytes: Uint8Array, offset: number): { field: IProtoField; off
   throw new Error(`Unsupported protobuf wire type ${wireType}.`);
 }
 
+function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+  const copy = new Uint8Array(bytes.byteLength);
+  copy.set(bytes);
+  return copy.buffer;
+}
+
 function decodeString(bytes: Uint8Array): string {
   return new TextDecoder().decode(bytes);
 }
@@ -159,8 +165,8 @@ function parseMvtValue(bytes: Uint8Array): unknown {
     if (field.wireType === 2 && field.field === 1) return decodeString(field.value as Uint8Array);
     if (field.wireType === 0 && field.field === 4) return Boolean(field.value);
     if (field.wireType === 0 && field.field === 5) return field.value;
-    if (field.wireType === 1 && field.field === 3) return new DataView(field.value as Uint8Array).getFloat64(0, true);
-    if (field.wireType === 5 && field.field === 2) return new DataView(field.value as Uint8Array).getFloat32(0, true);
+    if (field.wireType === 1 && field.field === 3) return new DataView(toArrayBuffer(field.value as Uint8Array)).getFloat64(0, true);
+    if (field.wireType === 5 && field.field === 2) return new DataView(toArrayBuffer(field.value as Uint8Array)).getFloat32(0, true);
   }
   return null;
 }
@@ -516,7 +522,7 @@ export class ThreeGeospatialHarness {
       if (typeof DecompressionStream === 'undefined') {
         throw new Error('Gzip-compressed MVT received but DecompressionStream is unavailable.');
       }
-      const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+      const stream = new Blob([toArrayBuffer(bytes)]).stream().pipeThrough(new DecompressionStream('gzip'));
       return new Uint8Array(await new Response(stream).arrayBuffer());
     }
     return bytes;
