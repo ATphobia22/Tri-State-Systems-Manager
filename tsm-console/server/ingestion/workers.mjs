@@ -12,6 +12,7 @@ import { fetchUsgsInstantaneousValues } from './usgs-nwis.mjs';
 import { fetchNoaaStageFlow } from './noaa-nwps.mjs';
 import { classifySourceFreshness } from '../reliability/source-policies.mjs';
 import { incrementTelemetryCounter, observeTelemetryMetric } from '../telemetry/prometheus-exporter.mjs';
+import { publishTelemetryEvent } from '../telemetry/event-bus.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REGISTRY_PATH = process.env.TSM_AUTHORITY_REGISTRY || path.join(__dirname, '../../../tsm-authority-registry-v35.json');
@@ -63,8 +64,9 @@ export async function ingestUsgsNode(usgsId, { timeoutMs = 10000 } = {}) {
     observeTelemetryMetric('ptdt_usgs_gauge_stage_feet', stage.value, { site_id: usgsId, datum: 'GAGE_DATUM' });
     if (discharge) observeTelemetryMetric('ptdt_usgs_discharge_cfs', discharge.value, { site_id: usgsId });
     const artifact = appendObservation(stage, { ...conversion, freshness_state: freshnessState, stationName: node.name, role: node.role, relatedInfrastructure: node.related_infrastructure || null, discharge_cfs: discharge?.value ?? null, discharge_observedAt: discharge?.observedAt ?? null, timeoutMs });
+    const eventBus = await publishTelemetryEvent({ event_type: 'hydrologic_observation', provider: 'USGS', station_id: usgsId, observed_at: stage.observedAt, stage_ft: stage.value, discharge_cfs: discharge?.value ?? null, vertical_datum: stage.verticalDatum, wse_navd88_ft: conversion.wse_navd88_ft, artifact_id: artifact.artifact_id, content_hash_sha256: artifact.content_hash_sha256 });
     recordVerification(artifact.artifact_id, artifact.content_hash_sha256, artifact.content_hash_sha256, 'authoritative-data-fabric');
-    return { ok: true, artifact, sourceRecord: stage, dischargeRecord: discharge, freshness_state: freshnessState };
+    return { ok: true, artifact, sourceRecord: stage, dischargeRecord: discharge, freshness_state: freshnessState, event_bus: eventBus };
   } catch (error) {
     return { ok: false, code: error.code || 'FAIL_CLOSED', error: error.message };
   }
@@ -81,7 +83,8 @@ export async function ingestNwpsGauge(nwsId, { product = 'observed', timeoutMs =
     const freshnessState = classifySourceFreshness(product === 'observed' ? 'NOAA_NWPS_OBSERVATION' : 'NOAA_NWPS_FORECAST', { observedAt: latest.observedAt, retrievedAt: latest.retrievedAt });
     const conversion = product === 'observed' ? navd88FromGage(node, latest.value) : { conversion_applied: false, wse_navd88_ft: null, gage_zero_navd88_ft: null, vertical_conversion_source: null };
     const artifact = appendObservation(latest, { ...conversion, freshness_state: freshnessState, stationName: node.name, role: node.role, timeoutMs });
-    return { ok: true, artifact, sourceRecord: latest, freshness_state: freshnessState };
+    const eventBus = await publishTelemetryEvent({ event_type: 'hydrologic_observation', provider: 'NOAA_NWPS', station_id: nwsId, product, observed_at: latest.observedAt, stage_ft: latest.value, vertical_datum: latest.verticalDatum, wse_navd88_ft: conversion.wse_navd88_ft, artifact_id: artifact.artifact_id, content_hash_sha256: artifact.content_hash_sha256 });
+    return { ok: true, artifact, sourceRecord: latest, freshness_state: freshnessState, event_bus: eventBus };
   } catch (error) {
     return { ok: false, code: error.code || 'FAIL_CLOSED', error: error.message };
   }
