@@ -31,3 +31,17 @@ OGC 3D Tiles are a separate renderable-content contract. Martin may serve suppor
 ## Local validation
 
 Use the Martin configuration schema from the pinned/selected Martin release before deployment. The repository's CI should validate the YAML structure and TSM's manifest contracts before publishing a runtime image.
+
+
+## Cadastral MVT contract
+
+`ops/martin/sql/get_parcel_tiles.sql` defines the explicit Martin PostgreSQL Function Source:
+
+- Function: `public.get_parcel_tiles(integer, integer, integer)`.
+- Geometry storage contract: EPSG:2966.
+- Tile geometry: EPSG:3857 / MVT extent 4096 / buffer 64.
+- Feature elevation property: `ground_elevation_navd88_ft` (feet NAVD88).
+- Provenance property: `evidence_sha256`.
+- Martin route under this configuration: `/tiles/get_parcel_tiles/{z}/{x}/{y}`.
+
+The browser renderer converts the elevation values from feet NAVD88 to meters before using MapLibre `fill-extrusion-base` and `fill-extrusion-height`. Raw gage height is never used as a NAVD88 water-surface elevation.
