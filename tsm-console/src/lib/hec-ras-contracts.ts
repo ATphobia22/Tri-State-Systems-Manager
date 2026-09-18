@@ -5,8 +5,8 @@ export interface HecRas2DProjectContract {
   terrain: { source: 'USGS_3DEP' | 'BEST_AVAILABLE_LIDAR'; resolution_m: number; hydro_enforced: true; horizontal_crs: string; vertical_datum: 'NAVD88' };
   mesh_refinement: HecRas2DMeshRefinement;
   breaklines: Array<'channel_centerline' | 'left_bank' | 'right_bank' | 'berm_crest' | 'structure_edges' | 'roadway_crest'>;
-  site_constants: { lag_ft: 377.2; bfe_ft: 375; berm_crest_ft: 379.8; ffe_ft: 382.5; no_rise_tolerance_ft: 0 };
-  boundary_conditions: { gage: { usgs_id: '03378500'; nws_id: 'NHRI3'; stage_source_order: ['NOAA_NWPS', 'USGS_WATER_DATA'] }; upstream: { boundary_type: 'FLOW' | 'STAGE_FLOW'; provenance: string }; downstream: { boundary_type: 'STAGE' | 'NORMAL_DEPTH' | 'RATING_CURVE'; provenance: string }; manning_n: { source: string; values: number[] }; compensatory_storage_ratio: { minimum: 1.2; maximum: 1.3 }; no_rise_tolerance_ft?: 0 };
+  site_constants: { lag_ft: number | null; bfe_ft: number | null; berm_crest_ft: number | null; ffe_ft: number | null; no_rise_tolerance_ft: number | null };
+  boundary_conditions: { gage: { usgs_id: '03378500'; nws_id: 'NHRI3'; stage_source_order: ['NOAA_NWPS', 'USGS_WATER_DATA'] }; upstream: { boundary_type: 'FLOW' | 'STAGE_FLOW'; provenance: string }; downstream: { boundary_type: 'STAGE' | 'NORMAL_DEPTH' | 'RATING_CURVE'; provenance: string }; manning_n: { source: string; values: number[] }; compensatory_storage_ratio: { minimum: number | null; maximum: number | null }; no_rise_tolerance_ft?: 0 };
   authority: { authority_class: 'SIMULATION_DEMO' | 'MODEL_OUTPUT'; governance_status: 'human_review_required'; is_simulation_demo: true; human_review_status: 'pending' | 'approved' | 'rejected' };
 }
 
@@ -20,13 +20,13 @@ export const HEC_RAS_2D_PROJECT: HecRas2DProjectContract = {
     overbank_ag_ft: { min: 100, max: 200 },
   },
   breaklines: ['channel_centerline', 'left_bank', 'right_bank', 'berm_crest'],
-  site_constants: { lag_ft: 377.2, bfe_ft: 375, berm_crest_ft: 379.8, ffe_ft: 382.5, no_rise_tolerance_ft: 0 },
+  site_constants: { lag_ft: null, bfe_ft: null, berm_crest_ft: null, ffe_ft: null, no_rise_tolerance_ft: null },
   boundary_conditions: {
     gage: { usgs_id: '03378500', nws_id: 'NHRI3', stage_source_order: ['NOAA_NWPS', 'USGS_WATER_DATA'] },
     upstream: { boundary_type: 'STAGE_FLOW', provenance: 'USGS 03378500 / NOAA NWPS NHRI3 observed telemetry; refresh at runtime' },
     downstream: { boundary_type: 'STAGE', provenance: 'Project hydraulic profile / Myers pool condition; human-reviewed model input required' },
     manning_n: { source: 'Project hydraulic profile; land-cover/bathymetry evidence required', values: [0.03, 0.04, 0.06, 0.1] },
-    compensatory_storage_ratio: { minimum: 1.2, maximum: 1.3 },
+    compensatory_storage_ratio: { minimum: null, maximum: null },
     no_rise_tolerance_ft: 0,
   },
   authority: { authority_class: 'SIMULATION_DEMO', governance_status: 'human_review_required', is_simulation_demo: true, human_review_status: 'pending' },
@@ -45,5 +45,8 @@ export function validateHecRas2DProject(project: HecRas2DProjectContract): HecRa
   assertRange(project.mesh_refinement.overbank_ag_ft, 'overbank_ag_ft');
   for (const required of ['channel_centerline', 'left_bank', 'right_bank', 'berm_crest'] as const) if (!project.breaklines.includes(required)) throw new Error(`Missing required breakline: ${required}`);
   if (project.authority.governance_status !== 'human_review_required' || !project.authority.is_simulation_demo) throw new Error('HEC-RAS outputs require human review and simulation labeling');
+  const constants = project.site_constants;
+  if (constants.bfe_ft == null || constants.lag_ft == null || constants.ffe_ft == null || constants.berm_crest_ft == null) throw new Error('HEC-RAS project requires source-verified site elevations before engineering acceptance');
+  if (project.boundary_conditions.compensatory_storage_ratio.minimum == null || project.boundary_conditions.compensatory_storage_ratio.maximum == null) throw new Error('Compensatory-storage ratio requires a jurisdiction-specific verified rule');
   return project;
 }
