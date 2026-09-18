@@ -14,10 +14,10 @@ describe("PTDT v35 Dashboard - E2E Integration Suite", () => {
     });
   });
 
-  it("protects the engineering console with the OIDC login boundary", () => {
-    cy.location("pathname").should("eq", "/login");
-    cy.get("#login-title").should("contain", "TSM Console Sign-In");
-    cy.contains("Continue with Keycloak").should("be.visible");
+  it("allows anonymous public read access to the engineering console", () => {
+    cy.location("pathname").should("eq", "/");
+    cy.get("body").should("contain.text", "Beverly Ann Tucker Memorial Stewardship Charter");
+    cy.get("body").should("not.contain.text", "TSM Console Sign-In");
   });
 
   it("does not require WebGPU for the unauthenticated shell", () => {
