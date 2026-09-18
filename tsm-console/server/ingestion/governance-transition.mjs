@@ -136,13 +136,17 @@ export async function publishAuthorizedArtifact(authorizedArtifact) {
     stored.content_hash_sha256,
     'governance-transition',
   );
+  const merkle = appendMerkleLeaf(stored);
 
   return {
     publication_id: stored.artifact_id,
     artifact_id: stored.artifact_id,
     content_hash_sha256: stored.content_hash_sha256,
     published_at: new Date().toISOString(),
-    status: 'MERKLE_APPEND_ELIGIBLE',
+    status: 'MERKLE_APPEND_COMPLETE',
+    merkle_sequence: merkle.sequence,
+    merkle_leaf_hash: merkle.leaf_hash,
+    merkle_root: merkle.root_hash,
   };
 }
 
