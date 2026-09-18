@@ -2,6 +2,9 @@ import { defineConfig, loadEnv, type IndexHtmlTransformResult } from 'vite';
 import react from '@vitejs/plugin-react';
 
 const isGitHubPagesBuild = process.env.GITHUB_ACTIONS === 'true';
+const githubRepository = process.env.GITHUB_REPOSITORY?.split('/')[1];
+const githubPagesBasePath = process.env.VITE_PAGES_BASE_PATH?.trim()
+  || (githubRepository ? `/${githubRepository}/` : '/');
 
 function cspPlugin() {
   return {
@@ -47,7 +50,7 @@ function cspPlugin() {
 export default defineConfig(({ mode }) => {
   Object.assign(process.env, loadEnv(mode, process.cwd(), 'VITE_'));
   return {
-    base: isGitHubPagesBuild ? '/Tri-State-Systems-Manager/' : '/',
+    base: isGitHubPagesBuild ? githubPagesBasePath : '/',
     plugins: [react(), cspPlugin()],
     server: {
       port: 5173,
