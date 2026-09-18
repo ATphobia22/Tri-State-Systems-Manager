@@ -24,7 +24,7 @@ The repository's current Actions credential cannot enable GitHub Pages site conf
 
 1. Open the repository **Settings → Pages**.
 2. Set the Pages source to **GitHub Actions**.
-3. Add repository variable `GITHUB_PAGES_ENABLED` with value `true` under **Settings → Secrets and variables → Actions → Variables**.
+3. Add repository variable `TSM_PAGES_ENABLED` with value `true` under **Settings → Secrets and variables → Actions → Variables**.
 4. Push to `main`, or manually dispatch **TSM Production Build & Pages Deploy**.
 
 After activation, the deployment job is enabled by the repository variable and uses the Pages deployment environment.
