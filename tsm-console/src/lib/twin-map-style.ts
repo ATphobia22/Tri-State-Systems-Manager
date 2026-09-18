@@ -1,6 +1,7 @@
 import type { Map, StyleSpecification } from 'maplibre-gl';
 import type { MapTwinLoaderData } from '../types/loaders';
 import { MAP_LAYERS } from './map-layers';
+import { createHydraulicExtrusionLayer, createHydraulicSource } from './hydraulic-rendering';
 
 const imagery = MAP_LAYERS.find((layer) => layer.id === 'indiana-imagery');
 const terrainTemplate = import.meta.env.VITE_TSM_TERRAIN_RGB_URL_TEMPLATE?.trim() || '';
@@ -50,4 +51,57 @@ export function addFloodAuthorityLayers(map: Map): void {
 
 export function applyLiveStageMetadata(map: Map, data: MapTwinLoaderData): void {
   map.setCenter([(data.boundingEnvelope.minLon + data.boundingEnvelope.maxLon) / 2, (data.boundingEnvelope.minLat + data.boundingEnvelope.maxLat) / 2]);
+}
+
+
+export function addMartinHydraulicLayer(
+  map: Map,
+  currentWseNavd88Ft: number | null,
+): boolean {
+  const martinBaseUrl = import.meta.env.VITE_TSM_MARTIN_BASE_URL?.trim() || '';
+  if (!martinBaseUrl || currentWseNavd88Ft == null || !Number.isFinite(currentWseNavd88Ft)) {
+    return false;
+  }
+
+  const sourceId = 'tsm-parcels';
+  const layerId = 'tsm-hydraulic-extrusion';
+
+  if (!map.getSource(sourceId)) {
+    const source = createHydraulicSource('get_parcel_tiles', martinBaseUrl);
+    map.addSource(sourceId, {
+      type: source.type,
+      tiles: source.tiles,
+      minzoom: source.minzoom,
+      maxzoom: source.maxzoom,
+    });
+  }
+
+  if (!map.getLayer(layerId)) {
+    map.addLayer(createHydraulicExtrusionLayer(
+      layerId,
+      sourceId,
+      'parcels',
+      currentWseNavd88Ft,
+    ));
+  } else {
+    map.setPaintProperty(
+      layerId,
+      'fill-extrusion-height',
+      [
+        '+',
+        ['*', ['get', 'ground_elevation_navd88_ft'], 0.3048],
+        [
+          'max',
+          0,
+          [
+            '-',
+            currentWseNavd88Ft * 0.3048,
+            ['*', ['get', 'ground_elevation_navd88_ft'], 0.3048],
+          ],
+        ],
+      ],
+    );
+  }
+
+  return true;
 }
