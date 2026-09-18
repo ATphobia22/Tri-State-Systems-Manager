@@ -42,7 +42,7 @@ export const DigitalTwinMap: React.FC = () => {
       type: 'custom',
       renderingMode: '3d',
 
-      onAdd(mapInstanceForLayer: maplibregl.Map, gl: WebGLRenderingContext) {
+      onAdd(mapInstanceForLayer: maplibregl.Map, gl: WebGL2RenderingContext) {
         this.camera = new THREE.PerspectiveCamera();
         this.scene = new THREE.Scene();
 
@@ -66,9 +66,9 @@ export const DigitalTwinMap: React.FC = () => {
         this.renderer.autoClear = false;
       },
 
-      render(_gl: WebGLRenderingContext, matrix: number[]) {
+      render(_gl: WebGL2RenderingContext, args: maplibregl.CustomRenderMethodInput) {
         if (!this.renderer || !this.scene || !this.camera) return;
-        this.camera.projectionMatrix = new THREE.Matrix4().fromArray(matrix);
+        this.camera.projectionMatrix = new THREE.Matrix4().fromArray(args.defaultProjectionData.mainMatrix);
         this.renderer.resetState();
         this.renderer.render(this.scene, this.camera);
         mapInstance.current?.triggerRepaint();
