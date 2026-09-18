@@ -34,6 +34,16 @@ test('river registry requires source and quality metadata for live stations', as
   }
 });
 
+
+test('river registry preserves verified USGS station identities', async () => {
+  const registry = await readJson('artifacts/tsm-river-valley-realtime-stations-v1.json');
+  const stations = new Map(registry.verified_observation_stations.map((station) => [station.station_id, station]));
+  assert.equal(stations.get('03378500')?.name, 'Wabash River at New Harmony, IN');
+  assert.equal(stations.get('03322000')?.name, 'Ohio River at Evansville, IN');
+  assert.equal(stations.get('03381700')?.name, 'Ohio River at Old Shawneetown, IL-KY');
+  assert.equal(stations.get('03322420')?.name, 'OHIO RIVER AT UNIONTOWN DAM, KY');
+});
+
 test('dredged material schema exists before implementation is accepted', async () => {
   const schema = await readJson('data/schemas/dredged-material.schema.json');
   assert.equal(schema.$id, 'https://tuckerinc82.org/schemas/dredged-material/v1.0.0.json');
