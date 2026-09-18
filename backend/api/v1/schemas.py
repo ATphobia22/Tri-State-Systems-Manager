@@ -11,60 +11,45 @@ from pydantic import (
     model_validator,
 )
 
-BFE_FT: Final[float] = 375.0
-LAG_FT: Final[float] = 377.2
 HORIZONTAL_CRS: Final[str] = "EPSG:2966"
 MASTER_SEAL_LEN: Final[int] = 64
-QL2_RMSEZ_FT: Final[float] = 0.328  # USGS 3DEP QL2 non-vegetated
 
 
 class SiteElevations(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid", str_strip_whitespace=True)
 
-    bfe_ft: float = Field(default=BFE_FT)
-    lag_ft: float = Field(default=LAG_FT)
-    ffe_ft: float = Field(default=382.5)
-    berm_crest_ft: float = Field(default=379.8)
+    bfe_ft: float
+    lag_ft: float
+    ffe_ft: float | None = None
+    berm_crest_ft: float | None = None
+    vertical_datum: str
 
-    @field_validator("bfe_ft")
+    @field_validator("vertical_datum")
     @classmethod
-    def bfe_locked(cls, v: float) -> float:
-        if abs(v - BFE_FT) > 1e-6:
-            raise ValueError(f"BFE must be {BFE_FT} ft NAVD88 (got {v})")
+    def vertical_datum_required(cls, v: str) -> str:
+        if not v or v.upper() == "UNVERIFIED":
+            raise ValueError("site vertical datum must be established by project evidence")
         return v
-
-    @field_validator("lag_ft")
-    @classmethod
-    def lag_locked(cls, v: float) -> float:
-        if abs(v - LAG_FT) > 1e-6:
-            raise ValueError(f"LAG must be {LAG_FT} ft NAVD88 (got {v})")
-        return v
-
-    @model_validator(mode="after")
-    def freeboard_clearance(self) -> SiteElevations:
-        if abs(self.lag_ft - self.bfe_ft - 2.2) > 1e-6:
-            raise ValueError("LAG - BFE must equal +2.2 ft natural clearance")
-        return self
 
 
 class GeodeticFrame(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     horizontal_crs: str = Field(default=HORIZONTAL_CRS)
-    vertical_datum: str = Field(default="NAVD88")
+    vertical_datum: str
 
     @field_validator("horizontal_crs")
     @classmethod
-    def crs_must_be_2966(cls, v: str) -> str:
-        if v != "EPSG:2966":
-            raise ValueError(f"Rejected CRS {v}. Authoritative frame is EPSG:2966 only.")
+    def crs_is_explicit(cls, v: str) -> str:
+        if not v.startswith("EPSG:"):
+            raise ValueError("horizontal CRS must be an explicit EPSG identifier")
         return v
 
     @field_validator("vertical_datum")
     @classmethod
-    def vertical_navd88(cls, v: str) -> str:
-        if v != "NAVD88":
-            raise ValueError(f"Vertical datum must be NAVD88 (got {v})")
+    def vertical_datum_is_explicit(cls, v: str) -> str:
+        if not v or v.upper() == "UNVERIFIED":
+            raise ValueError("vertical datum must be established by source/project evidence")
         return v
 
 
