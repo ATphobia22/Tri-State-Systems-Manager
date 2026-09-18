@@ -10,7 +10,7 @@ test('ledger append requires explicit human authority fields', () => {
   assert.match(merkle, /human_authorization/);
   assert.match(merkle, /reviewer_identity/);
   assert.match(merkle, /review_reason/);
-  assert.match(merkle, /human_authorized === true/);
+  assert.match(merkle, /human_authorized[^\n]*!== true/);
 });
 test('ledger UI exposes a mandatory human sign gate', () => {
   assert.match(ledger, /Human Authority Sign/);
