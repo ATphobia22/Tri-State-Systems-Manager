@@ -36,6 +36,12 @@ for (const name of await readdir(WORKFLOW_DIR)) {
   if (name === 'geospatial-ci.yml' && /cityengine|unreal/i.test(text) && !/workflow_dispatch/.test(text)) {
     errors.push('geospatial-ci.yml: specialized tooling must be independently dispatchable');
   }
+  if (name === 'deploy-pages.yml') {
+    if (!/VITE_KEYCLOAK_URL:\s*\$\{\{\s*vars\.VITE_KEYCLOAK_URL\s*\}\}/.test(text)) errors.push('deploy-pages.yml: production build must bind VITE_KEYCLOAK_URL from repository variables');
+    if (!/VITE_KEYCLOAK_REALM:\s*\$\{\{\s*vars\.VITE_KEYCLOAK_REALM\s*\}\}/.test(text)) errors.push('deploy-pages.yml: production build must bind VITE_KEYCLOAK_REALM from repository variables');
+    if (!/VITE_KEYCLOAK_CLIENT_ID:\s*\$\{\{\s*vars\.VITE_KEYCLOAK_CLIENT_ID\s*\}\}/.test(text)) errors.push('deploy-pages.yml: production build must bind VITE_KEYCLOAK_CLIENT_ID from repository variables');
+    if (!/VITE_TSM_API_BASE_URL:\s*\$\{\{\s*vars\.VITE_TSM_API_BASE_URL\s*\}\}/.test(text)) errors.push('deploy-pages.yml: production build must bind live API base URL from repository variables');
+  }
   if (name === 'ci.yml') {
     const alertmanagerCheck = /docker run[\s\S]*?prom\/alertmanager:v0\.34\.0@sha256:[0-9a-f]{64}[\s\S]*?check-config[\s\S]*?--enable-feature=utf8-strict-mode/m.test(text);
     if (!alertmanagerCheck || !/--entrypoint=\/bin\/amtool/.test(text)) {
