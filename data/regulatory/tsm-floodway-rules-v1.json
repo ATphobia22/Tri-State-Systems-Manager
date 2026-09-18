@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "1.0.0",
+  "verifiedAt": "2026-09-18T12:21:45Z",
+  "purpose": "Source-bound jurisdictional rule records used to select engineering comparison criteria. These records are references, not permit determinations.",
+  "rules": [
+    {
+      "id": "IN-FLOODWAY-CAPACITY-0.15FT",
+      "jurisdiction": "IN",
+      "authority": "Indiana Department of Natural Resources",
+      "citation": "312 IAC 10-2-3",
+      "title": "Adversely affect the efficiency of, or unduly restrict the capacity of, the floodway",
+      "metric": "regulatory_flood_elevation_increase_ft",
+      "threshold": 0.15,
+      "comparison": "less_than",
+      "applicability": "Indiana floodway management definition; apply only after rule applicability and stated exceptions are evaluated",
+      "sourceUrl": "https://www.in.gov/dnr/water/regulatory-permit-programs/exemptions/",
+      "verificationUrl": "https://www.in.gov/dnr/water/regulatory-permit-programs/permit-application-assistance-manual/regulatory-programs/",
+      "status": "VERIFIED_OFFICIAL_SOURCE"
+    },
+    {
+      "id": "IN-FEMA-FLOODWAY-NORISE-0.00FT",
+      "jurisdiction": "IN",
+      "authority": "FEMA / Indiana DNR",
+      "citation": "44 CFR 60.3(d)(3) implementation guidance; Indiana DNR no-rise guidance",
+      "title": "FEMA floodway no-rise pathway",
+      "metric": "floodway_surcharge_ft",
+      "threshold": 0,
+      "comparison": "less_than_or_equal",
+      "applicability": "Projects in FEMA-designated floodways when the applicable local/FEMA pathway requires no-rise certification; CLOMR is the alternate pathway described by Indiana DNR",
+      "sourceUrl": "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/no-rise/",
+      "status": "VERIFIED_OFFICIAL_SOURCE"
+    },
+    {
+      "id": "IL-PART-3700-FLOODWAYS",
+      "jurisdiction": "IL",
+      "authority": "Illinois Department of Natural Resources",
+      "citation": "17 Ill. Adm. Code Part 3700",
+      "title": "Construction in Floodways of Rivers, Lakes and Streams",
+      "metric": "jurisdiction_specific",
+      "applicability": "Illinois rivers, lakes and streams under Department jurisdiction, subject to Part 3700 applicability and exceptions",
+      "sourceUrl": "https://dnr.illinois.gov/content/dam/soi/en/web/dnr/adrules/documents/17-3700.pdf",
+      "status": "VERIFIED_OFFICIAL_SOURCE"
+    },
+    {
+      "id": "KY-401-KAR-4-060",
+      "jurisdiction": "KY",
+      "authority": "Kentucky Administrative Regulations / Energy and Environment Cabinet",
+      "citation": "401 KAR 4:060",
+      "title": "Stream construction criteria",
+      "metric": "regulatory_floodway_no_increase",
+      "threshold": 0,
+      "comparison": "no_increase",
+      "applicability": "Construction across, along, or adjacent to a stream or in a regulatory floodway when a construction permit is required; regulation-specific exceptions apply",
+      "sourceUrl": "https://apps.legislature.ky.gov/law/kar/titles/401/004/060/",
+      "status": "VERIFIED_OFFICIAL_SOURCE"
+    }
+  ],
+  "controls": {
+    "never_use_as_global_constant": true,
+    "require_jurisdiction_match": true,
+    "require_applicability_match": true,
+    "require_source_verification": true,
+    "regulatory_determination_requires_human_review": true
+  }
+}
