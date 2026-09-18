@@ -12,7 +12,7 @@ export interface HecRas2DProjectContract {
 
 export const HEC_RAS_2D_PROJECT: HecRas2DProjectContract = {
   contract_version: '1.0.0',
-  terrain: { source: 'USGS_3DEP', resolution_m: 1, hydro_enforced: true, horizontal_crs: 'EPSG:26916', vertical_datum: 'NAVD88' },
+  terrain: { source: 'USGS_3DEP', resolution_m: 1, hydro_enforced: true, horizontal_crs: 'EPSG:2966', vertical_datum: 'NAVD88' },
   mesh_refinement: {
     channel_conveyance_ft: { min: 25, max: 50 },
     near_berm_structures_lag_ft: { min: 25, max: 40 },
