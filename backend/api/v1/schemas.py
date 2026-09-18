@@ -97,13 +97,14 @@ class CompensatoryStorageRequest(BaseModel):
 
     fill_volume_cy: float = Field(..., ge=0.0)
     actual_cut_cy: float = Field(..., ge=0.0)
-    safety_factor: float = Field(default=1.20, ge=1.20, le=1.50)
+    required_cut_cy: float = Field(..., ge=0.0)
+    rule_id: str = Field(..., min_length=1)
+    jurisdiction: str = Field(..., min_length=2)
 
     @model_validator(mode="after")
     def no_rise_check(self) -> CompensatoryStorageRequest:
-        required = self.fill_volume_cy * self.safety_factor
-        if self.actual_cut_cy < required:
+        if self.actual_cut_cy < self.required_cut_cy:
             raise ValueError(
-                f"No-Rise violation: actual_cut_cy {self.actual_cut_cy} < required {required:.2f}"
+                "actual_cut_cy is below the source-bound required cut volume"
             )
         return self
