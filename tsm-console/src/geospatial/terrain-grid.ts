@@ -6,7 +6,7 @@ export interface TerrainGrid {
   readonly bounds: readonly [number, number, number, number];
   readonly elevations: Float32Array;
   readonly crs: 'EPSG:2966';
-  readonly verticalDatum: 'NAVD88';
+  readonly verticalDatum: string | null;
   readonly source: 'INDIANA_2016_2020_ELEVATION';
 }
 
@@ -30,7 +30,7 @@ export function sampleTerrainGrid(raster: TerrainRaster, targetWidth = 128, targ
     bounds: raster.bounds,
     elevations,
     crs: 'EPSG:2966',
-    verticalDatum: 'NAVD88',
+    verticalDatum: raster.verticalDatum,
     source: 'INDIANA_2016_2020_ELEVATION',
   };
 }
