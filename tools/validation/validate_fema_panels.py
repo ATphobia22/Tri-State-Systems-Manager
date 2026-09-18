@@ -163,14 +163,14 @@ class FEMAPanelValidator:
             """
             SELECT
                 panel_id,
-                ST_SRID(geom),
-                ST_GeometryType(geom),
+                CASE WHEN geom IS NULL THEN NULL ELSE ST_SRID(geom) END,
+                CASE WHEN geom IS NULL THEN NULL ELSE ST_GeometryType(geom) END,
                 ST_IsValid(geom),
                 ST_IsEmpty(geom),
                 ST_XMin(ST_Envelope(geom)),
                 ST_YMin(ST_Envelope(geom)),
-                ST_XMax(ST_Envelope(geom)),
-                ST_YMax(ST_Envelope(geom))
+                CASE WHEN geom IS NULL THEN NULL ELSE ST_XMax(ST_Envelope(geom)) END,
+                CASE WHEN geom IS NULL THEN NULL ELSE ST_YMax(ST_Envelope(geom)) END
             FROM {}.{}
             WHERE panel_id = %s
             """
@@ -208,6 +208,12 @@ class FEMAPanelValidator:
             max_x,
             max_y,
         ) = rows[0]
+
+        if current_srid is None:
+            report["failures"].append(
+                {"panel_id": panel_id, "reason": "NULL GEOMETRY."}
+            )
+            return
 
         if current_srid != EXPECTED_SRID:
             report["failures"].append(
