@@ -141,8 +141,9 @@ jobs:
       - name: Geospatial Python syntax and CLI gate
         working-directory: .
         run: |
-          python -m py_compile tools/geospatial/indiana_elevation.py tools/validation/validate_fema_panels.py
+          python -m py_compile tools/geospatial/indiana_elevation.py tools/geospatial/test_indiana_elevation.py tools/validation/validate_fema_panels.py
           python tools/geospatial/indiana_elevation.py --help >/dev/null
+          python -m unittest discover -s tools/geospatial -p 'test_*.py' -v
       - name: Backend engineering primitive tests
         working-directory: .
         run: python -m unittest backend.engineering.test_engineering_primitives -v
