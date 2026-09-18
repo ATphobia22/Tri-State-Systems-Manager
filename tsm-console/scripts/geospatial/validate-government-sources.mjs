@@ -21,12 +21,6 @@ for (const source of manifest.sources) {
     throw new Error('FEMA NFHL authority boundary was altered.');
   }
 
-  if (
-    source.id === 'indiana-bafm' &&
-    source.id === 'fema-nfhl'
-  ) {
-    throw new Error('FEMA and Indiana BAFM sources must remain distinct.');
-  }
 
   if (
     source.id === 'usgs-03378500' &&
