@@ -109,7 +109,8 @@ const server = http.createServer(async (req, res) => {
           try {
             records = await fetchNoaaStageFlow({ identifier: nwsId, product: 'observed' });
             selectedSource = 'NOAA';
-          } catch {
+          } catch (noaaError) {
+            void noaaError;
             records = await fetchUsgsInstantaneousValues({ stationIds: [usgsId], parameterCodes: ['00065', '00060'] });
             selectedSource = 'USGS';
           }
