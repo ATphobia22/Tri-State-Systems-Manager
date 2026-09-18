@@ -8,7 +8,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const OUTPUT_DEFAULT = path.join(ROOT, 'data/geospatial/cache/posey-2020');
 const BOUNDS = Object.freeze({ minX: 2680000, minY: 940000, maxX: 2685000, maxY: 945000 });
 const BOUNDS_CSV = '2680000,940000,2685000,945000';
-const DEM_SERVICE = 'https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_2016_2020_DEM/ImageServer/exportImage';
+const DEM_SERVICE = 'https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_2016_2020_Elevation/ImageServer/exportImage';
 const NAIP_SERVICE = 'https://imagery.geoplatform.gov/iipp/rest/services/NAIP/NAIP2020_CONUS/ImageServer/exportImage';
 
 function parseArgs(argv) {
@@ -40,7 +40,7 @@ function exportUrl(service, format, width, height) {
     size: `${width},${height}`,
     format,
     pixelType: format === 'tiff' ? 'F32' : 'U8',
-    interpolation: 'RSP_Bilinear',
+    interpolation: 'RSP_NearestNeighbor',
     f: 'image',
   });
   return `${service}?${params.toString()}`;
@@ -73,7 +73,7 @@ async function main() {
 
   const terrainUrl = exportUrl(DEM_SERVICE, 'tiff', args.width, args.height);
   const orthophotoUrl = exportUrl(NAIP_SERVICE, 'jpgpng', args.width, args.height);
-  const terrainPath = path.join(args.output, 'posey-2020-terrain-epsg2966-navd88.tif');
+  const terrainPath = path.join(args.output, 'posey-2020-terrain-epsg2966.tif');
   const orthophotoPath = path.join(args.output, 'posey-2020-naip-epsg2966.png');
 
   const [terrain, orthophoto] = await Promise.all([
@@ -85,7 +85,8 @@ async function main() {
     generatedAt: new Date().toISOString(),
     siteBounds: BOUNDS,
     horizontalCrs: 'EPSG:2966',
-    verticalDatum: 'NAVD88',
+    verticalDatum: null,
+    verticalDatumVerified: false,
     assets: {
       terrain: {
         path: path.relative(ROOT, terrainPath),
@@ -95,6 +96,8 @@ async function main() {
         sha256: terrain.sha256,
         authorityClass: 'OBSERVATION',
         derivationClass: 'RAW',
+        verticalDatum: null,
+        verticalDatumVerified: false,
       },
       orthophoto: {
         path: path.relative(ROOT, orthophotoPath),
