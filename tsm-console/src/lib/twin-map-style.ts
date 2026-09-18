@@ -6,13 +6,6 @@ import { createHydraulicExtrusionLayer, createHydraulicSource } from './hydrauli
 const imagery = MAP_LAYERS.find((layer) => layer.id === 'indiana-imagery');
 const terrainTemplate = import.meta.env.VITE_TSM_TERRAIN_RGB_URL_TEMPLATE?.trim() || '';
 
-export const TWIN_ENGINEERING_CONSTANTS = Object.freeze({
-  lag_ft: 377.2,
-  bfe_ft: 375.0,
-  berm_crest_ft: 379.8,
-  ffe_ft: 382.5,
-  no_rise_tolerance_ft: 0.0,
-});
 
 const ARCGIS_EXPORT_QUERY = 'bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=512,512&format=png32&transparent=false&f=image';
 
