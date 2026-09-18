@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "1.0.0",
+  "status": "ACTIVE_SOURCE_REGISTRY",
+  "verifiedAt": "2026-09-18T12:30:00Z",
+  "sources": [
+    {
+      "id": "NOAA_NWPS",
+      "authority": "NOAA/NWS",
+      "class": "OBSERVATION_AND_FORECAST",
+      "apiBase": "https://api.water.noaa.gov/nwps/v1",
+      "capabilities": [
+        "gauges",
+        "stageflow",
+        "reaches",
+        "official streamflow forecasts",
+        "stream observations"
+      ]
+    },
+    {
+      "id": "NOAA_NWM",
+      "authority": "NOAA/NWS",
+      "class": "MODEL_GUIDANCE",
+      "apiBase": "https://api.water.noaa.gov",
+      "experimental": true
+    },
+    {
+      "id": "USACE_NLD",
+      "authority": "USACE",
+      "class": "INFRASTRUCTURE_REFERENCE",
+      "services": "https://nld.sec.usace.army.mil/data-services/services/",
+      "capabilities": [
+        "Feature Service",
+        "Map Service",
+        "OGC WMS/WFS",
+        "JSON API"
+      ]
+    },
+    {
+      "id": "USGS_3DEP",
+      "authority": "USGS",
+      "class": "ELEVATION",
+      "service": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
+      "capabilities": [
+        "bare-earth DEM",
+        "WMS",
+        "WCS"
+      ]
+    }
+  ],
+  "controls": {
+    "source_timestamps_required": true,
+    "observation_forecast_model_separation": true,
+    "no_synthetic_values": true,
+    "authoritative_source_identity_required": true,
+    "vertical_datum_must_be_explicit_or_unverified": true
+  }
+}
