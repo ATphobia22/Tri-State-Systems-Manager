@@ -29,14 +29,19 @@ jobs:
       VITE_KEYCLOAK_CLIENT_ID: ${{ vars.VITE_KEYCLOAK_CLIENT_ID }}
       VITE_TSM_API_BASE_URL: ${{ vars.VITE_TSM_API_BASE_URL }}
     steps:
-      - name: Validate production browser bindings when Pages is enabled
+      - name: Validate optional identity and public API bindings
         if: vars.TSM_PAGES_ENABLED == 'true'
         shell: bash
         run: |
           set -euo pipefail
-          [[ -n "${VITE_KEYCLOAK_URL}" ]] || { echo 'Missing VITE_KEYCLOAK_URL repository variable.' >&2; exit 1; }
-          [[ -n "${VITE_KEYCLOAK_REALM}" ]] || { echo 'Missing VITE_KEYCLOAK_REALM repository variable.' >&2; exit 1; }
-          [[ -n "${VITE_KEYCLOAK_CLIENT_ID}" ]] || { echo 'Missing VITE_KEYCLOAK_CLIENT_ID repository variable.' >&2; exit 1; }
+          # Public read access must not depend on an identity provider. Keycloak
+          # variables are optional and are only consumed by privileged login flows.
+          if [[ -n "${VITE_KEYCLOAK_URL}" || -n "${VITE_KEYCLOAK_REALM}" || -n "${VITE_KEYCLOAK_CLIENT_ID}" ]]; then
+            [[ -n "${VITE_KEYCLOAK_URL}" && -n "${VITE_KEYCLOAK_REALM}" && -n "${VITE_KEYCLOAK_CLIENT_ID}" ]] || {
+              echo 'If any Keycloak variable is configured, VITE_KEYCLOAK_URL, VITE_KEYCLOAK_REALM, and VITE_KEYCLOAK_CLIENT_ID must all be present.' >&2
+              exit 1
+            }
+          fi
           [[ -n "${VITE_TSM_API_BASE_URL}" ]] || { echo 'Missing VITE_TSM_API_BASE_URL repository variable for live production data.' >&2; exit 1; }
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
