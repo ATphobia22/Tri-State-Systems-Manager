@@ -25,7 +25,7 @@ let contracts: DataContractSummary[] = [
 ];
 
 async function rootLoader(): Promise<RootLoaderData> {
-  const [stage] = await Promise.all([fetchLiveStage()]);
+  const [stage] = await Promise.all([fetchLiveStage()], { basename: routerBasename });
   return {
     auth: getSession(),
     stage,
@@ -94,6 +94,10 @@ async function benefitLoader(): Promise<BenefitLoaderData> { return { interventi
 async function benefitAction({ request }: ActionFunctionArgs) { requireAuthenticatedMutation(request); const form = await request.formData(); const name = String(form.get('name') || '').trim(); const cost = String(form.get('cost') || '').trim(); if (!name || !cost) return { error: 'Missing fields' }; const rec: InterventionRecord = { id: `INT-${Date.now()}`, intervention_name: name, cost_estimate: cost, safety_impact: 80, economic_impact: 75, health_impact: 70, equity_impact: 78, resilience_impact: 85, ai_confidence: 0, funding_probability: 0, human_authorization_required: true, status: 'pending_human_review' }; interventions = [rec, ...interventions]; return redirect('/benefit'); }
 async function mapTwinLoader(): Promise<MapTwinLoaderData> { const stage = await fetchLiveStage(); return { site: SITE, stage, fema: { communityNumber: SITE.femaCommunities.mountVernon, bfe_ft: SITE.elevations.bfe_ft, lag_ft: SITE.elevations.lag_ft, clearance_ft: SITE.elevations.clearanceAboveBfe_ft, noRiseTolerance_ft: null }, boundingEnvelope: SITE.boundingEnvelope }; }
 function ArchitectureView() { const data = useLoaderData() as ArchitectureLoaderData; return <div style={{ padding: '1.5rem 2rem', maxWidth: 900, margin: '0 auto' }}><h1 style={{ color: '#f8fafc' }}>Eight Trust Planes</h1><p style={{ color: '#64748b', fontSize: '0.85rem' }}>{data.coreFlow.join(' → ')}</p>{data.trustPlanes.map((p) => <div key={p.level} style={{ background: '#1e293b', borderRadius: 12, padding: '1rem', marginBottom: 8 }}><strong style={{ color: '#38bdf8' }}>L{p.level}</strong>{' '}<span style={{ color: '#f8fafc' }}>{p.name}</span><p style={{ color: '#94a3b8', fontSize: '0.8rem', margin: '0.35rem 0 0' }}>{p.description}</p></div>)}</div>; }
+
+const routerBasename = import.meta.env.BASE_URL.endsWith('/')
+  ? import.meta.env.BASE_URL.slice(0, -1) || '/'
+  : import.meta.env.BASE_URL;
 
 export const router = createBrowserRouter([
   { path: 'login', element: <LoginView /> },
