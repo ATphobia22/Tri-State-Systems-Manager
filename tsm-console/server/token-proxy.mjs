@@ -14,6 +14,7 @@ import { evaluateCompensatoryStorage, buildCompensatoryStorageCanonical } from '
 import { servePoseyAsset } from './geospatial/posey-assets.mjs';
 import { handleFirmRoute } from './geospatial/firm-routes.mjs';
 import { normalizeTelemetryEvent, validateTelemetryIngress } from './telemetry/inbound.mjs';
+import { authorizeAndPublishArtifact } from './ingestion/governance-transition.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
 const BUILD_SHA = process.env.GITHUB_SHA || process.env.TSM_BUILD_SHA || 'local';
@@ -164,7 +165,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'POST' && url.pathname === '/api/ingest/nwps') { const body = await readBodyFixed(req); if (!body.nws_id) return json(res, 400, { error: 'nws_id required' }, requestId); return json(res, 200, await ingestNwpsGauge(body.nws_id, { product: body.product }), requestId); }
     if (req.method === 'GET' && url.pathname === '/api/policies') return json(res, 200, { policies: POLICIES }, requestId);
     if (req.method === 'POST' && url.pathname === '/api/policies/evaluate') return json(res, 200, evaluatePolicies(await readBodyFixed(req)), requestId);
-    if (req.method === 'POST' && url.pathname === '/api/ledger/append') { const body = await readBodyFixed(req); const content = JSON.stringify(body); const hash = sha256Hex(`TSM_LEAF:${content}`); try { return json(res, 201, appendArtifact({ artifact_type: 'evidence_block', source_authority: body.source_org || 'unknown', source_uri: body.source_uri || 'urn:tsm:manual', retrieved_at: new Date().toISOString(), horizontal_crs: 'EPSG:2966', vertical_datum: 'NAVD88', content_hash_sha256: hash, authority_class: body.is_simulation_demo ? 'SIMULATION_DEMO' : 'OBSERVATION', derivation_class: 'RAW', validation_status: 'pending', governance_status: 'human_review_required', is_simulation_demo: Boolean(body.is_simulation_demo), transformation_chain: body.transformation_chain || [], payload: body, _canonical_for_verify: `TSM_LEAF:${content}` }), requestId); } catch (error) { return json(res, 422, { error: error.message, code: error.code }, requestId); } }
+    if (req.method === 'POST' && url.pathname === '/api/ledger/append') {\n      const body = await readBodyFixed(req);\n      if (!body.artifact_id) return json(res, 400, { error: 'artifact_id is required; raw artifacts must be ingested before authorization' }, requestId);\n      if (!body.human_authorization || typeof body.human_authorization !== 'object') return json(res, 400, { error: 'human_authorization is required' }, requestId);\n      try {\n        const publication = await authorizeAndPublishArtifact(body.artifact_id, body.human_authorization);\n        return json(res, 201, publication, requestId);\n      } catch (error) {\n        return json(res, error.code === 'NOT_FOUND' ? 404 : 422, { error: error.message, code: error.code || 'GOVERNANCE_FAULT' }, requestId);\n      }\n    }
     return json(res, 404, { error: 'not found' }, requestId);
   } catch (error) { return json(res, error instanceof Error && error.code === 'CIRCUIT_OPEN' ? 503 : 502, { error: error.message || 'upstream source unavailable', code: error.code || 'SOURCE_UNAVAILABLE', requestId }, requestId); }
 });
