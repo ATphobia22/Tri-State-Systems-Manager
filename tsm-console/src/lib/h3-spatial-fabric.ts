@@ -44,7 +44,7 @@ export function summarizeH3Cell(cell: string): H3CellSummary {
 
   return {
     cell,
-    resolution: Number.parseInt(cell.slice(1, 2), 16),
+    resolution: Number.parseInt(cell[1], 16),
     center: [center[0], center[1]],
     boundary: boundary.map(([latitude, longitude]) => [latitude, longitude]),
   };
