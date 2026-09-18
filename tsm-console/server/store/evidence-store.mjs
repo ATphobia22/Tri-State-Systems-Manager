@@ -67,6 +67,12 @@ export function appendArtifact(raw) {
       throw err;
     }
   }
+  if (raw.governance_status === 'human_authorized' && raw._governance_transition !== true) {
+    const err = new Error('fail-closed: human_authorized artifacts must cross the governance transition boundary');
+    err.code = 'FAIL_CLOSED';
+    throw err;
+  }
+
   const geo = validateSpatialFields(raw);
   if (!geo.ok) {
     const err = new Error(geo.error);
