@@ -110,7 +110,7 @@ jobs:
       - name: V35.1 strict contract typecheck
         run: npm run check:v35.1
       - name: V35.1 contract tests
-        run: npx vitest run tests/v35.1-contracts.test.ts
+        run: npm run test:v35.1
       - name: V35.1 deterministic evidence manifest
         run: |
           mkdir -p artifacts/v35.1
