@@ -76,7 +76,7 @@ export function createHydraulicSource(
   minzoom: number;
   maxzoom: number;
 } {
-  if (!/^[a-z][a-z0-9-]{0,127}$/.test(sourceId)) {
+  if (!/^[a-z][a-z0-9_.-]{0,127}$/.test(sourceId)) {
     throw new Error('Invalid Martin source identifier.');
   }
 
