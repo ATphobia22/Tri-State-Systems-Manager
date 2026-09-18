@@ -9,6 +9,7 @@ test('Posey terrain request is constrained to EPSG:2966 and the registered AOI',
   assert.equal(result.upstream.searchParams.get('bboxSR'), '2966');
   assert.equal(result.upstream.searchParams.get('imageSR'), '2966');
   assert.equal(result.upstream.searchParams.get('pixelType'), 'F32');
+  assert.equal(result.upstream.searchParams.get('interpolation'), 'RSP_NearestNeighbor');
 });
 
 test('Posey orthophoto request is constrained to the registered NAIP 2020 source', () => {
