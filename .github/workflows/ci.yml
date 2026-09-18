@@ -92,6 +92,9 @@ jobs:
         run: npm run check:workflow-boundaries
       - name: Shell safety gate
         run: npm run check:shell-safety
+      - name: Geospatial reprojection script syntax gate
+        working-directory: .
+        run: bash -n scripts/reproject_tri_state.sh
       - name: 3D artifact contract gate
         run: npm run check:artifacts
       - name: Quantum isolation gate
