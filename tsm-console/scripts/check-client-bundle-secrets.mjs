@@ -6,12 +6,12 @@ const roots = ['src', 'dist'];
 const ignored = new Set(['node_modules', '.git', 'coverage']);
 const patterns = [
   /-----BEGIN (?:RSA |EC |OPENSSH |)PRIVATE KEY-----/,
-  /\\b(?:ghp|github_pat|github)_[-A-Za-z0-9_]{20,}\\b/i,
-  /\\bsk-(?:proj-)?[A-Za-z0-9_-]{20,}\\b/,
-  /\\b(?:AKIA|ASIA)[A-Z0-9]{16}\\b/,
-  /\\bBearer\\s+[A-Za-z0-9._~+/=-]{24,}\\b/i,
-  /\\bclient_secret\\b/i,
-  /\\b(?:AWS_SECRET_ACCESS_KEY|GOOGLE_APPLICATION_CREDENTIALS|TSM_EVIDENCE_SIGNING_KEY_PEM)\\b/i,
+  /\b(?:ghp|github_pat|github)_[-A-Za-z0-9_]{20,}\b/i,
+  /\bsk-(?:proj-)?[A-Za-z0-9_-]{20,}\\b/,
+  /\b(?:AKIA|ASIA)[A-Z0-9]{16}\\b/,
+  /\bBearer\s+[A-Za-z0-9._~+/=-]{24,}\b/i,
+  /\bclient_secret\b/i,
+  /\b(?:AWS_SECRET_ACCESS_KEY|GOOGLE_APPLICATION_CREDENTIALS|TSM_EVIDENCE_SIGNING_KEY_PEM)\b/i,
 ];
 const failures = [];
 function walk(dir) {
