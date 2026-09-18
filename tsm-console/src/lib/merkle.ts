@@ -76,16 +76,40 @@ export function getMerkleState(): MerkleState {
   return { leaves: [...state.leaves], root: state.root, version: state.version };
 }
 
+export interface HumanAuthorization {
+  human_authorized: true;
+  reviewer_identity: string;
+  review_reason: string;
+  reviewed_at: string;
+}
+
 export async function appendEvidence(payload: {
   source_org: string;
   source_uri: string;
   tier: number;
+  human_authorization: HumanAuthorization;
 }): Promise<{ evidence_id: string; sha256_hash: string; merkleRoot: string }> {
+  if (payload.human_authorization?.human_authorized !== true) {
+    throw new Error('FAIL_CLOSED: explicit Human Authority Sign is required before Merkle append');
+  }
+  if (!payload.human_authorization.reviewer_identity.trim()) {
+    throw new Error('FAIL_CLOSED: reviewer identity is required');
+  }
+  if (!payload.human_authorization.review_reason.trim()) {
+    throw new Error('FAIL_CLOSED: review reason is required');
+  }
+  if (Number.isNaN(Date.parse(payload.human_authorization.reviewed_at))) {
+    throw new Error('FAIL_CLOSED: reviewed_at must be a valid timestamp');
+  }
+
   state = loadState();
 
   const evidence_id = `EV-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
   const canonical = JSON.stringify({
-    ...payload,
+    source_org: payload.source_org,
+    source_uri: payload.source_uri,
+    tier: payload.tier,
+    human_authorization: payload.human_authorization,
     evidence_id,
     ts: Date.now(),
   });
@@ -100,6 +124,11 @@ export async function appendEvidence(payload: {
       sha256_hash: leafHash,
       validation_status: 'pending',
       state: 'OBSERVED',
+      governance_status: 'human_authorized',
+      human_review_status: 'signed',
+      reviewer_identity: payload.human_authorization.reviewer_identity,
+      reviewed_at: payload.human_authorization.reviewed_at,
+      review_reason: payload.human_authorization.review_reason,
     },
     createdAt: new Date().toISOString(),
   };
