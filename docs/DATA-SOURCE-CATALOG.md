@@ -1,7 +1,7 @@
 # Tri-State Systems Manager — Authoritative Data Source Catalog
 
 **Status:** Production source registry  
-**Updated:** 2026-09-14
+**Updated:** 2026-09-18
 
 This catalog defines external sources that may supply operational, hydrologic, regulatory-reference, or geospatial data to TSM. Source adapters run server-side. Provider responses are normalized with source identity, source/retrieval timestamps, units, CRS, vertical datum, quality/status, and data class before reaching application consumers.
 
@@ -13,7 +13,7 @@ This catalog defines external sources that may supply operational, hydrologic, r
 | `USGS-TNM` | U.S. Geological Survey National Map | `https://tnmaccess.nationalmap.gov/` | 3DEP lidar, DEM and related products | Evidence/geospatial acquisition; product metadata retained |
 | `USGS-3DEP-LIDAREXPLORER` | U.S. Geological Survey | `https://www.usgs.gov/tools/lidarexplorer` | Current lidar, DEM, topobathymetry and ORI discovery/metadata | Evidence/geospatial acquisition; retain work-unit metadata |
 | `NOAA-NWPS` | NOAA/National Weather Service | `https://api.water.noaa.gov/nwps/v1/` | Gauge metadata, observed stage/flow and forecast products | Observation and forecast remain separate |
-| `FEMA-NFHL` | Federal Emergency Management Agency | `https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer` | FIRM panels, flood hazard zones, BFEs, LOMAs/LOMRs, cross sections and related layers | Regulatory reference; not a TSM-issued determination |
+| `FEMA-NFHL` | Federal Emergency Management Agency | `https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer` | FIRM panels, flood hazard zones, BFEs, LOMAs/LOMRs, cross sections and related layers | Regulatory reference; not a TSM-issued determination |
 | `USACE-NLD` | U.S. Army Corps of Engineers | `https://nld.sec.usace.army.mil/data-services/services/` | National Levee Database services | Geospatial/evidence reference |
 
 ## Indiana sources
@@ -34,6 +34,18 @@ This catalog defines external sources that may supply operational, hydrologic, r
 |---|---|---|---|
 | `USER-POINT-TWP-PLAT-SCANS` | User-provided historical scans | Point Township PLSS, parcel/ownership labels, roads and historical hydrography | Tier 6 historical reference; not current cadastral truth |
 | `USER-FEMA-2014-FIRM-SCANS` | User-provided historical FIRM scans | Posey County FIRM panels including 18129C0300C, 18129C0245C, 18129C0240C, 18129C0217C and 18129C0205C; photographed effective date 2014-11-05 | Tier 6 historical regulatory reference; not current effective mapping |
+
+
+## Verified jurisdictional rule sources
+
+| Rule ID | Authority | Citation | Primary source | Boundary |
+|---|---|---|---|---|
+| `IN-FLOODWAY-CAPACITY-0.15FT` | Indiana DNR | 312 IAC 10-2-3 | `https://www.in.gov/dnr/water/regulatory-permit-programs/exemptions/` | Rule reference; applicability and exceptions must be evaluated |
+| `IN-FEMA-FLOODWAY-NORISE-0.00FT` | FEMA / Indiana DNR | 44 CFR 60.3(d)(3) implementation guidance | `https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/no-rise/` | FEMA/local no-rise pathway; distinct from DNR's state surcharge administration |
+| `IL-PART-3700-FLOODWAYS` | Illinois DNR | 17 Ill. Adm. Code Part 3700 | `https://dnr.illinois.gov/content/dam/soi/en/web/dnr/adrules/documents/17-3700.pdf` | Jurisdiction-specific floodway construction rules |
+| `KY-401-KAR-4-060` | Kentucky Administrative Regulations | 401 KAR 4:060 | `https://apps.legislature.ky.gov/law/kar/titles/401/004/060/` | Jurisdiction-specific stream construction criteria |
+
+These records are mirrored in `data/regulatory/tsm-floodway-rules-v1.json` and are selected by jurisdiction and applicability before an engineering comparison is allowed to use a numeric criterion.
 
 ## TSM source rules
 
