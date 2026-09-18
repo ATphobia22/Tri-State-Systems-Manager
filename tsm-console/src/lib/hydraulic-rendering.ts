@@ -69,6 +69,7 @@ export function createHydraulicExtrusionLayer(
 export function createHydraulicSource(
   sourceId: string,
   martinBaseUrl: string,
+  martinRoutePrefix = '',
 ): {
   id: string;
   type: 'vector';
@@ -92,12 +93,16 @@ export function createHydraulicSource(
   }
 
   const base = baseUrl.toString().replace(/\/$/, '');
+  if (!/^\/?[a-zA-Z0-9._/-]*$/.test(martinRoutePrefix)) {
+    throw new Error('Invalid Martin route prefix.');
+  }
+  const routePrefix = martinRoutePrefix ? `/${martinRoutePrefix.replace(/^\\/+|\\/+$/g, '')}` : '';
 
   return {
     id: sourceId,
     type: 'vector',
     tiles: [
-      `${base}/${encodeURIComponent(sourceId)}/{z}/{x}/{y}`,
+      `${base}${routePrefix}/${encodeURIComponent(sourceId)}/{z}/{x}/{y}`,
     ],
     minzoom: 12,
     maxzoom: 20,
