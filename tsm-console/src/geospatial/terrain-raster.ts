@@ -42,10 +42,10 @@ export async function decodeTerrainGeoTiff(buffer: ArrayBuffer): Promise<Terrain
     throw new RangeError('terrain GeoTIFF dimensions do not match raster sample count');
   }
 
-  // GeoTIFF vertical keys are preserved by geotiff.js when present, but TSM
-  // does not infer NAVD88 from the absence/presence of those keys. Vertical
-  // datum is populated only after an authoritative source/product mapping.
-  const verticalDatum = null;
+  // Only map an explicit GeoTIFF vertical CRS to its published datum name.
+  // EPSG:5703 is NAVD88 height in metres; EPSG:6360 is NAVD88 height in ftUS.
+  const verticalCrs = geoKeys.VerticalCSTypeGeoKey;
+  const verticalDatum = verticalCrs === 5703 || verticalCrs === 6360 ? 'NAVD88' : null;
 
   return {
     width,
