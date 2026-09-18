@@ -55,5 +55,57 @@ def compare_water_surface(base_hdf: str | Path, proposed_hdf: str | Path, *, cri
     return NoRiseResult(max(deltas), min(deltas), sum(deltas) / len(deltas), len(deltas), max(deltas) <= criterion_ft, criterion_ft, _file_hash(base), _file_hash(proposed))
 
 
+def load_verified_regulatory_rule(rule_id: str, jurisdiction: str) -> dict:
+    """Load a verified jurisdictional rule; never infer a regulatory threshold."""
+    registry_path = Path(__file__).resolve().parents[2] / "data" / "regulatory" / "tsm-floodway-rules-v1.json"
+    registry = json.loads(registry_path.read_text(encoding="utf-8"))
+    for rule in registry.get("rules", []):
+        if rule.get("id") == rule_id:
+            if rule.get("jurisdiction") != jurisdiction:
+                raise ValueError("regulatory rule jurisdiction does not match requested jurisdiction")
+            if rule.get("status") != "VERIFIED_OFFICIAL_SOURCE":
+                raise ValueError("regulatory rule is not verified against an official source")
+            return rule
+    raise ValueError(f"verified regulatory rule not found: {rule_id}")
+
+
+def compare_water_surface_under_rule(
+    base_hdf: str | Path,
+    proposed_hdf: str | Path,
+    *,
+    rule_id: str,
+    jurisdiction: str,
+    time_index: int = -1,
+    dataset_path: str | None = None,
+) -> NoRiseResult:
+    """Run a WSE comparison only when a verified rule supplies a numeric criterion."""
+    rule = load_verified_regulatory_rule(rule_id, jurisdiction)
+    threshold = rule.get("threshold")
+    if not isinstance(threshold, (int, float)) or not math.isfinite(threshold):
+        raise ValueError("selected regulatory rule has no numeric comparison threshold")
+    if rule.get("comparison") not in {"less_than", "less_than_or_equal", "no_increase"}:
+        raise ValueError("selected regulatory rule does not define a supported comparison")
+
+    result = compare_water_surface(
+        base_hdf,
+        proposed_hdf,
+        criterion_ft=float(threshold),
+        time_index=time_index,
+        dataset_path=dataset_path,
+    )
+    if rule["comparison"] == "less_than":
+        return NoRiseResult(
+            result.max_rise_ft,
+            result.max_drop_ft,
+            result.mean_delta_ft,
+            result.compared_values,
+            result.max_rise_ft < float(threshold),
+            result.criterion_ft,
+            result.base_model_hash,
+            result.proposed_model_hash,
+        )
+    return result
+
+
 def result_manifest(result: NoRiseResult) -> str:
     return json.dumps(result.__dict__, sort_keys=True, separators=(",", ":"))
