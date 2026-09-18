@@ -51,7 +51,7 @@
     "check:quantum-boundary": "node ../scripts/ci/validate-quantum-boundary.mjs",
     "check:shell-safety": "bash ../scripts/ci/validate-shell-safety.sh",
     "check:site-consistency": "node ../scripts/ci/validate-site-consistency.mjs",
-    "test:cinematic": "vitest run tests/cinematic-contracts.test.ts",
+    "test:cinematic": "vitest run tests/cinematic-contracts.test.ts tests/cinematic-camera-tour.test.ts",
     "geospatial:fetch": "node scripts/geospatial/fetch-posey-assets.mjs",
     "geospatial:validate": "node scripts/geospatial/validate-raster-manifest.mjs",
     "check:dependency-integrity": "node scripts/dependency-integrity.mjs",
