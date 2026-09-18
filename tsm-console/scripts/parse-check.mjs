@@ -58,6 +58,7 @@ if (tsFiles.length) {
     '--no-install',
     'tsc',
     '--noEmit',
+    '--ignoreConfig',
     '--noCheck',
     '--noResolve',
     '--skipLibCheck',
