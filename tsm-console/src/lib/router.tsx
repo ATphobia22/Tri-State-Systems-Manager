@@ -25,7 +25,7 @@ let contracts: DataContractSummary[] = [
 ];
 
 async function rootLoader(): Promise<RootLoaderData> {
-  const [stage] = await Promise.all([fetchLiveStage()], { basename: routerBasename });
+  const [stage] = await Promise.all([fetchLiveStage()]);
   return {
     auth: getSession(),
     stage,
@@ -116,4 +116,4 @@ export const router = createBrowserRouter([
   { path: 'twin', loader: mapTwinLoader, lazy: async () => ({ Component: (await import('../routes/TwinCanvasView')).default }) },
   { path: 'digital-twin', loader: mapTwinLoader, lazy: async () => ({ Component: (await import('../routes/MapTwinView')).default }) },
 ] },
-]);
+], { basename: routerBasename });
