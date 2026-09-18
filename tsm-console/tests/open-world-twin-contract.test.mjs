@@ -30,9 +30,12 @@ test('production twin does not retain synthetic Three.js terrain primitives', ()
   assert.doesNotMatch(productionTwin, /<sphereGeometry/);
 });
 
-test('twin exposes engineering constants and simulation authority', () => {
-  for (const value of ['377.2', '375.0', '379.8', '382.5']) assert.match(productionTwin, new RegExp(value.replace('.', '\\.')));
+test('twin rejects stale global engineering constants and preserves simulation authority', () => {
+  for (const value of ['377.2', '375.0', '379.8', '382.5']) {
+    assert.doesNotMatch(productionTwin, new RegExp(value.replace('.', '\\.')));
+  }
   assert.match(productionTwin, /SIMULATION_DEMO/);
+  assert.match(productionTwin, /source required|unavailable|verified datum conversion required/i);
 });
 
 test('build keeps MapLibre available to the browser bundle', () => {
