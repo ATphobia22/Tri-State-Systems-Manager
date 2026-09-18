@@ -5,6 +5,10 @@
 base_path: /tiles
 listen_addresses:
   - 0.0.0.0:3000
+keep_alive: 75
+on_invalid: abort
+web_ui: disable
+worker_processes: 8
 
 cache:
   size_mb: 512
@@ -12,11 +16,23 @@ cache:
 postgres:
   connection_string: ${TSM_MARTIN_DATABASE_URL}
   pool_size: 20
+  auto_bounds: quick
   reload_interval: 10m
   retry_timeout: 30s
+  max_feature_count: 50000
   cache:
     minzoom: 0
     maxzoom: 16
+
+  # Explicit sources prevent accidental publication of unrelated PostGIS tables.
+  # The SQL function is the public MVT contract for cadastral parcels.
+  tables: {}
+  functions:
+    get_parcel_tiles:
+      schema: public
+      function: get_parcel_tiles(integer, integer, integer)
+      minzoom: 12
+      maxzoom: 20
 
 pmtiles:
   paths:
@@ -27,7 +43,3 @@ pmtiles:
 styles:
   paths:
     - /data/styles
-
-# The authoritative imagery, terrain, FEMA, Indiana DNR, USGS and USACE
-# services remain registered in TSM. Only approved materialized derivatives
-# are mounted here; restricted government imagery is not committed to Git.
