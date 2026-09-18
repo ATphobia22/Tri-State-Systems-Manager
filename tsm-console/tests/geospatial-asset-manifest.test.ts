@@ -13,7 +13,7 @@ describe('Posey 2020 geospatial asset manifest', () => {
   });
 
   it('records the real terrain and orthophoto source chain without asserting unverified datum metadata', () => {
-    expect(POSEY_2020_ASSETS.terrain.sourceUri).toContain('Indiana_2016_2020_Elevation/ImageServer');
+    expect(POSEY_2020_ASSETS.terrain.sourceUri).toContain('Indiana_2016_2020_DEM/ImageServer');
     expect(POSEY_2020_ASSETS.terrain.referenceLidarUri).toContain('IN2020_26800940_12.las');
     expect(POSEY_2020_ASSETS.orthophoto.sourceUri).toContain('NAIP2020_CONUS/ImageServer');
     expect(POSEY_2020_ASSETS.terrain.authorityClass).toBe('OBSERVATION');
