@@ -1,0 +1,62 @@
+name: TSM Databricks Lakehouse CD
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'ops/databricks/**'
+      - 'databricks.yml'
+      - '.github/workflows/databricks-lakehouse.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: tsm-databricks-prod
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: vars.TSM_DATABRICKS_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    environment: prod
+    timeout-minutes: 20
+    env:
+      DATABRICKS_AUTH_TYPE: github-oidc
+      DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+      DATABRICKS_CLIENT_ID: ${{ vars.DATABRICKS_CLIENT_ID }}
+      DATABRICKS_BUNDLE_ENV: prod
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Validate required public bindings
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ -n "${DATABRICKS_HOST}" ]] || { echo 'Missing prod variable DATABRICKS_HOST' >&2; exit 1; }
+          [[ "${DATABRICKS_HOST}" == https://* ]] || { echo 'DATABRICKS_HOST must be HTTPS' >&2; exit 1; }
+          [[ -n "${DATABRICKS_CLIENT_ID}" ]] || { echo 'Missing prod variable DATABRICKS_CLIENT_ID' >&2; exit 1; }
+
+      - name: Install pinned Databricks CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          version='1.17.0'
+          archive='databricks_cli_1.17.0_linux_amd64.tar.gz'
+          expected='6b5c1e08f484d33b4e75eabe0ee3ba1bb9d19d7beedd4b14a1e6993f52a01e23'
+          curl --fail --location --silent --show-error "https://github.com/databricks/cli/releases/download/v${version}/${archive}" -o /tmp/${archive}
+          echo "${expected}  /tmp/${archive}" | sha256sum --check --strict
+          tar -xzf /tmp/${archive} -C /tmp
+          install -m 0755 /tmp/databricks /usr/local/bin/databricks
+          databricks version
+
+      - name: Validate Databricks bundle
+        run: databricks bundle validate --target prod
+
+      - name: Deploy Databricks bundle
+        run: databricks bundle deploy --target prod
