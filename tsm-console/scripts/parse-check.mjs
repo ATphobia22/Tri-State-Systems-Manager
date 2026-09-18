@@ -50,21 +50,33 @@ for (const file of files) {
   }
 
   if (ext === '.ts' || ext === '.tsx') {
-    const source = fs.readFileSync(file, 'utf8');
-    const result = ts.transpileModule(source, {
-      fileName: file,
-      reportDiagnostics: true,
-      compilerOptions: {
-        jsx: ts.JsxEmit?.ReactJSX ?? 4,
-        module: ts.ModuleKind?.ESNext ?? 99,
-        target: ts.ScriptTarget?.ES2022 ?? 9,
-        moduleResolution: ts.ModuleResolutionKind?.Bundler ?? 100,
-      },
-    });
-    const syntaxErrors = (result.diagnostics ?? []).filter((diagnostic) => diagnostic.category === ts.DiagnosticCategory.Error);
-    if (syntaxErrors.length) {
-      failures.push(`${rel}: TypeScript lexical/parse check failed:\n${ts.formatDiagnosticsWithColorAndContext(syntaxErrors, { getCurrentDirectory: () => root, getCanonicalFileName: (name) => name, getNewLine: () => '\\n' }).trim()}`);
-    }
+    files.push(full);
+  }
+
+}
+
+const tsFiles = files.filter((file) => ['.ts', '.tsx'].includes(path.extname(file).toLowerCase()));
+if (tsFiles.length) {
+  const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+  const result = spawnSync(npx, [
+    '--no-install',
+    'tsc',
+    '--noEmit',
+    '--noCheck',
+    '--noResolve',
+    '--skipLibCheck',
+    '--pretty',
+    'false',
+    '--jsx',
+    'react-jsx',
+    '--module',
+    'ESNext',
+    '--target',
+    'ES2022',
+    ...tsFiles,
+  ], { cwd: root, encoding: 'utf8' });
+  if (result.status !== 0) {
+    failures.push(`TypeScript syntax gate failed:\\n${(result.stderr || result.stdout || '').trim()}`);
   }
 }
 
