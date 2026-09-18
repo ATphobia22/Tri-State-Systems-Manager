@@ -23,7 +23,21 @@ jobs:
   build:
     name: Verify and build production console
     runs-on: ubuntu-24.04
+    env:
+      VITE_KEYCLOAK_URL: ${{ vars.VITE_KEYCLOAK_URL }}
+      VITE_KEYCLOAK_REALM: ${{ vars.VITE_KEYCLOAK_REALM }}
+      VITE_KEYCLOAK_CLIENT_ID: ${{ vars.VITE_KEYCLOAK_CLIENT_ID }}
+      VITE_TSM_API_BASE_URL: ${{ vars.VITE_TSM_API_BASE_URL }}
     steps:
+      - name: Validate production browser bindings when Pages is enabled
+        if: vars.TSM_PAGES_ENABLED == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ -n "${VITE_KEYCLOAK_URL}" ]] || { echo 'Missing VITE_KEYCLOAK_URL repository variable.' >&2; exit 1; }
+          [[ -n "${VITE_KEYCLOAK_REALM}" ]] || { echo 'Missing VITE_KEYCLOAK_REALM repository variable.' >&2; exit 1; }
+          [[ -n "${VITE_KEYCLOAK_CLIENT_ID}" ]] || { echo 'Missing VITE_KEYCLOAK_CLIENT_ID repository variable.' >&2; exit 1; }
+          [[ -n "${VITE_TSM_API_BASE_URL}" ]] || { echo 'Missing VITE_TSM_API_BASE_URL repository variable for live production data.' >&2; exit 1; }
       - name: Checkout
         uses: actions/checkout@v6
       - name: Setup Node.js
