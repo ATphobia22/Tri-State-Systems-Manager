@@ -5,7 +5,7 @@ import { buildPoseyAssetResponse } from '../server/geospatial/posey-assets.mjs';
 test('Posey terrain request is constrained to EPSG:2966 and the registered AOI', () => {
   const result = buildPoseyAssetResponse('/api/geospatial/posey/raster?kind=terrain&bbox=2680000,940000,2685000,945000&width=1024&height=1024');
   assert.equal(result.contentType, 'image/tiff');
-  assert.equal(result.source.sourceUri.includes('Indiana_2016_2020_Elevation/ImageServer'), true);
+  assert.equal(result.source.sourceUri.includes('Indiana_2016_2020_DEM/ImageServer'), true);
   assert.equal(result.upstream.searchParams.get('bboxSR'), '2966');
   assert.equal(result.upstream.searchParams.get('imageSR'), '2966');
   assert.equal(result.upstream.searchParams.get('pixelType'), 'F32');
