@@ -13,6 +13,8 @@ import BenefitView from '../routes/BenefitView';
 import LineageView from '../routes/LineageView';
 import RiverWatchView from '../routes/RiverWatchView';
 import EngineeringSectionView from '../routes/EngineeringSectionView';
+import LoginView from '../routes/LoginView';
+import LoginCallbackView from '../routes/LoginCallbackView';
 import type { RootLoaderData, CharterLoaderData, ArchitectureLoaderData, NeedsLoaderData, LedgerLoaderData, LineageLoaderData, BenefitLoaderData, MapTwinLoaderData, EvidenceBlock, InterventionRecord, DataContractSummary } from '../types/loaders';
 
 let interventions: InterventionRecord[] = [];
@@ -92,7 +94,10 @@ async function benefitAction({ request }: ActionFunctionArgs) { const form = awa
 async function mapTwinLoader(): Promise<MapTwinLoaderData> { const stage = await fetchLiveStage(); return { site: SITE, stage, fema: { communityNumber: SITE.femaCommunities.mountVernon, bfe_ft: SITE.elevations.bfe_ft, lag_ft: SITE.elevations.lag_ft, clearance_ft: SITE.elevations.clearanceAboveBfe_ft, noRiseTolerance_ft: 0.0 }, boundingEnvelope: SITE.boundingEnvelope }; }
 function ArchitectureView() { const data = useLoaderData() as ArchitectureLoaderData; return <div style={{ padding: '1.5rem 2rem', maxWidth: 900, margin: '0 auto' }}><h1 style={{ color: '#f8fafc' }}>Eight Trust Planes</h1><p style={{ color: '#64748b', fontSize: '0.85rem' }}>{data.coreFlow.join(' → ')}</p>{data.trustPlanes.map((p) => <div key={p.level} style={{ background: '#1e293b', borderRadius: 12, padding: '1rem', marginBottom: 8 }}><strong style={{ color: '#38bdf8' }}>L{p.level}</strong>{' '}<span style={{ color: '#f8fafc' }}>{p.name}</span><p style={{ color: '#94a3b8', fontSize: '0.8rem', margin: '0.35rem 0 0' }}>{p.description}</p></div>)}</div>; }
 
-export const router = createBrowserRouter([{ id: 'root', path: '/', loader: rootLoader, element: <RootLayout />, children: [
+export const router = createBrowserRouter([
+  { path: 'login', element: <LoginView /> },
+  { path: 'login/callback', element: <LoginCallbackView /> },
+  { id: 'root', path: '/', loader: rootLoader, element: <RootLayout />, children: [
   { index: true, loader: charterLoader, element: <CharterView /> },
   { path: 'architecture', loader: architectureLoader, element: <ArchitectureView /> },
   { path: 'river-watch', element: <RiverWatchView /> },
@@ -105,4 +110,5 @@ export const router = createBrowserRouter([{ id: 'root', path: '/', loader: root
   { path: 'eoc', loader: mapTwinLoader, lazy: async () => ({ Component: (await import('../routes/MapLibreEocView')).default }) },
   { path: 'twin', loader: mapTwinLoader, lazy: async () => ({ Component: (await import('../routes/TwinCanvasView')).default }) },
   { path: 'digital-twin', loader: mapTwinLoader, lazy: async () => ({ Component: (await import('../routes/MapTwinView')).default }) },
-] }]);
+] },
+]);
