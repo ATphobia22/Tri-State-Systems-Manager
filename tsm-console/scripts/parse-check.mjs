@@ -11,7 +11,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import ts from 'typescript';
+import * as tsModule from 'typescript';
+
+const ts = tsModule.default ?? tsModule;
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const failures = [];
@@ -54,9 +56,9 @@ for (const file of files) {
       reportDiagnostics: true,
       compilerOptions: {
         jsx: ts.JsxEmit?.ReactJSX ?? 4,
-        module: ts.ModuleKind.ESNext,
-        target: ts.ScriptTarget.ES2022,
-        moduleResolution: ts.ModuleResolutionKind.Bundler,
+        module: ts.ModuleKind?.ESNext ?? 99,
+        target: ts.ScriptTarget?.ES2022 ?? 9,
+        moduleResolution: ts.ModuleResolutionKind?.Bundler ?? 100,
       },
     });
     const syntaxErrors = (result.diagnostics ?? []).filter((diagnostic) => diagnostic.category === ts.DiagnosticCategory.Error);
