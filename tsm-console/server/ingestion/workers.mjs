@@ -27,6 +27,28 @@ function loadRegistry() {
 
 function leafCanonical(obj) { return `TSM_LEAF:${JSON.stringify(obj)}`; }
 
+/**
+ * Validate an evidence artifact at the authoritative server boundary.
+ * Raw source observations intentionally remain human_review_required until
+ * an authorized reviewer signs the evidence artifact; this validator is for
+ * payloads attempting to cross that governance boundary.
+ */
+export function validateEvidenceArtifact(payload) {
+  if (!payload || typeof payload !== 'object') {
+    throw new Error('FAIL_CLOSED: Evidence artifact rejected. Payload is not an object.');
+  }
+  if (payload.governance_status !== 'human_authorized' || payload.human_review_status !== 'signed') {
+    throw new Error('FAIL_CLOSED: Evidence artifact rejected. Missing human authorization status.');
+  }
+  if (!payload.reviewer_identity || !payload.review_reason || !payload.reviewed_at) {
+    throw new Error('FAIL_CLOSED: Evidence artifact rejected. Incomplete human signature metadata.');
+  }
+  if (!payload.source_provenance || !payload.source_hash) {
+    throw new Error('FAIL_CLOSED: Evidence artifact rejected. Missing cryptographic provenance.');
+  }
+  return true;
+}
+
 async function publishEventSafely(event) {
   try { return await publishTelemetryEvent(event); }
   catch (error) { return { ok: false, code: error?.code || 'EVENT_BUS_ERROR', error: error?.message || String(error) }; }
