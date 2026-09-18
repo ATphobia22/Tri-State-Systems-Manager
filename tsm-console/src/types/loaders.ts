@@ -21,7 +21,7 @@ export interface MapTwinLoaderData {
     vertical_reference: 'GAGE_DATUM'; wse_navd88_ft: number | null; gage_zero_navd88_ft: number | null; conversion_applied: boolean;
     sourceUri?: string | null;
   };
-  fema: { communityNumber: string; bfe_ft: number; lag_ft: number; clearance_ft: number; noRiseTolerance_ft: number };
+  fema: { communityNumber: string; bfe_ft: number | null; lag_ft: number | null; clearance_ft: number | null; noRiseTolerance_ft: number | null };
   boundingEnvelope: { minLon: number; minLat: number; maxLon: number; maxLat: number };
 }
 export interface OpenMIExchangeItemDescriptor { id: string; caption: string; description: string; valueDefinition: { type: 'Quantity' | 'Quality'; unit?: string; valueType: string }; spatialDefinition: string; temporalDefinition: string; providerComponentId: string; }
