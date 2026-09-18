@@ -48,7 +48,7 @@ export const POSEY_SITE_BOUNDS: SiteBounds2966 = {
 };
 
 const INDIANA_ELEVATION_IMAGE_SERVER =
-  'https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_2016_2020_Elevation/ImageServer';
+  'https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_2016_2020_DEM/ImageServer';
 
 const NAIP_2020_IMAGE_SERVER =
   'https://imagery.geoplatform.gov/iipp/rest/services/NAIP/NAIP2020_CONUS/ImageServer';
