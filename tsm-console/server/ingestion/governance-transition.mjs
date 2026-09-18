@@ -109,13 +109,29 @@ export function validateAuthorizedArtifact(artifact) {
   if (!artifact.human_authorization || typeof artifact.human_authorization !== 'object') {
     fail('FAIL_CLOSED: sealed human authorization metadata is missing.');
   }
-  if (!HASH_RE.test(artifact.human_authorization.reviewed_artifact_hash || '')) {
-    fail('FAIL_CLOSED: reviewed artifact hash is invalid.');
-  }
   if (!Array.isArray(artifact.parent_artifacts) || artifact.parent_artifacts.length !== 1) {
     fail('FAIL_CLOSED: authorized artifact must reference exactly one raw parent.');
   }
-  if (!HASH_RE.test(artifact.content_hash_sha256 || '')) fail('FAIL_CLOSED: authorized artifact hash is invalid.');
+
+  const reviewedHash = artifact.human_authorization.reviewed_artifact_hash;
+  if (!HASH_RE.test(reviewedHash || '')) {
+    fail('FAIL_CLOSED: reviewed artifact hash is invalid.');
+  }
+  validateReviewPayload(artifact.human_authorization, reviewedHash);
+
+  if (!HASH_RE.test(artifact.content_hash_sha256 || '')) {
+    fail('FAIL_CLOSED: authorized artifact hash is invalid.');
+  }
+
+  const { content_hash_sha256: _unusedHash, ...unsignedArtifact } = artifact;
+  const expectedHash = createHash('sha256')
+    .update('TSM_AUTHORIZED_ARTIFACT:' + stableStringify(unsignedArtifact), 'utf8')
+    .digest('hex');
+
+  if (expectedHash !== artifact.content_hash_sha256) {
+    fail('FAIL_CLOSED: authorized artifact integrity seal does not match its canonical payload.');
+  }
+
   return true;
 }
 
