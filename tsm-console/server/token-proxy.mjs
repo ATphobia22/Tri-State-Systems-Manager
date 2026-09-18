@@ -13,6 +13,7 @@ import { evaluatePolicies, POLICIES } from './policy/jurisdiction-engine.mjs';
 import { evaluateCompensatoryStorage, buildCompensatoryStorageCanonical } from './engineering/compensatory-storage.mjs';
 import { servePoseyAsset } from './geospatial/posey-assets.mjs';
 import { handleFirmRoute } from './geospatial/firm-routes.mjs';
+import { normalizeTelemetryEvent, validateTelemetryIngress } from './telemetry/inbound.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
 const BUILD_SHA = process.env.GITHUB_SHA || process.env.TSM_BUILD_SHA || 'local';
@@ -30,6 +31,14 @@ function readBodyFixed(req) {
 }
 const healthBody = () => ({ ok: true, service: 'tsm-api', build_sha: BUILD_SHA, node: process.version, uptime_s: Math.round(process.uptime()), planes: ['EVIDENCE', 'GOVERNANCE', 'ENGINEERING', 'GEOSPATIAL', 'DATA_FABRIC'] });
 const latestRecord = (records, parameterCode = null) => records.filter((record) => parameterCode === null || record.provenance?.parameterCode === parameterCode).sort((a, b) => Date.parse(a.observedAt) - Date.parse(b.observedAt)).at(-1) || null;
+const acceptedTelemetryEvents = new Map();
+function rememberTelemetryEvent(eventId, now = Date.now()) {
+  const existing = acceptedTelemetryEvents.get(eventId);
+  if (existing) return false;
+  acceptedTelemetryEvents.set(eventId, now);
+  while (acceptedTelemetryEvents.size > 4096) acceptedTelemetryEvents.delete(acceptedTelemetryEvents.keys().next().value);
+  return true;
+}
 
 const server = http.createServer(async (req, res) => {
   const requestId = req.headers['x-tsm-request-id'] || randomUUID();
@@ -47,6 +56,36 @@ const server = http.createServer(async (req, res) => {
       if (!sourceId || !sourceUrl) return json(res, 400, { error: 'source_id and url are required' }, requestId);
       const result = await fetchAuthoritativeJson(sourceId, sourceUrl, { requestId });
       return json(res, 200, { ...result, data_authority: 'authoritative-source-response', regulatory_determination: false }, requestId);
+    }
+    if (req.method === 'POST' && url.pathname === '/api/telemetry/events') {
+      const auth = validateTelemetryIngress(req);
+      if (!auth.ok) return json(res, auth.status, { ok: false, code: auth.code }, requestId);
+      try {
+        const event = normalizeTelemetryEvent(await readBodyFixed(req));
+        if (!rememberTelemetryEvent(event.event_id)) return json(res, 200, { ok: true, duplicate: true, event_id: event.event_id }, requestId);
+        const artifact = appendArtifact({
+          artifact_type: 'telemetry_event',
+          source_authority: event.source_id,
+          source_uri: 'kafka://tsm.telemetry.v1',
+          source_identifier: event.event_id,
+          retrieved_at: event.received_at,
+          observation_time: event.observed_at,
+          horizontal_crs: 'SOURCE_DECLARED',
+          vertical_datum: 'SOURCE_DECLARED',
+          content_hash_sha256: sha256Hex(JSON.stringify(event)),
+          authority_class: 'OBSERVATION',
+          derivation_class: 'RAW',
+          validation_status: 'accepted',
+          governance_status: 'human_review_required',
+          is_simulation_demo: false,
+          human_review_status: 'pending',
+          payload: event,
+          notes: 'Event-driven telemetry ingress. Source authority and regulatory meaning remain source-defined; TSM does not certify incoming sensor/radar products.',
+        });
+        return json(res, 202, { ok: true, accepted: true, event_id: event.event_id, artifact_id: artifact.artifact_id }, requestId);
+      } catch (error) {
+        return json(res, error instanceof TypeError ? 400 : 422, { ok: false, code: error.code || 'TELEMETRY_EVENT_INVALID', error: error.message }, requestId);
+      }
     }
     if (req.method === 'GET' && url.pathname === '/api/hydrologic/community') {
       const stationIds = url.searchParams.getAll('station_id');
