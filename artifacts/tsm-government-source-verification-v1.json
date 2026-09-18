@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "1.0.0",
+  "verifiedAt": "2026-09-18T09:33:24Z",
+  "purpose": "Machine-readable record of government geospatial and hydrologic source verification used by TSM peer-review gates.",
+  "sources": [
+    {
+      "id": "usgs-3dep-terrain",
+      "authority": "USGS National Geospatial Program",
+      "sourceUrl": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
+      "serviceType": "ImageServer",
+      "declaredCrs": "EPSG:3857",
+      "pixelType": "F32",
+      "verification": "VERIFIED",
+      "verificationEvidenceUrl": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
+      "notes": "Current service metadata exposes VerticalDatum and AcquisitionDate fields. TSM must preserve those source fields rather than assuming a universal vertical datum."
+    },
+    {
+      "id": "indiana-2016-2020-elevation",
+      "authority": "Indiana Geographic Information Office",
+      "sourceUrl": "https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_2016_2020_DEM/ImageServer",
+      "serviceType": "ImageServer",
+      "declaredCrs": "EPSG:3857",
+      "pixelType": "F32",
+      "pixelSizeMeters": 0.30480060960121846,
+      "verification": "VERIFIED_SERVICE_METADATA",
+      "verificationEvidenceUrl": "https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_2016_2020_DEM/ImageServer",
+      "notes": "The service identifies the product as Indiana 2016-2020 hydro-flattened bare-earth DEM derived from statewide QL2 lidar. The service metadata does not establish a single statewide vertical datum, so TSM keeps verticalDatum source-dependent."
+    },
+    {
+      "id": "indiana-bafm",
+      "authority": "Indiana DNR",
+      "sourceUrl": "https://gisdata.in.gov/server/rest/services/Hosted/FloodHazard_BestAvai_DNR_Watergdb/FeatureServer/0",
+      "serviceType": "FeatureServer",
+      "declaredCrs": "EPSG:26916",
+      "verification": "VERIFIED_SERVICE_METADATA",
+      "verificationEvidenceUrl": "https://gisdata.in.gov/server/rest/services/Hosted/FloodHazard_BestAvai_DNR_Watergdb/FeatureServer/0",
+      "notes": "Layer contains flood-zone attributes including V_DATUM and STATIC_BFE. Those feature attributes remain authoritative for the source; TSM does not replace them with a global datum assumption."
+    },
+    {
+      "id": "fema-nfhl",
+      "authority": "FEMA",
+      "sourceUrl": "https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer",
+      "serviceType": "ArcGIS MapServer",
+      "verification": "VERIFIED_ENDPOINT_CONTRACT",
+      "verificationEvidenceUrl": "https://www.fema.gov/flood-maps/national-flood-hazard-layer",
+      "notes": "FEMA effective regulatory mapping remains separate from Indiana Best Available flood-hazard data. TSM does not merge their authority classes."
+    },
+    {
+      "id": "noaa-nwps",
+      "authority": "NOAA / NWS",
+      "sourceUrl": "https://api.water.noaa.gov/nwps/v1/",
+      "serviceType": "NWPS API",
+      "verification": "VERIFIED_ENDPOINT_CONTRACT",
+      "verificationEvidenceUrl": "https://water.noaa.gov/about/api",
+      "notes": "Official NWPS services expose observations, forecasts and National Water Model output. Forecast issuance/valid times remain distinct from observations."
+    },
+    {
+      "id": "usace-nld",
+      "authority": "U.S. Army Corps of Engineers",
+      "sourceUrl": "https://nld.sec.usace.army.mil/data-services/services/",
+      "serviceType": "GIS data services",
+      "verification": "VERIFIED_ENDPOINT_CONTRACT",
+      "verificationEvidenceUrl": "https://nld.sec.usace.army.mil/data-services/services/",
+      "notes": "NLD exposes Feature Service, Map Service, OGC services and a JSON API. TSM treats NLD as federal infrastructure inventory, not as a substitute for site-specific engineering records."
+    },
+    {
+      "id": "usgs-03378500",
+      "authority": "USGS",
+      "sourceUrl": "https://waterdata.usgs.gov/monitoring-location/USGS-03378500/",
+      "serviceType": "Monitoring location",
+      "verification": "VERIFIED_CURRENT",
+      "stationId": "03378500",
+      "verticalDatum": "NAVD88_FOR_GAGE_SITE_ALTITUDE_METADATA",
+      "verificationEvidenceUrl": "https://waterdata.usgs.gov/monitoring-location/USGS-03378500/",
+      "notes": "USGS identifies this as Wabash River at New Harmony, IN. Gage observations remain source-gage-datum measurements unless an explicitly matched published datum conversion is available."
+    }
+  ],
+  "policy": {
+    "governmentSourceClaimsRequireFreshVerification": true,
+    "verticalDatumMayNotBeInferredFromStatewideProductNames": true,
+    "femaEffectiveAndIndianaBestAvailableRemainSeparate": true,
+    "forecastAndObservationRecordsRemainDistinct": true,
+    "engineeringCertificationIsOutsideCi": true
+  }
+}
