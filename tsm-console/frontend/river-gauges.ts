@@ -1,0 +1,1 @@
+// Re-export boundary for the console TypeScript project.\nexport * from '../../frontend/river-gauges';\n
