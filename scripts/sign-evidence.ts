@@ -54,7 +54,7 @@ async function main(): Promise<void> {
 
   const inputs = args
     .filter((arg, index) => !arg.startsWith('--') && index !== outputIndex + 1)
-    .map(resolve);
+    .map((arg) => resolve(arg));
 
   if (!inputs.length) {
     throw new Error('usage: sign-evidence.ts [--output manifest.json] <file>...');
