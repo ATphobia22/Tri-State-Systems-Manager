@@ -103,6 +103,16 @@ jobs:
         run: npm run check:geospatial
       - name: Canonical JSON schema contract gate
         run: npm run check:schemas
+      - name: Production-data diagnostic report
+        if: always()
+        run: |
+          mkdir -p artifacts
+          set +e
+          node ../scripts/no-production-mock-data.mjs . > artifacts/mock-data-scan.json 2>&1
+          status=$?
+          set -e
+          cat artifacts/mock-data-scan.json
+          if [ "$status" -ne 0 ]; then echo "Production-data scan reported violations; authoritative gate remains fail-closed."; fi
       - name: Authoritative source and production-data gate
         run: npm run check:mock-data
       - name: Parse gate
