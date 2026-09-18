@@ -15,7 +15,7 @@ describe('geospatial to Twin Solar Flood Tiles integration', () => {
     ]),
     crs: 'EPSG:2966',
     verticalDatum: 'NAVD88',
-    source: 'INDIANA_2016_2020_DEM',
+    source: 'INDIANA_2016_2020_ELEVATION',
   };
 
   it('copies source-derived NAVD88 terrain into solar tiles', () => {
