@@ -1,0 +1,19 @@
+{
+  "name": "tsm-telemetry-http-sink",
+  "config": {
+    "connector.class": "io.confluent.connect.http.HttpSinkConnector",
+    "topics": "tsm.telemetry.v1",
+    "tasks.max": "2",
+    "request.method": "POST",
+    "request.body.format": "json",
+    "http.api.url": "https://REPLACE_WITH_TSM_API_HOST/api/telemetry/events",
+    "auth.type": "BASIC",
+    "connection.user": "${TSM_EVENT_INGEST_USERNAME}",
+    "connection.password": "${TSM_EVENT_INGEST_PASSWORD}",
+    "max.retries": "20",
+    "retry.backoff.ms": "5000",
+    "behavior.on.null.values": "ignore",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false"
+  }
+}
