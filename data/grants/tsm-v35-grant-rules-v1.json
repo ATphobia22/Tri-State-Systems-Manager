@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "artifact_type": "tsm.grant_rules.v1",
+  "version": "1.0.0",
+  "generated_at": "2026-09-18T02:24:13Z",
+  "policy": {
+    "rule_values_are_cycle_specific": true,
+    "unverified_rules_must_not_drive_eligibility": true,
+    "current_deadlines_require_live_source_verification": true,
+    "no_automatic_award_or_compliance_determination": true
+  },
+  "programs": [
+    {
+      "id": "fema-bric",
+      "program": "Building Resilient Infrastructure and Communities",
+      "authority": "Stafford Act Section 203 / 42 U.S.C. 5133",
+      "cycle": "FY2024-FY2025",
+      "status": "closed",
+      "federal_share": null,
+      "non_federal_share": null,
+      "match_basis": "NOFO-specific; do not hard-code 75/25 across cycles",
+      "source_urls": ["https://www.grants.gov/search-results-detail/361620"],
+      "verification_status": "verified_closed_cycle",
+      "integration_plane": ["bca", "hec_ras_evidence", "grant_evidence"]
+    },
+    {
+      "id": "usace-section-204",
+      "program": "Beneficial Use of Dredged Material",
+      "authority": "WRDA 1992 Section 204 / 33 U.S.C. 2326",
+      "cycle": "project-specific",
+      "status": "authority_requires_project_review",
+      "federal_share": 65,
+      "non_federal_share": 35,
+      "match_basis": "Design/implementation costs above the applicable base plan; feasibility/planning treatment is separate",
+      "source_urls": ["https://www.lrd.usace.army.mil/Submit-ArticleCS/Programs/Article/3648671/section-204-beneficial-use-of-dredged-material/"],
+      "verification_status": "authority_verified_project_specific",
+      "integration_plane": ["engineering_section_cutaway", "material_qualification"]
+    },
+    {
+      "id": "cwa-section-319-indiana",
+      "program": "Clean Water Act Section 319 Nonpoint Source Grants",
+      "authority": "CWA Section 319(h)",
+      "cycle": "FFY2027 Indiana solicitation",
+      "status": "current_solicitation_reference",
+      "federal_share": 60,
+      "non_federal_share": 40,
+      "match_basis": "IDEM states 60% grant / 40% recipient match for approved projects; watershed-management-plan-only projects may use 80/20",
+      "source_urls": [
+        "https://www.in.gov/dA/aa2201363d/funding_319_solicitation_announcement.pdf?language_id=1",
+        "https://www.in.gov/idem/nps/resources/nonpoint-source-grants-compendium/invoice-and-reporting-requirements/"
+      ],
+      "verification_status": "verified_current_source",
+      "integration_plane": ["tririver_physics", "water_quality", "grant_evidence"],
+      "eligibility_guard": "Do not classify drainage/flood-control work as Section 319 eligible without program-specific review."
+    },
+    {
+      "id": "indot-ccmg",
+      "program": "Community Crossings Matching Grant",
+      "authority": "Indiana local road and bridge matching program",
+      "cycle": "State FY2027",
+      "status": "open_at_generation_time",
+      "federal_share": 0,
+      "state_share": null,
+      "local_match": null,
+      "match_basis": "Population/category-specific under current INDOT rules; small-community match was changed by legislation. Do not encode a universal 75/25 rule.",
+      "deadline": "2026-09-30T17:00:00-04:00",
+      "source_urls": ["https://www.in.gov/indot/doing-business-with-indot/local-public-agency-programs/community-crossing-matching-grant-program/"],
+      "verification_status": "verified_current_source",
+      "integration_plane": ["road_centerlines", "asset_management", "grant_evidence"],
+      "engineering_guard": "Requires applicable local asset-management and project eligibility checks."
+    }
+  ]
+}
