@@ -61,7 +61,30 @@ async function needsLoader({ request }: { request: Request }): Promise<NeedsLoad
 }
 
 async function ledgerLoader(): Promise<LedgerLoaderData> { const { leaves, root } = getMerkleState(); const blocks: EvidenceBlock[] = leaves.map((l) => { const p = l.payload as Record<string, unknown>; return { evidence_id: l.id, source_org: String(p.source_org || ''), source_uri: String(p.source_uri || ''), tier: (p.tier as EvidenceBlock['tier']) ?? 1, state: 'OBSERVED', sha256_hash: l.hash, validation_status: (p.validation_status as EvidenceBlock['validation_status']) || 'pending', acquired_at: l.createdAt, confidence_score: 0.95 }; }); return { blocks, merkleRoot: root, totalCount: blocks.length }; }
-async function ledgerAction({ request }: ActionFunctionArgs) { const form = await request.formData(); const source_org = String(form.get('source_org') || '').trim(); const source_uri = String(form.get('source_uri') || '').trim(); const tier = Number.parseInt(String(form.get('tier') || '1'), 10); if (!source_org || !source_uri) return { error: 'Missing fields' }; await appendEvidence({ source_org, source_uri, tier }); return redirect('/ledger'); }
+async function ledgerAction({ request }: ActionFunctionArgs) {
+  const form = await request.formData();
+  const source_org = String(form.get('source_org') || '').trim();
+  const source_uri = String(form.get('source_uri') || '').trim();
+  const tier = Number.parseInt(String(form.get('tier') || '1'), 10);
+  const human_authorized = form.get('human_authorization') === 'true';
+  const reviewer_identity = String(form.get('reviewer_identity') || '').trim();
+  const review_reason = String(form.get('review_reason') || '').trim();
+  if (!source_org || !source_uri || !reviewer_identity || !review_reason || !human_authorized) {
+    return { error: 'FAIL_CLOSED: Human Authority Sign, reviewer identity, and review reason are required before Merkle append.' };
+  }
+  await appendEvidence({
+    source_org,
+    source_uri,
+    tier,
+    human_authorization: {
+      human_authorized: true,
+      reviewer_identity,
+      review_reason,
+      reviewed_at: new Date().toISOString(),
+    },
+  });
+  return redirect('/ledger');
+}
 async function lineageLoader(): Promise<LineageLoaderData> { return { contracts: [...contracts] }; }
 async function lineageAction({ request }: ActionFunctionArgs) { const form = await request.formData(); const id = String(form.get('id') || '').trim(); const title = String(form.get('title') || '').trim(); const owner = String(form.get('owner') || '').trim(); const classification = String(form.get('classification') || 'internal') as DataContractSummary['classification']; const jurisdiction = String(form.get('jurisdiction') || 'Indiana').trim(); if (!id || !title || !owner) return { error: 'Missing fields' }; contracts = [{ id, title, owner, classification, jurisdiction, validation_status: 'pending', content_hash: 'sha256:pending' }, ...contracts]; return redirect('/lineage'); }
 async function benefitLoader(): Promise<BenefitLoaderData> { return { interventions: [...interventions] }; }
