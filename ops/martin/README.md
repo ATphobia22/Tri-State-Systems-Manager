@@ -42,6 +42,7 @@ Use the Martin configuration schema from the pinned/selected Martin release befo
 - Tile geometry: EPSG:3857 / MVT extent 4096 / buffer 64.
 - Feature elevation property: `ground_elevation_navd88_ft` (feet NAVD88).
 - Provenance property: `evidence_sha256`.
-- Martin route under this configuration: `/tiles/get_parcel_tiles/{z}/{x}/{y}`.
+- Martin API route under this configuration: `/get_parcel_tiles/{z}/{x}/{y}`.
+- `base_path: /tiles` affects TileJSON URL generation; it is not an API route prefix. Set Martin `route_prefix` and `VITE_TSM_MARTIN_ROUTE_PREFIX` together if the API is intentionally mounted below a path.
 
 The browser renderer converts the elevation values from feet NAVD88 to meters before using MapLibre `fill-extrusion-base` and `fill-extrusion-height`. Raw gage height is never used as a NAVD88 water-surface elevation.
