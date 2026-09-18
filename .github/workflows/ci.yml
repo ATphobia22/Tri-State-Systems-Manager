@@ -103,28 +103,8 @@ jobs:
         run: npm run check:geospatial
       - name: Canonical JSON schema contract gate
         run: npm run check:schemas
-      - name: Production-data diagnostic report
-        if: always()
-        run: |
-          mkdir -p artifacts
-          set +e
-          node ../scripts/no-production-mock-data.mjs . > artifacts/mock-data-scan.txt 2>&1
-          status=$?
-          set -e
-          cat artifacts/mock-data-scan.txt
-          if [ "$status" -ne 0 ]; then echo "Production-data scan reported violations; authoritative gate remains fail-closed."; fi
       - name: Authoritative source and production-data gate
         run: npm run check:mock-data
-      - name: Parse diagnostic report
-        if: always()
-        run: |
-          mkdir -p artifacts
-          set +e
-          npm run check:parse > artifacts/parse-gate.txt 2>&1
-          status=$?
-          set -e
-          cat artifacts/parse-gate.txt
-          if [ "$status" -ne 0 ]; then echo "Parse diagnostic captured; authoritative parse gate remains fail-closed."; fi
       - name: Parse gate
         run: npm run check:parse
       - name: Typecheck
@@ -143,16 +123,6 @@ jobs:
         run: npm run check:client-bundle-secrets
       - name: Hydrologic ingestion smoke
         run: npm run ingest
-      - name: Test suite diagnostic report
-        if: always()
-        run: |
-          mkdir -p artifacts
-          set +e
-          npm run test:all > artifacts/test-all.txt 2>&1
-          status=$?
-          set -e
-          cat artifacts/test-all.txt
-          if [ "$status" -ne 0 ]; then echo "Test diagnostic captured; authoritative test suite remains fail-closed."; fi
       - name: Test suites
         run: npm run test:all
       - name: Setup Python
