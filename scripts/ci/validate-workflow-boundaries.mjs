@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 
 const ROOT = resolve(new URL('../..', import.meta.url).pathname);
 const WORKFLOW_DIR = resolve(ROOT, '.github/workflows');
-const governed = new Set(['ci.yml', 'infrastructure-ci.yml', 'geospatial-ci.yml', 'container-ci.yml', 'quantum-ci.yml']);
+const governed = new Set(['ci.yml', 'infrastructure-ci.yml', 'geospatial-ci.yml', 'container-ci.yml', 'quantum-ci.yml', 'databricks-lakehouse.yml']);
 const forbidden = [
   /curl[^\n|]*\|\s*(ba)?sh/i,
   /wget[^\n|]*\|\s*(ba)?sh/i,
@@ -19,6 +19,12 @@ for (const name of await readdir(WORKFLOW_DIR)) {
   const text = await readFile(path, 'utf8');
   for (const pattern of forbidden) if (pattern.test(text)) errors.push(`${name}: forbidden remote execution pattern`);
   if (governed.has(name) && !requiredPermission.test(text)) errors.push(`${name}: missing explicit contents: read permission`);
+  if (name === 'databricks-lakehouse.yml') {
+    if (!/id-token:\s*write/.test(text)) errors.push('databricks-lakehouse.yml: GitHub OIDC requires id-token: write');
+    if (!/DATABRICKS_AUTH_TYPE:\s*github-oidc/.test(text)) errors.push('databricks-lakehouse.yml: Databricks authentication must use github-oidc');
+    if (/DATABRICKS_TOKEN|DATABRICKS_CLIENT_SECRET/.test(text)) errors.push('databricks-lakehouse.yml: long-lived Databricks credentials are forbidden');
+    if (!/sha256sum --check --strict/.test(text)) errors.push('databricks-lakehouse.yml: downloaded Databricks CLI must be SHA-256 verified');
+  }
   if (name === 'quantum-ci.yml') {
     const runners = [...text.matchAll(/runs-on:\s*([^\n#]+)/g)].map((match) => match[1].trim());
     if (runners.length === 0) {
