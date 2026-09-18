@@ -19,7 +19,8 @@ function assertClose(actual, expected, tolerance, label) {
 
 const manifest = JSON.parse(await readFile(MANIFEST, 'utf8'));
 if (manifest.horizontalCrs !== 'EPSG:2966') throw new Error('manifest CRS is not EPSG:2966');
-if (manifest.verticalDatum !== 'NAVD88') throw new Error('manifest vertical datum is not NAVD88');
+if (manifest.verticalDatum !== null && manifest.verticalDatum !== 'NAVD88') throw new Error('manifest vertical datum must be NAVD88 or null when unverified');
+if (manifest.verticalDatumVerified !== (manifest.verticalDatum === 'NAVD88')) throw new Error('manifest verticalDatumVerified flag is inconsistent');
 if (manifest.siteBounds?.minX !== EXPECTED_BOUNDS[0] || manifest.siteBounds?.minY !== EXPECTED_BOUNDS[1] || manifest.siteBounds?.maxX !== EXPECTED_BOUNDS[2] || manifest.siteBounds?.maxY !== EXPECTED_BOUNDS[3]) {
   throw new Error('manifest site bounds do not match the registered 5,000-ft Posey AOI');
 }
@@ -38,7 +39,12 @@ for (const [name, asset] of Object.entries(manifest.assets || {})) {
     const bbox = image.getBoundingBox();
     for (let index = 0; index < 4; index += 1) assertClose(bbox[index], EXPECTED_BOUNDS[index], 1, `terrain bbox[${index}]`);
     const geoKeys = image.getGeoKeys();
-    if (Number(geoKeys.ProjectedCSTypeGeoKey) !== 2966) throw new Error(`terrain GeoTIFF ProjectedCSTypeGeoKey must be 2966, got ${geoKeys.ProjectedCSTypeGeoKey}`);
+    if (!geoKeys || Number(geoKeys.ProjectedCSTypeGeoKey) !== 2966) throw new Error(`terrain GeoTIFF ProjectedCSTypeGeoKey must be 2966, got ${geoKeys?.ProjectedCSTypeGeoKey}`);
+    const verticalCrs = Number(geoKeys.VerticalCSTypeGeoKey);
+    const explicitNavd88 = verticalCrs === 5703 || verticalCrs === 6360;
+    if (manifest.verticalDatum === 'NAVD88' && !explicitNavd88) {
+      throw new Error(`manifest claims NAVD88 but terrain GeoTIFF does not declare EPSG:5703 or EPSG:6360 (got ${geoKeys.VerticalCSTypeGeoKey})`);
+    }
   }
 }
 
