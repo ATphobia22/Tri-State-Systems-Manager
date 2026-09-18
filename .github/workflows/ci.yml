@@ -111,7 +111,7 @@ jobs:
           node ../scripts/no-production-mock-data.mjs . > artifacts/mock-data-scan.txt 2>&1
           status=$?
           set -e
-          cat artifacts/mock-data-scan.json
+          cat artifacts/mock-data-scan.txt
           if [ "$status" -ne 0 ]; then echo "Production-data scan reported violations; authoritative gate remains fail-closed."; fi
       - name: Authoritative source and production-data gate
         run: npm run check:mock-data
