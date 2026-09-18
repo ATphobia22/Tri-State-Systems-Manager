@@ -95,9 +95,18 @@ jobs:
       - name: Production Vite build
         working-directory: ${{ env.CONSOLE_DIR }}
         run: npm run build
+      - name: Prepare GitHub Pages SPA fallback
+        if: vars.TSM_PAGES_ENABLED == 'true'
+        working-directory: ${{ env.CONSOLE_DIR }}
+        run: cp dist/index.html dist/404.html
+
       - name: Validate production artifact
         working-directory: ${{ env.CONSOLE_DIR }}
-        run: test -f dist/index.html
+        run: |
+          test -f dist/index.html
+          if [[ "${{ vars.TSM_PAGES_ENABLED }}" == "true" ]]; then
+            test -f dist/404.html
+          fi
       - name: Upload production artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
