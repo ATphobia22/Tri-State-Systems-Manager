@@ -8,6 +8,7 @@
     "../frontend/river-gauges.ts",
     "../backend/datum-middleware.ts",
     "../backend/river-network-api.ts",
-    "tests/v35.1-contracts.test.ts"
+    "tests/v35.1-contracts.test.ts",
+    "types/node-crypto.d.ts"
   ]
 }
