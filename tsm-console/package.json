@@ -75,7 +75,11 @@
     "test:mapillary": "vitest run tests/mapillary-evidence-contract.test.ts",
     "test:geospatial-boundaries": "npm run test:mapillary && python3 -m unittest backend.tests.test_geospatial_contracts backend.tests.test_hec_ras_worker",
     "test:apple-maps": "vitest run tests/apple-maps-context-contract.test.ts",
-    "test:data-fabrics": "vitest run tests/data-fabric-registry.test.ts server/ingestion/nws-weather.test.mjs"
+    "test:data-fabrics": "vitest run tests/data-fabric-registry.test.ts server/ingestion/nws-weather.test.mjs",
+    "tauri": "cargo tauri",
+    "desktop:dev": "cargo tauri dev",
+    "desktop:build": "cargo tauri build",
+    "desktop:check": "node scripts/desktop-updater-check.mjs"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.0",
