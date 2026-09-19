@@ -63,7 +63,7 @@ jobs:
           cache-dependency-path: tsm-console/package-lock.json
       - name: Install locked console dependencies
         working-directory: tsm-console
-        run: npm ci --ignore-scripts --no-audit --no-fund
+        run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
       - name: Validate capability registry
         run: node scripts/ci/validate-capability-registry.mjs
       - name: Run geospatial backend contract tests
