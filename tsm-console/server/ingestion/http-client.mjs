@@ -13,7 +13,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 function recordHydrologyMetric(options, sourceId, status, startedAt) {
   if (options.telemetryDomain !== 'hydrology') return;
   incrementTelemetryCounter('tsm_hydrology_api_responses_total', { source_id: sourceId, status });
-  observeTelemetryMetric('tsm_hydrology_api_request_latency_seconds', (Date.now() - startedAt) / 1000, { source_id: sourceId, quantile: '0.95' });
+  observeTelemetryMetric('tsm_hydrology_api_request_latency_seconds', (Date.now() - startedAt) / 1000, { source_id: sourceId });
 }
 
 function recordCircuitMetric(options, sourceId, circuitState) {
