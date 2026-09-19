@@ -28,7 +28,7 @@ groups:
           description: "A hydrology source circuit is open after repeated bounded transport failures. Review source health and provider availability; no synthetic reading is permitted."
 
       - alert: TSMHydrologyRequestLatencyHigh
-        expr: tsm_hydrology_api_request_latency_seconds{quantile="0.95"} > 5
+        expr: max_over_time(tsm_hydrology_api_request_latency_seconds[5m]) > 5
         for: 5m
         labels:
           severity: warning
