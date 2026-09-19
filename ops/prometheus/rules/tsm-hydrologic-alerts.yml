@@ -35,7 +35,7 @@ groups:
           tier: ingestion
         annotations:
           summary: "TSM hydrology request latency is high"
-          description: "Observed 95th-percentile hydrology request latency exceeds 5 seconds. This is an operational symptom and does not change source authority."
+          description: "Observed hydrology request latency has exceeded 5 seconds. This is an operational symptom and does not change source authority."
 
       - alert: TSMHydrologyTelemetryMissing
         expr: absent(tsm_hydrology_api_responses_total)
