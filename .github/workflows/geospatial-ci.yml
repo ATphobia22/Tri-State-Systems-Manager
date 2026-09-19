@@ -50,7 +50,10 @@ jobs:
       - name: Validate capability registry
         run: node scripts/ci/validate-capability-registry.mjs
       - name: Run geospatial backend contract tests
-        run: python3 -m unittest backend.tests.test_geospatial_contracts
+        run: python3 -m unittest backend.tests.test_geospatial_contracts backend.tests.test_hec_ras_worker
+      - name: Run Mapillary evidence contract tests
+        working-directory: tsm-console
+        run: npm run test:mapillary
       - name: Validate 3D asset manifests
         run: node scripts/ci/validate-artifact-manifests.mjs
       - name: Validate geospatial processing contract
