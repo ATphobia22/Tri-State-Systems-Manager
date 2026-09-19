@@ -63,11 +63,11 @@ export function HumanSignGatePanel({
     setErrorMessage(null);
     try {
       const response = await fetch(
-        \`\${apiOrigin(apiBaseUrl)}/api/evidence?is_simulation_demo=false\`,
+        `\${apiOrigin(apiBaseUrl)}/api/evidence?is_simulation_demo=false`,
         { headers: { Accept: 'application/json' }, cache: 'no-store' },
       );
       if (!response.ok) {
-        throw new Error(\`Evidence API returned HTTP \${response.status}.\`);
+        throw new Error(`Evidence API returned HTTP \${response.status}.`);
       }
       const body = (await response.json()) as { artifacts?: EvidenceArtifact[] };
       const pending = (body.artifacts ?? []).filter(
@@ -113,7 +113,7 @@ export function HumanSignGatePanel({
     };
 
     try {
-      const response = await fetch(\`\${apiOrigin(apiBaseUrl)}/api/ledger/append\`, {
+      const response = await fetch(`\${apiOrigin(apiBaseUrl)}/api/ledger/append`, {
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -128,7 +128,7 @@ export function HumanSignGatePanel({
 
       const body = (await response.json()) as PublicationResult & { error?: string };
       if (!response.ok) {
-        throw new Error(body.error || \`Governance transition returned HTTP \${response.status}.\`);
+        throw new Error(body.error || `Governance transition returned HTTP \${response.status}.`);
       }
 
       setPublication(body);
