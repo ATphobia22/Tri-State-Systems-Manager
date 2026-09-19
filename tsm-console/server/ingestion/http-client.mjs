@@ -12,21 +12,13 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function recordHydrologyMetric(options, sourceId, status, startedAt) {
   if (options.telemetryDomain !== 'hydrology') return;
-  const labels = { source_id: sourceId, status };
-  incrementTelemetryCounter('tsm_hydrology_api_responses_total', labels);
-  const latencySeconds = (Date.now() - startedAt) / 1000;
-  observeTelemetryMetric('tsm_hydrology_api_request_latency_seconds', latencySeconds, {
-    source_id: sourceId,
-    quantile: '0.95',
-  });
+  incrementTelemetryCounter('tsm_hydrology_api_responses_total', { source_id: sourceId, status });
+  observeTelemetryMetric('tsm_hydrology_api_request_latency_seconds', (Date.now() - startedAt) / 1000, { source_id: sourceId, quantile: '0.95' });
 }
 
 function recordCircuitMetric(options, sourceId, circuitState) {
   if (options.telemetryDomain !== 'hydrology') return;
-  observeTelemetryMetric('tsm_hydrology_circuit_breaker_state', circuitState === 'open' ? 1 : 0, {
-    source_id: sourceId,
-    state: circuitState === 'open' ? 'OPEN' : circuitState === 'half-open' ? 'HALF_OPEN' : 'CLOSED',
-  });
+  observeTelemetryMetric('tsm_hydrology_circuit_breaker_state', circuitState === 'open' ? 1 : 0, { source_id: sourceId, state: circuitState === 'open' ? 'OPEN' : circuitState === 'half-open' ? 'HALF_OPEN' : 'CLOSED' });
 }
 
 export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sleep, circuitBreaker = defaultCircuitBreaker } = {}) {
@@ -41,7 +33,6 @@ export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sl
     const startedAt = Date.now();
     let lastError;
     let circuitState;
-
     try {
       circuitState = circuitBreaker.beforeRequest(sourceId);
       recordCircuitMetric(options, sourceId, circuitState.state);
@@ -52,7 +43,6 @@ export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sl
       }
       throw error;
     }
-
     try {
       for (let attempt = 0; attempt <= retries; attempt += 1) {
         try {
@@ -63,15 +53,15 @@ export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sl
             response = await fetchImpl(url, { ...options, headers, signal: options.signal ?? controller.signal });
           } finally { clearTimeout(timer); }
           if (!response.ok) {
-            const error = new Error(\`HTTP \${response.status}\`);
+            const error = new Error('HTTP ' + response.status);
             error.status = response.status;
             error.retryAfterMs = parseRetryAfter(response.headers?.get?.('retry-after'));
             throw error;
           }
           const length = Number(response.headers.get('content-length') || 0);
-          if (length > maxBytes) throw new Error(\`response exceeds size limit (\${maxBytes} bytes)\`);
+          if (length > maxBytes) throw new Error('response exceeds size limit (' + maxBytes + ' bytes)');
           const text = await response.text();
-          if (Buffer.byteLength(text, 'utf8') > maxBytes) throw new Error(\`response exceeds size limit (\${maxBytes} bytes)\`);
+          if (Buffer.byteLength(text, 'utf8') > maxBytes) throw new Error('response exceeds size limit (' + maxBytes + ' bytes)');
           const payload = JSON.parse(text);
           circuitState = circuitBreaker.recordSuccess(sourceId);
           recordCircuitMetric(options, sourceId, circuitState.state);
@@ -87,7 +77,7 @@ export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sl
       }
       circuitState = circuitBreaker.recordFailure(sourceId);
       recordCircuitMetric(options, sourceId, circuitState.state);
-      recordSourceHealth(sourceId, { ok: false, latencyMs: Date.now() - startedAt, requestId, errorCode: lastError?.code || \`HTTP_\${lastError?.status || 'UNKNOWN'}\` });
+      recordSourceHealth(sourceId, { ok: false, latencyMs: Date.now() - startedAt, requestId, errorCode: lastError?.code || 'HTTP_' + (lastError?.status || 'UNKNOWN') });
       const status = lastError?.name === 'AbortError' || lastError?.code === 'ETIMEDOUT' ? 'TIMEOUT' : 'SOURCE_UNAVAILABLE';
       recordHydrologyMetric(options, sourceId, status, startedAt);
       throw lastError;
