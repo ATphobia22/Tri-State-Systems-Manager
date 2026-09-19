@@ -1,0 +1,37 @@
+{
+  "artifact_type": "tsm.terrain_runtime_contract.v1",
+  "version": "1.0.0",
+  "source_pipeline": "tsm-console/config/terrain-pipeline.json",
+  "browser_source_type": "raster-dem",
+  "encoding": "mapbox",
+  "tile_size": 256,
+  "runtime_environment_variable": "VITE_TSM_TERRAIN_RGB_URL_TEMPLATE",
+  "deployment_status": "NOT_DEPLOYED",
+  "endpoint": null,
+  "required_before_operational_terrain": true,
+  "health_requirements": {
+    "https_only": true,
+    "tile_template_must_resolve": true,
+    "mapbox_terrain_rgb_encoding_required": true,
+    "source_provenance_required": true,
+    "content_hash_required": true,
+    "vertical_datum_required": true,
+    "horizontal_crs_required": true
+  },
+  "fail_closed": {
+    "missing_endpoint": true,
+    "invalid_endpoint": true,
+    "health_check_failure": true,
+    "unknown_datum": true
+  },
+  "source_metadata": {
+    "authority": "USGS 3DEP",
+    "product_identifier": null,
+    "source_uri": null,
+    "retrieved_at": null,
+    "content_hash_sha256": null,
+    "horizontal_crs": null,
+    "vertical_datum": null,
+    "transformation_chain": []
+  }
+}
