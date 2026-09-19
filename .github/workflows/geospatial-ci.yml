@@ -87,6 +87,9 @@ jobs:
       - name: Validate geospatial processing contract
         working-directory: tsm-console
         run: npm run check:geospatial
+      - name: Validate evidence-gated engineering pipeline
+        working-directory: tsm-console
+        run: npm run check:engineering-pipeline
 
   cityengine-build:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.cityengine_build == true }}
