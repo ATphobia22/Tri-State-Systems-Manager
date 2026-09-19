@@ -61,6 +61,8 @@ jobs:
           cache: npm
           cache-dependency-path: tsm-console/package-lock.json
       - uses: dtolnay/rust-toolchain@stable
+      - name: Install pinned Tauri CLI
+        run: cargo install tauri-cli --version 2.11.4 --locked
       - name: Install Windows signing certificate
         shell: pwsh
         run: |
@@ -75,7 +77,7 @@ jobs:
           if (-not $cert) { throw "Unable to import Windows signing certificate." }
           $thumbprint = ($cert | Select-Object -First 1).Thumbprint
           "TSM_WINDOWS_CERTIFICATE_THUMBPRINT=$thumbprint" | Out-File -FilePath $env:GITHUB_ENV -Append
-      - run: npm ci --ignore-scripts
+      - run: npm ci
         working-directory: tsm-console
       - run: npm run build
         working-directory: tsm-console
@@ -94,6 +96,9 @@ jobs:
         with:
           projectPath: tsm-console
           releaseId: ${{ needs.create-release.outputs.release_id }}
+          tagName: ${{ inputs.tag }}
+          releaseDraft: ${{ inputs.draft }}
+          tauriScript: cargo tauri
           args: --bundles nsis,msi
           uploadUpdaterJson: true
           uploadUpdaterSignatures: true
@@ -118,6 +123,10 @@ jobs:
           cache: npm
           cache-dependency-path: tsm-console/package-lock.json
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+      - name: Install pinned Tauri CLI
+        run: cargo install tauri-cli --version 2.11.4 --locked
       - name: Import Apple Developer ID certificate
         shell: bash
         run: |
@@ -149,6 +158,11 @@ jobs:
         working-directory: tsm-console
       - run: node scripts/configure-desktop-release.mjs
         working-directory: tsm-console
+      - name: Validate release updater configuration
+        env:
+          TSM_DESKTOP_RELEASE: "1"
+        run: node scripts/desktop-updater-check.mjs
+        working-directory: tsm-console
       - uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -163,6 +177,9 @@ jobs:
         with:
           projectPath: tsm-console
           releaseId: ${{ needs.create-release.outputs.release_id }}
-          args: --bundles dmg
+          tagName: ${{ inputs.tag }}
+          releaseDraft: ${{ inputs.draft }}
+          tauriScript: cargo tauri
+          args: --bundles dmg --target universal-apple-darwin
           uploadUpdaterJson: true
           uploadUpdaterSignatures: true
