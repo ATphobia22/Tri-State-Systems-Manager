@@ -1,0 +1,12 @@
+import { describe, expect, it } from 'vitest';
+import { assertFabricRegistryComplete, TSM_DATA_FABRICS } from '../src/lib/data-fabric-registry';
+
+describe('TSM data-fabric registry', () => {
+  it('has no unimplemented registered fabrics', () => expect(() => assertFabricRegistryComplete()).not.toThrow());
+  it('keeps Apple and Mapillary non-persistent', () => {
+    expect(TSM_DATA_FABRICS.find((f) => f.id === 'apple-maps')?.persistenceAllowed).toBe(false);
+    expect(TSM_DATA_FABRICS.find((f) => f.id === 'mapillary')?.persistenceAllowed).toBe(false);
+  });
+  it('keeps buildings derived rather than authoritative', () => expect(TSM_DATA_FABRICS.find((f) => f.id === 'buildings')?.authority).toBe('DERIVED'));
+  it('keeps H3 derived/index-only', () => expect(TSM_DATA_FABRICS.find((f) => f.id === 'spatial-index')?.authority).toBe('DERIVED'));
+});
