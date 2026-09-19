@@ -58,6 +58,30 @@ The engineering section shows the chain from existing ground/survey through subs
 
 Dredged material is **not presumed** to be structural fill. USACE Section 204 is a **conditional authority pathway**, not automatic road funding or a guarantee of material availability. Material qualification, environmental review, project purpose, cost share and agency approval remain project-specific.
 
+### Evidence-gated engineering pipeline
+
+The canonical engineering workflow is deliberately ordered so downstream artifacts cannot manufacture missing upstream evidence:
+
+```text
+authoritative terrain
+→ verified bathymetry/topobathy
+→ datum control
+→ baseline HEC-RAS
+→ calibrated hydrology/hydraulics
+→ alternative dredge/levee scenarios
+→ independent cut/fill computation
+→ sediment suitability
+→ environmental screening
+→ agency eligibility determination
+→ documented BCA
+→ funding applications
+→ QA/QC
+```
+
+Each stage carries explicit provenance, status and evidence requirements. A model result is not a survey, a cut/fill balance is not geotechnical acceptance, a BCA is not agency eligibility, and a funding rule is not a funding award. Missing or unverified evidence remains **blocked/unknown** rather than being inferred.
+
+The machine-readable contract is maintained in `data/engineering/evidence-pipeline-contract.json`, with its schema in `data/schemas/engineering-evidence-pipeline-v1.schema.json`. CI validates the gate with `npm run check:engineering-pipeline`.
+
 ## Data and authority hierarchy
 
 Primary-source government products are preferred:
