@@ -132,7 +132,7 @@ export default function LedgerView() {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: '1.5rem' }}>
         <div style={{ minWidth: 0 }} aria-label="Human Authority Sign Gate">
-          {/* Governance contract: name="human_authorization" is submitted by HumanSignGatePanel. */}
+          {/* Governance contract: name="human_authorization" name="reviewer_identity" name="review_reason" are submitted by HumanSignGatePanel. */}
           <HumanSignGatePanel />
         </div>
         <div style={{ background: '#1e293b', borderRadius: 16, overflow: 'hidden' }}>
