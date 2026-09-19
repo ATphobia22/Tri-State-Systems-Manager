@@ -29,6 +29,12 @@ on:
       - 'tsm-console/src/lib/data-fabric-registry.ts'
       - 'tsm-console/src/lib/map-layers.ts'
       - 'tsm-console/tests/data-fabric-registry.test.ts'
+      - 'data/engineering/**'
+      - 'data/schemas/engineering-evidence-pipeline-v1.schema.json'
+      - 'data/schemas/hec-ras-2d-boundary-conditions.schema.json'
+      - 'data/grants/tsm-v35-grant-rules-v1.json'
+      - 'docs/ENGINEERING-EVIDENCE-PIPELINE.md'
+      - 'scripts/ci/validate-engineering-pipeline.mjs'
   push:
     branches: [main]
     paths:
@@ -81,6 +87,9 @@ jobs:
       - name: Validate geospatial processing contract
         working-directory: tsm-console
         run: npm run check:geospatial
+      - name: Validate evidence-gated engineering pipeline
+        working-directory: tsm-console
+        run: npm run check:engineering-pipeline
 
   cityengine-build:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.cityengine_build == true }}

@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:tsm:engineering-evidence-pipeline:v1",
+  "title": "TSM Evidence-Gated Engineering Pipeline",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "project_id", "stages", "controls"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "project_id": { "type": "string", "minLength": 1 },
+    "stages": {
+      "type": "array",
+      "minItems": 11,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "status", "evidence_ids"],
+        "properties": {
+          "id": {
+            "enum": [
+              "authoritative_terrain",
+              "verified_bathymetry",
+              "datum_control",
+              "baseline_hec_ras",
+              "calibrated_hydraulics",
+              "alternative_scenarios",
+              "independent_earthwork",
+              "sediment_suitability",
+              "environmental_screening",
+              "agency_eligibility",
+              "benefit_cost_analysis",
+              "funding_application",
+              "qa_qc"
+            ]
+          },
+          "status": { "enum": ["not_started", "blocked", "provisional", "verified", "approved"] },
+          "evidence_ids": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "blocking_reasons": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+        }
+      }
+    },
+    "controls": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "no_downstream_without_upstream",
+        "bathymetry_required_for_submerged_channel",
+        "datum_must_be_explicit",
+        "earthwork_must_be_independent",
+        "sediment_not_structural_fill_by_default",
+        "agency_eligibility_is_not_inferred",
+        "funding_is_not_an_award",
+        "human_engineering_review_required"
+      ],
+      "properties": {
+        "no_downstream_without_upstream": { "const": true },
+        "bathymetry_required_for_submerged_channel": { "const": true },
+        "datum_must_be_explicit": { "const": true },
+        "earthwork_must_be_independent": { "const": true },
+        "sediment_not_structural_fill_by_default": { "const": true },
+        "agency_eligibility_is_not_inferred": { "const": true },
+        "funding_is_not_an_award": { "const": true },
+        "human_engineering_review_required": { "const": true }
+      }
+    }
+  }
+}

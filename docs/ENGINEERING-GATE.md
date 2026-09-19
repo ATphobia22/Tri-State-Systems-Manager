@@ -86,3 +86,24 @@ Copying code solely because it appears similar is prohibited. Prefer small, expl
 ## 9. Completion standard
 
 The repository is not declared production-ready until the final rescan confirms that fixes did not leave stale workflow assumptions, duplicate implementations, dead configuration, dependency drift, exposed secrets, or unverified claims of deployment success.
+
+
+## 10. Geospatial engineering evidence sequence
+
+For floodplain, dredging, levee, pump, hydraulic, or earthwork studies, the repository uses the dedicated evidence-gated sequence in `docs/ENGINEERING-EVIDENCE-PIPELINE.md`:
+
+1. authoritative terrain;
+2. verified bathymetry/topobathy;
+3. datum control;
+4. baseline HEC-RAS;
+5. calibrated hydrology/hydraulics;
+6. alternative scenarios;
+7. independent cut/fill;
+8. sediment/geotechnical suitability;
+9. environmental screening;
+10. agency eligibility determination;
+11. program-specific BCA;
+12. funding application;
+13. independent QA/QC.
+
+A later stage cannot be treated as verified when a required earlier stage remains blocked.

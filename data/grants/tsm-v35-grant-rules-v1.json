@@ -2,12 +2,14 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "artifact_type": "tsm.grant_rules.v1",
   "version": "1.0.0",
-  "generated_at": "2026-09-18T02:24:13Z",
+  "generated_at": "2026-09-19T12:50:00Z",
   "policy": {
     "rule_values_are_cycle_specific": true,
     "unverified_rules_must_not_drive_eligibility": true,
     "current_deadlines_require_live_source_verification": true,
-    "no_automatic_award_or_compliance_determination": true
+    "no_automatic_award_or_compliance_determination": true,
+    "funding_amounts_require_allowable_cost_review": true,
+    "tax_credits_require_entity_and_project_qualification": true
   },
   "programs": [
     {
@@ -21,7 +23,8 @@
       "match_basis": "NOFO-specific; do not hard-code 75/25 across cycles",
       "source_urls": ["https://www.grants.gov/search-results-detail/361620"],
       "verification_status": "verified_closed_cycle",
-      "integration_plane": ["bca", "hec_ras_evidence", "grant_evidence"]
+      "integration_plane": ["bca", "hec_ras_evidence", "grant_evidence"],
+      "eligibility_guard": "Track future cycles only after live FEMA/NOFO verification."
     },
     {
       "id": "usace-section-204",
@@ -29,12 +32,13 @@
       "authority": "WRDA 1992 Section 204 / 33 U.S.C. 2326",
       "cycle": "project-specific",
       "status": "authority_requires_project_review",
-      "federal_share": 65,
-      "non_federal_share": 35,
-      "match_basis": "Design/implementation costs above the applicable base plan; feasibility/planning treatment is separate",
-      "source_urls": ["https://www.lrd.usace.army.mil/Submit-ArticleCS/Programs/Article/3648671/section-204-beneficial-use-of-dredged-material/"],
+      "federal_share": null,
+      "non_federal_share": null,
+      "match_basis": "Project-specific. Confirm applicable feasibility and implementation cost-share treatment, base-plan/incremental-cost rules, LERRD treatment, and current district guidance before any funding calculation.",
+      "source_urls": ["https://www.sas.usace.army.mil/Missions/CAP/Section-204-Beneficial-Use-of-Dredged-Material/"],
       "verification_status": "authority_verified_project_specific",
-      "integration_plane": ["engineering_section_cutaway", "material_qualification"]
+      "integration_plane": ["engineering_section_cutaway", "material_qualification", "grant_evidence"],
+      "eligibility_guard": "Requires connection to qualifying dredging for an existing authorized Federal navigation project and agency determination; Section 204 is not generic levee, road, or dredging funding."
     },
     {
       "id": "cwa-section-319-indiana",
@@ -62,12 +66,59 @@
       "federal_share": 0,
       "state_share": null,
       "local_match": null,
-      "match_basis": "Population/category-specific under current INDOT rules; small-community match was changed by legislation. Do not encode a universal 75/25 rule.",
+      "match_basis": "Population/category-specific under current INDOT rules; do not encode a universal 75/25 rule.",
       "deadline": "2026-09-30T17:00:00-04:00",
       "source_urls": ["https://www.in.gov/indot/doing-business-with-indot/local-public-agency-programs/community-crossing-matching-grant-program/"],
       "verification_status": "verified_current_source",
       "integration_plane": ["road_centerlines", "asset_management", "grant_evidence"],
       "engineering_guard": "Requires applicable local asset-management and project eligibility checks."
+    },
+    {
+      "id": "usda-reap",
+      "program": "Rural Energy for America Program",
+      "authority": "USDA Rural Development REAP",
+      "cycle": "current_program_rules; solicitation timing requires live verification",
+      "status": "screening_only",
+      "federal_share": null,
+      "non_federal_share": null,
+      "maximum_renewable_energy_grant_request_usd": 1000000,
+      "maximum_energy_efficiency_grant_request_usd": 500000,
+      "match_basis": "Up to 50% federal share for qualifying categories; otherwise lower shares may apply.",
+      "source_urls": ["https://www.rd.usda.gov/inflation-reduction-act/rural-energy-america-program-reap"],
+      "verification_status": "verified_program_rule",
+      "integration_plane": ["energy", "grant_evidence"],
+      "eligibility_guard": "Applicant, rural-location, technology, site-control, environmental, timing and allowable-cost requirements must be verified. Do not model a $6M hydro project as receiving a 50% REAP grant; the renewable-energy grant request ceiling is $1M."
+    },
+    {
+      "id": "irs-48e-6417",
+      "program": "Clean Electricity Investment Credit / Elective Pay",
+      "authority": "IRC Section 48E / IRC Section 6417",
+      "cycle": "current federal tax rules; project-specific",
+      "status": "screening_only",
+      "federal_share": null,
+      "non_federal_share": null,
+      "match_basis": "Credit amount depends on qualified property and applicable bonus, labor and other statutory requirements; elective pay is entity- and credit-specific.",
+      "source_urls": [
+        "https://www.irs.gov/credits-deductions/clean-electricity-investment-credit",
+        "https://www.irs.gov/credits-deductions/elective-pay-and-transferability-frequently-asked-questions-overview"
+      ],
+      "verification_status": "verified_program_rule",
+      "integration_plane": ["energy", "tax", "grant_evidence"],
+      "eligibility_guard": "Do not represent Section 6417 as a blanket 30%, 40%, or 50% cash refund. Confirm applicable entity status, qualified facility/storage, pre-filing registration and credit requirements. Applicable governmental entities may use elective pay; ordinary taxable private entities generally require a different tax-credit pathway."
+    },
+    {
+      "id": "hud-cdbg-nonfederal-share",
+      "program": "HUD CDBG non-Federal share authority",
+      "authority": "24 CFR 570.201(g)",
+      "cycle": "program-specific allocation/NOFO",
+      "status": "screening_only",
+      "federal_share": null,
+      "non_federal_share": null,
+      "match_basis": "CDBG may pay a non-Federal share only where the underlying activity is otherwise CDBG-eligible and the other Federal program does not prohibit the use.",
+      "source_urls": ["https://www.hud.gov/sites/documents/DOC_17133.PDF"],
+      "verification_status": "verified_authority_rule",
+      "integration_plane": ["community_development", "grant_evidence"],
+      "eligibility_guard": "Do not treat CDBG-MIT as an automatic match source or assume 100% coverage. Confirm the applicable HUD/State allocation, action plan, NOFO, eligible activity, duplication-of-benefits and match restrictions."
     }
   ]
 }

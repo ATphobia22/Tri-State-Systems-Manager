@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0.0",
+  "project_id": "community-river-engineering-template",
+  "stages": [
+    { "id": "authoritative_terrain", "status": "provisional", "evidence_ids": ["USGS-3DEP-or-equivalent"], "blocking_reasons": ["Project-specific AOI and acquisition record must be attached."] },
+    { "id": "verified_bathymetry", "status": "blocked", "evidence_ids": [], "blocking_reasons": ["Surveyed/topobathymetric channel evidence is required before submerged-channel modeling."] },
+    { "id": "datum_control", "status": "blocked", "evidence_ids": [], "blocking_reasons": ["Horizontal/vertical control and transformation record not yet attached."] },
+    { "id": "baseline_hec_ras", "status": "blocked", "evidence_ids": [], "blocking_reasons": ["Depends on terrain, bathymetry and datum control."] },
+    { "id": "calibrated_hydraulics", "status": "blocked", "evidence_ids": [], "blocking_reasons": ["Observed calibration/validation evidence required."] },
+    { "id": "alternative_scenarios", "status": "blocked", "evidence_ids": [], "blocking_reasons": ["Baseline must pass first."] },
+    { "id": "independent_earthwork", "status": "blocked", "evidence_ids": [], "blocking_reasons": ["Identical-grid baseline/proposed surfaces and exact footprint masks required."] },
+    { "id": "sediment_suitability", "status": "blocked", "evidence_ids": [], "blocking_reasons": ["Geotechnical and environmental laboratory evidence required."] },
+    { "id": "environmental_screening", "status": "blocked", "evidence_ids": [], "blocking_reasons": ["Current agency screening and critical-habitat review required."] },
+    { "id": "agency_eligibility", "status": "blocked", "evidence_ids": [], "blocking_reasons": ["Agency determination cannot be inferred from model output."] },
+    { "id": "benefit_cost_analysis", "status": "blocked", "evidence_ids": [], "blocking_reasons": ["Program-specific BCA inputs and methodology required."] },
+    { "id": "funding_application", "status": "blocked", "evidence_ids": [], "blocking_reasons": ["Eligibility, match, allowable costs and current solicitation must be verified."] },
+    { "id": "qa_qc", "status": "blocked", "evidence_ids": [], "blocking_reasons": ["Independent reproduction and final review required."] }
+  ],
+  "controls": {
+    "no_downstream_without_upstream": true,
+    "bathymetry_required_for_submerged_channel": true,
+    "datum_must_be_explicit": true,
+    "earthwork_must_be_independent": true,
+    "sediment_not_structural_fill_by_default": true,
+    "agency_eligibility_is_not_inferred": true,
+    "funding_is_not_an_award": true,
+    "human_engineering_review_required": true
+  }
+}
