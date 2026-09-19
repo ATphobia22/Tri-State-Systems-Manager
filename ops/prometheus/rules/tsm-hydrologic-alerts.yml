@@ -1,0 +1,48 @@
+groups:
+  - name: tsm_hydrologic_core_alerts
+    interval: 30s
+    rules:
+      - alert: TSMHydrologySourceUnavailable
+        expr: |
+          (
+            sum(rate(tsm_hydrology_api_responses_total{status=~"SOURCE_UNAVAILABLE|TIMEOUT|CIRCUIT_OPEN"}[5m]))
+            /
+            clamp_min(sum(rate(tsm_hydrology_api_responses_total[5m])), 1e-9)
+          ) > 0.15
+        for: 5m
+        labels:
+          severity: critical
+          tier: ingestion
+        annotations:
+          summary: "TSM hydrology upstream failure rate is high"
+          description: "More than 15% of hydrology API requests failed, timed out, or were blocked by an open circuit during the last 5 minutes. Verify upstream provider health before relying on current telemetry."
+
+      - alert: TSMHydrologyCircuitBreakerOpen
+        expr: tsm_hydrology_circuit_breaker_state{state="OPEN"} == 1
+        for: 2m
+        labels:
+          severity: warning
+          tier: middleware
+        annotations:
+          summary: "TSM hydrology source circuit breaker is open"
+          description: "A hydrology source circuit is open after repeated bounded transport failures. Review source health and provider availability; no synthetic reading is permitted."
+
+      - alert: TSMHydrologyRequestLatencyHigh
+        expr: tsm_hydrology_api_request_latency_seconds{quantile="0.95"} > 5
+        for: 5m
+        labels:
+          severity: warning
+          tier: ingestion
+        annotations:
+          summary: "TSM hydrology request latency is high"
+          description: "Observed 95th-percentile hydrology request latency exceeds 5 seconds. This is an operational symptom and does not change source authority."
+
+      - alert: TSMHydrologyTelemetryMissing
+        expr: absent(tsm_hydrology_api_responses_total)
+        for: 10m
+        labels:
+          severity: critical
+          tier: observability
+        annotations:
+          summary: "TSM hydrology telemetry is missing"
+          description: "No hydrology API response metric is visible to Prometheus. Treat telemetry freshness as unknown until the scrape path is restored."
