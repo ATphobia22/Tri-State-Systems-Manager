@@ -34,7 +34,7 @@
       "msi",
       "dmg"
     ],
-    "createUpdaterArtifacts": true,
+    "createUpdaterArtifacts": false,
     "shortDescription": "Community-scale engineering and spatial decision support",
     "longDescription": "Tri-State Systems Manager desktop console for geospatial, hydrologic, engineering, evidence, and community decision-support workflows.",
     "category": "Utility",
