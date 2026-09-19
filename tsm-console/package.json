@@ -77,7 +77,8 @@
     "test:apple-maps": "vitest run tests/apple-maps-context-contract.test.ts",
     "test:data-fabrics": "vitest run tests/data-fabric-registry.test.ts server/ingestion/nws-weather.test.mjs",
     "check:terrain-runtime": "node ../scripts/ci/validate-terrain-runtime.mjs",
-    "test:evidence-signer": "node ../scripts/evidence/test-sign-evidence.mjs"
+    "test:evidence-signer": "node ../scripts/evidence/test-sign-evidence.mjs",
+    "test:loma-signing": "node ../scripts/evidence/test-loma-signing.mjs"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.0",
