@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.1.0",
-  "generatedAt": "2026-09-19T16:00:00Z",
+  "generatedAt": "2026-09-19T11:26:08Z",
   "scope": "Point Township / lower Wabash-Ohio community, expandable across Tri-State River Valley",
   "assets": [
     {
@@ -321,7 +321,7 @@
       "freshnessPolicy": "Use as derived/reference geometry; do not promote to survey or current authoritative building geometry. Prefer newer permitted local authoritative datasets when available.",
       "verification": {
         "state": "VERIFIED",
-        "checkedAt": "2026-09-19T16:00:00Z",
+        "checkedAt": "2026-09-19T11:26:08Z",
         "sourceHashPolicy": "Hash service metadata and any materialized feature packages; retain lidar year and county attributes."
       }
     }
