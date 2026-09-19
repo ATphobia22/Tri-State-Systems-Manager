@@ -9,7 +9,18 @@
     "upstream": { "type": "object", "required": ["boundary_type", "provenance"], "properties": { "boundary_type": { "enum": ["FLOW", "STAGE_FLOW"] }, "provenance": { "type": "string", "minLength": 1 } } },
     "downstream": { "type": "object", "required": ["boundary_type", "provenance"], "properties": { "boundary_type": { "enum": ["STAGE", "NORMAL_DEPTH", "RATING_CURVE"] }, "provenance": { "type": "string", "minLength": 1 } } },
     "manning_n": { "type": "object", "required": ["source", "values"], "properties": { "source": { "type": "string", "minLength": 1 }, "values": { "type": "array", "items": { "type": "number", "exclusiveMinimum": 0 }, "minItems": 1 } } },
-    "compensatory_storage_ratio": { "type": "object", "required": ["minimum", "maximum"], "properties": { "minimum": { "const": 1.2 }, "maximum": { "const": 1.3 } } },
-    "no_rise_tolerance_ft": { "const": 0 }
-  }
+    "compensatory_storage_ratio": {
+      "type": "object",
+      "required": ["minimum", "maximum"],
+      "properties": {
+        "minimum": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+        "maximum": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+        "authority_evidence_ref": { "type": ["string", "null"], "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "no_rise_tolerance_ft": { "type": ["number", "null"], "minimum": 0 },
+    "no_rise_authority_evidence_ref": { "type": ["string", "null"], "minLength": 1 }
+  },
+  "additionalProperties": false
 }
