@@ -9,4 +9,13 @@ describe('TSM data-fabric registry', () => {
   });
   it('keeps buildings derived rather than authoritative', () => expect(TSM_DATA_FABRICS.find((f) => f.id === 'buildings')?.authority).toBe('DERIVED'));
   it('keeps H3 derived/index-only', () => expect(TSM_DATA_FABRICS.find((f) => f.id === 'spatial-index')?.authority).toBe('DERIVED'));
+  it('requires authoritative bathymetry as a distinct evidence fabric', () => {
+    const fabric = TSM_DATA_FABRICS.find((f) => f.id === 'bathymetry-topobathy');
+    expect(fabric?.authority).toBe('AUTHORITATIVE');
+    expect(fabric?.implemented).toBe(true);
+    expect(fabric?.notes).toMatch(/LiDAR\/DEM water surfaces are not treated as channel-bed truth/);
+  });
+  it('registers the fail-closed engineering evidence pipeline', () => {
+    expect(TSM_DATA_FABRICS.find((f) => f.id === 'engineering-evidence-pipeline')?.plane).toBe('GOVERNANCE_DECISION');
+  });
 });
