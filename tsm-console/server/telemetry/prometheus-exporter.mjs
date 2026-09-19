@@ -4,17 +4,17 @@ const HELP = new Map([
   ['ptdt_usgs_gauge_stage_feet', 'Latest accepted USGS gage-height observation in feet, relative to the source gage datum.'],
   ['ptdt_usgs_discharge_cfs', 'Latest accepted USGS discharge observation in cubic feet per second.'],
   ['tsm_hydrology_api_responses_total', 'Hydrology API request outcomes by source and bounded transport status.'],
-  ['tsm_hydrology_api_request_latency_seconds', 'Observed hydrology API request latency in seconds, exposed as a quantile-labelled operational gauge.'],
-  ['tsm_hydrology_circuit_breaker_state', 'Current hydrology source circuit state: CLOSED, HALF_OPEN, or OPEN.'],
+  ['tsm_hydrology_api_request_latency_seconds', 'Observed hydrology API request latency in seconds, exposed as an operational gauge.'],
+  ['tsm_hydrology_circuit_breaker_state', 'Current hydrology source circuit state.'],
 ]);
 
 function metricKey(name, labels) {
   const ordered = Object.entries(labels ?? {}).sort(([a], [b]) => a.localeCompare(b));
-  return \`${name}{\${ordered.map(([key, value]) => \`${key}="\${String(value).replaceAll('\\\\', '\\\\\\\\').replaceAll('"', '\\\\"')}"\`).join(',')}}\`;
+  return name + '{' + ordered.map(([key, value]) => key + '=\"' + String(value).replaceAll('\\\\', '\\\\\\\\').replaceAll('\\"', '\\\\\"') + '\"').join(',') + '}';
 }
 
 export function observeTelemetryMetric(name, value, labels = {}) {
-  if (!/^[a-zA-Z_:][a-zA-Z0-9_:]*$/.test(name)) throw new TypeError(\`invalid Prometheus metric name: \${name}\`);
+  if (!/^[a-zA-Z_:][a-zA-Z0-9_:]*$/.test(name)) throw new TypeError('invalid Prometheus metric name: ' + name);
   if (!Number.isFinite(value)) throw new TypeError('metric value must be finite');
   metrics.set(metricKey(name, labels), value);
 }
@@ -29,10 +29,10 @@ export function renderPrometheusMetrics() {
   const lines = [];
   for (const [name, help] of HELP) {
     const type = name.endsWith('_total') ? 'counter' : 'gauge';
-    lines.push(\`# HELP \${name} \${help}\`, \`# TYPE \${name} \${type}\`);
-    for (const [key, value] of metrics) if (key.startsWith(\`\${name}{\`)) lines.push(\`\${key} \${value}\`);
+    lines.push('# HELP ' + name + ' ' + help, '# TYPE ' + name + ' ' + type);
+    for (const [key, value] of metrics) if (key.startsWith(name + '{')) lines.push(key + ' ' + value);
   }
-  return \`\${lines.join('\\n')}\\n\`;
+  return lines.join('\n') + '\n';
 }
 
 export function resetPrometheusMetrics() { metrics.clear(); }
