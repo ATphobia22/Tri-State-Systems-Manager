@@ -35,6 +35,11 @@ jobs:
         run: |
           set -euo pipefail
           if gh release view "$TAG" >/dev/null 2>&1; then
+            existing_draft="$(gh release view "$TAG" --json isDraft --jq .isDraft)"
+            if [ "$existing_draft" != "$DRAFT" ]; then
+              echo "Release $TAG exists with draft=$existing_draft but workflow requested draft=$DRAFT." >&2
+              exit 1
+            fi
             release_id="$(gh release view "$TAG" --json databaseId --jq .databaseId)"
           else
             draft_flag=""
@@ -108,7 +113,10 @@ jobs:
           $ErrorActionPreference = "Stop"
           $files = Get-ChildItem -Path "tsm-console/src-tauri/target/release/bundle" -Recurse -File -Include *.exe,*.msi
           if (-not $files) { throw "No Windows installer artifacts were produced." }
-          $signtool = Get-Command signtool.exe -ErrorAction Stop
+          $signtool = Get-ChildItem "$env:ProgramFiles(x86)\Windows Kits\10\bin" -Filter signtool.exe -Recurse -ErrorAction SilentlyContinue |
+            Sort-Object FullName -Descending |
+            Select-Object -First 1
+          if (-not $signtool) { throw "Windows SDK SignTool was not found." }
           foreach ($file in $files) {
             & $signtool.Source verify /pa /all /tw $file.FullName
             if ($LASTEXITCODE -ne 0) { throw "Authenticode verification failed: $($file.FullName)" }
@@ -126,7 +134,7 @@ jobs:
         run: gh release upload "$env:TAG" "tsm-console/src-tauri/target/release/TSM-Windows-SHA256SUMS.txt" --clobber
 
   macos:
-    needs: create-release
+    needs: [create-release, windows]
     runs-on: macos-latest
     env:
       TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
@@ -174,7 +182,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/private_keys"
           printf '%s' "$APPLE_API_KEY_P8" | base64 --decode > "$RUNNER_TEMP/private_keys/AuthKey_$APPLE_API_KEY.p8"
           echo "APPLE_API_KEY_PATH=$RUNNER_TEMP/private_keys/AuthKey_$APPLE_API_KEY.p8" >> "$GITHUB_ENV"
-      - run: npm ci --ignore-scripts
+      - run: npm ci
         working-directory: tsm-console
       - run: npm run build
         working-directory: tsm-console
