@@ -24,6 +24,11 @@ on:
       - 'tsm-console/src/integrations/mapillary/**'
       - 'tsm-console/tests/mapillary-evidence-contract.test.ts'
       - '.github/workflows/geospatial-ci.yml'
+      - 'artifacts/tsm-geospatial-tile-fabric-v1.json'
+      - 'tsm-console/server/ingestion/**'
+      - 'tsm-console/src/lib/data-fabric-registry.ts'
+      - 'tsm-console/src/lib/map-layers.ts'
+      - 'tsm-console/tests/data-fabric-registry.test.ts'
   push:
     branches: [main]
     paths:
