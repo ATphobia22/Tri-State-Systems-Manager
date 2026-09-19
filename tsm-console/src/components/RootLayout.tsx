@@ -27,7 +27,7 @@ export default function RootLayout() {
           <div><div style={{ fontWeight: 700, letterSpacing: '0.05em', fontSize: '0.95rem', color: '#38bdf8' }}>TRI-STATE SYSTEMS MANAGER // RIVER VALLEY ENGINEERING CONSOLE</div><div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: 2 }}>{community?.region ?? 'Tri-State River Valley'} · {community?.county ?? 'Posey County'} · Human Authority Final</div></div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.75rem', fontFamily: 'ui-monospace, monospace' }}>
             {community && <div><span style={{ color: '#64748b' }}>Scope </span><span style={{ color: '#38bdf8', fontWeight: 600 }}>{community.township}</span></div>}
-            <div><span style={{ color: '#64748b' }}>Auth </span><span style={{ color: auth ? '#34d399' : '#f87171' }}>{auth ? `${auth.uid.slice(0, 16)}…` : 'NONE'}</span></div>
+            <div><span style={{ color: '#64748b' }}>Access </span><span style={{ color: auth ? '#34d399' : '#38bdf8' }}>{auth ? `Authenticated: ${auth.uid.slice(0, 16)}…` : 'PUBLIC — no account required'}</span></div>
           </div>
         </div>
       </header>
