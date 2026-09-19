@@ -35,7 +35,7 @@ export interface WebGpuInitializationResult {
   readonly reason?: string;
 }
 
-export const OPEN_WORLD_WEBGPU_WGSL = /* wgsl */ \`
+export const OPEN_WORLD_WEBGPU_WGSL = /* wgsl */ `
 struct Uniforms {
   inverseViewProjection : mat4x4<f32>,
   cameraTime : vec4<f32>,
@@ -172,7 +172,7 @@ fn fs_main(@location(0) uv : vec2<f32>) -> @location(0) vec4<f32> {
   color = mix(color, vec3<f32>(0.72, 0.80, 0.90), clamp(fog, 0.0, 0.75));
   return vec4<f32>(color, 1.0);
 }
-\`;
+`;
 
 const UNIFORM_BUFFER_SIZE_BYTES = 128;
 
@@ -225,7 +225,7 @@ export class TsmWebGpuRayTracer {
         device.destroy();
         return {
           ok: false,
-          reason: errors.map((message) => \`WGSL \${message.lineNum}:\${message.linePos} \${message.message}\`).join('; '),
+          reason: errors.map((message) => `WGSL \${message.lineNum}:\${message.linePos} \${message.message}`).join('; '),
         };
       }
 
