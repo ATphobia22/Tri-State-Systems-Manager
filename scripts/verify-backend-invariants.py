@@ -10,6 +10,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from backend.gov.site_constants import HORIZONTAL_CRS, MASTER_SEAL, assert_invariants
+from backend.governance.archimedes_engine import ArchimedesEngine
 from backend.api.v1.hecras_solver import run_hecras_2d
 from backend.api.v1.schemas import (
     CompensatoryStorageRequest,
@@ -23,6 +24,13 @@ def main() -> int:
     assert_invariants()
     assert HORIZONTAL_CRS == "EPSG:2966"
     assert len(MASTER_SEAL) == 64
+    archimedes = ArchimedesEngine()
+    screening = archimedes.evaluate_jurisdiction_compliance(
+        "IN", 374.0, 375.0, floodway_delta_ft=0.10, authoritative_model_id="VERIFY-ARCHIMEDES"
+    )
+    assert screening["screening_status"] == "SCREENED_NO_TRIGGER"
+    assert screening["regulatory_determination"] is None
+    assert screening["human_review_required"] is True
 
     # Explicit test fixture only; these values are not application/site defaults.
     SiteElevations(

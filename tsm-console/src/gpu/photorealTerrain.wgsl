@@ -1,62 +1,88 @@
-// PTDT v35 — WebGPU Terrain Rendering (non-mutating)
-// DEM ray-march + water mask relative to locked BFE 375.0 / LAG 377.2
-// QL2 vertical accuracy bound: RMSEZ ≤ 0.328 ft (USGS 3DEP)
-// Writes only to transient buffers — never to PostGIS / HEC-RAS state
+// TSM WebGPU terrain presentation shader.
+//
+// Source-bound only: no hard-coded BFE/LAG/FFE/berm elevations and no datum
+// inference. The host application supplies a verified height encoding,
+// horizontal bounds, vertical datum and presentation water stage.
+// This shader writes only transient pixels; it never mutates evidence/model state.
 
 struct Uniforms {
-  viewProj: mat4x4<f32>,
   invViewProj: mat4x4<f32>,
-  cameraPos: vec3<f32>,
-  time: f32,
-  lightDir: vec3<f32>,
-  bfeFt: f32,          // locked 375.0
-  lagFt: f32,          // locked 377.2
-  stageFt: f32,        // dynamic presentation stage
-  resolution: vec2<f32>,
+  cameraTime: vec4<f32>,
+  waterScaleOffsetMaxDistance: vec4<f32>,
+  bounds: vec4<f32>,
+  resolution: vec4<f32>,
 };
 
 @group(0) @binding(0) var<uniform> u: Uniforms;
 @group(0) @binding(1) var heightTex: texture_2d<f32>;
 @group(0) @binding(2) var heightSamp: sampler;
 
-fn sampleHeight(xz: vec2<f32>) -> f32 {
-  let uv = xz * 0.008 + 0.5;
-  let h = textureSampleLevel(heightTex, heightSamp, uv, 0.0).r;
-  return h * 48.0 - 12.0;
+fn terrainUv(xz: vec2<f32>) -> vec2<f32> {
+  return clamp(
+    (xz - u.bounds.xy) / max(u.bounds.zw - u.bounds.xy, vec2<f32>(0.000001)),
+    vec2<f32>(0.0),
+    vec2<f32>(1.0)
+  );
 }
 
-fn terrainSDF(p: vec3<f32>) -> f32 {
-  return p.y - sampleHeight(p.xz);
+fn sampleHeightMeters(xz: vec2<f32>) -> f32 {
+  let encoded = textureSampleLevel(heightTex, heightSamp, terrainUv(xz), 0.0).r;
+  return encoded * u.waterScaleOffsetMaxDistance.y + u.waterScaleOffsetMaxDistance.z;
 }
 
-@compute @workgroup_size(8, 8, 1)
-fn cs_main(@builtin(global_invocation_id) id: vec3<u32>) {
-  // Optional pre-pass: displacement / FOST heat-map into transient storage only
+fn terrainNormal(xz: vec2<f32>) -> vec3<f32> {
+  let epsilon = max(max(u.bounds.z - u.bounds.x, u.bounds.w - u.bounds.y) / 4096.0, 0.01);
+  let hL = sampleHeightMeters(xz - vec2<f32>(epsilon, 0.0));
+  let hR = sampleHeightMeters(xz + vec2<f32>(epsilon, 0.0));
+  let hD = sampleHeightMeters(xz - vec2<f32>(0.0, epsilon));
+  let hU = sampleHeightMeters(xz + vec2<f32>(0.0, epsilon));
+  return normalize(vec3<f32>(hL - hR, 2.0 * epsilon, hD - hU));
 }
 
 @fragment
 fn fs_main(@builtin(position) frag: vec4<f32>) -> @location(0) vec4<f32> {
-  let uv = (frag.xy / u.resolution) * 2.0 - 1.0;
-  let ndc = vec4<f32>(uv.x, -uv.y, 1.0, 1.0);
-  let world = u.invViewProj * ndc;
-  let rd = normalize(world.xyz / world.w - u.cameraPos);
+  let resolution = max(u.resolution.xy, vec2<f32>(1.0));
+  let ndc = vec4<f32>((frag.xy / resolution) * 2.0 - 1.0, 1.0, 1.0);
+  var world = u.invViewProj * ndc;
+  world = world / world.w;
+  let rayOrigin = u.cameraTime.xyz;
+  let rayDirection = normalize(world.xyz - rayOrigin);
 
-  var d = 0.0;
-  var p = u.cameraPos;
+  var distanceAlongRay = 0.1;
+  var hit = false;
+  var hitPoint = rayOrigin;
   for (var i = 0; i < 192; i++) {
-    p = u.cameraPos + rd * d;
-    let ds = terrainSDF(p);
-    if (abs(ds) < 0.02 || d > 800.0) { break; }
-    d += ds * 0.85;
+    let p = rayOrigin + rayDirection * distanceAlongRay;
+    if (p.x < u.bounds.x || p.x > u.bounds.z || p.z < u.bounds.y || p.z > u.bounds.w) {
+      distanceAlongRay += 5.0;
+    } else {
+      let separation = p.y - sampleHeightMeters(p.xz);
+      if (separation <= 0.05) {
+        hit = true;
+        hitPoint = p;
+        break;
+      }
+      distanceAlongRay += clamp(separation * 0.45, 0.25, 25.0);
+    }
+    if (distanceAlongRay > u.waterScaleOffsetMaxDistance.w) { break; }
   }
 
-  let height = sampleHeight(p.xz);
-  // Water mask relative to locked BFE (presentation only)
-  let waterMask = select(0.0, 1.0, height < (u.stageFt - u.bfeFt) * 0.3048);
-  var col = mix(vec3<f32>(0.12, 0.22, 0.10), vec3<f32>(0.04, 0.25, 0.42), waterMask);
-  // Freeboard visual cue vs LAG
-  let freeboardHint = select(0.0, 0.15, height > (u.lagFt - u.bfeFt) * 0.3048);
-  col = mix(col, vec3<f32>(0.2, 0.6, 0.3), freeboardHint * (1.0 - waterMask));
-  col = col / (col + vec3<f32>(1.0)); // ACES-inspired
-  return vec4<f32>(pow(col, vec3<f32>(1.0 / 2.2)), 1.0);
+  if (!hit) {
+    let sky = mix(vec3<f32>(0.08, 0.16, 0.30), vec3<f32>(0.55, 0.72, 0.92), max(rayDirection.y, 0.0));
+    return vec4<f32>(sky, 1.0);
+  }
+
+  let normal = terrainNormal(hitPoint.xz);
+  let sun = normalize(vec3<f32>(0.5, 0.8, 0.3));
+  let lighting = max(dot(normal, sun), 0.15);
+  var color = vec3<f32>(0.38, 0.43, 0.31) * lighting;
+
+  let stageMeters = u.waterScaleOffsetMaxDistance.x;
+  if (stageMeters >= 0.0 && hitPoint.y < stageMeters) {
+    color = mix(color, vec3<f32>(0.02, 0.25, 0.45), 0.55);
+  }
+
+  let fog = clamp(1.0 - exp(-distanceAlongRay * 0.00015), 0.0, 0.75);
+  color = mix(color, vec3<f32>(0.72, 0.80, 0.90), fog);
+  return vec4<f32>(color, 1.0);
 }
