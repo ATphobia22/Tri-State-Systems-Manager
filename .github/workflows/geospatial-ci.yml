@@ -29,6 +29,12 @@ on:
       - 'tsm-console/src/lib/data-fabric-registry.ts'
       - 'tsm-console/src/lib/map-layers.ts'
       - 'tsm-console/tests/data-fabric-registry.test.ts'
+      - 'data/engineering/**'
+      - 'data/schemas/engineering-evidence-pipeline-v1.schema.json'
+      - 'data/schemas/hec-ras-2d-boundary-conditions.schema.json'
+      - 'data/grants/tsm-v35-grant-rules-v1.json'
+      - 'docs/ENGINEERING-EVIDENCE-PIPELINE.md'
+      - 'scripts/ci/validate-engineering-pipeline.mjs'
   push:
     branches: [main]
     paths:
