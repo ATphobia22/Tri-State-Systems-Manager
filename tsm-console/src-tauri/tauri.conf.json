@@ -29,7 +29,11 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis", "msi", "dmg"],
+    "targets": [
+      "nsis",
+      "msi",
+      "dmg"
+    ],
     "createUpdaterArtifacts": true,
     "shortDescription": "Community-scale engineering and spatial decision support",
     "longDescription": "Tri-State Systems Manager desktop console for geospatial, hydrologic, engineering, evidence, and community decision-support workflows.",
@@ -41,7 +45,9 @@
         "displayLanguageSelector": true
       },
       "wix": {
-        "language": ["en-US"]
+        "language": [
+          "en-US"
+        ]
       }
     },
     "macOS": {
@@ -51,6 +57,17 @@
           "width": 720,
           "height": 480
         }
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "",
+      "endpoints": [
+        "https://github.com/ATphobia22/Tri-State-Systems-Manager/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
       }
     }
   }
