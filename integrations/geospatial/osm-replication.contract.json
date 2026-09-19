@@ -1,0 +1,16 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://tri-state-systems-manager.example/schemas/osm-replication.contract.json",
+  "title":"TSM OpenStreetMap Replication Contract",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["source","input_format","replication_mode","license","attribution_required","destination"],
+  "properties":{
+    "source":{"const":"OpenStreetMap"},
+    "input_format":{"enum":["PBF","OSC_CHANGE"]},
+    "replication_mode":{"enum":["planet_snapshot","stateful_diffs"]},
+    "license":{"const":"ODbL"},
+    "attribution_required":{"const":true},
+    "destination":{"enum":["PostGIS","PMTiles","Martin"]}
+  }
+}
