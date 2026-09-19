@@ -81,6 +81,11 @@ jobs:
         working-directory: tsm-console
       - run: node scripts/configure-desktop-release.mjs
         working-directory: tsm-console
+      - name: Validate release updater configuration
+        env:
+          TSM_DESKTOP_RELEASE: "1"
+        run: node scripts/desktop-updater-check.mjs
+        working-directory: tsm-console
       - uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f
         env:
           GITHUB_TOKEN: ${{ github.token }}
