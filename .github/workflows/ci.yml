@@ -113,6 +113,10 @@ jobs:
           python-version: '3.12'
           cache: pip
           cache-dependency-path: backend/requirements.txt
+      - name: Detached Ed25519 signer verification
+        run: npm run test:evidence-signer
+      - name: Signed LOMA packet integration verification
+        run: npm run test:loma-signing
       - name: V35.1 deterministic LOMA packet
         run: |
           mkdir -p artifacts/v35.1

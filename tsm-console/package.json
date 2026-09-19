@@ -58,7 +58,7 @@
     "check:npx-policy": "node scripts/npx-policy-check.mjs",
     "generate:sbom": "node scripts/generate-sbom.mjs",
     "resync": "npm ci --no-audit --no-fund && node scripts/postinstall-check.mjs && node scripts/parse-check.mjs",
-    "ci": "npm run check:action-pins && npm run check:dependency-integrity && npm run check:npx-policy && npm run check:integrity && npm run check:capabilities && npm run check:workflow-boundaries && npm run check:artifacts && npm run check:quantum-boundary && npm run check:shell-safety && npm run check:site-consistency && npm run check:mock-data && npm run check:tile-health && npm run check:parse && npm run check:type && npm run check:geospatial && npm run check:government-sources && npm run check:live-fabric && npm run check:regulatory-rules && npm run check:engineering-pipeline && npm run check:schemas && npm run build && npm run check:client-bundle-secrets",
+    "ci": "npm run check:action-pins && npm run check:dependency-integrity && npm run check:npx-policy && npm run check:integrity && npm run check:capabilities && npm run check:workflow-boundaries && npm run check:artifacts && npm run check:quantum-boundary && npm run check:shell-safety && npm run check:site-consistency && npm run check:mock-data && npm run check:tile-health && npm run check:parse && npm run check:type && npm run check:geospatial && npm run check:government-sources && npm run check:live-fabric && npm run check:terrain-runtime && npm run check:regulatory-rules && npm run check:engineering-pipeline && npm run check:schemas && npm run build && npm run check:client-bundle-secrets",
     "ci:full": "npm run ci && npm run test:all && npm run test:geodetic && npm run test:ingestion && npm run test:production-gates && npm run ingest",
     "check:v35.1": "tsc -p tsconfig.v35.1.json --noEmit",
     "sign:evidence": "node --experimental-strip-types ../scripts/sign-evidence.ts",
@@ -75,7 +75,10 @@
     "test:mapillary": "vitest run tests/mapillary-evidence-contract.test.ts",
     "test:geospatial-boundaries": "npm run test:mapillary && python3 -m unittest backend.tests.test_geospatial_contracts backend.tests.test_hec_ras_worker",
     "test:apple-maps": "vitest run tests/apple-maps-context-contract.test.ts",
-    "test:data-fabrics": "vitest run tests/data-fabric-registry.test.ts server/ingestion/nws-weather.test.mjs"
+    "test:data-fabrics": "vitest run tests/data-fabric-registry.test.ts server/ingestion/nws-weather.test.mjs",
+    "check:terrain-runtime": "node ../scripts/ci/validate-terrain-runtime.mjs",
+    "test:evidence-signer": "node ../scripts/evidence/test-sign-evidence.mjs",
+    "test:loma-signing": "node ../scripts/evidence/test-loma-signing.mjs"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.0",

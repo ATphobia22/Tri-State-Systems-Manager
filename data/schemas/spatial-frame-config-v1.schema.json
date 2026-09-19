@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:tsm:spatial-frame-config:v1",
+  "title": "TSM Spatial Frame Configuration",
+  "type": "object",
+  "required": ["schema_version", "spatial_framework", "governance"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "spatial_framework": {
+      "type": "object",
+      "required": ["horizontal_projected_crs", "vertical_reference", "transformation_policy", "source_layer_policy"],
+      "properties": {
+        "horizontal_projected_crs": {
+          "type": "object",
+          "required": ["identifier", "name", "unit", "role"],
+          "properties": {
+            "identifier": { "const": "EPSG:2966" },
+            "name": { "const": "NAD83 / Indiana West (US Survey Foot)" },
+            "unit": { "const": "US survey foot" },
+            "role": { "const": "TSM engineering/project frame" }
+          },
+          "additionalProperties": false
+        },
+        "vertical_reference": {
+          "type": "object",
+          "required": ["target_datum", "unit", "require_source_datum", "require_geoid_or_datum_transform_metadata"],
+          "properties": {
+            "target_datum": { "const": "NAVD88" },
+            "unit": { "const": "foot" },
+            "require_source_datum": { "const": true },
+            "require_geoid_or_datum_transform_metadata": { "const": true },
+            "unsupported_fallbacks": { "type": "object", "minProperties": 1 }
+          },
+          "additionalProperties": false
+        },
+        "transformation_policy": {
+          "type": "object",
+          "required": ["horizontal", "vertical", "raster_resampling"],
+          "properties": {
+            "horizontal": { "type": "string", "minLength": 1 },
+            "vertical": { "type": "string", "minLength": 1 },
+            "raster_resampling": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": false
+        },
+        "source_layer_policy": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["source_layer", "source_crs", "target_crs", "source_vertical_reference", "status"],
+            "properties": {
+              "source_layer": { "type": "string", "minLength": 1 },
+              "source_crs": { "type": "string", "minLength": 1 },
+              "target_crs": { "const": "EPSG:2966" },
+              "source_vertical_reference": { "type": "string", "minLength": 1 },
+              "status": { "type": "string", "minLength": 1 }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "governance": {
+      "type": "object",
+      "required": ["authoritative_source_metadata_required", "content_hash_required", "retrieval_timestamp_required", "human_review_required_for_regulatory_use"],
+      "properties": {
+        "authoritative_source_metadata_required": { "const": true },
+        "content_hash_required": { "const": true },
+        "retrieval_timestamp_required": { "const": true },
+        "human_review_required_for_regulatory_use": { "const": true }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
