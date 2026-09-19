@@ -8,9 +8,21 @@ on:
         required: true
         default: false
         type: boolean
+  pull_request:
+    paths:
+      - 'backend/geospatial/**'
+      - 'backend/tests/test_geospatial_contracts.py'
+      - 'integrations/geospatial/**'
+      - 'integrations/cityengine/**'
+      - 'integrations/registry/**'
+      - 'scripts/geospatial/**'
+      - 'scripts/ci/**'
+      - '.github/workflows/geospatial-ci.yml'
   push:
     branches: [main]
     paths:
+      - 'backend/geospatial/**'
+      - 'backend/tests/test_geospatial_contracts.py'
       - 'integrations/geospatial/**'
       - 'integrations/cityengine/**'
       - 'integrations/registry/**'
@@ -37,6 +49,8 @@ jobs:
           node-version: '22'
       - name: Validate capability registry
         run: node scripts/ci/validate-capability-registry.mjs
+      - name: Run geospatial backend contract tests
+        run: python3 -m unittest backend.tests.test_geospatial_contracts
       - name: Validate 3D asset manifests
         run: node scripts/ci/validate-artifact-manifests.mjs
       - name: Validate geospatial processing contract
