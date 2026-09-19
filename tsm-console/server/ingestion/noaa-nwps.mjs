@@ -39,7 +39,7 @@ export async function fetchNoaaStageFlow({ identifier, product = 'observed', sig
   const url = `${BASE_URL}${endpoint}`;
   try {
     const retrievedAt = new Date().toISOString();
-    const payload = await request(url, { signal, timeoutMs: 10000, maxBytes: 2_000_000 });
+    const payload = await request(url, { signal, timeoutMs: 10000, maxBytes: 2_000_000, telemetryDomain: 'hydrology', sourceId: `NOAA-NWPS-${identifier}` });
     const records = normalizeNoaaStageFlow({ identifier, product, payload, retrievedAt });
     recordSourceHealth(`NOAA-NWPS-${identifier}`, { ok: true, recordCount: records.length });
     return records;
