@@ -70,7 +70,9 @@
     "check:government-sources": "node scripts/geospatial/validate-government-sources.mjs",
     "check:regulatory-rules": "node ../scripts/ci/validate-regulatory-rules.mjs",
     "check:live-fabric": "node ../scripts/ci/validate-live-fabric.mjs",
-    "check:action-pins": "node ../scripts/ci/validate-action-pins.mjs"
+    "check:action-pins": "node ../scripts/ci/validate-action-pins.mjs",
+    "test:mapillary": "vitest run tests/mapillary-evidence-contract.test.ts",
+    "test:geospatial-boundaries": "npm run test:mapillary && python3 -m unittest backend.tests.test_geospatial_contracts backend.tests.test_hec_ras_worker"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.0",
