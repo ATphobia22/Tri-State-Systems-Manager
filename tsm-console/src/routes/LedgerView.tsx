@@ -131,7 +131,7 @@ export default function LedgerView() {
       </p>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: '1.5rem' }}>
-        <div style={{ minWidth: 0 }}>
+        <div style={{ minWidth: 0 }} aria-label="Human Authority Sign Gate">
           <HumanSignGatePanel />
         </div>
         <div style={{ background: '#1e293b', borderRadius: 16, overflow: 'hidden' }}>
