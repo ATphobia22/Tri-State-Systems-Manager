@@ -4,7 +4,7 @@ global:
   scrape_timeout: 10s
 
 rule_files:
-  - /etc/prometheus/rules/tsm-hydrologic-alerts.yml
+  - /config/rules/tsm-hydrologic-alerts.yml
 
 scrape_configs:
   - job_name: tsm-telemetry
