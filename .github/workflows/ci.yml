@@ -153,6 +153,19 @@ jobs:
           else
             echo 'No Prometheus runtime configuration committed; exporter contract remains application-owned.'
           fi
+      - name: Validate Prometheus alerting rules
+        working-directory: .
+        run: |
+          docker run --rm \
+            --entrypoint=/bin/promtool \
+            -v "$PWD/ops/prometheus:/config:ro" \
+            prom/prometheus:v3.14.0@sha256:5ce7540c3c00ef4ab0c9d2c995c6a5b9c421f44b4a115d97a2c7af3b1c21cbb0 \
+            check rules /config/rules/tsm-hydrologic-alerts.yml
+
+      - name: Validate spatial topology contract
+        working-directory: .
+        run: node scripts/ci/validate-spatial-topology.mjs
+
       - name: Package production artifact for attestation
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: tar -czf artifacts/tsm-console-dist.tar.gz -C dist .

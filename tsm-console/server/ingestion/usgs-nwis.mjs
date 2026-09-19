@@ -94,7 +94,7 @@ export async function fetchUsgsInstantaneousValues({ stationIds, parameterCodes 
   if (process.env.USGS_API_KEY) url.searchParams.set('api_key', process.env.USGS_API_KEY);
   const retrievedAt = new Date().toISOString();
   try {
-    const payload = await request(url, { signal, timeoutMs: 10000, maxBytes: 2_000_000 });
+    const payload = await request(url, { signal, timeoutMs: 10000, maxBytes: 2_000_000, telemetryDomain: 'hydrology', sourceId: 'USGS-NWIS' });
     const records = parseUsgsLatestContinuous(payload, retrievedAt).filter((record) => stationIds.includes(record.provenance.stationId) && parameterCodes.includes(record.provenance.parameterCode));
     if (!records.length) throw new TypeError('USGS latest-continuous returned no requested observations');
     for (const stationId of stationIds) recordSourceHealth(`USGS-NWIS-${stationId}`, { ok: records.some((r) => r.provenance.stationId === stationId), recordCount: records.filter((r) => r.provenance.stationId === stationId).length });
