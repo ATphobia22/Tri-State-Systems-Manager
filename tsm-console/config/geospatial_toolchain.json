@@ -68,6 +68,51 @@
       "role": "architecture/dependency-graph reference only",
       "upstream": "https://github.com/mercator-hq/mercator",
       "sourceIntegration": "do-not-vendor-application"
+    },
+    "mapillary-js": {
+      "role": "street-level observational evidence viewer",
+      "upstream": "https://github.com/mapillary/mapillary-js",
+      "license": "MIT",
+      "authority": "observational_reference_only",
+      "humanReviewRequired": true
+    },
+    "baremaps": {
+      "role": "offline OSM/data ingestion and vector-tile generation",
+      "upstream": "https://github.com/baremaps/baremaps",
+      "license": "BSD-3-Clause",
+      "dataLicense": "ODbL for OSM-derived data",
+      "attributionRequired": true
+    },
+    "3d-tiles-tools": {
+      "role": "OGC 3D Tiles conversion/optimization/validation tooling",
+      "upstream": "https://github.com/CesiumGS/3d-tiles-tools",
+      "license": "Apache-2.0",
+      "authority": "visualization_and_interchange_only"
+    },
+    "hec-commander": {
+      "role": "HEC-RAS/HEC-HMS automation reference; isolated worker integration only",
+      "upstream": "https://github.com/billk-FM/HEC-Commander",
+      "authority": "automation_reference_only",
+      "humanReviewRequired": true
+    },
+    "rayshader": {
+      "role": "analytical terrain/hillshade export",
+      "upstream": "https://github.com/tylermorganwall/rayshader",
+      "license": "GPL-3.0",
+      "deploymentBoundary": "offline_analysis",
+      "authority": "derived_analysis_only"
+    },
+    "openusd-hydra": {
+      "role": "native engineering workstation/OpenUSD/Hydra reference",
+      "upstream": "https://github.com/PixarAnimationStudios/OpenUSD",
+      "deploymentBoundary": "native_workstation",
+      "authority": "presentation_only"
+    },
+    "arcgis-maps-sdk-qt": {
+      "role": "native GIS companion client reference",
+      "upstream": "https://github.com/Esri/arcgis-maps-sdk-toolkit-qt",
+      "deploymentBoundary": "native_workstation",
+      "authority": "presentation_and_analysis_client"
     }
   },
   "policy": {
@@ -78,6 +123,10 @@
     "ai_derived_results_require_human_review": true,
     "osm_derived_tiles_require_visible_attribution": true,
     "agpl_services_must_remain_process_isolated": true,
-    "3d_tiles_renderer_is_visualization_only": true
+    "3d_tiles_renderer_is_visualization_only": true,
+    "observational_imagery_requires_human_review": true,
+    "historical_records_are_reference_evidence": true,
+    "hec_model_results_require_input_and_result_hashes": true,
+    "presentation_outputs_cannot_be_promoted_to_evidence": true
   }
 }

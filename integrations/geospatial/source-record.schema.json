@@ -1,0 +1,22 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://tri-state-systems-manager.example/schemas/source-record.schema.json",
+  "title":"TSM Geospatial Source Record",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["dataset_id","title","service_url","service_type","source_agency","authority_class","spatial_reference","temporal_provenance"],
+  "properties":{
+    "dataset_id":{"type":"string","minLength":1},
+    "title":{"type":"string","minLength":1},
+    "service_url":{"type":"string","format":"uri","pattern":"^https://"},
+    "service_type":{"enum":["FeatureServer","ImageServer","MapServer","WFS","COG","download"]},
+    "source_agency":{"type":"string","minLength":1},
+    "authority_class":{"enum":["authoritative_government","derived_government","reference"]},
+    "spatial_reference":{"type":"string","minLength":1},
+    "vertical_datum":{"type":["string","null"]},
+    "resolution":{"type":["string","null"]},
+    "acquisition_date":{"type":["string","null"],"format":"date-time"},
+    "metadata_url":{"type":["string","null"],"format":"uri","pattern":"^https://"},
+    "temporal_provenance":{"$ref":"temporal-provenance.schema.json"}
+  }
+}

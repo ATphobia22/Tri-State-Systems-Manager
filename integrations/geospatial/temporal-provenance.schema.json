@@ -1,0 +1,13 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://tri-state-systems-manager.example/schemas/temporal-provenance.schema.json",
+  "title":"TSM Temporal Provenance",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["valid_time","knowledge_time"],
+  "properties":{
+    "valid_time":{"type":"string","format":"date-time"},
+    "knowledge_time":{"type":"string","format":"date-time"},
+    "change_time":{"type":["string","null"],"format":"date-time"}
+  }
+}

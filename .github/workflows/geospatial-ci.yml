@@ -8,14 +8,38 @@ on:
         required: true
         default: false
         type: boolean
-  push:
-    branches: [main]
+  pull_request:
     paths:
+      - 'backend/geospatial/**'
+      - 'backend/engineering/**'
+      - 'backend/tests/test_geospatial_contracts.py'
+      - 'backend/tests/test_hec_ras_worker.py'
       - 'integrations/geospatial/**'
       - 'integrations/cityengine/**'
       - 'integrations/registry/**'
       - 'scripts/geospatial/**'
       - 'scripts/ci/**'
+      - 'tsm-console/package.json'
+      - 'tsm-console/package-lock.json'
+      - 'tsm-console/src/integrations/mapillary/**'
+      - 'tsm-console/tests/mapillary-evidence-contract.test.ts'
+      - '.github/workflows/geospatial-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'backend/geospatial/**'
+      - 'backend/engineering/**'
+      - 'backend/tests/test_geospatial_contracts.py'
+      - 'backend/tests/test_hec_ras_worker.py'
+      - 'integrations/geospatial/**'
+      - 'integrations/cityengine/**'
+      - 'integrations/registry/**'
+      - 'scripts/geospatial/**'
+      - 'scripts/ci/**'
+      - 'tsm-console/package.json'
+      - 'tsm-console/package-lock.json'
+      - 'tsm-console/src/integrations/mapillary/**'
+      - 'tsm-console/tests/mapillary-evidence-contract.test.ts'
       - '.github/workflows/geospatial-ci.yml'
 
 permissions:
@@ -35,8 +59,18 @@ jobs:
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '22'
+          cache: npm
+          cache-dependency-path: tsm-console/package-lock.json
+      - name: Install locked console dependencies
+        working-directory: tsm-console
+        run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
       - name: Validate capability registry
         run: node scripts/ci/validate-capability-registry.mjs
+      - name: Run geospatial backend contract tests
+        run: python3 -m unittest backend.tests.test_geospatial_contracts backend.tests.test_hec_ras_worker
+      - name: Run Mapillary evidence contract tests
+        working-directory: tsm-console
+        run: npm run test:mapillary
       - name: Validate 3D asset manifests
         run: node scripts/ci/validate-artifact-manifests.mjs
       - name: Validate geospatial processing contract
