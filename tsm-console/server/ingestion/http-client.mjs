@@ -18,7 +18,7 @@ function recordHydrologyMetric(options, sourceId, status, startedAt) {
 
 function recordCircuitMetric(options, sourceId, circuitState) {
   if (options.telemetryDomain !== 'hydrology') return;
-  observeTelemetryMetric('tsm_hydrology_circuit_breaker_state', circuitState === 'open' ? 1 : 0, { source_id: sourceId, state: circuitState === 'open' ? 'OPEN' : circuitState === 'half-open' ? 'HALF_OPEN' : 'CLOSED' });
+  for (const state of ['CLOSED', 'HALF_OPEN', 'OPEN']) {\n    observeTelemetryMetric('tsm_hydrology_circuit_breaker_state', state === (circuitState === 'open' ? 'OPEN' : circuitState === 'half-open' ? 'HALF_OPEN' : 'CLOSED') ? 1 : 0, { source_id: sourceId, state });\n  }
 }
 
 export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sleep, circuitBreaker = defaultCircuitBreaker } = {}) {
