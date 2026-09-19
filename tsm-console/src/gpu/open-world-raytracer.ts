@@ -258,7 +258,7 @@ export class TsmWebGpuRayTracer {
         primitive: { topology: 'triangle-list' },
       });
 
-      this.isInitialized = true;
+      this.initialized = true;
       return { ok: true };
     } catch (error) {
       this.dispose();
