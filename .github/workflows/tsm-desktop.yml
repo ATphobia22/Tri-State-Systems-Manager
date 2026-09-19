@@ -50,6 +50,7 @@ jobs:
           cache: npm
           cache-dependency-path: tsm-console/package-lock.json
       - uses: dtolnay/rust-toolchain@stable
+      - run: cargo install tauri-cli --version 2.11.4 --locked
       - run: npm ci --ignore-scripts
       - run: npm run build
       - run: npm run tauri build -- --bundles msi,nsis
