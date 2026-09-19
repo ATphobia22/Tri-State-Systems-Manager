@@ -3,24 +3,79 @@
   "$id": "urn:tsm:hec-ras-2d-boundary-conditions:v1",
   "title": "TSM HEC-RAS 2D Boundary Conditions",
   "type": "object",
-  "required": ["gage", "upstream", "downstream", "manning_n", "compensatory_storage_ratio"],
+  "required": ["gage", "upstream", "downstream", "manning_n"],
   "properties": {
-    "gage": { "type": "object", "required": ["usgs_id", "nws_id", "stage_source_order"], "properties": { "usgs_id": { "const": "03378500" }, "nws_id": { "const": "NHRI3" }, "stage_source_order": { "const": ["NOAA_NWPS", "USGS_WATER_DATA"] } } },
-    "upstream": { "type": "object", "required": ["boundary_type", "provenance"], "properties": { "boundary_type": { "enum": ["FLOW", "STAGE_FLOW"] }, "provenance": { "type": "string", "minLength": 1 } } },
-    "downstream": { "type": "object", "required": ["boundary_type", "provenance"], "properties": { "boundary_type": { "enum": ["STAGE", "NORMAL_DEPTH", "RATING_CURVE"] }, "provenance": { "type": "string", "minLength": 1 } } },
-    "manning_n": { "type": "object", "required": ["source", "values"], "properties": { "source": { "type": "string", "minLength": 1 }, "values": { "type": "array", "items": { "type": "number", "exclusiveMinimum": 0 }, "minItems": 1 } } },
-    "compensatory_storage_ratio": {
+    "gage": {
       "type": "object",
-      "required": ["minimum", "maximum"],
+      "required": ["usgs_id", "nws_id", "stage_source_order"],
       "properties": {
-        "minimum": { "type": ["number", "null"], "exclusiveMinimum": 0 },
-        "maximum": { "type": ["number", "null"], "exclusiveMinimum": 0 },
-        "authority_evidence_ref": { "type": ["string", "null"], "minLength": 1 }
+        "usgs_id": { "const": "03378500" },
+        "nws_id": { "const": "NHRI3" },
+        "stage_source_order": { "const": ["NOAA_NWPS", "USGS_WATER_DATA"] }
       },
       "additionalProperties": false
     },
-    "no_rise_tolerance_ft": { "type": ["number", "null"], "minimum": 0 },
-    "no_rise_authority_evidence_ref": { "type": ["string", "null"], "minLength": 1 }
+    "upstream": {
+      "type": "object",
+      "required": ["boundary_type", "provenance"],
+      "properties": {
+        "boundary_type": { "enum": ["FLOW", "STAGE_FLOW"] },
+        "provenance": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "downstream": {
+      "type": "object",
+      "required": ["boundary_type", "provenance"],
+      "properties": {
+        "boundary_type": { "enum": ["STAGE", "NORMAL_DEPTH", "RATING_CURVE"] },
+        "provenance": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "manning_n": {
+      "type": "object",
+      "required": ["source", "values"],
+      "properties": {
+        "source": { "type": "string", "minLength": 1 },
+        "values": {
+          "type": "array",
+          "items": { "type": "number", "exclusiveMinimum": 0 },
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "compensatory_storage": {
+      "description": "Optional, project-specific compensatory-storage evidence. Absence means not assessed; software must not infer a universal ratio.",
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "enum": ["NOT_ASSESSED", "ASSESSED", "NOT_APPLICABLE"]
+        },
+        "minimum": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+        "maximum": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+        "unit": { "type": ["string", "null"], "enum": ["ratio", null] },
+        "authority_evidence_ref": { "type": ["string", "null"], "minLength": 1 },
+        "methodology_evidence_ref": { "type": ["string", "null"], "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "no_rise_analysis": {
+      "description": "Optional project-specific no-rise evidence; never a universal zero-rise constant.",
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "enum": ["NOT_ASSESSED", "ASSESSED", "NOT_APPLICABLE"]
+        },
+        "tolerance_ft": { "type": ["number", "null"], "minimum": 0 },
+        "authority_evidence_ref": { "type": ["string", "null"], "minLength": 1 },
+        "analysis_evidence_ref": { "type": ["string", "null"], "minLength": 1 }
+      },
+      "additionalProperties": false
+    }
   },
   "additionalProperties": false
 }
