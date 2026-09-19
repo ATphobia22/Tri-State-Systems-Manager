@@ -4,13 +4,16 @@ const HELP = new Map([
   ['ptdt_usgs_gauge_stage_feet', 'Latest accepted USGS gage-height observation in feet, relative to the source gage datum.'],
   ['ptdt_usgs_discharge_cfs', 'Latest accepted USGS discharge observation in cubic feet per second.'],
   ['tsm_hydrology_api_responses_total', 'Hydrology API request outcomes by source and bounded transport status.'],
-  ['tsm_hydrology_api_request_latency_seconds', 'Observed hydrology API request latency in seconds, exposed as an operational gauge.'],
+  ['tsm_hydrology_api_request_latency_seconds', 'Latest observed hydrology API request latency in seconds.'],
   ['tsm_hydrology_circuit_breaker_state', 'Current hydrology source circuit state.'],
 ]);
 
 function metricKey(name, labels) {
   const ordered = Object.entries(labels ?? {}).sort(([a], [b]) => a.localeCompare(b));
-  return name + '{' + ordered.map(([key, value]) => key + '=\"' + String(value).replaceAll('\\\\', '\\\\\\\\').replaceAll('\\"', '\\\\\"') + '\"').join(',') + '}';
+  return name + '{' + ordered.map(([key, value]) => {
+    const escaped = String(value).replaceAll('\\', '\\\\').replaceAll('"', '\\"');
+    return key + '="' + escaped + '"';
+  }).join(',') + '}';
 }
 
 export function observeTelemetryMetric(name, value, labels = {}) {
@@ -35,4 +38,6 @@ export function renderPrometheusMetrics() {
   return lines.join('\n') + '\n';
 }
 
-export function resetPrometheusMetrics() { metrics.clear(); }
+export function resetPrometheusMetrics() {
+  metrics.clear();
+}
