@@ -168,7 +168,7 @@ export function HumanSignGatePanel({
     >
       <div style={{ marginBottom: '1rem' }}>
         <div style={{ color: '#fbbf24', fontSize: '0.7rem', fontWeight: 700 }}>
-          TSM CONTROL 4 · HUMAN AUTHORITY GATE
+          TSM CONTROL 4 · HUMAN AUTHORITY SIGN GATE
         </div>
         <h2 id="human-sign-gate-title" style={{ margin: '0.35rem 0', fontSize: '1.15rem' }}>
           Evidence publication authorization
