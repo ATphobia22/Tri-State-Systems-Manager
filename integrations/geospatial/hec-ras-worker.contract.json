@@ -1,0 +1,17 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://tri-state-systems-manager.example/schemas/hec-ras-worker.contract.json",
+  "title":"TSM Isolated HEC-RAS Worker Contract",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["scenario_id","model_package_sha256","input_manifest_sha256","worker_isolation","result_sha256","validation_state"],
+  "properties":{
+    "scenario_id":{"type":"string","minLength":1},
+    "model_package_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"},
+    "input_manifest_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"},
+    "worker_isolation":{"enum":["container","vm","dedicated_worker"]},
+    "result_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"},
+    "validation_state":{"enum":["unvalidated","validated","rejected"]},
+    "human_review_id":{"type":["string","null"]}
+  }
+}
