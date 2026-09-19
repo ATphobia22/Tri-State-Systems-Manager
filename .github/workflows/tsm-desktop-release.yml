@@ -102,6 +102,28 @@ jobs:
           args: --bundles nsis,msi
           uploadUpdaterJson: true
           uploadUpdaterSignatures: true
+      - name: Verify Windows Authenticode signatures
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $files = Get-ChildItem -Path "tsm-console/src-tauri/target/release/bundle" -Recurse -File -Include *.exe,*.msi
+          if (-not $files) { throw "No Windows installer artifacts were produced." }
+          $signtool = Get-Command signtool.exe -ErrorAction Stop
+          foreach ($file in $files) {
+            & $signtool.Source verify /pa /all /tw $file.FullName
+            if ($LASTEXITCODE -ne 0) { throw "Authenticode verification failed: $($file.FullName)" }
+          }
+          $hashes = foreach ($file in $files) {
+            $hash = (Get-FileHash -Algorithm SHA256 -Path $file.FullName).Hash.ToLowerInvariant()
+            "$hash  $($file.Name)"
+          }
+          $hashes | Set-Content -Path "tsm-console/src-tauri/target/release/TSM-Windows-SHA256SUMS.txt" -Encoding ascii
+      - name: Upload Windows release checksums
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        shell: pwsh
+        run: gh release upload "$env:TAG" "tsm-console/src-tauri/target/release/TSM-Windows-SHA256SUMS.txt" --clobber
 
   macos:
     needs: create-release
@@ -183,3 +205,21 @@ jobs:
           args: --bundles dmg --target universal-apple-darwin
           uploadUpdaterJson: true
           uploadUpdaterSignatures: true
+      - name: Verify macOS code signature and notarization staple
+        shell: bash
+        run: |
+          set -euo pipefail
+          app="$(find tsm-console/src-tauri/target/universal-apple-darwin/release/bundle/macos -maxdepth 1 -type d -name '*.app' -print -quit)"
+          test -n "$app"
+          codesign --verify --deep --strict --verbose=2 "$app"
+          xcrun stapler validate "$app"
+      - name: Upload macOS release checksums
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          bundle_dir="tsm-console/src-tauri/target/universal-apple-darwin/release/bundle/macos"
+          shasum -a 256 "$bundle_dir"/*.dmg > "tsm-console/src-tauri/target/universal-apple-darwin/release/TSM-macOS-SHA256SUMS.txt"
+          gh release upload "$TAG" "tsm-console/src-tauri/target/universal-apple-darwin/release/TSM-macOS-SHA256SUMS.txt" --clobber
