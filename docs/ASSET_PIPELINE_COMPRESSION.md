@@ -13,7 +13,7 @@ Non-mutation rule: all compression outputs feed presentation only; never alter H
 - Source: `Blender_GIS_to_Math_Spline_Compressor.py`
 
 ## WebGPU Terrain
-- `photorealTerrain.wgsl`: ray-march DEM, water mask vs BFE 375.0, freeboard cue vs LAG 377.2
+- `photorealTerrain.wgsl`: source-bound DEM ray-march and presentation water mask; host supplies verified elevation encoding and stage
 - QL2 accuracy bound: RMSEZ ≤ 0.328 ft (USGS 3DEP)
 
 ## Cinematic
