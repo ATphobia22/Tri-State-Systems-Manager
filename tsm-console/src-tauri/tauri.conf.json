@@ -58,7 +58,41 @@
           "height": 480
         }
       }
-    }
+    },
+    "fileAssociations": [
+      {
+        "ext": [
+          "tsmproj"
+        ],
+        "name": "TSM Project",
+        "description": "Tri-State Systems Manager project",
+        "mimeType": "application/x-tsm-project",
+        "role": "Editor",
+        "rank": "Owner",
+        "exportedType": {
+          "identifier": "org.tristate.tsm.tsmproj",
+          "conformsTo": [
+            "public.data"
+          ]
+        }
+      },
+      {
+        "ext": [
+          "pmtiles"
+        ],
+        "name": "PMTiles Archive",
+        "description": "PMTiles geospatial archive",
+        "mimeType": "application/vnd.pmtiles",
+        "role": "Viewer",
+        "rank": "Alternate",
+        "exportedType": {
+          "identifier": "org.tristate.tsm.pmtiles",
+          "conformsTo": [
+            "public.data"
+          ]
+        }
+      }
+    ]
   },
   "plugins": {
     "updater": {
