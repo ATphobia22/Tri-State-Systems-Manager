@@ -11,4 +11,4 @@ scrape_configs:
     metrics_path: /metrics
     static_configs:
       - targets:
-          - \${TSM_TELEMETRY_TARGET:-127.0.0.1:8788}
+          - 127.0.0.1:8788
