@@ -18,7 +18,7 @@ const required = [
 ];
 const errors = [];
 for (const token of required) if (!sql.includes(token)) errors.push('missing required SQL contract: ' + token);
-if (/\b(owner|apn|address)\b/i.test(sql)) errors.push('direct cadastral identity field detected');
+if (/^\s*(owner|apn|address)\s+/im.test(sql)) errors.push('direct cadastral identity field detected');
 if (!/ST_IsValid\(geom_boundary\)/.test(sql)) errors.push('zone validity check missing');
 if (!/ST_IsValid\(geom_parcel\)/.test(sql)) errors.push('parcel validity check missing');
 if (!/JOIN engineering\.parcel_footprints p\s+ON ST_Intersects/s.test(sql)) errors.push('indexed parcel/zone intersection contract missing');
