@@ -1,0 +1,111 @@
+name: TSM Desktop
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [Multi-Installer]
+    paths:
+      - "tsm-console/**"
+      - ".github/workflows/tsm-desktop.yml"
+  pull_request:
+    branches: [main, Multi-Installer]
+    paths:
+      - "tsm-console/**"
+      - ".github/workflows/tsm-desktop.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tsm-desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tsm-console
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tsm-console/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: node scripts/desktop-updater-check.mjs
+
+  windows:
+    needs: validate
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: tsm-console
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tsm-console/package-lock.json
+      - uses: dtolnay/rust-toolchain@stable
+      - run: npm ci --ignore-scripts
+      - run: npm run build
+      - run: npm run tauri build -- --bundles msi,nsis
+      - name: Verify Windows bundles
+        shell: pwsh
+        run: |
+          if (-not (Get-ChildItem "src-tauri/target/release/bundle/msi/*.msi" -ErrorAction SilentlyContinue)) { throw "MSI missing" }
+          if (-not (Get-ChildItem "src-tauri/target/release/bundle/nsis/*.exe" -ErrorAction SilentlyContinue)) { throw "NSIS EXE missing" }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tsm-windows-installers
+          path: |
+            tsm-console/src-tauri/target/release/bundle/msi/*.msi
+            tsm-console/src-tauri/target/release/bundle/nsis/*.exe
+          if-no-files-found: error
+
+  macos:
+    needs: validate
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: tsm-console
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tsm-console/package-lock.json
+      - uses: dtolnay/rust-toolchain@stable
+      - run: npm ci --ignore-scripts
+      - run: npm run build
+      - name: Build macOS DMG
+        env:
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+        run: npm run tauri build -- --bundles dmg
+      - name: Verify macOS bundle
+        run: test -n "$(find src-tauri/target/release/bundle/dmg -name '*.dmg' -print -quit)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tsm-macos-installer
+          path: tsm-console/src-tauri/target/release/bundle/dmg/*.dmg
+          if-no-files-found: error
+
+  integrity:
+    needs: [windows, macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: tsm-*-installer
+          path: dist
+          merge-multiple: true
+      - run: find dist -type f -print0 | sort -z | xargs -0 sha256sum > dist/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tsm-desktop-integrity
+          path: dist/SHA256SUMS.txt
+          if-no-files-found: error
