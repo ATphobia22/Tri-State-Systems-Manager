@@ -28,6 +28,7 @@ if (!bff.includes('code_challenge_method') || !bff.includes('code_verifier') || 
 if (!auth.includes('verifyIdToken') || !auth.includes('ID_TOKEN_NONCE_MISMATCH')) failures.push('OIDC ID-token nonce validation missing');
 if (!bff.includes('/.well-known/openid-configuration')) failures.push('OIDC discovery metadata is not used');
 if (!bff.includes('OIDC_CLIENT_SECRET') || !bff.includes('client_secret')) failures.push('hosted OIDC BFF must use confidential client authentication');
+if (!bff.includes('client_secret_basic')) failures.push('OIDC token endpoint must use client_secret_basic');
 if (!sessionCookie.includes('aes-256-gcm') || !sessionCookie.includes('HttpOnly')) failures.push('OIDC session cookie must be authenticated/encrypted and HttpOnly');
 if (/localStorage|sessionStorage|ACCESS_TOKEN_KEY|REFRESH_TOKEN_KEY/.test(browserAuth)) failures.push('browser auth must not persist OIDC tokens');
 if (!proxy.includes('CSRF_ORIGIN_REJECTED') || !proxy.includes('X-TSM-CSRF')) failures.push('cookie-authenticated mutation CSRF boundary missing');
