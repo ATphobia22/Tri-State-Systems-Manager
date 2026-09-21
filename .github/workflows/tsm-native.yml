@@ -249,9 +249,12 @@ jobs:
       attestations: write
       artifact-metadata: write
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.package_windows }}
-    runs-on: [self-hosted, windows, ue5]
+    runs-on: [self-hosted, windows, x64, ue5]
     steps:
       - uses: actions/checkout@v5
+      - name: Validate runner capabilities
+        shell: pwsh
+        run: .\scripts\native\Validate-NativeRunner.ps1 -RunnerClass windows-ue5
       - name: Require UE_ROOT
         shell: pwsh
         env:
@@ -320,9 +323,12 @@ jobs:
       attestations: write
       artifact-metadata: write
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.package_macos }}
-    runs-on: [self-hosted, macos, ue5]
+    runs-on: [self-hosted, macos, arm64, ue5]
     steps:
       - uses: actions/checkout@v5
+      - name: Validate runner capabilities
+        shell: bash
+        run: scripts/native/validate-native-runner.sh macos-ue5
       - name: Require UE_ROOT
         run: test -n "$UE_ROOT"
         env:
@@ -413,9 +419,12 @@ jobs:
       attestations: write
       artifact-metadata: write
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.package_ios }}
-    runs-on: [self-hosted, macos, ue5, ios]
+    runs-on: [self-hosted, macos, arm64, ue5, ios]
     steps:
       - uses: actions/checkout@v5
+      - name: Validate runner capabilities
+        shell: bash
+        run: scripts/native/validate-native-runner.sh ios-ue5
       - name: Require UE_ROOT and Xcode
         shell: bash
         env:
@@ -463,9 +472,12 @@ jobs:
       attestations: write
       artifact-metadata: write
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.package_android }}
-    runs-on: [self-hosted, linux, ue5, android]
+    runs-on: [self-hosted, linux, arm64, ue5, android]
     steps:
       - uses: actions/checkout@v5
+      - name: Validate runner capabilities
+        shell: bash
+        run: scripts/native/validate-native-runner.sh android-ue5
       - name: Require UE_ROOT and Android toolchain
         shell: bash
         env:
