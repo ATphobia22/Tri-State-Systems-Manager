@@ -7,6 +7,7 @@ import { incrementTelemetryCounter, observeTelemetryMetric } from '../telemetry/
 const DEFAULT_TIMEOUT_MS = 10_000;
 const DEFAULT_MAX_BYTES = 2_000_000;
 const DEFAULT_RETRIES = 2;
+const DEFAULT_RETRY_JITTER_MS = 1_000;
 const DEFAULT_JITTER_MS = 100;
 const defaultCircuitBreaker = createCircuitBreaker();
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
