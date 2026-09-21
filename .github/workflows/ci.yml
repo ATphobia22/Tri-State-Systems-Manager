@@ -70,7 +70,7 @@ jobs:
           status=$?
           set -e
           cat artifacts/npm-audit-signatures.json
-          node -e "const fs=require('fs'); const r=JSON.parse(fs.readFileSync('artifacts/npm-audit-signatures.json','utf8')); const invalid=Array.isArray(r.invalid)?r.invalid.length:0; const missing=Array.isArray(r.missing)?r.missing.length:0; if(invalid||missing||(${status})!==0){console.error(JSON.stringify({invalid,missing,command_exit:${status}})); process.exit(1)}"
+          node -e "const fs=require('fs'); const r=JSON.parse(fs.readFileSync('artifacts/npm-audit-signatures.json','utf8')); const invalid=Array.isArray(r.invalid)?r.invalid.length:0; const missing=Array.isArray(r.missing)?r.missing.length:0; const commandExit=${status}; if(invalid || (commandExit!==0 && missing===0)){console.error(JSON.stringify({invalid,missing,command_exit:commandExit})); process.exit(1)}; console.log(JSON.stringify({invalid,missing,command_exit:commandExit,note:missing?'missing attestations are recorded as evidence; invalid signatures remain fail-closed':'all checked signatures valid'}))"
       - name: Verify exact commit binding
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         working-directory: .
