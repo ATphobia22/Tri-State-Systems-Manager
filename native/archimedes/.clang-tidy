@@ -1,0 +1,10 @@
+Checks: >-
+  -*,
+  bugprone-*,
+  performance-*,
+  portability-*,
+  readability-*,
+  modernize-use-nullptr,
+WarningsAsErrors: ""
+HeaderFilterRegex: ".*"
+FormatStyle: file
