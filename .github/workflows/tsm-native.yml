@@ -50,6 +50,53 @@ concurrency:
   group: tsm-native-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  architecture-contracts:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Validate architecture contracts
+        run: |
+          node scripts/ci/validate-data-fabric-contract.mjs
+          node scripts/ci/validate-runner-contract.mjs
+          node scripts/ci/native-runtime-boundary.mjs
+          node scripts/ci/validate-native-platform-matrix.mjs
+      - name: Validate reproducibility contract
+        run: node -e "JSON.parse(require('fs').readFileSync('tsm-native/config/reproducible-build-contract.json','utf8')); console.log('Reproducibility contract validated.')"
+
+  build-provenance:
+    runs-on: ubuntu-latest
+    needs: [boundary, architecture-contracts]
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Generate build provenance
+        env:
+          TSM_RUNNER_CLASS: linux-native
+        run: node scripts/ci/generate-build-provenance.mjs
+      - name: Attest provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: dist/provenance/build-provenance.json
+      - name: Upload provenance
+        uses: actions/upload-artifact@v4
+        with:
+          name: tsm-native-build-provenance
+          path: dist/provenance/build-provenance.json
+          if-no-files-found: error
+
   boundary:
     runs-on: ubuntu-latest
     steps:
