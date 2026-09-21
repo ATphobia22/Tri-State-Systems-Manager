@@ -1,0 +1,98 @@
+name: TSM Native
+on:
+  push:
+    branches: [Multi-Installer]
+    paths:
+      - "tsm-native/**"
+      - "native/archimedes/**"
+      - "scripts/native/**"
+      - "scripts/ci/native-runtime-boundary.mjs"
+      - ".github/workflows/tsm-native.yml"
+  pull_request:
+    branches: [main, Multi-Installer]
+    paths:
+      - "tsm-native/**"
+      - "native/archimedes/**"
+      - "scripts/native/**"
+      - "scripts/ci/native-runtime-boundary.mjs"
+      - ".github/workflows/tsm-native.yml"
+  workflow_dispatch:
+    inputs:
+      package_windows:
+        description: "Run UE5 Windows Shipping packaging on a self-hosted UE5 runner"
+        required: true
+        default: false
+        type: boolean
+      package_macos:
+        description: "Run UE5 macOS Shipping packaging on a self-hosted UE5 runner"
+        required: true
+        default: false
+        type: boolean
+permissions:
+  contents: read
+concurrency:
+  group: tsm-native-\${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  boundary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Native runtime boundary
+        run: node scripts/ci/native-runtime-boundary.mjs
+      - name: Build and test ArchimedesCore
+        run: |
+          cmake -S native/archimedes -B native/archimedes/build -DBUILD_TESTING=ON
+          cmake --build native/archimedes/build --config Release --parallel
+          ctest --test-dir native/archimedes/build --build-config Release --output-on-failure
+
+  package-windows:
+    if: \${{ github.event_name == 'workflow_dispatch' && inputs.package_windows }}
+    runs-on: [self-hosted, windows, ue5]
+    steps:
+      - uses: actions/checkout@v5
+      - name: Require UE_ROOT
+        shell: pwsh
+        env:
+          UE_ROOT: \${{ vars.UE_ROOT }}
+        run: |
+          if (-not $env:UE_ROOT) { throw "UE_ROOT must be configured on the UE5 self-hosted runner." }
+      - name: Build native Windows package
+        shell: pwsh
+        env:
+          UE_ROOT: \${{ vars.UE_ROOT }}
+        run: .\scripts\native\Build-TSMNativeWindows.ps1 -UnrealRoot $env:UE_ROOT
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tsm-native-windows-installer
+          path: dist/installer/TSM-Native-Setup-*-windows-x64.exe
+          if-no-files-found: error
+
+  package-macos:
+    if: \${{ github.event_name == 'workflow_dispatch' && inputs.package_macos }}
+    runs-on: [self-hosted, macos, ue5]
+    steps:
+      - uses: actions/checkout@v5
+      - name: Require UE_ROOT
+        run: test -n "$UE_ROOT"
+        env:
+          UE_ROOT: \${{ vars.UE_ROOT }}
+      - name: Build ArchimedesCore
+        run: |
+          cmake -S native/archimedes -B native/archimedes/build
+          cmake --build native/archimedes/build --config Release --parallel
+      - name: Package UE5 macOS application
+        run: |
+          "$UE_ROOT/Engine/Build/BatchFiles/RunUAT.sh" BuildCookRun \
+            -project="$GITHUB_WORKSPACE/tsm-native/TSMNative.uproject" \
+            -noP4 -build -cook -stage -pak -package -archive \
+            -archivedirectory="$GITHUB_WORKSPACE/dist/tsm-native" \
+            -platform=Mac -clientconfig=Shipping -utf8output
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tsm-native-macos-package
+          path: dist/tsm-native/**
+          if-no-files-found: error
