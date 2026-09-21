@@ -7,6 +7,8 @@
 #include "Misc/Paths.h"
 #include "TSMEmbeddedStore.h"
 
+ATSMGeodeticViewport::~ATSMGeodeticViewport() = default;
+
 ATSMGeodeticViewport::ATSMGeodeticViewport()
 {
     PrimaryActorTick.bCanEverTick = false;
