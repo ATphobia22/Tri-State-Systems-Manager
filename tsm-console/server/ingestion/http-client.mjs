@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { createCircuitBreaker, CircuitOpenError } from '../reliability/circuit-breaker.mjs';
 import { isRetryableStatus, parseRetryAfter, retryDelayMs } from '../reliability/retry-policy.mjs';
 import { recordSourceHealth } from './source-health.mjs';
+import { incrementTelemetryCounter, observeTelemetryMetric } from '../telemetry/prometheus-exporter.mjs';
 
 const DEFAULT_TIMEOUT_MS = 10_000;
 const DEFAULT_MAX_BYTES = 2_000_000;
@@ -24,8 +25,16 @@ export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sl
     const requestId = options.requestId || randomUUID();
     const headers = { accept: 'application/json', 'x-tsm-request-id': requestId, ...(options.headers || {}) };
     let lastError = null;
-    circuitBreaker.beforeRequest(sourceId);
     const startedAt = Date.now();
+    try {
+      circuitBreaker.beforeRequest(sourceId);
+    } catch (error) {
+      if (error instanceof CircuitOpenError) {
+        incrementTelemetryCounter('tsm_hydrology_api_responses_total', { source: sourceId, status: 'CIRCUIT_OPEN' });
+        observeTelemetryMetric('tsm_hydrology_api_request_latency_seconds', 0, { source: sourceId });
+      }
+      throw error;
+    }
 
     try {
       for (let attempt = 0; attempt <= retries; attempt += 1) {
@@ -63,7 +72,11 @@ export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sl
           const payload = JSON.parse(text);
           lastError = null;
           circuitBreaker.recordSuccess(sourceId);
-          recordSourceHealth(sourceId, { ok: true, latencyMs: Date.now() - startedAt, requestId });
+          const latencyMs = Date.now() - startedAt;
+          incrementTelemetryCounter('tsm_hydrology_api_responses_total', { source: sourceId, status: 'OK' });
+          observeTelemetryMetric('tsm_hydrology_api_request_latency_seconds', latencyMs / 1000, { source: sourceId });
+          observeTelemetryMetric('tsm_hydrology_circuit_breaker_state', 0, { source: sourceId, state: 'OPEN' });
+          recordSourceHealth(sourceId, { ok: true, latencyMs, requestId });
           return payload;
         } catch (error) {
           lastError = error;
@@ -74,8 +87,14 @@ export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sl
         }
       }
       circuitBreaker.recordFailure(sourceId);
+      const latencyMs = Date.now() - startedAt;
+      const status = lastError?.name === 'AbortError' || lastError?.code === 'ETIMEDOUT' ? 'TIMEOUT' : 'SOURCE_UNAVAILABLE';
+      incrementTelemetryCounter('tsm_hydrology_api_responses_total', { source: sourceId, status });
+      observeTelemetryMetric('tsm_hydrology_api_request_latency_seconds', latencyMs / 1000, { source: sourceId });
+      const circuit = circuitBreaker.getState?.(sourceId);
+      observeTelemetryMetric('tsm_hydrology_circuit_breaker_state', circuit?.state === 'open' ? 1 : 0, { source: sourceId, state: 'OPEN' });
       recordSourceHealth(sourceId, {
-        ok: false, latencyMs: Date.now() - startedAt, requestId,
+        ok: false, latencyMs, requestId,
         errorCode: lastError?.code || `HTTP_${lastError?.status || 'UNKNOWN'}`,
       });
       throw lastError;
