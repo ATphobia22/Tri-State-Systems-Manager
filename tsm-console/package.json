@@ -81,7 +81,8 @@
     "desktop:build": "cargo tauri build",
     "desktop:check": "node scripts/desktop-updater-check.mjs",
     "check:production-reliability": "node ../scripts/ci/validate-production-reliability.mjs",
-    "test:evidence-signer": "node ../scripts/evidence/test-sign-evidence.mjs"
+    "test:evidence-signer": "node ../scripts/evidence/test-sign-evidence.mjs",
+    "test:loma-signing": "node ../scripts/evidence/test-loma-signing.mjs"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.0",
