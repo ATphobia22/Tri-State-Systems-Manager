@@ -34,6 +34,16 @@ on:
         required: true
         default: false
         type: boolean
+      package_ios:
+        description: "Run UE5 iOS Shipping packaging on a self-hosted macOS UE5/iOS runner"
+        required: true
+        default: false
+        type: boolean
+      package_android:
+        description: "Run UE5 Android Shipping packaging on a self-hosted UE5/Android runner"
+        required: true
+        default: false
+        type: boolean
 permissions:
   contents: read
 concurrency:
@@ -183,4 +193,57 @@ jobs:
         with:
           name: tsm-native-macos-package
           path: dist/tsm-native/**
+          if-no-files-found: error
+
+
+  package-ios:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.package_ios }}
+    runs-on: [self-hosted, macos, ue5, ios]
+    steps:
+      - uses: actions/checkout@v5
+      - name: Require UE_ROOT and Xcode
+        shell: bash
+        env:
+          UE_ROOT: ${{ vars.UE_ROOT }}
+        run: |
+          test -n "$UE_ROOT"
+          xcode-select -p
+          xcodebuild -version
+      - name: Package UE5 iOS Shipping build
+        shell: bash
+        env:
+          UE_ROOT: ${{ vars.UE_ROOT }}
+        run: |
+          "$UE_ROOT/Engine/Build/BatchFiles/RunUAT.sh" BuildCookRun             -project="$GITHUB_WORKSPACE/tsm-native/TSMNative.uproject"             -noP4 -build -cook -stage -pak -package -archive             -archivedirectory="$GITHUB_WORKSPACE/dist/tsm-native-ios"             -platform=IOS -clientconfig=Shipping -utf8output
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tsm-native-ios-package
+          path: dist/tsm-native-ios/**
+          if-no-files-found: error
+
+  package-android:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.package_android }}
+    runs-on: [self-hosted, linux, ue5, android]
+    steps:
+      - uses: actions/checkout@v5
+      - name: Require UE_ROOT and Android toolchain
+        shell: bash
+        env:
+          UE_ROOT: ${{ vars.UE_ROOT }}
+        run: |
+          test -n "$UE_ROOT"
+          test -n "$ANDROID_HOME"
+          test -d "$ANDROID_HOME"
+          test -n "$ANDROID_NDK_ROOT"
+          test -d "$ANDROID_NDK_ROOT"
+      - name: Package UE5 Android Shipping build
+        shell: bash
+        env:
+          UE_ROOT: ${{ vars.UE_ROOT }}
+        run: |
+          "$UE_ROOT/Engine/Build/BatchFiles/RunUAT.sh" BuildCookRun             -project="$GITHUB_WORKSPACE/tsm-native/TSMNative.uproject"             -noP4 -build -cook -stage -pak -package -archive             -archivedirectory="$GITHUB_WORKSPACE/dist/tsm-native-android"             -platform=Android -clientconfig=Shipping -utf8output
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tsm-native-android-package
+          path: dist/tsm-native-android/**
           if-no-files-found: error
