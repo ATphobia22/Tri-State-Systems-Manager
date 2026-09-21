@@ -28,7 +28,7 @@ If this date has passed when you read this, treat cycle as closed and track the 
 
 ## Relevance to Bonebank / Point Township
 
-BRIC is for **mitigation projects and capability**, not a substitute for LOMA case **26-05-2022A**. LOMA is a map amendment path; BRIC is a competitive grant path for community-scale resilience.
+BRIC is for **mitigation projects and capability**, not a substitute for a private LOMA case. LOMA is a map amendment path; BRIC is a competitive grant path for community-scale resilience.
 
 ## Authority
 
