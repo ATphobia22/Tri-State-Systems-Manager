@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "modes": {
+    "Sovereign": {"enabled":false,"networkedDataSources":false},
+    "Connected": {"enabled":true,"requiresExplicitActivation":true,"networkedDataSources":true}
+  },
+  "eventContract": {
+    "required": ["eventId","sourceId","sourceVersion","occurredAtUtc","ingestedAtUtc","schemaVersion","payloadSha256","sequence"],
+    "ordering": "source-defined",
+    "duplicateHandling": "idempotent"
+  },
+  "retention": {"immutableRawEvents":true,"replayRequired":true},
+  "rules": [
+    "Streaming is an optional connected-data capability, not a Sovereign runtime dependency.",
+    "Live telemetry cannot be synthesized from local snapshots."
+  ]
+}
