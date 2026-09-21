@@ -5,7 +5,8 @@ param(
     [string]$ProjectFile = "$PSScriptRoot\..\..\tsm-native\TSMNative.uproject",
     [string]$ArchimedesSource = "$PSScriptRoot\..\..\native\archimedes",
     [string]$ArchiveDirectory = "$PSScriptRoot\..\..\dist\tsm-native",
-    [string]$InstallerScript = "$PSScriptRoot\..\..\tsm-native\Installer\TSM-Native.iss"
+    [string]$InstallerScript = "$PSScriptRoot\..\..\tsm-native\Installer\TSM-Native.iss",
+    [string]$SpatiaLiteDllPath = $env:TSM_SPATIALITE_DLL
 )
 
 $ErrorActionPreference = "Stop"
@@ -17,10 +18,14 @@ $cmakeDll = Get-ChildItem "$ArchimedesSource\build" -Recurse -Filter "Archimedes
     Select-Object -First 1
 
 if (-not $cmakeDll) { throw "ArchimedesCore.dll was not produced." }
+if ([string]::IsNullOrWhiteSpace($SpatiaLiteDllPath) -or -not (Test-Path $SpatiaLiteDllPath)) {
+    throw "TSM_SPATIALITE_DLL must point to the packaged mod_spatialite.dll."
+}
 
 $binaryDir = Join-Path (Split-Path $ProjectFile -Parent) "Binaries"
 New-Item -ItemType Directory -Force -Path $binaryDir | Out-Null
 Copy-Item $cmakeDll.FullName (Join-Path $binaryDir "ArchimedesCore.dll") -Force
+Copy-Item $SpatiaLiteDllPath (Join-Path $binaryDir "mod_spatialite.dll") -Force
 
 & "$PSScriptRoot\Build-TSMNative.ps1" -UnrealRoot $UnrealRoot -ProjectFile $ProjectFile -Platform Win64 -Configuration Shipping -ArchiveDirectory $ArchiveDirectory
 if ($LASTEXITCODE -ne 0) { throw "Unreal packaging failed." }
