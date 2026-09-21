@@ -22,7 +22,7 @@ test('OIDC verifier validates signature, issuer, audience, expiry and roles', as
   try {
     process.env.OIDC_ISSUER = issuer;
     process.env.OIDC_AUDIENCE = audience;
-    process.env.OIDC_JWKS_URL = issuer + '/jwks';
+    process.env.OIDC_JWKS_URL = 'http://127.0.0.1:19877/jwks';
     process.env.TSM_AUTH_MODE = 'required';
     resetJwksCacheForTests();
 
@@ -41,7 +41,7 @@ test('OIDC verifier validates signature, issuer, audience, expiry and roles', as
     requireAuthenticatedSubject(auth, 'reviewer-123');
     assert.throws(() => requireAuthenticatedSubject(auth, 'another-user'), /does not match/);
 
-    const badToken = token.slice(0, -1) + (token.endsWith('A') ? 'B' : 'A');
+    const badParts = token.split('.'); badParts[2] = (badParts[2][0] === 'A' ? 'B' : 'A') + badParts[2].slice(1); const badToken = badParts.join('.');
     await assert.rejects(() => authenticateRequest({ headers: { authorization: 'Bearer ' + badToken } }), /signature is invalid/);
   } finally {
     await new Promise((resolve) => server.close(resolve));
