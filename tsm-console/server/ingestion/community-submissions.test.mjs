@@ -14,3 +14,12 @@ test('community observations reject invalid coordinates', () => {
 test('community observations reject oversized payloads', () => {
   assert.throws(() => validateCommunityObservation({ payload: { value: 'x'.repeat(257_000) } }), /256 KB/);
 });
+
+
+test('community throttling is isolated per client', async () => {
+  const { submitCommunityObservation } = await import('./community-submissions.mjs');
+  const base = { payload: { observation: 'test' }, lat: 37.97, lon: -87.55 };
+  for (let i = 0; i < 30; i += 1) submitCommunityObservation(base, 1700000000000 + i, 'client-a');
+  assert.throws(() => submitCommunityObservation(base, 1700000001000, 'client-a'), /rate limit/);
+  assert.doesNotThrow(() => submitCommunityObservation(base, 1700000001000, 'client-b'));
+});
