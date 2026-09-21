@@ -4,7 +4,9 @@ import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tsm-evidence-signer-'));
 try {
   const inputPath = path.join(tempDir, 'evidence.bin');
@@ -20,7 +22,7 @@ try {
   const privatePem = privateKey.export({ type: 'pkcs8', format: 'pem' }).toString();
 
   const result = spawnSync(process.execPath, [
-    path.resolve('scripts/evidence/sign-evidence.mjs'),
+    path.join(repoRoot, 'scripts/evidence/sign-evidence.mjs'),
     inputPath,
     signaturePath,
   ], {
