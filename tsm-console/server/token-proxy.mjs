@@ -11,15 +11,19 @@ import { listAuthoritativeSources, fetchAuthoritativeJson } from './ingestion/so
 import { fetchRiverNetwork } from './ingestion/river-network-api.mjs';
 import { evaluatePolicies, POLICIES } from './policy/jurisdiction-engine.mjs';
 import { evaluateCompensatoryStorage, buildCompensatoryStorageCanonical } from './engineering/compensatory-storage.mjs';
-import { servePoseyAsset } from './geospatial/posey-assets.mjs';
+import { servePoseyAsset, getPoseyAssetManifest } from './geospatial/posey-assets.mjs';
 import { handleFirmRoute } from './geospatial/firm-routes.mjs';
 import { normalizeTelemetryEvent, validateTelemetryIngress } from './telemetry/inbound.mjs';
 import { authorizeAndPublishArtifact } from './ingestion/governance-transition.mjs';
+import { authenticateRequest, requireRoles, requireAuthenticatedSubject } from './auth/oidc-auth.mjs';
+import { submitCommunityObservation } from './ingestion/community-submissions.mjs';
+import { beginOidcLogin, finishOidcLogin, getBrowserSession, logoutOidc } from './auth/oidc-bff.mjs';
 import { createRateLimiter, RateLimitError } from './reliability/rate-limiter.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
 const BUILD_SHA = process.env.GITHUB_SHA || process.env.TSM_BUILD_SHA || 'local';
 const ALLOWED_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
+if (ALLOWED_ORIGIN === '*') throw new Error('CORS_ORIGIN must be an exact trusted origin; wildcard CORS is prohibited.');
 const RATE_LIMIT_WINDOW_MS = Number(process.env.TSM_RATE_LIMIT_WINDOW_MS || 60_000);
 const RATE_LIMIT_MAX_REQUESTS = Number(process.env.TSM_RATE_LIMIT_MAX_REQUESTS || 120);
 const rateLimiter = createRateLimiter({ windowMs: RATE_LIMIT_WINDOW_MS, maxRequests: RATE_LIMIT_MAX_REQUESTS });
@@ -30,18 +34,11 @@ function clientKey(req) {
   if (TRUST_PROXY) return String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown').split(',')[0].trim();
   return req.socket.remoteAddress || 'unknown';
 }
-function readiness() {
-  try {
-    const sources = listAuthoritativeSources();
-    listArtifacts({ limit: 1 });
-    if (!Array.isArray(sources)) throw new Error('authority source catalog unavailable');
-    return { ok: true, dependencies: { authority_registry: true, evidence_store: true } };
-  } catch (error) {
-    return { ok: false, dependencies: { authority_registry: false, evidence_store: false }, error: error.message };
-  }
-}
+if (ALLOWED_ORIGIN === '*') throw new Error('CORS_ORIGIN must be an exact trusted origin; wildcard CORS is prohibited.');
+const REQUIRED_BROWSER_AUTH_ENV = ['OIDC_ISSUER', 'OIDC_AUDIENCE', 'OIDC_CLIENT_ID', 'OIDC_CLIENT_SECRET', 'OIDC_REDIRECT_URI', 'TSM_SESSION_SECRET', 'CORS_ORIGIN'];
+function productionAuthReady() { return REQUIRED_BROWSER_AUTH_ENV.every((name) => String(process.env[name] || '').trim() !== '') && String(process.env.TSM_SESSION_SECRET || '').length >= 32; }
 function json(res, status, body, requestId) {
-  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-TSM-Request-ID': requestId || 'unknown', 'Access-Control-Allow-Origin': ALLOWED_ORIGIN, 'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-TSM-Request-ID', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS' });
+  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-TSM-Request-ID': requestId || 'unknown', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer', 'X-Frame-Options': 'DENY', 'Content-Security-Policy': "frame-ancestors 'none'", 'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=()', ...(String(process.env.CORS_ORIGIN || '').startsWith('https://') ? { 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains' } : {}), 'Access-Control-Allow-Origin': ALLOWED_ORIGIN, 'Access-Control-Allow-Credentials': 'true', 'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-TSM-Request-ID, X-TSM-CSRF', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Vary': 'Origin' });
   res.end(JSON.stringify(body));
 }
 function readBodyFixed(req) {
@@ -66,22 +63,88 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'OPTIONS') return json(res, 204, {}, requestId);
   const url = new URL(req.url || '/', `http://localhost:${PORT}`);
   try {
+    const protectedMutation = req.method === 'POST' && (
+      url.pathname === '/api/evidence' ||
+      url.pathname === '/api/evidence/verify' ||
+      url.pathname === '/api/v1/engineering/compensatory-storage' ||
+      url.pathname === '/api/ingest/hydrologic' ||
+      url.pathname === '/api/ingest/usgs' ||
+      url.pathname === '/api/ingest/nwps' ||
+      url.pathname === '/api/ledger/append'
+    );
+    let requestAuth = null;
+    if (protectedMutation) {
+      try {
+        requestAuth = await authenticateRequest(req);
+        if (requestAuth.browserSession) {
+          const origin = String(req.headers.origin || '');
+          const expectedOrigin = new URL(ALLOWED_ORIGIN).origin;
+          if (origin !== expectedOrigin || req.headers['x-tsm-csrf'] !== '1') {
+            return json(res, 403, { ok: false, code: 'CSRF_ORIGIN_REJECTED', error: 'Authenticated browser mutations require the configured origin and X-TSM-CSRF header.' }, requestId);
+          }
+        }
+      } catch (error) {
+        return json(res, error.status || 401, { ok: false, code: error.code || 'AUTHENTICATION_REQUIRED', error: error.message }, requestId);
+      }
+      if (url.pathname === '/api/ledger/append') {
+        try {
+          requireRoles(requestAuth, String(process.env.TSM_REVIEWER_ROLE || 'tsm-reviewer'));
+        } catch (error) {
+          return json(res, error.status || 403, { ok: false, code: error.code || 'AUTHORIZATION_FORBIDDEN', error: error.message }, requestId);
+        }
+      } else if (!requestAuth.developmentBypass) {
+        try {
+          requireRoles(requestAuth, String(process.env.TSM_OPERATOR_ROLE || 'tsm-operator'));
+        } catch (error) {
+          return json(res, error.status || 403, { ok: false, code: error.code || 'AUTHORIZATION_FORBIDDEN', error: error.message }, requestId);
+        }
+      }
+    }
     if (!acceptingRequests && !['/health', '/ready'].includes(url.pathname)) return json(res, 503, { ok: false, code: 'SERVER_DRAINING' }, requestId);
     if (!['/health', '/ready'].includes(url.pathname)) {
       const limit = rateLimiter.consume(clientKey(req));
       if (!limit.allowed) {
         res.setHeader('Retry-After', String(Math.ceil(limit.retryAfterMs / 1000)));
-        throw new RateLimitError(limit.retryAfterMs);
+        return json(res, 429, { ok: false, code: 'RATE_LIMITED', retry_after_ms: limit.retryAfterMs }, requestId);
       }
     }
     if (handleFirmRoute(req, res, url, (response, status, body) => json(response, status, body, requestId))) return;
-    if (req.method === 'GET' && url.pathname === '/api/auth/health') return json(res, 200, { ...healthBody(), auth_model: 'keycloak_public_client_pkce', client_secret_required: false, token_proxy_path: null }, requestId);
+    if (req.method === 'GET' && url.pathname === '/api/auth/health') return json(res, 200, { ...healthBody(), auth_model: 'server_managed_oidc_pkce_session', browser_tokens_exposed: false, oidc_configured: Boolean(process.env.OIDC_ISSUER && process.env.OIDC_AUDIENCE && process.env.OIDC_CLIENT_ID && process.env.OIDC_REDIRECT_URI && process.env.TSM_SESSION_SECRET) }, requestId);
+    if (req.method === 'GET' && url.pathname === '/api/auth/login') return await beginOidcLogin(req, res);
+    if (req.method === 'GET' && url.pathname === '/api/auth/callback') {
+      try { return await finishOidcLogin(req, res); }
+      catch (error) { return json(res, error.status || 502, { ok: false, code: error.code || 'OIDC_CALLBACK_FAILED', error: error.message }, requestId); }
+    }
+    if (req.method === 'GET' && url.pathname === '/api/auth/session') {
+      try {
+        const session = await getBrowserSession(req);
+        return json(res, 200, session ? { authenticated: true, subject: session.subject, roles: session.roles } : { authenticated: false }, requestId);
+      } catch (error) { return json(res, 401, { authenticated: false, code: error.code || 'SESSION_INVALID' }, requestId); }
+    }
+    if (req.method === 'POST' && url.pathname === '/api/auth/logout') {
+      const origin = String(req.headers.origin || '');
+      if (origin !== new URL(ALLOWED_ORIGIN).origin || req.headers['x-tsm-csrf'] !== '1') return json(res, 403, { ok: false, code: 'CSRF_ORIGIN_REJECTED' }, requestId);
+      return logoutOidc(res);
+    }
     if (req.method === 'GET' && url.pathname === '/health') return json(res, 200, healthBody(), requestId);
     if (req.method === 'GET' && url.pathname === '/ready') {
-      const state = readiness();
-      return json(res, state.ok ? 200 : 503, { ...healthBody(), ready: state.ok, required_internal_dependencies: state.dependencies, error: state.error || null }, requestId);
+      const authReady = String(process.env.TSM_AUTH_MODE || 'required').toLowerCase() === 'disabled' || productionAuthReady();
+      let evidenceReady = true;
+      try { listArtifacts({ limit: 1 }); listAuthoritativeSources(); } catch { evidenceReady = false; }
+      const ready = authReady && evidenceReady;
+      if (!ready) return json(res, 503, { ...healthBody(), ready: false, code: !authReady ? 'AUTH_CONFIGURATION_INCOMPLETE' : 'LOCAL_DEPENDENCY_UNAVAILABLE', required_internal_dependencies: { authority_registry: evidenceReady, evidence_store: evidenceReady, oidc: authReady } }, requestId);
+      return json(res, 200, { ...healthBody(), ready: true, required_internal_dependencies: { authority_registry: true, evidence_store: true, oidc: true } }, requestId);
     }
     if (req.method === 'GET' && url.pathname === '/api/data-sources/catalog') return json(res, 200, { build_sha: BUILD_SHA, sources: listAuthoritativeSources(), health: listSourceHealth(), circuits: listUpstreamCircuitHealth(), authority_boundary: 'Catalog metadata does not confer regulatory authority; source products retain their published status.' }, requestId);
+    if (req.method === 'POST' && url.pathname === '/api/community/observations') {
+      try {
+        const clientKey = String(req.socket.remoteAddress || 'anonymous').trim();
+        const artifact = submitCommunityObservation(await readBodyFixed(req), Date.now(), clientKey);
+        return json(res, 202, { ok: true, accepted: true, status: 'quarantine', artifact_id: artifact.artifact_id, authority_class: 'OBSERVATION', note: 'Community observations are not authoritative until authorized human review.' }, requestId);
+      } catch (error) {
+        return json(res, error.status || 422, { ok: false, code: error.code || 'COMMUNITY_SUBMISSION_INVALID', error: error.message }, requestId);
+      }
+    }
     if (req.method === 'GET' && url.pathname === '/api/data-sources/fetch') {
       const sourceId = url.searchParams.get('source_id');
       const sourceUrl = url.searchParams.get('url');
@@ -185,7 +248,7 @@ const server = http.createServer(async (req, res) => {
       }
     }
     if (req.method === 'GET' && url.pathname === '/api/data-sources/health') return json(res, 200, { build_sha: BUILD_SHA, sources: listSourceHealth(), circuits: listUpstreamCircuitHealth() }, requestId);
-    if (req.method === 'GET' && url.pathname === '/api/geospatial/posey/site') return json(res, 200, { ok: true, site_id: 'posey-lower-wabash-ohio-community', horizontal_crs: 'EPSG:2966', horizontal_crs_name: 'NAD83 / Indiana West (ftUS)', vertical_datum: null, vertical_datum_verified: false, bounds: { minX: 2680000, minY: 940000, maxX: 2685000, maxY: 945000 }, terrain: { source_uri: 'https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_2016_2020_DEM/ImageServer', acquisition_year: 2020, authority_class: 'OBSERVATION', derivation_class: 'RAW', vertical_datum: null, vertical_datum_verified: false }, orthophoto: { source_uri: 'https://imagery.geoplatform.gov/iipp/rest/services/NAIP/NAIP2020_CONUS/ImageServer', acquisition_year: 2020, authority_class: 'OBSERVATION', derivation_class: 'RAW' } }, requestId);
+    if (req.method === 'GET' && url.pathname === '/api/geospatial/posey/site') { const assets = getPoseyAssetManifest(); return json(res, 200, { ok: true, site_id: 'posey-lower-wabash-ohio-community', horizontal_crs: 'EPSG:2966', horizontal_crs_name: 'NAD83 / Indiana West (ftUS)', vertical_datum: null, vertical_datum_verified: false, bounds: assets.bounds, terrain: assets.terrain, orthophoto: assets.orthophoto }, requestId); }
     if (req.method === 'GET' && url.pathname === '/api/geospatial/posey/raster') { try { return await servePoseyAsset(req, res); } catch (error) { return json(res, error instanceof RangeError ? 400 : 502, { error: error.message, code: error instanceof RangeError ? 'GEOSPATIAL_REQUEST_INVALID' : 'GEOSPATIAL_SOURCE_UNAVAILABLE' }, requestId); } }
     if (req.method === 'GET' && url.pathname === '/api/evidence') { const authority_class = url.searchParams.get('authority_class') || undefined; const demo = url.searchParams.get('is_simulation_demo'); return json(res, 200, { artifacts: listArtifacts({ limit: 100, authority_class, is_simulation_demo: demo === null ? undefined : demo === 'true' }) }, requestId); }
     if (req.method === 'GET' && url.pathname.startsWith('/api/evidence/') && url.pathname !== '/api/evidence/verify') { const id = url.pathname.split('/').pop(); const artifact = getArtifact(id); return artifact ? json(res, 200, artifact, requestId) : json(res, 404, { error: 'not found' }, requestId); }
@@ -202,35 +265,17 @@ const server = http.createServer(async (req, res) => {
       if (!body.artifact_id) return json(res, 400, { error: 'artifact_id is required; raw artifacts must be ingested before authorization' }, requestId);
       if (!body.human_authorization || typeof body.human_authorization !== 'object') return json(res, 400, { error: 'human_authorization is required' }, requestId);
       try {
-        const publication = await authorizeAndPublishArtifact(body.artifact_id, body.human_authorization);
+        requireAuthenticatedSubject(requestAuth, body.human_authorization.reviewer_identity);
+        const publication = await authorizeAndPublishArtifact(body.artifact_id, {
+          ...body.human_authorization,
+          reviewer_identity: requestAuth.subject,
+        }, requestAuth.subject);
         return json(res, 201, publication, requestId);
       } catch (error) {
-        return json(res, error.code === 'NOT_FOUND' ? 404 : 422, { error: error.message, code: error.code || 'GOVERNANCE_FAULT' }, requestId);
+        return json(res, error.status || (error.code === 'NOT_FOUND' ? 404 : 422), { error: error.message, code: error.code || 'GOVERNANCE_FAULT' }, requestId);
       }
     }
     return json(res, 404, { error: 'not found' }, requestId);
   } catch (error) { return json(res, error instanceof Error && error.code === 'CIRCUIT_OPEN' ? 503 : 502, { error: error.message || 'upstream source unavailable', code: error.code || 'SOURCE_UNAVAILABLE', requestId }, requestId); }
 });
-server.requestTimeout = Number(process.env.TSM_REQUEST_TIMEOUT_MS || 120_000);
-server.headersTimeout = Number(process.env.TSM_HEADERS_TIMEOUT_MS || 15_000);
-server.keepAliveTimeout = Number(process.env.TSM_KEEPALIVE_TIMEOUT_MS || 5_000);
-
-function shutdown(signal) {
-  if (!acceptingRequests) return;
-  acceptingRequests = false;
-  console.log(JSON.stringify({ level: 'info', event: 'shutdown_started', signal }));
-  server.close(() => {
-    if (shutdownTimer) clearTimeout(shutdownTimer);
-    console.log(JSON.stringify({ level: 'info', event: 'shutdown_complete' }));
-  });
-  server.closeIdleConnections?.();
-  shutdownTimer = setTimeout(() => {
-    server.closeAllConnections?.();
-    process.exitCode = 0;
-  }, Number(process.env.TSM_SHUTDOWN_GRACE_MS || 10_000));
-  shutdownTimer.unref?.();
-}
-process.once('SIGTERM', () => shutdown('SIGTERM'));
-process.once('SIGINT', () => shutdown('SIGINT'));
-
-server.listen(PORT, '127.0.0.1', () => console.log(JSON.stringify({ level: 'info', event: 'server_started', service: 'tsm-api', port: PORT })));
+server.listen(PORT, () => console.log(`TSM API on http://localhost:${PORT}`));
