@@ -203,6 +203,11 @@ jobs:
           fi
 
   package-windows:
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.package_windows }}
     runs-on: [self-hosted, windows, ue5]
     steps:
@@ -258,6 +263,10 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Windows Authenticode signing failed." }
           & $signtool.Source verify /pa /all $installer.FullName
           if ($LASTEXITCODE -ne 0) { throw "Windows Authenticode verification failed." }
+      - name: Attest signed Windows artifact
+        uses: actions/attest@v4
+        with:
+          subject-path: dist/installer/TSM-Native-Setup-*-windows-x64.exe
       - uses: actions/upload-artifact@v4
         with:
           name: tsm-native-windows-installer
@@ -265,6 +274,11 @@ jobs:
           if-no-files-found: error
 
   package-macos:
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.package_macos }}
     runs-on: [self-hosted, macos, ue5]
     steps:
@@ -341,6 +355,10 @@ jobs:
           xcrun notarytool submit "$APP" --keychain-profile "$MACOS_NOTARY_PROFILE" --wait
           xcrun stapler staple "$APP"
           spctl --assess --type execute "$APP"
+      - name: Attest notarized macOS artifact
+        uses: actions/attest@v4
+        with:
+          subject-path: dist/tsm-native/**/*.app
       - uses: actions/upload-artifact@v4
         with:
           name: tsm-native-macos-package
@@ -349,6 +367,11 @@ jobs:
 
 
   package-ios:
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.package_ios }}
     runs-on: [self-hosted, macos, ue5, ios]
     steps:
@@ -383,6 +406,10 @@ jobs:
           BUNDLE="$(find dist/tsm-native-ios -type d -name '*.app' -print -quit)"
           test -n "$BUNDLE"
           codesign --verify --deep --strict "$BUNDLE"
+      - name: Attest signed iOS artifact
+        uses: actions/attest@v4
+        with:
+          subject-path: dist/tsm-native-ios/**/*.app
       - uses: actions/upload-artifact@v4
         with:
           name: tsm-native-ios-package
@@ -390,6 +417,11 @@ jobs:
           if-no-files-found: error
 
   package-android:
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.package_android }}
     runs-on: [self-hosted, linux, ue5, android]
     steps:
@@ -428,6 +460,10 @@ jobs:
           APKSIGNER="$(find "$ANDROID_HOME" -type f \( -name apksigner -o -name apksigner.bat \) -print -quit)"
           test -n "$APKSIGNER"
           "$APKSIGNER" verify --verbose "$APK"
+      - name: Attest signed Android artifact
+        uses: actions/attest@v4
+        with:
+          subject-path: dist/tsm-native-android/*.apk
       - uses: actions/upload-artifact@v4
         with:
           name: tsm-native-android-package
