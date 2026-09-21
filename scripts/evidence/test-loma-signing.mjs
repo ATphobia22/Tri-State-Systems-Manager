@@ -39,9 +39,9 @@ try {
     'import sys, zipfile',
     'z=zipfile.ZipFile(sys.argv[1])',
     "open(sys.argv[2], 'wb').write(z.read('manifest.json'))",
-    "open(sys.argv[3], 'wb').write(z.read('manifest.sig'))",
+
   ].join(';');
-  execFileSync('python3', ['-c', extraction, packet, manifest, signature], {
+  execFileSync('python3', ['-c', extraction, packet, manifest], {
     cwd: root,
     stdio: 'pipe',
   });
