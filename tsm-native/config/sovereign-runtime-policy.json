@@ -1,0 +1,24 @@
+{
+  "edition": "Sovereign Native",
+  "runtime": {
+    "webBrowser": false,
+    "nodeJs": false,
+    "localhostServer": false,
+    "outboundNetwork": false,
+    "networkedDataSources": false
+  },
+  "data": {
+    "mode": "signed-local-snapshot",
+    "mutableRuntimeData": false,
+    "requireSha256Manifest": true
+  },
+  "geospatial": {
+    "horizontalCrs": "EPSG:2966",
+    "horizontalUnit": "US survey foot",
+    "verticalDatum": "dataset-declared"
+  },
+  "xr": {
+    "openxr": true,
+    "macosHeadMountedRuntime": false
+  }
+}
