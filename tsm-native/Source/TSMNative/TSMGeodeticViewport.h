@@ -5,6 +5,7 @@
 #include "TSMGeodeticViewport.generated.h"
 
 class UStaticMeshComponent;
+class USceneComponent;
 class FArchimedesRuntime;
 class FTSMEmbeddedStore;
 
@@ -15,6 +16,7 @@ class TSMNATIVE_API ATSMGeodeticViewport final : public AActor
 
 public:
     ATSMGeodeticViewport();
+    virtual ~ATSMGeodeticViewport() override;
 
 protected:
     virtual void BeginPlay() override;
