@@ -1,4 +1,4 @@
-import { createCipheriv, createDecipheriv, createHash, randomBytes, timingSafeEqual } from 'node:crypto';
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
 
 const SESSION_COOKIE = '__Host-tsm_session';
 const TRANSACTION_COOKIE = '__Host-tsm_oidc_tx';
@@ -11,7 +11,6 @@ function secretKey() {
 }
 
 function encode(value) { return Buffer.from(value).toString('base64url'); }
-function decode(value) { return Buffer.from(value, 'base64url').toString('utf8'); }
 
 function seal(payload) {
   const iv = randomBytes(12);
@@ -71,8 +70,15 @@ function cookieHeader(name, value, { maxAge = null, httpOnly = true } = {}) {
   return parts.join('; ');
 }
 
+function appendCookie(res, value) {
+  const existing = res.getHeader('Set-Cookie');
+  if (!existing) return res.setHeader('Set-Cookie', [value]);
+  const values = Array.isArray(existing) ? existing : [String(existing)];
+  res.setHeader('Set-Cookie', [...values, value]);
+}
+
 export function setTransactionCookie(res, payload) {
-  res.setHeader('Set-Cookie', cookieHeader(TRANSACTION_COOKIE, seal(payload), { maxAge: 600 }));
+  appendCookie(res, cookieHeader(TRANSACTION_COOKIE, seal(payload), { maxAge: 600 }));
 }
 
 export function readTransactionCookie(req) {
@@ -81,11 +87,11 @@ export function readTransactionCookie(req) {
 }
 
 export function clearTransactionCookie(res) {
-  res.setHeader('Set-Cookie', cookieHeader(TRANSACTION_COOKIE, '', { maxAge: 0 }));
+  appendCookie(res, cookieHeader(TRANSACTION_COOKIE, '', { maxAge: 0 }));
 }
 
 export function setSessionCookie(res, payload, maxAgeSeconds) {
-  res.setHeader('Set-Cookie', cookieHeader(SESSION_COOKIE, seal(payload), { maxAge: maxAgeSeconds }));
+  appendCookie(res, cookieHeader(SESSION_COOKIE, seal(payload), { maxAge: maxAgeSeconds }));
 }
 
 export function readSessionCookie(req) {
@@ -94,15 +100,10 @@ export function readSessionCookie(req) {
 }
 
 export function clearSessionCookie(res) {
-  res.setHeader('Set-Cookie', cookieHeader(SESSION_COOKIE, '', { maxAge: 0 }));
+  appendCookie(res, cookieHeader(SESSION_COOKIE, '', { maxAge: 0 }));
 }
 
 export function cookieNames() {
   return { session: SESSION_COOKIE, transaction: TRANSACTION_COOKIE };
 }
 
-export function constantTimeEqual(left, right) {
-  const a = Buffer.from(String(left));
-  const b = Buffer.from(String(right));
-  return a.length === b.length && timingSafeEqual(a, b);
-}
