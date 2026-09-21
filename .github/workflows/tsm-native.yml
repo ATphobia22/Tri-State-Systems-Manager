@@ -50,6 +50,23 @@ concurrency:
   group: tsm-native-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  workflow-structure:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+      - name: Parse all workflow YAML
+        run: |
+          ruby -e 'require "yaml"; Dir[".github/workflows/*.yml"].sort.each { |f| YAML.safe_load_file(f, aliases: true); puts "valid: #{f}" }'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Validate native contracts
+        run: |
+          node scripts/ci/validate-data-fabric-contract.mjs
+          node scripts/ci/validate-runner-contract.mjs
+
   architecture-contracts:
     runs-on: ubuntu-latest
     permissions:
