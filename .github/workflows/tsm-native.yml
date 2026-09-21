@@ -57,26 +57,24 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            shell: bash
             triplet: x64-linux
           - os: windows-latest
-            shell: pwsh
             triplet: x64-windows
           - os: macos-14
-            shell: bash
             triplet: arm64-osx
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
-      - name: Bootstrap pinned native dependencies
-        shell: ${{ matrix.shell }}
+      - name: Bootstrap pinned native dependencies (Unix)
+        if: ${{ matrix.os != 'windows-latest' }}
+        shell: bash
         run: |
-          if [ "${{ matrix.shell }}" = "bash" ]; then
-            chmod +x ./scripts/native/Bootstrap-NativeDependencies.sh
-            ./scripts/native/Bootstrap-NativeDependencies.sh "${{ matrix.triplet }}"
-          else
-            ./scripts/native/Bootstrap-NativeDependencies.ps1 -Triplet "${{ matrix.triplet }}"
-          fi
+          chmod +x ./scripts/native/Bootstrap-NativeDependencies.sh
+          ./scripts/native/Bootstrap-NativeDependencies.sh "${{ matrix.triplet }}"
+      - name: Bootstrap pinned native dependencies (Windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        shell: pwsh
+        run: ./scripts/native/Bootstrap-NativeDependencies.ps1 -Triplet "${{ matrix.triplet }}"
       - name: Verify native dependency manifest
         shell: bash
         run: |
