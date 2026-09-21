@@ -69,10 +69,18 @@ jobs:
           if (-not (Test-Path $plugin)) { throw "Cesium for Unreal is required on the UE5 runner." }
           $manifest = Get-Content "tsm-native\config\native-geospatial-runtime.json" -Raw | ConvertFrom-Json
           if ($manifest.geospatial.pluginVersion -ne "2.29.1") { throw "Unexpected Cesium version contract." }
+      - name: Require packaged SpatiaLite
+        shell: pwsh
+        env:
+          TSM_SPATIALITE_DLL: \${{ vars.TSM_SPATIALITE_DLL }}
+        run: |
+          if (-not $env:TSM_SPATIALITE_DLL) { throw "TSM_SPATIALITE_DLL repository variable is required." }
+          if (-not (Test-Path $env:TSM_SPATIALITE_DLL)) { throw "SpatiaLite DLL not found." }
       - name: Build native Windows package
         shell: pwsh
         env:
-          UE_ROOT: ${{ vars.UE_ROOT }}
+          UE_ROOT: \${{ vars.UE_ROOT }}
+          TSM_SPATIALITE_DLL: \${{ vars.TSM_SPATIALITE_DLL }}
         run: .\scripts\native\Build-TSMNativeWindows.ps1 -UnrealRoot $env:UE_ROOT
       - uses: actions/upload-artifact@v4
         with:
@@ -99,6 +107,12 @@ jobs:
         run: |
           cmake -S native/archimedes -B native/archimedes/build
           cmake --build native/archimedes/build --config Release --parallel
+      - name: Require packaged SpatiaLite
+        run: |
+          test -n "$TSM_SPATIALITE_DYLIB"
+          test -f "$TSM_SPATIALITE_DYLIB"
+        env:
+          TSM_SPATIALITE_DYLIB: \${{ vars.TSM_SPATIALITE_DYLIB }}
       - name: Package UE5 macOS application
         run: |
           "$UE_ROOT/Engine/Build/BatchFiles/RunUAT.sh" BuildCookRun \
@@ -106,6 +120,11 @@ jobs:
             -noP4 -build -cook -stage -pak -package -archive \
             -archivedirectory="$GITHUB_WORKSPACE/dist/tsm-native" \
             -platform=Mac -clientconfig=Shipping -utf8output
+      - name: Add SpatiaLite to macOS package
+        run: |
+          cp "$TSM_SPATIALITE_DYLIB" dist/tsm-native/mod_spatialite.dylib
+        env:
+          TSM_SPATIALITE_DYLIB: \${{ vars.TSM_SPATIALITE_DYLIB }}
       - uses: actions/upload-artifact@v4
         with:
           name: tsm-native-macos-package
