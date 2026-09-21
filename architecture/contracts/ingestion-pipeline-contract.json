@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "stages": [
+    "acquire",
+    "quarantine",
+    "validate",
+    "normalize",
+    "provenance",
+    "promote",
+    "derive",
+    "publish"
+  ],
+  "immutableRawRequired": true,
+  "quarantineBeforePromotion": true,
+  "provenanceBeforePromotion": true,
+  "contentHashRequired": true,
+  "idempotencyKeyRequired": true,
+  "deadLetterOrQuarantineRequired": true,
+  "rules": [
+    "Failed validation never silently reaches a promoted layer.",
+    "Raw source bytes are immutable once accepted.",
+    "Transformations are versioned.",
+    "Promotion is atomic with its metadata and provenance record."
+  ]
+}
