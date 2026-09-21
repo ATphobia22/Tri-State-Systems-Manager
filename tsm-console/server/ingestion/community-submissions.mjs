@@ -3,7 +3,7 @@ import { buildProvenanceManifest } from './data-fabric-provenance.mjs';
 
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_CLIENT_SUBMISSIONS = 30;
-const WINDOW_MS = 10 * 60 * 1000;
+
 const clientWindows = new Map();
 
 function reject(message, code) {
