@@ -8,12 +8,12 @@ const read = (path) => readFile(new URL(path, import.meta.url), 'utf8');
   const router = await read('../src/lib/router.tsx');
   assert.match(router, /path: 'river-watch'/);
   assert.match(router, /path: 'engineering-section'/);
-  assert.doesNotMatch(router, /13101 Bonebank|APN|tsm-site-001/);
+  assert.doesNotMatch(router, /private residence|APN|community-site/);
 });
 
 test('root layout does not expose parcel or private-site fields', async () => {
   const layout = await read('../src/components/RootLayout.tsx');
-  assert.doesNotMatch(layout, /13101 Bonebank|APN|site\.apn|siteSummary/);
+  assert.doesNotMatch(layout, /private residence|APN|site\.apn|siteSummary/);
   assert.match(layout, /Community River Valley|community river valley/i);
 });
 
@@ -21,7 +21,7 @@ test('server exposes one community aggregation endpoint', async () => {
   const server = await read('../server/token-proxy.mjs');
   assert.match(server, /\/api\/hydrologic\/community/);
   assert.match(server, /fetchRiverNetwork/);
-  assert.doesNotMatch(server, /13101 Bonebank|bonebank-digital-twin-engine/);
+  assert.doesNotMatch(server, /private residence|bonebank-digital-twin-engine/);
 });
 
 test('container web service supplies the API base variable used by the frontend', async () => {
@@ -34,5 +34,5 @@ test('container web service supplies the API base variable used by the frontend'
 test('public manifest remains community scoped', async () => {
   const manifest = await read('../public/manifest.json');
   assert.match(manifest, /Tri-State River Valley/);
-  assert.doesNotMatch(manifest, /13101 Bonebank|BonebankTwin|bonebank-digital-twin-engine/);
+  assert.doesNotMatch(manifest, /private residence|BonebankTwin|bonebank-digital-twin-engine/);
 });
