@@ -12,7 +12,7 @@ add_library(ArchimedesCore SHARED
 
 target_include_directories(ArchimedesCore
     PUBLIC
-        \${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 target_compile_definitions(ArchimedesCore PRIVATE ARCHIMEDESCORE_BUILD)
@@ -21,4 +21,13 @@ if(MSVC)
     target_compile_options(ArchimedesCore PRIVATE /W4 /permissive- /EHsc)
 else()
     target_compile_options(ArchimedesCore PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
+endif()
+
+include(CTest)
+if(BUILD_TESTING)
+    add_executable(ArchimedesCoreTests
+        tests/ArchimedesNativeTests.cpp
+    )
+    target_link_libraries(ArchimedesCoreTests PRIVATE ArchimedesCore)
+    add_test(NAME ArchimedesCoreTests COMMAND ArchimedesCoreTests)
 endif()
