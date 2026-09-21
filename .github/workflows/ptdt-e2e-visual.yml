@@ -118,8 +118,7 @@ jobs:
           set -euo pipefail
           # CI uses a virtual X display so Chrome itself is headed. This preserves
           # real browser compositing/WebGL/WebGPU paths instead of Cypress headless mode.
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends xvfb
+          command -v xvfb-run >/dev/null || { echo 'xvfb-run is required on the GitHub runner'; exit 1; }
           CYPRESS_BASE_URL="http://127.0.0.1:5173/Tri-State-Systems-Manager/" \
             xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" \
             npx --no-install cypress run --browser chrome --headed --config video=true,screenshotOnRunFailure=true
