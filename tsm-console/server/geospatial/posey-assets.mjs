@@ -116,3 +116,5 @@ export async function servePoseyAsset(req, res) {
   });
   res.end(bytes);
 }
+
+export function getPoseyAssetManifest() { return structuredClone(POSEY_2020_ASSETS); }
