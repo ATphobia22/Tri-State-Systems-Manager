@@ -39,3 +39,7 @@ Thumbs.db
 *.log
 *.swp
 *.swo
+
+# Native C++ dependency/bootstrap outputs
+.native-tools/
+native/dependencies/vcpkg_installed/
