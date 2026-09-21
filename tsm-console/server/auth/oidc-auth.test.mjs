@@ -43,7 +43,7 @@ test('OIDC verifier validates signature, issuer, audience, expiry and roles', as
     assert.throws(() => requireAuthenticatedSubject(auth, 'another-user'), /does not match/);
 
     process.env.TSM_SESSION_SECRET = 'test-session-secret-with-at-least-32-characters';
-    const cookieResponse = { setHeader(name, value) { this[name] = value; } };
+    const cookieResponse = { setHeader(name, value) { this[name] = value; }, getHeader(name) { return this[name]; } };
     setSessionCookie(cookieResponse, { accessToken: token, subject: auth.subject, roles: auth.roles, expiresAt: Date.now() + 300000 }, 300);
     const cookie = cookieResponse['Set-Cookie'].split(';', 1)[0];
     const cookieAuth = await authenticateRequest({ headers: { cookie } });
