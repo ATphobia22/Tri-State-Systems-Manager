@@ -37,4 +37,4 @@ See `tsm-console/data/gauges/usgs-03378500-iv-latest.json` (provisional). Re-fet
 | USGS IV observation | OBSERVATION (provisional) |
 | INFIP FARA PDF | OBSERVATION / agency product |
 | PDAL LAG from sealed LAS | DERIVATION |
-| LOMA determination | Human + FEMA case **26-05-2022A** |
+| LOMA determination | Human + FEMA the applicable FEMA case |
