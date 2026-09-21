@@ -89,9 +89,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write
-      attestations: write
-      artifact-metadata: write
     steps:
       - uses: actions/checkout@v5
       - name: Generate SPDX SBOM
@@ -101,11 +98,6 @@ jobs:
           format: spdx-json
           output-file: dist/provenance/tsm-native-source.spdx.json
           upload-artifact: false
-      - name: Attest source SBOM
-        uses: actions/attest@v4
-        with:
-          subject-path: dist/provenance/tsm-native-source.spdx.json
-          sbom-path: dist/provenance/tsm-native-source.spdx.json
       - name: Upload source SBOM
         uses: actions/upload-artifact@v4
         with:
@@ -118,8 +110,6 @@ jobs:
     needs: [boundary, architecture-contracts]
     permissions:
       contents: read
-      id-token: write
-      attestations: write
     steps:
       - uses: actions/checkout@v5
         with:
@@ -131,10 +121,6 @@ jobs:
         env:
           TSM_RUNNER_CLASS: linux-native
         run: node scripts/ci/generate-build-provenance.mjs
-      - name: Attest provenance
-        uses: actions/attest-build-provenance@v2
-        with:
-          subject-path: dist/provenance/build-provenance.json
       - name: Upload provenance
         uses: actions/upload-artifact@v4
         with:
