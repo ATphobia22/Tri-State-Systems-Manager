@@ -11,6 +11,7 @@ function config() {
   const redirectUri = String(process.env.OIDC_REDIRECT_URI || '').trim();
   const sessionSecret = String(process.env.TSM_SESSION_SECRET || '');
   const clientSecret = String(process.env.OIDC_CLIENT_SECRET || '');
+  const tokenEndpointAuthMethod = String(process.env.OIDC_TOKEN_ENDPOINT_AUTH_METHOD || 'client_secret_basic');
   const audience = String(process.env.OIDC_AUDIENCE || '').trim();
   const maxAge = Number(process.env.TSM_BROWSER_SESSION_MAX_AGE_SEC || 900);
   if (!issuer || !audience || !clientId || !redirectUri || sessionSecret.length < 32 || (String(process.env.TSM_AUTH_MODE || 'required').toLowerCase() !== 'disabled' && clientSecret.length < 16)) {
@@ -23,7 +24,8 @@ function config() {
     throw Object.assign(new Error('OIDC_REDIRECT_URI must use HTTPS outside local development.'), { code: 'AUTH_CONFIGURATION_ERROR', status: 503 });
   }
   if (!Number.isInteger(maxAge) || maxAge < 300 || maxAge > 3600) throw Object.assign(new Error('TSM_BROWSER_SESSION_MAX_AGE_SEC must be between 300 and 3600 seconds.'), { code: 'AUTH_CONFIGURATION_ERROR', status: 503 });
-  return { issuer, audience, clientId, redirectUri, maxAge };
+  if (tokenEndpointAuthMethod !== 'client_secret_basic') throw Object.assign(new Error('OIDC_TOKEN_ENDPOINT_AUTH_METHOD must be client_secret_basic.'), { code: 'AUTH_CONFIGURATION_ERROR', status: 503 });
+  return { issuer, audience, clientId, redirectUri, maxAge, tokenEndpointAuthMethod };
 }
 
 async function discovery() {
@@ -77,7 +79,7 @@ export async function beginOidcLogin(req, res) {
 }
 
 export async function finishOidcLogin(req, res) {
-  const { clientId, redirectUri, audience, maxAge } = config();
+  const { clientId, redirectUri, audience, maxAge, tokenEndpointAuthMethod } = config();
   const url = new URL(req.url || '/', 'http://localhost');
   const code = url.searchParams.get('code');
   const state = url.searchParams.get('state');
@@ -90,16 +92,14 @@ export async function finishOidcLogin(req, res) {
   const provider = await discovery();
   const body = new URLSearchParams({
     grant_type: 'authorization_code',
-    client_id: clientId,
     redirect_uri: redirectUri,
     code,
     code_verifier: transaction.verifier,
   });
   const clientSecret = String(process.env.OIDC_CLIENT_SECRET || '');
-  body.set('client_secret', clientSecret);
   const tokenResponse = await fetch(provider.token_endpoint, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json', Authorization: 'Basic ' + Buffer.from(clientId + ':' + clientSecret, 'utf8').toString('base64') },
     body,
   });
   const token = await tokenResponse.json();
