@@ -84,8 +84,16 @@ jobs:
       - name: Verify native dependency manifest
         shell: bash
         run: |
-          test -f native/dependencies/vcpkg_installed/${{ matrix.triplet }}/include/sqlite3.h
-          test -f native/dependencies/vcpkg_installed/${{ matrix.triplet }}/include/spatialite.h
+          ROOT="native/dependencies/vcpkg_installed/${{ matrix.triplet }}"
+          test -f "$ROOT/include/sqlite3.h"
+          test -f "$ROOT/include/spatialite.h"
+          if [[ "${{ matrix.triplet }}" == *windows* ]]; then
+            find "$ROOT" -type f \\( -name "sqlite3.lib" -o -name "mod_spatialite.lib" -o -name "mod_spatialite.dll" \\) -print -quit | grep -q .
+          elif [[ "${{ matrix.triplet }}" == *osx* ]]; then
+            find "$ROOT" -type f \\( -name "libsqlite3.a" -o -name "libsqlite3.dylib" -o -name "mod_spatialite.dylib" \\) -print -quit | grep -q .
+          else
+            find "$ROOT" -type f \\( -name "libsqlite3.so*" -o -name "libspatialite.so*" \\) -print -quit | grep -q .
+          fi
 
   package-windows:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.package_windows }}
