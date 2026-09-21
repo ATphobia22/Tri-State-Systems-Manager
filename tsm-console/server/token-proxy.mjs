@@ -205,7 +205,7 @@ const server = http.createServer(async (req, res) => {
         const publication = await authorizeAndPublishArtifact(body.artifact_id, {
           ...body.human_authorization,
           reviewer_identity: requestAuth.subject,
-        });
+        }, requestAuth.subject);
         return json(res, 201, publication, requestId);
       } catch (error) {
         return json(res, error.status || (error.code === 'NOT_FOUND' ? 404 : 422), { error: error.message, code: error.code || 'GOVERNANCE_FAULT' }, requestId);
