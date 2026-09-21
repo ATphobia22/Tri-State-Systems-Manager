@@ -136,11 +136,23 @@ jobs:
         run: node scripts/ci/native-runtime-boundary.mjs
       - name: Native platform matrix
         run: node scripts/ci/validate-native-platform-matrix.mjs
+      - name: Install ccache
+        run: sudo apt-get update && sudo apt-get install -y ccache
+      - name: Cache C++ compilation
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ccache
+          key: ccache-linux-${{ hashFiles('native/archimedes/CMakeLists.txt', 'native/archimedes/CMakePresets.json', 'native/archimedes/src/**', 'native/archimedes/include/**', 'native/archimedes/tests/**') }}
+          restore-keys: |
+            ccache-linux-
       - name: Build and test ArchimedesCore
+        env:
+          CMAKE_CXX_COMPILER_LAUNCHER: ccache
         run: |
-          cmake --preset linux-x64
+          cmake --preset linux-x64 -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
           cmake --build --preset linux-x64 --parallel
           ctest --preset linux-x64
+          ccache --show-stats
 
   data-integrity:
     runs-on: ubuntu-latest
