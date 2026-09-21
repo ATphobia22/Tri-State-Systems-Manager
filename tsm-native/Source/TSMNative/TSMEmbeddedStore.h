@@ -7,7 +7,7 @@ public:
  ~FTSMEmbeddedStore();
  bool Open(const FString& DatabasePath,const FString& SpatiaLiteLibraryPath,FString& OutError);
  void Close();
- bool InitializeSchema(FString& OutError);
+ bool ValidateSchema(FString& OutError) const;
  bool ReadSiteByKey(const FString& SiteKey,FTSMStoredSite& OutSite,FString& OutError) const;
  bool IsSpatiaLiteLoaded() const { return bSpatiaLiteLoaded; }
 private:
