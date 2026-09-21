@@ -2,6 +2,9 @@
 FROM node:22-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
+COPY scripts/postinstall-check.mjs ./scripts/postinstall-check.mjs
+COPY vite.config.ts index.html ./
+COPY src/main.tsx ./src/main.tsx
 RUN npm ci --no-audit --no-fund
 COPY . .
 RUN npm run build
