@@ -11,7 +11,7 @@ test('HTTP client retries 429 and honors retry-after', async () => {
   let calls = 0;
   const delays = [];
   const request = createRequestJson({ fetchImpl: async () => (++calls === 1 ? response(429, '{}', { 'retry-after': '1' }) : response(200, '{"ok":true}')), sleepImpl: async (ms) => delays.push(ms) });
-  assert.deepEqual(await request('https://example.test/data', { retries: 1, sourceId: 'example' }), { ok: true });
+  assert.deepEqual(await request('https://example.test/data', { retries: 1, retryJitterMs: 0, sourceId: 'example' }), { ok: true });
   assert.equal(calls, 2);
   assert.equal(delays[0], 1_000);
 });
