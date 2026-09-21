@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { getSessionFromServer } from '../lib/auth';
 
 interface EvidenceArtifact {
   readonly artifact_id: string;
@@ -64,7 +65,7 @@ export function HumanSignGatePanel({
     try {
       const response = await fetch(
         `\${apiOrigin(apiBaseUrl)}/api/evidence?is_simulation_demo=false`,
-        { headers: { Accept: 'application/json' }, cache: 'no-store' },
+        { headers: { Accept: 'application/json' }, credentials: 'include', cache: 'no-store' },
       );
       if (!response.ok) {
         throw new Error(`Evidence API returned HTTP \${response.status}.`);
@@ -92,6 +93,12 @@ export function HumanSignGatePanel({
     void loadArtifacts();
   }, [loadArtifacts]);
 
+  useEffect(() => {
+    void getSessionFromServer().then((session) => {
+      if (session) setReviewerIdentity(session.uid);
+    }).catch(() => undefined);
+  }, []);
+
   const formValid =
     selectedArtifact !== null &&
     reviewerIdentity.trim().length >= 3 &&
@@ -118,7 +125,9 @@ export function HumanSignGatePanel({
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
+          'X-TSM-CSRF': '1',
         },
+        credentials: 'include',
         cache: 'no-store',
         body: JSON.stringify({
           artifact_id: selectedArtifact.artifact_id,
@@ -271,7 +280,8 @@ export function HumanSignGatePanel({
               minLength={3}
               value={reviewerIdentity}
               onChange={(event) => setReviewerIdentity(event.target.value)}
-              disabled={submitting}
+              disabled
+              readOnly
               autoComplete="off"
               style={inputStyle}
             />
