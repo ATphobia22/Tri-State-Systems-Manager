@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { verifyAccessToken } from './oidc-auth.mjs';
+import { verifyAccessToken, verifyIdToken } from './oidc-auth.mjs';
 import { clearSessionCookie, clearTransactionCookie, readTransactionCookie, setSessionCookie, setTransactionCookie, readSessionCookie } from './session-cookie.mjs';
 
 const DISCOVERY_TTL_MS = 300_000;
@@ -60,14 +60,16 @@ export async function beginOidcLogin(req, res) {
   const provider = await discovery();
   const verifier = randomBytes(32).toString('base64url');
   const state = randomBytes(32).toString('base64url');
+  const nonce = randomBytes(32).toString('base64url');
   const returnTo = safeReturnTo(new URL(req.url || '/', 'http://localhost').searchParams.get('returnTo'));
-  setTransactionCookie(res, { state, verifier, returnTo, createdAt: Date.now() });
+  setTransactionCookie(res, { state, verifier, nonce, returnTo, createdAt: Date.now() });
   const authorization = new URL(provider.authorization_endpoint);
   authorization.searchParams.set('response_type', 'code');
   authorization.searchParams.set('client_id', clientId);
   authorization.searchParams.set('redirect_uri', redirectUri);
   authorization.searchParams.set('scope', String(process.env.OIDC_SCOPES || 'openid profile email roles'));
   authorization.searchParams.set('state', state);
+  authorization.searchParams.set('nonce', nonce);
   authorization.searchParams.set('code_challenge', pkceChallenge(verifier));
   authorization.searchParams.set('code_challenge_method', 'S256');
   res.writeHead(302, { Location: authorization.toString(), 'Cache-Control': 'no-store' });
@@ -101,16 +103,15 @@ export async function finishOidcLogin(req, res) {
     body,
   });
   const token = await tokenResponse.json();
-  if (!tokenResponse.ok || typeof token.access_token !== 'string') {
+  if (!tokenResponse.ok || typeof token.access_token !== 'string' || typeof token.id_token !== 'string') {
     clearTransactionCookie(res);
     throw Object.assign(new Error(token.error_description || token.error || 'OIDC token exchange failed.'), { code: 'OIDC_TOKEN_EXCHANGE_FAILED', status: 502 });
   }
 
-  const auth = await verifyAccessToken(token.access_token, {
-    issuer: String(process.env.OIDC_ISSUER || '').replace(/\/$/, ''),
-    audience,
-    jwksUrl: String(process.env.OIDC_JWKS_URL || provider.jwks_uri).trim(),
-  });
+  const issuer = String(process.env.OIDC_ISSUER || '').replace(/\/$/, '');
+  const jwksUrl = String(process.env.OIDC_JWKS_URL || provider.jwks_uri).trim();
+  await verifyIdToken(token.id_token, { issuer, clientId, audience, jwksUrl }, transaction.nonce);
+  const auth = await verifyAccessToken(token.access_token, { issuer, audience, jwksUrl });
   setSessionCookie(res, {
     v: 1,
     accessToken: token.access_token,
