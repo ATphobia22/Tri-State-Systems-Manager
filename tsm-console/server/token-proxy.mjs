@@ -22,7 +22,7 @@ const PORT = Number(process.env.PORT || 8787);
 const BUILD_SHA = process.env.GITHUB_SHA || process.env.TSM_BUILD_SHA || 'local';
 const ALLOWED_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
 if (ALLOWED_ORIGIN === '*') throw new Error('CORS_ORIGIN must be an exact trusted origin; wildcard CORS is prohibited.');
-const REQUIRED_BROWSER_AUTH_ENV = ['OIDC_ISSUER', 'OIDC_AUDIENCE', 'OIDC_CLIENT_ID', 'OIDC_REDIRECT_URI', 'TSM_SESSION_SECRET', 'CORS_ORIGIN'];
+const REQUIRED_BROWSER_AUTH_ENV = ['OIDC_ISSUER', 'OIDC_AUDIENCE', 'OIDC_CLIENT_ID', 'OIDC_CLIENT_SECRET', 'OIDC_REDIRECT_URI', 'TSM_SESSION_SECRET', 'CORS_ORIGIN'];
 function productionAuthReady() { return REQUIRED_BROWSER_AUTH_ENV.every((name) => String(process.env[name] || '').trim() !== '') && String(process.env.TSM_SESSION_SECRET || '').length >= 32; }
 function json(res, status, body, requestId) {
   res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-TSM-Request-ID': requestId || 'unknown', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer', 'X-Frame-Options': 'DENY', 'Content-Security-Policy': "frame-ancestors 'none'", 'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=()', ...(String(process.env.CORS_ORIGIN || '').startsWith('https://') ? { 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains' } : {}), 'Access-Control-Allow-Origin': ALLOWED_ORIGIN, 'Access-Control-Allow-Credentials': 'true', 'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-TSM-Request-ID, X-TSM-CSRF', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Vary': 'Origin' });
