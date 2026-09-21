@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "name": "TSM Lineage Registry",
+  "purpose": "Immutable graph of source-to-runtime transformations.",
+  "nodeRequired": [
+    "nodeId",
+    "nodeType",
+    "contentSha256",
+    "createdAtUtc"
+  ],
+  "edgeRequired": [
+    "fromNodeId",
+    "toNodeId",
+    "transformationId",
+    "transformationVersion"
+  ],
+  "nodeTypes": [
+    "sourceDataset",
+    "sourceVersion",
+    "acquisition",
+    "validatedArtifact",
+    "derivedArtifact",
+    "runtimeSnapshot",
+    "evidenceArtifact",
+    "presentationAsset"
+  ],
+  "rules": [
+    "Lineage must be acyclic.",
+    "Every derived node retains all material input nodes.",
+    "Published lineage records are immutable."
+  ]
+}
