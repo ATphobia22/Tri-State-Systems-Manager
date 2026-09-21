@@ -168,6 +168,18 @@ jobs:
       - name: Production reliability contract gate
         working-directory: .
         run: node scripts/ci/validate-production-reliability.mjs
+      - name: Enterprise architecture contract gate
+        working-directory: .
+        run: node scripts/ci/validate-enterprise-data-architecture.mjs
+      - name: Architecture repository completeness gate
+        working-directory: .
+        run: node scripts/ci/validate-architecture-repository.mjs
+      - name: Data fabric contract gate
+        working-directory: .
+        run: node scripts/ci/validate-data-fabric-contract.mjs
+      - name: Provenance plane contract gate
+        working-directory: .
+        run: node scripts/ci/validate-provenance-plane.mjs
 
       - name: Package production artifact for attestation
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
