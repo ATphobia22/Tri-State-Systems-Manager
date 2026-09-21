@@ -20,14 +20,20 @@ Review https://github.com/ATphobia22/Tri-State-Systems-Manager/security/dependab
 4. AI assist / Chrome built-in AI is presentation-only (`AI_ASSIST`); never writes Evidence Ledger.
 5. Human authority remains final for LOMA/FARA/floodway determinations.
 
-## Remediation status (2026-08-31)
+## Remediation status
 
-GitHub reported 1 critical Dependabot alert on default branch after push `75dee33`.  
-Actions taken:
+Historical security alerts must be verified against the current GitHub Security/Dependabot state before release. The repository does not treat an old alert snapshot as proof of current vulnerability status.
 
-- Added `.github/dependabot.yml` for automated patches
-- Confirmed workflows use `pull_request` (not `pull_request_target`) and minimal permissions on open-world-twin
-- Generated/refreshed `tsm-console/package-lock.json` for reproducible installs
-- Recommend operator open the Dependabot alert UI, accept the security update PR, and run `npm ci` locally
+Current controls include:
 
-If the alert is a transitive package, prefer Dependabot’s proposed bump over manual deep pins unless CI fails.
+- `.github/dependabot.yml` for automated dependency updates
+- pinned GitHub Actions references in production workflows
+- lockfile reproducibility and dependency-integrity gates
+- OIDC PKCE/nonce validation and confidential token-endpoint authentication
+- operation-level authorization for privileged mutations
+- provenance and quarantine boundaries for community submissions
+- authoritative source URL/path allowlisting
+- non-root container runtime and readiness gates
+- deployment credentials excluded from source control
+
+If GitHub reports a new dependency vulnerability, merge the vendor/Dependabot remediation only after the full repository gates pass.
