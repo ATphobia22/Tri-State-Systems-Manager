@@ -71,3 +71,17 @@ export function buildProvenanceManifest({ datasetId, payload, provenance }) {
     ]),
   });
 }
+
+
+export function buildPublicTransparencyManifest({ datasetId, payload, provenance }) {
+  const manifest = buildProvenanceManifest({ datasetId, payload, provenance });
+  return Object.freeze({
+    dataset_id: manifest.dataset_id,
+    content_hash_sha256: manifest.content_hash_sha256,
+    spatial_reference: manifest.provenance.coordinate_system,
+    legal_terms: manifest.provenance.license_type,
+    authority_class: manifest.provenance.authority_class,
+    limitations: manifest.provenance.limitations,
+    lineage: manifest.lineage,
+  });
+}
