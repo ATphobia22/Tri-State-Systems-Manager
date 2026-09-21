@@ -26,7 +26,5 @@ public class TSMNative : ModuleRules
 
         PrivateDependencyModuleNames.AddRange(new[] { "SQLiteSupport" });
 
-        // Deliberately do not depend on HTTP, WebSockets, OnlineSubsystem,
-        // WebBrowser, WebBrowserWidget, or SocketSubsystem modules.
     }
 }
