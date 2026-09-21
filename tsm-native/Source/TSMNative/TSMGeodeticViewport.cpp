@@ -6,7 +6,7 @@
 #include "TSMEmbeddedStore.h"
 ATSMGeodeticViewport::ATSMGeodeticViewport(){PrimaryActorTick.bCanEverTick=true;TerrainRoot=CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TerrainRoot"));RootComponent=TerrainRoot;WaterSurface=CreateDefaultSubobject<USceneComponent>(TEXT("WaterSurface"));WaterSurface->SetupAttachment(RootComponent);}
 void ATSMGeodeticViewport::BeginPlay(){Super::BeginPlay();Runtime=MakeUnique<FArchimedesRuntime>();Store=MakeUnique<FTSMEmbeddedStore>();const FString DatabasePath=FPaths::Combine(FPaths::ProjectDir(),DatabaseRelativePath);FString Error;const FString SpatiaLitePath=FPaths::Combine(FPaths::ProjectDir(),SpatiaLiteLibraryRelativePath);
-    if(!Store->Open(DatabasePath,SpatiaLitePath,Error)||!Store->InitializeSchema(Error)){UE_LOG(LogTemp,Error,TEXT("TSM embedded spatial database initialization failed: %s"),*Error);return;}
+    if(!Store->Open(DatabasePath,SpatiaLitePath,Error)||!Store->ValidateSchema(Error)){UE_LOG(LogTemp,Error,TEXT("TSM embedded spatial database initialization failed: %s"),*Error);return;}
 #if PLATFORM_WINDOWS
 const FString LibraryName=ArchimedesLibraryRelativePath;
 #elif PLATFORM_MAC
