@@ -223,14 +223,7 @@ The application must remain usable without WebGPU. The 3D terrain mesh remains f
 
 ### Authentication and browser environment
 
-Keycloak is configured as a public browser client using Authorization Code + PKCE (S256). The canonical public build variables are:
-
-- VITE_KEYCLOAK_URL
-- VITE_KEYCLOAK_REALM
-- VITE_KEYCLOAK_CLIENT_ID
-- VITE_IDP_REDIRECT_URI
-
-No client secret belongs in a VITE_* variable.
+Hosted browser authentication uses a server-managed confidential OIDC BFF using Authorization Code + PKCE (S256). The browser receives only an encrypted HttpOnly Secure session cookie. OIDC client credentials and provider tokens remain server-side. The public build requires only VITE_TSM_API_BASE_URL.
 
 For GitHub Pages production builds, these values plus VITE_TSM_API_BASE_URL are supplied from repository Variables. When Pages deployment is enabled, the workflow fails closed if the required browser bindings are absent.
 
@@ -322,7 +315,7 @@ See docs/DATABRICKS-CI-CD.md.
 
 The TSM horizontal engineering analysis frame is **EPSG:2966 (NAD83 / Indiana West, US survey feet)**. EPSG:2966 is a horizontal projected CRS; **NAVD88 is not encoded by EPSG:2966 and is therefore tracked separately as vertical-reference metadata**. Native government services may legitimately expose other CRSs (for example, Indiana BAFM's native service CRS or Web Mercator imagery/elevation services); those coordinates must be explicitly transformed before entering the TSM engineering frame.
 
-A NAVD88 elevation or water-surface value is accepted only when its source/product-specific vertical reference or a validated transformation is documented. TSM does not infer NAVD88 merely because a layer is an elevation product. USGS 3DEP source catalog records can explicitly declare NAVD88 for individual source products, demonstrating why the datum must remain source metadata rather than an assumption applied to every raster. citeturn0search2
+A NAVD88 elevation or water-surface value is accepted only when its source/product-specific vertical reference or a validated transformation is documented. TSM does not infer NAVD88 merely because a layer is an elevation product. USGS 3DEP source catalog records can explicitly declare NAVD88 for individual source products, demonstrating why the datum must remain source metadata rather than an assumption applied to every raster. 
 
 A geospatial audit found and corrected the HEC-RAS project contract's erroneous EPSG:26916 declaration to EPSG:2966.
 
