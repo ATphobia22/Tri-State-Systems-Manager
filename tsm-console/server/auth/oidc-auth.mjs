@@ -1,4 +1,5 @@
 import { createPublicKey, createVerify } from 'node:crypto';
+import { readSessionCookie } from './session-cookie.mjs';
 
 const CLOCK_SKEW_SECONDS = 60;
 const JWKS_TIMEOUT_MS = 5000;
@@ -18,7 +19,7 @@ function getConfiguredAuth() {
   const jwksUrl = String(process.env.OIDC_JWKS_URL || (issuer ? issuer + '/protocol/openid-connect/certs' : '')).trim();
   const mode = String(process.env.TSM_AUTH_MODE || 'required').toLowerCase();
   if (mode === 'disabled') return { mode };
-  if (!issuer || !audience || !jwksUrl) throw authError('OIDC server authorization is not configured. Set OIDC_ISSUER, OIDC_AUDIENCE, and OIDC_JWKS_URL.', 'AUTH_CONFIGURATION_ERROR', 503);
+  if (!issuer || !audience || !jwksUrl) throw authError('OIDC server authorization is not configured. Set OIDC_ISSUER and OIDC_AUDIENCE; OIDC_JWKS_URL may override discovery-derived JWKS.', 'AUTH_CONFIGURATION_ERROR', 503);
   return { mode, issuer, audience, jwksUrl };
 }
 async function loadJwks(url, forceRefresh = false) {
@@ -50,7 +51,7 @@ function verifyClaims(payload, config) {
   if (payload.nbf !== undefined && (typeof payload.nbf !== 'number' || payload.nbf > now + CLOCK_SKEW_SECONDS)) throw authError('OIDC access token is not active.', 'TOKEN_NOT_ACTIVE');
   if (typeof payload.sub !== 'string' || !payload.sub.trim()) throw authError('OIDC subject is missing.', 'TOKEN_SUBJECT_MISSING');
 }
-async function verifyAccessToken(token, config) {
+export async function verifyAccessToken(token, config) {
   const parsed = parseJwt(token);
   if (parsed.header.alg !== 'RS256') throw authError('Only RS256 OIDC access tokens are accepted.', 'TOKEN_ALGORITHM_UNSUPPORTED');
   if (typeof parsed.header.kid !== 'string') throw authError('OIDC signing key id is missing.', 'TOKEN_KEY_ID_MISSING');
@@ -67,9 +68,18 @@ export async function authenticateRequest(req) {
   const config = getConfiguredAuth();
   if (config.mode === 'disabled') return { subject: 'local-development', roles: ['development'], issuer: 'local', audience: 'local', claims: {}, developmentBypass: true };
   const header = req.headers.authorization;
-  if (typeof header !== 'string' || !/^Bearer\s+/i.test(header)) throw authError('Bearer access token required.', 'AUTHENTICATION_REQUIRED');
-  const token = header.replace(/^Bearer\s+/i, '').trim(); if (!token) throw authError('Bearer access token required.', 'AUTHENTICATION_REQUIRED');
-  return verifyAccessToken(token, config);
+  if (typeof header === 'string' && /^Bearer\s+/i.test(header)) {
+    const token = header.replace(/^Bearer\s+/i, '').trim();
+    if (!token) throw authError('Bearer access token required.', 'AUTHENTICATION_REQUIRED');
+    return verifyAccessToken(token, config);
+  }
+  const session = readSessionCookie(req);
+  if (session?.accessToken) {
+    if (typeof session.expiresAt !== 'number' || session.expiresAt <= Date.now()) throw authError('Browser session has expired.', 'SESSION_EXPIRED');
+    const auth = await verifyAccessToken(session.accessToken, config);
+    return { ...auth, browserSession: true };
+  }
+  throw authError('Bearer access token or authenticated browser session required.', 'AUTHENTICATION_REQUIRED');
 }
 export function requireRoles(auth, requiredRoles) { const allowed = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles]; if (!allowed.some((role) => auth.roles.includes(role))) throw authError('Authenticated identity lacks the required authorization role.', 'AUTHORIZATION_FORBIDDEN', 403); return auth; }
 export function requireAuthenticatedSubject(auth, subject) { if (!auth || auth.subject !== subject) throw authError('Authenticated identity does not match the requested subject.', 'AUTHORIZATION_SUBJECT_MISMATCH', 403); return auth; }

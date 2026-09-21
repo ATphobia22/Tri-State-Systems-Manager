@@ -23,10 +23,10 @@ export default function LoginView() {
         <h1 id="login-title" style={{ marginTop: 0 }}>TSM Console Sign-In</h1>
         <p style={{ color: '#94a3b8', lineHeight: 1.5 }}>
           Authentication is required before accessing protected engineering and evidence workflows.
-          Authorization uses OIDC Authorization Code + PKCE; no client secret is stored in the browser.
+          The server handles OIDC Authorization Code + PKCE. Access and refresh tokens never enter browser JavaScript.
         </p>
         <p style={{ fontSize: '0.8rem', color: '#64748b' }}>
-          Provider: {config.provider} · Client: {config.clientId ? 'configured' : 'not configured'}
+          Provider: {config.provider} · API session gateway: {config.apiBaseUrl ? 'configured' : 'same-origin'}
         </p>
         {error && <div role="alert" style={{ marginBottom: '1rem', color: '#fca5a5' }}>{error}</div>}
         <button type="button" onClick={() => void beginLogin()} style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: 8, border: 0, cursor: 'pointer' }}>

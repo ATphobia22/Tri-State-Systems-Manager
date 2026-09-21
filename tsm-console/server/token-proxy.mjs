@@ -16,12 +16,16 @@ import { handleFirmRoute } from './geospatial/firm-routes.mjs';
 import { normalizeTelemetryEvent, validateTelemetryIngress } from './telemetry/inbound.mjs';
 import { authorizeAndPublishArtifact } from './ingestion/governance-transition.mjs';
 import { authenticateRequest, requireRoles, requireAuthenticatedSubject } from './auth/oidc-auth.mjs';
+import { beginOidcLogin, finishOidcLogin, getBrowserSession, logoutOidc } from './auth/oidc-bff.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
 const BUILD_SHA = process.env.GITHUB_SHA || process.env.TSM_BUILD_SHA || 'local';
 const ALLOWED_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
+if (ALLOWED_ORIGIN === '*') throw new Error('CORS_ORIGIN must be an exact trusted origin; wildcard CORS is prohibited.');
+const REQUIRED_BROWSER_AUTH_ENV = ['OIDC_ISSUER', 'OIDC_AUDIENCE', 'OIDC_CLIENT_ID', 'OIDC_CLIENT_SECRET', 'OIDC_REDIRECT_URI', 'TSM_SESSION_SECRET', 'CORS_ORIGIN'];
+function productionAuthReady() { return REQUIRED_BROWSER_AUTH_ENV.every((name) => String(process.env[name] || '').trim() !== '') && String(process.env.TSM_SESSION_SECRET || '').length >= 32; }
 function json(res, status, body, requestId) {
-  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-TSM-Request-ID': requestId || 'unknown', 'Access-Control-Allow-Origin': ALLOWED_ORIGIN, 'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-TSM-Request-ID', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS' });
+  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-TSM-Request-ID': requestId || 'unknown', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer', 'X-Frame-Options': 'DENY', 'Content-Security-Policy': "frame-ancestors 'none'", 'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=()', ...(String(process.env.CORS_ORIGIN || '').startsWith('https://') ? { 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains' } : {}), 'Access-Control-Allow-Origin': ALLOWED_ORIGIN, 'Access-Control-Allow-Credentials': 'true', 'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-TSM-Request-ID, X-TSM-CSRF', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Vary': 'Origin' });
   res.end(JSON.stringify(body));
 }
 function readBodyFixed(req) {
@@ -59,6 +63,13 @@ const server = http.createServer(async (req, res) => {
     if (protectedMutation) {
       try {
         requestAuth = await authenticateRequest(req);
+        if (requestAuth.browserSession) {
+          const origin = String(req.headers.origin || '');
+          const expectedOrigin = new URL(ALLOWED_ORIGIN).origin;
+          if (origin !== expectedOrigin || req.headers['x-tsm-csrf'] !== '1') {
+            return json(res, 403, { ok: false, code: 'CSRF_ORIGIN_REJECTED', error: 'Authenticated browser mutations require the configured origin and X-TSM-CSRF header.' }, requestId);
+          }
+        }
       } catch (error) {
         return json(res, error.status || 401, { ok: false, code: error.code || 'AUTHENTICATION_REQUIRED', error: error.message }, requestId);
       }
@@ -77,9 +88,29 @@ const server = http.createServer(async (req, res) => {
       }
     }
     if (handleFirmRoute(req, res, url, (response, status, body) => json(response, status, body, requestId))) return;
-    if (req.method === 'GET' && url.pathname === '/api/auth/health') return json(res, 200, { ...healthBody(), auth_model: 'keycloak_public_client_pkce', client_secret_required: false, token_proxy_path: null }, requestId);
+    if (req.method === 'GET' && url.pathname === '/api/auth/health') return json(res, 200, { ...healthBody(), auth_model: 'server_managed_oidc_pkce_session', browser_tokens_exposed: false, oidc_configured: Boolean(process.env.OIDC_ISSUER && process.env.OIDC_AUDIENCE && process.env.OIDC_CLIENT_ID && process.env.OIDC_REDIRECT_URI && process.env.TSM_SESSION_SECRET) }, requestId);
+    if (req.method === 'GET' && url.pathname === '/api/auth/login') return await beginOidcLogin(req, res);
+    if (req.method === 'GET' && url.pathname === '/api/auth/callback') {
+      try { return await finishOidcLogin(req, res); }
+      catch (error) { return json(res, error.status || 502, { ok: false, code: error.code || 'OIDC_CALLBACK_FAILED', error: error.message }, requestId); }
+    }
+    if (req.method === 'GET' && url.pathname === '/api/auth/session') {
+      try {
+        const session = await getBrowserSession(req);
+        return json(res, 200, session ? { authenticated: true, subject: session.subject, roles: session.roles } : { authenticated: false }, requestId);
+      } catch (error) { return json(res, 401, { authenticated: false, code: error.code || 'SESSION_INVALID' }, requestId); }
+    }
+    if (req.method === 'POST' && url.pathname === '/api/auth/logout') {
+      const origin = String(req.headers.origin || '');
+      if (origin !== new URL(ALLOWED_ORIGIN).origin || req.headers['x-tsm-csrf'] !== '1') return json(res, 403, { ok: false, code: 'CSRF_ORIGIN_REJECTED' }, requestId);
+      return logoutOidc(res);
+    }
     if (req.method === 'GET' && url.pathname === '/health') return json(res, 200, healthBody(), requestId);
-    if (req.method === 'GET' && url.pathname === '/ready') return json(res, 200, { ...healthBody(), ready: true, required_internal_dependencies: { authority_registry: true, evidence_store: true } }, requestId);
+    if (req.method === 'GET' && url.pathname === '/ready') {
+      const authReady = String(process.env.TSM_AUTH_MODE || 'required').toLowerCase() === 'disabled' || productionAuthReady();
+      if (!authReady) return json(res, 503, { ...healthBody(), ready: false, code: 'AUTH_CONFIGURATION_INCOMPLETE', required_internal_dependencies: { authority_registry: true, evidence_store: true, oidc: false } }, requestId);
+      return json(res, 200, { ...healthBody(), ready: true, required_internal_dependencies: { authority_registry: true, evidence_store: true, oidc: true } }, requestId);
+    }
     if (req.method === 'GET' && url.pathname === '/api/data-sources/catalog') return json(res, 200, { build_sha: BUILD_SHA, sources: listAuthoritativeSources(), health: listSourceHealth(), circuits: listUpstreamCircuitHealth(), authority_boundary: 'Catalog metadata does not confer regulatory authority; source products retain their published status.' }, requestId);
     if (req.method === 'GET' && url.pathname === '/api/data-sources/fetch') {
       const sourceId = url.searchParams.get('source_id');

@@ -17,6 +17,8 @@ Production and hosted deployments use:
 - `TSM_OPERATOR_ROLE`
 - `TSM_REVIEWER_ROLE`
 
+Hosted browser authentication now uses a server-managed OIDC session gateway. The browser receives only an encrypted `HttpOnly`, `Secure`, `__Host-` session cookie; access and refresh tokens are not stored in `localStorage` or `sessionStorage`. The OIDC Authorization Code flow uses PKCE S256, server-side discovery metadata, exact configured redirect URI, and server-side token validation. Browser-authenticated mutations additionally require the configured `Origin` and `X-TSM-CSRF: 1` header.
+
 The API validates:
 
 1. JWT structure.
@@ -46,6 +48,40 @@ The following routes require a verified access token:
 The ledger publication route additionally requires `TSM_REVIEWER_ROLE`.
 
 For ledger publication, the authenticated OIDC subject must exactly match `human_authorization.reviewer_identity`. The server passes that identity into the governance transition and rejects mismatches.
+
+## Production OIDC configuration
+
+Required server configuration for the browser-session/BFF path:
+
+- `OIDC_ISSUER` — exact HTTPS issuer URL.
+- `OIDC_AUDIENCE` — API/resource-server audience present in access tokens.
+- `OIDC_CLIENT_ID` — server-side confidential OIDC client identifier.
+- `OIDC_CLIENT_SECRET` — confidential-client credential; inject only from the deployment secret manager.
+- `OIDC_REDIRECT_URI` — exact registered callback URL, normally `/api/auth/callback`.
+- `TSM_SESSION_SECRET` — at least 32 characters; store only in the deployment secret manager.
+- `CORS_ORIGIN` — one exact trusted browser origin; never `*` when cookies are enabled.
+- `TSM_COOKIE_SAMESITE` — `Strict`/`Lax` for same-site deployments; `None` only when a deliberately cross-site frontend/API deployment is required, with HTTPS and `Secure`.
+
+For Keycloak, configure a confidential OIDC client with Standard Flow enabled, Direct Access Grants disabled, Implicit Flow disabled, PKCE S256 enabled, and exact valid redirect/web origins. Configure an Audience mapper so the issued access token contains the API value configured as `OIDC_AUDIENCE`; Keycloak documents Audience protocol mappers for this purpose.
+
+The browser starts login at `GET /api/auth/login`; the server stores the PKCE transaction in an encrypted HttpOnly transaction cookie, exchanges the authorization code server-side at `GET /api/auth/callback`, validates the resulting access token, and establishes the protected session. This follows the current browser-based OAuth BFF guidance, which recommends keeping OAuth tokens out of browser application code and using protected cookie sessions.
+
+### Keycloak production checklist
+
+1. Create realm `tsm` (or the agency-approved realm name).
+2. Create confidential client `tsm-console-bff`.
+3. Enable Standard Flow / Authorization Code.
+4. Enable PKCE with S256.
+5. Disable Implicit Flow and Direct Access Grants.
+6. Register one exact `OIDC_REDIRECT_URI`, e.g. `https://api.example.gov/api/auth/callback`.
+7. Register the exact browser origin under Web Origins.
+8. Create API audience `tsm-console-api` and add an Audience mapper to the access token, or use the approved API client as the audience.
+9. Create realm/client roles matching `TSM_OPERATOR_ROLE` and `TSM_REVIEWER_ROLE`.
+10. Assign only the minimum required roles to approved users/groups.
+11. Store the generated client secret and `TSM_SESSION_SECRET` in the deployment secret manager; never put either in Git.
+12. Verify discovery, JWKS, token issuer, audience, expiration, and role claims against the deployed provider before enabling privileged workflows.
+
+The application intentionally does not invent or embed a real identity-provider URL, client secret, role assignment, or agency credential. Those values are deployment-specific and must be supplied by the responsible operator.
 
 ## Development
 
