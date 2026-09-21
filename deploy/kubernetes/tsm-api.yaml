@@ -14,6 +14,8 @@ spec:
       labels:
         app: tsm-api
     spec:
+      terminationGracePeriodSeconds: 20
+      automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
         seccompProfile:
@@ -61,6 +63,17 @@ spec:
                 secretKeyRef:
                   name: tsm-production-secrets
                   key: TSM_SESSION_SECRET
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8787
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 24
           readinessProbe:
             httpGet:
               path: /ready
