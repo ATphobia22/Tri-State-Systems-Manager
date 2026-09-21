@@ -220,6 +220,12 @@ jobs:
           test -f "$TSM_SPATIALITE_DYLIB"
         env:
           TSM_SPATIALITE_DYLIB: ${{ vars.TSM_SPATIALITE_DYLIB }}
+      - name: Stage ArchimedesCore for macOS build
+        run: |
+          ARCHIMEDES="$(find native/archimedes/build -type f -name 'libArchimedesCore.dylib' -print -quit)"
+          test -n "$ARCHIMEDES"
+          mkdir -p tsm-native/Binaries
+          cp "$ARCHIMEDES" tsm-native/Binaries/libArchimedesCore.dylib
       - name: Package UE5 macOS application
         run: |
           "$UE_ROOT/Engine/Build/BatchFiles/RunUAT.sh" BuildCookRun \
@@ -227,11 +233,18 @@ jobs:
             -noP4 -build -cook -stage -pak -package -archive \
             -archivedirectory="$GITHUB_WORKSPACE/dist/tsm-native" \
             -platform=Mac -clientconfig=Shipping -utf8output
-      - name: Add SpatiaLite to macOS package
-        run: |
-          cp "$TSM_SPATIALITE_DYLIB" dist/tsm-native/mod_spatialite.dylib
+      - name: Stage native runtime libraries inside macOS app
+        shell: bash
         env:
           TSM_SPATIALITE_DYLIB: ${{ vars.TSM_SPATIALITE_DYLIB }}
+        run: |
+          APP="$(find dist/tsm-native -type d -name '*.app' -print -quit)"
+          test -n "$APP"
+          RUNTIME_DIR="$APP/Contents/MacOS/Binaries"
+          mkdir -p "$RUNTIME_DIR"
+          test -f "tsm-native/Binaries/libArchimedesCore.dylib"
+          cp "tsm-native/Binaries/libArchimedesCore.dylib" "$RUNTIME_DIR/libArchimedesCore.dylib"
+          cp "$TSM_SPATIALITE_DYLIB" "$RUNTIME_DIR/mod_spatialite.dylib"
       - name: Sign and notarize macOS release
         shell: bash
         env:
@@ -242,6 +255,9 @@ jobs:
           test -n "$MACOS_NOTARY_PROFILE"
           APP="$(find dist/tsm-native -type d -name '*.app' -print -quit)"
           test -n "$APP"
+          RUNTIME_DIR="$APP/Contents/MacOS/Binaries"
+          codesign --force --options runtime --timestamp --sign "$MACOS_SIGNING_IDENTITY" "$RUNTIME_DIR/libArchimedesCore.dylib"
+          codesign --force --options runtime --timestamp --sign "$MACOS_SIGNING_IDENTITY" "$RUNTIME_DIR/mod_spatialite.dylib"
           codesign --force --options runtime --timestamp --deep --sign "$MACOS_SIGNING_IDENTITY" "$APP"
           codesign --verify --deep --strict "$APP"
           xcrun notarytool submit "$APP" --keychain-profile "$MACOS_NOTARY_PROFILE" --wait
