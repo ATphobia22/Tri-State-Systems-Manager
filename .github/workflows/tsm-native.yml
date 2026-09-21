@@ -9,6 +9,11 @@ on:
       - "native/dependencies/**"
       - "scripts/ci/native-runtime-boundary.mjs"
       - "scripts/ci/validate-native-platform-matrix.mjs"
+      - "scripts/ci/validate-agency-data-fabric.mjs"
+      - "scripts/ci/validate-provenance-plane.mjs"
+      - "scripts/ci/validate-spatial-topology.mjs"
+      - "ops/postgis/migrations/20260919_engineering_topology.sql"
+      - "infrastructure/runners/**"
       - "tsm-native/config/platform-build-matrix.json"
       - ".github/workflows/tsm-native.yml"
   pull_request:
@@ -66,6 +71,7 @@ jobs:
         run: |
           node scripts/ci/validate-data-fabric-contract.mjs
           node scripts/ci/validate-agency-data-fabric.mjs
+          node scripts/ci/validate-provenance-plane.mjs
           node scripts/ci/validate-runner-contract.mjs
           node scripts/ci/validate-spatial-topology.mjs
 
