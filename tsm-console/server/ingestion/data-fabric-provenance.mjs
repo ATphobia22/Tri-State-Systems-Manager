@@ -63,7 +63,7 @@ export function validateProvenanceContract(provenance) {
 export function buildProvenanceManifest({ datasetId, payload, provenance }) {
   const contract = validateProvenanceContract(provenance);
   const canonical = JSON.stringify({ dataset_id: datasetId, payload, provenance: contract });
-  const contentHash = `sha256:${createHash('sha256').update(canonical, 'utf8').digest('hex')}`;
+  const contentHash = createHash('sha256').update(canonical, 'utf8').digest('hex');
   return Object.freeze({
     dataset_id: requiredString(datasetId, 'dataset_id'),
     content_hash_sha256: contentHash,
@@ -91,6 +91,6 @@ export function buildPublicTransparencyManifest({ datasetId, payload, provenance
     limitations: manifest.provenance.limitations,
     authority_class: manifest.provenance.authority_class,
     governance_status: manifest.provenance.governance_status,
-    data_lineage: manifest.lineage,
+    lineage: manifest.lineage,
   };
 }
