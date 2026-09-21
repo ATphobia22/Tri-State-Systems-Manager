@@ -32,8 +32,14 @@ async function discovery() {
   const response = await fetch(issuer + '/.well-known/openid-configuration', { headers: { Accept: 'application/json' } });
   if (!response.ok) throw Object.assign(new Error('OIDC discovery endpoint returned HTTP ' + response.status + '.'), { code: 'OIDC_DISCOVERY_UNAVAILABLE', status: 503 });
   const document = await response.json();
-  if (document.issuer !== issuer || !document.authorization_endpoint || !document.token_endpoint || !document.jwks_uri) {
-    throw Object.assign(new Error('OIDC discovery metadata is incomplete or issuer-mismatched.'), { code: 'OIDC_DISCOVERY_INVALID', status: 503 });
+  const endpoints = [document.authorization_endpoint, document.token_endpoint, document.jwks_uri];
+  const localHttpAllowed = /^(http:\/\/(localhost|127\.0\.0\.1)(:\\d+)?)/i;
+  const endpointsValid = endpoints.every((value) => {
+    try { const endpoint = new URL(String(value)); return endpoint.protocol === 'https:' || localHttpAllowed.test(endpoint.toString()); }
+    catch { return false; }
+  });
+  if (document.issuer !== issuer || !document.authorization_endpoint || !document.token_endpoint || !document.jwks_uri || !endpointsValid) {
+    throw Object.assign(new Error('OIDC discovery metadata is incomplete, issuer-mismatched, or contains insecure endpoints.'), { code: 'OIDC_DISCOVERY_INVALID', status: 503 });
   }
   discoveryCache = { document, expiresAt: Date.now() + DISCOVERY_TTL_MS };
   return document;
