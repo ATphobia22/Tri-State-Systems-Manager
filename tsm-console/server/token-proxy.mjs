@@ -16,7 +16,6 @@ import { handleFirmRoute } from './geospatial/firm-routes.mjs';
 import { normalizeTelemetryEvent, validateTelemetryIngress } from './telemetry/inbound.mjs';
 import { authorizeAndPublishArtifact } from './ingestion/governance-transition.mjs';
 import { createRateLimiter, RateLimitError } from './reliability/rate-limiter.mjs';
-import { listArtifacts } from './store/evidence-store.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
 const BUILD_SHA = process.env.GITHUB_SHA || process.env.TSM_BUILD_SHA || 'local';
