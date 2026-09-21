@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { randomUUID } from 'node:crypto';
 
 const DEFAULT_LIMIT = 1_000;
 
@@ -25,7 +26,7 @@ export function createDeadLetterQueue({
     if (message === undefined) throw new TypeError('message is required');
     const entries = load();
     entries.push({
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       enqueuedAt: new Date().toISOString(),
       reason,
       message,
