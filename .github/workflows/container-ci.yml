@@ -64,10 +64,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          docker run -d --rm --name tsm-api-ci             -e TSM_AUTH_MODE=disabled             -e CORS_ORIGIN=http://127.0.0.1:3000             -p 18787:8787             tsm-console:ci
-          trap 'docker logs tsm-api-ci || true; docker stop tsm-api-ci || true' EXIT
+          docker rm -f tsm-api-ci >/dev/null 2>&1 || true
+          docker run -d --name tsm-api-ci             -e TSM_AUTH_MODE=disabled             -e CORS_ORIGIN=http://127.0.0.1:3000             -p 18787:8787             tsm-console:ci
+          cleanup() { docker logs tsm-api-ci || true; docker rm -f tsm-api-ci >/dev/null 2>&1 || true; }
+          trap cleanup EXIT
           for attempt in {1..30}; do
             if curl --fail --silent http://127.0.0.1:18787/ready >/dev/null; then exit 0; fi
+            if [ "$(docker inspect -f '{{.State.Status}}' tsm-api-ci 2>/dev/null || true)" = "exited" ]; then
+              echo 'TSM API container exited before readiness.'
+              docker logs tsm-api-ci || true
+              exit 1
+            fi
             sleep 2
           done
+          echo 'TSM API container did not become ready within 60 seconds.'
           exit 1
