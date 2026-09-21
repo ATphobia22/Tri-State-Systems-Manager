@@ -33,7 +33,7 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: tsm-console/package-lock.json
-      - run: npm ci --ignore-scripts
+      - run: npm ci --ignore-scripts --registry=https://registry.npmjs.org
       - run: node scripts/desktop-updater-check.mjs
 
   windows:
@@ -51,7 +51,7 @@ jobs:
           cache-dependency-path: tsm-console/package-lock.json
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo install tauri-cli --version 2.11.4 --locked
-      - run: npm ci --ignore-scripts
+      - run: npm ci --ignore-scripts --registry=https://registry.npmjs.org
       - run: npm run build
       - run: npm run tauri build -- --bundles msi,nsis
       - name: Verify Windows bundles
@@ -81,7 +81,7 @@ jobs:
           cache: npm
           cache-dependency-path: tsm-console/package-lock.json
       - uses: dtolnay/rust-toolchain@stable
-      - run: npm ci --ignore-scripts
+      - run: npm ci --ignore-scripts --registry=https://registry.npmjs.org
       - run: npm run build
       - name: Build macOS DMG
         env:
