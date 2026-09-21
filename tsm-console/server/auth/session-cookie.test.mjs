@@ -8,11 +8,12 @@ test('OIDC session cookie is encrypted and round-trips', () => {
   const headers = {};
   const response = { setHeader(name, value) { headers[name] = value; }, getHeader(name) { return headers[name]; } };
   setSessionCookie(response, { accessToken: 'opaque-token', subject: 'subject-1', roles: ['tsm-operator'] }, 300);
-  assert.match(headers['Set-Cookie'], /__Host-tsm_session=/);
-  assert.match(headers['Set-Cookie'], /HttpOnly/);
-  assert.match(headers['Set-Cookie'], /Secure/);
-  assert.match(headers['Set-Cookie'], /SameSite=Lax/);
-  const cookieValue = headers['Set-Cookie'].split(';', 1)[0];
+  const sessionSetCookie = Array.isArray(headers['Set-Cookie']) ? headers['Set-Cookie'][0] : headers['Set-Cookie'];
+  assert.match(sessionSetCookie, /__Host-tsm_session=/);
+  assert.match(sessionSetCookie, /HttpOnly/);
+  assert.match(sessionSetCookie, /Secure/);
+  assert.match(sessionSetCookie, /SameSite=Lax/);
+  const cookieValue = sessionSetCookie.split(';', 1)[0];
   const request = { headers: { cookie: cookieValue } };
   assert.deepEqual(readSessionCookie(request), { accessToken: 'opaque-token', subject: 'subject-1', roles: ['tsm-operator'] });
   assert.deepEqual(parseCookies(request.headers.cookie)['__Host-tsm_session'], cookieValue.split('=')[1]);
