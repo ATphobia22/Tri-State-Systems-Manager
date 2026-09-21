@@ -15,10 +15,32 @@ import { servePoseyAsset } from './geospatial/posey-assets.mjs';
 import { handleFirmRoute } from './geospatial/firm-routes.mjs';
 import { normalizeTelemetryEvent, validateTelemetryIngress } from './telemetry/inbound.mjs';
 import { authorizeAndPublishArtifact } from './ingestion/governance-transition.mjs';
+import { createRateLimiter, RateLimitError } from './reliability/rate-limiter.mjs';
+import { listArtifacts } from './store/evidence-store.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
 const BUILD_SHA = process.env.GITHUB_SHA || process.env.TSM_BUILD_SHA || 'local';
 const ALLOWED_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
+const RATE_LIMIT_WINDOW_MS = Number(process.env.TSM_RATE_LIMIT_WINDOW_MS || 60_000);
+const RATE_LIMIT_MAX_REQUESTS = Number(process.env.TSM_RATE_LIMIT_MAX_REQUESTS || 120);
+const rateLimiter = createRateLimiter({ windowMs: RATE_LIMIT_WINDOW_MS, maxRequests: RATE_LIMIT_MAX_REQUESTS });
+let acceptingRequests = true;
+let shutdownTimer = null;
+const TRUST_PROXY = process.env.TSM_TRUST_PROXY === 'true';
+function clientKey(req) {
+  if (TRUST_PROXY) return String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown').split(',')[0].trim();
+  return req.socket.remoteAddress || 'unknown';
+}
+function readiness() {
+  try {
+    const sources = listAuthoritativeSources();
+    listArtifacts({ limit: 1 });
+    if (!Array.isArray(sources)) throw new Error('authority source catalog unavailable');
+    return { ok: true, dependencies: { authority_registry: true, evidence_store: true } };
+  } catch (error) {
+    return { ok: false, dependencies: { authority_registry: false, evidence_store: false }, error: error.message };
+  }
+}
 function json(res, status, body, requestId) {
   res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-TSM-Request-ID': requestId || 'unknown', 'Access-Control-Allow-Origin': ALLOWED_ORIGIN, 'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-TSM-Request-ID', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS' });
   res.end(JSON.stringify(body));
@@ -45,10 +67,21 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'OPTIONS') return json(res, 204, {}, requestId);
   const url = new URL(req.url || '/', `http://localhost:${PORT}`);
   try {
+    if (!acceptingRequests && !['/health', '/ready'].includes(url.pathname)) return json(res, 503, { ok: false, code: 'SERVER_DRAINING' }, requestId);
+    if (!['/health', '/ready'].includes(url.pathname)) {
+      const limit = rateLimiter.consume(clientKey(req));
+      if (!limit.allowed) {
+        res.setHeader('Retry-After', String(Math.ceil(limit.retryAfterMs / 1000)));
+        throw new RateLimitError(limit.retryAfterMs);
+      }
+    }
     if (handleFirmRoute(req, res, url, (response, status, body) => json(response, status, body, requestId))) return;
     if (req.method === 'GET' && url.pathname === '/api/auth/health') return json(res, 200, { ...healthBody(), auth_model: 'keycloak_public_client_pkce', client_secret_required: false, token_proxy_path: null }, requestId);
     if (req.method === 'GET' && url.pathname === '/health') return json(res, 200, healthBody(), requestId);
-    if (req.method === 'GET' && url.pathname === '/ready') return json(res, 200, { ...healthBody(), ready: true, required_internal_dependencies: { authority_registry: true, evidence_store: true } }, requestId);
+    if (req.method === 'GET' && url.pathname === '/ready') {
+      const state = readiness();
+      return json(res, state.ok ? 200 : 503, { ...healthBody(), ready: state.ok, required_internal_dependencies: state.dependencies, error: state.error || null }, requestId);
+    }
     if (req.method === 'GET' && url.pathname === '/api/data-sources/catalog') return json(res, 200, { build_sha: BUILD_SHA, sources: listAuthoritativeSources(), health: listSourceHealth(), circuits: listUpstreamCircuitHealth(), authority_boundary: 'Catalog metadata does not confer regulatory authority; source products retain their published status.' }, requestId);
     if (req.method === 'GET' && url.pathname === '/api/data-sources/fetch') {
       const sourceId = url.searchParams.get('source_id');
@@ -179,4 +212,26 @@ const server = http.createServer(async (req, res) => {
     return json(res, 404, { error: 'not found' }, requestId);
   } catch (error) { return json(res, error instanceof Error && error.code === 'CIRCUIT_OPEN' ? 503 : 502, { error: error.message || 'upstream source unavailable', code: error.code || 'SOURCE_UNAVAILABLE', requestId }, requestId); }
 });
-server.listen(PORT, () => console.log(`TSM API on http://localhost:${PORT}`));
+server.requestTimeout = Number(process.env.TSM_REQUEST_TIMEOUT_MS || 120_000);
+server.headersTimeout = Number(process.env.TSM_HEADERS_TIMEOUT_MS || 15_000);
+server.keepAliveTimeout = Number(process.env.TSM_KEEPALIVE_TIMEOUT_MS || 5_000);
+
+function shutdown(signal) {
+  if (!acceptingRequests) return;
+  acceptingRequests = false;
+  console.log(JSON.stringify({ level: 'info', event: 'shutdown_started', signal }));
+  server.close(() => {
+    if (shutdownTimer) clearTimeout(shutdownTimer);
+    console.log(JSON.stringify({ level: 'info', event: 'shutdown_complete' }));
+  });
+  server.closeIdleConnections?.();
+  shutdownTimer = setTimeout(() => {
+    server.closeAllConnections?.();
+    process.exitCode = 0;
+  }, Number(process.env.TSM_SHUTDOWN_GRACE_MS || 10_000));
+  shutdownTimer.unref?.();
+}
+process.once('SIGTERM', () => shutdown('SIGTERM'));
+process.once('SIGINT', () => shutdown('SIGINT'));
+
+server.listen(PORT, '127.0.0.1', () => console.log(JSON.stringify({ level: 'info', event: 'server_started', service: 'tsm-api', port: PORT })));
