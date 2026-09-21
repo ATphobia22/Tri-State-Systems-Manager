@@ -46,7 +46,7 @@ test('river registry preserves verified USGS station identities', async () => {
 
 test('dredged material schema exists before implementation is accepted', async () => {
   const schema = await readJson('data/schemas/dredged-material.schema.json');
-  assert.equal(schema.$id, 'https://tuckerinc82.org/schemas/dredged-material/v1.0.0.json');
+  assert.equal(schema.$id, 'https://schemas.tsm-community.example/schemas/dredged-material/v1.0.0.json');
   for (const field of [
     'source_dredging_project',
     'grain_size_distribution',
