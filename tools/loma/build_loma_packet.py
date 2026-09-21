@@ -107,21 +107,20 @@ def build_pdf(manifest: dict[str, object], output: Path) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--case", default="26-05-2022A")
+    parser.add_argument("--case", required=True, help="FEMA/LOMC case identifier supplied by the operator")
     parser.add_argument("--source-dir", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
 
-    if args.case != "26-05-2022A":
-        raise SystemExit("fail-closed: this packet builder currently targets FEMA case 26-05-2022A")
     if not args.source_dir.is_dir():
         raise SystemExit(f"source directory does not exist: {args.source_dir}")
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     manifest = build_manifest(args.case, args.source_dir)
-    manifest_path = args.output_dir / "LOMA-26-05-2022A-manifest.json"
-    pdf_path = args.output_dir / "LOMA-26-05-2022A-evidence-index.pdf"
-    zip_path = args.output_dir / "LOMA-26-05-2022A-bundle.zip"
+    case_slug = "".join(ch if ch.isalnum() or ch in "-_" else "_" for ch in args.case)
+    manifest_path = args.output_dir / f"LOMA-{case_slug}-manifest.json"
+    pdf_path = args.output_dir / f"LOMA-{case_slug}-evidence-index.pdf"
+    zip_path = args.output_dir / f"LOMA-{case_slug}-bundle.zip"
 
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     build_pdf(manifest, pdf_path)
