@@ -22,7 +22,7 @@ test('OIDC verifier validates signature, issuer, audience, expiry and roles', as
   try {
     process.env.OIDC_ISSUER = issuer;
     process.env.OIDC_AUDIENCE = audience;
-    process.env.OIDC_JWKS_URL = issuer + '/jwks';
+    process.env.OIDC_JWKS_URL = 'http://127.0.0.1:19877/jwks';
     process.env.TSM_AUTH_MODE = 'required';
     resetJwksCacheForTests();
 
