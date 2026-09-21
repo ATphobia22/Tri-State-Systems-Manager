@@ -71,11 +71,11 @@ For the FEMA contract:
 
 For the LOMC packet:
 
-    python tools/loma/build_loma_packet.py --source-dir /secure/loma/26-05-2022A/source --output-dir /secure/loma/26-05-2022A/output
+    python tools/loma/build_loma_packet.py --source-dir /secure/loma/<case-id>/source --output-dir /secure/loma/<case-id>/output
 
 Then sign the resulting PDF or manifest only from a controlled signing environment:
 
-    TSM_EVIDENCE_SIGNING_KEY_PEM="$(cat /secure/key.pem)" node scripts/evidence/sign-evidence.mjs /secure/loma/26-05-2022A/output/LOMA-26-05-2022A-evidence-index.pdf /secure/loma/26-05-2022A/output/LOMA-26-05-2022A-evidence-index.pdf.ed25519
+    TSM_EVIDENCE_SIGNING_KEY_PEM="$(cat /secure/key.pem)" node scripts/evidence/sign-evidence.mjs /secure/loma/<case-id>/output/LOMA-<case-id>-evidence-index.pdf /secure/loma/<case-id>/output/LOMA-<case-id>-evidence-index.pdf.ed25519
 
 ## Authority boundary
 The system may compare a hydraulic mesh against a FEMA evidence value, but that comparison is an engineering/data-integrity contract. It is not a FEMA determination, Letter of Map Amendment/Revision, floodplain permit, no-rise certification, survey certification or professional engineering seal.
