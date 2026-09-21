@@ -1,131 +1,21 @@
 #include "TSMGeodeticViewport.h"
-
 #include "ArchimedesRuntime.h"
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "HAL/PlatformProcess.h"
 #include "Misc/Paths.h"
 #include "TSMEmbeddedStore.h"
-
-ATSMGeodeticViewport::~ATSMGeodeticViewport() = default;
-
-ATSMGeodeticViewport::ATSMGeodeticViewport()
-{
-    PrimaryActorTick.bCanEverTick = false;
-
-    TerrainRoot = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TerrainRoot"));
-    RootComponent = TerrainRoot;
-
-    WaterSurface = CreateDefaultSubobject<USceneComponent>(TEXT("WaterSurface"));
-    WaterSurface->SetupAttachment(RootComponent);
-}
-
-void ATSMGeodeticViewport::BeginPlay()
-{
-    Super::BeginPlay();
-
-    Runtime = MakeUnique<FArchimedesRuntime>();
-    Store = MakeUnique<FTSMEmbeddedStore>();
-
-    const FString DatabasePath = FPaths::Combine(FPaths::ProjectDir(), DatabaseRelativePath);
-    FString Error;
-
-    if (!Store->Open(DatabasePath, Error) || !Store->InitializeSchema(Error))
-    {
-        UE_LOG(LogTemp, Error, TEXT("TSM embedded database initialization failed: %s"), *Error);
-        return;
-    }
-
+ATSMGeodeticViewport::ATSMGeodeticViewport(){PrimaryActorTick.bCanEverTick=true;TerrainRoot=CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TerrainRoot"));RootComponent=TerrainRoot;WaterSurface=CreateDefaultSubobject<USceneComponent>(TEXT("WaterSurface"));WaterSurface->SetupAttachment(RootComponent);}
+void ATSMGeodeticViewport::BeginPlay(){Super::BeginPlay();Runtime=MakeUnique<FArchimedesRuntime>();Store=MakeUnique<FTSMEmbeddedStore>();const FString DatabasePath=FPaths::Combine(FPaths::ProjectDir(),DatabaseRelativePath);FString Error;if(!Store->Open(DatabasePath,Error)||!Store->InitializeSchema(Error)){UE_LOG(LogTemp,Error,TEXT("TSM embedded spatial database initialization failed: %s"),*Error);return;}
 #if PLATFORM_WINDOWS
-    const FString LibraryName = ArchimedesLibraryRelativePath;
+const FString LibraryName=ArchimedesLibraryRelativePath;
 #elif PLATFORM_MAC
-    const FString LibraryName = TEXT("libArchimedesCore.dylib");
+const FString LibraryName=TEXT("libArchimedesCore.dylib");
 #else
-    const FString LibraryName = TEXT("libArchimedesCore.so");
+const FString LibraryName=TEXT("libArchimedesCore.so");
 #endif
-
-    const FString LibraryPath = FPaths::Combine(FPaths::ProjectDir(), TEXT("Binaries"), LibraryName);
-
-    if (!Runtime->Load(LibraryPath, Error))
-    {
-        UE_LOG(LogTemp, Error, TEXT("TSM Archimedes initialization failed: %s"), *Error);
-        return;
-    }
-
-    LoadAndEvaluateSite();
-}
-
-void ATSMGeodeticViewport::EndPlay(const EEndPlayReason::Type EndPlayReason)
-{
-    Runtime.Reset();
-    Store.Reset();
-    Super::EndPlay(EndPlayReason);
-}
-
-bool ATSMGeodeticViewport::LoadAndEvaluateSite()
-{
-    if (!Runtime.IsValid() || !Store.IsValid())
-    {
-        return false;
-    }
-
-    FTSMStoredSite Site;
-    FString Error;
-
-    if (!Store->ReadSiteByKey(SiteKey, Site, Error))
-    {
-        UE_LOG(LogTemp, Error, TEXT("TSM site load failed: %s"), *Error);
-        return false;
-    }
-
-    if (Site.HorizontalSrid != ExpectedHorizontalSrid)
-    {
-        UE_LOG(
-            LogTemp,
-            Error,
-            TEXT("TSM horizontal CRS mismatch: expected EPSG:%d, received EPSG:%d"),
-            ExpectedHorizontalSrid,
-            Site.HorizontalSrid);
-        return false;
-    }
-
-    if (!ExpectedVerticalDatum.IsEmpty() &&
-        !Site.VerticalDatum.Equals(ExpectedVerticalDatum, ESearchCase::CaseSensitive))
-    {
-        UE_LOG(
-            LogTemp,
-            Error,
-            TEXT("TSM vertical datum mismatch: expected %s, received %s"),
-            *ExpectedVerticalDatum,
-            *Site.VerticalDatum);
-        return false;
-    }
-
-    ArchimedesSiteInput Input{};
-    Input.x_epsg2966_m = Site.X;
-    Input.y_epsg2966_m = Site.Y;
-    Input.bfe_ft = Site.BfeFt;
-    Input.lag_ft = Site.LagFt;
-    Input.stage_delta_ft = Site.StageDeltaFt;
-
-    FTSMSiteMetrics Metrics;
-    if (!Runtime->Evaluate(Input, Metrics, Error))
-    {
-        UE_LOG(LogTemp, Error, TEXT("TSM solver evaluation failed: %s"), *Error);
-        return false;
-    }
-
-    const double WaterElevationCentimeters = Metrics.SurfaceWaterElevationFt * FeetToCentimeters;
-    WaterSurface->SetRelativeLocation(FVector(0.0, 0.0, WaterElevationCentimeters));
-
-    UE_LOG(
-        LogTemp,
-        Log,
-        TEXT("TSM native site %s evaluated: BFE=%.3f ft, LAG=%.3f ft, surface=%.3f ft"),
-        *Site.SiteKey,
-        Metrics.BfeFt,
-        Metrics.LagFt,
-        Metrics.SurfaceWaterElevationFt);
-
-    return true;
-}
+const FString LibraryPath=FPaths::Combine(FPaths::ProjectDir(),TEXT("Binaries"),LibraryName);if(!Runtime->Load(LibraryPath,Error)){UE_LOG(LogTemp,Error,TEXT("TSM Archimedes initialization failed: %s"),*Error);return;} HydroDepthFt.Init(4.0,FMath::Max(HydroCellCount,2));HydroVelocityFps.Init(1.0,HydroDepthFt.Num());LoadAndEvaluateSite();}
+void ATSMGeodeticViewport::EndPlay(const EEndPlayReason::Type EndPlayReason){Runtime.Reset();Store.Reset();HydroDepthFt.Reset();HydroVelocityFps.Reset();Super::EndPlay(EndPlayReason);}
+void ATSMGeodeticViewport::Tick(float DeltaTime){Super::Tick(DeltaTime);if(!Runtime.IsValid()||HydroDepthFt.Num()<2)return;HydroAccumulatorSeconds+=FMath::Clamp(static_cast<double>(DeltaTime),0.0,0.25);while(HydroAccumulatorSeconds>=HydroStepSeconds){if(!StepHydroSimulation(HydroStepSeconds)){HydroAccumulatorSeconds=0.0;return;}HydroAccumulatorSeconds-=HydroStepSeconds;}PublishHydroState();}
+bool ATSMGeodeticViewport::StepHydroSimulation(double DeltaSeconds){const ArchimedesSaintVenantConfig Config{HydroCellWidthFt,HydroBedSlope,HydroManningsN,HydroGravityFtS2,HydroCfl};FString Error;if(!Runtime->StepSaintVenant(Config,HydroDepthFt,HydroVelocityFps,DeltaSeconds,Error)){UE_LOG(LogTemp,Error,TEXT("TSM Saint-Venant step rejected: %s"),*Error);return false;}return true;}
+void ATSMGeodeticViewport::PublishHydroState(){if(HydroDepthFt.IsEmpty())return;const int32 Midpoint=HydroDepthFt.Num()/2;FTSMStoredSite Site;FString Error;if(!Store->ReadSiteByKey(SiteKey,Site,Error))return;const double StageFt=Site.BfeFt+HydroDepthFt[Midpoint]-4.0;WaterSurface->SetRelativeLocation(FVector(0.0,0.0,static_cast<float>(StageFt*FeetToCentimeters)));UE_LOG(LogTemp,Verbose,TEXT("TSM hydro state: stage=%.3f ft depth=%.3f ft velocity=%.3f ft/s inundation=%s"),StageFt,HydroDepthFt[Midpoint],HydroVelocityFps[Midpoint],StageFt>=Site.LagFt?TEXT("true"):TEXT("false"));}
+bool ATSMGeodeticViewport::LoadAndEvaluateSite(){if(!Runtime.IsValid()||!Store.IsValid())return false;FTSMStoredSite Site;FString Error;if(!Store->ReadSiteByKey(SiteKey,Site,Error)){UE_LOG(LogTemp,Error,TEXT("TSM site load failed: %s"),*Error);return false;}if(Site.HorizontalSrid!=ExpectedHorizontalSrid){UE_LOG(LogTemp,Error,TEXT("TSM horizontal CRS mismatch: expected EPSG:%d, received EPSG:%d"),ExpectedHorizontalSrid,Site.HorizontalSrid);return false;}if(!ExpectedVerticalDatum.IsEmpty()&&!Site.VerticalDatum.Equals(ExpectedVerticalDatum,ESearchCase::CaseSensitive)){UE_LOG(LogTemp,Error,TEXT("TSM vertical datum mismatch: expected %s, received %s"),*ExpectedVerticalDatum,*Site.VerticalDatum);return false;}ArchimedesSiteInput Input{};Input.x_epsg2966_ftus=Site.X;Input.y_epsg2966_ftus=Site.Y;Input.bfe_ft=Site.BfeFt;Input.lag_ft=Site.LagFt;Input.stage_delta_ft=Site.StageDeltaFt;FTSMSiteMetrics Metrics;if(!Runtime->Evaluate(Input,Metrics,Error)){UE_LOG(LogTemp,Error,TEXT("TSM solver evaluation failed: %s"),*Error);return false;}WaterSurface->SetRelativeLocation(FVector(0.0,0.0,static_cast<float>(Metrics.SurfaceWaterElevationFt*FeetToCentimeters)));UE_LOG(LogTemp,Log,TEXT("TSM native site %s evaluated: BFE=%.3f ft, LAG=%.3f ft, surface=%.3f ft, inundation=%s"),*Site.SiteKey,Metrics.BfeFt,Metrics.LagFt,Metrics.SurfaceWaterElevationFt,Metrics.bInundationActive?TEXT("true"):TEXT("false"));return true;}
