@@ -80,7 +80,8 @@
     "test:evidence-signer": "node ../scripts/evidence/test-sign-evidence.mjs",
     "test:loma-signing": "node ../scripts/evidence/test-loma-signing.mjs",
     "check:spatial-topology": "node ../scripts/ci/validate-spatial-topology.mjs",
-    "test:prometheus": "node --test tests/prometheus-exporter.test.mjs"
+    "test:prometheus": "node --test tests/prometheus-exporter.test.mjs",
+    "check:security-boundary": "node ../scripts/ci/validate-security-boundary.mjs"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.0",
