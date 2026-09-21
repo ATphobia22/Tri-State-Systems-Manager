@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash, createSign, generateKeyPairSync } from 'node:crypto';
 import http from 'node:http';
-import { authenticateRequest, requireAuthenticatedSubject, requireRoles, resetJwksCacheForTests } from './oidc-auth.mjs';
+import { authenticateRequest, requireAuthenticatedSubject, requireRoles, resetJwksCacheForTests, verifyIdToken } from './oidc-auth.mjs';
 import { setSessionCookie } from './session-cookie.mjs';
 
 function b64(value) { return Buffer.from(typeof value === 'string' ? value : JSON.stringify(value)).toString('base64url'); }
@@ -34,6 +34,16 @@ test('OIDC verifier validates signature, issuer, audience, expiry and roles', as
     signer.update(signingInput);
     signer.end();
     const token = signingInput + '.' + signer.sign(privateKey).toString('base64url');
+
+    const nonce = 'test-nonce-1234567890';
+    const idHeader = { alg: 'RS256', typ: 'JWT', kid };
+    const idPayload = { iss: issuer, aud: 'tsm-console-bff', azp: 'tsm-console-bff', sub: 'reviewer-123', exp: now + 300, iat: now, nonce };
+    const idInput = b64(idHeader) + '.' + b64(idPayload);
+    const idSigner = createSign('RSA-SHA256'); idSigner.update(idInput); idSigner.end();
+    const idToken = idInput + '.' + idSigner.sign(privateKey).toString('base64url');
+    const idClaims = await verifyIdToken(idToken, { issuer, clientId: 'tsm-console-bff', audience, jwksUrl: 'http://127.0.0.1:19877/jwks' }, nonce);
+    assert.equal(idClaims.nonce, nonce);
+    await assert.rejects(() => verifyIdToken(idToken, { issuer, clientId: 'tsm-console-bff', audience, jwksUrl: 'http://127.0.0.1:19877/jwks' }, 'wrong-nonce'), /nonce mismatch/);
 
     const auth = await authenticateRequest({ headers: { authorization: 'Bearer ' + token } });
     assert.equal(auth.subject, 'reviewer-123');
