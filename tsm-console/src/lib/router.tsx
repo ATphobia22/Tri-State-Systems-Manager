@@ -36,7 +36,7 @@ async function rootLoader(): Promise<RootLoaderData> {
 }
 
 async function charterLoader(): Promise<CharterLoaderData> {
-  return { charterVersion: '1.0.0', memorialName: 'Beverly Ann Tucker Memorial Stewardship Charter', principle: 'Technology is a stewardship of knowledge and capability. Its purpose is to protect life, strengthen communities, expand opportunity, preserve truth, respect human dignity, and serve people without discrimination.', humanAuthorityRule: 'The system informs people; it does not silently govern people. Human authority remains final.' };
+  return { charterVersion: '1.0.0', memorialName: 'Community Stewardship Charter', principle: 'Technology is a stewardship of knowledge and capability. Its purpose is to protect life, strengthen communities, expand opportunity, preserve truth, respect human dignity, and serve people without discrimination.', humanAuthorityRule: 'The system informs people; it does not silently govern people. Human authority remains final.' };
 }
 
 async function architectureLoader(): Promise<ArchitectureLoaderData> {
