@@ -175,6 +175,14 @@ jobs:
           if (-not (Test-Path $plugin)) { throw "Cesium for Unreal is required on the UE5 runner." }
           $manifest = Get-Content "tsm-native\config\native-geospatial-runtime.json" -Raw | ConvertFrom-Json
           if ($manifest.geospatial.pluginVersion -ne "2.29.1") { throw "Unexpected Cesium version contract." }
+      - name: Verify immutable native data snapshot
+        shell: pwsh
+        env:
+          TSM_NATIVE_DATA_ROOT: ${{ vars.TSM_NATIVE_DATA_ROOT }}
+        run: |
+          if (-not $env:TSM_NATIVE_DATA_ROOT) { throw "TSM_NATIVE_DATA_ROOT repository variable is required." }
+          if (-not (Test-Path -LiteralPath (Join-Path $env:TSM_NATIVE_DATA_ROOT "data-manifest.json") -PathType Leaf)) { throw "data-manifest.json is required beside the sovereign data snapshot." }
+          .\scripts\native\Verify-NativeDataManifest.ps1 -DataRoot $env:TSM_NATIVE_DATA_ROOT -ManifestPath (Join-Path $env:TSM_NATIVE_DATA_ROOT "data-manifest.json") -RejectExtraFiles
       - name: Require packaged SpatiaLite
         shell: pwsh
         env:
