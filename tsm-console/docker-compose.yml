@@ -1,35 +1,41 @@
-# Tri-State Systems Manager — portable local/hosted stack
+# Tri-State Systems Manager — reproducible local/hosted stack
 #
-# Default profile: API + web
-# Optional: --profile db adds PostgreSQL for future persistent-storage integrations.
+# Public/community use remains free. Production deployments must provide OIDC
+# configuration through environment/secret injection; no credentials are stored here.
 #
-# Local usage:
-#   docker compose up --build
-#   open http://localhost:3000
+# Local:
+#   cp .env.example .env
+#   docker compose build
+#   docker compose up
 #
-# Hosted usage:
-#   publish the `api` service on HTTPS and set VITE_TSM_API_BASE_URL on the web build
-#   to the public API origin. Keep CORS_ORIGIN restricted to the deployed web origin.
+# Hosted:
+#   build this image in CI, publish/attest it, and inject the required OIDC
+#   environment values from the deployment platform's secret store.
 
 name: tsm
 
 services:
   api:
-    image: node:22-alpine
-    working_dir: /app
-    volumes:
-      - ./:/app:ro
-      - node_modules:/app/node_modules
-      - evidence_data:/app/.data
-    command: sh -c "npm ci --no-audit --no-fund && node server/token-proxy.mjs"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: tsm-console:local
+    command: ["node", "server/token-proxy.mjs"]
     ports:
       - "8787:8787"
     environment:
       NODE_ENV: production
+      TSM_AUTH_MODE: ${TSM_AUTH_MODE:-required}
+      OIDC_ISSUER: ${OIDC_ISSUER:-}
+      OIDC_AUDIENCE: ${OIDC_AUDIENCE:-}
+      OIDC_JWKS_URL: ${OIDC_JWKS_URL:-}
+      TSM_OPERATOR_ROLE: ${TSM_OPERATOR_ROLE:-tsm-operator}
+      TSM_REVIEWER_ROLE: ${TSM_REVIEWER_ROLE:-tsm-reviewer}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
       PORT: "8787"
-      CORS_ORIGIN: "http://localhost:3000"
-      ALLOW_DEMO_TOKENS: "false"
       TSM_EVIDENCE_DIR: /app/.data
+    volumes:
+      - evidence_data:/app/.data
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8787/ready"]
       interval: 10s
@@ -39,46 +45,25 @@ services:
     restart: unless-stopped
 
   web:
-    image: node:22-alpine
-    working_dir: /app
-    volumes:
-      - ./:/app:ro
-      - node_modules:/app/node_modules
-    command: sh -c "npm ci --no-audit --no-fund && npm run build && npm run preview -- --host 0.0.0.0 --port 3000"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: tsm-console:local
+    command: ["npm", "run", "preview", "--", "--host", "0.0.0.0", "--port", "3000"]
     ports:
       - "3000:3000"
     environment:
-      VITE_TSM_API_BASE_URL: http://localhost:8787
+      VITE_TSM_API_BASE_URL: ${VITE_TSM_API_BASE_URL:-http://localhost:8787}
     depends_on:
       api:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/" ]
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/"]
       interval: 10s
       timeout: 5s
       retries: 12
       start_period: 15s
     restart: unless-stopped
 
-  db:
-    profiles: ["db"]
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: tsm
-      POSTGRES_PASSWORD: tsm
-      POSTGRES_DB: tsm_evidence
-    ports:
-      - "5432:5432"
-    volumes:
-      - pg_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U tsm -d tsm_evidence"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
-
 volumes:
   evidence_data:
-  node_modules:
-  pg_data:
