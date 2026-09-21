@@ -10,10 +10,11 @@ function config() {
   const clientId = String(process.env.OIDC_CLIENT_ID || '').trim();
   const redirectUri = String(process.env.OIDC_REDIRECT_URI || '').trim();
   const sessionSecret = String(process.env.TSM_SESSION_SECRET || '');
+  const clientSecret = String(process.env.OIDC_CLIENT_SECRET || '');
   const audience = String(process.env.OIDC_AUDIENCE || '').trim();
   const maxAge = Number(process.env.TSM_BROWSER_SESSION_MAX_AGE_SEC || 900);
-  if (!issuer || !audience || !clientId || !redirectUri || sessionSecret.length < 32) {
-    throw Object.assign(new Error('OIDC browser session is not configured. Set OIDC_ISSUER, OIDC_AUDIENCE, OIDC_CLIENT_ID, OIDC_REDIRECT_URI, and TSM_SESSION_SECRET.'), { code: 'AUTH_CONFIGURATION_ERROR', status: 503 });
+  if (!issuer || !audience || !clientId || !redirectUri || sessionSecret.length < 32 || (String(process.env.TSM_AUTH_MODE || 'required').toLowerCase() !== 'disabled' && clientSecret.length < 16)) {
+    throw Object.assign(new Error('OIDC browser session is not configured. Set OIDC_ISSUER, OIDC_AUDIENCE, OIDC_CLIENT_ID, OIDC_CLIENT_SECRET, OIDC_REDIRECT_URI, and TSM_SESSION_SECRET.'), { code: 'AUTH_CONFIGURATION_ERROR', status: 503 });
   }
   if (!/^https:\/\//i.test(issuer) && !/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(issuer)) {
     throw Object.assign(new Error('OIDC_ISSUER must use HTTPS outside local development.'), { code: 'AUTH_CONFIGURATION_ERROR', status: 503 });
@@ -87,7 +88,7 @@ export async function finishOidcLogin(req, res) {
     code_verifier: transaction.verifier,
   });
   const clientSecret = String(process.env.OIDC_CLIENT_SECRET || '');
-  if (clientSecret) body.set('client_secret', clientSecret);
+  body.set('client_secret', clientSecret);
   const tokenResponse = await fetch(provider.token_endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
@@ -108,7 +109,6 @@ export async function finishOidcLogin(req, res) {
     v: 1,
     accessToken: token.access_token,
     subject: auth.subject,
-    roles: auth.roles,
     expiresAt: Math.min(
       Date.now() + Math.max(1, Number(token.expires_in || 300)) * 1000,
       Date.now() + maxAge * 1000,
