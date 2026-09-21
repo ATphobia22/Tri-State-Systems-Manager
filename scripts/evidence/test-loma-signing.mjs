@@ -69,7 +69,8 @@ try {
   );
 
   const parsed = JSON.parse(manifestBytes);
-  assert.equal(parsed.signature_status, 'SIGNED');
+  assert.equal(parsed.schema, 'tsm.loma-evidence-packet.v1');
+  assert.equal(fs.existsSync(signature), true);
   console.log('signed LOMA packet integration verification passed');
 } finally {
   fs.rmSync(temp, { recursive: true, force: true });
