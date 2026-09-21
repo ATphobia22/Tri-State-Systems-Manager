@@ -21,16 +21,9 @@ npm run preview
 
 ## Environment
 
-Copy `.env.example` → `.env` and configure only the public OIDC client settings required by the browser:
+Configure the server-side OIDC BFF through the deployment secret manager. The browser only needs the API origin via `VITE_TSM_API_BASE_URL`.
 
-```text
-VITE_IDP_PROVIDER=oidc
-VITE_IDP_AUTHORITY=https://<your-identity-provider>
-VITE_IDP_CLIENT_ID=<public-client-id>
-VITE_IDP_REDIRECT_URI=http://localhost:5173/login/callback
-```
-
-The browser uses Authorization Code + PKCE. Do **not** place an OIDC client secret or token endpoint credential in the SPA environment. The backend token-proxy process does not require a client secret.
+The server performs Authorization Code + PKCE (S256), validates the ID-token nonce and claims, exchanges the code with the confidential OIDC client, and issues an encrypted HttpOnly Secure session cookie. Provider client secrets and access/refresh tokens never enter the SPA environment.
 
 ## Architecture highlights
 

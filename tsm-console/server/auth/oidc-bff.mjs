@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { verifyAccessToken } from './oidc-auth.mjs';
+import { verifyAccessToken, verifyIdToken } from './oidc-auth.mjs';
 import { clearSessionCookie, clearTransactionCookie, readTransactionCookie, setSessionCookie, setTransactionCookie, readSessionCookie } from './session-cookie.mjs';
 
 const DISCOVERY_TTL_MS = 300_000;
@@ -11,6 +11,7 @@ function config() {
   const redirectUri = String(process.env.OIDC_REDIRECT_URI || '').trim();
   const sessionSecret = String(process.env.TSM_SESSION_SECRET || '');
   const clientSecret = String(process.env.OIDC_CLIENT_SECRET || '');
+  const tokenEndpointAuthMethod = String(process.env.OIDC_TOKEN_ENDPOINT_AUTH_METHOD || 'client_secret_basic');
   const audience = String(process.env.OIDC_AUDIENCE || '').trim();
   const maxAge = Number(process.env.TSM_BROWSER_SESSION_MAX_AGE_SEC || 900);
   if (!issuer || !audience || !clientId || !redirectUri || sessionSecret.length < 32 || (String(process.env.TSM_AUTH_MODE || 'required').toLowerCase() !== 'disabled' && clientSecret.length < 16)) {
@@ -23,7 +24,8 @@ function config() {
     throw Object.assign(new Error('OIDC_REDIRECT_URI must use HTTPS outside local development.'), { code: 'AUTH_CONFIGURATION_ERROR', status: 503 });
   }
   if (!Number.isInteger(maxAge) || maxAge < 300 || maxAge > 3600) throw Object.assign(new Error('TSM_BROWSER_SESSION_MAX_AGE_SEC must be between 300 and 3600 seconds.'), { code: 'AUTH_CONFIGURATION_ERROR', status: 503 });
-  return { issuer, audience, clientId, redirectUri, maxAge };
+  if (tokenEndpointAuthMethod !== 'client_secret_basic') throw Object.assign(new Error('OIDC_TOKEN_ENDPOINT_AUTH_METHOD must be client_secret_basic.'), { code: 'AUTH_CONFIGURATION_ERROR', status: 503 });
+  return { issuer, audience, clientId, redirectUri, maxAge, tokenEndpointAuthMethod };
 }
 
 async function discovery() {
@@ -60,14 +62,16 @@ export async function beginOidcLogin(req, res) {
   const provider = await discovery();
   const verifier = randomBytes(32).toString('base64url');
   const state = randomBytes(32).toString('base64url');
+  const nonce = randomBytes(32).toString('base64url');
   const returnTo = safeReturnTo(new URL(req.url || '/', 'http://localhost').searchParams.get('returnTo'));
-  setTransactionCookie(res, { state, verifier, returnTo, createdAt: Date.now() });
+  setTransactionCookie(res, { state, verifier, nonce, returnTo, createdAt: Date.now() });
   const authorization = new URL(provider.authorization_endpoint);
   authorization.searchParams.set('response_type', 'code');
   authorization.searchParams.set('client_id', clientId);
   authorization.searchParams.set('redirect_uri', redirectUri);
   authorization.searchParams.set('scope', String(process.env.OIDC_SCOPES || 'openid profile email roles'));
   authorization.searchParams.set('state', state);
+  authorization.searchParams.set('nonce', nonce);
   authorization.searchParams.set('code_challenge', pkceChallenge(verifier));
   authorization.searchParams.set('code_challenge_method', 'S256');
   res.writeHead(302, { Location: authorization.toString(), 'Cache-Control': 'no-store' });
@@ -75,7 +79,7 @@ export async function beginOidcLogin(req, res) {
 }
 
 export async function finishOidcLogin(req, res) {
-  const { clientId, redirectUri, audience, maxAge } = config();
+  const { clientId, redirectUri, audience, maxAge, tokenEndpointAuthMethod } = config();
   const url = new URL(req.url || '/', 'http://localhost');
   const code = url.searchParams.get('code');
   const state = url.searchParams.get('state');
@@ -88,29 +92,26 @@ export async function finishOidcLogin(req, res) {
   const provider = await discovery();
   const body = new URLSearchParams({
     grant_type: 'authorization_code',
-    client_id: clientId,
     redirect_uri: redirectUri,
     code,
     code_verifier: transaction.verifier,
   });
   const clientSecret = String(process.env.OIDC_CLIENT_SECRET || '');
-  body.set('client_secret', clientSecret);
   const tokenResponse = await fetch(provider.token_endpoint, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json', Authorization: 'Basic ' + Buffer.from(clientId + ':' + clientSecret, 'utf8').toString('base64') },
     body,
   });
   const token = await tokenResponse.json();
-  if (!tokenResponse.ok || typeof token.access_token !== 'string') {
+  if (!tokenResponse.ok || typeof token.access_token !== 'string' || typeof token.id_token !== 'string') {
     clearTransactionCookie(res);
     throw Object.assign(new Error(token.error_description || token.error || 'OIDC token exchange failed.'), { code: 'OIDC_TOKEN_EXCHANGE_FAILED', status: 502 });
   }
 
-  const auth = await verifyAccessToken(token.access_token, {
-    issuer: String(process.env.OIDC_ISSUER || '').replace(/\/$/, ''),
-    audience,
-    jwksUrl: String(process.env.OIDC_JWKS_URL || provider.jwks_uri).trim(),
-  });
+  const issuer = String(process.env.OIDC_ISSUER || '').replace(/\/$/, '');
+  const jwksUrl = String(process.env.OIDC_JWKS_URL || provider.jwks_uri).trim();
+  await verifyIdToken(token.id_token, { issuer, clientId, audience, jwksUrl }, transaction.nonce);
+  const auth = await verifyAccessToken(token.access_token, { issuer, audience, jwksUrl });
   setSessionCookie(res, {
     v: 1,
     accessToken: token.access_token,
