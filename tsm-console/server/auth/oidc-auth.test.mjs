@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { createHash, createSign, generateKeyPairSync } from 'node:crypto';
 import http from 'node:http';
 import { authenticateRequest, requireAuthenticatedSubject, requireRoles, resetJwksCacheForTests } from './oidc-auth.mjs';
+import { setSessionCookie } from './session-cookie.mjs';
 
 function b64(value) { return Buffer.from(typeof value === 'string' ? value : JSON.stringify(value)).toString('base64url'); }
 
@@ -41,6 +42,14 @@ test('OIDC verifier validates signature, issuer, audience, expiry and roles', as
     requireAuthenticatedSubject(auth, 'reviewer-123');
     assert.throws(() => requireAuthenticatedSubject(auth, 'another-user'), /does not match/);
 
+    process.env.TSM_SESSION_SECRET = 'test-session-secret-with-at-least-32-characters';
+    const cookieResponse = { setHeader(name, value) { this[name] = value; } };
+    setSessionCookie(cookieResponse, { accessToken: token, subject: auth.subject, roles: auth.roles, expiresAt: Date.now() + 300000 }, 300);
+    const cookie = cookieResponse['Set-Cookie'].split(';', 1)[0];
+    const cookieAuth = await authenticateRequest({ headers: { cookie } });
+    assert.equal(cookieAuth.browserSession, true);
+    assert.equal(cookieAuth.subject, 'reviewer-123');
+
     const badParts = token.split('.'); badParts[2] = (badParts[2][0] === 'A' ? 'B' : 'A') + badParts[2].slice(1); const badToken = badParts.join('.');
     await assert.rejects(() => authenticateRequest({ headers: { authorization: 'Bearer ' + badToken } }), /signature is invalid/);
   } finally {
@@ -49,6 +58,7 @@ test('OIDC verifier validates signature, issuer, audience, expiry and roles', as
     delete process.env.OIDC_AUDIENCE;
     delete process.env.OIDC_JWKS_URL;
     delete process.env.TSM_AUTH_MODE;
+    delete process.env.TSM_SESSION_SECRET;
     resetJwksCacheForTests();
   }
 });
