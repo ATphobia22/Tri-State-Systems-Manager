@@ -33,8 +33,12 @@ for (const artifact of ['logicalDataModel','dataDictionary','authoritativeSource
   if (!(docs.architecture?.logicalArchitecture?.requiredArtifacts || []).includes(artifact)) errors.push('missing logical artifact declaration: ' + artifact);
 }
 
-for (const name of ['evidence','analysis','presentation','runtime']) {
-  if (!fs.existsSync(path.join(root, 'tsm-native/config/provenance-plane-contract.json'))) break;
+const requiredRuntimeContracts = [
+  'tsm-native/config/provenance-plane-contract.json',
+  'tsm-native/config/data-fabric-contract.json',
+];
+for (const relative of requiredRuntimeContracts) {
+  if (!fs.existsSync(path.join(root, relative))) failures.push(`missing runtime architecture contract: ${relative}`);
 }
 
 if (docs.architecture?.processingPatterns?.streaming?.enabled !== false) {
