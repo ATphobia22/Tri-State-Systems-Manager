@@ -68,7 +68,9 @@ try {
   failures.push(`tsm-console/package.json: invalid JSON: ${error.message}`);
 }
 
-if (!/image:\s*node:22-alpine/.test(compose)) failures.push('tsm-console/docker-compose.yml: console runtime must use node:22-alpine');
+if (!/build:\s*\n\s+context:\s+\./.test(compose) || !/dockerfile:\s+Dockerfile/.test(compose)) failures.push('tsm-console/docker-compose.yml: canonical services must build the checked-in Dockerfile');
+if (!fs.existsSync(path.join(repoRoot, 'tsm-console/Dockerfile'))) failures.push('tsm-console/Dockerfile: production runtime Dockerfile missing');
+if (/POSTGRES_PASSWORD:\s*(tsm|sovereign|sovereign_pass)\b/.test(compose)) failures.push('tsm-console/docker-compose.yml: plaintext database credential detected');
 if (!/condition:\s*service_healthy/.test(compose)) failures.push('tsm-console/docker-compose.yml: web service must wait for healthy API');
 
 for (const relative of [

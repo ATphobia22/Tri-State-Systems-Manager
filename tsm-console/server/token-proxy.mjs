@@ -15,6 +15,7 @@ import { servePoseyAsset } from './geospatial/posey-assets.mjs';
 import { handleFirmRoute } from './geospatial/firm-routes.mjs';
 import { normalizeTelemetryEvent, validateTelemetryIngress } from './telemetry/inbound.mjs';
 import { authorizeAndPublishArtifact } from './ingestion/governance-transition.mjs';
+import { authenticateRequest, requireRoles, requireAuthenticatedSubject } from './auth/oidc-auth.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
 const BUILD_SHA = process.env.GITHUB_SHA || process.env.TSM_BUILD_SHA || 'local';
@@ -45,6 +46,36 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'OPTIONS') return json(res, 204, {}, requestId);
   const url = new URL(req.url || '/', `http://localhost:${PORT}`);
   try {
+    const protectedMutation = req.method === 'POST' && (
+      url.pathname === '/api/evidence' ||
+      url.pathname === '/api/evidence/verify' ||
+      url.pathname === '/api/v1/engineering/compensatory-storage' ||
+      url.pathname === '/api/ingest/hydrologic' ||
+      url.pathname === '/api/ingest/usgs' ||
+      url.pathname === '/api/ingest/nwps' ||
+      url.pathname === '/api/ledger/append'
+    );
+    let requestAuth = null;
+    if (protectedMutation) {
+      try {
+        requestAuth = await authenticateRequest(req);
+      } catch (error) {
+        return json(res, error.status || 401, { ok: false, code: error.code || 'AUTHENTICATION_REQUIRED', error: error.message }, requestId);
+      }
+      if (url.pathname === '/api/ledger/append') {
+        try {
+          requireRoles(requestAuth, String(process.env.TSM_REVIEWER_ROLE || 'tsm-reviewer'));
+        } catch (error) {
+          return json(res, error.status || 403, { ok: false, code: error.code || 'AUTHORIZATION_FORBIDDEN', error: error.message }, requestId);
+        }
+      } else if (!requestAuth.developmentBypass) {
+        try {
+          requireRoles(requestAuth, String(process.env.TSM_OPERATOR_ROLE || 'tsm-operator'));
+        } catch (error) {
+          return json(res, error.status || 403, { ok: false, code: error.code || 'AUTHORIZATION_FORBIDDEN', error: error.message }, requestId);
+        }
+      }
+    }
     if (handleFirmRoute(req, res, url, (response, status, body) => json(response, status, body, requestId))) return;
     if (req.method === 'GET' && url.pathname === '/api/auth/health') return json(res, 200, { ...healthBody(), auth_model: 'keycloak_public_client_pkce', client_secret_required: false, token_proxy_path: null }, requestId);
     if (req.method === 'GET' && url.pathname === '/health') return json(res, 200, healthBody(), requestId);
@@ -170,10 +201,14 @@ const server = http.createServer(async (req, res) => {
       if (!body.artifact_id) return json(res, 400, { error: 'artifact_id is required; raw artifacts must be ingested before authorization' }, requestId);
       if (!body.human_authorization || typeof body.human_authorization !== 'object') return json(res, 400, { error: 'human_authorization is required' }, requestId);
       try {
-        const publication = await authorizeAndPublishArtifact(body.artifact_id, body.human_authorization);
+        requireAuthenticatedSubject(requestAuth, body.human_authorization.reviewer_identity);
+        const publication = await authorizeAndPublishArtifact(body.artifact_id, {
+          ...body.human_authorization,
+          reviewer_identity: requestAuth.subject,
+        }, requestAuth.subject);
         return json(res, 201, publication, requestId);
       } catch (error) {
-        return json(res, error.code === 'NOT_FOUND' ? 404 : 422, { error: error.message, code: error.code || 'GOVERNANCE_FAULT' }, requestId);
+        return json(res, error.status || (error.code === 'NOT_FOUND' ? 404 : 422), { error: error.message, code: error.code || 'GOVERNANCE_FAULT' }, requestId);
       }
     }
     return json(res, 404, { error: 'not found' }, requestId);
