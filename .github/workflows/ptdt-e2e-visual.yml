@@ -2,7 +2,7 @@ name: PTDT v35 E2E & Visual Regression
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, Multi-Installer]
   pull_request:
     branches: [main, master]
   workflow_dispatch:
