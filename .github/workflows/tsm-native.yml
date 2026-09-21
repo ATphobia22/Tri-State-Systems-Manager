@@ -47,7 +47,7 @@ jobs:
       - name: Cache vcpkg binary packages
         uses: actions/cache@v4
         with:
-          path: ~/.cache/vcpkg
+          path: ${{ runner.temp }}/vcpkg-cache
           key: tsm-vcpkg-${{ runner.os }}-${{ matrix.triplet }}-${{ hashFiles('native/dependencies/vcpkg.json', 'native/dependencies/vcpkg-configuration.json') }}
       - uses: actions/setup-node@v6
         with:
@@ -80,14 +80,14 @@ jobs:
         if: ${{ matrix.os != 'windows-latest' }}
         shell: bash
         run: |
-          export VCPKG_BINARY_SOURCES="clear;files,$HOME/.cache/vcpkg,readwrite"
+          export VCPKG_BINARY_SOURCES="clear;files,$RUNNER_TEMP/vcpkg-cache,readwrite"
           chmod +x ./scripts/native/Bootstrap-NativeDependencies.sh
           ./scripts/native/Bootstrap-NativeDependencies.sh "${{ matrix.triplet }}"
       - name: Bootstrap pinned native dependencies (Windows)
         if: ${{ matrix.os == 'windows-latest' }}
         shell: pwsh
         env:
-          VCPKG_BINARY_SOURCES: "clear;files,${{ runner.temp }}\\vcpkg-cache,readwrite"
+          VCPKG_BINARY_SOURCES: "clear;files,${{ runner.temp }}/vcpkg-cache,readwrite"
         run: ./scripts/native/Bootstrap-NativeDependencies.ps1 -Triplet "${{ matrix.triplet }}"
       - name: Verify native dependency manifest
         shell: bash
