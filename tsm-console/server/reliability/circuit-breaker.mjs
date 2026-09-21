@@ -13,21 +13,22 @@ export function createCircuitBreaker({ failureThreshold = 3, cooldownMs = 30_000
   const state = new Map();
   function get(sourceId) {
     if (!sourceId) throw new TypeError('sourceId required');
-    return state.get(sourceId) || { sourceId, state: 'closed', failures: 0, openedAt: null, retryAt: null };
+    return state.get(sourceId) || { sourceId, state: 'closed', failures: 0, openedAt: null, retryAt: null, halfOpenProbeInFlight: false };
   }
   return Object.freeze({
     beforeRequest(sourceId) {
       const current = get(sourceId);
       if (current.state === 'open') {
         if (now() < current.retryAt) throw new CircuitOpenError(sourceId, current.retryAt);
-        const half = { ...current, state: 'half-open' };
+        if (current.halfOpenProbeInFlight) throw new CircuitOpenError(sourceId, current.retryAt);
+        const half = { ...current, state: 'half-open', halfOpenProbeInFlight: true };
         state.set(sourceId, half);
         return half;
       }
       return current;
     },
     recordSuccess(sourceId) {
-      const next = { sourceId, state: 'closed', failures: 0, openedAt: null, retryAt: null, lastSuccessAt: now() };
+      const next = { sourceId, state: 'closed', failures: 0, openedAt: null, retryAt: null, halfOpenProbeInFlight: false, lastSuccessAt: now() };
       state.set(sourceId, next);
       return next;
     },
@@ -35,7 +36,7 @@ export function createCircuitBreaker({ failureThreshold = 3, cooldownMs = 30_000
       const current = get(sourceId);
       const failures = current.failures + 1;
       const opened = failures >= failureThreshold;
-      const next = { ...current, state: opened ? 'open' : 'closed', failures, openedAt: opened ? now() : current.openedAt, retryAt: opened ? now() + cooldownMs : current.retryAt, lastFailureAt: now() };
+      const next = { ...current, state: opened ? 'open' : 'closed', failures, openedAt: opened ? now() : current.openedAt, retryAt: opened ? now() + cooldownMs : current.retryAt, halfOpenProbeInFlight: false, lastFailureAt: now() };
       state.set(sourceId, next);
       return next;
     },
