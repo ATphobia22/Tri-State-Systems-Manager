@@ -18,12 +18,12 @@ export const VIEWPORT_CONFIG = {
     verticalDatum: 'NAVD88',
   },
   elevations: {
-    bfeFt: 375.0,
-    lagFt: 377.2,
-    ffeFt: 382.5,
-    bermCrestFt: 379.8,
-    clearanceLagMinusBfeFt: 2.2,
-    evidenceStatus: 'LEGACY_SCENARIO_REQUIRES_PROJECT_EVIDENCE' as const,
+    bfeFt: null,
+    lagFt: null,
+    ffeFt: null,
+    bermCrestFt: null,
+    clearanceLagMinusBfeFt: null,
+    evidenceStatus: 'SOURCE_REQUIRED' as const,
   },
   hydrology: {
     primaryUsgs: '03378500',
