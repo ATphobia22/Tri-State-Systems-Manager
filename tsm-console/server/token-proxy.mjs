@@ -16,6 +16,7 @@ import { handleFirmRoute } from './geospatial/firm-routes.mjs';
 import { normalizeTelemetryEvent, validateTelemetryIngress } from './telemetry/inbound.mjs';
 import { authorizeAndPublishArtifact } from './ingestion/governance-transition.mjs';
 import { authenticateRequest, requireRoles, requireAuthenticatedSubject } from './auth/oidc-auth.mjs';
+import { submitCommunityObservation } from './ingestion/community-submissions.mjs';
 import { beginOidcLogin, finishOidcLogin, getBrowserSession, logoutOidc } from './auth/oidc-bff.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
@@ -112,6 +113,14 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, { ...healthBody(), ready: true, required_internal_dependencies: { authority_registry: true, evidence_store: true, oidc: true } }, requestId);
     }
     if (req.method === 'GET' && url.pathname === '/api/data-sources/catalog') return json(res, 200, { build_sha: BUILD_SHA, sources: listAuthoritativeSources(), health: listSourceHealth(), circuits: listUpstreamCircuitHealth(), authority_boundary: 'Catalog metadata does not confer regulatory authority; source products retain their published status.' }, requestId);
+    if (req.method === 'POST' && url.pathname === '/api/community/observations') {
+      try {
+        const artifact = submitCommunityObservation(await readBodyFixed(req));
+        return json(res, 202, { ok: true, accepted: true, status: 'quarantine', artifact_id: artifact.artifact_id, authority_class: 'OBSERVATION', note: 'Community observations are not authoritative until authorized human review.' }, requestId);
+      } catch (error) {
+        return json(res, error.status || 422, { ok: false, code: error.code || 'COMMUNITY_SUBMISSION_INVALID', error: error.message }, requestId);
+      }
+    }
     if (req.method === 'GET' && url.pathname === '/api/data-sources/fetch') {
       const sourceId = url.searchParams.get('source_id');
       const sourceUrl = url.searchParams.get('url');

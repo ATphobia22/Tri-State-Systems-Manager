@@ -15,6 +15,7 @@ import RiverWatchView from '../routes/RiverWatchView';
 import EngineeringSectionView from '../routes/EngineeringSectionView';
 import LoginView from '../routes/LoginView';
 import LoginCallbackView from '../routes/LoginCallbackView';
+import PublicDataFabricDashboard from '../components/PublicDataFabricDashboard';
 import type { RootLoaderData, CharterLoaderData, ArchitectureLoaderData, NeedsLoaderData, LedgerLoaderData, LineageLoaderData, BenefitLoaderData, MapTwinLoaderData, EvidenceBlock, InterventionRecord, DataContractSummary } from '../types/loaders';
 
 let interventions: InterventionRecord[] = [];
@@ -105,6 +106,7 @@ export const router = createBrowserRouter([
   { id: 'root', path: '/', loader: rootLoader, element: <RootLayout />, children: [
   { index: true, loader: charterLoader, element: <CharterView /> },
   { path: 'architecture', loader: architectureLoader, element: <ArchitectureView /> },
+  { path: 'data-fabric', element: <PublicDataFabricDashboard /> },
   { path: 'river-watch', element: <RiverWatchView /> },
   { path: 'engineering-section', element: <EngineeringSectionView /> },
   { path: 'needs', loader: needsLoader, element: <NeedsView /> },

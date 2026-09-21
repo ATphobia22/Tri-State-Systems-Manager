@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tsm-api
+  labels:
+    app: tsm-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: tsm-api
+  template:
+    metadata:
+      labels:
+        app: tsm-api
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: api
+          image: ghcr.io/atphobia22/tri-state-systems-manager:REPLACE_WITH_SIGNED_DIGEST
+          ports:
+            - containerPort: 8787
+          env:
+            - name: TSM_AUTH_MODE
+              value: required
+            - name: CORS_ORIGIN
+              valueFrom:
+                secretKeyRef:
+                  name: tsm-production-secrets
+                  key: CORS_ORIGIN
+            - name: OIDC_ISSUER
+              valueFrom:
+                secretKeyRef:
+                  name: tsm-production-secrets
+                  key: OIDC_ISSUER
+            - name: OIDC_AUDIENCE
+              valueFrom:
+                secretKeyRef:
+                  name: tsm-production-secrets
+                  key: OIDC_AUDIENCE
+            - name: OIDC_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: tsm-production-secrets
+                  key: OIDC_CLIENT_ID
+            - name: OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: tsm-production-secrets
+                  key: OIDC_CLIENT_SECRET
+            - name: OIDC_REDIRECT_URI
+              valueFrom:
+                secretKeyRef:
+                  name: tsm-production-secrets
+                  key: OIDC_REDIRECT_URI
+            - name: TSM_SESSION_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: tsm-production-secrets
+                  key: TSM_SESSION_SECRET
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8787
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8787
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 1
+              memory: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tsm-api
+spec:
+  selector:
+    app: tsm-api
+  ports:
+    - name: http
+      port: 8787
+      targetPort: 8787
+  type: ClusterIP

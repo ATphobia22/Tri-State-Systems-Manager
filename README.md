@@ -142,6 +142,18 @@ Important runtime files:
 - `docs/DEPLOYMENT-AND-OPERATIONS.md` — deployment and operations runbook
 - `COMPLIANCE.md` — authority and non-certification boundaries
 
+## Public access and data-fabric boundary
+
+TSM is designed for public exploration without a required user account. Maps, public source metadata, open datasets and browser-local simulations remain accessible without authentication. Identity is required only for operations where accountability, restricted information or authoritative publication requires it.
+
+Community observations use the public endpoint `POST /api/community/observations`. Submissions are size/shape validated, provenance-hashed and placed into quarantine as observations; they cannot directly overwrite authoritative records. Authorized human review is required before an observation can enter an authoritative workflow.
+
+The public data-fabric dashboard is available at `/data-fabric`. Its transparency view exposes source-contract and source-health metadata without exposing deployment credentials.
+
+The canonical provenance contract is implemented in `tsm-console/server/ingestion/data-fabric-provenance.mjs` and requires source identity, source URI, publication time, CRS, license/usage terms, uncertainty, limitations and authority/governance classification. TSM does not invent missing source metadata.
+
+Production deployment templates use secret-manager references rather than repository credentials. See `deploy/kubernetes/tsm-api.yaml` and `docs/PUBLIC-DATA-FABRIC-ARCHITECTURE.md`.
+
 ## Local deployment
 
 ### Native Node
