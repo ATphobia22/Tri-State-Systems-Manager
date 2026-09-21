@@ -115,7 +115,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && url.pathname === '/api/data-sources/catalog') return json(res, 200, { build_sha: BUILD_SHA, sources: listAuthoritativeSources(), health: listSourceHealth(), circuits: listUpstreamCircuitHealth(), authority_boundary: 'Catalog metadata does not confer regulatory authority; source products retain their published status.' }, requestId);
     if (req.method === 'POST' && url.pathname === '/api/community/observations') {
       try {
-        const clientKey = String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'anonymous').split(',')[0].trim();
+        const clientKey = String(req.socket.remoteAddress || 'anonymous').trim();
         const artifact = submitCommunityObservation(await readBodyFixed(req), Date.now(), clientKey);
         return json(res, 202, { ok: true, accepted: true, status: 'quarantine', artifact_id: artifact.artifact_id, authority_class: 'OBSERVATION', note: 'Community observations are not authoritative until authorized human review.' }, requestId);
       } catch (error) {
