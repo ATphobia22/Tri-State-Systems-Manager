@@ -1,0 +1,19 @@
+{
+  "engine": {
+    "name": "Unreal Engine",
+    "version": "5.8"
+  },
+  "geospatial": {
+    "provider": "Cesium for Unreal",
+    "pluginVersion": "2.29.1",
+    "source": "https://github.com/CesiumGS/cesium-unreal/releases/tag/v2.29.1",
+    "requiredModule": "CesiumRuntime",
+    "offlineMode": true,
+    "localDatasetPolicy": "file-only"
+  },
+  "networkPolicy": {
+    "runtimeOutboundNetwork": false,
+    "ionStreaming": false,
+    "localServer": false
+  }
+}
