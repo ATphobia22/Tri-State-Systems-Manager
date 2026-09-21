@@ -54,7 +54,7 @@ function validateReviewPayload(reviewPayload, rawHash) {
   };
 }
 
-export function authorizeEvidenceArtifact(rawArtifact, reviewPayload) {
+export function authorizeEvidenceArtifact(rawArtifact, reviewPayload, actorSubject = null) {
   if (!rawArtifact || typeof rawArtifact !== 'object') fail('FAIL_CLOSED: raw evidence artifact is required.');
   if (rawArtifact.governance_status !== 'human_review_required') {
     fail(`FAIL_CLOSED: cannot authorize artifact in state: ${rawArtifact.governance_status}`);
@@ -67,6 +67,9 @@ export function authorizeEvidenceArtifact(rawArtifact, reviewPayload) {
   }
 
   const human_authorization = validateReviewPayload(reviewPayload, rawArtifact.content_hash_sha256);
+  if (actorSubject !== null && human_authorization.reviewer_identity !== actorSubject) {
+    fail('FAIL_CLOSED: reviewer identity must match the authenticated actor subject.', 'AUTHORIZATION_SUBJECT_MISMATCH');
+  }
   const priorChain = Array.isArray(rawArtifact.transformation_chain)
     ? rawArtifact.transformation_chain : [];
 
@@ -166,9 +169,9 @@ export async function publishAuthorizedArtifact(authorizedArtifact) {
   };
 }
 
-export async function authorizeAndPublishArtifact(artifactId, reviewPayload) {
+export async function authorizeAndPublishArtifact(artifactId, reviewPayload, actorSubject = null) {
   const rawArtifact = getArtifact(artifactId);
   if (!rawArtifact) fail(`FAIL_CLOSED: raw artifact not found: ${artifactId}`, 'NOT_FOUND');
-  const authorized = authorizeEvidenceArtifact(rawArtifact, reviewPayload);
+  const authorized = authorizeEvidenceArtifact(rawArtifact, reviewPayload, actorSubject);
   return publishAuthorizedArtifact(authorized);
 }
