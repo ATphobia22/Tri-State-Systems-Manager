@@ -2,7 +2,7 @@ name: Tri-State Systems Manager CI Pipeline
 
 on:
   push:
-    branches: [main, 'v*']
+    branches: [main, Multi-Installer, 'v*']
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -164,6 +164,10 @@ jobs:
       - name: Validate spatial topology contract
         working-directory: .
         run: node scripts/ci/validate-spatial-topology.mjs
+
+      - name: Production reliability contract gate
+        working-directory: .
+        run: node scripts/ci/validate-production-reliability.mjs
 
       - name: Package production artifact for attestation
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
