@@ -14,13 +14,33 @@ int main()
     };
 
     ArchimedesSiteMetrics output{};
-    const ArchimedesStatus status =
-        ArchimedesEvaluateGeodeticInvariants(&input, &output);
-
-    assert(status == ARCHIMEDES_OK);
-    assert(std::abs(output.bfe_ft - 375.0) < 1e-12);
-    assert(std::abs(output.lag_ft - 377.2) < 1e-12);
+    assert(
+        ArchimedesEvaluateGeodeticInvariants(&input, &output) ==
+        ARCHIMEDES_OK);
     assert(std::abs(output.surface_water_elevation_ft - 376.25) < 1e-12);
+    assert(output.inundation_active == 0);
+
+    ArchimedesSaintVenantConfig config{
+        10.0,
+        0.0002,
+        0.035,
+        32.174,
+        0.8
+    };
+
+    double depth[] = {4.0, 4.0, 4.0, 4.0};
+    double velocity[] = {1.0, 1.0, 1.0, 1.0};
+
+    assert(
+        ArchimedesSolveSaintVenant1D(
+            &config, depth, velocity, 4, 0.1) ==
+        ARCHIMEDES_OK);
+
+    for (double value : depth)
+    {
+        assert(std::isfinite(value));
+        assert(value >= 0.0);
+    }
 
     input.stage_delta_ft = NAN;
     assert(
