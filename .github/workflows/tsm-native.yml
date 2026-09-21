@@ -314,6 +314,15 @@ jobs:
           test -n "$UE_ROOT"
           xcode-select -p
           xcodebuild -version
+      - name: Verify immutable native data snapshot
+        shell: bash
+        env:
+          TSM_NATIVE_DATA_ROOT: ${{ vars.TSM_NATIVE_DATA_ROOT }}
+        run: |
+          test -n "$TSM_NATIVE_DATA_ROOT"
+          test -f "$TSM_NATIVE_DATA_ROOT/data-manifest.json"
+          chmod +x scripts/native/Verify-NativeDataManifest.sh
+          scripts/native/Verify-NativeDataManifest.sh "$TSM_NATIVE_DATA_ROOT" "$TSM_NATIVE_DATA_ROOT/data-manifest.json" true
       - name: Package UE5 iOS Shipping build
         shell: bash
         env:
@@ -348,6 +357,15 @@ jobs:
           test -d "$ANDROID_HOME"
           test -n "$ANDROID_NDK_ROOT"
           test -d "$ANDROID_NDK_ROOT"
+      - name: Verify immutable native data snapshot
+        shell: bash
+        env:
+          TSM_NATIVE_DATA_ROOT: ${{ vars.TSM_NATIVE_DATA_ROOT }}
+        run: |
+          test -n "$TSM_NATIVE_DATA_ROOT"
+          test -f "$TSM_NATIVE_DATA_ROOT/data-manifest.json"
+          chmod +x scripts/native/Verify-NativeDataManifest.sh
+          scripts/native/Verify-NativeDataManifest.sh "$TSM_NATIVE_DATA_ROOT" "$TSM_NATIVE_DATA_ROOT/data-manifest.json" true
       - name: Package UE5 Android Shipping build
         shell: bash
         env:
