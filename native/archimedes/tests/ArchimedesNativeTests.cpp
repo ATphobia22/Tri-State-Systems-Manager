@@ -5,13 +5,19 @@
 
 namespace
 {
-void AssertFiniteNonNegative(
-    const double* values,
-    int count)
+void AssertFinite(const double* values, int count)
 {
     for (int i = 0; i < count; ++i)
     {
         assert(std::isfinite(values[i]));
+    }
+}
+
+void AssertFiniteNonNegative(const double* values, int count)
+{
+    AssertFinite(values, count);
+    for (int i = 0; i < count; ++i)
+    {
         assert(values[i] >= 0.0);
     }
 }
@@ -65,7 +71,7 @@ int main()
         ARCHIMEDES_OK);
 
     AssertFiniteNonNegative(depth, 4);
-    AssertFiniteNonNegative(velocity, 4);
+    AssertFinite(velocity, 4);
 
     double afterDepthSum = 0.0;
     for (double value : depth)
@@ -98,7 +104,7 @@ int main()
             4,
             0.1) == ARCHIMEDES_OK);
     AssertFiniteNonNegative(dryDepth, 4);
-    AssertFiniteNonNegative(dryVelocity, 4);
+    AssertFinite(dryVelocity, 4);
 
     assert(
         ArchimedesSolveSaintVenant1D(
