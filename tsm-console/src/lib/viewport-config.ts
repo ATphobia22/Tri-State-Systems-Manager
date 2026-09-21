@@ -69,21 +69,24 @@ export const VIEWPORT_CONFIG = {
   portable: {
     requiredEpsg: 2966,
     requiredVertical: 'NAVD88',
-    requiredBfeFt: 375.0,
-    requiredLagFt: 377.2,
+    requiredBfeFt: null,
+    requiredLagFt: null,
   },
 } as const;
 
 export type StageFinding = 'NOMINAL' | 'BFE_EXCEEDED' | 'CRITICAL_INUNDATION';
 
-export function stageFinding(stageFt: number): StageFinding {
-  if (stageFt >= VIEWPORT_CONFIG.elevations.lagFt) return 'CRITICAL_INUNDATION';
-  if (stageFt >= VIEWPORT_CONFIG.elevations.bfeFt) return 'BFE_EXCEEDED';
+export function stageFinding(stageFt: number, references: { bfeFt: number; lagFt: number }): StageFinding {
+  if (!Number.isFinite(stageFt) || !Number.isFinite(references.bfeFt) || !Number.isFinite(references.lagFt)) {
+    throw new Error('Verified BFE and LAG references are required for stage classification');
+  }
+  if (stageFt >= references.lagFt) return 'CRITICAL_INUNDATION';
+  if (stageFt >= references.bfeFt) return 'BFE_EXCEEDED';
   return 'NOMINAL';
 }
 
-export function visualWaterY(stageFt: number, _elapsedSec = 0): number {
-  const { bfeFt } = VIEWPORT_CONFIG.elevations;
+export function visualWaterY(stageFt: number, bfeFt: number): number {
+  if (!Number.isFinite(stageFt) || !Number.isFinite(bfeFt)) throw new Error('Verified BFE is required for visual water height');
   return Math.max(0, (stageFt - bfeFt) * 0.8);
 }
 
