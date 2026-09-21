@@ -232,6 +232,15 @@ jobs:
           test "$(python3 -c 'import json; print(json.load(open("tsm-native/config/native-geospatial-runtime.json"))["geospatial"]["pluginVersion"])')" = "2.29.1"
         env:
           UE_ROOT: ${{ vars.UE_ROOT }}
+      - name: Verify immutable native data snapshot
+        shell: bash
+        env:
+          TSM_NATIVE_DATA_ROOT: ${{ vars.TSM_NATIVE_DATA_ROOT }}
+        run: |
+          test -n "$TSM_NATIVE_DATA_ROOT"
+          test -f "$TSM_NATIVE_DATA_ROOT/data-manifest.json"
+          chmod +x scripts/native/Verify-NativeDataManifest.sh
+          scripts/native/Verify-NativeDataManifest.sh "$TSM_NATIVE_DATA_ROOT" "$TSM_NATIVE_DATA_ROOT/data-manifest.json" true
       - name: Build ArchimedesCore
         run: |
           cmake -S native/archimedes -B native/archimedes/build
