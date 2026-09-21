@@ -6,7 +6,7 @@ test('OIDC session cookie is encrypted and round-trips', () => {
   process.env.TSM_SESSION_SECRET = 'test-secret-with-at-least-32-characters-long';
   process.env.TSM_AUTH_MODE = 'required';
   const headers = {};
-  const response = { setHeader(name, value) { headers[name] = value; } };
+  const response = { setHeader(name, value) { headers[name] = value; }, getHeader(name) { return headers[name]; } };
   setSessionCookie(response, { accessToken: 'opaque-token', subject: 'subject-1', roles: ['tsm-operator'] }, 300);
   assert.match(headers['Set-Cookie'], /__Host-tsm_session=/);
   assert.match(headers['Set-Cookie'], /HttpOnly/);
