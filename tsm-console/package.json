@@ -58,7 +58,7 @@
     "check:npx-policy": "node scripts/npx-policy-check.mjs",
     "generate:sbom": "node scripts/generate-sbom.mjs",
     "resync": "npm ci --no-audit --no-fund && node scripts/postinstall-check.mjs && node scripts/parse-check.mjs",
-    "ci": "npm run check:production-reliability && npm run check:action-pins && npm run check:dependency-integrity && npm run check:npx-policy && npm run check:integrity && npm run check:capabilities && npm run check:workflow-boundaries && npm run check:artifacts && npm run check:quantum-boundary && npm run check:shell-safety && npm run check:site-consistency && npm run check:mock-data && npm run check:tile-health && npm run check:parse && npm run check:type && npm run check:geospatial && npm run check:government-sources && npm run check:live-fabric && npm run check:regulatory-rules && npm run check:engineering-pipeline && npm run check:schemas && npm run build && npm run check:client-bundle-secrets",
+    "ci": "npm run check:production-reliability && npm run check:action-pins && npm run check:dependency-integrity && npm run check:npx-policy && npm run check:integrity && npm run check:capabilities && npm run check:workflow-boundaries && npm run check:artifacts && npm run check:quantum-boundary && npm run check:shell-safety && npm run check:site-consistency && npm run check:mock-data && npm run check:tile-health && npm run check:parse && npm run check:type && npm run check:geospatial && npm run check:government-sources && npm run check:live-fabric && npm run check:regulatory-rules && npm run check:engineering-pipeline && npm run check:schemas && npm run build && npm run check:client-bundle-secrets && npm run check:enterprise-architecture && npm run check:architecture-repository && npm run check:data-fabric-contract && npm run check:provenance-plane && npm run test:production-gates",
     "ci:full": "npm run ci && npm run test:all && npm run test:geodetic && npm run test:ingestion && npm run test:production-gates && npm run ingest",
     "check:v35.1": "tsc -p tsconfig.v35.1.json --noEmit",
     "sign:evidence": "node --experimental-strip-types ../scripts/sign-evidence.ts",
@@ -82,7 +82,11 @@
     "desktop:check": "node scripts/desktop-updater-check.mjs",
     "check:production-reliability": "node ../scripts/ci/validate-production-reliability.mjs",
     "test:evidence-signer": "node ../scripts/evidence/test-sign-evidence.mjs",
-    "test:loma-signing": "node ../scripts/evidence/test-loma-signing.mjs"
+    "test:loma-signing": "node ../scripts/evidence/test-loma-signing.mjs",
+    "check:enterprise-architecture": "node ../scripts/ci/validate-enterprise-data-architecture.mjs",
+    "check:architecture-repository": "node ../scripts/ci/validate-architecture-repository.mjs",
+    "check:data-fabric-contract": "node ../scripts/ci/validate-data-fabric-contract.mjs",
+    "check:provenance-plane": "node ../scripts/ci/validate-provenance-plane.mjs"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.0",
