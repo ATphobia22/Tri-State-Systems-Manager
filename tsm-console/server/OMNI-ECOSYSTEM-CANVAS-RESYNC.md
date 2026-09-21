@@ -9,7 +9,7 @@ Source: legacy Master Omni-Ecosystem Canvas prototype.
 | **EPSG:2967** | **EPSG:2966** (NAD83 / Indiana West, US ft) | **REJECT 2967** — keep 2966 |
 | NAVD88 vertical | NAVD88 | KEEP |
 | BFE 375.0 / LAG 377.2 / FFE 382.5 | Same | KEEP |
-| APN 65-19-08-100-008.001-010 | Same | KEEP |
+| Parcel/APN | Source-required; never hard-coded | REJECT |
 | USGS 03378500 Wabash @ New Harmony | Same (provisional data) | KEEP |
 | Mapillary `mlly_mock_token` / mock imageKey | Not live authority | Label **SIMULATION_DEMO** |
 | WSE slider driving Three.js water mesh | Visualization only | **VISUALIZATION** / not regulatory stage |
