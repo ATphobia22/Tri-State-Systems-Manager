@@ -172,8 +172,8 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                             <div id="container-coord1">
                                 <label class="block text-slate-300 font-semibold mb-1" id="lbl-coord1">Latitude (°N)</label>
-                                <input type="number" id="input-coord1" value="38.129444" step="0.000001" oninput="executeProjTransform()" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white font-mono">
-                                <span class="text-[10px] text-slate-500" id="sub-coord1">13101 Bonebank Rd Anchor</span>
+                                <input type="number" id="input-coord1" value="38.13089124" step="0.000001" oninput="executeProjTransform()" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-white font-mono">
+                                <span class="text-[10px] text-slate-500" id="sub-coord1">Community Reference</span>
                             </div>
 
                             <div id="container-coord2">
@@ -227,7 +227,7 @@ proj4.defs(
 );
 
 // Transformation Execution
-const point = proj4('WGS84', 'EPSG:2966', [-87.935278, 38.129444]);
+const point = proj4('WGS84', 'EPSG:2966', [-87.935278, 38.13089124]);
 console.log(`X: ${point[0]} ft, Y: ${point[1]} ft`);</code>
                         </div>
 
@@ -296,7 +296,7 @@ console.log(`X: ${point[0]} ft, Y: ${point[1]} ft`);</code>
 {
   "srcDatum": "NAD83(1986)",
   "destDatum": "NAD83(2011)",
-  "srcLat": 38.129444,
+  "srcLat": 38.13089124,
   "srcLon": -87.935278,
   "destLat": 38.129462,
   "destLon": -87.935311,
@@ -511,8 +511,8 @@ if __name__ == "__main__":
                 btnWgs.className = "flex-1 py-1.5 font-bold rounded bg-cyan-600 text-white transition";
                 btn2966.className = "flex-1 py-1.5 font-bold rounded bg-slate-800 text-slate-400 hover:bg-slate-700 transition";
                 lbl1.innerText = "Latitude (°N)";
-                sub1.innerText = "13101 Bonebank Rd Anchor";
-                val1.value = "38.129444";
+                sub1.innerText = "Community Reference";
+                val1.value = "38.13089124";
 
                 lbl2.innerText = "Longitude (°W)";
                 sub2.innerText = "Point Township Anchor";
@@ -568,7 +568,7 @@ if __name__ == "__main__":
             output.innerText = `{
   "srcDatum": "NAD83(1986)",
   "destDatum": "NAD83(2011)",
-  "srcLat": 38.129444,
+  "srcLat": 38.13089124,
   "srcLon": -87.935278,
   "destLat": 38.129462,
   "destLon": -87.935311,
