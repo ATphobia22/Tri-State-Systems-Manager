@@ -16,6 +16,7 @@ private:
  UPROPERTY(EditAnywhere,Category="TSM|Data") int32 ExpectedHorizontalSrid=2966;
  UPROPERTY(EditAnywhere,Category="TSM|Data") FString ExpectedVerticalDatum;
  UPROPERTY(EditAnywhere,Category="TSM|Runtime") FString ArchimedesLibraryRelativePath=TEXT("ArchimedesCore.dll");
+ UPROPERTY(EditAnywhere,Category="TSM|Runtime") FString SpatiaLiteLibraryRelativePath=TEXT("Binaries/mod_spatialite.dll");
  UPROPERTY(EditAnywhere,Category="TSM|Hydrology") int32 HydroCellCount=128;
  UPROPERTY(EditAnywhere,Category="TSM|Hydrology") double HydroCellWidthFt=10.0;
  UPROPERTY(EditAnywhere,Category="TSM|Hydrology") double HydroBedSlope=0.0002;
