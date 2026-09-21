@@ -63,9 +63,9 @@ jobs:
         run: node scripts/ci/validate-native-platform-matrix.mjs
       - name: Build and test ArchimedesCore
         run: |
-          cmake -S native/archimedes -B native/archimedes/build -DBUILD_TESTING=ON
-          cmake --build native/archimedes/build --config Release --parallel
-          ctest --test-dir native/archimedes/build --build-config Release --output-on-failure
+          cmake --preset linux-x64
+          cmake --build --preset linux-x64 --parallel
+          ctest --preset linux-x64
 
   data-integrity:
     runs-on: ubuntu-latest
