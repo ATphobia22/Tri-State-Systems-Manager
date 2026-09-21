@@ -310,6 +310,29 @@ jobs:
         uses: actions/attest@v4
         with:
           subject-path: dist/installer/TSM-Native-Setup-*-windows-x64.exe
+      - name: Generate tsm-native-windows release manifest
+        shell: bash
+        env:
+          TSM_RUNNER_CLASS: windows-ue5
+        run: node scripts/ci/generate-release-manifest.mjs dist/installer dist/provenance/windows-release-manifest.json
+      - name: Generate tsm-native-windows SPDX SBOM
+        uses: anchore/sbom-action@8e94d75
+        with:
+          path: dist/installer
+          format: spdx-json
+          output-file: dist/installer/sbom.spdx.json
+          upload-artifact: false
+      - name: Attest tsm-native-windows SBOM
+        uses: actions/attest@v4
+        with:
+          subject-path: dist/installer/**/*
+          sbom-path: dist/installer/sbom.spdx.json
+      - name: Upload tsm-native-windows release manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: tsm-native-windows-release-manifest
+          path: dist/provenance/windows-release-manifest.json
+          if-no-files-found: error
       - uses: actions/upload-artifact@v4
         with:
           name: tsm-native-windows-installer
@@ -405,6 +428,29 @@ jobs:
         uses: actions/attest@v4
         with:
           subject-path: dist/tsm-native/**/*.app
+      - name: Generate tsm-native-macos release manifest
+        shell: bash
+        env:
+          TSM_RUNNER_CLASS: macos-ue5
+        run: node scripts/ci/generate-release-manifest.mjs dist/tsm-native dist/provenance/macos-release-manifest.json
+      - name: Generate tsm-native-macos SPDX SBOM
+        uses: anchore/sbom-action@8e94d75
+        with:
+          path: dist/tsm-native
+          format: spdx-json
+          output-file: dist/tsm-native/sbom.spdx.json
+          upload-artifact: false
+      - name: Attest tsm-native-macos SBOM
+        uses: actions/attest@v4
+        with:
+          subject-path: dist/tsm-native/**/*
+          sbom-path: dist/tsm-native/sbom.spdx.json
+      - name: Upload tsm-native-macos release manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: tsm-native-macos-release-manifest
+          path: dist/provenance/macos-release-manifest.json
+          if-no-files-found: error
       - uses: actions/upload-artifact@v4
         with:
           name: tsm-native-macos-package
@@ -459,6 +505,29 @@ jobs:
         uses: actions/attest@v4
         with:
           subject-path: dist/tsm-native-ios/**/*.app
+      - name: Generate tsm-native-ios release manifest
+        shell: bash
+        env:
+          TSM_RUNNER_CLASS: ios-ue5
+        run: node scripts/ci/generate-release-manifest.mjs dist/tsm-native-ios dist/provenance/ios-release-manifest.json
+      - name: Generate tsm-native-ios SPDX SBOM
+        uses: anchore/sbom-action@8e94d75
+        with:
+          path: dist/tsm-native-ios
+          format: spdx-json
+          output-file: dist/tsm-native-ios/sbom.spdx.json
+          upload-artifact: false
+      - name: Attest tsm-native-ios SBOM
+        uses: actions/attest@v4
+        with:
+          subject-path: dist/tsm-native-ios/**/*
+          sbom-path: dist/tsm-native-ios/sbom.spdx.json
+      - name: Upload tsm-native-ios release manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: tsm-native-ios-release-manifest
+          path: dist/provenance/ios-release-manifest.json
+          if-no-files-found: error
       - uses: actions/upload-artifact@v4
         with:
           name: tsm-native-ios-package
@@ -516,6 +585,29 @@ jobs:
         uses: actions/attest@v4
         with:
           subject-path: dist/tsm-native-android/*.apk
+      - name: Generate tsm-native-android release manifest
+        shell: bash
+        env:
+          TSM_RUNNER_CLASS: android-ue5
+        run: node scripts/ci/generate-release-manifest.mjs dist/tsm-native-android dist/provenance/android-release-manifest.json
+      - name: Generate tsm-native-android SPDX SBOM
+        uses: anchore/sbom-action@8e94d75
+        with:
+          path: dist/tsm-native-android
+          format: spdx-json
+          output-file: dist/tsm-native-android/sbom.spdx.json
+          upload-artifact: false
+      - name: Attest tsm-native-android SBOM
+        uses: actions/attest@v4
+        with:
+          subject-path: dist/tsm-native-android/**/*
+          sbom-path: dist/tsm-native-android/sbom.spdx.json
+      - name: Upload tsm-native-android release manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: tsm-native-android-release-manifest
+          path: dist/provenance/android-release-manifest.json
+          if-no-files-found: error
       - uses: actions/upload-artifact@v4
         with:
           name: tsm-native-android-package
