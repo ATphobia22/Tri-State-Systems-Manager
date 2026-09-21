@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://tuckerinc82.org/schemas/data-contract/v1.0.0.json",
+  "$id": "https://schemas.tsm-community.example/schemas/data-contract/v1.0.0.json",
   "title": "TuckerInc.82 / Tri-State Systems Manager Data Contract Schema",
   "description": "Machine-readable dataset contract specification aligned with the State of Indiana Data Strategy 2024, NIST AI RMF, and public-interest governance requirements for the Tri-State River Valley. Version 1.0.0 — 2026-08-19.",
   "type": "object",
