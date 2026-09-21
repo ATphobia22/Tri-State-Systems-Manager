@@ -17,5 +17,5 @@ Non-mutation rule: all compression outputs feed presentation only; never alter H
 - QL2 accuracy bound: RMSEZ ≤ 0.328 ft (USGS 3DEP)
 
 ## Cinematic
-- Natron headless (4K/1080p via `PTDT_CANVAS_RES`)
+- Interactive Natron render sessions for cinematic 4K/1080p output via `PTDT_CANVAS_RES`; final visual frames are not validated through headless rendering
 - ACEScg + OpenMoonRay path-traced plates; SHA-256 evidence stamp on final frames
