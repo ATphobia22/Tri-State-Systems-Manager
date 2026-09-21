@@ -86,7 +86,7 @@ for (const relative of [
   'tsm-evidence-artifact-schema-v1.0.0.json',
   'tsm-four-plane-architecture-v1.json',
   'tsm-indiana-data-catalog-v1.json',
-  'tsm-site-constants-13101-bonebank.json',
+  'tsm-site-constants-private.json',
 ]) {
   if (fs.existsSync(path.join(repoRoot, relative))) failures.push(`${relative}: stale root schema copy remains; use data/schemas/`);
 }
