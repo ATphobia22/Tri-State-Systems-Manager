@@ -283,4 +283,23 @@ const server = http.createServer(async (req, res) => {
     return json(res, 404, { error: 'not found' }, requestId);
   } catch (error) { return json(res, error instanceof Error && error.code === 'CIRCUIT_OPEN' ? 503 : 502, { error: error.message || 'upstream source unavailable', code: error.code || 'SOURCE_UNAVAILABLE', requestId }, requestId); }
 });
-server.listen(PORT, () => console.log(`TSM API on http://localhost:${PORT}`));
+server.requestTimeout = Number(process.env.TSM_REQUEST_TIMEOUT_MS || 120_000);
+server.headersTimeout = Number(process.env.TSM_HEADERS_TIMEOUT_MS || 15_000);
+server.keepAliveTimeout = Number(process.env.TSM_KEEPALIVE_TIMEOUT_MS || 5_000);
+
+function shutdown(signal) {
+  if (!acceptingRequests) return;
+  acceptingRequests = false;
+  console.log(JSON.stringify({ level: 'info', event: 'shutdown_started', signal }));
+  server.close(() => {
+    if (shutdownTimer) clearTimeout(shutdownTimer);
+    console.log(JSON.stringify({ level: 'info', event: 'shutdown_complete' }));
+  });
+  server.closeIdleConnections?.();
+  shutdownTimer = setTimeout(() => server.closeAllConnections?.(), Number(process.env.TSM_SHUTDOWN_GRACE_MS || 10_000));
+  shutdownTimer.unref?.();
+}
+process.once('SIGTERM', () => shutdown('SIGTERM'));
+process.once('SIGINT', () => shutdown('SIGINT'));
+
+server.listen(PORT, () => console.log(JSON.stringify({ level: 'info', event: 'server_started', service: 'tsm-api', port: PORT })));
