@@ -19,6 +19,7 @@ import { authenticateRequest, requireRoles, requireAuthenticatedSubject } from '
 import { submitCommunityObservation } from './ingestion/community-submissions.mjs';
 import { beginOidcLogin, finishOidcLogin, getBrowserSession, logoutOidc } from './auth/oidc-bff.mjs';
 import { createRateLimiter, RateLimitError } from './reliability/rate-limiter.mjs';
+import { reliabilityDlq } from './reliability/dead-letter-queue-runtime.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
 const BUILD_SHA = process.env.GITHUB_SHA || process.env.TSM_BUILD_SHA || 'local';
@@ -44,8 +45,11 @@ function json(res, status, body, requestId) {
 function readBodyFixed(req) {
   return new Promise((resolve, reject) => {
     const chunks = []; let size = 0;
-    req.on('data', (chunk) => { size += chunk.length; if (size > 1_000_000) { req.destroy(); reject(new Error('request body exceeds 1 MB')); return; } chunks.push(chunk); });
-    req.on('end', () => { try { resolve(chunks.length ? JSON.parse(Buffer.concat(chunks).toString('utf8')) : {}); } catch (error) { reject(error); } });
+    req.on('data', (chunk) => { size += chunk.length; if (size > 1_000_000) { const error = new Error('request body exceeds 1 MB'); error.code = 'REQUEST_TOO_LARGE'; req.destroy(error); reject(error); return; } chunks.push(chunk); });
+    req.on('end', () => {
+      try { resolve(chunks.length ? JSON.parse(Buffer.concat(chunks).toString('utf8')) : {}); }
+      catch (error) { error.code = 'INVALID_JSON'; reject(error); }
+    });
     req.on('error', reject);
   });
 }
@@ -180,6 +184,7 @@ const server = http.createServer(async (req, res) => {
         rememberTelemetryEvent(event.event_id);
         return json(res, 202, { ok: true, accepted: true, event_id: event.event_id, artifact_id: artifact.artifact_id }, requestId);
       } catch (error) {
+        try { reliabilityDlq.enqueue({ requestId, route: url.pathname, code: error.code || 'TELEMETRY_EVENT_INVALID', message: error.message }, error.code || 'TELEMETRY_EVENT_INVALID'); } catch (dlqError) { console.error(JSON.stringify({ level: 'error', event: 'dlq_write_failed', requestId, code: dlqError.code || 'DLQ_WRITE_FAILED' })); }
         return json(res, error instanceof TypeError ? 400 : 422, { ok: false, code: error.code || 'TELEMETRY_EVENT_INVALID', error: error.message }, requestId);
       }
     }
