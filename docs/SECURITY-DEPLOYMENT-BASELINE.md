@@ -55,7 +55,8 @@ Required server configuration for the browser-session/BFF path:
 
 - `OIDC_ISSUER` — exact HTTPS issuer URL.
 - `OIDC_AUDIENCE` — API/resource-server audience present in access tokens.
-- `OIDC_CLIENT_ID` — server-side OIDC client identifier.
+- `OIDC_CLIENT_ID` — server-side confidential OIDC client identifier.
+- `OIDC_CLIENT_SECRET` — confidential-client credential; inject only from the deployment secret manager.
 - `OIDC_REDIRECT_URI` — exact registered callback URL, normally `/api/auth/callback`.
 - `TSM_SESSION_SECRET` — at least 32 characters; store only in the deployment secret manager.
 - `CORS_ORIGIN` — one exact trusted browser origin; never `*` when cookies are enabled.
