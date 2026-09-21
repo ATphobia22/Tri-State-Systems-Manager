@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "contract": "TSM Evidence Analysis Presentation and Runtime Planes",
+  "planes": [
+    {
+      "name": "evidence",
+      "purpose": "Immutable source records, acquisition metadata, hashes, provenance, review state and human attestations.",
+      "mayCreateAuthoritativeFacts": false,
+      "mutable": false
+    },
+    {
+      "name": "analysis",
+      "purpose": "Reprojection, terrain derivatives, hydraulic models, simulations, uncertainty calculations and engineering computations.",
+      "mayCreateAuthoritativeFacts": false,
+      "mutable": false,
+      "inputsMustBeVersioned": true
+    },
+    {
+      "name": "presentation",
+      "purpose": "Maps, 3D tiles, photogrammetry, visualization and user interaction.",
+      "mayCreateAuthoritativeFacts": false,
+      "mutable": false,
+      "sourceLineageRequired": true
+    },
+    {
+      "name": "runtime",
+      "purpose": "Signed or hash-addressed deployment snapshots and executable state.",
+      "mayCreateAuthoritativeFacts": false,
+      "mutable": false,
+      "sha256ManifestRequired": true
+    }
+  ],
+  "provenanceChains": {
+    "software": ["sourceCommit","dependencyLock","toolchain","build","artifact","sbom","attestation"],
+    "data": ["sourceDataset","sourceVersion","acquisition","validation","transformation","derivedArtifact","runtimeSnapshot"],
+    "joinIdentity": ["gitCommit","buildIdentity","runtimeArtifactSha256"]
+  },
+  "rules": [
+    "Software provenance and data provenance are separate chains.",
+    "The chains may be joined only through recorded build/runtime identity.",
+    "Presentation output cannot upgrade evidence authority.",
+    "Analysis output must retain material input and transformation lineage.",
+    "Runtime promotion requires artifact integrity evidence and corresponding data-manifest evidence when local data are packaged."
+  ]
+}
