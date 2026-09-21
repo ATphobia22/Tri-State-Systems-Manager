@@ -1,5 +1,5 @@
 # OpenMI 2.0 Coupling Contracts & Courtroom (Daubert) Standards
-**TuckerInc.82 / Tri-State Systems Manager — Phase 1 Reference**  
+**Tri-State Systems Manager — Phase 1 Reference**  
 2026-08-19
 
 ## 1. OpenMI 2.0 (OGC 11-014r3)
