@@ -8,6 +8,8 @@ on:
       - "scripts/native/**"
       - "native/dependencies/**"
       - "scripts/ci/native-runtime-boundary.mjs"
+      - "scripts/ci/validate-native-platform-matrix.mjs"
+      - "tsm-native/config/platform-build-matrix.json"
       - ".github/workflows/tsm-native.yml"
   pull_request:
     branches: [main, Multi-Installer]
@@ -17,6 +19,8 @@ on:
       - "scripts/native/**"
       - "native/dependencies/**"
       - "scripts/ci/native-runtime-boundary.mjs"
+      - "scripts/ci/validate-native-platform-matrix.mjs"
+      - "tsm-native/config/platform-build-matrix.json"
       - ".github/workflows/tsm-native.yml"
   workflow_dispatch:
     inputs:
@@ -45,6 +49,8 @@ jobs:
           node-version: 22
       - name: Native runtime boundary
         run: node scripts/ci/native-runtime-boundary.mjs
+      - name: Native platform matrix
+        run: node scripts/ci/validate-native-platform-matrix.mjs
       - name: Build and test ArchimedesCore
         run: |
           cmake -S native/archimedes -B native/archimedes/build -DBUILD_TESTING=ON
