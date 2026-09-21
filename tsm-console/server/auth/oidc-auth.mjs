@@ -1,4 +1,5 @@
 import { createPublicKey, createVerify } from 'node:crypto';
+import { readSessionCookie } from './session-cookie.mjs';
 
 const CLOCK_SKEW_SECONDS = 60;
 const JWKS_TIMEOUT_MS = 5000;
@@ -50,7 +51,7 @@ function verifyClaims(payload, config) {
   if (payload.nbf !== undefined && (typeof payload.nbf !== 'number' || payload.nbf > now + CLOCK_SKEW_SECONDS)) throw authError('OIDC access token is not active.', 'TOKEN_NOT_ACTIVE');
   if (typeof payload.sub !== 'string' || !payload.sub.trim()) throw authError('OIDC subject is missing.', 'TOKEN_SUBJECT_MISSING');
 }
-async function verifyAccessToken(token, config) {
+export async function verifyAccessToken(token, config) {
   const parsed = parseJwt(token);
   if (parsed.header.alg !== 'RS256') throw authError('Only RS256 OIDC access tokens are accepted.', 'TOKEN_ALGORITHM_UNSUPPORTED');
   if (typeof parsed.header.kid !== 'string') throw authError('OIDC signing key id is missing.', 'TOKEN_KEY_ID_MISSING');
