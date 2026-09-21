@@ -21,7 +21,7 @@ function assertAllowedUrl(source, url) {
     error.code = 'SOURCE_ORIGIN_MISMATCH';
     throw error;
   }
-  const canonicalPath = canonical.pathname.replace(/\\/$/, '');
+  const canonicalPath = canonical.pathname.replace(/\/$/, '');
   if (!requested.pathname.startsWith(canonicalPath + '/') && requested.pathname !== canonicalPath) {
     const error = new Error(`source URL path is outside the registered endpoint for ${source.id}`);
     error.code = 'SOURCE_PATH_MISMATCH';
