@@ -41,7 +41,7 @@ The system is a decision-support and engineering-evidence platform. It cannot ma
 
 ### Historical community evidence
 
-The uploaded `Tucker Family Flood History and Heritage — Point Township Indiana.xlsx` is treated as historical evidence, not as an authoritative replacement for agency gauge records. Relevant workbook evidence includes:
+The uploaded `Community Flood History — Point Township Indiana.xlsx` is treated as historical evidence, not as an authoritative replacement for agency gauge records. Relevant workbook evidence includes:
 
 - historical flood crest observations from 1949–1983;
 - documented 1961, 1962, 1963, and 1964 periods of community/family isolation;
