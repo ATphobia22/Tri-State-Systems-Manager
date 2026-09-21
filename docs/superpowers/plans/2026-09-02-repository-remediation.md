@@ -167,7 +167,7 @@
 - Inspect: `tsm-console/src/lib/firm-panel-ssot.ts`
 - Inspect: `tsm-console/src/lib/jurisdiction-rules.ts`
 - Inspect: `tsm-console/server/ingestion/workers.mjs`
-- Inspect: `tsm-site-constants-13101-bonebank.json`
+- Inspect: `tsm-site-constants-private.json`
 - Inspect: `tsm-data-contract-schema-v1.0.0.json`
 - Inspect: `tsm-evidence-artifact-schema-v1.0.0.json`
 - Modify only if a verified contract gap exists
