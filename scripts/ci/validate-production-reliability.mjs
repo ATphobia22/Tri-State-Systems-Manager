@@ -1,7 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = process.cwd();
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const contractPath = path.join(root, 'tsm-console/server/reliability/production-reliability-contract.json');
 const required = [
   'tsm-console/server/reliability/rate-limiter.mjs',
