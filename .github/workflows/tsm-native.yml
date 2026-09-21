@@ -72,15 +72,15 @@ jobs:
       - name: Require packaged SpatiaLite
         shell: pwsh
         env:
-          TSM_SPATIALITE_DLL: \${{ vars.TSM_SPATIALITE_DLL }}
+          TSM_SPATIALITE_DLL: ${{ vars.TSM_SPATIALITE_DLL }}
         run: |
           if (-not $env:TSM_SPATIALITE_DLL) { throw "TSM_SPATIALITE_DLL repository variable is required." }
           if (-not (Test-Path $env:TSM_SPATIALITE_DLL)) { throw "SpatiaLite DLL not found." }
       - name: Build native Windows package
         shell: pwsh
         env:
-          UE_ROOT: \${{ vars.UE_ROOT }}
-          TSM_SPATIALITE_DLL: \${{ vars.TSM_SPATIALITE_DLL }}
+          UE_ROOT: ${{ vars.UE_ROOT }}
+          TSM_SPATIALITE_DLL: ${{ vars.TSM_SPATIALITE_DLL }}
         run: .\scripts\native\Build-TSMNativeWindows.ps1 -UnrealRoot $env:UE_ROOT
       - uses: actions/upload-artifact@v4
         with:
@@ -112,7 +112,7 @@ jobs:
           test -n "$TSM_SPATIALITE_DYLIB"
           test -f "$TSM_SPATIALITE_DYLIB"
         env:
-          TSM_SPATIALITE_DYLIB: \${{ vars.TSM_SPATIALITE_DYLIB }}
+          TSM_SPATIALITE_DYLIB: ${{ vars.TSM_SPATIALITE_DYLIB }}
       - name: Package UE5 macOS application
         run: |
           "$UE_ROOT/Engine/Build/BatchFiles/RunUAT.sh" BuildCookRun \
@@ -124,7 +124,7 @@ jobs:
         run: |
           cp "$TSM_SPATIALITE_DYLIB" dist/tsm-native/mod_spatialite.dylib
         env:
-          TSM_SPATIALITE_DYLIB: \${{ vars.TSM_SPATIALITE_DYLIB }}
+          TSM_SPATIALITE_DYLIB: ${{ vars.TSM_SPATIALITE_DYLIB }}
       - uses: actions/upload-artifact@v4
         with:
           name: tsm-native-macos-package
