@@ -15,8 +15,8 @@ const publicRuntimeFiles = [
 for (const relativePath of publicRuntimeFiles) {
   test(`public runtime scope excludes private residence identifiers: ${relativePath}`, async () => {
     const source = await readFile(new URL(relativePath, import.meta.url), 'utf8');
-    assert.doesNotMatch(source, /13101\s+Bonebank/i);
-    assert.doesNotMatch(source, /65-19-08-100-008\.001-010/);
-    assert.doesNotMatch(source, /BONEBANK_SITE|BONEBANK_LOOKUP/);
+    assert.doesNotMatch(source, /\b\d{1,6}\s+[A-Za-z0-9.'-]+(?:\s+[A-Za-z0-9.'-]+){0,5}\s+(?:Road|Rd|Street|St|Avenue|Ave|Drive|Dr|Lane|Ln|Court|Ct|Boulevard|Blvd|Highway|Hwy)\b/i);
+    assert.doesNotMatch(source, /\b\d{2}-\d{2}-\d{2}-\d{3}-\d{3}\.\d{3}-\d{3}\b/);
+    assert.doesNotMatch(source, /\bprivate[-_ ]?(?:residence|parcel|site)[-_ ]?(?:anchor|identifier)\b/i);
   });
 }
