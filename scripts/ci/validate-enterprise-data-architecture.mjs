@@ -32,13 +32,20 @@ for (const field of ['semanticLayer','dataContract','businessGlossary','masterDa
 for (const artifact of ['logicalDataModel','dataDictionary','authoritativeSourceRegistry','metadataCatalog','lineageRegistry']) {
   if (!(docs.architecture?.logicalArchitecture?.requiredArtifacts || []).includes(artifact)) errors.push('missing logical artifact declaration: ' + artifact);
 }
+const concreteLogicalContracts = {
+  authoritativeSourceRegistry: 'architecture/contracts/authoritative-source-registry.json',
+  lineageRegistry: 'architecture/contracts/lineage-registry.json',
+};
+for (const [name, relative] of Object.entries(concreteLogicalContracts)) {
+  if (!fs.existsSync(path.join(root, relative))) errors.push('missing concrete logical artifact: ' + relative);
+}
 
 const requiredRuntimeContracts = [
   'tsm-native/config/provenance-plane-contract.json',
   'tsm-native/config/data-fabric-contract.json',
 ];
 for (const relative of requiredRuntimeContracts) {
-  if (!fs.existsSync(path.join(root, relative))) failures.push(`missing runtime architecture contract: ${relative}`);
+  if (!fs.existsSync(path.join(root, relative))) errors.push(`missing runtime architecture contract: ${relative}`);
 }
 
 if (docs.architecture?.processingPatterns?.streaming?.enabled !== false) {
