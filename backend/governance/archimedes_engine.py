@@ -48,7 +48,7 @@ ENGINE_VERSION: Final = "Archimedes_v36_screening"
 class ArchimedesEngine:
     """Source-bound regulatory screening engine with mandatory human governance."""
 
-    def __init__(self, node_id: str = "13101-bonebank") -> None:
+    def __init__(self, node_id: str = "community-engineering") -> None:
         self.node_id = node_id
 
     @staticmethod
