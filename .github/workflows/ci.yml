@@ -20,8 +20,6 @@ jobs:
     timeout-minutes: 35
     permissions:
       contents: read
-      id-token: write
-      attestations: write
     defaults:
       run:
         working-directory: tsm-console
@@ -169,12 +167,6 @@ jobs:
       - name: Package production artifact for attestation
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: tar -czf artifacts/tsm-console-dist.tar.gz -C dist .
-      - name: Generate GitHub artifact and SBOM attestation
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4.2.1
-        with:
-          subject-path: tsm-console/artifacts/tsm-console-dist.tar.gz
-          sbom-path: tsm-console/artifacts/tsm-console-sbom.json
       - name: Upload reliability and supply-chain evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -188,3 +180,31 @@ jobs:
           name: tsm-console-dist
           path: tsm-console/dist
           if-no-files-found: error
+
+
+  attest:
+    name: Attest production artifact
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build-and-test
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - name: Download reliability and supply-chain evidence
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          name: tsm-reliability-evidence
+          path: attestation-input
+      - name: Verify attestation subjects exist
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s attestation-input/tsm-console/artifacts/tsm-console-dist.tar.gz
+          test -s attestation-input/tsm-console/artifacts/tsm-console-sbom.json
+      - name: Generate GitHub artifact and SBOM attestation
+        uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4.2.1
+        with:
+          subject-path: attestation-input/tsm-console/artifacts/tsm-console-dist.tar.gz
+          sbom-path: attestation-input/tsm-console/artifacts/tsm-console-sbom.json
