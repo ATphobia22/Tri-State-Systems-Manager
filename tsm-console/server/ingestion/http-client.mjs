@@ -84,7 +84,7 @@ export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sl
           const retryable = isRetryableStatus(error.status) || error.name === 'AbortError'
             || error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT';
           if (error instanceof CircuitOpenError || attempt >= retries || !retryable || options.signal?.aborted) break;
-          await sleepImpl(retryDelayMs({ attempt, retryAfterMs: error.retryAfterMs, jitterMs: options.jitterMs ?? DEFAULT_JITTER_MS }));
+          await sleepImpl(retryDelayMs({ attempt, retryAfterMs: error.retryAfterMs, jitterMs: options.retryJitterMs ?? DEFAULT_RETRY_JITTER_MS, random: options.retryRandom ?? Math.random }));
         }
       }
       circuitBreaker.recordFailure(sourceId);
