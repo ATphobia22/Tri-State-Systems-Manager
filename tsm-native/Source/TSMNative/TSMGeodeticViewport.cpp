@@ -4,7 +4,19 @@
 #include "Components/StaticMeshComponent.h"
 #include "Misc/Paths.h"
 #include "TSMEmbeddedStore.h"
-ATSMGeodeticViewport::ATSMGeodeticViewport(){PrimaryActorTick.bCanEverTick=true;TerrainRoot=CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TerrainRoot"));RootComponent=TerrainRoot;WaterSurface=CreateDefaultSubobject<USceneComponent>(TEXT("WaterSurface"));WaterSurface->SetupAttachment(RootComponent);}
+ATSMGeodeticViewport::ATSMGeodeticViewport(){
+PrimaryActorTick.bCanEverTick=true;
+#if PLATFORM_WINDOWS
+ArchimedesLibraryRelativePath=TEXT("ArchimedesCore.dll");
+SpatiaLiteLibraryRelativePath=TEXT("Binaries/mod_spatialite.dll");
+#elif PLATFORM_MAC
+ArchimedesLibraryRelativePath=TEXT("libArchimedesCore.dylib");
+SpatiaLiteLibraryRelativePath=TEXT("Binaries/mod_spatialite.dylib");
+#elif PLATFORM_LINUX
+ArchimedesLibraryRelativePath=TEXT("libArchimedesCore.so");
+SpatiaLiteLibraryRelativePath=TEXT("Binaries/mod_spatialite.so");
+#endif
+TerrainRoot=CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TerrainRoot"));RootComponent=TerrainRoot;WaterSurface=CreateDefaultSubobject<USceneComponent>(TEXT("WaterSurface"));WaterSurface->SetupAttachment(RootComponent);}
 void ATSMGeodeticViewport::BeginPlay(){Super::BeginPlay();Runtime=MakeUnique<FArchimedesRuntime>();Store=MakeUnique<FTSMEmbeddedStore>();const FString DatabasePath=FPaths::Combine(FPaths::ProjectDir(),DatabaseRelativePath);FString Error;const FString SpatiaLitePath=FPaths::Combine(FPaths::ProjectDir(),SpatiaLiteLibraryRelativePath);
     if(!Store->Open(DatabasePath,SpatiaLitePath,Error)||!Store->ValidateSchema(Error)){UE_LOG(LogTemp,Error,TEXT("TSM embedded spatial database initialization failed: %s"),*Error);return;}
 #if PLATFORM_WINDOWS
