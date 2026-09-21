@@ -2,19 +2,30 @@ name: TSM Container Capability CI
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
+  pull_request:
     paths:
-      - 'infrastructure/docker/**'
+      - 'tsm-console/Dockerfile'
+      - 'tsm-console/docker-compose.yml'
+      - 'tsm-console/package*.json'
       - 'Dockerfile*'
       - 'docker-compose*.yml'
       - 'docker-compose*.yaml'
-      - 'integrations/docker/**'
+      - 'scripts/ci/validate-security-boundary.mjs'
+      - '.github/workflows/container-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tsm-console/Dockerfile'
+      - 'tsm-console/docker-compose.yml'
+      - 'tsm-console/package*.json'
+      - 'Dockerfile*'
+      - 'docker-compose*.yml'
+      - 'docker-compose*.yaml'
+      - 'scripts/ci/validate-security-boundary.mjs'
       - '.github/workflows/container-ci.yml'
 
 permissions:
   contents: read
-  packages: write
 
 concurrency:
   group: tsm-container-${{ github.ref }}
@@ -23,28 +34,40 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-24.04
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
-      # GHCR requires fully lowercased image paths.
-      - name: Set lowercase repository name
-        run: echo "REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
-
-      - name: Validate capability registry
-        run: node scripts/ci/validate-capability-registry.mjs
+      - name: Validate security boundary
+        run: node scripts/ci/validate-security-boundary.mjs
 
       - name: Validate container definitions
         shell: bash
         run: |
           set -euo pipefail
-          files=()
-          while IFS= read -r -d '' file; do files+=("$file"); done < <(find . -maxdepth 4 \( -name 'Dockerfile*' -o -name 'docker-compose*.yml' -o -name 'docker-compose*.yaml' \) -print0)
-          if ((${#files[@]} == 0)); then
-            echo 'No container definitions found; registry gate remains authoritative.'
-            exit 0
-          fi
-          for file in "${files[@]}"; do
-            echo "Validated container definition path: $file"
+          test -s tsm-console/Dockerfile
+          docker compose -f tsm-console/docker-compose.yml config >/tmp/tsm-compose-config.yml
+          grep -q 'Dockerfile' /tmp/tsm-compose-config.yml
+
+      - name: Build canonical application image
+        run: docker build --file tsm-console/Dockerfile --tag tsm-console:ci tsm-console
+
+      - name: Inspect image security properties
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker image inspect tsm-console:ci --format '{{.Config.User}}' | grep -qx 'tsm'
+          docker image inspect tsm-console:ci --format '{{.Config.Healthcheck}}' | grep -q '127.0.0.1:8787/ready'
+
+      - name: Start API container with explicit non-production local auth bypass
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run -d --rm --name tsm-api-ci             -e TSM_AUTH_MODE=disabled             -e CORS_ORIGIN=http://127.0.0.1:3000             -p 18787:8787             tsm-console:ci
+          trap 'docker logs tsm-api-ci || true; docker stop tsm-api-ci || true' EXIT
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:18787/ready >/dev/null; then exit 0; fi
+            sleep 2
           done
-          echo "GHCR namespace (when publishing): ghcr.io/${REPO_LOWER}/…"
+          exit 1
