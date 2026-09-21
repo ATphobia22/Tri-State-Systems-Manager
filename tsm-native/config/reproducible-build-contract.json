@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "requiredProvenance": [
+    "gitCommit",
+    "repository",
+    "workflow",
+    "runnerClass",
+    "os",
+    "architecture",
+    "compiler",
+    "compilerVersion",
+    "cmakeVersion",
+    "ninjaVersion",
+    "unrealVersion",
+    "xcodeVersion",
+    "androidNdkVersion",
+    "vcpkgBaseline",
+    "dependencyLockHash",
+    "sourceTreeSha256",
+    "dataManifestSha256",
+    "artifactSha256"
+  ],
+  "reproducibility": {
+    "sourceDateEpoch": true,
+    "cleanCheckout": true,
+    "lockedDependencies": true,
+    "immutableInputData": true
+  }
+}
