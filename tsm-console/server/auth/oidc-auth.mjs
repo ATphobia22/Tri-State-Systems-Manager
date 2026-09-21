@@ -64,6 +64,24 @@ export async function verifyAccessToken(token, config) {
   if (!verifier.verify(publicKey, parsed.signature)) throw authError('OIDC access-token signature is invalid.', 'TOKEN_SIGNATURE_INVALID');
   return { subject: parsed.payload.sub, issuer: parsed.payload.iss, audience: config.audience, roles: claimRoles(parsed.payload, config.audience), claims: parsed.payload };
 }
+
+export async function verifyIdToken(token, config, expectedNonce) {
+  const parsed = parseJwt(token);
+  if (parsed.header.alg !== 'RS256') throw authError('Only RS256 OIDC ID tokens are accepted.', 'ID_TOKEN_ALGORITHM_UNSUPPORTED');
+  if (typeof parsed.header.kid !== 'string') throw authError('OIDC ID-token signing key id is missing.', 'ID_TOKEN_KEY_ID_MISSING');
+  const idConfig = { issuer: config.issuer, audience: config.clientId, jwksUrl: config.jwksUrl };
+  verifyClaims(parsed.payload, idConfig);
+  if (parsed.payload.azp !== undefined && parsed.payload.azp !== config.clientId) throw authError('OIDC authorized-party mismatch.', 'ID_TOKEN_AZP_MISMATCH');
+  if (typeof parsed.payload.nonce !== 'string' || parsed.payload.nonce !== expectedNonce) throw authError('OIDC ID-token nonce mismatch.', 'ID_TOKEN_NONCE_MISMATCH');
+  let keys = await loadJwks(config.jwksUrl); let jwk = keys.get(parsed.header.kid);
+  if (!jwk) { keys = await loadJwks(config.jwksUrl, true); jwk = keys.get(parsed.header.kid); }
+  if (!jwk) throw authError('OIDC ID-token signing key is not trusted.', 'ID_TOKEN_KEY_UNTRUSTED');
+  let publicKey; try { publicKey = createPublicKey({ key: jwk, format: 'jwk' }); } catch { throw authError('OIDC ID-token signing key is invalid.', 'ID_TOKEN_KEY_INVALID', 503); }
+  const verifier = createVerify('RSA-SHA256'); verifier.update(parsed.encodedHeader + '.' + parsed.encodedPayload); verifier.end();
+  if (!verifier.verify(publicKey, parsed.signature)) throw authError('OIDC ID-token signature is invalid.', 'ID_TOKEN_SIGNATURE_INVALID');
+  return parsed.payload;
+}
+
 export async function authenticateRequest(req) {
   const config = getConfiguredAuth();
   if (config.mode === 'disabled') return { subject: 'local-development', roles: ['development'], issuer: 'local', audience: 'local', claims: {}, developmentBypass: true };
