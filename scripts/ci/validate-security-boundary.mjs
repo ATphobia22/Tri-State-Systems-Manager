@@ -26,6 +26,7 @@ if (!auth.includes('verifier.verify(publicKey, parsed.signature)')) failures.pus
 if (!auth.includes('readSessionCookie(req)')) failures.push('server-managed browser session is not wired into authentication');
 if (!bff.includes('code_challenge_method') || !bff.includes('code_verifier')) failures.push('OIDC BFF PKCE binding missing');
 if (!bff.includes('/.well-known/openid-configuration')) failures.push('OIDC discovery metadata is not used');
+if (!bff.includes('OIDC_CLIENT_SECRET') || !bff.includes('client_secret')) failures.push('hosted OIDC BFF must use confidential client authentication');
 if (!sessionCookie.includes('aes-256-gcm') || !sessionCookie.includes('HttpOnly')) failures.push('OIDC session cookie must be authenticated/encrypted and HttpOnly');
 if (/localStorage|sessionStorage|ACCESS_TOKEN_KEY|REFRESH_TOKEN_KEY/.test(browserAuth)) failures.push('browser auth must not persist OIDC tokens');
 if (!proxy.includes('CSRF_ORIGIN_REJECTED') || !proxy.includes('X-TSM-CSRF')) failures.push('cookie-authenticated mutation CSRF boundary missing');
