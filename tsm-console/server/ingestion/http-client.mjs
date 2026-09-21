@@ -6,6 +6,7 @@ import { recordSourceHealth } from './source-health.mjs';
 const DEFAULT_TIMEOUT_MS = 10_000;
 const DEFAULT_MAX_BYTES = 2_000_000;
 const DEFAULT_RETRIES = 2;
+const DEFAULT_JITTER_MS = 100;
 const defaultCircuitBreaker = createCircuitBreaker();
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -31,14 +32,23 @@ export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sl
         try {
           const controller = new AbortController();
           const timer = setTimeout(() => controller.abort(), timeoutMs);
-          const signal = options.signal
-            ? (AbortSignal.any ? AbortSignal.any([options.signal, controller.signal]) : options.signal)
-            : controller.signal;
+          let signal = controller.signal;
+          let removeCallerAbort = null;
+          if (options.signal) {
+            const abortCaller = () => controller.abort();
+            if (options.signal.aborted) controller.abort();
+            else {
+              options.signal.addEventListener('abort', abortCaller, { once: true });
+              removeCallerAbort = () => options.signal.removeEventListener('abort', abortCaller);
+            }
+            signal = controller.signal;
+          }
           let response;
           try {
             response = await fetchImpl(url, { ...options, headers, signal });
           } finally {
             clearTimeout(timer);
+            removeCallerAbort?.();
           }
           if (!response.ok) {
             const error = new Error(`HTTP ${response.status}`);
@@ -60,7 +70,7 @@ export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sl
           const retryable = isRetryableStatus(error.status) || error.name === 'AbortError'
             || error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT';
           if (error instanceof CircuitOpenError || attempt >= retries || !retryable || options.signal?.aborted) break;
-          await sleepImpl(retryDelayMs({ attempt, retryAfterMs: error.retryAfterMs }));
+          await sleepImpl(retryDelayMs({ attempt, retryAfterMs: error.retryAfterMs, jitterMs: options.jitterMs ?? DEFAULT_JITTER_MS }));
         }
       }
       circuitBreaker.recordFailure(sourceId);
