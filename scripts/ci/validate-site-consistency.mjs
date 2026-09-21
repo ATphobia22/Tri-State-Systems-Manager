@@ -36,9 +36,17 @@ const compose = read('consoleCompose');
 const riverRegistry = read('riverRegistry');
 const historicalEvidence = read('historicalEvidence');
 
-for (const forbidden of ['13101 Bonebank Road', '13101 Bonebank', '65-19-08-100-008.001-010', 'BONEBANK_SITE', 'tsm-site-constants-13101-bonebank']) {
-  for (const [label, source] of Object.entries({ frontend, backendSite, riverRegistry, historicalEvidence })) {
-    if (source.includes(forbidden)) failures.push(`${label}: private identifier leaked: ${forbidden}`);
+const privatePatterns = [
+  /\b\d{1,6}\s+[A-Za-z0-9.'-]+(?:\s+[A-Za-z0-9.'-]+){0,5}\s+(?:Road|Rd|Street|St|Avenue|Ave|Drive|Dr|Lane|Ln|Court|Ct|Boulevard|Blvd|Highway|Hwy)\b/i,
+  /\b\d{2}-\d{2}-\d{2}-\d{3}-\d{3}\.\d{3}-\d{3}\b/,
+  /\bprivate[-_ ]?(?:residence|parcel|site)[-_ ]?(?:anchor|identifier)\b/i,
+  /\b\d{5}-(?:[a-z0-9]+)-(?:site|lookup)\b/i,
+];
+
+const checkedSources = { frontend, backendSite, riverRegistry, historicalEvidence };
+for (const [label, source] of Object.entries(checkedSources)) {
+  for (const pattern of privatePatterns) {
+    if (pattern.test(source)) failures.push(label + ': private identifier pattern detected: ' + pattern);
   }
 }
 
