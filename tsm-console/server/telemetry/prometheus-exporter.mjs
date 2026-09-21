@@ -3,6 +3,9 @@ const HELP = new Map([
   ['tsm_telemetry_ingest_total', 'Number of telemetry records accepted by the ingestion boundary.'],
   ['ptdt_usgs_gauge_stage_feet', 'Latest accepted USGS gage-height observation in feet, relative to the source gage datum.'],
   ['ptdt_usgs_discharge_cfs', 'Latest accepted USGS discharge observation in cubic feet per second.'],
+  ['tsm_hydrology_api_responses_total', 'Hydrology API responses by terminal transport status.'],
+  ['tsm_hydrology_circuit_breaker_state', 'Hydrology upstream circuit breaker state, 1 when the labelled state is active.'],
+  ['tsm_hydrology_api_request_latency_seconds', 'Latest hydrology API request latency in seconds.'],
 ]);
 
 function metricKey(name, labels) {
