@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://tuckerinc82.org/schemas/evidence-artifact/v1.0.0.json",
+  "$id": "https://schemas.tsm-community.example/schemas/evidence-artifact/v1.0.0.json",
   "title": "TSM EvidenceArtifact",
   "description": "Canonical artifact for Evidence & Data Governance Plane. AUTHORITY→OBSERVATION→DERIVATION→MODEL→INFERENCE→VISUALIZATION must not be collapsed. SHA-256 proves integrity only.",
   "type": "object",

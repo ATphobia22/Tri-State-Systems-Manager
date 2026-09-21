@@ -1,6 +1,6 @@
 {
   "$schema":"https://json-schema.org/draft/2020-12/schema",
-  "$id":"https://tuckerinc82.org/schemas/evidence-manifest/v1.0.0.json",
+  "$id":"https://schemas.tsm-community.example/schemas/evidence-manifest/v1.0.0.json",
   "title":"TSM Engineering Evidence Manifest",
   "type":"object",
   "additionalProperties":false,

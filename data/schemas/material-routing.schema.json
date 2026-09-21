@@ -1,6 +1,6 @@
 {
   "$schema":"https://json-schema.org/draft/2020-12/schema",
-  "$id":"https://tuckerinc82.org/schemas/material-routing/v1.0.0.json",
+  "$id":"https://schemas.tsm-community.example/schemas/material-routing/v1.0.0.json",
   "title":"TSM Dredged Material Routing",
   "type":"object",
   "additionalProperties":false,

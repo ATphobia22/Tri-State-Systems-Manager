@@ -16,7 +16,7 @@ Capability- and project-building for **hazard mitigation** before disaster: infr
 ## What BRIC is not
 
 - Not a LOMA / map amendment process  
-- Not a substitute for case **26-05-2022A**  
+- Not a substitute for a private LOMA case  
 - Not automatic funding for a single residential Pure LOMA packet  
 
 ## Cost share

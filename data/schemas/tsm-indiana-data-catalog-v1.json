@@ -3,7 +3,7 @@
   "version": "1.2.0",
   "updated": "2026-09-18",
   "principle": "Catalog surfaces authoritative sources for Evidence / Scientific / Governance / Public Visualization planes. Human authority remains final. No silent determinations. Provisional telemetry labeled as such.",
-  "site_anchor": {"address":"13101 Bonebank Road, Point Township, Posey County, IN","centroid_wgs84":{"lat":37.84589,"lon":-88.00510},"crs_horizontal":"EPSG:2966 (NAD83 Indiana West ftUS)","crs_vertical":"NAVD88 / GEOID18","bfe_ft_navd88":375.0,"lag_ft_navd88":377.2,"freeboard_lag_minus_bfe_ft":2.2},
+  "site_anchor": {"scope":"COMMUNITY_SCOPE","region":"Lower Wabash-Ohio Confluence Community","crs_horizontal":"EPSG:2966 (NAD83 Indiana West ftUS)","crs_vertical":"NAVD88 / GEOID18"},
   "live_telemetry_verified_2026_09_12": {"usgs_03378500_wabash_new_harmony":{"site_name":"WABASH RIVER AT NEW HARMONY, IN","lat":38.13089124,"lon":-87.9414145,"gage_zero_navd88_ft":352.71,"observed_stage_ft_provisional":4.43,"observed_discharge_cfs_provisional":18300,"obs_time_local":"2026-09-12T04:30:00-05:00","qualifier":"P (Provisional — subject to revision)","nwis_iv_url":"https://waterservices.usgs.gov/nwis/iv/?format=json&sites=03378500&parameterCd=00065,00060&siteStatus=all"},"verification_note":"Snapshot supplied in the 2026-09-12 engineering evidence package. Public indexed USGS pages independently confirm the station identity and provisional status; exact 04:30 CDT values should be refreshed from the runtime API before operational display."},
   "sources": [
     {"id":"usgs-tnm-access","name":"USGS The National Map — TNMAccess API","url":"https://tnmaccess.nationalmap.gov/api/v1/","docs":"https://tnmaccess.nationalmap.gov/api/v1/docs","owner":"USGS National Geospatial Program","use":"Programmatic discovery and download links for 3DEP DEMs, Lidar Point Cloud (LPC), US Topo, hydrography","status":"VERIFIED","endpoints":{"datasets":"https://tnmaccess.nationalmap.gov/api/v1/datasets","products":"https://tnmaccess.nationalmap.gov/api/v1/products","services":"https://tnmaccess.nationalmap.gov/api/v1/services"},"notes":"No API key required for product search. LidarExplorer UI and public EPT/STAC remain discovery paths."},
@@ -24,7 +24,7 @@
     {"id":"hec-ras","name":"HEC-RAS (USACE HEC)","url":"https://www.hec.usace.army.mil/software/hec-ras/","status":"VERIFIED","use":"2D hydraulics Scientific Plane; terrain from 3DEP / IGIO DEM; outputs MODEL_OUTPUT artifacts labeled SIMULATION_DEMO / PROVISIONAL until adjudicated"}
   ],
   "implementation_directives": [
-    "Replace all mock parcel geometry in any legacy tsdes_realtime_api.py / PostGIS fallback with live Indiana Data Harvest Current or Posey County FeatureServer geometry queries around the locked site centroid.",
+    "Replace all mock parcel geometry in any legacy tsdes_realtime_api.py / PostGIS fallback with live Indiana Data Harvest Current or Posey County FeatureServer geometry queries within the configured community study area; never hard-code a private residence centroid.",
     "Keep NOAA NWPS observed stage/flow as the first live telemetry attempt and use USGS Water Data as the authoritative observed fallback; keep forecast products separate.",
     "NFHL = effective/insurance reference; BAFM = Indiana planning/jurisdiction reference. Never conflate them in UI or policy evaluation.",
     "Label all provisional (P) telemetry and all model outputs with PROVISIONAL / SIMULATION_DEMO status; human authority remains final.",

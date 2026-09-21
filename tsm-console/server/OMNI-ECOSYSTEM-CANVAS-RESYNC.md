@@ -1,6 +1,6 @@
 # Omni-Ecosystem Canvas — Prototype Resync (2026-08-20)
 
-Source: Tucker Inc. 82 Master Omni-Ecosystem Canvas (single-file React+CDN prototype).
+Source: legacy Master Omni-Ecosystem Canvas prototype.
 
 ## Critical corrections
 
@@ -21,10 +21,10 @@ Horizontal CRS must never be written as 2967 in TSM configs or UI copy.
 
 | Canvas tab | TSM plane | Integration rule |
 |------------|-----------|------------------|
-| **Family Heritage Vault** | Governance / Charter | Memorial charter, Lineage view — **no** PHI; RUFADAA only if user supplies legal basis |
+| **Community Heritage Archive** | Governance / Charter | Community stewardship material only; no private-person records |
 | **PTDT v35** | Evidence + Visualization + Simulation | MapLibre + TwinCanvas; stage from USGS/NWPS loaders; Three water = demo |
 | **TMRDS (Medical AI)** | **Out of public Evidence plane** | Separate product boundary; no clinical claims in public TSM; no PHI in ledger |
-| **Tucker Power & PCM** | Benefit / Scientific scenario | Product/energy plans as MODEL_OUTPUT or external product DB — not floodway truth |
+| **Energy & Resilience Scenarios** | Benefit / Scientific scenario | Product/energy plans as MODEL_OUTPUT or external product DB — not floodway truth |
 | **Cinematic Engine** | Visualization | Export overlays from model outputs; ACEScg pipeline is media, not regulation |
 
 ## Reusable UI patterns (safe to port)
@@ -41,16 +41,13 @@ Horizontal CRS must never be written as 2967 in TSM configs or UI copy.
 - CDN React 18 + Babel in-browser as production architecture (TSM uses Vite + RR v7)
 - Mapillary without a real access token and image keys in Authority Registry
 
-## Site constants (canonical)
+## Community site constants
 
-```
+```text
 CRS horizontal: EPSG:2966
 Vertical:       NAVD88
-BFE:            375.0 ft
-LAG:            377.2 ft
-FFE:            382.5 ft
-Berm crest:     379.8 ft (from prior TSM constants)
-APN:            65-19-08-100-008.001-010
+Project-specific elevations: SOURCE_REQUIRED
+Parcel/APN:     SOURCE_REQUIRED
 Gauge:          USGS 03378500
 ```
 

@@ -2,9 +2,9 @@
 
 **Operator must re-verify every deadline on the live agency page.** Dates below are planning targets from program materials in the project corpus; they are not a guarantee of open windows.
 
-| Priority | Program | Agency | Planning window | Prerequisites (typical) | Role vs LOMA 26-05-2022A |
+| Priority | Program | Agency | Planning window | Prerequisites (typical) | Role vs the applicable LOMA case |
 |----------|---------|--------|-----------------|-------------------------|---------------------------|
-| P0 | **Human LOMA Map Pack** | FEMA Online LOMC | Ongoing case **26-05-2022A** | Sealed survey, FIRMette, FARA, community ack | **This is the map amendment path** |
+| P0 | **Human LOMA Map Pack** | FEMA Online LOMC | Ongoing the applicable LOMA case | Sealed survey, FIRMette, FARA, community ack | **This is the map amendment path** |
 | P1 | **CWA §319** | IDEM (federal pass-through) | Applications cited due **~1 Sep 2026** | Watershed plan alignment, sponsor, match | Watershed / NPS projects — not LOMA |
 | P2 | **CCMG FY2027** | INDOT | Open **~1 Sep 2026** · Due **~30 Sep 2026 5:00 p.m. EDT** | **Approved Asset Management Plan**, local resolution, eligible road/drainage assets | Culverts/roads/drainage — not LOMA |
 | P3 | **OCRA CDBG SIP / Planning** | OCRA | Cyclical NOFAs — watch OCRA calendar | Non-entitlement eligibility, citizen participation, match (~10% often cited for SIP) | Possible **match stack** for federal HMA |

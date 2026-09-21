@@ -34,7 +34,7 @@ pdal pipeline pipelines/pdal/lag_class2_foundation_buffer.json \
 |---------|--------|
 | Source LAS hash | OBSERVATION |
 | min Class 2 in buffer | DERIVATION |
-| Certified survey LAG 377.2 | OBSERVATION (sealed survey) |
-| LOMA decision | Human + FEMA **26-05-2022A** |
+| Certified survey project-specific LAG | OBSERVATION (sealed survey) |
+| LOMA decision | Human + the applicable FEMA case |
 
-Primary tile max ground ~366.5 ft cannot corroborate LAG 377.2 — **must** use adjacent higher tiles after download + SHA-256.
+Primary tile max ground ~366.5 ft cannot corroborate project-specific LAG — **must** use adjacent higher tiles after download + SHA-256.

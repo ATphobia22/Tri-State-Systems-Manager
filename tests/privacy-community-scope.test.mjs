@@ -11,12 +11,11 @@ const PUBLIC_SOURCE_PATHS = [
   'scripts',
 ];
 
-const FORBIDDEN_PUBLIC_IDENTIFIERS = [
-  '13101 Bonebank Road',
-  '13101 Bonebank',
-  'BONEBANK_SITE',
-  'BONEBANK_LOOKUP',
-  'tsm-site-constants-13101-bonebank',
+const PRIVATE_IDENTIFIER_PATTERNS = [
+  /\b\d{1,6}\s+[A-Za-z0-9.'-]+(?:\s+[A-Za-z0-9.'-]+){0,5}\s+(?:Road|Rd|Street|St|Avenue|Ave|Drive|Dr|Lane|Ln|Court|Ct|Boulevard|Blvd|Highway|Hwy)\b/i,
+  /\b\d{2}-\d{2}-\d{2}-\d{3}-\d{3}\.\d{3}-\d{3}\b/,
+  /\bprivate[-_ ]?(?:residence|parcel|site)[-_ ]?(?:anchor|identifier)\b/i,
+  /\b\d{5}-(?:[a-z0-9]+)-(?:site|lookup)\b/i,
 ];
 
 const listGitFiles = async () => {
@@ -40,9 +39,9 @@ test('public source tree contains no private residence anchor identifiers', asyn
 
   for (const file of files) {
     const content = await readFile(file, 'utf8');
-    for (const identifier of FORBIDDEN_PUBLIC_IDENTIFIERS) {
-      if (content.includes(identifier)) {
-        violations.push(`${file}: ${identifier}`);
+    for (const pattern of PRIVATE_IDENTIFIER_PATTERNS) {
+      if (pattern.test(content)) {
+        violations.push(file + ': ' + pattern);
       }
     }
   }

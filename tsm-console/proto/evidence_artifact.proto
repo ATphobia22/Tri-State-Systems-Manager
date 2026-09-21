@@ -5,7 +5,7 @@
 syntax = "proto3";
 package tsm.evidence.v1;
 
-option java_package = "org.tuckerinc82.tsm.evidence.v1";
+option java_package = "org.tri_state_systems_manager.tsm.evidence.v1";
 
 enum AuthorityClass {
   AUTHORITY_CLASS_UNSPECIFIED = 0;

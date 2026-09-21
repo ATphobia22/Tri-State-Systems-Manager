@@ -58,13 +58,13 @@ Supporting products: Summary of Discharges, **Floodway Data Table**, flood **pro
 | Repository | Relevance |
 |------------|-----------|
 | **Tri-State-Systems-Manager** | Primary TSM codebase (already integrated) |
-| **TuckerInc.82-** | Ecosystem docs, CONTRIBUTING, SECURITY, production layout — align open-source governance & charter language |
+| **Community-TSM-** | Ecosystem docs, CONTRIBUTING, SECURITY, production layout — align open-source governance & charter language |
 | **ansible-aws-vpc-ha-wordpress** | Ansible AWS VPC + HA pattern — optional future **hosting** for TSM API (not floodplain science) |
 
 Most other listed repos are large upstream mirrors/forks (node, jdk, ffmpeg, caddy, etc.) — **do not copy** into TSM. Prefer dependency use, not vendoring.
 
 **Recommended integrations only**
-1. From `TuckerInc.82-`: reuse CONTRIBUTING / SECURITY / charter stewardship wording where it matches Memorial Charter
+1. From `Community-TSM-`: reuse CONTRIBUTING / SECURITY / charter stewardship wording where it matches Memorial Charter
 2. From `ansible-aws-vpc-ha-wordpress`: reference as IaC option for production VPC when deploying token-proxy + evidence store — keep out of Scientific Plane
 
 

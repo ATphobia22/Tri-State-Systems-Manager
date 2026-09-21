@@ -26,8 +26,8 @@ Must match `VIEWPORT_CONFIG.portable` / site constants:
 
 - EPSG:**2966**
 - NAVD88
-- BFE **375.0** ft, LAG **377.2** ft
-- APN **65-19-08-100-008.001-010**
+- Project-specific BFE/LAG: **SOURCE_REQUIRED**
+- Parcel/APN: **SOURCE_REQUIRED**
 
 ## Evidence–presentation boundary
 
