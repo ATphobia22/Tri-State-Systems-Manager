@@ -15,7 +15,7 @@ describe("PTDT v35 Dashboard - E2E Integration Suite", () => {
 
   it("allows anonymous public read access to the engineering console", () => {
     cy.location("pathname").should("match", /\/$/);
-    cy.get("body").should("contain.text", "Community Stewardship Charter");
+    cy.get("body").should("contain.text", "TRI-STATE SYSTEMS MANAGER // RIVER VALLEY ENGINEERING CONSOLE");
     cy.get("body").should("not.contain.text", "TSM Console Sign-In");
   });
 
