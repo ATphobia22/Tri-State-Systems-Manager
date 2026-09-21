@@ -43,7 +43,7 @@ Vendor Class 2 QA OK?
   NO  → ELM → outlier → SMRF → Class 2 → min Z  [ground_reclassify_smrf.json]
 ```
 
-**Tile constraint:** `IN2020_26800940_12` max ground ~366.5 ft cannot support LAG 377.2 — process **adjacent** tiles after SHA-256 seal.
+**Tile constraint:** `IN2020_26800940_12` max ground ~366.5 ft cannot support project-specific LAG — process **adjacent** tiles after SHA-256 seal.
 
 ## Authority
 
@@ -51,5 +51,5 @@ Vendor Class 2 QA OK?
 |--------|--------|
 | LAS on S3 / hash | OBSERVATION |
 | PDAL min Class 2 | DERIVATION |
-| Sealed survey LAG 377.2 | OBSERVATION |
-| LOMA determination | Human + FEMA case **26-05-2022A** |
+| Sealed survey project-specific LAG | OBSERVATION |
+| LOMA determination | Human + the applicable FEMA case |
