@@ -6,6 +6,7 @@ import { recordSourceHealth } from './source-health.mjs';
 const DEFAULT_TIMEOUT_MS = 10_000;
 const DEFAULT_MAX_BYTES = 2_000_000;
 const DEFAULT_RETRIES = 2;
+const DEFAULT_JITTER_MS = 100;
 const defaultCircuitBreaker = createCircuitBreaker();
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -26,10 +27,18 @@ export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sl
         try {
           const controller = new AbortController();
           const timer = setTimeout(() => controller.abort(), timeoutMs);
+          const onCallerAbort = () => controller.abort();
+          if (options.signal) {
+            if (options.signal.aborted) controller.abort();
+            else options.signal.addEventListener('abort', onCallerAbort, { once: true });
+          }
           let response;
           try {
-            response = await fetchImpl(url, { ...options, headers, signal: options.signal ?? controller.signal });
-          } finally { clearTimeout(timer); }
+            response = await fetchImpl(url, { ...options, headers, signal: controller.signal });
+          } finally {
+            clearTimeout(timer);
+            options.signal?.removeEventListener('abort', onCallerAbort);
+          }
           if (!response.ok) {
             const error = new Error(`HTTP ${response.status}`);
             error.status = response.status;
@@ -41,6 +50,7 @@ export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sl
           const text = await response.text();
           if (Buffer.byteLength(text, 'utf8') > maxBytes) throw new Error(`response exceeds size limit (${maxBytes} bytes)`);
           const payload = JSON.parse(text);
+          lastError = undefined;
           circuitBreaker.recordSuccess(sourceId);
           recordSourceHealth(sourceId, { ok: true, latencyMs: Date.now() - startedAt, requestId });
           return payload;
@@ -48,14 +58,14 @@ export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sl
           lastError = error;
           const retryable = isRetryableStatus(error.status) || error.name === 'AbortError' || error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT';
           if (error instanceof CircuitOpenError || attempt >= retries || !retryable || options.signal?.aborted) break;
-          await sleepImpl(retryDelayMs({ attempt, retryAfterMs: error.retryAfterMs }));
+          await sleepImpl(retryDelayMs({ attempt, retryAfterMs: error.retryAfterMs, jitterMs: options.jitterMs ?? DEFAULT_JITTER_MS }));
         }
       }
       circuitBreaker.recordFailure(sourceId);
       recordSourceHealth(sourceId, { ok: false, latencyMs: Date.now() - startedAt, requestId, errorCode: lastError?.code || `HTTP_${lastError?.status || 'UNKNOWN'}` });
       throw lastError;
     } finally {
-      if (options.onMetrics) options.onMetrics({ sourceId, requestId, latencyMs: Date.now() - startedAt, ok: !lastError });
+      if (options.onMetrics) options.onMetrics({ sourceId, requestId, latencyMs: Date.now() - startedAt, ok: lastError === undefined });
     }
   };
 }
