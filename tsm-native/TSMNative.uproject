@@ -11,9 +11,21 @@
     }
   ],
   "Plugins": [
-    { "Name": "OpenXR", "Enabled": true },
-    { "Name": "SQLiteCore", "Enabled": true },
-    { "Name": "SQLiteSupport", "Enabled": true },
-    { "Name": "CesiumForUnreal", "Enabled": false }
+    {
+      "Name": "OpenXR",
+      "Enabled": true
+    },
+    {
+      "Name": "SQLiteCore",
+      "Enabled": true
+    },
+    {
+      "Name": "SQLiteSupport",
+      "Enabled": true
+    },
+    {
+      "Name": "CesiumForUnreal",
+      "Enabled": true
+    }
   ]
 }
