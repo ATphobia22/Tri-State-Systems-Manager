@@ -2,9 +2,9 @@ import { appendArtifact } from '../store/evidence-store.mjs';
 import { buildProvenanceManifest } from './data-fabric-provenance.mjs';
 
 const WINDOW_MS = 10 * 60 * 1000;
-const MAX_GLOBAL_SUBMISSIONS = 120;
-let windowStartedAt = Date.now();
-let submissionsInWindow = 0;
+const MAX_CLIENT_SUBMISSIONS = 30;
+const WINDOW_MS = 10 * 60 * 1000;
+const clientWindows = new Map();
 
 function reject(message, code) {
   throw Object.assign(new TypeError(message), { code });
@@ -20,16 +20,15 @@ export function validateCommunityObservation(body) {
   return payload;
 }
 
-export function submitCommunityObservation(body, now = Date.now()) {
-  if (now - windowStartedAt >= WINDOW_MS) {
-    windowStartedAt = now;
-    submissionsInWindow = 0;
-  }
-  if (submissionsInWindow >= MAX_GLOBAL_SUBMISSIONS) {
-    throw Object.assign(new Error('community submission rate limit reached'), { code: 'COMMUNITY_RATE_LIMITED', status: 429 });
-  }
+export function submitCommunityObservation(body, now = Date.now(), clientKey = 'anonymous') {
+  const key = String(clientKey || 'anonymous').slice(0, 128);
+  const current = clientWindows.get(key);
+  if (!current || now - current.startedAt >= WINDOW_MS) clientWindows.set(key, { startedAt: now, count: 0 });
+  const window = clientWindows.get(key);
+  if (window.count >= MAX_CLIENT_SUBMISSIONS) throw Object.assign(new Error('community submission rate limit reached for this client'), { code: 'COMMUNITY_RATE_LIMITED', status: 429 });
   const payload = validateCommunityObservation(body);
-  submissionsInWindow += 1;
+  window.count += 1;
+  if (clientWindows.size > 4096) for (const [candidate, state] of clientWindows) if (now - state.startedAt >= WINDOW_MS) clientWindows.delete(candidate);
   const retrievedAt = new Date(now).toISOString();
   const provenance = {
     source_org: 'TSM Community Observation',
