@@ -75,7 +75,7 @@ export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sl
           lastError = error;
           const retryable = isRetryableStatus(error.status) || error.name === 'AbortError' || error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT';
           if (error instanceof CircuitOpenError || attempt >= retries || !retryable || options.signal?.aborted) break;
-          await sleepImpl(retryDelayMs({ attempt, retryAfterMs: error.retryAfterMs }));
+          await sleepImpl(retryDelayMs({ attempt, retryAfterMs: error.retryAfterMs, jitterMs: options.retryJitterMs }));
         }
       }
       circuitState = circuitBreaker.recordFailure(sourceId);
