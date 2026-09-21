@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
-const root = process.cwd();
+import { fileURLToPath } from "node:url";
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const file = path.join(root, "tsm-native/config/data-fabric-contract.json");
 const doc = JSON.parse(fs.readFileSync(file, "utf8"));
 if (doc.schemaVersion !== 1) throw new Error("Unsupported data-fabric contract schema.");
