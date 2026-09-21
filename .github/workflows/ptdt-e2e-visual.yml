@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  e2e-headless:
+  e2e-headed-visual:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     defaults:
@@ -111,24 +111,31 @@ jobs:
           cat /tmp/tsm-vite-preview.log
           exit 1
 
-      - name: Run actual Chrome E2E suite
+      - name: Run headed Chrome visual E2E suite
+
         if: ${{ steps.cypress.outputs.configured == 'true' }}
         run: |
           set -euo pipefail
+          # CI uses a virtual X display so Chrome itself is headed. This preserves
+          # real browser compositing/WebGL/WebGPU paths instead of Cypress headless mode.
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xvfb
           CYPRESS_BASE_URL="http://127.0.0.1:5173/Tri-State-Systems-Manager/" \
-            npx --no-install cypress run --browser chrome --headless --config video=false
+            xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" \
+            npx --no-install cypress run --browser chrome --headed --config video=true,screenshotOnRunFailure=true
 
       - name: Upload Cypress failure artifacts
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: cypress-visual-diff
+          name: cypress-headed-visual-evidence
           path: |
             tsm-console/cypress/snapshots/**/__diff_output__/**
             tsm-console/cypress/screenshots/**
+            tsm-console/cypress/videos/**
             /tmp/tsm-vite-preview.log
-          if-no-files-found: ignore
-          retention-days: 7
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Stop preview server
         if: always()
