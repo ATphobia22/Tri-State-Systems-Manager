@@ -66,9 +66,7 @@ jobs:
           cache: npm
           cache-dependency-path: tsm-console/package-lock.json
           registry-url: https://registry.npmjs.org
-      - uses: dtolnay/rust-toolchain@02cb101ec7c40f2c49e1d9714d64511d8e1b74de # master commit
-        with:
-          toolchain: stable
+      - uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable
       - name: Install pinned Tauri CLI
         run: cargo install tauri-cli --version 2.11.4 --locked
       - name: Install Windows signing certificate
@@ -155,7 +153,7 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: tsm-console/package-lock.json
-      - uses: dtolnay/rust-toolchain@02cb101ec7c40f2c49e1d9714d64511d8e1b74de # master commit
+      - uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable
         with:
           targets: aarch64-apple-darwin,x86_64-apple-darwin
       - name: Install pinned Tauri CLI
