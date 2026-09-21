@@ -206,5 +206,5 @@ jobs:
       - name: Generate GitHub artifact and SBOM attestation
         uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4.2.1
         with:
-          subject-path: attestation-input/tsm-console/artifacts/tsm-console-dist.tar.gz
-          sbom-path: attestation-input/tsm-console/artifacts/tsm-console-sbom.json
+          subject-path: attestation-input/tsm-console-dist.tar.gz
+          sbom-path: attestation-input/tsm-console-sbom.json
