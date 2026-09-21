@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import crypto from "node:crypto";
+import path from "node:path";
 import {execFileSync} from "node:child_process";
 const sha256 = (p) => crypto.createHash("sha256").update(fs.readFileSync(p)).digest("hex");
 const git = (args) => execFileSync("git", args, {encoding:"utf8"}).trim();
@@ -23,4 +24,3 @@ const result = {
 };
 fs.mkdirSync(path.join(out,"dist","provenance"), {recursive:true});
 fs.writeFileSync(path.join(out,"dist","provenance","build-provenance.json"), JSON.stringify(result,null,2)+"\n");
-function path(a,b){ return require("node:path").join(a,b); }
