@@ -59,9 +59,15 @@ try {
     Pop-Location
 }
 
-$bootstrap = Join-Path $VcpkgRoot "bootstrap-vcpkg.ps1"
-if (-not (Test-Path $bootstrap)) { throw "vcpkg bootstrap script is missing at $bootstrap" }
-& $bootstrap -disableMetrics
+if ($IsWindows) {
+    $bootstrap = Join-Path $VcpkgRoot "bootstrap-vcpkg.bat"
+    if (-not (Test-Path $bootstrap)) { throw "vcpkg Windows bootstrap script is missing at $bootstrap" }
+    & cmd.exe /d /c "`"$bootstrap`" -disableMetrics"
+} else {
+    $bootstrap = Join-Path $VcpkgRoot "bootstrap-vcpkg.sh"
+    if (-not (Test-Path $bootstrap)) { throw "vcpkg Unix bootstrap script is missing at $bootstrap" }
+    & $bootstrap -disableMetrics
+}
 if ($LASTEXITCODE -ne 0) { throw "vcpkg bootstrap failed." }
 
 $vcpkgExe = if ($IsWindows) { Join-Path $VcpkgRoot "vcpkg.exe" } else { Join-Path $VcpkgRoot "vcpkg" }
