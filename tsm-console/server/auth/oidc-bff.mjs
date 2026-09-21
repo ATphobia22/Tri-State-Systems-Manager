@@ -10,9 +10,10 @@ function config() {
   const clientId = String(process.env.OIDC_CLIENT_ID || '').trim();
   const redirectUri = String(process.env.OIDC_REDIRECT_URI || '').trim();
   const sessionSecret = String(process.env.TSM_SESSION_SECRET || '');
+  const audience = String(process.env.OIDC_AUDIENCE || '').trim();
   const maxAge = Number(process.env.TSM_BROWSER_SESSION_MAX_AGE_SEC || 900);
-  if (!issuer || !clientId || !redirectUri || sessionSecret.length < 32) {
-    throw Object.assign(new Error('OIDC browser session is not configured. Set OIDC_ISSUER, OIDC_CLIENT_ID, OIDC_REDIRECT_URI, and TSM_SESSION_SECRET.'), { code: 'AUTH_CONFIGURATION_ERROR', status: 503 });
+  if (!issuer || !audience || !clientId || !redirectUri || sessionSecret.length < 32) {
+    throw Object.assign(new Error('OIDC browser session is not configured. Set OIDC_ISSUER, OIDC_AUDIENCE, OIDC_CLIENT_ID, OIDC_REDIRECT_URI, and TSM_SESSION_SECRET.'), { code: 'AUTH_CONFIGURATION_ERROR', status: 503 });
   }
   if (!/^https:\/\//i.test(issuer) && !/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(issuer)) {
     throw Object.assign(new Error('OIDC_ISSUER must use HTTPS outside local development.'), { code: 'AUTH_CONFIGURATION_ERROR', status: 503 });
@@ -21,7 +22,7 @@ function config() {
     throw Object.assign(new Error('OIDC_REDIRECT_URI must use HTTPS outside local development.'), { code: 'AUTH_CONFIGURATION_ERROR', status: 503 });
   }
   if (!Number.isInteger(maxAge) || maxAge < 300 || maxAge > 3600) throw Object.assign(new Error('TSM_BROWSER_SESSION_MAX_AGE_SEC must be between 300 and 3600 seconds.'), { code: 'AUTH_CONFIGURATION_ERROR', status: 503 });
-  return { issuer, clientId, redirectUri, maxAge };
+  return { issuer, audience, clientId, redirectUri, maxAge };
 }
 
 async function discovery() {
@@ -47,11 +48,6 @@ function pkceChallenge(verifier) {
   return createHash('sha256').update(verifier, 'ascii').digest('base64url');
 }
 
-function callbackUrl(url) {
-  const { redirectUri } = config();
-  if (url.toString() !== redirectUri) throw Object.assign(new Error('OIDC callback URL mismatch.'), { code: 'AUTH_CONFIGURATION_ERROR', status: 503 });
-}
-
 export async function beginOidcLogin(req, res) {
   const { clientId, redirectUri } = config();
   const provider = await discovery();
@@ -72,8 +68,7 @@ export async function beginOidcLogin(req, res) {
 }
 
 export async function finishOidcLogin(req, res) {
-  const { clientId, redirectUri, maxAge } = config();
-  callbackUrl(new URL(process.env.TSM_CALLBACK_URL || redirectUri));
+  const { clientId, redirectUri, audience, maxAge } = config();
   const url = new URL(req.url || '/', 'http://localhost');
   const code = url.searchParams.get('code');
   const state = url.searchParams.get('state');
@@ -106,7 +101,7 @@ export async function finishOidcLogin(req, res) {
 
   const auth = await verifyAccessToken(token.access_token, {
     issuer: String(process.env.OIDC_ISSUER || '').replace(/\/$/, ''),
-    audience: String(process.env.OIDC_AUDIENCE || '').trim(),
+    audience,
     jwksUrl: String(process.env.OIDC_JWKS_URL || provider.jwks_uri).trim(),
   });
   setSessionCookie(res, {
@@ -128,10 +123,12 @@ export async function getBrowserSession(req) {
   const session = readSessionCookie(req);
   if (!session?.accessToken || typeof session.accessToken !== 'string') return null;
   if (typeof session.expiresAt !== 'number' || session.expiresAt <= Date.now()) return null;
+  const { issuer, audience } = config();
+  const provider = await discovery();
   const auth = await verifyAccessToken(session.accessToken, {
-    issuer: String(process.env.OIDC_ISSUER || '').replace(/\/$/, ''),
-    audience: String(process.env.OIDC_AUDIENCE || '').trim(),
-    jwksUrl: String(process.env.OIDC_JWKS_URL || '').trim(),
+    issuer,
+    audience,
+    jwksUrl: String(process.env.OIDC_JWKS_URL || provider.jwks_uri).trim(),
   });
   return { ...auth, browserSession: true };
 }
