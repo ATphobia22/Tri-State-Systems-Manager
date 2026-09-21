@@ -208,3 +208,4 @@ jobs:
         with:
           subject-path: attestation-input/tsm-console-dist.tar.gz
           sbom-path: attestation-input/tsm-console-sbom.json
+          create-storage-record: false
