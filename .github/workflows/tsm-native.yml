@@ -81,6 +81,20 @@ jobs:
       - name: Validate manifest tooling
         run: test -s scripts/native/Verify-NativeDataManifest.ps1
 
+  native-static-analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install C++ analysis tools
+        run: sudo apt-get update && sudo apt-get install -y clang-format clang-tidy
+      - name: Check C++ formatting
+        run: |
+          clang-format --dry-run --Werror native/archimedes/src/ArchimedesNative.cpp native/archimedes/include/ArchimedesNative.h native/archimedes/tests/ArchimedesNativeTests.cpp
+      - name: Configure compile database
+        run: cmake -S native/archimedes -B native/archimedes/build-analysis -DBUILD_TESTING=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+      - name: Run clang-tidy
+        run: clang-tidy -p native/archimedes/build-analysis native/archimedes/src/ArchimedesNative.cpp
+
   archimedes-sanitizers:
     runs-on: ubuntu-latest
     steps:
