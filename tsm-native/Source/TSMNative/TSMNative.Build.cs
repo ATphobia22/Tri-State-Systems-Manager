@@ -21,7 +21,8 @@ public class TSMNative : ModuleRules
                 "HeadMountedDisplay",
                 "OpenXRHMD",
                 "OpenXRInput",
-                "SQLiteCore"
+                "SQLiteCore",
+                "CesiumRuntime"
             });
 
         PrivateDependencyModuleNames.AddRange(new[] { "SQLiteSupport" });
