@@ -26,7 +26,6 @@ try {
       path.join(root, 'tools', 'build_loma_packet.py'),
       '--output',
       packet,
-      '--require-signature',
       input,
     ],
     {
@@ -46,6 +45,20 @@ try {
     cwd: root,
     stdio: 'pipe',
   });
+
+  execFileSync(
+    process.execPath,
+    [
+      path.join(root, 'scripts', 'evidence', 'sign-evidence.mjs'),
+      manifest,
+      signature,
+    ],
+    {
+      cwd: root,
+      env: { ...process.env, TSM_EVIDENCE_SIGNING_KEY_PEM: pem.toString() },
+      stdio: 'pipe',
+    },
+  );
 
   const manifestBytes = fs.readFileSync(manifest);
   const sig = Buffer.from(fs.readFileSync(signature, 'utf8').trim(), 'base64');
