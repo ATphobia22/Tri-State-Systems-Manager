@@ -320,13 +320,13 @@ jobs:
         with:
           path: dist/installer
           format: spdx-json
-          output-file: dist/installer/sbom.spdx.json
+          output-file: dist/provenance/windows-native.spdx.json
           upload-artifact: false
       - name: Attest tsm-native-windows SBOM
         uses: actions/attest@v4
         with:
           subject-path: dist/installer/**/*
-          sbom-path: dist/installer/sbom.spdx.json
+          sbom-path: dist/provenance/windows-native.spdx.json
       - name: Upload tsm-native-windows release manifest
         uses: actions/upload-artifact@v4
         with:
@@ -438,13 +438,13 @@ jobs:
         with:
           path: dist/tsm-native
           format: spdx-json
-          output-file: dist/tsm-native/sbom.spdx.json
+          output-file: dist/provenance/macos-native.spdx.json
           upload-artifact: false
       - name: Attest tsm-native-macos SBOM
         uses: actions/attest@v4
         with:
           subject-path: dist/tsm-native/**/*
-          sbom-path: dist/tsm-native/sbom.spdx.json
+          sbom-path: dist/provenance/macos-native.spdx.json
       - name: Upload tsm-native-macos release manifest
         uses: actions/upload-artifact@v4
         with:
@@ -515,13 +515,13 @@ jobs:
         with:
           path: dist/tsm-native-ios
           format: spdx-json
-          output-file: dist/tsm-native-ios/sbom.spdx.json
+          output-file: dist/provenance/ios-native.spdx.json
           upload-artifact: false
       - name: Attest tsm-native-ios SBOM
         uses: actions/attest@v4
         with:
           subject-path: dist/tsm-native-ios/**/*
-          sbom-path: dist/tsm-native-ios/sbom.spdx.json
+          sbom-path: dist/provenance/ios-native.spdx.json
       - name: Upload tsm-native-ios release manifest
         uses: actions/upload-artifact@v4
         with:
@@ -595,13 +595,13 @@ jobs:
         with:
           path: dist/tsm-native-android
           format: spdx-json
-          output-file: dist/tsm-native-android/sbom.spdx.json
+          output-file: dist/provenance/android-native.spdx.json
           upload-artifact: false
       - name: Attest tsm-native-android SBOM
         uses: actions/attest@v4
         with:
           subject-path: dist/tsm-native-android/**/*
-          sbom-path: dist/tsm-native-android/sbom.spdx.json
+          sbom-path: dist/provenance/android-native.spdx.json
       - name: Upload tsm-native-android release manifest
         uses: actions/upload-artifact@v4
         with:
