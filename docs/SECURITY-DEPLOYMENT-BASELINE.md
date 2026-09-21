@@ -61,9 +61,9 @@ Required server configuration for the browser-session/BFF path:
 - `CORS_ORIGIN` — one exact trusted browser origin; never `*` when cookies are enabled.
 - `TSM_COOKIE_SAMESITE` — `Strict`/`Lax` for same-site deployments; `None` only when a deliberately cross-site frontend/API deployment is required, with HTTPS and `Secure`.
 
-For Keycloak, configure a confidential OIDC client with Standard Flow enabled, Direct Access Grants disabled, Implicit Flow disabled, PKCE S256 enabled, and exact valid redirect/web origins. Configure an Audience mapper so the issued access token contains the API value configured as `OIDC_AUDIENCE`; Keycloak documents Audience protocol mappers for this purpose. citeturn5search0turn5search2
+For Keycloak, configure a confidential OIDC client with Standard Flow enabled, Direct Access Grants disabled, Implicit Flow disabled, PKCE S256 enabled, and exact valid redirect/web origins. Configure an Audience mapper so the issued access token contains the API value configured as `OIDC_AUDIENCE`; Keycloak documents Audience protocol mappers for this purpose.
 
-The browser starts login at `GET /api/auth/login`; the server stores the PKCE transaction in an encrypted HttpOnly transaction cookie, exchanges the authorization code server-side at `GET /api/auth/callback`, validates the resulting access token, and establishes the protected session. This follows the current browser-based OAuth BFF guidance, which recommends keeping OAuth tokens out of browser application code and using protected cookie sessions. citeturn3search0turn1search0
+The browser starts login at `GET /api/auth/login`; the server stores the PKCE transaction in an encrypted HttpOnly transaction cookie, exchanges the authorization code server-side at `GET /api/auth/callback`, validates the resulting access token, and establishes the protected session. This follows the current browser-based OAuth BFF guidance, which recommends keeping OAuth tokens out of browser application code and using protected cookie sessions.
 
 ### Keycloak production checklist
 
