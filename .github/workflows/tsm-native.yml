@@ -65,11 +65,11 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Parse all workflow YAML
         run: |
           ruby -e 'require "yaml"; Dir[".github/workflows/*.yml"].sort.each { |f| YAML.safe_load_file(f, aliases: true); puts "valid: #{f}" }'
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
       - name: Validate native contracts
@@ -85,8 +85,8 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
       - name: Validate architecture contracts
@@ -106,16 +106,16 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Generate SPDX SBOM
-        uses: anchore/sbom-action@8e94d75
+        uses: anchore/sbom-action@8e94d75ddd33f69f691467e42275782e4bfefe84 # pinned commit
         with:
           path: .
           format: spdx-json
           output-file: dist/provenance/tsm-native-source.spdx.json
           upload-artifact: false
       - name: Upload source SBOM
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: tsm-native-source-sbom
           path: dist/provenance/tsm-native-source.spdx.json
@@ -127,10 +127,10 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
       - name: Generate build provenance
@@ -138,7 +138,7 @@ jobs:
           TSM_RUNNER_CLASS: linux-native
         run: node scripts/ci/generate-build-provenance.mjs
       - name: Upload provenance
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: tsm-native-build-provenance
           path: dist/provenance/build-provenance.json
@@ -151,8 +151,8 @@ jobs:
       attestations: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
       - name: Native runtime boundary
@@ -162,7 +162,7 @@ jobs:
       - name: Install ccache
         run: sudo apt-get update && sudo apt-get install -y ccache
       - name: Cache C++ compilation
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: ~/.cache/ccache
           key: ccache-linux-${{ hashFiles('native/archimedes/CMakeLists.txt', 'native/archimedes/CMakePresets.json', 'native/archimedes/src/**', 'native/archimedes/include/**', 'native/archimedes/tests/**') }}
@@ -177,15 +177,15 @@ jobs:
           ctest --preset linux-x64
           ccache --show-stats
       - name: Attest ArchimedesCore binary
-        uses: actions/attest@v4
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: native/archimedes/out/build/linux-x64/libArchimedesCore.so
 
   data-integrity:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
       - name: Validate native runtime gates
@@ -198,7 +198,7 @@ jobs:
   native-static-analysis:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install C++ analysis tools
         run: sudo apt-get update && sudo apt-get install -y clang-format clang-tidy
       - name: Check C++ formatting
@@ -212,7 +212,7 @@ jobs:
   archimedes-sanitizers:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Configure ASan/UBSan build
         run: cmake -S native/archimedes -B native/archimedes/build-sanitized -DBUILD_TESTING=ON -DARCHIMEDES_ENABLE_SANITIZERS=ON -DCMAKE_BUILD_TYPE=Debug
       - name: Build sanitized solver
@@ -236,9 +236,9 @@ jobs:
             triplet: arm64-osx
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Cache vcpkg binary packages
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: ${{ runner.temp }}/vcpkg-cache
           key: tsm-vcpkg-${{ runner.os }}-${{ matrix.triplet }}-${{ hashFiles('native/dependencies/vcpkg.json', 'native/dependencies/vcpkg-configuration.json') }}
@@ -278,7 +278,7 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.package_windows }}
     runs-on: [self-hosted, windows, x64, ue5]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Validate runner capabilities
         shell: pwsh
         run: .\scripts\native\Validate-NativeRunner.ps1 -RunnerClass windows-ue5
@@ -334,7 +334,7 @@ jobs:
           & $signtool.Source verify /pa /all $installer.FullName
           if ($LASTEXITCODE -ne 0) { throw "Windows Authenticode verification failed." }
       - name: Attest signed Windows artifact
-        uses: actions/attest@v4
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: dist/installer/TSM-Native-Setup-*-windows-x64.exe
       - name: Generate tsm-native-windows release manifest
@@ -343,24 +343,24 @@ jobs:
           TSM_RUNNER_CLASS: windows-ue5
         run: node scripts/ci/generate-release-manifest.mjs dist/installer dist/provenance/windows-release-manifest.json
       - name: Generate tsm-native-windows SPDX SBOM
-        uses: anchore/sbom-action@8e94d75
+        uses: anchore/sbom-action@8e94d75ddd33f69f691467e42275782e4bfefe84 # pinned commit
         with:
           path: dist/installer
           format: spdx-json
           output-file: dist/provenance/windows-native.spdx.json
           upload-artifact: false
       - name: Attest tsm-native-windows SBOM
-        uses: actions/attest@v4
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: dist/installer/**/*
           sbom-path: dist/provenance/windows-native.spdx.json
       - name: Upload tsm-native-windows release manifest
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: tsm-native-windows-release-manifest
           path: dist/provenance/windows-release-manifest.json
           if-no-files-found: error
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: tsm-native-windows-installer
           path: dist/installer/TSM-Native-Setup-*-windows-x64.exe
@@ -375,7 +375,7 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.package_macos }}
     runs-on: [self-hosted, macos, arm64, ue5]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Validate runner capabilities
         shell: bash
         run: scripts/native/validate-native-runner.sh macos-ue5
@@ -452,7 +452,7 @@ jobs:
           xcrun stapler staple "$APP"
           spctl --assess --type execute "$APP"
       - name: Attest notarized macOS artifact
-        uses: actions/attest@v4
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: dist/tsm-native/**/*.app
       - name: Generate tsm-native-macos release manifest
@@ -461,24 +461,24 @@ jobs:
           TSM_RUNNER_CLASS: macos-ue5
         run: node scripts/ci/generate-release-manifest.mjs dist/tsm-native dist/provenance/macos-release-manifest.json
       - name: Generate tsm-native-macos SPDX SBOM
-        uses: anchore/sbom-action@8e94d75
+        uses: anchore/sbom-action@8e94d75ddd33f69f691467e42275782e4bfefe84 # pinned commit
         with:
           path: dist/tsm-native
           format: spdx-json
           output-file: dist/provenance/macos-native.spdx.json
           upload-artifact: false
       - name: Attest tsm-native-macos SBOM
-        uses: actions/attest@v4
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: dist/tsm-native/**/*
           sbom-path: dist/provenance/macos-native.spdx.json
       - name: Upload tsm-native-macos release manifest
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: tsm-native-macos-release-manifest
           path: dist/provenance/macos-release-manifest.json
           if-no-files-found: error
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: tsm-native-macos-package
           path: dist/tsm-native/**
@@ -494,7 +494,7 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.package_ios }}
     runs-on: [self-hosted, macos, arm64, ue5, ios]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Validate runner capabilities
         shell: bash
         run: scripts/native/validate-native-runner.sh ios-ue5
@@ -529,7 +529,7 @@ jobs:
           test -n "$BUNDLE"
           codesign --verify --deep --strict "$BUNDLE"
       - name: Attest signed iOS artifact
-        uses: actions/attest@v4
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: dist/tsm-native-ios/**/*.app
       - name: Generate tsm-native-ios release manifest
@@ -538,24 +538,24 @@ jobs:
           TSM_RUNNER_CLASS: ios-ue5
         run: node scripts/ci/generate-release-manifest.mjs dist/tsm-native-ios dist/provenance/ios-release-manifest.json
       - name: Generate tsm-native-ios SPDX SBOM
-        uses: anchore/sbom-action@8e94d75
+        uses: anchore/sbom-action@8e94d75ddd33f69f691467e42275782e4bfefe84 # pinned commit
         with:
           path: dist/tsm-native-ios
           format: spdx-json
           output-file: dist/provenance/ios-native.spdx.json
           upload-artifact: false
       - name: Attest tsm-native-ios SBOM
-        uses: actions/attest@v4
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: dist/tsm-native-ios/**/*
           sbom-path: dist/provenance/ios-native.spdx.json
       - name: Upload tsm-native-ios release manifest
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: tsm-native-ios-release-manifest
           path: dist/provenance/ios-release-manifest.json
           if-no-files-found: error
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: tsm-native-ios-package
           path: dist/tsm-native-ios/**
@@ -570,7 +570,7 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.package_android }}
     runs-on: [self-hosted, linux, arm64, ue5, android]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Validate runner capabilities
         shell: bash
         run: scripts/native/validate-native-runner.sh android-ue5
@@ -609,7 +609,7 @@ jobs:
           test -n "$APKSIGNER"
           "$APKSIGNER" verify --verbose "$APK"
       - name: Attest signed Android artifact
-        uses: actions/attest@v4
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: dist/tsm-native-android/*.apk
       - name: Generate tsm-native-android release manifest
@@ -618,24 +618,24 @@ jobs:
           TSM_RUNNER_CLASS: android-ue5
         run: node scripts/ci/generate-release-manifest.mjs dist/tsm-native-android dist/provenance/android-release-manifest.json
       - name: Generate tsm-native-android SPDX SBOM
-        uses: anchore/sbom-action@8e94d75
+        uses: anchore/sbom-action@8e94d75ddd33f69f691467e42275782e4bfefe84 # pinned commit
         with:
           path: dist/tsm-native-android
           format: spdx-json
           output-file: dist/provenance/android-native.spdx.json
           upload-artifact: false
       - name: Attest tsm-native-android SBOM
-        uses: actions/attest@v4
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: dist/tsm-native-android/**/*
           sbom-path: dist/provenance/android-native.spdx.json
       - name: Upload tsm-native-android release manifest
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: tsm-native-android-release-manifest
           path: dist/provenance/android-release-manifest.json
           if-no-files-found: error
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: tsm-native-android-package
           path: dist/tsm-native-android/**
