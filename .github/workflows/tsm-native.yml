@@ -72,6 +72,34 @@ jobs:
           cmake --build native/archimedes/build --config Release --parallel
           ctest --test-dir native/archimedes/build --build-config Release --output-on-failure
 
+  data-integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Validate native runtime gates
+        run: |
+          node scripts/ci/native-runtime-boundary.mjs
+          node scripts/ci/validate-native-platform-matrix.mjs
+      - name: Validate manifest tooling
+        run: test -s scripts/native/Verify-NativeDataManifest.ps1
+
+  archimedes-sanitizers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Configure ASan/UBSan build
+        run: cmake -S native/archimedes -B native/archimedes/build-sanitized -DBUILD_TESTING=ON -DARCHIMEDES_ENABLE_SANITIZERS=ON -DCMAKE_BUILD_TYPE=Debug
+      - name: Build sanitized solver
+        run: cmake --build native/archimedes/build-sanitized --parallel
+      - name: Run sanitized tests
+        env:
+          ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
+          UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+        run: ctest --test-dir native/archimedes/build-sanitized --output-on-failure
+
   dependency-probe:
     strategy:
       fail-fast: false
@@ -86,6 +114,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
+      - name: Cache vcpkg binary packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/vcpkg-cache
+          key: tsm-vcpkg-${{ runner.os }}-${{ matrix.triplet }}-${{ hashFiles('native/dependencies/vcpkg.json', 'native/dependencies/vcpkg-configuration.json') }}
       - name: Bootstrap pinned native dependencies (Unix)
         if: ${{ matrix.os != 'windows-latest' }}
         shell: bash
