@@ -23,7 +23,7 @@ This document defines the expected ownership and authority boundaries for the Tr
 
 ## Authoritative-contract locations
 
-- Site constants: `data/schemas/tsm-site-constants-13101-bonebank.json`
+- Site constants: source-bound community configuration; no private residence or parcel identifiers are stored in the public repository.
 - Data contract: `tsm-data-contract-schema-v1.0.0.json` and/or its versioned canonical schema location when migrated
 - Evidence artifact contract: `tsm-evidence-artifact-schema-v1.0.0.json`
 - Authority registry: `tsm-authority-registry-v35.json`
