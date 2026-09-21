@@ -68,6 +68,34 @@ jobs:
       - name: Validate reproducibility contract
         run: node -e "JSON.parse(require('fs').readFileSync('tsm-native/config/reproducible-build-contract.json','utf8')); console.log('Reproducibility contract validated.')"
 
+  source-sbom:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    steps:
+      - uses: actions/checkout@v5
+      - name: Generate SPDX SBOM
+        uses: anchore/sbom-action@8e94d75
+        with:
+          path: .
+          format: spdx-json
+          output-file: dist/provenance/tsm-native-source.spdx.json
+          upload-artifact: false
+      - name: Attest source SBOM
+        uses: actions/attest@v4
+        with:
+          subject-path: dist/provenance/tsm-native-source.spdx.json
+          sbom-path: dist/provenance/tsm-native-source.spdx.json
+      - name: Upload source SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: tsm-native-source-sbom
+          path: dist/provenance/tsm-native-source.spdx.json
+          if-no-files-found: error
+
   build-provenance:
     runs-on: ubuntu-latest
     needs: [boundary, architecture-contracts]
