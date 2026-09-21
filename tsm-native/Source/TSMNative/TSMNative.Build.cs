@@ -1,10 +1,14 @@
 using UnrealBuildTool;
+using System.IO;
 
 public class TSMNative : ModuleRules
 {
     public TSMNative(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+
+        PublicIncludePaths.Add(
+            Path.GetFullPath(Path.Combine(ModuleDirectory, "../../../../native/archimedes/include")));
 
         PublicDependencyModuleNames.AddRange(
             new[]
