@@ -139,7 +139,7 @@ jobs:
           test -f "$ROOT/include/sqlite3.h"
           test -f "$ROOT/include/spatialite.h"
           if [[ "${{ matrix.triplet }}" == *windows* ]]; then
-            find "$ROOT" -type f \\( -name "sqlite3.lib" -o -name "mod_spatialite.lib" -o -name "mod_spatialite.dll" \\) -print -quit | grep -q .
+            find "$ROOT" -type f \( -name "sqlite3.lib" -o -name "mod_spatialite.lib" -o -name "mod_spatialite.dll" \) -print -quit | grep -q .
           elif [[ "${{ matrix.triplet }}" == *osx* ]]; then
             find "$ROOT" -type f \\( -name "libsqlite3.a" -o -name "libsqlite3.dylib" -o -name "mod_spatialite.dylib" \\) -print -quit | grep -q .
           else
@@ -179,6 +179,21 @@ jobs:
           UE_ROOT: ${{ vars.UE_ROOT }}
           TSM_SPATIALITE_DLL: ${{ vars.TSM_SPATIALITE_DLL }}
         run: .\scripts\native\Build-TSMNativeWindows.ps1 -UnrealRoot $env:UE_ROOT
+      - name: Sign Windows release artifacts
+        shell: pwsh
+        env:
+          TSM_WINDOWS_SIGNING_CERT_SHA1: ${{ secrets.TSM_WINDOWS_SIGNING_CERT_SHA1 }}
+          TSM_WINDOWS_TIMESTAMP_URL: ${{ vars.TSM_WINDOWS_TIMESTAMP_URL }}
+        run: |
+          if (-not $env:TSM_WINDOWS_SIGNING_CERT_SHA1) { throw "TSM_WINDOWS_SIGNING_CERT_SHA1 secret is required for release signing." }
+          if (-not $env:TSM_WINDOWS_TIMESTAMP_URL) { throw "TSM_WINDOWS_TIMESTAMP_URL repository variable is required." }
+          $signtool = Get-Command signtool.exe -ErrorAction Stop
+          $installer = Get-ChildItem "dist/installer" -Filter "TSM-Native-Setup-*-windows-x64.exe" -File | Select-Object -First 1
+          if (-not $installer) { throw "Windows installer was not produced." }
+          & $signtool.Source sign /sha1 $env:TSM_WINDOWS_SIGNING_CERT_SHA1 /fd SHA256 /tr $env:TSM_WINDOWS_TIMESTAMP_URL /td SHA256 $installer.FullName
+          if ($LASTEXITCODE -ne 0) { throw "Windows Authenticode signing failed." }
+          & $signtool.Source verify /pa /all $installer.FullName
+          if ($LASTEXITCODE -ne 0) { throw "Windows Authenticode verification failed." }
       - uses: actions/upload-artifact@v4
         with:
           name: tsm-native-windows-installer
@@ -222,6 +237,21 @@ jobs:
           cp "$TSM_SPATIALITE_DYLIB" dist/tsm-native/mod_spatialite.dylib
         env:
           TSM_SPATIALITE_DYLIB: ${{ vars.TSM_SPATIALITE_DYLIB }}
+      - name: Sign and notarize macOS release
+        shell: bash
+        env:
+          MACOS_SIGNING_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
+          MACOS_NOTARY_PROFILE: ${{ secrets.MACOS_NOTARY_PROFILE }}
+        run: |
+          test -n "$MACOS_SIGNING_IDENTITY"
+          test -n "$MACOS_NOTARY_PROFILE"
+          APP="$(find dist/tsm-native -type d -name '*.app' -print -quit)"
+          test -n "$APP"
+          codesign --force --options runtime --timestamp --deep --sign "$MACOS_SIGNING_IDENTITY" "$APP"
+          codesign --verify --deep --strict "$APP"
+          xcrun notarytool submit "$APP" --keychain-profile "$MACOS_NOTARY_PROFILE" --wait
+          xcrun stapler staple "$APP"
+          spctl --assess --type execute "$APP"
       - uses: actions/upload-artifact@v4
         with:
           name: tsm-native-macos-package
@@ -248,6 +278,13 @@ jobs:
           UE_ROOT: ${{ vars.UE_ROOT }}
         run: |
           "$UE_ROOT/Engine/Build/BatchFiles/RunUAT.sh" BuildCookRun             -project="$GITHUB_WORKSPACE/tsm-native/TSMNative.uproject"             -noP4 -build -cook -stage -pak -package -archive             -archivedirectory="$GITHUB_WORKSPACE/dist/tsm-native-ios"             -platform=IOS -clientconfig=Shipping -utf8output
+      - name: Verify iOS signing and package output
+        shell: bash
+        run: |
+          test -d dist/tsm-native-ios
+          BUNDLE="$(find dist/tsm-native-ios -type d -name '*.app' -print -quit)"
+          test -n "$BUNDLE"
+          codesign --verify --deep --strict "$BUNDLE"
       - uses: actions/upload-artifact@v4
         with:
           name: tsm-native-ios-package
@@ -275,6 +312,15 @@ jobs:
           UE_ROOT: ${{ vars.UE_ROOT }}
         run: |
           "$UE_ROOT/Engine/Build/BatchFiles/RunUAT.sh" BuildCookRun             -project="$GITHUB_WORKSPACE/tsm-native/TSMNative.uproject"             -noP4 -build -cook -stage -pak -package -archive             -archivedirectory="$GITHUB_WORKSPACE/dist/tsm-native-android"             -platform=Android -clientconfig=Shipping -utf8output
+      - name: Verify Android package signing
+        shell: bash
+        run: |
+          test -d dist/tsm-native-android
+          APK="$(find dist/tsm-native-android -type f -name '*.apk' -print -quit)"
+          test -n "$APK"
+          APKSIGNER="$(find "$ANDROID_HOME" -type f \( -name apksigner -o -name apksigner.bat \) -print -quit)"
+          test -n "$APKSIGNER"
+          "$APKSIGNER" verify --verbose "$APK"
       - uses: actions/upload-artifact@v4
         with:
           name: tsm-native-android-package
