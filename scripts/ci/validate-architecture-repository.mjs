@@ -14,6 +14,10 @@ const required = [
   'architecture/contracts/ingestion-pipeline-contract.json',
   'architecture/contracts/streaming-contract.json',
   'architecture/contracts/architecture-repository.json',
+  'architecture/contracts/authoritative-source-registry.json',
+  'architecture/contracts/lineage-registry.json',
+  'architecture/contracts/backup-recovery-contract.json',
+  'architecture/contracts/observability-contract.json',
 ];
 const errors = [];
 for (const file of required) {
