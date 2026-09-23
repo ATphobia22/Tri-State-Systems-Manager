@@ -34,16 +34,12 @@ int main()
     };
 
     ArchimedesSiteMetrics output{};
-    assert(
-        ArchimedesEvaluateGeodeticInvariants(&input, &output) ==
-        ARCHIMEDES_OK);
+    assert(ArchimedesEvaluateGeodeticInvariants(&input, &output) == ARCHIMEDES_OK);
     assert(std::abs(output.surface_water_elevation_ft - 376.25) < 1e-12);
     assert(output.inundation_active == 0);
 
     input.stage_delta_ft = 2.2;
-    assert(
-        ArchimedesEvaluateGeodeticInvariants(&input, &output) ==
-        ARCHIMEDES_OK);
+    assert(ArchimedesEvaluateGeodeticInvariants(&input, &output) == ARCHIMEDES_OK);
     assert(std::abs(output.surface_water_elevation_ft - 377.2) < 1e-12);
     assert(output.inundation_active == 1);
 
@@ -65,10 +61,7 @@ int main()
 
     const double beforeDepthSum = 16.0;
 
-    assert(
-        ArchimedesSolveSaintVenant1D(
-            &config, depth, velocity, 4, 0.1) ==
-        ARCHIMEDES_OK);
+    assert(ArchimedesSolveSaintVenant1D(&config, depth, velocity, 4, 0.1) == ARCHIMEDES_OK);
 
     AssertFiniteNonNegative(depth, 4);
     AssertFinite(velocity, 4);
@@ -85,34 +78,16 @@ int main()
     double stableDepth[] = {4.0, 4.0, 4.0, 4.0};
     double stableVelocity[] = {1.0, 1.0, 1.0, 1.0};
 
-    assert(
-        ArchimedesSolveSaintVenant1D(
-            &config,
-            stableDepth,
-            stableVelocity,
-            4,
-            10.0) == ARCHIMEDES_UNSTABLE_TIMESTEP);
+    assert(ArchimedesSolveSaintVenant1D(&config, stableDepth, stableVelocity, 4, 10.0) == ARCHIMEDES_UNSTABLE_TIMESTEP);
 
     double dryDepth[] = {0.0, 0.0, 0.0, 0.0};
     double dryVelocity[] = {0.0, 0.0, 0.0, 0.0};
 
-    assert(
-        ArchimedesSolveSaintVenant1D(
-            &config,
-            dryDepth,
-            dryVelocity,
-            4,
-            0.1) == ARCHIMEDES_OK);
+    assert(ArchimedesSolveSaintVenant1D(&config, dryDepth, dryVelocity, 4, 0.1) == ARCHIMEDES_OK);
     AssertFiniteNonNegative(dryDepth, 4);
     AssertFinite(dryVelocity, 4);
 
-    assert(
-        ArchimedesSolveSaintVenant1D(
-            &config,
-            dryDepth,
-            dryVelocity,
-            4,
-            0.0) == ARCHIMEDES_INVALID_ARGUMENT);
+    assert(ArchimedesSolveSaintVenant1D(&config, dryDepth, dryVelocity, 4, 0.0) == ARCHIMEDES_INVALID_ARGUMENT);
 
     return 0;
 }
