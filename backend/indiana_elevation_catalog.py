@@ -1,0 +1,35 @@
+"""Indiana Statewide Elevation Catalog provenance adapter.
+
+The catalog is an Indiana Geographic Information Office / IOT Office of
+Technology state elevation archive. This module records source metadata and
+does not infer tile paths, vertical datums, survey control, or certification
+from a catalog entry alone.
+"""
+
+INDIANA_ELEVATION_CATALOG_URL = "https://elevation.gio.in.gov/"
+INDIANA_ELEVATION_S3_BROWSER_URL = "https://giselevationingov.s3.amazonaws.com/index.html"
+INDIANA_ELEVATION_BUCKET_ARN = "arn:aws:s3:::giselevationingov"
+INDIANA_ELEVATION_REGION = "us-east-2"
+INDIANA_LIDAR_VIEWER_URL = (
+    "https://indianamap-inmap.hub.arcgis.com/maps/"
+    "ff98e3834d464619bd5c8974b0038a13/about"
+)
+
+def source_manifest() -> dict[str, str]:
+    return {
+        "source_id": "INDIANA_STATEWIDE_ELEVATION_CATALOG",
+        "source_name": "Indiana Statewide Elevation Catalog",
+        "authority_class": "STATE_MANAGED_ELEVATION_ARCHIVE",
+        "managed_by": "Indiana Geographic Information Office / IOT Office of Technology",
+        "jurisdiction": "Indiana",
+        "catalog_url": INDIANA_ELEVATION_CATALOG_URL,
+        "s3_browser_url": INDIANA_ELEVATION_S3_BROWSER_URL,
+        "bucket_arn": INDIANA_ELEVATION_BUCKET_ARN,
+        "region": INDIANA_ELEVATION_REGION,
+        "viewer_url": INDIANA_LIDAR_VIEWER_URL,
+        "license": "CC0",
+        "data_classes": "LAS LiDAR; elevation archive",
+        "professional_certification_authority": "NONE",
+        "survey_control_authority": "NONE",
+        "regulatory_determination_authority": "NONE",
+    }
