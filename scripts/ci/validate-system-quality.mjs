@@ -40,6 +40,13 @@ if (!Array.isArray(contract.verification_layers) || contract.verification_layers
   throw new Error('verification layer contract is incomplete');
 }
 
+const runtime = contract.runtime_observability;
+const requiredRuntimeSignals = ['api', 'upstream', 'ingestion', 'cache', 'browser', 'server', 'engineering'];
+for (const key of requiredRuntimeSignals) {
+  if (!Array.isArray(runtime?.[key]) || runtime[key].length === 0) throw new Error(`runtime observability signal missing: ${key}`);
+}
+if (runtime?.measurement_mode !== 'in-process bounded measurements with Prometheus exposition plus browser-side batched telemetry') throw new Error('runtime measurement mode changed');
+
 const risk = contract.risk_controls;
 if (risk?.single_source_of_truth !== 'source authority and provenance metadata, never UI state') {
   throw new Error('single-source-of-truth boundary changed');
