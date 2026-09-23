@@ -2,7 +2,7 @@ import unittest
 
 from backend.open_data_registry import (
     INDIANA_ELEVATION_REGISTRY_BLOB_SHA,
-    INDIANA_ELEVATION_REGISTRY_COMMIT,
+    OPEN_DATA_REGISTRY_COMMIT,
     INDIANA_ELEVATION_REGISTRY_PATH,
     indiana_elevation_registry_entry,
     verify_registry_snapshot,
@@ -12,7 +12,7 @@ from backend.open_data_registry import (
 class OpenDataRegistryTests(unittest.TestCase):
     def test_indiana_entry_is_immutably_pinned(self) -> None:
         entry = indiana_elevation_registry_entry()
-        self.assertEqual(entry.commit, INDIANA_ELEVATION_REGISTRY_COMMIT)
+        self.assertEqual(entry.commit, OPEN_DATA_REGISTRY_COMMIT)
         self.assertEqual(entry.path, INDIANA_ELEVATION_REGISTRY_PATH)
         self.assertEqual(entry.blob_sha, INDIANA_ELEVATION_REGISTRY_BLOB_SHA)
         self.assertIn(entry.commit, entry.raw_url)
