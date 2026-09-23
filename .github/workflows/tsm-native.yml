@@ -173,6 +173,7 @@ jobs:
       - name: Build and test ArchimedesCore
         env:
           CMAKE_CXX_COMPILER_LAUNCHER: ccache
+        working-directory: native/archimedes
         run: |
           cmake --preset linux-x64 -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
           cmake --build --preset linux-x64 --parallel
