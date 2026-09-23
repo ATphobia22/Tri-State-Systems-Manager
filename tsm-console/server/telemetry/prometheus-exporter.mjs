@@ -95,7 +95,15 @@ export function incrementTelemetryCounter(name, labels = {}, delta = 1) {
   validateName(name);
   if (!Number.isFinite(delta) || delta < 0) throw new TypeError('counter delta must be finite and non-negative');
   const key = metricKey(name, labels);
-  metrics.set(key, { name, labels: normalizeLabels(labels), value: (metrics.get(key)?.value ?? 0) + delta });
+  const normalized = normalizeLabels(labels);
+  const nextValue = (metrics.get(key)?.value ?? 0) + delta;
+  metrics.set(key, { name, labels: normalized, value: nextValue });
+  if (name === 'tsm_cache_requests_total') {
+    const cache = normalized.cache || 'unknown';
+    const hits = [...metrics.values()].filter((entry) => entry.name === name && entry.labels.cache === cache && entry.labels.result === 'hit').reduce((sum, entry) => sum + entry.value, 0);
+    const total = [...metrics.values()].filter((entry) => entry.name === name && entry.labels.cache === cache).reduce((sum, entry) => sum + entry.value, 0);
+    observeTelemetryMetric('tsm_cache_hit_ratio', total > 0 ? hits / total : 0, { cache });
+  }
 }
 export function observeTelemetryDuration(name, seconds, labels = {}) {
   validateValue(seconds);
