@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readdir, stat, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, stat, writeFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 
 const root = new URL('../../tsm-console/dist/', import.meta.url);
@@ -40,7 +40,7 @@ const violations = [
   ...(measured.javascript.total_bytes > budget.maxTotalJsBytes ? [`total JS exceeds ${budget.maxTotalJsBytes} bytes`] : []),
   ...(measured.css.total_bytes > budget.maxTotalCssBytes ? [`total CSS exceeds ${budget.maxTotalCssBytes} bytes`] : []),
 ];
-await writeFile(new URL(artifactDir), '', { flag: 'a' }).catch(() => {});
+await mkdir(artifactDir, { recursive: true });
 await writeFile(new URL('performance-budget.json', artifactDir), JSON.stringify({ measured, violations }, null, 2) + '\n');
 console.log(JSON.stringify({ measured, violations }, null, 2));
 if (violations.length) process.exit(1);
