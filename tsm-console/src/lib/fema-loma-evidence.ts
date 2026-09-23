@@ -75,6 +75,8 @@ export interface ProfessionalCertification {
 export interface LomaEvidenceInput {
   caseId?: string;
   firmClearlyOutsideSfha: boolean | null;
+  fillPlacedOrProposed?: boolean;
+  propertyInRegulatoryFloodway?: boolean;
   deedOrPlat: LomaEvidenceItem[];
   assessorMap?: LomaEvidenceItem;
   elevationForm?: LomaEvidenceItem;
@@ -194,6 +196,13 @@ function auditMt1(input: LomaEvidenceInput): LomaGate[] {
 export function auditFemaLomaEvidence(input: LomaEvidenceInput): LomaAuditResult {
   const gates: LomaGate[] = [
     {
+      id: 'REQUEST_PATH',
+      label: 'LOMA pathway (no fill placed/proposed)',
+      status: input.fillPlacedOrProposed === true ? 'INVALID' : 'PASS',
+      required: true,
+      reason: 'FEMA distinguishes natural-grade LOMA requests from requests involving fill; fill-based requests follow the LOMR-F/CLOMR-F pathway rather than a pure LOMA.',
+    },
+    {
       id: 'CASE',
       label: 'FEMA case identifier',
       status: input.caseId ? 'PASS' : 'MISSING',
@@ -213,6 +222,13 @@ export function auditFemaLomaEvidence(input: LomaEvidenceInput): LomaAuditResult
       status: hasUsableArtifact(input.assessorMap) ? 'PASS' : 'MISSING',
       required: true,
       reason: 'The map must clearly identify the property and include a street intersection shown on the applicable FIRM panel.',
+    },
+    {
+      id: 'COMMUNITY_ACKNOWLEDGMENT',
+      label: 'Community Acknowledgment — Part B (floodway), when applicable',
+      status: input.propertyInRegulatoryFloodway === true ? 'MISSING' : 'NOT_APPLICABLE',
+      required: input.propertyInRegulatoryFloodway === true,
+      reason: 'FEMA MT-1 guidance identifies Community Acknowledgment Part B for some LOMA requests involving the regulatory floodway; the community official signs it.',
     },
     {
       id: 'FIRM_EVIDENCE',
