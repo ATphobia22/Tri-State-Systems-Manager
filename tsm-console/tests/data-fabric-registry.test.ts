@@ -15,7 +15,7 @@ describe('TSM data-fabric registry', () => {
     expect(fabric?.implemented).toBe(true);
     expect(fabric?.notes).toMatch(/LiDAR\/DEM water surfaces are not treated as channel-bed truth/);
   });
-  it('registers the fail-closed engineering evidence pipeline', () => {
+  it('binds terrain to the state elevation catalog and open-data registry', () => {\n    const fabric = TSM_DATA_FABRICS.find((f) => f.id === 'terrain-elevation');\n    expect(fabric?.sources).toContain('INDIANA_STATEWIDE_ELEVATION_CATALOG');\n    expect(fabric?.sources).toContain('AWS_OPEN_DATA_REGISTRY');\n    expect(fabric?.notes).toMatch(/never becomes survey\/FEMA certification/);\n  });\n  it('registers the fail-closed engineering evidence pipeline', () => {
     expect(TSM_DATA_FABRICS.find((f) => f.id === 'engineering-evidence-pipeline')?.plane).toBe('GOVERNANCE_DECISION');
   });
 });
