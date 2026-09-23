@@ -246,6 +246,15 @@ jobs:
         with:
           path: ${{ runner.temp }}/vcpkg-cache
           key: tsm-vcpkg-${{ runner.os }}-${{ matrix.triplet }}-${{ hashFiles('native/dependencies/vcpkg.json', 'native/dependencies/vcpkg-configuration.json') }}
+      - name: Install required CMake version (Linux)
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m venv "$RUNNER_TEMP/tsm-cmake"
+          "$RUNNER_TEMP/tsm-cmake/bin/python" -m pip install --disable-pip-version-check --no-cache-dir "cmake==4.4.3"
+          echo "$RUNNER_TEMP/tsm-cmake/bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/tsm-cmake/bin/cmake" --version
       - name: Install libspatialite build prerequisites (Unix)
         if: ${{ matrix.os != 'windows-latest' }}
         shell: bash
