@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { createCircuitBreaker, CircuitOpenError } from '../reliability/circuit-breaker.mjs';
 import { isRetryableStatus, parseRetryAfter, retryDelayMs } from '../reliability/retry-policy.mjs';
 import { recordSourceHealth } from './source-health.mjs';
-import { incrementTelemetryCounter, observeTelemetryMetric } from '../telemetry/prometheus-exporter.mjs';
+import { incrementTelemetryCounter, observeTelemetryDuration, observeTelemetryMetric } from '../telemetry/prometheus-exporter.mjs';
 
 const DEFAULT_TIMEOUT_MS = 10_000;
 const DEFAULT_MAX_BYTES = 2_000_000;
@@ -35,6 +35,7 @@ export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sl
     const requestId = options.requestId || randomUUID();
     const headers = { accept: 'application/json', 'x-tsm-request-id': requestId, ...(options.headers || {}) };
     const startedAt = Date.now();
+    let attemptsMade = 0;
     let lastError;
     let circuitState;
     try {
@@ -49,6 +50,8 @@ export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sl
     }
     try {
       for (let attempt = 0; attempt <= retries; attempt += 1) {
+        attemptsMade += 1;
+        incrementTelemetryCounter('tsm_upstream_requests_total', { source_id: sourceId });
         try {
           const controller = new AbortController();
           const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -69,19 +72,26 @@ export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sl
           const payload = JSON.parse(text);
           circuitState = circuitBreaker.recordSuccess(sourceId);
           recordCircuitMetric(options, sourceId, circuitState.state);
-          recordSourceHealth(sourceId, { ok: true, latencyMs: Date.now() - startedAt, requestId });
+          const latencyMs = Date.now() - startedAt;
+          recordSourceHealth(sourceId, { ok: true, latencyMs, requestId });
+          observeTelemetryDuration('tsm_upstream_request_latency_seconds', latencyMs / 1000, { source_id: sourceId });
+          observeTelemetryMetric('tsm_upstream_retry_ratio', attemptsMade > 0 ? (attemptsMade - 1) / attemptsMade : 0, { source_id: sourceId });
           recordHydrologyMetric(options, sourceId, 'SUCCESS', startedAt);
           return payload;
         } catch (error) {
           lastError = error;
           const retryable = isRetryableStatus(error.status) || error.name === 'AbortError' || error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT';
           if (error instanceof CircuitOpenError || attempt >= retries || !retryable || options.signal?.aborted) break;
+          incrementTelemetryCounter('tsm_upstream_retries_total', { source_id: sourceId });
           await sleepImpl(retryDelayMs({ attempt, retryAfterMs: error.retryAfterMs, jitterMs: options.retryJitterMs ?? DEFAULT_RETRY_JITTER_MS, random: options.retryRandom ?? Math.random }));
         }
       }
       circuitState = circuitBreaker.recordFailure(sourceId);
       recordCircuitMetric(options, sourceId, circuitState.state);
-      recordSourceHealth(sourceId, { ok: false, latencyMs: Date.now() - startedAt, requestId, errorCode: lastError?.code || 'HTTP_' + (lastError?.status || 'UNKNOWN') });
+      const latencyMs = Date.now() - startedAt;
+      recordSourceHealth(sourceId, { ok: false, latencyMs, requestId, errorCode: lastError?.code || 'HTTP_' + (lastError?.status || 'UNKNOWN') });
+      observeTelemetryDuration('tsm_upstream_request_latency_seconds', latencyMs / 1000, { source_id: sourceId });
+      observeTelemetryMetric('tsm_upstream_retry_ratio', attemptsMade > 0 ? (attemptsMade - 1) / attemptsMade : 0, { source_id: sourceId });
       const status = lastError?.name === 'AbortError' || lastError?.code === 'ETIMEDOUT' ? 'TIMEOUT' : 'SOURCE_UNAVAILABLE';
       recordHydrologyMetric(options, sourceId, status, startedAt);
       throw lastError;
