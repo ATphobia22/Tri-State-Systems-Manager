@@ -1,7 +1,20 @@
-BasedOnStyle: Microsoft
+BasedOnStyle: LLVM
 Standard: c++20
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: true
+  AfterControlStatement: Always
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterStruct: true
+  AfterUnion: true
+  BeforeCatch: true
+  BeforeElse: true
+AllowShortIfStatementsOnASingleLine: AllIfsAndElse
+AllowShortFunctionsOnASingleLine: Empty
 IndentWidth: 4
 ContinuationIndentWidth: 4
-ColumnLimit: 120
+ColumnLimit: 0
 DerivePointerAlignment: false
 PointerAlignment: Left
