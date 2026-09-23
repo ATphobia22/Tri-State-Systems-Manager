@@ -270,7 +270,7 @@ jobs:
           elif [[ "${{ matrix.triplet }}" == *osx* ]]; then
             find "$ROOT" -type f \( -name "libsqlite3.a" -o -name "libsqlite3.dylib" -o -name "mod_spatialite.dylib" \) -print -quit | grep -q .
           else
-            find "$ROOT" -type f \( -name "libsqlite3.so*" -o -name "libspatialite.so*" \) -print -quit | grep -q .
+            find "$ROOT" \( -type f -o -type l \) \( -name "libsqlite3.so*" -o -name "libspatialite.so*" -o -name "mod_spatialite.so*" \) -print -quit | grep -q .
           fi
 
   package-windows:
