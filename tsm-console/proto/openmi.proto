@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package tsm.openmi.v1;
+
+// TSM-owned transport profile for OpenMI-style exchange items.
+// OpenMI 2.0 itself is an OGC interface standard; this file is not an
+// official OpenMI protobuf encoding.
+
+message SpatialReference {
+  string horizontal_crs = 1;
+  string vertical_datum = 2;
+  string horizontal_units = 3;
+  string vertical_units = 4;
+}
+
+message QuantityValueSet {
+  string quantity_id = 1;
+  string units = 2;
+  repeated double values = 3;
+  string timestamp = 4;
+  string source_provenance_hash = 5;
+  string source_component = 6;
+  string target_component = 7;
+  string model_run_id = 8;
+  repeated string element_ids = 9;
+  SpatialReference spatial_reference = 10;
+  string source_authority = 11;
+  string software_version = 12;
+  string model_version = 13;
+  string validation_status = 14;
+}
+
+message ComponentInfo {
+  string component_id = 1;
+  string component_type = 2;
+  string implementation = 3;
+  repeated string input_quantities = 4;
+  repeated string output_quantities = 5;
+  string software_version = 6;
+  string model_version = 7;
+}
+
+message ExchangeRequest {
+  string component_id = 1;
+  string model_run_id = 2;
+}
+
+message ExchangeResponse {
+  bool accepted = 1;
+  string message = 2;
+  string server_time = 3;
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  string status = 1;
+  string service_version = 2;
+  uint32 registered_components = 3;
+}
+
+service OpenMIService {
+  rpc Exchange(stream QuantityValueSet) returns (stream QuantityValueSet);
+  rpc RegisterComponent(ComponentInfo) returns (ExchangeResponse);
+  rpc Health(HealthRequest) returns (HealthResponse);
+}
