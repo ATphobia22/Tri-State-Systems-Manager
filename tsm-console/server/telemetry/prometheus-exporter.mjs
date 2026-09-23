@@ -31,7 +31,9 @@ const HELP = new Map([
   ['tsm_browser_js_chunk_bytes', 'Measured transferred JavaScript chunk size in bytes.'],
   ['tsm_browser_frame_time_seconds', 'Measured browser animation-frame interval; this is not GPU hardware timing.'],
   ['tsm_browser_tile_request_latency_seconds', 'Measured browser 3D/geospatial tile request latency in seconds.'],
+  ['tsm_browser_tile_requests_total', 'Browser 3D/geospatial tile request attempts.'],
   ['tsm_browser_tile_failures_total', 'Browser 3D/geospatial tile request failures.'],
+  ['tsm_browser_tile_failure_ratio', 'Measured browser 3D/geospatial tile failure ratio.'],
   ['tsm_browser_memory_pressure_ratio', 'Measured JavaScript heap usage divided by the browser heap limit when available.'],
   ['tsm_browser_webgpu_available', 'Browser WebGPU API availability.'],
   ['tsm_browser_webgl_available', 'Browser WebGL context availability.'],
@@ -99,6 +101,11 @@ export function incrementTelemetryCounter(name, labels = {}, delta = 1) {
   const normalized = normalizeLabels(labels);
   const nextValue = (metrics.get(key)?.value ?? 0) + delta;
   metrics.set(key, { name, labels: normalized, value: nextValue });
+  if (name === 'tsm_browser_tile_requests_total' || name === 'tsm_browser_tile_failures_total') {
+    const requests = [...metrics.values()].filter((entry) => entry.name === 'tsm_browser_tile_requests_total').reduce((sum, entry) => sum + entry.value, 0);
+    const failures = [...metrics.values()].filter((entry) => entry.name === 'tsm_browser_tile_failures_total').reduce((sum, entry) => sum + entry.value, 0);
+    observeTelemetryMetric('tsm_browser_tile_failure_ratio', requests > 0 ? failures / requests : 0);
+  }
   if (name === 'tsm_cache_requests_total') {
     const cache = normalized.cache || 'unknown';
     const hits = [...metrics.values()].filter((entry) => entry.name === name && entry.labels.cache === cache && entry.labels.result === 'hit').reduce((sum, entry) => sum + entry.value, 0);
