@@ -1,3 +1,5 @@
+import { observeTelemetryMetric } from '../telemetry/prometheus-exporter.mjs';
+
 const health = new Map();
 
 export function recordSourceHealth(sourceId, patch = {}) {
@@ -16,6 +18,14 @@ export function recordSourceHealth(sourceId, patch = {}) {
     next.lastErrorAt = updatedAt;
   }
   if (Number.isFinite(patch.latencyMs)) next.lastLatencyMs = patch.latencyMs;
+  if (patch.observedAt) {
+    const observedMs = Date.parse(patch.observedAt);
+    if (Number.isFinite(observedMs)) {
+      const ageSeconds = Math.max(0, (Date.now() - observedMs) / 1000);
+      next.freshnessAgeSeconds = ageSeconds;
+      observeTelemetryMetric('tsm_source_freshness_age_seconds', ageSeconds, { source_id: sourceId });
+    }
+  }
   health.set(sourceId, Object.freeze(next));
   return next;
 }
