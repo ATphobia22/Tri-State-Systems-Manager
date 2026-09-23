@@ -1,10 +1,13 @@
 """Indiana Statewide Elevation Catalog provenance adapter.
 
 The catalog is an Indiana Geographic Information Office / IOT Office of
-Technology state elevation archive. This module records source metadata and
-does not infer tile paths, vertical datums, survey control, or certification
-from a catalog entry alone.
+Technology state elevation archive. Catalog metadata is provenance only: it
+does not infer tile paths, vertical datums, survey control, or certification.
 """
+
+from __future__ import annotations
+
+from backend.open_data_registry import indiana_elevation_registry_entry
 
 INDIANA_ELEVATION_CATALOG_URL = "https://elevation.gio.in.gov/"
 INDIANA_ELEVATION_S3_BROWSER_URL = "https://giselevationingov.s3.amazonaws.com/index.html"
@@ -15,7 +18,9 @@ INDIANA_LIDAR_VIEWER_URL = (
     "ff98e3834d464619bd5c8974b0038a13/about"
 )
 
+
 def source_manifest() -> dict[str, str]:
+    registry = indiana_elevation_registry_entry()
     return {
         "source_id": "INDIANA_STATEWIDE_ELEVATION_CATALOG",
         "source_name": "Indiana Statewide Elevation Catalog",
@@ -23,6 +28,11 @@ def source_manifest() -> dict[str, str]:
         "managed_by": "Indiana Geographic Information Office / IOT Office of Technology",
         "jurisdiction": "Indiana",
         "catalog_url": INDIANA_ELEVATION_CATALOG_URL,
+        "registry_repository": registry.repository,
+        "registry_commit": registry.commit,
+        "registry_path": registry.path,
+        "registry_blob_sha": registry.blob_sha,
+        "registry_raw_url": registry.raw_url,
         "s3_browser_url": INDIANA_ELEVATION_S3_BROWSER_URL,
         "bucket_arn": INDIANA_ELEVATION_BUCKET_ARN,
         "region": INDIANA_ELEVATION_REGION,
