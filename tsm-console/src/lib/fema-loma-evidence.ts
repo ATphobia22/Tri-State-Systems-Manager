@@ -18,8 +18,7 @@ export type LomaEvidenceStatus =
 
 export type LomaSubmissionStatus =
   | 'BLOCKED'
-  | 'READY_FOR_HUMAN_REVIEW'
-  | 'READY_FOR_SUBMISSION';
+  | 'READY_FOR_HUMAN_REVIEW';
 
 export type LomaEvidenceKind =
   | 'RECORDED_DEED'
@@ -249,11 +248,7 @@ export function auditFemaLomaEvidence(input: LomaEvidenceInput): LomaAuditResult
   );
 
   const submissionStatus: LomaSubmissionStatus =
-    missingRequired.length > 0
-      ? 'BLOCKED'
-      : humanCertificationRequired
-        ? 'READY_FOR_HUMAN_REVIEW'
-        : 'READY_FOR_SUBMISSION';
+    missingRequired.length > 0 ? 'BLOCKED' : 'READY_FOR_HUMAN_REVIEW';
 
   return {
     gates,
