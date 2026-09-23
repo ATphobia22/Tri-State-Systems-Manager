@@ -3,6 +3,8 @@ const samples = new Map();
 const sloSamples = new Map();
 const MAX_SAMPLES = 2048;
 const HELP = new Map([
+  ['tsm_server_memory_rss_bytes', 'Current Node.js resident memory in bytes.'],
+  ['tsm_server_memory_heap_used_bytes', 'Current Node.js V8 heap usage in bytes.'],
   ['tsm_telemetry_ingest_total', 'Number of telemetry records accepted by the ingestion boundary.'],
   ['ptdt_usgs_gauge_stage_feet', 'Latest accepted USGS gage-height observation in feet, relative to the source gage datum.'],
   ['ptdt_usgs_discharge_cfs', 'Latest accepted USGS discharge observation in cubic feet per second.'],
