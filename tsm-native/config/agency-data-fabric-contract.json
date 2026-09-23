@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "contract": "TSM Agency Data Fabric",
+  "purpose": "Machine-readable boundary between authoritative inputs, derived engineering products, presentation assets, and runtime evidence.",
+  "authoritativeDatasets": "external-and-versioned-only",
+  "inventedAuthoritativeDataAllowed": false,
+  "domains": [
+    {"name":"authority_registry","layer":"raw","immutable":true,"provenanceRequired":true},
+    {"name":"hydrologic_observation","layer":"raw","immutable":true,"provenanceRequired":true,"freshnessRequired":true},
+    {"name":"forecast","layer":"raw","immutable":true,"provenanceRequired":true,"freshnessRequired":true},
+    {"name":"terrain_elevation","layer":"raw","immutable":true,"provenanceRequired":true,"verticalDatumRequired":true},
+    {"name":"geospatial_topology","layer":"validated","immutable":true,"provenanceRequired":true,"geometryValidityRequired":true},
+    {"name":"regulatory_reference","layer":"raw","immutable":true,"provenanceRequired":true,"jurisdictionRequired":true},
+    {"name":"engineering_model","layer":"derived","immutable":true,"provenanceRequired":true,"inputsRequired":true,"softwareVersionRequired":true},
+    {"name":"simulation_scenario","layer":"derived","immutable":true,"provenanceRequired":true,"inputsRequired":true,"parametersRequired":true},
+    {"name":"evidence_artifact","layer":"evidence","immutable":true,"sha256Required":true,"provenanceRequired":true},
+    {"name":"presentation_asset","layer":"presentation","immutable":true,"sourceLineageRequired":true},
+    {"name":"runtime_snapshot","layer":"runtime","immutable":true,"sha256ManifestRequired":true}
+  ],
+  "recordContract": {
+    "required": ["recordId","datasetId","sourceVersion","retrievedAtUtc","contentSha256","lineage","governanceStatus"],
+    "lineageRequired": ["sourceUri","sourceRecordId","transformationId","transformationVersion"],
+    "governanceStatus": ["PUBLIC","QUARANTINE","AUTHENTICATED_REVIEW","RESTRICTED"]
+  },
+  "engineeringRules": [
+    "Observations, forecasts, calculations, simulations, evidence, and regulatory references remain distinct data classes.",
+    "SHA-256 establishes integrity of recorded bytes; it does not establish scientific truth or legal admissibility.",
+    "Vertical datum remains dataset-declared unless an explicit, versioned transformation is recorded.",
+    "Derived artifacts identify material inputs and the software/model version used to create them.",
+    "Presentation data never becomes authoritative merely because it is rendered.",
+    "No authoritative record is synthesized from missing source metadata.",
+    "Rejected or quarantined records cannot be promoted into runtime evidence.",
+    "Connected telemetry is a separate runtime mode and cannot silently activate in Sovereign Mode."
+  ]
+}

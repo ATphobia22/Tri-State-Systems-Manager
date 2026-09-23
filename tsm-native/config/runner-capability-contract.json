@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "runnerClasses": {
+    "linux-native": {"labels":["self-hosted","linux","native","x64"],"requiredTools":["cmake","ninja","clang","clang-tidy"]},
+    "windows-ue5": {"labels":["self-hosted","windows","ue5","x64"],"requiredTools":["UE5","cmake","ninja","signtool"]},
+    "macos-ue5": {"labels":["self-hosted","macos","ue5","arm64"],"requiredTools":["UE5","xcodebuild","codesign","notarytool","cmake","ninja"]},
+    "ios-ue5": {"labels":["self-hosted","macos","ue5","ios","arm64"],"requiredTools":["UE5","xcodebuild","codesign"]},
+    "android-ue5": {"labels":["self-hosted","linux","ue5","android","arm64"],"requiredTools":["UE5","cmake","ninja","Android SDK","Android NDK","apksigner"]}
+  },
+  "security": {
+    "ephemeralPreferred": true,
+    "persistentRunnerProductionUse": false,
+    "secretsOnRunner": false,
+    "networkDataSourcesInSovereignRuntime": false
+  }
+}

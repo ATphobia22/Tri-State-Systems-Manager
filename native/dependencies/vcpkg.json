@@ -1,0 +1,15 @@
+{
+  "name": "tsm-native-dependencies",
+  "version-string": "1.0.0",
+  "dependencies": [
+    {
+      "name": "libspatialite",
+      "default-features": false
+    },
+    {
+      "name": "sqlite3",
+      "default-features": false,
+      "features": ["rtree", "fts5", "json1"]
+    }
+  ]
+}

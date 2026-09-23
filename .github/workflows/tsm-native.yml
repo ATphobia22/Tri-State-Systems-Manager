@@ -1,0 +1,642 @@
+name: TSM Native
+on:
+  push:
+    branches: [Multi-Installer]
+    paths:
+      - "tsm-native/**"
+      - "native/archimedes/**"
+      - "scripts/native/**"
+      - "native/dependencies/**"
+      - "scripts/ci/native-runtime-boundary.mjs"
+      - "scripts/ci/validate-native-platform-matrix.mjs"
+      - "scripts/ci/validate-agency-data-fabric.mjs"
+      - "scripts/ci/validate-provenance-plane.mjs"
+      - "scripts/ci/validate-spatial-topology.mjs"
+      - "ops/postgis/migrations/20260919_engineering_topology.sql"
+      - "infrastructure/runners/**"
+      - "tsm-native/config/platform-build-matrix.json"
+      - ".github/workflows/tsm-native.yml"
+  pull_request:
+    branches: [main, Multi-Installer]
+    paths:
+      - "tsm-native/**"
+      - "native/archimedes/**"
+      - "scripts/native/**"
+      - "native/dependencies/**"
+      - "scripts/ci/native-runtime-boundary.mjs"
+      - "scripts/ci/validate-native-platform-matrix.mjs"
+      - "scripts/ci/validate-agency-data-fabric.mjs"
+      - "scripts/ci/validate-provenance-plane.mjs"
+      - "scripts/ci/validate-spatial-topology.mjs"
+      - "ops/postgis/migrations/20260919_engineering_topology.sql"
+      - "infrastructure/runners/**"
+      - "tsm-native/config/platform-build-matrix.json"
+      - ".github/workflows/tsm-native.yml"
+  workflow_dispatch:
+    inputs:
+      package_windows:
+        description: "Run UE5 Windows Shipping packaging on a self-hosted UE5 runner"
+        required: true
+        default: false
+        type: boolean
+      package_macos:
+        description: "Run UE5 macOS Shipping packaging on a self-hosted UE5 runner"
+        required: true
+        default: false
+        type: boolean
+      package_ios:
+        description: "Run UE5 iOS Shipping packaging on a self-hosted macOS UE5/iOS runner"
+        required: true
+        default: false
+        type: boolean
+      package_android:
+        description: "Run UE5 Android Shipping packaging on a self-hosted UE5/Android runner"
+        required: true
+        default: false
+        type: boolean
+permissions:
+  contents: read
+concurrency:
+  group: tsm-native-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  workflow-structure:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Parse all workflow YAML
+        run: |
+          ruby -e 'require "yaml"; Dir[".github/workflows/*.yml"].sort.each { |f| YAML.safe_load_file(f, aliases: true); puts "valid: #{f}" }'
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Validate native contracts
+        run: |
+          node scripts/ci/validate-data-fabric-contract.mjs
+          node scripts/ci/validate-agency-data-fabric.mjs
+          node scripts/ci/validate-provenance-plane.mjs
+          node scripts/ci/validate-runner-contract.mjs
+          node scripts/ci/validate-spatial-topology.mjs
+
+  architecture-contracts:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Validate architecture contracts
+        run: |
+          node scripts/ci/validate-data-fabric-contract.mjs
+          node scripts/ci/validate-agency-data-fabric.mjs
+          node scripts/ci/validate-provenance-plane.mjs
+          node scripts/ci/validate-runner-contract.mjs
+          node scripts/ci/validate-spatial-topology.mjs
+          node scripts/ci/native-runtime-boundary.mjs
+          node scripts/ci/validate-native-platform-matrix.mjs
+      - name: Validate reproducibility contract
+        run: node -e "JSON.parse(require('fs').readFileSync('tsm-native/config/reproducible-build-contract.json','utf8')); console.log('Reproducibility contract validated.')"
+
+  source-sbom:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Generate SPDX SBOM
+        uses: anchore/sbom-action@8e94d75ddd33f69f691467e42275782e4bfefe84 # pinned commit
+        with:
+          path: .
+          format: spdx-json
+          output-file: dist/provenance/tsm-native-source.spdx.json
+          upload-artifact: false
+      - name: Upload source SBOM
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: tsm-native-source-sbom
+          path: dist/provenance/tsm-native-source.spdx.json
+          if-no-files-found: error
+
+  build-provenance:
+    runs-on: ubuntu-latest
+    needs: [boundary, architecture-contracts]
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Generate build provenance
+        env:
+          TSM_RUNNER_CLASS: linux-native
+        run: node scripts/ci/generate-build-provenance.mjs
+      - name: Upload provenance
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: tsm-native-build-provenance
+          path: dist/provenance/build-provenance.json
+          if-no-files-found: error
+
+  boundary:
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Native runtime boundary
+        run: node scripts/ci/native-runtime-boundary.mjs
+      - name: Native platform matrix
+        run: node scripts/ci/validate-native-platform-matrix.mjs
+      - name: Install ccache
+        run: sudo apt-get update && sudo apt-get install -y ccache
+      - name: Cache C++ compilation
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.cache/ccache
+          key: ccache-linux-${{ hashFiles('native/archimedes/CMakeLists.txt', 'native/archimedes/CMakePresets.json', 'native/archimedes/src/**', 'native/archimedes/include/**', 'native/archimedes/tests/**') }}
+          restore-keys: |
+            ccache-linux-
+      - name: Build and test ArchimedesCore
+        env:
+          CMAKE_CXX_COMPILER_LAUNCHER: ccache
+        run: |
+          cmake --preset linux-x64 -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+          cmake --build --preset linux-x64 --parallel
+          ctest --preset linux-x64
+          ccache --show-stats
+      - name: Attest ArchimedesCore binary
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: native/archimedes/out/build/linux-x64/libArchimedesCore.so
+
+  data-integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Validate native runtime gates
+        run: |
+          node scripts/ci/native-runtime-boundary.mjs
+          node scripts/ci/validate-native-platform-matrix.mjs
+      - name: Validate manifest tooling
+        run: test -s scripts/native/Verify-NativeDataManifest.ps1
+
+  native-static-analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install C++ analysis tools
+        run: sudo apt-get update && sudo apt-get install -y clang-format clang-tidy
+      - name: Check C++ formatting
+        run: |
+          clang-format --dry-run --Werror native/archimedes/src/ArchimedesNative.cpp native/archimedes/include/ArchimedesNative.h native/archimedes/tests/ArchimedesNativeTests.cpp
+      - name: Configure compile database
+        run: cmake -S native/archimedes -B native/archimedes/build-analysis -DBUILD_TESTING=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+      - name: Run clang-tidy
+        run: clang-tidy -p native/archimedes/build-analysis native/archimedes/src/ArchimedesNative.cpp
+
+  archimedes-sanitizers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Configure ASan/UBSan build
+        run: cmake -S native/archimedes -B native/archimedes/build-sanitized -DBUILD_TESTING=ON -DARCHIMEDES_ENABLE_SANITIZERS=ON -DCMAKE_BUILD_TYPE=Debug
+      - name: Build sanitized solver
+        run: cmake --build native/archimedes/build-sanitized --parallel
+      - name: Run sanitized tests
+        env:
+          ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
+          UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+        run: ctest --test-dir native/archimedes/build-sanitized --output-on-failure
+
+  dependency-probe:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            triplet: x64-linux
+          - os: windows-latest
+            triplet: x64-windows
+          - os: macos-14
+            triplet: arm64-osx
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Cache vcpkg binary packages
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ${{ runner.temp }}/vcpkg-cache
+          key: tsm-vcpkg-${{ runner.os }}-${{ matrix.triplet }}-${{ hashFiles('native/dependencies/vcpkg.json', 'native/dependencies/vcpkg-configuration.json') }}
+      - name: Bootstrap pinned native dependencies (Unix)
+        if: ${{ matrix.os != 'windows-latest' }}
+        shell: bash
+        run: |
+          export VCPKG_BINARY_SOURCES="clear;files,$RUNNER_TEMP/vcpkg-cache,readwrite"
+          chmod +x ./scripts/native/Bootstrap-NativeDependencies.sh
+          ./scripts/native/Bootstrap-NativeDependencies.sh "${{ matrix.triplet }}"
+      - name: Bootstrap pinned native dependencies (Windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        shell: pwsh
+        env:
+          VCPKG_BINARY_SOURCES: "clear;files,${{ runner.temp }}/vcpkg-cache,readwrite"
+        run: ./scripts/native/Bootstrap-NativeDependencies.ps1 -Triplet "${{ matrix.triplet }}"
+      - name: Verify native dependency manifest
+        shell: bash
+        run: |
+          ROOT="native/dependencies/vcpkg_installed/${{ matrix.triplet }}"
+          test -f "$ROOT/include/sqlite3.h"
+          test -f "$ROOT/include/spatialite.h"
+          if [[ "${{ matrix.triplet }}" == *windows* ]]; then
+            find "$ROOT" -type f \( -name "sqlite3.lib" -o -name "mod_spatialite.lib" -o -name "mod_spatialite.dll" \) -print -quit | grep -q .
+          elif [[ "${{ matrix.triplet }}" == *osx* ]]; then
+            find "$ROOT" -type f \\( -name "libsqlite3.a" -o -name "libsqlite3.dylib" -o -name "mod_spatialite.dylib" \\) -print -quit | grep -q .
+          else
+            find "$ROOT" -type f \\( -name "libsqlite3.so*" -o -name "libspatialite.so*" \\) -print -quit | grep -q .
+          fi
+
+  package-windows:
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.package_windows }}
+    runs-on: [self-hosted, windows, x64, ue5]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Validate runner capabilities
+        shell: pwsh
+        run: .\scripts\native\Validate-NativeRunner.ps1 -RunnerClass windows-ue5
+      - name: Require UE_ROOT
+        shell: pwsh
+        env:
+          UE_ROOT: ${{ vars.UE_ROOT }}
+        run: |
+          if (-not $env:UE_ROOT) { throw "UE_ROOT must be configured on the UE5 self-hosted runner." }
+      - name: Require Cesium for Unreal 2.29.1
+        shell: pwsh
+        env:
+          UE_ROOT: ${{ vars.UE_ROOT }}
+        run: |
+          $plugin = Join-Path $env:UE_ROOT "Engine\Plugins\Marketplace\CesiumForUnreal\CesiumForUnreal.uplugin"
+          if (-not (Test-Path $plugin)) { throw "Cesium for Unreal is required on the UE5 runner." }
+          $manifest = Get-Content "tsm-native\config\native-geospatial-runtime.json" -Raw | ConvertFrom-Json
+          if ($manifest.geospatial.pluginVersion -ne "2.29.1") { throw "Unexpected Cesium version contract." }
+      - name: Verify immutable native data snapshot
+        shell: pwsh
+        env:
+          TSM_NATIVE_DATA_ROOT: ${{ vars.TSM_NATIVE_DATA_ROOT }}
+        run: |
+          if (-not $env:TSM_NATIVE_DATA_ROOT) { throw "TSM_NATIVE_DATA_ROOT repository variable is required." }
+          if (-not (Test-Path -LiteralPath (Join-Path $env:TSM_NATIVE_DATA_ROOT "data-manifest.json") -PathType Leaf)) { throw "data-manifest.json is required beside the sovereign data snapshot." }
+          .\scripts\native\Verify-NativeDataManifest.ps1 -DataRoot $env:TSM_NATIVE_DATA_ROOT -ManifestPath (Join-Path $env:TSM_NATIVE_DATA_ROOT "data-manifest.json") -RejectExtraFiles
+      - name: Require packaged SpatiaLite
+        shell: pwsh
+        env:
+          TSM_SPATIALITE_DLL: ${{ vars.TSM_SPATIALITE_DLL }}
+        run: |
+          if (-not $env:TSM_SPATIALITE_DLL) { throw "TSM_SPATIALITE_DLL repository variable is required." }
+          if (-not (Test-Path $env:TSM_SPATIALITE_DLL)) { throw "SpatiaLite DLL not found." }
+      - name: Build native Windows package
+        shell: pwsh
+        env:
+          UE_ROOT: ${{ vars.UE_ROOT }}
+          TSM_SPATIALITE_DLL: ${{ vars.TSM_SPATIALITE_DLL }}
+        run: .\scripts\native\Build-TSMNativeWindows.ps1 -UnrealRoot $env:UE_ROOT
+      - name: Sign Windows release artifacts
+        shell: pwsh
+        env:
+          TSM_WINDOWS_SIGNING_CERT_SHA1: ${{ secrets.TSM_WINDOWS_SIGNING_CERT_SHA1 }}
+          TSM_WINDOWS_TIMESTAMP_URL: ${{ vars.TSM_WINDOWS_TIMESTAMP_URL }}
+        run: |
+          if (-not $env:TSM_WINDOWS_SIGNING_CERT_SHA1) { throw "TSM_WINDOWS_SIGNING_CERT_SHA1 secret is required for release signing." }
+          if (-not $env:TSM_WINDOWS_TIMESTAMP_URL) { throw "TSM_WINDOWS_TIMESTAMP_URL repository variable is required." }
+          $signtool = Get-Command signtool.exe -ErrorAction Stop
+          $installer = Get-ChildItem "dist/installer" -Filter "TSM-Native-Setup-*-windows-x64.exe" -File | Select-Object -First 1
+          if (-not $installer) { throw "Windows installer was not produced." }
+          & $signtool.Source sign /sha1 $env:TSM_WINDOWS_SIGNING_CERT_SHA1 /fd SHA256 /tr $env:TSM_WINDOWS_TIMESTAMP_URL /td SHA256 $installer.FullName
+          if ($LASTEXITCODE -ne 0) { throw "Windows Authenticode signing failed." }
+          & $signtool.Source verify /pa /all $installer.FullName
+          if ($LASTEXITCODE -ne 0) { throw "Windows Authenticode verification failed." }
+      - name: Attest signed Windows artifact
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: dist/installer/TSM-Native-Setup-*-windows-x64.exe
+      - name: Generate tsm-native-windows release manifest
+        shell: bash
+        env:
+          TSM_RUNNER_CLASS: windows-ue5
+        run: node scripts/ci/generate-release-manifest.mjs dist/installer dist/provenance/windows-release-manifest.json
+      - name: Generate tsm-native-windows SPDX SBOM
+        uses: anchore/sbom-action@8e94d75ddd33f69f691467e42275782e4bfefe84 # pinned commit
+        with:
+          path: dist/installer
+          format: spdx-json
+          output-file: dist/provenance/windows-native.spdx.json
+          upload-artifact: false
+      - name: Attest tsm-native-windows SBOM
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: dist/installer/**/*
+          sbom-path: dist/provenance/windows-native.spdx.json
+      - name: Upload tsm-native-windows release manifest
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: tsm-native-windows-release-manifest
+          path: dist/provenance/windows-release-manifest.json
+          if-no-files-found: error
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: tsm-native-windows-installer
+          path: dist/installer/TSM-Native-Setup-*-windows-x64.exe
+          if-no-files-found: error
+
+  package-macos:
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.package_macos }}
+    runs-on: [self-hosted, macos, arm64, ue5]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Validate runner capabilities
+        shell: bash
+        run: scripts/native/validate-native-runner.sh macos-ue5
+      - name: Require UE_ROOT
+        run: test -n "$UE_ROOT"
+        env:
+          UE_ROOT: ${{ vars.UE_ROOT }}
+      - name: Require Cesium for Unreal 2.29.1
+        run: |
+          test -f "$UE_ROOT/Engine/Plugins/Marketplace/CesiumForUnreal/CesiumForUnreal.uplugin"
+          test "$(python3 -c 'import json; print(json.load(open("tsm-native/config/native-geospatial-runtime.json"))["geospatial"]["pluginVersion"])')" = "2.29.1"
+        env:
+          UE_ROOT: ${{ vars.UE_ROOT }}
+      - name: Verify immutable native data snapshot
+        shell: bash
+        env:
+          TSM_NATIVE_DATA_ROOT: ${{ vars.TSM_NATIVE_DATA_ROOT }}
+        run: |
+          test -n "$TSM_NATIVE_DATA_ROOT"
+          test -f "$TSM_NATIVE_DATA_ROOT/data-manifest.json"
+          chmod +x scripts/native/Verify-NativeDataManifest.sh
+          scripts/native/Verify-NativeDataManifest.sh "$TSM_NATIVE_DATA_ROOT" "$TSM_NATIVE_DATA_ROOT/data-manifest.json" true
+      - name: Build ArchimedesCore
+        run: |
+          cmake -S native/archimedes -B native/archimedes/build
+          cmake --build native/archimedes/build --config Release --parallel
+      - name: Require packaged SpatiaLite
+        run: |
+          test -n "$TSM_SPATIALITE_DYLIB"
+          test -f "$TSM_SPATIALITE_DYLIB"
+        env:
+          TSM_SPATIALITE_DYLIB: ${{ vars.TSM_SPATIALITE_DYLIB }}
+      - name: Stage ArchimedesCore for macOS build
+        run: |
+          ARCHIMEDES="$(find native/archimedes/build -type f -name 'libArchimedesCore.dylib' -print -quit)"
+          test -n "$ARCHIMEDES"
+          mkdir -p tsm-native/Binaries
+          cp "$ARCHIMEDES" tsm-native/Binaries/libArchimedesCore.dylib
+      - name: Package UE5 macOS application
+        run: |
+          "$UE_ROOT/Engine/Build/BatchFiles/RunUAT.sh" BuildCookRun \
+            -project="$GITHUB_WORKSPACE/tsm-native/TSMNative.uproject" \
+            -noP4 -build -cook -stage -pak -package -archive \
+            -archivedirectory="$GITHUB_WORKSPACE/dist/tsm-native" \
+            -platform=Mac -clientconfig=Shipping -utf8output
+      - name: Stage native runtime libraries inside macOS app
+        shell: bash
+        env:
+          TSM_SPATIALITE_DYLIB: ${{ vars.TSM_SPATIALITE_DYLIB }}
+        run: |
+          APP="$(find dist/tsm-native -type d -name '*.app' -print -quit)"
+          test -n "$APP"
+          RUNTIME_DIR="$APP/Contents/MacOS/Binaries"
+          mkdir -p "$RUNTIME_DIR"
+          test -f "tsm-native/Binaries/libArchimedesCore.dylib"
+          cp "tsm-native/Binaries/libArchimedesCore.dylib" "$RUNTIME_DIR/libArchimedesCore.dylib"
+          cp "$TSM_SPATIALITE_DYLIB" "$RUNTIME_DIR/mod_spatialite.dylib"
+      - name: Sign and notarize macOS release
+        shell: bash
+        env:
+          MACOS_SIGNING_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
+          MACOS_NOTARY_PROFILE: ${{ secrets.MACOS_NOTARY_PROFILE }}
+        run: |
+          test -n "$MACOS_SIGNING_IDENTITY"
+          test -n "$MACOS_NOTARY_PROFILE"
+          APP="$(find dist/tsm-native -type d -name '*.app' -print -quit)"
+          test -n "$APP"
+          RUNTIME_DIR="$APP/Contents/MacOS/Binaries"
+          codesign --force --options runtime --timestamp --sign "$MACOS_SIGNING_IDENTITY" "$RUNTIME_DIR/libArchimedesCore.dylib"
+          codesign --force --options runtime --timestamp --sign "$MACOS_SIGNING_IDENTITY" "$RUNTIME_DIR/mod_spatialite.dylib"
+          codesign --force --options runtime --timestamp --deep --sign "$MACOS_SIGNING_IDENTITY" "$APP"
+          codesign --verify --deep --strict "$APP"
+          xcrun notarytool submit "$APP" --keychain-profile "$MACOS_NOTARY_PROFILE" --wait
+          xcrun stapler staple "$APP"
+          spctl --assess --type execute "$APP"
+      - name: Attest notarized macOS artifact
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: dist/tsm-native/**/*.app
+      - name: Generate tsm-native-macos release manifest
+        shell: bash
+        env:
+          TSM_RUNNER_CLASS: macos-ue5
+        run: node scripts/ci/generate-release-manifest.mjs dist/tsm-native dist/provenance/macos-release-manifest.json
+      - name: Generate tsm-native-macos SPDX SBOM
+        uses: anchore/sbom-action@8e94d75ddd33f69f691467e42275782e4bfefe84 # pinned commit
+        with:
+          path: dist/tsm-native
+          format: spdx-json
+          output-file: dist/provenance/macos-native.spdx.json
+          upload-artifact: false
+      - name: Attest tsm-native-macos SBOM
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: dist/tsm-native/**/*
+          sbom-path: dist/provenance/macos-native.spdx.json
+      - name: Upload tsm-native-macos release manifest
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: tsm-native-macos-release-manifest
+          path: dist/provenance/macos-release-manifest.json
+          if-no-files-found: error
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: tsm-native-macos-package
+          path: dist/tsm-native/**
+          if-no-files-found: error
+
+
+  package-ios:
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.package_ios }}
+    runs-on: [self-hosted, macos, arm64, ue5, ios]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Validate runner capabilities
+        shell: bash
+        run: scripts/native/validate-native-runner.sh ios-ue5
+      - name: Require UE_ROOT and Xcode
+        shell: bash
+        env:
+          UE_ROOT: ${{ vars.UE_ROOT }}
+        run: |
+          test -n "$UE_ROOT"
+          xcode-select -p
+          xcodebuild -version
+      - name: Verify immutable native data snapshot
+        shell: bash
+        env:
+          TSM_NATIVE_DATA_ROOT: ${{ vars.TSM_NATIVE_DATA_ROOT }}
+        run: |
+          test -n "$TSM_NATIVE_DATA_ROOT"
+          test -f "$TSM_NATIVE_DATA_ROOT/data-manifest.json"
+          chmod +x scripts/native/Verify-NativeDataManifest.sh
+          scripts/native/Verify-NativeDataManifest.sh "$TSM_NATIVE_DATA_ROOT" "$TSM_NATIVE_DATA_ROOT/data-manifest.json" true
+      - name: Package UE5 iOS Shipping build
+        shell: bash
+        env:
+          UE_ROOT: ${{ vars.UE_ROOT }}
+        run: |
+          "$UE_ROOT/Engine/Build/BatchFiles/RunUAT.sh" BuildCookRun             -project="$GITHUB_WORKSPACE/tsm-native/TSMNative.uproject"             -noP4 -build -cook -stage -pak -package -archive             -archivedirectory="$GITHUB_WORKSPACE/dist/tsm-native-ios"             -platform=IOS -clientconfig=Shipping -utf8output
+      - name: Verify iOS signing and package output
+        shell: bash
+        run: |
+          test -d dist/tsm-native-ios
+          BUNDLE="$(find dist/tsm-native-ios -type d -name '*.app' -print -quit)"
+          test -n "$BUNDLE"
+          codesign --verify --deep --strict "$BUNDLE"
+      - name: Attest signed iOS artifact
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: dist/tsm-native-ios/**/*.app
+      - name: Generate tsm-native-ios release manifest
+        shell: bash
+        env:
+          TSM_RUNNER_CLASS: ios-ue5
+        run: node scripts/ci/generate-release-manifest.mjs dist/tsm-native-ios dist/provenance/ios-release-manifest.json
+      - name: Generate tsm-native-ios SPDX SBOM
+        uses: anchore/sbom-action@8e94d75ddd33f69f691467e42275782e4bfefe84 # pinned commit
+        with:
+          path: dist/tsm-native-ios
+          format: spdx-json
+          output-file: dist/provenance/ios-native.spdx.json
+          upload-artifact: false
+      - name: Attest tsm-native-ios SBOM
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: dist/tsm-native-ios/**/*
+          sbom-path: dist/provenance/ios-native.spdx.json
+      - name: Upload tsm-native-ios release manifest
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: tsm-native-ios-release-manifest
+          path: dist/provenance/ios-release-manifest.json
+          if-no-files-found: error
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: tsm-native-ios-package
+          path: dist/tsm-native-ios/**
+          if-no-files-found: error
+
+  package-android:
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.package_android }}
+    runs-on: [self-hosted, linux, arm64, ue5, android]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Validate runner capabilities
+        shell: bash
+        run: scripts/native/validate-native-runner.sh android-ue5
+      - name: Require UE_ROOT and Android toolchain
+        shell: bash
+        env:
+          UE_ROOT: ${{ vars.UE_ROOT }}
+        run: |
+          test -n "$UE_ROOT"
+          test -n "$ANDROID_HOME"
+          test -d "$ANDROID_HOME"
+          test -n "$ANDROID_NDK_ROOT"
+          test -d "$ANDROID_NDK_ROOT"
+      - name: Verify immutable native data snapshot
+        shell: bash
+        env:
+          TSM_NATIVE_DATA_ROOT: ${{ vars.TSM_NATIVE_DATA_ROOT }}
+        run: |
+          test -n "$TSM_NATIVE_DATA_ROOT"
+          test -f "$TSM_NATIVE_DATA_ROOT/data-manifest.json"
+          chmod +x scripts/native/Verify-NativeDataManifest.sh
+          scripts/native/Verify-NativeDataManifest.sh "$TSM_NATIVE_DATA_ROOT" "$TSM_NATIVE_DATA_ROOT/data-manifest.json" true
+      - name: Package UE5 Android Shipping build
+        shell: bash
+        env:
+          UE_ROOT: ${{ vars.UE_ROOT }}
+        run: |
+          "$UE_ROOT/Engine/Build/BatchFiles/RunUAT.sh" BuildCookRun             -project="$GITHUB_WORKSPACE/tsm-native/TSMNative.uproject"             -noP4 -build -cook -stage -pak -package -archive             -archivedirectory="$GITHUB_WORKSPACE/dist/tsm-native-android"             -platform=Android -clientconfig=Shipping -utf8output
+      - name: Verify Android package signing
+        shell: bash
+        run: |
+          test -d dist/tsm-native-android
+          APK="$(find dist/tsm-native-android -type f -name '*.apk' -print -quit)"
+          test -n "$APK"
+          APKSIGNER="$(find "$ANDROID_HOME" -type f \( -name apksigner -o -name apksigner.bat \) -print -quit)"
+          test -n "$APKSIGNER"
+          "$APKSIGNER" verify --verbose "$APK"
+      - name: Attest signed Android artifact
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: dist/tsm-native-android/*.apk
+      - name: Generate tsm-native-android release manifest
+        shell: bash
+        env:
+          TSM_RUNNER_CLASS: android-ue5
+        run: node scripts/ci/generate-release-manifest.mjs dist/tsm-native-android dist/provenance/android-release-manifest.json
+      - name: Generate tsm-native-android SPDX SBOM
+        uses: anchore/sbom-action@8e94d75ddd33f69f691467e42275782e4bfefe84 # pinned commit
+        with:
+          path: dist/tsm-native-android
+          format: spdx-json
+          output-file: dist/provenance/android-native.spdx.json
+          upload-artifact: false
+      - name: Attest tsm-native-android SBOM
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: dist/tsm-native-android/**/*
+          sbom-path: dist/provenance/android-native.spdx.json
+      - name: Upload tsm-native-android release manifest
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: tsm-native-android-release-manifest
+          path: dist/provenance/android-release-manifest.json
+          if-no-files-found: error
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: tsm-native-android-package
+          path: dist/tsm-native-android/**
+          if-no-files-found: error

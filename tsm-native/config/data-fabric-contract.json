@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "fabric": "TSM Sovereign Data Fabric",
+  "layers": [
+    {"name":"raw","mutable":false,"authoritativeSourceRequired":true},
+    {"name":"normalized","mutable":false,"sourceLineageRequired":true},
+    {"name":"validated","mutable":false,"validationReportRequired":true},
+    {"name":"derived","mutable":false,"derivationMethodRequired":true},
+    {"name":"runtime","mutable":false,"sha256ManifestRequired":true}
+  ],
+  "recordContract": {
+    "required": ["recordId","sourceDatasetId","sourceVersion","retrievedAtUtc","horizontalCrs","verticalDatum","units","geometry","contentSha256","lineage"],
+    "lineage": ["sourceUri","sourceRecordId","transformationId","transformationVersion"]
+  },
+  "rules": [
+    "Never promote data without provenance.",
+    "Never overwrite an immutable promoted layer.",
+    "Every transformation is versioned.",
+    "Every runtime snapshot is hash-addressed.",
+    "Vertical datum remains dataset-declared unless explicitly transformed with a documented operation."
+  ]
+}
