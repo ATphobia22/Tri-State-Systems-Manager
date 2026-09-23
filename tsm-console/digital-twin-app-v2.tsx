@@ -206,12 +206,18 @@ export default function DigitalTwinAppV2(): JSX.Element {
     map.on('load', () => {
       mapRef.current = map;
 
-      map.on('mousemove', 'posey-wthgis-parcels-3d', (event) => {
-        map.getCanvas().style.cursor = event.features?.length ? 'pointer' : '';
+      map.on('mousemove', (event) => {
+        if (!map.getLayer('posey-wthgis-parcels-3d')) {
+          map.getCanvas().style.cursor = '';
+          return;
+        }
+        const features = map.queryRenderedFeatures(event.point, { layers: ['posey-wthgis-parcels-3d'] });
+        map.getCanvas().style.cursor = features.length ? 'pointer' : '';
       });
 
-      map.on('click', 'posey-wthgis-parcels-3d', (event) => {
-        const feature = event.features?.[0];
+      map.on('click', (event) => {
+        if (!map.getLayer('posey-wthgis-parcels-3d')) return;
+        const feature = map.queryRenderedFeatures(event.point, { layers: ['posey-wthgis-parcels-3d'] })[0];
         if (!feature) return;
         const properties = feature.properties ?? {};
         const parsed: ParcelProperties = {
