@@ -1,4 +1,4 @@
-import type { Router } from 'react-router';
+type RuntimeRouter = { subscribe: (listener: (state: { location?: { pathname?: string }; navigation?: { state?: string } }) => void) => () => void };
 
 type MetricLabels = Record<string, string | number | boolean>;
 const ENDPOINT = '/api/runtime/metrics';
@@ -79,7 +79,7 @@ function installGraphicsCapabilityProbe(): void {
   const available = Boolean(canvas.getContext('webgl2') || canvas.getContext('webgl'));
   enqueue('tsm_browser_webgl_available', available ? 1 : 0);
 }
-function installNavigationObserver(router: Router): void {
+function installNavigationObserver(router: RuntimeRouter): void {
   const initial = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
   if (initial) enqueue('tsm_browser_route_load_seconds', initial.duration / 1000, { route: location.pathname });
   let navigationStart = performance.now();
@@ -96,7 +96,7 @@ function installNavigationObserver(router: Router): void {
     }
   });
 }
-export function installRuntimePerformanceTelemetry(router: Router): void {
+export function installRuntimePerformanceTelemetry(router: RuntimeRouter): void {
   if (typeof window === 'undefined') return;
   installResourceObserver();
   installFetchTileObserver();
