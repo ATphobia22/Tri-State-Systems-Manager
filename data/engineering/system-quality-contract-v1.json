@@ -13,11 +13,31 @@
     "bounded_resources": true
   },
   "service_objectives": [
-    {"id":"api_readiness","indicator":"GET /ready success","target":"100% valid readiness responses during controlled release verification"},
-    {"id":"source_freshness","indicator":"live source freshness state","target":"never relabel STALE or SOURCE_UNAVAILABLE as LIVE"},
-    {"id":"evidence_integrity","indicator":"SHA-256/provenance validation","target":"100% of persisted engineering evidence has verifiable provenance metadata"},
-    {"id":"build_reproducibility","indicator":"clean locked install and production build","target":"npm ci + production build succeeds from a clean runner"},
-    {"id":"regression_safety","indicator":"required CI gates","target":"all required gates pass before production artifact publication"}
+    {
+      "id": "api_readiness",
+      "indicator": "GET /ready success",
+      "target": "100% valid readiness responses during controlled release verification"
+    },
+    {
+      "id": "source_freshness",
+      "indicator": "live source freshness state",
+      "target": "never relabel STALE or SOURCE_UNAVAILABLE as LIVE"
+    },
+    {
+      "id": "evidence_integrity",
+      "indicator": "SHA-256/provenance validation",
+      "target": "100% of persisted engineering evidence has verifiable provenance metadata"
+    },
+    {
+      "id": "build_reproducibility",
+      "indicator": "clean locked install and production build",
+      "target": "npm ci + production build succeeds from a clean runner"
+    },
+    {
+      "id": "regression_safety",
+      "indicator": "required CI gates",
+      "target": "all required gates pass before production artifact publication"
+    }
   ],
   "performance_controls": {
     "bounded_network_requests": true,
@@ -47,5 +67,53 @@
     "regulatory_output": "human/agency authority only",
     "credential_metadata": "human capability metadata only",
     "external_dependencies": "pinned, auditable, fail-closed where required"
+  },
+  "runtime_observability": {
+    "measurement_mode": "in-process bounded measurements with Prometheus exposition plus browser-side batched telemetry",
+    "sample_retention": "bounded to 2048 samples per metric series; browser queue bounded to 256 samples",
+    "api": [
+      "p50",
+      "p95",
+      "p99",
+      "availability",
+      "error_budget_consumption"
+    ],
+    "upstream": [
+      "latency_p50_p95_p99",
+      "retry_count",
+      "retry_ratio",
+      "circuit_state",
+      "source_freshness_age"
+    ],
+    "ingestion": [
+      "record_count",
+      "throughput_records_per_second"
+    ],
+    "cache": [
+      "hit_miss_counts",
+      "hit_ratio"
+    ],
+    "browser": [
+      "route_load",
+      "javascript_chunk_bytes",
+      "frame_interval",
+      "tile_latency",
+      "tile_failures",
+      "memory_pressure",
+      "webgl_available",
+      "webgpu_available"
+    ],
+    "server": [
+      "event_loop_utilization",
+      "rss_bytes",
+      "heap_used_bytes"
+    ],
+    "engineering": [
+      "geospatial_query_duration",
+      "hydraulic_job_duration",
+      "evidence_processing_duration",
+      "evidence_processing_count"
+    ],
+    "current_measurement_boundary": "Metrics are runtime-derived. No unmeasured production value is represented as a current observation; CI asset budgets are measured from the clean production build artifact."
   }
 }
