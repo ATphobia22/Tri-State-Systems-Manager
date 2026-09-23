@@ -24,12 +24,27 @@ interface ParcelProperties {
   wthgisRecordUrl?: string;
 }
 
-interface PoseyParcelFeature extends GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon, ParcelProperties> {}
-
-interface PoseyParcelCollection extends GeoJSON.FeatureCollection<GeoJSON.Polygon | GeoJSON.MultiPolygon, ParcelProperties> {
+type Position = [number, number] | [number, number, number];
+type PolygonCoordinates = Position[][];
+type MultiPolygonCoordinates = Position[][][];
+type ParcelGeometry =
+  | { type: 'Polygon'; coordinates: PolygonCoordinates }
+  | { type: 'MultiPolygon'; coordinates: MultiPolygonCoordinates };
+type ParcelFeature = {
+  type: 'Feature';
+  geometry: ParcelGeometry;
+  properties: ParcelProperties;
+};
+type ParcelFeatureCollection = {
+  type: 'FeatureCollection';
+  features: ParcelFeature[];
   sourceCrs?: string;
   sourceAuthority?: string;
-}
+};
+
+type MapLibreHazardColor = NonNullable<
+  Extract<maplibregl.LayerSpecification, { type: 'fill-extrusion' }>['paint']
+>['fill-extrusion-color'];
 
 interface OpenMIWaterSurfaceMessage {
   waterSurfaceElevationFtNavd88: number;
@@ -63,7 +78,7 @@ function classifyParcel(parcel: ParcelProperties, defaultBfe: number): HazardSta
   return 'REVIEW_REQUIRED';
 }
 
-function hazardColorExpression(_defaultBfe: number) {
+function hazardColorExpression(_defaultBfe: number): MapLibreHazardColor {
   return [
     'match',
     ['to-string', ['get', 'hazardState']],
@@ -72,17 +87,17 @@ function hazardColorExpression(_defaultBfe: number) {
     'SFHA_COMPLIANT',
     '#22c55e',
     '#f59e0b',
-  ];
+  ] as MapLibreHazardColor;
 }
 
-function normalizeCollection(value: unknown): PoseyParcelCollection {
+function normalizeCollection(value: unknown): ParcelFeatureCollection {
   if (!value || typeof value !== 'object') throw new Error('WTH GIS geometry response is not an object.');
-  const candidate = value as Partial<PoseyParcelCollection>;
+  const candidate = value as Partial<ParcelFeatureCollection>;
   if (candidate.type !== 'FeatureCollection' || !Array.isArray(candidate.features)) {
     throw new Error('Expected a GeoJSON FeatureCollection.');
   }
 
-  const features = candidate.features.filter((feature): feature is PoseyParcelFeature => {
+  const features = candidate.features.filter((feature): feature is ParcelFeature => {
     if (!feature || feature.type !== 'Feature' || !feature.geometry || !feature.properties) return false;
     return feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon';
   });
@@ -98,7 +113,7 @@ function normalizeCollection(value: unknown): PoseyParcelCollection {
   };
 }
 
-function decorateHazardState(collection: PoseyParcelCollection, defaultBfe: number): PoseyParcelCollection {
+function decorateHazardState(collection: ParcelFeatureCollection, defaultBfe: number): ParcelFeatureCollection {
   return {
     ...collection,
     features: collection.features.map((feature) => ({
@@ -133,7 +148,7 @@ function buildStyle(): maplibregl.StyleSpecification {
 export default function DigitalTwinAppV2(): JSX.Element {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
-  const [parcels, setParcels] = useState<PoseyParcelCollection | null>(null);
+  const [parcels, setParcels] = useState<ParcelFeatureCollection | null>(null);
   const [selected, setSelected] = useState<PoseyParcelFeature | null>(null);
   const [parcelVisible, setParcelVisible] = useState(true);
   const [telemetryVisible, setTelemetryVisible] = useState(true);
@@ -148,7 +163,7 @@ export default function DigitalTwinAppV2(): JSX.Element {
     return isFiniteNumber(configured) ? configured : DEFAULT_BFE_FT_NAVD88;
   }, []);
 
-  const applyParcelLayer = useCallback((map: maplibregl.Map, collection: PoseyParcelCollection): void => {
+  const applyParcelLayer = useCallback((map: maplibregl.Map, collection: ParcelFeatureCollection): void => {
     const sourceId = 'posey-wthgis-parcels';
     const fillId = 'posey-wthgis-parcels-3d';
     const lineId = 'posey-wthgis-parcels-outline';
@@ -248,7 +263,7 @@ export default function DigitalTwinAppV2(): JSX.Element {
           wthgisFeatureId: Number(properties.wthgisFeatureId),
           wthgisRecordUrl: typeof properties.wthgisRecordUrl === 'string' ? properties.wthgisRecordUrl : undefined,
         };
-        const geometry = feature.geometry;
+        const geometry = feature.geometry as ParcelFeature['geometry'];
         setSelected({
           type: 'Feature',
           geometry: geometry as PoseyParcelFeature['geometry'],
