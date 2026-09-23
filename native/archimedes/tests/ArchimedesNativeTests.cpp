@@ -25,13 +25,7 @@ void AssertFiniteNonNegative(const double* values, int count)
 
 int main()
 {
-    ArchimedesSiteInput input{
-        504320.12,
-        142095.44,
-        375.0,
-        377.2,
-        1.25
-    };
+    ArchimedesSiteInput input{504320.12, 142095.44, 375.0, 377.2, 1.25};
 
     ArchimedesSiteMetrics output{};
     assert(ArchimedesEvaluateGeodeticInvariants(&input, &output) == ARCHIMEDES_OK);
@@ -48,13 +42,7 @@ int main()
         ArchimedesEvaluateGeodeticInvariants(&input, &output) ==
         ARCHIMEDES_NON_FINITE_INPUT);
 
-    ArchimedesSaintVenantConfig config{
-        10.0,
-        0.0002,
-        0.035,
-        32.174,
-        0.8
-    };
+    ArchimedesSaintVenantConfig config{10.0, 0.0002, 0.035, 32.174, 0.8};
 
     double depth[] = {4.0, 4.0, 4.0, 4.0};
     double velocity[] = {1.0, 1.0, 1.0, 1.0};
