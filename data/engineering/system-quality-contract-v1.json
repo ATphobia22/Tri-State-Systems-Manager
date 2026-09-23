@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0.0",
+  "system": "Tri-State Systems Manager",
+  "intent": "production engineering quality, reliability, performance, security and verification baseline",
+  "principles": {
+    "requirements_traceability": true,
+    "fail_closed": true,
+    "deterministic_reproduction": true,
+    "provenance_preservation": true,
+    "independent_verification": true,
+    "human_authority_boundary": true,
+    "observable_runtime_state": true,
+    "bounded_resources": true
+  },
+  "service_objectives": [
+    {"id":"api_readiness","indicator":"GET /ready success","target":"100% valid readiness responses during controlled release verification"},
+    {"id":"source_freshness","indicator":"live source freshness state","target":"never relabel STALE or SOURCE_UNAVAILABLE as LIVE"},
+    {"id":"evidence_integrity","indicator":"SHA-256/provenance validation","target":"100% of persisted engineering evidence has verifiable provenance metadata"},
+    {"id":"build_reproducibility","indicator":"clean locked install and production build","target":"npm ci + production build succeeds from a clean runner"},
+    {"id":"regression_safety","indicator":"required CI gates","target":"all required gates pass before production artifact publication"}
+  ],
+  "performance_controls": {
+    "bounded_network_requests": true,
+    "bounded_retry_backoff": true,
+    "bounded_cache": true,
+    "route_level_code_splitting": true,
+    "large_geospatial_assets_lazy_loaded": true,
+    "no_unbounded_polling": true,
+    "no_unbounded_memory_growth": true,
+    "deterministic_batch_processing": true
+  },
+  "verification_layers": [
+    "static_parse",
+    "typecheck",
+    "schema_validation",
+    "unit_contract_tests",
+    "integration_tests",
+    "source_health_checks",
+    "geospatial_contract_checks",
+    "production_build",
+    "headed_e2e",
+    "artifact_provenance"
+  ],
+  "risk_controls": {
+    "single_source_of_truth": "source authority and provenance metadata, never UI state",
+    "model_output": "derived evidence only",
+    "regulatory_output": "human/agency authority only",
+    "credential_metadata": "human capability metadata only",
+    "external_dependencies": "pinned, auditable, fail-closed where required"
+  }
+}
