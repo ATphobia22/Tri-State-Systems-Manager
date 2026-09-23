@@ -42,6 +42,15 @@ type ParcelFeatureCollection = {
   sourceAuthority?: string;
 };
 
+type WaterSurfaceGeometry = {
+  type: 'FeatureCollection';
+  features: Array<{
+    type: 'Feature';
+    geometry: ParcelGeometry;
+    properties?: Record<string, unknown>;
+  }>;
+};
+
 type MapLibreHazardColor = NonNullable<
   Extract<maplibregl.LayerSpecification, { type: 'fill-extrusion' }>['paint']
 >['fill-extrusion-color'];
@@ -390,7 +399,7 @@ export default function DigitalTwinAppV2(): JSX.Element {
         if (!response.ok) throw new Error(`Water-surface geometry returned HTTP ${response.status}`);
         return response.json();
       })
-      .then((geometry: GeoJSON.FeatureCollection<GeoJSON.Polygon | GeoJSON.MultiPolygon>) => {
+      .then((geometry: WaterSurfaceGeometry) => {
         if (!map.getSource(sourceId)) {
           map.addSource(sourceId, { type: 'geojson', data: geometry });
         }
