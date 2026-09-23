@@ -1,6 +1,0 @@
-#!/usr/bin/env node
-import fs from "node:fs"; import path from "node:path"; import crypto from "node:crypto";
-const [inputArg,outputArg]=process.argv.slice(2); if(!inputArg||!outputArg) throw new Error("usage: generate-release-manifest.mjs <artifact-dir> <output-file>");
-const input=path.resolve(inputArg); const output=path.resolve(outputArg); if(!fs.existsSync(input)) throw new Error(`artifact directory missing: ${inputArg}`);
-const files=[]; function walk(dir){for(const entry of fs.readdirSync(dir,{withFileTypes:true})){const p=path.join(dir,entry.name); if(entry.isDirectory()) walk(p); else {const data=fs.readFileSync(p); files.push({path:path.relative(input,p).replaceAll(path.sep,"/"),size:data.length,sha256:crypto.createHash("sha256").update(data).digest("hex")});}}}
-walk(input); files.sort((a,b)=>a.path.localeCompare(b.path)); fs.mkdirSync(path.dirname(output),{recursive:true}); fs.writeFileSync(output,JSON.stringify({schemaVersion:1,generatedAt:new Date().toISOString(),artifactRoot:inputArg,files},null,2)+"\n"); console.log(JSON.stringify({ok:true,fileCount:files.length,output:outputArg},null,2));
