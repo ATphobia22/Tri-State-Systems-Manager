@@ -47,7 +47,10 @@ function recordHttpPerformance(method, pathname, status, durationMs) {
   observeSlo('api_latency_p95', durationMs <= 750, { route });
   if (route === 'geospatial') observeTelemetryDuration('tsm_geospatial_query_latency_seconds', durationMs / 1000, { method });
   if (route === 'engineering') observeTelemetryDuration('tsm_hydraulic_job_latency_seconds', durationMs / 1000, { method });
-  if (route === 'evidence') observeTelemetryDuration('tsm_evidence_processing_latency_seconds', durationMs / 1000, { method });
+  if (route === 'evidence') {
+    observeTelemetryDuration('tsm_evidence_processing_latency_seconds', durationMs / 1000, { method });
+    incrementTelemetryCounter('tsm_evidence_processing_total', { method, outcome: status < 500 ? 'success' : 'error' });
+  }
   const memory = process.memoryUsage();
   observeTelemetryMetric('tsm_server_memory_rss_bytes', memory.rss);
   observeTelemetryMetric('tsm_server_memory_heap_used_bytes', memory.heapUsed);
@@ -259,11 +262,13 @@ const server = http.createServer(async (req, res) => {
           freshness: { observedAt: stage.observedAt, retrievedAt: stage.retrievedAt },
           requestId,
         };
+        incrementTelemetryCounter('tsm_cache_requests_total', { cache: 'hydrologic_stale', result: 'miss' });
         putStaleCache(cacheKey, payload);
         return json(res, 200, payload, requestId);
       } catch (error) {
         const stale = getStaleCache(cacheKey);
         if (stale) {
+          incrementTelemetryCounter('tsm_cache_requests_total', { cache: 'hydrologic_stale', result: 'hit' });
           return json(res, 200, {
             ...stale.value,
             ok: true,
@@ -273,6 +278,7 @@ const server = http.createServer(async (req, res) => {
             requestId,
           }, requestId);
         }
+        incrementTelemetryCounter('tsm_cache_requests_total', { cache: 'hydrologic_stale', result: 'miss' });
         return json(res, 503, { ok: false, status: 'unavailable', code: error?.code || 'HYDRO_SOURCE_UNAVAILABLE', sourceId: `NOAA-NWPS-${nwsId}-observed / USGS-NWIS-${usgsId}-00065`, requestId }, requestId);
       }
     }
