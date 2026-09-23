@@ -62,6 +62,9 @@ const POSEY_COUNTYGISMAPS_URL = 'https://countygismaps.com/map/in/posey';
 const FEMA_NFHL_URL = 'https://msc.fema.gov/nfhl';
 const POSEY_EQUATOR_URL = 'https://gis.equatorstudios.com/indiana_posey/';
 const POSEY_LANDRECORDS_URL = 'https://landrecords.us/documentation/coverage/counties/18-129-posey';
+const INDIANA_ELEVATION_CATALOG_URL = 'https://elevation.gio.in.gov/';
+const INDIANA_ELEVATION_S3_URL = 'https://giselevationingov.s3.amazonaws.com/index.html';
+const INDIANA_LIDAR_VIEWER_URL = 'https://indianamap-inmap.hub.arcgis.com/maps/ff98e3834d464619bd5c8974b0038a13/about';
 
 const isFiniteNumber = (value: unknown): value is number =>
   typeof value === 'number' && Number.isFinite(value);
@@ -492,6 +495,9 @@ export default function DigitalTwinAppV2(): JSX.Element {
               <a href={POSEY_COUNTYGISMAPS_URL} target="_blank" rel="noreferrer">CountyGISMaps reference ↗</a>
               <a href={POSEY_EQUATOR_URL} target="_blank" rel="noreferrer">Equator GIS reference ↗</a>
               <a href={POSEY_LANDRECORDS_URL} target="_blank" rel="noreferrer">Land Records reference ↗</a>
+              <a href={INDIANA_ELEVATION_CATALOG_URL} target="_blank" rel="noreferrer">Indiana elevation catalog ↗</a>
+              <a href={INDIANA_ELEVATION_S3_URL} target="_blank" rel="noreferrer">Indiana LiDAR S3 archive ↗</a>
+              <a href={INDIANA_LIDAR_VIEWER_URL} target="_blank" rel="noreferrer">Indiana LiDAR viewer ↗</a>
               <a href={FEMA_NFHL_URL} target="_blank" rel="noreferrer">FEMA NFHL ↗</a>
             </div>
           </div>
