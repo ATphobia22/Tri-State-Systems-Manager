@@ -145,7 +145,7 @@ jobs:
         run: python -m unittest backend.test_secondary_posey_sources -v
       - name: Indiana statewide elevation catalog tests
         working-directory: .
-        run: python -m unittest backend.test_indiana_elevation_catalog -v
+        run: python -m unittest backend.test_indiana_elevation_catalog backend.test_open_data_registry -v
       - name: Validate Alertmanager configuration
         working-directory: .
         run: |
