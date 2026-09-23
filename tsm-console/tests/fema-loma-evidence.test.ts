@@ -36,7 +36,7 @@ describe('FEMA LOMA evidence gate', () => {
     });
 
     expect(result.gates.find((gate) => gate.id === 'MT1-ELEVATION')?.status).toBe('NOT_APPLICABLE');
-    expect(result.submissionStatus).toBe('READY_FOR_SUBMISSION');
+    expect(result.submissionStatus).toBe('READY_FOR_HUMAN_REVIEW');
   });
 
   it('blocks fill from being silently treated as a pure LOMA', () => {
