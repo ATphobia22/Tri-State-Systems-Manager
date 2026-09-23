@@ -63,6 +63,7 @@ export function assessClearanceSupport(opts: {
   bfeFt: number;
   lagFt: number;
   stageIsGageDatum?: boolean;
+  projectWseRiseFt?: number;
 }): {
   isViolationSupport: boolean;
   isWarningSupport: boolean;
@@ -72,9 +73,8 @@ export function assessClearanceSupport(opts: {
   note: string;
   regulatory_banner: string;
 } {
-  const rule = JURISDICTION_RULES[opts.jurisdiction];
   const clearanceFt = opts.lagFt - opts.waterStageFt;
-  const stageAboveBfe = opts.waterStageFt - opts.bfeFt;
+  const riseFt = opts.projectWseRiseFt;
   let isViolationSupport = false;
   let isWarningSupport = false;
   let finding = 'BASELINE';
@@ -83,22 +83,20 @@ export function assessClearanceSupport(opts: {
     finding = 'STAGE IS GAGE_DATUM — do not compare directly to NAVD88 BFE/LAG without conversion';
     isWarningSupport = true;
   } else if (clearanceFt < 0) {
-    isViolationSupport = true;
-    finding = 'STRUCTURAL INUNDATION (LAG BREACHED) — decision support only';
-  } else if (opts.jurisdiction === 'ILLINOIS' && rule.no_rise_threshold_ft !== undefined && stageAboveBfe > rule.no_rise_threshold_ft) {
-    isViolationSupport = true;
-    finding = 'EXCEEDS IL THRESHOLD CITATION — human review required';
-  } else if (opts.jurisdiction === 'KENTUCKY' && rule.no_rise_threshold_ft !== undefined && stageAboveBfe > rule.no_rise_threshold_ft) {
-    isViolationSupport = true;
-    finding = 'EXCEEDS KY NO-IMPACT CITATION — human review required';
-  } else if (opts.jurisdiction === 'INDIANA' && stageAboveBfe > 0) {
     isWarningSupport = true;
-    finding = 'BFE EXCEEDED — CLOMR/LOMR path may apply (IDNR/FEMA) — human review required';
-  }
-
-  if (!isViolationSupport && !isWarningSupport && clearanceFt < 1.0 && !opts.stageIsGageDatum) {
+    finding = 'STRUCTURAL INUNDATION SUPPORT — decision support only; not a regulatory determination';
+  } else if (riseFt !== undefined && !Number.isFinite(riseFt)) {
     isWarningSupport = true;
-    finding = 'LOW CLEARANCE — review freeboard policy';
+    finding = 'PROJECT WSE RISE IS INVALID — hydraulic comparison blocked';
+  } else if (riseFt !== undefined && opts.jurisdiction === 'INDIANA' && riseFt > 0) {
+    isWarningSupport = true;
+    finding = 'PROJECT WSE RISE ABOVE 0.00 FT — FEMA floodway no-rise/CLOMR pathway requires human review';
+  } else if (riseFt !== undefined && opts.jurisdiction !== 'INDIANA') {
+    isWarningSupport = true;
+    finding = 'PROJECT WSE RISE REQUIRES JURISDICTION-SPECIFIC REVIEW — do not compare stage-above-BFE to a floodway rise threshold';
+  } else if (opts.jurisdiction === 'INDIANA' && opts.waterStageFt > opts.bfeFt) {
+    isWarningSupport = true;
+    finding = 'BFE EXCEEDED — flood-risk decision support only; applicable FEMA/IDNR pathway requires human review';
   }
 
   return {
@@ -108,10 +106,10 @@ export function assessClearanceSupport(opts: {
       ? 'CRITICAL — DECISION SUPPORT'
       : isWarningSupport
         ? 'WARNING — DECISION SUPPORT'
-        : 'COMPLIANT — DECISION SUPPORT',
+        : 'BASELINE — DECISION SUPPORT',
     finding,
     is_simulation_demo: true,
-    note: 'Not a regulatory determination. Slider/stage inputs may be SIMULATION_DEMO or GAGE_DATUM.',
+    note: 'Not a regulatory determination. FEMA floodway no-rise is a project-condition-versus-base-condition WSE comparison; it must not be inferred from water stage minus BFE.',
     regulatory_banner:
       'NOT A REGULATORY DETERMINATION — citations only. Human authority final (ADR-004).',
   };
