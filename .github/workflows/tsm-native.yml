@@ -1,7 +1,7 @@
 name: TSM Native
 on:
   push:
-    branches: [Multi-Installer]
+    branches: [main, Multi-Installer]
     paths:
       - "tsm-native/**"
       - "native/archimedes/**"

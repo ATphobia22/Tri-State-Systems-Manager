@@ -3,7 +3,7 @@ name: TSM Desktop
 on:
   workflow_dispatch:
   push:
-    branches: [Multi-Installer]
+    branches: [main, Multi-Installer]
     paths:
       - "tsm-console/**"
       - ".github/workflows/tsm-desktop.yml"
