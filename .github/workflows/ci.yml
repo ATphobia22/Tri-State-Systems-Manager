@@ -134,6 +134,9 @@ jobs:
       - name: OpenMI protobuf/gRPC bridge contract tests
         working-directory: .
         run: python -m unittest backend.test_openmi_service -v
+      - name: Posey County WTHGIS source adapter tests
+        working-directory: .
+        run: python -m unittest backend.test_posey_wthgis -v
       - name: Validate Alertmanager configuration
         working-directory: .
         run: |

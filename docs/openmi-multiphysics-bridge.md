@@ -106,3 +106,30 @@ requires authenticated TLS or a mutually authenticated service mesh.
 - no assumption that external solver executables are installed;
 - no cryptographic claim of FIPS validation merely because FIPS algorithms are
   referenced.
+
+
+## Posey County GIS evidence source
+
+TSM also registers the Posey County WTHGIS endpoint as a parcel/property-record
+source:
+
+`http://poseyin.wthgis.com/`
+
+The observed WTHGIS property-record interface exposes county parcel records
+through `/tgis/custom.aspx` and can contain parcel number, location address,
+legal description, deed book/page/document fields, and transfer history.
+
+The TSM adapter in `backend/posey_wthgis.py` records these URL patterns without
+assuming that any individual field is present. A missing deed book/page/document
+is an unresolved evidence gap, not a value to be inferred.
+
+**Evidence hierarchy:** WTHGIS is useful county GIS/property-record evidence;
+the Posey County Recorder remains the authoritative channel for obtaining a
+recorded deed or certified copy. WTHGIS data must not be represented as a
+professional survey, title opinion, or certified elevation.
+
+For the FEMA LOMA anchor, the known parcel identifier remains
+`65-19-08-100-008.001-010`. The current public WTHGIS search did not expose a
+stable indexed feature ID for that exact parcel, so TSM does not fabricate one.
+The adapter can consume a verified FeatureID when obtained from the county
+interface.
