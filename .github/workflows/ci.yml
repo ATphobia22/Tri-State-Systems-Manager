@@ -137,7 +137,12 @@ jobs:
       - name: Posey County WTHGIS source adapter tests
         working-directory: .
         run: python -m unittest backend.test_posey_wthgis -v
-      python -m unittest backend.test_countygismaps_posey -v
+      - name: CountyGISMaps Posey source adapter tests
+        working-directory: .
+        run: python -m unittest backend.test_countygismaps_posey -v
+      - name: Secondary Posey GIS source manifest tests
+        working-directory: .
+        run: python -m unittest backend.test_secondary_posey_sources -v
       - name: Validate Alertmanager configuration
         working-directory: .
         run: |
