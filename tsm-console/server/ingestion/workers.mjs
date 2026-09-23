@@ -5,13 +5,14 @@
  * product-matched station relationship.
  */
 import fs from 'node:fs';
+import { performance } from 'node:perf_hooks';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { appendArtifact, sha256Hex, recordVerification } from '../store/evidence-store.mjs';
 import { fetchUsgsInstantaneousValues } from './usgs-nwis.mjs';
 import { fetchNoaaStageFlow } from './noaa-nwps.mjs';
 import { classifySourceFreshness } from '../reliability/source-policies.mjs';
-import { incrementTelemetryCounter, observeTelemetryMetric } from '../telemetry/prometheus-exporter.mjs';
+import { incrementTelemetryCounter, observeTelemetryDuration, observeTelemetryMetric } from '../telemetry/prometheus-exporter.mjs';
 import { publishTelemetryEvent } from '../telemetry/event-bus.mjs';
 import { normalizeVerticalDatum } from './vertical-datum.mjs';
 import { validateAuthorizedArtifact } from './governance-transition.mjs';
@@ -74,6 +75,7 @@ function appendObservation(record, extra = {}) {
     payload, _canonical_for_verify: canonical, notes: 'Authoritative source observation. Not a regulatory determination.',
   });
   incrementTelemetryCounter('tsm_telemetry_ingest_total', { provider: record.provenance.provider, data_class: record.dataClass });
+  incrementTelemetryCounter('tsm_ingestion_records_total', { provider: record.provenance.provider });
   return artifact;
 }
 
@@ -117,6 +119,7 @@ export async function ingestNwpsGauge(nwsId, { product = 'observed', timeoutMs =
 }
 
 export async function runHydrologicBatch() {
+  const startedAt = performance.now();
   const jobs = [
     ['03378500', () => ingestUsgsNode('03378500')],
     ['03322000', () => ingestUsgsNode('03322000')],
@@ -124,5 +127,9 @@ export async function runHydrologicBatch() {
     ['MTVI3', () => ingestNwpsGauge('MTVI3')],
     ['UNWK2', () => ingestNwpsGauge('UNWK2')],
   ];
-  return Promise.all(jobs.map(async ([node, job]) => ({ node, ...(await job()) })));
+  const results = await Promise.all(jobs.map(async ([node, job]) => ({ node, ...(await job()) })));
+  const durationSeconds = Math.max(0.001, (performance.now() - startedAt) / 1000);
+  const records = results.filter((result) => result.ok).length;
+  observeTelemetryDuration('tsm_ingestion_throughput_records_per_second', records / durationSeconds, { batch: 'hydrologic' });
+  return results;
 }
