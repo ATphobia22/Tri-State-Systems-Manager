@@ -31,6 +31,10 @@ git -C "${VCPKG_ROOT}" fetch --quiet origin "${LOCKED_VCPKG_COMMIT}"
 git -C "${VCPKG_ROOT}" checkout --quiet --detach "${LOCKED_VCPKG_COMMIT}"
 
 if [[ ! -x "${VCPKG_ROOT}/vcpkg" ]]; then
+  case "$(uname -s)" in
+    Darwin) brew install autoconf autoconf-archive automake libtool || true ;;
+    Linux) if command -v apt-get >/dev/null 2>&1; then sudo apt-get update && sudo apt-get install -y autoconf autoconf-archive automake libtool; fi ;;
+  esac
   "${VCPKG_ROOT}/bootstrap-vcpkg.sh" -disableMetrics
 fi
 
