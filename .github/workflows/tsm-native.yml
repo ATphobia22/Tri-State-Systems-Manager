@@ -246,6 +246,17 @@ jobs:
         with:
           path: ${{ runner.temp }}/vcpkg-cache
           key: tsm-vcpkg-${{ runner.os }}-${{ matrix.triplet }}-${{ hashFiles('native/dependencies/vcpkg.json', 'native/dependencies/vcpkg-configuration.json') }}
+      - name: Install libspatialite build prerequisites (Unix)
+        if: ${{ matrix.os != 'windows-latest' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            brew install autoconf autoconf-archive automake libtool
+          else
+            sudo apt-get update
+            sudo apt-get install -y autoconf autoconf-archive automake libtool
+          fi
       - name: Bootstrap pinned native dependencies (Unix)
         if: ${{ matrix.os != 'windows-latest' }}
         shell: bash
@@ -259,19 +270,29 @@ jobs:
         env:
           VCPKG_BINARY_SOURCES: "clear;files,${{ runner.temp }}/vcpkg-cache,readwrite"
         run: ./scripts/native/Bootstrap-NativeDependencies.ps1 -Triplet "${{ matrix.triplet }}"
-      - name: Verify native dependency manifest
+      - name: Verify native dependency manifest (Unix)
+        if: ${{ matrix.os != 'windows-latest' }}
         shell: bash
         run: |
+          set -euo pipefail
           ROOT="native/dependencies/vcpkg_installed/${{ matrix.triplet }}"
           test -f "$ROOT/include/sqlite3.h"
           test -f "$ROOT/include/spatialite.h"
-          if [[ "${{ matrix.triplet }}" == *windows* ]]; then
-            find "$ROOT" -type f \( -name "sqlite3.lib" -o -name "mod_spatialite.lib" -o -name "mod_spatialite.dll" \) -print -quit | grep -q .
-          elif [[ "${{ matrix.triplet }}" == *osx* ]]; then
-            find "$ROOT" -type f \\( -name "libsqlite3.a" -o -name "libsqlite3.dylib" -o -name "mod_spatialite.dylib" \\) -print -quit | grep -q .
+          if [[ "${{ matrix.triplet }}" == *osx* ]]; then
+            find "$ROOT" -type f \( -name "libsqlite3.a" -o -name "libsqlite3.dylib" -o -name "mod_spatialite.dylib" \) -print -quit | grep -q .
           else
-            find "$ROOT" -type f \\( -name "libsqlite3.so*" -o -name "libspatialite.so*" \\) -print -quit | grep -q .
+            find "$ROOT" -type f \( -name "libsqlite3.so*" -o -name "libspatialite.so*" \) -print -quit | grep -q .
           fi
+      - name: Verify native dependency manifest (Windows)
+        if: ${{ matrix.os == 'windows-latest' }}
+        shell: pwsh
+        run: |
+          $root = Join-Path $env:GITHUB_WORKSPACE "native/dependencies/vcpkg_installed/${{ matrix.triplet }}"
+          if (-not (Test-Path -LiteralPath (Join-Path $root "include/sqlite3.h"))) { throw "sqlite3.h is missing." }
+          if (-not (Test-Path -LiteralPath (Join-Path $root "include/spatialite.h"))) { throw "spatialite.h is missing." }
+          $nativeFiles = Get-ChildItem -LiteralPath $root -Recurse -File |
+            Where-Object { $_.Name -in @("sqlite3.lib","mod_spatialite.lib","mod_spatialite.dll") }
+          if (-not $nativeFiles) { throw "No expected Windows SQLite/SpatiaLite library was found under $root." }
 
   package-windows:
     permissions:
