@@ -89,6 +89,8 @@ export async function ingestUsgsNode(usgsId, { timeoutMs = 10000 } = {}) {
     if (!stage) return { ok: false, code: 'FAIL_CLOSED', error: 'USGS returned no 00065 observation' };
     const freshnessState = classifySourceFreshness('USGS_NWIS_OBSERVATION', { observedAt: stage.observedAt, retrievedAt: stage.retrievedAt });
     const conversion = navd88FromGage(node, stage.value);
+    const freshnessAgeSeconds = Math.max(0, (Date.now() - Date.parse(stage.observedAt)) / 1000);
+    if (Number.isFinite(freshnessAgeSeconds)) observeTelemetryMetric('tsm_source_freshness_age_seconds', freshnessAgeSeconds, { source_id: `USGS-NWIS-${usgsId}` });
     const discharge = records.filter((record) => record.provenance.parameterCode === '00060').at(-1) || null;
     observeTelemetryMetric('ptdt_usgs_gauge_stage_feet', stage.value, { site_id: usgsId, datum: 'GAGE_DATUM' });
     if (discharge) observeTelemetryMetric('ptdt_usgs_discharge_cfs', discharge.value, { site_id: usgsId });
@@ -111,6 +113,8 @@ export async function ingestNwpsGauge(nwsId, { product = 'observed', timeoutMs =
     if (!latest) return { ok: false, code: 'FAIL_CLOSED', error: `NOAA ${product} returned no records` };
     const freshnessState = classifySourceFreshness(product === 'observed' ? 'NOAA_NWPS_OBSERVATION' : 'NOAA_NWPS_FORECAST', { observedAt: latest.observedAt, retrievedAt: latest.retrievedAt });
     const conversion = product === 'observed' ? navd88FromGage(node, latest.value) : { conversion_applied: false, wse_navd88_ft: null, gage_zero_navd88_ft: null, vertical_conversion_source: null };
+    const freshnessAgeSeconds = Math.max(0, (Date.now() - Date.parse(latest.observedAt)) / 1000);
+    if (Number.isFinite(freshnessAgeSeconds)) observeTelemetryMetric('tsm_source_freshness_age_seconds', freshnessAgeSeconds, { source_id: `NOAA-NWPS-${nwsId}` });
     const artifact = appendObservation(latest, { ...conversion, freshness_state: freshnessState, stationName: node.name, role: node.role, timeoutMs });
     const eventBus = await publishEventSafely({ event_type: 'hydrologic_observation', provider: 'NOAA_NWPS', station_id: nwsId, product, observed_at: latest.observedAt, stage_ft: latest.value, vertical_datum: latest.verticalDatum, wse_navd88_ft: conversion.wse_navd88_ft, artifact_id: artifact.artifact_id, content_hash_sha256: artifact.content_hash_sha256 });
     return { ok: true, artifact, sourceRecord: latest, freshness_state: freshnessState, event_bus: eventBus };
