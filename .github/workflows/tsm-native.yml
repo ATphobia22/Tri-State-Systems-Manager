@@ -112,13 +112,13 @@ jobs:
         with:
           path: .
           format: spdx-json
-          output-file: tsm-native-source.spdx.json
+          output-file: dist/provenance/tsm-native-source.spdx.json
           upload-artifact: false
       - name: Upload source SBOM
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: tsm-native-source-sbom
-          path: tsm-native-source.spdx.json
+          path: dist/provenance/tsm-native-source.spdx.json
           if-no-files-found: error
 
   build-provenance:
@@ -221,7 +221,7 @@ jobs:
         env:
           ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
           UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
-        run: |\n          export LD_PRELOAD="$(gcc -print-file-name=libasan.so)${LD_PRELOAD:+:$LD_PRELOAD}"\n          ctest --test-dir native/archimedes/build-sanitized --output-on-failure
+        run: ctest --test-dir native/archimedes/build-sanitized --output-on-failure
 
   dependency-probe:
     strategy:
