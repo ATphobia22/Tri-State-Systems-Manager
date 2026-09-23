@@ -62,7 +62,7 @@ function classifyParcel(parcel: ParcelProperties, defaultBfe: number): HazardSta
   return 'REVIEW_REQUIRED';
 }
 
-function hazardColorExpression(defaultBfe: number): maplibregl.ExpressionSpecification {
+function hazardColorExpression(_defaultBfe: number) {
   return [
     'match',
     ['to-string', ['get', 'hazardState']],
@@ -71,7 +71,7 @@ function hazardColorExpression(defaultBfe: number): maplibregl.ExpressionSpecifi
     'SFHA_COMPLIANT',
     '#22c55e',
     '#f59e0b',
-  ] as maplibregl.ExpressionSpecification;
+  ];
 }
 
 function normalizeCollection(value: unknown): PoseyParcelCollection {
