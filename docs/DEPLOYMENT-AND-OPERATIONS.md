@@ -70,3 +70,17 @@ Before release, verify:
 ## Safety and authority
 
 TSM is decision support. It does not replace the responsible floodplain administrator, agency, licensed professional engineer/surveyor, emergency management authority, environmental review, or official flood/emergency instructions.
+
+## Systems-engineering quality controls
+
+TSM uses an explicit machine-readable quality contract at `data/engineering/system-quality-contract-v1.json`. The contract applies systems-engineering principles across the browser, API, ingestion, geospatial, simulation, evidence and deployment planes:
+
+- requirements traceability and deterministic reproduction;
+- fail-closed authority/provenance boundaries;
+- bounded network, retry, cache, polling and memory behavior;
+- route-level and large-asset lazy loading;
+- source-freshness and readiness observability;
+- layered verification from static analysis through headed end-to-end validation;
+- artifact provenance and independent verification before release.
+
+The CI gate is `npm run check:system-quality`. The contract is intentionally a control-plane specification: it does not invent runtime measurements or convert a target into a claimed achieved SLO. Runtime measurements should be supplied by the deployment's telemetry plane and evaluated against the contract.
