@@ -1,4 +1,5 @@
 import http from 'node:http';
+import { performance } from 'node:perf_hooks';
 import { randomUUID } from 'node:crypto';
 import { appendArtifact, listArtifacts, getArtifact, verifyProvenance, recordVerification, sha256Hex } from './store/evidence-store.mjs';
 import { runHydrologicBatch, ingestUsgsNode, ingestNwpsGauge } from './ingestion/workers.mjs';
@@ -6,6 +7,7 @@ import { fetchUsgsInstantaneousValues } from './ingestion/usgs-nwis.mjs';
 import { fetchNoaaStageFlow } from './ingestion/noaa-nwps.mjs';
 import { listSourceHealth } from './ingestion/source-health.mjs';
 import { listUpstreamCircuitHealth } from './ingestion/http-client.mjs';
+import { incrementTelemetryCounter, observeTelemetryDuration, observeTelemetryMetric, observeSlo, renderPrometheusMetrics } from './telemetry/prometheus-exporter.mjs';
 import { getStaleCache, putStaleCache } from './reliability/stale-cache.mjs';
 import { listAuthoritativeSources, fetchAuthoritativeJson } from './ingestion/source-fabric.mjs';
 import { fetchRiverNetwork } from './ingestion/river-network-api.mjs';
@@ -23,8 +25,35 @@ const PORT = Number(process.env.PORT || 8787);
 const BUILD_SHA = process.env.GITHUB_SHA || process.env.TSM_BUILD_SHA || 'local';
 const ALLOWED_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
 if (ALLOWED_ORIGIN === '*') throw new Error('CORS_ORIGIN must be an exact trusted origin; wildcard CORS is prohibited.');
-const REQUIRED_BROWSER_AUTH_ENV = ['OIDC_ISSUER', 'OIDC_AUDIENCE', 'OIDC_CLIENT_ID', 'OIDC_CLIENT_SECRET', 'OIDC_REDIRECT_URI', 'TSM_SESSION_SECRET', 'CORS_ORIGIN'];
+const RUNTIME_BROWSER_METRICS = new Set(['tsm_browser_route_load_seconds', 'tsm_browser_js_chunk_bytes', 'tsm_browser_frame_time_seconds', 'tsm_browser_tile_request_latency_seconds', 'tsm_browser_tile_failures_total', 'tsm_browser_memory_pressure_ratio', 'tsm_browser_webgpu_available', 'tsm_browser_webgl_available']);
+const RUNTIME_METRIC_LIMIT = 32;
+function metricRoute(pathname) {
+  if (pathname.startsWith('/api/geospatial')) return 'geospatial';
+  if (pathname.startsWith('/api/v1/engineering') || pathname.startsWith('/api/ingest')) return 'engineering';
+  if (pathname.startsWith('/api/evidence') || pathname.startsWith('/api/ledger')) return 'evidence';
+  if (pathname.startsWith('/api/hydrologic')) return 'hydrologic';
+  if (pathname.startsWith('/api/data-sources')) return 'data_fabric';
+  if (pathname.startsWith('/api/runtime')) return 'runtime';
+  if (pathname.startsWith('/api/auth')) return 'auth';
+  return pathname === '/health' || pathname === '/ready' ? 'health' : 'other';
+}
+function recordHttpPerformance(method, pathname, status, durationMs) {
+  const route = metricRoute(pathname);
+  const labels = { method, route };
+  observeTelemetryDuration('tsm_http_request_latency_seconds', durationMs / 1000, labels);
+  incrementTelemetryCounter('tsm_http_requests_total', labels);
+  if (status >= 500) incrementTelemetryCounter('tsm_http_errors_total', { route });
+  observeSlo('api_availability', status < 500, { route });
+  observeSlo('api_latency_p95', durationMs <= 750, { route });
+  if (route === 'geospatial') observeTelemetryDuration('tsm_geospatial_query_latency_seconds', durationMs / 1000, { method });
+  if (route === 'engineering') observeTelemetryDuration('tsm_hydraulic_job_latency_seconds', durationMs / 1000, { method });
+  if (route === 'evidence') observeTelemetryDuration('tsm_evidence_processing_latency_seconds', durationMs / 1000, { method });
+  const memory = process.memoryUsage();
+  observeTelemetryMetric('tsm_server_memory_rss_bytes', memory.rss);
+  observeTelemetryMetric('tsm_server_memory_heap_used_bytes', memory.heapUsed);
+}
 function productionAuthReady() { return REQUIRED_BROWSER_AUTH_ENV.every((name) => String(process.env[name] || '').trim() !== '') && String(process.env.TSM_SESSION_SECRET || '').length >= 32; }
+const REQUIRED_BROWSER_AUTH_ENV = ['OIDC_ISSUER', 'OIDC_AUDIENCE', 'OIDC_CLIENT_ID', 'OIDC_CLIENT_SECRET', 'OIDC_REDIRECT_URI', 'TSM_SESSION_SECRET', 'CORS_ORIGIN'];
 function json(res, status, body, requestId) {
   res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-TSM-Request-ID': requestId || 'unknown', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer', 'X-Frame-Options': 'DENY', 'Content-Security-Policy': "frame-ancestors 'none'", 'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=()', ...(String(process.env.CORS_ORIGIN || '').startsWith('https://') ? { 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains' } : {}), 'Access-Control-Allow-Origin': ALLOWED_ORIGIN, 'Access-Control-Allow-Credentials': 'true', 'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-TSM-Request-ID, X-TSM-CSRF', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Vary': 'Origin' });
   res.end(JSON.stringify(body));
@@ -47,6 +76,8 @@ function rememberTelemetryEvent(eventId, now = Date.now()) {
 }
 
 const server = http.createServer(async (req, res) => {
+  const requestStartedAt = performance.now();
+  const eventLoopStartedAt = performance.eventLoopUtilization();
   const requestId = req.headers['x-tsm-request-id'] || randomUUID();
   if (req.method === 'OPTIONS') return json(res, 204, {}, requestId);
   const url = new URL(req.url || '/', `http://localhost:${PORT}`);
@@ -106,11 +137,32 @@ const server = http.createServer(async (req, res) => {
       if (origin !== new URL(ALLOWED_ORIGIN).origin || req.headers['x-tsm-csrf'] !== '1') return json(res, 403, { ok: false, code: 'CSRF_ORIGIN_REJECTED' }, requestId);
       return logoutOidc(res);
     }
+    if (req.method === 'GET' && url.pathname === '/metrics') { res.writeHead(200, { 'Content-Type': 'text/plain; version=0.0.4; charset=utf-8', 'Cache-Control': 'no-store' }); return res.end(renderPrometheusMetrics()); }
     if (req.method === 'GET' && url.pathname === '/health') return json(res, 200, healthBody(), requestId);
     if (req.method === 'GET' && url.pathname === '/ready') {
       const authReady = String(process.env.TSM_AUTH_MODE || 'required').toLowerCase() === 'disabled' || productionAuthReady();
       if (!authReady) return json(res, 503, { ...healthBody(), ready: false, code: 'AUTH_CONFIGURATION_INCOMPLETE', required_internal_dependencies: { authority_registry: true, evidence_store: true, oidc: false } }, requestId);
       return json(res, 200, { ...healthBody(), ready: true, required_internal_dependencies: { authority_registry: true, evidence_store: true, oidc: true } }, requestId);
+    }
+    if (req.method === 'POST' && url.pathname === '/api/runtime/metrics') {
+      try {
+        const body = await readBodyFixed(req);
+        if (!Array.isArray(body.metrics) || body.metrics.length < 1 || body.metrics.length > RUNTIME_METRIC_LIMIT) return json(res, 400, { ok: false, code: 'RUNTIME_METRIC_BATCH_INVALID' }, requestId);
+        for (const metric of body.metrics) {
+          if (!RUNTIME_BROWSER_METRICS.has(metric?.name) || !Number.isFinite(metric?.value) || Math.abs(metric.value) > 1e12) return json(res, 422, { ok: false, code: 'RUNTIME_METRIC_INVALID' }, requestId);
+          const labels = {};
+          for (const [key, value] of Object.entries(metric.labels || {})) {
+            if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key) || String(value).length > 64) return json(res, 422, { ok: false, code: 'RUNTIME_METRIC_LABEL_INVALID' }, requestId);
+            if (Object.keys(labels).length >= 4) return json(res, 422, { ok: false, code: 'RUNTIME_METRIC_LABEL_LIMIT' }, requestId);
+            labels[key] = String(value);
+          }
+          if (metric.name.endsWith('_total')) incrementTelemetryCounter(metric.name, labels, metric.value);
+          else observeTelemetryMetric(metric.name, metric.value, labels);
+          if (metric.name === 'tsm_browser_route_load_seconds') observeSlo('browser_route_load_p95', metric.value <= 3, labels);
+          if (metric.name === 'tsm_browser_tile_request_latency_seconds') observeSlo('tile_request_p95', metric.value <= 1.5, labels);
+        }
+        return json(res, 202, { ok: true, accepted: body.metrics.length }, requestId);
+      } catch (error) { return json(res, 400, { ok: false, code: 'RUNTIME_METRIC_PARSE_ERROR', error: error.message }, requestId); }
     }
     if (req.method === 'GET' && url.pathname === '/api/data-sources/catalog') return json(res, 200, { build_sha: BUILD_SHA, sources: listAuthoritativeSources(), health: listSourceHealth(), circuits: listUpstreamCircuitHealth(), authority_boundary: 'Catalog metadata does not confer regulatory authority; source products retain their published status.' }, requestId);
     if (req.method === 'POST' && url.pathname === '/api/community/observations') {
@@ -254,5 +306,11 @@ const server = http.createServer(async (req, res) => {
     }
     return json(res, 404, { error: 'not found' }, requestId);
   } catch (error) { return json(res, error instanceof Error && error.code === 'CIRCUIT_OPEN' ? 503 : 502, { error: error.message || 'upstream source unavailable', code: error.code || 'SOURCE_UNAVAILABLE', requestId }, requestId); }
+  finally {
+    const durationMs = performance.now() - requestStartedAt;
+    recordHttpPerformance(req.method || 'UNKNOWN', url.pathname, res.statusCode || 500, durationMs);
+    const elu = performance.eventLoopUtilization(eventLoopStartedAt);
+    observeTelemetryMetric('tsm_server_event_loop_utilization_ratio', elu.utilization, { route: metricRoute(url.pathname) });
+  }
 });
 server.listen(PORT, () => console.log(`TSM API on http://localhost:${PORT}`));
