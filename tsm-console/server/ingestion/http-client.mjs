@@ -75,7 +75,6 @@ export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sl
           const latencyMs = Date.now() - startedAt;
           recordSourceHealth(sourceId, { ok: true, latencyMs, requestId });
           observeTelemetryDuration('tsm_upstream_request_latency_seconds', latencyMs / 1000, { source_id: sourceId });
-      observeSlo('upstream_latency_p95', latencyMs <= 2000, { source_id: sourceId });
           observeSlo('upstream_latency_p95', latencyMs <= 2000, { source_id: sourceId });
           observeTelemetryMetric('tsm_upstream_retry_ratio', attemptsMade > 0 ? (attemptsMade - 1) / attemptsMade : 0, { source_id: sourceId });
           recordHydrologyMetric(options, sourceId, 'SUCCESS', startedAt);
@@ -93,6 +92,7 @@ export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sl
       const latencyMs = Date.now() - startedAt;
       recordSourceHealth(sourceId, { ok: false, latencyMs, requestId, errorCode: lastError?.code || 'HTTP_' + (lastError?.status || 'UNKNOWN') });
       observeTelemetryDuration('tsm_upstream_request_latency_seconds', latencyMs / 1000, { source_id: sourceId });
+      observeSlo('upstream_latency_p95', latencyMs <= 2000, { source_id: sourceId });
       observeTelemetryMetric('tsm_upstream_retry_ratio', attemptsMade > 0 ? (attemptsMade - 1) / attemptsMade : 0, { source_id: sourceId });
       const status = lastError?.name === 'AbortError' || lastError?.code === 'ETIMEDOUT' ? 'TIMEOUT' : 'SOURCE_UNAVAILABLE';
       recordHydrologyMetric(options, sourceId, status, startedAt);
