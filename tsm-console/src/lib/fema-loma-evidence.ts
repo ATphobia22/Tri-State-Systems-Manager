@@ -78,6 +78,7 @@ export interface LomaEvidenceInput {
   propertyInRegulatoryFloodway?: boolean;
   deedOrPlat: LomaEvidenceItem[];
   assessorMap?: LomaEvidenceItem;
+  communityAcknowledgment?: LomaEvidenceItem;
   elevationForm?: LomaEvidenceItem;
   elevationCertificate?: LomaEvidenceItem;
   firmEvidence?: LomaEvidenceItem;
@@ -225,7 +226,9 @@ export function auditFemaLomaEvidence(input: LomaEvidenceInput): LomaAuditResult
     {
       id: 'COMMUNITY_ACKNOWLEDGMENT',
       label: 'Community Acknowledgment — Part B (floodway), when applicable',
-      status: input.propertyInRegulatoryFloodway === true ? 'MISSING' : 'NOT_APPLICABLE',
+      status: input.propertyInRegulatoryFloodway === true
+        ? (hasUsableArtifact(input.communityAcknowledgment) ? 'PASS' : 'MISSING')
+        : 'NOT_APPLICABLE',
       required: input.propertyInRegulatoryFloodway === true,
       reason: 'FEMA MT-1 guidance identifies Community Acknowledgment Part B for some LOMA requests involving the regulatory floodway; the community official signs it.',
     },

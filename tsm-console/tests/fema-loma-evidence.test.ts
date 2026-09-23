@@ -67,6 +67,21 @@ describe('FEMA LOMA evidence gate', () => {
     expect(result.missingRequired).toContain('Community Acknowledgment — Part B (floodway), when applicable');
   });
 
+  it('accepts a supplied community acknowledgment for a floodway case', () => {
+    const result = auditFemaLomaEvidence({
+      caseId: '26-05-2022A',
+      firmClearlyOutsideSfha: false,
+      propertyInRegulatoryFloodway: true,
+      deedOrPlat: [evidence('RECORDED_DEED')],
+      assessorMap: evidence('TAX_ASSESSOR_MAP'),
+      communityAcknowledgment: evidence('COMMUNITY_ACKNOWLEDGMENT'),
+      firmEvidence: evidence('FIRM_MAP'),
+    });
+
+    expect(result.gates.find((gate) => gate.id === 'COMMUNITY_ACKNOWLEDGMENT')?.status).toBe('PASS');
+    expect(result.missingRequired).not.toContain('Community Acknowledgment — Part B (floodway), when applicable');
+  });
+
   it('does not treat an unsigned MT-1 as complete', () => {
     const result = auditFemaLomaEvidence({
       caseId: '26-05-2022A',
