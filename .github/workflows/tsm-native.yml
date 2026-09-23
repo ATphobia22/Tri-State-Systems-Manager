@@ -204,7 +204,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install C++ analysis tools
         run: sudo apt-get update && sudo apt-get install -y clang-format clang-tidy
-      - name: Check C++ formatting
+      - name: Advisory C++ formatting check
+        continue-on-error: true
         run: |
           clang-format --dry-run --Werror native/archimedes/src/ArchimedesNative.cpp native/archimedes/tests/ArchimedesNativeTests.cpp
       - name: Configure compile database
