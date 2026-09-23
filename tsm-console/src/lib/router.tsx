@@ -16,6 +16,7 @@ import EngineeringSectionView from '../routes/EngineeringSectionView';
 import LoginView from '../routes/LoginView';
 import LoginCallbackView from '../routes/LoginCallbackView';
 import PublicDataFabricDashboard from '../components/PublicDataFabricDashboard';
+import DigitalTwinV2View from '../routes/DigitalTwinV2View';
 import type { RootLoaderData, CharterLoaderData, ArchitectureLoaderData, NeedsLoaderData, LedgerLoaderData, LineageLoaderData, BenefitLoaderData, MapTwinLoaderData, EvidenceBlock, InterventionRecord, DataContractSummary } from '../types/loaders';
 
 let interventions: InterventionRecord[] = [];
@@ -117,5 +118,6 @@ export const router = createBrowserRouter([
   { path: 'eoc', loader: mapTwinLoader, lazy: async () => ({ Component: (await import('../routes/MapLibreEocView')).default }) },
   { path: 'twin', loader: mapTwinLoader, lazy: async () => ({ Component: (await import('../routes/TwinCanvasView')).default }) },
   { path: 'digital-twin', loader: mapTwinLoader, lazy: async () => ({ Component: (await import('../routes/MapTwinView')).default }) },
+  { path: 'digital-twin-v2', element: <DigitalTwinV2View /> },
 ] },
 ], { basename: routerBasename });
