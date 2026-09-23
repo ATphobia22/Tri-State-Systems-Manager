@@ -149,7 +149,7 @@ export default function DigitalTwinAppV2(): JSX.Element {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const [parcels, setParcels] = useState<ParcelFeatureCollection | null>(null);
-  const [selected, setSelected] = useState<PoseyParcelFeature | null>(null);
+  const [selected, setSelected] = useState<ParcelFeature | null>(null);
   const [parcelVisible, setParcelVisible] = useState(true);
   const [telemetryVisible, setTelemetryVisible] = useState(true);
   const [humanGateEnabled, setHumanGateEnabled] = useState(true);
@@ -266,7 +266,7 @@ export default function DigitalTwinAppV2(): JSX.Element {
         const geometry = feature.geometry as ParcelFeature['geometry'];
         setSelected({
           type: 'Feature',
-          geometry: geometry as PoseyParcelFeature['geometry'],
+          geometry: geometry as ParcelFeature['geometry'],
           properties: {
             ...parsed,
             wthgisRecordUrl: parsed.wthgisRecordUrl ?? makeRecordUrl(parsed.wthgisFeatureId),
