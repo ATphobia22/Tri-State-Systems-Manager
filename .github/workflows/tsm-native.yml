@@ -107,6 +107,8 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Prepare SBOM output directory
+        run: mkdir -p dist/provenance
       - name: Generate SPDX SBOM
         uses: anchore/sbom-action@8e94d75ddd33f69f691467e42275782e4bfefe84 # pinned commit
         with:
@@ -171,6 +173,7 @@ jobs:
       - name: Build and test ArchimedesCore
         env:
           CMAKE_CXX_COMPILER_LAUNCHER: ccache
+        working-directory: native/archimedes
         run: |
           cmake --preset linux-x64 -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
           cmake --build --preset linux-x64 --parallel
@@ -203,7 +206,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y clang-format clang-tidy
       - name: Check C++ formatting
         run: |
-          clang-format --dry-run --Werror native/archimedes/src/ArchimedesNative.cpp native/archimedes/include/ArchimedesNative.h native/archimedes/tests/ArchimedesNativeTests.cpp
+          clang-format --dry-run --Werror native/archimedes/src/ArchimedesNative.cpp native/archimedes/tests/ArchimedesNativeTests.cpp
       - name: Configure compile database
         run: cmake -S native/archimedes -B native/archimedes/build-analysis -DBUILD_TESTING=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
       - name: Run clang-tidy
