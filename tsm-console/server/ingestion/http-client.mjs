@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { createCircuitBreaker, CircuitOpenError } from '../reliability/circuit-breaker.mjs';
 import { isRetryableStatus, parseRetryAfter, retryDelayMs } from '../reliability/retry-policy.mjs';
 import { recordSourceHealth } from './source-health.mjs';
-import { incrementTelemetryCounter, observeTelemetryDuration, observeTelemetryMetric } from '../telemetry/prometheus-exporter.mjs';
+import { incrementTelemetryCounter, observeTelemetryDuration, observeTelemetryMetric, observeSlo } from '../telemetry/prometheus-exporter.mjs';
 
 const DEFAULT_TIMEOUT_MS = 10_000;
 const DEFAULT_MAX_BYTES = 2_000_000;
@@ -75,6 +75,8 @@ export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sl
           const latencyMs = Date.now() - startedAt;
           recordSourceHealth(sourceId, { ok: true, latencyMs, requestId });
           observeTelemetryDuration('tsm_upstream_request_latency_seconds', latencyMs / 1000, { source_id: sourceId });
+      observeSlo('upstream_latency_p95', latencyMs <= 2000, { source_id: sourceId });
+          observeSlo('upstream_latency_p95', latencyMs <= 2000, { source_id: sourceId });
           observeTelemetryMetric('tsm_upstream_retry_ratio', attemptsMade > 0 ? (attemptsMade - 1) / attemptsMade : 0, { source_id: sourceId });
           recordHydrologyMetric(options, sourceId, 'SUCCESS', startedAt);
           return payload;
