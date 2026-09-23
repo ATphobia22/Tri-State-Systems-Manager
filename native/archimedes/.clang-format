@@ -15,6 +15,7 @@ AllowShortIfStatementsOnASingleLine: AllIfsAndElse
 AllowShortFunctionsOnASingleLine: Empty
 IndentWidth: 4
 ContinuationIndentWidth: 4
-ColumnLimit: 0
+ColumnLimit: 120
 DerivePointerAlignment: false
 PointerAlignment: Left
+SortIncludes: Never
