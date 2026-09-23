@@ -8,6 +8,8 @@ const HELP = new Map([
   ['tsm_telemetry_ingest_total', 'Number of telemetry records accepted by the ingestion boundary.'],
   ['ptdt_usgs_gauge_stage_feet', 'Latest accepted USGS gage-height observation in feet, relative to the source gage datum.'],
   ['ptdt_usgs_discharge_cfs', 'Latest accepted USGS discharge observation in cubic feet per second.'],
+  ['tsm_hydrology_api_responses_total', 'Hydrology upstream API responses by source and status.'],
+  ['tsm_hydrology_circuit_breaker_state', 'Hydrology upstream circuit-breaker state, one-hot encoded.'],
   ['tsm_http_requests_total', 'HTTP requests observed by the TSM API.'],
   ['tsm_http_request_latency_seconds', 'Observed TSM API request latency in seconds.'],
   ['tsm_http_request_latency_seconds_p50', 'Measured p50 TSM API request latency in seconds.'],
