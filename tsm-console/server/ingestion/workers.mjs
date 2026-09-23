@@ -18,6 +18,7 @@ import { normalizeVerticalDatum } from './vertical-datum.mjs';
 import { validateAuthorizedArtifact } from './governance-transition.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const MAX_HYDROLOGIC_WORKERS = Number(process.env.TSM_MAX_HYDROLOGIC_WORKERS || 5);
 const REGISTRY_PATH = process.env.TSM_AUTHORITY_REGISTRY || path.join(__dirname, '../../../tsm-authority-registry-v35.json');
 
 function loadRegistry() {
@@ -127,7 +128,10 @@ export async function runHydrologicBatch() {
     ['MTVI3', () => ingestNwpsGauge('MTVI3')],
     ['UNWK2', () => ingestNwpsGauge('UNWK2')],
   ];
-  const results = await Promise.all(jobs.map(async ([node, job]) => ({ node, ...(await job()) })));
+  const activeWorkers = Math.min(jobs.length, MAX_HYDROLOGIC_WORKERS);
+  observeTelemetryMetric('tsm_worker_utilization_ratio', activeWorkers / Math.max(1, MAX_HYDROLOGIC_WORKERS), { pool: 'hydrologic' });
+  const results = await Promise.all(jobs.slice(0, MAX_HYDROLOGIC_WORKERS).map(async ([node, job]) => ({ node, ...(await job()) })));
+  observeTelemetryMetric('tsm_worker_utilization_ratio', 0, { pool: 'hydrologic' });
   const durationSeconds = Math.max(0.001, (performance.now() - startedAt) / 1000);
   const records = results.filter((result) => result.ok).length;
   observeTelemetryDuration('tsm_ingestion_throughput_records_per_second', records / durationSeconds, { batch: 'hydrologic' });
