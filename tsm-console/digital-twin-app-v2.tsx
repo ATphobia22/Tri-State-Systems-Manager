@@ -57,9 +57,11 @@ const POINT_TOWNSHIP_CENTER: [number, number] = [-87.9312, 37.8825];
 const ENGINEERING_CRS = 'EPSG:2966';
 const DISPLAY_CRS = 'EPSG:4326 → WebMercator';
 const DEFAULT_BFE_FT_NAVD88 = 375;
-const POSEY_WTHGIS_URL = 'http://poseyin.wthgis.com/';
+const POSEY_WTHGIS_URL = 'https://poseyin.wthgis.com/';
 const POSEY_COUNTYGISMAPS_URL = 'https://countygismaps.com/map/in/posey';
 const FEMA_NFHL_URL = 'https://msc.fema.gov/nfhl';
+const POSEY_EQUATOR_URL = 'https://gis.equatorstudios.com/indiana_posey/';
+const POSEY_LANDRECORDS_URL = 'https://landrecords.us/documentation/coverage/counties/18-129-posey';
 
 const isFiniteNumber = (value: unknown): value is number =>
   typeof value === 'number' && Number.isFinite(value);
@@ -488,6 +490,8 @@ export default function DigitalTwinAppV2(): JSX.Element {
               <a href={selected.properties.wthgisRecordUrl ?? makeRecordUrl(selected.properties.wthgisFeatureId)} target="_blank" rel="noreferrer">Open WTH GIS record ↗</a>
               <a href={POSEY_WTHGIS_URL} target="_blank" rel="noreferrer">Posey WTH GIS ↗</a>
               <a href={POSEY_COUNTYGISMAPS_URL} target="_blank" rel="noreferrer">CountyGISMaps reference ↗</a>
+              <a href={POSEY_EQUATOR_URL} target="_blank" rel="noreferrer">Equator GIS reference ↗</a>
+              <a href={POSEY_LANDRECORDS_URL} target="_blank" rel="noreferrer">Land Records reference ↗</a>
               <a href={FEMA_NFHL_URL} target="_blank" rel="noreferrer">FEMA NFHL ↗</a>
             </div>
           </div>
