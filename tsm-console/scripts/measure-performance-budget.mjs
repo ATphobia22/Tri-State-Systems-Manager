@@ -13,13 +13,13 @@ async function walk(dir) {
   const entries = await readdir(dir, { withFileTypes: true });
   const files = [];
   for (const entry of entries) {
-    const path = join(dir.pathname, entry.name);
-    if (entry.isDirectory()) files.push(...await walk(new URL(path.endsWith('/') ? path : path + '/')));
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) files.push(...await walk(path));
     else files.push(path);
   }
   return files;
 }
-const files = await walk(root);
+const files = await walk(root.pathname);
 const assets = [];
 for (const file of files) {
   const info = await stat(file);
