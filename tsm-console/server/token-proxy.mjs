@@ -27,6 +27,16 @@ const ALLOWED_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
 if (ALLOWED_ORIGIN === '*') throw new Error('CORS_ORIGIN must be an exact trusted origin; wildcard CORS is prohibited.');
 const RUNTIME_BROWSER_METRICS = new Set(['tsm_browser_route_load_seconds', 'tsm_browser_js_chunk_bytes', 'tsm_browser_frame_time_seconds', 'tsm_browser_tile_request_latency_seconds', 'tsm_browser_tile_failures_total', 'tsm_browser_memory_pressure_ratio', 'tsm_browser_webgpu_available', 'tsm_browser_webgl_available']);
 const RUNTIME_METRIC_LIMIT = 32;
+const runtimeRate = new Map();
+function allowRuntimeMetrics(clientKey, now = Date.now()) {
+  const previous = runtimeRate.get(clientKey) || { windowStartedAt: now, count: 0 };
+  if (now - previous.windowStartedAt >= 60_000) { previous.windowStartedAt = now; previous.count = 0; }
+  if (previous.count >= 120) return false;
+  previous.count += 1;
+  runtimeRate.set(clientKey, previous);
+  while (runtimeRate.size > 2048) runtimeRate.delete(runtimeRate.keys().next().value);
+  return true;
+}
 function metricRoute(pathname) {
   if (pathname.startsWith('/api/geospatial')) return 'geospatial';
   if (pathname.startsWith('/api/v1/engineering') || pathname.startsWith('/api/ingest')) return 'engineering';
@@ -148,6 +158,7 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, { ...healthBody(), ready: true, required_internal_dependencies: { authority_registry: true, evidence_store: true, oidc: true } }, requestId);
     }
     if (req.method === 'POST' && url.pathname === '/api/runtime/metrics') {
+      if (!allowRuntimeMetrics(String(req.socket.remoteAddress || 'anonymous'))) return json(res, 429, { ok: false, code: 'RUNTIME_METRIC_RATE_LIMIT' }, requestId);
       try {
         const body = await readBodyFixed(req);
         if (!Array.isArray(body.metrics) || body.metrics.length < 1 || body.metrics.length > RUNTIME_METRIC_LIMIT) return json(res, 400, { ok: false, code: 'RUNTIME_METRIC_BATCH_INVALID' }, requestId);
