@@ -35,6 +35,7 @@ const HELP = new Map([
   ['tsm_browser_memory_pressure_ratio', 'Measured JavaScript heap usage divided by the browser heap limit when available.'],
   ['tsm_browser_webgpu_available', 'Browser WebGPU API availability.'],
   ['tsm_browser_webgl_available', 'Browser WebGL context availability.'],
+  ['tsm_worker_utilization_ratio', 'Measured ingestion worker pool utilization ratio.'],
   ['tsm_server_event_loop_utilization_ratio', 'Measured Node.js event-loop utilization ratio.'],
   ['tsm_geospatial_query_latency_seconds', 'Measured geospatial query duration in seconds.'],
   ['tsm_hydraulic_job_latency_seconds', 'Measured hydraulic job duration in seconds.'],
