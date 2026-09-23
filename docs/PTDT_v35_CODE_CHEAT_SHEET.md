@@ -1,45 +1,65 @@
-# PTDT v35 Sovereign Core - Code Cheat Sheet
+# PTDT v35 — Engineering Code Cheat Sheet
+
+> **Purpose:** implementation navigation only. This document does not define FEMA, Indiana DNR, county, or other regulatory requirements.
 
 ## 1. System & Repository Context Matrix
 
-| Module/File Path | Primary Engineering Responsibility | Critical Dependency/Interface Bound |
+| Module/File Path | Primary Engineering Responsibility | Critical Dependency / Interface Boundary |
 |---|---|---|
-| `backend/gov/site_constants.py` | Fail-closed invariants + **EPSG:2966 CRS validation** | source-bound BFE/LAG/elevation evidence; MASTER_SEAL |
-| `backend/db/postgis_raster_optimize.sql` | Optimized DEM tile size + GiST performance | 128x128 tiles; FILLFACTOR 70; REINDEX CONCURRENTLY |
-| `tsm-console/src/gpu/photorealTerrain.wgsl` | Non-mutating DEM ray-march / volumetric fog | Read-only; presentation isolation; WGSL |
-| `backend/api/v1/hecras_solver.py` | Saint-Venant + Manning + Bishop | V_net < 0 (1.20x); FOST < 1.10 @ >=24 ft |
-| `scripts/verify-backend-invariants.py` | Smoke test for invariants + solver | Run from repo root: `python scripts/verify-backend-invariants.py` |
+| `backend/gov/site_constants.py` | Fail-closed project invariants and CRS validation | Source-bound elevation evidence; project configuration |
+| `backend/db/postgis_raster_optimize.sql` | Raster storage and spatial-index performance | Database maintenance procedures |
+| `tsm-console/src/gpu/photorealTerrain.wgsl` | Non-mutating terrain presentation | Visualization only; no evidence/model mutation |
+| `backend/api/v1/hecras_solver.py` | Hydraulic/hydrologic computation bridge | Explicit scenario inputs; validation and uncertainty |
+| `scripts/verify-backend-invariants.py` | Backend invariant/solver smoke checks | Run from repository root |
 
 ## 2. Core Implementation Artifacts
 
-- `backend/gov/site_constants.py` — backend geodetic/regulatory invariant checks
+- `backend/gov/site_constants.py` — backend geodetic/project invariant checks
 - `tsm-console/src/lib/firm-panel-ssot.ts` — FIRM panel identity and verification state
-- `backend/db/postgis_raster_optimize.sql` — GiST + raster maintenance
-- `backend/api/v1/hecras_solver.py` — HEC-RAS bridge + pure-Python fallback
-- `tsm-console/src/gpu/photorealTerrain.wgsl` — WebGPU compute/fragment
+- `backend/db/postgis_raster_optimize.sql` — spatial storage/index maintenance
+- `backend/api/v1/hecras_solver.py` — HEC-RAS bridge and solver calculations
+- `tsm-console/src/gpu/photorealTerrain.wgsl` — WebGPU presentation layer
 
 ## 3. Deterministic Edge Cases & Preventative Patterns
 
-- **EPSG:2966 CRS validation failure** → `assert HORIZONTAL_CRS == "EPSG:2966"`
-- **Raster tile size / GiST bloat** → 128x128 primary; REINDEX CONCURRENTLY + ANALYZE + VACUUM after bulk
-- **WebGPU compute write-back risk** → Compute shaders write only to transient storage buffers
-- **No-Rise / FOST critical** → `if stage_ft >= 24.0: fost = 0.98`; reject if cut < 1.20x fill
-- **Presentation mutation** → WebGPU / MapLibre layers are strictly read-only
+- **CRS validation** → reject unexpected project CRS; do not relabel incorrectly tagged source data.
+- **Raster performance** → use the configured tile/index strategy and perform database maintenance after bulk operations.
+- **WebGPU write-back risk** → presentation shaders write only to transient/presentation buffers.
+- **FEMA/Indiana no-rise analysis** → compare project-condition WSE against the applicable base-condition WSE. Do **not** substitute water stage minus BFE for project hydraulic rise.
+- **Compensatory storage** → treat ratios such as 1.20× as explicit engineering/project inputs unless the applicable authoritative rule or permit establishes that value. The cited Posey subdivision provision uses an equal-volume cutting offset in its stated context.
+- **Indiana thresholds** → keep FEMA 0.00-ft floodway no-rise, Indiana DNR's 0.14-ft cumulative-surcharge policy, and the 0.15-ft adverse-effect definition in 312 IAC 10-2-3 as separate authority layers.
+- **Presentation mutation** → WebGPU / MapLibre layers are visualization-only and must not overwrite evidence/model state.
 
 ## 4. API & Data Pipeline Contracts
 
-**Community Engineering Scope**  
+**Community Engineering Scope**
+
 BFE | LAG | FFE | berm elevations: **SOURCE_REQUIRED**  
-**HORIZONTAL_CRS = "EPSG:2966"** | NAVD88 | parcel/APN identifiers: **SOURCE_REQUIRED**  
-FIRM 18129C0300C | CID 180209 | NFHL REST verified; not a LOMA determination  
-MASTER_SEAL `b4782912564e70e863a7938bb3700647580830fb5a81e910a0db49a20f73b32e`  
-Compensatory 1.20x–1.30x | Bishop FoS >= 1.50 (cert 1.68) | FOST < 1.10 | V_net < 0
+Horizontal CRS: **EPSG:2966** where the project analysis frame requires it; vertical datum remains separate metadata.  
+Parcel/APN identifiers: **SOURCE_REQUIRED**  
+FIRM/CID records: use the current SSOT/registry and preserve source verification state.  
+Regulatory conclusions: **HUMAN_AUTHORITY_REQUIRED**
 
-**Verification**
+**Evidence integrity**
+
+- SHA-256 is an integrity hash, not a digital signature.
+- Server-side governance transition is required before authoritative Merkle append.
+- Browser Merkle state is a non-authoritative cache/demo layer.
+- Human authorization must remain explicit; TSM does not auto-file or issue FEMA/agency determinations.
+
+## 5. Verification
+
 ```bash
-# Full Node/TypeScript/geospatial/build/test gate
 cd tsm-console && npm run ci:full
-
-# Backend invariant + solver smoke test
 cd .. && python scripts/verify-backend-invariants.py
 ```
+
+## 6. Regulatory Source Discipline
+
+Do not encode a numeric value as a universal legal requirement unless the applicable authoritative source establishes that value for the exact jurisdiction, project type, and pathway.
+
+- FEMA LOMA evidence requirements are pathway-specific and must follow applicable MT-1 guidance/form instructions.
+- A fill project is not automatically a pure LOMA pathway; determine the applicable LOMR-F/CLOMR-F process.
+- Community Acknowledgment requirements are conditional by pathway and floodway/fill status.
+- Professional certification/signature/seal remains a human responsibility.
+- TSM calculations are decision support and evidence organization, not FEMA, DNR, county, surveyor, or engineer determinations.
