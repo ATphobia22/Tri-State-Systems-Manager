@@ -42,12 +42,14 @@ function installFetchTileObserver(): void {
     try {
       const response = await originalFetch(input, init);
       if (tile) {
+        enqueue('tsm_browser_tile_requests_total', 1, { outcome: response.ok ? 'success' : 'http_error' });
         enqueue('tsm_browser_tile_request_latency_seconds', (performance.now() - started) / 1000, { outcome: response.ok ? 'success' : 'http_error' });
         if (!response.ok) enqueue('tsm_browser_tile_failures_total', 1, { status: response.status });
       }
       return response;
     } catch (error) {
       if (tile) {
+        enqueue('tsm_browser_tile_requests_total', 1, { outcome: 'network_error' });
         enqueue('tsm_browser_tile_request_latency_seconds', (performance.now() - started) / 1000, { outcome: 'network_error' });
         enqueue('tsm_browser_tile_failures_total', 1, { status: 'network_error' });
       }
