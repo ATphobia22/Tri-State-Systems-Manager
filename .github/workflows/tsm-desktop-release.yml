@@ -1,0 +1,234 @@
+name: TSM Desktop Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag, e.g. desktop-v0.2.1"
+        required: true
+        type: string
+      draft:
+        description: "Create the release as a draft"
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tsm-desktop-release
+  cancel-in-progress: false
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      release_id: ${{ steps.release.outputs.release_id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+          DRAFT: ${{ inputs.draft }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            existing_draft="$(gh release view "$TAG" --json isDraft --jq .isDraft)"
+            if [ "$existing_draft" != "$DRAFT" ]; then
+              echo "Release $TAG exists with draft=$existing_draft but workflow requested draft=$DRAFT." >&2
+              exit 1
+            fi
+            release_id="$(gh release view "$TAG" --json databaseId --jq .databaseId)"
+          else
+            draft_flag=""
+            if [ "$DRAFT" = "true" ]; then draft_flag="--draft"; fi
+            gh release create "$TAG" --target "$GITHUB_SHA" --title "TSM Desktop release" --notes "Tri-State Systems Manager Windows and macOS desktop release." $draft_flag
+            release_id="$(gh release view "$TAG" --json databaseId --jq .databaseId)"
+          fi
+          echo "release_id=$release_id" >> "$GITHUB_OUTPUT"
+
+  windows:
+    needs: create-release
+    runs-on: windows-latest
+    env:
+      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+      TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+      TSM_UPDATER_PUBLIC_KEY: ${{ secrets.TSM_UPDATER_PUBLIC_KEY }}
+      WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+      WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tsm-console/package-lock.json
+          registry-url: https://registry.npmjs.org
+      - uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable
+      - name: Install pinned Tauri CLI
+        run: cargo install tauri-cli --version 2.11.4 --locked
+      - name: Install Windows signing certificate
+        shell: pwsh
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:WINDOWS_CERTIFICATE)) { throw "WINDOWS_CERTIFICATE is required." }
+          New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP\tsm-cert" | Out-Null
+          $encoded = "$env:RUNNER_TEMP\tsm-cert\certificate.txt"
+          $pfx = "$env:RUNNER_TEMP\tsm-cert\certificate.pfx"
+          Set-Content -Path $encoded -Value $env:WINDOWS_CERTIFICATE -NoNewline
+          certutil -decode $encoded $pfx | Out-Null
+          $password = ConvertTo-SecureString $env:WINDOWS_CERTIFICATE_PASSWORD -AsPlainText -Force
+          $cert = Import-PfxCertificate -FilePath $pfx -CertStoreLocation Cert:\CurrentUser\My -Password $password
+          if (-not $cert) { throw "Unable to import Windows signing certificate." }
+          $thumbprint = ($cert | Select-Object -First 1).Thumbprint
+          "TSM_WINDOWS_CERTIFICATE_THUMBPRINT=$thumbprint" | Out-File -FilePath $env:GITHUB_ENV -Append
+      - run: npm ci
+        working-directory: tsm-console
+      - run: npm run build
+        working-directory: tsm-console
+      - run: node scripts/configure-desktop-release.mjs
+        working-directory: tsm-console
+      - name: Validate release updater configuration
+        env:
+          TSM_DESKTOP_RELEASE: "1"
+        run: node scripts/desktop-updater-check.mjs
+        working-directory: tsm-console
+      - uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          projectPath: tsm-console
+          releaseId: ${{ needs.create-release.outputs.release_id }}
+          tagName: ${{ inputs.tag }}
+          releaseDraft: ${{ inputs.draft }}
+          tauriScript: cargo tauri
+          args: --bundles nsis,msi
+          uploadUpdaterJson: true
+          uploadUpdaterSignatures: true
+      - name: Verify Windows Authenticode signatures
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $files = Get-ChildItem -Path "tsm-console/src-tauri/target/release/bundle" -Recurse -File -Include *.exe,*.msi
+          if (-not $files) { throw "No Windows installer artifacts were produced." }
+          $signtool = Get-ChildItem "$env:ProgramFiles(x86)\Windows Kits\10\bin" -Filter signtool.exe -Recurse -ErrorAction SilentlyContinue |
+            Sort-Object FullName -Descending |
+            Select-Object -First 1
+          if (-not $signtool) { throw "Windows SDK SignTool was not found." }
+          foreach ($file in $files) {
+            & $signtool.Source verify /pa /all /tw $file.FullName
+            if ($LASTEXITCODE -ne 0) { throw "Authenticode verification failed: $($file.FullName)" }
+          }
+          $hashes = foreach ($file in $files) {
+            $hash = (Get-FileHash -Algorithm SHA256 -Path $file.FullName).Hash.ToLowerInvariant()
+            "$hash  $($file.Name)"
+          }
+          $hashes | Set-Content -Path "tsm-console/src-tauri/target/release/TSM-Windows-SHA256SUMS.txt" -Encoding ascii
+      - name: Upload Windows release checksums
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        shell: pwsh
+        run: gh release upload "$env:TAG" "tsm-console/src-tauri/target/release/TSM-Windows-SHA256SUMS.txt" --clobber
+
+  macos:
+    needs: [create-release, windows]
+    runs-on: macos-latest
+    env:
+      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+      TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+      TSM_UPDATER_PUBLIC_KEY: ${{ secrets.TSM_UPDATER_PUBLIC_KEY }}
+      APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+      APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+      APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+      APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+      APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tsm-console/package-lock.json
+      - uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+      - name: Install pinned Tauri CLI
+        run: cargo install tauri-cli --version 2.11.4 --locked
+      - name: Import Apple Developer ID certificate
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$APPLE_CERTIFICATE"
+          security create-keychain -p "$RUNNER_TEMP" "$RUNNER_TEMP/tsm-build.keychain-db"
+          security set-keychain-settings -lut 21600 "$RUNNER_TEMP/tsm-build.keychain-db"
+          security unlock-keychain -p "$RUNNER_TEMP" "$RUNNER_TEMP/tsm-build.keychain-db"
+          echo "$APPLE_CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/tsm-developer-id.p12"
+          security import "$RUNNER_TEMP/tsm-developer-id.p12" -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$RUNNER_TEMP/tsm-build.keychain-db"
+          security list-keychains -d user -s "$RUNNER_TEMP/tsm-build.keychain-db"
+          security default-keychain -s "$RUNNER_TEMP/tsm-build.keychain-db"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$RUNNER_TEMP" "$RUNNER_TEMP/tsm-build.keychain-db"
+      - name: Install App Store Connect API key
+        shell: bash
+        env:
+          APPLE_API_KEY_P8: ${{ secrets.APPLE_API_KEY_P8 }}
+        run: |
+          set -euo pipefail
+          test -n "$APPLE_API_KEY"
+          test -n "$APPLE_API_ISSUER"
+          test -n "$APPLE_API_KEY_P8"
+          mkdir -p "$RUNNER_TEMP/private_keys"
+          printf '%s' "$APPLE_API_KEY_P8" | base64 --decode > "$RUNNER_TEMP/private_keys/AuthKey_$APPLE_API_KEY.p8"
+          echo "APPLE_API_KEY_PATH=$RUNNER_TEMP/private_keys/AuthKey_$APPLE_API_KEY.p8" >> "$GITHUB_ENV"
+      - run: npm ci
+        working-directory: tsm-console
+      - run: npm run build
+        working-directory: tsm-console
+      - run: node scripts/configure-desktop-release.mjs
+        working-directory: tsm-console
+      - name: Validate release updater configuration
+        env:
+          TSM_DESKTOP_RELEASE: "1"
+        run: node scripts/desktop-updater-check.mjs
+        working-directory: tsm-console
+      - uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          APPLE_API_KEY_PATH: ${{ env.APPLE_API_KEY_PATH }}
+        with:
+          projectPath: tsm-console
+          releaseId: ${{ needs.create-release.outputs.release_id }}
+          tagName: ${{ inputs.tag }}
+          releaseDraft: ${{ inputs.draft }}
+          tauriScript: cargo tauri
+          args: --bundles dmg --target universal-apple-darwin
+          uploadUpdaterJson: true
+          uploadUpdaterSignatures: true
+      - name: Verify macOS code signature and notarization staple
+        shell: bash
+        run: |
+          set -euo pipefail
+          app="$(find tsm-console/src-tauri/target/universal-apple-darwin/release/bundle/macos -maxdepth 1 -type d -name '*.app' -print -quit)"
+          test -n "$app"
+          codesign --verify --deep --strict --verbose=2 "$app"
+          xcrun stapler validate "$app"
+      - name: Upload macOS release checksums
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          bundle_dir="tsm-console/src-tauri/target/universal-apple-darwin/release/bundle/macos"
+          shasum -a 256 "$bundle_dir"/*.dmg > "tsm-console/src-tauri/target/universal-apple-darwin/release/TSM-macOS-SHA256SUMS.txt"
+          gh release upload "$TAG" "tsm-console/src-tauri/target/universal-apple-darwin/release/TSM-macOS-SHA256SUMS.txt" --clobber
