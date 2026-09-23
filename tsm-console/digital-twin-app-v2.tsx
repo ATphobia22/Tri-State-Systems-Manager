@@ -43,6 +43,7 @@ const ENGINEERING_CRS = 'EPSG:2966';
 const DISPLAY_CRS = 'EPSG:4326 → WebMercator';
 const DEFAULT_BFE_FT_NAVD88 = 375;
 const POSEY_WTHGIS_URL = 'http://poseyin.wthgis.com/';
+const POSEY_COUNTYGISMAPS_URL = 'https://countygismaps.com/map/in/posey';
 const FEMA_NFHL_URL = 'https://msc.fema.gov/nfhl';
 
 const isFiniteNumber = (value: unknown): value is number =>
@@ -470,7 +471,8 @@ export default function DigitalTwinAppV2(): JSX.Element {
             )}
             <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
               <a href={selected.properties.wthgisRecordUrl ?? makeRecordUrl(selected.properties.wthgisFeatureId)} target="_blank" rel="noreferrer">Open WTH GIS record ↗</a>
-              <a href={POSEY_WTHGIS_URL} target="_blank" rel="noreferrer">Posey County GIS ↗</a>
+              <a href={POSEY_WTHGIS_URL} target="_blank" rel="noreferrer">Posey WTH GIS ↗</a>
+              <a href={POSEY_COUNTYGISMAPS_URL} target="_blank" rel="noreferrer">CountyGISMaps reference ↗</a>
               <a href={FEMA_NFHL_URL} target="_blank" rel="noreferrer">FEMA NFHL ↗</a>
             </div>
           </div>
