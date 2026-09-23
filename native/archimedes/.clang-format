@@ -1,6 +1,10 @@
 BasedOnStyle: LLVM
 Standard: c++20
+BreakBeforeBraces: Allman
+AllowShortIfStatementsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: Empty
 IndentWidth: 4
+ContinuationIndentWidth: 4
 ColumnLimit: 120
 DerivePointerAlignment: false
 PointerAlignment: Left
