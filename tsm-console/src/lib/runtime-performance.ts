@@ -28,8 +28,7 @@ function installResourceObserver(): void {
   const observer = new PerformanceObserver((list) => {
     for (const entry of list.getEntries() as PerformanceResourceTiming[]) {
       const url = entry.name;
-      if (/\.js(?:\?|$)/i.test(url) && entry.transferSize > 0) enqueue('tsm_browser_js_chunk_bytes', entry.transferSize, { resource: new URL(url, location.href).pathname.slice(-96) });
-      if (isTileResource(url)) enqueue('tsm_browser_tile_request_latency_seconds', Math.max(0, entry.duration) / 1000, { resource: new URL(url, location.href).pathname.slice(-96) });
+      if (/\.js(?:\?|$)/i.test(url) && entry.transferSize > 0) enqueue('tsm_browser_js_chunk_bytes', entry.transferSize, { resource_class: 'javascript_chunk' });
     }
   });
   try { observer.observe({ type: 'resource', buffered: true }); } catch { observer.disconnect(); }
