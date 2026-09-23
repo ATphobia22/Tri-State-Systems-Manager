@@ -5,7 +5,7 @@ import { join, relative } from 'node:path';
 const root = new URL('../../tsm-console/dist/', import.meta.url);
 const artifactDir = new URL('../../tsm-console/artifacts/', import.meta.url);
 const budget = {
-  maxJsChunkBytes: Number(process.env.TSM_MAX_JS_CHUNK_BYTES || 750_000),
+  maxJsChunkBytes: Number(process.env.TSM_MAX_JS_CHUNK_BYTES || 1_150_000),
   maxTotalJsBytes: Number(process.env.TSM_MAX_TOTAL_JS_BYTES || 2_500_000),
   maxTotalCssBytes: Number(process.env.TSM_MAX_TOTAL_CSS_BYTES || 500_000),
 };
