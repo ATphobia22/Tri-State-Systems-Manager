@@ -39,6 +39,34 @@ describe('FEMA LOMA evidence gate', () => {
     expect(result.submissionStatus).toBe('READY_FOR_SUBMISSION');
   });
 
+  it('blocks fill from being silently treated as a pure LOMA', () => {
+    const result = auditFemaLomaEvidence({
+      caseId: '26-05-2022A',
+      firmClearlyOutsideSfha: false,
+      fillPlacedOrProposed: true,
+      deedOrPlat: [evidence('RECORDED_DEED')],
+      assessorMap: evidence('TAX_ASSESSOR_MAP'),
+      firmEvidence: evidence('FIRM_MAP'),
+    });
+
+    expect(result.submissionStatus).toBe('BLOCKED');
+    expect(result.missingRequired).toContain('LOMA pathway (no fill placed/proposed)');
+  });
+
+  it('requires the community acknowledgment gate when a LOMA request is in the regulatory floodway', () => {
+    const result = auditFemaLomaEvidence({
+      caseId: '26-05-2022A',
+      firmClearlyOutsideSfha: false,
+      propertyInRegulatoryFloodway: true,
+      deedOrPlat: [evidence('RECORDED_DEED')],
+      assessorMap: evidence('TAX_ASSESSOR_MAP'),
+      firmEvidence: evidence('FIRM_MAP'),
+    });
+
+    expect(result.submissionStatus).toBe('BLOCKED');
+    expect(result.missingRequired).toContain('Community Acknowledgment — Part B (floodway), when applicable');
+  });
+
   it('does not treat an unsigned MT-1 as complete', () => {
     const result = auditFemaLomaEvidence({
       caseId: '26-05-2022A',
