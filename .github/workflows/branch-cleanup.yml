@@ -1,0 +1,54 @@
+# Delete merged Dependabot / stale head branches (not main, not protected tags).
+name: Branch cleanup
+
+on:
+  schedule:
+    # Mondays 12:17 UTC (after typical Dependabot Monday runs)
+    - cron: "17 12 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Harden runner (audit)
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      - name: Delete merged head branches
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          REPO="${{ github.repository }}"
+          DEFAULT_BRANCH="${{ github.event.repository.default_branch || 'main' }}"
+
+          echo "Default branch: $DEFAULT_BRANCH"
+          echo "Listing remote heads…"
+
+          gh api "repos/${REPO}/pulls?state=closed&per_page=50" --jq '.[] | select(.merged_at != null) | .head.ref' \
+            | sort -u \
+            | while read -r branch; do
+                case "$branch" in
+                  "$DEFAULT_BRANCH"|master|develop|release*|hotfix*)
+                    echo "SKIP protected pattern: $branch"
+                    continue
+                    ;;
+                  dependabot/*|renovate/*)
+                    echo "DELETE merged dependency branch: $branch"
+                    gh api -X DELETE "repos/${REPO}/git/refs/heads/${branch}" 2>/dev/null \
+                      && echo "  deleted $branch" \
+                      || echo "  already gone or not deletable: $branch"
+                    ;;
+                  *)
+                    echo "SKIP non-bot branch: $branch"
+                    ;;
+                esac
+              done
+
+          echo "Done."
