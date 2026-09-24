@@ -53,19 +53,21 @@ jobs:
       - run: cargo install tauri-cli --version 2.11.4 --locked
       - run: npm ci --ignore-scripts --registry=https://registry.npmjs.org
       - run: npm run build
-      - name: Rebuild deterministic Windows ICO wrapper
+      - name: Validate Windows bundle icons
         shell: pwsh
         run: |
-          python -c @"
-          import struct
-          from pathlib import Path
-          png = Path('src-tauri/icons/icon.png').read_bytes()
-          header = struct.pack('<HHH', 0, 1, 1)
-          entry = struct.pack('<BBBBHHII', 0, 0, 0, 0, 1, 32, len(png), 22)
-          Path('src-tauri/icons/icon.ico').write_bytes(header + entry + png)
-          print(f'Wrote valid ICO container: {len(png)} PNG bytes')
-          "@
-          if (-not (Test-Path "src-tauri/icons/icon.ico")) { throw "ICO was not generated" }
+          $png = "src-tauri/icons/icon.png"
+          $ico = "src-tauri/icons/icon.ico"
+          if (-not (Test-Path $png)) { throw "Required PNG icon missing: $png" }
+          if (-not (Test-Path $ico)) { throw "Required ICO icon missing: $ico" }
+          $pngBytes = [System.IO.File]::ReadAllBytes($png)
+          $icoBytes = [System.IO.File]::ReadAllBytes($ico)
+          if ($pngBytes.Length -lt 24) { throw "PNG icon is unexpectedly small: $($pngBytes.Length) bytes" }
+          if ($icoBytes.Length -lt 22) { throw "ICO icon is unexpectedly small: $($icoBytes.Length) bytes" }
+          if ($icoBytes[0] -ne 0 -or $icoBytes[1] -ne 0 -or $icoBytes[2] -ne 1 -or $icoBytes[3] -ne 0) {
+            throw "ICO header is invalid"
+          }
+          Write-Host "Validated bundle icons: PNG=$($pngBytes.Length) bytes ICO=$($icoBytes.Length) bytes"
       - run: cargo tauri build --bundles msi,nsis
       - name: Verify Windows bundles
         shell: pwsh
