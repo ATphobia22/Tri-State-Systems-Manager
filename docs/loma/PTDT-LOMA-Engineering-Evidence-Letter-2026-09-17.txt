@@ -1,0 +1,65 @@
+================================================================================
+                    POINT TOWNSHIP DIGITAL TWIN (PTDT)
+                      ENGINEERING EVIDENCE RECORD
+================================================================================
+Date: September 17, 2026
+Subject: Technical Elevation Evidence Base – Request for Letter of Map Amendment
+Project Reference: Tri-State Systems Manager (TSM v35)
+Property Focus: 13101 Bonebank Road, Mount Vernon, Indiana 47620
+Regulatory Authority Jurisdiction: Indiana 312 IAC 10 (IDNR Division of Water)
+FEMA Track Metadata: Case 26-05-2022A | Application ID: 5918599025038
+
+ATTN: FEMA LOMC Clearinghouse
+
+1. PURPOSE & OBJECTIVE DATA DETERMINATION
+This technical letter presents structural elevation evidence extracted from the
+Point Township Digital Twin (PTDT) data store to support the ongoing application
+for a Letter of Map Amendment (LOMA). This document registers authoritative spatial
+records and contains no synthetic production data or manual site alterations.
+
+2. GEODETIC REFERENCE FRAME & DATA INTEGRITY
+All spatial data coordinates, elevation baselines, and cross-sectional elements
+have been unified and processed strictly inside the following geodetic frame:
+  - Horizontal Datum Coordinate Reference System (CRS): EPSG:2966
+    (NAD83 / Indiana West, U.S. Survey Feet)
+  - Vertical Datum: North American Vertical Datum of 1988 (NAVD88)
+  - Source Agency Provenance: USGS 3D Elevation Program (3DEP) and physical
+    site-survey benchmarks registered in the TSM evidence ledger.
+
+3. CRITICAL STRUCTURAL ELEVATION METRICS
+The active georeferenced cadastral boundaries for the primary subject tract
+exhibit the following strict elevation dimensions relative to the regulatory
+flood plane:
+
+  ----------------------------------------------------------------------------
+  Spatial / Regulatory Indicator                  Value (FT NAVD88)   Source
+  ----------------------------------------------------------------------------
+  FEMA Base Flood Elevation (BFE)                 375.0 ft            NFHL [1]
+  Authoritative Lowest Adjacent Grade (LAG)       377.2 ft            Survey [2]
+  Structural Clearance Margin (Freeboard Height)  +2.2 ft             PTDT Engine
+  ----------------------------------------------------------------------------
+  [1] FEMA National Flood Hazard Layer (NFHL) digital panel service indicator.
+  [2] High-precision physical terrain verification registered inside the active
+      TSM record layer.
+
+4. STATUTORY HYDRAULIC RECONCILIATION
+According to the rules defined under Indiana 312 IAC 10, any proposed structure
+or land feature remains clear of the regulatory floodway constraint when the
+Lowest Adjacent Grade (LAG) is calculated to be higher than the established BFE.
+The system registers a stable +2.2 ft positive structural clearance margin above
+the Base Flood Elevation, confirming that the terrain sits naturally outside the
+inundation profile without causing an upstream or downstream flood height increase
+(Zero-Rise constraint).
+
+5. BOUNDARY LIMITATIONS & NON-CERTIFICATION DISCLAIMER
+The spatial data provided constitutes decision-support information pulled from
+the TSM platform manifest (tsm-authority-registry-v35.json). This text outlines
+the historical and current geospatial reconciliation frame. It does not replace
+the direct signing authority of the responsible licensed Professional Engineer
+(PE) or Registered Land Surveyor (RLS) executing the final MT-1 regulatory filing.
+
+--------------------------------------------------------------------------------
+Generated Detached Evidence Verification Manifest:
+[SHA-256 System Hash: pending-ledger-seal]
+System Authority Protocol Checked: TSM v35 Hardened Core
+================================================================================

@@ -1,0 +1,44 @@
+================================================================================
+                    POINT TOWNSHIP DIGITAL TWIN (PTDT)
+              USACE SECTION 204 CONDITIONAL PATHWAY STATEMENT
+================================================================================
+Project Authority: Tri-State Systems Manager (TSM v35 Hardened Core)
+Location Frame: Ohio–Wabash River Valley Confluence Corridor
+Primary Reference Geodetic System: EPSG:2966 / Vertical Datum NAVD88
+Target Submission Package: FEMA LOMA Evidence Bundle Addendum
+
+1. CONDITIONAL NATURE OF STRUCTURAL FILL IDENTIFICATION
+This statement establishes the regulatory framework for integrating dredged
+materials derived from regional USACE river channel maintenance operations.
+In strict alignment with the governing parameters of the TSM architecture,
+dredged materials are NOT presumed to be structural fill.
+
+USACE Section 204 is processed exclusively as a CONDITIONAL AUTHORITY PATHWAY.
+This record does not imply automatic infrastructure funding, nor does it guarantee
+the localized engineering properties or availability of material.
+
+2. SPECIFIC MATERIAL QUALIFICATION CRITERIA
+Before any sediment or dredged composite is cleared to enter the engineering
+evidence ledger for structural deployment (such as emergency access corridor
+stabilization or zero-rise road elevation), it must pass the following multi-tier
+qualification gates:
+  A. Geotechnical Suitability: Laboratory verification of shear strength, USCS
+     classification profile, and high-water saturation behavior (Bishop FoS >= 1.20).
+  B. Environmental Review: Strict compliance validation against NEPA benchmarks and
+     Indiana Department of Environmental Management (IDEM) clean-fill standards.
+  C. Project-Specific Verification: Independent evaluation of economic cost-sharing,
+     beneficial-use parameters, and formal sign-off by the USACE Louisville District.
+
+3. RELATION TO CONCURRENT FEMA LOMA FILINGS
+This conditional statement is attached to the FEMA Letter of Map Amendment (LOMA)
+evidence packet to formalize the boundary between natural terrain clearance profiles
+(Lowest Adjacent Grade at 377.2 ft NAVD88 vs. Base Flood Elevation at 375.0 ft NAVD88)
+and future potential structural fill operations. The confirmation of natural ground
+clearance stands independently of any prospective Section 204 beneficial use
+agreements, ensuring that regulatory floodway constraints remain unaffected by
+unmaterialized infrastructure material options.
+
+--------------------------------------------------------------------------------
+System Status: HARDENED VALIDATION CONSTRAINTS ACTIVE
+Detached Provenance Identification: [SHA-256 Auth Sign-off: pending-ledger-seal]
+================================================================================
