@@ -31,6 +31,7 @@
     "test:engineering": "node --test server/engineering/*.test.mjs server/evidence/*.test.mjs tests/community-engineering-data-contract.test.mjs",
     "test:community-privacy": "node ../tests/privacy-community-scope.test.mjs",
     "test:community-river": "node --test tests/river-gauges-community.test.mjs tests/privacy-community-scope.test.mjs",
+    "test:community-engineering-boundary": "node --test ../tests/community-engineering-boundary.test.mjs",
     "test:deployment": "node --test tests/community-deployment-contract.test.mjs",
     "test:reliability": "node --test tests/reliability-primitives.test.mjs tests/production-reliability.test.mjs tests/source-health.test.mjs tests/source-freshness.test.mjs tests/dependency-integrity.test.mjs tests/source-fabric.test.mjs",
     "test:posey": "vitest run tests/posey-ledger.test.ts",
