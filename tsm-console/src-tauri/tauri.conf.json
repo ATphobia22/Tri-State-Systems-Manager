@@ -39,6 +39,10 @@
     "longDescription": "Tri-State Systems Manager desktop console for geospatial, hydrologic, engineering, evidence, and community decision-support workflows.",
     "category": "Utility",
     "copyright": "Tri-State Systems Manager",
+    "icon": [
+      "icons/icon.ico",
+      "icons/icon.png"
+    ],
     "windows": {
       "nsis": {
         "installMode": "both",
