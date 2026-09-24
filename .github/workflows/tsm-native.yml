@@ -284,7 +284,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ROOT="native/dependencies/vcpkg_installed/${{ matrix.triplet }}"
+          ROOT=".native-tools/vcpkg/installed/${{ matrix.triplet }}"
           test -f "$ROOT/include/sqlite3.h"
           test -f "$ROOT/include/spatialite.h"
           if [[ "${{ matrix.triplet }}" == *osx* ]]; then
