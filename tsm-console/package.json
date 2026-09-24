@@ -96,7 +96,7 @@
     "@react-three/drei": "^10.0.0",
     "@react-three/fiber": "^9.0.0",
     "@tanstack/react-virtual": "^3.14.13",
-    "lucide-react": "^1.45.0",
+    "lucide-react": "^1.47.0",
     "maplibre-gl": "6.9.1",
     "react": "19.2.8",
     "react-dom": "19.2.8",
