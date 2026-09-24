@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "standard": "OpenAPI",
+  "required": true,
+  "versioning": {"style":"major-versioned","breakingChangeRequiresMajorVersion":true},
+  "security": {"authenticationRequired":true,"authorizationRequired":true,"leastPrivilege":true},
+  "dataGovernance": {"provenancePropagationRequired":true,"classificationPropagationRequired":true,"sourceVersionPropagationRequired":true},
+  "reliability": {"timeoutsRequired":true,"boundedRetriesRequired":true,"idempotencyForMutations":true,"structuredErrorsRequired":true},
+  "observability": {"requestCorrelationId":true,"auditLogForMutations":true},
+  "rules": ["Sovereign Mode must not expose a localhost service as a hidden data plane.","Connected Mode APIs must declare network/data-source dependencies explicitly."]
+}

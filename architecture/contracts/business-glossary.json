@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "statusVocabulary": {
+    "dataset": ["RAW","NORMALIZED","VALIDATED","DERIVED","QUARANTINED","RETIRED"],
+    "governance": ["PUBLIC","QUARANTINE","AUTHENTICATED_REVIEW","RESTRICTED"],
+    "artifact": ["BUILD","RELEASE","EVIDENCE","PRESENTATION","RUNTIME"]
+  },
+  "terms": {
+    "authoritative_source": "Versioned source designated as the governing source for a defined data domain.",
+    "data_product": "A governed dataset with an explicit contract, owner/steward, provenance and quality expectations.",
+    "provenance": "Evidence describing source, acquisition, transformation and software lineage.",
+    "lineage": "Ordered relationship between an input and each derived artifact or transformation.",
+    "evidence_artifact": "Immutable hash-addressed artifact retained to support reproducibility and review.",
+    "sovereign_mode": "Runtime mode restricted to signed/hash-addressed local data and no networked data sources.",
+    "connected_mode": "Explicitly governed runtime mode permitted to consume networked/live sources.",
+    "horizontal_crs": "Declared horizontal coordinate reference system for spatial records.",
+    "vertical_datum": "Declared vertical reference for elevation or hydraulic values; not inferred from horizontal CRS.",
+    "engineering_reference_token": "Privacy-reduced identifier used to relate engineering geometry without storing direct cadastral identity."
+  }
+}
