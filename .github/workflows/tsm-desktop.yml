@@ -23,6 +23,7 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: tsm-console
@@ -39,6 +40,7 @@ jobs:
   windows:
     needs: validate
     runs-on: windows-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: tsm-console
@@ -85,6 +87,7 @@ jobs:
   macos:
     needs: validate
     runs-on: macos-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: tsm-console
