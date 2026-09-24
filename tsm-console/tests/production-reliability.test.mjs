@@ -35,9 +35,9 @@ test('request timeout remains effective when caller supplies an AbortSignal', as
     });
   };
   const breaker = {
-    beforeRequest: () => {},
-    recordSuccess: () => {},
-    recordFailure: () => {},
+    beforeRequest: () => ({ state: 'closed' }),
+    recordSuccess: () => ({ state: 'closed' }),
+    recordFailure: () => ({ state: 'closed' }),
   };
   await assert.rejects(
     createRequestJson({ fetchImpl, sleepImpl: async () => {}, circuitBreaker: breaker })('https://example.invalid', {

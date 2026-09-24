@@ -2,8 +2,16 @@
   "compilerOptions": {
     "target": "ES2022",
     "useDefineForClassFields": true,
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "types": ["@webgpu/types", "vite/client"],
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "types": [
+      "@webgpu/types",
+      "vite/client",
+      "node"
+    ],
     "module": "ESNext",
     "skipLibCheck": true,
     "moduleResolution": "bundler",
@@ -17,6 +25,10 @@
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"],
-  "exclude": ["src/integrations/repository_bridge.ts"]
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "src/integrations/repository_bridge.ts"
+  ]
 }

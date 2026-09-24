@@ -44,9 +44,9 @@ test('retry success is reported as success after an earlier retryable failure', 
   let calls = 0;
   let metrics;
   const breaker = {
-    beforeRequest: () => {},
-    recordSuccess: () => {},
-    recordFailure: () => {},
+    beforeRequest: () => ({ state: 'closed' }),
+    recordSuccess: () => ({ state: 'closed' }),
+    recordFailure: () => ({ state: 'closed' }),
   };
   const result = await (await import('../server/ingestion/http-client.mjs')).createRequestJson({
     fetchImpl: async () => {
