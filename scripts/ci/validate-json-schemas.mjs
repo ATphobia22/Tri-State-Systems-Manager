@@ -8,6 +8,7 @@ const schemaPaths = [
   'data/schemas/tsm-data-contract-schema-v1.0.0.json',
   'data/schemas/tsm-evidence-artifact-schema-v1.0.0.json',
   'data/schemas/regulatory-gate.schema.json',
+  'data/evidence/layer2/nfip-discrepancy.schema.json',
 ];
 const failures = [];
 const fail = (message) => failures.push(message);
@@ -99,6 +100,16 @@ const evidenceExample = {
 };
 
 
+const nfipLayer2Example = {
+  schema_version: 'tsm-nfip-layer2-v1',
+  case_metadata: { case_id: '26-05-2022A', analysis_status: 'DATA_COLLECTION', legal_theory_status: 'HYPOTHESIS_ONLY' },
+  property_metadata: { parcel_id: null, community_id: null, structure_built_date: null, nearest_infrastructure_id: null, address: null, county: 'Posey', state: 'IN' },
+  historical_timeline_track: [],
+  actuarial_reconciliation: { comparison_status: 'DATA_INCOMPLETE', historical_charged_total: null, documented_refund_adjustment: null, modeled_comparison_premium: null, observed_delta: null, delta_definition: null, rr2_comparison_allowed: false, limitations: ['comparison requires documented policy/rating inputs'], misrating_status: 'UNTESTED', causation_status: 'UNTESTED' },
+  hydrologic_hypothesis_test: { infrastructure_identified: false, historical_navigation_function_documented: false, construction_modification_dates_documented: false, fema_model_dependency_documented: false, operational_rules_documented: false, counterfactual_model_completed: false, hydraulic_difference_quantified: false, reproducible_map_defect: false, finding_status: 'UNTESTED' },
+  evidence_provenance: [{ evidence_id: 'FEMA-26-05-2022A-001', source_type: 'FEMA correspondence', source_locator: '26-05-2022A-092226.pdf', acquisition_date: '2026-09-22', sha256: 'a'.repeat(64), processing_status: 'PRESERVED', notes: null }],
+};
+
 const regulatoryGateExample = {
   artifact_type: 'tsm.regulatory_gate_registry.v1',
   version: '1.0.0',
@@ -119,8 +130,13 @@ for (const relative of schemaPaths) {
   try { schema = JSON.parse(fs.readFileSync(file, 'utf8')); }
   catch (error) { fail(relative + ': invalid JSON: ' + error.message); continue; }
   if (schema.$schema !== 'https://json-schema.org/draft/2020-12/schema') fail(relative + ': unexpected JSON Schema dialect');
-  const example = relative.includes('data-contract') ? dataExample : relative.includes('regulatory-gate') ? regulatoryGateExample : evidenceExample;
+  const example = relative.includes('data-contract') ? dataExample : relative.includes('regulatory-gate') ? regulatoryGateExample : relative.includes('nfip-discrepancy') ? nfipLayer2Example : evidenceExample;
   validate(example, schema, relative);
+  if (relative.includes('nfip-discrepancy')) {
+    const casePath = path.join(repoRoot, 'data/evidence/layer2/26-05-2022A/case.json');
+    try { validate(JSON.parse(fs.readFileSync(casePath, 'utf8')), schema, 'data/evidence/layer2/26-05-2022A/case.json'); }
+    catch (error) { fail('data/evidence/layer2/26-05-2022A/case.json: invalid JSON: ' + error.message); }
+  }
 }
 
 if (failures.length) {
