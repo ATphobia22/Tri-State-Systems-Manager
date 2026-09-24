@@ -26,6 +26,10 @@ jobs:
     env:
       VITE_TSM_API_BASE_URL: ${{ vars.VITE_TSM_API_BASE_URL }}
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
       - name: Validate public API binding
         if: vars.TSM_PAGES_ENABLED == 'true'
         shell: bash
@@ -89,7 +93,6 @@ jobs:
         if: vars.TSM_PAGES_ENABLED == 'true'
         working-directory: ${{ env.CONSOLE_DIR }}
         run: cp dist/index.html dist/404.html
-
       - name: Validate production artifact
         working-directory: ${{ env.CONSOLE_DIR }}
         run: |
@@ -124,6 +127,10 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
