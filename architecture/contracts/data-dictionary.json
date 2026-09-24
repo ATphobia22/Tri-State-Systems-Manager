@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "fields": {
+    "contentSha256": {"type":"string","format":"sha256-hex","nullable":false},
+    "horizontalCrs": {"type":"string","format":"EPSG-code-or-dataset-declared","nullable":false},
+    "verticalDatum": {"type":"string","format":"dataset-declared","nullable":true},
+    "units": {"type":"string","nullable":false},
+    "retrievedAtUtc": {"type":"string","format":"date-time","nullable":false},
+    "sourceVersion": {"type":"string","nullable":false},
+    "transformationVersion": {"type":"string","nullable":false}
+  }
+}

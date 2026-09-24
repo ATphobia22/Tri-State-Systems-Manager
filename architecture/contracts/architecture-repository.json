@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "repositoryRoots": [
+    "architecture/contracts",
+    "tsm-native/config",
+    "ops/postgis/migrations",
+    "scripts/ci",
+    ".github/workflows"
+  ],
+  "requiredGovernance": {
+    "versionControl": true,
+    "codeReview": true,
+    "machineValidation": true,
+    "changeTraceability": true
+  },
+  "changePolicy": {
+    "schemaChangesRequireMigration": true,
+    "contractChangesRequireVersionReview": true,
+    "breakingApiChangesRequireMajorVersion": true,
+    "authoritativeDataChangesRequireProvenance": true
+  }
+}

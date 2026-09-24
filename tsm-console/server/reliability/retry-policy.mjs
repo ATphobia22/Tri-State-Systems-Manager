@@ -13,8 +13,14 @@ export function parseRetryAfter(value, nowMs = Date.now()) {
   return Math.min(Math.max(0, timestamp - nowMs), 60_000);
 }
 
-export function retryDelayMs({ attempt, retryAfterMs = null, baseMs = 250, maxMs = 10_000, jitterMs = 0, random = Math.random }) {
+export function retryDelayMs({
+  attempt, retryAfterMs = null, baseMs = 250, maxMs = 10_000,
+  jitterMs = Math.max(25, Math.min(1_000, baseMs)), random = Math.random,
+}) {
   if (!Number.isInteger(attempt) || attempt < 0) throw new RangeError('attempt must be a non-negative integer');
+  if (!Number.isFinite(baseMs) || baseMs < 0 || !Number.isFinite(maxMs) || maxMs < baseMs) throw new RangeError('invalid retry bounds');
+  if (!Number.isFinite(jitterMs) || jitterMs < 0) throw new RangeError('jitterMs must be non-negative');
+  if (typeof random !== 'function') throw new TypeError('random must be a function');
   const exponential = Math.min(maxMs, baseMs * (2 ** attempt));
   const retryAfter = retryAfterMs == null ? 0 : Math.max(0, retryAfterMs);
   const jitter = jitterMs > 0 ? Math.floor(random() * jitterMs) : 0;

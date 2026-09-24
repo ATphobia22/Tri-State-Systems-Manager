@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "entities": [
+    {"name":"Dataset","key":"datasetId","relationships":["DatasetVersion","LineageEdge","EvidenceArtifact"]},
+    {"name":"DatasetVersion","key":["datasetId","version"],"relationships":["Source","Transformation","DataProduct"]},
+    {"name":"Source","key":"sourceId","relationships":["AuthorityRegistryEntry"]},
+    {"name":"Transformation","key":"transformationId","relationships":["SoftwareVersion","DatasetVersion"]},
+    {"name":"DataProduct","key":"productId","relationships":["DatasetVersion","Owner","Steward"]},
+    {"name":"EvidenceArtifact","key":"artifactId","relationships":["DatasetVersion","BuildIdentity"]},
+    {"name":"BuildIdentity","key":"buildId","relationships":["GitCommit","ArtifactDigest","SBOM","Attestation"]}
+  ],
+  "rules": ["Keys are stable identifiers, not display labels.","Relationships must preserve version identity.","Logical entities do not imply a particular database engine."]
+}

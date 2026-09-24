@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "name": "TSM Backup and Recovery Contract",
+  "scope": [
+    "PostgreSQL/PostGIS",
+    "object-storage evidence",
+    "runtime manifests"
+  ],
+  "requirements": {
+    "database": [
+      "ACID transactions",
+      "WAL enabled in production",
+      "point-in-time recovery",
+      "encrypted backups",
+      "restore verification"
+    ],
+    "evidence": [
+      "immutable versioned objects",
+      "content SHA-256",
+      "retention policy",
+      "restore verification"
+    ],
+    "runtime": [
+      "immutable artifact manifests",
+      "reproducible deployment identity",
+      "rollback target"
+    ]
+  },
+  "recoveryObjectives": {
+    "rpo": "service-defined and documented per deployment",
+    "rto": "service-defined and documented per deployment"
+  },
+  "rules": [
+    "Backups are not considered valid until a restore test succeeds.",
+    "Sovereign runtime snapshots remain immutable.",
+    "Recovery never silently substitutes synthetic authoritative data."
+  ]
+}

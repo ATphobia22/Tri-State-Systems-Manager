@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "architecture": "TSM Enterprise Data Architecture",
+  "authoritativeDefinitions": {
+    "semanticLayer": "Governed vocabulary and metric definitions; never a substitute for source authority.",
+    "dataContract": "Producer/consumer contract covering schema, provenance, quality, freshness, units, CRS/datum and compatibility.",
+    "businessGlossary": "Controlled definitions for agency-facing concepts and lifecycle states.",
+    "masterDataGovernance": "Identity, stewardship, ownership and lifecycle controls for shared reference entities.",
+    "architectureRepository": "Version-controlled machine-readable architecture contracts, schemas, migrations and diagrams."
+  },
+  "logicalArchitecture": {
+    "requiredArtifacts": ["logicalDataModel","dataDictionary","authoritativeSourceRegistry","metadataCatalog","lineageRegistry"]
+  },
+  "physicalArchitecture": {
+    "requiredArtifacts": ["physicalDataModel","migrations","indexes","deploymentContracts","backupRecoveryContracts"]
+  },
+  "dataProducts": [
+    "terrain",
+    "hydrology",
+    "hydraulics",
+    "infrastructure",
+    "geospatial-topology",
+    "telemetry",
+    "regulatory-reference",
+    "simulation",
+    "evidence",
+    "presentation"
+  ],
+  "processingPatterns": {
+    "batch": {"enabled": true, "useFor": ["historical-ingestion","rebuilds","large-derivations"]},
+    "streaming": {"enabled": false, "activation": "Connected Mode only"},
+    "lambda": {"status": "reference-pattern-not-runtime-contract"},
+    "kappa": {"status": "reference-pattern-not-runtime-contract"},
+    "dataMesh": {"status": "governance-pattern-not-required-runtime-topology"}
+  },
+  "apiGovernance": {
+    "contractFormats": ["OpenAPI"],
+    "versioningRequired": true,
+    "breakingChangePolicyRequired": true,
+    "authenticationAndAuthorizationRequired": true,
+    "provenancePropagationRequired": true
+  },
+  "rules": [
+    "Authoritative source identity is explicit and never inferred from presentation output.",
+    "Every promoted data product has an owner/steward, schema version and provenance contract.",
+    "Logical and physical models remain separately versioned.",
+    "Connected streaming cannot activate Sovereign Mode.",
+    "Architecture terms describe enforceable repository artifacts, not merely documentation."
+  ]
+}

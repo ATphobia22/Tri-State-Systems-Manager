@@ -39,7 +39,9 @@ function load() {
 
 function save(state) {
   ensureDir();
-  fs.writeFileSync(STORE_FILE, JSON.stringify(state, null, 2));
+  const temporary = `${STORE_FILE}.${process.pid}.tmp`;
+  fs.writeFileSync(temporary, JSON.stringify(state, null, 2), { mode: 0o600 });
+  fs.renameSync(temporary, STORE_FILE);
 }
 
 export function sha256Hex(input) {

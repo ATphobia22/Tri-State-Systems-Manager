@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "required": [
+    "productId","domain","owner","steward","schemaVersion","sourceDatasetIds",
+    "sourceVersions","qualityPolicy","freshnessPolicy","provenance","classification"
+  ],
+  "qualityPolicy": {
+    "schemaValidation": true,
+    "geometryValidationWhenSpatial": true,
+    "unitValidation": true,
+    "crsValidationWhenSpatial": true,
+    "verticalDatumDeclarationWhenElevation": true,
+    "hashIntegrity": true
+  },
+  "provenance": {
+    "required": true,
+    "sourceUri": true,
+    "sourceVersion": true,
+    "retrievedAtUtc": true,
+    "transformationId": true,
+    "transformationVersion": true,
+    "contentSha256": true
+  },
+  "compatibility": {
+    "semanticVersioningRequired": true,
+    "breakingChangeRequiresMajorVersion": true,
+    "consumerContractTestRequired": true
+  },
+  "classification": ["PUBLIC","QUARANTINE","AUTHENTICATED_REVIEW","RESTRICTED"]
+}

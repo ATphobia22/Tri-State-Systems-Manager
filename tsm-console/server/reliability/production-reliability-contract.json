@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "serviceClass": "TSM connected application services",
+  "controls": {
+    "health": ["liveness", "readiness"],
+    "observability": ["metrics", "events", "structured_logs", "request_ids"],
+    "resilience": ["timeouts", "bounded_retries", "exponential_backoff", "jitter", "circuit_breaker", "graceful_shutdown"],
+    "traffic": ["rate_limiting", "bounded_request_body"],
+    "data": ["idempotency", "durable_quarantine", "atomic_file_persistence"],
+    "security": ["least_privilege", "externalized_secrets", "no_client_secret"]
+  },
+  "sovereignRuntime": {
+    "networkedDataSources": false,
+    "streaming": false,
+    "rateLimiting": "not_applicable_to_offline_native_runtime"
+  },
+  "connectedMode": {
+    "networkedDataSources": true,
+    "streaming": "explicitly_enabled",
+    "dlqRequiredForUnprocessableEvents": true
+  },
+  "rules": [
+    "Liveness must describe process health, not upstream health.",
+    "Readiness must fail when required local dependencies are unavailable.",
+    "Retries must be bounded and use backoff with jitter.",
+    "Circuit breakers must permit at most one half-open probe at a time.",
+    "Request timeouts must remain effective when callers supply an AbortSignal.",
+    "Successful requests must emit successful telemetry even if earlier retry attempts failed.",
+    "Rejected messages must be durably quarantined rather than silently discarded.",
+    "Shutdown must stop accepting new work before terminating active work.",
+    "Rate limits must fail closed at the request boundary and emit Retry-After.",
+    "File-backed persistence must use atomic replacement to prevent torn writes."
+  ]
+}
