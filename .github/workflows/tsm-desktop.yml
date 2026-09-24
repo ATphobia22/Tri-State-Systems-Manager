@@ -86,13 +86,8 @@ jobs:
       - run: npm run build
       - name: Build macOS DMG
         env:
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-        run: |
-          if [[ -n "$APPLE_SIGNING_IDENTITY" ]]; then
-            cargo tauri build --bundles dmg
-          else
-            cargo tauri build --bundles dmg --config '{"bundle":{"macOS":{"signingIdentity":"-"}}}'
-          fi
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY || '-' }}
+        run: cargo tauri build --bundles dmg
       - name: Verify macOS bundle
         run: test -n "$(find src-tauri/target/release/bundle/dmg -name '*.dmg' -print -quit)"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
