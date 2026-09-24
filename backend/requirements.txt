@@ -12,5 +12,5 @@ protobuf>=5.28,<7
 
 # Spatial / DEM / PostGIS validation
 rasterio>=1.4,<2
-psycopg2-binary>=2.9,<3
+psycopg2-binary>=2.9.13,<3
 reportlab==5.0.1
