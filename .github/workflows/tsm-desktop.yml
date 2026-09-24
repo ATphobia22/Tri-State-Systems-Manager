@@ -53,6 +53,19 @@ jobs:
       - run: cargo install tauri-cli --version 2.11.4 --locked
       - run: npm ci --ignore-scripts --registry=https://registry.npmjs.org
       - run: npm run build
+      - name: Rebuild deterministic Windows ICO wrapper
+        shell: pwsh
+        run: |
+          python -c @"
+          import struct
+          from pathlib import Path
+          png = Path('src-tauri/icons/icon.png').read_bytes()
+          header = struct.pack('<HHH', 0, 1, 1)
+          entry = struct.pack('<BBBBHHII', 0, 0, 0, 0, 1, 32, len(png), 22)
+          Path('src-tauri/icons/icon.ico').write_bytes(header + entry + png)
+          print(f'Wrote valid ICO container: {len(png)} PNG bytes')
+          "@
+          if (-not (Test-Path "src-tauri/icons/icon.ico")) { throw "ICO was not generated" }
       - run: cargo tauri build --bundles msi,nsis
       - name: Verify Windows bundles
         shell: pwsh
@@ -86,7 +99,9 @@ jobs:
       - run: npm run build
       - name: Build macOS DMG
         env:
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          # Use ad-hoc signing when no Apple Developer certificate is configured.
+          # Release/notarized builds should provide APPLE_SIGNING_IDENTITY.
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY || '-' }}
         run: cargo tauri build --bundles dmg
       - name: Verify macOS bundle
         run: test -n "$(find src-tauri/target/release/bundle/dmg -name '*.dmg' -print -quit)"
