@@ -284,14 +284,31 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ROOT=".native-tools/vcpkg/installed/${{ matrix.triplet }}"
-          test -f "$ROOT/include/sqlite3.h"
-          test -f "$ROOT/include/spatialite.h"
-          if [[ "${{ matrix.triplet }}" == *osx* ]]; then
-            find "$ROOT" -type f \( -name "libsqlite3.a" -o -name "libsqlite3.dylib" -o -name "mod_spatialite.dylib" \) -print -quit | grep -q .
-          else
-            find "$ROOT" -type f \( -name "libsqlite3.so*" -o -name "libspatialite.so*" \) -print -quit | grep -q .
-          fi
+          SEARCH_ROOTS=(native/dependencies .native-tools/vcpkg/installed .native-tools/vcpkg/packages)
+          SQLITE_HEADER=""
+          SPATIALITE_HEADER=""
+          SQLITE_LIBRARY=""
+          SPATIALITE_LIBRARY=""
+          for root in "${SEARCH_ROOTS[@]}"; do
+            [[ -d "$root" ]] || continue
+            if [[ -z "$SQLITE_HEADER" ]]; then
+              SQLITE_HEADER="$(find "$root" -type f -name sqlite3.h -print -quit)"
+            fi
+            if [[ -z "$SPATIALITE_HEADER" ]]; then
+              SPATIALITE_HEADER="$(find "$root" -type f -name spatialite.h -print -quit)"
+            fi
+            if [[ -z "$SQLITE_LIBRARY" ]]; then
+              SQLITE_LIBRARY="$(find "$root" -type f \( -name 'libsqlite3.a' -o -name 'libsqlite3.dylib' -o -name 'libsqlite3.so*' \) -print -quit)"
+            fi
+            if [[ -z "$SPATIALITE_LIBRARY" ]]; then
+              SPATIALITE_LIBRARY="$(find "$root" -type f \( -name 'libspatialite.a' -o -name 'libspatialite.dylib' -o -name 'libspatialite.so*' -o -name 'mod_spatialite.dylib' -o -name 'mod_spatialite.so*' \) -print -quit)"
+            fi
+          done
+          test -n "$SQLITE_HEADER"
+          test -n "$SPATIALITE_HEADER"
+          test -n "$SQLITE_LIBRARY"
+          test -n "$SPATIALITE_LIBRARY"
+          printf 'sqlite3.h: %s\nspatialite.h: %s\nsqlite library: %s\nspatialite library: %s\n'             "$SQLITE_HEADER" "$SPATIALITE_HEADER" "$SQLITE_LIBRARY" "$SPATIALITE_LIBRARY"
       - name: Verify native dependency manifest (Windows)
         if: ${{ matrix.os == 'windows-latest' }}
         shell: pwsh
