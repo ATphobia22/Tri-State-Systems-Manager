@@ -42,6 +42,9 @@ function cspPlugin() {
         "frame-src 'self'",
         "form-action 'self'",
       ].join('; ');
+      // NOTE: A <meta> CSP cannot enforce frame-ancestors and provides no
+      // violation reporting. Production hosting should inject this policy as a
+      // real Content-Security-Policy HTTP response header instead.
       return [{ tag: 'meta', attrs: { 'http-equiv': 'Content-Security-Policy', content: policy }, injectTo: 'head-prepend' }];
     },
   };
