@@ -7,6 +7,7 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../
 const schemaPaths = [
   'data/schemas/tsm-data-contract-schema-v1.0.0.json',
   'data/schemas/tsm-evidence-artifact-schema-v1.0.0.json',
+  'data/schemas/regulatory-gate.schema.json',
 ];
 const failures = [];
 const fail = (message) => failures.push(message);
@@ -97,6 +98,20 @@ const evidenceExample = {
   derivation_class: 'RAW', governance_status: 'human_review_required',
 };
 
+
+const regulatoryGateExample = {
+  artifact_type: 'tsm.regulatory_gate_registry.v1',
+  version: '1.0.0',
+  gates: [{
+    gate_id: 'PROFESSIONAL-REVIEW',
+    authority: 'Qualified professional engineer/surveyor',
+    status: 'HUMAN_REVIEW_REQUIRED',
+    required_evidence: ['survey_control'],
+    source_uri: null,
+  }],
+  software_policy: 'No calculation may transition a gate to AGENCY_ACCEPTED without an externally recorded human/agency decision.',
+};
+
 for (const relative of schemaPaths) {
   const file = path.join(repoRoot, relative);
   if (!fs.existsSync(file)) { fail(relative + ': schema file missing'); continue; }
@@ -104,7 +119,8 @@ for (const relative of schemaPaths) {
   try { schema = JSON.parse(fs.readFileSync(file, 'utf8')); }
   catch (error) { fail(relative + ': invalid JSON: ' + error.message); continue; }
   if (schema.$schema !== 'https://json-schema.org/draft/2020-12/schema') fail(relative + ': unexpected JSON Schema dialect');
-  validate(relative.includes('data-contract') ? dataExample : evidenceExample, schema, relative);
+  const example = relative.includes('data-contract') ? dataExample : relative.includes('regulatory-gate') ? regulatoryGateExample : evidenceExample;
+  validate(example, schema, relative);
 }
 
 if (failures.length) {
