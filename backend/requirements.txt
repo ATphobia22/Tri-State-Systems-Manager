@@ -4,7 +4,7 @@ h5py>=3.12,<4
 numpy>=2.2,<3
 
 # TSM OpenMI transport profile
-grpcio>=1.70,<2
+grpcio>=1.84.0,<2
 protobuf>=5.28,<7
 
 # Optional HEC-RAS bridge (Windows + licensed HEC-RAS)
