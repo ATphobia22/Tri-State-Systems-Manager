@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tuckerinc82.org/schemas/tsm-usace-hydrologic-node-contract-v1.0.0.json",
+  "title": "TSM USACE Hydrologic Node Data Contract",
+  "description": "Versioned contract for ingesting USACE / NWIS / NWPS hydrologic nodes into the TSM Evidence plane. Fail-closed: observation vs simulation must be labeled. Does not assert FEMA model dependency on navigation pools without primary records.",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "node_id",
+    "authority",
+    "node_class",
+    "horizontal_crs",
+    "vertical_datum_or_label",
+    "retrieved_at",
+    "payload_sha256"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "contract_version": {
+      "const": "1.0.0"
+    },
+    "node_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Stable gauge or structure id (e.g. USGS 03378500, NWPS MTVI3, USACE lock code)"
+    },
+    "authority": {
+      "type": "string",
+      "enum": ["USACE", "USGS", "NOAA_NWPS", "NWS", "OTHER_FEDERAL", "STATE"]
+    },
+    "node_class": {
+      "type": "string",
+      "enum": [
+        "STAGE_GAUGE",
+        "DISCHARGE_GAUGE",
+        "NAVIGATION_POOL",
+        "LOCK_DAM",
+        "FORECAST_POINT",
+        "CREST_STAGE"
+      ]
+    },
+    "display_name": {
+      "type": "string"
+    },
+    "river_system": {
+      "type": "string",
+      "enum": ["OHIO", "WABASH", "TRIBUTARY", "OTHER"]
+    },
+    "coordinates": {
+      "type": "object",
+      "required": ["latitude", "longitude"],
+      "additionalProperties": false,
+      "properties": {
+        "latitude": { "type": "number", "minimum": -90, "maximum": 90 },
+        "longitude": { "type": "number", "minimum": -180, "maximum": 180 }
+      }
+    },
+    "horizontal_crs": {
+      "type": "string",
+      "pattern": "^EPSG:[0-9]+$"
+    },
+    "vertical_datum_or_label": {
+      "type": "string",
+      "description": "NAVD88, NGVD29, or GAGE_DATUM only — never silent conversion"
+    },
+    "gage_zero_navd88_ft": {
+      "type": ["number", "null"],
+      "description": "Published zero only; null if not validated (fail-closed)"
+    },
+    "normal_pool_elevation_ft": {
+      "type": ["number", "null"],
+      "description": "Navigation normal pool if published; null if unknown"
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "stage_raw": { "type": ["number", "null"] },
+        "stage_units": { "type": "string" },
+        "discharge_cfs": { "type": ["number", "null"] },
+        "observed_at": { "type": ["string", "null"], "format": "date-time" },
+        "quality_flag": {
+          "type": "string",
+          "enum": ["OK", "ESTIMATED", "MISSING", "SENTINEL_REJECTED", "UNKNOWN"]
+        }
+      }
+    },
+    "source_endpoint": {
+      "type": "string",
+      "format": "uri"
+    },
+    "retrieved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "payload_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "simulation_demo": {
+      "type": "boolean",
+      "default": false,
+      "description": "True if values are illustrative only"
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}

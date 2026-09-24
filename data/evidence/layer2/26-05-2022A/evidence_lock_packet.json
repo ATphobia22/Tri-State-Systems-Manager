@@ -1,0 +1,32 @@
+{
+  "artifact_schema": "tsm-evidence-artifact-schema-v1.0.0.json",
+  "timestamp_epoch": 1790270771,
+  "immutable_hash": "89bb307d304b6ab3a04ba4d1eff7c3fbd89db006a236cbc62ad0ea3c5666bd0a",
+  "payload": {
+    "location_address": "13101 BONEBANK RD, MOUNT VERNON, IN, 47620",
+    "coordinates": {
+      "latitude": 37.845887,
+      "longitude": -88.005075
+    },
+    "community_number": "180209",
+    "case_number": "26-05-2022A",
+    "target_panel": "18129C0265C",
+    "calculated_lag_navd88": 377.2,
+    "effective_bfe_navd88": 375.0,
+    "note_alternate_stream_bfe_observed": 368.7,
+    "horizontal_crs": "EPSG:2966",
+    "vertical_datum": "NAVD88",
+    "source_elevation_catalog": "Indiana GIO / USGS 3DEP QL2 (statewide delivery ~2020)",
+    "data_owner": "Indiana Geographic Information Office / USGS 3DEP",
+    "claim_controls": {
+      "do_not_claim_loma_approved": true,
+      "do_not_claim_loma_denied": true,
+      "do_not_claim_historical_overcharge_without_policy_evidence": true,
+      "requires_pe_or_surveyor_certification_for_mt1": true
+    },
+    "freeboard_lag_minus_bfe_ft": 2.2,
+    "status_label": "SIMULATION_OR_SITE_CONSTANT — not a FEMA determination"
+  },
+  "status": "FAIL_CLOSED_VALIDATED",
+  "human_authorized": false
+}
