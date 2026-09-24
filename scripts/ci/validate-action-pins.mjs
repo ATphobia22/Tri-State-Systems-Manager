@@ -1,7 +1,26 @@
-import { readdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+#!/usr/bin/env node
+/**
+ * Fail-closed: every external GitHub Action must be pinned to a full 40-char SHA.
+ * Resolves workflow dir from repo root whether invoked from tsm-console or repository root.
+ */
+import { readdirSync, readFileSync, existsSync } from 'node:fs';
+import { join, dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const workflowDir = join(process.cwd(), '..', '.github', 'workflows');
+const here = dirname(fileURLToPath(import.meta.url));
+const repoRoot = resolve(here, '..', '..');
+const candidates = [
+  join(repoRoot, '.github', 'workflows'),
+  join(process.cwd(), '.github', 'workflows'),
+  join(process.cwd(), '..', '.github', 'workflows'),
+];
+const workflowDir = candidates.find((p) => existsSync(p));
+if (!workflowDir) {
+  console.error('ERROR: could not locate .github/workflows (repo root detection failed).');
+  console.error('Tried:', candidates);
+  process.exit(1);
+}
+
 const shaPinned = /^[0-9a-f]{40}$/i;
 const violations = [];
 
@@ -25,4 +44,4 @@ if (violations.length) {
   for (const violation of violations) console.error(violation);
   process.exit(1);
 }
-console.log('GitHub Action pin policy passed.');
+console.log(JSON.stringify({ ok: true, gate: 'action-pins', workflowDir, checked: readdirSync(workflowDir).filter((n) => /\.(yml|yaml)$/.test(n)).length }, null, 2));
