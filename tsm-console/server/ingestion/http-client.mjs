@@ -55,10 +55,21 @@ export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sl
         try {
           const controller = new AbortController();
           const timer = setTimeout(() => controller.abort(), timeoutMs);
+          // The timeout must stay effective even when the caller supplies its
+          // own AbortSignal: link the caller signal into the timeout controller
+          // instead of letting it replace the timeout entirely.
+          const onCallerAbort = () => controller.abort();
+          if (options.signal) {
+            if (options.signal.aborted) controller.abort();
+            else options.signal.addEventListener('abort', onCallerAbort, { once: true });
+          }
           let response;
           try {
-            response = await fetchImpl(url, { ...options, headers, signal: options.signal ?? controller.signal });
-          } finally { clearTimeout(timer); }
+            response = await fetchImpl(url, { ...options, headers, signal: controller.signal });
+          } finally {
+            clearTimeout(timer);
+            options.signal?.removeEventListener('abort', onCallerAbort);
+          }
           if (!response.ok) {
             const error = new Error('HTTP ' + response.status);
             error.status = response.status;
