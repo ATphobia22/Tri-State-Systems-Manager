@@ -1,0 +1,42 @@
+{
+  "case_number": "26-05-2022A",
+  "project": "SECTION 35, T7S, R14W -- 13101 BONEBANK ROAD",
+  "community": "POSEY COUNTY, INDIANA (UNINCORPORATED AREAS)",
+  "community_number": "180209",
+  "fema_letter_date": "2026-09-22",
+  "response_deadline_90_days": "2026-12-21",
+  "case_status": "ADDITIONAL_INFORMATION_REQUESTED",
+  "loma_determination": "NOT_ISSUED",
+  "evidence_evaluated_by_fema": "UNKNOWN",
+  "tsm_evidence_rejected_by_fema": "UNKNOWN",
+  "form_version_exception": {
+    "observed_form": "DHS-FEMA Form 086-0-26A, FEB 11, Elevation Form MT-1 Form 2",
+    "printed_omb": "1660-0015",
+    "printed_expiration": "2014-02-28",
+    "status": "REQUIRES_FEMA_CONFIRMATION"
+  },
+  "fema_letter_required_items": [
+    "Recorded property deed OR recorded subdivision plat with recordation data and Recorder stamp",
+    "Local tax assessor map locating property and including a street intersection shown on the applicable FIRM panel",
+    "Elevation documentation certified by licensed land surveyor or registered professional engineer; FEMA letter identifies MT-1 Form 2 and permits an Elevation Certificate in lieu of that form for a structure request"
+  ],
+  "evidence_controls": {
+    "original_fema_pdf_sha256": "8186cbf49bfa5ae415aacaf1b548f75fc02692a5793c30cdebb8cf7f6f20dcde",
+    "source_file": "26-05-2022A-092226.pdf",
+    "preserve_original_immutable": true
+  },
+  "claim_controls": {
+    "do_not_claim_fema_intentionally_ignored_tsm": true,
+    "do_not_claim_loma_approved": true,
+    "do_not_claim_loma_denied": true,
+    "do_not_claim_historical_overcharge_without_policy_premium_and_mapping_evidence": true
+  },
+  "next_actions": [
+    "Obtain written confirmation from FEMA of the currently accepted elevation-data form/procedure for Case 26-05-2022A.",
+    "Submit or assemble the recorded deed/plat and tax assessor map requested by FEMA.",
+    "Obtain professional certification of the applicable elevation evidence.",
+    "Preserve the FEMA letter and attached legacy form unchanged and retain SHA-256 hash.",
+    "Build a historical map/elevation reconciliation: FIRM panel/version, effective date, datum, source DEM/LiDAR, vertical transformation, surveyed elevations, and uncertainty.",
+    "Obtain historical NFIP policy/declarations, premium history, flood-zone determinations, lender/insurer notices, and map versions needed to test the historical-premium hypothesis."
+  ]
+}
