@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "stores": [
+    {"name":"PostgreSQL/PostGIS","role":"connected authoritative/operational spatial store","migrationControlled":true},
+    {"name":"SQLite/SpatiaLite","role":"sovereign read-only runtime snapshot","migrationControlled":true,"runtimeMutation":false},
+    {"name":"GitHub artifacts","role":"build/release evidence and provenance","immutableReleaseEvidence":true}
+  ],
+  "physicalRules": [
+    "Schema changes require versioned migrations.",
+    "Spatial columns require declared SRID and geometry validity policy.",
+    "Runtime SQLite snapshots are read-only and hash verified.",
+    "No physical store becomes authoritative merely by being faster or closer to the UI."
+  ]
+}
