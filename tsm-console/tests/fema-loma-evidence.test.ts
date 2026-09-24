@@ -82,6 +82,30 @@ describe('FEMA LOMA evidence gate', () => {
     expect(result.missingRequired).not.toContain('Community Acknowledgment — Part B (floodway), when applicable');
   });
 
+
+  it('accepts a qualifying Elevation Certificate in lieu of MT-1 Form 2', () => {
+    const result = auditFemaLomaEvidence({
+      caseId: '26-05-2022A',
+      firmClearlyOutsideSfha: false,
+      deedOrPlat: [evidence('RECORDED_DEED')],
+      assessorMap: evidence('TAX_ASSESSOR_MAP'),
+      firmEvidence: evidence('FIRM_MAP'),
+      elevationCertificate: evidence('ELEVATION_CERTIFICATE'),
+      professionalCertification: {
+        certifierName: 'Licensed Surveyor',
+        licenseNumber: 'LS-12345',
+        expirationDate: '2027-12-31',
+        signaturePresent: true,
+        certificationDate: '2026-09-24',
+      },
+    });
+
+    expect(result.gates.find((gate) => gate.id === 'MT1-ELEVATION')?.status).toBe('PASS');
+    expect(result.gates.find((gate) => gate.id === 'MT1-FIELDS')?.status).toBe('NOT_APPLICABLE');
+    expect(result.submissionStatus).toBe('READY_FOR_HUMAN_REVIEW');
+    expect(result.humanCertificationRequired).toBe(false);
+  });
+
   it('does not treat an unsigned MT-1 as complete', () => {
     const result = auditFemaLomaEvidence({
       caseId: '26-05-2022A',
