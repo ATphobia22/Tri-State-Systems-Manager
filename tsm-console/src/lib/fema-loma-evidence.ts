@@ -146,10 +146,41 @@ function auditMt1(input: LomaEvidenceInput): LomaGate[] {
     label: 'MT-1 Form 2 or qualifying Elevation Certificate',
     status: elevationEvidencePresent ? 'PASS' : 'MISSING',
     required: true,
-    reason: 'FEMA case correspondence requires elevation evidence unless the FIRM clearly establishes the property/structure outside the SFHA.',
+    reason: 'FEMA case correspondence requires elevation evidence unless the FIRM clearly establishes the property/structure outside the SFHA. A qualifying Elevation Certificate may be submitted in lieu of MT-1 Form 2.',
   }];
 
   if (!elevationEvidencePresent) return gates;
+
+  // FEMA permits a qualifying Elevation Certificate to substitute for MT-1 Form 2.
+  // Do not require MT-1 field-by-field completion when the accepted elevation
+  // artifact is an Elevation Certificate; certification remains a human gate.
+  const suppliedElevationCertificate = hasUsableArtifact(input.elevationCertificate);
+  if (suppliedElevationCertificate && !hasUsableArtifact(input.elevationForm)) {
+    const cert = input.professionalCertification;
+    const certified =
+      !!cert &&
+      cert.signaturePresent &&
+      !!cert.certifierName &&
+      !!cert.licenseNumber &&
+      !!cert.expirationDate &&
+      !!cert.certificationDate;
+
+    gates.push({
+      id: 'MT1-FIELDS',
+      label: 'MT-1 elevation/data fields',
+      status: 'NOT_APPLICABLE',
+      required: false,
+      reason: 'A qualifying Elevation Certificate was supplied in lieu of MT-1 Form 2; MT-1 field-level completion is not required by this gate.',
+    });
+    gates.push({
+      id: 'MT1-CERTIFICATION',
+      label: 'Professional elevation certification',
+      status: certified ? 'PASS' : 'REQUIRES_HUMAN_CERTIFICATION',
+      required: true,
+      reason: 'TSM may check certification metadata but cannot create or substitute for the licensed professional certification.',
+    });
+    return gates;
+  }
 
   const complete =
     !!mt1 &&

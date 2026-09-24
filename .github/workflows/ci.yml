@@ -90,6 +90,9 @@ jobs:
         # rules, schemas, build, and bundle-secret checks) cannot silently
         # drift out of GitHub Actions.
         run: npm run ci
+      - name: Community engineering boundary gate
+        working-directory: .
+        run: node scripts/ci/validate-community-engineering-boundaries.mjs
       - name: Reprojection script syntax gate
         working-directory: .
         run: bash -n scripts/reproject_tri_state.sh
@@ -208,7 +211,7 @@ jobs:
       attestations: write
     steps:
       - name: Download reliability and supply-chain evidence
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: tsm-reliability-evidence
           path: attestation-input
@@ -219,7 +222,7 @@ jobs:
           test -s attestation-input/tsm-console-dist.tar.gz
           test -s attestation-input/tsm-console-sbom.json
       - name: Generate GitHub artifact and SBOM attestation
-        uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4.2.1
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
           subject-path: attestation-input/tsm-console-dist.tar.gz
           sbom-path: attestation-input/tsm-console-sbom.json

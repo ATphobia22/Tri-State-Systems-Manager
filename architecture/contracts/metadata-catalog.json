@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "catalog": "TSM Metadata and Lineage Catalog",
+  "recordKey": ["datasetId","version"],
+  "requiredMetadata": [
+    "datasetId","name","domain","description","owner","steward","authorityClass",
+    "sourceUri","sourceVersion","retrievedAtUtc","schemaVersion","contentSha256",
+    "classification","horizontalCrs","verticalDatum","units","limitations"
+  ],
+  "lineage": {
+    "required": ["inputDatasetId","inputVersion","transformationId","transformationVersion","outputDatasetId","outputVersion"],
+    "acyclic": true
+  },
+  "access": {
+    "auditRequired": true,
+    "readClassificationRequired": true,
+    "restrictedDataRequiresExplicitAuthorization": true
+  },
+  "rules": [
+    "Metadata is descriptive and cannot elevate a dataset to authoritative status.",
+    "Catalog records are versioned and immutable after publication.",
+    "Missing provenance causes quarantine rather than silent promotion."
+  ]
+}

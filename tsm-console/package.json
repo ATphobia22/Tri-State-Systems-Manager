@@ -31,6 +31,7 @@
     "test:engineering": "node --test server/engineering/*.test.mjs server/evidence/*.test.mjs tests/community-engineering-data-contract.test.mjs",
     "test:community-privacy": "node ../tests/privacy-community-scope.test.mjs",
     "test:community-river": "node --test tests/river-gauges-community.test.mjs tests/privacy-community-scope.test.mjs",
+    "test:community-engineering-boundary": "node --test ../tests/community-engineering-boundary.test.mjs",
     "test:deployment": "node --test tests/community-deployment-contract.test.mjs",
     "test:reliability": "node --test tests/reliability-primitives.test.mjs tests/production-reliability.test.mjs tests/source-health.test.mjs tests/source-freshness.test.mjs tests/dependency-integrity.test.mjs tests/source-fabric.test.mjs",
     "test:posey": "vitest run tests/posey-ledger.test.ts",
@@ -51,6 +52,7 @@
     "check:quantum-boundary": "node ../scripts/ci/validate-quantum-boundary.mjs",
     "check:shell-safety": "bash ../scripts/ci/validate-shell-safety.sh",
     "check:site-consistency": "node ../scripts/ci/validate-site-consistency.mjs",
+    "check:community-engineering-boundaries": "node ../scripts/ci/validate-community-engineering-boundaries.mjs",
     "test:cinematic": "vitest run tests/cinematic-contracts.test.ts tests/cinematic-camera-tour.test.ts",
     "geospatial:fetch": "node scripts/geospatial/fetch-posey-assets.mjs",
     "geospatial:validate": "node scripts/geospatial/validate-raster-manifest.mjs",
@@ -58,7 +60,7 @@
     "check:npx-policy": "node scripts/npx-policy-check.mjs",
     "generate:sbom": "node scripts/generate-sbom.mjs",
     "resync": "npm ci --no-audit --no-fund && node scripts/postinstall-check.mjs && node scripts/parse-check.mjs",
-    "ci": "npm run check:production-reliability && npm run check:action-pins && npm run check:dependency-integrity && npm run check:npx-policy && npm run check:integrity && npm run check:capabilities && npm run check:workflow-boundaries && npm run check:artifacts && npm run check:quantum-boundary && npm run check:shell-safety && npm run check:site-consistency && npm run check:mock-data && npm run check:tile-health && npm run check:parse && npm run check:type && npm run check:geospatial && npm run check:government-sources && npm run check:live-fabric && npm run check:regulatory-rules && npm run check:engineering-pipeline && npm run check:schemas && npm run build && npm run check:client-bundle-secrets && npm run check:enterprise-architecture && npm run check:architecture-repository && npm run check:data-fabric-contract && npm run check:provenance-plane && npm run test:production-gates",
+    "ci": "npm run check:production-reliability && npm run check:action-pins && npm run check:dependency-integrity && npm run check:npx-policy && npm run check:integrity && npm run check:capabilities && npm run check:capability-control-plane && npm run check:workflow-boundaries && npm run check:artifacts && npm run check:quantum-boundary && npm run check:shell-safety && npm run check:site-consistency && npm run check:community-engineering-boundaries && npm run check:mock-data && npm run check:tile-health && npm run check:parse && npm run check:type && npm run check:geospatial && npm run check:government-sources && npm run check:live-fabric && npm run check:regulatory-rules && npm run check:engineering-pipeline && npm run check:schemas && npm run build && npm run check:client-bundle-secrets && npm run check:enterprise-architecture && npm run check:architecture-repository && npm run check:data-fabric-contract && npm run check:provenance-plane && npm run test:production-gates",
     "ci:full": "npm run ci && npm run test:all && npm run test:geodetic && npm run test:ingestion && npm run test:production-gates && npm run ingest",
     "check:v35.1": "tsc -p tsconfig.v35.1.json --noEmit",
     "sign:evidence": "node --experimental-strip-types ../scripts/sign-evidence.ts",
@@ -86,21 +88,22 @@
     "check:enterprise-architecture": "node ../scripts/ci/validate-enterprise-data-architecture.mjs",
     "check:architecture-repository": "node ../scripts/ci/validate-architecture-repository.mjs",
     "check:data-fabric-contract": "node ../scripts/ci/validate-data-fabric-contract.mjs",
-    "check:provenance-plane": "node ../scripts/ci/validate-provenance-plane.mjs"
+    "check:provenance-plane": "node ../scripts/ci/validate-provenance-plane.mjs",
+    "check:capability-control-plane": "node ../scripts/ci/validate-capability-control-plane.mjs"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.0",
     "@react-three/drei": "^10.0.0",
     "@react-three/fiber": "^9.0.0",
     "@tanstack/react-virtual": "^3.14.13",
-    "lucide-react": "^1.45.0",
-    "maplibre-gl": "6.9.1",
+    "lucide-react": "^1.47.0",
+    "maplibre-gl": "6.10.0",
     "react": "19.2.8",
-    "react-dom": "19.2.8",
+    "react-dom": "19.3.0",
     "react-router": "^8.3.1",
     "three": "^0.186.0",
     "geotiff": "^3.0.5",
-    "3d-tiles-renderer": "^0.5.2",
+    "3d-tiles-renderer": "^0.5.3",
     "h3-js": "4.5.0",
     "pmtiles": "4.5.0"
   },
@@ -108,12 +111,12 @@
     "@bufbuild/buf": "^1.73.0",
     "@bufbuild/protoc-gen-es": "^2.15.0",
     "@types/react": "19.2.18",
-    "@types/react-dom": "19.2.7",
+    "@types/react-dom": "19.3.0",
     "@types/three": "^0.186.0",
     "@vitejs/plugin-react": "^6.1.1",
     "typescript": "^7.0.2",
     "vite": "^8.3.0",
-    "vitest": "^5.0.0",
+    "vitest": "^5.0.1",
     "@webgpu/types": "^0.1.72"
   },
   "engines": {
@@ -121,6 +124,6 @@
   },
   "overrides": {
     "@types/react": "19.2.18",
-    "@types/react-dom": "19.2.7"
+    "@types/react-dom": "19.3.0"
   }
 }

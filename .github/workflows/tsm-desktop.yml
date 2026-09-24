@@ -23,6 +23,7 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: tsm-console
@@ -39,6 +40,7 @@ jobs:
   windows:
     needs: validate
     runs-on: windows-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: tsm-console
@@ -53,6 +55,21 @@ jobs:
       - run: cargo install tauri-cli --version 2.11.4 --locked
       - run: npm ci --ignore-scripts --registry=https://registry.npmjs.org
       - run: npm run build
+      - name: Validate Windows bundle icons
+        shell: pwsh
+        run: |
+          $png = "src-tauri/icons/icon.png"
+          $ico = "src-tauri/icons/icon.ico"
+          if (-not (Test-Path $png)) { throw "Required PNG icon missing: $png" }
+          if (-not (Test-Path $ico)) { throw "Required ICO icon missing: $ico" }
+          $pngBytes = [System.IO.File]::ReadAllBytes($png)
+          $icoBytes = [System.IO.File]::ReadAllBytes($ico)
+          if ($pngBytes.Length -lt 24) { throw "PNG icon is unexpectedly small: $($pngBytes.Length) bytes" }
+          if ($icoBytes.Length -lt 22) { throw "ICO icon is unexpectedly small: $($icoBytes.Length) bytes" }
+          if ($icoBytes[0] -ne 0 -or $icoBytes[1] -ne 0 -or $icoBytes[2] -ne 1 -or $icoBytes[3] -ne 0) {
+            throw "ICO header is invalid"
+          }
+          Write-Host "Validated bundle icons: PNG=$($pngBytes.Length) bytes ICO=$($icoBytes.Length) bytes"
       - run: cargo tauri build --bundles msi,nsis
       - name: Verify Windows bundles
         shell: pwsh
@@ -70,6 +87,7 @@ jobs:
   macos:
     needs: validate
     runs-on: macos-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: tsm-console
@@ -86,7 +104,9 @@ jobs:
       - run: npm run build
       - name: Build macOS DMG
         env:
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          # Use ad-hoc signing when no Apple Developer certificate is configured.
+          # Release/notarized builds should provide APPLE_SIGNING_IDENTITY.
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY || '-' }}
         run: cargo tauri build --bundles dmg
       - name: Verify macOS bundle
         run: test -n "$(find src-tauri/target/release/bundle/dmg -name '*.dmg' -print -quit)"
@@ -100,7 +120,7 @@ jobs:
     needs: [windows, macos]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           pattern: tsm-*-installer
           path: dist

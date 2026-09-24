@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "name": "TSM Authoritative Source Registry",
+  "purpose": "Machine-readable registry of source identity and authority boundaries.",
+  "recordRequired": [
+    "sourceId",
+    "publisher",
+    "dataset",
+    "sourceUri",
+    "sourceVersion",
+    "authorityClass",
+    "license",
+    "retrievedAtUtc",
+    "contentSha256",
+    "governanceStatus"
+  ],
+  "authorityClasses": [
+    "AUTHORITATIVE",
+    "OBSERVATIONAL",
+    "DERIVED",
+    "PRESENTATION"
+  ],
+  "rules": [
+    "Authority is source-declared and provenance-bound.",
+    "A catalog entry never upgrades the authority of its source product.",
+    "Source version and content hash are immutable after promotion."
+  ]
+}

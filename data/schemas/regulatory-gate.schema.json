@@ -1,0 +1,25 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"TSM Regulatory Gate Registry",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["artifact_type","version","gates","software_policy"],
+  "properties":{
+    "artifact_type":{"const":"tsm.regulatory_gate_registry.v1"},
+    "version":{"type":"string","pattern":"^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "gates":{"type":"array","minItems":1,"items":{
+      "type":"object","additionalProperties":false,
+      "required":["gate_id","authority","status","required_evidence"],
+      "properties":{
+        "gate_id":{"type":"string","minLength":1},
+        "authority":{"type":"string","minLength":1},
+        "status":{"enum":["NOT_ASSESSED","IN_REVIEW","EVIDENCE_REQUIRED","HUMAN_REVIEW_REQUIRED","SATISFIED_BY_EVIDENCE","AGENCY_ACCEPTED"]},
+        "required_for":{"type":"array","items":{"type":"string"}},
+        "required_evidence":{"type":"array","items":{"type":"string"}},
+        "source_uri":{"type":["string","null"],"format":"uri"},
+        "reviewer_role":{"type":["string","null"],"minLength":1}
+      }
+    }},
+    "software_policy":{"type":"string","minLength":1}
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "name": "TSM Production Observability Contract",
+  "telemetry": [
+    "metrics",
+    "events",
+    "structured_logs",
+    "traces"
+  ],
+  "health": {
+    "liveness": "process health only",
+    "readiness": "required local dependencies and configuration"
+  },
+  "requiredFields": {
+    "logs": [
+      "timestamp",
+      "level",
+      "service",
+      "event",
+      "requestId"
+    ],
+    "events": [
+      "eventId",
+      "timestamp",
+      "eventType",
+      "source"
+    ],
+    "metrics": [
+      "name",
+      "value",
+      "timestamp",
+      "labels"
+    ],
+    "traces": [
+      "traceId",
+      "spanId",
+      "parentSpanId"
+    ]
+  },
+  "resilience": [
+    "timeouts",
+    "bounded retries",
+    "backoff",
+    "jitter",
+    "circuit breaker",
+    "graceful shutdown"
+  ],
+  "traffic": [
+    "rate limiting",
+    "bounded request body"
+  ],
+  "quarantine": [
+    "unprocessable events must enter durable quarantine/DLQ in Connected Mode"
+  ],
+  "rules": [
+    "Observability must not mutate authoritative data.",
+    "Sovereign Mode emits only local operational telemetry and never requires a network telemetry backend."
+  ]
+}
