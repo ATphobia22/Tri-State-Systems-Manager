@@ -90,6 +90,9 @@ jobs:
         # rules, schemas, build, and bundle-secret checks) cannot silently
         # drift out of GitHub Actions.
         run: npm run ci
+      - name: Community engineering boundary gate
+        working-directory: .
+        run: node scripts/ci/validate-community-engineering-boundaries.mjs
       - name: Reprojection script syntax gate
         working-directory: .
         run: bash -n scripts/reproject_tri_state.sh
