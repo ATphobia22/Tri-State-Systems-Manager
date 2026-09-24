@@ -1,0 +1,218 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-09-24",
+  "policy": "allow-safe-capabilities-gate-consequential-actions",
+  "default_mode": "ENABLED",
+  "capabilities": [
+    {
+      "id": "evidence-ingestion",
+      "mode": "ENABLED",
+      "authority_class": "OBSERVATION",
+      "governance": "human_review_required",
+      "boundary": "USGS/FEMA/NOAA/USACE/Indiana source adapters; preserve provenance"
+    },
+    {
+      "id": "evidence-ledger",
+      "mode": "ENABLED",
+      "authority_class": "EVIDENCE",
+      "governance": "human_review_required",
+      "boundary": "hashes/manifests/signing; no autonomous regulatory acceptance"
+    },
+    {
+      "id": "fema-loma",
+      "mode": "GATED",
+      "authority_class": "REGULATORY_REFERENCE",
+      "governance": "human_approval_required",
+      "boundary": "prepare/analyze LOMA evidence; no automatic FEMA filing"
+    },
+    {
+      "id": "nfip-layer2",
+      "mode": "ENABLED",
+      "authority_class": "ANALYSIS",
+      "governance": "human_review_required",
+      "boundary": "policy/FIRM reconciliation; no automatic overcharge finding"
+    },
+    {
+      "id": "firm-fis-reconstruction",
+      "mode": "ENABLED",
+      "authority_class": "REGULATORY_REFERENCE",
+      "governance": "human_review_required",
+      "boundary": "historical/current FEMA map evidence"
+    },
+    {
+      "id": "elevation-datum",
+      "mode": "ENABLED",
+      "authority_class": "OBSERVATION",
+      "governance": "human_review_required",
+      "boundary": "datum-aware elevation processing"
+    },
+    {
+      "id": "usgs-hydrology",
+      "mode": "ENABLED",
+      "authority_class": "OBSERVATION",
+      "governance": "human_review_required",
+      "boundary": "USGS NWIS observations"
+    },
+    {
+      "id": "noaa-nwps",
+      "mode": "ENABLED",
+      "authority_class": "FORECAST",
+      "governance": "human_review_required",
+      "boundary": "NOAA/NWS observations/forecasts"
+    },
+    {
+      "id": "usace-infrastructure",
+      "mode": "ENABLED",
+      "authority_class": "REFERENCE",
+      "governance": "human_review_required",
+      "boundary": "NLD and historical engineering records"
+    },
+    {
+      "id": "indiana-gis",
+      "mode": "ENABLED",
+      "authority_class": "REFERENCE",
+      "governance": "human_review_required",
+      "boundary": "Indiana GIS/elevation/parcel context"
+    },
+    {
+      "id": "hec-ras-2d",
+      "mode": "ENABLED",
+      "authority_class": "SIMULATION",
+      "governance": "professional_review_required",
+      "boundary": "real HDF5 model boundary; deterministic comparison"
+    },
+    {
+      "id": "openmi-grpc",
+      "mode": "ENABLED",
+      "authority_class": "SIMULATION",
+      "governance": "professional_review_required",
+      "boundary": "model-coupling contract boundary"
+    },
+    {
+      "id": "engineering-primitives",
+      "mode": "ENABLED",
+      "authority_class": "ANALYSIS",
+      "governance": "professional_review_required",
+      "boundary": "bishop/no-rise/storage calculations"
+    },
+    {
+      "id": "regulatory-rules",
+      "mode": "ENABLED",
+      "authority_class": "REGULATORY_REFERENCE",
+      "governance": "human_approval_required",
+      "boundary": "jurisdiction/applicability resolved before use"
+    },
+    {
+      "id": "geospatial-tiles",
+      "mode": "ENABLED",
+      "authority_class": "DERIVED",
+      "governance": "human_review_required",
+      "boundary": "PMTiles/MVT/3D Tiles transport"
+    },
+    {
+      "id": "open-world-terrain",
+      "mode": "ENABLED",
+      "authority_class": "DERIVED",
+      "governance": "human_review_required",
+      "boundary": "terrain/imagery visualization"
+    },
+    {
+      "id": "apple-maps-context",
+      "mode": "ENABLED",
+      "authority_class": "PRESENTATION",
+      "governance": "human_review_required",
+      "boundary": "presentation/context only; not survey authority"
+    },
+    {
+      "id": "mapillary-observation",
+      "mode": "ENABLED",
+      "authority_class": "OBSERVATION",
+      "governance": "human_review_required",
+      "boundary": "observational imagery only"
+    },
+    {
+      "id": "cinematic-visualization",
+      "mode": "ENABLED",
+      "authority_class": "PRESENTATION",
+      "governance": "human_review_required",
+      "boundary": "camera/lighting/rendering"
+    },
+    {
+      "id": "telemetry-alerting",
+      "mode": "ENABLED",
+      "authority_class": "OPERATIONS",
+      "governance": "human_review_required",
+      "boundary": "runtime health and hydrologic alerts"
+    },
+    {
+      "id": "reliability-dlq",
+      "mode": "ENABLED",
+      "authority_class": "OPERATIONS",
+      "governance": "human_review_required",
+      "boundary": "retry/circuit-breaker/stale-cache/DLQ"
+    },
+    {
+      "id": "security-oidc",
+      "mode": "ENABLED",
+      "authority_class": "SECURITY",
+      "governance": "human_approval_required",
+      "boundary": "OIDC/BFF/session/CSRF boundaries"
+    },
+    {
+      "id": "sbom-attestation",
+      "mode": "ENABLED",
+      "authority_class": "SUPPLY_CHAIN",
+      "governance": "human_review_required",
+      "boundary": "CI artifact/SBOM attestation"
+    },
+    {
+      "id": "native-archimedes",
+      "mode": "GATED",
+      "authority_class": "SIMULATION",
+      "governance": "professional_review_required",
+      "boundary": "native runtime isolated from regulatory authority"
+    },
+    {
+      "id": "quantum-optimization",
+      "mode": "GATED",
+      "authority_class": "RESEARCH",
+      "governance": "human_review_required",
+      "boundary": "research optimization only; no regulatory state mutation"
+    },
+    {
+      "id": "desktop-tauri",
+      "mode": "GATED",
+      "authority_class": "APPLICATION",
+      "governance": "human_approval_required",
+      "boundary": "local desktop runtime/release"
+    },
+    {
+      "id": "cityengine-unreal",
+      "mode": "GATED",
+      "authority_class": "DERIVED",
+      "governance": "human_approval_required",
+      "boundary": "licensed offline asset generation"
+    },
+    {
+      "id": "community-submissions",
+      "mode": "ENABLED",
+      "authority_class": "OBSERVATION",
+      "governance": "human_review_required",
+      "boundary": "quarantined community observations"
+    },
+    {
+      "id": "agent-assistance-s2",
+      "mode": "GATED",
+      "authority_class": "ASSISTANCE",
+      "governance": "human_approval_required",
+      "boundary": "proposals only; no autonomous ledger/regulatory writes"
+    },
+    {
+      "id": "regulatory-filing",
+      "mode": "GATED",
+      "authority_class": "REGULATORY_ACTION",
+      "governance": "human_approval_required",
+      "boundary": "draft/package only; external submission remains human action"
+    }
+  ]
+}
