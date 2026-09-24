@@ -81,6 +81,9 @@ export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sl
           const text = await response.text();
           if (Buffer.byteLength(text, 'utf8') > maxBytes) throw new Error('response exceeds size limit (' + maxBytes + ' bytes)');
           const payload = JSON.parse(text);
+          // A retry-then-success is a success: clear the earlier attempt's
+          // error so the onMetrics callback reports ok:true for the outcome.
+          lastError = undefined;
           circuitState = circuitBreaker.recordSuccess(sourceId);
           recordCircuitMetric(options, sourceId, circuitState.state);
           const latencyMs = Date.now() - startedAt;
