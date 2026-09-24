@@ -1,15 +1,50 @@
 version: 2
 updates:
+  # Frontend lockfile + transitive deps (weekly, limited open PRs)
   - package-ecosystem: npm
     directory: "/tsm-console"
     schedule:
       interval: weekly
+      day: monday
     open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "npm"
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      tsm-console-minor:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # GitHub Actions SHA bumps — critical for supply-chain integrity
+  # Dependabot will open PRs that update the 40-char SHA while preserving the # vX.Y.Z comment
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
       interval: weekly
+      day: monday
+    open-pull-requests-limit: 15
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "security"
+    commit-message:
+      prefix: "ci(deps)"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  # Backend Python deps (monthly — lower churn)
   - package-ecosystem: pip
     directory: "/backend"
     schedule:
       interval: monthly
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "python"
+    commit-message:
+      prefix: "chore(deps)"
