@@ -29,45 +29,28 @@
   },
   "bundle": {
     "active": true,
-    "targets": [
-      "nsis",
-      "msi",
-      "dmg"
-    ],
+    "targets": ["nsis", "msi", "dmg", "appimage", "deb"],
     "createUpdaterArtifacts": false,
     "shortDescription": "Community-scale engineering and spatial decision support",
     "longDescription": "Tri-State Systems Manager desktop console for geospatial, hydrologic, engineering, evidence, and community decision-support workflows.",
     "category": "Utility",
     "copyright": "Tri-State Systems Manager",
-    "icon": [
-      "icons/icon.ico",
-      "icons/icon.png"
-    ],
+    "icon": ["icons/icon.ico", "icons/icon.png"],
     "windows": {
-      "nsis": {
-        "installMode": "both",
-        "displayLanguageSelector": true
-      },
-      "wix": {
-        "language": [
-          "en-US"
-        ]
-      }
+      "nsis": { "installMode": "both", "displayLanguageSelector": true },
+      "wix": { "language": ["en-US"] }
     },
     "macOS": {
       "minimumSystemVersion": "12.0",
-      "dmg": {
-        "windowSize": {
-          "width": 720,
-          "height": 480
-        }
-      }
+      "dmg": { "windowSize": { "width": 720, "height": 480 } }
+    },
+    "linux": {
+      "appimage": { "bundleMediaFramework": false },
+      "deb": { "depends": [] }
     },
     "fileAssociations": [
       {
-        "ext": [
-          "tsmproj"
-        ],
+        "ext": ["tsmproj"],
         "name": "TSM Project",
         "description": "Tri-State Systems Manager project",
         "mimeType": "application/x-tsm-project",
@@ -75,15 +58,11 @@
         "rank": "Owner",
         "exportedType": {
           "identifier": "org.tristate.tsm.tsmproj",
-          "conformsTo": [
-            "public.data"
-          ]
+          "conformsTo": ["public.data"]
         }
       },
       {
-        "ext": [
-          "pmtiles"
-        ],
+        "ext": ["pmtiles"],
         "name": "PMTiles Archive",
         "description": "PMTiles geospatial archive",
         "mimeType": "application/vnd.pmtiles",
@@ -91,9 +70,7 @@
         "rank": "Alternate",
         "exportedType": {
           "identifier": "org.tristate.tsm.pmtiles",
-          "conformsTo": [
-            "public.data"
-          ]
+          "conformsTo": ["public.data"]
         }
       }
     ]
@@ -104,9 +81,7 @@
       "endpoints": [
         "https://github.com/ATphobia22/Tri-State-Systems-Manager/releases/latest/download/latest.json"
       ],
-      "windows": {
-        "installMode": "passive"
-      }
+      "windows": { "installMode": "passive" }
     }
   }
 }
