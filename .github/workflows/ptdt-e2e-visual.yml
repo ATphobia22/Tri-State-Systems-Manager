@@ -2,7 +2,7 @@ name: PTDT v35 E2E & Visual Regression
 
 on:
   push:
-    branches: [main, master, Multi-Installer]
+    branches: [main, master]
   pull_request:
     branches: [main, master]
   workflow_dispatch:
@@ -70,22 +70,9 @@ jobs:
 
       - name: Install pinned Cypress runtime
         if: ${{ steps.cypress.outputs.configured == 'true' }}
-        run: npm install --no-save --package-lock=false --legacy-peer-deps cypress@16.0.0 --ignore-scripts=false --no-audit --no-fund --registry=https://registry.npmjs.org
-
-      - name: Cache Cypress binary
-        if: ${{ steps.cypress.outputs.configured == 'true' }}
-        uses: actions/cache@3edfce9056124e459a23f683a21433670d47daca # v6.1.0
-        with:
-          path: ~/.cache/Cypress
-          key: ${{ runner.os }}-cypress-16.0.0-${{ hashFiles('tsm-console/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-cypress-16.0.0-
-
-      - name: Verify Cypress runtime and browser
-        if: ${{ steps.cypress.outputs.configured == 'true' }}
         run: |
           set -euo pipefail
-          npx --no-install cypress version
+          npx --no-install cypress install
           npx --no-install cypress verify
           npx --no-install cypress info
           command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser
@@ -112,12 +99,9 @@ jobs:
           exit 1
 
       - name: Run headed Chrome visual E2E suite
-
         if: ${{ steps.cypress.outputs.configured == 'true' }}
         run: |
           set -euo pipefail
-          # CI uses a virtual X display so Chrome itself is headed. This preserves
-          # real browser compositing/WebGL/WebGPU paths instead of Cypress headless mode.
           command -v xvfb-run >/dev/null || { echo 'xvfb-run is required on the GitHub runner'; exit 1; }
           CYPRESS_BASE_URL="http://127.0.0.1:5173/Tri-State-Systems-Manager/" \
             xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" \
