@@ -1,0 +1,38 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://github.com/ATphobia22/Tri-State-Systems-Manager/blob/main/data/evidence/layer2/nfip-discrepancy.schema.json",
+  "title":"TSM Evidence Layer 2 - NFIP / Mapping Reconciliation",
+  "type":"object","additionalProperties":false,
+  "required":["schema_version","case_metadata","property_metadata","historical_timeline_track","actuarial_reconciliation","hydrologic_hypothesis_test","evidence_provenance"],
+  "properties":{
+    "schema_version":{"const":"tsm-nfip-layer2-v1"},
+    "case_metadata":{"type":"object","additionalProperties":false,"required":["case_id","analysis_status","legal_theory_status"],"properties":{
+      "case_id":{"type":"string","minLength":1},
+      "analysis_status":{"enum":["DATA_COLLECTION","UNDER_REVIEW","REPRODUCED","PROFESSIONALLY_VALIDATED","AGENCY_REVIEW","CLOSED"]},
+      "legal_theory_status":{"enum":["UNASSERTED","HYPOTHESIS_ONLY","SUPPORTED_BY_RECORD","COUNSEL_REVIEWED"]}
+    }},
+    "property_metadata":{"type":"object","additionalProperties":false,"properties":{
+      "parcel_id":{"type":["string","null"]},"community_id":{"type":["string","null"]},"structure_built_date":{"type":["string","null"],"format":"date"},"nearest_infrastructure_id":{"type":["string","null"]},"address":{"type":["string","null"]},"county":{"type":["string","null"]},"state":{"type":["string","null"]}
+    }},
+    "historical_timeline_track":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["policy_year"],"properties":{
+      "policy_year":{"type":"integer"},"effective_firm_panel":{"type":["string","null"]},"firm_effective_date":{"type":["string","null"],"format":"date"},"flood_zone":{"type":["string","null"]},
+      "bfe":{"type":["object","null"],"additionalProperties":false,"properties":{"value":{"type":["number","null"]},"units":{"type":["string","null"]},"datum":{"type":["string","null"]}}},
+      "elevation_evidence":{"type":["object","null"],"additionalProperties":false,"properties":{"value":{"type":["number","null"]},"units":{"type":["string","null"]},"datum":{"type":["string","null"]},"source_document_id":{"type":["string","null"]},"professionally_certified":{"type":["boolean","null"]}}},
+      "premium_record":{"type":["object","null"],"additionalProperties":false,"properties":{
+        "annual_premium_paid":{"type":["number","null"],"minimum":0},"building_contents_premium":{"type":["number","null"],"minimum":0},"fees":{"type":["number","null"],"minimum":0},"surcharges":{"type":["number","null"],"minimum":0},
+        "coverage_building":{"type":["number","null"],"minimum":0},"coverage_contents":{"type":["number","null"],"minimum":0},"deductible_building":{"type":["number","null"],"minimum":0},"deductible_contents":{"type":["number","null"],"minimum":0},
+        "rating_methodology":{"type":["string","null"]},"policy_document_id":{"type":["string","null"]}
+      }},"infrastructure_state":{"type":["string","null"]},"uncertainty_notes":{"type":["string","null"]}
+    }}},
+    "actuarial_reconciliation":{"type":"object","additionalProperties":false,"required":["comparison_status","misrating_status","causation_status"],"properties":{
+      "comparison_status":{"enum":["NOT_STARTED","DATA_INCOMPLETE","COMPARISON_READY","REPRODUCED","PROFESSIONALLY_REVIEWED"]},"historical_charged_total":{"type":["number","null"],"minimum":0},"documented_refund_adjustment":{"type":["number","null"]},"modeled_comparison_premium":{"type":["number","null"],"minimum":0},"observed_delta":{"type":["number","null"]},"delta_definition":{"type":["string","null"]},"rr2_comparison_allowed":{"type":"boolean"},"limitations":{"type":"array","items":{"type":"string"}},
+      "misrating_status":{"enum":["UNTESTED","INSUFFICIENT_DATA","SUPPORTED_BY_RECORD","REFUTED","AGENCY_DETERMINATION"]},"causation_status":{"enum":["UNTESTED","INSUFFICIENT_DATA","SUPPORTED_BY_RECORD","REFUTED","COUNSEL_REVIEWED"]}
+    }},
+    "hydrologic_hypothesis_test":{"type":"object","additionalProperties":false,"required":["finding_status"],"properties":{
+      "infrastructure_identified":{"type":"boolean"},"historical_navigation_function_documented":{"type":"boolean"},"construction_modification_dates_documented":{"type":"boolean"},"fema_model_dependency_documented":{"type":"boolean"},"operational_rules_documented":{"type":"boolean"},"counterfactual_model_completed":{"type":"boolean"},"hydraulic_difference_quantified":{"type":"boolean"},"reproducible_map_defect":{"type":"boolean"},"finding_status":{"enum":["UNTESTED","INSUFFICIENT_DATA","PARTIALLY_SUPPORTED","SUPPORTED","REFUTED"]}
+    }},
+    "evidence_provenance":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["evidence_id","source_type","source_locator","processing_status"],"properties":{
+      "evidence_id":{"type":"string","minLength":1},"source_type":{"type":"string","minLength":1},"source_locator":{"type":"string","minLength":1},"acquisition_date":{"type":["string","null"],"format":"date"},"sha256":{"type":["string","null"],"pattern":"^[a-f0-9]{64}$"},"processing_status":{"type":"string","minLength":1},"notes":{"type":["string","null"]}
+    }}}
+  }
+}
