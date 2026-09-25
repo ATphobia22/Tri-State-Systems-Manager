@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { COMMUNITY_RIVER_GAUGES, fetchCommunityGauges, type RiverGaugeObservation } from '../lib/river-gauges';
+import { COMMUNITY_RIVER_GAUGES, fetchCommunityGauges, getPreferredGaugeDataSource, type RiverGaugeObservation } from '../lib/river-gauges';
 
 const largeType = {
   fontSize: '1.15rem',
@@ -17,9 +17,11 @@ export default function RiverGaugeBoard(): JSX.Element {
   const [observations, setObservations] = useState<RiverGaugeObservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<string | null>(null);
+  const [dataSource, setDataSource] = useState<'native' | 'web'>('web');
 
   const refresh = async (): Promise<void> => {
     setLoading(true);
+    setDataSource(getPreferredGaugeDataSource());
     const next = await fetchCommunityGauges();
     setObservations(next);
     setLastRefresh(new Date().toISOString());
@@ -68,7 +70,7 @@ export default function RiverGaugeBoard(): JSX.Element {
       </div>
 
       <p style={{ margin: '16px 0 0', color: '#94a3b8', fontSize: '.95rem' }}>
-        Last dashboard refresh: {lastRefresh ? new Date(lastRefresh).toLocaleString() : 'not yet completed'}. A missing or stale source is shown as such rather than replaced with a guessed value.
+        Last dashboard refresh: {lastRefresh ? new Date(lastRefresh).toLocaleString() : 'not yet completed'}. Data source: {dataSource === 'native' ? 'on-device data fabric' : 'web API'}. A missing or stale source is shown as such rather than replaced with a guessed value.
       </p>
     </section>
   );

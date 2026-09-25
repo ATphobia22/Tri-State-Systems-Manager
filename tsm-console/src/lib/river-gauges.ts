@@ -1,3 +1,9 @@
+import {
+  createCapacitorBridge,
+  fetchNativeGaugeObservations,
+  type NativeDataFabricBridge,
+} from './native-data-fabric';
+
 export type GaugeProvider = 'USGS' | 'NOAA_NWS';
 
 export interface RiverGaugeDefinition {
@@ -52,7 +58,7 @@ function isFresh(observedAt: string | null, nowMs: number, maxAgeMs: number): bo
   return Number.isFinite(timestamp) && nowMs - timestamp >= 0 && nowMs - timestamp <= maxAgeMs;
 }
 
-function unavailable(definition: RiverGaugeDefinition, nowMs: number, error?: string): RiverGaugeObservation {
+export function unavailableGaugeObservation(definition: RiverGaugeDefinition, nowMs: number, error?: string): RiverGaugeObservation {
   return {
     gaugeId: definition.usgsId ?? definition.nwsId ?? definition.id,
     provider: definition.provider,
@@ -92,47 +98,115 @@ function normalizeObservation(definition: RiverGaugeDefinition, payload: Record<
   };
 }
 
+export function candidateGaugeObservation(definition: RiverGaugeDefinition): RiverGaugeObservation {
+  const key = definition.usgsId ?? definition.nwsId ?? definition.id;
+  return {
+    gaugeId: key,
+    provider: definition.provider,
+    name: definition.name,
+    river: definition.river,
+    value: null,
+    unit: null,
+    observedAt: null,
+    retrievedAt: null,
+    qualifier: null,
+    provisional: false,
+    status: 'candidate',
+    dischargeCfs: null,
+    sourceUri: null,
+  };
+}
+
+/**
+ * Which data path supplies gauge observations.
+ * - `'auto'` (default): prefer the native data-fabric plugin when available,
+ *   fall back to the web fetch path on any native failure.
+ * - `'native'`: use only the native plugin; a native failure yields
+ *   `unavailable` observations (fail closed, no silent web fallback).
+ * - `'web'`: use only the existing web fetch path.
+ */
+export type GaugeDataSource = 'auto' | 'native' | 'web';
+
+export interface FetchCommunityGaugesOptions {
+  fetcher?: typeof fetch;
+  nowMs?: number;
+  maxAgeMs?: number;
+  source?: GaugeDataSource;
+  nativeBridge?: NativeDataFabricBridge;
+}
+
+/**
+ * Reports which data path `fetchCommunityGauges` will prefer with default
+ * options. Useful for provenance display; the actual path used on a given
+ * refresh may still fall back to web if the native call fails.
+ */
+export function getPreferredGaugeDataSource(nativeBridge?: NativeDataFabricBridge): 'native' | 'web' {
+  const bridge = nativeBridge ?? createCapacitorBridge();
+  try {
+    return bridge.isAvailable() ? 'native' : 'web';
+  } catch {
+    return 'web';
+  }
+}
+
 export async function fetchCommunityGauges(
   definitions: readonly RiverGaugeDefinition[] = COMMUNITY_RIVER_GAUGES,
-  options: { fetcher?: typeof fetch; nowMs?: number; maxAgeMs?: number } = {},
+  options: FetchCommunityGaugesOptions = {},
 ): Promise<RiverGaugeObservation[]> {
   const fetcher = options.fetcher ?? fetch;
   const nowMs = options.nowMs ?? Date.now();
   const maxAgeMs = options.maxAgeMs ?? 30 * 60 * 1000;
-  const activeDefinitions = definitions.filter((definition) => definition.status === 'active');
+  const source = options.source ?? 'auto';
+
+  if (source !== 'web') {
+    const bridge = options.nativeBridge ?? createCapacitorBridge();
+    let nativeAvailable = false;
+    try {
+      nativeAvailable = bridge.isAvailable();
+    } catch {
+      nativeAvailable = false;
+    }
+    if (source === 'native' || (source === 'auto' && nativeAvailable)) {
+      try {
+        return await fetchNativeGaugeObservations(definitions, { nowMs, bridge });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Native data fabric request failed';
+        if (source === 'native') {
+          // Explicit native request: fail closed rather than silently swapping sources.
+          return definitions.map((definition) =>
+            definition.status === 'active'
+              ? unavailableGaugeObservation(definition, nowMs, message)
+              : candidateGaugeObservation(definition),
+          );
+        }
+        // 'auto': fall through to the web fetch path below.
+      }
+    }
+  }
+
   const result = new Map<string, RiverGaugeObservation>();
   for (const definition of definitions.filter((item) => item.status !== 'active')) {
-    result.set(definition.usgsId ?? definition.nwsId ?? definition.id, {
-      gaugeId: definition.usgsId ?? definition.nwsId ?? definition.id,
-      provider: definition.provider,
-      name: definition.name,
-      river: definition.river,
-      value: null,
-      unit: null,
-      observedAt: null,
-      retrievedAt: null,
-      qualifier: null,
-      provisional: false,
-      status: 'candidate',
-      dischargeCfs: null,
-      sourceUri: null,
-    });
+    result.set(definition.usgsId ?? definition.nwsId ?? definition.id, candidateGaugeObservation(definition));
   }
   try {
     const response = await fetcher(gaugeEndpoint(), { headers: { Accept: 'application/json' }, cache: 'no-store' });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const payload = await response.json() as { observations?: Array<Record<string, unknown>> };
     const observations = Array.isArray(payload.observations) ? payload.observations : [];
-    for (const definition of activeDefinitions) {
+    for (const definition of activeDefinitions(definitions)) {
       const key = definition.usgsId ?? definition.nwsId ?? definition.id;
       const remote = observations.find((item) => item.stationId === key);
-      result.set(key, remote ? normalizeObservation(definition, remote, nowMs, maxAgeMs) : unavailable(definition, nowMs, 'Station not returned by community endpoint'));
+      result.set(key, remote ? normalizeObservation(definition, remote, nowMs, maxAgeMs) : unavailableGaugeObservation(definition, nowMs, 'Station not returned by community endpoint'));
     }
   } catch (error) {
-    for (const definition of activeDefinitions) {
+    for (const definition of activeDefinitions(definitions)) {
       const key = definition.usgsId ?? definition.nwsId ?? definition.id;
-      result.set(key, unavailable(definition, nowMs, error instanceof Error ? error.message : 'Unknown upstream error'));
+      result.set(key, unavailableGaugeObservation(definition, nowMs, error instanceof Error ? error.message : 'Unknown upstream error'));
     }
   }
-  return definitions.map((definition) => result.get(definition.usgsId ?? definition.nwsId ?? definition.id) ?? unavailable(definition, nowMs));
+  return definitions.map((definition) => result.get(definition.usgsId ?? definition.nwsId ?? definition.id) ?? unavailableGaugeObservation(definition, nowMs));
+}
+
+function activeDefinitions(definitions: readonly RiverGaugeDefinition[]): RiverGaugeDefinition[] {
+  return definitions.filter((definition) => definition.status === 'active');
 }
