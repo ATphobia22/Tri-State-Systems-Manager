@@ -93,6 +93,9 @@
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.0",
+    "@capacitor/cli": "8.5.2",
+    "@capacitor/core": "8.5.2",
+    "@capacitor/ios": "8.5.2",
     "@react-three/drei": "^10.0.0",
     "@react-three/fiber": "^9.0.0",
     "@tanstack/react-virtual": "^3.14.13",
