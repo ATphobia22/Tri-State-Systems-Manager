@@ -1,0 +1,15 @@
+{
+  "evaluation_summary": "Flat-plane mass-conservation and symmetry checks pass; not validated against gauge events.",
+  "human_oversight_required": true,
+  "intended_use": "Screening-level 2D floodplain inundation mapping for planning and public communication. Not a regulatory determination.",
+  "limitations": [
+    "Zero-inertia (diffusion-wave) approximation: no shocks, no supercritical flow.",
+    "No infiltration or evapotranspiration; volumes are conservative.",
+    "Lumped uniform rainfall input; no channel routing or baseflow."
+  ],
+  "lineage": {
+    "code_repository": "tsm-console/src/lib/hydraulics-diffusion2d.ts"
+  },
+  "model_name": "tsm-diffusion-wave-2d",
+  "model_version": "1.0.0"
+}

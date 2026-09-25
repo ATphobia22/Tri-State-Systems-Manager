@@ -54,7 +54,9 @@ def read_document(result):
 
 
 def test_offline_package_has_unavailable_base_map_watermark(tmp_path):
-    result = make_package(tmp_path)
+    # Text assertions run against the HTML renderer (the PDF renderer emits
+    # binary; PDF validity is covered by test_pdf_renderer_produces_valid_pdf).
+    result = make_package(tmp_path, renderer="html")
     assert result["base_map_available"] is False
     document = read_document(result)
     assert firmette.BASE_MAP_UNAVAILABLE_MARK in document
@@ -79,7 +81,7 @@ def test_manifest_sha256_values_verify_against_actual_files(tmp_path):
 
 
 def test_annotations_present_in_output(tmp_path):
-    result = make_package(tmp_path)
+    result = make_package(tmp_path, renderer="html")
     document = read_document(result)
     assert ADDRESS in document
     assert "375" in document and "NAVD88" in document
@@ -130,8 +132,21 @@ def test_missing_or_invalid_required_inputs_raise(tmp_path, kwargs):
         make_package(tmp_path, **kwargs)
 
 
+@pytest.mark.skipif(
+    importlib.util.find_spec("reportlab") is None, reason="reportlab not installed"
+)
+def test_pdf_renderer_produces_valid_pdf(tmp_path):
+    result = make_package(tmp_path, renderer="pdf")
+    assert result["document"].endswith(".pdf")
+    pdf_path = Path(result["document"])
+    assert pdf_path.read_bytes()[:5] == b"%PDF-"
+    manifest = json.loads(Path(result["manifest_path"]).read_text(encoding="utf-8"))
+    assert manifest["provenance"]["renderer"] == "reportlab_pdf"
+    assert any(item["path"].endswith(".pdf") for item in manifest["artifacts"])
+
+
 def test_no_determination_claims(tmp_path):
-    result = make_package(tmp_path)
+    result = make_package(tmp_path, renderer="html")
     manifest = json.loads(Path(result["manifest_path"]).read_text(encoding="utf-8"))
     assert manifest["regulatory_determination"] is False
     assert manifest["package_status"] == "DRAFT_ANNOTATION_HUMAN_REVIEW_REQUIRED"

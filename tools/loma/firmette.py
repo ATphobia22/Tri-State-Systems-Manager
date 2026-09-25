@@ -461,8 +461,9 @@ def generate_firmette(
 
     if renderer == "pdf":
         doc_path = out / f"FIRMETTE-{parcel_slug}.pdf"
-        # PDF is rendered after the manifest body exists so it can carry the artifact table.
-        artifacts["document"] = doc_path
+        # The PDF embeds the input-artifact table, so it is built before its own
+        # bytes/hash are recorded: a file cannot hash itself. The PDF's own entry
+        # is added to the manifest by the shared block below, after it is written.
         manifest["artifacts"] = [
             {"path": p.relative_to(out).as_posix(), "bytes": p.stat().st_size, "sha256": sha256_file(p)}
             for p in sorted(artifacts.values())
@@ -478,6 +479,7 @@ def generate_firmette(
             generated_utc=generated_utc,
             manifest=manifest,
         )
+        artifacts["document"] = doc_path
     else:
         html = build_html(
             parcel_id=parcel_id,
