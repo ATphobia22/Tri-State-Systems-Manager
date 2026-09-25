@@ -41,15 +41,12 @@ async function charterLoader(): Promise<CharterLoaderData> {
 }
 
 async function architectureLoader(): Promise<ArchitectureLoaderData> {
+  // ADR-005: canonical FOUR-plane model (see data/schemas/tsm-four-plane-architecture-v1.json).
   return { trustPlanes: [
-    { level: 1, name: 'Physical & Digital Infrastructure', description: 'USGS 3DEP, telemetry, terrain, transportation and utility evidence.' },
-    { level: 2, name: 'Evidence, Provenance & Audit', description: 'Cryptographic evidence, SHA-256, Merkle roots and reproducible artifacts.' },
-    { level: 3, name: 'Security, Privacy & Identity', description: 'Zero-Trust access controls and privacy-by-design community scope.' },
-    { level: 4, name: 'Data Fabric & Metadata Lineage', description: 'Authoritative-source contracts, units, CRS, datum and freshness.' },
-    { level: 5, name: 'Analytics & Knowledge Graph', description: 'Connected community assets, river influence and infrastructure dependencies.' },
-    { level: 6, name: 'AI, Science & Simulation', description: 'HEC-RAS and engineering models remain evidence/model outputs, not regulatory decisions.' },
-    { level: 7, name: 'Decision Support & Human Authority', description: 'Human-in-the-loop engineering and agency review gates.' },
-    { level: 8, name: 'Community Service & Accessibility', description: 'Readable river watch, low-bandwidth operation and human fallback.' },
+    { level: 1, name: 'Evidence & Data Governance Plane', description: 'Authoritative ingestion (USGS/NOAA/3DEP/NFHL), immutable snapshots, SHA-256 content addressing, provenance manifests, fail-closed ingestion.' },
+    { level: 2, name: 'Scientific & Simulation Plane', description: 'Versioned model inputs, explicit uncertainty propagation, traceable HAZUS/BCA adapters, explicit CRS/datum transformations; derived geometry tagged DERIVED, never AUTHORITATIVE.' },
+    { level: 3, name: 'Governance & Decision Plane', description: 'Jurisdiction profiles, machine-readable policies, human approval gates, AI governance, evidence-ledger adjudication, public audit trail; no AI result silently becomes a regulatory determination.' },
+    { level: 4, name: 'Public Experience / Visualization Plane', description: 'MapLibre/WebGPU clients, 2D/3D terrain, telemetry displays, accessibility-first low-bandwidth UI, downloadable evidence packages, source provenance visible in UI.' },
   ], coreFlow: ['Source', 'Evidence', 'Validation', 'Context', 'Model', 'Human Decision', 'Outcome'] };
 }
 
@@ -95,7 +92,7 @@ async function lineageAction({ request }: ActionFunctionArgs) { requireAuthentic
 async function benefitLoader(): Promise<BenefitLoaderData> { return { interventions: [...interventions] }; }
 async function benefitAction({ request }: ActionFunctionArgs) { requireAuthenticatedMutation(request); const form = await request.formData(); const name = String(form.get('name') || '').trim(); const cost = String(form.get('cost') || '').trim(); if (!name || !cost) return { error: 'Missing fields' }; const rec: InterventionRecord = { id: `INT-${Date.now()}`, intervention_name: name, cost_estimate: cost, safety_impact: 80, economic_impact: 75, health_impact: 70, equity_impact: 78, resilience_impact: 85, ai_confidence: 0, funding_probability: 0, human_authorization_required: true, status: 'pending_human_review' }; interventions = [rec, ...interventions]; return redirect('/benefit'); }
 async function mapTwinLoader(): Promise<MapTwinLoaderData> { const stage = await fetchLiveStage(); return { site: SITE, stage, fema: { communityNumber: SITE.femaCommunities.mountVernon, bfe_ft: SITE.elevations.bfe_ft, lag_ft: SITE.elevations.lag_ft, clearance_ft: SITE.elevations.clearanceAboveBfe_ft, noRiseTolerance_ft: null }, boundingEnvelope: SITE.boundingEnvelope }; }
-function ArchitectureView() { const data = useLoaderData() as ArchitectureLoaderData; return <div style={{ padding: '1.5rem 2rem', maxWidth: 900, margin: '0 auto' }}><h1 style={{ color: '#f8fafc' }}>Eight Trust Planes</h1><p style={{ color: '#64748b', fontSize: '0.85rem' }}>{data.coreFlow.join(' → ')}</p>{data.trustPlanes.map((p) => <div key={p.level} style={{ background: '#1e293b', borderRadius: 12, padding: '1rem', marginBottom: 8 }}><strong style={{ color: '#38bdf8' }}>L{p.level}</strong>{' '}<span style={{ color: '#f8fafc' }}>{p.name}</span><p style={{ color: '#94a3b8', fontSize: '0.8rem', margin: '0.35rem 0 0' }}>{p.description}</p></div>)}</div>; }
+function ArchitectureView() { const data = useLoaderData() as ArchitectureLoaderData; return <div style={{ padding: '1.5rem 2rem', maxWidth: 900, margin: '0 auto' }}><h1 style={{ color: '#f8fafc' }}>Four Trust Planes</h1><p style={{ color: '#64748b', fontSize: '0.85rem' }}>{data.coreFlow.join(' → ')}</p>{data.trustPlanes.map((p) => <div key={p.level} style={{ background: '#1e293b', borderRadius: 12, padding: '1rem', marginBottom: 8 }}><strong style={{ color: '#38bdf8' }}>L{p.level}</strong>{' '}<span style={{ color: '#f8fafc' }}>{p.name}</span><p style={{ color: '#94a3b8', fontSize: '0.8rem', margin: '0.35rem 0 0' }}>{p.description}</p></div>)}</div>; }
 
 const routerBasename = import.meta.env.BASE_URL.endsWith('/')
   ? import.meta.env.BASE_URL.slice(0, -1) || '/'

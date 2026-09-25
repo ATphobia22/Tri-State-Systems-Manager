@@ -1,0 +1,14 @@
+{
+  "sectionId": "section-a-example",
+  "verticalDatum": "NAVD88",
+  "horizontalCrs": "EPSG:2966",
+  "layers": [
+    {
+      "type": "topsoil",
+      "sourceId": "boring-b1",
+      "elevationTopFt": 378.2,
+      "elevationBottomFt": 376.9,
+      "materialClass": "CL"
+    }
+  ]
+}

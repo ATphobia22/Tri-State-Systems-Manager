@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "1.1.0",
+  "generatedAt": "2026-09-25T12:00:00Z",
+  "scope": "example",
+  "assets": [
+    {
+      "id": "example-elevation-dem",
+      "dataset": "USGS 3DEP 1m DEM (example entry)",
+      "authority": "USGS",
+      "authorityClass": "FEDERAL_ELEVATION",
+      "purpose": "Authoritative terrain for hydraulic baseline",
+      "layerType": "terrain",
+      "sourceUrl": "https://www.usgs.gov/3d-elevation-program",
+      "status": "PUBLISHED",
+      "crs": "EPSG:2966",
+      "verticalDatum": "NAVD88",
+      "tileScheme": "SERVICE_NATIVE",
+      "provenanceClass": "authoritative",
+      "currentTruth": true,
+      "freshnessPolicy": "static authoritative product",
+      "verification": {
+        "state": "VERIFIED",
+        "checkedAt": "2026-09-25T12:00:00Z",
+        "sourceHashPolicy": "sha256 of downloaded product"
+      }
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "stationId": "03378500",
+  "provider": "USGS",
+  "observedAt": "2026-09-25T11:00:00Z",
+  "retrievedAt": "2026-09-25T12:00:00Z",
+  "value": 12.4,
+  "unit": "ft",
+  "sourceUri": "https://waterservices.usgs.gov/",
+  "freshness": "current",
+  "provisional": true
+}

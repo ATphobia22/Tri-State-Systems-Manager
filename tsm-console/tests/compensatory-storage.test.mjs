@@ -13,7 +13,7 @@ test('passes when excavation meets configured required ratio', () => {
   assert.equal(result.is_compliant, true);
   assert.equal(result.required_excavation_cuft, 60000);
   assert.equal(result.measured_volume_deficit_cuft, 0);
-  assert.match(result.evidence_artifact_hash, /^sha256:[a-f0-9]{64}$/);
+  assert.match(result.evidence_artifact_hash, /^[a-f0-9]{64}$/);
 });
 
 test('fails when excavation is deficient', () => {

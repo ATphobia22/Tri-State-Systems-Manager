@@ -1,0 +1,17 @@
+{
+  "eventId": "ohio-river-flood-1937",
+  "eventDate": "1937-01-27",
+  "eventYear": 1937,
+  "status": "HISTORICAL_RECORDED",
+  "provenanceClass": "HISTORICAL_COMMUNITY_EVIDENCE",
+  "source": {
+    "name": "USGS historical flood records",
+    "stationId": "03378500"
+  },
+  "observations": [
+    {
+      "note": "peak stage recorded at upstream gage"
+    }
+  ],
+  "privacyRedacted": true
+}

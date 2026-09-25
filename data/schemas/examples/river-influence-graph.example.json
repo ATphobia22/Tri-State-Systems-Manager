@@ -1,0 +1,19 @@
+{
+  "generatedAt": "2026-09-25T12:00:00Z",
+  "nodes": [
+    {
+      "id": "NHRI3",
+      "type": "GAUGE",
+      "name": "Ohio River at New Harmony (example)"
+    }
+  ],
+  "edges": [
+    {
+      "from": "NHRI3",
+      "to": "NHRI3",
+      "relationshipType": "GEOGRAPHIC_CONTEXT",
+      "confidence": "UNVERIFIED",
+      "evidenceIds": []
+    }
+  ]
+}

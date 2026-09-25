@@ -1,7 +1,1 @@
-{
-  "schema": "tsm-authority-registry",
-  "version": "35",
-  "note": "Canonical copy lives at data/schemas/tsm-authority-registry-v35.json. Re-sync from repository root historical file if fields diverge.",
-  "relocated": "2026-09-02",
-  "see": "https://raw.githubusercontent.com/ATphobia22/Tri-State-Systems-Manager/main/tsm-authority-registry-v35.json"
-}
+{"note":"Pointer stub. The canonical copy lives at ../../tsm-authority-registry-v35.json (repository root). This file carries no data; re-sync from the canonical file if fields diverge.","relocated":"2026-09-02","schema":"tsm-authority-registry","see":"https://raw.githubusercontent.com/ATphobia22/Tri-State-Systems-Manager/main/tsm-authority-registry-v35.json","version":"35"}

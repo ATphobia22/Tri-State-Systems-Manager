@@ -214,7 +214,76 @@
       "type": "boolean"
     },
     "human_review_status": {
-      "type": "string"
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected",
+        "signed"
+      ],
+      "description": "Controlled review states matching values already used across the repo: 'pending' (created, not yet reviewed), 'approved'/'rejected' (reviewer decision, cf. HEC-RAS contracts), 'signed' (human authorization transition completed). Values are lowercase to match validation_status/governance_status conventions."
+    },
+    "daubert_factors": {
+      "type": "object",
+      "description": "Optional descriptive fields recording Daubert-factor considerations for an evidence artifact. These are free-text annotations to support human review; they are never a claim of legal compliance or admissibility. FRE 702 admissibility is a judicial determination, not a schema boolean.",
+      "properties": {
+        "testability": {
+          "type": "string",
+          "description": "Description of whether and how the method producing this artifact can be or has been tested."
+        },
+        "peer_review": {
+          "type": "string",
+          "description": "Description of any peer review or publication relevant to the method."
+        },
+        "known_error_rate": {
+          "type": "string",
+          "description": "Description of known or estimated error rates and how they were determined."
+        },
+        "standards": {
+          "type": "string",
+          "description": "Description of standards or procedures controlling the method's operation."
+        },
+        "general_acceptance": {
+          "type": "string",
+          "description": "Description of the method's general acceptance in the relevant community."
+        }
+      },
+      "additionalProperties": false
+    },
+    "inclusion_proof": {
+      "type": "object",
+      "description": "Optional Merkle inclusion proof binding this artifact to an inclusion tree. Optional so existing artifacts without proofs still validate. Presence of a proof asserts integrity (membership in a tree) only — never correctness, accuracy, or compliance.",
+      "required": [
+        "merkle_root",
+        "leaf_index",
+        "proof_path"
+      ],
+      "properties": {
+        "merkle_root": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "Lowercase-no-prefix SHA-256 root of the inclusion tree."
+        },
+        "leaf_index": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Zero-based index of this artifact's leaf in the tree."
+        },
+        "proof_path": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-f0-9]+$",
+            "description": "Sibling hashes along the path from leaf to root, each lowercase hex."
+          },
+          "description": "Ordered sibling hashes from leaf to root."
+        },
+        "tree_algorithm": {
+          "type": "string",
+          "description": "Algorithm used to build the tree, e.g. \"TSM-Merkle-WebCrypto-SHA256\"."
+        }
+      },
+      "additionalProperties": false
     },
     "notes": {
       "type": "string"

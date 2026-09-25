@@ -107,5 +107,25 @@ The current repository does **not** claim:
 - legal admissibility from hashing;
 - production ML-KEM/ML-DSA cryptographic deployment without corresponding implementation, key management and test evidence;
 - WebGPU ray tracing as a required rendering path.
+- a multi-tenant storage path convention such as `tenants/{tenantId}/classification/{level}/`. No file or document in this repository defines such paths; the data-contract `classification` enum is unchanged and tenant-scoped storage layouts are not implemented.
 
 These exclusions are deliberate fail-closed engineering controls.
+
+## 9. Anchor-site privacy boundary
+
+Deliberate, durable decision: the anchor site is described in code only as a
+community scope, never as a private residence or parcel-level target.
+
+- `tsm-console/src/types/site.ts` nulls all parcel/elevation constants:
+  `apn: 'COMMUNITY_SCOPE'`; `elevations` (bfe/lag/ffe/bermCrest/clearance)
+  are `null`; `elevationEvidenceStatus:
+  'LEGACY_SCENARIO_REQUIRES_PROJECT_EVIDENCE'`; `verticalDatum: 'UNVERIFIED'`;
+  NOAA stage thresholds are `null`.
+- Site constants survive only as `requires_agency_confirmation` claims —
+  nothing in the repo treats the anchor address, parcel, or elevation values
+  as authoritative or universal design criteria (see §8 non-claims).
+
+Future imports must **not** reintroduce anchor-site parcel/APN, address, or
+elevation values as code constants. Any site-specific engineering values must
+arrive as evidence (provenance-labeled, agency-confirmed) through the
+evidence plane, never as hardcoded constants.

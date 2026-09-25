@@ -4,10 +4,11 @@
   "title": "TSM Geospatial Tile Fabric",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "generatedAt", "assets"],
+  "required": ["schemaVersion", "generatedAt", "scope", "assets"],
   "properties": {
-    "schemaVersion": { "const": "1.0.0" },
+    "schemaVersion": { "const": "1.1.0" },
     "generatedAt": { "type": "string", "format": "date-time" },
+    "scope": { "type": "string", "minLength": 1 },
     "assets": { "type": "array", "items": { "$ref": "#/$defs/GeospatialTileAsset" }, "minItems": 1 }
   },
   "$defs": {
@@ -23,7 +24,7 @@
         "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]+$" },
         "dataset": { "type": "string", "minLength": 1 },
         "authority": { "type": "string", "minLength": 1 },
-        "authorityClass": { "type": "string", "enum": ["FEDERAL_REGULATORY", "STATE_FLOODPLAIN", "STATE_CADASTRAL", "STATE_IMAGERY", "FEDERAL_ELEVATION", "HYDROLOGIC_OBSERVATION", "HYDROLOGIC_FORECAST", "FEDERAL_INFRASTRUCTURE", "HISTORICAL_REFERENCE"] },
+        "authorityClass": { "type": "string", "enum": ["FEDERAL_REGULATORY", "STATE_FLOODPLAIN", "STATE_CADASTRAL", "STATE_IMAGERY", "STATE_ELEVATION", "STATE_DERIVED_GEOMETRY", "FEDERAL_ELEVATION", "HYDROLOGIC_OBSERVATION", "HYDROLOGIC_FORECAST", "FEDERAL_INFRASTRUCTURE", "HISTORICAL_REFERENCE"] },
         "purpose": { "type": "string", "minLength": 1 },
         "layerType": { "type": "string", "enum": ["raster", "terrain", "vector", "live-observation", "live-forecast", "historical-raster"] },
         "sourceUrl": { "type": "string", "format": "uri" },
@@ -41,7 +42,7 @@
           "additionalProperties": false,
           "required": ["state", "checkedAt", "sourceHashPolicy"],
           "properties": {
-            "state": { "type": "string", "enum": ["VERIFIED", "PROVISIONAL", "PENDING", "HISTORICAL_REFERENCE"] },
+            "state": { "type": "string", "enum": ["VERIFIED", "VERIFIED_SERVICE_METADATA", "PROVISIONAL", "PENDING", "HISTORICAL_REFERENCE"] },
             "checkedAt": { "type": "string", "format": "date-time" },
             "sourceHashPolicy": { "type": "string", "minLength": 1 }
           }

@@ -18,6 +18,7 @@
     "reviewState":{"type":"string","enum":["MODEL_OUTPUT","ENGINEERING_REVIEW_READY","ENGINEER_ACCEPTED","AGENCY_ACCEPTED"]},
     "inputSha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},
     "outputSha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},
-    "manifestSha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}
+    "manifestSha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},
+    "model_card_uri":{"type":"string","description":"Optional URI of a model-card artifact (per data/schemas/model-card.schema.json) describing the model that produced this output. Optional so existing manifests still validate."}
   }
 }

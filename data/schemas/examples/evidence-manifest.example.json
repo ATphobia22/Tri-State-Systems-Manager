@@ -1,0 +1,18 @@
+{
+  "artifactId": "manifest-example-001",
+  "scenarioId": "baseline-example",
+  "sources": [
+    {
+      "sourceId": "usgs-3dep"
+    }
+  ],
+  "crs": "EPSG:2966",
+  "verticalDatum": "NAVD88",
+  "modelVersion": "archimedes-1d-0.1.0",
+  "equationSetId": "saint-venant-1d",
+  "reviewerRole": "licensed_professional_engineer",
+  "reviewState": "ENGINEERING_REVIEW_READY",
+  "inputSha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "outputSha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "manifestSha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+}

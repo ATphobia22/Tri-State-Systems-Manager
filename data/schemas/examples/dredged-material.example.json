@@ -1,0 +1,43 @@
+{
+  "material_id": "dredge-mat-001",
+  "source_dredging_project": "Example maintenance dredging reach",
+  "dredging_campaign": {
+    "start_date": "2025-06-01",
+    "end_date": "2025-08-31"
+  },
+  "grain_size_distribution": {
+    "d50_mm": 0.35,
+    "fines_pct": 12.0
+  },
+  "moisture_content": {
+    "as_received_pct": 28.5
+  },
+  "compaction_characteristics": {
+    "max_dry_density_pcf": 118.0,
+    "optimum_moisture_pct": 14.0
+  },
+  "shear_strength": {
+    "friction_angle_deg": 30.0,
+    "cohesion_psf": 0.0
+  },
+  "consolidation": {
+    "cv_ft2_per_day": 0.5
+  },
+  "environmental_testing": {
+    "tier": "I",
+    "result": "acceptable_for_review"
+  },
+  "chain_of_custody": {
+    "sample_ids": [
+      "S-001",
+      "S-002"
+    ],
+    "custody_events": [
+      {
+        "event": "collected",
+        "at": "2025-06-02"
+      }
+    ]
+  },
+  "review_state": "TESTING_REQUIRED"
+}

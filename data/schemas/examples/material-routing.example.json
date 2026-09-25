@@ -1,0 +1,17 @@
+{
+  "routing_id": "routing-001",
+  "material_id": "dredge-mat-001",
+  "source_volume_cy": 10000.0,
+  "allocated_volume_cy": 8000.0,
+  "placed_volume_cy": 7500.0,
+  "remaining_volume_cy": 2500.0,
+  "unit_basis": "cubic_yard",
+  "legs": [
+    {
+      "from": "dredge site A",
+      "to": "placement cell 1",
+      "volume_cy": 7500.0,
+      "provenance_id": "prov-leg-1"
+    }
+  ]
+}

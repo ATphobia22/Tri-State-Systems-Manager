@@ -1,9 +1,10 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "artifact_type": "tsm.river_valley_realtime_station_registry.v1",
+  "artifact_version": "1.0.2",
   "version": "1.0.2",
   "generated_at": "2026-09-14T16:40:00Z",
   "scope": "lower_wabash_ohio_confluence_and_louisville_district_ohio_river_influence_network",
+  "registry_scope": "USGS stations only; NWS nodes MTVI3/UNWK2 tracked in the authority registry",
   "authority_policy": {"observations":["USGS","NOAA_NWS"],"structures":["USACE_Louisville_District"],"derived_influence":"TSM_DERIVED_ONLY"},
   "candidate_structures": [
     {"name":"Markland Locks and Dam","operator":"USACE Louisville District","river":"Ohio River","status":"candidate_influence_node"},

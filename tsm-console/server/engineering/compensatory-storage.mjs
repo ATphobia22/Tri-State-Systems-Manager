@@ -47,7 +47,7 @@ export function evaluateCompensatoryStorage(req) {
     is_compliant: isCompliant,
     model_compliance_pass: isCompliant,
     regulatory_determination: null,
-    evidence_artifact_hash: `sha256:${computedHash}`,
+    evidence_artifact_hash: computedHash.toLowerCase(),
     authority_disclaimer: 'MODEL_OUTPUT_ONLY. Professional Engineer and applicable authority review required.',
   };
 }

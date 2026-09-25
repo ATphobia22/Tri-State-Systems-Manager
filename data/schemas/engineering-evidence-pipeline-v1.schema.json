@@ -8,6 +8,35 @@
   "properties": {
     "schema_version": { "const": "1.0.0" },
     "project_id": { "type": "string", "minLength": 1 },
+    "evaluation": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "evaluated_by": { "type": "string" },
+        "declarative_limits": { "type": "string" },
+        "transition_rule": { "type": "string" }
+      }
+    },
+    "terminal_stages": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "authoritative_terrain",
+          "verified_bathymetry",
+          "datum_control",
+          "baseline_hec_ras",
+          "calibrated_hydraulics",
+          "alternative_scenarios",
+          "independent_earthwork",
+          "sediment_suitability",
+          "environmental_screening",
+          "agency_eligibility",
+          "benefit_cost_analysis",
+          "funding_application",
+          "qa_qc"
+        ]
+      }
+    },
     "stages": {
       "type": "array",
       "minItems": 11,
@@ -35,7 +64,38 @@
           },
           "status": { "enum": ["not_started", "blocked", "provisional", "verified", "approved"] },
           "evidence_ids": { "type": "array", "items": { "type": "string", "minLength": 1 } },
-          "blocking_reasons": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+          "blocking_reasons": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "depends_on": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "authoritative_terrain",
+                "verified_bathymetry",
+                "datum_control",
+                "baseline_hec_ras",
+                "calibrated_hydraulics",
+                "alternative_scenarios",
+                "independent_earthwork",
+                "sediment_suitability",
+                "environmental_screening",
+                "agency_eligibility",
+                "benefit_cost_analysis",
+                "funding_application",
+                "qa_qc"
+              ]
+            }
+          },
+          "preconditions": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["required_artifact_classes", "required_crs", "required_datum", "required_reviewers"],
+            "properties": {
+              "required_artifact_classes": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+              "required_crs": { "type": ["string", "null"], "minLength": 1 },
+              "required_datum": { "type": ["string", "null"], "minLength": 1 },
+              "required_reviewers": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+            }
+          }
         }
       }
     },

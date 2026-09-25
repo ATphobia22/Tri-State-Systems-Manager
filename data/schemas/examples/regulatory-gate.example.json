@@ -1,0 +1,15 @@
+{
+  "artifact_type": "tsm.regulatory_gate_registry.v1",
+  "version": "1.0.0",
+  "gates": [
+    {
+      "gate_id": "cwa-404",
+      "authority": "USACE",
+      "status": "HUMAN_REVIEW_REQUIRED",
+      "required_evidence": [
+        "ev-jurisdictional-determination-001"
+      ]
+    }
+  ],
+  "software_policy": "No calculation, hash, visualization or model result may transition a gate to AGENCY_ACCEPTED without an externally recorded human/agency decision."
+}

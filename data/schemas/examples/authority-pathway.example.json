@@ -1,0 +1,15 @@
+{
+  "pathway_id": "usace-section-204-example",
+  "authority": "USACE",
+  "status": "CANDIDATE",
+  "conditions": [
+    "Qualifying dredging associated with an existing authorized Federal navigation project"
+  ],
+  "evidence_ids": [
+    "ev-authority-review-001"
+  ],
+  "source_uris": [
+    "https://www.usace.army.mil/"
+  ],
+  "verified_at": "2026-09-25T12:00:00Z"
+}

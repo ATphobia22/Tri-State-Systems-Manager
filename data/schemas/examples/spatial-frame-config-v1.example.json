@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0.0",
+  "spatial_framework": {
+    "horizontal_projected_crs": {
+      "identifier": "EPSG:2966",
+      "name": "NAD83 / Indiana West (US Survey Foot)",
+      "unit": "US survey foot",
+      "role": "TSM engineering/project frame"
+    },
+    "vertical_reference": {
+      "target_datum": "NAVD88",
+      "unit": "foot",
+      "require_source_datum": true,
+      "require_geoid_or_datum_transform_metadata": true,
+      "unsupported_fallbacks": {
+        "NGVD29": "BLOCKED_WITHOUT_DOCUMENTED_TRANSFORMATION",
+        "LOCAL_GAGE_DATUM": "BLOCKED_WITHOUT_PUBLISHED_GAGE_DATUM_METADATA",
+        "UNKNOWN": "BLOCKED"
+      }
+    },
+    "transformation_policy": {
+      "horizontal": "Record the source CRS and exact PROJ transformation pipeline/version before conversion to EPSG:2966.",
+      "vertical": "Record source vertical datum, target NAVD88 realization/context, geoid model or published datum transformation, software version, and transformation evidence.",
+      "raster_resampling": "Raster resampling is not a vertical datum transformation and must never be represented as one."
+    },
+    "source_layer_policy": [
+      {
+        "source_layer": "Indiana_BAFM_Floodplains",
+        "source_crs": "SOURCE_METADATA_REQUIRED",
+        "target_crs": "EPSG:2966",
+        "source_vertical_reference": "SOURCE_METADATA_REQUIRED",
+        "status": "TRANSFORM_ONLY_AFTER_METADATA_VALIDATION"
+      },
+      {
+        "source_layer": "USGS_3DEP_Elevation",
+        "source_crs": "SOURCE_PRODUCT_METADATA_REQUIRED",
+        "target_crs": "EPSG:2966",
+        "source_vertical_reference": "SOURCE_PRODUCT_METADATA_REQUIRED",
+        "status": "TRANSFORM_ONLY_AFTER_PRODUCT_METADATA_VALIDATION"
+      }
+    ]
+  },
+  "governance": {
+    "authoritative_source_metadata_required": true,
+    "content_hash_required": true,
+    "retrieval_timestamp_required": true,
+    "human_review_required_for_regulatory_use": true
+  }
+}

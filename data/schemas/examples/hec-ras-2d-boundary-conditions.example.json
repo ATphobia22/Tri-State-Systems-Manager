@@ -1,0 +1,24 @@
+{
+  "gage": {
+    "usgs_id": "03378500",
+    "nws_id": "NHRI3",
+    "stage_source_order": [
+      "NOAA_NWPS",
+      "USGS_WATER_DATA"
+    ]
+  },
+  "upstream": {
+    "boundary_type": "FLOW",
+    "provenance": "USGS gage 03378500 provisional record"
+  },
+  "downstream": {
+    "boundary_type": "NORMAL_DEPTH",
+    "provenance": "reach slope from surveyed cross sections"
+  },
+  "manning_n": {
+    "source": "calibrated baseline (example)",
+    "values": [
+      0.035
+    ]
+  }
+}

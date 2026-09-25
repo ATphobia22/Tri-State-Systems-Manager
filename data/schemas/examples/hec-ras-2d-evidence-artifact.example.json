@@ -1,0 +1,18 @@
+{
+  "artifact_type": "hec_ras_2d_water_surface_grid",
+  "source_authority": "TSM console demo generator",
+  "source_uri": "local://console/demo/hec-ras-2d",
+  "retrieved_at": "2026-09-25T12:00:00Z",
+  "horizontal_crs": "EPSG:2966",
+  "vertical_datum": "NAVD88",
+  "content_hash_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "authority_class": "SIMULATION_DEMO",
+  "derivation_class": "DERIVED",
+  "validation_status": "provisional",
+  "governance_status": "human_review_required",
+  "is_simulation_demo": true,
+  "human_review_status": "pending",
+  "transformation_chain": [
+    "demo generator v0.1"
+  ]
+}

@@ -79,9 +79,48 @@ is absent here). 13 pytest tests.
   events — validate against USGS benchmarks before operational use.
 - Hazus curves need local calibration; 10-ft clamp is a fail-safe, not science.
 - Diffusion-wave is screening-level; the build-vs-revise decision on true 2D
-  Saint-Venant (per SYNTHESIS-VERIFICATION.md) is still open.
-- FIRMette PDF path (reportlab) and live FEMA base-map retrieval are
-  implemented but untested here (no reportlab, no network).
+  Saint-Venant (per SYNTHESIS-VERIFICATION.md) is closed below in
+  "Decision: 2D hydraulic strategy (2026-09-25)": revise claims to match
+  implementation, full Saint-Venant deferred.
+- FIRMette PDF path (reportlab) was tested 2026-09-25 (venv, reportlab
+  5.0.1): **fails** — 5/17 tests, `FileNotFoundError` in
+  `tools/loma/firmette.py generate_firmette`: the PDF artifact is hashed for
+  the manifest table before `build_pdf_reportlab` writes it (ordering bug;
+  HTML path unaffected). Live FEMA base-map retrieval remains untested
+  (no network here).
 - `merge-dem.py` real-mode fetch is operator-only and untested (no GDAL here).
 - Swift/iOS still uncompiled; `.ipa` still needs a Mac; GitHub push still
   blocked on user auth.
+
+## Decision: 2D hydraulic strategy (2026-09-25)
+
+**Decision:** the sanctioned 2D hydraulic capability is the diffusion-wave
+(screening) model in `tsm-console/src/lib/hydraulics-diffusion2d.ts`; full 2D
+Saint-Venant remains deferred future work and is not claimed anywhere.
+
+**Context:** SYNTHESIS-VERIFICATION.md raised a build-vs-revise item against
+the 2D solver: either build true 2D Saint-Venant (shocks, supercritical flow,
+infiltration) or revise claims to match the implemented diffusion-wave
+(§4 above). Review of the implementation and its claims:
+
+- `hydraulics-diffusion2d.ts` is an explicit finite-difference diffusion-wave
+  (zero-inertia) raster model with Manning-based face fluxes, closed
+  boundaries, and enforced diffusive-CFL stability; the module header and all
+  doc references already state **"Not full Saint-Venant"** and list its
+  limits (no shocks, no supercritical flow, no infiltration — volumes
+  conservative; screening-level only).
+- Nothing in code or docs claims Saint-Venant, full momentum conservation,
+  or regulatory-grade 2D results from this module; the scenario runner (§5)
+  documents its coupling as a screening-level approximation.
+
+**Rationale:** diffusion-wave is the operational standard for floodplain
+inundation screening, it is tractable and testable (5 vitest tests incl.
+mass conservation and symmetry), and full Saint-Venant would add
+substantial complexity without changing the fail-closed screening posture
+of the console. Building it now is not justified; over-claiming what exists
+would violate the honest-labeling design rule.
+
+**Outcome:** item closed as **"revise claims to match implementation"** —
+claims stay at diffusion-wave screening level; full 2D Saint-Venant is
+deferred future work and must not be implied in any grant, UI, or engineering
+text until an executable, tested integration exists.

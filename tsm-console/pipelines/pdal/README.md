@@ -29,7 +29,7 @@ Replace polygon with surveyed foundation buffer in EPSG:2966 US ft.
 
 See also: [STREAM-MODE.md](./STREAM-MODE.md) for stream vs standard processing.
 
-See also: [HEC-RAS-AND-LIDAR-CLASSIFICATION.md](../docs/HEC-RAS-AND-LIDAR-CLASSIFICATION.md) or sibling docs path.
+See also: [HEC-RAS-AND-LIDAR-CLASSIFICATION.md](../../docs/HEC-RAS-AND-LIDAR-CLASSIFICATION.md) or sibling docs path.
 
 Full config + mesh notes: [PDAL-PIPELINE-AND-HEC-RAS-MESH.md](../../docs/PDAL-PIPELINE-AND-HEC-RAS-MESH.md).
 

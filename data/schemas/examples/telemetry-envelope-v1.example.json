@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "1.0",
+  "source": {
+    "provider": "USGS",
+    "sourceId": "03378500",
+    "sourceUri": "https://waterservices.usgs.gov/"
+  },
+  "station": {
+    "id": "03378500",
+    "name": "Ohio River at New Harmony (example)"
+  },
+  "parameter": {
+    "code": "00065",
+    "name": "Gage height",
+    "unit": "ft"
+  },
+  "observation": {
+    "value": 12.4,
+    "observedAt": "2026-09-25T11:00:00Z",
+    "receivedAt": "2026-09-25T12:00:00Z",
+    "temporalClass": "OBSERVED"
+  },
+  "provenance": {
+    "retrievalId": "ret-001",
+    "retrievedAt": "2026-09-25T12:00:00Z",
+    "contentHashSha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+  },
+  "quality": {
+    "status": "PROVISIONAL",
+    "freshnessState": "FRESH"
+  }
+}

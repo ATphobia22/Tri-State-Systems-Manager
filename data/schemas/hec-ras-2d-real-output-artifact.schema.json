@@ -1,0 +1,128 @@
+{
+  "$defs": {
+    "realModelOutput": {
+      "properties": {
+        "calibration_report_ref": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "human_review_status": {
+          "enum": [
+            "pending",
+            "approved",
+            "rejected"
+          ]
+        },
+        "is_simulation_demo": {
+          "const": false
+        },
+        "model_package_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "type": "string"
+        },
+        "provenance_kind": {
+          "const": "REAL_MODEL_OUTPUT"
+        }
+      },
+      "required": [
+        "provenance_kind",
+        "is_simulation_demo",
+        "model_package_sha256",
+        "calibration_report_ref",
+        "human_review_status"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "urn:tsm:hec-ras-2d-real-output-artifact:v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Companion to hec-ras-2d-evidence-artifact.schema.json. This schema describes artifacts produced by a real, calibrated HEC-RAS 2D model run \u2014 it is NOT for demonstration or synthetic outputs. Demonstration artifacts remain locked to is_simulation_demo: true in the sibling schema and can never validate here. Per TSM fail-closed doctrine, no field may be invented: a missing model package hash, calibration reference, or human review status means the artifact cannot exist.",
+  "properties": {
+    "artifact_type": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "calibration_report_ref": {
+      "description": "URI or stable reference to the calibration report documenting parameter choices, observed-vs-modeled comparison, and calibration period for the model package.",
+      "minLength": 1,
+      "type": "string"
+    },
+    "content_hash_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "type": "string"
+    },
+    "governance_status": {
+      "const": "human_review_required"
+    },
+    "horizontal_crs": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "human_review_status": {
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ]
+    },
+    "is_simulation_demo": {
+      "const": false
+    },
+    "model_package_sha256": {
+      "description": "Lowercase hex SHA-256 of the complete HEC-RAS 2D model package (geometry, flow, plan, and project files) that produced this output. No 'sha256:' prefix, no uppercase.",
+      "pattern": "^[a-f0-9]{64}$",
+      "type": "string"
+    },
+    "provenance_kind": {
+      "const": "REAL_MODEL_OUTPUT"
+    },
+    "retrieved_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "source_authority": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "source_uri": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "transformation_chain": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "validation_status": {
+      "enum": [
+        "pending",
+        "provisional",
+        "verified",
+        "rejected"
+      ]
+    },
+    "vertical_datum": {
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "artifact_type",
+    "provenance_kind",
+    "is_simulation_demo",
+    "model_package_sha256",
+    "calibration_report_ref",
+    "human_review_status",
+    "source_authority",
+    "source_uri",
+    "retrieved_at",
+    "horizontal_crs",
+    "vertical_datum",
+    "validation_status",
+    "governance_status",
+    "transformation_chain"
+  ],
+  "title": "TSM HEC-RAS 2D Real Model Output Artifact",
+  "type": "object"
+}

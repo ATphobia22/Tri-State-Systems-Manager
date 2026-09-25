@@ -1,0 +1,19 @@
+{
+  "artifact_type": "hec_ras_2d_water_surface_grid",
+  "provenance_kind": "REAL_MODEL_OUTPUT",
+  "is_simulation_demo": false,
+  "model_package_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "calibration_report_ref": "ev-calibration-report-001",
+  "human_review_status": "pending",
+  "source_authority": "Project engineer of record",
+  "source_uri": "local://project/model-package/run-003",
+  "retrieved_at": "2026-09-25T12:00:00Z",
+  "horizontal_crs": "EPSG:2966",
+  "vertical_datum": "NAVD88",
+  "validation_status": "provisional",
+  "governance_status": "human_review_required",
+  "transformation_chain": [
+    "hec-ras 6.x compute",
+    "export to grid"
+  ]
+}

@@ -16,7 +16,7 @@ DRIVE_MODIFIED: 2026-08-18
 
 FEMA Benefit-Cost Analysis (BCA) Data Package: 13101 Bonebank Road
 1. Site Identification and Geodetic Control
-|  Site Address  | 13101 Bonebank Road, Point Township, Indiana (Section 35) | |  Vertical Datum  | NAVD88 | |  Horizontal CRS  | EPSG:2967 (Indiana West) |
+|  Site Address  | 13101 Bonebank Road, Point Township, Indiana (Section 35) | |  Vertical Datum  | NAVD88 | |  Horizontal CRS  | EPSG:2966 (Indiana West) [editorial correction 2026-09-25: EPSG:2967 is Indiana East] |
 2. Authoritative Elevation Invariants
 Measurement Point,Elevation (ft NAVD88),Regulatory Significance
 Base Flood Elevation (BFE),375.0,Primary hydraulic risk baseline
