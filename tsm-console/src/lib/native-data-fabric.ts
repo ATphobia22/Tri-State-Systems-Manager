@@ -1,4 +1,5 @@
 import { Capacitor, registerPlugin } from '@capacitor/core';
+import { makeProvenance, type Provenance, type ProvenanceLabel } from './provenance-labels';
 import {
   candidateGaugeObservation,
   unavailableGaugeObservation,
@@ -50,6 +51,29 @@ export interface NativeGaugeStation {
 export interface NativeFetchGaugesResult {
   stations: NativeGaugeStation[];
   error?: string;
+}
+
+/**
+ * A native-mapped gauge observation with its provenance label attached.
+ * Live (and stale) native readings carry `OBSERVED`; fail-closed mappings
+ * carry `UNAVAILABLE`. Additive: every field of `RiverGaugeObservation` is
+ * unchanged.
+ */
+export type NativeGaugeObservation = RiverGaugeObservation & {
+  readonly provenance: Provenance;
+};
+
+/**
+ * Provenance label for a mapped native observation status. A live or stale
+ * native reading is a sensor observation (`OBSERVED`); anything mapped to
+ * `unavailable` is an explicit absence of data (`UNAVAILABLE`).
+ */
+function nativeObservationProvenance(
+  status: RiverGaugeObservation['status'],
+  retrievedAt: string,
+): Provenance {
+  const label: ProvenanceLabel = status === 'current' || status === 'stale' ? 'OBSERVED' : 'UNAVAILABLE';
+  return makeProvenance([label], { retrievedAt });
 }
 
 interface TSMDataFabricPlugin {
@@ -135,7 +159,7 @@ function mapNativeStation(
   station: NativeGaugeStation,
   nowMs: number,
   error?: string,
-): RiverGaugeObservation {
+): NativeGaugeObservation {
   const stageFt = typeof station.stageFt === 'number' && Number.isFinite(station.stageFt) ? station.stageFt : null;
   const claimedStatus = mapNativeGaugeStatus(station.status);
   // Fail closed: a "live" claim without a valid numeric stage value is not live.
@@ -144,7 +168,7 @@ function mapNativeStation(
     claimedStatus === 'current' && stageFt === null
       ? 'Native station reported live without a numeric stage value'
       : error;
-  return {
+  const observation: RiverGaugeObservation = {
     gaugeId: definition.usgsId ?? definition.nwsId ?? definition.id,
     provider: deriveProvider(definition, station),
     name: definition.name,
@@ -159,6 +183,10 @@ function mapNativeStation(
     dischargeCfs: null,
     sourceUri: null,
     ...(stageError ? { error: stageError } : {}),
+  };
+  return {
+    ...observation,
+    provenance: nativeObservationProvenance(status, observation.retrievedAt ?? new Date(nowMs).toISOString()),
   };
 }
 
@@ -191,11 +219,16 @@ export async function fetchNativeGaugeObservations(
     if (definition.status !== 'active') return candidateGaugeObservation(definition);
     const station = findNativeStation(definition, stationsById);
     if (!station) {
-      return unavailableGaugeObservation(
-        definition,
-        nowMs,
-        result.error ?? 'Station not returned by native data fabric',
-      );
+      // Provenance is additive and stays inside this file; the observation
+      // fields built by river-gauges.ts are untouched.
+      return {
+        ...unavailableGaugeObservation(
+          definition,
+          nowMs,
+          result.error ?? 'Station not returned by native data fabric',
+        ),
+        provenance: makeProvenance(['UNAVAILABLE'], { retrievedAt: new Date(nowMs).toISOString() }),
+      };
     }
     return mapNativeStation(definition, station, nowMs, result.error);
   });
