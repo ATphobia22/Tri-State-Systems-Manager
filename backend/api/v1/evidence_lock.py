@@ -16,8 +16,8 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 router = APIRouter(prefix="/evidence", tags=["evidence-lock"])
 
 DEFAULT_SITE: dict[str, Any] = {
-    "location_address": "13101 BONEBANK RD, MOUNT VERNON, IN, 47620",
-    "coordinates": {"latitude": 37.845887, "longitude": -88.005075},
+    "location_address": "PRIVATE_SITE_ADDRESS_REDACTED, MOUNT VERNON, IN, 47620",
+    "coordinates": {"latitude": SITE_LATITUDE_REDACTED, "longitude": SITE_LONGITUDE_REDACTED},
     "community_number": "180209",
     "case_number": "26-05-2022A",
     "target_panel": "18129C0265C",
