@@ -51,7 +51,9 @@
     "test:cinematic": "vitest run tests/cinematic-camera-tour.test.ts tests/cinematic-contracts.test.ts",
     "geospatial:fetch": "node scripts/geospatial/fetch-posey-assets.mjs",
     "geospatial:validate": "node scripts/geospatial/validate-raster-manifest.mjs",
-    "test:firm": "node --test tests/firm-*.test.mjs"
+    "test:firm": "node --test tests/firm-*.test.mjs",
+    "proxy": "node server/token-proxy.mjs",
+    "dev:proxy": "node server/token-proxy.mjs"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.0",
