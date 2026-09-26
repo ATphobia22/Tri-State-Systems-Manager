@@ -11,8 +11,6 @@ from typing import Optional, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-BONEBANK_BFE_NAVD88 = 375.0
-
 
 class GageObservation(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -50,6 +48,7 @@ class DerivedWSEResult(BaseModel):
 def calculate_wse_navd88(
     obs: GageObservation,
     validated_gage_zero_navd88: Optional[float],
+    reference_bfe_navd88: Optional[float] = None,
 ) -> DerivedWSEResult:
     """Convert station gage height to NAVD88 WSE only with a validated gage zero."""
     if validated_gage_zero_navd88 is None:
@@ -64,7 +63,11 @@ def calculate_wse_navd88(
         )
 
     wse_navd88 = obs.stage_ft + validated_gage_zero_navd88
-    clearance = wse_navd88 - BONEBANK_BFE_NAVD88
+    clearance = (
+        wse_navd88 - reference_bfe_navd88
+        if reference_bfe_navd88 is not None
+        else None
+    )
 
     return DerivedWSEResult(
         station_id=obs.station_id,
