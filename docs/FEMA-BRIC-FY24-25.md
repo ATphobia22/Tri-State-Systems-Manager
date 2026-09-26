@@ -26,7 +26,7 @@ If this date has passed when you read this, treat cycle as closed and track the 
 4. Stack carefully with OCRA CDBG / other state match sources; no double-dipping.  
 5. TSM Grant Intelligence may **track** NOFOs; it does **not** submit applications.
 
-## Relevance to Bonebank / Point Township
+## Relevance to restricted site / Point Township
 
 BRIC is for **mitigation projects and capability**, not a substitute for a private LOMA case. LOMA is a map amendment path; BRIC is a competitive grant path for community-scale resilience.
 
