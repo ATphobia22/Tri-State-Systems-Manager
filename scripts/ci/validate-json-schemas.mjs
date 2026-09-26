@@ -134,8 +134,8 @@ for (const relative of schemaPaths) {
   validate(example, schema, relative);
   if (relative.includes('nfip-discrepancy')) {
     const casePath = path.join(repoRoot, 'data', 'evidence', 'layer2', '26-05-2022A', 'case.json');
-    try { validate(JSON.parse(fs.readFileSync(casePath, 'utf8')), schema, 'data/evidence/layer2/26-05-2022A/case.json'); }
-    catch (error) { fail('data/evidence/layer2/26-05-2022A/case.json: invalid JSON: ' + error.message); }
+    try { validate(JSON.parse(fs.readFileSync(casePath, 'utf8')), schema, path.relative(repoRoot, casePath)); }
+    catch (error) { fail(path.relative(repoRoot, casePath) + ': invalid JSON: ' + error.message); }
   }
 }
 
