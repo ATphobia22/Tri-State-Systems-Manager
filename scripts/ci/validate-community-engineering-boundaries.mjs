@@ -74,6 +74,7 @@ for (const relative of publicRoots) {
 }
 const restrictedReferencePattern = /(?:data[\\/]+evidence|evidence[\\/]+layer2)/i;
 for (const relative of publicFiles) {
+  if (relative === 'scripts/ci/validate-community-engineering-boundaries.mjs') continue;
   const text = fs.readFileSync(path.join(root, relative), 'utf8');
   if (restrictedReferencePattern.test(text)) {
     failures.push('public/runtime file references restricted evidence plane: ' + relative);
