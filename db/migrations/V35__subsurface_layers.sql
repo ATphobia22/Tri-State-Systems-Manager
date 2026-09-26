@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS subsurface_boreholes (
     borehole_id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     operator TEXT NOT NULL DEFAULT 'PTDT-Sovereign-Twin',
-    geom GEOMETRY(Point, 2966) NOT NULL,
+    geom GEOMETRY (POINT, 2966) NOT NULL,
     surface_elevation_m_navd88 NUMERIC(10, 3) NOT NULL,
     water_table_depth_m NUMERIC(8, 3),
     vertical_datum TEXT NOT NULL DEFAULT 'NAVD88',
