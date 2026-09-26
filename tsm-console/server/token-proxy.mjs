@@ -20,6 +20,7 @@ import { authorizeAndPublishArtifact } from './ingestion/governance-transition.m
 import { authenticateRequest, requireRoles, requireAuthenticatedSubject } from './auth/oidc-auth.mjs';
 import { submitCommunityObservation } from './ingestion/community-submissions.mjs';
 import { beginOidcLogin, finishOidcLogin, getBrowserSession, logoutOidc } from './auth/oidc-bff.mjs';
+import { bootstrapOidc } from './auth/oidc-bootstrap.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
 const BUILD_SHA = process.env.GITHUB_SHA || process.env.TSM_BUILD_SHA || 'local';
@@ -338,4 +339,5 @@ const server = http.createServer(async (req, res) => {
     observeTelemetryMetric('tsm_server_event_loop_utilization_ratio', elu.utilization, { route: metricRoute(url.pathname) });
   }
 });
+await bootstrapOidc();
 server.listen(PORT, () => console.log(`TSM API on http://localhost:${PORT}`));
