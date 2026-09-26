@@ -8,7 +8,7 @@ const schemaPaths = [
   'data/schemas/tsm-data-contract-schema-v1.0.0.json',
   'data/schemas/tsm-evidence-artifact-schema-v1.0.0.json',
   'data/schemas/regulatory-gate.schema.json',
-  'data/evidence/layer2/nfip-discrepancy.schema.json',
+  path.join('data', 'evidence', 'layer2', 'nfip-discrepancy.schema.json'),
 ];
 const failures = [];
 const fail = (message) => failures.push(message);
@@ -133,7 +133,7 @@ for (const relative of schemaPaths) {
   const example = relative.includes('data-contract') ? dataExample : relative.includes('regulatory-gate') ? regulatoryGateExample : relative.includes('nfip-discrepancy') ? nfipLayer2Example : evidenceExample;
   validate(example, schema, relative);
   if (relative.includes('nfip-discrepancy')) {
-    const casePath = path.join(repoRoot, 'data/evidence/layer2/26-05-2022A/case.json');
+    const casePath = path.join(repoRoot, 'data', 'evidence', 'layer2', '26-05-2022A', 'case.json');
     try { validate(JSON.parse(fs.readFileSync(casePath, 'utf8')), schema, 'data/evidence/layer2/26-05-2022A/case.json'); }
     catch (error) { fail('data/evidence/layer2/26-05-2022A/case.json: invalid JSON: ' + error.message); }
   }
