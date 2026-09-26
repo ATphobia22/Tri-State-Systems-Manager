@@ -68,7 +68,7 @@ for (const relative of publicRoots) {
       if (['node_modules', '.git', 'dist'].includes(entry.name)) continue;
       const full = path.join(current, entry.name);
       if (entry.isDirectory()) stack.push(full);
-      else if (/\.(?:mjs|ts|tsx|py|json|md|sql|yml|yaml)$/.test(entry.name)) publicFiles.push(path.relative(root, full));
+      else if (/\.(?:mjs|ts|tsx|py|json|sql|yml|yaml)$/.test(entry.name)) publicFiles.push(path.relative(root, full));
     }
   }
 }
