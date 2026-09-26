@@ -38,5 +38,27 @@
     "Preserve the FEMA letter and attached legacy form unchanged and retain SHA-256 hash.",
     "Build a historical map/elevation reconciliation: FIRM panel/version, effective date, datum, source DEM/LiDAR, vertical transformation, surveyed elevations, and uncertainty.",
     "Obtain historical NFIP policy/declarations, premium history, flood-zone determinations, lender/insurer notices, and map versions needed to test the historical-premium hypothesis."
-  ]
+  ],
+  "evidence_provenance": [
+    {
+      "evidence_id": "NFIP-LETTER-D-2018-001",
+      "source_type": "Historical FEMA/NFIP Letter D",
+      "source_locator": "User-supplied photograph IMG_4257.jpeg (not committed)",
+      "acquisition_date": "2026-09-26",
+      "sha256": "50f371ad89aef05c39fbc8652608e1f06b73af58de893bea19d014516e02ad07",
+      "processing_status": "PRESERVED_PRIVATE_SOURCE_WITH_SANITIZED_PUBLIC_TRANSCRIPTION",
+      "notes": "January 19, 2018 letter records pre-FIRM/high-risk/Zone AE legacy rating context. Historical policy fields were observed; policy identifier is intentionally excluded from the public repository. This evidence does not establish current NFIP rating, current premium, BFE, datum, or LOMA eligibility."
+    }
+  ],
+  "historical_national_flood_insurance_evidence": {
+    "letter_date": "2018-01-19",
+    "letter_class": "D",
+    "building_classification": "pre-FIRM",
+    "flood_zone": "AE",
+    "rated_zone": "AE",
+    "historical_policy_period": "2017-03-27 through 2018-03-27",
+    "historical_policy_fields_observed": true,
+    "source_artifact_not_committed": true,
+    "current_rating_methodology_note": "FEMA Risk Rating 2.0 became applicable to all policies renewing on or after April 1, 2022; preserve the 2018 letter as historical evidence only."
+  }
 }
