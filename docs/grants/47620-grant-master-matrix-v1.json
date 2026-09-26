@@ -1,0 +1,141 @@
+{
+  "title": "47620 Grant Master Matrix",
+  "version": "1.0.0",
+  "date": "2026-09-24",
+  "geography": ["Mount Vernon", "Point Township", "Black Township", "Posey County", "IN 47620"],
+  "disclaimer": "Planning directory only. Not an award, eligibility determination, or legal/financial advice. Verify every NOFO, match rate, and deadline on the official portal before applying. Individual applicants cannot self-sponsor USACE CAP Section 205.",
+  "prerequisites": [
+    "SAM.gov Unique Entity ID for organizational applicants",
+    "Grants.gov workspace where required",
+    "SF-424 family forms as specified by NOFO",
+    "Eligible applicant type (local government, nonprofit, etc.) per program"
+  ],
+  "categories": [
+    {
+      "id": "federal_infra",
+      "name": "Federal Grant Infrastructure",
+      "programs": [
+        {"name": "Grants.gov Portal", "intent": "Discovery and application workspace"},
+        {"name": "SAM.gov / UEI", "intent": "Mandatory entity registration"},
+        {"name": "SF-424 Core Family", "intent": "Standard application forms"},
+        {"name": "Ports of Indiana - Mount Vernon", "intent": "Inland port / logistics alignment"}
+      ]
+    },
+    {
+      "id": "fema_hs",
+      "name": "FEMA / Homeland Security / Emergency Management",
+      "programs": [
+        {"name": "HMGP", "notes": "Post-disaster; typical 75% federal share; hardening/buyouts"},
+        {"name": "BRIC", "notes": "Pre-disaster competitive mitigation"},
+        {"name": "FMA", "notes": "NFIP-insured property mitigation; repetitive loss focus"},
+        {"name": "NSGP", "notes": "Nonprofit / house of worship security; per-site caps apply"},
+        {"name": "AFG", "notes": "Firefighter equipment/training — relevant Black Twp Fire"},
+        {"name": "SAFER", "notes": "Fire/EMS staffing"}
+      ]
+    },
+    {
+      "id": "usace_noaa",
+      "name": "USACE / NOAA / Water & River Resilience",
+      "programs": [
+        {"name": "Planning Assistance to States", "agency": "USACE Louisville"},
+        {"name": "Flood Plain Management Services", "agency": "USACE"},
+        {"name": "Section 205 Small Flood Projects", "agency": "USACE CAP", "sponsor_required": true},
+        {"name": "NOAA Climate Resilience", "agency": "NOAA"}
+      ]
+    },
+    {
+      "id": "epa_ifa",
+      "name": "EPA / IDEM / Indiana Finance Authority",
+      "programs": [
+        {"name": "Clean Water SRF", "agency": "IFA"},
+        {"name": "Drinking Water SRF", "agency": "IFA"},
+        {"name": "Indiana Brownfields", "agency": "IFA"},
+        {"name": "Section 319 Nonpoint Source", "agency": "IDEM"}
+      ]
+    },
+    {
+      "id": "hud_ocra",
+      "name": "HUD / OCRA / IHCDA",
+      "programs": [
+        {"name": "CDBG Public Facilities", "agency": "OCRA"},
+        {"name": "CDBG Stormwater", "agency": "OCRA"},
+        {"name": "HOME", "agency": "IHCDA"},
+        {"name": "ESG", "agency": "IHCDA"}
+      ]
+    },
+    {
+      "id": "usda",
+      "name": "USDA Rural Development",
+      "programs": [
+        {"name": "Community Facilities"},
+        {"name": "Section 504 Housing Repair"},
+        {"name": "Business & Industry Guarantees"},
+        {"name": "Rural Utilities & Broadband"}
+      ]
+    },
+    {
+      "id": "dot",
+      "name": "DOT / Transportation & Port",
+      "programs": [
+        {"name": "Rural Surface Transportation"},
+        {"name": "Bridge Investment Program"},
+        {"name": "MARAD PIDP"},
+        {"name": "FRA CRISI"}
+      ]
+    },
+    {
+      "id": "broadband",
+      "name": "Broadband / Digital",
+      "programs": [
+        {"name": "BEAD Indiana"},
+        {"name": "NTIA Digital Equity"},
+        {"name": "FCC connectivity programs"}
+      ]
+    },
+    {
+      "id": "eda",
+      "name": "Economic Development",
+      "programs": [
+        {"name": "EDA Public Works"},
+        {"name": "SBA STEP"},
+        {"name": "Posey County comprehensive plan baseline"}
+      ]
+    },
+    {
+      "id": "workforce_edu",
+      "name": "Workforce / Education",
+      "programs": [
+        {"name": "WIOA"},
+        {"name": "Indiana School Safety Secured Grants"},
+        {"name": "DOJ School Violence Prevention"}
+      ]
+    },
+    {
+      "id": "doj",
+      "name": "DOJ / Public Safety",
+      "programs": [
+        {"name": "COPS Hiring"},
+        {"name": "Byrne JAG (Indiana CJI)"},
+        {"name": "OJJDP"}
+      ]
+    },
+    {
+      "id": "hhs",
+      "name": "HHS / HRSA / Rural Health",
+      "programs": [
+        {"name": "HRSA Rural Health Outreach"},
+        {"name": "SAMHSA Behavioral Health"}
+      ]
+    }
+  ],
+  "priority_for_flood_risk": [
+    "BRIC",
+    "FMA",
+    "HMGP (when disaster declaration applies)",
+    "USACE Section 205 (county sponsor required)",
+    "USACE FPMS / PAS technical assistance",
+    "OCRA CDBG Stormwater",
+    "IFA CWSRF stormwater-related"
+  ],
+  "source_pdf": "47620_Grant_link Matrix .pdf"
+}

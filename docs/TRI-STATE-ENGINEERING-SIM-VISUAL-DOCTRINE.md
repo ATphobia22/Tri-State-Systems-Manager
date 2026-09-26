@@ -31,7 +31,7 @@
 
 1. Ohio & Wabash channels, floodplains, Hovey Lake, Twin Swamps
 2. John T. Myers Locks and Dam (UNWK2 / 03322420)
-3. Bonebank structure elevations (BFE / LAG / FFE / berm)
+3. restricted site structure elevations (BFE / LAG / FFE / berm)
 4. Roads, parcels, power/utility corridors when layers are on
 5. NFHL vs Indiana Best Available — never collapsed
 

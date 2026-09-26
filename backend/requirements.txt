@@ -1,18 +1,18 @@
 # PTDT v35 Sovereign Backend
 pydantic>=2.13.5,<3
-h5py>=3.12,<4
-numpy>=2.2,<3
+h5py>=3.16.0,<4
+numpy>=2.5.3,<3
 
 # TSM OpenMI transport profile
-grpcio>=1.70,<2
-protobuf>=5.28,<7
+grpcio>=1.84.0,<2
+protobuf>=7.36.2,<8
 
 # Optional HEC-RAS bridge (Windows + licensed HEC-RAS)
 # hecrasapi>=0.1.0
 
 # Spatial / DEM / PostGIS validation
 rasterio>=1.4,<2
-psycopg2-binary>=2.9,<3
+psycopg2-binary>=2.9.13,<3
 reportlab==5.0.1
 
 # Companion FastAPI service (backend/app) — separate process from the Node API

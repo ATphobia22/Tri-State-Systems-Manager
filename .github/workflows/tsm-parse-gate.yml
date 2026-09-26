@@ -22,7 +22,7 @@ env:
 jobs:
   parse-type-build-test:
     name: Parse / Typecheck / Geospatial Contract / Build / Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: tsm-console

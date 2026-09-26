@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Posey County Indiana — Open FEMA NFHL / FIRM Catalog",
+  "version": "1.0.0",
+  "retrieved_policy": "Public FEMA and Indiana endpoints only. Hardcopy FIRM/FIS remain controlling for regulatory determinations.",
+  "county_fips": "18129",
+  "communities": [
+    {
+      "cid": "180209",
+      "name": "Posey County Unincorporated Areas",
+      "program": "Regular",
+      "panels": [
+        {
+          "panel_id": "18129C0300C",
+          "role": "canonical_candidate",
+          "status": "NFHL_REST_VERIFIED",
+          "msc_portal": "https://msc.fema.gov/portal/home",
+          "nfhl_mapserver": "https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer",
+          "nfhl_wms": "https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHLWMS/MapServer/WMSServer",
+          "export_png_template": "https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer/export?bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=512,512&format=png32&transparent=true&layers=show:28,16,3,1,34,23&f=image"
+        },
+        {
+          "panel_id": "18129C0265C",
+          "role": "alternate_candidate",
+          "status": "PENDING_MSC_VERIFY",
+          "msc_portal": "https://msc.fema.gov/portal/home"
+        }
+      ]
+    }
+  ],
+  "indiana_bafm": {
+    "name": "Best Available Floodplain Mapping",
+    "mapserver": "https://gisdata.in.gov/server/rest/services/Best_Available_Flood_Hazard_Layer/MapServer",
+    "notes": "Indiana BAFM is a separate authority plane from FEMA NFHL effective products."
+  },
+  "open_source_stack": [
+    { "name": "MapLibre GL JS", "url": "https://github.com/maplibre/maplibre-gl-js", "license": "BSD-3-Clause", "use": "Web map renderer" },
+    { "name": "PMTiles", "url": "https://github.com/protomaps/PMTiles", "license": "BSD-3-Clause", "use": "Cloud-native single-file tiles" },
+    { "name": "Protomaps basemaps", "url": "https://github.com/protomaps/basemaps", "license": "BSD-3-Clause", "use": "Open basemap styles / tiles" },
+    { "name": "h3-js", "url": "https://github.com/uber/h3-js", "license": "Apache-2.0", "use": "Hexagonal spatial indexing" },
+    { "name": "3d-tiles-renderer", "url": "https://github.com/NASA-AMMOS/3DTilesRendererJS", "license": "Apache-2.0", "use": "3D Tiles in Three.js" },
+    { "name": "Martin tile server", "url": "https://github.com/maplibre/martin", "license": "MIT OR Apache-2.0", "use": "PostGIS / PMTiles vector tile server" }
+  ]
+}

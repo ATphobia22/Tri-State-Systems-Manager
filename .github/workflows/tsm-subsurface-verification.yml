@@ -1,0 +1,151 @@
+name: TSM Subsurface Architecture Verification
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'db/migrations/**'
+      - 'tests/geotechnical/**'
+      - 'backend/**'
+      - '.github/workflows/tsm-subsurface-verification.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'db/migrations/**'
+      - 'tests/geotechnical/**'
+      - 'backend/**'
+      - '.github/workflows/tsm-subsurface-verification.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  POSTGRES_DB: tsm_twin_store
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: tsm_ci_postgis_local
+
+jobs:
+  lint-and-validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_DB: tsm_twin_store
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: tsm_ci_postgis_local
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Repository Source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Python Runtime Environment
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install System and Geospatial Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgdal-dev gdal-bin libpq-dev build-essential
+          python -m pip install --upgrade pip
+          python -m pip install sqlfluff pytest psycopg2-binary
+
+      - name: Enforce Database Migration SQL Linting
+        run: |
+          if [ -d db/migrations ] && ls db/migrations/*.sql >/dev/null 2>&1; then
+            sqlfluff lint db/migrations/ --dialect postgres
+          else
+            echo 'No migration SQL present; skip sqlfluff.'
+          fi
+
+      - name: Apply V35 Subsurface Migration
+        env:
+          PGPASSWORD: tsm_ci_postgis_local
+        run: |
+          if [ -f db/migrations/V35__subsurface_layers.sql ]; then
+            psql -h localhost -U postgres -d tsm_twin_store -f db/migrations/V35__subsurface_layers.sql
+          else
+            echo 'V35 subsurface migration not present; skip apply.'
+          fi
+
+      - name: Verify PostGIS Spatial Ref Integrity (EPSG:2966)
+        env:
+          PGPASSWORD: tsm_ci_postgis_local
+        run: |
+          python - <<'PY'
+          import sys
+          import psycopg2
+          conn = psycopg2.connect(
+              host='localhost', dbname='tsm_twin_store', user='postgres', password='tsm_ci_postgis_local'
+          )
+          cur = conn.cursor()
+          cur.execute('SELECT COUNT(*) FROM spatial_ref_sys WHERE srid = 2966;')
+          count = cur.fetchone()[0]
+          if not count:
+              print('CRITICAL: SRID 2966 missing from spatial_ref_sys.')
+              sys.exit(1)
+          print('SUCCESS: SRID 2966 present in spatial_ref_sys.')
+          PY
+
+      - name: Execute Geotechnical Engine and Verification Tests
+        run: |
+          if [ -d tests/geotechnical ]; then
+            pytest tests/geotechnical/ -v --tb=short
+          else
+            echo 'No tests/geotechnical yet — skip'
+          fi
+
+  databricks-lakehouse-cd:
+    runs-on: ubuntu-24.04
+    needs: lint-and-validate
+    if: github.ref == 'refs/heads/main' && vars.TSM_DATABRICKS_ENABLED == 'true'
+    timeout-minutes: 20
+    env:
+      DATABRICKS_AUTH_TYPE: github-oidc
+      DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+      DATABRICKS_CLIENT_ID: ${{ vars.DATABRICKS_CLIENT_ID }}
+      DATABRICKS_BUNDLE_ENV: prod
+    steps:
+      - name: Checkout Repository Source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Validate required public bindings
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ -n "${DATABRICKS_HOST}" ]] || { echo 'Missing DATABRICKS_HOST' >&2; exit 1; }
+          [[ "${DATABRICKS_HOST}" == https://* ]] || { echo 'DATABRICKS_HOST must be HTTPS' >&2; exit 1; }
+          [[ -n "${DATABRICKS_CLIENT_ID}" ]] || { echo 'Missing DATABRICKS_CLIENT_ID' >&2; exit 1; }
+
+      - name: Install pinned Databricks CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          version='1.17.0'
+          archive='databricks_cli_1.17.0_linux_amd64.tar.gz'
+          expected='6b5c1e08f484d33b4e75eabe0ee3ba1bb9d19d7beedd4b14a1e6993f52a01e23'
+          curl --fail --location --silent --show-error "https://github.com/databricks/cli/releases/download/v${version}/${archive}" -o /tmp/${archive}
+          echo "${expected}  /tmp/${archive}" | sha256sum --check --strict
+          tar -xzf /tmp/${archive} -C /tmp
+          install -m 0755 /tmp/databricks /usr/local/bin/databricks
+          databricks version
+
+      - name: Validate Databricks bundle
+        run: |
+          if [ -f databricks.yml ]; then
+            databricks bundle validate --target prod
+          else
+            echo 'No databricks.yml; skip bundle validate.'
+          fi

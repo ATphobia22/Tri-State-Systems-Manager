@@ -1,4 +1,4 @@
-# PDAL pipelines — TSM / Bonebank LOMA
+# PDAL pipelines — TSM / restricted site LOMA
 
 ## Optimization rules
 

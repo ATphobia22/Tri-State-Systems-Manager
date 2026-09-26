@@ -39,7 +39,7 @@
 - Consumes: current `main` at commit `c4d0ec765dce879b1f14c288ce5dc86a58ba6d7e` and the existing address/site-constant search results.
 - Produces: a repository-wide public-scope invariant and a list of legacy site-anchor modules that must be generalized, removed, or quarantined.
 
-- [ ] **Step 1: Write failing tests** that assert public/runtime source files contain no literal private address, no `BONEBANK_SITE`/`BONEBANK_LOOKUP` public anchor, and no public map/project identifier derived from the private residence.
+- [ ] **Step 1: Write failing tests** that assert public/runtime source files contain no literal private address, no `PRIVATE_SITE_ANCHOR`/`PRIVATE_SITE_LOOKUP` public anchor, and no public map/project identifier derived from the private residence.
 - [ ] **Step 2: Run the repository's applicable privacy/parse tests in GitHub Actions after the test commit; expected initial failure against existing legacy references.** Do not claim local execution because this environment does not provide the repository checkout/runtime.
 - [ ] **Step 3: Replace site-specific public constants with a community-region contract such as `lower-wabash-ohio-confluence-community`, with explicit geometry provenance rather than a private residence.
 - [ ] **Step 4: Move any retained private historical material into a non-public provenance category only if repository policy permits; otherwise remove the private reference from source and retain only generalized historical evidence.

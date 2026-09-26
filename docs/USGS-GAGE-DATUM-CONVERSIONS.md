@@ -8,7 +8,7 @@ WSE_NAVD88 ≈ gage_height_ft + gage_zero_navd88_ft
 
 Gage height (NWIS parameter **00065**, NWPS observed primary) is **relative to gage zero**. It is **not** an orthometric NAVD88 elevation until the published gage datum / gage zero is added.
 
-## Why this matters for Bonebank
+## Why this matters for restricted site
 
 Site BFE (375.0) and LAG (377.2) are **NAVD88**. Comparing raw gage height (e.g. 11.5 ft) to 375 ft without conversion is a **category error** and can produce false “below BFE” or false “above BFE” findings.
 

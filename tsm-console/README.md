@@ -39,7 +39,7 @@ Human authority remains final.
 
 ## Posey 2020 Geospatial Asset Chain
 
-The Bonebank digital-twin viewport consumes a bounded, provenance-first geospatial source chain:
+The restricted site digital-twin viewport consumes a bounded, provenance-first geospatial source chain:
 
 | Asset | Source | Acquisition | CRS / vertical datum | Role |
 |---|---|---:|---|---|

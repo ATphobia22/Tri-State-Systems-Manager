@@ -44,8 +44,9 @@ test('TSM contains an explicit government peer-review boundary', () => {
   assert.match(compliance, /not.*certif|cannot.*certif|does not.*certif/i);
 });
 
-test('NOAA and USGS live stage both use the verified gage datum for WSE conversion', () => {
+test('live stage uses the validated gage-datum conversion boundary for WSE', () => {
   const source = read('src/lib/stage.ts');
-  assert.match(source, /const conversion = value != null \? convertGageHeightToNavd88/);
+  assert.match(source, /convertGageHeightToNavd88\(PRIMARY_USGS, value\)/);
+  assert.match(source, /stageVerticalMetadata\(PRIMARY_USGS, conversion\)/);
   assert.doesNotMatch(source, /record\.source === 'USGS' && value != null \?/);
 });

@@ -21,7 +21,7 @@ test('server exposes one community aggregation endpoint', async () => {
   const server = await read('../server/token-proxy.mjs');
   assert.match(server, /\/api\/hydrologic\/community/);
   assert.match(server, /fetchRiverNetwork/);
-  assert.doesNotMatch(server, /private residence|bonebank-digital-twin-engine/);
+  assert.doesNotMatch(server, /private residence|RESTRICTED_SITE-digital-twin-engine/);
 });
 
 test('container web service supplies the API base variable used by the frontend', async () => {
@@ -34,5 +34,5 @@ test('container web service supplies the API base variable used by the frontend'
 test('public manifest remains community scoped', async () => {
   const manifest = await read('../public/manifest.json');
   assert.match(manifest, /Tri-State River Valley/);
-  assert.doesNotMatch(manifest, /private residence|BonebankTwin|bonebank-digital-twin-engine/);
+  assert.doesNotMatch(manifest, /private residence|BonebankTwin|RESTRICTED_SITE-digital-twin-engine/);
 });

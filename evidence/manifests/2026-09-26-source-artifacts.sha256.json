@@ -1,0 +1,17 @@
+{
+  "schema": "tsm.evidence.sha256.v1",
+  "generated_utc": "2026-09-26T04:05:43Z",
+  "hash_algorithm": "SHA-256",
+  "artifacts": [
+    {
+      "source_label": "User-provided NFIP/FEMA policy letter PDF",
+      "local_filename": "26-05-2022A-092226.pdf",
+      "sha256": "8186cbf49bfa5ae415aacaf1b548f75fc02692a5793c30cdebb8cf7f6f20dcde"
+    },
+    {
+      "source_label": "User-provided LOMA requirements text",
+      "local_filename": "Summarize LOMA Requirements.txt",
+      "sha256": "0632c64ef10ee6064344a53caa892a303f7dfd6acf09d5cd9804a4ac138d5be0"
+    }
+  ]
+}

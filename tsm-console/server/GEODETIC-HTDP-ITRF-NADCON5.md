@@ -17,7 +17,7 @@ NGS HTDP models crustal motion between epochs:
 | Coseismic | `initeq.f` — Okada (1985) elastic half-space dislocations | Applied only inside each fault model’s **radius of influence**; outside → **zero** offset |
 | Postseismic | Trajectory models where defined | Mostly western US events |
 
-**Indiana / Posey (TSM):** Far from HTDP major coseismic models (e.g. Denali 2002, Ridgecrest 2019). For most engineering surveys at Bonebank, **epoch difference on NAD83 is negligible** relative to survey and hydraulic uncertainty.  
+**Indiana / Posey (TSM):** Far from HTDP major coseismic models (e.g. Denali 2002, Ridgecrest 2019). For most engineering surveys at RESTRICTED_SITE, **epoch difference on NAD83 is negligible** relative to survey and hydraulic uncertainty.  
 
 **TSM rule:** If an artifact is transformed across epochs or into ITRF/WGS84 with HTDP, record:
 
@@ -85,7 +85,7 @@ authority_class                    # OBSERVATION | DERIVED | ...
 | HTDP Fortran (`htdp.f`, `initeq.f`, …) | **Not** vendored into tsm-console; optional offline NGS binary later |
 | ITRF2014 parameters | Document only; no silent re-realization of site constants |
 | NADCON5 grids | Use NGS-published grids if a transform worker is authorized; fail-closed if grid missing |
-| Site constants BFE/LAG/FFE | Unchanged — NAVD88 elevations at Bonebank |
+| Site constants BFE/LAG/FFE | Unchanged — NAVD88 elevations at RESTRICTED_SITE |
 
 Human authority remains final for any regulatory coordinate claim.
 

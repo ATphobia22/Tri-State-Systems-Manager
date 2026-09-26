@@ -17,8 +17,8 @@ test('runtime gauge client preserves provenance and fails closed', () => {
   assert.match(source, /observedAt/);
   assert.match(source, /retrievedAt/);
   assert.match(source, /provisional/);
-  assert.match(source, /status: 'unavailable'/);
-  assert.match(source, /status: isFresh/);
+  assert.match(source, /status: definition\.status === 'active' \? 'unavailable' : 'candidate'/);
+  assert.match(source, /isFresh\(observedAt, nowMs, maxAgeMs\) \? 'current' : 'stale'/);
 });
 
 test('elder-friendly board clearly separates observations from predictions', () => {

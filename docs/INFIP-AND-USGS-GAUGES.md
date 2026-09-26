@@ -1,4 +1,4 @@
-# Indiana INFIP + USGS gauges — Bonebank / Posey
+# Indiana INFIP + USGS gauges — restricted site / Posey
 
 ## INFIP (Indiana Floodplain Information Portal)
 
@@ -10,7 +10,7 @@
 - Workflow: zoom to site → place point → Create/Run → download FARA PDF → **save for package**
 - Contest path exists if the tool attaches the wrong stream / BFE
 
-**Bonebank note:** An INFIP query near the Wabash may return ~**368.7 ft** BFE while the LOMA Map Pack uses **375.0 ft** structural plane. Do **not** silently overwrite Map Pack BFE — human reconciliation + sealed survey govern the filing.
+**restricted site note:** An INFIP query near the Wabash may return ~**368.7 ft** BFE while the LOMA Map Pack uses **375.0 ft** structural plane. Do **not** silently overwrite Map Pack BFE — human reconciliation + sealed survey govern the filing.
 
 ## USGS stream gauges (telemetry)
 
@@ -24,7 +24,7 @@
 | Data | **Provisional**, subject to revision |
 | NWIS IV API | `https://waterservices.usgs.gov/nwis/iv/?sites=03378500&parameterCd=00065,00060&format=json` |
 
-NWS AHPS / water.noaa.gov gauge **NHRI3** provides flood categories (action/minor/moderate/major) and NAVD88 equivalents at the gauge — **not** the structure BFE at Bonebank.
+NWS AHPS / water.noaa.gov gauge **NHRI3** provides flood categories (action/minor/moderate/major) and NAVD88 equivalents at the gauge — **not** the structure BFE at restricted site.
 
 ### Latest snapshot (captured in-repo)
 

@@ -4,7 +4,8 @@
  */
 
 export const WEB_ENDPOINTS = {
-  usgs_nwis_iv: 'https://waterservices.usgs.gov/nwis/iv/',
+  usgs_nwis_iv: 'https://waterservices.usgs.gov/nwis/iv/', // legacy; prefer usgs_ogc_latest_continuous
+  usgs_ogc_latest_continuous: 'https://api.waterdata.usgs.gov/ogcapi/v1/collections/latest-continuous',
   usgs_03378500:
     'https://waterservices.usgs.gov/nwis/iv/?format=json&sites=03378500&parameterCd=00065,00060',
   usgs_03322000:
@@ -27,6 +28,7 @@ export const WEB_ENDPOINTS = {
 
 export const ENDPOINT_STATUS: Record<keyof typeof WEB_ENDPOINTS, 'VERIFIED' | 'PROVISIONAL'> = {
   usgs_nwis_iv: 'VERIFIED',
+  usgs_ogc_latest_continuous: 'VERIFIED',
   usgs_03378500: 'VERIFIED',
   usgs_03322000: 'VERIFIED',
   noaa_nwps_api: 'VERIFIED',

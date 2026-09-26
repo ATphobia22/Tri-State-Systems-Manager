@@ -91,7 +91,7 @@ Always confirm driver support for your exact HEC-RAS version and file type.
 1. Open hydro-conditioned DEM + NFHL/BAFM overlays (EPSG:2966 or on-the-fly transform).  
 2. Load max depth / WSE GeoTIFF from RAS Mapper.  
 3. Optionally load mesh perimeter, breaklines, 2D cells.  
-4. Compare wet edge vs FEMA Zone AE / BFE **375.0** context at Bonebank.  
+4. Compare wet edge vs FEMA Zone AE / BFE **375.0** context at RESTRICTED_SITE.  
 5. Export screenshots only as **VISUALIZATION**; sealed evidence remains GeoTIFF + plan hash via `ras-geotiff-ingest.mjs`.
 
 ### CRS discipline

@@ -16,7 +16,7 @@
 | False northing | 249999.9998983998 US ft |
 | Area | Includes **Posey County** |
 
-**Reject EPSG:2967** (NAD83(HARN) / Indiana East ftUS) — wrong zone and datum flavor for Bonebank / Posey.
+**Reject EPSG:2967** (NAD83(HARN) / Indiana East ftUS) — wrong zone and datum flavor for RESTRICTED_SITE / Posey.
 
 ### Transform notes (WGS84 / MapLibre)
 

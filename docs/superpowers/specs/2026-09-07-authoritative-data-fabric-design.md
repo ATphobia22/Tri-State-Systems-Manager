@@ -146,7 +146,7 @@ Where a validated station-specific datum relationship exists, TSM may calculate:
 
 The relationship, station/product identity, units, publication/revision metadata, and validation status must travel with the derived result.
 
-The existing Bonebank engineering constants remain governed by their existing SSOT and must not be overwritten by live gage observations. A live stage may be compared against BFE/FFE/berm values only after the datum and unit relationship is valid.
+The existing RESTRICTED_SITE engineering constants remain governed by their existing SSOT and must not be overwritten by live gage observations. A live stage may be compared against BFE/FFE/berm values only after the datum and unit relationship is valid.
 
 ## 7. Real-Time Semantics
 

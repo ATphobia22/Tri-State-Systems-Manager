@@ -73,6 +73,7 @@ export interface ScientificSnapshotResult {
     readonly verticalRmseFt: number;
     readonly datum: string;
     readonly horizontalCrs: string;
+    readonly note: string;
   };
   readonly governance: {
     readonly evidenceStatus: 'OWNER_SUPPLIED';
@@ -125,6 +126,7 @@ export function scientificSiteSnapshot(
       verticalRmseFt: 0.33,
       datum: 'NAVD88',
       horizontalCrs: 'EPSG:2966',
+      note: 'QL2-class RMSE is catalog context only — not a site survey accuracy claim',
     },
     governance: {
       evidenceStatus: 'OWNER_SUPPLIED',

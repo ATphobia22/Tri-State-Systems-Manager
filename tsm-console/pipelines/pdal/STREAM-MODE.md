@@ -45,7 +45,7 @@ pipe.execute_streaming(chunk_size=100_000)
 
 Avoid inserting non-streamable ground classifiers mid-LAG path unless necessary; prefer pre-classified Class 2 from GIO products when available.
 
-## Bonebank note
+## restricted site note
 
 Structure LAG 377.2 ft is **outside** low-ground tile `IN2020_26800940_12` max (~366.5 ft). Stream crop to foundation buffer; still ingest **adjacent higher tiles** for valid LAG.
 

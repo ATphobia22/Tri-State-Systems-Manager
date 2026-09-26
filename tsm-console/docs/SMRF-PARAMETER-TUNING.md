@@ -123,7 +123,7 @@ Larger window to clear buildings; verify berm toes are not classified away — L
 4. Adjust **one** family at a time: window (object size) → threshold (z tightness) → slope/scalar (relief).  
 5. Compare against **surveyed** marks / known road elevations when available.  
 6. Freeze pipeline JSON + PDAL version + source LAS hash in Evidence Ledger.  
-7. For Bonebank LOMA: still require adjacent tiles if structure grade sits above low-ground tile max; SMRF does not invent points outside the tile.
+7. For RESTRICTED_SITE LOMA: still require adjacent tiles if structure grade sits above low-ground tile max; SMRF does not invent points outside the tile.
 
 ---
 

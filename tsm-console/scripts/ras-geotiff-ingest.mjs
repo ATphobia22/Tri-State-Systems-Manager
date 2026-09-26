@@ -3,7 +3,7 @@
  * - Single bulk readRasters (not per-pixel await)
  * - Spatial stride downsample for twin (default maxDim 128)
  * - Optional nodata skip
- * - BFE/LAG stamped from Bonebank constants (not inferred from raster)
+ * - BFE/LAG stamped from RESTRICTED_SITE constants (not inferred from raster)
  *
  * Usage:
  *   node scripts/ras-geotiff-ingest.mjs ./depth.tif --plan=posey-q100 --api=http://localhost:8787
