@@ -1,8 +1,12 @@
 """FastAPI route: evidence lock packet for console / LOMA critical path.
 
-Fail-closed: returns SIMULATION_OR_SITE_CONSTANT labels; does not promote
-human_authorized without reviewer fields. Aligns with ADR-004.
+Public/runtime safety boundary:
+- No residence-specific address or coordinates are embedded in source.
+- Site-specific elevation inputs must be supplied explicitly by an authorized
+  caller; there are no public case-value defaults.
+- The route only produces evidence metadata and never issues a FEMA determination.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -15,14 +19,12 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 router = APIRouter(prefix="/evidence", tags=["evidence-lock"])
 
-DEFAULT_SITE: dict[str, Any] = {
-    "location_address": "PRIVATE_SITE_ADDRESS_REDACTED, MOUNT VERNON, IN, 47620",
-    "coordinates": {"latitude": SITE_LATITUDE_REDACTED, "longitude": SITE_LONGITUDE_REDACTED},
+PUBLIC_SITE_METADATA: dict[str, Any] = {
+    "location_address": "PRIVATE_SITE_ADDRESS_REDACTED",
+    "coordinates": {"latitude": None, "longitude": None},
     "community_number": "180209",
-    "case_number": "26-05-2022A",
+    "case_number": "CASE_CONTEXT_REDACTED",
     "target_panel": "18129C0265C",
-    "calculated_lag_navd88": 377.2,
-    "effective_bfe_navd88": 375.0,
     "horizontal_crs": "EPSG:2966",
     "vertical_datum": "NAVD88",
 }
@@ -31,8 +33,8 @@ DEFAULT_SITE: dict[str, Any] = {
 class EvidenceLockRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    lag_navd88: Optional[float] = Field(default=None, ge=300.0, le=450.0)
-    bfe_navd88: Optional[float] = Field(default=None, ge=300.0, le=450.0)
+    lag_navd88: float = Field(ge=300.0, le=450.0)
+    bfe_navd88: float = Field(ge=300.0, le=450.0)
     panel_number: Optional[str] = None
     human_authorized: bool = False
     reviewer_identity: Optional[str] = None
@@ -69,18 +71,15 @@ def create_lock_packet(body: EvidenceLockRequest) -> EvidenceLockResponse:
                 detail="human_authorized requires reviewer_identity and review_reason",
             )
 
-    site = dict(DEFAULT_SITE)
-    if body.lag_navd88 is not None:
-        site["calculated_lag_navd88"] = body.lag_navd88
-    if body.bfe_navd88 is not None:
-        site["effective_bfe_navd88"] = body.bfe_navd88
+    site = {
+        **PUBLIC_SITE_METADATA,
+        "calculated_lag_navd88": body.lag_navd88,
+        "effective_bfe_navd88": body.bfe_navd88,
+    }
     if body.panel_number:
         site["target_panel"] = body.panel_number
 
-    lag = float(site["calculated_lag_navd88"])
-    bfe = float(site["effective_bfe_navd88"])
-    freeboard = round(lag - bfe, 2)
-
+    freeboard = round(body.lag_navd88 - body.bfe_navd88, 2)
     payload = {
         **site,
         "freeboard_lag_minus_bfe_ft": freeboard,
