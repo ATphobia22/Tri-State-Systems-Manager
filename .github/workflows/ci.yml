@@ -15,31 +15,6 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  codeql-bootstrap:
-    name: Bootstrap repository-managed CodeQL
-    runs-on: ubuntu-24.04
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    permissions:
-      actions: write
-      contents: read
-    steps:
-      - name: Enable and dispatch advanced CodeQL workflow
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPOSITORY: ${{ github.repository }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          state="$(gh api "repos/${GH_REPOSITORY}/actions/workflows/codeql.yml" --jq '.state')"
-          echo "CodeQL workflow state: ${state}"
-          if [[ "${state}" != "active" ]]; then
-            gh api --method PUT "repos/${GH_REPOSITORY}/actions/workflows/codeql.yml/enable" >/dev/null
-            echo "CodeQL workflow enabled."
-          fi
-          gh api --method POST "repos/${GH_REPOSITORY}/actions/workflows/codeql.yml/dispatches" \
-            -f ref=main >/dev/null
-          echo "Advanced CodeQL workflow dispatched."
-
   build-and-test:
     runs-on: ubuntu-24.04
     timeout-minutes: 35
