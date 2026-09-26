@@ -1,0 +1,71 @@
+{
+  "schema": "tsm-hydrologic-scenario-pack-v1",
+  "title": "Wabash–Ohio navigation-pool backwater boundary scenario",
+  "label": "SIMULATION",
+  "filing_eligible": false,
+  "auto_file": false,
+  "case_context": "26-05-2022A",
+  "created": "2026-09-25",
+  "claim_controls": {
+    "do_not_claim_causation_of_SFHA": true,
+    "do_not_claim_takings": true,
+    "do_not_claim_dam_is_flood_control_structure": true,
+    "requires_usace_records_for_operational_proof": true
+  },
+  "purpose": "Document testable boundary conditions for how a permanent Ohio River navigation pool may affect tributary (Wabash) outlet hydraulics and alluvial water-table head near Point Township. For digital-twin and FOIA scoping only.",
+  "structures": {
+    "navigation_dam": {
+      "name": "John T. Myers Locks and Dam",
+      "authority": "USACE",
+      "role": "run-of-river navigation pool (Commerce Clause / navigational servitude context)",
+      "not": "seasonal flood-storage reservoir"
+    }
+  },
+  "mechanisms_hypothesis": [
+    {
+      "id": "VERT_POOL_STACK",
+      "summary": "Gates establish Normal Pool / navigation pool elevating base water-surface relative to natural low-flow gradient."
+    },
+    {
+      "id": "HORIZ_BACKWATER",
+      "summary": "Flattened mainstem slope acts as downstream boundary condition for Wabash outflow; tributary stage may stack during coincident high flow."
+    },
+    {
+      "id": "SUBSURFACE_HEAD",
+      "summary": "Sustained channel stage may raise head in connected alluvial aquifer, reducing unsaturated storage before storm events."
+    },
+    {
+      "id": "OPEN_RIVER_FLOOD",
+      "summary": "During major floods, movable dams may be operated open-river; residual impact hypothesis is pre-event saturation and geometry, not peak storage behind the dam."
+    }
+  ],
+  "site_anchor": {
+    "address": "13101 Bonebank Road, Posey County, IN",
+    "lat": 37.845887,
+    "lng": -88.005075,
+    "lag_navd88_ft": 377.2,
+    "bfe_navd88_ft_tsm_constant": 375.0,
+    "bfe_navd88_ft_alternate_catalog_note": 368.7
+  },
+  "required_inputs_before_any_filing": [
+    "USACE pool elevation time series and gate/operation logs (FOIA)",
+    "Validated gage datums (NAVD88) for Ohio and Wabash stations",
+    "Surveyed LAG / EC by PE or RLS",
+    "Hydrogeologic data before asserting water-table rise magnitude"
+  ],
+  "suggested_model_stages": [
+    "Steady boundary: Ohio pool stage as downstream WSE",
+    "Unsteady: coincident Wabash hydrograph",
+    "Sensitivity: pool ± historic operating band",
+    "Open-river comparison run (gates out)"
+  ],
+  "software_notes": {
+    "preferred": "HEC-RAS 2D or equivalent; results labeled SIMULATION_DEMO until PE-sealed",
+    "tsm_planes": "Scientific/Simulation plane only; Evidence plane records inputs/hashes; no auto governance action"
+  },
+  "references_public": [
+    "USACE Louisville District — Myers Locks and Dam public project materials",
+    "USGS NWIS / NOAA NWPS stage products (gage height ≠ WSE_NAVD88 without validated zero)",
+    "FEMA NFHL / FIRM panel 18129C0265C (regulatory map product, not hydrologic causation proof)"
+  ]
+}
