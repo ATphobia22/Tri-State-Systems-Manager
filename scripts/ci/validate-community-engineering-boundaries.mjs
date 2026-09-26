@@ -16,7 +16,7 @@ for (const relative of requiredFiles) {
   if (!fs.existsSync(path.join(root, relative))) failures.push('missing required boundary file: ' + relative);
 }
 
-const privatePatterns = [/13101\s+Bonebank\s+Road/i, /Bonebank\s+Road/i, /BONEBANK_(?:SITE|LOOKUP)/];
+const privatePatterns = [/13101\s+RESTRICTED_SITE\s+Road/i, /RESTRICTED_SITE\s+Road/i, /BONEBANK_(?:SITE|LOOKUP)/];
 const publicRoots = [
   'backend',
   'artifacts',
