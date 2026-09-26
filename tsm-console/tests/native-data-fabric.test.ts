@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   fetchCommunityGauges,
   getPreferredGaugeDataSource,
@@ -56,6 +56,33 @@ function webFetcher(observations: Array<Record<string, unknown>>): { fetcher: ty
   return { fetcher, calls: () => calls };
 }
 
+/**
+ * Stubs the global fetch used by the merged resilient web path
+ * (resilientFetchJson + USGS direct fallback). The community endpoint
+ * returns the given observations; every other URL fails fast so tests
+ * stay hermetic (no live network).
+ */
+function stubWebFetch(observations: Array<Record<string, unknown>>): {
+  communityCalls: () => number;
+  restore: () => void;
+} {
+  let communityCalls = 0;
+  const mockFetch = (async (url: unknown) => {
+    const urlString = String(url);
+    if (urlString.includes('/api/hydrologic/community')) {
+      communityCalls += 1;
+      return { ok: true, status: 200, json: async () => ({ observations }) };
+    }
+    return { ok: false, status: 500, json: async () => ({}) };
+  }) as unknown as typeof fetch;
+  vi.stubGlobal('fetch', mockFetch);
+  return { communityCalls: () => communityCalls, restore: () => vi.unstubAllGlobals() };
+}
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
 describe('mapNativeGaugeStatus', () => {
   it('maps every documented wire status', () => {
     expect(mapNativeGaugeStatus('LIVE OBSERVATION')).toBe('current');
@@ -101,33 +128,41 @@ describe('gauge data source selection', () => {
 
   it('uses the web path in auto mode when the native plugin is unavailable', async () => {
     const observedAt = new Date(NOW_MS - 60_000).toISOString();
-    const web = webFetcher([{ stationId: '03378500', value: 10.5, observedAt, provider: 'USGS' }]);
-    const observations = await fetchCommunityGauges(DEFINITIONS, {
-      nowMs: NOW_MS,
-      maxAgeMs: 30 * 60 * 1000,
-      source: 'auto',
-      nativeBridge: fakeBridge(false),
-      fetcher: web.fetcher,
-    });
-    expect(web.calls()).toBe(1);
-    const byId = new Map(observations.map((o) => [o.gaugeId, o]));
-    expect(byId.get('03378500')?.status).toBe('current');
-    expect(byId.get('03378500')?.value).toBe(10.5);
+    const stub = stubWebFetch([{ stationId: '03378500', value: 10.5, observedAt, provider: 'USGS' }]);
+    try {
+      const observations = await fetchCommunityGauges(DEFINITIONS, {
+        nowMs: NOW_MS,
+        maxAgeMs: 30 * 60 * 1000,
+        source: 'auto',
+        nativeBridge: fakeBridge(false),
+      });
+      expect(stub.communityCalls()).toBeGreaterThan(0);
+      const byId = new Map(observations.map((o) => [o.gaugeId, o]));
+      expect(byId.get('03378500')?.status).toBe('current');
+      expect(byId.get('03378500')?.value).toBe(10.5);
+      expect(byId.get('03378500')?.provenancePath).toBe('tsm-community');
+    } finally {
+      stub.restore();
+    }
   });
 
   it('falls back to web in auto mode when the native call throws', async () => {
     const observedAt = new Date(NOW_MS - 60_000).toISOString();
-    const web = webFetcher([{ stationId: '03378500', value: 9.5, observedAt, provider: 'USGS' }]);
-    const observations = await fetchCommunityGauges(DEFINITIONS, {
-      nowMs: NOW_MS,
-      maxAgeMs: 30 * 60 * 1000,
-      source: 'auto',
-      nativeBridge: fakeBridge(true, new Error('native boom')),
-      fetcher: web.fetcher,
-    });
-    expect(web.calls()).toBe(1);
-    const byId = new Map(observations.map((o) => [o.gaugeId, o]));
-    expect(byId.get('03378500')?.status).toBe('current');
+    const stub = stubWebFetch([{ stationId: '03378500', value: 9.5, observedAt, provider: 'USGS' }]);
+    try {
+      const observations = await fetchCommunityGauges(DEFINITIONS, {
+        nowMs: NOW_MS,
+        maxAgeMs: 30 * 60 * 1000,
+        source: 'auto',
+        nativeBridge: fakeBridge(true, new Error('native boom')),
+      });
+      expect(stub.communityCalls()).toBeGreaterThan(0);
+      const byId = new Map(observations.map((o) => [o.gaugeId, o]));
+      expect(byId.get('03378500')?.status).toBe('current');
+      expect(byId.get('03378500')?.value).toBe(9.5);
+    } finally {
+      stub.restore();
+    }
   });
 
   it('fails closed without silent web fallback when source is explicitly native', async () => {
@@ -158,15 +193,18 @@ describe('gauge data source selection', () => {
         return bridge.fetchGauges();
       },
     };
-    const web = webFetcher([]);
-    await fetchCommunityGauges(DEFINITIONS, {
-      nowMs: NOW_MS,
-      source: 'web',
-      nativeBridge: countingBridge,
-      fetcher: web.fetcher,
-    });
-    expect(nativeCalls).toBe(0);
-    expect(web.calls()).toBe(1);
+    const stub = stubWebFetch([]);
+    try {
+      await fetchCommunityGauges(DEFINITIONS, {
+        nowMs: NOW_MS,
+        source: 'web',
+        nativeBridge: countingBridge,
+      });
+      expect(nativeCalls).toBe(0);
+      expect(stub.communityCalls()).toBeGreaterThan(0);
+    } finally {
+      stub.restore();
+    }
   });
 
   it('marks stations with unknown native statuses as unavailable', async () => {
