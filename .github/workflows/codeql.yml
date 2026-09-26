@@ -1,6 +1,6 @@
 # TSM CodeQL — advanced setup, SHA-pinned (action-pins gate)
 # Languages: JavaScript/TypeScript + Python (primary TSM stack)
-# Advanced setup is authoritative; do not enable GitHub Default Setup simultaneously.
+# Advanced setup is authoritative; GitHub Default/Automatic Setup must remain disabled. This workflow is the sole repository-managed CodeQL configuration.
 name: CodeQL Analysis
 
 on:
