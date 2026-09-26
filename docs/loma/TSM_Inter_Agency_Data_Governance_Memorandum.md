@@ -71,7 +71,7 @@ TSM packages are offered to reduce manual assembly time for:
 
 ## 6. Contact for technical questions on this package
 
-Anthony Tucker  
+Authorized operator  
 PRIVATE_SITE_ADDRESS_REDACTED  
 Mount Vernon, Indiana 47620  
 
