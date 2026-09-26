@@ -1,7 +1,7 @@
 # PE / Surveyor Seal — TEMPLATE ONLY (NOT EXECUTED)
 
 **Project:** Point Township Digital Twin (PTDT) / TSM  
-**Property:** 13101 Bonebank Road, Mount Vernon, IN 47620  
+**Property:** PRIVATE SITE ADDRESS [REDACTED], Mount Vernon, IN 47620  
 **FEMA case context:** 26-05-2022A  
 **Status:** **UNSIGNED TEMPLATE** — does not certify elevations
 

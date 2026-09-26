@@ -16,7 +16,7 @@ The scanned pages are labeled **POINT TWP—SOUTHWEST**, **POINT TWP—NORTHWEST
 - Posey County, Indiana township geometry and PLSS section numbering.
 - Township/range references including **T8S-R14W/R15W**.
 - Section-level parcel boundaries and historical land-owner names.
-- Historic road alignments and names including Bank Rd., Base Rd., Hasting Rd., Murphy Rd., Wolf Rd., Schroeder Ditch Rd., Major Rd., Oak Grove Rd., Bonebank Rd., and related local roads visible on the scans.
+- Historic road alignments and names including Bank Rd., Base Rd., Hasting Rd., Murphy Rd., Wolf Rd., Schroeder Ditch Rd., Major Rd., Oak Grove Rd., RESTRICTED_SITE_ROAD., and related local roads visible on the scans.
 - River/channel geometry and the Indiana–Kentucky/Illinois boundary context around the Wabash/Ohio system.
 - A Point Township inset showing the township quadrants (NW/NE/SW/SE).
 - Page references across the township atlas, including pages 34–36 and an insert for the Illinois-side geometry.

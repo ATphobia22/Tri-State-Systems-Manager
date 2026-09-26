@@ -35,7 +35,7 @@ That min(Z) is a **candidate LAG** (DERIVATION). Certified survey LAG remains th
    - **CSF** — cloth simulation
 5. **Noise first:** `filters.elm` (low pits) + `filters.outlier` → Class 7, then ignore during SMRF.
 
-## Decision tree for Bonebank
+## Decision tree for restricted site
 
 ```text
 Vendor Class 2 QA OK?

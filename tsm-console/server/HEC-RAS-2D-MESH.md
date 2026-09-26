@@ -39,7 +39,7 @@ Reference: USACE HEC RAS Mapper documentation (2D Flow Areas).
 - Allows **larger cells** while preserving high-res terrain detail in pre-processor
 - Run **Compute 2D Flow Areas Hydraulic Tables** in RAS Mapper (or auto at unsteady run)
 
-## TSM Bonebank / Posey guidance (decision support)
+## TSM restricted site / Posey guidance (decision support)
 
 | Zone | Suggested starting spacing | Breaklines |
 |------|---------------------------|------------|

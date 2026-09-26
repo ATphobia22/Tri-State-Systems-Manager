@@ -1,6 +1,6 @@
 {
   "$schema":"https://json-schema.org/draft/2020-12/schema",
-  "$id":"https://github.com/ATphobia22/Tri-State-Systems-Manager/blob/main/data/evidence/layer2/nfip-discrepancy.schema.json",
+  "$id":"https://github.com/ATphobia22/Tri-State-Systems-Manager/blob/main/data/schemas/nfip-discrepancy.schema.json",
   "title":"TSM Evidence Layer 2 - NFIP / Mapping Reconciliation",
   "type":"object","additionalProperties":false,
   "required":["schema_version","case_metadata","property_metadata","historical_timeline_track","actuarial_reconciliation","hydrologic_hypothesis_test","evidence_provenance"],

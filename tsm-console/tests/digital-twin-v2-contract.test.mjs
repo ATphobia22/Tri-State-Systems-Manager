@@ -15,7 +15,7 @@ test('digital twin v2 is fail-closed around WTHGIS and OpenMI evidence', async (
   assert.match(source, /validationStatus !== 'VALIDATED'/);
   assert.match(source, /elevationEvidenceStatus === 'CERTIFIED'/);
   assert.match(source, /Human authority gate ON/);
-  assert.doesNotMatch(source, /13101 Bonebank Rd.*377\.2/);
+  assert.doesNotMatch(source, /PRIVATE_SITE_ADDRESS_REDACTED.*377\.2/);
 });
 
 test('digital twin v2 exposes the configured 3D parcel layer contract', async () => {

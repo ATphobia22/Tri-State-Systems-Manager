@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Download Bonebank-adjacent Indiana 3DEP QL2 LAS tiles (CC0 open data)
+# Download RESTRICTED_SITE-adjacent Indiana 3DEP QL2 LAS tiles (CC0 open data)
 # Bucket: s3://giselevationingov (us-east-2), no AWS account required
 set -euo pipefail
 OUT="${1:-data/lidar/posey/las}"

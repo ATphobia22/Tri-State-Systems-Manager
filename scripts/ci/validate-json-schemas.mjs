@@ -8,7 +8,7 @@ const schemaPaths = [
   'data/schemas/tsm-data-contract-schema-v1.0.0.json',
   'data/schemas/tsm-evidence-artifact-schema-v1.0.0.json',
   'data/schemas/regulatory-gate.schema.json',
-  path.join('data', 'evidence', 'layer2', 'nfip-discrepancy.schema.json'),
+  path.join('data', 'schemas', 'nfip-discrepancy.schema.json'),
 ];
 const failures = [];
 const fail = (message) => failures.push(message);
@@ -132,11 +132,9 @@ for (const relative of schemaPaths) {
   if (schema.$schema !== 'https://json-schema.org/draft/2020-12/schema') fail(relative + ': unexpected JSON Schema dialect');
   const example = relative.includes('data-contract') ? dataExample : relative.includes('regulatory-gate') ? regulatoryGateExample : relative.includes('nfip-discrepancy') ? nfipLayer2Example : evidenceExample;
   validate(example, schema, relative);
-  if (relative.includes('nfip-discrepancy')) {
-    const casePath = path.join(repoRoot, 'data', 'evidence', 'layer2', '26-05-2022A', 'case.json');
-    try { validate(JSON.parse(fs.readFileSync(casePath, 'utf8')), schema, path.relative(repoRoot, casePath)); }
-    catch (error) { fail(path.relative(repoRoot, casePath) + ': invalid JSON: ' + error.message); }
-  }
+  // Case-specific evidence is operator-retained and intentionally excluded from
+  // the public repository. Validate the public schema against its synthetic,
+  // non-identifying contract example above.
 }
 
 if (failures.length) {

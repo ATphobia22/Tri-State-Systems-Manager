@@ -30,7 +30,7 @@ export const VELOCITY_MODELS = {
   ifdm_alias: 'IFVM2022',
   posey_coseismic_relevant: false,
   stable_interior_mm_per_yr_order: 15,
-  /** Prototype UI illustrative rates — NOT NGS official for Bonebank */
+  /** Prototype UI illustrative rates — NOT NGS official for RESTRICTED_SITE */
   illustrative_stable_vn_mm_yr: -2.1,
   illustrative_stable_ve_mm_yr: 0.8,
   illustrative_stable_vu_mm_yr: -0.15,

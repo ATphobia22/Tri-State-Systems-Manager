@@ -101,7 +101,7 @@ Posey prior notes used ~10 ft in critical corridors — valid only if Courant/ru
 
 Force **cell faces** along barriers and preferred flow paths:
 
-- Levees, berms (Bonebank berm crest context)  
+- Levees, berms (RESTRICTED_SITE berm crest context)  
 - Channel banks / thalweg  
 - Roads, rail, floodwalls  
 - Weir/lateral structure alignments  

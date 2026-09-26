@@ -1,7 +1,0 @@
-evidence_id,category,description,source,date,sha256,status,notes
-FEMA-26-05-2022A-001,FEMA correspondence,"September 22, 2026 LOMA additional-information letter + attachments",26-05-2022A-092226.pdf,2026-09-22,8186cbf49bfa5ae415aacaf1b548f75fc02692a5793c30cdebb8cf7f6f20dcde,PRESERVED,"Original uploaded artifact; retain byte-identical copy."
-FEMA-MT1-LEGACY-001,Form anomaly,"Attached MT-1 Form 2 visibly prints expiration February 28, 2014",26-05-2022A-092226.pdf,2026-09-22,8186cbf49bfa5ae415aacaf1b548f75fc02692a5793c30cdebb8cf7f6f20dcde,REQUIRES_FEMA_CONFIRMATION,"Do not independently declare the form invalid."
-USACE-HISTORY-001,Historical infrastructure,"Wabash/New Harmony navigation works and related engineering records",USACE Louisville District FOIA request,,,REQUESTED,"Historical existence does not establish present FEMA model dependency."
-NFIP-PREMIUM-001,Insurance,"Policy declarations, premium history, coverage, deductibles, fees, rating inputs and corrections",Community intake / insurer / NFIP,,,TO_COLLECT,"Redact SSNs, bank information, passwords and unnecessary identifiers."
-FIRM-HISTORY-001,Mapping,"Historical FIRM/FIS panels, effective dates, flood zones, BFE and model metadata",FEMA Map Service Center,,,TO_COLLECT,"Preserve panel/suffix/effective date/datum/product type."
-ELEVATION-001,Elevation,"Certified elevation evidence",Licensed surveyor/PE,,,TO_COLLECT,"Preserve datum, control, method, date and certification."

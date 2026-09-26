@@ -16,14 +16,14 @@ TSM stores these layers separately and never converts a mapping observation into
 |------|-------|
 | Unincorporated CID | **180209** |
 | County FIPS | **18129** |
-| Bonebank NFHL FIRM panel identify | **18129C0300C** |
+| restricted site NFHL FIRM panel identify | **18129C0300C** |
 | NFHL panel EFF_DATE recorded by TSM | **2014-11-05** |
 | FEMA Community Status Book current effective map date | **11/05/2014** |
 | Regular Program entry | **01/01/1987** |
 
 The FEMA CSB report currently published for Indiana confirms the unincorporated Posey County CID **180209** and current effective map date **11/05/2014**.
 
-The TSM repository's NFHL identify record reports panel **18129C0300C** at the Bonebank coordinate and an EFF_DATE corresponding to 2014-11-05. Treat that panel identity as the **TSM digital SSOT**, not as a substitute for downloading the effective FIRM/FIS from MSC before a regulatory filing.
+The TSM repository's NFHL identify record reports panel **18129C0300C** at the restricted site coordinate and an EFF_DATE corresponding to 2014-11-05. Treat that panel identity as the **TSM digital SSOT**, not as a substitute for downloading the effective FIRM/FIS from MSC before a regulatory filing.
 
 ## What has changed in Indiana mapping practice
 

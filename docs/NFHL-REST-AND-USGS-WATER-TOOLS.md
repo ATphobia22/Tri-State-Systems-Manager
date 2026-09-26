@@ -19,7 +19,7 @@ Note: older path `.../gis/nfhl/rest/services/...` may 404 behind access gateways
 | 1 | LOMRs | Map change polygons |
 | 2 | LOMAs | Point/poly LOMC |
 
-### Point-identify FIRM panel (Bonebank example)
+### Point-identify FIRM panel (restricted site example)
 
 ```text
 GET .../MapServer/3/query

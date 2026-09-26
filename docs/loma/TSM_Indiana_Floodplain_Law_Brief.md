@@ -51,7 +51,7 @@ Communities in the NFIP adopt and enforce a flood damage prevention ordinance no
 | Evidence hashes | Support administrative timeline, not a substitute for PE/surveyor seal |
 | Case 26-05-2022A | FEMA additional-info path; parallel local/state rules may still apply |
 
-## 7. Practical sequence for Bonebank / Point Township
+## 7. Practical sequence for RESTRICTED_SITE / Point Township
 
 1. Complete FEMA Case **26-05-2022A** package (deed/plat, assessor map, elevation docs FEMA accepts).  
 2. Confirm with County FPA whether local permit or IDNR floodway issues apply independent of LOMA.  
