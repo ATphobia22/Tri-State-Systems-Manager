@@ -4,10 +4,9 @@
   "evidence_type": "historical_nfip_clear_communication_of_risk",
   "document_date": "2018-01-19",
   "property": {
-    "address": "13101 Bonebank Road",
-    "city": "Mount Vernon",
-    "state": "IN",
-    "zip": "47620-7050"
+    "scope": "Posey County, Indiana — unincorporated areas",
+    "community_number": "180209",
+    "site_reference": "PRIVATE_PROPERTY_REDACTED"
   },
   "historical_policy_period": {
     "effective_start": "2017-03-27",
@@ -21,19 +20,9 @@
     "rated_flood_zone_on_letter": "AE",
     "legacy_discount_context": true
   },
-  "historical_policy_fields_observed": {
-    "building_coverage_usd": 145800,
-    "building_deductible_usd": 2000,
-    "contents_coverage_usd": 0,
-    "contents_deductible_usd": 500,
-    "annual_premium_usd": 1642,
-    "policy_number_present_in_source": true,
-    "policy_number_committed": false,
-    "note": "Policy identifier is intentionally not reproduced in this public repository."
-  },
   "provenance": {
     "acquisition": "user-supplied photograph",
-    "local_source_filename": "IMG_4257.jpeg",
+    "local_source_filename": "USER_SUPPLIED_PHOTO_REDACTED",
     "local_source_sha256": "50f371ad89aef05c39fbc8652608e1f06b73af58de893bea19d014516e02ad07",
     "source_artifact_committed": false,
     "transcription_basis": "Photograph visibly containing the January 19, 2018 FEMA/NFIP letter.",
@@ -68,5 +57,11 @@
     "The photograph does not establish current flood zone, current premium, BFE, datum, lowest adjacent grade, or LOMA eligibility.",
     "Do not infer historical overcharge without complete policy, rating, map, and premium evidence.",
     "Do not infer FEMA model dependency from the historical insurance letter."
-  ]
+  ],
+  "historical_policy_fields_observed": {
+    "present_in_source": true,
+    "financial_amounts_committed": false,
+    "policy_identifier_committed": false,
+    "note": "The source photograph contains policy-specific financial/identifier fields. Those fields are intentionally not reproduced in the public repository."
+  }
 }
