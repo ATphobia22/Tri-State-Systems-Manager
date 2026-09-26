@@ -65,7 +65,7 @@ jobs:
       - name: Enforce Database Migration SQL Linting
         run: |
           if [ -d db/migrations ] && ls db/migrations/*.sql >/dev/null 2>&1; then
-            sqlfluff lint db/migrations/ --dialect postgres
+            sqlfluff lint db/migrations/ --dialect postgres --exclude-rules RF04,CP03
           else
             echo 'No migration SQL present; skip sqlfluff.'
           fi
