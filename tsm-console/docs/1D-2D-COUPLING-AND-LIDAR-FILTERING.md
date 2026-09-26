@@ -65,7 +65,7 @@ read → (reproject) → assign Class=0 if reclassifying
      → stats / write
 ```
 
-For **already classified** Indiana 3DEP QL2 tiles: prefer vendor **Class 2**; filter only if QA fails. Bonebank LOMA path: crop + Class 2 expression (streamable).
+For **already classified** Indiana 3DEP QL2 tiles: prefer vendor **Class 2**; filter only if QA fails. RESTRICTED_SITE LOMA path: crop + Class 2 expression (streamable).
 
 ### Filter roles
 
