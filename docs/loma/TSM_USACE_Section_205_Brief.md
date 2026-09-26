@@ -33,7 +33,7 @@ Federal per-project caps are limited (district fact sheets cite on the order of 
 
 Feasibility alone is often cited around **24–30 months** when funded — not days or weeks.
 
-## Relation to TSM / Bonebank
+## Relation to TSM / restricted site
 
 Section 205 is a **community-scale** path if Posey County (or another eligible sponsor) submits a formal request and can cost-share. TSM can supply documented flood history and elevation context. TSM **cannot** self-sponsor a Section 205 project as a private individual.
 
