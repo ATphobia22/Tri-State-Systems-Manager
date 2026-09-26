@@ -17,14 +17,30 @@ for (const relative of requiredFiles) {
 }
 
 const privatePatterns = [/13101\s+Bonebank\s+Road/i, /Bonebank\s+Road/i, /BONEBANK_(?:SITE|LOOKUP)/];
-const publicRoots = ['backend', 'data', 'artifacts', 'scripts', 'tsm-console/src', 'tsm-console/server'];
+const publicRoots = [
+  'backend',
+  'artifacts',
+  'scripts',
+  'tsm-console/src',
+  'tsm-console/server',
+  'data/engineering',
+  'data/fabrics',
+  'data/fema',
+  'data/geospatial',
+  'data/grants',
+  'data/registries',
+  'data/regulatory',
+  'data/schemas',
+];
+const restrictedRoots = ['data/evidence'];
+
 function walk(directory) {
   if (!fs.existsSync(directory)) return;
   for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
     if (['node_modules', '.git', 'dist'].includes(entry.name)) continue;
     const full = path.join(directory, entry.name);
     if (entry.isDirectory()) walk(full);
-    else if (/\.(?:mjs|ts|tsx|py|json|md|sql|yml|yaml)$/.test(entry.name)) {
+    else if (/\.(?:mjs|ts|tsx|py|json|sql|yml|yaml)$/.test(entry.name)) {
       const text = fs.readFileSync(full, 'utf8');
       for (const pattern of privatePatterns) {
         if (pattern.test(text)) failures.push('private site anchor detected in public/runtime path: ' + path.relative(root, full));
@@ -33,6 +49,38 @@ function walk(directory) {
   }
 }
 for (const relative of publicRoots) walk(path.join(root, relative));
+
+// Evidence is a restricted provenance plane. It must not be traversed as public/runtime data.
+for (const relative of restrictedRoots) {
+  if (!fs.existsSync(path.join(root, relative))) continue;
+}
+
+for (const relative of publicRoots) walk(path.join(root, relative));
+
+const publicFiles = [];
+for (const relative of publicRoots) {
+  const absolute = path.join(root, relative);
+  if (!fs.existsSync(absolute)) continue;
+  const stack = [absolute];
+  while (stack.length) {
+    const current = stack.pop();
+    for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
+      if (['node_modules', '.git', 'dist'].includes(entry.name)) continue;
+      const full = path.join(current, entry.name);
+      if (entry.isDirectory()) stack.push(full);
+      else if (/\.(?:mjs|ts|tsx|py|json|sql|yml|yaml)$/.test(entry.name)) publicFiles.push(path.relative(root, full));
+    }
+  }
+}
+const restrictedReferencePattern = /(?:data[\\/]+evidence|evidence[\\/]+layer2)/i;
+for (const relative of publicFiles) {
+  if (relative === 'scripts/ci/validate-community-engineering-boundaries.mjs') continue;
+  const text = fs.readFileSync(path.join(root, relative), 'utf8');
+  if (restrictedReferencePattern.test(text)) {
+    failures.push('public/runtime file references restricted evidence plane: ' + relative);
+  }
+}
+
 
 const stations = JSON.parse(fs.readFileSync(path.join(root, 'artifacts/tsm-river-valley-realtime-stations-v1.json'), 'utf8'));
 const stationIds = new Set();

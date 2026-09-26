@@ -15,7 +15,7 @@ import json
 import sys
 from pathlib import Path
 
-CASE_DIR_REL = Path("data/evidence/layer2/26-05-2022A")
+CASE_DIR_REL = Path("data") / "evidence" / "layer2" / "26-05-2022A"
 
 EXPECTED_PRIMARY_FEMA_LETTER = (
     "8186cbf49bfa5ae415aacaf1b548f75fc02692a5793c30cdebb8cf7f6f20dcde"

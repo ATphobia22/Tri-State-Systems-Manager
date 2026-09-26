@@ -1,9 +1,14 @@
 /**
- * Site scientific snapshot — freeboard arithmetic + H3 multi-resolution cells.
- * Fail-closed: elevations are SITE_CONSTANTS until PE/surveyor certification.
- * Does not assert LOMA approval, Daubert courtroom readiness, or verified regulatory status.
+ * Generic scientific snapshot — freeboard arithmetic + H3 multi-resolution cells.
+ *
+ * Privacy boundary:
+ * - No property address, private centroid, parcel identifier, or site-specific
+ *   elevation constants are embedded in public/runtime code.
+ * - Callers must supply an evidence-bound siteId, coordinates, and elevation
+ *   constants from the appropriate evidence plane.
+ * - Inputs remain simulation/site-constant context until PE/RLS certification.
  */
-import { cellToParent, latLngToCell } from "h3-js";
+import { cellToParent, latLngToCell } from 'h3-js';
 
 export interface SiteElevationConstants {
   BFE: number;
@@ -12,19 +17,12 @@ export interface SiteElevationConstants {
   BERM: number;
 }
 
-/** Locked site constants — 13101 Bonebank Rd (see tsm-site-constants + evidence lock packet). */
-export const BONEBANK_SITE_CONSTANTS: SiteElevationConstants = {
-  BFE: 375.0,
-  LAG: 377.2,
-  FFE: 382.5,
-  BERM: 379.8,
-};
-
-/** Locked WGS84 centroid used in Layer 2 evidence package (not a survey pin). */
-export const BONEBANK_CENTROID = {
-  lat: 37.845887,
-  lng: -88.005075,
-} as const;
+export interface ScientificSnapshotInput {
+  siteId: string;
+  lat: number;
+  lng: number;
+  siteConstants: SiteElevationConstants;
+}
 
 export interface ScientificSnapshotResult {
   siteId: string;
@@ -47,23 +45,28 @@ export interface ScientificSnapshotResult {
     note: string;
   };
   governance: {
-    evidenceStatus: "SIMULATION_OR_SITE_CONSTANT";
+    evidenceStatus: 'SIMULATION_OR_SITE_CONSTANT';
     humanOversightRequired: true;
     daubertCompliant: false;
     requiresPeOrSurveyorForMt1: true;
   };
 }
 
-export function scientificSiteSnapshot(
-  lat: number = BONEBANK_CENTROID.lat,
-  lng: number = BONEBANK_CENTROID.lng,
-  siteConstants: SiteElevationConstants = BONEBANK_SITE_CONSTANTS,
-): ScientificSnapshotResult {
+export function scientificSiteSnapshot({
+  siteId,
+  lat,
+  lng,
+  siteConstants,
+}: ScientificSnapshotInput): ScientificSnapshotResult {
+  if (!siteId.trim()) throw new Error('siteId is required');
   if (!Number.isFinite(lat) || lat < -90 || lat > 90) {
     throw new Error(`Invalid latitude: ${lat}`);
   }
   if (!Number.isFinite(lng) || lng < -180 || lng > 180) {
     throw new Error(`Invalid longitude: ${lng}`);
+  }
+  for (const [key, value] of Object.entries(siteConstants)) {
+    if (!Number.isFinite(value)) throw new Error(`Invalid elevation constant ${key}: ${value}`);
   }
 
   const res10Cell = latLngToCell(lat, lng, 10);
@@ -75,7 +78,7 @@ export function scientificSiteSnapshot(
   const bermFreeboard = Number((siteConstants.BERM - siteConstants.BFE).toFixed(2));
 
   return {
-    siteId: "13101-BONEBANK-ROAD-PTDT",
+    siteId,
     location: { lat, lng },
     h3Cells: {
       res10: res10Cell,
@@ -90,12 +93,12 @@ export function scientificSiteSnapshot(
     },
     uncertainty: {
       verticalRmseFt: 0.33,
-      datum: "NAVD88",
-      horizontalCrs: "EPSG:2966",
-      note: "QL2-class RMSE is catalog context only — not a site survey accuracy claim",
+      datum: 'NAVD88',
+      horizontalCrs: 'EPSG:2966',
+      note: 'QL2-class RMSE is catalog context only — not a site survey accuracy claim',
     },
     governance: {
-      evidenceStatus: "SIMULATION_OR_SITE_CONSTANT",
+      evidenceStatus: 'SIMULATION_OR_SITE_CONSTANT',
       humanOversightRequired: true,
       daubertCompliant: false,
       requiresPeOrSurveyorForMt1: true,
