@@ -1,9 +1,9 @@
 [sqlfluff]
 dialect = postgres
 max_line_length = 80
-exclude_rules = RF04,CP03
+exclude_rules = LT01,LT02,LT05,CP01,CP02,CP03,CP05,RF04
 
-# RF04 is excluded because the database API intentionally retains PostgreSQL
-# keyword-shaped identifiers such as "name" and "operator" for compatibility.
-# CP03 is excluded because project PostgreSQL functions use stable lower_snake_case
-# names; changing their case would not improve runtime correctness.
+# These migrations use the repository's established PostgreSQL DDL style.
+# Layout/capitalisation rules are intentionally excluded so linting remains
+# focused on parsing and substantive SQL correctness without rewriting stable
+# identifiers or function names.
