@@ -61,7 +61,7 @@ Horizontal HTDP ≠ vertical orthometric transforms.
 H_{\mathrm{NAVD88}} \approx h_{\mathrm{NAD83}} - N_{\mathrm{GEOID18}}
 \]
 
-Site constants **BFE / LAG / FFE** at Bonebank are **NAVD88** orthometric (or published orthometric) values — not raw ellipsoid heights.
+Site constants **BFE / LAG / FFE** at restricted site are **NAVD88** orthometric (or published orthometric) values — not raw ellipsoid heights.
 
 ### TSM vertical policy
 
@@ -73,7 +73,7 @@ Site constants **BFE / LAG / FFE** at Bonebank are **NAVD88** orthometric (or pu
 | Modernization (NAPGD2022) | Watch NGS; do not auto-migrate BFE until official community adoption |
 | HTDP | Horizontal / ECEF frame+time only — does not replace GEOID18 for orthometric heights |
 
-## Posey / Bonebank practical summary
+## Posey / restricted site practical summary
 
 1. Analysis: **EPSG:2966 + NAVD88**
 2. GNSS ellipsoid heights → NAVD88 via **GEOID18** (or successor) + documented chain
