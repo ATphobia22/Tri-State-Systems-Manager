@@ -116,5 +116,6 @@ export const router = createBrowserRouter([
   { path: 'twin', loader: mapTwinLoader, lazy: async () => ({ Component: (await import('../routes/TwinCanvasView')).default }) },
   { path: 'digital-twin', loader: mapTwinLoader, lazy: async () => ({ Component: (await import('../routes/MapTwinView')).default }) },
   { path: 'digital-twin-v2', element: <DigitalTwinV2View /> },
+  { path: 'flood-sim', lazy: async () => ({ Component: (await import('../components/FloodSimulator')).default }) },
 ] },
 ], { basename: routerBasename });

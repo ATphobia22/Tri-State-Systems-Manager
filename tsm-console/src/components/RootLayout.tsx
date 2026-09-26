@@ -9,6 +9,7 @@ const nav = [
   { to: '/', label: 'Charter', end: true }, { to: '/architecture', label: 'Trust Planes' }, { to: '/river-watch', label: 'River Watch' },
   { to: '/engineering-section', label: 'Engineering Section' }, { to: '/needs', label: 'Human Needs' }, { to: '/ledger', label: 'Evidence Ledger' },
   { to: '/lineage', label: 'Data Contracts' }, { to: '/benefit', label: 'Benefit Engine' }, { to: '/map', label: 'Geospatial' }, { to: '/twin', label: 'Digital Twin' },
+  { to: '/flood-sim', label: 'Flood Simulator' },
 ];
 
 export default function RootLayout() {
