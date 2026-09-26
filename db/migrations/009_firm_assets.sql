@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS firm_panel (
     community_name TEXT NOT NULL,
     effective_date DATE,
     source_artifact_id TEXT NOT NULL
-        REFERENCES evidence_artifacts(artifact_id),
+    REFERENCES evidence_artifacts (artifact_id),
     horizontal_crs TEXT,
     vertical_reference TEXT,
     validation_status TEXT NOT NULL CHECK (
@@ -29,9 +29,9 @@ CREATE TABLE IF NOT EXISTS firm_panel (
 
 CREATE TABLE IF NOT EXISTS firm_derivative (
     derivative_id TEXT PRIMARY KEY,
-    panel_id TEXT NOT NULL REFERENCES firm_panel(panel_id),
+    panel_id TEXT NOT NULL REFERENCES firm_panel (panel_id),
     artifact_id TEXT NOT NULL
-        REFERENCES evidence_artifacts(artifact_id),
+    REFERENCES evidence_artifacts (artifact_id),
     source_evidence_ids TEXT[] NOT NULL,
     transformation_chain JSONB NOT NULL DEFAULT '[]'::JSONB,
     derivation_class TEXT NOT NULL,
@@ -52,11 +52,11 @@ CREATE TABLE IF NOT EXISTS firm_derivative (
 );
 
 CREATE INDEX IF NOT EXISTS idx_firm_panel_geom
-    ON firm_panel USING GIST (footprint);
+ON firm_panel USING gist (footprint);
 CREATE INDEX IF NOT EXISTS idx_firm_derivative_geom
-    ON firm_derivative USING GIST (geometry);
+ON firm_derivative USING gist (geometry);
 CREATE INDEX IF NOT EXISTS idx_firm_derivative_panel
-    ON firm_derivative (panel_id);
+ON firm_derivative (panel_id);
 
 -- Public derivatives cannot be released when the parent panel failed
 -- georeferencing validation.
@@ -91,7 +91,7 @@ END;
 $$;
 
 DROP TRIGGER IF EXISTS trg_firm_public_release
-    ON firm_derivative;
+ON firm_derivative;
 
 CREATE TRIGGER trg_firm_public_release
 BEFORE INSERT OR UPDATE ON firm_derivative
