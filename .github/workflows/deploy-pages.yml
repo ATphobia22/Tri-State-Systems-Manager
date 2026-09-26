@@ -125,9 +125,41 @@ jobs:
           name: tsm-console-production
           path: ${{ env.CONSOLE_DIR }}/dist
           if-no-files-found: error
-      - name: Configure GitHub Pages when deployment is requested
+      - name: GitHub Pages preflight
+        if: ${{ (github.event_name == 'push' && vars.TSM_PAGES_ENABLED == 'true') || (github.event_name == 'workflow_dispatch' && inputs.deploy_pages) || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) || (github.event_name == 'issues' && github.event.action == 'opened' && github.event.issue.pull_request == null && github.event.issue.title == 'TSM Pages deployment dispatch' && github.event.issue.body == 'DEPLOY_PAGES_REQUEST' && github.event.issue.user.login == github.repository_owner) }}
+        env:
+          PAGES_ENABLEMENT_TOKEN: ${{ secrets.TSM_PAGES_ADMIN_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          api="https://api.github.com/repos/${GITHUB_REPOSITORY}/pages"
+          status="$(curl --silent --show-error --output /tmp/tsm-pages.json --write-out '%{http_code}' --location --max-time 20 "${api}")"
+          case "${status}" in
+            200)
+              echo "GitHub Pages site is already configured."
+              ;;
+            404)
+              if [[ -n "${PAGES_ENABLEMENT_TOKEN}" ]]; then
+                echo "GitHub Pages site is absent; configure-pages will enable it using the supplied admin token."
+              else
+                echo "GitHub Pages is not enabled for this repository." >&2
+                echo "Enable Settings > Pages > Source = GitHub Actions once, or add repository secret TSM_PAGES_ADMIN_TOKEN." >&2
+                echo "A fine-grained PAT for automatic enablement requires Pages: write and Administration: write." >&2
+                exit 1
+              fi
+              ;;
+            *)
+              echo "Unexpected GitHub Pages preflight HTTP status: ${status}" >&2
+              cat /tmp/tsm-pages.json >&2 || true
+              exit 1
+              ;;
+          esac
+      - name: Configure GitHub Pages
         if: ${{ (github.event_name == 'push' && vars.TSM_PAGES_ENABLED == 'true') || (github.event_name == 'workflow_dispatch' && inputs.deploy_pages) || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) || (github.event_name == 'issues' && github.event.action == 'opened' && github.event.issue.pull_request == null && github.event.issue.title == 'TSM Pages deployment dispatch' && github.event.issue.body == 'DEPLOY_PAGES_REQUEST' && github.event.issue.user.login == github.repository_owner) }}
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+        with:
+          token: ${{ secrets.TSM_PAGES_ADMIN_TOKEN || github.token }}
+          enablement: ${{ secrets.TSM_PAGES_ADMIN_TOKEN != '' }}
       - name: Upload Pages artifact when deployment is requested
         if: ${{ (github.event_name == 'push' && vars.TSM_PAGES_ENABLED == 'true') || (github.event_name == 'workflow_dispatch' && inputs.deploy_pages) || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) || (github.event_name == 'issues' && github.event.action == 'opened' && github.event.issue.pull_request == null && github.event.issue.title == 'TSM Pages deployment dispatch' && github.event.issue.body == 'DEPLOY_PAGES_REQUEST' && github.event.issue.user.login == github.repository_owner) }}
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
