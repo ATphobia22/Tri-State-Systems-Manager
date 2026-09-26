@@ -160,7 +160,8 @@ jobs:
         run: |
           set -euo pipefail
           [[ -n "${PAGE_URL}" ]] || { echo 'deploy-pages did not return page_url.' >&2; exit 1; }
-          curl --fail --silent --show-error --location --max-time 30 "${PAGE_URL}" | grep -q '<title>'
+          curl --fail --silent --show-error --location --max-time 30 "${PAGE_URL}" --output /tmp/tsm-pages-response.html
+          grep -q '<title>' /tmp/tsm-pages-response.html
           echo "Published Pages endpoint responded successfully: ${PAGE_URL}"
 
   notify-command:
