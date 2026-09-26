@@ -27,8 +27,10 @@ jobs:
       - name: Commit formatted migrations
         run: |
           set -euo pipefail
+          git stash push --include-untracked --message "sqlfluff-autoformat"
           git fetch origin "${GITHUB_REF_NAME}"
           git rebase "origin/${GITHUB_REF_NAME}"
+          git stash pop
           if git diff --quiet -- db/migrations; then
             echo "SQL migrations already formatted."
             exit 0
