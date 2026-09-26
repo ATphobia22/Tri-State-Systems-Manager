@@ -4,7 +4,7 @@
 **Date:** 2026-09-24  
 **Prepared for:** Posey County Floodplain Administrator; optional courtesy copy to IDNR Division of Water / FEMA LOMC correspondence file  
 **Case reference:** FEMA LOMA Case 26-05-2022A  
-**Property:** 13101 Bonebank Road, Mount Vernon, Indiana 47620 (Posey County unincorporated; CID 180209)
+**Property:** PRIVATE_SITE_ADDRESS_REDACTED, Mount Vernon, Indiana 47620 (Posey County unincorporated; CID 180209)
 
 ---
 
@@ -38,7 +38,7 @@ TSM’s governing principle: **the system informs people; it does not silently g
 
 | Parameter | Value | Status |
 |-----------|-------|--------|
-| Coordinates (approx.) | 37.845887, −88.005075 | Site centroid / twin lock |
+| Coordinates (approx.) | SITE_LATITUDE_REDACTED, −88.005075 | Site centroid / twin lock |
 | Horizontal CRS | EPSG:2966 (NAD83 / Indiana West, US survey feet) | Project standard |
 | Vertical datum | NAVD88 | Project standard |
 | BFE (panel context) | 375.0 ft NAVD88 | NFHL / site constants — verify on effective panel |
@@ -72,7 +72,7 @@ TSM packages are offered to reduce manual assembly time for:
 ## 6. Contact for technical questions on this package
 
 Anthony Tucker  
-13101 Bonebank Road  
+PRIVATE_SITE_ADDRESS_REDACTED  
 Mount Vernon, Indiana 47620  
 
 County Floodplain Administrator (public contact of record): Jerry Cotner — jerry.cotner@poseycountyin.gov  
