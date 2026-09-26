@@ -58,7 +58,7 @@ const POSEY_2020_REFERENCE_LIDAR =
 
 export const POSEY_2020_ASSETS: PoseyAssetManifest = {
   manifestVersion: '1.1.0',
-  siteId: 'posey-point-township-bonebank-5000ft',
+  siteId: 'posey-point-township-RESTRICTED_SITE-5000ft',
   bounds: POSEY_SITE_BOUNDS,
   horizontalCrs: 'EPSG:2966',
   horizontalCrsName: 'NAD83 / Indiana West (ftUS)',
