@@ -32,6 +32,8 @@ jobs:
         working-directory: .
         run: |
           set -euo pipefail
+          git fetch origin "${GITHUB_REF_NAME}"
+          git rebase "origin/${GITHUB_REF_NAME}"
           if git diff --quiet -- tsm-console/package-lock.json; then
             echo "Lockfile already reproducible."
             exit 0
