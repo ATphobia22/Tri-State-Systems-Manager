@@ -33,8 +33,8 @@ jobs:
     if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) || (github.event_name == 'issues' && github.event.action == 'opened' && github.event.issue.pull_request == null && github.event.issue.title == 'TSM Pages deployment dispatch' && github.event.issue.body == 'DEPLOY_PAGES_REQUEST' && github.event.issue.user.login == github.repository_owner) }}
     runs-on: ubuntu-24.04
     env:
-      # Public production API deployed by Railway. Repository variable may override this explicitly.
-      VITE_TSM_API_BASE_URL: ${{ vars.VITE_TSM_API_BASE_URL || 'https://tsm-api-production.up.railway.app' }}
+      # Canonical production API. Do not derive this from the Pages origin or an unverified repository variable.
+      VITE_TSM_API_BASE_URL: https://tsm-api-production.up.railway.app
     permissions:
       contents: read
       pages: write
@@ -206,7 +206,7 @@ jobs:
       - name: Verify production API readiness
         shell: bash
         env:
-          TSM_API_BASE_URL: ${{ vars.VITE_TSM_API_BASE_URL || 'https://tsm-api-production.up.railway.app' }}
+          TSM_API_BASE_URL: https://tsm-api-production.up.railway.app
         run: |
           set -euo pipefail
           [[ "${TSM_API_BASE_URL}" == https://* ]] || { echo 'Production API origin must use HTTPS.' >&2; exit 1; }
