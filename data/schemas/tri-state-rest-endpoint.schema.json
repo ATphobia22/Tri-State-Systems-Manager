@@ -1,0 +1,115 @@
+{
+  "$id": "https://schemas.tsm-community.example/schemas/tri-state-rest-endpoint/v1.0.0.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Contract for one verified public REST endpoint (Illinois, Kentucky, Indiana, or federal backstop) used by the Tri-State Systems Manager data fabric. A base_url is recorded only after a live HTTP 200 verification; unverifiable services are recorded with status 'unverifiable' and never with an invented URL. This registry is operational metadata only and confers no regulatory standing.",
+  "properties": {
+    "authority": {
+      "description": "Owning agency or program, e.g. 'Illinois State Geological Survey'.",
+      "minLength": 1,
+      "type": "string"
+    },
+    "base_url": {
+      "description": "Verified service root URL. Must have returned HTTP 200 at verified_at, or be the literal string 'unverifiable' when verification_status is 'unverifiable'.",
+      "format": "uri",
+      "type": "string"
+    },
+    "http_status": {
+      "description": "HTTP status returned by the verification request; null when unverifiable.",
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "id": {
+      "description": "Stable registry identifier, e.g. 'il-isgs-arcgis-rest'.",
+      "minLength": 1,
+      "type": "string"
+    },
+    "layers_or_datasets": {
+      "description": "Layers/datasets of interest observed at the service root.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "provenance_label": {
+      "description": "TSM provenance taxonomy label for data served by this endpoint.",
+      "enum": [
+        "FEMA-EFFECTIVE",
+        "STATE-BEST",
+        "OBSERVED",
+        "MODELED",
+        "FORECAST",
+        "OWNER-SUPPLIED",
+        "DERIVED",
+        "UNAVAILABLE"
+      ],
+      "type": "string"
+    },
+    "service_type": {
+      "enum": [
+        "arcgis-rest",
+        "ckan",
+        "s3",
+        "opendata",
+        "stac",
+        "other"
+      ],
+      "type": "string"
+    },
+    "state": {
+      "enum": [
+        "IL",
+        "KY",
+        "IN",
+        "FEDERAL"
+      ],
+      "type": "string"
+    },
+    "target_crs": {
+      "description": "Native/analysis CRS for this authority's data, e.g. 'EPSG:3435' (Illinois East ftUS), 'EPSG:3088' (Kentucky Single Zone), 'EPSG:2966' (Indiana West ftUS). Null when not applicable (e.g. non-spatial data APIs).",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "verification_evidence": {
+      "description": "How verification was performed, e.g. 'curl -sI <url> returned 200 on 2026-09-26'.",
+      "type": "string"
+    },
+    "verification_status": {
+      "enum": [
+        "verified",
+        "unverifiable"
+      ],
+      "type": "string"
+    },
+    "verified_at": {
+      "description": "UTC timestamp of the live verification request.",
+      "format": "date-time",
+      "type": "string"
+    },
+    "verify_url": {
+      "description": "Optional full URL (with required query params) used for liveness re-checks when the bare base_url needs parameters to return 200.",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "state",
+    "authority",
+    "base_url",
+    "service_type",
+    "target_crs",
+    "verified_at",
+    "http_status",
+    "provenance_label",
+    "verification_status"
+  ],
+  "title": "TSM Tri-State REST Endpoint",
+  "type": "object"
+}

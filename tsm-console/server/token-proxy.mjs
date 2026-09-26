@@ -13,6 +13,7 @@ import { listAuthoritativeSources, fetchAuthoritativeJson } from './ingestion/so
 import { fetchRiverNetwork } from './ingestion/river-network-api.mjs';
 import { evaluatePolicies, POLICIES } from './policy/jurisdiction-engine.mjs';
 import { evaluateCompensatoryStorage, buildCompensatoryStorageCanonical } from './engineering/compensatory-storage.mjs';
+import { validateRasResultsPayload, buildRasResultsArtifact } from './engineering/ras-results.mjs';
 import { servePoseyAsset, getPoseyAssetManifest } from './geospatial/posey-assets.mjs';
 import { handleFirmRoute } from './geospatial/firm-routes.mjs';
 import { normalizeTelemetryEvent, validateTelemetryIngress } from './telemetry/inbound.mjs';
@@ -39,7 +40,7 @@ function allowRuntimeMetrics(clientKey, now = Date.now()) {
 }
 function metricRoute(pathname) {
   if (pathname.startsWith('/api/geospatial')) return 'geospatial';
-  if (pathname.startsWith('/api/v1/engineering') || pathname.startsWith('/api/ingest')) return 'engineering';
+  if (pathname.startsWith('/api/v1/engineering') || pathname.startsWith('/api/engineering') || pathname.startsWith('/api/ingest')) return 'engineering';
   if (pathname.startsWith('/api/evidence') || pathname.startsWith('/api/ledger')) return 'evidence';
   if (pathname.startsWith('/api/hydrologic')) return 'hydrologic';
   if (pathname.startsWith('/api/data-sources')) return 'data_fabric';
@@ -99,6 +100,7 @@ const server = http.createServer(async (req, res) => {
       url.pathname === '/api/evidence' ||
       url.pathname === '/api/evidence/verify' ||
       url.pathname === '/api/v1/engineering/compensatory-storage' ||
+      url.pathname === '/api/engineering/ras-results' ||
       url.pathname === '/api/ingest/hydrologic' ||
       url.pathname === '/api/ingest/usgs' ||
       url.pathname === '/api/ingest/nwps' ||
@@ -301,6 +303,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'POST' && url.pathname === '/api/evidence') { try { return json(res, 201, appendArtifact(await readBodyFixed(req)), requestId); } catch (error) { return json(res, error.code === 'FAIL_CLOSED' ? 422 : 500, { error: error.message, code: error.code }, requestId); } }
     if (req.method === 'POST' && url.pathname === '/api/evidence/verify') { const body = await readBodyFixed(req); const artifact = getArtifact(body.artifact_id); if (!artifact) return json(res, 404, { error: 'artifact not found' }, requestId); const result = verifyProvenance(artifact, body.canonical || artifact.payload); recordVerification(body.artifact_id, result.expected, result.computed, 'api/evidence/verify'); return json(res, result.ok ? 200 : 422, result, requestId); }
     if (req.method === 'POST' && url.pathname === '/api/v1/engineering/compensatory-storage') { const body = await readBodyFixed(req); try { const result = evaluateCompensatoryStorage(body); const canonical = `TSM_ENGINE_LEAF:${buildCompensatoryStorageCanonical(body)}`; const artifact = appendArtifact({ artifact_type: 'engineering_compensatory_storage', source_authority: 'TSM Engineering Solver', source_uri: 'internal://tsm/engineering/compensatory-storage', source_identifier: body.plan_id, retrieved_at: new Date().toISOString(), horizontal_crs: body.horizontal_crs || 'EPSG:2966', horizontal_crs_name: body.horizontal_crs_name || 'NAD83 / Indiana West (ftUS)', vertical_datum: body.vertical_datum || 'NAVD88', content_hash_sha256: String(result.evidence_artifact_hash).replace(/^sha256:/i, ''), validation_status: 'provisional', authority_class: 'MODEL_OUTPUT', derivation_class: 'DERIVED', software_version: 'tsm-engineering@0.1.0', operator_or_service_identity: 'compensatory-storage-api', governance_status: 'human_review_required', is_simulation_demo: false, human_review_status: 'pending', transformation_chain: [], payload: result, _canonical_for_verify: canonical, notes: 'Configurable storage-ratio analysis. Not a regulatory determination; verify governing permit criteria and engineering basis.' }); return json(res, 200, { ...result, evidence_artifact_id: artifact.artifact_id }, requestId); } catch (error) { return json(res, error instanceof TypeError || error instanceof RangeError ? 400 : 422, { error: error.message, code: error.code || 'ENGINEERING_VALIDATION_ERROR' }, requestId); } }
+    if (req.method === 'POST' && url.pathname === '/api/engineering/ras-results') { const body = await readBodyFixed(req); try { const summary = validateRasResultsPayload(body); const artifact = appendArtifact(buildRasResultsArtifact(summary, body)); return json(res, 201, { ok: true, plan_id: summary.plan_id, cells_accepted: summary.cell_count, content_hash_sha256: summary.content_hash_sha256, evidence_artifact_id: artifact.artifact_id, authority_class: 'MODEL_OUTPUT', governance_status: 'human_review_required', note: 'Downsampled HEC-RAS depth raster stored. Not a regulatory determination.' }, requestId); } catch (error) { return json(res, 422, { ok: false, error: error.message, code: error.code || 'RAS_RESULTS_INVALID' }, requestId); } }
     if (req.method === 'POST' && url.pathname === '/api/ingest/hydrologic') return json(res, 200, { results: await runHydrologicBatch(), note: 'Fail-closed per node; check each result.ok' }, requestId);
     if (req.method === 'POST' && url.pathname === '/api/ingest/usgs') { const body = await readBodyFixed(req); if (!body.usgs_id) return json(res, 400, { error: 'usgs_id required' }, requestId); return json(res, 200, await ingestUsgsNode(body.usgs_id), requestId); }
     if (req.method === 'POST' && url.pathname === '/api/ingest/nwps') { const body = await readBodyFixed(req); if (!body.nws_id) return json(res, 400, { error: 'nws_id required' }, requestId); return json(res, 200, await ingestNwpsGauge(body.nws_id, { product: body.product }), requestId); }

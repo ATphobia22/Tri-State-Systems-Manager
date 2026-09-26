@@ -14,8 +14,15 @@ Exit code is 0 only for ``verified``. This script never determines regulatory
 effectiveness, SFHA status, or LOMA status.
 
 Usage:
-    TSM_DATABASE_URL=postgres://... python verify_panel_hashes.py \
+    TSM_DATABASE_URL=<dsn> \
         --panel-id 18129C0265C --file ./panels/18129C0265C.tif
+    # or pass the DSN directly (read-only; overrides TSM_DATABASE_URL):
+    verify_panel_hashes.py --db-dsn <dsn> \
+        --panel-id 18129C0265C --file ./panels/18129C0265C.tif
+
+The verification log is the append-only ``firm_panel_verification_log`` table
+created by db/migrations/010_panel_verification_log.sql (UPDATE/DELETE
+blocked). This script performs read-only SELECTs against it.
 """
 
 from __future__ import annotations
@@ -90,11 +97,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--panel-id", required=True)
     parser.add_argument("--file", required=True,
                         help="Path to the panel file on disk.")
+    parser.add_argument("--db-dsn", default=None,
+                        help="Postgres DSN for the panel verification log. "
+                             "Overrides TSM_DATABASE_URL. Read-only use.")
     args = parser.parse_args(argv)
 
-    db_url = os.environ.get("TSM_DATABASE_URL")
+    db_url = args.db_dsn or os.environ.get("TSM_DATABASE_URL")
     if not db_url:
-        print("error: TSM_DATABASE_URL is required", file=sys.stderr)
+        print("error: --db-dsn or TSM_DATABASE_URL is required", file=sys.stderr)
         return 2
     try:
         import psycopg2
