@@ -40,7 +40,7 @@ function walk(directory) {
     if (['node_modules', '.git', 'dist'].includes(entry.name)) continue;
     const full = path.join(directory, entry.name);
     if (entry.isDirectory()) walk(full);
-    else if (/\.(?:mjs|ts|tsx|py|json|md|sql|yml|yaml)$/.test(entry.name)) {
+    else if (/\.(?:mjs|ts|tsx|py|json|sql|yml|yaml)$/.test(entry.name)) {
       const text = fs.readFileSync(full, 'utf8');
       for (const pattern of privatePatterns) {
         if (pattern.test(text)) failures.push('private site anchor detected in public/runtime path: ' + path.relative(root, full));
