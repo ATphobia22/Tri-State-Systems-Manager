@@ -28,6 +28,10 @@ Repository Pages configuration remains an explicit administrative control:
 
 The workflow also exposes a real **Run workflow** control through `workflow_dispatch` with a `deploy_pages` boolean input.
 
+### GitHub Pages enablement
+
+The workflow performs a Pages preflight before deployment. If the site already exists, the normal `GITHUB_TOKEN` path is used. If Pages has never been enabled, automatic first-time enablement requires repository secret `TSM_PAGES_ADMIN_TOKEN` containing a fine-grained personal access token with **Pages: write** and **Administration: write**. The safer one-time alternative is to open **Settings → Pages** and select **GitHub Actions**. The secret is never printed, committed, or used for ordinary repository checkout operations.
+
 ### Connector-safe owner dispatch
 
 The GitHub connector used by TSM does not expose the GitHub Actions workflow-dispatch POST operation. To avoid requiring a raw token or bypassing connector security boundaries, the repository provides an audited owner-only command path:
