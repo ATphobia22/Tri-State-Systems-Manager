@@ -40,7 +40,7 @@ export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sl
     let circuitState;
     try {
       circuitState = circuitBreaker.beforeRequest(sourceId);
-      recordCircuitMetric(options, sourceId, circuitState.state);
+      recordCircuitMetric(options, sourceId, circuitState?.state ?? 'closed');
     } catch (error) {
       if (error instanceof CircuitOpenError) {
         recordCircuitMetric(options, sourceId, 'open');
@@ -54,10 +54,13 @@ export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sl
         incrementTelemetryCounter('tsm_upstream_requests_total', { source_id: sourceId });
         try {
           const controller = new AbortController();
-          const timer = setTimeout(() => controller.abort(), timeoutMs);
+          const requestSignal = options.signal
+            ? AbortSignal.any([options.signal, controller.signal])
+            : controller.signal;
+          const timer = setTimeout(() => controller.abort(new DOMException('Request timed out', 'TimeoutError')), timeoutMs);
           let response;
           try {
-            response = await fetchImpl(url, { ...options, headers, signal: options.signal ?? controller.signal });
+            response = await fetchImpl(url, { ...options, headers, signal: requestSignal });
           } finally { clearTimeout(timer); }
           if (!response.ok) {
             const error = new Error('HTTP ' + response.status);
@@ -71,7 +74,8 @@ export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sl
           if (Buffer.byteLength(text, 'utf8') > maxBytes) throw new Error('response exceeds size limit (' + maxBytes + ' bytes)');
           const payload = JSON.parse(text);
           circuitState = circuitBreaker.recordSuccess(sourceId);
-          recordCircuitMetric(options, sourceId, circuitState.state);
+          recordCircuitMetric(options, sourceId, circuitState?.state ?? 'closed');
+          lastError = undefined;
           const latencyMs = Date.now() - startedAt;
           recordSourceHealth(sourceId, { ok: true, latencyMs, requestId });
           observeTelemetryDuration('tsm_upstream_request_latency_seconds', latencyMs / 1000, { source_id: sourceId });
@@ -88,7 +92,7 @@ export function createRequestJson({ fetchImpl = globalThis.fetch, sleepImpl = sl
         }
       }
       circuitState = circuitBreaker.recordFailure(sourceId);
-      recordCircuitMetric(options, sourceId, circuitState.state);
+      recordCircuitMetric(options, sourceId, circuitState?.state ?? 'closed');
       const latencyMs = Date.now() - startedAt;
       recordSourceHealth(sourceId, { ok: false, latencyMs, requestId, errorCode: lastError?.code || 'HTTP_' + (lastError?.status || 'UNKNOWN') });
       observeTelemetryDuration('tsm_upstream_request_latency_seconds', latencyMs / 1000, { source_id: sourceId });
