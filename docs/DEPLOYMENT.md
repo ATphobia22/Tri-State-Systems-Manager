@@ -20,16 +20,25 @@ The repository workflow `.github/workflows/deploy-pages.yml` executes these gate
 
 ## GitHub Pages activation
 
-The repository's current Actions credential cannot enable GitHub Pages site configuration automatically. The first activation therefore requires repository administration:
+Repository Pages configuration remains an explicit administrative control:
 
 1. Open the repository **Settings → Pages**.
 2. Set the Pages source to **GitHub Actions**.
-3. Add repository variable `TSM_PAGES_ENABLED` with value `true` under **Settings → Secrets and variables → Actions → Variables**.
-4. Push to `main`, or manually dispatch **TSM Production Build & Pages Deploy**.
+3. Add repository variable `TSM_PAGES_ENABLED` with value `true` under **Settings → Secrets and variables → Actions → Variables** when enabling automatic `main`-push deployments.
 
-After activation, the deployment job is enabled by the repository variable and uses the Pages deployment environment.
+The workflow also exposes a real **Run workflow** control through `workflow_dispatch` with a `deploy_pages` boolean input.
 
-Expected project-site form: `https://ATphobia22.github.io/Tri-State-Systems-Manager/`.
+### Connector-safe owner dispatch
+
+The GitHub connector used by TSM does not expose the GitHub Actions workflow-dispatch POST operation. To avoid requiring a raw token or bypassing connector security boundaries, the repository provides an audited owner-only command path:
+
+1. Create or use a repository issue.
+2. Add the exact comment `/deploy-pages` from the repository owner account.
+3. The workflow accepts only that exact command from `github.repository_owner` and ignores pull-request comments.
+4. The workflow performs the same production verification and Pages deployment path.
+5. The workflow posts its build/deploy result, run URL and published URL (when available) back to the issue.
+
+This command path is an explicit operator action. It does not expose, copy, or commit GitHub credentials.
 
 ## Local production verification
 
