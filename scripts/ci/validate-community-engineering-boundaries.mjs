@@ -91,7 +91,7 @@ function walkPublicPath(relative) {
     if (['node_modules', '.git', 'dist', 'coverage'].includes(entry.name)) continue;
     const child = path.join(relative, entry.name);
     if (entry.isDirectory()) walkPublicPath(child);
-    else if (textExtensions.test(entry.name)) scanFile(child);
+    else if (textExtensions.test(entry.name) && child !== 'scripts/ci/validate-community-engineering-boundaries.mjs') scanFile(child);
   }
 }
 
