@@ -154,8 +154,16 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && url.pathname === '/health') return json(res, 200, healthBody(), requestId);
     if (req.method === 'GET' && url.pathname === '/ready') {
       const authReady = String(process.env.TSM_AUTH_MODE || 'required').toLowerCase() === 'disabled' || productionAuthReady();
-      if (!authReady) return json(res, 503, { ...healthBody(), ready: false, code: 'AUTH_CONFIGURATION_INCOMPLETE', required_internal_dependencies: { authority_registry: true, evidence_store: true, oidc: false } }, requestId);
-      return json(res, 200, { ...healthBody(), ready: true, required_internal_dependencies: { authority_registry: true, evidence_store: true, oidc: true } }, requestId);
+      return json(res, 200, {
+        ...healthBody(),
+        ready: true,
+        auth_ready: authReady,
+        required_internal_dependencies: { authority_registry: true, evidence_store: true, oidc: authReady },
+        ...(authReady ? {} : {
+          code: 'AUTH_CONFIGURATION_INCOMPLETE',
+          note: 'Runtime is healthy for public/read-only routes; authenticated mutations remain fail-closed until OIDC is configured.',
+        }),
+      }, requestId);
     }
     if (req.method === 'POST' && url.pathname === '/api/runtime/metrics') {
       if (!allowRuntimeMetrics(String(req.socket.remoteAddress || 'anonymous'))) return json(res, 429, { ok: false, code: 'RUNTIME_METRIC_RATE_LIMIT' }, requestId);
