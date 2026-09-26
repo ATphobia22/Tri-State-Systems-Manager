@@ -8,7 +8,7 @@ const schemaPaths = [
   'data/schemas/tsm-data-contract-schema-v1.0.0.json',
   'data/schemas/tsm-evidence-artifact-schema-v1.0.0.json',
   'data/schemas/regulatory-gate.schema.json',
-  path.join('data', 'evidence', 'layer2', 'nfip-discrepancy.schema.json'),
+  path.join('data', 'schemas', 'nfip-discrepancy.schema.json'),
 ];
 const failures = [];
 const fail = (message) => failures.push(message);
