@@ -1,8 +1,0 @@
-evidence_id,category,description,source,date,sha256,status,notes
-FEMA-26-05-2022A-001,FEMA correspondence,"September 22, 2026 LOMA additional-information letter + attachments",26-05-2022A-092226.pdf,2026-09-22,,PRIMARY,Preserve original byte-identical artifact
-FEMA-MT1-LEGACY-001,Form anomaly,"Attached MT-1 Form 2 prints expiration February 28, 2014",26-05-2022A-092226.pdf,2026-09-22,,OBSERVED,Requires FEMA confirmation; not independently declared invalid
-USACE-HISTORY-001,Historical infrastructure,Historical New Harmony/Wabash navigation works,Primary records requested via FOIA,,,REQUESTED,Do not infer current FEMA model dependency until records establish it
-NFIP-PREMIUM-001,Insurance,Policy declarations / premium history,Community respondents / insurers,,,TO COLLECT,Redact unnecessary PII
-FIRM-HISTORY-001,Mapping,Historical FIRM/FIS panels and effective dates,FEMA Map Service Center,,,TO COLLECT,"Record panel, suffix, effective date, datum"
-ELEVATION-001,Elevation,Certified elevation evidence,Licensed surveyor/PE,,,TO COLLECT,"Record datum, control, method, certification"
-NFIP-LETTER-D-2018-001,Insurance historical,"January 19, 2018 FEMA/NFIP Letter D: pre-FIRM, high-risk, Zone AE / rated Zone AE; historical policy fields transcribed with policy identifier excluded",User-supplied photograph (IMG_4257.jpeg),2018-01-19,,PRESERVED,"Private source SHA-256: 50f371ad89aef05c39fbc8652608e1f06b73af58de893bea19d014516e02ad07; source image is intentionally not committed. Historical evidence only; do not use as current NFIP rating or LOMA determination."
