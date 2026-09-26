@@ -108,7 +108,7 @@ LAS 1.4 extended formats allow class 0–255; USGS 3DEP minimum scheme still cen
 
 Pipelines: `pipelines/pdal/lag_extract_optimized.json`, `STREAM-MODE.md`.
 
-Bonebank tile `IN2020_26800940_12`: structure LAG **377.2 ft** is **outside** low-ground tile max (~366.5 ft) — pull adjacent higher tiles + sealed survey.
+RESTRICTED_SITE tile `IN2020_26800940_12`: structure LAG **377.2 ft** is **outside** low-ground tile max (~366.5 ft) — pull adjacent higher tiles + sealed survey.
 
 ### Classification → digital twin
 
