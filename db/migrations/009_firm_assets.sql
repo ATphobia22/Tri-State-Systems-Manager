@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS firm_panel (
             'stale'
         )
     ),
-    footprint GEOMETRY(Polygon, 4326),
+    footprint GEOMETRY (POLYGON, 4326),
     source_metadata JSONB NOT NULL DEFAULT '{}'::JSONB,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS firm_derivative (
         )
     ),
     public_release BOOLEAN NOT NULL DEFAULT FALSE,
-    geometry GEOMETRY(Geometry, 4326),
+    geometry GEOMETRY (GEOMETRY, 4326),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
