@@ -43,3 +43,7 @@ Thumbs.db
 # Native C++ dependency/bootstrap outputs
 .native-tools/
 native/dependencies/vcpkg_installed/
+
+# Local evidence/secrets (never commit secret material)
+.secrets/*
+!.secrets/README.md
