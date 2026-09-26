@@ -3,6 +3,17 @@
 Migration notes for schema version bumps. Entries describe what changed,
 why, and whether the bump is backward compatible.
 
+## usace-hydrologic-node.schema.json
+
+### 2026-09-25 — v1.0.0 (new)
+
+- New contract for river-management structure / gage nodes sourced from
+  USACE, USGS, and NWS open data (pool elevations, gate status, observed
+  stage). All numeric fields are nullable: null means "not published by the
+  authority," never an estimate. `gateStatus` includes `unknown`;
+  `provenanceLabel` is constrained to OBSERVED / MODELED / FORECAST /
+  UNAVAILABLE. Describes observations only; confers no regulatory standing.
+
 ## tsm-data-contract-schema-v1.0.0.json
 
 ### 2026-09-25 (in place, version unchanged)
