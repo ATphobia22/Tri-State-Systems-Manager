@@ -1,0 +1,9 @@
+[sqlfluff]
+dialect = postgres
+max_line_length = 80
+exclude_rules = RF04,CP03
+
+# RF04 is excluded because the database API intentionally retains PostgreSQL
+# keyword-shaped identifiers such as "name" and "operator" for compatibility.
+# CP03 is excluded because project PostgreSQL functions use stable lower_snake_case
+# names; changing their case would not improve runtime correctness.
