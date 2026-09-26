@@ -1,0 +1,72 @@
+{
+  "schema_version": "tsm-nfip-historical-evidence-v1",
+  "evidence_id": "NFIP-LETTER-D-2018-001",
+  "evidence_type": "historical_nfip_clear_communication_of_risk",
+  "document_date": "2018-01-19",
+  "property": {
+    "address": "13101 Bonebank Road",
+    "city": "Mount Vernon",
+    "state": "IN",
+    "zip": "47620-7050"
+  },
+  "historical_policy_period": {
+    "effective_start": "2017-03-27",
+    "effective_end": "2018-03-27"
+  },
+  "historical_rating_context": {
+    "letter_class": "D",
+    "building_classification": "pre-FIRM",
+    "flood_risk_context": "high-risk flood area",
+    "current_flood_zone_on_letter": "AE",
+    "rated_flood_zone_on_letter": "AE",
+    "legacy_discount_context": true
+  },
+  "historical_policy_fields_observed": {
+    "building_coverage_usd": 145800,
+    "building_deductible_usd": 2000,
+    "contents_coverage_usd": 0,
+    "contents_deductible_usd": 500,
+    "annual_premium_usd": 1642,
+    "policy_number_present_in_source": true,
+    "policy_number_committed": false,
+    "note": "Policy identifier is intentionally not reproduced in this public repository."
+  },
+  "provenance": {
+    "acquisition": "user-supplied photograph",
+    "local_source_filename": "IMG_4257.jpeg",
+    "local_source_sha256": "50f371ad89aef05c39fbc8652608e1f06b73af58de893bea19d014516e02ad07",
+    "source_artifact_committed": false,
+    "transcription_basis": "Photograph visibly containing the January 19, 2018 FEMA/NFIP letter.",
+    "immutable_source_note": "Retain the original photograph outside the public repository; use the SHA-256 value to correlate a privately retained source artifact."
+  },
+  "temporal_controls": {
+    "historical_only": true,
+    "current_nfip_rating": false,
+    "current_premium": false,
+    "do_not_extrapolate_2018_rate_methodology": true,
+    "note": "FEMA subsequently implemented Risk Rating 2.0; policies renewing on or after April 1, 2022 became subject to the new methodology."
+  },
+  "linked_case": {
+    "case_number": "26-05-2022A",
+    "community_number": "180209",
+    "purpose": "Historical NFIP evidence for the LOMA/NFIP evidence layer; not a FEMA determination."
+  },
+  "authority_sources": [
+    {
+      "authority": "FEMA",
+      "title": "Risk Rating 2.0",
+      "url": "https://www.fema.gov/sites/default/files/documents/fema_rr-2.0-equity-action_0.pdf"
+    },
+    {
+      "authority": "FEMA",
+      "title": "National Flood Insurance Program Record of Decision, April 2018",
+      "url": "https://www.fema.gov/sites/default/files/documents/National-NFIP-SignedROD-20180420.pdf"
+    }
+  ],
+  "claim_controls": [
+    "The 2018 premium is historical evidence only.",
+    "The photograph does not establish current flood zone, current premium, BFE, datum, lowest adjacent grade, or LOMA eligibility.",
+    "Do not infer historical overcharge without complete policy, rating, map, and premium evidence.",
+    "Do not infer FEMA model dependency from the historical insurance letter."
+  ]
+}
