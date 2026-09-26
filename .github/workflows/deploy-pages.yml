@@ -12,6 +12,8 @@ on:
         type: boolean
   issue_comment:
     types: [created]
+  issues:
+    types: [opened]
 
 permissions:
   contents: read
@@ -28,7 +30,7 @@ env:
 jobs:
   build:
     name: Verify and build production console
-    if: ${{ github.event_name != 'issue_comment' || (github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) }}
+    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) || (github.event_name == 'issues' && github.event.action == 'opened' && github.event.issue.pull_request == null && github.event.issue.title == 'TSM Pages deployment dispatch' && github.event.issue.body == 'DEPLOY_PAGES_REQUEST' && github.event.issue.user.login == github.repository_owner) }}
     runs-on: ubuntu-24.04
     env:
       VITE_TSM_API_BASE_URL: ${{ vars.VITE_TSM_API_BASE_URL }}
@@ -107,7 +109,7 @@ jobs:
         working-directory: ${{ env.CONSOLE_DIR }}
         run: npm run build
       - name: Prepare GitHub Pages SPA fallback
-        if: ${{ (github.event_name == 'workflow_dispatch' && inputs.deploy_pages) || (github.event_name != 'workflow_dispatch' && vars.TSM_PAGES_ENABLED == 'true') || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) }}
+        if: ${{ (github.event_name == 'push' && vars.TSM_PAGES_ENABLED == 'true') || (github.event_name == 'workflow_dispatch' && inputs.deploy_pages) || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) || (github.event_name == 'issues' && github.event.action == 'opened' && github.event.issue.pull_request == null && github.event.issue.title == 'TSM Pages deployment dispatch' && github.event.issue.body == 'DEPLOY_PAGES_REQUEST' && github.event.issue.user.login == github.repository_owner) }}
         working-directory: ${{ env.CONSOLE_DIR }}
         run: cp dist/index.html dist/404.html
       - name: Validate production artifact
@@ -124,10 +126,10 @@ jobs:
           path: ${{ env.CONSOLE_DIR }}/dist
           if-no-files-found: error
       - name: Configure GitHub Pages when deployment is requested
-        if: ${{ (github.event_name == 'workflow_dispatch' && inputs.deploy_pages) || (github.event_name != 'workflow_dispatch' && vars.TSM_PAGES_ENABLED == 'true') || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) }}
+        if: ${{ (github.event_name == 'push' && vars.TSM_PAGES_ENABLED == 'true') || (github.event_name == 'workflow_dispatch' && inputs.deploy_pages) || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) || (github.event_name == 'issues' && github.event.action == 'opened' && github.event.issue.pull_request == null && github.event.issue.title == 'TSM Pages deployment dispatch' && github.event.issue.body == 'DEPLOY_PAGES_REQUEST' && github.event.issue.user.login == github.repository_owner) }}
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
       - name: Upload Pages artifact when deployment is requested
-        if: ${{ (github.event_name == 'workflow_dispatch' && inputs.deploy_pages) || (github.event_name != 'workflow_dispatch' && vars.TSM_PAGES_ENABLED == 'true') || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) }}
+        if: ${{ (github.event_name == 'push' && vars.TSM_PAGES_ENABLED == 'true') || (github.event_name == 'workflow_dispatch' && inputs.deploy_pages) || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) || (github.event_name == 'issues' && github.event.action == 'opened' && github.event.issue.pull_request == null && github.event.issue.title == 'TSM Pages deployment dispatch' && github.event.issue.body == 'DEPLOY_PAGES_REQUEST' && github.event.issue.user.login == github.repository_owner) }}
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: ${{ env.CONSOLE_DIR }}/dist
@@ -135,7 +137,7 @@ jobs:
   deploy:
     name: Deploy production console
     needs: build
-    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.deploy_pages) || (github.event_name != 'workflow_dispatch' && vars.TSM_PAGES_ENABLED == 'true') || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) }}
+    if: ${{ (github.event_name == 'push' && vars.TSM_PAGES_ENABLED == 'true') || (github.event_name == 'workflow_dispatch' && inputs.deploy_pages) || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) || (github.event_name == 'issues' && github.event.action == 'opened' && github.event.issue.pull_request == null && github.event.issue.title == 'TSM Pages deployment dispatch' && github.event.issue.body == 'DEPLOY_PAGES_REQUEST' && github.event.issue.user.login == github.repository_owner) }}
     runs-on: ubuntu-24.04
     permissions:
       pages: write
@@ -167,7 +169,7 @@ jobs:
   notify-command:
     name: Report owner-triggered Pages dispatch
     needs: [build, deploy]
-    if: ${{ always() && github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner }}
+    if: ${{ always() && ((github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) || (github.event_name == 'issues' && github.event.action == 'opened' && github.event.issue.pull_request == null && github.event.issue.title == 'TSM Pages deployment dispatch' && github.event.issue.body == 'DEPLOY_PAGES_REQUEST' && github.event.issue.user.login == github.repository_owner)) }}
     runs-on: ubuntu-24.04
     permissions:
       issues: write
