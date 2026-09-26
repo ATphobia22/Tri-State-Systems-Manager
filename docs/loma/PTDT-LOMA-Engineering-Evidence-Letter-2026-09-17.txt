@@ -5,7 +5,7 @@
 Date: September 17, 2026
 Subject: Technical Elevation Evidence Base – Request for Letter of Map Amendment
 Project Reference: Tri-State Systems Manager (TSM v35)
-Property Focus: 13101 Bonebank Road, Mount Vernon, Indiana 47620
+Property Focus: PRIVATE_SITE_ADDRESS_REDACTED, Mount Vernon, Indiana 47620
 Regulatory Authority Jurisdiction: Indiana 312 IAC 10 (IDNR Division of Water)
 FEMA Track Metadata: Case 26-05-2022A | Application ID: 5918599025038
 
