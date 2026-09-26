@@ -21,6 +21,12 @@ import {
   getLocalAiCapabilities,
   type LocalAiCapabilityId,
 } from './availability';
+import {
+  buildSkillContext,
+  legalPackId,
+  routeQuery,
+  type SkillPack,
+} from './skills/index';
 
 export const GOVERNING_AXIOM =
   'Technology informs people; it does not silently govern people. Human authority remains final.';
@@ -249,15 +255,88 @@ export async function explainFloodResult(
 /**
  * Free-form question answering over the on-device Prompt API.
  * Entry point for the "AI engineer copilot" in the simulator UI.
+ *
+ * Skill packs: the query is deterministically routed to expert packs and
+ * their preambles + repo-grounded facts are prepended to the system prompt.
  */
 export async function askFloodplainQuestion(question: string): Promise<AiTextResult> {
   if (question.trim().length === 0) {
     return unavailable('No question provided.');
   }
-  const systemPrompt = buildSystemPrompt(
+  const packs = routeQuery(question);
+  const systemPrompt = buildSkillSystemPrompt(
     'an AI engineer copilot answering floodplain questions',
+    packs,
   );
-  return runPromptSession(systemPrompt, question);
+  return runPromptSession(systemPrompt, withLegalDisclaimerInstruction(question, packs));
+}
+
+/** Optional context the simulator UI may attach to a copilot question. */
+export interface CopilotContext {
+  /** Simulator-owned numbers; local-ai only narrates them, never computes. */
+  scenarioSummary?: FloodScenarioSummary;
+  /** Extra plain-text context (already-evidenced values only). */
+  extraContext?: string;
+}
+
+const LEGAL_DISCLAIMER_LINE =
+  'This is legal information only, not legal advice — consult licensed counsel.';
+
+/**
+ * Copilot entry point for the flood simulator: deterministic skill-pack
+ * routing + on-device Prompt API. When the legal pack is routed, the model
+ * is instructed to close with the legal disclaimer line.
+ */
+export async function askCopilot(
+  question: string,
+  context: CopilotContext = {},
+): Promise<AiTextResult> {
+  if (question.trim().length === 0) {
+    return unavailable('No question provided.');
+  }
+  const routedText = [question, context.extraContext ?? ''].join('\n');
+  const packs = routeQuery(routedText);
+  const systemPrompt = buildSkillSystemPrompt(
+    'an AI engineer copilot answering floodplain questions',
+    packs,
+  );
+  const parts: string[] = [];
+  if (context.scenarioSummary) {
+    parts.push(
+      'Simulator-owned numbers (do not invent or recompute):',
+      formatScenario(context.scenarioSummary),
+    );
+  }
+  if (context.extraContext && context.extraContext.trim().length > 0) {
+    parts.push(context.extraContext);
+  }
+  parts.push(question);
+  return runPromptSession(
+    systemPrompt,
+    withLegalDisclaimerInstruction(parts.join('\n\n'), packs),
+  );
+}
+
+/**
+ * Extend the base system prompt with the selected skill packs' preambles
+ * and repo-grounded facts (bundled static data — no network).
+ */
+function buildSkillSystemPrompt(role: string, packs: SkillPack[]): string {
+  const skillContext = buildSkillContext(packs);
+  const base = buildSystemPrompt(role);
+  return skillContext.length > 0 ? `${base}\n\n${skillContext}` : base;
+}
+
+/**
+ * When the legal pack is routed, append an instruction forcing the legal
+ * disclaimer line into the model's output.
+ */
+function withLegalDisclaimerInstruction(
+  userPrompt: string,
+  packs: SkillPack[],
+): string {
+  if (!packs.some((pack) => pack.id === legalPackId())) return userPrompt;
+  return `${userPrompt}\n\n[Required closing line] End your answer with exactly: "${LEGAL_DISCLAIMER_LINE}"`;
 }
 
 /**

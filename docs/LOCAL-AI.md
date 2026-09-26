@@ -123,7 +123,73 @@ if (result.ok) {
 ## Verification
 
 ```bash
-npx vitest run tests/local-ai-availability.test.ts tests/local-ai-assistant.test.ts
+npx vitest run tests/local-ai-availability.test.ts tests/local-ai-assistant.test.ts tests/local-ai-skills.test.ts
 npx tsc --noEmit
 npm run build
 ```
+
+## Expert skill packs (`src/lib/local-ai/skills/`)
+
+Thirteen static domain packs give the on-device model expert context for the
+"AI engineer copilot". Each pack is a versioned JSON file with:
+
+- **preamble** — expert role + the governing axiom verbatim + "AI-generated
+  output is provisional, human review required". This text is **model-general**
+  (guidance, not verified facts).
+- **repo_grounded_facts** — reference knowledge verified **against the TSM
+  repository only**; every statement names its source file and carries a
+  provenance label. The copilot must cite numbers only from these.
+- **hard_rules** — domain prohibitions (never invent data/constants; legal
+  pack = legal information only, etc.).
+- **disclaimers**, **keywords** (deterministic router), **not_built**
+  (capabilities explicitly not grounded — never faked).
+
+`skills/index.ts` exports `listSkillPacks()`, `getSkillPack(id)`, and
+`routeQuery(query)` — a deterministic keyword scorer (fixed registration-order
+tie-break, no randomness; falls back to the science pack when no keyword
+matches). `assistant.ts` wires routing into `askFloodplainQuestion` and the
+new `askCopilot(question, context?)` entry point: the selected packs'
+preambles + repo-grounded facts are prepended to the system prompt. When the
+legal pack routes, the model is instructed to close with the disclaimer line
+"This is legal information only, not legal advice — consult licensed counsel."
+Packs are bundled static data, so the zero-fetch property holds (covered by
+the fetch-spy tests in `tests/local-ai-skills.test.ts`).
+
+### Skill-pack catalog
+
+| Domain (pack id) | Grounding source repo file(s) | Capabilities | repo-grounded vs model-general |
+|---|---|---|---|
+| Engineering (`engineering`) | `tsm-console/src/lib/hydraulics-diffusion2d.ts`, `hydrology-runoff.ts`, `hazus-depth-damage.ts`, `hec-ras-contracts.ts`, `scientific-analytics.ts`, `data/schemas/engineering-evidence-pipeline-v1.schema.json` | SCS runoff equation, Manning flux + stability, Hazus depth-damage, evidence-pipeline stages, site elevations | repo-grounded: equations, stability criterion, stage order, site constants; model-general: role/guidance prose |
+| Hydrology (`hydrology`) | `tsm-console/src/lib/hydrology-runoff.ts`, `gage-datums.ts`, `river-gauges.ts`, `scenario-runner.ts`, `hydraulics-diffusion2d.ts` | Runoff, gage-datum rule, 12 gauge stations, no-interpolation rule | repo-grounded: SCS equation, WSE_NAVD88 rule, station IDs/variables; model-general: role/guidance prose |
+| Coding (`coding`) | `docs/LOCAL-AI.md`, `docs/BUILD-IOS.md`, `tsm-console/src/lib/local-ai/assistant.ts`, `availability.ts`, `docs/DRIVE-MANIFEST.md` | Stack, test/build commands, zero-network rules, secrets policy | repo-grounded: commands, constants, policy notes; model-general: role/guidance prose |
+| Design (`design`) | `docs/LOCAL-AI.md`, `tsm-console/src/components/LocalAiPanel.tsx`, `docs/CINEMATIC-REFERENCE-COVERAGE.md`, `tsm-console/src/lib/twin-map-style.ts`, `docs/APPLE-MAPS-CONTEXT-FABRIC.md`, `assistant.ts` | Panel UI, cinematic coverage, map styles, plain-language rule | repo-grounded: component behavior, doc existence; model-general: role/guidance prose |
+| Mapping (`mapping`) | `data/registries/tri-state-rest-endpoints-v1.json`, `data/registries/fema-firm-panel-registry-v1.json`, `data/schemas/tri-state-rest-endpoint.schema.json`, `tsm-console/src/lib/firm-panel-ssot.ts`, `scientific-analytics.ts`, `h3-spatial-fabric.ts`, `hec-ras-contracts.ts`, `siteConstants.ts` | State CRS codes, 16 REST endpoint IDs, FIRM panel SSOT, H3 fabric, site coordinates | repo-grounded: EPSG codes, endpoint IDs, panel 18129C0265C, coordinates; model-general: role/guidance prose |
+| Geology (`geology`) | `data/registries/tri-state-rest-endpoints-v1.json`, `db/migrations/V35__subsurface_layers.sql`, `tsm-console/src/lib/hec-ras-contracts.ts`, `scientific-analytics.ts` | ISGS bedrock/drift/SSURGO layers, subsurface schema, 3DEP terrain | repo-grounded: layer names, table names; model-general: role/guidance prose |
+| Meteorology (`meteorology`) | `tsm-console/src/lib/river-gauges.ts`, `hydrology-runoff.ts`, `provenance-labels.ts` | NWS stage-observation IDs, SCS limits, FORECAST label | repo-grounded: NWS IDs as observations, no-snowmelt limit; model-general: role/guidance prose |
+| Legal (`legal`) | `tsm-console/src/lib/fema-loma-evidence.ts`, `docs/FAST-LANE-LOMA.md`, `docs/FEMA-LOMA-LAYER2-CASE-PLAN.md`, `docs/regulatory/loma/loma-package-checklist.md`, `no-rise-certification-DRAFT.md`, `scientific-analytics.ts` | LOMA/MT-1 procedure, 90-day track, deed/plat, Part B, Daubert note | repo-grounded: case 26-05-2022A, 2026-12-21 date, procedural checklist items; model-general: role/guidance prose |
+| Science (`science`) | `tsm-console/src/lib/provenance-labels.ts`, `scientific-analytics.ts`, `docs/ENGINEERING-GATE.md` | Provenance taxonomy, evidence quality, uncertainty, coordinate discrepancy | repo-grounded: 8 labels, freeboard margins, RMSE note, Daubert note; model-general: role/guidance prose |
+| Mathematics (`mathematics`) | `tsm-console/src/lib/hydrology-runoff.ts`, `hydraulics-diffusion2d.ts`, `scientific-analytics.ts`, `h3-spatial-fabric.ts` | SCS/Manning math, 645.33 derivation, freeboard arithmetic, H3 chain | repo-grounded: equations and derivations; model-general: role/guidance prose |
+| Geotechnical (`geotechnical`) | `db/migrations/V35__subsurface_layers.sql`, `data/registries/tri-state-rest-endpoints-v1.json`, `data/schemas/engineering-evidence-pipeline-v1.schema.json`, `tsm-console/src/lib/scientific-analytics.ts` | Subsurface schema, SSURGO soils, earthwork stages, berm crest | repo-grounded: table names, stage names, berm elevation; model-general: role/guidance prose |
+| Regulatory (`regulatory`) | `data/schemas/engineering-evidence-pipeline-v1.schema.json`, `data/schemas/tsm-authority-registry-v35.json`, `tsm-console/src/lib/siteConstants.ts`, `firm-panel-ssot.ts`, `docs/FAST-LANE-LOMA.md`, `FEMA-LOMA-LAYER2-CASE-PLAN.md`, `fema-loma-evidence.ts`, `docs/ADR-006-*.md` | Pipeline stages, authority registry, NFIP community IDs, 90-day track | repo-grounded: 13 stages, CIDs 180209/180389/180210, governance axiom; model-general: role/guidance prose |
+| Grants (`grants`) | `artifacts/grants/tri-state-flood-resilience-program-registry-v1.json` | Funding program IDs/statuses, verification policy | repo-grounded: 5 program IDs + statuses, registry policy; model-general: role/guidance prose |
+
+### Not built (explicitly not grounded — the copilot must not fake these)
+
+- Legal: attorney review, case-law research.
+- Geology/geotechnical: site borehole logs, laboratory test data; slope-stability and bearing-capacity models do not exist in the repo.
+- Meteorology: NWS forecast API integration, radar precipitation feeds, snowmelt modeling.
+- Grants: live NOFO status checks, award guarantees or eligibility determinations.
+- Regulatory: agency submission/filing, regulatory determinations.
+- Science: peer-reviewed publication of site findings, an independently verified site survey.
+- Mathematics: a symbolic equation solver.
+- Engineering: PE-stamped designs or certifications, real-time structural health monitoring.
+- Mapping: a certified parcel boundary survey (owner coordinates carry an unresolved ~6.4 km discrepancy).
+- Coding: publishing releases (no GitHub authentication in this environment).
+- Design: user-testing results, a certified accessible-design audit.
+
+### Router examples
+
+- "is this crest plausible?" → hydrology + mathematics
+- "help me draft the LOMA response" → legal + engineering (legal disclaimer forced into output)
+- "Which EPSG code should I use for Illinois data?" → mapping
+- "List the evidence pipeline stages in order" → regulatory

@@ -21,9 +21,21 @@ export {
   MAX_INPUT_CHARS,
   explainFloodResult,
   askFloodplainQuestion,
+  askCopilot,
   summarizeEvidencePacket,
   proofreadFiling,
   type FloodScenarioSummary,
   type EvidencePacketSummary,
+  type CopilotContext,
   type AiTextResult,
 } from './assistant';
+
+export {
+  listSkillPacks,
+  getSkillPack,
+  routeQuery,
+  buildSkillContext,
+  legalPackId,
+  type SkillPack,
+  type RepoGroundedFact,
+} from './skills/index';
