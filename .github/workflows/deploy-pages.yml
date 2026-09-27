@@ -1,8 +1,6 @@
 name: TSM Production Build & Pages Deploy
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
     inputs:
       deploy_pages:
@@ -10,10 +8,8 @@ on:
         required: false
         default: true
         type: boolean
-  issue_comment:
-    types: [created]
-  issues:
-    types: [opened]
+  deployment_status:
+    states: [success]
 
 permissions:
   contents: read
@@ -30,7 +26,7 @@ env:
 jobs:
   build:
     name: Verify and build production console
-    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) || (github.event_name == 'issues' && github.event.action == 'opened' && github.event.issue.pull_request == null && github.event.issue.title == 'TSM Pages deployment dispatch' && github.event.issue.body == 'DEPLOY_PAGES_REQUEST' && github.event.issue.user.login == github.repository_owner) }}
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'production') }}
     runs-on: ubuntu-24.04
     env:
       # Canonical production API. Do not derive this from the Pages origin or an unverified repository variable.
