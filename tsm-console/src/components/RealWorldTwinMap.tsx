@@ -84,7 +84,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       addFloodAuthorityLayers(map);
       applyLiveStageMetadata(map, data);
       // Hydraulic rendering is fail-closed: only an explicitly derived NAVD88 WSE drives water height.
-      addMartinHydraulicLayer(map, data.stage.conversion_applied ? data.stage.wse_navd88_ft : null);
+      addMartinHydraulicLayer(map, data.stage.hydraulic_extrusion_eligibility === 'SITE_WSE_VERIFIED_FOR_EXTRUSION' ? data.stage.wse_navd88_ft : null);
       if (map.getLayer('tsm-hydraulic-extrusion')) setupParcelProvenanceInspector(map);
       new maplibregl.Marker().setLngLat(NEW_HARMONY_GAGE).setPopup(buildGagePopup(data)).addTo(map);
       mapRef.current = map;
@@ -130,8 +130,8 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
         <div>Indiana Current Imagery: live WMS · USGS 3DEP: dynamic elevation/hillshade · Configured terrain mesh: {terrainConfigured ? 'yes' : 'no'}</div>
         <div>FEMA NFHL: effective / insurance · Indiana BAFM: planning / Flood Control Act</div>
         <div>Stage: {stage == null ? 'unavailable' : `${stage.toFixed(2)} ft`} {data.stage.qualifier ? `(${data.stage.qualifier})` : ''} · {data.stage.source}</div>
-        <div>WSE NAVD88: {wse == null ? 'unavailable' : `${wse.toFixed(2)} ft`} · Hydraulic extrusion: {data.stage.conversion_applied && wse != null ? 'enabled' : 'blocked — verified datum conversion required'} · Discharge: {data.stage.discharge_cfs == null ? 'unavailable' : `${data.stage.discharge_cfs.toLocaleString()} cfs`}</div>
-        <div>Site: LAG {data.site.elevations.lag_ft} · BFE {data.site.elevations.bfe_ft} · Berm {data.site.elevations.bermCrest_ft} · FFE {data.site.elevations.ffe_ft}</div>
+        <div>WSE NAVD88 @ gage: {wse == null ? 'unavailable' : `${wse.toFixed(2)} ft`} · Datum conversion: {data.stage.conversion_applied ? 'verified station relationship' : 'blocked'} · Hydraulic extrusion: {data.stage.hydraulic_extrusion_eligibility === 'SITE_WSE_VERIFIED_FOR_EXTRUSION' ? 'enabled' : 'blocked — site WSE transfer/model evidence required'} · Discharge: {data.stage.discharge_cfs == null ? 'unavailable' : `${data.stage.discharge_cfs.toLocaleString()} cfs`}</div>
+        <div>Site elevations: LAG {data.site.elevations.lag_ft ?? 'unverified'} · BFE {data.site.elevations.bfe_ft ?? 'unverified'} · Berm {data.site.elevations.bermCrest_ft ?? 'unverified'} · FFE {data.site.elevations.ffe_ft ?? 'unverified'}</div><div>Transfer gate: {data.stage.site_transfer_status ?? 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE'} · Station conversion source: {data.stage.vertical_conversion_source ?? 'source required'}</div>
         <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
           <button type="button" aria-pressed={femaVisible} onClick={() => setFemaVisible((value) => !value)}>FEMA NFHL {femaVisible ? 'ON' : 'OFF'}</button>
           <button type="button" aria-pressed={bafmVisible} onClick={() => setBafmVisible((value) => !value)}>Indiana BAFM {bafmVisible ? 'ON' : 'OFF'}</button>
