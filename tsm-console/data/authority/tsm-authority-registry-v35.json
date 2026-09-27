@@ -1,0 +1,152 @@
+{
+  "registry_version": "35.0.2",
+  "trust_model": "FAIL_CLOSED",
+  "authorities": [
+    {
+      "id": "AUTH_USGS_WDFN",
+      "name": "USGS Water Data for the Nation",
+      "role": "Authoritative hydrologic observations and metadata",
+      "endpoints": [
+        "https://api.waterdata.usgs.gov/"
+      ],
+      "verification": "USGS Water Data API V1"
+    },
+    {
+      "id": "AUTH_USGS_3DEP",
+      "name": "USGS 3D Elevation Program",
+      "role": "Topography / LiDAR Source",
+      "endpoints": [
+        "https://www.usgs.gov/3d-elevation-program"
+      ],
+      "verification": "SHA-256 Manifest / source product metadata"
+    },
+    {
+      "id": "AUTH_IN_GIO",
+      "name": "Indiana Geographic Information Office",
+      "role": "Statewide Orthoimagery & LiDAR",
+      "endpoints": [
+        "https://www.in.gov/gis/",
+        "https://elevation.gio.in.gov/"
+      ],
+      "verification": "State source metadata"
+    },
+    {
+      "id": "AUTH_NOAA_NWPS",
+      "name": "National Weather Service National Water Prediction Service",
+      "role": "Official hydrologic observations and forecasts",
+      "endpoints": [
+        "https://water.noaa.gov/about/api"
+      ],
+      "verification": "Official NWPS API"
+    },
+    {
+      "id": "AUTH_FEMA_MSC",
+      "name": "FEMA Map Service Center / National Flood Hazard Layer",
+      "role": "Effective regulatory flood hazard layers",
+      "endpoints": [
+        "https://msc.fema.gov/portal/search"
+      ],
+      "verification": "Official FEMA NFHL services"
+    },
+    {
+      "id": "AUTH_IDNR_INFIP",
+      "name": "Indiana DNR Floodplain Information Portal",
+      "role": "Indiana Best Available Floodplain / FARA",
+      "endpoints": [
+        "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/indiana-floodplain-information-portal"
+      ],
+      "verification": "Indiana DNR Division of Water"
+    }
+  ],
+  "hydrologic_nodes": [
+    {
+      "id": "03378500",
+      "name": "Wabash River at New Harmony, IN",
+      "usgs_id": "03378500",
+      "role": "wabash_boundary_stage_discharge",
+      "lat": 38.13089124,
+      "lon": -87.9414145,
+      "parameters": [
+        "00065",
+        "00060"
+      ],
+      "gage_zero_navd88_ft": 352.67,
+      "vertical_conversion_source": "USGS-SIR-2016-5119-TABLE1-DATUM",
+      "nws_id": "NHRI3",
+      "vertical_conversion_status": "VERIFIED_PUBLISHED_STATION_RELATIONSHIP",
+      "vertical_conversion_source_uri": "https://pubs.usgs.gov/sir/2016/5119/sir20165119.pdf",
+      "vertical_conversion_method": "WSE_NAVD88_FT = STAGE_GAGE_DATUM_FT + 352.67_FT",
+      "vertical_conversion_verified_at": "2026-09-27",
+      "vertical_conversion_scope": "USGS 03378500 gage-site water-surface elevation only; current monitoring-location altitude 352.71 ft is retained separately and is not substituted for the published gage datum of 352.67 ft.",
+      "site_transfer_required": true,
+      "gage_site_altitude_navd88_ft": 352.71,
+      "gage_site_altitude_source": "USGS-MONITORING-LOCATION-METADATA",
+      "gage_site_altitude_source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03378500/",
+      "flood_thresholds_ft": {
+        "action": 10,
+        "minor": 15,
+        "moderate": 20,
+        "major": 23
+      },
+      "flood_threshold_source": "NWS-NHRI3-RVF",
+      "flood_threshold_source_uri": "https://forecast.weather.gov/product.php?format=TXT&glossary=1&issuedby=WBL&product=RVF&site=REV&version=1"
+    },
+    {
+      "id": "03322000",
+      "name": "Ohio River at Evansville, IN",
+      "usgs_id": "03322000",
+      "nws_id": "EVVI3",
+      "role": "downstream_ohio_context",
+      "lat": 37.97228264107407,
+      "lon": -87.57640285193835,
+      "parameters": [
+        "00065",
+        "00060"
+      ],
+      "gage_zero_navd88_ft": null,
+      "vertical_conversion_source": null
+    },
+    {
+      "id": "03322420",
+      "name": "OHIO RIVER AT UNIONTOWN DAM, KY",
+      "usgs_id": "03322420",
+      "nws_id": "UNWK2",
+      "role": "usgs_tailwater_observation_related_to_john_t_myers_locks_and_dam",
+      "lat": 37.7971555584685,
+      "lon": -87.9983356426059,
+      "parameters": [
+        "00065"
+      ],
+      "gage_zero_navd88_ft": null,
+      "vertical_conversion_source": null,
+      "related_infrastructure": "John T. Myers Locks and Dam"
+    },
+    {
+      "id": "MTVI3",
+      "name": "Ohio River at Mount Vernon, IN",
+      "nws_id": "MTVI3",
+      "role": "primary_local_ohio_stage",
+      "lat": 37.9286,
+      "lon": -87.8956,
+      "gage_zero_navd88_ft": null,
+      "vertical_conversion_source": null
+    },
+    {
+      "id": "UNWK2",
+      "name": "Ohio River at John T. Myers Locks and Dam (NWS context)",
+      "nws_id": "UNWK2",
+      "usgs_id": "03322420",
+      "role": "navigation_control_structure_context",
+      "lat": 37.7833,
+      "lon": -87.9794,
+      "gage_zero_navd88_ft": null,
+      "vertical_conversion_source": null,
+      "related_infrastructure": "John T. Myers Locks and Dam"
+    }
+  ],
+  "nfip_cids": {
+    "posey_unincorporated": "180209",
+    "mount_vernon": "180389",
+    "new_harmony": "180210"
+  }
+}
