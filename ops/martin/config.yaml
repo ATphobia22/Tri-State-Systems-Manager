@@ -43,3 +43,11 @@ pmtiles:
 styles:
   paths:
     - /data/styles
+
+# Terrain-RGB / other raster or vector MBTiles from offline pipeline
+# Mount host dist/terrain-tiles/*.mbtiles at /data/mbtiles
+mbtiles:
+  paths:
+    - /data/mbtiles
+  recursive: true
+  reload_interval: 10m
