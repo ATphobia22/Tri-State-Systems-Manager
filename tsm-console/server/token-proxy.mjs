@@ -263,6 +263,9 @@ const server = http.createServer(async (req, res) => {
           station_id: stationId,
           station_name: node.name,
           gage_zero_navd88_ft: Number.isFinite(Number(node.gage_zero_navd88_ft)) ? Number(node.gage_zero_navd88_ft) : null,
+          gage_site_altitude_navd88_ft: Number.isFinite(Number(node.gage_site_altitude_navd88_ft)) ? Number(node.gage_site_altitude_navd88_ft) : null,
+          flood_thresholds_ft: node.flood_thresholds_ft || null,
+          flood_threshold_source: node.flood_threshold_source_uri || null,
           vertical_conversion_status: node.vertical_conversion_status || 'CONVERSION_BLOCKED',
           vertical_conversion_source: node.vertical_conversion_source_uri || null,
           site_transfer_status: node.site_transfer_required ? 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE' : 'NOT_REQUIRED',
@@ -271,6 +274,46 @@ const server = http.createServer(async (req, res) => {
         }, requestId);
       } catch (error) {
         return json(res, error.status || 422, { ok: false, code: error.code || 'HYDRO_CALIBRATION_ERROR', error: error.message }, requestId);
+      }
+    }
+    if (req.method === 'GET' && url.pathname === '/api/hydrologic/alerts') {
+      const usgsId = url.searchParams.get('usgs_id') || '03378500';
+      const nwsId = url.searchParams.get('nws_id') || 'NHRI3';
+      const node = getHydrologicNode(usgsId);
+      const thresholds = node.flood_thresholds_ft;
+      if (!thresholds || !Number.isFinite(Number(thresholds.action))) {
+        return json(res, 503, { ok: false, code: 'HYDRO_THRESHOLDS_UNVERIFIED', error: 'Authoritative flood thresholds are not registered.' }, requestId);
+      }
+      try {
+        const records = await fetchNoaaStageFlow({ identifier: nwsId, product: 'observed' });
+        const stage = latestRecord(records);
+        if (!stage || !Number.isFinite(Number(stage.value))) throw Object.assign(new Error('no NOAA stage observation returned'), { code: 'HYDRO_NO_STAGE' });
+        const stageFt = Number(stage.value);
+        const category = stageFt >= Number(thresholds.major) ? 'major'
+          : stageFt >= Number(thresholds.moderate) ? 'moderate'
+          : stageFt >= Number(thresholds.minor) ? 'minor'
+          : stageFt >= Number(thresholds.action) ? 'action' : 'normal';
+        return json(res, 200, {
+          ok: true,
+          station_id: usgsId,
+          nws_id: nwsId,
+          stage_ft_gage_datum: stageFt,
+          category,
+          distance_to_action_ft: Number((Number(thresholds.action) - stageFt).toFixed(2)),
+          thresholds_ft: thresholds,
+          source: 'NOAA-NWPS',
+          source_uri: node.flood_threshold_source_uri || null,
+          observed_at: stage.observedAt,
+          notification_policy: {
+            email: 'NOT_CONFIGURED',
+            physical_actuation: 'BLOCKED',
+            human_review_required: true,
+            note: 'This endpoint evaluates an advisory condition only. It does not send email or actuate infrastructure.',
+          },
+          requestId,
+        }, requestId);
+      } catch (error) {
+        return json(res, 503, { ok: false, code: error.code || 'HYDRO_ALERT_EVALUATION_UNAVAILABLE', error: error.message }, requestId);
       }
     }
     if (req.method === 'GET' && url.pathname === '/api/hydrologic/live') {
