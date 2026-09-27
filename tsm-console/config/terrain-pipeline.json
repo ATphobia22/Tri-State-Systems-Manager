@@ -23,11 +23,21 @@
     "required_before_operational_terrain": true,
     "fail_closed_when_missing": true,
     "bulk_source_rasters_in_repository": false,
-    "bulk_tile_pyramids_in_repository": false
+    "bulk_tile_pyramids_in_repository": false,
+    "status": "FAIL_CLOSED_PENDING_MATERIALIZATION",
+    "requires_https": true,
+    "no_synthetic_mesh": true,
+    "flat_fallback_layers": [
+      "indiana-current-imagery",
+      "usgs-3dep-hillshade-live",
+      "fema-nfhl-overlay",
+      "indiana-bafm-overlay"
+    ]
   },
   "evidence": {
     "hash_algorithm": "SHA-256",
     "required_fields": ["source_uri", "source_identifier", "source_version", "retrieved_at", "content_hash_sha256", "horizontal_crs", "vertical_datum", "transformation_chain", "validation_status", "human_review_status"],
-    "bulk_source_data_committed_to_git": false
+    "bulk_source_data_committed_to_git": false,
+    "verification_documentation": "docs/TERRAIN-RGB-3DEP-PIPELINE.md"
   }
 }
