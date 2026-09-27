@@ -1,0 +1,31 @@
+# Martin tile plane — official MapLibre Martin image (not a private ATphobia22/martin fork).
+# Upstream: https://github.com/maplibre/martin
+#
+# Serves:
+#   - PostGIS MVT (get_parcel_tiles) when TSM_MARTIN_DATABASE_URL is set
+#   - PMTiles under /data/pmtiles
+#   - Terrain-RGB / other MBTiles under /data/mbtiles (from build-terrain-rgb.sh)
+#
+# Production: put TLS in front (Caddy / Traefik / cloud LB). Martin itself speaks HTTP
+# on :3000 inside the network.
+
+services:
+  martin:
+    image: ghcr.io/maplibre/martin:v0.16.0
+    command: ["--config", "/config/config.yaml"]
+    ports:
+      - "3000:3000"
+    environment:
+      TSM_MARTIN_DATABASE_URL: ${TSM_MARTIN_DATABASE_URL:-}
+    volumes:
+      - ./config.yaml:/config/config.yaml:ro
+      - ${TSM_PMTILES_HOST_PATH:-../../dist/pmtiles}:/data/pmtiles:ro
+      - ${TSM_MBTILES_HOST_PATH:-../../dist/terrain-tiles}:/data/mbtiles:ro
+      - ${TSM_STYLES_HOST_PATH:-../../dist/styles}:/data/styles:ro
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/catalog"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
