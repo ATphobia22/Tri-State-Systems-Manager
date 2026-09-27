@@ -49,3 +49,6 @@ tsm-console/.data/
 # Local evidence/secrets (never commit secret material)
 .secrets/*
 !.secrets/README.md
+
+# Raw terrain tile downloads (re-fetchable via tools/terrain/fetch-terrarium-dem.py)
+tools/terrain/.tile-cache/
