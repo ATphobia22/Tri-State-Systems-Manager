@@ -28,3 +28,15 @@ test('vertical datum middleware preserves identity conversions', () => {
   assert.equal(result.conversionApplied, false);
   assert.equal(result.conversionPublished, true);
 });
+
+
+test('USGS 03378500 published relationship converts gage stage to station WSE', async () => {
+  const { calculateGaugeWseNavd88 } = await import('../server/ingestion/hydraulic-calibration.mjs');
+  const result = calculateGaugeWseNavd88({ stationId: '03378500', stageFt: 4.31 });
+  assert.equal(result.ok, true);
+  assert.equal(result.gage_zero_navd88_ft, 352.67);
+  assert.equal(result.wse_navd88_ft, 356.98);
+  assert.equal(result.vertical_conversion_status, 'VERIFIED_PUBLISHED_STATION_RELATIONSHIP');
+  assert.equal(result.site_transfer_status, 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE');
+  assert.equal(result.hydraulic_extrusion_eligibility, 'BLOCKED_UNTIL_SITE_WSE_TRANSFER_VALIDATED');
+});
