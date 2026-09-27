@@ -1,0 +1,24 @@
+# Local Terrain-RGB XYZ server for MapLibre 3D terrain (DEV / lab only).
+# Production: terminate TLS at reverse proxy and set a real HTTPS template in Vite.
+#
+# Prerequisites:
+#   ./scripts/geospatial/build-terrain-rgb.sh  → dist/terrain-tiles/xyz/{z}/{x}/{y}.png
+#
+# Usage:
+#   docker compose -f ops/terrain-rgb-server/docker-compose.yml up --build
+#
+# Then (DEV only — fail-closed rejects localhost in production builds):
+#   VITE_TSM_TERRAIN_RGB_URL_TEMPLATE=http://localhost:8080/terrain/{z}/{x}/{y}.png
+
+services:
+  terrain-rgb:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: "8080"
+      TILE_DIR: /app/tiles
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+    volumes:
+      - ${TSM_TERRAIN_XYZ_HOST_PATH:-../../dist/terrain-tiles/xyz}:/app/tiles:ro
+    restart: unless-stopped
