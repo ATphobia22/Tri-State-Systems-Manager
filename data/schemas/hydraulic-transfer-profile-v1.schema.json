@@ -1,0 +1,20 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://tri-state-systems-manager.org/schemas/hydraulic-transfer-profile-v1.schema.json",
+  "title":"TSM Evidence-Gated Hydraulic Transfer Profile v1",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["schema_version","validation_status","evidence_artifact_id","source_uri","reach_length_ft","backwater_length_ft","beta","manning_constant"],
+  "properties":{
+    "schema_version":{"const":"1.0"},
+    "validation_status":{"enum":["pending","validated","rejected","stale","failed_closed"]},
+    "evidence_artifact_id":{"type":"string","minLength":1},
+    "source_uri":{"type":"string","format":"uri"},
+    "reach_length_ft":{"type":"number","exclusiveMinimum":0},
+    "backwater_length_ft":{"type":"number","exclusiveMinimum":0},
+    "beta":{"type":"number","minimum":0},
+    "manning_constant":{"type":"number","exclusiveMinimum":0,"default":1.486},
+    "calibration_notes":{"type":"string"},
+    "source_version":{"type":"string"}
+  }
+}

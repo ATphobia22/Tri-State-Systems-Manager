@@ -23,6 +23,8 @@ import { beginOidcLogin, finishOidcLogin, getBrowserSession, logoutOidc } from '
 import { bootstrapOidc } from './auth/oidc-bootstrap.mjs';
 import { calculateGaugeWseNavd88, getHydrologicNode } from './ingestion/hydraulic-calibration.mjs';
 import { evaluateLevel5, listLevel5Proposals, approveLevel5Proposal, executeLevel5Proposal, autonomyStatus } from './autonomy/level5-orchestrator.mjs';
+import { calculateLocalProfileWSE } from './engineering/hydraulic-transfer.mjs';
+import { acceptSyslog } from './alerts/syslog.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
 const BUILD_SHA = process.env.RAILWAY_GIT_COMMIT_SHA || process.env.GITHUB_SHA || process.env.TSM_BUILD_SHA || 'local';
@@ -107,6 +109,7 @@ const server = http.createServer(async (req, res) => {
       url.pathname === '/api/ingest/nwps' ||
       url.pathname === '/api/ledger/append' ||
       url.pathname === '/api/autonomy/evaluate' ||
+      url.pathname === '/api/hydraulic/transfer' ||
       url.pathname.startsWith('/api/autonomy/proposals/')
     );
     let requestAuth = null;
@@ -245,6 +248,68 @@ const server = http.createServer(async (req, res) => {
         return json(res, 202, { ok: true, accepted: true, event_id: event.event_id, artifact_id: artifact.artifact_id }, requestId);
       } catch (error) {
         return json(res, error instanceof TypeError ? 400 : 422, { ok: false, code: error.code || 'TELEMETRY_EVENT_INVALID', error: error.message }, requestId);
+      }
+    }
+    if (req.method === 'POST' && url.pathname === '/api/hydraulic/transfer') {
+      try {
+        const body = await readBodyFixed(req);
+        const profile = body?.profile;
+        if (!profile || profile.validation_status !== 'validated' || !profile.evidence_artifact_id || !profile.source_uri) {
+          return json(res, 422, { ok: false, code: 'HYDRAULIC_PROFILE_NOT_VALIDATED', error: 'A validated, provenance-linked hydraulic profile is required.' }, requestId);
+        }
+        const evidence = getArtifact(profile.evidence_artifact_id);
+        if (!evidence || evidence.validation_status !== 'validated') {
+          return json(res, 422, { ok: false, code: 'HYDRAULIC_PROFILE_EVIDENCE_INVALID', error: 'Referenced hydraulic evidence artifact is not validated.' }, requestId);
+        }
+        const station = calculateGaugeWseNavd88({
+          stationId: String(body.station_id || '03378500'),
+          stageFt: Number(body.stage_ft_gage_datum),
+        });
+        if (!station.ok) {
+          return json(res, 422, { ok: false, code: 'STATION_WSE_CONVERSION_BLOCKED', station }, requestId);
+        }
+        const result = calculateLocalProfileWSE({
+          stationWseNavd88Ft: station.wse_navd88_ft,
+          ohioWseNavd88Ft: Number(body.ohio_wse_navd88_ft),
+          distanceDownstreamFt: Number(body.distance_downstream_ft),
+          dischargeCfs: Number(body.discharge_cfs),
+          invertNavd88Ft: Number(body.invert_navd88_ft),
+          profile,
+          segments: body.segments,
+        });
+        return json(res, 200, { ok: true, ...result, station_wse: station }, requestId);
+      } catch (error) {
+        return json(res, error.status || 422, { ok: false, code: error.code || 'HYDRAULIC_TRANSFER_FAILED', error: error.message }, requestId);
+      }
+    }
+    if (req.method === 'POST' && url.pathname === '/api/v1/alerts/syslog-receiver') {
+      try {
+        const raw = await new Promise((resolve, reject) => {
+          const chunks = [];
+          let size = 0;
+          req.on('data', (chunk) => {
+            size += chunk.length;
+            if (size > 64_000) { req.destroy(); reject(new Error('syslog payload exceeds 64 KB')); return; }
+            chunks.push(chunk);
+          });
+          req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+          req.on('error', reject);
+        });
+        const signature = String(req.headers['x-tsm-alert-signature'] || '');
+        const result = acceptSyslog(raw, signature);
+        if (result.duplicate) return json(res, 200, { ok: true, duplicate: true, event_id: result.event_id }, requestId);
+        incrementTelemetryCounter('tsm_alerts_received_total', { severity: result.severity });
+        return json(res, 202, {
+          ok: true,
+          event_id: result.event_id,
+          severity: result.severity,
+          facility: result.facility,
+          hostname: result.hostname,
+          message: result.message,
+          governance_status: 'human_review_required',
+        }, requestId);
+      } catch (error) {
+        return json(res, error.status || 422, { ok: false, code: error.code || 'SYSLOG_RECEIVER_FAILED', error: error.message }, requestId);
       }
     }
     if (req.method === 'GET' && url.pathname === '/api/hydrologic/community') {
