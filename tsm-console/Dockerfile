@@ -7,6 +7,7 @@ COPY tsm-console/vite.config.ts tsm-console/index.html ./
 COPY tsm-console/src/main.tsx ./src/main.tsx
 RUN npm ci --no-audit --no-fund
 COPY tsm-console/. .
+COPY tsm-authority-registry-v35.json ./tsm-authority-registry-v35.json
 RUN npm run build
 
 FROM node:22-alpine AS runtime
