@@ -14,6 +14,7 @@ on:
       - 'backend/engineering/**'
       - 'backend/tests/test_geospatial_contracts.py'
       - 'backend/tests/test_hec_ras_worker.py'
+      - 'backend/tests/test_hecras_geometry.py'
       - 'integrations/geospatial/**'
       - 'integrations/cityengine/**'
       - 'integrations/registry/**'
@@ -77,8 +78,16 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
       - name: Validate capability registry
         run: node scripts/ci/validate-capability-registry.mjs
+      - name: Setup Python
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d # v7.1.0
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - name: Install backend engineering dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -r backend/requirements.txt
       - name: Run geospatial backend contract tests
-        run: python3 -m unittest backend.tests.test_geospatial_contracts backend.tests.test_hec_ras_worker
+        run: python3 -m unittest backend.tests.test_geospatial_contracts backend.tests.test_hec_ras_worker backend.tests.test_hecras_geometry
       - name: Run Mapillary evidence contract tests
         working-directory: tsm-console
         run: npm run test:mapillary
