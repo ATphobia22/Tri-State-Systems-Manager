@@ -96,7 +96,7 @@ export function calculateStructuralClearance(
     name: asset.name,
     siteWseNavd88Ft,
     lagClearanceFt: lagVerified ? Number((asset.lagNavd88Ft! - siteWseNavd88Ft).toFixed(2)) : null,
-    ffeClearanceFt: ffeVerified ? Number((asset.ffeNavd88Ft! - siteWseNav88Ft).toFixed(2)) : null,
+    ffeClearanceFt: ffeVerified ? Number((asset.ffeNavd88Ft! - siteWseNavd88Ft).toFixed(2)) : null,
     bfeClearanceFt: bfeVerified ? Number((asset.bfeNavd88Ft! - siteWseNavd88Ft).toFixed(2)) : null,
     status: lagVerified || ffeVerified || bfeVerified ? 'VERIFIED' : 'ELEVATION_DATA_REQUIRED',
   };
