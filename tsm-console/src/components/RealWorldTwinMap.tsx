@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { MapTwinLoaderData } from '../types/loaders';
-import { buildTwinStyle, applyTwinTerrain, addFloodAuthorityLayers, applyLiveStageMetadata, addMartinHydraulicLayer } from '../lib/twin-map-style';
+import { buildTwinStyle, applyTwinTerrain, addFloodAuthorityLayers, applyLiveStageMetadata, addMartinHydraulicLayer, getTerrainRgbStatus } from '../lib/twin-map-style';
+import { terrainRgbBlockMessage } from '../lib/terrain-rgb-contract';
 import { buildArcGisWmsTileTemplate, INDIANA_CURRENT_IMAGERY_WMS, USGS_3DEP_ELEVATION_WMS } from '../lib/open-world-wms';
 import { setupParcelProvenanceInspector } from '../lib/parcel-provenance';
 import { playCinematicTour } from '../lib/cinematic/camera-tour';
@@ -107,7 +108,9 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
 
   const stage = data.stage.value_ft;
   const wse = data.stage.wse_navd88_ft;
-  const terrainConfigured = Boolean(import.meta.env.VITE_TSM_TERRAIN_RGB_URL_TEMPLATE?.trim());
+  const terrainStatus = getTerrainRgbStatus();
+  const terrainConfigured = terrainStatus.enabled;
+  const terrainMessage = terrainRgbBlockMessage(terrainStatus);
 
   const toggleCinematicTour = (): void => {
     const map = mapRef.current;
@@ -127,7 +130,8 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
       <div style={{ position: 'absolute', left: 12, top: 12, zIndex: 2, maxWidth: 520, padding: 12, borderRadius: 10, background: 'rgba(2,6,23,0.9)', color: '#e2e8f0', fontSize: 12, lineHeight: 1.5 }}>
         <strong>Real-source open-world twin</strong>
-        <div>Indiana Current Imagery: live WMS · USGS 3DEP: dynamic elevation/hillshade · Configured terrain mesh: {terrainConfigured ? 'yes' : 'no'}</div>
+        <div>Indiana Current Imagery: live WMS · USGS 3DEP: dynamic elevation/hillshade (visualization only)</div>
+        <div role="status">{terrainMessage}</div>
         <div>FEMA NFHL: effective / insurance · Indiana BAFM: planning / Flood Control Act</div>
         <div>Stage: {stage == null ? 'unavailable' : `${stage.toFixed(2)} ft`} {data.stage.qualifier ? `(${data.stage.qualifier})` : ''} · {data.stage.source}</div>
         <div>Station WSE NAVD88: {wse == null ? 'unavailable' : `${wse.toFixed(2)} ft`} · Datum: {data.stage.conversion_applied ? 'verified USGS station relationship' : 'blocked'} · Site transfer: {data.stage.site_transfer_status ?? 'required'} · Hydraulic extrusion: {data.stage.hydraulic_extrusion_eligibility === 'SITE_WSE_VERIFIED_FOR_EXTRUSION' ? 'enabled' : 'blocked — validated site WSE required'} · Discharge: {data.stage.discharge_cfs == null ? 'unavailable' : `${data.stage.discharge_cfs.toLocaleString()} cfs`}</div>
