@@ -58,13 +58,14 @@ async function ensureClient(token) {
   if (!update.ok) throw new Error('Keycloak client configuration failed with HTTP ' + update.status + '.');
   return client.id;
 }
-async function ensureRole(token, role) {
+async function ensureRole(token, clientId, role) {
   const encoded = encodeURIComponent(role);
-  const existing = await request('/admin/realms/' + REALM + '/roles/' + encoded, { headers: { Authorization: 'Bearer ' + token } });
+  const base = '/admin/realms/' + REALM + '/clients/' + clientId + '/roles';
+  const existing = await request(base + '/' + encoded, { headers: { Authorization: 'Bearer ' + token } });
   if (existing.ok) return;
-  if (existing.status !== 404) throw new Error('Keycloak role lookup failed for ' + role + ' with HTTP ' + existing.status + '.');
-  const response = await request('/admin/realms/' + REALM + '/roles', { method: 'POST', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify({ name: role }) });
-  if (!response.ok && response.status !== 409) throw new Error('Keycloak role bootstrap failed for ' + role + ' with HTTP ' + response.status + '.');
+  if (existing.status !== 404) throw new Error('Keycloak client-role lookup failed for ' + role + ' with HTTP ' + existing.status + '.');
+  const response = await request(base, { method: 'POST', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify({ name: role }) });
+  if (!response.ok && response.status !== 409) throw new Error('Keycloak client-role bootstrap failed for ' + role + ' with HTTP ' + response.status + '.');
 }
 async function ensureAudienceMapper(token, clientId) {
   const list = await request('/admin/realms/' + REALM + '/clients/' + clientId + '/protocol-mappers/models', { headers: { Authorization: 'Bearer ' + token } });
@@ -80,8 +81,8 @@ export async function bootstrapOidc() {
   const token = await adminToken();
   await ensureRealm(token);
   const clientId = await ensureClient(token);
-  await ensureRole(token, 'tsm-operator');
-  await ensureRole(token, 'tsm-reviewer');
+  await ensureRole(token, clientId, 'tsm-operator');
+  await ensureRole(token, clientId, 'tsm-reviewer');
   await ensureAudienceMapper(token, clientId);
   const discovery = await request('/realms/' + REALM + '/.well-known/openid-configuration');
   if (!discovery.ok) throw new Error('TSM OIDC discovery failed with HTTP ' + discovery.status + '.');
