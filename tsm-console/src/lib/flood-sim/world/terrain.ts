@@ -1,18 +1,27 @@
 /**
- * world/terrain.ts — procedural terrain mesh for the flood-sim open world.
+ * world/terrain.ts — terrain mesh for the flood-sim open world.
  *
- * HONESTY CONTRACT (read before reusing):
- * The tile-fabric manifest (`artifacts/tsm-geospatial-tile-fabric-v1.json`)
- * describes authoritative DEM *services* (USGS 3DEP, Indiana 2016–2020) but
- * bundles NO local tile bytes, so this module cannot render surveyed terrain.
- * Instead it builds a deterministic procedural approximation:
- *   - base surface anchored near the repo's owner-supplied site constants
- *     (BFE 375.0 ft NAVD88 context; anchor 13101 Bonebank Rd),
- *   - a gentle valley cross-slope toward the river side,
- *   - seeded value-noise refinement (mulberry32) for visual richness.
- * The mesh, the UI legend, and the docs all label this
- * "procedural approximation — not surveyed terrain". Never present it as
- * surveyed, authoritative, or engineering-grade elevation.
+ * DATA-QUALITY CONTRACT (read before reusing):
+ * This module resolves its elevation grid from one of two sources:
+ *
+ * 1. `surveyed` — the bundled 3DEP-derived screening grid
+ *    (`world/data/surveyed-dem-posey.json`, fetched by
+ *    `tools/terrain/fetch-terrarium-dem.py` from AWS elevation-tiles-prod
+ *    Terrarium tiles derived from USGS 3DEP). ~15 m source posting resampled
+ *    to a 62.5 ft canonical grid. It is a SCREENING-LEVEL derivative: better
+ *    than the procedural approximation, but NOT survey-grade, NOT a
+ *    substitute for licensed survey, and NOT valid for regulatory/design
+ *    elevation decisions. Labeled `surveyed-source-derived`.
+ * 2. `procedural` — the deterministic seeded value-noise approximation used
+ *    before real elevation existed (and still the fallback when the surveyed
+ *    bundle is missing or fails validation). Labeled
+ *    `procedural-approximation — not surveyed terrain`.
+ *
+ * `resolveElevationGrid()` implements the fallback chain: surveyed (validated)
+ * → procedural. It never throws on source problems; only on invalid caller
+ * options. The mesh, the UI legend, and the docs must always display the
+ * resolved `source`/`dataQuality` labels — never present procedural output as
+ * surveyed, and never present the surveyed screening grid as engineering-grade.
  *
  * The pure elevation-grid generator is separated from the three.js mesh
  * builder so it stays unit-testable without a GL context.
@@ -20,7 +29,9 @@
 
 import * as THREE from 'three';
 import { mulberry32 } from '../prng';
+import { computeHillshade } from './hillshade';
 import tileFabric from '../../../../../artifacts/tsm-geospatial-tile-fabric-v1.json';
+import surveyedDemJson from './data/surveyed-dem-posey.json';
 
 /** DEM service entries from the tile-fabric manifest that inform this terrain. */
 export interface DemSourceRef {
@@ -76,7 +87,140 @@ export interface TerrainGenOptions {
 }
 
 /** Data-quality tag stamped on everything this module produces. */
+export type TerrainDataQuality =
+  | 'live-terrain-service'
+  | 'surveyed-source-derived'
+  | 'procedural-approximation';
+/** Back-compat export: the pre-survey default. */
 export const TERRAIN_DATA_QUALITY = 'procedural-approximation' as const;
+
+/** Which elevation source to resolve. `auto` prefers surveyed, falls back silently. */
+export type TerrainSourcePreference = 'auto' | 'surveyed' | 'procedural';
+
+interface SurveyedBundle {
+  id?: string;
+  n?: number;
+  cellFt?: number;
+  halfExtentFt?: number;
+  verticalDatum?: string;
+  horizontalDatum?: string;
+  source?: string;
+  sha256?: string;
+  statsFt?: { min?: number; max?: number; mean?: number };
+  gridFt?: number[];
+}
+
+export interface SurveyedMeta {
+  id: string;
+  source: string;
+  verticalDatum: string;
+  horizontalDatum: string;
+  cellFt: number;
+  halfExtentFt: number;
+  sha256: string;
+  statsFt: { min: number; max: number; mean: number };
+}
+
+export interface ResolvedTerrainSource {
+  /** Elevation grid, [row][col], ny × nx, ft, domain-local ENU centred on the anchor. */
+  grid: number[][];
+  source: 'surveyed' | 'procedural';
+  dataQuality: TerrainDataQuality;
+  /** Short human label for legends/status badges. */
+  provenance: string;
+  surveyedMeta: SurveyedMeta | null;
+}
+
+function readSurveyedBundle(): SurveyedBundle | null {
+  const b = surveyedDemJson as SurveyedBundle;
+  if (!b || !Array.isArray(b.gridFt) || typeof b.n !== 'number') return null;
+  return b;
+}
+
+function validateSurveyedBundle(b: SurveyedBundle): SurveyedMeta | null {
+  const n = b.n ?? 0;
+  const grid = b.gridFt ?? [];
+  if (!Number.isInteger(n) || n < 2 || grid.length !== n * n) return null;
+  const cellFt = b.cellFt;
+  const halfExtentFt = b.halfExtentFt;
+  if (cellFt === undefined || halfExtentFt === undefined || !(cellFt > 0) || !(halfExtentFt > 0)) {
+    return null;
+  }
+  let min = Infinity;
+  let max = -Infinity;
+  let sum = 0;
+  for (let i = 0; i < grid.length; i += 1) {
+    const v = grid[i];
+    if (!Number.isFinite(v)) return null;
+    if (v < min) min = v;
+    if (v > max) max = v;
+    sum += v;
+  }
+  // Sanity envelope for the Ohio–Wabash valley (ft): rejects corrupt decodes
+  // without pretending to certify the values.
+  if (min < 200 || max > 1200 || max - min > 900) return null;
+  return {
+    id: b.id ?? 'surveyed-dem-unknown',
+    source: b.source ?? 'unknown',
+    verticalDatum: b.verticalDatum ?? 'unknown',
+    horizontalDatum: b.horizontalDatum ?? 'unknown',
+    cellFt,
+    halfExtentFt,
+    sha256: b.sha256 ?? 'unknown',
+    statsFt: { min, max, mean: sum / grid.length },
+  };
+}
+
+/**
+ * Bilinear-resample the canonical surveyed grid (row 0 = north edge,
+ * ENU feet relative to the anchor) onto a target domain grid of nx × ny
+ * cells at dxFt, centred on the same anchor. Deterministic.
+ */
+function resampleSurveyed(
+  b: SurveyedBundle,
+  meta: SurveyedMeta,
+  nx: number,
+  ny: number,
+  dxFt: number,
+): number[][] | null {
+  const n = b.n as number;
+  const grid = b.gridFt as number[];
+  const halfTargetX = (nx * dxFt) / 2;
+  const halfTargetY = (ny * dxFt) / 2;
+  if (halfTargetX > meta.halfExtentFt || halfTargetY > meta.halfExtentFt) return null;
+  const cell = meta.cellFt;
+  const he = meta.halfExtentFt;
+
+  const sampleAt = (eastFt: number, northFt: number): number => {
+    // Canonical layout: col c centre at east = -he + (c+0.5)*cell;
+    // row r centre at north = he - (r+0.5)*cell.
+    const c = (eastFt + he) / cell - 0.5;
+    const r = (he - northFt) / cell - 0.5;
+    const cc = Math.min(n - 1.001, Math.max(0, c));
+    const rr = Math.min(n - 1.001, Math.max(0, r));
+    const c0 = Math.floor(cc);
+    const r0 = Math.floor(rr);
+    const fc = cc - c0;
+    const fr = rr - r0;
+    const a = grid[r0 * n + c0];
+    const bb = grid[r0 * n + c0 + 1];
+    const cc2 = grid[(r0 + 1) * n + c0];
+    const d = grid[(r0 + 1) * n + c0 + 1];
+    return a + (bb - a) * fc + (cc2 - a) * fr + (a - bb - cc2 + d) * fc * fr;
+  };
+
+  const out: number[][] = [];
+  for (let r = 0; r < ny; r += 1) {
+    const row: number[] = [];
+    const northFt = halfTargetY - (r + 0.5) * dxFt; // row 0 = north edge
+    for (let c = 0; c < nx; c += 1) {
+      const eastFt = -halfTargetX + (c + 0.5) * dxFt;
+      row.push(sampleAt(eastFt, northFt));
+    }
+    out.push(row);
+  }
+  return out;
+}
 
 /**
  * Deterministic value-noise elevation grid, [row][col], ny × nx.
@@ -153,6 +297,65 @@ export function generateElevationGrid(opts: TerrainGenOptions): number[][] {
   return grid;
 }
 
+/**
+ * Resolve the elevation grid for a scenario domain.
+ *
+ * Fallback chain (the reliability contract):
+ *   1. `procedural` preference → seeded value-noise grid, always succeeds.
+ *   2. `surveyed` preference → bundled 3DEP-derived grid resampled to the
+ *      domain; throws a descriptive error when the bundle is missing/invalid
+ *      (explicit choice ⇒ fail loudly, never silently downgrade).
+ *   3. `auto` (default) → surveyed when it validates, else procedural with a
+ *      console warning. Never throws on source problems.
+ */
+export function resolveElevationGrid(
+  opts: TerrainGenOptions & { terrainSource?: TerrainSourcePreference },
+): ResolvedTerrainSource {
+  const preference = opts.terrainSource ?? 'auto';
+  if (preference === 'procedural') {
+    return {
+      grid: generateElevationGrid(opts),
+      source: 'procedural',
+      dataQuality: 'procedural-approximation',
+      provenance: 'procedural approximation — not surveyed terrain',
+      surveyedMeta: null,
+    };
+  }
+  const bundle = readSurveyedBundle();
+  const meta = bundle ? validateSurveyedBundle(bundle) : null;
+  const resampled =
+    bundle && meta ? resampleSurveyed(bundle, meta, opts.nx, opts.ny, opts.dxFt) : null;
+  if (resampled && meta) {
+    return {
+      grid: resampled,
+      source: 'surveyed',
+      dataQuality: 'surveyed-source-derived',
+      provenance:
+        `3DEP-derived screening grid (${meta.id}; vertical datum ${meta.verticalDatum}) — ` +
+        `not survey-grade`,
+      surveyedMeta: meta,
+    };
+  }
+  if (preference === 'surveyed') {
+    throw new Error(
+      '[flood-sim-terrain] surveyed elevation requested but the bundled 3DEP-derived ' +
+        'grid is missing, corrupt, or does not cover the requested domain',
+    );
+  }
+  if (typeof console !== 'undefined') {
+    console.warn(
+      '[flood-sim-terrain] surveyed elevation unavailable — falling back to procedural approximation',
+    );
+  }
+  return {
+    grid: generateElevationGrid(opts),
+    source: 'procedural',
+    dataQuality: 'procedural-approximation',
+    provenance: 'procedural approximation — not surveyed terrain (surveyed bundle unavailable)',
+    surveyedMeta: null,
+  };
+}
+
 /** Hypsometric tint: lowland green → tan → upland brown-grey. */
 function elevationColor(elevFt: number, minFt: number, maxFt: number): [number, number, number] {
   const t = Math.min(1, Math.max(0, (elevFt - minFt) / Math.max(1e-6, maxFt - minFt)));
@@ -177,8 +380,11 @@ function elevationColor(elevFt: number, minFt: number, maxFt: number): [number, 
 export interface BuiltTerrain {
   mesh: THREE.Mesh;
   elevationFt: number[][];
-  dataQuality: typeof TERRAIN_DATA_QUALITY;
+  dataQuality: TerrainDataQuality;
+  /** Human label describing the resolved elevation source. */
+  provenance: string;
   demSources: readonly DemSourceRef[];
+  surveyedMeta: SurveyedMeta | null;
   /** Bilinear height sampler in grid coordinates (fractional col/row ok). */
   heightAt(col: number, row: number): number;
   dispose(): void;
@@ -189,11 +395,22 @@ export interface BuiltTerrain {
  * (quality tier); the underlying elevation grid keeps full nx × ny.
  *
  * Pass `elevationFt` to mesh an externally built grid (e.g. the engine's
- * grid from `scenarioToEngineConfig`) so visuals and physics agree exactly;
- * otherwise the grid is generated from the remaining options.
+ * grid from `scenarioToEngineConfig`, or a grid from `resolveElevationGrid`)
+ * so visuals and physics agree exactly; pass `sourceInfo` alongside so the
+ * mesh carries the right data-quality labels. Without `sourceInfo`, a
+ * caller-supplied grid is labeled procedural-approximation (the historical
+ * default — callers resolving surveyed grids must pass the labels through).
+ *
+ * Vertex colours combine the hypsometric tint with an analytic hillshade
+ * (Horn's method) so relief reads even in flat floodplain country.
  */
 export function buildTerrainMesh(
-  opts: TerrainGenOptions & { segments?: number; elevationFt?: number[][] },
+  opts: TerrainGenOptions & {
+    segments?: number;
+    elevationFt?: number[][];
+    sourceInfo?: Pick<ResolvedTerrainSource, 'source' | 'dataQuality' | 'provenance' | 'surveyedMeta'>;
+    hillshade?: { azimuthDeg?: number; altitudeDeg?: number; zFactor?: number; floor?: number };
+  },
 ): BuiltTerrain {
   const elevationFt = opts.elevationFt ?? generateElevationGrid(opts);
   const ny = elevationFt.length;
@@ -201,6 +418,12 @@ export function buildTerrainMesh(
   if (ny === 0 || nx === 0) throw new Error('[flood-sim-terrain] empty elevation grid');
   const segments = opts.segments ?? 128;
   const dxFt = opts.dxFt;
+  const sourceInfo = opts.sourceInfo ?? {
+    source: 'procedural' as const,
+    dataQuality: 'procedural-approximation' as const,
+    provenance: 'procedural approximation — not surveyed terrain',
+    surveyedMeta: null,
+  };
 
   const widthFt = nx * dxFt;
   const depthFt = ny * dxFt;
@@ -218,19 +441,36 @@ export function buildTerrainMesh(
 
   const pos = geometry.attributes.position as THREE.BufferAttribute;
   const colors = new Float32Array(pos.count * 3);
-  const heightAt = (col: number, row: number): number => {
+  const bilinear = (
+    field: (r: number, c: number) => number,
+    col: number,
+    row: number,
+  ): number => {
     const c = Math.min(nx - 1.001, Math.max(0, col));
     const r = Math.min(ny - 1.001, Math.max(0, row));
     const c0 = Math.floor(c);
     const r0 = Math.floor(r);
     const fc = c - c0;
     const fr = r - r0;
-    const a = elevationFt[r0][c0];
-    const b = elevationFt[r0][c0 + 1];
-    const cc = elevationFt[r0 + 1][c0];
-    const d = elevationFt[r0 + 1][c0 + 1];
+    const a = field(r0, c0);
+    const b = field(r0, c0 + 1);
+    const cc = field(r0 + 1, c0);
+    const d = field(r0 + 1, c0 + 1);
     return a + (b - a) * fc + (cc - a) * fr + (a - b - cc + d) * fc * fr;
   };
+  const heightAt = (col: number, row: number): number =>
+    bilinear((r, c) => elevationFt[r][c], col, row);
+
+  // Analytic hillshade on the grid, sampled per-vertex like height.
+  const hs = opts.hillshade ?? {};
+  const shadeGrid = computeHillshade(elevationFt, dxFt, {
+    azimuthDeg: hs.azimuthDeg,
+    altitudeDeg: hs.altitudeDeg,
+    zFactor: hs.zFactor,
+  });
+  const shadeAt = (col: number, row: number): number =>
+    bilinear((r, c) => shadeGrid[r * nx + c], col, row);
+  const shadeFloor = hs.floor ?? 0.45;
 
   for (let vi = 0; vi < pos.count; vi += 1) {
     const x = pos.getX(vi); // -width/2 .. width/2 (east)
@@ -240,9 +480,10 @@ export function buildTerrainMesh(
     const h = heightAt(col, row);
     pos.setY(vi, h);
     const [r, g, b] = elevationColor(h, minFt, maxFt);
-    colors[vi * 3] = r;
-    colors[vi * 3 + 1] = g;
-    colors[vi * 3 + 2] = b;
+    const m = shadeFloor + (1 - shadeFloor) * shadeAt(col, row);
+    colors[vi * 3] = r * m;
+    colors[vi * 3 + 1] = g * m;
+    colors[vi * 3 + 2] = b * m;
   }
   geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
   geometry.computeVertexNormals();
@@ -253,15 +494,20 @@ export function buildTerrainMesh(
     metalness: 0.0,
   });
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.name = 'flood-sim-terrain (procedural approximation — not surveyed)';
+  mesh.name =
+    sourceInfo.source === 'surveyed'
+      ? 'flood-sim-terrain (3DEP-derived screening grid — not survey-grade)'
+      : 'flood-sim-terrain (procedural approximation — not surveyed)';
   // Centre the domain on the origin; world frame is local ENU feet.
   mesh.position.set(0, 0, 0);
 
   return {
     mesh,
     elevationFt,
-    dataQuality: TERRAIN_DATA_QUALITY,
+    dataQuality: sourceInfo.dataQuality,
+    provenance: sourceInfo.provenance,
     demSources: DEM_SOURCES,
+    surveyedMeta: sourceInfo.surveyedMeta,
     heightAt,
     dispose(): void {
       geometry.dispose();

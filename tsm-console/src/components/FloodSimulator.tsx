@@ -12,7 +12,8 @@
  * explicit human sign-off checkbox before they apply — never auto-applied.
  *
  * Data honesty labels shown in-UI:
- * - terrain: "procedural approximation — not surveyed terrain"
+ * - terrain: resolved source label — "live Terrarium tiles", "3DEP-derived
+ *   screening grid", or "procedural approximation — not surveyed terrain"
  * - water: "real-time approximation, not path tracing"
  * - gauges: LIVE / STALE / SOURCE UNAVAILABLE; datum "SOURCE DATUM ONLY"
  *   unless a validated NAVD88 gage zero exists (it does not, here).
@@ -44,6 +45,9 @@ import {
   QUALITY_TIERS,
   QUALITY_TIER_ORDER,
   ANCHOR_SITE,
+  resolveElevationGrid,
+  LiveDataManager,
+  resolveTerrainWithFallback,
   type QualityTier,
   type AlternativeId,
   type FloodRenderer,
@@ -51,6 +55,11 @@ import {
   type BuiltMarkers,
   type GaugeStatus,
   type FloodSimScenario,
+  type LiveDataSnapshot,
+  type ResolvedLiveTerrain,
+  type ResolvedTerrainSource,
+  type TerrainDataQuality,
+  type SurveyedMeta,
 } from '../lib/flood-sim/index';
 import { startGaugePoll, type RiverGaugeObservation } from '../lib/river-gauges';
 import { BONEBANK_SITE_CONSTANTS } from '../lib/scientific-analytics';
@@ -101,6 +110,15 @@ export default function FloodSimulator(): React.JSX.Element {
   const [playingTour, setPlayingTour] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [buildKey, setBuildKey] = useState(0);
+  // Terrain source: 'auto' resolves surveyed (bundled 3DEP-derived) with
+  // procedural fallback; 'live' attempts live tile fetch with the same
+  // fallback chain; 'procedural' forces the seeded approximation.
+  const [terrainMode, setTerrainMode] = useState<'auto' | 'procedural' | 'live'>('auto');
+  const [liveTerrain, setLiveTerrain] = useState<ResolvedLiveTerrain | null>(null);
+  const [terrainNotice, setTerrainNotice] = useState<string | null>(null);
+  const [liveSnapshot, setLiveSnapshot] = useState<LiveDataSnapshot | null>(null);
+  const [terrainProvenance, setTerrainProvenance] = useState<string>('resolving elevation source…');
+  const managerRef = useRef<LiveDataManager | null>(null);
 
   const worldRef = useRef<{
     renderer: FloodRenderer;
@@ -109,6 +127,7 @@ export default function FloodSimulator(): React.JSX.Element {
     water: WaterSurface;
     markers: BuiltMarkers;
     baselineElev: number[][];
+    sourceInfo: Pick<ResolvedTerrainSource, 'source' | 'dataQuality' | 'provenance' | 'surveyedMeta'>;
     orbit: { yaw: number; pitch: number; dist: number; target: THREE.Vector3 };
     driver: TimeLapseDriver | null;
     tourStartWall: number;
@@ -156,6 +175,7 @@ export default function FloodSimulator(): React.JSX.Element {
       valleyReliefFt: 8,
       noiseAmplitudeFt: 2,
       elevationFt: elev,
+      sourceInfo: world.sourceInfo,
       segments: spec.terrainSegments,
     });
     world.renderer.scene.add(terrain.mesh);
@@ -194,6 +214,64 @@ export default function FloodSimulator(): React.JSX.Element {
     return stop;
   }, [scenarioId]);
 
+  // -- live-data manager: terrain endpoint health + unified status snapshot --
+  // Polling only (interval HTTPS); the manager never blocks first render.
+  useEffect(() => {
+    const manager = new LiveDataManager();
+    managerRef.current = manager;
+    const unsubscribe = manager.subscribe((snap) => setLiveSnapshot(snap));
+    manager.start();
+    return () => {
+      unsubscribe();
+      manager.stop();
+      managerRef.current = null;
+    };
+  }, []);
+
+  // -- live terrain fetch: explicit user action, labeled fallback ------------
+  useEffect(() => {
+    if (terrainMode !== 'live') {
+      setLiveTerrain(null);
+      return;
+    }
+    const manager = managerRef.current;
+    if (!manager) {
+      setTerrainNotice('Live-data manager not ready — try again in a moment.');
+      setTerrainMode('auto');
+      return;
+    }
+    let cancelled = false;
+    setTerrainNotice('Fetching live terrain tiles…');
+    const scn = getScenario(scenarioId);
+    void resolveTerrainWithFallback({
+      client: manager.terrainClient,
+      anchorLat: ANCHOR_SITE.lat,
+      anchorLon: ANCHOR_SITE.lng,
+      nx: scn.engine.nx,
+      ny: scn.engine.ny,
+      dxFt: scn.engine.dxFt,
+      seed: 0,
+      baseElevFt: 375,
+      valleyReliefFt: 8,
+      noiseAmplitudeFt: 2,
+    }).then((resolved) => {
+      if (cancelled) return;
+      setLiveTerrain(resolved);
+      if (resolved.tier !== 'live') {
+        setTerrainNotice(
+          `Live tiles unreachable — fell back to ${resolved.tier === 'bundled-surveyed' ? 'the bundled 3DEP-derived grid' : 'the procedural approximation'}.`,
+        );
+      } else {
+        setTerrainNotice(null);
+      }
+      setBuildKey((k) => k + 1);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [terrainMode]);
+
   // -- world + engine lifecycle ----------------------------------------------
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -204,11 +282,55 @@ export default function FloodSimulator(): React.JSX.Element {
     try {
       const scn = getScenario(scenarioId);
       const baseConfig = scenarioToEngineConfig(scn);
+      // Resolve the elevation source ONCE per build; the engine and the mesh
+      // share the same grid so physics and visuals agree exactly.
+      const terrainOpts = {
+        nx: baseConfig.nx,
+        ny: baseConfig.ny,
+        dxFt: baseConfig.dxFt,
+        seed: baseConfig.seed,
+        baseElevFt: 375,
+        valleyReliefFt: 8,
+        noiseAmplitudeFt: 2,
+      };
+      let sourceInfo: Pick<
+        ResolvedTerrainSource,
+        'source' | 'dataQuality' | 'provenance' | 'surveyedMeta'
+      >;
+      let resolvedGrid: number[][];
+      if (terrainMode === 'live' && liveTerrain) {
+        resolvedGrid = liveTerrain.grid;
+        sourceInfo = {
+          source: 'surveyed',
+          dataQuality: 'live-terrain-service' as TerrainDataQuality,
+          provenance: liveTerrain.provenance,
+          surveyedMeta: null,
+        };
+      } else {
+        const resolved = resolveElevationGrid({
+          ...terrainOpts,
+          terrainSource: terrainMode === 'procedural' ? 'procedural' : 'auto',
+        });
+        resolvedGrid = resolved.grid;
+        sourceInfo = {
+          source: resolved.source,
+          dataQuality: resolved.dataQuality,
+          provenance: resolved.provenance,
+          surveyedMeta: resolved.surveyedMeta,
+        };
+      }
       // A signed-off alternative persists across rebuilds via appliedAltRef.
       const alt = appliedAltRef.current;
       const config = alt
         ? { ...baseConfig, elevationFt: alt.elevationFt, manningN: alt.manningN }
-        : baseConfig;
+        : { ...baseConfig, elevationFt: resolvedGrid };
+      if (alt) {
+        sourceInfo = {
+          ...sourceInfo,
+          provenance: `${sourceInfo.provenance} (+ signed-off mitigation alternative)`,
+        };
+      }
+      setTerrainProvenance(sourceInfo.provenance);
       const engine = new FloodSimEngine(config);
       if (pausedRef.current) engine.pause();
 
@@ -224,6 +346,7 @@ export default function FloodSimulator(): React.JSX.Element {
         valleyReliefFt: 8,
         noiseAmplitudeFt: 2,
         elevationFt: elev,
+        sourceInfo,
         segments: spec.terrainSegments,
       });
       renderer.scene.add(terrain.mesh);
@@ -279,6 +402,7 @@ export default function FloodSimulator(): React.JSX.Element {
         water,
         markers,
         baselineElev: elev.map((row) => [...row]),
+        sourceInfo,
         orbit,
         driver: null,
         tourStartWall: 0,
@@ -440,7 +564,7 @@ export default function FloodSimulator(): React.JSX.Element {
       return undefined;
     }
     return undefined;
-  }, [scenarioId, buildKey]);
+  }, [scenarioId, buildKey, terrainMode, liveTerrain]);
 
   // -- handlers ---------------------------------------------------------------
   const durationSec = scenario.engine.durationHrs * 3600;
@@ -655,6 +779,59 @@ export default function FloodSimulator(): React.JSX.Element {
                 ))}
               </select>
             </label>
+            <label style={{ fontSize: 12 }}>
+              Terrain
+              <select
+                value={terrainMode}
+                onChange={(e) => {
+                  setTerrainNotice(null);
+                  setTerrainMode(e.target.value as 'auto' | 'procedural' | 'live');
+                }}
+                style={{ marginLeft: 6, padding: 4 }}
+                title="Elevation source: auto prefers the bundled 3DEP-derived grid with procedural fallback; live attempts real-time tile fetch with the same fallback chain."
+              >
+                <option value="auto">Auto (3DEP-derived → procedural)</option>
+                <option value="live">Live tiles (→ fallback chain)</option>
+                <option value="procedural">Procedural only</option>
+              </select>
+            </label>
+          </div>
+
+          {/* Live-data status badge — always names the actual source and its age */}
+          <div style={{ fontSize: 11, marginBottom: 12, background: '#0d1219', border: '1px solid #222a35', borderRadius: 6, padding: '8px 10px' }}>
+            <div style={{ marginBottom: 4 }}>
+              <span style={{ color: '#93a0b4' }}>Terrain: </span>
+              <span>{terrainProvenance}</span>
+            </div>
+            {liveSnapshot && (
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', color: '#93a0b4' }}>
+                <span>
+                  Tiles endpoint:{' '}
+                  <strong
+                    style={{
+                      color:
+                        liveSnapshot.terrainEndpoint.status === 'LIVE'
+                          ? '#9fd8a8'
+                          : liveSnapshot.terrainEndpoint.status === 'STALE'
+                            ? '#ffcf6e'
+                            : '#ff9d9d',
+                    }}
+                  >
+                    {liveSnapshot.terrainEndpoint.status}
+                  </strong>
+                  {liveSnapshot.terrainEndpoint.ageSec != null &&
+                    ` (${Math.round(liveSnapshot.terrainEndpoint.ageSec)}s ago)`}
+                </span>
+                <span>
+                  Gauges:{' '}
+                  {Object.values(liveSnapshot.gauges).filter((g) => g.status === 'LIVE').length} live /{' '}
+                  {Object.keys(liveSnapshot.gauges).length} tracked
+                </span>
+              </div>
+            )}
+            {terrainNotice && (
+              <div style={{ marginTop: 6, color: '#ffcf6e' }}>{terrainNotice}</div>
+            )}
           </div>
 
           <label style={{ display: 'block', fontSize: 12, marginBottom: 12 }}>
@@ -832,6 +1009,7 @@ export default function FloodSimulator(): React.JSX.Element {
           <div style={{ fontSize: 11, color: '#93a0b4', borderTop: '1px solid #222a35', paddingTop: 8 }}>
             <div>Gauge markers: {placedCount} placed from manifest coordinates · {unplacedCount} listed, not placed (no coordinates in manifest — never guessed).</div>
             <div>Anchor: {ANCHOR_SITE.label}</div>
+            <div>Elevation source: {terrainProvenance}</div>
             <div style={{ marginTop: 4 }}>
               Provenance taxonomy: FEMA-effective / State-best / observed / modeled / forecast / simulation.
               This view: <strong>simulation</strong>.

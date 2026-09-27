@@ -204,3 +204,20 @@ npm run build   # verify tsm-console/dist/ exists for Capacitor webDir: 'dist'
 - SCS→wave coupling is uniform-rate and screening-level (§1).
 - Mitigation alternatives use simplified berm-cell/channel-cell masks, not
   surveyed alignments.
+
+## 13. Terrain elevation, hillshade, and live-data integration
+
+- Elevation source: bundled 3DEP-derived screening grid
+  (`tsm-console/src/lib/flood-sim/world/data/surveyed-dem-posey.json`, fetched
+  by `tools/terrain/fetch-terrarium-dem.py`), resampled to each scenario
+  domain by `resolveElevationGrid()`; procedural seeded value-noise remains
+  the validated fallback. Full detail: `docs/TERRAIN-LIVE-DATA.md`.
+- Mesh vertex colours combine the hypsometric tint with an analytic Horn's
+  hillshade (`world/hillshade.ts`); the shade is visual only.
+- `LiveDataManager` (`world/live-data.ts`) polls gauges (60 s) and probes the
+  terrain tile endpoint (5 min) over REST, with an in-memory tile cache and
+  the fallback chain live tiles → bundled grid → procedural. The UI status
+  badge always names the actual source and its age (LIVE / STALE /
+  SOURCE_UNAVAILABLE / CANDIDATE_NOT_LIVE).
+- The 3DEP-derived grid is screening-level (~15 m source posting), not
+  survey-grade, and changes nothing about the LOMA evidence position.

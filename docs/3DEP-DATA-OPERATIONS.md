@@ -20,3 +20,18 @@ TSM treats USGS National Map and 3DEP as authoritative discovery/acquisition sou
 ## CRS / datum rule
 
 Never silently transform a National Map product. Record the native horizontal CRS and vertical reference first, then record any transformation as an explicit derivation step with method, software version, and uncertainty.
+
+## Bundled screening-grid carve-out (2026-09-27)
+
+The flood simulator bundles one small *derived* screening grid
+(`tsm-console/src/lib/flood-sim/world/data/surveyed-dem-posey.json`, 192×192,
+~250 KB, fetched by `tools/terrain/fetch-terrarium-dem.py` from
+elevation-tiles-prod Terrarium tiles derived from 3DEP). This is permitted
+under the acquisition contract above because:
+
+1. It is a resampled derivative, not operational LAS/LAZ/DEM binaries.
+2. Full provenance (tile URLs, zoom, datums, SHA-256) ships alongside it.
+3. It is labeled `surveyed-source-derived` — screening-level, not survey-grade —
+   everywhere it is used, and never feeds evidence outputs.
+
+Refresh via the fetch script; verify the manifest SHA-256 before release.
