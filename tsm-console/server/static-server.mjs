@@ -79,4 +79,4 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, '0.0.0.0', () => {
   console.log('[tsm-static] listening on 0.0.0.0:' + PORT + '; root=' + STATIC_ROOT + '; api=' + (API_UPSTREAM || 'disabled'));
-}
+});
