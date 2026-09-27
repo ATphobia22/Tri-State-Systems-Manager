@@ -2,16 +2,28 @@ import type { Map, StyleSpecification } from 'maplibre-gl';
 import type { MapTwinLoaderData } from '../types/loaders';
 import { MAP_LAYERS } from './map-layers';
 import { createHydraulicExtrusionLayer, createHydraulicSource } from './hydraulic-rendering';
+import {
+  resolveTerrainRgbFromEnv,
+  TERRAIN_RGB_DEFAULT_EXAGGERATION,
+  TERRAIN_RGB_ENCODING,
+  TERRAIN_RGB_SOURCE_ID,
+  TERRAIN_RGB_TILE_SIZE,
+  type TerrainRgbStatus,
+} from './terrain-rgb-contract';
 
 const imagery = MAP_LAYERS.find((layer) => layer.id === 'indiana-imagery');
-const terrainTemplate = import.meta.env.VITE_TSM_TERRAIN_RGB_URL_TEMPLATE?.trim() || '';
 
+/** Fail-closed Terrain-RGB status (no synthetic mesh when blocked). */
+export function getTerrainRgbStatus(): TerrainRgbStatus {
+  return resolveTerrainRgbFromEnv(import.meta.env.VITE_TSM_TERRAIN_RGB_URL_TEMPLATE);
+}
 
 const ARCGIS_EXPORT_QUERY = 'bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=512,512&format=png32&transparent=false&f=image';
 
 export function buildTwinStyle(): StyleSpecification {
   const imageryUrl = imagery?.url;
   if (!imageryUrl) throw new Error('Indiana current imagery source contract is missing');
+  const terrain = getTerrainRgbStatus();
   const sources: StyleSpecification['sources'] = {
     'indiana-current-imagery': {
       type: 'raster',
@@ -23,8 +35,14 @@ export function buildTwinStyle(): StyleSpecification {
   const layers: StyleSpecification['layers'] = [
     { id: 'indiana-current-imagery', type: 'raster', source: 'indiana-current-imagery', paint: { 'raster-opacity': 1 } },
   ];
-  if (terrainTemplate) {
-    sources['tsm-terrain-rgb'] = { type: 'raster-dem', tiles: [terrainTemplate], tileSize: 256, encoding: 'mapbox' };
+  // Only register raster-dem when a validated, non-placeholder template exists.
+  if (terrain.enabled) {
+    sources[TERRAIN_RGB_SOURCE_ID] = {
+      type: 'raster-dem',
+      tiles: [terrain.template],
+      tileSize: TERRAIN_RGB_TILE_SIZE,
+      encoding: TERRAIN_RGB_ENCODING,
+    };
   }
   return {
     version: 8,
@@ -48,9 +66,32 @@ export function buildTwinStyle(): StyleSpecification {
   };
 }
 
+/**
+ * Enable MapLibre 3D terrain only when Terrain-RGB is provenance-configured.
+ * Returns false (fail-closed) when VITE_TSM_TERRAIN_RGB_URL_TEMPLATE is missing
+ * or invalid — never invents elevation mesh.
+ */
 export function applyTwinTerrain(map: Map): boolean {
-  if (!terrainTemplate) return false;
-  map.setTerrain({ source: 'tsm-terrain-rgb', exaggeration: 1.0 });
+  const terrain = getTerrainRgbStatus();
+  if (!terrain.enabled) {
+    // Explicit fail-closed teardown if a prior session left terrain enabled.
+    try {
+      if (typeof map.getTerrain === 'function' && map.getTerrain()) {
+        map.setTerrain(null);
+      }
+      if (map.getSource(TERRAIN_RGB_SOURCE_ID)) {
+        map.removeSource(TERRAIN_RGB_SOURCE_ID);
+      }
+    } catch {
+      // Style may not support remove yet; ignore.
+    }
+    return false;
+  }
+  if (!map.getSource(TERRAIN_RGB_SOURCE_ID)) return false;
+  map.setTerrain({
+    source: TERRAIN_RGB_SOURCE_ID,
+    exaggeration: TERRAIN_RGB_DEFAULT_EXAGGERATION,
+  });
   return true;
 }
 
