@@ -6,42 +6,55 @@
       "id": "AUTH_USGS_WDFN",
       "name": "USGS Water Data for the Nation",
       "role": "Authoritative hydrologic observations and metadata",
-      "endpoints": ["https://api.waterdata.usgs.gov/"],
+      "endpoints": [
+        "https://api.waterdata.usgs.gov/"
+      ],
       "verification": "USGS Water Data API V1"
     },
     {
       "id": "AUTH_USGS_3DEP",
       "name": "USGS 3D Elevation Program",
       "role": "Topography / LiDAR Source",
-      "endpoints": ["https://www.usgs.gov/3d-elevation-program"],
+      "endpoints": [
+        "https://www.usgs.gov/3d-elevation-program"
+      ],
       "verification": "SHA-256 Manifest / source product metadata"
     },
     {
       "id": "AUTH_IN_GIO",
       "name": "Indiana Geographic Information Office",
       "role": "Statewide Orthoimagery & LiDAR",
-      "endpoints": ["https://www.in.gov/gis/", "https://elevation.gio.in.gov/"],
+      "endpoints": [
+        "https://www.in.gov/gis/",
+        "https://elevation.gio.in.gov/"
+      ],
       "verification": "State source metadata"
     },
     {
       "id": "AUTH_NOAA_NWPS",
       "name": "National Weather Service National Water Prediction Service",
       "role": "Official hydrologic observations and forecasts",
-      "endpoints": ["https://water.noaa.gov/about/api"],
+      "endpoints": [
+        "https://water.noaa.gov/about/api"
+      ],
       "verification": "Official NWPS API"
     },
     {
       "id": "AUTH_FEMA_MSC",
       "name": "FEMA Map Service Center / National Flood Hazard Layer",
       "role": "Effective regulatory flood hazard layers",
-      "endpoints": ["https://msc.fema.gov/portal/search"],
+      "endpoints": [
+        "https://msc.fema.gov/portal/search"
+      ],
       "verification": "Official FEMA NFHL services"
     },
     {
       "id": "AUTH_IDNR_INFIP",
       "name": "Indiana DNR Floodplain Information Portal",
       "role": "Indiana Best Available Floodplain / FARA",
-      "endpoints": ["https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/indiana-floodplain-information-portal"],
+      "endpoints": [
+        "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/indiana-floodplain-information-portal"
+      ],
       "verification": "Indiana DNR Division of Water"
     }
   ],
@@ -53,9 +66,19 @@
       "role": "wabash_boundary_stage_discharge",
       "lat": 38.13089124,
       "lon": -87.9414145,
-      "parameters": ["00065", "00060"],
-      "gage_zero_navd88_ft": null,
-      "vertical_conversion_source": null
+      "parameters": [
+        "00065",
+        "00060"
+      ],
+      "gage_zero_navd88_ft": 352.67,
+      "vertical_conversion_source": "USGS-SIR-2016-5119-TABLE1-GAGE-DATUM",
+      "nws_id": "NHRI3",
+      "vertical_conversion_status": "VERIFIED_PUBLISHED_STATION_RELATIONSHIP",
+      "vertical_conversion_source_uri": "https://pubs.usgs.gov/sir/2016/5119/sir20165119.pdf",
+      "vertical_conversion_method": "WSE_NAVD88_FT = STAGE_GAGE_DATUM_FT + 352.67_FT",
+      "vertical_conversion_verified_at": "2026-09-27",
+      "vertical_conversion_scope": "USGS 03378500 gage-site water-surface elevation only; not a site-transfer equation",
+      "site_transfer_required": true
     },
     {
       "id": "03322000",
@@ -65,7 +88,10 @@
       "role": "downstream_ohio_context",
       "lat": 37.97228264107407,
       "lon": -87.57640285193835,
-      "parameters": ["00065", "00060"],
+      "parameters": [
+        "00065",
+        "00060"
+      ],
       "gage_zero_navd88_ft": null,
       "vertical_conversion_source": null
     },
@@ -77,7 +103,9 @@
       "role": "usgs_tailwater_observation_related_to_john_t_myers_locks_and_dam",
       "lat": 37.7971555584685,
       "lon": -87.9983356426059,
-      "parameters": ["00065"],
+      "parameters": [
+        "00065"
+      ],
       "gage_zero_navd88_ft": null,
       "vertical_conversion_source": null,
       "related_infrastructure": "John T. Myers Locks and Dam"
