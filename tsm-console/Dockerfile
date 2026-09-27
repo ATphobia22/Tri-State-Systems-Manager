@@ -1,12 +1,12 @@
 # TSM production runtime image
 FROM node:22-alpine AS build
 WORKDIR /app
-COPY package.json package-lock.json ./
-COPY scripts/postinstall-check.mjs ./scripts/postinstall-check.mjs
-COPY vite.config.ts index.html ./
-COPY src/main.tsx ./src/main.tsx
+COPY tsm-console/package.json tsm-console/package-lock.json ./
+COPY tsm-console/scripts/postinstall-check.mjs ./scripts/postinstall-check.mjs
+COPY tsm-console/vite.config.ts tsm-console/index.html ./
+COPY tsm-console/src/main.tsx ./src/main.tsx
 RUN npm ci --no-audit --no-fund
-COPY . .
+COPY tsm-console/. .
 RUN npm run build
 
 FROM node:22-alpine AS runtime
