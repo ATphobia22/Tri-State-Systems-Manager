@@ -24,7 +24,7 @@ function categorize(ft: number | null): MapTwinLoaderData['stage']['floodCategor
 }
 
 const PRIMARY_USGS = '03378500';
-const PRIMARY_NWS = 'MTVI3';
+const PRIMARY_NWS = 'NHRI3';
 
 export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
   const attempts = [
@@ -73,9 +73,13 @@ export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
             : null,
         floodCategory: categorize(value),
         vertical_reference: 'GAGE_DATUM',
-        wse_navd88_ft: conversion?.wseNavd88Ft ?? null,
-        gage_zero_navd88_ft: conversion?.gageZeroNavd88Ft ?? null,
-        conversion_applied: conversion?.conversionApplied ?? false,
+        wse_navd88_ft: typeof record.wse_navd88_ft === 'number' ? record.wse_navd88_ft : conversion?.wseNavd88Ft ?? null,
+        gage_zero_navd88_ft: typeof record.gage_zero_navd88_ft === 'number' ? record.gage_zero_navd88_ft : conversion?.gageZeroNavd88Ft ?? null,
+        conversion_applied: typeof record.conversion_applied === 'boolean' ? record.conversion_applied : conversion?.conversionApplied ?? false,
+        vertical_conversion_status: typeof record.vertical_conversion_status === 'string' ? record.vertical_conversion_status : undefined,
+        vertical_conversion_source: typeof record.vertical_conversion_source === 'string' ? record.vertical_conversion_source : null,
+        site_transfer_status: typeof record.site_transfer_status === 'string' ? record.site_transfer_status : 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE',
+        hydraulic_extrusion_eligibility: typeof record.hydraulic_extrusion_eligibility === 'string' ? record.hydraulic_extrusion_eligibility : 'BLOCKED_UNTIL_SITE_WSE_TRANSFER_VALIDATED',
         sourceUri: typeof record.sourceUri === 'string' ? record.sourceUri : null,
         ...((conversion ? stageVerticalMetadata(PRIMARY_USGS, conversion) : {}) as Record<
           string,
@@ -103,6 +107,10 @@ export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
     wse_navd88_ft: null,
     gage_zero_navd88_ft: null,
     conversion_applied: false,
+    vertical_conversion_status: 'CONVERSION_BLOCKED',
+    vertical_conversion_source: null,
+    site_transfer_status: 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE',
+    hydraulic_extrusion_eligibility: 'BLOCKED_UNTIL_SITE_WSE_TRANSFER_VALIDATED',
     sourceUri: null,
   };
 }
