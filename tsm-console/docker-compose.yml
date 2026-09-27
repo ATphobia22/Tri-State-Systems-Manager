@@ -57,16 +57,17 @@ services:
       context: .
       dockerfile: Dockerfile
     image: tsm-console:local
-    command: ["npm", "run", "preview", "--", "--host", "0.0.0.0", "--port", "3000"]
+    command: ["node", "server/static-server.mjs"]
     ports:
       - "3000:3000"
     environment:
-      VITE_TSM_API_BASE_URL: ${VITE_TSM_API_BASE_URL:-http://localhost:8787}
+      PORT: "3000"
+      TSM_API_UPSTREAM: ${TSM_API_UPSTREAM:-http://api:8787}
     depends_on:
       api:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/"]
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/ready"]
       interval: 10s
       timeout: 5s
       retries: 12
