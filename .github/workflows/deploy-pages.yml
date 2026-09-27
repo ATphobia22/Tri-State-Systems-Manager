@@ -178,6 +178,7 @@ jobs:
     permissions:
       pages: write
       id-token: write
+      actions: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -229,6 +230,24 @@ jobs:
           console.log(JSON.stringify({ ok: true, build_sha: body.build_sha, auth_ready: body.auth_ready, oidc: body.required_internal_dependencies.oidc }, null, 2));
           NODE
           echo "Production API /ready and exact build/auth verification passed: ${TSM_API_BASE_URL%/}/ready"
+      - name: Purge stale Pages workflow artifacts after deployment
+        if: always()
+        continue-on-error: true
+        uses: jimschubert/delete-artifacts-action@a6a85fe6cc7f54a2abb2aff7440825d98b8eb6e4 # v1.0.3
+        with:
+          artifact_name: github-pages
+          active_duration: 1h
+          min_bytes: '0'
+          log_level: info
+      - name: Purge stale production bundle artifacts after deployment
+        if: always()
+        continue-on-error: true
+        uses: jimschubert/delete-artifacts-action@a6a85fe6cc7f54a2abb2aff7440825d98b8eb6e4 # v1.0.3
+        with:
+          artifact_name: tsm-console-production
+          active_duration: 1h
+          min_bytes: '0'
+          log_level: info
 
   notify-command:
     name: Report owner-triggered Pages dispatch
