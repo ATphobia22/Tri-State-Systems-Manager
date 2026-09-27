@@ -30,7 +30,8 @@ function MapTwinView() {
           margin: '1.25rem 0',
         }}
       >
-        <Card label="BFE" value={`${data.fema.bfe_ft} ft`} />
+        <Card label="Station WSE" value={data.stage.wse_navd88_ft == null ? 'unavailable' : `${data.stage.wse_navd88_ft.toFixed(2)} ft NAVD88`} />
+        <Card label="BFE" value={data.fema.bfe_ft == null ? 'source required' : `${data.fema.bfe_ft} ft`} />
         <Card label="LAG" value={`${data.fema.lag_ft} ft`} />
         <Card label="Clearance" value={`+${data.fema.clearance_ft} ft`} />
         <Card label="FFE" value={`${data.site.elevations.ffe_ft} ft`} />
