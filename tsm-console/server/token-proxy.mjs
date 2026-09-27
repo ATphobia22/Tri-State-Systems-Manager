@@ -21,6 +21,7 @@ import { authenticateRequest, requireRoles, requireAuthenticatedSubject } from '
 import { submitCommunityObservation } from './ingestion/community-submissions.mjs';
 import { beginOidcLogin, finishOidcLogin, getBrowserSession, logoutOidc } from './auth/oidc-bff.mjs';
 import { bootstrapOidc } from './auth/oidc-bootstrap.mjs';
+import { calculateGaugeWseNavd88, getHydrologicNode } from './ingestion/hydraulic-calibration.mjs';
 import { evaluateLevel5, listLevel5Proposals, approveLevel5Proposal, executeLevel5Proposal, autonomyStatus } from './autonomy/level5-orchestrator.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
@@ -243,6 +244,35 @@ const server = http.createServer(async (req, res) => {
       const network = await fetchRiverNetwork({ stationIds: stationIds.length ? stationIds : null, includeNoaa: true });
       return json(res, 200, { ok: true, ...network, requestId }, requestId);
     }
+    if (req.method === 'GET' && url.pathname.startsWith('/api/hydro/calculate-wse/')) {
+      const stageValue = Number(decodeURIComponent(url.pathname.slice('/api/hydro/calculate-wse/'.length)));
+      const stationId = url.searchParams.get('station_id') || '03378500';
+      try {
+        const result = calculateGaugeWseNavd88({ stationId, stageFt: stageValue });
+        return json(res, result.ok ? 200 : 422, { ...result, requestId }, requestId);
+      } catch (error) {
+        return json(res, error.status || 422, { ok: false, code: error.code || 'HYDRO_CALIBRATION_ERROR', error: error.message }, requestId);
+      }
+    }
+    if (req.method === 'GET' && url.pathname === '/api/hydrologic/calibration') {
+      const stationId = url.searchParams.get('station_id') || '03378500';
+      try {
+        const node = getHydrologicNode(stationId);
+        return json(res, 200, {
+          ok: true,
+          station_id: stationId,
+          station_name: node.name,
+          gage_zero_navd88_ft: Number.isFinite(Number(node.gage_zero_navd88_ft)) ? Number(node.gage_zero_navd88_ft) : null,
+          vertical_conversion_status: node.vertical_conversion_status || 'CONVERSION_BLOCKED',
+          vertical_conversion_source: node.vertical_conversion_source_uri || null,
+          site_transfer_status: node.site_transfer_required ? 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE' : 'NOT_REQUIRED',
+          hydraulic_extrusion_eligibility: node.site_transfer_required ? 'BLOCKED_UNTIL_SITE_WSE_TRANSFER_VALIDATED' : 'REVIEW_REQUIRED',
+          requestId,
+        }, requestId);
+      } catch (error) {
+        return json(res, error.status || 422, { ok: false, code: error.code || 'HYDRO_CALIBRATION_ERROR', error: error.message }, requestId);
+      }
+    }
     if (req.method === 'GET' && url.pathname === '/api/hydrologic/live') {
       const usgsId = url.searchParams.get('usgs_id') || '03378500';
       const nwsId = url.searchParams.get('nws_id') || 'NHRI3';
@@ -273,6 +303,7 @@ const server = http.createServer(async (req, res) => {
         const stage = selectedSource === 'USGS' ? latestRecord(records, '00065') : latestRecord(records);
         const discharge = selectedSource === 'USGS' ? latestRecord(records, '00060') : null;
         if (!stage) throw Object.assign(new Error('no stage observation returned'), { code: 'HYDRO_NO_STAGE' });
+        const conversion = selectedSource === 'USGS' ? calculateGaugeWseNavd88({ stationId: usgsId, stageFt: stage.value }) : { ok: false, wse_navd88_ft: null, gage_zero_navd88_ft: null, vertical_conversion_status: 'CONVERSION_BLOCKED', site_transfer_status: 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE', hydraulic_extrusion_eligibility: 'BLOCKED_UNTIL_SITE_WSE_TRANSFER_VALIDATED' };
         const payload = {
           ok: true,
           ...stage,
@@ -282,6 +313,13 @@ const server = http.createServer(async (req, res) => {
           discharge_cfs: discharge?.value ?? null,
           discharge_observedAt: discharge?.observedAt ?? null,
           discharge_status: discharge?.status ?? null,
+          wse_navd88_ft: conversion.wse_navd88_ft ?? null,
+          gage_zero_navd88_ft: conversion.gage_zero_navd88_ft ?? null,
+          conversion_applied: conversion.ok === true && conversion.wse_navd88_ft != null,
+          vertical_conversion_status: conversion.vertical_conversion_status,
+          vertical_conversion_source: conversion.vertical_conversion_source || null,
+          site_transfer_status: conversion.site_transfer_status,
+          hydraulic_extrusion_eligibility: conversion.hydraulic_extrusion_eligibility,
           freshness: { observedAt: stage.observedAt, retrievedAt: stage.retrievedAt },
           requestId,
         };
