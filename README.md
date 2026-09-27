@@ -6,6 +6,43 @@ TSM combines authoritative river observations, geospatial evidence, engineering-
 
 > **Governing principle:** Technology informs people; it does not silently govern people. Human authority remains final.
 
+## Current production release status
+
+The repository is maintained as a gated production system. The current release line includes the merged hydraulic-datum presentation and evidence/telemetry hardening work from September 27, 2026.
+
+- **Primary branch:** `main`
+- **Production API:** `https://tsm-api-production.up.railway.app`
+- **API readiness contract:** `GET /ready` must report the deployed Git SHA, `auth_ready: true`, and OIDC readiness.
+- **Public console:** `https://atphobia22.github.io/Tri-State-Systems-Manager/`
+- **Required validation:** CI, CodeQL, parse/type/build gates, geospatial validation, PTDT E2E/visual regression, desktop packaging, and production deployment verification.
+
+Deployment provenance is fail-closed: a browser deployment is not considered verified when the live API serves a different build SHA from the release being published.
+
+## Hydraulic and telemetry hardening
+
+The hydraulic transfer plane is **evidence-gated**. It uses the US-customary Manning formulation and bounded backwater blending only when a versioned hydraulic profile is explicitly marked validated and linked to provenance. Unverified FIS coefficients, BFE values, datum conversions, or site-transfer constants are not embedded as production truth.
+
+The telemetry plane includes canonicalized SHA-256 packet integrity checks, an append-only PostgreSQL hash-chain ledger with transactional serialization, and HMAC-authenticated machine-alert ingestion. Cryptographic integrity establishes lineage/tamper evidence; it does not establish scientific truth, regulatory authority, or professional certification.
+
+HEC-RAS 2D water-surface extraction supports bounded cell slicing from discovered Water Surface datasets rather than hardcoding a project-specific HDF5 path. Hydraulic and telemetry outputs remain subject to human engineering review.
+
+### New Harmony datum boundary
+
+For USGS station `03378500`, the published station gage datum and current monitoring-location altitude are treated as distinct values. A station WSE may be derived only from the validated station-specific conversion; that station conversion does **not** by itself transfer WSE to a project site. Site transfer requires validated hydraulic-profile/model evidence.
+
+The EOC surface is community-scoped and does not expose a private residence address or APN as its public engineering heading.
+
+## Bounded Level-5 autonomy
+
+TSM implements a controlled autonomy architecture:
+
+```
+Observe → Fuse → Predict → Propose → Human Approval → Controlled Execution → Audit
+```
+
+The autonomy plane is fail-closed by default. Physical actuation is disabled unless separately authorized and configured, arbitrary-URL actuation is prohibited, and regulatory filings, LOMA/LOMR decisions, professional certification and jurisdictional determinations remain human-controlled. Visual assets—including terrain rendering, 3D Tiles, atmospheric effects and cinematic camera motion—never become control authority.
+
+
 ## What is deployable
 
 TSM has two runtime planes:
@@ -25,7 +62,7 @@ The Open World Twin geospatial plane also integrates:
 - historical Point Township plat/FIRM material as reference-only evidence;
 - H3 spatial indexing (`h3-js` 4.5.0) for bounded spatial aggregation;
 - PMTiles archive access (`pmtiles` 4.5.0) for portable tiled-data distribution;
-- NASA-AMMOS `3d-tiles-renderer` 0.5.2 for browser-side 3D Tiles visualization;
+- NASA-AMMOS `3d-tiles-renderer` 0.5.3 for browser-side 3D Tiles visualization;
 - Protomaps basemap generation as a governed OSM/Natural Earth pipeline, with required OSM attribution.
 
 The live imagery and 3DEP visual layers are source-bound visualization products. They do **not** silently become survey-grade terrain, regulatory determinations or engineering design surfaces. MapLibre 3D terrain remains fail-closed behind the configured `VITE_TSM_TERRAIN_RGB_URL_TEMPLATE` contract until a materialized, provenance-controlled Terrain-RGB/raster-dem service is available.
