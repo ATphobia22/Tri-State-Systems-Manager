@@ -139,7 +139,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
             {cinematicActive ? 'Stop cinematic' : 'Cinematic fly-through'}
           </button>
         </div>
-        <div style={{ marginTop: 6, color: '#86efac' }}>USGS/NOAA station telemetry is operational-source data. Site inundation and HEC-RAS rendering remain model/evidence-gated until a validated site WSE transfer and verified structural elevations are present. HEC-RAS visualization authority remains SIMULATION_DEMO until those evidence gates are satisfied.</div>
+        <div style={{ marginTop: 6, color: '#86efac' }}>USGS/NOAA station telemetry is operational-source data. Site inundation and HEC-RAS rendering remain model/evidence-gated until a validated site WSE transfer and verified structural elevations are present. HEC-RAS visualization authority remains SIMULATION_DEMO / MODEL_OUTPUT until those evidence gates are satisfied. Visualization/model context only; human authority remains final.</div>
       </div>
     </section>
   );
