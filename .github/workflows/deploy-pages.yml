@@ -212,7 +212,25 @@ jobs:
           [[ "${TSM_API_BASE_URL}" == https://* ]] || { echo 'Production API origin must use HTTPS.' >&2; exit 1; }
           curl --fail --silent --show-error --location --max-time 30 "${TSM_API_BASE_URL%/}/ready" --output /tmp/tsm-api-ready.json
           test -s /tmp/tsm-api-ready.json
-          echo "Production API /ready responded successfully: ${TSM_API_BASE_URL%/}/ready"
+          node <<'NODE'
+          const fs = require('node:fs');
+          const expected = process.env.GITHUB_SHA;
+          const body = JSON.parse(fs.readFileSync('/tmp/tsm-api-ready.json', 'utf8'));
+          if (body.build_sha !== expected) {
+            console.error(JSON.stringify({ error: 'API_BUILD_SHA_MISMATCH', expected, actual: body.build_sha }, null, 2));
+            process.exit(1);
+          }
+          if (body.auth_ready !== true) {
+            console.error(JSON.stringify({ error: 'API_AUTH_NOT_READY', auth_ready: body.auth_ready, code: body.code || null }, null, 2));
+            process.exit(1);
+          }
+          if (body.required_internal_dependencies?.oidc !== true) {
+            console.error(JSON.stringify({ error: 'API_OIDC_DEPENDENCY_NOT_READY', required_internal_dependencies: body.required_internal_dependencies }, null, 2));
+            process.exit(1);
+          }
+          console.log(JSON.stringify({ ok: true, build_sha: body.build_sha, auth_ready: body.auth_ready, oidc: body.required_internal_dependencies.oidc }, null, 2));
+          NODE
+          echo "Production API /ready and exact build/auth verification passed: ${TSM_API_BASE_URL%/}/ready"
 
   notify-command:
     name: Report owner-triggered Pages dispatch
