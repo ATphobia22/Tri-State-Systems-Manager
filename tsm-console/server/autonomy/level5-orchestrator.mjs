@@ -249,7 +249,9 @@ export function autonomyStatus() {
     actuator_mode: mode,
     kill_switch_active: killSwitch,
     allowlisted_action_count: allowedActions().size,
-    ...Object.fromEntries(Object.entries(loadState()).map(([key, value]) => [key.replace('_count', '_count'), value.length])),
+    proposal_count: loadState().proposals.length,
+    approval_count: loadState().approvals.length,
+    execution_count: loadState().executions.length,
     safety_boundary: 'No regulatory determination or physical actuation occurs without explicit human authorization and a reviewed actuator integration.',
   };
 }
