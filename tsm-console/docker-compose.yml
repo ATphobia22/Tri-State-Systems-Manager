@@ -62,6 +62,7 @@ services:
       - "3000:3000"
     environment:
       PORT: "3000"
+      VITE_TSM_API_BASE_URL: ${VITE_TSM_API_BASE_URL:-}
       TSM_API_UPSTREAM: ${TSM_API_UPSTREAM:-http://api:8787}
     depends_on:
       api:
