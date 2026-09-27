@@ -36,7 +36,7 @@ jobs:
       - name: Setup Node.js for Cypress and audit tooling
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: '22.19.0'
+          node-version: '22.23.2'
           cache: npm
           cache-dependency-path: tsm-console/package-lock.json
           registry-url: https://registry.npmjs.org
@@ -61,6 +61,9 @@ jobs:
       - name: Start API and static web runtime
         run: |
           set -euo pipefail
+          mkdir -p artifacts
+          export TSM_AUTH_MODE=disabled
+          export CORS_ORIGIN=http://127.0.0.1:3000
           docker compose -f docker-compose.yml up -d
           for attempt in {1..45}; do
             if curl --fail --silent --show-error http://127.0.0.1:8787/ready >/dev/null && curl --fail --silent --show-error http://127.0.0.1:3000/ready >/dev/null; then
@@ -115,7 +118,9 @@ jobs:
 
       - name: Collect Docker diagnostics
         if: always()
-        run: docker compose -f docker-compose.yml logs --no-color > artifacts/docker-compose.log 2>&1 || true
+        run: |
+          mkdir -p artifacts
+          docker compose -f docker-compose.yml logs --no-color > artifacts/docker-compose.log 2>&1 || true
 
       - name: Upload remote runtime evidence
         if: always()
