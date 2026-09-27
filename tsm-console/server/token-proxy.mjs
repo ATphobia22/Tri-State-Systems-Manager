@@ -21,6 +21,7 @@ import { authenticateRequest, requireRoles, requireAuthenticatedSubject } from '
 import { submitCommunityObservation } from './ingestion/community-submissions.mjs';
 import { beginOidcLogin, finishOidcLogin, getBrowserSession, logoutOidc } from './auth/oidc-bff.mjs';
 import { bootstrapOidc } from './auth/oidc-bootstrap.mjs';
+import { evaluateLevel5, listLevel5Proposals, approveLevel5Proposal, executeLevel5Proposal, autonomyStatus } from './autonomy/level5-orchestrator.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
 const BUILD_SHA = process.env.GITHUB_SHA || process.env.TSM_BUILD_SHA || 'local';
@@ -103,7 +104,9 @@ const server = http.createServer(async (req, res) => {
       url.pathname === '/api/ingest/hydrologic' ||
       url.pathname === '/api/ingest/usgs' ||
       url.pathname === '/api/ingest/nwps' ||
-      url.pathname === '/api/ledger/append'
+      url.pathname === '/api/ledger/append' ||
+      url.pathname === '/api/autonomy/evaluate' ||
+      url.pathname.startsWith('/api/autonomy/proposals/')
     );
     let requestAuth = null;
     if (protectedMutation) {
@@ -301,6 +304,34 @@ const server = http.createServer(async (req, res) => {
         incrementTelemetryCounter('tsm_cache_requests_total', { cache: 'hydrologic_stale', result: 'miss' });
         return json(res, 503, { ok: false, status: 'unavailable', code: error?.code || 'HYDRO_SOURCE_UNAVAILABLE', sourceId: `NOAA-NWPS-${nwsId}-observed / USGS-NWIS-${usgsId}-00065`, requestId }, requestId);
       }
+    }
+    if (req.method === 'GET' && url.pathname === '/api/autonomy/status') return json(res, 200, autonomyStatus(), requestId);
+    if (req.method === 'GET' && url.pathname === '/api/autonomy/proposals') {
+      try {
+        const auth = await authenticateRequest(req);
+        requireRoles(auth, String(process.env.TSM_OPERATOR_ROLE || 'tsm-operator'));
+        return json(res, 200, { proposals: listLevel5Proposals() }, requestId);
+      } catch (error) {
+        return json(res, error.status || 401, { ok: false, code: error.code || 'AUTHENTICATION_REQUIRED', error: error.message }, requestId);
+      }
+    }
+    if (req.method === 'POST' && url.pathname === '/api/autonomy/evaluate') {
+      try { return json(res, 201, evaluateLevel5(await readBodyFixed(req)), requestId); }
+      catch (error) { return json(res, error.status || 422, { ok: false, code: error.code || 'AUTONOMY_EVALUATION_FAILED', error: error.message }, requestId); }
+    }
+    if (req.method === 'POST' && /^\\/api\\/autonomy\\/proposals\\/[^/]+\\/approve$/.test(url.pathname)) {
+      try {
+        const proposalId = url.pathname.split('/')[4];
+        const body = await readBodyFixed(req);
+        const approval = approveLevel5Proposal(proposalId, requestAuth.subject, body.reason);
+        return json(res, 200, approval, requestId);
+      } catch (error) { return json(res, error.status || 422, { ok: false, code: error.code || 'AUTONOMY_APPROVAL_FAILED', error: error.message }, requestId); }
+    }
+    if (req.method === 'POST' && /^\\/api\\/autonomy\\/proposals\\/[^/]+\\/execute$/.test(url.pathname)) {
+      try {
+        const proposalId = url.pathname.split('/')[4];
+        return json(res, 200, await executeLevel5Proposal(proposalId, requestAuth.subject), requestId);
+      } catch (error) { return json(res, error.status || 422, { ok: false, code: error.code || 'AUTONOMY_EXECUTION_FAILED', error: error.message }, requestId); }
     }
     if (req.method === 'GET' && url.pathname === '/api/data-sources/health') return json(res, 200, { build_sha: BUILD_SHA, sources: listSourceHealth(), circuits: listUpstreamCircuitHealth() }, requestId);
     if (req.method === 'GET' && url.pathname === '/api/geospatial/posey/site') { const assets = getPoseyAssetManifest(); return json(res, 200, { ok: true, site_id: 'posey-lower-wabash-ohio-community', horizontal_crs: 'EPSG:2966', horizontal_crs_name: 'NAD83 / Indiana West (ftUS)', vertical_datum: null, vertical_datum_verified: false, bounds: assets.bounds, terrain: assets.terrain, orthophoto: assets.orthophoto }, requestId); }
