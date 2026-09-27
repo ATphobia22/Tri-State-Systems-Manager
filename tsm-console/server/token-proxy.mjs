@@ -319,7 +319,7 @@ const server = http.createServer(async (req, res) => {
       try { return json(res, 201, evaluateLevel5(await readBodyFixed(req)), requestId); }
       catch (error) { return json(res, error.status || 422, { ok: false, code: error.code || 'AUTONOMY_EVALUATION_FAILED', error: error.message }, requestId); }
     }
-    if (req.method === 'POST' && /^\\/api\\/autonomy\\/proposals\\/[^/]+\\/approve$/.test(url.pathname)) {
+    if (req.method === 'POST' && url.pathname.startsWith('/api/autonomy/proposals/') && url.pathname.endsWith('/approve')) {
       try {
         const proposalId = url.pathname.split('/')[4];
         const body = await readBodyFixed(req);
@@ -327,7 +327,7 @@ const server = http.createServer(async (req, res) => {
         return json(res, 200, approval, requestId);
       } catch (error) { return json(res, error.status || 422, { ok: false, code: error.code || 'AUTONOMY_APPROVAL_FAILED', error: error.message }, requestId); }
     }
-    if (req.method === 'POST' && /^\\/api\\/autonomy\\/proposals\\/[^/]+\\/execute$/.test(url.pathname)) {
+    if (req.method === 'POST' && url.pathname.startsWith('/api/autonomy/proposals/') && url.pathname.endsWith('/execute')) {
       try {
         const proposalId = url.pathname.split('/')[4];
         return json(res, 200, await executeLevel5Proposal(proposalId, requestAuth.subject), requestId);
