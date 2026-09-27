@@ -71,14 +71,25 @@
         "00060"
       ],
       "gage_zero_navd88_ft": 352.67,
-      "vertical_conversion_source": "USGS-SIR-2016-5119-TABLE1-GAGE-DATUM",
+      "vertical_conversion_source": "USGS-SIR-2016-5119-TABLE1-DATUM",
       "nws_id": "NHRI3",
       "vertical_conversion_status": "VERIFIED_PUBLISHED_STATION_RELATIONSHIP",
       "vertical_conversion_source_uri": "https://pubs.usgs.gov/sir/2016/5119/sir20165119.pdf",
       "vertical_conversion_method": "WSE_NAVD88_FT = STAGE_GAGE_DATUM_FT + 352.67_FT",
       "vertical_conversion_verified_at": "2026-09-27",
-      "vertical_conversion_scope": "USGS 03378500 gage-site water-surface elevation only; not a site-transfer equation",
-      "site_transfer_required": true
+      "vertical_conversion_scope": "USGS 03378500 gage-site water-surface elevation only; current monitoring-location altitude 352.71 ft is retained separately and is not substituted for the published gage datum of 352.67 ft.",
+      "site_transfer_required": true,
+      "gage_site_altitude_navd88_ft": 352.71,
+      "gage_site_altitude_source": "USGS-MONITORING-LOCATION-METADATA",
+      "gage_site_altitude_source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03378500/",
+      "flood_thresholds_ft": {
+        "action": 10,
+        "minor": 15,
+        "moderate": 20,
+        "major": 23
+      },
+      "flood_threshold_source": "NWS-NHRI3-RVF",
+      "flood_threshold_source_uri": "https://forecast.weather.gov/product.php?format=TXT&glossary=1&issuedby=WBL&product=RVF&site=REV&version=1"
     },
     {
       "id": "03322000",
