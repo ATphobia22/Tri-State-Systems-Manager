@@ -11,13 +11,23 @@ import { fileURLToPath } from 'node:url';
 import { normalizeVerticalDatum } from './vertical-datum.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const REGISTRY_PATH = process.env.TSM_AUTHORITY_REGISTRY || path.join(__dirname, '../../../tsm-authority-registry-v35.json');
+const REGISTRY_ENV = String(process.env.TSM_AUTHORITY_REGISTRY || '').trim();
+const REGISTRY_CANDIDATES = [
+  ...(REGISTRY_ENV ? [REGISTRY_ENV] : []),
+  path.join(process.cwd(), 'tsm-authority-registry-v35.json'),
+  path.join(process.cwd(), '..', 'tsm-authority-registry-v35.json'),
+  path.join(__dirname, '../../../tsm-authority-registry-v35.json'),
+  path.join(__dirname, '../../../../tsm-authority-registry-v35.json'),
+];
 
 function loadRegistry() {
-  if (fs.existsSync(REGISTRY_PATH)) return JSON.parse(fs.readFileSync(REGISTRY_PATH, 'utf8'));
-  const alt = path.join(__dirname, '../../../../tsm-authority-registry-v35.json');
-  if (fs.existsSync(alt)) return JSON.parse(fs.readFileSync(alt, 'utf8'));
-  throw new Error('fail-closed: Authority Registry v35 not found');
+  const registryPath = REGISTRY_CANDIDATES.find((candidate) => fs.existsSync(candidate));
+  if (!registryPath) throw new Error('fail-closed: Authority Registry v35 not found in configured or deployment-root paths');
+  try {
+    return JSON.parse(fs.readFileSync(registryPath, 'utf8'));
+  } catch (error) {
+    throw new Error(`fail-closed: Authority Registry v35 could not be parsed: ${error.message}`);
+  }
 }
 
 export function getHydrologicNode(stationId) {
