@@ -251,6 +251,7 @@ const server = http.createServer(async (req, res) => {
         const result = calculateGaugeWseNavd88({ stationId, stageFt: stageValue });
         return json(res, result.ok ? 200 : 422, { ...result, requestId }, requestId);
       } catch (error) {
+        console.error('[TSM hydro calibration] calculate-wse failed', { stationId, code: error?.code, message: error?.message });
         return json(res, error.status || 422, { ok: false, code: error.code || 'HYDRO_CALIBRATION_ERROR', error: error.message }, requestId);
       }
     }
