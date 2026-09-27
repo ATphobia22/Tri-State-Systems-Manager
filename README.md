@@ -6,89 +6,58 @@ TSM combines authoritative river observations, geospatial evidence, engineering-
 
 > **Governing principle:** Technology informs people; it does not silently govern people. Human authority remains final.
 
-## Current production release status
+## Current production status
 
-The repository is maintained as a gated production system. The current release line includes the merged hydraulic-datum presentation and evidence/telemetry hardening work from September 27, 2026.
+| Surface | Location |
+|---------|----------|
+| **Primary branch** | `main` |
+| **Public console (GitHub Pages SPA)** | https://atphobia22.github.io/Tri-State-Systems-Manager/ |
+| **Production API** | https://tsm-api-production.up.railway.app |
+| **API readiness** | `GET /ready` — deployed Git SHA, `auth_ready`, OIDC readiness |
+| **Console package** | `tsm-console` **v0.2.1** (React **19.3.0**, Vite 8, `@react-three/fiber` **9.8.1**, MapLibre **6.10.0**) |
 
-- **Primary branch:** `main`
-- **Production API:** `https://tsm-api-production.up.railway.app`
-- **API readiness contract:** `GET /ready` must report the deployed Git SHA, `auth_ready: true`, and OIDC readiness.
-- **Public console:** `https://atphobia22.github.io/Tri-State-Systems-Manager/`
-- **Required validation:** CI, CodeQL, parse/type/build gates, geospatial validation, PTDT E2E/visual regression, desktop packaging, and production deployment verification.
+**Verified (2026-09-27):** Actions production build → Pages preflight → deploy → live HTTP check. The published site serves the **Vite SPA** (module entry under `/Tri-State-Systems-Manager/assets/`, MapLibre vendors, document CSP) — not a Jekyll/README fallback.
 
 Deployment provenance is fail-closed: a browser deployment is not considered verified when the live API serves a different build SHA from the release being published.
 
-## HEC-RAS spatial geometry ingestion
+Required repository configuration for Pages deploy:
 
-HEC-RAS 2D cell centers are treated as model-project geometry. The ingestion utility discovers `Geometry/2D Flow Areas/*/Cells Center Coordinate` datasets, requires an explicit source CRS, and transforms coordinates into **EPSG:2966 (NAD83 / Indiana West, US survey feet)** for the engineering spatial registry.
-
-The production path is deliberately **operator-run and evidence-aware**:
-
-- `backend/engineering/hecras_geometry.py` performs dynamic dataset discovery and explicit CRS transformation.
-- `scripts/seed_hec_ras_cell_centers.py` seeds the privacy-reduced PostGIS registry without truncating production state.
-- `ops/postgis/migrations/20260927_hec_ras_cell_centers.sql` stores geometry, source CRS, source artifact SHA-256 and review status.
-- No owner names, APNs or residential addresses are required by this registry.
-- The source CRS is never guessed. A HEC-RAS project is not assumed to be WGS84.
-- Cell geometry and water-surface model output remain separate evidence products.
-
-This is an offline ingestion capability, not a new FastAPI runtime. The production API remains the Node service described above.
-
-## Hydraulic and telemetry hardening
-
-The hydraulic transfer plane is **evidence-gated**. It uses the US-customary Manning formulation and bounded backwater blending only when a versioned hydraulic profile is explicitly marked validated and linked to provenance. Unverified FIS coefficients, BFE values, datum conversions, or site-transfer constants are not embedded as production truth.
-
-The telemetry plane includes canonicalized SHA-256 packet integrity checks, an append-only PostgreSQL hash-chain ledger with transactional serialization, and HMAC-authenticated machine-alert ingestion. Cryptographic integrity establishes lineage/tamper evidence; it does not establish scientific truth, regulatory authority, or professional certification.
-
-HEC-RAS 2D water-surface extraction supports bounded cell slicing from discovered Water Surface datasets rather than hardcoding a project-specific HDF5 path. Hydraulic and telemetry outputs remain subject to human engineering review.
-
-### New Harmony datum boundary
-
-For USGS station `03378500`, the published station gage datum and current monitoring-location altitude are treated as distinct values. A station WSE may be derived only from the validated station-specific conversion; that station conversion does **not** by itself transfer WSE to a project site. Site transfer requires validated hydraulic-profile/model evidence.
-
-The EOC surface is community-scoped and does not expose a private residence address or APN as its public engineering heading.
-
-## Bounded Level-5 autonomy
-
-TSM implements a controlled autonomy architecture:
-
-```
-Observe → Fuse → Predict → Propose → Human Approval → Controlled Execution → Audit
+```text
+TSM_PAGES_ENABLED=true
+VITE_TSM_API_BASE_URL=https://tsm-api-production.up.railway.app
 ```
 
-The autonomy plane is fail-closed by default. Physical actuation is disabled unless separately authorized and configured, arbitrary-URL actuation is prohibited, and regulatory filings, LOMA/LOMR decisions, professional certification and jurisdictional determinations remain human-controlled. Visual assets—including terrain rendering, 3D Tiles, atmospheric effects and cinematic camera motion—never become control authority.
-
+Settings → Pages → Source must be **GitHub Actions**. The workflow does not fabricate or bypass that repository-level setting.
 
 ## What is deployable
 
 TSM has two runtime planes:
 
-- **Web console:** React 19 + TypeScript + Vite + MapLibre + Three.js.
+- **Web console:** React 19 + TypeScript + Vite + MapLibre + Three.js / React Three Fiber.
 - **Node API:** authoritative-source adapters, multi-gauge aggregation, evidence storage/verification, geospatial services and engineering endpoints.
 
-The browser and API are intentionally separately deployable. GitHub Pages can host the static browser plane; live river observations require the Node API to be published over HTTPS and selected with `VITE_TSM_API_BASE_URL`.
+The browser and API are intentionally separately deployable. GitHub Pages hosts the static browser plane; live river observations require the Node API over HTTPS (`VITE_TSM_API_BASE_URL`).
 
 The Open World Twin geospatial plane also integrates:
 
-- Indiana current imagery through the current ArcGIS ImageServer/WMS fabric;
+- Indiana current imagery (ArcGIS ImageServer/WMS);
 - USGS 3DEP elevation/hillshade visualization;
 - Indiana current and 2025 parcel services;
 - FEMA NFHL and Indiana BAFM as separate flood-authority planes;
 - USGS/NOAA live hydrologic observations;
 - historical Point Township plat/FIRM material as reference-only evidence;
-- H3 spatial indexing (`h3-js` 4.5.0) for bounded spatial aggregation;
-- PMTiles archive access (`pmtiles` 4.5.0) for portable tiled-data distribution;
-- NASA-AMMOS `3d-tiles-renderer` 0.5.3 for browser-side 3D Tiles visualization;
-- Protomaps basemap generation as a governed OSM/Natural Earth pipeline, with required OSM attribution.
+- H3 spatial indexing (`h3-js` 4.5.0);
+- PMTiles (`pmtiles` 4.5.0);
+- NASA-AMMOS `3d-tiles-renderer` **0.5.3**;
+- Protomaps basemap generation (OSM/Natural Earth) with required OSM attribution.
 
-The live imagery and 3DEP visual layers are source-bound visualization products. They do **not** silently become survey-grade terrain, regulatory determinations or engineering design surfaces. MapLibre 3D terrain remains fail-closed behind the configured `VITE_TSM_TERRAIN_RGB_URL_TEMPLATE` contract until a materialized, provenance-controlled Terrain-RGB/raster-dem service is available.
+Live imagery and 3DEP layers are **source-bound visualization products**. They do **not** silently become survey-grade terrain, regulatory determinations, or engineering design surfaces. MapLibre 3D terrain remains fail-closed behind `VITE_TSM_TERRAIN_RGB_URL_TEMPLATE` until a materialized, provenance-controlled Terrain-RGB service is available.
 
 ## Community River Watch
 
-The River Watch uses the registered USGS/NOAA station fabric and displays measured observations with explicit provenance and freshness states. The current network includes New Harmony, Evansville, Newburgh, Old Shawneetown, Smithland, Cannelton, Olmsted, Markland, McAlpine and Louisville. J.T. Myers is retained as a candidate station until its live runtime availability is independently verified.
+The River Watch uses the registered USGS/NOAA station fabric and displays measured observations with explicit provenance and freshness states. The network includes New Harmony, Evansville, Newburgh, Old Shawneetown, Smithland, Cannelton, Olmsted, Markland, McAlpine and Louisville. J.T. Myers is retained as a **candidate** station until live runtime availability is independently verified.
 
-The system never converts a missing upstream observation into a guessed value. `LIVE OBSERVATION`, `STALE`, `CANDIDATE — NOT LIVE`, and `SOURCE UNAVAILABLE` are distinct states.
-
-API endpoint:
+Missing upstream observations are never guessed. Distinct states: `LIVE OBSERVATION`, `STALE`, `CANDIDATE — NOT LIVE`, `SOURCE UNAVAILABLE`.
 
 ```text
 GET /api/hydrologic/community
@@ -98,21 +67,19 @@ GET /api/hydrologic/community
 
 TSM separates:
 
-1. external observation;
-2. derived calculation;
-3. model input;
-4. model output;
-5. engineering-review-ready evidence;
-6. engineer acceptance;
-7. agency acceptance.
+1. external observation  
+2. derived calculation  
+3. model input  
+4. model output  
+5. engineering-review-ready evidence  
+6. engineer acceptance  
+7. agency acceptance  
 
-The engineering section shows the chain from existing ground/survey through subsurface investigation, foundation preparation, drainage, qualified engineered fill and finished road/berm geometry. Missing survey, geotechnical, hydraulic or laboratory evidence remains visible rather than being fabricated.
+Missing survey, geotechnical, hydraulic or laboratory evidence remains visible rather than fabricated.
 
-Dredged material is **not presumed** to be structural fill. USACE Section 204 is a **conditional authority pathway**, not automatic road funding or a guarantee of material availability. Material qualification, environmental review, project purpose, cost share and agency approval remain project-specific.
+Dredged material is **not presumed** structural fill. USACE Section 204 is a **conditional authority pathway**, not automatic funding or a guarantee of material availability.
 
 ### Evidence-gated engineering pipeline
-
-The canonical engineering workflow is deliberately ordered so downstream artifacts cannot manufacture missing upstream evidence:
 
 ```text
 authoritative terrain
@@ -130,304 +97,122 @@ authoritative terrain
 → QA/QC
 ```
 
-Each stage carries explicit provenance, status and evidence requirements. A model result is not a survey, a cut/fill balance is not geotechnical acceptance, a BCA is not agency eligibility, and a funding rule is not a funding award. Missing or unverified evidence remains **blocked/unknown** rather than being inferred.
+Machine-readable contract: `data/engineering/evidence-pipeline-contract.json` (schema under `data/schemas/`). CI: `npm run check:engineering-pipeline`.
 
-The machine-readable contract is maintained in `data/engineering/evidence-pipeline-contract.json`, with its schema in `data/schemas/engineering-evidence-pipeline-v1.schema.json`. CI validates the gate with `npm run check:engineering-pipeline`.
+### HEC-RAS spatial geometry (operator-run)
+
+HEC-RAS 2D cell centers are model-project geometry. Ingestion discovers cell-center datasets, requires an **explicit source CRS**, and transforms into **EPSG:2966 (NAD83 / Indiana West, US survey feet)**. CRS is never guessed. No owner names, APNs or residential addresses are required by the privacy-reduced PostGIS registry. See `backend/engineering/hecras_geometry.py`, `scripts/seed_hec_ras_cell_centers.py`, and related PostGIS migrations.
 
 ## Data and authority hierarchy
 
-Primary-source government products are preferred:
+Primary-source government products are preferred: USGS Water Data, NOAA/NWS NWPS, USACE Louisville District, FEMA NFHL/FIRM/FIS, Indiana DNR Division of Water / BAFM / INFIP, USGS 3DEP and Indiana geospatial products, USDA NRCS, FHWA, NIST security/AI governance references.
 
-- USGS Water Data / streamgages
-- NOAA/NWS NWPS
-- USACE Louisville District and Beneficial Use Program
-- FEMA NFHL/FIRM/FIS products
-- Indiana DNR Division of Water and BAFM/INFIP
-- USGS 3DEP and Indiana geospatial products
-- USDA NRCS watershed/soil programs
-- FHWA transportation-resilience programs
-- NIST security/AI governance references
-
-Community historical records are preserved as historical evidence and are never silently promoted to agency observations.
+Community historical records remain historical evidence and are never silently promoted to agency observations.
 
 ## Hydrologic datum rule
 
-Raw gage height remains in its source-product datum. A NAVD88 water-surface elevation is derived only when a validated, product-matched gage-zero conversion is available.
+Raw gage height remains in its source-product datum. NAVD88 WSE is derived only with a validated, product-matched gage-zero conversion:
 
 ```text
 WSE_NAVD88 = source_gage_height + validated_gage_zero_NAVD88
 ```
 
-Source station, parameter, observation time, units, datum, conversion metadata and provenance travel with the derived record.
+Station, parameter, time, units, datum, conversion metadata and provenance travel with the derived record. A station conversion does **not** by itself transfer WSE to a project site.
 
 ## Privacy boundary
 
-The public architecture is community-scoped. It does **not** use a private residence, parcel/APN, owner record, account identifier or house-specific flood trigger as an engineering anchor.
-
-Private cadastral and residence-specific artifacts were removed from the active public repository surface. Community engineering may still use generalized historical evidence and authoritative regional datasets.
+The public architecture is **community-scoped**. It does **not** use a private residence, parcel/APN, owner record, account identifier or house-specific flood trigger as an engineering anchor.
 
 ## Repository map
 
 ```text
 .github/workflows/      CI/CD and policy enforcement
-backend/                Python server-side domain helpers
-data/                   schemas, registries and controlled evidence
+backend/                Python domain helpers (HEC-RAS geometry, etc.)
+data/                   schemas, registries, controlled evidence
 db/                     persistence definitions
-docs/                   engineering, deployment, governance and research records
+docs/                   engineering, deployment, governance
 packages/               shared contracts
-scripts/                CI, ingestion and GIS tooling
+scripts/                CI, ingestion, GIS tooling
 tools/                  specialized engineering/data tools
 tsm-console/            React/Vite console + Node API + tests
+deploy/                 deployment templates (e.g. Kubernetes)
+ops/                    PostGIS, Martin, operational configs
 ```
 
-Important runtime files:
+Important runtime paths:
 
-- `tsm-console/src/lib/river-gauges.ts` — community gauge definitions and client contract
-- `tsm-console/server/ingestion/river-network-api.mjs` — server-side multi-gauge aggregation
-- `tsm-console/server/token-proxy.mjs` — Node API
-- `tsm-console/src/components/RiverGaugeBoard.tsx` — accessible River Watch display
-- `tsm-console/src/components/EngineeringSectionCutaway.tsx` — engineering vertical section visualization
-- `artifacts/tsm-river-valley-realtime-stations-v1.json` — station/structure registry
-- `artifacts/tsm-geospatial-tile-fabric-v1.json` — governed live/historical geospatial asset manifest
-- `artifacts/tsm-regulatory-gates-v1.json` — regulatory review gates
-- `docs/OPEN-WORLD-LIVE-TILE-FABRIC-v1.md` — live imagery/elevation/Open World tile architecture
-- `docs/DEPLOYMENT-AND-OPERATIONS.md` — deployment and operations runbook
-- `COMPLIANCE.md` — authority and non-certification boundaries
+- `tsm-console/src/lib/river-gauges.ts` — community gauge contract  
+- `tsm-console/server/ingestion/river-network-api.mjs` — multi-gauge aggregation  
+- `tsm-console/server/token-proxy.mjs` — Node API  
+- `docs/DEPLOYMENT-AND-OPERATIONS.md` — operations runbook  
+- `COMPLIANCE.md` — authority and non-certification boundaries  
 
-## Public access and data-fabric boundary
-
-TSM is designed for public exploration without a required user account. Maps, public source metadata, open datasets and browser-local simulations remain accessible without authentication. Identity is required only for operations where accountability, restricted information or authoritative publication requires it.
-
-Community observations use the public endpoint `POST /api/community/observations`. Submissions are size/shape validated, provenance-hashed and placed into quarantine as observations; they cannot directly overwrite authoritative records. Authorized human review is required before an observation can enter an authoritative workflow.
-
-The public data-fabric dashboard is available at `/data-fabric`. Its transparency view exposes source-contract and source-health metadata without exposing deployment credentials.
-
-The canonical provenance contract is implemented in `tsm-console/server/ingestion/data-fabric-provenance.mjs` and requires source identity, source URI, publication time, CRS, license/usage terms, uncertainty, limitations and authority/governance classification. TSM does not invent missing source metadata.
-
-Production deployment templates use secret-manager references rather than repository credentials. See `deploy/kubernetes/tsm-api.yaml` and `docs/PUBLIC-DATA-FABRIC-ARCHITECTURE.md`.
-
-## Local deployment
-
-### Native Node
+## Local development
 
 ```bash
 cd tsm-console
-npm ci
-npm run ci:full
-npm run dev
+npm ci                    # requires Node >= 22, npm 10.9.2 preferred
+npm run ci:full           # full local gate suite
+npm run dev               # Vite console
+# API (separate terminal):
+npm run proxy             # or npm run dev:all
 ```
 
-Production-equivalent browser build:
+| Service | Default |
+|---------|---------|
+| Web | http://localhost:3000 |
+| API | http://localhost:8787 |
+| Readiness | http://localhost:8787/ready |
+| River Watch | http://localhost:8787/api/hydrologic/community |
 
-```bash
-npm run build
-npm run preview
-```
+Docker: `docker compose up --build` from the console or repo root as documented in `docs/DEPLOYMENT-AND-OPERATIONS.md`.
 
-### Docker
+Hosted browser builds need `VITE_TSM_API_BASE_URL` (HTTPS). Restrict `CORS_ORIGIN` to the exact HTTPS web origin.
 
-```bash
-cd tsm-console
-docker compose up --build
-```
-
-Then use:
-
-- Web: `http://localhost:3000`
-- API: `http://localhost:8787`
-- Readiness: `http://localhost:8787/ready`
-- River Watch API: `http://localhost:8787/api/hydrologic/community`
-
-For hosted deployment, set the browser build variable `VITE_TSM_API_BASE_URL` to the HTTPS API origin and restrict `CORS_ORIGIN` to the exact HTTPS web origin.
-
-## CI, actions and deployment verification
-
-The canonical application validation sequence is:
+## CI and quality gates
 
 ```bash
 cd tsm-console
 npm run ci:full
 ```
 
-The main CI workflow additionally validates backend engineering primitives and the monitoring configuration. Alertmanager and Prometheus checks invoke their bundled `amtool`/`promtool` binaries explicitly and use version-pinned container digests; they must not rely on the monitoring images' server entrypoints or floating `:latest` tags.
+Gates include dependency integrity, supply-chain / npx policy, SBOM, repository integrity, parse, TypeScript, geospatial and government-source contracts, live fabric, regulatory rules, engineering pipeline, schemas, production build, client-bundle secret scan, and production-gates tests.
 
-The GitHub Pages workflow always performs the production build and uploads a normal production artifact. The actual Pages deployment is intentionally conditional on the repository variable:
+Do **not** weaken or bypass a failing gate.
 
-```text
-TSM_PAGES_ENABLED=true
-```
-
-When that variable is not enabled, the production build remains verified and the Pages deployment job is skipped rather than falsely reporting a deployment. Enabling Pages also requires GitHub repository Pages configuration; the workflow does not fabricate or bypass that repository-level setting.
-
-The CI suite includes dependency integrity, supply-chain policy, SBOM/provenance, repository integrity, workflow security, artifact contracts, quantum isolation, shell safety, source-data contracts, parsing, TypeScript, geospatial validation, production build and the full test suite.
-
-Do not weaken or bypass a failing gate.
+Notable workflows: `ci.yml`, `deploy-pages.yml`, `tsm-parse-gate.yml`, `codeql.yml`, `open-world-twin.yml`, `ptdt-e2e-visual.yml`, `container-ci.yml`, `tsm-desktop.yml`, `railway-deployment-probe.yml`.
 
 ## Safety and professional authority
 
-TSM is an engineering decision-support and evidence system. It does not certify a berm, road, bridge, levee, floodway analysis, survey, geotechnical report, environmental determination or regulatory filing. Construction decisions require the responsible licensed professionals and applicable federal, state and local authorities.
+TSM is an engineering **decision-support and evidence** system. It does not certify a berm, road, bridge, levee, floodway analysis, survey, geotechnical report, environmental determination or regulatory filing. Construction and regulatory decisions require licensed professionals and applicable authorities.
 
-Likewise, live observations are not emergency instructions. During an active event, official emergency-management and National Weather Service instructions control.
+Live observations are **not** emergency instructions. During an active event, official emergency-management and National Weather Service guidance controls.
 
-## Geospatial toolchain and licensing boundaries
+## Production-readiness highlights
 
-The governed open-source geospatial toolchain is recorded in `tsm-console/config/geospatial_toolchain.json`. Current browser integrations include `h3-js` 4.5.0 (Apache-2.0), `pmtiles` 4.5.0 (BSD-3-Clause), and `3d-tiles-renderer` 0.5.2 (Apache-2.0). Protomaps basemap generation is retained as a reproducible source pipeline; OSM-derived tiles require the applicable ODbL attribution. AI segmentation via SamGeo/`segment-geospatial` remains human-review-required, and ToolJet remains process-isolated because of its AGPL licensing boundary. Visualization libraries do not acquire engineering authority merely by rendering an authoritative dataset.
+- **SPA routing on Pages:** `dist/404.html` copied from `index.html` for client routes.  
+- **Vite `base`:** `/Tri-State-Systems-Manager/` under `GITHUB_ACTIONS` (project Pages path).  
+- **CSP:** document-level policy for USGS, NOAA, FEMA, Indiana GIS, ArcGIS, OSM; `wasm-unsafe-eval` without general `unsafe-eval`.  
+- **Auth:** OIDC BFF + PKCE; browser holds only HttpOnly session cookie.  
+- **Hydrology:** timeouts, backoff, circuit breakers, LKG cache, explicit STALE — never relabeled as live.  
+- **Datum middleware:** blocks undocumented NGVD29/gage-zero conversions.  
+- **Autonomy:** Observe → Fuse → Predict → Propose → **Human Approval** → Controlled Execution → Audit (fail-closed; no arbitrary physical actuation).  
 
-## Production-readiness controls added in v35 hardening
-
-### Frontend loading and rendering
-
-The router already uses route-level dynamic imports for the heavy spatial views (TwinCanvasView, MapLibreEocView, MapLibreMap, and MapTwinView). A source-level regression contract prevents those modules from becoming eager router imports again.
-
-Hardware capability detection is explicit:
-
-WebGPU → WebGL2 → Canvas 2D
-
-The application must remain usable without WebGPU. The 3D terrain mesh remains fail-closed when a provenance-controlled Terrain-RGB/raster-dem source is not configured.
-
-### Authentication and browser environment
-
-Hosted browser authentication uses a server-managed confidential OIDC BFF using Authorization Code + PKCE (S256). The browser receives only an encrypted HttpOnly Secure session cookie. OIDC client credentials and provider tokens remain server-side. The public build requires only VITE_TSM_API_BASE_URL.
-
-For GitHub Pages production builds, these values plus VITE_TSM_API_BASE_URL are supplied from repository Variables. When Pages deployment is enabled, the workflow fails closed if the required browser bindings are absent.
-
-### Content Security Policy
-
-Vite now injects a deployment-aware CSP covering:
-
-- WebAssembly via wasm-unsafe-eval without enabling general unsafe-eval;
-- MapLibre/Web Worker blob: workers;
-- USGS, NOAA/NWS, FEMA, Indiana ArcGIS and OpenStreetMap connections;
-- the configured Keycloak origin;
-- object-src 'none' and explicit base-uri, form-action, image, font and media policies.
-
-GitHub Pages is a static host; HTTP response headers remain the responsibility of the hosting/reverse-proxy layer. The build therefore also carries the CSP as a document-level policy.
-
-### Live hydrology resilience
-
-The Node ingestion fabric now combines:
-
-- bounded request timeouts;
-- retry/backoff and Retry-After handling;
-- circuit breaking;
-- source-health telemetry;
-- bounded last-known-good cache;
-- explicit STALE responses when upstream sources are unavailable.
-
-A stale observation is never relabeled as live. If no valid cached observation exists, the API returns an explicit unavailable response.
-
-### Vertical datum reconciliation
-
-A dedicated normalization middleware now accepts only:
-
-- source datum;
-- target datum;
-- numeric transformation offset; and
-- provenance for the published transformation.
-
-Identity conversions are permitted. NGVD29/gage-zero/local-datum conversions without a supplied, station/product-specific published transformation are blocked, not guessed.
-
-USGS documentation recognizes that gages can use NAVD88, NGVD29, or an arbitrary gage datum; therefore a raw gage-height value must not be silently relabeled as NAVD88.
-
-### Event bus
-
-A fail-closed Kafka REST Proxy-compatible telemetry bridge is available behind:
-
-TSM_EVENT_BUS_ENABLED=true
-
-Configuration remains server-side:
-
-- TSM_KAFKA_REST_URL
-- TSM_KAFKA_TOPIC
-- TSM_KAFKA_USERNAME
-- TSM_KAFKA_PASSWORD
-
-Hydrologic observations publish normalized, provenance-linked events. Event-bus outages do not corrupt the authoritative source artifact; the source observation remains independently recorded and the event result is reported separately.
-
-### FEMA panel 18129C0265C
-
-A dedicated BFE reconciliation contract now rejects mismatches between an authoritative FEMA BFE evidence value and the hydraulic mesh BFE value. The contract requires NAVD88 and source provenance.
-
-The repository's existing panel evidence remains fail-closed until the exact matching authoritative world/georeferencing artifact and current FEMA source metadata are available. The contract does not fabricate a panel BFE from a screenshot.
-
-### FEMA LOMC / LOMA evidence packet
-
-tools/loma/build_loma_packet.py assembles supplied evidence files into:
-
-- a SHA-256 manifest;
-- a deterministic evidence-index PDF;
-- a ZIP packet containing the manifest, PDF and supplied source files.
-
-scripts/evidence/sign-evidence.mjs provides detached Ed25519 signing when the operator supplies TSM_EVIDENCE_SIGNING_KEY_PEM. Signing keys are never committed.
-
-The packet builder intentionally does not generate a survey, FARA, FEMA determination, community acknowledgment, engineering certification or regulatory approval.
-
-### Databricks lakehouse CD
-
-.github/workflows/databricks-lakehouse.yml defines an OIDC-gated production deployment contract. It is disabled until repository variable TSM_DATABRICKS_ENABLED=true.
-
-Required production environment variables:
-
-- DATABRICKS_HOST
-- DATABRICKS_CLIENT_ID
-
-The workflow uses GitHub OIDC workload identity federation rather than a long-lived Databricks PAT/client secret and verifies the pinned Databricks CLI release before installation.
-
-See docs/DATABRICKS-CI-CD.md.
-
-### Current geospatial CRS and vertical-datum boundary
-
-The TSM horizontal engineering analysis frame is **EPSG:2966 (NAD83 / Indiana West, US survey feet)**. EPSG:2966 is a horizontal projected CRS; **NAVD88 is not encoded by EPSG:2966 and is therefore tracked separately as vertical-reference metadata**. Native government services may legitimately expose other CRSs (for example, Indiana BAFM's native service CRS or Web Mercator imagery/elevation services); those coordinates must be explicitly transformed before entering the TSM engineering frame.
-
-A NAVD88 elevation or water-surface value is accepted only when its source/product-specific vertical reference or a validated transformation is documented. TSM does not infer NAVD88 merely because a layer is an elevation product. USGS 3DEP source catalog records can explicitly declare NAVD88 for individual source products, demonstrating why the datum must remain source metadata rather than an assumption applied to every raster. 
-
-A geospatial audit found and corrected the HEC-RAS project contract's erroneous EPSG:26916 declaration to EPSG:2966.
-
-## Open-World Twin: visual and cinematic layer contract
-
-The Twin treats visualization as a governed rendering plane rather than a source of truth. The current visual stack is designed around explicit source state:
-
-1. **Terrain** — source-derived elevation, rendered through MapLibre terrain when a verified Terrain-RGB/raster-dem source is configured.
-2. **Current imagery** — authoritative Indiana imagery source, kept distinct from elevation.
-3. **Parcels** — Martin/PostGIS vector tiles with provenance attributes; geometry and evidence remain separate from hydraulic model output.
-4. **FEMA effective flood hazards** — regulatory reference layer, never replaced by simulated WSE.
-5. **Indiana BAFM/INFIP** — state floodplain mapping reference plane.
-6. **Hydraulic scenario output** — model WSE displayed as MODEL_OUTPUT and subject to review; it is not silently promoted to FEMA regulatory evidence.
-7. **Live hydrology** — USGS/NOAA observations with freshness and datum state.
-8. **Historical evidence** — clearly labeled historical/reference material.
-9. **Atmosphere and lighting** — sky, fog, illumination and terrain exaggeration are presentation parameters only and never alter source values.
-10. **Cinematic camera** — an interruptible confluence fly-through is available from the Twin UI. Camera motion is non-authoritative and can be stopped by the operator.
-
-### Vertical-data rule
-
-Terrain-RGB is encoded in meters and must be generated from an elevation raster whose vertical datum has already been verified. The renderer does not infer NAVD88 from an arbitrary raster or orthophoto. Orthophotography is color imagery, not elevation.
-
-### Engineering/model boundary
-
-FEMA BFE, flood-zone evidence, observed stage, datum-converted WSE, and HEC-RAS scenario WSE are different data products. They must remain different records, schemas and visual states. A scenario may be compared with regulatory evidence, but it may not overwrite it.
-
-### Visual quality without fabricated data
-
-The project supports cinematic presentation—terrain, current imagery, atmospheric sky/fog, lighting, 3D extrusion and camera tours—while retaining fail-closed behavior when authoritative source material is absent. No placeholder tile provider, invented BFE, synthetic insurance premium, guessed datum conversion, or fabricated 3D terrain is promoted to production truth.
-
-### Evidence and signing
-
-Audit/evidence signatures use canonical JSON and Ed25519 with externally supplied private keys. A valid signature establishes authenticity/tamper evidence for the signed record; immutable storage and retention controls are separate infrastructure responsibilities.
+Horizontal engineering frame: **EPSG:2966**. **NAVD88** is tracked as separate vertical metadata — not assumed from EPSG:2966 alone.
 
 ## Development acceptance checklist
 
-Before calling a release production-ready, verify all of the following:
+Before calling a release production-ready:
 
-- [ ] `npm run ci:full` passes from a clean checkout.
-- [ ] Browser build contains no credentials or signing keys.
-- [ ] Terrain source metadata identifies horizontal CRS, vertical datum, resolution and provenance.
-- [ ] FEMA/BAFM layers retain authoritative source identity and effective/acquisition metadata.
-- [ ] Model WSE records contain scenario/model/version/datum/timestep/evidence metadata.
-- [ ] Regulatory BFE records cannot be overwritten by model ingestion.
-- [ ] Martin routes and source-layer identifiers match the deployed server configuration.
-- [ ] Current imagery and terrain are independently validated.
-- [ ] Live hydrology freshness and datum states are visible.
-- [ ] Cinematic controls are cancellable and do not mutate source data.
-- [ ] Evidence signatures verify against an independently retained public key.
-- [ ] Immutable evidence retention is configured for the deployment environment.
-- [ ] Production deployment uses pinned dependencies/images and documented secrets management.
+- [ ] `npm run ci:full` passes from a clean checkout  
+- [ ] Browser build contains no credentials or signing keys  
+- [ ] Terrain / FEMA / BAFM retain source identity and metadata  
+- [ ] Model WSE cannot overwrite regulatory BFE records  
+- [ ] Live hydrology freshness and datum states are visible  
+- [ ] Production uses pinned dependencies and documented secrets management  
+- [ ] Pages live site serves Vite SPA assets (not README/Jekyll shell)  
+- [ ] API `/ready` SHA matches the release under verification  
+
+## License
+
+See [LICENSE](LICENSE). Contribution and security expectations: [SECURITY.md](SECURITY.md), [COMPLIANCE.md](COMPLIANCE.md).
