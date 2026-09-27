@@ -8,6 +8,8 @@ on:
         required: false
         default: true
         type: boolean
+  issue_comment:
+    types: [created]
   deployment_status:
     states: [success]
 
@@ -26,7 +28,7 @@ env:
 jobs:
   build:
     name: Verify and build production console
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'production') }}
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'production') || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) }}
     runs-on: ubuntu-24.04
     env:
       # Canonical production API. Do not derive this from the Pages origin or an unverified repository variable.
