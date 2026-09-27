@@ -159,11 +159,19 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && url.pathname === '/health') return json(res, 200, healthBody(), requestId);
     if (req.method === 'GET' && url.pathname === '/ready') {
       const authReady = String(process.env.TSM_AUTH_MODE || 'required').toLowerCase() === 'disabled' || productionAuthReady();
-      return json(res, 200, {
+      let authorityRegistryReady = false;
+      try {
+        authorityRegistryReady = Boolean(getHydrologicNode('03378500'));
+      } catch (error) {
+        authorityRegistryReady = false;
+        console.error('[TSM readiness] authority registry unavailable', { code: error?.code, message: error?.message });
+      }
+      const ready = authorityRegistryReady && authReady;
+      return json(res, ready ? 200 : 503, {
         ...healthBody(),
-        ready: true,
+        ready,
         auth_ready: authReady,
-        required_internal_dependencies: { authority_registry: true, evidence_store: true, oidc: authReady },
+        required_internal_dependencies: { authority_registry: authorityRegistryReady, evidence_store: true, oidc: authReady },
         ...(authReady ? {} : {
           code: 'AUTH_CONFIGURATION_INCOMPLETE',
           note: 'Runtime is healthy for public/read-only routes; authenticated mutations remain fail-closed until OIDC is configured.',
