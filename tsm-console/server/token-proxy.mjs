@@ -294,9 +294,18 @@ const server = http.createServer(async (req, res) => {
         return json(res, 503, { ok: false, code: 'HYDRO_THRESHOLDS_UNVERIFIED', error: 'Authoritative flood thresholds are not registered.' }, requestId);
       }
       try {
-        const records = await fetchNoaaStageFlow({ identifier: nwsId, product: 'observed' });
-        const stage = latestRecord(records);
-        if (!stage || !Number.isFinite(Number(stage.value))) throw Object.assign(new Error('no NOAA stage observation returned'), { code: 'HYDRO_NO_STAGE' });
+        let stage;
+        let stageSource = 'NOAA-NWPS';
+        try {
+          const records = await fetchNoaaStageFlow({ identifier: nwsId, product: 'observed' });
+          stage = latestRecord(records);
+        } catch (noaaError) {
+          void noaaError;
+          const records = await fetchUsgsInstantaneousValues({ stationIds: [usgsId], parameterCodes: ['00065'] });
+          stage = latestRecord(records, '00065');
+          stageSource = 'USGS-NWIS';
+        }
+        if (!stage || !Number.isFinite(Number(stage.value))) throw Object.assign(new Error('no authoritative stage observation returned'), { code: 'HYDRO_NO_STAGE' });
         const stageFt = Number(stage.value);
         const category = stageFt >= Number(thresholds.major) ? 'major'
           : stageFt >= Number(thresholds.moderate) ? 'moderate'
@@ -310,8 +319,8 @@ const server = http.createServer(async (req, res) => {
           category,
           distance_to_action_ft: Number((Number(thresholds.action) - stageFt).toFixed(2)),
           thresholds_ft: thresholds,
-          source: 'NOAA-NWPS',
-          source_uri: node.flood_threshold_source_uri || null,
+          source: stageSource,
+          source_uri: stageSource === 'NOAA-NWPS' ? (node.flood_threshold_source_uri || null) : 'https://waterdata.usgs.gov/monitoring-location/USGS-03378500/',
           observed_at: stage.observedAt,
           notification_policy: {
             email: 'NOT_CONFIGURED',
