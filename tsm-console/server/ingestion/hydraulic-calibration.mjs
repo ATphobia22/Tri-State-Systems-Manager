@@ -14,6 +14,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REGISTRY_ENV = String(process.env.TSM_AUTHORITY_REGISTRY || '').trim();
 const REGISTRY_CANDIDATES = [
   ...(REGISTRY_ENV ? [REGISTRY_ENV] : []),
+  path.join(process.cwd(), 'data', 'authority', 'tsm-authority-registry-v35.json'),
   path.join(process.cwd(), 'tsm-authority-registry-v35.json'),
   path.join(process.cwd(), '..', 'tsm-authority-registry-v35.json'),
   path.join(__dirname, '../../../tsm-authority-registry-v35.json'),
