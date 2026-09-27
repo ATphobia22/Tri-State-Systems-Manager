@@ -18,6 +18,21 @@ The repository is maintained as a gated production system. The current release l
 
 Deployment provenance is fail-closed: a browser deployment is not considered verified when the live API serves a different build SHA from the release being published.
 
+## HEC-RAS spatial geometry ingestion
+
+HEC-RAS 2D cell centers are treated as model-project geometry. The ingestion utility discovers `Geometry/2D Flow Areas/*/Cells Center Coordinate` datasets, requires an explicit source CRS, and transforms coordinates into **EPSG:2966 (NAD83 / Indiana West, US survey feet)** for the engineering spatial registry.
+
+The production path is deliberately **operator-run and evidence-aware**:
+
+- `backend/engineering/hecras_geometry.py` performs dynamic dataset discovery and explicit CRS transformation.
+- `scripts/seed_hec_ras_cell_centers.py` seeds the privacy-reduced PostGIS registry without truncating production state.
+- `ops/postgis/migrations/20260927_hec_ras_cell_centers.sql` stores geometry, source CRS, source artifact SHA-256 and review status.
+- No owner names, APNs or residential addresses are required by this registry.
+- The source CRS is never guessed. A HEC-RAS project is not assumed to be WGS84.
+- Cell geometry and water-surface model output remain separate evidence products.
+
+This is an offline ingestion capability, not a new FastAPI runtime. The production API remains the Node service described above.
+
 ## Hydraulic and telemetry hardening
 
 The hydraulic transfer plane is **evidence-gated**. It uses the US-customary Manning formulation and bounded backwater blending only when a versioned hydraulic profile is explicitly marked validated and linked to provenance. Unverified FIS coefficients, BFE values, datum conversions, or site-transfer constants are not embedded as production truth.
