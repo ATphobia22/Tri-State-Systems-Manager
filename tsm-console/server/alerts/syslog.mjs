@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 
-const SYSLOG_PATTERN = /^<(?<priority>\\d{1,3})>(?:(?<version>\\d) )?(?<timestamp>[^ ]+(?: [^ ]+){0,2}) (?<hostname>[^ ]+) (?<message>.*)$/;
+const SYSLOG_PATTERN = /^<(?<priority>\d{1,3})>(?:(?<version>\d) )?(?<timestamp>[^ ]+(?: [^ ]+){0,2}) (?<hostname>[^ ]+) (?<message>.*)$/;
 const SEVERITY = ['EMERGENCY', 'ALERT', 'CRITICAL', 'ERROR', 'WARNING', 'NOTICE', 'INFO', 'DEBUG'];
 const recentEvents = new Map();
 
