@@ -59,7 +59,11 @@ async function ensureClient(token) {
   return client.id;
 }
 async function ensureRole(token, role) {
-  const response = await request('/admin/realms/' + REALM + '/roles', { method: 'POST', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify({ name: role, enabled: true }) });
+  const encoded = encodeURIComponent(role);
+  const existing = await request('/admin/realms/' + REALM + '/roles/' + encoded, { headers: { Authorization: 'Bearer ' + token } });
+  if (existing.ok) return;
+  if (existing.status !== 404) throw new Error('Keycloak role lookup failed for ' + role + ' with HTTP ' + existing.status + '.');
+  const response = await request('/admin/realms/' + REALM + '/roles', { method: 'POST', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }, body: JSON.stringify({ name: role }) });
   if (!response.ok && response.status !== 409) throw new Error('Keycloak role bootstrap failed for ' + role + ' with HTTP ' + response.status + '.');
 }
 async function ensureAudienceMapper(token, clientId) {
