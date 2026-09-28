@@ -40,7 +40,7 @@
       "id": "FEMA-NFHL",
       "authority": "FEMA",
       "dataset": "National Flood Hazard Layer",
-      "access": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer",
+      "access": "https://hazards.fema.gov/arcgis/rest/services/FIRMette/NFHLREST_FIRMette/MapServer",
       "role": [
         "effective_flood_hazard",
         "SFHA",
