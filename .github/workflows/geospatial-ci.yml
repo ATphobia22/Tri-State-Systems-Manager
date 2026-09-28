@@ -99,6 +99,8 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
       - name: Validate capability registry
         run: node scripts/ci/validate-capability-registry.mjs
+      - name: Run full-tree hardening gate
+        run: python3 scripts/ci/full-tree-hardening.py
       - name: Install pinned CI-only external geospatial tooling
         env:
           TSM_INSTALL_EXTERNAL_TOOLING: 'true'

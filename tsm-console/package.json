@@ -13,7 +13,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "node --test tests/geodetic-pipeline.test.mjs",
-    "ci": "npm run check:action-pins && npm run check:file-health && npm run check:parse && npm run check:type && npm run check:geospatial && npm run check:flood-federation && npm run check:tri-state-data && npm run check:government-sources && npm run check:live-fabric && npm run check:regulatory-rules && npm run check:engineering-pipeline && npm run check:schemas && npm run build && npm run check:client-bundle-secrets && npm run check:enterprise-architecture && npm run check:architecture-repository && npm run check:data-fabric-contract && npm run check:provenance-plane && npm run test:production-gates && npm run check:external-tooling && npm run check:3d-tiles-tools && npm run test:external-capabilities",
+    "ci": "npm run check:full-tree-hardening && npm run check:action-pins && npm run check:file-health && npm run check:parse && npm run check:type && npm run check:geospatial && npm run check:flood-federation && npm run check:tri-state-data && npm run check:government-sources && npm run check:live-fabric && npm run check:regulatory-rules && npm run check:engineering-pipeline && npm run check:schemas && npm run build && npm run check:client-bundle-secrets && npm run check:enterprise-architecture && npm run check:architecture-repository && npm run check:data-fabric-contract && npm run check:provenance-plane && npm run test:production-gates && npm run check:external-tooling && npm run check:3d-tiles-tools && npm run test:external-capabilities",
     "ci:full": "npm run ci && npm run test:all",
     "check:action-pins": "node ../scripts/ci/validate-action-pins.mjs",
     "check:schemas": "node ../scripts/ci/validate-json-schemas.mjs",
@@ -70,7 +70,8 @@
     "check:external-tooling": "node ../scripts/ci/validate-external-tooling.mjs",
     "install:external-tooling": "node ../scripts/ci/install-external-tooling.mjs",
     "check:3d-tiles-tools": "node ../scripts/ci/validate-3d-tiles-tools.mjs",
-    "test:external-capabilities": "node --test server/routing/osrm-client.test.mjs ../integrations/unity-mcp/gateway.test.mjs"
+    "test:external-capabilities": "node --test server/routing/osrm-client.test.mjs ../integrations/unity-mcp/gateway.test.mjs",
+    "check:full-tree-hardening": "python3 ../scripts/ci/full-tree-hardening.py"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.0",
