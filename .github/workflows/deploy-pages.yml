@@ -221,27 +221,32 @@ jobs:
         run: |
           set -euo pipefail
           [[ "${TSM_API_BASE_URL}" == https://* ]] || { echo 'Production API origin must use HTTPS.' >&2; exit 1; }
-          curl --fail --silent --show-error --location --max-time 30 "${TSM_API_BASE_URL%/}/ready" --output /tmp/tsm-api-ready.json
-          test -s /tmp/tsm-api-ready.json
-          node <<'NODE'
+          expected_sha="${GITHUB_SHA}"
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error --location --max-time 30 "${TSM_API_BASE_URL%/}/ready" --output /tmp/tsm-api-ready.json; then
+              test -s /tmp/tsm-api-ready.json
+              if EXPECTED_SHA="${expected_sha}" node <<'NODE'
           const fs = require('node:fs');
-          const expected = process.env.GITHUB_SHA;
+          const expected = process.env.EXPECTED_SHA;
           const body = JSON.parse(fs.readFileSync('/tmp/tsm-api-ready.json', 'utf8'));
-          if (body.build_sha !== expected) {
-            console.error(JSON.stringify({ error: 'API_BUILD_SHA_MISMATCH', expected, actual: body.build_sha }, null, 2));
-            process.exit(1);
-          }
-          if (body.auth_ready !== true) {
-            console.error(JSON.stringify({ error: 'API_AUTH_NOT_READY', auth_ready: body.auth_ready, code: body.code || null }, null, 2));
-            process.exit(1);
-          }
-          if (body.required_internal_dependencies?.oidc !== true) {
-            console.error(JSON.stringify({ error: 'API_OIDC_DEPENDENCY_NOT_READY', required_internal_dependencies: body.required_internal_dependencies }, null, 2));
-            process.exit(1);
-          }
+          if (body.build_sha !== expected) process.exit(20);
+          if (body.auth_ready !== true) process.exit(21);
+          if (body.required_internal_dependencies?.oidc !== true) process.exit(22);
           console.log(JSON.stringify({ ok: true, build_sha: body.build_sha, auth_ready: body.auth_ready, oidc: body.required_internal_dependencies.oidc }, null, 2));
           NODE
-          echo "Production API /ready and exact build/auth verification passed: ${TSM_API_BASE_URL%/}/ready"
+              then
+                echo "Production API /ready and exact build/auth verification passed: ${TSM_API_BASE_URL%/}/ready"
+                exit 0
+              fi
+              echo "API is healthy but has not converged to GITHUB_SHA yet; retrying (${attempt}/30)."
+            else
+              echo "API readiness endpoint is not reachable yet; retrying (${attempt}/30)."
+            fi
+            sleep 20
+          done
+          echo "Production API did not converge to ${GITHUB_SHA} within 10 minutes." >&2
+          cat /tmp/tsm-api-ready.json >&2 2>/dev/null || true
+          exit 1
       - name: Purge stale Pages workflow artifacts after deployment
         if: always()
         continue-on-error: true
