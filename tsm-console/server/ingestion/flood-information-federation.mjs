@@ -173,7 +173,7 @@ export function toEvidenceArtifactFields(result) {
     transformation_chain: validated.transformation_chain,
     validation_status: validated.human_review_status === 'authorized' ? 'validated' : 'pending',
     uncertainty: validated.uncertainty,
-    authority_class: validated.authority_class === 'FEDERAL_REGULATORY_REFERENCE' || validated.authority_class === 'STATE_REGULATORY_REFERENCE' ? 'REGULATORY' : validated.authority_class,
+    authority_class: ['FEDERAL_REGULATORY_REFERENCE', 'STATE_REGULATORY_REFERENCE', 'STATE_BEST_AVAILABLE', 'SITE_ASSESSMENT'].includes(validated.authority_class) ? 'REGULATORY' : validated.authority_class,
     derivation_class: validated.model_lineage.length ? 'MODELED' : 'RAW',
     software_version: validated.software_version,
     governance_status: validated.human_review_status === 'authorized' ? 'human_authorized' : 'human_review_required',
