@@ -69,3 +69,53 @@ Do not commit source lidar/DEM payloads, generated tile pyramids, or planet-scal
 ## Operational acceptance
 
 A terrain deployment is acceptable only when the tile URL resolves, the MapLibre `raster-dem` source loads, `setTerrain()` succeeds, and the acquisition manifest can be traced to an authoritative 3DEP product. Missing or invalid terrain configuration fails closed to a 2D imagery map rather than inventing terrain.
+
+## Materialized build — 2026-09-27
+
+The pipeline above was executed end-to-end against the bundled screening DEM:
+
+```bash
+python3 tools/terrain/fetch-terrarium-dem.py --zoom 13
+./scripts/geospatial/build-terrain-rgb.sh
+python3 scripts/geospatial/pack-terrain-mbtiles.py \
+  --tile-dir ops/terrain-tiles/data/terrain-rgb \
+  --out dist/terrain-tiles/terrain-3dep.mbtiles
+```
+
+**Toolchain substitution (recorded).** GDAL/rio-rgbify are not installed on
+the build host. `scripts/geospatial/build-terrain-rgb-tiles.py` implements
+the Mapbox Terrain-RGB encoding directly in pure Python (numpy + Pillow);
+the encoding is byte-identical to the spec. The build round-trips a center
+tile through the decoder and fails if drift exceeds 0.2 ft (observed
+0.12 ft, sub-quantization).
+
+**Outputs.**
+
+- 28 tiles, z11–z15, 256 px, XYZ PNG + TileJSON in
+  `ops/terrain-tiles/data/terrain-rgb/` (build working dir, not committed).
+- `dist/terrain-tiles/terrain-3dep.mbtiles` (28 rows verified, source id
+  `terrain_3dep`, SHA-256
+  `83f94cf76f3220d3d2e140bc7a56e3baf0a9ba31a5576c97aea5f78d9b17a696`) —
+  a build artifact under the gitignored `dist/`; transfer it to the tile
+  host, do not commit it, per the no-bulk-source-data policy.
+- Served tile decode check: 356.0–370.7 ft, mean 362.5 ft — consistent with
+  the source DEM (337.7–372.5 ft).
+
+**Serving.** `ops/terrain-tiles/docker-compose.yml` (pinned
+`ghcr.io/maplibre/martin:v0.17.1` + Caddy 2.9 automatic TLS) is the tile-host
+definition: `https://<TILE_DOMAIN>/terrain_3dep/{z}/{x}/{y}.png`. Local dev
+uses `ops/terrain-tiles/server.mjs` (Express+TLS, self-signed cert).
+
+**Configuration.** Production variable `VITE_TSM_TERRAIN_RGB_URL_TEMPLATE`
+is set in the GitHub `github-pages` environment (requires repo admin; not
+settable from the build host). Template resolution is fail-closed
+(`resolveTerrainTemplate` in `tsm-console/src/lib/twin-map-style.ts`):
+must be `https://`, contain `{z}/{x}/{y}`, and not be a placeholder —
+otherwise the twin stays flat.
+
+**Datum correction.** The tile grid is Web Mercator (EPSG:3857); vertical is
+NAVD88 as reported by the 3DEP source, carried through without
+transformation or certification. EPSG:2966 (a horizontal CRS) is not claimed
+for this product.
+
+Evidence ledger: `artifacts/tsm-terrain-rgb-3dep-pipeline-v1.json`.

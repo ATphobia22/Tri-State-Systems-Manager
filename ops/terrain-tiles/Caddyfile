@@ -1,0 +1,31 @@
+# Caddy reverse proxy: automatic HTTPS for the Martin tile server.
+# Set TILE_DOMAIN in the environment (e.g. TILE_DOMAIN=tiles.example.com
+# docker compose up -d). Caddy issues and renews the certificate via ACME.
+{
+  email {$ACME_EMAIL:ops@example.com}
+}
+
+{$TILE_DOMAIN:tiles.example.com} {
+  # Terrain-RGB tiles from Martin (source id terrain_3dep).
+  # Martin serves /terrain_3dep/{z}/{x}/{y}(.png); normalize the .png form.
+  @png path_regexp png ^/terrain_3dep/([0-9]+)/([0-9]+)/([0-9]+)\.png$
+  handle @png {
+    rewrite /terrain_3dep/{http.regexp.1}/{http.regexp.2}/{http.regexp.3}
+    reverse_proxy martin:3000
+  }
+  handle /terrain_3dep/* {
+    reverse_proxy martin:3000
+  }
+  # TileJSON manifest for MapLibre clients.
+  handle /tiles.json {
+    reverse_proxy martin:3000
+  }
+  handle {
+    respond "tsm terrain tiles: /terrain_3dep/{z}/{x}/{y}.png" 200
+  }
+  header {
+    # Tiles are immutable content-addressed derivatives; cache aggressively.
+    Cache-Control "public, max-age=86400"
+    -Server
+  }
+}

@@ -216,8 +216,27 @@ export default function FloodSimulator(): React.JSX.Element {
 
   // -- live-data manager: terrain endpoint health + unified status snapshot --
   // Polling only (interval HTTPS); the manager never blocks first render.
+  // VITE_TSM_TERRAIN_RGB_URL_TEMPLATE is the production variable (full
+  // https:// template, e.g. https://tiles.example.com/terrain_3dep/{z}/{x}/{y}.png);
+  // VITE_TSM_TERRAIN_TILE_URL (base URL) is the local-dev fallback. The
+  // Terrain-RGB decoder is selected for any TSM-published pyramid; Terrarium
+  // is assumed only for the default AWS elevation-tiles-prod endpoint.
   useEffect(() => {
-    const manager = new LiveDataManager();
+    const template = import.meta.env.VITE_TSM_TERRAIN_RGB_URL_TEMPLATE?.trim() || '';
+    const fromTemplate = template.replace(/\/\{z\}\/\{x\}\/\{y\}\.png$/, '');
+    const tileBaseUrl =
+      import.meta.env.VITE_TSM_TERRAIN_TILE_URL?.trim() ||
+      (fromTemplate && fromTemplate !== template ? fromTemplate : '') ||
+      undefined;
+    const manager = new LiveDataManager({
+      ...(tileBaseUrl ? { terrainBaseUrl: tileBaseUrl } : {}),
+      tileClientOptions: {
+        encoding:
+          tileBaseUrl == null || /terrarium|elevation-tiles-prod/i.test(tileBaseUrl)
+            ? 'terrarium'
+            : 'terrain-rgb',
+      },
+    });
     managerRef.current = manager;
     const unsubscribe = manager.subscribe((snap) => setLiveSnapshot(snap));
     manager.start();

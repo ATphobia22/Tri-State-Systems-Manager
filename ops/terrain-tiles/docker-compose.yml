@@ -1,0 +1,51 @@
+# Tile-host deployment: Martin (pinned) serving terrain-3dep.mbtiles,
+# Caddy terminating TLS with automatic Let's Encrypt certificates.
+#
+# On the tile host:
+#   1. Point DNS (A/CNAME) for your tile domain, e.g. tiles.example.com,
+#      at this server's public IP.
+#   2. Place terrain-3dep.mbtiles in ./data/ (build it with
+#      scripts/geospatial/build-terrain-rgb.sh + pack-terrain-mbtiles.py).
+#   3. Set TILE_DOMAIN below (or in a .env file next to this compose file).
+#   4. docker compose up -d
+#   5. Tiles are then live at https://<TILE_DOMAIN>/terrain_3dep/{z}/{x}/{y}.png
+#
+# Martin is process-isolated here: it serves derived screening tiles only.
+# It confers no authority on the elevations; they remain not survey-grade.
+
+services:
+  martin:
+    image: ghcr.io/maplibre/martin:v0.17.1
+    container_name: tsm-martin-terrain
+    command: >
+      --mbtiles /data/terrain-3dep.mbtiles
+      --listen-addresses 0.0.0.0:3000
+    volumes:
+      - ./data:/data:ro
+    expose:
+      - "3000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  caddy:
+    image: caddy:2.9-alpine
+    container_name: tsm-caddy-tls
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      martin:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  caddy-data:
+  caddy-config:

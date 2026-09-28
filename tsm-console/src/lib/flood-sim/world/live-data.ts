@@ -126,10 +126,29 @@ export interface TerrainTile {
   fromCache: boolean;
 }
 
+/**
+ * Decode a Mapbox Terrain-RGB tile (R*65536 + G*256 + B = (elev_m + 10000) * 10)
+ * into feet. Used for TSM's own published tile pyramid
+ * (scripts/geospatial/build-terrain-rgb.sh); see decodeTerrariumRgba for the
+ * AWS elevation-tiles-prod encoding.
+ */
+export function decodeTerrainRgb(rgba: Uint8ClampedArray, w: number): Float64Array {
+  if (rgba.length < w * w * 4) throw new Error('terrain-rgb buffer too short');
+  const out = new Float64Array(w * w);
+  for (let i = 0; i < w * w; i += 1) {
+    const encoded = rgba[i * 4] * 65536 + rgba[i * 4 + 1] * 256 + rgba[i * 4 + 2];
+    out[i] = (encoded * 0.1 - 10000) * 3.28084;
+  }
+  return out;
+}
+
 export interface TerrainTileClientOptions {
   timeoutMs?: number;
   maxRetries?: number;
   cacheSize?: number;
+  /** Tile encoding. 'terrarium' matches AWS elevation-tiles-prod;
+   * 'terrain-rgb' matches the TSM-published pyramid (build-terrain-rgb.sh). */
+  encoding?: 'terrarium' | 'terrain-rgb';
   loadRgba?: (bytes: ArrayBuffer) => Promise<RgbaImage>;
 }
 
@@ -144,6 +163,7 @@ export class TerrainTileClient {
   private readonly maxRetries: number;
   private readonly cacheSize: number;
   private readonly loadRgba: (bytes: ArrayBuffer) => Promise<RgbaImage>;
+  private readonly encoding: 'terrarium' | 'terrain-rgb';
   private readonly cache = new Map<string, TerrainTile>();
   private lastOkAt: number | null = null;
   private lastFailAt: number | null = null;
@@ -160,6 +180,7 @@ export class TerrainTileClient {
     this.maxRetries = opts.maxRetries ?? 2;
     this.cacheSize = opts.cacheSize ?? 64;
     this.loadRgba = opts.loadRgba ?? (async (bytes) => browserRgbaFromBlob(new Blob([bytes])));
+    this.encoding = opts.encoding ?? 'terrarium';
   }
 
   tileUrl(z: number, x: number, y: number): string {
@@ -196,7 +217,10 @@ export class TerrainTileClient {
         if (img.w !== TILE_PX || img.h !== TILE_PX) {
           throw new Error(`[live-data] unexpected tile size ${img.w}x${img.h}`);
         }
-        const elevFt = decodeTerrariumRgba(img.rgba, TILE_PX * TILE_PX);
+        const elevFt =
+          this.encoding === 'terrain-rgb'
+            ? decodeTerrainRgb(img.rgba, TILE_PX)
+            : decodeTerrariumRgba(img.rgba, TILE_PX * TILE_PX);
         for (let i = 0; i < elevFt.length; i += 1) {
           if (!Number.isFinite(elevFt[i])) throw new Error('[live-data] non-finite tile elevation');
         }

@@ -1,0 +1,1 @@
+{"dependencies":{"express":"^4.21.2"},"description":"HTTPS tile server for the TSM screening-level Terrain-RGB pyramid","license":"Apache-2.0","name":"tsm-terrain-tiles","private":true,"type":"module","version":"1.0.0"}

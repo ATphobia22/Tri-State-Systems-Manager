@@ -4,7 +4,27 @@ import { MAP_LAYERS } from './map-layers';
 import { createHydraulicExtrusionLayer, createHydraulicSource } from './hydraulic-rendering';
 
 const imagery = MAP_LAYERS.find((layer) => layer.id === 'indiana-imagery');
-const terrainTemplate = import.meta.env.VITE_TSM_TERRAIN_RGB_URL_TEMPLATE?.trim() || '';
+const RAW_TERRAIN_TEMPLATE = import.meta.env.VITE_TSM_TERRAIN_RGB_URL_TEMPLATE?.trim() || '';
+
+/**
+ * Fail-closed terrain template resolution. The tsm-terrain-rgb source is
+ * registered only for a real https:// tile URL template containing
+ * {z}/{x}/{y}. Empty values and placeholders (YOUR-HOST, example.com,
+ * localhost, 127.0.0.1, non-HTTPS) return null and keep the twin flat —
+ * MapLibre terrain never silently points at a dead or insecure endpoint.
+ */
+export function resolveTerrainTemplate(raw: string = RAW_TERRAIN_TEMPLATE): string | null {
+  const template = raw.trim();
+  if (!template) return null;
+  if (!template.startsWith('https://')) return null;
+  if (!template.includes('{z}') || !template.includes('{x}') || !template.includes('{y}')) {
+    return null;
+  }
+  if (/your-host|example\.com|localhost|127\.0\.0\.1/i.test(template)) return null;
+  return template;
+}
+
+const terrainTemplate = resolveTerrainTemplate() ?? '';
 
 
 const ARCGIS_EXPORT_QUERY = 'bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=512,512&format=png32&transparent=false&f=image';

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { MapTwinLoaderData } from '../types/loaders';
-import { buildTwinStyle, applyTwinTerrain, addFloodAuthorityLayers, applyLiveStageMetadata, addMartinHydraulicLayer } from '../lib/twin-map-style';
+import { buildTwinStyle, applyTwinTerrain, resolveTerrainTemplate, addFloodAuthorityLayers, applyLiveStageMetadata, addMartinHydraulicLayer } from '../lib/twin-map-style';
 import { buildArcGisWmsTileTemplate, INDIANA_CURRENT_IMAGERY_WMS, USGS_3DEP_ELEVATION_WMS } from '../lib/open-world-wms';
 import { setupParcelProvenanceInspector } from '../lib/parcel-provenance';
 import { playCinematicTour } from '../lib/cinematic/camera-tour';
@@ -107,7 +107,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
 
   const stage = data.stage.value_ft;
   const wse = data.stage.wse_navd88_ft;
-  const terrainConfigured = Boolean(import.meta.env.VITE_TSM_TERRAIN_RGB_URL_TEMPLATE?.trim());
+  const terrainConfigured = resolveTerrainTemplate() !== null;
 
   const toggleCinematicTour = (): void => {
     const map = mapRef.current;
