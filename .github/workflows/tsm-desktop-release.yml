@@ -85,6 +85,9 @@ jobs:
           "TSM_WINDOWS_CERTIFICATE_THUMBPRINT=$thumbprint" | Out-File -FilePath $env:GITHUB_ENV -Append
       - run: npm ci
         working-directory: tsm-console
+      - name: Ensure platform Rolldown native binding
+        run: node scripts/ensure-native-rolldown-binding.mjs
+        working-directory: tsm-console
       - run: npm run build
         working-directory: tsm-console
       - run: node scripts/configure-desktop-release.mjs
@@ -135,6 +138,9 @@ jobs:
         run: cargo install tauri-cli --version 2.11.4 --locked
       - run: npm ci
         working-directory: tsm-console
+      - name: Ensure platform Rolldown native binding
+        run: node scripts/ensure-native-rolldown-binding.mjs
+        working-directory: tsm-console
       - run: npm run build
         working-directory: tsm-console
       - run: node scripts/configure-desktop-release.mjs
@@ -182,6 +188,9 @@ jobs:
       - name: Install frontend dependencies
         working-directory: tsm-console
         run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
+      - name: Ensure platform Rolldown native binding
+        working-directory: tsm-console
+        run: node scripts/ensure-native-rolldown-binding.mjs
       - name: Build frontend
         working-directory: tsm-console
         run: npm run build
