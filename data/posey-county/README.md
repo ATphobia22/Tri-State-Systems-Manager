@@ -15,6 +15,7 @@ computation here never silently become authoritative evidence).
 | `roads/tl_2023_18129_roads.zip` | All roads: I-64, state highways, ~712 mi county roads (SHA-256 `437f1f8b…6a`) | U.S. Census Bureau, TIGER/Line 2023 All Roads, Posey County IN | 2023 | Public domain |
 | `elevation/` | DEM / lidar tiles for Posey County | USGS 3DEP 1/3 arc-second (10 m), NAVD88 — see below | 2022–2026 | Public domain |
 | `floodplain/` | FEMA flood hazard layers for Posey County | Indiana DNR Best Available Flood Hazard Layer (gisdata.in.gov) | current | Public data |
+| `watersheds/` | HUC boundaries containing the anchor site | USGS Watershed Boundary Dataset (hydro.nationalmap.gov) | current | Public domain |
 
 ## Floodplain
 
@@ -32,6 +33,18 @@ nulled. Zone X (minimal flood hazard, 2,816 polygons) excluded for size.
 Anchor check: 13101 Bonebank Rd falls in zone **AE**, SFHA = T. The layer's AE
 polygon there carries no static BFE — the case BFE 375.0 ft NAVD88 comes from
 FIRM panel 18129C0265C / the FEMA letter, not this layer. Reference only.
+
+## Watersheds
+
+Queried 2026-09-27 from the USGS Watershed Boundary Dataset
+(`https://hydro.nationalmap.gov/arcgis/rest/services/wbd/MapServer`),
+point-in-polygon tested against the anchor (37.845887, −88.005075), EPSG:4326.
+
+| File | HUC | Name | SHA-256 |
+|---|---|---|---|
+| `watersheds/posey-anchor-huc12-051201130904.geojson` | 051201130904 | Willow Pond Slough-Wabash River | `98a5e335…25d56763` |
+| `watersheds/posey-anchor-huc10-0512011309.geojson` | 0512011309 | Levy Slough-Wabash River | `f8cfea95…d9ea772b` |
+| `watersheds/posey-anchor-huc8-05120113.geojson` | 05120113 | Lower Wabash | `0d1c2f17…848949d3` |
 | `parcels/` | Parcel boundaries | Indiana GIO, Parcel Boundaries of Indiana 2025 (Hosted FeatureServer) | 2025 | Public data, county-sourced |
 
 ## Parcels
