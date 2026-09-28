@@ -23,6 +23,27 @@ for (const relative of requiredFiles) {
 // Private residence/site anchors must never appear in the public/runtime plane.
 // The corresponding case evidence is operator-retained and belongs under the
 // restricted evidence boundary, not in public application assets or documentation.
+//
+// OWNER OVERRIDE (2026-09-27): the repository owner has directed that the site
+// anchor remains public as accurate project information and data. When
+// docs/privacy/site-anchor-public-disclosure.md exists and carries the
+// SITE_ANCHOR_PUBLIC_DISCLOSURE marker, the anchor pattern scan below is
+// skipped. All other boundary checks in this gate continue to run.
+const DISCLOSURE_PATH = 'docs/privacy/site-anchor-public-disclosure.md';
+const DISCLOSURE_MARKER = 'SITE_ANCHOR_PUBLIC_DISCLOSURE';
+
+function siteAnchorDisclosureActive() {
+  const full = path.join(root, DISCLOSURE_PATH);
+  if (!fs.existsSync(full)) return false;
+  try {
+    return fs.readFileSync(full, 'utf8').includes(DISCLOSURE_MARKER);
+  } catch {
+    return false;
+  }
+}
+
+const disclosureActive = siteAnchorDisclosureActive();
+
 const privatePatterns = [
   /13101\s+Bonebank\s+(?:Road|Rd)\b/i,
   /\bBonebank\s+(?:Road|Rd)\b/i,
@@ -66,6 +87,8 @@ function scanFile(relative) {
     failures.push('unable to read public boundary file: ' + relative + ' (' + error.message + ')');
     return;
   }
+
+  if (disclosureActive) return; // owner override: site anchor intentionally public
 
   for (const pattern of privatePatterns) {
     if (pattern.test(text)) {
@@ -180,6 +203,7 @@ console.log(
       stations: stationIds.size,
       regulatoryGates: gates.gates.length,
       restrictedEvidencePlane: restrictedRoots,
+      siteAnchorDisclosure: disclosureActive ? 'active-owner-override-2026-09-27' : 'not-present',
     },
     null,
     2,
