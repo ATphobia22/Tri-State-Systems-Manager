@@ -12,7 +12,7 @@ TSM combines authoritative river observations, geospatial evidence, engineering-
 |---------|----------|
 | **Primary branch** | `main` |
 | **Public console (GitHub Pages SPA)** | https://atphobia22.github.io/Tri-State-Systems-Manager/ |
-| **Production API** | https://tsm-api-production.up.railway.app |
+| **Production API (Coolify/self-hosted)** | https://<your-tsm-api-domain> |
 | **API readiness** | `GET /ready` — deployed Git SHA, `auth_ready`, OIDC readiness |
 | **Console package** | `tsm-console` **v0.2.1** (React **19.3.0**, Vite 8, `@react-three/fiber` **9.8.1**, MapLibre **6.10.0**) |
 
@@ -23,8 +23,7 @@ Deployment provenance is fail-closed: a browser deployment is not considered ver
 Required repository configuration for Pages deploy:
 
 ```text
-TSM_PAGES_ENABLED=true
-VITE_TSM_API_BASE_URL=https://tsm-api-production.up.railway.app
+VITE_TSM_API_BASE_URL=https://<your-tsm-api-domain>
 ```
 
 Settings → Pages → Source must be **GitHub Actions**. The workflow does not fabricate or bypass that repository-level setting.
@@ -198,7 +197,7 @@ Gates include dependency integrity, supply-chain / npx policy, SBOM, repository 
 
 Do **not** weaken or bypass a failing gate.
 
-Notable workflows: `ci.yml`, `deploy-pages.yml`, `tsm-parse-gate.yml`, `codeql.yml`, `open-world-twin.yml`, `ptdt-e2e-visual.yml`, `container-ci.yml`, `tsm-desktop.yml`, `railway-deployment-probe.yml`.
+Notable workflows: `ci.yml`, `deploy-pages.yml`, `tsm-parse-gate.yml`, `codeql.yml`, `open-world-twin.yml`, `ptdt-e2e-visual.yml`, `container-ci.yml`, `tsm-desktop.yml`, `deploy-coolify.yml`.
 
 ## Safety and professional authority
 
