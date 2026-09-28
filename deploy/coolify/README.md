@@ -44,11 +44,47 @@ The Pages deployment then polls `<TSM_API_BASE_URL>/ready` and requires:
 2. `auth_ready === true`
 3. `required_internal_dependencies.oidc === true`
 
-## Deployment trigger
+## Deployment triggers
 
-Coolify's GitHub integration can auto-deploy on pushes to `main`. An optional GitHub Actions webhook can also trigger a Coolify deployment if `COOLIFY_DEPLOY_WEBHOOK_URL` is configured as a repository secret.
+### Path A — native Git provider webhook (no Actions secrets)
 
-The repository intentionally stores no Coolify token or webhook URL.
+Coolify **Configuration → Webhooks** → enable Auto Deploy for `main`, then add the GitHub webhook (URL + secret) under the repository **Settings → Webhooks**. Pushes to `main` redeploy without storing Coolify credentials in GitHub Actions.
+
+### Path B — Coolify Deploy API from GitHub Actions
+
+Workflow: `.github/workflows/deploy-coolify.yml`
+
+Coolify authenticates the deploy endpoint with a **Bearer** API token (permission: **deploy** only is enough).
+
+1. Coolify → **Keys & Tokens → API Tokens** → create token with **deploy** permission (copy once).
+2. Self-hosted: enable **API Access** under instance advanced settings if disabled.
+3. Application → **Configuration → Webhooks** → copy **Deploy Webhook (auth required)**:
+
+   `https://<coolify-host>/api/v1/deploy?uuid=<resource-uuid>&force=false`
+
+4. GitHub → **Settings → Secrets and variables → Actions** → repository secrets:
+
+| Secret | Value |
+|--------|--------|
+| `COOLIFY_DEPLOY_WEBHOOK_URL` | Full deploy URL including `uuid=` |
+| `COOLIFY_API_TOKEN` | Full token string (`id\|secret` as shown by Coolify) |
+
+Behavior:
+
+- **Both secrets empty** → workflow exits 0 (soft-skip); Path A can still deploy.
+- **URL set, token missing** → **fail closed** with a clear error.
+- **Both set** → `GET` with `Authorization: Bearer …`; `--fail` on non-2xx.
+
+Never put the token in the query string, workflow source, or logs.
+
+Example (matches Coolify docs):
+
+```bash
+curl --request GET "$COOLIFY_DEPLOY_WEBHOOK_URL" \
+  --header "Authorization: Bearer $COOLIFY_API_TOKEN"
+```
+
+`POST` with JSON `{"uuid":"…","force":false}` is also accepted by Coolify; TSM uses GET for the Actions path.
 
 ## Infrastructure
 
