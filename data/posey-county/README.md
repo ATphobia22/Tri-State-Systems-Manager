@@ -30,7 +30,7 @@ nulled. Zone X (minimal flood hazard, 2,816 polygons) excluded for size.
 |---|---|---|
 | `floodplain/posey-flood-hazard-sfha.geojson` | 5,606 SFHA polygons, 24.6 MB; fields: fld_zone, zone_subty, sfha, bfe_ft, v_datum, depth_ft, study_typ, dfirm_id | `19f4a08e…f7eff` |
 
-Anchor check: 13101 Bonebank Rd falls in zone **AE**, SFHA = T. The layer's AE
+Anchor check: the restricted site falls in zone **AE**, SFHA = T. The layer's AE
 polygon there carries no static BFE — the case BFE 375.0 ft NAVD88 comes from
 FIRM panel 18129C0265C / the FEMA letter, not this layer. Reference only.
 
@@ -38,7 +38,7 @@ FIRM panel 18129C0265C / the FEMA letter, not this layer. Reference only.
 
 Queried 2026-09-27 from the USGS Watershed Boundary Dataset
 (`https://hydro.nationalmap.gov/arcgis/rest/services/wbd/MapServer`),
-point-in-polygon tested against the anchor (37.845887, −88.005075), EPSG:4326.
+point-in-polygon tested against the restricted site (coordinates operator-retained), EPSG:4326.
 
 | File | HUC | Name | SHA-256 |
 |---|---|---|---|
@@ -58,7 +58,7 @@ Queried 2026-09-27 from the Indiana Geographic Information Office
 |---|---|---|
 | `parcels/posey-parcels-2025.geojson` | 20,448 parcels, 17.8 MB; lean fields: parcel_id, state_parcel_id, prop_add/city/zip, DLGF class code, township | `fc936aa8…a87b9a8887` |
 
-Anchor parcel present: **13101 BONEBANK RD**, parcel `65-19-08-100-008.001-010`,
+Restricted-site parcel present (parcel ID operator-retained),
 DLGF class 511, POINT TOWNSHIP.
 
 ## Elevation
@@ -73,7 +73,7 @@ nodata). Units: meters, NAVD88, EPSG:4269.
 | File | Description | SHA-256 |
 |---|---|---|
 | `elevation/posey-county-dem-30m.tif` | County DEM downsampled ×3 (≈30 m), polygon-masked to the county boundary, LZW float32, 19.6 MB; range 100.7–178.7 m | `42dd6e72…0aae5260` |
-| `elevation/bonebank-anchor-dem-10m.tif` | Full 10 m window ±0.03° around 13101 Bonebank Rd (37.845887, −88.005075), 1.3 MB; range 101.1–115.1 m (331.6–377.7 ft — brackets the case LAG 377.2 ft) | `2a6c85df…5bef925f` |
+| `elevation/restricted-site-dem-10m.tif` | Full 10 m window ±0.03° around the restricted site (coordinates operator-retained), 1.3 MB; range 101.1–115.1 m (331.6–377.7 ft — brackets the case LAG 377.2 ft) | `2a6c85df…5bef925f` |
 | `elevation/sources.txt` | Exact source tile URLs | — |
 
 County-wide 1 m DEM was intentionally **not** vendored (≈1–2 GB); the 30 m
@@ -110,7 +110,7 @@ parcel data are being sourced from:
 
 Large rasters (county-wide 1 m DEM ≈ 1–2 GB) will **not** be vendored whole;
 the bundle will carry a downsampled county DEM plus full-resolution tiles
-around the 13101 Bonebank Rd anchor site, with provenance and hashes recorded
+around the restricted site, with provenance and hashes recorded
 here.
 
 ## Notes

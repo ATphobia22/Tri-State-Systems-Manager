@@ -13,7 +13,7 @@ rather than guessing.)
 
 ## 1. Site-coordinate discrepancy (~6.4 km)
 
-**What:** Two coordinates are asserted for the anchor site (13101 Bonebank Road):
+**What:** Two coordinates are asserted for the anchor site (the restricted site):
 - `37.9035, -88.0007` — PTDT v35 codex "surveyed centroid" (also in `docs/archive/drive-import/ptdt-v32-33-engineering-workspace.md` and `tsm-console/src/lib/scientific-analytics.ts`).
 - `37.84589, -88.0051` — MT-1 mapping / geocoded address point.
 
@@ -39,8 +39,7 @@ unresolved.
 **Why code can't fix it:** CIDs are assigned by FEMA; the correct one for the
 parcel is a matter of FEMA/IDNR records, not computation.
 
-**What's needed:** owner confirms the correct Community ID for 13101 Bonebank
-Road via FEMA Map Service Center / the Posey County floodplain administrator,
+**What's needed:** owner confirms the correct Community ID for the restricted site via FEMA Map Service Center / the Posey County floodplain administrator,
 then the LOMA checklist gets corrected.
 
 ## 3. FIRM panel disagreement
@@ -55,7 +54,7 @@ then the LOMA checklist gets corrected.
 **Why code can't fix it:** the correct panel is whatever FEMA's Map Service
 Center indexes for the site address; documents can disagree arbitrarily.
 
-**What's needed:** owner pulls the authoritative panel for 13101 Bonebank Road
+**What's needed:** owner pulls the authoritative panel for the restricted site
 from FEMA MSC (or the Posey County floodplain office) and consolidates all
 filing documents to that panel before any filing.
 

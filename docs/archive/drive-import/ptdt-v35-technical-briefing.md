@@ -56,7 +56,7 @@ POST /api/v1/package/generate: Produces the final "Material Truth" artifacts, in
 Option Name	Dependency	Horizontal_CRS	Vertical_Datum	BFE_ft	LAG_ft	FFE_ft	Berm_Crest_ft	Comp_Storage_Factor
 Posey Baseline	None	EPSG:2967	NAVD88	375.0	377.2	382.5	379.8	1.20
 Point Township High Ground	Posey Baseline	EPSG:2967	NAVD88	375.0	378.5	383.0	380.5	1.20
-Bonebank Road Cluster	Posey Baseline	EPSG:2967	NAVD88	375.0	377.2	382.5	379.8	1.20
+restricted site Cluster	Posey Baseline	EPSG:2967	NAVD88	375.0	377.2	382.5	379.8	1.20
 Myers Stage Impact Zone	Posey Baseline	EPSG:2967	NAVD88	375.0	374.5	380.0	378.0	1.20
 
 # ---------------------------------------------------------------------------------------------------------
@@ -77,7 +77,7 @@ Myers Stage Impact Zone	Posey Baseline	EPSG:2967	NAVD88	375.0	374.5	380.0	378.0	
 """
 PTDT v35 — ResStock / OpenStudio-HPXML Neighborhood Coupler & EPW Climate Sync
 Author: Nobel Peace Prize Laureate Senior Software Engineer
-Anchor: 13101 Bonebank Road, Point Township, Posey County, IN 47620
+Anchor: the restricted site, Point Township, Posey County, IN 47620
 Compliance: IDNR 312 IAC 10-5 | EPSG:2967 / NAVD88 | Daubert FRE 702 | RFC 8785 JCS
 """
 
@@ -239,7 +239,7 @@ class FemaBcaDossierGenerator:
                 "system_version": "PTDT-v35-Sovereign-Engineering",
                 "timestamp_utc": datetime.datetime.now(datetime.timezone.utc).isoformat() + "Z",
                 "jurisdiction": "Posey County Assessor / IDNR 312 IAC 10-5",
-                "applicant_site": "13101 Bonebank Road Cluster"
+                "applicant_site": "the restricted site Cluster"
             },
             "neighborhood_parameters": asdict(option),
             "hydraulic_state": {
@@ -277,7 +277,7 @@ if __name__ == "__main__":
         with open(tsv_path, 'w', encoding='utf-8') as f:
             f.write("Option Name\tDependency\tHorizontal_CRS\tVertical_Datum\tBFE_ft\tLAG_ft\tFFE_ft\tBerm_Crest_ft\tComp_Storage_Factor\n")
             f.write("Posey Baseline\tNone\tEPSG:2967\tNAVD88\t375.0\t377.2\t382.5\t379.8\t1.20\n")
-            f.write("Bonebank Road Cluster\tPosey Baseline\tEPSG:2967\tNAVD88\t375.0\t377.2\t382.5\t379.8\t1.20\n")
+            f.write("restricted site Cluster\tPosey Baseline\tEPSG:2967\tNAVD88\t375.0\t377.2\t382.5\t379.8\t1.20\n")
 
     parser = PoseyNeighborhoodTSVParser(tsv_path)
     baseline_opt = parser.get_option("Posey Baseline")
@@ -349,8 +349,8 @@ const POSEY_NEIGHBORHOOD_OPTIONS: Record<string, NeighborhoodOption> = {
     bermCrestFt: 380.5,
     compStorageFactor: 1.20
   },
-  "Bonebank Road Cluster": {
-    optionName: "Bonebank Road Cluster",
+  "restricted site Cluster": {
+    optionName: "restricted site Cluster",
     dependency: "Posey Baseline",
     horizontalCrs: "EPSG:2967",
     verticalDatum: "NAVD88",
@@ -374,7 +374,7 @@ const POSEY_NEIGHBORHOOD_OPTIONS: Record<string, NeighborhoodOption> = {
 };
 
 export default function PoseyNeighborhoodDashboard() {
-  const [selectedClusterKey, setSelectedClusterKey] = useState<string>("Bonebank Road Cluster");
+  const [selectedClusterKey, setSelectedClusterKey] = useState<string>("restricted site Cluster");
   const [waterStageFt, setWaterStageFt] = useState<number>(376.40);
   const [isDossierGenerated, setIsDossierGenerated] = useState<boolean>(false);
   const [dossierSeal, setDossierSeal] = useState<string>("");
@@ -796,7 +796,7 @@ int main() {
 """
 PTDT v35 — Master Sovereign FastAPI Backend Engine
 Author: Nobel Peace Prize-winning Senior Software Engineer
-Anchor: 13101 Bonebank Road, Point Township, Posey County, IN 47620
+Anchor: the restricted site, Point Township, Posey County, IN 47620
 Compliance: Daubert FRE 702 | IDNR 312 IAC 10-5 | EPSG:2967 / NAVD88
 Description: Unified API Gateway serving DEM validation, Evidence Graphs, and 30Hz WebSockets.
 """
@@ -822,8 +822,8 @@ import uvicorn
 @dataclass(frozen=True, slots=True)
 class SovereignSiteRegistry:
     SYSTEM_VERSION: str = "PTDT-TriState-Unified-v35"
-    PROJECT_NODE: str = "13101 Bonebank Road, Posey County, Indiana"
-    VERIFIED_APN: str = "65-19-08-100-008.001-010"
+    PROJECT_NODE: str = "the restricted site, Posey County, Indiana"
+    VERIFIED_APN: str = "[parcel withheld]"
     HORIZONTAL_CRS: str = "EPSG:2967 (Indiana West HARN)"
     VERTICAL_DATUM: str = "NAVD88"
     BFE_FT: float = 375.00
@@ -1016,7 +1016,7 @@ if __name__ == "__main__":
     <header role="banner" class="hud-panel p-4 flex flex-col md:flex-row justify-between items-center gap-4">
         <div>
             <h1 class="text-xl font-bold text-sky-400 tracking-wide" tabindex="0">Tri-State River Valley Digital Twin</h1>
-            <p class="text-xs text-slate-400 mt-1" aria-label="Location">13101 Bonebank Road, Point Township, IN 47620</p>
+            <p class="text-xs text-slate-400 mt-1" aria-label="Location">the restricted site, Point Township, IN 47620</p>
             <p class="text-[10px] text-emerald-400 font-mono mt-0.5">Soli Deo Gloria. Built for everyone.</p>
         </div>
         <div class="flex gap-4 font-mono text-xs">

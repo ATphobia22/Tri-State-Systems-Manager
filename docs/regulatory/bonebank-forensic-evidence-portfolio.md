@@ -1,6 +1,6 @@
 > **DRIVE IMPORT — REGULATORY / GRANT WORKING DOCUMENT**
 >
-> Source: Google Drive — "Bonebank Property: Forensic Evidence & Regulatory Submission Portfolio" · Drive last modified: 2026-07-19
+> Source: Google Drive — "restricted site Property: Forensic Evidence & Regulatory Submission Portfolio" · Drive last modified: 2026-07-19
 > Ingested: 2026-09-25 · Verification status: **REFERENCE**
 >
 > Working document from the owner's archive. Values and assertions (elevations, application
@@ -10,14 +10,14 @@
 > cross-document inconsistencies.
 
 ---
-SOURCE: Bonebank Property: Forensic Evidence & Regulatory Submission Portfolio
+SOURCE: restricted site Property: Forensic Evidence & Regulatory Submission Portfolio
 DRIVE_MODIFIED: 2026-07-19
 ============================================================
 
-Bonebank Property: Forensic Evidence & Regulatory Submission Portfolio
+restricted site Property: Forensic Evidence & Regulatory Submission Portfolio
 1. Executive Summary: The "Material Truth" Argument
 This portfolio is designed to bypass standard federal and state regulatory hurdles by presenting Evidence-Grade Technical Data that exceeds the accuracy of the current National Flood Hazard Layer (NFHL).
-Subject Property: 13101 Bonebank Rd, Posey County, Indiana.
+Subject Property: the restricted site, Posey County, Indiana.
 Forensic Baseline: 5cm LiDAR Topography.
 Verified LAG: 377.2 ft (Lowest Adjacent Grade).
 Verified FFE: 382.5 ft (First Floor Elevation).
@@ -60,7 +60,7 @@ Template: Forensic Data Transmittal Letter
 The P.E. must print this on firm letterhead and apply their Indiana stamp (1-5/8" to 1-7/8" diameter).
 TO: FEMA LOMC Clearinghouse / Indiana DNR Division of Water
 DATE: July 19, 2026
-RE: Technical Data Submission for LOMA/LOMR-F - 13101 Bonebank Rd.
+RE: Technical Data Submission for LOMA/LOMR-F - the restricted site
 Forensic Certification Statement:
 "I, [P.E. NAME], being a Registered Professional Engineer in the State of Indiana (License #[NUMBER]), do hereby state that, to the best of my knowledge, the information attached with this submission is true and accurate.
 This submission includes:
@@ -69,16 +69,16 @@ Material Truth Simulation Report: Calibrated against USGS Gauge 03378500, demons
 Elevation Certificate: 'As-built' certification for structures on the subject parcel.
 As required by Indiana IC 25-31-1, I certify that these analyses were performed under my direct supervision and meet all statutory requirements for floodplain delineation."
 4. Formal Request: Community Acknowledgement (Form 3)
-If any fill was placed on the Bonebank property, or if you are challenging a floodway delineation, you must obtain a signature from the Posey County Floodplain Administrator.
+If any fill was placed on the restricted site property, or if you are challenging a floodway delineation, you must obtain a signature from the Posey County Floodplain Administrator.
 Contact Information: Posey County Building Commissioner
 Administrator: Ed Batteiger, Building Commissioner.
 Address: 126 East Third St., Room 132, Mt. Vernon, IN 47620.
 Phone: 812-838-1324.
 Email: ed.batteiger@poseycountyin.gov.
 Draft Email: Community Acknowledgement Request
-Subject: Request for Community Acknowledgement (Form 3) - 13101 Bonebank Rd (LOMR-F/LOMA)
+Subject: Request for Community Acknowledgement (Form 3) - the restricted site (LOMR-F/LOMA)
 Dear Commissioner Batteiger,
-I am submitting this request for a signature on FEMA MT-1 Form 3 (Community Acknowledgement Form) regarding a Letter of Map Change for my property at 13101 Bonebank Road.
+I am submitting this request for a signature on FEMA MT-1 Form 3 (Community Acknowledgement Form) regarding a Letter of Map Change for my property at the restricted site.
 I have attached a Forensic Digital Twin Report and certified 5cm LiDAR topography which establishes that the subject property’s Lowest Adjacent Grade (LAG) of 377.2 ft is naturally or currently above the Base Flood Elevation (BFE). This data has been cross-referenced with USGS Gauge 03378500 telemetry to ensure 2026-grade accuracy.
 Per FEMA requirements, I am requesting your signature on:
 Section A: (For Fill) To acknowledge the project is reasonably safe from flooding.
@@ -209,7 +209,7 @@ Explain that Houdini's FLIP solvers utilize standardized Navier-Stokes equations
 The Moonray 2.34 path-tracing engine is used solely for the high-fidelity visualization (Evidence Seal) of the underlying, standard-compliant hydraulic data.
 Contingency Action: If FEMA refuses the Houdini results, request a "Phased Project" exception to convert the simulation data into a standard HEC-RAS 2D model using the already-certified LiDAR topographic base.
 [Rich media excluded from paste]
-12. Family Legacy Summary: Securing the Bonebank Sovereignty
+12. Family Legacy Summary: Securing the restricted site Sovereignty
 Beyond the "red tape" of FEMA portals and engineering seals, this system is a foundational act of protection for our family’s history and future on this land.
 Indiana task force debates floodplain mapping — and how it's ...City-scale digital twins for flood resilience | GIM International2026 Conference
 From "Paper Data" to "Material Truth"
@@ -222,15 +222,15 @@ Asset Preservation: A digital twin allows us to simulate and prepare for actual 
 The Digital Heirloom: This forensic model is a permanent asset that can be passed down. It provides our descendants with the tools to defend their inheritance against shifting federal policies or rising waters for the next 100 years.
 This is the ultimate defensive wall—one built not just of dirt and stone, but of verified intelligence and unbreakable evidence.
 13. Technical Brief: Inheriting the Sovereign Node Digital Twin
-Prepared for the Estate Planner / Trustee of the Bonebank Property [1]
-This brief outlines the legal and technical requirements for including the Sovereign Node (Houdini/Moonray Digital Twin and associated Forensic Data) as a high-value asset in the family's estate plan, ensuring it remains tied to the physical property at 13101 Bonebank Rd. [2, 3]
+Prepared for the Estate Planner / Trustee of the restricted site Property [1]
+This brief outlines the legal and technical requirements for including the Sovereign Node (Houdini/Moonray Digital Twin and associated Forensic Data) as a high-value asset in the family's estate plan, ensuring it remains tied to the physical property at the restricted site [2, 3]
 The Crypto Inheritance Crisis: A 2026 Guide to Estate Planning for ...Digital Assets Are Reshaping Estate Planning: Why Your Online ...How to Incorporate Digital Assets into Your Estate Plan | North ...
 1. Legal Classification & Statutory Authority
 Asset Class: The Sovereign Node is classified as Intangible Personal Property (specifically a "Digital Asset") under the Revised Uniform Fiduciary Access to Digital Assets Act (RUFADAA), which Indiana adopted in 2016. [4, 5, 6]
 Indiana House Enrolled Act 1042 (2026): This act provides the specific statutory framework for protecting blockchain-verified property data and self-hosted digital assets from unauthorized state impairment. [7, 8, 9, 10]
 2. Mandatory Fiduciary Access Language
 Under RUFADAA, an executor or trustee cannot access these digital remains without explicit, prior written consent in the will or trust. [11, 12, 13, 14]
-The "Sovereign Clause": The estate plan must include: "I grant my fiduciary the authority to access, manage, and distribute all 'Digital Twins,' LiDAR datasets, and forensic simulation metadata associated with the real property at 13101 Bonebank Rd, inclusive of any SHA256-verified audit ledgers."
+The "Sovereign Clause": The estate plan must include: "I grant my fiduciary the authority to access, manage, and distribute all 'Digital Twins,' LiDAR datasets, and forensic simulation metadata associated with the real property at the restricted site, inclusive of any SHA256-verified audit ledgers."
 Avoid Public Disclosure: Do not list sensitive passwords or private keys in the will itself, as it becomes public during probate. Reference a separate, secure 'Digital Letter of Instruction' instead. [11, 15, 16, 17, 18]
 3. Integration as a Real Estate "Appurtenance"
 To maximize the land's value, the Digital Twin should be legally treated as an Essential Appurtenance or a "Digital Fixture."

@@ -17,7 +17,7 @@ import maplibregl from 'maplibre-gl';
 // 1. SITE & GEODETIC ANCHOR CONSTANTS (Point Township, Posey County, IN)
 // ============================================================================
 export const BONEBANK_RAYTRACER_CONSTANTS = {
-  site_id: '13101-bonebank',
+  site_id: 'restricted-site',
   center_lng_lat: [-87.9312, 37.8825] as [number, number],
   crs: 'EPSG:2966',
   base_flood_elevation_navd88_ft: 375.0,

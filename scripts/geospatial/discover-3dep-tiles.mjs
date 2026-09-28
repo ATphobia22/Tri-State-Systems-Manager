@@ -8,7 +8,7 @@
  *   node scripts/geospatial/discover-3dep-tiles.mjs --bbox=-88.1,37.8,-87.9,38.0
  */
 const bbox = process.argv.find((a) => a.startsWith('--bbox='))?.slice(7)
-  || '-88.12,37.78,-87.88,38.12'; // default: Posey / Bonebank vicinity
+  || '-88.12,37.78,-87.88,38.12'; // default: Posey County vicinity
 
 const url = new URL('https://tnmaccess.nationalmap.gov/api/v1/products');
 url.searchParams.set('bbox', bbox);

@@ -16,7 +16,7 @@ Official Government Grant Application & Verified Data
 Dossier
 Program: FEMA Building Resilient Infrastructure and Communities (BRIC) / Hazard Mitigation
 Assistance (HMA) Submission Portal: FEMA Grants Outcome (FEMA GO) / Indiana
-Department of Homeland Security (IDHS) Project Node: 13101 Bonebank Road, Point
+Department of Homeland Security (IDHS) Project Node: the restricted site, Point
 Township, Posey County, Indiana Grant Application Identifier: PTDT-v34-FY26-BRIC-01
 
 Part I: FEMA BRIC Subapplication Narrative (Verified
@@ -61,7 +61,7 @@ absolute provenance.
 2. Built Environment & Assessor Domain (Posey County / XSoft
 Engage)
 ●​ Parcel Normalization: Strict adherence to 50 IAC 26-8-1 digit formatting
-(65-19-08-100-008.001-010), supervised by Posey County Assessor Nancy A. Hoehn.
+([parcel withheld]), supervised by Posey County Assessor Nancy A. Hoehn.
 ●​ Firewall Protection: Internal fail-closed FSM blocks any LOMA or grant export if
 dual-APN discrepancies occur.
 

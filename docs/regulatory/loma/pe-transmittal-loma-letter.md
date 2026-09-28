@@ -14,7 +14,7 @@ SOURCE: PE Transmittal & LOMA Letter
 DRIVE_MODIFIED: 2026-08-21
 ============================================================
 
-PROFESSIONAL ENGINEERING TRANSMITTAL & DAUBERT EVIDENTIARY DOSSIER Target Property: 13101 Bonebank Road, Point Township, Posey County,Mount Vernon Indiana (47620) System Node: Point Township Digital Twin Version 35 
+PROFESSIONAL ENGINEERING TRANSMITTAL & DAUBERT EVIDENTIARY DOSSIER Target Property: the restricted site, Point Township, Posey County,Mount Vernon Indiana (47620) System Node: Point Township Digital Twin Version 35 
 Topographic Work Map Certification Elevation Baseline: USGS 3DEP 1-Meter DEM and 5cm LiDAR Survey. Vertical Datum: NAVD 88 (Strictly Enforced). Horizontal CRS: EPSG:2966 (NAD83 / Indiana West)
 Material Truth & Calibration Report Calibration Archive: Tucker Heritage Engineering Workbook v1.0. Base Flood Elevation (BFE): 375.0 ft NAVD88 Lowest Adjacent Grade (LAG): 377.2 ft NAVD88 Clearance Vector: +2.20 ft (LAG - BFE)
 Statutory Finding Because the natural ground sits 2.20 ft above the Base Flood Elevation without requiring artificial fill, the property qualifies for a Pure Letter of Map Amendment (LOMA) under 44 CFR Part 70 via Natural High Ground.
