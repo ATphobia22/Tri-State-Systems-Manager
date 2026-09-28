@@ -123,14 +123,14 @@ jobs:
         working-directory: ${{ env.CONSOLE_DIR }}
         run: npm run build
       - name: Prepare GitHub Pages SPA fallback
-        if: ${{ (github.event_name == 'push' && vars.TSM_PAGES_ENABLED == 'true') || (github.event_name == 'workflow_dispatch' && inputs.deploy_pages) || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) || (github.event_name == 'issues' && github.event.action == 'opened' && github.event.issue.pull_request == null && github.event.issue.title == 'TSM Pages deployment dispatch' && github.event.issue.body == 'DEPLOY_PAGES_REQUEST' && github.event.issue.user.login == github.repository_owner) }}
+        if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && inputs.deploy_pages) || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) || (github.event_name == 'issues' && github.event.action == 'opened' && github.event.issue.pull_request == null && github.event.issue.title == 'TSM Pages deployment dispatch' && github.event.issue.body == 'DEPLOY_PAGES_REQUEST' && github.event.issue.user.login == github.repository_owner) }}
         working-directory: ${{ env.CONSOLE_DIR }}
         run: cp dist/index.html dist/404.html
       - name: Validate production artifact
         working-directory: ${{ env.CONSOLE_DIR }}
         run: |
           test -f dist/index.html
-          if [[ "${{ ((github.event_name == 'push' && vars.TSM_PAGES_ENABLED == 'true') || (github.event_name == 'workflow_dispatch' && inputs.deploy_pages) || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) || (github.event_name == 'issues' && github.event.action == 'opened' && github.event.issue.pull_request == null && github.event.issue.title == 'TSM Pages deployment dispatch' && github.event.issue.body == 'DEPLOY_PAGES_REQUEST' && github.event.issue.user.login == github.repository_owner)) }}" == "true" ]]; then
+          if [[ "${{ ((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && inputs.deploy_pages) || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) || (github.event_name == 'issues' && github.event.action == 'opened' && github.event.issue.pull_request == null && github.event.issue.title == 'TSM Pages deployment dispatch' && github.event.issue.body == 'DEPLOY_PAGES_REQUEST' && github.event.issue.user.login == github.repository_owner)) }}" == "true" ]]; then
             test -f dist/404.html
           fi
       - name: Upload production artifact
@@ -140,7 +140,7 @@ jobs:
           path: ${{ env.CONSOLE_DIR }}/dist
           if-no-files-found: error
       - name: GitHub Pages preflight
-        if: ${{ (github.event_name == 'push' && vars.TSM_PAGES_ENABLED == 'true') || (github.event_name == 'workflow_dispatch' && inputs.deploy_pages) || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) || (github.event_name == 'issues' && github.event.action == 'opened' && github.event.issue.pull_request == null && github.event.issue.title == 'TSM Pages deployment dispatch' && github.event.issue.body == 'DEPLOY_PAGES_REQUEST' && github.event.issue.user.login == github.repository_owner) }}
+        if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && inputs.deploy_pages) || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) || (github.event_name == 'issues' && github.event.action == 'opened' && github.event.issue.pull_request == null && github.event.issue.title == 'TSM Pages deployment dispatch' && github.event.issue.body == 'DEPLOY_PAGES_REQUEST' && github.event.issue.user.login == github.repository_owner) }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
           PAGES_ENABLEMENT_TOKEN: ${{ secrets.TSM_PAGES_ADMIN_TOKEN }}
@@ -173,13 +173,13 @@ jobs:
               ;;
           esac
       - name: Configure GitHub Pages
-        if: ${{ (github.event_name == 'push' && vars.TSM_PAGES_ENABLED == 'true') || (github.event_name == 'workflow_dispatch' && inputs.deploy_pages) || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) || (github.event_name == 'issues' && github.event.action == 'opened' && github.event.issue.pull_request == null && github.event.issue.title == 'TSM Pages deployment dispatch' && github.event.issue.body == 'DEPLOY_PAGES_REQUEST' && github.event.issue.user.login == github.repository_owner) }}
+        if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && inputs.deploy_pages) || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) || (github.event_name == 'issues' && github.event.action == 'opened' && github.event.issue.pull_request == null && github.event.issue.title == 'TSM Pages deployment dispatch' && github.event.issue.body == 'DEPLOY_PAGES_REQUEST' && github.event.issue.user.login == github.repository_owner) }}
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
         with:
           token: ${{ secrets.TSM_PAGES_ADMIN_TOKEN || github.token }}
           enablement: ${{ secrets.TSM_PAGES_ADMIN_TOKEN != '' }}
       - name: Upload Pages artifact when deployment is requested
-        if: ${{ (github.event_name == 'push' && vars.TSM_PAGES_ENABLED == 'true') || (github.event_name == 'workflow_dispatch' && inputs.deploy_pages) || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) || (github.event_name == 'issues' && github.event.action == 'opened' && github.event.issue.pull_request == null && github.event.issue.title == 'TSM Pages deployment dispatch' && github.event.issue.body == 'DEPLOY_PAGES_REQUEST' && github.event.issue.user.login == github.repository_owner) }}
+        if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && inputs.deploy_pages) || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) || (github.event_name == 'issues' && github.event.action == 'opened' && github.event.issue.pull_request == null && github.event.issue.title == 'TSM Pages deployment dispatch' && github.event.issue.body == 'DEPLOY_PAGES_REQUEST' && github.event.issue.user.login == github.repository_owner) }}
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: ${{ env.CONSOLE_DIR }}/dist
@@ -187,7 +187,7 @@ jobs:
   deploy:
     name: Deploy production console
     needs: build
-    if: ${{ (github.event_name == 'push' && vars.TSM_PAGES_ENABLED == 'true') || (github.event_name == 'workflow_dispatch' && inputs.deploy_pages) || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) || (github.event_name == 'issues' && github.event.action == 'opened' && github.event.issue.pull_request == null && github.event.issue.title == 'TSM Pages deployment dispatch' && github.event.issue.body == 'DEPLOY_PAGES_REQUEST' && github.event.issue.user.login == github.repository_owner) }}
+    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && inputs.deploy_pages) || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) || (github.event_name == 'issues' && github.event.action == 'opened' && github.event.issue.pull_request == null && github.event.issue.title == 'TSM Pages deployment dispatch' && github.event.issue.body == 'DEPLOY_PAGES_REQUEST' && github.event.issue.user.login == github.repository_owner) }}
     runs-on: ubuntu-24.04
     permissions:
       pages: write
