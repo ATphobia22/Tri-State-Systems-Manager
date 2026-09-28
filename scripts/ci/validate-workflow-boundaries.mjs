@@ -28,13 +28,18 @@ for (const name of await readdir(WORKFLOW_DIR)) {
   }
   if (name === 'geospatial-ci.yml' && /cityengine|unreal/i.test(text) && !/workflow_dispatch/.test(text)) errors.push('geospatial-ci.yml: specialized tooling must be independently dispatchable');
   if (name === 'deploy-pages.yml') {
-    // The production build must point at a real live API origin: either the
-    // repository variable controlled by the repository owner. The workflow
-    // separately validates that the value is non-empty and HTTPS.
-    const apiFromVar = /VITE_TSM_API_BASE_URL:\s*\$\{\{\s*vars\.VITE_TSM_API_BASE_URL\s*\}\}/.test(text);
+    const apiFromVar = /VITE_TSM_API_BASE_URL:\s*\$\{\{\s*vars\.TSM_API_BASE_URL\s*\}\}/.test(text);
     const apiPinned = /VITE_TSM_API_BASE_URL:\s*https:\/\//.test(text);
     if (!apiFromVar && !apiPinned) errors.push('deploy-pages.yml: production build must expose the live API base URL via repository variable or the pinned canonical origin');
     if (/VITE_KEYCLOAK_URL|VITE_KEYCLOAK_REALM|VITE_KEYCLOAK_CLIENT_ID/.test(text) && !/optional|privileged|public read access/i.test(text)) errors.push('deploy-pages.yml: identity-provider bindings must remain explicitly optional');
+    if (!/uses:\s*actions\/deploy-pages@/.test(text)) errors.push('deploy-pages.yml: GitHub Pages deployment must use the supported deploy-pages action');
+    if (!/uses:\s*actions\/upload-pages-artifact@/.test(text)) errors.push('deploy-pages.yml: GitHub Pages deployment must upload a Pages artifact');
+  }
+  if (name === 'deploy-coolify.yml') {
+    if (!/branches:\s*\[main\]/.test(text)) errors.push('deploy-coolify.yml: production deployment trigger must target main');
+    if (!/COOLIFY_DEPLOY_WEBHOOK_URL/.test(text)) errors.push('deploy-coolify.yml: Coolify webhook secret binding is missing');
+    if (!/curl --fail --silent --show-error --location/.test(text)) errors.push('deploy-coolify.yml: webhook trigger must fail closed on HTTP errors');
+    if (!/echo "Coolify deployment webhook triggered for \$\{GITHUB_SHA\}"\s*$/m.test(text)) errors.push('deploy-coolify.yml: deployment trigger must emit the source commit SHA');
   }
   if (name === 'ci.yml') {
     const alertmanagerCheck = /docker run[\s\S]*?prom\/alertmanager:v0\.34\.0@sha256:[0-9a-f]{64}[\s\S]*?check-config[\s\S]*?--enable-feature=utf8-strict-mode/m.test(text);
