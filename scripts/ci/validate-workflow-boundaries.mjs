@@ -37,7 +37,8 @@ for (const name of await readdir(WORKFLOW_DIR)) {
   }
   if (name === 'deploy-coolify.yml') {
     if (!/branches:\s*\[main\]/.test(text)) errors.push('deploy-coolify.yml: production deployment trigger must target main');
-    if (!/COOLIFY_DEPLOY_WEBHOOK_URL/.test(text)) errors.push('deploy-coolify.yml: Coolify webhook secret binding is missing');
+    if (!/COOLIFY_DEPLOY_WEBHOOK_URL/.test(text)) errors.push('deploy-coolify.yml: optional Coolify webhook binding is missing');
+    if (!/if \[\[ -z \"\$\{COOLIFY_DEPLOY_WEBHOOK_URL\}\" \]\]/.test(text)) errors.push('deploy-coolify.yml: missing no-secret fallback to Coolify Git integration');
     if (!/curl --fail --silent --show-error --location/.test(text)) errors.push('deploy-coolify.yml: webhook trigger must fail closed on HTTP errors');
     if (!/Coolify deployment webhook triggered for \$\{GITHUB_SHA\}/.test(text)) errors.push('deploy-coolify.yml: deployment trigger must emit the source commit SHA');
   }
