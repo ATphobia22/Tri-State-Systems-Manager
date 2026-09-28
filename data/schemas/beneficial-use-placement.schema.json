@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tsm-community.example/schemas/beneficial-use-placement/v1.0.0.json",
+  "title": "TSM Beneficial Use Placement Scenario",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["scenario_id", "material_id", "use_class", "candidate_site", "volume", "evidence", "human_review_required"],
+  "properties": {
+    "scenario_id": {"type":"string","pattern":"^[a-z0-9-]+$"},
+    "material_id": {"type":"string","minLength":1},
+    "authority_pathway": {"type":"string","enum":["USACE_SECTION_204","USACE_REGIONAL_SEDIMENT_MANAGEMENT","STATE_OR_LOCAL_AUTHORITY","OTHER","UNDETERMINED"]},
+    "use_class": {"type":"string","enum":["berm","levee_repair","road_fill","upland_fill","wetland","habitat","brownfield_reclamation","other"]},
+    "candidate_site": {
+      "type":"object","additionalProperties":false,"required":["geometry_ref","ownership_status","floodplain_status"],
+      "properties":{
+        "geometry_ref":{"type":"string","minLength":1},
+        "ownership_status":{"type":"string","enum":["PUBLIC","PRIVATE_WITH_PERMISSION","UNKNOWN"]},
+        "floodplain_status":{"type":"string","enum":["OUTSIDE_SFHA","SFHA","FLOODWAY","UNKNOWN"]}
+      }
+    },
+    "volume":{
+      "type":"object","additionalProperties":false,"required":["source_cy","allocated_cy","placed_cy"],
+      "properties":{
+        "source_cy":{"type":"number","minimum":0},
+        "allocated_cy":{"type":"number","minimum":0},
+        "placed_cy":{"type":"number","minimum":0},
+        "processing_loss_cy":{"type":"number","minimum":0}
+      }
+    },
+    "engineering":{"type":["object","null"],"additionalProperties":true},
+    "environmental_screening":{"type":["object","null"],"additionalProperties":true},
+    "evidence":{"type":"array","items":{"type":"string","minLength":1}},
+    "human_review_required":{"const":true},
+    "agency_acceptance":{"const":false}
+  }
+}
