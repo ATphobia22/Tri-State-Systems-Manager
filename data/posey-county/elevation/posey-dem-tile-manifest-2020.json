@@ -1,0 +1,3503 @@
+{
+ "title": "Indiana statewide DEM tile footprints \u2014 Posey County (2016-2020 collection)",
+ "source": "Indiana GIO, Hosted/Indiana_DEM_Tile_Footprints/FeatureServer/0",
+ "query": "county LIKE '%Posey%'",
+ "queried": "2026-09-28",
+ "license": "CC0 (AWS Registry of Open Data); tiles are Cloud-Optimized GeoTIFFs",
+ "tile_count": 581,
+ "fields": [
+  "filename",
+  "image_year",
+  "pixel_size",
+  "urlpath"
+ ],
+ "notes": "Per-tile direct S3 download URLs (urlpath). 2.5 ft resolution. County-wide 1 m DEM intentionally not vendored (~GBs); this manifest lets offline tooling fetch only needed tiles. Reference only \u2014 not survey evidence.",
+ "tiles": [
+  {
+   "filename": "IN2020_26700930_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26700930_12.tif"
+  },
+  {
+   "filename": "IN2020_26600960_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26600960_12.tif"
+  },
+  {
+   "filename": "IN2020_26600965_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26600965_12.tif"
+  },
+  {
+   "filename": "IN2020_26700935_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26700935_12.tif"
+  },
+  {
+   "filename": "IN2020_26650930_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26650930_12.tif"
+  },
+  {
+   "filename": "IN2020_26650935_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26650935_12.tif"
+  },
+  {
+   "filename": "IN2020_26650940_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26650940_12.tif"
+  },
+  {
+   "filename": "IN2020_26650945_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26650945_12.tif"
+  },
+  {
+   "filename": "IN2020_26650950_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26650950_12.tif"
+  },
+  {
+   "filename": "IN2020_26600930_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26600930_12.tif"
+  },
+  {
+   "filename": "IN2020_26600935_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26600935_12.tif"
+  },
+  {
+   "filename": "IN2020_26600940_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26600940_12.tif"
+  },
+  {
+   "filename": "IN2020_26650955_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26650955_12.tif"
+  },
+  {
+   "filename": "IN2020_26650960_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26650960_12.tif"
+  },
+  {
+   "filename": "IN2020_26650965_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26650965_12.tif"
+  },
+  {
+   "filename": "IN2020_26650970_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26650970_12.tif"
+  },
+  {
+   "filename": "IN2020_26650975_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26650975_12.tif"
+  },
+  {
+   "filename": "IN2020_26700945_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26700945_12.tif"
+  },
+  {
+   "filename": "IN2020_26700950_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26700950_12.tif"
+  },
+  {
+   "filename": "IN2020_26700955_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26700955_12.tif"
+  },
+  {
+   "filename": "IN2020_26700960_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26700960_12.tif"
+  },
+  {
+   "filename": "IN2020_26700970_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26700970_12.tif"
+  },
+  {
+   "filename": "IN2020_26700975_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26700975_12.tif"
+  },
+  {
+   "filename": "IN2020_26750930_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26750930_12.tif"
+  },
+  {
+   "filename": "IN2020_26750935_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26750935_12.tif"
+  },
+  {
+   "filename": "IN2020_26750940_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26750940_12.tif"
+  },
+  {
+   "filename": "IN2020_26750945_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26750945_12.tif"
+  },
+  {
+   "filename": "IN2020_26750950_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26750950_12.tif"
+  },
+  {
+   "filename": "IN2020_26750955_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26750955_12.tif"
+  },
+  {
+   "filename": "IN2020_26750960_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26750960_12.tif"
+  },
+  {
+   "filename": "IN2020_26750970_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26750970_12.tif"
+  },
+  {
+   "filename": "IN2020_26750975_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26750975_12.tif"
+  },
+  {
+   "filename": "IN2020_26750980_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26750980_12.tif"
+  },
+  {
+   "filename": "IN2020_26750985_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26750985_12.tif"
+  },
+  {
+   "filename": "IN2020_26751015_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26751015_12.tif"
+  },
+  {
+   "filename": "IN2020_26751020_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26751020_12.tif"
+  },
+  {
+   "filename": "IN2020_26800930_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26800930_12.tif"
+  },
+  {
+   "filename": "IN2020_26800935_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26800935_12.tif"
+  },
+  {
+   "filename": "IN2020_26800940_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26800940_12.tif"
+  },
+  {
+   "filename": "IN2020_26800945_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26800945_12.tif"
+  },
+  {
+   "filename": "IN2020_26800950_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26800950_12.tif"
+  },
+  {
+   "filename": "IN2020_26800955_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26800955_12.tif"
+  },
+  {
+   "filename": "IN2020_26800960_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26800960_12.tif"
+  },
+  {
+   "filename": "IN2020_26800965_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26800965_12.tif"
+  },
+  {
+   "filename": "IN2020_26800970_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26800970_12.tif"
+  },
+  {
+   "filename": "IN2020_26800975_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26800975_12.tif"
+  },
+  {
+   "filename": "IN2020_26800980_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26800980_12.tif"
+  },
+  {
+   "filename": "IN2020_26800985_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26800985_12.tif"
+  },
+  {
+   "filename": "IN2020_26800990_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26800990_12.tif"
+  },
+  {
+   "filename": "IN2020_26800995_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26800995_12.tif"
+  },
+  {
+   "filename": "IN2020_26801000_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26801000_12.tif"
+  },
+  {
+   "filename": "IN2020_26801005_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26801005_12.tif"
+  },
+  {
+   "filename": "IN2020_26801010_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26801010_12.tif"
+  },
+  {
+   "filename": "IN2020_26801015_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26801015_12.tif"
+  },
+  {
+   "filename": "IN2020_26801020_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26801020_12.tif"
+  },
+  {
+   "filename": "IN2020_26801035_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26801035_12.tif"
+  },
+  {
+   "filename": "IN2020_26801040_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26801040_12.tif"
+  },
+  {
+   "filename": "IN2020_26850925_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26850925_12.tif"
+  },
+  {
+   "filename": "IN2020_26850930_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26850930_12.tif"
+  },
+  {
+   "filename": "IN2020_26850935_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26850935_12.tif"
+  },
+  {
+   "filename": "IN2020_26850940_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26850940_12.tif"
+  },
+  {
+   "filename": "IN2020_26850945_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26850945_12.tif"
+  },
+  {
+   "filename": "IN2020_26850950_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26850950_12.tif"
+  },
+  {
+   "filename": "IN2020_26850955_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26850955_12.tif"
+  },
+  {
+   "filename": "IN2020_26850960_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26850960_12.tif"
+  },
+  {
+   "filename": "IN2020_26850965_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26850965_12.tif"
+  },
+  {
+   "filename": "IN2020_26850970_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26850970_12.tif"
+  },
+  {
+   "filename": "IN2020_26850975_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26850975_12.tif"
+  },
+  {
+   "filename": "IN2020_26850980_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26850980_12.tif"
+  },
+  {
+   "filename": "IN2020_26850985_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26850985_12.tif"
+  },
+  {
+   "filename": "IN2020_26850990_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26850990_12.tif"
+  },
+  {
+   "filename": "IN2020_26850995_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26850995_12.tif"
+  },
+  {
+   "filename": "IN2020_26851000_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26851000_12.tif"
+  },
+  {
+   "filename": "IN2020_26851005_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26851005_12.tif"
+  },
+  {
+   "filename": "IN2020_26851010_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26851010_12.tif"
+  },
+  {
+   "filename": "IN2020_26851015_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26851015_12.tif"
+  },
+  {
+   "filename": "IN2020_26851020_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26851020_12.tif"
+  },
+  {
+   "filename": "IN2020_26851030_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26851030_12.tif"
+  },
+  {
+   "filename": "IN2020_26851035_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26851035_12.tif"
+  },
+  {
+   "filename": "IN2020_26851040_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26851040_12.tif"
+  },
+  {
+   "filename": "IN2020_26900925_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26900925_12.tif"
+  },
+  {
+   "filename": "IN2020_26900930_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26900930_12.tif"
+  },
+  {
+   "filename": "IN2020_26900935_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26900935_12.tif"
+  },
+  {
+   "filename": "IN2020_26900940_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26900940_12.tif"
+  },
+  {
+   "filename": "IN2020_26900945_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26900945_12.tif"
+  },
+  {
+   "filename": "IN2020_26900950_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26900950_12.tif"
+  },
+  {
+   "filename": "IN2020_26900955_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26900955_12.tif"
+  },
+  {
+   "filename": "IN2020_26900960_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26900960_12.tif"
+  },
+  {
+   "filename": "IN2020_26900965_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26900965_12.tif"
+  },
+  {
+   "filename": "IN2020_26900970_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26900970_12.tif"
+  },
+  {
+   "filename": "IN2020_26900975_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26900975_12.tif"
+  },
+  {
+   "filename": "IN2020_26900980_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26900980_12.tif"
+  },
+  {
+   "filename": "IN2020_26900985_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26900985_12.tif"
+  },
+  {
+   "filename": "IN2020_26900990_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26900990_12.tif"
+  },
+  {
+   "filename": "IN2020_26900995_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26900995_12.tif"
+  },
+  {
+   "filename": "IN2020_26901000_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26901000_12.tif"
+  },
+  {
+   "filename": "IN2020_26901005_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26901005_12.tif"
+  },
+  {
+   "filename": "IN2020_26901010_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26901010_12.tif"
+  },
+  {
+   "filename": "IN2020_26901015_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26901015_12.tif"
+  },
+  {
+   "filename": "IN2020_26901020_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26901020_12.tif"
+  },
+  {
+   "filename": "IN2020_26901025_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26901025_12.tif"
+  },
+  {
+   "filename": "IN2020_26901035_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26901035_12.tif"
+  },
+  {
+   "filename": "IN2020_26901040_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26901040_12.tif"
+  },
+  {
+   "filename": "IN2020_26901075_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26901075_12.tif"
+  },
+  {
+   "filename": "IN2020_26901080_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26901080_12.tif"
+  },
+  {
+   "filename": "IN2020_26901085_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26901085_12.tif"
+  },
+  {
+   "filename": "IN2020_26950920_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26950920_12.tif"
+  },
+  {
+   "filename": "IN2020_26950925_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26950925_12.tif"
+  },
+  {
+   "filename": "IN2020_26950930_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26950930_12.tif"
+  },
+  {
+   "filename": "IN2020_26950935_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26950935_12.tif"
+  },
+  {
+   "filename": "IN2020_26950940_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26950940_12.tif"
+  },
+  {
+   "filename": "IN2020_26950945_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26950945_12.tif"
+  },
+  {
+   "filename": "IN2020_26950950_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26950950_12.tif"
+  },
+  {
+   "filename": "IN2020_26950955_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26950955_12.tif"
+  },
+  {
+   "filename": "IN2020_26950960_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26950960_12.tif"
+  },
+  {
+   "filename": "IN2020_26950965_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26950965_12.tif"
+  },
+  {
+   "filename": "IN2020_26950970_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26950970_12.tif"
+  },
+  {
+   "filename": "IN2020_26950975_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26950975_12.tif"
+  },
+  {
+   "filename": "IN2020_26950980_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26950980_12.tif"
+  },
+  {
+   "filename": "IN2020_26950985_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26950985_12.tif"
+  },
+  {
+   "filename": "IN2020_26950990_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26950990_12.tif"
+  },
+  {
+   "filename": "IN2020_26950995_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26950995_12.tif"
+  },
+  {
+   "filename": "IN2020_26951000_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26951000_12.tif"
+  },
+  {
+   "filename": "IN2020_26951005_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26951005_12.tif"
+  },
+  {
+   "filename": "IN2020_26951010_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26951010_12.tif"
+  },
+  {
+   "filename": "IN2020_26951015_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26951015_12.tif"
+  },
+  {
+   "filename": "IN2020_26951020_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26951020_12.tif"
+  },
+  {
+   "filename": "IN2020_26951025_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26951025_12.tif"
+  },
+  {
+   "filename": "IN2020_26951030_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26951030_12.tif"
+  },
+  {
+   "filename": "IN2020_26951035_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26951035_12.tif"
+  },
+  {
+   "filename": "IN2020_26951040_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26951040_12.tif"
+  },
+  {
+   "filename": "IN2020_26951045_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26951045_12.tif"
+  },
+  {
+   "filename": "IN2020_26951050_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26951050_12.tif"
+  },
+  {
+   "filename": "IN2020_26951070_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26951070_12.tif"
+  },
+  {
+   "filename": "IN2020_26951075_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26951075_12.tif"
+  },
+  {
+   "filename": "IN2020_26951080_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26951080_12.tif"
+  },
+  {
+   "filename": "IN2020_26951085_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26951085_12.tif"
+  },
+  {
+   "filename": "IN2020_27000920_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27000920_12.tif"
+  },
+  {
+   "filename": "IN2020_27000925_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27000925_12.tif"
+  },
+  {
+   "filename": "IN2020_27000930_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27000930_12.tif"
+  },
+  {
+   "filename": "IN2020_27000935_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27000935_12.tif"
+  },
+  {
+   "filename": "IN2020_27000940_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27000940_12.tif"
+  },
+  {
+   "filename": "IN2020_27000945_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27000945_12.tif"
+  },
+  {
+   "filename": "IN2020_27000950_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27000950_12.tif"
+  },
+  {
+   "filename": "IN2020_27000955_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27000955_12.tif"
+  },
+  {
+   "filename": "IN2020_27000960_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27000960_12.tif"
+  },
+  {
+   "filename": "IN2020_27000965_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27000965_12.tif"
+  },
+  {
+   "filename": "IN2020_27000970_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27000970_12.tif"
+  },
+  {
+   "filename": "IN2020_27000975_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27000975_12.tif"
+  },
+  {
+   "filename": "IN2020_27000980_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27000980_12.tif"
+  },
+  {
+   "filename": "IN2020_27000985_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27000985_12.tif"
+  },
+  {
+   "filename": "IN2020_27000990_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27000990_12.tif"
+  },
+  {
+   "filename": "IN2020_27000995_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27000995_12.tif"
+  },
+  {
+   "filename": "IN2020_27001000_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27001000_12.tif"
+  },
+  {
+   "filename": "IN2020_27001005_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27001005_12.tif"
+  },
+  {
+   "filename": "IN2020_27001010_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27001010_12.tif"
+  },
+  {
+   "filename": "IN2020_27001015_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27001015_12.tif"
+  },
+  {
+   "filename": "IN2020_27001020_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27001020_12.tif"
+  },
+  {
+   "filename": "IN2020_27001025_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27001025_12.tif"
+  },
+  {
+   "filename": "IN2020_27001030_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27001030_12.tif"
+  },
+  {
+   "filename": "IN2020_27001035_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27001035_12.tif"
+  },
+  {
+   "filename": "IN2020_27001040_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27001040_12.tif"
+  },
+  {
+   "filename": "IN2020_27001045_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27001045_12.tif"
+  },
+  {
+   "filename": "IN2020_27001050_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27001050_12.tif"
+  },
+  {
+   "filename": "IN2020_27001065_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27001065_12.tif"
+  },
+  {
+   "filename": "IN2020_27001070_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27001070_12.tif"
+  },
+  {
+   "filename": "IN2020_27001075_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27001075_12.tif"
+  },
+  {
+   "filename": "IN2020_27001080_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27001080_12.tif"
+  },
+  {
+   "filename": "IN2020_27001085_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27001085_12.tif"
+  },
+  {
+   "filename": "IN2020_27050920_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27050920_12.tif"
+  },
+  {
+   "filename": "IN2020_27050925_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27050925_12.tif"
+  },
+  {
+   "filename": "IN2020_27050930_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27050930_12.tif"
+  },
+  {
+   "filename": "IN2020_27050935_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27050935_12.tif"
+  },
+  {
+   "filename": "IN2020_27050940_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27050940_12.tif"
+  },
+  {
+   "filename": "IN2020_27050945_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27050945_12.tif"
+  },
+  {
+   "filename": "IN2020_27050950_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27050950_12.tif"
+  },
+  {
+   "filename": "IN2020_27050955_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27050955_12.tif"
+  },
+  {
+   "filename": "IN2020_27050960_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27050960_12.tif"
+  },
+  {
+   "filename": "IN2020_27050965_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27050965_12.tif"
+  },
+  {
+   "filename": "IN2020_27050970_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27050970_12.tif"
+  },
+  {
+   "filename": "IN2020_27050975_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27050975_12.tif"
+  },
+  {
+   "filename": "IN2020_27050980_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27050980_12.tif"
+  },
+  {
+   "filename": "IN2020_27050985_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27050985_12.tif"
+  },
+  {
+   "filename": "IN2020_27050990_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27050990_12.tif"
+  },
+  {
+   "filename": "IN2020_27050995_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27050995_12.tif"
+  },
+  {
+   "filename": "IN2020_27051000_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27051000_12.tif"
+  },
+  {
+   "filename": "IN2020_27051005_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27051005_12.tif"
+  },
+  {
+   "filename": "IN2020_27051010_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27051010_12.tif"
+  },
+  {
+   "filename": "IN2020_27051015_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27051015_12.tif"
+  },
+  {
+   "filename": "IN2020_27051020_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27051020_12.tif"
+  },
+  {
+   "filename": "IN2020_27051025_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27051025_12.tif"
+  },
+  {
+   "filename": "IN2020_27051030_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27051030_12.tif"
+  },
+  {
+   "filename": "IN2020_27051035_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27051035_12.tif"
+  },
+  {
+   "filename": "IN2020_27051040_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27051040_12.tif"
+  },
+  {
+   "filename": "IN2020_27051045_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27051045_12.tif"
+  },
+  {
+   "filename": "IN2020_27051050_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27051050_12.tif"
+  },
+  {
+   "filename": "IN2020_27051055_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27051055_12.tif"
+  },
+  {
+   "filename": "IN2020_27051060_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27051060_12.tif"
+  },
+  {
+   "filename": "IN2020_27051065_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27051065_12.tif"
+  },
+  {
+   "filename": "IN2020_27051070_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27051070_12.tif"
+  },
+  {
+   "filename": "IN2020_27051075_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27051075_12.tif"
+  },
+  {
+   "filename": "IN2020_27051080_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27051080_12.tif"
+  },
+  {
+   "filename": "IN2020_27051085_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27051085_12.tif"
+  },
+  {
+   "filename": "IN2020_27100930_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27100930_12.tif"
+  },
+  {
+   "filename": "IN2020_27100935_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27100935_12.tif"
+  },
+  {
+   "filename": "IN2020_27100940_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27100940_12.tif"
+  },
+  {
+   "filename": "IN2020_27100945_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27100945_12.tif"
+  },
+  {
+   "filename": "IN2020_27100950_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27100950_12.tif"
+  },
+  {
+   "filename": "IN2020_27100965_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27100965_12.tif"
+  },
+  {
+   "filename": "IN2020_27100970_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27100970_12.tif"
+  },
+  {
+   "filename": "IN2020_27100975_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27100975_12.tif"
+  },
+  {
+   "filename": "IN2020_27100980_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27100980_12.tif"
+  },
+  {
+   "filename": "IN2020_27100985_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27100985_12.tif"
+  },
+  {
+   "filename": "IN2020_27100990_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27100990_12.tif"
+  },
+  {
+   "filename": "IN2020_27100995_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27100995_12.tif"
+  },
+  {
+   "filename": "IN2020_27101000_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27101000_12.tif"
+  },
+  {
+   "filename": "IN2020_27101005_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27101005_12.tif"
+  },
+  {
+   "filename": "IN2020_27101010_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27101010_12.tif"
+  },
+  {
+   "filename": "IN2020_27101015_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27101015_12.tif"
+  },
+  {
+   "filename": "IN2020_27101020_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27101020_12.tif"
+  },
+  {
+   "filename": "IN2020_27101025_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27101025_12.tif"
+  },
+  {
+   "filename": "IN2020_27101030_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27101030_12.tif"
+  },
+  {
+   "filename": "IN2020_27101035_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27101035_12.tif"
+  },
+  {
+   "filename": "IN2020_27101040_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27101040_12.tif"
+  },
+  {
+   "filename": "IN2020_27101045_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27101045_12.tif"
+  },
+  {
+   "filename": "IN2020_27101050_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27101050_12.tif"
+  },
+  {
+   "filename": "IN2020_27101055_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27101055_12.tif"
+  },
+  {
+   "filename": "IN2020_27101060_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27101060_12.tif"
+  },
+  {
+   "filename": "IN2020_27101065_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27101065_12.tif"
+  },
+  {
+   "filename": "IN2020_27101070_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27101070_12.tif"
+  },
+  {
+   "filename": "IN2020_27101075_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27101075_12.tif"
+  },
+  {
+   "filename": "IN2020_27101080_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27101080_12.tif"
+  },
+  {
+   "filename": "IN2020_27101085_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27101085_12.tif"
+  },
+  {
+   "filename": "IN2020_27150930_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27150930_12.tif"
+  },
+  {
+   "filename": "IN2020_27150935_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27150935_12.tif"
+  },
+  {
+   "filename": "IN2020_27150940_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27150940_12.tif"
+  },
+  {
+   "filename": "IN2020_27150975_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27150975_12.tif"
+  },
+  {
+   "filename": "IN2020_27150980_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27150980_12.tif"
+  },
+  {
+   "filename": "IN2020_27150985_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27150985_12.tif"
+  },
+  {
+   "filename": "IN2020_27150990_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27150990_12.tif"
+  },
+  {
+   "filename": "IN2020_27150995_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27150995_12.tif"
+  },
+  {
+   "filename": "IN2020_27151000_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27151000_12.tif"
+  },
+  {
+   "filename": "IN2020_27151005_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27151005_12.tif"
+  },
+  {
+   "filename": "IN2020_27151010_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27151010_12.tif"
+  },
+  {
+   "filename": "IN2020_27151015_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27151015_12.tif"
+  },
+  {
+   "filename": "IN2020_27151020_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27151020_12.tif"
+  },
+  {
+   "filename": "IN2020_27151025_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27151025_12.tif"
+  },
+  {
+   "filename": "IN2020_27151030_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27151030_12.tif"
+  },
+  {
+   "filename": "IN2020_27151035_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27151035_12.tif"
+  },
+  {
+   "filename": "IN2020_27151040_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27151040_12.tif"
+  },
+  {
+   "filename": "IN2020_27151045_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27151045_12.tif"
+  },
+  {
+   "filename": "IN2020_27151050_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27151050_12.tif"
+  },
+  {
+   "filename": "IN2020_27151055_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27151055_12.tif"
+  },
+  {
+   "filename": "IN2020_27151060_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27151060_12.tif"
+  },
+  {
+   "filename": "IN2020_27151065_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27151065_12.tif"
+  },
+  {
+   "filename": "IN2020_27151070_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27151070_12.tif"
+  },
+  {
+   "filename": "IN2020_27151075_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27151075_12.tif"
+  },
+  {
+   "filename": "IN2020_27151080_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27151080_12.tif"
+  },
+  {
+   "filename": "IN2020_27151085_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27151085_12.tif"
+  },
+  {
+   "filename": "IN2020_27200970_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27200970_12.tif"
+  },
+  {
+   "filename": "IN2020_27200975_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27200975_12.tif"
+  },
+  {
+   "filename": "IN2020_27200980_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27200980_12.tif"
+  },
+  {
+   "filename": "IN2020_27200985_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27200985_12.tif"
+  },
+  {
+   "filename": "IN2020_27200990_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27200990_12.tif"
+  },
+  {
+   "filename": "IN2020_27200995_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27200995_12.tif"
+  },
+  {
+   "filename": "IN2020_27201000_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27201000_12.tif"
+  },
+  {
+   "filename": "IN2020_27201005_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27201005_12.tif"
+  },
+  {
+   "filename": "IN2020_27201010_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27201010_12.tif"
+  },
+  {
+   "filename": "IN2020_27201015_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27201015_12.tif"
+  },
+  {
+   "filename": "IN2020_27201020_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27201020_12.tif"
+  },
+  {
+   "filename": "IN2020_27201025_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27201025_12.tif"
+  },
+  {
+   "filename": "IN2020_27201030_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27201030_12.tif"
+  },
+  {
+   "filename": "IN2020_27201035_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27201035_12.tif"
+  },
+  {
+   "filename": "IN2020_27201040_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27201040_12.tif"
+  },
+  {
+   "filename": "IN2020_27201045_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27201045_12.tif"
+  },
+  {
+   "filename": "IN2020_27201050_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27201050_12.tif"
+  },
+  {
+   "filename": "IN2020_27201055_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27201055_12.tif"
+  },
+  {
+   "filename": "IN2020_27201060_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27201060_12.tif"
+  },
+  {
+   "filename": "IN2020_27201065_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27201065_12.tif"
+  },
+  {
+   "filename": "IN2020_27201070_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27201070_12.tif"
+  },
+  {
+   "filename": "IN2020_27201075_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27201075_12.tif"
+  },
+  {
+   "filename": "IN2020_27201080_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27201080_12.tif"
+  },
+  {
+   "filename": "IN2020_27201085_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27201085_12.tif"
+  },
+  {
+   "filename": "IN2020_27250965_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27250965_12.tif"
+  },
+  {
+   "filename": "IN2020_27250970_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27250970_12.tif"
+  },
+  {
+   "filename": "IN2020_27250975_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27250975_12.tif"
+  },
+  {
+   "filename": "IN2020_27250980_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27250980_12.tif"
+  },
+  {
+   "filename": "IN2020_27250985_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27250985_12.tif"
+  },
+  {
+   "filename": "IN2020_27250990_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27250990_12.tif"
+  },
+  {
+   "filename": "IN2020_27250995_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27250995_12.tif"
+  },
+  {
+   "filename": "IN2020_27251000_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27251000_12.tif"
+  },
+  {
+   "filename": "IN2020_27251005_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27251005_12.tif"
+  },
+  {
+   "filename": "IN2020_27251010_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27251010_12.tif"
+  },
+  {
+   "filename": "IN2020_27251015_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27251015_12.tif"
+  },
+  {
+   "filename": "IN2020_27251020_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27251020_12.tif"
+  },
+  {
+   "filename": "IN2020_27251025_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27251025_12.tif"
+  },
+  {
+   "filename": "IN2020_27251030_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27251030_12.tif"
+  },
+  {
+   "filename": "IN2020_27251035_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27251035_12.tif"
+  },
+  {
+   "filename": "IN2020_27251040_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27251040_12.tif"
+  },
+  {
+   "filename": "IN2020_27251045_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27251045_12.tif"
+  },
+  {
+   "filename": "IN2020_27251050_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27251050_12.tif"
+  },
+  {
+   "filename": "IN2020_27251055_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27251055_12.tif"
+  },
+  {
+   "filename": "IN2020_27251060_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27251060_12.tif"
+  },
+  {
+   "filename": "IN2020_27251065_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27251065_12.tif"
+  },
+  {
+   "filename": "IN2020_27251070_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27251070_12.tif"
+  },
+  {
+   "filename": "IN2020_27251075_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27251075_12.tif"
+  },
+  {
+   "filename": "IN2020_27251080_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27251080_12.tif"
+  },
+  {
+   "filename": "IN2020_27251085_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27251085_12.tif"
+  },
+  {
+   "filename": "IN2020_27300955_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27300955_12.tif"
+  },
+  {
+   "filename": "IN2020_27300960_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27300960_12.tif"
+  },
+  {
+   "filename": "IN2020_27300965_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27300965_12.tif"
+  },
+  {
+   "filename": "IN2020_27300970_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27300970_12.tif"
+  },
+  {
+   "filename": "IN2020_27300975_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27300975_12.tif"
+  },
+  {
+   "filename": "IN2020_27300980_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27300980_12.tif"
+  },
+  {
+   "filename": "IN2020_27300985_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27300985_12.tif"
+  },
+  {
+   "filename": "IN2020_27300990_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27300990_12.tif"
+  },
+  {
+   "filename": "IN2020_27300995_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27300995_12.tif"
+  },
+  {
+   "filename": "IN2020_27301000_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27301000_12.tif"
+  },
+  {
+   "filename": "IN2020_27301005_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27301005_12.tif"
+  },
+  {
+   "filename": "IN2020_27301010_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27301010_12.tif"
+  },
+  {
+   "filename": "IN2020_27301015_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27301015_12.tif"
+  },
+  {
+   "filename": "IN2020_27301020_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27301020_12.tif"
+  },
+  {
+   "filename": "IN2020_27301025_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27301025_12.tif"
+  },
+  {
+   "filename": "IN2020_27301030_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27301030_12.tif"
+  },
+  {
+   "filename": "IN2020_27301035_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27301035_12.tif"
+  },
+  {
+   "filename": "IN2020_27301040_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27301040_12.tif"
+  },
+  {
+   "filename": "IN2020_27301045_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27301045_12.tif"
+  },
+  {
+   "filename": "IN2020_27301050_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27301050_12.tif"
+  },
+  {
+   "filename": "IN2020_27301055_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27301055_12.tif"
+  },
+  {
+   "filename": "IN2020_27301060_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27301060_12.tif"
+  },
+  {
+   "filename": "IN2020_27301065_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27301065_12.tif"
+  },
+  {
+   "filename": "IN2020_27301070_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27301070_12.tif"
+  },
+  {
+   "filename": "IN2020_27301075_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27301075_12.tif"
+  },
+  {
+   "filename": "IN2020_27301080_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27301080_12.tif"
+  },
+  {
+   "filename": "IN2020_27301085_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27301085_12.tif"
+  },
+  {
+   "filename": "IN2020_27350955_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27350955_12.tif"
+  },
+  {
+   "filename": "IN2020_27350960_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27350960_12.tif"
+  },
+  {
+   "filename": "IN2020_27350965_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27350965_12.tif"
+  },
+  {
+   "filename": "IN2020_27350970_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27350970_12.tif"
+  },
+  {
+   "filename": "IN2020_27350975_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27350975_12.tif"
+  },
+  {
+   "filename": "IN2020_27350980_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27350980_12.tif"
+  },
+  {
+   "filename": "IN2020_27350985_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27350985_12.tif"
+  },
+  {
+   "filename": "IN2020_27350990_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27350990_12.tif"
+  },
+  {
+   "filename": "IN2020_27350995_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27350995_12.tif"
+  },
+  {
+   "filename": "IN2020_27351000_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27351000_12.tif"
+  },
+  {
+   "filename": "IN2020_27351005_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27351005_12.tif"
+  },
+  {
+   "filename": "IN2020_27351010_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27351010_12.tif"
+  },
+  {
+   "filename": "IN2020_27351015_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27351015_12.tif"
+  },
+  {
+   "filename": "IN2020_27351020_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27351020_12.tif"
+  },
+  {
+   "filename": "IN2020_27351025_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27351025_12.tif"
+  },
+  {
+   "filename": "IN2020_27351030_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27351030_12.tif"
+  },
+  {
+   "filename": "IN2020_27351035_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27351035_12.tif"
+  },
+  {
+   "filename": "IN2020_27351040_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27351040_12.tif"
+  },
+  {
+   "filename": "IN2020_27351045_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27351045_12.tif"
+  },
+  {
+   "filename": "IN2020_27351050_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27351050_12.tif"
+  },
+  {
+   "filename": "IN2020_27351055_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27351055_12.tif"
+  },
+  {
+   "filename": "IN2020_27351060_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27351060_12.tif"
+  },
+  {
+   "filename": "IN2020_27351065_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27351065_12.tif"
+  },
+  {
+   "filename": "IN2020_27351070_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27351070_12.tif"
+  },
+  {
+   "filename": "IN2020_27351075_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27351075_12.tif"
+  },
+  {
+   "filename": "IN2020_27351080_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27351080_12.tif"
+  },
+  {
+   "filename": "IN2020_27351085_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27351085_12.tif"
+  },
+  {
+   "filename": "IN2020_27400955_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27400955_12.tif"
+  },
+  {
+   "filename": "IN2020_27400960_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27400960_12.tif"
+  },
+  {
+   "filename": "IN2020_27400965_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27400965_12.tif"
+  },
+  {
+   "filename": "IN2020_27400970_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27400970_12.tif"
+  },
+  {
+   "filename": "IN2020_27400975_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27400975_12.tif"
+  },
+  {
+   "filename": "IN2020_27400980_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27400980_12.tif"
+  },
+  {
+   "filename": "IN2020_27400985_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27400985_12.tif"
+  },
+  {
+   "filename": "IN2020_27400990_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27400990_12.tif"
+  },
+  {
+   "filename": "IN2020_27400995_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27400995_12.tif"
+  },
+  {
+   "filename": "IN2020_27401000_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27401000_12.tif"
+  },
+  {
+   "filename": "IN2020_27401005_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27401005_12.tif"
+  },
+  {
+   "filename": "IN2020_27401010_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27401010_12.tif"
+  },
+  {
+   "filename": "IN2020_27401015_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27401015_12.tif"
+  },
+  {
+   "filename": "IN2020_27401020_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27401020_12.tif"
+  },
+  {
+   "filename": "IN2020_27401025_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27401025_12.tif"
+  },
+  {
+   "filename": "IN2020_27401030_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27401030_12.tif"
+  },
+  {
+   "filename": "IN2020_27401035_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27401035_12.tif"
+  },
+  {
+   "filename": "IN2020_27401040_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27401040_12.tif"
+  },
+  {
+   "filename": "IN2020_27401045_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27401045_12.tif"
+  },
+  {
+   "filename": "IN2020_27401050_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27401050_12.tif"
+  },
+  {
+   "filename": "IN2020_27401055_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27401055_12.tif"
+  },
+  {
+   "filename": "IN2020_27401060_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27401060_12.tif"
+  },
+  {
+   "filename": "IN2020_27401065_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27401065_12.tif"
+  },
+  {
+   "filename": "IN2020_27401070_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27401070_12.tif"
+  },
+  {
+   "filename": "IN2020_27401075_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27401075_12.tif"
+  },
+  {
+   "filename": "IN2020_27401080_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27401080_12.tif"
+  },
+  {
+   "filename": "IN2020_27401085_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27401085_12.tif"
+  },
+  {
+   "filename": "IN2020_27450955_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27450955_12.tif"
+  },
+  {
+   "filename": "IN2020_27450960_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27450960_12.tif"
+  },
+  {
+   "filename": "IN2020_27450965_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27450965_12.tif"
+  },
+  {
+   "filename": "IN2020_27450970_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27450970_12.tif"
+  },
+  {
+   "filename": "IN2020_27450975_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27450975_12.tif"
+  },
+  {
+   "filename": "IN2020_27450980_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27450980_12.tif"
+  },
+  {
+   "filename": "IN2020_27450985_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27450985_12.tif"
+  },
+  {
+   "filename": "IN2020_27450990_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27450990_12.tif"
+  },
+  {
+   "filename": "IN2020_27450995_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27450995_12.tif"
+  },
+  {
+   "filename": "IN2020_27451000_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27451000_12.tif"
+  },
+  {
+   "filename": "IN2020_27451005_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27451005_12.tif"
+  },
+  {
+   "filename": "IN2020_27451010_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27451010_12.tif"
+  },
+  {
+   "filename": "IN2020_27451015_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27451015_12.tif"
+  },
+  {
+   "filename": "IN2020_27451020_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27451020_12.tif"
+  },
+  {
+   "filename": "IN2020_27451025_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27451025_12.tif"
+  },
+  {
+   "filename": "IN2020_27451030_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27451030_12.tif"
+  },
+  {
+   "filename": "IN2020_27451035_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27451035_12.tif"
+  },
+  {
+   "filename": "IN2020_27451040_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27451040_12.tif"
+  },
+  {
+   "filename": "IN2020_27451045_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27451045_12.tif"
+  },
+  {
+   "filename": "IN2020_27451050_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27451050_12.tif"
+  },
+  {
+   "filename": "IN2020_27451055_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27451055_12.tif"
+  },
+  {
+   "filename": "IN2020_27451060_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27451060_12.tif"
+  },
+  {
+   "filename": "IN2020_27451065_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27451065_12.tif"
+  },
+  {
+   "filename": "IN2020_27451070_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27451070_12.tif"
+  },
+  {
+   "filename": "IN2020_27451075_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27451075_12.tif"
+  },
+  {
+   "filename": "IN2020_27451080_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27451080_12.tif"
+  },
+  {
+   "filename": "IN2020_27451085_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27451085_12.tif"
+  },
+  {
+   "filename": "IN2020_27500955_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27500955_12.tif"
+  },
+  {
+   "filename": "IN2020_27500960_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27500960_12.tif"
+  },
+  {
+   "filename": "IN2020_27500965_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27500965_12.tif"
+  },
+  {
+   "filename": "IN2020_27500970_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27500970_12.tif"
+  },
+  {
+   "filename": "IN2020_27500975_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27500975_12.tif"
+  },
+  {
+   "filename": "IN2020_27500980_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27500980_12.tif"
+  },
+  {
+   "filename": "IN2020_27500985_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27500985_12.tif"
+  },
+  {
+   "filename": "IN2020_27500990_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27500990_12.tif"
+  },
+  {
+   "filename": "IN2020_27500995_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27500995_12.tif"
+  },
+  {
+   "filename": "IN2020_27501000_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27501000_12.tif"
+  },
+  {
+   "filename": "IN2020_27501005_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27501005_12.tif"
+  },
+  {
+   "filename": "IN2020_27501010_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27501010_12.tif"
+  },
+  {
+   "filename": "IN2020_27501015_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27501015_12.tif"
+  },
+  {
+   "filename": "IN2020_27501020_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27501020_12.tif"
+  },
+  {
+   "filename": "IN2020_27501025_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27501025_12.tif"
+  },
+  {
+   "filename": "IN2020_27501030_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27501030_12.tif"
+  },
+  {
+   "filename": "IN2020_27501035_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27501035_12.tif"
+  },
+  {
+   "filename": "IN2020_27501040_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27501040_12.tif"
+  },
+  {
+   "filename": "IN2020_27501045_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27501045_12.tif"
+  },
+  {
+   "filename": "IN2020_27501050_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27501050_12.tif"
+  },
+  {
+   "filename": "IN2020_27501055_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27501055_12.tif"
+  },
+  {
+   "filename": "IN2020_27501060_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27501060_12.tif"
+  },
+  {
+   "filename": "IN2020_27501065_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27501065_12.tif"
+  },
+  {
+   "filename": "IN2020_27501070_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27501070_12.tif"
+  },
+  {
+   "filename": "IN2020_27501075_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27501075_12.tif"
+  },
+  {
+   "filename": "IN2020_27550960_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27550960_12.tif"
+  },
+  {
+   "filename": "IN2020_27550965_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27550965_12.tif"
+  },
+  {
+   "filename": "IN2020_27550970_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27550970_12.tif"
+  },
+  {
+   "filename": "IN2020_27550975_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27550975_12.tif"
+  },
+  {
+   "filename": "IN2020_27550980_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27550980_12.tif"
+  },
+  {
+   "filename": "IN2020_27550985_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27550985_12.tif"
+  },
+  {
+   "filename": "IN2020_27550990_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27550990_12.tif"
+  },
+  {
+   "filename": "IN2020_27550995_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27550995_12.tif"
+  },
+  {
+   "filename": "IN2020_27551000_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27551000_12.tif"
+  },
+  {
+   "filename": "IN2020_27551005_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27551005_12.tif"
+  },
+  {
+   "filename": "IN2020_27551010_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27551010_12.tif"
+  },
+  {
+   "filename": "IN2020_27551015_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27551015_12.tif"
+  },
+  {
+   "filename": "IN2020_27551020_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27551020_12.tif"
+  },
+  {
+   "filename": "IN2020_27551025_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27551025_12.tif"
+  },
+  {
+   "filename": "IN2020_27551030_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27551030_12.tif"
+  },
+  {
+   "filename": "IN2020_27551035_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27551035_12.tif"
+  },
+  {
+   "filename": "IN2020_27551040_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27551040_12.tif"
+  },
+  {
+   "filename": "IN2020_27551045_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27551045_12.tif"
+  },
+  {
+   "filename": "IN2020_27551050_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27551050_12.tif"
+  },
+  {
+   "filename": "IN2020_27551055_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27551055_12.tif"
+  },
+  {
+   "filename": "IN2020_27551060_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27551060_12.tif"
+  },
+  {
+   "filename": "IN2020_27551065_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27551065_12.tif"
+  },
+  {
+   "filename": "IN2020_27551070_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27551070_12.tif"
+  },
+  {
+   "filename": "IN2020_27551075_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27551075_12.tif"
+  },
+  {
+   "filename": "IN2020_27600960_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27600960_12.tif"
+  },
+  {
+   "filename": "IN2020_27600965_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27600965_12.tif"
+  },
+  {
+   "filename": "IN2020_27600970_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27600970_12.tif"
+  },
+  {
+   "filename": "IN2020_27600975_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27600975_12.tif"
+  },
+  {
+   "filename": "IN2020_27600980_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27600980_12.tif"
+  },
+  {
+   "filename": "IN2020_27600985_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27600985_12.tif"
+  },
+  {
+   "filename": "IN2020_27600990_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27600990_12.tif"
+  },
+  {
+   "filename": "IN2020_27600995_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27600995_12.tif"
+  },
+  {
+   "filename": "IN2020_27601000_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27601000_12.tif"
+  },
+  {
+   "filename": "IN2020_27601005_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27601005_12.tif"
+  },
+  {
+   "filename": "IN2020_27601010_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27601010_12.tif"
+  },
+  {
+   "filename": "IN2020_27601015_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27601015_12.tif"
+  },
+  {
+   "filename": "IN2020_27601020_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27601020_12.tif"
+  },
+  {
+   "filename": "IN2020_27601025_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27601025_12.tif"
+  },
+  {
+   "filename": "IN2020_27601030_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27601030_12.tif"
+  },
+  {
+   "filename": "IN2020_27601035_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27601035_12.tif"
+  },
+  {
+   "filename": "IN2020_27601040_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27601040_12.tif"
+  },
+  {
+   "filename": "IN2020_27601045_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27601045_12.tif"
+  },
+  {
+   "filename": "IN2020_27601050_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27601050_12.tif"
+  },
+  {
+   "filename": "IN2020_27601055_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27601055_12.tif"
+  },
+  {
+   "filename": "IN2020_27601060_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27601060_12.tif"
+  },
+  {
+   "filename": "IN2020_27601065_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27601065_12.tif"
+  },
+  {
+   "filename": "IN2020_27601070_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27601070_12.tif"
+  },
+  {
+   "filename": "IN2020_27601075_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27601075_12.tif"
+  },
+  {
+   "filename": "IN2020_27650960_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27650960_12.tif"
+  },
+  {
+   "filename": "IN2020_27650965_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27650965_12.tif"
+  },
+  {
+   "filename": "IN2020_27650970_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27650970_12.tif"
+  },
+  {
+   "filename": "IN2020_27650975_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27650975_12.tif"
+  },
+  {
+   "filename": "IN2020_27650980_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27650980_12.tif"
+  },
+  {
+   "filename": "IN2020_27650985_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27650985_12.tif"
+  },
+  {
+   "filename": "IN2020_27650990_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27650990_12.tif"
+  },
+  {
+   "filename": "IN2020_27650995_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27650995_12.tif"
+  },
+  {
+   "filename": "IN2020_27651000_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27651000_12.tif"
+  },
+  {
+   "filename": "IN2020_27651005_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27651005_12.tif"
+  },
+  {
+   "filename": "IN2020_27651010_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27651010_12.tif"
+  },
+  {
+   "filename": "IN2020_27651015_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27651015_12.tif"
+  },
+  {
+   "filename": "IN2020_27651020_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27651020_12.tif"
+  },
+  {
+   "filename": "IN2020_27651025_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27651025_12.tif"
+  },
+  {
+   "filename": "IN2020_27651030_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27651030_12.tif"
+  },
+  {
+   "filename": "IN2020_27651035_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27651035_12.tif"
+  },
+  {
+   "filename": "IN2020_27651040_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27651040_12.tif"
+  },
+  {
+   "filename": "IN2020_27651045_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27651045_12.tif"
+  },
+  {
+   "filename": "IN2020_27651050_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27651050_12.tif"
+  },
+  {
+   "filename": "IN2020_27651055_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27651055_12.tif"
+  },
+  {
+   "filename": "IN2020_27651060_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27651060_12.tif"
+  },
+  {
+   "filename": "IN2020_27651065_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27651065_12.tif"
+  },
+  {
+   "filename": "IN2020_27651070_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27651070_12.tif"
+  },
+  {
+   "filename": "IN2020_27651075_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27651075_12.tif"
+  },
+  {
+   "filename": "IN2020_27700960_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27700960_12.tif"
+  },
+  {
+   "filename": "IN2020_27700965_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27700965_12.tif"
+  },
+  {
+   "filename": "IN2020_27700970_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27700970_12.tif"
+  },
+  {
+   "filename": "IN2020_27700975_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27700975_12.tif"
+  },
+  {
+   "filename": "IN2020_27700980_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27700980_12.tif"
+  },
+  {
+   "filename": "IN2020_27700985_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27700985_12.tif"
+  },
+  {
+   "filename": "IN2020_27700990_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27700990_12.tif"
+  },
+  {
+   "filename": "IN2020_27700995_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27700995_12.tif"
+  },
+  {
+   "filename": "IN2020_27701000_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27701000_12.tif"
+  },
+  {
+   "filename": "IN2020_27701005_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27701005_12.tif"
+  },
+  {
+   "filename": "IN2020_27701010_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27701010_12.tif"
+  },
+  {
+   "filename": "IN2020_27701015_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27701015_12.tif"
+  },
+  {
+   "filename": "IN2020_27701020_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27701020_12.tif"
+  },
+  {
+   "filename": "IN2020_27701025_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27701025_12.tif"
+  },
+  {
+   "filename": "IN2020_27701030_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27701030_12.tif"
+  },
+  {
+   "filename": "IN2020_27701035_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27701035_12.tif"
+  },
+  {
+   "filename": "IN2020_27701040_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27701040_12.tif"
+  },
+  {
+   "filename": "IN2020_27701045_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27701045_12.tif"
+  },
+  {
+   "filename": "IN2020_27701050_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27701050_12.tif"
+  },
+  {
+   "filename": "IN2020_27701055_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27701055_12.tif"
+  },
+  {
+   "filename": "IN2020_27701060_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27701060_12.tif"
+  },
+  {
+   "filename": "IN2020_27701065_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27701065_12.tif"
+  },
+  {
+   "filename": "IN2020_27701070_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27701070_12.tif"
+  },
+  {
+   "filename": "IN2020_27701075_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27701075_12.tif"
+  },
+  {
+   "filename": "IN2020_27750975_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27750975_12.tif"
+  },
+  {
+   "filename": "IN2020_27750980_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27750980_12.tif"
+  },
+  {
+   "filename": "IN2020_27750985_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27750985_12.tif"
+  },
+  {
+   "filename": "IN2020_27750990_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27750990_12.tif"
+  },
+  {
+   "filename": "IN2020_27750995_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27750995_12.tif"
+  },
+  {
+   "filename": "IN2020_27751000_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27751000_12.tif"
+  },
+  {
+   "filename": "IN2020_27751005_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27751005_12.tif"
+  },
+  {
+   "filename": "IN2020_27751010_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27751010_12.tif"
+  },
+  {
+   "filename": "IN2020_27751015_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27751015_12.tif"
+  },
+  {
+   "filename": "IN2020_27751020_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27751020_12.tif"
+  },
+  {
+   "filename": "IN2020_27751025_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27751025_12.tif"
+  },
+  {
+   "filename": "IN2020_27751030_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27751030_12.tif"
+  },
+  {
+   "filename": "IN2020_27751035_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27751035_12.tif"
+  },
+  {
+   "filename": "IN2020_27751040_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27751040_12.tif"
+  },
+  {
+   "filename": "IN2020_27751045_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27751045_12.tif"
+  },
+  {
+   "filename": "IN2020_27751050_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27751050_12.tif"
+  },
+  {
+   "filename": "IN2020_27751055_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27751055_12.tif"
+  },
+  {
+   "filename": "IN2020_27751060_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27751060_12.tif"
+  },
+  {
+   "filename": "IN2020_27751065_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27751065_12.tif"
+  },
+  {
+   "filename": "IN2020_27751070_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27751070_12.tif"
+  },
+  {
+   "filename": "IN2020_27751075_12.tif",
+   "image_year": 2020,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_27751075_12.tif"
+  },
+  {
+   "filename": "IN2018_26901085_12.tif",
+   "image_year": 2019,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2019/SPW/2.5ft/IN2018_26901085_12.tif"
+  },
+  {
+   "filename": "IN2018_26951085_12.tif",
+   "image_year": 2019,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2019/SPW/2.5ft/IN2018_26951085_12.tif"
+  },
+  {
+   "filename": "IN2018_27001085_12.tif",
+   "image_year": 2019,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2019/SPW/2.5ft/IN2018_27001085_12.tif"
+  },
+  {
+   "filename": "IN2018_27051085_12.tif",
+   "image_year": 2019,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2019/SPW/2.5ft/IN2018_27051085_12.tif"
+  },
+  {
+   "filename": "IN2018_27101085_12.tif",
+   "image_year": 2019,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2019/SPW/2.5ft/IN2018_27101085_12.tif"
+  },
+  {
+   "filename": "IN2018_27151085_12.tif",
+   "image_year": 2019,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2019/SPW/2.5ft/IN2018_27151085_12.tif"
+  },
+  {
+   "filename": "IN2018_27201085_12.tif",
+   "image_year": 2019,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2019/SPW/2.5ft/IN2018_27201085_12.tif"
+  },
+  {
+   "filename": "IN2018_27251085_12.tif",
+   "image_year": 2019,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2019/SPW/2.5ft/IN2018_27251085_12.tif"
+  },
+  {
+   "filename": "IN2018_27301085_12.tif",
+   "image_year": 2019,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2019/SPW/2.5ft/IN2018_27301085_12.tif"
+  },
+  {
+   "filename": "IN2018_27351085_12.tif",
+   "image_year": 2019,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2019/SPW/2.5ft/IN2018_27351085_12.tif"
+  },
+  {
+   "filename": "IN2018_27401085_12.tif",
+   "image_year": 2019,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2019/SPW/2.5ft/IN2018_27401085_12.tif"
+  },
+  {
+   "filename": "IN2018_27451075_12.tif",
+   "image_year": 2019,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2019/SPW/2.5ft/IN2018_27451075_12.tif"
+  },
+  {
+   "filename": "IN2018_27451080_12.tif",
+   "image_year": 2019,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2019/SPW/2.5ft/IN2018_27451080_12.tif"
+  },
+  {
+   "filename": "IN2018_27451085_12.tif",
+   "image_year": 2019,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2019/SPW/2.5ft/IN2018_27451085_12.tif"
+  },
+  {
+   "filename": "IN2018_27501075_12.tif",
+   "image_year": 2019,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2019/SPW/2.5ft/IN2018_27501075_12.tif"
+  },
+  {
+   "filename": "IN2018_27551075_12.tif",
+   "image_year": 2019,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2019/SPW/2.5ft/IN2018_27551075_12.tif"
+  },
+  {
+   "filename": "IN2018_27601075_12.tif",
+   "image_year": 2019,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2019/SPW/2.5ft/IN2018_27601075_12.tif"
+  },
+  {
+   "filename": "IN2018_27651075_12.tif",
+   "image_year": 2019,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2019/SPW/2.5ft/IN2018_27651075_12.tif"
+  },
+  {
+   "filename": "IN2018_27701075_12.tif",
+   "image_year": 2019,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2019/SPW/2.5ft/IN2018_27701075_12.tif"
+  },
+  {
+   "filename": "IN2018_27751060_12.tif",
+   "image_year": 2019,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2019/SPW/2.5ft/IN2018_27751060_12.tif"
+  },
+  {
+   "filename": "IN2018_27751065_12.tif",
+   "image_year": 2019,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2019/SPW/2.5ft/IN2018_27751065_12.tif"
+  },
+  {
+   "filename": "IN2018_27751070_12.tif",
+   "image_year": 2019,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2019/SPW/2.5ft/IN2018_27751070_12.tif"
+  },
+  {
+   "filename": "IN2018_27751075_12.tif",
+   "image_year": 2019,
+   "pixel_size": "2.5 ft.",
+   "urlpath": "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2019/SPW/2.5ft/IN2018_27751075_12.tif"
+  }
+ ]
+}
