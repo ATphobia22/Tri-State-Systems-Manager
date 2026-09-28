@@ -1,0 +1,50 @@
+# Production-oriented stack: Martin + Caddy TLS termination.
+# MapLibre on https://atphobia22.github.io requires HTTPS tile origins (no mixed content).
+#
+# Prerequisites:
+#   1. ./scripts/geospatial/build-terrain-rgb.sh → dist/terrain-tiles/*.mbtiles
+#   2. DNS A/AAAA (or CNAME) for TILE_DOMAIN → this host
+#   3. Ports 80/443 reachable from the internet (for ACME)
+#
+# Usage:
+#   export TILE_DOMAIN=tiles.your-real-domain.tld
+#   export TSM_MBTILES_HOST_PATH=$PWD/dist/terrain-tiles
+#   docker compose -f ops/martin/docker-compose.tls.yml up -d
+#
+# curl -sS https://$TILE_DOMAIN/catalog
+# Set GitHub Actions variable:
+#   VITE_TSM_TERRAIN_RGB_URL_TEMPLATE=https://$TILE_DOMAIN/<source_id>/{z}/{x}/{y}
+
+services:
+  martin:
+    image: ghcr.io/maplibre/martin:v0.16.0
+    command: ["--config", "/config/config.yaml"]
+    expose:
+      - "3000"
+    environment:
+      TSM_MARTIN_DATABASE_URL: ${TSM_MARTIN_DATABASE_URL:-}
+    volumes:
+      - ./config.yaml:/config/config.yaml:ro
+      - ${TSM_PMTILES_HOST_PATH:-../../dist/pmtiles}:/data/pmtiles:ro
+      - ${TSM_MBTILES_HOST_PATH:-../../dist/terrain-tiles}:/data/mbtiles:ro
+      - ${TSM_STYLES_HOST_PATH:-../../dist/styles}:/data/styles:ro
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2.8-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      TILE_DOMAIN: ${TILE_DOMAIN:?set TILE_DOMAIN to your real public hostname}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - martin
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:
