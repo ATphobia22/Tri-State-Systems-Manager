@@ -17,6 +17,15 @@ on:
       - 'backend/tests/test_hecras_geometry.py'
       - 'integrations/geospatial/**'
       - 'integrations/cityengine/**'
+      - 'integrations/routing/**
+      - 'integrations/engineering/**
+      - 'integrations/open-world/**
+      - 'integrations/authoring/**
+      - 'integrations/unity-mcp/**
+      - 'integrations/runtime/**
+      - 'integrations/third-party-toolchain.json'
+      - 'ops/osrm-routing.Dockerfile'
+      - 'ops/cadquery-worker.Dockerfile'
       - 'integrations/registry/**'
       - 'scripts/geospatial/**'
       - 'scripts/ci/**'
@@ -36,6 +45,9 @@ on:
       - 'data/grants/tsm-v35-grant-rules-v1.json'
       - 'docs/ENGINEERING-EVIDENCE-PIPELINE.md'
       - 'scripts/ci/validate-engineering-pipeline.mjs'
+      - 'scripts/ci/install-external-tooling.mjs'
+      - 'scripts/ci/validate-external-tooling.mjs'
+      - 'scripts/ci/validate-3d-tiles-tools.mjs'
   push:
     branches: [main]
     paths:
@@ -78,6 +90,16 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
       - name: Validate capability registry
         run: node scripts/ci/validate-capability-registry.mjs
+      - name: Install pinned CI-only external geospatial tooling
+        env:
+          TSM_INSTALL_EXTERNAL_TOOLING: 'true'
+        run: node scripts/ci/install-external-tooling.mjs
+      - name: Validate external capability toolchain
+        env:
+          TSM_REQUIRE_EXTERNAL_TOOLING: 'true'
+        run: node scripts/ci/validate-external-tooling.mjs
+      - name: Validate 3D Tiles tool contract
+        run: node scripts/ci/validate-3d-tiles-tools.mjs
       - name: Setup Python
         uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d # v7.1.0
         with:
