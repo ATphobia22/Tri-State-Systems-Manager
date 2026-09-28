@@ -3,25 +3,29 @@
 How the flood simulator gets its ground truth — and what happens when the
 network does not cooperate.
 
-## 1. Elevation source: real 3DEP-derived terrain, bundled
+## 1. Elevation source: real source-derived screening terrain, bundled
 
 `tools/terrain/fetch-terrarium-dem.py` downloads Terrarium tiles from the AWS
-Open Data `elevation-tiles-prod` bucket (derived from **USGS 3DEP** for CONUS)
-for a ±0.03° window around the anchor site (13101 Bonebank Rd, Point Township,
-Posey County, IN — 37.845887, −88.005075), decodes the Terrarium encoding
+Open Data `elevation-tiles-prod` bucket for a ±0.03° window around the anchor
+site (13101 Bonebank Rd, Point Township, Posey County, IN — 37.845887,
+−88.005075). Per the Tilezen joerd attribution, the CONUS portion of the
+Terrarium mosaic is sourced from USGS 3DEP/NED; the mosaic as a whole blends
+multiple sources (SRTM, GMTED, ETOPO1, and others) with mixed native vertical
+datums — so "3DEP-derived" describes the CONUS feed, not a uniform pedigree.
+The script decodes the Terrarium encoding
 (`elev_m = R·256 + G + B/256 − 32768`), mosaics the tiles, and resamples them
 onto a canonical 192×192 grid in local ENU feet (±6000 ft, 62.5 ft cells).
 
 Output (committed):
 
-- `tsm-console/src/lib/flood-sim/world/data/surveyed-dem-posey.json` — the
+- `tsm-console/src/lib/flood-sim/world/data/source-derived-dem-posey.json` — the
   grid plus provenance (source URLs, tile list, zoom, datums, SHA-256).
-- `surveyed-dem-posey.json.manifest.json` — the same provenance without the
+- `source-derived-dem-posey.json.manifest.json` — the same provenance without the
   grid bytes.
 
-Current bundle: `surveyed-dem-posey-valley-v1`, z13 tiles, elevation
-337.7–372.5 ft (mean 360.3 ft), vertical datum NAVD88 as reported by the 3DEP
-source.
+Current bundle: `source-derived-dem-posey-valley-v1`, z13 tiles, elevation
+337.7–372.5 ft (mean 360.3 ft), vertical datum NAVD88 as reported for the 3DEP
+portion of the mosaic.
 
 **Screening-level, not survey-grade.** The source posting is ~15 m; the grid is
 a resampled derivative. It is strictly better than the procedural approximation
@@ -45,15 +49,16 @@ never feeds the simulation engine or any evidence output.
 
 | Preference | Behaviour |
 |---|---|
-| `auto` (default) | Bundled 3DEP-derived grid, resampled to the scenario domain — validated (finite, inside the Ohio–Wabash valley envelope, covers the domain) — else the procedural grid with a console warning. Never throws on source problems. |
-| `surveyed` | Bundled grid only; throws a descriptive error when it is missing, corrupt, or too small (explicit choice ⇒ fail loudly, never silently downgrade). |
+| `auto` (default) | Bundled source-derived screening grid, resampled to the scenario domain — validated (finite, inside the Ohio–Wabash valley envelope, covers the domain) — else the procedural grid with a console warning. Never throws on source problems. |
+| `source-derived` | Bundled grid only; throws a descriptive error when it is missing, corrupt, or too small (explicit choice ⇒ fail loudly, never silently downgrade). |
 | `procedural` | Deterministic seeded value-noise grid; always succeeds. |
 
 The resolved grid feeds **both** the `FloodSimEngine` config and the three.js
 mesh, so physics and visuals agree exactly. The mesh carries `dataQuality`
-(`live-terrain-service` | `surveyed-source-derived` |
-`procedural-approximation`), a human `provenance` string, and the surveyed
-metadata — surfaced in the simulator's status badge and legend footer.
+(`live-terrain-service` | `source-derived-screening` |
+`procedural-approximation`), a human `provenance` string, and the
+source-derived metadata — surfaced in the simulator's status badge and legend
+footer.
 
 ## 4. Live-data integration: genuinely real-time, honestly labeled
 
@@ -61,7 +66,8 @@ metadata — surfaced in the simulator's status badge and legend footer.
 
 - **Gauges** poll on a 60 s interval through the existing `startGaugePoll`
   (REST only — the no-websocket source-grep gate still applies to every file
-  in the package).
+  in the package). The manager owns the single polling loop; UI panels read
+  its snapshot rows — no component runs a second poller.
 - **Terrain endpoint health** is probed on a 5-minute interval against one
   small tile; tiles carry an in-memory LRU cache with per-request timeouts and
   bounded retries. A failed fetch never poisons the cache — the last good tile

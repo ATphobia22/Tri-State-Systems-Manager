@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig, loadEnv, type IndexHtmlTransformResult } from 'vite';
 import react from '@vitejs/plugin-react';
 
@@ -64,9 +65,17 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
+    // The .test.mjs files under tests/ are Node-runner suites (node:test,
+    // executed via `node --test`) — vitest must not pick them up. Scope
+    // vitest to the .test.ts suites only.
+    test: {
+      include: ['tests/**/*.test.ts', 'src/**/*.test.ts'],
+    },
     build: {
       outDir: 'dist',
-      sourcemap: true,
+      // Sourcemaps are only emitted for development builds. Production builds
+      // must not ship them (~7.5 MB of public source in dist/).
+      sourcemap: mode === 'development',
       rolldownOptions: {
         output: {
           codeSplitting: {

@@ -8,8 +8,8 @@ https://atphobia22.github.io/Tri-State-Systems-Manager/terrain_3dep/{z}/{x}/{y}.
 ```
 
 **Provenance.** Derived from the 3DEP screening DEM
-(`src/lib/flood-sim/world/data/surveyed-dem-posey.json`,
-SHA-256 `3af2aea7…897d`) by `scripts/geospatial/build-terrain-rgb-screening.sh`.
+(`src/lib/flood-sim/world/data/source-derived-dem-posey.json`,
+SHA-256 `9099a108…f45b5`) by `scripts/geospatial/build-terrain-rgb-screening.sh`.
 Screening-level, not survey-grade; NAVD88 as reported by the source, never
 re-projected or certified. Full pipeline: `docs/TERRAIN-RGB-3DEP-PIPELINE.md`;
 evidence ledger: `artifacts/tsm-terrain-rgb-3dep-pipeline-v1.json`.

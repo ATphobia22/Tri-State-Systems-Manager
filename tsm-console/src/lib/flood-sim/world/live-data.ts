@@ -36,6 +36,8 @@ export interface SourceSnapshot {
 export interface LiveDataSnapshot {
   terrainEndpoint: SourceSnapshot;
   gauges: Record<string, SourceSnapshot & { value: number | null; unit: string | null }>;
+  /** Raw gauge rows for display panels — single source of truth for gauge polling. */
+  gaugeRows: RiverGaugeObservation[];
   updatedIso: string;
 }
 
@@ -385,7 +387,7 @@ export async function fetchLiveTerrainGrid(args: LiveTerrainFetchArgs): Promise<
 
 // --- unified fallback ---------------------------------------------------------
 
-export type TerrainTier = 'live' | 'bundled-surveyed' | 'procedural';
+export type TerrainTier = 'live' | 'bundled-source-derived' | 'procedural';
 
 export interface ResolvedLiveTerrain {
   grid: number[][];
@@ -394,13 +396,14 @@ export interface ResolvedLiveTerrain {
   /** Human label for legends/status badges — always names the actual source. */
   provenance: string;
   asOfIso: string | null;
-  surveyed: ResolvedTerrainSource | null;
+  sourceDerived: ResolvedTerrainSource | null;
 }
 
 /**
  * The reliability contract in one call: try live tiles, then the bundled
- * 3DEP-derived grid, then the procedural approximation. Never throws for
- * source problems — the returned `tier`/`status` always say what happened.
+ * source-derived screening grid, then the procedural approximation. Never
+ * throws for source problems — the returned `tier`/`status` always say what
+ * happened.
  */
 export async function resolveTerrainWithFallback(args: {
   client: TerrainTileClient;
@@ -415,7 +418,7 @@ export async function resolveTerrainWithFallback(args: {
   baseElevFt: number;
   valleyReliefFt: number;
   noiseAmplitudeFt: number;
-  terrainSource?: 'auto' | 'surveyed' | 'procedural';
+  terrainSource?: 'auto' | 'source-derived' | 'procedural';
 }): Promise<ResolvedLiveTerrain> {
   const nowIso = new Date().toISOString();
   if ((args.terrainSource ?? 'auto') !== 'procedural') {
@@ -434,15 +437,15 @@ export async function resolveTerrainWithFallback(args: {
         grid,
         tier: 'live',
         status: 'LIVE',
-        provenance: `live Terrarium tiles (3DEP-derived), fetched ${nowIso} — screening-level`,
+        provenance: `live Terrarium tiles (CONUS portion 3DEP/NED-sourced), fetched ${nowIso} — screening-level`,
         asOfIso: nowIso,
-        surveyed: null,
+        sourceDerived: null,
       };
     } catch {
       // Fall through to the bundled grid, then procedural.
     }
   }
-  const surveyed = resolveElevationGrid({
+  const sourceDerived = resolveElevationGrid({
     nx: args.nx,
     ny: args.ny,
     dxFt: args.dxFt,
@@ -452,23 +455,23 @@ export async function resolveTerrainWithFallback(args: {
     noiseAmplitudeFt: args.noiseAmplitudeFt,
     terrainSource: args.terrainSource ?? 'auto',
   });
-  if (surveyed.source === 'surveyed') {
+  if (sourceDerived.source === 'source-derived') {
     return {
-      grid: surveyed.grid,
-      tier: 'bundled-surveyed',
+      grid: sourceDerived.grid,
+      tier: 'bundled-source-derived',
       status: 'STALE',
-      provenance: `bundled ${surveyed.provenance} (live endpoint unreachable)`,
+      provenance: `bundled ${sourceDerived.provenance} (live endpoint unreachable)`,
       asOfIso: null,
-      surveyed,
+      sourceDerived,
     };
   }
   return {
-    grid: surveyed.grid,
+    grid: sourceDerived.grid,
     tier: 'procedural',
     status: 'CANDIDATE_NOT_LIVE',
-    provenance: surveyed.provenance,
+    provenance: sourceDerived.provenance,
     asOfIso: null,
-    surveyed,
+    sourceDerived,
   };
 }
 
@@ -577,6 +580,7 @@ export class LiveDataManager {
     return {
       terrainEndpoint: this.terrainClient.endpointSnapshot(nowMs),
       gauges,
+      gaugeRows: [...this.gaugeRows],
       updatedIso: new Date(nowMs).toISOString(),
     };
   }

@@ -4,24 +4,27 @@
  * DATA-QUALITY CONTRACT (read before reusing):
  * This module resolves its elevation grid from one of two sources:
  *
- * 1. `surveyed` — the bundled 3DEP-derived screening grid
- *    (`world/data/surveyed-dem-posey.json`, fetched by
+ * 1. `source-derived` — the bundled source-derived screening grid
+ *    (`world/data/source-derived-dem-posey.json`, fetched by
  *    `tools/terrain/fetch-terrarium-dem.py` from AWS elevation-tiles-prod
- *    Terrarium tiles derived from USGS 3DEP). ~15 m source posting resampled
- *    to a 62.5 ft canonical grid. It is a SCREENING-LEVEL derivative: better
- *    than the procedural approximation, but NOT survey-grade, NOT a
- *    substitute for licensed survey, and NOT valid for regulatory/design
- *    elevation decisions. Labeled `surveyed-source-derived`.
+ *    Terrarium tiles; CONUS portion sourced from USGS 3DEP/NED per the
+ *    Tilezen joerd attribution — a mosaic with mixed native vertical
+ *    datums). ~15 m source posting resampled to a 62.5 ft canonical grid.
+ *    It is a SCREENING-LEVEL derivative: better than the procedural
+ *    approximation, but NOT survey-grade, NOT a substitute for licensed
+ *    survey, and NOT valid for regulatory/design elevation decisions.
+ *    Labeled `source-derived-screening`.
  * 2. `procedural` — the deterministic seeded value-noise approximation used
- *    before real elevation existed (and still the fallback when the surveyed
- *    bundle is missing or fails validation). Labeled
+ *    before real elevation existed (and still the fallback when the
+ *    source-derived bundle is missing or fails validation). Labeled
  *    `procedural-approximation — not surveyed terrain`.
  *
- * `resolveElevationGrid()` implements the fallback chain: surveyed (validated)
- * → procedural. It never throws on source problems; only on invalid caller
- * options. The mesh, the UI legend, and the docs must always display the
- * resolved `source`/`dataQuality` labels — never present procedural output as
- * surveyed, and never present the surveyed screening grid as engineering-grade.
+ * `resolveElevationGrid()` implements the fallback chain: source-derived
+ * (validated) → procedural. It never throws on source problems; only on
+ * invalid caller options. The mesh, the UI legend, and the docs must always
+ * display the resolved `source`/`dataQuality` labels — never present
+ * procedural output as source-derived, and never present the source-derived
+ * screening grid as engineering-grade.
  *
  * The pure elevation-grid generator is separated from the three.js mesh
  * builder so it stays unit-testable without a GL context.
@@ -31,7 +34,7 @@ import * as THREE from 'three';
 import { mulberry32 } from '../prng';
 import { computeHillshade } from './hillshade';
 import tileFabric from '../../../../../artifacts/tsm-geospatial-tile-fabric-v1.json';
-import surveyedDemJson from './data/surveyed-dem-posey.json';
+import sourceDerivedDemJson from './data/source-derived-dem-posey.json';
 
 /** DEM service entries from the tile-fabric manifest that inform this terrain. */
 export interface DemSourceRef {
@@ -89,15 +92,15 @@ export interface TerrainGenOptions {
 /** Data-quality tag stamped on everything this module produces. */
 export type TerrainDataQuality =
   | 'live-terrain-service'
-  | 'surveyed-source-derived'
+  | 'source-derived-screening'
   | 'procedural-approximation';
 /** Back-compat export: the pre-survey default. */
 export const TERRAIN_DATA_QUALITY = 'procedural-approximation' as const;
 
-/** Which elevation source to resolve. `auto` prefers surveyed, falls back silently. */
-export type TerrainSourcePreference = 'auto' | 'surveyed' | 'procedural';
+/** Which elevation source to resolve. `auto` prefers source-derived, falls back silently. */
+export type TerrainSourcePreference = 'auto' | 'source-derived' | 'procedural';
 
-interface SurveyedBundle {
+interface SourceDerivedBundle {
   id?: string;
   n?: number;
   cellFt?: number;
@@ -110,7 +113,7 @@ interface SurveyedBundle {
   gridFt?: number[];
 }
 
-export interface SurveyedMeta {
+export interface SourceDerivedMeta {
   id: string;
   source: string;
   verticalDatum: string;
@@ -124,20 +127,20 @@ export interface SurveyedMeta {
 export interface ResolvedTerrainSource {
   /** Elevation grid, [row][col], ny × nx, ft, domain-local ENU centred on the anchor. */
   grid: number[][];
-  source: 'surveyed' | 'procedural';
+  source: 'source-derived' | 'procedural';
   dataQuality: TerrainDataQuality;
   /** Short human label for legends/status badges. */
   provenance: string;
-  surveyedMeta: SurveyedMeta | null;
+  sourceDerivedMeta: SourceDerivedMeta | null;
 }
 
-function readSurveyedBundle(): SurveyedBundle | null {
-  const b = surveyedDemJson as SurveyedBundle;
+function readSourceDerivedBundle(): SourceDerivedBundle | null {
+  const b = sourceDerivedDemJson as SourceDerivedBundle;
   if (!b || !Array.isArray(b.gridFt) || typeof b.n !== 'number') return null;
   return b;
 }
 
-function validateSurveyedBundle(b: SurveyedBundle): SurveyedMeta | null {
+function validateSourceDerivedBundle(b: SourceDerivedBundle): SourceDerivedMeta | null {
   const n = b.n ?? 0;
   const grid = b.gridFt ?? [];
   if (!Number.isInteger(n) || n < 2 || grid.length !== n * n) return null;
@@ -160,7 +163,7 @@ function validateSurveyedBundle(b: SurveyedBundle): SurveyedMeta | null {
   // without pretending to certify the values.
   if (min < 200 || max > 1200 || max - min > 900) return null;
   return {
-    id: b.id ?? 'surveyed-dem-unknown',
+    id: b.id ?? 'source-derived-dem-unknown',
     source: b.source ?? 'unknown',
     verticalDatum: b.verticalDatum ?? 'unknown',
     horizontalDatum: b.horizontalDatum ?? 'unknown',
@@ -172,13 +175,13 @@ function validateSurveyedBundle(b: SurveyedBundle): SurveyedMeta | null {
 }
 
 /**
- * Bilinear-resample the canonical surveyed grid (row 0 = north edge,
+ * Bilinear-resample the canonical source-derived grid (row 0 = north edge,
  * ENU feet relative to the anchor) onto a target domain grid of nx × ny
  * cells at dxFt, centred on the same anchor. Deterministic.
  */
 function resampleSurveyed(
-  b: SurveyedBundle,
-  meta: SurveyedMeta,
+  b: SourceDerivedBundle,
+  meta: SourceDerivedMeta,
   nx: number,
   ny: number,
   dxFt: number,
@@ -302,11 +305,12 @@ export function generateElevationGrid(opts: TerrainGenOptions): number[][] {
  *
  * Fallback chain (the reliability contract):
  *   1. `procedural` preference → seeded value-noise grid, always succeeds.
- *   2. `surveyed` preference → bundled 3DEP-derived grid resampled to the
- *      domain; throws a descriptive error when the bundle is missing/invalid
- *      (explicit choice ⇒ fail loudly, never silently downgrade).
- *   3. `auto` (default) → surveyed when it validates, else procedural with a
- *      console warning. Never throws on source problems.
+ *   2. `source-derived` preference → bundled source-derived grid resampled
+ *      to the domain; throws a descriptive error when the bundle is
+ *      missing/invalid (explicit choice ⇒ fail loudly, never silently
+ *      downgrade).
+ *   3. `auto` (default) → source-derived when it validates, else procedural
+ *      with a console warning. Never throws on source problems.
  */
 export function resolveElevationGrid(
   opts: TerrainGenOptions & { terrainSource?: TerrainSourcePreference },
@@ -318,33 +322,33 @@ export function resolveElevationGrid(
       source: 'procedural',
       dataQuality: 'procedural-approximation',
       provenance: 'procedural approximation — not surveyed terrain',
-      surveyedMeta: null,
+      sourceDerivedMeta: null,
     };
   }
-  const bundle = readSurveyedBundle();
-  const meta = bundle ? validateSurveyedBundle(bundle) : null;
+  const bundle = readSourceDerivedBundle();
+  const meta = bundle ? validateSourceDerivedBundle(bundle) : null;
   const resampled =
     bundle && meta ? resampleSurveyed(bundle, meta, opts.nx, opts.ny, opts.dxFt) : null;
   if (resampled && meta) {
     return {
       grid: resampled,
-      source: 'surveyed',
-      dataQuality: 'surveyed-source-derived',
+      source: 'source-derived',
+      dataQuality: 'source-derived-screening',
       provenance:
         `3DEP-derived screening grid (${meta.id}; vertical datum ${meta.verticalDatum}) — ` +
         `not survey-grade`,
-      surveyedMeta: meta,
+      sourceDerivedMeta: meta,
     };
   }
-  if (preference === 'surveyed') {
+  if (preference === 'source-derived') {
     throw new Error(
-      '[flood-sim-terrain] surveyed elevation requested but the bundled 3DEP-derived ' +
+      '[flood-sim-terrain] source-derived elevation requested but the bundled source-derived ' +
         'grid is missing, corrupt, or does not cover the requested domain',
     );
   }
   if (typeof console !== 'undefined') {
     console.warn(
-      '[flood-sim-terrain] surveyed elevation unavailable — falling back to procedural approximation',
+      '[flood-sim-terrain] source-derived elevation unavailable — falling back to procedural approximation',
     );
   }
   return {
@@ -352,7 +356,7 @@ export function resolveElevationGrid(
     source: 'procedural',
     dataQuality: 'procedural-approximation',
     provenance: 'procedural approximation — not surveyed terrain (surveyed bundle unavailable)',
-    surveyedMeta: null,
+    sourceDerivedMeta: null,
   };
 }
 
@@ -384,7 +388,7 @@ export interface BuiltTerrain {
   /** Human label describing the resolved elevation source. */
   provenance: string;
   demSources: readonly DemSourceRef[];
-  surveyedMeta: SurveyedMeta | null;
+  sourceDerivedMeta: SourceDerivedMeta | null;
   /** Bilinear height sampler in grid coordinates (fractional col/row ok). */
   heightAt(col: number, row: number): number;
   dispose(): void;
@@ -399,7 +403,7 @@ export interface BuiltTerrain {
  * so visuals and physics agree exactly; pass `sourceInfo` alongside so the
  * mesh carries the right data-quality labels. Without `sourceInfo`, a
  * caller-supplied grid is labeled procedural-approximation (the historical
- * default — callers resolving surveyed grids must pass the labels through).
+ * default — callers resolving source-derived grids must pass the labels through).
  *
  * Vertex colours combine the hypsometric tint with an analytic hillshade
  * (Horn's method) so relief reads even in flat floodplain country.
@@ -408,7 +412,7 @@ export function buildTerrainMesh(
   opts: TerrainGenOptions & {
     segments?: number;
     elevationFt?: number[][];
-    sourceInfo?: Pick<ResolvedTerrainSource, 'source' | 'dataQuality' | 'provenance' | 'surveyedMeta'>;
+    sourceInfo?: Pick<ResolvedTerrainSource, 'source' | 'dataQuality' | 'provenance' | 'sourceDerivedMeta'>;
     hillshade?: { azimuthDeg?: number; altitudeDeg?: number; zFactor?: number; floor?: number };
   },
 ): BuiltTerrain {
@@ -422,7 +426,7 @@ export function buildTerrainMesh(
     source: 'procedural' as const,
     dataQuality: 'procedural-approximation' as const,
     provenance: 'procedural approximation — not surveyed terrain',
-    surveyedMeta: null,
+    sourceDerivedMeta: null,
   };
 
   const widthFt = nx * dxFt;
@@ -495,7 +499,7 @@ export function buildTerrainMesh(
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.name =
-    sourceInfo.source === 'surveyed'
+    sourceInfo.source === 'source-derived'
       ? 'flood-sim-terrain (3DEP-derived screening grid — not survey-grade)'
       : 'flood-sim-terrain (procedural approximation — not surveyed)';
   // Centre the domain on the origin; world frame is local ENU feet.
@@ -507,7 +511,7 @@ export function buildTerrainMesh(
     dataQuality: sourceInfo.dataQuality,
     provenance: sourceInfo.provenance,
     demSources: DEM_SOURCES,
-    surveyedMeta: sourceInfo.surveyedMeta,
+    sourceDerivedMeta: sourceInfo.sourceDerivedMeta,
     heightAt,
     dispose(): void {
       geometry.dispose();

@@ -207,11 +207,13 @@ npm run build   # verify tsm-console/dist/ exists for Capacitor webDir: 'dist'
 
 ## 13. Terrain elevation, hillshade, and live-data integration
 
-- Elevation source: bundled 3DEP-derived screening grid
-  (`tsm-console/src/lib/flood-sim/world/data/surveyed-dem-posey.json`, fetched
-  by `tools/terrain/fetch-terrarium-dem.py`), resampled to each scenario
-  domain by `resolveElevationGrid()`; procedural seeded value-noise remains
-  the validated fallback. Full detail: `docs/TERRAIN-LIVE-DATA.md`.
+- Elevation source: bundled source-derived screening grid
+  (`tsm-console/src/lib/flood-sim/world/data/source-derived-dem-posey.json`,
+  fetched by `tools/terrain/fetch-terrarium-dem.py` from AWS Terrarium tiles;
+  CONUS portion 3DEP/NED-sourced per Tilezen joerd attribution), resampled to
+  each scenario domain by `resolveElevationGrid()`; procedural seeded
+  value-noise remains the validated fallback. Full detail:
+  `docs/TERRAIN-LIVE-DATA.md`.
 - Mesh vertex colours combine the hypsometric tint with an analytic Horn's
   hillshade (`world/hillshade.ts`); the shade is visual only.
 - `LiveDataManager` (`world/live-data.ts`) polls gauges (60 s) and probes the

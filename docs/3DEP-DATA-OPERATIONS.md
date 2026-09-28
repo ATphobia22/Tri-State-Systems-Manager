@@ -24,14 +24,15 @@ Never silently transform a National Map product. Record the native horizontal CR
 ## Bundled screening-grid carve-out (2026-09-27)
 
 The flood simulator bundles one small *derived* screening grid
-(`tsm-console/src/lib/flood-sim/world/data/surveyed-dem-posey.json`, 192×192,
+(`tsm-console/src/lib/flood-sim/world/data/source-derived-dem-posey.json`, 192×192,
 ~250 KB, fetched by `tools/terrain/fetch-terrarium-dem.py` from
-elevation-tiles-prod Terrarium tiles derived from 3DEP). This is permitted
-under the acquisition contract above because:
+elevation-tiles-prod Terrarium tiles; CONUS portion sourced from USGS 3DEP/NED
+per the Tilezen joerd attribution — a mosaic with mixed native vertical
+datums). This is permitted under the acquisition contract above because:
 
 1. It is a resampled derivative, not operational LAS/LAZ/DEM binaries.
 2. Full provenance (tile URLs, zoom, datums, SHA-256) ships alongside it.
-3. It is labeled `surveyed-source-derived` — screening-level, not survey-grade —
+3. It is labeled `source-derived-screening` — screening-level, not survey-grade —
    everywhere it is used, and never feeds evidence outputs.
 
 Refresh via the fetch script; verify the manifest SHA-256 before release.

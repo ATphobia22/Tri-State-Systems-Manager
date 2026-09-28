@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build a Mapbox Terrain-RGB tile pyramid from the bundled screening DEM.
 
-Reads tsm-console/src/lib/flood-sim/world/data/surveyed-dem-posey.json
+Reads tsm-console/src/lib/flood-sim/world/data/source-derived-dem-posey.json
 (192x192 grid, ENU feet, NAVD88 as reported by the 3DEP source) and renders
 Web-Mercator XYZ PNG tiles using the Mapbox Terrain-RGB encoding:
 

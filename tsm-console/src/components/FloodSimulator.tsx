@@ -20,6 +20,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { prefersReducedMotion } from '../lib/reduced-motion';
 import {
   FloodSimEngine,
   STEP_DT_SEC,
@@ -59,9 +60,9 @@ import {
   type ResolvedLiveTerrain,
   type ResolvedTerrainSource,
   type TerrainDataQuality,
-  type SurveyedMeta,
+  type SourceDerivedMeta,
 } from '../lib/flood-sim/index';
-import { startGaugePoll, type RiverGaugeObservation } from '../lib/river-gauges';
+import { type RiverGaugeObservation } from '../lib/river-gauges';
 import { BONEBANK_SITE_CONSTANTS } from '../lib/scientific-analytics';
 
 const AXIOM =
@@ -96,11 +97,12 @@ export default function FloodSimulator(): React.JSX.Element {
   const [scenarios] = useState<FloodSimScenario[]>(() => listScenarios());
   const [scenarioId, setScenarioId] = useState<string>(() => listScenarios()[0]?.scenarioId ?? '');
   const [quality, setQuality] = useState<QualityTier>('medium');
-  const [paused, setPaused] = useState(false);
+  // Reduced-motion users start paused and without the RAF loop — a single
+  // static frame is rendered instead (gate inside the lifecycle effect).
+  const [reducedMotion] = useState(() => prefersReducedMotion());
+  const [paused, setPaused] = useState(() => prefersReducedMotion());
   const [timeScale, setTimeScale] = useState(60);
   const [ui, setUi] = useState<UiSnapshot | null>(null);
-  const [gauges, setGauges] = useState<RiverGaugeObservation[]>([]);
-  const [gaugesPolled, setGaugesPolled] = useState(false);
   const [overrideInput, setOverrideInput] = useState('');
   const [overrideActive, setOverrideActive] = useState<number | null>(null);
   const [alternativeId, setAlternativeId] = useState<AlternativeId>('no-action');
@@ -110,7 +112,7 @@ export default function FloodSimulator(): React.JSX.Element {
   const [playingTour, setPlayingTour] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [buildKey, setBuildKey] = useState(0);
-  // Terrain source: 'auto' resolves surveyed (bundled 3DEP-derived) with
+  // Terrain source: 'auto' resolves source-derived (bundled screening grid) with
   // procedural fallback; 'live' attempts live tile fetch with the same
   // fallback chain; 'procedural' forces the seeded approximation.
   const [terrainMode, setTerrainMode] = useState<'auto' | 'procedural' | 'live'>('auto');
@@ -127,7 +129,7 @@ export default function FloodSimulator(): React.JSX.Element {
     water: WaterSurface;
     markers: BuiltMarkers;
     baselineElev: number[][];
-    sourceInfo: Pick<ResolvedTerrainSource, 'source' | 'dataQuality' | 'provenance' | 'surveyedMeta'>;
+    sourceInfo: Pick<ResolvedTerrainSource, 'source' | 'dataQuality' | 'provenance' | 'sourceDerivedMeta'>;
     orbit: { yaw: number; pitch: number; dist: number; target: THREE.Vector3 };
     driver: TimeLapseDriver | null;
     tourStartWall: number;
@@ -140,6 +142,9 @@ export default function FloodSimulator(): React.JSX.Element {
   // adding `paused` to the lifecycle effect's dependency array.
   const pausedRef = useRef(paused);
   pausedRef.current = paused;
+  // Reference to the current world's frame callback so a paused loop can be
+  // restarted by the reduced-motion resume path without rebuilding the world.
+  const frameRef = useRef<(now: number) => void>(() => {});
   /**
    * Applied mitigation alternative, persisted across world rebuilds. The
    * lifecycle effect reads this when constructing the engine; the Apply
@@ -155,6 +160,23 @@ export default function FloodSimulator(): React.JSX.Element {
     if (paused) eng.pause();
     else eng.resume();
   }, [paused, buildKey, scenarioId]);
+
+  // Reduced-motion RAF management: the loop starts static; an explicit
+  // Resume restarts it, Pause stops it again. Normal motion keeps the
+  // pre-existing always-on loop untouched.
+  useEffect(() => {
+    if (!reducedMotion) return;
+    const world = worldRef.current;
+    if (!world) return;
+    if (paused) {
+      if (world.raf) {
+        cancelAnimationFrame(world.raf);
+        world.raf = 0;
+      }
+    } else if (!world.raf) {
+      world.raf = requestAnimationFrame(frameRef.current);
+    }
+  }, [paused, reducedMotion]);
 
   // -- quality changes: renderer tier + mesh density, no engine rebuild ----
   useEffect(() => {
@@ -199,20 +221,9 @@ export default function FloodSimulator(): React.JSX.Element {
 
   const scenario = useMemo(() => getScenario(scenarioId), [scenarioId, scenarios]);
 
-  // -- live gauge polling (REST only; active for the live scenario) ----------
-  useEffect(() => {
-    if (scenarioId !== 'live-gauge-driven') {
-      setGauges([]);
-      setGaugesPolled(false);
-      return;
-    }
-    setGaugesPolled(true);
-    const stop = startGaugePoll(
-      (rows) => setGauges(rows),
-      60_000,
-    );
-    return stop;
-  }, [scenarioId]);
+  // -- live gauges: single poller lives in LiveDataManager; the component
+  // reads the manager's snapshot rows (no duplicate polling loop).
+  const gauges: RiverGaugeObservation[] = liveSnapshot?.gaugeRows ?? [];
 
   // -- live-data manager: terrain endpoint health + unified status snapshot --
   // Polling only (interval HTTPS); the manager never blocks first render.
@@ -278,7 +289,7 @@ export default function FloodSimulator(): React.JSX.Element {
       setLiveTerrain(resolved);
       if (resolved.tier !== 'live') {
         setTerrainNotice(
-          `Live tiles unreachable — fell back to ${resolved.tier === 'bundled-surveyed' ? 'the bundled 3DEP-derived grid' : 'the procedural approximation'}.`,
+          `Live tiles unreachable — fell back to ${resolved.tier === 'bundled-source-derived' ? 'the bundled source-derived screening grid' : 'the procedural approximation'}.`,
         );
       } else {
         setTerrainNotice(null);
@@ -314,16 +325,16 @@ export default function FloodSimulator(): React.JSX.Element {
       };
       let sourceInfo: Pick<
         ResolvedTerrainSource,
-        'source' | 'dataQuality' | 'provenance' | 'surveyedMeta'
+        'source' | 'dataQuality' | 'provenance' | 'sourceDerivedMeta'
       >;
       let resolvedGrid: number[][];
       if (terrainMode === 'live' && liveTerrain) {
         resolvedGrid = liveTerrain.grid;
         sourceInfo = {
-          source: 'surveyed',
+          source: 'source-derived',
           dataQuality: 'live-terrain-service' as TerrainDataQuality,
           provenance: liveTerrain.provenance,
-          surveyedMeta: null,
+          sourceDerivedMeta: null,
         };
       } else {
         const resolved = resolveElevationGrid({
@@ -335,7 +346,7 @@ export default function FloodSimulator(): React.JSX.Element {
           source: resolved.source,
           dataQuality: resolved.dataQuality,
           provenance: resolved.provenance,
-          surveyedMeta: resolved.surveyedMeta,
+          sourceDerivedMeta: resolved.sourceDerivedMeta,
         };
       }
       // A signed-off alternative persists across rebuilds via appliedAltRef.
@@ -561,9 +572,21 @@ export default function FloodSimulator(): React.JSX.Element {
           });
           setCrossSection(prof.map((p) => ({ d: p.distanceFt, wse: p.wseFt, g: p.groundElevFt })));
         }
-        world.raf = requestAnimationFrame(frame);
+        // Reduced-motion gate: with reduced motion and the engine paused
+        // (the reduced-motion default), render this single static frame and
+        // do not keep the RAF loop alive.
+        if (!(reducedMotion && engine.isPaused)) {
+          world.raf = requestAnimationFrame(frame);
+        }
       };
-      world.raf = requestAnimationFrame(frame);
+      frameRef.current = frame;
+      // Reduced-motion starts with a single static render; otherwise the
+      // continuous RAF loop starts here.
+      if (reducedMotion && pausedRef.current) {
+        frame(performance.now());
+      } else {
+        world.raf = requestAnimationFrame(frame);
+      }
 
       return () => {
         cancelAnimationFrame(world!.raf);
@@ -601,6 +624,13 @@ export default function FloodSimulator(): React.JSX.Element {
     world.driver = new TimeLapseDriver(keys, durationSec);
     world.tourStartWall = performance.now();
     setPlayingTour(true);
+    // Reduced-motion gate: the RAF loop is static while paused, so render
+    // the tour's first keyframe once as a still instead of animating.
+    if (reducedMotion && world.engine.isPaused) {
+      frameRef.current(performance.now());
+      world.driver = null;
+      setPlayingTour(false);
+    }
   };
 
   const handleApplyOverride = (): void => {
@@ -689,10 +719,25 @@ export default function FloodSimulator(): React.JSX.Element {
         </div>
       )}
 
+      {reducedMotion && (
+        <div
+          role="status"
+          style={{ background: '#12233a', color: '#94a3b8', padding: '8px 16px', fontSize: 12 }}
+        >
+          Reduced motion is on: showing a static frame. Press Resume to run the simulation; press Pause to stop
+          animation.
+        </div>
+      )}
+
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
         {/* 3D viewport */}
         <div style={{ position: 'relative', flex: '1 1 65%', minWidth: 0, background: '#0b0e12' }}>
-          <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block', touchAction: 'none' }} />
+          <canvas
+            ref={canvasRef}
+            role="img"
+            aria-label="3D flood simulation viewport — terrain, water depth, and engineering markers for the selected scenario"
+            style={{ width: '100%', height: '100%', display: 'block', touchAction: 'none' }}
+          />
           <div
             style={{
               position: 'absolute',
@@ -967,9 +1012,8 @@ export default function FloodSimulator(): React.JSX.Element {
           {/* Live gauge panel */}
           {scenarioId === 'live-gauge-driven' && (
             <details style={{ marginBottom: 12 }} open>
-              <summary style={{ fontSize: 13, cursor: 'pointer' }}>Live gauges — REST polling (60 s)</summary>
-              {!gaugesPolled && <div style={{ fontSize: 11 }}>Polling not started.</div>}
-              {gaugesPolled && gauges.length === 0 && <div style={{ fontSize: 11 }}>Waiting for first poll…</div>}
+              <summary style={{ fontSize: 13, cursor: 'pointer' }}>Live gauges — REST polling (60 s, single shared poller)</summary>
+              {gauges.length === 0 && <div style={{ fontSize: 11 }}>Waiting for first poll…</div>}
               {gauges.map((g) => {
                 const st = gaugeStatusOf(g);
                 const datum = wseFromGageHeight({
@@ -984,7 +1028,7 @@ export default function FloodSimulator(): React.JSX.Element {
                   <div key={g.gaugeId} style={{ fontSize: 11, borderTop: '1px solid #222a35', padding: '4px 0' }}>
                     <span style={{
                       display: 'inline-block', padding: '1px 6px', borderRadius: 4, marginRight: 6,
-                      background: st === 'LIVE' ? '#0d3' : st === 'STALE' ? '#a80' : '#555', color: '#000', fontWeight: 700,
+                      background: st === 'LIVE' ? '#0d3' : st === 'STALE' ? '#a80' : '#a3a3a3', color: '#000', fontWeight: 700,
                     }}>{st}</span>
                     {g.name} — {wseText}
                     {g.value !== null && <span style={{ color: '#93a0b4' }}> (raw {g.value} {g.unit})</span>}

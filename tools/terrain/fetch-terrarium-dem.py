@@ -8,7 +8,7 @@ derived from USGS 3DEP for CONUS. Terrarium encoding:
     elev_m = R * 256 + G + B / 256 - 32768
 
 Output: a canonical ENU-feet grid JSON bundled with the app
-(tsm-console/src/lib/flood-sim/world/data/surveyed-dem-posey.json),
+(tsm-console/src/lib/flood-sim/world/data/source-derived-dem-posey.json),
 resampled deterministically from the mosaic. The grid is a SCREENING-LEVEL
 derivative (~15 m source posting at z13): it improves on the procedural
 approximation but is NOT survey-grade and must never be presented as such.
@@ -99,7 +99,7 @@ def main() -> int:
     ap.add_argument("--zoom", type=int, default=13)
     ap.add_argument("--half-deg", type=float, default=0.03,
                     help="half-extent of download window in degrees")
-    ap.add_argument("--out", default="tsm-console/src/lib/flood-sim/world/data/surveyed-dem-posey.json")
+    ap.add_argument("--out", default="tsm-console/src/lib/flood-sim/world/data/source-derived-dem-posey.json")
     ap.add_argument("--cache-dir", default="tools/terrain/.tile-cache")
     args = ap.parse_args()
 
@@ -162,14 +162,16 @@ def main() -> int:
     grid = np.round(grid, 1)  # 0.1 ft keeps the JSON small; screening-level anyway
     flat = grid.reshape(-1).tolist()
     payload = {
-        "id": "surveyed-dem-posey-valley-v1",
-        "kind": "surveyed-source-derived",
+        "id": "source-derived-dem-posey-valley-v1",
+        "kind": "source-derived-screening",
         "description": (
-            "Screening-level elevation grid derived from USGS 3DEP via AWS "
-            "elevation-tiles-prod Terrarium tiles. NOT survey-grade; not a "
+            "Screening-level elevation grid derived from AWS elevation-tiles-prod "
+            "Terrarium tiles (CONUS portion sourced from USGS 3DEP/NED per the "
+            "Tilezen joerd attribution; the Terrarium mosaic blends multiple "
+            "sources with mixed native vertical datums). NOT survey-grade; not a "
             "substitute for licensed survey where regulatory/design decisions apply."
         ),
-        "source": "AWS Open Data elevation-tiles-prod (Terrarium), derived from USGS 3DEP (CONUS)",
+        "source": "AWS Open Data elevation-tiles-prod (Terrarium); CONUS portion from USGS 3DEP/NED per Tilezen joerd attribution (mosaic, mixed native vertical datums)",
         "tileUrls": tile_urls,
         "zoom": z,
         "anchorLat": ANCHOR_LAT,

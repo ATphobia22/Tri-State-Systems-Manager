@@ -2,7 +2,7 @@
  * world/index.ts — public surface of the flood-sim open-world scene kit.
  */
 export { generateElevationGrid, buildTerrainMesh, resolveElevationGrid, DEM_SOURCES, TERRAIN_DATA_QUALITY } from './terrain';
-export type { TerrainGenOptions, BuiltTerrain, DemSourceRef, ResolvedTerrainSource, SurveyedMeta, TerrainDataQuality, TerrainSourcePreference } from './terrain';
+export type { TerrainGenOptions, BuiltTerrain, DemSourceRef, ResolvedTerrainSource, SourceDerivedMeta, TerrainDataQuality, TerrainSourcePreference } from './terrain';
 export { computeHillshade, applyHillshadeToColors } from './hillshade';
 export type { HillshadeOptions } from './hillshade';
 export {

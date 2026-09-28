@@ -1,8 +1,8 @@
 {
-  "id": "surveyed-dem-posey-valley-v1",
-  "kind": "surveyed-source-derived",
-  "description": "Screening-level elevation grid derived from USGS 3DEP via AWS elevation-tiles-prod Terrarium tiles. NOT survey-grade; not a substitute for licensed survey where regulatory/design decisions apply.",
-  "source": "AWS Open Data elevation-tiles-prod (Terrarium), derived from USGS 3DEP (CONUS)",
+  "id": "source-derived-dem-posey-valley-v1",
+  "kind": "source-derived-screening",
+  "description": "Screening-level elevation grid derived from AWS elevation-tiles-prod Terrarium tiles (CONUS portion sourced from USGS 3DEP/NED per the Tilezen joerd attribution; the Terrarium mosaic blends multiple sources with mixed native vertical datums). NOT survey-grade; not a substitute for licensed survey where regulatory/design decisions apply.",
+  "source": "AWS Open Data elevation-tiles-prod (Terrarium); CONUS portion from USGS 3DEP/NED per Tilezen joerd attribution (mosaic, mixed native vertical datums)",
   "tileUrls": [
     "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/13/2092/3163.png",
     "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/13/2093/3163.png",
@@ -29,5 +29,5 @@
     "max": 372.5,
     "mean": 360.31
   },
-  "sha256": "3af2aea7463340ee160142bf0a9e9b8050e00b8cc5b6fe1ad1d7d8ad174a897d"
+  "sha256": "9099a10850af8c8517c66d6e2adcfe9426145a4f9890dae8cb40f415d06f45b5"
 }

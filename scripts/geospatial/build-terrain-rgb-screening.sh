@@ -2,7 +2,7 @@
 # build-terrain-rgb.sh — build the TSM Terrain-RGB tile pyramid.
 #
 # Reads the bundled screening DEM
-# (tsm-console/src/lib/flood-sim/world/data/surveyed-dem-posey.json,
+# (tsm-console/src/lib/flood-sim/world/data/source-derived-dem-posey.json,
 # produced by tools/terrain/fetch-terrarium-dem.py) and renders Web-Mercator
 # XYZ PNG tiles in the Mapbox Terrain-RGB encoding, plus a TileJSON manifest.
 #
@@ -16,7 +16,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-DEM_JSON="$REPO_ROOT/tsm-console/src/lib/flood-sim/world/data/surveyed-dem-posey.json"
+DEM_JSON="$REPO_ROOT/tsm-console/src/lib/flood-sim/world/data/source-derived-dem-posey.json"
 OUT_DIR="$REPO_ROOT/ops/terrain-tiles/data/terrain-rgb"
 MINZOOM=11
 MAXZOOM=15

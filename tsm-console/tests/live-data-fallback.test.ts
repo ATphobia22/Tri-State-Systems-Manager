@@ -186,15 +186,15 @@ describe('resolveTerrainWithFallback', () => {
     }
   });
 
-  it('falls back to the bundled surveyed grid when the endpoint is down', async () => {
+  it('falls back to the bundled source-derived grid when the endpoint is down', async () => {
     vi.mocked(fetch).mockRejectedValue(new Error('network down'));
     const client = new TerrainTileClient('https://tiles.example/t', clientOpts);
     const r = await resolveTerrainWithFallback({ client, ...base });
-    expect(r.tier).toBe('bundled-surveyed');
+    expect(r.tier).toBe('bundled-source-derived');
     expect(r.status).toBe('STALE');
     expect(r.provenance).toContain('3DEP-derived');
     expect(r.provenance).toContain('live endpoint unreachable');
-    expect(r.surveyed).not.toBeNull();
+    expect(r.sourceDerived).not.toBeNull();
   });
 
   it('honours an explicit procedural preference without touching the network', async () => {
