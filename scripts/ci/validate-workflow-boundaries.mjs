@@ -29,9 +29,8 @@ for (const name of await readdir(WORKFLOW_DIR)) {
   if (name === 'geospatial-ci.yml' && /cityengine|unreal/i.test(text) && !/workflow_dispatch/.test(text)) errors.push('geospatial-ci.yml: specialized tooling must be independently dispatchable');
   if (name === 'deploy-pages.yml') {
     // The production build must point at a real live API origin: either the
-    // optional repository variable, or the configured production origin
-    // (hardcoded deliberately — see deploy-pages.yml: deriving it from an
-    // unverified repository variable would allow API redirection).
+    // repository variable controlled by the repository owner. The workflow
+    // separately validates that the value is non-empty and HTTPS.
     const apiFromVar = /VITE_TSM_API_BASE_URL:\s*\$\{\{\s*vars\.VITE_TSM_API_BASE_URL\s*\}\}/.test(text);
     const apiPinned = /VITE_TSM_API_BASE_URL:\s*https:\/\//.test(text);
     if (!apiFromVar && !apiPinned) errors.push('deploy-pages.yml: production build must expose the live API base URL via repository variable or the pinned canonical origin');
