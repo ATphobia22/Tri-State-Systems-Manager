@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.1.0",
-  "generatedAt": "2026-09-19T11:26:08Z",
+  "generatedAt": "2026-09-28T00:00:00Z",
   "scope": "Point Township / lower Wabash-Ohio community, expandable across Tri-State River Valley",
   "assets": [
     {
@@ -10,7 +10,7 @@
       "authorityClass": "FEDERAL_REGULATORY",
       "purpose": "Effective federal flood-hazard and insurance reference",
       "layerType": "raster",
-      "sourceUrl": "https://msc.fema.gov/portal/search",
+      "sourceUrl": "https://hazards.fema.gov/arcgis/rest/services/FIRMette/NFHLREST_FIRMette/MapServer",
       "status": "PUBLISHED",
       "crs": "SOURCE_NATIVE_DECLARED",
       "verticalDatum": "SOURCE_PRODUCT_DECLARED",
@@ -21,9 +21,17 @@
       "effectiveAt": null,
       "freshnessPolicy": "Use the current effective FEMA product; preserve FIRM panel and effective-date identifiers; never substitute historical screenshots for current regulatory mapping.",
       "verification": {
-        "state": "VERIFIED",
-        "checkedAt": "2026-09-14T16:30:00Z",
-        "sourceHashPolicy": "Hash downloaded product/metadata manifests; preserve FEMA panel and effective-date identifiers."
+        "state": "VERIFIED_2026_09_28",
+        "checkedAt": "2026-09-28T00:00:00Z",
+        "sourceHashPolicy": "Hash downloaded product/metadata manifests; preserve FEMA panel and effective-date identifiers.",
+        "operationalService": "FIRMette/NFHLREST_FIRMette/MapServer"
+      },
+      "sourceDiscoveryUrl": "https://msc.fema.gov/portal/search",
+      "serviceItem": {
+        "experienceItemId": "9d22cdae8b7542b88e0d555a3eb92949",
+        "experienceTitle": "PROD Cloud - NFHL - WE",
+        "webMapItemId": "fa23d2702e244058ab47eb62a991d600",
+        "webMapTitle": "PROD - NFHL - WM"
       }
     },
     {
@@ -323,6 +331,31 @@
         "state": "VERIFIED",
         "checkedAt": "2026-09-19T11:26:08Z",
         "sourceHashPolicy": "Hash service metadata and any materialized feature packages; retain lidar year and county attributes."
+      }
+    },
+    {
+      "id": "fema-nfhl-firmette",
+      "dataset": "FEMA National Flood Hazard Layer operational FIRMette MapServer",
+      "authority": "FEMA",
+      "authorityClass": "FEDERAL_REGULATORY",
+      "purpose": "Effective NFHL service for visualization/query; authoritative product downloads remain through FEMA MSC",
+      "layerType": "vector",
+      "sourceUrl": "https://hazards.fema.gov/arcgis/rest/services/FIRMette/NFHLREST_FIRMette/MapServer",
+      "status": "PUBLISHED",
+      "crs": "EPSG:4326",
+      "verticalDatum": "SOURCE_PRODUCT_DECLARED",
+      "tileScheme": "SERVICE_NATIVE",
+      "provenanceClass": "FEMA_EFFECTIVE",
+      "currentTruth": true,
+      "acquiredAt": null,
+      "effectiveAt": null,
+      "freshnessPolicy": "Refresh service metadata and preserve effective product identifiers; never substitute model output for effective NFHL.",
+      "verification": {
+        "state": "VERIFIED_2026_09_28",
+        "checkedAt": "2026-09-28T00:00:00Z",
+        "experienceItemId": "9d22cdae8b7542b88e0d555a3eb92949",
+        "webMapItemId": "fa23d2702e244058ab47eb62a991d600",
+        "sourceHashPolicy": "Hash service metadata and compact extracted records; preserve source URL and retrieval timestamp."
       }
     }
   ]

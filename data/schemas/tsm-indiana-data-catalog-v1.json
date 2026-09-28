@@ -91,8 +91,8 @@
     {
       "id": "fema-nfhl",
       "name": "FEMA National Flood Hazard Layer (effective)",
-      "url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer",
-      "alt": "https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer",
+      "url": "https://hazards.fema.gov/arcgis/rest/services/FIRMette/NFHLREST_FIRMette/MapServer",
+      "alt": "https://msc.fema.gov/portal/search",
       "owner": "FEMA",
       "status": "VERIFIED",
       "use": "Effective SFHA / FIRM panels / BFE / LOMR / LOMA — insurance/effective reference only",
@@ -106,7 +106,15 @@
         "cross_sections": 14
       },
       "wms": "https://hazards.fema.gov/arcgis/services/public/NFHLWMS/MapServer/WMSServer",
-      "notes": "Official FIRM/FIS controls regulatory insurance determinations; TSM does not issue those determinations."
+      "notes": "Operational effective NFHL MapServer: FIRMette/NFHLREST_FIRMette. FEMA MSC remains the official product-download source. Legacy public/NFHL service paths are retained only as historical compatibility references and must not be used as the active runtime endpoint.",
+      "legacy_urls": [
+        "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer",
+        "https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer"
+      ],
+      "service_item": {
+        "experience_item_id": "9d22cdae8b7542b88e0d555a3eb92949",
+        "web_map_item_id": "fa23d2702e244058ab47eb62a991d600"
+      }
     },
     {
       "id": "indiana-bafm",
@@ -243,6 +251,37 @@
       "owner": "Indiana DNR Division of Water / USGS / USACE / NRCS",
       "status": "VERIFIED",
       "use": "Coordinated discharge reference for hydrologic studies; legal applicability is evaluated separately"
+    },
+    {
+      "id": "fema-nfhl-operational-mapserver",
+      "name": "FEMA NFHL Operational FIRMette MapServer",
+      "url": "https://hazards.fema.gov/arcgis/rest/services/FIRMette/NFHLREST_FIRMette/MapServer",
+      "owner": "FEMA",
+      "status": "VERIFIED_2026_09_28",
+      "use": "Effective NFHL visualization/query service",
+      "crs": "EPSG:4326",
+      "key_layers": {
+        "nfhl_availability": 0,
+        "firm_panels": 1,
+        "lomrs": 2,
+        "lomas": 3,
+        "political_jurisdictions": 4,
+        "cross_sections": 7,
+        "base_flood_elevations": 8,
+        "levees": 9,
+        "general_structures": 14,
+        "river_mile_markers": 15,
+        "limit_of_moderate_wave_action": 18,
+        "flood_hazard_boundaries": 19,
+        "flood_hazard_zones": 20,
+        "primary_frontal_dunes": 21,
+        "study_info": 33
+      },
+      "provenance": {
+        "experience_item_id": "9d22cdae8b7542b88e0d555a3eb92949",
+        "web_map_item_id": "fa23d2702e244058ab47eb62a991d600",
+        "verified_at": "2026-09-28T00:00:00Z"
+      }
     }
   ],
   "implementation_directives": [
@@ -251,7 +290,10 @@
     "NFHL = effective/insurance reference; BAFM = Indiana planning/jurisdiction reference. Never conflate them in UI or policy evaluation.",
     "Label all provisional (P) telemetry and all model outputs with PROVISIONAL / SIMULATION_DEMO status; human authority remains final.",
     "Acquire 3DEP lidar/DEM through TNMAccess/LidarExplorer and persist derived EvidenceArtifacts with SHA-256 provenance rather than bulk redistribution.",
-    "NLD queries are read-only Evidence plane; no automatic levee accreditation decisions."
+    "NLD queries are read-only Evidence plane; no automatic levee accreditation decisions.",
+    "Use https://hazards.fema.gov/arcgis/rest/services/FIRMette/NFHLREST_FIRMette/MapServer as the active FEMA effective NFHL service; retain MSC as the authoritative download/discovery portal.",
+    "Record ArcGIS Experience/Web Map item IDs and source service metadata in every FEMA-derived provenance manifest.",
+    "Never treat FEMA NFHL, Indiana BAFM, or model outputs as interchangeable authority classes; preserve the flood-information federation and regulatory-status boundary in APIs, storage, tiles, and UI."
   ],
   "flood_information_federation": {
     "schema": "data/schemas/tsm-flood-information-federation-v1.schema.json",
@@ -275,5 +317,16 @@
       "MODEL_EVIDENCE"
     ],
     "rule": "Never promote a state best-available, inundation, visualization, or model result into FEMA insurance authority."
+  },
+  "source_verification": {
+    "fema_nfhl_verified_2026_09_28": {
+      "effective_service": "https://hazards.fema.gov/arcgis/rest/services/FIRMette/NFHLREST_FIRMette/MapServer",
+      "experience_item_id": "9d22cdae8b7542b88e0d555a3eb92949",
+      "experience_title": "PROD Cloud - NFHL - WE",
+      "web_map_item_id": "fa23d2702e244058ab47eb62a991d600",
+      "web_map_title": "PROD - NFHL - WM",
+      "verification_basis": "Current ArcGIS integrations and independent public service references identify the FIRMette/NFHLREST_FIRMette service as the operational effective NFHL MapServer.",
+      "verified_at": "2026-09-28T00:00:00Z"
+    }
   }
 }

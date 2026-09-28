@@ -91,6 +91,28 @@ jobs:
       - name: Run Mapillary evidence contract tests
         working-directory: tsm-console
         run: npm run test:mapillary
+      - name: Verify Docker engine and public registry DNS
+        run: |
+          set -euo pipefail
+          docker version
+          for host in registry.npmjs.org registry-1.docker.io ghcr.io github.com; do
+            getent hosts "$host"
+          done
+          docker info --format 'Server={{.ServerVersion}} Storage={{.Driver}}'
+
+      - name: Verify GDAL/OGR toolchain in container
+        env:
+          GDAL_IMAGE: ghcr.io/osgeo/gdal:ubuntu-small-3.12.3
+        run: |
+          set -euo pipefail
+          docker pull "$GDAL_IMAGE"
+          docker run --rm "$GDAL_IMAGE" gdalinfo --version
+          docker run --rm "$GDAL_IMAGE" ogrinfo --version
+          test -s data/posey-county/elevation/posey-county-dem-30m.tif
+          test -s data/posey-county/parcels/posey-parcels-2025.geojson
+          docker run --rm -v "$GITHUB_WORKSPACE:/workspace:ro" "$GDAL_IMAGE"             gdalinfo /workspace/data/posey-county/elevation/posey-county-dem-30m.tif
+          docker run --rm -v "$GITHUB_WORKSPACE:/workspace:ro" "$GDAL_IMAGE"             ogrinfo -ro -so /workspace/data/posey-county/parcels/posey-parcels-2025.geojson
+
       - name: Validate 3D asset manifests
         run: node scripts/ci/validate-artifact-manifests.mjs
       - name: Validate geospatial processing contract
