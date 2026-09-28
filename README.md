@@ -105,6 +105,24 @@ HEC-RAS 2D cell centers are model-project geometry. Ingestion discovers cell-cen
 
 ## Data and authority hierarchy
 
+## Provenance-aware flood information federation
+
+TSM treats flood information as a federation of distinct authority planes rather than a single flood map. FEMA effective/NFHL products, Indiana DNR Best Available and regulatory-study products, DNR cross sections/model libraries, coordinated discharges, USGS StreamStats/inundation products, USACE levee evidence, terrain, and hydraulic-model outputs retain independent provenance and regulatory semantics.
+
+Every flood result is required to carry:
+
+- source authority and dataset/version;
+- regulatory status;
+- horizontal CRS and vertical datum;
+- model lineage;
+- retrieval timestamp;
+- TSM software version;
+- explicit uncertainty and limitations; and
+- insurance-determination eligibility.
+
+The machine-readable contract is `data/schemas/tsm-flood-information-federation-v1.schema.json`, enforced by `scripts/ci/validate-flood-federation.mjs`.
+
+
 Primary-source government products are preferred: USGS Water Data, NOAA/NWS NWPS, USACE Louisville District, FEMA NFHL/FIRM/FIS, Indiana DNR Division of Water / BAFM / INFIP, USGS 3DEP and Indiana geospatial products, USDA NRCS, FHWA, NIST security/AI governance references.
 
 Community historical records remain historical evidence and are never silently promoted to agency observations.
