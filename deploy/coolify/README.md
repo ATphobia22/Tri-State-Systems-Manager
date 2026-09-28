@@ -22,7 +22,7 @@ The Compose definition requires `TSM_BUILD_SHA` so the API's provenance identity
 
 Set these in Coolify's environment/secret store:
 
-- `TSM_BUILD_SHA` — exact Git SHA being deployed
+- `SOURCE_COMMIT` — provided by Coolify as the exact deployed Git SHA; the Compose contract maps it to `TSM_BUILD_SHA`
 - `OIDC_ISSUER`
 - `OIDC_AUDIENCE`
 - `OIDC_CLIENT_ID`
