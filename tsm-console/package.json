@@ -13,7 +13,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "node --test tests/geodetic-pipeline.test.mjs",
-    "ci": "npm run check:action-pins && npm run check:file-health && npm run check:parse && npm run check:type && npm run check:geospatial && npm run check:flood-federation && npm run check:government-sources && npm run check:live-fabric && npm run check:regulatory-rules && npm run check:engineering-pipeline && npm run check:schemas && npm run build && npm run check:client-bundle-secrets && npm run check:enterprise-architecture && npm run check:architecture-repository && npm run check:data-fabric-contract && npm run check:provenance-plane && npm run test:production-gates",
+    "ci": "npm run check:action-pins && npm run check:file-health && npm run check:parse && npm run check:type && npm run check:geospatial && npm run check:flood-federation && check:tri-state-data && npm run check:government-sources && npm run check:live-fabric && npm run check:regulatory-rules && npm run check:engineering-pipeline && npm run check:schemas && npm run build && npm run check:client-bundle-secrets && npm run check:enterprise-architecture && npm run check:architecture-repository && npm run check:data-fabric-contract && npm run check:provenance-plane && npm run test:production-gates",
     "ci:full": "npm run ci && npm run test:all",
     "check:action-pins": "node ../scripts/ci/validate-action-pins.mjs",
     "check:schemas": "node ../scripts/ci/validate-json-schemas.mjs",
@@ -64,7 +64,9 @@
     "check:npx-policy": "node scripts/npx-policy-check.mjs",
     "generate:sbom": "node scripts/generate-sbom.mjs",
     "check:flood-federation": "node ../scripts/ci/validate-flood-federation.mjs",
-    "geospatial:verify-sources": "node ../scripts/geospatial/acquire-authoritative-source-metadata.mjs"
+    "geospatial:verify-sources": "node ../scripts/geospatial/acquire-authoritative-source-metadata.mjs",
+    "check:tri-state-data": "node ../scripts/geospatial/validate-tri-state-data-sources.mjs",
+    "test:placement-screening": "node --test server/engineering/placement-screening.test.mjs"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.0",
