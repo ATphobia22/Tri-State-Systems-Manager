@@ -38,4 +38,4 @@ jobs:
             --header 'Content-Type: application/json' \
             --data '{"branch":"main"}' \
             "${COOLIFY_DEPLOY_WEBHOOK_URL}"
-          echo "Coolify deployment webhook triggered for ${GITHUB_SHA}."
+          echo "Coolify deployment webhook triggered for ${GITHUB_SHA}"
