@@ -137,8 +137,8 @@ test('twin-map-style wires fail-closed applyTwinTerrain', () => {
   assert.match(source, /if \(!terrain\.enabled\)/);
   assert.match(source, /setTerrain\(null\)/);
   assert.match(source, /setTerrain\(\{\s*source:\s*TERRAIN_RGB_SOURCE_ID/);
-  assert.match(source, /TERRAIN_RGB_TILE_SIZE|tileSize:\s*TERRAIN_RGB_TILE_SIZE/);
-  assert.match(source, /TERRAIN_RGB_ENCODING|encoding:\s*TERRAIN_RGB_ENCODING/);
+  assert.match(source, /TERRAIN_RGB_TILE_SIZE|resolveTerrainRgbTileSize/);
+  assert.match(source, /TERRAIN_RGB_ENCODING|resolveTerrainRgbEncoding/);
   assert.match(source, /TERRAIN_RGB_DEFAULT_EXAGGERATION/);
   assert.match(source, /removeSource\(TERRAIN_RGB_SOURCE_ID\)/);
   assert.match(source, /VITE_TSM_TERRAIN_RGB_URL_TEMPLATE/);
