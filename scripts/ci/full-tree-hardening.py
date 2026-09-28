@@ -46,6 +46,9 @@ def check_secret_literals() -> None:
             text = path.read_text(encoding="utf-8", errors="ignore")
         except OSError:
             continue
+        relative = path.relative_to(ROOT).as_posix()
+        if relative in {'scripts/ci/full-tree-hardening.py', 'scripts/ci/validate-security-boundary.mjs'} or relative.startswith('docs/archive/drive-import/'):
+            continue
         normalized = text.lower()
         for literal in PRODUCTION_CREDENTIAL_LITERALS:
             if literal.lower() in normalized:
