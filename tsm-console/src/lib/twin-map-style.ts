@@ -4,6 +4,7 @@ import { MAP_LAYERS } from './map-layers';
 import { createHydraulicExtrusionLayer, createHydraulicSource } from './hydraulic-rendering';
 import {
   resolveTerrainRgbFromEnv,
+  resolveTerrainRgbMaxZoom,
   TERRAIN_RGB_DEFAULT_EXAGGERATION,
   TERRAIN_RGB_ENCODING,
   TERRAIN_RGB_SOURCE_ID,
@@ -16,6 +17,16 @@ const imagery = MAP_LAYERS.find((layer) => layer.id === 'indiana-imagery');
 /** Fail-closed Terrain-RGB status (no synthetic mesh when blocked). */
 export function getTerrainRgbStatus(): TerrainRgbStatus {
   return resolveTerrainRgbFromEnv(import.meta.env.VITE_TSM_TERRAIN_RGB_URL_TEMPLATE);
+}
+
+function buildTerrainDemSourceSpec(template: string) {
+  return {
+    type: 'raster-dem' as const,
+    tiles: [template],
+    tileSize: TERRAIN_RGB_TILE_SIZE,
+    encoding: TERRAIN_RGB_ENCODING,
+    maxzoom: resolveTerrainRgbMaxZoom(),
+  };
 }
 
 const ARCGIS_EXPORT_QUERY = 'bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=512,512&format=png32&transparent=false&f=image';
@@ -37,12 +48,7 @@ export function buildTwinStyle(): StyleSpecification {
   ];
   // Only register raster-dem when a validated, non-placeholder template exists.
   if (terrain.enabled) {
-    sources[TERRAIN_RGB_SOURCE_ID] = {
-      type: 'raster-dem',
-      tiles: [terrain.template],
-      tileSize: TERRAIN_RGB_TILE_SIZE,
-      encoding: TERRAIN_RGB_ENCODING,
-    };
+    sources[TERRAIN_RGB_SOURCE_ID] = buildTerrainDemSourceSpec(terrain.template);
   }
   return {
     version: 8,
@@ -70,6 +76,9 @@ export function buildTwinStyle(): StyleSpecification {
  * Enable MapLibre 3D terrain only when Terrain-RGB is provenance-configured.
  * Returns false (fail-closed) when VITE_TSM_TERRAIN_RGB_URL_TEMPLATE is missing
  * or invalid — never invents elevation mesh.
+ *
+ * Enable path: tileSize 256, encoding 'mapbox', setTerrain({ exaggeration: 1.0 })
+ * Disable path: setTerrain(null) + removeSource('tsm-terrain-rgb')
  */
 export function applyTwinTerrain(map: Map): boolean {
   const terrain = getTerrainRgbStatus();
@@ -87,12 +96,27 @@ export function applyTwinTerrain(map: Map): boolean {
     }
     return false;
   }
-  if (!map.getSource(TERRAIN_RGB_SOURCE_ID)) return false;
-  map.setTerrain({
-    source: TERRAIN_RGB_SOURCE_ID,
-    exaggeration: TERRAIN_RGB_DEFAULT_EXAGGERATION,
-  });
-  return true;
+
+  try {
+    if (!map.getSource(TERRAIN_RGB_SOURCE_ID)) {
+      map.addSource(TERRAIN_RGB_SOURCE_ID, buildTerrainDemSourceSpec(terrain.template));
+    }
+    map.setTerrain({
+      source: TERRAIN_RGB_SOURCE_ID,
+      exaggeration: TERRAIN_RGB_DEFAULT_EXAGGERATION,
+    });
+    return true;
+  } catch {
+    // Fail closed on any MapLibre source/terrain registration error.
+    try {
+      if (typeof map.getTerrain === 'function' && map.getTerrain()) {
+        map.setTerrain(null);
+      }
+    } catch {
+      /* ignore */
+    }
+    return false;
+  }
 }
 
 export function addFloodAuthorityLayers(map: Map): void {
