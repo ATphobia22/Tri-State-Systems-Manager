@@ -36,6 +36,7 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       # Canonical production API. Do not derive this from the Pages origin or an unverified repository variable.
+      # Railway watches this workflow path so production release metadata converges with Pages.
       VITE_TSM_API_BASE_URL: https://tsm-api-production.up.railway.app
       # Production 3D terrain: Terrain-RGB tile pyramid committed under
       # tsm-console/public/terrain_3dep/ (Vite copies public/ to dist/) and served
