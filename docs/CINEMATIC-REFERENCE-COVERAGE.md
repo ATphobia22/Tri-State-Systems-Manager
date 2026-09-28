@@ -6,7 +6,7 @@ Comparison of the four uploaded rendering references
 cinematic/3D code (`tsm-console/src/lib/cinematic/`,
 `tsm-console/server/cinematic/`, `DigitalTwinMap.tsx`,
 `viewport/ThreeGeospatialHarness.ts`, `gpu/ultimate-twin-pipeline.wgsl`,
-`lib/hydraulic-rendering.ts`, `scripts/ras-geotiff-ingest.mjs`).
+`lib/hydraulic-rendering.ts`).
 
 Note: the PDFs document work on a different (PTDT v33) codebase, so only
 concrete, transferable pieces were credited.
@@ -16,7 +16,9 @@ concrete, transferable pieces were credited.
 - Render-origin precision pattern (EPSG:2966 → local origin) — `ThreeGeospatialHarness.ts`
 - Depth-based water surface + sun/ambient lighting core — `ultimate-twin-pipeline.wgsl`
 - MapLibre–Three.js bridge, camera tours, solar math — `src/lib/cinematic/`
-- HEC-RAS GeoTIFF ingest script — `scripts/ras-geotiff-ingest.mjs`
+- HEC-RAS GeoTIFF ingest — `tsm-console/server/engineering/ras-results.mjs`
+  (`POST /api/engineering/ras-results`; the v33 standalone ingest script was
+  not carried into this tree)
 
 ## Implemented in this build
 
