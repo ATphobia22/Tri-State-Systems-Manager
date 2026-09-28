@@ -1,7 +1,8 @@
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
-const root = process.cwd();
+const root = fileURLToPath(new URL('../..', import.meta.url));
 const manifest = JSON.parse(readFileSync(join(root, 'integrations/third-party-toolchain.json'), 'utf8'));
 if (manifest.installPolicy !== 'ci-network-only') throw new Error('external tooling install policy changed unexpectedly');
 if (process.env.TSM_INSTALL_EXTERNAL_TOOLING !== 'true') {
