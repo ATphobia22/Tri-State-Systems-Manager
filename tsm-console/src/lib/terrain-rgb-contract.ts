@@ -5,6 +5,10 @@
  * Terrain-RGB XYZ template is supplied via VITE_TSM_TERRAIN_RGB_URL_TEMPLATE.
  * Missing, placeholder, or non-template values must not enable 3D terrain mesh.
  *
+ * Production: HTTPS + real host only (not example.com, YOUR-HOST, bare localhost).
+ * Development: http://localhost (or 127.0.0.1) may be allowed when allowHttpLocal
+ * so ops/terrain-rgb-server can be tested before HTTPS publish.
+ *
  * Hillshade / 3DEP WMS visualization remains a separate OBSERVATION layer and is
  * not a substitute for raster-dem elevation mesh.
  */
@@ -19,22 +23,30 @@ export type TerrainRgbBlockReason =
   | 'invalid_template'
   | 'insecure_scheme';
 
+/** Always rejected (production and development). */
 const PLACEHOLDER_PATTERNS = [
   /example\.invalid/i,
   /example\.com/i,
   /example\.org/i,
+  /example\.net/i,
   /YOUR[-_]?HOST/i,
+  /YOUR[-_]?PROVENANCE[-_]?HOST/i,
+  /YOUR[-_]?DOMAIN/i,
   /REPLACE[-_]?ME/i,
   /placeholder/i,
-  /localhost/i,
-  /127\.0\.0\.1/,
   /\$\{VITE_TSM_TERRAIN/,
 ];
 
+/** Rejected in production; allowed only when allowHttpLocal (npm run dev). */
+const LOCAL_HOST_PATTERNS = [/localhost/i, /127\.0\.0\.1/, /0\.0\.0\.0/];
+
+function isLocalHost(hostname: string): boolean {
+  return LOCAL_HOST_PATTERNS.some((re) => re.test(hostname));
+}
+
 /**
  * Validate a candidate XYZ template for MapLibre raster-dem.
- * Requires https (or http only when explicitly allowed for local tile servers),
- * and MapLibre tile tokens {z}/{x}/{y} (order flexible).
+ * Requires https in production, MapLibre tile tokens {z}/{x}/{y}, and a real host.
  */
 export function validateTerrainRgbUrlTemplate(
   raw: string | undefined | null,
@@ -44,36 +56,53 @@ export function validateTerrainRgbUrlTemplate(
   if (!trimmed) {
     return { enabled: false, template: null, reason: 'missing' };
   }
+
   for (const re of PLACEHOLDER_PATTERNS) {
     if (re.test(trimmed)) {
       return { enabled: false, template: null, reason: 'placeholder' };
     }
   }
+
   const hasZ = trimmed.includes('{z}');
   const hasX = trimmed.includes('{x}');
   const hasY = trimmed.includes('{y}');
   if (!hasZ || !hasX || !hasY) {
     return { enabled: false, template: null, reason: 'invalid_template' };
   }
+
   let url: URL;
   try {
     const probe = trimmed
-      .replace('{z}', '0')
-      .replace('{x}', '0')
-      .replace('{y}', '0');
+      .replace(/\{z\}/g, '0')
+      .replace(/\{x\}/g, '0')
+      .replace(/\{y\}/g, '0');
     url = new URL(probe);
   } catch {
     return { enabled: false, template: null, reason: 'invalid_template' };
   }
+
+  const host = url.hostname.toLowerCase();
+  const allowLocal = options?.allowHttpLocal === true;
+
+  // Production (and non-dev): bare localhost / loopback is never a production terrain origin.
+  if (isLocalHost(host) && !allowLocal) {
+    return { enabled: false, template: null, reason: 'placeholder' };
+  }
+
   if (url.protocol === 'https:') {
+    if (isLocalHost(host) && !allowLocal) {
+      return { enabled: false, template: null, reason: 'placeholder' };
+    }
     return { enabled: true, template: trimmed, reason: 'configured' };
   }
-  if (url.protocol === 'http:' && options?.allowHttpLocal) {
-    return { enabled: true, template: trimmed, reason: 'configured' };
-  }
+
   if (url.protocol === 'http:') {
+    if (allowLocal && isLocalHost(host)) {
+      return { enabled: true, template: trimmed, reason: 'configured' };
+    }
     return { enabled: false, template: null, reason: 'insecure_scheme' };
   }
+
   return { enabled: false, template: null, reason: 'invalid_template' };
 }
 
@@ -93,19 +122,25 @@ export function terrainRgbBlockMessage(status: TerrainRgbStatus): string {
     case 'missing':
       return 'MapLibre 3D terrain mesh: FAIL-CLOSED — VITE_TSM_TERRAIN_RGB_URL_TEMPLATE not set. Flat basemap only; no synthetic elevation.';
     case 'placeholder':
-      return 'MapLibre 3D terrain mesh: FAIL-CLOSED — template looks like a placeholder/example host. Refusing synthetic or demo terrain.';
+      return 'MapLibre 3D terrain mesh: FAIL-CLOSED — template looks like a placeholder/example/local host. Refusing synthetic or demo terrain.';
     case 'invalid_template':
       return 'MapLibre 3D terrain mesh: FAIL-CLOSED — template must be an absolute URL containing {z}, {x}, and {y}.';
     case 'insecure_scheme':
-      return 'MapLibre 3D terrain mesh: FAIL-CLOSED — production templates must use https://.';
+      return 'MapLibre 3D terrain mesh: FAIL-CLOSED — production templates must use https:// on a real host.';
     default:
       return 'MapLibre 3D terrain mesh: FAIL-CLOSED.';
   }
 }
 
-/** MapLibre source id used when terrain is enabled. */
 export const TERRAIN_RGB_SOURCE_ID = 'tsm-terrain-rgb' as const;
-
 export const TERRAIN_RGB_ENCODING = 'mapbox' as const;
 export const TERRAIN_RGB_TILE_SIZE = 256 as const;
 export const TERRAIN_RGB_DEFAULT_EXAGGERATION = 1.0 as const;
+
+export function resolveTerrainRgbMaxZoom(
+  raw: string | undefined = import.meta.env.VITE_TSM_TERRAIN_RGB_MAXZOOM,
+): number {
+  const n = Number(raw);
+  if (Number.isFinite(n) && n >= 0 && n <= 22) return Math.floor(n);
+  return 14;
+}
