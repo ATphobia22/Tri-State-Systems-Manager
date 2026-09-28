@@ -8,6 +8,8 @@ TSM combines authoritative river observations, geospatial evidence, engineering-
 
 ## Current production status
 
+**Migration state:** Railway has been removed from the TSM runtime contract. The self-hosted Coolify API path is implemented and merged; final live publication remains intentionally blocked until a Coolify API domain is configured in repository variable `TSM_API_BASE_URL` and that API reports the matching release SHA.
+
 | Surface | Location |
 |---------|----------|
 | **Primary branch** | `main` |
