@@ -23,19 +23,6 @@ jobs:
           egress-policy: audit
 
       - name: Trigger Coolify webhook when configured
-        if: ${{ secrets.COOLIFY_DEPLOY_WEBHOOK_URL != '' }}
-        env:
-          COOLIFY_DEPLOY_WEBHOOK_URL: ${{ secrets.COOLIFY_DEPLOY_WEBHOOK_URL }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          curl --fail --silent --show-error --location --max-time 30 \
-            --request POST \
-            --header 'Content-Type: application/json' \
-            --data '{"branch":"main"}' \
-            "${COOLIFY_DEPLOY_WEBHOOK_URL}"
-
-      - name: Verify deployment contract
         env:
           COOLIFY_DEPLOY_WEBHOOK_URL: ${{ secrets.COOLIFY_DEPLOY_WEBHOOK_URL }}
         shell: bash
@@ -44,6 +31,11 @@ jobs:
           if [[ -z "${COOLIFY_DEPLOY_WEBHOOK_URL}" ]]; then
             echo "Coolify auto-deploy must be configured through the Coolify GitHub integration."
             echo "No provider credentials are stored in this repository."
-          else
-            echo "Coolify deployment webhook triggered for ${GITHUB_SHA}."
+            exit 0
           fi
+          curl --fail --silent --show-error --location --max-time 30 \
+            --request POST \
+            --header 'Content-Type: application/json' \
+            --data '{"branch":"main"}' \
+            "${COOLIFY_DEPLOY_WEBHOOK_URL}"
+          echo "Coolify deployment webhook triggered for ${GITHUB_SHA}."          fi
