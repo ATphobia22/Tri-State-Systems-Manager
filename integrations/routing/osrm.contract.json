@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tsm.local/contracts/osrm-routing-v1.schema.json",
+  "title": "TSM OSRM Routing Contract",
+  "type": "object",
+  "required": ["baseUrl", "profile", "authorityClass", "allowExternalNetwork"],
+  "properties": {
+    "baseUrl": { "type": "string", "format": "uri", "description": "Trusted OSRM service base URL; must not contain credentials." },
+    "profile": { "type": "string", "enum": ["driving", "walking", "cycling"] },
+    "authorityClass": { "const": "DERIVED" },
+    "allowExternalNetwork": { "type": "boolean" },
+    "maxCoordinates": { "type": "integer", "minimum": 2, "maximum": 100 },
+    "timeoutMs": { "type": "integer", "minimum": 250, "maximum": 30000 }
+  },
+  "additionalProperties": false
+}

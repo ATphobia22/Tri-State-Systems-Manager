@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tsm.local/contracts/maplibre-geoman-authoring-v1.schema.json",
+  "title": "TSM MapLibre-Geoman Draft Geometry Contract",
+  "type": "object",
+  "required": ["geometry", "authorityClass", "status", "operatorId"],
+  "properties": {
+    "geometry": { "type": "object" },
+    "authorityClass": { "const": "DRAFT" },
+    "status": { "enum": ["draft", "submitted", "rejected", "approved"] },
+    "operatorId": { "type": "string", "minLength": 1, "maxLength": 128 }
+  },
+  "additionalProperties": false
+}
