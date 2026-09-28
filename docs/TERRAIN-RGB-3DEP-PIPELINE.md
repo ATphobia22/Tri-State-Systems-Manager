@@ -101,10 +101,27 @@ tile through the decoder and fails if drift exceeds 0.2 ft (observed
 - Served tile decode check: 356.0–370.7 ft, mean 362.5 ft — consistent with
   the source DEM (337.7–372.5 ft).
 
-**Serving.** `ops/terrain-tiles/docker-compose.yml` (pinned
-`ghcr.io/maplibre/martin:v0.17.1` + Caddy 2.9 automatic TLS) is the tile-host
-definition: `https://<TILE_DOMAIN>/terrain_3dep/{z}/{x}/{y}.png`. Local dev
-uses `ops/terrain-tiles/server.mjs` (Express+TLS, self-signed cert).
+**Serving (production: GitHub Pages).** The tile pyramid is published with the
+site itself — no tile host, no DNS, no TLS termination to operate. The 28
+PNGs + `tiles.json` live in `tsm-console/public/terrain_3dep/` (documented
+carve-out to the no-generated-pyramids policy: 252 KB, screening-level,
+regenerated wholesale by the build script) and deploy to:
+
+```text
+https://atphobia22.github.io/Tri-State-Systems-Manager/terrain_3dep/{z}/{x}/{y}.png
+```
+
+Same-origin HTTPS, so there are no mixed-content blocks and no CORS
+configuration. Set `VITE_TSM_TERRAIN_RGB_URL_TEMPLATE` to that template in
+the GitHub `github-pages` environment; the next Pages build registers
+`tsm-terrain-rgb` and enables 3D terrain. Refresh = re-run §1, replace
+`public/terrain_3dep/`, push.
+
+**Serving (alternative: dedicated tile host).**
+`ops/terrain-tiles/docker-compose.yml` (pinned `ghcr.io/maplibre/martin:v0.17.1`
++ Caddy 2.9 automatic TLS) remains available if a custom domain is wanted
+later: `https://<TILE_DOMAIN>/terrain_3dep/{z}/{x}/{y}.png`. Local dev uses
+`ops/terrain-tiles/server.mjs` (Express+TLS, self-signed cert).
 
 **Configuration.** Production variable `VITE_TSM_TERRAIN_RGB_URL_TEMPLATE`
 is set in the GitHub `github-pages` environment (requires repo admin; not
