@@ -43,7 +43,7 @@ if (!fs.existsSync(bindingPath)) {
       '--registry=https://registry.npmjs.org',
       `${bindingPackage}@${version}`,
     ],
-    { stdio: 'inherit' },
+    { stdio: 'inherit', shell: process.platform === 'win32' },
   );
 }
 
