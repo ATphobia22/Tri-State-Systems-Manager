@@ -82,11 +82,11 @@ export const SITE: SiteConstants = {
     lat: 38.13089124398878,
     lon: -87.94141452141561,
     stages: {
-      action: null,
-      minor: null,
-      moderate: null,
-      major: null,
-      record: null,
+      action: 10,
+      minor: 15,
+      moderate: 20,
+      major: 23,
+      record: 27.7,
     },
   },
   femaCommunities: {

@@ -1,8 +1,6 @@
 name: TSM Production Build & Pages Deploy
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
     inputs:
       deploy_pages:
@@ -12,8 +10,8 @@ on:
         type: boolean
   issue_comment:
     types: [created]
-  issues:
-    types: [opened]
+  deployment_status:
+    states: [success]
 
 permissions:
   contents: read
@@ -30,10 +28,11 @@ env:
 jobs:
   build:
     name: Verify and build production console
-    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) || (github.event_name == 'issues' && github.event.action == 'opened' && github.event.issue.pull_request == null && github.event.issue.title == 'TSM Pages deployment dispatch' && github.event.issue.body == 'DEPLOY_PAGES_REQUEST' && github.event.issue.user.login == github.repository_owner) }}
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'production') || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) }}
     runs-on: ubuntu-24.04
     env:
-      VITE_TSM_API_BASE_URL: ${{ vars.VITE_TSM_API_BASE_URL }}
+      # Canonical production API. Do not derive this from the Pages origin or an unverified repository variable.
+      VITE_TSM_API_BASE_URL: https://tsm-api-production.up.railway.app
     permissions:
       contents: read
       pages: write
@@ -47,7 +46,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          [[ -n "${VITE_TSM_API_BASE_URL}" ]] || { echo 'Missing VITE_TSM_API_BASE_URL repository variable for live production data.' >&2; exit 1; }
+          [[ -n "${VITE_TSM_API_BASE_URL}" ]] || { echo 'Missing production API origin.' >&2; exit 1; }
           [[ "${VITE_TSM_API_BASE_URL}" == https://* ]] || { echo 'VITE_TSM_API_BASE_URL must use HTTPS for production Pages deployments.' >&2; exit 1; }
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -129,12 +128,16 @@ jobs:
       - name: GitHub Pages preflight
         if: ${{ (github.event_name == 'push' && vars.TSM_PAGES_ENABLED == 'true') || (github.event_name == 'workflow_dispatch' && inputs.deploy_pages) || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) || (github.event_name == 'issues' && github.event.action == 'opened' && github.event.issue.pull_request == null && github.event.issue.title == 'TSM Pages deployment dispatch' && github.event.issue.body == 'DEPLOY_PAGES_REQUEST' && github.event.issue.user.login == github.repository_owner) }}
         env:
+          GITHUB_TOKEN: ${{ github.token }}
           PAGES_ENABLEMENT_TOKEN: ${{ secrets.TSM_PAGES_ADMIN_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
           api="https://api.github.com/repos/${GITHUB_REPOSITORY}/pages"
-          status="$(curl --silent --show-error --output /tmp/tsm-pages.json --write-out '%{http_code}' --location --max-time 20 "${api}")"
+          status="$(curl --silent --show-error --output /tmp/tsm-pages.json --write-out '%{http_code}' --location --max-time 20 \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer ${GITHUB_TOKEN}" \
+            "${api}")"
           case "${status}" in
             200)
               echo "GitHub Pages site is already configured."
@@ -175,6 +178,7 @@ jobs:
     permissions:
       pages: write
       id-token: write
+      actions: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -196,8 +200,54 @@ jobs:
           set -euo pipefail
           [[ -n "${PAGE_URL}" ]] || { echo 'deploy-pages did not return page_url.' >&2; exit 1; }
           curl --fail --silent --show-error --location --max-time 30 "${PAGE_URL}" --output /tmp/tsm-pages-response.html
-          grep -q '<title>' /tmp/tsm-pages-response.html
+          grep -Eiq '<title>[^<]+</title>' /tmp/tsm-pages-response.html
           echo "Published Pages endpoint responded successfully: ${PAGE_URL}"
+      - name: Verify production API readiness
+        shell: bash
+        env:
+          TSM_API_BASE_URL: https://tsm-api-production.up.railway.app
+        run: |
+          set -euo pipefail
+          [[ "${TSM_API_BASE_URL}" == https://* ]] || { echo 'Production API origin must use HTTPS.' >&2; exit 1; }
+          curl --fail --silent --show-error --location --max-time 30 "${TSM_API_BASE_URL%/}/ready" --output /tmp/tsm-api-ready.json
+          test -s /tmp/tsm-api-ready.json
+          node <<'NODE'
+          const fs = require('node:fs');
+          const expected = process.env.GITHUB_SHA;
+          const body = JSON.parse(fs.readFileSync('/tmp/tsm-api-ready.json', 'utf8'));
+          if (body.build_sha !== expected) {
+            console.error(JSON.stringify({ error: 'API_BUILD_SHA_MISMATCH', expected, actual: body.build_sha }, null, 2));
+            process.exit(1);
+          }
+          if (body.auth_ready !== true) {
+            console.error(JSON.stringify({ error: 'API_AUTH_NOT_READY', auth_ready: body.auth_ready, code: body.code || null }, null, 2));
+            process.exit(1);
+          }
+          if (body.required_internal_dependencies?.oidc !== true) {
+            console.error(JSON.stringify({ error: 'API_OIDC_DEPENDENCY_NOT_READY', required_internal_dependencies: body.required_internal_dependencies }, null, 2));
+            process.exit(1);
+          }
+          console.log(JSON.stringify({ ok: true, build_sha: body.build_sha, auth_ready: body.auth_ready, oidc: body.required_internal_dependencies.oidc }, null, 2));
+          NODE
+          echo "Production API /ready and exact build/auth verification passed: ${TSM_API_BASE_URL%/}/ready"
+      - name: Purge stale Pages workflow artifacts after deployment
+        if: always()
+        continue-on-error: true
+        uses: jimschubert/delete-artifacts-action@a6a85fe6cc7f54a2abb2aff7440825d98b8eb6e4 # v1.0.3
+        with:
+          artifact_name: github-pages
+          active_duration: 1h
+          min_bytes: '0'
+          log_level: info
+      - name: Purge stale production bundle artifacts after deployment
+        if: always()
+        continue-on-error: true
+        uses: jimschubert/delete-artifacts-action@a6a85fe6cc7f54a2abb2aff7440825d98b8eb6e4 # v1.0.3
+        with:
+          artifact_name: tsm-console-production
+          active_duration: 1h
+          min_bytes: '0'
+          log_level: info
 
   notify-command:
     name: Report owner-triggered Pages dispatch

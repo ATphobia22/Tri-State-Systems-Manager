@@ -23,7 +23,7 @@ export const HECRAS_INTEGRATION = {
   mesh_targets_ft: { channel_conveyance: [25, 50], near_berm_structures_lag: [25, 40], active_floodplain: [50, 100], overbank_ag: [100, 200] },
   inputs: ['3DEP / best-available terrain with explicit CRS and vertical-datum provenance', 'Hydro-enforced terrain and channel/bank/berm breaklines', 'Land use / Manning n from external evidence layers'],
   workflow: ['Acquire DEM/LiDAR metadata from TNMAccess', 'Clip to AOI; reproject only with recorded transformation', 'RAS Mapper → Create New RAS Terrain', 'Define 2D Flow Areas and breaklines', 'Use USGS/NWPS boundary conditions', 'Export inundation rasters → EvidenceArtifact MODEL_OUTPUT with model_version and SIMULATION_DEMO status'],
-  project_constants_ft: { lag: 377.2, bfe: 375.0, berm_crest: 379.8, ffe: 382.5, no_rise_tolerance: 0.0 },
+  project_constants_ft: { lag: null, bfe: null, berm_crest: null, ffe: null, no_rise_tolerance: 0.0 },
   openmi: 'Future OpenMI 2.0 contracts couple HEC-RAS outputs to TSM Evidence Bus — human gate before regulatory use',
   references: ['https://www.hec.usace.army.mil/software/hec-ras/']
 };

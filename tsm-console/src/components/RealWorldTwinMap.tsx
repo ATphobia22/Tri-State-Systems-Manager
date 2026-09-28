@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { MapTwinLoaderData } from '../types/loaders';
-import { buildTwinStyle, applyTwinTerrain, resolveTerrainTemplate, addFloodAuthorityLayers, applyLiveStageMetadata, addMartinHydraulicLayer } from '../lib/twin-map-style';
+import { buildTwinStyle, applyTwinTerrain, addFloodAuthorityLayers, applyLiveStageMetadata, addMartinHydraulicLayer, getTerrainRgbStatus } from '../lib/twin-map-style';
+import { terrainRgbBlockMessage } from '../lib/terrain-rgb-contract';
 import { buildArcGisWmsTileTemplate, INDIANA_CURRENT_IMAGERY_WMS, USGS_3DEP_ELEVATION_WMS } from '../lib/open-world-wms';
 import { setupParcelProvenanceInspector } from '../lib/parcel-provenance';
 import { playCinematicTour } from '../lib/cinematic/camera-tour';
@@ -84,7 +85,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       addFloodAuthorityLayers(map);
       applyLiveStageMetadata(map, data);
       // Hydraulic rendering is fail-closed: only an explicitly derived NAVD88 WSE drives water height.
-      addMartinHydraulicLayer(map, data.stage.conversion_applied ? data.stage.wse_navd88_ft : null);
+      addMartinHydraulicLayer(map, data.stage.hydraulic_extrusion_eligibility === 'SITE_WSE_VERIFIED_FOR_EXTRUSION' ? data.stage.wse_navd88_ft : null);
       if (map.getLayer('tsm-hydraulic-extrusion')) setupParcelProvenanceInspector(map);
       new maplibregl.Marker().setLngLat(NEW_HARMONY_GAGE).setPopup(buildGagePopup(data)).addTo(map);
       mapRef.current = map;
@@ -107,7 +108,9 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
 
   const stage = data.stage.value_ft;
   const wse = data.stage.wse_navd88_ft;
-  const terrainConfigured = resolveTerrainTemplate() !== null;
+  const terrainStatus = getTerrainRgbStatus();
+  const terrainConfigured = terrainStatus.enabled;
+  const terrainMessage = terrainRgbBlockMessage(terrainStatus);
 
   const toggleCinematicTour = (): void => {
     const map = mapRef.current;
@@ -127,11 +130,12 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
       <div style={{ position: 'absolute', left: 12, top: 12, zIndex: 2, maxWidth: 520, padding: 12, borderRadius: 10, background: 'rgba(2,6,23,0.9)', color: '#e2e8f0', fontSize: 12, lineHeight: 1.5 }}>
         <strong>Real-source open-world twin</strong>
-        <div>Indiana Current Imagery: live WMS · USGS 3DEP: dynamic elevation/hillshade · Configured terrain mesh: {terrainConfigured ? 'yes' : 'no'}</div>
+        <div>Indiana Current Imagery: live WMS · USGS 3DEP: dynamic elevation/hillshade (visualization only)</div>
+        <div role="status">{terrainMessage}</div>
         <div>FEMA NFHL: effective / insurance · Indiana BAFM: planning / Flood Control Act</div>
         <div>Stage: {stage == null ? 'unavailable' : `${stage.toFixed(2)} ft`} {data.stage.qualifier ? `(${data.stage.qualifier})` : ''} · {data.stage.source}</div>
-        <div>WSE NAVD88: {wse == null ? 'unavailable' : `${wse.toFixed(2)} ft`} · Hydraulic extrusion: {data.stage.conversion_applied && wse != null ? 'enabled' : 'blocked — verified datum conversion required'} · Discharge: {data.stage.discharge_cfs == null ? 'unavailable' : `${data.stage.discharge_cfs.toLocaleString()} cfs`}</div>
-        <div>Site: LAG {data.site.elevations.lag_ft} · BFE {data.site.elevations.bfe_ft} · Berm {data.site.elevations.bermCrest_ft} · FFE {data.site.elevations.ffe_ft}</div>
+        <div>Station WSE NAVD88: {wse == null ? 'unavailable' : `${wse.toFixed(2)} ft`} · Datum: {data.stage.conversion_applied ? 'verified USGS station relationship' : 'blocked'} · Site transfer: {data.stage.site_transfer_status ?? 'required'} · Hydraulic extrusion: {data.stage.hydraulic_extrusion_eligibility === 'SITE_WSE_VERIFIED_FOR_EXTRUSION' ? 'enabled' : 'blocked — validated site WSE required'} · Discharge: {data.stage.discharge_cfs == null ? 'unavailable' : `${data.stage.discharge_cfs.toLocaleString()} cfs`}</div>
+        <div>Site elevations: LAG {data.site.elevations.lag_ft ?? 'unverified'} · BFE {data.site.elevations.bfe_ft ?? 'unverified'} · Berm {data.site.elevations.bermCrest_ft ?? 'unverified'} · FFE {data.site.elevations.ffe_ft ?? 'unverified'}</div><div>Transfer gate: {data.stage.site_transfer_status ?? 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE'} · Station conversion source: {data.stage.vertical_conversion_source ?? 'source required'}</div>
         <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
           <button type="button" aria-pressed={femaVisible} onClick={() => setFemaVisible((value) => !value)}>FEMA NFHL {femaVisible ? 'ON' : 'OFF'}</button>
           <button type="button" aria-pressed={bafmVisible} onClick={() => setBafmVisible((value) => !value)}>Indiana BAFM {bafmVisible ? 'ON' : 'OFF'}</button>
@@ -139,7 +143,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
             {cinematicActive ? 'Stop cinematic' : 'Cinematic fly-through'}
           </button>
         </div>
-        <div style={{ marginTop: 6, color: '#fbbf24' }}>Visualization/model context only. HEC-RAS outputs remain SIMULATION_DEMO / MODEL_OUTPUT pending human review.</div>
+        <div style={{ marginTop: 6, color: '#86efac' }}>USGS/NOAA station telemetry is operational-source data. Site inundation and HEC-RAS rendering remain model/evidence-gated until a validated site WSE transfer and verified structural elevations are present. HEC-RAS visualization authority remains SIMULATION_DEMO / MODEL_OUTPUT until those evidence gates are satisfied. Visualization/model context only; human authority remains final.</div>
       </div>
     </section>
   );

@@ -47,6 +47,37 @@ def discover_water_surface_datasets(project_hdf: str | Path) -> tuple[HecRasData
     return tuple(results)
 
 
+def read_water_surface_slice(
+    project_hdf: str | Path,
+    dataset_path: str,
+    cell_indices: Iterable[int],
+    time_index: int = -1,
+) -> dict[int, float]:
+    """Read selected 2D cell WSE values without loading the full time row."""
+    if h5py is None:
+        raise RuntimeError("h5py is required for HEC-RAS HDF5 inspection") from _H5PY_ERROR
+    indices = list(cell_indices)
+    if not indices:
+        return {}
+    if any(not isinstance(index, int) or isinstance(index, bool) for index in indices):
+        raise TypeError("cell_indices must contain integers")
+    unique_indices = sorted(set(indices))
+    with h5py.File(project_hdf, "r") as handle:
+        dataset = handle.get(dataset_path)
+        if dataset is None or len(dataset.shape) != 2:
+            raise ValueError(f"Expected 2D HEC-RAS Water Surface dataset: {dataset_path}")
+        if not -dataset.shape[0] <= time_index < dataset.shape[0]:
+            raise IndexError("HEC-RAS time index outside available output range")
+        if unique_indices[0] < 0 or unique_indices[-1] >= dataset.shape[1]:
+            raise IndexError("HEC-RAS cell index outside available cell range")
+        values = dataset[time_index, unique_indices]
+        return {
+            index: float(value)
+            for index, value in zip(unique_indices, values)
+            if value == value
+        }
+
+
 def read_water_surface(project_hdf: str | Path, dataset_path: str, time_index: int = -1) -> list[float]:
     if h5py is None:
         raise RuntimeError("h5py is required for HEC-RAS HDF5 inspection") from _H5PY_ERROR

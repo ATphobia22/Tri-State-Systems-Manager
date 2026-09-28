@@ -1,48 +1,89 @@
 # Martin Open-World Tile Plane
 
-This directory defines the TSM deployment contract for the `ATphobia22/martin` tile-server repository.
+TSM’s high-throughput tile delivery layer uses the **official MapLibre Martin** image, not a private `ATphobia22/martin` fork.
+
+| Item | Value |
+|------|--------|
+| Upstream | https://github.com/maplibre/martin |
+| Image (compose pin) | `ghcr.io/maplibre/martin:v0.16.0` |
+| Config | `ops/martin/config.yaml` |
+| Compose | `ops/martin/docker-compose.yml` |
 
 ## Role
 
-Martin is the high-throughput delivery layer for approved TSM geospatial derivatives. Current upstream Martin supports PostGIS, PMTiles, MBTiles, GeoJSON, and other tile sources; TSM uses it for dynamic vector data and pre-generated tile archives while keeping authoritative government services outside the repository.
+Martin serves approved geospatial derivatives:
+
+- **PostGIS MVT** — `get_parcel_tiles` (cadastral / elevation attributes)
+- **PMTiles** — basemap and other archives under `/data/pmtiles`
+- **MBTiles** — including **Terrain-RGB** from `scripts/geospatial/build-terrain-rgb.sh` under `/data/mbtiles`
+
+Authoritative government services (FEMA NFHL, Indiana imagery, USGS live stage) remain external. Martin does not certify flood zones, surveys, or HEC-RAS results.
 
 ## Runtime inputs
 
-- `TSM_MARTIN_DATABASE_URL`: TLS-capable PostGIS connection string supplied by the deployment secret manager.
-- `/data/pmtiles`: mounted approved PMTiles archives.
-- `/data/styles`: MapLibre style JSON resources.
+| Input | Purpose |
+|-------|---------|
+| `TSM_MARTIN_DATABASE_URL` | TLS PostGIS URL (secret manager only) |
+| `/data/pmtiles` | Approved PMTiles |
+| `/data/mbtiles` | Terrain-RGB and other MBTiles (`*.mbtiles`) |
+| `/data/styles` | Optional MapLibre styles |
+
+## Terrain-RGB (3D mesh)
+
+1. Build: `./scripts/geospatial/build-terrain-rgb.sh` → `dist/terrain-tiles/tsm-terrain-rgb.mbtiles` (or XYZ tree).
+2. Mount MBTiles at `/data/mbtiles` **or** serve XYZ via `ops/terrain-rgb-server`.
+3. After Martin starts, inspect `/catalog` for the MBTiles source name and tile URL template.
+4. Set production env to a **real HTTPS** template:
+
+```bash
+VITE_TSM_TERRAIN_RGB_URL_TEMPLATE=https://tiles.your-org.example/.../{z}/{x}/{y}
+```
+
+Placeholder hosts (`example.com`, `YOUR-HOST`, bare `localhost` in production builds) remain **FAIL-CLOSED** in `tsm-console/src/lib/terrain-rgb-contract.ts`.
+
+### Color decoding (Mapbox encoding)
+
+```text
+height_m = -10000 + (R * 256 * 256 + G * 256 + B) * 0.1
+```
+
+Tile size **256×256**, MapLibre `encoding: "mapbox"`. See `docs/TERRAIN-RGB-3DEP-PIPELINE.md`.
+
+## Photorealistic twin
+
+3D terrain is relief only. Real-time photorealism also uses:
+
+- Indiana current orthophoto (live WMS)
+- USGS 3DEP hillshade as visualization (not a DEM mesh substitute)
+- Live hydrology + evidence-gated water extrusion
+- Human authority for regulatory meaning
+
+## TLS (production)
+
+Terminate TLS at Caddy, Traefik, or a cloud load balancer in front of Martin. Do not publish Martin plain HTTP on the public internet without an authenticated edge.
 
 ## Security
 
-- Never commit database URLs containing credentials.
-- Use TLS for remote object storage and PostgreSQL.
-- Do not enable invalid TLS certificate acceptance in production.
-- Do not expose the database directly to the public internet.
-- Apply an authenticated reverse proxy/rate limit in front of production Martin when the deployment is not otherwise isolated.
-
-## Data boundaries
-
-Martin does not determine FEMA regulatory status, floodway compliance, BFE validity, HEC-RAS correctness, or engineering certification. It serves visualization-oriented geospatial products whose provenance is tracked by TSM.
-
-## 3D Tiles
-
-OGC 3D Tiles are a separate renderable-content contract. Martin may serve supporting 2D/vector/coverage data, while the open-world client consumes an explicitly registered 3D Tiles tileset for photogrammetry, buildings, point clouds, or other massive 3D content.
-
-## Local validation
-
-Use the Martin configuration schema from the pinned/selected Martin release before deployment. The repository's CI should validate the YAML structure and TSM's manifest contracts before publishing a runtime image.
-
+- Never commit database URLs with credentials.
+- Use TLS for PostgreSQL and remote object storage.
+- Do not expose PostGIS directly.
+- Prefer reverse-proxy rate limits on public tile endpoints.
 
 ## Cadastral MVT contract
 
-`ops/martin/sql/get_parcel_tiles.sql` defines the explicit Martin PostgreSQL Function Source:
+`ops/martin/sql/get_parcel_tiles.sql` defines:
 
-- Function: `public.get_parcel_tiles(integer, integer, integer)`.
-- Geometry storage contract: EPSG:2966.
-- Tile geometry: EPSG:3857 / MVT extent 4096 / buffer 64.
-- Feature elevation property: `ground_elevation_navd88_ft` (feet NAVD88).
-- Provenance property: `evidence_sha256`.
-- Martin API route under this configuration: `/get_parcel_tiles/{z}/{x}/{y}`.
-- `base_path: /tiles` affects TileJSON URL generation; it is not an API route prefix. Set Martin `route_prefix` and `VITE_TSM_MARTIN_ROUTE_PREFIX` together if the API is intentionally mounted below a path.
+- Function: `public.get_parcel_tiles(z, x, y)`
+- Storage CRS: EPSG:2966; MVT geometry EPSG:3857
+- Properties: `ground_elevation_navd88_ft`, `evidence_sha256`
+- Route: `/get_parcel_tiles/{z}/{x}/{y}` (subject to `base_path` / route_prefix)
 
-The browser renderer converts the elevation values from feet NAVD88 to meters before using MapLibre `fill-extrusion-base` and `fill-extrusion-height`. Raw gage height is never used as a NAVD88 water-surface elevation.
+## Local validation
+
+```bash
+docker compose -f ops/martin/docker-compose.yml config
+docker compose -f ops/martin/docker-compose.yml up
+curl -sS http://127.0.0.1:3000/catalog | head
+```
+
+Validate YAML against the Martin config schema for the pinned image tag before production promote.

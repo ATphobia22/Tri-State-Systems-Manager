@@ -5,7 +5,7 @@
 #   1. Point DNS (A/CNAME) for your tile domain, e.g. tiles.example.com,
 #      at this server's public IP.
 #   2. Place terrain-3dep.mbtiles in ./data/ (build it with
-#      scripts/geospatial/build-terrain-rgb.sh + pack-terrain-mbtiles.py).
+#      scripts/geospatial/build-terrain-rgb-screening.sh + pack-terrain-mbtiles.py).
 #   3. Set TILE_DOMAIN below (or in a .env file next to this compose file).
 #   4. docker compose up -d
 #   5. Tiles are then live at https://<TILE_DOMAIN>/terrain_3dep/{z}/{x}/{y}.png

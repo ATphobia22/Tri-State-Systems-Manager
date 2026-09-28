@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tri-state-systems-manager.example/schemas/tsm-level5-autonomy-v1.json",
+  "title": "TSM Level 5 Autonomy Proposal",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["proposal_id", "schema_version", "created_at", "mode", "status", "prediction", "fused_state", "actions", "governance", "integrity_sha256"],
+  "properties": {
+    "proposal_id": {"type": "string", "pattern": "^L5-[0-9a-f-]+$"},
+    "schema_version": {"const": "tsm.level5.autonomy.v1"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "mode": {"const": "PROPOSE"},
+    "status": {"const": "PENDING_HUMAN_APPROVAL"},
+    "prediction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scenario", "horizon_hours", "target_time", "metric", "baseline", "projected_value", "threshold", "exceeded", "confidence"],
+      "properties": {
+        "scenario": {"type": "string", "minLength": 1, "maxLength": 128},
+        "horizon_hours": {"type": "integer", "minimum": 1, "maximum": 168},
+        "target_time": {"type": "string", "format": "date-time"},
+        "metric": {"type": "string", "minLength": 1, "maxLength": 128},
+        "baseline": {"type": "number"},
+        "projected_value": {"type": "number"},
+        "threshold": {"type": "number"},
+        "exceeded": {"type": "boolean"},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "fused_state": {"type": "object"},
+    "actions": {"type": "array", "items": {"type": "object"}},
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authority_class", "governance_status", "is_simulation_demo", "physical_actuation", "human_authorization_required"],
+      "properties": {
+        "authority_class": {"const": "ASSISTANCE"},
+        "governance_status": {"const": "human_review_required"},
+        "is_simulation_demo": {"const": true},
+        "physical_actuation": {"const": "blocked_by_default"},
+        "human_authorization_required": {"const": true}
+      }
+    },
+    "integrity_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}

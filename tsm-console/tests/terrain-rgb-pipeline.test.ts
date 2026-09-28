@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { decodeTerrainRgb } from '../src/lib/flood-sim/world/live-data';
-import { resolveTerrainTemplate } from '../src/lib/twin-map-style';
+import { validateTerrainRgbUrlTemplate } from '../src/lib/terrain-rgb-contract';
 
 describe('decodeTerrainRgb', () => {
   it('decodes the Mapbox Terrain-RGB encoding to feet', () => {
@@ -22,29 +22,45 @@ describe('decodeTerrainRgb', () => {
   });
 });
 
-describe('resolveTerrainTemplate (fail-closed)', () => {
+describe('validateTerrainRgbUrlTemplate (fail-closed)', () => {
   const good = 'https://tiles.river-valley.org/terrain_3dep/{z}/{x}/{y}.png';
 
   it('accepts a real https template', () => {
-    expect(resolveTerrainTemplate(good)).toBe(good);
+    const s = validateTerrainRgbUrlTemplate(good);
+    expect(s.enabled).toBe(true);
+    if (s.enabled) expect(s.template).toBe(good);
   });
 
   it('rejects empty, non-https, and incomplete templates', () => {
-    expect(resolveTerrainTemplate('')).toBeNull();
-    expect(resolveTerrainTemplate('   ')).toBeNull();
-    expect(resolveTerrainTemplate('http://tiles.river-valley.org/terrain_3dep/{z}/{x}/{y}.png')).toBeNull();
-    expect(resolveTerrainTemplate('https://tiles.river-valley.org/terrain_3dep/tile.png')).toBeNull();
-    // Extension is not policed — only placeholders and insecure schemes fail closed.
-    expect(resolveTerrainTemplate('https://tiles.river-valley.org/terrain_3dep/{z}/{x}/{y}.jpg')).toBe(
-      'https://tiles.river-valley.org/terrain_3dep/{z}/{x}/{y}.jpg',
+    expect(validateTerrainRgbUrlTemplate('').enabled).toBe(false);
+    expect(validateTerrainRgbUrlTemplate('   ').enabled).toBe(false);
+    expect(
+      validateTerrainRgbUrlTemplate('http://tiles.river-valley.org/terrain_3dep/{z}/{x}/{y}.png').enabled,
+    ).toBe(false);
+    expect(validateTerrainRgbUrlTemplate('https://tiles.river-valley.org/terrain_3dep/tile.png').enabled).toBe(
+      false,
     );
+    // Extension is not policed — only placeholders and insecure schemes fail closed.
+    expect(
+      validateTerrainRgbUrlTemplate('https://tiles.river-valley.org/terrain_3dep/{z}/{x}/{y}.jpg').enabled,
+    ).toBe(true);
   });
 
-  it('rejects placeholders and loopback hosts', () => {
-    expect(resolveTerrainTemplate('https://YOUR-HOST/terrain_3dep/{z}/{x}/{y}.png')).toBeNull();
-    expect(resolveTerrainTemplate('https://example.com/terrain_3dep/{z}/{x}/{y}.png')).toBeNull();
-    expect(resolveTerrainTemplate('https://tiles.example.com/terrain_3dep/{z}/{x}/{y}.png')).toBeNull();
-    expect(resolveTerrainTemplate('https://localhost:3443/terrain_3dep/{z}/{x}/{y}.png')).toBeNull();
-    expect(resolveTerrainTemplate('https://127.0.0.1:3443/terrain_3dep/{z}/{x}/{y}.png')).toBeNull();
+  it('rejects placeholders and loopback hosts in production', () => {
+    for (const bad of [
+      'https://YOUR-HOST/terrain_3dep/{z}/{x}/{y}.png',
+      'https://example.com/terrain_3dep/{z}/{x}/{y}.png',
+      'https://tiles.example.com/terrain_3dep/{z}/{x}/{y}.png',
+      'https://localhost:3443/terrain_3dep/{z}/{x}/{y}.png',
+      'https://127.0.0.1:3443/terrain_3dep/{z}/{x}/{y}.png',
+    ]) {
+      expect(validateTerrainRgbUrlTemplate(bad).enabled).toBe(false);
+    }
+  });
+
+  it('allows http://localhost only in dev (ops/terrain-rgb-server testing)', () => {
+    const local = 'http://localhost:3443/terrain_3dep/{z}/{x}/{y}.png';
+    expect(validateTerrainRgbUrlTemplate(local, { allowHttpLocal: true }).enabled).toBe(true);
+    expect(validateTerrainRgbUrlTemplate(local).enabled).toBe(false);
   });
 });

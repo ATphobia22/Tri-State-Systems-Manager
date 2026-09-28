@@ -29,7 +29,7 @@
     "site_constants": {
       "type": "object", "required": ["lag_ft", "bfe_ft", "berm_crest_ft", "ffe_ft", "no_rise_tolerance_ft"],
       "properties": {
-        "lag_ft": { "const": 377.2 }, "bfe_ft": { "const": 375 }, "berm_crest_ft": { "const": 379.8 }, "ffe_ft": { "const": 382.5 }, "no_rise_tolerance_ft": { "const": 0 }
+        "lag_ft": { "type": ["number", "null"] }, "bfe_ft": { "type": ["number", "null"] }, "berm_crest_ft": { "type": ["number", "null"] }, "ffe_ft": { "type": ["number", "null"] }, "no_rise_tolerance_ft": { "type": ["number", "null"] }
       }
     },
     "boundary_conditions": { "$ref": "hec-ras-2d-boundary-conditions.schema.json" },

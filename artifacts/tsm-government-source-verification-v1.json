@@ -73,6 +73,17 @@
       "verticalDatum": "NAVD88_FOR_GAGE_SITE_ALTITUDE_METADATA",
       "verificationEvidenceUrl": "https://waterdata.usgs.gov/monitoring-location/USGS-03378500/",
       "notes": "USGS identifies this as Wabash River at New Harmony, IN. Gage observations remain source-gage-datum measurements unless an explicitly matched published datum conversion is available."
+    },
+    {
+      "id": "usgs-sir-2016-5119-03378500-datum",
+      "authority": "USGS",
+      "sourceUrl": "https://pubs.usgs.gov/sir/2016/5119/sir20165119.pdf",
+      "serviceType": "Scientific Investigation Report",
+      "verification": "VERIFIED_PUBLISHED_RELATIONSHIP",
+      "verificationEvidenceUrl": "https://pubs.usgs.gov/sir/2016/5119/sir20165119.pdf",
+      "stationId": "03378500",
+      "gageZeroNavd88Ft": 352.67,
+      "notes": "USGS SIR 2016-5119 states that Wabash River at New Harmony stage is referenced to the local gage datum and may be converted to NAVD88 by adding 352.67 ft. Scope is the gage-site WSE; it does not provide a Point Township site-transfer equation."
     }
   ],
   "policy": {

@@ -33,7 +33,7 @@ for (const [label, path] of [['key', KEY_PATH], ['cert', CERT_PATH]]) {
   }
 }
 if (!existsSync(join(TILE_DIR, 'tiles.json'))) {
-  console.error(`no tiles.json in ${TILE_DIR}; run scripts/geospatial/build-terrain-rgb.sh first.`);
+  console.error(`no tiles.json in ${TILE_DIR}; run scripts/geospatial/build-terrain-rgb-screening.sh first.`);
   process.exit(1);
 }
 

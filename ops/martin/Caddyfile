@@ -1,0 +1,11 @@
+{$TILE_DOMAIN} {
+	encode gzip zstd
+	reverse_proxy martin:3000
+
+	header {
+		Access-Control-Allow-Origin *
+		Access-Control-Allow-Methods "GET, HEAD, OPTIONS"
+		Access-Control-Allow-Headers "Content-Type, Range"
+		defer
+	}
+}

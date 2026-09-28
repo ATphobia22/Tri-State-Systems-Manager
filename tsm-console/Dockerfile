@@ -16,6 +16,7 @@ COPY --from=build /app/package.json /app/package-lock.json ./
 RUN npm ci --omit=dev --ignore-scripts --no-audit --no-fund && npm cache clean --force
 COPY --from=build /app/server ./server
 COPY --from=build /app/data ./data
+COPY --from=build /app/data/authority/tsm-authority-registry-v35.json ./tsm-authority-registry-v35.json
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/index.html ./index.html
 RUN addgroup -S tsm && adduser -S -G tsm tsm && mkdir -p /app/.data && chown -R tsm:tsm /app

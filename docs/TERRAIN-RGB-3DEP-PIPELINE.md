@@ -76,7 +76,7 @@ The pipeline above was executed end-to-end against the bundled screening DEM:
 
 ```bash
 python3 tools/terrain/fetch-terrarium-dem.py --zoom 13
-./scripts/geospatial/build-terrain-rgb.sh
+./scripts/geospatial/build-terrain-rgb-screening.sh
 python3 scripts/geospatial/pack-terrain-mbtiles.py \
   --tile-dir ops/terrain-tiles/data/terrain-rgb \
   --out dist/terrain-tiles/terrain-3dep.mbtiles

@@ -129,7 +129,7 @@ export interface TerrainTile {
 /**
  * Decode a Mapbox Terrain-RGB tile (R*65536 + G*256 + B = (elev_m + 10000) * 10)
  * into feet. Used for TSM's own published tile pyramid
- * (scripts/geospatial/build-terrain-rgb.sh); see decodeTerrariumRgba for the
+ * (scripts/geospatial/build-terrain-rgb-screening.sh); see decodeTerrariumRgba for the
  * AWS elevation-tiles-prod encoding.
  */
 export function decodeTerrainRgb(rgba: Uint8ClampedArray, w: number): Float64Array {
@@ -147,7 +147,7 @@ export interface TerrainTileClientOptions {
   maxRetries?: number;
   cacheSize?: number;
   /** Tile encoding. 'terrarium' matches AWS elevation-tiles-prod;
-   * 'terrain-rgb' matches the TSM-published pyramid (build-terrain-rgb.sh). */
+   * 'terrain-rgb' matches the TSM-published pyramid (build-terrain-rgb-screening.sh). */
   encoding?: 'terrarium' | 'terrain-rgb';
   loadRgba?: (bytes: ArrayBuffer) => Promise<RgbaImage>;
 }

@@ -21,9 +21,14 @@ import { authorizeAndPublishArtifact } from './ingestion/governance-transition.m
 import { authenticateRequest, requireRoles, requireAuthenticatedSubject } from './auth/oidc-auth.mjs';
 import { submitCommunityObservation } from './ingestion/community-submissions.mjs';
 import { beginOidcLogin, finishOidcLogin, getBrowserSession, logoutOidc } from './auth/oidc-bff.mjs';
+import { bootstrapOidc } from './auth/oidc-bootstrap.mjs';
+import { calculateGaugeWseNavd88, getHydrologicNode } from './ingestion/hydraulic-calibration.mjs';
+import { evaluateLevel5, listLevel5Proposals, approveLevel5Proposal, executeLevel5Proposal, autonomyStatus } from './autonomy/level5-orchestrator.mjs';
+import { calculateLocalProfileWSE } from './engineering/hydraulic-transfer.mjs';
+import { acceptSyslog } from './alerts/syslog.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
-const BUILD_SHA = process.env.GITHUB_SHA || process.env.TSM_BUILD_SHA || 'local';
+const BUILD_SHA = process.env.RAILWAY_GIT_COMMIT_SHA || process.env.GITHUB_SHA || process.env.TSM_BUILD_SHA || 'local';
 const ALLOWED_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
 if (ALLOWED_ORIGIN === '*') throw new Error('CORS_ORIGIN must be an exact trusted origin; wildcard CORS is prohibited.');
 const RUNTIME_BROWSER_METRICS = new Set(['tsm_browser_route_load_seconds', 'tsm_browser_js_chunk_bytes', 'tsm_browser_frame_time_seconds', 'tsm_browser_tile_request_latency_seconds', 'tsm_browser_tile_requests_total', 'tsm_browser_tile_failures_total', 'tsm_browser_memory_pressure_ratio', 'tsm_browser_webgpu_available', 'tsm_browser_webgl_available']);
@@ -104,7 +109,10 @@ const server = http.createServer(async (req, res) => {
       url.pathname === '/api/ingest/hydrologic' ||
       url.pathname === '/api/ingest/usgs' ||
       url.pathname === '/api/ingest/nwps' ||
-      url.pathname === '/api/ledger/append'
+      url.pathname === '/api/ledger/append' ||
+      url.pathname === '/api/autonomy/evaluate' ||
+      url.pathname === '/api/hydraulic/transfer' ||
+      url.pathname.startsWith('/api/autonomy/proposals/')
     );
     let requestAuth = null;
     if (protectedMutation) {
@@ -156,8 +164,24 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && url.pathname === '/health') return json(res, 200, healthBody(), requestId);
     if (req.method === 'GET' && url.pathname === '/ready') {
       const authReady = String(process.env.TSM_AUTH_MODE || 'required').toLowerCase() === 'disabled' || productionAuthReady();
-      if (!authReady) return json(res, 503, { ...healthBody(), ready: false, code: 'AUTH_CONFIGURATION_INCOMPLETE', required_internal_dependencies: { authority_registry: true, evidence_store: true, oidc: false } }, requestId);
-      return json(res, 200, { ...healthBody(), ready: true, required_internal_dependencies: { authority_registry: true, evidence_store: true, oidc: true } }, requestId);
+      let authorityRegistryReady = false;
+      try {
+        authorityRegistryReady = Boolean(getHydrologicNode('03378500'));
+      } catch (error) {
+        authorityRegistryReady = false;
+        console.error('[TSM readiness] authority registry unavailable', { code: error?.code, message: error?.message });
+      }
+      const ready = authorityRegistryReady && authReady;
+      return json(res, ready ? 200 : 503, {
+        ...healthBody(),
+        ready,
+        auth_ready: authReady,
+        required_internal_dependencies: { authority_registry: authorityRegistryReady, evidence_store: true, oidc: authReady },
+        ...(authReady ? {} : {
+          code: 'AUTH_CONFIGURATION_INCOMPLETE',
+          note: 'Runtime is healthy for public/read-only routes; authenticated mutations remain fail-closed until OIDC is configured.',
+        }),
+      }, requestId);
     }
     if (req.method === 'POST' && url.pathname === '/api/runtime/metrics') {
       if (!allowRuntimeMetrics(String(req.socket.remoteAddress || 'anonymous'))) return json(res, 429, { ok: false, code: 'RUNTIME_METRIC_RATE_LIMIT' }, requestId);
@@ -228,10 +252,154 @@ const server = http.createServer(async (req, res) => {
         return json(res, error instanceof TypeError ? 400 : 422, { ok: false, code: error.code || 'TELEMETRY_EVENT_INVALID', error: error.message }, requestId);
       }
     }
+    if (req.method === 'POST' && url.pathname === '/api/hydraulic/transfer') {
+      try {
+        const body = await readBodyFixed(req);
+        const profile = body?.profile;
+        if (!profile || profile.validation_status !== 'validated' || !profile.evidence_artifact_id || !profile.source_uri) {
+          return json(res, 422, { ok: false, code: 'HYDRAULIC_PROFILE_NOT_VALIDATED', error: 'A validated, provenance-linked hydraulic profile is required.' }, requestId);
+        }
+        const evidence = getArtifact(profile.evidence_artifact_id);
+        if (!evidence || evidence.validation_status !== 'validated') {
+          return json(res, 422, { ok: false, code: 'HYDRAULIC_PROFILE_EVIDENCE_INVALID', error: 'Referenced hydraulic evidence artifact is not validated.' }, requestId);
+        }
+        const station = calculateGaugeWseNavd88({
+          stationId: String(body.station_id || '03378500'),
+          stageFt: Number(body.stage_ft_gage_datum),
+        });
+        if (!station.ok) {
+          return json(res, 422, { ok: false, code: 'STATION_WSE_CONVERSION_BLOCKED', station }, requestId);
+        }
+        const result = calculateLocalProfileWSE({
+          stationWseNavd88Ft: station.wse_navd88_ft,
+          ohioWseNavd88Ft: Number(body.ohio_wse_navd88_ft),
+          distanceDownstreamFt: Number(body.distance_downstream_ft),
+          dischargeCfs: Number(body.discharge_cfs),
+          invertNavd88Ft: Number(body.invert_navd88_ft),
+          profile,
+          segments: body.segments,
+        });
+        return json(res, 200, { ok: true, ...result, station_wse: station }, requestId);
+      } catch (error) {
+        return json(res, error.status || 422, { ok: false, code: error.code || 'HYDRAULIC_TRANSFER_FAILED', error: error.message }, requestId);
+      }
+    }
+    if (req.method === 'POST' && url.pathname === '/api/v1/alerts/syslog-receiver') {
+      try {
+        const raw = await new Promise((resolve, reject) => {
+          const chunks = [];
+          let size = 0;
+          req.on('data', (chunk) => {
+            size += chunk.length;
+            if (size > 64_000) { req.destroy(); reject(new Error('syslog payload exceeds 64 KB')); return; }
+            chunks.push(chunk);
+          });
+          req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+          req.on('error', reject);
+        });
+        const signature = String(req.headers['x-tsm-alert-signature'] || '');
+        const result = acceptSyslog(raw, signature);
+        if (result.duplicate) return json(res, 200, { ok: true, duplicate: true, event_id: result.event_id }, requestId);
+        incrementTelemetryCounter('tsm_alerts_received_total', { severity: result.severity });
+        return json(res, 202, {
+          ok: true,
+          event_id: result.event_id,
+          severity: result.severity,
+          facility: result.facility,
+          hostname: result.hostname,
+          message: result.message,
+          governance_status: 'human_review_required',
+        }, requestId);
+      } catch (error) {
+        return json(res, error.status || 422, { ok: false, code: error.code || 'SYSLOG_RECEIVER_FAILED', error: error.message }, requestId);
+      }
+    }
     if (req.method === 'GET' && url.pathname === '/api/hydrologic/community') {
       const stationIds = url.searchParams.getAll('station_id');
       const network = await fetchRiverNetwork({ stationIds: stationIds.length ? stationIds : null, includeNoaa: true });
       return json(res, 200, { ok: true, ...network, requestId }, requestId);
+    }
+    if (req.method === 'GET' && url.pathname.startsWith('/api/hydro/calculate-wse/')) {
+      const stageValue = Number(decodeURIComponent(url.pathname.slice('/api/hydro/calculate-wse/'.length)));
+      const stationId = url.searchParams.get('station_id') || '03378500';
+      try {
+        const result = calculateGaugeWseNavd88({ stationId, stageFt: stageValue });
+        return json(res, result.ok ? 200 : 422, { ...result, requestId }, requestId);
+      } catch (error) {
+        console.error('[TSM hydro calibration] calculate-wse failed', { stationId, code: error?.code, message: error?.message });
+        return json(res, error.status || 422, { ok: false, code: error.code || 'HYDRO_CALIBRATION_ERROR', error: error.message }, requestId);
+      }
+    }
+    if (req.method === 'GET' && url.pathname === '/api/hydrologic/calibration') {
+      const stationId = url.searchParams.get('station_id') || '03378500';
+      try {
+        const node = getHydrologicNode(stationId);
+        return json(res, 200, {
+          ok: true,
+          station_id: stationId,
+          station_name: node.name,
+          gage_zero_navd88_ft: Number.isFinite(Number(node.gage_zero_navd88_ft)) ? Number(node.gage_zero_navd88_ft) : null,
+          gage_site_altitude_navd88_ft: Number.isFinite(Number(node.gage_site_altitude_navd88_ft)) ? Number(node.gage_site_altitude_navd88_ft) : null,
+          flood_thresholds_ft: node.flood_thresholds_ft || null,
+          flood_threshold_source: node.flood_threshold_source_uri || null,
+          vertical_conversion_status: node.vertical_conversion_status || 'CONVERSION_BLOCKED',
+          vertical_conversion_source: node.vertical_conversion_source_uri || null,
+          site_transfer_status: node.site_transfer_required ? 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE' : 'NOT_REQUIRED',
+          hydraulic_extrusion_eligibility: node.site_transfer_required ? 'BLOCKED_UNTIL_SITE_WSE_TRANSFER_VALIDATED' : 'REVIEW_REQUIRED',
+          requestId,
+        }, requestId);
+      } catch (error) {
+        return json(res, error.status || 422, { ok: false, code: error.code || 'HYDRO_CALIBRATION_ERROR', error: error.message }, requestId);
+      }
+    }
+    if (req.method === 'GET' && url.pathname === '/api/hydrologic/alerts') {
+      const usgsId = url.searchParams.get('usgs_id') || '03378500';
+      const nwsId = url.searchParams.get('nws_id') || 'NHRI3';
+      const node = getHydrologicNode(usgsId);
+      const thresholds = node.flood_thresholds_ft;
+      if (!thresholds || !Number.isFinite(Number(thresholds.action))) {
+        return json(res, 503, { ok: false, code: 'HYDRO_THRESHOLDS_UNVERIFIED', error: 'Authoritative flood thresholds are not registered.' }, requestId);
+      }
+      try {
+        let stage;
+        let stageSource = 'NOAA-NWPS';
+        try {
+          const records = await fetchNoaaStageFlow({ identifier: nwsId, product: 'observed' });
+          stage = latestRecord(records);
+        } catch (noaaError) {
+          void noaaError;
+          const records = await fetchUsgsInstantaneousValues({ stationIds: [usgsId], parameterCodes: ['00065'] });
+          stage = latestRecord(records, '00065');
+          stageSource = 'USGS-NWIS';
+        }
+        if (!stage || !Number.isFinite(Number(stage.value))) throw Object.assign(new Error('no authoritative stage observation returned'), { code: 'HYDRO_NO_STAGE' });
+        const stageFt = Number(stage.value);
+        const category = stageFt >= Number(thresholds.major) ? 'major'
+          : stageFt >= Number(thresholds.moderate) ? 'moderate'
+          : stageFt >= Number(thresholds.minor) ? 'minor'
+          : stageFt >= Number(thresholds.action) ? 'action' : 'normal';
+        return json(res, 200, {
+          ok: true,
+          station_id: usgsId,
+          nws_id: nwsId,
+          stage_ft_gage_datum: stageFt,
+          category,
+          distance_to_action_ft: Number((Number(thresholds.action) - stageFt).toFixed(2)),
+          thresholds_ft: thresholds,
+          source: stageSource,
+          source_uri: stageSource === 'NOAA-NWPS' ? (node.flood_threshold_source_uri || null) : 'https://waterdata.usgs.gov/monitoring-location/USGS-03378500/',
+          observed_at: stage.observedAt,
+          notification_policy: {
+            email: 'NOT_CONFIGURED',
+            physical_actuation: 'BLOCKED',
+            human_review_required: true,
+            note: 'This endpoint evaluates an advisory condition only. It does not send email or actuate infrastructure.',
+          },
+          requestId,
+        }, requestId);
+      } catch (error) {
+        return json(res, 503, { ok: false, code: error.code || 'HYDRO_ALERT_EVALUATION_UNAVAILABLE', error: error.message }, requestId);
+      }
     }
     if (req.method === 'GET' && url.pathname === '/api/hydrologic/live') {
       const usgsId = url.searchParams.get('usgs_id') || '03378500';
@@ -263,6 +431,7 @@ const server = http.createServer(async (req, res) => {
         const stage = selectedSource === 'USGS' ? latestRecord(records, '00065') : latestRecord(records);
         const discharge = selectedSource === 'USGS' ? latestRecord(records, '00060') : null;
         if (!stage) throw Object.assign(new Error('no stage observation returned'), { code: 'HYDRO_NO_STAGE' });
+        const conversion = selectedSource === 'USGS' ? calculateGaugeWseNavd88({ stationId: usgsId, stageFt: stage.value }) : { ok: false, wse_navd88_ft: null, gage_zero_navd88_ft: null, vertical_conversion_status: 'CONVERSION_BLOCKED', site_transfer_status: 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE', hydraulic_extrusion_eligibility: 'BLOCKED_UNTIL_SITE_WSE_TRANSFER_VALIDATED' };
         const payload = {
           ok: true,
           ...stage,
@@ -272,6 +441,13 @@ const server = http.createServer(async (req, res) => {
           discharge_cfs: discharge?.value ?? null,
           discharge_observedAt: discharge?.observedAt ?? null,
           discharge_status: discharge?.status ?? null,
+          wse_navd88_ft: conversion.wse_navd88_ft ?? null,
+          gage_zero_navd88_ft: conversion.gage_zero_navd88_ft ?? null,
+          conversion_applied: conversion.ok === true && conversion.wse_navd88_ft != null,
+          vertical_conversion_status: conversion.vertical_conversion_status,
+          vertical_conversion_source: conversion.vertical_conversion_source || null,
+          site_transfer_status: conversion.site_transfer_status,
+          hydraulic_extrusion_eligibility: conversion.hydraulic_extrusion_eligibility,
           freshness: { observedAt: stage.observedAt, retrievedAt: stage.retrievedAt },
           requestId,
         };
@@ -294,6 +470,34 @@ const server = http.createServer(async (req, res) => {
         incrementTelemetryCounter('tsm_cache_requests_total', { cache: 'hydrologic_stale', result: 'miss' });
         return json(res, 503, { ok: false, status: 'unavailable', code: error?.code || 'HYDRO_SOURCE_UNAVAILABLE', sourceId: `NOAA-NWPS-${nwsId}-observed / USGS-NWIS-${usgsId}-00065`, requestId }, requestId);
       }
+    }
+    if (req.method === 'GET' && url.pathname === '/api/autonomy/status') return json(res, 200, autonomyStatus(), requestId);
+    if (req.method === 'GET' && url.pathname === '/api/autonomy/proposals') {
+      try {
+        const auth = await authenticateRequest(req);
+        requireRoles(auth, String(process.env.TSM_OPERATOR_ROLE || 'tsm-operator'));
+        return json(res, 200, { proposals: listLevel5Proposals() }, requestId);
+      } catch (error) {
+        return json(res, error.status || 401, { ok: false, code: error.code || 'AUTHENTICATION_REQUIRED', error: error.message }, requestId);
+      }
+    }
+    if (req.method === 'POST' && url.pathname === '/api/autonomy/evaluate') {
+      try { return json(res, 201, evaluateLevel5(await readBodyFixed(req)), requestId); }
+      catch (error) { return json(res, error.status || 422, { ok: false, code: error.code || 'AUTONOMY_EVALUATION_FAILED', error: error.message }, requestId); }
+    }
+    if (req.method === 'POST' && url.pathname.startsWith('/api/autonomy/proposals/') && url.pathname.endsWith('/approve')) {
+      try {
+        const proposalId = url.pathname.split('/')[4];
+        const body = await readBodyFixed(req);
+        const approval = approveLevel5Proposal(proposalId, requestAuth.subject, body.reason);
+        return json(res, 200, approval, requestId);
+      } catch (error) { return json(res, error.status || 422, { ok: false, code: error.code || 'AUTONOMY_APPROVAL_FAILED', error: error.message }, requestId); }
+    }
+    if (req.method === 'POST' && url.pathname.startsWith('/api/autonomy/proposals/') && url.pathname.endsWith('/execute')) {
+      try {
+        const proposalId = url.pathname.split('/')[4];
+        return json(res, 200, await executeLevel5Proposal(proposalId, requestAuth.subject), requestId);
+      } catch (error) { return json(res, error.status || 422, { ok: false, code: error.code || 'AUTONOMY_EXECUTION_FAILED', error: error.message }, requestId); }
     }
     if (req.method === 'GET' && url.pathname === '/api/data-sources/health') return json(res, 200, { build_sha: BUILD_SHA, sources: listSourceHealth(), circuits: listUpstreamCircuitHealth() }, requestId);
     if (req.method === 'GET' && url.pathname === '/api/geospatial/posey/site') { const assets = getPoseyAssetManifest(); return json(res, 200, { ok: true, site_id: 'posey-lower-wabash-ohio-community', horizontal_crs: 'EPSG:2966', horizontal_crs_name: 'NAD83 / Indiana West (ftUS)', vertical_datum: null, vertical_datum_verified: false, bounds: assets.bounds, terrain: assets.terrain, orthophoto: assets.orthophoto }, requestId); }
@@ -333,4 +537,5 @@ const server = http.createServer(async (req, res) => {
     observeTelemetryMetric('tsm_server_event_loop_utilization_ratio', elu.utilization, { route: metricRoute(url.pathname) });
   }
 });
+await bootstrapOidc();
 server.listen(PORT, () => console.log(`TSM API on http://localhost:${PORT}`));

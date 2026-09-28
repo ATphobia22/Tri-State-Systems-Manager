@@ -1,0 +1,142 @@
+name: TSM Remote Docker Runtime, Cypress & Lighthouse
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tsm-console/**'
+      - '.github/workflows/remote-runtime-validation.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tsm-console/**'
+      - '.github/workflows/remote-runtime-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tsm-remote-runtime-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  remote-runtime:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    defaults:
+      run:
+        working-directory: tsm-console
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js for Cypress and audit tooling
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22.23.2'
+          cache: npm
+          cache-dependency-path: tsm-console/package-lock.json
+          registry-url: https://registry.npmjs.org
+
+      - name: Pin npm CLI
+        run: npm install --global npm@10.9.2 --no-audit --no-fund
+
+      - name: Install locked browser-test dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
+
+      - name: Install and verify Cypress runtime
+        run: |
+          npx --no-install cypress install
+          npx --no-install cypress verify
+
+      - name: Validate Docker Compose configuration
+        run: docker compose -f docker-compose.yml config >/tmp/tsm-compose.yml
+
+      - name: Build production Docker image
+        run: docker compose -f docker-compose.yml build --pull
+
+      - name: Start API and static web runtime
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          export TSM_AUTH_MODE=disabled
+          export CORS_ORIGIN=http://127.0.0.1:3000
+          docker compose -f docker-compose.yml up -d
+          for attempt in {1..45}; do
+            if curl --fail --silent --show-error http://127.0.0.1:8787/ready >/dev/null && curl --fail --silent --show-error http://127.0.0.1:3000/ready >/dev/null; then
+              break
+            fi
+            sleep 2
+          done
+          curl --fail --silent --show-error http://127.0.0.1:8787/ready >/tmp/tsm-api-ready.json
+          curl --fail --silent --show-error http://127.0.0.1:3000/ >/tmp/tsm-web-index.html
+          grep -q '<title>TSM' /tmp/tsm-web-index.html
+          docker compose -f docker-compose.yml ps
+
+      - name: Run headed Cypress production E2E against Docker runtime
+        env:
+          CYPRESS_BASE_URL: http://127.0.0.1:3000/
+        run: |
+          set -euo pipefail
+          command -v xvfb-run >/dev/null
+          xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24'             npx --no-install cypress run --browser chrome --headed --config video=true,screenshotOnRunFailure=true
+
+      - name: Install pinned Lighthouse CLI
+        run: npm install --global lighthouse@13.5.0 --no-audit --no-fund
+
+      - name: Resolve Chrome executable
+        id: chrome
+        run: |
+          set -euo pipefail
+          chrome="$(command -v google-chrome-stable || command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          if [[ -z "${chrome}" ]]; then
+            sudo apt-get update
+            sudo apt-get install -y chromium
+            chrome="$(command -v chromium)"
+          fi
+          echo "path=${chrome}" >> "$GITHUB_OUTPUT"
+          "${chrome}" --version
+
+      - name: Run Lighthouse against Docker production runtime
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/lighthouse
+          lighthouse http://127.0.0.1:3000/             --chrome-path="${{ steps.chrome.outputs.path }}"             --chrome-flags='--headless=new --no-sandbox --disable-dev-shm-usage'             --preset=desktop             --only-categories=performance,accessibility,best-practices,seo             --output=json             --output=html             --output-path=artifacts/lighthouse/report             --quiet
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const report = JSON.parse(fs.readFileSync('artifacts/lighthouse/report.report.json', 'utf8'));
+          const categories = Object.fromEntries(Object.entries(report.categories || {}).map(([name, value]) => [name, value.score]));
+          if (Object.values(categories).some((score) => typeof score !== 'number')) {
+            throw new Error('Lighthouse report is missing one or more category scores.');
+          }
+          fs.writeFileSync('artifacts/lighthouse/summary.json', JSON.stringify({ requested_url: report.requestedUrl, final_url: report.finalDisplayedUrl, categories, fetch_time: report.fetchTime }, null, 2));
+          console.log(JSON.stringify(categories, null, 2));
+          NODE
+
+      - name: Collect Docker diagnostics
+        if: always()
+        run: |
+          mkdir -p artifacts
+          docker compose -f docker-compose.yml logs --no-color > artifacts/docker-compose.log 2>&1 || true
+
+      - name: Upload remote runtime evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: tsm-remote-runtime-evidence
+          path: |
+            tsm-console/artifacts/lighthouse/**
+            tsm-console/artifacts/docker-compose.log
+            tsm-console/cypress/screenshots/**
+            tsm-console/cypress/videos/**
+            /tmp/tsm-api-ready.json
+            /tmp/tsm-web-index.html
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Tear down Docker runtime
+        if: always()
+        run: docker compose -f docker-compose.yml down -v

@@ -33,6 +33,16 @@ export const POSEY_NFIP = {
 
 export const FIRM_PANEL_CANDIDATES: FirmPanelRecord[] = [
   {
+    panelId: '18129C0215D',
+    communityId: POSEY_NFIP.unincorporatedCid,
+    communityName: 'Posey County Unincorporated Areas',
+    countyFips: POSEY_NFIP.countyFips,
+    status: 'PENDING_MSC_VERIFY',
+    role: 'alternate_candidate',
+    notes: 'Project evidence references this panel, but current FEMA Map Service Center/FIS verification is still required before treating the panel or any associated BFE as authoritative.',
+    mscSearchHint: 'https://msc.fema.gov/portal/home — verify current effective panel/FIS product',
+  },
+  {
     panelId: '18129C0300C',
     communityId: POSEY_NFIP.unincorporatedCid,
     communityName: 'Posey County Unincorporated Areas',

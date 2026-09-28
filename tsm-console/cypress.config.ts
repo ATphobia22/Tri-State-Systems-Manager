@@ -1,14 +1,17 @@
 import { defineConfig } from "cypress";
 
+const baseUrl = process.env.CYPRESS_BASE_URL || "http://127.0.0.1:5173/";
+
 export default defineConfig({
   e2e: {
-    baseUrl: process.env.CYPRESS_BASE_URL || "http://localhost:5173",
-    viewportWidth: 1280,
-    viewportHeight: 720,
+    baseUrl,
+    specPattern: "cypress/e2e/**/*.cy.{js,jsx,ts,tsx}",
     supportFile: false,
-    specPattern: "cypress/e2e/**/*.cy.{js,ts}",
-    setupNodeEvents(on, config) {
-      // Optional: configureVisualRegression(on) when cypress-visual-regression is installed
+    viewportWidth: 1920,
+    viewportHeight: 1080,
+    video: true,
+    screenshotOnRunFailure: true,
+    setupNodeEvents(_on, config) {
       return config;
     },
     env: {

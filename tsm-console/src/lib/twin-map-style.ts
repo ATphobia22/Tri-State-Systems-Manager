@@ -2,36 +2,39 @@ import type { Map, StyleSpecification } from 'maplibre-gl';
 import type { MapTwinLoaderData } from '../types/loaders';
 import { MAP_LAYERS } from './map-layers';
 import { createHydraulicExtrusionLayer, createHydraulicSource } from './hydraulic-rendering';
+import {
+  resolveTerrainRgbEncoding,
+  resolveTerrainRgbFromEnv,
+  resolveTerrainRgbMaxZoom,
+  resolveTerrainRgbTileSize,
+  TERRAIN_RGB_DEFAULT_EXAGGERATION,
+  TERRAIN_RGB_SOURCE_ID,
+  type TerrainRgbStatus,
+} from './terrain-rgb-contract';
 
 const imagery = MAP_LAYERS.find((layer) => layer.id === 'indiana-imagery');
-const RAW_TERRAIN_TEMPLATE = import.meta.env.VITE_TSM_TERRAIN_RGB_URL_TEMPLATE?.trim() || '';
 
-/**
- * Fail-closed terrain template resolution. The tsm-terrain-rgb source is
- * registered only for a real https:// tile URL template containing
- * {z}/{x}/{y}. Empty values and placeholders (YOUR-HOST, example.com,
- * localhost, 127.0.0.1, non-HTTPS) return null and keep the twin flat —
- * MapLibre terrain never silently points at a dead or insecure endpoint.
- */
-export function resolveTerrainTemplate(raw: string = RAW_TERRAIN_TEMPLATE): string | null {
-  const template = raw.trim();
-  if (!template) return null;
-  if (!template.startsWith('https://')) return null;
-  if (!template.includes('{z}') || !template.includes('{x}') || !template.includes('{y}')) {
-    return null;
-  }
-  if (/your-host|example\.com|localhost|127\.0\.0\.1/i.test(template)) return null;
-  return template;
+/** Fail-closed Terrain-RGB status (no synthetic mesh when blocked). */
+export function getTerrainRgbStatus(): TerrainRgbStatus {
+  return resolveTerrainRgbFromEnv(import.meta.env.VITE_TSM_TERRAIN_RGB_URL_TEMPLATE);
 }
 
-const terrainTemplate = resolveTerrainTemplate() ?? '';
-
+function buildTerrainDemSourceSpec(template: string) {
+  return {
+    type: 'raster-dem' as const,
+    tiles: [template],
+    tileSize: resolveTerrainRgbTileSize(),
+    encoding: resolveTerrainRgbEncoding(),
+    maxzoom: resolveTerrainRgbMaxZoom(),
+  };
+}
 
 const ARCGIS_EXPORT_QUERY = 'bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=512,512&format=png32&transparent=false&f=image';
 
 export function buildTwinStyle(): StyleSpecification {
   const imageryUrl = imagery?.url;
   if (!imageryUrl) throw new Error('Indiana current imagery source contract is missing');
+  const terrain = getTerrainRgbStatus();
   const sources: StyleSpecification['sources'] = {
     'indiana-current-imagery': {
       type: 'raster',
@@ -43,8 +46,8 @@ export function buildTwinStyle(): StyleSpecification {
   const layers: StyleSpecification['layers'] = [
     { id: 'indiana-current-imagery', type: 'raster', source: 'indiana-current-imagery', paint: { 'raster-opacity': 1 } },
   ];
-  if (terrainTemplate) {
-    sources['tsm-terrain-rgb'] = { type: 'raster-dem', tiles: [terrainTemplate], tileSize: 256, encoding: 'mapbox' };
+  if (terrain.enabled) {
+    sources[TERRAIN_RGB_SOURCE_ID] = buildTerrainDemSourceSpec(terrain.template);
   }
   return {
     version: 8,
@@ -69,9 +72,40 @@ export function buildTwinStyle(): StyleSpecification {
 }
 
 export function applyTwinTerrain(map: Map): boolean {
-  if (!terrainTemplate) return false;
-  map.setTerrain({ source: 'tsm-terrain-rgb', exaggeration: 1.0 });
-  return true;
+  const terrain = getTerrainRgbStatus();
+  if (!terrain.enabled) {
+    try {
+      if (typeof map.getTerrain === 'function' && map.getTerrain()) {
+        map.setTerrain(null);
+      }
+      if (map.getSource(TERRAIN_RGB_SOURCE_ID)) {
+        map.removeSource(TERRAIN_RGB_SOURCE_ID);
+      }
+    } catch {
+      /* ignore */
+    }
+    return false;
+  }
+
+  try {
+    if (!map.getSource(TERRAIN_RGB_SOURCE_ID)) {
+      map.addSource(TERRAIN_RGB_SOURCE_ID, buildTerrainDemSourceSpec(terrain.template));
+    }
+    map.setTerrain({
+      source: TERRAIN_RGB_SOURCE_ID,
+      exaggeration: TERRAIN_RGB_DEFAULT_EXAGGERATION,
+    });
+    return true;
+  } catch {
+    try {
+      if (typeof map.getTerrain === 'function' && map.getTerrain()) {
+        map.setTerrain(null);
+      }
+    } catch {
+      /* ignore */
+    }
+    return false;
+  }
 }
 
 export function addFloodAuthorityLayers(map: Map): void {
@@ -84,7 +118,6 @@ export function addFloodAuthorityLayers(map: Map): void {
 export function applyLiveStageMetadata(map: Map, data: MapTwinLoaderData): void {
   map.setCenter([(data.boundingEnvelope.minLon + data.boundingEnvelope.maxLon) / 2, (data.boundingEnvelope.minLat + data.boundingEnvelope.maxLat) / 2]);
 }
-
 
 export function addMartinHydraulicLayer(
   map: Map,

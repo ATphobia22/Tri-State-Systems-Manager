@@ -39,6 +39,7 @@ export interface RiverGaugeObservation {
 }
 
 export const COMMUNITY_RIVER_GAUGES: readonly RiverGaugeDefinition[] = [
+  { id: 'nws-NHRI3', provider: 'NOAA_NWS', name: 'Wabash River at New Harmony, IN', river: 'Wabash River', usgsId: '03378500', nwsId: 'NHRI3', variables: ['stage'], status: 'active' },
   { id: 'usgs-03378500', provider: 'USGS', name: 'Wabash River at New Harmony, IN', river: 'Wabash River', usgsId: '03378500', variables: ['00065', '00060'], status: 'active' },
   { id: 'usgs-03322000', provider: 'USGS', name: 'Ohio River at Evansville, IN', river: 'Ohio River', usgsId: '03322000', variables: ['00065', '00060'], status: 'active' },
   { id: 'usgs-03304300', provider: 'USGS', name: 'Ohio River at Newburgh Lock and Dam, IN', river: 'Ohio River', usgsId: '03304300', nwsId: 'NBGI3', variables: ['00065'], status: 'active' },
