@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tsm-community.example/schemas/road-berm-scenario/v1.0.0.json",
+  "title": "TSM Road and Berm Engineering Scenario",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "scenario_id",
+    "alignment",
+    "design",
+    "constraints",
+    "simulation",
+    "human_review_required"
+  ],
+  "properties": {
+    "scenario_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "alignment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "geometry_ref",
+        "length_ft"
+      ],
+      "properties": {
+        "geometry_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "length_ft": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "design": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "feature_type",
+        "crest_elevation_ft",
+        "top_width_ft",
+        "side_slope_hv"
+      ],
+      "properties": {
+        "feature_type": {
+          "type": "string",
+          "enum": [
+            "road",
+            "berm",
+            "road_berm_combination",
+            "temporary_access"
+          ]
+        },
+        "crest_elevation_ft": {
+          "type": "number"
+        },
+        "top_width_ft": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "side_slope_hv": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "design_freeboard_ft": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "no_rise_required",
+        "floodway_check_required",
+        "wetland_check_required"
+      ],
+      "properties": {
+        "no_rise_required": {
+          "type": "boolean"
+        },
+        "floodway_check_required": {
+          "type": "boolean"
+        },
+        "wetland_check_required": {
+          "type": "boolean"
+        },
+        "property_rights_verified": {
+          "type": "boolean"
+        },
+        "utility_conflicts_checked": {
+          "type": "boolean"
+        }
+      }
+    },
+    "simulation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "baseline_model_ref",
+        "alternative_model_ref",
+        "comparison_metric"
+      ],
+      "properties": {
+        "baseline_model_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "alternative_model_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "comparison_metric": {
+          "type": "string",
+          "enum": [
+            "WSE_difference_ft",
+            "inundation_area_difference_ac",
+            "flow_capacity_difference_cfs",
+            "cut_fill_balance_cy"
+          ]
+        }
+      }
+    },
+    "human_review_required": {
+      "const": true
+    },
+    "agency_acceptance": {
+      "const": false
+    }
+  }
+}
