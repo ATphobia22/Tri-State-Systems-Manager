@@ -31,20 +31,24 @@ if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(version)) {
 const bindingPath = path.join('node_modules', ...bindingPackage.split('/'));
 if (!fs.existsSync(bindingPath)) {
   console.log(`Installing missing platform binding ${bindingPackage}@${version} for ${platform}/${arch}.`);
-  execFileSync(
-    process.platform === 'win32' ? 'npm.cmd' : 'npm',
-    [
-      'install',
-      '--no-save',
-      '--package-lock=false',
-      '--ignore-scripts',
-      '--no-audit',
-      '--no-fund',
-      '--registry=https://registry.npmjs.org',
-      `${bindingPackage}@${version}`,
-    ],
-    { stdio: 'inherit', shell: process.platform === 'win32' },
-  );
+  const npmArgs = [
+    'install',
+    '--no-save',
+    '--package-lock=false',
+    '--ignore-scripts',
+    '--no-audit',
+    '--no-fund',
+    '--registry=https://registry.npmjs.org',
+    `${bindingPackage}@${version}`,
+  ];
+  if (process.platform === 'win32') {
+    execFileSync('cmd.exe', ['/d', '/s', '/c', 'npm.cmd', ...npmArgs], {
+      stdio: 'inherit',
+      windowsVerbatimArguments: true,
+    });
+  } else {
+    execFileSync('npm', npmArgs, { stdio: 'inherit' });
+  }
 }
 
 if (!fs.existsSync(bindingPath)) {
