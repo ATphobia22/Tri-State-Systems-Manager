@@ -260,7 +260,7 @@ jobs:
       - name: Purge stale Pages workflow artifacts after deployment
         if: always()
         continue-on-error: true
-        uses: jimschubert/delete-artifacts-action@a6a85fe6cc7f54a2abb2aff7440825d98b8eb6e4 # v1.0.3
+        uses: jimschubert/delete-artifacts-action@f5cb1978980f2e189a2b3484d430f8810860ba38 # v1.0.4
         with:
           artifact_name: github-pages
           active_duration: 1h
@@ -269,7 +269,7 @@ jobs:
       - name: Purge stale production bundle artifacts after deployment
         if: always()
         continue-on-error: true
-        uses: jimschubert/delete-artifacts-action@a6a85fe6cc7f54a2abb2aff7440825d98b8eb6e4 # v1.0.3
+        uses: jimschubert/delete-artifacts-action@f5cb1978980f2e189a2b3484d430f8810860ba38 # v1.0.4
         with:
           artifact_name: tsm-console-production
           active_duration: 1h
