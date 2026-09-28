@@ -102,7 +102,7 @@ if (result.ok) {
 `keyFindings`):
 ```ts
 {
-  scenarioName: string;        // e.g. "100-year overbank, restricted site reach"
+  scenarioName: string;        // e.g. "100-year overbank, Bonebank Rd reach"
   peakDepthFt?: number;
   areaInundatedAcres?: number;
   structuresAffected?: number;

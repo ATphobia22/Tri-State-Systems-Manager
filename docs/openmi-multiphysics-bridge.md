@@ -129,7 +129,7 @@ recorded deed or certified copy. WTHGIS data must not be represented as a
 professional survey, title opinion, or certified elevation.
 
 For the FEMA LOMA anchor, the known parcel identifier remains
-`[parcel withheld]`. The current public WTHGIS search did not expose a
+`65-19-08-100-008.001-010`. The current public WTHGIS search did not expose a
 stable indexed feature ID for that exact parcel, so TSM does not fabricate one.
 The adapter can consume a verified FeatureID when obtained from the county
 interface.

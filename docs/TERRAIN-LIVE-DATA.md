@@ -6,9 +6,9 @@ network does not cooperate.
 ## 1. Elevation source: real source-derived screening terrain, bundled
 
 `tools/terrain/fetch-terrarium-dem.py` downloads Terrarium tiles from the AWS
-Open Data `elevation-tiles-prod` bucket for a ±0.03° window around the
-restricted site (Point Township, Posey County, IN — coordinates
-operator-retained). Per the Tilezen joerd attribution, the CONUS portion of the
+Open Data `elevation-tiles-prod` bucket for a ±0.03° window around the anchor
+site (13101 Bonebank Rd, Point Township, Posey County, IN — 37.845887,
+−88.005075). Per the Tilezen joerd attribution, the CONUS portion of the
 Terrarium mosaic is sourced from USGS 3DEP/NED; the mosaic as a whole blends
 multiple sources (SRTM, GMTED, ETOPO1, and others) with mixed native vertical
 datums — so "3DEP-derived" describes the CONUS feed, not a uniform pedigree.

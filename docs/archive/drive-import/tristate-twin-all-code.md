@@ -502,7 +502,7 @@ export default function App() {
     const map = new mapboxgl.Map({
       container: mapRef.current,
       style: 'mapbox://styles/mapbox/satellite-v9',
-      center: [-87.9944, 37.8575], // the restricted site
+      center: [-87.9944, 37.8575], // 13101 Bonebank Road
       zoom: 13,
       pitch: 60
     });
@@ -536,7 +536,7 @@ export default function App() {
       <div ref={mapRef} style={{ width: '100%', height: '100%', position: 'absolute' }} />
       <div style={{ position: 'absolute', top: 20, left: 20, background: 'rgba(10,18,32,0.9)', padding: 20, border: '1px solid #2DD4BF', borderRadius: 8, zIndex: 10 }}>
         <h2 style={{ color: '#2DD4BF', marginTop: 0 }}>PTDT SOVEREIGN NODE</h2>
-        <p>ANCHOR: the restricted site</p>
+        <p>ANCHOR: 13101 Bonebank Road</p>
         <p style={{ color: status === 'CRITICAL_FLOOD_RISK' ? '#EF4444' : '#10B981' }}>STATUS: {status}</p>
         <p>SOLVER DEPTH: {depth} ft</p>
         <p>DRY EARTH MANDATE: {mandate}</p>

@@ -44,9 +44,9 @@ These were pulled from Drive, read, and individually assessed. Disposition follo
 - **FEMA Form 81-92 (MT-1) field mapping** (gdoc, 2026-09-21) — draft Section A/B mapping block citing Application ID 5918599025038 / Case 26-05-2022A. REFERENCE → `docs/regulatory/loma/fema-mt1-form-81-92-field-mapping.md`.
 - **PE Transmittal & LOMA Letter** (gdoc, 2026-08-21) — transmittal draft asserting Pure LOMA eligibility. REFERENCE → `docs/regulatory/loma/pe-transmittal-loma-letter.md`.
 - **No-Rise Certification Package — IN-312-IAC-10** (docx, 2026-07-28) — **unfiled DRAFT template** with official-seal placeholder; not a filed certification. REFERENCE → `docs/regulatory/loma/no-rise-certification-DRAFT.md`.
-- **PTDT v35 Regulatory Compliance Document Suite** (gdoc, 2026-08-18) / **Regulatory Engineering Dossier: PTDT v35** (gdoc, 2026-08-26) / **restricted site Property: Forensic Evidence & Regulatory Submission Portfolio** (gdoc, 2026-07-19) — site-invariant compilations with unverified assertions. REFERENCE → `docs/regulatory/`.
-- **FEMA BRIC FY2025 Subapplication — the restricted site** (docx, 2026-07-28) — subapplication narrative draft. REFERENCE → `docs/grants/bric-fy2025-subapplication-narrative.md`.
-- **FEMA BRIC Grant and Data Dossier v34** (pdf, 2026-08-16) / **FEMA BCA Data Package: the restricted site** (gdoc, 2026-08-18) — assert BCR 2.45 / 1.41 figures (in-doc assertions, unverified). REFERENCE → `docs/grants/`.
+- **PTDT v35 Regulatory Compliance Document Suite** (gdoc, 2026-08-18) / **Regulatory Engineering Dossier: PTDT v35** (gdoc, 2026-08-26) / **Bonebank Property: Forensic Evidence & Regulatory Submission Portfolio** (gdoc, 2026-07-19) — site-invariant compilations with unverified assertions. REFERENCE → `docs/regulatory/`.
+- **FEMA BRIC FY2025 Subapplication — 13101 Bonebank Road** (docx, 2026-07-28) — subapplication narrative draft. REFERENCE → `docs/grants/bric-fy2025-subapplication-narrative.md`.
+- **FEMA BRIC Grant and Data Dossier v34** (pdf, 2026-08-16) / **FEMA BCA Data Package: 13101 Bonebank Road** (gdoc, 2026-08-18) — assert BCR 2.45 / 1.41 figures (in-doc assertions, unverified). REFERENCE → `docs/grants/`.
 - **Evidence Package Manifest.pdf** (2026-07-28) — JSON manifest whose checksums are **placeholders** (`e3b0c44…` = SHA-256 of empty string; `a1b2c3d4…` sequential mock). Format template only. DESIGN-INTENT → `docs/archive/drive-import/evidence-package-manifest.md` with integrity warning.
 - **PTDT V35 USB edition** (gdoc, 2026-09-21) / **USB Mass Production & Deployment Guide** (gdoc, 2026-08-26) / **Point Township Flood Defense Master Plan** (gdoc, 2026-07-11) / **Regulatory Submission Summary** (gdoc, 2026-08-12) — deployment/planning narratives. DESIGN-INTENT → `docs/archive/drive-import/`.
 
@@ -58,10 +58,10 @@ These were pulled from Drive, read, and individually assessed. Disposition follo
 | -- Enable PostGIS extension.pdf | pdf | 2026-02-12 | REFERENCE-ONLY | duplicate — newest version kept |
 | -- Enable PostGIS extension.pdf | pdf | 2026-01-18 | REFERENCE-ONLY | duplicate — newest version kept |
 | -- Enable PostGIS extension.pdf | pdf | 2026-01-18 | REFERENCE-ONLY | duplicate — newest version kept |
-| 3D Digital Twin for the restricted site, your production pipeline….pdf | pdf | 2026-07-18 | REFERENCE-ONLY | cataloged; not ingested |
-| 3D Digital Twin Pipeline for the restricted site: Comprehensive Briefing | gdoc | 2026-08-12 | REFERENCE-ONLY | cataloged; not ingested |
+| 3D Digital Twin for 13101 Bonebank Road, your production pipeline….pdf | pdf | 2026-07-18 | REFERENCE-ONLY | cataloged; not ingested |
+| 3D Digital Twin Pipeline for 13101 Bonebank Road: Comprehensive Briefing | gdoc | 2026-08-12 | REFERENCE-ONLY | cataloged; not ingested |
 | Arch and bca pipeline | gdoc | 2026-07-27 | REFERENCE-ONLY | cataloged; not ingested |
-| restricted site Property: Forensic Evidence & Regulatory Submission Portfolio | gdoc | 2026-07-19 | REFERENCE | ingested → `docs/regulatory/restricted site-forensic-evidence-portfolio.md` |
+| Bonebank Property: Forensic Evidence & Regulatory Submission Portfolio | gdoc | 2026-07-19 | REFERENCE | ingested → `docs/regulatory/bonebank-forensic-evidence-portfolio.md` |
 | Briefing Document: Tri-State Digital Twin (PTDT) and Tucker Cognitive OS | gdoc | 2026-07-28 | REFERENCE-ONLY | cataloged; not ingested |
 | Copy of Point Township Digital Twin Overview | prompt | 2026-08-05 | REFERENCE-ONLY | AI prompt artifact; not ingested |
 | Copy of Point Township Revitalization | gdoc | 2025-11-30 | REFERENCE-ONLY | cataloged; not ingested |
@@ -88,11 +88,11 @@ These were pulled from Drive, read, and individually assessed. Disposition follo
 | Evidence seal | gdoc | 2026-07-28 | REFERENCE-ONLY | cataloged; not ingested |
 | Evidence seal.pdf | pdf | 2026-07-28 | REFERENCE-ONLY | cataloged; not ingested |
 | FEMA BCA | gdoc | 2026-07-27 | REFERENCE-ONLY | cataloged; not ingested |
-| FEMA Benefit-Cost Analysis (BCA) Data Package: the restricted site | gdoc | 2026-08-18 | REFERENCE | ingested → `docs/grants/bca-data-package-restricted site-road.md` |
-| FEMA Benefit-Cost Analysis (BCA) Data Package: the restricted site | gdoc | 2026-08-18 | REFERENCE | ingested → `docs/grants/bca-data-package-restricted site-road.md` (older duplicate; newest version ingested) |
+| FEMA Benefit-Cost Analysis (BCA) Data Package: 13101 Bonebank Road | gdoc | 2026-08-18 | REFERENCE | ingested → `docs/grants/bca-data-package-bonebank-road.md` |
+| FEMA Benefit-Cost Analysis (BCA) Data Package: 13101 Bonebank Road | gdoc | 2026-08-18 | REFERENCE | ingested → `docs/grants/bca-data-package-bonebank-road.md` (older duplicate; newest version ingested) |
 | FEMA BRIC 2026 SHA-256 Sealing Protocol | gdoc | 2026-08-15 | REFERENCE-ONLY | cataloged; not ingested |
 | FEMA BRIC 2026 SHA-256 Sealing Protocol.pdf | pdf | 2026-08-16 | REFERENCE-ONLY | cataloged; not ingested |
-| FEMA BRIC FY2025 Subapplication — the restricted site Point Township Res… | docx | 2026-07-28 | REFERENCE | ingested → `docs/grants/bric-fy2025-subapplication-narrative.md` |
+| FEMA BRIC FY2025 Subapplication — 13101 Bonebank Road Point Township Res… | docx | 2026-07-28 | REFERENCE | ingested → `docs/grants/bric-fy2025-subapplication-narrative.md` |
 | FEMA Evidence | gdoc | 2026-09-24 | REFERENCE-ONLY | cataloged; not ingested |
 | FEMA pipeline | gdoc | 2026-07-29 | REFERENCE-ONLY | cataloged; not ingested |
 | FEMA psd Gen | gdoc | 2026-07-27 | REFERENCE-ONLY | cataloged; not ingested |
@@ -114,7 +114,7 @@ These were pulled from Drive, read, and individually assessed. Disposition follo
 | LOMA Package Checklist.pdf | pdf | 2026-07-28 | REFERENCE | ingested → `docs/regulatory/loma/loma-package-checklist.md` |
 | Master Operational Blueprint: The AJT Sovereign Node (Point Township) | gdoc | 2026-05-30 | REFERENCE-ONLY | cataloged; not ingested |
 | Master Technical Specification: Tri-State River Valley Digital Twin — US… | gdoc | 2026-08-26 | DESIGN-INTENT | ingested → `docs/archive/drive-import/usb-mass-production-deployment-guide.md` |
-| No-Rise Certification Package — IN-312-IAC-10 — the restricted site Poin… | docx | 2026-07-28 | REFERENCE | ingested → `docs/regulatory/loma/no-rise-certification-DRAFT.md` |
+| No-Rise Certification Package — IN-312-IAC-10 — 13101 Bonebank Road Poin… | docx | 2026-07-28 | REFERENCE | ingested → `docs/regulatory/loma/no-rise-certification-DRAFT.md` |
 | now turn gh repo clone ATphobia22/PTDT-TriState-Unified-v33 into a bette… | gdoc | 2026-09-14 | REFERENCE-ONLY | AI session transcript; not ingested |
 | PE Transmittal & LOMA Letter | gdoc | 2026-08-21 | REFERENCE | ingested → `docs/regulatory/loma/pe-transmittal-loma-letter.md` |
 | Point Township \ | gdoc | 2026-07-10 | REFERENCE-ONLY | cataloged; not ingested |
@@ -139,8 +139,8 @@ These were pulled from Drive, read, and individually assessed. Disposition follo
 | PTDT V33 Cinematic twin copilot | gdoc | 2026-08-12 | REFERENCE-ONLY | cataloged; not ingested |
 | PTDT v34 | gdoc | 2026-08-11 | REFERENCE-ONLY | cataloged; not ingested |
 | PTDT v35 Quantum Integration Architecture Specification | gdoc | 2026-08-20 | REFERENCE-ONLY | cataloged; not ingested |
-| PTDT v35 Regulatory Compliance Document Suite: the restricted site Site | gdoc | 2026-08-18 | REFERENCE | ingested → `docs/regulatory/ptdt-v35-regulatory-compliance-suite.md` |
-| PTDT v35 Regulatory Compliance Document Suite: the restricted site Site | gdoc | 2026-08-18 | REFERENCE | ingested → `docs/regulatory/ptdt-v35-regulatory-compliance-suite.md` (older duplicate; newest version ingested) |
+| PTDT v35 Regulatory Compliance Document Suite: 13101 Bonebank Road Site | gdoc | 2026-08-18 | REFERENCE | ingested → `docs/regulatory/ptdt-v35-regulatory-compliance-suite.md` |
+| PTDT v35 Regulatory Compliance Document Suite: 13101 Bonebank Road Site | gdoc | 2026-08-18 | REFERENCE | ingested → `docs/regulatory/ptdt-v35-regulatory-compliance-suite.md` (older duplicate; newest version ingested) |
 | PTDT v35 Sovereign Master Compendium & Public-Interest Integration Speci… | gdoc | 2026-08-20 | REFERENCE-ONLY | cataloged; not ingested |
 | PTDT V35 USB edition | gdoc | 2026-09-21 | DESIGN-INTENT | ingested → `docs/archive/drive-import/ptdt-v35-usb-edition.md` |
 | PTDT V35 USB edition | gdoc | 2026-09-02 | DESIGN-INTENT | ingested → `docs/archive/drive-import/ptdt-v35-usb-edition.md` (older duplicate; newest version ingested) |
@@ -148,8 +148,8 @@ These were pulled from Drive, read, and individually assessed. Disposition follo
 | PTDT-TriState Unified Version 33 Dashboard | gdoc | 2026-08-12 | REFERENCE-ONLY | cataloged; not ingested |
 | PTDT_v35_Master_Integration_README.md | gdoc | 2026-08-16 | REFERENCE-ONLY | cataloged; not ingested |
 | Regulatory Engineering Dossier: Point Township Digital Twin (PTDT) v35 | gdoc | 2026-08-26 | REFERENCE | ingested → `docs/regulatory/ptdt-v35-regulatory-engineering-dossier.md` |
-| Regulatory Submission Summary: the restricted site Sovereign Node | gdoc | 2026-08-12 | DESIGN-INTENT | ingested → `docs/archive/drive-import/regulatory-submission-summary-restricted site.md` |
-| Render my house the restricted site Mount Vernon I... | gdoc | 2026-07-18 | REFERENCE-ONLY | cataloged; not ingested |
+| Regulatory Submission Summary: 13101 Bonebank Road Sovereign Node | gdoc | 2026-08-12 | DESIGN-INTENT | ingested → `docs/archive/drive-import/regulatory-submission-summary-bonebank.md` |
+| Render my house 13101 Bonebank Road Mount Vernon I... | gdoc | 2026-07-18 | REFERENCE-ONLY | cataloged; not ingested |
 | search and verify then do all of the following suggestions: SYSTEM OPERA… | gdoc | 2026-09-14 | REFERENCE-ONLY | AI session transcript; not ingested |
 | Show me the mathematical and scientific backed full source code block an… | gdoc | 2026-09-18 | REFERENCE-ONLY | AI session transcript; not ingested |
 | Sovereign Tri-River PTDT & Federal Ingestion Control Suite | gdoc | 2026-08-05 | REFERENCE-ONLY | cataloged; not ingested |
@@ -212,7 +212,7 @@ Found while reading the ingested documents. Verify against authoritative sources
 
 1. **FEMA Community ID disagrees across docs**: LOMA checklist cites `180194`; BRIC dossier cites `180209` (Posey County Unincorporated); MT-1 mapping cites `18129C` (FIRM panel prefix). Unresolved.
 2. **FIRM panel disagrees**: `18129C0215D` (codex/BCA) vs `18129C0265C` (MT-1 mapping, LOMA checklist) vs `18129C0225D` (BRIC FY2025 narrative). Unresolved.
-3. **Site coordinates disagree**: PTDT v35 codex gives centroid 37.9035, -88.0007; MT-1 mapping gives [coordinates withheld], [coordinates withheld]. Unresolved.
+3. **Site coordinates disagree**: PTDT v35 codex gives centroid 37.9035, -88.0007; MT-1 mapping gives 37.845887, -88.005075. Unresolved.
 4. **CRS typo**: BCA data package lists `EPSG:2967 (Indiana West)` — EPSG:2967 is Indiana *East*; Indiana West is EPSG:2966 (used everywhere else). Treat as doc error.
 5. **Placeholder seals**: Evidence Package Manifest checksums are placeholders (SHA-256 of empty string; sequential mock). Not evidence of sealing.
 6. **BCR figures** (1.41 engineering / 2.45 legal) are in-doc assertions without attached Toolkit export in the collection.
@@ -226,14 +226,14 @@ Found while reading the ingested documents. Verify against authoritative sources
 | `backend/tests/test_hec_ras_hdf_pipeline.py` | tests_test_hec_ras_pipeline.py | ACTIONABLE (4/4 validated) |
 | `docs/grants/bric-fy2025-subapplication-narrative.md` | FEMA BRIC FY2025 Subapplication … .docx | REFERENCE |
 | `docs/grants/bric-grant-and-data-dossier-v34.md` | FEMA_BRIC_GRANT_AND_DATA_DOSSIER_VER....pdf | REFERENCE |
-| `docs/grants/bca-data-package-restricted site-road.md` | FEMA Benefit-Cost Analysis (BCA) Data Package | REFERENCE |
+| `docs/grants/bca-data-package-bonebank-road.md` | FEMA Benefit-Cost Analysis (BCA) Data Package | REFERENCE |
 | `docs/regulatory/loma/loma-package-checklist.md` | LOMA Package Checklist.pdf | REFERENCE |
 | `docs/regulatory/loma/fema-mt1-form-81-92-field-mapping.md` | FEMA Form 81-92 (MT-1) field mapping | REFERENCE |
 | `docs/regulatory/loma/pe-transmittal-loma-letter.md` | PE Transmittal & LOMA Letter | REFERENCE |
 | `docs/regulatory/loma/no-rise-certification-DRAFT.md` | No-Rise Certification Package … .docx | REFERENCE (unfiled draft) |
 | `docs/regulatory/ptdt-v35-regulatory-compliance-suite.md` | PTDT v35 Regulatory Compliance Document Suite | REFERENCE |
 | `docs/regulatory/ptdt-v35-regulatory-engineering-dossier.md` | Regulatory Engineering Dossier: PTDT v35 | REFERENCE |
-| `docs/regulatory/restricted site-forensic-evidence-portfolio.md` | restricted site Property: Forensic Evidence … | REFERENCE |
+| `docs/regulatory/bonebank-forensic-evidence-portfolio.md` | Bonebank Property: Forensic Evidence … | REFERENCE |
 | `docs/archive/drive-import/` (16 files + README) | top candidates & variants | DESIGN-INTENT |
 
 One dev-only credential found in a generated scaffold was redacted on ingest (`docs/archive/drive-import/README.md`).

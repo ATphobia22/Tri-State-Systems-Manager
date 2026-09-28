@@ -21,7 +21,7 @@ TriState_Sovereign_Engineering_System.py
 # =========================================================================
 # TRI-STATE RIVER VALLEY ENGINEERING SYSTEM — MASTER UNIFIED COMPLIANCE ENGINE
 # Canonical Repository: ATphobia22/PTDT-TriState-Unified-v33
-# Sovereign Node Location: the restricted site, Point Township, Posey County, IN
+# Sovereign Node Location: 13101 Bonebank Road, Point Township, Posey County, IN
 # Geographic Coordinate Anchor: 37.8575° N, 87.9944° W (EPSG:2966 / NAVD88)
 # Multi-Model Coupling: HEC-RAS ↔ MODFLOW6 ↔ EnKF ↔ Bishop ↔ Archimedes
 # =========================================================================
@@ -797,7 +797,7 @@ from application.physics.governor import evaluate_multi_state_governor_with_gw
 class TestTriStateRegulatoryGovernor(unittest.TestCase):
     
     def setUp(self):
-        """Define target site ground-truth calibration baselines for the restricted site."""
+        """Define target site ground-truth calibration baselines for 13101 Bonebank Road."""
         self.bfe_ft = 375.0
         self.lag_ft = 377.2
         self.last_valid_head = 114.28
@@ -1304,7 +1304,7 @@ Master Engine Script: TriState_Sovereign_Compliance_Engine.py
 # =========================================================================
 # TRI-STATE RIVER VALLEY ENGINEERING SYSTEM — MASTER UNIFIED COMPLIANCE ENGINE
 # Canonical Repository: ATphobia22/PTDT-TriState-Unified-v33
-# Sovereign Node Location: the restricted site, Point Township, Posey County, IN
+# Sovereign Node Location: 13101 Bonebank Road, Point Township, Posey County, IN
 # Geographic Coordinate Anchor: 37.8575° N, 87.9944° W (EPSG:2966 / NAVD88)
 # Multi-Model Coupling: HEC-RAS ↔ MODFLOW6 ↔ EnKF ↔ Bishop ↔ Archimedes
 # =========================================================================
@@ -1827,7 +1827,7 @@ Resulting Diagnostic Output Trace:
  POINT TOWNSHIP DIGITAL TWIN [PTDT v23] - RUNTIME RISK EVALUATION 
 ================================================================================
 CURRENT TELEMETRY INPUT -> STAGE: 379.4 FT | FLOW: 128,000 CFS
-DATABASE ANCHOR MAP ----> 13101 restricted site, MOUNT VERNON, IN
+DATABASE ANCHOR MAP ----> 13101 BONEBANK ROAD, MOUNT VERNON, IN
 --------------------------------------------------------------------------------
  [ALERT: CRITICAL] Exceeds Illinois 0.1-ft floodway stage surcharge threshold (Delta: 0.14 ft).
  [ALERT: CRITICAL] Water surface level (379.4 ft) exceeds Lowest Adjacent Grade structural deck.
@@ -2628,7 +2628,7 @@ To initialize this distance monitoring loop, hook the manager instance directly 
     import { PtdtLodManager } from './PtdtLodManager.js';
     import * as THREE from 'three';
 
-    // 1. Establish coordinates mapping to the the restricted site property anchor (Metric scaled)
+    // 1. Establish coordinates mapping to the 13101 Bonebank Road property anchor (Metric scaled)
     const bonebankAnchorVector = new THREE.Vector3(0, 0, 0); 
     const terrainAssetDirectory = "output/delivery_layers/";
 
@@ -3586,7 +3586,7 @@ class SovereignNodeBackupEngine:
             # Assemble your final delivery manifest payload details matching studio QA guidelines
             manifest_payload = {
                 "backup_timestamp": datetime.utcnow().isoformat(),
-                "node_anchor": "13101 restricted site, POINT TOWNSHIP, IN [PTDT v34]",
+                "node_anchor": "13101 BONEBANK ROAD, POINT TOWNSHIP, IN [PTDT v34]",
                 "target_schema": TARGET_SCHEMA,
                 "compressed_volume_filename": os.path.basename(self.compressed_volume),
                 "cryptographic_evidence_seal_sha256": calculated_seal,

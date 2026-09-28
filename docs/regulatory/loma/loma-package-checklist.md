@@ -12,7 +12,7 @@
 ---
 FEMA LOMA Submission Package
 Checklist
-Target Property: the restricted site, Mount Vernon, IN 47620 (Point Township, Section 35)
+Target Property: 13101 Bonebank Road, Mount Vernon, IN 47620 (Point Township, Section 35)
 Application Type: Letter of Map Amendment (LOMA) - Natural High Ground (MT-EZ / Online
 LOMC) Baseline Elevations: Lowest Adjacent Grade (LAG) = 377.2 ft MSL | Base Flood
 Elevation (BFE) = 375.0 ft MSL (Datum: NAVD88)
@@ -78,7 +78,7 @@ Phase 3: Portal Submission Steps (Online LOMC)
 1.​ Navigate to the FEMA Online LOMC Portal.
 2.​ Select Create New Application \rightarrow Letter of Map Amendment (LOMA).
 3.​ Input property location data:
-○​ Street: the restricted site
+○​ Street: 13101 Bonebank Road
 ○​ Community: Posey County & Unincorporated Areas (Community Number: 180194)
 ○​ FIRM Panel: 18129C0215D
 
