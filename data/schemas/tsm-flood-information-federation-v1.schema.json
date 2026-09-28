@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tsm-community.example/schemas/flood-information-federation/v1.json",
+  "title": "TSM Flood Information Federation Result",
+  "description": "Fail-closed provenance contract for every TSM flood-information result. A result may be authoritative source evidence, derived analysis, model output, observational inundation, or visualization, but its authority and regulatory status must remain explicit.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "result_id",
+    "dataset_id",
+    "source_authority",
+    "source_uri",
+    "source_version",
+    "retrieved_at",
+    "regulatory_status",
+    "authority_class",
+    "horizontal_crs",
+    "vertical_datum",
+    "model_lineage",
+    "software_version",
+    "uncertainty",
+    "insurance_determination_eligible",
+    "human_review_required"
+  ],
+  "properties": {
+    "result_id": { "type": "string", "minLength": 1 },
+    "dataset_id": { "type": "string", "minLength": 1 },
+    "source_authority": { "type": "string", "minLength": 1 },
+    "source_uri": { "type": "string", "format": "uri" },
+    "source_version": { "type": "string", "minLength": 1 },
+    "retrieved_at": { "type": "string", "format": "date-time" },
+    "published_at": { "type": ["string", "null"], "format": "date-time" },
+    "regulatory_status": {
+      "type": "string",
+      "enum": [
+        "FEMA_EFFECTIVE",
+        "FEMA_MAP_CHANGE",
+        "IDNR_BEST_AVAILABLE",
+        "IDNR_REGULATORY_STUDY",
+        "IDNR_FARA",
+        "MODEL_EVIDENCE",
+        "USGS_INUNDATION",
+        "USACE_LEVEE_EVIDENCE",
+        "PLANNING",
+        "OBSERVATIONAL",
+        "ADVISORY",
+        "HISTORICAL",
+        "DERIVED_NONREGULATORY"
+      ]
+    },
+    "authority_class": {
+      "type": "string",
+      "enum": [
+        "FEDERAL_REGULATORY_REFERENCE",
+        "STATE_REGULATORY_REFERENCE",
+        "STATE_BEST_AVAILABLE",
+        "SITE_ASSESSMENT",
+        "MODEL_OUTPUT",
+        "OBSERVATION",
+        "DERIVED",
+        "VISUALIZATION"
+      ]
+    },
+    "horizontal_crs": { "type": "string", "minLength": 1 },
+    "vertical_datum": { "type": "string", "minLength": 1 },
+    "model_lineage": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["model_id", "role"],
+        "properties": {
+          "model_id": { "type": "string", "minLength": 1 },
+          "role": { "type": "string", "minLength": 1 },
+          "model_version": { "type": ["string", "null"] },
+          "source_artifact_ids": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
+    "software_version": { "type": "string", "minLength": 1 },
+    "uncertainty": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "method", "notes"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["quantified", "qualitative", "not_provided"]
+        },
+        "value": { "type": ["number", "null"] },
+        "unit": { "type": ["string", "null"] },
+        "method": { "type": "string", "minLength": 1 },
+        "notes": { "type": "string", "minLength": 1 }
+      }
+    },
+    "insurance_determination_eligible": { "type": "boolean" },
+    "human_review_required": { "type": "boolean" },
+    "human_review_status": {
+      "type": "string",
+      "enum": ["pending", "reviewed", "authorized", "not_applicable"]
+    },
+    "transformation_chain": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["step", "operation", "from", "to"],
+        "properties": {
+          "step": { "type": "integer", "minimum": 1 },
+          "operation": { "type": "string", "minLength": 1 },
+          "from": { "type": "string", "minLength": 1 },
+          "to": { "type": "string", "minLength": 1 },
+          "software": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "content_hash_sha256": {
+      "type": ["string", "null"],
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "provenance_hash_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  }
+}
