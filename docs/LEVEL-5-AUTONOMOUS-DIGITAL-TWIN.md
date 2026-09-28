@@ -102,6 +102,6 @@ This implementation makes the architecture Level-5-ready, not a claim that TSM c
 - Level 5 contract tests pass.
 - Schema validation passes.
 - Existing Open World Twin validation remains green.
-- Railway API starts only after OIDC bootstrap verification.
-- Railway /ready is green only after OIDC configuration is complete.
+- self-hosted API starts only after OIDC bootstrap verification.
+- self-hosted API /ready is green only after OIDC configuration is complete.
 - GitHub Pages deployment verifies both the generated page URL and the production API /ready endpoint.
