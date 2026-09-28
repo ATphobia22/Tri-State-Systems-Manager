@@ -76,7 +76,7 @@ try {
   failures.push(`tsm-console/package.json: invalid JSON: ${error.message}`);
 }
 
-if (!/build:\s*\n\s+context:\s+\./.test(compose) || !/dockerfile:\s+Dockerfile/.test(compose)) failures.push('tsm-console/docker-compose.yml: canonical services must build the checked-in Dockerfile');
+if (!/build:\s*\n\s+context:\s+\.\.?\s*\n\s+dockerfile:\s+(?:Dockerfile|tsm-console\/Dockerfile)\b/.test(compose)) failures.push('tsm-console/docker-compose.yml: canonical services must build the checked-in Dockerfile');
 if (!fs.existsSync(path.join(repoRoot, 'tsm-console/Dockerfile'))) failures.push('tsm-console/Dockerfile: production runtime Dockerfile missing');
 if (/POSTGRES_PASSWORD:\s*(tsm|sovereign|sovereign_pass)\b/.test(compose)) failures.push('tsm-console/docker-compose.yml: plaintext database credential detected');
 if (!/condition:\s*service_healthy/.test(compose)) failures.push('tsm-console/docker-compose.yml: web service must wait for healthy API');
