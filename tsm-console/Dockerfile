@@ -1,24 +1,41 @@
 # TSM production runtime image
+#
+# Build context is the repository root (see tsm-console/docker-compose.yml):
+# the Vite build statically imports repo-root data (data/scenarios,
+# data/schemas, artifacts/), which a tsm-console-only context cannot see.
+# The build stage mirrors the repo layout under /app so those relative
+# imports (e.g. ../../../../data/scenarios/... from tsm-console/src/...)
+# resolve exactly as they do in a full checkout.
 FROM node:22-alpine AS build
-WORKDIR /app
-COPY package.json package-lock.json ./
-COPY scripts/postinstall-check.mjs ./scripts/postinstall-check.mjs
-COPY vite.config.ts index.html ./
-COPY src/main.tsx ./src/main.tsx
+WORKDIR /app/tsm-console
+COPY tsm-console/package.json tsm-console/package-lock.json ./
+COPY tsm-console/scripts/postinstall-check.mjs ./scripts/postinstall-check.mjs
+COPY tsm-console/vite.config.ts tsm-console/index.html ./
+COPY tsm-console/src/main.tsx ./src/main.tsx
 RUN npm ci --no-audit --no-fund
-COPY . .
+COPY tsm-console/. .
+# Repo-root inputs imported by the Vite build. Single source of truth lives
+# at the repo root; mirrored to /app/<path> so the source imports resolve.
+COPY data/scenarios/1937-ohio-river-flood.json \
+     data/scenarios/q100-design-event.json \
+     data/scenarios/live-gauge-driven.json \
+     /app/data/scenarios/
+COPY data/schemas/flood-sim-scenario.schema.json /app/data/schemas/flood-sim-scenario.schema.json
+COPY artifacts/tsm-geospatial-tile-fabric-v1.json \
+     artifacts/tsm-river-valley-realtime-stations-v1.json \
+     /app/artifacts/
 RUN npm run build
 
 FROM node:22-alpine AS runtime
 ENV NODE_ENV=production
 WORKDIR /app
-COPY --from=build /app/package.json /app/package-lock.json ./
+COPY --from=build /app/tsm-console/package.json /app/tsm-console/package-lock.json ./
 RUN npm ci --omit=dev --ignore-scripts --no-audit --no-fund && npm cache clean --force
-COPY --from=build /app/server ./server
-COPY --from=build /app/data ./data
-COPY --from=build /app/data/authority/tsm-authority-registry-v35.json ./tsm-authority-registry-v35.json
-COPY --from=build /app/dist ./dist
-COPY --from=build /app/index.html ./index.html
+COPY --from=build /app/tsm-console/server ./server
+COPY --from=build /app/tsm-console/data ./data
+COPY --from=build /app/tsm-console/data/authority/tsm-authority-registry-v35.json ./tsm-authority-registry-v35.json
+COPY --from=build /app/tsm-console/dist ./dist
+COPY --from=build /app/tsm-console/index.html ./index.html
 RUN addgroup -S tsm && adduser -S -G tsm tsm && mkdir -p /app/.data && chown -R tsm:tsm /app
 USER tsm
 EXPOSE 8787 3000

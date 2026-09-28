@@ -1,0 +1,16 @@
+# Docker build context is the repository root (tsm-console/docker-compose.yml
+# sets context: ..). Keep the context lean: the image only needs the console
+# sources, its lockfile, and the repo-root data/artifacts the Vite build
+# statically imports.
+.git
+.github
+**/node_modules
+**/dist
+tsm-console/.data
+tsm-console/artifacts
+# Large offline reference bundle — not needed in the runtime image.
+data/posey-county
+*.log
+.env
+.env.*
+!.env.example

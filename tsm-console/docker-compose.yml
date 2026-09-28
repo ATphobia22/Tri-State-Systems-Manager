@@ -17,8 +17,8 @@ name: tsm
 services:
   api:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: tsm-console/Dockerfile
     image: tsm-console:local
     command: ["node", "server/token-proxy.mjs"]
     ports:
@@ -54,8 +54,8 @@ services:
 
   web:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: tsm-console/Dockerfile
     image: tsm-console:local
     command: ["node", "server/static-server.mjs"]
     ports:
