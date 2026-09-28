@@ -1,0 +1,4 @@
+n38w088 https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n38w088/USGS_13_n38w088_20260417.tif
+n38w089 https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n38w089/USGS_13_n38w089_20260417.tif
+n39w088 https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n39w088/USGS_13_n39w088_20221205.tif
+n39w089 https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n39w089/USGS_13_n39w089_20221205.tif
