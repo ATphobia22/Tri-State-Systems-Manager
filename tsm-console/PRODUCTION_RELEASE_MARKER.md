@@ -1,7 +1,7 @@
 # Production release marker
 
-This file is intentionally non-runtime and exists to provide an explicit watched-tree deployment boundary for Railway.
+This file is intentionally non-runtime and exists to provide an explicit deployment provenance boundary for Coolify/self-hosted.
 
-Railway watches `/tsm-console/**`. Changes that only modify CI/workflow files do not produce a new API deployment, which can otherwise prevent the production Pages exact-SHA readiness gate from converging.
+The API is deployed from the repository by Coolify using the `tsm-console/Dockerfile` and repository-root build context. Coolify must deploy the exact Git commit being published so the production Pages exact-SHA readiness gate can converge.
 
-The release marker is updated only when a production Pages/API release must converge to the same Git commit. Railway production build context is the repository root with `tsm-console/Dockerfile` as the Dockerfile.
+The release marker is updated only when a production Pages/API release must converge to the same Git commit. Coolify/self-hosted production build context is the repository root with `tsm-console/Dockerfile` as the Dockerfile.

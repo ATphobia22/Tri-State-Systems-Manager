@@ -29,7 +29,7 @@ import { acceptSyslog } from './alerts/syslog.mjs';
 import { createRateLimiter } from './reliability/rate-limiter.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
-const BUILD_SHA = process.env.RAILWAY_GIT_COMMIT_SHA || process.env.GITHUB_SHA || process.env.TSM_BUILD_SHA || 'local';
+const BUILD_SHA = process.env.TSM_BUILD_SHA || process.env.GITHUB_SHA || 'local';
 const ALLOWED_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
 if (ALLOWED_ORIGIN === '*') throw new Error('CORS_ORIGIN must be an exact trusted origin; wildcard CORS is prohibited.');
 const RUNTIME_BROWSER_METRICS = new Set(['tsm_browser_route_load_seconds', 'tsm_browser_js_chunk_bytes', 'tsm_browser_frame_time_seconds', 'tsm_browser_tile_request_latency_seconds', 'tsm_browser_tile_requests_total', 'tsm_browser_tile_failures_total', 'tsm_browser_memory_pressure_ratio', 'tsm_browser_webgpu_available', 'tsm_browser_webgl_available']);

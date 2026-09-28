@@ -35,9 +35,9 @@ jobs:
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch' || (github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'production') || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) || (github.event_name == 'issues' && github.event.action == 'opened' && github.event.issue.pull_request == null && github.event.issue.title == 'TSM Pages deployment dispatch' && github.event.issue.body == 'DEPLOY_PAGES_REQUEST' && github.event.issue.user.login == github.repository_owner) }}
     runs-on: ubuntu-24.04
     env:
-      # Canonical production API. Do not derive this from the Pages origin or an unverified repository variable.
-      # Railway watches this workflow path so production release metadata converges with Pages.
-      VITE_TSM_API_BASE_URL: https://tsm-api-production.up.railway.app
+      # Canonical production API is supplied by the repository variable managed with the self-hosted deployment.
+      # It must be HTTPS and must point to the Coolify-managed TSM API.
+      VITE_TSM_API_BASE_URL: ${{ vars.TSM_API_BASE_URL }}
       # Production 3D terrain: Terrain-RGB tile pyramid committed under
       # tsm-console/public/terrain_3dep/ (Vite copies public/ to dist/) and served
       # by GitHub Pages. The fail-closed validator requires a real https:// URL
@@ -56,7 +56,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          [[ -n "${VITE_TSM_API_BASE_URL}" ]] || { echo 'Missing production API origin.' >&2; exit 1; }
+          [[ -n "${VITE_TSM_API_BASE_URL}" ]] || { echo 'Missing repository variable TSM_API_BASE_URL.' >&2; exit 1; }
           [[ "${VITE_TSM_API_BASE_URL}" == https://* ]] || { echo 'VITE_TSM_API_BASE_URL must use HTTPS for production Pages deployments.' >&2; exit 1; }
           [[ "${VITE_TSM_TERRAIN_RGB_URL_TEMPLATE}" == https://* ]] || { echo 'VITE_TSM_TERRAIN_RGB_URL_TEMPLATE must use HTTPS.' >&2; exit 1; }
           case "${VITE_TSM_TERRAIN_RGB_URL_TEMPLATE}" in
@@ -220,7 +220,7 @@ jobs:
       - name: Verify production API readiness
         shell: bash
         env:
-          TSM_API_BASE_URL: https://tsm-api-production.up.railway.app
+          TSM_API_BASE_URL: ${{ vars.TSM_API_BASE_URL }}
         run: |
           set -euo pipefail
           [[ "${TSM_API_BASE_URL}" == https://* ]] || { echo 'Production API origin must use HTTPS.' >&2; exit 1; }

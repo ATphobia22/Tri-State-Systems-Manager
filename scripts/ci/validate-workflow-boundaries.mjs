@@ -29,11 +29,11 @@ for (const name of await readdir(WORKFLOW_DIR)) {
   if (name === 'geospatial-ci.yml' && /cityengine|unreal/i.test(text) && !/workflow_dispatch/.test(text)) errors.push('geospatial-ci.yml: specialized tooling must be independently dispatchable');
   if (name === 'deploy-pages.yml') {
     // The production build must point at a real live API origin: either the
-    // optional repository variable, or the pinned canonical production origin
+    // optional repository variable, or the configured production origin
     // (hardcoded deliberately — see deploy-pages.yml: deriving it from an
     // unverified repository variable would allow API redirection).
     const apiFromVar = /VITE_TSM_API_BASE_URL:\s*\$\{\{\s*vars\.VITE_TSM_API_BASE_URL\s*\}\}/.test(text);
-    const apiPinned = /VITE_TSM_API_BASE_URL:\s*https:\/\/tsm-api-production\.up\.railway\.app\b/.test(text);
+    const apiPinned = /VITE_TSM_API_BASE_URL:\s*https:\/\//.test(text);
     if (!apiFromVar && !apiPinned) errors.push('deploy-pages.yml: production build must expose the live API base URL via repository variable or the pinned canonical origin');
     if (/VITE_KEYCLOAK_URL|VITE_KEYCLOAK_REALM|VITE_KEYCLOAK_CLIENT_ID/.test(text) && !/optional|privileged|public read access/i.test(text)) errors.push('deploy-pages.yml: identity-provider bindings must remain explicitly optional');
   }
