@@ -25,7 +25,7 @@ test('FEMA NFHL and Indiana BAFM remain distinct authority planes', () => {
 test('terrain is fail-closed when no real Terrain-RGB endpoint is configured', () => {
   const source = read('src/lib/twin-map-style.ts');
   assert.match(source, /VITE_TSM_TERRAIN_RGB_URL_TEMPLATE/);
-  assert.match(source, /if \(!terrainTemplate\) return false/);
+  assert.match(source, /if \(!terrain\.enabled\)/);
   assert.doesNotMatch(source, /synthetic|mock.*terrain|new Terrain\(/i);
 });
 

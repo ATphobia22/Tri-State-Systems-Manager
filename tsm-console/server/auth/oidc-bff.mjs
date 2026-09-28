@@ -3,6 +3,7 @@ import { verifyAccessToken, verifyIdToken } from './oidc-auth.mjs';
 import { clearSessionCookie, clearTransactionCookie, readTransactionCookie, setSessionCookie, setTransactionCookie, readSessionCookie } from './session-cookie.mjs';
 
 const DISCOVERY_TTL_MS = 300_000;
+const UPSTREAM_TIMEOUT_MS = 30_000;
 let discoveryCache = null;
 
 function config() {
@@ -31,7 +32,7 @@ function config() {
 async function discovery() {
   const { issuer } = config();
   if (discoveryCache && discoveryCache.expiresAt > Date.now()) return discoveryCache.document;
-  const response = await fetch(issuer + '/.well-known/openid-configuration', { headers: { Accept: 'application/json' } });
+  const response = await fetch(issuer + '/.well-known/openid-configuration', { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS) });
   if (!response.ok) throw Object.assign(new Error('OIDC discovery endpoint returned HTTP ' + response.status + '.'), { code: 'OIDC_DISCOVERY_UNAVAILABLE', status: 503 });
   const document = await response.json();
   const endpoints = [document.authorization_endpoint, document.token_endpoint, document.jwks_uri];
@@ -101,6 +102,7 @@ export async function finishOidcLogin(req, res) {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json', Authorization: 'Basic ' + Buffer.from(clientId + ':' + clientSecret, 'utf8').toString('base64') },
     body,
+    signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
   });
   const token = await tokenResponse.json();
   if (!tokenResponse.ok || typeof token.access_token !== 'string' || typeof token.id_token !== 'string') {

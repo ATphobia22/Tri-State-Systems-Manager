@@ -5,9 +5,16 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MANIFEST = path.resolve(__dirname, '../../../data/fema/18129C0265C/manifest.json');
 
+// The FIRM manifest is a static deployment artifact: read and parse it once,
+// then serve every request from memory instead of hitting the filesystem per
+// request. Lazy (first-use) so importing this module never fails when the
+// manifest is absent; a missing manifest still fails closed on first access.
+let manifestCache = null;
+
 export function getFirmPanelManifest(panelId) {
   if (panelId !== '18129C0265C') return null;
-  return JSON.parse(fs.readFileSync(MANIFEST, 'utf8'));
+  if (!manifestCache) manifestCache = JSON.parse(fs.readFileSync(MANIFEST, 'utf8'));
+  return manifestCache;
 }
 
 export function getFirmPanelLayers(panelId) {

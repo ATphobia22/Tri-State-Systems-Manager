@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { t } from '../lib/design-tokens';
 import { getSessionFromServer } from '../lib/auth';
 
 interface EvidenceArtifact {
@@ -169,26 +170,26 @@ export function HumanSignGatePanel({
       aria-labelledby="human-sign-gate-title"
       style={{
         padding: '1.25rem',
-        background: '#0f172a',
-        color: '#e2e8f0',
-        border: '1px solid #334155',
-        borderRadius: 14,
+        background: t.color.surface.base,
+        color: t.color.text.body,
+        border: `1px solid ${t.color.border.default}`,
+        borderRadius: t.radius.xl,
       }}
     >
       <div style={{ marginBottom: '1rem' }}>
-        <div style={{ color: '#fbbf24', fontSize: '0.7rem', fontWeight: 700 }}>
+        <div style={{ color: t.color.status.warning, fontSize: t.font.size.sm, fontWeight: 700 }}>
           TSM CONTROL 4 · HUMAN AUTHORITY SIGN GATE
         </div>
         <h2 id="human-sign-gate-title" style={{ margin: '0.35rem 0', fontSize: '1.15rem' }}>
           Evidence publication authorization
         </h2>
-        <p style={{ margin: 0, color: '#94a3b8', fontSize: '0.78rem', lineHeight: 1.5 }}>
+        <p style={{ margin: 0, color: t.color.text.secondary, fontSize: t.font.size.md, lineHeight: 1.5 }}>
           Only server-side governance transitions may create a human-authorized artifact or
           append the Merkle ledger. The browser never generates an authoritative fallback.
         </p>
       </div>
 
-      {loading && <p style={{ color: '#94a3b8' }}>Loading human-review queue…</p>}
+      {loading && <p style={{ color: t.color.text.secondary }}>Loading human-review queue…</p>}
 
       {errorMessage && (
         <div
@@ -196,9 +197,9 @@ export function HumanSignGatePanel({
           style={{
             marginBottom: '1rem',
             padding: '0.75rem',
-            borderLeft: '4px solid #ef4444',
-            background: '#450a0a',
-            color: '#fecaca',
+            borderLeft: `4px solid ${t.color.status.danger}`,
+            background: t.color.surface.dangerInk,
+            color: t.color.status.dangerPale,
             fontSize: '0.78rem',
           }}
         >
@@ -211,12 +212,12 @@ export function HumanSignGatePanel({
           role="status"
           style={{
             padding: '1rem',
-            background: '#052e16',
-            border: '1px solid #16a34a',
-            borderRadius: 10,
+            background: t.color.surface.successInk,
+            border: `1px solid ${t.color.status.successBorder}`,
+            borderRadius: t.radius.md,
           }}
         >
-          <strong style={{ color: '#86efac' }}>MERKLE_APPEND_COMPLETE</strong>
+          <strong style={{ color: t.color.status.successSoft }}>MERKLE_APPEND_COMPLETE</strong>
           <div style={{ marginTop: 8, fontFamily: 'monospace', fontSize: '0.7rem' }}>
             <div>Artifact: {publication.artifact_id}</div>
             <div>Publication: {publication.publication_id}</div>
@@ -234,7 +235,7 @@ export function HumanSignGatePanel({
         </div>
       ) : (
         <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 12 }}>
-          <label style={{ fontSize: '0.75rem', color: '#cbd5e1' }}>
+          <label style={{ fontSize: t.font.size.md, color: t.color.text.muted }}>
             Pending evidence artifact
             <select
               required
@@ -256,9 +257,9 @@ export function HumanSignGatePanel({
             <div
               style={{
                 padding: '0.75rem',
-                background: '#020617',
-                border: '1px solid #1e293b',
-                borderRadius: 8,
+                background: t.color.surface.deep,
+                border: `1px solid ${t.color.surface.card}`,
+                borderRadius: t.radius.sm,
                 fontFamily: 'monospace',
                 fontSize: '0.68rem',
                 overflowWrap: 'anywhere',
@@ -273,7 +274,7 @@ export function HumanSignGatePanel({
             </div>
           )}
 
-          <label style={{ fontSize: '0.75rem', color: '#cbd5e1' }}>
+          <label style={{ fontSize: t.font.size.md, color: t.color.text.muted }}>
             Reviewer identity
             <input
               required
@@ -287,7 +288,7 @@ export function HumanSignGatePanel({
             />
           </label>
 
-          <label style={{ fontSize: '0.75rem', color: '#cbd5e1' }}>
+          <label style={{ fontSize: t.font.size.md, color: t.color.text.muted }}>
             Engineering review reason
             <textarea
               required
@@ -305,8 +306,8 @@ export function HumanSignGatePanel({
               display: 'flex',
               gap: 8,
               alignItems: 'flex-start',
-              fontSize: '0.75rem',
-              color: '#f8fafc',
+              fontSize: t.font.size.md,
+              color: t.color.text.primary,
             }}
           >
             <input type="checkbox" required disabled={submitting} />
@@ -320,9 +321,9 @@ export function HumanSignGatePanel({
             style={{
               padding: '0.65rem 0.85rem',
               border: 0,
-              borderRadius: 8,
-              background: formValid && !submitting ? '#0284c7' : '#334155',
-              color: '#fff',
+              borderRadius: t.radius.sm,
+              background: formValid && !submitting ? t.color.action.primary : t.color.action.disabled,
+              color: t.color.text.inverse,
               fontWeight: 700,
               cursor: formValid && !submitting ? 'pointer' : 'not-allowed',
             }}
@@ -341,9 +342,9 @@ const inputStyle: React.CSSProperties = {
   marginTop: 5,
   padding: '0.55rem 0.65rem',
   boxSizing: 'border-box',
-  background: '#020617',
-  border: '1px solid #334155',
-  borderRadius: 8,
-  color: '#e2e8f0',
-  fontSize: '0.8rem',
+  background: t.color.surface.deep,
+  border: `1px solid ${t.color.border.default}`,
+  borderRadius: t.radius.sm,
+  color: t.color.text.body,
+  fontSize: t.font.size.base,
 };

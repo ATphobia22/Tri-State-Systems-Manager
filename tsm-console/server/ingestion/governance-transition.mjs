@@ -143,19 +143,19 @@ export async function publishAuthorizedArtifact(authorizedArtifact) {
 
   const { content_hash_sha256: _unusedHash, ...unsignedArtifact } = authorizedArtifact;
   const canonical = `TSM_AUTHORIZED_ARTIFACT:${stableStringify(unsignedArtifact)}`;
-  const stored = appendArtifact({
+  const stored = await appendArtifact({
     ...authorizedArtifact,
     _governance_transition: true,
     _canonical_for_verify: canonical,
   });
 
-  recordVerification(
+  await recordVerification(
     stored.artifact_id,
     stored.content_hash_sha256,
     stored.content_hash_sha256,
     'governance-transition',
   );
-  const merkle = appendMerkleLeaf(stored);
+  const merkle = await appendMerkleLeaf(stored);
 
   return {
     publication_id: stored.artifact_id,
@@ -170,7 +170,7 @@ export async function publishAuthorizedArtifact(authorizedArtifact) {
 }
 
 export async function authorizeAndPublishArtifact(artifactId, reviewPayload, actorSubject = null) {
-  const rawArtifact = getArtifact(artifactId);
+  const rawArtifact = await getArtifact(artifactId);
   if (!rawArtifact) fail(`FAIL_CLOSED: raw artifact not found: ${artifactId}`, 'NOT_FOUND');
   const authorized = authorizeEvidenceArtifact(rawArtifact, reviewPayload, actorSubject);
   return publishAuthorizedArtifact(authorized);

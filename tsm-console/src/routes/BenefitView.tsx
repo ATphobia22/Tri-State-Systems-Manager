@@ -40,7 +40,7 @@ export default function BenefitView() {
 
       <div style={{ display: 'grid', gap: '1rem' }}>
         {data.interventions.length === 0 && (
-          <p style={{ color: '#475569', textAlign: 'center', padding: '2rem' }}>No interventions yet.</p>
+          <p style={{ color: '#94a3b8', textAlign: 'center', padding: '2rem' }}>No interventions yet.</p>
         )}
         {data.interventions.map((i) => (
           <div key={i.id} style={{ background: '#1e293b', borderRadius: 12, padding: '1.25rem' }}>

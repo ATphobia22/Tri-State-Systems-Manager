@@ -28,6 +28,15 @@ function loadRegistry() {
   throw new Error('fail-closed: Authority Registry v35 not found');
 }
 
+// The authority registry is an immutable deployment artifact: load it once and
+// serve every worker from memory instead of re-reading and re-parsing the file
+// on every ingestion call (previously 5× per hydrologic batch).
+let cachedRegistry = null;
+function getRegistry() {
+  if (!cachedRegistry) cachedRegistry = loadRegistry();
+  return cachedRegistry;
+}
+
 function leafCanonical(obj) { return `TSM_LEAF:${JSON.stringify(obj)}`; }
 
 /**
@@ -62,11 +71,11 @@ function navd88FromGage(node, gageHeightFt) {
   return { conversion_applied: true, wse_navd88_ft: normalized.valueFt, gage_zero_navd88_ft: normalized.offsetFt, vertical_conversion_source: normalized.offsetSource, vertical_conversion_status: normalized.status };
 }
 
-function appendObservation(record, extra = {}) {
+async function appendObservation(record, extra = {}) {
   const payload = { ...record, ...extra };
   const canonical = leafCanonical(payload);
   const hash = sha256Hex(canonical);
-  const artifact = appendArtifact({
+  const artifact = await appendArtifact({
     artifact_type: 'authoritative_source_record', source_authority: record.provenance.provider, source_uri: record.sourceUri,
     source_identifier: record.sourceId, retrieved_at: record.retrievedAt, observation_time: record.observedAt,
     horizontal_crs: record.crs, vertical_datum: record.verticalDatum, vertical_datum_converted: extra.wse_navd88_ft != null ? 'NAVD88' : null,
@@ -81,7 +90,7 @@ function appendObservation(record, extra = {}) {
 }
 
 export async function ingestUsgsNode(usgsId, { timeoutMs = 10000 } = {}) {
-  const node = (loadRegistry().hydrologic_nodes || []).find((candidate) => candidate.usgs_id === usgsId);
+  const node = (getRegistry().hydrologic_nodes || []).find((candidate) => candidate.usgs_id === usgsId);
   if (!node) return { ok: false, code: 'FAIL_CLOSED', error: `usgs_id ${usgsId} not in Authority Registry` };
   try {
     const records = await fetchUsgsInstantaneousValues({ stationIds: [usgsId], parameterCodes: ['00065', '00060'], signal: AbortSignal.timeout(timeoutMs) });
@@ -94,9 +103,9 @@ export async function ingestUsgsNode(usgsId, { timeoutMs = 10000 } = {}) {
     const discharge = records.filter((record) => record.provenance.parameterCode === '00060').at(-1) || null;
     observeTelemetryMetric('ptdt_usgs_gauge_stage_feet', stage.value, { site_id: usgsId, datum: 'GAGE_DATUM' });
     if (discharge) observeTelemetryMetric('ptdt_usgs_discharge_cfs', discharge.value, { site_id: usgsId });
-    const artifact = appendObservation(stage, { ...conversion, freshness_state: freshnessState, stationName: node.name, role: node.role, relatedInfrastructure: node.related_infrastructure || null, discharge_cfs: discharge?.value ?? null, discharge_observedAt: discharge?.observedAt ?? null, timeoutMs });
+    const artifact = await appendObservation(stage, { ...conversion, freshness_state: freshnessState, stationName: node.name, role: node.role, relatedInfrastructure: node.related_infrastructure || null, discharge_cfs: discharge?.value ?? null, discharge_observedAt: discharge?.observedAt ?? null, timeoutMs });
     const eventBus = await publishEventSafely({ event_type: 'hydrologic_observation', provider: 'USGS', station_id: usgsId, observed_at: stage.observedAt, stage_ft: stage.value, discharge_cfs: discharge?.value ?? null, vertical_datum: stage.verticalDatum, wse_navd88_ft: conversion.wse_navd88_ft, artifact_id: artifact.artifact_id, content_hash_sha256: artifact.content_hash_sha256 });
-    recordVerification(artifact.artifact_id, artifact.content_hash_sha256, artifact.content_hash_sha256, 'authoritative-data-fabric');
+    await recordVerification(artifact.artifact_id, artifact.content_hash_sha256, artifact.content_hash_sha256, 'authoritative-data-fabric');
     return { ok: true, artifact, sourceRecord: stage, dischargeRecord: discharge, freshness_state: freshnessState, event_bus: eventBus };
   } catch (error) {
     return { ok: false, code: error.code || 'FAIL_CLOSED', error: error.message };
@@ -105,7 +114,7 @@ export async function ingestUsgsNode(usgsId, { timeoutMs = 10000 } = {}) {
 
 export async function ingestNwpsGauge(nwsId, { product = 'observed', timeoutMs = 10000 } = {}) {
   if (!['observed', 'forecast'].includes(product)) return { ok: false, code: 'INVALID_PRODUCT', error: 'product must be observed or forecast' };
-  const node = (loadRegistry().hydrologic_nodes || []).find((candidate) => candidate.nws_id === nwsId);
+  const node = (getRegistry().hydrologic_nodes || []).find((candidate) => candidate.nws_id === nwsId);
   if (!node) return { ok: false, code: 'FAIL_CLOSED', error: `nws_id ${nwsId} not in Authority Registry` };
   try {
     const records = await fetchNoaaStageFlow({ identifier: nwsId, product, signal: AbortSignal.timeout(timeoutMs) });
@@ -115,7 +124,7 @@ export async function ingestNwpsGauge(nwsId, { product = 'observed', timeoutMs =
     const conversion = product === 'observed' ? navd88FromGage(node, latest.value) : { conversion_applied: false, wse_navd88_ft: null, gage_zero_navd88_ft: null, vertical_conversion_source: null };
     const freshnessAgeSeconds = Math.max(0, (Date.now() - Date.parse(latest.observedAt)) / 1000);
     if (Number.isFinite(freshnessAgeSeconds)) observeTelemetryMetric('tsm_source_freshness_age_seconds', freshnessAgeSeconds, { source_id: `NOAA-NWPS-${nwsId}` });
-    const artifact = appendObservation(latest, { ...conversion, freshness_state: freshnessState, stationName: node.name, role: node.role, timeoutMs });
+    const artifact = await appendObservation(latest, { ...conversion, freshness_state: freshnessState, stationName: node.name, role: node.role, timeoutMs });
     const eventBus = await publishEventSafely({ event_type: 'hydrologic_observation', provider: 'NOAA_NWPS', station_id: nwsId, product, observed_at: latest.observedAt, stage_ft: latest.value, vertical_datum: latest.verticalDatum, wse_navd88_ft: conversion.wse_navd88_ft, artifact_id: artifact.artifact_id, content_hash_sha256: artifact.content_hash_sha256 });
     return { ok: true, artifact, sourceRecord: latest, freshness_state: freshnessState, event_bus: eventBus };
   } catch (error) {

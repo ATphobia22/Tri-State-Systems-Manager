@@ -5,11 +5,17 @@
  *
  * SHA-256 proves integrity only.
  * Fail-closed: invalid hash or missing required fields → reject.
+ *
+ * Persistence is fully async (node:fs/promises). Mutations are serialized
+ * through an in-process write queue so concurrent appends cannot interleave
+ * their read-modify-write cycles. Retention caps bound file growth: the
+ * newest N artifacts / verifications / Merkle roots are kept and older
+ * entries are pruned on write.
  */
 
 import { createHash, randomUUID } from 'node:crypto';
 import { validateSpatialFields } from './geodetic-guard.mjs';
-import fs from 'node:fs';
+import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -25,23 +31,63 @@ const REQUIRED = [
 
 const HASH_RE = /^[a-f0-9]{64}$/;
 
-function ensureDir() {
-  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+function retentionLimit(envName, fallback) {
+  const parsed = Number(process.env[envName]);
+  if (Number.isInteger(parsed) && parsed >= 100) return parsed;
+  return fallback;
 }
 
-function load() {
-  ensureDir();
-  if (!fs.existsSync(STORE_FILE)) {
-    return { artifacts: [], verifications: [], merkleRoots: [], merkleLeaves: [] };
+// Retention caps: newest-first arrays are truncated to these lengths on write.
+const MAX_ARTIFACTS = retentionLimit('TSM_EVIDENCE_MAX_ARTIFACTS', 10_000);
+const MAX_VERIFICATIONS = retentionLimit('TSM_EVIDENCE_MAX_VERIFICATIONS', 10_000);
+const MAX_MERKLE_ROOTS = retentionLimit('TSM_EVIDENCE_MAX_MERKLE_ROOTS', 1_000);
+
+function emptyState() {
+  return { artifacts: [], verifications: [], merkleRoots: [], merkleLeaves: [] };
+}
+
+async function loadState() {
+  await mkdir(DATA_DIR, { recursive: true });
+  let raw;
+  try {
+    raw = await readFile(STORE_FILE, 'utf8');
+  } catch (error) {
+    if (error?.code === 'ENOENT') return emptyState();
+    throw error;
   }
-  return JSON.parse(fs.readFileSync(STORE_FILE, 'utf8'));
+  const state = JSON.parse(raw);
+  if (!Array.isArray(state.artifacts)) state.artifacts = [];
+  if (!Array.isArray(state.verifications)) state.verifications = [];
+  if (!Array.isArray(state.merkleRoots)) state.merkleRoots = [];
+  if (!Array.isArray(state.merkleLeaves)) state.merkleLeaves = [];
+  return state;
 }
 
-function save(state) {
-  ensureDir();
+function applyRetention(state) {
+  if (state.artifacts.length > MAX_ARTIFACTS) state.artifacts.length = MAX_ARTIFACTS;
+  if (state.verifications.length > MAX_VERIFICATIONS) state.verifications.length = MAX_VERIFICATIONS;
+  if (state.merkleRoots.length > MAX_MERKLE_ROOTS) state.merkleRoots.length = MAX_MERKLE_ROOTS;
+  return state;
+}
+
+async function saveState(state) {
+  applyRetention(state);
+  await mkdir(DATA_DIR, { recursive: true });
   const temporary = `${STORE_FILE}.${process.pid}.tmp`;
-  fs.writeFileSync(temporary, JSON.stringify(state, null, 2), { mode: 0o600 });
-  fs.renameSync(temporary, STORE_FILE);
+  await writeFile(temporary, JSON.stringify(state, null, 2), { mode: 0o600 });
+  await rename(temporary, STORE_FILE);
+}
+
+// Serialize read-modify-write mutations so concurrent async appends cannot
+// interleave. Reads are lock-free.
+let writeQueue = Promise.resolve();
+function serializeWrite(task) {
+  const run = writeQueue.then(task, task);
+  writeQueue = run.then(
+    () => undefined,
+    () => undefined,
+  );
+  return run;
 }
 
 export function sha256Hex(input) {
@@ -61,7 +107,7 @@ export function verifyProvenance(artifact, canonicalPayload) {
   return { ok: match, expected, computed };
 }
 
-export function appendArtifact(raw) {
+function validateArtifactFields(raw) {
   for (const k of REQUIRED) {
     if (raw[k] === undefined || raw[k] === null || raw[k] === '') {
       const err = new Error(`fail-closed: missing required field ${k}`);
@@ -97,14 +143,9 @@ export function appendArtifact(raw) {
       throw err;
     }
   }
+}
 
-  const state = load();
-  if (state.artifacts.some((a) => a.content_hash_sha256 === raw.content_hash_sha256)) {
-    const err = new Error('fail-closed: duplicate content_hash_sha256');
-    err.code = 'FAIL_CLOSED';
-    throw err;
-  }
-
+function buildArtifact(raw) {
   const artifact = {
     artifact_id: raw.artifact_id || `ART-${randomUUID()}`,
     artifact_type: raw.artifact_type,
@@ -143,14 +184,27 @@ export function appendArtifact(raw) {
     artifact.authority_class = 'SIMULATION_DEMO';
     artifact.notes = (artifact.notes || '') + ' [auto-relabeled: demo cannot be OBSERVATION]';
   }
-
-  state.artifacts.unshift(artifact);
-  save(state);
   return artifact;
 }
 
-export function listArtifacts({ limit = 50, authority_class, is_simulation_demo } = {}) {
-  let rows = load().artifacts;
+export async function appendArtifact(raw) {
+  validateArtifactFields(raw);
+  return serializeWrite(async () => {
+    const state = await loadState();
+    if (state.artifacts.some((a) => a.content_hash_sha256 === raw.content_hash_sha256)) {
+      const err = new Error('fail-closed: duplicate content_hash_sha256');
+      err.code = 'FAIL_CLOSED';
+      throw err;
+    }
+    const artifact = buildArtifact(raw);
+    state.artifacts.unshift(artifact);
+    await saveState(state);
+    return artifact;
+  });
+}
+
+export async function listArtifacts({ limit = 50, authority_class, is_simulation_demo } = {}) {
+  let rows = (await loadState()).artifacts;
   if (authority_class) rows = rows.filter((a) => a.authority_class === authority_class);
   if (is_simulation_demo !== undefined) {
     rows = rows.filter((a) => a.is_simulation_demo === is_simulation_demo);
@@ -158,66 +212,70 @@ export function listArtifacts({ limit = 50, authority_class, is_simulation_demo 
   return rows.slice(0, limit);
 }
 
-export function getArtifact(id) {
-  return load().artifacts.find((a) => a.artifact_id === id) || null;
+export async function getArtifact(id) {
+  return (await loadState()).artifacts.find((a) => a.artifact_id === id) || null;
 }
 
-export function appendMerkleLeaf(artifact) {
+export async function appendMerkleLeaf(artifact) {
   if (!artifact || artifact.governance_status !== 'human_authorized' || artifact.human_review_status !== 'signed') {
     const err = new Error('fail-closed: only human-authorized signed artifacts may enter the Merkle ledger');
     err.code = 'FAIL_CLOSED';
     throw err;
   }
 
-  const state = load();
-  if (!Array.isArray(state.merkleLeaves)) state.merkleLeaves = [];
-  if (state.merkleLeaves.some((leaf) => leaf.artifact_id === artifact.artifact_id)) {
-    const err = new Error('fail-closed: artifact already exists in Merkle ledger');
-    err.code = 'FAIL_CLOSED';
-    throw err;
-  }
-
-  const leafHash = sha256Hex(`TSM_LEAF:${artifact.content_hash_sha256}`);
-  const leaves = [...state.merkleLeaves, { artifact_id: artifact.artifact_id, leaf_hash: leafHash }];
-  let level = leaves.map((leaf) => leaf.leaf_hash);
-  if (level.length === 0) level = [sha256Hex('TSM_NODE:EMPTY')];
-
-  while (level.length > 1) {
-    const next = [];
-    for (let i = 0; i < level.length; i += 2) {
-      const left = level[i];
-      const right = level[i + 1] || left;
-      next.push(sha256Hex(`TSM_NODE:${left}${right}`));
+  return serializeWrite(async () => {
+    const state = await loadState();
+    if (!Array.isArray(state.merkleLeaves)) state.merkleLeaves = [];
+    if (state.merkleLeaves.some((leaf) => leaf.artifact_id === artifact.artifact_id)) {
+      const err = new Error('fail-closed: artifact already exists in Merkle ledger');
+      err.code = 'FAIL_CLOSED';
+      throw err;
     }
-    level = next;
-  }
 
-  const root = level[0];
-  const sequence = leaves.length;
-  state.merkleLeaves = leaves;
-  state.merkleRoots.unshift({
-    sequence,
-    root_hash: root,
-    leaf_count: sequence,
-    created_at: new Date().toISOString(),
+    const leafHash = sha256Hex(`TSM_LEAF:${artifact.content_hash_sha256}`);
+    const leaves = [...state.merkleLeaves, { artifact_id: artifact.artifact_id, leaf_hash: leafHash }];
+    let level = leaves.map((leaf) => leaf.leaf_hash);
+    if (level.length === 0) level = [sha256Hex('TSM_NODE:EMPTY')];
+
+    while (level.length > 1) {
+      const next = [];
+      for (let i = 0; i < level.length; i += 2) {
+        const left = level[i];
+        const right = level[i + 1] || left;
+        next.push(sha256Hex(`TSM_NODE:${left}${right}`));
+      }
+      level = next;
+    }
+
+    const root = level[0];
+    const sequence = leaves.length;
+    state.merkleLeaves = leaves;
+    state.merkleRoots.unshift({
+      sequence,
+      root_hash: root,
+      leaf_count: sequence,
+      created_at: new Date().toISOString(),
+    });
+    await saveState(state);
+
+    return { sequence, leaf_hash: leafHash, root_hash: root, leaf_count: sequence };
   });
-  save(state);
-
-  return { sequence, leaf_hash: leafHash, root_hash: root, leaf_count: sequence };
 }
 
-export function recordVerification(artifact_id, expected, computed, verifier = 'tsm-server') {
-  const state = load();
-  const entry = {
-    id: state.verifications.length + 1,
-    artifact_id,
-    expected_hash: expected,
-    computed_hash: computed,
-    match: expected === computed,
-    verified_at: new Date().toISOString(),
-    verifier,
-  };
-  state.verifications.unshift(entry);
-  save(state);
-  return entry;
+export async function recordVerification(artifact_id, expected, computed, verifier = 'tsm-server') {
+  return serializeWrite(async () => {
+    const state = await loadState();
+    const entry = {
+      id: state.verifications.length + 1,
+      artifact_id,
+      expected_hash: expected,
+      computed_hash: computed,
+      match: expected === computed,
+      verified_at: new Date().toISOString(),
+      verifier,
+    };
+    state.verifications.unshift(entry);
+    await saveState(state);
+    return entry;
+  });
 }

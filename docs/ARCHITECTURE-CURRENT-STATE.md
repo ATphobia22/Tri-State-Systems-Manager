@@ -129,3 +129,23 @@ Future imports must **not** reintroduce anchor-site parcel/APN, address, or
 elevation values as code constants. Any site-specific engineering values must
 arrive as evidence (provenance-labeled, agency-confirmed) through the
 evidence plane, never as hardcoded constants.
+
+## 10. Console route map (2026-09-27, Phase 2 visual system)
+
+The four twin surfaces are kept as distinct working surfaces (not merged),
+differentiated by nav label and `document.title`:
+
+- `/map` — "Hydraulic Map": 2D MapLibre map with stage/jurisdiction controls.
+- `/twin` — "Twin Canvas": full-bleed twin canvas, minimal chrome, cinematic tour host.
+- `/digital-twin` — "Twin Summary": card summary (elevations, live gauges, clearance).
+  Deliberate deep link — kept out of the primary nav, reachable from the Twin
+  Canvas footer.
+- `/digital-twin-v2` — "Digital Twin 3D": immersive open-world 3D twin app,
+  lazy-loaded so maplibre-gl never blocks first paint for non-map visitors.
+
+Previously orphaned routes `/eoc` ("EOC Surface", decision support) and
+`/data-fabric` ("Data Fabric") are in the primary nav. All routes inherit the
+root `errorElement`, and lazy routes render `hydrateFallbackElement` while
+their chunk loads — no blank pages on loader or chunk failure. Visual
+presentation is governed by `tsm-console/src/lib/design-tokens.ts` (single
+token module; Phase 0 contrast values are pinned there).

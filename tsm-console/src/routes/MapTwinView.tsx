@@ -1,5 +1,6 @@
 import { useLoaderData } from 'react-router';
 import type { MapTwinLoaderData } from '../types/loaders';
+import { t } from '../lib/design-tokens';
 import { useLiveGauges } from '../hooks/useLiveGauges';
 import { toH3Cell } from '../lib/h3-spatial-fabric';
 
@@ -17,8 +18,8 @@ function MapTwinView() {
 
   return (
     <div style={{ padding: '1.5rem 2rem', maxWidth: 960, margin: '0 auto' }}>
-      <h1 style={{ color: '#f8fafc' }}>Digital Twin — {data.site.address}</h1>
-      <p style={{ color: '#64748b', fontSize: '0.8rem' }}>
+      <h1 style={{ color: t.color.text.primary }}>Digital Twin — {data.site.address}</h1>
+      <p style={{ color: t.color.text.secondary, fontSize: t.font.size.base }}>
         {data.site.township}, {data.site.county} · APN {data.site.apn} · EPSG:{data.site.crs.horizontalEpsg} /{' '}
         {data.site.crs.verticalDatum} · H3 r9 {h3Cell}
       </p>
@@ -37,31 +38,31 @@ function MapTwinView() {
         <Card label="FFE" value={`${data.site.elevations.ffe_ft} ft`} />
         <Card label="Berm Crest" value={`${data.site.elevations.bermCrest_ft} ft`} />
       </div>
-      <div style={{ background: '#1e293b', borderRadius: 12, padding: '1rem', marginBottom: 12 }}>
-        <h3 style={{ color: '#38bdf8', margin: '0 0 0.5rem', fontSize: '0.9rem' }}>
+      <div style={{ background: t.color.surface.card, borderRadius: t.radius.lg, padding: '1rem', marginBottom: 12 }}>
+        <h3 style={{ color: t.color.accent.brand, margin: '0 0 0.5rem', fontSize: t.font.size.xl }}>
           Live Stage (loader)
         </h3>
-        <p style={{ color: '#e2e8f0', margin: 0 }}>
+        <p style={{ color: t.color.text.body, margin: 0 }}>
           {data.stage.source} {data.stage.gaugeId}:{' '}
           <strong>
             {data.stage.value_ft != null ? `${data.stage.value_ft} ft` : 'unavailable'}
           </strong>
           {' · '}
-          <span style={{ color: '#94a3b8' }}>{data.stage.floodCategory}</span>
+          <span style={{ color: t.color.text.secondary }}>{data.stage.floodCategory}</span>
           {' · '}
-          <span style={{ color: '#64748b' }}>{data.stage.vertical_reference}</span>
+          <span style={{ color: t.color.text.secondary }}>{data.stage.vertical_reference}</span>
         </p>
         {data.stage.timestamp && (
-          <p style={{ color: '#64748b', fontSize: '0.7rem', margin: '0.35rem 0 0' }}>
+          <p style={{ color: t.color.text.secondary, fontSize: t.font.size.sm, margin: '0.35rem 0 0' }}>
             {data.stage.timestamp}
           </p>
         )}
       </div>
-      <div style={{ background: '#0f172a', borderRadius: 12, padding: '1rem', border: '1px solid #1e293b' }}>
-        <h3 style={{ color: '#7dd3fc', margin: '0 0 0.5rem', fontSize: '0.9rem' }}>
+      <div style={{ background: t.color.surface.base, borderRadius: t.radius.lg, padding: '1rem', border: `1px solid ${t.color.surface.card}` }}>
+        <h3 style={{ color: t.color.status.info, margin: '0 0 0.5rem', fontSize: t.font.size.xl }}>
           Community gauges · 60s poll {loading ? '(loading…)' : ''}
         </h3>
-        <p style={{ color: '#64748b', fontSize: '0.7rem', margin: '0 0 0.75rem' }}>
+        <p style={{ color: t.color.text.secondary, fontSize: t.font.size.sm, margin: '0 0 0.75rem' }}>
           Path: TSM /api/hydrologic/community → USGS OGC direct → last-known-good
           {lastUpdated ? ` · updated ${lastUpdated}` : ''}
         </p>
@@ -73,26 +74,26 @@ function MapTwinView() {
                 display: 'flex',
                 justifyContent: 'space-between',
                 gap: 12,
-                fontSize: '0.8rem',
-                color: '#cbd5e1',
-                borderBottom: '1px solid #1e293b',
+                fontSize: t.font.size.base,
+                color: t.color.text.muted,
+                borderBottom: `1px solid ${t.color.surface.card}`,
                 paddingBottom: 6,
               }}
             >
               <span>
                 {g.name}{' '}
-                <span style={{ color: '#64748b' }}>
+                <span style={{ color: t.color.text.secondary }}>
                   ({g.provider} · {g.provenancePath || '—'})
                 </span>
               </span>
-              <strong style={{ color: g.status === 'current' ? '#4ade80' : '#fbbf24' }}>
+              <strong style={{ color: g.status === 'current' ? t.color.status.successBright : t.color.status.warning }}>
                 {g.value != null ? `${g.value} ${g.unit || 'ft'}` : g.status}
               </strong>
             </div>
           ))}
         </div>
       </div>
-      <p style={{ marginTop: '1rem', fontSize: '0.7rem', color: '#475569' }}>
+      <p style={{ marginTop: '1rem', fontSize: t.font.size.sm, color: t.color.text.secondary }}>
         FEMA community {data.fema.communityNumber} · No-Rise tolerance {data.fema.noRiseTolerance_ft} ft ·
         Human authority required for all LOMA/LOMR actions · MapLibre twin: /map
       </p>
@@ -102,9 +103,9 @@ function MapTwinView() {
 
 function Card({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ background: '#1e293b', borderRadius: 10, padding: '0.85rem' }}>
-      <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{label}</div>
-      <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#38bdf8' }}>{value}</div>
+    <div style={{ background: t.color.surface.card, borderRadius: t.radius.md, padding: '0.85rem' }}>
+      <div style={{ fontSize: t.font.size.xs, color: t.color.text.secondary }}>{label}</div>
+      <div style={{ fontSize: '1.1rem', fontWeight: 700, color: t.color.accent.brand }}>{value}</div>
     </div>
   );
 }

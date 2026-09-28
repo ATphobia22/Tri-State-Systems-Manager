@@ -1,4 +1,5 @@
 import type { Map } from 'maplibre-gl';
+import { prefersReducedMotion } from '../reduced-motion';
 
 export interface CinematicCameraKeyframe {
   center: [number, number];
@@ -15,11 +16,25 @@ export const DEFAULT_CONFLUENCE_TOUR: readonly CinematicCameraKeyframe[] = [
   { center: [-87.962, 38.135], zoom: 14.2, pitch: 62, bearing: 105, durationMs: 2800 },
 ];
 
+/**
+ * Plays the cinematic camera tour. Returns a stop function.
+ *
+ * Reduced-motion gate: when the user prefers reduced motion, no animation
+ * plays — the camera snaps to the first keyframe (a static frame) and
+ * `null` is returned instead of a stop function so callers can keep their
+ * "tour active" state honest.
+ */
 export function playCinematicTour(
   map: Map,
   keyframes: readonly CinematicCameraKeyframe[] = DEFAULT_CONFLUENCE_TOUR,
-): () => void {
+): (() => void) | null {
   if (keyframes.length === 0) return () => {};
+
+  if (prefersReducedMotion()) {
+    const first = keyframes[0];
+    map.jumpTo({ center: first.center, zoom: first.zoom, pitch: first.pitch, bearing: first.bearing });
+    return null;
+  }
 
   let index = 0;
   let stopped = false;

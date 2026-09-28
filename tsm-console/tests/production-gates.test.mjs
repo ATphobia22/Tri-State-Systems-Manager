@@ -86,8 +86,8 @@ test('human authorization creates an immutable child artifact bound to the raw h
 
 test('evidence store rejects direct human authorization bypass', async () => {
   const { appendArtifact } = await import('../server/store/evidence-store.mjs');
-  assert.throws(
-    () => appendArtifact({
+  await assert.rejects(
+    appendArtifact({
       artifact_type: 'test',
       source_authority: 'test',
       source_uri: 'https://example.com/source',

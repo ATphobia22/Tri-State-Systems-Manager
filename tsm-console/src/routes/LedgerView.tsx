@@ -7,6 +7,7 @@
 
 import { memo, useCallback, useMemo, useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
+import { t } from '../lib/design-tokens';
 import { AuthorityBadge } from '../components/AuthorityBadge';
 import { HumanSignGatePanel } from '../components/HumanSignGatePanel';
 import { useLoaderData, Form, useNavigation } from 'react-router';
@@ -22,15 +23,15 @@ const LedgerRow = memo(function LedgerRow({ block }: { block: Block }) {
   return (
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-        <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: '#38bdf8' }}>
+        <span style={{ fontFamily: t.font.family.mono, fontSize: t.font.size.base, color: t.color.accent.brand }}>
           {block.evidence_id}
         </span>
-        <span style={{ fontSize: '0.65rem', color: '#64748b' }}>Tier {block.tier}</span>
+        <span style={{ fontSize: t.font.size.xs, color: t.color.text.secondary }}>Tier {block.tier}</span>
       </div>
-      <div style={{ fontSize: '0.85rem', color: '#e2e8f0' }}>{block.source_org}</div>
+      <div style={{ fontSize: t.font.size.lg, color: t.color.text.body }}>{block.source_org}</div>
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 4 }}>
         <AuthorityBadge authority_class="OBSERVATION" />
-        <span style={{ fontSize: '0.7rem', color: '#64748b', fontFamily: 'monospace' }}>
+        <span style={{ fontSize: t.font.size.sm, color: t.color.text.secondary, fontFamily: t.font.family.mono }}>
           {block.sha256_hash.slice(0, 24)}…
         </span>
       </div>
@@ -67,7 +68,7 @@ function VirtualBlockList({ blocks }: { blocks: Block[] }) {
   if (count === 0) {
     return (
       <div ref={parentRef} style={{ height: LIST_HEIGHT, overflow: 'auto' }}>
-        <p style={{ padding: '2rem', textAlign: 'center', color: '#475569', fontSize: '0.85rem' }}>
+        <p style={{ padding: '2rem', textAlign: 'center', color: t.color.text.secondary, fontSize: t.font.size.lg }}>
           Ledger empty. Append the first evidence block.
         </p>
       </div>
@@ -97,7 +98,7 @@ function VirtualBlockList({ blocks }: { blocks: Block[] }) {
                 // height from estimate; main-axis position owned by virtualizer (transform)
                 height: row.size,
                 padding: '0.85rem 1.25rem',
-                borderBottom: '1px solid #0f172a',
+                borderBottom: `1px solid ${t.color.surface.base}`,
                 boxSizing: 'border-box',
               }}
             >
@@ -123,10 +124,10 @@ export default function LedgerView() {
 
   return (
     <div style={{ padding: '1.5rem 2rem', maxWidth: 1100, margin: '0 auto' }}>
-      <h1 style={{ fontSize: '1.4rem', color: '#f8fafc', marginBottom: '0.25rem' }}>
+      <h1 style={{ fontSize: t.font.size.h1, color: t.color.text.primary, marginBottom: '0.25rem' }}>
         Evidence Ledger
       </h1>
-      <p style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '1.25rem' }}>
+      <p style={{ fontSize: t.font.size.base, color: t.color.text.secondary, marginBottom: '1.25rem' }}>
         SHA-256 · Merkle · virtualized · directDomUpdates · React 19–safe scroll
       </p>
 
@@ -135,17 +136,17 @@ export default function LedgerView() {
           {/* Governance contract: name="human_authorization" name="reviewer_identity" name="review_reason" are submitted by HumanSignGatePanel. */}
           <HumanSignGatePanel />
         </div>
-        <div style={{ background: '#1e293b', borderRadius: 16, overflow: 'hidden' }}>
+        <div style={{ background: t.color.surface.card, borderRadius: t.radius.xxl, overflow: 'hidden' }}>
           <div
             style={{
               padding: '0.85rem 1.25rem',
-              borderBottom: '1px solid #334155',
+              borderBottom: `1px solid ${t.color.border.default}`,
               display: 'flex',
               justifyContent: 'space-between',
             }}
           >
-            <span style={{ fontWeight: 600, color: '#f8fafc' }}>Immutable Log</span>
-            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+            <span style={{ fontWeight: 600, color: t.color.text.primary }}>Immutable Log</span>
+            <span style={{ fontSize: t.font.size.base, color: t.color.text.secondary }}>
               {data.totalCount} blocks · direct DOM scroll
             </span>
           </div>
@@ -153,10 +154,10 @@ export default function LedgerView() {
             <div
               style={{
                 padding: '0.5rem 1.25rem',
-                fontSize: '0.65rem',
-                fontFamily: 'monospace',
-                color: '#34d399',
-                background: '#0f172a',
+                fontSize: t.font.size.xs,
+                fontFamily: t.font.family.mono,
+                color: t.color.status.success,
+                background: t.color.surface.base,
               }}
             >
               Merkle Root: {rootPreview}
@@ -174,10 +175,10 @@ const inputStyle: React.CSSProperties = {
   width: '100%',
   marginTop: 4,
   padding: '0.5rem 0.65rem',
-  background: '#0f172a',
-  border: '1px solid #334155',
-  borderRadius: 8,
-  color: '#e2e8f0',
-  fontSize: '0.85rem',
+  background: t.color.surface.base,
+  border: `1px solid ${t.color.border.default}`,
+  borderRadius: t.radius.sm,
+  color: t.color.text.body,
+  fontSize: t.font.size.lg,
   boxSizing: 'border-box',
 };

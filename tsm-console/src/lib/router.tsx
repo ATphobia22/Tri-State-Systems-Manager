@@ -1,11 +1,14 @@
 /** React Router data router for the community-scale engineering console. */
 
+import { Suspense, lazy } from 'react';
 import { createBrowserRouter, redirect, useLoaderData, type ActionFunctionArgs } from 'react-router';
 import { getSession, requireAuthenticatedMutation } from './auth';
 import { SITE } from '../types/site';
 import { appendEvidence, getMerkleState } from './merkle';
 import { fetchLiveStage } from './stage';
+import { t } from './design-tokens';
 import RootLayout from '../components/RootLayout';
+import RouteErrorPage from '../components/RouteErrorPage';
 import CharterView from '../routes/CharterView';
 import NeedsView from '../routes/NeedsView';
 import LedgerView from '../routes/LedgerView';
@@ -16,7 +19,9 @@ import EngineeringSectionView from '../routes/EngineeringSectionView';
 import LoginView from '../routes/LoginView';
 import LoginCallbackView from '../routes/LoginCallbackView';
 import PublicDataFabricDashboard from '../components/PublicDataFabricDashboard';
-import DigitalTwinV2View from '../routes/DigitalTwinV2View';
+// DigitalTwinV2View pulls in maplibre-gl (~1 MB vendor chunk + 82 KB CSS).
+// Lazy-load it so map code leaves the critical path for non-map visitors.
+const DigitalTwinV2View = lazy(() => import('../routes/DigitalTwinV2View'));
 import type { RootLoaderData, CharterLoaderData, ArchitectureLoaderData, NeedsLoaderData, LedgerLoaderData, LineageLoaderData, BenefitLoaderData, MapTwinLoaderData, EvidenceBlock, InterventionRecord, DataContractSummary } from '../types/loaders';
 
 let interventions: InterventionRecord[] = [];
@@ -92,7 +97,51 @@ async function lineageAction({ request }: ActionFunctionArgs) { requireAuthentic
 async function benefitLoader(): Promise<BenefitLoaderData> { return { interventions: [...interventions] }; }
 async function benefitAction({ request }: ActionFunctionArgs) { requireAuthenticatedMutation(request); const form = await request.formData(); const name = String(form.get('name') || '').trim(); const cost = String(form.get('cost') || '').trim(); if (!name || !cost) return { error: 'Missing fields' }; const rec: InterventionRecord = { id: `INT-${Date.now()}`, intervention_name: name, cost_estimate: cost, safety_impact: 80, economic_impact: 75, health_impact: 70, equity_impact: 78, resilience_impact: 85, ai_confidence: 0, funding_probability: 0, human_authorization_required: true, status: 'pending_human_review' }; interventions = [rec, ...interventions]; return redirect('/benefit'); }
 async function mapTwinLoader(): Promise<MapTwinLoaderData> { const stage = await fetchLiveStage(); return { site: SITE, stage, fema: { communityNumber: SITE.femaCommunities.mountVernon, bfe_ft: SITE.elevations.bfe_ft, lag_ft: SITE.elevations.lag_ft, clearance_ft: SITE.elevations.clearanceAboveBfe_ft, noRiseTolerance_ft: null }, boundingEnvelope: SITE.boundingEnvelope }; }
-function ArchitectureView() { const data = useLoaderData() as ArchitectureLoaderData; return <div style={{ padding: '1.5rem 2rem', maxWidth: 900, margin: '0 auto' }}><h1 style={{ color: '#f8fafc' }}>Four Trust Planes</h1><p style={{ color: '#64748b', fontSize: '0.85rem' }}>{data.coreFlow.join(' → ')}</p>{data.trustPlanes.map((p) => <div key={p.level} style={{ background: '#1e293b', borderRadius: 12, padding: '1rem', marginBottom: 8 }}><strong style={{ color: '#38bdf8' }}>L{p.level}</strong>{' '}<span style={{ color: '#f8fafc' }}>{p.name}</span><p style={{ color: '#94a3b8', fontSize: '0.8rem', margin: '0.35rem 0 0' }}>{p.description}</p></div>)}</div>; }
+function ArchitectureView() { const data = useLoaderData() as ArchitectureLoaderData; return <div style={{ padding: '1.5rem 2rem', maxWidth: 900, margin: '0 auto' }}><h1 style={{ color: t.color.text.primary }}>Four Trust Planes</h1><p style={{ color: t.color.text.secondary, fontSize: t.font.size.lg }}>{data.coreFlow.join(' → ')}</p>{data.trustPlanes.map((p) => <div key={p.level} style={{ background: t.color.surface.card, borderRadius: t.radius.lg, padding: '1rem', marginBottom: 8 }}><strong style={{ color: t.color.accent.brand }}>L{p.level}</strong>{' '}<span style={{ color: t.color.text.primary }}>{p.name}</span><p style={{ color: t.color.text.secondary, fontSize: t.font.size.base, margin: '0.35rem 0 0' }}>{p.description}</p></div>)}</div>; }
+
+/**
+ * Shared loading fallback for lazily-loaded routes. React Router renders
+ * `hydrateFallbackElement` while a route's `lazy()` chunk is being fetched, so
+ * a chunk failure can never leave a blank page — the root `errorElement` (see
+ * below) takes over if the chunk itself errors.
+ */
+function RouteLoadingFallback({ label }: { label: string }) {
+  return (
+    <div role="status" aria-live="polite" style={{ padding: '2rem', color: t.color.text.secondary, background: t.color.surface.base, minHeight: '40vh', fontSize: t.font.size.base }}>
+      Loading {label}…
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------------------
+ * ROUTE MAP (Phase 2 visual-system decision)
+ *
+ * The four twin surfaces were near-duplicates in the nav. They are NOT merged —
+ * each is a genuinely different working surface — but they are now clearly
+ * differentiated by nav label, document.title (RouteTitle.tsx), and purpose:
+ *
+ *   /map            "Hydraulic Map"   — 2D MapLibre map with stage/jurisdiction
+ *                                        visualization controls. Nav: yes.
+ *   /twin           "Twin Canvas"     — full-bleed twin canvas, minimal chrome;
+ *                                        hosts the cinematic tour. Nav: yes.
+ *   /digital-twin   "Twin Summary"    — card summary: elevations, live gauges,
+ *                                        clearance. DELIBERATE DEEP LINK: kept
+ *                                        out of the nav to avoid a fourth map
+ *                                        entry; reachable from the Twin Canvas
+ *                                        footer ("Twin summary").
+ *   /digital-twin-v2 "Digital Twin 3D" — immersive open-world 3D twin app.
+ *                                        React.lazy()'d off the critical path
+ *                                        (maplibre-gl ~1 MB must never block
+ *                                        first paint for non-map visitors).
+ *                                        Nav: yes ("3D Twin").
+ *
+ * Orphaned routes made reachable (Phase 2):
+ *   /eoc         "EOC Surface"   — decision-support dashboard; added to nav.
+ *   /data-fabric "Data Fabric"   — public data fabric dashboard; added to nav.
+ *
+ * Every route inherits the root `errorElement` (RouteErrorPage) so loader or
+ * chunk failures render a recoverable error page instead of a blank screen.
+ * ------------------------------------------------------------------------- */
 
 const routerBasename = import.meta.env.BASE_URL.endsWith('/')
   ? import.meta.env.BASE_URL.slice(0, -1) || '/'
@@ -101,7 +150,7 @@ const routerBasename = import.meta.env.BASE_URL.endsWith('/')
 export const router = createBrowserRouter([
   { path: 'login', element: <LoginView /> },
   { path: 'login/callback', element: <LoginCallbackView /> },
-  { id: 'root', path: '/', loader: rootLoader, element: <RootLayout />, children: [
+  { id: 'root', path: '/', loader: rootLoader, element: <RootLayout />, errorElement: <RouteErrorPage />, children: [
   { index: true, loader: charterLoader, element: <CharterView /> },
   { path: 'architecture', loader: architectureLoader, element: <ArchitectureView /> },
   { path: 'data-fabric', element: <PublicDataFabricDashboard /> },
@@ -111,11 +160,11 @@ export const router = createBrowserRouter([
   { path: 'ledger', loader: ledgerLoader, action: ledgerAction, element: <LedgerView /> },
   { path: 'lineage', loader: lineageLoader, action: lineageAction, element: <LineageView /> },
   { path: 'benefit', loader: benefitLoader, action: benefitAction, element: <BenefitView /> },
-  { path: 'map', loader: mapTwinLoader, lazy: async () => ({ Component: (await import('../routes/MapLibreMap')).default }) },
-  { path: 'eoc', loader: mapTwinLoader, lazy: async () => ({ Component: (await import('../routes/MapLibreEocView')).default }) },
-  { path: 'twin', loader: mapTwinLoader, lazy: async () => ({ Component: (await import('../routes/TwinCanvasView')).default }) },
-  { path: 'digital-twin', loader: mapTwinLoader, lazy: async () => ({ Component: (await import('../routes/MapTwinView')).default }) },
-  { path: 'digital-twin-v2', element: <DigitalTwinV2View /> },
-  { path: 'flood-sim', lazy: async () => ({ Component: (await import('../components/FloodSimulator')).default }) },
+  { path: 'map', loader: mapTwinLoader, hydrateFallbackElement: <RouteLoadingFallback label="the hydraulic map" />, lazy: async () => ({ Component: (await import('../routes/MapLibreMap')).default }) },
+  { path: 'eoc', loader: mapTwinLoader, hydrateFallbackElement: <RouteLoadingFallback label="the EOC surface" />, lazy: async () => ({ Component: (await import('../routes/MapLibreEocView')).default }) },
+  { path: 'twin', loader: mapTwinLoader, hydrateFallbackElement: <RouteLoadingFallback label="the twin canvas" />, lazy: async () => ({ Component: (await import('../routes/TwinCanvasView')).default }) },
+  { path: 'digital-twin', loader: mapTwinLoader, hydrateFallbackElement: <RouteLoadingFallback label="the twin summary" />, lazy: async () => ({ Component: (await import('../routes/MapTwinView')).default }) },
+  { path: 'digital-twin-v2', element: <Suspense fallback={<RouteLoadingFallback label="the 3D digital twin" />}><DigitalTwinV2View /></Suspense> },
+  { path: 'flood-sim', hydrateFallbackElement: <RouteLoadingFallback label="the flood simulator" />, lazy: async () => ({ Component: (await import('../components/FloodSimulator')).default }) },
 ] },
 ], { basename: routerBasename });

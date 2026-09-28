@@ -8,6 +8,12 @@ import { buildArcGisWmsTileTemplate, INDIANA_CURRENT_IMAGERY_WMS, USGS_3DEP_ELEV
 import { setupParcelProvenanceInspector } from '../lib/parcel-provenance';
 import { playCinematicTour } from '../lib/cinematic/camera-tour';
 
+/** Tri-state region constraint: Ohio–Wabash valley (IN/IL/KY). Prevents panning off the planet. */
+const TRI_STATE_MAX_BOUNDS: [[number, number], [number, number]] = [
+  [-90.0, 36.0],
+  [-82.0, 42.5],
+];
+
 interface RealWorldTwinMapProps { data: MapTwinLoaderData; }
 const NEW_HARMONY_GAGE: [number, number] = [-87.9414145, 38.13089124];
 
@@ -41,7 +47,13 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       pitch: 55,
       bearing: -15,
       maxPitch: 85,
+      minZoom: 8,
+      maxZoom: 19,
+      maxBounds: TRI_STATE_MAX_BOUNDS,
+      // Keeps the map from trapping iOS page scroll: first swipe scrolls the page.
+      cooperativeGestures: true,
     });
+    map.getCanvas().setAttribute('aria-label', 'Interactive tri-state river valley map — Ohio–Wabash valley, Indiana current imagery with USGS elevation');
     map.addControl(new maplibregl.NavigationControl(), 'top-right');
     map.on('load', () => {
       applyTwinTerrain(map);
@@ -121,7 +133,11 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       setCinematicActive(false);
       return;
     }
-    cinematicStopRef.current = playCinematicTour(map);
+    // Reduced-motion gate lives in playCinematicTour: it renders a static
+    // frame and returns null instead of a live tour.
+    const stop = playCinematicTour(map);
+    if (stop === null) return;
+    cinematicStopRef.current = stop;
     setCinematicActive(true);
   };
 
@@ -136,12 +152,32 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
         <div>Stage: {stage == null ? 'unavailable' : `${stage.toFixed(2)} ft`} {data.stage.qualifier ? `(${data.stage.qualifier})` : ''} · {data.stage.source}</div>
         <div>Station WSE NAVD88: {wse == null ? 'unavailable' : `${wse.toFixed(2)} ft`} · Datum: {data.stage.conversion_applied ? 'verified USGS station relationship' : 'blocked'} · Site transfer: {data.stage.site_transfer_status ?? 'required'} · Hydraulic extrusion: {data.stage.hydraulic_extrusion_eligibility === 'SITE_WSE_VERIFIED_FOR_EXTRUSION' ? 'enabled' : 'blocked — validated site WSE required'} · Discharge: {data.stage.discharge_cfs == null ? 'unavailable' : `${data.stage.discharge_cfs.toLocaleString()} cfs`}</div>
         <div>Site elevations: LAG {data.site.elevations.lag_ft ?? 'unverified'} · BFE {data.site.elevations.bfe_ft ?? 'unverified'} · Berm {data.site.elevations.bermCrest_ft ?? 'unverified'} · FFE {data.site.elevations.ffe_ft ?? 'unverified'}</div><div>Transfer gate: {data.stage.site_transfer_status ?? 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE'} · Station conversion source: {data.stage.vertical_conversion_source ?? 'source required'}</div>
-        <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
-          <button type="button" aria-pressed={femaVisible} onClick={() => setFemaVisible((value) => !value)}>FEMA NFHL {femaVisible ? 'ON' : 'OFF'}</button>
-          <button type="button" aria-pressed={bafmVisible} onClick={() => setBafmVisible((value) => !value)}>Indiana BAFM {bafmVisible ? 'ON' : 'OFF'}</button>
-          <button type="button" aria-pressed={cinematicActive} onClick={toggleCinematicTour}>
-            {cinematicActive ? 'Stop cinematic' : 'Cinematic fly-through'}
-          </button>
+        <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
+          {([
+            { id: 'fema', pressed: femaVisible, onClick: () => setFemaVisible((value) => !value), label: `FEMA NFHL ${femaVisible ? 'ON' : 'OFF'}` },
+            { id: 'bafm', pressed: bafmVisible, onClick: () => setBafmVisible((value) => !value), label: `Indiana BAFM ${bafmVisible ? 'ON' : 'OFF'}` },
+            { id: 'cinematic', pressed: cinematicActive, onClick: toggleCinematicTour, label: cinematicActive ? 'Stop cinematic' : 'Cinematic fly-through' },
+          ] as const).map((btn) => (
+            <button
+              key={btn.id}
+              type="button"
+              aria-pressed={btn.pressed}
+              onClick={btn.onClick}
+              style={{
+                minHeight: 44,
+                padding: '0.5rem 0.9rem',
+                borderRadius: 8,
+                border: '1px solid #1e293b',
+                background: btn.pressed ? 'rgba(56,189,248,0.18)' : '#020617',
+                color: btn.pressed ? '#38bdf8' : '#94a3b8',
+                fontWeight: 600,
+                fontSize: 12,
+                cursor: 'pointer',
+              }}
+            >
+              {btn.label}
+            </button>
+          ))}
         </div>
         <div style={{ marginTop: 6, color: '#86efac' }}>USGS/NOAA station telemetry is operational-source data. Site inundation and HEC-RAS rendering remain model/evidence-gated until a validated site WSE transfer and verified structural elevations are present. HEC-RAS visualization authority remains SIMULATION_DEMO / MODEL_OUTPUT until those evidence gates are satisfied. Visualization/model context only; human authority remains final.</div>
       </div>

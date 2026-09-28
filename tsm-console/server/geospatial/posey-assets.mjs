@@ -1,4 +1,5 @@
 import manifest from '../../data/manifests/posey-2020-site-assets.json' with { type: 'json' };
+import { once } from 'node:events';
 
 const POSEY_2020_ASSETS = manifest;
 const POSEY_SITE_BOUNDS = manifest.bounds;
@@ -48,8 +49,10 @@ function buildExportUrl(sourceUri, bounds, width, height, format, pixelType, int
   return endpoint;
 }
 
+const RASTER_FETCH_TIMEOUT_MS = 30000;
+
 async function fetchSource(url) {
-  const response = await fetch(url, { redirect: 'manual' });
+  const response = await fetch(url, { redirect: 'manual', signal: AbortSignal.timeout(RASTER_FETCH_TIMEOUT_MS) });
   if (response.status >= 300 && response.status < 400) throw new Error('Upstream raster redirect rejected.');
   if (!response.ok) throw new Error(`Upstream raster request failed: HTTP ${response.status}`);
   const contentType = response.headers.get('content-type')?.toLowerCase() || '';
@@ -97,11 +100,13 @@ export function buildPoseyAssetResponse(requestUrl) {
 export async function servePoseyAsset(req, res) {
   const request = buildPoseyAssetResponse(req.url || '/');
   const response = await fetchSource(request.upstream);
-  const bytes = Buffer.from(await response.arrayBuffer());
-  if (bytes.byteLength === 0 || bytes.byteLength > MAX_RESPONSE_BYTES) throw new Error('Upstream raster response is empty or exceeds the configured byte budget.');
+  // Stream the upstream body through a byte-counting gate instead of
+  // buffering the whole raster with arrayBuffer(). The content-length header
+  // is spoofable, so the cap is enforced on actual bytes received; a
+  // truncated or empty body destroys the connection rather than delivering a
+  // silently-short image.
   res.writeHead(200, {
     'Content-Type': request.contentType,
-    'Content-Length': String(bytes.byteLength),
     'Cache-Control': 'public, max-age=300, stale-while-revalidate=3600',
     'Access-Control-Allow-Origin': process.env.CORS_ORIGIN || 'http://localhost:5173',
     'X-TSM-Source-URI': request.source.sourceUri,
@@ -114,7 +119,23 @@ export async function servePoseyAsset(req, res) {
     'X-TSM-Derivation-Class': request.source.derivationClass,
     'X-TSM-AOI': `${request.bounds.minX},${request.bounds.minY},${request.bounds.maxX},${request.bounds.maxY}`,
   });
-  res.end(bytes);
+  let totalBytes = 0;
+  try {
+    for await (const chunk of response.body) {
+      totalBytes += chunk.byteLength;
+      if (totalBytes > MAX_RESPONSE_BYTES) {
+        throw new RangeError('Upstream raster response exceeds the configured byte budget.');
+      }
+      if (!res.write(chunk)) await once(res, 'drain');
+    }
+    if (totalBytes === 0) throw new Error('Upstream raster response is empty.');
+  } catch (error) {
+    // Headers are already committed: fail closed by destroying the socket so
+    // the client cannot mistake a truncated stream for a valid raster.
+    res.destroy(error instanceof Error ? error : new Error(String(error)));
+    return;
+  }
+  res.end();
 }
 
 export function getPoseyAssetManifest() { return structuredClone(POSEY_2020_ASSETS); }

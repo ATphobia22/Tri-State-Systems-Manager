@@ -4,16 +4,18 @@
  */
 
 import type { AuthorityClass } from '../types/evidence';
+import { t } from '../lib/design-tokens';
 
 const COLORS: Record<string, { bg: string; fg: string; label: string }> = {
-  OBSERVATION: { bg: 'rgba(52,211,153,0.15)', fg: '#34d399', label: 'OBSERVATION' },
-  FORECAST: { bg: 'rgba(56,189,248,0.15)', fg: '#38bdf8', label: 'FORECAST' },
-  REGULATORY: { bg: 'rgba(167,139,250,0.15)', fg: '#a78bfa', label: 'REGULATORY' },
-  DERIVED: { bg: 'rgba(148,163,184,0.15)', fg: '#94a3b8', label: 'DERIVED' },
-  MODEL_OUTPUT: { bg: 'rgba(251,191,36,0.15)', fg: '#fbbf24', label: 'MODEL' },
-  INFERENCE: { bg: 'rgba(251,146,60,0.15)', fg: '#fb923c', label: 'INFERENCE' },
-  VISUALIZATION: { bg: 'rgba(100,116,139,0.2)', fg: '#64748b', label: 'VISUALIZATION' },
-  SIMULATION_DEMO: { bg: 'rgba(248,113,113,0.2)', fg: '#f87171', label: 'SIMULATION / DEMO' },
+  OBSERVATION: { bg: 'rgba(52,211,153,0.15)', fg: t.color.status.success, label: 'OBSERVATION' },
+  FORECAST: { bg: 'rgba(56,189,248,0.15)', fg: t.color.accent.brand, label: 'FORECAST' },
+  REGULATORY: { bg: 'rgba(167,139,250,0.15)', fg: t.color.status.violet, label: 'REGULATORY' },
+  DERIVED: { bg: 'rgba(148,163,184,0.15)', fg: t.color.text.secondary, label: 'DERIVED' },
+  MODEL_OUTPUT: { bg: 'rgba(251,191,36,0.15)', fg: t.color.status.warning, label: 'MODEL' },
+  INFERENCE: { bg: 'rgba(251,146,60,0.15)', fg: t.color.status.orange, label: 'INFERENCE' },
+  // VISUALIZATION used the old failing gray — normalized to text.secondary (Phase 0).
+  VISUALIZATION: { bg: 'rgba(148,163,184,0.2)', fg: t.color.text.secondary, label: 'VISUALIZATION' },
+  SIMULATION_DEMO: { bg: 'rgba(248,113,113,0.2)', fg: t.color.status.danger, label: 'SIMULATION / DEMO' },
 };
 
 export function AuthorityBadge({
@@ -40,7 +42,7 @@ export function AuthorityBadge({
       style={{
         display: 'inline-block',
         padding: pad,
-        borderRadius: 6,
+        borderRadius: t.radius.xs,
         background: c.bg,
         color: c.fg,
         fontSize: fs,
@@ -61,10 +63,10 @@ export function SimulationDemoBanner() {
       style={{
         background: 'rgba(248,113,113,0.1)',
         border: '1px solid rgba(248,113,113,0.35)',
-        borderRadius: 10,
+        borderRadius: t.radius.md,
         padding: '0.65rem 1rem',
         fontSize: '0.8rem',
-        color: '#fca5a5',
+        color: t.color.status.dangerSoft,
         marginBottom: '1rem',
       }}
     >

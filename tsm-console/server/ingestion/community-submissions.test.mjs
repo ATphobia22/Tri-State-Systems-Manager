@@ -30,7 +30,7 @@ test('community observations reject oversized payloads', () => {
 test('community throttling is isolated per client', async () => {
   const base = { payload: { observation: 'test' }, lat: 37.97, lon: -87.55 };
   const other = { payload: { observation: 'test-b' }, lat: 37.97, lon: -87.55 };
-  for (let i = 0; i < 30; i += 1) submitCommunityObservation(base, 1700000000000 + i, 'client-a');
-  assert.throws(() => submitCommunityObservation(base, 1700000001000, 'client-a'), /rate limit/);
-  assert.doesNotThrow(() => submitCommunityObservation(other, 1700000001000, 'client-b'));
+  for (let i = 0; i < 30; i += 1) await submitCommunityObservation(base, 1700000000000 + i, 'client-a');
+  await assert.rejects(() => submitCommunityObservation(base, 1700000001000, 'client-a'), /rate limit/);
+  await submitCommunityObservation(other, 1700000001000, 'client-b');
 });

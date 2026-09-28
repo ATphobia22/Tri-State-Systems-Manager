@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { calculateGaugeWseNavd88, getHydrologicNode } from '../server/ingestion/hydraulic-calibration.mjs';
+import { calculateGaugeWseNavd88, getHydrologicNode } from './hydraulic-calibration.mjs';
 
 test('03378500 retains distinct gage datum and monitoring-location altitude', () => {
   const node = getHydrologicNode('03378500');

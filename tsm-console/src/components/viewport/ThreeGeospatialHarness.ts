@@ -10,6 +10,7 @@
  */
 
 import * as THREE from 'three';
+import { prefersReducedMotion } from '../../lib/reduced-motion';
 
 export interface ITileCoordinate {
   z: number;
@@ -412,6 +413,8 @@ export class ThreeGeospatialHarness {
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.setSize(container.clientWidth, container.clientHeight);
+    this.renderer.domElement.setAttribute('role', 'img');
+    this.renderer.domElement.setAttribute('aria-label', '3D geospatial tile viewport');
     container.appendChild(this.renderer.domElement);
 
     this.scene.add(new THREE.AmbientLight(0xffffff, 0.4));
@@ -422,7 +425,13 @@ export class ThreeGeospatialHarness {
     this.resizeObserver = new ResizeObserver(() => this.handleResize());
     this.resizeObserver.observe(container);
 
-    this.animate();
+    // Reduced-motion gate: render a single static frame instead of the
+    // always-on RAF render loop.
+    if (prefersReducedMotion()) {
+      this.renderStaticFrame();
+    } else {
+      this.animate();
+    }
   }
 
   public async ingestTilePayloadBytes(
@@ -484,6 +493,9 @@ export class ThreeGeospatialHarness {
 
     this.scene.add(root);
     this.tileCache.set(tileKey, root);
+
+    // Keep the reduced-motion static frame current as tiles land.
+    if (prefersReducedMotion()) this.renderStaticFrame();
   }
 
   public removeTile(coords: ITileCoordinate): void {
@@ -493,6 +505,7 @@ export class ThreeGeospatialHarness {
     this.scene.remove(object);
     this.disposeObject(object);
     this.tileCache.delete(key);
+    if (prefersReducedMotion()) this.renderStaticFrame();
   }
 
   public destroy(): void {
@@ -619,6 +632,16 @@ export class ThreeGeospatialHarness {
     this.animationFrameId = requestAnimationFrame(this.animate);
     this.renderer.render(this.scene, this.camera);
   };
+
+  /**
+   * Renders one static frame for `prefers-reduced-motion` users. Callers
+   * that add content after construction (tile ingestion) re-render the
+   * static frame through this same path.
+   */
+  private renderStaticFrame(): void {
+    if (this.destroyed) return;
+    this.renderer.render(this.scene, this.camera);
+  }
 
   private assertActive(): void {
     if (this.destroyed) throw new Error('ThreeGeospatialHarness has been destroyed.');

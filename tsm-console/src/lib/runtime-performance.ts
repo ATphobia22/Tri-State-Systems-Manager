@@ -58,22 +58,59 @@ function installFetchTileObserver(): void {
   };
 }
 function installFrameObserver(): void {
+  // Frame telemetry runs on a time budget instead of per frame: deltas are
+  // accumulated and the window average is reported at most every 500 ms.
+  // The RAF loop is fully paused while the tab is hidden (visibilitychange)
+  // and resumed on return — no per-frame work, no queue growth, no battery
+  // drain in the background.
+  const FRAME_REPORT_INTERVAL_MS = 500;
+  const MEMORY_REPORT_INTERVAL_MS = 5000;
   let previous = performance.now();
-  let frames = 0;
-  const tick = (now: number) => {
+  let rafId = 0;
+  let stopped = false;
+  let windowStart = previous;
+  let windowFrames = 0;
+  let windowDeltaSumMs = 0;
+  let lastMemoryReport = 0;
+  const reportWindow = (now: number): void => {
+    if (windowFrames > 0) {
+      enqueue('tsm_browser_frame_time_seconds', windowDeltaSumMs / windowFrames / 1000, { frame_source: 'requestAnimationFrame' });
+    }
+    windowStart = now;
+    windowFrames = 0;
+    windowDeltaSumMs = 0;
+    if (now - lastMemoryReport >= MEMORY_REPORT_INTERVAL_MS) {
+      lastMemoryReport = now;
+      const memory = (performance as Performance & { memory?: { usedJSHeapSize: number; jsHeapSizeLimit: number } }).memory;
+      if (memory && memory.jsHeapSizeLimit > 0) enqueue('tsm_browser_memory_pressure_ratio', memory.usedJSHeapSize / memory.jsHeapSizeLimit);
+    }
+  };
+  const tick = (now: number): void => {
+    if (stopped) return;
     const delta = now - previous;
     previous = now;
     if (delta > 0 && delta < 1000) {
-      enqueue('tsm_browser_frame_time_seconds', delta / 1000, { frame_source: 'requestAnimationFrame' });
-      frames += 1;
-      if (frames % 60 === 0) {
-        const memory = (performance as Performance & { memory?: { usedJSHeapSize: number; jsHeapSizeLimit: number } }).memory;
-        if (memory && memory.jsHeapSizeLimit > 0) enqueue('tsm_browser_memory_pressure_ratio', memory.usedJSHeapSize / memory.jsHeapSizeLimit);
-      }
+      windowFrames += 1;
+      windowDeltaSumMs += delta;
     }
-    requestAnimationFrame(tick);
+    if (now - windowStart >= FRAME_REPORT_INTERVAL_MS) reportWindow(now);
+    rafId = requestAnimationFrame(tick);
   };
-  requestAnimationFrame(tick);
+  const onVisibility = (): void => {
+    if (document.hidden) {
+      stopped = true;
+      cancelAnimationFrame(rafId);
+    } else if (stopped) {
+      stopped = false;
+      previous = performance.now();
+      windowStart = previous;
+      windowFrames = 0;
+      windowDeltaSumMs = 0;
+      rafId = requestAnimationFrame(tick);
+    }
+  };
+  document.addEventListener('visibilitychange', onVisibility);
+  rafId = requestAnimationFrame(tick);
 }
 function installGraphicsCapabilityProbe(): void {
   enqueue('tsm_browser_webgpu_available', 'gpu' in navigator ? 1 : 0);
@@ -98,6 +135,33 @@ function installNavigationObserver(router: RuntimeRouter): void {
     }
   });
 }
+/**
+ * Shared visibility guard for polling loops (gauge boards, live-data hooks).
+ * Polling sites should skip their tick while the tab is hidden instead of
+ * burning battery/network on updates nobody sees. Call sites:
+ *   - RiverGaugeBoard.tsx (5 min setInterval)
+ *   - startGaugePoll in lib/river-gauges.ts (60 s default)
+ */
+export function shouldSkipPoll(): boolean {
+  return typeof document !== 'undefined' && document.hidden;
+}
+
+/**
+ * Visibility-aware interval: runs `callback` every `intervalMs` but silently
+ * skips ticks while the tab is hidden. Returns a stop function like
+ * clearInterval.
+ */
+export function startVisibleInterval(callback: () => void, intervalMs: number): () => void {
+  let cancelled = false;
+  const tick = (): void => {
+    if (cancelled) return;
+    if (shouldSkipPoll()) return;
+    try { callback(); } catch { /* next tick */ }
+  };
+  const id = window.setInterval(tick, intervalMs);
+  return () => { cancelled = true; window.clearInterval(id); };
+}
+
 export function installRuntimePerformanceTelemetry(router: RuntimeRouter): void {
   if (typeof window === 'undefined') return;
   installResourceObserver();

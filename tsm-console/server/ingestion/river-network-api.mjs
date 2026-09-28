@@ -163,42 +163,47 @@ export async function ingestJTMyersTelemetry(cacheManager = null) {
   }
 }
 
-async function fetchUsGsStation(station) {
-  const { controller, timer } = createTimeoutController();
-  try {
-    const records = await fetchUsgsInstantaneousValues({
-      stationIds: [station.station_id],
-      parameterCodes: station.variables.filter((code) => code === '00065' || code === '00060'),
-      signal: controller.signal,
-    });
-    const stage = latest(records, '00065');
-    const discharge = latest(records, '00060');
-    if (!stage) return { stationId: station.station_id, provider: 'USGS', status: 'unavailable', sourceUri: station.source_uri || null };
-    const observation = normalizeRiverObservation({
-      stationId: station.station_id,
-      provider: 'USGS',
-      observedAt: stage.observedAt,
-      retrievedAt: stage.retrievedAt,
-      value: stage.value,
-      unit: stage.unit || 'ft',
-      parameterCode: '00065',
-      qualifier: stage.provenance?.qualifier || null,
-      verticalDatum: stage.verticalDatum || station.vertical_datum || 'GAGE_DATUM',
-      sourceUri: station.source_uri || stage.sourceUri,
-    });
-    return {
-      stationId: station.station_id,
-      provider: 'USGS',
-      name: station.name,
-      observation,
-      freshness: classifyFreshness(observation.observedAt, Date.now(), 1800),
-      dischargeCfs: discharge?.value ?? null,
-      dischargeObservedAt: discharge?.observedAt ?? null,
-      status: 'current_or_provisional',
-    };
-  } finally {
-    clearTimeout(timer);
-  }
+const USGS_BATCH_TIMEOUT_MS = 30000;
+
+async function fetchUsgsBatch(stationIds, signal) {
+  return fetchUsgsInstantaneousValues({
+    stationIds,
+    parameterCodes: ['00065', '00060'],
+    signal,
+  });
+}
+
+/**
+ * Build a per-station frame from a batched USGS record set (no per-station
+ * fetch — see fetchRiverNetwork).
+ */
+function usgsStationFrame(station, records) {
+  const stationRecords = records.filter((record) => record.provenance?.stationId === station.station_id);
+  const stage = latest(stationRecords, '00065');
+  const discharge = latest(stationRecords, '00060');
+  if (!stage) return { stationId: station.station_id, provider: 'USGS', status: 'unavailable', sourceUri: station.source_uri || null };
+  const observation = normalizeRiverObservation({
+    stationId: station.station_id,
+    provider: 'USGS',
+    observedAt: stage.observedAt,
+    retrievedAt: stage.retrievedAt,
+    value: stage.value,
+    unit: stage.unit || 'ft',
+    parameterCode: '00065',
+    qualifier: stage.provenance?.qualifier || null,
+    verticalDatum: stage.verticalDatum || station.vertical_datum || 'GAGE_DATUM',
+    sourceUri: station.source_uri || stage.sourceUri,
+  });
+  return {
+    stationId: station.station_id,
+    provider: 'USGS',
+    name: station.name,
+    observation,
+    freshness: classifyFreshness(observation.observedAt, Date.now(), 1800),
+    dischargeCfs: discharge?.value ?? null,
+    dischargeObservedAt: discharge?.observedAt ?? null,
+    status: 'current_or_provisional',
+  };
 }
 
 async function fetchNoaaGauge(nwsId, station) {
@@ -235,29 +240,46 @@ async function fetchNoaaGauge(nwsId, station) {
 export async function fetchRiverNetwork({ stationIds = null, includeNoaa = true } = {}) {
   const registry = await loadRiverStationRegistry();
   const selected = registry.verified_observation_stations.filter((station) => !stationIds || stationIds.includes(station.station_id));
+
+  // Batch every USGS station into ONE latest-continuous request (comma-joined
+  // monitoring_location_id) instead of one request per station (N+1 → 1).
+  const usgsStationIds = [...new Set(selected.map((station) => station.station_id))];
+  let usgsRecords = [];
+  let usgsBatchError = null;
+  if (usgsStationIds.length > 0) {
+    try {
+      usgsRecords = await fetchUsgsBatch(usgsStationIds, AbortSignal.timeout(USGS_BATCH_TIMEOUT_MS));
+    } catch (error) {
+      usgsBatchError = error;
+    }
+  }
+  const usgsErrorMessage = () => (usgsBatchError instanceof Error ? usgsBatchError.message : String(usgsBatchError));
+
   const results = await Promise.all(selected.map(async (station) => {
     try {
       if (includeNoaa && station.nws_location_id) {
         try {
           return await fetchNoaaGauge(station.nws_location_id, station);
         } catch (noaaError) {
-          try {
-            const fallback = await fetchUsGsStation(station);
-            return { ...fallback, fallbackFrom: 'NOAA', upstreamError: noaaError instanceof Error ? noaaError.message : String(noaaError) };
-          } catch (usgsError) {
+          const upstreamError = noaaError instanceof Error ? noaaError.message : String(noaaError);
+          if (usgsBatchError) {
             return {
               stationId: station.station_id,
               provider: 'NOAA/USGS',
               name: station.name,
               status: 'unavailable',
-              error: usgsError instanceof Error ? usgsError.message : String(usgsError),
+              error: usgsErrorMessage(),
               fallbackFrom: 'NOAA',
-              upstreamError: noaaError instanceof Error ? noaaError.message : String(noaaError),
+              upstreamError,
             };
           }
+          return { ...usgsStationFrame(station, usgsRecords), fallbackFrom: 'NOAA', upstreamError };
         }
       }
-      return await fetchUsGsStation(station);
+      if (usgsBatchError) {
+        return { stationId: station.station_id, provider: station.provider, name: station.name, status: 'unavailable', error: usgsErrorMessage() };
+      }
+      return usgsStationFrame(station, usgsRecords);
     } catch (error) {
       return { stationId: station.station_id, provider: station.provider, name: station.name, status: 'unavailable', error: error instanceof Error ? error.message : String(error) };
     }

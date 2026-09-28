@@ -14,7 +14,7 @@ import {
 
 const imagery = MAP_LAYERS.find((layer) => layer.id === 'indiana-imagery');
 
-/** Fail-closed Terrain-RGB status (no synthetic mesh when blocked). */
+/** Fail-closed Terrain-RGB status (no invented mesh when blocked). */
 export function getTerrainRgbStatus(): TerrainRgbStatus {
   return resolveTerrainRgbFromEnv(import.meta.env.VITE_TSM_TERRAIN_RGB_URL_TEMPLATE);
 }

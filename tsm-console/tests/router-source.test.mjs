@@ -26,7 +26,10 @@ test('digital-twin is not backed by a local eager route component', () => {
 
 test('heavy route lazy loading preserves the shared mapTwin loader contract', () => {
   for (const route of ['map', 'eoc', 'twin', 'digital-twin']) {
-    assert.match(routerSource, new RegExp(`path: '${route}',\\s*loader: mapTwinLoader,\\s*lazy:`, 's'));
+    const line = routerSource.split('\n').find((l) => l.includes(`path: '${route}'`));
+    assert.ok(line, `route '${route}' exists in the router`);
+    assert.match(line, /loader: mapTwinLoader/);
+    assert.match(line, /lazy:/);
   }
 });
 

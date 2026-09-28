@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import logging
 import math
 import re
 from collections.abc import AsyncIterator, Iterable
@@ -27,6 +28,8 @@ from .openmi_contract import (
 
 SERVICE_VERSION = "tsm-openmi-bridge-1.0.0"
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+
+logger = logging.getLogger(__name__)
 
 
 class ExchangeAdapter(Protocol):
@@ -48,6 +51,10 @@ class ExchangeRouter:
         self._components: dict[str, RegisteredComponent] = {}
         self._adapters: dict[str, ExchangeAdapter] = {}
         self._subscribers: set[asyncio.Queue[QuantityValueSet]] = set()
+        # Queues that were shed for backpressure. The owning Exchange handler
+        # terminates its stream with RESOURCE_EXHAUSTED when it notices; the
+        # entry is dropped on unsubscribe so the set stays bounded.
+        self._shed_queues: set[asyncio.Queue[QuantityValueSet]] = set()
         self._lock = asyncio.Lock()
 
     @property
@@ -76,6 +83,12 @@ class ExchangeRouter:
     async def unsubscribe(self, queue: asyncio.Queue[QuantityValueSet]) -> None:
         async with self._lock:
             self._subscribers.discard(queue)
+            self._shed_queues.discard(queue)
+
+    async def was_shed(self, queue: asyncio.Queue[QuantityValueSet]) -> bool:
+        """True if the subscriber was shed for backpressure."""
+        async with self._lock:
+            return queue in self._shed_queues
 
     async def publish(self, value_set: QuantityValueSet) -> None:
         _validate_value_set(value_set)
@@ -93,10 +106,18 @@ class ExchangeRouter:
         for queue in tuple(self._subscribers):
             try:
                 queue.put_nowait(value_set)
-            except asyncio.QueueFull as exc:
-                raise RuntimeError(
-                    "openmi subscriber queue is full; refusing to drop evidence"
-                ) from exc
+            except asyncio.QueueFull:
+                # Backpressure: shed the slow subscriber instead of aborting
+                # the whole stream. The shed subscriber's Exchange handler
+                # terminates with RESOURCE_EXHAUSTED (it cannot keep up);
+                # every other subscriber keeps being served.
+                await self.unsubscribe(queue)
+                async with self._lock:
+                    self._shed_queues.add(queue)
+                logger.warning(
+                    "openmi: shed slow subscriber (queue full); "
+                    "continuing fan-out to remaining subscribers"
+                )
 
 
 def _validate_value_set(value_set: QuantityValueSet) -> None:
@@ -188,6 +209,11 @@ class OpenMIService:
                         )
                     if queue.empty():
                         break
+                if await self.router.was_shed(queue):
+                    await context.abort(
+                        grpc.StatusCode.RESOURCE_EXHAUSTED,
+                        "subscriber shed: exchange queue full; downstream too slow",
+                    )
                 try:
                     value_set = await asyncio.wait_for(queue.get(), timeout=1.0)
                 except asyncio.TimeoutError:

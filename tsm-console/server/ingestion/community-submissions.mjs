@@ -20,7 +20,7 @@ export function validateCommunityObservation(body) {
   return payload;
 }
 
-export function submitCommunityObservation(body, now = Date.now(), clientKey = 'anonymous') {
+export async function submitCommunityObservation(body, now = Date.now(), clientKey = 'anonymous') {
   const key = String(clientKey || 'anonymous').slice(0, 128);
   const current = clientWindows.get(key);
   if (!current || now - current.startedAt >= WINDOW_MS) clientWindows.set(key, { startedAt: now, count: 0 });

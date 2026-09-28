@@ -80,6 +80,21 @@ County-wide 1 m DEM was intentionally **not** vendored (≈1–2 GB); the 30 m
 county grid plus the 10 m anchor window cover screening and site work.
 Reference only — not survey evidence.
 
+### Per-tile download manifest (2026-09-28)
+
+Queried Indiana GIO's DEM tile footprints
+(`Hosted/Indiana_DEM_Tile_Footprints/FeatureServer/0`, `county LIKE '%Posey%'`):
+**581 tiles**, 2016–2020 collection (558 × 2020, 23 × 2019), 2.5 ft
+resolution, CC0 Cloud-Optimized GeoTIFFs on S3.
+
+| File | Description |
+|---|---|
+| `elevation/posey-dem-tile-manifest-2020.json` | 581 Posey County tiles with direct per-tile S3 download URLs (`urlpath`), 131 KB |
+| `docs/Indiana_3DEP_Lidar_Data_Products_Data_Accuracy_and_Data_Access.pdf` | Indiana 3DEP lidar data products, accuracy, and access guide (236 KB) |
+
+Full-resolution tiles are fetched on demand from the manifest URLs — the
+bundle does not vendor them whole (≈ GBs).
+
 ## Pending downloads
 
 Elevation (IndianaMap DEM tile footprints, IGIC county-wide lidar/DEM tiles,

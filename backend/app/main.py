@@ -15,12 +15,13 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
+from fastapi import FastAPI, HTTPException, Request
+from pydantic import BaseModel, Field, ValidationError
 
 REPO_ROOT = Path(
     os.environ.get("TSM_REPO_ROOT", Path(__file__).resolve().parents[2])
@@ -40,6 +41,46 @@ DISCLAIMER = (
     "anything with FEMA or any agency. Human authority remains final; every "
     "accepted artifact requires human review."
 )
+
+# Identifiers that are interpolated into file paths must be inert path
+# segments: no slashes, dots, or separators of any kind.
+_SAFE_ID_RE = re.compile(r"^[A-Za-z0-9_-]+$")
+MAX_SAFE_ID_LENGTH = 128
+# The gauge-ingest endpoint writes one file per reading, so its request body
+# is capped: an unbounded body would be an unbounded disk write.
+MAX_GAUGE_INGEST_BODY_BYTES = 2 * 1024 * 1024  # 2 MiB
+
+
+def _validated_id(value: str, field: str) -> str:
+    """Allowlist-validate an identifier before it touches a file path."""
+    if len(value) > MAX_SAFE_ID_LENGTH or not _SAFE_ID_RE.fullmatch(value):
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "code": "UNSAFE_IDENTIFIER",
+                "field": field,
+                "detail": (
+                    f"{field} must match ^[A-Za-z0-9_-]+$ "
+                    f"(max {MAX_SAFE_ID_LENGTH} characters)."
+                ),
+            },
+        )
+    return value
+
+
+def _contained_path(base_dir: Path, filename: str) -> Path:
+    """Fail closed if the resolved path escapes the intended base directory."""
+    base = base_dir.resolve()
+    resolved = (base / filename).resolve()
+    if resolved != base and base not in resolved.parents:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "code": "PATH_ESCAPE_BLOCKED",
+                "detail": "Resolved path escapes the intended storage directory.",
+            },
+        )
+    return resolved
 
 app = FastAPI(
     title="TSM Companion API",
@@ -132,7 +173,8 @@ def push_evidence(request: EvidencePushRequest) -> dict:
             )
 
     OUTBOX_DIR.mkdir(parents=True, exist_ok=True)
-    packet_path = OUTBOX_DIR / f"{request.packet.case_id}_{computed}.json"
+    case_id = _validated_id(request.packet.case_id, "case_id")
+    packet_path = _contained_path(OUTBOX_DIR, f"{case_id}_{computed}.json")
     if not packet_path.exists():
         packet_path.write_text(canonical + "\n", encoding="utf-8")
 
@@ -182,19 +224,50 @@ def hydrologic_nodes() -> dict:
 
 
 @app.post("/api/webhooks/gauge-ingest", status_code=202)
-def gauge_ingest(request: GaugeIngestRequest) -> dict:
+async def gauge_ingest(http_request: Request) -> dict:
     """Accept gauge readings into quarantine.
 
     Every reading is provenance-hashed and written to the quarantine dir.
     Nothing here is authoritative: human_review_required is always true.
+
+    The request body is streamed with a hard byte cap (413 on exceed) so a
+    single webhook call cannot force unbounded disk writes.
     """
+    body = bytearray()
+    async for chunk in http_request.stream():
+        body.extend(chunk)
+        if len(body) > MAX_GAUGE_INGEST_BODY_BYTES:
+            raise HTTPException(
+                status_code=413,
+                detail={
+                    "code": "PAYLOAD_TOO_LARGE",
+                    "detail": (
+                        "Request body exceeds "
+                        f"{MAX_GAUGE_INGEST_BODY_BYTES} bytes."
+                    ),
+                },
+            )
+    try:
+        request = GaugeIngestRequest.model_validate_json(bytes(body))
+    except ValidationError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "code": "INVALID_PAYLOAD",
+                "errors": json.loads(exc.json()),
+            },
+        )
+
     QUARANTINE_DIR.mkdir(parents=True, exist_ok=True)
     batch_id = uuid.uuid4().hex
     stored = []
     for reading in request.readings:
+        node_id = _validated_id(reading.node_id, "node_id")
         payload = canonical_json(reading.model_dump())
         reading_hash = sha256_hex(payload)
-        path = QUARANTINE_DIR / f"{batch_id}_{reading.node_id}_{reading_hash[:12]}.json"
+        path = _contained_path(
+            QUARANTINE_DIR, f"{batch_id}_{node_id}_{reading_hash[:12]}.json"
+        )
         path.write_text(
             canonical_json(
                 {
@@ -208,7 +281,7 @@ def gauge_ingest(request: GaugeIngestRequest) -> dict:
             + "\n",
             encoding="utf-8",
         )
-        stored.append({"node_id": reading.node_id, "provenance_sha256": reading_hash})
+        stored.append({"node_id": node_id, "provenance_sha256": reading_hash})
 
     return {
         "accepted": True,
