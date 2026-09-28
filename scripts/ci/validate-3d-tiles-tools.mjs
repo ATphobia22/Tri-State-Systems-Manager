@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
-const root = process.cwd();
+const root = fileURLToPath(new URL('../..', import.meta.url));
 const contract = JSON.parse(readFileSync(join(root, 'integrations/open-world/3d-tiles-tools.contract.json'), 'utf8'));
 const manifest = JSON.parse(readFileSync(join(root, 'integrations/third-party-toolchain.json'), 'utf8'));
 const tool = manifest.tools.find((item) => item.name === '3d-tiles-tools');

@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
-const root = process.cwd();
+const root = fileURLToPath(new URL('../..', import.meta.url));
 const manifest = JSON.parse(readFileSync(join(root, 'integrations/third-party-toolchain.json'), 'utf8'));
 const checks = manifest.tools.map((tool) => {
   const packagePath = join(root, 'tsm-console', 'node_modules', ...tool.name.split('/'), 'package.json');
