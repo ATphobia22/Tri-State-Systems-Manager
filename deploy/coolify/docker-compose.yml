@@ -12,7 +12,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: "8787"
-      TSM_BUILD_SHA: ${TSM_BUILD_SHA:?TSM_BUILD_SHA must be supplied by the deployment controller}
+      TSM_BUILD_SHA: ${SOURCE_COMMIT:?SOURCE_COMMIT must be supplied by Coolify}
       TSM_AUTH_MODE: ${TSM_AUTH_MODE:-required}
       OIDC_ISSUER: ${OIDC_ISSUER:?OIDC_ISSUER is required}
       OIDC_AUDIENCE: ${OIDC_AUDIENCE:?OIDC_AUDIENCE is required}
