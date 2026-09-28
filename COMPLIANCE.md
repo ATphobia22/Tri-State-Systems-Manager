@@ -45,6 +45,21 @@ The production console is expected to pass the repository's applicable automated
 - **Geospatial source contract:** authoritative endpoints, layer identifiers, CRS/datum metadata, and source authority labels are tested.
 - **Evidence contract:** model/data artifacts require provenance, transformation, validation, hash, and human-review metadata.
 
+## Flood-information federation integrity
+
+Every flood-information result must preserve a machine-readable provenance envelope containing:
+
+1. source authority and dataset identity;
+2. regulatory status, explicitly distinguishing FEMA effective products from Indiana Best Available/state studies, USGS inundation products, levee evidence, and model evidence;
+3. horizontal CRS and vertical datum as separate fields;
+4. model lineage, including source artifact identifiers where a model is involved;
+5. retrieval timestamp and source version;
+6. the TSM software version responsible for normalization/derivation;
+7. explicit uncertainty status, method, and limitations; and
+8. insurance-determination eligibility as an explicit boolean.
+
+The fail-closed federation contract lives at `data/schemas/tsm-flood-information-federation-v1.schema.json` and is enforced by `scripts/ci/validate-flood-federation.mjs`. Indiana Best Available data, USGS inundation products, visualizations, and model outputs cannot be promoted to FEMA insurance authority by metadata alone.
+
 ## Data and Geospatial Integrity
 
 Imported vector, raster, tabular, and derived geospatial data must retain sufficient provenance to establish:

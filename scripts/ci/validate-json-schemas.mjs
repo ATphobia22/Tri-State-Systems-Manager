@@ -9,6 +9,7 @@ const schemaPaths = [
   'data/schemas/tsm-evidence-artifact-schema-v1.0.0.json',
   'data/schemas/regulatory-gate.schema.json',
   path.join('data', 'schemas', 'nfip-discrepancy.schema.json'),
+  'data/schemas/tsm-flood-information-federation-v1.schema.json',
 ];
 const failures = [];
 const fail = (message) => failures.push(message);
@@ -110,6 +111,33 @@ const nfipLayer2Example = {
   evidence_provenance: [{ evidence_id: 'FEMA-26-05-2022A-001', source_type: 'FEMA correspondence', source_locator: '26-05-2022A-092226.pdf', acquisition_date: '2026-09-22', sha256: 'a'.repeat(64), processing_status: 'PRESERVED', notes: null }],
 };
 
+const floodFederationExample = {
+  result_id: 'FLOOD-SCHEMA-001',
+  dataset_id: 'FEMA-NFHL',
+  source_authority: 'FEMA',
+  source_uri: 'https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer',
+  source_version: 'NFHL-current',
+  retrieved_at: '2026-09-28T00:00:00Z',
+  published_at: null,
+  regulatory_status: 'FEMA_EFFECTIVE',
+  authority_class: 'FEDERAL_REGULATORY_REFERENCE',
+  horizontal_crs: 'EPSG:4269',
+  vertical_datum: 'NAVD88',
+  model_lineage: [],
+  software_version: 'tsm-flood-federation@1.0.0',
+  uncertainty: {
+    status: 'qualitative',
+    method: 'source-published limitations',
+    notes: 'Source uncertainty is retained; TSM does not infer additional certainty.',
+  },
+  insurance_determination_eligible: true,
+  human_review_required: true,
+  human_review_status: 'pending',
+  transformation_chain: [],
+  content_hash_sha256: null,
+  provenance_hash_sha256: 'c'.repeat(64),
+};
+
 const regulatoryGateExample = {
   artifact_type: 'tsm.regulatory_gate_registry.v1',
   version: '1.0.0',
@@ -130,7 +158,7 @@ for (const relative of schemaPaths) {
   try { schema = JSON.parse(fs.readFileSync(file, 'utf8')); }
   catch (error) { fail(relative + ': invalid JSON: ' + error.message); continue; }
   if (schema.$schema !== 'https://json-schema.org/draft/2020-12/schema') fail(relative + ': unexpected JSON Schema dialect');
-  const example = relative.includes('data-contract') ? dataExample : relative.includes('regulatory-gate') ? regulatoryGateExample : relative.includes('nfip-discrepancy') ? nfipLayer2Example : evidenceExample;
+  const example = relative.includes('data-contract') ? dataExample : relative.includes('regulatory-gate') ? regulatoryGateExample : relative.includes('nfip-discrepancy') ? nfipLayer2Example : relative.includes('flood-information-federation') ? floodFederationExample : evidenceExample;
   validate(example, schema, relative);
   // Case-specific evidence is operator-retained and intentionally excluded from
   // the public repository. Validate the public schema against its synthetic,
