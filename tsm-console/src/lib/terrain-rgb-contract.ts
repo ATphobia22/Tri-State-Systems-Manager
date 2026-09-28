@@ -9,6 +9,9 @@
  * Development: http://localhost (or 127.0.0.1) may be allowed when allowHttpLocal
  * so ops/terrain-rgb-server can be tested before HTTPS publish.
  *
+ * Public open-data (AWS Mapzen Terrarium, Mapterhorn) may be used for visualization
+ * with encoding=terrarium — still OBSERVATION, not LOMA/NFIP evidence.
+ *
  * Hillshade / 3DEP WMS visualization remains a separate OBSERVATION layer and is
  * not a substitute for raster-dem elevation mesh.
  */
@@ -44,10 +47,6 @@ function isLocalHost(hostname: string): boolean {
   return LOCAL_HOST_PATTERNS.some((re) => re.test(hostname));
 }
 
-/**
- * Validate a candidate XYZ template for MapLibre raster-dem.
- * Requires https in production, MapLibre tile tokens {z}/{x}/{y}, and a real host.
- */
 export function validateTerrainRgbUrlTemplate(
   raw: string | undefined | null,
   options?: { allowHttpLocal?: boolean },
@@ -84,7 +83,6 @@ export function validateTerrainRgbUrlTemplate(
   const host = url.hostname.toLowerCase();
   const allowLocal = options?.allowHttpLocal === true;
 
-  // Production (and non-dev): bare localhost / loopback is never a production terrain origin.
   if (isLocalHost(host) && !allowLocal) {
     return { enabled: false, template: null, reason: 'placeholder' };
   }
@@ -106,7 +104,6 @@ export function validateTerrainRgbUrlTemplate(
   return { enabled: false, template: null, reason: 'invalid_template' };
 }
 
-/** Resolve status from Vite env (build-time injection). */
 export function resolveTerrainRgbFromEnv(
   envValue: string | undefined = import.meta.env.VITE_TSM_TERRAIN_RGB_URL_TEMPLATE,
 ): TerrainRgbStatus {
@@ -137,6 +134,24 @@ export const TERRAIN_RGB_ENCODING = 'mapbox' as const;
 export const TERRAIN_RGB_TILE_SIZE = 256 as const;
 export const TERRAIN_RGB_DEFAULT_EXAGGERATION = 1.0 as const;
 
+export type TerrainRgbEncoding = 'mapbox' | 'terrarium';
+
+export function resolveTerrainRgbEncoding(
+  raw: string | undefined = import.meta.env.VITE_TSM_TERRAIN_RGB_ENCODING,
+): TerrainRgbEncoding {
+  const v = (raw ?? '').trim().toLowerCase();
+  if (v === 'terrarium') return 'terrarium';
+  return 'mapbox';
+}
+
+export function resolveTerrainRgbTileSize(
+  raw: string | undefined = import.meta.env.VITE_TSM_TERRAIN_RGB_TILE_SIZE,
+): number {
+  const n = Number(raw);
+  if (n === 512) return 512;
+  return 256;
+}
+
 export function resolveTerrainRgbMaxZoom(
   raw: string | undefined = import.meta.env.VITE_TSM_TERRAIN_RGB_MAXZOOM,
 ): number {
@@ -144,3 +159,22 @@ export function resolveTerrainRgbMaxZoom(
   if (Number.isFinite(n) && n >= 0 && n <= 22) return Math.floor(n);
   return 14;
 }
+
+export const PUBLIC_TERRAIN_SOURCES = {
+  aws_mapzen_terrarium: {
+    template: 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png',
+    encoding: 'terrarium' as const,
+    tileSize: 256,
+    maxzoom: 15,
+    authority: 'AWS Open Data / Mapzen Terrain Tiles',
+    notes: 'Global terrarium DEM; free HTTPS; OBSERVATION visualization only',
+  },
+  mapterhorn_terrarium: {
+    template: 'https://tiles.mapterhorn.com/{z}/{x}/{y}.webp',
+    encoding: 'terrarium' as const,
+    tileSize: 512,
+    maxzoom: 17,
+    authority: 'Mapterhorn',
+    notes: 'Terrarium WebP 512px; free HTTPS CDN',
+  },
+} as const;
