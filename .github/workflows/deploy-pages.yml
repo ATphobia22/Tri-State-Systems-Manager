@@ -33,6 +33,11 @@ jobs:
     env:
       # Canonical production API. Do not derive this from the Pages origin or an unverified repository variable.
       VITE_TSM_API_BASE_URL: https://tsm-api-production.up.railway.app
+      # Production 3D terrain: Terrain-RGB tile pyramid committed under
+      # tsm-console/public/terrain_3dep/ (Vite copies public/ to dist/) and served
+      # by GitHub Pages. The fail-closed validator requires a real https:// URL
+      # with {z}/{x}/{y} tokens — never a placeholder.
+      VITE_TSM_TERRAIN_RGB_URL_TEMPLATE: https://atphobia22.github.io/Tri-State-Systems-Manager/terrain_3dep/{z}/{x}/{y}.png
     permissions:
       contents: read
       pages: write
@@ -48,6 +53,11 @@ jobs:
           set -euo pipefail
           [[ -n "${VITE_TSM_API_BASE_URL}" ]] || { echo 'Missing production API origin.' >&2; exit 1; }
           [[ "${VITE_TSM_API_BASE_URL}" == https://* ]] || { echo 'VITE_TSM_API_BASE_URL must use HTTPS for production Pages deployments.' >&2; exit 1; }
+          [[ "${VITE_TSM_TERRAIN_RGB_URL_TEMPLATE}" == https://* ]] || { echo 'VITE_TSM_TERRAIN_RGB_URL_TEMPLATE must use HTTPS.' >&2; exit 1; }
+          case "${VITE_TSM_TERRAIN_RGB_URL_TEMPLATE}" in
+            *'{z}'*'{'x'}'*'{'y'}'*) ;;
+            *) echo 'VITE_TSM_TERRAIN_RGB_URL_TEMPLATE must contain {z}/{x}/{y} tokens.' >&2; exit 1 ;;
+          esac
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup Node.js
