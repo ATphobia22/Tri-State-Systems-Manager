@@ -27,6 +27,7 @@ import { evaluateLevel5, listLevel5Proposals, approveLevel5Proposal, executeLeve
 import { calculateLocalProfileWSE } from './engineering/hydraulic-transfer.mjs';
 import { acceptSyslog } from './alerts/syslog.mjs';
 import { createRateLimiter } from './reliability/rate-limiter.mjs';
+import { routeOsrm } from './routing/osrm-client.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
 const BUILD_SHA = process.env.TSM_BUILD_SHA || process.env.GITHUB_SHA || 'local';
@@ -84,10 +85,12 @@ function json(res, status, body, requestId) {
 const dataSourcesFetchLimiter = createRateLimiter({ windowMs: 60_000, maxRequests: 60 });
 const hydrologicLiveLimiter = createRateLimiter({ windowMs: 60_000, maxRequests: 120 });
 const poseyRasterLimiter = createRateLimiter({ windowMs: 60_000, maxRequests: 30 });
+const osrmRouteLimiter = createRateLimiter({ windowMs: 60_000, maxRequests: 60 });
 const routeLimiters = [
   ['/api/data-sources/fetch', dataSourcesFetchLimiter],
   ['/api/hydrologic/live', hydrologicLiveLimiter],
   ['/api/geospatial/posey/raster', poseyRasterLimiter],
+  ['/api/routing/route', osrmRouteLimiter],
 ];
 setInterval(() => { for (const [, limiter] of routeLimiters) limiter.prune(); }, 60_000).unref();
 
@@ -238,6 +241,26 @@ const server = http.createServer(async (req, res) => {
         }
         return json(res, 202, { ok: true, accepted: body.metrics.length }, requestId);
       } catch (error) { return json(res, 400, { ok: false, code: 'RUNTIME_METRIC_PARSE_ERROR', error: error.message }, requestId); }
+    }
+    if (req.method === 'GET' && url.pathname === '/api/routing/route') {
+      if (!checkRouteRateLimit(req, res, requestId)) return;
+      try {
+        const rawCoordinates = String(url.searchParams.get('coordinates') || '');
+        if (!rawCoordinates) return json(res, 400, { ok: false, code: 'ROUTING_COORDINATES_REQUIRED' }, requestId);
+        const coordinates = rawCoordinates.split(';').map((pair) => {
+          const [longitude, latitude] = pair.split(',').map(Number);
+          return [longitude, latitude];
+        });
+        const result = await routeOsrm({
+          coordinates,
+          alternatives: url.searchParams.get('alternatives') === 'true',
+          steps: url.searchParams.get('steps') === 'true',
+          overview: url.searchParams.get('overview') || 'false',
+        });
+        return json(res, 200, { ok: true, ...result }, requestId);
+      } catch (error) {
+        return json(res, error.name === 'RangeError' || error.name === 'TypeError' ? 422 : 502, { ok: false, code: 'OSRM_ROUTE_FAILED', error: error.message }, requestId);
+      }
     }
     if (req.method === 'GET' && url.pathname === '/api/data-sources/catalog') return json(res, 200, { build_sha: BUILD_SHA, sources: listAuthoritativeSources(), health: listSourceHealth(), circuits: listUpstreamCircuitHealth(), authority_boundary: 'Catalog metadata does not confer regulatory authority; source products retain their published status.' }, requestId);
     if (req.method === 'POST' && url.pathname === '/api/community/observations') {
