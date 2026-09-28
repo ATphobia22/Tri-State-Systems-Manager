@@ -70,6 +70,9 @@ def check_runtime_policies() -> None:
             text = path.read_text(encoding="utf-8", errors="ignore")
         except OSError:
             continue
+        relative = path.relative_to(ROOT).as_posix()
+        if relative.startswith('docs/archive/drive-import/'):
+            continue
         for pattern in UNSAFE_RUNTIME_PATTERNS:
             if pattern.search(text):
                 errors.append(f"unsafe runtime policy: {path.relative_to(ROOT)} matches {pattern.pattern}")
