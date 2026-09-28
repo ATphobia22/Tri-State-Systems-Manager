@@ -3,12 +3,12 @@ import type { MapTwinLoaderData } from '../types/loaders';
 import { MAP_LAYERS } from './map-layers';
 import { createHydraulicExtrusionLayer, createHydraulicSource } from './hydraulic-rendering';
 import {
+  resolveTerrainRgbEncoding,
   resolveTerrainRgbFromEnv,
   resolveTerrainRgbMaxZoom,
+  resolveTerrainRgbTileSize,
   TERRAIN_RGB_DEFAULT_EXAGGERATION,
-  TERRAIN_RGB_ENCODING,
   TERRAIN_RGB_SOURCE_ID,
-  TERRAIN_RGB_TILE_SIZE,
   type TerrainRgbStatus,
 } from './terrain-rgb-contract';
 
@@ -23,8 +23,8 @@ function buildTerrainDemSourceSpec(template: string) {
   return {
     type: 'raster-dem' as const,
     tiles: [template],
-    tileSize: TERRAIN_RGB_TILE_SIZE,
-    encoding: TERRAIN_RGB_ENCODING,
+    tileSize: resolveTerrainRgbTileSize(),
+    encoding: resolveTerrainRgbEncoding(),
     maxzoom: resolveTerrainRgbMaxZoom(),
   };
 }
@@ -46,7 +46,6 @@ export function buildTwinStyle(): StyleSpecification {
   const layers: StyleSpecification['layers'] = [
     { id: 'indiana-current-imagery', type: 'raster', source: 'indiana-current-imagery', paint: { 'raster-opacity': 1 } },
   ];
-  // Only register raster-dem when a validated, non-placeholder template exists.
   if (terrain.enabled) {
     sources[TERRAIN_RGB_SOURCE_ID] = buildTerrainDemSourceSpec(terrain.template);
   }
@@ -72,18 +71,9 @@ export function buildTwinStyle(): StyleSpecification {
   };
 }
 
-/**
- * Enable MapLibre 3D terrain only when Terrain-RGB is provenance-configured.
- * Returns false (fail-closed) when VITE_TSM_TERRAIN_RGB_URL_TEMPLATE is missing
- * or invalid — never invents elevation mesh.
- *
- * Enable path: tileSize 256, encoding 'mapbox', setTerrain({ exaggeration: 1.0 })
- * Disable path: setTerrain(null) + removeSource('tsm-terrain-rgb')
- */
 export function applyTwinTerrain(map: Map): boolean {
   const terrain = getTerrainRgbStatus();
   if (!terrain.enabled) {
-    // Explicit fail-closed teardown if a prior session left terrain enabled.
     try {
       if (typeof map.getTerrain === 'function' && map.getTerrain()) {
         map.setTerrain(null);
@@ -92,7 +82,7 @@ export function applyTwinTerrain(map: Map): boolean {
         map.removeSource(TERRAIN_RGB_SOURCE_ID);
       }
     } catch {
-      // Style may not support remove yet; ignore.
+      /* ignore */
     }
     return false;
   }
@@ -107,7 +97,6 @@ export function applyTwinTerrain(map: Map): boolean {
     });
     return true;
   } catch {
-    // Fail closed on any MapLibre source/terrain registration error.
     try {
       if (typeof map.getTerrain === 'function' && map.getTerrain()) {
         map.setTerrain(null);
@@ -129,7 +118,6 @@ export function addFloodAuthorityLayers(map: Map): void {
 export function applyLiveStageMetadata(map: Map, data: MapTwinLoaderData): void {
   map.setCenter([(data.boundingEnvelope.minLon + data.boundingEnvelope.maxLon) / 2, (data.boundingEnvelope.minLat + data.boundingEnvelope.maxLat) / 2]);
 }
-
 
 export function addMartinHydraulicLayer(
   map: Map,
