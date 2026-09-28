@@ -3,5 +3,200 @@
   "$id": "https://tri-state-systems-manager/data/registries/tsm-tri-state-data-fabric-v2.json",
   "title": "TSM Tri-State River Valley Authoritative Data Fabric",
   "version": "2026-09-28",
-  "scope": {"description": "Community-scale Ohio-Wabash confluence and connected Lower Wabash river valley. Coverage is AOI/HUC/reach-driven rather than a private-property anchor.","horizontal_crs":"EPSG:2966","vertical_datum_policy":"NAVB88 is explicit metadata; EPSG:2966 alone does not establish a vertical datum."},
-  "sources": [{"id":"USGS-3DEP", "authority":"USGS", "dataset":"3D Elevation Program", "access":"https://apps.nationalmap.gov/lidar-explorer/", "formats":["LAZ","GeoTIFF","COG"], "role":["terrain","bare_earth","lidar_provenance"]}, {"id":"USGS-TM2-NHDPLUS-HR", "authority":"USGS", "dataset":"NHDPlus High Resolution", "access":"https://www.usgs.gov/national-hydrography/nhdplus-high-resolution", "role":["hydrography","flow_network","catchments"]}, {"id":"FEMA-NFHL", "authority":"FEMA", "dataset":"National Flood Hazard Layer", "access":"https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer", "role":["effective_flood_hazard","SFHA","floodway","BFE_context","FIRM_panels"]}, {"id":"FEMA-MSC","authority":"FEMA","dataset":"Map Service Center","access":"https://msc.fema.gov/portal/search","role":["effective_map_products","FIS","LOMC"]}, {"id":"USACE-NLD","authority":"USACE","dataset":"National Levee Database","access":"https://levees.sec.usace.army.mil/","role":["levees","levee_systems","flood_protection_context"]}, {"id":"USACE-WATER","authority":"USACE","dataset":"USACE Water Data","access":"https://water.usace.army.mil/map","role":["water_observations","reservoirs","hydrologic_context"]}, {"id":"USACE-BENEFICIAL-USE","authority":"USACE","dataset":"Beneficial Use of Dredged Material","access":"https://www.usace.army.mil/Missions/Civil-Works/Beneficial-Use-Program/","role":["dredged_material","beneficial_use","sediment_management"]}, {"id":"USACE-SECTION-204","authority":"USACE","dataset":"Section 204 beneficial-use authority","access":"https://www.nwd.usace.army.mil/missions/civil-works/project-plans/partnership-agreements/","role":["authority_pathway","project_screening"]}, {"id":"IND-DNR-INFIP","authority":"Indiana DNR","dataset":"Indiana Floodplain Information Portal","access":"https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/indiana-floodplain-information-portal/","role":["state_best_available","BFE","FARA","floodplain"]}, {"id":"USDA-NRCS-SSURGO","authority":"USDA NRCS","dataset":"SSURGO","access":"https://www.nrcs.usda.gov/resources/data-and-reports/soil-survey-geographic-database-ssurgo","role":["soils","flooding","engineering_limitations","cropland","hydrologic_properties"]}, {"id":"USDA-NRCS-GSSURGO","authority":"USDA NRCS","dataset":"gSSURGO","access":"https://www.nrcs.usda.gov/resources/data-and-reports/gridded-soil-survey-geographic-gssurgo-database","role":["raster_soils","resource_planning"]}, {"id":"USDA-NASS-CDL","authority":"USDA"NASS","dataset":"Cropland Data Layer","access":"https://nassgeodata.gmxu.edu/CropScape/","role":["crop_type","land_cover","agricultural_change"]}, {"id":"USDA-NRCS-SDA","authority":"USDA NRCS","dataset":"Soil Data Access","access":"https://sdmdataaccess.nrcs.usda.gov/","role":["real_time_soil_queries","soil_interpretations","AOI_queries"]}, {"id":"IL-ISGS","authority":"Illinois State Geological Survey","dataset":"Illinois GIS/ArcGIS services","access":"https://data.isgs.illinois.edu/arcgis/rest/services","role":["Illinois_geology","soils","elevation","imagery"]}, {"id":"KY-KYGEONET","authority":"Kentucky DGI/KyGeoNet","dataset":"Kentucky GIS services","access":"https://kygisserver.ky.gov/arcgis/rest/services","role":["Kentucky_parcels","elevation","hydrography","imagery"]}],"ingestion_rules":{"download_large_rasters":"operator_or_scheduled_job_only","browser_runtime":"consume provenance-controlled tiles/services; never silently promote source data to engineering determinations","provenance":["source_url","retrieved_at","checksum","source_version_or_effective_date","crs","vertical_datum_if_applicable"],"regulatory_layers":"retain source authority and effective status","community_observations":"quarantine until human review"}}
+  "scope": {
+    "description": "Community-scale Ohio-Wabash confluence and connected Lower Wabash river valley. Coverage is AOI/HUC/river-reach driven rather than a private-property anchor.",
+    "horizontal_crs": "EPSG:2966",
+    "vertical_datum_policy": "NAVD88 is explicit metadata; EPSG:2966 alone does not establish a vertical datum."
+  },
+  "sources": [
+    {
+      "id": "USGS-3DEP",
+      "authority": "USGS",
+      "dataset": "3D Elevation Program",
+      "access": "https://apps.nationalmap.gov/lidar-explorer/",
+      "formats": [
+        "LAZ",
+        "GeoTIFF",
+        "COG"
+      ],
+      "role": [
+        "terrain",
+        "bare_earth",
+        "lidar_provenance"
+      ]
+    },
+    {
+      "id": "USGS-TNM-NHDPLUS-HR",
+      "authority": "USGS",
+      "dataset": "NHDPlus High Resolution",
+      "access": "https://www.usgs.gov/national-hydrography/nhdplus-high-resolution",
+      "role": [
+        "hydrography",
+        "flow_network",
+        "catchments"
+      ]
+    },
+    {
+      "id": "FEMA-NFHL",
+      "authority": "FEMA",
+      "dataset": "National Flood Hazard Layer",
+      "access": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer",
+      "role": [
+        "effective_flood_hazard",
+        "SFHA",
+        "floodway",
+        "BFE_context",
+        "FIRM_panels"
+      ]
+    },
+    {
+      "id": "FEMA-MSC",
+      "authority": "FEMA",
+      "dataset": "Map Service Center",
+      "access": "https://msc.fema.gov/portal/search",
+      "role": [
+        "effective_map_products",
+        "FIS",
+        "LOMC"
+      ]
+    },
+    {
+      "id": "USACE-NLD",
+      "authority": "USACE",
+      "dataset": "National Levee Database",
+      "access": "https://levees.sec.usace.army.mil/",
+      "role": [
+        "levees",
+        "levee_systems",
+        "flood_protection_context"
+      ]
+    },
+    {
+      "id": "USACE-WATER",
+      "authority": "USACE",
+      "dataset": "USACE Water Data",
+      "access": "https://water.usace.army.mil/map",
+      "role": [
+        "water_observations",
+        "reservoirs",
+        "hydrologic_context"
+      ]
+    },
+    {
+      "id": "USACE-BENEFICIAL-USE",
+      "authority": "USACE",
+      "dataset": "Beneficial Use of Dredged Material",
+      "access": "https://www.usace.army.mil/Missions/Civil-Works/Beneficial-Use-Program/",
+      "role": [
+        "dredged_material",
+        "beneficial_use",
+        "sediment_management"
+      ]
+    },
+    {
+      "id": "USACE-SECTION-204",
+      "authority": "USACE",
+      "dataset": "Section 204 beneficial-use authority",
+      "access": "https://www.nwd.usace.army.mil/missions/civil-works/project-plans/partnership-agreements/",
+      "role": [
+        "authority_pathway",
+        "project_screening"
+      ]
+    },
+    {
+      "id": "IND-DNR-INFIP",
+      "authority": "Indiana DNR",
+      "dataset": "Indiana Floodplain Information Portal",
+      "access": "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/indiana-floodplain-information-portal/",
+      "role": [
+        "state_best_available",
+        "BFE",
+        "FARA",
+        "floodplain"
+      ]
+    },
+    {
+      "id": "USDA-NRCS-SSURGO",
+      "authority": "USDA NRCS",
+      "dataset": "SSURGO",
+      "access": "https://www.nrcs.usda.gov/resources/data-and-reports/soil-survey-geographic-database-ssurgo",
+      "role": [
+        "soils",
+        "flooding",
+        "engineering_limitations",
+        "cropland",
+        "hydrologic_properties"
+      ]
+    },
+    {
+      "id": "USDA-NRCS-GSSURGO",
+      "authority": "USDA NRCS",
+      "dataset": "gSSURGO",
+      "access": "https://www.nrcs.usda.gov/resources/data-and-reports/gridded-soil-survey-geographic-gssurgo-database",
+      "role": [
+        "raster_soils",
+        "resource_planning"
+      ]
+    },
+    {
+      "id": "USDA-NASS-CDL",
+      "authority": "USDA NASS",
+      "dataset": "Cropland Data Layer",
+      "access": "https://nassgeodata.gmu.edu/CropScape/",
+      "role": [
+        "crop_type",
+        "land_cover",
+        "agricultural_change"
+      ]
+    },
+    {
+      "id": "USDA-NRCS-SDA",
+      "authority": "USDA NRCS",
+      "dataset": "Soil Data Access",
+      "access": "https://sdmdataaccess.nrcs.usda.gov/",
+      "role": [
+        "real_time_soil_queries",
+        "soil_interpretations",
+        "AOI_queries"
+      ]
+    },
+    {
+      "id": "IL-ISGS",
+      "authority": "Illinois State Geological Survey",
+      "dataset": "Illinois GIS/ArcGIS services",
+      "access": "https://data.isgs.illinois.edu/arcgis/rest/services",
+      "role": [
+        "Illinois_geology",
+        "soils",
+        "elevation",
+        "imagery"
+      ]
+    },
+    {
+      "id": "KY-KYGEONET",
+      "authority": "Kentucky DGI/KyGeoNet",
+      "dataset": "Kentucky GIS services",
+      "access": "https://kygisserver.ky.gov/arcgis/rest/services",
+      "role": [
+        "Kentucky_parcels",
+        "elevation",
+        "hydrography",
+        "imagery"
+      ]
+    }
+  ],
+  "ingestion_rules": {
+    "download_large_rasters": "operator_or_scheduled_job_only",
+    "browser_runtime": "consume provenance-controlled tiles/services; never silently promote source data to engineering determinations",
+    "provenance": [
+      "source_url",
+      "retrieved_at",
+      "checksum",
+      "source_version_or_effective_date",
+      "crs",
+      "vertical_datum_if_applicable"
+    ],
+    "regulatory_layers": "retain source authority and effective status",
+    "community_observations": "quarantine until human review"
+  }
+}
