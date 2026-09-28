@@ -13,7 +13,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "node --test tests/geodetic-pipeline.test.mjs",
-    "ci": "npm run check:action-pins && npm run check:file-health && npm run check:parse && npm run check:type && npm run check:geospatial && npm run check:flood-federation && check:tri-state-data && npm run check:government-sources && npm run check:live-fabric && npm run check:regulatory-rules && npm run check:engineering-pipeline && npm run check:schemas && npm run build && npm run check:client-bundle-secrets && npm run check:enterprise-architecture && npm run check:architecture-repository && npm run check:data-fabric-contract && npm run check:provenance-plane && npm run test:production-gates",
+    "ci": "npm run check:action-pins && npm run check:file-health && npm run check:parse && npm run check:type && npm run check:geospatial && npm run check:flood-federation && npm run check:tri-state-data && npm run check:government-sources && npm run check:live-fabric && npm run check:regulatory-rules && npm run check:engineering-pipeline && npm run check:schemas && npm run build && npm run check:client-bundle-secrets && npm run check:enterprise-architecture && npm run check:architecture-repository && npm run check:data-fabric-contract && npm run check:provenance-plane && npm run test:production-gates",
     "ci:full": "npm run ci && npm run test:all",
     "check:action-pins": "node ../scripts/ci/validate-action-pins.mjs",
     "check:schemas": "node ../scripts/ci/validate-json-schemas.mjs",
