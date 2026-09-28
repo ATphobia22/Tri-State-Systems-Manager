@@ -6,7 +6,7 @@
   "type": "module",
   "packageManager": "npm@10.9.2",
   "engines": {
-    "node": ">=22.23.2"
+    "node": ">=22"
   },
   "scripts": {
     "dev": "vite",
