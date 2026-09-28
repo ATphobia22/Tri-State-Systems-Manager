@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tsm.local/contracts/worker-execution-v1.schema.json",
+  "title": "TSM Bounded Worker Execution Contract",
+  "type": "object",
+  "required": ["workerId", "inputArtifactSha256", "authorityClass", "sandbox", "outputPolicy"],
+  "properties": {
+    "workerId": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "inputArtifactSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "authorityClass": { "const": "DERIVED" },
+    "sandbox": { "enum": ["container", "microvm", "process"] },
+    "outputPolicy": { "enum": ["quarantine", "validated", "publishable"] },
+    "network": { "enum": ["none", "allowlisted"] },
+    "maxRuntimeSeconds": { "type": "integer", "minimum": 1, "maximum": 3600 }
+  },
+  "additionalProperties": false
+}
