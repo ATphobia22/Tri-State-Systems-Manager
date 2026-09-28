@@ -11,7 +11,7 @@ computation here never silently become authoritative evidence).
 | Path | Description | Source | Vintage | License |
 |---|---|---|---|---|
 | `boundaries/posey-county.geojson` | Posey County boundary, full TIGER resolution (SHA-256 `10608bde…0a`) | U.S. Census Bureau, TIGER/Line 2023 counties (national file filtered to GEOID 18129) | 2023 | Public domain |
-| `boundaries/posey-county.{shp,shx,dbf}` | Same boundary as ESRI shapefile | U.S. Census Bureau, TIGER/Line 2023 | 2023 | Public domain |
+| `boundaries/posey-county.{shp,shx,dbf,prj}` | Same boundary as ESRI shapefile (NAD83 / EPSG:4269) | U.S. Census Bureau, TIGER/Line 2023 | 2023 | Public domain |
 | `roads/tl_2023_18129_roads.zip` | All roads: I-64, state highways, ~712 mi county roads (SHA-256 `437f1f8b…6a`) | U.S. Census Bureau, TIGER/Line 2023 All Roads, Posey County IN | 2023 | Public domain |
 | `elevation/` | DEM / lidar tiles for Posey County | USGS 3DEP 1/3 arc-second (10 m), NAVD88 — see below | 2022–2026 | Public domain |
 | `floodplain/` | FEMA flood hazard layers for Posey County | Indiana DNR Best Available Flood Hazard Layer (gisdata.in.gov) | current | Public data |
@@ -66,12 +66,13 @@ DLGF class 511, POINT TOWNSHIP.
 Built 2026-09-27 from four USGS 3DEP 1/3 arc-second tiles
 (`n38w088`, `n38w089` vintage 2026-04-17; `n39w088`, `n39w089` vintage
 2022-12-05) read windowed over HTTPS from `prd-tnm.s3.amazonaws.com`,
-mosaicked, and clipped to lon −88.10…−87.45, lat 37.70…38.38 (51.6 M cells,
-zero voids). Units: meters, NAVD88, EPSG:4269.
+mosaicked over lon −88.10…−87.45, lat 37.70…38.38 (51.6 M cells,
+zero voids), then polygon-masked to the TIGER county boundary (outside =
+nodata). Units: meters, NAVD88, EPSG:4269.
 
 | File | Description | SHA-256 |
 |---|---|---|
-| `elevation/posey-county-dem-30m.tif` | County DEM downsampled ×3 (≈30 m), LZW float32, 19.6 MB; range 99.9–188.3 m | `eada1ff5…222a8d31f` |
+| `elevation/posey-county-dem-30m.tif` | County DEM downsampled ×3 (≈30 m), polygon-masked to the county boundary, LZW float32, 19.6 MB; range 100.7–178.7 m | `42dd6e72…0aae5260` |
 | `elevation/bonebank-anchor-dem-10m.tif` | Full 10 m window ±0.03° around 13101 Bonebank Rd (37.845887, −88.005075), 1.3 MB; range 101.1–115.1 m (331.6–377.7 ft — brackets the case LAG 377.2 ft) | `2a6c85df…5bef925f` |
 | `elevation/sources.txt` | Exact source tile URLs | — |
 
