@@ -1,5 +1,6 @@
 const DEFAULT_TIMEOUT_MS = 5000;
 const MAX_COORDINATES = 25;
+const MAX_RESPONSE_BYTES = 2 * 1024 * 1024;
 
 function finiteCoordinate(value, name) {
   const number = Number(value);
@@ -31,8 +32,13 @@ export async function routeOsrm({ coordinates, alternatives = false, steps = fal
   try {
     const response = await fetch(`${config.baseUrl}/route/v1/${config.profile}/${coordinatePath}?${query}`, { signal: controller.signal, headers: { accept: 'application/json' } });
     if (!response.ok) throw new Error(`OSRM returned HTTP ${response.status}`);
-    const body = await response.json();
+    const declaredLength = Number(response.headers.get('content-length') || 0);
+    if (declaredLength > MAX_RESPONSE_BYTES) throw new Error('OSRM response exceeds configured size limit');
+    const text = await response.text();
+    if (new TextEncoder().encode(text).byteLength > MAX_RESPONSE_BYTES) throw new Error('OSRM response exceeds configured size limit');
+    const body = JSON.parse(text);
     if (body?.code !== 'Ok') throw new Error(`OSRM route failed: ${body?.message || body?.code || 'unknown error'}`);
+    if (!Array.isArray(body.routes) || body.routes.length > 10) throw new Error('OSRM returned an invalid route collection');
     return { provider: 'osrm', profile: config.profile, authority_class: 'DERIVED', source_uri: `${config.baseUrl}/route/v1/${config.profile}`, route: body.routes, waypoints: body.waypoints };
   } finally { clearTimeout(timer); }
 }
