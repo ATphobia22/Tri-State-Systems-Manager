@@ -176,7 +176,7 @@ The engineering-fabric expansion is deliberately scoped as a **deterministic eng
 
 **Authoritative merged state — 2026-09-29**
 
-- PR **#155** (`feat/engineering): wire open-source engineering kernel fabric` is merged into `main`.
+- PR **#155** (`feat(engineering): wire open-source engineering kernel fabric`) is merged into `main`.
 - Feature head: `cecfff8e2fe6b587c2c478aa413fabf8554d736e`.
 - Merge commit: `5d48c2647ed083b07f4c095925ceb0cd0912faed`.
 - The dedicated **TSM Engineering Fabric** workflow for the feature head completed successfully, and the broader repository CI checks reported successful at that commit. Subsequent runtime/build workflows may continue independently; a running workflow is not treated as a failure.
