@@ -21,7 +21,8 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
 const outIdx = process.argv.indexOf('--out');
-const outPath = resolve(process.argv[outIdx + 1] || 'dist/404.html');
+const outArg = outIdx === -1 ? undefined : process.argv[outIdx + 1];
+const outPath = resolve(outArg || 'dist/404.html');
 
 // Project Pages site (username.github.io/repo-name/): keep 1 path segment
 // (the repo name) so only the route part is rewritten.
