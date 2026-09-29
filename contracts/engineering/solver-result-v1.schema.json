@@ -1,0 +1,19 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://tsm.local/contracts/engineering/solver-result-v1.schema.json",
+  "title":"TSM Solver Result v1",
+  "type":"object","additionalProperties":false,
+  "required":["schemaVersion","solver","solverVersion","status","inputHash","resultHash","units","values","uncertainty","provenance"],
+  "properties":{
+    "schemaVersion":{"const":"TSM-SolverResult-1.0"},
+    "solver":{"type":"string","minLength":1},"solverVersion":{"type":"string","minLength":1},
+    "status":{"enum":["success","failed","screening-only"]},
+    "inputHash":{"type":"string","pattern":"^[a-f0-9]{64}$"},"resultHash":{"type":"string","pattern":"^[a-f0-9]{64}$"},
+    "units":{"type":"string","enum":["SI","US-customary"]},
+    "values":{"type":"object","additionalProperties":{"type":"number"}},
+    "uncertainty":{"type":"object","additionalProperties":false,"required":["method","relativeBound"],"properties":{
+      "method":{"type":"string"},"relativeBound":{"type":"number","minimum":0}
+    }},
+    "provenance":{"type":"array","items":{"type":"string"}}
+  }
+}
