@@ -105,3 +105,9 @@ and the Pages workflow's API-readiness gate checks that VM's `/ready`.
   upgrades (`docker compose exec postgres pg_dump -U keycloak keycloak > backup.sql`).
 - To move off sslip.io later: change the four hostname/URL lines in `.env`
   and redeploy — Caddy reissues certificates automatically.
+- Optional: a community web panel for managing the instance
+  (Yohann0617/oci-helper, Apache-2.0, runs in Docker on the VM itself) adds
+  traffic stats, security-list editing, and persistent capacity retry — but
+  it holds your OCI API keys (full account access) and its author disclaims
+  bans from aggressive instance-grabbing, so the official console steps
+  above remain the recommended path.
