@@ -166,5 +166,6 @@ export const router = createBrowserRouter([
   { path: 'digital-twin', loader: mapTwinLoader, hydrateFallbackElement: <RouteLoadingFallback label="the twin summary" />, lazy: async () => ({ Component: (await import('../routes/MapTwinView')).default }) },
   { path: 'digital-twin-v2', element: <Suspense fallback={<RouteLoadingFallback label="the 3D digital twin" />}><DigitalTwinV2View /></Suspense> },
   { path: 'flood-sim', hydrateFallbackElement: <RouteLoadingFallback label="the flood simulator" />, lazy: async () => ({ Component: (await import('../components/FloodSimulator')).default }) },
+  { path: 'posey-resilience', hydrateFallbackElement: <RouteLoadingFallback label="the Posey resilience platform" />, lazy: async () => ({ Component: (await import('../routes/PoseyResilienceDashboard')).default }) },
 ] },
 ], { basename: routerBasename });
