@@ -96,6 +96,45 @@ def load_parcel(parcel_id: str, parcel_json: str | None) -> dict:
     )
 
 
+def verify_apn_identity(parcel: dict) -> dict:
+    """Reconcile the internal parcel ID against the county assessor APN.
+
+    FEMA will reject a LOMA/LOMR-F whose parcel identifier does not match the
+    assessor of record. Fail closed: when an assessor APN is supplied and does
+    not exactly match the internal parcel ID, the bundle is stamped
+    UNVERIFIED_DUAL and the applicant must reconcile with the county
+    assessor (Posey County: XSoft Engage / WTH ThinkGIS) before filing.
+    """
+    internal_apn = str(parcel.get("parcel_id", "")).strip()
+    assessor_apn = parcel.get("assessor_apn")
+    assessor_apn = str(assessor_apn).strip() if assessor_apn else ""
+
+    if not assessor_apn:
+        return {
+            "status": "NOT_SUPPLIED",
+            "internal_apn": internal_apn,
+            "assessor_apn": None,
+            "detail": "No assessor APN supplied in the parcel record. "
+                      "Reconcile the internal parcel ID against the county "
+                      "assessor of record before filing.",
+        }
+    if internal_apn == assessor_apn:
+        return {
+            "status": "VERIFIED",
+            "internal_apn": internal_apn,
+            "assessor_apn": assessor_apn,
+            "detail": "Internal parcel ID matches the assessor APN on file.",
+        }
+    return {
+        "status": "UNVERIFIED_DUAL",
+        "internal_apn": internal_apn,
+        "assessor_apn": assessor_apn,
+        "detail": "Internal parcel ID does not match the assessor APN. "
+                  "BLOCKED for filing: reconcile with the county assessor "
+                  "before submitting to FEMA.",
+    }
+
+
 def build_mt1(parcel: dict) -> dict:
     form1 = {field: "APPLICANT_MUST_SUPPLY" for field in MT1_FORM1_FIELDS}
     form2 = {field: "APPLICANT_MUST_SUPPLY" for field in MT1_FORM2_FIELDS}
@@ -248,6 +287,27 @@ def main(argv: list[str] | None = None) -> int:
     checklist_path = out_dir / "checklist.txt"
     checklist_path.write_text(build_checklist())
     written.append(checklist_path)
+
+    apn_check = verify_apn_identity(parcel)
+    apn_path = out_dir / "apn_reconciliation.json"
+    apn_path.write_text(
+        json.dumps(
+            {
+                "generated_at": utc_now(),
+                "generator": "TSM generate_fema_lomc_bundle.py verify_apn_identity",
+                **apn_check,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n"
+    )
+    written.append(apn_path)
+    if apn_check["status"] == "UNVERIFIED_DUAL":
+        print(
+            "BLOCKED: internal parcel ID does not match the assessor APN "
+            "(see apn_reconciliation.json). Reconcile before filing."
+        )
 
     manifest_path = write_manifest(out_dir, written)
 
