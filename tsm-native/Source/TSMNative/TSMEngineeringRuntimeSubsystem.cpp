@@ -66,27 +66,12 @@ FTSMEngineeringResult UTSMEngineeringRuntimeSubsystem::EvaluateScenario(
 {
     FTSMEngineeringResult Result;
 
-    double ScenarioMultiplier = 1.0;
-    switch (Scenario)
-    {
-        case ETSMFloodScenario::Design100Year:
-            ScenarioMultiplier = 1.25;
-            break;
-        case ETSMFloodScenario::Design500Year:
-            ScenarioMultiplier = 1.50;
-            break;
-        case ETSMFloodScenario::Historic1937:
-            ScenarioMultiplier = 1.35;
-            break;
-        case ETSMFloodScenario::Custom:
-        case ETSMFloodScenario::Current:
-        default:
-            break;
-    }
-
+    const double ScenarioMultiplier = FMath::Max(0.0, Inputs.ScenarioDischargeMultiplier);
     const double HydraulicRadius = Inputs.WettedPerimeterMeters > KINDA_SMALL_NUMBER
         ? FMath::Max(0.0, Inputs.FlowAreaSquareMeters) / Inputs.WettedPerimeterMeters
         : 0.0;
+
+    Result.ScenarioDischargeMultiplierApplied = ScenarioMultiplier;
 
     Result.RationalPeakFlowCubicMetersPerSecond =
         ComputeRationalPeakFlow(
@@ -195,6 +180,7 @@ bool UTSMEngineeringRuntimeSubsystem::ExportEngineeringReport(
         Inputs.ExistingGroundElevationMeters,
         Inputs.WaterSurfaceElevationMeters,
         Inputs.TargetFreeboardMeters,
+        Result.ScenarioDischargeMultiplierApplied,
         Result.RationalPeakFlowCubicMetersPerSecond,
         Result.ManningVelocityMetersPerSecond,
         Result.ManningCapacityCubicMetersPerSecond,
