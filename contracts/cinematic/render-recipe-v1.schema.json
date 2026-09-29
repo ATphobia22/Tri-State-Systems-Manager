@@ -1,0 +1,19 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://tsm.local/contracts/cinematic/render-recipe-v1.schema.json",
+  "title":"TSM Deterministic Cinematic Render Recipe v1",
+  "type":"object","additionalProperties":false,
+  "required":["schemaVersion","scenarioId","evidenceManifestSha256","designIrSha256","camera","lighting","weather","render"],
+  "properties":{
+    "schemaVersion":{"const":"TSM-RenderRecipe-1.0"},
+    "scenarioId":{"type":"string","minLength":1},
+    "evidenceManifestSha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},
+    "designIrSha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},
+    "camera":{"type":"object","additionalProperties":false,"required":["preset"],"properties":{"preset":{"type":"string"},"position":{"type":"array","minItems":3,"maxItems":3,"items":{"type":"number"}},"lookAt":{"type":"array","minItems":3,"maxItems":3,"items":{"type":"number"}}}},
+    "lighting":{"type":"object","additionalProperties":false,"required":["preset"],"properties":{"preset":{"type":"string"},"exposure":{"type":"number"}}},
+    "weather":{"type":"object","additionalProperties":false,"required":["preset"],"properties":{"preset":{"type":"string"},"visibilityMeters":{"type":"number","exclusiveMinimum":0}}},
+    "render":{"type":"object","additionalProperties":false,"required":["engine","width","height","samples","seed"],"properties":{
+      "engine":{"enum":["unreal","natron","openshot"]},"width":{"type":"integer","minimum":320},"height":{"type":"integer","minimum":240},"samples":{"type":"integer","minimum":1},"seed":{"type":"integer","minimum":0}
+    }}
+  }
+}

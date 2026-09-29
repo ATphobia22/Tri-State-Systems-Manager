@@ -1,0 +1,19 @@
+#usda 1.0
+(
+    defaultPrim = "TSM"
+    doc = "TSM Engineering interchange schema seed. Authoritative engineering state remains in TSM Evidence/Design IR."
+)
+
+def Xform "TSM" {
+    custom string tsm:schemaVersion = "TSM-USD-1.0"
+    custom string tsm:authority = "exchange-only"
+
+    def Scope "Terrain" {}
+    def Scope "Parcels" {}
+    def Scope "Infrastructure" {}
+    def Scope "Flood" {}
+    def Scope "Evidence" {}
+    def Scope "Design" {}
+    def Scope "Annotations" {}
+    def Scope "Cameras" {}
+}
