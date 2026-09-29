@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "product": {
+    "name": "Tri-State Systems Manager",
+    "runtime": "Unreal Engine 5.8 native",
+    "experience": "cinematic engineering digital twin",
+    "browserRuntime": false,
+    "webViewRuntime": false,
+    "localhostRuntime": false,
+    "nodeRuntime": false,
+    "networkRequiredForSimulation": false
+  },
+  "operatorExperience": {
+    "world": "open-world geospatial digital twin",
+    "hud": {
+      "collapsible": true,
+      "inWorld": true,
+      "modalBrowser": false
+    },
+    "dashboards": "native Slate/UMG",
+    "interaction": "keyboard-mouse-gamepad-touch-XR where platform supports it",
+    "engineeringMode": "instrumented, evidence-bound, human-controlled"
+  },
+  "engineeringDomains": [
+    "terrain and elevation",
+    "hydrology",
+    "hydraulics",
+    "flood scenarios",
+    "historical flood reconstruction",
+    "berm and road placement",
+    "earthwork quantities",
+    "drainage and conveyance screening",
+    "parcel and infrastructure exposure",
+    "geospatial evidence",
+    "provenance",
+    "blueprint generation",
+    "grant documentation"
+  ],
+  "simulationBoundary": {
+    "predictionLanguage": "modeled scenario estimate",
+    "regulatoryDetermination": false,
+    "calibratedHydraulicModelRequiredForDesign": true,
+    "uncertaintyMustBeDisplayed": true,
+    "sourceProvenanceMustBeDisplayed": true
+  },
+  "dataPolicy": {
+    "runtimeSource": "local immutable manifest-backed data package",
+    "manifest": "data-manifest.json",
+    "integrity": "sha256",
+    "missingEvidence": "fail closed",
+    "effectiveFloodMappingAndEngineeringModelOutputs": "separate evidence classes"
+  },
+  "artifactOutputs": [
+    "engineering scenario report",
+    "calculation workbook data",
+    "blueprint-ready design package",
+    "grant narrative evidence package",
+    "source/provenance manifest",
+    "simulation snapshot"
+  ]
+}

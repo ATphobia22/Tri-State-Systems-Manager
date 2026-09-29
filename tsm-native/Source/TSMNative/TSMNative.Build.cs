@@ -21,11 +21,15 @@ public class TSMNative : ModuleRules
                 "HeadMountedDisplay",
                 "OpenXRHMD",
                 "OpenXRInput",
+                "UMG",
+                "Slate",
+                "SlateCore",
                 "SQLiteCore",
                 "CesiumRuntime"
             });
 
         PrivateDependencyModuleNames.AddRange(new[] { "SQLiteSupport" });
 
+        PublicDefinitions.Add("TSM_NATIVE_OFFLINE_RUNTIME=1");
     }
 }

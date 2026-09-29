@@ -1,0 +1,20 @@
+name: TSM Native World Fabric
+on:
+  push:
+    branches: [main, feat/native-world-interaction-fabric-2026-09-29]
+    paths: ["tsm-native/**","scripts/ci/validate-native-world-interaction-contract.mjs",".github/workflows/tsm-native-world-fabric.yml"]
+  pull_request:
+    branches: [main]
+    paths: ["tsm-native/**","scripts/ci/validate-native-world-interaction-contract.mjs",".github/workflows/tsm-native-world-fabric.yml"]
+permissions:
+  contents: read
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with: {node-version: 22}
+      - run: node scripts/ci/validate-native-product-contract.mjs
+      - run: node scripts/ci/validate-native-world-interaction-contract.mjs
+      - run: node --test tsm-native/tests/native-world-contract.test.mjs
