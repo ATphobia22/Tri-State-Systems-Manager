@@ -1,0 +1,43 @@
+name: TSM Engineering Fabric
+on:
+  push:
+    branches: [main, feat/engineering-kernel-fabric-2026-09-29]
+    paths:
+      - "contracts/engineering/**"
+      - "contracts/dependencies/**"
+      - "contracts/cinematic/**"
+      - "integrations/engineering-fabric/**"
+      - "integrations/usd/**"
+      - "scripts/third-party/**"
+      - "scripts/ci/validate-engineering-fabric.mjs"
+      - "tsm-console/package.json"
+      - "tsm-console/tests/engineering-fabric-contract.test.mjs"
+      - ".github/workflows/tsm-engineering-fabric.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "contracts/engineering/**"
+      - "contracts/dependencies/**"
+      - "contracts/cinematic/**"
+      - "integrations/engineering-fabric/**"
+      - "integrations/usd/**"
+      - "scripts/third-party/**"
+      - "scripts/ci/validate-engineering-fabric.mjs"
+      - "tsm-console/package.json"
+      - "tsm-console/tests/engineering-fabric-contract.test.mjs"
+permissions:
+  contents: read
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+      - name: Validate engineering fabric
+        run: node scripts/ci/validate-engineering-fabric.mjs
+      - name: Run engineering fabric tests
+        run: node --test tsm-console/tests/engineering-fabric-contract.test.mjs
+      - name: Syntax-check deterministic kernel
+        run: python3 -m py_compile integrations/engineering-fabric/engineering_kernel.py
