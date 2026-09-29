@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Authoritative acquisition catalog for the native offline engineering runtime.",
+  "sources": [
+    {
+      "id": "usgs-tnm-access",
+      "authority": "USGS",
+      "type": "elevation",
+      "endpoint": "https://tnmaccess.nationalmap.gov/api/v1/"
+    },
+    {
+      "id": "usgs-3dep-index",
+      "authority": "USGS",
+      "type": "elevation-index",
+      "endpoint": "https://index.nationalmap.gov/arcgis/rest/services/3DEPElevationIndex/MapServer"
+    },
+    {
+      "id": "indiana-dem-2016-2020",
+      "authority": "Indiana",
+      "type": "state-dem",
+      "endpoint": "https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_2016_2020_DEM/ImageServer"
+    },
+    {
+      "id": "usgs-water-ogc",
+      "authority": "USGS",
+      "type": "water-observations",
+      "endpoint": "https://api.waterdata.usgs.gov/ogcapi/v1/"
+    },
+    {
+      "id": "noaa-nwps",
+      "authority": "NOAA",
+      "type": "river-forecast",
+      "endpoint": "https://api.water.noaa.gov/nwps/v1/"
+    },
+    {
+      "id": "indiana-bafhl",
+      "authority": "Indiana DNR",
+      "type": "best-available-flood-hazard",
+      "endpoint": "https://gisdata.in.gov/server/rest/services/Best_Available_Flood_Hazard_Layer/MapServer"
+    },
+    {
+      "id": "indiana-parcels-current",
+      "authority": "Indiana",
+      "type": "parcels",
+      "endpoint": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_Current/FeatureServer"
+    },
+    {
+      "id": "indiana-parcels-2025",
+      "authority": "Indiana",
+      "type": "parcels",
+      "endpoint": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer"
+    },
+    {
+      "id": "usace-national-levee-database",
+      "authority": "USACE",
+      "type": "levees",
+      "endpoint": "https://levees.sec.usace.army.mil/api-local"
+    },
+    {
+      "id": "indiana-plss",
+      "authority": "Indiana",
+      "type": "survey-reference",
+      "endpoint": "https://gisdata.in.gov/server/rest/services/Hosted/PLSS_Indiana_State_Boundary/FeatureServer"
+    },
+    {
+      "id": "usgs-basemap-services",
+      "authority": "USGS",
+      "type": "basemap",
+      "endpoint": "https://basemap.nationalmap.gov/arcgis/rest/services"
+    },
+    {
+      "id": "fema-nfhl-firmette",
+      "authority": "FEMA",
+      "type": "effective-flood-regulatory",
+      "endpoint": "https://hazards.fema.gov/arcgis/rest/services/FIRMette/NFHLREST_FIRMette/MapServer"
+    },
+    {
+      "id": "fema-msc",
+      "authority": "FEMA",
+      "type": "effective-flood-reference",
+      "endpoint": "https://msc.fema.gov/portal/search"
+    },
+    {
+      "id": "cesium-for-unreal",
+      "authority": "Cesium",
+      "type": "native-geospatial-renderer",
+      "endpoint": "https://github.com/CesiumGS/cesium-unreal/releases/tag/v2.29.1"
+    }
+  ],
+  "evidenceClasses": [
+    "observed",
+    "authoritative-regulatory",
+    "authoritative-reference",
+    "modeled-engineering",
+    "historical-reconstruction",
+    "screening-estimate",
+    "synthetic-assumption"
+  ],
+  "policy": {
+    "runtimeNetworkAccess": false,
+    "sourceAcquisitionOutsideRuntime": true,
+    "femaEffectiveAndEngineeringModelOutputsSeparated": true,
+    "missingSourceMustBeExplicit": true
+  }
+}

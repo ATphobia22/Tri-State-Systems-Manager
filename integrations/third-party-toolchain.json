@@ -1,0 +1,11 @@
+{
+  "version": "2026-09-28",
+  "tools": [
+    { "name": "@geoman-io/maplibre-geoman-free", "version": "0.9.2", "mode": "optional-runtime", "license": "project-defined; review license before non-free features" },
+    { "name": "3d-tiles-tools", "version": "0.5.4", "mode": "ci-tooling", "license": "Apache-2.0" },
+    { "name": "3d-tiles-validator", "version": "0.4.0", "mode": "ci-tooling", "license": "Apache-2.0" }
+  ],
+  "installPolicy": "ci-network-only",
+  "lockfilePolicy": "never mutate the application lockfile from CI tooling installs",
+  "authorityClass": "TOOLING"
+}

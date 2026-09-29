@@ -1,30 +1,32 @@
 {
-  "schemaVersion": "1.0.0",
+  "schemaVersion": "1.1.0",
   "application": {
     "id": "tri-state-systems-manager",
     "name": "Tri-State Systems Manager",
-    "entry": "tsm-console",
-    "mode": "desktop-capable-web",
+    "entry": "tsm-native/TSMNative.uproject",
+    "mode": "native-first",
+    "legacyWebConsole": "tsm-console",
+    "operatorRuntime": "Unreal Engine 5.8",
+    "browserRuntime": false,
+    "webViewRuntime": false,
     "security": {
-      "tileServerBind": "127.0.0.1",
+      "nativeRuntimeNetwork": false,
       "browserAuthoritativeSealing": false
     }
   },
-  "runtime": {
-    "webgpu": { "optional": true, "shader": "tsm-console/src/gpu/ultimate-twin-pipeline.wgsl" },
-    "map": { "engine": "MapLibre", "localTileEndpoint": "http://127.0.0.1:8788" },
-    "tiles": { "root": "tsm-console/public/data/tiles", "formats": ["PNG", "JPEG", "WEBP", "PBF", "JSON", "TERRAIN"] }
+  "native": {
+    "productContract": "tsm-native/config/native-product-contract.json",
+    "sourceCatalog": "tsm-native/config/authoritative-source-catalog.json",
+    "dataIntegrity": "sha256",
+    "dataManifest": "data-manifest.json"
   },
-  "cinematic": {
-    "sceneStateSchema": "1.0.0",
-    "solarEngine": "tsm-console/src/lib/cinematic/solar-engine.ts",
-    "orthophotoProcessor": "tools/ortho/ortho_processor.py",
-    "floodScenarios": ["live", "100-year", "500-year", "1937-historic"]
-  },
-  "telemetry": {
-    "riverAlert": "tsm-console/server/telemetry/river-alert.mjs",
-    "usgsParameter": "00065",
-    "baselineConfiguration": "TSM_STRUCTURE_BASELINE_FT"
+  "engineering": {
+    "runtime": "in-process C++/Blueprint",
+    "hud": "native Slate/UMG",
+    "world": "Unreal open-world digital twin",
+    "simulation": ["current", "100-year", "500-year", "1937-historic", "custom"],
+    "placement": ["berm", "road"],
+    "reportGeneration": true
   },
   "evidence": {
     "requiredForFloodScenarioBinding": true,

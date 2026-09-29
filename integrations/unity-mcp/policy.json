@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tsm.local/contracts/unity-mcp-policy-v1.schema.json",
+  "title": "TSM Unity MCP Policy",
+  "type": "object",
+  "required": ["enabled", "allowedTools", "blockedPathPrefixes", "authorityClass"],
+  "properties": {
+    "enabled": { "type": "boolean" },
+    "authorityClass": { "const": "TOOLING" },
+    "allowedTools": { "type": "array", "items": { "type": "string" } },
+    "blockedPathPrefixes": { "type": "array", "items": { "type": "string" } },
+    "requireHumanApprovalFor": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": false
+}

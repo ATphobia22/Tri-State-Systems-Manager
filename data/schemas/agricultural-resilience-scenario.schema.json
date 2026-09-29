@@ -1,0 +1,20 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://schemas.tsm-community.example/schemas/agricultural-resilience-scenario/v1.0.0.json",
+  "title":"TSM Agricultural Flood and Access Resilience Scenario",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["scenario_id","aoi_ref","crop_source","soil_source","hydrology_source","human_review_required"],
+  "properties":{
+    "scenario_id":{"type":"string","pattern":"^[a-z0-9-]+$"},
+    "aoi_ref":{"type":"string","minLength":1},
+    "crop_source":{"type":"string","enum":["USDA_NASS_CDL","operator_verified","other"]},
+    "soil_source":{"type":"string","enum":["USDA_SSURGO","USDA_gSSURGO","USDA_SDA","operator_verified","other"]},
+    "hydrology_source":{"type":"string","minLength":1},
+    "metrics":{"type":["object","null"],"additionalProperties":true},
+    "candidate_actions":{"type":"array","items":{"type":"string","enum":["drainage_improvement","farm_access_road","culvert_upgrade","berm_screening","wetland_restoration","soil_conservation","crop_rotation","other"]}},
+    "evidence":{"type":"array","items":{"type":"string","minLength":1}},
+    "human_review_required":{"const":true},
+    "agency_acceptance":{"const":false}
+  }
+}

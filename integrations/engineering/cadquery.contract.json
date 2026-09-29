@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tsm.local/contracts/cadquery-worker-v1.schema.json",
+  "title": "TSM CadQuery Engineering Artifact Contract",
+  "type": "object",
+  "required": ["artifactType", "source", "authorityClass", "outputs", "provenance"],
+  "properties": {
+    "artifactType": { "const": "ENGINEERING_CAD_ARTIFACT" },
+    "source": { "const": "cadquery" },
+    "authorityClass": { "const": "DERIVED" },
+    "outputs": { "type": "array", "items": { "enum": ["STEP", "DXF", "STL", "GLB", "3MF"] } },
+    "provenance": {
+      "type": "object",
+      "required": ["inputSha256", "generatorVersion", "generatedAt"],
+      "properties": {
+        "inputSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "generatorVersion": { "type": "string", "minLength": 1 },
+        "generatedAt": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,12 @@
+{
+  "scenarioId":"tri-state-ohio-wabash-confluence-community",
+  "title":"Tri-State Ohio-Wabash Confluence Community AOI",
+  "description":"Community-scale acquisition and simulation envelope for the Lower Wabash and Ohio River confluence. Operational AOI is derived from authoritative hydrography, watershed boundaries and river reaches rather than a private residence.",
+  "source":"USGS NHDPlus HR + USGS WBD + USGS 3DEP + FEMA NFHL + USACE NLD; see data/registries/tsm-tri-state-data-fabric-v2.json",
+  "provenance":"modeled",
+  "humanReviewRequired":true,
+  "provisional":true,
+  "provisionalFields":["exact_operational_extent_until_HU4_HU8_selection_is_materialized"],
+  "engine":{"seed":"tri-state-ohio-wabash-confluence-community","nx":128,"ny":128,"dxFt":100,"manningN":0.05,"durationHrs":72,"curveNumber":70,"watershedAreaSqMi":1,"terrain":{"type":"flat","baseElevFt":0,"valleyReliefFt":0,"noiseAmplitudeFt":0,"octaves":1},"gaugeDriven":true,"hyetograph":null,"structures":[]},
+  "aoi_definition":{"primary_rivers":["Wabash River","Ohio River"],"hydrography_basis":"NHDPlus HR","watershed_basis":"WBD","terrain_basis":"USGS 3DEP","regulatory_flood_basis":"FEMA NFHL","state_best_available_basis":"Indiana INFIP where applicable","levee_basis":"USACE National Levee Database"}
+}

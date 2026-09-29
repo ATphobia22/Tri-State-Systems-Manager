@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tsm.local/contracts/gpustack-runtime-v1.schema.json",
+  "title": "TSM Optional GPU Worker Runtime",
+  "type": "object",
+  "required": ["enabled", "authorityClass", "allowedWorkloads"],
+  "properties": {
+    "enabled": { "type": "boolean", "default": false },
+    "authorityClass": { "const": "COMPUTE" },
+    "endpoint": { "type": "string", "format": "uri" },
+    "allowedWorkloads": { "type": "array", "items": { "enum": ["terrain-shader", "tile-optimization", "model-inference"] } },
+    "requireArtifactHash": { "type": "boolean", "const": true }
+  },
+  "additionalProperties": false
+}

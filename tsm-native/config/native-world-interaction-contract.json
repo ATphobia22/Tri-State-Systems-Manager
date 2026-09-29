@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "runtime": {
+    "engine": "Unreal Engine 5.8",
+    "browserRuntime": false,
+    "webViewRuntime": false,
+    "nodeRuntime": false,
+    "localhostRuntime": false,
+    "networkRequiredForSimulation": false
+  },
+  "nativeComponents": [
+    "UTSMWorldInteractionSubsystem",
+    "UTSMGeoSelectionComponent",
+    "UTSMTerrainProbeComponent",
+    "UTSMMeasurementSubsystem",
+    "UTSMScenarioTimelineSubsystem",
+    "UTSMFloodScenarioSubsystem",
+    "ATSMFloodSurfaceActor",
+    "UTSMFloodContourComponent",
+    "ATSMAlignmentActor",
+    "ATSMBermDesignActor",
+    "ATSMRoadDesignActor",
+    "UTSMCutFillSubsystem",
+    "UTSMQuantitySubsystem",
+    "UTSMDesignIntermediateRepresentation",
+    "UTSMEvidenceObject",
+    "UTSMProvenanceSubsystem",
+    "UTSMScenarioSnapshot",
+    "UTSMEvidenceOverlay",
+    "UTSMBlueprintGenerationSubsystem",
+    "UTSMUsdExportAdapter",
+    "UTSMBIMExportAdapter",
+    "UTSMCinematicCameraSubsystem",
+    "UTSMCameraPresetLibrary",
+    "UTSMLightingPresetLibrary",
+    "UTSMWeatherPresetLibrary",
+    "UTSMSequencerIntegration",
+    "UTSMMovieRenderSubsystem",
+    "UTSMFloodDepthMaterial",
+    "UTSMSourceInspector",
+    "UTSMProfileComponent",
+    "UTSMMaterialLibrary"
+  ],
+  "flood": {
+    "evidenceSurfaceSeparate": true,
+    "modeledScenarioSurfaceSeparate": true,
+    "cinematicWaterSeparate": true,
+    "syntheticFrequencyMultipliersAllowed": false,
+    "missingEvidencePolicy": "fail-closed"
+  },
+  "evidence": {
+    "classes": [
+      "observed",
+      "authoritative-regulatory",
+      "authoritative-reference",
+      "modeled-engineering",
+      "historical-reconstruction",
+      "screening-estimate",
+      "synthetic-assumption",
+      "cinematic-presentation"
+    ],
+    "provenanceChain": [
+      "source",
+      "dataset",
+      "version",
+      "acquisition",
+      "transformation",
+      "model",
+      "calculation",
+      "result",
+      "visualization",
+      "artifact"
+    ]
+  },
+  "design": {
+    "conceptualDesignMustBeLabeled": true,
+    "surveyControlledDesignRequiredForConstruction": true,
+    "designIntermediateRepresentation": "FTSMDesignIR"
+  },
+  "cinematic": {
+    "engineeringAndCinematicCameraModesSeparated": true,
+    "renderingMustNotMutateEngineeringState": true
+  }
+}

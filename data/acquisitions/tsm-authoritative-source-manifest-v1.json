@@ -1,0 +1,74 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-09-28T00:00:00Z",
+  "purpose": "Reproducible acquisition/provenance manifest for authoritative public geospatial and hydrologic sources used by TSM.",
+  "gitPolicy": {
+    "rawLargeDatasets": "do-not-commit-to-standard-git",
+    "derivedArtifacts": "commit-only-when-small-and-reviewable",
+    "largeBinaryStrategy": "Git LFS or external object storage with immutable checksum manifests",
+    "requiredProvenance": ["source_url", "retrieved_at", "http_status", "sha256", "content_type", "crs", "vertical_datum"]
+  },
+  "sources": [
+    {
+      "id": "fema-nfhl-effective",
+      "authority": "FEMA",
+      "authorityClass": "FEDERAL_REGULATORY",
+      "kind": "arcgis-mapserver",
+      "url": "https://hazards.fema.gov/arcgis/rest/services/FIRMette/NFHLREST_FIRMette/MapServer",
+      "discoveryUrl": "https://msc.fema.gov/portal/search",
+      "serviceItemIds": {
+        "experience": "9d22cdae8b7542b88e0d555a3eb92949",
+        "webMap": "fa23d2702e244058ab47eb62a991d600"
+      }
+    },
+    {
+      "id": "indiana-bafm",
+      "authority": "Indiana DNR Division of Water",
+      "authorityClass": "STATE_FLOODPLAIN",
+      "kind": "arcgis-mapserver",
+      "url": "https://gisdata.in.gov/server/rest/services/Best_Available_Flood_Hazard_Layer/MapServer"
+    },
+    {
+      "id": "indiana-parcels-current",
+      "authority": "Indiana Geographic Information Office / local governments",
+      "authorityClass": "STATE_CADASTRAL",
+      "kind": "arcgis-featureserver",
+      "url": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_Current/FeatureServer"
+    },
+    {
+      "id": "usgs-3dep-index",
+      "authority": "USGS National Geospatial Program",
+      "authorityClass": "FEDERAL_ELEVATION",
+      "kind": "arcgis-mapserver",
+      "url": "https://index.nationalmap.gov/arcgis/rest/services/3DEPElevationIndex/MapServer"
+    },
+    {
+      "id": "usgs-tnm-access",
+      "authority": "USGS National Geospatial Program",
+      "authorityClass": "FEDERAL_ELEVATION",
+      "kind": "rest-api",
+      "url": "https://tnmaccess.nationalmap.gov/api/v1/"
+    },
+    {
+      "id": "usace-nld",
+      "authority": "USACE",
+      "authorityClass": "FEDERAL_INFRASTRUCTURE",
+      "kind": "rest-api",
+      "url": "https://levees.sec.usace.army.mil/api-local"
+    },
+    {
+      "id": "usgs-waterdata",
+      "authority": "USGS Water Mission Area",
+      "authorityClass": "HYDROLOGIC_OBSERVATION",
+      "kind": "rest-api",
+      "url": "https://api.waterdata.usgs.gov/ogcapi/v1/"
+    },
+    {
+      "id": "noaa-nwps",
+      "authority": "NOAA/NWS Office of Water Prediction",
+      "authorityClass": "HYDROLOGIC_FORECAST",
+      "kind": "rest-api",
+      "url": "https://api.water.noaa.gov/nwps/v1/"
+    }
+  ]
+}

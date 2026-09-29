@@ -1,0 +1,14 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"https://tsm.local/contracts/engineering/worker-envelope-v1.schema.json",
+  "title":"TSM External Engineering Worker Envelope",
+  "type":"object","additionalProperties":false,
+  "required":["schemaVersion","workerKind","inputSha256","outputSha256","result"],
+  "properties":{
+    "schemaVersion":{"const":"TSM-WorkerEnvelope-1.0"},
+    "workerKind":{"enum":["cad","usd","vision","numerics","routing","solver","post-process"]},
+    "inputSha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},
+    "outputSha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},
+    "result":{"type":"object"}
+  }
+}

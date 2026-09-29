@@ -16,7 +16,7 @@ TSM combines authoritative river observations, geospatial evidence, engineering-
 | **Public console (GitHub Pages SPA)** | https://atphobia22.github.io/Tri-State-Systems-Manager/ |
 | **Production API (Coolify/self-hosted)** | https://<configured-coolify-api-domain> |
 | **API readiness** | `GET /ready` — deployed Git SHA, `auth_ready`, OIDC readiness |
-| **Console package** | `tsm-console` **v0.2.1** (React **19.3.0**, Vite 8, `@react-three/fiber` **9.8.1**, MapLibre **6.10.0**) |
+| **Console package** | `tsm-console` **v0.2.1** (React **19.3.0**, Vite **8.3.1**, `@react-three/fiber` **9.8.1**, MapLibre **6.11.2**, Three **0.186.1**, Vitest **5.0.2**, `@types/node` **26.6.2**) |
 
 **Deployment model (2026-09-28):** GitHub Pages hosts the static Vite SPA; a self-hosted Coolify deployment hosts the production API. The Pages release is fail-closed until the API `/ready` endpoint reports the exact Git SHA being published, with OIDC readiness verified.
 
@@ -166,6 +166,46 @@ Important runtime paths:
 - `docs/DEPLOYMENT-AND-OPERATIONS.md` — operations runbook  
 - `COMPLIANCE.md` — authority and non-certification boundaries  
 
+## Repository hygiene
+
+`main` is the canonical integration and release branch. Short-lived feature and automation branches are expected to land through pull requests; stale or superseded branches should not be treated as deployment surfaces. Dependency updates are kept synchronized between `package.json` and `package-lock.json`.
+
+## Engineering Fabric — deterministic computation + controlled capabilities
+
+The engineering-fabric expansion is deliberately scoped as a **deterministic engineering computation layer + controlled external scientific capabilities + Unreal-native visualization**. Heavy third-party CAD, CFD, routing, computer-vision, numerical and post-processing stacks are **not embedded into the Unreal runtime**. They operate as capability workers behind explicit contracts.
+
+**Authoritative merged state — 2026-09-29**
+
+- PR **#155** (`feat(engineering): wire open-source engineering kernel fabric`) is merged into `main`.
+- Feature head: `cecfff8e2fe6b587c2c478aa413fabf8554d736e`.
+- Merge commit: `5d48c2647ed083b07f4c095925ceb0cd0912faed`.
+- The dedicated **TSM Engineering Fabric** workflow for the feature head completed successfully, and the broader repository CI checks reported successful at that commit. Subsequent runtime/build workflows may continue independently; a running workflow is not treated as a failure.
+- The feature branch was deleted after merge; `main` is the authoritative integration branch.
+- Unreal Engine **5.8** remains the native runtime boundary.
+- External dependencies are acquired into `.cache/tsm-third-party/` from the pinned lock; upstream repositories are not vendored into the Unreal runtime.
+- OpenFOAM and Natron remain isolated worker boundaries because of GPL licensing. Mutable upstream revisions are rejected unless explicitly enabled for research builds and must be resolved to immutable commits before release packaging.
+
+### Contracts and deterministic kernel
+
+The fabric adds machine-readable contracts for:
+
+- `TSM-DesignIR-2.0` design intermediate representation;
+- `TSM-SolverResult-1.0` solver envelopes with input/result hashes, uncertainty and provenance;
+- deterministic cinematic render recipes;
+- capability-fabric mutation policy; and
+- pinned third-party source/revision/license boundaries.
+
+The native engineering kernel contains deterministic, unit-explicit screening calculations including rational peak flow, Manning flow/capacity, flood depth, design elevation/freeboard, berm geometry/volume and cut/fill. External workers cannot mutate native engineering state directly, and cinematic presentation cannot mutate engineering state.
+
+### Controlled worker boundary
+
+Worker execution is fail-closed: executable allowlists, no shell expansion, explicit timeouts and request/response byte limits, plus hashed I/O envelopes and provenance checks. Missing or disallowed workers, timeouts, oversized payloads and hash mismatches are failures—not reasons to fabricate a result.
+
+### Windows 11 native deployment
+
+Windows is the primary desktop engineering target. The supported build path is Unreal Engine 5.8 + Visual Studio 2022/MSVC on a Windows UE5 runner. The repository includes the native Windows build and packaging path at `scripts/native/Build-TSMNativeWindows.ps1`, including ArchimedesCore, packaged SpatiaLite, Unreal Shipping packaging and Inno Setup installer generation.
+
+The Windows release workflow requires explicit UE5 runner capabilities, an immutable native data snapshot, pinned Cesium for Unreal **2.29.1**, packaged SpatiaLite, release-signing configuration, release provenance and SPDX SBOM generation. Unreal Engine, proprietary SDKs, signing certificates and generated release binaries remain outside source control.
 ## Local development
 
 ```bash
@@ -199,7 +239,7 @@ Gates include dependency integrity, supply-chain / npx policy, SBOM, repository 
 
 Do **not** weaken or bypass a failing gate.
 
-Notable workflows: `ci.yml`, `deploy-pages.yml`, `tsm-parse-gate.yml`, `codeql.yml`, `open-world-twin.yml`, `ptdt-e2e-visual.yml`, `container-ci.yml`, `tsm-desktop.yml`, `deploy-coolify.yml`.
+Notable workflows: `ci.yml`, `deploy-pages.yml`, `tsm-parse-gate.yml`, `codeql.yml`, `open-world-twin.yml`, `ptdt-e2e-visual.yml`, `container-ci.yml`, `tsm-desktop.yml`, `deploy-coolify.yml`, `tsm-engineering-fabric.yml`.
 
 ## Safety and professional authority
 

@@ -1,0 +1,20 @@
+{
+  "schemaVersion":"TSM-CapabilityFabric-1.0",
+  "nativeRuntime":"Unreal Engine 5.8",
+  "offlineSimulationRequired":true,
+  "capabilities":[
+    {"id":"cad.geometry","plane":"engineering","worker":"cad","authority":"design-artifact","inputs":["TSM-DesignIR-2.0"],"outputs":["STEP","IGES","STL","TSM-ArtifactManifest"]},
+    {"id":"scene.usd","plane":"artifact","worker":"usd","authority":"exchange-only","inputs":["TSM-DesignIR-2.0","TSM-EvidenceManifest"],"outputs":["OpenUSD"]},
+    {"id":"vision.inspection","plane":"evidence","worker":"vision","authority":"observed-or-screening","inputs":["image"],"outputs":["TSM-EvidenceObject"]},
+    {"id":"numerics.calibration","plane":"engineering","worker":"numerics","authority":"modeled-engineering","inputs":["arrays","uncertainty"],"outputs":["TSM-SolverResult-1.0"]},
+    {"id":"transport.routing","plane":"engineering","worker":"routing","authority":"contextual","inputs":["WGS84 coordinates"],"outputs":["route","duration","distance"]},
+    {"id":"physics.cfd","plane":"engineering","worker":"solver","authority":"modeled-engineering","inputs":["solver case"],"outputs":["TSM-SolverResult-1.0"]},
+    {"id":"cinematic.post","plane":"presentation","worker":"post-process","authority":"cinematic-presentation","inputs":["render recipe"],"outputs":["render package"]}
+  ],
+  "mutationPolicy":{
+    "cinematicCannotMutateEngineeringState":true,
+    "workerCannotMutateNativeWorldDirectly":true,
+    "evidenceMustBeHashAddressed":true,
+    "missingWorkerFailsClosed":true
+  }
+}
