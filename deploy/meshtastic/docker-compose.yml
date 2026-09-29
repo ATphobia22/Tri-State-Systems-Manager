@@ -1,0 +1,32 @@
+services:
+  # Meshtastic native Linux gateway. Bridges a USB-attached LoRa radio into
+  # the local MQTT broker so field sensors reach the twin with no internet.
+  meshtasticd:
+    image: meshtastic/meshtasticd:latest
+    container_name: tsm-meshtasticd
+    restart: unless-stopped
+    devices:
+      # USB LoRa radio (adjust to the actual device node on the host)
+      - /dev/ttyUSB0:/dev/ttyUSB0
+    volumes:
+      - meshtasticd-config:/etc/meshtasticd
+    environment:
+      TZ: America/Chicago
+    depends_on:
+      - mqtt
+
+  # Local MQTT broker — the integration boundary. meshtasticd publishes mesh
+  # packets here; the twin subscribes. Nothing leaves the LAN.
+  mqtt:
+    image: eclipse-mosquitto:2
+    container_name: tsm-mqtt
+    restart: unless-stopped
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mqtt-data:/mosquitto/data
+    ports:
+      - "127.0.0.1:1883:1883"
+
+volumes:
+  meshtasticd-config:
+  mqtt-data:

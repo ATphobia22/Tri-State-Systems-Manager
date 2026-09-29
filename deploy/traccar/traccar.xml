@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE properties SYSTEM 'http://java.sun.com/dtd/properties.dtd'>
+<!--
+  TSM offline traccar configuration.
+  Air-gap posture: embedded H2 database (no external DB), reverse geocoder
+  DISABLED (it calls LocationIQ over the network by default), no map tile
+  URLs pointing at third-party services. Devices report in over the LAN;
+  the twin consumes positions via traccar's local REST API.
+-->
+<properties>
+    <entry key='database.driver'>org.h2.Driver</entry>
+    <entry key='database.url'>jdbc:h2:/opt/traccar/data/database</entry>
+    <entry key='database.user'>sa</entry>
+    <entry key='database.password' />
+
+    <!-- Offline: never reverse-geocode over the network. -->
+    <entry key='geocoder.enable'>false</entry>
+
+    <!-- Keep the web UI bound behind the twin's reverse proxy in production. -->
+    <entry key='web.port'>8082</entry>
+</properties>

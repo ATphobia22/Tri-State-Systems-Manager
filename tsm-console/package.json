@@ -82,6 +82,7 @@
     "@capacitor/cli": "8.5.2",
     "@capacitor/core": "8.5.2",
     "@capacitor/ios": "8.5.2",
+    "@meta2d/core": "^1.1.32",
     "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "9.8.1",
     "@tanstack/react-virtual": "^3.14.13",
@@ -105,10 +106,10 @@
     "@types/three": "^0.186.0",
     "@vitejs/plugin-react": "^6.1.1",
     "@webgpu/types": "^0.1.74",
+    "cypress": "16.1.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.1",
-    "vitest": "^5.0.2",
-    "cypress": "16.1.0"
+    "vitest": "^5.0.2"
   },
   "overrides": {
     "uuid": "^11.1.1"

@@ -1,0 +1,24 @@
+services:
+  traccar:
+    image: traccar/traccar:6.7
+    container_name: tsm-traccar
+    restart: unless-stopped
+    volumes:
+      - ./traccar.xml:/opt/traccar/conf/traccar.xml:ro
+      - traccar-data:/opt/traccar/data
+      - traccar-logs:/opt/traccar/logs
+    ports:
+      # Web UI + REST API (the twin consumes this)
+      - "127.0.0.1:8082:8082"
+      # Common device protocol ports (subset; add more per hardware)
+      - "5001:5001"   # osmand
+      - "5002:5002"
+      - "5003:5003"
+      - "5005:5005"
+      - "5055:5055"
+    environment:
+      TZ: America/Chicago
+
+volumes:
+  traccar-data:
+  traccar-logs:
