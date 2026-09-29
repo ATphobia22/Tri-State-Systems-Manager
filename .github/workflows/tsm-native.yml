@@ -356,6 +356,11 @@ jobs:
           if (-not $env:TSM_NATIVE_DATA_ROOT) { throw "TSM_NATIVE_DATA_ROOT repository variable is required." }
           if (-not (Test-Path -LiteralPath (Join-Path $env:TSM_NATIVE_DATA_ROOT "data-manifest.json") -PathType Leaf)) { throw "data-manifest.json is required beside the sovereign data snapshot." }
           .\scripts\native\Verify-NativeDataManifest.ps1 -DataRoot $env:TSM_NATIVE_DATA_ROOT -ManifestPath (Join-Path $env:TSM_NATIVE_DATA_ROOT "data-manifest.json") -RejectExtraFiles
+      - name: Stage immutable data into UE package
+        shell: pwsh
+        env:
+          TSM_NATIVE_DATA_ROOT: ${{ vars.TSM_NATIVE_DATA_ROOT }}
+        run: node scripts/native/stage-native-data-root.mjs
       - name: Require packaged SpatiaLite
         shell: pwsh
         env:
@@ -449,6 +454,11 @@ jobs:
           test -f "$TSM_NATIVE_DATA_ROOT/data-manifest.json"
           chmod +x scripts/native/Verify-NativeDataManifest.sh
           scripts/native/Verify-NativeDataManifest.sh "$TSM_NATIVE_DATA_ROOT" "$TSM_NATIVE_DATA_ROOT/data-manifest.json" true
+      - name: Stage immutable data into UE package
+        shell: bash
+        env:
+          TSM_NATIVE_DATA_ROOT: ${{ vars.TSM_NATIVE_DATA_ROOT }}
+        run: node scripts/native/stage-native-data-root.mjs
       - name: Build ArchimedesCore
         run: |
           cmake -S native/archimedes -B native/archimedes/build
@@ -566,6 +576,11 @@ jobs:
           test -f "$TSM_NATIVE_DATA_ROOT/data-manifest.json"
           chmod +x scripts/native/Verify-NativeDataManifest.sh
           scripts/native/Verify-NativeDataManifest.sh "$TSM_NATIVE_DATA_ROOT" "$TSM_NATIVE_DATA_ROOT/data-manifest.json" true
+      - name: Stage immutable data into UE package
+        shell: bash
+        env:
+          TSM_NATIVE_DATA_ROOT: ${{ vars.TSM_NATIVE_DATA_ROOT }}
+        run: node scripts/native/stage-native-data-root.mjs
       - name: Package UE5 iOS Shipping build
         shell: bash
         env:
@@ -644,6 +659,11 @@ jobs:
           test -f "$TSM_NATIVE_DATA_ROOT/data-manifest.json"
           chmod +x scripts/native/Verify-NativeDataManifest.sh
           scripts/native/Verify-NativeDataManifest.sh "$TSM_NATIVE_DATA_ROOT" "$TSM_NATIVE_DATA_ROOT/data-manifest.json" true
+      - name: Stage immutable data into UE package
+        shell: bash
+        env:
+          TSM_NATIVE_DATA_ROOT: ${{ vars.TSM_NATIVE_DATA_ROOT }}
+        run: node scripts/native/stage-native-data-root.mjs
       - name: Package UE5 Android Shipping build
         shell: bash
         env:
