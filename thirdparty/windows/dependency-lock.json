@@ -16,14 +16,44 @@
       "artifact": "sqlite-tools-win-x64-3530400.zip",
       "source": "https://www.sqlite.org/download.html",
       "sha3_256": "88b4659fe747896b853af10157316b4ade143553efb89c1c8ca7423a278dcc8b",
-      "verification": "official-published-checksum"
+      "verification": "official-published-checksum; locally verified 2026-09-29 (sha3_256 exact match against operator-supplied archive)",
+      "sha256": "f46ee2475de4cbe287e6e5f7d43c838796b14e7379cd216bdbb28d391429f9fc"
     },
     {
       "name": "mod_spatialite",
       "version": "5.1.0",
       "artifact": "mod_spatialite-5.1.0-win-amd64.7z",
       "source": "https://www.gaia-gis.it/gaia-sins/windows-bin-amd64/",
-      "verification": "official-directory; local SHA-256 required before promotion"
+      "verification": "local SHA-256/SHA3-256 computed 2026-09-29 from operator-supplied archive; contents match official gaia-gis.it layout (mod_spatialite.dll + 27 dependency DLLs)",
+      "sha3_256": "58e4e49de3c2c3b32a6b66542e5ab8879db997d0d86dac38bbbb49db29516e0e",
+      "sha256": "34b0829f59e6f77be68d9342c2d2a568a4af7776aa65d597b93f24d0c87b0070"
+    },
+    {
+      "name": "spatialite-tools",
+      "version": "5.1.0a",
+      "artifact": "spatialite-tools-5.1.0a-win-amd64.7z",
+      "source": "https://www.gaia-gis.it/gaia-sins/windows-bin-amd64/",
+      "sha3_256": "71ac58f52e98697e4859eeb1665ae0179f0e1c9cb1ed4fa5392ab346e9565af9",
+      "sha256": "f23aad41567c35217149b6ecda53c9e8245d6ab75a78079e33b091a55ae52e04",
+      "verification": "local SHA-256/SHA3-256 computed 2026-09-29 from operator-supplied archive; contents match official gaia-gis.it layout (21 tools incl. spatialite.exe, proj.db)"
+    },
+    {
+      "name": "sqlite-wasm",
+      "version": "3.53.4",
+      "artifact": "sqlite-wasm-3530400.zip",
+      "source": "https://www.sqlite.org/download.html",
+      "sha3_256": "e4fa7e1750b42f6954115d8e69ffff7dc08da7e9fee6e28a2a0ea6bf228a49f2",
+      "sha256": "b38d042be415af040679804dbf66264c6e6ec324d79840c284f673c4f2a63c4d",
+      "verification": "local SHA-256/SHA3-256 computed 2026-09-29 from operator-supplied archive (reference only)"
+    },
+    {
+      "name": "sqlite-src",
+      "version": "3.53.4",
+      "artifact": "sqlite-src-3530400.zip",
+      "source": "https://www.sqlite.org/download.html",
+      "sha3_256": "b834d474b9b393d85a9e3ee4cc11f1329e007e9376a424ee740796f5c4bda3a8",
+      "sha256": "d18fa15aec74d8c17e1463f861095adc01b5ad190256acb4f91d22f0368d232b",
+      "verification": "local SHA-256/SHA3-256 computed 2026-09-29 from operator-supplied archive (reference only)"
     }
   ]
 }

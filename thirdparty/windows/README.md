@@ -15,9 +15,28 @@ Source: https://www.sqlite.org/download.html
 
 ## SpatiaLite
 
-Gaia-SINS publishes the Windows amd64 `mod_spatialite-5.1.0-win-amd64.7z` package. The archive was identified from the official Gaia-SINS Windows amd64 directory. Verify the downloaded archive and extracted DLL hashes locally before promotion.
+Gaia-SINS publishes the Windows amd64 packages. Verified locally 2026-09-29
+against operator-supplied archives (hashes now recorded in
+`dependency-lock.json`):
+
+- `mod_spatialite-5.1.0-win-amd64.7z` — SHA3-256
+  `58e4e49de3c2c3b32a6b66542e5ab8879db997d0d86dac38bbbb49db29516e0e`;
+  contents match the official layout (mod_spatialite.dll + 27 dependency
+  DLLs: GEOS, PROJ 9.2, libsqlite3, etc.)
+- `spatialite-tools-5.1.0a-win-amd64.7z` — SHA3-256
+  `71ac58f52e98697e4859eeb1665ae0179f0e1c9cb1ed4fa5392ab346e9565af9`;
+  21 tools including spatialite.exe plus proj.db
+
+The sqlite-tools archive also matched its official published SHA3-256
+exactly (`88b4659f…dcc8b`).
 
 Source: https://www.gaia-gis.it/gaia-sins/windows-bin-amd64/
+
+## Distribution
+
+The 7z/zip archives exceed GitHub's per-file limits and are **not committed
+to git**. They ship in the Windows installation package
+(`tools/sqlite/`, `tools/spatialite/`) and on the USB deployment archive.
 
 ## TSM policy
 
