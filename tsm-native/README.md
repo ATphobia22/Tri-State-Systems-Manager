@@ -24,7 +24,7 @@ TSM is a cinematic engineering digital twin rather than a conventional dashboard
 - grant evidence narrative generation;
 - simulation snapshots and reproducible scenario packages.
 
-The native HUD is an overlay on the Unreal game viewport, which is the supported mechanism for in-game Slate UI. citeturn3search0turn3search11
+The native HUD is an overlay on the Unreal game viewport, which is the supported mechanism for in-game Slate UI.
 
 ## Engineering boundary
 
@@ -40,9 +40,9 @@ The first native calculation layer includes:
 
 The system deliberately does **not** manufacture flood-frequency multipliers. A 100-year/500-year/historical scenario must receive its flow or stage parameters from a source-bound scenario record.
 
-USGS documentation emphasizes that Rational Method inputs such as runoff coefficient and time of concentration require engineering judgment and that validation is difficult without observed data. Historical flood discharge estimation can also carry substantial uncertainty. citeturn2search0turn2search8
+USGS documentation emphasizes that Rational Method inputs such as runoff coefficient and time of concentration require engineering judgment and that validation is difficult without observed data. Historical flood discharge estimation can also carry substantial uncertainty.
 
-For hydraulic design, calibrated model evidence remains separate from screening calculations. USGS HEC-RAS guidance describes validation/calibration against observed stage/flow information and terrain/hydraulic structure behavior. citeturn2search12
+For hydraulic design, calibrated model evidence remains separate from screening calculations. USGS HEC-RAS guidance describes validation/calibration against observed stage/flow information and terrain/hydraulic structure behavior.
 
 ## Offline data fabric
 
@@ -69,7 +69,7 @@ The staging pipeline is:
 
 scripts/native/stage-native-data-root.mjs
 
-Unreal packaging is configured to stage TSMData as packaged non-asset data. Epic's Unreal Engine documentation identifies DirectoriesToAlwaysStageAsUFS as the mechanism for including additional non-asset directories in packaged output. citeturn1search0turn1search1
+Unreal packaging is configured to stage TSMData as packaged non-asset data. Epic's Unreal Engine documentation identifies DirectoriesToAlwaysStageAsUFS as the mechanism for including additional non-asset directories in packaged output.
 
 ## Platform targets
 
