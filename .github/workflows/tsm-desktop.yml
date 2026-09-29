@@ -56,6 +56,8 @@ jobs:
       - run: npm ci --ignore-scripts --registry=https://registry.npmjs.org
       - name: Ensure platform Rolldown native binding
         run: node scripts/ensure-native-rolldown-binding.mjs
+      - name: Ensure platform lightningcss native binding
+        run: node scripts/ensure-native-lightningcss-binding.mjs
       - run: npm run build
       - name: Validate Windows bundle icons
         shell: pwsh
@@ -105,6 +107,8 @@ jobs:
       - run: npm ci --ignore-scripts --registry=https://registry.npmjs.org
       - name: Ensure platform Rolldown native binding
         run: node scripts/ensure-native-rolldown-binding.mjs
+      - name: Ensure platform lightningcss native binding
+        run: node scripts/ensure-native-lightningcss-binding.mjs
       - run: npm run build
       - name: Build macOS DMG
         env:
@@ -141,6 +145,8 @@ jobs:
       - run: npm ci --ignore-scripts --registry=https://registry.npmjs.org
       - name: Ensure platform Rolldown native binding
         run: node scripts/ensure-native-rolldown-binding.mjs
+      - name: Ensure platform lightningcss native binding
+        run: node scripts/ensure-native-lightningcss-binding.mjs
       - run: npm run build
       - name: Build Linux AppImage and deb
         run: cargo tauri build --bundles appimage,deb
