@@ -13,6 +13,10 @@ const required = [
   "integrations/engineering-fabric/worker-runner.mjs",
   "integrations/engineering-fabric/worker-contract.json",
   "integrations/usd/TSMEngineering.usda",
+  "integrations/engineering-fabric/capability-dispatch.mjs",
+  "integrations/engineering-fabric/adapters/opencv-inspection.py",
+  "integrations/engineering-fabric/adapters/openfoam-case-runner.py",
+  "contracts/dependencies/tsm-capability-fabric-v1.json",
   "scripts/third-party/bootstrap.mjs"
 ];
 
@@ -23,6 +27,10 @@ for (const relative of required) {
 const lock = JSON.parse(readFileSync(resolve(root, "contracts/dependencies/tsm-open-source-lock-v1.json"), "utf8"));
 if (lock.schemaVersion !== "TSM-OpenSourceLock-1.0") throw new Error("unexpected dependency lock schema");
 if (!Array.isArray(lock.sources) || lock.sources.length < 7) throw new Error("tier-1 dependency lock is incomplete");
+
+const capability = JSON.parse(readFileSync(resolve(root, "contracts/dependencies/tsm-capability-fabric-v1.json"), "utf8"));
+if (capability.schemaVersion !== "TSM-CapabilityFabric-1.0" || capability.capabilities.length < 7) throw new Error("capability fabric is incomplete");
+if (capability.mutationPolicy?.cinematicCannotMutateEngineeringState !== true || capability.mutationPolicy?.workerCannotMutateNativeWorldDirectly !== true) throw new Error("capability mutation policy is unsafe");
 
 for (const source of lock.sources) {
   for (const key of ["name", "repo", "revision", "license", "boundary", "download"]) {
