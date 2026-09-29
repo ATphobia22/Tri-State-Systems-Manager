@@ -1,0 +1,118 @@
+# TSM production stack on Oracle Cloud Always Free ($0/month)
+#
+# What this is: the full production stack — API + PostgreSQL + Keycloak +
+# Caddy (automatic Let's Encrypt HTTPS) — for a single Always Free VM
+# (Ampere A1: 2 OCPU / 12 GB RAM). No Coolify Cloud subscription needed.
+#
+# Setup: deploy/oracle/README.md
+#   1. Copy .env.example to .env and fill in the secrets.
+#   2. docker compose --env-file .env up -d --build
+#   3. Point TSM_API_BASE_URL at https://<API_HOSTNAME>
+
+name: tsm-oracle
+
+services:
+  api:
+    build:
+      context: ../..
+      dockerfile: tsm-console/Dockerfile
+    image: tsm-console-api:oracle
+    restart: unless-stopped
+    expose:
+      - "8787"
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: "8787"
+      # Exact git SHA, reported at GET /ready. The deploy workflow sets this
+      # per deployment; the Pages gate requires it to equal GITHUB_SHA.
+      TSM_BUILD_SHA: ${SOURCE_COMMIT:-local}
+      TSM_AUTH_MODE: required
+      TSM_EVIDENCE_DIR: /app/.data
+    volumes:
+      - evidence_data:/app/.data
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8787/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 90s
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-keycloak}
+      POSTGRES_USER: ${POSTGRES_USER:-keycloak}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-keycloak} -d $${POSTGRES_DB:-keycloak}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  keycloak:
+    # Pinned major 26: uses KC_BOOTSTRAP_ADMIN_* (renamed from KEYCLOAK_ADMIN_*
+    # in Keycloak 26) and KC_PROXY_HEADERS=xforwarded (replaces KC_PROXY=edge).
+    image: quay.io/keycloak/keycloak:26
+    restart: unless-stopped
+    command: ["start"]
+    env_file:
+      - .env
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-keycloak}
+      KC_DB_USERNAME: ${POSTGRES_USER:-keycloak}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:?KEYCLOAK_ADMIN_USERNAME is required}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?KEYCLOAK_ADMIN_PASSWORD is required}
+      # Public HTTPS hostname, e.g. keycloak.203-0-113-51.sslip.io.
+      # Browsers do OIDC redirects against this, so it must be public.
+      KC_HOSTNAME: ${KEYCLOAK_HOSTNAME:?KEYCLOAK_HOSTNAME is required}
+      KC_PROXY_HEADERS: xforwarded
+      KC_HTTP_ENABLED: "true"
+    expose:
+      - "8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      # No curl/wget in the Keycloak image; use a bash TCP probe against the
+      # master realm discovery document (the same document the API waits for).
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8080 && printf 'GET /realms/master/.well-known/openid-configuration HTTP/1.0\r\n\r\n' >&3 && grep -q '200 OK' <&3"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 120s
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      API_HOSTNAME: ${API_HOSTNAME:?API_HOSTNAME is required}
+      KEYCLOAK_HOSTNAME: ${KEYCLOAK_HOSTNAME:?KEYCLOAK_HOSTNAME is required}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+      - keycloak
+
+volumes:
+  evidence_data:
+  pgdata:
+  caddy_data:
+  caddy_config:

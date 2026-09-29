@@ -1,0 +1,88 @@
+# TSM Oracle Deploy — pushes the production stack (api + postgres + keycloak
+# + caddy) to the Always Free VM over SSH on every main-branch push.
+#
+# Required repository secrets (Settings -> Secrets and variables -> Actions):
+#   ORACLE_SSH_HOST   public IPv4 of the VM
+#   ORACLE_SSH_USER   SSH user (ubuntu)
+#   ORACLE_SSH_KEY    private key matching the VM's authorized key
+# The job soft-skips until all three exist (same pattern as deploy-coolify).
+#
+# The VM must already have /opt/tsm/tree/deploy/oracle/.env (see
+# deploy/oracle/README.md). The workflow syncs this exact commit, rebuilds,
+# and verifies GET /ready inside the api container before finishing.
+
+name: TSM Oracle Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tsm-console/**'
+      - 'data/scenarios/**'
+      - 'data/schemas/**'
+      - 'artifacts/**'
+      - 'deploy/oracle/**'
+      - '.github/workflows/deploy-oracle.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy stack to Oracle VM
+    runs-on: ubuntu-latest
+    if: ${{ secrets.ORACLE_SSH_HOST != '' && secrets.ORACLE_SSH_USER != '' && secrets.ORACLE_SSH_KEY != '' }}
+    steps:
+      - name: Check out this commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Sync tree and rebuild over SSH
+        env:
+          ORACLE_SSH_HOST: ${{ secrets.ORACLE_SSH_HOST }}
+          ORACLE_SSH_USER: ${{ secrets.ORACLE_SSH_USER }}
+          ORACLE_SSH_KEY: ${{ secrets.ORACLE_SSH_KEY }}
+          DEPLOY_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s' "$ORACLE_SSH_KEY" > ~/.ssh/oracle_deploy
+          chmod 600 ~/.ssh/oracle_deploy
+          ssh-keyscan -H "$ORACLE_SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          SSH="ssh -i ~/.ssh/oracle_deploy -o StrictHostKeyChecking=yes -o ConnectTimeout=20"
+          DEST="$ORACLE_SSH_USER@$ORACLE_SSH_HOST"
+
+          # Sync only what the Docker build needs (skip .git, 49 MB county
+          # data bundle, and local build output).
+          tar --exclude='.git' --exclude='node_modules' \
+              --exclude='data/posey-county' --exclude='tsm-console/dist' \
+              -czf /tmp/tsm-tree.tgz .
+          scp -i ~/.ssh/oracle_deploy -o StrictHostKeyChecking=yes \
+              /tmp/tsm-tree.tgz "$DEST:/opt/tsm/tsm-tree.tgz"
+
+          # Rebuild this exact commit and verify /ready in-container.
+          # .env on the VM supplies hostnames + secrets; SOURCE_COMMIT is the
+          # SHA the Pages gate requires to equal GITHUB_SHA.
+          $SSH "$DEST" "set -euo pipefail
+            rm -rf /opt/tsm/tree && mkdir -p /opt/tsm/tree
+            tar -xzf /opt/tsm/tsm-tree.tgz -C /opt/tsm/tree
+            rm /opt/tsm/tsm-tree.tgz
+            cd /opt/tsm/tree/deploy/oracle
+            test -f .env || { echo 'deploy/oracle/.env is missing on the VM' >&2; exit 1; }
+            SOURCE_COMMIT='$DEPLOY_SHA' docker compose --env-file .env up -d --build
+            for i in \$(seq 1 30); do
+              if docker compose --env-file .env exec -T api wget -qO- http://127.0.0.1:8787/ready 2>/dev/null | grep -q '\"ready\":true'; then
+                echo 'API /ready is healthy'
+                exit 0
+              fi
+              sleep 10
+            done
+            echo 'API did not become ready in time' >&2
+            docker compose --env-file .env ps
+            exit 1"
+
+          echo "Oracle deployment triggered for ${GITHUB_SHA}"
+          shred -u ~/.ssh/oracle_deploy 2>/dev/null || rm -f ~/.ssh/oracle_deploy
