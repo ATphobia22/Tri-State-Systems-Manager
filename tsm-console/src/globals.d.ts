@@ -19,3 +19,8 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+/** Runtime injection for packaged/offline deployments (desktop app). Set before the bundle loads. */
+interface Window {
+  readonly __TSM_CONFIG__?: { readonly apiBaseUrl?: string };
+}

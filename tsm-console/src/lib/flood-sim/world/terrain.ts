@@ -5,11 +5,15 @@
  * This module resolves its elevation grid from one of two sources:
  *
  * 1. `source-derived` — the bundled source-derived screening grid
- *    (`world/data/source-derived-dem-posey.json`, fetched by
+ *    (`world/data/source-derived-dem-posey.q16.json`, quantized uint16 +
+ *    min/scale from the float grid fetched by
  *    `tools/terrain/fetch-terrarium-dem.py` from AWS elevation-tiles-prod
  *    Terrarium tiles; CONUS portion sourced from USGS 3DEP/NED per the
  *    Tilezen joerd attribution — a mosaic with mixed native vertical
  *    datums). ~15 m source posting resampled to a 62.5 ft canonical grid.
+ *    Quantization quantum is ~0.0005 ft (max round-trip error ~0.0003 ft),
+ *    far below screening-level precision; the bundle carries the sha256 of
+ *    the original float-grid source so the provenance chain is intact.
  *    It is a SCREENING-LEVEL derivative: better than the procedural
  *    approximation, but NOT survey-grade, NOT a substitute for licensed
  *    survey, and NOT valid for regulatory/design elevation decisions.
@@ -34,7 +38,8 @@ import * as THREE from 'three';
 import { mulberry32 } from '../prng';
 import { computeHillshade } from './hillshade';
 import tileFabric from '../../../../../artifacts/tsm-geospatial-tile-fabric-v1.json';
-import sourceDerivedDemJson from './data/source-derived-dem-posey.json';
+import quantizedDemJson from './data/source-derived-dem-posey.q16.json';
+import { decodeQuantizedGrid, type QuantizedGridBundle } from '../../quantized-grid';
 
 /** DEM service entries from the tile-fabric manifest that inform this terrain. */
 export interface DemSourceRef {
@@ -110,7 +115,8 @@ interface SourceDerivedBundle {
   source?: string;
   sha256?: string;
   statsFt?: { min?: number; max?: number; mean?: number };
-  gridFt?: number[];
+  /** Decoded elevation samples, row-major, length n*n. Float64Array after quantization decode. */
+  gridFt?: ArrayLike<number>;
 }
 
 export interface SourceDerivedMeta {
@@ -134,10 +140,32 @@ export interface ResolvedTerrainSource {
   sourceDerivedMeta: SourceDerivedMeta | null;
 }
 
+let decodedDemCache: SourceDerivedBundle | null | undefined;
+
 function readSourceDerivedBundle(): SourceDerivedBundle | null {
-  const b = sourceDerivedDemJson as SourceDerivedBundle;
-  if (!b || !Array.isArray(b.gridFt) || typeof b.n !== 'number') return null;
-  return b;
+  if (decodedDemCache !== undefined) return decodedDemCache;
+  try {
+    // Quantized payload ("turbo quant"): uint16 + min/scale, decoded in one
+    // vectorized typed-array pass. Provenance chain (id/source/datums/sha256)
+    // is preserved from the original float-grid source document.
+    const decoded = decodeQuantizedGrid(quantizedDemJson as QuantizedGridBundle);
+    const q = quantizedDemJson as QuantizedGridBundle;
+    decodedDemCache = {
+      id: q.id,
+      n: decoded.n,
+      cellFt: q.cellFt,
+      halfExtentFt: q.halfExtentFt,
+      verticalDatum: q.verticalDatum,
+      horizontalDatum: q.horizontalDatum,
+      source: q.source,
+      sha256: q.sourceSha256 ?? q.sha256,
+      statsFt: q.statsFt ? { min: q.statsFt.min ?? 0, max: q.statsFt.max ?? 0, mean: q.statsFt.mean ?? 0 } : undefined,
+      gridFt: decoded.values,
+    };
+  } catch {
+    decodedDemCache = null;
+  }
+  return decodedDemCache;
 }
 
 function validateSourceDerivedBundle(b: SourceDerivedBundle): SourceDerivedMeta | null {
@@ -187,7 +215,7 @@ function resampleSurveyed(
   dxFt: number,
 ): number[][] | null {
   const n = b.n as number;
-  const grid = b.gridFt as number[];
+  const grid = b.gridFt as ArrayLike<number>;
   const halfTargetX = (nx * dxFt) / 2;
   const halfTargetY = (ny * dxFt) / 2;
   if (halfTargetX > meta.halfExtentFt || halfTargetY > meta.halfExtentFt) return null;

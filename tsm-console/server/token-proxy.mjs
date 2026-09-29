@@ -30,9 +30,24 @@ import { createRateLimiter } from './reliability/rate-limiter.mjs';
 import { routeOsrm } from './routing/osrm-client.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
+/**
+ * Bind host. The desktop/offline app sets TSM_HOST=127.0.0.1 so the API is
+ * loopback-only. Default preserves the historical all-interfaces bind for
+ * reverse-proxied deployments.
+ */
+const HOST = String(process.env.TSM_HOST || '0.0.0.0');
 const BUILD_SHA = process.env.TSM_BUILD_SHA || process.env.GITHUB_SHA || 'local';
 const ALLOWED_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
 if (ALLOWED_ORIGIN === '*') throw new Error('CORS_ORIGIN must be an exact trusted origin; wildcard CORS is prohibited.');
+// TSM_AUTH_MODE=disabled: login is dropped. The API serves public/read-only
+// routes and local mutations without OIDC; auth endpoints report AUTH_DISABLED.
+// TSM_OFFLINE=1: air-gapped mode. Upstream river-data fetches are short-circuited
+// to fail-closed OFFLINE_MODE instead of attempting network access.
+const AUTH_DISABLED = String(process.env.TSM_AUTH_MODE || 'required').toLowerCase() === 'disabled';
+const OFFLINE_MODE = ['1', 'true', 'yes'].includes(String(process.env.TSM_OFFLINE || '').toLowerCase());
+function authDisabledJson(res, requestId) {
+  return json(res, 503, { ok: false, code: 'AUTH_DISABLED', note: 'Login is disabled in this deployment (TSM_AUTH_MODE=disabled).' }, requestId);
+}
 const RUNTIME_BROWSER_METRICS = new Set(['tsm_browser_route_load_seconds', 'tsm_browser_js_chunk_bytes', 'tsm_browser_frame_time_seconds', 'tsm_browser_tile_request_latency_seconds', 'tsm_browser_tile_requests_total', 'tsm_browser_tile_failures_total', 'tsm_browser_memory_pressure_ratio', 'tsm_browser_webgpu_available', 'tsm_browser_webgl_available']);
 const RUNTIME_METRIC_LIMIT = 32;
 const runtimeRate = new Map();
@@ -181,19 +196,25 @@ const server = http.createServer(async (req, res) => {
       }
     }
     if (handleFirmRoute(req, res, url, (response, status, body) => json(response, status, body, requestId))) return;
-    if (req.method === 'GET' && url.pathname === '/api/auth/health') return json(res, 200, { ...healthBody(), auth_model: 'server_managed_oidc_pkce_session', browser_tokens_exposed: false, oidc_configured: Boolean(process.env.OIDC_ISSUER && process.env.OIDC_AUDIENCE && process.env.OIDC_CLIENT_ID && process.env.OIDC_REDIRECT_URI && process.env.TSM_SESSION_SECRET) }, requestId);
-    if (req.method === 'GET' && url.pathname === '/api/auth/login') return await beginOidcLogin(req, res);
+    if (req.method === 'GET' && url.pathname === '/api/auth/health') return json(res, 200, { ...healthBody(), auth_model: AUTH_DISABLED ? 'disabled_local' : 'server_managed_oidc_pkce_session', auth_disabled: AUTH_DISABLED, browser_tokens_exposed: false, oidc_configured: Boolean(process.env.OIDC_ISSUER && process.env.OIDC_AUDIENCE && process.env.OIDC_CLIENT_ID && process.env.OIDC_REDIRECT_URI && process.env.TSM_SESSION_SECRET) }, requestId);
+    if (req.method === 'GET' && url.pathname === '/api/auth/login') {
+      if (AUTH_DISABLED) return authDisabledJson(res, requestId);
+      return await beginOidcLogin(req, res);
+    }
     if (req.method === 'GET' && url.pathname === '/api/auth/callback') {
+      if (AUTH_DISABLED) return authDisabledJson(res, requestId);
       try { return await finishOidcLogin(req, res); }
       catch (error) { return json(res, error.status || 502, { ok: false, code: error.code || 'OIDC_CALLBACK_FAILED', error: error.message }, requestId); }
     }
     if (req.method === 'GET' && url.pathname === '/api/auth/session') {
+      if (AUTH_DISABLED) return json(res, 200, { authenticated: false, auth_disabled: true }, requestId);
       try {
         const session = await getBrowserSession(req);
         return json(res, 200, session ? { authenticated: true, subject: session.subject, roles: session.roles } : { authenticated: false }, requestId);
       } catch (error) { return json(res, 401, { authenticated: false, code: error.code || 'SESSION_INVALID' }, requestId); }
     }
     if (req.method === 'POST' && url.pathname === '/api/auth/logout') {
+      if (AUTH_DISABLED) return authDisabledJson(res, requestId);
       const origin = String(req.headers.origin || '');
       if (origin !== new URL(ALLOWED_ORIGIN).origin || req.headers['x-tsm-csrf'] !== '1') return json(res, 403, { ok: false, code: 'CSRF_ORIGIN_REJECTED' }, requestId);
       return logoutOidc(res);
@@ -201,7 +222,8 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && url.pathname === '/metrics') { res.writeHead(200, { 'Content-Type': 'text/plain; version=0.0.4; charset=utf-8', 'Cache-Control': 'no-store' }); return res.end(renderPrometheusMetrics()); }
     if (req.method === 'GET' && url.pathname === '/health') return json(res, 200, healthBody(), requestId);
     if (req.method === 'GET' && url.pathname === '/ready') {
-      const authReady = String(process.env.TSM_AUTH_MODE || 'required').toLowerCase() === 'disabled' || productionAuthReady();
+      const authReady = AUTH_DISABLED || productionAuthReady();
+      const oidcConfigured = productionAuthReady();
       let authorityRegistryReady = false;
       try {
         authorityRegistryReady = Boolean(getHydrologicNode('03378500'));
@@ -210,11 +232,16 @@ const server = http.createServer(async (req, res) => {
         console.error('[TSM readiness] authority registry unavailable', { code: error?.code, message: error?.message });
       }
       const ready = authorityRegistryReady && authReady;
+      const localMode = ['1', 'true', 'yes'].includes(String(process.env.TSM_LOCAL_MODE || '').toLowerCase());
       return json(res, ready ? 200 : 503, {
         ...healthBody(),
         ready,
         auth_ready: authReady,
-        required_internal_dependencies: { authority_registry: authorityRegistryReady, evidence_store: true, oidc: authReady },
+        auth_disabled: AUTH_DISABLED,
+        local_mode: localMode,
+        bind_host: HOST,
+        offline_mode: OFFLINE_MODE,
+        required_internal_dependencies: { authority_registry: authorityRegistryReady, evidence_store: true, oidc: oidcConfigured },
         ...(authReady ? {} : {
           code: 'AUTH_CONFIGURATION_INCOMPLETE',
           note: 'Runtime is healthy for public/read-only routes; authenticated mutations remain fail-closed until OIDC is configured.',
@@ -374,6 +401,7 @@ const server = http.createServer(async (req, res) => {
       }
     }
     if (req.method === 'GET' && url.pathname === '/api/hydrologic/community') {
+      if (OFFLINE_MODE) return json(res, 503, { ok: false, code: 'OFFLINE_MODE', note: 'Live river observations are unavailable in air-gapped mode (TSM_OFFLINE=1).' }, requestId);
       const stationIds = url.searchParams.getAll('station_id');
       const network = await fetchRiverNetwork({ stationIds: stationIds.length ? stationIds : null, includeNoaa: true });
       return json(res, 200, { ok: true, ...network, requestId }, requestId);
@@ -412,6 +440,7 @@ const server = http.createServer(async (req, res) => {
       }
     }
     if (req.method === 'GET' && url.pathname === '/api/hydrologic/alerts') {
+      if (OFFLINE_MODE) return json(res, 503, { ok: false, code: 'OFFLINE_MODE', note: 'Live river observations are unavailable in air-gapped mode (TSM_OFFLINE=1).' }, requestId);
       const usgsId = url.searchParams.get('usgs_id') || '03378500';
       const nwsId = url.searchParams.get('nws_id') || 'NHRI3';
       const node = getHydrologicNode(usgsId);
@@ -462,6 +491,7 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === 'GET' && url.pathname === '/api/hydrologic/live') {
       if (!checkRouteRateLimit(req, res, requestId)) return;
+      if (OFFLINE_MODE) return json(res, 503, { ok: false, code: 'OFFLINE_MODE', note: 'Live river observations are unavailable in air-gapped mode (TSM_OFFLINE=1).' }, requestId);
       const usgsId = url.searchParams.get('usgs_id') || '03378500';
       const nwsId = url.searchParams.get('nws_id') || 'NHRI3';
       const source = url.searchParams.get('source') || 'auto';
@@ -597,5 +627,9 @@ const server = http.createServer(async (req, res) => {
     observeTelemetryMetric('tsm_server_event_loop_utilization_ratio', elu.utilization, { route: metricRoute(url.pathname) });
   }
 });
-await bootstrapOidc();
-server.listen(PORT, () => console.log(`TSM API on http://localhost:${PORT}`));
+if (AUTH_DISABLED) {
+  console.log('TSM auth disabled (TSM_AUTH_MODE=disabled); skipping OIDC/Keycloak bootstrap. Auth endpoints report AUTH_DISABLED.');
+} else {
+  await bootstrapOidc();
+}
+server.listen(PORT, HOST, () => console.log(`TSM API on http://${HOST}:${PORT}`));

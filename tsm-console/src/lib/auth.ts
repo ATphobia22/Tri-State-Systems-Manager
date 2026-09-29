@@ -1,5 +1,6 @@
 import { redirect } from 'react-router';
 import type { AuthContext } from '../types/loaders';
+import { resolveApiBaseUrl } from './api-base';
 
 export type IdPProvider = 'keycloak';
 export interface IdPConfig {
@@ -13,7 +14,7 @@ const envString = (key: string): string | undefined => typeof env[key] === 'stri
 
 const DEFAULT_CONFIG: IdPConfig = {
   provider: 'keycloak',
-  apiBaseUrl: envString('VITE_TSM_API_BASE_URL') ?? '',
+  apiBaseUrl: envString('VITE_TSM_API_BASE_URL') ?? resolveApiBaseUrl(),
   sessionMaxAgeSec: 3600,
 };
 let config: IdPConfig = { ...DEFAULT_CONFIG };
@@ -47,8 +48,37 @@ function toAuthContext(payload: { subject?: unknown; roles?: unknown }): AuthCon
   };
 }
 
-export async function getSessionFromServer(): Promise<AuthContext | null> {
-  const response = await fetch(apiUrl('/api/auth/session'), {
+let authDisabledCache: boolean | null = null;
+
+/**
+ * True when the API reports login disabled (TSM_AUTH_MODE=disabled) or has no
+ * OIDC configured. Result is cached for the page lifetime; call
+ * resetAuthDisabledCache() to re-probe.
+ */
+export async function isAuthDisabled(): Promise<boolean> {
+  if (authDisabledCache !== null) return authDisabledCache;
+  try {
+    const response = await fetch(apiUrl('/api/auth/health'), {
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
+    });
+    if (!response.ok) {
+      authDisabledCache = false;
+      return false;
+    }
+    const payload = (await response.json()) as { auth_disabled?: boolean; oidc_configured?: boolean };
+    authDisabledCache = payload.auth_disabled === true || payload.oidc_configured === false;
+  } catch {
+    authDisabledCache = false;
+  }
+  return authDisabledCache;
+}
+
+export function resetAuthDisabledCache(): void {
+  authDisabledCache = null;
+}
+
+export async function getSessionFromServer(): Promise<AuthContext | null> {  const response = await fetch(apiUrl('/api/auth/session'), {
     method: 'GET',
     credentials: 'include',
     headers: { Accept: 'application/json' },
@@ -66,6 +96,7 @@ export async function getSessionFromServer(): Promise<AuthContext | null> {
 export async function login(opts?: { returnTo?: string }): Promise<void> {
   const returnTo = String(opts?.returnTo || '/');
   if (!returnTo.startsWith('/') || returnTo.startsWith('//')) throw new Error('Invalid return path.');
+  if (await isAuthDisabled()) throw new Error('Sign-in is disabled in this deployment. The console runs in local mode.');
   window.location.assign(apiUrl(`/api/auth/login?returnTo=${encodeURIComponent(returnTo)}`));
 }
 

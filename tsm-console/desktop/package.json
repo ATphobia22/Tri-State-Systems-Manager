@@ -1,0 +1,82 @@
+{
+  "build": {
+    "appId": "org.tristate.tsm.desktop",
+    "asar": true,
+    "copyright": "Copyright © 2026 Tri-State Systems Manager contributors",
+    "directories": {
+      "output": "release"
+    },
+    "extraResources": [
+      {
+        "from": "../server",
+        "to": "server"
+      },
+      {
+        "from": "../../data",
+        "to": "data"
+      }
+    ],
+    "files": [
+      "electron/**/*",
+      "stage/**/*",
+      "assets/asset-manifest.json",
+      "package.json"
+    ],
+    "linux": {
+      "category": "Utility",
+      "icon": "assets/icon.png",
+      "target": [
+        "AppImage"
+      ]
+    },
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": [
+        "dmg"
+      ],
+      "icon": "assets/icon.icns"
+    },
+    "nsis": {
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "TSM-Console-${version}-win11-setup.exe",
+      "oneClick": false
+    },
+    "portable": {
+      "artifactName": "TSM-Console-${version}-win11-portable.exe"
+    },
+    "productName": "Tri-State Systems Manager",
+    "win": {
+      "icon": "assets/icon.ico",
+      "requestedExecutionLevel": "asInvoker",
+      "target": [
+        "portable"
+      ],
+      "signAndEditExecutable": false
+    },
+    "afterPack": "./scripts/stamp-win-exe.mjs"
+  },
+  "description": "Tri-State Systems Manager — offline Windows 11 desktop app (loopback API + bundled SPA + data, air-gapped).",
+  "devDependencies": {
+    "electron": "39.2.6",
+    "electron-builder": "26.3.2",
+    "resedit": "^3.1.0"
+  },
+  "main": "electron/main.mjs",
+  "name": "tsm-desktop",
+  "private": true,
+  "scripts": {
+    "build:spa": "npm run build --prefix ..",
+    "dist:win": "electron-builder --win portable",
+    "dist:win:installer": "electron-builder --win nsis",
+    "start": "electron .",
+    "prebuild:manifest": "node scripts/build-asset-manifest.mjs",
+    "predist:win": "npm run prebuild:manifest && npm run prebuild:stage",
+    "predist:win:installer": "npm run prebuild:manifest && npm run prebuild:stage",
+    "prebuild:stage": "npm run build:spa && node scripts/stage-desktop.mjs",
+    "dist:linux": "electron-builder --linux AppImage",
+    "dist:mac": "electron-builder --mac dmg"
+  },
+  "type": "module",
+  "version": "0.2.1",
+  "author": "Tri-State Systems Manager contributors"
+}

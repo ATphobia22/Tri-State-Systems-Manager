@@ -84,7 +84,24 @@ export async function verifyIdToken(token, config, expectedNonce) {
 
 export async function authenticateRequest(req) {
   const config = getConfiguredAuth();
-  if (config.mode === 'disabled') return { subject: 'local-development', roles: ['development'], issuer: 'local', audience: 'local', claims: {}, developmentBypass: true };
+  if (config.mode === 'disabled') {
+    // Auth-disabled bypass is ONLY valid for the explicit local/desktop mode:
+    // TSM_LOCAL_MODE=1 plus a loopback bind (TSM_HOST=127.0.0.1/::1/localhost).
+    // A public or LAN-facing server with login disabled must fail closed on
+    // every mutation instead of silently allowing unauthenticated writes.
+    const localMode = ['1', 'true', 'yes'].includes(String(process.env.TSM_LOCAL_MODE || '').toLowerCase());
+    const host = String(process.env.TSM_HOST || '').toLowerCase();
+    const loopback = host === '127.0.0.1' || host === '::1' || host === 'localhost';
+    if (localMode && loopback) {
+      // Single-user desktop: the local operator is implicitly all roles.
+      // This identity can never exist on a network-facing server (enforced
+      // above), so granting local roles does not weaken any remote gate.
+      const reviewerRole = String(process.env.TSM_REVIEWER_ROLE || 'tsm-reviewer');
+      const operatorRole = String(process.env.TSM_OPERATOR_ROLE || 'tsm-operator');
+      return { subject: 'local-operator', roles: ['development', operatorRole, reviewerRole], issuer: 'local', audience: 'local', claims: {}, developmentBypass: true, localMode: true };
+    }
+    throw authError('Authentication is disabled and this server is not in local loopback mode; mutations are refused.', 'AUTH_DISABLED_NOT_LOCAL', 403);
+  }
   const header = req.headers.authorization;
   if (typeof header === 'string' && /^Bearer\s+/i.test(header)) {
     const token = header.replace(/^Bearer\s+/i, '').trim();
