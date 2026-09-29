@@ -1,0 +1,234 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "TSM Companion API",
+    "description": "Provisional intake only. This service does not submit, issue, or approve anything with FEMA or any agency. Human authority remains final; every accepted artifact requires human review.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Health Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/evidence/push": {
+      "post": {
+        "summary": "Push Evidence",
+        "description": "Accept an evidence packet into the local outbox.\n\nValidates the packet SHA-256 against the canonical (sort_keys) JSON of the\npacket body. 422 fail-closed on any mismatch or schema violation. The\nresponse is a signed receipt of INTAKE ONLY \u2014 it never claims FEMA\nsubmission, acceptance, or approval.",
+        "operationId": "push_evidence_api_evidence_push_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvidencePushRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Push Evidence Api Evidence Push Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/hydrologic/nodes": {
+      "get": {
+        "summary": "Hydrologic Nodes",
+        "description": "Serve the USACE hydrologic node registry example.\n\nRead-only. Null numerics mean 'not published by the authority' and must\nnever be interpolated or converted downstream.",
+        "operationId": "hydrologic_nodes_api_hydrologic_nodes_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Hydrologic Nodes Api Hydrologic Nodes Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/webhooks/gauge-ingest": {
+      "post": {
+        "summary": "Gauge Ingest",
+        "description": "Accept gauge readings into quarantine.\n\nEvery reading is provenance-hashed and written to the quarantine dir.\nNothing here is authoritative: human_review_required is always true.\n\nThe request body is streamed with a hard byte cap (413 on exceed) so a\nsingle webhook call cannot force unbounded disk writes.",
+        "operationId": "gauge_ingest_api_webhooks_gauge_ingest_post",
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Gauge Ingest Api Webhooks Gauge Ingest Post"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ArtifactRef": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Name"
+          },
+          "sha256": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 64,
+            "title": "Sha256"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "sha256"
+        ],
+        "title": "ArtifactRef"
+      },
+      "EvidencePacket": {
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Case Id"
+          },
+          "artifacts": {
+            "items": {
+              "$ref": "#/components/schemas/ArtifactRef"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Artifacts"
+          }
+        },
+        "additionalProperties": true,
+        "type": "object",
+        "required": [
+          "case_id",
+          "artifacts"
+        ],
+        "title": "EvidencePacket"
+      },
+      "EvidencePushRequest": {
+        "properties": {
+          "packet": {
+            "$ref": "#/components/schemas/EvidencePacket"
+          },
+          "packet_sha256": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 64,
+            "title": "Packet Sha256"
+          }
+        },
+        "type": "object",
+        "required": [
+          "packet",
+          "packet_sha256"
+        ],
+        "title": "EvidencePushRequest"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

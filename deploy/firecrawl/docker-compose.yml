@@ -1,0 +1,53 @@
+services:
+  # Self-hosted Firecrawl API. Prebuilt image — no build step, so the image
+  # can be staged onto the USB deployment media and loaded offline.
+  firecrawl-api:
+    image: ghcr.io/firecrawl/firecrawl:latest
+    container_name: tsm-firecrawl-api
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PORT: 3002
+      HOST: 0.0.0.0
+      USE_DB_AUTHENTICATION: "false"
+      REDIS_URL: redis://redis:6379
+      REDIS_RATE_LIMIT_URL: redis://redis:6379
+      PLAYWRIGHT_MICROSERVICE_URL: http://playwright-service:3000/scrape
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_HOST: nuq-postgres
+    ports:
+      - "127.0.0.1:3002:3002"
+    depends_on:
+      - redis
+      - nuq-postgres
+      - playwright-service
+
+  playwright-service:
+    image: ghcr.io/firecrawl/playwright-service:latest
+    container_name: tsm-firecrawl-playwright
+    restart: unless-stopped
+    env_file: .env
+
+  redis:
+    image: redis:alpine
+    container_name: tsm-firecrawl-redis
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+
+  nuq-postgres:
+    image: ghcr.io/firecrawl/nuq-postgres:latest
+    container_name: tsm-firecrawl-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - nuq-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  redis-data:
+  nuq-postgres-data:
