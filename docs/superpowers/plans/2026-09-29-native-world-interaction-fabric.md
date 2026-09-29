@@ -194,3 +194,9 @@
 - [ ] **Step 5: Run TypeScript/Node CI checks available in the current environment.**
 - [ ] **Step 6: Run Unreal compilation/package verification when a UE5.8 runner is available; otherwise record the runner limitation without claiming packaging success.**
 - [ ] **Step 7: Commit final integration.**
+
+
+## Execution rulings
+
+- **Ruling:** Group the Unreal reflection declarations and implementations into `TSMNativeWorldFabric.h/.cpp`, with thin public group headers, instead of one generated-header pair per class — this reduces UHT/build fragmentation while preserving named native interfaces; cost if wrong: future per-class ownership is less physically isolated and may require a later split after Unreal compilation proves the optimal boundary.
+- **Ruling:** Use Unreal `A...` prefixes for world actors in the machine-readable contract — this matches Unreal's reflected actor type system; cost if wrong: contract consumers expecting `U...` names would need a rename.
