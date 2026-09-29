@@ -27,7 +27,14 @@ About 15 minutes in the Oracle Cloud console (cloud.oracle.com):
    - Networking: create a new VCN, **assign a public IPv4 address**.
    - Paste your SSH **public** key. Boot volume ≤ 200 GB (free total).
    - If you get "Out of host capacity": switch availability domain and
-     retry off-peak — it usually succeeds within hours.
+     retry off-peak — it usually succeeds within hours. Two stronger options:
+     upgrade the tenancy to Pay As You Go (step 4: PAYG tenancies get
+     priority capacity and rarely hit this error, still $0 inside Always
+     Free limits), or run the community capacity-watcher script
+     (hitrov/oci-arm-host-capacity, MIT, archived — it polls the OCI
+     LaunchInstance API and creates the instance the moment capacity frees
+     up). Note: its defaults are the old 4 OCPU / 24 GB allowance, so set
+     OCI_OCPUS=2 and OCI_MEMORY_IN_GBS=12 to match the current free cap.
 3. **Open the web ports**: in the VCN's Security List add ingress rules for
    TCP **80** and **443** from `0.0.0.0/0` (SSH port 22 is open by default).
 4. *Recommended, do once*: upgrade the tenancy to Pay As You Go (stays $0
