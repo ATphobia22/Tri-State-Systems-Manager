@@ -33,3 +33,23 @@ test("dependency lock has immutable high-value releases", () => {
   assert.equal(opencv.revision, "5.0.0");
   assert.equal(blas.revision, "v0.3.34");
 });
+
+
+test("capability fabric exposes every Tier-1 boundary and forbids direct native mutation", () => {
+  const fabric = JSON.parse(readFileSync(resolve(root, "contracts/dependencies/tsm-capability-fabric-v1.json"), "utf8"));
+  assert.equal(fabric.capabilities.length, 7);
+  assert.equal(fabric.mutationPolicy.cinematicCannotMutateEngineeringState, true);
+  assert.equal(fabric.mutationPolicy.workerCannotMutateNativeWorldDirectly, true);
+  assert.deepEqual(
+    fabric.capabilities.map((item) => item.id),
+    [
+      "cad.geometry",
+      "scene.usd",
+      "vision.inspection",
+      "numerics.calibration",
+      "transport.routing",
+      "physics.cfd",
+      "cinematic.post"
+    ]
+  );
+});
