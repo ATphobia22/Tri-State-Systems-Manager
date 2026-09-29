@@ -43,6 +43,9 @@ struct FTSMEngineeringInputs
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hydraulics")
     double DesignDischargeCubicMetersPerSecond = 0.0;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scenario", meta = (ClampMin = "0.0"))
+    double ScenarioDischargeMultiplier = 1.0;
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Site")
     double ExistingGroundElevationMeters = 116.0;
 
@@ -94,8 +97,12 @@ struct FTSMEngineeringResult
     UPROPERTY(BlueprintReadOnly, Category = "Berm/Road")
     double RequiredFreeboardMeters = 0.0;
 
+    UPROPERTY(BlueprintReadOnly, Category = "Scenario")
+    double ScenarioDischargeMultiplierApplied = 1.0;
+
     UPROPERTY(BlueprintReadOnly, Category = "Provenance")
-    FString MethodologyVersion = TEXT("TSM-Engineering-1.0");
+    FString MethodologyVersion = TEXT("TSM-Engineering-1.1");
+
 
     UPROPERTY(BlueprintReadOnly, Category = "Provenance")
     FString UncertaintyNote = TEXT("Screening-level deterministic calculation; not a substitute for a calibrated hydraulic model or regulatory determination.");
