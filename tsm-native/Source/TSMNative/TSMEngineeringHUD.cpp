@@ -1,6 +1,7 @@
 #include "TSMEngineeringHUD.h"
 
 #include "Engine/Engine.h"
+#include "Styling/CoreStyle.h"
 #include "Engine/GameInstance.h"
 #include "TSMEngineeringRuntimeSubsystem.h"
 #include "Widgets/SBoxPanel.h"
