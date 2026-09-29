@@ -126,6 +126,13 @@ public:
         const FTSMEngineeringResult& Result,
         FString& OutFilePath) const;
 
+    UFUNCTION(BlueprintCallable, Category = "TSM|Engineering|Artifacts")
+    bool ExportDesignAndGrantPackage(
+        const FString& ScenarioName,
+        const FTSMEngineeringInputs& Inputs,
+        const FTSMEngineeringResult& Result,
+        FString& OutDirectory) const;
+
     UFUNCTION(BlueprintPure, Category = "TSM|Engineering")
     static double ComputeRationalPeakFlow(
         double DrainageAreaAcres,
