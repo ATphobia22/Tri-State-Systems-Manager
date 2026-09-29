@@ -36,7 +36,10 @@
     "UTSMWeatherPresetLibrary",
     "UTSMSequencerIntegration",
     "UTSMMovieRenderSubsystem",
-    "UTSMFloodDepthMaterial"
+    "UTSMFloodDepthMaterial",
+    "UTSMSourceInspector",
+    "UTSMProfileComponent",
+    "UTSMMaterialLibrary"
   ],
   "flood": {
     "evidenceSurfaceSeparate": true,
