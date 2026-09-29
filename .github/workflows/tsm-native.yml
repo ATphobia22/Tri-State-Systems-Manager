@@ -12,6 +12,7 @@ on:
       - "scripts/ci/validate-agency-data-fabric.mjs"
       - "scripts/ci/validate-provenance-plane.mjs"
       - "scripts/ci/validate-spatial-topology.mjs"
+      - "scripts/ci/validate-native-product-contract.mjs"
       - "ops/postgis/migrations/20260919_engineering_topology.sql"
       - "infrastructure/runners/**"
       - "tsm-native/config/platform-build-matrix.json"
