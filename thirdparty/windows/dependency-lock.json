@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "1.0.0",
+  "platform": "Windows-x64",
+  "dependencies": [
+    {
+      "name": "sqlite",
+      "version": "3.53.4",
+      "artifact": "sqlite-dll-win-x64-3530400.zip",
+      "source": "https://www.sqlite.org/download.html",
+      "sha3_256": "deddee963c810d1eeac3ce5e15c7c41da21a1c54d7a39cf54fbf577d2f50de3a",
+      "verification": "official-published-checksum"
+    },
+    {
+      "name": "sqlite-tools",
+      "version": "3.53.4",
+      "artifact": "sqlite-tools-win-x64-3530400.zip",
+      "source": "https://www.sqlite.org/download.html",
+      "sha3_256": "88b4659fe747896b853af10157316b4ade143553efb89c1c8ca7423a278dcc8b",
+      "verification": "official-published-checksum"
+    },
+    {
+      "name": "mod_spatialite",
+      "version": "5.1.0",
+      "artifact": "mod_spatialite-5.1.0-win-amd64.7z",
+      "source": "https://www.gaia-gis.it/gaia-sins/windows-bin-amd64/",
+      "verification": "official-directory; local SHA-256 required before promotion"
+    }
+  ]
+}

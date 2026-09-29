@@ -1,0 +1,17 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "0.1.0",
+  "FriendlyName": "TSM Core",
+  "Description": "Runtime framework: module lifecycle, service registry, config, health. Scaffold: requires Unreal Engine 5.8+ on Windows to compile; not built or tested in this environment.",
+  "Category": "TSM",
+  "CreatedBy": "Tri-State Systems Manager",
+  "EnabledByDefault": true,
+  "Modules": [
+    {
+      "Name": "TSMCore",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    }
+  ]
+}

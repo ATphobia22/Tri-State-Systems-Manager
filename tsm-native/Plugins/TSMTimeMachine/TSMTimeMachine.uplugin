@@ -1,0 +1,17 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "0.1.0",
+  "FriendlyName": "TSM TimeMachine",
+  "Description": "Historical replay and forecast: 1913, 1943, 2011, current, 100-yr, 500-yr. Scaffold: requires Unreal Engine 5.8+ on Windows to compile; not built or tested in this environment.",
+  "Category": "TSM",
+  "CreatedBy": "Tri-State Systems Manager",
+  "EnabledByDefault": true,
+  "Modules": [
+    {
+      "Name": "TSMTimeMachine",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    }
+  ]
+}

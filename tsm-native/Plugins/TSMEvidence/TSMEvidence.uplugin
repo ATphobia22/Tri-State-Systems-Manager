@@ -1,0 +1,17 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "0.1.0",
+  "FriendlyName": "TSM Evidence",
+  "Description": "SHA-256 hashing, attestation, evidence ledger for frames, scenarios, snapshots. Scaffold: requires Unreal Engine 5.8+ on Windows to compile; not built or tested in this environment.",
+  "Category": "TSM",
+  "CreatedBy": "Tri-State Systems Manager",
+  "EnabledByDefault": true,
+  "Modules": [
+    {
+      "Name": "TSMEvidence",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    }
+  ]
+}
