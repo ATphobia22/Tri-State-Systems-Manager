@@ -57,7 +57,7 @@
   },
   "description": "Tri-State Systems Manager — offline Windows 11 desktop app (loopback API + bundled SPA + data, air-gapped).",
   "devDependencies": {
-    "electron": "39.2.6",
+    "electron": "41.10.6",
     "electron-builder": "26.3.2",
     "resedit": "^3.1.0"
   },
