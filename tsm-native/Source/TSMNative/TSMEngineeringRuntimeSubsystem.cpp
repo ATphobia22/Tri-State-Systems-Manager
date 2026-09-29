@@ -114,6 +114,79 @@ FTSMEngineeringResult UTSMEngineeringRuntimeSubsystem::EvaluateScenario(
     return Result;
 }
 
+bool UTSMEngineeringRuntimeSubsystem::ExportDesignAndGrantPackage(
+    const FString& ScenarioName,
+    const FTSMEngineeringInputs& Inputs,
+    const FTSMEngineeringResult& Result,
+    FString& OutDirectory) const
+{
+    const FString Root = FPaths::Combine(
+        FPaths::ProjectSavedDir(),
+        TEXT("TSM"),
+        TEXT("DesignPackages"),
+        SanitizeScenarioName(ScenarioName));
+
+    IFileManager::Get().MakeDirectory(*Root, true);
+    OutDirectory = Root;
+
+    FString ReportPath;
+    if (!ExportEngineeringReport(ScenarioName, Inputs, Result, ReportPath))
+    {
+        return false;
+    }
+
+    const FString BlueprintPath = FPaths::Combine(Root, TEXT("blueprint-ready-design-notes.md"));
+    const FString BlueprintNotes = FString::Printf(
+        TEXT("# Blueprint-Ready Design Notes\n\n")
+        TEXT("Scenario: %s\n\n")
+        TEXT("## Geometry Parameters\n")
+        TEXT("- Berm length: %.3f m\n")
+        TEXT("- Berm top width: %.3f m\n")
+        TEXT("- Berm height: %.3f m\n")
+        TEXT("- Side slope H:V: %.3f\n")
+        TEXT("- Required design elevation: %.3f m\n\n")
+        TEXT("## Engineering Controls\n")
+        TEXT("The geometry is a screening design envelope. Survey control, geotechnical criteria, right-of-way, hydraulic validation, constructability, and agency requirements must be resolved before construction documents.\n"),
+        *ScenarioName,
+        Inputs.BermLengthMeters,
+        Inputs.BermTopWidthMeters,
+        Inputs.BermHeightMeters,
+        Inputs.BermSideSlopeHorizontalToVertical,
+        Result.RequiredDesignElevationMeters);
+
+    const FString GrantPath = FPaths::Combine(Root, TEXT("grant-evidence-narrative.md"));
+    const FString GrantNarrative = FString::Printf(
+        TEXT("# Grant Evidence Narrative\n\n")
+        TEXT("## Project Need\n")
+        TEXT("TSM documents a traceable engineering scenario using locally verified geospatial evidence and reproducible calculations.\n\n")
+        TEXT("## Proposed Intervention\n")
+        TEXT("The scenario evaluates terrain, flood exposure, freeboard, and preliminary berm/road quantities.\n\n")
+        TEXT("## Quantified Screening Outputs\n")
+        TEXT("- Peak runoff estimate: %.6f m^3/s\n")
+        TEXT("- Flood depth: %.6f m\n")
+        TEXT("- Required design elevation: %.6f m\n")
+        TEXT("- Preliminary fill volume: %.6f m^3\n\n")
+        TEXT("## Evidence and Limitations\n")
+        TEXT("All claims must be tied to the packaged evidence manifest. Screening calculations are not regulatory determinations and do not replace calibrated hydraulic, geotechnical, survey, environmental, or cost analysis.\n"),
+        Result.RationalPeakFlowCubicMetersPerSecond,
+        Result.FloodDepthMeters,
+        Result.RequiredDesignElevationMeters,
+        Result.BermFillVolumeCubicMeters);
+
+    const FString ManifestPath = FPaths::Combine(Root, TEXT("artifact-manifest.txt"));
+    const FString Manifest = FString::Printf(
+        TEXT("scenario=%s\nmethodology=%s\nreport=%s\nblueprint_notes=%s\ngrant_narrative=%s\n"),
+        *ScenarioName,
+        *Result.MethodologyVersion,
+        *FPaths::GetCleanFilename(ReportPath),
+        *FPaths::GetCleanFilename(BlueprintPath),
+        *FPaths::GetCleanFilename(GrantPath));
+
+    return FFileHelper::SaveStringToFile(BlueprintNotes, *BlueprintPath, FFileHelper::EEncodingOptions::ForceUTF8)
+        && FFileHelper::SaveStringToFile(GrantNarrative, *GrantPath, FFileHelper::EEncodingOptions::ForceUTF8)
+        && FFileHelper::SaveStringToFile(Manifest, *ManifestPath, FFileHelper::EEncodingOptions::ForceUTF8);
+}
+
 FString UTSMEngineeringRuntimeSubsystem::SanitizeScenarioName(const FString& Value)
 {
     FString Sanitized = Value;
