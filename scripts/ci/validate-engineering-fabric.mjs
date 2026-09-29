@@ -39,7 +39,7 @@ for (const script of ["check:engineering-fabric", "test:engineering-fabric", "th
 }
 
 const product = JSON.parse(readFileSync(resolve(root, "tsm-native/config/native-product-contract.json"), "utf8"));
-if (product.runtime?.browserRuntime !== false || product.runtime?.webViewRuntime !== false) {
+if (product.product?.browserRuntime !== false || product.product?.webViewRuntime !== false) {
   throw new Error("engineering fabric cannot weaken the native-only runtime contract");
 }
 console.log(JSON.stringify({ status: "ok", checkedFiles: required.length, dependencies: lock.sources.length }));
