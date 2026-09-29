@@ -16,7 +16,7 @@ TSM combines authoritative river observations, geospatial evidence, engineering-
 | **Public console (GitHub Pages SPA)** | https://atphobia22.github.io/Tri-State-Systems-Manager/ |
 | **Production API (Coolify/self-hosted)** | https://<configured-coolify-api-domain> |
 | **API readiness** | `GET /ready` — deployed Git SHA, `auth_ready`, OIDC readiness |
-| **Console package** | `tsm-console` **v0.2.1** (React **19.3.0**, Vite 8, `@react-three/fiber` **9.8.1**, MapLibre **6.10.0**) |
+| **Console package** | `tsm-console` **v0.2.1** (React **19.3.0**, Vite 8, `@react-three/fiber` **9.8.1**, MapLibre **6.11.2**) |
 
 **Deployment model (2026-09-28):** GitHub Pages hosts the static Vite SPA; a self-hosted Coolify deployment hosts the production API. The Pages release is fail-closed until the API `/ready` endpoint reports the exact Git SHA being published, with OIDC readiness verified.
 
@@ -165,6 +165,10 @@ Important runtime paths:
 - `tsm-console/server/token-proxy.mjs` — Node API  
 - `docs/DEPLOYMENT-AND-OPERATIONS.md` — operations runbook  
 - `COMPLIANCE.md` — authority and non-certification boundaries  
+
+## Repository hygiene
+
+`main` is the canonical integration and release branch. Short-lived feature and automation branches are expected to land through pull requests; stale or superseded branches should not be treated as deployment surfaces. Dependency updates are kept synchronized between `package.json` and `package-lock.json`.
 
 ## Local development
 
