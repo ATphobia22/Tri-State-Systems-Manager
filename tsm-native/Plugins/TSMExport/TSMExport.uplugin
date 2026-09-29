@@ -1,0 +1,17 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "0.1.0",
+  "FriendlyName": "TSM Export",
+  "Description": "Export adapters: PDF, GeoPackage, GeoJSON, grant packages, evidence packages with SHA-256 manifests. Scaffold: requires Unreal Engine 5.8+ on Windows to compile; not built or tested in this environment.",
+  "Category": "TSM",
+  "CreatedBy": "Tri-State Systems Manager",
+  "EnabledByDefault": true,
+  "Modules": [
+    {
+      "Name": "TSMExport",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    }
+  ]
+}

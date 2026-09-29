@@ -1,0 +1,1 @@
+{"_note":"Template manifest. Fill sha256 after vendoring the payload and set verified=true only after an independent re-hash matches.","datum":"NAVD88","package":"IN_3DEP_2020","sha256":"","source":"USGS","verified":false}

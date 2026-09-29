@@ -1,0 +1,17 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "0.1.0",
+  "FriendlyName": "TSM Terrain",
+  "Description": "TerrainRGB tiles, LiDAR, DEM staging, mesh generation, virtual heightfields. Scaffold: requires Unreal Engine 5.8+ on Windows to compile; not built or tested in this environment.",
+  "Category": "TSM",
+  "CreatedBy": "Tri-State Systems Manager",
+  "EnabledByDefault": true,
+  "Modules": [
+    {
+      "Name": "TSMTerrain",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    }
+  ]
+}
