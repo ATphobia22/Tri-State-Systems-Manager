@@ -1,0 +1,19 @@
+{
+  "schemaVersion":"TSM-OpenSourceLock-1.0",
+  "policy":"external-capability-adapter",
+  "sources":[
+    {"name":"OpenCASCADE Technology","repo":"https://github.com/Open-Cascade-SAS/OCCT","revision":"V8_0_0","license":"LGPL-2.1-or-later-with-exceptions","boundary":"cad-worker","download":"git"},
+    {"name":"OpenUSD","repo":"https://github.com/PixarAnimationStudios/OpenUSD","revision":"25.11","license":"Apache-2.0","boundary":"usd-worker","download":"git"},
+    {"name":"OpenCV","repo":"https://github.com/opencv/opencv","revision":"5.0.0","license":"Apache-2.0","boundary":"vision-worker","download":"git"},
+    {"name":"OpenBLAS","repo":"https://github.com/OpenMathLib/OpenBLAS","revision":"v0.3.34","license":"BSD-3-Clause","boundary":"numerics-worker","download":"git"},
+    {"name":"OSRM","repo":"https://github.com/Project-OSRM/osrm-backend","revision":"v5.27.1","license":"BSD-2-Clause","boundary":"routing-service","download":"git"},
+    {"name":"OpenFOAM-dev","repo":"https://github.com/OpenFOAM/OpenFOAM-dev","revision":"master","license":"GPL-3.0-or-later","boundary":"solver-worker","download":"git","mutableRevision":true},
+    {"name":"Natron","repo":"https://github.com/NatronGitHub/Natron","revision":"master","license":"GPL-2.0-or-later","boundary":"post-process-worker","download":"git","mutableRevision":true}
+  ],
+  "rules":[
+    "Do not embed GPL solver/post-processing source into the native Unreal executable.",
+    "Every mutable upstream revision must be resolved to a commit before release packaging.",
+    "Every packaged dependency requires SPDX metadata, source URL, resolved revision, SHA-256 artifact hash, and SBOM entry.",
+    "Runtime simulation remains functional with every optional external worker disabled."
+  ]
+}
