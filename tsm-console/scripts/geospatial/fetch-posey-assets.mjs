@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { setTimeout as delay } from 'node:timers/promises';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const OUTPUT_DEFAULT = path.join(ROOT, 'data/geospatial/cache/posey-2020');
@@ -11,8 +12,12 @@ const BOUNDS_CSV = '2680000,940000,2685000,945000';
 const DEM_SERVICE = 'https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_2016_2020_DEM/ImageServer/exportImage';
 const NAIP_SERVICE = 'https://imagery.geoplatform.gov/iipp/rest/services/NAIP/NAIP2020_CONUS/ImageServer/exportImage';
 
+const RETRYABLE = new Set([408, 425, 429, 500, 502, 503, 504]);
+const MAX_ATTEMPTS = 4;
+const FETCH_TIMEOUT_MS = 90_000;
+
 function parseArgs(argv) {
-  const args = { output: OUTPUT_DEFAULT, overwrite: false, width: 2048, height: 2048 };
+  const args = { output: OUTPUT_DEFAULT, overwrite: false, width: 1024, height: 1024 };
   for (let index = 2; index < argv.length; index += 1) {
     const token = argv[index];
     if (token === '--overwrite') args.overwrite = true;
@@ -46,6 +51,38 @@ function exportUrl(service, format, width, height) {
   return `${service}?${params.toString()}`;
 }
 
+async function fetchWithRetry(url) {
+  let lastError;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    try {
+      const response = await fetch(url, { redirect: 'follow', signal: controller.signal });
+      if (response.ok) return response;
+      const status = response.status;
+      const bodyPreview = (await response.text().catch(() => '')).slice(0, 200);
+      lastError = new Error(`Asset fetch failed (${status}): ${url}${bodyPreview ? ` — ${bodyPreview}` : ''}`);
+      if (!RETRYABLE.has(status) || attempt === MAX_ATTEMPTS) throw lastError;
+      const backoffMs = Math.min(15_000, 1000 * 2 ** (attempt - 1));
+      console.warn(`[geospatial:fetch] attempt ${attempt}/${MAX_ATTEMPTS} HTTP ${status}; retry in ${backoffMs}ms`);
+      await delay(backoffMs);
+    } catch (error) {
+      if (error?.name === 'AbortError') {
+        lastError = new Error(`Asset fetch timed out after ${FETCH_TIMEOUT_MS}ms: ${url}`);
+      } else {
+        lastError = error instanceof Error ? error : new Error(String(error));
+      }
+      if (attempt === MAX_ATTEMPTS) throw lastError;
+      const backoffMs = Math.min(15_000, 1000 * 2 ** (attempt - 1));
+      console.warn(`[geospatial:fetch] attempt ${attempt}/${MAX_ATTEMPTS} ${lastError.message}; retry in ${backoffMs}ms`);
+      await delay(backoffMs);
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  throw lastError ?? new Error(`Asset fetch failed: ${url}`);
+}
+
 async function download(url, destination, overwrite) {
   if (!overwrite) {
     try {
@@ -55,9 +92,11 @@ async function download(url, destination, overwrite) {
       // Materialize below.
     }
   }
-  const response = await fetch(url, { redirect: 'follow' });
-  if (!response.ok) throw new Error(`Asset fetch failed (${response.status}): ${url}`);
+  const response = await fetchWithRetry(url);
   const bytes = new Uint8Array(await response.arrayBuffer());
+  if (bytes.byteLength < 64) {
+    throw new Error(`Asset fetch returned empty/too-small payload (${bytes.byteLength} bytes): ${url}`);
+  }
   await writeFile(destination, bytes);
   return { skipped: false, bytes: bytes.byteLength, sha256: sha256(bytes) };
 }
@@ -76,10 +115,9 @@ async function main() {
   const terrainPath = path.join(args.output, 'posey-2020-terrain-epsg2966.tif');
   const orthophotoPath = path.join(args.output, 'posey-2020-naip-epsg2966.png');
 
-  const [terrain, orthophoto] = await Promise.all([
-    download(terrainUrl, terrainPath, args.overwrite),
-    download(orthophotoUrl, orthophotoPath, args.overwrite),
-  ]);
+  // Sequential downloads: parallel dual exports stressed the Indiana ImageServer (504).
+  const terrain = await download(terrainUrl, terrainPath, args.overwrite);
+  const orthophoto = await download(orthophotoUrl, orthophotoPath, args.overwrite);
 
   const manifest = {
     generatedAt: new Date().toISOString(),
