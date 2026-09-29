@@ -33,9 +33,14 @@ for (const [name, asset] of Object.entries(manifest.assets || {})) {
   if (asset.authorityClass !== 'OBSERVATION' || asset.derivationClass !== 'RAW') throw new Error(`${name} provenance class is not OBSERVATION/RAW`);
 
   if (name === 'terrain') {
+    const expectedWidth = asset.width;
+    const expectedHeight = asset.height;
+    if (!Number.isInteger(expectedWidth) || !Number.isInteger(expectedHeight)) {
+      throw new Error('terrain asset manifest is missing requested width/height');
+    }
     const tiff = await fromArrayBuffer(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
     const image = await tiff.getImage();
-    if (image.getWidth() !== 2048 || image.getHeight() !== 2048) throw new Error(`terrain raster dimensions must be 2048×2048, got ${image.getWidth()}×${image.getHeight()}`);
+    if (image.getWidth() !== expectedWidth || image.getHeight() !== expectedHeight) throw new Error(`terrain raster dimensions must be ${expectedWidth}×${expectedHeight}, got ${image.getWidth()}×${image.getHeight()}`);
     const bbox = image.getBoundingBox();
     for (let index = 0; index < 4; index += 1) assertClose(bbox[index], EXPECTED_BOUNDS[index], 1, `terrain bbox[${index}]`);
     const geoKeys = image.getGeoKeys();

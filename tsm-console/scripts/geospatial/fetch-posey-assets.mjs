@@ -130,6 +130,8 @@ async function main() {
         path: path.relative(ROOT, terrainPath),
         sourceUri: DEM_SERVICE,
         requestUri: terrainUrl,
+        width: args.width,
+        height: args.height,
         bytes: terrain.bytes,
         sha256: terrain.sha256,
         authorityClass: 'OBSERVATION',
