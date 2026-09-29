@@ -18,5 +18,6 @@ public:
 
 private:
     TSharedPtr<class SWidget> RootWidget;
+    TSharedPtr<class SWidget> CollapsedWidget;
     bool bPanelsVisible = true;
 };
