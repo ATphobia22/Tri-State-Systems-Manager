@@ -1,5 +1,6 @@
 #include "TSMEngineeringRuntimeSubsystem.h"
 
+#include "HAL/FileManager.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 
@@ -31,7 +32,6 @@ double UTSMEngineeringRuntimeSubsystem::ComputeManningVelocity(
     const double R = FMath::Max(HydraulicRadiusMeters, 0.0);
     const double S = FMath::Max(ChannelSlope, 0.0);
 
-    // Manning: V = (1/n) R^(2/3) S^(1/2)
     return (1.0 / N) * FMath::Pow(R, 2.0 / 3.0) * FMath::Sqrt(S);
 }
 
@@ -56,9 +56,6 @@ double UTSMEngineeringRuntimeSubsystem::ComputeBermVolume(
     const double H = FMath::Max(0.0, HeightMeters);
     const double Z = FMath::Max(0.0, SideSlopeHorizontalToVertical);
 
-    // Trapezoidal berm section:
-    // A = H * (W + ZH)
-    // V = A * L
     const double CrossSectionArea = H * (W + Z * H);
     return CrossSectionArea * L;
 }
@@ -135,7 +132,7 @@ FTSMEngineeringResult UTSMEngineeringRuntimeSubsystem::EvaluateScenario(
 FString UTSMEngineeringRuntimeSubsystem::SanitizeScenarioName(const FString& Value)
 {
     FString Sanitized = Value;
-    const TCHAR InvalidChars[] = TEXT("\/:*?"<>|");
+    const TCHAR InvalidChars[] = TEXT("\\/:*?\"<>|");
     for (const TCHAR Invalid : InvalidChars)
     {
         Sanitized.ReplaceCharInline(Invalid, TEXT('_'));
@@ -208,5 +205,8 @@ bool UTSMEngineeringRuntimeSubsystem::ExportEngineeringReport(
         *Result.MethodologyVersion,
         *Result.UncertaintyNote);
 
-    return FFileHelper::SaveStringToFile(Report, *OutFilePath, FFileHelper::EEncodingOptions::ForceUTF8);
+    return FFileHelper::SaveStringToFile(
+        Report,
+        *OutFilePath,
+        FFileHelper::EEncodingOptions::ForceUTF8);
 }
