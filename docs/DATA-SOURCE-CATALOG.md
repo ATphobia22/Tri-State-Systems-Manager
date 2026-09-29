@@ -57,3 +57,16 @@ These records are mirrored in `data/regulatory/tsm-floodway-rules-v1.json` and a
 6. Regulatory source layers inform engineering review. TSM does not issue FEMA/IDNR/local floodplain determinations or permits.
 7. Historical scans are change-detection/reference evidence only. They do not override current FEMA, Indiana DNR, parcel, imagery, or survey sources.
 8. Source contracts are validated in CI; unexpected endpoint or schema changes fail closed rather than silently degrading into synthetic values.
+
+## Addendum 2026-09-29 — externally contributed catalog cross-check
+
+An externally produced Indiana/federal data catalog (v1.1.0, dated 2026-09-12) was
+cross-checked against this registry on 2026-09-29. It was **not** vendored wholesale:
+this registry is newer and more comprehensive. Two sources it listed were verified
+live and were not yet registered here, so they are added below. All other entries
+duplicated existing records.
+
+| Source ID | Authority | Primary endpoint | Data | Class / boundary |
+|---|---|---|---|---|
+| `INDIANA-POSEY-CSLF-2025` | Indiana Geographic Information Office | `https://gisdata.in.gov/server/rest/services/Hosted/Posey_CSLF_Feb2025/FeatureServer` | Posey County Changes Since Last FIRM (S_CSLF_Ar, layer 0) — preliminary/pending map-change polygons | Regulatory reference; pending changes are not effective map data |
+| `STATS-INDIANA` | Indiana Business Research Center, IU Kelley School of Business | `https://www.stats.indiana.edu/` | Indiana demographic/economic profiles by county | Contextual reference; not flood or parcel evidence |
