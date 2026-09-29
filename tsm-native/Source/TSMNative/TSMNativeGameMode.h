@@ -8,4 +8,7 @@ UCLASS()
 class TSMNATIVE_API ATSMNativeGameMode final : public AGameModeBase
 {
     GENERATED_BODY()
+
+public:
+    ATSMNativeGameMode();
 };
