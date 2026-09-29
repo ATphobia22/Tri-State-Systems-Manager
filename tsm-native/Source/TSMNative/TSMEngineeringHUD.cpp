@@ -119,20 +119,39 @@ void ATSMEngineeringHUD::BeginPlay()
     Super::BeginPlay();
 
     RootWidget = SNew(STSMEngineeringDashboard).OwnerHUD(this);
+
+    CollapsedWidget = SNew(SButton)
+        .Text(FText::FromString(TEXT("TSM  •  OPEN ENGINEERING HUD")))
+        .OnClicked(FOnClicked::CreateLambda([this]()
+        {
+            SetEngineeringPanelsVisible(true);
+            return FReply::Handled();
+        }));
+
     if (GEngine && GEngine->GameViewport)
     {
         GEngine->GameViewport->AddViewportWidgetContent(RootWidget.ToSharedRef(), 10);
+        GEngine->GameViewport->AddViewportWidgetContent(CollapsedWidget.ToSharedRef(), 11);
+        CollapsedWidget->SetVisibility(EVisibility::Collapsed);
     }
 }
 
 void ATSMEngineeringHUD::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-    if (GEngine && GEngine->GameViewport && RootWidget.IsValid())
+    if (GEngine && GEngine->GameViewport)
     {
-        GEngine->GameViewport->RemoveViewportWidgetContent(RootWidget.ToSharedRef());
+        if (RootWidget.IsValid())
+        {
+            GEngine->GameViewport->RemoveViewportWidgetContent(RootWidget.ToSharedRef());
+        }
+        if (CollapsedWidget.IsValid())
+        {
+            GEngine->GameViewport->RemoveViewportWidgetContent(CollapsedWidget.ToSharedRef());
+        }
     }
 
     RootWidget.Reset();
+    CollapsedWidget.Reset();
     Super::EndPlay(EndPlayReason);
 }
 
@@ -144,5 +163,11 @@ void ATSMEngineeringHUD::SetEngineeringPanelsVisible(const bool bVisible)
     {
         RootWidget->SetVisibility(
             bVisible ? EVisibility::Visible : EVisibility::Collapsed);
+    }
+
+    if (CollapsedWidget.IsValid())
+    {
+        CollapsedWidget->SetVisibility(
+            bVisible ? EVisibility::Collapsed : EVisibility::Visible);
     }
 }
