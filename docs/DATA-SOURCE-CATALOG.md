@@ -1,75 +1,63 @@
 # Tri-State Systems Manager — Authoritative Data Source Catalog
 
 **Status:** Production source registry  
-**Updated:** 2026-09-18
+**Updated:** 2026-09-30
 
-This catalog defines external sources that may supply operational, hydrologic, regulatory-reference, or geospatial data to TSM. Source adapters run server-side. Provider responses are normalized with source identity, source/retrieval timestamps, units, CRS, vertical datum, quality/status, and data class before reaching application consumers.
+This catalog defines external sources that may supply hydrologic, regulatory-reference, scientific, or geospatial data to TSM. **Posey County offline operation is snapshot-first:** the newest suitable agency product is acquired, dated, hashed, and frozen. A live service may be used to obtain a snapshot, but the offline runtime does not depend on a live API.
+
+## Posey authoritative vintage manifest
+
+The current Posey source-selection contract is:
+
+`data/posey-county/authoritative-source-vintage-v1.json`
+
+It records the agency, authority class, newest-vintage selection rule, official source URL, product/model lineage, and required SHA-256/provenance fields. This replaces any implicit open/closed data-system assumption with a deterministic **dated authoritative snapshot** model.
+
+### Authority planes
+
+| Authority | Posey default | Use |
+|---|---|---|
+| FEMA | Effective NFHL/FIRM/FIS product with the newest applicable effective date | Effective flood-hazard / insurance reference |
+| USGS | Newest available Posey 3DEP terrain plus USGS New Harmony hydrology/inundation evidence | Scientific terrain/hydrology evidence |
+| Indiana DNR | Newest published Posey BAFL/INFIP product | State planning/regulatory context |
+| Indiana GIO | Newest published/current imagery, parcel, and elevation-program product | State geospatial framework |
+| USACE | Newest per-record National Levee Database data plus pinned HEC-RAS release/model artifacts | Levee evidence and hydraulic computation |
+
+**Important:** “newest available” means newest according to the source's own publication/acquisition/product metadata. Retrieval date alone is never treated as product vintage.
 
 ## Federal sources
 
 | Source ID | Authority | Primary endpoint | Data | Class / boundary |
 |---|---|---|---|---|
-| `USGS-NWIS-IV` | U.S. Geological Survey | `https://waterservices.usgs.gov/nwis/iv/` | Instantaneous streamflow/stage; parameter `00065` stage and `00060` discharge | Observation; raw stage remains GAGE_DATUM |
-| `USGS-TNM` | U.S. Geological Survey National Map | `https://tnmaccess.nationalmap.gov/` | 3DEP lidar, DEM and related products | Evidence/geospatial acquisition; product metadata retained |
-| `USGS-3DEP-LIDAREXPLORER` | U.S. Geological Survey | `https://www.usgs.gov/tools/lidarexplorer` | Current lidar, DEM, topobathymetry and ORI discovery/metadata | Evidence/geospatial acquisition; retain work-unit metadata |
-| `NOAA-NWPS` | NOAA/National Weather Service | `https://api.water.noaa.gov/nwps/v1/` | Gauge metadata, observed stage/flow and forecast products | Observation and forecast remain separate |
-| `FEMA-NFHL` | Federal Emergency Management Agency | `https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer` | FIRM panels, flood hazard zones, BFEs, LOMAs/LOMRs, cross sections and related layers | Regulatory reference; not a TSM-issued determination |
-| `USACE-NLD` | U.S. Army Corps of Engineers | `https://nld.sec.usace.army.mil/data-services/services/` | National Levee Database services | Geospatial/evidence reference |
+| `USGS-NWIS-IV` | U.S. Geological Survey | `https://waterservices.usgs.gov/nwis/iv/` | Historical/instantaneous stage and discharge | Observation snapshot; raw stage remains GAGE_DATUM |
+| `USGS-TNM` | U.S. Geological Survey National Map | `https://tnmaccess.nationalmap.gov/` | 3DEP lidar, DEM and related products | Scientific/geospatial acquisition |
+| `USGS-3DEP-LIDAREXPLORER` | U.S. Geological Survey | `https://www.usgs.gov/tools/lidarexplorer` | Current lidar/DEM/topobathymetry discovery | Scientific/geospatial acquisition |
+| `FEMA-NFHL` | Federal Emergency Management Agency | `https://hazards.fema.gov/arcgis/rest/services/FIRMette/NFHLREST_FIRMette/MapServer` | Effective FIRM panels, zones, BFEs, cross sections, levees and map-change layers | FEMA effective reference |
+| `USACE-NLD` | U.S. Army Corps of Engineers | `https://levees.sec.usace.army.mil/data-services/services/` | National Levee Database | Levee evidence |
+| `USACE-HEC-RAS` | U.S. Army Corps of Engineers HEC | `https://www.hec.usace.army.mil/software/hec-ras/` | Hydraulic computation/model interoperability | Modeling capability; solver version pinned separately |
 
 ## Indiana sources
 
 | Source ID | Authority | Primary endpoint | Data | Class / boundary |
 |---|---|---|---|---|
-| `IDNR-BAFL` | Indiana DNR Division of Water | Indiana Floodplain Information Portal / Best Available Floodplain services | State flood hazard, BFE/floodway and elevation references | Regulatory-reference; preserve source status |
-| `IDNR-BAFL-POLICY` | Indiana DNR Division of Water | `https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/the-indiana-best-available-floodplain-mapping/` | BAFL program policy page: BAFL approved for planning/permitting under the state model ordinance where FIRM lacks detail; insurance still uses FEMA FIRM/NFHL | Regulatory context; link verified live 2026-09-29 |
-| `IDNR-INFIP` | Indiana DNR | Indiana Floodplain Information Portal | FEMA + state floodplain mapping and eFARA reference | Regulatory/reference service; do not scrape presentation HTML |
-| `INDIANA-GIS` | Indiana Geographic Information Office | `https://gisdata.in.gov/server/rest/` | PLSS and other authoritative GIS services | Geospatial; preserve each service's native CRS |
-| `INDIANA-PARCELS-2025` | Indiana Geographic Information Office / Indiana local governments | `https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer/0` | 2025 statewide parcel framework and parcel identifiers | Current cadastral framework; preserve source/load metadata |
-| `INDIANA-BUILDINGS-2016-2020` | Indiana Geographic Information Office | `https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0` | Statewide building footprints 2016–2020 (lidar-derived); 23,082 Posey County footprints per live county query on 2026-09-29 | Geospatial reference; not survey evidence. Fetch via `scripts/geospatial/buildings/fetch-igio-posey-buildings.sh` |
-| `POSEY-WTH-THINKGIS` | WTH / Posey County | `https://poseyin.wthgis.com` | Posey County parcel viewer UI (assessor reconciliation view) | Visual reference; verify against assessor of record, never the filing source |
-| `INDIANA-CURRENT-IMAGERY` | Indiana Geographic Information Office | `https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_Current_Imagery/ImageServer` | Current statewide orthoimagery | Current visual/change-detection evidence |
-| `INDIANA-IMAGERY-LIDAR-PROGRAM` | Indiana Geographic Information Office / Woolpert | Indiana 2025–2028 Imagery & Elevation Program | 3-inch/6-inch orthoimagery and QL1 LiDAR program products | Acquisition program; county-specific QA/QC required before promotion |
-| `INDIANA-2017-2020-LIDAR-WEST` | Indiana / NRCS / USGS | NOAA InPort metadata `69202` | 2017–2020 western Indiana classified LAS 1.4 LiDAR, explicitly including Posey County | Historical terrain baseline |
+| `IDNR-BAFL` | Indiana DNR Division of Water | Indiana Floodplain Information Portal / BAFL services | State flood hazard, BFE/floodway and elevation references | State planning/regulatory context |
+| `IDNR-INFIP` | Indiana DNR | `https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/indiana-floodplain-information-portal/` | FEMA + state floodplain mapping and FARA reference | State reference service |
+| `INDIANA-PARCELS-2025` | Indiana Geographic Information Office / Indiana local governments | `https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer/0` | 2025 statewide parcel framework | Current cadastral framework |
+| `INDIANA-CURRENT-IMAGERY` | Indiana Geographic Information Office | `https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_Current_Imagery/ImageServer` | Current statewide orthoimagery | Current imagery snapshot |
+| `INDIANA-IMAGERY-LIDAR-PROGRAM` | Indiana Geographic Information Office / Woolpert | `https://www.in.gov/gis/geoinsights/posts/imagery-and-elevation-roadshows-march-2026/` | 2025–2028 imagery and QL1 LiDAR acquisition program | County-specific acquisition/QA metadata required |
+| `INDIANA-POSEY-CSLF-2025` | Indiana Geographic Information Office | `https://gisdata.in.gov/server/rest/services/Hosted/Posey_CSLF_Feb2025/FeatureServer` | Posey Changes Since Last FIRM preliminary/pending mapping | Pending regulatory reference; not effective FEMA mapping |
 
 ## Historical/reference sources
 
-| Source ID | Source | Data | Class / boundary |
-|---|---|---|---|
-| `USER-POINT-TWP-PLAT-SCANS` | User-provided historical scans | Point Township PLSS, parcel/ownership labels, roads and historical hydrography | Tier 6 historical reference; not current cadastral truth |
-| `USER-FEMA-2014-FIRM-SCANS` | User-provided historical FIRM scans | Posey County FIRM panels including 18129C0300C, 18129C0245C, 18129C0240C, 18129C0217C and 18129C0205C; photographed effective date 2014-11-05 | Tier 6 historical regulatory reference; not current effective mapping |
+Historical scans, 2017–2020 LiDAR, and older source packages remain useful for change detection and reconciliation, but they are explicitly superseded by newer authoritative products when a newer agency vintage exists.
 
+## Snapshot rules
 
-## Verified jurisdictional rule sources
-
-| Rule ID | Authority | Citation | Primary source | Boundary |
-|---|---|---|---|---|
-| `IN-FLOODWAY-CAPACITY-0.15FT` | Indiana DNR | 312 IAC 10-2-3 | `https://www.in.gov/dnr/water/regulatory-permit-programs/exemptions/` | Rule reference; applicability and exceptions must be evaluated |
-| `IN-FEMA-FLOODWAY-NORISE-0.00FT` | FEMA / Indiana DNR | 44 CFR 60.3(d)(3) implementation guidance | `https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/no-rise/` | FEMA/local no-rise pathway; distinct from DNR's state surcharge administration |
-| `IL-PART-3700-FLOODWAYS` | Illinois DNR | 17 Ill. Adm. Code Part 3700 | `https://dnr.illinois.gov/content/dam/soi/en/web/dnr/adrules/documents/17-3700.pdf` | Jurisdiction-specific floodway construction rules |
-| `KY-401-KAR-4-060` | Kentucky Administrative Regulations | 401 KAR 4:060 | `https://apps.legislature.ky.gov/law/kar/titles/401/004/060/` | Jurisdiction-specific stream construction criteria |
-
-These records are mirrored in `data/regulatory/tsm-floodway-rules-v1.json` and are selected by jurisdiction and applicability before an engineering comparison is allowed to use a numeric criterion.
-
-## TSM source rules
-
-1. A provider URL is not itself evidence of a successful observation. Store the exact source identifier and retrieval timestamp.
-2. Raw USGS/NOAA gage height is `GAGE_DATUM` unless a separately validated, product-matched zero establishes a NAVD88 conversion.
-3. Observed, forecast, simulation, derived calculation, evidence artifact, and regulatory-reference classes cannot be silently merged.
-4. Missing or stale provider data produces an explicit degraded/unavailable state.
-5. Binary terrain datasets such as LAS/LAZ/DEM are discovered or acquired outside Git history; Git stores manifests and provenance, not large operational payloads.
-6. Regulatory source layers inform engineering review. TSM does not issue FEMA/IDNR/local floodplain determinations or permits.
-7. Historical scans are change-detection/reference evidence only. They do not override current FEMA, Indiana DNR, parcel, imagery, or survey sources.
-8. Source contracts are validated in CI; unexpected endpoint or schema changes fail closed rather than silently degrading into synthetic values.
-
-## Addendum 2026-09-29 — externally contributed catalog cross-check
-
-An externally produced Indiana/federal data catalog (v1.1.0, dated 2026-09-12) was
-cross-checked against this registry on 2026-09-29. It was **not** vendored wholesale:
-this registry is newer and more comprehensive. Two sources it listed were verified
-live and were not yet registered here, so they are added below. All other entries
-duplicated existing records.
-
-| Source ID | Authority | Primary endpoint | Data | Class / boundary |
-|---|---|---|---|---|
-| `INDIANA-POSEY-CSLF-2025` | Indiana Geographic Information Office | `https://gisdata.in.gov/server/rest/services/Hosted/Posey_CSLF_Feb2025/FeatureServer` | Posey County Changes Since Last FIRM (S_CSLF_Ar, layer 0) — preliminary/pending map-change polygons | Regulatory reference; pending changes are not effective map data |
-| `STATS-INDIANA` | Indiana Business Research Center, IU Kelley School of Business | `https://www.stats.indiana.edu/` | Indiana demographic/economic profiles by county | Contextual reference; not flood or parcel evidence |
+1. Store source identifier, official URL, product identifier, publication/acquisition date, retrieval timestamp, native CRS, vertical datum, model/software version, and SHA-256.
+2. Freeze the selected source package for offline use; never label a frozen snapshot as live.
+3. FEMA effective mapping and Indiana BAFL remain separate authority classes.
+4. USGS terrain/hydrology products are scientific evidence, not FEMA regulatory determinations.
+5. USACE NLD is evidence; each levee record retains its own Data Last Updated and Last Assessment Date.
+6. HEC-RAS version is software provenance, not source-data vintage.
+7. Historical/user-provided material cannot silently override newer agency products.
+8. Missing source metadata is an explicit provenance defect; do not synthesize a vintage, datum, BFE, WSE, depth, or velocity.
