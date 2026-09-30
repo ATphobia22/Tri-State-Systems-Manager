@@ -1,0 +1,97 @@
+name: TSM Offline Runtime Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feat/hec-ras-modern-runtime-*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tsm-offline-runtime-\${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-offline-runtime:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          submodules: recursive
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+          registry-url: https://registry.npmjs.org
+      - name: Pin npm CLI
+        run: npm install --global npm@10.9.2 --no-audit --no-fund
+      - name: Prepare offline directories
+        run: mkdir -p offline-runtime/npm-cache offline-runtime/python-wheels offline-runtime/build offline-runtime/native offline-runtime/manifests
+      - name: Install console dependencies and populate offline npm cache
+        working-directory: tsm-console
+        run: |
+          npm ci --no-audit --no-fund --cache ../offline-runtime/npm-cache
+          npm run build
+          rm -rf node_modules
+          npm ci --offline --no-audit --no-fund --cache ../offline-runtime/npm-cache
+          npm run build
+      - name: Install auxiliary Node dependency trees
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r lock; do
+            dir="$(dirname "$lock")"
+            if [ "$dir" = "tsm-console" ]; then continue; fi
+            if [ -f "$dir/package.json" ]; then
+              npm ci --prefix "$dir" --no-audit --no-fund --cache "$PWD/offline-runtime/npm-cache"
+              rm -rf "$dir/node_modules"
+              npm ci --prefix "$dir" --offline --no-audit --no-fund --cache "$PWD/offline-runtime/npm-cache"
+            fi
+          done < <(find . -name package-lock.json -not -path './node_modules/*' -print)
+      - name: Download Python wheels for offline installation
+        run: |
+          python3 -m pip download --requirement packages/hydraulics/python/requirements.txt --dest offline-runtime/python-wheels
+          python3 -m pip download --requirement backend/requirements.txt --dest offline-runtime/python-wheels
+      - name: Verify Python wheels offline
+        run: |
+          python3 -m venv offline-runtime/python-test
+          offline-runtime/python-test/bin/python -m pip install --no-index --find-links offline-runtime/python-wheels -r packages/hydraulics/python/requirements.txt
+          offline-runtime/python-test/bin/python -m pip install --no-index --find-links offline-runtime/python-wheels -r backend/requirements.txt
+      - name: Python syntax verification
+        run: |
+          python3 -m py_compile packages/hydraulics/python/tsm_hec_ras/hdf5_reader.py packages/hydraulics/python/tsm_hec_ras/runtime.py
+      - name: HEC-RAS contract verification
+        working-directory: tsm-console
+        run: |
+          npm run check:hec-ras-modern-runtime
+          npm run test:hec-ras
+      - name: Verify production web artifact
+        run: |
+          test -f tsm-console/dist/index.html
+          test -s tsm-console/dist/index.html
+      - name: Vendor Rust dependencies for native offline builds
+        working-directory: tsm-console/src-tauri
+        run: cargo vendor ../../offline-runtime/native/cargo-vendor
+      - name: Generate runtime and checksum manifests
+        run: node scripts/offline/build-runtime-manifest.mjs
+      - name: Remove test virtual environment
+        run: rm -rf offline-runtime/python-test
+      - name: Package offline runtime
+        run: |
+          tar -czf TSM-OFFLINE-RUNTIME-\${GITHUB_SHA}.tar.gz offline-runtime
+          sha256sum TSM-OFFLINE-RUNTIME-\${GITHUB_SHA}.tar.gz > TSM-OFFLINE-RUNTIME-\${GITHUB_SHA}.sha256
+      - name: Upload offline runtime artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: TSM-OFFLINE-RUNTIME-\${{ github.sha }}
+          path: |
+            TSM-OFFLINE-RUNTIME-\${{ github.sha }}.tar.gz
+            TSM-OFFLINE-RUNTIME-\${{ github.sha }}.sha256
+          if-no-files-found: error
+          retention-days: 30
