@@ -49,3 +49,5 @@ jobs:
           path: data\posey-county\offline\2026-09-30
           if-no-files-found: error
           retention-days: 30
+
+# Retry marker: 2026-09-30 Posey authoritative acquisition
