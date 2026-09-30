@@ -17,7 +17,7 @@
     "typecheck": "turbo run typecheck",
     "dev": "turbo run dev",
     "build:uacf": "tsc -p tsconfig.uacf.json --noEmit",
-    "test:uacf": "node --experimental-strip-types --test tests/contracts/uacf-kernel.test.ts",
+    "test:uacf": "tsx --test tests/contracts/uacf-kernel.test.ts",
     "verify:uacf": "npm run build:uacf && npm run test:uacf && npm run test:uacf-gateway",
     "test:uacf-gateway": "npm --prefix apps/uacf-gateway run smoke"
   },
