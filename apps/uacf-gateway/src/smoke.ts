@@ -1,5 +1,5 @@
 import{spawn,type ChildProcess}from'node:child_process';import{setTimeout as delay}from'node:timers/promises';
-const port='8791';const child:ChildProcess=spawn(process.execPath,['../../node_modules/tsx/dist/cli.mjs','src/server.ts'],{cwd:new URL('.',import.meta.url).pathname.replace(/\\/g,'').replace(/\/$/,'')||process.cwd(),env:{...process.env,UACF_PORT:port,UACF_HOST:'127.0.0.1'},stdio:['ignore','pipe','pipe']});
+const port='8791';const child:ChildProcess=spawn(process.execPath,['../../node_modules/tsx/dist/cli.mjs','src/server.ts'],{cwd:process.cwd(),env:{...process.env,UACF_PORT:port,UACF_HOST:'127.0.0.1'},stdio:['ignore','pipe','pipe']});
 let output='';child.stdout?.on('data',(d)=>{output+=d.toString()});child.stderr?.on('data',(d)=>{output+=d.toString()});
 try{let ready=false;for(let i=0;i<100;i++){try{const r=await fetch(`http://127.0.0.1:${port}/v1/health`);if(r.ok){ready=true;break}}catch{}await delay(100)}if(!ready)throw new Error(`gateway did not become ready: ${output}`);
 const h=await(await fetch(`http://127.0.0.1:${port}/v1/health`)).json() as Record<string,unknown>;if(h.status!=='ok')throw new Error('health check failed');
