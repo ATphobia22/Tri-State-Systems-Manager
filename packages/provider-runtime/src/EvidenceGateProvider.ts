@@ -1,5 +1,6 @@
 import type { CapabilityDefinition, CapabilityId, CapabilityProvider, CapabilityRequest, CapabilityResult, ProviderHealth, SupportDecision } from '../../contracts/src/index.ts';
 import { evaluateEngineeringGate } from '../../gates/src/index.ts';
+import { normalizeSystemManagerPayload } from '../../evidence/src/index.ts';
 
 const DEFINITION: CapabilityDefinition = {
   id: 'tsm.engineering.evidence-gate.evaluate' as CapabilityId,
@@ -27,7 +28,8 @@ export class EvidenceGateProvider implements CapabilityProvider {
 
   async execute(request: CapabilityRequest): Promise<CapabilityResult> {
     const started = new Date().toISOString();
-    const gate = evaluateEngineeringGate(request.input as never);
+    const input = request.input && typeof request.input === 'object' ? normalizeSystemManagerPayload(request.input as Record<string, unknown>) : {};
+    const gate = evaluateEngineeringGate(input);
     return {
       success: true,
       output: gate,
