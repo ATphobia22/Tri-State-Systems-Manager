@@ -16,7 +16,7 @@ New-Item -ItemType Directory -Force -Path $OutRoot|Out-Null
 foreach($c in $counties){
   $path=Join-Path $OutRoot "$($c.state.ToLowerInvariant())-$($c.fips)-$($c.name).geojson"
   $params="where=GEOID%3D%27$($c.geoid)%27&outFields=GEOID%2CNAME%2CSTATEFP%2CCOUNTYFP&returnGeometry=true&outSR=4326&f=geojson"
-  Invoke-WebRequest -Uri "$base?$params" -OutFile $path -UseBasicParsing
+  Invoke-WebRequest -Uri ($base + "?" + $params) -OutFile $path -UseBasicParsing
   $o=Get-Content $path -Raw|ConvertFrom-Json
   if(@($o.features).Count -ne 1 -or [string]$o.features[0].properties.GEOID -ne $c.geoid){throw "Boundary validation failed for $($c.name), $($c.state)"}
   if((Get-Item $path).Length -le 0){throw "Zero-byte boundary: $path"}
