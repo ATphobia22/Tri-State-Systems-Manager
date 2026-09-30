@@ -94,7 +94,7 @@ function addFeatureSource(map: Map, item: MapPlaneLayer): void {
     data: { type: 'FeatureCollection', features: [] },
   });
   const color = layerColor(item.id);
-  if (item.id === 'in-roads-current') {
+  if (item.id === 'indiana-roads') {
     map.addLayer({
       id: `${item.id}-line`,
       type: 'line',
@@ -104,7 +104,7 @@ function addFeatureSource(map: Map, item: MapPlaneLayer): void {
     });
     return;
   }
-  if (item.id === 'indiana-building-footprints-2016-2020') {
+  if (item.id === 'building-extrusions') {
     map.addLayer({
       id: `${item.id}-extrusion`,
       type: 'fill-extrusion',
@@ -253,10 +253,12 @@ export default function TriStateDigitalTwinMap(): JSX.Element {
   }, [setLayerVisibility, visible]);
 
   const terrain = getTerrainRgbStatus();
+  const mistVisible = Boolean(visible['cinematic-volumetric-mist']);
 
   return (
     <section aria-label="TSM MapLibre twelve-layer plane" style={{ position: 'relative', height: '100%', minHeight: 560, background: '#05080f', color: '#e2e8f0' }}>
       <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
+      <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: mistVisible ? 0.18 : 0, transition: 'opacity 180ms ease', background: 'radial-gradient(ellipse at 50% 45%, transparent 35%, rgba(148,163,184,.55) 100%)', mixBlendMode: 'screen' }} />
       <aside style={{ position: 'absolute', top: 12, left: 12, width: 360, maxHeight: 'calc(100% - 24px)', overflow: 'auto', padding: 14, border: '1px solid rgba(148,163,184,.25)', borderRadius: 12, background: 'rgba(5,8,15,.92)', backdropFilter: 'blur(8px)' }}>
         <strong style={{ letterSpacing: '.12em' }}>TSM // MAPLIBRE PLANE</strong>
         <div style={{ marginTop: 6, fontSize: 12, color: terrainEnabled ? '#86efac' : '#fbbf24' }}>
