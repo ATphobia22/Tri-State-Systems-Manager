@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
-import { existsSync, readdirSync, statSync, readFileSync, writeFileSync } from 'node:fs';
+import { createReadStream } from 'node:fs';
+import { existsSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
 const root = process.cwd();
@@ -7,7 +8,13 @@ const runtimeRoot = join(root, 'offline-runtime');
 const manifestRoot = join(runtimeRoot, 'manifests');
 
 function hash(path) {
-  return createHash('sha256').update(readFileSync(path)).digest('hex');
+  return new Promise((resolve, reject) => {
+    const digest = createHash('sha256');
+    const stream = createReadStream(path);
+    stream.on('data', (chunk) => digest.update(chunk));
+    stream.on('error', reject);
+    stream.on('end', () => resolve(digest.digest('hex')));
+  });
 }
 function walk(directory) {
   const files = [];
@@ -28,13 +35,17 @@ for (const required of [
   if (!existsSync(required)) throw new Error('Missing offline runtime artifact: ' + required);
 }
 
-const files = walk(runtimeRoot)
-  .filter((path) => !path.endsWith('runtime-manifest.json') && !path.endsWith('SHA256SUMS'))
-  .map((path) => ({
+const paths = walk(runtimeRoot)
+  .filter((path) => !path.endsWith('runtime-manifest.json') && !path.endsWith('SHA256SUMS'));
+
+const files = [];
+for (const path of paths) {
+  files.push({
     path: relative(root, path).replaceAll('\\\\', '/'),
     bytes: statSync(path).size,
-    sha256: hash(path),
-  }));
+    sha256: await hash(path),
+  });
+}
 
 const manifest = {
   schemaVersion: 'tsm-offline-runtime-v1',
@@ -60,6 +71,6 @@ const manifest = {
   files,
 };
 
-writeFileSync(join(manifestRoot, 'runtime-manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
-writeFileSync(join(manifestRoot, 'SHA256SUMS'), files.map((entry) => entry.sha256 + '  ' + entry.path).join('\n') + '\n');
+writeFileSync(join(manifestRoot, 'runtime-manifest.json'), JSON.stringify(manifest, null, 2) + '\\n');
+writeFileSync(join(manifestRoot, 'SHA256SUMS'), files.map((entry) => entry.sha256 + '  ' + entry.path).join('\\n') + '\\n');
 console.log('Offline runtime manifest generated: ' + files.length + ' files');
