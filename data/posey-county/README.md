@@ -29,10 +29,24 @@ nulled. Zone X (minimal flood hazard, 2,816 polygons) excluded for size.
 | File | Description | SHA-256 |
 |---|---|---|
 | `floodplain/posey-flood-hazard-sfha.geojson` | 5,606 SFHA polygons, 24.6 MB; fields: fld_zone, zone_subty, sfha, bfe_ft, v_datum, depth_ft, study_typ, dfirm_id | `19f4a08e…f7eff` |
+| `floodplain/posey-flood-elevation-points.geojson` | 22,636 flood elevation points, 7.4 MB; fields: huc10, streamname, wsel10, wsel4, wsel2, wsel1, wsel02, wsel1plus, da, version | `5e745db7…c2` |
 
 Anchor check: 13101 Bonebank Rd falls in zone **AE**, SFHA = T. The layer's AE
 polygon there carries no static BFE — the case BFE 375.0 ft NAVD88 comes from
 FIRM panel 18129C0265C / the FEMA letter, not this layer. Reference only.
+
+## Flood elevation points
+
+Added 2026-09-30 from the Indiana DNR "Best Available Floodplain" county
+extract (BAFLExtract/Posey), NAD83 UTM 16N reprojected to EPSG:4326.
+24,205 raw points; 22,636 kept after dropping `-8888` nodata flags. 48 named
+streams (Wabash River, Big Creek, Black River, McFadden Creek, …). Water-surface
+elevations for the 10%, 4%, 2%, 1%, and 0.2% annual-chance events
+(`wsel10/wsel4/wsel2/wsel1/wsel02`), feet. These are modeled river/reach water
+surfaces — **planning context only, not regulatory BFEs and not site LAG/FFE
+evidence**. The anchor's nearby Wabash River 1% WSE is ~368.7 ft; that is the
+river's modeled surface, not the property's BFE (case paperwork: 375.0 ft
+NAVD88, unverified in software).
 
 ## Watersheds
 
