@@ -179,7 +179,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
             </button>
           ))}
         </div>
-        <div style={{ marginTop: 6, color: '#86efac' }}>USGS/NOAA station telemetry is operational-source data. Site inundation and HEC-RAS rendering remain model/evidence-gated until a validated site WSE transfer and verified structural elevations are present. HEC-RAS visualization authority remains SIMULATION_DEMO / MODEL_OUTPUT until those evidence gates are satisfied. Visualization/model context only; human authority remains final.</div>
+        <div style={{ marginTop: 6, color: '#86efac' }}>Live USGS/NOAA station telemetry was retired on 2026-09-29 by owner decision; no live gauges are polled. Site inundation and HEC-RAS rendering remain model/evidence-gated until a validated site WSE transfer and verified structural elevations are present. HEC-RAS visualization authority remains SIMULATION_DEMO / MODEL_OUTPUT until those evidence gates are satisfied. Visualization/model context only; human authority remains final.</div>
       </div>
     </section>
   );
