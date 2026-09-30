@@ -1,0 +1,1 @@
+declare module 'node:crypto'{export function randomUUID():string;export function createHash(algorithm:string):{update(data:unknown):{digest(encoding?:string):any}}}
