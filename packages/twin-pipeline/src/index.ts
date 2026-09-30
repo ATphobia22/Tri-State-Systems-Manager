@@ -6,7 +6,7 @@ export const ENGINEERING_HORIZONTAL_CRS = 'EPSG:2966' as const;
 export const ENGINEERING_VERTICAL_DATUM = 'NAVD88' as const;
 export const RUNTIME_RENDER_CRS = 'EPSG:3857' as const;
 
-export interface SurveyData { readonly datum: 'NAVD88'; readonly easting: number; readonly northing: number; readonly elevationFt: number; readonly isVerified: boolean; }
+export interface SurveyData { readonly datum: 'NAVD88'; readonly horizontalCrs: typeof ENGINEERING_HORIZONTAL_CRS; readonly easting: number; readonly northing: number; readonly elevationFt: number; readonly isVerified: boolean; }
 export interface SoilStratum { readonly depthStartFt: number; readonly depthEndFt: number; readonly uscsCode: string; readonly cohesionPsf: number; readonly frictionAngleDeg: number; }
 export interface GeotechPayload { readonly boringId: string; readonly groundwaterDepthFt: number; readonly porePressureRatioRu: number; readonly stratigraphy: readonly SoilStratum[]; }
 export interface HydraulicBoundary { readonly upstreamWseFt: number; readonly downstreamWseFt: number; readonly targetBfeFt: number; readonly evidenceGateCleared: boolean; }
@@ -44,7 +44,7 @@ export function validateAndJoin(parcelId: string, survey: SurveyData, geotech: G
   const issues: string[] = [];
   required(parcelId, 'parcelId', issues);
   if (!Number.isFinite(Date.parse(timestamp))) issues.push('timestamp must be ISO-8601');
-  if (survey.datum !== ENGINEERING_VERTICAL_DATUM || survey.isVerified !== true) issues.push('controlled survey must be verified and NAVD88-referenced');
+  if (survey.datum !== ENGINEERING_VERTICAL_DATUM || survey.horizontalCrs !== ENGINEERING_HORIZONTAL_CRS || survey.isVerified !== true) issues.push('controlled survey must be verified, NAVD88-referenced, and EPSG:2966 horizontal coordinates');
   finite(survey.easting, 'survey.easting', issues); finite(survey.northing, 'survey.northing', issues); finite(survey.elevationFt, 'survey.elevationFt', issues);
   required(geotech.boringId, 'geotech.boringId', issues);
   if (!geotech.stratigraphy.length) issues.push('geotech.stratigraphy must not be empty');
@@ -58,11 +58,14 @@ export function validateAndJoin(parcelId: string, survey: SurveyData, geotech: G
   finite(hydrology.upstreamWseFt, 'hydrology.upstreamWseFt', issues);
   finite(hydrology.downstreamWseFt, 'hydrology.downstreamWseFt', issues);
   finite(hydrology.targetBfeFt, 'hydrology.targetBfeFt', issues);
-  if (hydrology.evidenceGateCleared !== true) issues.push('hydraulic evidence gate is not cleared');
+  if (hydrology.evidenceGateCleared !== true) issues.push('hydraulic input is not marked as gate-cleared');
 
   const normalized = normalizeSystemManagerPayload(evidencePayload);
   const validation = validateSystemEvidence(normalized);
   issues.push(...validation.issues.map((issue) => issue.code + ':' + issue.path));
+  const evidenceSurveyCrs = normalized.controlledSurvey?.horizontalCrs;
+  if (evidenceSurveyCrs !== ENGINEERING_HORIZONTAL_CRS) issues.push('controlled survey evidence horizontal CRS must be EPSG:2966');
+  if (!validation.valid) issues.push('engineering evidence validation is not valid');
   const modules: readonly EvidenceRef['module'][] = ['controlled_survey','geotechnical_investigation','groundwater_evidence','qualified_fill','laboratory_results','hydraulic_boundary_conditions','approved_project_geometry'];
   const evidence = normalized.evidence ?? [];
   const missing = modules.filter((module) => !evidenceForModule(evidence, module));
@@ -90,9 +93,9 @@ export function toTwinStateParts(joined: JoinedDigitalTwinEntity): { entity: Twi
     spatial: { crs: ENGINEERING_HORIZONTAL_CRS, geometryRef: 'parcel:' + joined.parcelId },
     validTime: { validFrom: joined.timeTimestamp },
     attributes: { elevationFt: joined.survey.elevationFt, upstreamWseFt: joined.hydrology.upstreamWseFt, downstreamWseFt: joined.hydrology.downstreamWseFt, targetBfeFt: joined.hydrology.targetBfeFt },
-    sourceDatasetIds: joined.sourceEvidenceIds,
+    sourceDatasetIds: [],
   };
-  const observations: StateObservation[] = [{ entityId: joined.twinEntityId, observedAt: joined.timeTimestamp, observedValue: joined.hydrology.upstreamWseFt, unit: 'ft', datasetId: joined.sourceEvidenceIds[0] }];
+  const observations: StateObservation[] = [];
   return { entity, observations, relationships: [] };
 }
 
