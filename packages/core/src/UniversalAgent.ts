@@ -1,13 +1,12 @@
-import type { CapabilityResult } from '@uacf/contracts';
-import type { CapabilityRouter } from '@uacf/router';
+import type { CapabilityRequest, CapabilityResult } from '../../contracts/src/index.ts';
+import type { CapabilityRouter } from '../../router/src/CapabilityRouter.ts';
 
 export class UniversalAgent {
   public constructor(private readonly router: CapabilityRouter) {}
 
   public execute<TInput = unknown, TOutput = unknown>(
-    capability: string,
-    input: TInput,
+    request: CapabilityRequest<TInput>,
   ): Promise<CapabilityResult<TOutput>> {
-    return this.router.execute<TInput, TOutput>({ capability, input });
+    return this.router.execute<TOutput>(request);
   }
 }
