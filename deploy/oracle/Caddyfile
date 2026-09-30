@@ -1,10 +1,5 @@
-# Caddy reverse proxy: automatic Let's Encrypt HTTPS for both services.
-# Hostnames come from the environment (API_HOSTNAME, KEYCLOAK_HOSTNAME).
-
+# Login-free TSM API reverse proxy.
 {$API_HOSTNAME} {
-	reverse_proxy api:8787
-}
-
-{$KEYCLOAK_HOSTNAME} {
-	reverse_proxy keycloak:8080
+  reverse_proxy api:8787
+  encode gzip
 }
