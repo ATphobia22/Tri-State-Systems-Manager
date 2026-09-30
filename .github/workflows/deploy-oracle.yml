@@ -32,15 +32,33 @@ jobs:
   deploy:
     name: Deploy stack to Oracle VM
     runs-on: ubuntu-latest
-    if: ${{ secrets.ORACLE_SSH_HOST != '' && secrets.ORACLE_SSH_USER != '' && secrets.ORACLE_SSH_KEY != '' }}
+    permissions:
+      contents: read
     steps:
+      - name: Check Oracle deployment credentials
+        id: credentials
+        env:
+          ORACLE_SSH_HOST: ${{ secrets.ORACLE_SSH_HOST }}
+          ORACLE_SSH_USER: ${{ secrets.ORACLE_SSH_USER }}
+          ORACLE_SSH_KEY: ${{ secrets.ORACLE_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "$ORACLE_SSH_HOST" ] || [ -z "$ORACLE_SSH_USER" ] || [ -z "$ORACLE_SSH_KEY" ]; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "Oracle deployment skipped: ORACLE_SSH_HOST/USER/KEY are not all configured."
+            exit 0
+          fi
+          echo "enabled=true" >> "$GITHUB_OUTPUT"
+
       - name: Check out this commit
+        if: steps.credentials.outputs.enabled == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0
 
       - name: Sync tree and rebuild over SSH
+        if: steps.credentials.outputs.enabled == 'true'
         env:
           ORACLE_SSH_HOST: ${{ secrets.ORACLE_SSH_HOST }}
           ORACLE_SSH_USER: ${{ secrets.ORACLE_SSH_USER }}
