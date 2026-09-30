@@ -26,10 +26,10 @@ const ARCGIS_EXPORT = (service: string, layers?: string): string => {
 };
 
 const layerColor = (id: string): string => {
-  if (id === 'in-parcels-current') return '#38bdf8';
-  if (id === 'in-roads-current') return '#fbbf24';
-  if (id === 'indiana-building-footprints-2016-2020') return '#a78bfa';
-  if (id === 'posey-cslf') return '#fb7185';
+  if (id === 'indiana-parcels') return '#38bdf8';
+  if (id === 'indiana-roads') return '#fbbf24';
+  if (id === 'building-extrusions') return '#a78bfa';
+  if (id === 'hydro-bathymetry') return '#22d3ee';
   return '#94a3b8';
 };
 
@@ -56,8 +56,11 @@ function baseStyle(): StyleSpecification {
   };
 }
 
-async function fetchGeoJson(source: string): Promise<GeoJSON.GeoJSON> {
-  const response = await fetch(FEATURE_QUERY(source), {
+async function fetchGeoJson(source: string, map: Map): Promise<GeoJSON.GeoJSON> {
+  const bounds = map.getBounds();
+  const bbox = `${bounds.getWest()},${bounds.getSouth()},${bounds.getEast()},${bounds.getNorth()}`;
+  const url = buildArcGisFeatureQueryUrl(source).replace('{bbox-epsg-4326}', encodeURIComponent(bbox));
+  const response = await fetch(url, {
     headers: { Accept: 'application/geo+json,application/json' },
   });
   if (!response.ok) throw new Error(`ArcGIS FeatureServer request failed: HTTP ${response.status}`);
