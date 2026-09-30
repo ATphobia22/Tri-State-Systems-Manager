@@ -69,6 +69,6 @@ The transformation is an engineering middleware operation. The cinematic water/m
 
 ## Source evidence
 
-The USACE National Levee Database service exposes a Cross Sections feature layer with Z-enabled geometry and GeoJSON/JSON query support. citeturn0search0turn0search1
+The USACE National Levee Database service exposes a Cross Sections feature layer with Z-enabled geometry and GeoJSON/JSON query support. https://geospatial.sec.usace.army.mil/dls/rest/services/NLD/Public/MapServer/9
 
-USGS StreamStats provides an Indiana regional information portal and hydrologic analysis workflow. citeturn0search4
+USGS StreamStats provides an Indiana regional information portal and hydrologic analysis workflow. https://streamstats.usgs.gov/ss/?information-portal=regionalInformation&region=IN
