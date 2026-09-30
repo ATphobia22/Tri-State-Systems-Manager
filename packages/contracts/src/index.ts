@@ -17,3 +17,7 @@ export interface SupportDecision{readonly supported:boolean;readonly reason?:str
 export interface CapabilityProvider<TInput=unknown,TOutput=unknown>{readonly id:string;readonly version:string;readonly capabilities:readonly CapabilityDefinition[];health():Promise<ProviderHealth>;supports(capability:CapabilityId,input:unknown):Promise<SupportDecision>;execute(request:CapabilityRequest<TInput>):Promise<CapabilityResult<TOutput>>}
 export interface AuthorizationDecision{readonly allowed:boolean;readonly requireApproval?:boolean;readonly reason?:string}
 export interface PolicyEngine{authorize(request:CapabilityRequest):Promise<AuthorizationDecision>;canUse(capability:CapabilityDefinition,context:CapabilityContext):Promise<boolean>}
+
+export interface ProviderScore{readonly providerId:string;readonly supported:boolean;readonly estimatedCost:number;readonly estimatedLatencyMs:number;readonly reliability:number;readonly policyAllowed:boolean}
+export type ModelCapability='text'|'structured_output'|'tool_calling'|'json_schema'|'streaming'|'embeddings'|'reasoning';
+export interface ModelAdapter{readonly provider:string;readonly model:string;capabilities():readonly ModelCapability[];generate(input:unknown,options?:Readonly<Record<string,unknown>>):AsyncIterable<unknown>;generateStructured<T>(input:unknown,schema:JsonSchema,options?:Readonly<Record<string,unknown>>):Promise<T>;callTools(input:unknown,tools:readonly unknown[],options?:Readonly<Record<string,unknown>>):AsyncIterable<unknown>}
