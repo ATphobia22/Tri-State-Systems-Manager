@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS uacf_artifacts (id TEXT PRIMARY KEY, sha256 TEXT NOT NULL, mime_type TEXT NOT NULL, size_bytes BIGINT NOT NULL, storage_ref TEXT NOT NULL, provenance JSONB NOT NULL DEFAULT '[]'::jsonb, created_at TIMESTAMPTZ NOT NULL DEFAULT now());
