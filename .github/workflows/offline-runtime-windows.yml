@@ -210,3 +210,6 @@ jobs:
             TSM-OFFLINE-RUNTIME-WINDOWS-X64-${{ github.sha }}.sha256
           if-no-files-found: error
           retention-days: 30
+
+# Release verification trigger: 2026-09-30 Windows x64 artifact gate.
+# Stable hosted runner gate: windows-2022.
