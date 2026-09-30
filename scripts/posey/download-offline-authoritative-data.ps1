@@ -152,7 +152,7 @@ $results += Save-Url $femaCountyProduct "fema\\NFHL_18129C.zip" "fema-countywide
 
 $results += Save-ArcGisWithinCounty "https://gisdata.in.gov/server/rest/services/Best_Available_Flood_Hazard_Layer/MapServer/438" "1=1" "indiana-dnr\bafm-posey-strict.geojson" "indiana-dnr-bafm" "Indiana DNR" $true "esriSpatialRelIntersects"
 
-$results += Save-ArcGisWithinCounty "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer/0" "1=1" "indiana-gio\parcel-boundaries-2025-posey-strict.json" "indiana-gio-parcels-2025" "Indiana GIO" $true
+$results += Save-ArcGisWithinCounty "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer/0" "1=1" "indiana-gio\parcel-boundaries-2025-posey-strict.json" "indiana-gio-parcels-2025" "Indiana GIO"  $true "esriSpatialRelIntersects"
 $results += Save-ArcGisWithinCounty "https://gisdata.in.gov/server/rest/services/Hosted/Address_Points_of_Indiana_2025/FeatureServer/0" "county_fips='$CountyFips'" "indiana-gio\address-points-2025-posey-strict.json" "indiana-gio-address-points-2025" "Indiana GIO" $false
 $results += Save-ArcGisWithinCounty "https://gisdata.in.gov/server/rest/services/Hosted/Road_Centerlines_of_Indiana_2025/FeatureServer/0" "county_fips='$CountyFips'" "indiana-gio\road-centerlines-2025-posey-strict.json" "indiana-gio-road-centerlines-2025" "Indiana GIO" $false
 $results += Save-ArcGisWithinCounty "https://gisdata.in.gov/server/rest/services/Hosted/Administrative_Boundaries_of_Indiana_2025/FeatureServer/3" "1=1" "indiana-gio\administrative-boundaries-county-commissioner-posey-strict.json" "indiana-gio-administrative-boundaries-2025" "Indiana GIO" $false
