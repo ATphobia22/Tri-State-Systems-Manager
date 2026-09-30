@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { validateSystemEvidence } from '../../packages/evidence/src/index.ts';
+import { normalizeSystemManagerPayload, validateSystemEvidence } from '../../packages/evidence/src/index.ts';
 import { evaluateEngineeringGate } from '../../packages/gates/src/index.ts';
 import { StaticPolicyEngine } from '../../packages/policy/src/PolicyEngine.ts';
 
@@ -59,4 +59,22 @@ test('specific deny policy cannot be overridden by wildcard allow', async () => 
   ]);
   const decision = await policy.authorize({capability:'tsm.engineering.ras-results',input:{},context:{requestId:'test',permissions:{allow:[]}}});
   assert.equal(decision.allowed, false);
+});
+
+test('legacy snake_case ingestion normalizes to canonical evidence fields', () => {
+  const legacy = {
+    controlled_survey: { datum:'NAVD88', easting:100, northing:200, elevation_ft:500, accuracy_class:'A', control_reference:'CP-001', survey_date:'2026-09-30' },
+    geotechnical_investigation: { boring_id:'BH-01', total_depth_ft:40, stratigraphy:[{depth_start_ft:0,depth_end_ft:40,uscs_classification:'CL',description:'clay'}] },
+    groundwater_evidence: { measured_water_table_depth_ft:14, pore_pressure_ratio_ru:0.15, is_artesian:false, observation_date:'2026-09-30' },
+    qualified_fill: { material_source:'Source A', material_classification:'CL', max_aggregate_size_in:3, plasticity_index_max:15, liquid_limit_max:40, min_compaction_proctor_pct:95, compaction_test_method:'ASTM D698', qualification_report_id:'LAB-FILL-01' },
+    laboratory_results: { sample_id:'BH01-S3', moisture_content_pct:18.4, cohesion_psf:250, friction_angle_deg:28, unit_weight_pcf:118.5, test_method:'direct shear', drainage_condition:'drained', report_id:'LAB-01' },
+    hydraulic_boundary_conditions: { upstream_head_ft:12, downstream_head_ft:2.5, permeability_k_cm_sec:0.00015, boundary_type:'Constant', reference_datum:'NAVD88' },
+    approved_project_geometry: { cross_section_id:'SEC-04', slope_ratio_horizontal:2, slope_ratio_vertical:1, bench_width_ft:6, foundation_embedment_depth_ft:3.5, approval_reference:'ENG-APP-01' },
+    evidence,
+  };
+  const normalized = normalizeSystemManagerPayload(legacy);
+  assert.equal(normalized.controlledSurvey?.elevationFt, 500);
+  assert.equal(normalized.geotechnicalInvestigation?.[0]?.boringId, 'BH-01');
+  assert.equal(normalized.qualifiedFill?.minCompactionProctorPct, 95);
+  assert.equal(normalized.approvedProjectGeometry?.slopeRatioHorizontal, 2);
 });
