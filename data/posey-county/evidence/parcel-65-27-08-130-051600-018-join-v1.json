@@ -1,0 +1,105 @@
+{
+  "schema": "tsm.posey.parcel-flood-join/v1",
+  "parcel_number_input": "65-27-08-130-051.600-018",
+  "state_combi": "652708130051600018",
+  "built_at": "2026-09-30T08:59:32+00:00",
+  "scope": "Source observations only. No BFE determination, no flood-insurance conclusion, no HEC-RAS result, and no engineering certification is produced or implied by this object.",
+  "parcel_polygon": {
+    "status": "OBSERVED",
+    "service": "https://services6.arcgis.com/y6TIO0vqbm8Ixd4w/ArcGIS/rest/services/Posey_Parcels_(Public)/FeatureServer/0",
+    "identifier_field": "StateCombi",
+    "state_combi": "652708130051600018",
+    "attributes": {
+      "StateCombi": "652708130051600018",
+      "Parcel": "051",
+      "ParcelID": "Exempt",
+      "CALC_ACRES": "0",
+      "Section": "08",
+      "Township": "T7S",
+      "Range": "R13W"
+    },
+    "rings": [
+      [
+        [
+          -87.8942405863577,
+          37.9309320541871
+        ],
+        [
+          -87.8943162300115,
+          37.9311149198723
+        ],
+        [
+          -87.8943935529189,
+          37.9313124048016
+        ],
+        [
+          -87.8942350863128,
+          37.9313527798556
+        ],
+        [
+          -87.8941159854207,
+          37.9313832631584
+        ],
+        [
+          -87.8940525597507,
+          37.9312299757689
+        ],
+        [
+          -87.8940358975399,
+          37.9311874004794
+        ],
+        [
+          -87.8939622588648,
+          37.9310027169944
+        ],
+        [
+          -87.8941848161721,
+          37.9309458668458
+        ],
+        [
+          -87.8942405863577,
+          37.9309320541871
+        ]
+      ]
+    ],
+    "crs": "EPSG:4326",
+    "retrieved_at": "2026-09-30T08:59:33+00:00"
+  },
+  "centroid": {
+    "status": "OBSERVED",
+    "lon": -87.89421938658693,
+    "lat": 37.93117520979274,
+    "method": "area-weighted planar centroid of parcel outer ring",
+    "crs": "EPSG:4326"
+  },
+  "dnr_flood_join": {
+    "status": "OBSERVED",
+    "service": "https://gisdata.in.gov/server/rest/services/Hosted/FLOODHAZARD_DNR_WATER_PROD/FeatureServer/0",
+    "dfirm_id": "18129C",
+    "flood_zone": "X",
+    "zone_subtype": "AREA OF MINIMAL FLOOD HAZARD",
+    "sfha": "F",
+    "dnr_source": "NFHL",
+    "source_citation": "18129C_FIRM1",
+    "static_bfe": -9999,
+    "depth": -9999,
+    "velocity": -9999,
+    "retrieved_at": "2026-09-30T08:59:34+00:00",
+    "authority_note": "DNR Best Available mapping is a state product; the joined feature identifies its own source (source_dnr). It is not the FEMA NFIP regulatory product and does not establish a FIRM panel for the parcel."
+  },
+  "nfhl_firm_panel": {
+    "status": "UNAVAILABLE",
+    "reason": "FEMA NFHL REST endpoint unreachable from this environment; parcel-specific FIRM panel NOT determined and NOT fabricated",
+    "service": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer"
+  },
+  "terrain_3dep": {
+    "status": "OBSERVED",
+    "service": "https://epqs.nationalmap.gov/v1/json",
+    "elevation_m": 120.179450989,
+    "elevation_ft": 394.28954998275077,
+    "vertical_datum": "NAVD88 (USGS EPQS documented orthometric datum; value interpolated from the 3DEP dynamic elevation service - accuracy varies with source data)",
+    "raster_id": 113780,
+    "resolution_m": 1,
+    "retrieved_at": "2026-09-30T08:59:41+00:00"
+  }
+}
