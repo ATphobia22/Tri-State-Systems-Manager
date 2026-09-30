@@ -37,7 +37,7 @@ test('builds an ArcGIS export template from a real MapServer endpoint', () => {
 test('self-hosted terrain layer is bound to the runtime Terrain-RGB template', () => {
   const terrain = getMapLibreFabricLayer('terrain-rgb');
   assert.equal(terrain.kind, 'terrain');
-  assert.equal(terrain.endpoint, '${VITE_TSM_TERRAIN_RGB_URL_TEMPLATE}');
+  assert.match(terrain.endpoint, /^https:\\/\\/atphobia22\\.github\\.io\\/Tri-State-Systems-Manager\\/terrain_3dep\\/\\{z\\}\\/\\{x\\}\\/\\{y\\}\\.png$/);
 });
 
 
