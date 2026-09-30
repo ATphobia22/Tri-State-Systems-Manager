@@ -1,0 +1,23 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"uacp://schemas/tsm-data-fabric-contract/v1",
+  "title":"TSM Data Fabric Dataset Contract",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["datasetId","title","owner","authority","zone","schemaVersion","lineage","quality"],
+  "properties":{
+    "datasetId":{"type":"string","minLength":1},
+    "title":{"type":"string","minLength":1},
+    "owner":{"type":"string","minLength":1},
+    "authority":{"enum":["CONTROLLED_FIELD","OFFICIAL_GOVERNMENT","AUTHORITATIVE_SCIENTIFIC","PROJECT_ENGINEERING","SECONDARY","DISCOVERY_ONLY"]},
+    "zone":{"enum":["RAW","CURATED","SEMANTIC"]},
+    "schemaVersion":{"type":"string","minLength":1},
+    "units":{"type":"string"},
+    "crs":{"type":"string"},
+    "verticalDatum":{"type":"string"},
+    "updateCadenceSeconds":{"type":"number","exclusiveMinimum":0},
+    "maxAgeSeconds":{"type":"number","exclusiveMinimum":0},
+    "lineage":{"type":"object","required":["parentDatasetIds","transformationIds"],"properties":{"parentDatasetIds":{"type":"array","items":{"type":"string"}},"transformationIds":{"type":"array","items":{"type":"string"}},"sourceUri":{"type":"string"},"contentHash":{"type":"string","pattern":"^[a-f0-9]{64}$"}},"additionalProperties":false},
+    "quality":{"type":"object","required":["status","requiredFields","checks"],"properties":{"status":{"enum":["UNKNOWN","PASS","FAIL","STALE","CONTRADICTED"]},"requiredFields":{"type":"array","items":{"type":"string"}},"checks":{"type":"array","items":{"type":"string"}}},"additionalProperties":false}
+  }
+}
