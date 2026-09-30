@@ -6,7 +6,7 @@ const child: ChildProcess = spawn(
   process.execPath,
   ['--experimental-strip-types', 'src/server.ts'],
   {
-    cwd: new URL('.', import.meta.url),
+    cwd: new URL('../', import.meta.url),
     env: { ...process.env, UACF_HOST: '127.0.0.1', UACF_PORT: String(port) },
     stdio: ['ignore', 'pipe', 'pipe'],
   },
