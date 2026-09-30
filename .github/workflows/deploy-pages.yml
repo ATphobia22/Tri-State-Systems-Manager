@@ -36,7 +36,10 @@ jobs:
       # Optional production API origin (repository variable). The console is
       # local-first and deploys without it; when set it must be HTTPS.
       VITE_TSM_API_BASE_URL: ${{ vars.TSM_API_BASE_URL }}
-      VITE_PAGES_BASE_PATH: ${{ env.VITE_PAGES_BASE_PATH }}
+      # NOTE: VITE_PAGES_BASE_PATH is inherited from workflow-level env automatically.
+      # Do NOT re-declare it here as ${{ env.VITE_PAGES_BASE_PATH }} — a job-level
+      # env entry that references itself fails GitHub's workflow validation and
+      # kills the run before any job starts (observed 2026-09-30).
       # Production 3D terrain: Terrain-RGB tile pyramid committed under
       # tsm-console/public/terrain_3dep/ (Vite copies public/ to dist/) and served
       # by GitHub Pages. The fail-closed validator requires a real https:// URL
