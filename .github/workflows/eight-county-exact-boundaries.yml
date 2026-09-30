@@ -1,0 +1,39 @@
+name: Eight-county exact spatial boundary acquisition
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feat/eight-county-exact-spatial-validation-*'
+
+permissions:
+  contents: read
+
+jobs:
+  boundaries:
+    runs-on: windows-2022
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 1
+      - name: Acquire exact TIGER county polygons
+        shell: pwsh
+        run: .\scripts\geo\acquire-eight-county-boundaries.ps1
+      - name: Validate exact county spatial policy
+        shell: pwsh
+        run: |
+          $root="data\regional"
+          .\scripts\geo\validate-eight-county-spatial-objects.ps1 -Root $root -BoundaryRoot "$root\boundaries"
+      - name: Hash manifest
+        shell: pwsh
+        run: |
+          Get-ChildItem data\regional -Recurse -File | Get-FileHash -Algorithm SHA256 |
+            Select-Object Path,Hash | ConvertTo-Json | Set-Content data\regional\sha256-files.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: eight-county-exact-boundaries-2026-09-30
+          path: data\regional
+          if-no-files-found: error
+          retention-days: 30

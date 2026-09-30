@@ -1,0 +1,102 @@
+{
+  "schema": "tsm-eight-county-authoritative-source-registry-v1",
+  "updatedAt": "2026-09-30",
+  "counties": [
+    {
+      "geoid": "17193",
+      "name": "White County",
+      "state": "IL",
+      "sources": [
+        {
+          "id": "white-il-gis",
+          "authority": "WHITE_COUNTY_IL",
+          "url": "https://www.whitecounty-il.gov/gis-online-mapping",
+          "status": "public-viewer"
+        },
+        {
+          "id": "il-imagery-index",
+          "authority": "ISGS",
+          "url": "https://data.isgs.illinois.edu/arcgis/rest/services/Imagery/AerialImageryTiles/MapServer",
+          "status": "public-service"
+        },
+        {
+          "id": "il-white-dtm-2020",
+          "authority": "ISGS",
+          "url": "https://data.isgs.illinois.edu/arcgis/rest/services/Elevation/IL_White_DTM_2020/ImageServer",
+          "status": "public-service"
+        },
+        {
+          "id": "white-il-land-records",
+          "authority": "WHITE_COUNTY_IL",
+          "url": "https://www.whitecounty-il.gov/accessing-land-records",
+          "status": "fee-or-subscription-gated",
+          "note": "Do not bypass payment, account, or licensing controls."
+        }
+      ]
+    },
+    {
+      "geoid": "17059",
+      "name": "Gallatin County",
+      "state": "IL",
+      "sources": [
+        {
+          "id": "il-imagery-index",
+          "authority": "ISGS",
+          "url": "https://data.isgs.illinois.edu/arcgis/rest/services/Imagery/AerialImageryTiles/MapServer",
+          "status": "public-service"
+        },
+        {
+          "id": "il-lidar-clearinghouse",
+          "authority": "ISGS",
+          "url": "http://clearinghouse.isgs.illinois.edu/data/elevation/illinois-height-modernization-ilhmp",
+          "status": "public-download"
+        }
+      ]
+    },
+    {
+      "geoid": "21101",
+      "name": "Henderson County",
+      "state": "KY",
+      "sources": [
+        {
+          "id": "ky-flood-data-library",
+          "authority": "KY_DOW",
+          "url": "https://www.watermaps.ky.gov/",
+          "status": "public-service"
+        },
+        {
+          "id": "ky-nfhl-flood-zones",
+          "authority": "KYGIS",
+          "url": "https://kygisportalservices.ky.gov/server/rest/services/EconDev/KY_NFHL_Flood_Hazard_Zones/MapServer",
+          "status": "public-service"
+        },
+        {
+          "id": "kyfromabove",
+          "authority": "KY_DGI",
+          "url": "https://kyfromabove.ky.gov/",
+          "status": "public-index"
+        }
+      ]
+    },
+    {
+      "geoid": "21225",
+      "name": "Union County",
+      "state": "KY",
+      "sources": [
+        {
+          "id": "ky-flood-data-library",
+          "authority": "KY_DOW",
+          "url": "https://www.watermaps.ky.gov/",
+          "status": "public-service"
+        },
+        {
+          "id": "kyfromabove",
+          "authority": "KY_DGI",
+          "url": "https://kyfromabove.ky.gov/",
+          "status": "public-index"
+        }
+      ]
+    }
+  ],
+  "policy": "Public spatial geometry may be acquired and validated. Ownership/assessment data subject to licensing, subscriptions, or fees is not bypassed; the registry records the restriction and uses legally accessible public geometry/services instead."
+}
