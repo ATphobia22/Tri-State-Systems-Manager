@@ -10,12 +10,12 @@
     "plugins/*"
   ],
   "scripts": {
-    "build": "turbo run build",
-    "test": "turbo run test",
+    "build": "npm run build:uacf && npm --prefix tsm-console run build",
+    "test": "npm run verify:uacf && npm --prefix tsm-console run test:all && python3 -m pytest backend/tests -q && node tsm-console/scripts/parse-check.mjs",
     "lint": "turbo run lint",
     "clean": "turbo run clean",
-    "typecheck": "turbo run typecheck",
-    "dev": "turbo run dev",
+    "typecheck": "npm run build:uacf && npm --prefix tsm-console run check:type",
+    "dev": "npm --prefix tsm-console run dev",
     "build:uacf": "tsc -p tsconfig.uacf.json --noEmit",
     "test:uacf": "tsx --test tests/contracts/uacf-kernel.test.ts",
     "test:evidence": "tsx --test tests/contracts/engineering-evidence.test.ts",
