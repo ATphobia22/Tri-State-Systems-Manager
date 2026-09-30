@@ -48,6 +48,20 @@ export function buildTwinStyle(): StyleSpecification {
   ];
   if (terrain.enabled) {
     sources[TERRAIN_RGB_SOURCE_ID] = buildTerrainDemSourceSpec(terrain.template);
+    // Native hillshade bound to the Terrain-RGB DEM: dynamic relief shading
+    // that tracks the 3D mesh. (The USGS 3DEP WMS hillshade raster stays a
+    // separate observation layer per the terrain contract.)
+    layers.push({
+      id: 'tsm-terrain-hillshade',
+      type: 'hillshade',
+      source: TERRAIN_RGB_SOURCE_ID,
+      paint: {
+        'hillshade-exaggeration': 0.35,
+        'hillshade-shadow-color': '#0d1b2a',
+        'hillshade-highlight-color': '#ffffff',
+        'hillshade-accent-color': '#1f2937',
+      },
+    });
   }
   return {
     version: 8,

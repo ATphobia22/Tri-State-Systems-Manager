@@ -6,7 +6,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { MAP_PLANE_FABRIC, type MapPlaneLayer } from '../lib/map-plane-fabric';
 import { buildArcGisFeatureQueryUrl, getMapLibreFabricLayer } from '../lib/maplibre-layer-fabric';
 import { getTerrainRgbStatus } from '../lib/twin-map-style';
-import { TERRAIN_RGB_SOURCE_ID } from '../lib/terrain-rgb-contract';
+import { TERRAIN_RGB_SOURCE_ID, TERRAIN_RGB_DEFAULT_EXAGGERATION } from '../lib/terrain-rgb-contract';
 
 const INITIAL_CENTER: [number, number] = [-88.0167, 37.8331];
 const MAX_BOUNDS: [[number, number], [number, number]] = [
@@ -56,6 +56,21 @@ function baseStyle(): StyleSpecification {
         paint: { 'raster-opacity': 1 },
       },
     ],
+    light: {
+      anchor: 'viewport',
+      color: '#fff7e6',
+      intensity: 0.65,
+      position: [1.15, 215, 35],
+    },
+    sky: {
+      'sky-color': '#6b7da8',
+      'sky-horizon-blend': 0.55,
+      'horizon-color': '#dbeafe',
+      'horizon-fog-blend': 0.65,
+      'fog-color': '#cbd5e1',
+      'fog-ground-blend': 0.35,
+      'atmosphere-blend': 0.7,
+    },
   };
 }
 
@@ -115,6 +130,7 @@ function addFeatureSource(map: Map, item: MapPlaneLayer): void {
         'fill-extrusion-height': ['coalesce', ['to-number', ['get', 'height']], ['to-number', ['get', 'render_height']], 9],
         'fill-extrusion-base': ['coalesce', ['to-number', ['get', 'min_height']], 0],
         'fill-extrusion-opacity': 0.78,
+        'fill-extrusion-vertical-gradient': true,
       },
     });
     return;
@@ -197,7 +213,21 @@ export default function TriStateDigitalTwinMap(): JSX.Element {
           encoding: 'mapbox',
           maxzoom: 14,
         });
-        map.setTerrain({ source: TERRAIN_RGB_SOURCE_ID, exaggeration: 1 });
+        map.setTerrain({ source: TERRAIN_RGB_SOURCE_ID, exaggeration: TERRAIN_RGB_DEFAULT_EXAGGERATION });
+        // Native hillshade over the Terrain-RGB DEM so relief reads at pitch.
+        if (!map.getLayer('tsm-terrain-hillshade')) {
+          map.addLayer({
+            id: 'tsm-terrain-hillshade',
+            type: 'hillshade',
+            source: TERRAIN_RGB_SOURCE_ID,
+            paint: {
+              'hillshade-exaggeration': 0.35,
+              'hillshade-shadow-color': '#0d1b2a',
+              'hillshade-highlight-color': '#ffffff',
+              'hillshade-accent-color': '#1f2937',
+            },
+          });
+        }
       }
 
       addRasterSource(map, 'fema-nfhl', getMapLibreFabricLayer('fema-effective').endpoint, '28,16,3,1,34,23', false);
@@ -245,9 +275,18 @@ export default function TriStateDigitalTwinMap(): JSX.Element {
     }
     const terrain = getTerrainRgbStatus();
     if (terrain.enabled && visible['indiana-terrain-rgb'] && !map.getTerrain()) {
-      map.setTerrain({ source: TERRAIN_RGB_SOURCE_ID, exaggeration: 1 });
+      map.setTerrain({ source: TERRAIN_RGB_SOURCE_ID, exaggeration: TERRAIN_RGB_DEFAULT_EXAGGERATION });
     } else if ((!terrain.enabled || !visible['indiana-terrain-rgb']) && map.getTerrain()) {
       map.setTerrain(null);
+    }
+    // Keep the DEM hillshade in lockstep with the terrain toggle so a flat
+    // map never shows relief shading from a disabled mesh.
+    if (map.getLayer('tsm-terrain-hillshade')) {
+      map.setLayoutProperty(
+        'tsm-terrain-hillshade',
+        'visibility',
+        terrain.enabled && visible['indiana-terrain-rgb'] ? 'visible' : 'none',
+      );
     }
     setTerrainEnabled(terrain.enabled);
   }, [setLayerVisibility, visible]);
