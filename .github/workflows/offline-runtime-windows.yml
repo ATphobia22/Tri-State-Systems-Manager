@@ -45,9 +45,13 @@ jobs:
         shell: pwsh
         run: |
           npm ci --no-audit --no-fund --cache ../offline-runtime/npm-cache
+          node scripts/ensure-native-rolldown-binding.mjs
+          node scripts/ensure-native-lightningcss-binding.mjs
           npm run build
           if (Test-Path node_modules) { Remove-Item -Recurse -Force node_modules }
           npm ci --offline --no-audit --no-fund --cache ../offline-runtime/npm-cache
+          node scripts/ensure-native-rolldown-binding.mjs
+          node scripts/ensure-native-lightningcss-binding.mjs
           npm run build
 
       - name: Install auxiliary Node dependency trees
@@ -174,6 +178,11 @@ jobs:
             hecRasExecution = 'external-authorized-solver-only'
           }
           $manifest | ConvertTo-Json -Depth 8 | Set-Content offline-runtime/manifests/runtime-manifest.json -Encoding utf8
+          New-Item -ItemType Directory -Force offline-runtime/build/web,offline-runtime/native/tauri | Out-Null
+          Copy-Item -Recurse -Force tsm-console/dist\* offline-runtime/build/web
+          Get-ChildItem -Recurse tsm-console/src-tauri/target -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.Extension -in '.msi','.exe' } |
+            Copy-Item -Destination offline-runtime/native/tauri -Force -ErrorAction SilentlyContinue
           $manifestHash = (Get-FileHash offline-runtime/manifests/runtime-manifest.json -Algorithm SHA256).Hash.ToLowerInvariant()
           "$manifestHash  offline-runtime/manifests/runtime-manifest.json" | Add-Content offline-runtime/manifests/SHA256SUMS
 
