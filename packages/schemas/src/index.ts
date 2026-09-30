@@ -1,0 +1,1 @@
+export const UACP_SCHEMAS=[{id:'capability',version:'v1',uri:'uacp://schemas/capability/v1'},{id:'provider',version:'v1',uri:'uacp://schemas/provider/v1'},{id:'workflow',version:'v1',uri:'uacp://schemas/workflow/v1'},{id:'plugin',version:'v1',uri:'uacp://schemas/plugin/v1'},{id:'artifact',version:'v1',uri:'uacp://schemas/artifact/v1'}] as const;
