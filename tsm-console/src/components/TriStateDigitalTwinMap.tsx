@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import maplibregl, { type Map, type GeoJSONSource, type StyleSpecification } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { MAP_PLANE_FABRIC, type MapPlaneLayer } from '../lib/map-plane-fabric';
+import { MAP_PLANE_FABRIC, type MapPlaneLayer } from '../lib/map-plane-fabric';\nimport { buildArcGisExportTemplate, buildArcGisFeatureQueryUrl, getMapLibreFabricLayer } from '../lib/maplibre-layer-fabric';
 import { getTerrainRgbStatus, TERRAIN_RGB_SOURCE_ID } from '../lib/twin-map-style';
 
 const INITIAL_CENTER: [number, number] = [-88.0167, 37.8331];
@@ -36,7 +36,7 @@ const layerColor = (id: string): string => {
 };
 
 function baseStyle(): StyleSpecification {
-  const imagery = 'https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_Current_Imagery/ImageServer';
+  const imagery = getMapLibreFabricLayer('indiana-imagery').endpoint;
   return {
     version: 8,
     sources: {
@@ -156,7 +156,7 @@ export default function TriStateDigitalTwinMap(): JSX.Element {
     if (!source) return;
     const generation = ++requestGeneration.current;
     try {
-      const geojson = await fetchGeoJson(item.endpoint);
+      const geojson = await fetchGeoJson(item.endpoint, map);
       if (generation === requestGeneration.current) source.setData(geojson);
     } catch (error) {
       if (generation === requestGeneration.current) {
@@ -199,11 +199,11 @@ export default function TriStateDigitalTwinMap(): JSX.Element {
         map.setTerrain({ source: TERRAIN_RGB_SOURCE_ID, exaggeration: 1 });
       }
 
-      addRasterSource(map, 'fema-nfhl', 'https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer', '28,16,3,1,34,23', false);
-      addRasterSource(map, 'indiana-bafm', 'https://gisdata.in.gov/server/rest/services/Best_Available_Flood_Hazard_Layer/MapServer', '104,438', false);
-      addRasterSource(map, 'usgs-3dep-index', 'https://index.nationalmap.gov/arcgis/rest/services/3DEPElevationIndex/MapServer', undefined, false);
+      addRasterSource(map, 'fema-nfhl', getMapLibreFabricLayer('fema-effective').endpoint, '28,16,3,1,34,23', false);
+      addRasterSource(map, 'indiana-bafm', getMapLibreFabricLayer('indiana-bafm').endpoint, '104,438', false);
+      addRasterSource(map, 'usgs-3dep-index', getMapLibreFabricLayer('usgs-3dep-index').endpoint, undefined, false);\n      addRasterSource(map, 'usgs-3dep-elevation', getMapLibreFabricLayer('usgs-3dep-elevation').endpoint, undefined, false);
       if (!map.getSource('osm-base')) {
-        map.addSource('osm-base', { type: 'raster', tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'], tileSize: 256, attribution: '© OpenStreetMap contributors' });
+        map.addSource('osm-base', { type: 'raster', tiles: [getMapLibreFabricLayer('osm-base').endpoint], tileSize: 256, attribution: getMapLibreFabricLayer('osm-base').attribution });
         map.addLayer({ id: 'osm-base-layer', type: 'raster', source: 'osm-base', layout: { visibility: 'none' }, paint: { 'raster-opacity': 0.65 } });
       }
 
