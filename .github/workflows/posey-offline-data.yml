@@ -6,6 +6,7 @@ on:
     branches:
       - main
       - 'feat/posey-offline-authoritative-data-*'
+      - 'fix/posey-complete-acquisition-*'
 
 permissions:
   contents: read
@@ -27,14 +28,6 @@ jobs:
       - name: Validate mandatory authoritative sources and strict county geometry
         shell: pwsh
         run: .\scripts\posey\verify-offline-authoritative-data.ps1
-
-      - name: Generate complete SHA-256 inventory
-        shell: pwsh
-        run: |
-          Get-ChildItem -Recurse "data\posey-county\offline\2026-09-30" -File |
-            Get-FileHash -Algorithm SHA256 |
-            ConvertTo-Json -Depth 5 |
-            Set-Content "data\posey-county\offline\2026-09-30\sha256-files.json"
 
       - name: Generate bundle manifest and SHA-256 inventory
         shell: pwsh
