@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS uacf_providers (id TEXT PRIMARY KEY, version TEXT NOT NULL, definition JSONB NOT NULL, health JSONB NOT NULL DEFAULT '{}'::jsonb, updated_at TIMESTAMPTZ NOT NULL DEFAULT now());
