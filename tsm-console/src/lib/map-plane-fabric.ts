@@ -1,55 +1,46 @@
-import { MAPLIBRE_FABRIC_LAYERS, type MapLibreFabricLayer } from './maplibre-layer-fabric';
+import { TSM_STRUCTURAL_PIPELINE_FABRIC, type StructuralPipelineLayer } from './structural-pipeline-fabric';
 
-export type MapPlaneLayerKind = 'raster' | 'raster-dem' | 'arcgis-feature';
+export type MapPlaneLayerKind = 'raster' | 'raster-dem' | 'arcgis-feature' | 'api' | 'presentation';
 
 export interface MapPlaneLayer {
-  index: number;
-  id: string;
-  title: string;
-  authority: string;
-  kind: MapPlaneLayerKind;
-  endpoint: string;
-  defaultVisible: boolean;
-  notes: string;
-  sourceLayerId?: number;
+  readonly index: StructuralPipelineLayer['index'];
+  readonly id: string;
+  readonly title: string;
+  readonly authority: string;
+  readonly kind: MapPlaneLayerKind;
+  readonly endpoint: string;
+  readonly defaultVisible: boolean;
+  readonly notes: string;
+  readonly mapRenderable: boolean;
+  readonly sourceLayerId?: number;
 }
 
-const idAliases: Record<string, string> = {
-  'terrain-rgb': 'indiana-terrain-rgb',
-  'fema-effective': 'fema-nfhl',
-  'indiana-parcels': 'in-parcels-current',
-  'indiana-roads': 'in-roads-current',
-  'indiana-buildings': 'indiana-building-footprints-2016-2020',
-  'indiana-plss': 'in-plss',
-  'usgs-3dep-elevation': 'usgs-3dep-elevation',
+const sourceLayerIds: Partial<Record<StructuralPipelineLayer['id'], number>> = {
+  'fema-nfhl': 28,
+  'indiana-bafm': 104,
 };
 
-const notesById: Record<string, string> = {
-  terrain: 'Self-hosted/provenance-controlled Terrain-RGB. Runtime template remains fail-closed.',
-  'fema-effective': 'Effective FEMA authority plane; never merged with Indiana BAFM.',
-  'indiana-bafm': 'Planning/context source; not NFIP insurance evidence.',
-  'indiana-buildings': 'Reference footprints; extrusion is visualization, not survey structure height.',
-  'posey-cslf': 'Preliminary/context evidence; not equivalent to effective NFHL.',
-};
+function toMapPlaneLayer(layer: StructuralPipelineLayer): MapPlaneLayer {
+  const kind: MapPlaneLayerKind =
+    layer.kind === 'terrain' ? 'raster-dem' :
+    layer.kind === 'feature' ? 'arcgis-feature' :
+    layer.kind;
 
-function asMapPlaneLayer(source: MapLibreFabricLayer, index: number): MapPlaneLayer {
-  const id = idAliases[source.id] ?? source.id;
-  const kind: MapPlaneLayerKind = source.kind === 'terrain' ? 'raster-dem' : source.kind === 'feature' ? 'arcgis-feature' : 'raster';
   return {
-    index,
-    id,
-    title: source.title,
-    authority: source.attribution,
+    index: layer.index,
+    id: layer.id,
+    title: layer.name,
+    authority: layer.sourceAuthority,
     kind,
-    endpoint: source.endpoint,
-    defaultVisible: source.defaultVisible,
-    notes: notesById[source.id] ?? 'Registered public geospatial source.',
-    sourceLayerId: source.arcgisLayerIds?.[0],
+    endpoint: layer.endpoint,
+    defaultVisible: layer.index === 1 || layer.index === 5 || layer.index === 6 || layer.index === 9 || layer.index === 12,
+    notes: layer.notes,
+    mapRenderable: layer.mapRenderable,
+    sourceLayerId: sourceLayerIds[layer.id],
   };
 }
 
-export const MAP_PLANE_FABRIC: readonly MapPlaneLayer[] = MAPLIBRE_FABRIC_LAYERS.map(asMapPlaneLayer);
-
+export const MAP_PLANE_FABRIC: readonly MapPlaneLayer[] = TSM_STRUCTURAL_PIPELINE_FABRIC.map(toMapPlaneLayer);
 export const MAP_PLANE_VISIBLE_LAYERS = MAP_PLANE_FABRIC.filter((item) => item.defaultVisible);
 
 export function getMapPlaneLayer(id: string): MapPlaneLayer | undefined {
