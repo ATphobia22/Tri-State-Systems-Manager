@@ -71,7 +71,25 @@ jobs:
             tar -xzf /opt/tsm/tsm-tree.tgz -C /opt/tsm/tree
             rm /opt/tsm/tsm-tree.tgz
             cd /opt/tsm/tree/deploy/oracle
-            test -f .env || { echo 'deploy/oracle/.env is missing on the VM' >&2; exit 1; }
+            if [ ! -f .env ]; then
+              API_HOSTNAME="api.$(printf '%s' '$ORACLE_SSH_HOST' | tr '.' '-').sslip.io"
+              {
+                printf 'API_HOSTNAME=%s\n' "$API_HOSTNAME"
+                printf 'SOURCE_COMMIT=%s\n' '$DEPLOY_SHA'
+                printf 'TSM_PUBLIC_OPERATOR_MODE=1\n'
+                printf 'TSM_OFFLINE=0\n'
+                printf 'CORS_ORIGIN=https://%s\n' "$API_HOSTNAME"
+                printf 'TSM_SESSION_SECRET=%s\n' "$(openssl rand -base64 48 | tr -d '\\n')"
+                printf 'UACF_MASTER_KEY=%s\n' "$(openssl rand -base64 48 | tr -d '\\n')"
+              } > .env
+              chmod 600 .env
+            else
+              grep -q '^TSM_SESSION_SECRET=' .env || printf 'TSM_SESSION_SECRET=%s\\n' "$(openssl rand -base64 48 | tr -d '\\n')" >> .env
+              grep -q '^UACF_MASTER_KEY=' .env || printf 'UACF_MASTER_KEY=%s\\n' "$(openssl rand -base64 48 | tr -d '\\n')" >> .env
+              grep -q '^TSM_PUBLIC_OPERATOR_MODE=' .env || printf 'TSM_PUBLIC_OPERATOR_MODE=1\\n' >> .env
+              grep -q '^TSM_OFFLINE=' .env || printf 'TSM_OFFLINE=0\\n' >> .env
+            fi
+            chmod 600 .env
             SOURCE_COMMIT='$DEPLOY_SHA' docker compose --env-file .env up -d --build
             for i in \$(seq 1 30); do
               if docker compose --env-file .env exec -T api wget -qO- http://127.0.0.1:8787/ready 2>/dev/null | grep -q '\"ready\":true'; then
