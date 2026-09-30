@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS uacf_jobs (id UUID PRIMARY KEY, capability_id TEXT NOT NULL, status TEXT NOT NULL, request JSONB NOT NULL, result JSONB, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), completed_at TIMESTAMPTZ);
