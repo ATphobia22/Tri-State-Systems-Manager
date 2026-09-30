@@ -11,7 +11,7 @@ $CountyBoundaryUrl = "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGER
 function Save-Url([string]$Url,[string]$Path,[string]$RequiredId,[string]$Authority) {
   $full = Join-Path $OutDir $Path
   New-Item -ItemType Directory -Force -Path (Split-Path -Parent $full) | Out-Null
-  & curl.exe --fail --silent --show-error --location --retry 4 --retry-delay 2 --retry-all-errors --http1.1 -A "TSM-Posey-Offline-Acquisition/1.0" --output "$full" "$Url"
+  & curl.exe --fail --silent --show-error --location --retry 8 --retry-delay 5 --retry-max-time 180 --retry-all-errors --http1.1 -A "TSM-Posey-Offline-Acquisition/1.0" --output "$full" "$Url"
   $curlExit = $LASTEXITCODE
   if ($curlExit -ne 0) { throw "Download failed ($curlExit): $RequiredId" }
   $item = Get-Item $full
