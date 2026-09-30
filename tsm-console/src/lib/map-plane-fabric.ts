@@ -60,7 +60,7 @@ export const MAP_PLANE_FABRIC: readonly MapPlaneLayer[] = [
     title: 'TSM Engineering API / HEC-RAS Result Plane',
     authority: 'Tri-State Systems Manager',
     kind: 'api',
-    endpoint: `${import.meta.env.VITE_TSM_API_BASE_URL || '/api'}/api/engineering/ras-results`,
+    endpoint: `${import.meta.env.VITE_TSM_API_BASE_URL || ''}/api/engineering/ras-results`,
     defaultVisible: false,
     notes: 'API capability endpoint; never auto-posted by the map. Engineering/model output remains evidence-gated.',
   },
