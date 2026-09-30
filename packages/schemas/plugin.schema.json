@@ -1,0 +1,1 @@
+{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"uacp://schemas/plugin/v1","type":"object","required":["id","name","version","capabilities"],"properties":{"id":{"type":"string"},"name":{"type":"string"},"version":{"type":"string"},"capabilities":{"type":"array"}}}

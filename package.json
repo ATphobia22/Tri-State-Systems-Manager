@@ -1,0 +1,31 @@
+{
+  "name": "tri-state-systems-manager",
+  "private": true,
+  "packageManager": "npm@11",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "providers/*",
+    "plugins/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean",
+    "typecheck": "turbo run typecheck",
+    "dev": "turbo run dev",
+    "build:uacf": "tsc -p tsconfig.uacf.json --noEmit",
+    "test:uacf": "node --experimental-strip-types --test tests/contracts/uacf-kernel.test.ts",
+    "verify:uacf": "npm run build:uacf && npm run test:uacf"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.0",
+    "typescript": "^5.9.0",
+    "tsx": "^4.20.0",
+    "eslint": "^9.35.0",
+    "prettier": "^3.6.0",
+    "vitest": "^3.2.0"
+  }
+}

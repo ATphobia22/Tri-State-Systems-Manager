@@ -1,0 +1,23 @@
+name: UACF Kernel CI
+
+on:
+  push:
+    branches: [main, feature/uacf-kernel]
+    paths: ['packages/**', 'providers/**', 'apps/**', 'tests/**', 'package.json', 'package-lock.json', 'turbo.json', 'tsconfig*.json', '.github/workflows/uacf-ci.yml']
+  pull_request:
+    paths: ['packages/**', 'providers/**', 'apps/**', 'tests/**', 'package.json', 'package-lock.json', 'turbo.json', 'tsconfig*.json', '.github/workflows/uacf-ci.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  kernel:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm install --ignore-scripts
+      - run: npm run verify:uacf

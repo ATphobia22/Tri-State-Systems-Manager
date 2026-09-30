@@ -1,0 +1,1 @@
+{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"uacp://schemas/artifact/v1","type":"object","required":["id","type","mimeType","sizeBytes","hash","storageRef"],"properties":{"id":{"type":"string"},"type":{"type":"string"},"mimeType":{"type":"string"},"sizeBytes":{"type":"integer"},"hash":{"type":"string"},"storageRef":{"type":"string"}}}

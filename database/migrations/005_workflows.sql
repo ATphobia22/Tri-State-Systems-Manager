@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS uacf_workflows (id TEXT PRIMARY KEY, version TEXT NOT NULL, definition JSONB NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now());
