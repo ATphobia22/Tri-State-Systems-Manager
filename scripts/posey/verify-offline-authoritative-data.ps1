@@ -12,7 +12,7 @@ $receipt = Get-Content $receiptPath -Raw | ConvertFrom-Json
 
 if ($receipt.schema -ne "tsm-posey-offline-download-receipt-v2") { throw "Receipt schema mismatch" }
 if ($receipt.countyFips -ne "18129" -or $receipt.countyGEOID -ne "18129") { throw "Posey FIPS/GEOID mismatch" }
-if ($receipt.geographyPolicy.spatialRelation -notmatch "esriSpatialRelWithin\|esriSpatialRelIntersects") { throw "Exact-county spatial policy missing" }
+if ($receipt.geographyPolicy.spatialRelation -ne "exact-county") { throw "Exact-county spatial policy missing" }
 if ($receipt.geographyPolicy.boundaryVintage -ne "2026-01-01") { throw "Unexpected county boundary vintage" }
 
 $byId = @{}
