@@ -225,6 +225,40 @@ Machine-readable contracts:
 
 Validation is fail-closed through `npm run check:spatial-runtime` and the repository CI chain. Full design rationale and source register are in `docs/digital-twin/AWS-SPATIAL-IDEAS-ADAPTATION.md` and `docs/digital-twin/AWS-SPATIAL-SOURCE-REGISTER.md`.
 
+## Windows x64 Offline Runtime
+
+The canonical Windows 11 desktop distribution is built as a **native Windows x64 offline bundle** on a Windows runner.
+
+Build pipeline: `.github/workflows/offline-runtime-windows.yml`.
+
+The bundle includes Node 22/npm 10.9.2 caches, Windows-compatible Python wheels, the Vite production SPA, Node API health verification, TSM hydraulic contracts and read-only HDF5 support, Cargo-vendored Rust dependencies, Windows Tauri native packaging, and SHA-256 provenance manifests.
+
+The distribution is named `TSM-OFFLINE-RUNTIME-WINDOWS-X64-<commit>.zip`.
+
+The release gate is the successful Windows workflow plus artifact checksum verification. The existing Ubuntu/Linux offline bundle must **not** be treated as a Windows-native runtime.
+
+### Offline installation
+
+```powershell
+./scripts/offline/install-bundle.ps1 -Bundle ./TSM-OFFLINE-RUNTIME-WINDOWS-X64-<commit>.zip
+node ./scripts/offline/verify-installed-runtime.mjs
+node ./scripts/offline/doctor.mjs
+```
+
+### Runtime boundary
+
+```text
+TSM source
+  -> Windows offline installer
+  -> verified npm/Python/Cargo dependency planes
+  -> Vite web + Node API
+  -> hydraulic contracts + read-only HDF5
+  -> Windows Tauri native runtime
+  -> authorized external HEC-RAS installation
+```
+
+HEC-RAS execution remains an **external authorized solver boundary**. The offline bundle does not fabricate solver results or silently package an HEC-RAS installation.
+
 ## Local development
 
 ```bash

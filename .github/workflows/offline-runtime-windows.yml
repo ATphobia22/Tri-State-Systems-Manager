@@ -1,0 +1,199 @@
+name: TSM Windows x64 Offline Runtime
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'feat/windows-x64-offline-runtime-*'
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tsm-windows-offline-runtime-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-windows-x64:
+    runs-on: windows-2025
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+          registry-url: https://registry.npmjs.org
+
+      - name: Pin npm CLI
+        shell: pwsh
+        run: npm install --global npm@10.9.2 --no-audit --no-fund
+
+      - name: Prepare offline directories
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force offline-runtime/npm-cache,offline-runtime/python-wheels,offline-runtime/build,offline-runtime/native,offline-runtime/manifests | Out-Null
+
+      - name: Install console dependencies and populate offline npm cache
+        working-directory: tsm-console
+        shell: pwsh
+        run: |
+          npm ci --no-audit --no-fund --cache ../offline-runtime/npm-cache
+          npm run build
+          if (Test-Path node_modules) { Remove-Item -Recurse -Force node_modules }
+          npm ci --offline --no-audit --no-fund --cache ../offline-runtime/npm-cache
+          npm run build
+
+      - name: Install auxiliary Node dependency trees
+        shell: pwsh
+        run: |
+          $locks = Get-ChildItem -Recurse -Filter package-lock.json |
+            Where-Object { $_.FullName -notmatch '\\node_modules\\' -and $_.DirectoryName -ne (Resolve-Path 'tsm-console').Path }
+          foreach ($lock in $locks) {
+            $dir = $lock.DirectoryName
+            if (Test-Path (Join-Path $dir 'package.json')) {
+              npm install --prefix $dir --no-package-lock --no-audit --no-fund --cache "$PWD/offline-runtime/npm-cache"
+              $nm = Join-Path $dir 'node_modules'
+              if (Test-Path $nm) { Remove-Item -Recurse -Force $nm }
+              npm install --prefix $dir --offline --no-package-lock --no-audit --no-fund --cache "$PWD/offline-runtime/npm-cache"
+            }
+          }
+
+      - name: Download Windows-compatible Python wheels
+        shell: pwsh
+        run: |
+          python -m pip download --only-binary=:all: --requirement packages/hydraulics/python/requirements.txt --dest offline-runtime/python-wheels
+          python -m pip download --only-binary=:all: --requirement backend/requirements.txt --dest offline-runtime/python-wheels
+
+      - name: Verify Python wheels offline
+        shell: pwsh
+        run: |
+          python -m venv offline-runtime/python-test
+          .\offline-runtime\python-test\Scripts\python.exe -m pip install --no-index --find-links offline-runtime/python-wheels -r packages/hydraulics/python/requirements.txt
+          .\offline-runtime\python-test\Scripts\python.exe -m pip install --no-index --find-links offline-runtime/python-wheels -r backend/requirements.txt
+
+      - name: Python syntax verification
+        shell: pwsh
+        run: |
+          python -m py_compile packages/hydraulics/python/tsm_hec_ras/hdf5_reader.py packages/hydraulics/python/tsm_hec_ras/runtime.py
+
+      - name: HEC-RAS contract verification
+        working-directory: tsm-console
+        shell: pwsh
+        run: |
+          npm run check:hec-ras-modern-runtime
+          npm run test:hec-ras
+
+      - name: API health verification
+        working-directory: tsm-console
+        shell: pwsh
+        env:
+          TSM_AUTH_MODE: disabled
+          TSM_OFFLINE: '1'
+          TSM_HOST: 127.0.0.1
+          PORT: '8787'
+          CORS_ORIGIN: http://127.0.0.1:8787
+        run: |
+          $p = Start-Process -FilePath node -ArgumentList 'server/token-proxy.mjs' -PassThru -RedirectStandardOutput ..\offline-runtime\api.log -RedirectStandardError ..\offline-runtime\api-error.log
+          try {
+            $healthy = $false
+            1..30 | ForEach-Object {
+              if (-not $healthy) {
+                try {
+                  $r = Invoke-WebRequest -UseBasicParsing http://127.0.0.1:8787/health
+                  if ($r.StatusCode -eq 200) {
+                    $r.Content | Set-Content ..\offline-runtime\health.json
+                    $healthy = $true
+                  }
+                } catch {}
+                if (-not $healthy) { Start-Sleep -Seconds 1 }
+              }
+            }
+            if (-not $healthy) {
+              Get-Content ..\offline-runtime\api.log -ErrorAction SilentlyContinue
+              Get-Content ..\offline-runtime\api-error.log -ErrorAction SilentlyContinue
+              throw 'API /health verification failed'
+            }
+          } finally {
+            Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
+          }
+
+      - name: Verify production web artifact
+        shell: pwsh
+        run: |
+          if (-not (Test-Path tsm-console/dist/index.html)) { throw 'Vite production artifact missing' }
+          if ((Get-Item tsm-console/dist/index.html).Length -le 0) { throw 'Vite production artifact empty' }
+
+      - name: Vendor Rust dependencies for native offline builds
+        working-directory: tsm-console/src-tauri
+        shell: pwsh
+        run: cargo vendor ..\..\offline-runtime\native\cargo-vendor
+
+      - name: Verify native Rust toolchain
+        working-directory: tsm-console/src-tauri
+        shell: pwsh
+        run: cargo metadata --offline --format-version 1 --no-deps | Out-File ..\..\offline-runtime\native\cargo-metadata.json -Encoding utf8
+
+      - name: Build Windows Tauri native runtime
+        working-directory: tsm-console
+        shell: pwsh
+        run: npm run tauri:build
+
+      - name: Generate runtime and checksum manifests
+        shell: pwsh
+        run: |
+          $files = @(
+            'tsm-console/package.json',
+            'tsm-console/package-lock.json',
+            'tsm-console/dist/index.html',
+            'packages/hydraulics/python/requirements.txt',
+            'backend/requirements.txt'
+          )
+          $hashLines = foreach ($file in $files) {
+            $h = (Get-FileHash $file -Algorithm SHA256).Hash.ToLowerInvariant()
+            "$h  $file"
+          }
+          $hashLines | Set-Content offline-runtime/manifests/SHA256SUMS
+          $manifest = [ordered]@{
+            schemaVersion = 'tsm-offline-runtime-windows-x64-v1'
+            generatedAt = (Get-Date).ToUniversalTime().ToString('o')
+            commit = $env:GITHUB_SHA
+            platform = 'windows-x64'
+            runner = 'windows-2025'
+            planes = @('doctor','offline-dependencies','vite-web','node-api','health','hydraulics','tauri-native','provenance','hec-ras-boundary')
+            npmCacheFiles = @(Get-ChildItem -Recurse offline-runtime/npm-cache -File).Count
+            pythonWheelFiles = @(Get-ChildItem -Recurse offline-runtime/python-wheels -File).Count
+            cargoVendorFiles = @(Get-ChildItem -Recurse offline-runtime/native/cargo-vendor -File).Count
+            tauriArtifacts = @(Get-ChildItem -Recurse tsm-console/src-tauri/target -File -ErrorAction SilentlyContinue | Where-Object { $_.Extension -in '.msi','.exe' } | ForEach-Object FullName)
+            hecRasExecution = 'external-authorized-solver-only'
+          }
+          $manifest | ConvertTo-Json -Depth 8 | Set-Content offline-runtime/manifests/runtime-manifest.json -Encoding utf8
+          $manifestHash = (Get-FileHash offline-runtime/manifests/runtime-manifest.json -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$manifestHash  offline-runtime/manifests/runtime-manifest.json" | Add-Content offline-runtime/manifests/SHA256SUMS
+
+      - name: Remove test virtual environment
+        shell: pwsh
+        run: Remove-Item -Recurse -Force offline-runtime/python-test -ErrorAction SilentlyContinue
+
+      - name: Package Windows x64 offline runtime
+        shell: pwsh
+        run: |
+          Compress-Archive -Path offline-runtime -DestinationPath "TSM-OFFLINE-RUNTIME-WINDOWS-X64-$env:GITHUB_SHA.zip" -CompressionLevel Optimal
+          $hash = (Get-FileHash "TSM-OFFLINE-RUNTIME-WINDOWS-X64-$env:GITHUB_SHA.zip" -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  TSM-OFFLINE-RUNTIME-WINDOWS-X64-$env:GITHUB_SHA.zip" | Set-Content "TSM-OFFLINE-RUNTIME-WINDOWS-X64-$env:GITHUB_SHA.sha256"
+
+      - name: Upload Windows x64 offline runtime
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: TSM-OFFLINE-RUNTIME-WINDOWS-X64-${{ github.sha }}
+          path: |
+            TSM-OFFLINE-RUNTIME-WINDOWS-X64-${{ github.sha }}.zip
+            TSM-OFFLINE-RUNTIME-WINDOWS-X64-${{ github.sha }}.sha256
+          if-no-files-found: error
+          retention-days: 30
