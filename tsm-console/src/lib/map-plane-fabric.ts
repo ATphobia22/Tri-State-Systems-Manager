@@ -53,7 +53,7 @@ export const MAP_PLANE_FABRIC: readonly MapPlaneLayer[] = [
   layer('usgs-3dep-index', 8, 'raster', 'USGS 3DEP elevation index for source discovery/provenance context.'),
   layer('posey-cslf', 9, 'arcgis-feature', 'Posey preliminary changes-since-last-FIRM context; not effective NFHL.'),
   layer('osm-base', 10, 'raster', 'OpenStreetMap contextual basemap with required attribution.'),
-  layer('indiana-imagery', 11, 'raster', 'Independent imagery plane reserved for comparison; same authoritative service, separate visibility state.'),
+  layer('in-plss', 11, 'arcgis-feature', 'Indiana PLSS state-boundary reference from IGIO/DNR.'),
   {
     index: 12,
     id: 'tsm-engineering-api',
