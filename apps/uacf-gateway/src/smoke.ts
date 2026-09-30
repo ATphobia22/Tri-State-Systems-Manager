@@ -4,7 +4,7 @@ import { spawn, type ChildProcess } from 'node:child_process';
 const port = 8791;
 const child: ChildProcess = spawn(
   process.execPath,
-  ['--experimental-strip-types', 'src/server.ts'],
+  ['src/server.ts'],
   {
     cwd: new URL('../', import.meta.url),
     env: { ...process.env, UACF_HOST: '127.0.0.1', UACF_PORT: String(port) },
