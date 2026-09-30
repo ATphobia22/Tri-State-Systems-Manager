@@ -9,6 +9,7 @@ import { fetchLiveStage } from './stage';
 import { t } from './design-tokens';
 import RootLayout from '../components/RootLayout';
 import RouteErrorPage from '../components/RouteErrorPage';
+import NotFoundView from '../routes/NotFoundView';
 import CharterView from '../routes/CharterView';
 import NeedsView from '../routes/NeedsView';
 import LedgerView from '../routes/LedgerView';
@@ -147,11 +148,15 @@ const routerBasename = import.meta.env.BASE_URL.endsWith('/')
   ? import.meta.env.BASE_URL.slice(0, -1) || '/'
   : import.meta.env.BASE_URL;
 
-export const router = createBrowserRouter([
+export const appRoutes = [
   { path: 'login', element: <LoginView /> },
   { path: 'login/callback', element: <LoginCallbackView /> },
   { id: 'root', path: '/', loader: rootLoader, element: <RootLayout />, errorElement: <RouteErrorPage />, children: [
   { index: true, loader: charterLoader, element: <CharterView /> },
+  // PWA manifest start_url / shortcuts resolve to an explicit ./index.html
+  // (e.g. iPhone "Add to Home Screen"). Serve the charter there too instead
+  // of letting the router throw a 404 for the site's own front door.
+  { path: 'index.html', loader: charterLoader, element: <CharterView /> },
   { path: 'architecture', loader: architectureLoader, element: <ArchitectureView /> },
   { path: 'data-fabric', element: <PublicDataFabricDashboard /> },
   { path: 'river-watch', element: <RiverWatchView /> },
@@ -170,5 +175,19 @@ export const router = createBrowserRouter([
   { path: 'spatial-planes', hydrateFallbackElement: <RouteLoadingFallback label="the spatial data fabric" />, lazy: async () => ({ Component: (await import('../components/TriStateRiverValleyMap')).default }) },
   { path: 'posey-resilience', hydrateFallbackElement: <RouteLoadingFallback label="the Posey resilience platform" />, lazy: async () => ({ Component: (await import('../routes/PoseyResilienceDashboard')).default }) },
   { path: 'ops-dashboard', hydrateFallbackElement: <RouteLoadingFallback label="the operations dashboard" />, lazy: async () => ({ Component: (await import('../routes/OpsDashboardView')).default }) },
+  // Friendly not-found for any other unmatched address (kept last). Real
+  // loader/chunk failures still surface through the root errorElement.
+  { path: '*', element: <NotFoundView /> },
 ] },
-], { basename: routerBasename });
+];
+
+/** Browser router for the app shell. Route definitions live in `appRoutes`
+ *  so tests can match against them without a DOM. Creation is deferred to
+ *  first use so importing this module never touches `document`. */
+let cachedRouter: ReturnType<typeof createBrowserRouter> | null = null;
+export function getRouter(): ReturnType<typeof createBrowserRouter> {
+  if (!cachedRouter) {
+    cachedRouter = createBrowserRouter(appRoutes, { basename: routerBasename });
+  }
+  return cachedRouter;
+}
