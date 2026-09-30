@@ -240,7 +240,7 @@ function Save-UsgsDailyMeanHistory() {
   }
 }
 
-$results += Save-UsgsDailyMeanHistory()
+$results += Save-UsgsDailyMeanHistory
 $results += Save-Url "https://waterservices.usgs.gov/nwis/site/?format=rdb&sites=03378500&siteOutput=expanded" "usgs\03378500-site-metadata.rdb" "usgs-03378500-site-metadata" "USGS"
 $study=@(
   "https://pubs.usgs.gov/sir/2016/5119/sir20165119.pdf",
