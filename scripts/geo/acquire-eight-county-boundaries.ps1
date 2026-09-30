@@ -15,10 +15,11 @@ $counties=@(
 New-Item -ItemType Directory -Force -Path $OutRoot|Out-Null
 foreach($c in $counties){
   $path=Join-Path $OutRoot "$($c.state.ToLowerInvariant())-$($c.fips)-$($c.name).geojson"
-  $params="where=GEOID%3D%27$($c.geoid)%27&outFields=GEOID%2CNAME%2CSTATEFP%2CCOUNTYFP&returnGeometry=true&outSR=4326&f=geojson"
-  Invoke-WebRequest -Uri ($base + "?" + $params) -OutFile $path -UseBasicParsing
-  $o=Get-Content $path -Raw|ConvertFrom-Json
-  if(@($o.features).Count -ne 1 -or [string]$o.features[0].properties.GEOID -ne $c.geoid){throw "Boundary validation failed for $($c.name), $($c.state)"}
+  $query=@{where="GEOID='$($c.geoid)'";outFields="*";returnGeometry="true";outSR="4326";f="geojson"}
+  $o=Invoke-RestMethod -Uri $base -Method Get -Body $query
+  if($null -ne $o.error){throw "TIGERweb query failed for $($c.name), $($c.state): $($o.error.message)"}
+  if($null -eq $o.features -or @($o.features).Count -ne 1 -or [string]$o.features[0].properties.GEOID -ne $c.geoid){throw "Boundary validation failed for $($c.name), $($c.state): expected one GEOID $($c.geoid)"}
+  $o|ConvertTo-Json -Depth 100|Set-Content $path -Encoding utf8
   if((Get-Item $path).Length -le 0){throw "Zero-byte boundary: $path"}
   Write-Host "Exact boundary acquired: $($c.state) $($c.fips) SHA256 $((Get-FileHash $path -Algorithm SHA256).Hash.ToLowerInvariant())"
 }
