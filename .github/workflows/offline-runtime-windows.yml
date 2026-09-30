@@ -186,6 +186,10 @@ jobs:
           $manifestHash = (Get-FileHash offline-runtime/manifests/runtime-manifest.json -Algorithm SHA256).Hash.ToLowerInvariant()
           "$manifestHash  offline-runtime/manifests/runtime-manifest.json" | Add-Content offline-runtime/manifests/SHA256SUMS
 
+      - name: Verify generated Windows runtime manifest
+        shell: pwsh
+        run: node scripts/offline/verify-installed-runtime.mjs
+
       - name: Remove test virtual environment
         shell: pwsh
         run: Remove-Item -Recurse -Force offline-runtime/python-test -ErrorAction SilentlyContinue
