@@ -6,7 +6,15 @@
     "rawLargeDatasets": "do-not-commit-to-standard-git",
     "derivedArtifacts": "commit-only-when-small-and-reviewable",
     "largeBinaryStrategy": "Git LFS or external object storage with immutable checksum manifests",
-    "requiredProvenance": ["source_url", "retrieved_at", "http_status", "sha256", "content_type", "crs", "vertical_datum"]
+    "requiredProvenance": [
+      "source_url",
+      "retrieved_at",
+      "http_status",
+      "sha256",
+      "content_type",
+      "crs",
+      "vertical_datum"
+    ]
   },
   "sources": [
     {
@@ -69,6 +77,63 @@
       "authorityClass": "HYDROLOGIC_FORECAST",
       "kind": "rest-api",
       "url": "https://api.water.noaa.gov/nwps/v1/"
+    },
+    {
+      "id": "fema-nfhl-public",
+      "authority": "FEMA",
+      "authorityClass": "FEDERAL_REGULATORY",
+      "kind": "arcgis-mapserver",
+      "url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer",
+      "note": "Effective NFHL data service (insurance authority). Verified HTTP 200 on 2026-09-30. Distinct from fema-nfhl-effective, which is the FIRMette print service."
+    },
+    {
+      "id": "fema-msc-portal",
+      "authority": "FEMA",
+      "authorityClass": "FEDERAL_REGULATORY",
+      "kind": "web-portal",
+      "url": "https://msc.fema.gov/portal/home",
+      "discoveryUrl": "https://msc.fema.gov/portal/search",
+      "note": "FEMA Flood Map Service Center: effective FIRM/FIS downloads, FIRMette creation, LOMC history. Current FEMA flood-map viewer; the legacy hazards.fema.gov/nfhl/ viewer URL is retired (404 as of 2026-09-30). Verified HTTP 200 on 2026-09-30."
+    },
+    {
+      "id": "fema-nfhl-gis-services",
+      "authority": "FEMA",
+      "authorityClass": "FEDERAL_REGULATORY",
+      "kind": "arcgis-services-directory",
+      "url": "https://hazards.fema.gov/arcgis/rest/services",
+      "note": "NFHL GIS services directory (REST/SOAP/WMS endpoints). Verified HTTP 200 on 2026-09-30. The legacy https://hazards.fema.gov/gis/nfhl/services page is retired (404)."
+    },
+    {
+      "id": "usgs-fema-estimated-bfe-viewer",
+      "authority": "USGS / FEMA",
+      "authorityClass": "FEDERAL_TECHNICAL",
+      "kind": "web-app",
+      "url": "https://webapps.usgs.gov/infrm/estbfe/",
+      "note": "Estimated Base Flood Elevation viewer for areas without published BFEs (e.g. Zone A). Estimates only \u2014 not regulatory BFEs. Verified HTTP 200 on 2026-09-30."
+    },
+    {
+      "id": "indiana-infip",
+      "authority": "Indiana DNR Division of Water",
+      "authorityClass": "STATE_FLOODPLAIN",
+      "kind": "web-portal",
+      "url": "https://infip.dnr.in.gov",
+      "note": "Indiana Floodplain Information Portal: FEMA effective + Best Available layers, FARA generator. TSM links to INFIP; stores only human-provided FARA PDFs. Verified reachable (301 redirect) on 2026-09-30."
+    },
+    {
+      "id": "indianamap-portal",
+      "authority": "Indiana Geographic Information Office",
+      "authorityClass": "STATE_GEOSPATIAL",
+      "kind": "web-portal",
+      "url": "https://www.indianamap.org/",
+      "note": "IndianaMap portal and flood-hazard catalog. Most IndianaMap web services are published on gisdata.in.gov. Verified HTTP 200 on 2026-09-30."
+    },
+    {
+      "id": "indianamap-firm-2023",
+      "authority": "Indiana Geographic Information Office / FEMA",
+      "authorityClass": "STATE_GEOSPATIAL",
+      "kind": "arcgis-featureserver",
+      "url": "https://gisdata.in.gov/server/rest/services/Hosted/FIRM_Flood_Hazard_Zones_2023/FeatureServer",
+      "note": "IndianaMap FIRM Flood Hazard Zones 2023 (layer 1). State-hosted copy of FEMA FIRM zones \u2014 reference; the NFHL remains the insurance authority. Verified live on 2026-09-30."
     }
   ]
 }
