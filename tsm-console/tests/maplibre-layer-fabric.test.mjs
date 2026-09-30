@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-const { MAPLIBRE_FABRIC_LAYERS, getMapLibreFabricLayer, buildArcGisExportTemplate } =
+const { MAPLIBRE_FABRIC_LAYERS, getMapLibreFabricLayer, buildArcGisExportTemplate, buildArcGisFeatureQueryUrl } =
   await import('../src/lib/maplibre-layer-fabric.ts');
 
 test('defines exactly twelve unique MapLibre fabric layers with real HTTPS endpoints', () => {
@@ -38,4 +38,12 @@ test('self-hosted terrain layer is bound to the runtime Terrain-RGB template', (
   const terrain = getMapLibreFabricLayer('terrain-rgb');
   assert.equal(terrain.kind, 'terrain');
   assert.equal(terrain.endpoint, '${VITE_TSM_TERRAIN_RGB_URL_TEMPLATE}');
+});
+
+
+test('bounds FeatureServer queries to layer zero and a bounded record count', () => {
+  const url = buildArcGisFeatureQueryUrl('https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer');
+  assert.match(url, /FeatureServer\\/0\\/query/);
+  assert.match(url, /resultRecordCount=500/);
+  assert.match(url, /geometry=\\{bbox-epsg-4326\\}/);
 });
