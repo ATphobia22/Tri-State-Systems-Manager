@@ -25,9 +25,6 @@ const ARCGIS_EXPORT = (service: string, layers?: string): string => {
   return `${service.replace(/\/$/, '')}/export?${query}`;
 };
 
-const FEATURE_QUERY = (service: string): string =>
-  `${service.replace(/\/$/, '')}/query?where=1%3D1&geometry={bbox-epsg-4326}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=true&outSR=4326&f=geojson`;
-
 const layerColor = (id: string): string => {
   if (id === 'in-parcels-current') return '#38bdf8';
   if (id === 'in-roads-current') return '#fbbf24';
