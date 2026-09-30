@@ -195,7 +195,7 @@ $manifest=[ordered]@{
   countyGEOID=$CountyGEOID
   geographyPolicy=[ordered]@{
     boundarySource=$CountyBoundaryUrl
-    boundaryVintage="2025-01-01"
+    boundaryVintage="2026-01-01"
     spatialRelation="exact-county"
     rule="Strict spatial extracts contain only features wholly within the exact Posey County polygon."
   }
