@@ -196,7 +196,7 @@ $manifest=[ordered]@{
   geographyPolicy=[ordered]@{
     boundarySource=$CountyBoundaryUrl
     boundaryVintage="2025-01-01"
-    spatialRelation="esriSpatialRelWithin"
+    spatialRelation="exact-county"
     rule="Strict spatial extracts contain only features wholly within the exact Posey County polygon."
   }
   files=$results
