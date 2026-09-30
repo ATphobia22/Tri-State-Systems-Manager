@@ -8,25 +8,19 @@ TSM combines authoritative river observations, geospatial evidence, engineering-
 
 ## Current production status
 
-**Migration state:** Railway has been removed from the TSM runtime contract. The self-hosted Coolify API path is implemented and merged; final live publication remains intentionally blocked until a Coolify API domain is configured in repository variable `TSM_API_BASE_URL` and that API reports the matching release SHA.
+**Deployment model:** GitHub Pages hosts the static Vite SPA. The Windows x64 native runtime is distributed as a verified offline bundle. The browser/API surfaces remain independently deployable.
 
 | Surface | Location |
 |---------|----------|
 | **Primary branch** | `main` |
 | **Public console (GitHub Pages SPA)** | https://atphobia22.github.io/Tri-State-Systems-Manager/ |
-| **Production API (Coolify/self-hosted)** | https://<configured-coolify-api-domain> |
-| **API readiness** | `GET /ready` — deployed Git SHA, `auth_ready`, OIDC readiness |
+| **Windows x64 offline runtime** | GitHub Actions artifact `TSM-OFFLINE-RUNTIME-WINDOWS-X64-<commit>` |
+| **API readiness** | `GET /ready` when an authorized API deployment is configured |
 | **Console package** | `tsm-console` **v0.2.1** (React **19.3.0**, Vite **8.3.1**, `@react-three/fiber` **9.8.1**, MapLibre **6.11.2**, Three **0.186.1**, Vitest **5.0.2**, `@types/node` **26.6.2**) |
-
-**Deployment model (2026-09-28):** GitHub Pages hosts the static Vite SPA; a self-hosted Coolify deployment hosts the production API. The Pages release is fail-closed until the API `/ready` endpoint reports the exact Git SHA being published, with OIDC readiness verified.
 
 The Jekyll action output `Configuration file: none` is informational for the static artifact and is not a TSM Jekyll build. TSM publishes its Vite-generated `dist/` artifact directly.
 
-Required repository configuration for Pages deploy:
-
-```text
-VITE_TSM_API_BASE_URL=https://<your-tsm-api-domain>
-```
+The Pages workflow can publish the static console without a backend dependency. When an API is configured, `VITE_TSM_API_BASE_URL` must be an HTTPS origin.
 
 Settings → Pages → Source must be **GitHub Actions**. The workflow does not fabricate or bypass that repository-level setting.
 
@@ -292,7 +286,7 @@ Gates include dependency integrity, supply-chain / npx policy, SBOM, repository 
 
 Do **not** weaken or bypass a failing gate.
 
-Notable workflows: `ci.yml`, `deploy-pages.yml`, `tsm-parse-gate.yml`, `codeql.yml`, `open-world-twin.yml`, `ptdt-e2e-visual.yml`, `container-ci.yml`, `tsm-desktop.yml`, `deploy-coolify.yml`, `tsm-engineering-fabric.yml`.
+Notable workflows: `ci.yml`, `deploy-pages.yml`, `offline-runtime-windows.yml`, `tsm-parse-gate.yml`, `codeql.yml`, `open-world-twin.yml`, `ptdt-e2e-visual.yml`, `container-ci.yml`, `tsm-desktop.yml`, `tsm-engineering-fabric.yml`.
 
 ## Safety and professional authority
 
