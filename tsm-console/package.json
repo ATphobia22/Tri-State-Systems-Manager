@@ -80,7 +80,9 @@
     "test:spatial-runtime": "node --test ../tests/spatial-runtime-contract.test.mjs",
     "check:openfema": "node ../scripts/ci/validate-openfema.mjs",
     "test:openfema": "node --test tests/openfema.test.mjs tests/posey-spatial-chain.test.mjs",
-    "check:hec-ras-modern-runtime": "node ../scripts/ci/validate-hec-ras-modern-runtime.mjs"
+    "check:hec-ras-modern-runtime": "node ../scripts/ci/validate-hec-ras-modern-runtime.mjs",
+    "runtime:doctor": "node ../scripts/offline/doctor.mjs",
+    "runtime:verify": "node ../scripts/offline/verify-installed-runtime.mjs"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.0",
