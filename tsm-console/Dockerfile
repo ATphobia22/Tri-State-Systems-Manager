@@ -18,7 +18,6 @@ COPY tsm-console/. .
 # at the repo root; mirrored to /app/<path> so the source imports resolve.
 COPY data/scenarios/1937-ohio-river-flood.json \
      data/scenarios/q100-design-event.json \
-     data/scenarios/live-gauge-driven.json \
      /app/data/scenarios/
 COPY data/schemas/flood-sim-scenario.schema.json /app/data/schemas/flood-sim-scenario.schema.json
 COPY artifacts/tsm-geospatial-tile-fabric-v1.json \
