@@ -36,7 +36,7 @@ function sendJson(response: ServerResponse, status: number, payload: unknown): v
 }
 
 function sendError(response: ServerResponse, status: number, code: string, message: string): void {
-  sendJson(response, {
+  sendJson(response, status, {
     success: false,
     error: { code, message },
   });
