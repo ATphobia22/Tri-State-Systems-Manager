@@ -3,7 +3,8 @@ import { recordSourceHealth } from './source-health.mjs';
 import { buildFloodInformationResult, FLOOD_FEDERATION_SOFTWARE_VERSION } from './flood-information-federation.mjs';
 
 export const FEMA_NFHL_MAPSERVER = 'https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer';
-\nexport function toArcgisGeometry(geometry) {
+
+export function toArcgisGeometry(geometry) {
   if (!geometry || typeof geometry !== 'object') throw new TypeError('geometry object required');
   if (geometry.type === 'Polygon' && Array.isArray(geometry.coordinates)) return { rings: geometry.coordinates, spatialReference: { wkid: 4326 } };
   if (geometry.type === 'Point' && Array.isArray(geometry.coordinates)) return { x: geometry.coordinates[0], y: geometry.coordinates[1], spatialReference: { wkid: 4326 } };
