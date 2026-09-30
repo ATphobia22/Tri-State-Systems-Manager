@@ -63,3 +63,11 @@ The resulting production files are in `tsm-console/dist/`.
 The historical `scripts/deploy.sh` referenced a Docker Compose stack that is not present in the current `main` tree. That stack is therefore not treated as a valid production deployment target. The production contract now targets the Vite console until a verified backend/Compose deployment manifest is restored.
 
 Do not treat the frontend artifact as proof that API, WebSocket, PostGIS, telemetry, or other backend services are deployed.
+
+## Windows x64 offline release
+
+The Windows 11 native distribution is produced by `.github/workflows/offline-runtime-windows.yml` on a Windows runner. The resulting `TSM-OFFLINE-RUNTIME-WINDOWS-X64-<commit>.zip` contains verified Windows dependency caches, production web/API artifacts, hydraulic contracts/HDF5 support, Cargo-vendored native dependencies, Tauri packaging, and SHA-256 provenance manifests.
+
+The Linux/Ubuntu offline bundle is a separate platform artifact and must not be installed as a Windows-native runtime.
+
+HEC-RAS remains an external authorized solver installation. TSM does not bundle or fabricate HEC-RAS solver results.
