@@ -193,7 +193,7 @@ if((Get-Item $imagePath).Length -le 0){throw "Indiana current imagery county-cli
 $results += [pscustomobject]@{id="indiana-gio-current-imagery-snapshot";authority="Indiana GIO";path="indiana-gio\current-imagery-posey.tif";url=$imageService;sha256=(Get-FileHash $imagePath -Algorithm SHA256).Hash.ToLowerInvariant();bytes=(Get-Item $imagePath).Length;featureCount=$null;spatialRelation="exact-county-clip";status="acquired"}
 $results += Save-ArcGisCountyAttribute "https://gisdata.in.gov/server/rest/services/Hosted/Orthoimagery_Tier_Map_2025_2028/FeatureServer/10" "name='Posey'" "indiana-gio\posey-ortho-tier-2025-2028.json" "indiana-gio-ortho-tier-2025-2028" "Indiana GIO" $true
 
-$results += Save-ArcGisWithinCounty "https://geospatial.sec.usace.army.mil/dls/rest/services/NLD/Public/FeatureServer/16" "1=1" "usace-nld\leveed-areas-posey-strict.geojson" "usace-nld-leveed-areas" "USACE" $false "esriSpatialRelIntersects"
+$results += Save-ArcGisCountyAttribute "https://geospatial.sec.usace.army.mil/dls/rest/services/NLD/Public/FeatureServer/16" "(STATES LIKE '%Indiana%') AND (COUNTIES LIKE '%Posey%')" "usace-nld\leveed-areas-posey.json" "usace-nld-leveed-areas" "USACE" $false
 $results += Save-Url "https://levees.sec.usace.army.mil/data-services/services/" "usace-nld\service-catalog.html" "usace-nld-service-catalog" "USACE"
 
 $results += Save-Url "https://waterservices.usgs.gov/nwis/dv/?format=rdb&sites=03378500&startDT=1900-01-01&endDT=2026-09-30&statCd=00003" "usgs\03378500-daily-mean-history.rdb" "usgs-03378500-daily-mean-history" "USGS"
