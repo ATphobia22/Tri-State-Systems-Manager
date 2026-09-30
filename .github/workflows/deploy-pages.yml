@@ -1,4 +1,5 @@
 name: TSM Production Build & Pages Deploy
+# Local-first production deployment: API connectivity is optional.
 
 on:
   push:
