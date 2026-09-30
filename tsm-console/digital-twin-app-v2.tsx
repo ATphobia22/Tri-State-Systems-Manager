@@ -47,7 +47,7 @@ type WaterSurfaceGeometry = {
   features: Array<{
     type: 'Feature';
     geometry: ParcelGeometry;
-    properties?: Record<string, unknown>;
+    properties: Record<string, unknown> | null;
   }>;
 };
 

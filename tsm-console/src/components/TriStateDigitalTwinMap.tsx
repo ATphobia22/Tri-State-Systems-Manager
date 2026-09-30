@@ -1,9 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import maplibregl, { type Map, type GeoJSONSource, type StyleSpecification } from 'maplibre-gl';
+import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react';
+import * as maplibregl from 'maplibre-gl';
+import type { Map, GeoJSONSource, StyleSpecification } from 'maplibre-gl';
+import type * as GeoJSON from 'geojson';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { MAP_PLANE_FABRIC, type MapPlaneLayer } from '../lib/map-plane-fabric';
 import { buildArcGisFeatureQueryUrl, getMapLibreFabricLayer } from '../lib/maplibre-layer-fabric';
-import { getTerrainRgbStatus, TERRAIN_RGB_SOURCE_ID } from '../lib/twin-map-style';
+import { getTerrainRgbStatus } from '../lib/twin-map-style';
+import { TERRAIN_RGB_SOURCE_ID } from '../lib/terrain-rgb-contract';
 
 const INITIAL_CENTER: [number, number] = [-88.0167, 37.8331];
 const MAX_BOUNDS: [[number, number], [number, number]] = [
@@ -56,12 +59,12 @@ function baseStyle(): StyleSpecification {
   };
 }
 
-async function fetchGeoJson(source: string): Promise<GeoJSON.GeoJSON> {
-  const response = await fetch(FEATURE_QUERY(source), {
+async function fetchGeoJson(source: string): Promise<GeoJSON.FeatureCollection> {
+  const response = await fetch(buildArcGisFeatureQueryUrl(source), {
     headers: { Accept: 'application/geo+json,application/json' },
   });
   if (!response.ok) throw new Error(`ArcGIS FeatureServer request failed: HTTP ${response.status}`);
-  const payload = await response.json() as GeoJSON.GeoJSON;
+  const payload = await response.json() as GeoJSON.FeatureCollection;
   if (payload.type !== 'FeatureCollection') throw new Error('ArcGIS source did not return a GeoJSON FeatureCollection');
   return payload;
 }
@@ -154,7 +157,7 @@ export default function TriStateDigitalTwinMap(): JSX.Element {
     if (!source) return;
     const generation = ++requestGeneration.current;
     try {
-      const geojson = await fetchGeoJson(item.endpoint, map);
+      const geojson = await fetchGeoJson(item.endpoint);
       if (generation === requestGeneration.current) source.setData(geojson);
     } catch (error) {
       if (generation === requestGeneration.current) {
@@ -269,8 +272,8 @@ export default function TriStateDigitalTwinMap(): JSX.Element {
                 <input
                   type="checkbox"
                   checked={terrainItem ? terrain.enabled && checked : checked}
-                  disabled={terrainItem ? !terrain.enabled : item.kind === 'api'}
-                  onChange={(event) => setVisible((current) => ({ ...current, [item.id]: event.target.checked }))}
+                  disabled={terrainItem ? !terrain.enabled : false}
+                  onChange={(event: ChangeEvent<HTMLInputElement>) => setVisible((current) => ({ ...current, [item.id]: event.target.checked }))}
                 />
                 <span>
                   <span style={{ display: 'block', fontSize: 11, fontWeight: 700 }}>L{String(item.index).padStart(2, '0')} · {item.title}</span>
