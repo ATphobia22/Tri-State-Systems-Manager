@@ -135,7 +135,7 @@ export default function TriStateDigitalTwinMap(): JSX.Element {
   );
   const [terrainEnabled, setTerrainEnabled] = useState(false);
   const [status, setStatus] = useState('Initializing MapLibre plane…');
-  const requestGeneration = useRef(0);
+  const requestGeneration = useRef(0);\n  const visibleRef = useRef(visible);\n  visibleRef.current = visible;
 
   const setLayerVisibility = useCallback((map: Map, item: MapPlaneLayer, enabled: boolean): void => {
     const layerIds = [
@@ -209,7 +209,7 @@ export default function TriStateDigitalTwinMap(): JSX.Element {
       const featureItems = MAP_PLANE_FABRIC.filter((item) => item.kind === 'arcgis-feature');
       const refresh = (): void => {
         for (const item of featureItems) {
-          if (visible[item.id]) void refreshFeatureLayer(map, item);
+          if (visibleRef.current[item.id]) void refreshFeatureLayer(map, item);
         }
       };
       map.on('moveend', refresh);
@@ -228,7 +228,7 @@ export default function TriStateDigitalTwinMap(): JSX.Element {
     // Initial visibility is intentionally captured only when the map is created.
     // Subsequent visibility changes are applied by the separate effect below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshFeatureLayer, visible]);
+  }, [refreshFeatureLayer]);
 
   useEffect(() => {
     const map = mapRef.current;
