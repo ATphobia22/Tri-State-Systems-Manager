@@ -1,0 +1,9 @@
+{
+  "name": "@tsm-uacf/gateway",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node --experimental-strip-types src/server.ts"
+  }
+}
