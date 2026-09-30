@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import maplibregl, { type Map, type GeoJSONSource, type StyleSpecification } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { MAP_PLANE_FABRIC, type MapPlaneLayer } from '../lib/map-plane-fabric';\nimport { buildArcGisExportTemplate, buildArcGisFeatureQueryUrl, getMapLibreFabricLayer } from '../lib/maplibre-layer-fabric';
+import { MAP_PLANE_FABRIC, type MapPlaneLayer } from '../lib/map-plane-fabric';\nimport { buildArcGisFeatureQueryUrl, getMapLibreFabricLayer } from '../lib/maplibre-layer-fabric';
 import { getTerrainRgbStatus, TERRAIN_RGB_SOURCE_ID } from '../lib/twin-map-style';
 
 const INITIAL_CENTER: [number, number] = [-88.0167, 37.8331];
