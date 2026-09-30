@@ -1,0 +1,30 @@
+{
+  "catalogVersion": "openfema-catalog@1.0.0",
+  "sourceAuthority": "FEMA",
+  "sourceUri": "https://www.fema.gov/api/open/v1/DataSets",
+  "apiBase": "https://www.fema.gov/api/open",
+  "authentication": "none",
+  "readOnly": true,
+  "queryContract": {
+    "defaultTop": 1000,
+    "maximumTop": 10000,
+    "paging": "skip+top",
+    "geospatialFunction": "geo.intersects",
+    "formats": ["json", "jsona", "jsonl", "geojson", "csv", "parquet"]
+  },
+  "entities": {
+    "NfipCommunityStatusBook": {"version":1,"spatialJoinSafe":false},
+    "NfipCommunityLayerComprehensive": {"version":1,"spatialJoinSafe":true},
+    "NfipCommunityLayerNoOverlapsSplit": {"version":1,"spatialJoinSafe":true},
+    "NfipCommunityLayerNoOverlapsWhole": {"version":1,"spatialJoinSafe":true},
+    "FimaNfipPolicies": {"version":2,"spatialJoinSafe":false,"privacy":"redacted"},
+    "FimaNfipClaims": {"version":2,"spatialJoinSafe":false,"privacy":"redacted"},
+    "FimaNfipMultipleLossProperties": {"version":1,"spatialJoinSafe":false},
+    "FimaNfipResidentialPenetrationRates": {"version":1,"spatialJoinSafe":false}
+  },
+  "policy": {
+    "ownerIdentity": "never-ingest-into-engineering-runtime",
+    "insuranceDetermination": "Claims and policies are context only; TSM never derives an insurance determination from them.",
+    "effectiveFloodGeometry": "FEMA NFHL ArcGIS services remain the spatial source for effective FIRM/flood-zone joins."
+  }
+}

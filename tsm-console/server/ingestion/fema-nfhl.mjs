@@ -3,6 +3,13 @@ import { recordSourceHealth } from './source-health.mjs';
 import { buildFloodInformationResult, FLOOD_FEDERATION_SOFTWARE_VERSION } from './flood-information-federation.mjs';
 
 export const FEMA_NFHL_MAPSERVER = 'https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer';
+\nexport function toArcgisGeometry(geometry) {
+  if (!geometry || typeof geometry !== 'object') throw new TypeError('geometry object required');
+  if (geometry.type === 'Polygon' && Array.isArray(geometry.coordinates)) return { rings: geometry.coordinates, spatialReference: { wkid: 4326 } };
+  if (geometry.type === 'Point' && Array.isArray(geometry.coordinates)) return { x: geometry.coordinates[0], y: geometry.coordinates[1], spatialReference: { wkid: 4326 } };
+  throw new TypeError('unsupported GeoJSON geometry type: ' + geometry.type);
+}
+
 
 export function discoverFemaLayers(metadata) {
   if (!Array.isArray(metadata?.layers)) throw new TypeError('FEMA MapServer metadata requires layers');
@@ -50,12 +57,21 @@ export function normalizeGeoJsonFeatureCollection(collection, { sourceId, crs, r
 
 export async function queryFemaNfhl({ layerId, where = '1=1', geometry, outFields = '*', signal, request = requestJson }) {
   if (!Number.isInteger(layerId) || layerId < 0) throw new TypeError('valid FEMA layerId required');
-  const url = new URL(`${FEMA_NFHL_MAPSERVER}/${layerId}/query`);
+  const url = new URL(FEMA_NFHL_MAPSERVER + '/' + layerId + '/query');
   url.searchParams.set('f', 'geojson'); url.searchParams.set('where', where); url.searchParams.set('outFields', outFields); url.searchParams.set('returnGeometry', 'true');
-  if (geometry) url.searchParams.set('geometry', JSON.stringify(geometry));
+  url.searchParams.set('outSR', '4326');
+  if (geometry) {
+    if (geometry.type === 'Polygon') url.searchParams.set('geometryType', 'esriGeometryPolygon');
+    else if (geometry.type === 'MultiPolygon') url.searchParams.set('geometryType', 'esriGeometryPolygon');
+    else if (geometry.type === 'Point') url.searchParams.set('geometryType', 'esriGeometryPoint');
+    else throw new TypeError('unsupported FEMA spatial query geometry type: ' + geometry.type);
+    url.searchParams.set('inSR', '4326');
+    url.searchParams.set('spatialRel', 'esriSpatialRelIntersects');
+    url.searchParams.set('geometry', JSON.stringify(toArcgisGeometry(geometry)));
+  }
   const retrievedAt = new Date().toISOString();
   const payload = await request(url, { signal, timeoutMs: 15000, maxBytes: 5_000_000 });
-  const result = normalizeGeoJsonFeatureCollection(payload, { sourceId: `FEMA-NFHL-LAYER-${layerId}`, crs: 'EPSG:4269', retrievedAt, sourceUri: url.toString(), sourceVersion: `NFHL-layer-${layerId}` });
+  const result = normalizeGeoJsonFeatureCollection(payload, { sourceId: `FEMA-NFHL-LAYER-${layerId}`, crs: 'EPSG:4326', retrievedAt, sourceUri: url.toString(), sourceVersion: `NFHL-layer-${layerId}` });
   recordSourceHealth('FEMA-NFHL', { ok: true, recordCount: result.features.length });
   return result;
 }
