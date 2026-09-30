@@ -66,9 +66,11 @@ async function fetchGeoJson(source: string, map: Map): Promise<Parameters<GeoJSO
     headers: { Accept: 'application/geo+json,application/json' },
   });
   if (!response.ok) throw new Error(`ArcGIS FeatureServer request failed: HTTP ${response.status}`);
-  const payload = await response.json() as GeoJSON.GeoJSON;
-  if (payload.type !== 'FeatureCollection') throw new Error('ArcGIS source did not return a GeoJSON FeatureCollection');
-  return payload as Parameters<GeoJSONSource['setData']>[0];
+  const payload = await response.json() as Parameters<GeoJSONSource['setData']>[0];
+  if (!payload || typeof payload !== 'object' || !('type' in payload) || payload.type !== 'FeatureCollection') {
+    throw new Error('ArcGIS source did not return a GeoJSON FeatureCollection');
+  }
+  return payload;
 }
 
 function addRasterSource(map: Map, id: string, service: string, layers: string | undefined, visible: boolean): void {
