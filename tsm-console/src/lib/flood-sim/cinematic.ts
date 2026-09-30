@@ -48,11 +48,6 @@ export const SCENARIO_FLYTHROUGHS: Readonly<Record<string, readonly FloodSimKeyf
     { center: [-1200, 800], zoom: 13.4, pitch: 66, bearing: 80, durationMs: 3200, syncSimTimeSec: null },
     { center: [0, 0], zoom: 15.0, pitch: 74, bearing: 0, durationMs: 3000, syncSimTimeSec: null },
   ],
-  'live-gauge-driven': [
-    { center: [-9000, 9000], zoom: 10.8, pitch: 56, bearing: 200, durationMs: 3000, syncSimTimeSec: 0 },
-    { center: [-2000, 2000], zoom: 12.8, pitch: 63, bearing: 160, durationMs: 3200, syncSimTimeSec: null },
-    { center: [0, 0], zoom: 14.4, pitch: 70, bearing: 180, durationMs: 3000, syncSimTimeSec: null },
-  ],
 };
 
 export function scenarioFlythrough(scenarioId: string): readonly FloodSimKeyframe[] {

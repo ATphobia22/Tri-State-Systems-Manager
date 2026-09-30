@@ -102,8 +102,8 @@ export type TerrainDataQuality =
 /** Back-compat export: the pre-survey default. */
 export const TERRAIN_DATA_QUALITY = 'procedural-approximation' as const;
 
-/** Which elevation source to resolve. `auto` prefers source-derived, falls back silently. */
-export type TerrainSourcePreference = 'auto' | 'source-derived' | 'procedural';
+/** Which elevation source to resolve. `auto` prefers source-derived; both choices fail closed. */
+export type TerrainSourcePreference = 'auto' | 'source-derived';
 
 interface SourceDerivedBundle {
   id?: string;
@@ -331,28 +331,26 @@ export function generateElevationGrid(opts: TerrainGenOptions): number[][] {
 /**
  * Resolve the elevation grid for a scenario domain.
  *
- * Fallback chain (the reliability contract):
- *   1. `procedural` preference → seeded value-noise grid, always succeeds.
- *   2. `source-derived` preference → bundled source-derived grid resampled
+ * Fail-closed reliability contract (owner policy 2026-09-29: no demo terrain):
+ *   1. `source-derived` preference → bundled source-derived grid resampled
  *      to the domain; throws a descriptive error when the bundle is
  *      missing/invalid (explicit choice ⇒ fail loudly, never silently
  *      downgrade).
- *   3. `auto` (default) → source-derived when it validates, else procedural
- *      with a console warning. Never throws on source problems.
+ *   2. `auto` (default) → source-derived when it validates, else throws the
+ *      same descriptive error. Synthetic procedural terrain is never
+ *      substituted silently — a missing grid is a visible failure, not a
+ *      plausible-looking fake.
+ *
+ * (The seeded value-noise generator `generateElevationGrid` remains for the
+ * flood engine's own deterministic scenario grids, which are labeled
+ * provisional/screening at the scenario level — not as terrain evidence.)
  */
 export function resolveElevationGrid(
-  opts: TerrainGenOptions & { terrainSource?: TerrainSourcePreference },
+  opts: Pick<TerrainGenOptions, 'nx' | 'ny' | 'dxFt'> & { terrainSource?: TerrainSourcePreference },
 ): ResolvedTerrainSource {
-  const preference = opts.terrainSource ?? 'auto';
-  if (preference === 'procedural') {
-    return {
-      grid: generateElevationGrid(opts),
-      source: 'procedural',
-      dataQuality: 'procedural-approximation',
-      provenance: 'procedural approximation — not surveyed terrain',
-      sourceDerivedMeta: null,
-    };
-  }
+  // NOTE: `terrainSource` is accepted for API compatibility but both
+  // preferences ('auto' | 'source-derived') resolve identically: real grid
+  // or a thrown error. There is no synthetic fallback.
   const bundle = readSourceDerivedBundle();
   const meta = bundle ? validateSourceDerivedBundle(bundle) : null;
   const resampled =
@@ -368,24 +366,11 @@ export function resolveElevationGrid(
       sourceDerivedMeta: meta,
     };
   }
-  if (preference === 'source-derived') {
-    throw new Error(
-      '[flood-sim-terrain] source-derived elevation requested but the bundled source-derived ' +
-        'grid is missing, corrupt, or does not cover the requested domain',
-    );
-  }
-  if (typeof console !== 'undefined') {
-    console.warn(
-      '[flood-sim-terrain] source-derived elevation unavailable — falling back to procedural approximation',
-    );
-  }
-  return {
-    grid: generateElevationGrid(opts),
-    source: 'procedural',
-    dataQuality: 'procedural-approximation',
-    provenance: 'procedural approximation — not surveyed terrain (surveyed bundle unavailable)',
-    sourceDerivedMeta: null,
-  };
+  throw new Error(
+    '[flood-sim-terrain] source-derived elevation requested but the bundled source-derived ' +
+      'grid is missing, corrupt, or does not cover the requested domain. ' +
+      'No synthetic terrain is substituted (fail-closed).',
+  );
 }
 
 /** Hypsometric tint: lowland green → tan → upland brown-grey. */

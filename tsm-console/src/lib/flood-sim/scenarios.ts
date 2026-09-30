@@ -18,7 +18,6 @@ import type { OccupancyType } from '../hazus-depth-damage';
 
 import scenario1937 from '../../../../data/scenarios/1937-ohio-river-flood.json';
 import scenarioQ100 from '../../../../data/scenarios/q100-design-event.json';
-import scenarioLive from '../../../../data/scenarios/live-gauge-driven.json';
 import floodSimSchema from '../../../../data/schemas/flood-sim-scenario.schema.json';
 
 // ---------------------------------------------------------------------------
@@ -195,7 +194,7 @@ export function validateAgainstSchema(data: unknown, schema: JsonSchema, path = 
 // Registry
 // ---------------------------------------------------------------------------
 
-const RAW_SCENARIOS: unknown[] = [scenario1937, scenarioQ100, scenarioLive];
+const RAW_SCENARIOS: unknown[] = [scenario1937, scenarioQ100];
 
 /** Validate a raw scenario object; returns error strings (empty = valid). */
 export function validateScenario(data: unknown): string[] {

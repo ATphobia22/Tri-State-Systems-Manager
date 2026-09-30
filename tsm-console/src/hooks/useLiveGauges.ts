@@ -1,42 +1,18 @@
-import { useEffect, useState } from 'react';
-import {
-  fetchCommunityGauges,
-  startGaugePoll,
-  type RiverGaugeObservation,
-} from '../lib/river-gauges';
+import type { RiverGaugeObservation } from '../lib/river-gauges';
 
 /**
- * Live community river gauges with 60s refresh.
- * Uses TSM community API → USGS OGC direct → LKG.
+ * useLiveGauges — RETIRED.
+ *
+ * Live river data was dropped by owner decision on 2026-09-29
+ * ("drop login and live river data"). This hook no longer polls anything;
+ * it returns the retired empty state so existing call sites degrade
+ * gracefully instead of breaking. The shape is preserved for
+ * source compatibility.
  */
-export function useLiveGauges(intervalMs = 60_000): {
+export function useLiveGauges(_intervalMs = 60_000): {
   gauges: RiverGaugeObservation[];
   loading: boolean;
   lastUpdated: string | null;
 } {
-  const [gauges, setGauges] = useState<RiverGaugeObservation[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
-
-  useEffect(() => {
-    let mounted = true;
-    const stop = startGaugePoll((rows) => {
-      if (!mounted) return;
-      setGauges(rows);
-      setLoading(false);
-      setLastUpdated(new Date().toISOString());
-    }, intervalMs);
-    void fetchCommunityGauges().then((rows) => {
-      if (!mounted) return;
-      setGauges(rows);
-      setLoading(false);
-      setLastUpdated(new Date().toISOString());
-    });
-    return () => {
-      mounted = false;
-      stop();
-    };
-  }, [intervalMs]);
-
-  return { gauges, loading, lastUpdated };
+  return { gauges: [], loading: false, lastUpdated: null };
 }

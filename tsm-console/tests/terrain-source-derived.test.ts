@@ -58,12 +58,12 @@ describe('resolveElevationGrid', () => {
     expect(a.grid).toEqual(b.grid);
   });
 
-  it('procedural preference always resolves procedurally', () => {
-    const r = resolveElevationGrid({ ...OPTS, terrainSource: 'procedural' });
-    expect(r.source).toBe('procedural');
-    expect(r.dataQuality).toBe('procedural-approximation');
-    expect(r.sourceDerivedMeta).toBeNull();
-    expect(r.grid).toEqual(generateElevationGrid(OPTS));
+  it('procedural preference is retired and never resolves procedurally', () => {
+    // 'procedural' was removed from TerrainSourcePreference on 2026-09-29.
+    // A stale caller passing it must not get synthetic evidence back.
+    const r = resolveElevationGrid({ ...OPTS, terrainSource: 'procedural' as 'auto' });
+    expect(r.source).not.toBe('procedural');
+    expect(r.dataQuality).not.toBe('procedural-approximation');
   });
 });
 

@@ -1,57 +1,66 @@
 {
   "schemaVersion": "1.0.0",
-  "status": "ACTIVE_SOURCE_REGISTRY",
+  "status": "PARTIALLY_RETIRED_BY_OWNER",
   "verifiedAt": "2026-09-18T12:30:00Z",
+  "retiredAt": "2026-09-29",
+  "retirementNote": "Owner decision 2026-09-29: drop live river data. NOAA live river observation/forecast sources are retired; no runtime code may poll them. Static reference sources (USACE NLD infrastructure inventory, USGS 3DEP elevation) remain active.",
   "sources": [
     {
-      "id": "NOAA_NWPS",
-      "authority": "NOAA/NWS",
-      "class": "OBSERVATION_AND_FORECAST",
       "apiBase": "https://api.water.noaa.gov/nwps/v1",
+      "authority": "NOAA/NWS",
       "capabilities": [
         "gauges",
         "stageflow",
         "reaches",
         "official streamflow forecasts",
         "stream observations"
-      ]
+      ],
+      "class": "OBSERVATION_AND_FORECAST",
+      "id": "NOAA_NWPS",
+      "retiredReason": "Owner dropped live river data on 2026-09-29. No polling, no values shown.",
+      "status": "retired"
     },
     {
-      "id": "NOAA_NWM",
+      "apiBase": "https://api.water.noaa.gov",
       "authority": "NOAA/NWS",
       "class": "MODEL_GUIDANCE",
-      "apiBase": "https://api.water.noaa.gov",
-      "experimental": true
+      "experimental": true,
+      "id": "NOAA_NWM",
+      "retiredReason": "Owner dropped live river data on 2026-09-29. No polling, no values shown.",
+      "status": "retired"
     },
     {
-      "id": "USACE_NLD",
       "authority": "USACE",
-      "class": "INFRASTRUCTURE_REFERENCE",
-      "services": "https://nld.sec.usace.army.mil/data-services/services/",
       "capabilities": [
         "Feature Service",
         "Map Service",
         "OGC WMS/WFS",
         "JSON API"
-      ]
+      ],
+      "class": "INFRASTRUCTURE_REFERENCE",
+      "id": "USACE_NLD",
+      "services": "https://nld.sec.usace.army.mil/data-services/services/",
+      "status": "active"
     },
     {
-      "id": "USGS_3DEP",
       "authority": "USGS",
-      "class": "ELEVATION",
-      "service": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
       "capabilities": [
         "bare-earth DEM",
         "WMS",
         "WCS"
-      ]
+      ],
+      "class": "ELEVATION",
+      "id": "USGS_3DEP",
+      "service": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
+      "status": "active"
     }
   ],
   "controls": {
-    "source_timestamps_required": true,
-    "observation_forecast_model_separation": true,
-    "no_synthetic_values": true,
     "authoritative_source_identity_required": true,
+    "no_synthetic_values": true,
+    "observation_forecast_model_separation": true,
+    "retired_sources_must_not_be_polled": true,
+    "source_timestamps_required": true,
     "vertical_datum_must_be_explicit_or_unverified": true
   }
 }

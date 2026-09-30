@@ -136,11 +136,11 @@ function installNavigationObserver(router: RuntimeRouter): void {
   });
 }
 /**
- * Shared visibility guard for polling loops (gauge boards, live-data hooks).
+ * Shared visibility guard for polling loops (e.g. terrain health probes).
  * Polling sites should skip their tick while the tab is hidden instead of
- * burning battery/network on updates nobody sees. Call sites:
- *   - RiverGaugeBoard.tsx (5 min setInterval)
- *   - startGaugePoll in lib/river-gauges.ts (60 s default)
+ * burning battery/network on updates nobody sees.
+ * NOTE: live river-gauge polling was retired 2026-09-29; the former call
+ * sites (RiverGaugeBoard, startGaugePoll) no longer poll.
  */
 export function shouldSkipPoll(): boolean {
   return typeof document !== 'undefined' && document.hidden;

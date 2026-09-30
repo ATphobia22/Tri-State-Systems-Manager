@@ -1,14 +1,21 @@
 /**
- * 12-plane spatial fabric for the Tri-State Systems Manager web console.
+ * Multi-plane spatial fabric for the Tri-State Systems Manager web console.
  *
  * Every plane maps to entries in the MAP_LAYERS catalog (lib/map-layers.ts) —
  * the repository's verified source registry. Planes with no configured
  * endpoint are reported as NOT_CONFIGURED; nothing is ever synthesized to
- * fill a gap.
+ * fill a gap. The fabric outgrew the original 12-plane sketch as real
+ * capabilities and honest gaps were cataloged; the count is not the contract,
+ * the wiring is.
  *
  * Live gauge telemetry was retired by owner decision on 2026-09-29
  * ("drop login and live river data"). The retired plane documents that
  * decision in the UI instead of silently disappearing.
+ *
+ * Owner simulation policy (2026-09-29): no demo simulations. The only
+ * simulation capabilities retained are flooding (screening hydraulics),
+ * berm placement, and road placement — everything else is stripped or
+ * retired, never faked.
  *
  * Runtime states are derived from real MapLibre source events by the
  * TriStateRiverValleyMap component; the derivation helpers here are pure
@@ -122,6 +129,27 @@ export const SPATIAL_PLANES: SpatialPlane[] = [
     name: 'HEC-RAS 2D — Operator Import',
     description:
       'Operator-imported HEC-RAS 2D model outputs (inundation rasters as evidence artifacts). No live endpoint is wired; outputs arrive through the engineering workbench, never as a silent live layer.',
+    layerIds: [],
+  },
+  {
+    id: 'plane-bathymetry',
+    name: 'USACE Hydrographic Bathymetry',
+    description:
+      'Riverbed cross-section profiles. No USACE Louisville District hydrographic dataset is vendored or wired — synthetic bathymetry is never substituted.',
+    layerIds: [],
+  },
+  {
+    id: 'plane-streamstats',
+    name: 'USGS StreamStats Peaks',
+    description:
+      'Peak-flow discharge estimates. No programmatic StreamStats integration is wired; estimates are not fabricated in its place.',
+    layerIds: [],
+  },
+  {
+    id: 'plane-sec204',
+    name: 'USACE Sec 204 Placement',
+    description:
+      'Dredged-material placement screening under USACE Section 204 / WRDA 2016 §1122. Screening math lives in lib/engineering/berm-road-placement.ts (inform-only, average-end-area earthwork and cost-share). No placement polygons are published as a map layer.',
     layerIds: [],
   },
   {

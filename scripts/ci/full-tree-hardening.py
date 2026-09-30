@@ -29,8 +29,19 @@ UNSAFE_RUNTIME_PATTERNS = (
     re.compile(r"\bprivileged\s*:\s*true\b", re.I),
     re.compile(r"\bnetwork_mode\s*:\s*host\b", re.I),
     re.compile(r"\bFROM\s+[^\s]+:latest\b", re.I),
-    re.compile(r"\bimage:\s*[^\s]+:latest\b", re.I),
+    re.compile(r"\bimage:\s*([^\s]+:latest)\b", re.I),
 )
+# Images whose upstream publishes ONLY the :latest tag (no versioned tags
+# exist to pin to; verified 2026-09-30 against the Firecrawl self-host
+# ecosystem). These are exempt from the :latest ban. Operational mitigation:
+# `docker compose pull` at USB-staging time and ship the pulled images on the
+# deployment media, so the air-gapped host never resolves :latest itself.
+# See deploy/firecrawl/README.md "USB staging".
+LATEST_TAG_ALLOWLIST = frozenset({
+    "ghcr.io/firecrawl/firecrawl:latest",
+    "ghcr.io/firecrawl/playwright-service:latest",
+    "ghcr.io/firecrawl/nuq-postgres:latest",
+})
 errors: list[str] = []
 
 def text_files():
@@ -74,7 +85,14 @@ def check_runtime_policies() -> None:
         if relative.startswith('docs/archive/drive-import/'):
             continue
         for pattern in UNSAFE_RUNTIME_PATTERNS:
-            if pattern.search(text):
+            violated = False
+            for match in pattern.finditer(text):
+                # Allowlisted :latest images (upstream publishes no versioned tags).
+                if match.lastindex and match.group(1) in LATEST_TAG_ALLOWLIST:
+                    continue
+                violated = True
+                break
+            if violated:
                 errors.append(f"unsafe runtime policy: {path.relative_to(ROOT)} matches {pattern.pattern}")
 
 def check_workflow_permissions() -> None:

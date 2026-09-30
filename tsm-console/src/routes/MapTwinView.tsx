@@ -1,12 +1,11 @@
 import { useLoaderData } from 'react-router';
 import type { MapTwinLoaderData } from '../types/loaders';
 import { t } from '../lib/design-tokens';
-import { useLiveGauges } from '../hooks/useLiveGauges';
 import { toH3Cell } from '../lib/h3-spatial-fabric';
 
 function MapTwinView() {
   const data = useLoaderData() as MapTwinLoaderData;
-  const { gauges, loading, lastUpdated } = useLiveGauges(60_000);
+  // Live gauges retired 2026-09-29 (owner: drop live river data).
   const centerLat = (data.boundingEnvelope.minLat + data.boundingEnvelope.maxLat) / 2;
   const centerLon = (data.boundingEnvelope.minLon + data.boundingEnvelope.maxLon) / 2;
   let h3Cell = '—';
@@ -60,38 +59,12 @@ function MapTwinView() {
       </div>
       <div style={{ background: t.color.surface.base, borderRadius: t.radius.lg, padding: '1rem', border: `1px solid ${t.color.surface.card}` }}>
         <h3 style={{ color: t.color.status.info, margin: '0 0 0.5rem', fontSize: t.font.size.xl }}>
-          Community gauges · 60s poll {loading ? '(loading…)' : ''}
+          Community gauges — retired
         </h3>
         <p style={{ color: t.color.text.secondary, fontSize: t.font.size.sm, margin: '0 0 0.75rem' }}>
-          Path: TSM /api/hydrologic/community → USGS OGC direct → last-known-good
-          {lastUpdated ? ` · updated ${lastUpdated}` : ''}
+          Live river data was dropped by owner decision on 2026-09-29. No gauges
+          are polled and no values are shown; nothing is fabricated to fill the gap.
         </p>
-        <div style={{ display: 'grid', gap: 8 }}>
-          {gauges.slice(0, 8).map((g) => (
-            <div
-              key={g.gaugeId}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                gap: 12,
-                fontSize: t.font.size.base,
-                color: t.color.text.muted,
-                borderBottom: `1px solid ${t.color.surface.card}`,
-                paddingBottom: 6,
-              }}
-            >
-              <span>
-                {g.name}{' '}
-                <span style={{ color: t.color.text.secondary }}>
-                  ({g.provider} · {g.provenancePath || '—'})
-                </span>
-              </span>
-              <strong style={{ color: g.status === 'current' ? t.color.status.successBright : t.color.status.warning }}>
-                {g.value != null ? `${g.value} ${g.unit || 'ft'}` : g.status}
-              </strong>
-            </div>
-          ))}
-        </div>
       </div>
       <p style={{ marginTop: '1rem', fontSize: t.font.size.sm, color: t.color.text.secondary }}>
         FEMA community {data.fema.communityNumber} · No-Rise tolerance {data.fema.noRiseTolerance_ft} ft ·

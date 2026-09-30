@@ -2,13 +2,14 @@
  * no-websocket-gate.test.ts — source-grep gate: the flood simulator must
  * NEVER use websockets, socket.io, EventSource (SSE), or MQTT.
  *
- * All live data enters via REST polling (`startGaugePoll` from
- * ../river-gauges) plus the local deterministic engine. This test reads
- * every file under src/lib/flood-sim/ and fails on any match of the
- * forbidden transports — including inside comments, so even *mentioning*
- * them in prose must go through this allowlist note (this file's own
- * docstring is the only permitted mention, and it is excluded by scoping
- * the scan to non-test source files... see below).
+ * All data enters via interval-HTTPS polling (terrain endpoint health
+ * probes) plus the local deterministic engine. Live river-gauge polling
+ * was retired by owner decision on 2026-09-29. This test reads every file
+ * under src/lib/flood-sim/ and fails on any match of the forbidden
+ * transports — including inside comments, so even *mentioning* them in
+ * prose must go through this allowlist note (this file's own docstring is
+ * the only permitted mention, and it is excluded by scoping the scan to
+ * non-test source files... see below).
  *
  * NOTE: this file documents the forbidden tokens, so the scanner skips
  * *.test.ts files — but the tokens still must not appear in any shipped
@@ -57,9 +58,9 @@ describe('no-websocket gate (flood-sim)', () => {
     expect(violations).toEqual([]);
   });
 
-  it('documents the REST-only data path in the package index', () => {
+  it('documents the polling-only data path in the package index', () => {
     const index = readFileSync(join(HERE, 'index.ts'), 'utf8');
-    expect(index).toMatch(/REST polling/i);
-    expect(index).toMatch(/startGaugePoll/);
+    expect(index).toMatch(/interval-HTTPS/i);
+    expect(index).toMatch(/retired by owner/i);
   });
 });

@@ -9,11 +9,11 @@ import {
 import { seedFromString } from '../src/lib/flood-sim/prng';
 
 describe('flood-sim scenario registry', () => {
-  it('ships exactly the three required scenarios, all schema-valid', () => {
+  it('ships exactly the two required flooding scenarios, all schema-valid', () => {
+    // live-gauge-driven was retired 2026-09-29 (owner dropped live river data).
     const scenarios = listScenarios();
     expect(scenarios.map((s) => s.scenarioId).sort()).toEqual([
       '1937-ohio-river-flood',
-      'live-gauge-driven',
       'q100-design-event',
     ]);
     for (const s of scenarios) {
@@ -51,12 +51,9 @@ describe('flood-sim scenario registry', () => {
     expect(s.provisional).toBe(true); // storm shape + terrain remain provisional
   });
 
-  it('live-gauge-driven scenario has no fixed values', () => {
-    const s = getScenario('live-gauge-driven');
-    expect(s.engine.gaugeDriven).toBe(true);
-    expect(s.engine.hyetograph).toBeNull();
-    expect(s.sourcedValues ?? []).toEqual([]);
-    expect(s.source).toMatch(/startGaugePoll/);
+  it('live-gauge-driven scenario is retired and unknown to the registry', () => {
+    // Owner decision 2026-09-29: live river data dropped.
+    expect(() => getScenario('live-gauge-driven')).toThrow(/unknown scenario/);
   });
 
   it('rejects scenarios that violate the honesty rules', () => {
@@ -70,11 +67,6 @@ describe('flood-sim scenario registry', () => {
     // provisional=true requires a non-empty provisionalFields list
     const noFields = asJson({ ...base, provisionalFields: [] });
     expect(validateScenario(noFields).some((e) => e.includes('provisionalFields'))).toBe(true);
-
-    // gauge-driven scenarios must not carry fixed hyetographs
-    const live = asJson(getScenario('live-gauge-driven')) as { engine: Record<string, unknown> };
-    const liveFixed = { ...live, engine: { ...live.engine, hyetograph: { timeHrs: [0, 1], intensityInPerHr: [1, 0] } } };
-    expect(validateScenario(liveFixed).some((e) => e.includes('hyetograph'))).toBe(true);
 
     // missing required field fails schema validation
     const missingId = asJson(base);
@@ -100,12 +92,6 @@ describe('scenarioToEngineConfig', () => {
       expect(cfg1.seed).toBe(seedFromString(s.scenarioId));
       expect(scenarioSeed(s)).toBe(seedFromString(s.scenarioId));
     }
-  });
-
-  it('gives the live scenario a dry hyetograph (operator supplies rain)', () => {
-    const cfg = scenarioToEngineConfig(getScenario('live-gauge-driven'));
-    expect(cfg.rainfallIntensityInPerHr).toEqual([0, 0]);
-    expect(cfg.rainfallTimeHrs).toEqual([0, cfg.durationHrs]);
   });
 
   it('maps structures onto the grid', () => {

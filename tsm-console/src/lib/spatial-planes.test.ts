@@ -21,10 +21,10 @@ function statesFor(
 }
 
 describe('spatial-planes fabric', () => {
-  it('declares 12 active planes plus the retired gauge plane', () => {
+  it('declares 15 active planes plus the retired gauge plane', () => {
     const active = SPATIAL_PLANES.filter((p) => !p.retired);
     const retired = SPATIAL_PLANES.filter((p) => p.retired);
-    expect(active).toHaveLength(12);
+    expect(active).toHaveLength(15);
     expect(retired).toHaveLength(1);
     expect(retired[0].id).toBe('plane-gauge-telemetry');
     expect(retired[0].retirementNote).toMatch(/2026-09-29/);
@@ -94,7 +94,7 @@ describe('spatial-planes fabric', () => {
     expect(summary.total).toBe(SPATIAL_PLANES.length);
     expect(summary.degraded).toBe(1);
     expect(summary.retired).toBe(1);
-    expect(summary.notConfigured).toBe(1); // hecras plane
+    expect(summary.notConfigured).toBe(4); // hecras, bathymetry, streamstats, sec204 planes
     expect(
       summary.live +
         summary.degraded +

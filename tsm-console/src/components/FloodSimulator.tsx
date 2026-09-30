@@ -4,7 +4,7 @@
  *
  * Wires: FloodSimEngine (fixed 60 Hz timestep, accumulator loop) + the
  * three.js open world (terrain / water / markers) + workbench + cinematic
- * flythroughs + scenario picker + live REST gauge polling.
+ * flythroughs + scenario picker.
  *
  * Governing axiom (persistent banner below): "Technology informs people;
  * it does not silently govern people. Human authority remains final."
@@ -12,11 +12,10 @@
  * explicit human sign-off checkbox before they apply — never auto-applied.
  *
  * Data honesty labels shown in-UI:
- * - terrain: resolved source label — "live Terrarium tiles", "3DEP-derived
- *   screening grid", or "procedural approximation — not surveyed terrain"
+ * - terrain: resolved source label — "live Terrarium tiles" or "3DEP-derived
+ *   screening grid". Fail-closed: no synthetic terrain is ever substituted.
  * - water: "real-time approximation, not path tracing"
- * - gauges: LIVE / STALE / SOURCE UNAVAILABLE; datum "SOURCE DATUM ONLY"
- *   unless a validated NAVD88 gage zero exists (it does not, here).
+ * - gauges: RETIRED 2026-09-29 (owner: drop live river data).
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
@@ -38,7 +37,6 @@ import {
   applyAlternativeToTerrain,
   crossSectionProfile,
   cutFillVolumes,
-  wseFromGageHeight,
   scenarioFlythrough,
   TimeLapseDriver,
   INTRO_SHOTS,
@@ -54,7 +52,6 @@ import {
   type FloodRenderer,
   type BuiltTerrain,
   type BuiltMarkers,
-  type GaugeStatus,
   type FloodSimScenario,
   type LiveDataSnapshot,
   type ResolvedLiveTerrain,
@@ -62,7 +59,6 @@ import {
   type TerrainDataQuality,
   type SourceDerivedMeta,
 } from '../lib/flood-sim/index';
-import { type RiverGaugeObservation } from '../lib/river-gauges';
 import { BONEBANK_SITE_CONSTANTS } from '../lib/scientific-analytics';
 
 const AXIOM =
@@ -73,12 +69,6 @@ function formatClock(totalSec: number): string {
   const m = Math.floor((totalSec % 3600) / 60);
   const s = Math.floor(totalSec % 60);
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-}
-
-function gaugeStatusOf(obs: RiverGaugeObservation): GaugeStatus {
-  if (obs.status === 'current') return 'LIVE';
-  if (obs.status === 'stale') return 'STALE';
-  return 'SOURCE_UNAVAILABLE';
 }
 
 interface UiSnapshot {
@@ -103,8 +93,6 @@ export default function FloodSimulator(): React.JSX.Element {
   const [paused, setPaused] = useState(() => prefersReducedMotion());
   const [timeScale, setTimeScale] = useState(60);
   const [ui, setUi] = useState<UiSnapshot | null>(null);
-  const [overrideInput, setOverrideInput] = useState('');
-  const [overrideActive, setOverrideActive] = useState<number | null>(null);
   const [alternativeId, setAlternativeId] = useState<AlternativeId>('no-action');
   const [signedOff, setSignedOff] = useState(false);
   const [cutFill, setCutFill] = useState<{ cutFt3: number; fillFt3: number; netFt3: number } | null>(null);
@@ -112,10 +100,10 @@ export default function FloodSimulator(): React.JSX.Element {
   const [playingTour, setPlayingTour] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [buildKey, setBuildKey] = useState(0);
-  // Terrain source: 'auto' resolves source-derived (bundled screening grid) with
-  // procedural fallback; 'live' attempts live tile fetch with the same
-  // fallback chain; 'procedural' forces the seeded approximation.
-  const [terrainMode, setTerrainMode] = useState<'auto' | 'procedural' | 'live'>('auto');
+  // Terrain source: 'auto' resolves the bundled source-derived screening
+  // grid (fail-closed when unavailable); 'live' attempts a live tile fetch
+  // with fallback to the bundled grid. No synthetic terrain is substituted.
+  const [terrainMode, setTerrainMode] = useState<'auto' | 'live'>('auto');
   const [liveTerrain, setLiveTerrain] = useState<ResolvedLiveTerrain | null>(null);
   const [terrainNotice, setTerrainNotice] = useState<string | null>(null);
   const [liveSnapshot, setLiveSnapshot] = useState<LiveDataSnapshot | null>(null);
@@ -221,10 +209,6 @@ export default function FloodSimulator(): React.JSX.Element {
 
   const scenario = useMemo(() => getScenario(scenarioId), [scenarioId, scenarios]);
 
-  // -- live gauges: single poller lives in LiveDataManager; the component
-  // reads the manager's snapshot rows (no duplicate polling loop).
-  const gauges: RiverGaugeObservation[] = liveSnapshot?.gaugeRows ?? [];
-
   // -- live-data manager: terrain endpoint health + unified status snapshot --
   // Polling only (interval HTTPS); the manager never blocks first render.
   // VITE_TSM_TERRAIN_RGB_URL_TEMPLATE is the production variable (full
@@ -280,21 +264,23 @@ export default function FloodSimulator(): React.JSX.Element {
       nx: scn.engine.nx,
       ny: scn.engine.ny,
       dxFt: scn.engine.dxFt,
-      seed: 0,
-      baseElevFt: 375,
-      valleyReliefFt: 8,
-      noiseAmplitudeFt: 2,
     }).then((resolved) => {
       if (cancelled) return;
       setLiveTerrain(resolved);
       if (resolved.tier !== 'live') {
         setTerrainNotice(
-          `Live tiles unreachable — fell back to ${resolved.tier === 'bundled-source-derived' ? 'the bundled source-derived screening grid' : 'the procedural approximation'}.`,
+          'Live tiles unreachable — using the bundled source-derived screening grid.',
         );
       } else {
         setTerrainNotice(null);
       }
       setBuildKey((k) => k + 1);
+    }).catch((err) => {
+      if (cancelled) return;
+      // Fail-closed: no synthetic terrain is substituted.
+      setError(
+        `Terrain unavailable: ${err instanceof Error ? err.message : String(err)}`,
+      );
     });
     return () => {
       cancelled = true;
@@ -339,7 +325,7 @@ export default function FloodSimulator(): React.JSX.Element {
       } else {
         const resolved = resolveElevationGrid({
           ...terrainOpts,
-          terrainSource: terrainMode === 'procedural' ? 'procedural' : 'auto',
+          terrainSource: 'auto',
         });
         resolvedGrid = resolved.grid;
         sourceInfo = {
@@ -633,19 +619,6 @@ export default function FloodSimulator(): React.JSX.Element {
     }
   };
 
-  const handleApplyOverride = (): void => {
-    const world = worldRef.current;
-    if (!world) return;
-    const v = overrideInput.trim() === '' ? null : Number(overrideInput);
-    if (v !== null && (!Number.isFinite(v) || v < 0)) {
-      setError('Intensity override must be a finite number >= 0 (in/hr), or blank to clear.');
-      return;
-    }
-    setError(null);
-    world.engine.overrideRainfallIntensity(v);
-    setOverrideActive(v);
-  };
-
   const handleApplyAlternative = (): void => {
     const world = worldRef.current;
     if (!world) return;
@@ -751,8 +724,8 @@ export default function FloodSimulator(): React.JSX.Element {
               maxWidth: '70%',
             }}
           >
-            Terrain: procedural approximation — not surveyed terrain (DEM services referenced from the
-            tile-fabric manifest; no tile bytes bundled). Water: real-time approximation, not path tracing.
+            Terrain: source-derived screening grid or live tiles (see the Terrain badge below).
+            Water: screening-level approximation, not path tracing.
             Drag to orbit · scroll to zoom.
           </div>
           {playingTour && (
@@ -790,8 +763,6 @@ export default function FloodSimulator(): React.JSX.Element {
                 setSignedOff(false);
                 setAlternativeId('no-action');
                 appliedAltRef.current = null;
-                setOverrideActive(null);
-                setOverrideInput('');
               }}
               style={{ display: 'block', width: '100%', marginTop: 4, padding: 6 }}
             >
@@ -849,14 +820,13 @@ export default function FloodSimulator(): React.JSX.Element {
                 value={terrainMode}
                 onChange={(e) => {
                   setTerrainNotice(null);
-                  setTerrainMode(e.target.value as 'auto' | 'procedural' | 'live');
+                  setTerrainMode(e.target.value as 'auto' | 'live');
                 }}
                 style={{ marginLeft: 6, padding: 4 }}
-                title="Elevation source: auto prefers the bundled 3DEP-derived grid with procedural fallback; live attempts real-time tile fetch with the same fallback chain."
+                title="Elevation source: auto uses the bundled 3DEP-derived screening grid (fail-closed); live attempts a real-time tile fetch with fallback to the bundled grid. No synthetic terrain."
               >
-                <option value="auto">Auto (3DEP-derived → procedural)</option>
-                <option value="live">Live tiles (→ fallback chain)</option>
-                <option value="procedural">Procedural only</option>
+                <option value="auto">Auto (3DEP-derived screening grid)</option>
+                <option value="live">Live tiles (→ bundled grid fallback)</option>
               </select>
             </label>
           </div>
@@ -887,9 +857,8 @@ export default function FloodSimulator(): React.JSX.Element {
                     ` (${Math.round(liveSnapshot.terrainEndpoint.ageSec)}s ago)`}
                 </span>
                 <span>
-                  Gauges:{' '}
-                  {Object.values(liveSnapshot.gauges).filter((g) => g.status === 'LIVE').length} live /{' '}
-                  {Object.keys(liveSnapshot.gauges).length} tracked
+                  Gauges: <strong style={{ color: '#ff9d9d' }}>retired</strong>{' '}
+                  <span style={{ color: '#6b7280' }}>(owner decision 2026-09-29: live river data dropped)</span>
                 </span>
               </div>
             )}
@@ -1008,54 +977,6 @@ export default function FloodSimulator(): React.JSX.Element {
               </div>
             )}
           </details>
-
-          {/* Live gauge panel */}
-          {scenarioId === 'live-gauge-driven' && (
-            <details style={{ marginBottom: 12 }} open>
-              <summary style={{ fontSize: 13, cursor: 'pointer' }}>Live gauges — REST polling (60 s, single shared poller)</summary>
-              {gauges.length === 0 && <div style={{ fontSize: 11 }}>Waiting for first poll…</div>}
-              {gauges.map((g) => {
-                const st = gaugeStatusOf(g);
-                const datum = wseFromGageHeight({
-                  gageHeightFt: g.unit && /ft/i.test(g.unit) ? g.value : null,
-                  gageZeroNavd88Ft: null, // no validated gage zero on file
-                  gageZeroValidated: false,
-                  status: st,
-                  asOfIso: g.observedAt ?? g.retrievedAt ?? '',
-                });
-                const wseText = 'wseNavd88Ft' in datum ? `${datum.wseNavd88Ft.toFixed(2)} ft NAVD88` : datum.wse;
-                return (
-                  <div key={g.gaugeId} style={{ fontSize: 11, borderTop: '1px solid #222a35', padding: '4px 0' }}>
-                    <span style={{
-                      display: 'inline-block', padding: '1px 6px', borderRadius: 4, marginRight: 6,
-                      background: st === 'LIVE' ? '#0d3' : st === 'STALE' ? '#a80' : '#a3a3a3', color: '#000', fontWeight: 700,
-                    }}>{st}</span>
-                    {g.name} — {wseText}
-                    {g.value !== null && <span style={{ color: '#93a0b4' }}> (raw {g.value} {g.unit})</span>}
-                  </div>
-                );
-              })}
-              <div style={{ marginTop: 8, fontSize: 11, color: '#93a0b4' }}>
-                No validated NAVD88 gage zero on file → WSE reads “SOURCE DATUM ONLY”. Missing data is never interpolated.
-              </div>
-              <label style={{ display: 'block', fontSize: 12, marginTop: 8 }}>
-                Operator rainfall override (in/hr) — judgment call, not a calibrated rating
-                <span style={{ display: 'flex', gap: 6, marginTop: 4 }}>
-                  <input
-                    value={overrideInput}
-                    onChange={(e) => setOverrideInput(e.target.value)}
-                    placeholder="e.g. 0.25 (blank = clear)"
-                    style={{ flex: 1, padding: 6 }}
-                    inputMode="decimal"
-                  />
-                  <button type="button" onClick={handleApplyOverride} style={{ padding: '6px 12px' }}>Apply</button>
-                </span>
-              </label>
-              {overrideActive !== null && (
-                <div style={{ fontSize: 11, marginTop: 4 }}>Active override: {overrideActive} in/hr (provisional)</div>
-              )}
-            </details>
-          )}
 
           {/* Cinematic shot lists */}
           <details style={{ marginBottom: 12 }}>

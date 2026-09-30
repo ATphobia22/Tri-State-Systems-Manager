@@ -22,14 +22,15 @@ describe('flood-sim cinematic', () => {
   });
 
   it('provides a flythrough per shipped scenario plus intro/outro shot lists', () => {
-    for (const id of ['1937-ohio-river-flood', 'q100-design-event', 'live-gauge-driven']) {
+    // live-gauge-driven retired 2026-09-29; two flooding scenarios remain.
+    for (const id of ['1937-ohio-river-flood', 'q100-design-event']) {
       expect(scenarioFlythrough(id).length).toBeGreaterThan(0);
     }
     // Unknown ids fall back to the intro tour (never throw in the UI path).
     expect(scenarioFlythrough('nope')).toBe(FLOOD_SIM_INTRO_TOUR);
+    expect(scenarioFlythrough('live-gauge-driven')).toBe(FLOOD_SIM_INTRO_TOUR);
     expect(Object.keys(SCENARIO_FLYTHROUGHS).sort()).toEqual([
       '1937-ohio-river-flood',
-      'live-gauge-driven',
       'q100-design-event',
     ]);
     expect(INTRO_SHOTS.length).toBe(FLOOD_SIM_INTRO_TOUR.length);

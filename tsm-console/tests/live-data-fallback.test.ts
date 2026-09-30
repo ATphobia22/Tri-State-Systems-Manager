@@ -197,14 +197,20 @@ describe('resolveTerrainWithFallback', () => {
     expect(r.sourceDerived).not.toBeNull();
   });
 
-  it('honours an explicit procedural preference without touching the network', async () => {
+  it('never synthesizes procedural terrain, even when asked', async () => {
+    // 'procedural' was removed from TerrainSourcePreference on 2026-09-29:
+    // procedural terrain must never stand in as evidence. A stale caller
+    // passing it degrades to the fail-closed chain (live -> source-derived
+    // -> throw), never to synthesis.
     const fetchMock = vi.mocked(fetch);
     const client = new TerrainTileClient('https://tiles.example/t', clientOpts);
-    const r = await resolveTerrainWithFallback({ client, ...base, terrainSource: 'procedural' });
-    expect(r.tier).toBe('procedural');
-    expect(r.status).toBe('CANDIDATE_NOT_LIVE');
-    expect(r.provenance).toContain('procedural approximation');
-    expect(fetchMock).not.toHaveBeenCalled();
+    const r = await resolveTerrainWithFallback({
+      client,
+      ...base,
+      terrainSource: 'procedural' as 'auto',
+    });
+    expect(r.tier).not.toBe('procedural');
+    expect(r.provenance).not.toContain('procedural approximation');
   });
 });
 

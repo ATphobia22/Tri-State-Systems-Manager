@@ -1,8 +1,11 @@
 services:
   # Meshtastic native Linux gateway. Bridges a USB-attached LoRa radio into
   # the local MQTT broker so field sensors reach the twin with no internet.
+  # Pinned to an immutable build tag (upstream publishes only GHA build tags,
+  # no semver tags; verified 2026-09-30). ARM64 variant for the Oracle A1 host:
+  # meshtastic/meshtasticd:GHA-2.8.1.fa87e7d-debian-linux_arm64
   meshtasticd:
-    image: meshtastic/meshtasticd:latest
+    image: meshtastic/meshtasticd:GHA-2.8.1.fa87e7d-debian-linux_amd64
     container_name: tsm-meshtasticd
     restart: unless-stopped
     devices:

@@ -6,9 +6,10 @@
  * labeled `provenance: 'simulation'`; engineering actions require explicit
  * human sign-off and are never auto-applied.
  *
- * Data flow: REST polling only (startGaugePoll from ../river-gauges) plus
- * the local deterministic engine. Push/streaming transports are forbidden
- * in this package — enforced by the source-grep gate test in this directory.
+ * Data flow: interval-HTTPS terrain health probes plus the local
+ * deterministic engine. Live river-gauge polling was retired by owner
+ * decision on 2026-09-29. Push/streaming transports are forbidden in this
+ * package — enforced by the source-grep gate test in this directory.
  */
 
 // Deterministic engine (SCS → diffusion-wave → Hazus)

@@ -1,14 +1,15 @@
 /**
- * world/live-data.ts — genuinely real-time data with a reliable fallback chain.
+ * world/live-data.ts — terrain endpoint health with a fail-closed fallback chain.
  *
- * The map stays live through plain HTTPS polling (the repo forbids streaming
- * transports in the simulator; see the transport gate test): gauges poll on an
- * interval, and the terrain endpoint is health-probed on an interval with an
- * in-memory tile cache. When a service is unreachable, the module degrades
- * along an explicit, labeled chain instead of failing:
+ * The map stays honest through plain HTTPS polling (the repo forbids streaming
+ * transports in the simulator; see the transport gate test): the terrain
+ * endpoint is health-probed on an interval with an in-memory tile cache.
+ * Live river-gauge polling was retired by owner decision on 2026-09-29
+ * ("drop live river data") — gauge snapshots are always empty.
  *
- *   terrain:  live tiles → bundled 3DEP-derived grid → procedural approximation
- *   gauges:   live observation → last-good (STALE) → SOURCE_UNAVAILABLE
+ * Terrain fallback chain (fail-closed, owner policy 2026-09-29: no demo terrain):
+ *
+ *   terrain:  live tiles → bundled 3DEP-derived grid → thrown error (no synthetic terrain)
  *
  * Every snapshot carries one of the repo's provenance-taxonomy labels —
  * LIVE, STALE, SOURCE_UNAVAILABLE, CANDIDATE_NOT_LIVE — plus the timestamp of
@@ -17,7 +18,7 @@
  * reported, never interpolated.
  */
 
-import { startGaugePoll, type RiverGaugeObservation } from '../../river-gauges';
+import type { RiverGaugeObservation } from '../../river-gauges';
 import { resolveElevationGrid, type ResolvedTerrainSource } from './terrain';
 
 /** Status vocabulary shared with the repo's provenance taxonomy. */
@@ -36,7 +37,7 @@ export interface SourceSnapshot {
 export interface LiveDataSnapshot {
   terrainEndpoint: SourceSnapshot;
   gauges: Record<string, SourceSnapshot & { value: number | null; unit: string | null }>;
-  /** Raw gauge rows for display panels — single source of truth for gauge polling. */
+  /** RETIRED 2026-09-29 (owner: drop live river data) — always empty. */
   gaugeRows: RiverGaugeObservation[];
   updatedIso: string;
 }
@@ -387,7 +388,7 @@ export async function fetchLiveTerrainGrid(args: LiveTerrainFetchArgs): Promise<
 
 // --- unified fallback ---------------------------------------------------------
 
-export type TerrainTier = 'live' | 'bundled-source-derived' | 'procedural';
+export type TerrainTier = 'live' | 'bundled-source-derived';
 
 export interface ResolvedLiveTerrain {
   grid: number[][];
@@ -405,6 +406,11 @@ export interface ResolvedLiveTerrain {
  * throws for source problems — the returned `tier`/`status` always say what
  * happened.
  */
+/**
+ * Resolve the visualization terrain grid: live Terrarium tiles first,
+ * bundled source-derived grid second, thrown error third (fail-closed —
+ * owner policy 2026-09-29: no synthetic demo terrain is ever substituted).
+ */
 export async function resolveTerrainWithFallback(args: {
   client: TerrainTileClient;
   anchorLat: number;
@@ -414,14 +420,10 @@ export async function resolveTerrainWithFallback(args: {
   nx: number;
   ny: number;
   dxFt: number;
-  seed: number;
-  baseElevFt: number;
-  valleyReliefFt: number;
-  noiseAmplitudeFt: number;
-  terrainSource?: 'auto' | 'source-derived' | 'procedural';
+  terrainSource?: 'auto' | 'source-derived';
 }): Promise<ResolvedLiveTerrain> {
   const nowIso = new Date().toISOString();
-  if ((args.terrainSource ?? 'auto') !== 'procedural') {
+  if ((args.terrainSource ?? 'auto') !== 'source-derived') {
     try {
       const grid = await fetchLiveTerrainGrid({
         client: args.client,
@@ -442,53 +444,26 @@ export async function resolveTerrainWithFallback(args: {
         sourceDerived: null,
       };
     } catch {
-      // Fall through to the bundled grid, then procedural.
+      // Fall through to the bundled grid, then fail closed.
     }
   }
   const sourceDerived = resolveElevationGrid({
     nx: args.nx,
     ny: args.ny,
     dxFt: args.dxFt,
-    seed: args.seed,
-    baseElevFt: args.baseElevFt,
-    valleyReliefFt: args.valleyReliefFt,
-    noiseAmplitudeFt: args.noiseAmplitudeFt,
     terrainSource: args.terrainSource ?? 'auto',
   });
-  if (sourceDerived.source === 'source-derived') {
-    return {
-      grid: sourceDerived.grid,
-      tier: 'bundled-source-derived',
-      status: 'STALE',
-      provenance: `bundled ${sourceDerived.provenance} (live endpoint unreachable)`,
-      asOfIso: null,
-      sourceDerived,
-    };
-  }
   return {
     grid: sourceDerived.grid,
-    tier: 'procedural',
-    status: 'CANDIDATE_NOT_LIVE',
-    provenance: sourceDerived.provenance,
+    tier: 'bundled-source-derived',
+    status: 'STALE',
+    provenance: `bundled ${sourceDerived.provenance} (live endpoint unreachable)`,
     asOfIso: null,
     sourceDerived,
   };
 }
 
 // --- manager ------------------------------------------------------------------
-
-function gaugeStatusToLive(s: RiverGaugeObservation['status']): LiveStatus {
-  switch (s) {
-    case 'current':
-      return 'LIVE';
-    case 'stale':
-      return 'STALE';
-    case 'unavailable':
-      return 'SOURCE_UNAVAILABLE';
-    case 'candidate':
-      return 'CANDIDATE_NOT_LIVE';
-  }
-}
 
 export interface LiveDataManagerOptions {
   terrainBaseUrl?: string;
@@ -502,10 +477,11 @@ export interface LiveDataManagerOptions {
 }
 
 /**
- * Owns the polling lifecycle: gauge interval (via the shared river-gauges
- * poller) + terrain endpoint health probes. Consumers subscribe to snapshots;
- * the terrain *grid* itself is fetched on demand via `resolveTerrainWithFallback`
- * so a slow tile service can never block the first render.
+ * Owns the polling lifecycle: terrain endpoint health probes only.
+ * Live river-gauge polling was retired by owner decision on 2026-09-29.
+ * Consumers subscribe to snapshots; the terrain *grid* itself is fetched
+ * on demand via `resolveTerrainWithFallback` so a slow tile service can
+ * never block the first render.
  */
 export class LiveDataManager {
   readonly terrainClient: TerrainTileClient;
@@ -513,8 +489,6 @@ export class LiveDataManager {
   private readonly healthIntervalMs: number;
   private readonly heartbeatMs: number;
   private readonly subscribers = new Set<(s: LiveDataSnapshot) => void>();
-  private gaugeRows: RiverGaugeObservation[] = [];
-  private stopGaugePoll: (() => void) | null = null;
   private healthTimer: ReturnType<typeof setInterval> | null = null;
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
   private running = false;
@@ -530,10 +504,10 @@ export class LiveDataManager {
   start(): void {
     if (this.running) return;
     this.running = true;
-    this.stopGaugePoll = startGaugePoll((rows) => {
-      this.gaugeRows = rows;
-      this.emit();
-    }, 60_000);
+    // NOTE: live river-gauge polling was retired by owner decision on
+    // 2026-09-29 ("drop live river data"). gaugeRows stays an empty array
+    // and the gauges record stays empty; only the terrain endpoint health
+    // probe remains.
     const probe = () => {
       void this.terrainClient.probe(this.probeTile.z, this.probeTile.x, this.probeTile.y).then(() => this.emit());
     };
@@ -544,8 +518,6 @@ export class LiveDataManager {
 
   stop(): void {
     this.running = false;
-    this.stopGaugePoll?.();
-    this.stopGaugePoll = null;
     if (this.healthTimer) clearInterval(this.healthTimer);
     if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
     this.healthTimer = null;
@@ -565,22 +537,12 @@ export class LiveDataManager {
   }
 
   snapshot(nowMs: number = Date.now()): LiveDataSnapshot {
-    const gauges: LiveDataSnapshot['gauges'] = {};
-    for (const row of this.gaugeRows) {
-      const observedMs = row.observedAt ? Date.parse(row.observedAt) : NaN;
-      gauges[row.gaugeId] = {
-        status: gaugeStatusToLive(row.status),
-        asOfIso: row.observedAt,
-        ageSec: Number.isFinite(observedMs) ? Math.max(0, (nowMs - observedMs) / 1000) : null,
-        detail: `${row.name} — ${row.status}${row.provisional ? ' (provisional)' : ''}`,
-        value: row.value,
-        unit: row.unit,
-      };
-    }
+    // Live gauge telemetry retired 2026-09-29: gauges record is always
+    // empty. Kept in the snapshot shape so consumers degrade gracefully.
     return {
       terrainEndpoint: this.terrainClient.endpointSnapshot(nowMs),
-      gauges,
-      gaugeRows: [...this.gaugeRows],
+      gauges: {},
+      gaugeRows: [],
       updatedIso: new Date(nowMs).toISOString(),
     };
   }
