@@ -211,6 +211,7 @@ export default function TriStateDigitalTwinMap(): JSX.Element {
 
       for (const item of MAP_PLANE_FABRIC) {
         if (item.kind === 'arcgis-feature') addFeatureSource(map, item);
+        if (item.mapRenderable) setLayerVisibility(map, item, Boolean(visibleRef.current[item.id]));
       }
 
       const featureItems = MAP_PLANE_FABRIC.filter((item) => item.kind === 'arcgis-feature');
