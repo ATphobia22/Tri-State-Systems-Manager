@@ -6,7 +6,7 @@
     "fips": "18129"
   },
   "geographyPolicy": {
-    "boundarySource": "US_CENSUS_TIGERWEB_2025_COUNTY_82",
+    "boundarySource": "US_CENSUS_TIGERWEB_CURRENT_2026_COUNTY_82",
     "boundaryGEOID": "18129",
     "spatialRelation": "esriSpatialRelWithin",
     "rule": "Spatial extracts must be queried against the exact Posey County polygon with esriSpatialRelWithin. Intersecting-but-not-within features are excluded from strict extracts and their counts are retained in the receipt for audit."
