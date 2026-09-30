@@ -1,0 +1,1 @@
+export class UacfError extends Error{readonly retryable:boolean;constructor(public readonly code:string,message:string,retryable=false){super(message);this.name='UacfError';this.retryable=retryable}}
