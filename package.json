@@ -3,12 +3,7 @@
   "private": true,
   "packageManager": "npm@11",
   "type": "module",
-  "workspaces": [
-    "apps/*",
-    "packages/*",
-    "providers/*",
-    "plugins/*"
-  ],
+  "workspaces": ["apps/*", "packages/*", "providers/*", "plugins/*"],
   "scripts": {
     "build": "turbo run build",
     "test": "turbo run test",
@@ -21,6 +16,7 @@
     "verify:uacf": "npm run build:uacf && npm run test:uacf"
   },
   "devDependencies": {
+    "@types/node": "^22.15.0",
     "turbo": "^2.5.0",
     "typescript": "^5.9.0",
     "tsx": "^4.20.0",
