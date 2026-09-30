@@ -7,6 +7,8 @@ const dataset: DatasetContract = {
   datasetId:'usgs-3dep-example',
   title:'Example terrain dataset',
   owner:'USGS',
+  steward:'USGS-3DEP',
+  accessClass:'PUBLIC',
   authority:'OFFICIAL_GOVERNMENT',
   zone:'RAW',
   schemaVersion:'1',
@@ -14,7 +16,7 @@ const dataset: DatasetContract = {
   verticalDatum:'NAVD88',
   updateCadenceSeconds:86400,
   maxAgeSeconds:172800,
-  lineage:{parentDatasetIds:[],transformationIds:[],sourceUri:'https://example.invalid/3dep',contentHash:'a'.repeat(64)},
+  lineage:{parentDatasetIds:[],transformationIds:[],sourceUri:'https://example.invalid/3dep',contentHash:'a'.repeat(64),retrievedAt:'2026-09-30T00:00:00Z'},
   quality:{status:'PASS',requiredFields:['elevation'],checks:['schema','crs','nodata']}
 };
 
@@ -51,4 +53,11 @@ test('4D twin validates entity relationships and temporal state',()=> {
 test('orphan relationship is rejected',()=> {
   const invalid={...state,relationships:[{...state.relationships[0],objectEntityId:'missing'}]};
   assert.ok(validateTwinState(invalid).some((issue)=>issue.includes('objectEntityId')));
+});
+
+test('stale curated datasets are rejected',()=> {
+  const stale={...dataset,zone:'CURATED' as const,lineage:{...dataset.lineage,retrievedAt:'2020-01-01T00:00:00Z'}};
+  const assessment=assessDataset(stale,new Date('2026-09-30T00:00:00Z'));
+  assert.equal(assessment.accepted,false);
+  assert.equal(assessment.status,'STALE');
 });
