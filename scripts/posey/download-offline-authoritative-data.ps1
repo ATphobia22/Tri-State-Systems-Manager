@@ -84,7 +84,7 @@ function Save-ArcGisWithinCounty(
   do {
     $params=@{
       where=$Where; geometry=$geometryJson; geometryType="esriGeometryPolygon"; inSR="4326"
-      spatialRel=$SpatialRelation; outFields="*"; returnGeometry="true"; outSR="4326"; f="json"
+      spatialRel=$SpatialRelation; outFields="*"; returnGeometry="true"; outSR="4326"; geometryPrecision=6; maxAllowableOffset=0.00005; f="json"
     }
     if($supportsPagination){ $params.resultOffset=$offset; $params.resultRecordCount=$pageSize }
     $r=Invoke-ArcGisQuery $ServiceLayerUrl $params
