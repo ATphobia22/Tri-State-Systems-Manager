@@ -6,7 +6,7 @@
     "fips": "18129"
   },
   "geographyPolicy": {
-    "boundarySource": "US_CENSUS_TIGERWEB_CURRENT_2026_COUNTY_82",
+    "boundarySource": "TSM_COMMITTED_CENSUS_TIGERLINE_2023_GEOID_18129",
     "boundaryGEOID": "18129",
     "spatialRelation": "esriSpatialRelWithin|esriSpatialRelIntersects",
     "rule": "All spatial extracts are filtered against the exact Posey County polygon. Coverage-sheet and footprint products use esriSpatialRelIntersects because the source feature can legitimately span a county boundary; parcel/address/road products use esriSpatialRelWithin. No bounding-box-only extraction is accepted."
@@ -109,7 +109,7 @@
       "minimumFeatureCount": 0
     },
     {
-      "id": "indiana-gio-current-imagery-metadata",
+      "id": "indiana-gio-current-imagery-snapshot",
       "authority": "Indiana GIO",
       "required": true,
       "minimumBytes": 1
@@ -129,6 +129,42 @@
     {
       "id": "usace-nld-service-catalog",
       "authority": "USACE",
+      "required": true,
+      "minimumBytes": 1
+    },
+    {
+      "id": "usgs-lidar-69202-ept-block-1",
+      "authority": "USGS",
+      "required": true,
+      "minimumBytes": 1
+    },
+    {
+      "id": "usgs-lidar-69202-ept-block-2",
+      "authority": "USGS",
+      "required": true,
+      "minimumBytes": 1
+    },
+    {
+      "id": "usgs-lidar-69202-ept-block-3",
+      "authority": "USGS",
+      "required": true,
+      "minimumBytes": 1
+    },
+    {
+      "id": "usgs-lidar-69202-ept-block-4",
+      "authority": "USGS",
+      "required": true,
+      "minimumBytes": 1
+    },
+    {
+      "id": "usgs-lidar-69202-ept-block-5",
+      "authority": "USGS",
+      "required": true,
+      "minimumBytes": 1
+    },
+    {
+      "id": "usgs-lidar-69202-ept-block-6",
+      "authority": "USGS",
       "required": true,
       "minimumBytes": 1
     }

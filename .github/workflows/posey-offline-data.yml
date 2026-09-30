@@ -6,6 +6,7 @@ on:
     branches:
       - main
       - 'feat/posey-offline-authoritative-data-*'
+      - 'fix/posey-complete-acquisition-*'
 
 permissions:
   contents: read
@@ -13,7 +14,7 @@ permissions:
 jobs:
   acquire:
     runs-on: windows-2022
-    timeout-minutes: 90
+    timeout-minutes: 360
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -28,28 +29,23 @@ jobs:
         shell: pwsh
         run: .\scripts\posey\verify-offline-authoritative-data.ps1
 
-      - name: Generate complete SHA-256 inventory
+      - name: Generate bundle manifest and SHA-256 inventory
         shell: pwsh
         run: |
-          Get-ChildItem -Recurse "data\posey-county\offline\2026-09-30" -File |
+          $root = "data\posey-county\offline\2026-09-30"
+          Get-ChildItem -Recurse $root -File |
             Get-FileHash -Algorithm SHA256 |
+            Select-Object Path,Hash |
             ConvertTo-Json -Depth 5 |
-            Set-Content "data\posey-county\offline\2026-09-30\sha256-files.json"
+            Set-Content "$root\sha256-files.json"
+          Get-ChildItem -Recurse $root -File | Measure-Object -Property Length -Sum |
+            ConvertTo-Json |
+            Set-Content "$root\bundle-size.json"
 
-      - name: Package offline source bundle
-        shell: pwsh
-        run: |
-          $name = "posey-county-offline-authoritative-2026-09-30"
-          Compress-Archive -Path "data\posey-county\offline\2026-09-30\*" -DestinationPath "$name.zip" -CompressionLevel Optimal
-          (Get-FileHash "$name.zip" -Algorithm SHA256).Hash.ToLowerInvariant() |
-            Set-Content "$name.sha256"
-
-      - name: Upload offline source bundle
+      - name: Upload complete offline source tree
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: posey-county-offline-authoritative-2026-09-30
-          path: |
-            posey-county-offline-authoritative-2026-09-30.zip
-            posey-county-offline-authoritative-2026-09-30.sha256
+          path: data\posey-county\offline\2026-09-30
           if-no-files-found: error
           retention-days: 30
