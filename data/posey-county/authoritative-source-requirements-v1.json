@@ -13,70 +13,10 @@
   },
   "requiredSources": [
     {
-      "id": "fema-firm-panels",
+      "id": "fema-countywide-nfhl-18129C",
       "authority": "FEMA",
       "required": true,
-      "minimumFeatureCount": 1
-    },
-    {
-      "id": "fema-lomrs",
-      "authority": "FEMA",
-      "required": true,
-      "minimumFeatureCount": 0
-    },
-    {
-      "id": "fema-lomas",
-      "authority": "FEMA",
-      "required": true,
-      "minimumFeatureCount": 0
-    },
-    {
-      "id": "fema-cross-sections",
-      "authority": "FEMA",
-      "required": true,
-      "minimumFeatureCount": 0
-    },
-    {
-      "id": "fema-base-flood-elevations",
-      "authority": "FEMA",
-      "required": true,
-      "minimumFeatureCount": 0
-    },
-    {
-      "id": "fema-levees",
-      "authority": "FEMA",
-      "required": true,
-      "minimumFeatureCount": 0
-    },
-    {
-      "id": "fema-general-structures",
-      "authority": "FEMA",
-      "required": true,
-      "minimumFeatureCount": 0
-    },
-    {
-      "id": "fema-hydrologic-reaches",
-      "authority": "FEMA",
-      "required": true,
-      "minimumFeatureCount": 0
-    },
-    {
-      "id": "fema-flood-hazard-boundaries",
-      "authority": "FEMA",
-      "required": true,
-      "minimumFeatureCount": 1
-    },
-    {
-      "id": "fema-flood-hazard-zones",
-      "authority": "FEMA",
-      "required": true,
-      "minimumFeatureCount": 1
-    },
-    {
-      "id": "fema-subbasins",
-      "authority": "FEMA",
-      "required": true,
-      "minimumFeatureCount": 0
+      "minimumBytes": 1
     },
     {
       "id": "usgs-03378500-daily-mean-history",
