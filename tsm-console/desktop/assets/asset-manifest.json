@@ -178,11 +178,6 @@
       "sha256": "e32aeb69bd23d1ad1287730056a2ec5e4d88a22094ac31839f76cc2d53ba5be8"
     },
     {
-      "path": "app/data/scenarios/live-gauge-driven.json",
-      "bytes": 2064,
-      "sha256": "86afea384aefe02b73d3197e99d24c36406675e8c5822523dbcff99220248a88"
-    },
-    {
       "path": "app/data/scenarios/q100-design-event.json",
       "bytes": 3212,
       "sha256": "b4f9cc13b4c2e6983cd70c1db236ce26171a9c949a1a82ce457244f3b736beeb"
@@ -1348,6 +1343,6 @@
       "sha256": "1b11dd3b052ce64c5c417ec2d315e31842eb9ea0841be6b8fa25570b50048f40"
     }
   ],
-  "fileCount": 269,
-  "totalBytes": 54475785
+  "fileCount": 268,
+  "totalBytes": 54473721
 }

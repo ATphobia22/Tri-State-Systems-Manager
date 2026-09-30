@@ -66,7 +66,7 @@ async function fetchGeoJson(source: string, map: Map): Promise<Parameters<GeoJSO
     headers: { Accept: 'application/geo+json,application/json' },
   });
   if (!response.ok) throw new Error(`ArcGIS FeatureServer request failed: HTTP ${response.status}`);
-  const payload = await response.json() as GeoJSON.GeoJSON;
+  const payload = await response.json() as { type?: string };
   if (payload.type !== 'FeatureCollection') throw new Error('ArcGIS source did not return a GeoJSON FeatureCollection');
   return payload as Parameters<GeoJSONSource['setData']>[0];
 }

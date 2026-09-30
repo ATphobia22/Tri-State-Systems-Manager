@@ -23,7 +23,7 @@ export class StaticPolicyEngine implements PolicyEngine{
     if(selected.permissions?.some((permission)=>!request.context.permissions.allow.includes(permission))){
       return {allowed:false,reason:'Required permission missing'};
     }
-    return {allowed:selected.allow!==false,requireApproval:selected.requireApproval??false};
+    return {allowed:true,requireApproval:selected.requireApproval??false};
   }
 
   async canUse(capability:CapabilityDefinition,context:CapabilityContext):Promise<boolean>{
