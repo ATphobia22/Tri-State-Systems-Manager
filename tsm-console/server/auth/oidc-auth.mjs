@@ -92,6 +92,12 @@ export async function authenticateRequest(req) {
     const localMode = ['1', 'true', 'yes'].includes(String(process.env.TSM_LOCAL_MODE || '').toLowerCase());
     const host = String(process.env.TSM_HOST || '').toLowerCase();
     const loopback = host === '127.0.0.1' || host === '::1' || host === 'localhost';
+    const publicOperatorMode = ['1', 'true', 'yes'].includes(String(process.env.TSM_PUBLIC_OPERATOR_MODE || '').toLowerCase());
+    if (publicOperatorMode) {
+      const reviewerRole = String(process.env.TSM_REVIEWER_ROLE || 'tsm-reviewer');
+      const operatorRole = String(process.env.TSM_OPERATOR_ROLE || 'tsm-operator');
+      return { subject: 'public-operator', roles: ['public', operatorRole, reviewerRole], issuer: 'local-public', audience: 'local-public', claims: {}, developmentBypass: true, publicOperatorMode: true, localMode: false };
+    }
     if (localMode && loopback) {
       // Single-user desktop: the local operator is implicitly all roles.
       // This identity can never exist on a network-facing server (enforced
@@ -100,7 +106,7 @@ export async function authenticateRequest(req) {
       const operatorRole = String(process.env.TSM_OPERATOR_ROLE || 'tsm-operator');
       return { subject: 'local-operator', roles: ['development', operatorRole, reviewerRole], issuer: 'local', audience: 'local', claims: {}, developmentBypass: true, localMode: true };
     }
-    throw authError('Authentication is disabled and this server is not in local loopback mode; mutations are refused.', 'AUTH_DISABLED_NOT_LOCAL', 403);
+    throw authError('Authentication is disabled and this server is not in local loopback or explicit public-operator mode; mutations are refused.', 'AUTH_DISABLED_NOT_LOCAL', 403);
   }
   const header = req.headers.authorization;
   if (typeof header === 'string' && /^Bearer\s+/i.test(header)) {
