@@ -1,0 +1,127 @@
+{
+  "schema": "tsm-posey-authoritative-source-vintage-v1",
+  "scope": "Posey County, Indiana",
+  "mode": "dated-snapshot",
+  "purpose": "Deterministic offline engineering and geospatial context using the newest authoritative agency product available at acquisition time. This manifest records the selected vintage and provenance; it does not turn TSM into an agency decision-maker.",
+  "snapshot_policy": {
+    "selection": "Select the newest officially published product that covers Posey County and is appropriate to the authority class.",
+    "freeze": "After acquisition, preserve the exact product vintage, retrieval timestamp, source URL, native CRS, vertical datum, software/model lineage, and SHA-256.",
+    "replacement": "A newer product supersedes an older snapshot only when its agency publication metadata or source record establishes that it is newer.",
+    "offline_rule": "Runtime consumes the frozen snapshot and manifest; internet access is not required after acquisition.",
+    "authority_rule": "FEMA effective mapping, Indiana best-available/regulatory mapping, USGS scientific products, and USACE evidence/modeling products remain separate authority classes."
+  },
+  "authorities": [
+    {
+      "id": "FEMA-NFHL-EFFECTIVE",
+      "agency": "Federal Emergency Management Agency",
+      "role": "Effective flood hazard / insurance reference",
+      "selected_vintage": "latest effective product at acquisition",
+      "verified_at": "2026-09-30",
+      "primary_url": "https://msc.fema.gov/portal/search",
+      "operational_service": "https://hazards.fema.gov/arcgis/rest/services/FIRMette/NFHLREST_FIRMette/MapServer",
+      "product_scope": ["FIRM panels", "flood hazard zones", "base flood elevations", "cross sections", "levees", "LOMA/LOMR-related layers"],
+      "vintage_rule": "Use the effective panel/FIS/NFHL metadata date for the Posey County feature or panel. Do not use the retrieval date as a substitute for the FEMA effective date.",
+      "authority_class": "FEMA_EFFECTIVE"
+    },
+    {
+      "id": "USGS-3DEP-POSEY",
+      "agency": "U.S. Geological Survey",
+      "role": "Terrain/elevation scientific evidence",
+      "selected_vintage": "newest Posey County 3DEP product available at acquisition",
+      "verified_at": "2026-09-30",
+      "discovery_url": "https://tnmaccess.nationalmap.gov/",
+      "lidar_explorer_url": "https://www.usgs.gov/tools/lidarexplorer",
+      "index_url": "https://index.nationalmap.gov/arcgis/rest/services/3DEPElevationIndex/MapServer",
+      "product_scope": ["LiDAR point cloud", "DEM", "derived elevation products"],
+      "vintage_rule": "Select by USGS product/acquisition metadata; retain acquisition date, quality level, native CRS, vertical datum, geoid model, and product identifier.",
+      "historical_baseline": "2017-2020 Indiana Statewide LiDAR Phase 2 West remains available as a historical comparison layer, not the current terrain default.",
+      "authority_class": "USGS_TERRAIN"
+    },
+    {
+      "id": "USGS-NEW-HARMONY-03378500",
+      "agency": "U.S. Geological Survey",
+      "role": "Hydrologic and flood-inundation evidence",
+      "selected_vintage": "latest downloaded historical/reference package at acquisition",
+      "verified_at": "2026-09-30",
+      "gage_url": "https://waterdata.usgs.gov/monitoring-location/USGS-03378500/",
+      "water_api_url": "https://api.waterdata.usgs.gov/",
+      "study_url": "https://pubs.usgs.gov/publication/sir20165119",
+      "product_scope": ["Wabash River at New Harmony station 03378500", "historical values", "published flood-inundation study"],
+      "vintage_rule": "For offline data, freeze the downloaded observation/history interval and the publication revision or study package date. Never label a frozen observation as live.",
+      "authority_class": "USGS_HYDROLOGY"
+    },
+    {
+      "id": "INDIANA-DNR-BAFL-POSEY",
+      "agency": "Indiana Department of Natural Resources, Division of Water",
+      "role": "Indiana best-available floodplain and state regulatory/planning context",
+      "selected_vintage": "newest published Posey County BAFL extraction at acquisition",
+      "verified_at": "2026-09-30",
+      "program_url": "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/the-indiana-best-available-floodplain-mapping/",
+      "infip_url": "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/indiana-floodplain-information-portal/",
+      "service_url": "https://gisdata.in.gov/server/rest/services/Best_Available_Flood_Hazard_Layer/MapServer",
+      "product_scope": ["best available floodplain", "BFE/elevation references", "floodway/flood hazard data"],
+      "vintage_rule": "Use the county extraction's published/download metadata. Preserve native CRS EPSG:26916 and NAVD88 where supplied by the product.",
+      "authority_class": "IDNR_BEST_AVAILABLE"
+    },
+    {
+      "id": "INDIANA-GIO-POSEY",
+      "agency": "Indiana Geographic Information Office",
+      "role": "Current statewide geospatial framework",
+      "selected_vintage": "newest published Posey County/statewide product at acquisition",
+      "verified_at": "2026-09-30",
+      "parcel_url": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer/0",
+      "imagery_url": "https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_Current_Imagery/ImageServer",
+      "imagery_lidar_program_url": "https://www.in.gov/gis/geoinsights/posts/imagery-and-elevation-roadshows-march-2026/",
+      "product_scope": ["parcel framework", "current imagery", "imagery/LiDAR acquisition program"],
+      "vintage_rule": "Record the actual county/product acquisition or publication year from service metadata; do not infer a 2026 imagery vintage merely because the service is current.",
+      "authority_class": "INDIANA_GIS"
+    },
+    {
+      "id": "USACE-NLD-POSEY",
+      "agency": "U.S. Army Corps of Engineers",
+      "role": "Levee inventory, condition/inspection and geospatial evidence",
+      "selected_vintage": "latest NLD record for each Posey County levee at acquisition",
+      "verified_at": "2026-09-30",
+      "database_url": "https://levees.sec.usace.army.mil/",
+      "data_services_url": "https://levees.sec.usace.army.mil/data-services/services/",
+      "change_log_url": "https://levees.sec.usace.army.mil/changes",
+      "product_scope": ["levee alignments", "leveed areas", "inspection/assessment dates", "published levee attributes"],
+      "vintage_rule": "Use each levee record's Data Last Updated and Last Assessment Date. NLD is continuously updated; one county-wide date must not be invented.",
+      "authority_class": "USACE_LEVEE_EVIDENCE"
+    },
+    {
+      "id": "USACE-HEC-RAS",
+      "agency": "U.S. Army Corps of Engineers Hydrologic Engineering Center",
+      "role": "Hydraulic computation and model interoperability",
+      "selected_vintage": "HEC-RAS 7.0.1 release for the current runtime; model/project vintage recorded separately",
+      "verified_at": "2026-09-30",
+      "software_url": "https://www.hec.usace.army.mil/software/hec-ras/",
+      "documentation_url": "https://www.hec.usace.army.mil/confluence/rasdocs",
+      "product_scope": ["1D/2D hydraulic computation", "RAS Mapper/model result processing", "engineering model interoperability"],
+      "vintage_rule": "Pin the executable version and project/model artifact hash separately. Solver version is not a substitute for the source-data vintage.",
+      "authority_class": "USACE_MODELING"
+    }
+  ],
+  "legacy_policy": {
+    "historical_firm_scans": "Retain only as historical comparison evidence; never override current FEMA effective mapping.",
+    "2017_2020_lidar": "Retain as historical terrain baseline; do not present as newest terrain when a newer USGS/Indiana product exists.",
+    "live_api_records": "May be used to acquire a snapshot, but the offline runtime must consume the frozen snapshot and its manifest after acquisition.",
+    "project_curated_constants": "Remain project evidence until independently sourced and reviewed; never promote them into agency authority."
+  },
+  "required_manifest_fields": [
+    "source_id",
+    "agency",
+    "product_name",
+    "product_identifier",
+    "coverage",
+    "publication_or_acquisition_date",
+    "retrieved_at",
+    "source_url",
+    "native_crs",
+    "vertical_datum",
+    "model_or_software_version",
+    "sha256",
+    "authority_class",
+    "notes"
+  ]
+}
