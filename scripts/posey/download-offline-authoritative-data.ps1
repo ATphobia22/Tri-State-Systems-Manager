@@ -12,9 +12,11 @@ function Save-Url([string]$Url,[string]$Path,[string]$RequiredId,[string]$Author
   $full = Join-Path $OutDir $Path
   New-Item -ItemType Directory -Force -Path (Split-Path -Parent $full) | Out-Null
   & curl.exe --fail --silent --show-error --location --retry 4 --retry-delay 2 --retry-all-errors --http1.1 -A "TSM-Posey-Offline-Acquisition/1.0" --output "$full" "$Url"
-  if ($LASTEXITCODE -ne 0) { throw "Download failed ($LASTEXITCODE): $RequiredId" }
+  $curlExit = $LASTEXITCODE
+  if ($curlExit -ne 0) { throw "Download failed ($curlExit): $RequiredId" }
   $item = Get-Item $full
   if ($item.Length -le 0) { throw "Empty download: $RequiredId" }
+  Write-Host "Downloaded $RequiredId ($($item.Length) bytes)"
   [pscustomobject]@{
     id=$RequiredId; authority=$Authority; path=$Path; url=$Url
     sha256=(Get-FileHash $full -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -150,7 +152,7 @@ $results += Save-Url $femaCountyProduct "fema\\NFHL_18129C.zip" "fema-countywide
 
 $results += Save-ArcGisWithinCounty "https://gisdata.in.gov/server/rest/services/Best_Available_Flood_Hazard_Layer/MapServer/438" "1=1" "indiana-dnr\bafm-posey-strict.geojson" "indiana-dnr-bafm" "Indiana DNR" $true "esriSpatialRelIntersects"
 
-$results += Save-ArcGisWithinCounty "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer/0" "county_fips='$CountyFips'" "indiana-gio\parcel-boundaries-2025-posey-strict.json" "indiana-gio-parcels-2025" "Indiana GIO" $true
+$results += Save-ArcGisWithinCounty "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer/0" "1=1" "indiana-gio\parcel-boundaries-2025-posey-strict.json" "indiana-gio-parcels-2025" "Indiana GIO" $true
 $results += Save-ArcGisWithinCounty "https://gisdata.in.gov/server/rest/services/Hosted/Address_Points_of_Indiana_2025/FeatureServer/0" "county_fips='$CountyFips'" "indiana-gio\address-points-2025-posey-strict.json" "indiana-gio-address-points-2025" "Indiana GIO" $false
 $results += Save-ArcGisWithinCounty "https://gisdata.in.gov/server/rest/services/Hosted/Road_Centerlines_of_Indiana_2025/FeatureServer/0" "county_fips='$CountyFips'" "indiana-gio\road-centerlines-2025-posey-strict.json" "indiana-gio-road-centerlines-2025" "Indiana GIO" $false
 $results += Save-ArcGisWithinCounty "https://gisdata.in.gov/server/rest/services/Hosted/Administrative_Boundaries_of_Indiana_2025/FeatureServer/3" "1=1" "indiana-gio\administrative-boundaries-county-commissioner-posey-strict.json" "indiana-gio-administrative-boundaries-2025" "Indiana GIO" $false
