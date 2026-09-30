@@ -6,6 +6,8 @@ import { installRuntimePerformanceTelemetry } from './lib/runtime-performance';
 
 installRuntimePerformanceTelemetry(router);
 
+document.getElementById('boot-fallback')?.remove();
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <RouterProvider router={router} />
