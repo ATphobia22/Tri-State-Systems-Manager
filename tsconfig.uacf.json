@@ -8,7 +8,9 @@
     "skipLibCheck": true,
     "allowImportingTsExtensions": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["node"]
+    "types": [
+      "node"
+    ]
   },
   "include": [
     "apps/uacf-gateway/src/**/*.ts",
@@ -24,6 +26,9 @@
     "packages/provider-runtime/src/**/*.ts",
     "packages/model-runtime/src/**/*.ts",
     "packages/capability-runtime/src/**/*.ts",
-    "packages/uacp/src/**/*.ts"
+    "packages/uacp/src/**/*.ts",
+    "packages/ontology/src/**/*.ts",
+    "packages/data-fabric/src/**/*.ts",
+    "packages/twin/src/**/*.ts"
   ]
 }
