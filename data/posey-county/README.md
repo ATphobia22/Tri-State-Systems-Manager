@@ -28,7 +28,7 @@ nulled. Zone X (minimal flood hazard, 2,816 polygons) excluded for size.
 
 | File | Description | SHA-256 |
 |---|---|---|
-| `floodplain/posey-flood-hazard-sfha.geojson` | 5,606 SFHA polygons, 24.6 MB; fields: fld_zone, zone_subty, sfha, bfe_ft, v_datum, depth_ft, study_typ, dfirm_id | `19f4a08e…f7eff` |
+| `floodplain/posey-flood-hazard-sfha.geojson` | 5,606 SFHA polygons, 24.6 MB; fields: fld_zone, zone_subty, sfha, bfe_ft, v_datum, depth_ft, study_typ, dfirm_id. **SCOPE: 4-county extract** — DFIRMs 18129C Posey (2,807), 18163C Vanderburgh (1,591), 18051C Gibson (1,179), 18173C Warrick (29); bounds -88.0972..-87.2685, 37.7718..38.4263. Not Posey-only despite the filename. | `19f4a08e…f7eff` |
 | `floodplain/posey-flood-elevation-points.geojson` | 22,636 flood elevation points, 7.4 MB; fields: huc10, streamname, wsel10, wsel4, wsel2, wsel1, wsel02, wsel1plus, da, version | `5e745db7…c2` |
 
 Anchor check: 13101 Bonebank Rd falls in zone **AE**, SFHA = T. The layer's AE

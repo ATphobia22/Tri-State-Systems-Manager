@@ -167,6 +167,7 @@ export const appRoutes = [
   { path: 'benefit', loader: benefitLoader, action: benefitAction, element: <BenefitView /> },
   { path: 'map', loader: mapTwinLoader, hydrateFallbackElement: <RouteLoadingFallback label="the hydraulic map" />, lazy: async () => ({ Component: (await import('../routes/MapLibreMap')).default }) },
   { path: 'map-plane', hydrateFallbackElement: <RouteLoadingFallback label="the twelve-layer MapLibre plane" />, lazy: async () => ({ Component: (await import('../routes/MapPlaneView')).default }) },
+  { path: 'cinematic', hydrateFallbackElement: <RouteLoadingFallback label="the cinematic 3D twin" />, lazy: async () => ({ Component: (await import('../routes/CinematicView')).default }) },
   { path: 'eoc', loader: mapTwinLoader, hydrateFallbackElement: <RouteLoadingFallback label="the EOC surface" />, lazy: async () => ({ Component: (await import('../routes/MapLibreEocView')).default }) },
   { path: 'twin', loader: mapTwinLoader, hydrateFallbackElement: <RouteLoadingFallback label="the twin canvas" />, lazy: async () => ({ Component: (await import('../routes/TwinCanvasView')).default }) },
   { path: 'digital-twin', loader: mapTwinLoader, hydrateFallbackElement: <RouteLoadingFallback label="the twin summary" />, lazy: async () => ({ Component: (await import('../routes/MapTwinView')).default }) },

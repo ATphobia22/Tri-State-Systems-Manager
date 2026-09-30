@@ -62,7 +62,8 @@ interface OpenMIWaterSurfaceMessage {
   validationStatus: 'VALIDATED' | 'REVIEW_REQUIRED' | 'REJECTED';
 }
 
-const POINT_TOWNSHIP_CENTER: [number, number] = [-87.9312, 37.8825];
+/** Site anchor (13101 Bonebank Road) — the twin opens on the project site, not the township centroid. */
+const ANCHOR_CENTER: [number, number] = [-88.005075, 37.845887];
 const ENGINEERING_CRS = 'EPSG:2966';
 const DISPLAY_CRS = 'EPSG:4326 → WebMercator';
 const DEFAULT_BFE_FT_NAVD88 = 375;
@@ -224,7 +225,7 @@ export default function DigitalTwinAppV2(): JSX.Element {
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: buildStyle(),
-      center: POINT_TOWNSHIP_CENTER,
+      center: ANCHOR_CENTER,
       zoom: 13.5,
       pitch: 62,
       bearing: -18,

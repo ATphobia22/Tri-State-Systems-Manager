@@ -7,7 +7,7 @@ import { buildArcGisFeatureQueryUrl, getMapLibreFabricLayer } from '../lib/mapli
 import { getTerrainRgbStatus } from '../lib/twin-map-style';
 import { TERRAIN_RGB_SOURCE_ID } from '../lib/terrain-rgb-contract';
 
-const INITIAL_CENTER: [number, number] = [-88.0167, 37.8331];
+const INITIAL_CENTER: [number, number] = [-88.005075, 37.845887];
 const MAX_BOUNDS: [[number, number], [number, number]] = [
   [-88.08, 37.75],
   [-87.92, 37.90],
@@ -157,17 +157,67 @@ function addFeatureSource(map: Map, item: MapPlaneLayer): void {
   });
 }
 
-export default function TriStateDigitalTwinMap(): JSX.Element {
+/** Human-readable one-liner for a picked feature. Only source-provided attributes; no invented values. */
+function describePickedFeature(layerId: string, props: Record<string, unknown>): string {
+  const str = (key: string): string | null => {
+    const value = props[key];
+    return typeof value === 'string' && value.length > 0 ? value : null;
+  };
+  if (layerId === 'indiana-buildings-extrusion') {
+    const county = str('county') ?? 'unknown county';
+    const lidarYear = str('lidaryear') ?? 'unknown vintage';
+    return `Building footprint · ${county} · lidar ${lidarYear} (height: uniform 9 m fallback — source provides no height)`;
+  }
+  if (layerId === 'indiana-roads-line') {
+    const name = str('STREET_NAME') ?? str('FULLNAME') ?? str('name') ?? 'unnamed road';
+    return `Road · ${name}`;
+  }
+  if (layerId === 'indiana-parcels-fill') {
+    const parcel = str('PARCEL_ID') ?? str('parcel_id') ?? str('OBJECTID') ?? 'unknown parcel';
+    return `Parcel · ${parcel}`;
+  }
+  if (layerId === 'usgs-quad-index-line') {
+    const quad = str('quad_name') ?? 'unknown quad';
+    return `USGS 24K quad · ${quad}`;
+  }
+  if (layerId === 'posey-cslf-fill') {
+    return 'Posey Changes Since Last FIRM area';
+  }
+  return `Feature · ${layerId}`;
+}
+
+export interface TriStateDigitalTwinMapProps {
+  /** When true, the built-in layer sidebar is hidden (an external HUD drives the map). */
+  hideSidebar?: boolean;
+  /** Controlled layer visibility, keyed by fabric id. Omit for internal state. */
+  visible?: Record<string, boolean>;
+  onVisibleChange?: (next: Record<string, boolean>) => void;
+}
+
+export function defaultMapPlaneVisibility(): Record<string, boolean> {
+  return Object.fromEntries(MAP_PLANE_FABRIC.map((item) => [item.id, item.defaultVisible]));
+}
+
+export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProps): JSX.Element {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<Map | null>(null);
-  const [visible, setVisible] = useState<Record<string, boolean>>(
-    Object.fromEntries(MAP_PLANE_FABRIC.map((item) => [item.id, item.defaultVisible])),
-  );
+  const [internalVisible, setInternalVisible] = useState<Record<string, boolean>>(defaultMapPlaneVisibility);
+  const controlled = props.visible !== undefined;
+  const visible = controlled ? (props.visible as Record<string, boolean>) : internalVisible;
   const [terrainEnabled, setTerrainEnabled] = useState(false);
   const [status, setStatus] = useState('Initializing MapLibre plane…');
+  const [picked, setPicked] = useState<string | null>(null);
   const requestGeneration = useRef(0);
   const visibleRef = useRef(visible);
   visibleRef.current = visible;
+
+  const setVisible = useCallback((updater: (current: Record<string, boolean>) => Record<string, boolean>): void => {
+    if (controlled) {
+      props.onVisibleChange?.(updater(visibleRef.current));
+    } else {
+      setInternalVisible(updater);
+    }
+  }, [controlled, props]);
 
   const setLayerVisibility = useCallback((map: Map, item: MapPlaneLayer, enabled: boolean): void => {
     const layerIds = [
@@ -258,6 +308,37 @@ export default function TriStateDigitalTwinMap(): JSX.Element {
         const message = event.error instanceof Error ? event.error.message : 'MapLibre source error';
         setStatus(message);
       });
+
+      // Object picking (raycast selection): click buildings, roads, parcels, quads.
+      map.on('click', (event) => {
+        const pickable = [
+          'indiana-buildings-extrusion',
+          'indiana-roads-line',
+          'indiana-parcels-fill',
+          'usgs-quad-index-line',
+          'posey-cslf-fill',
+        ].filter((id) => map.getLayer(id));
+        const features = map.queryRenderedFeatures(event.point, { layers: pickable });
+        if (features.length === 0) {
+          setPicked(null);
+          return;
+        }
+        const feature = features[0];
+        const layerId = feature.layer.id;
+        const props = feature.properties ?? {};
+        const summary = describePickedFeature(layerId, props);
+        setPicked(summary);
+      });
+      map.on('mousemove', (event) => {
+        const pickable = [
+          'indiana-buildings-extrusion',
+          'indiana-roads-line',
+          'indiana-parcels-fill',
+          'usgs-quad-index-line',
+        ].filter((id) => map.getLayer(id));
+        const features = map.queryRenderedFeatures(event.point, { layers: pickable });
+        map.getCanvas().style.cursor = features.length > 0 ? 'pointer' : '';
+      });
     });
 
     return () => {
@@ -291,6 +372,13 @@ export default function TriStateDigitalTwinMap(): JSX.Element {
     <section aria-label="TSM MapLibre twelve-layer plane" style={{ position: 'relative', height: '100%', minHeight: 560, background: '#05080f', color: '#e2e8f0' }}>
       <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
       <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: mistVisible ? 0.18 : 0, transition: 'opacity 180ms ease', background: 'radial-gradient(ellipse at 50% 45%, transparent 35%, rgba(148,163,184,.55) 100%)', mixBlendMode: 'screen' }} />
+      {picked && (
+        <div role="status" style={{ position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)', zIndex: 15, maxWidth: 'min(92%, 560px)', padding: '8px 14px', borderRadius: 10, border: '1px solid rgba(34,211,238,.4)', background: 'rgba(5,8,15,.92)', fontSize: 12, color: '#e2e8f0', backdropFilter: 'blur(8px)' }}>
+          <span style={{ color: '#22d3ee', fontWeight: 700 }}>▸ </span>{picked}
+          <button type="button" onClick={() => setPicked(null)} aria-label="Dismiss selection" style={{ marginLeft: 10, background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: 14 }}>×</button>
+        </div>
+      )}
+      {!props.hideSidebar && (
       <aside style={{ position: 'absolute', top: 12, left: 12, width: 360, maxHeight: 'calc(100% - 24px)', overflow: 'auto', padding: 14, border: '1px solid rgba(148,163,184,.25)', borderRadius: 12, background: 'rgba(5,8,15,.92)', backdropFilter: 'blur(8px)' }}>
         <strong style={{ letterSpacing: '.12em' }}>TSM // MAPLIBRE PLANE</strong>
         <div style={{ marginTop: 6, fontSize: 12, color: terrainEnabled ? '#86efac' : '#fbbf24' }}>
@@ -321,6 +409,7 @@ export default function TriStateDigitalTwinMap(): JSX.Element {
           MapLibre renders in EPSG:3857. Engineering source products may be transformed to EPSG:2966 only inside the evidence/scientific pipeline with recorded transformation metadata; the browser plane does not silently relabel Web Mercator coordinates as EPSG:2966. Vertical datum is likewise provenance metadata, not a MapLibre CRS switch.
         </div>
       </aside>
+      )}
     </section>
   );
 }
