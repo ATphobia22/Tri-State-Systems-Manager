@@ -141,11 +141,19 @@ $study=@(
   "https://pubs.usgs.gov/sir/2016/5119/downloads/depth_grids.zip",
   "https://pubs.usgs.gov/sir/2016/5119/downloads/shapefiles.zip"
 )
+$studyIds = @{
+  "sir20165119.pdf"="usgs-sir-2016-5119-report"
+  "metadata_depth_grids.pdf"="usgs-sir-2016-5119-depth-grid-metadata"
+  "metadata_shapefile.pdf"="usgs-sir-2016-5119-shapefile-metadata"
+  "00Readme.pdf"="usgs-sir-2016-5119-readme"
+  "depth_grids.zip"="usgs-sir-2016-5119-depth-grids"
+  "shapefiles.zip"="usgs-sir-2016-5119-shapefiles"
+}
 foreach($u in $study) {
   $leaf=Split-Path ([uri]$u).AbsolutePath -Leaf
-  $results += Save-Url $u ("usgs\sir20165119\"+$leaf) "usgs-sir-2016-5119" "USGS"
+  $results += Save-Url $u ("usgs\sir20165119\"+$leaf) $studyIds[$leaf] "USGS"
 }
-$results += Save-Url "https://www.fisheries.noaa.gov/inport/item/69202" "usgs-lidar\noaa-inport-69202.html" "usgs-3dep-lidar-index" "USGS"
+$results += Save-Url "https://www.fisheries.noaa.gov/inport/item/69202" "usgs-lidar\noaa-inport-69202.html" "usgs-lidar-noaa-inport-69202" "USGS"
 
 $results += Save-ArcGisWithinCounty "https://index.nationalmap.gov/arcgis/rest/services/3DEPElevationIndex/MapServer/8" "1=1" "usgs-lidar\3dep-lidar-index-posey-strict.geojson" "usgs-3dep-lidar-index" "USGS" $true
 
