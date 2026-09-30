@@ -132,11 +132,11 @@ export function getMapLibreFabricLayer(id: string): MapLibreFabricLayer {
 
 export function buildArcGisExportTemplate(endpoint: string, layerIds: readonly number[] = []): string {
   const layers = layerIds.length > 0 ? `&layers=show:${layerIds.join(',')}` : '';
-  return `${endpoint.replace(/\\/$/, '')}/export?bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=512,512&format=png32&transparent=true${layers}&f=image`;
+  return `${endpoint.replace(/\/$/, '')}/export?bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=512,512&format=png32&transparent=true${layers}&f=image`;
 }
 
 export function buildArcGisFeatureQueryUrl(endpoint: string): string {
-  const base = endpoint.replace(/\\/$/, '');
+  const base = endpoint.replace(/\/$/, '');
   const queryEndpoint = /\\/FeatureServer\\/\\d+$/.test(base) ? base : `${base}/0`;
   return `${queryEndpoint}/query?where=1%3D1&geometry={bbox-epsg-4326}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=true&outSR=4326&resultRecordCount=500&f=geojson`;
 }
