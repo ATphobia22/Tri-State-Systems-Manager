@@ -51,3 +51,17 @@ targets are public open-data endpoints.
 All images are prebuilt (`ghcr.io/firecrawl/*`, `redis:alpine`) — pull once
 on a networked machine, `docker save` to the USB image, `docker load` on
 the air-gapped host. No build step required at deploy time.
+
+## Egress / SSRF boundary
+
+The `tsm_firecrawl.py` client enforces a client-side SSRF guard (public
+http(s) targets only; redirect hops re-validated; secrets redacted from
+output; scraped content marked untrusted). That is defense-in-depth only:
+**the server performs the actual fetch**, so the primary boundary is the
+sidecar's network egress.
+
+- Never deploy this sidecar on a host/network where its egress can reach
+  internal services, cloud metadata (169.254.169.254), or the twin's own
+  control plane without an explicit egress firewall.
+- In air-gapped / USB deployments, the sidecar is optional; acquisition
+  falls back to operator-imported files.
