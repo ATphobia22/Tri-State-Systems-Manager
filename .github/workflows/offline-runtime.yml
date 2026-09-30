@@ -71,6 +71,27 @@ jobs:
         run: |
           npm run check:hec-ras-modern-runtime
           npm run test:hec-ras
+      - name: API health verification
+        working-directory: tsm-console
+        env:
+          TSM_AUTH_MODE: disabled
+          TSM_OFFLINE: '1'
+          TSM_HOST: 127.0.0.1
+          PORT: '8787'
+          CORS_ORIGIN: http://127.0.0.1:8787
+        run: |
+          node server/token-proxy.mjs > ../offline-runtime/api.log 2>&1 &
+          pid=$!
+          trap 'kill $pid 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error http://127.0.0.1:8787/health > ../offline-runtime/health.json; then
+              cat ../offline-runtime/health.json
+              exit 0
+            fi
+            sleep 1
+          done
+          cat ../offline-runtime/api.log
+          exit 1
       - name: Verify production web artifact
         run: |
           test -f tsm-console/dist/index.html
