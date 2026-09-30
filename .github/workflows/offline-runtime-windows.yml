@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   build-windows-x64:
-    runs-on: windows-2025
+    runs-on: windows-2022
     timeout-minutes: 60
     steps:
       - name: Checkout repository
@@ -169,7 +169,7 @@ jobs:
             generatedAt = (Get-Date).ToUniversalTime().ToString('o')
             commit = $env:GITHUB_SHA
             platform = 'windows-x64'
-            runner = 'windows-2025'
+            runner = 'windows-2022'
             planes = @('doctor','offline-dependencies','vite-web','node-api','health','hydraulics','tauri-native','provenance','hec-ras-boundary')
             npmCacheFiles = @(Get-ChildItem -Recurse offline-runtime/npm-cache -File).Count
             pythonWheelFiles = @(Get-ChildItem -Recurse offline-runtime/python-wheels -File).Count
