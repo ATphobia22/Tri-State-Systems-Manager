@@ -15,18 +15,25 @@
  * which converts ?/path back into the real path via history.replaceState
  * before the React Router boots.
  *
- * Usage: node scripts/generate-spa-fallback.mjs [--out dist/404.html]
+ * Usage: node scripts/generate-spa-fallback.mjs [--out dist/404.html] [--base /Tri-State-Systems-Manager/]
  */
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
-const outIdx = process.argv.indexOf('--out');
-const outArg = outIdx === -1 ? undefined : process.argv[outIdx + 1];
-const outPath = resolve(outArg || 'dist/404.html');
+const argAfter = (flag) => {
+  const idx = process.argv.indexOf(flag);
+  return idx === -1 ? undefined : process.argv[idx + 1];
+};
 
-// Project Pages site (username.github.io/repo-name/): keep 1 path segment
-// (the repo name) so only the route part is rewritten.
-const pathSegmentsToKeep = 1;
+const outPath = resolve(argAfter('--out') || 'dist/404.html');
+
+// Project Pages base path (e.g. /Tri-State-Systems-Manager/). The redirect
+// must keep every base-path segment so only the route part is rewritten:
+// pathSegmentsToKeep is derived from the base, not hardcoded.
+const rawBase = (argAfter('--base') || '/Tri-State-Systems-Manager/').trim() || '/';
+const leading = rawBase.startsWith('/') ? rawBase : `/${rawBase}`;
+const basePath = leading.endsWith('/') ? leading : `${leading}/`;
+const pathSegmentsToKeep = basePath.split('/').filter(Boolean).length;
 
 const html = `<!DOCTYPE html>
 <html>
@@ -41,6 +48,7 @@ const html = `<!DOCTYPE html>
       // to the new url with only a query string and hash fragment.
       // Note: this 404.html file must be at least 512 bytes for it to work
       // with Internet Explorer.
+      // Configured for GitHub Pages project base path: ${basePath}
       var pathSegmentsToKeep = ${pathSegmentsToKeep};
 
       var l = window.location;
