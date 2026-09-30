@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "uacp://schemas/tsm-engineering-evidence/v1",
+  "title": "TSM Engineering Evidence Payload",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["controlledSurvey","geotechnicalInvestigation","groundwaterEvidence","qualifiedFill","laboratoryResults","hydraulicBoundaryConditions","approvedProjectGeometry","evidence"],
+  "properties": {
+    "controlledSurvey": {"type":"object"},
+    "geotechnicalInvestigation": {"type":"array","minItems":1},
+    "groundwaterEvidence": {"type":"object"},
+    "qualifiedFill": {"type":"object"},
+    "laboratoryResults": {"type":"array","minItems":1},
+    "hydraulicBoundaryConditions": {"type":"object"},
+    "approvedProjectGeometry": {"type":"object"},
+    "evidence": {
+      "type":"array",
+      "items": {
+        "type":"object",
+        "required":["evidenceId","module","authority","status"],
+        "properties": {
+          "evidenceId":{"type":"string","minLength":1},
+          "module":{"enum":["controlled_survey","geotechnical_investigation","groundwater_evidence","qualified_fill","laboratory_results","hydraulic_boundary_conditions","approved_project_geometry"]},
+          "authority":{"enum":["CONTROLLED_FIELD","OFFICIAL_GOVERNMENT","AUTHORITATIVE_SCIENTIFIC","PROJECT_ENGINEERING","SECONDARY","DISCOVERY_ONLY"]},
+          "status":{"enum":["MISSING","PRESENT","VERIFIED","CONTRADICTED","REJECTED","SYNTHETIC_TEST_ONLY"]}
+        },
+        "additionalProperties": true
+      }
+    }
+  }
+}
