@@ -135,7 +135,9 @@ export default function TriStateDigitalTwinMap(): JSX.Element {
   );
   const [terrainEnabled, setTerrainEnabled] = useState(false);
   const [status, setStatus] = useState('Initializing MapLibre plane…');
-  const requestGeneration = useRef(0);\n  const visibleRef = useRef(visible);\n  visibleRef.current = visible;
+  const requestGeneration = useRef(0);
+  const visibleRef = useRef(visible);
+  visibleRef.current = visible;
 
   const setLayerVisibility = useCallback((map: Map, item: MapPlaneLayer, enabled: boolean): void => {
     const layerIds = [
@@ -200,7 +202,10 @@ export default function TriStateDigitalTwinMap(): JSX.Element {
       addRasterSource(map, 'fema-nfhl', 'https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer', '28,16,3,1,34,23', false);
       addRasterSource(map, 'indiana-bafm', 'https://gisdata.in.gov/server/rest/services/Best_Available_Flood_Hazard_Layer/MapServer', '104,438', false);
       addRasterSource(map, 'usgs-3dep-index', 'https://index.nationalmap.gov/arcgis/rest/services/3DEPElevationIndex/MapServer', undefined, false);
-      if (!map.getSource('osm-base')) {\n        map.addSource('osm-base', { type: 'raster', tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'], tileSize: 256, attribution: '© OpenStreetMap contributors' });\n        map.addLayer({ id: 'osm-base-layer', type: 'raster', source: 'osm-base', layout: { visibility: 'none' }, paint: { 'raster-opacity': 0.65 } });\n      }
+      if (!map.getSource('osm-base')) {
+        map.addSource('osm-base', { type: 'raster', tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'], tileSize: 256, attribution: '© OpenStreetMap contributors' });
+        map.addLayer({ id: 'osm-base-layer', type: 'raster', source: 'osm-base', layout: { visibility: 'none' }, paint: { 'raster-opacity': 0.65 } });
+      }
 
       for (const item of MAP_PLANE_FABRIC) {
         if (item.kind === 'arcgis-feature') addFeatureSource(map, item);
