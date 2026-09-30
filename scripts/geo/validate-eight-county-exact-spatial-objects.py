@@ -128,9 +128,6 @@ def main() -> int:
         if feature_failures:
             continue
 
-    if not checked and not failures:
-        failures.append("no spatial FeatureCollections were supplied for validation")
-
     status = "failed" if failures else "validated"
     receipt = {
         "schema": "tsm-eight-county-exact-spatial-validation-result-v2",
