@@ -47,7 +47,7 @@
     "test:geospatial-tile-fabric": "node --test tests/geospatial-tile-fabric-contract.test.mjs tests/geospatial-tile-fabric-smoke.test.mjs",
     "check:tile-health": "node scripts/geospatial/tile-health-check.mjs",
     "test:twin": "node --test tests/open-world-twin-contract.test.mjs",
-    "test:hec-ras": "node --test tests/hec-ras-contract.test.mjs",
+    "test:hec-ras": "node --test tests/hec-ras-contract.test.mjs tests/hec-ras-modern-runtime.test.mjs",
     "test:cinematic": "vitest run tests/cinematic-camera-tour.test.ts tests/cinematic-contracts.test.ts",
     "geospatial:fetch": "node scripts/geospatial/fetch-posey-assets.mjs",
     "geospatial:validate": "node scripts/geospatial/validate-raster-manifest.mjs",
@@ -79,7 +79,8 @@
     "check:spatial-runtime": "node ../scripts/geospatial/validate-spatial-runtime-manifests.mjs",
     "test:spatial-runtime": "node --test ../tests/spatial-runtime-contract.test.mjs",
     "check:openfema": "node ../scripts/ci/validate-openfema.mjs",
-    "test:openfema": "node --test tests/openfema.test.mjs tests/posey-spatial-chain.test.mjs"
+    "test:openfema": "node --test tests/openfema.test.mjs tests/posey-spatial-chain.test.mjs",
+    "check:hec-ras-modern-runtime": "node ../scripts/ci/validate-hec-ras-modern-runtime.mjs"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.0",
