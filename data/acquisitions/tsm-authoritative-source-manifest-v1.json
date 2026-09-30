@@ -134,6 +134,46 @@
       "kind": "arcgis-featureserver",
       "url": "https://gisdata.in.gov/server/rest/services/Hosted/FIRM_Flood_Hazard_Zones_2023/FeatureServer",
       "note": "IndianaMap FIRM Flood Hazard Zones 2023 (layer 1). State-hosted copy of FEMA FIRM zones \u2014 reference; the NFHL remains the insurance authority. Verified live on 2026-09-30."
+    },
+    {
+      "id": "fema-openfema-api",
+      "authority": "FEMA",
+      "authorityClass": "FEDERAL_OPEN_DATA",
+      "kind": "rest-api",
+      "url": "https://www.fema.gov/api/open/v2",
+      "note": "OpenFEMA API v2 (no key required). Verified live 2026-09-30."
+    },
+    {
+      "id": "fema-openfema-disaster-declarations",
+      "authority": "FEMA",
+      "authorityClass": "FEDERAL_OPEN_DATA",
+      "kind": "rest-api",
+      "url": "https://www.fema.gov/api/open/v2/DisasterDeclarationsSummaries",
+      "note": "Federal disaster declarations. Posey County, IN history vendored to data/fema-openfema/posey-county-disaster-declarations-v1.json (19 records). Verified live 2026-09-30."
+    },
+    {
+      "id": "fema-openfema-nfip-policies",
+      "authority": "FEMA",
+      "authorityClass": "FEDERAL_OPEN_DATA",
+      "kind": "rest-api",
+      "url": "https://www.fema.gov/api/open/v2/FimaNfipPolicies",
+      "note": "NFIP policy records (non-personal fields). Posey County sample vendored to data/fema-openfema/posey-county-nfip-policies-sample-v1.json; includes anchor community 180209. Verified live 2026-09-30."
+    },
+    {
+      "id": "fema-openfema-nfip-claims",
+      "authority": "FEMA",
+      "authorityClass": "FEDERAL_OPEN_DATA",
+      "kind": "rest-api",
+      "url": "https://www.fema.gov/api/open/v2/FimaNfipClaims",
+      "note": "NFIP claim records. Endpoint verified live 2026-09-30; query via backend/geospatial/fema/openfema_client.py."
+    },
+    {
+      "id": "fema-openfema-ihp-registrations",
+      "authority": "FEMA",
+      "authorityClass": "FEDERAL_OPEN_DATA",
+      "kind": "rest-api",
+      "url": "https://www.fema.gov/api/open/v2/IndividualsAndHouseholdsProgramValidRegistrations",
+      "note": "Individuals and Households Program valid registrations. Endpoint verified live 2026-09-30; query via backend/geospatial/fema/openfema_client.py."
     }
   ]
 }
