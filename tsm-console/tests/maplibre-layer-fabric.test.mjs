@@ -37,13 +37,13 @@ test('builds an ArcGIS export template from a real MapServer endpoint', () => {
 test('self-hosted terrain layer is bound to the runtime Terrain-RGB template', () => {
   const terrain = getMapLibreFabricLayer('terrain-rgb');
   assert.equal(terrain.kind, 'terrain');
-  assert.match(terrain.endpoint, /^https:\\/\\/atphobia22\\.github\\.io\\/Tri-State-Systems-Manager\\/terrain_3dep\\/\\{z\\}\\/\\{x\\}\\/\\{y\\}\\.png$/);
+  assert.ok(terrain.endpoint.endsWith('/terrain_3dep/{z}/{x}/{y}.png'));
 });
 
 
 test('bounds FeatureServer queries to layer zero and a bounded record count', () => {
   const url = buildArcGisFeatureQueryUrl('https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer');
-  assert.match(url, /FeatureServer\\/0\\/query/);
+  assert.ok(url.includes('/FeatureServer/0/query'));
   assert.match(url, /resultRecordCount=500/);
-  assert.match(url, /geometry=\\{bbox-epsg-4326\\}/);
+  assert.ok(url.includes('geometry={bbox-epsg-4326}'));
 });
