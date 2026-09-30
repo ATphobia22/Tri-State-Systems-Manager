@@ -28,9 +28,11 @@ Settings → Pages → Source must be **GitHub Actions**. The workflow does not 
 
 Posey County (FIPS 18129) is acquired as a **strict, dated offline snapshot**, not as a bounding-box approximation.
 
+The acquisition pipeline uses POST for ArcGIS REST queries so exact county geometry does not hit URI-length limits.
+
 The acquisition pipeline:
 
-1. resolves the exact 2025 Posey County boundary from U.S. Census TIGERweb;
+1. resolves the exact 2026 Posey County boundary from U.S. Census TIGERweb;
 2. extracts spatial ArcGIS sources with `esriSpatialRelWithin`;
 3. requires the complete FEMA / USGS / Indiana DNR / Indiana GIO / USACE source manifest;
 4. records source URL, authority, feature/byte counts, retrieval timestamp and SHA-256;
