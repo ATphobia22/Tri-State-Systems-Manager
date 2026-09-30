@@ -40,7 +40,7 @@ function Save-LidarCollection69202() {
       $leaf=[uri]::UnescapeDataString(($href -split "/")[-1])
       $dest=Join-Path $OutDir ("usgs-lidar\69202\block-$($block)\$leaf")
       New-Item -ItemType Directory -Force -Path (Split-Path -Parent $dest) | Out-Null
-      & curl.exe --fail --silent --show-error --location --retry 8 --retry-delay 5 --retry-max-time 600 --retry-all-errors --http1.1 -A "TSM-Posey-Offline-Acquisition/1.0" --output "$dest" ($dir+$href)
+      & curl.exe --fail --silent --show-error --location --retry 30 --retry-delay 10 --retry-max-time 3600 --retry-all-errors --retry-connrefused --continue-at - --connect-timeout 60 --max-time 3600 --http1.1 -A "TSM-Posey-Offline-Acquisition/1.0" --output "$dest" ($dir+$href)
       if($LASTEXITCODE -ne 0 -or (Get-Item $dest).Length -le 0){ throw "USGS lidar file download failed: $($dir+$href)" }
     }
   }
