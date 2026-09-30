@@ -70,9 +70,9 @@ jobs:
       - name: Install pinned Tauri CLI
         run: cargo install tauri-cli --version 2.11.4 --locked
       - name: Install Windows signing certificate
+        if: ${{ secrets.WINDOWS_CERTIFICATE != '' }}
         shell: pwsh
         run: |
-          if ([string]::IsNullOrWhiteSpace($env:WINDOWS_CERTIFICATE)) { throw "WINDOWS_CERTIFICATE is required." }
           New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP\tsm-cert" | Out-Null
           $encoded = "$env:RUNNER_TEMP\tsm-cert\certificate.txt"
           $pfx = "$env:RUNNER_TEMP\tsm-cert\certificate.pfx"
@@ -83,6 +83,11 @@ jobs:
           if (-not $cert) { throw "Unable to import Windows signing certificate." }
           $thumbprint = ($cert | Select-Object -First 1).Thumbprint
           "TSM_WINDOWS_CERTIFICATE_THUMBPRINT=$thumbprint" | Out-File -FilePath $env:GITHUB_ENV -Append
+      - name: Note unsigned Windows build
+        if: ${{ secrets.WINDOWS_CERTIFICATE == '' }}
+        shell: pwsh
+        run: |
+          Write-Warning "WINDOWS_CERTIFICATE secret is not set; building unsigned Windows installers."
       - run: npm ci
         working-directory: tsm-console
       - name: Ensure platform Rolldown native binding
@@ -109,8 +114,8 @@ jobs:
           releaseDraft: ${{ inputs.draft }}
           tauriScript: cargo tauri
           args: --bundles nsis,msi
-          uploadUpdaterJson: true
-          uploadUpdaterSignatures: true
+          uploadUpdaterJson: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' }}
+          uploadUpdaterSignatures: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' }}
 
   macos:
     needs: [create-release, windows]
@@ -163,8 +168,8 @@ jobs:
           releaseDraft: ${{ inputs.draft }}
           tauriScript: cargo tauri
           args: --bundles dmg --target universal-apple-darwin
-          uploadUpdaterJson: true
-          uploadUpdaterSignatures: true
+          uploadUpdaterJson: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' }}
+          uploadUpdaterSignatures: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' }}
 
   linux:
     needs: create-release

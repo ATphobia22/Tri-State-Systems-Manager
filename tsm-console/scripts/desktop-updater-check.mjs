@@ -19,11 +19,22 @@ const publicKey = String(config.plugins?.updater?.pubkey ?? "").trim();
 const releaseMode = process.env.TSM_DESKTOP_RELEASE === "1";
 
 if (releaseMode) {
-  if (config.bundle?.createUpdaterArtifacts !== true) {
-    throw new Error("Release updater artifacts must be enabled.");
-  }
-  if (!publicKey) {
-    throw new Error("Release updater public key is missing.");
+  if (publicKey) {
+    if (config.bundle?.createUpdaterArtifacts !== true) {
+      throw new Error("Release updater artifacts must be enabled.");
+    }
+  } else {
+    // Unsigned release builds are supported when no signing secrets are
+    // configured; updater artifacts must stay off so nothing claims to be
+    // signed when it is not.
+    if (config.bundle?.createUpdaterArtifacts === true) {
+      throw new Error(
+        "Unsigned release build must not enable updater artifacts."
+      );
+    }
+    console.warn(
+      "WARNING: release desktop build is UNSIGNED (no updater public key configured)."
+    );
   }
 } else if (publicKey || config.bundle?.createUpdaterArtifacts === true) {
   throw new Error(

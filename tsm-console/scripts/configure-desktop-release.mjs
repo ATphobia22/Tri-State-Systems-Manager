@@ -4,16 +4,21 @@ const path = new URL("../src-tauri/tauri.conf.json", import.meta.url);
 const config = JSON.parse(await readFile(path, "utf8"));
 
 config.bundle ??= {};
-config.bundle.createUpdaterArtifacts = true;
 
 const publicKey = process.env.TSM_UPDATER_PUBLIC_KEY?.trim();
-if (!publicKey) {
-  throw new Error("TSM_UPDATER_PUBLIC_KEY is required for a release build.");
+if (publicKey) {
+  config.bundle.createUpdaterArtifacts = true;
+  config.plugins ??= {};
+  config.plugins.updater ??= {};
+  config.plugins.updater.pubkey = publicKey;
+} else {
+  // No signing secrets configured: build an unsigned release without
+  // updater artifacts rather than failing the whole release pipeline.
+  config.bundle.createUpdaterArtifacts = false;
+  console.warn(
+    "WARNING: TSM_UPDATER_PUBLIC_KEY is not set; building UNSIGNED desktop release without updater artifacts."
+  );
 }
-
-config.plugins ??= {};
-config.plugins.updater ??= {};
-config.plugins.updater.pubkey = publicKey;
 
 if (process.env.TSM_WINDOWS_CERTIFICATE_THUMBPRINT?.trim()) {
   config.bundle.windows ??= {};
