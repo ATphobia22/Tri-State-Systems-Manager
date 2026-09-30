@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS uacf_traces (trace_id UUID PRIMARY KEY, capability_id TEXT NOT NULL, events JSONB NOT NULL DEFAULT '[]'::jsonb, provenance JSONB NOT NULL DEFAULT '[]'::jsonb, created_at TIMESTAMPTZ NOT NULL DEFAULT now());
