@@ -343,3 +343,14 @@ Before calling a release production-ready:
 ## License
 
 See [LICENSE](LICENSE). Contribution and security expectations: [SECURITY.md](SECURITY.md), [COMPLIANCE.md](COMPLIANCE.md).
+
+## Posey County offline authoritative acquisition (2026-09-30)
+
+The repository now contains a reproducible government-source acquisition path for Posey County (FIPS 18129):
+
+- scripts/posey/download-offline-authoritative-data.ps1 downloads county-scoped FEMA NFHL/FIRM data, Indiana DNR BAFL, Indiana GIO 2025 parcels and imagery/tier metadata, USACE NLD, USGS New Harmony history, the published USGS SIR 2016-5119 study package, NOAA/USGS 2017–2020 lidar metadata/EPT indexes, and the current USGS 3DEP Posey product index.
+- .github/workflows/posey-offline-data.yml packages the acquired snapshot and publishes a SHA-256-verified GitHub Actions artifact.
+- data/posey-county/offline/2026-09-30/acquisition-manifest-v1.json is the machine-readable acquisition contract.
+- data/posey-county/offline/2026-09-30/fema-effective-firm-panels-18129C.json freezes all 35 effective Posey panels and the 2014-11-05 effective date.
+
+Large raw 3DEP point-cloud and statewide imagery products are not silently copied into source control. The offline bundle freezes their official product/service indexes and exact asset endpoints; raw LAZ/raster extraction is performed from those endpoints on a networked acquisition host and hashed in the download receipt.
