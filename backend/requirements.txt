@@ -20,3 +20,4 @@ reportlab==5.0.1
 fastapi>=0.110,<1
 uvicorn>=0.29,<1
 httpx>=0.27,<1  # TestClient support for backend/tests/test_api.py
+h3>=4.0  # offline H3 hexagonal indexing for scripts/geospatial/h3_utils.py (Apache-2.0)
