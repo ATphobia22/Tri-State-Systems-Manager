@@ -92,6 +92,10 @@ const WATER_FRAGMENT_SHADER = /* glsl */ `
     col = mix(col, uFogColor, clamp(fogF, 0.0, 1.0));
 
     gl_FragColor = vec4(col, alpha);
+    // Route water through the same ACES tone-mapping + sRGB output pipeline
+    // as the terrain materials so water and terrain shade consistently.
+    #include <tonemapping_fragment>
+    #include <colorspace_fragment>
   }
 `;
 
@@ -133,7 +137,9 @@ export class WaterSurface {
         uSunColor: { value: new THREE.Color(1.0, 0.93, 0.78) },
         uTime: { value: 0 },
         uDetail: { value: opts.detailLevel ?? 1 },
-        uFogColor: { value: new THREE.Color(0.74, 0.8, 0.86) },
+        // Match scene FogExp2(0xbdcbd6): hex goes through the same sRGB->linear
+        // conversion as the scene fog, so distant water fades identically.
+        uFogColor: { value: new THREE.Color(0xbdcbd6) },
         uFogDensity: { value: 0.00012 },
       },
     });

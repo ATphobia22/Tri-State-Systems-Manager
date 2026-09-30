@@ -8,6 +8,10 @@ import { buildArcGisWmsTileTemplate, INDIANA_CURRENT_IMAGERY_WMS, USGS_3DEP_ELEV
 import { setupParcelProvenanceInspector } from '../lib/parcel-provenance';
 import { playCinematicTour } from '../lib/cinematic/camera-tour';
 
+// Anchor site (owner keep-data decision: docs/privacy/site-anchor-public-disclosure.md).
+// The /map twin opens on the property instead of the regional envelope midpoint.
+const ANCHOR: [number, number] = [-88.005075, 37.845887];
+
 /** Tri-state region constraint: Ohio–Wabash valley (IN/IL/KY). Prevents panning off the planet. */
 const TRI_STATE_MAX_BOUNDS: [[number, number], [number, number]] = [
   [-90.0, 36.0],
@@ -39,10 +43,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: buildTwinStyle(),
-      center: [
-        (data.boundingEnvelope.minLon + data.boundingEnvelope.maxLon) / 2,
-        (data.boundingEnvelope.minLat + data.boundingEnvelope.maxLat) / 2,
-      ],
+      center: ANCHOR,
       zoom: 14,
       pitch: 55,
       bearing: -15,
