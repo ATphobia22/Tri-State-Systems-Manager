@@ -37,21 +37,18 @@ function Save-ArcGisWithinCounty(
   [bool]$RequireFeature,
   [ValidateSet("esriSpatialRelWithin","esriSpatialRelIntersects")][string]$SpatialRelation = "esriSpatialRelWithin"
 ) {
+  Write-Host "Acquiring $RequiredId via $SpatialRelation from $ServiceLayerUrl"
   $all = @()
-  $offset = 0
-  $size = 1900
   $geometryJson = $script:CountyGeometry | ConvertTo-Json -Compress -Depth 100
   do {
     $r = Invoke-ArcGisQuery $ServiceLayerUrl @{
       where=$Where; geometry=$geometryJson; geometryType="esriGeometryPolygon"; inSR="4326"
       spatialRel=$SpatialRelation; outFields="*"; returnGeometry="true"; outSR="4326"
-      resultOffset=$offset; resultRecordCount=$size; f="json"
+      f="json"
     }
     $features = @($r.features)
-    $all += $features
-    $got = $features.Count
-    $offset += $got
-  } while ($got -gt 0 -and $got -eq $size)
+    $all = $features
+  } while ($false)
 
   if ($RequireFeature -and $all.Count -lt 1) {
     throw "Required spatial source returned zero features for exact Posey County spatial relation ($SpatialRelation): $RequiredId"
