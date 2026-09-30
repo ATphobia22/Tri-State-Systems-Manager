@@ -109,7 +109,7 @@
       "minimumFeatureCount": 0
     },
     {
-      "id": "indiana-gio-current-imagery-metadata",
+      "id": "indiana-gio-current-imagery-snapshot",
       "authority": "Indiana GIO",
       "required": true,
       "minimumBytes": 1
@@ -129,6 +129,42 @@
     {
       "id": "usace-nld-service-catalog",
       "authority": "USACE",
+      "required": true,
+      "minimumBytes": 1
+    },
+    {
+      "id": "usgs-lidar-69202-ept-block-1",
+      "authority": "USGS",
+      "required": true,
+      "minimumBytes": 1
+    },
+    {
+      "id": "usgs-lidar-69202-ept-block-2",
+      "authority": "USGS",
+      "required": true,
+      "minimumBytes": 1
+    },
+    {
+      "id": "usgs-lidar-69202-ept-block-3",
+      "authority": "USGS",
+      "required": true,
+      "minimumBytes": 1
+    },
+    {
+      "id": "usgs-lidar-69202-ept-block-4",
+      "authority": "USGS",
+      "required": true,
+      "minimumBytes": 1
+    },
+    {
+      "id": "usgs-lidar-69202-ept-block-5",
+      "authority": "USGS",
+      "required": true,
+      "minimumBytes": 1
+    },
+    {
+      "id": "usgs-lidar-69202-ept-block-6",
+      "authority": "USGS",
       "required": true,
       "minimumBytes": 1
     }
