@@ -292,7 +292,28 @@ Notable workflows: `ci.yml`, `deploy-pages.yml`, `offline-runtime-windows.yml`, 
 
 TSM is an engineering **decision-support and evidence** system. It does not certify a berm, road, bridge, levee, floodway analysis, survey, geotechnical report, environmental determination or regulatory filing. Construction and regulatory decisions require licensed professionals and applicable authorities.
 
+Posey County source data is **snapshot-first**: the runtime consumes dated, hashed authoritative vintages rather than requiring live agency APIs. Live observations are never implied when a frozen snapshot is being used.
+
 Live observations are **not** emergency instructions. During an active event, official emergency-management and National Weather Service guidance controls.
+
+## Posey County authoritative data model
+
+Posey County is modeled as a **dated authoritative snapshot**, not an open/closed live-data dependency.
+
+- **FEMA:** newest applicable effective NFHL/FIRM/FIS vintage.
+- **USGS:** newest available 3DEP terrain/elevation plus New Harmony hydrologic evidence.
+- **Indiana DNR:** newest published BAFL/INFIP product.
+- **Indiana GIO:** newest available parcel, imagery, and elevation-program product.
+- **USACE:** newest per-record National Levee Database evidence plus separately pinned HEC-RAS/model artifacts.
+- Every frozen product records its agency identifier, product/vintage date, retrieval time, CRS, vertical datum, model/software version, source URL, and SHA-256.
+- Retrieval date is **not** treated as the product vintage.
+- Historical products remain comparison evidence and cannot silently override a newer authoritative product.
+
+Authoritative source contract:
+`data/posey-county/authoritative-source-vintage-v1.json`
+
+Public console:
+https://atphobia22.github.io/Tri-State-Systems-Manager/
 
 ## Production-readiness highlights
 
