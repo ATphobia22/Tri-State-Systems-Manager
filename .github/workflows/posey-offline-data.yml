@@ -24,14 +24,13 @@ jobs:
         shell: pwsh
         run: .\scripts\posey\download-offline-authoritative-data.ps1
 
-      - name: Validate acquisition receipt
+      - name: Validate mandatory authoritative sources and strict county geometry
+        shell: pwsh
+        run: .\scripts\posey\verify-offline-authoritative-data.ps1
+
+      - name: Generate complete SHA-256 inventory
         shell: pwsh
         run: |
-          $receipt = "data\posey-county\offline\2026-09-30\download-receipt-v1.json"
-          if (-not (Test-Path $receipt)) { throw "Download receipt missing" }
-          $obj = Get-Content $receipt -Raw | ConvertFrom-Json
-          if ($obj.countyFips -ne "18129") { throw "Posey FIPS mismatch" }
-          if (@($obj.files).Count -lt 10) { throw "Unexpectedly small acquisition set" }
           Get-ChildItem -Recurse "data\posey-county\offline\2026-09-30" -File |
             Get-FileHash -Algorithm SHA256 |
             ConvertTo-Json -Depth 5 |

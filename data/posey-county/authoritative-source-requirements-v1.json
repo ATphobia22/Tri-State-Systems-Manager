@@ -1,0 +1,196 @@
+{
+  "schema": "tsm-posey-offline-required-sources-v1",
+  "county": {
+    "name": "Posey County",
+    "state": "Indiana",
+    "fips": "18129"
+  },
+  "geographyPolicy": {
+    "boundarySource": "US_CENSUS_TIGERWEB_2025_COUNTY_82",
+    "boundaryGEOID": "18129",
+    "spatialRelation": "esriSpatialRelWithin",
+    "rule": "Spatial extracts must be queried against the exact Posey County polygon with esriSpatialRelWithin. Intersecting-but-not-within features are excluded from strict extracts and their counts are retained in the receipt for audit."
+  },
+  "requiredSources": [
+    {
+      "id": "fema-firm-panels",
+      "authority": "FEMA",
+      "required": true,
+      "minimumFeatureCount": 1
+    },
+    {
+      "id": "fema-lomrs",
+      "authority": "FEMA",
+      "required": true,
+      "minimumFeatureCount": 0
+    },
+    {
+      "id": "fema-lomas",
+      "authority": "FEMA",
+      "required": true,
+      "minimumFeatureCount": 0
+    },
+    {
+      "id": "fema-cross-sections",
+      "authority": "FEMA",
+      "required": true,
+      "minimumFeatureCount": 0
+    },
+    {
+      "id": "fema-base-flood-elevations",
+      "authority": "FEMA",
+      "required": true,
+      "minimumFeatureCount": 0
+    },
+    {
+      "id": "fema-levees",
+      "authority": "FEMA",
+      "required": true,
+      "minimumFeatureCount": 0
+    },
+    {
+      "id": "fema-general-structures",
+      "authority": "FEMA",
+      "required": true,
+      "minimumFeatureCount": 0
+    },
+    {
+      "id": "fema-hydrologic-reaches",
+      "authority": "FEMA",
+      "required": true,
+      "minimumFeatureCount": 0
+    },
+    {
+      "id": "fema-flood-hazard-boundaries",
+      "authority": "FEMA",
+      "required": true,
+      "minimumFeatureCount": 1
+    },
+    {
+      "id": "fema-flood-hazard-zones",
+      "authority": "FEMA",
+      "required": true,
+      "minimumFeatureCount": 1
+    },
+    {
+      "id": "fema-subbasins",
+      "authority": "FEMA",
+      "required": true,
+      "minimumFeatureCount": 0
+    },
+    {
+      "id": "usgs-03378500-daily-mean-history",
+      "authority": "USGS",
+      "required": true,
+      "minimumBytes": 1
+    },
+    {
+      "id": "usgs-03378500-site-metadata",
+      "authority": "USGS",
+      "required": true,
+      "minimumBytes": 1
+    },
+    {
+      "id": "usgs-sir-2016-5119-report",
+      "authority": "USGS",
+      "required": true,
+      "minimumBytes": 1
+    },
+    {
+      "id": "usgs-sir-2016-5119-depth-grid-metadata",
+      "authority": "USGS",
+      "required": true,
+      "minimumBytes": 1
+    },
+    {
+      "id": "usgs-sir-2016-5119-shapefile-metadata",
+      "authority": "USGS",
+      "required": true,
+      "minimumBytes": 1
+    },
+    {
+      "id": "usgs-sir-2016-5119-readme",
+      "authority": "USGS",
+      "required": true,
+      "minimumBytes": 1
+    },
+    {
+      "id": "usgs-sir-2016-5119-depth-grids",
+      "authority": "USGS",
+      "required": true,
+      "minimumBytes": 1
+    },
+    {
+      "id": "usgs-sir-2016-5119-shapefiles",
+      "authority": "USGS",
+      "required": true,
+      "minimumBytes": 1
+    },
+    {
+      "id": "usgs-3dep-lidar-index",
+      "authority": "USGS",
+      "required": true,
+      "minimumFeatureCount": 1
+    },
+    {
+      "id": "usgs-lidar-noaa-inport-69202",
+      "authority": "USGS",
+      "required": true,
+      "minimumBytes": 1
+    },
+    {
+      "id": "indiana-dnr-bafm",
+      "authority": "Indiana DNR",
+      "required": true,
+      "minimumFeatureCount": 1
+    },
+    {
+      "id": "indiana-gio-parcels-2025",
+      "authority": "Indiana GIO",
+      "required": true,
+      "minimumFeatureCount": 1
+    },
+    {
+      "id": "indiana-gio-address-points-current",
+      "authority": "Indiana GIO",
+      "required": true,
+      "minimumFeatureCount": 0
+    },
+    {
+      "id": "indiana-gio-road-centerlines-2024",
+      "authority": "Indiana GIO",
+      "required": true,
+      "minimumFeatureCount": 0
+    },
+    {
+      "id": "indiana-gio-administrative-boundaries-2025",
+      "authority": "Indiana GIO",
+      "required": true,
+      "minimumFeatureCount": 0
+    },
+    {
+      "id": "indiana-gio-current-imagery-metadata",
+      "authority": "Indiana GIO",
+      "required": true,
+      "minimumBytes": 1
+    },
+    {
+      "id": "indiana-gio-ortho-tier-2025-2028",
+      "authority": "Indiana GIO",
+      "required": true,
+      "minimumFeatureCount": 1
+    },
+    {
+      "id": "usace-nld-leveed-areas",
+      "authority": "USACE",
+      "required": true,
+      "minimumFeatureCount": 0
+    },
+    {
+      "id": "usace-nld-service-catalog",
+      "authority": "USACE",
+      "required": true,
+      "minimumBytes": 1
+    }
+  ]
+}
