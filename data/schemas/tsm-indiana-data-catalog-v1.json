@@ -1,6 +1,6 @@
 {
   "title": "TSM Indiana & Federal Data Catalog — Verified Live Endpoints",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "updated": "2026-09-28",
   "principle": "Catalog surfaces authoritative sources for Evidence / Scientific / Governance / Public Visualization planes. Human authority remains final. No silent determinations. Provisional telemetry labeled as such.",
   "site_anchor": {
@@ -117,6 +117,43 @@
       }
     },
     {
+      "id": "datarescue-hifld-nfhl-areas-eastern-us",
+      "name": "Data Rescue: HIFLD Open NFHL Areas — Eastern US (archived snapshot)",
+      "url": "https://www.datalumos.org/datalumos/project/240862/version/V1/view",
+      "portal": "https://portal.datarescueproject.org/datasets/hifld-open-national-flood-hazard-layer-nfhl-areas-eastern-us/",
+      "owner": "DHS HIFLD Open, archived by Data Rescue Project / DataLumos",
+      "status": "ARCHIVE_BACKUP",
+      "use": "Frozen FEMA NFHL flood-hazard-area polygons (eastern US incl. Indiana) — offline fallback reference only if the live NFHL endpoint is unreachable. Frozen ~2025-08-26 vintage; NOT current-effective data. 24.6 GB.",
+      "notes": "Discovered via Data Rescue Project portal registry 2026-09-30. Treat as reference snapshot; never present as effective/insurance authority."
+    },
+    {
+      "id": "datarescue-hifld-base-flood-elevations",
+      "name": "Data Rescue: HIFLD Open Base Flood Elevations (archived snapshot)",
+      "url": "https://www.datalumos.org/datalumos/project/239788/version/V4/view",
+      "portal": "https://portal.datarescueproject.org/datasets/hifld-open-base-flood-elevations/",
+      "owner": "DHS HIFLD Open, archived by Data Rescue Project / DataLumos",
+      "status": "ARCHIVE_BACKUP",
+      "use": "Frozen BFE points/lines snapshot — reference only. 0.35 GB. Frozen ~2025-08-26 vintage; not current-effective data."
+    },
+    {
+      "id": "datarescue-hifld-lomas",
+      "name": "Data Rescue: HIFLD Open LOMAs (archived snapshot)",
+      "url": "https://www.datalumos.org/datalumos/project/239978/version/V1/view",
+      "portal": "https://portal.datarescueproject.org/datasets/hifld-open-lomas/",
+      "owner": "DHS HIFLD Open, archived by Data Rescue Project / DataLumos",
+      "status": "ARCHIVE_BACKUP",
+      "use": "Frozen Letters of Map Amendment points — reference only; may aid historical LOMA research around the anchor case. 0.12 GB. Frozen ~2025-08-26 vintage."
+    },
+    {
+      "id": "datarescue-hifld-firm-panels",
+      "name": "Data Rescue: HIFLD Open FIRM Panels index (archived snapshot)",
+      "url": "https://www.datalumos.org/datalumos/project/239969/version/V1/view",
+      "portal": "https://portal.datarescueproject.org/datasets/hifld-open-firm-panels/",
+      "owner": "DHS HIFLD Open, archived by Data Rescue Project / DataLumos",
+      "status": "ARCHIVE_BACKUP",
+      "use": "Frozen FIRM panel index — reference only. 0.07 GB. Frozen ~2025-08-26 vintage."
+    },
+    {
       "id": "indiana-bafm",
       "name": "Indiana Best Available Flood Hazard Layer (BAFM / BAFL)",
       "url": "https://gisdata.in.gov/server/rest/services/Best_Available_Flood_Hazard_Layer/MapServer",
@@ -152,8 +189,8 @@
     },
     {
       "id": "indiana-parcels-harvest",
-      "name": "Indiana Data Harvest Current Parcel Boundaries",
-      "url": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_Current/FeatureServer",
+      "name": "Indiana Data Harvest Parcel Boundaries 2025",
+      "url": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer",
       "related": [
         "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2022/FeatureServer",
         "https://gisdata.in.gov/server/rest/services/Hosted/Address_Points_of_Indiana_Current/FeatureServer"
@@ -161,7 +198,7 @@
       "owner": "IGIO / County assessors via Data Harvest",
       "status": "VERIFIED",
       "use": "Statewide parcel polygons for spatial queries; Posey subset via geometry filter. County-level live services preferred when available.",
-      "notes": "Current statewide harvest layer released 2024-11-13; geometry-filtered spatial queries. 2023 remains historical fallback, not the primary current layer."
+      "notes": "Statewide harvest layer released 2025-12-01 (verified live 2026-09-30); geometry-filtered spatial queries. 2023 remains historical fallback, not the primary current layer."
     },
     {
       "id": "posey-cslf",

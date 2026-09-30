@@ -9,10 +9,10 @@ const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), 'u
 
 test('Indiana data catalog is wired to authoritative source classes and contains no clinical integration', () => {
   const catalog = JSON.parse(read('../data/schemas/tsm-indiana-data-catalog-v1.json'));
-  assert.equal(catalog.version, '1.3.0');
+  assert.equal(catalog.version, '1.4.0');
   const ids = new Set(catalog.sources.map((source) => source.id));
   for (const required of ['usgs-waterdata-apis', 'noaa-nwps-api', 'fema-nfhl', 'indiana-bafm', 'usace-nld', 'usgs-tnm-access']) assert.ok(ids.has(required), `missing ${required}`);
-  assert.ok(catalog.sources.some((source) => source.url?.includes('Parcel_Boundaries_of_Indiana_Current/FeatureServer')));
+  assert.ok(catalog.sources.some((source) => source.url?.includes('Parcel_Boundaries_of_Indiana_2025/FeatureServer')));
   assert.doesNotMatch(JSON.stringify(catalog), /\bHIPAA\b|\bPHI\b|\bIRB\b|\bClinicalResearch\b/i);
 });
 
@@ -32,10 +32,10 @@ test('USGS provisional qualifier is preserved in normalized records', () => {
   assert.match(source, /provisional/);
 });
 
-test('current Indiana parcel FeatureServer is the primary parcel layer', () => {
+test('2025 Indiana parcel FeatureServer is the primary parcel layer', () => {
   const source = read('src/lib/map-layers.ts');
-  assert.match(source, /Indiana Current Parcel Boundaries/);
-  assert.match(source, /Parcel_Boundaries_of_Indiana_Current\/FeatureServer/);
+  assert.match(source, /Indiana Parcel Boundaries 2025/);
+  assert.match(source, /Parcel_Boundaries_of_Indiana_2025\/FeatureServer/);
 });
 
 test('current Indiana imagery is registered in the runtime geospatial source plane', () => {

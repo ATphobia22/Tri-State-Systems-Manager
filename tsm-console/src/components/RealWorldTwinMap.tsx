@@ -4,7 +4,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import type { MapTwinLoaderData } from '../types/loaders';
 import { buildTwinStyle, applyTwinTerrain, addFloodAuthorityLayers, applyLiveStageMetadata, addMartinHydraulicLayer, getTerrainRgbStatus } from '../lib/twin-map-style';
 import { terrainRgbBlockMessage } from '../lib/terrain-rgb-contract';
-import { buildArcGisWmsTileTemplate, INDIANA_CURRENT_IMAGERY_WMS, USGS_3DEP_ELEVATION_WMS } from '../lib/open-world-wms';
+import { buildArcGisImageServerExportTemplate, INDIANA_CURRENT_IMAGERY_WMS, USGS_3DEP_ELEVATION_WMS, USGS_3DEP_HILLSHADE_RENDERING_RULE } from '../lib/open-world-wms';
 import { setupParcelProvenanceInspector } from '../lib/parcel-provenance';
 import { playCinematicTour } from '../lib/cinematic/camera-tour';
 
@@ -61,9 +61,11 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
 
       const imagerySourceId = 'indiana-current-imagery-live';
       if (!map.getSource(imagerySourceId)) {
+        // ImageServer exportImage: the service exposes no WMSServer endpoint
+        // (verified 2026-09-30 — /WMSServer returns 404 "Invalid URL").
         map.addSource(imagerySourceId, {
           type: 'raster',
-          tiles: [buildArcGisWmsTileTemplate(INDIANA_CURRENT_IMAGERY_WMS)],
+          tiles: [buildArcGisImageServerExportTemplate(INDIANA_CURRENT_IMAGERY_WMS)],
           tileSize: 512,
           attribution: 'Indiana Geographic Information Office — Current Orthophotography (CC0)',
         });
@@ -79,9 +81,11 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
 
       const elevationSourceId = 'usgs-3dep-hillshade-live';
       if (!map.getSource(elevationSourceId)) {
+        // Server-side hillshade via the official 3DEP rendering rule
+        // (verified live 2026-09-30; allowRasterFunction=true on the service).
         map.addSource(elevationSourceId, {
           type: 'raster',
-          tiles: [buildArcGisWmsTileTemplate(USGS_3DEP_ELEVATION_WMS, '0')],
+          tiles: [buildArcGisImageServerExportTemplate(USGS_3DEP_ELEVATION_WMS, USGS_3DEP_HILLSHADE_RENDERING_RULE)],
           tileSize: 512,
           attribution: 'USGS National Map 3DEP',
         });
@@ -147,7 +151,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
       <div style={{ position: 'absolute', left: 12, top: 12, zIndex: 2, maxWidth: 520, padding: 12, borderRadius: 10, background: 'rgba(2,6,23,0.9)', color: '#e2e8f0', fontSize: 12, lineHeight: 1.5 }}>
         <strong>Real-source open-world twin</strong>
-        <div>Indiana Current Imagery: live WMS · USGS 3DEP: dynamic elevation/hillshade (visualization only)</div>
+        <div>Indiana Current Imagery: live ImageServer · USGS 3DEP: dynamic elevation/hillshade (visualization only)</div>
         <div role="status">{terrainMessage}</div>
         <div>FEMA NFHL: effective / insurance · Indiana BAFM: planning / Flood Control Act</div>
         <div>Stage: {stage == null ? 'unavailable' : `${stage.toFixed(2)} ft`} {data.stage.qualifier ? `(${data.stage.qualifier})` : ''} · {data.stage.source}</div>

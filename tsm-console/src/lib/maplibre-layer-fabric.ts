@@ -52,10 +52,10 @@ export const MAPLIBRE_FABRIC_LAYERS: readonly MapLibreFabricLayer[] = [
   },
   {
     id: 'indiana-parcels',
-    title: 'Indiana Current Parcel Boundaries',
+    title: 'Indiana Parcel Boundaries 2025',
     authorityClass: 'CONTEXT',
     kind: 'feature',
-    endpoint: 'https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_Current/FeatureServer',
+    endpoint: 'https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer',
     attribution: 'Indiana Geographic Information Office',
     defaultVisible: false,
   },
