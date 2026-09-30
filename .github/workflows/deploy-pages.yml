@@ -148,6 +148,22 @@ jobs:
           test -f dist/manifest.json
           grep -Fq '/Tri-State-Systems-Manager/' dist/index.html
           grep -Fq '/Tri-State-Systems-Manager/' dist/404.html
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = require('node:path');
+          const html = fs.readFileSync('dist/index.html', 'utf8');
+          const assets = [...html.matchAll(/(?:src|href)="([^"]+)"/g)]
+            .map(([, value]) => value)
+            .filter((value) => value.startsWith('/Tri-State-Systems-Manager/'));
+          if (!assets.length) throw new Error('No Pages-base-path assets found in index.html');
+          for (const asset of assets) {
+            const relative = asset.replace('/Tri-State-Systems-Manager/', '');
+            if (relative && !relative.includes('?') && !fs.existsSync(path.join('dist', relative))) {
+              throw new Error('Missing production asset: ' + relative);
+            }
+          }
+          console.log('Pages asset existence gate passed.');
+          NODE
           echo 'Pages artifact gate passed.'
 
       - name: Upload production artifact
