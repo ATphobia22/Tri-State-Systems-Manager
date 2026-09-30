@@ -1,5 +1,7 @@
 # Real-Time Data Operations
 
+> **RETIRED BY OWNER DECISION 2026-09-29.** Live river telemetry (NOAA NWPS / USGS Water Data API) is retired. The API now answers these routes with `410 RIVER_TELEMETRY_RETIRED` and no request reaches upstream endpoints. This document is preserved for historical reference only.
+
 **Verified architecture date:** 2026-09-12
 
 ## Runtime flow

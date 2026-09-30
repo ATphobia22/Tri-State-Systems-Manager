@@ -1,5 +1,7 @@
 # TSM Production OIDC Runbook
 
+> **RETIRED BY OWNER DECISION 2026-09-29.** Login is dropped; `TSM_AUTH_MODE` defaults to `disabled` and auth endpoints report `AUTH_DISABLED`. This runbook is preserved for historical reference only.
+
 ## Scope
 
 This runbook configures the **server-side OIDC session boundary** for a hosted TSM deployment. It does not create or store real agency credentials in the repository.

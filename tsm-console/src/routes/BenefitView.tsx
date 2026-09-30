@@ -71,11 +71,11 @@ export default function BenefitView() {
   );
 }
 
-function Metric({ label, value }: { label: string; value: number }) {
+function Metric({ label, value }: { label: string; value: number | null }) {
   return (
     <div>
       <div style={{ color: '#94a3b8', fontSize: '0.65rem' }}>{label}</div>
-      <div style={{ color: '#e2e8f0', fontWeight: 600 }}>{value}/100</div>
+      <div style={{ color: '#e2e8f0', fontWeight: 600 }}>{value === null ? '— pending governed model' : `${value}/100`}</div>
     </div>
   );
 }

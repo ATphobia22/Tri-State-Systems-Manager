@@ -2,15 +2,10 @@ import http from 'node:http';
 import { performance } from 'node:perf_hooks';
 import { randomUUID } from 'node:crypto';
 import { appendArtifact, listArtifacts, getArtifact, verifyProvenance, recordVerification, sha256Hex } from './store/evidence-store.mjs';
-import { runHydrologicBatch, ingestUsgsNode, ingestNwpsGauge } from './ingestion/workers.mjs';
-import { fetchUsgsInstantaneousValues } from './ingestion/usgs-nwis.mjs';
-import { fetchNoaaStageFlow } from './ingestion/noaa-nwps.mjs';
 import { listSourceHealth } from './ingestion/source-health.mjs';
 import { listUpstreamCircuitHealth } from './ingestion/http-client.mjs';
 import { incrementTelemetryCounter, observeTelemetryDuration, observeTelemetryMetric, observeSlo, renderPrometheusMetrics } from './telemetry/prometheus-exporter.mjs';
-import { getStaleCache, putStaleCache } from './reliability/stale-cache.mjs';
 import { listAuthoritativeSources, fetchAuthoritativeJson } from './ingestion/source-fabric.mjs';
-import { fetchRiverNetwork } from './ingestion/river-network-api.mjs';
 import { evaluatePolicies, POLICIES } from './policy/jurisdiction-engine.mjs';
 import { evaluateCompensatoryStorage, buildCompensatoryStorageCanonical } from './engineering/compensatory-storage.mjs';
 import { validateRasResultsPayload, buildRasResultsArtifact } from './engineering/ras-results.mjs';
@@ -43,10 +38,24 @@ if (ALLOWED_ORIGIN === '*') throw new Error('CORS_ORIGIN must be an exact truste
 // routes and local mutations without OIDC; auth endpoints report AUTH_DISABLED.
 // TSM_OFFLINE=1: air-gapped mode. Upstream river-data fetches are short-circuited
 // to fail-closed OFFLINE_MODE instead of attempting network access.
-const AUTH_DISABLED = String(process.env.TSM_AUTH_MODE || 'required').toLowerCase() === 'disabled';
+const AUTH_DISABLED = String(process.env.TSM_AUTH_MODE || 'disabled').toLowerCase() === 'disabled';
 const OFFLINE_MODE = ['1', 'true', 'yes'].includes(String(process.env.TSM_OFFLINE || '').toLowerCase());
 function authDisabledJson(res, requestId) {
   return json(res, 503, { ok: false, code: 'AUTH_DISABLED', note: 'Login is disabled in this deployment (TSM_AUTH_MODE=disabled).' }, requestId);
+}
+// Owner decision 2026-09-29: live river telemetry is retired. These routes fail
+// closed with 410 Gone regardless of TSM_OFFLINE; no request here may reach
+// USGS/NOAA upstream endpoints.
+const RETIRED_TELEMETRY_ROUTES = new Set([
+  '/api/hydrologic/community',
+  '/api/hydrologic/live',
+  '/api/hydrologic/alerts',
+  '/api/ingest/hydrologic',
+  '/api/ingest/usgs',
+  '/api/ingest/nwps',
+]);
+function retiredTelemetryJson(res, requestId) {
+  return json(res, 410, { ok: false, code: 'RIVER_TELEMETRY_RETIRED', note: 'Live river telemetry was retired by owner decision 2026-09-29. This route no longer reaches USGS/NOAA upstream endpoints.' }, requestId);
 }
 const RUNTIME_BROWSER_METRICS = new Set(['tsm_browser_route_load_seconds', 'tsm_browser_js_chunk_bytes', 'tsm_browser_frame_time_seconds', 'tsm_browser_tile_request_latency_seconds', 'tsm_browser_tile_requests_total', 'tsm_browser_tile_failures_total', 'tsm_browser_memory_pressure_ratio', 'tsm_browser_webgpu_available', 'tsm_browser_webgl_available']);
 const RUNTIME_METRIC_LIMIT = 32;
@@ -139,7 +148,6 @@ function readBodyFixed(req) {
   });
 }
 const healthBody = () => ({ ok: true, service: 'tsm-api', build_sha: BUILD_SHA, node: process.version, uptime_s: Math.round(process.uptime()), planes: ['EVIDENCE', 'GOVERNANCE', 'ENGINEERING', 'GEOSPATIAL', 'DATA_FABRIC'] });
-const latestRecord = (records, parameterCode = null) => records.filter((record) => parameterCode === null || record.provenance?.parameterCode === parameterCode).sort((a, b) => Date.parse(a.observedAt) - Date.parse(b.observedAt)).at(-1) || null;
 const acceptedTelemetryEvents = new Map();
 function hasTelemetryEvent(eventId) { return acceptedTelemetryEvents.has(eventId); }
 function rememberTelemetryEvent(eventId, now = Date.now()) {
@@ -153,15 +161,13 @@ const server = http.createServer(async (req, res) => {
   const requestId = req.headers['x-tsm-request-id'] || randomUUID();
   if (req.method === 'OPTIONS') return json(res, 204, {}, requestId);
   const url = new URL(req.url || '/', `http://localhost:${PORT}`);
+  if (RETIRED_TELEMETRY_ROUTES.has(url.pathname)) return retiredTelemetryJson(res, requestId);
   try {
     const protectedMutation = req.method === 'POST' && (
       url.pathname === '/api/evidence' ||
       url.pathname === '/api/evidence/verify' ||
       url.pathname === '/api/v1/engineering/compensatory-storage' ||
       url.pathname === '/api/engineering/ras-results' ||
-      url.pathname === '/api/ingest/hydrologic' ||
-      url.pathname === '/api/ingest/usgs' ||
-      url.pathname === '/api/ingest/nwps' ||
       url.pathname === '/api/ledger/append' ||
       url.pathname === '/api/autonomy/evaluate' ||
       url.pathname === '/api/hydraulic/transfer' ||
@@ -400,12 +406,6 @@ const server = http.createServer(async (req, res) => {
         return json(res, error.status || 422, { ok: false, code: error.code || 'SYSLOG_RECEIVER_FAILED', error: error.message }, requestId);
       }
     }
-    if (req.method === 'GET' && url.pathname === '/api/hydrologic/community') {
-      if (OFFLINE_MODE) return json(res, 503, { ok: false, code: 'OFFLINE_MODE', note: 'Live river observations are unavailable in air-gapped mode (TSM_OFFLINE=1).' }, requestId);
-      const stationIds = url.searchParams.getAll('station_id');
-      const network = await fetchRiverNetwork({ stationIds: stationIds.length ? stationIds : null, includeNoaa: true });
-      return json(res, 200, { ok: true, ...network, requestId }, requestId);
-    }
     if (req.method === 'GET' && url.pathname.startsWith('/api/hydro/calculate-wse/')) {
       const stageValue = Number(decodeURIComponent(url.pathname.slice('/api/hydro/calculate-wse/'.length)));
       const stationId = url.searchParams.get('station_id') || '03378500';
@@ -437,128 +437,6 @@ const server = http.createServer(async (req, res) => {
         }, requestId);
       } catch (error) {
         return json(res, error.status || 422, { ok: false, code: error.code || 'HYDRO_CALIBRATION_ERROR', error: error.message }, requestId);
-      }
-    }
-    if (req.method === 'GET' && url.pathname === '/api/hydrologic/alerts') {
-      if (OFFLINE_MODE) return json(res, 503, { ok: false, code: 'OFFLINE_MODE', note: 'Live river observations are unavailable in air-gapped mode (TSM_OFFLINE=1).' }, requestId);
-      const usgsId = url.searchParams.get('usgs_id') || '03378500';
-      const nwsId = url.searchParams.get('nws_id') || 'NHRI3';
-      const node = getHydrologicNode(usgsId);
-      const thresholds = node.flood_thresholds_ft;
-      if (!thresholds || !Number.isFinite(Number(thresholds.action))) {
-        return json(res, 503, { ok: false, code: 'HYDRO_THRESHOLDS_UNVERIFIED', error: 'Authoritative flood thresholds are not registered.' }, requestId);
-      }
-      try {
-        let stage;
-        let stageSource = 'NOAA-NWPS';
-        try {
-          const records = await fetchNoaaStageFlow({ identifier: nwsId, product: 'observed' });
-          stage = latestRecord(records);
-        } catch (noaaError) {
-          void noaaError;
-          const records = await fetchUsgsInstantaneousValues({ stationIds: [usgsId], parameterCodes: ['00065'] });
-          stage = latestRecord(records, '00065');
-          stageSource = 'USGS-NWIS';
-        }
-        if (!stage || !Number.isFinite(Number(stage.value))) throw Object.assign(new Error('no authoritative stage observation returned'), { code: 'HYDRO_NO_STAGE' });
-        const stageFt = Number(stage.value);
-        const category = stageFt >= Number(thresholds.major) ? 'major'
-          : stageFt >= Number(thresholds.moderate) ? 'moderate'
-          : stageFt >= Number(thresholds.minor) ? 'minor'
-          : stageFt >= Number(thresholds.action) ? 'action' : 'normal';
-        return json(res, 200, {
-          ok: true,
-          station_id: usgsId,
-          nws_id: nwsId,
-          stage_ft_gage_datum: stageFt,
-          category,
-          distance_to_action_ft: Number((Number(thresholds.action) - stageFt).toFixed(2)),
-          thresholds_ft: thresholds,
-          source: stageSource,
-          source_uri: stageSource === 'NOAA-NWPS' ? (node.flood_threshold_source_uri || null) : 'https://waterdata.usgs.gov/monitoring-location/USGS-03378500/',
-          observed_at: stage.observedAt,
-          notification_policy: {
-            email: 'NOT_CONFIGURED',
-            physical_actuation: 'BLOCKED',
-            human_review_required: true,
-            note: 'This endpoint evaluates an advisory condition only. It does not send email or actuate infrastructure.',
-          },
-          requestId,
-        }, requestId);
-      } catch (error) {
-        return json(res, 503, { ok: false, code: error.code || 'HYDRO_ALERT_EVALUATION_UNAVAILABLE', error: error.message }, requestId);
-      }
-    }
-    if (req.method === 'GET' && url.pathname === '/api/hydrologic/live') {
-      if (!checkRouteRateLimit(req, res, requestId)) return;
-      if (OFFLINE_MODE) return json(res, 503, { ok: false, code: 'OFFLINE_MODE', note: 'Live river observations are unavailable in air-gapped mode (TSM_OFFLINE=1).' }, requestId);
-      const usgsId = url.searchParams.get('usgs_id') || '03378500';
-      const nwsId = url.searchParams.get('nws_id') || 'NHRI3';
-      const source = url.searchParams.get('source') || 'auto';
-      const cacheKey = `hydro:${usgsId}:${nwsId}`;
-      let records;
-      let selectedSource;
-      try {
-        if (source === 'noaa') {
-          records = await fetchNoaaStageFlow({ identifier: nwsId, product: 'observed' });
-          selectedSource = 'NOAA';
-        } else if (source === 'usgs') {
-          records = await fetchUsgsInstantaneousValues({ stationIds: [usgsId], parameterCodes: ['00065', '00060'] });
-          selectedSource = 'USGS';
-        } else if (source === 'auto') {
-          try {
-            records = await fetchNoaaStageFlow({ identifier: nwsId, product: 'observed' });
-            selectedSource = 'NOAA';
-          } catch (noaaError) {
-            void noaaError;
-            records = await fetchUsgsInstantaneousValues({ stationIds: [usgsId], parameterCodes: ['00065', '00060'] });
-            selectedSource = 'USGS';
-          }
-        } else {
-          return json(res, 400, { error: 'source must be auto, noaa, or usgs' }, requestId);
-        }
-
-        const stage = selectedSource === 'USGS' ? latestRecord(records, '00065') : latestRecord(records);
-        const discharge = selectedSource === 'USGS' ? latestRecord(records, '00060') : null;
-        if (!stage) throw Object.assign(new Error('no stage observation returned'), { code: 'HYDRO_NO_STAGE' });
-        const conversion = selectedSource === 'USGS' ? calculateGaugeWseNavd88({ stationId: usgsId, stageFt: stage.value }) : { ok: false, wse_navd88_ft: null, gage_zero_navd88_ft: null, vertical_conversion_status: 'CONVERSION_BLOCKED', site_transfer_status: 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE', hydraulic_extrusion_eligibility: 'BLOCKED_UNTIL_SITE_WSE_TRANSFER_VALIDATED' };
-        const payload = {
-          ok: true,
-          ...stage,
-          source: selectedSource,
-          gaugeId: selectedSource === 'NOAA' ? nwsId : usgsId,
-          qualifier: stage.provenance?.qualifier || (stage.status === 'provisional' ? 'P' : null),
-          discharge_cfs: discharge?.value ?? null,
-          discharge_observedAt: discharge?.observedAt ?? null,
-          discharge_status: discharge?.status ?? null,
-          wse_navd88_ft: conversion.wse_navd88_ft ?? null,
-          gage_zero_navd88_ft: conversion.gage_zero_navd88_ft ?? null,
-          conversion_applied: conversion.ok === true && conversion.wse_navd88_ft != null,
-          vertical_conversion_status: conversion.vertical_conversion_status,
-          vertical_conversion_source: conversion.vertical_conversion_source || null,
-          site_transfer_status: conversion.site_transfer_status,
-          hydraulic_extrusion_eligibility: conversion.hydraulic_extrusion_eligibility,
-          freshness: { observedAt: stage.observedAt, retrievedAt: stage.retrievedAt },
-          requestId,
-        };
-        incrementTelemetryCounter('tsm_cache_requests_total', { cache: 'hydrologic_stale', result: 'miss' });
-        putStaleCache(cacheKey, payload);
-        return json(res, 200, payload, requestId);
-      } catch (error) {
-        const stale = getStaleCache(cacheKey);
-        if (stale) {
-          incrementTelemetryCounter('tsm_cache_requests_total', { cache: 'hydrologic_stale', result: 'hit' });
-          return json(res, 200, {
-            ...stale.value,
-            ok: true,
-            status: 'stale',
-            freshness: { ...stale.value.freshness, staleSince: stale.cachedAt, staleAgeMs: stale.ageMs },
-            source_status: 'UPSTREAM_UNAVAILABLE_LAST_KNOWN_GOOD',
-            requestId,
-          }, requestId);
-        }
-        incrementTelemetryCounter('tsm_cache_requests_total', { cache: 'hydrologic_stale', result: 'miss' });
-        return json(res, 503, { ok: false, status: 'unavailable', code: error?.code || 'HYDRO_SOURCE_UNAVAILABLE', sourceId: `NOAA-NWPS-${nwsId}-observed / USGS-NWIS-${usgsId}-00065`, requestId }, requestId);
       }
     }
     if (req.method === 'GET' && url.pathname === '/api/autonomy/status') return json(res, 200, autonomyStatus(), requestId);
@@ -598,9 +476,6 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'POST' && url.pathname === '/api/evidence/verify') { const body = await readBodyFixed(req); const artifact = await getArtifact(body.artifact_id); if (!artifact) return json(res, 404, { error: 'artifact not found' }, requestId); const result = verifyProvenance(artifact, body.canonical || artifact.payload); await recordVerification(body.artifact_id, result.expected, result.computed, 'api/evidence/verify'); return json(res, result.ok ? 200 : 422, result, requestId); }
     if (req.method === 'POST' && url.pathname === '/api/v1/engineering/compensatory-storage') { const body = await readBodyFixed(req); try { const result = evaluateCompensatoryStorage(body); const canonical = `TSM_ENGINE_LEAF:${buildCompensatoryStorageCanonical(body)}`; const artifact = await appendArtifact({ artifact_type: 'engineering_compensatory_storage', source_authority: 'TSM Engineering Solver', source_uri: 'internal://tsm/engineering/compensatory-storage', source_identifier: body.plan_id, retrieved_at: new Date().toISOString(), horizontal_crs: body.horizontal_crs || 'EPSG:2966', horizontal_crs_name: body.horizontal_crs_name || 'NAD83 / Indiana West (ftUS)', vertical_datum: body.vertical_datum || 'NAVD88', content_hash_sha256: String(result.evidence_artifact_hash).replace(/^sha256:/i, ''), validation_status: 'provisional', authority_class: 'MODEL_OUTPUT', derivation_class: 'DERIVED', software_version: 'tsm-engineering@0.1.0', operator_or_service_identity: 'compensatory-storage-api', governance_status: 'human_review_required', is_simulation_demo: false, human_review_status: 'pending', transformation_chain: [], payload: result, _canonical_for_verify: canonical, notes: 'Configurable storage-ratio analysis. Not a regulatory determination; verify governing permit criteria and engineering basis.' }); return json(res, 200, { ...result, evidence_artifact_id: artifact.artifact_id }, requestId); } catch (error) { return json(res, error instanceof TypeError || error instanceof RangeError ? 400 : 422, { error: error.message, code: error.code || 'ENGINEERING_VALIDATION_ERROR' }, requestId); } }
     if (req.method === 'POST' && url.pathname === '/api/engineering/ras-results') { const body = await readBodyFixed(req); try { const summary = validateRasResultsPayload(body); const artifact = await appendArtifact(buildRasResultsArtifact(summary, body)); return json(res, 201, { ok: true, plan_id: summary.plan_id, cells_accepted: summary.cell_count, content_hash_sha256: summary.content_hash_sha256, evidence_artifact_id: artifact.artifact_id, authority_class: 'MODEL_OUTPUT', governance_status: 'human_review_required', note: 'Downsampled HEC-RAS depth raster stored. Not a regulatory determination.' }, requestId); } catch (error) { return json(res, 422, { ok: false, error: error.message, code: error.code || 'RAS_RESULTS_INVALID' }, requestId); } }
-    if (req.method === 'POST' && url.pathname === '/api/ingest/hydrologic') return json(res, 200, { results: await runHydrologicBatch(), note: 'Fail-closed per node; check each result.ok' }, requestId);
-    if (req.method === 'POST' && url.pathname === '/api/ingest/usgs') { const body = await readBodyFixed(req); if (!body.usgs_id) return json(res, 400, { error: 'usgs_id required' }, requestId); return json(res, 200, await ingestUsgsNode(body.usgs_id), requestId); }
-    if (req.method === 'POST' && url.pathname === '/api/ingest/nwps') { const body = await readBodyFixed(req); if (!body.nws_id) return json(res, 400, { error: 'nws_id required' }, requestId); return json(res, 200, await ingestNwpsGauge(body.nws_id, { product: body.product }), requestId); }
     if (req.method === 'GET' && url.pathname === '/api/policies') return json(res, 200, { policies: POLICIES }, requestId);
     if (req.method === 'POST' && url.pathname === '/api/policies/evaluate') return json(res, 200, evaluatePolicies(await readBodyFixed(req)), requestId);
     if (req.method === 'POST' && url.pathname === '/api/ledger/append') {

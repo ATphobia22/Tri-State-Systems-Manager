@@ -1,5 +1,7 @@
 # Tri-State Systems Manager — Deployment and Operations
 
+> **RETIRED BY OWNER DECISION 2026-09-29.** Live river observations and the "Live River Watch" UI states described below are retired; the API answers hydrologic routes with `410 RIVER_TELEMETRY_RETIRED`. Login is disabled (`TSM_AUTH_MODE` defaults to `disabled`). This document is preserved for historical reference only.
+
 ## Production boundary
 
 TSM has two runtime planes:

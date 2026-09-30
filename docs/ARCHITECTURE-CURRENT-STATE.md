@@ -137,7 +137,7 @@ differentiated by nav label and `document.title`:
 
 - `/map` — "Hydraulic Map": 2D MapLibre map with stage/jurisdiction controls.
 - `/twin` — "Twin Canvas": full-bleed twin canvas, minimal chrome, cinematic tour host.
-- `/digital-twin` — "Twin Summary": card summary (elevations, live gauges, clearance).
+- `/digital-twin` — "Twin Summary": card summary (elevations, clearance). Live gauges retired by owner decision 2026-09-29.
   Deliberate deep link — kept out of the primary nav, reachable from the Twin
   Canvas footer.
 - `/digital-twin-v2` — "Digital Twin 3D": immersive open-world 3D twin app,
