@@ -17,3 +17,14 @@ test('engineering API is not auto-executed by the visualization plane', () => {
   assert.match(fabric, /never auto-posted by the map/);
   assert.match(fabric, /api\/engineering\/ras-results/);
 });
+
+
+test('MapLibre plane uses real registered raster endpoints and no placeholder hosts', () => {
+  const source = fs.readFileSync(new URL('../src/components/TriStateDigitalTwinMap.tsx', import.meta.url), 'utf8');
+  assert.match(source, /tile\.openstreetmap\.org/);
+  assert.match(source, /hazards\.fema\.gov\/arcgis\/rest\/services\/public\/NFHL\/MapServer/);
+  assert.match(source, /gisdata\.in\.gov\/server\/rest\/services\/Best_Available_Flood_Hazard_Layer/);
+  assert.match(source, /di-ingov\.img\.arcgis\.com\/arcgis\/rest\/services\/DynamicWebMercator\/Indiana_Current_Imagery\/ImageServer/);
+  assert.doesNotMatch(source, /example\\.(com|org|invalid)/i);
+  assert.doesNotMatch(source, /protomaps\.com\\{z\\}/i);
+});
