@@ -178,13 +178,18 @@ $results += Save-ArcGisCountyAttribute "https://gisdata.in.gov/server/rest/servi
 $results += Save-Url "https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_Current_Imagery/ImageServer?f=pjson" "indiana-gio\current-imagery-service.json" "indiana-gio-current-imagery-metadata" "Indiana GIO"
 $imageService="https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_Current_Imagery/ImageServer/exportImage"
 $xs=@();$ys=@()
-foreach($ring in $boundary.features[0].geometry.rings){foreach($pt in $ring){$xs+=[double]$pt[0];$ys+=[double]$pt[1]}}
+foreach($ring in $boundary.features[0].geometry.coordinates){foreach($pt in $ring){$xs+=[double]$pt[0];$ys+=[double]$pt[1]}}
 $bbox="{0},{1},{2},{3}" -f (($xs|Measure-Object -Minimum).Minimum),(($ys|Measure-Object -Minimum).Minimum),(($xs|Measure-Object -Maximum).Maximum),(($ys|Measure-Object -Maximum).Maximum)
 $imagePath=Join-Path $OutDir "indiana-gio\current-imagery-posey.tif"
 $clipGeometry=$script:CountyGeometry|ConvertTo-Json -Compress -Depth 100
+$body=@{
+  bbox=$bbox; bboxSR="4326"; imageSR="4326"; size="8000,8000"; format="tiff"; pixelType="U8"
+  interpolation="RSP_Bilinear"; clip="true"; clippingGeometry=$clipGeometry
+  clippingGeometryType="esriGeometryPolygon"; f="image"
+}
 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $imagePath)|Out-Null
-& curl.exe --fail --silent --show-error --location --retry 6 --retry-delay 5 --retry-all-errors --http1.1 -A "TSM-Posey-Offline-Acquisition/1.0" -X POST --data-urlencode "bbox=$bbox" --data-urlencode "bboxSR=4326" --data-urlencode "imageSR=4326" --data-urlencode "size=8000,8000" --data-urlencode "format=tiff" --data-urlencode "pixelType=U8" --data-urlencode "clip=true" --data-urlencode "clippingGeometry=$clipGeometry" --data-urlencode "clippingGeometryType=esriGeometryPolygon" --data-urlencode "f=image" --output "$imagePath" "$imageService"
-if($LASTEXITCODE -ne 0 -or (Get-Item $imagePath).Length -le 0){throw "Indiana current imagery county-clipped export failed"}
+Invoke-WebRequest -Uri $imageService -Method Post -Body $body -OutFile $imagePath -TimeoutSec 600
+if((Get-Item $imagePath).Length -le 0){throw "Indiana current imagery county-clipped export failed"}
 $results += [pscustomobject]@{id="indiana-gio-current-imagery-snapshot";authority="Indiana GIO";path="indiana-gio\current-imagery-posey.tif";url=$imageService;sha256=(Get-FileHash $imagePath -Algorithm SHA256).Hash.ToLowerInvariant();bytes=(Get-Item $imagePath).Length;featureCount=$null;spatialRelation="exact-county-clip";status="acquired"}
 $results += Save-ArcGisWithinCounty "https://gisdata.in.gov/server/rest/services/Hosted/Orthoimagery_Tier_Map_2025_2028/FeatureServer/10" "1=1" "indiana-gio\posey-ortho-tier-2025-2028-strict.geojson" "indiana-gio-ortho-tier-2025-2028" "Indiana GIO" $true "esriSpatialRelIntersects"
 
