@@ -154,7 +154,7 @@ $boundarySourcePath="data\posey-county\boundaries\posey-county.geojson"
 if(-not (Test-Path $boundarySourcePath)){ throw "Missing committed exact Posey County boundary: $boundarySourcePath" }
 $boundary=Get-Content $boundarySourcePath -Raw | ConvertFrom-Json
 if(@($boundary.features).Count -ne 1 -or $boundary.features[0].properties.GEOID -ne $CountyGEOID){ throw "Committed Posey boundary is not exactly GEOID 18129" }
-$script:CountyGeometry=[ordered]@{rings=@($boundary.features[0].geometry.coordinates[0])}
+$script:CountyGeometry=[ordered]@{rings=@($boundary.features[0].geometry.coordinates[0]);spatialReference=[ordered]@{wkid=4326}}
 $boundaryPath=Join-Path $OutDir "boundary\posey-county-exact-tigerline.geojson"
 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $boundaryPath)|Out-Null
 $boundary|ConvertTo-Json -Depth 100|Set-Content $boundaryPath -Encoding utf8
