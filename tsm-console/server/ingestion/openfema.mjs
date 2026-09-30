@@ -53,7 +53,7 @@ export async function queryOpenFema(entity, options = {}) {
   assertEntity(entity);
   if (!Number.isInteger(top) || top < 1 || top > 10000) throw new RangeError('$top must be 1..10000');
   if (!Number.isInteger(skip) || skip < 0) throw new RangeError('$skip must be >= 0');
-  if (!['json', 'jsona', 'jsonl', 'geojson', 'csv', 'parquet'].includes(format)) throw new TypeError('unsupported OpenFEMA format');
+  if (format !== 'json') throw new TypeError('TSM runtime OpenFEMA adapter currently requires $format=json; bulk non-JSON formats must use a dedicated download worker');
   const url = buildOpenFemaUrl(entity, {
     '$filter': filter, '$select': select, '$orderby': orderby, '$top': top, '$skip': skip,
     '$format': format, '$count': count ? 'true' : 'false', '$metadata': metadata ? 'true' : 'false',
@@ -89,9 +89,11 @@ export async function pageOpenFema(entity, options = {}) {
 }
 
 export async function getOpenFemaRecord(entity, id, options = {}) {
-  const url = buildOpenFemaUrl(entity, options, id);
-  const payload = await (options.request ?? requestJson)(url, {
-    signal: options.signal, sourceId: 'FEMA-OpenFEMA-' + entity, timeoutMs: 20000, maxBytes: 2000000,
+  const { signal, request = requestJson, '$format': format = 'json', '$metadata': metadata = true } = options;
+  if (format !== 'json') throw new TypeError('TSM runtime OpenFEMA record adapter requires $format=json');
+  const url = buildOpenFemaUrl(entity, { '$format': format, '$metadata': metadata }, id);
+  const payload = await request(url, {
+    signal, sourceId: 'FEMA-OpenFEMA-' + entity, timeoutMs: 20000, maxBytes: 2000000,
   });
   return Object.freeze({ entity, id: String(id), payload, sourceUri: url, retrievedAt: new Date().toISOString() });
 }
