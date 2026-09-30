@@ -196,7 +196,51 @@ $results += Save-ArcGisCountyAttribute "https://gisdata.in.gov/server/rest/servi
 $results += Save-ArcGisCountyAttribute "https://geospatial.sec.usace.army.mil/dls/rest/services/NLD/Public/FeatureServer/16" "(STATES LIKE '%Indiana%') AND (COUNTIES LIKE '%Posey%')" "usace-nld\leveed-areas-posey.json" "usace-nld-leveed-areas" "USACE" $false
 $results += Save-Url "https://levees.sec.usace.army.mil/data-services/services/" "usace-nld\service-catalog.html" "usace-nld-service-catalog" "USACE"
 
-$results += Save-Url "https://waterservices.usgs.gov/nwis/dv/?format=rdb&sites=03378500&startDT=1900-01-01&endDT=2026-09-30&statCd=00003" "usgs\03378500-daily-mean-history.rdb" "usgs-03378500-daily-mean-history" "USGS"
+function Save-UsgsDailyMeanHistory() {
+  $finalPath = Join-Path $OutDir "usgs\03378500-daily-mean-history.rdb"
+  $tempDir = Join-Path $OutDir "usgs\daily-mean-chunks"
+  New-Item -ItemType Directory -Force -Path $tempDir | Out-Null
+  if (Test-Path $finalPath) { Remove-Item -Force $finalPath }
+
+  $start = [datetime]::ParseExact("1900-01-01", "yyyy-MM-dd", $null)
+  $end = [datetime]::ParseExact("2026-09-30", "yyyy-MM-dd", $null)
+  $first = $true
+  while ($start -le $end) {
+    $chunkEnd = $start.AddYears(5).AddDays(-1)
+    if ($chunkEnd -gt $end) { $chunkEnd = $end }
+    $startText = $start.ToString("yyyy-MM-dd")
+    $endText = $chunkEnd.ToString("yyyy-MM-dd")
+    $chunkPath = Join-Path $tempDir ("daily-mean-$($start.ToString('yyyyMMdd'))-$($chunkEnd.ToString('yyyyMMdd')).rdb")
+    $url = "https://waterservices.usgs.gov/nwis/dv/?format=rdb&sites=03378500&startDT=$startText&endDT=$endText&statCd=00003"
+    Write-Host "Acquiring USGS daily mean chunk $startText through $endText"
+    & curl.exe --fail --silent --show-error --location --retry 12 --retry-delay 5 --retry-max-time 300 --retry-all-errors --http1.1 -A "TSM-Posey-Offline-Acquisition/1.0" --output "$chunkPath" "$url"
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path $chunkPath) -or (Get-Item $chunkPath).Length -le 0) {
+      throw "USGS daily mean chunk download failed: $startText through $endText"
+    }
+
+    if ($first) {
+      Copy-Item -Force $chunkPath $finalPath
+      $first = $false
+    } else {
+      Get-Content $chunkPath | Where-Object {
+        $_ -notmatch '^#' -and
+        $_ -notmatch '^agency_cd\s+site_no\s+datetime'
+      } | Add-Content $finalPath -Encoding utf8
+    }
+    $start = $chunkEnd.AddDays(1)
+  }
+
+  $item = Get-Item $finalPath
+  if ($item.Length -le 0) { throw "USGS daily mean history is empty" }
+  [pscustomobject]@{
+    id="usgs-03378500-daily-mean-history"; authority="USGS"; path="usgs\03378500-daily-mean-history.rdb"
+    url="https://waterservices.usgs.gov/nwis/dv/?format=rdb&sites=03378500&statCd=00003"
+    sha256=(Get-FileHash $finalPath -Algorithm SHA256).Hash.ToLowerInvariant()
+    bytes=$item.Length; featureCount=$null; spatialRelation="history"; status="acquired"
+  }
+}
+
+$results += Save-UsgsDailyMeanHistory()
 $results += Save-Url "https://waterservices.usgs.gov/nwis/site/?format=rdb&sites=03378500&siteOutput=expanded" "usgs\03378500-site-metadata.rdb" "usgs-03378500-site-metadata" "USGS"
 $study=@(
   "https://pubs.usgs.gov/sir/2016/5119/sir20165119.pdf",
