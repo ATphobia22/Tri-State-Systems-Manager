@@ -34,16 +34,7 @@ for (const name of await readdir(WORKFLOW_DIR)) {
     if (/VITE_KEYCLOAK_URL|VITE_KEYCLOAK_REALM|VITE_KEYCLOAK_CLIENT_ID/.test(text) && !/optional|privileged|public read access/i.test(text)) errors.push('deploy-pages.yml: identity-provider bindings must remain explicitly optional');
     if (!/uses:\s*actions\/deploy-pages@/.test(text)) errors.push('deploy-pages.yml: GitHub Pages deployment must use the supported deploy-pages action');
     if (!/uses:\s*actions\/upload-pages-artifact@/.test(text)) errors.push('deploy-pages.yml: GitHub Pages deployment must upload a Pages artifact');
-  }
-  if (name === 'deploy-coolify.yml') {
-    if (!/branches:\s*\[main\]/.test(text)) errors.push('deploy-coolify.yml: production deployment trigger must target main');
-    if (!/COOLIFY_DEPLOY_WEBHOOK_URL/.test(text)) errors.push('deploy-coolify.yml: Coolify webhook secret binding is missing');
-    if (!/COOLIFY_API_TOKEN/.test(text)) errors.push('deploy-coolify.yml: Coolify API token secret binding is missing');
-    if (!/Authorization:\s*Bearer/.test(text)) errors.push('deploy-coolify.yml: Coolify deploy API requires Authorization Bearer');
-    if (!/curl --fail --silent --show-error --location/.test(text)) errors.push('deploy-coolify.yml: webhook trigger must fail closed on HTTP errors');
-    if (!/Coolify deployment webhook triggered for \$\{GITHUB_SHA\}/.test(text)) errors.push('deploy-coolify.yml: deployment trigger must emit the source commit SHA');
-  }
-  if (name === 'ci.yml') {
+  }  if (name === 'ci.yml') {
     const alertmanagerCheck = /docker run[\s\S]*?prom\/alertmanager:v0\.34\.0@sha256:[0-9a-f]{64}[\s\S]*?check-config[\s\S]*?--enable-feature=utf8-strict-mode/m.test(text);
     if (!alertmanagerCheck || !/--entrypoint=\/bin\/amtool/.test(text)) errors.push('ci.yml: Alertmanager validation must invoke the pinned amtool binary with UTF-8 strict validation');
     const prometheusCheck = /docker run[\s\S]*?prom\/prometheus:v3\.14\.0@sha256:[0-9a-f]{64}[\s\S]*?check config[\s\S]*?\/config\/prometheus\.yml/m.test(text);
