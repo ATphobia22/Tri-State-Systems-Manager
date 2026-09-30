@@ -70,12 +70,22 @@ jobs:
       - name: Install pinned Tauri CLI
         run: cargo install tauri-cli --version 2.11.4 --locked
       - name: Install Windows signing certificate (optional)
+        id: codesign-cert
         shell: pwsh
         run: |
           if ([string]::IsNullOrWhiteSpace($env:WINDOWS_CERTIFICATE)) {
-            Write-Warning "WINDOWS_CERTIFICATE secret is not set; building unsigned Windows installers."
+            Write-Warning "WINDOWS_CERTIFICATE secret is not set; generating an ephemeral self-signed code-signing certificate for this build only."
+            Write-Warning "This signature proves the installer is unmodified since the build, but it is NOT publicly trusted (SmartScreen will still warn)."
+            $cert = New-SelfSignedCertificate -Type CodeSigningCert -Subject "CN=TSM Ephemeral Build Signer" `
+              -CertStoreLocation Cert:\CurrentUser\My -NotAfter (Get-Date).AddDays(7) `
+              -TextExtension "2.5.29.37={text}1.3.6.1.5.5.7.3.3" -KeyUsage DigitalSignature
+            Export-Certificate -Cert $cert -FilePath "$env:RUNNER_TEMP\tsm-ephemeral-codesign.cer" | Out-Null
+            "TSM_WINDOWS_CERTIFICATE_THUMBPRINT=$($cert.Thumbprint)" | Out-File -FilePath $env:GITHUB_ENV -Append
+            "TSM_EPHEMERAL_CODESIGN_CER=$env:RUNNER_TEMP\tsm-ephemeral-codesign.cer" | Out-File -FilePath $env:GITHUB_ENV -Append
+            "ephemeral=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
             exit 0
           }
+          "ephemeral=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           New-Item -ItemType Directory -Force -Path "$env:RUNNER_TEMP\tsm-cert" | Out-Null
           $encoded = "$env:RUNNER_TEMP\tsm-cert\certificate.txt"
           $pfx = "$env:RUNNER_TEMP\tsm-cert\certificate.pfx"
@@ -114,6 +124,15 @@ jobs:
           args: --bundles nsis,msi
           uploadUpdaterJson: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' }}
           uploadUpdaterSignatures: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' }}
+      - name: Upload ephemeral code-signing certificate
+        if: steps.codesign-cert.outputs.ephemeral == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          Copy-Item $env:TSM_EPHEMERAL_CODESIGN_CER "tsm-ephemeral-codesign.cer"
+          gh release upload "$TAG" "tsm-ephemeral-codesign.cer" --clobber
+          Remove-Item "tsm-ephemeral-codesign.cer"
 
   macos:
     needs: [create-release, windows]
