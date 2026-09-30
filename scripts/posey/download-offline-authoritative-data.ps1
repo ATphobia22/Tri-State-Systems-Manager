@@ -34,7 +34,8 @@ function Save-ArcGisWithinCounty(
   [string]$Name,
   [string]$RequiredId,
   [string]$Authority,
-  [bool]$RequireFeature
+  [bool]$RequireFeature,
+  [ValidateSet("esriSpatialRelWithin","esriSpatialRelIntersects")][string]$SpatialRelation = "esriSpatialRelWithin"
 ) {
   $all = @()
   $offset = 0
@@ -43,7 +44,7 @@ function Save-ArcGisWithinCounty(
   do {
     $r = Invoke-ArcGisQuery $ServiceLayerUrl @{
       where=$Where; geometry=$geometryJson; geometryType="esriGeometryPolygon"; inSR="4326"
-      spatialRel="esriSpatialRelWithin"; outFields="*"; returnGeometry="true"; outSR="4326"
+      spatialRel=$SpatialRelation; outFields="*"; returnGeometry="true"; outSR="4326"
       resultOffset=$offset; resultRecordCount=$size; f="json"
     }
     $features = @($r.features)
@@ -53,7 +54,7 @@ function Save-ArcGisWithinCounty(
   } while ($got -gt 0 -and $got -eq $size)
 
   if ($RequireFeature -and $all.Count -lt 1) {
-    throw "Required spatial source returned zero strictly-within-Posey features: $RequiredId"
+    throw "Required spatial source returned zero features for exact Posey County spatial relation ($SpatialRelation): $RequiredId"
   }
 
   $path = Join-Path $OutDir $Name
@@ -64,7 +65,7 @@ function Save-ArcGisWithinCounty(
     countyFips=$CountyFips
     boundarySource=$CountyBoundaryUrl
     boundaryGEOID=$CountyGEOID
-    spatialRelation="esriSpatialRelWithin"
+    spatialRelation=$SpatialRelation
     retrievedAt=(Get-Date).ToUniversalTime().ToString("o")
     features=$all
   }
@@ -112,28 +113,28 @@ $results += [pscustomobject]@{
 }
 
 $fema="https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer"
-$results += Save-ArcGisWithinCounty "$fema/3" "DFIRM_ID='$($CountyFips)C'" "fema\effective-firm-panels-18129C-within.json" "fema-firm-panels" "FEMA" $true
-$results += Save-ArcGisWithinCounty "$fema/1" "1=1" "fema\lomrs-within.json" "fema-lomrs" "FEMA" $false
-$results += Save-ArcGisWithinCounty "$fema/2" "1=1" "fema\lomas-within.json" "fema-lomas" "FEMA" $false
-$results += Save-ArcGisWithinCounty "$fema/14" "1=1" "fema\cross-sections-within.json" "fema-cross-sections" "FEMA" $false
-$results += Save-ArcGisWithinCounty "$fema/16" "1=1" "fema\base-flood-elevations-within.json" "fema-base-flood-elevations" "FEMA" $false
-$results += Save-ArcGisWithinCounty "$fema/23" "1=1" "fema\levees-within.json" "fema-levees" "FEMA" $false
-$results += Save-ArcGisWithinCounty "$fema/24" "1=1" "fema\general-structures-within.json" "fema-general-structures" "FEMA" $false
-$results += Save-ArcGisWithinCounty "$fema/26" "1=1" "fema\hydrologic-reaches-within.json" "fema-hydrologic-reaches" "FEMA" $false
-$results += Save-ArcGisWithinCounty "$fema/27" "1=1" "fema\flood-hazard-boundaries-within.json" "fema-flood-hazard-boundaries" "FEMA" $true
-$results += Save-ArcGisWithinCounty "$fema/28" "1=1" "fema\flood-hazard-zones-within.json" "fema-flood-hazard-zones" "FEMA" $true
-$results += Save-ArcGisWithinCounty "$fema/31" "1=1" "fema\subbasins-within.json" "fema-subbasins" "FEMA" $false
+$results += Save-ArcGisWithinCounty "$fema/3" "DFIRM_ID='$($CountyFips)C'" "fema\effective-firm-panels-18129C-within.json" "fema-firm-panels" "FEMA" $true "esriSpatialRelIntersects"
+$results += Save-ArcGisWithinCounty "$fema/1" "1=1" "fema\lomrs-within.json" "fema-lomrs" "FEMA" $false "esriSpatialRelIntersects"
+$results += Save-ArcGisWithinCounty "$fema/2" "1=1" "fema\lomas-within.json" "fema-lomas" "FEMA" $false "esriSpatialRelIntersects"
+$results += Save-ArcGisWithinCounty "$fema/14" "1=1" "fema\cross-sections-within.json" "fema-cross-sections" "FEMA" $false "esriSpatialRelIntersects"
+$results += Save-ArcGisWithinCounty "$fema/16" "1=1" "fema\base-flood-elevations-within.json" "fema-base-flood-elevations" "FEMA" $false "esriSpatialRelIntersects"
+$results += Save-ArcGisWithinCounty "$fema/23" "1=1" "fema\levees-within.json" "fema-levees" "FEMA" $false "esriSpatialRelIntersects"
+$results += Save-ArcGisWithinCounty "$fema/24" "1=1" "fema\general-structures-within.json" "fema-general-structures" "FEMA" $false "esriSpatialRelIntersects"
+$results += Save-ArcGisWithinCounty "$fema/26" "1=1" "fema\hydrologic-reaches-within.json" "fema-hydrologic-reaches" "FEMA" $false "esriSpatialRelIntersects"
+$results += Save-ArcGisWithinCounty "$fema/27" "1=1" "fema\flood-hazard-boundaries-within.json" "fema-flood-hazard-boundaries" "FEMA" $true "esriSpatialRelIntersects"
+$results += Save-ArcGisWithinCounty "$fema/28" "1=1" "fema\flood-hazard-zones-within.json" "fema-flood-hazard-zones" "FEMA" $true "esriSpatialRelIntersects"
+$results += Save-ArcGisWithinCounty "$fema/31" "1=1" "fema\subbasins-within.json" "fema-subbasins" "FEMA" $false "esriSpatialRelIntersects"
 
-$results += Save-ArcGisWithinCounty "https://gisdata.in.gov/server/rest/services/Best_Available_Flood_Hazard_Layer/MapServer/438" "1=1" "indiana-dnr\bafm-posey-strict.geojson" "indiana-dnr-bafm" "Indiana DNR" $true
+$results += Save-ArcGisWithinCounty "https://gisdata.in.gov/server/rest/services/Best_Available_Flood_Hazard_Layer/MapServer/438" "1=1" "indiana-dnr\bafm-posey-strict.geojson" "indiana-dnr-bafm" "Indiana DNR" $true "esriSpatialRelIntersects"
 
 $results += Save-ArcGisWithinCounty "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer/0" "county_fips='$CountyFips'" "indiana-gio\parcel-boundaries-2025-posey-strict.json" "indiana-gio-parcels-2025" "Indiana GIO" $true
 $results += Save-ArcGisWithinCounty "https://gisdata.in.gov/server/rest/services/Hosted/Address_Points_of_Indiana_2025/FeatureServer/0" "county_fips='$CountyFips'" "indiana-gio\address-points-2025-posey-strict.json" "indiana-gio-address-points-2025" "Indiana GIO" $false
 $results += Save-ArcGisWithinCounty "https://gisdata.in.gov/server/rest/services/Hosted/Road_Centerlines_of_Indiana_2025/FeatureServer/0" "county_fips='$CountyFips'" "indiana-gio\road-centerlines-2025-posey-strict.json" "indiana-gio-road-centerlines-2025" "Indiana GIO" $false
 $results += Save-ArcGisWithinCounty "https://gisdata.in.gov/server/rest/services/Hosted/Administrative_Boundaries_of_Indiana_2025/FeatureServer/3" "1=1" "indiana-gio\administrative-boundaries-county-commissioner-posey-strict.json" "indiana-gio-administrative-boundaries-2025" "Indiana GIO" $false
 $results += Save-Url "https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_Current_Imagery/ImageServer?f=pjson" "indiana-gio\current-imagery-service.json" "indiana-gio-current-imagery-metadata" "Indiana GIO"
-$results += Save-ArcGisWithinCounty "https://gisdata.in.gov/server/rest/services/Hosted/Orthoimagery_Tier_Map_2025_2028/FeatureServer/10" "1=1" "indiana-gio\posey-ortho-tier-2025-2028-strict.geojson" "indiana-gio-ortho-tier-2025-2028" "Indiana GIO" $true
+$results += Save-ArcGisWithinCounty "https://gisdata.in.gov/server/rest/services/Hosted/Orthoimagery_Tier_Map_2025_2028/FeatureServer/10" "1=1" "indiana-gio\posey-ortho-tier-2025-2028-strict.geojson" "indiana-gio-ortho-tier-2025-2028" "Indiana GIO" $true "esriSpatialRelIntersects"
 
-$results += Save-ArcGisWithinCounty "https://geospatial.sec.usace.army.mil/dls/rest/services/NLD/Public/FeatureServer/16" "1=1" "usace-nld\leveed-areas-posey-strict.geojson" "usace-nld-leveed-areas" "USACE" $false
+$results += Save-ArcGisWithinCounty "https://geospatial.sec.usace.army.mil/dls/rest/services/NLD/Public/FeatureServer/16" "1=1" "usace-nld\leveed-areas-posey-strict.geojson" "usace-nld-leveed-areas" "USACE" $false "esriSpatialRelIntersects"
 $results += Save-Url "https://levees.sec.usace.army.mil/data-services/services/" "usace-nld\service-catalog.html" "usace-nld-service-catalog" "USACE"
 
 $results += Save-Url "https://waterservices.usgs.gov/nwis/dv/?format=rdb&sites=03378500&startDT=1900-01-01&endDT=2026-09-30&statCd=00003" "usgs\03378500-daily-mean-history.rdb" "usgs-03378500-daily-mean-history" "USGS"
@@ -160,7 +161,7 @@ foreach($u in $study) {
 }
 $results += Save-Url "https://www.fisheries.noaa.gov/inport/item/69202" "usgs-lidar\noaa-inport-69202.html" "usgs-lidar-noaa-inport-69202" "USGS"
 
-$results += Save-ArcGisWithinCounty "https://index.nationalmap.gov/arcgis/rest/services/3DEPElevationIndex/MapServer/8" "1=1" "usgs-lidar\3dep-lidar-index-posey-strict.geojson" "usgs-3dep-lidar-index" "USGS" $true
+$results += Save-ArcGisWithinCounty "https://index.nationalmap.gov/arcgis/rest/services/3DEPElevationIndex/MapServer/8" "1=1" "usgs-lidar\3dep-lidar-index-posey-strict.geojson" "usgs-3dep-lidar-index" "USGS" $true "esriSpatialRelIntersects"
 
 $manifest=[ordered]@{
   schema="tsm-posey-offline-download-receipt-v2"

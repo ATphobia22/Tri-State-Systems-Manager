@@ -8,8 +8,8 @@
   "geographyPolicy": {
     "boundarySource": "US_CENSUS_TIGERWEB_CURRENT_2026_COUNTY_82",
     "boundaryGEOID": "18129",
-    "spatialRelation": "esriSpatialRelWithin",
-    "rule": "Spatial extracts must be queried against the exact Posey County polygon with esriSpatialRelWithin. Intersecting-but-not-within features are excluded from strict extracts and their counts are retained in the receipt for audit."
+    "spatialRelation": "esriSpatialRelWithin|esriSpatialRelIntersects",
+    "rule": "All spatial extracts are filtered against the exact Posey County polygon. Coverage-sheet and footprint products use esriSpatialRelIntersects because the source feature can legitimately span a county boundary; parcel/address/road products use esriSpatialRelWithin. No bounding-box-only extraction is accepted."
   },
   "requiredSources": [
     {

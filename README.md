@@ -33,7 +33,7 @@ The acquisition pipeline uses POST for ArcGIS REST queries so exact county geome
 The acquisition pipeline:
 
 1. resolves the exact 2026 Posey County boundary from U.S. Census TIGERweb;
-2. extracts spatial ArcGIS sources with `esriSpatialRelWithin`;
+2. filters spatial ArcGIS sources against the exact county polygon: `esriSpatialRelWithin` for county-contained framework features and `esriSpatialRelIntersects` for legitimate cross-boundary coverage/footprint products;
 3. requires the complete FEMA / USGS / Indiana DNR / Indiana GIO / USACE source manifest;
 4. records source URL, authority, feature/byte counts, retrieval timestamp and SHA-256;
 5. validates every required artifact and its hash before packaging; and
