@@ -237,9 +237,9 @@ export default function TriStateDigitalTwinMap(): JSX.Element {
       setLayerVisibility(map, item, Boolean(visible[item.id]));
     }
     const terrain = getTerrainRgbStatus();
-    if (terrain.enabled && !map.getTerrain()) {
+    if (terrain.enabled && visible['indiana-terrain-rgb'] && !map.getTerrain()) {
       map.setTerrain({ source: TERRAIN_RGB_SOURCE_ID, exaggeration: 1 });
-    } else if (!terrain.enabled && map.getTerrain()) {
+    } else if ((!terrain.enabled || !visible['indiana-terrain-rgb']) && map.getTerrain()) {
       map.setTerrain(null);
     }
     setTerrainEnabled(terrain.enabled);
@@ -265,7 +265,7 @@ export default function TriStateDigitalTwinMap(): JSX.Element {
                 <input
                   type="checkbox"
                   checked={terrainItem ? terrain.enabled && checked : checked}
-                  disabled={terrainItem && !terrain.enabled}
+                  disabled={terrainItem ? !terrain.enabled : item.kind === 'api'}
                   onChange={(event) => setVisible((current) => ({ ...current, [item.id]: event.target.checked }))}
                 />
                 <span>
