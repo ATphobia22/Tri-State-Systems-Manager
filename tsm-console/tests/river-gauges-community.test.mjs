@@ -21,10 +21,13 @@ test('runtime gauge client preserves provenance and fails closed', () => {
   assert.match(source, /isFresh\(observedAt, nowMs, maxAgeMs\) \? 'current' : 'stale'/);
 });
 
-test('elder-friendly board clearly separates observations from predictions', () => {
-  assert.match(board, /Real-time government observations/);
-  assert.match(board, /not predictions/);
-  assert.match(board, /STALE/);
-  assert.match(board, /SOURCE UNAVAILABLE/);
+test('retired board states the retirement honestly and polls nothing', () => {
+  // Live river data dropped by owner decision 2026-09-29: the board is a
+  // static retirement notice, not a live observation panel.
+  assert.match(board, /retired/);
+  assert.match(board, /No gauges are polled/);
+  assert.match(board, /nothing is\s*\n?\s*fabricated/);
   assert.match(board, /aria-labelledby/);
+  assert.doesNotMatch(board, /setInterval/);
+  assert.doesNotMatch(board, /fetch\(/);
 });
