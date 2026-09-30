@@ -6,7 +6,7 @@ $OutDir = (Resolve-Path -LiteralPath (New-Item -ItemType Directory -Force -Path 
 
 $CountyFips = "18129"
 $CountyGEOID = "18129"
-$CountyBoundaryUrl = "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Current/MapServer/82"
+$CountyBoundaryUrl = "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_ACS2026/MapServer/82"
 
 function Save-Url([string]$Url,[string]$Path,[string]$RequiredId,[string]$Authority) {
   $full = Join-Path $OutDir $Path
@@ -22,8 +22,8 @@ function Save-Url([string]$Url,[string]$Path,[string]$RequiredId,[string]$Author
   }
 }
 
-function Get-ArcGisJson([string]$Url) {
-  $r = Invoke-RestMethod $Url
+function Invoke-ArcGisQuery([string]$ServiceLayerUrl,[hashtable]$Parameters) {
+  $r = Invoke-RestMethod -Method Post -Uri "$ServiceLayerUrl/query" -Body $Parameters -ContentType "application/x-www-form-urlencoded"
   if ($r.error) { throw ($r.error | ConvertTo-Json -Depth 20) }
   return $r
 }
@@ -39,10 +39,13 @@ function Save-ArcGisWithinCounty(
   $all = @()
   $offset = 0
   $size = 1900
-  $encodedGeometry = [uri]::EscapeDataString(($script:CountyGeometry | ConvertTo-Json -Compress -Depth 100))
+  $geometryJson = $script:CountyGeometry | ConvertTo-Json -Compress -Depth 100
   do {
-    $q = "$ServiceLayerUrl/query?where=$([uri]::EscapeDataString($Where))&geometry=$encodedGeometry&geometryType=esriGeometryPolygon&inSR=4326&spatialRel=esriSpatialRelWithin&outFields=*&returnGeometry=true&outSR=4326&resultOffset=$offset&resultRecordCount=$size&f=json"
-    $r = Get-ArcGisJson $q
+    $r = Invoke-ArcGisQuery $ServiceLayerUrl @{
+      where=$Where; geometry=$geometryJson; geometryType="esriGeometryPolygon"; inSR="4326"
+      spatialRel="esriSpatialRelWithin"; outFields="*"; returnGeometry="true"; outSR="4326"
+      resultOffset=$offset; resultRecordCount=$size; f="json"
+    }
     $features = @($r.features)
     $all += $features
     $got = $features.Count
@@ -86,22 +89,24 @@ function Save-ArcGisCountyIntersectAudit(
   return @($r.objectIds).Count
 }
 
-# Exact Posey County polygon: U.S. Census TIGERweb January 1, 2025 county vintage.
-$boundaryQuery = "$CountyBoundaryUrl/query?where=GEOID%3D%27$CountyGEOID%27&outFields=GEOID,NAME,STATE,COUNTY&returnGeometry=true&outSR=4326&f=json"
-$boundary = Get-ArcGisJson $boundaryQuery
+# Exact Posey County polygon: U.S. Census TIGERweb January 1, 2026 current county vintage.
+$boundary = Invoke-ArcGisQuery $CountyBoundaryUrl @{
+  where="GEOID='$CountyGEOID'"; outFields="GEOID,NAME,STATE,COUNTY"
+  returnGeometry="true"; outSR="4326"; f="json"
+}
 if (@($boundary.features).Count -ne 1) { throw "Expected exactly one Posey County boundary feature; got $(@($boundary.features).Count)" }
 if ($boundary.features[0].attributes.GEOID -ne $CountyGEOID) { throw "County GEOID mismatch" }
 $script:CountyGeometry = $boundary.features[0].geometry
-$boundaryPath = Join-Path $OutDir "boundary\posey-county-2025-tigerweb.geojson"
+$boundaryPath = Join-Path $OutDir "boundary\posey-county-2026-tigerweb.geojson"
 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $boundaryPath) | Out-Null
 [ordered]@{
-  type="FeatureCollection"; source=$CountyBoundaryUrl; vintage="2025-01-01"
+  type="FeatureCollection"; source=$CountyBoundaryUrl; vintage="2026-01-01"
   countyFips=$CountyFips; features=@($boundary.features)
 } | ConvertTo-Json -Depth 100 | Set-Content $boundaryPath -Encoding utf8
 
 $results=@()
 $results += [pscustomobject]@{
-  id="posey-county-boundary"; authority="US_CENSUS_BUREAU"; path="boundary\posey-county-2025-tigerweb.geojson"
+  id="posey-county-boundary"; authority="US_CENSUS_BUREAU"; path="boundary\posey-county-2026-tigerweb.geojson"
   url=$CountyBoundaryUrl; sha256=(Get-FileHash $boundaryPath -Algorithm SHA256).Hash.ToLowerInvariant()
   bytes=(Get-Item $boundaryPath).Length; featureCount=1; spatialRelation="exact-boundary"; status="acquired"
 }
