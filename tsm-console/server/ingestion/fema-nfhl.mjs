@@ -3,6 +3,13 @@ import { recordSourceHealth } from './source-health.mjs';
 import { buildFloodInformationResult, FLOOD_FEDERATION_SOFTWARE_VERSION } from './flood-information-federation.mjs';
 
 export const FEMA_NFHL_MAPSERVER = 'https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer';
+\nexport function toArcgisGeometry(geometry) {
+  if (!geometry || typeof geometry !== 'object') throw new TypeError('geometry object required');
+  if (geometry.type === 'Polygon' && Array.isArray(geometry.coordinates)) return { rings: geometry.coordinates, spatialReference: { wkid: 4326 } };
+  if (geometry.type === 'Point' && Array.isArray(geometry.coordinates)) return { x: geometry.coordinates[0], y: geometry.coordinates[1], spatialReference: { wkid: 4326 } };
+  throw new TypeError('unsupported GeoJSON geometry type: ' + geometry.type);
+}
+
 
 export function discoverFemaLayers(metadata) {
   if (!Array.isArray(metadata?.layers)) throw new TypeError('FEMA MapServer metadata requires layers');
@@ -60,7 +67,7 @@ export async function queryFemaNfhl({ layerId, where = '1=1', geometry, outField
     else throw new TypeError('unsupported FEMA spatial query geometry type: ' + geometry.type);
     url.searchParams.set('inSR', '4326');
     url.searchParams.set('spatialRel', 'esriSpatialRelIntersects');
-    url.searchParams.set('geometry', JSON.stringify(geometry));
+    url.searchParams.set('geometry', JSON.stringify(toArcgisGeometry(geometry)));
   }
   const retrievedAt = new Date().toISOString();
   const payload = await request(url, { signal, timeoutMs: 15000, maxBytes: 5_000_000 });
