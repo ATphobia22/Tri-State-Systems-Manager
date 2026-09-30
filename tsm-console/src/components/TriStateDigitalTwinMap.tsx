@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import maplibregl, { type Map, type GeoJSONSource, type StyleSpecification } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { MAP_PLANE_FABRIC, type MapPlaneLayer } from '../lib/map-plane-fabric';\nimport { buildArcGisFeatureQueryUrl, getMapLibreFabricLayer } from '../lib/maplibre-layer-fabric';
+import { MAP_PLANE_FABRIC, type MapPlaneLayer } from '../lib/map-plane-fabric';
+import { buildArcGisFeatureQueryUrl, getMapLibreFabricLayer } from '../lib/maplibre-layer-fabric';
 import { getTerrainRgbStatus, TERRAIN_RGB_SOURCE_ID } from '../lib/twin-map-style';
 
 const INITIAL_CENTER: [number, number] = [-88.0167, 37.8331];
@@ -201,7 +202,8 @@ export default function TriStateDigitalTwinMap(): JSX.Element {
 
       addRasterSource(map, 'fema-nfhl', getMapLibreFabricLayer('fema-effective').endpoint, '28,16,3,1,34,23', false);
       addRasterSource(map, 'indiana-bafm', getMapLibreFabricLayer('indiana-bafm').endpoint, '104,438', false);
-      addRasterSource(map, 'usgs-3dep-index', getMapLibreFabricLayer('usgs-3dep-index').endpoint, undefined, false);\n      addRasterSource(map, 'usgs-3dep-elevation', getMapLibreFabricLayer('usgs-3dep-elevation').endpoint, undefined, false);
+      addRasterSource(map, 'usgs-3dep-index', getMapLibreFabricLayer('usgs-3dep-index').endpoint, undefined, false);
+      addRasterSource(map, 'usgs-3dep-elevation', getMapLibreFabricLayer('usgs-3dep-elevation').endpoint, undefined, false);
       if (!map.getSource('osm-base')) {
         map.addSource('osm-base', { type: 'raster', tiles: [getMapLibreFabricLayer('osm-base').endpoint], tileSize: 256, attribution: getMapLibreFabricLayer('osm-base').attribution });
         map.addLayer({ id: 'osm-base-layer', type: 'raster', source: 'osm-base', layout: { visibility: 'none' }, paint: { 'raster-opacity': 0.65 } });
