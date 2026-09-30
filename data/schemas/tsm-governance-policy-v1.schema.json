@@ -1,0 +1,15 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"uacp://schemas/tsm-governance-policy/v1",
+  "title":"TSM Dataset Governance Policy",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["policyVersion","defaultAccessClass","promotionRules","humanApprovalRequired"],
+  "properties":{
+    "policyVersion":{"type":"string","minLength":1},
+    "defaultAccessClass":{"enum":["PUBLIC","CONTROLLED","RESTRICTED"]},
+    "humanApprovalRequired":{"type":"boolean","const":true},
+    "promotionRules":{"type":"object","additionalProperties":false,"required":["discoveryOnlyBlocked","qualityPassRequired","lineageHashRequired","retrievalTimestampRequired"],"properties":{"discoveryOnlyBlocked":{"type":"boolean","const":true},"qualityPassRequired":{"type":"boolean","const":true},"lineageHashRequired":{"type":"boolean","const":true},"retrievalTimestampRequired":{"type":"boolean","const":true}}},
+    "protectedClasses":{"type":"array","items":{"enum":["CONTROLLED","RESTRICTED"]}}
+  }
+}

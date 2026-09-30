@@ -1,0 +1,17 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"uacp://schemas/tsm-ontology/v1",
+  "title":"TSM Unified Ontology Entity",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["entityId","kind","validTime","attributes","sourceDatasetIds"],
+  "properties":{
+    "entityId":{"type":"string","minLength":1},
+    "kind":{"enum":["river","levee","road","parcel","building","utility","vehicle","sensor","household","business","agency","program","permit","process"]},
+    "name":{"type":"string"},
+    "spatial":{"type":"object","required":["crs"],"properties":{"crs":{"type":"string"},"geometryRef":{"type":"string"}},"additionalProperties":false},
+    "validTime":{"type":"object","required":["validFrom"],"properties":{"validFrom":{"type":"string","format":"date-time"},"validTo":{"type":"string","format":"date-time"}},"additionalProperties":false},
+    "attributes":{"type":"object"},
+    "sourceDatasetIds":{"type":"array","minItems":1,"items":{"type":"string","minLength":1}}
+  }
+}
