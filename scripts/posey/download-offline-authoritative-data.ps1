@@ -25,6 +25,34 @@ function Save-Url([string]$Url,[string]$Path,[string]$RequiredId,[string]$Author
   }
 }
 
+function Save-LidarCollection69202() {
+  $base="https://rockyweb.usgs.gov/vdelivery/Datasets/Staged/Elevation/LPC/Projects/IN_Indiana_Statewide_LiDAR_2017_B17"
+  $blocks=1..6
+  foreach($block in $blocks){
+    $dir="$base/IN_Statewide_Opt2_B$($block)_2017/LAZ/"
+    $index=Join-Path $OutDir "usgs-lidar\69202-block-$($block)-index.html"
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $index) | Out-Null
+    & curl.exe --fail --silent --show-error --location --retry 6 --retry-delay 4 --retry-all-errors --http1.1 -A "TSM-Posey-Offline-Acquisition/1.0" --output "$index" "$dir"
+    if($LASTEXITCODE -ne 0){ throw "USGS lidar directory acquisition failed: block $block" }
+    $html=Get-Content $index -Raw
+    $hrefs=[regex]::Matches($html,'href="([^"]+\.(?:laz|las|zip))"','IgnoreCase') | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique
+    if(@($hrefs).Count -lt 1){ throw "USGS lidar block $block returned no downloadable LAZ/LAS/ZIP files" }
+    foreach($href in $hrefs){
+      $leaf=[uri]::UnescapeDataString(($href -split "/")[-1])
+      $dest=Join-Path $OutDir ("usgs-lidar\69202\block-$($block)\$leaf")
+      New-Item -ItemType Directory -Force -Path (Split-Path -Parent $dest) | Out-Null
+      $url=$dir + $href
+      & curl.exe --fail --silent --show-error --location --retry 8 --retry-delay 5 --retry-max-time 600 --retry-all-errors --http1.1 -A "TSM-Posey-Offline-Acquisition/1.0" --output "$dest" "$url"
+      if($LASTEXITCODE -ne 0){ throw "USGS lidar file download failed: $url" }
+      if((Get-Item $dest).Length -le 0){ throw "Empty USGS lidar file: $url" }
+    }
+  }
+  foreach($block in $blocks){
+    $ept="https://s3-us-west-2.amazonaws.com/usgs-lidar-public/IN_Statewide_Opt2_B$($block)_2017/ept.json"
+    $results += Save-Url $ept ("usgs-lidar\69202\block-$($block)\ept.json") "usgs-lidar-69202-ept-block-$($block)" "USGS"
+  }
+}
+
 function Invoke-ArcGisQuery([string]$ServiceLayerUrl,[hashtable]$Parameters) {
   $attempts = 0
   do {
@@ -151,6 +179,7 @@ foreach($u in $study) {
   $results += Save-Url $u ("usgs\sir20165119\"+$leaf) $studyIds[$leaf] "USGS"
 }
 $results += Save-Url "https://www.fisheries.noaa.gov/inport/item/69202" "usgs-lidar\noaa-inport-69202.html" "usgs-lidar-noaa-inport-69202" "USGS"
+Save-LidarCollection69202
 
 $results += Save-ArcGisWithinCounty "https://index.nationalmap.gov/arcgis/rest/services/3DEPElevationIndex/MapServer/8" "1=1" "usgs-lidar\3dep-lidar-index-posey-strict.geojson" "usgs-3dep-lidar-index" "USGS" $true "esriSpatialRelIntersects"
 
