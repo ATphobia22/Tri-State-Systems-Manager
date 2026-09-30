@@ -75,7 +75,7 @@ function Save-ArcGisWithinCounty(
   Write-Host "Acquiring $RequiredId via $SpatialRelation from $ServiceLayerUrl"
   $all=@()
   $geometryJson=$script:CountyGeometry | ConvertTo-Json -Compress -Depth 100
-  $meta=Invoke-RestMethod -Method Get -Uri "$ServiceLayerUrl?f=pjson" -TimeoutSec 120
+  $meta=Invoke-RestMethod -Method Get -Uri "$($ServiceLayerUrl)?f=pjson" -TimeoutSec 120
   if($meta.error){ throw ($meta.error | ConvertTo-Json -Depth 20) }
   $pageSize=[int]$meta.maxRecordCount
   if($pageSize -lt 1){ $pageSize=1000 }
