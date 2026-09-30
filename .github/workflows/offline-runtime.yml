@@ -49,9 +49,9 @@ jobs:
             dir="$(dirname "$lock")"
             if [ "$dir" = "tsm-console" ]; then continue; fi
             if [ -f "$dir/package.json" ]; then
-              npm ci --prefix "$dir" --no-audit --no-fund --cache "$PWD/offline-runtime/npm-cache"
+              npm install --prefix "$dir" --no-package-lock --no-audit --no-fund --cache "$PWD/offline-runtime/npm-cache"
               rm -rf "$dir/node_modules"
-              npm ci --prefix "$dir" --offline --no-audit --no-fund --cache "$PWD/offline-runtime/npm-cache"
+              npm install --prefix "$dir" --offline --no-package-lock --no-audit --no-fund --cache "$PWD/offline-runtime/npm-cache"
             fi
           done < <(find . -name package-lock.json -not -path './node_modules/*' -print)
       - name: Download Python wheels for offline installation
