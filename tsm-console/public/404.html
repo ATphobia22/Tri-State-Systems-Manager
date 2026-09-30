@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tri-State Systems Manager</title>
+    <script type="text/javascript">
+      // Single Page Apps for GitHub Pages — redirect capture.
+      // MIT License, adapted from https://github.com/rafgraph/spa-github-pages
+      // (ATphobia22/spa-github-pages fork).
+      //
+      // GitHub Pages serves this file for unknown paths (e.g. /map). It
+      // rewrites the URL to /?/<path> so the SPA boots from index.html, where
+      // spa-redirect.js restores the original route via history.replaceState.
+      // pathSegmentsToKeep = 1 keeps the /Tri-State-Systems-Manager base path.
+      var pathSegmentsToKeep = 1;
+      var l = window.location;
+      l.replace(
+        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+        l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
+        l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+        (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+        l.hash
+      );
+    </script>
+  </head>
+  <body></body>
+</html>
