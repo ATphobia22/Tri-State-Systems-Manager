@@ -100,7 +100,28 @@ jobs:
         working-directory: tsm-console/src-tauri
         run: cargo vendor ../../offline-runtime/native/cargo-vendor
       - name: Generate runtime and checksum manifests
-        run: node scripts/offline/build-runtime-manifest.mjs
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo '{'
+            echo '  "schemaVersion": "tsm-offline-runtime-v1",'
+            echo "  \"generatedAt\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\","
+            echo "  \"commit\": \"\${GITHUB_SHA}\","
+            echo '  "planes": ["doctor","offline-dependencies","vite-web","node-api","health","hydraulics","tauri","provenance","hec-ras-boundary"],'
+            echo "  \"npmCacheFiles\": $(find offline-runtime/npm-cache -type f | wc -l),"
+            echo "  \"pythonWheelFiles\": $(find offline-runtime/python-wheels -type f | wc -l),"
+            echo "  \"cargoVendorFiles\": $(find offline-runtime/native/cargo-vendor -type f | wc -l)"
+            echo '}'
+          } > offline-runtime/manifests/runtime-manifest.json
+          sha256sum \
+            tsm-console/package.json \
+            tsm-console/package-lock.json \
+            tsm-console/dist/index.html \
+            packages/hydraulics/python/requirements.txt \
+            backend/requirements.txt \
+            offline-runtime/manifests/runtime-manifest.json \
+            > offline-runtime/manifests/SHA256SUMS
       - name: Remove test virtual environment
         run: rm -rf offline-runtime/python-test
       - name: Package offline runtime
