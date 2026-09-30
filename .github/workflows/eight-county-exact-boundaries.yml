@@ -6,6 +6,7 @@ on:
     branches:
       - main
       - 'feat/eight-county-exact-spatial-validation-*'
+      - 'fix/exact-eight-county-geometry-gate-*'
 
 permissions:
   contents: read
@@ -18,22 +19,66 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           fetch-depth: 1
+
       - name: Acquire exact TIGER county polygons
         shell: pwsh
         run: .\scripts\geo\acquire-eight-county-boundaries.ps1
-      - name: Validate exact county spatial policy
+
+      - name: Install deterministic geometry validator
+        shell: pwsh
+        run: python -m pip install --disable-pip-version-check --no-input shapely==2.0.7
+
+      - name: Validate exact county geometry and all supplied spatial artifacts
+        shell: pwsh
+        run: python .\scripts\geo\validate-eight-county-exact-spatial-objects.py --root data\regional --boundary-root data\regional\boundaries --receipt data\regional\eight-county-exact-spatial-validation.json
+
+      - name: Generate SHA-256 manifest
         shell: pwsh
         run: |
-          $root="data\regional"
-          .\scripts\geo\validate-eight-county-spatial-objects.ps1 -Root $root -BoundaryRoot "$root\boundaries"
-      - name: Hash manifest
+          $root = (Resolve-Path data\regional).Path
+          $entries = @(
+            Get-ChildItem data\regional -Recurse -File |
+              Where-Object { $_.Name -ne "sha256-manifest.json" } |
+              ForEach-Object {
+                $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+                $relative = $_.FullName.Substring($root.Length + 1).Replace("\\","/")
+                [ordered]@{ path = $relative; sha256 = $hash; bytes = $_.Length }
+              }
+          )
+          [ordered]@{
+            schema = "tsm-sha256-manifest-v1"
+            generatedAt = (Get-Date).ToUniversalTime().ToString("o")
+            algorithm = "SHA-256"
+            files = $entries
+          } | ConvertTo-Json -Depth 10 | Set-Content data\regional\sha256-manifest.json -Encoding utf8
+
+      - name: Verify SHA-256 manifest before publication
         shell: pwsh
         run: |
-          Get-ChildItem data\regional -Recurse -File | Get-FileHash -Algorithm SHA256 |
-            Select-Object Path,Hash | ConvertTo-Json | Set-Content data\regional\sha256-files.json
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+          $root = (Resolve-Path data\regional).Path
+          $manifest = Get-Content data\regional\sha256-manifest.json -Raw | ConvertFrom-Json
+          foreach ($entry in @($manifest.files)) {
+            $path = Join-Path $root ($entry.path -replace "/","\\")
+            if (-not (Test-Path $path)) { throw "Manifest file missing: $($entry.path)" }
+            $actual = (Get-FileHash $path -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($actual -ne $entry.sha256) { throw "SHA-256 mismatch: $($entry.path)" }
+          }
+          if (@($manifest.files).Count -lt 8) { throw "Manifest unexpectedly contains fewer than eight boundary artifacts." }
+          Write-Host "SHA-256 manifest verification: PASS"
+
+      - name: Publish verified artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: eight-county-exact-boundaries-2026-09-30
+          name: eight-county-exact-spatial-2026-09-30
           path: data\regional
           if-no-files-found: error
           retention-days: 30
+
+      - name: Final green verification
+        shell: pwsh
+        run: |
+          $receipt = Get-Content data\regional\eight-county-exact-spatial-validation.json -Raw | ConvertFrom-Json
+          if ($receipt.status -ne "validated") { throw "Exact spatial validation is not green." }
+          if ([int]$receipt.boundaryCount -ne 8) { throw "Expected eight exact TIGER boundaries." }
+          if ([int]$receipt.checkedFeatureCollections -lt 0) { throw "Invalid spatial validation count." }
+          Write-Host "FINAL GREEN: 8 exact TIGER boundaries, geometry gate, and SHA-256 publication manifest verified."
