@@ -1,0 +1,1 @@
+import type{CapabilityRequest,CapabilityResult}from'../../contracts/src/index.ts';import{CapabilityRouter}from'../../router/src/CapabilityRouter.ts';export class UniversalCapabilityFabric{constructor(readonly router:CapabilityRouter){}execute<T=unknown>(request:CapabilityRequest):Promise<CapabilityResult<T>>{return this.router.execute<T>(request)}}
