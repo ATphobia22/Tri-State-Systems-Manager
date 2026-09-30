@@ -40,7 +40,7 @@ export class EchoProvider implements CapabilityProvider {
     const now = new Date().toISOString();
     return {
       success: true,
-      output: request.input as TOutput,
+      output: request.input as unknown as TOutput,
       provider: { providerId: this.id, version: this.version, attempt: 1, startedAt: now, completedAt: now },
       traceId: request.context.requestId,
       provenance: [],
