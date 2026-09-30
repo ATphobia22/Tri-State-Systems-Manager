@@ -1,0 +1,49 @@
+{
+  "schema": "tsm-regional-authoritative-spatial-source-catalog-v1",
+  "generatedAt": "2026-09-30",
+  "rules": [
+    "Effective FEMA/FIRM dates remain regulatory vintage; newer state-hosted NFHL snapshots are acquisition vintages and are never relabeled as effective FIRM dates.",
+    "All spatial objects are clipped/queried/validated against the exact county polygon.",
+    "Parcel ownership data behind licensing/paywalls is not bypassed; geometry-only public parcel services may be acquired when legally public and separately labeled from ownership attributes."
+  ],
+  "sources": {
+    "kentucky": {
+      "floodplain": {
+        "waterMapsPortal": "https://www.watermaps.ky.gov/",
+        "dfirmCombined": "https://watermaps.ky.gov/arcgis/rest/services/iFlood/DFIRM_Combined/MapServer",
+        "detailedStudyAreas": "https://watermaps.ky.gov/arcgis/rest/services/iFlood/DFIRM_Combined/MapServer/4",
+        "nfhlStateService": "https://kygisportalservices.ky.gov/server/rest/services/EconDev/KY_NFHL_Flood_Hazard_Zones/MapServer"
+      },
+      "elevationImagery": {
+        "catalogExplorer": "https://kygeonet.ky.gov/catalogexplorer/",
+        "imageServices": "https://kyraster.ky.gov/arcgis/rest/services/ImageServices",
+        "statewidePhase2Imagery": "https://kyraster.ky.gov/arcgis/rest/services/ImageServices/Ky_KYAPED_Phase3_3IN_KYSPN/ImageServer",
+        "awsRegistry": "https://registry.opendata.aws/kyfromabove/"
+      },
+      "parcels": {
+        "unionPublicGeometry": "https://services8.arcgis.com/7YUdLQ8pDBKU1XYI/arcgis/rest/services/Parcels/FeatureServer/62",
+        "note": "Ownership attributes may require county/PVA licensing; do not scrape around access controls."
+      }
+    },
+    "illinois": {
+      "imagery": {
+        "clearinghouse": "https://clearinghouse.isgs.illinois.edu/data?field_data_type_value=Imagery",
+        "tileIndex": "https://data.isgs.illinois.edu/arcgis/rest/services/Imagery/AerialImageryTiles/MapServer",
+        "statewide911": "https://clearinghouse.isgs.illinois.edu/data/imagery/illinois-911-aerial-acquisition",
+        "block2East2025": "https://data.isgs.illinois.edu/arcgis/rest/services/Imagery/IL_Blk2_East_2025/ImageServer"
+      },
+      "parcels": {
+        "note": "White County parcel ownership is treated as licensed/paywalled until an authorized public download/service is confirmed.",
+        "gallatin": "Public viewer-derived parcel geometry may be retained with acquisition provenance and exact-county validation."
+      }
+    },
+    "federal": {
+      "usgs3dep": "https://www.usgs.gov/the-national-map-data-delivery",
+      "lidarExplorer": "https://www.usgs.gov/tools/lidarexplorer",
+      "usaceNld": "https://nld.sec.usace.army.mil/data-services/services/",
+      "usaceNldMap": "https://geospatial.sec.usace.army.mil/dls/rest/services/NLD/Public/MapServer",
+      "usgsGauge": "https://waterdata.usgs.gov/monitoring-location/USGS-03378500/",
+      "sir20165119": "https://pubs.usgs.gov/publication/sir20165119"
+    }
+  }
+}
