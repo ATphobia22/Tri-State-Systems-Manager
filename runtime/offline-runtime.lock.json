@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "tsm-offline-runtime-lock-v1",
+  "artifact": "TSM-OFFLINE-RUNTIME-76a0655656a422ad66b6b71d79ef063ee8b6068a.zip",
+  "artifactSha256": "375598165e8247b6e342696c9fdad561ac31a6142560908830a3447ec1f504a4",
+  "innerTarSha256": "8c40939a3e36792faa7909387df62202afda16dba90e0aaadb3d7df9aa71d96c",
+  "commit": "76a0655656a422ad66b6b71d79ef063ee8b6068a",
+  "installationRoot": "offline-runtime",
+  "platformNote": "Packaged dependency cache was produced on Ubuntu 24.04; native binary artifacts must match the target platform."
+}
