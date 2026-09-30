@@ -1,4 +1,27 @@
 {
-  "compilerOptions":{"target":"ES2022","module":"NodeNext","moduleResolution":"NodeNext","strict":true,"noEmit":true,"skipLibCheck":true,"allowImportingTsExtensions":true,"forceConsistentCasingInFileNames":true,"types":[]},
-  "include":["packages/contracts/src/**/*.ts","packages/core/src/**/*.ts","packages/registry/src/**/*.ts","packages/router/src/**/*.ts","packages/policy/src/**/*.ts","packages/provenance/src/**/*.ts","packages/events/src/**/*.ts","packages/provider-runtime/src/**/*.ts","packages/model-runtime/src/**/*.ts","packages/capability-runtime/src/**/*.ts","packages/uacp/src/**/*.ts"]
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["node"]
+  },
+  "include": [
+    "apps/uacf-gateway/src/**/*.ts",
+    "packages/contracts/src/**/*.ts",
+    "packages/core/src/**/*.ts",
+    "packages/registry/src/**/*.ts",
+    "packages/router/src/**/*.ts",
+    "packages/policy/src/**/*.ts",
+    "packages/provenance/src/**/*.ts",
+    "packages/events/src/**/*.ts",
+    "packages/provider-runtime/src/**/*.ts",
+    "packages/model-runtime/src/**/*.ts",
+    "packages/capability-runtime/src/**/*.ts",
+    "packages/uacp/src/**/*.ts"
+  ]
 }
