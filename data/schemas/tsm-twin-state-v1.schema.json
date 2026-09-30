@@ -1,0 +1,16 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"uacp://schemas/tsm-twin-state/v1",
+  "title":"TSM 4D Twin State",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["stateId","effectiveAt","entities","relationships","observations","sourceDatasetIds"],
+  "properties":{
+    "stateId":{"type":"string","minLength":1},
+    "effectiveAt":{"type":"string","format":"date-time"},
+    "entities":{"type":"array"},
+    "relationships":{"type":"array"},
+    "observations":{"type":"array"},
+    "sourceDatasetIds":{"type":"array","minItems":1,"items":{"type":"string","minLength":1}}
+  }
+}
