@@ -19,6 +19,8 @@
     "packages/policy/src/**/*.ts",
     "packages/provenance/src/**/*.ts",
     "packages/events/src/**/*.ts",
+    "packages/evidence/src/**/*.ts",
+    "packages/gates/src/**/*.ts",
     "packages/provider-runtime/src/**/*.ts",
     "packages/model-runtime/src/**/*.ts",
     "packages/capability-runtime/src/**/*.ts",

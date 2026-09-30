@@ -1,12 +1,11 @@
-import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import type { Map, GeoJSONSource, StyleSpecification } from 'maplibre-gl';
-import type * as GeoJSON from 'geojson';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { MAP_PLANE_FABRIC, type MapPlaneLayer } from '../lib/map-plane-fabric';
 import { buildArcGisFeatureQueryUrl, getMapLibreFabricLayer } from '../lib/maplibre-layer-fabric';
 import { getTerrainRgbStatus } from '../lib/twin-map-style';
-import { TERRAIN_RGB_SOURCE_ID, TERRAIN_RGB_DEFAULT_EXAGGERATION } from '../lib/terrain-rgb-contract';
+import { TERRAIN_RGB_SOURCE_ID } from '../lib/terrain-rgb-contract';
 
 const INITIAL_CENTER: [number, number] = [-88.0167, 37.8331];
 const MAX_BOUNDS: [[number, number], [number, number]] = [
@@ -29,10 +28,10 @@ const ARCGIS_EXPORT = (service: string, layers?: string): string => {
 };
 
 const layerColor = (id: string): string => {
-  if (id === 'in-parcels-current') return '#38bdf8';
-  if (id === 'in-roads-current') return '#fbbf24';
-  if (id === 'indiana-building-footprints-2016-2020') return '#a78bfa';
-  if (id === 'posey-cslf') return '#fb7185';
+  if (id === 'indiana-parcels') return '#38bdf8';
+  if (id === 'indiana-roads') return '#fbbf24';
+  if (id === 'building-extrusions') return '#a78bfa';
+  if (id === 'hydro-bathymetry') return '#22d3ee';
   return '#94a3b8';
 };
 
@@ -56,32 +55,20 @@ function baseStyle(): StyleSpecification {
         paint: { 'raster-opacity': 1 },
       },
     ],
-    light: {
-      anchor: 'viewport',
-      color: '#fff7e6',
-      intensity: 0.65,
-      position: [1.15, 215, 35],
-    },
-    sky: {
-      'sky-color': '#6b7da8',
-      'sky-horizon-blend': 0.55,
-      'horizon-color': '#dbeafe',
-      'horizon-fog-blend': 0.65,
-      'fog-color': '#cbd5e1',
-      'fog-ground-blend': 0.35,
-      'atmosphere-blend': 0.7,
-    },
   };
 }
 
-async function fetchGeoJson(source: string): Promise<GeoJSON.FeatureCollection> {
-  const response = await fetch(buildArcGisFeatureQueryUrl(source), {
+async function fetchGeoJson(source: string, map: Map): Promise<Parameters<GeoJSONSource['setData']>[0]> {
+  const bounds = map.getBounds();
+  const bbox = `${bounds.getWest()},${bounds.getSouth()},${bounds.getEast()},${bounds.getNorth()}`;
+  const url = buildArcGisFeatureQueryUrl(source).replace('{bbox-epsg-4326}', encodeURIComponent(bbox));
+  const response = await fetch(url, {
     headers: { Accept: 'application/geo+json,application/json' },
   });
   if (!response.ok) throw new Error(`ArcGIS FeatureServer request failed: HTTP ${response.status}`);
-  const payload = await response.json() as GeoJSON.FeatureCollection;
+  const payload = await response.json() as GeoJSON.GeoJSON;
   if (payload.type !== 'FeatureCollection') throw new Error('ArcGIS source did not return a GeoJSON FeatureCollection');
-  return payload;
+  return payload as Parameters<GeoJSONSource['setData']>[0];
 }
 
 function addRasterSource(map: Map, id: string, service: string, layers: string | undefined, visible: boolean): void {
@@ -109,7 +96,7 @@ function addFeatureSource(map: Map, item: MapPlaneLayer): void {
     data: { type: 'FeatureCollection', features: [] },
   });
   const color = layerColor(item.id);
-  if (item.id === 'in-roads-current') {
+  if (item.id === 'indiana-roads') {
     map.addLayer({
       id: `${item.id}-line`,
       type: 'line',
@@ -119,7 +106,7 @@ function addFeatureSource(map: Map, item: MapPlaneLayer): void {
     });
     return;
   }
-  if (item.id === 'indiana-building-footprints-2016-2020') {
+  if (item.id === 'building-extrusions') {
     map.addLayer({
       id: `${item.id}-extrusion`,
       type: 'fill-extrusion',
@@ -130,7 +117,6 @@ function addFeatureSource(map: Map, item: MapPlaneLayer): void {
         'fill-extrusion-height': ['coalesce', ['to-number', ['get', 'height']], ['to-number', ['get', 'render_height']], 9],
         'fill-extrusion-base': ['coalesce', ['to-number', ['get', 'min_height']], 0],
         'fill-extrusion-opacity': 0.78,
-        'fill-extrusion-vertical-gradient': true,
       },
     });
     return;
@@ -173,7 +159,7 @@ export default function TriStateDigitalTwinMap(): JSX.Element {
     if (!source) return;
     const generation = ++requestGeneration.current;
     try {
-      const geojson = await fetchGeoJson(item.endpoint);
+      const geojson = await fetchGeoJson(item.endpoint, map);
       if (generation === requestGeneration.current) source.setData(geojson);
     } catch (error) {
       if (generation === requestGeneration.current) {
@@ -213,21 +199,7 @@ export default function TriStateDigitalTwinMap(): JSX.Element {
           encoding: 'mapbox',
           maxzoom: 14,
         });
-        map.setTerrain({ source: TERRAIN_RGB_SOURCE_ID, exaggeration: TERRAIN_RGB_DEFAULT_EXAGGERATION });
-        // Native hillshade over the Terrain-RGB DEM so relief reads at pitch.
-        if (!map.getLayer('tsm-terrain-hillshade')) {
-          map.addLayer({
-            id: 'tsm-terrain-hillshade',
-            type: 'hillshade',
-            source: TERRAIN_RGB_SOURCE_ID,
-            paint: {
-              'hillshade-exaggeration': 0.35,
-              'hillshade-shadow-color': '#0d1b2a',
-              'hillshade-highlight-color': '#ffffff',
-              'hillshade-accent-color': '#1f2937',
-            },
-          });
-        }
+        map.setTerrain({ source: TERRAIN_RGB_SOURCE_ID, exaggeration: 1 });
       }
 
       addRasterSource(map, 'fema-nfhl', getMapLibreFabricLayer('fema-effective').endpoint, '28,16,3,1,34,23', false);
@@ -241,6 +213,7 @@ export default function TriStateDigitalTwinMap(): JSX.Element {
 
       for (const item of MAP_PLANE_FABRIC) {
         if (item.kind === 'arcgis-feature') addFeatureSource(map, item);
+        if (item.mapRenderable) setLayerVisibility(map, item, Boolean(visibleRef.current[item.id]));
       }
 
       const featureItems = MAP_PLANE_FABRIC.filter((item) => item.kind === 'arcgis-feature');
@@ -274,28 +247,21 @@ export default function TriStateDigitalTwinMap(): JSX.Element {
       setLayerVisibility(map, item, Boolean(visible[item.id]));
     }
     const terrain = getTerrainRgbStatus();
-    if (terrain.enabled && visible['indiana-terrain-rgb'] && !map.getTerrain()) {
-      map.setTerrain({ source: TERRAIN_RGB_SOURCE_ID, exaggeration: TERRAIN_RGB_DEFAULT_EXAGGERATION });
-    } else if ((!terrain.enabled || !visible['indiana-terrain-rgb']) && map.getTerrain()) {
+    if (terrain.enabled && visible['terrain-rgb'] && !map.getTerrain()) {
+      map.setTerrain({ source: TERRAIN_RGB_SOURCE_ID, exaggeration: 1 });
+    } else if ((!terrain.enabled || !visible['terrain-rgb']) && map.getTerrain()) {
       map.setTerrain(null);
-    }
-    // Keep the DEM hillshade in lockstep with the terrain toggle so a flat
-    // map never shows relief shading from a disabled mesh.
-    if (map.getLayer('tsm-terrain-hillshade')) {
-      map.setLayoutProperty(
-        'tsm-terrain-hillshade',
-        'visibility',
-        terrain.enabled && visible['indiana-terrain-rgb'] ? 'visible' : 'none',
-      );
     }
     setTerrainEnabled(terrain.enabled);
   }, [setLayerVisibility, visible]);
 
   const terrain = getTerrainRgbStatus();
+  const mistVisible = Boolean(visible['cinematic-volumetric-mist']);
 
   return (
     <section aria-label="TSM MapLibre twelve-layer plane" style={{ position: 'relative', height: '100%', minHeight: 560, background: '#05080f', color: '#e2e8f0' }}>
       <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
+      <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: mistVisible ? 0.18 : 0, transition: 'opacity 180ms ease', background: 'radial-gradient(ellipse at 50% 45%, transparent 35%, rgba(148,163,184,.55) 100%)', mixBlendMode: 'screen' }} />
       <aside style={{ position: 'absolute', top: 12, left: 12, width: 360, maxHeight: 'calc(100% - 24px)', overflow: 'auto', padding: 14, border: '1px solid rgba(148,163,184,.25)', borderRadius: 12, background: 'rgba(5,8,15,.92)', backdropFilter: 'blur(8px)' }}>
         <strong style={{ letterSpacing: '.12em' }}>TSM // MAPLIBRE PLANE</strong>
         <div style={{ marginTop: 6, fontSize: 12, color: terrainEnabled ? '#86efac' : '#fbbf24' }}>
@@ -305,14 +271,14 @@ export default function TriStateDigitalTwinMap(): JSX.Element {
         <div style={{ marginTop: 12, display: 'grid', gap: 6 }}>
           {MAP_PLANE_FABRIC.map((item) => {
             const checked = Boolean(visible[item.id]);
-            const terrainItem = item.id === 'indiana-terrain-rgb';
+            const terrainItem = item.id === 'terrain-rgb';
             return (
               <label key={`${item.index}-${item.id}`} style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 8, alignItems: 'start', padding: 8, borderRadius: 8, background: checked ? 'rgba(56,189,248,.08)' : 'rgba(15,23,42,.45)' }}>
                 <input
                   type="checkbox"
                   checked={terrainItem ? terrain.enabled && checked : checked}
-                  disabled={terrainItem ? !terrain.enabled : false}
-                  onChange={(event: ChangeEvent<HTMLInputElement>) => setVisible((current) => ({ ...current, [item.id]: event.target.checked }))}
+                  disabled={terrainItem ? !terrain.enabled : !item.mapRenderable}
+                  onChange={(event) => setVisible((current) => ({ ...current, [item.id]: event.target.checked }))}
                 />
                 <span>
                   <span style={{ display: 'block', fontSize: 11, fontWeight: 700 }}>L{String(item.index).padStart(2, '0')} · {item.title}</span>
