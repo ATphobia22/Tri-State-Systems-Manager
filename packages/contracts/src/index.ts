@@ -2,7 +2,7 @@ export type CapabilityId = `web.${string}`|`research.${string}`|`browser.${strin
 export type JsonSchema=Record<string,unknown>;
 export interface PermissionSet{readonly allow:readonly string[];readonly deny?:readonly string[]}
 export interface CapabilityContext{readonly requestId:string;readonly sessionId?:string;readonly userId?:string;readonly tenantId?:string;readonly permissions:PermissionSet;readonly metadata?:Readonly<Record<string,unknown>>}
-export interface ExecutionOptions{readonly timeoutMs?:number;readonly deterministic?:boolean;readonly seed?:number;readonly pinnedProvider?:string;readonly pinnedCapabilityVersion?:string;readonly requireCitations?:boolean;readonly requireProvenance?:boolean}
+export interface ExecutionOptions{readonly timeoutMs?:number;readonly deterministic?:boolean;readonly seed?:number;readonly pinnedProvider?:string;readonly pinnedCapabilityVersion?:string;readonly maxProviderAttempts?:number;readonly requireCitations?:boolean;readonly requireProvenance?:boolean}
 export interface CapabilityDefinition{readonly id:CapabilityId;readonly name:string;readonly description:string;readonly version:string;readonly inputSchema:JsonSchema;readonly outputSchema:JsonSchema;readonly permissions:readonly string[];readonly tags:readonly string[]}
 export interface CapabilityRequest<TInput=unknown>{readonly capability:CapabilityId;readonly input:TInput;readonly context:CapabilityContext;readonly options?:ExecutionOptions}
 export type CapabilityErrorCode='INVALID_INPUT'|'UNAUTHORIZED'|'FORBIDDEN'|'NOT_FOUND'|'RATE_LIMITED'|'TIMEOUT'|'PROVIDER_UNAVAILABLE'|'VALIDATION_FAILED'|'POLICY_DENIED'|'SECURITY_BLOCKED'|'INTERNAL_ERROR';
