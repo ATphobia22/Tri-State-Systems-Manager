@@ -49,7 +49,7 @@ function baseStyle(): StyleSpecification {
     },
     layers: [
       {
-        id: 'indiana-imagery',
+        id: 'indiana-imagery-layer',
         type: 'raster',
         source: 'indiana-imagery',
         paint: { 'raster-opacity': 1 },
