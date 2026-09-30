@@ -136,6 +136,7 @@ def main() -> int:
         "geometryEngineVersion": __import__("shapely").__version__,
         "geometryCrs": "EPSG:4326",
         "boundaryAuthority": "US_CENSUS_BUREAU_TIGER_LINE",
+        "boundaryCount": len(boundaries),
         "checkedFeatureCollections": checked,
         "featureCountsByCounty": county_counts,
         "featureCountsByRelation": relation_counts,
