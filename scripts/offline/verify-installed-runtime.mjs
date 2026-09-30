@@ -18,7 +18,8 @@ for (const relative of required) {
 }
 
 const manifest = JSON.parse(readFileSync(join(runtime, 'manifests/runtime-manifest.json'), 'utf8'));
-if (manifest.schemaVersion !== 'tsm-offline-runtime-v1') throw new Error('Unsupported runtime manifest schema.');
+if (!['tsm-offline-runtime-v1', 'tsm-offline-runtime-windows-x64-v1'].includes(manifest.schemaVersion)) throw new Error('Unsupported runtime manifest schema.');
+if (manifest.schemaVersion === 'tsm-offline-runtime-windows-x64-v1' && manifest.platform !== 'windows-x64') throw new Error('Windows runtime manifest platform mismatch.');
 if (!Array.isArray(manifest.planes) && !Array.isArray(manifest.runtimePlanes)) throw new Error('Runtime planes are missing.');
 
 console.log('TSM installed offline runtime: PASS');
