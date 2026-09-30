@@ -30,7 +30,7 @@ const ARCGIS_EXPORT = (service: string, layers?: string): string => {
 const layerColor = (id: string): string => {
   if (id === 'indiana-parcels') return '#38bdf8';
   if (id === 'indiana-roads') return '#fbbf24';
-  if (id === 'building-extrusions') return '#a78bfa';
+  if (id === 'indiana-buildings') return '#a78bfa';
   if (id === 'hydro-bathymetry') return '#22d3ee';
   return '#94a3b8';
 };
@@ -106,7 +106,7 @@ function addFeatureSource(map: Map, item: MapPlaneLayer): void {
     });
     return;
   }
-  if (item.id === 'building-extrusions') {
+  if (item.id === 'indiana-buildings') {
     map.addLayer({
       id: `${item.id}-extrusion`,
       type: 'fill-extrusion',
