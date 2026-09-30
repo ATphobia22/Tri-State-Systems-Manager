@@ -1,0 +1,4 @@
+import {createHash} from 'node:crypto';import type {ProvenanceRecord} from '../../contracts/src/index.ts';
+export function stableJson(value:unknown):string{if(value===null||typeof value!=='object')return JSON.stringify(value);if(Array.isArray(value))return `[${value.map(stableJson).join(',')}]`;const r=value as Record<string,unknown>;return `{${Object.keys(r).sort().map(k=>`${JSON.stringify(k)}:${stableJson(r[k])}`).join(',')}}`}
+export function sha256(value:unknown):string{return createHash('sha256').update(stableJson(value)).digest('hex')}
+export function provenance(input:Omit<ProvenanceRecord,'timestamp'>&{timestamp?:string}):ProvenanceRecord{return{...input,timestamp:input.timestamp??new Date().toISOString()}}
