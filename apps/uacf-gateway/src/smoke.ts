@@ -49,5 +49,9 @@ try {
   assert.equal(execution.output, 'gateway-smoke');
 } finally {
   child.kill('SIGTERM');
-  await new Promise<void>((resolve) => child.once('exit', () => resolve()));
+  await Promise.race([
+    new Promise<void>((resolve) => child.once('exit', () => resolve())),
+    new Promise<void>((resolve) => setTimeout(resolve, 2_000)),
+  ]);
+  if (!child.killed && child.exitCode === null) child.kill('SIGKILL');
 }
