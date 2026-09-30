@@ -77,6 +77,42 @@ function Save-ArcGisWithinCounty(
   }
 }
 
+function Save-ArcGisCountyAttribute(
+  [string]$ServiceLayerUrl,
+  [string]$Where,
+  [string]$Name,
+  [string]$RequiredId,
+  [string]$Authority,
+  [bool]$RequireFeature
+) {
+  Write-Host "Acquiring $RequiredId via exact county attribute filter from $ServiceLayerUrl"
+  $query = @{
+    where=$Where; outFields="*"; returnGeometry="true"; outSR="4326"; f="json"
+  } | ForEach-Object {
+    ($_.GetEnumerator() | ForEach-Object { "$($_.Key)=$([uri]::EscapeDataString([string]$_.Value))" }) -join "&"
+  }
+  $r = Invoke-RestMethod -Method Get -Uri "$ServiceLayerUrl/query?$query"
+  if ($r.error) { throw ($r.error | ConvertTo-Json -Depth 20) }
+  $features=@($r.features)
+  if ($RequireFeature -and $features.Count -lt 1) {
+    throw "Required FEMA county source returned zero features for $RequiredId"
+  }
+  $path=Join-Path $OutDir $Name
+  New-Item -ItemType Directory -Force -Path (Split-Path -Parent $path) | Out-Null
+  [ordered]@{
+    type="FeatureCollection"; source=$ServiceLayerUrl; where=$Where
+    countyFips=$CountyFips; boundarySource=$CountyBoundaryUrl; boundaryGEOID=$CountyGEOID
+    spatialRelation="exact-county-attribute"; retrievedAt=(Get-Date).ToUniversalTime().ToString("o")
+    features=$features
+  } | ConvertTo-Json -Depth 100 | Set-Content $path -Encoding utf8
+  [pscustomobject]@{
+    id=$RequiredId; authority=$Authority; path=$Name; url=$ServiceLayerUrl; where=$Where
+    sha256=(Get-FileHash $path -Algorithm SHA256).Hash.ToLowerInvariant()
+    bytes=(Get-Item $path).Length; featureCount=$features.Count
+    spatialRelation="exact-county-attribute"; status="acquired"
+  }
+}
+
 function Save-ArcGisCountyIntersectAudit(
   [string]$ServiceLayerUrl,
   [string]$Where,
@@ -109,17 +145,17 @@ $results += [pscustomobject]@{
 }
 
 $fema="https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer"
-$results += Save-ArcGisWithinCounty "$fema/3" "DFIRM_ID='$($CountyFips)C'" "fema\effective-firm-panels-18129C-within.json" "fema-firm-panels" "FEMA" $true "esriSpatialRelIntersects"
-$results += Save-ArcGisWithinCounty "$fema/1" "1=1" "fema\lomrs-within.json" "fema-lomrs" "FEMA" $false "esriSpatialRelIntersects"
-$results += Save-ArcGisWithinCounty "$fema/2" "1=1" "fema\lomas-within.json" "fema-lomas" "FEMA" $false "esriSpatialRelIntersects"
-$results += Save-ArcGisWithinCounty "$fema/14" "1=1" "fema\cross-sections-within.json" "fema-cross-sections" "FEMA" $false "esriSpatialRelIntersects"
-$results += Save-ArcGisWithinCounty "$fema/16" "1=1" "fema\base-flood-elevations-within.json" "fema-base-flood-elevations" "FEMA" $false "esriSpatialRelIntersects"
-$results += Save-ArcGisWithinCounty "$fema/23" "1=1" "fema\levees-within.json" "fema-levees" "FEMA" $false "esriSpatialRelIntersects"
-$results += Save-ArcGisWithinCounty "$fema/24" "1=1" "fema\general-structures-within.json" "fema-general-structures" "FEMA" $false "esriSpatialRelIntersects"
-$results += Save-ArcGisWithinCounty "$fema/26" "1=1" "fema\hydrologic-reaches-within.json" "fema-hydrologic-reaches" "FEMA" $false "esriSpatialRelIntersects"
-$results += Save-ArcGisWithinCounty "$fema/27" "1=1" "fema\flood-hazard-boundaries-within.json" "fema-flood-hazard-boundaries" "FEMA" $true "esriSpatialRelIntersects"
-$results += Save-ArcGisWithinCounty "$fema/28" "1=1" "fema\flood-hazard-zones-within.json" "fema-flood-hazard-zones" "FEMA" $true "esriSpatialRelIntersects"
-$results += Save-ArcGisWithinCounty "$fema/31" "1=1" "fema\subbasins-within.json" "fema-subbasins" "FEMA" $false "esriSpatialRelIntersects"
+$results += Save-ArcGisCountyAttribute "$fema/3" "DFIRM_ID='$($CountyFips)C'" "fema\effective-firm-panels-18129C-within.json" "fema-firm-panels" "FEMA" $true
+$results += Save-ArcGisCountyAttribute "$fema/1" "DFIRM_ID='$($CountyFips)C'" "fema\lomrs-within.json" "fema-lomrs" "FEMA" $false
+$results += Save-ArcGisCountyAttribute "$fema/2" "DFIRM_ID='$($CountyFips)C'" "fema\lomas-within.json" "fema-lomas" "FEMA" $false
+$results += Save-ArcGisCountyAttribute "$fema/14" "DFIRM_ID='$($CountyFips)C'" "fema\cross-sections-within.json" "fema-cross-sections" "FEMA" $false
+$results += Save-ArcGisCountyAttribute "$fema/16" "DFIRM_ID='$($CountyFips)C'" "fema\base-flood-elevations-within.json" "fema-base-flood-elevations" "FEMA" $false
+$results += Save-ArcGisCountyAttribute "$fema/23" "DFIRM_ID='$($CountyFips)C'" "fema\levees-within.json" "fema-levees" "FEMA" $false
+$results += Save-ArcGisCountyAttribute "$fema/24" "DFIRM_ID='$($CountyFips)C'" "fema\general-structures-within.json" "fema-general-structures" "FEMA" $false
+$results += Save-ArcGisCountyAttribute "$fema/26" "DFIRM_ID='$($CountyFips)C'" "fema\hydrologic-reaches-within.json" "fema-hydrologic-reaches" "FEMA" $false
+$results += Save-ArcGisCountyAttribute "$fema/27" "DFIRM_ID='$($CountyFips)C'" "fema\flood-hazard-boundaries-within.json" "fema-flood-hazard-boundaries" "FEMA" $true
+$results += Save-ArcGisCountyAttribute "$fema/28" "DFIRM_ID='$($CountyFips)C'" "fema\flood-hazard-zones-within.json" "fema-flood-hazard-zones" "FEMA" $true
+$results += Save-ArcGisCountyAttribute "$fema/31" "DFIRM_ID='$($CountyFips)C'" "fema\subbasins-within.json" "fema-subbasins" "FEMA" $false
 
 $results += Save-ArcGisWithinCounty "https://gisdata.in.gov/server/rest/services/Best_Available_Flood_Hazard_Layer/MapServer/438" "1=1" "indiana-dnr\bafm-posey-strict.geojson" "indiana-dnr-bafm" "Indiana DNR" $true "esriSpatialRelIntersects"
 
