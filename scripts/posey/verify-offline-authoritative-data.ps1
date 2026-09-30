@@ -58,6 +58,22 @@ foreach ($expected in @($req.requiredSources)) {
 $boundary = Join-Path $Root "boundary\posey-county-exact-tigerline.geojson"
 if (-not (Test-Path $boundary)) { $failures.Add("Missing exact Posey County boundary artifact") }
 
+# Independent local geometry audit: no bounding-box-only acceptance.
+$geometryValidator = Join-Path $PSScriptRoot "..\\geo\\validate-exact-county.mjs"
+if (-not (Test-Path $geometryValidator)) { $failures.Add("Missing exact-county geometry validator") }
+else {
+  foreach ($actual in $byId.Values) {
+    if ($actual.path -match "\\.geojson$" -and $actual.spatialRelation -in @("esriSpatialRelWithin","esriSpatialRelIntersects","exact-county-clip")) {
+      $sourcePath = Join-Path $Root $actual.path
+      if (Test-Path $sourcePath) {
+        $relation = if ($actual.spatialRelation -eq "esriSpatialRelWithin") { "within" } else { "intersects" }
+        node $geometryValidator $boundary $sourcePath $relation | Out-Null
+        if ($LASTEXITCODE -ne 0) { $failures.Add("$($actual.id): independent exact-county geometry audit failed") }
+      }
+    }
+  }
+}
+
 if ($failures.Count -gt 0) {
   $failures | ForEach-Object { Write-Error $_ }
   throw "Posey authoritative acquisition validation failed with $($failures.Count) error(s)."
