@@ -19,6 +19,8 @@ export interface DatasetContract {
   readonly datasetId: string;
   readonly title: string;
   readonly owner: string;
+  readonly steward: string;
+  readonly accessClass: 'PUBLIC' | 'CONTROLLED' | 'RESTRICTED';
   readonly authority: DatasetAuthority;
   readonly zone: FabricZone;
   readonly schemaVersion: string;
@@ -61,6 +63,7 @@ export function assessDataset(contract: DatasetContract, now = new Date()): Data
   if (!contract.datasetId.trim()) issues.push('datasetId is required');
   if (!contract.title.trim()) issues.push('title is required');
   if (!contract.owner.trim()) issues.push('owner is required');
+  if (!contract.steward.trim()) issues.push('steward is required');
   if (contract.authority === 'DISCOVERY_ONLY') issues.push('discovery-only datasets cannot become authoritative');
   if (contract.quality.status !== 'PASS') issues.push(`quality status is ${contract.quality.status}`);
   if (contract.maxAgeSeconds !== undefined && contract.updateCadenceSeconds !== undefined &&
