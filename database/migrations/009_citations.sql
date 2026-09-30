@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS uacf_citations (id TEXT PRIMARY KEY, trace_id UUID, url TEXT NOT NULL, title TEXT, retrieved_at TIMESTAMPTZ NOT NULL);
