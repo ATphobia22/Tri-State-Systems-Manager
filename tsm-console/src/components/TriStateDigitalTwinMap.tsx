@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import maplibregl, { type Map, type GeoJSONSource, type StyleSpecification } from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
+import type { Map, GeoJSONSource, StyleSpecification } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { MAP_PLANE_FABRIC, type MapPlaneLayer } from '../lib/map-plane-fabric';
 import { buildArcGisFeatureQueryUrl, getMapLibreFabricLayer } from '../lib/maplibre-layer-fabric';
-import { getTerrainRgbStatus, TERRAIN_RGB_SOURCE_ID } from '../lib/twin-map-style';
+import { getTerrainRgbStatus } from '../lib/twin-map-style';
+import { TERRAIN_RGB_SOURCE_ID } from '../lib/terrain-rgb-contract';
 
 const INITIAL_CENTER: [number, number] = [-88.0167, 37.8331];
 const MAX_BOUNDS: [[number, number], [number, number]] = [
@@ -56,7 +58,7 @@ function baseStyle(): StyleSpecification {
   };
 }
 
-async function fetchGeoJson(source: string, map: Map): Promise<GeoJSON.GeoJSON> {
+async function fetchGeoJson(source: string, map: Map): Promise<Parameters<GeoJSONSource['setData']>[0]> {
   const bounds = map.getBounds();
   const bbox = `${bounds.getWest()},${bounds.getSouth()},${bounds.getEast()},${bounds.getNorth()}`;
   const url = buildArcGisFeatureQueryUrl(source).replace('{bbox-epsg-4326}', encodeURIComponent(bbox));
@@ -66,7 +68,7 @@ async function fetchGeoJson(source: string, map: Map): Promise<GeoJSON.GeoJSON> 
   if (!response.ok) throw new Error(`ArcGIS FeatureServer request failed: HTTP ${response.status}`);
   const payload = await response.json() as GeoJSON.GeoJSON;
   if (payload.type !== 'FeatureCollection') throw new Error('ArcGIS source did not return a GeoJSON FeatureCollection');
-  return payload;
+  return payload as Parameters<GeoJSONSource['setData']>[0];
 }
 
 function addRasterSource(map: Map, id: string, service: string, layers: string | undefined, visible: boolean): void {
