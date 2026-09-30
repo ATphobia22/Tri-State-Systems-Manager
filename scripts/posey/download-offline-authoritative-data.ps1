@@ -75,7 +75,7 @@ function Save-ArcGisWithinCounty(
     id=$RequiredId; authority=$Authority; path=$Name; url=$ServiceLayerUrl; where=$Where
     sha256=(Get-FileHash $path -Algorithm SHA256).Hash.ToLowerInvariant()
     bytes=(Get-Item $path).Length; featureCount=$all.Count
-    spatialRelation="esriSpatialRelWithin"; status="acquired"
+    spatialRelation=$SpatialRelation; status="acquired"
   }
 }
 
@@ -91,10 +91,8 @@ function Save-ArcGisCountyIntersectAudit(
 }
 
 # Exact Posey County polygon: U.S. Census TIGERweb January 1, 2026 current county vintage.
-$boundary = Invoke-ArcGisQuery $CountyBoundaryUrl @{
-  where="GEOID='$CountyGEOID'"; outFields="GEOID,NAME,STATE,COUNTY"
-  returnGeometry="true"; outSR="4326"; f="json"
-}
+$boundaryQueryUrl = "$CountyBoundaryUrl/query?where=GEOID%3D%27$CountyGEOID%27&outFields=GEOID%2CNAME%2CSTATE%2CCOUNTY&returnGeometry=true&outSR=4326&f=json"
+$boundary = Invoke-RestMethod -Uri $boundaryQueryUrl -Method Get
 if (@($boundary.features).Count -ne 1) { throw "Expected exactly one Posey County boundary feature; got $(@($boundary.features).Count)" }
 if ($boundary.features[0].attributes.GEOID -ne $CountyGEOID) { throw "County GEOID mismatch" }
 $script:CountyGeometry = $boundary.features[0].geometry
