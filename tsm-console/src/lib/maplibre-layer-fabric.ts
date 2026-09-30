@@ -136,5 +136,5 @@ export function buildArcGisExportTemplate(endpoint: string, layerIds: readonly n
 }
 
 export function buildArcGisFeatureQueryUrl(endpoint: string): string {
-  return `${endpoint.replace(/\\/$/, '')}/query?where=1%3D1&geometry={bbox-epsg-4326}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=true&outSR=4326&f=geojson`;
+  const base = endpoint.replace(/\\/$/, '');\n  const queryEndpoint = /\\/FeatureServer\\/\\d+$/.test(base) ? base : `${base}/0`;\n  return `${queryEndpoint}/query?where=1%3D1&geometry={bbox-epsg-4326}&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=true&outSR=4326&resultRecordCount=500&f=geojson`;
 }
