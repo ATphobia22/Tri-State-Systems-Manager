@@ -1,5 +1,33 @@
 import type {AuthorizationDecision,CapabilityContext,CapabilityDefinition,CapabilityRequest,PolicyEngine} from '../../contracts/src/index.ts';
+
 export interface PolicyRule{readonly capability:string;readonly allow?:boolean;readonly requireApproval?:boolean;readonly permissions?:readonly string[]}
-export class StaticPolicyEngine implements PolicyEngine{constructor(private readonly rules:readonly PolicyRule[]=[]){}
-async authorize(request:CapabilityRequest):Promise<AuthorizationDecision>{const matching=this.rules.filter(r=>r.capability===request.capability||r.capability==='*'||(r.capability.endsWith('.*')&&request.capability.startsWith(r.capability.slice(0,-1))));const denied=matching.find(r=>r.allow===false);if(denied)return{allowed:false,reason:`Denied by policy rule for ${request.capability}`};const rule=matching.at(-1);if(rule?.permissions?.some(p=>!request.context.permissions.allow.includes(p)))return{allowed:false,reason:'Required permission missing'};return{allowed:true,requireApproval:rule?.requireApproval??false}}
-async canUse(capability:CapabilityDefinition,context:CapabilityContext):Promise<boolean>{const d=await this.authorize({capability:capability.id,input:undefined,context});return d.allowed&&capability.permissions.every(p=>context.permissions.allow.includes(p))}}
+
+function specificity(rule: PolicyRule, capability: string): number {
+  if (rule.capability === capability) return 3;
+  if (rule.capability.endsWith('.*') && capability.startsWith(rule.capability.slice(0, -1))) return 2;
+  if (rule.capability === '*') return 1;
+  return 0;
+}
+
+export class StaticPolicyEngine implements PolicyEngine{
+  constructor(private readonly rules:readonly PolicyRule[]=[]) {}
+
+  async authorize(request:CapabilityRequest):Promise<AuthorizationDecision>{
+    const matching=this.rules
+      .map((rule,index)=>({rule,index,score:specificity(rule,request.capability)}))
+      .filter((entry)=>entry.score>0)
+      .sort((a,b)=>b.score-a.score||b.index-a.index);
+    const selected=matching[0]?.rule;
+    if(!selected) return {allowed:false,reason:`No policy rule for ${request.capability}`};
+    if(selected.allow===false) return {allowed:false,reason:`Denied by policy rule for ${request.capability}`};
+    if(selected.permissions?.some((permission)=>!request.context.permissions.allow.includes(permission))){
+      return {allowed:false,reason:'Required permission missing'};
+    }
+    return {allowed:selected.allow!==false,requireApproval:selected.requireApproval??false};
+  }
+
+  async canUse(capability:CapabilityDefinition,context:CapabilityContext):Promise<boolean>{
+    const decision=await this.authorize({capability:capability.id,input:undefined,context});
+    return decision.allowed&&capability.permissions.every((permission)=>context.permissions.allow.includes(permission));
+  }
+}
