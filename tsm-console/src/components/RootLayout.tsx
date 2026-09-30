@@ -8,6 +8,7 @@ import { StageAuthorityBanner } from './StageAuthorityBanner';
 import { EngineeringSimSettings } from './EngineeringSimSettings';
 import { RouteTitle } from './RouteTitle';
 import { TourOnboardingHint } from './TourOnboardingHint';
+import BackgroundMusic from './BackgroundMusic';
 
 /**
  * Phase 2 nav: the four twin surfaces are differentiated by label, and the
@@ -111,6 +112,7 @@ export default function RootLayout() {
           <Outlet />
         </main>
       </div>
+      <BackgroundMusic />
     </div>
   );
 }
