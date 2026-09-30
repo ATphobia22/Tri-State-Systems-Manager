@@ -1,0 +1,1 @@
+network:\n  outbound: false\nproviders:\n  remote: false\ntelemetry:\n  remote: false\nmodels:\n  local_only: true\nprovenance:\n  required: true\n
