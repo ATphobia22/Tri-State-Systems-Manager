@@ -107,7 +107,7 @@ jobs:
             echo '{'
             echo '  "schemaVersion": "tsm-offline-runtime-v1",'
             echo "  \"generatedAt\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\","
-            echo "  \"commit\": \"\${GITHUB_SHA}\","
+            echo "  \"commit\": \"${GITHUB_SHA}\","
             echo '  "planes": ["doctor","offline-dependencies","vite-web","node-api","health","hydraulics","tauri","provenance","hec-ras-boundary"],'
             echo "  \"npmCacheFiles\": $(find offline-runtime/npm-cache -type f | wc -l),"
             echo "  \"pythonWheelFiles\": $(find offline-runtime/python-wheels -type f | wc -l),"
@@ -126,14 +126,14 @@ jobs:
         run: rm -rf offline-runtime/python-test
       - name: Package offline runtime
         run: |
-          tar -czf TSM-OFFLINE-RUNTIME-\${GITHUB_SHA}.tar.gz offline-runtime
-          sha256sum TSM-OFFLINE-RUNTIME-\${GITHUB_SHA}.tar.gz > TSM-OFFLINE-RUNTIME-\${GITHUB_SHA}.sha256
+          tar -czf TSM-OFFLINE-RUNTIME-${GITHUB_SHA}.tar.gz offline-runtime
+          sha256sum TSM-OFFLINE-RUNTIME-${GITHUB_SHA}.tar.gz > TSM-OFFLINE-RUNTIME-${GITHUB_SHA}.sha256
       - name: Upload offline runtime artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: TSM-OFFLINE-RUNTIME-\${{ github.sha }}
+          name: TSM-OFFLINE-RUNTIME-${{ github.sha }}
           path: |
-            TSM-OFFLINE-RUNTIME-\${{ github.sha }}.tar.gz
-            TSM-OFFLINE-RUNTIME-\${{ github.sha }}.sha256
+            TSM-OFFLINE-RUNTIME-${{ github.sha }}.tar.gz
+            TSM-OFFLINE-RUNTIME-${{ github.sha }}.sha256
           if-no-files-found: error
           retention-days: 30
