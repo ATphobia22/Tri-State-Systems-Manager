@@ -5,7 +5,7 @@
 #   ORACLE_SSH_HOST   public IPv4 of the VM
 #   ORACLE_SSH_USER   SSH user (ubuntu)
 #   ORACLE_SSH_KEY    private key matching the VM's authorized key
-# The job soft-skips until all three exist (same pattern as deploy-coolify).
+# The job soft-skips until all three exist
 #
 # The VM must already have /opt/tsm/tree/deploy/oracle/.env (see
 # deploy/oracle/README.md). The workflow syncs this exact commit, rebuilds,
