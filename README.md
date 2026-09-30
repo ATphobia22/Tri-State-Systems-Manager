@@ -206,6 +206,25 @@ Worker execution is fail-closed: executable allowlists, no shell expansion, expl
 Windows is the primary desktop engineering target. The supported build path is Unreal Engine 5.8 + Visual Studio 2022/MSVC on a Windows UE5 runner. The repository includes the native Windows build and packaging path at `scripts/native/Build-TSMNativeWindows.ps1`, including ArchimedesCore, packaged SpatiaLite, Unreal Shipping packaging and Inno Setup installer generation.
 
 The Windows release workflow requires explicit UE5 runner capabilities, an immutable native data snapshot, pinned Cesium for Unreal **2.29.1**, packaged SpatiaLite, release-signing configuration, release provenance and SPDX SBOM generation. Unreal Engine, proprietary SDKs, signing certificates and generated release binaries remain outside source control.
+## Spatial Runtime Fabric — AWS pattern adaptation
+
+TSM incorporates selected architectural patterns from the reviewed AWS spatial material without making AWS a runtime dependency or an engineering authority.
+
+- **Map plane:** MapLibre-compatible styles and tiles over PMTiles, Martin or controlled local tile origins.
+- **3D plane:** OGC 3D Tiles/glTF/GLB with spatial HLOD, screen-space-error selection and bounded LRU residency.
+- **Layer plane:** base map, terrain, imagery, context, hydrology, regulatory, engineering, historical and simulation layers retain independent authority/provenance metadata.
+- **Simulation plane:** deterministic orchestration owns scenario execution; optional AI/agent tooling returns structured proposals that pass validation before any world-state transaction.
+- **Cinematic plane:** Three.js/WebGPU in the browser and Unreal/OpenUSD for native presentation remain presentation boundaries and cannot promote visualization into evidence.
+- **Offline/local mode:** source/tile artifacts can be materialized locally so the spatial runtime does not depend on AWS-managed services.
+
+Machine-readable contracts:
+
+- `architecture/contracts/spatial-runtime-fabric-v1.json`
+- `architecture/contracts/aws-spatial-capability-adapter-v1.json`
+- `architecture/contracts/spatial-layer-manifest-v1.json`
+
+Validation is fail-closed through `npm run check:spatial-runtime` and the repository CI chain. Full design rationale and source register are in `docs/digital-twin/AWS-SPATIAL-IDEAS-ADAPTATION.md` and `docs/digital-twin/AWS-SPATIAL-SOURCE-REGISTER.md`.
+
 ## Local development
 
 ```bash

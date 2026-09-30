@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "1.0.0",
+  "name": "AWS Spatial Capability Adapter",
+  "status": "REFERENCE_ADAPTER",
+  "purpose": "Capture reusable ideas from AWS spatial products without coupling TSM runtime authority to AWS-managed services.",
+  "capabilities": {
+    "maps": {
+      "concepts": ["dynamic maps", "static maps", "vector/raster tiles", "style descriptors", "terrain", "contours", "traffic/logistics overlays"],
+      "tsmImplementation": ["MapLibre", "PMTiles", "Martin", "local tile services"],
+      "authority": "visualization"
+    },
+    "large3d": {
+      "concepts": ["glTF/GLB to 3D Tiles", "spatial HLOD", "tile-level streaming", "compression", "object/point-cloud tiling"],
+      "tsmImplementation": ["3d-tiles-renderer", "Cesium 3D Tiles tooling as offline converter/validator", "S3/filesystem-compatible tile origins"],
+      "authority": "visualization"
+    },
+    "digitalTwin": {
+      "concepts": ["entity/component model", "scene graph", "external data connectors", "dynamic scenes"],
+      "tsmImplementation": ["TSM entity registry", "source fabric", "scene/layer manifests", "event/evidence bus"],
+      "authority": "integration"
+    },
+    "spatialAgents": {
+      "concepts": ["deterministic simulation runner", "MCP tool gateway", "structured agent decisions", "turn snapshots", "swappable models"],
+      "tsmImplementation": ["simulation kernel", "MCP-compatible capability fabric", "validated action proposals", "immutable snapshots"],
+      "authority": "decision-support"
+    },
+    "rendering": {
+      "concepts": ["physically based rendering", "modular renderer", "GPU-aware effects", "ray tracing", "Forward+"],
+      "tsmImplementation": ["Unreal-native cinematic path", "Three.js/MapLibre browser path", "WebGPU optional acceleration"],
+      "authority": "presentation"
+    }
+  },
+  "nonGoals": [
+    "Do not make AWS services mandatory for local/offline TSM operation.",
+    "Do not copy proprietary AWS implementations into TSM.",
+    "Do not treat marketplace products as authoritative engineering data sources without independent source verification."
+  ]
+}

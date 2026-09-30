@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "1.0.0",
+  "name": "TSM Spatial Runtime Fabric",
+  "purpose": "Vendor-neutral contract for tiled basemaps, terrain, 3D assets, analytical overlays and deterministic spatial simulation.",
+  "designPrinciples": [
+    "Use MapLibre-compatible style/tile contracts for 2D/2.5D mapping.",
+    "Use OGC 3D Tiles/glTF/GLB for large 3D assets and HLOD streaming.",
+    "Keep visualization transport separate from engineering authority and evidence.",
+    "Treat every layer as a versioned source with provenance, freshness, CRS and vertical datum metadata.",
+    "Use deterministic simulation orchestration; AI agents may propose actions but never mutate authoritative world state directly.",
+    "Prefer local/offline artifacts when the runtime is configured for sovereign/offline operation."
+  ],
+  "renderPlanes": {
+    "map2d": { "renderer": "MapLibre-compatible", "formats": ["MVT", "raster", "GeoJSON"], "tileAddressing": "XYZ" },
+    "terrain": { "formats": ["Terrain-RGB", "COG", "quantized-mesh"], "requiresVerticalDatum": true },
+    "model3d": { "formats": ["3D Tiles", "glTF", "GLB"], "streaming": "spatial-HLOD" },
+    "nativeCinematic": { "formats": ["OpenUSD", "USDZ"], "authority": "presentation_only" }
+  },
+  "layerModel": {
+    "base": ["street", "imagery", "hybrid", "monochrome"],
+    "terrain": ["elevation", "hillshade", "contours", "hydro-enforced"],
+    "context": ["roads", "parcels", "buildings", "addresses", "hydrography"],
+    "engineering": ["flood-depth", "WSE", "BFE", "berms", "roads", "structures", "simulation-output"],
+    "observations": ["gauges", "weather", "imagery-evidence", "telemetry"],
+    "regulatory": ["FEMA-NFHL", "effective-FIRM", "LOMA-LOMR", "state-floodplain"],
+    "historical": ["archived-imagery", "historical-flood", "historical-survey"]
+  },
+  "cachePolicy": {
+    "metadata": "ETag-or-content-hash",
+    "tiles2d": "HTTP-cache-plus-LRU",
+    "tiles3d": "screen-space-error-plus-LRU",
+    "staleWhileRevalidate": true,
+    "authoritativeFreshnessMustBeVisible": true
+  },
+  "simulationBoundary": {
+    "orchestrator": "deterministic",
+    "worldState": "validated-transactional",
+    "agentReasoning": "optional",
+    "agentOutput": "structured-proposal",
+    "humanApprovalRequiredFor": ["regulatory-use", "engineering-design", "public-safety-action", "evidence-promotion"]
+  }
+}

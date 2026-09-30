@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "1.0.0",
+  "name": "TSM Spatial Layer Manifest",
+  "required": ["id", "title", "role", "authorityClass", "format", "source", "provenance"],
+  "authorityClasses": ["OBSERVATION", "CONTEXT", "PLANNING", "REGULATORY", "DERIVED", "SIMULATION", "HISTORICAL", "PRESENTATION"],
+  "formats": ["MVT", "raster", "Terrain-RGB", "COG", "GeoJSON", "3D-Tiles", "glTF", "GLB", "OpenUSD"],
+  "source": {
+    "url": "string",
+    "retrievedAt": "RFC3339",
+    "contentHash": "sha256-or-null",
+    "etag": "string-or-null",
+    "freshnessSeconds": "number-or-null"
+  },
+  "spatialReference": {
+    "horizontalCRS": "string",
+    "verticalDatum": "string-or-null",
+    "coordinateEpoch": "string-or-null"
+  },
+  "rendering": {
+    "minZoom": "number-or-null",
+    "maxZoom": "number-or-null",
+    "screenSpaceError": "number-or-null",
+    "maxResidentTiles": "number-or-null",
+    "defaultVisible": "boolean"
+  },
+  "authorityRules": {
+    "visualizationCannotPromoteToEvidence": true,
+    "derivedCannotReplaceAuthoritative": true,
+    "historicalCannotRepresentCurrentTruth": true,
+    "simulationOutputRequiresInputAndResultHashes": true
+  }
+}
