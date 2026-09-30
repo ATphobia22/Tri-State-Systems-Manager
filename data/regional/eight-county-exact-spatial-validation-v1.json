@@ -1,0 +1,132 @@
+{
+  "schema": "tsm-eight-county-exact-spatial-validation-v1",
+  "generatedAt": "2026-09-30T17:00:00Z",
+  "rule": "Every spatial object must be acquired or validated using the exact county polygon. Bounding-box-only selection is prohibited.",
+  "boundaryAuthority": "US_CENSUS_BUREAU_TIGER_LINE",
+  "counties": [
+    {
+      "name": "Posey County",
+      "state": "IN",
+      "fips": "18129",
+      "geoid": "18129",
+      "relationPolicy": {
+        "default": "within",
+        "coverage": "intersects"
+      }
+    },
+    {
+      "name": "Vanderburgh County",
+      "state": "IN",
+      "fips": "18163",
+      "geoid": "18163",
+      "relationPolicy": {
+        "default": "within",
+        "coverage": "intersects"
+      }
+    },
+    {
+      "name": "Gibson County",
+      "state": "IN",
+      "fips": "18051",
+      "geoid": "18051",
+      "relationPolicy": {
+        "default": "within",
+        "coverage": "intersects"
+      }
+    },
+    {
+      "name": "Warrick County",
+      "state": "IN",
+      "fips": "18173",
+      "geoid": "18173",
+      "relationPolicy": {
+        "default": "within",
+        "coverage": "intersects"
+      }
+    },
+    {
+      "name": "White County",
+      "state": "IL",
+      "fips": "17193",
+      "geoid": "17193",
+      "relationPolicy": {
+        "default": "within",
+        "coverage": "intersects"
+      }
+    },
+    {
+      "name": "Gallatin County",
+      "state": "IL",
+      "fips": "17059",
+      "geoid": "17059",
+      "relationPolicy": {
+        "default": "within",
+        "coverage": "intersects"
+      }
+    },
+    {
+      "name": "Henderson County",
+      "state": "KY",
+      "fips": "21101",
+      "geoid": "21101",
+      "relationPolicy": {
+        "default": "within",
+        "coverage": "intersects"
+      }
+    },
+    {
+      "name": "Union County",
+      "state": "KY",
+      "fips": "21225",
+      "geoid": "21225",
+      "relationPolicy": {
+        "default": "within",
+        "coverage": "intersects"
+      }
+    }
+  ],
+  "objectClasses": {
+    "parcel": "within",
+    "address": "within",
+    "road": "within",
+    "countyAdmin": "within",
+    "floodZone": "intersects",
+    "floodway": "intersects",
+    "baseFloodElevation": "within",
+    "crossSection": "within",
+    "levee": "intersects",
+    "hydraulicStructure": "intersects",
+    "lidarTile": "intersects",
+    "imageryTile": "intersects",
+    "orthoTile": "intersects",
+    "elevationTile": "intersects",
+    "streamGauge": "within",
+    "studyFootprint": "intersects",
+    "water": "intersects",
+    "countyBoundary": "exact-boundary"
+  },
+  "validation": {
+    "geometryCrs": "EPSG:4326",
+    "requiredMetadata": [
+      "countyGEOID",
+      "boundarySource",
+      "spatialRelation",
+      "retrievedAt",
+      "sha256"
+    ],
+    "rejectionReasons": [
+      "bbox-only",
+      "missing-boundary-reference",
+      "missing-spatial-relation",
+      "wrong-county",
+      "zero-byte",
+      "sha256-mismatch"
+    ],
+    "provenanceRule": "Acquisition date is not product vintage. Preserve source publication/effective date separately."
+  },
+  "restrictedDataPolicy": {
+    "ownership": "Do not bypass licensing, authentication, subscription, or paywalls. Record the official source and access restriction; acquire only legally accessible data.",
+    "whiteCountyIL": "County GIS/land-record access is public, while some land-record search services are fee/subscription based.",
+    "kentuckyOwnership": "Do not bypass county/PVA licensing or subscription controls; use public parcel geometry/services where available."
+  }
+}
