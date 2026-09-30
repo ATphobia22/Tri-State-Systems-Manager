@@ -133,7 +133,7 @@ jobs:
         # index.html) restores it via history.replaceState before the router
         # boots. A bare `cp index.html 404.html` serves the shell but leaves
         # the router on the wrong path.
-        run: node scripts/generate-spa-fallback.mjs --out dist/404.html
+        run: node scripts/generate-spa-fallback.mjs --out dist/404.html --base "${{ env.VITE_PAGES_BASE_PATH }}"
       - name: Validate production artifact
         working-directory: ${{ env.CONSOLE_DIR }}
         shell: bash
