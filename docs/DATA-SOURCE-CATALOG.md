@@ -5,6 +5,13 @@
 
 This catalog defines external sources that may supply hydrologic, regulatory-reference, scientific, or geospatial data to TSM. **Posey County offline operation is snapshot-first:** the newest suitable agency product is acquired, dated, hashed, and frozen. A live service may be used to obtain a snapshot, but the offline runtime does not depend on a live API.
 
+
+## Posey County offline authoritative acquisition
+
+The source catalog is paired with a reproducible offline acquisition pipeline at scripts/posey/download-offline-authoritative-data.ps1 and .github/workflows/posey-offline-data.yml. It freezes county-scoped FEMA, Indiana DNR/GIO, USGS/NOAA and USACE products with per-file SHA-256 receipts. Authority classes remain separate and retrieval time is never treated as product vintage.
+
+For very large raw products such as 3DEP LAZ and current statewide imagery, the offline package freezes the exact official product/service index and asset endpoints rather than committing multi-gigabyte source data to Git. Raw extraction is materialized and hashed on the acquisition host.
+
 ## Posey authoritative vintage manifest
 
 The current Posey source-selection contract is:

@@ -1,0 +1,224 @@
+{
+  "schema": "tsm-posey-fema-effective-firm-panels-v1",
+  "scope": "Posey County, Indiana",
+  "fips": "18129",
+  "dfirmId": "18129C",
+  "retrievedAt": "2026-09-30T14:00:00Z",
+  "source": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/3/query",
+  "query": "DFIRM_ID='18129C'",
+  "sourceSpatialReference": "EPSG:4269",
+  "effectiveDate": "2014-11-05",
+  "panelCount": 35,
+  "panels": [
+    {
+      "panel": "0215",
+      "suffix": "C",
+      "firmPan": "18129C0215C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0300",
+      "suffix": "C",
+      "firmPan": "18129C0300C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0015",
+      "suffix": "C",
+      "firmPan": "18129C0015C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0115",
+      "suffix": "C",
+      "firmPan": "18129C0115C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0100",
+      "suffix": "C",
+      "firmPan": "18129C0100C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0325",
+      "suffix": "C",
+      "firmPan": "18129C0325C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0200",
+      "suffix": "C",
+      "firmPan": "18129C0200C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0240",
+      "suffix": "C",
+      "firmPan": "18129C0240C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0275",
+      "suffix": "C",
+      "firmPan": "18129C0275C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0150",
+      "suffix": "C",
+      "firmPan": "18129C0150C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0175",
+      "suffix": "C",
+      "firmPan": "18129C0175C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0050",
+      "suffix": "C",
+      "firmPan": "18129C0050C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0005",
+      "suffix": "C",
+      "firmPan": "18129C0005C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0010",
+      "suffix": "C",
+      "firmPan": "18129C0010C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0020",
+      "suffix": "C",
+      "firmPan": "18129C0020C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0014",
+      "suffix": "C",
+      "firmPan": "18129C0014C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0018",
+      "suffix": "C",
+      "firmPan": "18129C0018C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0075",
+      "suffix": "C",
+      "firmPan": "18129C0075C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0055",
+      "suffix": "C",
+      "firmPan": "18129C0055C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0065",
+      "suffix": "C",
+      "firmPan": "18129C0065C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0105",
+      "suffix": "C",
+      "firmPan": "18129C0105C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0110",
+      "suffix": "C",
+      "firmPan": "18129C0110C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0120",
+      "suffix": "C",
+      "firmPan": "18129C0120C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0255",
+      "suffix": "C",
+      "firmPan": "18129C0255C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0265",
+      "suffix": "C",
+      "firmPan": "18129C0265C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0230",
+      "suffix": "C",
+      "firmPan": "18129C0230C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0235",
+      "suffix": "C",
+      "firmPan": "18129C0235C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0245",
+      "suffix": "C",
+      "firmPan": "18129C0245C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0236",
+      "suffix": "C",
+      "firmPan": "18129C0236C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0205",
+      "suffix": "C",
+      "firmPan": "18129C0205C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0210",
+      "suffix": "C",
+      "firmPan": "18129C0210C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0218",
+      "suffix": "C",
+      "firmPan": "18129C0218C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0216",
+      "suffix": "C",
+      "firmPan": "18129C0216C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0217",
+      "suffix": "C",
+      "firmPan": "18129C0217C",
+      "effectiveDate": "2014-11-05"
+    },
+    {
+      "panel": "0219",
+      "suffix": "C",
+      "firmPan": "18129C0219C",
+      "effectiveDate": "2014-11-05"
+    }
+  ]
+}

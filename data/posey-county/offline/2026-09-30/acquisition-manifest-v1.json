@@ -1,0 +1,129 @@
+{
+  "schema": "tsm-posey-offline-authoritative-acquisition-v1",
+  "scope": {
+    "county": "Posey County",
+    "state": "Indiana",
+    "fips": "18129",
+    "retrievedAt": "2026-09-30"
+  },
+  "policy": {
+    "mode": "offline-snapshot",
+    "rule": "Download county-scoped or Posey-covering official products where the agency exposes a deterministic download/query endpoint. Preserve source metadata and SHA-256. Do not substitute retrieval date for product vintage.",
+    "unsupported": "Dynamic imagery mosaics and very large point-cloud collections remain represented by exact official service/EPT/download manifests unless a bounded Posey extraction endpoint exists."
+  },
+  "datasets": [
+    {
+      "id": "fema-effective-firm-panels",
+      "authority": "FEMA",
+      "vintage": "2014-11-05",
+      "url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/3/query?where=DFIRM_ID%3D%2718129C%27&outFields=DFIRM_ID%2CPANEL%2CSUFFIX%2CFIRM_PAN%2CEFF_DATE%2CPRE_DATE%2CPANEL_TYP&returnGeometry=true&outSR=4326&f=geojson",
+      "format": "GeoJSON",
+      "status": "snapshot-defined"
+    },
+    {
+      "id": "fema-flood-hazard-zones",
+      "authority": "FEMA",
+      "vintage": "effective NFHL",
+      "url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28/query",
+      "format": "GeoJSON/JSON",
+      "status": "county spatial extraction"
+    },
+    {
+      "id": "indiana-bafm",
+      "authority": "Indiana DNR",
+      "vintage": "undated service; newest published state layer",
+      "url": "https://gisdata.in.gov/server/rest/services/Best_Available_Flood_Hazard_Layer/MapServer/438/query",
+      "format": "GeoJSON/JSON",
+      "nativeCrs": "EPSG:26916",
+      "status": "county spatial extraction"
+    },
+    {
+      "id": "indiana-parcels-2025",
+      "authority": "Indiana GIO",
+      "vintage": "2025",
+      "url": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer/0/query",
+      "format": "GeoJSON/JSON",
+      "nativeCrs": "EPSG:4326",
+      "status": "county_fips=18129 extraction"
+    },
+    {
+      "id": "indiana-current-imagery",
+      "authority": "Indiana GIO",
+      "vintage": "2022-2025 mosaic; newest county image year retained per tile",
+      "url": "https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_Current_Imagery/ImageServer",
+      "format": "ImageServer snapshot/index",
+      "status": "service/index snapshot; raster export bounded by server limits"
+    },
+    {
+      "id": "indiana-ortho-tier",
+      "authority": "Indiana GIO",
+      "vintage": "2025-2028 program",
+      "url": "https://gisdata.in.gov/server/rest/services/Hosted/Orthoimagery_Tier_Map_2025_2028/FeatureServer/10/query",
+      "format": "GeoJSON/JSON",
+      "status": "Posey program-year extraction"
+    },
+    {
+      "id": "usgs-3dep-tnm",
+      "authority": "USGS",
+      "vintage": "newest Posey-covering 3DEP product at acquisition",
+      "url": "https://tnmaccess.nationalmap.gov/api/v1/products",
+      "format": "JSON product index + downloadable assets",
+      "status": "bbox-filtered acquisition required"
+    },
+    {
+      "id": "noaa-usgs-lidar-69202",
+      "authority": "NOAA/USGS",
+      "vintage": "2017-2020",
+      "url": "https://www.fisheries.noaa.gov/inport/item/69202",
+      "format": "LAZ/LAS + metadata",
+      "status": "historical baseline; official tile directories exposed by metadata"
+    },
+    {
+      "id": "usgs-new-harmony-03378500",
+      "authority": "USGS",
+      "vintage": "historical/reference snapshot at acquisition",
+      "url": "https://waterdata.usgs.gov/monitoring-location/USGS-03378500/",
+      "format": "CSV/JSON/Water Services",
+      "status": "historical download"
+    },
+    {
+      "id": "usgs-sir-2016-5119",
+      "authority": "USGS",
+      "vintage": "published study",
+      "url": "https://pubs.usgs.gov/publication/sir20165119",
+      "format": "PDF + GIS study files where published",
+      "status": "study package acquisition"
+    },
+    {
+      "id": "usace-nld-leveed-areas",
+      "authority": "USACE",
+      "vintage": "per-record NLD dates",
+      "url": "https://geospatial.sec.usace.army.mil/dls/rest/services/NLD/Public/FeatureServer/16/query",
+      "format": "GeoJSON/JSON",
+      "nativeCrs": "EPSG:4269 + NAVD88 height (ftUS) where Z is present",
+      "status": "Posey spatial extraction"
+    },
+    {
+      "id": "usace-nld-public-services",
+      "authority": "USACE",
+      "vintage": "current service metadata",
+      "url": "https://levees.sec.usace.army.mil/data-services/services/",
+      "format": "service catalog",
+      "status": "service/index snapshot"
+    },
+    {
+      "id": "hec-ras",
+      "authority": "USACE HEC",
+      "vintage": "7.0.1 runtime pin",
+      "url": "https://www.hec.usace.army.mil/software/hec-ras/",
+      "format": "installer/software metadata",
+      "status": "software provenance only"
+    }
+  ],
+  "offlineArtifact": {
+    "target": "posey-county-offline-authoritative-2026-09-30.zip",
+    "layout": "data/posey-county/offline/2026-09-30/",
+    "required": "raw source bytes or exact source index/manifest when a bounded raw extraction is not exposed",
+    "integrity": "SHA-256 for every downloaded file plus manifest hash"
+  }
+}

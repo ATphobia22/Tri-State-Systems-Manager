@@ -1,0 +1,56 @@
+name: Posey County Offline Authoritative Data
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'feat/posey-offline-authoritative-data-*'
+
+permissions:
+  contents: read
+
+jobs:
+  acquire:
+    runs-on: windows-2022
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 1
+
+      - name: Acquire official Posey County source snapshots
+        shell: pwsh
+        run: .\scripts\posey\download-offline-authoritative-data.ps1
+
+      - name: Validate acquisition receipt
+        shell: pwsh
+        run: |
+          $receipt = "data\posey-county\offline\2026-09-30\download-receipt-v1.json"
+          if (-not (Test-Path $receipt)) { throw "Download receipt missing" }
+          $obj = Get-Content $receipt -Raw | ConvertFrom-Json
+          if ($obj.countyFips -ne "18129") { throw "Posey FIPS mismatch" }
+          if (@($obj.files).Count -lt 10) { throw "Unexpectedly small acquisition set" }
+          Get-ChildItem -Recurse "data\posey-county\offline\2026-09-30" -File |
+            Get-FileHash -Algorithm SHA256 |
+            ConvertTo-Json -Depth 5 |
+            Set-Content "data\posey-county\offline\2026-09-30\sha256-files.json"
+
+      - name: Package offline source bundle
+        shell: pwsh
+        run: |
+          $name = "posey-county-offline-authoritative-2026-09-30"
+          Compress-Archive -Path "data\posey-county\offline\2026-09-30\*" -DestinationPath "$name.zip" -CompressionLevel Optimal
+          (Get-FileHash "$name.zip" -Algorithm SHA256).Hash.ToLowerInvariant() |
+            Set-Content "$name.sha256"
+
+      - name: Upload offline source bundle
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: posey-county-offline-authoritative-2026-09-30
+          path: |
+            posey-county-offline-authoritative-2026-09-30.zip
+            posey-county-offline-authoritative-2026-09-30.sha256
+          if-no-files-found: error
+          retention-days: 30
