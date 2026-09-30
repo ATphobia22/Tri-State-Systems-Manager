@@ -1,4 +1,4 @@
-export type StructuralPipelineLayerKind = 'terrain' | 'raster' | 'feature' | 'api' | 'presentation';
+export type StructuralPipelineLayerKind = 'terrain' | 'raster' | 'feature' | 'api' | 'presentation' | 'geojson-local';
 
 export interface StructuralPipelineLayer {
   readonly index: number;
@@ -29,4 +29,5 @@ export const TSM_STRUCTURAL_PIPELINE_FABRIC: readonly StructuralPipelineLayer[] 
   { index: 10, id: 'osm-base', name: 'OpenStreetMap Context', sourceAuthority: 'OpenStreetMap contributors', kind: 'raster', endpoint: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', notes: 'Context basemap; attribution required.', mapRenderable: true },
   { index: 11, id: 'indiana-plss', name: 'Indiana PLSS State Boundary', sourceAuthority: 'Indiana GIS / DNR', kind: 'feature', endpoint: 'https://gisdata.in.gov/server/rest/services/Hosted/PLSS_Indiana_State_Boundary/FeatureServer', notes: 'Public-land-survey context.', mapRenderable: true },
   { index: 12, id: 'usgs-3dep-elevation', name: 'USGS 3DEP Elevation ImageServer', sourceAuthority: 'USGS National Map 3DEP', kind: 'raster', endpoint: 'https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer', notes: 'Elevation visualization source; does not become survey-grade engineering terrain by display.', mapRenderable: true },
+  { index: 13, id: 'usgs-quad-index', name: 'USGS 24K Quadrangle Index', sourceAuthority: 'USGS', kind: 'geojson-local', endpoint: 'reference/usgs-24k-quadrangle-boundaries.geojson', notes: 'USGS 24K quad boundaries, tri-state subset (36 quads). Reference index only — not survey evidence.', mapRenderable: true },
 ] as const;

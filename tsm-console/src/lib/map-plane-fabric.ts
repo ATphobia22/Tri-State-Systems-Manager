@@ -1,6 +1,6 @@
 import { TSM_STRUCTURAL_PIPELINE_FABRIC, type StructuralPipelineLayer } from './structural-pipeline-fabric';
 
-export type MapPlaneLayerKind = 'raster' | 'raster-dem' | 'arcgis-feature' | 'api' | 'presentation';
+export type MapPlaneLayerKind = 'raster' | 'raster-dem' | 'arcgis-feature' | 'geojson-local' | 'api' | 'presentation';
 
 export interface MapPlaneLayer {
   readonly index: StructuralPipelineLayer['index'];

@@ -31,6 +31,7 @@ const layerColor = (id: string): string => {
   if (id === 'indiana-parcels') return '#38bdf8';
   if (id === 'indiana-roads') return '#fbbf24';
   if (id === 'indiana-buildings') return '#a78bfa';
+  if (id === 'usgs-quad-index') return '#f472b6';
   if (id === 'hydro-bathymetry') return '#22d3ee';
   return '#94a3b8';
 };
@@ -84,6 +85,32 @@ function addRasterSource(map: Map, id: string, service: string, layers: string |
     source: id,
     layout: { visibility: visible ? 'visible' : 'none' },
     paint: { 'raster-opacity': 0.45 },
+  });
+}
+
+function addLocalGeoJsonSource(map: Map, item: MapPlaneLayer): void {
+  if (map.getSource(item.id)) return;
+  const url = `${import.meta.env.BASE_URL}${item.endpoint}`;
+  map.addSource(item.id, { type: 'geojson', data: url });
+  const color = layerColor(item.id);
+  map.addLayer({
+    id: `${item.id}-line`,
+    type: 'line',
+    source: item.id,
+    layout: { visibility: 'none' },
+    paint: { 'line-color': color, 'line-width': 1, 'line-opacity': 0.85, 'line-dasharray': [4, 2] },
+  });
+  map.addLayer({
+    id: `${item.id}-label`,
+    type: 'symbol',
+    source: item.id,
+    layout: {
+      visibility: 'none',
+      'text-field': ['get', 'quad_name'],
+      'text-size': 10,
+      'text-allow-overlap': false,
+    },
+    paint: { 'text-color': color, 'text-halo-color': '#05080f', 'text-halo-width': 1 },
   });
 }
 
@@ -147,6 +174,7 @@ export default function TriStateDigitalTwinMap(): JSX.Element {
       `${item.id}-layer`,
       `${item.id}-fill`,
       `${item.id}-line`,
+      `${item.id}-label`,
       `${item.id}-extrusion`,
     ];
     for (const layerId of layerIds) {
@@ -213,6 +241,7 @@ export default function TriStateDigitalTwinMap(): JSX.Element {
 
       for (const item of MAP_PLANE_FABRIC) {
         if (item.kind === 'arcgis-feature') addFeatureSource(map, item);
+        if (item.kind === 'geojson-local') addLocalGeoJsonSource(map, item);
         if (item.mapRenderable) setLayerVisibility(map, item, Boolean(visibleRef.current[item.id]));
       }
 
