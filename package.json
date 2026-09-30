@@ -1,0 +1,7 @@
+{
+  "name":"tri-state-systems-manager",
+  "private":true,
+  "type":"module",
+  "workspaces":["apps/*","packages/*","providers/*","plugins/*"],
+  "scripts":{"build:uacf":"tsc -p tsconfig.uacf.json --noEmit","test:uacf":"node --experimental-strip-types --test tests/contracts/uacf-kernel.test.ts","verify:uacf":"npm run build:uacf && npm run test:uacf"}
+}
