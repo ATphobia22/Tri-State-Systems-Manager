@@ -4,7 +4,7 @@ import { spawn, type ChildProcess } from 'node:child_process';
 const port = 8791;
 const child: ChildProcess = spawn(
   process.execPath,
-  ['src/server.ts'],
+  ['../../node_modules/tsx/dist/cli.mjs', 'src/server.ts'],
   {
     cwd: new URL('../', import.meta.url),
     env: { ...process.env, UACF_HOST: '127.0.0.1', UACF_PORT: String(port) },
@@ -13,7 +13,10 @@ const child: ChildProcess = spawn(
 );
 
 let output = '';
-child.stdout?.on('data', (chunk: Buffer) => {
+child.stderr?.on('data', (chunk: Buffer) => {
+    output += `stderr: ${chunk.toString()}`;
+  });
+  child.stdout?.on('data', (chunk: Buffer) => {
   output += chunk.toString();
 });
 
