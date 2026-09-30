@@ -58,6 +58,7 @@ function Save-ArcGisWithinCounty(
   }
 
   $path = Join-Path $OutDir $Name
+  New-Item -ItemType Directory -Force -Path (Split-Path -Parent $path) | Out-Null
   $payload = [ordered]@{
     type="FeatureCollection"
     source=$ServiceLayerUrl
