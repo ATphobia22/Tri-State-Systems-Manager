@@ -151,13 +151,13 @@
       "minimumFeatureCount": 1
     },
     {
-      "id": "indiana-gio-address-points-current",
+      "id": "indiana-gio-address-points-2025",
       "authority": "Indiana GIO",
       "required": true,
       "minimumFeatureCount": 0
     },
     {
-      "id": "indiana-gio-road-centerlines-2024",
+      "id": "indiana-gio-road-centerlines-2025",
       "authority": "Indiana GIO",
       "required": true,
       "minimumFeatureCount": 0

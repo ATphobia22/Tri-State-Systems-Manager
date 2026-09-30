@@ -54,6 +54,19 @@ It records the agency, authority class, newest-vintage selection rule, official 
 | `INDIANA-IMAGERY-LIDAR-PROGRAM` | Indiana Geographic Information Office / Woolpert | `https://www.in.gov/gis/geoinsights/posts/imagery-and-elevation-roadshows-march-2026/` | 2025–2028 imagery and QL1 LiDAR acquisition program | County-specific acquisition/QA metadata required |
 | `INDIANA-POSEY-CSLF-2025` | Indiana Geographic Information Office | `https://gisdata.in.gov/server/rest/services/Hosted/Posey_CSLF_Feb2025/FeatureServer` | Posey Changes Since Last FIRM preliminary/pending mapping | Pending regulatory reference; not effective FEMA mapping |
 
+
+### Verified Posey framework endpoints
+
+The offline acquisition contract uses these verified 2025 Indiana GIO services for Posey County:
+
+- Address Points of Indiana 2025, layer 0: https://gisdata.in.gov/server/rest/services/Hosted/Address_Points_of_Indiana_2025/FeatureServer/0
+- Road Centerlines of Indiana 2025, layer 0: https://gisdata.in.gov/server/rest/services/Hosted/Road_Centerlines_of_Indiana_2025/FeatureServer/0
+- Administrative Boundaries of Indiana 2025, CountyCommissionerPolygon layer 3: https://gisdata.in.gov/server/rest/services/Hosted/Administrative_Boundaries_of_Indiana_2025/FeatureServer/3
+- Current Indiana imagery: https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_Current_Imagery/ImageServer
+- 2025–2028 orthoimagery tier service: https://gisdata.in.gov/server/rest/services/Hosted/Orthoimagery_Tier_Map_2025_2028/FeatureServer
+
+The Indiana service directory and service records document these 2025 framework products and their publication metadata.
+
 ## Historical/reference sources
 
 Historical scans, 2017–2020 LiDAR, and older source packages remain useful for change detection and reconciliation, but they are explicitly superseded by newer authoritative products when a newer agency vintage exists.

@@ -24,6 +24,25 @@ The Pages workflow can publish the static console without a backend dependency. 
 
 Settings → Pages → Source must be **GitHub Actions**. The workflow does not fabricate or bypass that repository-level setting.
 
+## Posey County authoritative offline package
+
+Posey County (FIPS 18129) is acquired as a **strict, dated offline snapshot**, not as a bounding-box approximation.
+
+The acquisition pipeline:
+
+1. resolves the exact 2025 Posey County boundary from U.S. Census TIGERweb;
+2. extracts spatial ArcGIS sources with `esriSpatialRelWithin`;
+3. requires the complete FEMA / USGS / Indiana DNR / Indiana GIO / USACE source manifest;
+4. records source URL, authority, feature/byte counts, retrieval timestamp and SHA-256;
+5. validates every required artifact and its hash before packaging; and
+6. creates a validation receipt before the ZIP can be published.
+
+Verified Indiana GIO framework vintages used by the acquisition contract include **2025 parcels, 2025 address points, 2025 road centerlines, and 2025 administrative boundaries**. The official Indiana services identify those releases explicitly. 
+
+The USACE NLD spatial endpoint is the official `NLD/Public/FeatureServer`, with `Leveed Areas` at layer 16.
+
+**Fail-closed rule:** a missing endpoint, empty required artifact, source/authority mismatch, SHA-256 mismatch, or violation of the strict county extraction policy fails the acquisition job. A partial ZIP is not considered a release.
+
 ## What is deployable
 
 TSM has two runtime planes:
