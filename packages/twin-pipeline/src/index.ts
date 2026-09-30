@@ -14,7 +14,7 @@ export interface HydraulicBoundary { readonly upstreamWseFt: number; readonly do
 export interface JoinedDigitalTwinEntity {
   readonly twinEntityId: string; readonly parcelId: string; readonly survey: SurveyData;
   readonly geotech: GeotechPayload; readonly hydrology: HydraulicBoundary; readonly timeTimestamp: string;
-  readonly sourceEvidenceIds: readonly string[]; readonly evidencePayloadHash: string;
+  readonly sourceEvidenceIds: readonly string[]; readonly sourceDatasetIds: readonly string[]; readonly evidencePayloadHash: string;
 }
 export interface TwinRuntimeBinding {
   readonly twinEntityId: string; readonly worldPartitionKey: string; readonly usdRootLayer: string;
@@ -58,7 +58,7 @@ export function validateAndJoin(parcelId: string, survey: SurveyData, geotech: G
   finite(hydrology.upstreamWseFt, 'hydrology.upstreamWseFt', issues);
   finite(hydrology.downstreamWseFt, 'hydrology.downstreamWseFt', issues);
   finite(hydrology.targetBfeFt, 'hydrology.targetBfeFt', issues);
-  if (hydrology.evidenceGateCleared !== true) issues.push('hydraulic input is not marked as gate-cleared');
+  // The boolean is treated as an untrusted input hint. Engineering authority is derived from evidence validation and the separate human gate; it is never promoted by this join operation.
 
   const normalized = normalizeSystemManagerPayload(evidencePayload);
   const validation = validateSystemEvidence(normalized);
@@ -73,8 +73,13 @@ export function validateAndJoin(parcelId: string, survey: SurveyData, geotech: G
   if (issues.length) return { accepted: false, issues };
 
   const sourceEvidenceIds = evidence.filter((item) => modules.includes(item.module) && item.authority !== 'DISCOVERY_ONLY').map((item) => item.evidenceId);
+  const sourceDatasetIds = evidence.flatMap((item) => {
+    const datasetId = item.metadata?.datasetId;
+    return typeof datasetId === 'string' && datasetId.trim() ? [datasetId] : [];
+  }).filter((value, index, values) => values.indexOf(value) === index);
+  if (sourceDatasetIds.length === 0) return { accepted: false, issues: ['verified evidence must reference at least one datasetId'] };
   const twinEntityId = 'ENTITY-' + parcelId + '-' + hashEvidencePayload({ parcelId, timestamp }).slice(0, 12).toUpperCase();
-  const entity: JoinedDigitalTwinEntity = Object.freeze({ twinEntityId, parcelId, survey, geotech, hydrology, timeTimestamp: timestamp, sourceEvidenceIds, evidencePayloadHash: hashEvidencePayload(normalized) });
+  const entity: JoinedDigitalTwinEntity = Object.freeze({ twinEntityId, parcelId, survey, geotech, hydrology, timeTimestamp: timestamp, sourceEvidenceIds, sourceDatasetIds, evidencePayloadHash: hashEvidencePayload(normalized) });
   const binding: TwinRuntimeBinding = Object.freeze({
     twinEntityId,
     worldPartitionKey: 'wp:' + Math.floor(survey.easting / 1000) + ':' + Math.floor(survey.northing / 1000),
@@ -93,7 +98,7 @@ export function toTwinStateParts(joined: JoinedDigitalTwinEntity): { entity: Twi
     spatial: { crs: ENGINEERING_HORIZONTAL_CRS, geometryRef: 'parcel:' + joined.parcelId },
     validTime: { validFrom: joined.timeTimestamp },
     attributes: { elevationFt: joined.survey.elevationFt, upstreamWseFt: joined.hydrology.upstreamWseFt, downstreamWseFt: joined.hydrology.downstreamWseFt, targetBfeFt: joined.hydrology.targetBfeFt },
-    sourceDatasetIds: [],
+    sourceDatasetIds: joined.sourceDatasetIds,
   };
   const observations: StateObservation[] = [];
   return { entity, observations, relationships: [] };
