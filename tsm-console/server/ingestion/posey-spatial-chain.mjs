@@ -25,7 +25,8 @@ function polygonCentroid(geometry) {
 
 async function queryIndianaBafl(geometry, { signal, request }) {
   const url = new URL(INDIANA_BAFL_MAPSERVER + '/438/query');
-  url.searchParams.set('geometry', JSON.stringify(geometry));
+  if (geometry?.type !== 'Polygon') throw new TypeError('Indiana BAFL parcel join requires a Polygon');
+  url.searchParams.set('geometry', JSON.stringify({ rings: geometry.coordinates, spatialReference: { wkid: 4326 } }));
   url.searchParams.set('geometryType', 'esriGeometryPolygon');
   url.searchParams.set('inSR', '4326');
   url.searchParams.set('spatialRel', 'esriSpatialRelIntersects');
