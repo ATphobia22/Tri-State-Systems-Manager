@@ -149,24 +149,15 @@ function Save-ArcGisCountyIntersectAudit(
   return @($r.objectIds).Count
 }
 
-# Exact Posey County polygon: U.S. Census TIGERweb January 1, 2026 current county vintage.
-$boundaryQueryUrl = "$CountyBoundaryUrl/query?where=GEOID%3D%27$CountyGEOID%27&outFields=GEOID%2CNAME%2CSTATE%2CCOUNTY&returnGeometry=true&outSR=4326&f=json"
-$boundaryRawPath = Join-Path $OutDir "boundary\posey-county-2026-tigerweb-response.json"
-New-Item -ItemType Directory -Force -Path (Split-Path -Parent $boundaryRawPath) | Out-Null
-& curl.exe --fail --silent --show-error --location --retry 8 --retry-delay 5 --retry-max-time 180 --retry-all-errors --http1.1 -A "TSM-Posey-Offline-Acquisition/1.0" --output "$boundaryRawPath" "$boundaryQueryUrl"
-$boundaryCurlExit = $LASTEXITCODE
-if ($boundaryCurlExit -ne 0) { throw "Census boundary download failed ($boundaryCurlExit)" }
-$boundary = Get-Content $boundaryRawPath -Raw | ConvertFrom-Json
-if ($boundary.error) { throw ($boundary.error | ConvertTo-Json -Depth 20) }
-if (@($boundary.features).Count -ne 1) { throw "Expected exactly one Posey County boundary feature; got $(@($boundary.features).Count)" }
-if ($boundary.features[0].attributes.GEOID -ne $CountyGEOID) { throw "County GEOID mismatch" }
-$script:CountyGeometry = $boundary.features[0].geometry
-$boundaryPath = Join-Path $OutDir "boundary\posey-county-2026-tigerweb.geojson"
-New-Item -ItemType Directory -Force -Path (Split-Path -Parent $boundaryPath) | Out-Null
-[ordered]@{
-  type="FeatureCollection"; source=$CountyBoundaryUrl; vintage="2026-01-01"
-  countyFips=$CountyFips; features=@($boundary.features)
-} | ConvertTo-Json -Depth 100 | Set-Content $boundaryPath -Encoding utf8
+# Exact Posey County polygon: frozen full-resolution Census TIGER/Line boundary already committed in the repository.
+$boundarySourcePath="data\posey-county\boundaries\posey-county.geojson"
+if(-not (Test-Path $boundarySourcePath)){ throw "Missing committed exact Posey County boundary: $boundarySourcePath" }
+$boundary=Get-Content $boundarySourcePath -Raw | ConvertFrom-Json
+if(@($boundary.features).Count -ne 1 -or $boundary.features[0].properties.GEOID -ne $CountyGEOID){ throw "Committed Posey boundary is not exactly GEOID 18129" }
+$script:CountyGeometry=[ordered]@{rings=@($boundary.features[0].geometry.coordinates[0])}
+$boundaryPath=Join-Path $OutDir "boundary\posey-county-exact-tigerline.geojson"
+New-Item -ItemType Directory -Force -Path (Split-Path -Parent $boundaryPath)|Out-Null
+$boundary|ConvertTo-Json -Depth 100|Set-Content $boundaryPath -Encoding utf8
 
 $results=@()
 $results += [pscustomobject]@{
@@ -234,7 +225,7 @@ $manifest=[ordered]@{
   countyGEOID=$CountyGEOID
   geographyPolicy=[ordered]@{
     boundarySource=$CountyBoundaryUrl
-    boundaryVintage="2026-01-01"
+    boundaryVintage="2023"
     spatialRelation="exact-county"
     rule="All spatial extracts are selected against the exact Posey County polygon. County-contained features use esriSpatialRelWithin; coverage/footprint features that legitimately cross the county boundary use esriSpatialRelIntersects. No bounding-box-only extract is accepted."
   }
