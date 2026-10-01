@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schemaVersion": "1.0.0",
+  "manifestId": "tsm-data-plane-integration-v1",
+  "generatedAt": "2026-10-01T00:00:00Z",
+  "status": "integration-contract",
+  "purpose": "Machine-readable contract for acquiring, validating, hashing, publishing, and consuming TSM data-plane artifacts.",
+  "gitPolicy": {
+    "rawLargeDatasets": "external-artifact-storage-or-offline-bundle",
+    "smallDerivedManifests": "commit-to-git",
+    "pages": "browser-safe-indexes-and-derived-assets-only",
+    "requiredHash": "sha256"
+  },
+  "requiredArtifactFields": [
+    "artifactId",
+    "plane",
+    "sourceId",
+    "sourceUrl",
+    "retrievedAt",
+    "productDate",
+    "authorityClass",
+    "contentType",
+    "bytes",
+    "sha256",
+    "nativeCrs",
+    "verticalDatum",
+    "validationStatus",
+    "provenanceStatus",
+    "artifactReference"
+  ],
+  "planes": [
+    {
+      "id": "hydrology",
+      "requiredClasses": ["gauge-sites", "observations", "forecast-inputs", "watersheds"],
+      "sourceIds": ["usgs-waterdata", "noaa-nwps"],
+      "derivatives": ["timeseries-index", "gauge-catalog", "watershed-join-index"],
+      "browserAssets": ["hydrology/catalog.json", "hydrology/gauges.geojson"],
+      "validation": ["schema", "timestamps", "station-identity", "units", "datum-provenance"]
+    },
+    {
+      "id": "flood",
+      "requiredClasses": ["fema-effective", "indiana-bafm", "usace-related"],
+      "sourceIds": ["fema-nfhl-public", "fema-msc-portal", "indiana-bafm", "indiana-infip", "usace-nld"],
+      "derivatives": ["flood-layer-catalog", "aoi-clipped-vector-index", "legend-metadata"],
+      "browserAssets": ["flood/catalog.json", "flood/layers.geojson"],
+      "validation": ["authority-class", "effective-date", "geometry", "crs", "provenance"]
+    },
+    {
+      "id": "terrain",
+      "requiredClasses": ["dem", "lidar", "ept", "derived-terrain"],
+      "sourceIds": ["usgs-3dep-index", "usgs-tnm-access"],
+      "derivatives": ["ept-catalog", "raster-dem-tiles", "terrain-metadata"],
+      "browserAssets": ["terrain/catalog.json", "terrain/style.json"],
+      "validation": ["bounds", "crs", "vertical-datum", "tile-integrity", "source-lineage"]
+    },
+    {
+      "id": "imagery",
+      "requiredClasses": ["orthophoto", "current-imagery-reference"],
+      "sourceIds": ["INDIANA-CURRENT-IMAGERY", "INDIANA-IMAGERY-LIDAR-PROGRAM"],
+      "derivatives": ["imagery-catalog", "tile-template"],
+      "browserAssets": ["imagery/catalog.json"],
+      "validation": ["extent", "crs", "date", "content-type", "host-allowlist"]
+    },
+    {
+      "id": "parcels",
+      "requiredClasses": ["parcel-boundaries", "property-spatial-index"],
+      "sourceIds": ["indiana-parcels-current"],
+      "derivatives": ["parcel-index", "generalized-parcel-geometry"],
+      "browserAssets": ["parcels/catalog.json", "parcels/index.geojson"],
+      "validation": ["geometry", "county-membership", "schema", "privacy-safe-public-fields"]
+    },
+    {
+      "id": "levees",
+      "requiredClasses": ["nld-core", "levee-areas", "levee-centerlines"],
+      "sourceIds": ["usace-nld"],
+      "derivatives": ["levee-index", "levee-aoi-clips"],
+      "browserAssets": ["levees/catalog.json", "levees/index.geojson"],
+      "validation": ["record-date", "geometry", "source-lineage"]
+    },
+    {
+      "id": "hydraulics",
+      "requiredClasses": ["hec-ras-input", "hec-ras-results", "model-metadata"],
+      "sourceIds": ["USACE-HEC-RAS"],
+      "derivatives": ["ras-plan-index", "result-summary", "model-provenance"],
+      "browserAssets": ["hydraulics/catalog.json"],
+      "validation": ["model-version", "plan-id", "source-hash", "result-hash", "governance-state"]
+    },
+    {
+      "id": "cross-sections",
+      "requiredClasses": ["station-elevation", "discharge", "cross-section-geometry"],
+      "sourceIds": ["USACE-HEC-RAS", "fema-nfhl-public"],
+      "derivatives": ["cross-section-index"],
+      "browserAssets": ["cross-sections/catalog.json"],
+      "validation": ["station-order", "units", "geometry", "model-lineage"]
+    },
+    {
+      "id": "watersheds",
+      "requiredClasses": ["huc", "drainage-topology"],
+      "sourceIds": ["usgs-tnm-access", "usgs-waterdata", "noaa-nwps"],
+      "derivatives": ["huc-index", "drainage-graph"],
+      "browserAssets": ["watersheds/catalog.json", "watersheds/index.geojson"],
+      "validation": ["topology", "hierarchy", "geometry", "crs"]
+    },
+    {
+      "id": "regulatory",
+      "requiredClasses": ["authoritative-source-metadata", "screening-layers"],
+      "sourceIds": ["fema-nfhl-public", "indiana-bafm", "indiana-infip", "usace-nld"],
+      "derivatives": ["authority-matrix", "screening-catalog"],
+      "browserAssets": ["regulatory/catalog.json"],
+      "validation": ["authority-class", "effective-date", "jurisdiction", "source-provenance"]
+    },
+    {
+      "id": "evidence",
+      "requiredClasses": ["evidence-packet", "manifest", "checksum", "provenance", "validation-receipt"],
+      "sourceIds": [],
+      "derivatives": ["sha256-inventory", "validation-receipts", "provenance-chain"],
+      "browserAssets": ["evidence/index.json"],
+      "validation": ["canonical-json", "sha256", "schema", "chain-completeness"]
+    },
+    {
+      "id": "3d-4d-twin",
+      "requiredClasses": ["terrain", "structures", "time-varying-environment"],
+      "sourceIds": ["usgs-3dep-index", "usgs-waterdata", "noaa-nwps", "usace-nld"],
+      "derivatives": ["scene-catalog", "time-index", "feature-bindings"],
+      "browserAssets": ["twin/catalog.json", "twin/runtime-config.json"],
+      "validation": ["coordinate-frame", "temporal-index", "source-lineage", "asset-integrity"]
+    },
+    {
+      "id": "api",
+      "requiredClasses": ["fastapi-routes", "node-routes", "static-data-contracts"],
+      "sourceIds": [],
+      "derivatives": ["openapi", "route-inventory", "data-contract-index"],
+      "browserAssets": ["api/openapi.json", "api/catalog.json"],
+      "validation": ["route-presence", "schema", "authorization", "size-limits", "fail-closed"]
+    },
+    {
+      "id": "pages",
+      "requiredClasses": ["browser-manifest", "static-assets", "runtime-config"],
+      "sourceIds": [],
+      "derivatives": ["pages-manifest", "asset-manifest"],
+      "browserAssets": ["manifest.json", "runtime-config.json"],
+      "validation": ["json-schema", "relative-paths", "content-type", "browser-load"]
+    },
+    {
+      "id": "offline-runtime",
+      "requiredClasses": ["windows-x64-runtime", "native-dependencies", "local-data-access"],
+      "sourceIds": [],
+      "derivatives": ["runtime-manifest", "SHA256SUMS", "dependency-lock"],
+      "browserAssets": [],
+      "validation": ["windows-x64", "dependency-resolution", "hashes", "offline-startup", "api-health"]
+    }
+  ],
+  "sourceCatalogReferences": [
+    "data/acquisitions/tsm-authoritative-source-manifest-v1.json",
+    "docs/DATA-SOURCE-CATALOG.md"
+  ],
+  "externalSourceNotes": {
+    "fema": "Effective NFHL remains distinct from preliminary, pending, draft, and state-hosted reference layers.",
+    "indianaDnr": "Best Available Flood Hazard data is a state planning/regulatory-context source and is not silently promoted to FEMA NFHL authority.",
+    "usgs3dep": "EPT is a streamable point-cloud representation; preserve source project identity, CRS, and vertical metadata.",
+    "usaceNld": "NLD records retain source update/assessment dates; retrieval time is not product vintage.",
+    "hecRas": "Solver version is software provenance; model inputs/results require independent artifact hashes.",
+    "datums": "Horizontal CRS and vertical datum are independent metadata fields and must never be conflated."
+  }
+}
