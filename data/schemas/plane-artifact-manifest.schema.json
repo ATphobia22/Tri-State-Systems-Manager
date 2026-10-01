@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atphobia22.github.io/Tri-State-Systems-Manager/schemas/plane-artifact-manifest.schema.json",
+  "title": "TSM Plane Artifact Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "manifestId", "generatedAt", "artifacts"],
+  "properties": {
+    "schemaVersion": {"type": "string"},
+    "manifestId": {"type": "string", "minLength": 1},
+    "generatedAt": {"type": "string", "format": "date-time"},
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "artifactId", "plane", "sourceId", "sourceUrl", "retrievedAt",
+          "authorityClass", "contentType", "bytes", "sha256",
+          "validationStatus", "provenanceStatus", "artifactReference"
+        ],
+        "properties": {
+          "artifactId": {"type": "string", "minLength": 1},
+          "plane": {"type": "string", "enum": ["hydrology","flood","terrain","imagery","parcels","levees","hydraulics","cross-sections","watersheds","regulatory","evidence","3d-4d-twin","api","pages","offline-runtime"]},
+          "sourceId": {"type": "string", "minLength": 1},
+          "sourceUrl": {"type": "string", "format": "uri"},
+          "retrievedAt": {"type": "string", "format": "date-time"},
+          "productDate": {"type": ["string","null"]},
+          "authorityClass": {"type": "string", "minLength": 1},
+          "contentType": {"type": "string", "minLength": 1},
+          "bytes": {"type": "integer", "minimum": 0},
+          "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "nativeCrs": {"type": ["string","null"]},
+          "verticalDatum": {"type": ["string","null"]},
+          "validationStatus": {"type": "string", "enum": ["PASS","FAIL","PENDING","NOT_APPLICABLE"]},
+          "provenanceStatus": {"type": "string", "enum": ["VERIFIED","PARTIAL","MISSING","NOT_APPLICABLE"]},
+          "artifactReference": {"type": "string", "minLength": 1},
+          "validationReceipt": {"type": ["string","null"]},
+          "derivativeOf": {"type": ["string","null"]}
+        }
+      }
+    }
+  }
+}
