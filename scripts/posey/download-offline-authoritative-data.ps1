@@ -187,7 +187,7 @@ $results += [pscustomobject]@{
 $femaCountyProduct="https://msc.fema.gov/portal/downloadProduct?productID=NFHL_18129C"
 $results += Save-Url $femaCountyProduct "fema\\NFHL_18129C.zip" "fema-countywide-nfhl-18129C" "FEMA"
 
-$results += Save-ArcGisCountyAttribute "https://gisdata.in.gov/server/rest/services/Best_Available_Flood_Hazard_Layer/MapServer/438" "DFIRM_ID='$($CountyFips)C'" "indiana-dnr\bafm-posey-dfirm.geojson" "indiana-dnr-bafm" "Indiana DNR" $true
+$results += Save-ArcGisCountyAttribute "https://gisdata.in.gov/server/rest/services/Hosted/FloodHazard_BestAvai_DNR_Watergdb/FeatureServer/0" "DFIRM_ID='$($CountyFips)C'" "indiana-dnr\bafm-posey-dfirm.geojson" "indiana-dnr-bafm" "Indiana DNR" $true
 
 $results += Save-ArcGisCountyAttribute "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer/0" "county_fips='$CountyFips'" "indiana-gio\parcel-boundaries-2025-posey.json" "indiana-gio-parcels-2025" "Indiana GIO" $true
 $results += Save-ArcGisCountyAttribute "https://gisdata.in.gov/server/rest/services/Hosted/Address_Points_of_Indiana_2025/FeatureServer/0" "county_fips='$CountyFips'" "indiana-gio\address-points-2025-posey.json" "indiana-gio-address-points-2025" "Indiana GIO" $false
