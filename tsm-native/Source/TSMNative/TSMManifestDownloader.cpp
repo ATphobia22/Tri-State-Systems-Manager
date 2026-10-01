@@ -4,6 +4,7 @@
 #include "Interfaces/IHttpResponse.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
+#include "HAL/FileManager.h"
 #include "GenericPlatform/GenericPlatformHttp.h"
 
 namespace
@@ -19,7 +20,9 @@ void UTSMManifestDownloader::DispatchManifestDownloadTask(
     const FString Domain = FPlatformHttp::GetUrlDomain(SecureTargetUrl);
     const FString Path = FPlatformHttp::GetUrlPath(SecureTargetUrl, false, false);
 
-    if (!FPlatformHttp::IsSecureProtocol(SecureTargetUrl).Get(false) ||
+    const TOptional<bool> SecureProtocol = FPlatformHttp::IsSecureProtocol(SecureTargetUrl);
+    if (!SecureProtocol.IsSet() ||
+        !SecureProtocol.GetValue() ||
         !Domain.Equals(AllowedPagesHost, ESearchCase::IgnoreCase) ||
         !Path.StartsWith(RequiredPagesPath, ESearchCase::IgnoreCase))
     {
