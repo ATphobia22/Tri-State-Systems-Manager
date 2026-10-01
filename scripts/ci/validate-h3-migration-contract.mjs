@@ -18,7 +18,7 @@ function readRequired(filePath) {
 const up = readRequired(upPath);
 const down = readRequired(downPath);
 
-for (const token of ['BEGIN;', 'COMMIT;', 'CREATE EXTENSION IF NOT EXISTS h3;', 'engineering.parcel_footprints', 'h3_latlng_to_cell', 'h3_index_res8']) {
+for (const token of ['BEGIN;', 'COMMIT;', 'CREATE EXTENSION IF NOT EXISTS h3;', 'CREATE EXTENSION IF NOT EXISTS h3_postgis;', 'engineering.parcel_footprints', 'h3_latlng_to_cell', 'h3_index_res8']) {
   if (!up.includes(token)) errors.push(`up migration missing required token: ${token}`);
 }
 
