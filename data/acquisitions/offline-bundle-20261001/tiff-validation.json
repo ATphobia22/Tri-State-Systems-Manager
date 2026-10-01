@@ -1,0 +1,15 @@
+{
+ "summary": {
+  "files": 362,
+  "ok": 362,
+  "crs_kinds": {
+   "EPSG:4326": 336,
+   "EPSG:4269": 4,
+   "EPSG:26916": 22
+  },
+  "tiled": 362,
+  "with_overviews": 26,
+  "total_px": 4082166688
+ },
+ "errors": []
+}

@@ -1,0 +1,198 @@
+{
+ "manifest": "manifest-tiger.json",
+ "created": "2026-09-30T17:58:01.169773+00:00",
+ "entries": [
+  {
+   "id": "tiger-2024-17059-areawater",
+   "path": "il-gallatin-17059/tiger/tl_2024_17059_areawater.zip",
+   "bytes": 239023,
+   "sha256": "462538d4ba835292f060c8f91dfb6de9f395af9bb830d95fa6e649efae782f41",
+   "status": "acquired",
+   "authority": "US Census Bureau",
+   "url": "https://www2.census.gov/geo/tiger/TIGER2024/AREAWATER/tl_2024_17059_areawater.zip",
+   "vintage": "2024",
+   "note": "Census TIGER/Line 2024 areawater for county 17059"
+  },
+  {
+   "id": "tiger-2024-17059-roads",
+   "path": "il-gallatin-17059/tiger/tl_2024_17059_roads.zip",
+   "bytes": 289120,
+   "sha256": "77500350afcf3747b84a548784c748dbea0f4fedd8b8b5077af93929eb8d6912",
+   "status": "acquired",
+   "authority": "US Census Bureau",
+   "url": "https://www2.census.gov/geo/tiger/TIGER2024/ROADS/tl_2024_17059_roads.zip",
+   "vintage": "2024",
+   "note": "Census TIGER/Line 2024 roads for county 17059"
+  },
+  {
+   "id": "tiger-2024-17193-areawater",
+   "path": "il-white-17193/tiger/tl_2024_17193_areawater.zip",
+   "bytes": 156934,
+   "sha256": "676f2f2faff721b9d91b65364af93aa93c3777c13eb480995117236d582ffaea",
+   "status": "acquired",
+   "authority": "US Census Bureau",
+   "url": "https://www2.census.gov/geo/tiger/TIGER2024/AREAWATER/tl_2024_17193_areawater.zip",
+   "vintage": "2024",
+   "note": "Census TIGER/Line 2024 areawater for county 17193"
+  },
+  {
+   "id": "tiger-2024-17193-roads",
+   "path": "il-white-17193/tiger/tl_2024_17193_roads.zip",
+   "bytes": 822029,
+   "sha256": "31cf1783aaf5734d566b9a65745a2bd5d228ebf0dd2f6b8046949bd374d281ac",
+   "status": "acquired",
+   "authority": "US Census Bureau",
+   "url": "https://www2.census.gov/geo/tiger/TIGER2024/ROADS/tl_2024_17193_roads.zip",
+   "vintage": "2024",
+   "note": "Census TIGER/Line 2024 roads for county 17193"
+  },
+  {
+   "id": "tiger-2024-18051-areawater",
+   "path": "in-gibson-18051/tiger/tl_2024_18051_areawater.zip",
+   "bytes": 508043,
+   "sha256": "ba9c0c82d67a9a21a60e93e158b3b0453da02c4aeb6575f460143256553adbb9",
+   "status": "acquired",
+   "authority": "US Census Bureau",
+   "url": "https://www2.census.gov/geo/tiger/TIGER2024/AREAWATER/tl_2024_18051_areawater.zip",
+   "vintage": "2024",
+   "note": "Census TIGER/Line 2024 areawater for county 18051"
+  },
+  {
+   "id": "tiger-2024-18051-roads",
+   "path": "in-gibson-18051/tiger/tl_2024_18051_roads.zip",
+   "bytes": 678958,
+   "sha256": "ebce86a142193895ae861d682bbb2c6556acc3f441218975766edd56a5d918b0",
+   "status": "acquired",
+   "authority": "US Census Bureau",
+   "url": "https://www2.census.gov/geo/tiger/TIGER2024/ROADS/tl_2024_18051_roads.zip",
+   "vintage": "2024",
+   "note": "Census TIGER/Line 2024 roads for county 18051"
+  },
+  {
+   "id": "tiger-2024-18129-areawater",
+   "path": "in-posey-18129/tiger/tl_2024_18129_areawater.zip",
+   "bytes": 118745,
+   "sha256": "8f35d214e8aa33a6e03c75448a80accd95fd84bcc8ca4d20b2f8366cf111e2da",
+   "status": "acquired",
+   "authority": "US Census Bureau",
+   "url": "https://www2.census.gov/geo/tiger/TIGER2024/AREAWATER/tl_2024_18129_areawater.zip",
+   "vintage": "2024",
+   "note": "Census TIGER/Line 2024 areawater for county 18129"
+  },
+  {
+   "id": "tiger-2024-18129-roads",
+   "path": "in-posey-18129/tiger/tl_2024_18129_roads.zip",
+   "bytes": 629292,
+   "sha256": "9668e8cc2f949c430602170944da5ef5c0e1077ac9ce510836d322016fef5189",
+   "status": "acquired",
+   "authority": "US Census Bureau",
+   "url": "https://www2.census.gov/geo/tiger/TIGER2024/ROADS/tl_2024_18129_roads.zip",
+   "vintage": "2024",
+   "note": "Census TIGER/Line 2024 roads for county 18129"
+  },
+  {
+   "id": "tiger-2024-18163-areawater",
+   "path": "in-vanderburgh-18163/tiger/tl_2024_18163_areawater.zip",
+   "bytes": 276045,
+   "sha256": "382de78ee5d4b52846df30c78ab86d0ada91f10dea9c39bd4bcfe998106cad82",
+   "status": "acquired",
+   "authority": "US Census Bureau",
+   "url": "https://www2.census.gov/geo/tiger/TIGER2024/AREAWATER/tl_2024_18163_areawater.zip",
+   "vintage": "2024",
+   "note": "Census TIGER/Line 2024 areawater for county 18163"
+  },
+  {
+   "id": "tiger-2024-18163-roads",
+   "path": "in-vanderburgh-18163/tiger/tl_2024_18163_roads.zip",
+   "bytes": 911829,
+   "sha256": "a3b469d34fb69162b470e59a1a05264a903f6c968ed77d2767530140bf172113",
+   "status": "acquired",
+   "authority": "US Census Bureau",
+   "url": "https://www2.census.gov/geo/tiger/TIGER2024/ROADS/tl_2024_18163_roads.zip",
+   "vintage": "2024",
+   "note": "Census TIGER/Line 2024 roads for county 18163"
+  },
+  {
+   "id": "tiger-2024-18173-areawater",
+   "path": "in-warrick-18173/tiger/tl_2024_18173_areawater.zip",
+   "bytes": 309958,
+   "sha256": "6f1e52ef277ae4c63ec24dca4b9f03cdb4c045632c58caef7ec04787690870ca",
+   "status": "acquired",
+   "authority": "US Census Bureau",
+   "url": "https://www2.census.gov/geo/tiger/TIGER2024/AREAWATER/tl_2024_18173_areawater.zip",
+   "vintage": "2024",
+   "note": "Census TIGER/Line 2024 areawater for county 18173"
+  },
+  {
+   "id": "tiger-2024-18173-roads",
+   "path": "in-warrick-18173/tiger/tl_2024_18173_roads.zip",
+   "bytes": 717316,
+   "sha256": "dbad4f5ed79169c8f80f4224455c38f061233288e62db5f58fed7b229f6c8ef9",
+   "status": "acquired",
+   "authority": "US Census Bureau",
+   "url": "https://www2.census.gov/geo/tiger/TIGER2024/ROADS/tl_2024_18173_roads.zip",
+   "vintage": "2024",
+   "note": "Census TIGER/Line 2024 roads for county 18173"
+  },
+  {
+   "id": "tiger-2024-21101-areawater",
+   "path": "ky-henderson-21101/tiger/tl_2024_21101_areawater.zip",
+   "bytes": 603865,
+   "sha256": "640b5a0f2247cb2b75db9cf71f756e246a9e4edbb49fcb86057e76f8d56ee0b8",
+   "status": "acquired",
+   "authority": "US Census Bureau",
+   "url": "https://www2.census.gov/geo/tiger/TIGER2024/AREAWATER/tl_2024_21101_areawater.zip",
+   "vintage": "2024",
+   "note": "Census TIGER/Line 2024 areawater for county 21101"
+  },
+  {
+   "id": "tiger-2024-21101-roads",
+   "path": "ky-henderson-21101/tiger/tl_2024_21101_roads.zip",
+   "bytes": 648505,
+   "sha256": "ebae95ec4c4645d68cf289302e1e23ecb08b979eb10d8d38bf0e9917dac57708",
+   "status": "acquired",
+   "authority": "US Census Bureau",
+   "url": "https://www2.census.gov/geo/tiger/TIGER2024/ROADS/tl_2024_21101_roads.zip",
+   "vintage": "2024",
+   "note": "Census TIGER/Line 2024 roads for county 21101"
+  },
+  {
+   "id": "tiger-2024-21225-areawater",
+   "path": "ky-union-21225/tiger/tl_2024_21225_areawater.zip",
+   "bytes": 466129,
+   "sha256": "7d29678d3101cc5ef0a2d43fd553bc30e7aab0e724bec84b7b2a44b657e3f132",
+   "status": "acquired",
+   "authority": "US Census Bureau",
+   "url": "https://www2.census.gov/geo/tiger/TIGER2024/AREAWATER/tl_2024_21225_areawater.zip",
+   "vintage": "2024",
+   "note": "Census TIGER/Line 2024 areawater for county 21225"
+  },
+  {
+   "id": "tiger-2024-21225-roads",
+   "path": "ky-union-21225/tiger/tl_2024_21225_roads.zip",
+   "bytes": 355155,
+   "sha256": "a06bee2d2b4e7cd1bdb0b0a01422058a05a26f5d64b9bf1a649d70ad42eb9a8a",
+   "status": "acquired",
+   "authority": "US Census Bureau",
+   "url": "https://www2.census.gov/geo/tiger/TIGER2024/ROADS/tl_2024_21225_roads.zip",
+   "vintage": "2024",
+   "note": "Census TIGER/Line 2024 roads for county 21225"
+  },
+  {
+   "id": "tiger-2024-8-county-counties",
+   "path": "regional/tiger/counties-8.geojson",
+   "bytes": 636699,
+   "sha256": "d777a1b342acc3941130ea5fedb171a9a929ce1c934ee71b1197b523794135d9",
+   "status": "acquired",
+   "authority": "US Census Bureau",
+   "url": "derived from https://www2.census.gov/geo/tiger/TIGER2024/COUNTY/",
+   "vintage": "2024",
+   "note": "Eight-county boundary polygons (TIGER 2024), GeoJSON"
+  }
+ ],
+ "summary": {
+  "total": 17,
+  "acquired": 17,
+  "bytes": 8367645
+ }
+}

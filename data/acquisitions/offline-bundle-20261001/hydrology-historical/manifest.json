@@ -1,0 +1,135 @@
+[
+  {
+    "site": "03378500",
+    "http": "200",
+    "ok": true,
+    "series": 1,
+    "values": 3917,
+    "bytes": 315261,
+    "period": "2016-01-01 to 2026-10-01",
+    "stat": "daily mean (00003)",
+    "live": false
+  },
+  {
+    "site": "03322000",
+    "http": "200",
+    "ok": true,
+    "series": 1,
+    "values": 3646,
+    "bytes": 293383,
+    "period": "2016-01-01 to 2026-10-01",
+    "stat": "daily mean (00003)",
+    "live": false
+  },
+  {
+    "site": "03304300",
+    "http": "503",
+    "ok": true,
+    "series": 1,
+    "values": 3903,
+    "bytes": 314114,
+    "period": "2016-01-01 to 2026-10-01",
+    "stat": "daily mean (00003)",
+    "live": false
+  },
+  {
+    "site": "03322420",
+    "http": "200",
+    "ok": true,
+    "series": 2,
+    "values": 3902,
+    "bytes": 292857,
+    "period": "2016-01-01 to 2026-10-01",
+    "stat": "daily mean (00003)",
+    "live": false
+  },
+  {
+    "site": "03381700",
+    "http": "503",
+    "ok": true,
+    "series": 2,
+    "values": 6837,
+    "bytes": 552458,
+    "period": "2016-01-01 to 2026-10-01",
+    "stat": "daily mean (00003)",
+    "live": false
+  },
+  {
+    "site": "03399800",
+    "http": "000",
+    "ok": true,
+    "series": 1,
+    "values": 3916,
+    "bytes": 323640,
+    "period": "2016-01-01 to 2026-10-01",
+    "stat": "daily mean (00003)",
+    "live": false
+  },
+  {
+    "site": "03303280",
+    "http": "200",
+    "ok": true,
+    "series": 2,
+    "values": 7818,
+    "bytes": 587503,
+    "period": "2016-01-01 to 2026-10-01",
+    "stat": "daily mean (00003)",
+    "live": false
+  },
+  {
+    "site": "03612600",
+    "http": "200",
+    "ok": true,
+    "series": 1,
+    "values": 3914,
+    "bytes": 300214,
+    "period": "2016-01-01 to 2026-10-01",
+    "stat": "daily mean (00003)",
+    "live": false
+  },
+  {
+    "site": "03277200",
+    "http": "000",
+    "ok": true,
+    "series": 2,
+    "values": 7835,
+    "bytes": 636201,
+    "period": "2016-01-01 to 2026-10-01",
+    "stat": "daily mean (00003)",
+    "live": false
+  },
+  {
+    "site": "03293600",
+    "http": "000",
+    "ok": false,
+    "series": 0,
+    "values": 0,
+    "bytes": 0,
+    "period": "2016-01-01 to 2026-10-01",
+    "stat": "daily mean (00003)",
+    "live": false,
+    "note": "No NWIS daily/instantaneous values served for 00060/00065 (empty timeSeries on 2026-10-01); station exists but publishes no web-service telemetry for these parameters."
+  },
+  {
+    "site": "03294500",
+    "http": "000",
+    "ok": true,
+    "series": 2,
+    "values": 7815,
+    "bytes": 631479,
+    "period": "2016-01-01 to 2026-10-01",
+    "stat": "daily mean (00003)",
+    "live": false
+  },
+  {
+    "site": "03293551",
+    "http": "200",
+    "ok": true,
+    "series": 1,
+    "values": 3887,
+    "bytes": 312683,
+    "period": "2016-01-01 to 2026-10-01",
+    "stat": "daily mean (00003)",
+    "live": false
+  }
+]

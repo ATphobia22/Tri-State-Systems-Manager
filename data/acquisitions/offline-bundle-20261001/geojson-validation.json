@@ -1,0 +1,14 @@
+{
+ "summary": {
+  "files": 35,
+  "ok": 35,
+  "geom_types": {
+   "Polygon": 210383,
+   "MultiPolygon": 2295
+  },
+  "total_features": 212678,
+  "out_of_bbox": 0
+ },
+ "errors": [],
+ "warnings": []
+}

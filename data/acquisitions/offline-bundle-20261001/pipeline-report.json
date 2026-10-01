@@ -1,0 +1,85 @@
+{
+ "entries_total": 457,
+ "ok": 451,
+ "missing": [],
+ "size_mismatch": [
+  {
+   "id": "nfhl-flood-zones-17059",
+   "path": "il-gallatin-17059/floodplain/nfhl-flood-zones-17059.geojson",
+   "manifest_bytes": 2210969,
+   "actual_bytes": 2299428
+  },
+  {
+   "id": "nfhl-flood-zones-21101",
+   "path": "ky-henderson-21101/floodplain/nfhl-flood-zones-21101.geojson",
+   "manifest_bytes": 81100296,
+   "actual_bytes": 100408345
+  }
+ ],
+ "hash_mismatch": [],
+ "failed_status": [
+  {
+   "id": "il-white-17193-parcels",
+   "status": "failed"
+  },
+  {
+   "id": "ky-henderson-21101-parcels",
+   "status": "failed"
+  },
+  {
+   "id": "ky-union-21225-parcels",
+   "status": "failed"
+  },
+  {
+   "id": "ky-union-21225-floodplain-fema-nfhl",
+   "status": "failed"
+  }
+ ],
+ "unmanifested": [
+  "AUTHORITY-STANDARDS.md",
+  "build_il_imagery_index.py",
+  "chunked_dl.py",
+  "clip_bafm.py",
+  "compress_imagery.py",
+  "dl.py",
+  "dl_1m.sh",
+  "dl_1m_w0.sh",
+  "dl_1m_w1.sh",
+  "dl_1m_w2.sh",
+  "dl_1m_w3.sh",
+  "finish_acquire_flood.py",
+  "finish_warrick.py",
+  "nld_fetch.py",
+  "public-safe/gallatinil-wth-parcels-public.geojson",
+  "regional/floodplain/pages/page-0.json",
+  "regional/floodplain/pages/page-1000.json",
+  "regional/floodplain/pages/page-2000.json",
+  "regional/gauges/daily/03381500-daily-mean.rdb",
+  "regional/gauges/gauges-daily-mean-batch1.rdb",
+  "regional/gauges/gauges-daily-mean-batch2.rdb",
+  "regional/gauges/gauges-daily-mean-batch3.rdb",
+  "regional/hydraulics/hec-ras/raw/st-joseph-elkhart/metadata.xml",
+  "regional/hydraulics/hec-ras/raw/st-joseph-elkhart/model.zip",
+  "regional/hydraulics/hec-ras/raw/st-joseph-elkhart/sha256sums.txt",
+  "regional/hydraulics/hec-ras/sb_children.json",
+  "regional/hydraulics/hec-ras/sb_model.json",
+  "regional/hydraulics/hec-ras/sb_stjoe.json",
+  "regional/hydrology/historical/MISSING.md",
+  "regional/hydrology/historical/PROVENANCE.md",
+  "regional/hydrology/historical/manifest.json",
+  "regional/hydrology/historical/usgs-03277200-dv-2016-2026.json",
+  "regional/hydrology/historical/usgs-03293551-dv-2016-2026.json",
+  "regional/hydrology/historical/usgs-03294500-dv-2016-2026.json",
+  "regional/hydrology/historical/usgs-03303280-dv-2016-2026.json",
+  "regional/hydrology/historical/usgs-03304300-dv-2016-2026.json",
+  "regional/hydrology/historical/usgs-03322000-dv-2016-2026.json",
+  "regional/hydrology/historical/usgs-03322420-dv-2016-2026.json",
+  "regional/hydrology/historical/usgs-03378500-dv-2016-2026.json",
+  "regional/hydrology/historical/usgs-03381700-dv-2016-2026.json",
+  "regional/hydrology/historical/usgs-03399800-dv-2016-2026.json",
+  "regional/hydrology/historical/usgs-03612600-dv-2016-2026.json",
+  "repair_tiles.py",
+  "resume_imagery.py",
+  "retry_chunked.sh"
+ ]
+}
