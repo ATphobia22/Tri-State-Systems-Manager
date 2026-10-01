@@ -12,7 +12,7 @@ protobuf>=7.36.2,<8
 # hecrasapi>=0.1.0
 
 # Spatial / DEM / PostGIS validation
-rasterio>=1.4,<2
+rasterio>=1.5.1,<2
 psycopg2-binary>=2.9.13,<3
 reportlab==5.0.1
 
