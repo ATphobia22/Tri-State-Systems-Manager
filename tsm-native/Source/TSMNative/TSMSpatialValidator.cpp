@@ -143,7 +143,13 @@ bool UTSMSpatialValidator::ValidateSpatialRuntimeFabric(
             const FString PhysicalPath = FPaths::ConvertRelativePathToFull(
                 FPaths::Combine(DataRootDirectory, RelativePath));
 
-            if (!PhysicalPath.StartsWith(DataRootDirectory, ESearchCase::IgnoreCase))
+            FString DataRootWithSeparator = DataRootDirectory;
+            if (!DataRootWithSeparator.EndsWith(TEXT("/")))
+            {
+                DataRootWithSeparator += TEXT("/");
+            }
+
+            if (!PhysicalPath.StartsWith(DataRootWithSeparator, ESearchCase::IgnoreCase))
             {
                 UE_LOG(LogTemp, Error, TEXT("[TSM Spatial] Asset path escaped manifest data root: %s"), *Node.RelativeUri);
                 bSystemPassed = false;
