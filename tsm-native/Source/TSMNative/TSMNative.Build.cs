@@ -25,7 +25,10 @@ public class TSMNative : ModuleRules
                 "Slate",
                 "SlateCore",
                 "SQLiteCore",
-                "CesiumRuntime"
+                "CesiumRuntime",
+                "HTTP",
+                "Json",
+                "TSMCrypto"
             });
 
         PrivateDependencyModuleNames.AddRange(new[] { "SQLiteSupport" });
