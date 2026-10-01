@@ -23,6 +23,7 @@ import { calculateLocalProfileWSE } from './engineering/hydraulic-transfer.mjs';
 import { acceptSyslog } from './alerts/syslog.mjs';
 import { createRateLimiter } from './reliability/rate-limiter.mjs';
 import { routeOsrm } from './routing/osrm-client.mjs';
+import { handleH3QueryRoute } from './geospatial/h3-routes.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
 /**
@@ -202,6 +203,28 @@ const server = http.createServer(async (req, res) => {
       }
     }
     if (handleFirmRoute(req, res, url, (response, status, body) => json(response, status, body, requestId))) return;
+    if (req.method === 'POST' && url.pathname === '/api/hydrologic/query') {
+      try {
+        const body = await readBodyFixed(req);
+        return await handleH3QueryRoute({
+          method: req.method,
+          pathname: url.pathname,
+          body,
+          json: (status, payload) => json(res, status, payload, requestId),
+        });
+      } catch (error) {
+        console.error('[TSM H3 spatial query] unexpected failure', {
+          code: error?.code,
+          message: error?.message,
+        });
+        return json(res, 500, {
+          ok: false,
+          status: 'UNAVAILABLE',
+          code: 'SPATIAL_QUERY_FAILED',
+          error: 'Spatial indexing execution failed.',
+        }, requestId);
+      }
+    }
     if (req.method === 'GET' && url.pathname === '/api/auth/health') return json(res, 200, { ...healthBody(), auth_model: AUTH_DISABLED ? 'disabled_local' : 'server_managed_oidc_pkce_session', auth_disabled: AUTH_DISABLED, browser_tokens_exposed: false, oidc_configured: Boolean(process.env.OIDC_ISSUER && process.env.OIDC_AUDIENCE && process.env.OIDC_CLIENT_ID && process.env.OIDC_REDIRECT_URI && process.env.TSM_SESSION_SECRET) }, requestId);
     if (req.method === 'GET' && url.pathname === '/api/auth/login') {
       if (AUTH_DISABLED) return authDisabledJson(res, requestId);
