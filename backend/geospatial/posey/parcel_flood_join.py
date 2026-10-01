@@ -195,26 +195,139 @@ def dnr_flood_join(lon: float, lat: float) -> dict:
     }
 
 
-def nfhl_firm_panel(lon: float, lat: float) -> dict:
-    """Attempt the FEMA NFHL FIRM-panel intersection.
+def _normalize_fema_date(value: object) -> str | None:
+    """Normalize ArcGIS epoch-millisecond dates to an ISO-8601 UTC date."""
+    if value in (None, ""):
+        return None
+    try:
+        millis = float(value)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(millis):
+        return None
+    try:
+        return datetime.fromtimestamp(millis / 1000.0, timezone.utc).date().isoformat()
+    except (OverflowError, OSError, ValueError):
+        return None
 
-    Fail-closed: on any transport or service failure this returns
-    UNAVAILABLE. A parcel-specific FIRM panel number is never fabricated.
+
+def nfhl_firm_panel(
+    lon: float,
+    lat: float,
+    rings: list | None = None,
+) -> dict:
+    """Intersect a parcel point/polygon with FEMA NFHL FIRM Panels.
+
+    Layer 3 is FEMA's S_FIRM_PAN panel index. A parcel polygon is used
+    when available so parcels crossing a panel boundary return every
+    intersecting panel rather than silently selecting the centroid panel.
+
+    Fail-closed: transport failures and malformed responses are UNAVAILABLE;
+    a successful zero-feature query is OBSERVED with mapped=False and
+    never becomes a flood-risk or insurance conclusion.
     """
-    data = _http_get_json(FEMA_NFHL_MAPSERVER + "?f=json")
-    if not data:
+    if rings:
+        geometry = json.dumps(
+            {"rings": rings, "spatialReference": {"wkid": 4326}},
+            separators=(",", ":"),
+        )
+        geometry_type = "esriGeometryPolygon"
+    else:
+        geometry = json.dumps(
+            {"x": lon, "y": lat, "spatialReference": {"wkid": 4326}},
+            separators=(",", ":"),
+        )
+        geometry_type = "esriGeometryPoint"
+
+    params = {
+        "geometry": geometry,
+        "geometryType": geometry_type,
+        "spatialRel": "esriSpatialRelIntersects",
+        "inSR": "4326",
+        "outSR": "4326",
+        "outFields": (
+            "DFIRM_ID,FIRM_ID,ST_FIPS,PCOMM,PANEL,SUFFIX,FIRM_PAN,"
+            "PANEL_TYP,PRE_DATE,EFF_DATE,SCALE,PNP_REASON,BASE_TYP,SOURCE_CIT"
+        ),
+        "returnGeometry": "false",
+        "resultRecordCount": "100",
+        "f": "json",
+    }
+    url = FEMA_NFHL_MAPSERVER + "/3/query?" + urllib.parse.urlencode(params)
+    data = _http_get_json(url)
+    if not isinstance(data, dict):
         return {
             "status": "UNAVAILABLE",
             "reason": (
-                "FEMA NFHL REST endpoint unreachable from this environment; "
-                "parcel-specific FIRM panel NOT determined and NOT fabricated"
+                "FEMA NFHL FIRM-panel query failed; parcel-specific panel "
+                "information was not determined and was not fabricated"
             ),
-            "service": FEMA_NFHL_MAPSERVER,
+            "service": FEMA_NFHL_MAPSERVER + "/3",
         }
+
+    if data.get("error"):
+        return {
+            "status": "UNAVAILABLE",
+            "reason": "FEMA NFHL FIRM-panel service returned an ArcGIS error",
+            "service": FEMA_NFHL_MAPSERVER + "/3",
+        }
+
+    features = data.get("features")
+    if not isinstance(features, list):
+        return {
+            "status": "UNAVAILABLE",
+            "reason": "FEMA NFHL FIRM-panel response did not contain a feature list",
+            "service": FEMA_NFHL_MAPSERVER + "/3",
+        }
+
+    panels: list[dict] = []
+    for feature in features:
+        if not isinstance(feature, dict):
+            continue
+        attrs = feature.get("attributes")
+        if not isinstance(attrs, dict):
+            continue
+        panels.append(
+            {
+                "dfirm_id": attrs.get("DFIRM_ID"),
+                "firm_id": attrs.get("FIRM_ID"),
+                "state_fips": attrs.get("ST_FIPS"),
+                "community_id": attrs.get("PCOMM"),
+                "panel": attrs.get("PANEL"),
+                "suffix": attrs.get("SUFFIX"),
+                "firm_panel": attrs.get("FIRM_PAN"),
+                "panel_type": attrs.get("PANEL_TYP"),
+                "preliminary_date": _normalize_fema_date(attrs.get("PRE_DATE")),
+                "effective_date": _normalize_fema_date(attrs.get("EFF_DATE")),
+                "scale": attrs.get("SCALE"),
+                "panel_not_printed_reason": attrs.get("PNP_REASON"),
+                "base_type": attrs.get("BASE_TYP"),
+                "source_citation": attrs.get("SOURCE_CIT"),
+            }
+        )
+
+    unique: dict[tuple[object, object, object], dict] = {}
+    for panel in panels:
+        key = (panel.get("dfirm_id"), panel.get("firm_panel"), panel.get("effective_date"))
+        unique[key] = panel
+    panels = list(unique.values())
+
     return {
-        "status": "NOT_CONFIGURED",
-        "reason": "NFHL panel intersection not yet implemented against a live layer",
-        "service": FEMA_NFHL_MAPSERVER,
+        "status": "OBSERVED",
+        "service": FEMA_NFHL_MAPSERVER + "/3",
+        "layer_id": 3,
+        "layer_name": "S_FIRM_PAN",
+        "query_geometry": "polygon" if rings else "point",
+        "mapped": bool(panels),
+        "panel_count": len(panels),
+        "panels": panels,
+        "retrieved_at": utc_now_iso(),
+        "authority_note": (
+            "FEMA NFHL S_FIRM_PAN is the effective FIRM panel index. "
+            "Intersection identifies mapped panel coverage only; it does "
+            "not by itself establish flood zone, BFE, insurance eligibility, "
+            "or a regulatory determination."
+        ),
     }
 
 
