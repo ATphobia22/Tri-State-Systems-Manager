@@ -27,6 +27,7 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException, Request, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field, ValidationError
+from backend.api.v1.evidence_lock import router as evidence_lock_router
 
 REPO_ROOT = Path(
     os.environ.get("TSM_REPO_ROOT", Path(__file__).resolve().parents[2])
@@ -92,6 +93,8 @@ app = FastAPI(
     version="1.0.0",
     description=DISCLAIMER,
 )
+
+app.include_router(evidence_lock_router)
 
 
 
