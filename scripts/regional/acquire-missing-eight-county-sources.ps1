@@ -42,7 +42,7 @@ throw "Unsupported GeoJSON geometry type: $($GeoJsonGeometry.type)"
 }
 function Get-ArcGisFeatures {
 param([hashtable]$Source,[string]$Fips)
-Write-Host "Inspecting ArcGIS source $Fips: $($Source.Url)"
+Write-Host "Inspecting ArcGIS source ${Fips}: $($Source.Url)"
 $metadata=Invoke-RestMethod -Method Get -Uri "$($Source.Url)?f=pjson" -TimeoutSec 120
 if($metadata.error){throw($metadata.error|ConvertTo-Json -Depth 20)}
 $pageSize=[int]$metadata.maxRecordCount;if($pageSize -lt 1){$pageSize=1000}
