@@ -134,15 +134,15 @@
   {
    "id": "il-white-17193-parcels",
    "county": "White County, IL",
-   "authority": "White County Supervisor of Assessments / Illinois ISGS clearinghouse",
-   "vintage": "n/a",
-   "url": "https://clearinghouse.isgs.illinois.edu/",
-   "retrievedAt": "2026-10-01T22:42:11.038585+00:00",
-   "path": null,
-   "sha256": null,
-   "bytes": null,
-   "status": "failed",
-   "note": "No open parcel download found. Illinois ISGS clearinghouse HTTPS returns empty reply (curl exit 52 / empty reply from server; HTTP 301 redirects to HTTPS which fails) \u2014 unreachable from this VM. No public White County IL parcel viewer/GIS located; only commercial sources (acres.com $7.49, dynamospatial, mappingsolutionsgis plat book). Re-checked 2026-10-01: still no open download. KyFromAbove statewide parcels service now 404; kygeonet 404; ArcGIS Online has no White County IL parcel layer; ISGS clearinghouse still unreachable from this network. Commercial-only sources remain."
+   "authority": "White County, IL via county GIS page (whitecounty-il.gov) / Sidwell-Magnasoft ArcGIS parcel service",
+   "vintage": "Current as retrieved 2026-10-01 (no vintage published by source)",
+   "url": "https://services.arcgis.com/4YineAQdtmx0tv46/arcgis/rest/services/Parcels_WhiteIL2/FeatureServer/0/query (paged OBJECTID query, outSR=4326, f=geojson)",
+   "retrievedAt": "2026-10-01T23:45:00Z",
+   "path": "il-white-17193/parcels/whiteco-il-arcgis-parcels.geojson",
+   "sha256": "e123a8ad98ec6e914ff21d3dea59c5fa236f9a5ffd6e1eb85fe8ff42ef473f26",
+   "bytes": 20843030,
+   "status": "acquired",
+   "note": "20,956 parcel polygons from the county's official ArcGIS parcel service (linked from whitecounty-il.gov GIS page); bbox lon -88.375..-87.91 lat 37.886..38.26; 0 missing geometry. PUBLIC-SAFE derivative: all owner names, owner/mailing addresses, owner IDs, deed doc numbers, sale dates, and assessed/tax dollar amounts stripped at acquisition (verified 0 leaks). Reference only \u2014 not survey evidence."
   },
   {
    "id": "il-gallatin-17059-parcels",
@@ -160,15 +160,15 @@
   {
    "id": "ky-henderson-21101-parcels",
    "county": "Henderson County, KY",
-   "authority": "Henderson County PVA / KY Dept. of Revenue",
-   "vintage": "n/a",
-   "url": "https://revenue.ky.gov/PVANetwork/PVA Forms/PVAGISProductLicenseAgreement.pdf",
-   "retrievedAt": "2026-10-01T22:42:11.038585+00:00",
-   "path": null,
-   "sha256": null,
-   "bytes": null,
-   "status": "failed",
-   "note": "No open parcel download. KY parcel data is per-county PVA licensed; KY DOR PVA GIS Product License Agreement requires one-time use with destruction of the layer after project completion (or purchase) \u2014 not an open download. Only commercial/paid sources found (acres.com, regrid, schneidercorp Beacon). Re-checked 2026-10-01: still no open download. KyFromAbove statewide parcels service now 404; kygeonet 404; ArcGIS Online has no White County IL parcel layer; ISGS clearinghouse still unreachable from this network. Commercial-only sources remain."
+   "authority": "Henderson County, KY via county's own ArcGIS Online org (HendersonKY), public pcls FeatureService",
+   "vintage": "Current as retrieved 2026-10-01 (no vintage published by source)",
+   "url": "https://services.arcgis.com/Iwwqwcdc5CWG2jt9/arcgis/rest/services/pcls/FeatureServer/0/query (paged FID query, outSR=4326, f=geojson)",
+   "retrievedAt": "2026-10-01T23:50:00Z",
+   "path": "ky-henderson-21101/parcels/hendersonky-pcls-parcels.geojson",
+   "sha256": "f2494b4f668a54b7d6e4f6f1ff700c6170f3f5271328fa5206c45cb7519e1304",
+   "bytes": 21409417,
+   "status": "acquired",
+   "note": "22,822 parcel polygons from the county's own public ArcGIS parcel service (HendersonKY org); bbox lon -87.923..-87.272 lat 37.635..37.97; 0 missing geometry. The published layer carries no owner-name fields (PIDN, zoning, location, acreage only) \u2014 public-safe by source design. County authority; not KY DOR statewide product, not a commercial aggregator. Reference only \u2014 not survey evidence."
   },
   {
    "id": "ky-union-21225-parcels",
@@ -176,12 +176,12 @@
    "authority": "Union County PVA / KY Dept. of Revenue",
    "vintage": "n/a",
    "url": "https://revenue.ky.gov/PVANetwork/PVA Forms/PVAGISProductLicenseAgreement.pdf",
-   "retrievedAt": "2026-10-01T22:42:11.038585+00:00",
+   "retrievedAt": "2026-10-01T23:55:00Z",
    "path": null,
    "sha256": null,
    "bytes": null,
    "status": "failed",
-   "note": "No open parcel download. Same KY PVA per-county licensing restriction as Henderson County. Only commercial/paid sources found (regrid, qpublic paid subscription). Re-checked 2026-10-01: still no open download. KyFromAbove statewide parcels service now 404; kygeonet 404; ArcGIS Online has no White County IL parcel layer; ISGS clearinghouse still unreachable from this network. Commercial-only sources remain."
+   "note": "STILL NO open parcel download (re-checked 2026-10-01). Union County PVA publishes via qPublic viewer only (403 from acquisition network; paid subscription for bulk \u2014 not open). No county AGOL parcel service; kygisserver publishes only Webster County PVA parcels; state Hub has 0 Union parcel datasets; web search finds only commercial aggregators. KY DOR PVA license requires one-time use + destruction \u2014 incompatible with a persistent offline bundle. Route: license from Union County PVA (Clay Wells, Morganfield KY) or qPublic subscription \u2014 requires user authorization. See ky-union-21225/parcels/MISSING.md."
   },
   {
    "id": "il-white-17193-floodplain-fema-nfhl",
