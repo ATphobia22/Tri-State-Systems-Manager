@@ -14,7 +14,7 @@
 - [ ] GitHub Pages production build passes and the deployed page URL returns a valid application shell.
 - [ ] Pages deep-link fallback (`404.html`) and required asset paths verify.
 - [ ] API readiness is verified when an authorized HTTPS API deployment is configured; otherwise the local-first/no-login offline mode remains the declared production mode.
-- [ ] No Coolify or Railway deployment surface remains authoritative.
+- [ ] No unapproved external hosting or deployment surface remains authoritative.
 - [ ] No open pull requests remain.
 - [ ] Stale/superseded branches are not treated as deployment surfaces.
 - [ ] Release artifacts carry deterministic provenance and SHA-256 evidence.
