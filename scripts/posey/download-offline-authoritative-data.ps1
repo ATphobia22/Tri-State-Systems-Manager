@@ -35,8 +35,18 @@ function Save-LidarCollection69202() {
   # enumeration or bulk LAZ downloads.
   foreach($block in 1..6){
     $ept="https://s3-us-west-2.amazonaws.com/usgs-lidar-public/IN_Statewide_Opt2_B$($block)_2017/ept.json"
-    $script:results += Save-Url $ept ("usgs-lidar\69202\block-$($block)\ept.json") "usgs-lidar-69202-ept-block-$($block)" "USGS"
-    $script:results[-1].spatialRelation="coverage-reference"
+    $receipt = Save-Url $ept ("usgs-lidar\69202\block-$($block)\ept.json") "usgs-lidar-69202-ept-block-$($block)" "USGS"
+    $eptPath = Join-Path $OutDir $receipt.path
+    try {
+      $eptJson = Get-Content $eptPath -Raw | ConvertFrom-Json
+    } catch {
+      throw "USGS EPT block $block is not valid JSON"
+    }
+    if($null -eq $eptJson.bounds -or $null -eq $eptJson.span -or $null -eq $eptJson.data) {
+      throw "USGS EPT block $block metadata is incomplete"
+    }
+    $receipt.spatialRelation="coverage-reference"
+    $script:results += $receipt
   }
 }
 
