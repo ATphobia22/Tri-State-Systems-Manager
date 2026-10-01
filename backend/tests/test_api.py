@@ -144,3 +144,77 @@ def test_gauge_ingest_requires_source():
         json={"readings": [{"node_id": "03378500", "observed_at": "x"}]},
     )
     assert response.status_code == 422
+
+
+def _sample_iv_payload() -> dict:
+    def series(site: str, param: str, unit: str, value: str, dt: str) -> dict:
+        return {
+            "sourceInfo": {"siteCode": [{"value": site}]},
+            "variable": {
+                "variableCode": [{"value": param}],
+                "unit": {"unitCode": unit},
+            },
+            "values": [
+                {"value": [{"value": value, "dateTime": dt, "qualifiers": ["P"]}]},
+            ],
+        }
+
+    return {
+        "value": {
+            "timeSeries": [
+                series("03378500", "00060", "ft3/s", "45210", "2026-10-01T17:00:00.000-05:00"),
+                series("03378500", "00065", "ft", "21.34", "2026-10-01T17:00:00.000-05:00"),
+                series("03322000", "00060", "ft3/s", "198000", "2026-10-01T17:00:00.000-05:00"),
+            ]
+        }
+    }
+
+
+def test_snapshot_stations_registry_is_static():
+    response = client.get("/api/hydrologic/snapshot/stations")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["count"] == 12
+    site_nos = [s["site_no"] for s in body["stations"]]
+    assert "03378500" in site_nos
+    # corrected label: Mount Carmel, not New Harmony
+    mount_carmel = next(s for s in body["stations"] if s["site_no"] == "03378500")
+    assert "Mount Carmel" in mount_carmel["name"]
+
+
+def test_snapshot_returns_provisional_observations(monkeypatch):
+    from app.main import SNAPSHOT_STATIONS
+
+    async def fake_fetch(site_nos):
+        assert site_nos == [s for s, _, _ in SNAPSHOT_STATIONS]
+        return _sample_iv_payload()
+
+    monkeypatch.setattr("app.main._fetch_usgs_iv", fake_fetch)
+    response = client.post("/api/hydrologic/snapshot")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["trigger"] == "user-initiated"
+    assert body["provisional"] is True
+    assert body["count"] == 12
+    by_site = {s["site_no"]: s for s in body["stations"]}
+    obs = {o["parameter"]: o for o in by_site["03378500"]["observations"]}
+    assert obs["00060"]["value"] == 45210.0
+    assert obs["00065"]["value"] == 21.34
+    assert obs["00060"]["provisional"] is True
+    assert obs["00060"]["qualifiers"] == ["P"]
+    assert by_site["03378500"]["unavailable"] is False
+    # station with no returned series is marked unavailable, not fabricated
+    assert by_site["03304300"]["observations"] == []
+    assert by_site["03304300"]["unavailable"] is True
+    assert body["unavailable_count"] >= 1
+
+
+def test_snapshot_fails_closed_when_usgs_unreachable(monkeypatch):
+    async def fake_fetch(site_nos):
+        raise __import__("httpx").ConnectError("no route")
+
+    monkeypatch.setattr("app.main._fetch_usgs_iv", fake_fetch)
+    response = client.post("/api/hydrologic/snapshot")
+    assert response.status_code == 502
+    body = response.json()
+    assert body["detail"]["code"] == "SNAPSHOT_UNAVAILABLE"

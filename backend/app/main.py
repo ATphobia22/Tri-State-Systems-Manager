@@ -29,6 +29,8 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field, ValidationError
 from backend.api.v1.evidence_lock import router as evidence_lock_router
 
+import httpx
+
 REPO_ROOT = Path(
     os.environ.get("TSM_REPO_ROOT", Path(__file__).resolve().parents[2])
 )
@@ -55,6 +57,93 @@ MAX_SAFE_ID_LENGTH = 128
 # The gauge-ingest endpoint writes one file per reading, so its request body
 # is capped: an unbounded body would be an unbounded disk write.
 MAX_GAUGE_INGEST_BODY_BYTES = 2 * 1024 * 1024  # 2 MiB
+
+# ---------------------------------------------------------------------------
+# On-demand live gauge snapshot (user-initiated only).
+#
+# Owner direction 2026-10-01: river data yes, live polling no — plus a button
+# that fetches a live snapshot of all gauges when the user presses it.
+# This endpoint performs NO background polling, NO scheduling, and stores
+# NOTHING. It fetches current instantaneous values from USGS Water Services
+# at the moment of the request and returns them with fetch timestamps.
+# Every value is marked provisional (USGS data qualifier). Fail-closed: if
+# the upstream service is unreachable or returns no data, the station is
+# reported unavailable — never filled in.
+#
+# Station 03378500 is the Wabash River at Mount Carmel, IL (the registry's
+# "New Harmony" label was a mislabel; corrected 2026-10-01).
+# ---------------------------------------------------------------------------
+SNAPSHOT_STATIONS: tuple[tuple[str, str, str], ...] = (
+    ("03378500", "Wabash River at Mount Carmel, IL", "Wabash River"),
+    ("03322000", "Ohio River at Evansville, IN", "Ohio River"),
+    ("03304300", "Ohio River at Newburgh Lock and Dam, IN", "Ohio River"),
+    ("03322420", "Ohio River at Uniontown Dam, KY", "Ohio River"),
+    ("03381700", "Ohio River at Old Shawneetown, IL-KY", "Ohio River"),
+    ("03399800", "Ohio River at Smithland Dam, Smithland, KY", "Ohio River"),
+    ("03303280", "Ohio River at Cannelton Dam at Cannelton, IN", "Ohio River"),
+    ("03612600", "Ohio River at Olmsted, IL", "Ohio River"),
+    ("03277200", "Ohio River at Markland Dam near Warsaw, KY", "Ohio River"),
+    ("03293600", "Ohio River at McAlpine Dam - Headwater", "Ohio River"),
+    ("03294500", "Ohio River at Louisville, KY", "Ohio River"),
+    ("03293551", "Ohio River upstream of McAlpine Dam at railroad bridge at Louisville, KY", "Ohio River"),
+)
+SNAPSHOT_PARAMETER_LABELS = {"00060": "Discharge", "00065": "Gage height"}
+SNAPSHOT_IV_URL = "https://waterservices.usgs.gov/nwis/iv/"
+SNAPSHOT_TIMEOUT_SECONDS = 25.0
+
+
+def _snapshot_registry() -> list[dict]:
+    return [
+        {"site_no": site_no, "name": name, "river": river, "provider": "USGS"}
+        for site_no, name, river in SNAPSHOT_STATIONS
+    ]
+
+
+async def _fetch_usgs_iv(site_nos: list[str]) -> dict:
+    """Fetch instantaneous values from USGS Water Services. Raises on failure."""
+    params = {
+        "format": "json",
+        "sites": ",".join(site_nos),
+        "parameterCd": "00060,00065",
+    }
+    async with httpx.AsyncClient(timeout=SNAPSHOT_TIMEOUT_SECONDS) as client:
+        response = await client.get(SNAPSHOT_IV_URL, params=params)
+        response.raise_for_status()
+        return response.json()
+
+
+def _parse_iv_series(payload: dict) -> dict[str, list[dict]]:
+    """Index USGS IV time series by site_no -> latest observation per parameter."""
+    by_site: dict[str, dict[str, dict]] = {}
+    series = payload.get("value", {}).get("timeSeries", []) or []
+    for ts in series:
+        try:
+            site_no = ts["sourceInfo"]["siteCode"][0]["value"]
+            param = ts["variable"]["variableCode"][0]["value"]
+            unit = ts["variable"].get("unit", {}).get("unitCode")
+            values = (ts.get("values") or [{}])[0].get("value") or []
+        except (KeyError, IndexError, TypeError):
+            continue
+        if param not in SNAPSHOT_PARAMETER_LABELS or not values:
+            continue
+        latest = values[-1]
+        try:
+            numeric = float(latest["value"])
+        except (KeyError, TypeError, ValueError):
+            continue
+        by_site.setdefault(site_no, {})[param] = {
+            "parameter": param,
+            "label": SNAPSHOT_PARAMETER_LABELS[param],
+            "value": numeric,
+            "unit": unit,
+            "observed_at": latest.get("dateTime"),
+            "qualifiers": latest.get("qualifiers") or [],
+            "provisional": True,
+        }
+    return {
+        site_no: [obs for _, obs in sorted(params.items())]
+        for site_no, params in by_site.items()
+    }
 
 
 def _validated_id(value: str, field: str) -> str:
@@ -525,6 +614,73 @@ def hydrologic_nodes() -> dict:
         "disclaimer": (
             "Observations only; confers no regulatory standing. Null fields "
             "mean 'not published by the authority' — never interpolate."
+        ),
+    }
+
+
+@app.get("/api/hydrologic/snapshot/stations")
+def hydrologic_snapshot_stations() -> dict:
+    """Static registry behind the snapshot button. No live data here."""
+    return {
+        "stations": _snapshot_registry(),
+        "count": len(SNAPSHOT_STATIONS),
+        "source": "TSM station registry (USGS site numbers); fetch via POST /api/hydrologic/snapshot",
+    }
+
+
+@app.post("/api/hydrologic/snapshot")
+async def hydrologic_snapshot() -> dict:
+    """Fetch a one-time live snapshot of all registry gauges.
+
+    User-initiated only: this route performs no polling, keeps no schedule,
+    and persists nothing. Values are USGS instantaneous observations as of
+    the fetch moment, marked provisional. Stations the upstream service does
+    not return are reported unavailable — never invented.
+    """
+    fetched_at = utc_now_iso()
+    site_nos = [site_no for site_no, _, _ in SNAPSHOT_STATIONS]
+    try:
+        payload = await _fetch_usgs_iv(site_nos)
+    except Exception as exc:  # network, timeout, bad status, bad JSON
+        raise HTTPException(
+            status_code=502,
+            detail={
+                "code": "SNAPSHOT_UNAVAILABLE",
+                "detail": (
+                    "USGS Water Services could not be reached for a live "
+                    "snapshot; no values are fabricated in its place."
+                ),
+                "fetched_at": fetched_at,
+                "error": type(exc).__name__,
+            },
+        )
+    latest = _parse_iv_series(payload)
+    stations = []
+    for site_no, name, river in SNAPSHOT_STATIONS:
+        observations = latest.get(site_no, [])
+        stations.append(
+            {
+                "site_no": site_no,
+                "name": name,
+                "river": river,
+                "provider": "USGS",
+                "observations": observations,
+                "unavailable": not observations,
+            }
+        )
+    return {
+        "fetched_at": fetched_at,
+        "trigger": "user-initiated",
+        "source": "USGS Water Services nwis/iv (instantaneous values)",
+        "provisional": True,
+        "stations": stations,
+        "count": len(stations),
+        "unavailable_count": sum(1 for s in stations if s["unavailable"]),
+        "disclaimer": (
+            "One-time snapshot taken when the user pressed the button. "
+            "All values are provisional USGS observations, not validated "
+            "records. This service does not poll, schedule, or store gauge "
+            "data."
         ),
     }
 
