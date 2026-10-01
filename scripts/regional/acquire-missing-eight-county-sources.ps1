@@ -13,7 +13,7 @@ $Sources = @{
 function Invoke-ArcGisQuery {
 param([string]$LayerUrl,[hashtable]$Body)
 for($attempt=1;$attempt -le 6;$attempt++){
-try{$response=Invoke-RestMethod -Method Post -Uri "$LayerUrl/query" -Body $Body -ContentType "application/x-www-form-urlencoded" -TimeoutSec 300;if($response.error){throw($response.error|ConvertTo-Json -Depth 20)};return $response}
+try{Write-Host "Querying ArcGIS layer: $LayerUrl | where=$($Body.where)";$response=Invoke-RestMethod -Method Post -Uri "$LayerUrl/query" -Body $Body -ContentType "application/x-www-form-urlencoded" -TimeoutSec 300;if($response.error){throw($response.error|ConvertTo-Json -Depth 20)};return $response}
 catch{if($attempt -eq 6){throw};Start-Sleep -Seconds ([math]::Min(30,2*$attempt))}
 }}
 function Get-CountyBoundaryGeometry {
