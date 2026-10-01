@@ -111,30 +111,48 @@ function Save-ArcGisCountyAttribute(
   [bool]$RequireFeature
 ) {
   Write-Host "Acquiring $RequiredId via exact county attribute filter from $ServiceLayerUrl"
-  $query = @{
-    where=$Where; outFields="*"; returnGeometry="true"; outSR="4326"; f="json"
-  } | ForEach-Object {
-    ($_.GetEnumerator() | ForEach-Object { "$($_.Key)=$([uri]::EscapeDataString([string]$_.Value))" }) -join "&"
+
+  # ArcGIS feature layers can intermittently reject long/encoded GET query URLs
+  # with a misleading 404 even while the layer and /query resource are healthy.
+  # Use the documented POST form and the shared retrying query helper instead.
+  $params=@{
+    where=$Where
+    outFields="*"
+    returnGeometry="true"
+    outSR="4326"
+    f="json"
   }
-  $r = Invoke-RestMethod -Method Get -Uri "$ServiceLayerUrl/query?$query"
-  if ($r.error) { throw ($r.error | ConvertTo-Json -Depth 20) }
+  $r = Invoke-ArcGisQuery $ServiceLayerUrl $params
   $features=@($r.features)
   if ($RequireFeature -and $features.Count -lt 1) {
-    throw "Required FEMA county source returned zero features for $RequiredId"
+    throw "Required spatial source returned zero features for exact Posey County: $RequiredId"
   }
+
   $path=Join-Path $OutDir $Name
   New-Item -ItemType Directory -Force -Path (Split-Path -Parent $path) | Out-Null
   [ordered]@{
-    type="FeatureCollection"; source=$ServiceLayerUrl; where=$Where
-    countyFips=$CountyFips; boundarySource=$CountyBoundaryUrl; boundaryGEOID=$CountyGEOID
-    spatialRelation="exact-county-attribute"; retrievedAt=(Get-Date).ToUniversalTime().ToString("o")
+    type="FeatureCollection"
+    source=$ServiceLayerUrl
+    where=$Where
+    countyFips=$CountyFips
+    boundarySource=$CountyBoundaryUrl
+    boundaryGEOID=$CountyGEOID
+    spatialRelation="exact-county-attribute"
+    retrievedAt=(Get-Date).ToUniversalTime().ToString("o")
     features=$features
   } | ConvertTo-Json -Depth 100 | Set-Content $path -Encoding utf8
+
   [pscustomobject]@{
-    id=$RequiredId; authority=$Authority; path=$Name; url=$ServiceLayerUrl; where=$Where
+    id=$RequiredId
+    authority=$Authority
+    path=$Name
+    url=$ServiceLayerUrl
+    where=$Where
     sha256=(Get-FileHash $path -Algorithm SHA256).Hash.ToLowerInvariant()
-    bytes=(Get-Item $path).Length; featureCount=$features.Count
-    spatialRelation="exact-county-attribute"; status="acquired"
+    bytes=(Get-Item $path).Length
+    featureCount=$features.Count
+    spatialRelation="exact-county-attribute"
+    status="acquired"
   }
 }
 
