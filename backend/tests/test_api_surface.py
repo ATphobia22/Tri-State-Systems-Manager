@@ -42,3 +42,20 @@ def test_ledger_fails_closed_without_reviewer_allowlist() -> None:
     }
     response = client.post("/api/ledger/append", json=payload)
     assert response.status_code in {404, 503}
+
+
+def test_evidence_lock_router_is_mounted() -> None:
+    paths = app.openapi()["paths"]
+    assert "/evidence/lock-packet" in paths
+
+
+def test_evidence_lock_route_requires_authorization_fields_when_enabled() -> None:
+    response = client.post(
+        "/evidence/lock-packet",
+        json={
+            "lag_navd88": 377.2,
+            "bfe_navd88": 375.0,
+            "human_authorized": True,
+        },
+    )
+    assert response.status_code == 400
