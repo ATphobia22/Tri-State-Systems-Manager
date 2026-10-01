@@ -398,7 +398,7 @@ def build_parcel_flood_evidence(parcel_number: str) -> dict:
         "crs": "EPSG:4326",
     }
     evidence["dnr_flood_join"] = dnr_flood_join(lon, lat)
-    evidence["nfhl_firm_panel"] = nfhl_firm_panel(lon, lat)
+    evidence["nfhl_firm_panel"] = nfhl_firm_panel(lon, lat, parcel["rings"])
     evidence["terrain_3dep"] = epqs_elevation(lon, lat)
     return evidence
 
