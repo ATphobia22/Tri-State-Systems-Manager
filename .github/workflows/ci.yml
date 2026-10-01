@@ -204,6 +204,38 @@ jobs:
           if-no-files-found: error
 
 
+  native-contracts:
+    name: Native UE5.8 Contract & Provenance Verification
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tsm-console/package-lock.json
+      - name: Verify Unreal 5.8 project contract
+        run: |
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const project = JSON.parse(fs.readFileSync('tsm-native/TSMNative.uproject', 'utf8'));
+          if (project.EngineAssociation !== '5.8') throw new Error(`Expected Unreal Engine 5.8, found ${project.EngineAssociation}`);
+          if (!Array.isArray(project.Modules) || !project.Modules.some((module) => module.Name === 'TSMNative')) throw new Error('TSMNative module is missing from the Unreal project contract.');
+          console.log('Unreal Engine 5.8 / TSMNative project contract verified.');
+          NODE
+      - name: Validate native spatial topology
+        run: node scripts/ci/validate-spatial-topology.mjs
+      - name: Execute native SHA-256 provenance contract tests
+        run: node --test tsm-native/tests/native-spatial-provenance-contract.test.mjs
+
+
   attest:
     name: Attest production artifact
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
