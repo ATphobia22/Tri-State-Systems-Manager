@@ -84,7 +84,7 @@
     "check:hec-ras-modern-runtime": "node ../scripts/ci/validate-hec-ras-modern-runtime.mjs",
     "runtime:doctor": "node ../scripts/offline/doctor.mjs",
     "runtime:verify": "node ../scripts/offline/verify-installed-runtime.mjs",
-    "test:backend": "../run-backend-tests.sh"
+    "test:backend": "bash ../run-backend-tests.sh"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.0",
