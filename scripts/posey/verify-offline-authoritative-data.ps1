@@ -49,9 +49,9 @@ foreach ($expected in @($req.requiredSources)) {
   }
   if ($actual.path -match '(fema|indiana-dnr|indiana-gio|usace-nld|usgs|usgs-lidar)' -and
       $actual.id -ne "posey-county-boundary" -and
-      $actual.spatialRelation -notin @("esriSpatialRelWithin","esriSpatialRelIntersects","exact-county-attribute","exact-county-clip") -and
+      $actual.spatialRelation -notin @("esriSpatialRelWithin","esriSpatialRelIntersects","exact-county-attribute","exact-county-clip","coverage-reference") -and
       $actual.id -notmatch "history|metadata|sir-2016-5119|current-imagery|service-catalog|noaa-inport|fema-countywide-nfhl") {
-    $failures.Add("$($expected.id): spatialRelation is not an exact-county spatial filter")
+    $failures.Add("$($expected.id): spatialRelation is not an exact-county spatial filter or documented coverage reference")
   }
 }
 
