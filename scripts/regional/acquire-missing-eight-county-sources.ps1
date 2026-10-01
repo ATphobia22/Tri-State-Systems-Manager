@@ -28,6 +28,18 @@ $geometry=$fc.features[0].geometry
 if($geometry.type -ne "Polygon" -and $geometry.type -ne "MultiPolygon"){throw "Boundary $path must be Polygon or MultiPolygon."}
 return $geometry
 }
+function ConvertTo-EsriGeometry {
+param([object]$GeoJsonGeometry)
+if($GeoJsonGeometry.type -eq "Polygon"){
+return [ordered]@{rings=$GeoJsonGeometry.coordinates;spatialReference=@{wkid=4326}}
+}
+if($GeoJsonGeometry.type -eq "MultiPolygon"){
+$rings=[System.Collections.Generic.List[object]]::new()
+foreach($polygon in $GeoJsonGeometry.coordinates){foreach($ring in $polygon){[void]$rings.Add($ring)}}
+return [ordered]@{rings=$rings.ToArray();spatialReference=@{wkid=4326}}
+}
+throw "Unsupported GeoJSON geometry type: $($GeoJsonGeometry.type)"
+}
 function Get-ArcGisFeatures {
 param([hashtable]$Source,[string]$Fips)
 $metadata=Invoke-RestMethod -Method Get -Uri "$($Source.Url)?f=pjson" -TimeoutSec 120
@@ -39,8 +51,8 @@ $all=[System.Collections.Generic.List[object]]::new();$offset=0
 do{
 $body=@{where=$Source.Where;outFields=$Source.OutFields;returnGeometry="true";outSR="4326";resultType="standard";f="json"}
 if($Source.Mode -eq "boundary"){
-$body.geometry=($boundaryGeometry|ConvertTo-Json -Compress -Depth 100)
-$body.geometryType=if($boundaryGeometry.type -eq "MultiPolygon"){"esriGeometryMultipolygon"}else{"esriGeometryPolygon"}
+$body.geometry=(ConvertTo-EsriGeometry -GeoJsonGeometry $boundaryGeometry|ConvertTo-Json -Compress -Depth 100)
+$body.geometryType="esriGeometryPolygon"
 $body.inSR="4326";$body.spatialRel="esriSpatialRelWithin"}
 if($supportsPagination){$body.resultOffset=$offset;$body.resultRecordCount=$pageSize}
 $response=Invoke-ArcGisQuery -LayerUrl $Source.Url -Body $body
@@ -67,7 +79,8 @@ New-Item -ItemType Directory -Force -Path (Split-Path -Parent $target)|Out-Null
 }
 $femaUrl="https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28"
 $femaBoundary=Get-CountyBoundaryGeometry -Fips "21225"
-$femaBody=@{where="DFIRM_ID LIKE '21225%'";outFields="DFIRM_ID,FLD_ZONE,ZONE_SUBTY,SFHA_TF,STATIC_BFE,DEPTH,VELOCITY,GFID";returnGeometry="true";outSR="4326";geometry=($femaBoundary|ConvertTo-Json -Compress -Depth 100);geometryType="esriGeometryPolygon";inSR="4326";spatialRel="esriSpatialRelIntersects";resultType="standard";f="json"}
+$femaEsriGeometry=ConvertTo-EsriGeometry -GeoJsonGeometry $femaBoundary
+$femaBody=@{where="DFIRM_ID LIKE '21225%'";outFields="DFIRM_ID,FLD_ZONE,ZONE_SUBTY,SFHA_TF,STATIC_BFE,DEPTH,VELOCITY,GFID";returnGeometry="true";outSR="4326";geometry=($femaEsriGeometry|ConvertTo-Json -Compress -Depth 100);geometryType="esriGeometryPolygon";inSR="4326";spatialRel="esriSpatialRelIntersects";resultType="standard";f="json"}
 $fema=Invoke-ArcGisQuery -LayerUrl $femaUrl -Body $femaBody
 $femaFeatures=@($fema.features)
 if($femaFeatures.Count -eq 0){throw "Direct FEMA NFHL layer 28 returned zero features for DFIRM_ID 21225."}
