@@ -1,0 +1,62 @@
+name: TSM Missing Source Recovery
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/missing-source-recovery.yml"
+      - "scripts/regional/acquire-missing-eight-county-sources.ps1"
+      - "scripts/geo/acquire-eight-county-boundaries.ps1"
+      - "scripts/geo/validate-eight-county-exact-spatial-objects.py"
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  recover:
+    runs-on: windows-2022
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+      - name: Install deterministic geometry validator
+        shell: pwsh
+        run: python -m pip install --disable-pip-version-check --no-input shapely==2.0.7
+      - name: Acquire exact TIGER county boundaries
+        shell: pwsh
+        run: .\scripts\geo\acquire-eight-county-boundaries.ps1
+      - name: Recover missing parcel and FEMA sources
+        shell: pwsh
+        run: .\scripts\regional\acquire-missing-eight-county-sources.ps1
+      - name: Validate recovered spatial objects
+        shell: pwsh
+        run: python .\scripts\geo\validate-eight-county-exact-spatial-objects.py --root data\regional\missing-source-recovery --boundary-root data\regional\boundaries --receipt data\regional\missing-source-recovery\spatial-validation.json
+      - name: Verify all recovery SHA-256 values
+        shell: pwsh
+        run: |
+          $root = (Resolve-Path data\regional\missing-source-recovery).Path
+          $manifest = Get-Content data\regional\missing-source-recovery\SHA256SUMS -Raw
+          foreach ($line in ($manifest -split '\r?\n' | Where-Object { $_ -match '^([0-9a-f]{64})  (.+)$' })) {
+            $hash = $Matches[1]
+            $relative = $Matches[2]
+            $path = Join-Path $root ($relative -replace "/","\")
+            if (-not (Test-Path $path)) { throw "Missing recovery artifact: $relative" }
+            $actual = (Get-FileHash $path -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($actual -ne $hash) { throw "SHA-256 mismatch: $relative" }
+          }
+          Write-Host "Recovery SHA-256 verification: PASS"
+      - name: Upload recovery artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: tsm-missing-source-recovery-${{ github.sha }}
+          path: data\regional\missing-source-recovery
+          if-no-files-found: error
+          retention-days: 30
+      - name: Fail closed only if the newly recoverable sources failed
+        shell: pwsh
+        run: |
+          $manifest = Get-Content data\regional\missing-source-recovery\recovery-manifest.json -Raw | ConvertFrom-Json
+          if (@($manifest.receipts).Count -ne 4) { throw "Expected four newly recovered artifacts." }
+          if (@($manifest.receipts | Where-Object status -ne "acquired").Count -ne 0) { throw "At least one recovered artifact is not acquired." }
+          Write-Host "RECOVERY GREEN: four newly recoverable artifacts acquired, validated, hashed, and published."
