@@ -8,7 +8,7 @@ $Counties = @(@{State="IL";Fips="17193";Name="white"},@{State="KY";Fips="21101";
 $Sources = @{
 "17193"=@{Authority="White County, Illinois GIS / ArcGIS public property service";Url="https://services.arcgis.com/4YineAQdtmx0tv46/arcgis/rest/services/Parcels_WhiteIL2/FeatureServer/0";Where="1=1";OutFields="OBJECTID,PIN,ALTPin,alternate_parcel_number,township,City,tax_code,site_address,Site_City_State_Zip,gross_acres,homesite_acres,farm_acres,Property_Class,tax_status,lot_dimension";Mode="county-service"}
 "21101"=@{Authority="Henderson County GIS";Url="https://services.arcgis.com/Iwwqwcdc5CWG2jt9/arcgis/rest/services/Parcels/FeatureServer/0";Where="1=1";OutFields="FID,PIDN,ZONE_,ZONE_DESCR,LOCATION,ZONE_LOC,GIS_ACRES";Mode="county-service"}
-"21225"=@{Authority="Union County GIS";Url="https://services3.arcgis.com/ccRMrVzOSHBUG6X2/ArcGIS/rest/services/Union%20County%20Parcels/FeatureServer/0";Where="1=1";OutFields="OBJECTID,GISNO,CAMANO,ID";Mode="boundary"}
+"21225"=@{Authority="Union County GIS";Url="https://services3.arcgis.com/ccRMrVzOSHBUG6X2/ArcGIS/rest/services/Union%20County%20Parcels/FeatureServer/0";Where="1=1";OutFields="OBJECTID,GISNO,CAMANO,ID";Mode="county-service"}
 }
 function Invoke-ArcGisQuery {
 param([string]$LayerUrl,[hashtable]$Body)
@@ -42,6 +42,7 @@ throw "Unsupported GeoJSON geometry type: $($GeoJsonGeometry.type)"
 }
 function Get-ArcGisFeatures {
 param([hashtable]$Source,[string]$Fips)
+Write-Host "Inspecting ArcGIS source $Fips: $($Source.Url)"
 $metadata=Invoke-RestMethod -Method Get -Uri "$($Source.Url)?f=pjson" -TimeoutSec 120
 if($metadata.error){throw($metadata.error|ConvertTo-Json -Depth 20)}
 $pageSize=[int]$metadata.maxRecordCount;if($pageSize -lt 1){$pageSize=1000}
