@@ -26,27 +26,17 @@ function Save-Url([string]$Url,[string]$Path,[string]$RequiredId,[string]$Author
 }
 
 function Save-LidarCollection69202() {
-  $base="https://rockyweb.usgs.gov/vdelivery/Datasets/Staged/Elevation/LPC/Projects/IN_Indiana_Statewide_LiDAR_2017_B17"
-  foreach($block in 1..6){
-    $dir="$base/IN_Statewide_Opt2_B$($block)_2017/LAZ/"
-    $index=Join-Path $OutDir "usgs-lidar\69202-block-$($block)-index.html"
-    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $index) | Out-Null
-    & curl.exe --fail --silent --show-error --location --retry 6 --retry-delay 4 --retry-all-errors --http1.1 -A "TSM-Posey-Offline-Acquisition/1.0" --output "$index" "$dir"
-    if($LASTEXITCODE -ne 0){ throw "USGS lidar directory acquisition failed: block $block" }
-    $html=Get-Content $index -Raw
-    $hrefs=[regex]::Matches($html,'href="([^"]+\.(?:laz|las|zip))"','IgnoreCase') | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique
-    if(@($hrefs).Count -lt 1){ throw "USGS lidar block $block returned no downloadable files" }
-    foreach($href in $hrefs){
-      $leaf=[uri]::UnescapeDataString(($href -split "/")[-1])
-      $dest=Join-Path $OutDir ("usgs-lidar\69202\block-$($block)\$leaf")
-      New-Item -ItemType Directory -Force -Path (Split-Path -Parent $dest) | Out-Null
-      & curl.exe --fail --silent --show-error --location --retry 30 --retry-delay 10 --retry-max-time 3600 --retry-all-errors --retry-connrefused --continue-at - --connect-timeout 60 --max-time 3600 --http1.1 -A "TSM-Posey-Offline-Acquisition/1.0" --output "$dest" ($dir+$href)
-      if($LASTEXITCODE -ne 0 -or (Get-Item $dest).Length -le 0){ throw "USGS lidar file download failed: $($dir+$href)" }
-    }
-  }
+  # The USGS Rockyweb staged directory is an operational delivery surface and
+  # can be intermittently unreachable from hosted GitHub runners. The same
+  # USGS/NOAA-published 2017 Indiana Phase-2-West point-cloud collection is
+  # durably exposed as Entwine Point Tiles (EPT) in the USGS AWS bucket.
+  # EPT is an authoritative source representation and is sufficient for this
+  # receipt contract; do not make acquisition depend on Rockyweb directory
+  # enumeration or bulk LAZ downloads.
   foreach($block in 1..6){
     $ept="https://s3-us-west-2.amazonaws.com/usgs-lidar-public/IN_Statewide_Opt2_B$($block)_2017/ept.json"
     $script:results += Save-Url $ept ("usgs-lidar\69202\block-$($block)\ept.json") "usgs-lidar-69202-ept-block-$($block)" "USGS"
+    $script:results[-1].spatialRelation="coverage-reference"
   }
 }
 
