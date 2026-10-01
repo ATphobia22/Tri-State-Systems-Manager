@@ -17,10 +17,15 @@ import json
 import os
 import re
 import uuid
+import asyncio
+from typing import Any
+
+import httpx
 from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Query
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field, ValidationError
 
 REPO_ROOT = Path(
@@ -87,6 +92,304 @@ app = FastAPI(
     version="1.0.0",
     description=DISCLAIMER,
 )
+
+
+
+
+# Hardened geospatial/engineering API limits.
+MAX_RAS_CELLS = 100_000
+MAX_LEDGER_ENTRIES = 100_000
+MAX_RASTER_BYTES = 128 * 1024 * 1024
+MAX_RASTER_PIXELS = 12_000_000
+MAX_RASTER_DIMENSION = 4096
+POSEY_MANIFEST = REPO_ROOT / "tsm-console" / "data" / "manifests" / "posey-2020-site-assets.json"
+RAS_OUTBOX_DIR = OUTBOX_DIR / "ras-results"
+LEDGER_FILE = OUTBOX_DIR / "ledger.json"
+POSEY_RASTER_HOSTS = {"di-ingov.img.arcgis.com", "imagery.geoplatform.gov"}
+_LEDGER_LOCK = asyncio.Lock()
+
+def _load_posey_manifest() -> dict[str, Any]:
+    if not POSEY_MANIFEST.exists():
+        raise HTTPException(status_code=503, detail={"code": "POSEY_MANIFEST_UNAVAILABLE"})
+    try:
+        return json.loads(POSEY_MANIFEST.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise HTTPException(status_code=503, detail={"code": "POSEY_MANIFEST_INVALID"}) from exc
+
+def _posey_bounds(manifest: dict[str, Any]) -> dict[str, float]:
+    bounds = manifest.get("bounds")
+    if not isinstance(bounds, dict):
+        raise HTTPException(status_code=503, detail={"code": "POSEY_BOUNDS_UNAVAILABLE"})
+    try:
+        result = {key: float(bounds[key]) for key in ("minX", "minY", "maxX", "maxY")}
+    except (KeyError, TypeError, ValueError) as exc:
+        raise HTTPException(status_code=503, detail={"code": "POSEY_BOUNDS_INVALID"}) from exc
+    if not (result["minX"] < result["maxX"] and result["minY"] < result["maxY"]):
+        raise HTTPException(status_code=503, detail={"code": "POSEY_BOUNDS_INVALID"})
+    return result
+
+def _parse_bbox(raw: str, bounds: dict[str, float]) -> dict[str, float]:
+    try:
+        values = [float(value) for value in raw.split(",")]
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail={"code": "INVALID_BBOX"}) from exc
+    if len(values) != 4 or not all(map(lambda value: value == value and abs(value) != float("inf"), values)):
+        raise HTTPException(status_code=422, detail={"code": "INVALID_BBOX"})
+    min_x, min_y, max_x, max_y = values
+    if not (min_x < max_x and min_y < max_y):
+        raise HTTPException(status_code=422, detail={"code": "INVALID_BBOX"})
+    if not (
+        min_x >= bounds["minX"] and min_y >= bounds["minY"]
+        and max_x <= bounds["maxX"] and max_y <= bounds["maxY"]
+    ):
+        raise HTTPException(status_code=422, detail={"code": "BBOX_OUTSIDE_POSEY_BOUNDS"})
+    return {"minX": min_x, "minY": min_y, "maxX": max_x, "maxY": max_y}
+
+def _parse_dimension(raw: int, name: str) -> int:
+    if raw < 256 or raw > MAX_RASTER_DIMENSION:
+        raise HTTPException(status_code=422, detail={"code": "INVALID_RASTER_DIMENSION", "field": name})
+    return raw
+
+def _posey_raster_request(
+    manifest: dict[str, Any],
+    bounds: dict[str, float],
+    width: int,
+    height: int,
+    kind: str,
+) -> tuple[str, str, dict[str, Any]]:
+    asset = manifest.get(kind)
+    if not isinstance(asset, dict) or not isinstance(asset.get("sourceUri"), str):
+        raise HTTPException(status_code=503, detail={"code": "POSEY_ASSET_UNAVAILABLE", "kind": kind})
+    source = asset["sourceUri"]
+    parsed = httpx.URL(source)
+    if parsed.scheme != "https" or parsed.host not in POSEY_RASTER_HOSTS:
+        raise HTTPException(status_code=503, detail={"code": "UPSTREAM_HOST_NOT_ALLOWLISTED"})
+    export_url = str(parsed).rstrip("/") + "/exportImage"
+    params = {
+        "bbox": f'{bounds["minX"]},{bounds["minY"]},{bounds["maxX"]},{bounds["maxY"]}',
+        "bboxSR": "2966",
+        "imageSR": "2966",
+        "size": f"{width},{height}",
+        "format": "tiff" if kind == "terrain" else "png32",
+        "pixelType": "F32" if kind == "terrain" else "U8",
+        "interpolation": "RSP_NearestNeighbor" if kind == "terrain" else "RSP_BilinearInterpolation",
+        "f": "image",
+    }
+    content_type = "image/tiff" if kind == "terrain" else "image/png"
+    return export_url, content_type, {"source": asset, "bounds": bounds, "width": width, "height": height, "kind": kind, "params": params}
+
+def _read_json_file(path: Path) -> dict[str, Any]:
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail={"code": "RESOURCE_NOT_FOUND"}) from exc
+    except (OSError, json.JSONDecodeError) as exc:
+        raise HTTPException(status_code=503, detail={"code": "RESOURCE_UNAVAILABLE"}) from exc
+
+def _reviewer_allowlist() -> set[str]:
+    raw = os.environ.get("TSM_REVIEWER_SUBJECTS", "")
+    return {value.strip() for value in raw.split(",") if value.strip()}
+
+@app.get("/api/geospatial/posey/manifest")
+def posey_manifest() -> dict[str, Any]:
+    """Return the immutable registered Posey 2020 asset manifest."""
+    manifest = _load_posey_manifest()
+    return {
+        "manifest": manifest,
+        "provenance": {
+            "authority_class": "OBSERVATION",
+            "horizontal_crs": manifest.get("horizontalCrs"),
+            "vertical_datum_verified": bool(manifest.get("verticalDatumVerified", False)),
+            "human_review_required": True,
+        },
+    }
+
+@app.get("/api/geospatial/posey/raster")
+async def posey_raster(
+    bbox: str | None = Query(default=None),
+    width: int = Query(default=1024),
+    height: int = Query(default=1024),
+    kind: str = Query(default="terrain"),
+) -> StreamingResponse:
+    """Stream a bounded Posey terrain/orthophoto raster from an allowlisted source."""
+    manifest = _load_posey_manifest()
+    registered_bounds = _posey_bounds(manifest)
+    request_bounds = _parse_bbox(
+        bbox or ",".join(str(registered_bounds[key]) for key in ("minX", "minY", "maxX", "maxY")),
+        registered_bounds,
+    )
+    width = _parse_dimension(width, "width")
+    height = _parse_dimension(height, "height")
+    if width * height > MAX_RASTER_PIXELS:
+        raise HTTPException(status_code=422, detail={"code": "RASTER_PIXEL_BUDGET_EXCEEDED"})
+    if kind not in {"terrain", "orthophoto"}:
+        raise HTTPException(status_code=422, detail={"code": "INVALID_RASTER_KIND"})
+    export_url, content_type, descriptor = _posey_raster_request(
+        manifest, request_bounds, width, height, kind
+    )
+
+    async def stream() -> Any:
+        total = 0
+        timeout = httpx.Timeout(30.0, connect=10.0)
+        async with httpx.AsyncClient(timeout=timeout, follow_redirects=False) as client:
+            try:
+                async with client.stream("GET", export_url, params=descriptor["params"]) as response:
+                    if 300 <= response.status_code < 400:
+                        raise HTTPException(status_code=502, detail={"code": "UPSTREAM_REDIRECT_REJECTED"})
+                    if response.status_code != 200:
+                        raise HTTPException(status_code=502, detail={"code": "UPSTREAM_RASTER_FAILED", "status": response.status_code})
+                    upstream_type = response.headers.get("content-type", "").lower()
+                    if "json" in upstream_type or upstream_type.startswith("text/"):
+                        raise HTTPException(status_code=502, detail={"code": "UPSTREAM_CONTENT_TYPE_INVALID"})
+                    declared = int(response.headers.get("content-length", "0") or "0")
+                    if declared > MAX_RASTER_BYTES:
+                        raise HTTPException(status_code=502, detail={"code": "UPSTREAM_BYTE_BUDGET_EXCEEDED"})
+                    async for chunk in response.aiter_bytes(64 * 1024):
+                        total += len(chunk)
+                        if total > MAX_RASTER_BYTES:
+                            raise HTTPException(status_code=502, detail={"code": "UPSTREAM_BYTE_BUDGET_EXCEEDED"})
+                        yield chunk
+                    if total == 0:
+                        raise HTTPException(status_code=502, detail={"code": "UPSTREAM_RASTER_EMPTY"})
+            except httpx.HTTPError as exc:
+                raise HTTPException(status_code=502, detail={"code": "UPSTREAM_RASTER_UNAVAILABLE"}) from exc
+
+    headers = {
+        "Cache-Control": "public, max-age=300, stale-while-revalidate=3600",
+        "X-TSM-Source-URI": descriptor["source"]["sourceUri"],
+        "X-TSM-CRS": str(manifest.get("horizontalCrs", "EPSG:2966")),
+        "X-TSM-Vertical-Datum": str(descriptor["source"].get("verticalDatum") or "UNVERIFIED"),
+        "X-TSM-Vertical-Datum-Verified": str(bool(manifest.get("verticalDatumVerified", False))).lower(),
+        "X-TSM-AOI": ",".join(str(request_bounds[key]) for key in ("minX", "minY", "maxX", "maxY")),
+    }
+    return StreamingResponse(stream(), media_type=content_type, headers=headers)
+
+class RasMeta(BaseModel):
+    plan_id: str = Field(min_length=1, max_length=256)
+    source: str = Field(default="geotiff:unknown", min_length=1, max_length=512)
+    content_hash_sha256: str = Field(pattern=r"^[0-9a-fA-F]{64}$")
+    authority_class: str = Field(min_length=1, max_length=128)
+    derivation_class: str = Field(default="HEC_RAS_DEPTH_DOWNSAMPLE", min_length=1, max_length=128)
+    model_note: str | None = Field(default=None, max_length=1024)
+    horizontal_crs_note: str | None = Field(default=None, max_length=1024)
+
+class RasCell(BaseModel):
+    id: str = Field(min_length=1, max_length=256)
+    x_native: float | None = None
+    y_native: float | None = None
+    lon: float | None = None
+    lat: float | None = None
+    depth_ft: float = Field(ge=0)
+    wse_ft: float | None = None
+
+class RasResultsRequest(BaseModel):
+    meta: RasMeta
+    cells: list[RasCell] = Field(min_length=1, max_length=MAX_RAS_CELLS)
+    bfe_navd88_ft: float
+    lag_navd88_ft: float
+
+@app.post("/api/engineering/ras-results", status_code=201)
+def ingest_ras_results(request: RasResultsRequest) -> dict[str, Any]:
+    """Validate and persist operator-supplied HEC-RAS model-output evidence."""
+    if request.meta.authority_class.strip().upper() not in {"DERIVATION", "MODEL_OUTPUT"}:
+        raise HTTPException(
+            status_code=422,
+            detail={"code": "RAS_AUTHORITY_CLASS_INVALID", "detail": "HEC-RAS results must remain DERIVATION or MODEL_OUTPUT."},
+        )
+    payload = request.model_dump()
+    canonical = canonical_json(payload)
+    artifact_hash = request.meta.content_hash_sha256.lower()
+    RAS_OUTBOX_DIR.mkdir(parents=True, exist_ok=True)
+    artifact_id = f"RAS-{uuid.uuid4().hex}"
+    artifact = {
+        "artifact_id": artifact_id,
+        "artifact_type": "engineering_ras_results",
+        "source_authority": "HEC-RAS (operator-supplied depth raster)",
+        "source_uri": f"internal://tsm/engineering/ras-results/{request.meta.plan_id}",
+        "source_identifier": request.meta.plan_id,
+        "retrieved_at": utc_now_iso(),
+        "horizontal_crs": "EPSG:2966",
+        "horizontal_crs_name": "NAD83 / Indiana West (ftUS)",
+        "vertical_datum": "NAVD88",
+        "content_hash_sha256": artifact_hash,
+        "validation_status": "provisional",
+        "authority_class": "MODEL_OUTPUT",
+        "derivation_class": request.meta.derivation_class,
+        "software_version": "tsm-fastapi-ras-ingest@1.0.0",
+        "operator_or_service_identity": "ras-results-api",
+        "governance_status": "human_review_required",
+        "human_review_status": "pending",
+        "is_simulation_demo": False,
+        "payload": payload,
+        "payload_canonical_sha256": sha256_hex(canonical),
+        "notes": "Downsampled HEC-RAS depth cells. Model output only; not a regulatory determination.",
+    }
+    path = _contained_path(RAS_OUTBOX_DIR, f"{artifact_id}.json")
+    path.write_text(canonical_json(artifact) + "\n", encoding="utf-8")
+    return {
+        "ok": True,
+        "artifact_id": artifact_id,
+        "plan_id": request.meta.plan_id,
+        "cells_accepted": len(request.cells),
+        "content_hash_sha256": artifact_hash,
+        "payload_canonical_sha256": artifact["payload_canonical_sha256"],
+        "authority_class": "MODEL_OUTPUT",
+        "governance_status": "human_review_required",
+    }
+
+class LedgerAuthorization(BaseModel):
+    reviewer_identity: str = Field(min_length=1, max_length=256)
+    authorization_id: str = Field(min_length=1, max_length=256)
+    authorized_at: str = Field(min_length=1, max_length=128)
+    reason: str = Field(min_length=1, max_length=2048)
+
+class LedgerAppendRequest(BaseModel):
+    artifact_id: str = Field(min_length=1, max_length=256)
+    human_authorization: LedgerAuthorization
+
+@app.post("/api/ledger/append", status_code=201)
+async def ledger_append(request: LedgerAppendRequest) -> dict[str, Any]:
+    """Append a model/evidence artifact to the local audit ledger only after human authorization."""
+    reviewer = request.human_authorization.reviewer_identity.strip()
+    allowlist = _reviewer_allowlist()
+    if not allowlist:
+        raise HTTPException(
+            status_code=503,
+            detail={"code": "LEDGER_REVIEWER_ALLOWLIST_NOT_CONFIGURED", "detail": "TSM_REVIEWER_SUBJECTS must be configured; fail-closed."},
+        )
+    if reviewer not in allowlist:
+        raise HTTPException(status_code=403, detail={"code": "LEDGER_REVIEWER_NOT_AUTHORIZED"})
+    artifact_id = _validated_id(request.artifact_id, "artifact_id")
+    artifact_path = _contained_path(RAS_OUTBOX_DIR, f"{artifact_id}.json")
+    artifact = _read_json_file(artifact_path)
+    if artifact.get("governance_status") != "human_review_required":
+        raise HTTPException(status_code=409, detail={"code": "ARTIFACT_GOVERNANCE_STATE_INVALID"})
+    authorization = request.human_authorization.model_dump()
+    ledger_payload = {
+        "artifact_id": artifact_id,
+        "leaf_hash": sha256_hex(f"TSM_LEAF:{artifact['content_hash_sha256']}"),
+        "reviewer_identity": reviewer,
+        "authorization_id": authorization["authorization_id"],
+        "authorized_at": authorization["authorized_at"],
+        "reason": authorization["reason"],
+        "recorded_at": utc_now_iso(),
+        "status": "human_authorized",
+    }
+    async with _LEDGER_LOCK:
+        state = _read_json_file(LEDGER_FILE) if LEDGER_FILE.exists() else {"entries": []}
+        entries = state.get("entries")
+        if not isinstance(entries, list):
+            raise HTTPException(status_code=503, detail={"code": "LEDGER_STATE_INVALID"})
+        if any(entry.get("artifact_id") == artifact_id for entry in entries):
+            raise HTTPException(status_code=409, detail={"code": "LEDGER_DUPLICATE_ARTIFACT"})
+        if len(entries) >= MAX_LEDGER_ENTRIES:
+            raise HTTPException(status_code=507, detail={"code": "LEDGER_RETENTION_LIMIT_REACHED"})
+        entries.append(ledger_payload)
+        LEDGER_FILE.parent.mkdir(parents=True, exist_ok=True)
+        temporary = LEDGER_FILE.with_suffix(f".{os.getpid()}.tmp")
+        temporary.write_text(canonical_json(state) + "\n", encoding="utf-8")
+        temporary.replace(LEDGER_FILE)
+    return {"ok": True, **ledger_payload, "disclaimer": "Ledger authorization records human authorization only; it is not an agency approval."}
 
 
 def utc_now_iso() -> str:
