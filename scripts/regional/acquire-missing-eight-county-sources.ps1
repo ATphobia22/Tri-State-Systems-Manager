@@ -19,7 +19,7 @@ catch{if($attempt -eq 6){throw};Start-Sleep -Seconds ([math]::Min(30,2*$attempt)
 function Get-CountyBoundaryGeometry {
 param([string]$Fips)
 $county=@($Counties|Where-Object Fips -eq $Fips)[0]
-$path=Join-Path $BoundaryRoot "$Fips-$($county.Name).geojson"
+$path=Join-Path $BoundaryRoot "$($county.State.ToLowerInvariant())-$Fips-$($county.Name).geojson"
 if(-not(Test-Path $path)){throw "Missing exact TIGER county boundary: $path"}
 $fc=Get-Content $path -Raw|ConvertFrom-Json
 if(@($fc.features).Count -ne 1){throw "Boundary $path must contain exactly one Feature."}
