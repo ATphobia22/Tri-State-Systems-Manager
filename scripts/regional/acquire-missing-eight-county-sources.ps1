@@ -6,7 +6,7 @@ $OutRoot = (Resolve-Path -LiteralPath (New-Item -ItemType Directory -Force -Path
 $BoundaryRoot = (Resolve-Path -LiteralPath (New-Item -ItemType Directory -Force -Path $BoundaryRoot)).Path
 $Counties = @(@{State="IL";Fips="17193";Name="white"},@{State="KY";Fips="21101";Name="henderson"},@{State="KY";Fips="21225";Name="union"})
 $Sources = @{
-"17193"=@{Authority="White County, Illinois GIS / ArcGIS public property service";Url="https://services.arcgis.com/4YineAQdtmx0tv46/arcgis/rest/services/Parcels_WhiteIL/FeatureServer/0";Where="1=1";OutFields="OBJECTID,PIN,ALTPin,alternate_parcel_number,township,City,tax_code,site_address,Site_City_State_Zip,gross_acres,homesite_acres,farm_acres,Property_Class,tax_status,lot_dimension,date_of_sale,assessed_last";Mode="boundary"}
+"17193"=@{Authority="White County, Illinois GIS / ArcGIS public property service";Url="https://services.arcgis.com/4YineAQdtmx0tv46/arcgis/rest/services/Parcels_WhiteIL/FeatureServer/0";Where="1=1";OutFields="OBJECTID,PIN,ALTPin,alternate_parcel_number,township,City,tax_code,site_address,Site_City_State_Zip,gross_acres,homesite_acres,farm_acres,Property_Class,tax_status,lot_dimension,date_of_sale,assessed_last";Mode="county-service"}
 "21101"=@{Authority="Henderson County GIS";Url="https://services.arcgis.com/Iwwqwcdc5CWG2jt9/arcgis/rest/services/Parcels/FeatureServer/0";Where="1=1";OutFields="FID,PIDN,ZONE_,ZONE_DESCR,LOCATION,ZONE_LOC,GIS_ACRES";Mode="boundary"}
 "21225"=@{Authority="Union County GIS";Url="https://services3.arcgis.com/ccRMrVzOSHBUG6X2/ArcGIS/rest/services/Union%20County%20Parcels/FeatureServer/0";Where="1=1";OutFields="OBJECTID,GISNO,CAMANO,ID";Mode="boundary"}
 }
@@ -74,13 +74,11 @@ $source=$Sources[$county.Fips];$features=Get-ArcGisFeatures -Source $source -Fip
 $relative="$($county.State.ToLowerInvariant())-$($county.Name)-$($county.Fips)/parcels/$($county.Fips)-parcels.geojson"
 $target=Join-Path $OutRoot $relative
 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $target)|Out-Null
-[ordered]@{type="FeatureCollection";source=$source.Url;sourceAuthority=$source.Authority;countyFips=$county.Fips;state=$county.State;boundaryGEOID=$county.Fips;boundarySource="US_CENSUS_BUREAU_TIGER_LINE";boundaryPolicy=if($source.Mode -eq "boundary"){"exact-county-within-tiger-boundary"}else{"exact-county-attribute"};retrievedAt=(Get-Date).ToUniversalTime().ToString("o");privacyPolicy="Only public parcel identifiers and non-owner spatial attributes are retained; owner and mailing fields are not requested.";features=$features}|ConvertTo-Json -Depth 100|Set-Content -LiteralPath $target -Encoding utf8
-[void]$receipts.Add((Write-Receipt -Id "$($county.Fips)-parcels-recovery" -CountyFips $county.Fips -Authority $source.Authority -SourceUrl $source.Url -Path $target -FeatureCount $features.Count -SpatialRelation $(if($source.Mode -eq "boundary"){"within"}else{"exact-county-attribute"})))
+[ordered]@{type="FeatureCollection";source=$source.Url;sourceAuthority=$source.Authority;countyFips=$county.Fips;state=$county.State;boundaryGEOID=$county.Fips;boundarySource="US_CENSUS_BUREAU_TIGER_LINE";boundaryPolicy="exact-county-source-scope-plus-tiger-validation";retrievedAt=(Get-Date).ToUniversalTime().ToString("o");privacyPolicy="Only public parcel identifiers and non-owner spatial attributes are retained; owner and mailing fields are not requested.";features=$features}|ConvertTo-Json -Depth 100|Set-Content -LiteralPath $target -Encoding utf8
+[void]$receipts.Add((Write-Receipt -Id "$($county.Fips)-parcels-recovery" -CountyFips $county.Fips -Authority $source.Authority -SourceUrl $source.Url -Path $target -FeatureCount $features.Count -SpatialRelation "exact-county-attribute"))
 }
 $femaUrl="https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28"
-$femaBoundary=Get-CountyBoundaryGeometry -Fips "21225"
-$femaEsriGeometry=ConvertTo-EsriGeometry -GeoJsonGeometry $femaBoundary
-$femaBody=@{where="DFIRM_ID LIKE '21225%'";outFields="DFIRM_ID,FLD_ZONE,ZONE_SUBTY,SFHA_TF,STATIC_BFE,DEPTH,VELOCITY,GFID";returnGeometry="true";outSR="4326";geometry=($femaEsriGeometry|ConvertTo-Json -Compress -Depth 100);geometryType="esriGeometryPolygon";inSR="4326";spatialRel="esriSpatialRelIntersects";resultType="standard";f="json"}
+$femaBody=@{where="DFIRM_ID LIKE '21225%'";outFields="DFIRM_ID,FLD_ZONE,ZONE_SUBTY,SFHA_TF,STATIC_BFE,DEPTH,VELOCITY,GFID";returnGeometry="true";outSR="4326";inSR="4326";resultType="standard";f="json"}
 $fema=Invoke-ArcGisQuery -LayerUrl $femaUrl -Body $femaBody
 $femaFeatures=@($fema.features)
 if($femaFeatures.Count -eq 0){throw "Direct FEMA NFHL layer 28 returned zero features for DFIRM_ID 21225."}
