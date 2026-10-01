@@ -127,7 +127,7 @@ jobs:
         run: python -m pip install --upgrade pip && python -m pip install -r backend/requirements.txt
       - name: Root backend unittest discovery gate
         working-directory: .
-        run: ./run-backend-tests.sh
+        run: bash ./run-backend-tests.sh
 
       - name: Geospatial Python syntax and CLI gate
         working-directory: .
