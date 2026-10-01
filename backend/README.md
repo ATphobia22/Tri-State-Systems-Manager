@@ -21,6 +21,7 @@ Health check: `curl http://127.0.0.1:8790/health`
 | POST | `/api/evidence/push` | Validate packet SHA-256 + schema, write to local outbox, return signed intake receipt (202). 422 fail-closed on invalid. **The receipt is intake-only; it never claims FEMA submission.** |
 | GET | `/api/hydrologic/nodes` | Serve the USACE hydrologic node registry example (`data/schemas/examples/usace-hydrologic-node.example.json`). Read-only. |
 | POST | `/api/webhooks/gauge-ingest` | Accept gauge reading arrays into quarantine with per-reading provenance hashes (202). Always `human_review_required: true`. |
+| POST | `/evidence/lock-packet` | Validate explicit site/model elevations, calculate freeboard, and emit a hashed evidence-lock artifact. Human authorization remains explicit and the response never represents a FEMA determination. |
 | GET | `/api/geospatial/posey/manifest` | Return the registered Posey 2020 asset manifest and CRS/provenance metadata. |
 | GET | `/api/geospatial/posey/raster` | Stream bounded Posey terrain/orthophoto imagery only from allowlisted HTTPS sources; AOI, dimensions, pixel count, redirects, content type, and response bytes are fail-closed. |
 | POST | `/api/engineering/ras-results` | Validate and persist operator-supplied HEC-RAS depth cells as provisional MODEL_OUTPUT evidence. Maximum 100,000 cells; no regulatory status is inferred. |
