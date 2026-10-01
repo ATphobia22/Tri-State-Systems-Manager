@@ -17,7 +17,6 @@ on:
       - "infrastructure/runners/**"
       - "tsm-native/config/platform-build-matrix.json"
       - "tsm-native/tests/native-spatial-provenance-contract.test.mjs"
-      - "tsm-native/tests/native-spatial-provenance-contract.test.mjs"
       - ".github/workflows/tsm-native.yml"
   pull_request:
     branches: [main, Multi-Installer]
@@ -34,6 +33,7 @@ on:
       - "ops/postgis/migrations/20260919_engineering_topology.sql"
       - "infrastructure/runners/**"
       - "tsm-native/config/platform-build-matrix.json"
+      - "tsm-native/tests/native-spatial-provenance-contract.test.mjs"
       - ".github/workflows/tsm-native.yml"
   workflow_dispatch:
     inputs:
