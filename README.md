@@ -45,6 +45,136 @@ The USACE NLD spatial endpoint is the official `NLD/Public/FeatureServer`, with 
 
 **Fail-closed rule:** a missing endpoint, empty required artifact, source/authority mismatch, SHA-256 mismatch, or violation of the strict county extraction policy fails the acquisition job. A partial ZIP is not considered a release.
 
+
+
+## Complete system overview
+
+TSM is a provenance-first, evidence-gated geospatial and engineering platform. The repository is split into independently testable planes so acquisition, transformation, visualization, engineering analysis, publication, and human review can be verified without collapsing authoritative government data into one undifferentiated layer.
+
+### Architecture planes
+
+| Plane | Repository locations | Primary responsibility |
+|---|---|---|
+| Web / 3D console | `tsm-console/` | React/TypeScript UI, MapLibre, Three.js/React Three Fiber, flood visualization, live data presentation, accessibility and client-side contracts. |
+| Node/API | `tsm-console/server/`, `backend/` | Source adapters, hydrologic aggregation, evidence APIs, geospatial services, provenance, readiness and policy enforcement. |
+| Python engineering | `backend/`, `tools/` | HEC-RAS geometry, GIS acquisition/validation, evidence packets, LOMA/FIRMette tooling, geospatial and engineering utilities. |
+| Contracts / schemas | `data/schemas/`, `packages/` | Machine-readable data, ontology, engineering, regulatory, provenance and runtime contracts. |
+| Data / evidence | `data/`, `evidence/`, `artifacts/` | Controlled source registries, snapshots, manifests, authority records and evidence products. |
+| Persistence | `db/`, `ops/` | PostGIS/database definitions, tile services, operational configuration and geospatial storage. |
+| Native / desktop | `tsm-native/`, `native/` | Windows/native runtime packaging, geospatial native dependencies and desktop integration. |
+| CI/CD / security | `.github/workflows/`, `scripts/ci/`, `SECURITY.md` | Build, parse, dependency, provenance, source, schema, security, Pages and runtime verification. |
+| Documentation / governance | `docs/`, `COMPLIANCE.md` | Architecture, deployment, regulatory boundaries, evidence standards, operations and review procedures. |
+
+### Core data flow
+
+```text
+government / authoritative source
+        ↓
+source adapter + acquisition contract
+        ↓
+validation + CRS/datum checks + freshness checks
+        ↓
+provenance record + SHA-256/integrity evidence
+        ↓
+normalized data / tiles / model inputs
+        ↓
+geospatial + hydrologic + engineering services
+        ↓
+visualization / simulation / evidence packet
+        ↓
+human engineering / agency review
+        ↓
+controlled publication
+```
+
+The system is fail-closed: unavailable, stale, unverifiable, incorrectly referenced, or insufficiently supported data remains explicitly marked rather than silently substituted with synthetic values or presented as authoritative.
+
+## Government data and authoritative public sources
+
+The canonical machine-readable source inventory is `data/schemas/tsm-indiana-data-catalog-v1.json`. The current catalog contains 21 registered government/public-sector sources. A catalog entry is not by itself a claim that every endpoint is continuously live; runtime use is separately validated by the corresponding CI/runtime contracts.
+
+| Source | Authority / public body | TSM function |
+|---|---|---|
+| USGS The National Map / TNMAccess | U.S. Geological Survey | National geospatial discovery and authoritative terrain/data acquisition. |
+| USGS 3DEP Elevation Index | U.S. Geological Survey | Locate and bind 3DEP elevation coverage and source metadata. |
+| Indiana 2016–2020 Elevation ImageServer | Indiana geospatial program | Indiana elevation/DEM visualization and terrain evidence. |
+| USGS Water Data APIs + WaterServices | U.S. Geological Survey | Live and historical streamflow, gage height, monitoring-location metadata and hydrologic observations. |
+| NOAA National Water Prediction Service (NWPS) | NOAA / National Weather Service | Forecast, gauge and water-prediction context for river conditions. |
+| FEMA National Flood Hazard Layer (NFHL) | Federal Emergency Management Agency | Effective regulatory flood-hazard, FIRM/FIS and insurance-reference layers. |
+| Indiana Best Available Flood Hazard Layer (BAFM/BAFL) | Indiana DNR | Best-available/non-final flood hazard context, explicitly separated from effective FEMA determinations. |
+| USACE National Levee Database (NLD2) | U.S. Army Corps of Engineers | Levee/structure evidence and flood-protection asset context. |
+| Indiana PLSS boundaries | Indiana Geographic Information Office / DNR | Public land-survey reference geometry. |
+| Indiana current parcel boundaries | Indiana Geographic Information Office | Parcel geometry for public/community-scale spatial context; not an owner/private-residence engineering anchor. |
+| Posey County Changes Since Last FIRM | Indiana geospatial program / local flood mapping | Local flood-map change evidence and reconciliation. |
+| The National Map cached basemaps | U.S. Geological Survey | Basemap context for geospatial visualization. |
+| USACE hydraulic boundary-condition profile | U.S. Army Corps of Engineers | Controlled hydraulic boundary-condition evidence for engineering workflows. |
+| STATS Indiana | Indiana Business Research Center / Indiana University | State demographic/economic/statistical context where explicitly required by an analysis. |
+| Indiana Floodplain Information Portal (INFIP) | Indiana DNR Division of Water | Indiana floodplain/floodway regulatory and study discovery. |
+| HEC-RAS | U.S. Army Corps of Engineers Hydrologic Engineering Center | Hydraulic model execution/input-output contract; model results remain distinct from regulatory FEMA/Indiana determinations. |
+| USGS Flood Inundation Mapper | U.S. Geological Survey | Published inundation scenario/context layer. |
+| USGS StreamStats — Indiana | U.S. Geological Survey | Basin delineation and hydrologic/statistical watershed analysis. |
+| Indiana DNR Hydrology & Hydraulics Model Library | Indiana DNR | Discover model studies, hydrology/hydraulics references and supporting engineering evidence. |
+| Indiana DNR effective flood cross sections | Indiana DNR | Effective cross-section geometry/model evidence for floodway/floodplain review. |
+| Indiana coordinated discharges | Indiana DNR | Reference hydrologic design discharges used in applicable hydraulic/floodplain workflows. |
+
+### Additional government/regulatory integrations
+
+The repository also contains contracts or documentation for NWS/NOAA weather services, FEMA FIRM/NFHL products, USACE Louisville District material, USDA NRCS, FHWA, Indiana DNR/INFIP/IGIO, Illinois DNR/ISGS, Kentucky regulatory material, NIST guidance, and federal/state open-data services. These are kept separate from the canonical 21-source Indiana/Federal catalog when they serve a specialized regulatory, evidence, interoperability, or governance purpose.
+
+## Government-data functions implemented by TSM
+
+1. **Hydrologic observation** — retrieve streamflow/gage-height measurements, station metadata, timestamps, units and freshness state; aggregate the community River Watch network; never manufacture missing observations.
+2. **Hydrologic forecasting** — bind NOAA/NWS/NWPS forecast context to the appropriate gauge/node while preserving source provenance.
+3. **Flood-hazard federation** — display FEMA effective NFHL/FIRM/FIS products, Indiana BAFM/BAFL, DNR studies and other flood evidence as distinct authority planes.
+4. **Terrain and elevation** — consume USGS 3DEP and Indiana elevation services, build terrain grids/tiles, calculate hillshade and support source-bound 3D visualization.
+5. **Imagery** — consume Indiana current imagery/ArcGIS image services as visual evidence; imagery is not silently promoted to survey-grade engineering data.
+6. **Parcel and public-land context** — use current Indiana parcels and PLSS geometry for community-scale spatial context, with explicit privacy boundaries.
+7. **Levee and flood-protection evidence** — bind USACE National Levee Database/structure evidence to flood and engineering review workflows.
+8. **Hydraulic modeling** — ingest HEC-RAS model geometry with an explicit source CRS, transform to the engineering horizontal frame when authorized, and keep model outputs distinct from regulatory flood determinations.
+9. **Cross-section and discharge evidence** — bind Indiana DNR effective cross sections, model libraries and coordinated discharges into evidence-gated workflows.
+10. **Watershed analysis** — use USGS StreamStats and inundation products as hydrologic/inundation evidence where applicable.
+11. **Regulatory screening** — evaluate documented federal/state rules and evidence requirements without declaring a permit, insurance determination, engineering certification or agency decision.
+12. **Provenance and auditability** — attach source authority, dataset/version, retrieval time, CRS/datum, model lineage, software version, uncertainty and integrity evidence to derived records.
+
+## Key runtime services and functions
+
+- **River Watch:** multi-station aggregation, live/stale/candidate/unavailable state handling, USGS/NOAA source binding.
+- **Flood federation:** source-authority separation, regulatory-status preservation, CRS/datum metadata, insurance-eligibility metadata and model-lineage tracking.
+- **Geospatial fabric:** MapLibre layers, ArcGIS ImageServer/WMS, 3DEP elevation, PMTiles, H3 indexing, 3D Tiles and terrain-grid processing.
+- **Terrain processing:** GeoTIFF decoding, terrain-grid sampling, terrain-to-pathfinding conversion, hillshade, Terrain-RGB/Terrarium decoding and live-terrain fallback resolution.
+- **Engineering simulation:** deterministic flood scenarios, seeded PRNG, WSE derivation, cross-section profiles, cut/fill volumes, earthwork estimates, dredge sourcing estimates and Section 204 pathway screening.
+- **Engineering evidence:** evidence-pipeline validation, required-input gates, human-review gates, deterministic hashing and fail-closed evidence packets.
+- **Geodesy:** explicit EPSG registration/transformation contracts, vertical-reference isolation, geodetic chain construction and validation, and provenance sealing.
+- **Pathfinding:** A*, Jump Point Search and Theta* over terrain-derived grids.
+- **Agriculture/community screening:** field exposure and planting-history summaries without turning private-residence data into engineering triggers.
+- **Local AI:** bounded skill-pack routing for flood explanation, evidence summarization and filing proofreading; AI output does not override source authority or human review.
+- **Native/desktop runtime:** Windows/native dependency verification, packaging and offline-runtime contracts.
+
+## Geospatial and engineering correctness rules
+
+- HEC-RAS spatial data requires an **explicit source CRS**; TSM does not guess CRS.
+- The engineering horizontal frame is **EPSG:2966 (NAD83 / Indiana West, US survey feet)** where that frame is explicitly required.
+- **NAVD88 is vertical metadata and is not inferred merely from EPSG:2966.**
+- The repository retains a proper `pyproj`-based CRS transformation path. It does **not** replace coordinate transformation with a fake linear EPSG:2966 arithmetic formula.
+- Terrain, imagery, flood maps and model outputs retain source identity and regulatory semantics.
+- A modeled WSE cannot silently overwrite an effective regulatory BFE.
+
+## Acquisition → validation → integrity → publication chain
+
+Production data publication is accepted only when the complete chain is verifiable:
+
+```text
+source acquisition
+→ mandatory-source validation
+→ strict geometry / schema / CRS validation
+→ SHA-256 inventory / manifest
+→ artifact upload / publication
+→ artifact integrity verification
+→ runtime provenance verification
+```
+
+The same principle applies to Windows offline runtime artifacts and engineering evidence packages. A successful upload without a matching checksum or provenance record is not treated as a successful release.
+
 ## What is deployable
 
 TSM has two runtime planes:
