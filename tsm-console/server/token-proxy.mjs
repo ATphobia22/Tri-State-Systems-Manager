@@ -21,6 +21,7 @@ import { calculateGaugeWseNavd88, getHydrologicNode } from './ingestion/hydrauli
 import { evaluateLevel5, listLevel5Proposals, approveLevel5Proposal, executeLevel5Proposal, autonomyStatus } from './autonomy/level5-orchestrator.mjs';
 import { calculateLocalProfileWSE } from './engineering/hydraulic-transfer.mjs';
 import { acceptSyslog } from './alerts/syslog.mjs';
+import { detectTelemetrySourceFailures } from './alerts/telemetry-status.mjs';
 import { createRateLimiter } from './reliability/rate-limiter.mjs';
 import { routeOsrm } from './routing/osrm-client.mjs';
 import { handleH3QueryRoute } from './geospatial/h3-routes.mjs';
@@ -342,6 +343,16 @@ const server = http.createServer(async (req, res) => {
       try {
         const event = normalizeTelemetryEvent(await readBodyFixed(req));
         if (hasTelemetryEvent(event.event_id)) return json(res, 200, { ok: true, duplicate: true, event_id: event.event_id }, requestId);
+        const telemetryAlerts = detectTelemetrySourceFailures(event);
+        if (telemetryAlerts.length > 0) {
+          incrementTelemetryCounter('tsm_telemetry_source_unavailable_total', { source_id: event.source_id });
+          console.error('[TSM telemetry] SOURCE_UNAVAILABLE fail-closed alert', {
+            request_id: requestId,
+            event_id: event.event_id,
+            source_id: event.source_id,
+            alerts: telemetryAlerts,
+          });
+        }
         const artifact = await appendArtifact({
           artifact_type: 'telemetry_event',
           source_authority: event.source_id,
@@ -362,7 +373,13 @@ const server = http.createServer(async (req, res) => {
           notes: 'Event-driven telemetry ingress. Source authority and regulatory meaning remain source-defined; TSM does not certify incoming sensor/radar products.',
         });
         rememberTelemetryEvent(event.event_id);
-        return json(res, 202, { ok: true, accepted: true, event_id: event.event_id, artifact_id: artifact.artifact_id }, requestId);
+        return json(res, telemetryAlerts.length > 0 ? 207 : 202, {
+          ok: true,
+          accepted: true,
+          event_id: event.event_id,
+          artifact_id: artifact.artifact_id,
+          telemetry_alerts: telemetryAlerts,
+        }, requestId);
       } catch (error) {
         return json(res, error instanceof TypeError ? 400 : 422, { ok: false, code: error.code || 'TELEMETRY_EVENT_INVALID', error: error.message }, requestId);
       }
