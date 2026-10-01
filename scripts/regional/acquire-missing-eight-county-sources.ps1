@@ -86,7 +86,7 @@ $femaRelative="ky-union-21225/floodplain/fema-nfhl-21225.geojson"
 $femaTarget=Join-Path $OutRoot $femaRelative
 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $femaTarget)|Out-Null
 [ordered]@{type="FeatureCollection";source=$femaUrl;sourceAuthority="FEMA effective NFHL";countyFips="21225";dfirmPrefix="21225";retrievedAt=(Get-Date).ToUniversalTime().ToString("o");boundaryGEOID="21225";boundarySource="US_CENSUS_BUREAU_TIGER_LINE";spatialRelation="intersects";authorityWarning="Direct FEMA NFHL source. Do not relabel as preliminary, pending, state BAFM, or derived mirror.";features=$femaFeatures}|ConvertTo-Json -Depth 100|Set-Content -LiteralPath $femaTarget -Encoding utf8
-[void]$receipts.Add((Write-Receipt -Id "21225-fema-nfhl-recovery" -CountyFips "21225" -Authority "FEMA effective NFHL" -SourceUrl $femaUrl -Path $femaTarget -FeatureCount $femaFeatures.Count -SpatialRelation "intersects-exact-county"))
+[void]$receipts.Add((Write-Receipt -Id "21225-fema-nfhl-recovery" -CountyFips "21225" -Authority "FEMA effective NFHL" -SourceUrl $femaUrl -Path $femaTarget -FeatureCount $femaFeatures.Count -SpatialRelation "intersects"))
 $manifest=[ordered]@{schema="tsm-missing-source-recovery-v1";generatedAt=(Get-Date).ToUniversalTime().ToString("o");sourcePolicy="official-county-or-federal-source-first";counties=$Counties;receipts=$receipts;unresolved=@(
 @{id="nfhl-flood-zones-17059-size-mismatch";status="requires-offline-bundle-reconciliation";reason="External 11.2 GB bundle required before bytes/SHA-256 can be reconciled."},
 @{id="nfhl-flood-zones-21101-size-mismatch";status="requires-offline-bundle-reconciliation";reason="External 11.2 GB bundle required before bytes/SHA-256 can be reconciled."}
