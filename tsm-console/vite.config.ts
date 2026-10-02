@@ -77,6 +77,10 @@ export default defineConfig(({ mode }) => {
       // must not ship them (~7.5 MB of public source in dist/).
       sourcemap: mode === 'development',
       rolldownOptions: {
+        input: {
+          main: resolve(import.meta.dirname, 'index.html'),
+          terrain3dTilesSmoke: resolve(import.meta.dirname, 'terrain-3d-tiles-renderer-smoke.html'),
+        },
         output: {
           codeSplitting: {
             groups: [
