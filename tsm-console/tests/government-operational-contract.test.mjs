@@ -70,6 +70,6 @@ test('live stage telemetry is retired: no polling, gates stay blocked', () => {
   // The retired sentinel keeps the evidence gates fail-closed.
   assert.match(source, /RETIRED_STAGE/);
   assert.match(source, /REQUIRES_VALIDATED_HYDRAULIC_PROFILE/);
-  assert.match(source, /BLOCKED_UNTIL_SITE_WSE_TRANSFER_VALIDATED/);
+  assert.match(source, /NOT_ELIGIBLE_UNVERIFIED_SITE_TRANSFER/);
   assert.match(source, /source: 'UNAVAILABLE'/);
 });
