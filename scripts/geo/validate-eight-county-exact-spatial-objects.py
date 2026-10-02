@@ -129,7 +129,9 @@ def main() -> int:
                 # service (selected by county attribute, not clipped): require
                 # intersection with the TIGER boundary, not strict containment,
                 # since county and TIGER boundary vintages differ slightly.
-                if relation in {"within", "exact-county-clip", "exact-county-within-tiger-boundary"} and not geom.within(boundary):
+                if relation == "exact-county-clip" and not geom.covered_by(boundary):
+                    raise ValueError("geometry is not covered by exact county polygon")
+                if relation in {"within", "exact-county-within-tiger-boundary"} and not geom.within(boundary):
                     raise ValueError("geometry is not within exact county polygon")
                 if relation in {"intersects", "exact-county-attribute"} and not geom.intersects(boundary):
                     raise ValueError("geometry does not intersect exact county polygon")
