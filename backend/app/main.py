@@ -594,6 +594,134 @@ def push_evidence(request: EvidencePushRequest) -> dict:
     }
 
 
+POSEY_XSOFT_PARCEL_LAYER = "https://services6.arcgis.com/y6TIO0vqbm8Ixd4w/ArcGIS/rest/services/Posey_Parcels_(Public)/FeatureServer/0"
+POSEY_XSOFT_MAX_FEATURES = 2500
+USGS_POSEY_WABASH_SITE = "03378500"
+USGS_POSEY_GAGE_DATUM_NAVD88_FT = 352.71
+
+
+async def _fetch_posey_xsoft_parcels() -> dict[str, Any]:
+    """Fetch a bounded public Posey parcel geometry set from XSoft's ArcGIS layer."""
+    params = {
+        "where": "1=1",
+        "outFields": "StateCombi,Parcel,ParcelID,CALC_ACRES,Section,Township,Range",
+        "returnGeometry": "true",
+        "outSR": "4326",
+        "f": "geojson",
+        "resultRecordCount": POSEY_XSOFT_MAX_FEATURES,
+    }
+    try:
+        async with httpx.AsyncClient(timeout=30.0, follow_redirects=False) as client:
+            response = await client.get(f"{POSEY_XSOFT_PARCEL_LAYER}/query", params=params)
+            response.raise_for_status()
+            payload = response.json()
+    except (httpx.HTTPError, ValueError) as exc:
+        raise HTTPException(
+            status_code=502,
+            detail={"code": "POSEY_PARCEL_GEOMETRY_UNAVAILABLE", "source": POSEY_XSOFT_PARCEL_LAYER},
+        ) from exc
+
+    if payload.get("type") != "FeatureCollection" or not isinstance(payload.get("features"), list):
+        raise HTTPException(status_code=502, detail={"code": "POSEY_PARCEL_GEOMETRY_INVALID"})
+    features = payload["features"]
+    if len(features) > POSEY_XSOFT_MAX_FEATURES:
+        raise HTTPException(status_code=502, detail={"code": "POSEY_PARCEL_FEATURE_LIMIT_EXCEEDED"})
+    for feature in features:
+        if feature.get("type") != "Feature" or feature.get("geometry") is None:
+            raise HTTPException(status_code=502, detail={"code": "POSEY_PARCEL_FEATURE_INVALID"})
+    return {
+        "type": "FeatureCollection",
+        "features": features,
+        "sourceCrs": "EPSG:4326",
+        "sourceAuthority": "Posey County XSoft Engage ArcGIS parcel geometry",
+        "recordCrossReference": "Posey County WTH GIS",
+        "sourceUri": f"{POSEY_XSOFT_PARCEL_LAYER}/query",
+        "retrievedAt": utc_now_iso(),
+        "humanReviewRequired": True,
+    }
+
+
+@app.get("/api/geospatial/posey/parcels")
+async def posey_parcel_geometry() -> dict[str, Any]:
+    """Serve verified public Posey parcel geometry with WTH record provenance."""
+    return await _fetch_posey_xsoft_parcels()
+
+
+async def _fetch_posey_wse() -> dict[str, Any]:
+    """Convert USGS gage height to provisional WSE using the published NAVD88 gage datum."""
+    params = {
+        "format": "json",
+        "sites": USGS_POSEY_WABASH_SITE,
+        "parameterCd": "00065",
+    }
+    try:
+        async with httpx.AsyncClient(timeout=25.0, follow_redirects=False) as client:
+            response = await client.get(SNAPSHOT_IV_URL, params=params)
+            response.raise_for_status()
+            payload = response.json()
+    except (httpx.HTTPError, ValueError) as exc:
+        raise HTTPException(status_code=502, detail={"code": "POSEY_WSE_UPSTREAM_UNAVAILABLE"}) from exc
+
+    series = payload.get("value", {}).get("timeSeries", []) or []
+    if not series:
+        raise HTTPException(status_code=502, detail={"code": "POSEY_WSE_NO_SERIES"})
+    latest = None
+    for item in series:
+        if item.get("variable", {}).get("variableCode", [{}])[0].get("value") != "00065":
+            continue
+        values = (item.get("values") or [{}])[0].get("value") or []
+        if values:
+            latest = values[-1]
+            break
+    if not latest:
+        raise HTTPException(status_code=502, detail={"code": "POSEY_WSE_NO_OBSERVATION"})
+    try:
+        gage_height = float(latest["value"])
+    except (KeyError, TypeError, ValueError) as exc:
+        raise HTTPException(status_code=502, detail={"code": "POSEY_WSE_VALUE_INVALID"}) from exc
+    if not math.isfinite(gage_height):
+        raise HTTPException(status_code=502, detail={"code": "POSEY_WSE_VALUE_INVALID"})
+
+    wse = USGS_POSEY_GAGE_DATUM_NAVD88_FT + gage_height
+    observed_at = latest.get("dateTime")
+    if not isinstance(observed_at, str) or not observed_at:
+        raise HTTPException(status_code=502, detail={"code": "POSEY_WSE_TIMESTAMP_INVALID"})
+
+    provenance_payload = canonical_json({
+        "source": SNAPSHOT_IV_URL,
+        "site": USGS_POSEY_WABASH_SITE,
+        "parameter": "00065",
+        "gageDatumFtNavd88": USGS_POSEY_GAGE_DATUM_NAVD88_FT,
+        "gageHeightFt": gage_height,
+        "observedAt": observed_at,
+    })
+    return {
+        "quantityId": "WaterSurfaceElevation",
+        "waterSurfaceElevationFtNavd88": wse,
+        "gageHeightFt": gage_height,
+        "gageDatumFtNavd88": USGS_POSEY_GAGE_DATUM_NAVD88_FT,
+        "timestamp": observed_at,
+        "sourceProvenanceHash": hashlib.sha256(provenance_payload.encode("utf-8")).hexdigest(),
+        "sourceAuthority": "USGS NWIS",
+        "sourceSite": USGS_POSEY_WABASH_SITE,
+        "parameterCode": "00065",
+        "units": "ft",
+        "horizontalCrs": "EPSG:4326",
+        "verticalDatum": "NAVD88",
+        "validationStatus": "VALIDATED_PROVISIONAL",
+        "humanReviewRequired": True,
+        "provisional": True,
+        "sourceUri": f"{SNAPSHOT_IV_URL}?sites={USGS_POSEY_WABASH_SITE}&parameterCd=00065&format=json",
+        "fetchedAt": utc_now_iso(),
+    }
+
+
+@app.get("/api/hydrologic/posey/openmi-wse")
+async def posey_openmi_wse() -> dict[str, Any]:
+    """Expose one current USGS-derived WSE observation as an OpenMI-compatible envelope."""
+    return await _fetch_posey_wse()
+
+
 @app.get("/api/hydrologic/nodes")
 def hydrologic_nodes() -> dict:
     """Serve the USACE hydrologic node registry example.
