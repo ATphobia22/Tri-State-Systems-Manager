@@ -125,9 +125,7 @@ New-Item -ItemType Directory -Force -Path (Split-Path -Parent $target)|Out-Null
 [void]$receipts.Add((Write-Receipt -Id "$($county.Fips)-parcels-recovery" -CountyFips $county.Fips -Authority $source.Authority -SourceUrl $source.Url -Path $target -FeatureCount $features.Count -SpatialRelation $(if($source.Mode -eq "boundary"){"within"}else{"exact-county-attribute"})))
 }
 $femaUrl="https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28"
-$femaBoundary=Get-CountyBoundaryGeometry -Fips "21225"
-$femaGeometry=ConvertTo-EsriGeometry -GeoJsonGeometry $femaBoundary
-$femaBody=@{where="DFIRM_ID LIKE '21225%'";outFields="DFIRM_ID,FLD_ZONE,ZONE_SUBTY,SFHA_TF,STATIC_BFE,DEPTH,VELOCITY,GFID";returnGeometry="true";outSR="4326";geometry=($femaGeometry|ConvertTo-Json -Compress -Depth 100);geometryType="esriGeometryPolygon";inSR="4326";spatialRel="esriSpatialRelIntersects";resultType="standard";f="json"}
+$femaBody=@{where="DFIRM_ID LIKE '21225%'";outFields="DFIRM_ID,FLD_ZONE,ZONE_SUBTY,SFHA_TF,STATIC_BFE,DEPTH,VELOCITY,GFID";returnGeometry="true";outSR="4326";resultType="standard";f="json"}
 $fema=Invoke-ArcGisQuery -LayerUrl $femaUrl -Body $femaBody
 $femaFeatures=@($fema.features)
 if($femaFeatures.Count -eq 0){throw "Direct FEMA NFHL layer 28 returned zero features for DFIRM_ID 21225."}
