@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import ThreeDTilesLayer from './src/components/ThreeDTilesLayer';
 
 type HazardState = 'SFHA_HIGH_RISK' | 'SFHA_COMPLIANT' | 'REVIEW_REQUIRED';
 
@@ -168,6 +169,7 @@ export default function DigitalTwinAppV2(): JSX.Element {
   const [parcelVisible, setParcelVisible] = useState(true);
   const [telemetryVisible, setTelemetryVisible] = useState(true);
   const [humanGateEnabled, setHumanGateEnabled] = useState(true);
+  const [tiles3DVisible, setTiles3DVisible] = useState(false);
   const [waterSurfaceFt, setWaterSurfaceFt] = useState<number | null>(null);
   const [openMiStatus, setOpenMiStatus] = useState<'DISCONNECTED' | 'LIVE' | 'REJECTED'>('DISCONNECTED');
   const [geometryStatus, setGeometryStatus] = useState<'NOT_CONFIGURED' | 'LOADING' | 'LIVE' | 'ERROR'>('NOT_CONFIGURED');
@@ -466,7 +468,27 @@ export default function DigitalTwinAppV2(): JSX.Element {
           <label><input type="checkbox" checked={parcelVisible} onChange={(event) => setParcelVisible(event.target.checked)} /> 3D cadastral parcels</label>
           <label><input type="checkbox" checked={telemetryVisible} onChange={(event) => setTelemetryVisible(event.target.checked)} /> streamgage / OpenMI telemetry</label>
           <label><input type="checkbox" checked={humanGateEnabled} onChange={(event) => setHumanGateEnabled(event.target.checked)} /> human authority gate</label>
+          <label><input type="checkbox" checked={tiles3DVisible} onChange={(event) => setTiles3DVisible(event.target.checked)} /> 3D tiles (open-source renderer)</label>
         </div>
+
+        {tiles3DVisible && (
+          <div style={{ margin: '14px 0' }}>
+            <ThreeDTilesLayer
+              source={{
+                id: 'tsm-3d-tiles',
+                tilesetUrl: '',
+                enabled: false,
+              }}
+              onStatusChange={(status) => {
+                // Fail-closed: no tileset URL configured yet.
+                // Add a self-hosted tileset URL to enable.
+              }}
+            />
+            <div style={{ fontSize: 11, color: '#64748b', marginTop: 6 }}>
+              No self-hosted tileset configured. Add a tileset URL to enable 3D tiles.
+            </div>
+          </div>
+        )}
 
         {error && (
           <div style={{ padding: 10, borderRadius: 8, background: 'rgba(127,29,29,0.35)', color: '#fecaca', fontSize: 12 }}>
