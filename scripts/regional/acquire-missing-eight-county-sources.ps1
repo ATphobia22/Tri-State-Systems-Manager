@@ -89,6 +89,9 @@ if($supportsPagination){
     $offset+=$features.Count
   }while($true)
 } else {
+  # Older ArcGIS services may not expose offset pagination. Keep ID chunks
+  # deliberately small because hosted map services can reject large ID lists.
+  $pageSize=[math]::Min($pageSize,500)
   # Older ArcGIS services may not expose offset pagination. Resolve object IDs
   # first, then query deterministic ID chunks so county-wide sources are complete.
   $idBody=@{};foreach($key in $body.Keys){$idBody[$key]=$body[$key]}
