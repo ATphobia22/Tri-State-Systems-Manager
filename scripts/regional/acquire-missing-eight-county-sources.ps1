@@ -140,7 +140,7 @@ Write-Host "Recovering FEMA NFHL 21225: $($femaObjectIds.Count) features"
 $femaList=[System.Collections.Generic.List[object]]::new()
 for($startIndex=0;$startIndex -lt $femaObjectIds.Count;$startIndex+=50){
   $chunk=@($femaObjectIds[$startIndex..([math]::Min($startIndex+49,$femaObjectIds.Count-1))])
-  $femaBody=@{objectIds=($chunk -join ",");outFields=$femaFields;returnGeometry="true";outSR="4326";f="json"}
+  $femaBody=@{objectIds=($chunk -join ",");outFields=$femaFields;returnGeometry="true";outSR="4326";geometryPrecision=5;maxAllowableOffset=0.00001;resultType="standard";f="json"}
   $femaResponse=Invoke-ArcGisQuery -LayerUrl $femaUrl -Body $femaBody
   foreach($feature in @($femaResponse.features)){[void]$femaList.Add($feature)}
 }
