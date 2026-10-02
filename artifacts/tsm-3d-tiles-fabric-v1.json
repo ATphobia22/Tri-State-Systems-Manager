@@ -28,10 +28,12 @@
       "id": "terrain-3dep",
       "sourceAssetId": "usgs-3dep-terrain",
       "renderRole": "terrain-elevation",
-      "delivery": "authoritative-service-or-approved-derived-cache",
+      "delivery": "explicitly-registered-3d-tileset",
       "engineeringUse": false,
       "regulatoryUse": false,
-      "provenanceRequired": true
+      "provenanceRequired": true,
+      "tilesetId": "terrain-3dep-3dtiles",
+      "status": "REGISTERED"
     },
     {
       "id": "flood-visualization",
@@ -66,5 +68,20 @@
       "contentHashSha256"
     ]
   },
-  "safetyBoundary": "Visualization tiles never substitute for HEC-RAS hydraulic results, survey-grade engineering terrain, FEMA effective regulatory mapping, or professional engineering determinations."
+  "safetyBoundary": "Visualization tiles never substitute for HEC-RAS hydraulic results, survey-grade engineering terrain, FEMA effective regulatory mapping, or professional engineering determinations.",
+  "registeredTilesets": [
+    {
+      "id": "terrain-3dep-3dtiles",
+      "sourceAssetId": "usgs-3dep-terrain",
+      "tilesetUrl": "https://atphobia22.github.io/Tri-State-Systems-Manager/3d-tiles/terrain-3dep/tileset.json",
+      "contentRoot": "https://atphobia22.github.io/Tri-State-Systems-Manager/3d-tiles/terrain-3dep/",
+      "format": "OGC 3D Tiles 1.1",
+      "contentFormat": "glTF 2.0 GLB",
+      "authorityClass": "DERIVED",
+      "engineeringUse": false,
+      "regulatoryUse": false,
+      "provenanceRequired": true,
+      "status": "REGISTERED"
+    }
+  ]
 }
