@@ -68,6 +68,8 @@ const ANCHOR_CENTER: [number, number] = [-88.005075, 37.845887];
 const ENGINEERING_CRS = 'EPSG:2966';
 const DISPLAY_CRS = 'EPSG:4326 → WebMercator';
 const DEFAULT_BFE_FT_NAVD88 = 375;
+const DEFAULT_3D_TILES_URL = `${import.meta.env.BASE_URL}3d-tiles/terrain-3dep/tileset.json`;
+const THREE_D_TILES_URL = import.meta.env.VITE_TSM_3D_TILES_URL?.trim() || DEFAULT_3D_TILES_URL;
 const POSEY_WTHGIS_URL = 'https://poseyin.wthgis.com/';
 const POSEY_COUNTYGISMAPS_URL = 'https://countygismaps.com/map/in/posey';
 const FEMA_NFHL_URL = 'https://msc.fema.gov/nfhl';
@@ -168,8 +170,9 @@ export default function DigitalTwinAppV2(): JSX.Element {
   const [selected, setSelected] = useState<ParcelFeature | null>(null);
   const [parcelVisible, setParcelVisible] = useState(true);
   const [telemetryVisible, setTelemetryVisible] = useState(true);
-  const [humanGateEnabled, setHumanGateEnabled] = useState(true);
-  const [tiles3DVisible, setTiles3DVisible] = useState(false);
+  const [humanGateEnabled] = useState(true);
+  const [tiles3DVisible, setTiles3DVisible] = useState(true);
+  const [tiles3DStatus, setTiles3DStatus] = useState<'loading' | 'ready' | 'error' | 'disabled'>('loading');
   const [waterSurfaceFt, setWaterSurfaceFt] = useState<number | null>(null);
   const [openMiStatus, setOpenMiStatus] = useState<'DISCONNECTED' | 'LIVE' | 'REJECTED'>('DISCONNECTED');
   const [geometryStatus, setGeometryStatus] = useState<'NOT_CONFIGURED' | 'LOADING' | 'LIVE' | 'ERROR'>('NOT_CONFIGURED');
@@ -467,7 +470,7 @@ export default function DigitalTwinAppV2(): JSX.Element {
         <div style={{ display: 'grid', gap: 7, margin: '14px 0' }}>
           <label><input type="checkbox" checked={parcelVisible} onChange={(event) => setParcelVisible(event.target.checked)} /> 3D cadastral parcels</label>
           <label><input type="checkbox" checked={telemetryVisible} onChange={(event) => setTelemetryVisible(event.target.checked)} /> streamgage / OpenMI telemetry</label>
-          <label><input type="checkbox" checked={humanGateEnabled} onChange={(event) => setHumanGateEnabled(event.target.checked)} /> human authority gate</label>
+          <label><input type="checkbox" checked={humanGateEnabled} disabled /> human authority gate</label>
           <label><input type="checkbox" checked={tiles3DVisible} onChange={(event) => setTiles3DVisible(event.target.checked)} /> 3D tiles (open-source renderer)</label>
         </div>
 
@@ -476,16 +479,13 @@ export default function DigitalTwinAppV2(): JSX.Element {
             <ThreeDTilesLayer
               source={{
                 id: 'tsm-3d-tiles',
-                tilesetUrl: '',
-                enabled: false,
+                tilesetUrl: THREE_D_TILES_URL,
+                enabled: true,
               }}
-              onStatusChange={(status) => {
-                // Fail-closed: no tileset URL configured yet.
-                // Add a self-hosted tileset URL to enable.
-              }}
+              onStatusChange={setTiles3DStatus}
             />
-            <div style={{ fontSize: 11, color: '#64748b', marginTop: 6 }}>
-              No self-hosted tileset configured. Add a tileset URL to enable 3D tiles.
+            <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 6 }}>
+              Self-hosted OGC 3D Tiles 1.1 · terrain-3dep · renderer: 3d-tiles-renderer · status: {tiles3DStatus}
             </div>
           </div>
         )}
@@ -540,9 +540,7 @@ export default function DigitalTwinAppV2(): JSX.Element {
         )}
 
         <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid rgba(148,163,184,0.18)', fontSize: 11, lineHeight: 1.45, color: '#fbbf24' }}>
-          {humanGateEnabled
-            ? 'Human authority gate ON: this display cannot convert visualization into a sealed survey, FEMA determination, or regulatory certification.'
-            : 'Human authority gate OFF: presentation mode only; no engineering determination is authorized.'}
+          Human authority gate ON: this display cannot convert visualization into a sealed survey, FEMA determination, or regulatory certification.
         </div>
       </aside>
 
