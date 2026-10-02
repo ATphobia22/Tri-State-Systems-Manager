@@ -45,6 +45,8 @@ jobs:
       # by GitHub Pages. The fail-closed validator requires a real https:// URL
       # with {z}/{x}/{y} tokens — never a placeholder.
       VITE_TSM_TERRAIN_RGB_URL_TEMPLATE: https://atphobia22.github.io/Tri-State-Systems-Manager/terrain_3dep/{z}/{x}/{y}.png
+      # Posey County parcel geometry for Digital Twin V2 (GeoJSON, EPSG:4326).
+      VITE_POSEY_WTHGIS_GEOJSON_URL: https://atphobia22.github.io/Tri-State-Systems-Manager/data/posey-parcels.geojson
     permissions:
       contents: read
       pages: write
