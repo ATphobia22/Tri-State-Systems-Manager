@@ -42,7 +42,7 @@ function Save-LidarCollection69202() {
     } catch {
       throw "USGS EPT block $block is not valid JSON"
     }
-    if($null -eq $eptJson.bounds -or $null -eq $eptJson.span -or $null -eq $eptJson.data) {
+    if($null -eq $eptJson.bounds -or $eptJson.bounds.Count -ne 6 -or $null -eq $eptJson.span -or [int]$eptJson.span -le 0 -or $null -eq $eptJson.schema -or @($eptJson.schema).Count -eq 0 -or $null -eq $eptJson.srs -or $null -eq $eptJson.srs.horizontal -or $null -eq $eptJson.dataType) {
       throw "USGS EPT block $block metadata is incomplete"
     }
     $receipt.spatialRelation="coverage-reference"
