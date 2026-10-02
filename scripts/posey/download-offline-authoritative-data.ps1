@@ -51,6 +51,7 @@ function Save-LidarCollection69202() {
 }
 
 function ConvertTo-EsriPolygonGeometry([object]$GeoJsonGeometry) {
+  if($null -ne $GeoJsonGeometry.rings){ return $GeoJsonGeometry }
   if($GeoJsonGeometry.type -eq "Polygon"){
     return [ordered]@{rings=@($GeoJsonGeometry.coordinates | ForEach-Object { ,@($_) })}
   }
