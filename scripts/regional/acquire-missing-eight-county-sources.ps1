@@ -87,7 +87,7 @@ New-Item -ItemType Directory -Force -Path (Split-Path -Parent $target)|Out-Null
 [ordered]@{type="FeatureCollection";source=$source.Url;sourceAuthority=$source.Authority;countyFips=$county.Fips;state=$county.State;boundaryGEOID=$county.Fips;boundarySource="US_CENSUS_BUREAU_TIGER_LINE";boundaryPolicy="exact-county-source-scope-plus-tiger-validation";spatialRelation="exact-county-attribute";retrievedAt=(Get-Date).ToUniversalTime().ToString("o");privacyPolicy="Only public parcel identifiers and non-owner spatial attributes are retained; owner and mailing fields are not requested.";features=$features}|ConvertTo-Json -Depth 100|Set-Content -LiteralPath $target -Encoding utf8
 [void]$receipts.Add((Write-Receipt -Id "$($county.Fips)-parcels-recovery" -CountyFips $county.Fips -Authority $source.Authority -SourceUrl $source.Url -Path $target -FeatureCount $features.Count -SpatialRelation "exact-county-attribute"))
 }
-$femaUrl="https://hazards.fema.gov/arcgis/services/public/NFHL/MapServer/WFSServer"
+$femaUrl="https://hazards.fema.gov/gis/nfhl/services/public/NFHL/MapServer/WFSServer"
 $femaRaw=& curl.exe --fail-with-body --silent --show-error --location --retry 5 --retry-delay 2 --get $femaUrl --data-urlencode "service=WFS" --data-urlencode "version=2.0.0" --data-urlencode "request=GetFeature" --data-urlencode "typeNames=S_FLD_HAZ_AR" --data-urlencode "outputFormat=geojson" --data-urlencode "CQL_FILTER=DFIRM_ID='21225C'"
 if($LASTEXITCODE -ne 0){throw "FEMA WFS curl failed with exit code $LASTEXITCODE."}
 $femaResponse=$femaRaw|ConvertFrom-Json
