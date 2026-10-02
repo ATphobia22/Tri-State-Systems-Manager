@@ -11,7 +11,7 @@ This document defines the source-backed geospatial visualization and HEC-RAS 2D 
 - Runtime source order: NOAA NWPS observed stage, then USGS Water Data.
 - USGS qualifier `P` (Provisional) must remain visible whenever supplied.
 - Project evidence snapshot: 2026-09-12 04:30 CDT, 4.43 ft stage, 18,300 cfs, provisional. Runtime refresh is required before operational display.
-- Project gage-zero conversion constant: 352.71 ft NAVD88. Conversions are explicit and never silently applied.
+- Published 03378500 gage-zero conversion constant: 352.67 ft NAVD88 (USGS SIR 2016-5119). The monitoring-location altitude 352.71 ft NAVD88 is separate station metadata and must not replace the gage-zero relationship. Conversions are explicit and never silently applied.
 
 ## Floodplain Authority Separation
 
