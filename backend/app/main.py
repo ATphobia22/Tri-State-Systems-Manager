@@ -596,7 +596,8 @@ def push_evidence(request: EvidencePushRequest) -> dict:
 
 
 POSEY_XSOFT_PARCEL_LAYER = "https://services6.arcgis.com/y6TIO0vqbm8Ixd4w/ArcGIS/rest/services/Posey_Parcels_(Public)/FeatureServer/0"
-POSEY_XSOFT_MAX_FEATURES = 2500
+POSEY_XSOFT_PAGE_SIZE = 2000
+POSEY_XSOFT_MAX_FEATURES = 50000
 USGS_POSEY_WABASH_SITE = "03378500"
 USGS_POSEY_GAGE_DATUM_NAVD88_FT = 352.71
 
@@ -609,24 +610,28 @@ async def _fetch_posey_xsoft_parcels() -> dict[str, Any]:
         "returnGeometry": "true",
         "outSR": "4326",
         "f": "geojson",
-        "resultRecordCount": POSEY_XSOFT_MAX_FEATURES,
-    }
+    features: list[dict[str, Any]] = []
     try:
         async with httpx.AsyncClient(timeout=30.0, follow_redirects=False) as client:
-            response = await client.get(f"{POSEY_XSOFT_PARCEL_LAYER}/query", params=params)
-            response.raise_for_status()
-            payload = response.json()
+            for offset in range(0, POSEY_XSOFT_MAX_FEATURES, POSEY_XSOFT_PAGE_SIZE):
+                page_params = {**params, "resultRecordCount": POSEY_XSOFT_PAGE_SIZE, "resultOffset": offset}
+                response = await client.get(f"{POSEY_XSOFT_PARCEL_LAYER}/query", params=page_params)
+                response.raise_for_status()
+                payload = response.json()
+                page = payload.get("features") if payload.get("type") == "FeatureCollection" else None
+                if not isinstance(page, list):
+                    raise ValueError("invalid GeoJSON FeatureCollection")
+                features.extend(page)
+                if len(page) < POSEY_XSOFT_PAGE_SIZE:
+                    break
+                if len(features) >= POSEY_XSOFT_MAX_FEATURES:
+                    raise ValueError("parcel feature limit exceeded")
     except (httpx.HTTPError, ValueError) as exc:
         raise HTTPException(
             status_code=502,
             detail={"code": "POSEY_PARCEL_GEOMETRY_UNAVAILABLE", "source": POSEY_XSOFT_PARCEL_LAYER},
         ) from exc
 
-    if payload.get("type") != "FeatureCollection" or not isinstance(payload.get("features"), list):
-        raise HTTPException(status_code=502, detail={"code": "POSEY_PARCEL_GEOMETRY_INVALID"})
-    features = payload["features"]
-    if len(features) > POSEY_XSOFT_MAX_FEATURES:
-        raise HTTPException(status_code=502, detail={"code": "POSEY_PARCEL_FEATURE_LIMIT_EXCEEDED"})
     for feature in features:
         if feature.get("type") != "Feature" or feature.get("geometry") is None:
             raise HTTPException(status_code=502, detail={"code": "POSEY_PARCEL_FEATURE_INVALID"})
