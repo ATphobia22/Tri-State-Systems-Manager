@@ -88,8 +88,9 @@ New-Item -ItemType Directory -Force -Path (Split-Path -Parent $target)|Out-Null
 [void]$receipts.Add((Write-Receipt -Id "$($county.Fips)-parcels-recovery" -CountyFips $county.Fips -Authority $source.Authority -SourceUrl $source.Url -Path $target -FeatureCount $features.Count -SpatialRelation "exact-county-attribute"))
 }
 $femaUrl="https://hazards.fema.gov/arcgis/services/public/NFHL/MapServer/WFSServer"
-$femaQuery="$femaUrl?service=WFS&version=2.0.0&request=GetFeature&typeNames=S_FLD_HAZ_AR&outputFormat=geojson&CQL_FILTER="+[System.Uri]::EscapeDataString("DFIRM_ID='21225C'")
-$femaResponse=Invoke-RestMethod -Method Get -Uri $femaQuery -TimeoutSec 300
+$femaRaw=& curl.exe --fail-with-body --silent --show-error --location --retry 5 --retry-delay 2 --get $femaUrl --data-urlencode "service=WFS" --data-urlencode "version=2.0.0" --data-urlencode "request=GetFeature" --data-urlencode "typeNames=S_FLD_HAZ_AR" --data-urlencode "outputFormat=geojson" --data-urlencode "CQL_FILTER=DFIRM_ID='21225C'"
+if($LASTEXITCODE -ne 0){throw "FEMA WFS curl failed with exit code $LASTEXITCODE."}
+$femaResponse=$femaRaw|ConvertFrom-Json
 if($femaResponse.ServiceException){throw "FEMA WFS returned an exception: $($femaResponse.ServiceException)"}
 $femaFeatures=@($femaResponse.features)
 if($femaFeatures.Count -eq 0){throw "Direct FEMA NFHL WFS layer S_FLD_HAZ_AR returned zero features for DFIRM_ID 21225C."}
