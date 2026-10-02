@@ -70,7 +70,9 @@ const DISPLAY_CRS = 'EPSG:4326 → WebMercator';
 const DEFAULT_BFE_FT_NAVD88 = 375;
 const DEFAULT_3D_TILES_URL = `${import.meta.env.BASE_URL}3d-tiles/terrain-3dep/tileset.json`;
 const API_BASE_URL = (import.meta.env.VITE_TSM_API_BASE_URL?.trim() || '').replace(/\/$/, '');
-const DEFAULT_POSEY_GEOMETRY_URL = `${API_BASE_URL}/api/geospatial/posey/parcels`;
+const DEFAULT_POSEY_GEOMETRY_URL = API_BASE_URL
+  ? `${API_BASE_URL}/api/geospatial/posey/parcels`
+  : `${import.meta.env.BASE_URL}data/posey-parcels.geojson`;
 const DEFAULT_OPENMI_WSE_URL = `${API_BASE_URL}/api/hydrologic/posey/openmi-wse`;
 const THREE_D_TILES_URL = import.meta.env.VITE_TSM_3D_TILES_URL?.trim() || DEFAULT_3D_TILES_URL;
 const POSEY_WTHGIS_URL = 'https://poseyin.wthgis.com/';
@@ -460,7 +462,7 @@ export default function DigitalTwinAppV2(): JSX.Element {
           <div><strong style={{ color: '#e2e8f0' }}>Engineering CRS:</strong> {ENGINEERING_CRS}</div>
           <div><strong style={{ color: '#e2e8f0' }}>Map display:</strong> {DISPLAY_CRS}</div>
           <div><strong style={{ color: '#e2e8f0' }}>Point Township target BFE:</strong> {defaultBfe.toFixed(1)} ft NAVD88</div>
-          <div><strong style={{ color: '#e2e8f0' }}>WTH GIS record:</strong> CONNECTED · record cross-reference</div>
+          <div><strong style={{ color: '#e2e8f0' }}>WTH GIS record:</strong> REFERENCE · record cross-reference</div>
           <div><strong style={{ color: '#e2e8f0' }}>Parcel vector geometry:</strong> {geometryStatus} · XSoft Engage ArcGIS</div>
           <div><strong style={{ color: '#e2e8f0' }}>OpenMI-compatible WSE adapter:</strong> {openMiStatus}{waterSurfaceFt != null ? ` · ${waterSurfaceFt.toFixed(2)} ft NAVD88` : ''}</div>
         </div>
