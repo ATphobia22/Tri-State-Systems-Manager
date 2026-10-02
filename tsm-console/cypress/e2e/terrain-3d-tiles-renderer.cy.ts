@@ -5,7 +5,7 @@ describe("TSM generated 3D Tiles renderer", () => {
       // cross-origin WebGL/module execution. Do not suppress ordinary
       // application failures; only suppress the wrapper so the smoke page's
       // explicit ready/error state remains the authoritative assertion.
-      return error.message.includes("cross origin script");
+      return error.message === "Script error." || error.message.includes("cross origin script");
     });
   });
 
