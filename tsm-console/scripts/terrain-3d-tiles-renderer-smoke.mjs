@@ -8,6 +8,13 @@ const root = resolve(process.argv[2] ?? 'dist/3d-tiles/terrain-3dep');
 const tilesetPath = resolve(root, 'tileset.json');
 const tileset = JSON.parse(await readFile(tilesetPath, 'utf8'));
 
+// 3d-tiles-renderer performs a browser-origin resolution step during tileset
+// preprocessing. The smoke test runs under Node, so provide only the minimal
+// read-only browser global required by that code path.
+globalThis.window = {
+  location: { href: 'http://127.0.0.1/' },
+};
+
 const wait = ms => new Promise(resolveWait => setTimeout(resolveWait, ms));
 
 const server = createServer((req, res) => {
