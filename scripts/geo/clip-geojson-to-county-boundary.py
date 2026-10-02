@@ -7,7 +7,6 @@ import json
 from pathlib import Path
 
 from shapely.geometry import mapping, shape
-from shapely.ops import unary_union
 from shapely.validation import make_valid
 
 
@@ -27,9 +26,9 @@ def main() -> int:
 
     data = json.loads(args.geojson.read_text(encoding="utf-8-sig"))
     boundary_data = json.loads(args.boundary.read_text(encoding="utf-8-sig"))
-    boundary = unary_union(
-        [shape(feature["geometry"]) for feature in boundary_data["features"]]
-    )
+    if len(boundary_data.get("features", [])) != 1:
+        raise ValueError("Boundary must contain exactly one feature")
+    boundary = valid_geometry(shape(boundary_data["features"][0]["geometry"]))
 
     features = []
     for feature in data.get("features", []):
@@ -39,6 +38,10 @@ def main() -> int:
         clipped = valid_geometry(geometry.intersection(boundary))
         if clipped.is_empty:
             continue
+        if not boundary.buffer(1e-6).covers(clipped):
+            raise ValueError(
+                "clipped geometry escaped authoritative county boundary"
+            )
         clipped_feature = dict(feature)
         clipped_feature["geometry"] = mapping(clipped)
         features.append(clipped_feature)
