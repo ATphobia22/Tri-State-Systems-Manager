@@ -22,13 +22,13 @@ for (const name of ['ingestUsgsNode', 'ingestNwpsGauge', 'runHydrologicBatch', '
 }
 
 const unknownUsgs = await workers.ingestUsgsNode('__TSM_INVALID_STATION__');
-if (unknownUsgs.ok !== false || unknownUsgs.code !== 'FAIL_CLOSED') {
-  throw new Error('unknown USGS station did not fail closed');
+if (unknownUsgs.ok !== false || unknownUsgs.code !== 'SOURCE_UNAVAILABLE') {
+  throw new Error('unknown USGS station did not degrade explicitly');
 }
 
 const invalidNws = await workers.ingestNwpsGauge('__TSM_INVALID_NWS__');
-if (invalidNws.ok !== false || invalidNws.code !== 'FAIL_CLOSED') {
-  throw new Error('unknown NOAA station did not fail closed');
+if (invalidNws.ok !== false || invalidNws.code !== 'SOURCE_UNAVAILABLE') {
+  throw new Error('unknown NOAA station did not degrade explicitly');
 }
 
 console.log(JSON.stringify({
@@ -36,5 +36,5 @@ console.log(JSON.stringify({
   mode: 'deterministic-wiring-smoke',
   networkCalls: 0,
   hydrologicNodeCount: registry.hydrologic_nodes.length,
-  failClosedChecks: 2,
+  degradedSourceChecks: 2,
 }, null, 2));
