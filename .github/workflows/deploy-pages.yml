@@ -290,23 +290,35 @@ jobs:
           grep -Eiq '<title>[^<]+</title>' /tmp/tsm-pages-response.html
           echo "Published Pages endpoint responded successfully: ${PAGE_URL}"
           base="${PAGE_URL%/}/3d-tiles/terrain-3dep"
-          curl --fail --silent --show-error --location --max-time 30 "${base}/tileset.json" -o /tmp/published-tileset.json
-          curl --fail --silent --show-error --location --max-time 30 "${base}/SHA256SUMS" -o /tmp/published-SHA256SUMS
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${base}/tileset.json" -o /tmp/published-tileset.json
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${base}/SHA256SUMS" -o /tmp/published-SHA256SUMS
           BASE_URL="${base}" python3 - <<'PY'
           import hashlib
           import os
           from pathlib import Path
+          from time import sleep
+          from urllib.error import HTTPError, URLError
           from urllib.request import urlopen
           base = os.environ["BASE_URL"].rstrip("/") + "/"
           out = Path("/tmp/published-3d-tiles")
+
+          def fetch_bytes(url):
+              for attempt in range(1, 9):
+                  try:
+                      with urlopen(url, timeout=60) as response:
+                          return response.read()
+                  except (HTTPError, URLError):
+                      if attempt == 8:
+                          raise
+                      sleep(min(3 * attempt, 15))
+              raise RuntimeError("unreachable")
           out.mkdir(exist_ok=True)
           lines = Path("/tmp/published-SHA256SUMS").read_text().splitlines()
           for line in lines:
               digest, rel = line.split("  ", 1)
               target = out / rel
               target.parent.mkdir(parents=True, exist_ok=True)
-              with urlopen(base + rel, timeout=30) as response:
-                  target.write_bytes(response.read())
+              target.write_bytes(fetch_bytes(base + rel))
               actual = hashlib.sha256(target.read_bytes()).hexdigest()
               if actual != digest:
                   raise SystemExit(f"SHA-256 mismatch for published {rel}: {actual} != {digest}")
