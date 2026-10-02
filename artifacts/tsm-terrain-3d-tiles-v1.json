@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.0.0",
+  "artifactId": "tsm-terrain-3d-tiles-3dep",
+  "title": "TSM USGS 3DEP-derived Terrain OGC 3D Tiles 1.1",
+  "status": "REGISTERED",
+  "authorityClass": "DERIVED",
+  "engineeringUse": false,
+  "regulatoryUse": false,
+  "source": {
+    "sourceAssetId": "usgs-3dep-terrain",
+    "sourceUrl": "https://www.usgs.gov/3d-elevation-program",
+    "inputFormat": "MBTiles 1.3 / Mapbox Terrain-RGB PNG",
+    "verticalDatum": "NAVD88 as reported by source"
+  },
+  "output": {
+    "format": "OGC 3D Tiles 1.1",
+    "tileContent": "glTF 2.0 binary GLB",
+    "tilesetUrl": "https://atphobia22.github.io/Tri-State-Systems-Manager/3d-tiles/terrain-3dep/tileset.json",
+    "sha256Manifest": "https://atphobia22.github.io/Tri-State-Systems-Manager/3d-tiles/terrain-3dep/SHA256SUMS"
+  },
+  "transformation": {
+    "horizontal": "WGS84 ellipsoidal surface placement in tile-local ENU frames",
+    "vertical": "NAVD88 elevation retained as visualization vertical offset; no NAVD88-to-ellipsoid conversion is claimed",
+    "mesh": "deterministic 33x33 sampling per source tile with generated normals and GLB content"
+  },
+  "verification": {
+    "sourceToMbtiles": "existing Terrain-RGB pack gate",
+    "tileset": "scripts/geospatial/validate-terrain-3d-tiles.py",
+    "renderer": "scripts/ci/terrain-3d-tiles-renderer-smoke.mjs",
+    "publication": "GitHub Pages SHA256SUMS re-download and byte verification"
+  },
+  "safetyBoundary": "Visualization terrain does not establish survey-grade engineering control, hydraulic model input validity, FEMA regulatory authority, or agency approval."
+}
