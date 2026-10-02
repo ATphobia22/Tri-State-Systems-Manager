@@ -1,4 +1,5 @@
 name: TSM Windows x64 Offline Runtime
+# Final release verification trigger: execute only on the dedicated Windows release branch.
 
 on:
   workflow_dispatch:
