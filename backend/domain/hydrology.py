@@ -1,8 +1,8 @@
-"""Fail-closed hydrologic domain transformations for TSM.
+"""Hydrologic transformations with explicit provisional/degraded states.
 
-Raw USGS gage height is not a NAVD88 elevation. A WSE conversion is only
-authoritative when a station-specific, published and validated gage-zero
-elevation is supplied by the caller.
+Raw USGS gage height is never silently relabeled as NAVD88. Missing datum
+control produces a usable provisional result with an explicit status instead
+of throwing or presenting it as authoritative.
 """
 from __future__ import annotations
 
@@ -35,13 +35,11 @@ class DerivedWSEResult(BaseModel):
     source_stage_ft: float
     wse_navd88_ft: Optional[float]
     validated_gage_zero_navd88: Optional[float]
-    datum_status: Literal[
-        "FAIL_CLOSED_MISSING_GAGE_ZERO",
-        "VALIDATED_CONVERSION",
-    ]
+    datum_status: Literal["PROVISIONAL_NO_DATUM_CONTROL", "VALIDATED_CONVERSION"]
     bfe_clearance_ft: Optional[float]
     disclaimer: str = (
-        "Calculation is an engineering estimate, not a formal regulatory determination."
+        "Calculation is an engineering estimate, not a formal regulatory determination. "
+        "Provisional values are not authoritative until the required datum evidence is verified."
     )
 
 
@@ -50,7 +48,7 @@ def calculate_wse_navd88(
     validated_gage_zero_navd88: Optional[float],
     reference_bfe_navd88: Optional[float] = None,
 ) -> DerivedWSEResult:
-    """Convert station gage height to NAVD88 WSE only with a validated gage zero."""
+    """Return a usable result without mislabeling an uncontrolled datum."""
     if validated_gage_zero_navd88 is None:
         return DerivedWSEResult(
             station_id=obs.station_id,
@@ -58,7 +56,7 @@ def calculate_wse_navd88(
             source_stage_ft=obs.stage_ft,
             wse_navd88_ft=None,
             validated_gage_zero_navd88=None,
-            datum_status="FAIL_CLOSED_MISSING_GAGE_ZERO",
+            datum_status="PROVISIONAL_NO_DATUM_CONTROL",
             bfe_clearance_ft=None,
         )
 
@@ -76,5 +74,5 @@ def calculate_wse_navd88(
         wse_navd88_ft=round(wse_navd88, 2),
         validated_gage_zero_navd88=validated_gage_zero_navd88,
         datum_status="VALIDATED_CONVERSION",
-        bfe_clearance_ft=round(clearance, 2),
+        bfe_clearance_ft=round(clearance, 2) if clearance is not None else None,
     )
