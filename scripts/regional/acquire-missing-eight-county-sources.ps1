@@ -6,8 +6,8 @@ $OutRoot = (Resolve-Path -LiteralPath (New-Item -ItemType Directory -Force -Path
 $BoundaryRoot = (Resolve-Path -LiteralPath (New-Item -ItemType Directory -Force -Path $BoundaryRoot)).Path
 $Counties = @(@{State="IL";Fips="17193";Name="white"},@{State="KY";Fips="21101";Name="henderson"},@{State="KY";Fips="21225";Name="union"})
 $Sources = @{
-"17193"=@{Authority="White County, Illinois GIS parcel publication (EagleView-hosted service)";Url="https://arcgisserver.eagleview.com/arcgis/rest/services/WhiteCountyIlParcels2024/MapServer/0";Where="1=1";OutFields="FID,OBJECTID_1,PIN,Acreage,PIN2,Parcel_Num,City,Tax_Code,Site_Addre,Site_City_,Gross_Acre,Homesite_A,Farm_Acres,Property_C,Tax_Status,Zip,Document,Legal_Desc,Farm_Land,Farm_Build,Non_Farm_L,Non_Farm_B,Tax_Billed,Shape__Are,Shape__Len";Mode="source-county"}
-"21101"=@{Authority="Henderson County GIS";Url="https://services.arcgis.com/Iwwqwcdc5CWG2jt9/arcgis/rest/services/Parcels/FeatureServer/0";Where="1=1";OutFields="FID,PIDN,ZONE_,ZONE_DESCR,LOCATION,ZONE_LOC,GIS_ACRES";Mode="source-county"}
+"17193"=@{Authority="White County, Illinois GIS parcel publication (EagleView-hosted service)";Url="https://arcgisserver.eagleview.com/arcgis/rest/services/WhiteCountyIlParcels2024/MapServer/0";Where="1=1";OutFields="FID,OBJECTID_1,PIN,Acreage,PIN2,Parcel_Num,City,Tax_Code,Site_Addre,Site_City_,Gross_Acre,Homesite_A,Farm_Acres,Property_C,Tax_Status,Zip,Document,Legal_Desc,Farm_Land,Farm_Build,Non_Farm_L,Non_Farm_B,Tax_Billed,Shape__Are,Shape__Len";Mode="id-chunk"}
+"21101"=@{Authority="Henderson County GIS";Url="https://services.arcgis.com/Iwwqwcdc5CWG2jt9/arcgis/rest/services/Parcels/FeatureServer/0";Where="1=1";OutFields="FID,PIDN,ZONE_,ZONE_DESCR,LOCATION,ZONE_LOC,GIS_ACRES";Mode="paged"}
 "21225"=@{Authority="Union County, Kentucky GIS parcel service";Url="https://services3.arcgis.com/ccRMrVzOSHBUG6X2/ArcGIS/rest/services/Union%20County%20Parcels/FeatureServer/0";Where="1=1";OutFields="OBJECTID,GISNO,CAMANO,ID,Parcel,PropertyLo,Total_Acre,Type,StateCode";Mode="source-county"}
 }
 function Invoke-ArcGisQuery {
@@ -49,7 +49,7 @@ $metadata=Invoke-RestMethod -Method Get -Uri "$($Source.Url)?f=pjson" -TimeoutSe
 if($metadata.error){throw($metadata.error|ConvertTo-Json -Depth 20)}
 $pageSize=[int]$metadata.maxRecordCount;if($pageSize -lt 1){$pageSize=1000}
 $supportsPagination=[bool]$metadata.advancedQueryCapabilities.supportsPagination
-if($Source.Mode -eq "source-county"){
+if($Source.Mode -eq "id-chunk"){
   $uri="$($Source.Url)/query?where=$([uri]::EscapeDataString($Source.Where))&outFields=$([uri]::EscapeDataString($Source.OutFields))&returnGeometry=true&outSR=4326&f=json"
   $response=Invoke-RestMethod -Method Get -Uri $uri -TimeoutSec 900
   if($response.error){throw($response.error|ConvertTo-Json -Depth 20)}
