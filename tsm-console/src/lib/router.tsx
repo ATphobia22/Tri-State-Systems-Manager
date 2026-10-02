@@ -176,6 +176,7 @@ export const appRoutes = [
   { path: 'spatial-planes', hydrateFallbackElement: <RouteLoadingFallback label="the spatial data fabric" />, lazy: async () => ({ Component: (await import('../components/TriStateRiverValleyMap')).default }) },
   { path: 'posey-resilience', hydrateFallbackElement: <RouteLoadingFallback label="the Posey resilience platform" />, lazy: async () => ({ Component: (await import('../routes/PoseyResilienceDashboard')).default }) },
   { path: 'ops-dashboard', hydrateFallbackElement: <RouteLoadingFallback label="the operations dashboard" />, lazy: async () => ({ Component: (await import('../routes/OpsDashboardView')).default }) },
+  { path: 'updates', hydrateFallbackElement: <RouteLoadingFallback label="project updates" />, lazy: async () => ({ Component: (await import('../routes/ProjectUpdatesView')).default }) },
   // Friendly not-found for any other unmatched address (kept last). Real
   // loader/chunk failures still surface through the root errorElement.
   { path: '*', element: <NotFoundView /> },
