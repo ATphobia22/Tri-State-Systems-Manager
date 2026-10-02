@@ -48,7 +48,7 @@ def main():
             raise SystemExit(f"invalid GLB container: {uri}")
         chunk_len, chunk_type = struct.unpack("<I4s", data[12:20])
         if chunk_type != b"JSON": raise SystemExit(f"missing GLB JSON chunk: {uri}")
-        json.loads(data[20:20 + chunk_len].rstrip(b"\x00").decode("utf-8"))
+        json.loads(data[20:20 + chunk_len].decode("utf-8"))
     expected = {}
     for line in (root / "SHA256SUMS").read_text().splitlines():
         digest, path = line.split("  ", 1)
