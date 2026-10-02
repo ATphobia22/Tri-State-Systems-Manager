@@ -13,6 +13,7 @@ provisional and human-review-required. Fail-closed on invalid input.
 from __future__ import annotations
 
 import hashlib
+import math
 import json
 import os
 import re
