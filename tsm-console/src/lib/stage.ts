@@ -30,10 +30,10 @@ const RETIRED_STAGE: MapTwinLoaderData['stage'] = {
   wse_navd88_ft: null,
   gage_zero_navd88_ft: null,
   conversion_applied: false,
-  vertical_conversion_status: 'CONVERSION_BLOCKED',
+  vertical_conversion_status: 'UNVERIFIED_CONVERSION',
   vertical_conversion_source: null,
   site_transfer_status: 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE',
-  hydraulic_extrusion_eligibility: 'BLOCKED_UNTIL_SITE_WSE_TRANSFER_VALIDATED',
+  hydraulic_extrusion_eligibility: 'NOT_ELIGIBLE_UNVERIFIED_SITE_TRANSFER',
   sourceUri: null,
 };
 
