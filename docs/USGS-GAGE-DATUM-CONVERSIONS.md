@@ -16,7 +16,7 @@ Site BFE (375.0) and LAG (377.2) are **NAVD88**. Comparing raw gage height (e.g.
 
 | ID | Site | Gage zero NAVD88 | Status |
 |----|------|------------------|--------|
-| 03378500 | Wabash @ New Harmony | **352.71 ft** | Published (USGS) |
+| 03378500 | Wabash @ New Harmony | **352.67 ft** | Published (USGS SIR 2016-5119) |
 | 03322000 | Ohio @ Evansville | **328.38 ft** | Published (NWS table / USGS elev) |
 | MTVI3 | Ohio @ Mount Vernon | — | Unpublished in TSM — GAGE_DATUM only |
 | UNWK2 / 03322420 | John T. Myers L&D | — | Unpublished — GAGE_DATUM only |
