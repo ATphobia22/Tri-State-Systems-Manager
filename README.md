@@ -24,6 +24,28 @@ The Pages workflow can publish the static console without a backend dependency. 
 
 Settings → Pages → Source must be **GitHub Actions**. The workflow does not fabricate or bypass that repository-level setting.
 
+## System status — 2026-10-02
+
+### Working
+
+- **3D Tiles terrain (self-hosted, token-free):** OGC 3D Tiles 1.1 tileset generated in CI from the USGS 3DEP Terrain-RGB pyramid (478 tiles, z8–z12). The `ThreeDTilesLayer` camera sync is wired to the MapLibre map instance (`map` prop + `mapReady` gate) with WebGL context-loss recovery. No Cesium, no ion token — `3d-tiles-renderer` (MIT) + Three.js only.
+- **Parcel layer:** 4,121 Posey County parcel features served as static GeoJSON (`tsm-console/public/data/posey-parcels.geojson`). Provenance is explicit: bounding-box filtered from the XSoft offline bundle; township assignment and WTH Property Record Card linkage are marked **unverified** rather than asserted. Owner-name fields stripped.
+- **Backend tests:** 84 passed, 8 subtests passed (pytest from repo root; `backend/conftest.py` fixes the `sys.path` collection issue).
+- **Hydrology:** 13-station USGS registry. Live observations only via user-initiated snapshot (`POST /api/hydrologic/snapshot`) — no automatic polling. USGS 03378500 = Wabash River at New Harmony, IN; 03377500 = Wabash River at Mt. Carmel, IL (verified 2026-10-02).
+- **Site constants:** `backend/gov/site_constants.py` carries verified values with cited sources — vertical datum NAVD88, APN `65-19-08-100-008.001-010`, FIRM panel `18129C0300C`, community ID `180209`, anchor `37.845887, -88.005075`, BFE `375.0 ft NAVD88`.
+
+### Deliberately out of scope
+
+- **CityGML LOD4 interiors:** the twin targets flood-relevant **LOD1/LOD2** (parcel → terrain → building extrusion → flood-depth analysis). Interior room/furniture modeling is not a flood-engineering requirement and is not planned.
+- **UE5 Pixel Streaming:** no signaling server, WebRTC, or streaming implementation exists in the repo, by design. Pixel Streaming requires a GPU host; the Always Free deployment target has none. This remains an explicit user decision, not a backlog item.
+- **OpenMI WSE auto-feed:** no live water-surface-elevation endpoint is configured. The UI shows `DISCONNECTED` honestly rather than synthesizing values. USGS gage-height telemetry is available on demand; NAVD88 WSE derivation requires a validated gage-zero conversion per station.
+
+### Known limitations
+
+- Parcel township attribution needs an exact township-boundary intersection (currently bounding-box only, marked provisional).
+- The 3D camera sync uses an approximate zoom→distance formula with fixed 60° FOV — functional for visualization, not survey-grade.
+- `bfeFtNavd88: 375.0` is applied blanket-wide across parcel features (Point Township target BFE), not per-parcel verified.
+
 ## Posey County authoritative offline package
 
 Posey County (FIPS 18129) is acquired as a **strict, dated offline snapshot**, not as a bounding-box approximation.
