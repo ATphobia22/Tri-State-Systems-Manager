@@ -40,9 +40,9 @@ test('dataset quality gate fails closed',()=> {
 });
 
 test('raw dataset can be promoted only after quality/lineage checks',()=> {
-  const assessment=assessDataset(dataset);
+  const assessment=assessDataset(dataset,new Date('2026-09-30T00:00:00Z'));
   assert.equal(assessment.accepted,true);
-  assert.equal(promoteZone(dataset,'CURATED').zone,'CURATED');
+  assert.equal(promoteZone(dataset,'CURATED',new Date('2026-09-30T00:00:00Z')).zone,'CURATED');
 });
 
 test('4D twin validates entity relationships and temporal state',()=> {

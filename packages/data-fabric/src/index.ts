@@ -96,9 +96,9 @@ export function assessDataset(contract: DatasetContract, now = new Date()): Data
   };
 }
 
-export function promoteZone(contract: DatasetContract, target: FabricZone): DatasetContract {
+export function promoteZone(contract: DatasetContract, target: FabricZone, now = new Date()): DatasetContract {
   if (target === 'RAW') return { ...contract, zone: 'RAW' };
-  const assessment = assessDataset(contract);
+  const assessment = assessDataset(contract, now);
   if (!assessment.accepted) throw new Error(`DATASET_PROMOTION_REJECTED:${assessment.issues.join('|')}`);
   if (!contract.lineage.contentHash) throw new Error('DATASET_PROMOTION_REJECTED:contentHash required');
   if (!contract.lineage.retrievedAt) throw new Error('DATASET_PROMOTION_REJECTED:retrievedAt required');
