@@ -14,7 +14,7 @@ test('4.31 ft stage converts to 356.98 ft NAVD88 at the station only', () => {
   assert.equal(result.ok, true);
   assert.equal(result.wse_navd88_ft, 356.98);
   assert.equal(result.site_transfer_status, 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE');
-  assert.equal(result.hydraulic_extrusion_eligibility, 'BLOCKED_UNTIL_SITE_WSE_TRANSFER_VALIDATED');
+  assert.equal(result.hydraulic_extrusion_eligibility, 'NOT_ELIGIBLE_UNVERIFIED_SITE_TRANSFER');
 });
 
 test('unregistered stations fail closed', () => {
