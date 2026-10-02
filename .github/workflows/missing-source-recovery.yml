@@ -53,6 +53,35 @@ jobs:
           path: data\regional\missing-source-recovery
           if-no-files-found: error
           retention-days: 30
+      - name: Download published recovery artifact for integrity verification
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: tsm-missing-source-recovery-${{ github.sha }}
+          path: artifact-integrity
+
+      - name: Verify published artifact integrity
+        shell: pwsh
+        run: |
+          $sourceRoot = (Resolve-Path data\regional\missing-source-recovery).Path
+          $publishedRoot = (Resolve-Path artifact-integrity\missing-source-recovery).Path
+          $manifest = Get-Content (Join-Path $sourceRoot "SHA256SUMS") -Raw
+          foreach ($line in ($manifest -split '\r?\n' | Where-Object { $_ -match '^([0-9a-f]{64})  (.+)
+        shell: pwsh
+        run: |
+          $manifest = Get-Content data\regional\missing-source-recovery\recovery-manifest.json -Raw | ConvertFrom-Json
+          if (@($manifest.receipts).Count -ne 4) { throw "Expected four newly recovered artifacts." }
+          if (@($manifest.receipts | Where-Object status -ne "acquired").Count -ne 0) { throw "At least one recovered artifact is not acquired." }
+          Write-Host "RECOVERY GREEN: four newly recoverable artifacts acquired, validated, hashed, and published."
+ })) {
+            $expected = $Matches[1]
+            $relative = $Matches[2]
+            $published = Join-Path $publishedRoot ($relative -replace "/","\")
+            if (-not (Test-Path $published)) { throw "Published artifact missing: $relative" }
+            $actual = (Get-FileHash $published -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($actual -ne $expected) { throw "Published artifact SHA-256 mismatch: $relative" }
+          }
+          Write-Host "Published recovery artifact integrity: PASS"
+
       - name: Fail closed only if the newly recoverable sources failed
         shell: pwsh
         run: |
