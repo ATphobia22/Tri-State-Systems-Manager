@@ -64,7 +64,7 @@ if($Source.Mode -eq "source-county"){
     foreach($feature in @($response.features)){[void]$all.Add($feature)}
   }
   if($all.Count -eq 0){throw "Required source returned zero features for FIPS ${Fips}: $($Source.Url)"}
-  Write-Host "Recovered $Fips: $($all.Count) features"
+  Write-Host "Recovered ${Fips}: $($all.Count) features"
   return $all.ToArray()
 }
 $boundaryGeometry=$null
