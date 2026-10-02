@@ -32,9 +32,16 @@ try {
   const { PerspectiveCamera, Vector3 } = await import('three');
   const renderer = new TilesRenderer(url);
   const camera = new PerspectiveCamera(45, 1, 1, 1e9);
-  const sphere = tileset.root.boundingVolume.sphere;
-  const center = new Vector3(sphere[0], sphere[1], sphere[2]);
-  camera.position.copy(center).add(new Vector3(0, 0, Math.max(sphere[3] * 2, 1000)));
+  const volume = tileset.root.boundingVolume;
+  const sphere = volume.sphere;
+  const box = volume.box;
+  const center = sphere
+    ? new Vector3(sphere[0], sphere[1], sphere[2])
+    : new Vector3(box[0], box[1], box[2]);
+  const radius = sphere
+    ? sphere[3]
+    : Math.hypot(box[3], box[7], box[11]);
+  camera.position.copy(center).add(new Vector3(0, 0, Math.max(radius * 2, 1000)));
   camera.lookAt(center);
   camera.updateMatrixWorld();
   renderer.setCamera(camera);
