@@ -6,7 +6,7 @@ $OutRoot = (Resolve-Path -LiteralPath (New-Item -ItemType Directory -Force -Path
 $BoundaryRoot = (Resolve-Path -LiteralPath (New-Item -ItemType Directory -Force -Path $BoundaryRoot)).Path
 $Counties = @(@{State="IL";Fips="17193";Name="white"},@{State="KY";Fips="21101";Name="henderson"},@{State="KY";Fips="21225";Name="union"})
 $Sources = @{
-"17193"=@{Authority="White County, Illinois GIS";Url="https://services.arcgis.com/4YineAQdtmx0tv46/arcgis/rest/services/Parcels_WhiteIL/FeatureServer/0";Where="1=1";OutFields="OBJECTID,PIN,ALTPin,alternate_parcel_number,township,City,tax_code,site_address,gross_acres,farm_acres,Property_Class,tax_status,Acreage";Mode="source-county"}
+"17193"=@{Authority="EagleView White County Illinois parcel mirror (2024); official county GIS service currently exposes an empty public query layer";Url="https://arcgisserver.eagleview.com/arcgis/rest/services/WhiteCountyIlParcels2024/MapServer/0";Where="1=1";OutFields="FID,OBJECTID_1,PIN,Acreage,PIN2,Parcel_Num,City,Tax_Code,Site_Addre,Site_City_,Gross_Acre,Homesite_A,Farm_Acres,Property_C,Tax_Status,Zip";Mode="boundary"}
 "21101"=@{Authority="Henderson County GIS";Url="https://services.arcgis.com/Iwwqwcdc5CWG2jt9/arcgis/rest/services/Parcels/FeatureServer/0";Where="1=1";OutFields="FID,PIDN,ZONE_,ZONE_DESCR,LOCATION,ZONE_LOC,GIS_ACRES";Mode="source-county"}
 "21225"=@{Authority="Union County GIS";Url="https://services3.arcgis.com/ccRMrVzOSHBUG6X2/ArcGIS/rest/services/Union%20County%20Parcels/FeatureServer/0";Where="1=1";OutFields="OBJECTID,GISNO,CAMANO,ID";Mode="boundary"}
 }
