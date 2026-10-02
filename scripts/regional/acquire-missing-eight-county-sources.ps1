@@ -53,23 +53,45 @@ $boundaryGeometry=$null
 if($Source.Mode -eq "boundary"){
   $boundaryGeometry=Get-CountyBoundaryGeometry -Fips $Fips
 }
-$all=[System.Collections.Generic.List[object]]::new();$offset=0
-do{
 $body=@{where=$Source.Where;outFields=$Source.OutFields;returnGeometry="true";outSR="4326";resultType="standard";f="json"}
 if($Source.Mode -eq "boundary"){
   $body.geometry=(ConvertTo-EsriGeometry -GeoJsonGeometry $boundaryGeometry | ConvertTo-Json -Compress -Depth 100)
   $body.geometryType=if($boundaryGeometry.type -eq "MultiPolygon"){"esriGeometryMultipolygon"}else{"esriGeometryPolygon"}
   $body.inSR="4326";$body.spatialRel="esriSpatialRelIntersects"
 }
-if($supportsPagination){$body.resultOffset=$offset;$body.resultRecordCount=$pageSize}
-$response=Invoke-ArcGisQuery -LayerUrl $Source.Url -Body $body
-foreach($feature in @($response.features)){[void]$all.Add($feature)}
-if(-not $supportsPagination -or @($response.features).Count -lt $pageSize){break}
-$offset+=@($response.features).Count
-}while($true)
+$all=[System.Collections.Generic.List[object]]::new()
+if($supportsPagination){
+  $offset=0
+  do{
+    $pageBody=@{};foreach($key in $body.Keys){$pageBody[$key]=$body[$key]}
+    $pageBody.resultOffset=$offset;$pageBody.resultRecordCount=$pageSize
+    $response=Invoke-ArcGisQuery -LayerUrl $Source.Url -Body $pageBody
+    $features=@($response.features)
+    foreach($feature in $features){[void]$all.Add($feature)}
+    if($features.Count -lt $pageSize){break}
+    $offset+=$features.Count
+  }while($true)
+} else {
+  # Older ArcGIS services may not expose offset pagination. Resolve object IDs
+  # first, then query deterministic ID chunks so county-wide sources are complete.
+  $idBody=@{};foreach($key in $body.Keys){$idBody[$key]=$body[$key]}
+  $idBody.returnGeometry="false";$idBody.returnIdsOnly="true";$idBody.outFields="OBJECTID"
+  $idResponse=Invoke-ArcGisQuery -LayerUrl $Source.Url -Body $idBody
+  $objectIds=@($idResponse.objectIds|Sort-Object {[int64]$_})
+  if($objectIds.Count -eq 0){throw "Required source returned zero object IDs for FIPS ${Fips}: $($Source.Url)"}
+  for($startIndex=0;$startIndex -lt $objectIds.Count;$startIndex+=$pageSize){
+    $chunk=@($objectIds[$startIndex..([math]::Min($startIndex+$pageSize-1,$objectIds.Count-1))])
+    $pageBody=@{};foreach($key in $body.Keys){$pageBody[$key]=$body[$key]}
+    $pageBody.objectIds=($chunk -join ",")
+    $pageBody.where="1=1"
+    $response=Invoke-ArcGisQuery -LayerUrl $Source.Url -Body $pageBody
+    foreach($feature in @($response.features)){[void]$all.Add($feature)}
+  }
+}
 if($all.Count -eq 0){throw "Required source returned zero features for FIPS ${Fips}: $($Source.Url)"}
 return $all.ToArray()
 }
+
 function Write-Receipt {
 param([string]$Id,[string]$CountyFips,[string]$Authority,[string]$SourceUrl,[string]$Path,[int]$FeatureCount,[string]$SpatialRelation)
 $file=Get-Item $Path
