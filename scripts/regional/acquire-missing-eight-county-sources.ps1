@@ -28,6 +28,21 @@ $geometry=$fc.features[0].geometry
 if($geometry.type -ne "Polygon" -and $geometry.type -ne "MultiPolygon"){throw "Boundary $path must be Polygon or MultiPolygon."}
 return $geometry
 }
+function ConvertTo-EsriGeometry {
+param([object]$GeoJsonGeometry)
+if($GeoJsonGeometry.type -eq "Polygon"){
+  return [ordered]@{rings=@($GeoJsonGeometry.coordinates | ForEach-Object { ,@($_) })}
+}
+if($GeoJsonGeometry.type -eq "MultiPolygon"){
+  $rings=[System.Collections.Generic.List[object]]::new()
+  foreach($polygon in @($GeoJsonGeometry.coordinates)){
+    foreach($ring in @($polygon)){ [void]$rings.Add(@($ring)) }
+  }
+  return [ordered]@{rings=$rings.ToArray()}
+}
+throw "Unsupported county geometry type: $($GeoJsonGeometry.type)"
+}
+
 function Get-ArcGisFeatures {
 param([hashtable]$Source,[string]$Fips)
 $metadata=Invoke-RestMethod -Method Get -Uri "$($Source.Url)?f=pjson" -TimeoutSec 120
@@ -39,8 +54,8 @@ $all=[System.Collections.Generic.List[object]]::new();$offset=0
 do{
 $body=@{where=$Source.Where;outFields=$Source.OutFields;returnGeometry="true";outSR="4326";resultType="standard";f="json"}
 if($Source.Mode -eq "boundary"){
-$body.geometry=($boundaryGeometry|ConvertTo-Json -Compress -Depth 100)
-$body.geometryType=if($boundaryGeometry.type -eq "MultiPolygon"){"esriGeometryMultipolygon"}else{"esriGeometryPolygon"}
+$body.geometry=(ConvertTo-EsriGeometry -GeoJsonGeometry $boundaryGeometry | ConvertTo-Json -Compress -Depth 100)
+$body.geometryType="esriGeometryPolygon"
 $body.inSR="4326";$body.spatialRel="esriSpatialRelIntersects";$body.geometryPrecision=6}
 if($supportsPagination){$body.resultOffset=$offset;$body.resultRecordCount=$pageSize}
 $response=Invoke-ArcGisQuery -LayerUrl $Source.Url -Body $body
