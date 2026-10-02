@@ -4,13 +4,14 @@
   "intent": "production engineering quality, reliability, performance, security and verification baseline",
   "principles": {
     "requirements_traceability": true,
-    "fail_closed": true,
     "deterministic_reproduction": true,
     "provenance_preservation": true,
     "independent_verification": true,
     "human_authority_boundary": true,
     "observable_runtime_state": true,
-    "bounded_resources": true
+    "bounded_resources": true,
+    "integrity_gates": true,
+    "provisional_degradation": true
   },
   "service_objectives": [
     {
@@ -66,7 +67,8 @@
     "model_output": "derived evidence only",
     "regulatory_output": "human/agency authority only",
     "credential_metadata": "human capability metadata only",
-    "external_dependencies": "pinned, auditable, fail-closed where required"
+    "external_dependencies": "pinned, auditable, fail-closed where required",
+    "availability_policy": "degrade to explicit provisional/unverified state; never relabel unverified data as authoritative"
   },
   "runtime_observability": {
     "measurement_mode": "in-process bounded measurements with Prometheus exposition plus browser-side batched telemetry",
