@@ -70,7 +70,7 @@ $boundaryGeometry=$null
 if($Source.Mode -eq "boundary"){
   $boundaryGeometry=Get-CountyBoundaryGeometry -Fips $Fips
 }
-$body=@{where=$Source.Where;outFields=$Source.OutFields;returnGeometry="true";outSR="4326";resultType="standard";f="json"}
+$body=@{where=$Source.Where;outFields=$Source.OutFields;returnGeometry="true";returnTrueCurves="false";outSR="4326";resultType="standard";f="json"}
 if($Source.Mode -eq "boundary"){
   $body.geometry=(ConvertTo-EsriGeometry -GeoJsonGeometry $boundaryGeometry | ConvertTo-Json -Compress -Depth 100)
   $body.geometryType=if($boundaryGeometry.type -eq "MultiPolygon"){"esriGeometryMultipolygon"}else{"esriGeometryPolygon"}
@@ -91,7 +91,7 @@ if($supportsPagination){
 } else {
   # Older ArcGIS services may not expose offset pagination. Keep ID chunks
   # deliberately small because hosted map services can reject large ID lists.
-  $pageSize=[math]::Min($pageSize,500)
+  $pageSize=[math]::Min($pageSize,100)
   # Older ArcGIS services may not expose offset pagination. Resolve object IDs
   # first, then query deterministic ID chunks so county-wide sources are complete.
   $idBody=@{};foreach($key in $body.Keys){$idBody[$key]=$body[$key]}
