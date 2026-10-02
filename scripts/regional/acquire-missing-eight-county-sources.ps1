@@ -8,12 +8,20 @@ $Counties = @(@{State="IL";Fips="17193";Name="white"},@{State="KY";Fips="21101";
 $Sources = @{
 "17193"=@{Authority="White County, Illinois GIS / ArcGIS public property service";Url="https://services.arcgis.com/4YineAQdtmx0tv46/arcgis/rest/services/Parcels_WhiteIL2/FeatureServer/0";Where="1=1";OutFields="OBJECTID,PIN,ALTPin,alternate_parcel_number,township,City,tax_code,site_address,Site_City_State_Zip,gross_acres,homesite_acres,farm_acres,Property_Class,tax_status,lot_dimension";Mode="county-service"}
 "21101"=@{Authority="Henderson County GIS";Url="https://services.arcgis.com/Iwwqwcdc5CWG2jt9/arcgis/rest/services/Parcels/FeatureServer/0";Where="1=1";OutFields="FID,PIDN,ZONE_,ZONE_DESCR,LOCATION,ZONE_LOC,GIS_ACRES";Mode="county-service"}
-"21225"=@{Authority="Union County GIS";Url="https://services3.arcgis.com/ccRMrVzOSHBUG6X2/ArcGIS/rest/services/Union%20County%20Parcels/FeatureServer/0";Where="1=1";OutFields="OBJECTID,GISNO,CAMANO,ID";Mode="county-service"}
+"21225"=@{Authority="Union County GIS";Url="https://services3.arcgis.com/ccRMrVzOSHBUG6X2/ArcGIS/rest/services/Union%20County%20Parcels/FeatureServer/0";Where="1=1";OutFields="OBJECTID,GISNO,CAMANO,ID";Mode="fema-get"}
 }
 function Invoke-ArcGisQuery {
 param([string]$LayerUrl,[hashtable]$Body)
 for($attempt=1;$attempt -le 6;$attempt++){
-try{Write-Host "Querying ArcGIS layer: $LayerUrl | where=$($Body.where)";$response=Invoke-RestMethod -Method Post -Uri "$LayerUrl/query" -Body $Body -ContentType "application/x-www-form-urlencoded" -TimeoutSec 300;if($response.error){throw($response.error|ConvertTo-Json -Depth 20)};return $response}
+try{Write-Host "Querying ArcGIS layer: $LayerUrl | where=$($Body.where)";if($Body.Method -eq "GET"){
+$parts=@()
+foreach($key in $Body.Keys){if($key -ne "Method" -and $null -ne $Body[$key]){$parts+=("{0}={1}" -f [System.Uri]::EscapeDataString([string]$key),[System.Uri]::EscapeDataString([string]$Body[$key]))}}
+$uri="$LayerUrl/query?"+($parts -join "&")
+$response=Invoke-RestMethod -Method Get -Uri $uri -TimeoutSec 300
+}else{
+$response=Invoke-RestMethod -Method Post -Uri "$LayerUrl/query" -Body $Body -ContentType "application/x-www-form-urlencoded" -TimeoutSec 300
+}
+if($response.error){throw($response.error|ConvertTo-Json -Depth 20)};return $response}
 catch{if($attempt -eq 6){throw};Start-Sleep -Seconds ([math]::Min(30,2*$attempt))}
 }}
 function Get-CountyBoundaryGeometry {
@@ -51,6 +59,7 @@ $boundaryGeometry=$null;if($Source.Mode -eq "boundary"){$boundaryGeometry=Get-Co
 $all=[System.Collections.Generic.List[object]]::new();$offset=0
 do{
 $body=@{where=$Source.Where;outFields=$Source.OutFields;returnGeometry="true";outSR="4326";resultType="standard";f="json"}
+if($Source.Mode -eq "fema-get"){$body.Method="GET"}
 if($Source.Mode -eq "boundary"){
 $body.geometry=(ConvertTo-EsriGeometry -GeoJsonGeometry $boundaryGeometry|ConvertTo-Json -Compress -Depth 100)
 $body.geometryType="esriGeometryPolygon"
