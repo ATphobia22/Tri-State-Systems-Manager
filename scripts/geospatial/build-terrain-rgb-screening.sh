@@ -11,15 +11,15 @@
 # VITE_TSM_TERRAIN_TILE_URL at it (see ops/terrain-tiles/).
 #
 # Usage:
-#   ./scripts/geospatial/build-terrain-rgb.sh [--out-dir DIR]
+#   ./scripts/geospatial/build-terrain-rgb-screening.sh [--out-dir DIR]
 #       [--minzoom Z] [--maxzoom Z] [--tiles-url TEMPLATE]
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DEM_JSON="$REPO_ROOT/tsm-console/src/lib/flood-sim/world/data/source-derived-dem-posey.json"
 OUT_DIR="$REPO_ROOT/ops/terrain-tiles/data/terrain-rgb"
-MINZOOM=11
-MAXZOOM=15
+MINZOOM=8
+MAXZOOM=12
 TILES_URL="https://tiles.example.com/terrain-rgb/{z}/{x}/{y}.png"
 
 while [[ $# -gt 0 ]]; do
