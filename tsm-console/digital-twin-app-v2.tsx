@@ -21,8 +21,7 @@ interface ParcelProperties {
   floodwayElevationFtNavd88?: number;
   elevationEvidenceStatus?: 'CERTIFIED' | 'OBSERVED' | 'USER_SUPPLIED' | 'UNVERIFIED';
   visualExtrusionFt?: number;
-  wthgisFeatureId?: number;
-  wthgisRecordUrl?: string;
+  sourceObjectId?: number;
 }
 
 type Position = [number, number] | [number, number, number];
@@ -149,11 +148,6 @@ function decorateHazardState(collection: ParcelFeatureCollection, defaultBfe: nu
   };
 }
 
-function makeRecordUrl(featureId?: number): string {
-  if (!featureId || !Number.isInteger(featureId) || featureId <= 0) return POSEY_WTHGIS_URL;
-  return `${POSEY_WTHGIS_URL}tgis/custom.aspx?DSID=205&FeatureID=${featureId}&RequestType=PropertyRecordCard`;
-}
-
 function buildStyle(): maplibregl.StyleSpecification {
   return {
     version: 8,
@@ -178,6 +172,7 @@ export default function DigitalTwinAppV2(): JSX.Element {
   const [humanGateEnabled] = useState(true);
   const [tiles3DVisible, setTiles3DVisible] = useState(true);
   const [tiles3DStatus, setTiles3DStatus] = useState<'loading' | 'ready' | 'error' | 'disabled'>('loading');
+  const [mapReady, setMapReady] = useState(false);
   const [waterSurfaceFt, setWaterSurfaceFt] = useState<number | null>(null);
   const [openMiStatus, setOpenMiStatus] = useState<'DISCONNECTED' | 'LIVE' | 'REJECTED'>('DISCONNECTED');
   const [openMiRefreshing, setOpenMiRefreshing] = useState(false);
@@ -247,6 +242,7 @@ export default function DigitalTwinAppV2(): JSX.Element {
 
     map.on('load', () => {
       mapRef.current = map;
+      setMapReady(true);
 
       map.on('mousemove', (event) => {
         if (!map.getLayer('posey-wthgis-parcels-3d')) {
@@ -286,8 +282,7 @@ export default function DigitalTwinAppV2(): JSX.Element {
                   ? 'USER_SUPPLIED'
                   : 'UNVERIFIED',
           visualExtrusionFt: Number(properties.visualExtrusionFt),
-          wthgisFeatureId: Number(properties.wthgisFeatureId),
-          wthgisRecordUrl: typeof properties.wthgisRecordUrl === 'string' ? properties.wthgisRecordUrl : undefined,
+          sourceObjectId: Number(properties.sourceObjectId),
         };
         const geometry = feature.geometry as ParcelFeature['geometry'];
         setSelected({
@@ -295,7 +290,6 @@ export default function DigitalTwinAppV2(): JSX.Element {
           geometry: geometry as ParcelFeature['geometry'],
           properties: {
             ...parsed,
-            wthgisRecordUrl: parsed.wthgisRecordUrl ?? makeRecordUrl(parsed.wthgisFeatureId),
           },
         });
       });
@@ -304,6 +298,7 @@ export default function DigitalTwinAppV2(): JSX.Element {
     return () => {
       map.remove();
       mapRef.current = null;
+      setMapReady(false);
     };
   }, []);
 
@@ -475,7 +470,7 @@ export default function DigitalTwinAppV2(): JSX.Element {
           <label><input type="checkbox" checked={tiles3DVisible} onChange={(event) => setTiles3DVisible(event.target.checked)} /> 3D tiles (open-source renderer)</label>
         </div>
 
-        {tiles3DVisible && (
+        {tiles3DVisible && mapReady && mapRef.current && (
           <div style={{ margin: '14px 0' }}>
             <ThreeDTilesLayer
               source={{
@@ -483,6 +478,7 @@ export default function DigitalTwinAppV2(): JSX.Element {
                 tilesetUrl: THREE_D_TILES_URL,
                 enabled: true,
               }}
+              map={mapRef.current}
               onStatusChange={setTiles3DStatus}
             />
             <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 6 }}>
@@ -523,7 +519,6 @@ export default function DigitalTwinAppV2(): JSX.Element {
               </div>
             )}
             <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
-              <a href={selected.properties.wthgisRecordUrl ?? makeRecordUrl(selected.properties.wthgisFeatureId)} target="_blank" rel="noreferrer">Open WTH GIS record ↗</a>
               <a href={POSEY_WTHGIS_URL} target="_blank" rel="noreferrer">Posey WTH GIS ↗</a>
               <a href={POSEY_COUNTYGISMAPS_URL} target="_blank" rel="noreferrer">CountyGISMaps reference ↗</a>
               <a href={POSEY_EQUATOR_URL} target="_blank" rel="noreferrer">Equator GIS reference ↗</a>

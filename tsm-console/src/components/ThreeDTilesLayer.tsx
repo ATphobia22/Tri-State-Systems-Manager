@@ -172,9 +172,41 @@ export default function ThreeDTilesLayer({
       };
       window.addEventListener('resize', handleResize);
 
+      // Graceful WebGL context loss recovery (mobile GPUs, tab switches).
+      const canvas = renderer.domElement;
+      const handleContextLost = (event: Event) => {
+        event.preventDefault();
+        if (animationId) cancelAnimationFrame(animationId);
+        animationId = null;
+        setStatus('error');
+        setError('WebGL context lost — waiting for recovery…');
+        onStatusChange?.('error');
+      };
+      const handleContextRestored = () => {
+        setError(null);
+        setStatus('loading');
+        onStatusChange?.('loading');
+        syncCameraToMap();
+        if (!disposed && animationId === null) {
+          const resume = () => {
+            if (disposed) return;
+            animationId = requestAnimationFrame(resume);
+            tilesRenderer?.update();
+            renderer?.render(scene!, camera!);
+          };
+          resume();
+        }
+        setStatus('ready');
+        onStatusChange?.('ready');
+      };
+      canvas.addEventListener('webglcontextlost', handleContextLost);
+      canvas.addEventListener('webglcontextrestored', handleContextRestored);
+
       return () => {
         disposed = true;
         window.removeEventListener('resize', handleResize);
+        canvas.removeEventListener('webglcontextlost', handleContextLost);
+        canvas.removeEventListener('webglcontextrestored', handleContextRestored);
         map?.off('move', syncCameraToMap);
         map?.off('resize', syncCameraToMap);
         if (animationId) cancelAnimationFrame(animationId);
