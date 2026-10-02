@@ -495,6 +495,61 @@ Before calling a release production-ready:
 
 See [LICENSE](LICENSE). Contribution and security expectations: [SECURITY.md](SECURITY.md), [COMPLIANCE.md](COMPLIANCE.md).
 
+## Eight-county offline bundle + data catalog API (2026-10-01)
+
+The project now maintains an **11 GB offline data bundle** covering all eight
+tri-state counties (Gibson, Posey, Vanderburgh, Warrick IN; Gallatin, White IL;
+Henderson, Union KY), wired to the backend via a read-only data catalog API.
+
+### Data catalog endpoints
+
+```text
+GET /api/catalog/counties                    — 8 counties + dataset availability
+GET /api/catalog/county/{fips}               — file listing + provenance docs
+GET /api/catalog/regional                   — multi-county datasets
+GET /api/geospatial/county/{fips}/parcels    — parcel GeoJSON (?limit=N)
+GET /api/geospatial/county/{fips}/floodplain — flood-zone GeoJSON (?limit=N)
+```
+
+Set `OFFLINE_DATA_ROOT` to the bundle path (defaults to
+`~/workspace/offline-data`). Missing datasets return 404 with a pointer to
+the relevant `MISSING.md`. All responses carry provenance metadata and the
+human-review-required disclaimer.
+
+### Bundle contents (highlights)
+
+- **Terrain:** USGS 3DEP 1/3" DEMs (4 tiles), 1m LiDAR DEMs (Posey County),
+  EPT indices, KYAPED tile indices
+- **Flood:** FEMA NFHL (all counties), Indiana BAFM (IN counties)
+- **Parcels:** All counties except Union KY (no public source; documented)
+- **Hydrology:** 13-station USGS registry with historical observations
+- **Bathymetry:** USGS SIR 2016-5119 (Wabash at New Harmony) + 20 USACE
+  eHydro Ohio River surveys (RM 776–976, 1.4 GB) + ERDC/CHL TR-22-4
+  confluence report
+- **Hydraulics:** HEC-RAS 7.0 example projects + St. Joseph River model
+
+### 13-station gauge registry
+
+USGS 03378500 = **Wabash River at New Harmony, IN** (38.13089124, -87.9414145).
+USGS 03377500 = **Wabash River at Mt. Carmel, IL** (38.3983333, -87.75638889).
+Verified against USGS Water Services 2026-10-02. Live observations only via
+user-initiated `POST /api/hydrologic/snapshot` — no automatic polling.
+
+### Engineering roadmap (13 items)
+
+The `roadmap/` directory in the offline bundle documents the complete
+engineering workflow: 01 Authoritative Terrain → 02 Verified Bathymetry →
+03 Datum Control → 04 Baseline HEC-RAS → 05 Calibrated Hydraulics →
+06 Alternative Scenarios → 07 Independent Earthwork → 08 Sediment Suitability
+→ 09 Environmental Screening → 10 Agency Eligibility → 11 Benefit-Cost Analysis
+→ 12 Funding Application → 13 QA/QC.
+
+### Missing-source recovery
+
+`.github/workflows/missing-source-recovery.yml` acquires unavailable datasets
+from authoritative endpoints (ArcGIS, FEMA NFHL) with SHA-256 verification
+and fail-closed validation. See `docs/MISSING-SOURCE-RECOVERY.md`.
+
 ## Posey County offline authoritative acquisition (2026-09-30)
 
 The repository now contains a reproducible government-source acquisition path for Posey County (FIPS 18129):
