@@ -6,6 +6,225 @@
     "version": "1.0.0"
   },
   "paths": {
+    "/evidence/lock-packet": {
+      "post": {
+        "tags": [
+          "evidence-lock"
+        ],
+        "summary": "Create Lock Packet",
+        "operationId": "create_lock_packet_evidence_lock_packet_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvidenceLockRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvidenceLockResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/geospatial/posey/manifest": {
+      "get": {
+        "summary": "Posey Manifest",
+        "description": "Return the immutable registered Posey 2020 asset manifest.",
+        "operationId": "posey_manifest_api_geospatial_posey_manifest_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Posey Manifest Api Geospatial Posey Manifest Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/geospatial/posey/raster": {
+      "get": {
+        "summary": "Posey Raster",
+        "description": "Stream a bounded Posey terrain/orthophoto raster from an allowlisted source.",
+        "operationId": "posey_raster_api_geospatial_posey_raster_get",
+        "parameters": [
+          {
+            "name": "bbox",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Bbox"
+            }
+          },
+          {
+            "name": "width",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1024,
+              "title": "Width"
+            }
+          },
+          {
+            "name": "height",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1024,
+              "title": "Height"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "terrain",
+              "title": "Kind"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/engineering/ras-results": {
+      "post": {
+        "summary": "Ingest Ras Results",
+        "description": "Validate and persist operator-supplied HEC-RAS model-output evidence.",
+        "operationId": "ingest_ras_results_api_engineering_ras_results_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RasResultsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Ingest Ras Results Api Engineering Ras Results Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ledger/append": {
+      "post": {
+        "summary": "Ledger Append",
+        "description": "Append a model/evidence artifact to the local audit ledger only after human authorization.",
+        "operationId": "ledger_append_api_ledger_append_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LedgerAppendRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Ledger Append Api Ledger Append Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "summary": "Health",
@@ -67,6 +286,48 @@
         }
       }
     },
+    "/api/geospatial/posey/parcels": {
+      "get": {
+        "summary": "Posey Parcel Geometry",
+        "description": "Serve verified public Posey parcel geometry with WTH record provenance.",
+        "operationId": "posey_parcel_geometry_api_geospatial_posey_parcels_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Posey Parcel Geometry Api Geospatial Posey Parcels Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/hydrologic/posey/openmi-wse": {
+      "get": {
+        "summary": "Posey Openmi Wse",
+        "description": "Expose one current USGS-derived WSE observation as an OpenMI-compatible envelope.",
+        "operationId": "posey_openmi_wse_api_hydrologic_posey_openmi_wse_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Posey Openmi Wse Api Hydrologic Posey Openmi Wse Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/hydrologic/nodes": {
       "get": {
         "summary": "Hydrologic Nodes",
@@ -88,6 +349,48 @@
         }
       }
     },
+    "/api/hydrologic/snapshot/stations": {
+      "get": {
+        "summary": "Hydrologic Snapshot Stations",
+        "description": "Static registry behind the snapshot button. No live data here.",
+        "operationId": "hydrologic_snapshot_stations_api_hydrologic_snapshot_stations_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Hydrologic Snapshot Stations Api Hydrologic Snapshot Stations Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/hydrologic/snapshot": {
+      "post": {
+        "summary": "Hydrologic Snapshot",
+        "description": "Fetch a one-time live snapshot of all registry gauges.\n\nUser-initiated only: this route performs no polling, keeps no schedule,\nand persists nothing. Values are USGS instantaneous observations as of\nthe fetch moment, marked provisional. Stations the upstream service does\nnot return are reported unavailable \u2014 never invented.",
+        "operationId": "hydrologic_snapshot_api_hydrologic_snapshot_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Hydrologic Snapshot Api Hydrologic Snapshot Post"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/webhooks/gauge-ingest": {
       "post": {
         "summary": "Gauge Ingest",
@@ -102,6 +405,198 @@
                   "additionalProperties": true,
                   "type": "object",
                   "title": "Response Gauge Ingest Api Webhooks Gauge Ingest Post"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/catalog/counties": {
+      "get": {
+        "summary": "Catalog Counties",
+        "description": "List the 8 tri-state counties with dataset availability.",
+        "operationId": "catalog_counties_api_catalog_counties_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Catalog Counties Api Catalog Counties Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/catalog/county/{fips}": {
+      "get": {
+        "summary": "Catalog County",
+        "description": "Detailed file listing for one county.",
+        "operationId": "catalog_county_api_catalog_county__fips__get",
+        "parameters": [
+          {
+            "name": "fips",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Fips"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Catalog County Api Catalog County  Fips  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/catalog/regional": {
+      "get": {
+        "summary": "Catalog Regional",
+        "description": "List regional (multi-county) datasets.",
+        "operationId": "catalog_regional_api_catalog_regional_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Catalog Regional Api Catalog Regional Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/geospatial/county/{fips}/parcels": {
+      "get": {
+        "summary": "County Parcels",
+        "description": "Serve a county's parcel GeoJSON. Use ?limit=N to cap features.",
+        "operationId": "county_parcels_api_geospatial_county__fips__parcels_get",
+        "parameters": [
+          {
+            "name": "fips",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Fips"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 5000,
+              "minimum": 0,
+              "default": 0,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response County Parcels Api Geospatial County  Fips  Parcels Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/geospatial/county/{fips}/floodplain": {
+      "get": {
+        "summary": "County Floodplain",
+        "description": "Serve a county's flood-zone GeoJSON. Use ?limit=N to cap features.",
+        "operationId": "county_floodplain_api_geospatial_county__fips__floodplain_get",
+        "parameters": [
+          {
+            "name": "fips",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Fips"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 5000,
+              "minimum": 0,
+              "default": 0,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response County Floodplain Api Geospatial County  Fips  Floodplain Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -132,6 +627,112 @@
           "sha256"
         ],
         "title": "ArtifactRef"
+      },
+      "EvidenceLockRequest": {
+        "properties": {
+          "lag_navd88": {
+            "type": "number",
+            "maximum": 450.0,
+            "minimum": 300.0,
+            "title": "Lag Navd88"
+          },
+          "bfe_navd88": {
+            "type": "number",
+            "maximum": 450.0,
+            "minimum": 300.0,
+            "title": "Bfe Navd88"
+          },
+          "panel_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Panel Number"
+          },
+          "human_authorized": {
+            "type": "boolean",
+            "title": "Human Authorized",
+            "default": false
+          },
+          "reviewer_identity": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewer Identity"
+          },
+          "review_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "lag_navd88",
+          "bfe_navd88"
+        ],
+        "title": "EvidenceLockRequest"
+      },
+      "EvidenceLockResponse": {
+        "properties": {
+          "artifact_schema": {
+            "type": "string",
+            "title": "Artifact Schema"
+          },
+          "timestamp_epoch": {
+            "type": "integer",
+            "title": "Timestamp Epoch"
+          },
+          "immutable_hash": {
+            "type": "string",
+            "title": "Immutable Hash"
+          },
+          "freeboard_ft": {
+            "type": "number",
+            "title": "Freeboard Ft"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "human_authorized": {
+            "type": "boolean",
+            "title": "Human Authorized"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Payload"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "artifact_schema",
+          "timestamp_epoch",
+          "immutable_hash",
+          "freeboard_ft",
+          "status",
+          "human_authorized",
+          "payload"
+        ],
+        "title": "EvidenceLockResponse"
       },
       "EvidencePacket": {
         "properties": {
@@ -188,6 +789,235 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "LedgerAppendRequest": {
+        "properties": {
+          "artifact_id": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Artifact Id"
+          },
+          "human_authorization": {
+            "$ref": "#/components/schemas/LedgerAuthorization"
+          }
+        },
+        "type": "object",
+        "required": [
+          "artifact_id",
+          "human_authorization"
+        ],
+        "title": "LedgerAppendRequest"
+      },
+      "LedgerAuthorization": {
+        "properties": {
+          "reviewer_identity": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Reviewer Identity"
+          },
+          "authorization_id": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Authorization Id"
+          },
+          "authorized_at": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Authorized At"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 2048,
+            "minLength": 1,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reviewer_identity",
+          "authorization_id",
+          "authorized_at",
+          "reason"
+        ],
+        "title": "LedgerAuthorization"
+      },
+      "RasCell": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Id"
+          },
+          "x_native": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "X Native"
+          },
+          "y_native": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Y Native"
+          },
+          "lon": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lon"
+          },
+          "lat": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lat"
+          },
+          "depth_ft": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Depth Ft"
+          },
+          "wse_ft": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wse Ft"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "depth_ft"
+        ],
+        "title": "RasCell"
+      },
+      "RasMeta": {
+        "properties": {
+          "plan_id": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Plan Id"
+          },
+          "source": {
+            "type": "string",
+            "maxLength": 512,
+            "minLength": 1,
+            "title": "Source",
+            "default": "geotiff:unknown"
+          },
+          "content_hash_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{64}$",
+            "title": "Content Hash Sha256"
+          },
+          "authority_class": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Authority Class"
+          },
+          "derivation_class": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Derivation Class",
+            "default": "HEC_RAS_DEPTH_DOWNSAMPLE"
+          },
+          "model_note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1024
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Note"
+          },
+          "horizontal_crs_note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1024
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Horizontal Crs Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "plan_id",
+          "content_hash_sha256",
+          "authority_class"
+        ],
+        "title": "RasMeta"
+      },
+      "RasResultsRequest": {
+        "properties": {
+          "meta": {
+            "$ref": "#/components/schemas/RasMeta"
+          },
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/RasCell"
+            },
+            "type": "array",
+            "maxItems": 100000,
+            "minItems": 1,
+            "title": "Cells"
+          },
+          "bfe_navd88_ft": {
+            "type": "number",
+            "title": "Bfe Navd88 Ft"
+          },
+          "lag_navd88_ft": {
+            "type": "number",
+            "title": "Lag Navd88 Ft"
+          }
+        },
+        "type": "object",
+        "required": [
+          "meta",
+          "cells",
+          "bfe_navd88_ft",
+          "lag_navd88_ft"
+        ],
+        "title": "RasResultsRequest"
       },
       "ValidationError": {
         "properties": {
