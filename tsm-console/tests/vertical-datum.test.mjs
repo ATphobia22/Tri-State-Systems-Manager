@@ -38,5 +38,5 @@ test('USGS 03378500 published relationship converts gage stage to station WSE', 
   assert.equal(result.wse_navd88_ft, 356.98);
   assert.equal(result.vertical_conversion_status, 'VERIFIED_PUBLISHED_STATION_RELATIONSHIP');
   assert.equal(result.site_transfer_status, 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE');
-  assert.equal(result.hydraulic_extrusion_eligibility, 'BLOCKED_UNTIL_SITE_WSE_TRANSFER_VALIDATED');
+  assert.equal(result.hydraulic_extrusion_eligibility, 'NOT_ELIGIBLE_UNVERIFIED_SITE_TRANSFER');
 });
