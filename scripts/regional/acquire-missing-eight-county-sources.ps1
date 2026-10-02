@@ -8,7 +8,7 @@ $Counties = @(@{State="IL";Fips="17193";Name="white"},@{State="KY";Fips="21101";
 $Sources = @{
 "17193"=@{Authority="White County, Illinois GIS / ArcGIS public property service";Url="https://services.arcgis.com/4YineAQdtmx0tv46/arcgis/rest/services/Parcels_WhiteIL2/FeatureServer/0";Where="1=1";OutFields="OBJECTID,PIN,ALTPin,alternate_parcel_number,township,City,tax_code,site_address,Site_City_State_Zip,gross_acres,homesite_acres,farm_acres,Property_Class,tax_status,lot_dimension";Mode="county-service"}
 "21101"=@{Authority="Henderson County GIS";Url="https://services.arcgis.com/Iwwqwcdc5CWG2jt9/arcgis/rest/services/Parcels/FeatureServer/0";Where="1=1";OutFields="FID,PIDN,ZONE_,ZONE_DESCR,LOCATION,ZONE_LOC,GIS_ACRES";Mode="county-service"}
-"21225"=@{Authority="Union County GIS";Url="https://services3.arcgis.com/ccRMrVzOSHBUG6X2/ArcGIS/rest/services/Union%20County%20Parcels/FeatureServer/0";Where="1=1";OutFields="OBJECTID,GISNO,CAMANO,ID";Mode="fema-get"}
+"21225"=@{Authority="Union County GIS";Url="https://services3.arcgis.com/ccRMrVzOSHBUG6X2/ArcGIS/rest/services/Union%20County%20Parcels/FeatureServer/0";Where="1=1";OutFields="OBJECTID,GISNO,CAMANO,ID";Mode="county-service"}
 }
 function Invoke-ArcGisQuery {
 param([string]$LayerUrl,[hashtable]$Body)
@@ -88,7 +88,7 @@ New-Item -ItemType Directory -Force -Path (Split-Path -Parent $target)|Out-Null
 [void]$receipts.Add((Write-Receipt -Id "$($county.Fips)-parcels-recovery" -CountyFips $county.Fips -Authority $source.Authority -SourceUrl $source.Url -Path $target -FeatureCount $features.Count -SpatialRelation "exact-county-attribute"))
 }
 $femaUrl="https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28"
-$femaBody=@{where="DFIRM_ID LIKE '21225%'";outFields="DFIRM_ID,FLD_ZONE";returnGeometry="true";outSR="4326";inSR="4326";resultType="standard";f="json"}
+$femaBody=@{Method="GET";where="DFIRM_ID='21225C'";outFields="DFIRM_ID,FLD_ZONE";returnGeometry="true";outSR="4326";resultType="standard";f="json";resultRecordCount="500"}
 $fema=Invoke-ArcGisQuery -LayerUrl $femaUrl -Body $femaBody
 $femaFeatures=@($fema.features)
 if($femaFeatures.Count -eq 0){throw "Direct FEMA NFHL layer 28 returned zero features for DFIRM_ID 21225."}
