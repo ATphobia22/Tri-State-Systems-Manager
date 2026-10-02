@@ -400,7 +400,7 @@ const server = http.createServer(async (req, res) => {
           stageFt: Number(body.stage_ft_gage_datum),
         });
         if (!station.ok) {
-          return json(res, 422, { ok: false, code: 'STATION_WSE_CONVERSION_BLOCKED', station }, requestId);
+          return json(res, 200, { ok: true, provisional: true, code: 'STATION_WSE_UNVERIFIED', station }, requestId);
         }
         const result = calculateLocalProfileWSE({
           stationWseNavd88Ft: station.wse_navd88_ft,
@@ -469,7 +469,7 @@ const server = http.createServer(async (req, res) => {
           gage_site_altitude_navd88_ft: Number.isFinite(Number(node.gage_site_altitude_navd88_ft)) ? Number(node.gage_site_altitude_navd88_ft) : null,
           flood_thresholds_ft: node.flood_thresholds_ft || null,
           flood_threshold_source: node.flood_threshold_source_uri || null,
-          vertical_conversion_status: node.vertical_conversion_status || 'CONVERSION_BLOCKED',
+          vertical_conversion_status: node.vertical_conversion_status || 'UNVERIFIED_CONVERSION',
           vertical_conversion_source: node.vertical_conversion_source_uri || null,
           site_transfer_status: node.site_transfer_required ? 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE' : 'NOT_REQUIRED',
           hydraulic_extrusion_eligibility: node.site_transfer_required ? 'BLOCKED_UNTIL_SITE_WSE_TRANSFER_VALIDATED' : 'REVIEW_REQUIRED',
