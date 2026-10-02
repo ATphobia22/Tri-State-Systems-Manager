@@ -158,7 +158,7 @@ jobs:
           server_pid=$!
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
           for _ in $(seq 1 60); do
-            if curl --fail --silent --show-error http://127.0.0.1:4173/3d-tiles-renderer-smoke.html >/dev/null; then
+            if curl --fail --silent --show-error http://127.0.0.1:4173/Tri-State-Systems-Manager/terrain-3d-tiles-renderer-smoke.html >/dev/null; then
               break
             fi
             sleep 1
