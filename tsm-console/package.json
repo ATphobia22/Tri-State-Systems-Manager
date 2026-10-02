@@ -87,7 +87,8 @@
     "test:backend": "bash ../run-backend-tests.sh",
     "check:h3-migration": "node ../scripts/ci/validate-h3-migration-contract.mjs",
     "build:terrain-3d-tiles": "python3 ../scripts/geospatial/build-terrain-3d-tiles.py",
-    "validate:terrain-3d-tiles": "python3 ../scripts/geospatial/validate-terrain-3d-tiles.py"
+    "validate:terrain-3d-tiles": "python3 ../scripts/geospatial/validate-terrain-3d-tiles.py",
+    "test:terrain-3d-tiles-browser": "cypress run --browser chrome --spec cypress/e2e/terrain-3d-tiles-renderer.cy.ts"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.0",
