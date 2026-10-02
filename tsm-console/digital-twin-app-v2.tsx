@@ -60,7 +60,7 @@ interface OpenMIWaterSurfaceMessage {
   waterSurfaceElevationFtNavd88: number;
   timestamp: string;
   sourceProvenanceHash: string;
-  validationStatus: 'VALIDATED' | 'REVIEW_REQUIRED' | 'REJECTED';
+  validationStatus: 'VALIDATED' | 'VALIDATED_PROVISIONAL' | 'REVIEW_REQUIRED' | 'REJECTED';
 }
 
 /** Site anchor (13101 Bonebank Road) — the twin opens on the project site, not the township centroid. */
@@ -178,6 +178,7 @@ export default function DigitalTwinAppV2(): JSX.Element {
   const [tiles3DStatus, setTiles3DStatus] = useState<'loading' | 'ready' | 'error' | 'disabled'>('loading');
   const [waterSurfaceFt, setWaterSurfaceFt] = useState<number | null>(null);
   const [openMiStatus, setOpenMiStatus] = useState<'DISCONNECTED' | 'LIVE' | 'REJECTED'>('DISCONNECTED');
+  const [openMiRefreshing, setOpenMiRefreshing] = useState(false);
   const [geometryStatus, setGeometryStatus] = useState<'NOT_CONFIGURED' | 'LOADING' | 'LIVE' | 'ERROR'>('NOT_CONFIGURED');
   const [error, setError] = useState<string | null>(null);
 
@@ -352,40 +353,38 @@ export default function DigitalTwinAppV2(): JSX.Element {
     applyParcelLayer(map, parcels);
   }, [applyParcelLayer, parcels, parcelVisible]);
 
-  useEffect(() => {
+  const refreshOpenMiWse = useCallback(async (): Promise<void> => {
     const url = import.meta.env.VITE_TSM_OPENMI_WSE_URL?.trim() || DEFAULT_OPENMI_WSE_URL;
-
-    let cancelled = false;
-    const poll = async (): Promise<void> => {
-      try {
-        const response = await fetch(url, { headers: { Accept: 'application/json' } });
-        if (!response.ok) throw new Error(`OpenMI WSE endpoint returned HTTP ${response.status}`);
-        const message = (await response.json()) as OpenMIWaterSurfaceMessage;
-        if (
-          !isFiniteNumber(message.waterSurfaceElevationFtNavd88) ||
-          !message.timestamp ||
-          !/^[a-f0-9]{64}$/.test(message.sourceProvenanceHash) ||
-          !['VALIDATED', 'VALIDATED_PROVISIONAL'].includes(message.validationStatus)
-        ) {
-          setOpenMiStatus('REJECTED');
-          return;
-        }
-        if (!cancelled) {
-          setWaterSurfaceFt(message.waterSurfaceElevationFtNavd88);
-          setOpenMiStatus('LIVE');
-        }
-      } catch {
-        if (!cancelled) setOpenMiStatus('DISCONNECTED');
+    if (!url) {
+      setOpenMiStatus('DISCONNECTED');
+      return;
+    }
+    setOpenMiRefreshing(true);
+    try {
+      const response = await fetch(url, { headers: { Accept: 'application/json' } });
+      if (!response.ok) throw new Error(`WSE adapter returned HTTP ${response.status}`);
+      const message = (await response.json()) as OpenMIWaterSurfaceMessage;
+      if (
+        !isFiniteNumber(message.waterSurfaceElevationFtNavd88) ||
+        !message.timestamp ||
+        !/^[a-f0-9]{64}$/.test(message.sourceProvenanceHash) ||
+        !['VALIDATED', 'VALIDATED_PROVISIONAL'].includes(message.validationStatus)
+      ) {
+        setOpenMiStatus('REJECTED');
+        return;
       }
-    };
-
-    void poll();
-    const timer = window.setInterval(() => void poll(), 5000);
-    return () => {
-      cancelled = true;
-      window.clearInterval(timer);
-    };
+      setWaterSurfaceFt(message.waterSurfaceElevationFtNavd88);
+      setOpenMiStatus('LIVE');
+    } catch {
+      setOpenMiStatus('DISCONNECTED');
+    } finally {
+      setOpenMiRefreshing(false);
+    }
   }, []);
+
+  useEffect(() => {
+    void refreshOpenMiWse();
+  }, [refreshOpenMiWse]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -465,13 +464,15 @@ export default function DigitalTwinAppV2(): JSX.Element {
           <div><strong style={{ color: '#e2e8f0' }}>Engineering CRS:</strong> {ENGINEERING_CRS}</div>
           <div><strong style={{ color: '#e2e8f0' }}>Map display:</strong> {DISPLAY_CRS}</div>
           <div><strong style={{ color: '#e2e8f0' }}>Point Township target BFE:</strong> {defaultBfe.toFixed(1)} ft NAVD88</div>
-          <div><strong style={{ color: '#e2e8f0' }}>WTH GIS geometry:</strong> {geometryStatus} · XSoft parcel geometry / WTH record cross-reference</div>
-          <div><strong style={{ color: '#e2e8f0' }}>OpenMI WSE:</strong> {openMiStatus}{waterSurfaceFt != null ? ` · ${waterSurfaceFt.toFixed(2)} ft NAVD88` : ''}</div>
+          <div><strong style={{ color: '#e2e8f0' }}>WTH GIS record:</strong> CONNECTED · record cross-reference</div>
+          <div><strong style={{ color: '#e2e8f0' }}>Parcel vector geometry:</strong> {geometryStatus} · XSoft Engage ArcGIS</div>
+          <div><strong style={{ color: '#e2e8f0' }}>OpenMI-compatible WSE adapter:</strong> {openMiStatus}{waterSurfaceFt != null ? ` · ${waterSurfaceFt.toFixed(2)} ft NAVD88` : ''}</div>
         </div>
 
         <div style={{ display: 'grid', gap: 7, margin: '14px 0' }}>
           <label><input type="checkbox" checked={parcelVisible} onChange={(event) => setParcelVisible(event.target.checked)} /> 3D cadastral parcels</label>
-          <label><input type="checkbox" checked={telemetryVisible} onChange={(event) => setTelemetryVisible(event.target.checked)} /> streamgage / OpenMI telemetry</label>
+          <label><input type="checkbox" checked={telemetryVisible} onChange={(event) => setTelemetryVisible(event.target.checked)} /> streamgage / WSE adapter visualization</label>
+          <button type="button" onClick={() => void refreshOpenMiWse()} disabled={openMiRefreshing}>{openMiRefreshing ? 'Refreshing…' : 'Refresh USGS WSE'}</button>
           <label><input type="checkbox" checked={humanGateEnabled} disabled /> human authority gate</label>
           <label><input type="checkbox" checked={tiles3DVisible} onChange={(event) => setTiles3DVisible(event.target.checked)} /> 3D tiles (open-source renderer)</label>
         </div>
@@ -537,7 +538,7 @@ export default function DigitalTwinAppV2(): JSX.Element {
           </div>
         ) : (
           <div style={{ marginTop: 16, color: '#94a3b8', fontSize: 12 }}>
-            Click a parcel after a validated WTH GIS GeoJSON geometry source is configured.
+            Click a parcel after validated XSoft parcel geometry is loaded; WTH GIS remains the property-record cross-reference.
           </div>
         )}
 
