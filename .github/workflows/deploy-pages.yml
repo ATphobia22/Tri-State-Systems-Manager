@@ -182,7 +182,7 @@ jobs:
             sleep 1
           done
           curl --fail --silent --show-error http://127.0.0.1:4173/Tri-State-Systems-Manager/terrain-3d-tiles-renderer-smoke.html >/dev/null
-          npx cypress run --browser chrome --spec cypress/e2e/terrain-3d-tiles-renderer.cy.ts
+          npm run test:terrain-3d-tiles-browser
 
       - name: Package and hash 3D Tiles artifact
         shell: bash
