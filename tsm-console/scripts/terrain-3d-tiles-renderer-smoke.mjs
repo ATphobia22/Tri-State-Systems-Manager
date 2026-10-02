@@ -47,9 +47,9 @@ try {
     errors.push(String(event?.error ?? event?.message ?? 'unknown load error'));
   });
 
-  const tilesetDeadline = Date.now() + 15000;
-  while (Date.now() < tilesetDeadline && !loadedTileset) await wait(50);
-  if (!loadedTileset) throw new Error('3d-tiles-renderer did not load the tileset within 15 seconds');
+  if (typeof renderer.loadRootTileSet !== 'function') throw new Error('3d-tiles-renderer@0.5.3 missing loadRootTileSet()');
+  await renderer.loadRootTileSet();
+  loadedTileset = true;
 
   const sphere = new Sphere();
   if (!renderer.getBoundingSphere(sphere)) throw new Error('renderer could not compute the root bounding sphere');
