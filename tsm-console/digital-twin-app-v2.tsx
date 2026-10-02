@@ -69,6 +69,8 @@ const ENGINEERING_CRS = 'EPSG:2966';
 const DISPLAY_CRS = 'EPSG:4326 → WebMercator';
 const DEFAULT_BFE_FT_NAVD88 = 375;
 const DEFAULT_3D_TILES_URL = `${import.meta.env.BASE_URL}3d-tiles/terrain-3dep/tileset.json`;
+const DEFAULT_POSEY_GEOMETRY_URL = '/api/geospatial/posey/parcels';
+const DEFAULT_OPENMI_WSE_URL = '/api/hydrologic/posey/openmi-wse';
 const THREE_D_TILES_URL = import.meta.env.VITE_TSM_3D_TILES_URL?.trim() || DEFAULT_3D_TILES_URL;
 const POSEY_WTHGIS_URL = 'https://poseyin.wthgis.com/';
 const POSEY_COUNTYGISMAPS_URL = 'https://countygismaps.com/map/in/posey';
@@ -304,7 +306,7 @@ export default function DigitalTwinAppV2(): JSX.Element {
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    const url = import.meta.env.VITE_POSEY_WTHGIS_GEOJSON_URL?.trim();
+    const url = import.meta.env.VITE_POSEY_WTHGIS_GEOJSON_URL?.trim() || DEFAULT_POSEY_GEOMETRY_URL;
     if (!url) {
       setGeometryStatus('NOT_CONFIGURED');
       return;
@@ -350,8 +352,7 @@ export default function DigitalTwinAppV2(): JSX.Element {
   }, [applyParcelLayer, parcels, parcelVisible]);
 
   useEffect(() => {
-    const url = import.meta.env.VITE_TSM_OPENMI_WSE_URL?.trim();
-    if (!url) return;
+    const url = import.meta.env.VITE_TSM_OPENMI_WSE_URL?.trim() || DEFAULT_OPENMI_WSE_URL;
 
     let cancelled = false;
     const poll = async (): Promise<void> => {
@@ -363,7 +364,7 @@ export default function DigitalTwinAppV2(): JSX.Element {
           !isFiniteNumber(message.waterSurfaceElevationFtNavd88) ||
           !message.timestamp ||
           !/^[a-f0-9]{64}$/.test(message.sourceProvenanceHash) ||
-          message.validationStatus !== 'VALIDATED'
+          !['VALIDATED', 'VALIDATED_PROVISIONAL'].includes(message.validationStatus)
         ) {
           setOpenMiStatus('REJECTED');
           return;
@@ -463,7 +464,7 @@ export default function DigitalTwinAppV2(): JSX.Element {
           <div><strong style={{ color: '#e2e8f0' }}>Engineering CRS:</strong> {ENGINEERING_CRS}</div>
           <div><strong style={{ color: '#e2e8f0' }}>Map display:</strong> {DISPLAY_CRS}</div>
           <div><strong style={{ color: '#e2e8f0' }}>Point Township target BFE:</strong> {defaultBfe.toFixed(1)} ft NAVD88</div>
-          <div><strong style={{ color: '#e2e8f0' }}>WTH GIS geometry:</strong> {geometryStatus}</div>
+          <div><strong style={{ color: '#e2e8f0' }}>WTH GIS geometry:</strong> {geometryStatus} · XSoft parcel geometry / WTH record cross-reference</div>
           <div><strong style={{ color: '#e2e8f0' }}>OpenMI WSE:</strong> {openMiStatus}{waterSurfaceFt != null ? ` · ${waterSurfaceFt.toFixed(2)} ft NAVD88` : ''}</div>
         </div>
 
