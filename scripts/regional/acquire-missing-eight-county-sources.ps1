@@ -87,7 +87,7 @@ New-Item -ItemType Directory -Force -Path (Split-Path -Parent $target)|Out-Null
 [ordered]@{type="FeatureCollection";source=$source.Url;sourceAuthority=$source.Authority;countyFips=$county.Fips;state=$county.State;boundaryGEOID=$county.Fips;boundarySource="US_CENSUS_BUREAU_TIGER_LINE";boundaryPolicy="exact-county-source-scope-plus-tiger-validation";spatialRelation="exact-county-attribute";retrievedAt=(Get-Date).ToUniversalTime().ToString("o");privacyPolicy="Only public parcel identifiers and non-owner spatial attributes are retained; owner and mailing fields are not requested.";features=$features}|ConvertTo-Json -Depth 100|Set-Content -LiteralPath $target -Encoding utf8
 [void]$receipts.Add((Write-Receipt -Id "$($county.Fips)-parcels-recovery" -CountyFips $county.Fips -Authority $source.Authority -SourceUrl $source.Url -Path $target -FeatureCount $features.Count -SpatialRelation "exact-county-attribute"))
 }
-$femaUrl="https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28"
+$femaUrl="https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer/28"
 $femaBoundary=ConvertTo-EsriGeometry -GeoJsonGeometry (Get-CountyBoundaryGeometry -Fips "21225")
 $femaGeometryJson=$femaBoundary|ConvertTo-Json -Compress -Depth 100
 $femaFeatures=[System.Collections.Generic.List[object]]::new()
