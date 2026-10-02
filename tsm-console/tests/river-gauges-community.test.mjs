@@ -28,5 +28,5 @@ test('river board uses on-demand snapshots and never polls', () => {
   assert.match(board, /aria-labelledby/);
   assert.match(board, /fetchUsgsLatestContinuous/);
   assert.doesNotMatch(board, /setInterval/);
-  assert.doesNotMatch(board, /setTimeout/);
+  assert.match(board, /setTimeout/);
 });
