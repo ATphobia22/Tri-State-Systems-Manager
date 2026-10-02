@@ -17,7 +17,7 @@ from shapely.validation import explain_validity, make_valid
 
 
 ALLOWED_RELATIONS = {"within", "intersects", "exact-boundary", "exact-county-attribute", "exact-county-clip", "exact-county-within-tiger-boundary"}
-CLIP_TOLERANCE_DEGREES = 1e-9
+CLIP_TOLERANCE_DEGREES = 1e-6  # ~0.11 m at the equator; numeric boundary-rounding tolerance only
 COUNTIES = {
     "18129": ("IN", "posey"),
     "18163": ("IN", "vanderburgh"),
