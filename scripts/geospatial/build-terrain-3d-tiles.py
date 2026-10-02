@@ -236,7 +236,8 @@ def main():
         paths.append(path); levels.add(z)
         center = tuple((min(v[i] for v in verts) + max(v[i] for v in verts)) / 2 for i in range(3))
         half = tuple(max((max(v[i] for v in verts) - min(v[i] for v in verts)) / 2, 0.5 if i == 2 else 0.0) for i in range(3))
-        records[key] = {"key": key, "uri": path.relative_to(args.out_dir).as_posix(), "center": center, "half": half, "children": [], "min": min(hs), "max": max(hs)}
+        records[key] = {"key": key, "uri": path.relative_to(args.out_dir).as_posix(), "center": center, "half": half,
+                        "children": [], "min": min(hs), "max": max(hs), "origin": origin, "axes": axes}
     levels = sorted(levels)
     if levels != list(range(levels[0], levels[-1] + 1)): raise SystemExit(f"non-contiguous zoom levels: {levels}")
     for r in records.values():
@@ -246,17 +247,34 @@ def main():
     def box(r):
         c, h = r["center"], r["half"]
         return [c[0], c[1], c[2], h[0], 0, 0, 0, h[1], 0, 0, 0, h[2]]
+
+    def transform(r):
+        e, n, u = r["axes"]
+        o = r["origin"]
+        return [e[0], e[1], e[2], 0, n[0], n[1], n[2], 0, u[0], u[1], u[2], 0, o[0], o[1], o[2], 1]
+
     def node(r):
-        d = {"boundingVolume": {"box": box(r)}, "geometricError": r["geometricError"], "refine": "REPLACE", "content": {"uri": r["uri"]}}
+        d = {"boundingVolume": {"box": box(r)}, "geometricError": r["geometricError"], "refine": "REPLACE",
+             "transform": transform(r), "content": {"uri": r["uri"]}}
         if r["children"]: d["children"] = [node(records[c]) for c in r["children"]]
         return d
+
     roots = [r for r in records.values() if r["key"].z == levels[0]]
-    ext = [[r["center"][i] - r["half"][i], r["center"][i] + r["half"][i]] for r in roots for i in range(3)]
-    mins = [min(ext[i::3]) for i in range(3)]
-    maxs = [max(ext[i::3]) for i in range(3)]
-    root_center = [(mins[i] + maxs[i]) / 2 for i in range(3)]
-    root_half = [(maxs[i] - mins[i]) / 2 for i in range(3)]
-    root = {"boundingVolume": {"box": root_center + [root_half[0],0,0,0,root_half[1],0,0,0,root_half[2]]}, "geometricError": max(r["geometricError"] for r in roots), "refine": "REPLACE", "children": [node(r) for r in roots]}
+    points = []
+    for r in roots:
+        e, n, u = r["axes"]
+        o = r["origin"]
+        for sx in (-r["half"][0], r["half"][0]):
+            for sy in (-r["half"][1], r["half"][1]):
+                for sz in (-r["half"][2], r["half"][2]):
+                    points.append((o[0] + e[0]*sx + n[0]*sy + u[0]*sz,
+                                   o[1] + e[1]*sx + n[1]*sy + u[1]*sz,
+                                   o[2] + e[2]*sx + n[2]*sy + u[2]*sz))
+    sphere_center = tuple(sum(p[i] for p in points) / len(points) for i in range(3))
+    sphere_radius = max(math.sqrt(sum((p[i] - sphere_center[i]) ** 2 for i in range(3))) for p in points)
+    root = {"boundingVolume": {"sphere": [*sphere_center, sphere_radius]}, "geometricError": max(r["geometricError"] for r in roots),
+            "refine": "REPLACE", "children": [node(r) for r in roots]}
+
     tileset = {"asset": {"version": "1.1", "extras": {"tsm": {"authorityClass": "DERIVED", "engineeringUse": False, "regulatoryUse": False}}}, "geometricError": root["geometricError"], "root": root}
     (args.out_dir / "tileset.json").write_text(json.dumps(tileset, indent=2) + "\n")
     manifest = {"schemaVersion":"1.0.0","artifactId":"tsm-terrain-3d-tiles-3dep","format":"OGC 3D Tiles 1.1 + glTF 2.0 GLB","source":{"sourceUrl":args.source_url,"sourceVersionOrEffectiveDate":args.source_version,"sourceId":metadata.get("name","terrain_3dep")},"input":{"mbtilesSha256":hashlib.sha256(args.mbtiles.read_bytes()).hexdigest(),"tileCount":len(rows),"zoomLevels":levels},"transformation":"Terrain-RGB PNG -> deterministic sampled mesh -> tile-local ENU GLB; WGS84 surface horizontal placement; NAVD88 elevation retained as visualization vertical offset without vertical datum conversion.","softwareVersion":"TSM deterministic terrain 3D Tiles converter v1","authorityClass":"DERIVED","engineeringUse":False,"regulatoryUse":False,"tileCount":len(rows),"gridSize":args.grid_size,"content":sorted(p.relative_to(args.out_dir).as_posix() for p in paths)}
