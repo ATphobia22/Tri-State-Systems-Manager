@@ -18,10 +18,19 @@ import { TilesRenderer } from '3d-tiles-renderer';
 import type { ThreeDTilesSource } from '../lib/martin-tile-fabric';
 import { resolveThreeDTilesetUrl } from '../lib/martin-tile-fabric';
 
+interface ThreeDTilesMapCamera {
+  getCenter(): { lng: number; lat: number };
+  getZoom(): number;
+  getBearing(): number;
+  getPitch(): number;
+  on(event: 'move' | 'resize', listener: () => void): void;
+  off(event: 'move' | 'resize', listener: () => void): void;
+}
+
 interface ThreeDTilesLayerProps {
   source: ThreeDTilesSource;
-  /** MapLibre map instance for camera synchronization */
-  map?: unknown;
+  /** MapLibre map camera used to synchronize the ECEF 3D Tiles camera. */
+  map?: ThreeDTilesMapCamera;
   /** Callback for layer status changes */
   onStatusChange?: (status: 'loading' | 'ready' | 'error' | 'disabled') => void;
 }
@@ -90,6 +99,59 @@ export default function ThreeDTilesLayer({
       setStatus('ready');
       onStatusChange?.('ready');
 
+      const WGS84_A = 6378137;
+      const WGS84_E2 = 6.6943799901413165e-3;
+
+      const syncCameraToMap = (): void => {
+        if (!map || !camera) return;
+        const center = map.getCenter();
+        const lon = THREE.MathUtils.degToRad(center.lng);
+        const lat = THREE.MathUtils.degToRad(center.lat);
+        const sinLat = Math.sin(lat);
+        const cosLat = Math.cos(lat);
+        const sinLon = Math.sin(lon);
+        const cosLon = Math.cos(lon);
+        const radius = WGS84_A / Math.sqrt(1 - WGS84_E2 * sinLat * sinLat);
+        const target = new THREE.Vector3(
+          radius * cosLat * cosLon,
+          radius * cosLat * sinLon,
+          radius * (1 - WGS84_E2) * sinLat
+        );
+        const east = new THREE.Vector3(-sinLon, cosLon, 0);
+        const north = new THREE.Vector3(
+          -sinLat * cosLon,
+          -sinLat * sinLon,
+          cosLat
+        );
+        const up = new THREE.Vector3(
+          cosLat * cosLon,
+          cosLat * sinLon,
+          sinLat
+        );
+
+        const pitch = THREE.MathUtils.degToRad(
+          THREE.MathUtils.clamp(map.getPitch(), 0, 85)
+        );
+        const bearing = THREE.MathUtils.degToRad(map.getBearing());
+        const zoom = THREE.MathUtils.clamp(map.getZoom(), 0, 24);
+        const distance = (40075016.686 / 2 ** zoom) * 2.5;
+        const horizontal = new THREE.Vector3()
+          .addScaledVector(east, Math.sin(bearing))
+          .addScaledVector(north, Math.cos(bearing))
+          .normalize();
+
+        camera.position.copy(target)
+          .addScaledVector(up, Math.cos(pitch) * distance)
+          .addScaledVector(horizontal, Math.sin(pitch) * distance);
+        camera.up.copy(up);
+        camera.lookAt(target);
+        camera.updateMatrixWorld();
+      };
+
+      syncCameraToMap();
+      map?.on('move', syncCameraToMap);
+      map?.on('resize', syncCameraToMap);
+
       // Animation loop
       const animate = () => {
         if (disposed) return;
@@ -113,6 +175,8 @@ export default function ThreeDTilesLayer({
       return () => {
         disposed = true;
         window.removeEventListener('resize', handleResize);
+        map?.off('move', syncCameraToMap);
+        map?.off('resize', syncCameraToMap);
         if (animationId) cancelAnimationFrame(animationId);
         tilesRenderer?.dispose();
         renderer?.dispose();
