@@ -128,8 +128,13 @@ $features=Get-ArcGisFeatures -Source $source -Fips $county.Fips
 $relative="$($county.State.ToLowerInvariant())-$($county.Name)-$($county.Fips)/parcels/$($county.Fips)-parcels.geojson"
 $target=Join-Path $OutRoot $relative
 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $target)|Out-Null
-[ordered]@{type="FeatureCollection";source=$source.Url;sourceAuthority=$source.Authority;countyFips=$county.Fips;state=$county.State;boundaryGEOID=$county.Fips;boundarySource="US_CENSUS_BUREAU_TIGER_LINE";boundaryPolicy=if($source.Mode -eq "boundary"){"exact-county-within-tiger-boundary"}else{"exact-county-attribute"};spatialRelation=if($source.Mode -eq "boundary"){"exact-county-within-tiger-boundary"}else{"exact-county-attribute"};retrievedAt=(Get-Date).ToUniversalTime().ToString("o");privacyPolicy="Only public parcel identifiers and non-owner spatial attributes are retained; owner and mailing fields are not requested.";features=$features}|ConvertTo-Json -Depth 100|Set-Content -LiteralPath $target -Encoding utf8
-[void]$receipts.Add((Write-Receipt -Id "$($county.Fips)-parcels-recovery" -CountyFips $county.Fips -Authority $source.Authority -SourceUrl $source.Url -Path $target -FeatureCount $features.Count -SpatialRelation "exact-county-attribute"))
+[ordered]@{type="FeatureCollection";source=$source.Url;sourceAuthority=$source.Authority;countyFips=$county.Fips;state=$county.State;boundaryGEOID=$county.Fips;boundarySource="US_CENSUS_BUREAU_TIGER_LINE";boundaryPolicy=if($source.Mode -eq "boundary"){"exact-county-clip"}else{"exact-county-attribute"};spatialRelation=if($source.Mode -eq "boundary"){"exact-county-clip"}else{"exact-county-attribute"};retrievedAt=(Get-Date).ToUniversalTime().ToString("o");privacyPolicy="Only public parcel identifiers and non-owner spatial attributes are retained; owner and mailing fields are not requested.";features=$features}|ConvertTo-Json -Depth 100|Set-Content -LiteralPath $target -Encoding utf8
+if($source.Mode -eq "boundary"){
+  $boundaryPath=Join-Path $BoundaryRoot "$($county.State.ToLowerInvariant())-$($county.Fips)-$($county.Name).geojson"
+  python .\scripts\geo\clip-geojson-to-county-boundary.py --geojson $target --boundary $boundaryPath
+  $features=(Get-Content $target -Raw|ConvertFrom-Json).features
+}
+[void]$receipts.Add((Write-Receipt -Id "$($county.Fips)-parcels-recovery" -CountyFips $county.Fips -Authority $source.Authority -SourceUrl $source.Url -Path $target -FeatureCount $features.Count -SpatialRelation $(if($source.Mode -eq "boundary"){"exact-county-clip"}else{"exact-county-attribute"}))
 }
 $femaUrl="https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28"
 $femaWhere="DFIRM_ID LIKE '21225%'"
