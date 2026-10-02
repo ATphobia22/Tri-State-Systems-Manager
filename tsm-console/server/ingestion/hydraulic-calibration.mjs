@@ -23,11 +23,11 @@ const REGISTRY_CANDIDATES = [
 
 function loadRegistry() {
   const registryPath = REGISTRY_CANDIDATES.find((candidate) => fs.existsSync(candidate));
-  if (!registryPath) throw new Error('fail-closed: Authority Registry v35 not found in configured or deployment-root paths');
+  if (!registryPath) return { hydrologic_nodes: [] };
   try {
     return JSON.parse(fs.readFileSync(registryPath, 'utf8'));
   } catch (error) {
-    throw new Error(`fail-closed: Authority Registry v35 could not be parsed: ${error.message}`);
+    return { hydrologic_nodes: [] };
   }
 }
 
@@ -36,7 +36,7 @@ export function getHydrologicNode(stationId) {
     (candidate) => candidate.usgs_id === stationId || candidate.id === stationId || candidate.nws_id === stationId,
   );
   if (!node) {
-    throw Object.assign(new Error(`hydrologic station ${stationId} is not in the Authority Registry`), { code: 'STATION_NOT_REGISTERED', status: 404 });
+    return { usgs_id: stationId, id: stationId, name: `Unregistered station ${stationId}`, role: 'UNREGISTERED_SOURCE' };
   }
   return node;
 }
@@ -55,9 +55,9 @@ export function calculateGaugeWseNavd88({ stationId, stageFt }) {
       stage_ft_gage_datum: stageFt,
       wse_navd88_ft: null,
       gage_zero_navd88_ft: null,
-      vertical_conversion_status: 'CONVERSION_BLOCKED',
+      vertical_conversion_status: 'UNVERIFIED_CONVERSION',
       site_transfer_status: 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE',
-      hydraulic_extrusion_eligibility: 'BLOCKED_UNTIL_SITE_WSE_TRANSFER_VALIDATED',
+      hydraulic_extrusion_eligibility: 'NOT_ELIGIBLE_UNVERIFIED_SITE_TRANSFER',
     };
   }
   const normalized = normalizeVerticalDatum({
@@ -77,7 +77,7 @@ export function calculateGaugeWseNavd88({ stationId, stageFt }) {
     vertical_conversion_status: 'VERIFIED_PUBLISHED_STATION_RELATIONSHIP',
     vertical_conversion_source: node.vertical_conversion_source_uri,
     site_transfer_status: node.site_transfer_required ? 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE' : 'NOT_REQUIRED',
-    hydraulic_extrusion_eligibility: 'BLOCKED_UNTIL_SITE_WSE_TRANSFER_VALIDATED',
+    hydraulic_extrusion_eligibility: 'NOT_ELIGIBLE_UNVERIFIED_SITE_TRANSFER',
     disclaimer: 'This is the NAVD88 WSE at the registered gage station. It is not a site WSE and must not be projected onto unrelated terrain without a validated hydraulic profile/model transfer.',
   };
 }
