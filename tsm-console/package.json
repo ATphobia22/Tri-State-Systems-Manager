@@ -85,7 +85,9 @@
     "runtime:doctor": "node ../scripts/offline/doctor.mjs",
     "runtime:verify": "node ../scripts/offline/verify-installed-runtime.mjs",
     "test:backend": "bash ../run-backend-tests.sh",
-    "check:h3-migration": "node ../scripts/ci/validate-h3-migration-contract.mjs"
+    "check:h3-migration": "node ../scripts/ci/validate-h3-migration-contract.mjs",
+    "build:terrain-3d-tiles": "python3 ../scripts/geospatial/build-terrain-3d-tiles.py",
+    "validate:terrain-3d-tiles": "python3 ../scripts/geospatial/validate-terrain-3d-tiles.py"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.0",
