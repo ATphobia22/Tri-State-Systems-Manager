@@ -70,6 +70,21 @@ jobs:
           esac
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Build deterministic Terrain-RGB MBTiles and 3D Tiles
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf tsm-console/public/3d-tiles/terrain-3dep
+          python3 scripts/geospatial/pack-terrain-mbtiles.py \
+            --tile-dir tsm-console/public/terrain_3dep \
+            --out /tmp/tsm-terrain-3dep.mbtiles
+          python3 scripts/geospatial/build-terrain-3d-tiles.py \
+            --mbtiles /tmp/tsm-terrain-3dep.mbtiles \
+            --out-dir tsm-console/public/3d-tiles/terrain-3dep \
+            --grid-size 33
+          python3 scripts/geospatial/validate-terrain-3d-tiles.py \
+            --tileset tsm-console/public/3d-tiles/terrain-3dep/tileset.json
+
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
@@ -128,6 +143,33 @@ jobs:
       - name: Production Vite build
         working-directory: ${{ env.CONSOLE_DIR }}
         run: npm run build
+      - name: Validate built 3D Tiles payload
+        run: |
+          set -euo pipefail
+          python3 scripts/geospatial/validate-terrain-3d-tiles.py \
+            --tileset tsm-console/dist/3d-tiles/terrain-3dep/tileset.json
+
+      - name: 3D Tiles renderer smoke test
+        working-directory: tsm-console
+        run: node ../scripts/ci/terrain-3d-tiles-renderer-smoke.mjs dist/3d-tiles/terrain-3dep
+
+      - name: Package and hash 3D Tiles artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd tsm-console/dist
+          zip -qr /tmp/tsm-terrain-3d-tiles.zip 3d-tiles/terrain-3dep
+          sha256sum /tmp/tsm-terrain-3d-tiles.zip > /tmp/tsm-terrain-3d-tiles.zip.sha256
+
+      - name: Upload verified 3D Tiles artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a0 # v7.0.1
+        with:
+          name: tsm-terrain-3d-tiles
+          path: |
+            /tmp/tsm-terrain-3d-tiles.zip
+            /tmp/tsm-terrain-3d-tiles.zip.sha256
+          if-no-files-found: error
+
       - name: Prepare GitHub Pages SPA fallback
         if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && inputs.deploy_pages) || (github.event_name == 'issue_comment' && github.event.issue.pull_request == null && github.event.comment.body == '/deploy-pages' && github.event.comment.user.login == github.repository_owner) || (github.event_name == 'issues' && github.event.action == 'opened' && github.event.issue.pull_request == null && github.event.issue.title == 'TSM Pages deployment dispatch' && github.event.issue.body == 'DEPLOY_PAGES_REQUEST' && github.event.issue.user.login == github.repository_owner) }}
         working-directory: ${{ env.CONSOLE_DIR }}
@@ -148,6 +190,8 @@ jobs:
           test -f dist/manifest.json
           grep -Fq '/Tri-State-Systems-Manager/' dist/index.html
           grep -Fq '/Tri-State-Systems-Manager/' dist/404.html
+          test -s dist/3d-tiles/terrain-3dep/tileset.json
+          test -s dist/3d-tiles/terrain-3dep/SHA256SUMS
           node <<'NODE'
           const fs = require('node:fs');
           const path = require('node:path');
@@ -213,6 +257,29 @@ jobs:
           curl --fail --silent --show-error --location --max-time 30 "${PAGE_URL}" --output /tmp/tsm-pages-response.html
           grep -Eiq '<title>[^<]+</title>' /tmp/tsm-pages-response.html
           echo "Published Pages endpoint responded successfully: ${PAGE_URL}"
+          base="${PAGE_URL%/}/3d-tiles/terrain-3dep"
+          curl --fail --silent --show-error --location --max-time 30 "${base}/tileset.json" -o /tmp/published-tileset.json
+          curl --fail --silent --show-error --location --max-time 30 "${base}/SHA256SUMS" -o /tmp/published-SHA256SUMS
+          BASE_URL="${base}" python3 - <<'PY'
+          import hashlib
+          import os
+          from pathlib import Path
+          from urllib.request import urlopen
+          base = os.environ["BASE_URL"].rstrip("/") + "/"
+          out = Path("/tmp/published-3d-tiles")
+          out.mkdir(exist_ok=True)
+          lines = Path("/tmp/published-SHA256SUMS").read_text().splitlines()
+          for line in lines:
+              digest, rel = line.split("  ", 1)
+              target = out / rel
+              target.parent.mkdir(parents=True, exist_ok=True)
+              with urlopen(base + rel, timeout=30) as response:
+                  target.write_bytes(response.read())
+              actual = hashlib.sha256(target.read_bytes()).hexdigest()
+              if actual != digest:
+                  raise SystemExit(f"SHA-256 mismatch for published {rel}: {actual} != {digest}")
+          print(f"Published 3D Tiles integrity verified: {len(lines)} files")
+          PY
       - name: Verify production API readiness (informational)
         shell: bash
         continue-on-error: true
