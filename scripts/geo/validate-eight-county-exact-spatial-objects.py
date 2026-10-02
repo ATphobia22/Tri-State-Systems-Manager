@@ -16,7 +16,8 @@ from shapely.geometry import shape
 from shapely.validation import explain_validity, make_valid
 
 
-ALLOWED_RELATIONS = {"within", "intersects", "exact-boundary", "exact-county-attribute", "exact-county-clip", "exact-county-within-tiger-boundary"}\nCLIP_TOLERANCE_DEGREES = 1e-9
+ALLOWED_RELATIONS = {"within", "intersects", "exact-boundary", "exact-county-attribute", "exact-county-clip", "exact-county-within-tiger-boundary"}
+CLIP_TOLERANCE_DEGREES = 1e-9
 COUNTIES = {
     "18129": ("IN", "posey"),
     "18163": ("IN", "vanderburgh"),
