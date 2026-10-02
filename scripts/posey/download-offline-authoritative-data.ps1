@@ -92,20 +92,13 @@ function Save-ArcGisWithinCounty(
   $queryGeometry = ConvertTo-EsriPolygonGeometry $script:CountyGeometry
   $queryGeometryType = "esriGeometryPolygon"
   if($RequiredId -eq "usgs-3dep-lidar-index"){
-    # The National Map 3DEP index is a Web Mercator (EPSG:3857) polygon
-    # index. Use the exact county's WGS84 envelope as an acquisition superset;
-    # downstream geometry validation still uses the exact TIGER polygon.
-    $coordText = $script:CountyGeometry.coordinates | ConvertTo-Json -Compress -Depth 100
-    $numbers = [regex]::Matches($coordText, "-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?") | ForEach-Object { [double]$_.Value }
-    if($numbers.Count -lt 4 -or ($numbers.Count % 2) -ne 0){ throw "Unable to derive Posey County query envelope from exact TIGER geometry." }
-    $minX=[double]::PositiveInfinity; $maxX=[double]::NegativeInfinity
-    $minY=[double]::PositiveInfinity; $maxY=[double]::NegativeInfinity
-    for($i=0;$i -lt $numbers.Count;$i+=2){
-      $x=$numbers[$i]; $y=$numbers[$i+1]
-      if($x -lt $minX){$minX=$x}; if($x -gt $maxX){$maxX=$x}
-      if($y -lt $minY){$minY=$y}; if($y -gt $maxY){$maxY=$y}
+    # Acquisition prefilter only. Exact TIGER geometry remains authoritative and
+    # is used by the downstream spatial validator. These bounds are a conservative
+    # superset of Posey County's published Census county extent.
+    $queryGeometry=[ordered]@{
+      xmin=-88.10; ymin=37.76; xmax=-87.68; ymax=38.24
+      spatialReference=@{wkid=4326}
     }
-    $queryGeometry=[ordered]@{xmin=$minX;ymin=$minY;xmax=$maxX;ymax=$maxY;spatialReference=@{wkid=4326}}
     $queryGeometryType="esriGeometryEnvelope"
   }
   $geometryJson=$queryGeometry | ConvertTo-Json -Compress -Depth 100
