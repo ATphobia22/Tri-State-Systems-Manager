@@ -1,4 +1,5 @@
 /// <reference types="vitest/config" />
+import { resolve } from 'node:path';
 import { defineConfig, loadEnv, type IndexHtmlTransformResult } from 'vite';
 import react from '@vitejs/plugin-react';
 
