@@ -119,18 +119,6 @@ $femaCount=@($page.features).Count
 $femaOffset+=$femaCount
 }while($femaCount -eq 1000)
 }finally{$femaClient.Dispose()}
-$femaFeatures=[System.Collections.Generic.List[object]]::new()
-$femaOffset=0
-do{
-$femaRaw=& curl.exe --fail-with-body --silent --show-error --location --retry 5 --retry-delay 2 --request POST "$femaUrl/query" --data-urlencode "where=DFIRM_ID='21225C'" --data-urlencode "outFields=DFIRM_ID,FLD_ZONE" --data-urlencode "returnGeometry=true" --data-urlencode "outSR=4326" --data-urlencode "geometry=$femaGeometryJson" --data-urlencode "geometryType=esriGeometryPolygon" --data-urlencode "inSR=4326" --data-urlencode "spatialRel=esriSpatialRelIntersects" --data-urlencode "resultType=standard" --data-urlencode "resultOffset=$femaOffset" --data-urlencode "resultRecordCount=1000" --data-urlencode "f=json"
-if($LASTEXITCODE -ne 0){throw "FEMA NFHL query curl failed with exit code $LASTEXITCODE."}
-$femaPage=$femaRaw|ConvertFrom-Json
-if($femaPage.error){throw "FEMA NFHL query returned an error: $($femaPage.error|ConvertTo-Json -Depth 20)"}
-foreach($feature in @($femaPage.features)){[void]$femaFeatures.Add($feature)}
-$femaCount=@($femaPage.features).Count
-$femaOffset+=$femaCount
-}while($femaCount -eq 1000)
-if($femaFeatures.Count -eq 0){throw "Direct FEMA NFHL layer 28 returned zero features for DFIRM_ID 21225C within the exact Union County boundary."}
 $femaRelative="ky-union-21225/floodplain/fema-nfhl-21225.geojson"
 $femaTarget=Join-Path $OutRoot $femaRelative
 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $femaTarget)|Out-Null
