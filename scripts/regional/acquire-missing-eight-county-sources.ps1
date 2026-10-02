@@ -138,11 +138,26 @@ $femaObjectIds=@($femaIdResponse.objectIds | Sort-Object {[int64]$_})
 if($femaObjectIds.Count -eq 0){throw "Direct FEMA NFHL layer 28 returned zero object IDs for DFIRM_ID 21225."}
 Write-Host "Recovering FEMA NFHL 21225: $($femaObjectIds.Count) features"
 $femaList=[System.Collections.Generic.List[object]]::new()
-for($startIndex=0;$startIndex -lt $femaObjectIds.Count;$startIndex+=50){
-  $chunk=@($femaObjectIds[$startIndex..([math]::Min($startIndex+49,$femaObjectIds.Count-1))])
+$chunkSize=25
+for($startIndex=0;$startIndex -lt $femaObjectIds.Count;$startIndex+=$chunkSize){
+  $chunk=@($femaObjectIds[$startIndex..([math]::Min($startIndex+$chunkSize-1,$femaObjectIds.Count-1))])
   $femaBody=@{objectIds=($chunk -join ",");outFields=$femaFields;returnGeometry="true";outSR="4326";geometryPrecision=5;maxAllowableOffset=0.00001;resultType="standard";f="json"}
-  $femaResponse=Invoke-ArcGisQuery -LayerUrl $femaUrl -Body $femaBody
-  foreach($feature in @($femaResponse.features)){[void]$femaList.Add($feature)}
+  $chunkDone=$false
+  for($femaAttempt=1;$femaAttempt -le 12 -and -not $chunkDone;$femaAttempt++){
+    try{
+      $femaResponse=Invoke-ArcGisQuery -LayerUrl $femaUrl -Body $femaBody
+      foreach($feature in @($femaResponse.features)){[void]$femaList.Add($feature)}
+      $chunkDone=$true
+    }catch{
+      if($femaAttempt -eq 12){throw}
+      $wait=[math]::Min(120,10*$femaAttempt)
+      Write-Host "FEMA chunk $($startIndex+1)-$([math]::Min($startIndex+$chunkSize,$femaObjectIds.Count)) failed (attempt $femaAttempt/12); waiting ${wait}s"
+      Start-Sleep -Seconds $wait
+    }
+  }
+  Write-Host "FEMA NFHL progress: $($femaList.Count)/$($femaObjectIds.Count) features"
+  Start-Sleep -Seconds 5
+}
 }
 $femaFeatures=$femaList.ToArray()
 if($femaFeatures.Count -eq 0){throw "Direct FEMA NFHL layer 28 returned zero features for DFIRM_ID 21225."}
