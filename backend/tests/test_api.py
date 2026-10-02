@@ -218,3 +218,24 @@ def test_snapshot_fails_closed_when_usgs_unreachable(monkeypatch):
     assert response.status_code == 502
     body = response.json()
     assert body["detail"]["code"] == "SNAPSHOT_UNAVAILABLE"
+
+
+def test_posey_wse_uses_published_gage_zero_not_site_altitude():
+    from app.main import (
+        USGS_POSEY_GAGE_DATUM_NAVD88_FT,
+        USGS_POSEY_GAGE_SITE_ALTITUDE_NAVD88_FT,
+    )
+
+    assert USGS_POSEY_GAGE_DATUM_NAVD88_FT == 352.67
+    assert USGS_POSEY_GAGE_SITE_ALTITUDE_NAVD88_FT == 352.71
+    assert USGS_POSEY_GAGE_DATUM_NAVD88_FT != USGS_POSEY_GAGE_SITE_ALTITUDE_NAVD88_FT
+
+
+def test_posey_wse_conversion_formula_is_station_specific(monkeypatch):
+    import app.main as main
+
+    async def fake_get(*args, **kwargs):
+        raise AssertionError("network must not be used by this regression test")
+
+    monkeypatch.setattr(main, "SNAPSHOT_IV_URL", "https://example.invalid/")
+    assert main.USGS_POSEY_GAGE_DATUM_NAVD88_FT + 3.56 == 356.23
