@@ -125,7 +125,7 @@ $relative="$($county.State.ToLowerInvariant())-$($county.Name)-$($county.Fips)/p
 $target=Join-Path $OutRoot $relative
 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $target)|Out-Null
 [ordered]@{type="FeatureCollection";source=$source.Url;sourceAuthority=$source.Authority;countyFips=$county.Fips;state=$county.State;boundaryGEOID=$county.Fips;boundarySource="US_CENSUS_BUREAU_TIGER_LINE";boundaryPolicy=if($source.Mode -eq "boundary"){"exact-county-within-tiger-boundary"}else{"exact-county-attribute"};retrievedAt=(Get-Date).ToUniversalTime().ToString("o");privacyPolicy="Only public parcel identifiers and non-owner spatial attributes are retained; owner and mailing fields are not requested.";features=$features}|ConvertTo-Json -Depth 100|Set-Content -LiteralPath $target -Encoding utf8
-[void]$receipts.Add((Write-Receipt -Id "$($county.Fips)-parcels-recovery" -CountyFips $county.Fips -Authority $source.Authority -SourceUrl $source.Url -Path $target -FeatureCount $features.Count -SpatialRelation $(if($source.Mode -eq "boundary"){"within"}else{"exact-county-attribute"})))
+[void]$receipts.Add((Write-Receipt -Id "$($county.Fips)-parcels-recovery" -CountyFips $county.Fips -Authority $source.Authority -SourceUrl $source.Url -Path $target -FeatureCount $features.Count -SpatialRelation "exact-county-attribute"))
 }
 $femaUrl="https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28"
 $femaWhere="DFIRM_ID LIKE '21225%'"
@@ -164,8 +164,8 @@ Write-Host "Recovered FEMA NFHL 21225: $($femaFeatures.Count) features"
 $femaRelative="ky-union-21225/floodplain/fema-nfhl-21225.geojson"
 $femaTarget=Join-Path $OutRoot $femaRelative
 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $femaTarget)|Out-Null
-[ordered]@{type="FeatureCollection";source=$femaUrl;sourceAuthority="FEMA effective NFHL";countyFips="21225";dfirmPrefix="21225";retrievedAt=(Get-Date).ToUniversalTime().ToString("o");boundaryGEOID="21225";boundarySource="US_CENSUS_BUREAU_TIGER_LINE";spatialRelation="county-keyed-source";authorityWarning="Direct FEMA NFHL source. Do not relabel as preliminary, pending, state BAFM, or derived mirror.";features=$femaFeatures}|ConvertTo-Json -Depth 100|Set-Content -LiteralPath $femaTarget -Encoding utf8
-[void]$receipts.Add((Write-Receipt -Id "21225-fema-nfhl-recovery" -CountyFips "21225" -Authority "FEMA effective NFHL" -SourceUrl $femaUrl -Path $femaTarget -FeatureCount $femaFeatures.Count -SpatialRelation "intersects-exact-county"))
+[ordered]@{type="FeatureCollection";source=$femaUrl;sourceAuthority="FEMA effective NFHL";countyFips="21225";dfirmPrefix="21225";retrievedAt=(Get-Date).ToUniversalTime().ToString("o");boundaryGEOID="21225";boundarySource="US_CENSUS_BUREAU_TIGER_LINE";spatialRelation="exact-county-attribute";authorityWarning="Direct FEMA NFHL source. Do not relabel as preliminary, pending, state BAFM, or derived mirror.";features=$femaFeatures}|ConvertTo-Json -Depth 100|Set-Content -LiteralPath $femaTarget -Encoding utf8
+[void]$receipts.Add((Write-Receipt -Id "21225-fema-nfhl-recovery" -CountyFips "21225" -Authority "FEMA effective NFHL" -SourceUrl $femaUrl -Path $femaTarget -FeatureCount $femaFeatures.Count -SpatialRelation "exact-county-attribute"))
 $manifest=[ordered]@{schema="tsm-missing-source-recovery-v1";generatedAt=(Get-Date).ToUniversalTime().ToString("o");sourcePolicy="official-county-or-federal-source-first";counties=$Counties;receipts=$receipts;unresolved=@(
 @{id="nfhl-flood-zones-17059-size-mismatch";status="requires-offline-bundle-reconciliation";reason="External 11.2 GB bundle required before bytes/SHA-256 can be reconciled."},
 @{id="nfhl-flood-zones-21101-size-mismatch";status="requires-offline-bundle-reconciliation";reason="External 11.2 GB bundle required before bytes/SHA-256 can be reconciled."}
