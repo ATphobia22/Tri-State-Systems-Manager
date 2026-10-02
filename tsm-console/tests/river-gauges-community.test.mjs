@@ -26,7 +26,7 @@ test('river gauge board uses explicit on-demand snapshots and never polls', () =
   assert.match(board, /No automatic polling/);
   assert.match(board, /Fetch live snapshot/);
   assert.match(board, /const fetchSnapshot = useCallback/);
-  assert.match(board, /nothing is\s*\n?\s*fabricated/);
+  assert.match(board, /not fabricated/);
   assert.match(board, /aria-labelledby/);
   assert.doesNotMatch(board, /setInterval/);
 });
