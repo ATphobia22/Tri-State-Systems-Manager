@@ -154,16 +154,34 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          npm run preview -- --host 127.0.0.1 > /tmp/tsm-vite-preview.log 2>&1 &
+          cat > /tmp/tsm-pages-smoke-server.py <<'PY'
+          from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+          from pathlib import Path
+
+          ROOT = Path.cwd() / "dist"
+          PREFIX = "/Tri-State-Systems-Manager"
+
+          class Handler(SimpleHTTPRequestHandler):
+              def translate_path(self, path):
+                  if path == PREFIX or path.startswith(PREFIX + "/"):
+                      path = path[len(PREFIX):] or "/"
+                  return str(ROOT / path.lstrip("/"))
+
+              def log_message(self, fmt, *args):
+                  pass
+
+          ThreadingHTTPServer(("127.0.0.1", 4173), Handler).serve_forever()
+          PY
+          python3 /tmp/tsm-pages-smoke-server.py > /tmp/tsm-pages-smoke-server.log 2>&1 &
           server_pid=$!
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
-          for _ in $(seq 1 60); do
+          for _ in $(seq 1 30); do
             if curl --fail --silent --show-error http://127.0.0.1:4173/Tri-State-Systems-Manager/terrain-3d-tiles-renderer-smoke.html >/dev/null; then
               break
             fi
             sleep 1
           done
-          curl --fail --silent --show-error http://127.0.0.1:4173/3d-tiles-renderer-smoke.html >/dev/null
+          curl --fail --silent --show-error http://127.0.0.1:4173/Tri-State-Systems-Manager/terrain-3d-tiles-renderer-smoke.html >/dev/null
           npx cypress run --browser chrome --spec cypress/e2e/terrain-3d-tiles-renderer.cy.ts
 
       - name: Package and hash 3D Tiles artifact
