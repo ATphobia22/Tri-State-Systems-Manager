@@ -9,7 +9,7 @@ const setStatus = (value: string) => {
   status.dataset.state = value;
 };
 
-const tilesetUrl = "/3d-tiles/terrain-3dep/tileset.json";
+const tilesetUrl = `${import.meta.env.BASE_URL}3d-tiles/terrain-3dep/tileset.json`;
 const tileset = await fetch(tilesetUrl).then(async response => {
   if (!response.ok) throw new Error(`tileset HTTP ${response.status}`);
   return response.json();
