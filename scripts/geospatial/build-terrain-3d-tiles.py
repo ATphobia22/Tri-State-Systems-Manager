@@ -187,7 +187,7 @@ def glb(vertices, vertex_normals, index_data):
     hi = [max(v[i] for v in vertices) for i in range(3)]
     doc = {
         "asset": {"version": "2.0", "generator": "TSM deterministic terrain 3D Tiles converter"},
-        "scene": 0, "scenes": [{"nodes": [0]}], "nodes": [{"mesh": 0, "matrix": [1,0,0,0,0,0,-1,0,0,1,0,0,0,0,0,1}],
+        "scene": 0, "scenes": [{"nodes": [0]}], "nodes": [{"mesh": 0, "matrix": [1,0,0,0,0,0,-1,0,0,1,0,0,0,0,0,1]}],
         "meshes": [{"primitives": [{"attributes": {"POSITION": 0, "NORMAL": 1}, "indices": 2, "mode": 4, "material": 0}]}],
         "materials": [{"pbrMetallicRoughness": {"baseColorFactor": [0.48, 0.52, 0.45, 1], "metallicFactor": 0, "roughnessFactor": 0.92}}],
         "buffers": [{"byteLength": len(binary)}],
