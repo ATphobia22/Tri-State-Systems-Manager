@@ -87,16 +87,17 @@ New-Item -ItemType Directory -Force -Path (Split-Path -Parent $target)|Out-Null
 [ordered]@{type="FeatureCollection";source=$source.Url;sourceAuthority=$source.Authority;countyFips=$county.Fips;state=$county.State;boundaryGEOID=$county.Fips;boundarySource="US_CENSUS_BUREAU_TIGER_LINE";boundaryPolicy="exact-county-source-scope-plus-tiger-validation";retrievedAt=(Get-Date).ToUniversalTime().ToString("o");privacyPolicy="Only public parcel identifiers and non-owner spatial attributes are retained; owner and mailing fields are not requested.";features=$features}|ConvertTo-Json -Depth 100|Set-Content -LiteralPath $target -Encoding utf8
 [void]$receipts.Add((Write-Receipt -Id "$($county.Fips)-parcels-recovery" -CountyFips $county.Fips -Authority $source.Authority -SourceUrl $source.Url -Path $target -FeatureCount $features.Count -SpatialRelation "exact-county-attribute"))
 }
-$femaUrl="https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28"
-$femaBody=@{Method="GET";where="DFIRM_ID='21225C'";outFields="DFIRM_ID,FLD_ZONE";returnGeometry="true";outSR="4326";resultType="standard";f="json";resultRecordCount="500"}
-$fema=Invoke-ArcGisQuery -LayerUrl $femaUrl -Body $femaBody
-$femaFeatures=@($fema.features)
-if($femaFeatures.Count -eq 0){throw "Direct FEMA NFHL layer 28 returned zero features for DFIRM_ID 21225."}
+$femaUrl="https://hazards.fema.gov/arcgis/services/public/NFHL/MapServer/WFSServer"
+$femaQuery="$femaUrl?service=WFS&version=2.0.0&request=GetFeature&typeNames=S_FLD_HAZ_AR&outputFormat=geojson&CQL_FILTER="+[System.Uri]::EscapeDataString("DFIRM_ID='21225C'")
+$femaResponse=Invoke-RestMethod -Method Get -Uri $femaQuery -TimeoutSec 300
+if($femaResponse.ServiceException){throw "FEMA WFS returned an exception: $($femaResponse.ServiceException)"}
+$femaFeatures=@($femaResponse.features)
+if($femaFeatures.Count -eq 0){throw "Direct FEMA NFHL WFS layer S_FLD_HAZ_AR returned zero features for DFIRM_ID 21225C."}
 $femaRelative="ky-union-21225/floodplain/fema-nfhl-21225.geojson"
 $femaTarget=Join-Path $OutRoot $femaRelative
 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $femaTarget)|Out-Null
-[ordered]@{type="FeatureCollection";source=$femaUrl;sourceAuthority="FEMA effective NFHL";countyFips="21225";dfirmPrefix="21225";retrievedAt=(Get-Date).ToUniversalTime().ToString("o");boundaryGEOID="21225";boundarySource="US_CENSUS_BUREAU_TIGER_LINE";spatialRelation="intersects";authorityWarning="Direct FEMA NFHL source. Do not relabel as preliminary, pending, state BAFM, or derived mirror.";features=$femaFeatures}|ConvertTo-Json -Depth 100|Set-Content -LiteralPath $femaTarget -Encoding utf8
-[void]$receipts.Add((Write-Receipt -Id "21225-fema-nfhl-recovery" -CountyFips "21225" -Authority "FEMA effective NFHL" -SourceUrl $femaUrl -Path $femaTarget -FeatureCount $femaFeatures.Count -SpatialRelation "intersects"))
+[ordered]@{type="FeatureCollection";source=$femaUrl;sourceAuthority="FEMA effective NFHL";countyFips="21225";dfirmId="21225C";retrievedAt=(Get-Date).ToUniversalTime().ToString("o");boundaryGEOID="21225";boundarySource="US_CENSUS_BUREAU_TIGER_LINE";spatialRelation="fema-wfs-cql";authorityWarning="Direct FEMA NFHL source. Do not relabel as preliminary, pending, state BAFM, or derived mirror.";features=$femaFeatures}|ConvertTo-Json -Depth 100|Set-Content -LiteralPath $femaTarget -Encoding utf8
+[void]$receipts.Add((Write-Receipt -Id "21225-fema-nfhl-recovery" -CountyFips "21225" -Authority "FEMA effective NFHL" -SourceUrl $femaUrl -Path $femaTarget -FeatureCount $femaFeatures.Count -SpatialRelation "fema-wfs-cql"))
 $manifest=[ordered]@{schema="tsm-missing-source-recovery-v1";generatedAt=(Get-Date).ToUniversalTime().ToString("o");sourcePolicy="official-county-or-federal-source-first";counties=$Counties;receipts=$receipts;unresolved=@(
 @{id="nfhl-flood-zones-17059-size-mismatch";status="requires-offline-bundle-reconciliation";reason="External 11.2 GB bundle required before bytes/SHA-256 can be reconciled."},
 @{id="nfhl-flood-zones-21101-size-mismatch";status="requires-offline-bundle-reconciliation";reason="External 11.2 GB bundle required before bytes/SHA-256 can be reconciled."}
