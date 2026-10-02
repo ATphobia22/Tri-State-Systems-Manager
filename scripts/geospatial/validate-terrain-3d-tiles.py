@@ -6,9 +6,16 @@ from pathlib import Path
 
 def walk(node, uris):
     if not isinstance(node, dict): raise ValueError("tile node must be an object")
-    box = node.get("boundingVolume", {}).get("box")
-    if not isinstance(box, list) or len(box) != 12 or not all(isinstance(v, (int, float)) for v in box):
-        raise ValueError("every tile requires a 12-number box bounding volume")
+    volume = node.get("boundingVolume", {})
+    box, sphere = volume.get("box"), volume.get("sphere")
+    if box is not None:
+        if not isinstance(box, list) or len(box) != 12 or not all(isinstance(v, (int, float)) for v in box):
+            raise ValueError("box bounding volume must contain 12 numbers")
+    elif sphere is not None:
+        if not isinstance(sphere, list) or len(sphere) != 4 or not all(isinstance(v, (int, float)) for v in sphere) or sphere[3] < 0:
+            raise ValueError("sphere bounding volume must contain center xyz and non-negative radius")
+    else:
+        raise ValueError("every tile requires a box, region, or sphere bounding volume")
     if not isinstance(node.get("geometricError"), (int, float)) or node["geometricError"] < 0:
         raise ValueError("invalid geometricError")
     content = node.get("content")
