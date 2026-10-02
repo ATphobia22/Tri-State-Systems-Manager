@@ -37,7 +37,7 @@ const url = 'http://127.0.0.1:' + port + '/tileset.json';
 try {
   const { TilesRenderer } = await import('3d-tiles-renderer');
   const { PerspectiveCamera, Sphere, Vector3 } = await import('three');
-  const renderer = new TilesRenderer(url);
+  const renderer = new TilesRenderer();
   let loadedTileset = false;
   let loadedModels = 0;
   const errors = [];
@@ -47,8 +47,8 @@ try {
     errors.push(String(event?.error ?? event?.message ?? 'unknown load error'));
   });
 
-  if (typeof renderer.loadRootTileSet !== 'function') throw new Error('3d-tiles-renderer@0.5.3 missing loadRootTileSet()');
-  await renderer.loadRootTileSet();
+  if (typeof renderer.fetchTileSet !== 'function') throw new Error('3d-tiles-renderer@0.5.3 missing fetchTileSet()');
+  await renderer.fetchTileSet(url);
   loadedTileset = true;
 
   const sphere = new Sphere();
