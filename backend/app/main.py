@@ -760,3 +760,99 @@ async def gauge_ingest(http_request: Request) -> dict:
             "human review. No datum conversion performed."
         ),
     }
+
+
+# ---------------------------------------------------------------------------
+# Data Catalog — wires the 11 GB offline bundle to the API.
+# Read-only. Serves GeoJSON and manifests from OFFLINE_DATA_ROOT.
+# ---------------------------------------------------------------------------
+from backend.app.data_catalog import (
+    COUNTIES as _CATALOG_COUNTIES,
+    county_detail as _catalog_county_detail,
+    find_dataset_file as _catalog_find_file,
+    list_counties as _catalog_list_counties,
+    offline_root as _catalog_root,
+    read_geojson as _catalog_read_geojson,
+    regional_datasets as _catalog_regional,
+)
+
+
+@app.get("/api/catalog/counties")
+def catalog_counties() -> dict[str, Any]:
+    """List the 8 tri-state counties with dataset availability."""
+    return {
+        "counties": _catalog_list_counties(),
+        "offline_root": str(_catalog_root()),
+        "disclaimer": DISCLAIMER,
+    }
+
+
+@app.get("/api/catalog/county/{fips}")
+def catalog_county(fips: str) -> dict[str, Any]:
+    """Detailed file listing for one county."""
+    if fips not in _CATALOG_COUNTIES:
+        raise HTTPException(status_code=404, detail={"code": "COUNTY_NOT_FOUND"})
+    detail = _catalog_county_detail(fips)
+    if detail is None:
+        raise HTTPException(status_code=503, detail={"code": "COUNTY_DATA_UNAVAILABLE"})
+    detail["disclaimer"] = DISCLAIMER
+    return detail
+
+
+@app.get("/api/catalog/regional")
+def catalog_regional() -> dict[str, Any]:
+    """List regional (multi-county) datasets."""
+    return {
+        "regional": _catalog_regional(),
+        "offline_root": str(_catalog_root()),
+        "disclaimer": DISCLAIMER,
+    }
+
+
+@app.get("/api/geospatial/county/{fips}/parcels")
+def county_parcels(
+    fips: str,
+    limit: int = Query(default=0, ge=0, le=5000),
+) -> dict[str, Any]:
+    """Serve a county's parcel GeoJSON. Use ?limit=N to cap features."""
+    if fips not in _CATALOG_COUNTIES:
+        raise HTTPException(status_code=404, detail={"code": "COUNTY_NOT_FOUND"})
+    path = _catalog_find_file(fips, "parcels")
+    if path is None:
+        raise HTTPException(
+            status_code=404,
+            detail={"code": "DATASET_NOT_FOUND", "detail": "No parcel file for this county (see MISSING.md)"},
+        )
+    try:
+        data = _catalog_read_geojson(path, max_features=limit)
+    except (OSError, json.JSONDecodeError) as exc:
+        raise HTTPException(status_code=503, detail={"code": "DATASET_UNREADABLE"}) from exc
+    data["_provenance"] = {
+        "source_file": str(path.relative_to(_catalog_root())),
+        "authority_class": "OBSERVATION",
+        "human_review_required": True,
+    }
+    return data
+
+
+@app.get("/api/geospatial/county/{fips}/floodplain")
+def county_floodplain(
+    fips: str,
+    limit: int = Query(default=0, ge=0, le=5000),
+) -> dict[str, Any]:
+    """Serve a county's flood-zone GeoJSON. Use ?limit=N to cap features."""
+    if fips not in _CATALOG_COUNTIES:
+        raise HTTPException(status_code=404, detail={"code": "COUNTY_NOT_FOUND"})
+    path = _catalog_find_file(fips, "floodplain")
+    if path is None:
+        raise HTTPException(status_code=404, detail={"code": "DATASET_NOT_FOUND"})
+    try:
+        data = _catalog_read_geojson(path, max_features=limit)
+    except (OSError, json.JSONDecodeError) as exc:
+        raise HTTPException(status_code=503, detail={"code": "DATASET_UNREADABLE"}) from exc
+    data["_provenance"] = {
+        "source_file": str(path.relative_to(_catalog_root())),
+        "authority_class": "OBSERVATION",
+        "human_review_required": True,
+    }
+    return data
