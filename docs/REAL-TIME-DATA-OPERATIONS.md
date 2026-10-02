@@ -56,7 +56,7 @@ These are project/model inputs, not universal regulatory thresholds.
 
 ## WSE and live telemetry
 
-For USGS `03378500`, the project-curated gage-zero conversion constant is 352.71 ft NAVD88. Stage-to-WSE computation carries the gage datum, target vertical datum, conversion status, source URI, observed timestamp, retrieval timestamp, and provisional qualifier. The supplied 2026-09-12 04:30 CDT snapshot is evidence; operational display requires runtime refresh.
+For USGS `03378500`, the published station-specific gage-zero conversion constant is 352.67 ft NAVD88 (USGS SIR 2016-5119); the monitoring-location altitude of 352.71 ft is retained separately and is not a conversion constant. Stage-to-WSE computation carries the gage datum, target vertical datum, conversion status, source URI, observed timestamp, retrieval timestamp, and provisional qualifier. The supplied 2026-09-12 04:30 CDT snapshot is evidence; operational display requires runtime refresh.
 
 ## Flood authority separation
 
