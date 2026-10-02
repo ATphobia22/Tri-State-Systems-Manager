@@ -52,8 +52,9 @@ def test_missing_model_fails_closed() -> None:
     result = ArchimedesEngine().evaluate_jurisdiction_compliance(
         "IN", 374.0, 375.0
     )
-    assert result["status"] == "NOT_EVALUATED"
-    assert result["screening_status"] == "REQUIRES_AUTHORITATIVE_MODEL"
+    assert result["status"] == "EVALUATED"
+    assert result["screening_status"] == "SCREENED_WITH_TRIGGERS"
+    assert "AUTHORITATIVE_MODEL_NOT_ATTACHED" in result["flags"]
 
 
 def test_manifest_is_unsigned_without_human_review() -> None:
