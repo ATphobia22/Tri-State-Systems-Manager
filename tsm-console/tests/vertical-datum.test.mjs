@@ -6,7 +6,7 @@ test('vertical datum middleware blocks unverified gage-to-NAVD88 conversion', ()
   const result = normalizeVerticalDatum({ valueFt: 10, sourceDatum: 'GAGE_DATUM' });
   assert.equal(result.conversionApplied, false);
   assert.equal(result.conversionPublished, false);
-  assert.equal(result.status, 'CONVERSION_BLOCKED');
+  assert.equal(result.status, 'UNVERIFIED_CONVERSION');
 });
 
 test('vertical datum middleware applies only a supplied published offset', () => {
