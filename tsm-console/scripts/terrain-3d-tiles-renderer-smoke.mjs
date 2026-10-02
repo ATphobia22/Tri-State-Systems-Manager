@@ -29,24 +29,8 @@ const url = 'http://127.0.0.1:' + port + '/tileset.json';
 
 try {
   const { TilesRenderer } = await import('3d-tiles-renderer');
-  const { PerspectiveCamera, Vector3 } = await import('three');
+  const { PerspectiveCamera, Sphere, Vector3 } = await import('three');
   const renderer = new TilesRenderer(url);
-  const camera = new PerspectiveCamera(45, 1, 1, 1e9);
-  const volume = tileset.root.boundingVolume;
-  const sphere = volume.sphere;
-  const box = volume.box;
-  const center = sphere
-    ? new Vector3(sphere[0], sphere[1], sphere[2])
-    : new Vector3(box[0], box[1], box[2]);
-  const radius = sphere
-    ? sphere[3]
-    : Math.hypot(box[3], box[7], box[11]);
-  camera.position.copy(center).add(new Vector3(0, 0, Math.max(radius * 2, 1000)));
-  camera.lookAt(center);
-  camera.updateMatrixWorld();
-  renderer.setCamera(camera);
-  renderer.setResolution(camera, 1280, 720);
-
   let loadedTileset = false;
   let loadedModels = 0;
   const errors = [];
@@ -56,14 +40,26 @@ try {
     errors.push(String(event?.error ?? event?.message ?? 'unknown load error'));
   });
 
-  const deadline = Date.now() + 15000;
-  while (Date.now() < deadline && (!loadedTileset || loadedModels < 1)) {
+  const tilesetDeadline = Date.now() + 15000;
+  while (Date.now() < tilesetDeadline && !loadedTileset) await wait(50);
+  if (!loadedTileset) throw new Error('3d-tiles-renderer did not load the tileset within 15 seconds');
+
+  const sphere = new Sphere();
+  if (!renderer.getBoundingSphere(sphere)) throw new Error('renderer could not compute the root bounding sphere');
+  const camera = new PerspectiveCamera(45, 1, 1, 1e9);
+  camera.position.copy(sphere.center).add(new Vector3(0, 0, Math.max(sphere.radius * 2, 1000)));
+  camera.lookAt(sphere.center);
+  camera.updateMatrixWorld();
+  renderer.setCamera(camera);
+  renderer.setResolution(camera, 1280, 720);
+
+  const modelDeadline = Date.now() + 15000;
+  while (Date.now() < modelDeadline && loadedModels < 1) {
     camera.updateMatrixWorld();
     renderer.update();
     await wait(50);
   }
   renderer.update();
-  if (!loadedTileset) throw new Error('3d-tiles-renderer did not load the tileset within 15 seconds');
   if (loadedModels < 1) throw new Error('3d-tiles-renderer loaded the tileset but no GLB model');
   if (errors.length) throw new Error('renderer reported load errors: ' + errors.join('; '));
   console.log(JSON.stringify({ ok: true, renderer: '3d-tiles-renderer@0.5.3', loadedTileset, loadedModels }));
