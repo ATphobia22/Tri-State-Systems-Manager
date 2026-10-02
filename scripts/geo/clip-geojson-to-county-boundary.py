@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Clip county-derived GeoJSON features to an authoritative TIGER boundary."""
+"""Filter county-derived GeoJSON features to an authoritative TIGER boundary."""
 from __future__ import annotations
 
 import argparse
@@ -31,28 +31,24 @@ def main() -> int:
     boundary = valid_geometry(shape(boundary_data["features"][0]["geometry"]))
 
     features = []
+    excluded = 0
     for feature in data.get("features", []):
         geometry = valid_geometry(shape(feature["geometry"]))
-        if geometry.is_empty or not geometry.intersects(boundary):
+        if geometry.is_empty or not geometry.within(boundary):
+            excluded += 1
             continue
-        clipped = valid_geometry(geometry.intersection(boundary))
-        if clipped.is_empty:
-            continue
-        if not boundary.buffer(1e-6).covers(clipped):
-            raise ValueError(
-                "clipped geometry escaped authoritative county boundary"
-            )
-        clipped_feature = dict(feature)
-        clipped_feature["geometry"] = mapping(clipped)
-        features.append(clipped_feature)
+        retained = dict(feature)
+        retained["geometry"] = mapping(geometry)
+        features.append(retained)
 
     data["features"] = features
-    data["spatialRelation"] = "exact-county-clip"
-    data["boundaryPolicy"] = "exact-county-clip"
-    data["clipMethod"] = "Shapely intersection with authoritative TIGER boundary"
-    data["clipBoundary"] = args.boundary.as_posix()
+    data["spatialRelation"] = "exact-county-within-tiger-boundary"
+    data["boundaryPolicy"] = "exact-county-within-tiger-boundary"
+    data["filterMethod"] = "strict native-geometry containment within authoritative TIGER boundary"
+    data["filterBoundary"] = args.boundary.as_posix()
+    data["excludedOutsideBoundaryFeatureCount"] = excluded
     args.geojson.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-    print(f"Clipped {args.geojson}: {len(features)} features")
+    print(f"Strict county filter {args.geojson}: retained={len(features)} excluded={excluded}")
     return 0
 
 
