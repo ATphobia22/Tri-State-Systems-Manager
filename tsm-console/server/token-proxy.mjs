@@ -472,7 +472,7 @@ const server = http.createServer(async (req, res) => {
           vertical_conversion_status: node.vertical_conversion_status || 'UNVERIFIED_CONVERSION',
           vertical_conversion_source: node.vertical_conversion_source_uri || null,
           site_transfer_status: node.site_transfer_required ? 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE' : 'NOT_REQUIRED',
-          hydraulic_extrusion_eligibility: node.site_transfer_required ? 'BLOCKED_UNTIL_SITE_WSE_TRANSFER_VALIDATED' : 'REVIEW_REQUIRED',
+          hydraulic_extrusion_eligibility: node.site_transfer_required ? 'NOT_ELIGIBLE_UNVERIFIED_SITE_TRANSFER' : 'REVIEW_REQUIRED',
           requestId,
         }, requestId);
       } catch (error) {
