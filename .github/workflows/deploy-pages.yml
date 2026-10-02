@@ -72,6 +72,28 @@ jobs:
           esac
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Acquire and validate Posey parcel snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f tsm-console/public/data/posey-parcels.geojson tsm-console/public/data/posey-parcels.geojson.sha256
+          python3 scripts/geospatial/acquire-posey-parcels.py             --out tsm-console/public/data/posey-parcels.geojson
+          sha256sum tsm-console/public/data/posey-parcels.geojson             > tsm-console/public/data/posey-parcels.geojson.sha256
+          test -s tsm-console/public/data/posey-parcels.geojson
+          test -s tsm-console/public/data/posey-parcels.geojson.sha256
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("tsm-console/public/data/posey-parcels.geojson")
+          payload = json.loads(p.read_text())
+          assert payload["type"] == "FeatureCollection"
+          assert payload["sourceCrs"] == "EPSG:4326"
+          assert payload["humanReviewRequired"] is True
+          assert payload["provisional"] is True
+          assert payload["features"]
+          print(f"Posey parcel snapshot validated: {len(payload['features'])} features")
+          PY
+
       - name: Build deterministic Terrain-RGB MBTiles and 3D Tiles
         shell: bash
         run: |
