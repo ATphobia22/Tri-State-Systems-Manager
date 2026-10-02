@@ -134,7 +134,8 @@ if($source.Mode -eq "boundary"){
   python .\scripts\geo\clip-geojson-to-county-boundary.py --geojson $target --boundary $boundaryPath
   $features=(Get-Content $target -Raw|ConvertFrom-Json).features
 }
-[void]$receipts.Add((Write-Receipt -Id "$($county.Fips)-parcels-recovery" -CountyFips $county.Fips -Authority $source.Authority -SourceUrl $source.Url -Path $target -FeatureCount $features.Count -SpatialRelation $(if($source.Mode -eq "boundary"){"exact-county-clip"}else{"exact-county-attribute"}))
+$parcelSpatialRelation = if($source.Mode -eq "boundary"){"exact-county-clip"}else{"exact-county-attribute"}
+[void]$receipts.Add((Write-Receipt -Id "$($county.Fips)-parcels-recovery" -CountyFips $county.Fips -Authority $source.Authority -SourceUrl $source.Url -Path $target -FeatureCount $features.Count -SpatialRelation $parcelSpatialRelation))
 }
 $femaUrl="https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28"
 $femaWhere="DFIRM_ID LIKE '21225%'"
