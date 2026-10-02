@@ -48,7 +48,7 @@ foreach($feature in @($response.features)){[void]$all.Add($feature)}
 if(-not $supportsPagination -or @($response.features).Count -lt $pageSize){break}
 $offset+=@($response.features).Count
 }while($true)
-if($all.Count -eq 0){throw "Required source returned zero features for FIPS $Fips: $($Source.Url)"}
+if($all.Count -eq 0){throw "Required source returned zero features for FIPS ${Fips}: $($Source.Url)"}
 return $all.ToArray()
 }
 function Write-Receipt {
