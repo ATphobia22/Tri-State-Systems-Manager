@@ -119,10 +119,25 @@ New-Item -ItemType Directory -Force -Path (Split-Path -Parent $target)|Out-Null
 [void]$receipts.Add((Write-Receipt -Id "$($county.Fips)-parcels-recovery" -CountyFips $county.Fips -Authority $source.Authority -SourceUrl $source.Url -Path $target -FeatureCount $features.Count -SpatialRelation $(if($source.Mode -eq "boundary"){"within"}else{"exact-county-attribute"})))
 }
 $femaUrl="https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28"
-$femaBody=@{where="DFIRM_ID LIKE '21225%'";outFields="DFIRM_ID,FLD_ZONE,ZONE_SUBTY,SFHA_TF,STATIC_BFE,DEPTH";returnGeometry="true";outSR="4326";resultType="standard";f="json"}
-$fema=Invoke-ArcGisQuery -LayerUrl $femaUrl -Body $femaBody
-$femaFeatures=@($fema.features)
+$femaWhere="DFIRM_ID LIKE '21225%'"
+$femaFields="DFIRM_ID,FLD_ZONE,ZONE_SUBTY,SFHA_TF,STATIC_BFE,DEPTH"
+# FEMA NFHL returns HTTP 500 on a single full-geometry county query; resolve
+# object IDs first (fast), then fetch geometry in small chunks.
+$femaIdBody=@{where=$femaWhere;returnIdsOnly="true";f="json"}
+$femaIdResponse=Invoke-ArcGisQuery -LayerUrl $femaUrl -Body $femaIdBody
+$femaObjectIds=@($femaIdResponse.objectIds | Sort-Object {[int64]$_})
+if($femaObjectIds.Count -eq 0){throw "Direct FEMA NFHL layer 28 returned zero object IDs for DFIRM_ID 21225."}
+Write-Host "Recovering FEMA NFHL 21225: $($femaObjectIds.Count) features"
+$femaList=[System.Collections.Generic.List[object]]::new()
+for($startIndex=0;$startIndex -lt $femaObjectIds.Count;$startIndex+=50){
+  $chunk=@($femaObjectIds[$startIndex..([math]::Min($startIndex+49,$femaObjectIds.Count-1))])
+  $femaBody=@{objectIds=($chunk -join ",");outFields=$femaFields;returnGeometry="true";outSR="4326";f="json"}
+  $femaResponse=Invoke-ArcGisQuery -LayerUrl $femaUrl -Body $femaBody
+  foreach($feature in @($femaResponse.features)){[void]$femaList.Add($feature)}
+}
+$femaFeatures=$femaList.ToArray()
 if($femaFeatures.Count -eq 0){throw "Direct FEMA NFHL layer 28 returned zero features for DFIRM_ID 21225."}
+Write-Host "Recovered FEMA NFHL 21225: $($femaFeatures.Count) features"
 $femaRelative="ky-union-21225/floodplain/fema-nfhl-21225.geojson"
 $femaTarget=Join-Path $OutRoot $femaRelative
 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $femaTarget)|Out-Null
