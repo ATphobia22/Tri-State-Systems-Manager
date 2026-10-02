@@ -56,8 +56,8 @@ if($Source.Mode -eq "source-county"){
   if($idResponse.error){throw($idResponse.error|ConvertTo-Json -Depth 20)}
   $objectIds=@($idResponse.objectIds | Sort-Object {[int64]$_})
   if($objectIds.Count -eq 0){throw "Required source returned zero object IDs for FIPS ${Fips}: $($Source.Url)"}
-  for($startIndex=0;$startIndex -lt $objectIds.Count;$startIndex+=$pageSize){
-    $endIndex=[math]::Min($startIndex+$pageSize-1,$objectIds.Count-1)
+  for($startIndex=0;$startIndex -lt $objectIds.Count;$startIndex+=500){
+    $endIndex=[math]::Min($startIndex+499,$objectIds.Count-1)
     $chunk=@($objectIds[$startIndex..$endIndex])
     $featureBody=@{objectIds=($chunk -join ",");outFields=$Source.OutFields;returnGeometry="true";outSR="4326";f="json"}
     $response=Invoke-ArcGisQuery -LayerUrl $Source.Url -Body $featureBody
