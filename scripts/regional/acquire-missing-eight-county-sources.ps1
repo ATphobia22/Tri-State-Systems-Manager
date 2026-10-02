@@ -92,6 +92,35 @@ $femaBoundary=ConvertTo-EsriGeometry -GeoJsonGeometry (Get-CountyBoundaryGeometr
 $femaGeometryJson=$femaBoundary|ConvertTo-Json -Compress -Depth 100
 $femaFeatures=[System.Collections.Generic.List[object]]::new()
 $femaOffset=0
+$femaClient=[System.Net.Http.HttpClient]::new()
+try{
+do{
+$form=[System.Collections.Generic.Dictionary[string,string]]::new()
+[void]$form.Add("where","DFIRM_ID='21225C'")
+[void]$form.Add("outFields","DFIRM_ID,FLD_ZONE")
+[void]$form.Add("returnGeometry","true")
+[void]$form.Add("outSR","4326")
+[void]$form.Add("geometry",$femaGeometryJson)
+[void]$form.Add("geometryType","esriGeometryPolygon")
+[void]$form.Add("inSR","4326")
+[void]$form.Add("spatialRel","esriSpatialRelIntersects")
+[void]$form.Add("resultType","standard")
+[void]$form.Add("resultOffset",[string]$femaOffset)
+[void]$form.Add("resultRecordCount","1000")
+[void]$form.Add("f","json")
+$content=[System.Net.Http.FormUrlEncodedContent]::new($form)
+$response=$femaClient.PostAsync("$femaUrl/query",$content).GetAwaiter().GetResult()
+$raw=$response.Content.ReadAsStringAsync().GetAwaiter().GetResult()
+if(-not $response.IsSuccessStatusCode){throw "FEMA NFHL HTTP $([int]$response.StatusCode): $raw"}
+$page=$raw|ConvertFrom-Json
+if($page.error){throw "FEMA NFHL query returned an error: $($page.error|ConvertTo-Json -Depth 20)"}
+foreach($feature in @($page.features)){[void]$femaFeatures.Add($feature)}
+$femaCount=@($page.features).Count
+$femaOffset+=$femaCount
+}while($femaCount -eq 1000)
+}finally{$femaClient.Dispose()}
+$femaFeatures=[System.Collections.Generic.List[object]]::new()
+$femaOffset=0
 do{
 $femaRaw=& curl.exe --fail-with-body --silent --show-error --location --retry 5 --retry-delay 2 --request POST "$femaUrl/query" --data-urlencode "where=DFIRM_ID='21225C'" --data-urlencode "outFields=DFIRM_ID,FLD_ZONE" --data-urlencode "returnGeometry=true" --data-urlencode "outSR=4326" --data-urlencode "geometry=$femaGeometryJson" --data-urlencode "geometryType=esriGeometryPolygon" --data-urlencode "inSR=4326" --data-urlencode "spatialRel=esriSpatialRelIntersects" --data-urlencode "resultType=standard" --data-urlencode "resultOffset=$femaOffset" --data-urlencode "resultRecordCount=1000" --data-urlencode "f=json"
 if($LASTEXITCODE -ne 0){throw "FEMA NFHL query curl failed with exit code $LASTEXITCODE."}
