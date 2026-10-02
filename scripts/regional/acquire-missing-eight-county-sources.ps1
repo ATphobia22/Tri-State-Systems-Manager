@@ -50,22 +50,13 @@ if($metadata.error){throw($metadata.error|ConvertTo-Json -Depth 20)}
 $pageSize=[int]$metadata.maxRecordCount;if($pageSize -lt 1){$pageSize=1000}
 $supportsPagination=[bool]$metadata.advancedQueryCapabilities.supportsPagination
 if($Source.Mode -eq "source-county"){
-  $all=[System.Collections.Generic.List[object]]::new()
-  $idUri="$($Source.Url)/query?where=$([uri]::EscapeDataString($Source.Where))&returnIdsOnly=true&f=json"
-  $idResponse=Invoke-RestMethod -Method Get -Uri $idUri -TimeoutSec 300
-  if($idResponse.error){throw($idResponse.error|ConvertTo-Json -Depth 20)}
-  $objectIds=@($idResponse.objectIds|Sort-Object {[int64]$_})
-  if($objectIds.Count -eq 0){throw "Required source returned zero object IDs for FIPS ${Fips}: $($Source.Url)"}
-  Write-Host "Recovering $Fips from $($Source.Url): $($objectIds.Count) features"
-  for($startIndex=0;$startIndex -lt $objectIds.Count;$startIndex+=100){
-    $chunk=@($objectIds[$startIndex..([math]::Min($startIndex+99,$objectIds.Count-1))])
-    $featureBody=@{objectIds=($chunk -join ",");outFields=$Source.OutFields;returnGeometry="true";outSR="4326";f="json"}
-    $response=Invoke-ArcGisQuery -LayerUrl $Source.Url -Body $featureBody
-    foreach($feature in @($response.features)){[void]$all.Add($feature)}
-  }
-  if($all.Count -eq 0){throw "Required source returned zero features for FIPS ${Fips}: $($Source.Url)"}
-  Write-Host "Recovered ${Fips}: $($all.Count) features"
-  return $all.ToArray()
+  $uri="$($Source.Url)/query?where=$([uri]::EscapeDataString($Source.Where))&outFields=$([uri]::EscapeDataString($Source.OutFields))&returnGeometry=true&outSR=4326&f=json"
+  $response=Invoke-RestMethod -Method Get -Uri $uri -TimeoutSec 900
+  if($response.error){throw($response.error|ConvertTo-Json -Depth 20)}
+  $features=@($response.features)
+  if($features.Count -eq 0){throw "Required source returned zero features for FIPS ${Fips}: $($Source.Url)"}
+  Write-Host "Recovered ${Fips}: $($features.Count) features"
+  return $features
 }
 $boundaryGeometry=$null
 if($Source.Mode -eq "boundary"){
