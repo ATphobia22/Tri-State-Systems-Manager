@@ -16,7 +16,7 @@ from shapely.geometry import shape
 from shapely.validation import explain_validity, make_valid
 
 
-ALLOWED_RELATIONS = {"within", "intersects", "exact-boundary", "exact-county-attribute", "exact-county-clip"}
+ALLOWED_RELATIONS = {"within", "intersects", "exact-boundary", "exact-county-attribute", "exact-county-clip", "exact-county-within-tiger-boundary"}
 COUNTIES = {
     "18129": ("IN", "posey"),
     "18163": ("IN", "vanderburgh"),
@@ -129,7 +129,7 @@ def main() -> int:
                 # service (selected by county attribute, not clipped): require
                 # intersection with the TIGER boundary, not strict containment,
                 # since county and TIGER boundary vintages differ slightly.
-                if relation in {"within", "exact-county-clip"} and not geom.within(boundary):
+                if relation in {"within", "exact-county-clip", "exact-county-within-tiger-boundary"} and not geom.within(boundary):
                     raise ValueError("geometry is not within exact county polygon")
                 if relation in {"intersects", "exact-county-attribute"} and not geom.intersects(boundary):
                     raise ValueError("geometry does not intersect exact county polygon")
