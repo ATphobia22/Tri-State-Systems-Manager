@@ -4,7 +4,7 @@ $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 $OutRoot = (Resolve-Path -LiteralPath (New-Item -ItemType Directory -Force -Path $OutRoot)).Path
 $BoundaryRoot = (Resolve-Path -LiteralPath (New-Item -ItemType Directory -Force -Path $BoundaryRoot)).Path
-$Counties = @(@{State="IN";Fips="17193";Name="white"},@{State="KY";Fips="21101";Name="henderson"},@{State="KY";Fips="21225";Name="union"})
+$Counties = @(@{State="IL";Fips="17193";Name="white"},@{State="KY";Fips="21101";Name="henderson"},@{State="KY";Fips="21225";Name="union"})
 $Sources = @{
 "17193"=@{Authority="Indiana GIO / Indiana local governments";Url="https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer/0";Where="1=1";OutFields="objectid,state_parcel_id,parcel_id,county_fips,esri_poname,source_originator,source_featureid,loaddate";Mode="boundary"}
 "21101"=@{Authority="Henderson County GIS";Url="https://services.arcgis.com/Iwwqwcdc5CWG2jt9/arcgis/rest/services/Parcels/FeatureServer/0";Where="1=1";OutFields="FID,PIDN,ZONE_,ZONE_DESCR,LOCATION,ZONE_LOC,GIS_ACRES";Mode="boundary"}
