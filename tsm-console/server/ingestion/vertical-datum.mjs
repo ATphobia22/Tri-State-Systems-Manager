@@ -4,7 +4,7 @@ export function normalizeVerticalDatum({ valueFt, sourceDatum, targetDatum = 'NA
   if (!Number.isFinite(valueFt)) throw new TypeError('vertical value must be finite');
   if (!SUPPORTED.has(sourceDatum) || !SUPPORTED.has(targetDatum)) throw new Error('unsupported vertical datum');
   if (sourceDatum === targetDatum) {
-    return { valueFt, sourceDatum, targetDatum, conversionApplied: false, conversionPublished: true, offsetFt: 0, offsetSource: 'IDENTITY' };
+    return { valueFt, sourceDatum, targetDatum, conversionApplied: false, conversionPublished: true, offsetFt: 0, offsetSource: 'IDENTITY', status: 'VERIFIED_IDENTITY' };
   }
   if (!Number.isFinite(offsetFt) || !offsetSource) {
     return {
@@ -15,8 +15,9 @@ export function normalizeVerticalDatum({ valueFt, sourceDatum, targetDatum = 'NA
       conversionPublished: false,
       offsetFt: null,
       offsetSource: null,
-      status: 'CONVERSION_BLOCKED',
-      disclaimer: 'No station/product-specific published datum transformation was supplied; raw source value must not be relabeled as the target datum.',
+      status: 'UNVERIFIED_CONVERSION',
+      provisional: true,
+      disclaimer: 'Source value is retained in its native datum. No target-datum value is asserted without a published station/product-specific transformation.',
     };
   }
   return {
@@ -27,6 +28,7 @@ export function normalizeVerticalDatum({ valueFt, sourceDatum, targetDatum = 'NA
     conversionPublished: true,
     offsetFt,
     offsetSource,
-    status: 'CONVERTED',
+    status: 'VERIFIED_CONVERSION',
+    provisional: false,
   };
 }
