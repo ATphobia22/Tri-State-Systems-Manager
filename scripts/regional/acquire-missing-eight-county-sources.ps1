@@ -59,9 +59,8 @@ if($Source.Mode -eq "source-county"){
   for($startIndex=0;$startIndex -lt $objectIds.Count;$startIndex+=$pageSize){
     $endIndex=[math]::Min($startIndex+$pageSize-1,$objectIds.Count-1)
     $chunk=@($objectIds[$startIndex..$endIndex])
-    $featureUri="$($Source.Url)/query?objectIds=$($chunk -join ',')&outFields=$([uri]::EscapeDataString($Source.OutFields))&returnGeometry=true&outSR=4326&f=json"
-    $response=Invoke-RestMethod -Method Get -Uri $featureUri -TimeoutSec 300
-    if($response.error){throw($response.error|ConvertTo-Json -Depth 20)}
+    $featureBody=@{objectIds=($chunk -join ",");outFields=$Source.OutFields;returnGeometry="true";outSR="4326";f="json"}
+    $response=Invoke-ArcGisQuery -LayerUrl $Source.Url -Body $featureBody
     foreach($feature in @($response.features)){[void]$all.Add($feature)}
   }
   if($all.Count -eq 0){throw "Required source returned zero features for FIPS ${Fips}: $($Source.Url)"}
