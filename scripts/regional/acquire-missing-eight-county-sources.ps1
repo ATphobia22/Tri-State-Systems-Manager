@@ -51,18 +51,17 @@ $pageSize=[int]$metadata.maxRecordCount;if($pageSize -lt 1){$pageSize=1000}
 $supportsPagination=[bool]$metadata.advancedQueryCapabilities.supportsPagination
 if($Source.Mode -eq "source-county"){
   $all=[System.Collections.Generic.List[object]]::new()
-  $idUri="$($Source.Url)/query?where=$([uri]::EscapeDataString($Source.Where))&returnIdsOnly=true&f=json"
-  $idResponse=Invoke-RestMethod -Method Get -Uri $idUri -TimeoutSec 300
-  if($idResponse.error){throw($idResponse.error|ConvertTo-Json -Depth 20)}
-  $objectIds=@($idResponse.objectIds | Sort-Object {[int64]$_})
-  if($objectIds.Count -eq 0){throw "Required source returned zero object IDs for FIPS ${Fips}: $($Source.Url)"}
-  for($startIndex=0;$startIndex -lt $objectIds.Count;$startIndex+=500){
-    $endIndex=[math]::Min($startIndex+499,$objectIds.Count-1)
-    $chunk=@($objectIds[$startIndex..$endIndex])
-    $featureBody=@{objectIds=($chunk -join ",");outFields=$Source.OutFields;returnGeometry="true";outSR="4326";f="json"}
-    $response=Invoke-ArcGisQuery -LayerUrl $Source.Url -Body $featureBody
-    foreach($feature in @($response.features)){[void]$all.Add($feature)}
-  }
+  $offset=0
+  $pageSize=[math]::Min([math]::Max($pageSize,100),500)
+  do{
+    $uri="$($Source.Url)/query?where=$([uri]::EscapeDataString($Source.Where))&outFields=$([uri]::EscapeDataString($Source.OutFields))&returnGeometry=true&outSR=4326&resultOffset=$offset&resultRecordCount=$pageSize&f=json"
+    $response=Invoke-RestMethod -Method Get -Uri $uri -TimeoutSec 300
+    if($response.error){throw($response.error|ConvertTo-Json -Depth 20)}
+    $features=@($response.features)
+    foreach($feature in $features){[void]$all.Add($feature)}
+    if($features.Count -eq 0 -or $features.Count -lt $pageSize){break}
+    $offset += $features.Count
+  }while($true)
   if($all.Count -eq 0){throw "Required source returned zero features for FIPS ${Fips}: $($Source.Url)"}
   return $all.ToArray()
 }
