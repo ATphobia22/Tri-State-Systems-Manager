@@ -50,20 +50,12 @@ if($metadata.error){throw($metadata.error|ConvertTo-Json -Depth 20)}
 $pageSize=[int]$metadata.maxRecordCount;if($pageSize -lt 1){$pageSize=1000}
 $supportsPagination=[bool]$metadata.advancedQueryCapabilities.supportsPagination
 if($Source.Mode -eq "source-county"){
-  $all=[System.Collections.Generic.List[object]]::new()
-  $offset=0
-  $pageSize=[math]::Min([math]::Max($pageSize,100),500)
-  do{
-    $uri="$($Source.Url)/query?where=$([uri]::EscapeDataString($Source.Where))&outFields=$([uri]::EscapeDataString($Source.OutFields))&returnGeometry=true&outSR=4326&resultOffset=$offset&resultRecordCount=$pageSize&f=json"
-    $response=Invoke-RestMethod -Method Get -Uri $uri -TimeoutSec 300
-    if($response.error){throw($response.error|ConvertTo-Json -Depth 20)}
-    $features=@($response.features)
-    foreach($feature in $features){[void]$all.Add($feature)}
-    if($features.Count -eq 0 -or $features.Count -lt $pageSize){break}
-    $offset += $features.Count
-  }while($true)
-  if($all.Count -eq 0){throw "Required source returned zero features for FIPS ${Fips}: $($Source.Url)"}
-  return $all.ToArray()
+  $uri="$($Source.Url)/query?where=$([uri]::EscapeDataString($Source.Where))&outFields=$([uri]::EscapeDataString($Source.OutFields))&returnGeometry=true&outSR=4326&f=json"
+  $response=Invoke-RestMethod -Method Get -Uri $uri -TimeoutSec 300
+  if($response.error){throw($response.error|ConvertTo-Json -Depth 20)}
+  $features=@($response.features)
+  if($features.Count -eq 0){throw "Required source returned zero features for FIPS ${Fips}: $($Source.Url)"}
+  return $features
 }
 $boundaryGeometry=$null
 if($Source.Mode -eq "boundary"){
