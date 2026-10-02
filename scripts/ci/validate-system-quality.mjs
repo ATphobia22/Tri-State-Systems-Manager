@@ -9,7 +9,7 @@ if (contract.schema_version !== '1.0.0') throw new Error('system quality contrac
 
 const principles = [
   'requirements_traceability',
-  'fail_closed',
+  'integrity_gates',
   'deterministic_reproduction',
   'provenance_preservation',
   'independent_verification',
