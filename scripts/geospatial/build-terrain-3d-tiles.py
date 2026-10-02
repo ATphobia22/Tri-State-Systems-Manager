@@ -284,7 +284,13 @@ def main():
                                    o[2] + e[2]*sx + n[2]*sy + u[2]*sz))
     sphere_center = tuple(sum(p[i] for p in points) / len(points) for i in range(3))
     sphere_radius = max(math.sqrt(sum((p[i] - sphere_center[i]) ** 2 for i in range(3))) for p in points)
-    root = {"boundingVolume": {"sphere": [*sphere_center, sphere_radius]}, "geometricError": max(r["geometricError"] for r in roots),
+    # Validator requires 12-number box on every node (including root).
+    # Convert sphere to axis-aligned box: center + half-axes (R,0,0), (0,R,0), (0,0,R).
+    root_box = [sphere_center[0], sphere_center[1], sphere_center[2],
+                sphere_radius, 0, 0,
+                0, sphere_radius, 0,
+                0, 0, sphere_radius]
+    root = {"boundingVolume": {"box": root_box}, "geometricError": max(r["geometricError"] for r in roots),
             "refine": "REPLACE", "children": [node(r) for r in roots]}
 
     tileset = {"asset": {"version": "1.1", "extras": {"tsm": {"authorityClass": "DERIVED", "engineeringUse": False, "regulatoryUse": False}}}, "geometricError": root["geometricError"], "root": root}
