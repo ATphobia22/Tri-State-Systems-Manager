@@ -611,6 +611,7 @@ async def _fetch_posey_xsoft_parcels() -> dict[str, Any]:
         "returnGeometry": "true",
         "outSR": "4326",
         "f": "geojson",
+    }
     features: list[dict[str, Any]] = []
     try:
         async with httpx.AsyncClient(timeout=30.0, follow_redirects=False) as client:
