@@ -15,6 +15,9 @@ test('digital twin v2 is fail-closed around WTHGIS and OpenMI evidence', async (
   assert.match(source, /validationStatus !== 'VALIDATED'/);
   assert.match(source, /elevationEvidenceStatus === 'CERTIFIED'/);
   assert.match(source, /Human authority gate ON/);
+  assert.match(source, /DEFAULT_3D_TILES_URL/);
+  assert.match(source, /VITE_TSM_3D_TILES_URL/);
+  assert.match(source, /3d-tiles\/terrain-3dep\/tileset\.json/);
   assert.doesNotMatch(source, /PRIVATE_SITE_ADDRESS_REDACTED.*377\.2/);
 });
 
