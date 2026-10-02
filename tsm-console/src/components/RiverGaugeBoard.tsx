@@ -23,7 +23,8 @@ interface SnapshotStation {
 }
 
 const SNAPSHOT_STATIONS: readonly SnapshotStation[] = [
-  { siteNo: '03378500', name: 'Wabash River at Mount Carmel, IL', river: 'Wabash River' },
+  { siteNo: '03378500', name: 'Wabash River at New Harmony, IN', river: 'Wabash River' },
+  { siteNo: '03377500', name: 'Wabash River at Mount Carmel, IL', river: 'Wabash River' },
   { siteNo: '03322000', name: 'Ohio River at Evansville, IN', river: 'Ohio River' },
   { siteNo: '03304300', name: 'Ohio River at Newburgh Lock and Dam, IN', river: 'Ohio River' },
   { siteNo: '03322420', name: 'Ohio River at Uniontown Dam, KY', river: 'Ohio River' },

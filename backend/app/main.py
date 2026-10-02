@@ -70,11 +70,14 @@ MAX_GAUGE_INGEST_BODY_BYTES = 2 * 1024 * 1024  # 2 MiB
 # the upstream service is unreachable or returns no data, the station is
 # reported unavailable — never filled in.
 #
-# Station 03378500 is the Wabash River at Mount Carmel, IL (the registry's
-# "New Harmony" label was a mislabel; corrected 2026-10-01).
+# Station 03378500 is the Wabash River at New Harmony, IN per USGS Water
+# Services (verified 2026-10-01: 03378500 = "WABASH RIVER AT NEW HARMONY, IN";
+# the separate Mount Carmel, IL gauge is 03377500). A 2026-10-01 registry
+# edit briefly mislabeled 03378500 as Mount Carmel; corrected back here.
 # ---------------------------------------------------------------------------
 SNAPSHOT_STATIONS: tuple[tuple[str, str, str], ...] = (
-    ("03378500", "Wabash River at Mount Carmel, IL", "Wabash River"),
+    ("03378500", "Wabash River at New Harmony, IN", "Wabash River"),
+    ("03377500", "Wabash River at Mount Carmel, IL", "Wabash River"),
     ("03322000", "Ohio River at Evansville, IN", "Ohio River"),
     ("03304300", "Ohio River at Newburgh Lock and Dam, IN", "Ohio River"),
     ("03322420", "Ohio River at Uniontown Dam, KY", "Ohio River"),

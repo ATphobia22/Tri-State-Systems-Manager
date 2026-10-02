@@ -174,12 +174,12 @@ def test_snapshot_stations_registry_is_static():
     response = client.get("/api/hydrologic/snapshot/stations")
     assert response.status_code == 200
     body = response.json()
-    assert body["count"] == 12
+    assert body["count"] == 13
     site_nos = [s["site_no"] for s in body["stations"]]
     assert "03378500" in site_nos
-    # corrected label: Mount Carmel, not New Harmony
-    mount_carmel = next(s for s in body["stations"] if s["site_no"] == "03378500")
-    assert "Mount Carmel" in mount_carmel["name"]
+    # USGS authoritative: 03378500 is New Harmony, IN (03377500 is Mt. Carmel, IL)
+    new_harmony = next(s for s in body["stations"] if s["site_no"] == "03378500")
+    assert "New Harmony" in new_harmony["name"]
 
 
 def test_snapshot_returns_provisional_observations(monkeypatch):
@@ -195,7 +195,7 @@ def test_snapshot_returns_provisional_observations(monkeypatch):
     body = response.json()
     assert body["trigger"] == "user-initiated"
     assert body["provisional"] is True
-    assert body["count"] == 12
+    assert body["count"] == 13
     by_site = {s["site_no"]: s for s in body["stations"]}
     obs = {o["parameter"]: o for o in by_site["03378500"]["observations"]}
     assert obs["00060"]["value"] == 45210.0
