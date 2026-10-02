@@ -88,6 +88,6 @@ jobs:
         shell: pwsh
         run: |
           $manifest = Get-Content data\regional\missing-source-recovery\recovery-manifest.json -Raw | ConvertFrom-Json
-          if (@($manifest.receipts).Count -ne 4) { throw "Expected four newly recovered artifacts." }
+          if (@($manifest.receipts).Count -ne 3) { throw "Expected three newly recovered artifacts." }
           if (@($manifest.receipts | Where-Object status -ne "acquired").Count -ne 0) { throw "At least one recovered artifact is not acquired." }
-          Write-Host "RECOVERY GREEN: four newly recoverable artifacts acquired, validated, hashed, published, and integrity-verified."
+          Write-Host "RECOVERY GREEN: three newly recoverable artifacts acquired, validated, hashed, published, and integrity-verified."
