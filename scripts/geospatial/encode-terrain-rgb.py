@@ -11,7 +11,7 @@ import argparse
 from pathlib import Path
 
 import numpy as np
-from osgeo import gdal
+from PIL import Image
 
 
 def encode_terrain_rgb(elevation_m: np.ndarray) -> np.ndarray:
@@ -43,32 +43,25 @@ def main() -> int:
     if datum.upper() != "NAVD88":
         raise ValueError("production Terrain-RGB contract currently requires verified NAVD88 input")
 
-    dataset = gdal.Open(str(args.input), gdal.GA_ReadOnly)
-    if dataset is None:
-        raise FileNotFoundError(args.input)
+    # Pillow decodes GeoTIFF elevation samples without requiring the GDAL Python
+    # bindings. Georeferencing is intentionally not copied to PNG; XYZ placement
+    # is owned by the caller/tile pyramid builder.
+    with Image.open(args.input) as dataset:
+        values = np.asarray(dataset, dtype=np.float64)
 
-    band = dataset.GetRasterBand(1)
-    values = band.ReadAsArray().astype(np.float64)
+    if values.ndim == 3:
+        if values.shape[0] != 1:
+            raise ValueError("input raster must contain exactly one elevation band")
+        values = values[0]
+    if values.ndim != 2:
+        raise ValueError("input raster must decode to a 2D elevation array")
     if args.units == "feet":
         values *= 0.3048
 
     rgb = encode_terrain_rgb(values)
-    driver = gdal.GetDriverByName("PNG")
-    if driver is None:
-        raise RuntimeError("GDAL PNG driver is unavailable")
-
+    image = np.moveaxis(rgb, 0, -1).astype(np.uint8)
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    output = driver.Create(str(args.output), dataset.RasterXSize, dataset.RasterYSize, 3, gdal.GDT_Byte)
-    if output is None:
-        raise RuntimeError(f"unable to create {args.output}")
-
-    output.SetGeoTransform(dataset.GetGeoTransform())
-    output.SetProjection(dataset.GetProjection())
-    for index in range(3):
-        output.GetRasterBand(index + 1).WriteArray(rgb[index])
-    output.FlushCache()
-    output = None
-    dataset = None
+    Image.fromarray(image, mode="RGB").save(args.output, format="PNG", optimize=True)
     return 0
 
 
