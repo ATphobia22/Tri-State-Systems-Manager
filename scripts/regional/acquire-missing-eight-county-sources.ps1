@@ -87,17 +87,25 @@ New-Item -ItemType Directory -Force -Path (Split-Path -Parent $target)|Out-Null
 [ordered]@{type="FeatureCollection";source=$source.Url;sourceAuthority=$source.Authority;countyFips=$county.Fips;state=$county.State;boundaryGEOID=$county.Fips;boundarySource="US_CENSUS_BUREAU_TIGER_LINE";boundaryPolicy="exact-county-source-scope-plus-tiger-validation";spatialRelation="exact-county-attribute";retrievedAt=(Get-Date).ToUniversalTime().ToString("o");privacyPolicy="Only public parcel identifiers and non-owner spatial attributes are retained; owner and mailing fields are not requested.";features=$features}|ConvertTo-Json -Depth 100|Set-Content -LiteralPath $target -Encoding utf8
 [void]$receipts.Add((Write-Receipt -Id "$($county.Fips)-parcels-recovery" -CountyFips $county.Fips -Authority $source.Authority -SourceUrl $source.Url -Path $target -FeatureCount $features.Count -SpatialRelation "exact-county-attribute"))
 }
-$femaUrl="https://hazards.fema.gov/gis/nfhl/services/public/NFHL/MapServer/WFSServer"
-$femaRaw=& curl.exe --fail-with-body --silent --show-error --location --retry 5 --retry-delay 2 --get $femaUrl --data-urlencode "service=WFS" --data-urlencode "version=2.0.0" --data-urlencode "request=GetFeature" --data-urlencode "typeNames=S_FLD_HAZ_AR" --data-urlencode "outputFormat=geojson" --data-urlencode "CQL_FILTER=DFIRM_ID='21225C'"
-if($LASTEXITCODE -ne 0){throw "FEMA WFS curl failed with exit code $LASTEXITCODE."}
-$femaResponse=$femaRaw|ConvertFrom-Json
-if($femaResponse.ServiceException){throw "FEMA WFS returned an exception: $($femaResponse.ServiceException)"}
-$femaFeatures=@($femaResponse.features)
-if($femaFeatures.Count -eq 0){throw "Direct FEMA NFHL WFS layer S_FLD_HAZ_AR returned zero features for DFIRM_ID 21225C."}
+$femaUrl="https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28"
+$femaBoundary=ConvertTo-EsriGeometry -GeoJsonGeometry (Get-CountyBoundaryGeometry -Fips "21225")
+$femaGeometryJson=$femaBoundary|ConvertTo-Json -Compress -Depth 100
+$femaFeatures=[System.Collections.Generic.List[object]]::new()
+$femaOffset=0
+do{
+$femaRaw=& curl.exe --fail-with-body --silent --show-error --location --retry 5 --retry-delay 2 --request POST "$femaUrl/query" --data-urlencode "where=DFIRM_ID='21225C'" --data-urlencode "outFields=DFIRM_ID,FLD_ZONE" --data-urlencode "returnGeometry=true" --data-urlencode "outSR=4326" --data-urlencode "geometry=$femaGeometryJson" --data-urlencode "geometryType=esriGeometryPolygon" --data-urlencode "inSR=4326" --data-urlencode "spatialRel=esriSpatialRelIntersects" --data-urlencode "resultType=standard" --data-urlencode "resultOffset=$femaOffset" --data-urlencode "resultRecordCount=1000" --data-urlencode "f=json"
+if($LASTEXITCODE -ne 0){throw "FEMA NFHL query curl failed with exit code $LASTEXITCODE."}
+$femaPage=$femaRaw|ConvertFrom-Json
+if($femaPage.error){throw "FEMA NFHL query returned an error: $($femaPage.error|ConvertTo-Json -Depth 20)"}
+foreach($feature in @($femaPage.features)){[void]$femaFeatures.Add($feature)}
+$femaCount=@($femaPage.features).Count
+$femaOffset+=$femaCount
+}while($femaCount -eq 1000)
+if($femaFeatures.Count -eq 0){throw "Direct FEMA NFHL layer 28 returned zero features for DFIRM_ID 21225C within the exact Union County boundary."}
 $femaRelative="ky-union-21225/floodplain/fema-nfhl-21225.geojson"
 $femaTarget=Join-Path $OutRoot $femaRelative
 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $femaTarget)|Out-Null
-[ordered]@{type="FeatureCollection";source=$femaUrl;sourceAuthority="FEMA effective NFHL";countyFips="21225";dfirmId="21225C";retrievedAt=(Get-Date).ToUniversalTime().ToString("o");boundaryGEOID="21225";boundarySource="US_CENSUS_BUREAU_TIGER_LINE";spatialRelation="intersects";authorityWarning="Direct FEMA NFHL source. Do not relabel as preliminary, pending, state BAFM, or derived mirror.";features=$femaFeatures}|ConvertTo-Json -Depth 100|Set-Content -LiteralPath $femaTarget -Encoding utf8
+[ordered]@{type="FeatureCollection";source=$femaUrl;sourceAuthority="FEMA effective NFHL";countyFips="21225";dfirmId="21225C";retrievedAt=(Get-Date).ToUniversalTime().ToString("o");boundaryGEOID="21225";boundarySource="US_CENSUS_BUREAU_TIGER_LINE";spatialRelation="intersects";authorityWarning="Direct FEMA NFHL source. Do not relabel as preliminary, pending, state BAFM, or derived mirror.";features=$femaFeatures.ToArray()}|ConvertTo-Json -Depth 100|Set-Content -LiteralPath $femaTarget -Encoding utf8
 [void]$receipts.Add((Write-Receipt -Id "21225-fema-nfhl-recovery" -CountyFips "21225" -Authority "FEMA effective NFHL" -SourceUrl $femaUrl -Path $femaTarget -FeatureCount $femaFeatures.Count -SpatialRelation "intersects"))
 $manifest=[ordered]@{schema="tsm-missing-source-recovery-v1";generatedAt=(Get-Date).ToUniversalTime().ToString("o");sourcePolicy="official-county-or-federal-source-first";counties=$Counties;receipts=$receipts;unresolved=@(
 @{id="nfhl-flood-zones-17059-size-mismatch";status="requires-offline-bundle-reconciliation";reason="External 11.2 GB bundle required before bytes/SHA-256 can be reconciled."},
