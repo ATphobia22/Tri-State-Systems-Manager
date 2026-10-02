@@ -383,10 +383,6 @@ export default function DigitalTwinAppV2(): JSX.Element {
   }, []);
 
   useEffect(() => {
-    void refreshOpenMiWse();
-  }, [refreshOpenMiWse]);
-
-  useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
     const sourceId = 'tsm-openmi-water-surface';
