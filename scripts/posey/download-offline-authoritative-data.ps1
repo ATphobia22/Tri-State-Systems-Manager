@@ -50,6 +50,20 @@ function Save-LidarCollection69202() {
   }
 }
 
+function ConvertTo-EsriPolygonGeometry([object]$GeoJsonGeometry) {
+  if($GeoJsonGeometry.type -eq "Polygon"){
+    return [ordered]@{rings=@($GeoJsonGeometry.coordinates | ForEach-Object { ,@($_) })}
+  }
+  if($GeoJsonGeometry.type -eq "MultiPolygon"){
+    $rings=[System.Collections.Generic.List[object]]::new()
+    foreach($polygon in @($GeoJsonGeometry.coordinates)){
+      foreach($ring in @($polygon)){ [void]$rings.Add(@($ring)) }
+    }
+    return [ordered]@{rings=$rings.ToArray()}
+  }
+  throw "Unsupported county geometry type: $($GeoJsonGeometry.type)"
+}
+
 function Invoke-ArcGisQuery([string]$ServiceLayerUrl,[hashtable]$Parameters) {
   for($attempt=1;$attempt -le 4;$attempt++){
     try {
@@ -74,7 +88,7 @@ function Save-ArcGisWithinCounty(
 ) {
   Write-Host "Acquiring $RequiredId via $SpatialRelation from $ServiceLayerUrl"
   $all=@()
-  $geometryJson=$script:CountyGeometry | ConvertTo-Json -Compress -Depth 100
+  $geometryJson=(ConvertTo-EsriPolygonGeometry $script:CountyGeometry | ConvertTo-Json -Compress -Depth 100)
   $meta=Invoke-RestMethod -Method Get -Uri "$($ServiceLayerUrl)?f=pjson" -TimeoutSec 120
   if($meta.error){ throw ($meta.error | ConvertTo-Json -Depth 20) }
   $pageSize=[int]$meta.maxRecordCount
