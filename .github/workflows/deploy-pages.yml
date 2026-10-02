@@ -151,7 +151,7 @@ jobs:
 
       - name: 3D Tiles renderer smoke test
         working-directory: tsm-console
-        run: node ../scripts/ci/terrain-3d-tiles-renderer-smoke.mjs dist/3d-tiles/terrain-3dep
+        run: node scripts/terrain-3d-tiles-renderer-smoke.mjs dist/3d-tiles/terrain-3dep
 
       - name: Package and hash 3D Tiles artifact
         shell: bash
