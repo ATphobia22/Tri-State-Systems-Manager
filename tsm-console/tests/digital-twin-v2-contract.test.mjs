@@ -12,7 +12,7 @@ test('digital twin v2 is fail-closed around WTHGIS and OpenMI evidence', async (
   assert.match(source, /EPSG:2966/);
   assert.match(source, /VITE_TSM_OPENMI_WSE_URL/);
   assert.match(source, /sourceProvenanceHash/);
-  assert.match(source, /validationStatus !== 'VALIDATED'/);
+  assert.match(source, /VALIDATED_PROVISIONAL/);
   assert.match(source, /elevationEvidenceStatus === 'CERTIFIED'/);
   assert.match(source, /Human authority gate ON/);
   assert.match(source, /DEFAULT_3D_TILES_URL/);
