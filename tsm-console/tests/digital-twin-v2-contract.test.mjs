@@ -9,12 +9,15 @@ test('digital twin v2 is fail-closed around WTHGIS and OpenMI evidence', async (
 
   assert.match(source, /POSEY_WTHGIS_URL/);
   assert.match(source, /VITE_POSEY_WTHGIS_GEOJSON_URL/);
+  assert.match(source, /posey-parcels\.geojson/);
   assert.match(source, /EPSG:2966/);
   assert.match(source, /VITE_TSM_OPENMI_WSE_URL/);
   assert.match(source, /sourceProvenanceHash/);
   assert.match(source, /VALIDATED_PROVISIONAL/);
+  assert.match(source, /OpenMI-compatible WSE adapter/);
   assert.match(source, /elevationEvidenceStatus === 'CERTIFIED'/);
   assert.match(source, /Human authority gate ON/);
+  assert.match(source, /Refresh USGS WSE/);
   assert.match(source, /DEFAULT_3D_TILES_URL/);
   assert.match(source, /VITE_TSM_3D_TILES_URL/);
   assert.match(source, /3d-tiles\/terrain-3dep\/tileset\.json/);
