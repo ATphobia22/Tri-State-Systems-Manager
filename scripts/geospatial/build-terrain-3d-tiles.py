@@ -248,15 +248,27 @@ def main():
         c, h = r["center"], r["half"]
         return [c[0], c[1], c[2], h[0], 0, 0, 0, h[1], 0, 0, 0, h[2]]
 
-    def transform(r):
+    def absolute_transform(r):
         e, n, u = r["axes"]
         o = r["origin"]
         return [e[0], e[1], e[2], 0, n[0], n[1], n[2], 0, u[0], u[1], u[2], 0, o[0], o[1], o[2], 1]
 
-    def node(r):
+    def relative_transform(parent, child):
+        p, c = absolute_transform(parent), absolute_transform(child)
+        pr = ((p[0], p[4], p[8]), (p[1], p[5], p[9]), (p[2], p[6], p[10]))
+        cr = ((c[0], c[4], c[8]), (c[1], c[5], c[9]), (c[2], c[6], c[10]))
+        pt, ct = (p[12], p[13], p[14]), (c[12], c[13], c[14])
+        rot = [[sum(pr[k][i] * cr[k][j] for k in range(3)) for j in range(3)] for i in range(3)]
+        delta = (ct[0] - pt[0], ct[1] - pt[1], ct[2] - pt[2])
+        trans = tuple(sum(pr[k][i] * delta[k] for k in range(3)) for i in range(3))
+        return [rot[0][0], rot[1][0], rot[2][0], 0, rot[0][1], rot[1][1], rot[2][1], 0,
+                rot[0][2], rot[1][2], rot[2][2], 0, trans[0], trans[1], trans[2], 1]
+
+    def node(r, parent=None):
+        tile_transform = absolute_transform(r) if parent is None else relative_transform(parent, r)
         d = {"boundingVolume": {"box": box(r)}, "geometricError": r["geometricError"], "refine": "REPLACE",
-             "transform": transform(r), "content": {"uri": r["uri"]}}
-        if r["children"]: d["children"] = [node(records[c]) for c in r["children"]]
+             "transform": tile_transform, "content": {"uri": r["uri"]}}
+        if r["children"]: d["children"] = [node(records[c], r) for c in r["children"]]
         return d
 
     roots = [r for r in records.values() if r["key"].z == levels[0]]
