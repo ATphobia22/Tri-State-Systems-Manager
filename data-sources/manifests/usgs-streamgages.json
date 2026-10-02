@@ -1,0 +1,50 @@
+{
+ "accessDate": "Snapshot-only; no bulk download. Live values only via user-triggered fetch (never auto-polled).",
+ "authority": "U.S. Geological Survey, Water Mission Area",
+ "authorityClass": "FEDERAL_HYDROLOGIC",
+ "downloadedVsReferenced": {
+  "historicalDischarge": "DOWNLOADED (local offline bundle only, not committed to git): ~/workspace/offline-data/regional/hydrology/historical/usgs-03378500-dv-2016-2026.json \u2014 daily streamflow/discharge 2016-09-30 through 2026-09-30. DISCHARGE ONLY, not water-surface elevation.",
+  "liveValues": "REFERENCED ONLY \u2014 fetched on demand via POST /api/hydrologic/snapshot (backend/app/main.py). No time series stored in git.",
+  "siteInventoryRdb": "DOWNLOADED 2026-10-02 \u2014 data-sources/downloads/usgs/usgs-03378500-site-inventory.rdb (USGS Site Service, retrieved 2026-10-02 11:59:46 EDT). Confirms: 03378500 = WABASH RIVER AT NEW HARMONY, IN; 38.13089124, -87.9414145; altitude 352.71 ft NAVD88; Posey County (129), Indiana (18)."
+ },
+ "gageDatum": {
+  "note": "352.67 ft NAVD88 is the published gage-zero datum conversion for 03378500; 352.71 ft NAVD88 is the separate monitoring-location/site altitude. These are distinct quantities \u2014 never conflate. Covered by backend tests.",
+  "site": "03378500",
+  "siteAltitudeNavd88Ft": 352.71,
+  "source": "USGS SIR 2016-5119, station 03378500 datum conversion",
+  "zeroNavd88Ft": 352.67
+ },
+ "license": "Public domain (U.S. Government work, 17 U.S.C. \u00a7 105). No restrictions on use.",
+ "limitations": [
+  "Discharge (ft\u00b3/s) and water-surface elevation (ft NAVD88) are distinct quantities \u2014 never synthesize one from the other without a validated rating/model.",
+  "No automatic polling; live fetch is user-initiated only (river-data policy)."
+ ],
+ "liveApiUrl": "https://waterservices.usgs.gov/nwis/iv/",
+ "schemaVersion": "1.0.0",
+ "sourceId": "usgs-streamgages-posey",
+ "sourceName": "USGS Water Services streamgages (Wabash River)",
+ "stationRegistry": "backend/app/main.py (13-station registry; snapshot endpoints GET /api/hydrologic/snapshot/stations, POST /api/hydrologic/snapshot)",
+ "stations": [
+  {
+   "coordinates": [
+    38.13089124,
+    -87.9414145
+   ],
+   "note": "Primary Posey County Wabash River gauge.",
+   "siteName": "Wabash River at New Harmony, IN",
+   "siteNo": "03378500",
+   "verifiedAgainst": "USGS Water Services, 2026-10-01/02"
+  },
+  {
+   "coordinates": [
+    38.3983333,
+    -87.75638889
+   ],
+   "siteName": "Wabash River at Mt. Carmel, IL",
+   "siteNo": "03377500",
+   "verifiedAgainst": "USGS Water Services, 2026-10-02"
+  }
+ ],
+ "termsUrl": "https://www.usgs.gov/information-policies-and-instructions/usgs-visual-identity",
+ "sha256Inventory": "data-sources/SHA256SUMS (section 7)"
+}
