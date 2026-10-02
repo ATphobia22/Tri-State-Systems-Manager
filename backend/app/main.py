@@ -21,7 +21,6 @@ import uuid
 import asyncio
 from typing import Any
 
-import httpx
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -599,7 +598,9 @@ POSEY_XSOFT_PARCEL_LAYER = "https://services6.arcgis.com/y6TIO0vqbm8Ixd4w/ArcGIS
 POSEY_XSOFT_PAGE_SIZE = 2000
 POSEY_XSOFT_MAX_FEATURES = 50000
 USGS_POSEY_WABASH_SITE = "03378500"
-USGS_POSEY_GAGE_DATUM_NAVD88_FT = 352.71
+USGS_POSEY_GAGE_DATUM_NAVD88_FT = 352.67
+USGS_POSEY_GAGE_SITE_ALTITUDE_NAVD88_FT = 352.71
+USGS_POSEY_GAGE_DATUM_SOURCE = "USGS SIR 2016-5119, station 03378500 datum conversion"
 
 
 async def _fetch_posey_xsoft_parcels() -> dict[str, Any]:
@@ -698,6 +699,8 @@ async def _fetch_posey_wse() -> dict[str, Any]:
         "site": USGS_POSEY_WABASH_SITE,
         "parameter": "00065",
         "gageDatumFtNavd88": USGS_POSEY_GAGE_DATUM_NAVD88_FT,
+        "gageSiteAltitudeFtNavd88": USGS_POSEY_GAGE_SITE_ALTITUDE_NAVD88_FT,
+        "gageDatumSource": USGS_POSEY_GAGE_DATUM_SOURCE,
         "gageHeightFt": gage_height,
         "observedAt": observed_at,
     })
