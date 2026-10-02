@@ -17,6 +17,6 @@ test('4.31 ft stage converts to 356.98 ft NAVD88 at the station only', () => {
   assert.equal(result.hydraulic_extrusion_eligibility, 'NOT_ELIGIBLE_UNVERIFIED_SITE_TRANSFER');
 });
 
-test('unregistered stations fail closed', () => {
+test('unregistered stations degrade explicitly', () => {
   assert.throws(() => getHydrologicNode('NOT_REGISTERED'), /not in the Authority Registry/);
 });
