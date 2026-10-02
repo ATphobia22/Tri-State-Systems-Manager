@@ -43,9 +43,12 @@ def load_json(path: Path) -> Any:
 
 def feature_geometry(feature: dict[str, Any]):
     geometry = feature.get("geometry")
-    if not geometry:
-        raise ValueError("feature has no geometry")
-    geom = shape(geometry)
+    if not isinstance(geometry, dict) or not geometry.get("type"):
+        raise ValueError("feature has no GeoJSON geometry")
+    try:
+        geom = shape(geometry)
+    except Exception as exc:
+        raise ValueError(f"unparseable geometry: {exc}")
     if geom.is_empty:
         raise ValueError("feature geometry is empty")
     if not geom.is_valid:

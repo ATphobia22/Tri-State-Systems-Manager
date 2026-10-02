@@ -59,7 +59,7 @@ if($Source.Mode -eq "id-chunk"){
   Write-Host "Recovering $Fips from $($Source.Url): $($objectIds.Count) features"
   for($startIndex=0;$startIndex -lt $objectIds.Count;$startIndex+=100){
     $chunk=@($objectIds[$startIndex..([math]::Min($startIndex+99,$objectIds.Count-1))])
-    $featureBody=@{objectIds=($chunk -join ",");outFields=$Source.OutFields;returnGeometry="true";outSR="4326";f="json"}
+    $featureBody=@{objectIds=($chunk -join ",");outFields=$Source.OutFields;returnGeometry="true";outSR="4326";f="geojson"}
     $response=Invoke-ArcGisQuery -LayerUrl $Source.Url -Body $featureBody
     foreach($feature in @($response.features)){[void]$all.Add($feature)}
   }
@@ -71,7 +71,7 @@ $boundaryGeometry=$null
 if($Source.Mode -eq "boundary"){
   $boundaryGeometry=Get-CountyBoundaryGeometry -Fips $Fips
 }
-$body=@{where=$Source.Where;outFields=$Source.OutFields;returnGeometry="true";returnTrueCurves="false";outSR="4326";resultType="standard";f="json"}
+$body=@{where=$Source.Where;outFields=$Source.OutFields;returnGeometry="true";returnTrueCurves="false";outSR="4326";resultType="standard";f="geojson"}
 if($Source.Mode -eq "boundary"){
   $body.geometry=(ConvertTo-EsriGeometry -GeoJsonGeometry $boundaryGeometry | ConvertTo-Json -Compress -Depth 100)
   $body.geometryType=if($boundaryGeometry.type -eq "MultiPolygon"){"esriGeometryMultipolygon"}else{"esriGeometryPolygon"}
@@ -141,7 +141,7 @@ $femaList=[System.Collections.Generic.List[object]]::new()
 $chunkSize=25
 for($startIndex=0;$startIndex -lt $femaObjectIds.Count;$startIndex+=$chunkSize){
   $chunk=@($femaObjectIds[$startIndex..([math]::Min($startIndex+$chunkSize-1,$femaObjectIds.Count-1))])
-  $femaBody=@{objectIds=($chunk -join ",");outFields=$femaFields;returnGeometry="true";outSR="4326";geometryPrecision=5;maxAllowableOffset=0.00001;resultType="standard";f="json"}
+  $femaBody=@{objectIds=($chunk -join ",");outFields=$femaFields;returnGeometry="true";outSR="4326";geometryPrecision=5;maxAllowableOffset=0.00001;resultType="standard";f="geojson"}
   $chunkDone=$false
   for($femaAttempt=1;$femaAttempt -le 12 -and -not $chunkDone;$femaAttempt++){
     try{
