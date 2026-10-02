@@ -654,6 +654,12 @@ async def posey_parcel_geometry() -> dict[str, Any]:
     return await _fetch_posey_xsoft_parcels()
 
 
+def _posey_wse_from_gage_height(gage_height_ft: float) -> float:
+    if not math.isfinite(gage_height_ft):
+        raise ValueError("gage height must be finite")
+    return USGS_POSEY_GAGE_DATUM_NAVD88_FT + gage_height_ft
+
+
 async def _fetch_posey_wse() -> dict[str, Any]:
     """Convert USGS gage height to provisional WSE using the published NAVD88 gage datum."""
     params = {
@@ -689,7 +695,7 @@ async def _fetch_posey_wse() -> dict[str, Any]:
     if not math.isfinite(gage_height):
         raise HTTPException(status_code=502, detail={"code": "POSEY_WSE_VALUE_INVALID"})
 
-    wse = USGS_POSEY_GAGE_DATUM_NAVD88_FT + gage_height
+    wse = _posey_wse_from_gage_height(gage_height)
     observed_at = latest.get("dateTime")
     if not isinstance(observed_at, str) or not observed_at:
         raise HTTPException(status_code=502, detail={"code": "POSEY_WSE_TIMESTAMP_INVALID"})
