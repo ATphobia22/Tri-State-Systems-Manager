@@ -528,6 +528,31 @@ human-review-required disclaimer.
   confluence report
 - **Hydraulics:** HEC-RAS 7.0 example projects + St. Joseph River model
 
+### Illinois counties (Gallatin 17059, White 17193)
+
+- **Parcels:** White County via EagleView-hosted ArcGIS (20,956 features,
+  owner fields stripped); Gallatin County public-safe parcels
+- **Flood:** FEMA NFHL via Esri derived-NFHL copy (Illinois NFHL not
+  directly downloadable)
+- **Imagery:** NAIP scene indices via Planetary Computer STAC (574 tiles
+  cataloged for White County across 12 vintages; full download = 100+ GB,
+  indices retained)
+- **Terrain:** Covered by 3DEP 1° DEMs (n37w088, n38w088)
+- **TIGER:** 2024 roads + area water
+
+### Kentucky counties (Henderson 21101, Union 21225)
+
+- **Parcels:** Henderson County via county AGOL org (22,822 features, no
+  owner fields by source design); **Union County parcels unavailable** —
+  KY DOR PVA license incompatible with persistent bundle (contact Union
+  County PVA, Clay Wells, 270-389-1933, or qPublic subscription)
+- **Flood:** FEMA NFHL (Henderson direct; Union via recovery workflow);
+  KY DOW DFIRM detailed + approximate studies
+- **Elevation:** KYAPED 5 ft DEM / point cloud / aerial tile indices
+  (Henderson: 839 tiles; Union: 660 tiles; indices only, not bulk download)
+- **Terrain:** Covered by 3DEP 1° DEM (n37w087)
+- **TIGER:** 2024 roads + area water
+
 ### 13-station gauge registry
 
 USGS 03378500 = **Wabash River at New Harmony, IN** (38.13089124, -87.9414145).
