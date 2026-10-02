@@ -49,14 +49,18 @@ $metadata=Invoke-RestMethod -Method Get -Uri "$($Source.Url)?f=pjson" -TimeoutSe
 if($metadata.error){throw($metadata.error|ConvertTo-Json -Depth 20)}
 $pageSize=[int]$metadata.maxRecordCount;if($pageSize -lt 1){$pageSize=1000}
 $supportsPagination=[bool]$metadata.advancedQueryCapabilities.supportsPagination
-$boundaryGeometry=$null;$ifMarker$boundaryGeometry=Get-CountyBoundaryGeometry -Fips $Fips}
+$boundaryGeometry=$null
+if($Source.Mode -eq "boundary"){
+  $boundaryGeometry=Get-CountyBoundaryGeometry -Fips $Fips
+}
 $all=[System.Collections.Generic.List[object]]::new();$offset=0
 do{
 $body=@{where=$Source.Where;outFields=$Source.OutFields;returnGeometry="true";outSR="4326";resultType="standard";f="json"}
 if($Source.Mode -eq "boundary"){
-$body.geometry=(ConvertTo-EsriGeometry -GeoJsonGeometry $boundaryGeometry | ConvertTo-Json -Compress -Depth 100)
-$body.geometryType="esriGeometryPolygon"
-$body.inSR="4326";$body.spatialRel="esriSpatialRelIntersects";$body.geometryPrecision=6}
+  $body.geometry=(ConvertTo-EsriGeometry -GeoJsonGeometry $boundaryGeometry | ConvertTo-Json -Compress -Depth 100)
+  $body.geometryType=if($boundaryGeometry.type -eq "MultiPolygon"){"esriGeometryMultipolygon"}else{"esriGeometryPolygon"}
+  $body.inSR="4326";$body.spatialRel="esriSpatialRelIntersects"
+}
 if($supportsPagination){$body.resultOffset=$offset;$body.resultRecordCount=$pageSize}
 $response=Invoke-ArcGisQuery -LayerUrl $Source.Url -Body $body
 foreach($feature in @($response.features)){[void]$all.Add($feature)}
