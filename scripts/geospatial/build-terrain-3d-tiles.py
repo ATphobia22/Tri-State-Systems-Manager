@@ -168,7 +168,7 @@ def indices(size):
     return out
 
 
-def pad4(data): return data + b"\0" * ((4 - len(data) % 4) % 4)
+def pad4(data, fill=b"\0"): return data + fill * ((4 - len(data) % 4) % 4)
 
 
 def glb(vertices, vertex_normals, index_data):
@@ -198,7 +198,7 @@ def glb(vertices, vertex_normals, index_data):
         ],
         "accessors": [acc(0, 5126, len(vertices), "VEC3", lo, hi), acc(1, 5126, len(vertices), "VEC3"), acc(2, 5125, len(index_data), "SCALAR")],
     }
-    js = pad4(json.dumps(doc, separators=(",", ":")).encode())
+    js = pad4(json.dumps(doc, separators=(",", ":")).encode(), b" ")
     cj, cb = struct.pack("<I4s", len(js), b"JSON") + js, struct.pack("<I4s", len(binary), b"BIN\0") + binary
     return struct.pack("<4sII", b"glTF", 2, 12 + len(cj) + len(cb)) + cj + cb
 
