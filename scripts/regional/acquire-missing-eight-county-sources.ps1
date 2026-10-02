@@ -64,7 +64,7 @@ if($Source.Mode -eq "id-chunk"){
     foreach($feature in @($response.features)){[void]$all.Add($feature)}
   }
   if($all.Count -ne $objectIds.Count){throw "Incomplete source recovery for FIPS ${Fips}: expected $($objectIds.Count), received $($all.Count)"}
-  Write-Host "Recovered $Fips: $($all.Count) features"
+  Write-Host "Recovered ${Fips}: $($all.Count) features"
   return $all.ToArray()
 }
 $boundaryGeometry=$null
