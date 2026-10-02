@@ -7,7 +7,7 @@ $BoundaryRoot = (Resolve-Path -LiteralPath (New-Item -ItemType Directory -Force 
 $Counties = @(@{State="IL";Fips="17193";Name="white"},@{State="KY";Fips="21101";Name="henderson"},@{State="KY";Fips="21225";Name="union"})
 $Sources = @{
 "17193"=@{Authority="White County, Illinois GIS parcel publication (EagleView-hosted service)";Url="https://arcgisserver.eagleview.com/arcgis/rest/services/WhiteCountyIlParcels2024/MapServer/0";Where="1=1";OutFields="FID,OBJECTID_1,PIN,Acreage,PIN2,Parcel_Num,City,Tax_Code,Site_Addre,Site_City_,Gross_Acre,Homesite_A,Farm_Acres,Property_C,Tax_Status,Zip,Document,Legal_Desc,Farm_Land,Farm_Build,Non_Farm_L,Non_Farm_B,Tax_Billed,Shape__Are,Shape__Len";Mode="id-chunk"}
-"21101"=@{Authority="Henderson County GIS";Url="https://services.arcgis.com/Iwwqwcdc5CWG2jt9/arcgis/rest/services/Parcels/FeatureServer/0";Where="1=1";OutFields="FID,PIDN,ZONE_,ZONE_DESCR,LOCATION,ZONE_LOC,GIS_ACRES";Mode="paged"}
+"21101"=@{Authority="Henderson County GIS";Url="https://services.arcgis.com/Iwwqwcdc5CWG2jt9/arcgis/rest/services/Parcels/FeatureServer/0";Where="1=1";OutFields="FID,PIDN,ZONE_,ZONE_DESCR,LOCATION,ZONE_LOC,GIS_ACRES";Mode="boundary"}
 }
 function Invoke-ArcGisQuery {
 param([string]$LayerUrl,[hashtable]$Body)
