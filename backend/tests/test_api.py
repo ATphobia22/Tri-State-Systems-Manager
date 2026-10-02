@@ -231,11 +231,7 @@ def test_posey_wse_uses_published_gage_zero_not_site_altitude():
     assert USGS_POSEY_GAGE_DATUM_NAVD88_FT != USGS_POSEY_GAGE_SITE_ALTITUDE_NAVD88_FT
 
 
-def test_posey_wse_conversion_formula_is_station_specific(monkeypatch):
-    import app.main as main
+def test_posey_wse_conversion_formula_is_station_specific():
+    from app.main import _posey_wse_from_gage_height
 
-    async def fake_get(*args, **kwargs):
-        raise AssertionError("network must not be used by this regression test")
-
-    monkeypatch.setattr(main, "SNAPSHOT_IV_URL", "https://example.invalid/")
-    assert main.USGS_POSEY_GAGE_DATUM_NAVD88_FT + 3.56 == 356.23
+    assert _posey_wse_from_gage_height(3.56) == 356.23
