@@ -56,7 +56,7 @@ function navd88FromGage(node, gageHeightFt) {
   const zero = node?.gage_zero_navd88_ft;
   const source = node?.vertical_conversion_source;
   if (zero == null || !Number.isFinite(gageHeightFt) || !Number.isFinite(Number(zero)) || !source) {
-    return { conversion_applied: false, wse_navd88_ft: null, gage_zero_navd88_ft: null, vertical_conversion_source: null, vertical_conversion_status: 'CONVERSION_BLOCKED' };
+    return { conversion_applied: false, wse_navd88_ft: null, gage_zero_navd88_ft: null, vertical_conversion_source: null, vertical_conversion_status: 'UNVERIFIED_CONVERSION' };
   }
   const normalized = normalizeVerticalDatum({
     valueFt: gageHeightFt,
@@ -91,11 +91,11 @@ async function appendObservation(record, extra = {}) {
 
 export async function ingestUsgsNode(usgsId, { timeoutMs = 10000 } = {}) {
   const node = (getRegistry().hydrologic_nodes || []).find((candidate) => candidate.usgs_id === usgsId);
-  if (!node) return { ok: false, code: 'FAIL_CLOSED', error: `usgs_id ${usgsId} not in Authority Registry` };
+  if (!node) return { ok: false, code: 'SOURCE_UNAVAILABLE', error: `usgs_id ${usgsId} not in Authority Registry` };
   try {
     const records = await fetchUsgsInstantaneousValues({ stationIds: [usgsId], parameterCodes: ['00065', '00060'], signal: AbortSignal.timeout(timeoutMs) });
     const stage = records.filter((record) => record.provenance.parameterCode === '00065').at(-1);
-    if (!stage) return { ok: false, code: 'FAIL_CLOSED', error: 'USGS returned no 00065 observation' };
+    if (!stage) return { ok: false, code: 'SOURCE_UNAVAILABLE', error: 'USGS returned no 00065 observation' };
     const freshnessState = classifySourceFreshness('USGS_NWIS_OBSERVATION', { observedAt: stage.observedAt, retrievedAt: stage.retrievedAt });
     const conversion = navd88FromGage(node, stage.value);
     const freshnessAgeSeconds = Math.max(0, (Date.now() - Date.parse(stage.observedAt)) / 1000);
@@ -115,11 +115,11 @@ export async function ingestUsgsNode(usgsId, { timeoutMs = 10000 } = {}) {
 export async function ingestNwpsGauge(nwsId, { product = 'observed', timeoutMs = 10000 } = {}) {
   if (!['observed', 'forecast'].includes(product)) return { ok: false, code: 'INVALID_PRODUCT', error: 'product must be observed or forecast' };
   const node = (getRegistry().hydrologic_nodes || []).find((candidate) => candidate.nws_id === nwsId);
-  if (!node) return { ok: false, code: 'FAIL_CLOSED', error: `nws_id ${nwsId} not in Authority Registry` };
+  if (!node) return { ok: false, code: 'SOURCE_UNAVAILABLE', error: `nws_id ${nwsId} not in Authority Registry` };
   try {
     const records = await fetchNoaaStageFlow({ identifier: nwsId, product, signal: AbortSignal.timeout(timeoutMs) });
     const latest = records.at(-1);
-    if (!latest) return { ok: false, code: 'FAIL_CLOSED', error: `NOAA ${product} returned no records` };
+    if (!latest) return { ok: false, code: 'SOURCE_UNAVAILABLE', error: `NOAA ${product} returned no records` };
     const freshnessState = classifySourceFreshness(product === 'observed' ? 'NOAA_NWPS_OBSERVATION' : 'NOAA_NWPS_FORECAST', { observedAt: latest.observedAt, retrievedAt: latest.retrievedAt });
     const conversion = product === 'observed' ? navd88FromGage(node, latest.value) : { conversion_applied: false, wse_navd88_ft: null, gage_zero_navd88_ft: null, vertical_conversion_source: null };
     const freshnessAgeSeconds = Math.max(0, (Date.now() - Date.parse(latest.observedAt)) / 1000);
