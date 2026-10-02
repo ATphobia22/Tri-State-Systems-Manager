@@ -712,6 +712,7 @@ async def _fetch_posey_wse() -> dict[str, Any]:
     })
     return {
         "quantityId": "WaterSurfaceElevation",
+        "adapterStandard": "OpenMI-compatible-envelope",
         "waterSurfaceElevationFtNavd88": wse,
         "gageHeightFt": gage_height,
         "gageDatumFtNavd88": USGS_POSEY_GAGE_DATUM_NAVD88_FT,
