@@ -1,21 +1,26 @@
-# terrain_3dep — published tile pyramid (GitHub Pages)
+# terrain_3dep — published Terrain-RGB tile pyramid (GitHub Pages)
 
-28 Mapbox Terrain-RGB PNGs (z11–z15, 256 px, 252 KB total) + `tiles.json`,
-served by GitHub Pages at:
+**Current inventory:** 478 Mapbox Terrain-RGB PNG tiles, 256 px, covering
+zoom levels **z8–z12**, with approximately **28.37 MB** of committed PNG
+content, plus `tiles.json`.
+
+Published tile template:
 
 ```text
 https://atphobia22.github.io/Tri-State-Systems-Manager/terrain_3dep/{z}/{x}/{y}.png
 ```
 
-**Provenance.** Derived from the 3DEP screening DEM
-(`src/lib/flood-sim/world/data/source-derived-dem-posey.json`,
-SHA-256 `9099a108…f45b5`) by `scripts/geospatial/build-terrain-rgb-screening.sh`.
-Screening-level, not survey-grade; NAVD88 as reported by the source, never
-re-projected or certified. Full pipeline: `docs/TERRAIN-RGB-3DEP-PIPELINE.md`;
-evidence ledger: `artifacts/tsm-terrain-rgb-3dep-pipeline-v1.json`.
+The inventory is generated from the current committed tile tree; do not
+describe the product using the retired 28-tile / z11–z15 screening inventory.
 
-**Why committed.** The repo policy discourages generated tile pyramids, but
-this 28-tile / 252 KB screening pyramid is the documented carve-out that lets
-GitHub Pages serve the tiles with zero infrastructure (same carve-out as the
-bundled DEM JSON). Regenerate with the build script after any DEM refresh and
-replace this directory wholesale — never hand-edit a tile.
+**Provenance.** Derived from the TSM 3DEP terrain pipeline. The Terrain-RGB
+product is a screening/visualization derivative, not survey-grade elevation
+evidence and is not a substitute for project-specific vertical control.
+Vertical-datum claims remain bounded by the validated source metadata. Full
+pipeline: `docs/TERRAIN-RGB-3DEP-PIPELINE.md`; evidence ledger:
+`artifacts/tsm-terrain-rgb-3dep-pipeline-v1.json`.
+
+**Build contract.** Generate the pyramid with the repository terrain build
+scripts and replace the directory as a complete artifact. Never hand-edit
+individual PNG tiles. CI must validate the tile inventory, `tiles.json`,
+encoding, and SHA-256 manifest before publication.
