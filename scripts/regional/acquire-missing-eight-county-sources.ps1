@@ -93,6 +93,8 @@ $femaGeometryJson=$femaBoundary|ConvertTo-Json -Compress -Depth 100
 $femaFeatures=[System.Collections.Generic.List[object]]::new()
 $femaOffset=0
 $femaClient=[System.Net.Http.HttpClient]::new()
+$femaClient.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 TSM-Recovery/1.0")
+$femaClient.DefaultRequestHeaders.Accept.ParseAdd("application/json")
 try{
 do{
 $form=[System.Collections.Generic.Dictionary[string,string]]::new()
