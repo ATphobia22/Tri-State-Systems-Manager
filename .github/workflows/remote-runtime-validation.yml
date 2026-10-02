@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'tsm-console/**'
+      - 'scripts/geospatial/**'
       - '.github/workflows/remote-runtime-validation.yml'
   pull_request:
     branches: [main]
@@ -51,6 +52,15 @@ jobs:
         run: |
           npx --no-install cypress install
           npx --no-install cypress verify
+
+      - name: Build and validate deterministic 3D Tiles payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf public/3d-tiles/terrain-3dep
+          python3 ../scripts/geospatial/pack-terrain-mbtiles.py             --tile-dir public/terrain_3dep             --out /tmp/tsm-terrain-3dep.mbtiles
+          python3 ../scripts/geospatial/build-terrain-3d-tiles.py             --mbtiles /tmp/tsm-terrain-3dep.mbtiles             --out-dir public/3d-tiles/terrain-3dep             --grid-size 33
+          python3 ../scripts/geospatial/validate-terrain-3d-tiles.py             --tileset public/3d-tiles/terrain-3dep/tileset.json
 
       - name: Validate Docker Compose configuration
         run: docker compose -f docker-compose.yml config >/tmp/tsm-compose.yml
