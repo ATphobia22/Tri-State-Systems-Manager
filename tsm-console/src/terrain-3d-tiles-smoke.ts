@@ -9,7 +9,12 @@ const setStatus = (value: string) => {
   status.dataset.state = value;
 };
 
-const renderer = new TilesRenderer("/3d-tiles/terrain-3dep/tileset.json");
+const tilesetUrl = "/3d-tiles/terrain-3dep/tileset.json";
+const tileset = await fetch(tilesetUrl).then(async response => {
+  if (!response.ok) throw new Error(`tileset HTTP ${response.status}`);
+  return response.json();
+});
+const renderer = new TilesRenderer(tilesetUrl);
 const camera = new PerspectiveCamera(45, 1, 1, 1e9);
 const errors: string[] = [];
 let loadedTileset = false;
@@ -22,7 +27,7 @@ renderer.addEventListener("load-error", (event: unknown) => {
   errors.push(String(detail.error ?? detail.message ?? "unknown load error"));
 });
 
-const rootVolume = renderer.rootTileset?.root?.boundingVolume;
+const rootVolume = tileset.root?.boundingVolume;
 const rootBox = rootVolume?.box;
 const rootSphere = rootVolume?.sphere;
 const center = rootSphere
