@@ -93,15 +93,11 @@ class ArchimedesEngine:
         flags: list[str] = []
 
         if not authoritative_model_id:
-            return {
-                "engine": ENGINE_VERSION,
-                "status": "NOT_EVALUATED",
-                "screening_status": "REQUIRES_AUTHORITATIVE_MODEL",
-                "jurisdiction": jurisdiction_code,
-                "reasons": ["FAIL_CLOSED: authoritative hydraulic model identifier is required."],
-                "evaluated_at": evaluated_at,
-                "source_rule": RULE_SOURCES[jurisdiction_code],
-            }
+            flags.append("AUTHORITATIVE_MODEL_NOT_ATTACHED")
+            reasons.append(
+                "Screening is provisional because no authoritative hydraulic model identifier "
+                "was supplied; no regulatory determination is produced."
+            )
 
         if source_evidence_hash is not None and (
             len(source_evidence_hash) != 64
