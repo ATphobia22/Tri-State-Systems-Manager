@@ -41,7 +41,7 @@ $body=@{where=$Source.Where;outFields=$Source.OutFields;returnGeometry="true";ou
 if($Source.Mode -eq "boundary"){
 $body.geometry=($boundaryGeometry|ConvertTo-Json -Compress -Depth 100)
 $body.geometryType=if($boundaryGeometry.type -eq "MultiPolygon"){"esriGeometryMultipolygon"}else{"esriGeometryPolygon"}
-$body.inSR="4326";$body.spatialRel="esriSpatialRelWithin"}
+$body.inSR="4326";$body.spatialRel="esriSpatialRelIntersects";$body.geometryPrecision=6}
 if($supportsPagination){$body.resultOffset=$offset;$body.resultRecordCount=$pageSize}
 $response=Invoke-ArcGisQuery -LayerUrl $Source.Url -Body $body
 foreach($feature in @($response.features)){[void]$all.Add($feature)}
