@@ -158,7 +158,6 @@ for($startIndex=0;$startIndex -lt $femaObjectIds.Count;$startIndex+=$chunkSize){
   Write-Host "FEMA NFHL progress: $($femaList.Count)/$($femaObjectIds.Count) features"
   Start-Sleep -Seconds 5
 }
-}
 $femaFeatures=$femaList.ToArray()
 if($femaFeatures.Count -eq 0){throw "Direct FEMA NFHL layer 28 returned zero features for DFIRM_ID 21225."}
 Write-Host "Recovered FEMA NFHL 21225: $($femaFeatures.Count) features"
