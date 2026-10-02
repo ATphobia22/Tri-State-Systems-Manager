@@ -89,7 +89,26 @@ function Save-ArcGisWithinCounty(
 ) {
   Write-Host "Acquiring $RequiredId via $SpatialRelation from $ServiceLayerUrl"
   $all=@()
-  $geometryJson=(ConvertTo-EsriPolygonGeometry $script:CountyGeometry | ConvertTo-Json -Compress -Depth 100)
+  $queryGeometry = ConvertTo-EsriPolygonGeometry $script:CountyGeometry
+  $queryGeometryType = "esriGeometryPolygon"
+  if($RequiredId -eq "usgs-3dep-lidar-index"){
+    # The National Map 3DEP index is a Web Mercator (EPSG:3857) polygon
+    # index. Use the exact county's WGS84 envelope as an acquisition superset;
+    # downstream geometry validation still uses the exact TIGER polygon.
+    $coordText = $script:CountyGeometry.coordinates | ConvertTo-Json -Compress -Depth 100
+    $numbers = [regex]::Matches($coordText, "-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?") | ForEach-Object { [double]$_.Value }
+    if($numbers.Count -lt 4 -or ($numbers.Count % 2) -ne 0){ throw "Unable to derive Posey County query envelope from exact TIGER geometry." }
+    $minX=[double]::PositiveInfinity; $maxX=[double]::NegativeInfinity
+    $minY=[double]::PositiveInfinity; $maxY=[double]::NegativeInfinity
+    for($i=0;$i -lt $numbers.Count;$i+=2){
+      $x=$numbers[$i]; $y=$numbers[$i+1]
+      if($x -lt $minX){$minX=$x}; if($x -gt $maxX){$maxX=$x}
+      if($y -lt $minY){$minY=$y}; if($y -gt $maxY){$maxY=$y}
+    }
+    $queryGeometry=[ordered]@{xmin=$minX;ymin=$minY;xmax=$maxX;ymax=$maxY;spatialReference=@{wkid=4326}}
+    $queryGeometryType="esriGeometryEnvelope"
+  }
+  $geometryJson=$queryGeometry | ConvertTo-Json -Compress -Depth 100
   $meta=Invoke-RestMethod -Method Get -Uri "$($ServiceLayerUrl)?f=pjson" -TimeoutSec 120
   if($meta.error){ throw ($meta.error | ConvertTo-Json -Depth 20) }
   $pageSize=[int]$meta.maxRecordCount
@@ -98,7 +117,7 @@ function Save-ArcGisWithinCounty(
   $offset=0
   do {
     $params=@{
-      where=$Where; geometry=$geometryJson; geometryType="esriGeometryPolygon"; inSR="4326"
+      where=$Where; geometry=$geometryJson; geometryType=$queryGeometryType; inSR="4326"
       spatialRel=$SpatialRelation; outFields="*"; returnGeometry="true"; outSR="4326"; resultType="standard"; f="json"
     }
     if($supportsPagination){ $params.resultOffset=$offset; $params.resultRecordCount=$pageSize }
