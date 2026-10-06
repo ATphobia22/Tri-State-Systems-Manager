@@ -112,7 +112,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          EXPECTED_BUILDINGS=4121 HLOD_MAX_ITEMS=50 HLOD_MAX_DEPTH=6 scripts/geospatial/build-building-3d-tiles-pipeline.sh /tmp/tsm-buildings
+          EXPECTED_BUILDINGS=4121 HLOD_MAX_ITEMS=50 HLOD_MAX_DEPTH=6 bash scripts/geospatial/build-building-3d-tiles-pipeline.sh /tmp/tsm-buildings
           rm -rf tsm-console/public/3d-tiles/buildings
           mkdir -p tsm-console/public/3d-tiles/buildings
           cp -R /tmp/tsm-buildings/compressed/. tsm-console/public/3d-tiles/buildings/
@@ -227,7 +227,7 @@ jobs:
 
       - name: Package and hash building 3D Tiles artifact
         shell: bash
-        run: scripts/geospatial/package-building-3d-tiles.sh /tmp/tsm-buildings/compressed /tmp/tsm-building-artifacts v1 "$GITHUB_SHA"
+        run: bash scripts/geospatial/package-building-3d-tiles.sh /tmp/tsm-buildings/compressed /tmp/tsm-building-artifacts v1 "$GITHUB_SHA"
       - name: Upload verified building 3D Tiles artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
