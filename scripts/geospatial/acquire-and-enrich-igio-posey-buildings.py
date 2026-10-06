@@ -353,6 +353,12 @@ def main() -> None:
                 props["elevationCoverage"] = "SAMPLED"
             else:
                 no_elevation += 1
+                props["groundElevationMinFt"] = None
+                props["groundElevationMaxFt"] = None
+                props["groundElevationMeanFt"] = None
+                props["groundElevationFt"] = None
+                props["groundElevationSampleCount"] = 0
+                props["groundElevationReference"] = None
                 props["elevationCoverage"] = "UNAVAILABLE"
             props["sourceAuthority"] = "Indiana Geographic Information Office"
             props["authorityClass"] = "DERIVED"
@@ -363,9 +369,6 @@ def main() -> None:
                 print(f"Elevation-joined {index}/{count}", flush=True)
     finally:
         sampler.close()
-
-    if no_elevation:
-        raise SystemExit(f"Elevation join failed for {no_elevation} footprints")
 
     output = args.output
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -381,6 +384,7 @@ def main() -> None:
         "elevationMethod": "footprint centroid + boundary samples",
         "elevationVerticalUnits": "feet",
         "elevationVerticalDatum": "NAVD88",
+        "elevationUnavailableFeatureCount": no_elevation,
         "humanReviewRequired": True,
         "surveyGrade": False,
         "features": enriched,
