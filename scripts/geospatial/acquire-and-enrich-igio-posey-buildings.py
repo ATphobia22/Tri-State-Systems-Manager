@@ -165,7 +165,8 @@ def main() -> None:
     boundary = shape(boundary_doc["features"][0]["geometry"])
 
     features: list[dict] = []
-    object_ids: list[int] = []\n    object_id_set: set[int] = set()
+    object_ids: list[int] = []
+    object_id_set: set[int] = set()
     page_size = min(max_records, 2000)
 
     def acquire_objectid_range(lower: int, upper: int) -> None:
