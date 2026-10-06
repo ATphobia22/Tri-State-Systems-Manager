@@ -7,7 +7,7 @@ licenses, credentials, or physical-world measurements that only the owner can
 provide. (Fail-closed principle: the repo leaves these as `null`/draft/unresolved
 rather than guessing.)
 
-*Maintained: 2026-09-25. Sources: `docs/DRIVE-MANIFEST.md` §C, `docs/NFIP_CID_VERIFICATION.md`, `docs/grants/POSEY-2026-STATE-GRANT-CALENDAR.md`, findings F8–F12.*
+*Maintained: 2026-10-06. Sources: `docs/DRIVE-MANIFEST.md` §C, `docs/NFIP_CID_VERIFICATION.md`, `docs/grants/POSEY-2026-STATE-GRANT-CALENDAR.md`, findings F8–F12.*
 
 ---
 
@@ -91,8 +91,7 @@ the filed version and receipt.
 
 ## 6. Gage-datum acquisition (per-node research outcome)
 
-**What:** `hydrologic_nodes[].gage_zero_navd88_ft` is `null` for all five
-nodes, so the `datum_control` gate can never clear. USGS-site metadata was
+**What:** the remaining unresolved nodes still have `null` `gage_zero_navd88_ft`, but USGS 03378500 (Wabash River at New Harmony) is now separately resolved with a published station-specific NAVD88 relationship: **352.67 ft**, documented in `tsm-console/src/lib/gage-datums.ts` from USGS SIR 2016-5119. That relationship is valid only for the station WSE and is not a project-site transfer. The remaining listed nodes stay null and fail closed. USGS-site metadata was
 queried on 2026-09-25:
 
 | Node | Source tried | Result |
@@ -121,7 +120,7 @@ Water Science Center / NWS Paducah; (2) if only NGVD29 is available, a licensed
 surveyor or agency datum-conversion statement is required — the repo will not
 perform the conversion itself.
 
-## 7. INDOT CCMG FY2027 deadline — 2026-09-30
+## 7. INDOT CCMG FY2027 deadline — 2026-09-30 (closed window)
 
 **What:** per `docs/grants/POSEY-2026-STATE-GRANT-CALENDAR.md` and the grant
 rules, INDOT Community Crossings (CCMG) FY2027 opened ~Sep 1, 2026 and **closes
@@ -163,7 +162,7 @@ owner's developer identity.
 membership) runs the build per `docs/BUILD-IOS.md` and produces the signed
 `.ipa`.
 
-## 10. GitHub auth for push
+## 10. GitHub auth for push (superseded)
 
 **What:** local `main` carries commits not on the remote
 (`https://github.com/ATphobia22/Tri-State-Systems-Manager`); pushing needs the
@@ -172,8 +171,7 @@ owner's GitHub authentication, which the agent does not have.
 **Why code can't fix it:** credentials belong to the owner; the agent must not
 request, store, or fabricate them.
 
-**What's needed:** owner provides GitHub auth (or pushes from their own
-machine); the coordinator's commits go up then.
+**Disposition:** no owner action is required for GitHub pushes through the connected repository integration.
 
 ## 11. Hazus local calibration
 
