@@ -33,12 +33,19 @@ interface ThreeDTilesLayerProps {
   map?: ThreeDTilesMapCamera;
   /** Callback for layer status changes */
   onStatusChange?: (status: 'loading' | 'ready' | 'error' | 'disabled') => void;
+  /**
+   * Overlay mode: the Three.js canvas fills its positioned parent and lets
+   * pointer events pass through to the map beneath. Used to unify the 3D
+   * tiles onto the main twin canvas instead of a separate panel.
+   */
+  overlay?: boolean;
 }
 
 export default function ThreeDTilesLayer({
   source,
   map,
   onStatusChange,
+  overlay = false,
 }: ThreeDTilesLayerProps) {
   const mountRef = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error' | 'disabled'>(
@@ -251,16 +258,25 @@ export default function ThreeDTilesLayer({
   return (
     <div
       ref={mountRef}
-      style={{
-        width: '100%',
-        height: '400px',
-        position: 'relative',
-        background: '#0b1220',
-        borderRadius: 8,
-        overflow: 'hidden',
-      }}
+      style={
+        overlay
+          ? {
+              position: 'absolute',
+              inset: 0,
+              pointerEvents: 'none',
+              overflow: 'hidden',
+            }
+          : {
+              width: '100%',
+              height: '400px',
+              position: 'relative',
+              background: '#0b1220',
+              borderRadius: 8,
+              overflow: 'hidden',
+            }
+      }
     >
-      {status === 'loading' && (
+      {status === 'loading' && !overlay && (
         <div
           style={{
             position: 'absolute',

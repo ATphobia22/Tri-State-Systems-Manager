@@ -1,6 +1,5 @@
 /** React Router data router for the community-scale engineering console. */
 
-import { Suspense, lazy } from 'react';
 import { createBrowserRouter, redirect, useLoaderData, type ActionFunctionArgs } from 'react-router';
 import { getSession, requireAuthenticatedMutation } from './auth';
 import { SITE } from '../types/site';
@@ -20,9 +19,8 @@ import EngineeringSectionView from '../routes/EngineeringSectionView';
 import LoginView from '../routes/LoginView';
 import LoginCallbackView from '../routes/LoginCallbackView';
 import PublicDataFabricDashboard from '../components/PublicDataFabricDashboard';
-// DigitalTwinV2View pulls in maplibre-gl (~1 MB vendor chunk + 82 KB CSS).
+// TwinCanvasView (unified 2D + 3D twin) pulls in maplibre-gl (~1 MB vendor chunk + 82 KB CSS).
 // Lazy-load it so map code leaves the critical path for non-map visitors.
-const DigitalTwinV2View = lazy(() => import('../routes/DigitalTwinV2View'));
 import type { RootLoaderData, CharterLoaderData, ArchitectureLoaderData, NeedsLoaderData, LedgerLoaderData, LineageLoaderData, BenefitLoaderData, MapTwinLoaderData, EvidenceBlock, InterventionRecord, DataContractSummary } from '../types/loaders';
 
 let interventions: InterventionRecord[] = [];
@@ -174,7 +172,7 @@ export const appRoutes = [
   { path: 'eoc', loader: mapTwinLoader, hydrateFallbackElement: <RouteLoadingFallback label="the EOC surface" />, lazy: async () => ({ Component: (await import('../routes/MapLibreEocView')).default }) },
   { path: 'twin', loader: mapTwinLoader, hydrateFallbackElement: <RouteLoadingFallback label="the twin canvas" />, lazy: async () => ({ Component: (await import('../routes/TwinCanvasView')).default }) },
   { path: 'digital-twin', loader: mapTwinLoader, hydrateFallbackElement: <RouteLoadingFallback label="the twin summary" />, lazy: async () => ({ Component: (await import('../routes/MapTwinView')).default }) },
-  { path: 'digital-twin-v2', element: <Suspense fallback={<RouteLoadingFallback label="the 3D digital twin" />}><DigitalTwinV2View /></Suspense> },
+  { path: 'digital-twin-v2', loader: mapTwinLoader, hydrateFallbackElement: <RouteLoadingFallback label="the unified 3D twin" />, lazy: async () => ({ Component: (await import('../routes/TwinCanvasView')).default }) },
   { path: 'flood-sim', hydrateFallbackElement: <RouteLoadingFallback label="the flood simulator" />, lazy: async () => ({ Component: (await import('../components/FloodSimulator')).default }) },
   { path: 'spatial-planes', hydrateFallbackElement: <RouteLoadingFallback label="the spatial data fabric" />, lazy: async () => ({ Component: (await import('../components/TriStateRiverValleyMap')).default }) },
   { path: 'posey-resilience', hydrateFallbackElement: <RouteLoadingFallback label="the Posey resilience platform" />, lazy: async () => ({ Component: (await import('../routes/PoseyResilienceDashboard')).default }) },

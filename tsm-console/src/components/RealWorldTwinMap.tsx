@@ -7,6 +7,10 @@ import { terrainRgbBlockMessage } from '../lib/terrain-rgb-contract';
 import { buildArcGisImageServerExportTemplate, INDIANA_CURRENT_IMAGERY_WMS, USGS_3DEP_ELEVATION_WMS, USGS_3DEP_HILLSHADE_RENDERING_RULE } from '../lib/open-world-wms';
 import { setupParcelProvenanceInspector } from '../lib/parcel-provenance';
 import { playCinematicTour } from '../lib/cinematic/camera-tour';
+import ThreeDTilesLayer from './ThreeDTilesLayer';
+
+// Self-hosted 3D terrain tiles (OGC 3D Tiles 1.1, generated from USGS 3DEP).
+const TERRAIN_3D_TILESET_URL = `${import.meta.env.BASE_URL}3d-tiles/terrain-3dep/tileset.json`;
 
 // Anchor site (owner keep-data decision: docs/privacy/site-anchor-public-disclosure.md).
 // The /map twin opens on the property instead of the regional envelope midpoint.
@@ -40,6 +44,9 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
   const [femaVisible, setFemaVisible] = useState(false);
   const [bafmVisible, setBafmVisible] = useState(false);
   const [cinematicActive, setCinematicActive] = useState(false);
+  const [tiles3DVisible, setTiles3DVisible] = useState(false);
+  const [tiles3DStatus, setTiles3DStatus] = useState<'loading' | 'ready' | 'error' | 'disabled'>('disabled');
+  const [mapReady, setMapReady] = useState(false);
   const cinematicStopRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
@@ -110,6 +117,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       if (map.getLayer('tsm-hydraulic-extrusion')) setupParcelProvenanceInspector(map);
       new maplibregl.Marker().setLngLat(NEW_HARMONY_GAGE).setPopup(buildGagePopup(data)).addTo(map);
       mapRef.current = map;
+      setMapReady(true);
     });
     return () => {
       cinematicStopRef.current?.();
@@ -153,6 +161,18 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
   return (
     <section aria-label="Real-source Indiana open-world digital twin" style={{ position: 'relative', height: '100%', minHeight: 480, background: '#020617' }}>
       <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
+      {tiles3DVisible && mapReady && mapRef.current && (
+        <ThreeDTilesLayer
+          source={{
+            id: 'tsm-3d-terrain',
+            tilesetUrl: TERRAIN_3D_TILESET_URL,
+            enabled: true,
+          }}
+          map={mapRef.current}
+          onStatusChange={setTiles3DStatus}
+          overlay
+        />
+      )}
       <div style={{ position: 'absolute', left: 12, top: 12, zIndex: 2, maxWidth: 520, padding: 12, borderRadius: 10, background: 'rgba(2,6,23,0.9)', color: '#e2e8f0', fontSize: 12, lineHeight: 1.5 }}>
         <strong>Real-source open-world twin</strong>
         <div>Indiana Current Imagery: live ImageServer · USGS 3DEP: dynamic elevation/hillshade (visualization only)</div>
@@ -167,6 +187,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
           {([
             { id: 'fema', pressed: femaVisible, onClick: () => setFemaVisible((value) => !value), label: `FEMA NFHL ${femaVisible ? 'ON' : 'OFF'}` },
             { id: 'bafm', pressed: bafmVisible, onClick: () => setBafmVisible((value) => !value), label: `Indiana BAFM ${bafmVisible ? 'ON' : 'OFF'}` },
+            { id: '3d', pressed: tiles3DVisible, onClick: () => setTiles3DVisible((value) => !value), label: `3D Terrain ${tiles3DVisible ? 'ON' : 'OFF'}` },
             { id: 'cinematic', pressed: cinematicActive, onClick: toggleCinematicTour, label: cinematicActive ? 'Stop cinematic' : 'Cinematic fly-through' },
           ] as const).map((btn) => (
             <button
@@ -190,7 +211,10 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
             </button>
           ))}
         </div>
-        <div style={{ marginTop: 6, color: '#86efac' }}>USGS 03378500: one-time fetch on page load (user-initiated); provisional values, no polling or auto-refresh. Station WSE via published USGS SIR 2016-5119 conversion (+352.67 ft NAVD88). Site transfer and hydraulic extrusion remain gated on a validated hydraulic profile. HEC-RAS visualization authority remains SIMULATION_DEMO / MODEL_OUTPUT until evidence gates are satisfied. Visualization/model context only; human authority remains final.</div>
+        <div style={{ marginTop: 6, color: '#86efac' }}>USGS 03378500: live values only via the "Fetch live snapshot" button (no auto-fetch, no polling). Station WSE via published USGS SIR 2016-5119 conversion (+352.67 ft NAVD88). Site transfer and hydraulic extrusion remain gated on a validated hydraulic profile. HEC-RAS visualization authority remains SIMULATION_DEMO / MODEL_OUTPUT until evidence gates are satisfied. Visualization/model context only; human authority remains final.</div>
+        {tiles3DVisible && (
+          <div style={{ marginTop: 6, color: '#94a3b8' }}>3D terrain: self-hosted OGC 3D Tiles 1.1 (USGS 3DEP) · status: {tiles3DStatus}</div>
+        )}
       </div>
     </section>
   );
