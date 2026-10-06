@@ -26,6 +26,7 @@ from urllib.request import Request, urlopen
 
 import numpy as np
 import rasterio
+from shapely.geometry import shape
 from rasterio.warp import transform as warp_transform
 
 SERVICE = "https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0"
@@ -142,6 +143,7 @@ def main() -> None:
     ap.add_argument("--output", required=True, type=Path)
     ap.add_argument("--expected-count", type=int, default=EXPECTED_POSEY)
     ap.add_argument("--dem-root", type=Path, default=Path("data/posey-county/elevation"))
+    ap.add_argument("--boundary", type=Path, default=Path("data/posey-county/boundaries/posey-county.geojson"))
     args = ap.parse_args()
 
     meta = request_json({"f": "json"})
@@ -149,59 +151,84 @@ def main() -> None:
     if max_records < 1:
         raise SystemExit("IGIO layer returned an invalid maxRecordCount")
 
-    features: list[dict] = []
-    object_ids: list[int] = []
-    offset = 0
-    page_size = min(max_records, 2000)
+    boundary_doc = json.loads(args.boundary.read_text(encoding="utf-8"))
+    boundary = shape(boundary_doc["features"][0]["geometry"])
+    min_lon, min_lat, max_lon, max_lat = boundary.bounds
 
-    while True:
+    def wm_x(lon: float) -> float:
+        return lon * 20037508.34 / 180.0
+
+    def wm_y(lat: float) -> float:
+        return math.log(math.tan((90.0 + lat) * math.pi / 360.0)) / (math.pi / 180.0) * 20037508.34 / 180.0
+
+    envelope = ",".join(str(v) for v in (
+        wm_x(min_lon), wm_y(min_lat), wm_x(max_lon), wm_y(max_lat)
+    ))
+    ids_payload = request_json({
+        "where": "1=1",
+        "geometry": envelope,
+        "geometryType": "esriGeometryEnvelope",
+        "inSR": "102100",
+        "spatialRel": "esriSpatialRelIntersects",
+        "returnIdsOnly": "true",
+        "f": "json",
+    })
+    candidate_ids = sorted(int(x) for x in ids_payload.get("objectIds", []))
+    if not candidate_ids:
+        raise SystemExit("IGIO spatial query returned no candidates")
+
+    candidate_features: list[dict] = []
+    for start in range(0, len(candidate_ids), min(max_records, 1000)):
+        chunk = candidate_ids[start:start + min(max_records, 1000)]
         payload = request_json({
-            "where": "county='Posey'",
+            "objectIds": ",".join(str(x) for x in chunk),
             "outFields": "objectid,lidaryear,county",
             "returnGeometry": "true",
             "outSR": "4326",
-            "resultType": "standard",
-            "resultRecordCount": page_size,
-            "resultOffset": offset,
             "f": "json",
         })
-        got = payload.get("features", [])
-        if not got:
-            break
-
-        for feature in got:
-            attrs = feature.get("attributes", {})
+        for feature in payload.get("features", []):
             geometry = feature.get("geometry")
-            if not geometry or attrs.get("county") != "Posey":
-                raise SystemExit("IGIO response contained an unexpected county or missing geometry")
-            object_id = int(attrs["objectid"])
-            object_ids.append(object_id)
-            rings = geometry.get("rings")
-            if not rings:
-                raise SystemExit(f"IGIO object {object_id} has no polygon rings")
-            coords = []
-            for ring in rings:
-                coords.append([[float(p[0]), float(p[1])] for p in ring])
+            if not geometry or not geometry.get("rings"):
+                continue
+            polygon = shape({"type": "Polygon", "coordinates": geometry["rings"]})
+            if polygon.intersects(boundary):
+                candidate_features.append(feature)
+
+    candidate_by_id = {
+        int(f["attributes"]["objectid"]): f for f in candidate_features
+    }
+    object_ids = sorted(candidate_by_id)
+    count = len(object_ids)
+    if count != args.expected_count or len(set(object_ids)) != count:
+        raise SystemExit(
+            f"IGIO Posey feature-count mismatch after exact boundary intersection: "
+            f"expected {args.expected_count}, got {count}"
+        )
+
+    features: list[dict] = []
+    for start in range(0, len(object_ids), min(max_records, 1000)):
+        chunk = object_ids[start:start + min(max_records, 1000)]
+        for object_id in chunk:
+            feature = candidate_by_id[object_id]
+            attrs = feature["attributes"]
+            geometry = feature["geometry"]
+            rings = geometry["rings"]
             features.append({
                 "type": "Feature",
-                "geometry": {"type": "Polygon", "coordinates": coords},
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [
+                        [[float(p[0]), float(p[1])] for p in ring] for ring in rings
+                    ],
+                },
                 "properties": {
                     "igioObjectId": object_id,
                     "lidarYear": attrs.get("lidaryear"),
                     "county": attrs.get("county"),
                 },
             })
-
-        print(f"Acquired {len(features)}/{args.expected_count}", flush=True)
-        if len(got) < page_size:
-            break
-        offset += len(got)
-
-    count = len(features)
-    if count != args.expected_count or len(set(object_ids)) != count:
-        raise SystemExit(
-            f"IGIO Posey feature-count/object-id mismatch: expected {args.expected_count}, got {count}"
-        )
+        print(f"Acquired {len(features)}/{count}", flush=True)
 
     dem_paths = sorted(args.dem_root.glob("*.tif"))
     if not dem_paths:
