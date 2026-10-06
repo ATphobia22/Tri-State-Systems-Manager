@@ -165,7 +165,6 @@ def main() -> None:
             "outFields": "objectid,lidaryear,county",
             "returnGeometry": "true",
             "outSR": "4326",
-            "resultType": "standard",
             "resultRecordCount": page_size,
             "resultOffset": offset,
             "f": "json",
