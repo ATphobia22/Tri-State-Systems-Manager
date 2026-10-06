@@ -1,6 +1,8 @@
 # Project-specific generated artifacts
 TuckerInc.82 Loves the TriState.pdf
 tsm-console/data/geospatial/cache/
+# Generated 3D Tiles (CI regenerates from scripts/geospatial/; never commit GLBs)
+tsm-console/public/3d-tiles/
 
 # Node / frontend build outputs
 node_modules/
