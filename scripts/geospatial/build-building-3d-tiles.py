@@ -348,15 +348,15 @@ def main() -> None:
     ap.add_argument("--extrusion-ft", type=float, default=DEFAULT_EXTRUSION_FT)
     ap.add_argument("--limit", type=int, default=0,
                     help="process only the first N features (deterministic subset for testing)")
-    ap.add_argument("--source-url", default="https://poseyin.wthgis.com/")
-    ap.add_argument("--source-version", default="TSM derived building screening dataset v1")
+    ap.add_argument("--source-url", default="https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0")
+    ap.add_argument("--source-version", default="Indiana Building Footprints 2016-2020")
     args = ap.parse_args()
     if args.extrusion_ft <= 0:
         raise SystemExit("--extrusion-ft must be positive")
 
     data = json.loads(args.geojson.read_text())
     features = data.get("features", [])
-    # Deterministic order: ascending sourceObjectId.
+    # Deterministic order: ascending IGIO object ID.
     def sort_key(ft):
         props = ft.get("properties", {})\n        sid = props.get("igioObjectId", props.get("sourceObjectId"))
         return (0, int(sid)) if isinstance(sid, (int, float)) else (1, 0)
