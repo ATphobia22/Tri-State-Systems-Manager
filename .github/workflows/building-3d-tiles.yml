@@ -13,6 +13,7 @@ on:
       - 'scripts/geospatial/build-building-3d-tiles-pipeline.sh'
       - 'scripts/geospatial/compress-hlod-glbs.sh'
       - 'scripts/geospatial/package-building-3d-tiles.sh'
+      - 'scripts/geospatial/acquire-and-enrich-igio-posey-buildings.py'
       - 'tsm-console/public/data/posey-buildings-derived.geojson'
 
 permissions:
