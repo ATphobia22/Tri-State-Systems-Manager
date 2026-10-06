@@ -153,6 +153,10 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund --registry=${{ env.NPM_REGISTRY }}
       - name: Vendor pinned CesiumJS static runtime
         run: node scripts/ci/install-cesium-static.mjs
+      - name: Install pinned CI tooling
+        env:
+          TSM_INSTALL_EXTERNAL_TOOLING: 'true'
+        run: node scripts/ci/install-external-tooling.mjs
 
       - name: Build deterministic building 3D Tiles for Pages
         shell: bash
