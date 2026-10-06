@@ -292,13 +292,17 @@ def main() -> None:
                 raise SystemExit(f"IGIO object {object_id} returned invalid polygon geometry")
             if not polygon.intersects(boundary):
                 raise SystemExit(f"IGIO object {object_id} falls outside the exact Posey County boundary")
+            clipped = polygon.intersection(boundary)
+            if clipped.is_empty or clipped.geom_type not in {"Polygon", "MultiPolygon"} or not clipped.is_valid:
+                raise SystemExit(f"IGIO object {object_id} could not be clipped to the exact Posey County boundary")
             features.append({
                 "type": "Feature",
-                "geometry": mapping(polygon),
+                "geometry": mapping(clipped),
                 "properties": {
                     "igioObjectId": object_id,
                     "lidarYear": attrs.get("lidaryear"),
                     "county": attrs.get("county"),
+                    "geometryClippedToPoseyBoundary": not polygon.equals(clipped),
                 },
             })
 
