@@ -213,9 +213,9 @@ def main() -> None:
             })
 
         print(f"Acquired {len(features)}/{args.expected_count}", flush=True)
+        last_object_id = max(object_ids[-len(got):])
         if len(got) < page_size:
             break
-        offset += len(got)
 
     count = len(features)
     if count != args.expected_count or len(set(object_ids)) != count:
