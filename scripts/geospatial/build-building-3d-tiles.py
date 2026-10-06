@@ -358,7 +358,7 @@ def main() -> None:
     features = data.get("features", [])
     # Deterministic order: ascending sourceObjectId.
     def sort_key(ft):
-        sid = ft.get("properties", {}).get("sourceObjectId")
+        props = ft.get("properties", {})\n        sid = props.get("igioObjectId", props.get("sourceObjectId"))
         return (0, int(sid)) if isinstance(sid, (int, float)) else (1, 0)
     features = sorted(features, key=sort_key)
     if args.limit > 0:
@@ -372,7 +372,7 @@ def main() -> None:
     skipped = 0
     for ft in features:
         props = ft.get("properties", {}) or {}
-        sid = props.get("sourceObjectId")
+        sid = props.get("igioObjectId", props.get("sourceObjectId"))
         if not isinstance(sid, (int, float)):
             skipped += 1
             continue
@@ -477,7 +477,8 @@ def main() -> None:
         "source": {
             "sourceUrl": args.source_url,
             "sourceVersionOrEffectiveDate": args.source_version,
-            "sourceId": "posey-buildings-derived",
+            "sourceId": "indiana-building-footprints-2016-2020",
+            "sourceFeatureCount": len(features),
         },
         "input": {
             "geojsonSha256": geojson_sha,
@@ -494,7 +495,9 @@ def main() -> None:
         ),
         "parameters": {
             "extrusionFt": args.extrusion_ft,
-            "extrusionEstimated": True,\n            "footprintGeometry": "authoritative IGIO LiDAR-derived polygon",\n            "elevationSource": "IGIO footprint joined to committed Posey 3DEP-derived DEM",
+            "extrusionEstimated": True,
+            "footprintGeometry": "authoritative IGIO LiDAR-derived polygon",
+            "elevationSource": "IGIO footprint joined to committed Posey 3DEP-derived DEM",\n            "footprintGeometry": "authoritative IGIO LiDAR-derived polygon",\n            "elevationSource": "IGIO footprint joined to committed Posey 3DEP-derived DEM",
             "colorFlooded": COLOR_FLOODED,
             "colorDry": COLOR_DRY,
         },
