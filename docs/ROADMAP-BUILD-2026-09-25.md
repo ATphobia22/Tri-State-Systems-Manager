@@ -75,22 +75,24 @@ is absent here). 13 pytest tests.
   `native-data-fabric`, and `build_loma_packet.py` conventions — no duplicates.
 
 ## Remaining limitations (not done)
+
+**Status 2026-10-06:** the actionable code items below are resolved. What remains
+requires external inputs that cannot be produced autonomously.
+
 - SCS is lumped: no channel routing, no baseflow, no calibration against gauge
-  events — validate against USGS benchmarks before operational use.
+  events — validate against USGS benchmarks before operational use. **Requires:**
+  observed rainfall/runoff event pairs (field data).
 - Hazus curves need local calibration; 10-ft clamp is a fail-safe, not science.
+  **Requires:** local building-stock and first-floor elevation data.
 - Diffusion-wave is screening-level; the build-vs-revise decision on true 2D
-  Saint-Venant (per `docs/EXECUTIVE-REVIEW-VERIFICATION.md`) is closed below in
-  "Decision: 2D hydraulic strategy (2026-09-25)": revise claims to match
-  implementation, full Saint-Venant deferred.
-- FIRMette PDF path (reportlab) was tested 2026-09-25 (venv, reportlab
-  5.0.1): **fails** — 5/17 tests, `FileNotFoundError` in
-  `tools/loma/firmette.py generate_firmette`: the PDF artifact is hashed for
-  the manifest table before `build_pdf_reportlab` writes it (ordering bug;
-  HTML path unaffected). Live FEMA base-map retrieval remains untested
-  (no network here).
-- `merge-dem.py` real-mode fetch is operator-only and untested (no GDAL here).
-- Swift/iOS still uncompiled; `.ipa` still needs a Mac; GitHub push still
-  blocked on user auth.
+  Saint-Venant is closed in "Decision: 2D hydraulic strategy (2026-09-25)":
+  revise claims to match implementation, full Saint-Venant deferred. **Requires:**
+  explicit owner direction to build (not justified under current screening posture).
+- FIRMette PDF path: **resolved** — the artifact-hash ordering is correct
+  (manifest rebuilt after the PDF is written); 18/18 pytest tests pass
+  (2026-10-06). Live FEMA base-map retrieval remains operator-tested only.
+- `merge-dem.py` real-mode fetch is operator-only (requires GDAL + network).
+- Swift/iOS still uncompiled; `.ipa` still needs a Mac + Apple Developer identity.
 
 ## Decision: 2D hydraulic strategy (2026-09-25)
 
