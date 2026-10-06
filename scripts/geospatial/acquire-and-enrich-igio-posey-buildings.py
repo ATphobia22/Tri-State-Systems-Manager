@@ -174,10 +174,8 @@ def main() -> None:
             "outFields": "objectid,lidaryear,county",
             "returnGeometry": "true",
             "outSR": "4326",
-            "resultType": "standard",
             "resultRecordCount": page_size,
             "resultOffset": offset,
-            "orderByFields": "objectid ASC",
             "f": "json",
         })
         got = payload.get("features", [])
