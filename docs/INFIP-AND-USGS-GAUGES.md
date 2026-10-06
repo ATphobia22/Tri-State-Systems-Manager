@@ -22,7 +22,7 @@
 | Parameters | 00065 gage height (ft), 00060 discharge (cfs) |
 | Cooperation | USACE Louisville District |
 | Data | **Provisional**, subject to revision |
-| NWIS IV API | `https://waterservices.usgs.gov/nwis/iv/?sites=03378500&parameterCd=00065,00060&format=json` |
+| NWIS IV API | `https://waterservices.usgs.gov/nwis/iv/?sites=03378500&parameterCd=00065,00060&format=json` — **RETIRED** (Water Services decommissioned 2026-02-22). Current: `https://api.waterdata.usgs.gov/ogcapi/v1/collections/latest-continuous/items?f=json&monitoring_location_id=USGS-03378500&parameter_code=00065,00060` |
 
 NWS AHPS / water.noaa.gov gauge **NHRI3** provides flood categories (action/minor/moderate/major) and NAVD88 equivalents at the gauge — **not** the structure BFE at restricted site.
 

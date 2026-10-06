@@ -36,7 +36,7 @@ It records the agency, authority class, newest-vintage selection rule, official 
 
 | Source ID | Authority | Primary endpoint | Data | Class / boundary |
 |---|---|---|---|---|
-| `USGS-NWIS-IV` | U.S. Geological Survey | `https://waterservices.usgs.gov/nwis/iv/` | Historical/instantaneous stage and discharge | Observation snapshot; raw stage remains GAGE_DATUM |
+| `USGS-NWIS-IV` | U.S. Geological Survey | `https://waterservices.usgs.gov/nwis/iv/` — **RETIRED 2026-02-22**; current endpoint `https://api.waterdata.usgs.gov/ogcapi/v1/collections/latest-continuous/items` | Historical/instantaneous stage and discharge | Observation snapshot; raw stage remains GAGE_DATUM |
 | `USGS-TNM` | U.S. Geological Survey National Map | `https://tnmaccess.nationalmap.gov/` | 3DEP lidar, DEM and related products | Scientific/geospatial acquisition |
 | `USGS-3DEP-LIDAREXPLORER` | U.S. Geological Survey | `https://www.usgs.gov/tools/lidarexplorer` | Current lidar/DEM/topobathymetry discovery | Scientific/geospatial acquisition |
 | `FEMA-NFHL` | Federal Emergency Management Agency | `https://hazards.fema.gov/arcgis/rest/services/FIRMette/NFHLREST_FIRMette/MapServer` | Effective FIRM panels, zones, BFEs, cross sections, levees and map-change layers | FEMA effective reference |

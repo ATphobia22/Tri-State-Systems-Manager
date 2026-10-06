@@ -50,7 +50,7 @@ OBSERVATION / PLANNING / DERIVED / CONTEXT / VISUALIZATION.
 | USGS 3DEP terrain | Self-hosted Terrain-RGB tiles, zooms 8–12 | 3DEP QL2 / best-available | OBSERVATION | No fabricated terrain fallback; fail-closed if template unset. |
 | Building footprints | IGIO `Building_Footprints` 2016–2020 (live) | **2016–2020 — STALE** | DERIVED | LiDAR-derived reference only. Do not treat as current survey geometry. |
 | Posey CSLF | `Posey_CSLF_Feb2025` (live) | Feb 2025 | CONTEXT | Preliminary/pending map-change evidence; not effective NFHL. |
-| USGS gauges | `waterservices.usgs.gov` / `api.waterdata.usgs.gov` (live) | Live | OBSERVATION | **Button-only**: fetched solely on explicit user "Fetch live snapshot"; page loaders return unavailable sentinel; no polling (dead `startGaugePoll` removed 2026-10-06). |
+| USGS gauges | `api.waterdata.usgs.gov` (live); `waterservices.usgs.gov` retired 2026-02-22 | Live | OBSERVATION | **Button-only**: fetched solely on explicit user "Fetch live snapshot"; page loaders return unavailable sentinel; no polling (dead `startGaugePoll` removed 2026-10-06). |
 | CWMS stage | `cwms-data.usace.army.mil` (live) | Live | OBSERVATION | Optional plane via `usace-cwms.mjs`; caller-initiated only; not a USGS replacement. |
 
 ### Stale / watch-list sources

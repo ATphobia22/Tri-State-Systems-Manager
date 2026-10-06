@@ -16,13 +16,47 @@ TSM combines authoritative river observations, geospatial evidence, engineering-
 | **Public console (GitHub Pages SPA)** | https://atphobia22.github.io/Tri-State-Systems-Manager/ |
 | **Windows x64 offline runtime** | GitHub Actions artifact `TSM-OFFLINE-RUNTIME-WINDOWS-X64-<commit>` |
 | **API readiness** | `GET /ready` when an authorized API deployment is configured |
-| **Console package** | `tsm-console` **v0.2.1** (React **19.3.0**, Vite **8.3.1**, `@react-three/fiber` **9.8.1**, MapLibre **6.11.2**, Three **0.186.1**, Vitest **5.0.2**, `@types/node` **26.6.2**) |
+| **Console package** | `tsm-console` **v0.2.1** (React **19.3.0**, Vite **8.3.1**, `@react-three/fiber` **9.8.1**, MapLibre **6.12.0**, deck.gl **9.4.0** scoped modules, Three **0.186.1**, Vitest **5.0.2**, `@types/node` **26.6.2**) |
 
 The Jekyll action output `Configuration file: none` is informational for the static artifact and is not a TSM Jekyll build. TSM publishes its Vite-generated `dist/` artifact directly.
 
 The Pages workflow can publish the static console without a backend dependency. When an API is configured, `VITE_TSM_API_BASE_URL` must be an HTTPS origin.
 
 Settings → Pages → Source must be **GitHub Actions**. The workflow does not fabricate or bypass that repository-level setting.
+
+## System status — 2026-10-06
+
+### USGS migration (ahead of the 2026-02-22 Water Services decommission)
+
+- **All live USGS paths** moved from `waterservices.usgs.gov/nwis/iv/` to the Water Data OGC API (`api.waterdata.usgs.gov/ogcapi/v1/collections/latest-continuous`): `tsm-console/src/lib/stage.ts` (button-press snapshot), `RiverGaugeBoard.tsx` (dead legacy fallback removed — fails closed now), `web-endpoints.ts`, `backend/app/main.py` (snapshot + WSE routes), `server/ingestion/usgs-nwis.mjs`, and the S-5 `hydrologic-health-check.mjs` operator script (URL + response parser; verified live against three stations 2026-10-06).
+- **Button-only telemetry preserved** — no fetch on load, no polling. Provisional qualifiers now derive honestly from OGC `approval_status` (previously hardcoded). OGC returns `value` as a string; both parsers coerce numerically.
+- Remaining `waterservices.usgs.gov` references are retired-endpoint notes in docs/comments only.
+
+### Rendering upgrades
+
+- **MapLibre 6.11.2 → 6.12.0** (globe refinements, mobile hillshade fixes); **deck.gl 9.4.0** scoped modules added (`@deck.gl/core`, `layers`, `aggregation-layers`, `maplibre`) — MIT, token-free, WebGL2 path. The `deck.gl` meta-package was deliberately avoided: it drags `@deck.gl/arcgis` → `@arcgis/core` → Vaadin postinstall telemetry, which trips the dependency-integrity gate.
+- **New "Flood overlay (screening)" toggle** on the twin: depth-stepped heatmap + contour isolines (redundant color/opacity/contour encoding for accessibility) rendered from the real diffusion-wave screening chain on user toggle. Off by default; labeled screening-level, uncalibrated, **not a regulatory determination**. The only simulations in the system remain the historical flood sims and berm/road-placement sims.
+
+### Peer review & data
+
+- **`docs/PEER-REVIEW-PACKAGE.md`** — reviewer-facing package: simulator scope and limits, per-layer provenance table, stale-source watch list, reproduction commands, reviewer checklist, known limitations.
+- **Wabash levee polygons wired as a REGULATORY map layer** (USACE NLD2, `data/usace-nld/leveed-areas-wabash-v1.geojson`, SHA-256 verified). **Posey node registry added** (`data/idnr-posey/registry-v1.json`): USGS 03322420 (Ohio River at Uniontown Dam = J.T. Myers reach) verified live 2026-10-06; gage-zero intentionally null (fail-closed).
+
+### Forms & grants
+
+- **19 official form documents integrated** (FEMA Elevation Certificate, MT-1/MT-EZ + instructions, IDNR State Forms 55233/55235/55236/57132, 312 IAC 10 rule text, SF-424/424A, OCRA CDBG 2026 R2 instructions, IDEM §319, USACE 205/22 fact sheets, USDA Water & Waste). Repo guides built from them: `docs/grants/*` (toolkit, SF-424 field guide, deadline tracker, USACE request how-to) and `docs/regulatory/*` (EC field schema, MT-1 checklist, IDNR 55236 mirror, verified 312 IAC 10 rules). **OCRA CDBG 2026 Round 2 proposal deadline (Oct 4, 2026) has PASSED** — proposal gate closed; pre-approval Dec 4 / application Dec 13 cannot be reached without it.
+
+### PR hygiene
+
+- #222 (Dependabot actions, 5 updates) **merged**; #224 (stale Codex docs PR asserting the retired USGS endpoint) **closed** as superseded. No open PRs remain.
+
+### CI
+
+- Latest main (`1f21f28`) at time of writing: **15 green, 0 failed, 1 still running** (16 workflows). One real failure caught and fixed during the day: the deck.gl meta-package's transitive Vaadin install script tripped the dependency-integrity gate — replaced with scoped modules. Two Dependabot updater jobs failed on Dependabot's own infrastructure (not repo code).
+
+### Still blocked
+
+- **Oracle Cloud:** the rejected saved-login blocker was resolved 2026-10-06 via the owner's own browser sign-in (tenancy `atphobia22`, us-sanjose-1 confirmed). Instance creation attempted with Always Free guardrails verified — **"Out of capacity for shape VM.Standard.A1.Flex in AD-1"**. No instance exists; nothing billed. The 15-minute retry cron continues.
 
 ## System status — 2026-10-05
 

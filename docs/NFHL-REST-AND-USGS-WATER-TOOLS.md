@@ -47,9 +47,17 @@ NFHL is the **digital** National Flood Hazard Layer. Official NFIP products rema
 
 ### Instantaneous Values (IV) — live stage / discharge
 
-```text
-https://waterservices.usgs.gov/nwis/iv/?format=json&sites={SITE}&parameterCd=00065&siteStatus=all
-```
+> **RETIRED 2026-02-22** — USGS Water Services is decommissioned. Use the Water Data OGC API:
+>
+> ```text
+> https://api.waterdata.usgs.gov/ogcapi/v1/collections/latest-continuous/items?f=json&monitoring_location_id=USGS-{SITE}&parameter_code=00065&limit=2
+> ```
+>
+> Historical reference (no longer live):
+>
+> ```text
+> https://waterservices.usgs.gov/nwis/iv/?format=json&sites={SITE}&parameterCd=00065&siteStatus=all
+> ```
 
 | Code | Meaning |
 |------|--------|

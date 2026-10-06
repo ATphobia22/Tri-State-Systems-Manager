@@ -1,27 +1,32 @@
 #!/usr/bin/env node
 /**
- * S-5 — Periodic NWIS / NWPS health check
+ * S-5 — Periodic USGS Water Data / NWPS health check
  * Writes OBSERVATION-class status only. No governance mutations. No auto-append
  * to Merkle unless explicitly piped by an operator-approved job.
+ *
+ * 2026-10-06: migrated from USGS Water Services (waterservices.usgs.gov,
+ * decommissioned 2026-02-22) to the Water Data OGC API
+ * (api.waterdata.usgs.gov/ogcapi/v1).
  *
  * Usage: node scripts/hydrologic-health-check.mjs
  */
 
+const OGC_ITEMS = 'https://api.waterdata.usgs.gov/ogcapi/v1/collections/latest-continuous/items';
 const NODES = [
   {
     id: '03378500',
     kind: 'usgs',
-    url: 'https://waterservices.usgs.gov/nwis/iv/?format=json&sites=03378500&parameterCd=00065&siteStatus=all',
+    url: `${OGC_ITEMS}?f=json&monitoring_location_id=USGS-03378500&parameter_code=00065&limit=2`,
   },
   {
     id: '03322000',
     kind: 'usgs',
-    url: 'https://waterservices.usgs.gov/nwis/iv/?format=json&sites=03322000&parameterCd=00065&siteStatus=all',
+    url: `${OGC_ITEMS}?f=json&monitoring_location_id=USGS-03322000&parameter_code=00065&limit=2`,
   },
   {
     id: '03322420',
     kind: 'usgs',
-    url: 'https://waterservices.usgs.gov/nwis/iv/?format=json&sites=03322420&parameterCd=00065&siteStatus=all',
+    url: `${OGC_ITEMS}?f=json&monitoring_location_id=USGS-03322420&parameter_code=00065&limit=2`,
   },
   {
     id: 'MTVI3',
@@ -56,8 +61,9 @@ async function checkNode(node) {
     const json = await res.json();
     let value = null;
     if (node.kind === 'usgs') {
-      const v = json?.value?.timeSeries?.[0]?.values?.[0]?.value?.[0];
-      value = v ? parseFloat(v.value) : null;
+      // OGC API latest-continuous: features[].properties.value (string numeric).
+      const raw = json?.features?.[0]?.properties?.value;
+      value = raw != null ? parseFloat(raw) : null;
     } else {
       const primary = json?.status?.observed?.primary;
       value = typeof primary === 'number' ? primary : parseFloat(primary);
