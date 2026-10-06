@@ -28,7 +28,13 @@ env:
   VITE_PAGES_BASE_PATH: /Tri-State-Systems-Manager/
 
 jobs:
+  buildings:
+    name: Build verified building 3D Tiles
+    uses: ./.github/workflows/buildings-3d-tiles.yml
+    secrets: inherit
+
   build:
+    needs: [buildings]
     name: Verify and build production console
     if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-24.04
@@ -72,6 +78,27 @@ jobs:
           esac
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Download verified building 3D Tiles artifact
+        uses: actions/download-artifact@8b8c65029ccad20750a29fecb438eca5a607fc57 # v8.0.0
+        with:
+          name: tsm-buildings-3d-tiles-${{ github.sha }}
+          path: /tmp/tsm-building-artifact
+      - name: Materialize and revalidate building 3D Tiles
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf tsm-console/public/3d-tiles/buildings
+          mkdir -p tsm-console/public/3d-tiles/buildings /tmp/tsm-building-extract
+          artifact_zip=$(find /tmp/tsm-building-artifact -maxdepth 1 -type f -name '*.zip' -print -quit)
+          test -s "$artifact_zip"
+          unzip -q "$artifact_zip" -d /tmp/tsm-building-extract
+          cp -R /tmp/tsm-building-extract/3d-tiles/buildings/. tsm-console/public/3d-tiles/buildings/
+          python3 scripts/geospatial/validate-building-3d-tiles.py \\
+            --tileset tsm-console/public/3d-tiles/buildings/tileset.json \\
+            --expected-buildings 4121 --require-draco --strict-hlod
+          test -s tsm-console/public/3d-tiles/buildings/tileset.json
+          test -s tsm-console/public/3d-tiles/buildings/SHA256SUMS
+
       - name: Acquire and validate Posey parcel snapshot
         shell: bash
         run: |
@@ -152,6 +179,8 @@ jobs:
       - name: Install locked dependencies
         working-directory: ${{ env.CONSOLE_DIR }}
         run: npm ci --ignore-scripts --no-audit --no-fund --registry=${{ env.NPM_REGISTRY }}
+      - name: Vendor pinned CesiumJS static runtime
+        run: node scripts/ci/install-cesium-static.mjs
       - name: Repository integrity gate
         working-directory: ${{ env.CONSOLE_DIR }}
         run: npm run check:integrity
@@ -248,6 +277,8 @@ jobs:
           grep -Fq '/Tri-State-Systems-Manager/' dist/404.html
           test -s dist/3d-tiles/terrain-3dep/tileset.json
           test -s dist/3d-tiles/terrain-3dep/SHA256SUMS
+          test -s dist/3d-tiles/buildings/tileset.json
+          test -s dist/3d-tiles/buildings/SHA256SUMS
           node <<'NODE'
           const fs = require('node:fs');
           const path = require('node:path');
@@ -314,6 +345,11 @@ jobs:
           grep -Eiq '<title>[^<]+</title>' /tmp/tsm-pages-response.html
           echo "Published Pages endpoint responded successfully: ${PAGE_URL}"
           base="${PAGE_URL%/}/3d-tiles/terrain-3dep"
+          building_base="${PAGE_URL%/}/3d-tiles/buildings"
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${building_base}/tileset.json" -o /tmp/published-building-tileset.json
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${building_base}/SHA256SUMS" -o /tmp/published-building-SHA256SUMS
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${PAGE_URL%/}/vendor/cesium/Cesium.js" -o /tmp/published-Cesium.js
+          test -s /tmp/published-Cesium.js
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${base}/tileset.json" -o /tmp/published-tileset.json
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${base}/SHA256SUMS" -o /tmp/published-SHA256SUMS
           BASE_URL="${base}" python3 - <<'PY'
@@ -347,6 +383,15 @@ jobs:
               if actual != digest:
                   raise SystemExit(f"SHA-256 mismatch for published {rel}: {actual} != {digest}")
           print(f"Published 3D Tiles integrity verified: {len(lines)} files")
+          building_lines = Path("/tmp/published-building-SHA256SUMS").read_text().splitlines()
+          for line in building_lines:
+              digest, rel = line.split("  ", 1)
+              target = out / ("buildings-" + rel.replace("/", "__"))
+              target.write_bytes(fetch_bytes(os.environ["BASE_URL"].rstrip("/") + "/buildings/" + rel))
+              actual = hashlib.sha256(target.read_bytes()).hexdigest()
+              if actual != digest:
+                  raise SystemExit(f"Building SHA-256 mismatch for published {rel}: {actual} != {digest}")
+          print(f"Published building 3D Tiles integrity verified: {len(building_lines)} files")
           PY
       - name: Verify production API readiness (informational)
         shell: bash
