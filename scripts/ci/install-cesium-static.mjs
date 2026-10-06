@@ -1,0 +1,15 @@
+import { execFileSync } from 'node:child_process';
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
+import { join, resolve } from 'node:path';
+const root=resolve(new URL('../..',import.meta.url).pathname), consoleDir=join(root,'tsm-console'), target=join(consoleDir,'public','vendor','cesium'), work=join(root,'.ci-cesium'), version='1.146.0';
+rmSync(work,{recursive:true,force:true}); mkdirSync(work,{recursive:true});
+const packed=execFileSync('npm',['pack',`cesium@${version}`,'--silent','--pack-destination',work],{cwd:consoleDir,encoding:'utf8'}).trim().split(/\r?\n/).at(-1);
+if(!packed) throw new Error('npm pack returned no filename');
+execFileSync('tar',['-xzf',join(work,packed),'-C',work]);
+const pkg=JSON.parse(readFileSync(join(work,'package','package.json'),'utf8'));
+if(pkg.version!==version) throw new Error(`Cesium version mismatch: ${pkg.version}`);
+const src=join(work,'package','Build','Cesium'); const required=['Cesium.js','Workers','ThirdParty','Assets','Widgets'];
+for(const n of required) if(!existsSync(join(src,n))) throw new Error(`missing Cesium asset: ${n}`);
+rmSync(target,{recursive:true,force:true}); mkdirSync(target,{recursive:true});
+for(const n of required) cpSync(join(src,n),join(target,n),{recursive:true});
+rmSync(work,{recursive:true,force:true});

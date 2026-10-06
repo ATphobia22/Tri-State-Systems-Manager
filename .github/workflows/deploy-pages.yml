@@ -108,6 +108,16 @@ jobs:
             --grid-size 33
           python3 scripts/geospatial/validate-terrain-3d-tiles.py \
             --tileset tsm-console/public/3d-tiles/terrain-3dep/tileset.json
+      - name: Build deterministic building 3D Tiles for Pages
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXPECTED_BUILDINGS=4121 HLOD_MAX_ITEMS=50 HLOD_MAX_DEPTH=6 bash scripts/geospatial/build-building-3d-tiles-pipeline.sh /tmp/tsm-buildings
+          rm -rf tsm-console/public/3d-tiles/buildings
+          mkdir -p tsm-console/public/3d-tiles/buildings
+          cp -R /tmp/tsm-buildings/compressed/. tsm-console/public/3d-tiles/buildings/
+          python3 scripts/geospatial/validate-building-3d-tiles.py --tileset tsm-console/public/3d-tiles/buildings/tileset.json --tiles-dir tsm-console/public/3d-tiles/buildings --expected-buildings 4121 --require-draco --strict-hlod
+
 
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -152,6 +162,8 @@ jobs:
       - name: Install locked dependencies
         working-directory: ${{ env.CONSOLE_DIR }}
         run: npm ci --ignore-scripts --no-audit --no-fund --registry=${{ env.NPM_REGISTRY }}
+      - name: Vendor pinned CesiumJS static runtime
+        run: node scripts/ci/install-cesium-static.mjs
       - name: Repository integrity gate
         working-directory: ${{ env.CONSOLE_DIR }}
         run: npm run check:integrity
@@ -172,6 +184,10 @@ jobs:
           set -euo pipefail
           python3 scripts/geospatial/validate-terrain-3d-tiles.py \
             --tileset tsm-console/dist/3d-tiles/terrain-3dep/tileset.json
+          python3 scripts/geospatial/validate-building-3d-tiles.py \
+            --tileset tsm-console/dist/3d-tiles/buildings/tileset.json \
+            --tiles-dir tsm-console/dist/3d-tiles/buildings \
+            --expected-buildings 4121 --require-draco --strict-hlod
 
       - name: 3D Tiles browser renderer smoke test
         working-directory: tsm-console
@@ -208,6 +224,20 @@ jobs:
           curl --fail --silent --show-error http://127.0.0.1:4173/Tri-State-Systems-Manager/terrain-3d-tiles-renderer-smoke.html >/dev/null
           ./node_modules/.bin/cypress install
           CYPRESS_BASE_URL=http://127.0.0.1:4173/Tri-State-Systems-Manager/ npm run test:terrain-3d-tiles-browser
+
+      - name: Package and hash building 3D Tiles artifact
+        shell: bash
+        run: bash scripts/geospatial/package-building-3d-tiles.sh /tmp/tsm-buildings/compressed /tmp/tsm-building-artifacts v1 "$GITHUB_SHA"
+      - name: Upload verified building 3D Tiles artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: tsm-buildings-3d-tiles-${{ github.sha }}
+          path: |
+            /tmp/tsm-building-artifacts/*.zip
+            /tmp/tsm-building-artifacts/*.zip.sha256
+          retention-days: 90
+          compression-level: 0
+          if-no-files-found: error
 
       - name: Package and hash 3D Tiles artifact
         shell: bash
@@ -248,6 +278,10 @@ jobs:
           grep -Fq '/Tri-State-Systems-Manager/' dist/404.html
           test -s dist/3d-tiles/terrain-3dep/tileset.json
           test -s dist/3d-tiles/terrain-3dep/SHA256SUMS
+          test -s dist/3d-tiles/buildings/tileset.json
+          test -s dist/3d-tiles/buildings/SHA256SUMS
+          test -s dist/vendor/cesium/Cesium.js
+          test -s dist/vendor/cesium/Widgets/widgets.css
           node <<'NODE'
           const fs = require('node:fs');
           const path = require('node:path');
@@ -316,6 +350,11 @@ jobs:
           base="${PAGE_URL%/}/3d-tiles/terrain-3dep"
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${base}/tileset.json" -o /tmp/published-tileset.json
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${base}/SHA256SUMS" -o /tmp/published-SHA256SUMS
+          building_base="${PAGE_URL%/}/3d-tiles/buildings"
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${building_base}/tileset.json" -o /tmp/published-building-tileset.json
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${building_base}/SHA256SUMS" -o /tmp/published-building-SHA256SUMS
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${PAGE_URL%/}/vendor/cesium/Cesium.js" -o /tmp/published-Cesium.js
+          test -s /tmp/published-Cesium.js
           BASE_URL="${base}" python3 - <<'PY'
           import hashlib
           import os
@@ -347,6 +386,17 @@ jobs:
               if actual != digest:
                   raise SystemExit(f"SHA-256 mismatch for published {rel}: {actual} != {digest}")
           print(f"Published 3D Tiles integrity verified: {len(lines)} files")
+          building_lines = Path("/tmp/published-building-SHA256SUMS").read_text().splitlines()
+          building_root = Path("/tmp/published-building-3d-tiles"); building_root.mkdir(exist_ok=True)
+          building_base = os.environ["PAGE_URL"].rstrip("/") + "/3d-tiles/buildings/"
+          for line in building_lines:
+              digest, rel = line.split("  ", 1)
+              target = building_root / rel; target.parent.mkdir(parents=True, exist_ok=True)
+              target.write_bytes(fetch_bytes(building_base + rel))
+              actual = hashlib.sha256(target.read_bytes()).hexdigest()
+              if actual != digest:
+                  raise SystemExit(f"Building SHA-256 mismatch for published {rel}: {actual} != {digest}")
+          print(f"Published building 3D Tiles integrity verified: {len(building_lines)} files")
           PY
       - name: Verify production API readiness (informational)
         shell: bash
