@@ -1,1 +1,39 @@
-{"accessDate":"2026-09-28","authority":"Indiana Geographic Information Office (GIO)","authorityClass":"STATE_ELEVATION","downloadedVsReferenced":{"demTiles":"REFERENCED ONLY — 581 per-tile S3 URLs vendored in the manifest; county-wide 1 m DEM intentionally NOT vendored (~GBs). Offline tooling fetches only needed tiles.","vendoredDerivatives":"COMMITTED — data/posey-county/elevation/bonebank-anchor-dem-10m.tif and posey-county-dem-30m.tif (small screening derivatives)."},"horizontalCrs":"Indiana State Plane West (SPW) for source tiles","license":"CC0 (AWS Registry of Open Data); tiles are Cloud-Optimized GeoTIFFs.","limitations":["Reference only — not survey evidence.","Source tile index queried 2026-09-28; tile availability may change."],"schemaVersion":"1.0.0","sha256Inventory":"data-sources/SHA256SUMS (section 3)","sourceId":"indiana-dem-2020-posey","sourceName":"Indiana statewide DEM tile footprints — Posey County (2016–2020 collection)","sourceUrls":["https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/"],"tileCount":581,"tileIndexManifest":"data/posey-county/elevation/posey-dem-tile-manifest-2020.json","verticalDatum":"NAVD88 (Indiana statewide DEM program)"}
+{
+  "accessDate": "2026-10-06",
+  "authority": "Indiana Geographic Information Office (GIO)",
+  "authorityClass": "STATE_ELEVATION",
+  "downloadedVsReferenced": {
+    "demTiles": "REFERENCED ONLY \u2014 581 per-tile S3 URLs vendored in the manifest; county-wide 1 m DEM intentionally NOT vendored (~GBs). Offline tooling fetches only needed tiles.",
+    "vendoredDerivatives": "COMMITTED \u2014 data/posey-county/elevation/bonebank-anchor-dem-10m.tif and posey-county-dem-30m.tif (small screening derivatives)."
+  },
+  "horizontalCrs": "Indiana State Plane West (SPW) for source tiles",
+  "license": "CC0 (AWS Registry of Open Data); tiles are Cloud-Optimized GeoTIFFs.",
+  "limitations": [
+    "Reference only \u2014 not survey evidence.",
+    "Source tile index queried 2026-09-28; tile availability may change."
+  ],
+  "schemaVersion": "1.0.0",
+  "sha256Inventory": "data-sources/SHA256SUMS (section 3)",
+  "sourceId": "indiana-dem-2020-posey",
+  "sourceName": "Indiana statewide DEM tile footprints \u2014 Posey County (2016\u20132020 collection)",
+  "sourceUrls": [
+    "https://giselevationingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/",
+    "https://giselevationingov.s3.us-east-2.amazonaws.com/las/statewide/2020/SPW/ql2/"
+  ],
+  "tileCount": 581,
+  "tileIndexManifest": "data/posey-county/elevation/posey-dem-tile-manifest-2020.json",
+  "verticalDatum": "NAVD88 (Indiana statewide DEM program)",
+  "bucketArn": "arn:aws:s3:::giselevationingov",
+  "bucketRegion": "us-east-2",
+  "siteTile": {
+    "tileId": "IN2020_26850945_12",
+    "file": "data/posey-county/elevation/in2020-26850945-12-dem-2.5ft.tif",
+    "coversSite": "37.845887,-88.005075 (Bonebank anchor)",
+    "resolutionFt": 2.5,
+    "crs": "EPSG:2968 (Indiana State Plane West, NAD83, feet)",
+    "verticalDatum": "NAVD88",
+    "dimensions": "2000x2000",
+    "elevationAtSiteFt": 364.0,
+    "note": "Reference only \u2014 not survey evidence. Site elevation from 2020 LiDAR DEM differs from owner-supplied LAG 377.2 ft; datum/method differences not reconciled."
+  }
+}
