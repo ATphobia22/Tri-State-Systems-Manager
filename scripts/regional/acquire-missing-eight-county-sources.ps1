@@ -137,7 +137,34 @@ if($source.Mode -eq "boundary"){
 $parcelSpatialRelation = if($source.Mode -eq "boundary"){"exact-county-within-tiger-boundary"}else{"exact-county-attribute"}
 [void]$receipts.Add((Write-Receipt -Id "$($county.Fips)-parcels-recovery" -CountyFips $county.Fips -Authority $source.Authority -SourceUrl $source.Url -Path $target -FeatureCount $features.Count -SpatialRelation $parcelSpatialRelation))
 }
-$femaUrl="https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer/28"
+$femaServiceUrl="https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer"
+# Dynamic layer discovery (2026-10-06): do NOT hardcode a layer ID. FEMA
+# reorganizes NFHL MapServer layers; resolve the flood-hazard polygon layer
+# by service metadata, name semantics, and field contract.
+function Find-FemaFloodZoneLayer {
+  param([string]$ServiceUrl)
+  $meta=Invoke-RestMethod -Method Get -Uri "$ServiceUrl`?f=json" -TimeoutSec 60
+  if($meta.error){throw($meta.error|ConvertTo-Json -Depth 20)}
+  $candidates=@()
+  foreach($layer in @($meta.layers)){
+    $name=[string]$layer.name
+    if($name -match "(?i)flood hazard zone"){ $candidates+=@($layer) }
+  }
+  if($candidates.Count -eq 0){throw "FEMA NFHL: no 'Flood Hazard Zone' layer in service metadata at $ServiceUrl"}
+  foreach($layer in $candidates){
+    $layerMeta=Invoke-RestMethod -Method Get -Uri "$ServiceUrl/$($layer.id)`?f=json" -TimeoutSec 60
+    if($layerMeta.error){continue}
+    $fieldNames=@($layerMeta.fields|ForEach-Object{$_.name})
+    $required=@("DFIRM_ID","FLD_ZONE","ZONE_SUBTY","SFHA_TF","STATIC_BFE")
+    $missing=@($required|Where-Object{$fieldNames -notcontains $_})
+    if($missing.Count -eq 0 -and $layerMeta.geometryType -eq "esriGeometryPolygon"){
+      Write-Host "FEMA NFHL flood-zone layer resolved: id=$($layer.id) name='$($layer.name)'"
+      return "$ServiceUrl/$($layer.id)"
+    }
+  }
+  throw "FEMA NFHL: no flood-hazard polygon layer satisfied the field contract (DFIRM_ID, FLD_ZONE, ZONE_SUBTY, SFHA_TF, STATIC_BFE)"
+}
+$femaUrl=Find-FemaFloodZoneLayer -ServiceUrl $femaServiceUrl
 $femaWhere="DFIRM_ID LIKE '21225%'"
 $femaFields="DFIRM_ID,FLD_ZONE,ZONE_SUBTY,SFHA_TF,STATIC_BFE,DEPTH"
 # FEMA NFHL returns HTTP 500 on a single full-geometry county query; resolve
@@ -145,7 +172,7 @@ $femaFields="DFIRM_ID,FLD_ZONE,ZONE_SUBTY,SFHA_TF,STATIC_BFE,DEPTH"
 $femaIdBody=@{where=$femaWhere;returnIdsOnly="true";f="json"}
 $femaIdResponse=Invoke-ArcGisQuery -LayerUrl $femaUrl -Body $femaIdBody
 $femaObjectIds=@($femaIdResponse.objectIds | Sort-Object {[int64]$_})
-if($femaObjectIds.Count -eq 0){throw "Direct FEMA NFHL layer 28 returned zero object IDs for DFIRM_ID 21225."}
+if($femaObjectIds.Count -eq 0){throw "FEMA NFHL flood-zone layer returned zero object IDs for DFIRM_ID 21225."}
 Write-Host "Recovering FEMA NFHL 21225: $($femaObjectIds.Count) features"
 $femaList=[System.Collections.Generic.List[object]]::new()
 $chunkSize=25
@@ -169,7 +196,7 @@ for($startIndex=0;$startIndex -lt $femaObjectIds.Count;$startIndex+=$chunkSize){
   Start-Sleep -Seconds 5
 }
 $femaFeatures=$femaList.ToArray()
-if($femaFeatures.Count -eq 0){throw "Direct FEMA NFHL layer 28 returned zero features for DFIRM_ID 21225."}
+if($femaFeatures.Count -eq 0){throw "FEMA NFHL flood-zone layer returned zero features for DFIRM_ID 21225."}
 Write-Host "Recovered FEMA NFHL 21225: $($femaFeatures.Count) features"
 $femaRelative="ky-union-21225/floodplain/fema-nfhl-21225.geojson"
 $femaTarget=Join-Path $OutRoot $femaRelative

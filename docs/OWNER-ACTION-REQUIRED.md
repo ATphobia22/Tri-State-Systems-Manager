@@ -7,7 +7,7 @@ licenses, credentials, or physical-world measurements that only the owner can
 provide. (Fail-closed principle: the repo leaves these as `null`/draft/unresolved
 rather than guessing.)
 
-*Maintained: 2026-09-25. Sources: `docs/DRIVE-MANIFEST.md` §C, `docs/NFIP_CID_VERIFICATION.md`, `docs/grants/POSEY-2026-STATE-GRANT-CALENDAR.md`, findings F8–F12.*
+*Maintained: 2026-10-06. Sources: `docs/DRIVE-MANIFEST.md` §C, `docs/NFIP_CID_VERIFICATION.md`, `docs/grants/POSEY-2026-STATE-GRANT-CALENDAR.md`, findings F8–F12.*
 
 ---
 
@@ -91,13 +91,13 @@ the filed version and receipt.
 
 ## 6. Gage-datum acquisition (per-node research outcome)
 
-**What:** `hydrologic_nodes[].gage_zero_navd88_ft` is `null` for all five
-nodes, so the `datum_control` gate can never clear. USGS-site metadata was
+**What:** `hydrologic_nodes[].gage_zero_navd88_ft` remains `null` for four of
+five nodes, so the `datum_control` gate cannot clear for those stations. USGS-site metadata was
 queried on 2026-09-25:
 
 | Node | Source tried | Result |
 |---|---|---|
-| 03378500 Wabash River at New Harmony, IN (USGS) | USGS Water Data API (`api.waterdata.usgs.gov`; `/v1/site` is not a valid endpoint path); legacy WaterServices site service (empty reply — service degrading ahead of Feb 2027 retirement); WDFN monitoring-location page (lists available data, **no gage-datum elevation**) | **LEFT NULL** |
+| 03378500 Wabash River at New Harmony, IN (USGS) | USGS SIR 2016-5119 published gage-zero relationship | **RESOLVED 2026-10-05: +352.67 ft NAVD88** (`PUBLISHED_USGS_SIR_2016_5119`) |
 | 03322000 Ohio River at Evansville, IN (USGS) | same USGS attempts | **LEFT NULL** |
 | 03322420 Ohio River at Uniontown Dam, KY (USGS) | same USGS attempts | **LEFT NULL** |
 | MTVI3 Ohio River at Mount Vernon, IN (NWS) | NWS NWPS API (`api.water.noaa.gov/nwps/v1/gauges/MTVI3`) — response carries **no datum field at all** | **LEFT NULL** |
@@ -121,13 +121,16 @@ Water Science Center / NWS Paducah; (2) if only NGVD29 is available, a licensed
 surveyor or agency datum-conversion statement is required — the repo will not
 perform the conversion itself.
 
-## 7. INDOT CCMG FY2027 deadline — 2026-09-30
+## 7. INDOT CCMG FY2027 deadline — 2026-09-30 (CLOSED)
 
-**What:** per `docs/grants/POSEY-2026-STATE-GRANT-CALENDAR.md` and the grant
-rules, INDOT Community Crossings (CCMG) FY2027 opened ~Sep 1, 2026 and **closes
-Sep 30, 2026, 5:00 p.m. EDT** — 5 days from this writing. Requires an approved
-Asset Management Plan and a local resolution; scope is road/bridge/culvert
-only (levee/berm work does not fit).
+**Status 2026-10-06:** this window has closed. Per `docs/grants/POSEY-2026-STATE-GRANT-CALENDAR.md` and the grant
+rules, INDOT Community Crossings (CCMG) FY2027 opened ~Sep 1, 2026 and **closed
+Sep 30, 2026, 5:00 p.m. EDT**. No submission was made through TSM.
+
+**Disposition:** missed / not pursued this cycle. Next-cycle action: watch for
+the FY2028 CCMG call (typically opens ~September 2027); a road/drainage project
+with an approved Asset Management Plan and local resolution would be the
+eligible scope (road/bridge/culvert only — levee/berm work does not fit).
 
 **Why code can't fix it:** submitting requires county approval, the AMP, and a
 political decision by the owner/county.

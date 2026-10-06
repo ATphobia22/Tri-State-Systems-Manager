@@ -28,18 +28,18 @@ Settings → Pages → Source must be **GitHub Actions**. The workflow does not 
 
 ### Fixed
 
-- **Twin live telemetry (`f630ce9`):** the digital twin status panel now shows real USGS 03378500 observations — stage, discharge, and station WSE NAVD88 via the published SIR 2016-5119 gage-zero conversion (+352.67 ft). One-time fetch on page load (user-initiated); provisional qualifiers; no polling or auto-refresh. Site transfer and hydraulic extrusion remain fail-closed pending a validated hydraulic profile — not invented.
+- **Twin live telemetry (`f630ce9`, corrected 2026-10-06):** the digital twin status panel shows real USGS 03378500 observations — stage, discharge, and station WSE NAVD88 via the published SIR 2016-5119 gage-zero conversion (+352.67 ft). Live values ONLY via an explicit "Fetch live snapshot" button press (standing owner rule 2026-10-01); page loaders return the unavailable sentinel and perform no fetch. Provisional qualifiers; no polling or auto-refresh. Site transfer and hydraulic extrusion remain fail-closed pending a validated hydraulic profile — not invented.
 - **Site elevations wired with provenance:** BFE 375.0 ft (2026-08-22 LOMA checklist working value; FIRM panel 18129C0300C verification pending), LAG 377.2 ft / FFE 382.5 ft / berm crest 379.8 ft (owner-supplied, uncertified), clearance 2.2 ft (derived). None claimed as certified survey.
 - **LOD1–LOD4 pipeline:** parcel → terrain → building derivation complete (4,121 features, 1,233 flooded at the 375.0 ft screening scenario); deterministic 3D building tiles generated and validated (OGC 3D Tiles 1.1, 4,121 GLBs).
 
 ### CI
 
-- All 12 GitHub Actions workflows green on `main`, including the Windows x64 Offline Runtime.
+- 2026-10-06: repaired three release blockers — (1) source-map-js HIGH vulnerability resolved via npm override to 1.2.2 (lockfile + SBOM regenerated); (2) stale telemetry contract test updated to the button-only snapshot policy and twin page loaders made fetch-free; (3) FEMA NFHL recovery now uses dynamic layer discovery instead of hardcoded MapServer/28. Local verification: 335/335 frontend tests, TypeScript clean, production build succeeds, 64 backend tests pass. Awaiting CI fan-out on the new commit to confirm green.
 
 ### Still blocked
 
 - **Oracle Cloud:** the Always Free A1 retry remains blocked on the rejected saved login (auth, not capacity). Instance creation cannot proceed until the vault password is refreshed.
-- **Branch hygiene:** fully-merged branches and stale refs removed. Four feature branches retain unique work behind `main` — merge decision left to the owner.
+- **Branch hygiene:** all four stale feature branches searched file-by-file against main on 2026-10-06 — three fully superseded (nothing to integrate), one contributed its FEMA NFHL endpoint fix — then deleted from remote. Only `main` and the active Dependabot branch remain.
 
 ## System status — 2026-10-02
 

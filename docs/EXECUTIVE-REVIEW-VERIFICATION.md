@@ -51,7 +51,7 @@ else is done, partial, or not applicable.
 3. **FIRMette generator** (task 14) — complete the evidence workflow on top of
    the existing LOMA packet builder.
 4. **2D hydraulic capability** (task 10) — repo has 1D; decide build-vs-revise
-   per SYNTHESIS-VERIFICATION.md.
+   per `docs/EXECUTIVE-REVIEW-VERIFICATION.md` (canonical verification report).
 5. **Scenario runner + alerting** (task 16) — operations layer completion.
 6. **Adopt the provenance label taxonomy** (task 17) — FEMA-effective /
    State-best / observed / modeled tags on outputs.

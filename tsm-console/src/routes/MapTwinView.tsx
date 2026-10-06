@@ -1,12 +1,26 @@
+import { useState } from 'react';
 import { useLoaderData } from 'react-router';
 import type { MapTwinLoaderData } from '../types/loaders';
 import { t } from '../lib/design-tokens';
 import { toH3Cell } from '../lib/h3-spatial-fabric';
+import { fetchLiveStage } from '../lib/stage';
 
 function MapTwinView() {
   const data = useLoaderData() as MapTwinLoaderData;
-  // Live stage: one-time USGS fetch on page load per the 2026-10-01 superseding
-  // direction (no polling); the 2026-09-29 retired sentinel was removed 2026-10-05.
+  // Standing owner rule (2026-10-01, superseding): live values ONLY via a
+  // user-initiated "Fetch live snapshot" button. The loader returns the
+  // unavailable sentinel; this button is the explicit live path (no polling,
+  // no background refresh).
+  const [stage, setStage] = useState(data.stage);
+  const [fetching, setFetching] = useState(false);
+  const fetchSnapshot = async () => {
+    setFetching(true);
+    try {
+      setStage(await fetchLiveStage());
+    } finally {
+      setFetching(false);
+    }
+  };
   const centerLat = (data.boundingEnvelope.minLat + data.boundingEnvelope.maxLat) / 2;
   const centerLon = (data.boundingEnvelope.minLon + data.boundingEnvelope.maxLon) / 2;
   let h3Cell = '—';
@@ -31,7 +45,7 @@ function MapTwinView() {
           margin: '1.25rem 0',
         }}
       >
-        <Card label="Station WSE" value={data.stage.wse_navd88_ft == null ? 'unavailable' : `${data.stage.wse_navd88_ft.toFixed(2)} ft NAVD88`} />
+        <Card label="Station WSE" value={stage.wse_navd88_ft == null ? 'unavailable' : `${stage.wse_navd88_ft.toFixed(2)} ft NAVD88`} />
         <Card label="BFE" value={data.fema.bfe_ft == null ? 'source required' : `${data.fema.bfe_ft} ft`} />
         <Card label="LAG" value={`${data.fema.lag_ft} ft`} />
         <Card label="Clearance" value={`+${data.fema.clearance_ft} ft`} />
@@ -40,31 +54,53 @@ function MapTwinView() {
       </div>
       <div style={{ background: t.color.surface.card, borderRadius: t.radius.lg, padding: '1rem', marginBottom: 12 }}>
         <h3 style={{ color: t.color.accent.brand, margin: '0 0 0.5rem', fontSize: t.font.size.xl }}>
-          Live Stage (loader)
+          Live Stage (USGS 03378500)
         </h3>
-        <p style={{ color: t.color.text.body, margin: 0 }}>
-          {data.stage.source} {data.stage.gaugeId}:{' '}
+        <p style={{ color: t.color.text.body, margin: '0 0 0.75rem' }}>
+          {stage.source} {stage.gaugeId}:{' '}
           <strong>
-            {data.stage.value_ft != null ? `${data.stage.value_ft} ft` : 'unavailable'}
+            {stage.value_ft != null ? `${stage.value_ft} ft` : 'unavailable'}
           </strong>
           {' · '}
-          <span style={{ color: t.color.text.secondary }}>{data.stage.floodCategory}</span>
+          <span style={{ color: t.color.text.secondary }}>{stage.floodCategory}</span>
           {' · '}
-          <span style={{ color: t.color.text.secondary }}>{data.stage.vertical_reference}</span>
+          <span style={{ color: t.color.text.secondary }}>{stage.vertical_reference}</span>
         </p>
-        {data.stage.timestamp && (
+        {stage.timestamp && (
           <p style={{ color: t.color.text.secondary, fontSize: t.font.size.sm, margin: '0.35rem 0 0' }}>
-            {data.stage.timestamp}
+            {stage.timestamp}
           </p>
         )}
+        <button
+          type="button"
+          onClick={fetchSnapshot}
+          disabled={fetching}
+          aria-label="Fetch live snapshot"
+          style={{
+            marginTop: '0.75rem',
+            padding: '0.5rem 1rem',
+            borderRadius: t.radius.md,
+            border: 'none',
+            background: t.color.accent.brand,
+            color: '#fff',
+            fontWeight: 700,
+            cursor: fetching ? 'wait' : 'pointer',
+          }}
+        >
+          {fetching ? 'Fetching…' : 'Fetch live snapshot'}
+        </button>
+        <p style={{ color: t.color.text.secondary, fontSize: t.font.size.sm, margin: '0.5rem 0 0' }}>
+          One-time USGS snapshot on press. No automatic polling. Provisional values; site transfer stays fail-closed.
+        </p>
       </div>
       <div style={{ background: t.color.surface.base, borderRadius: t.radius.lg, padding: '1rem', border: `1px solid ${t.color.surface.card}` }}>
         <h3 style={{ color: t.color.status.info, margin: '0 0 0.5rem', fontSize: t.font.size.xl }}>
-          Community gauges — retired
+          Community gauges — on-demand snapshots
         </h3>
         <p style={{ color: t.color.text.secondary, fontSize: t.font.size.sm, margin: '0 0 0.75rem' }}>
-          Live river data was dropped by owner decision on 2026-09-29. No gauges
-          are polled and no values are shown; nothing is fabricated to fill the gap.
+          Per owner direction 2026-10-01 (superseding): live values only via an
+          explicit "Fetch live snapshot" press. No gauges are polled and nothing
+          is fabricated to fill the gap; see River Watch for the multi-gauge board.
         </p>
       </div>
       <p style={{ marginTop: '1rem', fontSize: t.font.size.sm, color: t.color.text.secondary }}>

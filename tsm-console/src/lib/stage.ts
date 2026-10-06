@@ -3,18 +3,18 @@ import type { MapTwinLoaderData } from '../types/loaders';
 import { GAGE_DATUM_TABLE } from './gage-datums';
 
 /**
- * Live stage — one-time USGS fetch on page load (user-initiated navigation).
+ * Live stage — user-initiated USGS snapshot ONLY.
  *
  * Owner history:
  * - 2026-09-29: live river data dropped ("drop live river data"); fetch retired
  *   to a no-network sentinel.
  * - 2026-10-01 (SUPERSEDING): river data YES — static + historical kept; no
- *   automatic polling/refresh; live values only via user-initiated fetch.
- * - 2026-10-05: owner directed "fix everything ... real world real current".
- *   This loader performs a SINGLE one-time fetch of USGS instantaneous values
- *   when the twin page loads. There is no timer, no polling, and no background
- *   refresh. The RiverGaugeBoard "Fetch live snapshot" button remains the
- *   explicit on-demand path on the River Watch page.
+ *   automatic polling/refresh; live values ONLY via a user-initiated
+ *   "Fetch live snapshot" button. Never automatic polling.
+ * - 2026-10-06: corrected to the standing rule — page loaders return the
+ *   unavailable sentinel and perform NO network fetch. The ONLY live path is
+ *   fetchLiveStage(), called from an explicit button press (RiverGaugeBoard
+ *   "Fetch live snapshot"; Digital Twin "Fetch live snapshot").
  *
  * Vertical conversion uses the published USGS SIR 2016-5119 gage-zero
  * relationship for 03378500 (+352.67 ft NAVD88). This yields the STATION WSE
@@ -34,7 +34,12 @@ const STAGE_MINOR_FT = 15;
 const STAGE_MODERATE_FT = 20;
 const STAGE_MAJOR_FT = 23;
 
-function unavailableStage(): MapTwinLoaderData['stage'] {
+/**
+ * Unavailable sentinel. Page loaders use this — they perform NO network
+ * fetch. The only live path is fetchLiveStage(), called from an explicit
+ * user button press.
+ */
+export function unavailableStage(): MapTwinLoaderData['stage'] {
   return {
     source: 'UNAVAILABLE',
     gaugeId: PRIMARY_USGS,
@@ -67,6 +72,11 @@ function floodCategoryFor(stageFt: number): MapTwinLoaderData['stage']['floodCat
   return 'normal';
 }
 
+/**
+ * Live USGS snapshot — call ONLY from an explicit user button press
+ * ("Fetch live snapshot"). Never called from a page loader, timer, or
+ * background refresh. Returns the unavailable sentinel on any failure.
+ */
 export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
   const retrievedAt = new Date().toISOString();
   try {

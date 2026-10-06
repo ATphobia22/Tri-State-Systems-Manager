@@ -5,7 +5,7 @@ import { createBrowserRouter, redirect, useLoaderData, type ActionFunctionArgs }
 import { getSession, requireAuthenticatedMutation } from './auth';
 import { SITE } from '../types/site';
 import { appendEvidence, getMerkleState } from './merkle';
-import { fetchLiveStage } from './stage';
+import { unavailableStage } from './stage';
 import { t } from './design-tokens';
 import RootLayout from '../components/RootLayout';
 import RouteErrorPage from '../components/RouteErrorPage';
@@ -33,7 +33,10 @@ let contracts: DataContractSummary[] = [
 ];
 
 async function rootLoader(): Promise<RootLoaderData> {
-  const [stage] = await Promise.all([fetchLiveStage()]);
+  // Standing owner rule (2026-10-01, superseding): live values ONLY via a
+  // user-initiated "Fetch live snapshot" button. Page loaders perform no
+  // network fetch and return the unavailable sentinel.
+  const stage = unavailableStage();
   return {
     auth: getSession(),
     stage,
@@ -97,7 +100,7 @@ async function lineageLoader(): Promise<LineageLoaderData> { return { contracts:
 async function lineageAction({ request }: ActionFunctionArgs) { requireAuthenticatedMutation(request); const form = await request.formData(); const id = String(form.get('id') || '').trim(); const title = String(form.get('title') || '').trim(); const owner = String(form.get('owner') || '').trim(); const classification = String(form.get('classification') || 'internal') as DataContractSummary['classification']; const jurisdiction = String(form.get('jurisdiction') || 'Indiana').trim(); if (!id || !title || !owner) return { error: 'Missing fields' }; contracts = [{ id, title, owner, classification, jurisdiction, validation_status: 'pending', content_hash: 'sha256:pending' }, ...contracts]; return redirect('/lineage'); }
 async function benefitLoader(): Promise<BenefitLoaderData> { return { interventions: [...interventions] }; }
 async function benefitAction({ request }: ActionFunctionArgs) { requireAuthenticatedMutation(request); const form = await request.formData(); const name = String(form.get('name') || '').trim(); const cost = String(form.get('cost') || '').trim(); if (!name || !cost) return { error: 'Missing fields' }; const rec: InterventionRecord = { id: `INT-${Date.now()}`, intervention_name: name, cost_estimate: cost, safety_impact: null, economic_impact: null, health_impact: null, equity_impact: null, resilience_impact: null, ai_confidence: 0, funding_probability: 0, human_authorization_required: true, status: 'pending_human_review' }; interventions = [rec, ...interventions]; return redirect('/benefit'); }
-async function mapTwinLoader(): Promise<MapTwinLoaderData> { const stage = await fetchLiveStage(); return { site: SITE, stage, fema: { communityNumber: SITE.femaCommunities.mountVernon, bfe_ft: SITE.elevations.bfe_ft, lag_ft: SITE.elevations.lag_ft, clearance_ft: SITE.elevations.clearanceAboveBfe_ft, noRiseTolerance_ft: null }, boundingEnvelope: SITE.boundingEnvelope }; }
+async function mapTwinLoader(): Promise<MapTwinLoaderData> { const stage = unavailableStage(); return { site: SITE, stage, fema: { communityNumber: SITE.femaCommunities.mountVernon, bfe_ft: SITE.elevations.bfe_ft, lag_ft: SITE.elevations.lag_ft, clearance_ft: SITE.elevations.clearanceAboveBfe_ft, noRiseTolerance_ft: null }, boundingEnvelope: SITE.boundingEnvelope }; }
 function ArchitectureView() { const data = useLoaderData() as ArchitectureLoaderData; return <div style={{ padding: '1.5rem 2rem', maxWidth: 900, margin: '0 auto' }}><h1 style={{ color: t.color.text.primary }}>Four Trust Planes</h1><p style={{ color: t.color.text.secondary, fontSize: t.font.size.lg }}>{data.coreFlow.join(' → ')}</p>{data.trustPlanes.map((p) => <div key={p.level} style={{ background: t.color.surface.card, borderRadius: t.radius.lg, padding: '1rem', marginBottom: 8 }}><strong style={{ color: t.color.accent.brand }}>L{p.level}</strong>{' '}<span style={{ color: t.color.text.primary }}>{p.name}</span><p style={{ color: t.color.text.secondary, fontSize: t.font.size.base, margin: '0.35rem 0 0' }}>{p.description}</p></div>)}</div>; }
 
 /**

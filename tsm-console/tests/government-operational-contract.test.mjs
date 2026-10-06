@@ -59,16 +59,26 @@ test('TSM contains an explicit government peer-review boundary', () => {
   assert.match(compliance, /not.*certif|cannot.*certif|does not.*certif/i);
 });
 
-test('live stage telemetry is retired: no polling, gates stay blocked', () => {
+test('live stage telemetry is button-only: no auto-fetch, no polling, gates stay blocked', () => {
   const source = read('src/lib/stage.ts');
-  // Owner decision 2026-09-29 ("drop live river data"): the module must not
-  // perform any network I/O or reference live hydrologic endpoints.
-  assert.doesNotMatch(source, /fetch\(/);
-  assert.doesNotMatch(source, /\/api\/hydrologic\/live/);
-  assert.doesNotMatch(source, /waterservices\.usgs\.gov/);
-  assert.doesNotMatch(source, /waterdata\.usgs\.gov/);
-  // The retired sentinel keeps the evidence gates fail-closed.
-  assert.match(source, /RETIRED_STAGE/);
+  const router = read('src/lib/router.tsx');
+  // Owner direction 2026-10-01 (SUPERSEDING the 2026-09-29 retirement):
+  // live values ONLY via a user-initiated "Fetch live snapshot" button.
+  // Page loaders must not perform network I/O.
+  assert.doesNotMatch(router, /fetchLiveStage\(\)/);
+  assert.match(router, /unavailableStage\(\)/);
+  // The module exposes exactly one explicit live path, for button presses.
+  assert.match(source, /export async function fetchLiveStage/);
+  assert.match(source, /export function unavailableStage/);
+  assert.match(source, /call ONLY from an explicit user button press/);
+  // No polling, periodic timers, or background refresh anywhere in the live path.
+  // (The single fetch carries a 15s AbortController timeout — that is a
+  // request timeout, not a polling timer.)
+  assert.doesNotMatch(source, /setInterval/);
+  assert.doesNotMatch(source, /requestAnimationFrame/);
+  // USGS source binding with provisional qualifier and fail-closed gates.
+  assert.match(source, /waterservices\.usgs\.gov/);
+  assert.match(source, /qualifier: 'P'|qualifier: null/);
   assert.match(source, /REQUIRES_VALIDATED_HYDRAULIC_PROFILE/);
   assert.match(source, /NOT_ELIGIBLE_UNVERIFIED_SITE_TRANSFER/);
   assert.match(source, /source: 'UNAVAILABLE'/);
