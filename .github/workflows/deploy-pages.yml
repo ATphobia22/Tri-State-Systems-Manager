@@ -184,6 +184,10 @@ jobs:
           set -euo pipefail
           python3 scripts/geospatial/validate-terrain-3d-tiles.py \
             --tileset tsm-console/dist/3d-tiles/terrain-3dep/tileset.json
+          python3 scripts/geospatial/validate-building-3d-tiles.py \
+            --tileset tsm-console/dist/3d-tiles/buildings/tileset.json \
+            --tiles-dir tsm-console/dist/3d-tiles/buildings \
+            --expected-buildings 4121 --require-draco --strict-hlod
 
       - name: 3D Tiles browser renderer smoke test
         working-directory: tsm-console
@@ -220,6 +224,20 @@ jobs:
           curl --fail --silent --show-error http://127.0.0.1:4173/Tri-State-Systems-Manager/terrain-3d-tiles-renderer-smoke.html >/dev/null
           ./node_modules/.bin/cypress install
           CYPRESS_BASE_URL=http://127.0.0.1:4173/Tri-State-Systems-Manager/ npm run test:terrain-3d-tiles-browser
+
+      - name: Package and hash building 3D Tiles artifact
+        shell: bash
+        run: scripts/geospatial/package-building-3d-tiles.sh /tmp/tsm-buildings/compressed /tmp/tsm-building-artifacts v1 "$GITHUB_SHA"
+      - name: Upload verified building 3D Tiles artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: tsm-buildings-3d-tiles-${{ github.sha }}
+          path: |
+            /tmp/tsm-building-artifacts/*.zip
+            /tmp/tsm-building-artifacts/*.zip.sha256
+          retention-days: 90
+          compression-level: 0
+          if-no-files-found: error
 
       - name: Package and hash 3D Tiles artifact
         shell: bash
