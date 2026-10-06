@@ -4,7 +4,7 @@
 > Ingested: 2026-09-25 · Verification status: **DESIGN-INTENT**
 >
 > This document describes intended or aspirational system behavior from the owner's design
-> archive. It does NOT describe implemented code. Per `SYNTHESIS-VERIFICATION.md`, several
+> archive. It does NOT describe implemented code. Per `docs/EXECUTIVE-REVIEW-VERIFICATION.md`, several
 > Drive-side claims (multi-physics engines, solver rates, sealed certifications, "sovereign"
 > infrastructure) overstate implementation maturity. Do NOT treat values, certifications, or
 > system descriptions here as verified engineering data or as specifications for new work.
