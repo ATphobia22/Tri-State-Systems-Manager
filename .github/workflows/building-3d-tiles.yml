@@ -2,6 +2,7 @@ name: Building 3D Tiles HLOD Pipeline
 
 on:
   workflow_dispatch:
+  pull_request:
   push:
     branches: [main]
     paths:
