@@ -4,7 +4,7 @@ INPUT=${1:?input}; OUTPUT=${2:?output}; BIN=${GLTF_TRANSFORM_BIN:-tsm-console/no
 rm -rf "$OUTPUT"; mkdir -p "$OUTPUT"
 cp "$INPUT/tileset.json" "$OUTPUT/tileset.json"; cp "$INPUT/manifest.json" "$OUTPUT/manifest.json"
 while IFS= read -r -d '' src; do
- rel=${src#"$INPUT/"}; dst="$OUTPUT/$rel"; mkdir -p "$(dirname "$dst")"
+ rel=${src#"$INPUT/"}; dst="$OUTPUT/${rel%.glb}-draco.glb"; mkdir -p "$(dirname "$dst")"
  "$BIN" draco "$src" "$dst" --method edgebreaker --encode-speed 5 --decode-speed 5 --quantize-position 14 --quantize-normal 10
 done < <(find "$INPUT" -type f -path '*/stitched/*.glb' -print0 | sort -z)
 python3 - "$OUTPUT" <<'PY'
