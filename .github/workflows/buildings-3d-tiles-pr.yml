@@ -1,6 +1,8 @@
 name: TSM Buildings 3D Tiles PR Validation
 
 on:
+  push:
+    branches: [feat/buildings-3d-tiles-production]
   pull_request:
     paths:
       - 'scripts/geospatial/build-building-3d-tiles.py'
