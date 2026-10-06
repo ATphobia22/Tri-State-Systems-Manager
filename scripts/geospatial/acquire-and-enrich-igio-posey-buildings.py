@@ -123,7 +123,7 @@ class ElevationSampler:
         for ds in self.datasets:
             ds.close()
 
-    def sample(self, lonlat: list[tuple[float, float]]) -> tuple[float, float, float, str] | None:
+    def sample(self, lonlat: list[tuple[float, float]]) -> tuple[float, float, float, int, str] | None:
         for ds in self.datasets:
             xs = [p[0] for p in lonlat]
             ys = [p[1] for p in lonlat]
@@ -142,6 +142,7 @@ class ElevationSampler:
                     float(min(vals)) * FT_PER_M,
                     float(max(vals)) * FT_PER_M,
                     float(sum(vals) / len(vals)) * FT_PER_M,
+                    len(vals),
                     str(ds.name),
                 )
         return None
@@ -165,22 +166,36 @@ def main() -> None:
 
     features: list[dict] = []
     object_ids: list[int] = []
-    offset = 0
     page_size = min(max_records, 2000)
 
-    while True:
+    def acquire_objectid_range(lower: int, upper: int) -> None:
+        """Acquire a disjoint OBJECTID range without server-side offsets.
+
+        The live IGIO service intermittently returns HTTP 500 "/ by zero" for
+        offset pagination. Range partitioning avoids that server defect while
+        preserving complete, non-overlapping coverage. Any response that hits
+        the transfer limit is bisected until each leaf query is complete.
+        """
         payload = request_json({
-            "where": "county='Posey'",
+            "where": f"county='Posey' AND objectid >= {lower} AND objectid <= {upper}",
             "outFields": "objectid,lidaryear,county",
             "returnGeometry": "true",
             "outSR": "4326",
             "resultRecordCount": page_size,
-            "resultOffset": offset,
             "f": "json",
         })
         got = payload.get("features", [])
-        if not got:
-            break
+        exceeded = bool(payload.get("exceededTransferLimit", False))
+
+        if exceeded or len(got) >= page_size:
+            if lower >= upper:
+                raise SystemExit(
+                    f"IGIO range {lower}-{upper} remains transfer-limited at one OBJECTID"
+                )
+            midpoint = lower + (upper - lower) // 2
+            acquire_objectid_range(lower, midpoint)
+            acquire_objectid_range(midpoint + 1, upper)
+            return
 
         for feature in got:
             attrs = feature.get("attributes", {})
@@ -193,6 +208,8 @@ def main() -> None:
             if not rings:
                 raise SystemExit(f"IGIO object {object_id} has no polygon rings")
             polygon = shape({"type": "Polygon", "coordinates": rings})
+            if polygon.is_empty or not polygon.is_valid:
+                raise SystemExit(f"IGIO object {object_id} returned invalid polygon geometry")
             if not polygon.intersects(boundary):
                 raise SystemExit(f"IGIO object {object_id} falls outside the exact Posey County boundary")
             features.append({
@@ -210,10 +227,11 @@ def main() -> None:
                 },
             })
 
-        print(f"Acquired {len(features)}/{args.expected_count}", flush=True)
-        last_object_id = max(object_ids[-len(got):])
-        if len(got) < page_size:
-            break
+        print(f"Acquired {len(features)}/{args.expected_count} (OBJECTID range {lower}-{upper})", flush=True)
+
+    # The service has a finite OBJECTID domain; the recursive range splitter
+    # never depends on undocumented offset pagination semantics.
+    acquire_objectid_range(0, 2_147_483_647)
 
     count = len(features)
     if count != args.expected_count or len(set(object_ids)) != count:
@@ -242,12 +260,13 @@ def main() -> None:
             props = feature["properties"]
             props["groundElevationSource"] = "TSM committed Posey 3DEP-derived DEM"
             props["groundElevationMethod"] = "IGIO-footprint centroid+boundary sampling"
-            props["groundElevationReference"] = result[3] if result else None
+            props["groundElevationReference"] = result[4] if result else None
             if result:
                 props["groundElevationMinFt"] = result[0]
                 props["groundElevationMaxFt"] = result[1]
                 props["groundElevationMeanFt"] = result[2]
                 props["groundElevationFt"] = result[2]
+                props["groundElevationSampleCount"] = result[3]
                 props["elevationCoverage"] = "SAMPLED"
             else:
                 no_elevation += 1
@@ -278,6 +297,7 @@ def main() -> None:
         "elevationAuthority": "TSM committed 3DEP-derived Posey DEM",
         "elevationMethod": "footprint centroid + boundary samples",
         "elevationVerticalUnits": "feet",
+        "elevationVerticalDatum": "NAVD88",
         "humanReviewRequired": True,
         "surveyGrade": False,
         "features": enriched,
@@ -295,6 +315,7 @@ def main() -> None:
         "objectIdMax": object_ids[-1],
         "geometryCrs": "EPSG:4326",
         "elevationMethod": "IGIO footprint centroid + boundary samples against highest-resolution covering committed Posey DEM",
+        "elevationSampleCountField": "groundElevationSampleCount",
         "elevationSource": [str(p) for p in dem_paths],
         "geojsonSha256": digest,
         "status": "acquired-and-elevation-joined",
