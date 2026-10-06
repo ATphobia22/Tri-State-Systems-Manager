@@ -1,0 +1,39 @@
+{
+  "community": "Point Township / Lower Wabash-Ohio Confluence",
+  "county": "Posey",
+  "state": "IN",
+  "epsg": 2966,
+  "vertical_datum": "NAVD88",
+  "verified": "2026-10-06",
+  "verification": {
+    "03322420": "USGS NWIS live query 2026-10-06: OHIO RIVER AT UNIONTOWN DAM, KY — 37.79715556, -87.9983356, NAD83; alt 310.95 ft NAVD88. This is the J.T. Myers Locks and Dam reach (NID KY03060).",
+    "note": "USGS 03322420 verified real. Hovey Lake FWA and Twin Swamps Nature Preserve are real IDNR properties; coordinates as stated, not field-verified."
+  },
+  "nodes": [
+    {
+      "id": "UNWK2",
+      "name": "John T. Myers Locks and Dam",
+      "type": "USACE / NWS Infrastructure",
+      "usgs_id": "03322420",
+      "nws_id": "UNWK2",
+      "nid_federal_id": "KY03060",
+      "coordinates": [-87.9892, 37.7928],
+      "gage_zero_navd88": null,
+      "status": "UNPUBLISHED_DATUM_CONVERSION"
+    },
+    {
+      "id": "HOVEY_LAKE",
+      "name": "Hovey Lake Fish & Wildlife Area",
+      "type": "IDNR Property",
+      "coordinates": [-87.9312, 37.8184],
+      "governance": "312 IAC 10-2-3"
+    },
+    {
+      "id": "TWIN_SWAMPS",
+      "name": "Twin Swamps Nature Preserve",
+      "type": "IDNR Nature Preserve",
+      "coordinates": [-87.9541, 37.8306],
+      "governance": "312 IAC 10-2-3"
+    }
+  ]
+}
