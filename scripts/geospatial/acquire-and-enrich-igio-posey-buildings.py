@@ -151,23 +151,21 @@ def main() -> None:
     if max_records < 1:
         raise SystemExit("IGIO layer returned an invalid maxRecordCount")
 
-    count_payload = request_json({
-        "where": "county='Posey'",
-        "returnCountOnly": "true",
-        "f": "json",
-    })
-    count = int(count_payload.get("count", -1))
-    if count != args.expected_count:
-        raise SystemExit(f"IGIO Posey feature-count mismatch: expected {args.expected_count}, got {count}")
-
+    # Use the authoritative object-id inventory as the count gate. ArcGIS
+    # deployments can reject returnCountOnly on this hosted layer even though
+    # returnIdsOnly is supported; counting the returned IDs is equivalent and
+    # gives us the exact IDs required for deterministic pagination.
     ids_payload = request_json({
-        "where": "county='Posey'",
+        "where": "county = 'Posey'",
         "returnIdsOnly": "true",
         "f": "json",
     })
     object_ids = sorted(int(x) for x in ids_payload.get("objectIds", []))
-    if len(object_ids) != count or len(set(object_ids)) != count:
-        raise SystemExit("IGIO object-id inventory is incomplete or duplicated")
+    count = len(object_ids)
+    if count != args.expected_count or len(set(object_ids)) != count:
+        raise SystemExit(
+            f"IGIO Posey feature-count/object-id mismatch: expected {args.expected_count}, got {count}"
+        )
 
     features: list[dict] = []
     chunk_size = min(max_records, 1000)
