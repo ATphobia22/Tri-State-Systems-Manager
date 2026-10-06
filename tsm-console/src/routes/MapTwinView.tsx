@@ -5,7 +5,8 @@ import { toH3Cell } from '../lib/h3-spatial-fabric';
 
 function MapTwinView() {
   const data = useLoaderData() as MapTwinLoaderData;
-  // Live gauges retired 2026-09-29 (owner: drop live river data).
+  // Live stage: one-time USGS fetch on page load per the 2026-10-01 superseding
+  // direction (no polling); the 2026-09-29 retired sentinel was removed 2026-10-05.
   const centerLat = (data.boundingEnvelope.minLat + data.boundingEnvelope.maxLat) / 2;
   const centerLon = (data.boundingEnvelope.minLon + data.boundingEnvelope.maxLon) / 2;
   let h3Cell = '—';

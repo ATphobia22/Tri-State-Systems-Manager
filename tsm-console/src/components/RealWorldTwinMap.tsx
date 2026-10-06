@@ -30,6 +30,10 @@ function buildGagePopup(data: MapTwinLoaderData): maplibregl.Popup {
   return new maplibregl.Popup().setText(`USGS 03378500 / NOAA NHRI3 | Stage: ${stage}${qualifier} | WSE: ${wse} | Discharge: ${discharge} | Observed: ${observed}`);
 }
 
+function fmtElev(v: number | null): string {
+  return v == null ? 'unverified' : `${v.toFixed(2)} ft`;
+}
+
 export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -156,7 +160,9 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
         <div>FEMA NFHL: effective / insurance · Indiana BAFM: planning / Flood Control Act</div>
         <div>Stage: {stage == null ? 'unavailable' : `${stage.toFixed(2)} ft`} {data.stage.qualifier ? `(${data.stage.qualifier})` : ''} · {data.stage.source}</div>
         <div>Station WSE NAVD88: {wse == null ? 'unavailable' : `${wse.toFixed(2)} ft`} · Datum: {data.stage.conversion_applied ? 'verified USGS station relationship' : 'blocked'} · Site transfer: {data.stage.site_transfer_status ?? 'required'} · Hydraulic extrusion: {data.stage.hydraulic_extrusion_eligibility === 'SITE_WSE_VERIFIED_FOR_EXTRUSION' ? 'enabled' : 'blocked — validated site WSE required'} · Discharge: {data.stage.discharge_cfs == null ? 'unavailable' : `${data.stage.discharge_cfs.toLocaleString()} cfs`}</div>
-        <div>Site elevations: LAG {data.site.elevations.lag_ft ?? 'unverified'} · BFE {data.site.elevations.bfe_ft ?? 'unverified'} · Berm {data.site.elevations.bermCrest_ft ?? 'unverified'} · FFE {data.site.elevations.ffe_ft ?? 'unverified'}</div><div>Transfer gate: {data.stage.site_transfer_status ?? 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE'} · Station conversion source: {data.stage.vertical_conversion_source ?? 'source required'}</div>
+        <div>Site elevations: LAG {fmtElev(data.site.elevations.lag_ft)} · BFE {fmtElev(data.site.elevations.bfe_ft)} · Berm {fmtElev(data.site.elevations.bermCrest_ft)} · FFE {fmtElev(data.site.elevations.ffe_ft)}</div>
+        <div style={{ color: '#94a3b8' }}>Elevation provenance: LAG/berm/FFE owner-supplied (uncertified); BFE working value per 2026-08-22 LOMA checklist (FIRM verification pending).</div>
+        <div>Transfer gate: {data.stage.site_transfer_status ?? 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE'} · Station conversion source: {data.stage.vertical_conversion_source ?? 'source required'}</div>
         <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
           {([
             { id: 'fema', pressed: femaVisible, onClick: () => setFemaVisible((value) => !value), label: `FEMA NFHL ${femaVisible ? 'ON' : 'OFF'}` },
@@ -184,7 +190,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
             </button>
           ))}
         </div>
-        <div style={{ marginTop: 6, color: '#86efac' }}>Live USGS/NOAA station telemetry was retired on 2026-09-29 by owner decision; no live gauges are polled. Site inundation and HEC-RAS rendering remain model/evidence-gated until a validated site WSE transfer and verified structural elevations are present. HEC-RAS visualization authority remains SIMULATION_DEMO / MODEL_OUTPUT until those evidence gates are satisfied. Visualization/model context only; human authority remains final.</div>
+        <div style={{ marginTop: 6, color: '#86efac' }}>USGS 03378500: one-time fetch on page load (user-initiated); provisional values, no polling or auto-refresh. Station WSE via published USGS SIR 2016-5119 conversion (+352.67 ft NAVD88). Site transfer and hydraulic extrusion remain gated on a validated hydraulic profile. HEC-RAS visualization authority remains SIMULATION_DEMO / MODEL_OUTPUT until evidence gates are satisfied. Visualization/model context only; human authority remains final.</div>
       </div>
     </section>
   );

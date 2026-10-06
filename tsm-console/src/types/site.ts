@@ -1,7 +1,9 @@
 /**
  * Community region constants used by the console.
  * No private residence, parcel/APN, or house-specific engineering target is stored here.
- * The elevation values are retained only as legacy scenario inputs and are not universal design criteria.
+ * Elevation values below are real-world working values with explicit provenance —
+ * owner-supplied values are NOT certified surveys and the BFE working value still
+ * awaits independent FIRM-panel verification. See elevationsProvenance.
  */
 
 export interface SiteConstants {
@@ -23,6 +25,14 @@ export interface SiteConstants {
     ffe_ft: number | null;
     bermCrest_ft: number | null;
     clearanceAboveBfe_ft: number | null;
+  };
+  /** Per-value provenance for elevations — shown in the twin UI. Never implies certification. */
+  elevationsProvenance: {
+    bfe_ft: string;
+    lag_ft: string;
+    ffe_ft: string;
+    bermCrest_ft: string;
+    clearanceAboveBfe_ft: string;
   };
   boundingEnvelope: {
     minLon: number;
@@ -64,11 +74,18 @@ export const SITE: SiteConstants = {
     verticalDatum: 'UNVERIFIED',
   },
   elevations: {
-    bfe_ft: null,
-    lag_ft: null,
-    ffe_ft: null,
-    bermCrest_ft: null,
-    clearanceAboveBfe_ft: null,
+    bfe_ft: 375.0,
+    lag_ft: 377.2,
+    ffe_ft: 382.5,
+    bermCrest_ft: 379.8,
+    clearanceAboveBfe_ft: 2.2,
+  },
+  elevationsProvenance: {
+    bfe_ft: 'Working value per 2026-08-22 Bonebank LOMA checklist; FIRM panel 18129C0300C not independently verified',
+    lag_ft: 'Owner-supplied; not a certified survey',
+    ffe_ft: 'Owner-supplied; not a certified survey',
+    bermCrest_ft: 'Owner-supplied; not a certified survey',
+    clearanceAboveBfe_ft: 'Derived: owner-supplied LAG 377.2 minus checklist BFE 375.0',
   },
   boundingEnvelope: {
     minLon: -88.35,
