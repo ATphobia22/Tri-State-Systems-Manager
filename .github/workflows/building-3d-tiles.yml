@@ -22,12 +22,12 @@ jobs:
     timeout-minutes: 120
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
       - name: Setup Python
-        uses: actions/setup-python@a26af69be951a213d495a44c3e40e8b464bac279
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -35,7 +35,7 @@ jobs:
         run: pip install numpy pygltflib
 
       - name: Setup Node (for gltf-transform)
-        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d45061372
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
 
@@ -106,7 +106,7 @@ jobs:
             --tiles-dir tsm-console/public/3d-tiles/buildings/
 
       - name: Upload tiles artifact
-        uses: actions/upload-artifact@65c4c4a5d10b3c4b52fec1af382a0ae7c8719
+        uses: actions/upload-artifact@v4
         with:
           name: building-3d-tiles-hlod-${{ github.sha }}
           path: tsm-console/public/3d-tiles/buildings/
