@@ -24,6 +24,23 @@ The Pages workflow can publish the static console without a backend dependency. 
 
 Settings → Pages → Source must be **GitHub Actions**. The workflow does not fabricate or bypass that repository-level setting.
 
+## System status — 2026-10-05
+
+### Fixed
+
+- **Twin live telemetry (`f630ce9`):** the digital twin status panel now shows real USGS 03378500 observations — stage, discharge, and station WSE NAVD88 via the published SIR 2016-5119 gage-zero conversion (+352.67 ft). One-time fetch on page load (user-initiated); provisional qualifiers; no polling or auto-refresh. Site transfer and hydraulic extrusion remain fail-closed pending a validated hydraulic profile — not invented.
+- **Site elevations wired with provenance:** BFE 375.0 ft (2026-08-22 LOMA checklist working value; FIRM panel 18129C0300C verification pending), LAG 377.2 ft / FFE 382.5 ft / berm crest 379.8 ft (owner-supplied, uncertified), clearance 2.2 ft (derived). None claimed as certified survey.
+- **LOD1–LOD4 pipeline:** parcel → terrain → building derivation complete (4,121 features, 1,233 flooded at the 375.0 ft screening scenario); deterministic 3D building tiles generated and validated (OGC 3D Tiles 1.1, 4,121 GLBs).
+
+### CI
+
+- All 12 GitHub Actions workflows green on `main`, including the Windows x64 Offline Runtime.
+
+### Still blocked
+
+- **Oracle Cloud:** the Always Free A1 retry remains blocked on the rejected saved login (auth, not capacity). Instance creation cannot proceed until the vault password is refreshed.
+- **Branch hygiene:** fully-merged branches and stale refs removed. Four feature branches retain unique work behind `main` — merge decision left to the owner.
+
 ## System status — 2026-10-02
 
 ### Working
@@ -32,7 +49,7 @@ Settings → Pages → Source must be **GitHub Actions**. The workflow does not 
 - **Parcel layer:** 4,121 Posey County parcel features served as static GeoJSON (`tsm-console/public/data/posey-parcels.geojson`). Provenance is explicit: bounding-box filtered from the XSoft offline bundle; township assignment and WTH Property Record Card linkage are marked **unverified** rather than asserted. Owner-name fields stripped.
 - **Backend tests:** 84 passed, 8 subtests passed (pytest from repo root; `backend/conftest.py` fixes the `sys.path` collection issue).
 - **Hydrology:** 13-station USGS registry. Live observations only via user-initiated snapshot (`POST /api/hydrologic/snapshot`) — no automatic polling. USGS 03378500 = Wabash River at New Harmony, IN; 03377500 = Wabash River at Mt. Carmel, IL (verified 2026-10-02).
-- **Site constants:** `backend/gov/site_constants.py` carries verified values with cited sources — vertical datum NAVD88, APN `65-19-08-100-008.001-010`, FIRM panel `18129C0300C`, community ID `180209`, anchor `37.845887, -88.005075`, BFE `375.0 ft NAVD88`.
+- **Site constants:** `backend/gov/site_constants.py` remains fail-closed by owner governance decision (`VERTICAL_DATUM = "UNVERIFIED"`, `PARCEL_APN` / `FIRM_PANEL` / `COMMUNITY_ID = "SOURCE_REQUIRED"`). An earlier claim that these were resolved was reverted by owner commit `bb54a82`. Verified station-level values (e.g. USGS 03378500 gage-zero 352.67 ft NAVD88 per SIR 2016-5119) are carried in source-specific records, not the global constants.
 
 ### Deliberately out of scope
 
