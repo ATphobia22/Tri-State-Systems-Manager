@@ -109,7 +109,7 @@ jobs:
           python3 scripts/geospatial/validate-terrain-3d-tiles.py \
             --tileset tsm-console/public/3d-tiles/terrain-3dep/tileset.json
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22.14.0
           cache: npm
