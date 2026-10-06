@@ -35,16 +35,14 @@ FT_PER_M = 3.280839895013123
 
 
 def request_json(params: dict[str, object], attempts: int = 8) -> dict:
-    body = urlencode(params).encode("utf-8")
+    query = urlencode(params)
     last: Exception | None = None
     for attempt in range(1, attempts + 1):
         try:
             req = Request(
-                QUERY,
-                data=body,
-                headers={"Content-Type": "application/x-www-form-urlencoded",
-                         "User-Agent": "TSM-IGIO-Posey-Building-Acquisition/1.0"},
-                method="POST",
+                f"{QUERY}?{query}",
+                headers={"User-Agent": "TSM-IGIO-Posey-Building-Acquisition/1.0"},
+                method="GET",
             )
             with urlopen(req, timeout=300) as response:
                 payload = json.load(response)
@@ -151,44 +149,36 @@ def main() -> None:
     if max_records < 1:
         raise SystemExit("IGIO layer returned an invalid maxRecordCount")
 
-    # Use the authoritative object-id inventory as the count gate. ArcGIS
-    # deployments can reject returnCountOnly on this hosted layer even though
-    # returnIdsOnly is supported; counting the returned IDs is equivalent and
-    # gives us the exact IDs required for deterministic pagination.
-    ids_payload = request_json({
-        "where": "county = 'Posey'",
-        "returnIdsOnly": "true",
-        "f": "json",
-    })
-    object_ids = sorted(int(x) for x in ids_payload.get("objectIds", []))
-    count = len(object_ids)
-    if count != args.expected_count or len(set(object_ids)) != count:
-        raise SystemExit(
-            f"IGIO Posey feature-count/object-id mismatch: expected {args.expected_count}, got {count}"
-        )
-
     features: list[dict] = []
-    chunk_size = min(max_records, 1000)
-    for start in range(0, len(object_ids), chunk_size):
-        chunk = object_ids[start:start + chunk_size]
+    object_ids: list[int] = []
+    offset = 0
+    page_size = min(max_records, 2000)
+
+    while True:
         payload = request_json({
-            "objectIds": ",".join(str(x) for x in chunk),
+            "where": "county='Posey'",
             "outFields": "objectid,lidaryear,county",
             "returnGeometry": "true",
             "outSR": "4326",
+            "resultType": "standard",
+            "resultRecordCount": page_size,
+            "resultOffset": offset,
             "f": "json",
         })
         got = payload.get("features", [])
-        if len(got) != len(chunk):
-            raise SystemExit(f"IGIO page mismatch at offset {start}: expected {len(chunk)}, got {len(got)}")
+        if not got:
+            break
+
         for feature in got:
             attrs = feature.get("attributes", {})
             geometry = feature.get("geometry")
             if not geometry or attrs.get("county") != "Posey":
                 raise SystemExit("IGIO response contained an unexpected county or missing geometry")
+            object_id = int(attrs["objectid"])
+            object_ids.append(object_id)
             rings = geometry.get("rings")
             if not rings:
-                raise SystemExit(f"IGIO object {attrs.get('objectid')} has no polygon rings")
+                raise SystemExit(f"IGIO object {object_id} has no polygon rings")
             coords = []
             for ring in rings:
                 coords.append([[float(p[0]), float(p[1])] for p in ring])
@@ -196,14 +186,22 @@ def main() -> None:
                 "type": "Feature",
                 "geometry": {"type": "Polygon", "coordinates": coords},
                 "properties": {
-                    "igioObjectId": int(attrs["objectid"]),
+                    "igioObjectId": object_id,
                     "lidarYear": attrs.get("lidaryear"),
                     "county": attrs.get("county"),
                 },
             })
-        print(f"Acquired {len(features)}/{count}", flush=True)
 
-    features.sort(key=lambda f: int(f["properties"]["igioObjectId"]))
+        print(f"Acquired {len(features)}/{args.expected_count}", flush=True)
+        if len(got) < page_size:
+            break
+        offset += len(got)
+
+    count = len(features)
+    if count != args.expected_count or len(set(object_ids)) != count:
+        raise SystemExit(
+            f"IGIO Posey feature-count/object-id mismatch: expected {args.expected_count}, got {count}"
+        )
 
     dem_paths = sorted(args.dem_root.glob("*.tif"))
     if not dem_paths:
