@@ -59,17 +59,22 @@ test('TSM contains an explicit government peer-review boundary', () => {
   assert.match(compliance, /not.*certif|cannot.*certif|does not.*certif/i);
 });
 
-test('live stage telemetry is retired: no polling, gates stay blocked', () => {
+test('live stage telemetry uses one user-initiated snapshot with no polling and remains fail-closed', () => {
   const source = read('src/lib/stage.ts');
-  // Owner decision 2026-09-29 ("drop live river data"): the module must not
-  // perform any network I/O or reference live hydrologic endpoints.
-  assert.doesNotMatch(source, /fetch\(/);
+  // Superseding owner contract 2026-10-01 / 2026-10-05:
+  // one user-initiated USGS instantaneous-value snapshot is allowed; automatic
+  // polling/background refresh is prohibited; unavailable data never fabricates
+  // a stage/WSE and site transfer remains blocked without a validated profile.
+  assert.equal((source.match(/\bfetch\(/g) ?? []).length, 1);
+  assert.doesNotMatch(source, /setInterval\s*\(/);
   assert.doesNotMatch(source, /\/api\/hydrologic\/live/);
-  assert.doesNotMatch(source, /waterservices\.usgs\.gov/);
-  assert.doesNotMatch(source, /waterdata\.usgs\.gov/);
-  // The retired sentinel keeps the evidence gates fail-closed.
-  assert.match(source, /RETIRED_STAGE/);
+  assert.match(source, /waterservices\.usgs\.gov\/nwis\/iv/);
+  assert.match(source, /03378500/);
+  assert.match(source, /status: 'provisional'/);
+  assert.match(source, /qualifier: 'P'/);
   assert.match(source, /REQUIRES_VALIDATED_HYDRAULIC_PROFILE/);
   assert.match(source, /NOT_ELIGIBLE_UNVERIFIED_SITE_TRANSFER/);
   assert.match(source, /source: 'UNAVAILABLE'/);
+  assert.match(source, /value_ft: null/);
+  assert.match(source, /wse_navd88_ft: null/);
 });
