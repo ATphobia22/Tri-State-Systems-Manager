@@ -386,6 +386,17 @@ jobs:
               if actual != digest:
                   raise SystemExit(f"SHA-256 mismatch for published {rel}: {actual} != {digest}")
           print(f"Published 3D Tiles integrity verified: {len(lines)} files")
+          building_lines = Path("/tmp/published-building-SHA256SUMS").read_text().splitlines()
+          building_root = Path("/tmp/published-building-3d-tiles"); building_root.mkdir(exist_ok=True)
+          building_base = os.environ["PAGE_URL"].rstrip("/") + "/3d-tiles/buildings/"
+          for line in building_lines:
+              digest, rel = line.split("  ", 1)
+              target = building_root / rel; target.parent.mkdir(parents=True, exist_ok=True)
+              target.write_bytes(fetch_bytes(building_base + rel))
+              actual = hashlib.sha256(target.read_bytes()).hexdigest()
+              if actual != digest:
+                  raise SystemExit(f"Building SHA-256 mismatch for published {rel}: {actual} != {digest}")
+          print(f"Published building 3D Tiles integrity verified: {len(building_lines)} files")
           PY
       - name: Verify production API readiness (informational)
         shell: bash
