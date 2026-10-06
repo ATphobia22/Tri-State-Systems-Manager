@@ -384,10 +384,11 @@ jobs:
                   raise SystemExit(f"SHA-256 mismatch for published {rel}: {actual} != {digest}")
           print(f"Published 3D Tiles integrity verified: {len(lines)} files")
           building_lines = Path("/tmp/published-building-SHA256SUMS").read_text().splitlines()
+          site_base = os.environ["PAGE_URL"].rstrip("/") + "/3d-tiles"
           for line in building_lines:
               digest, rel = line.split("  ", 1)
               target = out / ("buildings-" + rel.replace("/", "__"))
-              target.write_bytes(fetch_bytes(os.environ["BASE_URL"].rstrip("/") + "/buildings/" + rel))
+              target.write_bytes(fetch_bytes(site_base + "/buildings/" + rel))
               actual = hashlib.sha256(target.read_bytes()).hexdigest()
               if actual != digest:
                   raise SystemExit(f"Building SHA-256 mismatch for published {rel}: {actual} != {digest}")
