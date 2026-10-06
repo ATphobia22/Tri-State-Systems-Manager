@@ -27,7 +27,7 @@ not silently govern people. Human authority remains final.
   - `docs/OWNER-ACTION-REQUIRED.md` — **read this**: everything that needs
     the owner (survey coordinates, FEMA IDs, grant deadlines, Mac build, …)
   - `docs/ROADMAP-BUILD-2026-09-25.md` — the 7 newly built modeling modules
-  - `SYNTHESIS-VERIFICATION.md` (repo root) — independent verification report
+  - `docs/EXECUTIVE-REVIEW-VERIFICATION.md` (repo root) — independent verification report
 
 ## Quick start (web app)
 
