@@ -48,7 +48,7 @@ jobs:
           EXPECTED_BUILDINGS: '4121'
           HLOD_MAX_ITEMS: '50'
           HLOD_MAX_DEPTH: '6'
-        run: scripts/geospatial/build-building-3d-tiles-pipeline.sh /tmp/tsm-buildings
+        run: bash bash scripts/geospatial/build-building-3d-tiles-pipeline.sh /tmp/tsm-buildings
       - name: Validate final tileset with Cesium validator
         run: npx --no-install 3d-tiles-validator --tilesetFile /tmp/tsm-buildings/compressed/tileset.json
       - name: Validate final GLBs with glTF Transform
@@ -59,7 +59,7 @@ jobs:
             ./tsm-console/node_modules/.bin/gltf-transform validate "$file" --limit 1
           done < <(find /tmp/tsm-buildings/compressed -type f -name '*.glb' -print0 | sort -z)
       - name: Package versioned artifact
-        run: scripts/geospatial/package-building-3d-tiles.sh /tmp/tsm-buildings/compressed /tmp/tsm-artifacts v1 "$GITHUB_SHA"
+        run: bash scripts/geospatial/package-building-3d-tiles.sh /tmp/tsm-buildings/compressed /tmp/tsm-artifacts v1 "$GITHUB_SHA"
       - name: Upload versioned artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
