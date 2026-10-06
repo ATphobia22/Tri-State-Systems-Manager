@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-INPUT=${1:?input}; OUTPUT=${2:?output}; BIN=${GLTF_TRANSFORM_BIN:-gltf-transform}
+INPUT=${1:?input}; OUTPUT=${2:?output}; BIN=${GLTF_TRANSFORM_BIN:-tsm-console/node_modules/.bin/gltf-transform}
 rm -rf "$OUTPUT"; mkdir -p "$OUTPUT"
 cp "$INPUT/tileset.json" "$OUTPUT/tileset.json"; cp "$INPUT/manifest.json" "$OUTPUT/manifest.json"
 while IFS= read -r -d '' src; do
