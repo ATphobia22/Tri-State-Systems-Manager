@@ -156,7 +156,10 @@ def main() -> None:
     ap.add_argument("--boundary", type=Path, default=Path("data/posey-county/boundaries/posey-county.geojson"))
     args = ap.parse_args()
 
-    # The live IGIO layer advertises a 2,000-feature transfer limit. Avoid a\n    # metadata request here because the service intermittently rejects otherwise\n    # valid metadata requests with HTTP 500 while its query endpoint remains usable.\n    max_records = 2000\n
+    # The live IGIO layer advertises a 2,000-feature transfer limit. Avoid a
+    # metadata request here because the service intermittently rejects otherwise
+    # valid metadata requests with HTTP 500 while its query endpoint remains usable.
+
     boundary_doc = json.loads(args.boundary.read_text(encoding="utf-8"))
     boundary = shape(boundary_doc["features"][0]["geometry"])
 
