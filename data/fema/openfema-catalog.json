@@ -1,5 +1,5 @@
 {
-  "catalogVersion": "openfema-catalog@1.0.0",
+  "catalogVersion": "openfema-catalog@2.0.0",
   "sourceAuthority": "FEMA",
   "sourceUri": "https://www.fema.gov/api/open/v1/DataSets",
   "apiBase": "https://www.fema.gov/api/open",
@@ -10,21 +10,498 @@
     "maximumTop": 10000,
     "paging": "skip+top",
     "geospatialFunction": "geo.intersects",
-    "formats": ["json", "jsona", "jsonl", "geojson", "csv", "parquet"]
+    "formats": [
+      "json",
+      "jsona",
+      "jsonl",
+      "geojson",
+      "csv",
+      "parquet"
+    ]
   },
   "entities": {
-    "NfipCommunityStatusBook": {"version":1,"spatialJoinSafe":false},
-    "NfipCommunityLayerComprehensive": {"version":1,"spatialJoinSafe":true},
-    "NfipCommunityLayerNoOverlapsSplit": {"version":1,"spatialJoinSafe":true},
-    "NfipCommunityLayerNoOverlapsWhole": {"version":1,"spatialJoinSafe":true},
-    "FimaNfipPolicies": {"version":2,"spatialJoinSafe":false,"privacy":"redacted"},
-    "FimaNfipClaims": {"version":2,"spatialJoinSafe":false,"privacy":"redacted"},
-    "FimaNfipMultipleLossProperties": {"version":1,"spatialJoinSafe":false},
-    "FimaNfipResidentialPenetrationRates": {"version":1,"spatialJoinSafe":false}
+    "NfipResidentialPenetrationRates": {
+      "version": 1,
+      "title": "NFIP Residential Penetration Rates",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2026-08-19T19:00:33.777Z",
+      "recordCount": 3159,
+      "api": true
+    },
+    "PublicAssistanceProjectsStatus": {
+      "version": 1,
+      "title": "Public Assistance Projects Status",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2026-09-16T21:00:22.310Z",
+      "recordCount": 425952,
+      "api": true
+    },
+    "HazardMitigationAssistanceProjects": {
+      "version": 4,
+      "title": "Hazard Mitigation Assistance Projects",
+      "accessLevel": "public",
+      "deprecated": true,
+      "lastRefresh": "2026-09-08T18:40:24.140Z",
+      "recordCount": 56410,
+      "api": true,
+      "deprecatedSince": "2026-10-15T00:00:00.000Z",
+      "supersededBy": "https://www.fema.gov/openfema-data-page/hma-subapplications-v2"
+    },
+    "HazardMitigationGrantProgramDisasterSummaries": {
+      "version": 2,
+      "title": "Hazard Mitigation Grant Program - Disaster Summaries",
+      "accessLevel": "public",
+      "deprecated": true,
+      "lastRefresh": "2026-09-16T20:25:32.062Z",
+      "recordCount": 2597,
+      "api": true,
+      "deprecatedSince": "2026-10-15T00:00:00.000Z",
+      "supersededBy": "https://www.fema.gov/openfema-data-page/hazard-mitigation-grant-program-disaster-summaries-v3"
+    },
+    "NfipCommunityLayerComprehensive": {
+      "version": 1,
+      "title": "NFIP Community Layer Comprehensive",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2026-08-20T14:00:21.348Z",
+      "recordCount": 51943,
+      "api": true,
+      "spatialJoinSafe": true
+    },
+    "DataSetFields": {
+      "version": 1,
+      "title": "OpenFEMA Data Set Fields",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2025-09-25T13:40:12.615Z",
+      "recordCount": 1581,
+      "api": true
+    },
+    "NfipCommunityLayerNoOverlapsSplit": {
+      "version": 1,
+      "title": "NFIP Community Layer No Overlaps Split",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2026-08-20T14:00:21.348Z",
+      "recordCount": 37918,
+      "api": true,
+      "spatialJoinSafe": true
+    },
+    "NfipCommunityLayerNoOverlapsWhole": {
+      "version": 1,
+      "title": "NFIP Community Layer No Overlaps Whole",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2026-08-20T14:00:21.348Z",
+      "recordCount": 29898,
+      "api": true,
+      "spatialJoinSafe": true
+    },
+    "NfipPolicies": {
+      "version": 3,
+      "title": "NFIP Redacted Policies",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2026-07-27T22:39:30.327Z",
+      "recordCount": 74739461,
+      "api": true
+    },
+    "HazardMitigationAssistanceProjectsFinancialTransactions": {
+      "version": 1,
+      "title": "Hazard Mitigation Assistance Projects Financial Transactions",
+      "accessLevel": "public",
+      "deprecated": true,
+      "lastRefresh": "2026-09-08T18:40:24.140Z",
+      "recordCount": 78621,
+      "api": true,
+      "deprecatedSince": "2026-10-15T00:00:00.000Z",
+      "supersededBy": "https://www.fema.gov/openfema-data-page/hma-subapplications-financial-transactions-v1"
+    },
+    "HazardMitigationAssistanceMitigatedProperties": {
+      "version": 4,
+      "title": "Hazard Mitigation Assistance Mitigated Properties",
+      "accessLevel": "public",
+      "deprecated": true,
+      "lastRefresh": "2026-09-08T18:40:24.140Z",
+      "recordCount": 99927,
+      "api": true,
+      "deprecatedSince": "2026-10-15T00:00:00.000Z",
+      "supersededBy": "https://www.fema.gov/openfema-data-page/hma-subapplications-project-site-inventories-v1"
+    },
+    "FemaRegions": {
+      "version": 2,
+      "title": "FEMA Regions",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2025-09-25T13:40:12.615Z",
+      "recordCount": null,
+      "api": true
+    },
+    "HazardMitigationAssistanceProjectsByNfipCrsCommunities": {
+      "version": 2,
+      "title": "Hazard Mitigation Assistance Projects by NFIP CRS Communities",
+      "accessLevel": "public",
+      "deprecated": true,
+      "lastRefresh": "2026-09-08T18:40:24.140Z",
+      "recordCount": 76840,
+      "api": true,
+      "deprecatedSince": "2026-10-15T00:00:00.000Z",
+      "supersededBy": "https://www.fema.gov/openfema-data-page/hma-subapplications-nfip-crs-communities-v1"
+    },
+    "NfipClaims": {
+      "version": 3,
+      "title": "NFIP Redacted Claims",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2026-08-04T22:40:36.263Z",
+      "recordCount": 2725989,
+      "api": true
+    },
+    "NfipMultipleLossProperties": {
+      "version": 1,
+      "title": "NFIP Multiple Loss Properties",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2026-08-04T22:40:36.263Z",
+      "recordCount": 240651,
+      "api": true
+    },
+    "FimaNfipPolicies": {
+      "version": 2,
+      "title": "FIMA NFIP Redacted Policies",
+      "accessLevel": "public",
+      "deprecated": true,
+      "lastRefresh": "2026-07-27T22:39:30.327Z",
+      "recordCount": 73601802,
+      "api": true,
+      "deprecatedSince": "2026-10-15T00:00:00.000Z",
+      "supersededBy": "https://www.fema.gov/openfema-data-page/nfip-redacted-policies-v3",
+      "spatialJoinSafe": false
+    },
+    "DataSetCodes": {
+      "version": 1,
+      "title": "OpenFEMA Dataset Codes",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2025-09-25T13:40:12.615Z",
+      "recordCount": 1575,
+      "api": true
+    },
+    "FimaNfipClaims": {
+      "version": 2,
+      "title": "FIMA NFIP Redacted Claims",
+      "accessLevel": "public",
+      "deprecated": true,
+      "lastRefresh": "2026-07-21T21:40:34.077Z",
+      "recordCount": 2721780,
+      "api": true,
+      "deprecatedSince": "2026-10-15T00:00:00.000Z",
+      "supersededBy": "https://www.fema.gov/openfema-data-page/nfip-redacted-claims-v3",
+      "spatialJoinSafe": false
+    },
+    "EmergencyManagementPerformanceGrants": {
+      "version": 2,
+      "title": "Emergency Management Performance Grants",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2025-09-25T13:40:12.615Z",
+      "recordCount": 25970,
+      "api": true
+    },
+    "IndividualAssistanceHousingRegistrantsLargeDisasters": {
+      "version": 1,
+      "title": "Individual Assistance Housing Registrants - Large Disasters",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2026-07-27T22:39:30.327Z",
+      "recordCount": 6367334,
+      "api": true
+    },
+    "DataSets": {
+      "version": 1,
+      "title": "OpenFEMA Data Sets",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2025-09-25T13:40:12.615Z",
+      "recordCount": 50,
+      "api": true
+    },
+    "NonDisasterAssistanceFirefighterGrants": {
+      "version": 1,
+      "title": "Non-Disaster and Assistance to Firefighter Grants",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2025-09-25T13:40:12.615Z",
+      "recordCount": 77925,
+      "api": true
+    },
+    "PublicAssistanceSecondAppealsTracker": {
+      "version": 1,
+      "title": "Public Assistance Second Appeals Tracker",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2025-09-25T13:40:12.615Z",
+      "recordCount": 1789,
+      "api": true
+    },
+    "FemaWebDisasterSummaries": {
+      "version": 1,
+      "title": "FEMA Web Disaster Summaries",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2025-09-25T13:40:12.615Z",
+      "recordCount": 4036,
+      "api": true
+    },
+    "DeclarationDenials": {
+      "version": 1,
+      "title": "Declaration Denials",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2025-09-25T13:40:12.615Z",
+      "recordCount": 1303,
+      "api": true
+    },
+    "DisasterDeclarationsSummaries": {
+      "version": 2,
+      "title": "Disaster Declarations Summaries",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2025-09-25T13:40:12.615Z",
+      "recordCount": 70430,
+      "api": true
+    },
+    "IpawsArchivedAlerts": {
+      "version": 1,
+      "title": "IPAWS Archived Alerts",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2026-08-04T22:40:36.263Z",
+      "recordCount": 4885905,
+      "api": true
+    },
+    "FemaWebDisasterDeclarations": {
+      "version": 1,
+      "title": "FEMA Web Disaster Declarations",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2025-09-25T13:40:12.615Z",
+      "recordCount": 5273,
+      "api": true
+    },
+    "NfipCommunityStatusBook": {
+      "version": 1,
+      "title": "NFIP Community Status Book",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2026-08-20T14:00:21.348Z",
+      "recordCount": 25127,
+      "api": true,
+      "spatialJoinSafe": false
+    },
+    "FemaWebDeclarationAreas": {
+      "version": 1,
+      "title": "FEMA Web Declaration Areas",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2025-09-25T13:40:12.615Z",
+      "recordCount": 486660,
+      "api": true
+    },
+    "MissionAssignments": {
+      "version": 2,
+      "title": "Mission Assignments",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2025-09-25T13:40:12.615Z",
+      "recordCount": 44016,
+      "api": true
+    },
+    "TrainingClassSchedule": {
+      "version": 1,
+      "title": "Training Class Schedule",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2026-10-06T09:39:38.998Z",
+      "recordCount": 2416,
+      "api": true
+    },
+    "TrainingCourseCatalog": {
+      "version": 1,
+      "title": "Training Course Catalog",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2026-10-06T09:39:48.730Z",
+      "recordCount": 579,
+      "api": true
+    },
+    "HazardMitigationGrantProgramDisasterSummaries@v3": {
+      "version": 3,
+      "title": "Hazard Mitigation Grant Program - Disaster Summaries",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2026-08-20T21:00:15.408Z",
+      "recordCount": 2173,
+      "api": true
+    },
+    "HazardMitigationPlanStatuses": {
+      "version": 1,
+      "title": "Hazard Mitigation Plan Statuses",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2026-09-08T18:40:24.140Z",
+      "recordCount": 36748,
+      "api": true
+    },
+    "HmaSubapplicationsFinancialTransactions": {
+      "version": 1,
+      "title": "HMA Subapplications Financial Transactions",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2026-07-27T22:39:30.327Z",
+      "recordCount": 142836,
+      "api": true
+    },
+    "HmaSubapplicationsByNfipCrsCommunities": {
+      "version": 1,
+      "title": "HMA Subapplications By NFIP CRS Communities",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2026-07-27T22:39:30.327Z",
+      "recordCount": 368931,
+      "api": true
+    },
+    "HmaSubapplicationsProjectSiteInventories": {
+      "version": 1,
+      "title": "HMA Subapplications Project Site Inventories",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2026-07-27T22:39:30.327Z",
+      "recordCount": 235434,
+      "api": true
+    },
+    "IndividualAssistanceMultipleLossFloodProperties": {
+      "version": 1,
+      "title": "Individual Assistance Multiple Loss Flood Properties",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2026-07-27T22:39:30.327Z",
+      "recordCount": 1118725,
+      "api": true
+    },
+    "HmaSubapplicationsCongressionalDistricts": {
+      "version": 1,
+      "title": "HMA Subapplications Congressional Districts",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2026-07-21T03:00:12.078Z",
+      "recordCount": 11381,
+      "api": true
+    },
+    "HmaSubapplications": {
+      "version": 2,
+      "title": "HMA Subapplications",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2026-07-27T22:39:30.327Z",
+      "recordCount": 63592,
+      "api": true
+    },
+    "HousingAssistanceOwners": {
+      "version": 2,
+      "title": "Housing Assistance Program Data - Owners",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2026-10-06T06:41:46.930Z",
+      "recordCount": 160459,
+      "api": true
+    },
+    "HousingAssistanceRenters": {
+      "version": 2,
+      "title": "Housing Assistance Program Data - Renters",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2026-10-06T06:41:46.955Z",
+      "recordCount": 148018,
+      "api": true
+    },
+    "RegistrationIntakeIndividualsHouseholdPrograms": {
+      "version": 2,
+      "title": "Registration Intake and Individuals Household Program (RI-IHP)",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2026-10-06T06:41:47.037Z",
+      "recordCount": 225452,
+      "api": true
+    },
+    "IndividualsAndHouseholdsProgramValidRegistrations": {
+      "version": 2,
+      "title": "Individuals and Households Program - Valid Registrations",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2026-07-27T22:39:30.327Z",
+      "recordCount": 26237988,
+      "api": true
+    },
+    "PublicAssistanceApplicants": {
+      "version": 1,
+      "title": "Public Assistance Applicants",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2026-07-21T21:40:34.077Z",
+      "recordCount": 199437,
+      "api": true
+    },
+    "PublicAssistanceApplicantsProgramDeliveries": {
+      "version": 1,
+      "title": "Public Assistance Applicants Program Deliveries",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2026-07-21T21:40:34.077Z",
+      "recordCount": 258356,
+      "api": true
+    },
+    "PublicAssistanceFundedProjectsDetails": {
+      "version": 2,
+      "title": "Public Assistance Funded Projects Details",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2026-07-21T21:40:34.077Z",
+      "recordCount": 849813,
+      "api": true
+    },
+    "PublicAssistanceGrantAwardActivities": {
+      "version": 2,
+      "title": "Public Assistance Grant Award Activities",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2026-07-21T21:40:34.077Z",
+      "recordCount": 1224771,
+      "api": true
+    },
+    "PublicAssistanceFundedProjectsSummaries": {
+      "version": 1,
+      "title": "Public Assistance Funded Project Summaries",
+      "accessLevel": "public",
+      "deprecated": false,
+      "lastRefresh": "2026-07-21T21:40:34.077Z",
+      "recordCount": 196719,
+      "api": true
+    }
   },
   "policy": {
     "ownerIdentity": "never-ingest-into-engineering-runtime",
     "insuranceDetermination": "Claims and policies are context only; TSM never derives an insurance determination from them.",
     "effectiveFloodGeometry": "FEMA NFHL ArcGIS services remain the spatial source for effective FIRM/flood-zone joins."
+  },
+  "refreshedAt": "2026-10-06T10:00:41+00:00",
+  "sourceIntegrity": {
+    "sourceFile": "tsm-openfema-harvest/api-metadata/datasets_full.json",
+    "sha256": "aa61e32f4b66cfac8c0b531b86166b3664a57e950a84d9c0ea898007135cf17e",
+    "datasetCount": 50,
+    "deprecatedCount": 7,
+    "retrievedDate": "2026-10-06"
   }
 }
