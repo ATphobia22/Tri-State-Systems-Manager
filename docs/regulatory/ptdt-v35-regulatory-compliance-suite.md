@@ -3,6 +3,27 @@
 > Source: Google Drive — "PTDT v35 Regulatory Compliance Document Suite: 13101 Bonebank Road Site" · Drive last modified: 2026-08-18
 > Ingested: 2026-09-25 · Verification status: **REFERENCE**
 >
+> **CORRECTION NOTICE (2026-10-06, verified):** this document contains claims
+> that contradict the repo's verified rule record in
+> `backend/governance/archimedes_engine.py` and must not be cited as authority:
+>
+> - §4's "1.20x compensatory storage mandate" under 312 IAC 10-5 is **unverified**.
+>   The verified Indiana rule is a **0.15 ft cumulative surcharge criterion**
+>   (312 IAC 10); FEMA floodway projects may separately require 0.00 ft no-rise
+>   certification or CLOMR. No 1.20x statutory multiplier was found.
+> - The "I hereby certify" statement is **not a professional-engineer
+>   certification**. No licensed PE has signed this document; the engine is a
+>   screening aid, and a `PASS` result is not a permit or legal opinion.
+> - LAG 377.2 ft is **owner-supplied and uncertified**, not "field-surveyed".
+> - The "PE FEMA Toolkit" BCR seal (2.45) references an **unverified entity**;
+>   treat both BCR figures as unvalidated working values.
+> - "OpenFOAM / FEniCSx / HEC-RAS utilized to generate this compliance suite"
+>   overstates the repo's sanctioned screening models (diffusion-wave 2D;
+>   full Saint-Venant deferred per `docs/ROADMAP-BUILD-2026-09-25.md`).
+>
+> Until each claim is re-verified against its cited source, this document is
+> background reference only — not evidence, not a filing.
+>
 > Working document from the owner's archive. Values and assertions (elevations, application
 > IDs, BCR figures, program details, deadlines) are as-stated in the source and have NOT been
 > independently verified. Verify against authoritative sources (FEMA, IDNR, licensed survey,

@@ -42,7 +42,9 @@ satisfying FEMA's statutory requirement (\ge 1.0) using standardized flood damag
 reduction modules.
 ●​ Zero-Rise & Environmental Compliance: Enforces strict state and interstate
 zero-surcharge standards (Indiana IC 14-28-1, Illinois 17 Ill. Adm. Code Part 3700,
-Kentucky 401 KAR 4:060, and Indiana 312 IAC 10-5 compensatory storage ratios).
+Kentucky 401 KAR 4:060, and Indiana 312 IAC 10-5 compensatory storage ratios **[UNVERIFIED —
+no 1.20x statutory multiplier found; verified Indiana rule is the 0.15 ft cumulative
+surcharge criterion per `backend/governance/archimedes_engine.py`]**).
 
 Part II: Data Provenance & Verification Dossier
 1. Authoritative Physical Observation Domain (Indiana GIO 4-Band

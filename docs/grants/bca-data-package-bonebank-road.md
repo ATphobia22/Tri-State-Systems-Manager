@@ -8,6 +8,16 @@
 > independently verified. Verify against authoritative sources (FEMA, IDNR, licensed survey,
 > live agency NOFO) before any filing or reliance. See `docs/DRIVE-MANIFEST.md` for known
 > cross-document inconsistencies.
+>
+> **CORRECTION NOTICE (2026-10-06, verified):**
+> - "1.20x volume factor required per IDNR 312 IAC 10-5" is **unverified** — the
+>   verified Indiana rule is a 0.15 ft cumulative surcharge criterion (312 IAC 10);
+>   see `backend/governance/archimedes_engine.py`. No 1.20x statutory multiplier found.
+> - "Engineering-Sealed BCR: 1.41 (PE-validated FEMA Toolkit export)" — the
+>   "PE FEMA Toolkit" is an **unverified entity**; no licensed PE has sealed these
+>   figures. Treat both BCR values as unvalidated working values.
+> - "Deterministic LOMA Clearance" overstates a **pending** case (26-05-2022A;
+>   FEMA Additional Information requested). LAG 377.2 is owner-supplied, uncertified.
 
 ---
 SOURCE: FEMA Benefit-Cost Analysis (BCA) Data Package: 13101 Bonebank Road
