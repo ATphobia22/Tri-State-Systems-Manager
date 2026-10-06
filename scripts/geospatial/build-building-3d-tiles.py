@@ -486,7 +486,7 @@ def main() -> None:
             "skipped": skipped,
         },
         "transformation": (
-            "Parcel polygon -> largest ring -> deterministic ear-clip triangulation -> "
+            "IGIO building polygon -> largest ring -> deterministic ear-clip triangulation -> "
             "flat-shaded LOD1 prism extruded by a fixed estimated height in a "
             "tile-local ENU frame; WGS84 surface horizontal placement; NAVD88 "
             "ground elevation retained as visualization vertical offset without "
@@ -494,7 +494,7 @@ def main() -> None:
         ),
         "parameters": {
             "extrusionFt": args.extrusion_ft,
-            "extrusionEstimated": True,
+            "extrusionEstimated": True,\n            "footprintGeometry": "authoritative IGIO LiDAR-derived polygon",\n            "elevationSource": "IGIO footprint joined to committed Posey 3DEP-derived DEM",
             "colorFlooded": COLOR_FLOODED,
             "colorDry": COLOR_DRY,
         },
