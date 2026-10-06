@@ -137,10 +137,13 @@ if($source.Mode -eq "boundary"){
 $parcelSpatialRelation = if($source.Mode -eq "boundary"){"exact-county-within-tiger-boundary"}else{"exact-county-attribute"}
 [void]$receipts.Add((Write-Receipt -Id "$($county.Fips)-parcels-recovery" -CountyFips $county.Fips -Authority $source.Authority -SourceUrl $source.Url -Path $target -FeatureCount $features.Count -SpatialRelation $parcelSpatialRelation))
 }
-$femaServiceUrl="https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer"
+$femaServiceUrl="https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer"
 # Dynamic layer discovery (2026-10-06): do NOT hardcode a layer ID. FEMA
 # reorganizes NFHL MapServer layers; resolve the flood-hazard polygon layer
 # by service metadata, name semantics, and field contract.
+# NOTE: the /arcgis/rest/services path is FEMA's documented endpoint
+# (per FEMA GIS web services docs and docs/NFHL-REST-AND-USGS-WATER-TOOLS.md);
+# the /gis/nfhl/ path 404s behind FEMA's access gateway.
 function Find-FemaFloodZoneLayer {
   param([string]$ServiceUrl)
   $meta=Invoke-RestMethod -Method Get -Uri "$ServiceUrl`?f=json" -TimeoutSec 60
