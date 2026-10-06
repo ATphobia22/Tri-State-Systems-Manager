@@ -50,7 +50,7 @@ jobs:
           HLOD_MAX_DEPTH: '6'
         run: bash scripts/geospatial/build-building-3d-tiles-pipeline.sh /tmp/tsm-buildings
       - name: Validate final tileset with Cesium validator
-        run: npx --no-install 3d-tiles-validator --tilesetFile /tmp/tsm-buildings/compressed/tileset.json
+        run: ./tsm-console/node_modules/.bin/3d-tiles-validator --tilesetFile /tmp/tsm-buildings/compressed/tileset.json
       - name: Validate final GLBs with glTF Transform
         shell: bash
         run: |
