@@ -215,7 +215,10 @@ def main() -> None:
             if not geometry or attrs.get("county") != "Posey":
                 raise SystemExit("IGIO response contained an unexpected county or missing geometry")
             object_id = int(attrs["objectid"])
+            if object_id in object_id_set:
+                raise SystemExit(f"Duplicate IGIO objectid {object_id} returned across partition queries")
             object_ids.append(object_id)
+            object_id_set.add(object_id)
             rings = geometry.get("rings")
             if not rings:
                 raise SystemExit(f"IGIO object {object_id} has no polygon rings")
