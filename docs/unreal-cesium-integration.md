@@ -1,82 +1,38 @@
-# TSM Unreal Engine Integration — Cesium for Unreal
+# TSM Cesium for Unreal — self-hosted building 3D Tiles
 
-## Overview
+The existing `tsm-native/TSMNative.uproject` enables Cesium for Unreal. Linux CI does not build an Unreal Engine binary; this document is the Windows/UE5.8 configuration contract.
 
-Load the TSM HLOD 3D Tiles building dataset in Unreal Engine 5 using the
-**Cesium for Unreal** plugin (open source, MIT). No Cesium ion token required
-for self-hosted tilesets.
+## Published tileset
 
-**Existing setup:** The repository already contains `tsm-native/TSMNative.uproject`
-with `CesiumForUnreal` enabled. This document covers tileset configuration,
-not plugin installation.
+Use the GitHub Pages path:
 
-### 2. Add Cesium3DTileset Actor
+`/3d-tiles/buildings/tileset.json`
 
-In your Level (using the existing `tsm-native/TSMNative.uproject`):
-1. Place a **Cesium3DTileset** actor
-2. In Details panel, set **Source** to "From Url"
-3. Set **Url** to your tileset.json:
-   ```
-   https://your-host/3d-tiles/buildings/tileset.json
-   ```
+The full production origin is the repository's GitHub Pages origin. Configure the actor with **Source = From URL** and do not configure a Cesium ion asset ID or token.
 
-### 3. Configure for TSM HLOD Tileset
+## UE5.8 procedure
 
-The TSM tileset uses:
-- 3D Tiles 1.1 with `ADD` refinement
-- Draco-compressed GLBs (`KHR_draco_mesh_compression`)
-- Local ENU coordinates (not ECEF)
+1. Open `tsm-native/TSMNative.uproject` with Unreal Engine 5.8.
+2. Add or use a `CesiumGeoreference` actor.
+3. Add a `Cesium3DTileset` actor.
+4. Set **Source** to **From URL**.
+5. Set **Url** to the published TSM building tileset.
+6. Place the georeference origin near Posey County before visual inspection.
+7. Keep physics meshes disabled for the first visualization/performance pass unless collision is explicitly required.
 
-**Important:** The TSM building tiles use a local coordinate frame, not
-WGS84 ECEF. For correct georeferencing in Unreal:
+Cesium for Unreal's URL source is designed for self-hosted 3D Tiles and ignores ion credentials when a URL is supplied.
 
-Option A — Use CesiumGeoreference:
-1. Add **CesiumGeoreference** actor to level
-2. Set Origin to the TSM anchor:
-   - Latitude: 37.845887
-   - Longitude: -88.005075
-   - Height: 0 (tiles use local Z in feet; convert as needed)
-3. The tileset will be positioned relative to this origin
+## Local Windows smoke test
 
-Option B — Manual transform:
-1. Select the Cesium3DTileset actor
-2. Set Location to convert from local ENU (feet) to Unreal units (cm):
-   - 1 foot = 30.48 cm
-   - Apply scale and offset to match your level's coordinate system
+The generated artifact can be served locally or loaded with Cesium for Unreal's supported `file:///` form. Use forward slashes in Windows file URLs.
 
-### 4. Draco Support
+The release gate requires:
 
-Cesium for Unreal includes Draco decoding natively. No additional setup needed.
-The `KHR_draco_mesh_compression` extension in the TSM GLBs is handled automatically.
+- TSM building validator passes;
+- Cesium 3D Tiles validator passes;
+- final GLBs pass glTF validation;
+- SHA-256 manifest passes;
+- published Pages retrieval passes;
+- the same published tileset loads in UE5.8 on Windows.
 
-### 5. Performance Tuning
-
-For the 86-tile HLOD dataset:
-- **Maximum Screen Space Error:** 16 (default) — lower for more detail
-- **Preload Ancestors:** true (smoother LOD transitions)
-- **Preload Siblings:** false (saves memory)
-- **Forbid Holes:** false (allows faster loading)
-
-## Project Configuration File
-
-A sample `DefaultEngine.ini` addition for Cesium:
-
-```ini
-[/Script/CesiumRuntime.CesiumRuntimeSettings]
-; Self-hosted — no ion token
-DefaultIonAccessToken=
-```
-
-## Level Blueprint Example
-
-To load the tileset at runtime via Blueprint:
-1. Get reference to Cesium3DTileset actor
-2. Call `Set Url` with your tileset URL
-3. Call `Refresh Tileset`
-
-## Limitations
-
-- TSM building tiles are LOD1 (extruded prisms), not photogrammetry
-- Colors indicate flood screening status (blue=touched, gray=dry)
-- Not survey-grade geometry — visualization only
-- Local coordinate frame requires manual georeferencing (see above)
+The geometry is visualization/screening data, not survey-grade engineering geometry or a regulatory flood determination.
