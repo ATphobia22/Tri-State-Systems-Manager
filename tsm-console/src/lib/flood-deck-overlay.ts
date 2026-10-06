@@ -31,7 +31,8 @@
  */
 
 import { MapLibreOverlay } from '@deck.gl/maplibre';
-import { BitmapLayer, ContourLayer } from 'deck.gl';
+import { BitmapLayer } from '@deck.gl/layers';
+import { ContourLayer } from '@deck.gl/aggregation-layers';
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import { runScenario, type ScenarioDefinition, type ScenarioResult } from './scenario-runner';
 
