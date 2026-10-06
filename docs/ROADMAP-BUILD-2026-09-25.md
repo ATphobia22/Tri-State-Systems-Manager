@@ -79,7 +79,7 @@ is absent here). 13 pytest tests.
   events — validate against USGS benchmarks before operational use.
 - Hazus curves need local calibration; 10-ft clamp is a fail-safe, not science.
 - Diffusion-wave is screening-level; the build-vs-revise decision on true 2D
-  Saint-Venant (per SYNTHESIS-VERIFICATION.md) is closed below in
+  Saint-Venant (per docs/EXECUTIVE-REVIEW-VERIFICATION.md) is closed below in
   "Decision: 2D hydraulic strategy (2026-09-25)": revise claims to match
   implementation, full Saint-Venant deferred.
 - FIRMette PDF path (reportlab) was tested 2026-09-25 (venv, reportlab
@@ -98,7 +98,7 @@ is absent here). 13 pytest tests.
 (screening) model in `tsm-console/src/lib/hydraulics-diffusion2d.ts`; full 2D
 Saint-Venant remains deferred future work and is not claimed anywhere.
 
-**Context:** SYNTHESIS-VERIFICATION.md raised a build-vs-revise item against
+**Context:** docs/EXECUTIVE-REVIEW-VERIFICATION.md raised a build-vs-revise item against
 the 2D solver: either build true 2D Saint-Venant (shocks, supercritical flow,
 infiltration) or revise claims to match the implemented diffusion-wave
 (§4 above). Review of the implementation and its claims:
