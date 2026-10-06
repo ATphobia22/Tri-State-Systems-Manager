@@ -163,7 +163,7 @@ def main() -> None:
     features: list[dict] = []
     object_ids: list[int] = []
     object_id_set: set[int] = set()
-    page_size = max_records
+    page_size = 2000
 
     def acquire_objectid_range(lower: int, upper: int) -> None:
         """Acquire a disjoint OBJECTID range without server-side offsets.
