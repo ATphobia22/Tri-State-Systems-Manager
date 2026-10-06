@@ -18,3 +18,5 @@ def walk(n):
 walk(ts["root"]); ts.setdefault("extras",{}).setdefault("tsm",{})["draco"]=True
 p.write_text(json.dumps(ts,separators=(",",":"))+"\n")
 PY
+
+(cd "$OUTPUT" && find . -type f ! -name 'SHA256SUMS' -printf '%P\n' | sort | while IFS= read -r file; do sha256sum "$file"; done > SHA256SUMS)
