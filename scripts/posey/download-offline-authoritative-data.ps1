@@ -66,14 +66,14 @@ function ConvertTo-EsriPolygonGeometry([object]$GeoJsonGeometry) {
 }
 
 function Invoke-ArcGisQuery([string]$ServiceLayerUrl,[hashtable]$Parameters) {
-  for($attempt=1;$attempt -le 4;$attempt++){
+  for($attempt=1;$attempt -le 8;$attempt++){
     try {
       $r = Invoke-RestMethod -Method Post -Uri "$ServiceLayerUrl/query" -Body $Parameters -ContentType "application/x-www-form-urlencoded" -TimeoutSec 300
       if ($r.error) { throw ($r.error | ConvertTo-Json -Depth 20) }
       return $r
     } catch {
-      if($attempt -eq 4){ throw }
-      Start-Sleep -Seconds (2 * $attempt)
+      if($attempt -eq 8){ throw }
+      Start-Sleep -Seconds ([math]::Min(60, 5 * $attempt))
     }
   }
 }

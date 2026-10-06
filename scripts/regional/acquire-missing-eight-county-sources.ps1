@@ -15,6 +15,12 @@ for($attempt=1;$attempt -le 6;$attempt++){
 try{$response=Invoke-RestMethod -Method Post -Uri "$LayerUrl/query" -Body $Body -ContentType "application/x-www-form-urlencoded" -TimeoutSec 300;if($response.error){throw($response.error|ConvertTo-Json -Depth 20)};return $response}
 catch{if($attempt -eq 6){throw};Start-Sleep -Seconds ([math]::Min(30,2*$attempt))}
 }}
+function Invoke-RestMethodWithRetry {
+param([string]$Uri,[int]$TimeoutSec=60,[int]$MaxAttempts=6)
+for($attempt=1;$attempt -le $MaxAttempts;$attempt++){
+try{return Invoke-RestMethod -Method Get -Uri $Uri -TimeoutSec $TimeoutSec}
+catch{if($attempt -eq $MaxAttempts){throw};Start-Sleep -Seconds ([math]::Min(30,2*$attempt))}
+}}
 function Get-CountyBoundaryGeometry {
 param([string]$Fips)
 $county=@($Counties|Where-Object Fips -eq $Fips)[0]
@@ -146,7 +152,7 @@ $femaServiceUrl="https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapSe
 # the /gis/nfhl/ path 404s behind FEMA's access gateway.
 function Find-FemaFloodZoneLayer {
   param([string]$ServiceUrl)
-  $meta=Invoke-RestMethod -Method Get -Uri "$ServiceUrl`?f=json" -TimeoutSec 60
+  $meta=Invoke-RestMethodWithRetry -Uri "$ServiceUrl`?f=json" -TimeoutSec 60
   if($meta.error){throw($meta.error|ConvertTo-Json -Depth 20)}
   $candidates=@()
   foreach($layer in @($meta.layers)){
@@ -155,7 +161,7 @@ function Find-FemaFloodZoneLayer {
   }
   if($candidates.Count -eq 0){throw "FEMA NFHL: no 'Flood Hazard Zone' layer in service metadata at $ServiceUrl"}
   foreach($layer in $candidates){
-    $layerMeta=Invoke-RestMethod -Method Get -Uri "$ServiceUrl/$($layer.id)`?f=json" -TimeoutSec 60
+    $layerMeta=Invoke-RestMethodWithRetry -Uri "$ServiceUrl/$($layer.id)`?f=json" -TimeoutSec 60
     if($layerMeta.error){continue}
     $fieldNames=@($layerMeta.fields|ForEach-Object{$_.name})
     $required=@("DFIRM_ID","FLD_ZONE","ZONE_SUBTY","SFHA_TF","STATIC_BFE")
