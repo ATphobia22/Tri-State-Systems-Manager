@@ -4,12 +4,14 @@
  */
 
 export const WEB_ENDPOINTS = {
-  usgs_nwis_iv: 'https://waterservices.usgs.gov/nwis/iv/', // legacy; prefer usgs_ogc_latest_continuous
+  // USGS Water Services (waterservices.usgs.gov) decommissioned 2026-02-22.
+  // All USGS live paths now use the Water Data OGC API (latest-continuous).
+  usgs_nwis_iv: 'https://api.waterdata.usgs.gov/ogcapi/v1/collections/latest-continuous', // legacy key; now aliases the OGC collection
   usgs_ogc_latest_continuous: 'https://api.waterdata.usgs.gov/ogcapi/v1/collections/latest-continuous',
   usgs_03378500:
-    'https://waterservices.usgs.gov/nwis/iv/?format=json&sites=03378500&parameterCd=00065,00060',
+    'https://api.waterdata.usgs.gov/ogcapi/v1/collections/latest-continuous/items?f=json&monitoring_location_id=USGS-03378500&parameter_code=00065,00060',
   usgs_03322000:
-    'https://waterservices.usgs.gov/nwis/iv/?format=json&sites=03322000&parameterCd=00065',
+    'https://api.waterdata.usgs.gov/ogcapi/v1/collections/latest-continuous/items?f=json&monitoring_location_id=USGS-03322000&parameter_code=00065',
   noaa_nwps_api: 'https://api.water.noaa.gov/nwps/v1/',
   noaa_mtvi3: 'https://api.water.noaa.gov/nwps/v1/gauges/MTVI3',
   noaa_weather_points: 'https://api.weather.gov/points/37.9286,-87.8956',

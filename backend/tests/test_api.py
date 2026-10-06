@@ -146,27 +146,27 @@ def test_gauge_ingest_requires_source():
     assert response.status_code == 422
 
 
-def _sample_iv_payload() -> dict:
-    def series(site: str, param: str, unit: str, value: str, dt: str) -> dict:
+def _sample_ogc_payload() -> dict:
+    def feature(site: str, param: str, unit: str, value: str, dt: str) -> dict:
         return {
-            "sourceInfo": {"siteCode": [{"value": site}]},
-            "variable": {
-                "variableCode": [{"value": param}],
-                "unit": {"unitCode": unit},
+            "type": "Feature",
+            "properties": {
+                "monitoring_location_id": f"USGS-{site}",
+                "parameter_code": param,
+                "time": dt,
+                "value": value,
+                "unit_of_measure": unit,
+                "approval_status": "Provisional",
             },
-            "values": [
-                {"value": [{"value": value, "dateTime": dt, "qualifiers": ["P"]}]},
-            ],
         }
 
     return {
-        "value": {
-            "timeSeries": [
-                series("03378500", "00060", "ft3/s", "45210", "2026-10-01T17:00:00.000-05:00"),
-                series("03378500", "00065", "ft", "21.34", "2026-10-01T17:00:00.000-05:00"),
-                series("03322000", "00060", "ft3/s", "198000", "2026-10-01T17:00:00.000-05:00"),
-            ]
-        }
+        "type": "FeatureCollection",
+        "features": [
+            feature("03378500", "00060", "ft3/s", "45210", "2026-10-01T17:00:00-05:00"),
+            feature("03378500", "00065", "ft", "21.34", "2026-10-01T17:00:00-05:00"),
+            feature("03322000", "00060", "ft3/s", "198000", "2026-10-01T17:00:00-05:00"),
+        ],
     }
 
 
@@ -187,9 +187,9 @@ def test_snapshot_returns_provisional_observations(monkeypatch):
 
     async def fake_fetch(site_nos):
         assert site_nos == [s for s, _, _ in SNAPSHOT_STATIONS]
-        return _sample_iv_payload()
+        return _sample_ogc_payload()
 
-    monkeypatch.setattr("app.main._fetch_usgs_iv", fake_fetch)
+    monkeypatch.setattr("app.main._fetch_usgs_ogc", fake_fetch)
     response = client.post("/api/hydrologic/snapshot")
     assert response.status_code == 200
     body = response.json()
@@ -201,7 +201,7 @@ def test_snapshot_returns_provisional_observations(monkeypatch):
     assert obs["00060"]["value"] == 45210.0
     assert obs["00065"]["value"] == 21.34
     assert obs["00060"]["provisional"] is True
-    assert obs["00060"]["qualifiers"] == ["P"]
+    assert obs["00060"]["approval_status"] == "Provisional"
     assert by_site["03378500"]["unavailable"] is False
     # station with no returned series is marked unavailable, not fabricated
     assert by_site["03304300"]["observations"] == []
@@ -213,7 +213,7 @@ def test_snapshot_fails_closed_when_usgs_unreachable(monkeypatch):
     async def fake_fetch(site_nos):
         raise __import__("httpx").ConnectError("no route")
 
-    monkeypatch.setattr("app.main._fetch_usgs_iv", fake_fetch)
+    monkeypatch.setattr("app.main._fetch_usgs_ogc", fake_fetch)
     response = client.post("/api/hydrologic/snapshot")
     assert response.status_code == 502
     body = response.json()

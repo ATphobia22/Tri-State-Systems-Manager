@@ -17,6 +17,11 @@ export interface UsgsDirectObservation {
   sourceUri: string;
   verticalDatum: 'GAGE_DATUM';
   provider: 'USGS';
+  /**
+   * USGS OGC `approval_status` (e.g. "Provisional", "Approved").
+   * Replaces the legacy NWIS qualifier convention.
+   */
+  approvalStatus: string | null;
 }
 
 export async function fetchUsgsLatestContinuous(
@@ -64,6 +69,7 @@ export async function fetchUsgsLatestContinuous(
         sourceUri: url.toString(),
         verticalDatum: 'GAGE_DATUM',
         provider: 'USGS',
+        approvalStatus: typeof p.approval_status === 'string' ? p.approval_status : null,
       });
     }
     if (!out.length) throw new Error('USGS OGC returned no usable observations');

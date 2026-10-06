@@ -91,7 +91,10 @@ SNAPSHOT_STATIONS: tuple[tuple[str, str, str], ...] = (
     ("03293551", "Ohio River upstream of McAlpine Dam at railroad bridge at Louisville, KY", "Ohio River"),
 )
 SNAPSHOT_PARAMETER_LABELS = {"00060": "Discharge", "00065": "Gage height"}
-SNAPSHOT_IV_URL = "https://waterservices.usgs.gov/nwis/iv/"
+# USGS Water Services (waterservices.usgs.gov) decommissioned 2026-02-22.
+# Live snapshots now use the USGS Water Data OGC API latest-continuous
+# collection: one request, comma-separated monitoring_location_id values.
+SNAPSHOT_OGC_URL = "https://api.waterdata.usgs.gov/ogcapi/v1/collections/latest-continuous/items"
 SNAPSHOT_TIMEOUT_SECONDS = 25.0
 
 
@@ -102,46 +105,55 @@ def _snapshot_registry() -> list[dict]:
     ]
 
 
-async def _fetch_usgs_iv(site_nos: list[str]) -> dict:
-    """Fetch instantaneous values from USGS Water Services. Raises on failure."""
+async def _fetch_usgs_ogc(site_nos: list[str]) -> dict:
+    """Fetch latest continuous values from the USGS Water Data OGC API.
+
+    Replaces _fetch_usgs_iv after the 2026-02-22 Water Services shutdown.
+    Returns the GeoJSON FeatureCollection. Raises on failure.
+    """
     params = {
-        "format": "json",
-        "sites": ",".join(site_nos),
-        "parameterCd": "00060,00065",
+        "f": "json",
+        "monitoring_location_id": ",".join(f"USGS-{site_no}" for site_no in site_nos),
+        "parameter_code": "00060,00065",
+        "limit": str(len(site_nos) * 4),
     }
     async with httpx.AsyncClient(timeout=SNAPSHOT_TIMEOUT_SECONDS) as client:
-        response = await client.get(SNAPSHOT_IV_URL, params=params)
+        response = await client.get(SNAPSHOT_OGC_URL, params=params)
         response.raise_for_status()
         return response.json()
 
 
-def _parse_iv_series(payload: dict) -> dict[str, list[dict]]:
-    """Index USGS IV time series by site_no -> latest observation per parameter."""
+def _parse_ogc_features(payload: dict) -> dict[str, list[dict]]:
+    """Index OGC latest-continuous features by site_no -> observations.
+
+    Output shape matches the legacy _parse_iv_series so the snapshot route
+    and its tests are unchanged: each observation carries parameter, label,
+    value, unit, observed_at, approval_status, and a provisional flag derived
+    from approval_status (never hardcoded).
+    """
     by_site: dict[str, dict[str, dict]] = {}
-    series = payload.get("value", {}).get("timeSeries", []) or []
-    for ts in series:
-        try:
-            site_no = ts["sourceInfo"]["siteCode"][0]["value"]
-            param = ts["variable"]["variableCode"][0]["value"]
-            unit = ts["variable"].get("unit", {}).get("unitCode")
-            values = (ts.get("values") or [{}])[0].get("value") or []
-        except (KeyError, IndexError, TypeError):
+    for feature in payload.get("features", []) or []:
+        props = (feature or {}).get("properties") or {}
+        site_id = str(props.get("monitoring_location_id") or "")
+        site_no = site_id[5:] if site_id.startswith("USGS-") else site_id
+        param = str(props.get("parameter_code") or "")
+        if param not in SNAPSHOT_PARAMETER_LABELS or not site_no:
             continue
-        if param not in SNAPSHOT_PARAMETER_LABELS or not values:
-            continue
-        latest = values[-1]
         try:
-            numeric = float(latest["value"])
+            numeric = float(props["value"])
         except (KeyError, TypeError, ValueError):
             continue
+        if numeric == -999:
+            continue
+        approval = props.get("approval_status")
         by_site.setdefault(site_no, {})[param] = {
             "parameter": param,
             "label": SNAPSHOT_PARAMETER_LABELS[param],
             "value": numeric,
-            "unit": unit,
-            "observed_at": latest.get("dateTime"),
-            "qualifiers": latest.get("qualifiers") or [],
-            "provisional": True,
+            "unit": props.get("unit_of_measure"),
+            "observed_at": props.get("time"),
+            "approval_status": approval,
+            "provisional": approval == "Provisional",
         }
     return {
         site_no: [obs for _, obs in sorted(params.items())]
@@ -662,31 +674,39 @@ def _posey_wse_from_gage_height(gage_height_ft: float) -> float:
 
 
 async def _fetch_posey_wse() -> dict[str, Any]:
-    """Convert USGS gage height to provisional WSE using the published NAVD88 gage datum."""
+    """Convert USGS gage height to provisional WSE using the published NAVD88 gage datum.
+
+    Uses the USGS Water Data OGC API latest-continuous collection (Water
+    Services decommissioned 2026-02-22).
+    """
     params = {
-        "format": "json",
-        "sites": USGS_POSEY_WABASH_SITE,
-        "parameterCd": "00065",
+        "f": "json",
+        "monitoring_location_id": f"USGS-{USGS_POSEY_WABASH_SITE}",
+        "parameter_code": "00065",
+        "limit": "2",
     }
+    source_uri = (
+        f"{SNAPSHOT_OGC_URL}?f=json&monitoring_location_id=USGS-{USGS_POSEY_WABASH_SITE}"
+        f"&parameter_code=00065"
+    )
     try:
         async with httpx.AsyncClient(timeout=25.0, follow_redirects=False) as client:
-            response = await client.get(SNAPSHOT_IV_URL, params=params)
+            response = await client.get(SNAPSHOT_OGC_URL, params=params)
             response.raise_for_status()
             payload = response.json()
     except (httpx.HTTPError, ValueError) as exc:
         raise HTTPException(status_code=502, detail={"code": "POSEY_WSE_UPSTREAM_UNAVAILABLE"}) from exc
 
-    series = payload.get("value", {}).get("timeSeries", []) or []
-    if not series:
+    features = payload.get("features", []) or []
+    if not features:
         raise HTTPException(status_code=502, detail={"code": "POSEY_WSE_NO_SERIES"})
     latest = None
-    for item in series:
-        if item.get("variable", {}).get("variableCode", [{}])[0].get("value") != "00065":
+    for feature in features:
+        props = (feature or {}).get("properties") or {}
+        if str(props.get("parameter_code")) != "00065":
             continue
-        values = (item.get("values") or [{}])[0].get("value") or []
-        if values:
-            latest = values[-1]
-            break
+        latest = props
+        break
     if not latest:
         raise HTTPException(status_code=502, detail={"code": "POSEY_WSE_NO_OBSERVATION"})
     try:
@@ -697,12 +717,12 @@ async def _fetch_posey_wse() -> dict[str, Any]:
         raise HTTPException(status_code=502, detail={"code": "POSEY_WSE_VALUE_INVALID"})
 
     wse = _posey_wse_from_gage_height(gage_height)
-    observed_at = latest.get("dateTime")
+    observed_at = latest.get("time")
     if not isinstance(observed_at, str) or not observed_at:
         raise HTTPException(status_code=502, detail={"code": "POSEY_WSE_TIMESTAMP_INVALID"})
 
     provenance_payload = canonical_json({
-        "source": SNAPSHOT_IV_URL,
+        "source": SNAPSHOT_OGC_URL,
         "site": USGS_POSEY_WABASH_SITE,
         "parameter": "00065",
         "gageDatumFtNavd88": USGS_POSEY_GAGE_DATUM_NAVD88_FT,
@@ -728,7 +748,7 @@ async def _fetch_posey_wse() -> dict[str, Any]:
         "validationStatus": "VALIDATED_PROVISIONAL",
         "humanReviewRequired": True,
         "provisional": True,
-        "sourceUri": f"{SNAPSHOT_IV_URL}?sites={USGS_POSEY_WABASH_SITE}&parameterCd=00065&format=json",
+        "sourceUri": source_uri,
         "fetchedAt": utc_now_iso(),
     }
 
@@ -788,21 +808,21 @@ async def hydrologic_snapshot() -> dict:
     fetched_at = utc_now_iso()
     site_nos = [site_no for site_no, _, _ in SNAPSHOT_STATIONS]
     try:
-        payload = await _fetch_usgs_iv(site_nos)
+        payload = await _fetch_usgs_ogc(site_nos)
     except Exception as exc:  # network, timeout, bad status, bad JSON
         raise HTTPException(
             status_code=502,
             detail={
                 "code": "SNAPSHOT_UNAVAILABLE",
                 "detail": (
-                    "USGS Water Services could not be reached for a live "
+                    "USGS Water Data (OGC API) could not be reached for a live "
                     "snapshot; no values are fabricated in its place."
                 ),
                 "fetched_at": fetched_at,
                 "error": type(exc).__name__,
             },
         )
-    latest = _parse_iv_series(payload)
+    latest = _parse_ogc_features(payload)
     stations = []
     for site_no, name, river in SNAPSHOT_STATIONS:
         observations = latest.get(site_no, [])
@@ -819,7 +839,7 @@ async def hydrologic_snapshot() -> dict:
     return {
         "fetched_at": fetched_at,
         "trigger": "user-initiated",
-        "source": "USGS Water Services nwis/iv (instantaneous values)",
+        "source": "USGS Water Data OGC API latest-continuous (instantaneous values)",
         "provisional": True,
         "stations": stations,
         "count": len(stations),

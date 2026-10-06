@@ -6,6 +6,11 @@ import { MAP_PLANE_FABRIC, type MapPlaneLayer } from '../lib/map-plane-fabric';
 import { buildArcGisFeatureQueryUrl, getMapLibreFabricLayer } from '../lib/maplibre-layer-fabric';
 import { getTerrainRgbStatus } from '../lib/twin-map-style';
 import { TERRAIN_RGB_SOURCE_ID } from '../lib/terrain-rgb-contract';
+import {
+  FLOOD_OVERLAY_METADATA,
+  FloodDeckOverlay,
+  runIllustrativeScreeningScenario,
+} from '../lib/flood-deck-overlay';
 
 const INITIAL_CENTER: [number, number] = [-88.005075, 37.845887];
 const MAX_BOUNDS: [[number, number], [number, number]] = [
@@ -207,6 +212,9 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
   const [terrainEnabled, setTerrainEnabled] = useState(false);
   const [status, setStatus] = useState('Initializing MapLibre plane…');
   const [picked, setPicked] = useState<string | null>(null);
+  const [floodOverlayOn, setFloodOverlayOn] = useState(false);
+  const [floodBusy, setFloodBusy] = useState(false);
+  const floodOverlayRef = useRef<FloodDeckOverlay | null>(null);
   const requestGeneration = useRef(0);
   const visibleRef = useRef(visible);
   visibleRef.current = visible;
@@ -232,8 +240,7 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
     }
   }, []);
 
-  const refreshFeatureLayer = useCallback(async (map: Map, item: MapPlaneLayer): Promise<void> => {
-    const source = map.getSource(item.id) as GeoJSONSource | undefined;
+  const refreshFeatureLayer = useCallback(async (map: Map, item: MapPlaneLayer): Promise<void> => {    const source = map.getSource(item.id) as GeoJSONSource | undefined;
     if (!source) return;
     const generation = ++requestGeneration.current;
     try {
@@ -243,6 +250,51 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
       if (generation === requestGeneration.current) {
         setStatus(`${item.title}: ${error instanceof Error ? error.message : 'source unavailable'}`);
       }
+    }
+  }, []);
+
+  /**
+   * Flood overlay toggle — user-initiated only. On enable, runs the
+   * illustrative screening scenario through the real diffusion-wave chain and
+   * renders its depth grid via deck.gl. Off by default; disabling hides it.
+   */
+  const toggleFloodOverlay = useCallback(async (enable: boolean): Promise<void> => {
+    const map = mapRef.current;
+    if (!map) {
+      setStatus('Flood overlay: map not ready yet.');
+      return;
+    }
+    if (!enable) {
+      floodOverlayRef.current?.setVisible(false);
+      setFloodOverlayOn(false);
+      return;
+    }
+    setFloodBusy(true);
+    try {
+      let overlay = floodOverlayRef.current;
+      if (!overlay) {
+        overlay = new FloodDeckOverlay(map);
+        floodOverlayRef.current = overlay;
+      }
+      // Synchronous screening run on a small illustrative grid; fail-closed.
+      const { result, bounds } = runIllustrativeScreeningScenario();
+      overlay.setInundation({
+        depthFt: result.inundation.depthFt,
+        nx: result.inundation.depthFt[0]?.length ?? 0,
+        ny: result.inundation.depthFt.length,
+        bounds,
+      });
+      overlay.setVisible(true);
+      setFloodOverlayOn(true);
+      setStatus(
+        `Flood overlay: screening run complete — max depth ${result.inundation.maxDepthFt.toFixed(2)} ft, ` +
+          `${result.inundation.floodedCellCount} wet cells. ${FLOOD_OVERLAY_METADATA.disclaimer}`,
+      );
+    } catch (error) {
+      setStatus(`Flood overlay unavailable: ${error instanceof Error ? error.message : 'screening run failed'}`);
+      setFloodOverlayOn(false);
+    } finally {
+      setFloodBusy(false);
     }
   }, []);
 
@@ -342,6 +394,8 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
     });
 
     return () => {
+      floodOverlayRef.current?.dispose();
+      floodOverlayRef.current = null;
       map.remove();
       mapRef.current = null;
     };
@@ -404,6 +458,27 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
               </label>
             );
           })}
+        </div>
+        <div style={{ marginTop: 8, display: 'grid', gap: 6 }}>
+          <label style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 8, alignItems: 'start', padding: 8, borderRadius: 8, background: floodOverlayOn ? 'rgba(56,189,248,.08)' : 'rgba(15,23,42,.45)', border: '1px dashed rgba(56,189,248,.35)' }}>
+            <input
+              type="checkbox"
+              checked={floodOverlayOn}
+              disabled={floodBusy}
+              onChange={(event) => void toggleFloodOverlay(event.target.checked)}
+            />
+            <span>
+              <span style={{ display: 'block', fontSize: 11, fontWeight: 700 }}>
+                {floodBusy ? 'Running screening…' : FLOOD_OVERLAY_METADATA.title}
+              </span>
+              <span style={{ display: 'block', marginTop: 2, fontSize: 9, color: '#64748b' }}>
+                {FLOOD_OVERLAY_METADATA.authority}
+              </span>
+              <span style={{ display: 'block', marginTop: 4, fontSize: 9, lineHeight: 1.4, color: '#fbbf24' }}>
+                {FLOOD_OVERLAY_METADATA.disclaimer}
+              </span>
+            </span>
+          </label>
         </div>
         <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(148,163,184,.18)', fontSize: 9, lineHeight: 1.45, color: '#64748b' }}>
           MapLibre renders in EPSG:3857. Engineering source products may be transformed to EPSG:2966 only inside the evidence/scientific pipeline with recorded transformation metadata; the browser plane does not silently relabel Web Mercator coordinates as EPSG:2966. Vertical datum is likewise provenance metadata, not a MapLibre CRS switch.

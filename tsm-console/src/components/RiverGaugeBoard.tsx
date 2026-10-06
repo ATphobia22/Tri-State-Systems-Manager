@@ -5,10 +5,10 @@
  * that fetches a live snapshot of all gauges when the user presses it.
  *
  * This component NEVER polls. The button is the only trigger: it fetches
- * current instantaneous values from USGS (OGC latest-continuous, falling back
- * to Water Services nwis/iv), timestamps the snapshot, and marks every value
- * provisional. Stations that do not return data are shown as unavailable —
- * never filled in. Gage-height values are on the USGS gage datum, NOT NAVD88.
+ * current values from the USGS Water Data OGC API (latest-continuous),
+ * timestamps the snapshot, and marks every value provisional. Stations that
+ * do not return data are shown as unavailable — never filled in.
+ * Gage-height values are on the USGS gage datum, NOT NAVD88.
  */
 import { useCallback, useRef, useState } from 'react';
 import {
@@ -64,61 +64,19 @@ const buttonStyle = {
   cursor: 'pointer',
 } as const;
 
-async function fetchStationIvFallback(siteNo: string): Promise<UsgsDirectObservation[]> {
-  const url =
-    `https://waterservices.usgs.gov/nwis/iv/?format=json&sites=${siteNo}&parameterCd=00060,00065`;
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 15000);
-  try {
-    const response = await fetch(url, { signal: controller.signal, cache: 'no-store' });
-    if (!response.ok) throw new Error(`NWIS IV HTTP ${response.status}`);
-    const payload = (await response.json()) as {
-      value?: { timeSeries?: Array<any> };
-    };
-    const retrievedAt = new Date().toISOString();
-    const out: UsgsDirectObservation[] = [];
-    for (const ts of payload.value?.timeSeries ?? []) {
-      const code = String(ts?.variable?.variableCode?.[0]?.value ?? '');
-      if (code !== '00060' && code !== '00065') continue;
-      const vals = ts?.values?.[0]?.value ?? [];
-      const latest = vals[vals.length - 1];
-      const value = Number(latest?.value);
-      if (!Number.isFinite(value)) continue;
-      out.push({
-        stationId: siteNo,
-        parameterCode: code,
-        value,
-        unit: typeof ts?.variable?.unit?.unitCode === 'string' ? ts.variable.unit.unitCode : null,
-        observedAt: typeof latest?.dateTime === 'string' ? latest.dateTime : retrievedAt,
-        retrievedAt,
-        sourceUri: url,
-        verticalDatum: 'GAGE_DATUM',
-        provider: 'USGS',
-      });
-    }
-    if (!out.length) throw new Error('NWIS IV returned no usable observations');
-    return out;
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
 async function fetchStation(station: SnapshotStation): Promise<StationSnapshot> {
   try {
     const observations = await fetchUsgsLatestContinuous(station.siteNo, ['00065', '00060']);
     return { station, observations, unavailable: false };
-  } catch (primaryError) {
-    try {
-      const observations = await fetchStationIvFallback(station.siteNo);
-      return { station, observations, unavailable: false };
-    } catch (fallbackError) {
-      return {
-        station,
-        observations: [],
-        unavailable: true,
-        error: fallbackError instanceof Error ? fallbackError.message : String(fallbackError),
-      };
-    }
+  } catch (error) {
+    // Fail closed: no legacy fallback (USGS Water Services decommissioned
+    // 2026-02-22). A station that does not return data is unavailable.
+    return {
+      station,
+      observations: [],
+      unavailable: true,
+      error: error instanceof Error ? error.message : String(error),
+    };
   }
 }
 
