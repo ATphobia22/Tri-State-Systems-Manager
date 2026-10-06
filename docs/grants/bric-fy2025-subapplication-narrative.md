@@ -9,6 +9,21 @@
 > live agency NOFO) before any filing or reliance. See `docs/DRIVE-MANIFEST.md` for known
 > cross-document inconsistencies.
 
+> **DO NOT FILE — CORRECTION NOTICE (2026-10-06, verified against live OpenFEMA API):**
+> - §3.2 disaster-declaration history is **false for Posey County**. Live
+>   `FemaWebDeclarationAreas` shows county records only for DR 891, 1125, 1165,
+>   1433. DR-596 and DR-1109 have zero Posey County records; DR-3238 is
+>   "HURRICANE KATRINA EVACUATION" (not riverine flooding); DR-1109 is
+>   "BLIZZARD OF 96".
+> - "Applicant: Anthony John Tucker" — BRIC subapplicants must be **governments**,
+>   not individuals. Not a viable filing as written.
+> - "Parcel ID: 65-09-35-200-001.000-009" does **not** match the verified APN
+>   65-19-08-100-008.001-010 (and embeds the Section 35 fiction; working Section 8).
+> - BRIC FY2025 is **closed**; no FY26 NOFOs. Project scale/finance figures
+>   (2,400 acres, $3.5–7M, 90/10 treatment) are **unverified**.
+> - 1937 "flood stage of 37.0 feet" is **unverified** (NOAA's 1937 tabulation
+>   lists 35 ft at Evansville). Quarantined from all filing workflows.
+
 ---
 BUILDING RESILIENT INFRASTRUCTURE AND COMMUNITIES (BRIC) PROGRAM  |  FISCAL YEAR 2025
 FEMA BRIC FY2025 Subapplication Narrative

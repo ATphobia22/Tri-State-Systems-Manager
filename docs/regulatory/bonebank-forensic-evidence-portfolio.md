@@ -9,6 +9,16 @@
 > live agency NOFO) before any filing or reliance. See `docs/DRIVE-MANIFEST.md` for known
 > cross-document inconsistencies.
 
+> **DO NOT FILE — CORRECTION NOTICE (2026-10-06, verified):**
+> - "Certified to exceed FEMA Risk MAP standard specifications" — **no certifying
+>   party exists**; no licensed PE involved.
+> - "Certified 5cm LiDAR topography" establishing LAG 377.2 — **unverified**;
+>   LAG is owner-supplied, uncertified.
+> - The unattributed PE-style certification quote ("performed under my direct
+>   supervision…", citing IC 25-31-1) has **no speaker** and no PE behind it.
+> - Houdini/Moonray are VFX/rendering tools, **not hydraulic models**.
+>   Quarantined from filing workflows.
+
 ---
 SOURCE: Bonebank Property: Forensic Evidence & Regulatory Submission Portfolio
 DRIVE_MODIFIED: 2026-07-19

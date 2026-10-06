@@ -103,8 +103,25 @@ export default function ThreeDTilesLayer({
       directional.position.set(1, 1, 1);
       scene.add(directional);
 
-      setStatus('ready');
-      onStatusChange?.('ready');
+      setStatus('loading');
+      onStatusChange?.('loading');
+
+      // 'ready' is only reported after the tileset JSON actually loads —
+      // renderer construction alone proves nothing about tile availability.
+      const handleTilesetLoaded = () => {
+        if (disposed) return;
+        setError(null);
+        setStatus('ready');
+        onStatusChange?.('ready');
+      };
+      const handleTilesetError = (event: { error?: Error }) => {
+        if (disposed) return;
+        setStatus('error');
+        setError(`3D tileset failed to load: ${event?.error?.message ?? 'unknown error'}`);
+        onStatusChange?.('error');
+      };
+      tilesRenderer.addEventListener('load-tileset', handleTilesetLoaded);
+      tilesRenderer.addEventListener('load-error', handleTilesetError);
 
       const WGS84_A = 6378137;
       const WGS84_E2 = 6.6943799901413165e-3;
@@ -194,6 +211,15 @@ export default function ThreeDTilesLayer({
         setStatus('loading');
         onStatusChange?.('loading');
         syncCameraToMap();
+        // Re-arm one-shot load confirmation: only report 'ready' once the
+        // tileset reloads after context restoration.
+        const onReload = () => {
+          if (disposed) return;
+          tilesRenderer?.removeEventListener('load-tileset', onReload);
+          setStatus('ready');
+          onStatusChange?.('ready');
+        };
+        tilesRenderer?.addEventListener('load-tileset', onReload);
         if (!disposed && animationId === null) {
           const resume = () => {
             if (disposed) return;
@@ -203,8 +229,8 @@ export default function ThreeDTilesLayer({
           };
           resume();
         }
-        setStatus('ready');
-        onStatusChange?.('ready');
+        // 'ready' is reported by the one-shot load-tileset listener above,
+        // not here — the render loop restarting proves nothing about tiles.
       };
       canvas.addEventListener('webglcontextlost', handleContextLost);
       canvas.addEventListener('webglcontextrestored', handleContextRestored);
@@ -214,6 +240,8 @@ export default function ThreeDTilesLayer({
         window.removeEventListener('resize', handleResize);
         canvas.removeEventListener('webglcontextlost', handleContextLost);
         canvas.removeEventListener('webglcontextrestored', handleContextRestored);
+        tilesRenderer?.removeEventListener('load-tileset', handleTilesetLoaded);
+        tilesRenderer?.removeEventListener('load-error', handleTilesetError);
         map?.off('move', syncCameraToMap);
         map?.off('resize', syncCameraToMap);
         if (animationId) cancelAnimationFrame(animationId);

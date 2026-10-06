@@ -350,25 +350,6 @@ export async function fetchCommunityGauges(
       unavailable(definition, nowMs),
   );
 }
-
-export function startGaugePoll(
-  onData: (rows: RiverGaugeObservation[]) => void,
-  intervalMs = 60_000,
-): () => void {
-  let cancelled = false;
-  const tick = async () => {
-    if (cancelled) return;
-    try {
-      const rows = await fetchCommunityGauges();
-      if (!cancelled) onData(rows);
-    } catch {
-      /* next tick */
-    }
-  };
-  void tick();
-  const id = setInterval(tick, intervalMs);
-  return () => {
-    cancelled = true;
-    clearInterval(id);
-  };
-}
+// NOTE (2026-10-06): the 60s polling helper startGaugePoll was removed.
+// Live values are fetched only via explicit user action (Fetch live snapshot);
+// no polling, no background refresh, per standing telemetry policy.

@@ -9,6 +9,13 @@
 > live agency NOFO) before any filing or reliance. See `docs/DRIVE-MANIFEST.md` for known
 > cross-document inconsistencies.
 
+> **DO NOT FILE — CORRECTION NOTICE (2026-10-06, verified):**
+> - LiDAR is **not** "non-mutable ground truth" that "supersedes survey data" —
+>   a sealed land survey outranks LiDAR for elevation certification.
+> - LAG 377.2 ft is **owner-supplied and uncertified**, not "LiDAR-derived".
+> - FIRM panel 18129C0215D is **superseded**; current working panel is 18129C0300C.
+> - "Mathematical certainty" claims are **unverified**. Quarantined from filing workflows.
+
 ---
 SOURCE: Regulatory Engineering Dossier: Point Township Digital Twin (PTDT) v35
 DRIVE_MODIFIED: 2026-08-26

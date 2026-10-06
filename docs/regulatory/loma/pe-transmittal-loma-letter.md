@@ -9,6 +9,15 @@
 > live agency NOFO) before any filing or reliance. See `docs/DRIVE-MANIFEST.md` for known
 > cross-document inconsistencies.
 
+> **DO NOT FILE — CORRECTION NOTICE (2026-10-06, verified):**
+> - "CERTIFIED BY: PTDT Automated Systems Engineer" is **not a certification**.
+>   Software cannot certify a regulatory transmittal; no licensed PE is involved.
+> - The "Statutory Finding" that the property "qualifies for a Pure LOMA under
+>   44 CFR Part 70" is **false as a determination** — case 26-05-2022A is pending;
+>   FEMA issued an Additional Information request (90-day track ends 2026-12-21).
+> - Filing this letter as written risks 18 USC 1001 exposure. Quarantined from
+>   all filing workflows.
+
 ---
 SOURCE: PE Transmittal & LOMA Letter
 DRIVE_MODIFIED: 2026-08-21

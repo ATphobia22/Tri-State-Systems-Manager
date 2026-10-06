@@ -9,6 +9,14 @@
 > live agency NOFO) before any filing or reliance. See `docs/DRIVE-MANIFEST.md` for known
 > cross-document inconsistencies.
 
+> **DO NOT FILE — CORRECTION NOTICE (2026-10-06, verified):**
+> - The "Compliance Statement for FEMA Reviewers" asserts **false facts**:
+>   LAG 377.2 was not "confirmed" by a licensed surveyor (owner-supplied,
+>   uncertified); "Community Number: 18129C" is a FIRM map prefix, not a
+>   community ID (IDs 180194/180209, conflict unresolved, SSOT 180209).
+> - Language addressed to federal reviewers carrying false facts creates
+>   18 USC 1001 exposure if filed. Quarantined from all filing workflows.
+
 ---
 SOURCE: generate the official FEMA Form 81-92 (MT-1) structural data field mapping text block to streamline the application process for him
 DRIVE_MODIFIED: 2026-09-21

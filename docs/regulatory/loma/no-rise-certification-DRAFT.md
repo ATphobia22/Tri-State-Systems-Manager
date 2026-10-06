@@ -9,6 +9,21 @@
 > live agency NOFO) before any filing or reliance. See `docs/DRIVE-MANIFEST.md` for known
 > cross-document inconsistencies.
 
+> **DO NOT FILE — CORRECTION NOTICE (2026-10-06, verified):**
+> - The PE certification block is **blank** (no name, license, signature, seal) —
+>   a certification with no certifier.
+> - The sworn applicant statement (penalty of perjury) is attached to **false
+>   claims**: no licensed-surveyor Elevation Certificate exists for LAG 377.2
+>   (owner-supplied, uncertified).
+> - Model statistics "NSE = 0.94, R² = 0.97, RMSE = 0.18 ft" for "SRH-2D within
+>   HEC-RAS 2D v6.5" have **no provenance** — the repo's sanctioned model is
+>   diffusion-wave screening; full Saint-Venant/SRH-2D was explicitly deferred.
+> - USGS 03322000 is **Ohio River at Evansville**, not "J.T. Myers Dam".
+> - "312 IAC 10-6-3 volumetric compensatory storage requirement" is **unverified**
+>   (the draft itself correctly states the 0.15 ft backwater cap elsewhere).
+> - BRIC FY2025 is **closed**; no FY26 NOFOs. Filing this package as written
+>   risks 18 USC 1001 exposure. Quarantined from all filing workflows.
+
 ---
 [ INDIANA DNR — DIVISION OF WATER — OFFICIAL SEAL PLACEHOLDER ]
 INDIANA DEPARTMENT OF NATURAL RESOURCES
