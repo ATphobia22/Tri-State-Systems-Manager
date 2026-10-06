@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-10-06T09:49:55Z",
+  "purpose": "Requested federal/state API source integration audit for Tri-State Systems Manager.",
+  "retrievalMode": "connected-web-and-github-evidence; local-container-download-blocked-by-outbound-dns",
+  "sources": [
+    {
+      "id": "fema-openfema-api",
+      "authority": "FEMA",
+      "class": "FEDERAL_OPEN_DATA",
+      "url": "https://www.fema.gov/api/open/v2",
+      "status": "VERIFIED",
+      "integration": "existing"
+    },
+    {
+      "id": "fema-openfema-samples",
+      "authority": "FEMA",
+      "class": "DEVELOPER_REFERENCE",
+      "url": "https://github.com/FEMA/openfema-samples",
+      "status": "VERIFIED",
+      "integration": "reference"
+    },
+    {
+      "id": "usace-cwms-data-api",
+      "authority": "USACE",
+      "class": "HYDROLOGIC_SERVICE",
+      "url": "https://cwms-data.usace.army.mil/cwms-data/",
+      "repository": "https://github.com/USACE/cwms-data-api",
+      "status": "DOCS_VERIFIED_LIVE_HOST_UNVERIFIED",
+      "integration": "planned"
+    },
+    {
+      "id": "usace-nid-api",
+      "authority": "USACE",
+      "class": "DAM_INFRASTRUCTURE_REFERENCE",
+      "url": "https://nid.sec.usace.army.mil/api/developer",
+      "status": "DISCOVERY_VERIFIED_SCHEMA_PENDING",
+      "integration": "planned"
+    },
+    {
+      "id": "usace-nld-public-featureserver",
+      "authority": "USACE",
+      "class": "LEVEE_INFRASTRUCTURE_REFERENCE",
+      "url": "https://geospatial.sec.usace.army.mil/dls/rest/services/NLD/Public/FeatureServer",
+      "status": "VERIFIED",
+      "integration": "existing_binding_requires_update"
+    },
+    {
+      "id": "usace-nsi-api",
+      "authority": "USACE_HEC",
+      "class": "STRUCTURE_CONSEQUENCE_REFERENCE",
+      "url": "https://nsi.sec.usace.army.mil/nsiapi/",
+      "status": "VERIFIED",
+      "integration": "planned"
+    },
+    {
+      "id": "indiana-dnr-water-wells",
+      "authority": "Indiana_DNR_Division_of_Water",
+      "class": "SUBSURFACE_REFERENCE",
+      "url": "https://gisdata.in.gov/server/rest/services/Hosted/WaterWells_DNR_Water_IN_1/FeatureServer",
+      "arcgisItem": "67ae17877937442dbf454390df3cc803",
+      "status": "VERIFIED",
+      "integration": "planned"
+    },
+    {
+      "id": "indianamap",
+      "authority": "Indiana_Geographic_Information_Office",
+      "class": "STATE_CATALOG",
+      "url": "https://www.indianamap.org/",
+      "status": "VERIFIED",
+      "integration": "discovery"
+    },
+    {
+      "id": "indiana-dnr-dcat-us",
+      "authority": "Indiana_DNR",
+      "class": "STATE_CATALOG",
+      "url": "https://data-indnr.hub.arcgis.com/api/feed/dcat-us/1.1.json",
+      "status": "PENDING_RETRIEVAL",
+      "integration": "planned"
+    },
+    {
+      "id": "indiana-iga-api",
+      "authority": "Indiana_Government",
+      "class": "STATE_GOVERNMENT_API",
+      "url": "https://docs.api.iga.in.gov/usage.html",
+      "status": "UNVERIFIED_HTTP_403",
+      "integration": "blocked_until_schema_verified"
+    }
+  ]
+}
