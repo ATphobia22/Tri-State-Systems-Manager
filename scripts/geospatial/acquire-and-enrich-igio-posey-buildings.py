@@ -176,14 +176,26 @@ def main() -> None:
         preserving complete, non-overlapping coverage. Any response that hits
         the transfer limit is bisected until each leaf query is complete.
         """
-        payload = request_json({
-            "where": f"county='Posey' AND objectid >= {lower} AND objectid <= {upper}",
-            "outFields": "objectid,lidaryear,county",
-            "returnGeometry": "true",
-            "outSR": "4326",
-            "resultRecordCount": page_size,
-            "f": "json",
-        })
+        try:
+            payload = request_json({
+                "where": f"county='Posey' AND objectid >= {lower} AND objectid <= {upper}",
+                "outFields": "objectid,lidaryear,county",
+                "returnGeometry": "true",
+                "outSR": "4326",
+                "resultRecordCount": page_size,
+                "f": "json",
+            })
+        except RuntimeError as exc:
+            # IGIO has emitted "/ by zero" for oversized range/offset queries.
+            # Treat that as a signal to bisect the OBJECTID domain rather than
+            # retrying the same server-side query indefinitely.
+            if "/ by zero" not in str(exc) or lower >= upper:
+                raise
+            midpoint = lower + (upper - lower) // 2
+            acquire_objectid_range(lower, midpoint)
+            acquire_objectid_range(midpoint + 1, upper)
+            return
+
         got = payload.get("features", [])
         exceeded = bool(payload.get("exceededTransferLimit", False))
 
