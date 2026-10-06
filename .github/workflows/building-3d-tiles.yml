@@ -1,0 +1,113 @@
+name: Building 3D Tiles HLOD Pipeline
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'scripts/geospatial/build-building-3d-tiles.py'
+      - 'scripts/geospatial/build-hlod-tileset.py'
+      - 'scripts/geospatial/stitch-building-glbs.py'
+      - 'scripts/geospatial/validate-building-3d-tiles.py'
+      - 'data/posey-county/parcels/**'
+      - '.github/workflows/building-3d-tiles.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-tiles:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@a26af69be951a213d495a44c3e40e8b464bac279
+        with:
+          python-version: '3.11'
+
+      - name: Install Python deps
+        run: pip install numpy pygltflib
+
+      - name: Setup Node (for gltf-transform)
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d45061372
+        with:
+          node-version: '20'
+
+      - name: Install gltf-transform
+        run: npm install -g @gltf-transform/cli
+
+      - name: Generate LOD1 building GLBs
+        run: |
+          python3 scripts/geospatial/build-building-3d-tiles.py \
+            --input data/posey-county/parcels/posey-buildings-derived.geojson \
+            --output-dir tsm-console/public/3d-tiles/buildings/
+
+      - name: Build HLOD tileset
+        run: |
+          python3 scripts/geospatial/build-hlod-tileset.py \
+            --input tsm-console/public/3d-tiles/buildings/tileset-flat.json \
+            --output tsm-console/public/3d-tiles/buildings/tileset.json
+
+      - name: Validate HLOD tileset
+        run: |
+          python3 scripts/geospatial/validate-building-3d-tiles.py \
+            --tileset tsm-console/public/3d-tiles/buildings/tileset.json \
+            --tiles-dir tsm-console/public/3d-tiles/buildings/
+
+      - name: Stitch leaf-node GLBs
+        run: |
+          python3 scripts/geospatial/stitch-building-glbs.py \
+            --tileset tsm-console/public/3d-tiles/buildings/tileset.json \
+            --tiles-dir tsm-console/public/3d-tiles/buildings/ \
+            --output tsm-console/public/3d-tiles/buildings/tileset-stitched.json
+
+      - name: Apply Draco compression
+        run: |
+          cd tsm-console/public/3d-tiles/buildings/stitched
+          mkdir -p draco
+          for f in tile-*.glb; do
+            if [[ "$f" != *"-draco.glb" ]]; then
+              gltf-transform draco "$f" "draco/${f%.glb}-draco.glb"
+            fi
+          done
+
+      - name: Update tileset for Draco
+        run: |
+          python3 -c "
+          import json
+          p = 'tsm-console/public/3d-tiles/buildings/tileset-stitched.json'
+          with open(p) as f: ts = json.load(f)
+          def update(n):
+              if 'content' in n and 'uri' in n['content']:
+                  uri = n['content']['uri']
+                  if uri.startswith('stitched/tile-'):
+                      name = uri.split('/')[-1].replace('.glb', '-draco.glb')
+                      n['content']['uri'] = f'stitched/draco/{name}'
+              for c in n.get('children', []): update(c)
+          update(ts['root'])
+          if 'extensionsUsed' not in ts: ts['extensionsUsed'] = []
+          if 'KHR_draco_mesh_compression' not in ts['extensionsUsed']:
+              ts['extensionsUsed'].append('KHR_draco_mesh_compression')
+          with open('tsm-console/public/3d-tiles/buildings/tileset.json', 'w') as f:
+              json.dump(ts, f, separators=(',', ':'))
+          print('Tileset updated for Draco')
+          "
+
+      - name: Final validation
+        run: |
+          python3 scripts/geospatial/validate-building-3d-tiles.py \
+            --tileset tsm-console/public/3d-tiles/buildings/tileset.json \
+            --tiles-dir tsm-console/public/3d-tiles/buildings/
+
+      - name: Upload tiles artifact
+        uses: actions/upload-artifact@65c4c4a5d10b3c4b52fec1af382a0ae7c8719
+        with:
+          name: building-3d-tiles-hlod-${{ github.sha }}
+          path: tsm-console/public/3d-tiles/buildings/
+          retention-days: 90
