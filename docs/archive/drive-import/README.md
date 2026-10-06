@@ -5,7 +5,7 @@ collection on 2026-09-25. Every file is bannered at the top with its source,
 Drive modification date, and verification status.
 
 **These are DESIGN-INTENT references, not specifications.** Per
-`SYNTHESIS-VERIFICATION.md`, Drive-side materials materially overstate implementation
+`docs/EXECUTIVE-REVIEW-VERIFICATION.md`, Drive-side materials materially overstate implementation
 maturity in places (multi-physics solver claims, certification language, "sovereign"
 infrastructure). Nothing here authorizes new implementation work or overrides the
 verified architecture in `docs/ARCHITECTURE-CURRENT-STATE.md`.
