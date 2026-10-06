@@ -1,0 +1,67 @@
+name: TSM Buildings 3D Tiles PR Validation
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/geospatial/build-building-3d-tiles.py'
+      - 'scripts/geospatial/build-hlod-tileset.py'
+      - 'scripts/geospatial/validate-building-3d-tiles.py'
+      - 'scripts/geospatial/stitch-hlod-glbs.py'
+      - 'scripts/geospatial/compress-hlod-glbs.sh'
+      - 'scripts/geospatial/build-building-3d-tiles-pipeline.sh'
+      - 'scripts/geospatial/package-building-3d-tiles.sh'
+      - 'scripts/geospatial/test_validate_building_3d_tiles.py'
+      - 'tsm-console/public/data/posey-buildings-derived.geojson'
+      - 'integrations/third-party-toolchain.json'
+      - 'scripts/ci/install-external-tooling.mjs'
+      - '.github/workflows/buildings-3d-tiles-pr.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v6.0.0
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tsm-console/package-lock.json
+      - name: Install locked console dependencies
+        working-directory: tsm-console
+        run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
+      - name: Install pinned CI-only external tooling
+        env:
+          TSM_INSTALL_EXTERNAL_TOOLING: 'true'
+        run: node scripts/ci/install-external-tooling.mjs
+      - name: Validate external tooling
+        env:
+          TSM_REQUIRE_EXTERNAL_TOOLING: 'true'
+        run: node scripts/ci/validate-external-tooling.mjs
+      - name: Pytest validator suite
+        run: pytest -q scripts/geospatial/test_validate_building_3d_tiles.py
+      - name: Build, stitch, compress and validate
+        env:
+          EXPECTED_BUILDINGS: '4121'
+          HLOD_MAX_ITEMS: '50'
+          HLOD_MAX_DEPTH: '6'
+        run: scripts/geospatial/build-building-3d-tiles-pipeline.sh /tmp/tsm-buildings
+      - name: Cesium 3D Tiles validation
+        working-directory: tsm-console
+        run: npx --no-install 3d-tiles-validator --tilesetFile /tmp/tsm-buildings/compressed/tileset.json
+      - name: glTF validation
+        working-directory: tsm-console
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            ./node_modules/.bin/gltf-transform validate "$file" --limit 1
+          done < <(find /tmp/tsm-buildings/compressed -type f -name '*.glb' -print0 | sort -z)
