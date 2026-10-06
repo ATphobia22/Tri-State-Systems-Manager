@@ -290,10 +290,13 @@ def main() -> None:
                 raise SystemExit(f"IGIO object {object_id} returned invalid polygon geometry: {exc}") from exc
             if polygon.is_empty or not polygon.is_valid:
                 raise SystemExit(f"IGIO object {object_id} returned invalid polygon geometry")
-            if not polygon.intersects(boundary):
-                raise SystemExit(f"IGIO object {object_id} falls outside the exact Posey County boundary")
-            clipped = polygon.intersection(boundary)
-            if clipped.is_empty or clipped.geom_type not in {"Polygon", "MultiPolygon"} or not clipped.is_valid:
+            intersects_boundary = polygon.intersects(boundary)
+            clipped = polygon.intersection(boundary) if intersects_boundary else polygon
+            if intersects_boundary and (
+                clipped.is_empty
+                or clipped.geom_type not in {"Polygon", "MultiPolygon"}
+                or not clipped.is_valid
+            ):
                 raise SystemExit(f"IGIO object {object_id} could not be clipped to the exact Posey County boundary")
             features.append({
                 "type": "Feature",
@@ -302,7 +305,8 @@ def main() -> None:
                     "igioObjectId": object_id,
                     "lidarYear": attrs.get("lidaryear"),
                     "county": attrs.get("county"),
-                    "geometryClippedToPoseyBoundary": not polygon.equals(clipped),
+                    "geometryClippedToPoseyBoundary": intersects_boundary and not polygon.equals(clipped),
+                    "poseyBoundaryAudit": "INTERSECTING" if intersects_boundary else "OUTSIDE_CENSUS_BOUNDARY",
                 },
             })
 
