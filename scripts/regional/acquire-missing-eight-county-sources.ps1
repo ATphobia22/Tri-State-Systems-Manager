@@ -137,16 +137,35 @@ if($source.Mode -eq "boundary"){
 $parcelSpatialRelation = if($source.Mode -eq "boundary"){"exact-county-within-tiger-boundary"}else{"exact-county-attribute"}
 [void]$receipts.Add((Write-Receipt -Id "$($county.Fips)-parcels-recovery" -CountyFips $county.Fips -Authority $source.Authority -SourceUrl $source.Url -Path $target -FeatureCount $features.Count -SpatialRelation $parcelSpatialRelation))
 }
-$femaUrl="https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer/28"
+$femaServiceUrl="https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer"
+# Resolve the current FEMA layer by semantic name instead of hard-coding a
+# numeric layer ID. FEMA's public service inventory documents "Flood Hazard
+# Zones" as the effective flood-zone polygon layer.
+$femaService=Invoke-RestMethod -Method Get -Uri "$femaServiceUrl?f=pjson" -TimeoutSec 120
+if($femaService.error){throw($femaService.error|ConvertTo-Json -Depth 20)}
+$femaLayer=@($femaService.layers | Where-Object { $_.name -eq "Flood Hazard Zones" })[0]
+if(-not $femaLayer){throw "FEMA NFHL semantic layer 'Flood Hazard Zones' was not found in $femaServiceUrl."}
+$femaLayerId=[int]$femaLayer.id
+$femaUrl="$femaServiceUrl/$femaLayerId"
+$femaLayerMetadata=Invoke-RestMethod -Method Get -Uri "$femaUrl?f=pjson" -TimeoutSec 120
+if($femaLayerMetadata.error){throw($femaLayerMetadata.error|ConvertTo-Json -Depth 20)}
+if($femaLayerMetadata.name -ne "Flood Hazard Zones"){throw "Resolved FEMA layer $femaLayerId is not Flood Hazard Zones."}
+if($femaLayerMetadata.geometryType -ne "esriGeometryPolygon"){throw "Resolved FEMA Flood Hazard Zones layer must be polygon geometry."}
+$requiredFemaFields=@("DFIRM_ID","FLD_ZONE","ZONE_SUBTY","SFHA_TF","STATIC_BFE","DEPTH")
+$actualFemaFields=@($femaLayerMetadata.fields | ForEach-Object { $_.name })
+$missingFemaFields=@($requiredFemaFields | Where-Object { $_ -notin $actualFemaFields })
+if($missingFemaFields.Count -gt 0){throw "FEMA Flood Hazard Zones schema is missing required fields: $($missingFemaFields -join ', ')"}
+Write-Host "Resolved FEMA NFHL Flood Hazard Zones semantic layer: $femaLayerId"
+
 $femaWhere="DFIRM_ID LIKE '21225%'"
-$femaFields="DFIRM_ID,FLD_ZONE,ZONE_SUBTY,SFHA_TF,STATIC_BFE,DEPTH"
-# FEMA NFHL returns HTTP 500 on a single full-geometry county query; resolve
-# object IDs first (fast), then fetch geometry in small chunks.
+$femaFields=$requiredFemaFields -join ","
+# FEMA NFHL can reject a large full-geometry county query; resolve object IDs
+# first, then fetch geometry in deterministic small chunks.
 $femaIdBody=@{where=$femaWhere;returnIdsOnly="true";f="json"}
 $femaIdResponse=Invoke-ArcGisQuery -LayerUrl $femaUrl -Body $femaIdBody
 $femaObjectIds=@($femaIdResponse.objectIds | Sort-Object {[int64]$_})
-if($femaObjectIds.Count -eq 0){throw "Direct FEMA NFHL layer 28 returned zero object IDs for DFIRM_ID 21225."}
-Write-Host "Recovering FEMA NFHL 21225: $($femaObjectIds.Count) features"
+if($femaObjectIds.Count -eq 0){throw "Direct FEMA NFHL Flood Hazard Zones layer $femaLayerId returned zero object IDs for DFIRM_ID 21225."}
+Write-Host "Recovering FEMA NFHL 21225 from semantic layer $femaLayerId: $($femaObjectIds.Count) features"
 $femaList=[System.Collections.Generic.List[object]]::new()
 $chunkSize=25
 for($startIndex=0;$startIndex -lt $femaObjectIds.Count;$startIndex+=$chunkSize){
@@ -161,7 +180,7 @@ for($startIndex=0;$startIndex -lt $femaObjectIds.Count;$startIndex+=$chunkSize){
     }catch{
       if($femaAttempt -eq 12){throw}
       $wait=[math]::Min(120,10*$femaAttempt)
-      Write-Host "FEMA chunk $($startIndex+1)-$([math]::Min($startIndex+$chunkSize,$femaObjectIds.Count)) failed (attempt $femaAttempt/12); waiting ${wait}s"
+      Write-Host "FEMA chunk $($startIndex+1)-$([math]::Min($startIndex+$chunkSize,$femaObjectIds.Count)) failed (attempt $femaAttempt/12); waiting $($wait)s"
       Start-Sleep -Seconds $wait
     }
   }
@@ -169,13 +188,14 @@ for($startIndex=0;$startIndex -lt $femaObjectIds.Count;$startIndex+=$chunkSize){
   Start-Sleep -Seconds 5
 }
 $femaFeatures=$femaList.ToArray()
-if($femaFeatures.Count -eq 0){throw "Direct FEMA NFHL layer 28 returned zero features for DFIRM_ID 21225."}
+if($femaFeatures.Count -eq 0){throw "Direct FEMA NFHL Flood Hazard Zones layer $femaLayerId returned zero features for DFIRM_ID 21225."}
 Write-Host "Recovered FEMA NFHL 21225: $($femaFeatures.Count) features"
 $femaRelative="ky-union-21225/floodplain/fema-nfhl-21225.geojson"
 $femaTarget=Join-Path $OutRoot $femaRelative
 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $femaTarget)|Out-Null
-[ordered]@{type="FeatureCollection";source=$femaUrl;sourceAuthority="FEMA effective NFHL";countyFips="21225";dfirmPrefix="21225";retrievedAt=(Get-Date).ToUniversalTime().ToString("o");boundaryGEOID="21225";boundarySource="US_CENSUS_BUREAU_TIGER_LINE";spatialRelation="exact-county-attribute";authorityWarning="Direct FEMA NFHL source. Do not relabel as preliminary, pending, state BAFM, or derived mirror.";features=$femaFeatures}|ConvertTo-Json -Depth 100|Set-Content -LiteralPath $femaTarget -Encoding utf8
+[ordered]@{type="FeatureCollection";source=$femaUrl;sourceAuthority="FEMA effective NFHL";countyFips="21225";dfirmPrefix="21225";femaSemanticLayer="Flood Hazard Zones";femaLayerId=$femaLayerId;retrievedAt=(Get-Date).ToUniversalTime().ToString("o");boundaryGEOID="21225";boundarySource="US_CENSUS_BUREAU_TIGER_LINE";spatialRelation="exact-county-attribute";authorityWarning="Direct FEMA NFHL source. Do not relabel as preliminary, pending, state BAFM, or derived mirror.";features=$femaFeatures}|ConvertTo-Json -Depth 100|Set-Content -LiteralPath $femaTarget -Encoding utf8
 [void]$receipts.Add((Write-Receipt -Id "21225-fema-nfhl-recovery" -CountyFips "21225" -Authority "FEMA effective NFHL" -SourceUrl $femaUrl -Path $femaTarget -FeatureCount $femaFeatures.Count -SpatialRelation "exact-county-attribute"))
+
 $manifest=[ordered]@{schema="tsm-missing-source-recovery-v1";generatedAt=(Get-Date).ToUniversalTime().ToString("o");sourcePolicy="official-county-or-federal-source-first";counties=$Counties;receipts=$receipts;unresolved=@(
 @{id="nfhl-flood-zones-17059-size-mismatch";status="requires-offline-bundle-reconciliation";reason="External 11.2 GB bundle required before bytes/SHA-256 can be reconciled."},
 @{id="nfhl-flood-zones-21101-size-mismatch";status="requires-offline-bundle-reconciliation";reason="External 11.2 GB bundle required before bytes/SHA-256 can be reconciled."}
