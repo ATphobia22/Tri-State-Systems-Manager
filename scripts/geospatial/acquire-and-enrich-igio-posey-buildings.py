@@ -28,6 +28,8 @@ from urllib.request import Request, urlopen
 import numpy as np
 import rasterio
 from shapely.geometry import MultiPolygon, Polygon, mapping, shape
+from shapely.ops import unary_union
+from shapely.validation import make_valid
 from rasterio.warp import transform as warp_transform
 
 SERVICE = "https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0"
@@ -68,12 +70,8 @@ def request_json(params: dict[str, object], attempts: int = 8) -> dict:
 
 
 def arcgis_rings_to_geometry(rings: list[list[list[float]]]) -> Polygon | MultiPolygon:
-    """Convert topologically simple ArcGIS rings to valid GeoJSON geometry.
-    
-    ArcGIS REST defines exterior rings as clockwise and holes as
-    counterclockwise. Multiple exterior rings represent a multipart polygon.
-    """
-    records: list[tuple[float, list[list[float]], Polygon]] = []
+    """Convert ArcGIS rings to valid polygonal geometry, preserving multipart/hole topology."""
+    records: list[tuple[float, Polygon | MultiPolygon]] = []
     for raw_ring in rings:
         coordinates = [[float(point[0]), float(point[1])] for point in raw_ring]
         if len(coordinates) < 4:
@@ -85,34 +83,50 @@ def arcgis_rings_to_geometry(rings: list[list[list[float]]]) -> Polygon | MultiP
             x1, y1 = coordinates[index + 1]
             area += x0 * y1 - x1 * y0
         area *= 0.5
-        ring_polygon = Polygon(coordinates)
-        if ring_polygon.is_empty or not ring_polygon.is_valid:
-            raise ValueError("ArcGIS polygon ring is invalid")
-        records.append((area, coordinates, ring_polygon))
+        if abs(area) <= 1e-15:
+            raise ValueError("ArcGIS polygon ring has zero area")
 
-    outers = [record for record in records if record[0] < 0.0]
-    holes = [record for record in records if record[0] > 0.0]
+        geometry = Polygon(coordinates)
+        if not geometry.is_valid:
+            geometry = make_valid(geometry)
+        if geometry.is_empty or geometry.geom_type not in {"Polygon", "MultiPolygon"}:
+            raise ValueError(
+                f"ArcGIS polygon ring repair produced non-polygon geometry: {geometry.geom_type}"
+            )
+        records.append((area, geometry))
+
+    outers = [geometry for area, geometry in records if area < 0.0]
+    holes = [geometry for area, geometry in records if area > 0.0]
     if not outers:
         raise ValueError("ArcGIS polygon contains no clockwise exterior ring")
 
-    polygons: list[Polygon] = []
+    polygons: list[Polygon | MultiPolygon] = []
     assigned_holes: set[int] = set()
-    for outer_index, (_area, outer_coordinates, outer_polygon) in enumerate(outers):
-        outer_holes: list[list[list[float]]] = []
-        for hole_index, (_hole_area, hole_coordinates, hole_polygon) in enumerate(holes):
+    for outer_geometry in outers:
+        assigned: list[Polygon | MultiPolygon] = []
+        for hole_index, hole_geometry in enumerate(holes):
             if hole_index in assigned_holes:
                 continue
-            if outer_polygon.contains(hole_polygon.representative_point()):
-                outer_holes.append(hole_coordinates)
+            if outer_geometry.contains(hole_geometry.representative_point()):
+                assigned.append(hole_geometry)
                 assigned_holes.add(hole_index)
-        polygon = Polygon(outer_coordinates, outer_holes)
-        if polygon.is_empty or not polygon.is_valid:
-            raise ValueError(f"ArcGIS multipart polygon part {outer_index} is invalid")
-        polygons.append(polygon)
+        if assigned:
+            outer_geometry = outer_geometry.difference(unary_union(assigned))
+        if outer_geometry.is_empty or outer_geometry.geom_type not in {"Polygon", "MultiPolygon"}:
+            raise ValueError("ArcGIS polygon hole subtraction produced non-polygon geometry")
+        polygons.append(outer_geometry)
 
     if len(assigned_holes) != len(holes):
         raise ValueError("ArcGIS polygon contains an unassigned interior ring")
-    return polygons[0] if len(polygons) == 1 else MultiPolygon(polygons)
+
+    geometry = unary_union(polygons)
+    if geometry.is_empty or geometry.geom_type not in {"Polygon", "MultiPolygon"}:
+        raise ValueError(f"ArcGIS polygon assembly produced {geometry.geom_type}")
+    if not geometry.is_valid:
+        geometry = make_valid(geometry)
+    if geometry.is_empty or geometry.geom_type not in {"Polygon", "MultiPolygon"} or not geometry.is_valid:
+        raise ValueError("ArcGIS polygon assembly could not be validated")
+    return geometry
 
 
 def largest_ring(geometry: dict) -> list[list[float]]:
