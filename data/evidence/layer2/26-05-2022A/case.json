@@ -74,6 +74,15 @@
       "sha256": null,
       "source_locator": "Licensed surveyor/PE supplied documentation",
       "source_type": "Certified elevation evidence"
+    },
+    {
+      "evidence_id": "IN-GIO-DEM-2020-INCONSISTENCY-001",
+      "source_type": "Elevation inconsistency record",
+      "source_locator": "elevation-inconsistency-2020-dem-vs-lag.json",
+      "acquisition_date": "2026-10-06",
+      "processing_status": "RECORDED",
+      "sha256": "pending",
+      "notes": "Indiana GIO 2020 LiDAR DEM reads 364.0 ft at site vs owner-supplied LAG 377.2 ft (13.2 ft delta). Material inconsistency; requires PE/RLS-certified elevation to resolve. Reference only \u2014 not survey evidence."
     }
   ],
   "fema_loma_track": {
