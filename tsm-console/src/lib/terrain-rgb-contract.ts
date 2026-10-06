@@ -157,7 +157,9 @@ export function resolveTerrainRgbMaxZoom(
 ): number {
   const n = Number(raw);
   if (Number.isFinite(n) && n >= 0 && n <= 22) return Math.floor(n);
-  return 14;
+  // Deployed Terrain-RGB pyramid is z8–z12 (see CI terrain generation);
+  // MapLibre overzooms from z12 rather than requesting missing tiles.
+  return 12;
 }
 
 export const PUBLIC_TERRAIN_SOURCES = {

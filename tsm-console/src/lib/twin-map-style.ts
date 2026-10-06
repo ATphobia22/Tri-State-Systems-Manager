@@ -30,6 +30,9 @@ function buildTerrainDemSourceSpec(template: string) {
 }
 
 const ARCGIS_EXPORT_QUERY = 'bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=512,512&format=png32&transparent=false&f=image';
+// NOTE: Indiana Current Imagery is an ImageServer — the operation is
+// /exportImage, not /export (verified 2026-10-06: /export 404s "Invalid URL").
+const IMAGERY_EXPORT_PATH = 'exportImage';
 
 export function buildTwinStyle(): StyleSpecification {
   const imageryUrl = imagery?.url;
@@ -38,7 +41,7 @@ export function buildTwinStyle(): StyleSpecification {
   const sources: StyleSpecification['sources'] = {
     'indiana-current-imagery': {
       type: 'raster',
-      tiles: [`${imageryUrl}/export?${ARCGIS_EXPORT_QUERY}`],
+      tiles: [`${imageryUrl}/${IMAGERY_EXPORT_PATH}?${ARCGIS_EXPORT_QUERY}`],
       tileSize: 512,
       attribution: imagery?.attribution || 'Indiana Geographic Information Office (CC0)',
     },
