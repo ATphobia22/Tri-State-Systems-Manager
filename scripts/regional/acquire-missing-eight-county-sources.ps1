@@ -165,7 +165,7 @@ $femaIdBody=@{where=$femaWhere;returnIdsOnly="true";f="json"}
 $femaIdResponse=Invoke-ArcGisQuery -LayerUrl $femaUrl -Body $femaIdBody
 $femaObjectIds=@($femaIdResponse.objectIds | Sort-Object {[int64]$_})
 if($femaObjectIds.Count -eq 0){throw "Direct FEMA NFHL Flood Hazard Zones layer $femaLayerId returned zero object IDs for DFIRM_ID 21225."}
-Write-Host "Recovering FEMA NFHL 21225 from semantic layer $femaLayerId: $($femaObjectIds.Count) features"
+Write-Host "Recovering FEMA NFHL 21225 from semantic layer ${femaLayerId}: $($femaObjectIds.Count) features"
 $femaList=[System.Collections.Generic.List[object]]::new()
 $chunkSize=25
 for($startIndex=0;$startIndex -lt $femaObjectIds.Count;$startIndex+=$chunkSize){
