@@ -18,6 +18,7 @@ import hashlib
 import json
 import math
 import os
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -37,16 +38,24 @@ FT_PER_M = 3.280839895013123
 
 def request_json(params: dict[str, object], attempts: int = 8) -> dict:
     query = urlencode(params)
+    url = f"{QUERY}?{query}"
     last: Exception | None = None
     for attempt in range(1, attempts + 1):
         try:
-            req = Request(
-                f"{QUERY}?{query}",
-                headers={"User-Agent": "TSM-IGIO-Posey-Building-Acquisition/1.0"},
-                method="GET",
+            result = subprocess.run(
+                [
+                    "curl", "--fail", "--silent", "--show-error", "--location",
+                    "--retry", "3", "--retry-delay", "2", "--retry-all-errors",
+                    "--http1.1", "--max-time", "300",
+                    "-A", "TSM-IGIO-Posey-Building-Acquisition/1.0",
+                    url,
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+                timeout=330,
             )
-            with urlopen(req, timeout=300) as response:
-                payload = json.load(response)
+            payload = json.loads(result.stdout)
             if "error" in payload:
                 raise RuntimeError(json.dumps(payload["error"]))
             return payload
