@@ -156,7 +156,7 @@ def main() -> None:
     ap.add_argument("--boundary", type=Path, default=Path("data/posey-county/boundaries/posey-county.geojson"))
     args = ap.parse_args()
 
-    meta = request_json({"f": "json"})
+    meta = request_json({"f": "pjson"})
     max_records = int(meta.get("maxRecordCount", 2000))
     if max_records < 1:
         raise SystemExit("IGIO layer returned an invalid maxRecordCount")
@@ -165,7 +165,7 @@ def main() -> None:
     boundary = shape(boundary_doc["features"][0]["geometry"])
 
     features: list[dict] = []
-    object_ids: list[int] = []
+    object_ids: list[int] = []\n    object_id_set: set[int] = set()
     page_size = min(max_records, 2000)
 
     def acquire_objectid_range(lower: int, upper: int) -> None:
@@ -183,7 +183,7 @@ def main() -> None:
                 "returnGeometry": "true",
                 "outSR": "4326",
                 "resultRecordCount": page_size,
-                "f": "json",
+                "f": "pjson",
             })
         except RuntimeError as exc:
             # IGIO has emitted "/ by zero" for oversized range/offset queries.
@@ -246,7 +246,7 @@ def main() -> None:
     acquire_objectid_range(0, 2_147_483_647)
 
     count = len(features)
-    if count != args.expected_count or len(set(object_ids)) != count:
+    if count != args.expected_count or len(object_id_set) != count:
         raise SystemExit(
             f"IGIO Posey feature-count/object-id mismatch: expected {args.expected_count}, got {count}"
         )
