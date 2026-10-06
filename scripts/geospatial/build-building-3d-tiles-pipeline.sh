@@ -9,6 +9,13 @@ python3 scripts/geospatial/build-hlod-tileset.py --input "$ROOT/flat/tileset.jso
 cp "$ROOT/flat/"*.glb "$ROOT/hlod/"
 cp "$ROOT/flat/manifest.json" "$ROOT/hlod/manifest.json"
 cp "$ROOT/flat/SHA256SUMS" "$ROOT/hlod/SHA256SUMS"
+python3 - "$ROOT/hlod" <<'PY'
+import hashlib,json,sys
+from pathlib import Path
+r=Path(sys.argv[1]); m=json.loads((r/"manifest.json").read_text()); m["stage"]="hlod"; m["content"]=sorted(p.name for p in r.glob("*.glb")); (r/"manifest.json").write_text(json.dumps(m,indent=2)+"\n")
+paths=[r/"tileset.json",r/"manifest.json",*sorted(r.glob("*.glb"))]
+(r/"SHA256SUMS").write_text("".join(f"{hashlib.sha256(p.read_bytes()).hexdigest()}  {p.name}\n" for p in paths))
+PY
 python3 scripts/geospatial/validate-building-3d-tiles.py --tileset "$ROOT/hlod/tileset.json" --tiles-dir "$ROOT/hlod" --expected-buildings "$EXPECTED" --expected-glbs "$EXPECTED"
 python3 scripts/geospatial/stitch-building-glbs.py --tileset "$ROOT/hlod/tileset.json" --tiles-dir "$ROOT/hlod" --output "$ROOT/stitched/tileset.json" --stitched-dir "$ROOT/stitched/stitched"
 cp "$ROOT/hlod/manifest.json" "$ROOT/stitched/manifest.json"
