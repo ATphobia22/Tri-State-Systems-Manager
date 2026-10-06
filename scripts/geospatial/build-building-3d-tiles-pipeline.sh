@@ -13,6 +13,6 @@ python3 scripts/geospatial/validate-building-3d-tiles.py --tileset "$ROOT/hlod/t
 python3 scripts/geospatial/stitch-building-glbs.py --tileset "$ROOT/hlod/tileset.json" --tiles-dir "$ROOT/hlod" --output "$ROOT/stitched/tileset.json" --stitched-dir "$ROOT/stitched/stitched"
 cp "$ROOT/hlod/manifest.json" "$ROOT/stitched/manifest.json"
 python3 scripts/geospatial/validate-building-3d-tiles.py --tileset "$ROOT/stitched/tileset.json" --tiles-dir "$ROOT/stitched" --expected-buildings "$EXPECTED" --strict-hlod
-scripts/geospatial/compress-hlod-glbs.sh "$ROOT/stitched" "$ROOT/compressed"
+bash scripts/geospatial/compress-hlod-glbs.sh "$ROOT/stitched" "$ROOT/compressed"
 python3 scripts/geospatial/validate-building-3d-tiles.py --tileset "$ROOT/compressed/tileset.json" --tiles-dir "$ROOT/compressed" --expected-buildings "$EXPECTED" --require-draco --strict-hlod
 echo "Building 3D Tiles pipeline complete: $ROOT/compressed"
