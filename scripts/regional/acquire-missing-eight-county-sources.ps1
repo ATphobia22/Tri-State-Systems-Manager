@@ -137,7 +137,7 @@ if($source.Mode -eq "boundary"){
 $parcelSpatialRelation = if($source.Mode -eq "boundary"){"exact-county-within-tiger-boundary"}else{"exact-county-attribute"}
 [void]$receipts.Add((Write-Receipt -Id "$($county.Fips)-parcels-recovery" -CountyFips $county.Fips -Authority $source.Authority -SourceUrl $source.Url -Path $target -FeatureCount $features.Count -SpatialRelation $parcelSpatialRelation))
 }
-$femaUrl="https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28"
+$femaUrl="https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer/28"
 $femaWhere="DFIRM_ID LIKE '21225%'"
 $femaFields="DFIRM_ID,FLD_ZONE,ZONE_SUBTY,SFHA_TF,STATIC_BFE,DEPTH"
 # FEMA NFHL returns HTTP 500 on a single full-geometry county query; resolve
