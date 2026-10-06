@@ -278,6 +278,10 @@ jobs:
           grep -Fq '/Tri-State-Systems-Manager/' dist/404.html
           test -s dist/3d-tiles/terrain-3dep/tileset.json
           test -s dist/3d-tiles/terrain-3dep/SHA256SUMS
+          test -s dist/3d-tiles/buildings/tileset.json
+          test -s dist/3d-tiles/buildings/SHA256SUMS
+          test -s dist/vendor/cesium/Cesium.js
+          test -s dist/vendor/cesium/Widgets/widgets.css
           node <<'NODE'
           const fs = require('node:fs');
           const path = require('node:path');
