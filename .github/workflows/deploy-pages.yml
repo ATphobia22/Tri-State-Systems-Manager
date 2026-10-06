@@ -350,6 +350,11 @@ jobs:
           base="${PAGE_URL%/}/3d-tiles/terrain-3dep"
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${base}/tileset.json" -o /tmp/published-tileset.json
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${base}/SHA256SUMS" -o /tmp/published-SHA256SUMS
+          building_base="${PAGE_URL%/}/3d-tiles/buildings"
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${building_base}/tileset.json" -o /tmp/published-building-tileset.json
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${building_base}/SHA256SUMS" -o /tmp/published-building-SHA256SUMS
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${PAGE_URL%/}/vendor/cesium/Cesium.js" -o /tmp/published-Cesium.js
+          test -s /tmp/published-Cesium.js
           BASE_URL="${base}" python3 - <<'PY'
           import hashlib
           import os
