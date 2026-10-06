@@ -34,12 +34,12 @@ Settings → Pages → Source must be **GitHub Actions**. The workflow does not 
 
 ### CI
 
-- All 12 GitHub Actions workflows green on `main`, including the Windows x64 Offline Runtime.
+- **Release gate status (2026-10-06):** `main` is currently blocked by two remediable gates: the dependency audit requires `source-map-js` 1.2.2+ and the live-stage contract test must reflect the superseding one-time USGS snapshot policy. The missing-source recovery workflow also requires the FEMA NFHL semantic-layer fix on this remediation branch. These are fail-closed release blockers, not waived failures.
 
 ### Still blocked
 
 - **Oracle Cloud:** the Always Free A1 retry remains blocked on the rejected saved login (auth, not capacity). Instance creation cannot proceed until the vault password is refreshed.
-- **Branch hygiene:** fully-merged branches and stale refs removed. Four feature branches retain unique work behind `main` — merge decision left to the owner.
+- **Branch hygiene:** the active remediation branch is `codex/green-release-remediation-2026-10-06`; branch status is verified from GitHub rather than maintained as a hard-coded count.
 
 ## System status — 2026-10-02
 
