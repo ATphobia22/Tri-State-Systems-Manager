@@ -1,4 +1,8 @@
-name: Building 3D Tiles HLOD Pipeline
+name: Building 3D Tiles
+
+concurrency:
+  group: building-3d-tiles-production
+  cancel-in-progress: true HLOD Pipeline
 
 on:
   workflow_dispatch:
