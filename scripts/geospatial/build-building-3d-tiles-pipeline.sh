@@ -12,7 +12,7 @@ rm -rf "$ROOT"
 mkdir -p "$ROOT"/{flat,hlod,stitched,compressed}
 
 if [[ "${TSM_SKIP_LIDAR_ACQUISITION:-false}" != "true" ]]; then
-  bash tsm-console/scripts/download-posey-lidar-tiles.sh "$LIDAR_DIR"
+  python3 scripts/geospatial/acquire-posey-county-3dep-lidar.py     --geojson "$GEOJSON"     --output "$LIDAR_DIR"     --expected-buildings "$EXPECTED"
 fi
 
 mapfile -t LAS_FILES < <(find "$LIDAR_DIR" -maxdepth 1 -type f -name '*.las' -print | sort)
