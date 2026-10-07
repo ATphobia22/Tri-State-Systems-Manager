@@ -339,7 +339,7 @@ def main() -> None:
         # Live IGIO endpoint unavailable - fall back to validated snapshot
         print(f"WARNING: Live IGIO acquisition failed: {e}", flush=True)
         print(f"Falling back to validated snapshot from {args.fallback_url}", flush=True)
-        import urllib.request, hashlib
+        import urllib.request
         tmp = args.output.with_suffix(".fallback.geojson")
         urllib.request.urlretrieve(args.fallback_url, tmp)
         actual = hashlib.sha256(tmp.read_bytes()).hexdigest()
