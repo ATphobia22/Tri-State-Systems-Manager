@@ -145,59 +145,47 @@ class EPTReader:
         self._cache: dict[str, object] = {}
 
     def hierarchy(self, target_level: int = 8) -> dict:
-        """Load EPT hierarchy pages through the requested spatial level.
-        
-        EPT hierarchy pages use negative point counts as page references.
-        The previous implementation read only the root page, which can leave
-        all spatial leaf nodes unresolved and silently produce zero heights.
-        """
+        """Load only the EPT hierarchy pages needed for target-level lookup."""
         if self._hier is not None and self._hier.get("_loaded_to_level") == target_level:
             return {k: v for k, v in self._hier.items() if k != "_loaded_to_level"}
-        merged: dict[str, int] = {}
-        queue = ["0-0-0-0"]
-        seen: set[str] = set()
-        while queue:
-            nid = queue.pop()
-            if nid in seen:
-                continue
-            seen.add(nid)
-            page = fetch_json(f"{self.base}/ept-hierarchy/{nid}.json")
-            for child, count in page.items():
-                merged[child] = count
-                if isinstance(count, int) and count < 0:
-                    level = int(child.split("-")[0])
-                    if level < target_level:
-                        queue.append(child)
-        self._hier = dict(merged)
+        page = fetch_json(f"{self.base}/ept-hierarchy/0-0-0-0.json")
+        self._hier = dict(page)
         self._hier["_loaded_to_level"] = target_level
-        return merged
+        return page
 
     def node_for_point(self, x: float, y: float, target_level: int = 8):
-        """Resolve an EPT node without scanning the full hierarchy per feature."""
-        hier = self.hierarchy(target_level)
-        nodes = self._level_nodes.get(target_level)
-        if nodes is None:
-            nodes = {
-                nid for nid, npts in hier.items()
-                if npts and int(nid.split("-")[0]) == target_level
-            }
-            self._level_nodes[target_level] = nodes
-
+        """Resolve a populated EPT node by descending only the point's x/y path."""
         xmin, ymin, _, xmax, ymax, _ = self.root_bounds
-        n = 2 ** target_level
-        if xmax > xmin and ymax > ymin:
-            ix = min(n - 1, max(0, int((x - xmin) / (xmax - xmin) * n)))
-            iy = min(n - 1, max(0, int((y - ymin) / (ymax - ymin) * n)))
-            prefix = f"{target_level}-{ix}-{iy}-"
-            exact = next((nid for nid in nodes if nid.startswith(prefix)), None)
-            if exact is not None:
-                return exact
-
-        # Defensive fallback for non-standard EPT hierarchy layouts.
-        for nid in nodes:
-            b = node_bounds(nid, self.root_bounds)
-            if b[0] <= x <= b[3] and b[1] <= y <= b[4]:
-                return nid
+        if not (xmax > xmin and ymax > ymin):
+            return None
+        current_page = self.hierarchy(target_level)
+        ix = min(2 ** target_level - 1, max(0, int((x - xmin) / (xmax - xmin) * (2 ** target_level))))
+        iy = min(2 ** target_level - 1, max(0, int((y - ymin) / (ymax - ymin) * (2 ** target_level))))
+        candidates = [nid for nid, count in current_page.items()
+                      if isinstance(count, int) and count != 0 and nid.startswith("1-")]
+        for level in range(1, target_level + 1):
+            n = 2 ** level
+            px = min(n - 1, max(0, int((x - xmin) / (xmax - xmin) * n)))
+            py = min(n - 1, max(0, int((y - ymin) / (ymax - ymin) * n)))
+            prefix = f"{level}-{px}-{py}-"
+            matching = [nid for nid, count in current_page.items()
+                        if nid.startswith(prefix) and isinstance(count, int) and count != 0]
+            if not matching:
+                return None
+            if level == target_level:
+                return matching[0]
+            next_pages = []
+            for nid in matching:
+                count = current_page[nid]
+                if count < 0:
+                    next_pages.append(nid)
+            if not next_pages:
+                return matching[0]
+            merged = {}
+            for nid in next_pages:
+                child_page = fetch_json(f"{self.base}/ept-hierarchy/{nid}.json")
+                merged.update(child_page)
+            current_page = merged
         return None
 
     def read_node(self, node_id: str):
