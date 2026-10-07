@@ -187,13 +187,38 @@ function Save-ArcGisCountyAttribute(
   # healthy. First acquire the exact OBJECTID set, then fetch bounded geometry
   # chunks. Failed chunks are bisected so transient gateway limits cannot turn
   # into a false source failure.
-  $idParams=@{
-    where=$Where
-    returnIdsOnly="true"
-    f="json"
+  $meta=Invoke-RestMethod -Method Get -Uri "$ServiceLayerUrl?f=pjson" -TimeoutSec 120
+  if($meta.error){ throw ($meta.error | ConvertTo-Json -Depth 20) }
+  $oidField=[string]$meta.objectIdField
+  if([string]::IsNullOrWhiteSpace($oidField)){ $oidField="objectid" }
+  $idPageSize=[int]$meta.standardMaxRecordCountNoGeometry
+  if($idPageSize -lt 1){ $idPageSize=1000 }
+  $idPageSize=[math]::Min($idPageSize,1000)
+  $objectIdList=[System.Collections.Generic.List[int]]::new()
+  $idOffset=0
+  while($true){
+    $idParams=@{
+      where=$Where
+      outFields=$oidField
+      returnGeometry="false"
+      resultOffset=$idOffset
+      resultRecordCount=$idPageSize
+      orderByFields="$oidField ASC"
+      resultType="standard"
+      f="json"
+    }
+    $idResponse=Invoke-ArcGisQuery $ServiceLayerUrl $idParams
+    $idFeatures=@($idResponse.features)
+    if($idFeatures.Count -eq 0){ break }
+    foreach($feature in $idFeatures){
+      $value=$feature.attributes.($oidField)
+      if($null -eq $value){ throw "ArcGIS response omitted object ID field $oidField for $RequiredId" }
+      [void]$objectIdList.Add([int]$value)
+    }
+    if($idFeatures.Count -lt $idPageSize){ break }
+    $idOffset += $idFeatures.Count
   }
-  $idResponse = Invoke-ArcGisQuery $ServiceLayerUrl $idParams
-  $objectIds=@($idResponse.objectIds | ForEach-Object { [int]$_ } | Sort-Object -Unique)
+  $objectIds=@($objectIdList | Sort-Object -Unique)
 
   if ($RequireFeature -and $objectIds.Count -lt 1) {
     throw "Required spatial source returned zero features for exact Posey County: $RequiredId"
