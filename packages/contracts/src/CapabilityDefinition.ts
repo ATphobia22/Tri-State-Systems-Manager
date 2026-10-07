@@ -1,8 +1,1 @@
-export interface CapabilityDefinition {
-  id: string;
-  name: string;
-  description: string;
-  version: string;
-  supportsStreaming: boolean;
-  supportsBatching: boolean;
-}
+export type { CapabilityDefinition } from './index.ts';
