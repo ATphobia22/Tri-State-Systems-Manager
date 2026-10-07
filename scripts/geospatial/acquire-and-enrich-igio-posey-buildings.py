@@ -398,11 +398,24 @@ def main() -> None:
         if actual != args.fallback_sha256:
             raise RuntimeError(f"Fallback SHA-256 mismatch: expected {args.fallback_sha256}, got {actual}")
         doc = json.loads(tmp.read_text(encoding="utf-8"))
-        if len(doc["features"]) != args.expected_count:
-            raise RuntimeError(f"Fallback feature count mismatch")
-        # Remap legacy elevation field names to enriched schema
+        if doc.get("type") != "FeatureCollection" or len(doc.get("features", [])) != args.expected_count:
+            raise RuntimeError(f"Fallback feature count/type mismatch")
+        snapshot_ids: set[int] = set()
+        # Remap legacy elevation field names to enriched schema and revalidate
+        # every cached feature before accepting the snapshot as an authoritative
+        # input. The snapshot hash and the final enriched-output hash are distinct.
         for ft in doc["features"]:
             pr = ft.get("properties", {})
+            sid = pr.get("igioObjectId", pr.get("sourceObjectId"))
+            if not isinstance(sid, (int, float)) or int(sid) != sid:
+                raise RuntimeError("Fallback snapshot contains a feature without an integer IGIO OBJECTID")
+            sid = int(sid)
+            if sid in snapshot_ids:
+                raise RuntimeError(f"Fallback snapshot contains duplicate IGIO OBJECTID {sid}")
+            snapshot_ids.add(sid)
+            geometry = ft.get("geometry")
+            if not geometry or shape(geometry).is_empty or not shape(geometry).is_valid:
+                raise RuntimeError(f"Fallback snapshot contains invalid geometry for OBJECTID {sid}")
             if "groundElevationMeanFt" not in pr:
                 pr["groundElevationMinFt"] = pr.get("elev_min_ft")
                 pr["groundElevationMaxFt"] = pr.get("elev_max_ft")
@@ -411,17 +424,31 @@ def main() -> None:
                 pr["groundElevationSampleCount"] = pr.get("elev_samples", 0)
                 pr["elevationCoverage"] = "SAMPLED" if pr.get("elev_mean_ft") is not None else "UNAVAILABLE"
                 pr["groundElevationSource"] = pr.get("elev_source", "TSM committed Posey 3DEP-derived DEM")
-        # Rewrite with remapped fields
-        tmp.write_text(json.dumps(doc), encoding="utf-8")
-        print(f"Using cached IGIO snapshot: {len(doc['features'])} features, SHA-256 verified", flush=True)
-        # Write fallback to output and skip elevation join (already joined)
+            elev = pr.get("groundElevationMeanFt")
+            if not isinstance(elev, (int, float)) or not math.isfinite(float(elev)):
+                raise RuntimeError(f"Fallback snapshot lacks valid elevation for OBJECTID {sid}")
+            pr["sourceAuthority"] = "Indiana Geographic Information Office"
+            pr["authorityClass"] = "DERIVED"
+            pr["geometrySource"] = "Indiana Building Footprints 2016-2020"
+            pr["surveyGrade"] = False
+        if len(snapshot_ids) != args.expected_count:
+            raise RuntimeError("Fallback OBJECTID inventory does not match expected count")
+        # Rewrite with remapped fields and compute the hash of the actual output.
+        tmp.write_text(json.dumps(doc, separators=(",", ":"), ensure_ascii=False) + "\n", encoding="utf-8")
+        digest = hashlib.sha256(tmp.read_bytes()).hexdigest()
+        print(f"Using cached IGIO snapshot: {len(doc['features'])} features, source SHA-256 and output SHA-256 verified", flush=True)
         tmp.rename(args.output)
-        digest = actual
         receipt = {
-            "source": "Indiana GIO Building_Footprints 2016-2020 (cached snapshot 2026-10-06)",
+            "schema": "tsm-posey-igio-building-footprints-v1",
+            "source": "Indiana GIO Building_Footprints 2016-2020 (cached authoritative snapshot 2026-10-06)",
             "fallbackUrl": args.fallback_url,
+            "snapshotSha256": actual,
             "featureCount": len(doc["features"]),
+            "objectIdCount": len(snapshot_ids),
+            "objectIdMin": min(snapshot_ids),
+            "objectIdMax": max(snapshot_ids),
             "geojsonSha256": digest,
+            "acquisitionMode": "cached-authoritative-snapshot",
             "status": "acquired-from-cache",
         }
         args.output.with_suffix(args.output.suffix + ".receipt.json").write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
