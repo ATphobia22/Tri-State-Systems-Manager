@@ -37,7 +37,7 @@ import numpy as np
 # Reuse EPT infrastructure from the height extractor
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from extract_lidar_heights import (
-    EPTReader, find_posey_ept, lonlat_to_3857, point_in_polygon,
+    EPTReader, find_posey_ept, point_in_polygon,
     CLASS_BUILDING, M_TO_FTUS,
 )
 
@@ -188,8 +188,8 @@ def process_feature(ft: dict, reader: EPTReader, target_level: int = 8) -> dict:
 
     lons = [c[0] for c in all_pts]
     lats = [c[1] for c in all_pts]
-    cx3857, cy3857 = lonlat_to_3857(sum(lons) / len(lons), sum(lats) / len(lats))
-    node_id = reader.node_for_point(cx3857, cy3857, target_level)
+    cx_native, cy_native = reader.lonlat_to_native(sum(lons) / len(lons), sum(lats) / len(lats))
+    node_id = reader.node_for_point(cx_native, cy_native, target_level)
     if not node_id:
         props["achievedLod"] = 1
         props["lodNote"] = "no-ept-node"
@@ -201,13 +201,13 @@ def process_feature(ft: dict, reader: EPTReader, target_level: int = 8) -> dict:
     zs = np.array(las.z)
     classes = np.array(las.classification)
 
-    ring3857 = [lonlat_to_3857(c[0], c[1]) for c in ring]
+    ring_native = [reader.lonlat_to_native(c[0], c[1]) for c in ring]
     # Collect building points within polygon
     pts = []
     for i in range(len(xs)):
         if int(classes[i]) != CLASS_BUILDING:
             continue
-        if point_in_polygon(float(xs[i]), float(ys[i]), ring3857):
+        if point_in_polygon(float(xs[i]), float(ys[i]), ring_native):
             pts.append([float(xs[i]), float(ys[i]), float(zs[i])])
 
     if len(pts) < MIN_ROOF_POINTS:
