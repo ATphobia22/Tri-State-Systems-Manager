@@ -141,6 +141,7 @@ class EPTReader:
             raise RuntimeError(f"EPT unreachable at {ept_url}: {e}")
         self.root_bounds = self.info["bounds"]
         self._hier = None
+        self._level_nodes: dict[int, set[str]] = {}
         self._cache: dict[str, object] = {}
 
     def hierarchy(self, target_level: int = 8) -> dict:
