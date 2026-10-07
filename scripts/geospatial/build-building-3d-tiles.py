@@ -32,6 +32,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 
+from shapely.geometry import MultiPolygon, Polygon, shape
+from shapely.ops import orient, transform, triangulate
+
 WGS84_A = 6378137.0
 WGS84_E2 = 6.6943799901413165e-3
 FT_TO_M = 0.3048
@@ -151,30 +154,57 @@ def ear_clip(pts) -> list[tuple[int, int, int]]:
     return tris
 
 
-def largest_polygon_coords(geometry) -> list | None:
-    """Return the exterior ring (without closing duplicate) of the largest
-    polygon by absolute 2D area. Holes are ignored (documented)."""
-    gtype = geometry.get("type")
-    polys = []
-    if gtype == "Polygon":
-        polys = [geometry["coordinates"]]
-    elif gtype == "MultiPolygon":
-        polys = geometry["coordinates"]
-    else:
-        return None
-    best, best_area = None, -1.0
-    for poly in polys:
-        if not poly or not poly[0]:
+def polygon_parts(geometry) -> list[Polygon]:
+    """Return every polygon part, preserving holes and multipart topology."""
+    if geometry.geom_type == "Polygon":
+        return [geometry]
+    if geometry.geom_type == "MultiPolygon":
+        return list(geometry.geoms)
+    return []
+
+
+def geometry_for_feature(geometry_doc) -> list[Polygon]:
+    """Parse and normalize Polygon/MultiPolygon without discarding holes."""
+    geometry = shape(geometry_doc)
+    if not isinstance(geometry, (Polygon, MultiPolygon)) or geometry.is_empty:
+        return []
+    if not geometry.is_valid:
+        geometry = geometry.buffer(0)
+    if geometry.is_empty or geometry.geom_type not in {"Polygon", "MultiPolygon"}:
+        return []
+    return [orient(part, sign=1.0) for part in polygon_parts(geometry)]
+
+
+def local_polygon(part: Polygon, origin, axes) -> Polygon:
+    def project(x, y, z=None):
+        pts = [surface(float(x), float(y))]
+        values = [dot(sub(p, origin), axes[0]) for p in pts], [dot(sub(p, origin), axes[1]) for p in pts]
+        if z is None:
+            return values[0][0], values[1][0]
+        return values[0][0], values[1][0], z
+    return transform(project, part)
+
+
+def triangulate_polygon(part: Polygon, origin, axes) -> list[tuple[tuple[float, float], tuple[float, float], tuple[float, float]]]:
+    """Deterministically triangulate a polygon while retaining every hole.
+
+    Shapely's Delaunay triangulation is generated from the complete polygon
+    vertex set; only triangles fully covered by the polygon are retained.
+    This prevents triangles from crossing exterior boundaries or interior
+    holes.
+    """
+    local = local_polygon(part, origin, axes)
+    candidates = triangulate(local)
+    accepted = []
+    for triangle in candidates:
+        if not local.covers(triangle):
             continue
-        ring = poly[0]
-        if len(ring) >= 2 and ring[0] == ring[-1]:
-            ring = ring[:-1]
-        if len(ring) < 3:
+        coords = list(triangle.exterior.coords)[:-1]
+        if len(coords) != 3:
             continue
-        area = abs(signed_area_2d(ring))
-        if area > best_area:
-            best, best_area = ring, area
-    return best
+        accepted.append((tuple(coords[0]), tuple(coords[1]), tuple(coords[2])))
+    accepted.sort(key=lambda t: tuple(round(v, 12) for p in t for v in p))
+    return accepted
 
 
 def ground_elevation_ft(props) -> float | None:
@@ -205,70 +235,55 @@ class BuildingTile:
     ground_ft: float
 
 
-def build_prism(ring_lonlat, base_z_m: float, top_z_m: float,
+def build_prism(parts: list[Polygon], base_z_m: float, top_z_m: float,
                 origin, axes) -> tuple[list, list]:
-    """Build a flat-shaded extruded prism. Returns (positions, normals) as
-    non-indexed triangle lists in the tile-local ENU frame."""
-    pts2 = [(lon, lat) for lon, lat in ring_lonlat]
-    # Local ENU (x=east, y=north) for triangulation/winding decisions.
-    local = []
-    for lon, lat in pts2:
-        d = sub(surface(lon, lat), origin)
-        local.append((dot(d, axes[0]), dot(d, axes[1])))
-    # Drop near-duplicate consecutive vertices for triangulation stability.
-    clean = []
-    for p in local:
-        if not clean or math.hypot(p[0] - clean[-1][0], p[1] - clean[-1][1]) > 1e-6:
-            clean.append(p)
-    if clean and math.hypot(clean[0][0] - clean[-1][0], clean[0][1] - clean[-1][1]) < 1e-6:
-        clean.pop()
-    if len(clean) < 3:
-        return [], []
-    tris = ear_clip(clean)
-    if not tris:
-        return [], []
-
+    """Build a prism for all polygon parts, including interior-hole walls."""
     positions: list = []
     normals: list = []
 
     def emit(a, b, c):
         n = norm(cross(sub(b, a), sub(c, a)))
+        if dot(n, n) == 0.0:
+            return
         positions.extend([a, b, c])
         normals.extend([n, n, n])
 
-    n = len(clean)
-    for i0, i1, i2 in tris:
-        # Top cap (+z): ensure CCW seen from above.
-        a = (clean[i0][0], clean[i0][1], top_z_m)
-        b = (clean[i1][0], clean[i1][1], top_z_m)
-        c = (clean[i2][0], clean[i2][1], top_z_m)
-        if signed_area_2d([clean[i0], clean[i1], clean[i2]]) < 0:
-            b, c = c, b
-        emit(a, b, c)
-        # Bottom cap (-z): opposite winding.
-        a = (clean[i0][0], clean[i0][1], base_z_m)
-        b = (clean[i1][0], clean[i1][1], base_z_m)
-        c = (clean[i2][0], clean[i2][1], base_z_m)
-        if signed_area_2d([clean[i0], clean[i1], clean[i2]]) > 0:
-            b, c = c, b
-        emit(a, b, c)
-    # Sides: outward-facing quads for each edge.
-    ccw = signed_area_2d(clean) > 0.0
-    for i in range(n):
-        j = (i + 1) % n
-        x0, y0 = clean[i]
-        x1, y1 = clean[j]
-        p00 = (x0, y0, base_z_m)
-        p01 = (x0, y0, top_z_m)
-        p10 = (x1, y1, base_z_m)
-        p11 = (x1, y1, top_z_m)
-        # For CCW polygons, outward is to the right of edge i->j.
-        if ccw:
-            emit(p00, p10, p11)
-            emit(p00, p11, p01)
-        else:
-            emit(p00, p11, p10)
-            emit(p00, p01, p11)
+    for part in parts:
+        local = local_polygon(part, origin, axes)
+        for triangle in triangulate_polygon(part, origin, axes):
+            a2, b2, c2 = triangle
+            a = (a2[0], a2[1], top_z_m)
+            b = (b2[0], b2[1], top_z_m)
+            c = (c2[0], c2[1], top_z_m)
+            if signed_area_2d([a2, b2, c2]) < 0:
+                b, c = c, b
+            emit(a, b, c)
+
+            a = (a2[0], a2[1], base_z_m)
+            b = (b2[0], b2[1], base_z_m)
+            c = (c2[0], c2[1], base_z_m)
+            if signed_area_2d([a2, b2, c2]) > 0:
+                b, c = c, b
+            emit(a, b, c)
+
+        rings = [list(local.exterior.coords)] + [list(r.coords) for r in local.interiors]
+        for ring in rings:
+            ring2 = [(float(x), float(y)) for x, y, *_ in ring[:-1]]
+            if len(ring2) < 3:
+                continue
+            ccw = signed_area_2d(ring2) > 0.0
+            for i, (x0, y0) in enumerate(ring2):
+                x1, y1 = ring2[(i + 1) % len(ring2)]
+                p00 = (x0, y0, base_z_m)
+                p01 = (x0, y0, top_z_m)
+                p10 = (x1, y1, base_z_m)
+                p11 = (x1, y1, top_z_m)
+                if ccw:
+                    emit(p00, p10, p11)
+                    emit(p00, p11, p01)
+                else:
+                    emit(p00, p11, p10)
+                    emit(p00, p01, p11)
     return positions, normals
 
 
@@ -390,10 +405,14 @@ def main() -> None:
             skip_feature("missing-source-object-id")
             continue
         sid = int(sid)
-        ring = largest_polygon_coords(ft.get("geometry", {}))
-        if not ring:
+        parts = geometry_for_feature(ft.get("geometry", {}))
+        if not parts:
             skip_feature("missing-valid-polygon", sid)
             continue
+        ring = max(
+            (list(part.exterior.coords)[:-1] for part in parts),
+            key=lambda r: abs(signed_area_2d([(float(p[0]), float(p[1])) for p in r])),
+        )
         elev_ft = ground_elevation_ft(props)
         if elev_ft is None:
             skip_feature("missing-ground-elevation", sid)
@@ -405,7 +424,7 @@ def main() -> None:
         axes = enu_basis(lon0, lat0)
         base_z_m = elev_ft * FT_TO_M
         top_z_m = base_z_m + height_m
-        positions, normals_list = build_prism(ring, base_z_m, top_z_m, origin, axes)
+        positions, normals_list = build_prism(parts, base_z_m, top_z_m, origin, axes)
         if not positions:
             skip_feature("triangulation-failed", sid)
             continue
@@ -509,7 +528,7 @@ def main() -> None:
             "skippedObjectIds": skipped_ids,
         },
         "transformation": (
-            "IGIO building polygon -> largest ring -> deterministic ear-clip triangulation -> "
+            "IGIO building polygon/multipolygon -> topology-preserving planar triangulation with hole exclusion -> "
             "flat-shaded LOD1 prism extruded by a fixed estimated height in a "
             "tile-local ENU frame; WGS84 surface horizontal placement; NAVD88 "
             "ground elevation retained as visualization vertical offset without "
@@ -518,7 +537,7 @@ def main() -> None:
         "parameters": {
             "extrusionFt": args.extrusion_ft,
             "extrusionEstimated": True,
-            "footprintGeometry": "authoritative IGIO LiDAR-derived polygon",
+            "footprintGeometry": "authoritative IGIO LiDAR-derived Polygon/MultiPolygon with holes preserved",
             "elevationSource": "IGIO footprint joined to committed Posey 3DEP-derived DEM",
             "colorFlooded": COLOR_FLOODED,
             "colorDry": COLOR_DRY,
