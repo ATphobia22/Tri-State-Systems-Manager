@@ -174,7 +174,7 @@ class EPTReader:
                 raise RuntimeError(f"unable to transform EPSG:4326 to EPT CRS {self.native_crs}: {e}")
             return lonlat_to_3857(lon, lat)
 
-    def hierarchy(self, target_level: int = 8) -> dict:
+    def hierarchy(self, target_level: int = 6) -> dict:
         """Load only the EPT hierarchy pages needed for target-level lookup."""
         if self._hier is not None and self._hier.get("_loaded_to_level") == target_level:
             return {k: v for k, v in self._hier.items() if k != "_loaded_to_level"}
@@ -374,7 +374,7 @@ def main() -> None:
     ap.add_argument("--out", required=True, type=Path, help="output GeoJSON with lidarHeightFt")
     ap.add_argument("--ept-url", default=None, help="override EPT ept.json URL")
     ap.add_argument("--limit", type=int, default=0, help="process first N features (testing)")
-    ap.add_argument("--level", type=int, default=8, help="EPT hierarchy level for node queries")
+    ap.add_argument("--level", type=int, default=6, help="EPT hierarchy level for node queries")
     args = ap.parse_args()
 
     try:
