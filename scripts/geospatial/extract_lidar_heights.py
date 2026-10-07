@@ -143,14 +143,37 @@ class EPTReader:
         self._hier = None
         self._cache: dict[str, object] = {}
 
-    def hierarchy(self) -> dict:
-        if self._hier is None:
-            self._hier = fetch_json(f"{self.base}/ept-hierarchy/0-0-0-0.json")
-        return self._hier
+    def hierarchy(self, target_level: int = 8) -> dict:
+        """Load EPT hierarchy pages through the requested spatial level.
+        
+        EPT hierarchy pages use negative point counts as page references.
+        The previous implementation read only the root page, which can leave
+        all spatial leaf nodes unresolved and silently produce zero heights.
+        """
+        if self._hier is not None and self._hier.get("_loaded_to_level") == target_level:
+            return {k: v for k, v in self._hier.items() if k != "_loaded_to_level"}
+        merged: dict[str, int] = {}
+        queue = ["0-0-0-0"]
+        seen: set[str] = set()
+        while queue:
+            nid = queue.pop()
+            if nid in seen:
+                continue
+            seen.add(nid)
+            page = fetch_json(f"{self.base}/ept-hierarchy/{nid}.json")
+            for child, count in page.items():
+                merged[child] = count
+                if isinstance(count, int) and count < 0:
+                    level = int(child.split("-")[0])
+                    if level < target_level:
+                        queue.append(child)
+        self._hier = dict(merged)
+        self._hier["_loaded_to_level"] = target_level
+        return merged
 
     def node_for_point(self, x: float, y: float, target_level: int = 8):
         """Resolve an EPT node without scanning the full hierarchy per feature."""
-        hier = self.hierarchy()
+        hier = self.hierarchy(target_level)
         nodes = self._level_nodes.get(target_level)
         if nodes is None:
             nodes = {
