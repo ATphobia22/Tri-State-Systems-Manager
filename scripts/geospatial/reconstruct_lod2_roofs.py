@@ -167,7 +167,7 @@ def classify_roof(planes: list[dict]) -> str:
     return "unknown"
 
 
-def process_feature(ft: dict, reader: EPTReader, target_level: int = 8) -> dict:
+def process_feature(ft: dict, reader: EPTReader, target_level: int = 6) -> dict:
     """Reconstruct roof planes for one footprint. Returns stats dict."""
     props = ft.get("properties", {}) or {}
     geom = ft.get("geometry", {})
@@ -240,7 +240,7 @@ def main() -> None:
     ap.add_argument("--out", required=True, type=Path)
     ap.add_argument("--ept-url", default=None)
     ap.add_argument("--limit", type=int, default=0)
-    ap.add_argument("--level", type=int, default=8)
+    ap.add_argument("--level", type=int, default=6)
     args = ap.parse_args()
 
     ept_url = args.ept_url or find_posey_ept()
