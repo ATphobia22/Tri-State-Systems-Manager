@@ -202,6 +202,45 @@ class ElevationSampler:
         for ds in self.datasets:
             ds.close()
 
+    @staticmethod
+    def _valid_value(value: float, nodata: float | None) -> bool:
+        return math.isfinite(value) and (
+            nodata is None or not math.isclose(value, float(nodata))
+        )
+
+    def _nearest_valid(self, ds, x: float, y: float, max_radius_pixels: int = 8) -> float | None:
+        """Return the nearest valid DEM cell around a target point.
+
+        The committed Posey DEM is county-masked, so footprints that touch the
+        county edge can have all sampled boundary vertices on nodata cells.
+        Searching a small pixel neighborhood around the footprint interior
+        prevents a false elevation gap without inventing a value or crossing
+        into an unrelated raster.
+        """
+        row, col = ds.index(x, y)
+        best: tuple[float, float] | None = None
+        for radius in range(max_radius_pixels + 1):
+            r0 = max(0, row - radius)
+            r1 = min(ds.height - 1, row + radius)
+            c0 = max(0, col - radius)
+            c1 = min(ds.width - 1, col + radius)
+            window = rasterio.windows.Window(c0, r0, c1 - c0 + 1, r1 - r0 + 1)
+            values = ds.read(1, window=window, masked=False)
+            for rr in range(values.shape[0]):
+                for cc in range(values.shape[1]):
+                    value = float(values[rr, cc])
+                    if not self._valid_value(value, ds.nodata):
+                        continue
+                    absolute_row = r0 + rr
+                    absolute_col = c0 + cc
+                    distance = math.hypot(absolute_row - row, absolute_col - col)
+                    candidate = (distance, value)
+                    if best is None or candidate[0] < best[0]:
+                        best = candidate
+            if best is not None:
+                return best[1]
+        return None
+
     def sample(self, lonlat: list[tuple[float, float]]) -> tuple[float, float, float, int, str] | None:
         for ds in self.datasets:
             xs = [p[0] for p in lonlat]
@@ -214,8 +253,13 @@ class ElevationSampler:
             vals = []
             for value in ds.sample(coords):
                 v = float(value[0])
-                if math.isfinite(v) and (ds.nodata is None or not math.isclose(v, float(ds.nodata))):
+                if self._valid_value(v, ds.nodata):
                     vals.append(v)
+            if not vals:
+                for x, y in coords[:2]:
+                    nearest = self._nearest_valid(ds, x, y)
+                    if nearest is not None:
+                        vals.append(nearest)
             if vals:
                 return (
                     float(min(vals)) * FT_PER_M,
@@ -383,9 +427,15 @@ def main() -> None:
             if len(ring) < 3:
                 raise SystemExit(f"Invalid polygon for IGIO object {feature['properties']['igioObjectId']}")
             c = centroid(ring)
-            # Vertex + centroid sampling ties elevation directly to the actual
-            # footprint geometry rather than parcel geometry.
-            sample_points = [c] + [(float(p[0]), float(p[1])) for p in ring[::max(1, len(ring)//16)]]
+            footprint = shape(feature["geometry"])
+            representative = footprint.representative_point()
+            # Interior samples prevent county-boundary masking from turning a
+            # valid footprint into an artificial elevation gap.
+            sample_points = [
+                c,
+                (float(representative.x), float(representative.y)),
+                *[(float(p[0]), float(p[1])) for p in ring[::max(1, len(ring)//16)]],
+            ]
             result = sampler.sample(sample_points)
             props = feature["properties"]
             props["groundElevationSource"] = "TSM committed Posey 3DEP-derived DEM"
@@ -416,6 +466,12 @@ def main() -> None:
                 print(f"Elevation-joined {index}/{count}", flush=True)
     finally:
         sampler.close()
+
+    if no_elevation:
+        raise SystemExit(
+            f"3DEP elevation join incomplete: {no_elevation} of {count} "
+            "authoritative IGIO footprints have no valid DEM sample"
+        )
 
     output = args.output
     output.parent.mkdir(parents=True, exist_ok=True)
