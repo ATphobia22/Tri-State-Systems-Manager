@@ -102,7 +102,18 @@ function Save-ArcGisWithinCounty(
     $queryGeometryType="esriGeometryEnvelope"
   }
   $geometryJson=$queryGeometry | ConvertTo-Json -Compress -Depth 100
-  $meta=Invoke-RestMethod -Method Get -Uri "$($ServiceLayerUrl)?f=pjson" -TimeoutSec 120
+  # Retry metadata fetch: IGIO endpoints intermittently return 504 Gateway Time-out
+  $meta=$null
+  for($attempt=1;$attempt -le 8;$attempt++){
+    try {
+      $meta=Invoke-RestMethod -Method Get -Uri "$($ServiceLayerUrl)?f=pjson" -TimeoutSec 120
+      break
+    } catch {
+      if($attempt -eq 8){ throw }
+      Write-Host "Metadata fetch attempt $attempt failed, retrying..."
+      Start-Sleep -Seconds ([math]::Min(60, 5 * $attempt))
+    }
+  }
   if($meta.error){ throw ($meta.error | ConvertTo-Json -Depth 20) }
   $pageSize=[int]$meta.maxRecordCount
   if($pageSize -lt 1){ $pageSize=1000 }
