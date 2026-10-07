@@ -19,6 +19,7 @@ import numpy as np
 from pyproj import Transformer
 from shapely.geometry import Point, shape
 from shapely.strtree import STRtree
+from shapely.ops import transform
 
 
 def main() -> None:
@@ -52,16 +53,12 @@ def main() -> None:
         geom = shape(feature["geometry"])
         if geom.is_empty or not geom.is_valid:
             raise SystemExit(f"invalid geometry for OBJECTID {sid}")
-        geom = __import__("shapely").ops.transform(
-            lambda x, y, z=None: to_las.transform(x, y), geom
-        )
+        geom = transform(lambda x, y, z=None: to_las.transform(x, y), geom)
         polygons.append(geom)
         ids.append(sid)
         roof_z[sid] = []
 
     tree = STRtree(polygons)
-    geometry_to_index = {id(g): i for i, g in enumerate(polygons)}
-
     for las_path in args.las:
         with laspy.open(las_path) as reader:
             for chunk in reader.chunk_iterator(args.chunk_size):
@@ -75,9 +72,10 @@ def main() -> None:
                 for x, y, z in zip(xs.tolist(), ys.tolist(), zs.tolist()):
                     candidates = tree.query(Point(float(x), float(y)))
                     p = Point(float(x), float(y))
-                    for candidate in candidates:
+                    for candidate_index in candidates.tolist():
+                        candidate = polygons[int(candidate_index)]
                         if candidate.covers(p):
-                            sid = ids[geometry_to_index[id(candidate)]]
+                            sid = ids[int(candidate_index)]
                             roof_z[sid].append(float(z))
                             break
 
