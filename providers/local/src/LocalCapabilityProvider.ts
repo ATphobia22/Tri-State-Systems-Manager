@@ -33,7 +33,7 @@ export class LocalCapabilityProvider implements CapabilityProvider {
   async execute(request: CapabilityRequest): Promise<CapabilityResult> {
     const input = request.input as { input: unknown };
     const chunks: unknown[] = [];
-    for await (const chunk of this.adapter.generate(input.input, { deterministic: request.options?.deterministic, seed: request.options?.seed })) {
+    for await (const chunk of this.adapter.generate(input.input)) {
       chunks.push(chunk);
     }
     return {
