@@ -36,6 +36,20 @@
     "providers/browser/src/**/*.ts",
     "apps/dashboard/src/**/*.ts",
     "apps/playground/src/**/*.ts",
-    "apps/docs/src/**/*.ts"
+    "apps/docs/src/**/*.ts",
+    "packages/providers/src/**/*.ts",
+    "packages/search/src/**/*.ts",
+    "packages/browser/src/**/*.ts",
+    "packages/notifications/src/**/*.ts",
+    "packages/jobs/src/**/*.ts",
+    "packages/queues/src/**/*.ts",
+    "packages/cache/src/**/*.ts",
+    "packages/billing/src/**/*.ts",
+    "packages/tenant/src/**/*.ts",
+    "packages/approvals/src/**/*.ts",
+    "packages/quantum/src/**/*.ts",
+    "packages/compute/src/**/*.ts",
+    "packages/units/src/**/*.ts",
+    "packages/validation/src/**/*.ts"
   ]
 }
