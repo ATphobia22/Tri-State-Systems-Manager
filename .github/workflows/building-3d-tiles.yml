@@ -47,6 +47,8 @@ jobs:
             --output /tmp/tsm-igio/posey-buildings-igio-enriched.geojson \
             --expected-count 23082
           test "$(python3 -c 'import json; print(len(json.load(open("/tmp/tsm-igio/posey-buildings-igio-enriched.geojson"))["features"]))')" = "23082"
+      - name: Run topology-preservation regression tests
+        run: python3 scripts/geospatial/test-building-3d-tiles-geometry.py
       - name: Install pinned CI tooling
         env:
           TSM_INSTALL_EXTERNAL_TOOLING: 'true'
