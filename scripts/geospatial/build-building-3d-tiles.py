@@ -176,13 +176,18 @@ def geometry_for_feature(geometry_doc) -> list[Polygon]:
 
 
 def local_polygon(part: Polygon, origin, axes) -> Polygon:
-    def project(x, y, z=None):
-        pts = [surface(float(x), float(y))]
-        values = [dot(sub(p, origin), axes[0]) for p in pts], [dot(sub(p, origin), axes[1]) for p in pts]
-        if z is None:
-            return values[0][0], values[1][0]
-        return values[0][0], values[1][0], z
-    return transform(project, part)
+    def project_ring(ring):
+        out = []
+        for x, y, *_ in ring.coords:
+            p = surface(float(x), float(y))
+            d = sub(p, origin)
+            out.append((dot(d, axes[0]), dot(d, axes[1])))
+        return out
+
+    return Polygon(
+        project_ring(part.exterior),
+        [project_ring(ring) for ring in part.interiors],
+    )
 
 
 def triangulate_polygon(part: Polygon, origin, axes) -> list[tuple[tuple[float, float], tuple[float, float], tuple[float, float]]]:
