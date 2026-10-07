@@ -140,9 +140,39 @@ class EPTReader:
         except Exception as e:
             raise RuntimeError(f"EPT unreachable at {ept_url}: {e}")
         self.root_bounds = self.info["bounds"]
+        self.native_crs = self._resolve_native_crs(self.info.get("srs"))
         self._hier = None
         self._level_nodes: dict[int, set[str]] = {}
         self._cache: dict[str, object] = {}
+
+    @staticmethod
+    def _resolve_native_crs(srs):
+        """Resolve the horizontal EPT CRS from common EPT srs encodings."""
+        if isinstance(srs, str) and srs:
+            return srs
+        if isinstance(srs, dict):
+            authority = srs.get("authority")
+            horizontal = srs.get("horizontal")
+            if authority and horizontal:
+                return f"{authority}:{horizontal}"
+            for key in ("compound", "wkt", "horizontal"):
+                if srs.get(key):
+                    return str(srs[key])
+        return "EPSG:3857"
+
+    def lonlat_to_native(self, lon: float, lat: float) -> tuple[float, float]:
+        """Transform WGS84 coordinates into the EPT horizontal CRS."""
+        try:
+            from pyproj import Transformer
+            transformer = getattr(self, "_transformer", None)
+            if transformer is None:
+                transformer = Transformer.from_crs("EPSG:4326", self.native_crs, always_xy=True)
+                self._transformer = transformer
+            return transformer.transform(lon, lat)
+        except Exception as e:
+            if self.native_crs != "EPSG:3857":
+                raise RuntimeError(f"unable to transform EPSG:4326 to EPT CRS {self.native_crs}: {e}")
+            return lonlat_to_3857(lon, lat)
 
     def hierarchy(self, target_level: int = 8) -> dict:
         """Load only the EPT hierarchy pages needed for target-level lookup."""
@@ -276,7 +306,7 @@ def extract_heights(geojson_path: Path, out_path: Path, ept_url: str | None,
                 continue
 
             # Polygon in 3857 for precise filtering
-            ring3857 = [lonlat_to_3857(c[0], c[1]) for c in ring]
+            ring_native = [reader.lonlat_to_native(c[0], c[1]) for c in ring]
             # For MultiPolygon use the largest ring for point test
             if geom.get("type") == "MultiPolygon":
                 ring3857 = [lonlat_to_3857(c[0], c[1]) for c in
@@ -287,7 +317,7 @@ def extract_heights(geojson_path: Path, out_path: Path, ept_url: str | None,
             for i in idxs:
                 c = int(classes[i])
                 if c == CLASS_BUILDING:
-                    if point_in_polygon(float(xs[i]), float(ys[i]), ring3857):
+                    if point_in_polygon(float(xs[i]), float(ys[i]), ring_native):
                         roof_z.append(float(zs[i]))
                 elif c == CLASS_GROUND:
                     ground_z.append(float(zs[i]))
