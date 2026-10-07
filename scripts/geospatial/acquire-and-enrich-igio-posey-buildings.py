@@ -392,6 +392,19 @@ def main() -> None:
         doc = json.loads(tmp.read_text(encoding="utf-8"))
         if len(doc["features"]) != args.expected_count:
             raise RuntimeError(f"Fallback feature count mismatch")
+        # Remap legacy elevation field names to enriched schema
+        for ft in doc["features"]:
+            pr = ft.get("properties", {})
+            if "groundElevationMeanFt" not in pr:
+                pr["groundElevationMinFt"] = pr.get("elev_min_ft")
+                pr["groundElevationMaxFt"] = pr.get("elev_max_ft")
+                pr["groundElevationMeanFt"] = pr.get("elev_mean_ft")
+                pr["groundElevationFt"] = pr.get("elev_mean_ft")
+                pr["groundElevationSampleCount"] = pr.get("elev_samples", 0)
+                pr["elevationCoverage"] = "SAMPLED" if pr.get("elev_mean_ft") is not None else "UNAVAILABLE"
+                pr["groundElevationSource"] = pr.get("elev_source", "TSM committed Posey 3DEP-derived DEM")
+        # Rewrite with remapped fields
+        tmp.write_text(json.dumps(doc), encoding="utf-8")
         print(f"Using cached IGIO snapshot: {len(doc['features'])} features, SHA-256 verified", flush=True)
         # Write fallback to output and skip elevation join (already joined)
         tmp.rename(args.output)
