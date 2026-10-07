@@ -55,9 +55,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 scripts/geospatial/extract_lidar_heights.py \\
-            --geojson /tmp/tsm-igio/posey-buildings-igio-enriched.geojson \\
-            --out /tmp/tsm-igio/posey-buildings-lidar-enriched.geojson
+          python3 scripts/geospatial/extract_lidar_heights.py --geojson /tmp/tsm-igio/posey-buildings-igio-enriched.geojson --out /tmp/tsm-igio/posey-buildings-lidar-enriched.geojson
           test "$(python3 -c 'import json; print(len(json.load(open("/tmp/tsm-igio/posey-buildings-lidar-enriched.geojson"))["features"]))')" = "23082"
           python3 - <<'PY'
           import json,sys
@@ -72,9 +70,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 scripts/geospatial/reconstruct_lod2_roofs.py \\
-            --geojson /tmp/tsm-igio/posey-buildings-lidar-enriched.geojson \\
-            --out /tmp/tsm-igio/posey-buildings-lod2-enriched.geojson
+          python3 scripts/geospatial/reconstruct_lod2_roofs.py --geojson /tmp/tsm-igio/posey-buildings-lidar-enriched.geojson --out /tmp/tsm-igio/posey-buildings-lod2-enriched.geojson
           test "$(python3 -c 'import json; print(len(json.load(open("/tmp/tsm-igio/posey-buildings-lod2-enriched.geojson"))["features"]))')" = "23082"
           mv /tmp/tsm-igio/posey-buildings-lod2-enriched.geojson /tmp/tsm-igio/posey-buildings-igio-enriched.geojson
       - name: Run topology-preservation regression tests
