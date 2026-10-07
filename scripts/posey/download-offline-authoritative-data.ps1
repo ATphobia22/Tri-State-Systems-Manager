@@ -135,7 +135,7 @@ function Save-IndianaBuildingFootprints() {
   $expectedCount = 23082
   $where = "county='Posey'"
   Write-Host "Acquiring $requiredId from authoritative IGIO Indiana Building Footprints 2016-2020"
-  $meta = Invoke-RestMethod -Method Get -Uri "$service?f=pjson" -TimeoutSec 120
+  $meta = Invoke-RestMethod -Method Get -Uri "${service}?f=pjson" -TimeoutSec 120
   if ($meta.name -ne "Indiana Building Footprints 2016-2020" -or $meta.objectIdField -ne "objectid") { throw "Unexpected IGIO building-footprint layer metadata" }
   $idParams=@{where=$where;outFields="objectid";returnGeometry="false";returnIdsOnly="true";resultType="standard";f="json"}
   $idResponse=Invoke-ArcGisQuery $service $idParams
