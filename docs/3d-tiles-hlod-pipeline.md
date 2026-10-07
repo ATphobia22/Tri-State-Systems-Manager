@@ -52,7 +52,7 @@ CI uses pinned `@gltf-transform/cli@4.5.1` for Draco compression. Final content 
 - duplicate and orphan GLBs;
 - GLB container and buffer bounds;
 - mandatory Draco extension when requested;
-- expected 4,121-building provenance count;
+- expected 23,082-authoritative-IGIO-building provenance count;
 - SHA-256 inventory.
 
 CI additionally runs the pinned Cesium 3D Tiles validator and glTF Transform validator.
