@@ -405,7 +405,39 @@ if((Get-Item $imagePath).Length -le 0){throw "Indiana current imagery county-cli
 $results += [pscustomobject]@{id="indiana-gio-current-imagery-snapshot";authority="Indiana GIO";path="indiana-gio\current-imagery-posey.tif";url=$imageService;sha256=(Get-FileHash $imagePath -Algorithm SHA256).Hash.ToLowerInvariant();bytes=(Get-Item $imagePath).Length;featureCount=$null;spatialRelation="exact-county-clip";status="acquired"}
 $results += Save-ArcGisCountyAttribute "https://gisdata.in.gov/server/rest/services/Hosted/Orthoimagery_Tier_Map_2025_2028/FeatureServer/10" "name='Posey'" "indiana-gio\posey-ortho-tier-2025-2028.json" "indiana-gio-ortho-tier-2025-2028" "Indiana GIO" $true
 
-$results += Save-ArcGisCountyAttribute "https://geospatial.sec.usace.army.mil/dls/rest/services/NLD/Public/FeatureServer/16" "(STATES LIKE '%Indiana%') AND (COUNTIES LIKE '%Posey%')" "usace-nld\leveed-areas-posey.json" "usace-nld-leveed-areas" "USACE" $false
+function Save-CachedUsaceNldLeveedAreas() {
+  # The legacy ArcGIS NLD FeatureServer can time out from hosted runners even
+  # when the current USACE NLD v2 API and an independently hashed snapshot are
+  # available. Preserve fail-closed provenance by using only the repository's
+  # previously acquired USACE artifact; never synthesize or silently omit NLD.
+  $source = Join-Path $PSScriptRoot "..\..\data\usace-nld\leveed-areas-wabash-v1.geojson"
+  if (-not (Test-Path $source)) { throw "Missing cached USACE NLD authoritative snapshot: $source" }
+  $expectedSha = "695bb9bda179f75cb15dc7261e4cd966fc7668beb581ea0e365e7592e41a519d"
+  $actualSha = (Get-FileHash $source -Algorithm SHA256).Hash.ToLowerInvariant()
+  if ($actualSha -ne $expectedSha) { throw "Cached USACE NLD snapshot SHA-256 mismatch: expected $expectedSha got $actualSha" }
+  $full = Join-Path $OutDir "usace-nld\leveed-areas-posey.json"
+  New-Item -ItemType Directory -Force -Path (Split-Path -Parent $full) | Out-Null
+  Copy-Item -Force $source $full
+  $doc = Get-Content $full -Raw | ConvertFrom-Json
+  $item = Get-Item $full
+  if ($item.Length -le 0 -or $doc.type -ne "FeatureCollection" -or @($doc.features).Count -lt 1) {
+    throw "Cached USACE NLD snapshot is not a non-empty FeatureCollection"
+  }
+  [pscustomobject]@{
+    id="usace-nld-leveed-areas"; authority="USACE"; path="usace-nld\leveed-areas-posey.json"
+    url="https://levees.sec.usace.army.mil/api/leveed-areas-270005000005.geojson"
+    sha256=$actualSha; bytes=$item.Length; featureCount=@($doc.features).Count
+    spatialRelation="esriSpatialRelIntersects"; acquisitionMode="cached-authoritative-snapshot"
+    snapshotRetrieved="2026-10-06"; status="acquired"
+  }
+}
+
+try {
+  $results += Save-ArcGisCountyAttribute "https://geospatial.sec.usace.army.mil/dls/rest/services/NLD/Public/FeatureServer/16" "(STATES LIKE '%Indiana%') AND (COUNTIES LIKE '%Posey%')" "usace-nld\leveed-areas-posey.json" "usace-nld-leveed-areas" "USACE" $false
+} catch {
+  Write-Warning "USACE NLD ArcGIS FeatureServer unavailable; using verified cached USACE NLD v2 snapshot. Error: $($_.Exception.Message)"
+  $results += Save-CachedUsaceNldLeveedAreas
+}
 $results += Save-Url "https://levees.sec.usace.army.mil/data-services/services/" "usace-nld\service-catalog.html" "usace-nld-service-catalog" "USACE"
 
 function Save-UsgsDailyMeanHistory() {
