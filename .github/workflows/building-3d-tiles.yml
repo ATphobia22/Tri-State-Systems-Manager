@@ -19,6 +19,9 @@ on:
 permissions:
   contents: read
 
+env:
+  EXPECTED_BUILDINGS: '23082'
+
 jobs:
   build-tiles:
     runs-on: ubuntu-24.04
@@ -59,7 +62,6 @@ jobs:
         run: node scripts/ci/validate-external-tooling.mjs
       - name: Build, validate, stitch and Draco-compress
         env:
-          EXPECTED_BUILDINGS: '23082'
           HLOD_MAX_ITEMS: '50'
           HLOD_MAX_DEPTH: '6'
         run: bash scripts/geospatial/build-building-3d-tiles-pipeline.sh /tmp/tsm-buildings /tmp/tsm-igio/posey-buildings-igio-enriched.geojson
