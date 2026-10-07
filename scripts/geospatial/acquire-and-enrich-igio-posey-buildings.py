@@ -224,10 +224,15 @@ class ElevationSampler:
             r1 = min(ds.height - 1, row + radius)
             c0 = max(0, col - radius)
             c1 = min(ds.width - 1, col + radius)
-            # Skip degenerate windows (point outside raster bounds)
-            if r1 < r0 or c1 < c0:
-                continue
-            window = rasterio.windows.Window(c0, r0, c1 - c0 + 1, r1 - r0 + 1)
+            # Clamp to valid raster extent (handles edge/out-of-bounds)
+            c0_clamped = max(0, min(c0, ds.width - 1))
+            r0_clamped = max(0, min(r0, ds.height - 1))
+            c1_clamped = max(0, min(c1, ds.width - 1))
+            r1_clamped = max(0, min(r1, ds.height - 1))
+            # Guarantee positive dimensions
+            window_width = max(1, c1_clamped - c0_clamped + 1)
+            window_height = max(1, r1_clamped - r0_clamped + 1)
+            window = rasterio.windows.Window(c0_clamped, r0_clamped, window_width, window_height)
             values = ds.read(1, window=window, masked=False)
             for rr in range(values.shape[0]):
                 for cc in range(values.shape[1]):
