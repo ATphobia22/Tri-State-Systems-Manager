@@ -129,6 +129,49 @@ function Save-ArcGisWithinCounty(
   [pscustomobject]@{id=$RequiredId;authority=$Authority;path=$Name;url=$ServiceLayerUrl;where=$Where;sha256=(Get-FileHash $path -Algorithm SHA256).Hash.ToLowerInvariant();bytes=(Get-Item $path).Length;featureCount=$all.Count;spatialRelation=$SpatialRelation;status="acquired"}
 }
 
+function Save-IndianaBuildingFootprints() {
+  $service = "https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0"
+  $requiredId = "indiana-gio-building-footprints-2016-2020-posey"
+  $expectedCount = 23082
+  $where = "county='Posey'"
+  Write-Host "Acquiring $requiredId from authoritative IGIO Indiana Building Footprints 2016-2020"
+  $meta = Invoke-RestMethod -Method Get -Uri "${service}?f=pjson" -TimeoutSec 120
+  if ($meta.name -ne "Indiana Building Footprints 2016-2020" -or $meta.objectIdField -ne "objectid") { throw "Unexpected IGIO building-footprint layer metadata" }
+  $idParams=@{where=$where;outFields="objectid";returnGeometry="false";returnIdsOnly="true";resultType="standard";f="json"}
+  $idResponse=Invoke-ArcGisQuery $service $idParams
+  $objectIds=@($idResponse.objectIds | ForEach-Object { [int]$_ } | Sort-Object -Unique)
+  if ($objectIds.Count -ne $expectedCount) { throw "IGIO Posey building-footprint contract failed: expected exactly $expectedCount OBJECTIDs, received $($objectIds.Count)" }
+  $all=[System.Collections.Generic.List[object]]::new()
+  $pending=[System.Collections.Generic.List[object]]::new()
+  $initialChunkSize=100
+  for($offset=0;$offset -lt $objectIds.Count;$offset += $initialChunkSize) {
+    $last=[math]::Min($offset+$initialChunkSize-1,$objectIds.Count-1)
+    [void]$pending.Add(@($objectIds[$offset..$last]))
+  }
+  while($pending.Count -gt 0) {
+    $ids=@($pending[0]); $pending.RemoveAt(0)
+    $params=@{objectIds=($ids -join ",");outFields="*";returnGeometry="true";outSR="4326";f="json"}
+    try {
+      $r=Invoke-ArcGisQuery $service $params
+      $features=@($r.features)
+      $returnedIds=@($features | ForEach-Object { [int]$_.attributes.objectid })
+      if($features.Count -ne $ids.Count -or @($ids | Where-Object { $_ -notin $returnedIds }).Count -gt 0){throw "Incomplete IGIO building-footprint OBJECTID chunk"}
+      foreach($feature in $features){[void]$all.Add($feature)}
+      Write-Host "Acquired $($all.Count)/$($objectIds.Count) IGIO building footprints"
+    } catch {
+      if($ids.Count -le 1){throw "IGIO building-footprint geometry acquisition failed for OBJECTID $($ids[0]): $($_.Exception.Message)"}
+      $mid=[math]::Floor(($ids.Count-1)/2); $left=@($ids[0..$mid]); $right=@($ids[($mid+1)..($ids.Count-1)])
+      [void]$pending.Insert(0,$right); [void]$pending.Insert(0,$left)
+      Write-Warning "Reducing IGIO building-footprint geometry request from $($ids.Count) to $($left.Count)+$($right.Count): $($_.Exception.Message)"
+    }
+  }
+  if($all.Count -ne $expectedCount){throw "IGIO building-footprint source-count mismatch: expected $expectedCount, acquired $($all.Count)"}
+  $path=Join-Path $OutDir "indiana-gio\building-footprints-2016-2020-posey.geojson"
+  New-Item -ItemType Directory -Force -Path (Split-Path -Parent $path)|Out-Null
+  [ordered]@{type="FeatureCollection";source=$service;sourceLayer="Indiana Building Footprints 2016-2020";where=$where;countyFips=$CountyFips;county="Posey";expectedFeatureCount=$expectedCount;featureCount=$all.Count;objectIdField="objectid";retrievedAt=(Get-Date).ToUniversalTime().ToString("o");features=@($all)} | ConvertTo-Json -Depth 100 | Set-Content $path -Encoding utf8
+  [pscustomobject]@{id=$requiredId;authority="Indiana Geographic Information Office";path="indiana-gio\building-footprints-2016-2020-posey.geojson";url=$service;where=$where;sha256=(Get-FileHash $path -Algorithm SHA256).Hash.ToLowerInvariant();bytes=(Get-Item $path).Length;featureCount=$all.Count;spatialRelation="exact-county-attribute";status="acquired"}
+}
+
 function Save-ArcGisCountyAttribute(
   [string]$ServiceLayerUrl,
   [string]$Where,
@@ -139,20 +182,99 @@ function Save-ArcGisCountyAttribute(
 ) {
   Write-Host "Acquiring $RequiredId via exact county attribute filter from $ServiceLayerUrl"
 
-  # ArcGIS feature layers can intermittently reject long/encoded GET query URLs
-  # with a misleading 404 even while the layer and /query resource are healthy.
-  # Use the documented POST form and the shared retrying query helper instead.
-  $params=@{
-    where=$Where
-    outFields="*"
-    returnGeometry="true"
-    outSR="4326"
-    f="json"
+  # Do not request an entire county's geometry in one ArcGIS response. Large
+  # polygon payloads intermittently produce upstream 504s even when /query is
+  # healthy. First acquire the exact OBJECTID set, then fetch bounded geometry
+  # chunks. Failed chunks are bisected so transient gateway limits cannot turn
+  # into a false source failure.
+  $meta=Invoke-RestMethod -Method Get -Uri "$ServiceLayerUrl?f=pjson" -TimeoutSec 120
+  if($meta.error){ throw ($meta.error | ConvertTo-Json -Depth 20) }
+  $oidField=[string]$meta.objectIdField
+  if([string]::IsNullOrWhiteSpace($oidField)){ $oidField="objectid" }
+  $idPageSize=[int]$meta.standardMaxRecordCountNoGeometry
+  if($idPageSize -lt 1){ $idPageSize=1000 }
+  $idPageSize=[math]::Min($idPageSize,1000)
+  $objectIdList=[System.Collections.Generic.List[int]]::new()
+  $idOffset=0
+  while($true){
+    $idParams=@{
+      where=$Where
+      outFields=$oidField
+      returnGeometry="false"
+      resultOffset=$idOffset
+      resultRecordCount=$idPageSize
+      orderByFields="$oidField ASC"
+      resultType="standard"
+      f="json"
+    }
+    $idResponse=Invoke-ArcGisQuery $ServiceLayerUrl $idParams
+    $idFeatures=@($idResponse.features)
+    if($idFeatures.Count -eq 0){ break }
+    foreach($feature in $idFeatures){
+      $value=$feature.attributes.($oidField)
+      if($null -eq $value){ throw "ArcGIS response omitted object ID field $oidField for $RequiredId" }
+      [void]$objectIdList.Add([int]$value)
+    }
+    if($idFeatures.Count -lt $idPageSize){ break }
+    $idOffset += $idFeatures.Count
   }
-  $r = Invoke-ArcGisQuery $ServiceLayerUrl $params
-  $features=@($r.features)
-  if ($RequireFeature -and $features.Count -lt 1) {
+  $objectIds=@($objectIdList | Sort-Object -Unique)
+
+  if ($RequireFeature -and $objectIds.Count -lt 1) {
     throw "Required spatial source returned zero features for exact Posey County: $RequiredId"
+  }
+
+  $all=[System.Collections.Generic.List[object]]::new()
+  $pending=[System.Collections.Generic.List[object]]::new()
+  $initialChunkSize=50
+
+  for($offset=0; $offset -lt $objectIds.Count; $offset += $initialChunkSize) {
+    $last=[math]::Min($offset + $initialChunkSize - 1, $objectIds.Count - 1)
+    [void]$pending.Add(@($objectIds[$offset..$last]))
+  }
+
+  while($pending.Count -gt 0) {
+    $ids=@($pending[0])
+    $pending.RemoveAt(0)
+
+    $params=@{
+      objectIds=($ids -join ",")
+      where="1=1"
+      outFields="*"
+      returnGeometry="true"
+      outSR="4326"
+      f="json"
+    }
+
+    try {
+      $r=Invoke-ArcGisQuery $ServiceLayerUrl $params
+      $features=@($r.features)
+      if($features.Count -ne $ids.Count) {
+        $returnedIds=@($features | ForEach-Object { [int]$_.attributes.objectid })
+        $missing=@($ids | Where-Object { $_ -notin $returnedIds })
+        if($missing.Count -gt 0) {
+          throw "ArcGIS returned incomplete OBJECTID chunk for $RequiredId; missing $($missing.Count) feature(s)."
+        }
+      }
+      foreach($feature in $features) {
+        [void]$all.Add($feature)
+      }
+      Write-Host "Acquired $($all.Count)/$($objectIds.Count) features for $RequiredId"
+    } catch {
+      if($ids.Count -le 1) {
+        throw "ArcGIS geometry acquisition failed for $RequiredId OBJECTID $($ids[0]): $($_.Exception.Message)"
+      }
+      $mid=[math]::Floor(($ids.Count - 1) / 2)
+      $left=@($ids[0..$mid])
+      $right=@($ids[($mid+1)..($ids.Count-1)])
+      [void]$pending.Insert(0,$right)
+      [void]$pending.Insert(0,$left)
+      Write-Warning "Reducing $RequiredId geometry request from $($ids.Count) to $($left.Count)+$($right.Count): $($_.Exception.Message)"
+    }
+  }
+
+  if ($all.Count -ne $objectIds.Count) {
+    throw "ArcGIS source-count mismatch for ${RequiredId}: expected $($objectIds.Count), acquired $($all.Count)"
   }
 
   $path=Join-Path $OutDir $Name
@@ -165,8 +287,9 @@ function Save-ArcGisCountyAttribute(
     boundarySource=$CountyBoundaryUrl
     boundaryGEOID=$CountyGEOID
     spatialRelation="exact-county-attribute"
+    objectIdCount=$objectIds.Count
     retrievedAt=(Get-Date).ToUniversalTime().ToString("o")
-    features=$features
+    features=@($all)
   } | ConvertTo-Json -Depth 100 | Set-Content $path -Encoding utf8
 
   [pscustomobject]@{
@@ -177,7 +300,7 @@ function Save-ArcGisCountyAttribute(
     where=$Where
     sha256=(Get-FileHash $path -Algorithm SHA256).Hash.ToLowerInvariant()
     bytes=(Get-Item $path).Length
-    featureCount=$features.Count
+    featureCount=$all.Count
     spatialRelation="exact-county-attribute"
     status="acquired"
   }
@@ -213,6 +336,7 @@ $results += [pscustomobject]@{
 
 $femaCountyProduct="https://msc.fema.gov/portal/downloadProduct?productID=NFHL_18129C"
 $results += Save-Url $femaCountyProduct "fema\\NFHL_18129C.zip" "fema-countywide-nfhl-18129C" "FEMA"
+$results += Save-IndianaBuildingFootprints
 
 $results += Save-ArcGisCountyAttribute "https://gisdata.in.gov/server/rest/services/Hosted/FloodHazard_BestAvai_DNR_Watergdb/FeatureServer/0" "DFIRM_ID='$($CountyFips)C'" "indiana-dnr\bafm-posey-dfirm.geojson" "indiana-dnr-bafm" "Indiana DNR" $true
 
