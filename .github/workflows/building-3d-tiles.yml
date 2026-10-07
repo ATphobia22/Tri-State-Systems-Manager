@@ -10,6 +10,7 @@ on:
       - 'scripts/geospatial/build-building-3d-tiles.py'
       - 'scripts/geospatial/geodesy.py'
       - 'scripts/geospatial/derive-building-heights-from-lidar.py'
+      - 'scripts/geospatial/acquire-posey-county-3dep-lidar.py'
       - 'scripts/geospatial/build-hlod-tileset.py'
       - 'scripts/geospatial/stitch-building-glbs.py'
       - 'scripts/geospatial/validate-building-3d-tiles.py'
@@ -66,7 +67,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/tsm-lidar
-          bash tsm-console/scripts/download-posey-lidar-tiles.sh /tmp/tsm-lidar
+          python3 scripts/geospatial/acquire-posey-county-3dep-lidar.py             --geojson /tmp/tsm-igio/posey-buildings-igio-enriched.geojson             --output /tmp/tsm-lidar             --expected-buildings 23082
           test "$(find /tmp/tsm-lidar -maxdepth 1 -type f -name '*.las' | wc -l)" -ge 1
       - name: Run topology-preservation regression tests
         run: python3 scripts/geospatial/test-building-3d-tiles-geometry.py
