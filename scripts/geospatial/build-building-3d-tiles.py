@@ -348,17 +348,18 @@ def main() -> None:
     ap.add_argument("--extrusion-ft", type=float, default=DEFAULT_EXTRUSION_FT)
     ap.add_argument("--limit", type=int, default=0,
                     help="process only the first N features (deterministic subset for testing)")
-    ap.add_argument("--source-url", default="https://poseyin.wthgis.com/")
-    ap.add_argument("--source-version", default="TSM derived building screening dataset v1")
+    ap.add_argument("--source-url", default="https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0")
+    ap.add_argument("--source-version", default="Indiana Building Footprints 2016-2020")
     args = ap.parse_args()
     if args.extrusion_ft <= 0:
         raise SystemExit("--extrusion-ft must be positive")
 
     data = json.loads(args.geojson.read_text())
     features = data.get("features", [])
-    # Deterministic order: ascending sourceObjectId.
+    # Deterministic order: ascending IGIO object ID.
     def sort_key(ft):
-        sid = ft.get("properties", {}).get("sourceObjectId")
+        props = ft.get("properties", {})
+        sid = props.get("igioObjectId", props.get("sourceObjectId"))
         return (0, int(sid)) if isinstance(sid, (int, float)) else (1, 0)
     features = sorted(features, key=sort_key)
     if args.limit > 0:
@@ -372,7 +373,7 @@ def main() -> None:
     skipped = 0
     for ft in features:
         props = ft.get("properties", {}) or {}
-        sid = props.get("sourceObjectId")
+        sid = props.get("igioObjectId", props.get("sourceObjectId"))
         if not isinstance(sid, (int, float)):
             skipped += 1
             continue
@@ -477,7 +478,8 @@ def main() -> None:
         "source": {
             "sourceUrl": args.source_url,
             "sourceVersionOrEffectiveDate": args.source_version,
-            "sourceId": "posey-buildings-derived",
+            "sourceId": "indiana-building-footprints-2016-2020",
+            "sourceFeatureCount": len(features),
         },
         "input": {
             "geojsonSha256": geojson_sha,
@@ -486,7 +488,7 @@ def main() -> None:
             "skipped": skipped,
         },
         "transformation": (
-            "Parcel polygon -> largest ring -> deterministic ear-clip triangulation -> "
+            "IGIO building polygon -> largest ring -> deterministic ear-clip triangulation -> "
             "flat-shaded LOD1 prism extruded by a fixed estimated height in a "
             "tile-local ENU frame; WGS84 surface horizontal placement; NAVD88 "
             "ground elevation retained as visualization vertical offset without "
@@ -495,6 +497,9 @@ def main() -> None:
         "parameters": {
             "extrusionFt": args.extrusion_ft,
             "extrusionEstimated": True,
+            "footprintGeometry": "authoritative IGIO LiDAR-derived polygon",
+            "footprintGeometry": "authoritative IGIO LiDAR-derived polygon",
+            "elevationSource": "IGIO footprint joined to committed Posey 3DEP-derived DEM",
             "colorFlooded": COLOR_FLOODED,
             "colorDry": COLOR_DRY,
         },

@@ -41,6 +41,38 @@ function enrichHeights(fc: GeoJSONFeatureCollection): GeoJSONFeatureCollection {
   };
 }
 
+async function fetchPublishedIgIoBuildings(bbox: BBox): Promise<GeoJSONFeatureCollection> {
+  const res = await fetch('/data/posey-buildings-igio-enriched.geojson');
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const raw = (await res.json()) as {
+    type: string;
+    features: Array<{ geometry: GeoJSONFeature['geometry']; properties?: Record<string, unknown> }>;
+  };
+  if (raw.type !== 'FeatureCollection' || !Array.isArray(raw.features)) return EMPTY_FC;
+
+  const [xmin, ymin, xmax, ymax] = bbox;
+  const features = raw.features
+    .filter((feature) => {
+      const coordinates = feature.geometry?.coordinates.flat(2) ?? [];
+      const xs = coordinates.filter((v): v is number => typeof v === 'number').filter((_, i) => i % 2 === 0);
+      const ys = coordinates.filter((v): v is number => typeof v === 'number').filter((_, i) => i % 2 === 1);
+      if (!xs.length || !ys.length) return false;
+      return Math.max(...xs) >= xmin && Math.min(...xs) <= xmax &&
+        Math.max(...ys) >= ymin && Math.min(...ys) <= ymax;
+    })
+    .map((feature) => ({
+      type: 'Feature' as const,
+      geometry: feature.geometry,
+      properties: {
+        id: String(feature.properties?.igioObjectId ?? ''),
+        source: 'Indiana GIO Building Footprints 2016-2020',
+        ...(feature.properties ?? {}),
+      },
+    }));
+
+  return enrichHeights({ type: 'FeatureCollection', features });
+}
+
 export async function fetchBuildings(bbox: BBox): Promise<GeoJSONFeatureCollection> {
   try {
     const params = new URLSearchParams({
@@ -52,10 +84,14 @@ export async function fetchBuildings(bbox: BBox): Promise<GeoJSONFeatureCollecti
     const res = await fetch(`/api/gis/buildings?${params}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = (await res.json()) as GeoJSONFeatureCollection;
-    if (!data?.features?.length) return EMPTY_FC;
-    return enrichHeights(data);
+    if (data?.features?.length) return enrichHeights(data);
+    return await fetchPublishedIgIoBuildings(bbox);
   } catch {
-    return EMPTY_FC;
+    try {
+      return await fetchPublishedIgIoBuildings(bbox);
+    } catch {
+      return EMPTY_FC;
+    }
   }
 }
 

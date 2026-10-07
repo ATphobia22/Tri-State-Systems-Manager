@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-ROOT=${1:?output root}; GEOJSON=${2:-tsm-console/public/data/posey-buildings-derived.geojson}
-EXPECTED=${EXPECTED_BUILDINGS:-4121}; MAX_ITEMS=${HLOD_MAX_ITEMS:-50}; MAX_DEPTH=${HLOD_MAX_DEPTH:-6}; EXTRUSION=${BUILDING_EXTRUSION_FT:-10}
+ROOT=${1:?output root}; GEOJSON=${2:-/tmp/tsm-igio/posey-buildings-igio-enriched.geojson}
+EXPECTED=${EXPECTED_BUILDINGS:-23082}; MAX_ITEMS=${HLOD_MAX_ITEMS:-50}; MAX_DEPTH=${HLOD_MAX_DEPTH:-6}; EXTRUSION=${BUILDING_EXTRUSION_FT:-10}
 rm -rf "$ROOT"; mkdir -p "$ROOT"/{flat,hlod,stitched,compressed}
 python3 scripts/geospatial/build-building-3d-tiles.py --geojson "$GEOJSON" --out-dir "$ROOT/flat" --extrusion-ft "$EXTRUSION"
 python3 scripts/geospatial/validate-building-3d-tiles.py --tileset "$ROOT/flat/tileset.json" --tiles-dir "$ROOT/flat" --expected-buildings "$EXPECTED" --expected-glbs "$EXPECTED"
