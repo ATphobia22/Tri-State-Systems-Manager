@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
+import sys
 from pathlib import Path
 
 from shapely.geometry import Polygon
@@ -12,6 +13,7 @@ MODULE_PATH = Path(__file__).with_name("build-building-3d-tiles.py")
 spec = importlib.util.spec_from_file_location("building_tiles", MODULE_PATH)
 module = importlib.util.module_from_spec(spec)
 assert spec.loader is not None
+sys.modules[spec.name] = module
 spec.loader.exec_module(module)
 
 
