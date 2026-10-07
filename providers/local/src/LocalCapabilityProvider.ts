@@ -2,7 +2,7 @@ import type { CapabilityDefinition, CapabilityId, CapabilityProvider, Capability
 import { LocalModelAdapter } from '../../../packages/model-runtime/src/index.ts';
 
 const definition: CapabilityDefinition = {
-  id: 'model.local.generate',
+  id: 'system.local.generate',
   name: 'Local model generation',
   description: 'Deterministic local-reference model capability with no network dependency.',
   version: '1.0.0',
