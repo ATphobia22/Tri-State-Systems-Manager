@@ -35,24 +35,34 @@ from typing import Iterable
 
 from shapely.geometry import MultiPolygon, Polygon, shape
 from shapely.ops import orient, transform, triangulate
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from geodesy import navd88_lonlat_to_ecef
 
 WGS84_A = 6378137.0
 WGS84_E2 = 6.6943799901413165e-3
 FT_TO_M = 0.3048
 
 # Fixed LOD1 visualization constants (documented estimates, not surveyed).
-DEFAULT_EXTRUSION_FT = 10.0
+DEFAULT_EXTRUSION_FT = None
 COLOR_FLOODED = [0.20, 0.45, 0.85, 1.0]   # blue tint: screening depth > 0
 COLOR_DRY = [0.60, 0.57, 0.52, 1.0]       # neutral warm gray
 
 GENERATOR = "TSM deterministic building 3D Tiles converter v1"
 
 
-def surface(lon_deg: float, lat_deg: float) -> tuple[float, float, float]:
-    lon, lat = math.radians(lon_deg), math.radians(lat_deg)
+def surface(lon_deg: float, lat_deg: float, height_m: float = 0.0) -> tuple[float, float, float]:
+    from pyproj import Transformer
+    hxf = Transformer.from_crs("EPSG:4326", "EPSG:6318", always_xy=True, allow_ballpark=False)
+    lon_nad, lat_nad = hxf.transform(float(lon_deg), float(lat_deg))
+    lon, lat = math.radians(lon_nad), math.radians(lat_nad)
     s, c = math.sin(lat), math.cos(lat)
-    n = WGS84_A / math.sqrt(1.0 - WGS84_E2 * s * s)
-    return n * c * math.cos(lon), n * c * math.sin(lon), n * (1.0 - WGS84_E2) * s
+    a = 6378137.0
+    e2 = WGS84_E2
+    n = a / math.sqrt(1.0 - e2 * s * s)
+    return ((n + height_m) * c * math.cos(lon),
+            (n + height_m) * c * math.sin(lon),
+            (n * (1.0 - e2) + height_m) * s)
 
 
 def enu_basis(lon_deg: float, lat_deg: float) -> tuple[tuple[float, float, float], ...]:
@@ -176,11 +186,11 @@ def geometry_for_feature(geometry_doc) -> list[Polygon]:
     return [orient(part, sign=1.0) for part in polygon_parts(geometry)]
 
 
-def local_polygon(part: Polygon, origin, axes) -> Polygon:
+def local_polygon(part: Polygon, origin, axes, surface_height_m: float = 0.0) -> Polygon:
     def project_ring(ring):
         out = []
         for x, y, *_ in ring.coords:
-            p = surface(float(x), float(y))
+            p = surface(float(x), float(y), surface_height_m)
             d = sub(p, origin)
             out.append((dot(d, axes[0]), dot(d, axes[1])))
         return out
@@ -191,7 +201,7 @@ def local_polygon(part: Polygon, origin, axes) -> Polygon:
     )
 
 
-def triangulate_polygon(part: Polygon, origin, axes) -> list[tuple[tuple[float, float], tuple[float, float], tuple[float, float]]]:
+def triangulate_polygon(part: Polygon, origin, axes, surface_height_m: float = 0.0) -> list[tuple[tuple[float, float], tuple[float, float], tuple[float, float]]]:
     """Deterministically triangulate a polygon while retaining every hole.
 
     Shapely's Delaunay triangulation is generated from the complete polygon
@@ -199,7 +209,7 @@ def triangulate_polygon(part: Polygon, origin, axes) -> list[tuple[tuple[float, 
     This prevents triangles from crossing exterior boundaries or interior
     holes.
     """
-    local = local_polygon(part, origin, axes)
+    local = local_polygon(part, origin, axes, surface_height_m)
     candidates = triangulate(local)
     accepted = []
     for triangle in candidates:
@@ -242,7 +252,7 @@ class BuildingTile:
 
 
 def build_prism(parts: list[Polygon], base_z_m: float, top_z_m: float,
-                origin, axes) -> tuple[list, list]:
+                origin, axes, surface_height_m: float) -> tuple[list, list]:
     """Build a prism for all polygon parts, including interior-hole walls."""
     positions: list = []
     normals: list = []
@@ -255,8 +265,8 @@ def build_prism(parts: list[Polygon], base_z_m: float, top_z_m: float,
         normals.extend([n, n, n])
 
     for part in parts:
-        local = local_polygon(part, origin, axes)
-        for triangle in triangulate_polygon(part, origin, axes):
+        local = local_polygon(part, origin, axes, surface_height_m)
+        for triangle in triangulate_polygon(part, origin, axes, surface_height_m):
             a2, b2, c2 = triangle
             a = (a2[0], a2[1], top_z_m)
             b = (b2[0], b2[1], top_z_m)
@@ -366,7 +376,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--geojson", required=True, type=Path)
     ap.add_argument("--out-dir", required=True, type=Path)
-    ap.add_argument("--extrusion-ft", type=float, default=DEFAULT_EXTRUSION_FT)
+    ap.add_argument("--height-field", default="buildingHeightFt")
     ap.add_argument("--limit", type=int, default=0,
                     help="process only the first N features (deterministic subset for testing)")
     ap.add_argument("--expected-buildings", type=int, default=0,
@@ -374,9 +384,6 @@ def main() -> None:
     ap.add_argument("--source-url", default="https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0")
     ap.add_argument("--source-version", default="Indiana Building Footprints 2016-2020")
     args = ap.parse_args()
-    if args.extrusion_ft <= 0:
-        raise SystemExit("--extrusion-ft must be positive")
-
     data = json.loads(args.geojson.read_text())
     features = data.get("features", [])
     # Deterministic order: ascending IGIO object ID.
@@ -389,7 +396,6 @@ def main() -> None:
         features = features[:args.limit]
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
-    height_m = args.extrusion_ft * FT_TO_M
 
     tiles: list[BuildingTile] = []
     paths: list[Path] = []
@@ -420,17 +426,22 @@ def main() -> None:
             key=lambda r: abs(signed_area_2d([(float(p[0]), float(p[1])) for p in r])),
         )
         elev_ft = ground_elevation_ft(props)
+        height_ft = props.get(args.height_field)
         if elev_ft is None:
             skip_feature("missing-ground-elevation", sid)
+            continue
+        if not isinstance(height_ft, (int, float)) or not math.isfinite(float(height_ft)) or float(height_ft) <= 0:
+            skip_feature("missing-lidar-building-height", sid)
             continue
         # Centroid of the ring for the tile-local ENU origin.
         lon0 = sum(p[0] for p in ring) / len(ring)
         lat0 = sum(p[1] for p in ring) / len(ring)
-        origin = surface(lon0, lat0)
+        origin_point = navd88_lonlat_to_ecef(lon0, lat0, elev_ft)
+        origin = (origin_point.x, origin_point.y, origin_point.z)
         axes = enu_basis(lon0, lat0)
-        base_z_m = elev_ft * FT_TO_M
-        top_z_m = base_z_m + height_m
-        positions, normals_list = build_prism(parts, base_z_m, top_z_m, origin, axes)
+        base_z_m = 0.0
+        top_z_m = float(height_ft) * FT_TO_M
+        positions, normals_list = build_prism(parts, base_z_m, top_z_m, origin, axes, origin_point.ellipsoid_height_m)
         if not positions:
             skip_feature("triangulation-failed", sid)
             continue
@@ -493,6 +504,8 @@ def main() -> None:
                 "flooded": t.flooded,
                 "groundElevationFtNavd88": t.ground_ft,
                 "lod": 1,
+                "heightSource": "Indiana 3DEP QL2 classified LiDAR",
+                "heightMethod": "CLASS6_ROOF_QUANTILE_MINUS_IGIO_GROUND",
             }},
         }
 
@@ -536,13 +549,14 @@ def main() -> None:
         "transformation": (
             "IGIO building polygon/multipolygon -> topology-preserving planar triangulation with hole exclusion -> "
             "flat-shaded LOD1 prism extruded by a fixed estimated height in a "
-            "tile-local ENU frame; WGS84 surface horizontal placement; NAVD88 "
-            "ground elevation retained as visualization vertical offset without "
-            "vertical datum conversion. Flooded features tinted blue, dry neutral."
+            "tile-local ENU frame using NAD83(2011) horizontal coordinates and "
+            "GEOID18 NAVD88->ellipsoid conversion; building height derived from "
+            "classified Indiana 3DEP QL2 LiDAR roof returns. Flooded features "
+            "tinted blue, dry neutral."
         ),
         "parameters": {
-            "extrusionFt": args.extrusion_ft,
-            "extrusionEstimated": True,
+            "heightField": args.height_field,
+            "heightEstimated": False,
             "footprintGeometry": "authoritative IGIO LiDAR-derived Polygon/MultiPolygon with holes preserved",
             "elevationSource": "IGIO footprint joined to committed Posey 3DEP-derived DEM",
             "colorFlooded": COLOR_FLOODED,
