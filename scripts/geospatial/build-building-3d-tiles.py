@@ -358,7 +358,8 @@ def main() -> None:
     features = data.get("features", [])
     # Deterministic order: ascending IGIO object ID.
     def sort_key(ft):
-        props = ft.get("properties", {})\n        sid = props.get("igioObjectId", props.get("sourceObjectId"))
+        props = ft.get("properties", {})
+        sid = props.get("igioObjectId", props.get("sourceObjectId"))
         return (0, int(sid)) if isinstance(sid, (int, float)) else (1, 0)
     features = sorted(features, key=sort_key)
     if args.limit > 0:
@@ -497,7 +498,8 @@ def main() -> None:
             "extrusionFt": args.extrusion_ft,
             "extrusionEstimated": True,
             "footprintGeometry": "authoritative IGIO LiDAR-derived polygon",
-            "elevationSource": "IGIO footprint joined to committed Posey 3DEP-derived DEM",\n            "footprintGeometry": "authoritative IGIO LiDAR-derived polygon",\n            "elevationSource": "IGIO footprint joined to committed Posey 3DEP-derived DEM",
+            "footprintGeometry": "authoritative IGIO LiDAR-derived polygon",
+            "elevationSource": "IGIO footprint joined to committed Posey 3DEP-derived DEM",
             "colorFlooded": COLOR_FLOODED,
             "colorDry": COLOR_DRY,
         },
