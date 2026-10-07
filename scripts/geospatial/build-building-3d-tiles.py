@@ -498,7 +498,6 @@ def main() -> None:
             "extrusionFt": args.extrusion_ft,
             "extrusionEstimated": True,
             "footprintGeometry": "authoritative IGIO LiDAR-derived polygon",
-            "footprintGeometry": "authoritative IGIO LiDAR-derived polygon",
             "elevationSource": "IGIO footprint joined to committed Posey 3DEP-derived DEM",
             "colorFlooded": COLOR_FLOODED,
             "colorDry": COLOR_DRY,
