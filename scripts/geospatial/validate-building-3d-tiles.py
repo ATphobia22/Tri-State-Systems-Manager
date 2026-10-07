@@ -93,6 +93,20 @@ def main():
     fail("manifest stitchedSourceObjectIds contains duplicates")
    if len(declared_ids)!=a.expected_buildings:
     fail(f"expected {a.expected_buildings} stitched buildings, found {len(declared_ids)}")
+   stitched=manifest.get("stitchedTiles")
+   if not isinstance(stitched,dict) or not stitched:
+    fail("strict HLOD manifest is missing stitchedTiles identity mapping")
+   flattened=[]
+   for tile_name,tile_meta in stitched.items():
+    if not isinstance(tile_meta,dict) or not isinstance(tile_meta.get("sourceObjectIds"),list) or not tile_meta["sourceObjectIds"]:
+     fail(f"invalid stitched identity mapping: {tile_name}")
+    flattened.extend(tile_meta["sourceObjectIds"])
+   if len(flattened)!=len(set(flattened)):
+    fail("stitched identity mapping contains duplicate sourceObjectIds")
+   if sorted(flattened)!=sorted(declared_ids):
+    fail("stitched identity mapping does not equal stitchedSourceObjectIds")
+   if manifest.get("stitchedTileCount")!=len(stitched):
+    fail("stitchedTileCount does not match stitchedTiles mapping")
    if manifest.get("input",{}).get("featureCount") not in (None, a.expected_buildings):
     fail("manifest input featureCount does not match expected source contract")
   else:
