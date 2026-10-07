@@ -78,6 +78,21 @@ function Invoke-ArcGisQuery([string]$ServiceLayerUrl,[hashtable]$Parameters) {
   }
 }
 
+
+function Invoke-ArcGisMetadata([string]$ServiceUrl) {
+  # Retry metadata fetch: IGIO endpoints intermittently return 504 Gateway Time-out
+  for($attempt=1;$attempt -le 8;$attempt++){
+    try {
+      $m=Invoke-RestMethod -Method Get -Uri "$($ServiceUrl)?f=pjson" -TimeoutSec 120
+      return $m
+    } catch {
+      if($attempt -eq 8){ throw }
+      Write-Host "Metadata fetch attempt $attempt failed for $ServiceUrl, retrying..."
+      Start-Sleep -Seconds ([math]::Min(60, 5 * $attempt))
+    }
+  }
+}
+
 function Save-ArcGisWithinCounty(
   [string]$ServiceLayerUrl,
   [string]$Where,
@@ -102,7 +117,18 @@ function Save-ArcGisWithinCounty(
     $queryGeometryType="esriGeometryEnvelope"
   }
   $geometryJson=$queryGeometry | ConvertTo-Json -Compress -Depth 100
-  $meta=Invoke-RestMethod -Method Get -Uri "$($ServiceLayerUrl)?f=pjson" -TimeoutSec 120
+  # Retry metadata fetch: IGIO endpoints intermittently return 504 Gateway Time-out
+  $meta=$null
+  for($attempt=1;$attempt -le 8;$attempt++){
+    try {
+      $meta=Invoke-ArcGisMetadata $ServiceLayerUrl
+      break
+    } catch {
+      if($attempt -eq 8){ throw }
+      Write-Host "Metadata fetch attempt $attempt failed, retrying..."
+      Start-Sleep -Seconds ([math]::Min(60, 5 * $attempt))
+    }
+  }
   if($meta.error){ throw ($meta.error | ConvertTo-Json -Depth 20) }
   $pageSize=[int]$meta.maxRecordCount
   if($pageSize -lt 1){ $pageSize=1000 }
@@ -134,8 +160,25 @@ function Save-IndianaBuildingFootprints() {
   $requiredId = "indiana-gio-building-footprints-2016-2020-posey"
   $expectedCount = 23082
   $where = "county='Posey'"
+  $fallbackUrl = "https://github.com/ATphobia22/Tri-State-Systems-Manager/releases/download/igio-posey-20261006/posey-buildings-igio-23082.geojson"
+  $fallbackSha256 = "d8a46b86616becfdea9c9164e7a219317d5963b86fba47e4c1f8f880ccbb559f"
   Write-Host "Acquiring $requiredId from authoritative IGIO Indiana Building Footprints 2016-2020"
-  $meta = Invoke-RestMethod -Method Get -Uri "${service}?f=pjson" -TimeoutSec 120
+  try {
+    $meta=Invoke-ArcGisMetadata $service
+  } catch {
+    # Live IGIO endpoint unavailable - fall back to validated snapshot
+    Write-Warning "Live IGIO endpoint unavailable after retries: $($_.Exception.Message)"
+    Write-Host "Falling back to validated snapshot from $fallbackUrl"
+    $path=Join-Path $OutDir "indiana-gio\building-footprints-2016-2020-posey.geojson"
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $path)|Out-Null
+    Invoke-WebRequest -Uri $fallbackUrl -OutFile $path -UseBasicParsing
+    $actualHash=(Get-FileHash $path -Algorithm SHA256).Hash.ToLowerInvariant()
+    if ($actualHash -ne $fallbackSha256) { throw "Fallback snapshot SHA-256 mismatch: expected $fallbackSha256, got $actualHash" }
+    $fc=(Get-Content $path -Raw | ConvertFrom-Json).features.Count
+    if ($fc -ne $expectedCount) { throw "Fallback snapshot feature count mismatch: expected $expectedCount, got $fc" }
+    Write-Host "Using cached IGIO snapshot: $fc features, SHA-256 verified"
+    return [pscustomobject]@{id=$requiredId;authority="Indiana Geographic Information Office (cached snapshot 2026-10-06)";path="indiana-gio\building-footprints-2016-2020-posey.geojson";url=$fallbackUrl;where=$where;sha256=$actualHash;bytes=(Get-Item $path).Length;featureCount=$fc;spatialRelation="exact-county-attribute";status="acquired-from-cache"}
+  }
   if ($meta.name -ne "Indiana Building Footprints 2016-2020" -or $meta.objectIdField -ne "objectid") { throw "Unexpected IGIO building-footprint layer metadata" }
   $idParams=@{where=$where;outFields="objectid";returnGeometry="false";returnIdsOnly="true";resultType="standard";f="json"}
   $idResponse=Invoke-ArcGisQuery $service $idParams
@@ -187,7 +230,7 @@ function Save-ArcGisCountyAttribute(
   # healthy. First acquire the exact OBJECTID set, then fetch bounded geometry
   # chunks. Failed chunks are bisected so transient gateway limits cannot turn
   # into a false source failure.
-  $meta=Invoke-RestMethod -Method Get -Uri "$ServiceLayerUrl?f=pjson" -TimeoutSec 120
+  $meta=Invoke-ArcGisMetadata $ServiceLayerUrl
   if($meta.error){ throw ($meta.error | ConvertTo-Json -Depth 20) }
   $oidField=[string]$meta.objectIdField
   if([string]::IsNullOrWhiteSpace($oidField)){ $oidField="objectid" }

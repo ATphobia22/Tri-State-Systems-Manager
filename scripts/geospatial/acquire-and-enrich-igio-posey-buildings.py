@@ -46,16 +46,29 @@ def request_json(params: dict[str, object], attempts: int = 8) -> dict:
                     "--retry", "3", "--retry-delay", "2", "--retry-all-errors",
                     "--http1.1", "--max-time", "300",
                     "-A", "TSM-IGIO-Posey-Building-Acquisition/1.0",
+                    "-w", "\n%{http_code}",
                     url,
                 ],
-                check=True,
                 capture_output=True,
                 text=True,
                 timeout=330,
             )
-            if not result.stdout.strip():
-                raise RuntimeError(f"IGIO curl failed with exit code {result.returncode}: {result.stderr[:500]!r}")
-            payload = json.loads(result.stdout)
+            # Split HTTP status from body (curl -w appends it)
+            out = result.stdout.rsplit("\n", 1)
+            http_code = out[1].strip() if len(out) > 1 else "?"
+            body = out[0] if len(out) > 1 else result.stdout
+            if http_code != "200":
+                raise RuntimeError(f"IGIO HTTP {http_code}: {body[:300]!r} stderr={result.stderr[:200]!r}")
+            if not body.strip():
+                raise RuntimeError(f"IGIO empty response (HTTP 200): stderr={result.stderr[:200]!r}")
+            # Detect non-JSON (HTML error pages, proxy blocks) before parsing
+            stripped = body.strip()
+            if not (stripped.startswith("{") or stripped.startswith("[")):
+                raise RuntimeError(f"IGIO non-JSON response (HTTP 200): {stripped[:300]!r}")
+            try:
+                payload = json.loads(body)
+            except json.JSONDecodeError as je:
+                raise RuntimeError(f"IGIO JSON parse failed: {je}; body head={stripped[:300]!r}")
             if "error" in payload:
                 raise RuntimeError(json.dumps(payload["error"], sort_keys=True))
             if result.returncode != 0:
@@ -216,6 +229,8 @@ def main() -> None:
     ap.add_argument("--expected-count", type=int, default=EXPECTED_POSEY)
     ap.add_argument("--dem-root", type=Path, default=Path("data/posey-county/elevation"))
     ap.add_argument("--boundary", type=Path, default=Path("data/posey-county/boundaries/posey-county.geojson"))
+    ap.add_argument("--fallback-url", default="https://github.com/ATphobia22/Tri-State-Systems-Manager/releases/download/igio-posey-20261006/posey-buildings-igio-23082.geojson")
+    ap.add_argument("--fallback-sha256", default="d8a46b86616becfdea9c9164e7a219317d5963b86fba47e4c1f8f880ccbb559f")
     args = ap.parse_args()
 
     # The live IGIO layer advertises a 2,000-feature transfer limit. Avoid a
@@ -314,7 +329,35 @@ def main() -> None:
 
     # The service has a finite OBJECTID domain; the recursive range splitter
     # never depends on undocumented offset pagination semantics.
-    acquire_objectid_range(0, 2_147_483_647)
+    try:
+        acquire_objectid_range(0, 2_147_483_647)
+    except RuntimeError as e:
+        # Live IGIO endpoint unavailable - fall back to validated snapshot
+        print(f"WARNING: Live IGIO acquisition failed: {e}", flush=True)
+        print(f"Falling back to validated snapshot from {args.fallback_url}", flush=True)
+        import urllib.request, hashlib
+        tmp = args.output.with_suffix(".fallback.geojson")
+        urllib.request.urlretrieve(args.fallback_url, tmp)
+        actual = hashlib.sha256(tmp.read_bytes()).hexdigest()
+        if actual != args.fallback_sha256:
+            raise RuntimeError(f"Fallback SHA-256 mismatch: expected {args.fallback_sha256}, got {actual}")
+        doc = json.loads(tmp.read_text(encoding="utf-8"))
+        if len(doc["features"]) != args.expected_count:
+            raise RuntimeError(f"Fallback feature count mismatch")
+        print(f"Using cached IGIO snapshot: {len(doc['features'])} features, SHA-256 verified", flush=True)
+        # Write fallback to output and skip elevation join (already joined)
+        tmp.rename(args.output)
+        digest = actual
+        receipt = {
+            "source": "Indiana GIO Building_Footprints 2016-2020 (cached snapshot 2026-10-06)",
+            "fallbackUrl": args.fallback_url,
+            "featureCount": len(doc["features"]),
+            "geojsonSha256": digest,
+            "status": "acquired-from-cache",
+        }
+        args.output.with_suffix(args.output.suffix + ".receipt.json").write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
+        print(json.dumps(receipt, indent=2))
+        return
 
     count = len(features)
     if count != args.expected_count or len(object_id_set) != count:
