@@ -82,6 +82,18 @@
       "regulatoryUse": false,
       "provenanceRequired": true,
       "status": "REGISTERED"
+    },
+    {
+      "id": "posey-buildings-3dtiles",
+      "description": "Posey County IGIO building footprints as 3D Tiles (23,082 source features, 4,121 GLBs)",
+      "uri": "3d-tiles/buildings/tileset.json",
+      "format": "3D Tiles 1.1 + glTF",
+      "sourceAuthority": "Indiana Geographic Information Office",
+      "sourceDataset": "Indiana Building Footprints 2016-2020",
+      "featureCount": 23082,
+      "glbCount": 4121,
+      "tilesetSha256": "87b0e7057e2871e7f4eac011d08b071e946a0e929717f199b35c9744ec1542db",
+      "geometricError": 1000.0
     }
   ]
 }
