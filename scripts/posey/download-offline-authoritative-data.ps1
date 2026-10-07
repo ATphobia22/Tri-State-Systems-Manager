@@ -78,6 +78,21 @@ function Invoke-ArcGisQuery([string]$ServiceLayerUrl,[hashtable]$Parameters) {
   }
 }
 
+
+function Invoke-ArcGisMetadata([string]$ServiceUrl) {
+  # Retry metadata fetch: IGIO endpoints intermittently return 504 Gateway Time-out
+  for($attempt=1;$attempt -le 8;$attempt++){
+    try {
+      $m=Invoke-RestMethod -Method Get -Uri "$($ServiceUrl)?f=pjson" -TimeoutSec 120
+      return $m
+    } catch {
+      if($attempt -eq 8){ throw }
+      Write-Host "Metadata fetch attempt $attempt failed for $ServiceUrl, retrying..."
+      Start-Sleep -Seconds ([math]::Min(60, 5 * $attempt))
+    }
+  }
+}
+
 function Save-ArcGisWithinCounty(
   [string]$ServiceLayerUrl,
   [string]$Where,
@@ -106,7 +121,7 @@ function Save-ArcGisWithinCounty(
   $meta=$null
   for($attempt=1;$attempt -le 8;$attempt++){
     try {
-      $meta=Invoke-RestMethod -Method Get -Uri "$($ServiceLayerUrl)?f=pjson" -TimeoutSec 120
+      $meta=Invoke-ArcGisMetadata $ServiceLayerUrl
       break
     } catch {
       if($attempt -eq 8){ throw }
@@ -146,7 +161,7 @@ function Save-IndianaBuildingFootprints() {
   $expectedCount = 23082
   $where = "county='Posey'"
   Write-Host "Acquiring $requiredId from authoritative IGIO Indiana Building Footprints 2016-2020"
-  $meta = Invoke-RestMethod -Method Get -Uri "${service}?f=pjson" -TimeoutSec 120
+  $meta=Invoke-ArcGisMetadata $service
   if ($meta.name -ne "Indiana Building Footprints 2016-2020" -or $meta.objectIdField -ne "objectid") { throw "Unexpected IGIO building-footprint layer metadata" }
   $idParams=@{where=$where;outFields="objectid";returnGeometry="false";returnIdsOnly="true";resultType="standard";f="json"}
   $idResponse=Invoke-ArcGisQuery $service $idParams
@@ -198,7 +213,7 @@ function Save-ArcGisCountyAttribute(
   # healthy. First acquire the exact OBJECTID set, then fetch bounded geometry
   # chunks. Failed chunks are bisected so transient gateway limits cannot turn
   # into a false source failure.
-  $meta=Invoke-RestMethod -Method Get -Uri "$ServiceLayerUrl?f=pjson" -TimeoutSec 120
+  $meta=Invoke-ArcGisMetadata $ServiceLayerUrl
   if($meta.error){ throw ($meta.error | ConvertTo-Json -Depth 20) }
   $oidField=[string]$meta.objectIdField
   if([string]::IsNullOrWhiteSpace($oidField)){ $oidField="objectid" }
