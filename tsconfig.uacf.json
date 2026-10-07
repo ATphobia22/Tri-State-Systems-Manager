@@ -30,6 +30,9 @@
     "packages/uacp/src/**/*.ts",
     "packages/ontology/src/**/*.ts",
     "packages/data-fabric/src/**/*.ts",
-    "packages/twin/src/**/*.ts"
+    "packages/twin/src/**/*.ts",
+    "providers/local/src/**/*.ts",
+    "providers/search/src/**/*.ts",
+    "providers/browser/src/**/*.ts"
   ]
 }
