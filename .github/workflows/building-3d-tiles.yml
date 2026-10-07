@@ -6,6 +6,7 @@ on:
   push:
     branches: [main]
     paths:
+      - '.github/workflows/building-3d-tiles.yml'
       - 'scripts/geospatial/build-building-3d-tiles.py'
       - 'scripts/geospatial/build-hlod-tileset.py'
       - 'scripts/geospatial/stitch-building-glbs.py'
