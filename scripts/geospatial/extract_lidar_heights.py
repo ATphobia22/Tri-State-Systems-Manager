@@ -149,20 +149,32 @@ class EPTReader:
         return self._hier
 
     def node_for_point(self, x: float, y: float, target_level: int = 8):
-        """Find the deepest hierarchy node at ~target_level containing (x, y)."""
+        """Resolve an EPT node without scanning the full hierarchy per feature."""
         hier = self.hierarchy()
-        best = None
-        for nid, npts in hier.items():
-            if npts == 0:
-                continue
-            level = int(nid.split("-")[0])
-            if level != target_level:
-                continue
+        nodes = self._level_nodes.get(target_level)
+        if nodes is None:
+            nodes = {
+                nid for nid, npts in hier.items()
+                if npts and int(nid.split("-")[0]) == target_level
+            }
+            self._level_nodes[target_level] = nodes
+
+        xmin, ymin, _, xmax, ymax, _ = self.root_bounds
+        n = 2 ** target_level
+        if xmax > xmin and ymax > ymin:
+            ix = min(n - 1, max(0, int((x - xmin) / (xmax - xmin) * n)))
+            iy = min(n - 1, max(0, int((y - ymin) / (ymax - ymin) * n)))
+            prefix = f"{target_level}-{ix}-{iy}-"
+            exact = next((nid for nid in nodes if nid.startswith(prefix)), None)
+            if exact is not None:
+                return exact
+
+        # Defensive fallback for non-standard EPT hierarchy layouts.
+        for nid in nodes:
             b = node_bounds(nid, self.root_bounds)
             if b[0] <= x <= b[3] and b[1] <= y <= b[4]:
-                best = nid
-                break
-        return best
+                return nid
+        return None
 
     def read_node(self, node_id: str):
         """Fetch and parse LAZ for a node (cached). Returns laspy LasData."""
