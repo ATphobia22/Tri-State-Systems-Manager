@@ -85,8 +85,19 @@ def main():
  if a.expected_glbs is not None and len(uris)!=a.expected_glbs: fail(f"expected {a.expected_glbs} content GLBs, found {len(uris)}")
  if a.expected_buildings is not None:
   manifest_path=root/"manifest.json"; manifest=json.loads(manifest_path.read_text()) if manifest_path.is_file() else {}
-  count=len(ids) or manifest.get("sourceBuildingCount",manifest.get("buildingCount",manifest.get("input",{}).get("featureCount",0)))
-  if count!=a.expected_buildings: fail(f"expected {a.expected_buildings} buildings, found {count}")
+  declared_ids=manifest.get("stitchedSourceObjectIds") if a.strict_hlod else None
+  if declared_ids is not None:
+   if not isinstance(declared_ids,list) or any(not isinstance(x,int) or x<0 for x in declared_ids):
+    fail("manifest stitchedSourceObjectIds is invalid")
+   if len(declared_ids)!=len(set(declared_ids)):
+    fail("manifest stitchedSourceObjectIds contains duplicates")
+   if len(declared_ids)!=a.expected_buildings:
+    fail(f"expected {a.expected_buildings} stitched buildings, found {len(declared_ids)}")
+   if manifest.get("input",{}).get("featureCount") not in (None, a.expected_buildings):
+    fail("manifest input featureCount does not match expected source contract")
+  else:
+   count=len(ids) or manifest.get("sourceBuildingCount",manifest.get("buildingCount",manifest.get("input",{}).get("featureCount",0)))
+   if count!=a.expected_buildings: fail(f"expected {a.expected_buildings} buildings, found {count}")
  hp=root/"SHA256SUMS"
  if hp.is_file():
   expected={}
