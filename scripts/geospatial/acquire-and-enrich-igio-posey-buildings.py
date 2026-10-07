@@ -50,16 +50,29 @@ def request_json(params: dict[str, object], attempts: int = 8) -> dict:
                     "--retry", "3", "--retry-delay", "2", "--retry-all-errors",
                     "--http1.1", "--max-time", "300",
                     "-A", "TSM-IGIO-Posey-Building-Acquisition/1.0",
+                    "-w", "\n%{http_code}",
                     url,
                 ],
-                check=True,
                 capture_output=True,
                 text=True,
                 timeout=330,
             )
-            if not result.stdout.strip():
-                raise RuntimeError(f"IGIO curl failed with exit code {result.returncode}: {result.stderr[:500]!r}")
-            payload = json.loads(result.stdout)
+            # Split HTTP status from body (curl -w appends it)
+            out = result.stdout.rsplit("\n", 1)
+            http_code = out[1].strip() if len(out) > 1 else "?"
+            body = out[0] if len(out) > 1 else result.stdout
+            if http_code != "200":
+                raise RuntimeError(f"IGIO HTTP {http_code}: {body[:300]!r} stderr={result.stderr[:200]!r}")
+            if not body.strip():
+                raise RuntimeError(f"IGIO empty response (HTTP 200): stderr={result.stderr[:200]!r}")
+            # Detect non-JSON (HTML error pages, proxy blocks) before parsing
+            stripped = body.strip()
+            if not (stripped.startswith("{") or stripped.startswith("[")):
+                raise RuntimeError(f"IGIO non-JSON response (HTTP 200): {stripped[:300]!r}")
+            try:
+                payload = json.loads(body)
+            except json.JSONDecodeError as je:
+                raise RuntimeError(f"IGIO JSON parse failed: {je}; body head={stripped[:300]!r}")
             if "error" in payload:
                 raise RuntimeError(json.dumps(payload["error"], sort_keys=True))
             if result.returncode != 0:
