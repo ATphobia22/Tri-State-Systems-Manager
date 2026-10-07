@@ -5,7 +5,7 @@ import { LocalCapabilityProvider } from '../../providers/local/src/index.ts';
 test('local provider is deterministic and network-free', async () => {
   const provider = new LocalCapabilityProvider();
   const result = await provider.execute({
-    capability: 'model.local.generate',
+    capability: 'system.local.generate',
     input: { input: 'hello' },
     context: { requestId: 'req-local-1', permissions: { allow: [] } },
     options: { deterministic: true, seed: 11 },
