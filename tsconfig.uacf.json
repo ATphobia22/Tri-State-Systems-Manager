@@ -16,6 +16,7 @@
     "apps/uacf-gateway/src/**/*.ts",
     "packages/contracts/src/**/*.ts",
     "packages/core/src/**/*.ts",
+    "packages/agent-runtime/src/**/*.ts",
     "packages/registry/src/**/*.ts",
     "packages/router/src/**/*.ts",
     "packages/policy/src/**/*.ts",
