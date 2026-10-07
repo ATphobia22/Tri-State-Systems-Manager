@@ -239,8 +239,8 @@ class ElevationSampler:
                     value = float(values[rr, cc])
                     if not self._valid_value(value, ds.nodata):
                         continue
-                    absolute_row = r0 + rr
-                    absolute_col = c0 + cc
+                    absolute_row = r0_clamped + rr
+                    absolute_col = c0_clamped + cc
                     distance = math.hypot(absolute_row - row, absolute_col - col)
                     candidate = (distance, value)
                     if best is None or candidate[0] < best[0]:
