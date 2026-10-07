@@ -206,7 +206,7 @@ function Save-ArcGisCountyAttribute(
   }
 
   if ($all.Count -ne $objectIds.Count) {
-    throw "ArcGIS source-count mismatch for $RequiredId: expected $($objectIds.Count), acquired $($all.Count)"
+    throw "ArcGIS source-count mismatch for ${RequiredId}: expected $($objectIds.Count), acquired $($all.Count)"
   }
 
   $path=Join-Path $OutDir $Name
