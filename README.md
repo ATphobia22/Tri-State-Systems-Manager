@@ -78,7 +78,7 @@ Settings → Pages → Source must be **GitHub Actions**. The workflow does not 
 
 - **Twin live telemetry (`f630ce9`, corrected 2026-10-06):** the digital twin status panel shows real USGS 03378500 observations — stage, discharge, and station WSE NAVD88 via the published SIR 2016-5119 gage-zero conversion (+352.67 ft). Live values ONLY via an explicit "Fetch live snapshot" button press (standing owner rule 2026-10-01); page loaders return the unavailable sentinel and perform no fetch. Provisional qualifiers; no polling or auto-refresh. Site transfer and hydraulic extrusion remain fail-closed pending a validated hydraulic profile — not invented.
 - **Site elevations wired with provenance:** BFE 375.0 ft (2026-08-22 LOMA checklist working value; FIRM panel 18129C0300C verification pending), LAG 377.2 ft / FFE 382.5 ft / berm crest 379.8 ft (owner-supplied, uncertified), clearance 2.2 ft (derived). None claimed as certified survey.
-- **LOD1–LOD4 pipeline:** parcel → terrain → building derivation complete (4,121 features, 1,233 flooded at the 375.0 ft screening scenario); deterministic 3D building tiles generated and validated locally (OGC 3D Tiles 1.1, 4,121 GLBs) — **not yet deployed** (no `3d-tiles/buildings/tileset.json` on Pages; build output is git-ignored).
+- **Authoritative Posey building pipeline:** Indiana GIO Building Footprints 2016–2020 → committed 3DEP-derived elevation join → deterministic topology-preserving LOD1 GLBs → HLOD → Draco → strict 3D Tiles validation. The production contract is exactly **23,082** authoritative IGIO footprints; parcel-derived 4,121-feature geometry remains legacy/contextual only.
 
 ### CI
 
