@@ -37,19 +37,28 @@ def make(groups):
 def main():
  ap=argparse.ArgumentParser(); ap.add_argument("--tileset",required=True,type=Path); ap.add_argument("--tiles-dir",required=True,type=Path); ap.add_argument("--output",required=True,type=Path); ap.add_argument("--stitched-dir",type=Path); a=ap.parse_args()
  ts=json.loads(a.tileset.read_text()); outdir=a.stitched_dir or a.tiles_dir/"stitched"; outdir.mkdir(parents=True,exist_ok=True); count=0
+ manifest_path=outdir.parent/"manifest.json"
+ manifest=json.loads(manifest_path.read_text()) if manifest_path.is_file() else {}
+ manifest.setdefault("stitchedTiles", {})
  def visit(node):
   nonlocal count
   ch=node.get("children",[])
   if ch and all(isinstance(x,dict) and "content" in x for x in ch):
    groups={}
+   source_ids=[]
    for child in ch:
-    uri=child["content"]["uri"]; doc,binary=read_glb(a.tiles_dir/uri); tr=child.get("transform")
+    uri=child["content"]["uri"]; sid=child.get("extras",{}).get("tsm",{}).get("sourceObjectId")
+    if not isinstance(sid,int) or sid < 0: fail(f"missing sourceObjectId for stitched child: {uri}")
+    source_ids.append(sid)
+    doc,binary=read_glb(a.tiles_dir/uri); tr=child.get("transform")
     if not isinstance(tr,list) or len(tr)!=16: fail(f"building transform missing: {uri}")
     prim=doc["meshes"][0]["primitives"][0]; attrs=prim["attributes"]; ps=vals(doc,binary,attrs["POSITION"]); ns=vals(doc,binary,attrs["NORMAL"])
     color=doc.get("materials",[{}])[0].get("pbrMetallicRoughness",{}).get("baseColorFactor",[.6,.57,.52,1]); key=json.dumps(color,separators=(",",":")); groups.setdefault(key,([],[],color)); gp,gn,_=groups[key]
     for pp,nn in zip(ps,ns): gp.append(p(tr,pp)); gn.append(n(tr,nn))
-   name=f"tile-{count:04d}.glb"; (outdir/name).write_bytes(make([groups[k] for k in sorted(groups)])); node.pop("children",None); node["content"]={"uri":f"stitched/{name}"}; count+=1
+   name=f"tile-{count:04d}.glb"; (outdir/name).write_bytes(make([groups[k] for k in sorted(groups)])); node.pop("children",None); node["content"]={"uri":f"stitched/{name}"}
+   manifest["stitchedTiles"][name]={"sourceObjectIds":sorted(source_ids),"sourceObjectCount":len(source_ids)}
+   count+=1
   else:
    for x in ch: visit(x)
- visit(ts["root"]); a.output.write_text(json.dumps(ts,separators=(",",":"))+"\n"); print(json.dumps({"stitchedLeaves":count,"output":str(a.output)}))
+ visit(ts["root"]); manifest["stitchedTileCount"]=count; manifest["stitchedSourceObjectIds"]=sorted({sid for tile in manifest["stitchedTiles"].values() for sid in tile["sourceObjectIds"]}); manifest_path.write_text(json.dumps(manifest,indent=2)+"\n"); a.output.write_text(json.dumps(ts,separators=(",",":"))+"\n"); print(json.dumps({"stitchedLeaves":count,"sourceObjectIds":len(manifest["stitchedSourceObjectIds"]),"output":str(a.output)}))
 if __name__=="__main__":main()
