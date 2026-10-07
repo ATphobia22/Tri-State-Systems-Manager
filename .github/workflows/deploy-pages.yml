@@ -218,7 +218,7 @@ jobs:
           python3 scripts/geospatial/validate-building-3d-tiles.py \
             --tileset tsm-console/dist/3d-tiles/buildings/tileset.json \
             --tiles-dir tsm-console/dist/3d-tiles/buildings \
-            --expected-buildings 4121 --require-draco --strict-hlod
+            --expected-buildings 23082 --require-draco --strict-hlod
 
       - name: 3D Tiles browser renderer smoke test
         working-directory: tsm-console
