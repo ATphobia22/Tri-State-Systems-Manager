@@ -70,6 +70,8 @@ test('executes a capability through the existing fabric', async () => {
   assert.equal(result.success, true);
   assert.deepEqual(result.output, { value: 42 });
   assert.equal(result.traceId, 'req-agent-1');
+  const discovered = await runtime().describeAvailableCapabilities({ requestId: 'req-agent-discovery', permissions: { allow: [] } });
+  assert.equal(discovered.some((item) => item.id === definition.id), true);
 });
 
 test('preserves policy denial instead of bypassing the fabric', async () => {
