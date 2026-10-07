@@ -23,7 +23,10 @@
         "terrain",
         "bare_earth",
         "lidar_provenance"
-      ]
+      ],
+      "vintage": "2016-2020 (Posey County LiDAR)",
+      "crs": "EPSG:4269 (Geographic) / UTM Zone 16N",
+      "datum": "Horizontal: NAD83, Vertical: NAVD88 (meters)"
     },
     {
       "id": "USGS-TNM-NHDPLUS-HR",
@@ -47,7 +50,10 @@
         "floodway",
         "BFE_context",
         "FIRM_panels"
-      ]
+      ],
+      "vintage": "Effective FIRM panels 18129C0265C/18129C0300C",
+      "crs": "EPSG:4326",
+      "datum": "Horizontal: NAD83, Vertical: NAVD88"
     },
     {
       "id": "FEMA-MSC",
@@ -69,7 +75,10 @@
         "levees",
         "levee_systems",
         "flood_protection_context"
-      ]
+      ],
+      "vintage": "Continuous enterprise sync (2026)",
+      "crs": "EPSG:4326 (Web API)",
+      "datum": "Horizontal: NAD83, Vertical: NAVD88 (feet)"
     },
     {
       "id": "USACE-WATER",
@@ -113,7 +122,10 @@
         "BFE",
         "FARA",
         "floodplain"
-      ]
+      ],
+      "vintage": "2020-2021 (Posey County updates)",
+      "crs": "EPSG:2966 (Indiana State Plane West)",
+      "datum": "Horizontal: NAD83, Vertical: NAVD88"
     },
     {
       "id": "USDA-NRCS-SSURGO",
