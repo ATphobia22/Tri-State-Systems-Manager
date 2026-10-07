@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Generate deterministic OGC 3D Tiles 1.1 LOD1 building blocks.
 
-Input: posey-buildings-derived.geojson (parcel polygons with ground
-elevations in ft NAVD88 and flood-depth screening values).
+Input: authoritative IGIO building-footprint GeoJSON with ground elevations
+in ft NAVD88 and optional flood-depth screening values.
 
 For each building feature a simple LOD1 block model (extruded prism) is
 generated as a GLB in a tile-local ENU frame, following the same pattern as
@@ -12,14 +12,14 @@ scripts/geospatial/build-terrain-3d-tiles.py:
     without a NAVD88-to-ellipsoid transformation
 
 This is visualization data, not survey-grade engineering geometry.
-Building heights are estimated (see --extrusion-ft), footprints are parcel
-polygons (not surveyed building footprints), and flood coloring reflects
-screening-grade depth values, not certified flood determinations.
+Building heights are estimated (see --extrusion-ft), footprints are LiDAR-derived
+IGIO building polygons rather than survey-grade building geometry, and flood
+coloring reflects screening-grade depth values, not certified flood determinations.
 
-Determinism: features are processed in ascending sourceObjectId order, the
+Determinism: features are processed in ascending IGIO object ID order, the
 extrusion height and colors are fixed constants, polygon triangulation is a
-deterministic ear-clipping implementation, and JSON is emitted with compact
-separators. Same input bytes => same output bytes.
+deterministic ear-clipping implementation, and JSON is emitted with stable
+ordering. Same input bytes => same output bytes.
 """
 from __future__ import annotations
 
@@ -497,7 +497,6 @@ def main() -> None:
         "parameters": {
             "extrusionFt": args.extrusion_ft,
             "extrusionEstimated": True,
-            "footprintGeometry": "authoritative IGIO LiDAR-derived polygon",
             "footprintGeometry": "authoritative IGIO LiDAR-derived polygon",
             "elevationSource": "IGIO footprint joined to committed Posey 3DEP-derived DEM",
             "colorFlooded": COLOR_FLOODED,
