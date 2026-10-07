@@ -74,6 +74,17 @@ jobs:
           done < <(find /tmp/tsm-buildings/compressed -type f -name '*.glb' -print0 | sort -z)
       - name: Package versioned artifact
         run: bash scripts/geospatial/package-building-3d-tiles.sh /tmp/tsm-buildings/compressed /tmp/tsm-artifacts v1 "$GITHUB_SHA"
+      - name: Verify packaged artifact integrity
+        shell: bash
+        run: |
+          set -euo pipefail
+          zip="$(find /tmp/tsm-artifacts -maxdepth 1 -type f -name '*.zip' -print -quit)"
+          test -n "$zip"
+          (cd /tmp/tsm-artifacts && sha256sum -c "$(basename "$zip").sha256")
+          verify="$(mktemp -d)"
+          unzip -q "$zip" -d "$verify"
+          (cd "$verify/3d-tiles/buildings" && sha256sum -c SHA256SUMS)
+          rm -rf "$verify"
       - name: Upload versioned artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
