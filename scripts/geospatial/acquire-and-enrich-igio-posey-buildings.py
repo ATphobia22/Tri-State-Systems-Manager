@@ -17,15 +17,11 @@ import argparse
 import hashlib
 import json
 import math
-import os
 import subprocess
-import sys
 import time
 from pathlib import Path
 from urllib.parse import urlencode
-from urllib.request import Request, urlopen
 
-import numpy as np
 import rasterio
 from shapely.geometry import MultiPolygon, Polygon, mapping, shape
 from shapely.ops import unary_union
@@ -329,8 +325,12 @@ def main() -> None:
     dem_paths = sorted(args.dem_root.glob("*.tif"))
     if not dem_paths:
         raise SystemExit(f"No Posey DEM GeoTIFFs found under {args.dem_root}")
-    # Prefer finer-resolution rasters; coverage is checked per footprint.
-    dem_paths.sort(key=lambda p: float(rasterio.open(p).res[0]))
+    # Prefer finer-resolution rasters; close each probe immediately so the
+    # acquisition job does not leak file descriptors before opening samplers.
+    def resolution(path: Path) -> float:
+        with rasterio.open(path) as dataset:
+            return float(dataset.res[0])
+    dem_paths.sort(key=resolution)
     sampler = ElevationSampler(dem_paths)
     try:
         enriched = []
@@ -374,6 +374,16 @@ def main() -> None:
     finally:
         sampler.close()
 
+    if no_elevation:
+        raise SystemExit(
+            f"Elevation join incomplete: {no_elevation} of {count} footprints had no valid DEM samples"
+        )
+
+    # ArcGIS range queries are disjoint by construction, but deterministic
+    # ordering must not depend on server response ordering within a range.
+    features.sort(key=lambda feature: int(feature["properties"]["igioObjectId"]))
+    object_ids.sort()
+
     output = args.output
     output.parent.mkdir(parents=True, exist_ok=True)
     document = {
@@ -383,6 +393,7 @@ def main() -> None:
         "sourceService": SERVICE,
         "sourceFilter": "county='Posey'",
         "sourceFeatureCount": count,
+        "elevationJoinedFeatureCount": count - no_elevation,
         "geometryCrs": "EPSG:4326",
         "elevationAuthority": "TSM committed 3DEP-derived Posey DEM",
         "elevationMethod": "footprint centroid + boundary samples",
