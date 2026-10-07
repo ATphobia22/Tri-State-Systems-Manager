@@ -36,13 +36,14 @@ a stepping stone to apologize for. Each LOD is a complete, useful product.
 2D parcel polygons extruded to an estimated structure height, seated on terrain.
 Sufficient for per-parcel flood exposure screening.
 
-**Required inputs:**
-- Parcel geometry: `tsm-console/public/data/posey-parcels.geojson` (4,121 features,
-  PROVISIONAL). Unavailable → parcel excluded from LOD1 set, recorded in manifest.
+**Canonical production input:**
+- Indiana GIO `Building_Footprints` 2016–2020, Posey County, exactly 23,082
+  authoritative polygon features. Parcel geometry remains contextual/provisional
+  and is not used as the production building-footprint source.
 - Terrain DEM: USGS 3DEP-derived Terrain-RGB tileset (z8–z12, 478 tiles), DERIVED.
   Unavailable → ground elevation unavailable; no extrusion performed.
 
-**Derivation (parcel → terrain → building):**
+**Derivation (IGIO footprint → terrain → building):**
 1. Sample terrain elevation at parcel centroid (building-ground elevation sampling).
 2. Estimate structure height: fixed default (e.g. single-story 10 ft) unless a
    verified height attribute exists. Estimated heights are labeled ESTIMATED,
