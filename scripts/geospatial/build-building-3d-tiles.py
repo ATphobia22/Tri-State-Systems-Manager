@@ -552,6 +552,7 @@ def main() -> None:
         "engineeringUse": False,
         "regulatoryUse": False,
         "tileCount": len(tiles),
+        "sourceObjectIds": sorted(t.source_id for t in tiles),
         "deterministic": True,
         "content": sorted(p.relative_to(args.out_dir).as_posix() for p in paths),
     }
