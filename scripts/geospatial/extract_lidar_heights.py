@@ -231,7 +231,7 @@ def extract_heights(geojson_path: Path, out_path: Path, ept_url: str | None,
         features = features[:limit]
 
     stats = {"total": len(features), "with_height": 0, "no_roof_points": 0,
-             "no_ground_points": 0, "no_ept_node": 0, "errors": 0}
+             "no_ground_points": 0, "no_ept_node": 0, "errors": 0, "error_examples": []}
 
     for idx, ft in enumerate(features):
         props = ft.get("properties", {}) or {}
@@ -336,6 +336,8 @@ def extract_heights(geojson_path: Path, out_path: Path, ept_url: str | None,
 
         except Exception as e:
             stats["errors"] += 1
+            if len(stats["error_examples"]) < 10:
+                stats["error_examples"].append(type(e).__name__ + ": " + str(e)[:240])
             props["lidarHeightStatus"] = f"error:{str(e)[:60]}"
 
         if (idx + 1) % 500 == 0:
