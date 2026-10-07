@@ -59,6 +59,19 @@ jobs:
             --output /tmp/tsm-igio/posey-buildings-igio-enriched.geojson \
             --expected-count 23082
           test "$(python3 -c 'import json; print(len(json.load(open("/tmp/tsm-igio/posey-buildings-igio-enriched.geojson"))["features"]))')" = "23082"
+      - name: Verify authoritative EPT metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, urllib.request
+          u="https://s3-us-west-2.amazonaws.com/usgs-lidar-public/USGS_LPC_IN_WT_B12_Posey_2013_LAS_2016/ept.json"
+          d=json.load(urllib.request.urlopen(u, timeout=30))
+          print("EPT bounds:", d.get("bounds"))
+          print("EPT srs:", d.get("srs"))
+          print("EPT dataType:", d.get("dataType"))
+          print("EPT span:", d.get("span"))
+          PY
       - name: Extract authoritative LiDAR building heights
         shell: bash
         run: |
