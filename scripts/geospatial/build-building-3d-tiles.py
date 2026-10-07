@@ -348,6 +348,8 @@ def main() -> None:
     ap.add_argument("--extrusion-ft", type=float, default=DEFAULT_EXTRUSION_FT)
     ap.add_argument("--limit", type=int, default=0,
                     help="process only the first N features (deterministic subset for testing)")
+    ap.add_argument("--expected-buildings", type=int, default=0,
+                    help="fail if the generated content count differs from this exact source contract")
     ap.add_argument("--source-url", default="https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0")
     ap.add_argument("--source-version", default="Indiana Building Footprints 2016-2020")
     args = ap.parse_args()
@@ -371,20 +373,30 @@ def main() -> None:
     tiles: list[BuildingTile] = []
     paths: list[Path] = []
     skipped = 0
+    skipped_reasons: dict[str, int] = {}
+    skipped_ids: list[int] = []
+
+    def skip_feature(reason: str, sid: object = None) -> None:
+        nonlocal skipped
+        skipped += 1
+        skipped_reasons[reason] = skipped_reasons.get(reason, 0) + 1
+        if isinstance(sid, (int, float)):
+            skipped_ids.append(int(sid))
+
     for ft in features:
         props = ft.get("properties", {}) or {}
         sid = props.get("igioObjectId", props.get("sourceObjectId"))
         if not isinstance(sid, (int, float)):
-            skipped += 1
+            skip_feature("missing-source-object-id")
             continue
         sid = int(sid)
         ring = largest_polygon_coords(ft.get("geometry", {}))
         if not ring:
-            skipped += 1
+            skip_feature("missing-valid-polygon", sid)
             continue
         elev_ft = ground_elevation_ft(props)
         if elev_ft is None:
-            skipped += 1
+            skip_feature("missing-ground-elevation", sid)
             continue
         # Centroid of the ring for the tile-local ENU origin.
         lon0 = sum(p[0] for p in ring) / len(ring)
@@ -395,7 +407,7 @@ def main() -> None:
         top_z_m = base_z_m + height_m
         positions, normals_list = build_prism(ring, base_z_m, top_z_m, origin, axes)
         if not positions:
-            skipped += 1
+            skip_feature("triangulation-failed", sid)
             continue
         flooded = is_flooded(props)
         color = COLOR_FLOODED if flooded else COLOR_DRY
@@ -417,6 +429,13 @@ def main() -> None:
 
     if not tiles:
         raise SystemExit("no building tiles generated")
+    if args.expected_buildings and len(tiles) != args.expected_buildings:
+        raise SystemExit(
+            f"building content contract failed: expected {args.expected_buildings} GLBs, "
+            f"generated {len(tiles)}, skipped {skipped}; "
+            f"reasons={json.dumps(skipped_reasons, sort_keys=True)}; "
+            f"skippedObjectIds={skipped_ids[:100]}"
+        )
 
     # Root bounding volume: all tile corners in ECEF -> center + radius box.
     corners = []
@@ -486,6 +505,8 @@ def main() -> None:
             "featureCount": len(features),
             "tileCount": len(tiles),
             "skipped": skipped,
+            "skippedReasons": skipped_reasons,
+            "skippedObjectIds": skipped_ids,
         },
         "transformation": (
             "IGIO building polygon -> largest ring -> deterministic ear-clip triangulation -> "
@@ -515,7 +536,10 @@ def main() -> None:
     write_hashes(args.out_dir,
                  paths + [args.out_dir / "tileset.json",
                           args.out_dir / "manifest.json"])
-    print(f"generated {len(tiles)} GLBs; skipped={skipped}; out={args.out_dir}")
+    print(
+        f"generated {len(tiles)} GLBs; skipped={skipped}; "
+        f"reasons={json.dumps(skipped_reasons, sort_keys=True)}; out={args.out_dir}"
+    )
 
 
 if __name__ == "__main__":
