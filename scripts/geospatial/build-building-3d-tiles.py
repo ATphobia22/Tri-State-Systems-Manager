@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Generate deterministic OGC 3D Tiles 1.1 LOD1 building blocks.
 
-Input: posey-buildings-derived.geojson (parcel polygons with ground
-elevations in ft NAVD88 and flood-depth screening values).
+Input: authoritative IGIO-enriched Posey County building footprints with
+NAVD88 ground elevations and optional screening attributes.
 
 For each building feature a simple LOD1 block model (extruded prism) is
 generated as a GLB in a tile-local ENU frame, following the same pattern as
@@ -12,14 +12,15 @@ scripts/geospatial/build-terrain-3d-tiles.py:
     without a NAVD88-to-ellipsoid transformation
 
 This is visualization data, not survey-grade engineering geometry.
-Building heights are estimated (see --extrusion-ft), footprints are parcel
-polygons (not surveyed building footprints), and flood coloring reflects
-screening-grade depth values, not certified flood determinations.
+Building heights are estimated (see --extrusion-ft), while footprints are the
+authoritative Indiana GIO 2016-2020 LiDAR-derived Polygon/MultiPolygon geometry.
+Flood coloring, when present, remains screening-grade and is not a certified
+flood determination.
 
 Determinism: features are processed in ascending sourceObjectId order, the
-extrusion height and colors are fixed constants, polygon triangulation is a
-deterministic ear-clipping implementation, and JSON is emitted with compact
-separators. Same input bytes => same output bytes.
+extrusion height and colors are fixed constants, topology-preserving planar
+triangulation is deterministic for a fixed input, and JSON is emitted with
+compact separators. Same input bytes => same output bytes.
 """
 from __future__ import annotations
 
