@@ -6,10 +6,19 @@ NAVD88 ground elevations and optional screening attributes.
 
 For each building feature a simple LOD1 block model (extruded prism) is
 generated as a GLB in a tile-local ENU frame, following the same pattern as
-scripts/geospatial/build-terrain-3d-tiles.py:
-  - horizontal placement uses WGS84 ellipsoidal surface geometry
-  - NAVD88 elevation is retained as the visualization vertical offset
-    without a NAVD88-to-ellipsoid transformation
+scripts/geospatial/build-terrain-3d-tiles.py.
+
+Vertical handling (--vertical-mode):
+  - geodetic (default): the tile-local ENU origin is placed at the true
+    WGS84 ellipsoidal height h = H + N, where H is the NAVD88 orthometric
+    ground elevation and N is the GEOID18 geoid separation, via
+    scripts/geospatial/tsm_geodesy.py. Building geometry is then relative
+    to that origin (base at 0). No silent datum conversion: elevations must
+    carry explicit NAVD88 labels or the build fails.
+  - legacy-offset: the previous behavior -- NAVD88 elevation retained as the
+    visualization vertical offset on an ENU frame rooted at the ellipsoid
+    surface (h=0), without a NAVD88-to-ellipsoid transformation. Kept only
+    for byte-reproducibility of older outputs.
 
 This is visualization data, not survey-grade engineering geometry.
 Building heights are estimated (see --extrusion-ft), while footprints are the
@@ -20,7 +29,7 @@ flood determination.
 Determinism: features are processed in ascending sourceObjectId order, the
 extrusion height and colors are fixed constants, topology-preserving planar
 triangulation is deterministic for a fixed input, and JSON is emitted with
-compact separators. Same input bytes => same output bytes.
+compact separators. Same input bytes + same --vertical-mode => same output bytes.
 """
 from __future__ import annotations
 
@@ -29,12 +38,16 @@ import hashlib
 import json
 import math
 import struct
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 
 from shapely.geometry import MultiPolygon, Polygon, shape
 from shapely.ops import orient, transform, triangulate
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from tsm_geodesy import Elevation, GeoidModel, VerticalDatumError, wgs84_navd88_to_ecef
 
 WGS84_A = 6378137.0
 WGS84_E2 = 6.6943799901413165e-3
@@ -222,6 +235,21 @@ def ground_elevation_ft(props) -> float | None:
     return None
 
 
+def lidar_height_ft(props) -> float | None:
+    """Per-feature LiDAR-derived building height in feet.
+
+    Audit 2026-10-07: the fixed 10-ft extrusion is incompatible with
+    production. Height MUST come from LiDAR roof-to-ground extraction
+    (scripts/geospatial/extract_lidar_heights.py). These keys are the only
+    accepted sources; storeys*3.5 and other assumptions are prohibited.
+    """
+    for key in ("lidarHeightFt", "roofHeightFt", "buildingHeightFt"):
+        v = props.get(key)
+        if isinstance(v, (int, float)) and math.isfinite(v) and v > 0:
+            return float(v)
+    return None
+
+
 def is_flooded(props) -> bool:
     if props.get("isFlooded") is True:
         return True
@@ -239,6 +267,8 @@ class BuildingTile:
     axes: tuple[tuple[float, float, float], ...]
     flooded: bool
     ground_ft: float
+    height_ft: float = 0.0
+    height_source: str = "unknown"  # "lidar-derived" | "screening-fallback"
 
 
 def build_prism(parts: list[Polygon], base_z_m: float, top_z_m: float,
@@ -366,16 +396,25 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--geojson", required=True, type=Path)
     ap.add_argument("--out-dir", required=True, type=Path)
-    ap.add_argument("--extrusion-ft", type=float, default=DEFAULT_EXTRUSION_FT)
+    ap.add_argument("--extrusion-ft", type=float, default=None,
+                    help="DELIBERATE screening fallback extrusion height in feet. "
+                         "Audit 2026-10-07: the fixed 10-ft default was removed because it is "
+                         "incompatible with production. Height must come from per-feature "
+                         "LiDAR-derived values (lidarHeightFt); pass this flag only for "
+                         "explicit screening runs, and its use is recorded in the manifest.")
     ap.add_argument("--limit", type=int, default=0,
                     help="process only the first N features (deterministic subset for testing)")
     ap.add_argument("--expected-buildings", type=int, default=0,
                     help="fail if the generated content count differs from this exact source contract")
     ap.add_argument("--source-url", default="https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0")
     ap.add_argument("--source-version", default="Indiana Building Footprints 2016-2020")
+    ap.add_argument("--vertical-mode", choices=("geodetic", "legacy-offset"), default="geodetic",
+                    help="geodetic: ENU origin at true ellipsoidal height h=H+N via tsm_geodesy "
+                         "(default); legacy-offset: previous ellipsoid-surface origin behavior")
     args = ap.parse_args()
-    if args.extrusion_ft <= 0:
+    if args.extrusion_ft is not None and args.extrusion_ft <= 0:
         raise SystemExit("--extrusion-ft must be positive")
+    geoid = GeoidModel()
 
     data = json.loads(args.geojson.read_text())
     features = data.get("features", [])
@@ -389,7 +428,8 @@ def main() -> None:
         features = features[:args.limit]
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
-    height_m = args.extrusion_ft * FT_TO_M
+    # NOTE: height_m is now per-feature (LiDAR-derived); the old global
+    # `height_m = args.extrusion_ft * FT_TO_M` was removed per audit 2026-10-07.
 
     tiles: list[BuildingTile] = []
     paths: list[Path] = []
@@ -423,13 +463,49 @@ def main() -> None:
         if elev_ft is None:
             skip_feature("missing-ground-elevation", sid)
             continue
+        # Vertical datum gate (research-validated 2026-10-07): the elevation
+        # properties must carry an explicit NAVD88 label. Refuse silent datum
+        # assumptions.
+        if props.get("groundElevationVerticalDatum") != "NAVD88":
+            skip_feature("elevation-datum-not-navd88", sid)
+            continue
+        # Building height gate (audit 2026-10-07): the fixed 10-ft extrusion is
+        # incompatible with production. Height MUST come from per-feature
+        # LiDAR-derived values; --extrusion-ft is only a deliberate screening
+        # fallback.
+        h_ft = lidar_height_ft(props)
+        height_source = "lidar-derived"
+        if h_ft is None:
+            if args.extrusion_ft is None:
+                skip_feature("missing-lidar-height", sid)
+                continue
+            h_ft = args.extrusion_ft
+            height_source = "screening-fallback"
+        height_m = h_ft * FT_TO_M
         # Centroid of the ring for the tile-local ENU origin.
         lon0 = sum(p[0] for p in ring) / len(ring)
         lat0 = sum(p[1] for p in ring) / len(ring)
-        origin = surface(lon0, lat0)
         axes = enu_basis(lon0, lat0)
-        base_z_m = elev_ft * FT_TO_M
-        top_z_m = base_z_m + height_m
+        if args.vertical_mode == "geodetic":
+            # Correct chain: ENU origin at true ellipsoidal height h = H + N
+            # (tsm_geodesy). Building geometry is relative to that origin.
+            conv = wgs84_navd88_to_ecef(
+                lon0, lat0, Elevation(elev_ft, "ftUS", "NAVD88"), geoid)
+            origin = conv["ecef_m"]
+            base_z_m = 0.0
+            top_z_m = height_m
+            vertical_provenance = {
+                "mode": "geodetic",
+                "ellipsoidal_m": conv["ellipsoidal_m"],
+                "geoid_separation_m": conv["geoid_separation_m"],
+                "geoid_approximate": conv["geoid_approximate"],
+            }
+        else:
+            # Legacy: NAVD88 elevation as offset on ellipsoid-surface origin.
+            origin = surface(lon0, lat0)
+            base_z_m = elev_ft * FT_TO_M
+            top_z_m = base_z_m + height_m
+            vertical_provenance = {"mode": "legacy-offset"}
         positions, normals_list = build_prism(parts, base_z_m, top_z_m, origin, axes)
         if not positions:
             skip_feature("triangulation-failed", sid)
@@ -450,7 +526,7 @@ def main() -> None:
                 max((max(ys) - min(ys)) / 2.0, 0.01),
                 max((max(zs) - min(zs)) / 2.0, 0.01))
         tiles.append(BuildingTile(sid, uri, center, half, origin, axes,
-                                  flooded, elev_ft))
+                                  flooded, elev_ft, h_ft, height_source))
 
     if not tiles:
         raise SystemExit("no building tiles generated")
@@ -492,6 +568,9 @@ def main() -> None:
                 "sourceObjectId": t.source_id,
                 "flooded": t.flooded,
                 "groundElevationFtNavd88": t.ground_ft,
+                "buildingHeightFt": t.height_ft,
+                "heightSource": t.height_source,
+                "verticalMode": args.vertical_mode,
                 "lod": 1,
             }},
         }
@@ -507,6 +586,8 @@ def main() -> None:
             "authorityClass": "DERIVED",
             "engineeringUse": False,
             "regulatoryUse": False,
+            "verticalMode": args.vertical_mode,
+            "geodesy": "tsm_geodesy.py h=H+N (GEOID18)" if args.vertical_mode == "geodetic" else "legacy ellipsoid-surface offset",
         }}},
         "geometricError": radius,
         "root": root,
@@ -515,6 +596,9 @@ def main() -> None:
         json.dumps(tileset, indent=2) + "\n")
 
     geojson_sha = hashlib.sha256(args.geojson.read_bytes()).hexdigest()
+    height_sources: dict[str, int] = {}
+    for t in tiles:
+        height_sources[t.height_source] = height_sources.get(t.height_source, 0) + 1
     manifest = {
         "schemaVersion": "1.0.0",
         "artifactId": "tsm-buildings-3d-tiles-lod1",
@@ -535,16 +619,23 @@ def main() -> None:
         },
         "transformation": (
             "IGIO building polygon/multipolygon -> topology-preserving planar triangulation with hole exclusion -> "
-            "flat-shaded LOD1 prism extruded by a fixed estimated height in a "
-            "tile-local ENU frame; WGS84 surface horizontal placement; NAVD88 "
-            "ground elevation retained as visualization vertical offset without "
-            "vertical datum conversion. Flooded features tinted blue, dry neutral."
+            "flat-shaded LOD1 prism extruded by per-feature height in a "
+            "tile-local ENU frame. Vertical mode '%s': %s. Flooded features tinted blue, dry neutral."
+            % (args.vertical_mode,
+               "ENU origin at true ellipsoidal height h=H+N via tsm_geodesy (GEOID18)"
+               if args.vertical_mode == "geodetic"
+               else "NAVD88 elevation as offset on ellipsoid-surface origin (legacy)")
         ),
         "parameters": {
-            "extrusionFt": args.extrusion_ft,
-            "extrusionEstimated": True,
+            "verticalMode": args.vertical_mode,
+            "geodesyModule": "scripts/geospatial/tsm_geodesy.py",
+            "geoidModel": "GEOID18 regional approximation (-33.5 m, Posey County) -- replace with grid for production",
+            "extrusionFtFallback": args.extrusion_ft,
+            "heightSources": height_sources,
+            "heightEstimated": height_sources.get("screening-fallback", 0) > 0,
             "footprintGeometry": "authoritative IGIO LiDAR-derived Polygon/MultiPolygon with holes preserved",
             "elevationSource": "IGIO footprint joined to committed Posey 3DEP-derived DEM",
+            "elevationDatum": "NAVD88 (explicit label required; build fails otherwise)",
             "colorFlooded": COLOR_FLOODED,
             "colorDry": COLOR_DRY,
         },

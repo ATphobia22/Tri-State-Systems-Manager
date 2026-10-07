@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
 """Convert deterministic Terrain-RGB MBTiles to OGC 3D Tiles 1.1.
 
-The GLBs use a tile-local ENU frame. Horizontal placement is WGS84 ellipsoidal
-surface geometry; NAVD88 elevation is retained as the visualization vertical
-offset without a NAVD88-to-ellipsoid transformation. This is visualization
-data, not survey-grade engineering terrain.
+The GLBs use a tile-local ENU frame.
+
+Vertical handling (--vertical-mode):
+  - geodetic (default): the tile-local ENU origin is shifted by the GEOID18
+    geoid separation N at the tile center (via scripts/geospatial/tsm_geodesy.py),
+    so NAVD88 vertex elevations land at true ellipsoidal heights h = H + N.
+  - legacy-offset: previous behavior -- origin on the ellipsoid surface (h=0)
+    with NAVD88 elevations as raw offsets.
+
+This is visualization data, not survey-grade engineering terrain.
 """
 from __future__ import annotations
 
@@ -14,10 +20,14 @@ import json
 import math
 import sqlite3
 import struct
+import sys
 import zlib
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from tsm_geodesy import GeoidModel, ellipsoidal_to_ecef
 
 WGS84_A = 6378137.0
 WGS84_E2 = 6.6943799901413165e-3
@@ -132,10 +142,19 @@ def elevation(image: RGBImage, u: float, v: float) -> float:
     return e(x0, y0) * (1 - wx) * (1 - wy) + e(x1, y0) * wx * (1 - wy) + e(x0, y1) * (1 - wx) * wy + e(x1, y1) * wx * wy
 
 
-def make_grid(image: RGBImage, key: TileKey, size: int):
+def make_grid(image: RGBImage, key: TileKey, size: int, vertical_mode: str = "geodetic",
+              geoid: GeoidModel | None = None):
     west, south, east, north = xyz_bounds(key)
     lon0, lat0 = (west + east) / 2.0, (south + north) / 2.0
-    origin, axes = surface(lon0, lat0), enu_basis(lon0, lat0)
+    if vertical_mode == "geodetic":
+        # Shift ENU origin by geoid separation N at tile center: NAVD88
+        # vertex heights then sit at true ellipsoidal heights h = H + N.
+        geoid = geoid or GeoidModel()
+        n_m, _ = geoid.separation_m(lon0, lat0)
+        origin = ellipsoidal_to_ecef(lon0, lat0, n_m)
+    else:
+        origin = surface(lon0, lat0)
+    axes = enu_basis(lon0, lat0)
     vertices, heights = [], []
     for row in range(size):
         fy, lat = row / (size - 1), north + (south - north) * row / (size - 1)
@@ -214,10 +233,14 @@ def main():
     ap.add_argument("--grid-size", type=int, default=33)
     ap.add_argument("--source-url", default="https://www.usgs.gov/3d-elevation-program")
     ap.add_argument("--source-version", default="USGS 3DEP-derived screening terrain")
+    ap.add_argument("--vertical-mode", choices=("geodetic", "legacy-offset"), default="geodetic",
+                    help="geodetic: shift ENU origin by GEOID18 separation N at tile center "
+                         "(default); legacy-offset: origin on ellipsoid surface")
     args = ap.parse_args()
     if args.grid_size < 3 or args.grid_size > 129 or args.grid_size % 2 == 0:
         raise SystemExit("--grid-size must be odd and between 3 and 129")
     args.out_dir.mkdir(parents=True, exist_ok=True)
+    geoid = GeoidModel()
     con = sqlite3.connect(args.mbtiles)
     metadata = dict(con.execute("SELECT name, value FROM metadata"))
     rows = con.execute("SELECT zoom_level,tile_column,tile_row,tile_data FROM tiles ORDER BY zoom_level,tile_column,tile_row").fetchall()
@@ -229,7 +252,8 @@ def main():
         key = TileKey(z, x, (2 ** z - 1) - yt)
         image = read_png_rgb(blob)
         if (image.width, image.height) != (256, 256): raise SystemExit(f"{key} is not 256x256")
-        verts, hs, axes, origin = make_grid(image, key, args.grid_size)
+        verts, hs, axes, origin = make_grid(image, key, args.grid_size,
+                                            vertical_mode=args.vertical_mode, geoid=geoid)
         path = args.out_dir / str(z) / str(x) / f"{key.y}.glb"
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(glb(verts, normals(verts, args.grid_size), indices(args.grid_size)))
@@ -295,7 +319,7 @@ def main():
 
     tileset = {"asset": {"version": "1.1", "extras": {"tsm": {"authorityClass": "DERIVED", "engineeringUse": False, "regulatoryUse": False}}}, "geometricError": root["geometricError"], "root": root}
     (args.out_dir / "tileset.json").write_text(json.dumps(tileset, indent=2) + "\n")
-    manifest = {"schemaVersion":"1.0.0","artifactId":"tsm-terrain-3d-tiles-3dep","format":"OGC 3D Tiles 1.1 + glTF 2.0 GLB","source":{"sourceUrl":args.source_url,"sourceVersionOrEffectiveDate":args.source_version,"sourceId":metadata.get("name","terrain_3dep")},"input":{"mbtilesSha256":hashlib.sha256(args.mbtiles.read_bytes()).hexdigest(),"tileCount":len(rows),"zoomLevels":levels},"transformation":"Terrain-RGB PNG -> deterministic sampled mesh -> tile-local ENU GLB; WGS84 surface horizontal placement; NAVD88 elevation retained as visualization vertical offset without vertical datum conversion.","softwareVersion":"TSM deterministic terrain 3D Tiles converter v1","authorityClass":"DERIVED","engineeringUse":False,"regulatoryUse":False,"tileCount":len(rows),"gridSize":args.grid_size,"content":sorted(p.relative_to(args.out_dir).as_posix() for p in paths)}
+    manifest = {"schemaVersion":"1.0.0","artifactId":"tsm-terrain-3d-tiles-3dep","format":"OGC 3D Tiles 1.1 + glTF 2.0 GLB","source":{"sourceUrl":args.source_url,"sourceVersionOrEffectiveDate":args.source_version,"sourceId":metadata.get("name","terrain_3dep")},"input":{"mbtilesSha256":hashlib.sha256(args.mbtiles.read_bytes()).hexdigest(),"tileCount":len(rows),"zoomLevels":levels},"transformation":"Terrain-RGB PNG -> deterministic sampled mesh -> tile-local ENU GLB.","verticalMode":args.vertical_mode,"verticalProvenance":"geodetic: ENU origin shifted by GEOID18 separation N at tile center via tsm_geodesy (h=H+N); legacy-offset: origin on ellipsoid surface (previous behavior)","softwareVersion":"TSM deterministic terrain 3D Tiles converter v1","authorityClass":"DERIVED","engineeringUse":False,"regulatoryUse":False,"tileCount":len(rows),"gridSize":args.grid_size,"content":sorted(p.relative_to(args.out_dir).as_posix() for p in paths)}
     (args.out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
     write_hashes(args.out_dir, paths + [args.out_dir / "tileset.json", args.out_dir / "manifest.json"])
     print(f"generated {len(rows)} GLBs; zooms={levels}; grid={args.grid_size}; out={args.out_dir}")

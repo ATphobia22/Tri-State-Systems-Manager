@@ -424,6 +424,10 @@ def main() -> None:
                 pr["groundElevationSampleCount"] = pr.get("elev_samples", 0)
                 pr["elevationCoverage"] = "SAMPLED" if pr.get("elev_mean_ft") is not None else "UNAVAILABLE"
                 pr["groundElevationSource"] = pr.get("elev_source", "TSM committed Posey 3DEP-derived DEM")
+                # Explicit vertical datum label (research-validated 2026-10-07).
+                # Cached elev_*_ft fields were sampled from the 3DEP NAVD88 DEM.
+                pr["groundElevationVerticalDatum"] = "NAVD88"
+                pr["groundElevationUnit"] = "ftUS"
             elev = pr.get("groundElevationMeanFt")
             if not isinstance(elev, (int, float)) or not math.isfinite(float(elev)):
                 raise RuntimeError(f"Fallback snapshot lacks valid elevation for OBJECTID {sid}")
@@ -489,6 +493,11 @@ def main() -> None:
             props["groundElevationSource"] = "TSM committed Posey 3DEP-derived DEM"
             props["groundElevationMethod"] = "IGIO-footprint centroid+boundary sampling"
             props["groundElevationReference"] = result[4] if result else None
+            # Explicit vertical datum label (research-validated 2026-10-07):
+            # 3DEP DEMs are NAVD88 orthometric. Downstream builders REQUIRE this
+            # label and refuse silent vertical-datum assumptions.
+            props["groundElevationVerticalDatum"] = "NAVD88"
+            props["groundElevationUnit"] = "ftUS"
             if result:
                 props["groundElevationMinFt"] = result[0]
                 props["groundElevationMaxFt"] = result[1]

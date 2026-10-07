@@ -1,9 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT=${1:?output root}; GEOJSON=${2:-/tmp/tsm-igio/posey-buildings-igio-enriched.geojson}
-EXPECTED=${EXPECTED_BUILDINGS:-23082}; MAX_ITEMS=${HLOD_MAX_ITEMS:-50}; MAX_DEPTH=${HLOD_MAX_DEPTH:-6}; EXTRUSION=${BUILDING_EXTRUSION_FT:-10}
+EXPECTED=${EXPECTED_BUILDINGS:-23082}; MAX_ITEMS=${HLOD_MAX_ITEMS:-50}; MAX_DEPTH=${HLOD_MAX_DEPTH:-6}
+# Audit 2026-10-07: BUILDING_EXTRUSION_FT fixed default REMOVED. Height must come
+# from per-feature LiDAR-derived values (lidarHeightFt). Only pass --extrusion-ft
+# deliberately for screening runs via BUILDING_EXTRUSION_FT_OVERRIDE.
+EXTRUSION_ARGS=()
+if [ -n "${BUILDING_EXTRUSION_FT_OVERRIDE:-}" ]; then
+  EXTRUSION_ARGS=(--extrusion-ft "$BUILDING_EXTRUSION_FT_OVERRIDE")
+  echo "WARNING: using deliberate screening fallback extrusion ${BUILDING_EXTRUSION_FT_OVERRIDE} ft" >&2
+fi
 rm -rf "$ROOT"; mkdir -p "$ROOT"/{flat,hlod,stitched,compressed}
-python3 scripts/geospatial/build-building-3d-tiles.py --geojson "$GEOJSON" --out-dir "$ROOT/flat" --extrusion-ft "$EXTRUSION" --expected-buildings "$EXPECTED"
+python3 scripts/geospatial/build-building-3d-tiles.py --geojson "$GEOJSON" --out-dir "$ROOT/flat" "${EXTRUSION_ARGS[@]}" --expected-buildings "$EXPECTED"
 python3 scripts/geospatial/validate-building-3d-tiles.py --tileset "$ROOT/flat/tileset.json" --tiles-dir "$ROOT/flat" --expected-buildings "$EXPECTED" --expected-glbs "$EXPECTED"
 python3 scripts/geospatial/build-hlod-tileset.py --input "$ROOT/flat/tileset.json" --output "$ROOT/hlod/tileset.json" --max-items "$MAX_ITEMS" --max-depth "$MAX_DEPTH"
 cp "$ROOT/flat/"*.glb "$ROOT/hlod/"
