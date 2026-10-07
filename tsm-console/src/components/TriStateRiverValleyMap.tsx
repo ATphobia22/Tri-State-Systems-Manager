@@ -140,7 +140,12 @@ export default function TriStateRiverValleyMap({
   const sourceToSpecRef = useRef<Record<string, string>>({});
   const [layerStates, setLayerStates] =
     useState<Record<string, LayerRuntimeState>>(initialLayerStates);
-  const [visiblePlanes, setVisiblePlanes] = useState<Set<string>>(new Set());
+  // GitHub Pages is the public visualization surface: show every configured
+  // visualization plane by default. Retired/unconfigured planes remain honest
+  // gaps and are never synthesized.
+  const [visiblePlanes, setVisiblePlanes] = useState<Set<string>>(() =>
+    new Set(SPATIAL_PLANES.filter((plane) => !plane.retired && getPlaneLayers(plane).length > 0).map((plane) => plane.id)),
+  );
   const [terrainMessage] = useState(() => terrainRgbBlockMessage(getTerrainRgbStatus()));
 
   const markLayer = (specId: string, state: LayerRuntimeState) => {
@@ -188,7 +193,7 @@ export default function TriStateRiverValleyMap({
         type: 'raster',
         source: sourceId,
         paint: { 'raster-opacity': OVERLAY_OPACITY },
-        layout: { visibility: 'none' },
+        layout: { visibility: 'visible' },
       });
       const list = planeLayerMapRef.current[plane.id] ?? [];
       list.push(layerId);
@@ -210,12 +215,33 @@ export default function TriStateRiverValleyMap({
         for (const spec of getPlaneLayers(plane)) {
           if (spec.id === 'indiana-terrain-rgb') continue; // raster-dem source, handled above
           if (spec.id === 'indiana-imagery' || spec.id === 'osm-base') continue; // base style
-          if (spec.type !== 'arcgis-mapserver') {
-            markLayer(spec.id, 'not_configured');
-            continue;
-          }
           try {
-            addOverlay(plane, spec);
+            if (spec.type === 'arcgis-mapserver') {
+              addOverlay(plane, spec);
+            } else if (spec.type === 'geojson') {
+              const sourceId = `tsm-ov-${spec.id}`;
+              const layerId = `tsm-ov-${spec.id}-lyr`;
+              if (!map.getSource(sourceId)) {
+                sourceToSpecRef.current[sourceId] = spec.id;
+                const dataUrl = new URL(spec.url, window.location.href).toString();
+                map.addSource(sourceId, { type: 'geojson', data: dataUrl });
+                map.addLayer({
+                  id: layerId,
+                  type: 'fill',
+                  source: sourceId,
+                  paint: {
+                    'fill-color': '#f59e0b',
+                    'fill-opacity': 0.16,
+                    'fill-outline-color': '#f59e0b',
+                  },
+                });
+                const list = planeLayerMapRef.current[plane.id] ?? [];
+                list.push(layerId);
+                planeLayerMapRef.current[plane.id] = list;
+              }
+            } else if (spec.type !== 'raster' && spec.type !== 'raster-dem' && spec.type !== 'vector-tile') {
+              markLayer(spec.id, 'not_configured');
+            }
           } catch {
             markLayer(spec.id, 'source_unavailable');
           }
