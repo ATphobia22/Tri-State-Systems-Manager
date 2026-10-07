@@ -24,6 +24,20 @@ The Pages workflow can publish the static console without a backend dependency. 
 
 Settings → Pages → Source must be **GitHub Actions**. The workflow does not fabricate or bypass that repository-level setting.
 
+## System status — 2026-10-06 (evening)
+
+### IGIO endpoint outage and CI resilience
+
+- **Indiana GIO (`gisdata.in.gov`) returning persistent 504 Gateway Time-out** across all endpoints (verified from multiple networks 2026-10-06). Not a runner-specific block.
+- **CI hardened with retry + fallback:** `download-offline-authoritative-data.ps1` now retries IGIO metadata fetches 8× with exponential backoff via shared `Invoke-ArcGisMetadata` helper (was 3 unprotected call sites).
+- **`acquire-and-enrich-igio-posey-buildings.py` hardened:** captures HTTP status explicitly, detects non-JSON responses (HTML error pages) before parsing, logs received content for diagnostics.
+- **Validated snapshot fallback:** when the live IGIO Building Footprints endpoint is unavailable after retries, CI falls back to the SHA-256-verified 23,082-feature snapshot (`releases/download/igio-posey-20261006/posey-buildings-igio-23082.geojson`). Fallback is logged as `acquired-from-cache` with full provenance.
+
+### Branch cleanup
+
+- Deleted 5 stale branches (all 59–82 commits behind `main`, no open PRs): `fix/pages-building-tooling`, `fix/pages-building-tooling-final`, `codex/green-release-remediation-2026-10-06`, `feat/buildings-3d-tiles-production`, `feat/buildings-3d-tiles-production-v2`.
+- Remaining: `main` + `fix/posey-igio-green-gate` (PR #235, open).
+
 ## System status — 2026-10-06
 
 ### USGS migration (ahead of the 2026-02-22 Water Services decommission)
