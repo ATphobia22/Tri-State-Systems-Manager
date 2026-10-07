@@ -139,20 +139,74 @@ function Save-ArcGisCountyAttribute(
 ) {
   Write-Host "Acquiring $RequiredId via exact county attribute filter from $ServiceLayerUrl"
 
-  # ArcGIS feature layers can intermittently reject long/encoded GET query URLs
-  # with a misleading 404 even while the layer and /query resource are healthy.
-  # Use the documented POST form and the shared retrying query helper instead.
-  $params=@{
+  # Do not request an entire county's geometry in one ArcGIS response. Large
+  # polygon payloads intermittently produce upstream 504s even when /query is
+  # healthy. First acquire the exact OBJECTID set, then fetch bounded geometry
+  # chunks. Failed chunks are bisected so transient gateway limits cannot turn
+  # into a false source failure.
+  $idParams=@{
     where=$Where
-    outFields="*"
-    returnGeometry="true"
-    outSR="4326"
+    returnIdsOnly="true"
     f="json"
   }
-  $r = Invoke-ArcGisQuery $ServiceLayerUrl $params
-  $features=@($r.features)
-  if ($RequireFeature -and $features.Count -lt 1) {
+  $idResponse = Invoke-ArcGisQuery $ServiceLayerUrl $idParams
+  $objectIds=@($idResponse.objectIds | ForEach-Object { [int]$_ } | Sort-Object -Unique)
+
+  if ($RequireFeature -and $objectIds.Count -lt 1) {
     throw "Required spatial source returned zero features for exact Posey County: $RequiredId"
+  }
+
+  $all=[System.Collections.Generic.List[object]]::new()
+  $pending=[System.Collections.Generic.List[object]]::new()
+  $initialChunkSize=50
+
+  for($offset=0; $offset -lt $objectIds.Count; $offset += $initialChunkSize) {
+    $last=[math]::Min($offset + $initialChunkSize - 1, $objectIds.Count - 1)
+    [void]$pending.Add(@($objectIds[$offset..$last]))
+  }
+
+  while($pending.Count -gt 0) {
+    $ids=@($pending[0])
+    $pending.RemoveAt(0)
+
+    $params=@{
+      objectIds=($ids -join ",")
+      where="1=1"
+      outFields="*"
+      returnGeometry="true"
+      outSR="4326"
+      f="json"
+    }
+
+    try {
+      $r=Invoke-ArcGisQuery $ServiceLayerUrl $params
+      $features=@($r.features)
+      if($features.Count -ne $ids.Count) {
+        $returnedIds=@($features | ForEach-Object { [int]$_.attributes.objectid })
+        $missing=@($ids | Where-Object { $_ -notin $returnedIds })
+        if($missing.Count -gt 0) {
+          throw "ArcGIS returned incomplete OBJECTID chunk for $RequiredId; missing $($missing.Count) feature(s)."
+        }
+      }
+      foreach($feature in $features) {
+        [void]$all.Add($feature)
+      }
+      Write-Host "Acquired $($all.Count)/$($objectIds.Count) features for $RequiredId"
+    } catch {
+      if($ids.Count -le 1) {
+        throw "ArcGIS geometry acquisition failed for $RequiredId OBJECTID $($ids[0]): $($_.Exception.Message)"
+      }
+      $mid=[math]::Floor(($ids.Count - 1) / 2)
+      $left=@($ids[0..$mid])
+      $right=@($ids[($mid+1)..($ids.Count-1)])
+      [void]$pending.Insert(0,$right)
+      [void]$pending.Insert(0,$left)
+      Write-Warning "Reducing $RequiredId geometry request from $($ids.Count) to $($left.Count)+$($right.Count): $($_.Exception.Message)"
+    }
+  }
+
+  if ($all.Count -ne $objectIds.Count) {
+    throw "ArcGIS source-count mismatch for $RequiredId: expected $($objectIds.Count), acquired $($all.Count)"
   }
 
   $path=Join-Path $OutDir $Name
@@ -165,8 +219,9 @@ function Save-ArcGisCountyAttribute(
     boundarySource=$CountyBoundaryUrl
     boundaryGEOID=$CountyGEOID
     spatialRelation="exact-county-attribute"
+    objectIdCount=$objectIds.Count
     retrievedAt=(Get-Date).ToUniversalTime().ToString("o")
-    features=$features
+    features=@($all)
   } | ConvertTo-Json -Depth 100 | Set-Content $path -Encoding utf8
 
   [pscustomobject]@{
@@ -177,7 +232,7 @@ function Save-ArcGisCountyAttribute(
     where=$Where
     sha256=(Get-FileHash $path -Algorithm SHA256).Hash.ToLowerInvariant()
     bytes=(Get-Item $path).Length
-    featureCount=$features.Count
+    featureCount=$all.Count
     spatialRelation="exact-county-attribute"
     status="acquired"
   }
