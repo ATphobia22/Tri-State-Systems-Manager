@@ -46,7 +46,7 @@ def request_json(params: dict[str, object], attempts: int = 8) -> dict:
         try:
             result = subprocess.run(
                 [
-                    "curl", "--fail", "--silent", "--show-error", "--location",
+                    "curl", "--silent", "--show-error", "--location",
                     "--retry", "3", "--retry-delay", "2", "--retry-all-errors",
                     "--http1.1", "--max-time", "300",
                     "-A", "TSM-IGIO-Posey-Building-Acquisition/1.0",
@@ -57,9 +57,13 @@ def request_json(params: dict[str, object], attempts: int = 8) -> dict:
                 text=True,
                 timeout=330,
             )
+            if not result.stdout.strip():
+                raise RuntimeError(f"IGIO curl failed with exit code {result.returncode}: {result.stderr[:500]!r}")
             payload = json.loads(result.stdout)
             if "error" in payload:
-                raise RuntimeError(json.dumps(payload["error"]))
+                raise RuntimeError(json.dumps(payload["error"], sort_keys=True))
+            if result.returncode != 0:
+                raise RuntimeError(f"IGIO curl failed with exit code {result.returncode}")
             return payload
         except Exception as exc:
             last = exc
