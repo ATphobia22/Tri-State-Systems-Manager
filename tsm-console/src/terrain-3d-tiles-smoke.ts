@@ -49,7 +49,7 @@ const main = async (): Promise<void> => {
   renderer.setCamera(camera);
   renderer.setResolution(camera, 1280, 720);
 
-  const deadline = performance.now() + 15000;
+  const deadline = performance.now() + 45000;
   const tick = () => {
     try {
       camera.updateMatrixWorld();

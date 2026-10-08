@@ -11,7 +11,9 @@ describe("TSM generated 3D Tiles renderer", () => {
 
   it("loads the registered terrain tileset and at least one GLB", () => {
     cy.visit("terrain-3d-tiles-renderer-smoke.html");
-    cy.get("#status", { timeout: 20000 })
+    // Software WebGL (SwiftShader) in CI compiles shaders slowly; allow up to
+    // 60s for the page's own 45s render deadline to report ready/error/timeout.
+    cy.get("#status", { timeout: 60000 })
       .should("have.attr", "data-state")
       .and("match", /^ready:tileset=1;models=[1-9][0-9]*$/);
   });
