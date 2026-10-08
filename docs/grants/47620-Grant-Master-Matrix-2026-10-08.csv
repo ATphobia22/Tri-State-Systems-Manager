@@ -1,0 +1,51 @@
+Program_ID,Agency,Program_Name,Status,Proposal_Deadline,Application_Deadline,Priority,Category,TSM_Evidence_Packet,Notes
+IN-OCRA-CDBG-2026-R2,Indiana OCRA,CDBG Construction Round 2,STAGE 1 CLOSED / FINAL STAGE CONDITIONAL,2026-10-04,2026-12-13,HIGH,Community Development,ocra-cdbg-r2,Final only if invited
+IN-INDOT-CCMG-FY27,INDOT,Community Crossings Matching Grant FY2027,CLOSED — NEXT ANNUAL CALL,2026-09-30,2026-09-30,HIGH,Roads/Bridges,indot-ccmg,Archive for next cycle
+IN-IFA-CWSRF-2027,Indiana Finance Authority,Clean Water State Revolving Fund,Open / rolling,,,HIGH,Water/Wastewater,srf-cw,PPL ranking; MV/Posey pathway
+IN-IFA-DWSRF-2027,Indiana Finance Authority,Drinking Water State Revolving Fund,Open / rolling,,,HIGH,Water/Wastewater,srf-dw,Rolling intake
+USDA-CF-2026,USDA RD,Community Facilities Direct Loan & Grant,Open / continuous,,,HIGH,Community Facilities,usda-cf,Rural public body
+USDA-WEP-2026,USDA RD,Water & Environmental Programs,Open / program dependent,,,HIGH,Water/Wastewater,usda-wep,Program dependent
+EPA-BF-2027-ASSESS,EPA,Brownfields Community-wide Assessment FY2027,UPCOMING / ANTICIPATED FALL 2026,,,HIGH,Brownfields,epa-bf-assess,Watch NOFO
+EPA-BF-2027-RLF,EPA,Brownfields Revolving Loan Fund FY2027,UPCOMING / ANTICIPATED FALL 2026,,,MEDIUM,Brownfields,epa-bf-rlf,
+EPA-BF-2027-CLEAN,EPA,Brownfields Cleanup Grant FY2027,UPCOMING / ANTICIPATED FALL 2026,,,HIGH,Brownfields,epa-bf-clean,
+EPA-BF-2027-MP,EPA,Brownfields Multipurpose Grant FY2027,NOT AVAILABLE FY2027,,,LOW,Brownfields,—,Excluded FY2027
+IN-IBO-BEAD,Indiana Broadband / NTIA,BEAD,Deployment / award implementation,,,HIGH,Broadband,bead,Implementation phase
+IN-IBO-ICP,Indiana Broadband Office,Indiana Connectivity Program,Recurring / current,,,MEDIUM,Broadband,icp,
+IN-DNR-ITP,Indiana DNR,Indiana Trails Program,Next round spring 2028,,,MEDIUM,Recreation,dnr-itp,
+IN-DNR-LWCF,Indiana DNR,Land and Water Conservation Fund,Recurring / cycle dependent,,,HIGH,Recreation,dnr-lwcf,
+USDOJ-COPS-CHP-2026,DOJ COPS,COPS Hiring Program FY2026,CLOSED,2026-07-29,2026-07-29,MEDIUM,Public Safety,—,Closed
+USDA-RD-504,USDA RD,Section 504 Home Repair,Recurring / eligibility dependent,,,MEDIUM,Housing,usda-504,
+IEDC-STOI-RTC,IEDC,Small Town Opportunity / Redevelopment Tax Credit,Program/cycle dependent,,,HIGH,Economic Development,iedc-stoi,
+USACE-PAS,USACE,Planning Assistance to States,Rolling / project dependent,,,MEDIUM,Flood Resilience,usace-pas,Sponsor letter
+USACE-FPMS,USACE,Flood Plain Management Services,Rolling / project dependent,,,MEDIUM,Flood Resilience,usace-fpms,Technical assistance
+FEMA-HMGP,FEMA / IDHS,Hazard Mitigation Grant Program,Disaster-triggered,,,HIGH,Flood Resilience,hmgp,Post-declaration
+FEMA-NSGP,FEMA / IDHS,Nonprofit Security Grant Program,Annual cycle,,,MEDIUM,Public Safety,nsgp,
+FEMA-AFG,FEMA,Assistance to Firefighters Grants,CLOSED FY2025 / NEXT CYCLE MONITOR,,,HIGH,Fire/EMS,afg,Monitor
+FEMA-SAFER,FEMA,Staffing for Adequate Fire and Emergency Response,CLOSED FY2025 / NEXT CYCLE MONITOR,,,MEDIUM,Fire/EMS,safer,Monitor
+HRSA-RHC-OUTREACH,HRSA,Rural Health Care Services Outreach,Recurring / cycle dependent,,,MEDIUM,Health,hrsa-rhc,
+EDA-PWEAA,EDA,Public Works and Economic Adjustment Assistance,NOFO/cycle dependent,,,HIGH,Economic Development,eda-pweaa,
+USDOT-RURAL,USDOT,Rural Surface Transportation Grant,Cycle dependent,,,MEDIUM,Roads/Bridges,usdot-rural,
+USDOT-BIP,FHWA,Bridge Investment Program,Cycle dependent,,,MEDIUM,Roads/Bridges,usdot-bip,
+MARAD-PIDP,MARAD,Port Infrastructure Development Program,Cycle dependent,,,MEDIUM,Ports,marad-pidp,Mt Vernon port context
+USDA-BI,USDA RD,Business & Industry Loan Guarantees,Rolling / lender-driven,,,MEDIUM,Economic Development,usda-bi,
+USDA-RBDG,USDA RD,Rural Business Development Grants,Cycle dependent,,,MEDIUM,Economic Development,usda-rbdg,
+DOJ-JAG-2026,DOJ / BJA,FY2026 Edward Byrne JAG — Local Formula,OPEN,2026-10-09,2026-10-16,CRITICAL,Justice/Public Safety,doj-jag-2026,CRITICAL window
+DOJ-RVC-2026,DOJ / BJA,FY2026 Rural Violent Crime Reduction Initiative,OPEN,2026-10-30,2026-11-06,HIGH,Justice/Public Safety,doj-rvc-2026,
+DOJ-JRI-2026,DOJ / BJA,FY2026 Justice Reinvestment Initiative,OPEN,2026-11-20,2026-12-01,HIGH,Justice/Public Safety,doj-jri-2026,
+DOJ-ANGEL-2026,DOJ / BJA,FY2026 ANGEL Grant Program,OPEN,2026-10-20,2026-10-27,MEDIUM,Justice/Public Safety,doj-angel-2026,
+DOJ-NIBIN-2026,DOJ / BJA,FY2026 NIBIN Modernization Program,INVITED / CONDITIONAL,2026-10-13,2026-10-15,CONDITIONAL,Justice/Public Safety,doj-nibin-2026,Invite only
+DOJ-COLD-DNA-2026,DOJ / BJA,FY2026 Prosecuting Cold Cases Using DNA,OPEN,2026-10-29,2026-11-05,HIGH,Justice/Public Safety,doj-cold-dna-2026,
+DOJ-STOP-SV-2026,DOJ / BJA,FY2026 STOP School Violence Program,OPEN,2026-10-30,2026-11-06,MEDIUM,Justice/Public Safety,doj-stop-sv-2026,
+DOJ-COVERDELL-C-2026,DOJ / BJA,FY2026 Coverdell Forensic — Competitive,OPEN,2026-10-29,2026-11-05,MEDIUM,Justice/Public Safety,doj-coverdell-c,
+DOJ-COVERDELL-F-2026,DOJ / BJA,FY2026 Coverdell Forensic — Formula,OPEN,2026-10-30,2026-11-06,MEDIUM,Justice/Public Safety,doj-coverdell-f,
+DOJ-CEBR-F-2026,DOJ / BJA,FY2026 DNA Capacity Enhancement — Formula,OPEN,2026-10-29,2026-11-05,MEDIUM,Justice/Public Safety,doj-cebr-f,
+DOJ-CEBR-C-2026,DOJ / BJA,FY2026 DNA Capacity Enhancement — Competitive,OPEN,2026-11-03,2026-11-10,MEDIUM,Justice/Public Safety,doj-cebr-c,
+DOJ-EMMETT-2026,DOJ / BJA,FY2026 Emmett Till Unsolved Civil Rights Crimes,OPEN,2026-11-13,2026-11-20,CONDITIONAL,Justice/Public Safety,doj-emmett,
+IN-ICJI-LEPP-FY27,Indiana CJI,FY2027 Law Enforcement Phlebotomy Program,OPEN,2026-10-14,2026-10-14,CRITICAL,Justice/Public Safety,in-cji-lepp-fy27,Same-day prop/app
+USDA-CF-GUAR-2026,USDA RD,Community Facilities Guaranteed Loan,Open / continuous,,,HIGH,Community Facilities,usda-cf-guar,
+IDHS-HMEP-FY27,Indiana DHS,Hazardous Materials Emergency Preparedness FY2027,OPEN,,2026-11-05 16:30 ET,HIGH,Emergency Management,idhs-hmep-fy27,Hard stop 4:30p ET
+IDHS-EMPG-S-FY26,Indiana DHS,EMPG — EMA Salary FY2026,OPEN,,2026-11-05 16:30 ET,HIGH,Emergency Management,idhs-empg-salary-fy26,Hard stop 4:30p ET
+USDA-WWDP-2026,USDA RD,Water & Waste Disposal Predevelopment Planning,Open / rolling,,2027-09-30,MEDIUM,Water/Wastewater,usda-wwdp,
+USDA-ECWAG-2026,USDA RD,Emergency Community Water Assistance Grants,Open / rolling,,2027-09-30,MEDIUM,Water/Wastewater,usda-ecwag,
+USDA-SEARCH-2026,USDA RD,SEARCH — Special Evaluation Assistance,Open / rolling,,2027-09-30,MEDIUM,Water/Wastewater,usda-search,
+USDA-REDLG-2027,USDA RD,Rural Economic Development Loan & Grant FY2027,OPEN / FY2027 NOFO pending,,2026-12-31 (contingent),MEDIUM,Economic Development,usda-redlg,
