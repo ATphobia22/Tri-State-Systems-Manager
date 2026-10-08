@@ -422,7 +422,7 @@ def main() -> None:
 
     try:
         effective_limit = args.max_buildings if args.max_buildings > 0 else args.limit
-    stats = extract_heights(args.geojson, args.out, args.ept_url, effective_limit, args.level)
+        stats = extract_heights(args.geojson, args.out, args.ept_url, effective_limit, args.level)
     except RuntimeError as e:
         print(f"FATAL: {e}", file=sys.stderr)
         sys.exit(1)
