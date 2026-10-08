@@ -46,9 +46,13 @@ jobs:
           node-version: "22"
           cache: npm
           cache-dependency-path: tsm-console/package-lock.json
+          registry-url: https://registry.npmjs.org
+
+      - name: Configure public npm registry
+        run: npm config set registry https://registry.npmjs.org
 
       - name: Install (ci)
-        run: npm ci --ignore-scripts
+        run: npm ci --no-audit --no-fund --registry=https://registry.npmjs.org
         continue-on-error: true
 
       - name: Ensure storybook devDeps when present
