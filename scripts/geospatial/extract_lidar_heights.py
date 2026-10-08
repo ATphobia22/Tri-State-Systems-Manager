@@ -184,39 +184,53 @@ class EPTReader:
         self._hier["_loaded_to_level"] = target_level
         return page
 
+    def _node_index(self, hier: dict) -> dict:
+        """Index hierarchy nodes by (level, ix, iy) for O(1) cell lookup."""
+        index: dict[tuple[int, int, int], list[str]] = {}
+        for nid, count in hier.items():
+            if not (isinstance(count, int) and count != 0):
+                continue
+            parts = nid.split("-")
+            if len(parts) != 4:
+                continue
+            try:
+                lvl, ix, iy = int(parts[0]), int(parts[1]), int(parts[2])
+            except ValueError:
+                continue
+            index.setdefault((lvl, ix, iy), []).append(nid)
+        return index
+
     def node_for_point(self, x: float, y: float, target_level: int = 8):
-        """Resolve a populated EPT node by descending only the point's x/y path."""
+        """Resolve the deepest populated EPT node containing (x, y).
+
+        Searches from target_level down to level 1 so the densest tile
+        covering the point is used. Falls back to shallower levels when
+        the target cell is empty (sparse quadtree regions).
+
+        NOTE (2026-10-08 regression fix): the previous lazy descent
+        stopped at the first level whose nodes had non-negative counts.
+        For single-page hierarchies like the Posey County 3DEP EPT
+        (all 42k nodes in ept-hierarchy/0-0-0-0.json, no -1 child-page
+        markers), that always returned a level-1 overview node whose
+        sparse points never fall inside a building footprint buffer,
+        producing zero heights. Deepest-first lookup restores the
+        pre-regression behavior.
+        """
         xmin, ymin, _, xmax, ymax, _ = self.root_bounds
         if not (xmax > xmin and ymax > ymin):
             return None
-        current_page = self.hierarchy(target_level)
-        ix = min(2 ** target_level - 1, max(0, int((x - xmin) / (xmax - xmin) * (2 ** target_level))))
-        iy = min(2 ** target_level - 1, max(0, int((y - ymin) / (ymax - ymin) * (2 ** target_level))))
-        candidates = [nid for nid, count in current_page.items()
-                      if isinstance(count, int) and count != 0 and nid.startswith("1-")]
-        for level in range(1, target_level + 1):
+        hier = self.hierarchy(target_level)
+        index = self._level_nodes.get("_index")
+        if index is None:
+            index = self._node_index(hier)
+            self._level_nodes["_index"] = index
+        for level in range(target_level, 0, -1):
             n = 2 ** level
             px = min(n - 1, max(0, int((x - xmin) / (xmax - xmin) * n)))
             py = min(n - 1, max(0, int((y - ymin) / (ymax - ymin) * n)))
-            prefix = f"{level}-{px}-{py}-"
-            matching = [nid for nid, count in current_page.items()
-                        if nid.startswith(prefix) and isinstance(count, int) and count != 0]
-            if not matching:
-                return None
-            if level == target_level:
-                return matching[0]
-            next_pages = []
-            for nid in matching:
-                count = current_page[nid]
-                if count < 0:
-                    next_pages.append(nid)
-            if not next_pages:
-                return matching[0]
-            merged = {}
-            for nid in next_pages:
-                child_page = fetch_json(f"{self.base}/ept-hierarchy/{nid}.json")
-                merged.update(child_page)
-            current_page = merged
+            matches = index.get((level, px, py))
+            if matches:
+                return matches[0]
         return None
 
     def read_node(self, node_id: str):
