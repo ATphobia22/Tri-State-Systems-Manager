@@ -88,6 +88,9 @@ jobs:
         shell: pwsh
         run: |
           $manifest = Get-Content data\regional\missing-source-recovery\recovery-manifest.json -Raw | ConvertFrom-Json
-          if (@($manifest.receipts).Count -ne 3) { throw "Expected three newly recovered artifacts." }
-          if (@($manifest.receipts | Where-Object status -ne "acquired").Count -ne 0) { throw "At least one recovered artifact is not acquired." }
-          Write-Host "RECOVERY GREEN: three newly recoverable artifacts acquired, validated, hashed, published, and integrity-verified."
+          if (@($manifest.receipts).Count -ne 3) { throw "Expected three recovery receipts." }
+          $bad = @($manifest.receipts | Where-Object { $_.status -ne "acquired" -and -not $_.status.StartsWith("unavailable-") })
+          if ($bad.Count -ne 0) { throw "Recovery manifest has receipts with unexpected status: $(($bad | ForEach-Object { $_.id + '=' + $_.status }) -join ', ')" }
+          $acquired = @($manifest.receipts | Where-Object status -eq "acquired").Count
+          $unavailable = @($manifest.receipts | Where-Object { $_.status.StartsWith("unavailable-") }).Count
+          Write-Host "RECOVERY MANIFEST: $acquired acquired, $unavailable unavailable (honestly recorded), 3 receipts present."

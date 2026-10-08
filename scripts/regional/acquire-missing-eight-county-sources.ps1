@@ -173,6 +173,8 @@ function Find-FemaFloodZoneLayer {
   }
   throw "FEMA NFHL: no flood-hazard polygon layer satisfied the field contract (DFIRM_ID, FLD_ZONE, ZONE_SUBTY, SFHA_TF, STATIC_BFE)"
 }
+$femaUrl=$null
+try{
 $femaUrl=Find-FemaFloodZoneLayer -ServiceUrl $femaServiceUrl
 $femaWhere="DFIRM_ID LIKE '21225%'"
 $femaFields="DFIRM_ID,FLD_ZONE,ZONE_SUBTY,SFHA_TF,STATIC_BFE,DEPTH"
@@ -212,6 +214,20 @@ $femaTarget=Join-Path $OutRoot $femaRelative
 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $femaTarget)|Out-Null
 [ordered]@{type="FeatureCollection";source=$femaUrl;sourceAuthority="FEMA effective NFHL";countyFips="21225";dfirmPrefix="21225";retrievedAt=(Get-Date).ToUniversalTime().ToString("o");boundaryGEOID="21225";boundarySource="US_CENSUS_BUREAU_TIGER_LINE";spatialRelation="exact-county-attribute";authorityWarning="Direct FEMA NFHL source. Do not relabel as preliminary, pending, state BAFM, or derived mirror.";features=$femaFeatures}|ConvertTo-Json -Depth 100|Set-Content -LiteralPath $femaTarget -Encoding utf8
 [void]$receipts.Add((Write-Receipt -Id "21225-fema-nfhl-recovery" -CountyFips "21225" -Authority "FEMA effective NFHL" -SourceUrl $femaUrl -Path $femaTarget -FeatureCount $femaFeatures.Count -SpatialRelation "exact-county-attribute"))
+}catch{
+  # FEMA NFHL is an external federal service and intermittently refuses
+  # connections (transport resets, 500s, gateway timeouts). Record the outage
+  # honestly in the manifest instead of failing the whole recovery run; the
+  # parcels already recovered keep their receipts. Never synthesize FEMA data.
+  $femaError=$_.Exception.Message
+  Write-Warning "FEMA NFHL source unavailable after retries: $femaError"
+  [void]$receipts.Add([ordered]@{
+    id="21225-fema-nfhl-recovery";countyFips="21225";authority="FEMA effective NFHL";
+    sourceUrl=$femaServiceUrl;path=$null;retrievedAt=(Get-Date).ToUniversalTime().ToString("o");
+    bytes=0;sha256=$null;featureCount=0;spatialRelation="exact-county-attribute";
+    status="unavailable-source-outage";unavailableReason=$femaError
+  })
+}
 $manifest=[ordered]@{schema="tsm-missing-source-recovery-v1";generatedAt=(Get-Date).ToUniversalTime().ToString("o");sourcePolicy="official-county-or-federal-source-first";counties=$Counties;receipts=$receipts;unresolved=@(
 @{id="nfhl-flood-zones-17059-size-mismatch";status="requires-offline-bundle-reconciliation";reason="External 11.2 GB bundle required before bytes/SHA-256 can be reconciled."},
 @{id="nfhl-flood-zones-21101-size-mismatch";status="requires-offline-bundle-reconciliation";reason="External 11.2 GB bundle required before bytes/SHA-256 can be reconciled."}
