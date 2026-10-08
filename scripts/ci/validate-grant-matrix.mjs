@@ -2,7 +2,7 @@
 /**
  * Grant matrix integrity gate (Posey / 47620).
  * Validates presence of deadline calendar, flood-water map, critical checklists,
- * and optional XLSX workbook. Does not file grants. Human authority remains final.
+ * and matrix workbook (XLSX) or CSV export. Does not file grants.
  */
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, resolve, dirname } from "node:path";
@@ -16,8 +16,9 @@ const required = [
   "DEADLINE-CALENDAR-30-60-90-2026-10-08.md",
   "FLOOD-WATER-PROGRAMS-TSM-EVIDENCE-MAP-2026-10-08.md",
   "CHECKLISTS-JAG-LEPP-EMPG-HMEP-2026-10-08.md",
-  "47620-Grant-Master-Matrix-2026-10-08.xlsx",
 ];
+const matrixWorkbook = "47620-Grant-Master-Matrix-2026-10-08.xlsx";
+const matrixCsv = "47620-Grant-Master-Matrix-2026-10-08.csv";
 
 const errors = [];
 const info = [];
@@ -38,6 +39,16 @@ if (!existsSync(grantsDir)) {
       info.push({ file: name, bytes: st.size });
     }
   }
+}
+
+const xlsxPath = join(grantsDir, matrixWorkbook);
+const csvPath = join(grantsDir, matrixCsv);
+if (existsSync(xlsxPath) && statSync(xlsxPath).size >= 100) {
+  info.push({ file: matrixWorkbook, bytes: statSync(xlsxPath).size });
+} else if (existsSync(csvPath) && statSync(csvPath).size >= 100) {
+  info.push({ file: matrixCsv, bytes: statSync(csvPath).size });
+} else {
+  errors.push(`missing matrix workbook or CSV: docs/grants/${matrixWorkbook} or ${matrixCsv}`);
 }
 
 const calendarPath = join(grantsDir, "DEADLINE-CALENDAR-30-60-90-2026-10-08.md");
