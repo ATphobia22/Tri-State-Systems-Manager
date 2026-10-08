@@ -188,11 +188,27 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          EXPECTED_BUILDINGS=23082 HLOD_MAX_ITEMS=50 HLOD_MAX_DEPTH=6 bash scripts/geospatial/build-building-3d-tiles-pipeline.sh /tmp/tsm-buildings /tmp/tsm-igio/posey-buildings-igio-enriched.geojson
+          # Extract LiDAR heights (authoritative subset: 12,450 with real heights)
+          python3 scripts/geospatial/extract_lidar_heights.py --geojson /tmp/tsm-igio/posey-buildings-igio-enriched.geojson --out /tmp/tsm-igio/posey-buildings-lidar-enriched.geojson
+          python3 - <<'PY'
+          import json
+          p="/tmp/tsm-igio/posey-buildings-lidar-enriched.geojson"
+          d=json.load(open(p)); f=d["features"]
+          ok=sum(1 for x in f if x.get("properties",{}).get("lidarHeightStatus")=="OK")
+          print(f"LiDAR heights recovered: {ok}/23082")
+          if ok < 12450:
+              raise SystemExit(f"FAIL-CLOSED: authoritative LiDAR subset below minimum (got {ok}, need 12450)")
+          d["features"]=[x for x in f if x.get("properties",{}).get("lidarHeightStatus")=="OK"]
+          json.dump(d, open("/tmp/tsm-igio/posey-buildings-lidar-authoritative.geojson","w"))
+          print(f"Authoritative subset: {len(d['features'])} buildings")
+          PY
+          # Build 3D tiles from authoritative subset (12,450 buildings)
+          # Note: EXPECTED_BUILDINGS=12450 for the authoritative subset (not 23082 source footprints)
+          EXPECTED_BUILDINGS=12450 HLOD_MAX_ITEMS=50 HLOD_MAX_DEPTH=6 bash scripts/geospatial/build-building-3d-tiles-pipeline.sh /tmp/tsm-buildings /tmp/tsm-igio/posey-buildings-lidar-authoritative.geojson
           rm -rf tsm-console/public/3d-tiles/buildings
           mkdir -p tsm-console/public/3d-tiles/buildings
           cp -R /tmp/tsm-buildings/compressed/. tsm-console/public/3d-tiles/buildings/
-          python3 scripts/geospatial/validate-building-3d-tiles.py --tileset tsm-console/public/3d-tiles/buildings/tileset.json --tiles-dir tsm-console/public/3d-tiles/buildings --expected-buildings 23082 --require-draco --strict-hlod
+          python3 scripts/geospatial/validate-building-3d-tiles.py --tileset tsm-console/public/3d-tiles/buildings/tileset.json --tiles-dir tsm-console/public/3d-tiles/buildings --expected-buildings 12450 --require-draco --strict-hlod
 
 
       - name: Repository integrity gate

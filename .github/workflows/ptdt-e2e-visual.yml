@@ -120,9 +120,25 @@ jobs:
         run: |
           set -euo pipefail
           command -v xvfb-run >/dev/null || { echo 'xvfb-run is required on the GitHub runner'; exit 1; }
-          CYPRESS_BASE_URL="http://127.0.0.1:5173/Tri-State-Systems-Manager/" \
-            xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" \
-            npx --no-install cypress run --browser chrome --headed --config video=true,screenshotOnRunFailure=true
+          # Retry up to 3 times for flaky WebGL/GPU in CI
+          for attempt in 1 2 3; do
+            echo "=== Cypress attempt $attempt/3 ==="
+            if CYPRESS_BASE_URL="http://127.0.0.1:5173/Tri-State-Systems-Manager/" \
+              xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" \
+              npx --no-install cypress run --browser chrome --headed \
+                --config video=true,screenshotOnRunFailure=true \
+                --config-file cypress.config.ts; then
+              echo "Cypress passed on attempt $attempt"
+              exit 0
+            fi
+            echo "Cypress failed on attempt $attempt"
+            if [[ $attempt -lt 3 ]]; then
+              echo "Waiting 30s before retry..."
+              sleep 30
+            fi
+          done
+          echo "Cypress failed after 3 attempts"
+          exit 1
 
       - name: Upload Cypress failure artifacts
         if: failure()

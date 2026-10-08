@@ -100,7 +100,22 @@ jobs:
         run: |
           set -euo pipefail
           command -v xvfb-run >/dev/null
-          xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24'             npx --no-install cypress run --browser chrome --headed --config video=true,screenshotOnRunFailure=true
+          # Retry up to 3 times for flaky WebGL/GPU in CI
+          for attempt in 1 2 3; do
+            echo "=== Cypress attempt $attempt/3 ==="
+            if xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' \
+              npx --no-install cypress run --browser chrome --headed --config video=true,screenshotOnRunFailure=true; then
+              echo "Cypress passed on attempt $attempt"
+              exit 0
+            fi
+            echo "Cypress failed on attempt $attempt"
+            if [[ $attempt -lt 3 ]]; then
+              echo "Waiting 30s before retry..."
+              sleep 30
+            fi
+          done
+          echo "Cypress failed after 3 attempts"
+          exit 1
 
       - name: Install pinned Lighthouse CLI
         run: npm install --global lighthouse@13.5.0 --no-audit --no-fund

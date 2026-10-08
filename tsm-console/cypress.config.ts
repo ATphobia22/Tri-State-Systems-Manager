@@ -11,7 +11,19 @@ export default defineConfig({
     viewportHeight: 1080,
     video: true,
     screenshotOnRunFailure: true,
-    setupNodeEvents(_on, config) {
+    setupNodeEvents(on, config) {
+      on("before:browser:launch", (browser, launchOptions) => {
+        // Software WebGL rendering for CI environments without GPU
+        // Uses SwiftShader for WebGL via ANGLE
+        if (browser.name === "chrome" || browser.name === "chromium") {
+          launchOptions.args.push("--use-gl=angle");
+          launchOptions.args.push("--use-angle=swiftshader");
+          launchOptions.args.push("--enable-unsafe-swiftshader");
+          launchOptions.args.push("--disable-gpu-sandbox");
+          launchOptions.args.push("--no-sandbox");
+        }
+        return launchOptions;
+      });
       return config;
     },
     env: {
