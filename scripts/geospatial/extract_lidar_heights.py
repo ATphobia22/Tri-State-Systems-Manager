@@ -414,11 +414,13 @@ def main() -> None:
     ap.add_argument("--out", required=True, type=Path, help="output GeoJSON with lidarHeightFt")
     ap.add_argument("--ept-url", default=None, help="override EPT ept.json URL")
     ap.add_argument("--limit", type=int, default=0, help="process first N features (testing)")
+    ap.add_argument("--max-buildings", type=int, default=0, help="bounded smoke test; 0 means all")
     ap.add_argument("--level", type=int, default=6, help="EPT hierarchy level for node queries")
     args = ap.parse_args()
 
     try:
-        stats = extract_heights(args.geojson, args.out, args.ept_url, args.limit, args.level)
+        effective_limit = args.max_buildings if args.max_buildings > 0 else args.limit
+    stats = extract_heights(args.geojson, args.out, args.ept_url, effective_limit, args.level)
     except RuntimeError as e:
         print(f"FATAL: {e}", file=sys.stderr)
         sys.exit(1)
