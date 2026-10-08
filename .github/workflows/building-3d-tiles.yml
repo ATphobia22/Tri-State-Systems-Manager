@@ -76,7 +76,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 scripts/geospatial/extract_lidar_heights.py --geojson /tmp/tsm-igio/posey-buildings-igio-enriched.geojson --out /tmp/tsm-igio/lidar-smoke.geojson --max-buildings 10
+          python3 scripts/geospatial/extract_lidar_heights.py --geojson /tmp/tsm-igio/posey-buildings-igio-enriched.geojson --out /tmp/tsm-igio/lidar-smoke.geojson --limit 10
           test -s /tmp/tsm-igio/lidar-smoke.geojson
       - name: Extract authoritative LiDAR building heights
         shell: bash
