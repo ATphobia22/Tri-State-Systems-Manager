@@ -251,7 +251,7 @@ def extract_heights(geojson_path: Path, out_path: Path, ept_url: str | None,
         features = features[:limit]
 
     stats = {"total": len(features), "with_height": 0, "no_roof_points": 0,
-             "no_ground_points": 0, "no_ept_node": 0, "errors": 0, "error_examples": []}
+             "no_ground_points": 0, "no_ept_node": 0, "errors": 0, "error_examples": [], "class_histogram": {}, "sample_node": null}
 
     for idx, ft in enumerate(features):
         props = ft.get("properties", {}) or {}
@@ -294,6 +294,11 @@ def extract_heights(geojson_path: Path, out_path: Path, ept_url: str | None,
             ys = np.array(las.y)
             zs = np.array(las.z)  # meters, NAVD88
             classes = np.array(las.classification)
+            for cls_value, cls_count in zip(*np.unique(classes, return_counts=True)):
+                key = str(int(cls_value))
+                stats["class_histogram"][key] = stats["class_histogram"].get(key, 0) + int(cls_count)
+            if stats["sample_node"] is None:
+                stats["sample_node"] = {"node": node_id, "point_count": int(len(zs)), "native_crs": reader.native_crs, "root_bounds": reader.root_bounds}
 
             # Bounding-box prefilter in 3857
             bx1, by1 = lonlat_to_3857(min(lons), min(lats))
