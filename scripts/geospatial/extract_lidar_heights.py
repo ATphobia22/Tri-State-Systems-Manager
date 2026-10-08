@@ -281,19 +281,33 @@ def extract_heights(geojson_path: Path, out_path: Path, ept_url: str | None,
                 all_pts = coords[0]
             lons = [c[0] for c in all_pts]
             lats = [c[1] for c in all_pts]
-            cx3857, cy3857 = lonlat_to_3857(sum(lons) / len(lons), sum(lats) / len(lats))
-
-            node_id = reader.node_for_point(cx3857, cy3857, target_level)
-            if not node_id:
+            # Resolve every EPT node touched by the footprint bbox. A
+            # centroid-only lookup can miss roof returns when a building
+            # straddles an EPT quadtree boundary.
+            native_pts = [reader.lonlat_to_native(lon, lat) for lon, lat in all_pts]
+            nx = [p[0] for p in native_pts]
+            ny = [p[1] for p in native_pts]
+            nminx, nmaxx = min(nx), max(nx)
+            nminy, nmaxy = min(ny), max(ny)
+            center_native = ((nminx + nmaxx) / 2.0, (nminy + nmaxy) / 2.0)
+            probes = [
+                (nminx, nminy), (nminx, nmaxy), (nmaxx, nminy),
+                (nmaxx, nmaxy), center_native,
+            ]
+            node_ids = {
+                nid for px, py in probes
+                if (nid := reader.node_for_point(px, py, target_level))
+            }
+            if not node_ids:
                 stats["no_ept_node"] += 1
                 props["lidarHeightStatus"] = "no-ept-node"
                 continue
 
-            las = reader.read_node(node_id)
-            xs = np.array(las.x)
-            ys = np.array(las.y)
-            zs = np.array(las.z)  # meters, NAVD88
-            classes = np.array(las.classification)
+            point_sets = [reader.read_node(nid) for nid in sorted(node_ids)]
+            xs = np.concatenate([np.asarray(las.x) for las in point_sets])
+            ys = np.concatenate([np.asarray(las.y) for las in point_sets])
+            zs = np.concatenate([np.asarray(las.z) for las in point_sets])
+            classes = np.concatenate([np.asarray(las.classification) for las in point_sets])
             for cls_value, cls_count in zip(*np.unique(classes, return_counts=True)):
                 key = str(int(cls_value))
                 stats["class_histogram"][key] = stats["class_histogram"].get(key, 0) + int(cls_count)
