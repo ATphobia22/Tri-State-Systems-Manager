@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import type { CapabilityProvider, CapabilityDefinition, CapabilityRequest, CapabilityResult } from '../../packages/contracts/src/index.ts';
 import { LocalCapabilityProvider } from '../../providers/local/src/index.ts';
 
 test('local provider is deterministic and network-free', async () => {
