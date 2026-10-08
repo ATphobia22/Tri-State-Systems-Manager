@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """TSM geodetic conversion library: NAVD88 / GEOID18 / ECEF handling.
 
-Correct vertical chain (per NOAA NGS, research-validated 2026-10-07):
+Correct vertical chain (per NOAA NGS):
 
     EPSG:2966 X/Y (NAD83 Indiana West, US survey ft)
         |
@@ -12,7 +12,8 @@ Correct vertical chain (per NOAA NGS, research-validated 2026-10-07):
         |
         v
     GEOID18 geoid separation N  (h = H + N ; H = h - N)
-        |
+        |   sampled by bilinear interpolation from the official
+        |   NGS GEOID18 CONUS binary grid (g2018u0.bin, Big-Endian)
         v
     WGS84 ellipsoidal height h
         |
@@ -22,20 +23,26 @@ Correct vertical chain (per NOAA NGS, research-validated 2026-10-07):
 The geodetically INCORRECT shortcut this replaces is passing a NAVD88
 orthometric height directly into an ECEF surface function as if it were
 an ellipsoidal height. In the Posey County area the GEOID18 separation is
-roughly -33 m, so the shortcut misplaces every vertex by ~100 ft vertically.
+about -30.3 m, so the shortcut misplaces every vertex by ~100 ft vertically.
 
 Rules enforced here:
   * Every elevation value must carry an explicit vertical datum label.
   * Silent vertical-datum conversion is REJECTED (raises VerticalDatumError).
-  * The regional GEOID18 approximation is labeled APPROXIMATE and must be
-    replaced with the actual GEOID18 grid for production engineering use.
+  * Every geoid separation N comes from the real GEOID18 grid via bilinear
+    interpolation. There are NO regional constants and NO approximations.
+  * If the grid file is missing or a coordinate falls outside CONUS coverage,
+    this module FAILS CLOSED (raises) rather than substituting a constant.
   * US survey feet vs international feet are distinguished explicitly.
 """
 
 from __future__ import annotations
 
 import math
+import struct
 from dataclasses import dataclass
+from pathlib import Path
+
+import numpy as np
 
 try:
     from pyproj import Transformer
@@ -54,16 +61,19 @@ WGS84_E2 = 2 * WGS84_F - WGS84_F * WGS84_F
 US_SURVEY_FT_TO_M = 1200.0 / 3937.0   # exact definition
 INTL_FT_TO_M = 0.3048
 
-# GEOID18 geoid separation for the Posey County, IN area (~37.8 N, ~88.0 W).
-# APPROXIMATE regional value. NOAA GEOID18 in southern Indiana runs about
-# -32 m to -35 m (geoid below ellipsoid). This constant is a documented
-# placeholder for the area; production engineering work MUST supply the
-# actual GEOID18 grid via GeoidModel.from_grid_file().
-GEOID18_POSEY_REGIONAL_APPROX_M = -33.5
-GEOID18_POSEY_APPROX_NOTE = (
-    "APPROXIMATE regional GEOID18 separation for Posey County, IN "
-    "(~37.8N, ~88.0W). Replace with the NOAA GEOID18 grid for production use."
-)
+# Official NGS GEOID18 CONUS grid (Big-Endian unix format).
+# Downloaded from https://www.ngs.noaa.gov/GEOID/GEOID18/downloads.shtml
+# NOTE: the Little-Endian "pc" build had decimeter-level errors; the
+# Big-Endian "unix" build (used here) is the correct one.
+GEOID18_GRID_FILENAME = "g2018u0.bin"
+GEOID18_GRID_SHA256 = "c41654f1c3cc485f302e3bc8e6837fefb1db02b923fb3b6e4ded850c18caeabe"
+GEOID18_GRID_SOURCE_URL = "https://www.ngs.noaa.gov/PC_PROD/GEOID18/Format_unix/g2018u0.bin"
+
+
+def default_geoid_grid_path() -> Path:
+    """Repo-relative path to the vendored GEOID18 grid."""
+    # scripts/geospatial/tsm_geodesy.py -> parents[2] is the repo root
+    return Path(__file__).resolve().parents[2] / "data" / "geo" / "geoid18" / GEOID18_GRID_FILENAME
 
 EPSG_IN_WEST = "EPSG:2966"     # NAD83 / Indiana West (ftUS)
 EPSG_NAD83_GEO = "EPSG:4269"   # NAD83 geographic
@@ -105,30 +115,123 @@ class Elevation:
         return Elevation(m / US_SURVEY_FT_TO_M, "ftUS", self.vertical_datum)
 
 
-class GeoidModel:
-    """GEOID18 geoid separation N lookup.
+class GeoidGrid:
+    """Reader for the NGS GEOID18 CONUS binary grid (Big-Endian unix format).
 
-    h (ellipsoidal) = H (orthometric NAVD88) + N (geoid separation).
+    Binary layout: 44-byte header then row-major big-endian float32 values
+    starting at the SW corner, 1 arc-minute spacing.
+
+    Header (big-endian):
+        glamn f64 : latitude of SW corner (degrees)
+        glomn f64 : longitude of SW corner (degrees, 0-360 East)
+        dla   f64 : latitude spacing (degrees)
+        dlo   f64 : longitude spacing (degrees)
+        nla   i32 : number of latitude rows
+        nlo   i32 : number of longitude columns
+        ikind i32 : grid kind (1 = geoid)
     """
 
-    def __init__(self, regional_approx_m: float = GEOID18_POSEY_REGIONAL_APPROX_M,
-                 approximate: bool = True, note: str = GEOID18_POSEY_APPROX_NOTE):
-        self._n = regional_approx_m
-        self.approximate = approximate
-        self.note = note
+    HEADER_SIZE = 44
+
+    def __init__(self, path: str | Path):
+        self.path = Path(path)
+        if not self.path.is_file():
+            raise FileNotFoundError(
+                f"GEOID18 grid file not found: {self.path}. "
+                "Download the official Big-Endian CONUS grid (g2018u0.bin) from "
+                "https://www.ngs.noaa.gov/GEOID/GEOID18/downloads.shtml "
+                "(Format_unix). Refusing to substitute a constant."
+            )
+        with open(self.path, "rb") as f:
+            hdr = f.read(self.HEADER_SIZE)
+        if len(hdr) != self.HEADER_SIZE:
+            raise ValueError(f"truncated GEOID18 header in {self.path}")
+        self.glamn, self.glomn, self.dla, self.dlo = struct.unpack(">4d", hdr[:32])
+        self.nla, self.nlo, self.ikind = struct.unpack(">3i", hdr[32:44])
+        if self.nla <= 0 or self.nlo <= 0:
+            raise ValueError(f"invalid GEOID18 grid dimensions in {self.path}")
+        # Memory-map the values: row-major float32 from the SW corner.
+        self._data = np.memmap(self.path, dtype=">f4", mode="r",
+                               offset=self.HEADER_SIZE, shape=(self.nla, self.nlo))
+
+    @property
+    def lat_min(self) -> float:
+        return self.glamn
+
+    @property
+    def lat_max(self) -> float:
+        return self.glamn + (self.nla - 1) * self.dla
+
+    def _lon_east(self, lon_deg: float) -> float:
+        # Grid longitudes are 0-360 East; normalize input (-180..180 or 0..360).
+        return lon_deg % 360.0
+
+    def in_coverage(self, lat_deg: float, lon_deg: float) -> bool:
+        lon_e = self._lon_east(lon_deg)
+        lon_min, lon_max = self.glomn, self.glomn + (self.nlo - 1) * self.dlo
+        return (self.lat_min <= lat_deg <= self.lat_max
+                and lon_min <= lon_e <= lon_max)
+
+    def sample(self, lat_deg: float, lon_deg: float) -> float:
+        """Bilinear-interpolated geoid height N in meters.
+
+        N = bilinear(N00, N10, N01, N11, dx, dy).
+        Raises ValueError if the coordinate is outside grid coverage --
+        never extrapolates.
+        """
+        if not self.in_coverage(lat_deg, lon_deg):
+            raise ValueError(
+                f"coordinate ({lat_deg}, {lon_deg}) is outside GEOID18 CONUS "
+                f"coverage (lat {self.lat_min:.2f}..{self.lat_max:.2f}). "
+                "Refusing to extrapolate."
+            )
+        lon_e = self._lon_east(lon_deg)
+        fi = (lat_deg - self.glamn) / self.dla
+        fj = (lon_e - self.glomn) / self.dlo
+        i0, j0 = int(fi), int(fj)
+        # Clamp upper index so i0+1/j0+1 stay in bounds at the grid edge.
+        i0 = min(i0, self.nla - 2)
+        j0 = min(j0, self.nlo - 2)
+        di, dj = fi - i0, fj - j0
+        n00 = float(self._data[i0, j0])
+        n10 = float(self._data[i0 + 1, j0])
+        n01 = float(self._data[i0, j0 + 1])
+        n11 = float(self._data[i0 + 1, j0 + 1])
+        return (n00 * (1 - di) * (1 - dj)
+                + n10 * di * (1 - dj)
+                + n01 * (1 - di) * dj
+                + n11 * di * dj)
+
+
+class GeoidModel:
+    """GEOID18 geoid separation N lookup from the official NGS grid.
+
+    h (ellipsoidal) = H (orthometric NAVD88) + N (geoid separation).
+
+    Every N comes from bilinear interpolation of the real GEOID18 grid.
+    There are no regional constants and no approximations. If the grid
+    file is missing or a coordinate is outside coverage, this FAILS CLOSED.
+    """
+
+    def __init__(self, grid_path: str | Path | None = None):
+        path = Path(grid_path) if grid_path else default_geoid_grid_path()
+        self._grid = GeoidGrid(path)
+        self.approximate = False
+        self.note = f"NGS GEOID18 CONUS grid ({path.name}), bilinear interpolation"
 
     @classmethod
-    def from_grid_file(cls, path: str) -> "GeoidModel":
-        """Load a real GEOID18 grid. Not yet implemented: wire to a grid
-        reader (e.g. NOAA .bin via pyproj vertical grids) when available."""
-        raise NotImplementedError(
-            "GEOID18 grid-file loading is not yet implemented; supply the grid "
-            f"reader for {path}. Using the regional approximation instead."
-        )
+    def from_grid_file(cls, path: str | Path) -> "GeoidModel":
+        """Load the real GEOID18 grid from an explicit path."""
+        return cls(grid_path=path)
+
+    def get_geoid_height(self, lat_deg: float, lon_deg: float) -> float:
+        """Geoid separation N in meters at (lat, lon). Fail-closed."""
+        return self._grid.sample(lat_deg, lon_deg)
 
     def separation_m(self, lon_deg: float, lat_deg: float) -> tuple[float, bool]:
-        """Return (N_meters, is_approximate)."""
-        return self._n, self.approximate
+        """Return (N_meters, is_approximate). is_approximate is always False:
+        every value is sampled from the real grid."""
+        return self._grid.sample(lat_deg, lon_deg), False
 
 
 def _require_pyproj():
@@ -199,7 +302,7 @@ def wgs84_navd88_to_ecef(lon_deg: float, lat_deg: float, h_navd88: Elevation,
         "orthometric_m": h_navd88.to_meters().value,
         "geoid_separation_m": h_ellip.value - h_navd88.to_meters().value,
         "geoid_approximate": geoid_approx,
-        "geoid_note": geoid.note if geoid_approx else "GEOID18 grid",
+        "geoid_note": geoid.note,
         "vertical_datum_in": "NAVD88",
     }
 
@@ -231,7 +334,7 @@ def navd88_to_ecef(x_ftus: float, y_ftus: float, h_navd88: Elevation,
         "ellipsoidal_m": h_ellip.value,
         "geoid_separation_m": h_ellip.value - h_navd88.to_meters().value,
         "geoid_approximate": geoid_approx,
-        "geoid_note": geoid.note if geoid_approx else "GEOID18 grid",
+        "geoid_note": geoid.note,
         "horizontal_crs": EPSG_IN_WEST,
         "vertical_datum_in": "NAVD88",
     }

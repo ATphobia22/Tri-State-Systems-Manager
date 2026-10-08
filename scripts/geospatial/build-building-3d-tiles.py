@@ -629,7 +629,7 @@ def main() -> None:
         "parameters": {
             "verticalMode": args.vertical_mode,
             "geodesyModule": "scripts/geospatial/tsm_geodesy.py",
-            "geoidModel": "GEOID18 regional approximation (-33.5 m, Posey County) -- replace with grid for production",
+            "geoidModel": "NGS GEOID18 CONUS grid (g2018u0.bin, Big-Endian), bilinear interpolation via tsm_geodesy.py",
             "extrusionFtFallback": args.extrusion_ft,
             "heightSources": height_sources,
             "heightEstimated": height_sources.get("screening-fallback", 0) > 0,
