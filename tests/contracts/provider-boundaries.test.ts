@@ -32,7 +32,7 @@ class DelegatedProvider implements CapabilityProvider {
       outputSchema: {},
       permissions: [],
       tags: [],
-    } as CapabilityDefinition),
+    } as CapabilityDefinition) },
     { ...({
       id: 'web.search',
       name: 'web.search',
@@ -42,7 +42,7 @@ class DelegatedProvider implements CapabilityProvider {
       outputSchema: {},
       permissions: [],
       tags: [],
-    } as CapabilityDefinition),
+    } as CapabilityDefinition) },
   ];
 
   async health() { return { healthy: true, lastChecked: new Date().toISOString() }; }
