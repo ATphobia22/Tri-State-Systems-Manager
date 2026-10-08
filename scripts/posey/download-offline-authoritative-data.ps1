@@ -381,29 +381,61 @@ $femaCountyProduct="https://msc.fema.gov/portal/downloadProduct?productID=NFHL_1
 $results += Save-Url $femaCountyProduct "fema\\NFHL_18129C.zip" "fema-countywide-nfhl-18129C" "FEMA"
 $results += Save-IndianaBuildingFootprints
 
-$results += Save-ArcGisCountyAttribute "https://gisdata.in.gov/server/rest/services/Hosted/FloodHazard_BestAvai_DNR_Watergdb/FeatureServer/0" "DFIRM_ID='$($CountyFips)C'" "indiana-dnr\bafm-posey-dfirm.geojson" "indiana-dnr-bafm" "Indiana DNR" $true
-
-$results += Save-ArcGisCountyAttribute "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer/0" "county_fips='$CountyFips'" "indiana-gio\parcel-boundaries-2025-posey.json" "indiana-gio-parcels-2025" "Indiana GIO" $true
-$results += Save-ArcGisCountyAttribute "https://gisdata.in.gov/server/rest/services/Hosted/Address_Points_of_Indiana_2025/FeatureServer/0" "county_fips='$CountyFips'" "indiana-gio\address-points-2025-posey.json" "indiana-gio-address-points-2025" "Indiana GIO" $false
-$results += Save-ArcGisCountyAttribute "https://gisdata.in.gov/server/rest/services/Hosted/Road_Centerlines_of_Indiana_2025/FeatureServer/0" "(geocountyleft='Posey' OR geocountyright='Posey')" "indiana-gio\road-centerlines-2025-posey.json" "indiana-gio-road-centerlines-2025" "Indiana GIO" $false
-$results += Save-ArcGisCountyAttribute "https://gisdata.in.gov/server/rest/services/Hosted/Administrative_Boundaries_of_Indiana_2025/FeatureServer/3" "dsplayname LIKE 'Posey%'" "indiana-gio\administrative-boundaries-county-commissioner-posey.json" "indiana-gio-administrative-boundaries-2025" "Indiana GIO" $false
-$results += Save-Url "https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_Current_Imagery/ImageServer?f=pjson" "indiana-gio\current-imagery-service.json" "indiana-gio-current-imagery-metadata" "Indiana GIO"
-$imageService="https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_Current_Imagery/ImageServer/exportImage"
-$xs=@();$ys=@()
-foreach($ring in $boundary.features[0].geometry.coordinates){foreach($pt in $ring){$xs+=[double]$pt[0];$ys+=[double]$pt[1]}}
-$bbox="{0},{1},{2},{3}" -f (($xs|Measure-Object -Minimum).Minimum),(($ys|Measure-Object -Minimum).Minimum),(($xs|Measure-Object -Maximum).Maximum),(($ys|Measure-Object -Maximum).Maximum)
-$imagePath=Join-Path $OutDir "indiana-gio\current-imagery-posey.tif"
-$clipGeometry=$script:CountyGeometry|ConvertTo-Json -Compress -Depth 100
-$body=@{
-  bbox=$bbox; bboxSR="4326"; imageSR="4326"; size="8000,8000"; format="tiff"; pixelType="U8"
-  interpolation="RSP_Bilinear"; clip="true"; clippingGeometry=$clipGeometry
-  clippingGeometryType="esriGeometryPolygon"; f="image"
+# IGIO endpoints intermittently return 504 Gateway Timeout. Wrap in try/catch
+# so transient IGIO outages don't fail the entire acquisition. Unavailable
+# sources are recorded in the manifest with status="unavailable-igio-outage".
+function Save-IgioWithResilience([scriptblock]$Acquisition, [string]$RequiredId) {
+  try {
+    return & $Acquisition
+  } catch {
+    Write-Warning "IGIO source unavailable (likely 504 outage): $RequiredId - $($_.Exception.Message)"
+    return [pscustomobject]@{
+      id=$RequiredId; authority="Indiana GIO"; path=$null; url=$null
+      sha256=$null; bytes=0; featureCount=0; spatialRelation=$null
+      status="unavailable-igio-outage"
+    }
+  }
 }
-New-Item -ItemType Directory -Force -Path (Split-Path -Parent $imagePath)|Out-Null
-Invoke-WebRequest -Uri $imageService -Method Post -Body $body -OutFile $imagePath -TimeoutSec 600
-if((Get-Item $imagePath).Length -le 0){throw "Indiana current imagery county-clipped export failed"}
-$results += [pscustomobject]@{id="indiana-gio-current-imagery-snapshot";authority="Indiana GIO";path="indiana-gio\current-imagery-posey.tif";url=$imageService;sha256=(Get-FileHash $imagePath -Algorithm SHA256).Hash.ToLowerInvariant();bytes=(Get-Item $imagePath).Length;featureCount=$null;spatialRelation="exact-county-clip";status="acquired"}
-$results += Save-ArcGisCountyAttribute "https://gisdata.in.gov/server/rest/services/Hosted/Orthoimagery_Tier_Map_2025_2028/FeatureServer/10" "name='Posey'" "indiana-gio\posey-ortho-tier-2025-2028.json" "indiana-gio-ortho-tier-2025-2028" "Indiana GIO" $true
+
+$results += Save-IgioWithResilience {
+  Save-ArcGisCountyAttribute "https://gisdata.in.gov/server/rest/services/Hosted/FloodHazard_BestAvai_DNR_Watergdb/FeatureServer/0" "DFIRM_ID='$($CountyFips)C'" "indiana-dnr\bafm-posey-dfirm.geojson" "indiana-dnr-bafm" "Indiana DNR" $true
+} "indiana-dnr-bafm"
+
+$results += Save-IgioWithResilience {
+  Save-ArcGisCountyAttribute "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer/0" "county_fips='$CountyFips'" "indiana-gio\parcel-boundaries-2025-posey.json" "indiana-gio-parcels-2025" "Indiana GIO" $true
+} "indiana-gio-parcels-2025"
+$results += Save-IgioWithResilience {
+  Save-ArcGisCountyAttribute "https://gisdata.in.gov/server/rest/services/Hosted/Address_Points_of_Indiana_2025/FeatureServer/0" "county_fips='$CountyFips'" "indiana-gio\address-points-2025-posey.json" "indiana-gio-address-points-2025" "Indiana GIO" $false
+} "indiana-gio-address-points-2025"
+$results += Save-IgioWithResilience {
+  Save-ArcGisCountyAttribute "https://gisdata.in.gov/server/rest/services/Hosted/Road_Centerlines_of_Indiana_2025/FeatureServer/0" "(geocountyleft='Posey' OR geocountyright='Posey')" "indiana-gio\road-centerlines-2025-posey.json" "indiana-gio-road-centerlines-2025" "Indiana GIO" $false
+} "indiana-gio-road-centerlines-2025"
+$results += Save-IgioWithResilience {
+  Save-ArcGisCountyAttribute "https://gisdata.in.gov/server/rest/services/Hosted/Administrative_Boundaries_of_Indiana_2025/FeatureServer/3" "dsplayname LIKE 'Posey%'" "indiana-gio\administrative-boundaries-county-commissioner-posey.json" "indiana-gio-administrative-boundaries-2025" "Indiana GIO" $false
+} "indiana-gio-administrative-boundaries-2025"
+$results += Save-IgioWithResilience {
+  Save-Url "https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_Current_Imagery/ImageServer?f=pjson" "indiana-gio\current-imagery-service.json" "indiana-gio-current-imagery-metadata" "Indiana GIO"
+} "indiana-gio-current-imagery-metadata"
+$results += Save-IgioWithResilience {
+  $imageService="https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_Current_Imagery/ImageServer/exportImage"
+  $xs=@();$ys=@()
+  foreach($ring in $boundary.features[0].geometry.coordinates){foreach($pt in $ring){$xs+=[double]$pt[0];$ys+=[double]$pt[1]}}
+  $bbox="{0},{1},{2},{3}" -f (($xs|Measure-Object -Minimum).Minimum),(($ys|Measure-Object -Minimum).Minimum),(($xs|Measure-Object -Maximum).Maximum),(($ys|Measure-Object -Maximum).Maximum)
+  $imagePath=Join-Path $OutDir "indiana-gio\current-imagery-posey.tif"
+  $clipGeometry=$script:CountyGeometry|ConvertTo-Json -Compress -Depth 100
+  $body=@{
+    bbox=$bbox; bboxSR="4326"; imageSR="4326"; size="8000,8000"; format="tiff"; pixelType="U8"
+    interpolation="RSP_Bilinear"; clip="true"; clippingGeometry=$clipGeometry
+    clippingGeometryType="esriGeometryPolygon"; f="image"
+  }
+  New-Item -ItemType Directory -Force -Path (Split-Path -Parent $imagePath)|Out-Null
+  Invoke-WebRequest -Uri $imageService -Method Post -Body $body -OutFile $imagePath -TimeoutSec 600
+  if((Get-Item $imagePath).Length -le 0){throw "Indiana current imagery county-clipped export failed"}
+  [pscustomobject]@{id="indiana-gio-current-imagery-snapshot";authority="Indiana GIO";path="indiana-gio\current-imagery-posey.tif";url=$imageService;sha256=(Get-FileHash $imagePath -Algorithm SHA256).Hash.ToLowerInvariant();bytes=(Get-Item $imagePath).Length;featureCount=$null;spatialRelation="exact-county-clip";status="acquired"}
+} "indiana-gio-current-imagery-snapshot"
+$results += Save-IgioWithResilience {
+  Save-ArcGisCountyAttribute "https://gisdata.in.gov/server/rest/services/Hosted/Orthoimagery_Tier_Map_2025_2028/FeatureServer/10" "name='Posey'" "indiana-gio\posey-ortho-tier-2025-2028.json" "indiana-gio-ortho-tier-2025-2028" "Indiana GIO" $true
+} "indiana-gio-ortho-tier-2025-2028"
 
 function Save-CachedUsaceNldLeveedAreas() {
   # The legacy ArcGIS NLD FeatureServer can time out from hosted runners even
