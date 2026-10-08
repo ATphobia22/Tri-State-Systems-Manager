@@ -19,8 +19,8 @@
     "check:schemas": "node ../scripts/ci/validate-json-schemas.mjs",
     "test:production-gates": "node --test tests/production-gates.test.mjs",
     "test:agent-autonomy": "node --test tests/agent-autonomy.test.mjs",
-    "storybook": "storybook dev -p 6006",
-    "storybook:build": "storybook build -o storybook-static",
+    "storybook": "echo 'Storybook optional: install storybook@9+ when Vite 8 peer support is available' && exit 0",
+    "storybook:build": "echo 'Storybook build skipped (optional)' && exit 0",
     "check:file-health": "node ../scripts/ci/validate-system-quality.mjs",
     "check:integrity": "node scripts/repository-integrity-check.mjs",
     "check:site-consistency": "node ../scripts/ci/validate-site-consistency.mjs",
@@ -126,8 +126,6 @@
   "devDependencies": {
     "@bufbuild/buf": "^1.73.0",
     "@bufbuild/protoc-gen-es": "^2.15.0",
-    "@storybook/react": "^8.6.14",
-    "@storybook/react-vite": "^8.6.14",
     "@tauri-apps/cli": "^2.12.0",
     "@types/node": "^26.6.2",
     "@types/react": "19.3.0",
@@ -136,7 +134,6 @@
     "@vitejs/plugin-react": "^6.1.1",
     "@webgpu/types": "^0.1.74",
     "cypress": "16.1.0",
-    "storybook": "^8.6.14",
     "typescript": "^7.0.2",
     "vite": "^8.3.1",
     "vitest": "^5.0.2"
