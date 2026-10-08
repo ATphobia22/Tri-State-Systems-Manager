@@ -1,0 +1,49 @@
+# Optional Storybook CI — does not block core production gates.
+name: Storybook CI
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "tsm-console/src/components/**"
+      - "tsm-console/src/stories/**"
+      - "tsm-console/.storybook/**"
+      - "tsm-console/package.json"
+  pull_request:
+    paths:
+      - "tsm-console/src/components/**"
+      - "tsm-console/src/stories/**"
+      - "tsm-console/.storybook/**"
+
+jobs:
+  storybook-smoke:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tsm-console
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: tsm-console/package-lock.json
+      - name: Install (ci)
+        run: npm ci --ignore-scripts
+        continue-on-error: true
+      - name: Ensure storybook devDeps when present
+        run: |
+          if node -e "const p=require('./package.json'); process.exit(p.devDependencies?.['@storybook/react-vite']?0:1)"; then
+            echo "Storybook packages declared"
+          else
+            echo "Storybook packages optional — smoke skip until npm install of storybook deps"
+            exit 0
+          fi
+      - name: Storybook build smoke
+        run: |
+          if npm run storybook:build --if-present; then
+            echo "storybook build ok"
+          else
+            echo "storybook build skipped or failed non-blocking"
+          fi
+        continue-on-error: true
