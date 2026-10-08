@@ -300,6 +300,7 @@ def extract_heights(geojson_path: Path, out_path: Path, ept_url: str | None,
             }
             if not node_ids:
                 stats["no_ept_node"] += 1
+                if len(stats["error_examples"]) < 10: stats["error_examples"].append(f"no-ept-node sid={sid} probes={probes[:2]}")
                 props["lidarHeightStatus"] = "no-ept-node"
                 continue
 
@@ -330,6 +331,7 @@ def extract_heights(geojson_path: Path, out_path: Path, ept_url: str | None,
             in_buf = (xs >= bx1 - buf) & (xs <= bx2 + buf) & (ys >= by1 - buf) & (ys <= by2 + buf)
             if not np.any(in_buf):
                 stats["no_ground_points"] += 1
+                if len(stats["error_examples"]) < 10: stats["error_examples"].append(f"no-points-in-buffer sid={sid} node_count={len(node_ids)}")
                 props["lidarHeightStatus"] = "no-points-in-buffer"
                 continue
 
