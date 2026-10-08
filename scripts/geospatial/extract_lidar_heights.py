@@ -313,7 +313,7 @@ def extract_heights(geojson_path: Path, out_path: Path, ept_url: str | None,
                 key = str(int(cls_value))
                 stats["class_histogram"][key] = stats["class_histogram"].get(key, 0) + int(cls_count)
             if stats["sample_node"] is None:
-                stats["sample_node"] = {"node": node_id, "point_count": int(len(zs)), "native_crs": reader.native_crs, "root_bounds": reader.root_bounds}
+                stats["sample_node"] = {"node": sorted(node_ids)[0], "point_count": int(len(zs)), "native_crs": reader.native_crs, "root_bounds": reader.root_bounds}
 
             # Bounding-box prefilter in the EPT native CRS.
             ring_native = [reader.lonlat_to_native(c[0], c[1]) for c in ring]
