@@ -49,6 +49,7 @@ POSEY_BBOX = (-88.08, 37.75, -87.92, 38.03)
 
 CLASS_GROUND = 2
 CLASS_BUILDING = 6
+CLASS_BUILDING_ALT = 8
 
 MIN_ROOF_POINTS = 5
 MIN_GROUND_POINTS = 10
@@ -316,7 +317,7 @@ def extract_heights(geojson_path: Path, out_path: Path, ept_url: str | None,
             roof_z, ground_z = [], []
             for i in idxs:
                 c = int(classes[i])
-                if c == CLASS_BUILDING:
+                if c in (CLASS_BUILDING, CLASS_BUILDING_ALT):
                     if point_in_polygon(float(xs[i]), float(ys[i]), ring_native):
                         roof_z.append(float(zs[i]))
                 elif c == CLASS_GROUND:
@@ -346,7 +347,7 @@ def extract_heights(geojson_path: Path, out_path: Path, ept_url: str | None,
             props["lidarGroundElevM"] = round(ground_m, 3)
             props["lidarRoofPoints"] = len(roof_z)
             props["lidarGroundPoints"] = len(ground_z)
-            props["lidarHeightMethod"] = "median(Classification=6 Z) - median(Classification=2 Z)"
+            props["lidarHeightMethod"] = "median(Classification in {6,8} Z) - median(Classification=2 Z)"
             props["lidarHeightDatum"] = "NAVD88"
             props["lidarHeightUnit"] = "ftUS"
             props["lidarSource"] = ept_url
