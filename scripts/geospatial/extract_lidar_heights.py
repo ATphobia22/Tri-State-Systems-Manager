@@ -52,7 +52,7 @@ CLASS_BUILDING = 6
 CLASS_BUILDING_ALT = 8
 
 MIN_ROOF_POINTS = 5
-MIN_GROUND_POINTS = 10
+MIN_GROUND_POINTS = 3
 
 
 def fetch_json(url: str, timeout: int = 30) -> dict:
@@ -298,7 +298,7 @@ def extract_heights(geojson_path: Path, out_path: Path, ept_url: str | None,
             # Bounding-box prefilter in 3857
             bx1, by1 = lonlat_to_3857(min(lons), min(lats))
             bx2, by2 = lonlat_to_3857(max(lons), max(lats))
-            # Small buffer for ground points (5 m)
+            # Small buffer for ground points (20 m)
             buf = 5.0
             in_buf = (xs >= bx1 - buf) & (xs <= bx2 + buf) & (ys >= by1 - buf) & (ys <= by2 + buf)
             if not np.any(in_buf):
