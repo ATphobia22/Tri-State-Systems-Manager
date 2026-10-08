@@ -315,13 +315,26 @@ def extract_heights(geojson_path: Path, out_path: Path, ept_url: str | None,
 
             idxs = np.where(in_buf)[0]
             roof_z, ground_z = [], []
+            try:
+                from pyproj import CRS
+                axis = CRS.from_user_input(reader.native_crs).axis_info[0]
+                unit_name = (axis.unit_name or "").lower()
+                buffer_native = 20.0 / 0.3048006096012192 if "foot" in unit_name else 20.0
+            except Exception:
+                buffer_native = 20.0
+            gx0 = min(p[0] for p in ring_native) - buffer_native
+            gx1 = max(p[0] for p in ring_native) + buffer_native
+            gy0 = min(p[1] for p in ring_native) - buffer_native
+            gy1 = max(p[1] for p in ring_native) + buffer_native
             for i in idxs:
                 c = int(classes[i])
+                px, py = float(xs[i]), float(ys[i])
                 if c in (CLASS_BUILDING, CLASS_BUILDING_ALT):
-                    if point_in_polygon(float(xs[i]), float(ys[i]), ring_native):
+                    if point_in_polygon(px, py, ring_native):
                         roof_z.append(float(zs[i]))
                 elif c == CLASS_GROUND:
-                    ground_z.append(float(zs[i]))
+                    if gx0 <= px <= gx1 and gy0 <= py <= gy1:
+                        ground_z.append(float(zs[i]))
 
             if len(roof_z) < MIN_ROOF_POINTS:
                 stats["no_roof_points"] += 1
