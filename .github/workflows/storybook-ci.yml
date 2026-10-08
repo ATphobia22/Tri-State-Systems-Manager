@@ -1,4 +1,5 @@
 # Optional Storybook CI — does not block core production gates.
+# All external actions SHA-pinned (action-pins gate).
 name: Storybook CI
 
 on:
@@ -9,28 +10,47 @@ on:
       - "tsm-console/src/stories/**"
       - "tsm-console/.storybook/**"
       - "tsm-console/package.json"
+      - ".github/workflows/storybook-ci.yml"
   pull_request:
     paths:
       - "tsm-console/src/components/**"
       - "tsm-console/src/stories/**"
       - "tsm-console/.storybook/**"
 
+permissions:
+  contents: read
+
+concurrency:
+  group: storybook-ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   storybook-smoke:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: tsm-console
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Harden Runner
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "22"
           cache: npm
           cache-dependency-path: tsm-console/package-lock.json
+
       - name: Install (ci)
         run: npm ci --ignore-scripts
         continue-on-error: true
+
       - name: Ensure storybook devDeps when present
         run: |
           if node -e "const p=require('./package.json'); process.exit(p.devDependencies?.['@storybook/react-vite']?0:1)"; then
@@ -39,6 +59,7 @@ jobs:
             echo "Storybook packages optional — smoke skip until npm install of storybook deps"
             exit 0
           fi
+
       - name: Storybook build smoke
         run: |
           if npm run storybook:build --if-present; then
