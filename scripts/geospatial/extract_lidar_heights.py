@@ -251,7 +251,7 @@ def extract_heights(geojson_path: Path, out_path: Path, ept_url: str | None,
         features = features[:limit]
 
     stats = {"total": len(features), "with_height": 0, "no_roof_points": 0,
-             "no_ground_points": 0, "no_ept_node": 0, "errors": 0, "error_examples": [], "class_histogram": {}, "sample_node": null}
+             "no_ground_points": 0, "no_ept_node": 0, "errors": 0, "error_examples": [], "class_histogram": {}, "sample_node": None}
 
     for idx, ft in enumerate(features):
         props = ft.get("properties", {}) or {}
