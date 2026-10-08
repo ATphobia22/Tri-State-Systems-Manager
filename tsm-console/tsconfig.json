@@ -21,5 +21,10 @@
     }
   },
   "include": ["src"],
-  "exclude": ["src/integrations/repository_bridge.ts"]
+  "exclude": [
+    "src/integrations/repository_bridge.ts",
+    "src/stories/**",
+    "**/*.stories.tsx",
+    "**/*.stories.ts"
+  ]
 }
