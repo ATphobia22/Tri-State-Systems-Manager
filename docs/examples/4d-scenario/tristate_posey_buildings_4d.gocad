@@ -1,0 +1,15 @@
+GOCAD TSolid 1
+HEADER {
+name: Posey_County_PointTube_Trajectories_4D
+}
+GOCAD_ORIGINATOR Tri-State Systems Manager
+PROJECTION
+  CRS: EPSG:2966 (NAD83 / Indiana West, US ft)
+END_PROJECTION
+# PointTube 4D Trajectory Vertices (2020 -> 2026 Berm Elevation Drift)
+VRTX 1001 2952750.0 2460629.0 368.50 # Year 2020
+VRTX 1002 2952750.0 2460629.0 369.85 # Year 2023
+VRTX 1003 2952750.0 2460629.0 371.20 # Year 2026
+SEG 1001 1002
+SEG 1002 1003
+END
