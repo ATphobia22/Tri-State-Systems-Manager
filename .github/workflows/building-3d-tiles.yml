@@ -72,6 +72,12 @@ jobs:
           print("EPT dataType:", d.get("dataType"))
           print("EPT span:", d.get("span"))
           PY
+      - name: Smoke-test LiDAR extraction
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/geospatial/extract_lidar_heights.py --geojson /tmp/tsm-igio/posey-buildings-igio-enriched.geojson --out /tmp/tsm-igio/lidar-smoke.geojson --max-buildings 10
+          test -s /tmp/tsm-igio/lidar-smoke.geojson
       - name: Extract authoritative LiDAR building heights
         shell: bash
         run: |
