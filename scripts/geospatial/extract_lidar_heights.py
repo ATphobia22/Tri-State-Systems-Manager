@@ -314,20 +314,27 @@ def extract_heights(geojson_path: Path, out_path: Path, ept_url: str | None,
             if stats["sample_node"] is None:
                 stats["sample_node"] = {"node": node_id, "point_count": int(len(zs)), "native_crs": reader.native_crs, "root_bounds": reader.root_bounds}
 
-            # Bounding-box prefilter in 3857
-            bx1, by1 = lonlat_to_3857(min(lons), min(lats))
-            bx2, by2 = lonlat_to_3857(max(lons), max(lats))
-            # Small buffer for ground points (20 m)
-            buf = 5.0
+            # Bounding-box prefilter in the EPT native CRS.
+            ring_native = [reader.lonlat_to_native(c[0], c[1]) for c in ring]
+            bx1 = min(p[0] for p in ring_native)
+            bx2 = max(p[0] for p in ring_native)
+            by1 = min(p[1] for p in ring_native)
+            by2 = max(p[1] for p in ring_native)
+            try:
+                from pyproj import CRS
+                axis = CRS.from_user_input(reader.native_crs).axis_info[0]
+                buffer_native = 20.0 / 0.3048006096012192 if "foot" in (axis.unit_name or "").lower() else 20.0
+            except Exception:
+                buffer_native = 20.0
+            buf = buffer_native
             in_buf = (xs >= bx1 - buf) & (xs <= bx2 + buf) & (ys >= by1 - buf) & (ys <= by2 + buf)
             if not np.any(in_buf):
                 stats["no_ground_points"] += 1
                 props["lidarHeightStatus"] = "no-points-in-buffer"
                 continue
 
-            # Polygon in 3857 for precise filtering
-            ring_native = [reader.lonlat_to_native(c[0], c[1]) for c in ring]
-            # For MultiPolygon use the largest ring for point test
+            # Polygon in the EPT native CRS for precise filtering.
+            # For MultiPolygon use the largest ring for point test.
             if geom.get("type") == "MultiPolygon":
                 ring3857 = [lonlat_to_3857(c[0], c[1]) for c in
                             max((p[0] for p in coords), key=lambda r: len(r))]
