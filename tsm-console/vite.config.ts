@@ -1,7 +1,9 @@
-/// <reference types="vitest/config" />
-import { resolve } from 'node:path';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { defineConfig, loadEnv, type IndexHtmlTransformResult } from 'vite';
 import react from '@vitejs/plugin-react';
+
+const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
 const isGitHubPagesBuild = process.env.GITHUB_ACTIONS === 'true';
 const githubRepository = process.env.GITHUB_REPOSITORY?.split('/')[1];
@@ -44,9 +46,6 @@ function cspPlugin() {
         "frame-src 'self'",
         "form-action 'self'",
       ].join('; ');
-      // NOTE: A <meta> CSP cannot enforce frame-ancestors and provides no
-      // violation reporting. Production hosting should inject this policy as a
-      // real Content-Security-Policy HTTP response header instead.
       return [{ tag: 'meta', attrs: { 'http-equiv': 'Content-Security-Policy', content: policy }, injectTo: 'head-prepend' }];
     },
   };
@@ -55,6 +54,11 @@ function cspPlugin() {
 export default defineConfig(({ mode }) => {
   Object.assign(process.env, loadEnv(mode, process.cwd(), 'VITE_'));
   return {
+    resolve: {
+      alias: {
+        '@': path.resolve(rootDir, 'src'),
+      },
+    },
     base: isGitHubPagesBuild ? githubPagesBasePath : '/',
     plugins: [react(), cspPlugin()],
     server: {
@@ -66,22 +70,10 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
-    // The .test.mjs files under tests/ are Node-runner suites (node:test,
-    // executed via `node --test`) — vitest must not pick them up. Scope
-    // vitest to the .test.ts suites only.
-    test: {
-      include: ['tests/**/*.test.ts', 'src/**/*.test.ts'],
-    },
     build: {
       outDir: 'dist',
-      // Sourcemaps are only emitted for development builds. Production builds
-      // must not ship them (~7.5 MB of public source in dist/).
-      sourcemap: mode === 'development',
+      sourcemap: true,
       rolldownOptions: {
-        input: {
-          main: resolve(import.meta.dirname, 'index.html'),
-          terrain3dTilesSmoke: resolve(import.meta.dirname, 'terrain-3d-tiles-renderer-smoke.html'),
-        },
         output: {
           codeSplitting: {
             groups: [
