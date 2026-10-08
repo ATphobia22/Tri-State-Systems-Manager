@@ -24,6 +24,37 @@ The Pages workflow can publish the static console without a backend dependency. 
 
 Settings → Pages → Source must be **GitHub Actions**. The workflow does not fabricate or bypass that repository-level setting.
 
+## System status — 2026-10-08
+
+### GEOID18 integration (AMBER Gate 3 — CLOSED)
+
+- **Official NGS GEOID18 grid integrated:** `data/geo/geoid18/g2018u0.bin` (34,297,008 bytes, Big-Endian CONUS grid, 4201×2041 at 1 arc-minute). SHA-256 pinned in `data/geo/geoid18/README.md`.
+- **Real binary-grid sampler:** `scripts/geospatial/tsm_geodesy.py` now parses the NGS header, memory-maps the grid, and performs bilinear interpolation. The approximate −33.5 m regional constant is removed.
+- **Fail-closed:** missing grid or coordinates outside CONUS coverage raise instead of returning a guess.
+- **Bonebank anchor sample:** 37.845887, −88.005075 → N = −30.302 m (old approximation differed by ~3.2 m / 10.5 ft).
+- Correct chain enforced: `h = H + N`, `H = h − N` (H = NAVD88 orthometric, N = GEOID18 separation, h = NAD83(2011) ellipsoidal).
+
+### Building-height pipeline — DERIVED method approved
+
+- **12,450 buildings** carry real 3DEP LiDAR-derived heights (OBSERVED provenance, Class 6).
+- **10,632 gap buildings** approved for DERIVED extraction from Indiana 2020 COPC: footprint-clipped Class 1 returns >6 ft above median Class 2 ground, min 5 roof / 10 ground points, reject if roof stddev >10 ft (tree confound). Script: `scripts/geospatial/extract_derived_heights_copc.py`. Failed derivations stay UNAVAILABLE — never synthetic.
+- Production 3D Tiles workflow accepts the 12,450 authoritative subset with a fail-closed gate (rejects empty/zero-height payloads).
+
+### 4D temporal engine (SIMULATED/SCENARIO labeled)
+
+- `scripts/geospatial/tsm_temporal_4d_engine.py` + `scripts/geospatial/export_gocad_4d.py` integrated with explicit provenance typing.
+- `Procedural4DCityGrowth` → SIMULATED only. Flood surfaces 372.5/376.8/378.2 ft → SCENARIO only. Synthetic berm drift excluded from authoritative paths.
+
+### CI hardening (2026-10-08)
+
+- **numpy 2.1.3** pinned in PTDT visual and remote-runtime workflows (GEOID18 dependency).
+- **Cypress WebGL:** restored missing Vite smoke-page entry (`terrain-3d-tiles-renderer-smoke.html`), SwiftShader software-rendering flags, 3-attempt retry with 30s backoff.
+- **laspy 2.6.1 + lazrs 0.7.0** added to Pages deploy dependencies.
+- **UACF:** fixed traceId correlation (`requestId || randomUUID()`) and unclosed object literals in test file.
+- **Runner pinning:** all workflows pinned to `ubuntu-24.04` ahead of GitHub's 2026-10-19 `ubuntu-latest` → 26.04 image flip.
+- **FEMA NFHL resilience:** recovery workflow records transient outages honestly instead of failing hard.
+- **Dependabot:** `http-cache-semantics` high-severity patched. `sprintf-js` medium has no upstream fix available.
+
 ## System status — 2026-10-06 (evening)
 
 ### IGIO endpoint outage and CI resilience
