@@ -87,7 +87,7 @@ test('S1 denies non-allow-listed capability without fabric bypass', async () => 
     context: { requestId: 'req-agent-s1', permissions: { allow: [] } },
   });
   assert.equal(result.success, false);
-  assert.equal(result.error?.code, 'AUTONOMY_DENIED');
+  assert.equal(result.error?.code, 'POLICY_DENIED');
 });
 
 test('preserves policy denial instead of bypassing the fabric', async () => {

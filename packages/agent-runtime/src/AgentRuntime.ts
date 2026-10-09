@@ -33,7 +33,7 @@ export class AgentRuntime {
           startedAt: new Date().toISOString(),
         },
         traceId: requestId,
-        error: { code: 'AUTONOMY_DENIED', message: decision.reason },
+        error: { code: 'POLICY_DENIED', message: decision.reason, retryable: false, traceId: requestId },
       } as CapabilityResult<TOutput>);
     }
 

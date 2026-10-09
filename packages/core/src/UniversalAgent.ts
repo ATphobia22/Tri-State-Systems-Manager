@@ -34,7 +34,7 @@ export class UniversalAgent {
           startedAt: new Date().toISOString(),
         },
         traceId: request.context.requestId,
-        error: { code: 'AUTONOMY_DENIED', message: decision.reason },
+        error: { code: 'POLICY_DENIED', message: decision.reason, retryable: false, traceId: request.context.requestId },
       } as CapabilityResult<TOutput>);
     }
     return this.router.execute<TOutput>(request);
