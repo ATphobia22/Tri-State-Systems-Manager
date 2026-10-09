@@ -67,5 +67,5 @@ jobs:
           test ${#migrations[@]} -gt 0
           for migration in "${migrations[@]}"; do
             test -s "$migration"
-            grep -qE '(BEGIN;|CREATE TABLE|ALTER TABLE|--)' "$migration"
+            grep -qE '(BEGIN;|CREATE TABLE|ALTER TABLE|CREATE EXTENSION|--)' "$migration"
           done
