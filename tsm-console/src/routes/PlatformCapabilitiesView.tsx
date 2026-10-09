@@ -26,6 +26,12 @@ const groups = [
     status: 'A green static check does not establish real-world source availability, agency acceptance, or engineering certification.',
   },
   {
+    title: 'Operator skills and remediation runbooks',
+    summary: 'Reusable operational procedures for OGC 3D Tiles releases, terrain provenance, provider adapter contracts, and evidence-preserving CI failure remediation.',
+    items: ['skills/ogc-3d-tiles-release/SKILL.md', 'skills/terrain-source-provenance/SKILL.md', 'skills/provider-adapter-contract/SKILL.md', 'skills/ci-failure-remediation/SKILL.md'],
+    status: 'Runbooks standardize execution and review; they do not replace test results, human approvals, or deployment evidence.',
+  },
+  {
     title: 'Deployment and runtime operations',
     summary: 'GitHub Actions build and publication chain, static console delivery, optional API service, Docker deployment recipes, and self-hosted terrain tile-server options.',
     items: ['.github/workflows', 'apps/uacf-gateway', 'ops/terrain-tiles', 'docker-compose.yml', 'docker-compose.uacf.yml'],
@@ -39,7 +45,8 @@ const inventories = [
   { title: 'Provider adapters', pathPrefix: 'providers/', items: ['anthropic','browser','geo','google','local','maps','mcp','openai','openapi','openrouter','postgis','search'] },
   { title: 'Plugin families', pathPrefix: 'plugins/', items: ['ai-ready','digital-twin','engineering','evidence-ledger','fema','grants','hydrology','monitoring','research','seo'] },
   { title: 'Execution runtimes', pathPrefix: 'runtime/', items: ['docker','python','qsharp','rust','unreal'] },
-  { title: 'Repository engineering surfaces', pathPrefix: '', items: ['.github','.secrets','architecture','artifacts','backend','config','contracts','data','data-sources','database','db','deploy','docker','docs','evidence','frontend','infrastructure','integrations','native','offline_packages','ops','scripts','tests','third_party','thirdparty','tools','tsm-console','tsm-native'] },
+  { title: 'Operational skill runbooks', pathPrefix: 'skills/', items: ['ci-failure-remediation/SKILL.md','ogc-3d-tiles-release/SKILL.md','provider-adapter-contract/SKILL.md','terrain-source-provenance/SKILL.md'] },
+  { title: 'Repository engineering surfaces', pathPrefix: '', items: ['.github','.secrets','architecture','artifacts','backend','config','contracts','data','data-sources','database','db','deploy','docker','docs','evidence','frontend','infrastructure','integrations','native','offline_packages','ops','scripts','skills','tests','third_party','thirdparty','tools','tsm-console','tsm-native'] },
 ];
 
 export default function PlatformCapabilitiesView(): JSX.Element {
