@@ -1,0 +1,131 @@
+{
+  "schemaVersion": "1.0.0",
+  "artifactType": "tsm.platform_capabilities.v1",
+  "generatedFrom": "repository directory inventory on feature branch; code presence is not deployment or runtime attestation",
+  "product": "Tri-State Systems Manager / UACF",
+  "publicRoutes": [
+    {
+      "path": "/terrain-3d/",
+      "name": "Self-hosted CesiumJS 3D Terrain",
+      "status": "implemented; deployment validation required",
+      "format": "OGC 3D Tiles 1.1",
+      "source": "USGS 3DEP-derived terrain visualization"
+    },
+    {
+      "path": "/platform/",
+      "name": "Platform Capabilities Index",
+      "status": "implemented; deployment validation required"
+    },
+    {
+      "path": "/twin/",
+      "name": "Twin Canvas",
+      "status": "existing MapLibre twin surface"
+    }
+  ],
+  "applications": [
+    "admin",
+    "dashboard",
+    "docs",
+    "playground",
+    "uacf-gateway"
+  ],
+  "packages": [
+    "agent-runtime",
+    "approvals",
+    "artifacts",
+    "billing",
+    "browser",
+    "cache",
+    "capability-runtime",
+    "compute",
+    "contracts",
+    "core",
+    "credentials",
+    "data-fabric",
+    "events",
+    "evidence",
+    "gates",
+    "geo",
+    "hydraulics",
+    "jobs",
+    "maps",
+    "mcp",
+    "model-runtime",
+    "notifications",
+    "observability",
+    "ontology",
+    "openapi",
+    "policy",
+    "provenance",
+    "provider-runtime",
+    "providers",
+    "quantum",
+    "queues",
+    "registry",
+    "research",
+    "router",
+    "schemas",
+    "search",
+    "security",
+    "tenancy",
+    "tenant",
+    "twin",
+    "twin-pipeline",
+    "uacp",
+    "units",
+    "validation",
+    "web",
+    "workflow"
+  ],
+  "providers": [
+    "anthropic",
+    "browser",
+    "geo",
+    "google",
+    "local",
+    "maps",
+    "mcp",
+    "openai",
+    "openapi",
+    "openrouter",
+    "postgis",
+    "search"
+  ],
+  "plugins": [
+    "ai-ready",
+    "digital-twin",
+    "engineering",
+    "evidence-ledger",
+    "fema",
+    "grants",
+    "hydrology",
+    "monitoring",
+    "research",
+    "seo"
+  ],
+  "runtimes": [
+    "docker",
+    "python",
+    "qsharp",
+    "rust",
+    "unreal"
+  ],
+  "operatorSkills": [
+    "skills/ci-failure-remediation/SKILL.md",
+    "skills/ogc-3d-tiles-release/SKILL.md",
+    "skills/provider-adapter-contract/SKILL.md",
+    "skills/terrain-source-provenance/SKILL.md"
+  ],
+  "validationEntrypoints": [
+    "scripts/ci/validate-self-hosted-cesium.mjs",
+    "scripts/geospatial/validate-terrain-3d-tiles.py",
+    "tsm-console/cypress/e2e/terrain-3d-tiles-renderer.cy.ts"
+  ],
+  "evidenceBoundaries": {
+    "terrainAuthority": "DERIVED",
+    "engineeringUse": false,
+    "regulatoryUse": false,
+    "statement": "A terrain visualization is not survey-grade vertical control or a regulatory determination.",
+    "visualizationPolicy": "Render available, provenance-labelled assets independently of unrelated live service availability; surface missing assets explicitly."
+  }
+}
