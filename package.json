@@ -20,12 +20,14 @@
     "test:uacf": "tsx --test tests/contracts/uacf-kernel.test.ts",
     "test:evidence": "tsx --test tests/contracts/engineering-evidence.test.ts",
     "test:uacf-gateway": "npm --prefix apps/uacf-gateway run smoke",
-    "verify:uacf": "npm run build:uacf && npm run test:uacf && npm run test:uacf-contracts && npm run test:evidence && npm run test:twin-fabric && npm run test:uacf-agent && npm run test:uacf-providers && npm run test:uacf-apps && npm run test:uacf-gateway",
+    "verify:uacf": "npm run build:uacf && npm run test:uacf && npm run test:uacf-contracts && npm run test:evidence && npm run test:twin-fabric && npm run test:uacf-agent && npm run test:uacf-providers && npm run test:uacf-apps && npm run test:uacf-foundations && npm run test:uacf-openai-adapter && npm run test:uacf-gateway",
     "test:twin-fabric": "tsx --test tests/contracts/unified-twin-fabric.test.ts",
     "test:uacf-agent": "tsx --test tests/contracts/agent-runtime.test.ts",
     "test:uacf-providers": "tsx --test tests/contracts/provider-boundaries.test.ts",
     "test:uacf-apps": "tsx --test tests/contracts/uacf-apps.test.ts",
-    "test:uacf-contracts": "tsx --test tests/contracts/canonical-contract-exports.test.ts"
+    "test:uacf-contracts": "tsx --test tests/contracts/canonical-contract-exports.test.ts",
+    "test:uacf-foundations": "tsx --test tests/contracts/uacf-platform-foundations.test.ts",
+    "test:uacf-openai-adapter": "tsx --test tests/contracts/uacf-openai-adapter.test.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

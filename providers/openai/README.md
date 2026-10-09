@@ -1,11 +1,3 @@
-# @tsm/provider-openai
+# OpenAI provider adapter
 
-UACF provider stub — openai (v0.1.0).
-
-**Status:** interface only. This is **not** a working openai integration:
-no credentials are read, no network calls are made, and `execute()`
-always throws fail-closed ("not configured").
-
-To activate, an operator must explicitly configure credentials and endpoint
-policy outside this stub; the stub itself never fabricates a connection.
-Missing configuration stays unavailable — never fake data.
+Minimal Responses API text adapter with bounded timeout, caller cancellation, explicit model selection, input validation, and no credential logging. Requires `OPENAI_API_KEY`. Configure an approved model and policy at deployment time. This adapter does not itself perform authorization, quota enforcement, or evidence validation; callers must apply those controls before dispatch.

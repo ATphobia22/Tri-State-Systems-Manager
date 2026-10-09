@@ -1,35 +1,16 @@
--- Simulation snapshots are DERIVED, never AUTHORITATIVE regulatory determinations.
-CREATE TABLE IF NOT EXISTS tsm_simulation_run (
-  run_id             TEXT PRIMARY KEY,
-  model_family       TEXT NOT NULL, -- HEC-RAS | MODFLOW | SWMM | OTHER
-  model_version      TEXT,
-  scenario_label     TEXT NOT NULL,
-  is_simulation_demo BOOLEAN NOT NULL DEFAULT TRUE,
-  cfl_ok             BOOLEAN,
-  mass_error_pct     DOUBLE PRECISION,
-  governor_passed    BOOLEAN NOT NULL DEFAULT FALSE,
-  daubert_certified  BOOLEAN NOT NULL DEFAULT FALSE,
-  human_authorized   BOOLEAN NOT NULL DEFAULT FALSE,
-  reviewer_identity  TEXT,
-  review_reason      TEXT,
-  reviewed_at        TIMESTAMPTZ,
-  metrics_json       JSONB NOT NULL DEFAULT '{}'::jsonb,
-  content_sha256     TEXT,
-  created_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
-  CONSTRAINT tsm_sim_human_auth CHECK (
-    human_authorized = FALSE
-    OR (reviewer_identity IS NOT NULL AND review_reason IS NOT NULL AND reviewed_at IS NOT NULL)
-  )
+BEGIN;
+CREATE TABLE IF NOT EXISTS tsm.simulations (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id uuid REFERENCES tsm.projects(id) ON DELETE RESTRICT,
+  model_name text NOT NULL,
+  model_version text NOT NULL,
+  input_artifact_id uuid REFERENCES tsm.artifacts(id) ON DELETE RESTRICT,
+  output_artifact_id uuid REFERENCES tsm.artifacts(id) ON DELETE RESTRICT,
+  status text NOT NULL CHECK(status IN ('queued','running','succeeded','failed','cancelled')),
+  parameters jsonb NOT NULL DEFAULT '{}'::jsonb,
+  started_at timestamptz,
+  finished_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now()
 );
-
-CREATE TABLE IF NOT EXISTS tsm_simulation_mesh_centroid (
-  id                 BIGSERIAL PRIMARY KEY,
-  run_id             TEXT NOT NULL REFERENCES tsm_simulation_run(run_id) ON DELETE CASCADE,
-  cell_id            TEXT NOT NULL,
-  geom               geometry(Point, 2966),
-  wse_ft_navd88      DOUBLE PRECISION,
-  depth_ft           DOUBLE PRECISION,
-  velocity_fps       DOUBLE PRECISION
-);
-
-CREATE INDEX IF NOT EXISTS tsm_sim_mesh_run ON tsm_simulation_mesh_centroid (run_id);
+INSERT INTO tsm.schema_migrations(version) VALUES ('091_tsm_simulation') ON CONFLICT DO NOTHING;
+COMMIT;

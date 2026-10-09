@@ -1,0 +1,71 @@
+name: UACF Platform Contracts
+
+on:
+  pull_request:
+    paths:
+      - 'apps/**'
+      - 'packages/**'
+      - 'providers/**'
+      - 'database/migrations/**'
+      - 'tests/contracts/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.uacf.json'
+      - '.github/workflows/uacf-platform.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/**'
+      - 'packages/**'
+      - 'providers/**'
+      - 'database/migrations/**'
+      - 'tests/contracts/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.uacf.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: uacf-platform-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contracts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Verify pinned toolchain
+        run: |
+          node --version
+          npm --version
+          test -f package-lock.json
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Typecheck UACF workspace
+        run: npm run build:uacf
+      - name: Run foundation regression tests
+        run: npm run test:uacf-foundations
+      - name: Run provider adapter contract tests
+        run: npm run test:uacf-openai-adapter
+      - name: Verify migrations are numbered and non-empty
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d database/migrations
+          test -s database/migrations/005_tsm_core.sql
+          grep -q 'CREATE TABLE IF NOT EXISTS tsm.schema_migrations' database/migrations/005_tsm_core.sql
+          shopt -s nullglob
+          migrations=(database/migrations/*.sql)
+          test ${#migrations[@]} -gt 0
+          for migration in "${migrations[@]}"; do
+            test -s "$migration"
+            grep -qE '(BEGIN;|CREATE TABLE|ALTER TABLE|--)' "$migration"
+          done

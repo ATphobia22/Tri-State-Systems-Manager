@@ -1,15 +1,14 @@
--- Render / 3D tiles provenance (Pages + offline). Not authoritative elevation.
-CREATE TABLE IF NOT EXISTS tsm_render_artifact (
-  artifact_id        TEXT PRIMARY KEY,
-  kind               TEXT NOT NULL, -- terrain-rgb | building-3d-tiles | mvt | pmtiles
-  crs_epsg           INTEGER NOT NULL DEFAULT 3857,
-  vertical_datum     TEXT, -- NAVD88 when elevation-bearing; NULL for pure basemap
-  is_authoritative   BOOLEAN NOT NULL DEFAULT FALSE,
-  content_sha256     TEXT NOT NULL,
-  source_manifest    JSONB NOT NULL DEFAULT '{}'::jsonb,
-  storage_uri        TEXT,
-  created_at         TIMESTAMPTZ NOT NULL DEFAULT now()
+BEGIN;
+CREATE TABLE IF NOT EXISTS tsm.render_jobs (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  input_artifact_id uuid NOT NULL REFERENCES tsm.artifacts(id) ON DELETE RESTRICT,
+  output_artifact_id uuid REFERENCES tsm.artifacts(id) ON DELETE RESTRICT,
+  renderer text NOT NULL,
+  renderer_version text NOT NULL,
+  status text NOT NULL CHECK(status IN ('queued','running','succeeded','failed','cancelled')),
+  diagnostics jsonb NOT NULL DEFAULT '{}'::jsonb,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  finished_at timestamptz
 );
-
-COMMENT ON COLUMN tsm_render_artifact.is_authoritative IS
-  'FALSE for Apple/MapLibre basemaps; TRUE only for USGS 3DEP / surveyed packages with human seal';
+INSERT INTO tsm.schema_migrations(version) VALUES ('093_tsm_render') ON CONFLICT DO NOTHING;
+COMMIT;
