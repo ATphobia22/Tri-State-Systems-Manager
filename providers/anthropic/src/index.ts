@@ -10,7 +10,7 @@ export class AnthropicCapabilityProvider extends HttpTextCapabilityProvider {
   readonly environmentKeyName = 'ANTHROPIC_API_KEY';
 
   constructor(options: TextModelProviderOptions = {}) {
-    super({ ...options, model: options.model ?? process.env.ANTHROPIC_MODEL });
+    super({ ...options, model: options.model ?? process.env.ANTHROPIC_MODEL }, { model: 'claude-3-5-haiku-latest', environmentKeyName: 'ANTHROPIC_API_KEY' });
   }
 
   protected buildRequest(input: TextModelInput, maxOutputTokens: number): HttpModelRequest {
