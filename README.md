@@ -1,10 +1,26 @@
 # Tri-State Systems Manager (TSM)
 
-**Community-scale engineering decision-support and evidence platform for the Ohio–Wabash Tri-State River Valley.**
+**An evidence-governed geospatial and engineering decision-support platform for the Ohio–Wabash tri-state region.**
 
-TSM combines authoritative river observations, geospatial evidence, engineering-model contracts, provenance, uncertainty and human review into an auditable decision-support system for communities, farms, transportation corridors, flood-resilience projects and public agencies. TSM is not a substitute for licensed engineering, surveying, regulatory review, emergency management, or other professional authority.
+TSM brings public hydrology, terrain, imagery, flood-hazard information, infrastructure context, engineering models, and provenance into a reviewable workspace for communities, public agencies, and qualified engineering teams. Its web console combines interactive mapping with source-aware 3D visualization; its data and model pipelines preserve source identity, dates, coordinate reference systems, vertical datums, uncertainty, and review status from acquisition through publication.
 
-> **Governing principle:** Technology informs people; it does not silently govern people. Human authority remains final.
+TSM is decision-support software—not a surveying instrument, certified digital-twin product, licensed engineering service, regulatory determination, emergency warning system, or substitute for agency and professional review. A layer appearing in a visualization does not make it survey-grade or authoritative for a different purpose. Missing, stale, provisional, derived, historical, simulated, and unavailable inputs are meant to remain distinguishable rather than be silently filled with invented facts.
+
+> **Operating principle:** Technology informs people; it does not silently govern people. Qualified human and agency authority remains final.
+
+## Product overview
+
+- **Public-source geospatial workspace:** MapLibre-based maps combine state and federal imagery, elevation, flood, parcel, road, building-footprint, and land-survey context, with source attribution and explicit layer controls.
+- **Evidence-aware 3D visualization:** MapLibre terrain and hillshade, source-derived building/terrain tiles when available, camera navigation, and optional cinematic camera tours provide visual context. Availability depends on published, validated tile assets and runtime source configuration.
+- **Hydrology and flood context:** USGS observations and NOAA/NWS forecast products are presented with their timestamps, qualifiers, freshness, and station/datum constraints. FEMA effective products, Indiana best-available flood mapping, levee information, planning material, and model scenarios remain separate authority classes.
+- **Engineering and provenance contracts:** Geospatial transformations, deterministic screening models, HEC-RAS interfaces, hashes, schema checks, and human-review gates help make data and derived artifacts traceable. A visualization or model output is not itself an engineering approval.
+- **Web and offline delivery:** The Vite console is published as a static web application; separate workflows build and verify native/offline artifacts. Runtime/API capabilities require their own configured deployments and are not implied by the static site.
+
+### Visualization scope and maturity
+
+The current product is a source-aware regional/community visualization and engineering-review workspace—not a certified “Level 5” digital twin. The repository includes interactive 2D mapping, optional MapLibre 3D terrain, camera-keyframed fly-throughs, temporal/scenario visualization, and OGC 3D Tiles pipelines. Whether a particular view is fully rendered depends on its deployed assets, data service availability, configuration, graphics environment, and successful runtime checks.
+
+Current MapLibre building extrusion uses building footprints and a disclosed uniform 9 m fallback where the source provides no height; it is not source-accurate building elevation. Separate tileset contracts support higher-detail/HLOD delivery when a validated tileset is actually generated and deployed. **CityGML LOD4 interiors, verified indoor models, continuous live 4D synchronization, and certified Level‑5 twin conformance are not claimed.** Simulations and time-lapse presentation are labeled as scenarios or derived visualization, not live observations. Cinematic camera and lighting treatments are presentation features, not evidence of engineering accuracy. The day/golden/night controls apply visual MapLibre light/sky presets; they do not simulate actual weather or sun conditions. See the scope and limitations below before interpreting a rendered scene.
 
 ## Current production status
 
@@ -209,7 +225,7 @@ The system is fail-closed: unavailable, stale, unverifiable, incorrectly referen
 
 ## Government data and authoritative public sources
 
-The canonical machine-readable source inventory is `data/schemas/tsm-indiana-data-catalog-v1.json`. The current catalog contains 21 registered government/public-sector sources. A catalog entry is not by itself a claim that every endpoint is continuously live; runtime use is separately validated by the corresponding CI/runtime contracts.
+The canonical machine-readable inventory is `data/schemas/tsm-indiana-data-catalog-v1.json`. It contains **26 registered source records**: 21 marked verified in the catalog, four archived Data Rescue/HIFLD backup records, and one project-curated USACE boundary-condition profile. “Verified” records retain their catalog check date; it does not promise that an endpoint is continuously available today. Runtime use is separately gated by the applicable source, freshness, schema, and CI contracts.
 
 | Source | Authority / public body | TSM function |
 |---|---|---|
@@ -234,10 +250,15 @@ The canonical machine-readable source inventory is `data/schemas/tsm-indiana-dat
 | Indiana DNR Hydrology & Hydraulics Model Library | Indiana DNR | Discover model studies, hydrology/hydraulics references and supporting engineering evidence. |
 | Indiana DNR effective flood cross sections | Indiana DNR | Effective cross-section geometry/model evidence for floodway/floodplain review. |
 | Indiana coordinated discharges | Indiana DNR | Reference hydrologic design discharges used in applicable hydraulic/floodplain workflows. |
+| FEMA NFHL Operational FIRMette MapServer | Federal Emergency Management Agency | Operational FIRMette discovery/lookup path; distinct from any frozen FIRM panel package. |
+| Data Rescue: Eastern U.S. NFHL areas (archive) | Data Rescue Project / archived HIFLD data | Historical/backup snapshot only; not a current FEMA service. |
+| Data Rescue: base flood elevations (archive) | Data Rescue Project / archived HIFLD data | Historical/backup BFE snapshot only; not a current effective determination. |
+| Data Rescue: LOMAs (archive) | Data Rescue Project / archived HIFLD data | Historical/backup LOMA snapshot only; verify against current FEMA case records. |
+| Data Rescue: FIRM panels (archive) | Data Rescue Project / archived HIFLD data | Historical/backup panel index only; not a current FEMA panel service. |
 
 ### Additional government/regulatory integrations
 
-The repository also contains contracts or documentation for NWS/NOAA weather services, FEMA FIRM/NFHL products, USACE Louisville District material, USDA NRCS, FHWA, Indiana DNR/INFIP/IGIO, Illinois DNR/ISGS, Kentucky regulatory material, NIST guidance, and federal/state open-data services. These are kept separate from the canonical 21-source Indiana/Federal catalog when they serve a specialized regulatory, evidence, interoperability, or governance purpose.
+Beyond the catalog above, the repository contains specialized integrations or references for NOAA/National Weather Service forecast and alert products; U.S. Census TIGER/Line and TIGERweb boundaries; USACE Louisville District, National Levee Database, and HEC-RAS material; USDA Natural Resources Conservation Service programs and soils/water references; FHWA transportation guidance; NIST standards; Indiana DNR, IGIO/IndianaMap, IDEM, IDHS, DOR, and INFIP; Illinois DNR and the Illinois State Geological Survey; and Kentucky DGI/KyGeoNet/KyFromAbove. Some are discovery links, policy references, offline acquisition targets, or project-specific contracts—not necessarily live runtime feeds. The Illinois/Kentucky regional service registry also records several endpoints as unavailable or unverifiable; those are documented as such, not treated as working sources. See `data/schemas/tsm-indiana-data-catalog-v1.json`, `data/registries/tri-state-rest-endpoints-v1.json`, `tsm-console/src/data/poseyDataAcquisition.ts`, and `docs/DATA-SOURCE-CATALOG.md` for the machine-readable and acquisition detail.
 
 ## Government-data functions implemented by TSM
 

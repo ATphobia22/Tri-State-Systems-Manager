@@ -61,7 +61,12 @@ export default function CinematicView(): JSX.Element {
 
   return (
     <main style={{ position: 'relative', height: '100dvh', background: '#05080f' }}>
-      <TriStateDigitalTwinMap hideSidebar visible={visible} onVisibleChange={setVisible} />
+      <TriStateDigitalTwinMap
+        hideSidebar
+        visible={visible}
+        onVisibleChange={setVisible}
+        lightPreset={lightPreset}
+      />
       <CinematicTwinHud
         layers={hudLayers}
         onToggleLayer={toggleHudLayer}
