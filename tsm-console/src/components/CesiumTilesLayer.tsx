@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 interface Tileset { destroy(): void }
 interface Primitives { add(tileset: Tileset): Tileset }
 interface Scene { primitives: Primitives }
-interface Viewer { scene: Scene; destroy(): void }
+interface Viewer { scene: Scene; zoomTo(target: Tileset): Promise<boolean>; destroy(): void }
 interface CesiumApi { Viewer: new (container: HTMLElement, options: Record<string, unknown>) => Viewer; Cesium3DTileset: { fromUrl(url: string): Promise<Tileset> } }
 
 declare global { interface Window { Cesium?: unknown; CESIUM_BASE_URL?: string } }
@@ -40,9 +40,9 @@ export default function CesiumTilesLayer({tilesetUrl,cesiumBaseUrl=`${import.met
    onStatusChange?.('loading');const u=new URL(tilesetUrl,window.location.href);if(!['https:','http:'].includes(u.protocol))throw new Error('Tileset URL must use HTTP or HTTPS.');
    const C=await loadCesium(cesiumBaseUrl);if(cancelled||!mount.current)return;
    viewer=new C.Viewer(mount.current,{animation:false,baseLayer:false,baseLayerPicker:false,fullscreenButton:false,geocoder:false,homeButton:false,infoBox:false,navigationHelpButton:false,sceneModePicker:false,selectionIndicator:false,timeline:false});
-   tileset=await C.Cesium3DTileset.fromUrl(u.href);if(cancelled){tileset.destroy();return}viewer.scene.primitives.add(tileset);onStatusChange?.('ready');
+   tileset=await C.Cesium3DTileset.fromUrl(u.href);if(cancelled){tileset.destroy();return}viewer.scene.primitives.add(tileset);await viewer.zoomTo(tileset);onStatusChange?.('ready');
   }catch(e){if(!cancelled){setError(e instanceof Error?e.message:'CesiumJS failed to initialize.');onStatusChange?.('error')}}};
   void init(); return()=>{cancelled=true;tileset?.destroy();viewer?.destroy();viewer=null;tileset=null};
  },[cesiumBaseUrl,onStatusChange,tilesetUrl]);
- return <div ref={mount} style={{width:'100%',height:'100%'}} aria-label="Self-hosted CesiumJS 3D Tiles viewer">{error&&<div role="alert" style={{padding:16}}>3D Tiles unavailable: {error}</div>}</div>;
+ return <div ref={mount} style={{position:'relative',width:'100%',height:'100%'}} aria-label="Self-hosted CesiumJS 3D Tiles viewer">{error&&<div role="alert" style={{position:'absolute',zIndex:5,top:12,left:12,right:12,padding:16,background:'#301d24',color:'#fff',border:'1px solid #a94c5d',borderRadius:8}}>3D Tiles unavailable: {error}</div>}</div>;
 }
