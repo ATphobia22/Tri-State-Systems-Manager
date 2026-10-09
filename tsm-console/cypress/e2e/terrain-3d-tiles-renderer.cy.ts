@@ -17,4 +17,12 @@ describe("TSM generated 3D Tiles renderer", () => {
       .should("have.attr", "data-state")
       .and("match", /^ready:tileset=1;models=[1-9][0-9]*$/);
   });
+
+  it("renders the public self-hosted Cesium terrain route", () => {
+    cy.visit("/");
+    cy.contains("a", "3D Terrain (3DEP)", { timeout: 30000 }).click();
+    cy.get('[data-renderer-state="ready"]', { timeout: 90000 })
+      .should("be.visible");
+    cy.get('[aria-label="Interactive 3D terrain viewer"]').should("be.visible");
+  });
 });
