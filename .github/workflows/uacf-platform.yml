@@ -48,7 +48,7 @@ jobs:
           npm --version
           test -f package-lock.json
       - name: Install locked dependencies
-        run: npm ci --ignore-scripts --no-audit --no-fund
+        run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
       - name: Typecheck UACF workspace
         run: npm run build:uacf
       - name: Run foundation regression tests
