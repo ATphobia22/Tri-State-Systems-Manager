@@ -60,6 +60,7 @@ export default function PlatformCapabilitiesView(): JSX.Element {
           <Link to="/terrain-3d" style={{ color: '#70d6ff' }}>Open 3D Terrain Viewer →</Link>
           <Link to="/twin" style={{ color: '#70d6ff' }}>Open Twin Canvas →</Link>
           <a href="https://github.com/ATphobia22/Tri-State-Systems-Manager" style={{ color: '#70d6ff' }}>Repository →</a>
+          <a href={`${import.meta.env.BASE_URL}platform-capabilities.json`} style={{ color: '#70d6ff' }}>Machine-readable manifest (JSON) →</a>
         </div>
       </header>
       <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,330px),1fr))', gap: 14 }}>
