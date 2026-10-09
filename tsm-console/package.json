@@ -39,7 +39,7 @@
     "check:v35.1": "tsc --noEmit -p tsconfig.v35.1.json",
     "check:v35": "npm run check:v35.1",
     "test:geodetic": "node --test tests/geodetic-pipeline.test.mjs",
-    "test:all": "node --test tests/*.test.mjs && vitest run tests/*.test.ts",
+    "test:all": "node --experimental-strip-types --test tests/*.test.mjs && vitest run tests/*.test.ts",
     "test:v35.1": "vitest run tests/v35.1-contracts.test.ts",
     "test:v35": "npm run test:v35.1",
     "sign:evidence": "node --experimental-strip-types ../scripts/sign-evidence.ts",

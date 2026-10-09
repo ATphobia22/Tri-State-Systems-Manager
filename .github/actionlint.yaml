@@ -1,0 +1,7 @@
+# Custom labels registered on this repository's self-hosted runners.
+self-hosted-runner:
+  labels:
+    - cityengine
+    - ue5
+    - ios
+    - android
