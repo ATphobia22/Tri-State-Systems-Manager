@@ -37,4 +37,4 @@ npm --prefix tsm-console run check:type
 npm --prefix tsm-console run check:3d-tiles-tools
 ```
 
-For a full production deployment, use the repository's **TSM Production Build & Pages Deploy** workflow. Do not mark deployment verified until the public tileset, Cesium runtime, and browser rendering smoke test pass.
+For a full production deployment, use the repository's **TSM Production Build & Pages Deploy** workflow. Do not mark deployment verified until the public tileset, Cesium runtime, and browser rendering validation check pass.
