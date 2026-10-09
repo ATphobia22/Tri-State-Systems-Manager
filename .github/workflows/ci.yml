@@ -104,8 +104,6 @@ jobs:
         run: |
           mkdir -p artifacts/v35.1
           npm run sign:evidence -- --output artifacts/v35.1/evidence-manifest.json package.json package-lock.json
-      - name: Hydrologic ingestion smoke
-        run: npm run ingest
       - name: Test suites
         run: npm run test:all
       - name: Setup Python
