@@ -74,7 +74,6 @@ export default defineConfig(({ mode }) => {
       outDir: 'dist',
       sourcemap: true,
       rolldownOptions: {
-      },
         output: {
           codeSplitting: {
             groups: [
