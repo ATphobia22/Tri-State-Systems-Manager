@@ -22,6 +22,7 @@ on:
       - 'scripts/geospatial/package-building-3d-tiles.sh'
       - 'scripts/geospatial/acquire-and-enrich-igio-posey-buildings.py'
       - 'scripts/geospatial/extract_lidar_heights.py'
+      - 'scripts/geospatial/extract_derived_heights_copc.py'
       - 'scripts/geospatial/reconstruct_lod2_roofs.py'
       - 'tsm-console/public/data/posey-buildings-derived.geojson'
 
@@ -34,7 +35,7 @@ env:
 jobs:
   build-tiles:
     runs-on: ubuntu-24.04
-    timeout-minutes: 120
+    timeout-minutes: 360
     steps:
       - uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1
         with:
@@ -49,7 +50,7 @@ jobs:
           cache: npm
           cache-dependency-path: tsm-console/package-lock.json
       - name: Install pinned geospatial acquisition dependencies
-        run: python -m pip install --disable-pip-version-check --no-input --no-cache-dir "numpy==2.1.3" "rasterio==1.4.3" "shapely==2.0.6" "laspy==2.6.1" "lazrs==0.7.0"
+        run: python -m pip install --disable-pip-version-check --no-input --no-cache-dir "numpy==2.1.3" "rasterio==1.4.3" "shapely==2.0.6" "laspy==2.6.1" "lazrs==0.7.0" "pyproj==3.8.0"
       - name: Acquire and elevation-join all Posey IGIO building footprints
         shell: bash
         run: |
@@ -85,38 +86,117 @@ jobs:
             sleep 30
           done
           test -s /tmp/tsm-igio/lidar-smoke.geojson
-      - name: Extract authoritative LiDAR building heights
+      - name: Extract authoritative LiDAR building heights (OBSERVED)
         shell: bash
         run: |
           set -euo pipefail
           python3 scripts/geospatial/extract_lidar_heights.py --geojson /tmp/tsm-igio/posey-buildings-igio-enriched.geojson --out /tmp/tsm-igio/posey-buildings-lidar-enriched.geojson
           test "$(python3 -c 'import json; print(len(json.load(open("/tmp/tsm-igio/posey-buildings-lidar-enriched.geojson"))["features"]))')" = "23082"
           python3 - <<'PY'
-          import json,sys
+          import json
           p="/tmp/tsm-igio/posey-buildings-lidar-enriched.geojson"
-          d=json.load(open(p)); f=d["features"]
+          f=json.load(open(p))["features"]
           ok=sum(1 for x in f if x.get("properties",{}).get("lidarHeightStatus")=="OK")
-          unavailable=sum(1 for x in f if x.get("properties",{}).get("lidarHeightStatus")=="UNAVAILABLE")
-          print(f"LiDAR heights recovered: {ok}/23082 (unavailable: {unavailable})")
-          # FAIL-CLOSED: 12,450 buildings carry real LiDAR-derived heights (authoritative subset).
-          # 10,632 lack LiDAR coverage in 3DEP and are excluded, not fabricated.
-          # GIO S3 investigation (2026-10-08) confirmed gap cannot be filled: only 3.7% tile coverage, zero Class 6 points.
-          if ok < 12450:
-              raise SystemExit(f"FAIL-CLOSED: authoritative LiDAR subset below minimum (got {ok}, need 12450)")
-          # Filter to authoritative subset for 3D build
-          d["features"]=[x for x in f if x.get("properties",{}).get("lidarHeightStatus")=="OK"]
-          json.dump(d, open("/tmp/tsm-igio/posey-buildings-lidar-authoritative.geojson","w"))
-          print(f"Authoritative subset: {len(d['features'])} buildings with real LiDAR heights")
+          print(f"OBSERVED heights (3DEP EPT Class 6): {ok}/23082")
           PY
-          mv /tmp/tsm-igio/posey-buildings-lidar-authoritative.geojson /tmp/tsm-igio/posey-buildings-lidar-enriched.geojson
+      - name: Generate Indiana 2020 COPC tile list for gap buildings
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pyproj import Transformer
+          # Indiana State Plane West (ftUS) 5000-ft COPC tile grid.
+          # Tile IN2020_26850945_12 covers easting 2,685,000-2,690,000 /
+          # northing 945,000-950,000; name encodes the SW corner in
+          # thousands of feet: f"IN2020_{E//5000*5:04d}{N//5000*5:04d}_12".
+          # (Verified against tile footprint GeoJSONs in giselevationingov.)
+          t = Transformer.from_crs("EPSG:4326", "EPSG:2968", always_xy=True)
+          base = "https://giselevationingov.s3.amazonaws.com/copc/statewide/2020/SPW/ql2"
+          def tile_name(ex, ny):
+              te = int(ex // 5000) * 5
+              tn = int(ny // 5000) * 5
+              return f"IN2020_{te:04d}{tn:04d}_12.copc.laz"
+          feats = json.load(open("/tmp/tsm-igio/posey-buildings-lidar-enriched.geojson"))["features"]
+          tiles = set()
+          gaps = 0
+          for ft in feats:
+              if ft.get("properties", {}).get("lidarHeightStatus") == "OK":
+                  continue
+              gaps += 1
+              g = ft["geometry"]
+              coords = g["coordinates"][0] if g["type"] == "Polygon" else max((p[0] for p in g["coordinates"]), key=len)
+              cx = sum(c[0] for c in coords) / len(coords)
+              cy = sum(c[1] for c in coords) / len(coords)
+              ex, ny = t.transform(cx, cy)
+              sw_e, sw_n = int(ex // 5000) * 5000, int(ny // 5000) * 5000
+              # Primary tile + edge neighbors within the DERIVED script's
+              # 60-ft ground-search buffer.
+              for dx, dy in [(0, 0), (5000, 0), (-5000, 0), (0, 5000), (0, -5000)]:
+                  if dx > 0 and (sw_e + 5000) - ex > 60:
+                      continue
+                  if dx < 0 and ex - sw_e > 60:
+                      continue
+                  if dy > 0 and (sw_n + 5000) - ny > 60:
+                      continue
+                  if dy < 0 and ny - sw_n > 60:
+                      continue
+                  tiles.add(tile_name(ex + dx, ny + dy))
+          urls = sorted(f"{base}/{tn}" for tn in tiles)
+          with open("/tmp/tsm-igio/copc-tile-list.txt", "w") as f:
+              f.write("# Indiana 2020 COPC tiles covering gap-building centroids\n")
+              for u in urls:
+                  f.write(u + "\n")
+          print(f"Gap buildings: {gaps}, COPC tiles: {len(urls)}")
+          PY
+          test -s /tmp/tsm-igio/copc-tile-list.txt
+      - name: Extract DERIVED heights from Indiana 2020 COPC (gap buildings)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/tsm-igio/copc-tiles
+          python3 scripts/geospatial/extract_derived_heights_copc.py \
+            --geojson /tmp/tsm-igio/posey-buildings-lidar-enriched.geojson \
+            --tile-list /tmp/tsm-igio/copc-tile-list.txt \
+            --tile-dir /tmp/tsm-igio/copc-tiles \
+            --out /tmp/tsm-igio/posey-buildings-height-merged.geojson \
+            --tile-manifest /tmp/tsm-igio/copc-tile-manifest.json
+      - name: Gate on 23,082 height-linked features (OBSERVED + DERIVED)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, sys
+          p="/tmp/tsm-igio/posey-buildings-height-merged.geojson"
+          d=json.load(open(p)); f=d["features"]
+          if len(f) != 23082:
+              raise SystemExit(f"FAIL-CLOSED: feature count {len(f)} != 23082")
+          ok=[x for x in f if x.get("properties",{}).get("lidarHeightStatus")=="OK"]
+          obs=sum(1 for x in ok if x["properties"].get("heightProvenance")=="OBSERVED")
+          der=sum(1 for x in ok if x["properties"].get("heightProvenance")=="DERIVED")
+          unav=23082-len(ok)
+          print(f"Height-linked: {len(ok)}/23082 ({obs} OBSERVED [3DEP EPT Class 6] + {der} DERIVED [2020 COPC Class 1])")
+          if unav:
+              print(f"UNAVAILABLE (no synthetic heights generated): {unav}")
+              for x in f:
+                  pr=x.get("properties",{})
+                  if pr.get("lidarHeightStatus")!="OK":
+                      print(f"  - {pr.get('lidarHeightStatus')}")
+                      break
+          # FAIL-CLOSED: user's hard acceptance is 23,082 == 23,082.
+          if len(ok) != 23082:
+              raise SystemExit(f"FAIL-CLOSED: {unav} buildings lack heights; 23,082 acceptance NOT met")
+          print("ACCEPTANCE MET: 23,082/23,082 height-linked")
+          PY
+          mv /tmp/tsm-igio/posey-buildings-height-merged.geojson /tmp/tsm-igio/posey-buildings-lidar-enriched.geojson
       - name: Reconstruct real LOD2 roof planes
         shell: bash
         run: |
           set -euo pipefail
           python3 scripts/geospatial/reconstruct_lod2_roofs.py --geojson /tmp/tsm-igio/posey-buildings-lidar-enriched.geojson --out /tmp/tsm-igio/posey-buildings-lod2-enriched.geojson
           count=$(python3 -c 'import json; print(len(json.load(open("/tmp/tsm-igio/posey-buildings-lod2-enriched.geojson"))["features"]))')
-          echo "LOD2 input features: $count (authoritative LiDAR subset)"
-          test "$count" -ge 12450
+          echo "LOD2 input features: $count (23,082 OBSERVED+DERIVED height-linked)"
+          test "$count" = "23082"
           mv /tmp/tsm-igio/posey-buildings-lod2-enriched.geojson /tmp/tsm-igio/posey-buildings-igio-enriched.geojson
       - name: Run topology-preservation regression tests
         run: python3 scripts/geospatial/test-building-3d-tiles-geometry.py
