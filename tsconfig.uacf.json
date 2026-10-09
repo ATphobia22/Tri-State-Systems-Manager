@@ -56,6 +56,10 @@
     "packages/tenancy/src/**/*.ts",
     "providers/openai/src/**/*.ts",
     "tests/contracts/uacf-platform-foundations.test.ts",
-    "tests/contracts/uacf-openai-adapter.test.ts"
+    "tests/contracts/uacf-openai-adapter.test.ts",
+    "providers/anthropic/src/**/*.ts",
+    "providers/google/src/**/*.ts",
+    "providers/openrouter/src/**/*.ts",
+    "tests/contracts/uacf-model-providers.test.ts"
   ]
 }
