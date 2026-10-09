@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "1.0.0",
+  "artifactType": "tsm.platform_capabilities.v1",
+  "generatedFrom": "main after PR #246 conflict resolution; code presence is not deployment attestation",
+  "product": "Tri-State Systems Manager / UACF",
+  "publicRoutes": [
+    {
+      "path": "/terrain-3d/",
+      "name": "Self-hosted CesiumJS 3D Terrain",
+      "status": "implemented; deployment validation required",
+      "format": "OGC 3D Tiles 1.1",
+      "source": "USGS 3DEP-derived terrain visualization"
+    },
+    {
+      "path": "/globe/",
+      "name": "Self-hosted CesiumJS Globe",
+      "status": "implemented on main"
+    },
+    {
+      "path": "/platform/",
+      "name": "Platform Capabilities Index",
+      "status": "implemented"
+    },
+    {
+      "path": "/twin/",
+      "name": "Twin Canvas",
+      "status": "existing MapLibre twin surface"
+    }
+  ],
+  "applications": ["dashboard", "docs", "playground", "uacf-gateway"],
+  "packages": ["agent-runtime", "contracts", "core", "evidence", "gates", "geo", "hydraulics", "research"],
+  "providers": ["local", "browser", "search"],
+  "plugins": ["hydrology", "grants", "evidence-ledger"],
+  "runtimes": ["docker", "python"],
+  "operatorSkills": [],
+  "validationEntrypoints": [
+    "scripts/ci/validate-self-hosted-cesium.mjs",
+    "scripts/geospatial/validate-terrain-3d-tiles.py"
+  ],
+  "evidenceBoundaries": {
+    "terrainAuthority": "DERIVED",
+    "engineeringUse": false,
+    "regulatoryUse": false,
+    "statement": "A terrain visualization is not survey-grade vertical control or a regulatory determination.",
+    "visualizationPolicy": "Render available, provenance-labelled assets independently of unrelated live service availability; surface missing assets explicitly."
+  }
+}
