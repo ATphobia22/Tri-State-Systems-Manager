@@ -1,30 +1,35 @@
-// @tsm/provider-anthropic — UACF provider stub (v0.1.0).
-// Declares the provider interface only. NOT a working integration: no API
-// keys are read, no network calls are made, and execute() always throws
-// fail-closed until an operator configures the provider explicitly.
+import { HttpTextCapabilityProvider, type HttpModelRequest, type TextModelInput, type TextModelProviderOptions } from '../../../packages/provider-runtime/src/HttpTextCapabilityProvider.ts';
 
-import type { CapabilityId, CapabilityProvider, CapabilityRequest, CapabilityResult, ProviderHealth, SupportDecision } from '../../../packages/contracts/src/index.ts';
-
-function notConfigured(): never {
-  throw new Error('@tsm/provider-anthropic: provider is not configured — refusing to execute (fail-closed). No credentials are read and no request is sent.');
+function record(value: unknown): Record<string, unknown> {
+  return value !== null && typeof value === 'object' ? value as Record<string, unknown> : {};
 }
 
-export class StubCapabilityProvider implements CapabilityProvider {
+export class AnthropicCapabilityProvider extends HttpTextCapabilityProvider {
   readonly id = 'provider.anthropic';
-  readonly version = '0.1.0';
-  readonly capabilities = [] as const;
+  readonly defaultModel = 'claude-3-5-haiku-latest';
+  readonly environmentKeyName = 'ANTHROPIC_API_KEY';
 
-  async health(): Promise<ProviderHealth> {
-    return { healthy: false, latencyMs: 0, errorRate: 1, lastChecked: new Date().toISOString() };
+  constructor(options: TextModelProviderOptions = {}) {
+    super({ ...options, model: options.model ?? process.env.ANTHROPIC_MODEL });
   }
 
-  async supports(_capability: CapabilityId, _input: unknown): Promise<SupportDecision> {
-    return { supported: false };
+  protected buildRequest(input: TextModelInput, maxOutputTokens: number): HttpModelRequest {
+    return {
+      url: 'https://api.anthropic.com/v1/messages',
+      headers: { 'content-type': 'application/json', 'x-api-key': this.apiKey ?? '', 'anthropic-version': '2023-06-01' },
+      body: { model: this.model, max_tokens: maxOutputTokens, ...(input.system ? { system: input.system } : {}), messages: [{ role: 'user', content: input.input }] },
+    };
   }
 
-  async execute(_request: CapabilityRequest): Promise<CapabilityResult> {
-    return notConfigured();
+  protected extractText(payload: unknown): string {
+    const content = record(payload).content;
+    if (!Array.isArray(content)) return '';
+    return content.flatMap((part) => {
+      const item = record(part);
+      return item.type === 'text' && typeof item.text === 'string' ? [item.text] : [];
+    }).join('');
   }
 }
 
-export default StubCapabilityProvider;
+export { AnthropicCapabilityProvider as StubCapabilityProvider };
+export default AnthropicCapabilityProvider;
