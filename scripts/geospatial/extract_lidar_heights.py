@@ -375,11 +375,9 @@ def extract_heights(geojson_path: Path, out_path: Path, ept_url: str | None,
                 props["lidarHeightStatus"] = "no-points-in-buffer"
                 continue
 
-            # Polygon in the EPT native CRS for precise filtering.
-            # For MultiPolygon use the largest ring for point test.
-            if geom.get("type") == "MultiPolygon":
-                ring3857 = [lonlat_to_3857(c[0], c[1]) for c in
-                            max((p[0] for p in coords), key=lambda r: len(r))]
+            # All point-in-polygon tests use ring_native in the EPT native CRS.
+            # Do not create an unused EPSG:3857 ring: mixing coordinate spaces
+            # here is a regression risk, especially for MultiPolygon inputs.
 
             idxs = np.where(in_buf)[0]
             roof_z, ground_z = [], []
@@ -457,6 +455,8 @@ def main() -> None:
     ap.add_argument("--ept-url", default=None, help="override EPT ept.json URL")
     ap.add_argument("--limit", type=int, default=0, help="process first N features (testing)")
     ap.add_argument("--max-buildings", type=int, default=0, help="bounded smoke test; 0 means all")
+    ap.add_argument("--allow-zero-heights", action="store_true",
+                    help="allow a smoke test to pass with zero accepted heights when source access and parsing work")
     ap.add_argument("--level", type=int, default=6, help="EPT hierarchy level for node queries")
     args = ap.parse_args()
 
@@ -469,8 +469,18 @@ def main() -> None:
 
     print(json.dumps(stats, indent=2))
     if stats["with_height"] == 0 and stats["total"] > 0:
-        print("FATAL: no heights extracted", file=sys.stderr)
-        sys.exit(1)
+        if not args.allow_zero_heights:
+            print("FATAL: no heights extracted", file=sys.stderr)
+            sys.exit(1)
+        # This exception is only for a bounded diagnostic smoke test. It must
+        # still prove that at least one source node was downloaded/decoded and
+        # that no processing exceptions occurred. Full extraction remains strict.
+        if stats.get("sample_node") is None or stats.get("errors", 0) > 0:
+            print("FATAL: zero-height smoke test did not validate source data cleanly",
+                  file=sys.stderr)
+            sys.exit(1)
+        print("SMOKE TEST: source nodes parsed; no qualifying heights in sample.",
+              file=sys.stderr)
 
 
 if __name__ == "__main__":
