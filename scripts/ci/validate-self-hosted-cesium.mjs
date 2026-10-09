@@ -37,6 +37,15 @@ const required = [
     ['USGS 3DEP source', /USGS 3DEP/],
     ['screening limitation', /not establish survey-grade engineering control/],
   ]],
+  ['tsm-console/public/platform-capabilities.json', [
+    ['capability manifest artifact type', /tsm\\.platform_capabilities\\.v1/],
+    ['public route inventory', /publicRoutes/],
+    ['operator skill inventory', /operatorSkills/],
+  ]],
+  ['data/schemas/tsm-platform-capabilities-v1.schema.json', [
+    ['capability manifest schema', /TSM Platform Capabilities Manifest v1/],
+    ['schema contract id', /tsm-platform-capabilities-v1/],
+  ]],
 ];
 
 const errors = [];
