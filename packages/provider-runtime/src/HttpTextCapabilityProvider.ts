@@ -71,9 +71,12 @@ export abstract class HttpTextCapabilityProvider
   readonly #timeoutMs: number;
   readonly #fetch: typeof fetch;
 
-  protected constructor(options: TextModelProviderOptions = {}) {
-    this.model = options.model ?? this.defaultModel;
-    this.#apiKey = options.apiKey ?? process.env[this.environmentKeyName];
+  protected constructor(
+    options: TextModelProviderOptions = {},
+    defaults: { readonly model: string; readonly environmentKeyName: string },
+  ) {
+    this.model = options.model ?? defaults.model;
+    this.#apiKey = options.apiKey ?? process.env[defaults.environmentKeyName];
     this.#timeoutMs = options.timeoutMs ?? 30_000;
     this.#fetch = options.fetchImpl ?? fetch;
     if (!Number.isInteger(this.#timeoutMs) || this.#timeoutMs < 1 || this.#timeoutMs > 300_000) {
