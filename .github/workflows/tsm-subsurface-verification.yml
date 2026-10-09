@@ -60,7 +60,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libgdal-dev gdal-bin libpq-dev build-essential
           python -m pip install --upgrade pip
-          python -m pip install sqlfluff pytest psycopg2-binary
+          python -m pip install sqlfluff 'pytest>=8.3,<9' psycopg2-binary
+
+      - name: Verify pytest module availability
+        run: python -m pytest --version
 
       - name: Enforce Database Migration SQL Linting
         run: |
@@ -102,7 +105,7 @@ jobs:
       - name: Execute Geotechnical Engine and Verification Tests
         run: |
           if [ -d tests/geotechnical ]; then
-            pytest tests/geotechnical/ -v --tb=short
+            python -m pytest tests/geotechnical/ -v --tb=short
           else
             echo 'No tests/geotechnical yet — skip'
           fi
