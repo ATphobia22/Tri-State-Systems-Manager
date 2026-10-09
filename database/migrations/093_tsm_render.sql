@@ -1,4 +1,15 @@
--- 093_tsm_render.sql — TSM render/cinematic domain tables.
--- Presentation boundary: a visualization can never silently become evidence.
-CREATE TABLE IF NOT EXISTS tsm_render_recipes (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), name TEXT NOT NULL, recipe JSONB NOT NULL, deterministic_seed BIGINT, provenance JSONB NOT NULL DEFAULT '{}', created_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_at TIMESTAMPTZ NOT NULL DEFAULT now());
-CREATE TABLE IF NOT EXISTS tsm_render_jobs (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), recipe_id UUID NOT NULL REFERENCES tsm_render_recipes(id), status TEXT NOT NULL DEFAULT 'queued', output_ref TEXT, provenance JSONB NOT NULL DEFAULT '{}', created_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_at TIMESTAMPTZ NOT NULL DEFAULT now());
+-- Render / 3D tiles provenance (Pages + offline). Not authoritative elevation.
+CREATE TABLE IF NOT EXISTS tsm_render_artifact (
+  artifact_id        TEXT PRIMARY KEY,
+  kind               TEXT NOT NULL, -- terrain-rgb | building-3d-tiles | mvt | pmtiles
+  crs_epsg           INTEGER NOT NULL DEFAULT 3857,
+  vertical_datum     TEXT, -- NAVD88 when elevation-bearing; NULL for pure basemap
+  is_authoritative   BOOLEAN NOT NULL DEFAULT FALSE,
+  content_sha256     TEXT NOT NULL,
+  source_manifest    JSONB NOT NULL DEFAULT '{}'::jsonb,
+  storage_uri        TEXT,
+  created_at         TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+COMMENT ON COLUMN tsm_render_artifact.is_authoritative IS
+  'FALSE for Apple/MapLibre basemaps; TRUE only for USGS 3DEP / surveyed packages with human seal';

@@ -1,1 +1,6 @@
-{"name":"@tsm-uacf/research","version":"0.1.0","private":true,"type":"module"}
+{
+  "name": "@tsm-uacf/research",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module"
+}

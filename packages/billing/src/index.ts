@@ -1,69 +1,42 @@
+/**
+ * Billing package intentionally DISABLED for Tri-State public-interest offline deployment.
+ * No commercial ledger, no metered cloud billing, no SaaS invoices.
+ * Usage accounting for local capacity planning may live under packages/observability later.
+ */
+
+export const BILLING_ENABLED = false as const;
+
+export class BillingDisabledError extends Error {
+  readonly code = 'BILLING_DISABLED';
+  constructor(message = 'ADR/public-interest: commercial billing is disabled in TSM offline stack') {
+    super(message);
+    this.name = 'BillingDisabledError';
+  }
+}
+
 export interface UsageRecord {
-  tenantId: string;
-  meter: string;
-  quantity: number;
-  unit: string;
-  recordedAt: string;
+  readonly capabilityId: string;
+  readonly units: number;
+  readonly at: string;
 }
 
-export interface InvoiceLine {
-  meter: string;
-  quantity: number;
-  unit: string;
-  unitPrice: number;
-  total: number;
-}
-
-export interface Invoice {
-  tenantId: string;
-  periodStart: string;
-  periodEnd: string;
-  lines: InvoiceLine[];
-  total: number;
-  currency: string;
-}
-
+/** Stub retained so workspace/tsconfig stay valid; all mutators throw. */
 export class BillingLedger {
-  private readonly usage: UsageRecord[] = [];
-  private readonly prices = new Map<string, number>();
-
-  public setPrice(meter: string, unitPrice: number): void {
-    this.prices.set(meter, unitPrice);
+  record(_usage: UsageRecord): never {
+    throw new BillingDisabledError();
   }
 
-  public recordUsage(tenantId: string, meter: string, quantity: number, unit = "unit"): UsageRecord {
-    const record: UsageRecord = {
-      tenantId,
-      meter,
-      quantity,
-      unit,
-      recordedAt: new Date().toISOString(),
-    };
-    this.usage.push(record);
-    return record;
+  setPrice(_capabilityId: string, _unitPrice: number): never {
+    throw new BillingDisabledError();
   }
 
-  public invoice(tenantId: string, periodStart: string, periodEnd: string, currency = "USD"): Invoice {
-    const lines: InvoiceLine[] = [];
-    for (const record of this.usage) {
-      if (record.tenantId !== tenantId) continue;
-      if (record.recordedAt < periodStart || record.recordedAt > periodEnd) continue;
-      const unitPrice = this.prices.get(record.meter) ?? 0;
-      lines.push({
-        meter: record.meter,
-        quantity: record.quantity,
-        unit: record.unit,
-        unitPrice,
-        total: record.quantity * unitPrice,
-      });
-    }
-    return {
-      tenantId,
-      periodStart,
-      periodEnd,
-      lines,
-      total: lines.reduce((sum, line) => sum + line.total, 0),
-      currency,
-    };
+  total(): number {
+    return 0;
+  }
+}
+
+export function assertBillingDisabled(): void {
+  if (BILLING_ENABLED) {
+    throw new Error('invariant: BILLING_ENABLED must remain false');
   }
 }
