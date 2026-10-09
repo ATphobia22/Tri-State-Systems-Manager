@@ -135,8 +135,15 @@ export const SPATIAL_PLANES: SpatialPlane[] = [
     id: 'plane-bathymetry',
     name: 'USACE Hydrographic Bathymetry',
     description:
-      'Riverbed cross-section profiles. No USACE Louisville District hydrographic dataset is vendored or wired — synthetic bathymetry is never substituted.',
-    layerIds: [],
+      '20 USACE Louisville District eHydro single-beam sounding sets, Ohio River miles 776–976 (2018–2026). Extents derived from real sounding coordinates. Vertical datum is Ohio River Datum — ORD→NAVD88 offset unavailable, never converted. Synthetic bathymetry is never substituted.',
+    layerIds: ['ehydro-bathymetry-extents'],
+  },
+  {
+    id: 'plane-confluence-hydraulics',
+    name: 'Ohio–Wabash Confluence Hydraulics',
+    description:
+      'ERDC/CHL TR-22-4 validated 2D AdH confluence model (USACE Louisville District, Feb 2022). Five validated dike scenarios — base, It2_W3, It2_MD, It2_PC330, selected 3+4 alternative — selectable via lib/confluence-hydraulics.ts. Model mesh/result files were not publicly released: scenarios are report-documented definitions, never synthesized outputs. Surveyed channel control from the eHydro bathymetry plane.',
+    layerIds: ['ehydro-bathymetry-extents'],
   },
   {
     id: 'plane-streamstats',
