@@ -1,94 +1,40 @@
-# Production Terrain-RGB deployment (GitHub Pages + HTTPS tiles)
+# Production Terrain and Self-Hosted 3D Tiles Deployment
 
-GitHub Pages serves the SPA at `https://atphobia22.github.io/Tri-State-Systems-Manager/`.
-MapLibre **3D terrain** only enables when:
+## Public console routes
 
-1. Terrain-RGB tiles are published under **HTTPS**
-2. `VITE_TSM_TERRAIN_RGB_URL_TEMPLATE` is a **real** HTTPS XYZ template with `{z}/{x}/{y}` (baked into the Pages workflow env at build time — see below)
-3. Production Vite build injects that variable
+- **3D Terrain:** `/terrain-3d` — CesiumJS with the generated USGS 3DEP-derived OGC 3D Tiles 1.1 terrain tileset.
+- **Twin Canvas:** `/twin` — MapLibre interactive twin.
+- **Platform Capabilities:** `/platform` — UACF, geospatial, evidence, package and runtime index.
 
-Until then the client correctly stays **FAIL-CLOSED** (flat imagery + hillshade + flood overlays).
+On GitHub Pages, route URLs are under `https://atphobia22.github.io/Tri-State-Systems-Manager/`.
 
-## Verified 2026-09-27 (this VM)
+## Build and publish chain
 
-- **mbtiles integrity** — `dist/terrain-tiles/terrain-3dep.mbtiles`: 28 rows
-  (z11×2, z12×2, z13×2, z14×6, z15×16), metadata `name=terrain_3dep`,
-  `format=png`. All 28 tiles decoded (1,835,008 pixels); elevation range
-  **337.93–372.38 ft**, inside the documented 337.7–372.5 ft screening range.
-  SHA-256 `83f94cf7…baf0` matches `artifacts/tsm-terrain-rgb-3dep-pipeline-v1.json` exactly.
-- **Pages pyramid** — `tsm-console/public/terrain_3dep/`: 28/28 PNGs decode,
-  256×256, same elevation range. `tiles.json` is valid TileJSON 3.0.0 and
-  already points at the production template
-  `https://atphobia22.github.io/Tri-State-Systems-Manager/terrain_3dep/{z}/{x}/{y}.png`.
-- **HTTPS serving** — `ops/terrain-tiles/server.mjs` (Express + TLS) verified
-  end-to-end: tile request → HTTP 200, `Content-Type: image/png`, PNG magic
-  bytes, served bytes byte-identical to the pyramid on disk; missing tile →
-  404; malformed coordinates → 400; `/healthz` → 200. Tested with a 1-day
-  self-signed cert (discarded afterwards).
-- **Pages wiring** — `.github/workflows/deploy-pages.yml` now sets
-  `VITE_TSM_TERRAIN_RGB_URL_TEMPLATE=https://atphobia22.github.io/Tri-State-Systems-Manager/terrain_3dep/{z}/{x}/{y}.png`
-  in the build job `env`, with CI validation (must be `https://` and contain
-  `{z}/{x}/{y}`). The next Pages deploy ships real 3D terrain; no repository
-  variable needed for the Pages path.
+The `.github/workflows/deploy-pages.yml` workflow builds and validates the terrain data and self-hosted browser runtime. It generates the Terrain-RGB MBTiles input, runs `scripts/geospatial/build-terrain-3d-tiles.py`, validates the tileset with `scripts/geospatial/validate-terrain-3d-tiles.py`, vendors the pinned CesiumJS static distribution using `scripts/ci/install-cesium-static.mjs`, builds the Vite app, and validates generated `dist/3d-tiles` and `dist/vendor/cesium` outputs before uploading the Pages artifact. The workflow also runs browser rendering and post-publication integrity checks.
 
-## What cannot be invented in CI/sandbox
+The build contract is guarded by `scripts/ci/validate-self-hosted-cesium.mjs`, which verifies the route, self-hosted runtime path, OGC 3D Tiles build/validation commands, published asset checks, and artifact provenance boundary.
 
-- A public tile domain and TLS certificate for your own host
-- A truthful `MATERIALIZED` evidence status with a fabricated SHA-256
-- Live 3DEP bulk processing without GDAL + `rio-rgbify` on a workstation
+## Terrain source and limits
 
-## Operator checklist
+The committed `tsm-console/public/terrain_3dep/` directory contains a Terrain-RGB derivative derived from the repository's USGS 3DEP pipeline. See `data-sources/manifests/usgs-3dep-terrain.json`, `artifacts/tsm-terrain-rgb-3dep-pipeline-v1.json`, and `artifacts/tsm-terrain-3d-tiles-v1.json` for source inventory, transformation, and evidence metadata.
 
-### Done (no action needed)
+This terrain is for visualization and screening. It is not survey-grade vertical control, not a verified NAVD88-to-ellipsoid transformation, and not a FEMA regulatory determination. The 3D mesh must retain its derived provenance and uncertainty boundaries.
 
-- [x] Screening tile pyramid built (28 tiles, z11–z15) and committed for Pages
-- [x] mbtiles built and hash-verified against the evidence artifact
-- [x] Express + TLS tile server verified locally
-- [x] Pages workflow injects the real terrain template at build time
+## Visualization availability policy
 
-### 1. Rebuild Pages (owner)
+The browser should render a valid, locally published visualization layer without depending on unrelated live gauges, an API credential, login, or a live provider call. A missing or corrupt tileset must create a visible renderer error, while the 2D map, flood simulator, and other independent views remain usable. This is **not** the same as treating an unverified source as authoritative: regulatory, engineering, and safety claims remain gated on their own validated evidence.
 
-Actions → **TSM Production Build & Pages Deploy** → Run workflow.
-Confirm 3D terrain enables on the published site (flat = fail-closed, check
-the template made it into the build).
+A source-code check is not proof that production Pages is up to date. Confirm the Actions workflow run and public assets independently after merging or dispatching a deployment.
 
-### 2. Full-production tiles (workstation, optional upgrade)
+## Local verification
 
-The committed pyramid is screening-level (28 tiles, z11–z15, bundled DEM).
-For a full-production pyramid from live 3DEP on a workstation with GDAL:
+From the repository root:
 
 ```bash
-chmod +x ./scripts/geospatial/build-terrain-rgb.sh
-./scripts/geospatial/build-terrain-rgb.sh
+node scripts/ci/validate-self-hosted-cesium.mjs
+npm --prefix tsm-console run check:cesium-terrain
+npm --prefix tsm-console run check:type
+npm --prefix tsm-console run check:3d-tiles-tools
 ```
 
-Outputs (gitignored): `dist/terrain-tiles/` and evidence manifest with **real** source hashes.
-
-### 3. Public tile host (VPS + DNS — owner only, optional)
-
-Only needed if you want tiles off Pages on your own domain (Martin + Caddy).
-This VM has no Docker; all of this runs on your host:
-
-```bash
-export TILE_DOMAIN=tiles.your-real-domain.tld
-export TSM_MBTILES_HOST_PATH=$PWD/dist/terrain-tiles   # copy terrain-3dep.mbtiles here first
-docker compose -f ops/martin/docker-compose.tls.yml up -d
-curl -sS "https://${TILE_DOMAIN}/catalog"
-```
-
-Prerequisites you must do in your DNS/hosting provider:
-
-1. Provision a VPS (any host with Docker) and point an **A record** for
-   `tiles.your-real-domain.tld` at its public IP.
-2. Copy `dist/terrain-tiles/terrain-3dep.mbtiles` to the host.
-3. Caddy terminates TLS automatically via Let's Encrypt (port 443 must be reachable).
-4. If you switch the template to your domain, update
-   `VITE_TSM_TERRAIN_RGB_URL_TEMPLATE` in `.github/workflows/deploy-pages.yml`
-   (or set the `VITE_TSM_TERRAIN_RGB_URL_TEMPLATE` repository variable and
-   reference it as `${{ vars.VITE_TSM_TERRAIN_RGB_URL_TEMPLATE }}`) and
-   redeploy Pages. Never use `example.com`, `YOUR-HOST`, or `localhost` —
-   the fail-closed validator will keep terrain flat.
-
-### 4. Evidence
-
-Mark `runtime.status: MATERIALIZED` only after real DEM hashes and live HTTPS tiles exist.
+For a full production deployment, use the repository's **TSM Production Build & Pages Deploy** workflow. Do not mark deployment verified until the public tileset, Cesium runtime, and browser rendering smoke test pass.
