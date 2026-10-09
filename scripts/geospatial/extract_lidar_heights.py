@@ -454,7 +454,7 @@ def main() -> None:
     ap.add_argument("--out", required=True, type=Path, help="output GeoJSON with lidarHeightFt")
     ap.add_argument("--ept-url", default=None, help="override EPT ept.json URL")
     ap.add_argument("--limit", type=int, default=0, help="process first N features (testing)")
-    ap.add_argument("--max-buildings", type=int, default=0, help="bounded smoke test; 0 means all")
+    ap.add_argument("--max-buildings", type=int, default=0, help="bounded diagnostic extraction; 0 means all")
     ap.add_argument("--allow-zero-heights", action="store_true",
                     help="emit per-feature outcomes even if this source yields no accepted heights; downstream recovery and final gates remain strict")
     ap.add_argument("--require-source-node", action="store_true",
