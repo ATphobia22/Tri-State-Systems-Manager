@@ -3,9 +3,10 @@ import * as maplibregl from 'maplibre-gl';
 import type { Map, GeoJSONSource, StyleSpecification } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { MAP_PLANE_FABRIC, type MapPlaneLayer } from '../lib/map-plane-fabric';
-import { buildArcGisFeatureQueryUrl, getMapLibreFabricLayer } from '../lib/maplibre-layer-fabric';
+import { buildArcGisExportTemplate, buildArcGisFeatureQueryUrl, getMapLibreFabricLayer } from '../lib/maplibre-layer-fabric';
 import { getTerrainRgbStatus } from '../lib/twin-map-style';
 import { TERRAIN_RGB_SOURCE_ID } from '../lib/terrain-rgb-contract';
+import { FeatureLayerRequestCoordinator } from '../lib/feature-layer-request-coordinator';
 import { getCinematicLighting, type CinematicLightPreset } from '../lib/cinematic/light-presets';
 import {
   FLOOD_OVERLAY_METADATA,
@@ -18,20 +19,6 @@ const MAX_BOUNDS: [[number, number], [number, number]] = [
   [-88.08, 37.75],
   [-87.92, 37.90],
 ];
-
-const ARCGIS_EXPORT = (service: string, layers?: string): string => {
-  const query = [
-    'bbox={bbox-epsg-3857}',
-    'bboxSR=3857',
-    'imageSR=3857',
-    'size=512,512',
-    'format=png32',
-    'transparent=true',
-    layers ? `layers=show:${layers}` : '',
-    'f=image',
-  ].filter(Boolean).join('&');
-  return `${service.replace(/\/$/, '')}/export?${query}`;
-};
 
 const layerColor = (id: string): string => {
   if (id === 'indiana-parcels') return '#38bdf8';
@@ -49,7 +36,7 @@ function baseStyle(): StyleSpecification {
     sources: {
       'indiana-imagery': {
         type: 'raster',
-        tiles: [ARCGIS_EXPORT(imagery)],
+        tiles: [buildArcGisExportTemplate(imagery, [], { format: 'jpg', transparent: false, compressionQuality: 90 })],
         tileSize: 512,
         attribution: 'Indiana Geographic Information Office',
       },
@@ -65,12 +52,13 @@ function baseStyle(): StyleSpecification {
   };
 }
 
-async function fetchGeoJson(source: string, map: Map): Promise<Parameters<GeoJSONSource['setData']>[0]> {
+async function fetchGeoJson(source: string, map: Map, signal: AbortSignal): Promise<Parameters<GeoJSONSource['setData']>[0]> {
   const bounds = map.getBounds();
   const bbox = `${bounds.getWest()},${bounds.getSouth()},${bounds.getEast()},${bounds.getNorth()}`;
   const url = buildArcGisFeatureQueryUrl(source).replace('{bbox-epsg-4326}', encodeURIComponent(bbox));
   const response = await fetch(url, {
     headers: { Accept: 'application/geo+json,application/json' },
+    signal,
   });
   if (!response.ok) throw new Error(`ArcGIS FeatureServer request failed: HTTP ${response.status}`);
   const payload = await response.json() as { type?: string };
@@ -78,11 +66,11 @@ async function fetchGeoJson(source: string, map: Map): Promise<Parameters<GeoJSO
   return payload as Parameters<GeoJSONSource['setData']>[0];
 }
 
-function addRasterSource(map: Map, id: string, service: string, layers: string | undefined, visible: boolean): void {
+function addRasterSource(map: Map, id: string, service: string, layers: readonly number[] | undefined, visible: boolean): void {
   if (map.getSource(id)) return;
   map.addSource(id, {
     type: 'raster',
-    tiles: [ARCGIS_EXPORT(service, layers)],
+    tiles: [buildArcGisExportTemplate(service, layers)],
     tileSize: 512,
   });
   map.addLayer({
@@ -221,9 +209,10 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
   const [floodOverlayOn, setFloodOverlayOn] = useState(false);
   const [floodBusy, setFloodBusy] = useState(false);
   const floodOverlayRef = useRef<FloodDeckOverlay | null>(null);
-  const requestGeneration = useRef(0);
+  const featureRequestsRef = useRef(new FeatureLayerRequestCoordinator());
   const visibleRef = useRef(visible);
   visibleRef.current = visible;
+  const previousVisibleRef = useRef(visible);
 
   const setVisible = useCallback((updater: (current: Record<string, boolean>) => Record<string, boolean>): void => {
     if (controlled) {
@@ -246,16 +235,19 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
     }
   }, []);
 
-  const refreshFeatureLayer = useCallback(async (map: Map, item: MapPlaneLayer): Promise<void> => {    const source = map.getSource(item.id) as GeoJSONSource | undefined;
+  const refreshFeatureLayer = useCallback(async (map: Map, item: MapPlaneLayer): Promise<void> => {
+    const source = map.getSource(item.id) as GeoJSONSource | undefined;
     if (!source) return;
-    const generation = ++requestGeneration.current;
+    const request = featureRequestsRef.current.begin(item.id);
     try {
-      const geojson = await fetchGeoJson(item.endpoint, map);
-      if (generation === requestGeneration.current) source.setData(geojson);
+      const geojson = await fetchGeoJson(item.endpoint, map, request.signal);
+      if (request.isCurrent() && mapRef.current === map && map.getSource(item.id) === source) source.setData(geojson);
     } catch (error) {
-      if (generation === requestGeneration.current) {
+      if (request.isCurrent() && !(error instanceof Error && error.name === 'AbortError')) {
         setStatus(`${item.title}: ${error instanceof Error ? error.message : 'source unavailable'}`);
       }
+    } finally {
+      request.finish();
     }
   }, []);
 
@@ -341,8 +333,8 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
         map.setTerrain({ source: TERRAIN_RGB_SOURCE_ID, exaggeration: 1 });
       }
 
-      addRasterSource(map, 'fema-nfhl', getMapLibreFabricLayer('fema-effective').endpoint, '28,16,3,1,34,23', false);
-      addRasterSource(map, 'indiana-bafm', getMapLibreFabricLayer('indiana-bafm').endpoint, '104,438', false);
+      addRasterSource(map, 'fema-nfhl', getMapLibreFabricLayer('fema-effective').endpoint, [28, 16, 3, 1, 34, 23], false);
+      addRasterSource(map, 'indiana-bafm', getMapLibreFabricLayer('indiana-bafm').endpoint, [104, 438], false);
       addRasterSource(map, 'usgs-3dep-index', getMapLibreFabricLayer('usgs-3dep-index').endpoint, undefined, false);
       addRasterSource(map, 'usgs-3dep-elevation', getMapLibreFabricLayer('usgs-3dep-elevation').endpoint, undefined, false);
       if (!map.getSource('osm-base')) {
@@ -403,6 +395,7 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
     });
 
     return () => {
+      featureRequestsRef.current.cancelAll();
       floodOverlayRef.current?.dispose();
       floodOverlayRef.current = null;
       map.remove();
@@ -422,10 +415,17 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
   }, [lightPreset]);
 
   useEffect(() => {
+    const previouslyVisible = previousVisibleRef.current;
+    previousVisibleRef.current = visible;
     const map = mapRef.current;
     if (!map) return;
     for (const item of MAP_PLANE_FABRIC) {
-      setLayerVisibility(map, item, Boolean(visible[item.id]));
+      const enabled = Boolean(visible[item.id]);
+      setLayerVisibility(map, item, enabled);
+      if (item.kind === 'arcgis-feature') {
+        if (enabled && !previouslyVisible[item.id]) void refreshFeatureLayer(map, item);
+        else if (!enabled && previouslyVisible[item.id]) featureRequestsRef.current.cancel(item.id);
+      }
     }
     const terrain = getTerrainRgbStatus();
     if (terrain.enabled && visible['terrain-rgb'] && !map.getTerrain()) {
@@ -434,7 +434,7 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
       map.setTerrain(null);
     }
     setTerrainEnabled(terrain.enabled);
-  }, [setLayerVisibility, visible]);
+  }, [refreshFeatureLayer, setLayerVisibility, visible]);
 
   const terrain = getTerrainRgbStatus();
   const mistVisible = Boolean(visible['cinematic-volumetric-mist']);

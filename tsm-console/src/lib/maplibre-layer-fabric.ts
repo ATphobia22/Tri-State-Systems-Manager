@@ -130,9 +130,28 @@ export function getMapLibreFabricLayer(id: string): MapLibreFabricLayer {
   return layer;
 }
 
-export function buildArcGisExportTemplate(endpoint: string, layerIds: readonly number[] = []): string {
+export interface ArcGisExportOptions {
+  readonly format?: 'png32' | 'jpg';
+  readonly transparent?: boolean;
+  readonly compressionQuality?: number;
+}
+
+export function buildArcGisExportTemplate(
+  endpoint: string,
+  layerIds: readonly number[] = [],
+  options: ArcGisExportOptions = {},
+): string {
+  const base = endpoint.replace(/\/$/, '');
+  const operation = /\/ImageServer$/i.test(base) ? 'exportImage' : 'export';
+  const format = options.format ?? 'png32';
+  const transparent = options.transparent ?? true;
+  const compressionQuality = options.compressionQuality;
+  if (compressionQuality !== undefined && (!Number.isInteger(compressionQuality) || compressionQuality < 0 || compressionQuality > 100)) {
+    throw new RangeError('ArcGIS compression quality must be an integer between 0 and 100');
+  }
+  const compression = compressionQuality === undefined ? '' : `&compressionQuality=${compressionQuality}`;
   const layers = layerIds.length > 0 ? `&layers=show:${layerIds.join(',')}` : '';
-  return `${endpoint.replace(/\/$/, '')}/export?bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=512,512&format=png32&transparent=true${layers}&f=image`;
+  return `${base}/${operation}?bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=512,512&format=${format}&transparent=${transparent}${compression}${layers}&f=image`;
 }
 
 export function buildArcGisFeatureQueryUrl(endpoint: string): string {

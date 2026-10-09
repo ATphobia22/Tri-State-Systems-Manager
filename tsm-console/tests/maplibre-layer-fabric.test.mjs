@@ -32,6 +32,21 @@ test('builds an ArcGIS export template from a real MapServer endpoint', () => {
   assert.match(url, /\/export\?/);
   assert.match(url, /layers=show:28,16,3/);
   assert.match(url, /bbox=\{bbox-epsg-3857\}/);
+  assert.match(url, /format=png32&transparent=true/);
+});
+
+test('uses the ImageServer exportImage operation for raster imagery services', () => {
+  const url = buildArcGisExportTemplate(
+    'https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_Current_Imagery/ImageServer',
+  );
+  assert.match(url, /ImageServer\/exportImage\?bbox=/);
+  assert.doesNotMatch(url, /ImageServer\/export\?/);
+  const imagery = buildArcGisExportTemplate(
+    'https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_Current_Imagery/ImageServer',
+    [],
+    { format: 'jpg', transparent: false, compressionQuality: 90 },
+  );
+  assert.match(imagery, /format=jpg&transparent=false&compressionQuality=90/);
 });
 
 test('self-hosted terrain layer is bound to the runtime Terrain-RGB template', () => {
