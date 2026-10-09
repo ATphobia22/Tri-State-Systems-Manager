@@ -36,8 +36,6 @@ export abstract class HttpTextCapabilityProvider
   implements CapabilityProvider<TextModelInput, TextModelOutput>
 {
   abstract readonly id: string;
-  abstract readonly defaultModel: string;
-  abstract readonly environmentKeyName: string;
   readonly version = '0.1.0';
   readonly capabilities: readonly CapabilityDefinition[] = [
     {
