@@ -107,6 +107,7 @@
     "@react-three/fiber": "9.8.1",
     "@tanstack/react-virtual": "^3.14.13",
     "3d-tiles-renderer": "^0.5.3",
+    "cesium": "^1.146.0",
     "geotiff": "^3.0.5",
     "h3-js": "4.5.0",
     "lucide-react": "^1.48.0",
@@ -115,7 +116,8 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-router": "^8.4.0",
-    "three": "^0.186.1"
+    "three": "^0.186.1",
+    "vite-plugin-cesium": "^1.2.23"
   },
   "optionalDependencies": {
     "lightningcss-darwin-arm64": "1.33.0",

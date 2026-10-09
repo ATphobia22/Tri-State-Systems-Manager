@@ -2,6 +2,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defineConfig, loadEnv, type IndexHtmlTransformResult } from 'vite';
 import react from '@vitejs/plugin-react';
+import cesium from 'vite-plugin-cesium';
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -60,7 +61,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     base: isGitHubPagesBuild ? githubPagesBasePath : '/',
-    plugins: [react(), cspPlugin()],
+    plugins: [react(), cesium(), cspPlugin()],
     server: {
       port: 5173,
       proxy: {
