@@ -33,6 +33,15 @@ const groups = [
   },
 ];
 
+const inventories = [
+  { title: 'Workspace packages', pathPrefix: 'packages/', items: ['agent-runtime','approvals','artifacts','billing','browser','cache','capability-runtime','compute','contracts','core','credentials','data-fabric','events','evidence','gates','geo','hydraulics','jobs','maps','mcp','model-runtime','notifications','observability','ontology','openapi','policy','provenance','provider-runtime','providers','quantum','queues','registry','research','router','schemas','search','security','tenancy','tenant','twin','twin-pipeline','uacp','units','validation','web','workflow'] },
+  { title: 'Applications', pathPrefix: 'apps/', items: ['admin','dashboard','docs','playground','uacf-gateway'] },
+  { title: 'Provider adapters', pathPrefix: 'providers/', items: ['anthropic','browser','geo','google','local','maps','mcp','openai','openapi','openrouter','postgis','search'] },
+  { title: 'Plugin families', pathPrefix: 'plugins/', items: ['ai-ready','digital-twin','engineering','evidence-ledger','fema','grants','hydrology','monitoring','research','seo'] },
+  { title: 'Execution runtimes', pathPrefix: 'runtime/', items: ['docker','python','qsharp','rust','unreal'] },
+  { title: 'Repository engineering surfaces', pathPrefix: '', items: ['.github','.secrets','architecture','artifacts','backend','config','contracts','data','data-sources','database','db','deploy','docker','docs','evidence','frontend','infrastructure','integrations','native','offline_packages','ops','scripts','tests','third_party','thirdparty','tools','tsm-console','tsm-native'] },
+];
+
 export default function PlatformCapabilitiesView(): JSX.Element {
   return (
     <main style={{ maxWidth: 1180, margin: '0 auto', padding: '1.5rem', color: '#e7f0fa' }}>
@@ -57,6 +66,20 @@ export default function PlatformCapabilitiesView(): JSX.Element {
             <p style={{ borderTop: '1px solid #20354b', paddingTop: '0.75rem', marginBottom: 0, color: '#a8bbcf', fontSize: '0.8rem' }}>{group.status}</p>
           </article>
         ))}
+      </section>
+      <section style={{ marginTop: '1.25rem' }}>
+        <h2 style={{ fontSize: '1.25rem' }}>Repository inventory</h2>
+        <p style={{ color: '#a8bbcf', lineHeight: 1.6 }}>Directory inventory from the platform development tree. Package and adapter presence identifies code locations; it does not mean every provider has credentials, every integration is enabled, or every package is independently production-certified.</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,260px),1fr))', gap: 12 }}>
+          {inventories.map((inventory) => (
+            <article key={inventory.title} style={{ background: '#0d1b2b', border: '1px solid #20354b', borderRadius: 10, padding: '0.85rem' }}>
+              <h3 style={{ margin: '0 0 0.6rem', fontSize: '0.95rem', color: '#70d6ff' }}>{inventory.title}</h3>
+              <ul style={{ margin: 0, paddingLeft: '1.15rem', lineHeight: 1.55, fontSize: '0.8rem', columns: inventory.items.length > 20 ? 2 : 1 }}>
+                {inventory.items.map((item) => <li key={item}><code>{inventory.pathPrefix}{item}</code></li>)}
+              </ul>
+            </article>
+          ))}
+        </div>
       </section>
       <section style={{ marginTop: '1.25rem', padding: '1rem', border: '1px solid #20354b', borderRadius: 12, background: '#091523' }}>
         <h2 style={{ fontSize: '1rem', marginTop: 0 }}>Evidence and visual availability policy</h2>
