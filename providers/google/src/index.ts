@@ -10,7 +10,7 @@ export class GoogleCapabilityProvider extends HttpTextCapabilityProvider {
   readonly environmentKeyName = 'GOOGLE_API_KEY';
 
   constructor(options: TextModelProviderOptions = {}) {
-    super({ ...options, apiKey: options.apiKey ?? process.env.GOOGLE_API_KEY ?? process.env.GEMINI_API_KEY, model: options.model ?? process.env.GOOGLE_MODEL });
+    super({ ...options, apiKey: options.apiKey ?? process.env.GOOGLE_API_KEY ?? process.env.GEMINI_API_KEY, model: options.model ?? process.env.GOOGLE_MODEL }, { model: 'gemini-2.5-flash', environmentKeyName: 'GOOGLE_API_KEY' });
   }
 
   protected buildRequest(input: TextModelInput, maxOutputTokens: number): HttpModelRequest {
