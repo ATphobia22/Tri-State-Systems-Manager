@@ -6,6 +6,7 @@ import { MAP_PLANE_FABRIC, type MapPlaneLayer } from '../lib/map-plane-fabric';
 import { buildArcGisFeatureQueryUrl, getMapLibreFabricLayer } from '../lib/maplibre-layer-fabric';
 import { getTerrainRgbStatus } from '../lib/twin-map-style';
 import { TERRAIN_RGB_SOURCE_ID } from '../lib/terrain-rgb-contract';
+import { getCinematicLighting, type CinematicLightPreset } from '../lib/cinematic/light-presets';
 import {
   FLOOD_OVERLAY_METADATA,
   FloodDeckOverlay,
@@ -197,6 +198,8 @@ export interface TriStateDigitalTwinMapProps {
   /** Controlled layer visibility, keyed by fabric id. Omit for internal state. */
   visible?: Record<string, boolean>;
   onVisibleChange?: (next: Record<string, boolean>) => void;
+  /** Visual-only MapLibre light and sky preset; never used as environmental evidence. */
+  lightPreset?: CinematicLightPreset;
 }
 
 export function defaultMapPlaneVisibility(): Record<string, boolean> {
@@ -207,6 +210,9 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<Map | null>(null);
   const [internalVisible, setInternalVisible] = useState<Record<string, boolean>>(defaultMapPlaneVisibility);
+  const lightPreset = props.lightPreset ?? 'day';
+  const lightPresetRef = useRef(lightPreset);
+  lightPresetRef.current = lightPreset;
   const controlled = props.visible !== undefined;
   const visible = controlled ? (props.visible as Record<string, boolean>) : internalVisible;
   const [terrainEnabled, setTerrainEnabled] = useState(false);
@@ -317,6 +323,9 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
 
     map.on('load', () => {
       mapRef.current = map;
+      const lighting = getCinematicLighting(lightPresetRef.current);
+      map.setLight(lighting.light);
+      map.setSky(lighting.sky);
       const terrain = getTerrainRgbStatus();
       setTerrainEnabled(terrain.enabled);
       setStatus(terrain.enabled ? 'Terrain-RGB connected; source fabric online.' : 'Terrain-RGB fail-closed; configure VITE_TSM_TERRAIN_RGB_URL_TEMPLATE.');
@@ -403,6 +412,14 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
     // Subsequent visibility changes are applied by the separate effect below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshFeatureLayer]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map?.isStyleLoaded()) return;
+    const lighting = getCinematicLighting(lightPreset);
+    map.setLight(lighting.light);
+    map.setSky(lighting.sky);
+  }, [lightPreset]);
 
   useEffect(() => {
     const map = mapRef.current;
