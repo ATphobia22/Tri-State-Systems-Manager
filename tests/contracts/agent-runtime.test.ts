@@ -59,27 +59,46 @@ function runtime(policy = [{ capability: '*', allow: true }]) {
   return new AgentRuntime(fabric);
 }
 
-test('executes a capability through the existing fabric', async () => {
-  const result = await runtime().execute({
-    capability: definition.id,
-    input: { value: 42 },
-    context: { requestId: 'req-agent-1', permissions: { allow: [] } },
-    options: { deterministic: true, seed: 7 },
-  });
+test('executes a capability through the existing fabric when S2 human-gated', async () => {
+  const result = await runtime().execute(
+    {
+      capability: definition.id,
+      input: { value: 42 },
+      context: { requestId: 'req-agent-1', permissions: { allow: [] } },
+      options: { deterministic: true, seed: 7 },
+    },
+    { autonomy: 'S2', humanGated: true },
+  );
 
   assert.equal(result.success, true);
   assert.deepEqual(result.output, { value: 42 });
   assert.equal(result.traceId, 'req-agent-1');
-  const discovered = await runtime().describeAvailableCapabilities({ requestId: 'req-agent-discovery', permissions: { allow: [] } });
+  const discovered = await runtime().describeAvailableCapabilities({
+    requestId: 'req-agent-discovery',
+    permissions: { allow: [] },
+  });
   assert.equal(discovered.some((item) => item.id === definition.id), true);
 });
 
-test('preserves policy denial instead of bypassing the fabric', async () => {
-  const result = await runtime([{ capability: definition.id, allow: false }]).execute({
+test('S1 denies non-allow-listed capability without fabric bypass', async () => {
+  const result = await runtime().execute({
     capability: definition.id,
-    input: 'blocked',
-    context: { requestId: 'req-agent-2', permissions: { allow: [] } },
+    input: 'blocked-s1',
+    context: { requestId: 'req-agent-s1', permissions: { allow: [] } },
   });
+  assert.equal(result.success, false);
+  assert.equal(result.error?.code, 'AUTONOMY_DENIED');
+});
+
+test('preserves policy denial instead of bypassing the fabric', async () => {
+  const result = await runtime([{ capability: definition.id, allow: false }]).execute(
+    {
+      capability: definition.id,
+      input: 'blocked',
+      context: { requestId: 'req-agent-2', permissions: { allow: [] } },
+    },
+    { autonomy: 'S2', humanGated: true },
+  );
 
   assert.equal(result.success, false);
   assert.equal(result.error?.code, 'POLICY_DENIED');
