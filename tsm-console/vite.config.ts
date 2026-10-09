@@ -74,18 +74,7 @@ export default defineConfig(({ mode }) => {
       outDir: 'dist',
       sourcemap: true,
       rolldownOptions: {
-        // Register the 3D Tiles renderer smoke page as a Vite-managed entry so
-        // `vite build` emits dist/terrain-3d-tiles-renderer-smoke.html with
-        // bundled assets. Cypress (cypress/e2e/terrain-3d-tiles-renderer.cy.ts)
-        // and the deploy-pages smoke test both fetch this page; without the
-        // entry the page 404s and the E2E suites fail on every attempt.
-        // Restored 2026-10-08: commit 54008b26 dropped this block, which broke
-        // the smoke page in CI builds (the page only existed in dist because
-        // of a stale local build artifact).
-        input: {
-          main: path.resolve(rootDir, 'index.html'),
-          terrain3dTilesSmoke: path.resolve(rootDir, 'terrain-3d-tiles-renderer-smoke.html'),
-        },
+      },
         output: {
           codeSplitting: {
             groups: [
