@@ -73,19 +73,6 @@ jobs:
           print("EPT dataType:", d.get("dataType"))
           print("EPT span:", d.get("span"))
           PY
-      - name: Smoke-test LiDAR extraction
-        shell: bash
-        run: |
-          set -euo pipefail
-          # Retry up to 3 times for transient EPT network flakiness
-          for attempt in 1 2 3; do
-            if python3 scripts/geospatial/extract_lidar_heights.py --geojson /tmp/tsm-igio/posey-buildings-igio-enriched.geojson --out /tmp/tsm-igio/lidar-smoke.geojson --limit 10 --allow-zero-heights --require-source-node; then
-              break
-            fi
-            echo "Smoke-test attempt $attempt failed, retrying in 30s..."
-            sleep 30
-          done
-          test -s /tmp/tsm-igio/lidar-smoke.geojson
       - name: Extract authoritative LiDAR building heights (OBSERVED)
         shell: bash
         run: |
