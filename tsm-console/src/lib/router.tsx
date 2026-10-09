@@ -31,9 +31,6 @@ let contracts: DataContractSummary[] = [
 ];
 
 async function rootLoader(): Promise<RootLoaderData> {
-  // Standing owner rule (2026-10-01, superseding): live values ONLY via a
-  // user-initiated "Fetch live snapshot" button. Page loaders perform no
-  // network fetch and return the unavailable sentinel.
   const stage = unavailableStage();
   return {
     auth: getSession(),
@@ -48,7 +45,6 @@ async function charterLoader(): Promise<CharterLoaderData> {
 }
 
 async function architectureLoader(): Promise<ArchitectureLoaderData> {
-  // ADR-005: canonical FOUR-plane model (see data/schemas/tsm-four-plane-architecture-v1.json).
   return { trustPlanes: [
     { level: 1, name: 'Evidence & Data Governance Plane', description: 'Authoritative ingestion (USGS/NOAA/3DEP/NFHL), immutable snapshots, SHA-256 content addressing, provenance manifests, fail-closed ingestion.' },
     { level: 2, name: 'Scientific & Simulation Plane', description: 'Versioned model inputs, explicit uncertainty propagation, traceable HAZUS/BCA adapters, explicit CRS/datum transformations; derived geometry tagged DERIVED, never AUTHORITATIVE.' },
@@ -101,12 +97,6 @@ async function benefitAction({ request }: ActionFunctionArgs) { requireAuthentic
 async function mapTwinLoader(): Promise<MapTwinLoaderData> { const stage = unavailableStage(); return { site: SITE, stage, fema: { communityNumber: SITE.femaCommunities.mountVernon, bfe_ft: SITE.elevations.bfe_ft, lag_ft: SITE.elevations.lag_ft, clearance_ft: SITE.elevations.clearanceAboveBfe_ft, noRiseTolerance_ft: null }, boundingEnvelope: SITE.boundingEnvelope }; }
 function ArchitectureView() { const data = useLoaderData() as ArchitectureLoaderData; return <div style={{ padding: '1.5rem 2rem', maxWidth: 900, margin: '0 auto' }}><h1 style={{ color: t.color.text.primary }}>Four Trust Planes</h1><p style={{ color: t.color.text.secondary, fontSize: t.font.size.lg }}>{data.coreFlow.join(' → ')}</p>{data.trustPlanes.map((p) => <div key={p.level} style={{ background: t.color.surface.card, borderRadius: t.radius.lg, padding: '1rem', marginBottom: 8 }}><strong style={{ color: t.color.accent.brand }}>L{p.level}</strong>{' '}<span style={{ color: t.color.text.primary }}>{p.name}</span><p style={{ color: t.color.text.secondary, fontSize: t.font.size.base, margin: '0.35rem 0 0' }}>{p.description}</p></div>)}</div>; }
 
-/**
- * Shared loading fallback for lazily-loaded routes. React Router renders
- * `hydrateFallbackElement` while a route's `lazy()` chunk is being fetched, so
- * a chunk failure can never leave a blank page — the root `errorElement` (see
- * below) takes over if the chunk itself errors.
- */
 function RouteLoadingFallback({ label }: { label: string }) {
   return (
     <div role="status" aria-live="polite" style={{ padding: '2rem', color: t.color.text.secondary, background: t.color.surface.base, minHeight: '40vh', fontSize: t.font.size.base }}>
@@ -114,36 +104,6 @@ function RouteLoadingFallback({ label }: { label: string }) {
     </div>
   );
 }
-
-/* ---------------------------------------------------------------------------
- * ROUTE MAP (Phase 2 visual-system decision)
- *
- * The four twin surfaces were near-duplicates in the nav. They are NOT merged —
- * each is a genuinely different working surface — but they are now clearly
- * differentiated by nav label, document.title (RouteTitle.tsx), and purpose:
- *
- *   /map            "Hydraulic Map"   — 2D MapLibre map with stage/jurisdiction
- *                                        visualization controls. Nav: yes.
- *   /twin           "Twin Canvas"     — full-bleed twin canvas, minimal chrome;
- *                                        hosts the cinematic tour. Nav: yes.
- *   /digital-twin   "Twin Summary"    — card summary: elevations, live gauges,
- *                                        clearance. DELIBERATE DEEP LINK: kept
- *                                        out of the nav to avoid a fourth map
- *                                        entry; reachable from the Twin Canvas
- *                                        footer ("Twin summary").
- *   /digital-twin-v2 "Digital Twin 3D" — immersive open-world 3D twin app.
- *                                        React.lazy()'d off the critical path
- *                                        (maplibre-gl ~1 MB must never block
- *                                        first paint for non-map visitors).
- *                                        Nav: yes ("3D Twin").
- *
- * Orphaned routes made reachable (Phase 2):
- *   /eoc         "EOC Surface"   — decision-support dashboard; added to nav.
- *   /data-fabric "Data Fabric"   — public data fabric dashboard; added to nav.
- *
- * Every route inherits the root `errorElement` (RouteErrorPage) so loader or
- * chunk failures render a recoverable error page instead of a blank screen.
- * ------------------------------------------------------------------------- */
 
 const routerBasename = import.meta.env.BASE_URL.endsWith('/')
   ? import.meta.env.BASE_URL.slice(0, -1) || '/'
@@ -154,9 +114,6 @@ export const appRoutes = [
   { path: 'login/callback', element: <LoginCallbackView /> },
   { id: 'root', path: '/', loader: rootLoader, element: <RootLayout />, errorElement: <RouteErrorPage />, children: [
   { index: true, loader: charterLoader, element: <CharterView /> },
-  // PWA manifest start_url / shortcuts resolve to an explicit ./index.html
-  // (e.g. iPhone "Add to Home Screen"). Serve the charter there too instead
-  // of letting the router throw a 404 for the site's own front door.
   { path: 'index.html', loader: charterLoader, element: <CharterView /> },
   { path: 'architecture', loader: architectureLoader, element: <ArchitectureView /> },
   { path: 'data-fabric', element: <PublicDataFabricDashboard /> },
@@ -174,20 +131,17 @@ export const appRoutes = [
   { path: 'digital-twin', loader: mapTwinLoader, hydrateFallbackElement: <RouteLoadingFallback label="the twin summary" />, lazy: async () => ({ Component: (await import('../routes/MapTwinView')).default }) },
   { path: 'digital-twin-v2', loader: mapTwinLoader, hydrateFallbackElement: <RouteLoadingFallback label="the unified 3D twin" />, lazy: async () => ({ Component: (await import('../routes/TwinCanvasView')).default }) },
   { path: 'globe', hydrateFallbackElement: <RouteLoadingFallback label="the self-hosted CesiumJS globe" />, lazy: async () => ({ Component: (await import('../routes/GlobeView')).default }) },
+  { path: 'terrain-3d', hydrateFallbackElement: <RouteLoadingFallback label="self-hosted USGS 3DEP 3D terrain" />, lazy: async () => ({ Component: (await import('../routes/CesiumTerrainView')).default }) },
+  { path: 'platform', hydrateFallbackElement: <RouteLoadingFallback label="platform capabilities index" />, lazy: async () => ({ Component: (await import('../routes/PlatformCapabilitiesView')).default }) },
   { path: 'flood-sim', hydrateFallbackElement: <RouteLoadingFallback label="the flood simulator" />, lazy: async () => ({ Component: (await import('../components/FloodSimulator')).default }) },
   { path: 'spatial-planes', hydrateFallbackElement: <RouteLoadingFallback label="the spatial data fabric" />, lazy: async () => ({ Component: (await import('../components/TriStateRiverValleyMap')).default }) },
   { path: 'posey-resilience', hydrateFallbackElement: <RouteLoadingFallback label="the Posey resilience platform" />, lazy: async () => ({ Component: (await import('../routes/PoseyResilienceDashboard')).default }) },
   { path: 'ops-dashboard', hydrateFallbackElement: <RouteLoadingFallback label="the operations dashboard" />, lazy: async () => ({ Component: (await import('../routes/OpsDashboardView')).default }) },
   { path: 'updates', hydrateFallbackElement: <RouteLoadingFallback label="project updates" />, lazy: async () => ({ Component: (await import('../routes/ProjectUpdatesView')).default }) },
-  // Friendly not-found for any other unmatched address (kept last). Real
-  // loader/chunk failures still surface through the root errorElement.
   { path: '*', element: <NotFoundView /> },
 ] },
 ];
 
-/** Browser router for the app shell. Route definitions live in `appRoutes`
- *  so tests can match against them without a DOM. Creation is deferred to
- *  first use so importing this module never touches `document`. */
 let cachedRouter: ReturnType<typeof createBrowserRouter> | null = null;
 export function getRouter(): ReturnType<typeof createBrowserRouter> {
   if (!cachedRouter) {

@@ -10,25 +10,15 @@ import { RouteTitle } from './RouteTitle';
 import { TourOnboardingHint } from './TourOnboardingHint';
 import BackgroundMusic from './BackgroundMusic';
 
-/**
- * Phase 2 nav: the four twin surfaces are differentiated by label, and the
- * previously orphaned routes /eoc and /data-fabric are now reachable.
- * /digital-twin (Twin Summary) stays a documented deep link — see router.tsx
- * ROUTE MAP comment — reachable from the Twin Canvas footer, not the nav.
- */
 const nav = [
   { to: '/', label: 'Charter', end: true }, { to: '/architecture', label: 'Trust Planes' }, { to: '/river-watch', label: 'River Watch' },
   { to: '/engineering-section', label: 'Engineering Section' }, { to: '/needs', label: 'Human Needs' }, { to: '/ledger', label: 'Evidence Ledger' },
   { to: '/lineage', label: 'Data Contracts' }, { to: '/benefit', label: 'Benefit Engine' }, { to: '/map', label: 'Hydraulic Map' },
   { to: '/twin', label: 'Twin Canvas' }, { to: '/digital-twin-v2', label: '3D Twin' }, { to: '/eoc', label: 'EOC Surface' },
   { to: '/data-fabric', label: 'Data Fabric' }, { to: '/flood-sim', label: 'Flood Simulator' },
+  { to: '/globe', label: 'Cesium Globe' }, { to: '/terrain-3d', label: '3D Terrain (3DEP)' }, { to: '/platform', label: 'Platform Capabilities' },
 ];
 
-/**
- * Responsive shell styles. These are the first `@media` queries in the app:
- * below 768px the fixed 280px sidebar becomes a hamburger-driven drawer so
- * the content column gets the full phone width.
- */
 const SHELL_CSS = `
 .tsm-skip-link {
   position: absolute; left: -9999px; top: 0; z-index: 200;
@@ -76,7 +66,6 @@ export default function RootLayout() {
     <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', fontFamily: 'system-ui, sans-serif', background: t.color.surface.base, color: t.color.text.body }}>
       <style>{SHELL_CSS}</style>
       <RouteTitle />
-      {/* Skip link: first focusable element, visually hidden until focused. */}
       <a href="#main-content" className="tsm-skip-link">Skip to main content</a>
       <header style={{ background: t.color.surface.deep, borderBottom: `1px solid ${t.color.surface.card}`, padding: '0.75rem 1.25rem' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem' }}>
