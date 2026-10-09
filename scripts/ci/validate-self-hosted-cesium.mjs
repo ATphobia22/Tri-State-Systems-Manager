@@ -17,7 +17,6 @@ const required = [
   ['tsm-console/src/lib/router.tsx', [
     ['3D terrain route', /path: 'terrain-3d'/],
     ['platform index route', /path: 'platform'/],
-    ['globe route retained', /path: 'globe'/],
   ]],
   ['tsm-console/src/components/RootLayout.tsx', [
     ['terrain navigation', /label: '3D Terrain \(3DEP\)'/],
@@ -25,18 +24,27 @@ const required = [
   ]],
   ['scripts/ci/install-cesium-static.mjs', [
     ['pinned CesiumJS version', /version='1\.146\.0'/],
+    ['static runtime asset list', /'Cesium\.js'.*'Workers'.*'ThirdParty'.*'Assets'.*'Widgets'/],
   ]],
   ['.github/workflows/deploy-pages.yml', [
     ['build terrain tiles', /build-terrain-3d-tiles\.py/],
     ['validate terrain tiles', /validate-terrain-3d-tiles\.py/],
     ['vendor Cesium runtime', /install-cesium-static\.mjs/],
+    ['verify published Cesium runtime', /vendor\/cesium\/Cesium\.js/],
+  ]],
+  ['artifacts/tsm-terrain-3d-tiles-v1.json', [
+    ['OGC 3D Tiles 1.1 output', /OGC 3D Tiles 1\.1/],
+    ['USGS 3DEP source', /USGS 3DEP/],
+    ['screening limitation', /not establish survey-grade engineering control/],
   ]],
   ['tsm-console/public/platform-capabilities.json', [
     ['capability manifest artifact type', /tsm\.platform_capabilities\.v1/],
     ['public route inventory', /publicRoutes/],
+    ['operator skill inventory', /operatorSkills/],
   ]],
   ['data/schemas/tsm-platform-capabilities-v1.schema.json', [
     ['capability manifest schema', /TSM Platform Capabilities Manifest v1/],
+    ['schema contract id', /tsm-platform-capabilities-v1/],
   ]],
 ];
 

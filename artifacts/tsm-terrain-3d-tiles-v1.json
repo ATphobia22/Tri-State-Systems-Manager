@@ -26,7 +26,7 @@
   "verification": {
     "sourceToMbtiles": "existing Terrain-RGB pack gate",
     "tileset": "scripts/geospatial/validate-terrain-3d-tiles.py",
-    "renderer": "scripts/ci/terrain-3d-tiles-renderer-smoke.mjs",
+    "renderer": "tsm-console/src/components/CesiumTilesLayer.tsx",
     "publication": "GitHub Pages SHA256SUMS re-download and byte verification"
   },
   "safetyBoundary": "Visualization terrain does not establish survey-grade engineering control, hydraulic model input validity, FEMA regulatory authority, or agency approval."

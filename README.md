@@ -8,6 +8,16 @@ TSM is decision-support software—not a surveying instrument, certified digital
 
 > **Operating principle:** Technology informs people; it does not silently govern people. Qualified human and agency authority remains final.
 
+## Interactive web surfaces
+
+The production console includes these routes when the corresponding Pages build has completed successfully:
+
+- [Self-hosted 3D terrain viewer](https://atphobia22.github.io/Tri-State-Systems-Manager/terrain-3d/) — CesiumJS and the generated USGS 3DEP-derived OGC 3D Tiles 1.1 mesh, served from the site's own static asset paths.
+- [Platform capabilities index](https://atphobia22.github.io/Tri-State-Systems-Manager/platform/) — public index of UACF, geospatial, evidence, package families, runtime components, and deployment boundaries.
+- [Twin Canvas](https://atphobia22.github.io/Tri-State-Systems-Manager/twin/) — the interactive MapLibre twin surface.
+
+The terrain viewer renders a valid published tileset independently of live gauge/API connectivity. Missing assets produce a visible renderer error rather than suppressing the console. This improves visualization availability without relaxing provenance, datum, engineering, or regulatory evidence requirements. See [the self-hosted Cesium/3D Tiles contract](docs/SELF-HOSTED-CESIUM-3D-TILES.md) and [the production terrain deployment guide](docs/TERRAIN-PRODUCTION-DEPLOY.md).
+
 ## Product overview
 
 - **Public-source geospatial workspace:** MapLibre-based maps combine state and federal imagery, elevation, flood, parcel, road, building-footprint, and land-survey context, with source attribution and explicit layer controls.
@@ -64,7 +74,6 @@ Settings → Pages → Source must be **GitHub Actions**. The workflow does not 
 ### CI hardening (2026-10-08)
 
 - **numpy 2.1.3** pinned in PTDT visual and remote-runtime workflows (GEOID18 dependency).
-- **Cypress WebGL:** restored missing Vite smoke-page entry (`terrain-3d-tiles-renderer-smoke.html`), SwiftShader software-rendering flags, 3-attempt retry with 30s backoff.
 - **laspy 2.6.1 + lazrs 0.7.0** added to Pages deploy dependencies.
 - **UACF:** fixed traceId correlation (`requestId || randomUUID()`) and unclosed object literals in test file.
 - **Runner pinning:** all workflows pinned to `ubuntu-24.04` ahead of GitHub's 2026-10-19 `ubuntu-latest` → 26.04 image flip.
