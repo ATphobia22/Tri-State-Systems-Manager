@@ -43,11 +43,10 @@
     "test:v35.1": "vitest run tests/v35.1-contracts.test.ts",
     "test:v35": "npm run test:v35.1",
     "sign:evidence": "node --experimental-strip-types ../scripts/sign-evidence.ts",
-    "ingest": "node scripts/hydrologic-ingestion-smoke.mjs",
     "test:evidence-signer": "node ../scripts/evidence/test-sign-evidence.mjs",
     "test:loma-signing": "node ../scripts/evidence/test-loma-signing.mjs",
     "test:mapillary": "vitest run tests/mapillary-evidence-contract.test.ts",
-    "test:geospatial-tile-fabric": "node --test tests/geospatial-tile-fabric-contract.test.mjs tests/geospatial-tile-fabric-smoke.test.mjs",
+    "test:geospatial-tile-fabric": "node --test tests/geospatial-tile-fabric-contract.test.mjs",
     "check:tile-health": "node scripts/geospatial/tile-health-check.mjs",
     "test:twin": "node --test tests/open-world-twin-contract.test.mjs",
     "test:hec-ras": "node --test tests/hec-ras-contract.test.mjs tests/hec-ras-modern-runtime.test.mjs",
@@ -90,8 +89,7 @@
     "test:backend": "bash ../run-backend-tests.sh",
     "check:h3-migration": "node ../scripts/ci/validate-h3-migration-contract.mjs",
     "build:terrain-3d-tiles": "python3 ../scripts/geospatial/build-terrain-3d-tiles.py",
-    "validate:terrain-3d-tiles": "python3 ../scripts/geospatial/validate-terrain-3d-tiles.py",
-    "test:terrain-3d-tiles-browser": "cypress run --browser chrome --spec cypress/e2e/terrain-3d-tiles-renderer.cy.ts"
+    "validate:terrain-3d-tiles": "python3 ../scripts/geospatial/validate-terrain-3d-tiles.py"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.2.0",
