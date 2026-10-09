@@ -23,7 +23,7 @@
     "verify:uacf": "npm run build:uacf && npm run test:uacf && npm run test:uacf-contracts && npm run test:evidence && npm run test:twin-fabric && npm run test:uacf-agent && npm run test:uacf-providers && npm run test:uacf-apps && npm run test:uacf-foundations && npm run test:uacf-openai-adapter && npm run test:uacf-gateway",
     "test:twin-fabric": "tsx --test tests/contracts/unified-twin-fabric.test.ts",
     "test:uacf-agent": "tsx --test tests/contracts/agent-runtime.test.ts",
-    "test:uacf-providers": "tsx --test tests/contracts/provider-boundaries.test.ts",
+    "test:uacf-providers": "tsx --test tests/contracts/provider-boundaries.test.ts tests/contracts/uacf-model-providers.test.ts",
     "test:uacf-apps": "tsx --test tests/contracts/uacf-apps.test.ts",
     "test:uacf-contracts": "tsx --test tests/contracts/canonical-contract-exports.test.ts",
     "test:uacf-foundations": "tsx --test tests/contracts/uacf-platform-foundations.test.ts",
