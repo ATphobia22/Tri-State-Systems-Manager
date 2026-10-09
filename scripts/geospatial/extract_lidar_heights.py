@@ -234,21 +234,47 @@ class EPTReader:
         return None
 
     def read_node(self, node_id: str):
-        """Fetch and parse LAZ for a node (cached). Returns laspy LasData."""
+        """Fetch and parse LAZ for a node (cached). Returns laspy LasData.
+
+        Retries transient network failures (IncompleteRead, connection reset,
+        timeouts) with exponential backoff. A node that fails after retries
+        raises, and the calling building is marked as an error (fail-closed).
+        """
+        import time
         if node_id in self._cache:
             return self._cache[node_id]
         import laspy
         url = f"{self.base}/ept-data/{node_id}.laz"
-        req = urllib.request.Request(url, headers={"User-Agent": "TSM-LiDAR-Extractor/1.0"})
-        with urllib.request.urlopen(req, timeout=120) as r:
-            data = r.read()
-        las = laspy.read(io.BytesIO(data))
-        self._cache[node_id] = las
-        # Keep cache bounded
-        if len(self._cache) > 8:
-            oldest = next(iter(self._cache))
-            del self._cache[oldest]
-        return las
+        last_exc = None
+        for attempt in range(4):
+            try:
+                req = urllib.request.Request(url, headers={"User-Agent": "TSM-LiDAR-Extractor/1.0"})
+                with urllib.request.urlopen(req, timeout=120) as r:
+                    data = r.read()
+                las = laspy.read(io.BytesIO(data))
+                self._cache[node_id] = las
+                # Keep cache bounded
+                if len(self._cache) > 8:
+                    oldest = next(iter(self._cache))
+                    del self._cache[oldest]
+                return las
+            except Exception as e:
+                last_exc = e
+                # Only retry transient network errors, not parse errors
+                name = type(e).__name__
+                msg = str(e)
+                transient = (
+                    "IncompleteRead" in name
+                    or "URLError" in name
+                    or "ConnectionReset" in name
+                    or "Timeout" in name
+                    or "timeout" in msg.lower()
+                    or "reset by peer" in msg.lower()
+                )
+                if not transient or attempt == 3:
+                    raise
+                time.sleep(2 ** attempt)
+        raise last_exc
 
 
 def extract_heights(geojson_path: Path, out_path: Path, ept_url: str | None,
