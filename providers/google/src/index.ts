@@ -1,30 +1,39 @@
-// @tsm/provider-google — UACF provider stub (v0.1.0).
-// Declares the provider interface only. NOT a working integration: no API
-// keys are read, no network calls are made, and execute() always throws
-// fail-closed until an operator configures the provider explicitly.
+import { HttpTextCapabilityProvider, type HttpModelRequest, type TextModelInput, type TextModelProviderOptions } from '../../../packages/provider-runtime/src/HttpTextCapabilityProvider.ts';
 
-import type { CapabilityId, CapabilityProvider, CapabilityRequest, CapabilityResult, ProviderHealth, SupportDecision } from '../../../packages/contracts/src/index.ts';
-
-function notConfigured(): never {
-  throw new Error('@tsm/provider-google: provider is not configured — refusing to execute (fail-closed). No credentials are read and no request is sent.');
+function record(value: unknown): Record<string, unknown> {
+  return value !== null && typeof value === 'object' ? value as Record<string, unknown> : {};
 }
 
-export class StubCapabilityProvider implements CapabilityProvider {
+export class GoogleCapabilityProvider extends HttpTextCapabilityProvider {
   readonly id = 'provider.google';
-  readonly version = '0.1.0';
-  readonly capabilities = [] as const;
+  readonly defaultModel = 'gemini-2.5-flash';
+  readonly environmentKeyName = 'GOOGLE_API_KEY';
 
-  async health(): Promise<ProviderHealth> {
-    return { healthy: false, latencyMs: 0, errorRate: 1, lastChecked: new Date().toISOString() };
+  constructor(options: TextModelProviderOptions = {}) {
+    super({ ...options, apiKey: options.apiKey ?? process.env.GOOGLE_API_KEY ?? process.env.GEMINI_API_KEY, model: options.model ?? process.env.GOOGLE_MODEL });
   }
 
-  async supports(_capability: CapabilityId, _input: unknown): Promise<SupportDecision> {
-    return { supported: false };
+  protected buildRequest(input: TextModelInput, maxOutputTokens: number): HttpModelRequest {
+    return {
+      url: `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(this.model)}:generateContent`,
+      headers: { 'content-type': 'application/json', 'x-goog-api-key': this.apiKey ?? '' },
+      body: { contents: [{ role: 'user', parts: [{ text: input.input }] }], ...(input.system ? { systemInstruction: { parts: [{ text: input.system }] } } : {}), generationConfig: { maxOutputTokens } },
+    };
   }
 
-  async execute(_request: CapabilityRequest): Promise<CapabilityResult> {
-    return notConfigured();
+  protected extractText(payload: unknown): string {
+    const candidates = record(payload).candidates;
+    if (!Array.isArray(candidates)) return '';
+    return candidates.flatMap((candidate) => {
+      const parts = record(record(candidate).content).parts;
+      if (!Array.isArray(parts)) return [];
+      return parts.flatMap((part) => {
+        const item = record(part);
+        return typeof item.text === 'string' ? [item.text] : [];
+      });
+    }).join('');
   }
 }
 
-export default StubCapabilityProvider;
+export { GoogleCapabilityProvider as StubCapabilityProvider };
+export default GoogleCapabilityProvider;
