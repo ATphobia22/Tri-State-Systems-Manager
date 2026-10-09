@@ -174,6 +174,7 @@ export const appRoutes = [
   { path: 'digital-twin', loader: mapTwinLoader, hydrateFallbackElement: <RouteLoadingFallback label="the twin summary" />, lazy: async () => ({ Component: (await import('../routes/MapTwinView')).default }) },
   { path: 'digital-twin-v2', loader: mapTwinLoader, hydrateFallbackElement: <RouteLoadingFallback label="the unified 3D twin" />, lazy: async () => ({ Component: (await import('../routes/TwinCanvasView')).default }) },
   { path: 'terrain-3d', hydrateFallbackElement: <RouteLoadingFallback label="self-hosted USGS 3DEP 3D terrain" />, lazy: async () => ({ Component: (await import('../routes/CesiumTerrainView')).default }) },
+  { path: 'platform', hydrateFallbackElement: <RouteLoadingFallback label="platform capabilities index" />, lazy: async () => ({ Component: (await import('../routes/PlatformCapabilitiesView')).default }) },
   { path: 'flood-sim', hydrateFallbackElement: <RouteLoadingFallback label="the flood simulator" />, lazy: async () => ({ Component: (await import('../components/FloodSimulator')).default }) },
   { path: 'spatial-planes', hydrateFallbackElement: <RouteLoadingFallback label="the spatial data fabric" />, lazy: async () => ({ Component: (await import('../components/TriStateRiverValleyMap')).default }) },
   { path: 'posey-resilience', hydrateFallbackElement: <RouteLoadingFallback label="the Posey resilience platform" />, lazy: async () => ({ Component: (await import('../routes/PoseyResilienceDashboard')).default }) },
