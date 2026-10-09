@@ -39,4 +39,4 @@ npm --prefix tsm-console run check:type
 npm --prefix tsm-console run check:3d-tiles-tools
 ```
 
-The production workflow performs generation, browser smoke checks, asset integrity validation, and post-publication checks. A source-code check alone does not prove that GitHub Pages has deployed the latest artifacts; verify the production workflow and published URL separately.
+The production workflow performs terrain generation, OGC 3D Tiles validation, static asset integrity checks, and post-publication checks. The release contract does not depend on a separate smoke-test harness. A source-code check alone does not prove that GitHub Pages has deployed the latest artifacts; verify the production workflow and published URL separately.
