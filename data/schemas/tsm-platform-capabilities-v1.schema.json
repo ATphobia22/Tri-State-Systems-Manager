@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atphobia22.github.io/Tri-State-Systems-Manager/schemas/tsm-platform-capabilities-v1.schema.json",
+  "title": "TSM Platform Capabilities Manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "artifactType",
+    "generatedFrom",
+    "product",
+    "publicRoutes",
+    "applications",
+    "packages",
+    "providers",
+    "plugins",
+    "runtimes",
+    "operatorSkills",
+    "validationEntrypoints",
+    "evidenceBoundaries"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "artifactType": {
+      "const": "tsm.platform_capabilities.v1"
+    },
+    "generatedFrom": {
+      "type": "string",
+      "minLength": 1
+    },
+    "product": {
+      "type": "string",
+      "minLength": 1
+    },
+    "publicRoutes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "name",
+          "status"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "pattern": "^/"
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "format": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "applications": {
+      "$ref": "#/$defs/stringList"
+    },
+    "packages": {
+      "$ref": "#/$defs/stringList"
+    },
+    "providers": {
+      "$ref": "#/$defs/stringList"
+    },
+    "plugins": {
+      "$ref": "#/$defs/stringList"
+    },
+    "runtimes": {
+      "$ref": "#/$defs/stringList"
+    },
+    "operatorSkills": {
+      "$ref": "#/$defs/stringList"
+    },
+    "validationEntrypoints": {
+      "$ref": "#/$defs/stringList"
+    },
+    "evidenceBoundaries": {
+      "type": "object",
+      "required": [
+        "terrainAuthority",
+        "engineeringUse",
+        "regulatoryUse",
+        "statement",
+        "visualizationPolicy"
+      ],
+      "properties": {
+        "terrainAuthority": {
+          "type": "string"
+        },
+        "engineeringUse": {
+          "type": "boolean"
+        },
+        "regulatoryUse": {
+          "type": "boolean"
+        },
+        "statement": {
+          "type": "string"
+        },
+        "visualizationPolicy": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "stringList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}
