@@ -46,4 +46,8 @@ test('MapLibre plane uses real registered raster endpoints and no placeholder ho
   const source = fs.readFileSync(new URL('../src/components/TriStateDigitalTwinMap.tsx', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /example\\.(com|org|invalid)/i);
   assert.doesNotMatch(source, /protomaps\\.com\\{z\\}/i);
+  assert.match(source, /buildArcGisExportTemplate\(imagery, \[\], \{ format: 'jpg', transparent: false, compressionQuality: 90 \}\)/);
+  assert.match(source, /buildArcGisExportTemplate\(service, layers\)/);
+  assert.match(source, /if \(enabled && !previouslyVisible\[item\.id\]\) void refreshFeatureLayer\(map, item\);/);
+  assert.match(source, /else if \(!enabled && previouslyVisible\[item\.id\]\) featureRequestsRef\.current\.cancel\(item\.id\);/);
 });
