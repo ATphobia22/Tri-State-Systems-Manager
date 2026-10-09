@@ -10,7 +10,7 @@ export class OpenRouterCapabilityProvider extends HttpTextCapabilityProvider {
   readonly environmentKeyName = 'OPENROUTER_API_KEY';
 
   constructor(options: TextModelProviderOptions = {}) {
-    super({ ...options, model: options.model ?? process.env.OPENROUTER_MODEL });
+    super({ ...options, model: options.model ?? process.env.OPENROUTER_MODEL }, { model: 'openai/gpt-4.1-mini', environmentKeyName: 'OPENROUTER_API_KEY' });
   }
 
   protected buildRequest(input: TextModelInput, maxOutputTokens: number): HttpModelRequest {
