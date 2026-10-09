@@ -1,0 +1,185 @@
+/**
+ * TSM accessible design system — easy to see and use for all ages.
+ *
+ * Principles (user direction 2026-10-09):
+ *  1. High legibility first: light, clean backgrounds, dark text, 4.5:1+
+ *     contrast. Body text never below 16px; labels never below 14px.
+ *  2. Simple, obvious navigation: big clearly-labeled buttons and layer
+ *     toggles with text labels — never icon-only. A senior or a kid should
+ *     understand every control without a manual.
+ *  3. Color for meaning, not decoration: flood depth ramp uses lightness
+ *     steps PLUS text labels, distinguishable without relying on hue alone.
+ *  4. Touch targets: 48px minimum for every interactive element.
+ *  5. No jargon: provenance shown in plain words alongside the honest
+ *     code, e.g. "Measured by laser (3DEP)" next to OBSERVED.
+ *
+ * Honesty rule (unchanged): every numeric readout carries its provenance.
+ * Missing data renders "unavailable" — never zero, never invented.
+ *
+ * Typography: system stacks only — no webfont downloads.
+ */
+
+:root {
+  --tsm-bg: #ffffff;
+  --tsm-bg-soft: #f4f6f9;
+  --tsm-bg-panel: #ffffff;
+  --tsm-text: #1a2332;
+  --tsm-text-dim: #4a5568;
+  --tsm-border: #cbd5e1;
+  --tsm-border-strong: #94a3b8;
+  --tsm-primary: #005fcc;
+  --tsm-primary-dark: #004a9e;
+  --tsm-ok: #0d7a3f;
+  --tsm-warn-bg: #fff7e6;
+  --tsm-warn-border: #b7791f;
+  --tsm-warn-text: #7a4d0a;
+  --tsm-danger-bg: #fdecec;
+  --tsm-danger-border: #c92a2a;
+  --tsm-danger-text: #8f1d1d;
+  --tsm-font-body: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --tsm-font-data: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* ---- Readable panel (light, high contrast) ---- */
+.tsm-panel {
+  background: var(--tsm-bg-panel);
+  border: 2px solid var(--tsm-border);
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(26, 35, 50, 0.12);
+  color: var(--tsm-text);
+  font-family: var(--tsm-font-body);
+  font-size: 16px;
+  line-height: 1.5;
+}
+.tsm-panel__title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--tsm-text);
+  margin: 0 0 8px;
+}
+.tsm-panel__meta {
+  font-size: 14px;
+  color: var(--tsm-text-dim);
+  line-height: 1.5;
+}
+
+/* ---- Big, clearly-labeled buttons / toggles ---- */
+.tsm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  min-width: 48px;
+  padding: 12px 20px;
+  font-family: var(--tsm-font-body);
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 10px;
+  border: 2px solid var(--tsm-primary);
+  background: var(--tsm-primary);
+  color: #ffffff;
+  cursor: pointer;
+}
+.tsm-btn:hover { background: var(--tsm-primary-dark); border-color: var(--tsm-primary-dark); }
+.tsm-btn-secondary {
+  background: #ffffff;
+  color: var(--tsm-primary);
+}
+.tsm-btn-secondary:hover { background: var(--tsm-bg-soft); }
+.tsm-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* ---- Layer toggle rows: text label + state, never icon-only ---- */
+.tsm-layer-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--tsm-bg-soft);
+  font-size: 16px;
+}
+.tsm-layer-row:last-child { border-bottom: none; }
+.tsm-layer-name { font-weight: 600; color: var(--tsm-text); }
+.tsm-layer-state {
+  margin-left: auto;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.tsm-layer-state-available { color: var(--tsm-ok); }
+.tsm-layer-state-unavailable { color: var(--tsm-danger-text); }
+.tsm-layer-state-checking { color: var(--tsm-warn-text); }
+
+/* ---- Provenance: honest code + plain words ---- */
+.tsm-prov {
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  white-space: nowrap;
+}
+.tsm-prov-observed { background: #e6f4ff; color: #004a9e; border-color: #005fcc; }
+.tsm-prov-derived { background: #eef0ff; color: #3730a3; border-color: #5b7fff; }
+.tsm-prov-simulated { background: var(--tsm-warn-bg); color: var(--tsm-warn-text); border-color: var(--tsm-warn-border); }
+.tsm-prov-scenario { background: #fff1e6; color: #8a3d00; border-color: #d97706; }
+.tsm-prov-unavailable { background: var(--tsm-danger-bg); color: var(--tsm-danger-text); border-color: var(--tsm-danger-border); }
+.tsm-prov-plain { font-weight: 400; color: var(--tsm-text-dim); }
+
+/* ---- Flood depth ramp: lightness steps + labels, not hue alone ---- */
+.tsm-depth-scale { display: flex; gap: 4px; align-items: stretch; }
+.tsm-depth-step {
+  flex: 1;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--tsm-text);
+  border: 2px solid var(--tsm-border-strong);
+  border-radius: 8px;
+  background: #ffffff;
+}
+.tsm-depth-step[data-level="0"] { background: #e6f7ff; }
+.tsm-depth-step[data-level="1"] { background: #fff3d6; }
+.tsm-depth-step[data-level="2"] { background: #ffe3c2; }
+.tsm-depth-step[data-level="3"] { background: #ffd4d4; border-color: var(--tsm-danger-border); }
+
+/* ---- Data readouts: large monospace numerals + plain provenance ---- */
+.tsm-readout {
+  font-family: var(--tsm-font-data);
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+  color: var(--tsm-text);
+}
+.tsm-readout-label {
+  font-size: 14px;
+  color: var(--tsm-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+/* ---- Globe panel placement: readable card, single column on phones ---- */
+.tsm-globe-panel {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 16px;
+  max-width: 360px;
+  font-size: 16px;
+}
+@media (max-width: 720px) {
+  .tsm-globe-panel {
+    top: auto;
+    bottom: 12px;
+    right: 12px;
+    left: 12px;
+    max-width: none;
+    max-height: 44vh;
+    overflow-y: auto;
+  }
+}
