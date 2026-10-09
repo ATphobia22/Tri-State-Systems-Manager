@@ -21,7 +21,7 @@ const nav = [
   { to: '/engineering-section', label: 'Engineering Section' }, { to: '/needs', label: 'Human Needs' }, { to: '/ledger', label: 'Evidence Ledger' },
   { to: '/lineage', label: 'Data Contracts' }, { to: '/benefit', label: 'Benefit Engine' }, { to: '/map', label: 'Hydraulic Map' },
   { to: '/twin', label: 'Twin Canvas' }, { to: '/digital-twin-v2', label: '3D Twin' }, { to: '/terrain-3d', label: '3D Terrain (3DEP)' }, { to: '/eoc', label: 'EOC Surface' },
-  { to: '/data-fabric', label: 'Data Fabric' }, { to: '/flood-sim', label: 'Flood Simulator' },
+  { to: '/data-fabric', label: 'Data Fabric' }, { to: '/platform', label: 'Platform Capabilities' }, { to: '/flood-sim', label: 'Flood Simulator' },
 ];
 
 /**
