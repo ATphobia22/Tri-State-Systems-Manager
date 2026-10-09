@@ -38,7 +38,7 @@ const required = [
     ['screening limitation', /not establish survey-grade engineering control/],
   ]],
   ['tsm-console/public/platform-capabilities.json', [
-    ['capability manifest artifact type', /tsm\\.platform_capabilities\\.v1/],
+    ['capability manifest artifact type', /tsm\.platform_capabilities\.v1/],
     ['public route inventory', /publicRoutes/],
     ['operator skill inventory', /operatorSkills/],
   ]],
