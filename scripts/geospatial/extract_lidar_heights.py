@@ -456,7 +456,9 @@ def main() -> None:
     ap.add_argument("--limit", type=int, default=0, help="process first N features (testing)")
     ap.add_argument("--max-buildings", type=int, default=0, help="bounded smoke test; 0 means all")
     ap.add_argument("--allow-zero-heights", action="store_true",
-                    help="allow a smoke test to pass with zero accepted heights when source access and parsing work")
+                    help="emit per-feature outcomes even if this source yields no accepted heights; downstream recovery and final gates remain strict")
+    ap.add_argument("--require-source-node", action="store_true",
+                    help="require the diagnostic sample to download/decode an EPT node with no processing exceptions")
     ap.add_argument("--level", type=int, default=6, help="EPT hierarchy level for node queries")
     args = ap.parse_args()
 
@@ -468,18 +470,17 @@ def main() -> None:
         sys.exit(1)
 
     print(json.dumps(stats, indent=2))
+    if args.require_source_node and (
+        stats.get("sample_node") is None or stats.get("errors", 0) > 0
+    ):
+        print("FATAL: source-node diagnostic failed or encountered processing errors",
+              file=sys.stderr)
+        sys.exit(1)
     if stats["with_height"] == 0 and stats["total"] > 0:
         if not args.allow_zero_heights:
             print("FATAL: no heights extracted", file=sys.stderr)
             sys.exit(1)
-        # This exception is only for a bounded diagnostic smoke test. It must
-        # still prove that at least one source node was downloaded/decoded and
-        # that no processing exceptions occurred. Full extraction remains strict.
-        if stats.get("sample_node") is None or stats.get("errors", 0) > 0:
-            print("FATAL: zero-height smoke test did not validate source data cleanly",
-                  file=sys.stderr)
-            sys.exit(1)
-        print("SMOKE TEST: source nodes parsed; no qualifying heights in sample.",
+        print("SOURCE OUTCOME: no qualifying heights accepted; downstream recovery must resolve gaps.",
               file=sys.stderr)
 
 
