@@ -93,6 +93,8 @@ jobs:
       - name: Community engineering boundary gate
         working-directory: .
         run: node scripts/ci/validate-community-engineering-boundaries.mjs
+      - name: Self-hosted Cesium and OGC 3D Tiles contract
+        run: node scripts/ci/validate-self-hosted-cesium.mjs
       - name: Reprojection script syntax gate
         working-directory: .
         run: bash -n scripts/reproject_tri_state.sh
