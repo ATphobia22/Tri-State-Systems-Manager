@@ -27,7 +27,8 @@ test('local provider converts gage only when published', async () => {
     context: { requestId: 'req-gage-2', permissions: { allow: [] } },
   });
   assert.equal(ok.success, true);
-  assert.equal((ok.output as { wseNavd88Ft: number }).wseNavd88Ft, 356.85);
+  const wse = (ok.output as { wseNavd88Ft: number }).wseNavd88Ft;
+  assert.ok(Math.abs(wse - 356.85) < 1e-9);
 });
 
 test('local provider LOMA helper never auto-files', async () => {
@@ -39,5 +40,6 @@ test('local provider LOMA helper never auto-files', async () => {
   });
   assert.equal(result.success, true);
   assert.equal((result.output as { autoFile: boolean }).autoFile, false);
-  assert.equal((result.output as { freeboardFt: number }).freeboardFt, 2.2);
+  const freeboard = (result.output as { freeboardFt: number }).freeboardFt;
+  assert.ok(Math.abs(freeboard - 2.2) < 1e-9);
 });

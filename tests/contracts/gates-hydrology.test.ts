@@ -25,13 +25,13 @@ test('gage conversion succeeds only when published', () => {
     conversionPublished: true,
   });
   assert.equal(r.ok, true);
-  assert.equal(r.wseNavd88Ft, 356.85);
+  assert.ok(r.wseNavd88Ft != null && Math.abs(r.wseNavd88Ft - 356.85) < 1e-9);
 });
 
 test('LOMA LAG vs BFE freeboard at Bonebank benchmarks', () => {
   const r = evaluateLomaLagVsBfe({ lagFtNavd88: 377.2, bfeFtNavd88: 375.0 });
   assert.equal(r.passes, true);
-  assert.equal(r.freeboardFt, 2.2);
+  assert.ok(Math.abs(r.freeboardFt - 2.2) < 1e-9);
   assert.equal(r.autoFile, false);
 });
 
