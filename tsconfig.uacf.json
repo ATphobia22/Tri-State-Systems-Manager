@@ -24,6 +24,9 @@
     "packages/events/src/**/*.ts",
     "packages/evidence/src/**/*.ts",
     "packages/gates/src/**/*.ts",
+    "packages/geo/src/**/*.ts",
+    "packages/hydraulics/src/**/*.ts",
+    "packages/research/src/**/*.ts",
     "packages/provider-runtime/src/**/*.ts",
     "packages/model-runtime/src/**/*.ts",
     "packages/capability-runtime/src/**/*.ts",
@@ -34,6 +37,9 @@
     "providers/local/src/**/*.ts",
     "providers/search/src/**/*.ts",
     "providers/browser/src/**/*.ts",
+    "plugins/hydrology/src/**/*.ts",
+    "plugins/grants/src/**/*.ts",
+    "plugins/evidence-ledger/src/**/*.ts",
     "apps/dashboard/src/**/*.ts",
     "apps/playground/src/**/*.ts",
     "apps/docs/src/**/*.ts",
@@ -50,16 +56,6 @@
     "packages/quantum/src/**/*.ts",
     "packages/compute/src/**/*.ts",
     "packages/units/src/**/*.ts",
-    "packages/validation/src/**/*.ts",
-    "apps/admin/src/**/*.ts",
-    "packages/research/src/**/*.ts",
-    "packages/tenancy/src/**/*.ts",
-    "providers/openai/src/**/*.ts",
-    "tests/contracts/uacf-platform-foundations.test.ts",
-    "tests/contracts/uacf-openai-adapter.test.ts",
-    "providers/anthropic/src/**/*.ts",
-    "providers/google/src/**/*.ts",
-    "providers/openrouter/src/**/*.ts",
-    "tests/contracts/uacf-model-providers.test.ts"
+    "packages/validation/src/**/*.ts"
   ]
 }

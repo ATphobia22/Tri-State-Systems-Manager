@@ -1,5 +1,5 @@
 {
-  "name": "@tsm/plugin-evidence-ledger",
+  "name": "@tsm-plugin/evidence-ledger",
   "version": "0.1.0",
   "private": true,
   "type": "module"

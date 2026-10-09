@@ -1,5 +1,5 @@
 {
-  "name": "@tsm/plugin-hydrology",
+  "name": "@tsm-plugin/hydrology",
   "version": "0.1.0",
   "private": true,
   "type": "module"

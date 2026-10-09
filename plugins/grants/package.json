@@ -1,5 +1,5 @@
 {
-  "name": "@tsm/plugin-grants",
+  "name": "@tsm-plugin/grants",
   "version": "0.1.0",
   "private": true,
   "type": "module"

@@ -1,30 +1,9 @@
-// @tsm/plugin-hydrology — UACF plugin scaffold (v0.1.0).
-// Declares the plugin manifest only. No behavior is wired: every capability
-// throws fail-closed until an operator configures the plugin.
-
-export interface PluginManifest {
-  name: string;
-  version: string;
-  capabilities: string[];
-  status: 'scaffold';
-}
-
-export const manifest: PluginManifest = {
-  name: '@tsm/plugin-hydrology',
-  version: '0.1.0',
-  capabilities: ["gauge-aggregation", "snapshot-fetch", "freshness-states"],
-  status: 'scaffold',
-};
-
-function notConfigured(capability: string): never {
-  throw new Error(`@tsm/plugin-hydrology: capability '${capability}' is not configured (fail-closed).`);
-}
-
-export function invoke(capability: string, _input: unknown): never {
-  if (!manifest.capabilities.includes(capability)) {
-    throw new Error(`@tsm/plugin-hydrology: unknown capability '${capability}'.`);
-  }
-  return notConfigured(capability);
-}
-
-export default manifest;
+/** Hydrology plugin — re-exports gates + geo site frame for local offline use. */
+export {
+  convertGageHeightToNavd88,
+  evaluateLomaLagVsBfe,
+  requireHumanAuthoritySeal,
+  evaluateEngineeringGate,
+} from '../../../packages/gates/src/index.ts';
+export { BONEBANK_SITE, CRS_HORIZONTAL_EPSG, VERTICAL_DATUM, GAGE_SITES } from '../../../packages/geo/src/index.ts';
+export { classifyHydraulicAuthority, SIMULATION_DEMO_LABEL } from '../../../packages/hydraulics/src/index.ts';

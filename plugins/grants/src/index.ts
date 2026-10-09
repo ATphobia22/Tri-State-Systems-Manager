@@ -1,30 +1,35 @@
-// @tsm/plugin-grants — UACF plugin scaffold (v0.1.0).
-// Declares the plugin manifest only. No behavior is wired: every capability
-// throws fail-closed until an operator configures the plugin.
+/**
+ * Grants plugin — tracking helpers only. Never auto-submits applications.
+ */
 
-export interface PluginManifest {
+export interface GrantTrackRecord {
+  readonly programId: string;
+  readonly name: string;
+  readonly deadlineAt?: string;
+  readonly floodWaterRelevant: boolean;
+  readonly humanActionRequired: true;
+  readonly autoSubmit: false;
+}
+
+export function trackGrant(input: {
+  programId: string;
   name: string;
-  version: string;
-  capabilities: string[];
-  status: 'scaffold';
+  deadlineAt?: string;
+  floodWaterRelevant?: boolean;
+}): GrantTrackRecord {
+  return {
+    programId: input.programId,
+    name: input.name,
+    deadlineAt: input.deadlineAt,
+    floodWaterRelevant: input.floodWaterRelevant === true,
+    humanActionRequired: true,
+    autoSubmit: false,
+  };
 }
 
-export const manifest: PluginManifest = {
-  name: '@tsm/plugin-grants',
-  version: '0.1.0',
-  capabilities: ["program-registry", "deadline-tracking", "eligibility-screening"],
-  status: 'scaffold',
-};
-
-function notConfigured(capability: string): never {
-  throw new Error(`@tsm/plugin-grants: capability '${capability}' is not configured (fail-closed).`);
-}
-
-export function invoke(capability: string, _input: unknown): never {
-  if (!manifest.capabilities.includes(capability)) {
-    throw new Error(`@tsm/plugin-grants: unknown capability '${capability}'.`);
-  }
-  return notConfigured(capability);
-}
-
-export default manifest;
+export const CRITICAL_NEAR_TERM = [
+  { programId: 'JAG', note: 'Confirm current ICJI deadline before filing' },
+  { programId: 'LEPP', note: 'Confirm current deadline before filing' },
+  { programId: 'EMPG', note: 'Confirm current deadline before filing' },
+  { programId: 'HMEP', note: 'Confirm current deadline before filing' },
+] as const;
