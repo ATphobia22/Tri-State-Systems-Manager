@@ -1,0 +1,6 @@
+{
+  "name": "@tsm/plugin-ai-ready",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module"
+}

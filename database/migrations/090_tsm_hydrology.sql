@@ -1,0 +1,5 @@
+-- 090_tsm_hydrology.sql — TSM hydrology domain tables.
+-- USGS/NOAA station registry and observation snapshots. Live values enter
+-- only via explicit operator-initiated snapshot; no polling, no synthesis.
+CREATE TABLE IF NOT EXISTS tsm_hydro_stations (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), usgs_site_no TEXT NOT NULL UNIQUE, name TEXT NOT NULL, latitude DOUBLE PRECISION NOT NULL, longitude DOUBLE PRECISION NOT NULL, gage_zero_navd88_ft DOUBLE PRECISION, gage_zero_status TEXT NOT NULL DEFAULT 'UNVERIFIED', provenance JSONB NOT NULL DEFAULT '{}', created_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_at TIMESTAMPTZ NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS tsm_hydro_observations (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), station_id UUID NOT NULL REFERENCES tsm_hydro_stations(id), observed_at TIMESTAMPTZ NOT NULL, gage_height_ft DOUBLE PRECISION, discharge_cfs DOUBLE PRECISION, wse_navd88_ft DOUBLE PRECISION, approval_status TEXT, freshness TEXT NOT NULL DEFAULT 'UNAVAILABLE', provenance JSONB NOT NULL DEFAULT '{}', created_at TIMESTAMPTZ NOT NULL DEFAULT now(), UNIQUE (station_id, observed_at));

@@ -1,0 +1,4 @@
+-- 095_tsm_grants.sql — TSM grants domain tables.
+-- Planning tool only; validate every entry against the active federal NOFO.
+CREATE TABLE IF NOT EXISTS tsm_grant_programs (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), program_name TEXT NOT NULL, agency TEXT NOT NULL, nofo_url TEXT, deadline DATE, status TEXT NOT NULL DEFAULT 'tracking', provenance JSONB NOT NULL DEFAULT '{}', created_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_at TIMESTAMPTZ NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS tsm_grant_applications (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), program_id UUID NOT NULL REFERENCES tsm_grant_programs(id), title TEXT NOT NULL, stage TEXT NOT NULL DEFAULT 'draft', submitted_at TIMESTAMPTZ, provenance JSONB NOT NULL DEFAULT '{}', created_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_at TIMESTAMPTZ NOT NULL DEFAULT now());
