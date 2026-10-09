@@ -1,5 +1,6 @@
 import type {
   CapabilityDefinition,
+  CapabilityError,
   CapabilityId,
   CapabilityProvider,
   CapabilityRequest,
@@ -83,14 +84,14 @@ const humanSealDef: CapabilityDefinition = {
   tags: ['governance', 'local', 'offline'],
 };
 
-function resultShell(
+function resultShell<TOutput = unknown>(
   request: CapabilityRequest,
   providerId: string,
   version: string,
-  output: unknown,
+  output: TOutput | undefined,
   success = true,
-  error?: { code: string; message: string },
-): CapabilityResult {
+  error?: CapabilityError,
+): CapabilityResult<TOutput> {
   return {
     success,
     output,
@@ -115,12 +116,12 @@ function resultShell(
     },
     traceId: request.context.requestId,
     ...(error ? { error } : {}),
-  } as CapabilityResult;
+  };
 }
 
 export class LocalCapabilityProvider implements CapabilityProvider {
   readonly id = 'provider.local';
-  readonly version = '1.1.0';
+  readonly version = '1.1.1';
   readonly capabilities = [generateDef, convertGageDef, gatesEvaluateDef, lomaLagBfeDef, humanSealDef];
   private readonly adapter: LocalModelAdapter;
 
@@ -144,6 +145,7 @@ export class LocalCapabilityProvider implements CapabilityProvider {
   }
 
   async execute(request: CapabilityRequest): Promise<CapabilityResult> {
+    const traceId = request.context.requestId;
     switch (request.capability) {
       case generateDef.id: {
         const input = request.input as { input: unknown };
@@ -166,9 +168,21 @@ export class LocalCapabilityProvider implements CapabilityProvider {
           gageZeroNavd88Ft: input.gageZeroNavd88Ft ?? null,
           conversionPublished: input.conversionPublished === true,
         });
-        return resultShell(request, this.id, this.version, converted, converted.ok, converted.ok
-          ? undefined
-          : { code: 'GAGE_CONVERSION_UNPUBLISHED', message: converted.reason });
+        return resultShell(
+          request,
+          this.id,
+          this.version,
+          converted,
+          converted.ok,
+          converted.ok
+            ? undefined
+            : {
+                code: 'VALIDATION_FAILED',
+                message: converted.reason,
+                retryable: false,
+                traceId,
+              },
+        );
       }
       case gatesEvaluateDef.id: {
         const gate = evaluateEngineeringGate((request.input ?? {}) as object);
@@ -180,14 +194,28 @@ export class LocalCapabilityProvider implements CapabilityProvider {
       }
       case humanSealDef.id: {
         const seal = requireHumanAuthoritySeal(request.input as object);
-        return resultShell(request, this.id, this.version, seal, seal.ok, seal.ok
-          ? undefined
-          : { code: 'HUMAN_AUTHORITY_REQUIRED', message: seal.reason });
+        return resultShell(
+          request,
+          this.id,
+          this.version,
+          seal,
+          seal.ok,
+          seal.ok
+            ? undefined
+            : {
+                code: 'FORBIDDEN',
+                message: seal.reason,
+                retryable: false,
+                traceId,
+              },
+        );
       }
       default:
         return resultShell(request, this.id, this.version, undefined, false, {
-          code: 'CAPABILITY_UNSUPPORTED',
+          code: 'NOT_FOUND',
           message: `Local provider does not support ${request.capability}`,
+          retryable: false,
+          traceId,
         });
     }
   }
