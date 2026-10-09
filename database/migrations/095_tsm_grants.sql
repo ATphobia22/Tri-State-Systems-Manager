@@ -1,21 +1,20 @@
--- Grant intelligence tracking only. TSM does not auto-submit applications.
-CREATE TABLE IF NOT EXISTS tsm_grant_program (
-  program_id         TEXT PRIMARY KEY,
-  name               TEXT NOT NULL,
-  agency             TEXT NOT NULL,
-  flood_water_relevant BOOLEAN NOT NULL DEFAULT FALSE,
-  deadline_at        TIMESTAMPTZ,
-  status             TEXT NOT NULL DEFAULT 'tracked',
-  evidence_packet_refs TEXT[] NOT NULL DEFAULT '{}',
-  checklist_path     TEXT,
-  notes              TEXT,
-  updated_at         TIMESTAMPTZ NOT NULL DEFAULT now()
+BEGIN;
+CREATE TABLE IF NOT EXISTS tsm.grant_opportunities (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  source_id text NOT NULL,
+  title text NOT NULL,
+  sponsor text NOT NULL,
+  official_url text NOT NULL,
+  open_date date,
+  close_date date,
+  status text NOT NULL CHECK(status IN ('unverified','open','upcoming','closed','cancelled')),
+  last_verified_at timestamptz,
+  evidence_id uuid REFERENCES tsm.evidence_records(id) ON DELETE RESTRICT,
+  eligibility jsonb NOT NULL DEFAULT '{}'::jsonb,
+  required_documents jsonb NOT NULL DEFAULT '[]'::jsonb,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE(source_id, official_url)
 );
-
-CREATE TABLE IF NOT EXISTS tsm_grant_deadline_calendar (
-  id                 BIGSERIAL PRIMARY KEY,
-  program_id         TEXT REFERENCES tsm_grant_program(program_id),
-  window_label       TEXT NOT NULL, -- 30d | 60d | 90d | other
-  due_at             TIMESTAMPTZ NOT NULL,
-  human_action_required BOOLEAN NOT NULL DEFAULT TRUE
-);
+CREATE INDEX IF NOT EXISTS grants_status_close_idx ON tsm.grant_opportunities(status, close_date);
+INSERT INTO tsm.schema_migrations(version) VALUES ('095_tsm_grants') ON CONFLICT DO NOTHING;
+COMMIT;

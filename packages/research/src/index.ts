@@ -1,33 +1,21 @@
-/**
- * Local-first research scaffold. No external paid APIs by default.
- * Deep retrieval must go through providers/local + human-gated S2 tools.
- */
+export interface ResearchSource { readonly id: string; readonly url: string; readonly title?: string; readonly retrievedAt: string; readonly sha256?: string }
+export interface ResearchClaim { readonly id: string; readonly text: string; readonly sourceIds: readonly string[]; readonly confidence: 'high' | 'medium' | 'low' | 'unverified' }
+export interface ResearchResult { readonly query: string; readonly sources: readonly ResearchSource[]; readonly claims: readonly ResearchClaim[]; readonly limitations: readonly string[] }
 
-export interface ResearchPlan {
-  readonly query: string;
-  readonly steps: string[];
-}
-
-export function planResearch(query: string): ResearchPlan {
-  return {
-    query,
-    steps: [
-      'normalize query',
-      'search local evidence ledger',
-      'search local docs/grants/regulatory packs',
-      'synthesize with citations',
-      'require human review before regulatory use',
-    ],
-  };
-}
-
-export function assertNoSilentRegulatoryClaim(text: string): { ok: boolean; reason: string } {
-  const banned = /\b(LOMA (approved|issued)|FEMA (approved|denied)|grant awarded)\b/i;
-  if (banned.test(text)) {
-    return {
-      ok: false,
-      reason: 'FAIL_CLOSED: research output must not assert regulatory outcomes without documentary proof',
-    };
+/** Deterministic structural validator. Retrieval and synthesis are intentionally injected. */
+export function validateResearchResult(result: ResearchResult): readonly string[] {
+  const errors: string[] = [];
+  const ids = new Set(result.sources.map((source) => source.id));
+  if (!result.query.trim()) errors.push('query must not be empty');
+  for (const source of result.sources) {
+    try { const url = new URL(source.url); if (url.protocol !== 'https:' && url.protocol !== 'http:') errors.push(`source ${source.id} has an unsupported URL scheme`); }
+    catch { errors.push(`source ${source.id} has an invalid URL`); }
+    if (!source.id.trim()) errors.push('source id must not be empty');
   }
-  return { ok: true, reason: 'ok' };
+  for (const claim of result.claims) {
+    if (!claim.text.trim()) errors.push(`claim ${claim.id} has empty text`);
+    for (const sourceId of claim.sourceIds) if (!ids.has(sourceId)) errors.push(`claim ${claim.id} references missing source ${sourceId}`);
+    if (claim.sourceIds.length === 0 && claim.confidence !== 'unverified') errors.push(`claim ${claim.id} has no sources but is not marked unverified`);
+  }
+  return errors;
 }

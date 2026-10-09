@@ -1,30 +1,43 @@
-// @tsm/provider-openrouter — UACF provider stub (v0.1.0).
-// Declares the provider interface only. NOT a working integration: no API
-// keys are read, no network calls are made, and execute() always throws
-// fail-closed until an operator configures the provider explicitly.
+import { HttpTextCapabilityProvider, type HttpModelRequest, type TextModelInput, type TextModelProviderOptions } from '../../../packages/provider-runtime/src/HttpTextCapabilityProvider.ts';
 
-import type { CapabilityId, CapabilityProvider, CapabilityRequest, CapabilityResult, ProviderHealth, SupportDecision } from '../../../packages/contracts/src/index.ts';
-
-function notConfigured(): never {
-  throw new Error('@tsm/provider-openrouter: provider is not configured — refusing to execute (fail-closed). No credentials are read and no request is sent.');
+function record(value: unknown): Record<string, unknown> {
+  return value !== null && typeof value === 'object' ? value as Record<string, unknown> : {};
 }
 
-export class StubCapabilityProvider implements CapabilityProvider {
+export class OpenRouterCapabilityProvider extends HttpTextCapabilityProvider {
   readonly id = 'provider.openrouter';
-  readonly version = '0.1.0';
-  readonly capabilities = [] as const;
+  readonly defaultModel = 'openai/gpt-4.1-mini';
+  readonly environmentKeyName = 'OPENROUTER_API_KEY';
 
-  async health(): Promise<ProviderHealth> {
-    return { healthy: false, latencyMs: 0, errorRate: 1, lastChecked: new Date().toISOString() };
+  constructor(options: TextModelProviderOptions = {}) {
+    super({ ...options, model: options.model ?? process.env.OPENROUTER_MODEL }, { model: 'openai/gpt-4.1-mini', environmentKeyName: 'OPENROUTER_API_KEY' });
   }
 
-  async supports(_capability: CapabilityId, _input: unknown): Promise<SupportDecision> {
-    return { supported: false };
+  protected buildRequest(input: TextModelInput, maxOutputTokens: number): HttpModelRequest {
+    const headers: Record<string, string> = { 'content-type': 'application/json', authorization: `Bearer ${this.apiKey ?? ''}` };
+    const siteUrl = process.env.OPENROUTER_SITE_URL;
+    const appName = process.env.OPENROUTER_APP_NAME;
+    if (siteUrl) headers['http-referer'] = siteUrl;
+    if (appName) headers['x-title'] = appName;
+    return {
+      url: 'https://openrouter.ai/api/v1/chat/completions',
+      headers,
+      body: { model: this.model, messages: [...(input.system ? [{ role: 'system', content: input.system }] : []), { role: 'user', content: input.input }], max_tokens: maxOutputTokens },
+    };
   }
 
-  async execute(_request: CapabilityRequest): Promise<CapabilityResult> {
-    return notConfigured();
+  protected extractText(payload: unknown): string {
+    const choices = record(payload).choices;
+    if (!Array.isArray(choices)) return '';
+    const message = record(record(choices[0]).message);
+    if (typeof message.content === 'string') return message.content;
+    if (!Array.isArray(message.content)) return '';
+    return message.content.flatMap((part) => {
+      const item = record(part);
+      return typeof item.text === 'string' ? [item.text] : [];
+    }).join('');
   }
 }
 
-export default StubCapabilityProvider;
+export { OpenRouterCapabilityProvider as StubCapabilityProvider };
+export default OpenRouterCapabilityProvider;

@@ -50,6 +50,16 @@
     "packages/quantum/src/**/*.ts",
     "packages/compute/src/**/*.ts",
     "packages/units/src/**/*.ts",
-    "packages/validation/src/**/*.ts"
+    "packages/validation/src/**/*.ts",
+    "apps/admin/src/**/*.ts",
+    "packages/research/src/**/*.ts",
+    "packages/tenancy/src/**/*.ts",
+    "providers/openai/src/**/*.ts",
+    "tests/contracts/uacf-platform-foundations.test.ts",
+    "tests/contracts/uacf-openai-adapter.test.ts",
+    "providers/anthropic/src/**/*.ts",
+    "providers/google/src/**/*.ts",
+    "providers/openrouter/src/**/*.ts",
+    "tests/contracts/uacf-model-providers.test.ts"
   ]
 }

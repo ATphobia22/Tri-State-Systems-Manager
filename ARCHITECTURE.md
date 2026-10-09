@@ -1,57 +1,22 @@
 # TSM / UACF Architecture
 
-Tri-State Systems Manager is a provenance-first, evidence-gated geospatial
-and engineering platform. The Universal Agent Capability Fabric (UACF) is its
-agent/capability layer: deterministic computation plus controlled external
-capabilities behind explicit contracts.
+## System boundaries
+- `apps/uacf-gateway`: HTTP/API boundary and request lifecycle.
+- `packages/core`: execution context, lifecycle, cancellation, and agent session contracts.
+- `packages/router`: capability and provider selection policies.
+- `packages/provider-runtime` and `providers/*`: provider adapters behind explicit interfaces.
+- `packages/evidence`, `packages/provenance`, and `packages/artifacts`: source lineage and immutable evidence metadata.
+- `packages/geo`, `packages/hydraulics`, and `packages/twin*`: geospatial and digital-twin domain capabilities.
+- `tsm-console`: existing user-facing console and production geospatial pipeline.
 
-## Planes
+## Reliability principles
+1. Validate untrusted input at the boundary.
+2. Apply timeouts and cancellation to external calls.
+3. Keep credentials out of logs and source control.
+4. Fail closed for authorization, evidence integrity, datum ambiguity, and artifact integrity.
+5. Use explicit status types for partial results; do not convert missing evidence into synthetic observations.
+6. Cache only with a key that includes source, version, relevant parameters, and policy context.
+7. Persist provenance for derived outputs and bind releases to commit and data-manifest hashes.
 
-| Plane | Locations | Responsibility |
-|---|---|---|
-| Web / 3D console | `tsm-console/` | React/TypeScript UI, MapLibre, Three.js, flood visualization, client contracts. |
-| Apps | `apps/` | `uacf-gateway`, `dashboard`, `docs`, `playground`, `admin` — operator and developer surfaces. |
-| Packages | `packages/` | Shared contracts: `contracts`, `router`, `policy`, `registry`, `provenance`, `evidence`, `geo`, `hydraulics`, `twin`, `mcp`, `openapi`, and more. |
-| Providers | `providers/` | Capability providers behind the provider interface (`local` is wired; the rest are fail-closed stubs until configured). |
-| Plugins | `plugins/` | Domain plugins (hydrology, fema, grants, engineering, …) — manifest-only scaffolds. |
-| Runtime | `runtime/` | Worker boundaries: `unreal` (native 3D), `python` (engineering workers), `rust` / `qsharp` (reserved), `docker` (containers). |
-| Database | `database/` | Migrations (`000_*` core UACF, `090_*` TSM domain tables), seeds, schemas. |
-| Evidence | `evidence/` | Hash-chained records, snapshots, attestations, citations. |
-| Native / desktop | `tsm-native/`, `native/` | Windows x64 offline runtime packaging. |
-| CI/CD | `.github/workflows/` | Build, parse, security, Pages, and runtime verification gates. |
-| Docs / governance | `docs/`, `COMPLIANCE.md` | Architecture, deployment, regulatory boundaries. |
-
-## Core data flow
-
-```text
-government / authoritative source
-  -> source adapter + acquisition contract
-  -> validation + CRS/datum checks + freshness checks
-  -> provenance record + SHA-256 integrity evidence
-  -> normalized data / tiles / model inputs
-  -> geospatial + hydrologic + engineering services
-  -> visualization / simulation / evidence packet
-  -> human engineering / agency review
-  -> controlled publication
-```
-
-## UACF capability flow
-
-```text
-capability request
-  -> router (capability -> provider selection)
-  -> policy engine (authorization)
-  -> provider execution (allowlisted, hashed I/O envelope)
-  -> provenance envelope (input/output hashes, traceId)
-  -> result with citations and usage
-```
-
-Workers cannot mutate native engineering state directly. Cinematic
-presentation cannot mutate engineering state. External providers are
-fail-closed: unconfigured providers throw, never fabricate.
-
-## Authority doctrine
-
-Three separate truths: **authoritative** (government source), **computational**
-(derived/model output), **visual** (presentation). A visualization is never
-evidence. FEMA NFHL and Indiana DNR BAFM are separate authority planes.
+## Workspace
+The repository currently uses npm workspaces and TypeScript project configuration. Continue using the existing package manager and lockfile; do not introduce a competing pnpm lock/workspace until a deliberate migration is approved.

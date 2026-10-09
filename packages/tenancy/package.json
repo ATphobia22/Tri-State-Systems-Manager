@@ -1,5 +1,5 @@
 {
-  "name": "@tsm-uacf/provider-openai",
+  "name": "@tsm-uacf/tenancy",
   "version": "0.1.0",
   "private": true,
   "type": "module",
