@@ -8,6 +8,16 @@ TSM is decision-support software—not a surveying instrument, certified digital
 
 > **Operating principle:** Technology informs people; it does not silently govern people. Qualified human and agency authority remains final.
 
+## Interactive web surfaces
+
+The production console includes these routes when the corresponding Pages build has completed successfully:
+
+- [Self-hosted 3D terrain viewer](https://atphobia22.github.io/Tri-State-Systems-Manager/terrain-3d/) — CesiumJS and the generated USGS 3DEP-derived OGC 3D Tiles 1.1 mesh, served from the site’s own static asset paths.
+- [Platform capabilities index](https://atphobia22.github.io/Tri-State-Systems-Manager/platform/) — a public index of the UACF platform, package families, geospatial pipeline, evidence controls, and runtime/deployment boundaries.
+- [Twin Canvas](https://atphobia22.github.io/Tri-State-Systems-Manager/twin/) — the existing interactive MapLibre twin surface.
+
+The terrain viewer is designed to render a valid published tileset independently of live gauge/API connectivity. Missing assets produce a visible renderer error instead of silently suppressing the whole console. This improves visualization availability; it does not relax provenance, datum, engineering, or regulatory evidence requirements. See [the self-hosted Cesium/3D Tiles contract](docs/SELF-HOSTED-CESIUM-3D-TILES.md) and [the production terrain deployment guide](docs/TERRAIN-PRODUCTION-DEPLOY.md).
+
 ## Product overview
 
 - **Public-source geospatial workspace:** MapLibre-based maps combine state and federal imagery, elevation, flood, parcel, road, building-footprint, and land-survey context, with source attribution and explicit layer controls.
