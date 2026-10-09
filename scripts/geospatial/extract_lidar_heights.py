@@ -375,11 +375,9 @@ def extract_heights(geojson_path: Path, out_path: Path, ept_url: str | None,
                 props["lidarHeightStatus"] = "no-points-in-buffer"
                 continue
 
-            # Polygon in the EPT native CRS for precise filtering.
-            # For MultiPolygon use the largest ring for point test.
-            if geom.get("type") == "MultiPolygon":
-                ring3857 = [lonlat_to_3857(c[0], c[1]) for c in
-                            max((p[0] for p in coords), key=lambda r: len(r))]
+            # All point-in-polygon tests use ring_native in the EPT native CRS.
+            # Do not create an unused EPSG:3857 ring: mixing coordinate spaces
+            # here is a regression risk, especially for MultiPolygon inputs.
 
             idxs = np.where(in_buf)[0]
             roof_z, ground_z = [], []
@@ -457,6 +455,10 @@ def main() -> None:
     ap.add_argument("--ept-url", default=None, help="override EPT ept.json URL")
     ap.add_argument("--limit", type=int, default=0, help="process first N features (testing)")
     ap.add_argument("--max-buildings", type=int, default=0, help="bounded smoke test; 0 means all")
+    ap.add_argument("--allow-zero-heights", action="store_true",
+                    help="emit per-feature outcomes even if this source yields no accepted heights; downstream recovery and final gates remain strict")
+    ap.add_argument("--require-source-node", action="store_true",
+                    help="require the diagnostic sample to download/decode an EPT node with no processing exceptions")
     ap.add_argument("--level", type=int, default=6, help="EPT hierarchy level for node queries")
     args = ap.parse_args()
 
@@ -468,9 +470,18 @@ def main() -> None:
         sys.exit(1)
 
     print(json.dumps(stats, indent=2))
-    if stats["with_height"] == 0 and stats["total"] > 0:
-        print("FATAL: no heights extracted", file=sys.stderr)
+    if args.require_source_node and (
+        stats.get("sample_node") is None or stats.get("errors", 0) > 0
+    ):
+        print("FATAL: source-node diagnostic failed or encountered processing errors",
+              file=sys.stderr)
         sys.exit(1)
+    if stats["with_height"] == 0 and stats["total"] > 0:
+        if not args.allow_zero_heights:
+            print("FATAL: no heights extracted", file=sys.stderr)
+            sys.exit(1)
+        print("SOURCE OUTCOME: no qualifying heights accepted; downstream recovery must resolve gaps.",
+              file=sys.stderr)
 
 
 if __name__ == "__main__":
