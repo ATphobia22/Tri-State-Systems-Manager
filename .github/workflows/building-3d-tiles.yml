@@ -159,6 +159,18 @@ jobs:
           print(f"Gap buildings: {gaps}, COPC tiles: {len(urls)}")
           PY
           test -s /tmp/tsm-igio/copc-tile-list.txt
+      - name: Validate manual checkpoint source run ID
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.resume_run_id != '' }}
+        env:
+          RESUME_RUN_ID: ${{ inputs.resume_run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$RESUME_RUN_ID" =~ ^[0-9]+$ ]]; then
+            echo 'FAIL-CLOSED: resume_run_id must be a numeric GitHub Actions run ID' >&2
+            exit 1
+          fi
+          echo "Checkpoint source run ID validated: $RESUME_RUN_ID"
       - name: Restore checkpoint from a previous failed run (manual resume)
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.resume_run_id != '' }}
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
