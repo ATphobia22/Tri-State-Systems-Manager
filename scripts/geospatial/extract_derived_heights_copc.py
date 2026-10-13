@@ -93,12 +93,36 @@ def get_footprint_ring_spw(geom: dict) -> list[tuple[float, float]]:
 
 
 def download_tile(url: str, dest: str) -> str:
-    """Download a COPC tile, return SHA-256 hex digest."""
-    if os.path.exists(dest):
-        print(f"  [cached] {os.path.basename(dest)}", flush=True)
+    """Download a COPC tile atomically and return its SHA-256 digest.
+
+    A cancelled/failed download must never leave a partial file at ``dest``
+    where a retry could mistake it for a complete cache entry.
+    """
+    if os.path.exists(dest) and os.path.getsize(dest) > 0:
+        print(f"  [cached-candidate] {os.path.basename(dest)}", flush=True)
     else:
         print(f"  [download] {os.path.basename(dest)}", flush=True)
-        urllib.request.urlretrieve(url, dest)
+        partial = dest + ".part"
+        try:
+            if os.path.exists(partial):
+                os.remove(partial)
+            with urllib.request.urlopen(url, timeout=120) as response, open(partial, "wb") as output:
+                while True:
+                    chunk = response.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    output.write(chunk)
+                output.flush()
+                os.fsync(output.fileno())
+            if os.path.getsize(partial) == 0:
+                raise OSError("downloaded COPC tile is empty")
+            os.replace(partial, dest)
+        except Exception:
+            try:
+                if os.path.exists(partial):
+                    os.remove(partial)
+            finally:
+                raise
     h = hashlib.sha256()
     with open(dest, "rb") as f:
         for chunk in iter(lambda: f.read(65536), b""):
@@ -219,6 +243,27 @@ def extract_derived_height(
     return result
 
 
+def atomic_write_json(path: str, payload: dict) -> None:
+    """Write JSON with replace semantics so interruption cannot truncate state."""
+    target = os.path.abspath(path)
+    os.makedirs(os.path.dirname(target), exist_ok=True)
+    temporary = target + ".tmp"
+    with open(temporary, "w", encoding="utf-8") as stream:
+        json.dump(payload, stream, separators=(",", ":"))
+        stream.write("\n")
+        stream.flush()
+        os.fsync(stream.fileno())
+    os.replace(temporary, target)
+
+
+def sha256_file(path: str) -> str:
+    digest = hashlib.sha256()
+    with open(path, "rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(
         description="DERIVED height extraction from Indiana 2020 COPC"
@@ -233,6 +278,8 @@ def main() -> int:
                     help="Output GeoJSON with DERIVED heights merged")
     ap.add_argument("--tile-manifest", required=True,
                     help="Output JSON with tile SHA-256 digests")
+    ap.add_argument("--checkpoint-dir", default=None,
+                    help="Directory for fail-closed per-tile resume checkpoints; defaults to TILE_MANIFEST.checkpoint")
     ap.add_argument("--limit-tiles", type=int, default=0,
                     help="Process only first N tiles (0 = all, for testing)")
     args = ap.parse_args()
@@ -248,7 +295,7 @@ def main() -> int:
 
     # Identify gap buildings (not OK)
     gaps = []
-    for feat in features:
+    for feature_index, feat in enumerate(features):
         props = feat.get("properties", {})
         if props.get("lidarHeightStatus") != "OK":
             # Pre-compute footprint ring in SPW feet
@@ -265,6 +312,7 @@ def main() -> int:
             cy = sum(ys) / len(ys)
             gaps.append({
                 "feature": feat,
+                "feature_index": feature_index,
                 "props": props,
                 "ring_spw": ring_spw,
                 "cx": cx,
@@ -297,17 +345,63 @@ def main() -> int:
             props["heightProvenance"] = "OBSERVED"
             props["heightProvenanceMethod"] = "3DEP EPT Class 6 building points"
 
-    # Process tiles
-    tile_manifest = []
-    stats = {
-        "derived_ok": 0,
-        "unavailable": 0,
-        "tiles_processed": 0,
-        "tiles_failed": 0,
+    # Resume only when all inputs and the exact implementation are unchanged.
+    checkpoint_dir = args.checkpoint_dir or (args.tile_manifest + ".checkpoint")
+    results_dir = os.path.join(checkpoint_dir, "results")
+    state_path = os.path.join(checkpoint_dir, "state.json")
+    os.makedirs(results_dir, exist_ok=True)
+    checkpoint_identity = {
+        "schema_version": 1,
+        "input_sha256": sha256_file(args.geojson),
+        "tile_list_sha256": hashlib.sha256(("\n".join(tiles) + "\n").encode()).hexdigest(),
+        "script_sha256": sha256_file(__file__),
     }
+    state = {**checkpoint_identity, "completed_tiles": {}}
+    if os.path.isfile(state_path):
+        try:
+            saved = json.load(open(state_path, encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise SystemExit(f"FAIL-CLOSED: unreadable checkpoint {state_path}: {exc}")
+        if any(saved.get(k) != v for k, v in checkpoint_identity.items()):
+            raise SystemExit("FAIL-CLOSED: checkpoint input, tile list, script, or schema changed; use a fresh --checkpoint-dir")
+        if not isinstance(saved.get("completed_tiles"), dict):
+            raise SystemExit("FAIL-CLOSED: checkpoint completed_tiles is invalid")
+        state = saved
+
+    # Restore validated per-tile results. Each result file is written before
+    # its tile is committed to state.json, making interrupted writes replay-safe.
+    gap_by_index = {g["feature_index"]: g for g in gaps}
+    tile_manifest = []
+    stats = {"derived_ok": 0, "unavailable": 0, "tiles_processed": 0, "tiles_failed": 0}
+    completed = state["completed_tiles"]
+    for tile_url, record in completed.items():
+        if tile_url not in tiles or not isinstance(record, dict):
+            raise SystemExit("FAIL-CLOSED: checkpoint references a tile outside the current tile list")
+        result_path = os.path.join(checkpoint_dir, record.get("results_file", ""))
+        if not os.path.isfile(result_path) or sha256_file(result_path) != record.get("results_sha256"):
+            raise SystemExit(f"FAIL-CLOSED: checkpoint result missing or hash mismatch for {tile_url}")
+        tile_result = json.load(open(result_path, encoding="utf-8"))
+        if tile_result.get("url") != tile_url or tile_result.get("tile_sha256") != record.get("sha256"):
+            raise SystemExit(f"FAIL-CLOSED: checkpoint tile identity mismatch for {tile_url}")
+        for index_text, saved_props in tile_result.get("feature_properties", {}).items():
+            index = int(index_text)
+            gap = gap_by_index.get(index)
+            if gap is None or not isinstance(saved_props, dict):
+                raise SystemExit(f"FAIL-CLOSED: invalid feature index in checkpoint for {tile_url}: {index}")
+            gap["props"].clear()
+            gap["props"].update(saved_props)
+            gap["done"] = True
+        tile_manifest.append(record["manifest_entry"])
+        stats["tiles_processed"] += 1
+        stats["derived_ok"] += int(tile_result.get("derived_ok", 0))
+        stats["unavailable"] += int(tile_result.get("unavailable", 0))
+    print(f"Resume checkpoint: {len(completed)}/{len(tiles)} tiles already committed", flush=True)
 
     for ti, url in enumerate(tiles):
         tile_name = os.path.basename(url)
+        if url in completed:
+            print(f"\n[{ti+1}/{len(tiles)}] {tile_name} [checkpoint hit]", flush=True)
+            continue
         print(f"\n[{ti+1}/{len(tiles)}] {tile_name}", flush=True)
 
         tile_path = os.path.join(args.tile_dir, tile_name)
@@ -352,6 +446,9 @@ def main() -> int:
         print(f"  Gap buildings in tile: {len(in_tile)}", flush=True)
 
         buildings_processed = 0
+        feature_properties = {}
+        tile_derived_ok = 0
+        tile_unavailable = 0
         for g in in_tile:
             result = extract_derived_height(tile_path, g["ring_spw"])
             g["props"].update(result)
@@ -362,12 +459,15 @@ def main() -> int:
                     "DERIVED extraction failed; no synthetic height generated"
                 )
                 stats["unavailable"] += 1
+                tile_unavailable += 1
             else:
                 stats["derived_ok"] += 1
+                tile_derived_ok += 1
+            feature_properties[str(g["feature_index"])] = dict(g["props"])
             g["done"] = True
             buildings_processed += 1
 
-        tile_manifest.append({
+        manifest_entry = {
             "url": url,
             "tile": tile_name,
             "sha256": sha256,
@@ -377,7 +477,26 @@ def main() -> int:
                 "x_min": hx_min, "x_max": hx_max,
                 "y_min": hy_min, "y_max": hy_max,
             },
-        })
+        }
+        tile_result = {
+            "url": url,
+            "tile_sha256": sha256,
+            "feature_properties": feature_properties,
+            "derived_ok": tile_derived_ok,
+            "unavailable": tile_unavailable,
+            "manifest_entry": manifest_entry,
+        }
+        result_name = hashlib.sha256(url.encode()).hexdigest() + ".json"
+        result_path = os.path.join(results_dir, result_name)
+        atomic_write_json(result_path, tile_result)
+        completed[url] = {
+            "sha256": sha256,
+            "results_file": os.path.relpath(result_path, checkpoint_dir),
+            "results_sha256": sha256_file(result_path),
+            "manifest_entry": manifest_entry,
+        }
+        atomic_write_json(state_path, state)
+        tile_manifest.append(manifest_entry)
         stats["tiles_processed"] += 1
 
         # Clean up tile to save disk
@@ -398,17 +517,16 @@ def main() -> int:
 
     # Write output
     print(f"\nWriting output to {args.out}...", flush=True)
-    with open(args.out, "w") as f:
-        json.dump(data, f)
+    atomic_write_json(args.out, data)
 
     print(f"Writing tile manifest to {args.tile_manifest}...", flush=True)
-    with open(args.tile_manifest, "w") as f:
-        json.dump({
-            "tiles": tile_manifest,
-            "stats": stats,
-            "method": "DERIVED from Indiana 2020 COPC elevated Class 1 returns",
-            "crs": "NAD83(HARN) / Indiana West (ftUS) + NAVD88 height - Geoid12B (ftUS)",
-        }, f, indent=2)
+    atomic_write_json(args.tile_manifest, {
+        "tiles": sorted(tile_manifest, key=lambda entry: tiles.index(entry["url"]) if entry.get("url") in tiles else len(tiles)),
+        "stats": stats,
+        "method": "DERIVED from Indiana 2020 COPC elevated Class 1 returns",
+        "crs": "NAD83(HARN) / Indiana West (ftUS) + NAVD88 height - Geoid12B (ftUS)",
+        "checkpoint": {"directory": checkpoint_dir, "schema_version": checkpoint_identity["schema_version"]},
+    })
 
     # Summary
     print("\n" + "=" * 60, flush=True)
@@ -428,6 +546,9 @@ def main() -> int:
                if f.get("properties", {}).get("heightProvenance") == "UNAVAILABLE")
     print(f"\n  Final: {ok_obs} OBSERVED + {ok_der} DERIVED + {unav} UNAVAILABLE = {len(features)}", flush=True)
 
+    if stats["tiles_failed"]:
+        print(f"FAIL-CLOSED: {stats['tiles_failed']} tile(s) failed; rerun with the same checkpoint directory after resolving network/source failures.", file=sys.stderr, flush=True)
+        return 2
     return 0
 
 
