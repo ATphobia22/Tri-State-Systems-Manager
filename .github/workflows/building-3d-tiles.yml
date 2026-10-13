@@ -182,14 +182,14 @@ jobs:
             --checkpoint-dir /tmp/tsm-igio/copc-checkpoint
           date -u '+COPC extraction finish: %Y-%m-%dT%H:%M:%SZ'
       - name: Preserve COPC checkpoint for manual recovery after failure
-        if: ${{ failure() && hashFiles('/tmp/tsm-igio/copc-checkpoint/state.json') != '' }}
+        if: ${{ failure() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4.6.2
         with:
           name: tsm-copc-checkpoint-${{ github.run_id }}
           path: /tmp/tsm-igio/copc-checkpoint/
           retention-days: 30
           compression-level: 1
-          if-no-files-found: error
+          if-no-files-found: ignore
       - name: Gate on 23,082 height-linked features (OBSERVED + DERIVED)
         shell: bash
         run: |
