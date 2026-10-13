@@ -33,10 +33,11 @@ jobs:
           registry-url: https://registry.npmjs.org
       - name: Pin npm CLI
         run: npm install --global npm@10.9.2 --no-audit --no-fund
-      - name: Verify npm environment
+      - name: Verify pinned Node.js and npm environment
         run: |
+          test "$(node --version | cut -d. -f1)" = "v22"
           test "$(npm --version)" = "10.9.2"
-          npm config set registry https://registry.npmjs.org
-          npm doctor
+          npm config set registry https://registry.npmjs.org/
+          test "$(npm config get registry)" = "https://registry.npmjs.org/"
       - name: Verify npm cache integrity
         run: npm cache verify
