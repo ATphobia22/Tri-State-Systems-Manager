@@ -28,9 +28,26 @@ foreach ($expected in @($req.requiredSources)) {
     continue
   }
   $actual = $byId[$expected.id]
+
+  # Some catalog/reference layers are explicitly non-mandatory (minimumFeatureCount=0
+  # and no minimumBytes). If Indiana GIO is temporarily unavailable, its receipt
+  # entry intentionally has no path. Record the outage as a warning rather than
+  # attempting to hash the output directory. Mandatory sources still fail closed.
+  $optionalCatalogSource = ($null -ne $expected.minimumFeatureCount) -and
+    ([int]$expected.minimumFeatureCount -eq 0) -and ($null -eq $expected.minimumBytes)
+  if ($actual.status -eq "unavailable-igio-outage" -and $optionalCatalogSource) {
+    Write-Warning "$($expected.id): optional catalog layer unavailable; no local file expected."
+    continue
+  }
+  if ($actual.status -notin @("acquired", "acquired-from-cache")) {
+    $failures.Add("$($expected.id): status=$($actual.status)")
+  }
+  if ([string]::IsNullOrWhiteSpace([string]$actual.path)) {
+    $failures.Add("$($expected.id): receipt has no file path (status=$($actual.status))")
+    continue
+  }
   $path = Join-Path $Root $actual.path
-  if ($actual.status -ne "acquired") { $failures.Add("$($expected.id): status=$($actual.status)") }
-  if (-not (Test-Path $path)) { $failures.Add("$($expected.id): missing file $($actual.path)"); continue }
+  if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { $failures.Add("$($expected.id): missing file $($actual.path)"); continue }
   $item = Get-Item $path
   if ($item.Length -le 0) { $failures.Add("$($expected.id): zero-byte file") }
   $hash = (Get-FileHash $path -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -87,7 +104,7 @@ $receiptSha = (Get-FileHash $receiptPath -Algorithm SHA256).Hash.ToLowerInvarian
   countyGEOID="18129"
   receiptSha256=$receiptSha
   requiredSourceCount=@($req.requiredSources).Count
-  acquiredRequiredSourceCount=@($req.requiredSources | Where-Object { $byId.ContainsKey($_.id) }).Count
+  acquiredRequiredSourceCount=@($req.requiredSources | Where-Object { $byId.ContainsKey($_.id) -and $byId[$_.id].status -in @("acquired", "acquired-from-cache") }).Count
   exactCountySpatialPolicy=$true
   status="validated"
 } | ConvertTo-Json -Depth 20 | Set-Content (Join-Path $Root "validation-receipt-v1.json") -Encoding utf8
