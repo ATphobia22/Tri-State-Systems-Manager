@@ -167,6 +167,22 @@ jobs:
           run-id: ${{ inputs.resume_run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: /tmp/tsm-igio/copc-checkpoint
+      - name: Verify restored checkpoint is complete
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.resume_run_id != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s /tmp/tsm-igio/copc-checkpoint/state.json || { echo 'FAIL-CLOSED: checkpoint artifact has no state.json' >&2; exit 1; }
+          test -d /tmp/tsm-igio/copc-checkpoint/results || { echo 'FAIL-CLOSED: checkpoint artifact has no results directory' >&2; exit 1; }
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          state = json.loads(Path('/tmp/tsm-igio/copc-checkpoint/state.json').read_text())
+          completed = state.get('completed_tiles')
+          if state.get('schema_version') != 1 or not isinstance(completed, dict) or not completed:
+              raise SystemExit('FAIL-CLOSED: checkpoint state schema or completed_tiles is invalid/empty')
+          print(f"Restored {len(completed)} committed COPC tile checkpoints")
+          PY
       - name: Extract DERIVED heights from Indiana 2020 COPC (gap buildings)
         shell: bash
         run: |
