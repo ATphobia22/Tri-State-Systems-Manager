@@ -10,6 +10,12 @@ concurrency:
 
 on:
   workflow_dispatch:
+    inputs:
+      resume_run_id:
+        description: 'Failed Building 3D Tiles run ID containing a saved COPC checkpoint artifact (leave blank for a fresh run)'
+        required: false
+        type: string
+        default: ''
   pull_request:
     paths:
       - 'scripts/geospatial/build-building-3d-tiles.py'
@@ -43,6 +49,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 env:
   EXPECTED_BUILDINGS: '23082'
@@ -152,6 +159,42 @@ jobs:
           print(f"Gap buildings: {gaps}, COPC tiles: {len(urls)}")
           PY
           test -s /tmp/tsm-igio/copc-tile-list.txt
+      - name: Validate manual checkpoint source run ID
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.resume_run_id != '' }}
+        env:
+          RESUME_RUN_ID: ${{ inputs.resume_run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$RESUME_RUN_ID" =~ ^[0-9]+$ ]]; then
+            echo 'FAIL-CLOSED: resume_run_id must be a numeric GitHub Actions run ID' >&2
+            exit 1
+          fi
+          echo "Checkpoint source run ID validated: $RESUME_RUN_ID"
+      - name: Restore checkpoint from a previous failed run (manual resume)
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.resume_run_id != '' }}
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: tsm-copc-checkpoint-${{ inputs.resume_run_id }}
+          run-id: ${{ inputs.resume_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: /tmp/tsm-igio/copc-checkpoint
+      - name: Verify restored checkpoint is complete
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.resume_run_id != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s /tmp/tsm-igio/copc-checkpoint/state.json || { echo 'FAIL-CLOSED: checkpoint artifact has no state.json' >&2; exit 1; }
+          test -d /tmp/tsm-igio/copc-checkpoint/results || { echo 'FAIL-CLOSED: checkpoint artifact has no results directory' >&2; exit 1; }
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          state = json.loads(Path('/tmp/tsm-igio/copc-checkpoint/state.json').read_text())
+          completed = state.get('completed_tiles')
+          if state.get('schema_version') != 1 or not isinstance(completed, dict) or not completed:
+              raise SystemExit('FAIL-CLOSED: checkpoint state schema or completed_tiles is invalid/empty')
+          print(f"Restored {len(completed)} committed COPC tile checkpoints")
+          PY
       - name: Extract DERIVED heights from Indiana 2020 COPC (gap buildings)
         shell: bash
         run: |
@@ -166,6 +209,15 @@ jobs:
             --tile-manifest /tmp/tsm-igio/copc-tile-manifest.json \
             --checkpoint-dir /tmp/tsm-igio/copc-checkpoint
           date -u '+COPC extraction finish: %Y-%m-%dT%H:%M:%SZ'
+      - name: Preserve COPC checkpoint for manual recovery after failure or cancellation
+        if: ${{ always() && (failure() || cancelled()) }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4.6.2
+        with:
+          name: tsm-copc-checkpoint-${{ github.run_id }}
+          path: /tmp/tsm-igio/copc-checkpoint/
+          retention-days: 30
+          compression-level: 1
+          if-no-files-found: ignore
       - name: Gate on 23,082 height-linked features (OBSERVED + DERIVED)
         shell: bash
         run: |
