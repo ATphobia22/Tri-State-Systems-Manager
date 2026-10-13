@@ -118,7 +118,8 @@
       "id": "indiana-gio-ortho-tier-2025-2028",
       "authority": "Indiana GIO",
       "required": true,
-      "minimumFeatureCount": 1
+      "minimumFeatureCount": 0,
+      "notes": "Supplemental imagery-program coverage catalog. The separately required county-clipped current imagery snapshot remains mandatory; this catalog layer may be unavailable during the state service migration."
     },
     {
       "id": "usace-nld-leveed-areas",
