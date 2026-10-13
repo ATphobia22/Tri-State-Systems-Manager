@@ -1,8 +1,10 @@
 name: Building 3D Tiles
 
 concurrency:
-  group: building-3d-tiles-production
-  cancel-in-progress: true
+  # Keep production geospatial work from being cancelled by a newer run.
+  # PR runs are isolated from the main-branch production queue.
+  group: building-3d-tiles-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
 
 # HLOD Pipeline
 
@@ -155,12 +157,15 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/tsm-igio/copc-tiles
-          python3 scripts/geospatial/extract_derived_heights_copc.py \
+          date -u '+COPC extraction start: %Y-%m-%dT%H:%M:%SZ'
+          /usr/bin/time -v python3 scripts/geospatial/extract_derived_heights_copc.py \
             --geojson /tmp/tsm-igio/posey-buildings-lidar-enriched.geojson \
             --tile-list /tmp/tsm-igio/copc-tile-list.txt \
             --tile-dir /tmp/tsm-igio/copc-tiles \
             --out /tmp/tsm-igio/posey-buildings-height-merged.geojson \
-            --tile-manifest /tmp/tsm-igio/copc-tile-manifest.json
+            --tile-manifest /tmp/tsm-igio/copc-tile-manifest.json \
+            --checkpoint-dir /tmp/tsm-igio/copc-checkpoint
+          date -u '+COPC extraction finish: %Y-%m-%dT%H:%M:%SZ'
       - name: Gate on 23,082 height-linked features (OBSERVED + DERIVED)
         shell: bash
         run: |
