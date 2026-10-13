@@ -9,6 +9,20 @@ concurrency:
 on:
   workflow_dispatch:
   pull_request:
+    paths:
+      - '.github/workflows/building-3d-tiles.yml'
+      - 'scripts/geospatial/build-building-3d-tiles.py'
+      - 'scripts/geospatial/build-hlod-tileset.py'
+      - 'scripts/geospatial/stitch-building-glbs.py'
+      - 'scripts/geospatial/validate-building-3d-tiles.py'
+      - 'scripts/geospatial/build-building-3d-tiles-pipeline.sh'
+      - 'scripts/geospatial/compress-hlod-glbs.sh'
+      - 'scripts/geospatial/package-building-3d-tiles.sh'
+      - 'scripts/geospatial/acquire-and-enrich-igio-posey-buildings.py'
+      - 'scripts/geospatial/extract_lidar_heights.py'
+      - 'scripts/geospatial/extract_derived_heights_copc.py'
+      - 'scripts/geospatial/reconstruct_lod2_roofs.py'
+      - 'tsm-console/public/data/posey-buildings-derived.geojson'
   push:
     branches: [main]
     paths:
