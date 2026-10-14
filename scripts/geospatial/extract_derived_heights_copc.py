@@ -269,7 +269,8 @@ def extract_derived_height(
             "median(Class 1 Z > ground+6ft, footprint-clipped) - "
             "median(Class 2 Z)"
         ),
-        "lidarHeightDatum": "NAVD88 (Geoid12B)",
+        "lidarHeightDatum": "NAVD88",
+        "lidarAbsoluteElevationModel": "GEOID12B",
         "lidarHeightUnit": "ftUS",
         "heightProvenance": "DERIVED",
         "heightProvenanceMethod": (
@@ -488,6 +489,8 @@ def main() -> int:
         for g in in_tile:
             result = extract_derived_height(tile_path, g["ring_spw"])
             g["props"].update(result)
+            if result.get("lidarHeightStatus") == "OK":
+                g["props"]["lidarSource"] = url
             # Ensure provenance is set even on failure
             if g["props"].get("lidarHeightStatus") != "OK":
                 g["props"]["heightProvenance"] = "UNAVAILABLE"
