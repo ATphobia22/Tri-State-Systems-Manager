@@ -18,7 +18,14 @@ test('MapLibre plane defines twelve source planes', async () => {
   assert.ok(registry.includes('hazards.fema.gov'));
   assert.ok(registry.includes('gisdata.in.gov'));
   assert.ok(registry.includes('di-ingov.img.arcgis.com'));
-  assert.ok(MAPLIBRE_FABRIC_LAYERS.map((l) => l.endpoint).join('\n').includes('tile.openstreetmap.org'));
+
+  // OpenFreeMap supplies a MapLibre style document, not an XYZ raster tile
+  // template. Keep its endpoint and required OpenStreetMap attribution aligned
+  // with the current basemap choice instead of requiring the retired OSM tile host.
+  const openFreeMap = MAPLIBRE_FABRIC_LAYERS.find((layer) => layer.id === 'osm-base');
+  assert.ok(openFreeMap, 'OpenFreeMap basemap must be registered');
+  assert.equal(openFreeMap.endpoint, 'https://tiles.openfreemap.org/styles/liberty');
+  assert.match(openFreeMap.attribution, /OpenStreetMap contributors/);
 });
 
 test('engineering API is not auto-executed by the visualization plane', () => {
@@ -31,14 +38,13 @@ test('engineering API is not auto-executed by the visualization plane', () => {
   assert.doesNotMatch(fabric, /XMLHttpRequest/);
 });
 
-
-test('MapLibre plane uses real registered raster endpoints and no placeholder hosts', async () => {
+test('MapLibre plane uses real registered source endpoints and no placeholder hosts', async () => {
   // Endpoints live in the fabric registry (maplibre-layer-fabric.ts); the
   // component resolves them via getMapLibreFabricLayer, so assert on the
   // registered values rather than on component source literals.
   const { MAPLIBRE_FABRIC_LAYERS } = await import('../src/lib/maplibre-layer-fabric.ts');
-  const endpoints = MAPLIBRE_FABRIC_LAYERS.map((l) => l.endpoint).join('\n');
-  assert.ok(endpoints.includes('tile.openstreetmap.org'));
+  const endpoints = MAPLIBRE_FABRIC_LAYERS.map((layer) => layer.endpoint).join('\n');
+  assert.ok(endpoints.includes('tiles.openfreemap.org/styles/liberty'));
   assert.ok(endpoints.includes('hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer'));
   assert.match(endpoints, /gisdata\.in\.gov\/server\/rest\/services\/Best_Available_Flood_Hazard_Layer/);
   assert.match(endpoints, /di-ingov\.img\.arcgis\.com\/arcgis\/rest\/services\/DynamicWebMercator\/Indiana_Current_Imagery\/ImageServer/);
