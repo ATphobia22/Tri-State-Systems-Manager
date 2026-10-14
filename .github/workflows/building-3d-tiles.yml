@@ -34,6 +34,7 @@ on:
       - 'scripts/geospatial/validate_spatial_coherence.py'
       - 'scripts/geospatial/validate_feature_linkage.py'
       - 'scripts/geospatial/validate_authority_boundary.py'
+      - 'scripts/geospatial/test_build_implicit_tileset.py'
       - 'scripts/geospatial/point_tube.py'
       - 'scripts/geospatial/validate_building_acceptance_chain.py'
       - 'scripts/geospatial/build-implicit-tileset.py'
@@ -88,7 +89,9 @@ jobs:
             scripts/geospatial/validate_spatial_coherence.py \
             scripts/geospatial/validate_feature_linkage.py \
             scripts/geospatial/validate_authority_boundary.py \
-            scripts/geospatial/point_tube.py
+            scripts/geospatial/point_tube.py \
+            scripts/geospatial/test_build_implicit_tileset.py
+          python3 scripts/geospatial/test_build_implicit_tileset.py
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version: 22
