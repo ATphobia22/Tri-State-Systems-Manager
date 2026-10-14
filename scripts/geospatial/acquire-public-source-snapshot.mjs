@@ -15,9 +15,9 @@ import { fileURLToPath } from "node:url";
 
 const SOURCES = {
   "usgs-api-index": {
-    url: "https://api.waterdata.usgs.gov/",
-    file: "usgs-water-data-api-index.json",
-    purpose: "Public USGS Water Data API entrypoint metadata"
+    url: "https://api.waterdata.usgs.gov/ogcapi/v1/?f=json",
+    file: "usgs-water-data-api-landing.json",
+    purpose: "Public USGS Water Data OGC API landing metadata"
   },
   "usgs-monitoring-collections": {
     url: "https://api.waterdata.usgs.gov/ogcapi/v1/collections/monitoring-locations?f=json",
