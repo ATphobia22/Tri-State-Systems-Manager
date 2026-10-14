@@ -18,7 +18,7 @@ test('MapLibre plane defines twelve source planes', async () => {
   assert.ok(registry.includes('hazards.fema.gov'));
   assert.ok(registry.includes('gisdata.in.gov'));
   assert.ok(registry.includes('di-ingov.img.arcgis.com'));
-  assert.ok(MAPLIBRE_FABRIC_LAYERS.map((l) => l.endpoint).join('\n').includes('tile.openstreetmap.org'));
+  assert.ok(MAPLIBRE_FABRIC_LAYERS.map((l) => l.endpoint).join('\n').includes('tiles.openfreemap.org'));
 });
 
 test('engineering API is not auto-executed by the visualization plane', () => {
@@ -38,7 +38,7 @@ test('MapLibre plane uses real registered raster endpoints and no placeholder ho
   // registered values rather than on component source literals.
   const { MAPLIBRE_FABRIC_LAYERS } = await import('../src/lib/maplibre-layer-fabric.ts');
   const endpoints = MAPLIBRE_FABRIC_LAYERS.map((l) => l.endpoint).join('\n');
-  assert.ok(endpoints.includes('tile.openstreetmap.org'));
+  assert.ok(endpoints.includes('tiles.openfreemap.org'));
   assert.ok(endpoints.includes('hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer'));
   assert.match(endpoints, /gisdata\.in\.gov\/server\/rest\/services\/Best_Available_Flood_Hazard_Layer/);
   assert.match(endpoints, /di-ingov\.img\.arcgis\.com\/arcgis\/rest\/services\/DynamicWebMercator\/Indiana_Current_Imagery\/ImageServer/);
