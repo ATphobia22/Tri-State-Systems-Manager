@@ -130,7 +130,7 @@ export const appRoutes = [
   { path: 'twin', loader: mapTwinLoader, hydrateFallbackElement: <RouteLoadingFallback label="the twin canvas" />, lazy: async () => ({ Component: (await import('../routes/TwinCanvasView')).default }) },
   { path: 'digital-twin', loader: mapTwinLoader, hydrateFallbackElement: <RouteLoadingFallback label="the twin summary" />, lazy: async () => ({ Component: (await import('../routes/MapTwinView')).default }) },
   { path: 'digital-twin-v2', loader: mapTwinLoader, hydrateFallbackElement: <RouteLoadingFallback label="the unified 3D twin" />, lazy: async () => ({ Component: (await import('../routes/TwinCanvasView')).default }) },
-  { path: 'globe', hydrateFallbackElement: <RouteLoadingFallback label="the self-hosted CesiumJS globe" />, lazy: async () => ({ Component: (await import('../routes/GlobeView')).default }) },
+  { path: 'globe', hydrateFallbackElement: <RouteLoadingFallback label="the 3D map (MapLibre GL)" />, lazy: async () => ({ Component: (await import('../routes/GlobeView')).default }) },
   { path: 'terrain-3d', hydrateFallbackElement: <RouteLoadingFallback label="3D terrain (MapLibre)" />, lazy: async () => ({ Component: (await import('../routes/GlobeView')).default }) },
   { path: 'platform', hydrateFallbackElement: <RouteLoadingFallback label="platform capabilities index" />, lazy: async () => ({ Component: (await import('../routes/PlatformCapabilitiesView')).default }) },
   { path: 'flood-sim', hydrateFallbackElement: <RouteLoadingFallback label="the flood simulator" />, lazy: async () => ({ Component: (await import('../components/FloodSimulator')).default }) },
