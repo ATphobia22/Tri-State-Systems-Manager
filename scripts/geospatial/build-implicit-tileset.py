@@ -51,17 +51,52 @@ def read_glb(path: Path):
     return doc, binary
 
 
-def merge_glbs(features: list[tuple[Path, int]]) -> bytes:
-    """Merge GLBs while preserving per-building feature IDs and OBJECTID metadata."""
+def matmul(a: list[float], b: list[float]) -> list[float]:
+    """Multiply column-major 4x4 matrices."""
+    return [sum(a[k * 4 + row] * b[col * 4 + k] for k in range(4)) for col in range(4) for row in range(4)]
+
+
+def transform_point(matrix: list[float], point: tuple[float, float, float]) -> tuple[float, float, float]:
+    x, y, z = point
+    return (
+        matrix[0] * x + matrix[4] * y + matrix[8] * z + matrix[12],
+        matrix[1] * x + matrix[5] * y + matrix[9] * z + matrix[13],
+        matrix[2] * x + matrix[6] * y + matrix[10] * z + matrix[14],
+    )
+
+
+def transform_normal(matrix: list[float], normal: tuple[float, float, float]) -> tuple[float, float, float]:
+    x, y, z = normal
+    transformed = (
+        matrix[0] * x + matrix[4] * y + matrix[8] * z,
+        matrix[1] * x + matrix[5] * y + matrix[9] * z,
+        matrix[2] * x + matrix[6] * y + matrix[10] * z,
+    )
+    length = math.sqrt(sum(v * v for v in transformed))
+    if not math.isfinite(length) or length <= 1e-12:
+        raise ValueError("transformed GLB normal is degenerate")
+    return tuple(v / length for v in transformed)
+
+
+def merge_glbs(features: list[tuple[Path, int, list[float]]]) -> bytes:
+    """Merge GLBs into the tileset root frame and preserve feature metadata."""
     binary = bytearray()
     views, acc, mats, prims = [], [], [], []
     object_ids: list[int] = []
-    for feature_index, (p, source_object_id) in enumerate(features):
+    for feature_index, (p, source_object_id, tile_transform) in enumerate(features):
         if isinstance(source_object_id, bool) or not isinstance(source_object_id, int) or source_object_id < 0 or source_object_id > 0xFFFFFFFF:
             raise ValueError(f"invalid UINT32 source OBJECTID: {source_object_id!r}")
         object_ids.append(source_object_id)
         doc, bindata = read_glb(p)
-        for prim in doc["meshes"][0]["primitives"]:
+        nodes = doc.get("nodes", [])
+        mesh_nodes = [node for node in nodes if isinstance(node, dict) and "mesh" in node]
+        if len(mesh_nodes) != 1:
+            raise ValueError(f"expected one mesh node in {p}, found {len(mesh_nodes)}")
+        node_matrix = mesh_nodes[0].get("matrix", [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1])
+        if len(node_matrix) != 16 or not all(math.isfinite(float(v)) for v in node_matrix):
+            raise ValueError(f"invalid glTF node matrix in {p}")
+        content_transform = matmul(tile_transform, [float(v) for v in node_matrix])
+        for prim in doc["meshes"][mesh_nodes[0]["mesh"]]["primitives"]:
             pa = doc["accessors"][prim["attributes"]["POSITION"]]
             na = doc["accessors"][prim["attributes"]["NORMAL"]]
             pv = doc["bufferViews"][pa["bufferView"]]
@@ -69,8 +104,14 @@ def merge_glbs(features: list[tuple[Path, int]]) -> bytes:
             po = int(pv.get("byteOffset", 0)) + int(pa.get("byteOffset", 0))
             no = int(nv.get("byteOffset", 0)) + int(na.get("byteOffset", 0))
             count = pa["count"]
-            pb = bindata[po:po + count * 12]
-            nb = bindata[no:no + count * 12]
+            pb_raw = bindata[po:po + count * 12]
+            nb_raw = bindata[no:no + count * 12]
+            if len(pb_raw) != count * 12 or len(nb_raw) != count * 12:
+                raise ValueError(f"truncated position/normal buffer in {p}")
+            positions = [transform_point(content_transform, struct.unpack_from("<3f", pb_raw, i * 12)) for i in range(count)]
+            normals = [transform_normal(content_transform, struct.unpack_from("<3f", nb_raw, i * 12)) for i in range(count)]
+            pb = b"".join(struct.pack("<3f", *point) for point in positions)
+            nb = b"".join(struct.pack("<3f", *normal) for normal in normals)
             mat = doc["materials"][prim["material"]]
             color = mat["pbrMetallicRoughness"]["baseColorFactor"]
             bo = len(binary)
@@ -127,7 +168,7 @@ def merge_glbs(features: list[tuple[Path, int]]) -> bytes:
                                    "properties": {"OBJECTID": {"values": object_id_view}}}]
            }},
            "scene": 0, "scenes": [{"nodes": [0]}],
-           "nodes": [{"mesh": 0, "matrix": [1,0,0,0, 0,0,-1,0, 0,1,0,0, 0,0,0,1]}],
+           "nodes": [{"mesh": 0}],
            "meshes": [{"primitives": prims}], "materials": mats,
            "buffers": [{"byteLength": len(binary)}],
            "bufferViews": views, "accessors": acc}
@@ -142,7 +183,7 @@ class QuadNode:
     def __init__(self, level, x, y, bounds):
         self.level, self.x, self.y = level, x, y
         self.bounds = bounds  # (w, s, e, n) lon/lat
-        self.items = []  # (glb_path, centroid_lon, centroid_lat, sid)
+        self.items = []  # (glb_path, centroid_lon, centroid_lat, sid, root_local_transform)
         self.children = []
 
     def subdivide(self, max_depth, max_items):
@@ -276,29 +317,36 @@ def main():
     if not children:
         raise SystemExit("flat tileset has no children")
 
-    # Collect items with centroids from extras/transform
+    # Preserve the HLOD root frame. Leaf tile transforms are relative to
+    # that frame; content vertices are flattened into the same frame before
+    # merging so individual building placements are not lost.
+    identity = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+    root_node = ts.get("root", {})
+    root_transform = root_node.get("transform", identity)
+    if not isinstance(root_transform, list) or len(root_transform) != 16:
+        raise SystemExit("invalid root transform")
     items = []
-    for child in children:
-        extras = child.get("extras", {}).get("tsm", {})
-        sid = extras.get("sourceObjectId")
-        uri = child.get("content", {}).get("uri")
-        if not uri or sid is None:
-            continue
-        # Centroid from bounding volume box center (ENU local) transformed...
-        # Simpler: parse from manifest sourceObjectIds? Use transform origin.
-        # For quadtree placement we need lon/lat. Extract from the GLB's
-        # tileset transform: transform[12:15] is ECEF origin; convert to lon/lat.
-        m = child.get("transform", [])
-        if len(m) < 15:
-            continue
-        ox, oy, oz = m[12], m[13], m[14]
-        lon = math.degrees(math.atan2(oy, ox))
-        lat = math.degrees(math.atan2(oz, math.hypot(ox, oy)))
-        # Rough correction for ellipsoid (adequate for quadtree binning)
-        items.append((args.tiles_dir / uri, lon, lat, sid))
 
+    def visit(node: dict, parent_local: list[float], is_root: bool = False):
+        local = parent_local if is_root else matmul(parent_local, node.get("transform", identity))
+        content = node.get("content", {})
+        uri = content.get("uri")
+        sid = node.get("extras", {}).get("tsm", {}).get("sourceObjectId")
+        if uri and isinstance(sid, int) and not isinstance(sid, bool):
+            glb_path = args.tiles_dir / uri
+            if not glb_path.is_file():
+                raise SystemExit(f"missing source GLB: {glb_path}")
+            world_transform = matmul(root_transform, local)
+            ox, oy, oz = world_transform[12], world_transform[13], world_transform[14]
+            lon = math.degrees(math.atan2(oy, ox))
+            lat = math.degrees(math.atan2(oz, math.hypot(ox, oy)))
+            items.append((glb_path, lon, lat, sid, local))
+        for child in node.get("children", []):
+            visit(child, local)
+
+    visit(root_node, identity, is_root=True)
     if not items:
-        raise SystemExit("no placeable items")
+        raise SystemExit("no source building tiles with content and sourceObjectId were found")
 
     lons = [i[1] for i in items]
     lats = [i[2] for i in items]
@@ -323,7 +371,7 @@ def main():
         lvl, x, y = leaf.level, leaf.x, leaf.y
         glb_path = content_dir / str(lvl) / str(x) / f"{y}.glb"
         glb_path.parent.mkdir(parents=True, exist_ok=True)
-        merged = merge_glbs([(it[0], int(it[3])) for it in leaf.items])
+        merged = merge_glbs([(it[0], int(it[3]), it[4]) for it in leaf.items])
         glb_path.write_bytes(merged)
         nodes[(lvl, x, y)] = {"has_content": True,
                               "sids": [it[3] for it in leaf.items]}
