@@ -92,37 +92,61 @@ def get_footprint_ring_spw(geom: dict) -> list[tuple[float, float]]:
     return [lonlat_to_spw(c[0], c[1]) for c in ring]
 
 
-def download_tile(url: str, dest: str) -> str:
+def download_tile(url: str, dest: str, max_attempts: int = 3) -> str:
     """Download a COPC tile atomically and return its SHA-256 digest.
 
     A cancelled/failed download must never leave a partial file at ``dest``
     where a retry could mistake it for a complete cache entry.
+
+    The egress path can truncate a stream while closing it cleanly (no
+    exception from the read loop), so the received byte count is verified
+    against the Content-Length response header on every attempt. A mismatch
+    discards the partial file and retries; persistent failure raises
+    fail-closed (the tile is marked download-failed and retried on rerun,
+    never silently committed as a truncated file).
     """
     if os.path.exists(dest) and os.path.getsize(dest) > 0:
         print(f"  [cached-candidate] {os.path.basename(dest)}", flush=True)
     else:
         print(f"  [download] {os.path.basename(dest)}", flush=True)
         partial = dest + ".part"
-        try:
-            if os.path.exists(partial):
-                os.remove(partial)
-            with urllib.request.urlopen(url, timeout=120) as response, open(partial, "wb") as output:
-                while True:
-                    chunk = response.read(1024 * 1024)
-                    if not chunk:
-                        break
-                    output.write(chunk)
-                output.flush()
-                os.fsync(output.fileno())
-            if os.path.getsize(partial) == 0:
-                raise OSError("downloaded COPC tile is empty")
-            os.replace(partial, dest)
-        except Exception:
+        last_error: Exception | None = None
+        for attempt in range(1, max_attempts + 1):
             try:
                 if os.path.exists(partial):
                     os.remove(partial)
-            finally:
-                raise
+                with urllib.request.urlopen(url, timeout=120) as response, open(partial, "wb") as output:
+                    expected_len = response.getheader("Content-Length")
+                    expected = int(expected_len) if expected_len else None
+                    received = 0
+                    while True:
+                        chunk = response.read(1024 * 1024)
+                        if not chunk:
+                            break
+                        output.write(chunk)
+                        received += len(chunk)
+                    output.flush()
+                    os.fsync(output.fileno())
+                if os.path.getsize(partial) == 0:
+                    raise OSError("downloaded COPC tile is empty")
+                if expected is not None and received != expected:
+                    raise OSError(
+                        f"truncated download: received {received} of {expected} bytes"
+                    )
+                os.replace(partial, dest)
+                last_error = None
+                break
+            except Exception as exc:
+                last_error = exc
+                try:
+                    if os.path.exists(partial):
+                        os.remove(partial)
+                except OSError:
+                    pass
+                if attempt < max_attempts:
+                    print(f"  [retry {attempt}/{max_attempts}] {os.path.basename(dest)}: {exc}", flush=True)
+        if last_error is not None:
+            raise last_error
     h = hashlib.sha256()
     with open(dest, "rb") as f:
         for chunk in iter(lambda: f.read(65536), b""):

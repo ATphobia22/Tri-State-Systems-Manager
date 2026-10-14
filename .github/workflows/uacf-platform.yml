@@ -52,9 +52,9 @@ jobs:
       - name: Typecheck UACF workspace
         run: npm run build:uacf
       - name: Run foundation regression tests
-        run: npm run test:uacf-foundations
+        run: npm run test:uacf
       - name: Run provider adapter contract tests
-        run: npm run test:uacf-openai-adapter
+        run: npm run test:uacf-providers
       - name: Verify migrations are numbered and non-empty
         shell: bash
         run: |

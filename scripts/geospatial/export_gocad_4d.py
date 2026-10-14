@@ -43,7 +43,6 @@ import sys
 sys.path.append(os.path.dirname(__file__))
 try:
     from tsm_temporal_4d_engine import PointTube, Procedural4DCityGrowth
-    from tristate_3d_pipeline import CoordinateTransformer, BuildingExtruder
 except ImportError:
     pass
 

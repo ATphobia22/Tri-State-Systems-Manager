@@ -585,7 +585,7 @@ Gates include dependency integrity, supply-chain / npx policy, SBOM, repository 
 
 Do **not** weaken or bypass a failing gate.
 
-Notable workflows: `ci.yml`, `deploy-pages.yml`, `offline-runtime-windows.yml`, `tsm-parse-gate.yml`, `codeql.yml`, `open-world-twin.yml`, `ptdt-e2e-visual.yml`, `container-ci.yml`, `tsm-desktop.yml`, `tsm-engineering-fabric.yml`.
+Notable workflows: `ci.yml`, `deploy-pages.yml`, `offline-runtime-windows.yml`, `tsm-parse-gate.yml`, `open-world-twin.yml`, `ptdt-e2e-visual.yml`, `container-ci.yml`, `tsm-desktop.yml`, `tsm-engineering-fabric.yml`.
 
 ## Safety and professional authority
 

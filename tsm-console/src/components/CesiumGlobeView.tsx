@@ -58,14 +58,6 @@ const BASE = import.meta.env.BASE_URL;
 
 export const GLOBE_LAYERS: readonly GlobeLayer[] = [
   {
-    id: 'terrain-qm',
-    label: 'Terrain quantized-mesh (USGS 3DEP)',
-    url: `${BASE}3d-tiles/terrain-quantized-mesh/layer.json`,
-    kind: 'terrain-qm',
-    provenance: 'DERIVED — USGS 3DEP DEM → quantized-mesh (ctb-tile), GEOID18 vertical (h = H + N).',
-    provClass: 'derived',
-  },
-  {
     id: 'terrain',
     label: 'Terrain GLB fallback (USGS 3DEP)',
     url: `${BASE}3d-tiles/terrain-3dep/tileset.json`,
