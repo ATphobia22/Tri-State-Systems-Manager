@@ -1,37 +1,62 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
-import { resolve } from "node:path";
+import { readBoundedBody, fetchBoundedJson } from "./acquire-public-source-snapshot.mjs";
 
-const root = resolve(fileURLToPath(new URL("../..", import.meta.url)));
-const scriptPath = resolve(root, "scripts/geospatial/acquire-public-source-snapshot.mjs");
-const registerPath = resolve(root, "docs/digital-twin/RESEARCH-AND-DATA-REGISTER.md");
-const planPath = resolve(root, "docs/digital-twin/IMPLEMENTATION-PLAN-2026-10.md");
-
-test("snapshot utility only exposes explicit public sources and caps response size", async () => {
-  const source = await readFile(scriptPath, "utf8");
-  assert.match(source, /api\.waterdata\.usgs\.gov/);
-  assert.match(source, /hazards\.fema\.gov/);
-  assert.match(source, /Unsupported source key/);
-  assert.match(source, /5 \* 1024 \* 1024/);
-  assert.match(source, /createHash\("sha256"\)/);
-  assert.match(source, /AbortSignal\.timeout/);
+test("bounded body reader accepts a response within the byte limit", async () => {
+  const body = await readBoundedBody(new Response(JSON.stringify({ ok: true })), 64);
+  assert.deepEqual(JSON.parse(body.toString("utf8")), { ok: true });
 });
 
-test("research register distinguishes public access from redistribution rights", async () => {
-  const register = await readFile(registerPath, "utf8");
-  assert.match(register, /redistributable/);
-  assert.match(register, /retrieval time/);
-  assert.match(register, /SHA-256/);
-  assert.match(register, /FEMA NFHL/);
-  assert.match(register, /Houdini/);
+test("bounded body reader rejects an oversized declared Content-Length", async () => {
+  const response = new Response("123456", { headers: { "content-length": "6" } });
+  await assert.rejects(readBoundedBody(response, 5), /exceeds safety limit/);
 });
 
-test("implementation plan keeps the model separate from rendering", async () => {
-  const plan = await readFile(planPath, "utf8");
-  assert.match(plan, /scientific model and the renderer are separate systems/i);
-  assert.match(plan, /vertical datum/i);
-  assert.match(plan, /TwinEntityID/);
-  assert.match(plan, /offline/i);
+test("bounded body reader rejects an oversized streamed body without buffering it all", async () => {
+  const response = new Response(new ReadableStream({
+    start(controller) {
+      controller.enqueue(new Uint8Array(4));
+      controller.enqueue(new Uint8Array(4));
+      controller.close();
+    }
+  }));
+  await assert.rejects(readBoundedBody(response, 5), /exceeds safety limit/);
+});
+
+test("source fetch rejects non-allowlisted hosts before network access", async () => {
+  let called = false;
+  await assert.rejects(fetchBoundedJson("https://example.invalid/data.json", async () => {
+    called = true;
+    throw new Error("fetch should not run");
+  }), /allowlist/);
+  assert.equal(called, false);
+});
+
+test("source fetch disables redirects and validates JSON responses", async () => {
+  let options;
+  const result = await fetchBoundedJson(
+    "https://api.waterdata.usgs.gov/ogcapi/v1/?f=json",
+    async (_url, suppliedOptions) => {
+      options = suppliedOptions;
+      return new Response(JSON.stringify({ title: "USGS" }), {
+        status: 200,
+        headers: { "content-type": "application/json" }
+      });
+    },
+    1024
+  );
+  assert.equal(options.redirect, "error");
+  assert.deepEqual(result.document, { title: "USGS" });
+});
+
+test("source fetch rejects unexpected content type and malformed JSON", async () => {
+  await assert.rejects(fetchBoundedJson(
+    "https://api.waterdata.usgs.gov/ogcapi/v1/?f=json",
+    async () => new Response("<html/>", { headers: { "content-type": "text/html" } })
+  ), /expected JSON/);
+
+  await assert.rejects(fetchBoundedJson(
+    "https://api.waterdata.usgs.gov/ogcapi/v1/?f=json",
+    async () => new Response("{broken", { headers: { "content-type": "application/json" } })
+  ), /not valid JSON/);
 });
