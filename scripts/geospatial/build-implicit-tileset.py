@@ -51,11 +51,15 @@ def read_glb(path: Path):
     return doc, binary
 
 
-def merge_glbs(paths: list[Path]) -> bytes:
-    """Merge multiple GLBs into one (positions + normals + per-prim colors)."""
+def merge_glbs(features: list[tuple[Path, int]]) -> bytes:
+    """Merge GLBs while preserving per-building feature IDs and OBJECTID metadata."""
     binary = bytearray()
     views, acc, mats, prims = [], [], [], []
-    for p in paths:
+    object_ids: list[int] = []
+    for feature_index, (p, source_object_id) in enumerate(features):
+        if isinstance(source_object_id, bool) or not isinstance(source_object_id, int) or source_object_id < 0 or source_object_id > 0xFFFFFFFF:
+            raise ValueError(f"invalid UINT32 source OBJECTID: {source_object_id!r}")
+        object_ids.append(source_object_id)
         doc, bindata = read_glb(p)
         for prim in doc["meshes"][0]["primitives"]:
             pa = doc["accessors"][prim["attributes"]["POSITION"]]
@@ -83,13 +87,45 @@ def merge_glbs(paths: list[Path]) -> bytes:
             acc.append({"bufferView": pvi, "componentType": 5126, "count": count,
                         "type": "VEC3", "min": lo, "max": hi})
             acc.append({"bufferView": nvi, "componentType": 5126, "count": count, "type": "VEC3"})
+            # Per-vertex local feature index, linked to the property-table row.
+            fid_bytes = struct.pack("<I", feature_index) * count
+            fid_offset = len(binary)
+            binary.extend(fid_bytes)
+            fid_view = len(views)
+            views.append({"buffer": 0, "byteOffset": fid_offset, "byteLength": len(fid_bytes), "target": 34962})
+            fid_accessor = len(acc)
+            acc.append({"bufferView": fid_view, "componentType": 5125, "count": count, "type": "SCALAR"})
             mi = len(mats)
             mats.append({"pbrMetallicRoughness": {"baseColorFactor": color,
                                                   "metallicFactor": 0.0, "roughnessFactor": 0.9}})
-            prims.append({"attributes": {"POSITION": ai, "NORMAL": ni}, "mode": 4, "material": mi})
+            prims.append({
+                "attributes": {"POSITION": ai, "NORMAL": ni, "_FEATURE_ID_0": fid_accessor},
+                "extensions": {"EXT_mesh_features": {"featureIds": [{
+                    "featureCount": len(features), "attribute": 0, "propertyTable": 0
+                }]}},
+                "mode": 4, "material": mi
+            })
     while len(binary) % 4:
         binary.append(0)
-    doc = {"asset": {"version": "2.0", "generator": "TSM implicit tiling merger v1"},
+    object_id_offset = len(binary)
+    object_id_bytes = b"".join(struct.pack("<I", sid) for sid in object_ids)
+    binary.extend(object_id_bytes)
+    object_id_view = len(views)
+    views.append({"buffer": 0, "byteOffset": object_id_offset, "byteLength": len(object_id_bytes)})
+    while len(binary) % 4:
+        binary.append(0)
+    doc = {"asset": {"version": "2.0", "generator": "TSM implicit tiling merger v2"},
+           "extensionsUsed": ["EXT_mesh_features", "EXT_structural_metadata"],
+           "extensions": {"EXT_structural_metadata": {
+               "schema": {
+                   "id": "tsm-building-feature-schema",
+                   "classes": {"building": {"properties": {
+                       "OBJECTID": {"type": "SCALAR", "componentType": "UINT32"}
+                   }}}
+               },
+               "propertyTables": [{"class": "building", "count": len(object_ids),
+                                   "properties": {"OBJECTID": {"values": object_id_view}}}]
+           }},
            "scene": 0, "scenes": [{"nodes": [0]}],
            "nodes": [{"mesh": 0, "matrix": [1,0,0,0, 0,0,-1,0, 0,1,0,0, 0,0,0,1]}],
            "meshes": [{"primitives": prims}], "materials": mats,
@@ -282,7 +318,7 @@ def main():
         lvl, x, y = leaf.level, leaf.x, leaf.y
         glb_path = content_dir / str(lvl) / str(x) / f"{y}.glb"
         glb_path.parent.mkdir(parents=True, exist_ok=True)
-        merged = merge_glbs([it[0] for it in leaf.items])
+        merged = merge_glbs([(it[0], int(it[3])) for it in leaf.items])
         glb_path.write_bytes(merged)
         nodes[(lvl, x, y)] = {"has_content": True,
                               "sids": [it[3] for it in leaf.items]}
