@@ -144,7 +144,6 @@ function addFeatureSource(map: Map, item: MapPlaneLayer): void {
         'fill-extrusion-base': ['coalesce', ['to-number', ['get', 'min_height']], 0],
         'fill-extrusion-opacity': 0.85,
         'fill-extrusion-vertical-gradient': true,
-        'fill-extrusion-ambient-occlusion-intensity': 0.3,
       },
     });
     return;
@@ -317,7 +316,6 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
       maxZoom: 19,
       maxBounds: MAX_BOUNDS,
       cooperativeGestures: true,
-      antialias: true,
       fadeDuration: 300,
     });
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
