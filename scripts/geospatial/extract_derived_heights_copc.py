@@ -199,6 +199,7 @@ def extract_derived_height(
     idxs = np.where(in_buf)[0]
     roof_z: list[float] = []
     ground_z: list[float] = []
+    canopy_count = 0
 
     # Two-pass collection:
     # - Ground: Class 2 points anywhere in the larger buffer
@@ -216,6 +217,8 @@ def extract_derived_height(
                     by1 - roof_buf <= y <= by2 + roof_buf):
                 if point_in_polygon(x, y, ring_spw):
                     roof_z.append(z)
+        elif c == 5 and point_in_polygon(x, y, ring_spw):
+            canopy_count += 1
 
     if len(ground_z) < MIN_GROUND_POINTS:
         result["lidarHeightStatus"] = f"insufficient-ground-points:{len(ground_z)}"
@@ -228,6 +231,8 @@ def extract_derived_height(
 
     if len(roof_candidates) < MIN_ROOF_POINTS:
         result["lidarHeightStatus"] = f"insufficient-roof-points:{len(roof_candidates)}"
+        result["canopyOcclusionStatus"] = "POSSIBLE_CANOPY_OCCLUSION" if canopy_count >= MIN_ROOF_POINTS else "NO_QUALIFYING_BUILDING_CLASS_POINTS"
+        result["canopyPointsWithinFootprint"] = canopy_count
         return result
 
     # Tree confound check: high vertical variance suggests vegetation, not roof
@@ -249,8 +254,15 @@ def extract_derived_height(
     result.update({
         "lidarHeightStatus": "OK",
         "lidarHeightFt": round(height_ft, 2),
+        "lidarHeightM": round(height_ft * 0.3048006096012192, 3),
         "lidarRoofElevFt": round(roof_median, 2),
         "lidarGroundElevFt": round(ground_median, 2),
+        "lidarRoofElevM": round(roof_median * 0.3048006096012192, 3),
+        "lidarGroundElevM": round(ground_median * 0.3048006096012192, 3),
+        "lidarHeightUncertaintyM": round((1.4826 * (median([abs(z - roof_median) for z in roof_candidates]) + median([abs(z - ground_median) for z in ground_z])) * 0.3048006096012192), 3),
+        "lidarHeightConfidence": "HIGH" if len(roof_candidates) >= 30 and len(ground_z) >= 15 else "MEDIUM" if len(roof_candidates) >= 10 and len(ground_z) >= 5 else "LOW",
+        "canopyOcclusionStatus": "NOT_FLAGGED_BY_CLASS_5_SCREEN",
+        "canopyPointsWithinFootprint": canopy_count,
         "lidarRoofPoints": len(roof_candidates),
         "lidarGroundPoints": len(ground_z),
         "lidarHeightMethod": (
