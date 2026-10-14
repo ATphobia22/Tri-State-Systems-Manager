@@ -1,1 +1,31 @@
-PLACEHOLDER
+name: TSM Production Build & Pages Deploy
+# Local-first production deployment: API connectivity is optional.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      deploy_pages:
+        description: "Run the GitHub Pages deployment after production verification"
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages-${{ github.sha }}
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '22.16.0'
+  NPM_VERSION: '10.9.2'
+  NPM_REGISTRY: https://registry.npmjs.org
+  CONSOLE_DIR: tsm-console
+  VITE_PAGES_BASE_PATH: /Tri-State-Systems-Manager/
