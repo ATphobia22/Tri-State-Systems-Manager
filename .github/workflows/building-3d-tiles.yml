@@ -30,6 +30,9 @@ on:
       - 'scripts/geospatial/extract_derived_heights_copc.py'
       - 'scripts/geospatial/reconstruct_lod2_roofs.py'
       - 'scripts/geospatial/validate_building_acceptance_chain.py'
+      - 'scripts/geospatial/build-implicit-tileset.py'
+      - 'scripts/geospatial/validate_spatial_coherence.py'
+      - 'scripts/geospatial/validate_feature_linkage.py'
       - 'tsm-console/public/data/posey-buildings-derived.geojson'
   push:
     branches: [main]
@@ -287,8 +290,31 @@ jobs:
           while IFS= read -r -d '' file; do
             ./tsm-console/node_modules/.bin/gltf-transform validate "$file" --limit 1
           done < <(find /tmp/tsm-buildings/compressed -type f -name '*.glb' -print0 | sort -z)
+      - name: Build standards-compliant implicit 3D Tiles 1.1 hierarchy
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/geospatial/build-implicit-tileset.py \
+            --input /tmp/tsm-buildings/compressed/tileset.json \
+            --tiles-dir /tmp/tsm-buildings/compressed \
+            --output /tmp/tsm-buildings/implicit/tileset.json \
+            --max-depth 6 --max-items 50
+      - name: Validate implicit spatial coherence and feature metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/geospatial/validate_spatial_coherence.py \
+            --tileset /tmp/tsm-buildings/implicit/tileset.json \
+            --tiles-dir /tmp/tsm-buildings/implicit --mode implicit
+          python3 scripts/geospatial/validate_feature_linkage.py \
+            --tileset /tmp/tsm-buildings/implicit/tileset.json \
+            --tiles-dir /tmp/tsm-buildings/implicit \
+            --geojson /tmp/tsm-igio/posey-buildings-igio-enriched.geojson
+          while IFS= read -r -d '' file; do
+            ./tsm-console/node_modules/.bin/gltf-transform validate "$file" --limit 1
+          done < <(find /tmp/tsm-buildings/implicit -type f -name '*.glb' -print0 | sort -z)
       - name: Package versioned artifact
-        run: bash scripts/geospatial/package-building-3d-tiles.sh /tmp/tsm-buildings/compressed /tmp/tsm-artifacts v1 "$GITHUB_SHA"
+        run: bash scripts/geospatial/package-building-3d-tiles.sh /tmp/tsm-buildings/implicit /tmp/tsm-artifacts v1 "$GITHUB_SHA"
       - name: Verify packaged artifact integrity
         shell: bash
         run: |
