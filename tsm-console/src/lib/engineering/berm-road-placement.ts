@@ -209,11 +209,12 @@ export function section204CostShare(
 export function screenPlacement(
   stations: AlignmentStation[],
   section: TypicalSection,
-  opts: { haulMiles: number; unitConstructionCostPerCy?: number },
+  opts: { haulMiles: number; unitConstructionCostPerCy: number },
 ): PlacementScreening {
   const earthwork = computeEarthwork(stations, section);
   const dredge = estimateDredgeSourcing(earthwork, section, opts.haulMiles);
-  const unitCost = opts.unitConstructionCostPerCy ?? 28; // screening placeholder $/cy
+  // Fail-closed: caller must supply a sourced unit cost; no placeholder default.
+  const unitCost = opts.unitConstructionCostPerCy;
   const construction = earthwork.fillCubicYards * unitCost + dredge.haulCostUsd;
   return {
     earthwork,

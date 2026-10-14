@@ -63,7 +63,7 @@ describe('berm-road-placement', () => {
   });
 
   it('produces a full screening with a sim delta', () => {
-    const screening = screenPlacement(stations, section, { haulMiles: 12 });
+    const screening = screenPlacement(stations, section, { haulMiles: 12, unitConstructionCostPerCy: 28 });
     expect(screening.scenarioDelta.kind).toBe('terrain-modification');
     expect(screening.scenarioDelta.backwaterScreenRequired).toBe(true);
   });
