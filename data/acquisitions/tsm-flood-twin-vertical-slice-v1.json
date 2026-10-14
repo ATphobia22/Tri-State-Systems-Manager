@@ -1,0 +1,73 @@
+{
+  "manifest_version": "1.0.0",
+  "manifest_id": "tsm-flood-twin-vertical-slice-v1",
+  "status": "PLANNED_NOT_ACQUIRED",
+  "purpose": "Bounded, evidence-first flood twin pilot; source selection must be completed for a reviewed area of interest.",
+  "area_of_interest": {
+    "id": null,
+    "geometry_artifact_id": null,
+    "selection_status": "NOT_SELECTED",
+    "selection_requirements": [
+      "documented river reach and boundary conditions",
+      "USGS gauge coverage and relevant time series",
+      "terrain product coverage and known vertical reference",
+      "bathymetry/topobathy suitability review",
+      "modeler approval of calibration/validation observations"
+    ]
+  },
+  "sources": [
+    {
+      "source_id": "usgs-water-data-api",
+      "authority": "USGS",
+      "purpose": "Monitoring-location metadata, continuous measurements, daily values, and time-series metadata.",
+      "entrypoint": "https://api.waterdata.usgs.gov/",
+      "api_collection": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/monitoring-locations",
+      "acquisition_status": "AVAILABLE_API_REQUIRES_AOI_QUERY",
+      "must_capture": ["request_url", "retrieved_at", "response_headers", "source_identifier", "content_sha256", "units", "qualifiers", "observation_time", "site_metadata"]
+    },
+    {
+      "source_id": "usgs-3dep",
+      "authority": "USGS 3D Elevation Program",
+      "purpose": "Terrain elevation input, subject to product-specific resolution, coverage, horizontal CRS, vertical datum and accuracy review.",
+      "entrypoint": "https://www.usgs.gov/3d-elevation-program",
+      "acquisition_status": "EXISTING_REPOSITORY_PIPELINE_REQUIRES_AOI_PRODUCT_VERIFICATION",
+      "must_capture": ["product_identifier", "download_uri", "retrieved_at", "content_sha256", "horizontal_crs", "vertical_datum", "units", "grid_resolution", "nodata", "coverage", "accuracy_metadata"]
+    },
+    {
+      "source_id": "fema-nfhl-effective",
+      "authority": "FEMA",
+      "purpose": "Effective regulatory flood-hazard reference; not a substitute for a current hydraulic model or site-specific determination.",
+      "entrypoint": "https://hazards.fema.gov/femaportal/wps/portal/NFHLWMS",
+      "service": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer",
+      "acquisition_status": "SERVICE_AVAILABLE_AOI_AND_LAYER_QUERY_REQUIRED",
+      "must_capture": ["service_metadata", "layer_id", "query_parameters", "retrieved_at", "effective_date_if_present", "content_sha256_or_response_fingerprint", "authority_class"]
+    },
+    {
+      "source_id": "hec-ras-2d-model-package",
+      "authority": "Reviewed project/model team",
+      "purpose": "Hydraulic model package and run outputs with separate calibration and validation evidence.",
+      "entrypoint": "https://www.hec.usace.army.mil/software/hec-ras/documentation.aspx",
+      "acquisition_status": "NOT_PROVIDED",
+      "must_capture": ["model_package_sha256", "solver_version", "geometry_hash", "boundary_condition_hash", "run_configuration", "calibration_report_ref", "validation_report_ref", "review_status"]
+    }
+  ],
+  "required_output_artifacts": [
+    "source-acquisition-manifest",
+    "terrain-and-bathymetry-reference-contract",
+    "hydraulic-model-package-manifest",
+    "calibration-and-validation-evidence",
+    "time-indexed-depth-grid",
+    "time-indexed-velocity-grid",
+    "water-surface-elevation-grid",
+    "twin-entity-registry-export",
+    "4d-state-snapshot",
+    "visualization-tile-manifest",
+    "reproducibility-report"
+  ],
+  "prohibitions": [
+    "Do not invent an area of interest, bathymetry, CRS, vertical datum, calibration record, model hash, gauge observation, or download checksum.",
+    "Do not label a Houdini or browser screening simulation as a calibrated hydraulic model output.",
+    "Do not commit large third-party data packages or licensed project files without reviewing terms and repository-size implications.",
+    "Do not publish outputs as engineering-approved until qualified human review is recorded."
+  ]
+}
