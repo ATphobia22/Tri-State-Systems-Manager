@@ -123,14 +123,38 @@ def main():
     tiles: list[dict] = []
     collect_tiles(tileset.get("root", {}), tiles)
     if not tiles:
-        # Implicit mode: check content dir directly
+        # Implicit mode must not bypass feature identity validation. Inspect
+        # every merged GLB and require both feature-ID and structural-metadata
+        # extensions; a mere content-file count is not an acceptance result.
         content_dir = args.tiles_dir / "content"
-        if content_dir.exists():
-            print(f"INFO: implicit tileset; {len(list(content_dir.rglob('*.glb')))} content GLBs "
-                  f"(per-tile linkage validated at build time)")
-            print("PASS: feature linkage OK (implicit mode, build-time gates)")
-            return
-        fail("no tiles with content found")
+        glbs = sorted(content_dir.rglob("*.glb")) if content_dir.exists() else []
+        if not glbs:
+            violations.append("implicit tileset has no content GLBs")
+        for glb_path in glbs:
+            try:
+                doc = read_glb_meta(glb_path)
+                used = set(doc.get("extensionsUsed", []))
+                if "EXT_mesh_features" not in used:
+                    violations.append(f"{glb_path}: missing EXT_mesh_features declaration")
+                if "EXT_structural_metadata" not in used:
+                    violations.append(f"{glb_path}: missing EXT_structural_metadata declaration")
+                schema = doc.get("extensions", {}).get("EXT_structural_metadata", {}).get("schema")
+                tables = doc.get("extensions", {}).get("EXT_structural_metadata", {}).get("propertyTables")
+                if not isinstance(schema, dict) or not isinstance(tables, list) or not tables:
+                    violations.append(f"{glb_path}: structural metadata schema/propertyTables missing")
+                has_feature_ids = False
+                for mesh in doc.get("meshes", []):
+                    for prim in mesh.get("primitives", []):
+                        attrs = prim.get("attributes", {})
+                        pext = prim.get("extensions", {}).get("EXT_mesh_features", {})
+                        if "_FEATURE_ID_0" in attrs and pext.get("featureIds"):
+                            has_feature_ids = True
+                if not has_feature_ids:
+                    violations.append(f"{glb_path}: no _FEATURE_ID_0 attribute linked to EXT_mesh_features")
+            except Exception as exc:
+                violations.append(f"{glb_path}: unable to inspect feature metadata: {exc}")
+        if not violations:
+            violations.append("implicit content identity cannot be accepted without decoded property-table OBJECTID set equality against source GeoJSON")
 
     seen: dict[int, str] = {}
     ext_summary: dict[str, int] = {}
