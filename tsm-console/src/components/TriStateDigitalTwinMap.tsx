@@ -132,16 +132,25 @@ function addFeatureSource(map: Map, item: MapPlaneLayer): void {
       id: `${item.id}-extrusion`,
       type: 'fill-extrusion',
       source: item.id,
+      minzoom: 14,
       layout: { visibility: 'none' },
       paint: {
+        // Height-based color ramp (gray to blue), following ember-maplibre-gl pattern
         'fill-extrusion-color': [
-          'interpolate', ['linear'], ['coalesce', ['to-number', ['get', 'height']], 9],
+          'interpolate', ['linear'], ['coalesce', ['to-number', ['get', 'height_m']], 9],
           0, '#d9dee4',
           15, '#aeb6c2',
-          30, '#8f99a8'
+          30, '#6baed6',
+          50, '#08519c'
         ],
-        'fill-extrusion-height': ['coalesce', ['to-number', ['get', 'height']], ['to-number', ['get', 'render_height']], 9],
-        'fill-extrusion-base': ['coalesce', ['to-number', ['get', 'min_height']], 0],
+        // Zoom-based height interpolation: 0 at zoom 14, full height at zoom 15+
+        // This prevents visual popping and improves mobile performance
+        'fill-extrusion-height': [
+          'interpolate', ['linear'], ['zoom'],
+          14, 0,
+          15, ['coalesce', ['to-number', ['get', 'height_m']], 9]
+        ],
+        'fill-extrusion-base': 0,
         'fill-extrusion-opacity': 0.85,
         'fill-extrusion-vertical-gradient': true,
       },
