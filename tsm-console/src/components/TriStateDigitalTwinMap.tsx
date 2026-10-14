@@ -347,6 +347,18 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
           maxzoom: 14,
         });
         map.setTerrain({ source: TERRAIN_RGB_SOURCE_ID, exaggeration: 1 });
+        // Hillshade layer for 3D terrain visualization (per maplibre-agent-skills guide)
+        if (!map.getLayer('terrain-hillshade')) {
+          map.addLayer({
+            id: 'terrain-hillshade',
+            type: 'hillshade',
+            source: TERRAIN_RGB_SOURCE_ID,
+            paint: {
+              'hillshade-exaggeration': 0.5,
+              'hillshade-shadow-color': '#473B2B',
+            },
+          });
+        }
       }
 
       addRasterSource(map, 'fema-nfhl', getMapLibreFabricLayer('fema-effective').endpoint, [28, 16, 3, 1, 34, 23], false);
