@@ -41,8 +41,10 @@ class GeodeticFrame(BaseModel):
     @field_validator("horizontal_crs")
     @classmethod
     def crs_is_explicit(cls, v: str) -> str:
-        if not v.startswith("EPSG:"):
-            raise ValueError("horizontal CRS must be an explicit EPSG identifier")
+        if v != HORIZONTAL_CRS:
+            raise ValueError(
+                f"horizontal CRS must match the canonical project CRS {HORIZONTAL_CRS}"
+            )
         return v
 
     @field_validator("vertical_datum")
