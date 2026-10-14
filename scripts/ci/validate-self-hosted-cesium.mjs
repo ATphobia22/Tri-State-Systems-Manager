@@ -7,6 +7,15 @@ const required = [
     ['Cesium 3D Tiles API', /Cesium3DTileset\.fromUrl/],
     ['viewer zooms to the tileset', /viewer\.zoomTo\(tileset\)/],
   ]],
+  ['tsm-console/src/routes/CesiumIonAssetsView.tsx', [
+    ['ion asset ID configuration', /VITE_CESIUM_ION_ASSET_ID/],
+    ['ion token configuration', /VITE_CESIUM_ION_ACCESS_TOKEN/],
+    ['asset dashboard link', /https:\\/\\/ion\\.cesium\\.com\\/assets/],
+  ]],
+  ['tsm-console/vite.config.ts', [
+    ['Cesium ion API CSP host', /https:\\/\\/api\\.cesium\\.com/],
+    ['Cesium ion assets CSP host', /https:\\/\\/assets\\.cesium\\.com/],
+  ]],
   ['tsm-console/src/routes/CesiumTerrainView.tsx', [
     ['terrain tileset URL', /3d-tiles\/terrain-3dep\/tileset\.json/],
     ['renderer status', /data-renderer-state/],
@@ -16,6 +25,7 @@ const required = [
   ]],
   ['tsm-console/src/lib/router.tsx', [
     ['3D terrain route', /path: 'terrain-3d'/],
+    ['Cesium ion assets route', /path: 'ion-assets'/],
     ['platform index route', /path: 'platform'/],
   ]],
   ['tsm-console/src/components/RootLayout.tsx', [
