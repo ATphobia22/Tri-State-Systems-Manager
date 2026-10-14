@@ -188,72 +188,77 @@ def tile_id(level, x, y):
     return f"{level}-{x}-{y}"
 
 
-def write_subtree(path: Path, nodes: dict, subtree_level: int, subtree_x: int, subtree_y: int):
-    """Write a subtree JSON file with availability bitstreams.
+def _morton_code(x: int, y: int) -> int:
+    """Return a 2D Morton/Z-order index for non-negative tile coordinates."""
+    code = 0
+    bit = 0
+    while (1 << bit) <= max(x, y):
+        code |= ((x >> bit) & 1) << (2 * bit)
+        code |= ((y >> bit) & 1) << (2 * bit + 1)
+        bit += 1
+    return code
 
-    nodes: dict mapping (level, x, y) -> {"has_content": bool, "has_children": bool}
-    Covers SUBTREE_LEVELS levels starting at (subtree_level, subtree_x, subtree_y).
-    """
-    # Morton-order tile indices within subtree
-    tile_count = sum(4 ** i for i in range(SUBTREE_LEVELS))
-    tile_avail = []
-    content_avail = []
-    idx = 0
-    index_of = {}
-    for i in range(SUBTREE_LEVELS):
-        lvl = subtree_level + i
-        for ty in range(subtree_y * (4 ** i), (subtree_y + 1) * (4 ** i)):
-            for tx in range(subtree_x * (4 ** i), (subtree_x + 1) * (4 ** i)):
-                # Note: y index mapping; simplified row-major
-                index_of[(lvl, tx, ty)] = idx
-                idx += 1
-    # This simplified version uses constant availability when all tiles present
-    # Full bitstream implementation:
-    bits_tile = []
-    bits_content = []
-    for i in range(SUBTREE_LEVELS):
-        lvl = subtree_level + i
-        span = 4 ** i
-        for ty in range(subtree_y * span, (subtree_y + 1) * span):
-            for tx in range(subtree_x * span, (subtree_x + 1) * span):
-                info = nodes.get((lvl, tx, ty))
-                bits_tile.append(1 if info else 0)
-                bits_content.append(1 if (info and info["has_content"]) else 0)
 
-    def to_bitstream(bits):
-        nbytes = (len(bits) + 7) // 8
-        data = bytearray(nbytes)
-        for i, b in enumerate(bits):
-            if b:
-                data[i // 8] |= 1 << (i % 8)
+def write_subtree(
+    path: Path,
+    nodes: dict,
+    subtree_roots: set[tuple[int, int, int]],
+    subtree_level: int,
+    subtree_x: int,
+    subtree_y: int,
+):
+    """Write a JSON-encoded 3D Tiles subtree with Morton-ordered bitstreams."""
+    tile_bits: list[int] = []
+    content_bits: list[int] = []
+    for depth in range(SUBTREE_LEVELS):
+        scale = 2 ** depth
+        local_tiles = [(lx, ly) for ly in range(scale) for lx in range(scale)]
+        local_tiles.sort(key=lambda point: _morton_code(point[0], point[1]))
+        for lx, ly in local_tiles:
+            tx, ty = subtree_x * scale + lx, subtree_y * scale + ly
+            info = nodes.get((subtree_level + depth, tx, ty))
+            tile_bits.append(1 if info else 0)
+            content_bits.append(1 if info and info.get("has_content") else 0)
+
+    child_bits: list[int] = []
+    child_scale = 2 ** SUBTREE_LEVELS
+    local_children = [(lx, ly) for ly in range(child_scale) for lx in range(child_scale)]
+    local_children.sort(key=lambda point: _morton_code(point[0], point[1]))
+    for lx, ly in local_children:
+        child_key = (
+            subtree_level + SUBTREE_LEVELS,
+            subtree_x * child_scale + lx,
+            subtree_y * child_scale + ly,
+        )
+        child_bits.append(1 if child_key in subtree_roots else 0)
+
+    def to_bitstream(bits: list[int]) -> bytes:
+        data = bytearray((len(bits) + 7) // 8)
+        for index, bit in enumerate(bits):
+            if bit:
+                data[index // 8] |= 1 << (index % 8)
         return bytes(data)
 
-    buffer = to_bitstream(bits_tile) + to_bitstream(bits_content)
-    tile_off, content_off = 0, (len(bits_tile) + 7) // 8
+    tile_bytes = to_bitstream(tile_bits)
+    content_bytes = to_bitstream(content_bits)
+    child_bytes = to_bitstream(child_bits)
+    binary = tile_bytes + content_bytes + child_bytes
+    views = [
+        {"buffer": 0, "byteOffset": 0, "byteLength": len(tile_bytes)},
+        {"buffer": 0, "byteOffset": len(tile_bytes), "byteLength": len(content_bytes)},
+        {"buffer": 0, "byteOffset": len(tile_bytes) + len(content_bytes), "byteLength": len(child_bytes)},
+    ]
     subtree = {
-        "buffers": [{"byteLength": len(buffer)}],
-        "bufferViews": [
-            {"buffer": 0, "byteOffset": tile_off,
-             "byteLength": (len(bits_tile) + 7) // 8},
-            {"buffer": 0, "byteOffset": content_off,
-             "byteLength": (len(bits_content) + 7) // 8},
-        ],
+        "buffers": [{"uri": path.with_suffix(".bin").name, "byteLength": len(binary)}],
+        "bufferViews": views,
         "tileAvailability": {"bitstream": 0},
         "contentAvailability": [{"bitstream": 1}],
-        "childSubtreeAvailability": {"constant": 0},
+        "childSubtreeAvailability": {"bitstream": 2},
     }
     path.parent.mkdir(parents=True, exist_ok=True)
-    # Write JSON + binary buffer
-    j = json.dumps(subtree, separators=(",", ":")).encode()
-    # Subtree files are JSON with embedded buffer as separate .bin? No:
-    # subtree format is JSON + binary buffer concatenated like GLB.
-    # For simplicity, use the .subtree JSON with bufferViews referencing
-    # an external buffer file.
-    bin_path = path.with_suffix(".bin")
-    bin_path.write_bytes(buffer)
-    subtree["buffers"] = [{"uri": bin_path.name, "byteLength": len(buffer)}]
-    path.write_text(json.dumps(subtree, indent=1))
-    return bits_tile, bits_content
+    path.with_suffix(".bin").write_bytes(binary)
+    path.write_text(json.dumps(subtree, indent=2) + "\\n", encoding="utf-8")
+    return tile_bits, content_bits, child_bits
 
 
 def main():
@@ -344,7 +349,7 @@ def main():
 
     for sl, sx, sy in sorted(subtree_roots):
         spath = subtree_dir / str(sl) / str(sx) / f"{sy}.subtree"
-        write_subtree(spath, nodes, sl, sx, sy)
+        write_subtree(spath, nodes, subtree_roots, sl, sx, sy)
 
     # Root tileset.json with implicitTiling (NO legacy extension)
     w, s, e, n = root_bounds
