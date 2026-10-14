@@ -17,7 +17,7 @@
 
 ## Enable on GitHub
 
-1. **Settings → Code security → CodeQL** → Default setup **or** rely on `.github/workflows/codeql.yml` (advanced).
+1. **Settings → Code security → CodeQL** → Default setup **or** CodeQL disabled 2026-10-14 (was erroring; not required for deploy).
 2. Do not enable Default *and* Advanced on the same languages without understanding override behavior.
 3. Keep Dependabot open for `github/codeql-action` SHA bumps.
 

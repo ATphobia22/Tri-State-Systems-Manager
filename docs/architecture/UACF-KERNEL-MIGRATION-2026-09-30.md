@@ -25,6 +25,6 @@ The HEC-RAS test verifies capability routing only. It does not claim that a real
 
 ## Runtime constraints
 
-Oracle Cloud remains the deployment target. The login-free TSM runtime and removal of live river-gauge dependencies remain preserved. No external provider credential is fabricated by the kernel migration.
+Oracle Cloud was removed 2026-10-14 per owner directive; GitHub Pages is the deployment target. The login-free TSM runtime and removal of live river-gauge dependencies remain preserved. No external provider credential is fabricated by the kernel migration.
 
 UACP is the semantic contract; MCP, OpenAPI, HTTP, JSON-RPC, SSE, WebSocket, and CLI remain integration/transport mechanisms.

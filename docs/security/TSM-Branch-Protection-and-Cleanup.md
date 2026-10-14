@@ -22,7 +22,7 @@ GitHub supports classic **branch protection rules** and newer **rulesets**. Rule
 ### Suggested required checks (add when stable)
 
 - Parse / action-pin gate job name (from `tsm-parse-gate` or `ci.yml`)
-- CodeQL Analysis (after first successful run)
+- CodeQL Analysis (disabled 2026-10-14)
 - Primary CI pipeline job that must stay green
 
 Path: **Settings → Rules → Rulesets** (or **Branches**).
@@ -71,5 +71,5 @@ GitLab does **not** magically delete remote feature branches on a timer for all 
 1. Confirm ruleset **TSM main protection** exists (evaluate → active when ready).  
 2. Enable **Automatically delete head branches**.  
 3. Run **Branch cleanup** workflow once (Actions → Run workflow).  
-4. Watch **CodeQL** + parse gate on latest `main`.  
+4. CodeQL disabled; watch parse gate on latest `main`.  
 5. Add only **passing** check names as required status checks.
