@@ -257,7 +257,7 @@ def write_subtree(
     }
     path.parent.mkdir(parents=True, exist_ok=True)
     path.with_suffix(".bin").write_bytes(binary)
-    path.write_text(json.dumps(subtree, indent=2) + "\\n", encoding="utf-8")
+    path.write_text(json.dumps(subtree, indent=2) + "\n", encoding="utf-8")
     return tile_bits, content_bits, child_bits
 
 
