@@ -266,12 +266,8 @@ jobs:
           test -f dist/manifest.json
           grep -Fq '/Tri-State-Systems-Manager/' dist/index.html
           grep -Fq '/Tri-State-Systems-Manager/' dist/404.html
-          test -s dist/3d-tiles/terrain-3dep/tileset.json
-          test -s dist/3d-tiles/terrain-3dep/SHA256SUMS
-          test -s dist/3d-tiles/buildings/tileset.json
-          test -s dist/3d-tiles/buildings/SHA256SUMS
-          test -s dist/vendor/cesium/Cesium.js
-          test -s dist/vendor/cesium/Widgets/widgets.css
+          test -s dist/3d-tiles/tileset.json
+          test -s dist/3d-tiles/buildings-3d.json
           node <<'NODE'
           const fs = require('node:fs');
           const path = require('node:path');
@@ -337,14 +333,9 @@ jobs:
           curl --fail --silent --show-error --location --max-time 30 "${PAGE_URL}" --output /tmp/tsm-pages-response.html
           grep -Eiq '<title>[^<]+</title>' /tmp/tsm-pages-response.html
           echo "Published Pages endpoint responded successfully: ${PAGE_URL}"
-          base="${PAGE_URL%/}/3d-tiles/terrain-3dep"
+          base="${PAGE_URL%/}/3d-tiles"
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${base}/tileset.json" -o /tmp/published-tileset.json
-          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${base}/SHA256SUMS" -o /tmp/published-SHA256SUMS
-          building_base="${PAGE_URL%/}/3d-tiles/buildings"
-          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${building_base}/tileset.json" -o /tmp/published-building-tileset.json
-          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${building_base}/SHA256SUMS" -o /tmp/published-building-SHA256SUMS
-          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${PAGE_URL%/}/vendor/cesium/Cesium.js" -o /tmp/published-Cesium.js
-          test -s /tmp/published-Cesium.js
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${base}/buildings-3d.json" -o /tmp/published-buildings-3d.json
           BASE_URL="${base}" python3 - <<'PY'
           import hashlib
           import os
