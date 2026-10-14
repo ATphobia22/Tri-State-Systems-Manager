@@ -1,0 +1,39 @@
+{
+  "asset": {
+    "version": "1.1",
+    "tilesetVersion": "1.0.0",
+    "extras": {
+      "tsm": {
+        "authorityClass": "DERIVED",
+        "implicitTiling": "QUADTREE",
+        "subtreeLevels": 2
+      }
+    }
+  },
+  "geometricError": 1000.0,
+  "root": {
+    "boundingVolume": {
+      "region": [
+        -1.53723354816942,
+        0.656470517045326,
+        -1.5308914363947295,
+        0.6640381431829772,
+        0,
+        500
+      ]
+    },
+    "geometricError": 1000.0,
+    "refine": "REPLACE",
+    "content": {
+      "uri": "content/{level}/{x}/{y}.glb"
+    },
+    "implicitTiling": {
+      "subdivisionScheme": "QUADTREE",
+      "subtreeLevels": 2,
+      "availableLevels": 7,
+      "subtrees": {
+        "uri": "subtrees/{level}/{x}/{y}.subtree"
+      }
+    }
+  }
+}

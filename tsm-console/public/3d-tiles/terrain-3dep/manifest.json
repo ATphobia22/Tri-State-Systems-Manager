@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "1.0.0",
+  "artifactId": "tsm-terrain-3d-tiles-3dep",
+  "format": "OGC 3D Tiles 1.1 + glTF 2.0 GLB",
+  "source": {
+    "sourceUrl": "https://www.usgs.gov/3d-elevation-program",
+    "sourceVersionOrEffectiveDate": "USGS 3DEP-derived screening terrain",
+    "sourceId": "terrain_3dep"
+  },
+  "input": {
+    "mbtilesSha256": "83f94cf76f3220d3d2e140bc7a56e3baf0a9ba31a5576c97aea5f78d9b17a696",
+    "tileCount": 28,
+    "zoomLevels": [
+      11,
+      12,
+      13,
+      14,
+      15
+    ]
+  },
+  "transformation": "Terrain-RGB PNG -> deterministic sampled mesh -> tile-local ENU GLB.",
+  "verticalMode": "geodetic",
+  "verticalProvenance": "geodetic: ENU origin shifted by GEOID18 separation N at tile center via tsm_geodesy (h=H+N); legacy-offset: origin on ellipsoid surface (previous behavior)",
+  "softwareVersion": "TSM deterministic terrain 3D Tiles converter v1",
+  "authorityClass": "DERIVED",
+  "engineeringUse": false,
+  "regulatoryUse": false,
+  "tileCount": 28,
+  "gridSize": 33,
+  "content": [
+    "11/523/790.glb",
+    "11/523/791.glb",
+    "12/1046/1581.glb",
+    "12/1046/1582.glb",
+    "13/2093/3163.glb",
+    "13/2093/3164.glb",
+    "14/4186/6327.glb",
+    "14/4186/6328.glb",
+    "14/4186/6329.glb",
+    "14/4187/6327.glb",
+    "14/4187/6328.glb",
+    "14/4187/6329.glb",
+    "15/8372/12655.glb",
+    "15/8372/12656.glb",
+    "15/8372/12657.glb",
+    "15/8372/12658.glb",
+    "15/8373/12655.glb",
+    "15/8373/12656.glb",
+    "15/8373/12657.glb",
+    "15/8373/12658.glb",
+    "15/8374/12655.glb",
+    "15/8374/12656.glb",
+    "15/8374/12657.glb",
+    "15/8374/12658.glb",
+    "15/8375/12655.glb",
+    "15/8375/12656.glb",
+    "15/8375/12657.glb",
+    "15/8375/12658.glb"
+  ]
+}

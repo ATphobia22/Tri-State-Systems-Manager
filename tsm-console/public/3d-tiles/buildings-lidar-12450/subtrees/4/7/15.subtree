@@ -1,0 +1,31 @@
+{
+ "buffers": [
+  {
+   "uri": "15.bin",
+   "byteLength": 6
+  }
+ ],
+ "bufferViews": [
+  {
+   "buffer": 0,
+   "byteOffset": 0,
+   "byteLength": 3
+  },
+  {
+   "buffer": 0,
+   "byteOffset": 3,
+   "byteLength": 3
+  }
+ ],
+ "tileAvailability": {
+  "bitstream": 0
+ },
+ "contentAvailability": [
+  {
+   "bitstream": 1
+  }
+ ],
+ "childSubtreeAvailability": {
+  "constant": 0
+ }
+}
