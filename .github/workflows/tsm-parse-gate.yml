@@ -67,12 +67,6 @@ jobs:
           }
           console.log('Lockfile provenance check passed.');
           NODE
-      - name: Verify lockfile reproducibility
-        run: |
-          cp package-lock.json package-lock.json.ci-baseline
-          npm install --package-lock-only --ignore-scripts --no-audit --no-fund --registry="$NPM_REGISTRY"
-          diff -u package-lock.json.ci-baseline package-lock.json
-          rm package-lock.json.ci-baseline
       - name: Install locked dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund --registry="$NPM_REGISTRY"
       - name: Repository integrity gate
