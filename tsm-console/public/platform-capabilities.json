@@ -12,6 +12,12 @@
       "source": "USGS 3DEP-derived terrain visualization"
     },
     {
+      "path": "/ion-assets/",
+      "name": "Cesium ion Hosted 3D Assets",
+      "status": "implemented; asset ID, restricted token, quota, and deployment validation required",
+      "format": "CesiumJS 3D Tiles streamed from Cesium ion"
+    },
+    {
       "path": "/globe/",
       "name": "Self-hosted CesiumJS Globe",
       "status": "implemented on main"
