@@ -2,7 +2,7 @@
   "build": {
     "appId": "org.tristate.tsm.desktop",
     "asar": true,
-    "copyright": "Copyright © 2026 Tri-State Systems Manager contributors",
+    "copyright": "Copyright \u00a9 2026 Tri-State Systems Manager contributors",
     "directories": {
       "output": "release"
     },
@@ -55,7 +55,7 @@
     },
     "afterPack": "./scripts/stamp-win-exe.mjs"
   },
-  "description": "Tri-State Systems Manager — offline Windows 11 desktop app (loopback API + bundled SPA + data, air-gapped).",
+  "description": "Tri-State Systems Manager \u2014 offline Windows 11 desktop app (loopback API + bundled SPA + data, air-gapped).",
   "devDependencies": {
     "electron": "41.10.6",
     "electron-builder": "26.15.3",
@@ -78,5 +78,8 @@
   },
   "type": "module",
   "version": "0.2.1",
-  "author": "Tri-State Systems Manager contributors"
+  "author": "Tri-State Systems Manager contributors",
+  "overrides": {
+    "sprintf-js": "1.1.3"
+  }
 }
