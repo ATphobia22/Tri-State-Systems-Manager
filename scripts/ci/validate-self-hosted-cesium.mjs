@@ -27,7 +27,7 @@ const required = [
     ['static runtime asset list', /'Cesium\.js'.*'Workers'.*'ThirdParty'.*'Assets'.*'Widgets'/],
   ]],
   ['.github/workflows/deploy-pages.yml', [
-    ['build terrain tiles', /build-terrain-3d-tiles\.py/],
+    ['validate committed tiles', /Validate committed.*Tiles/],
     ['validate terrain tiles', /validate-terrain-3d-tiles\.py/],
     ['vendor Cesium runtime', /install-cesium-static\.mjs/],
     ['verify published Cesium runtime', /vendor\/cesium\/Cesium\.js/],
