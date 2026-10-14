@@ -33,6 +33,8 @@ on:
       - 'scripts/geospatial/build-implicit-tileset.py'
       - 'scripts/geospatial/validate_spatial_coherence.py'
       - 'scripts/geospatial/validate_feature_linkage.py'
+      - 'scripts/geospatial/validate_authority_boundary.py'
+      - 'scripts/geospatial/point_tube.py'
       - 'scripts/geospatial/validate_building_acceptance_chain.py'
       - 'scripts/geospatial/build-implicit-tileset.py'
       - 'scripts/geospatial/validate_spatial_coherence.py'
@@ -84,7 +86,9 @@ jobs:
             scripts/geospatial/validate_building_acceptance_chain.py \
             scripts/geospatial/build-implicit-tileset.py \
             scripts/geospatial/validate_spatial_coherence.py \
-            scripts/geospatial/validate_feature_linkage.py
+            scripts/geospatial/validate_feature_linkage.py \
+            scripts/geospatial/validate_authority_boundary.py \
+            scripts/geospatial/point_tube.py
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version: 22
@@ -325,6 +329,10 @@ jobs:
             --tileset /tmp/tsm-buildings/implicit/tileset.json \
             --tiles-dir /tmp/tsm-buildings/implicit \
             --geojson /tmp/tsm-igio/posey-buildings-igio-enriched.geojson
+          python3 scripts/geospatial/validate_authority_boundary.py \
+            --tiles-dir /tmp/tsm-buildings/implicit \
+            --geojson /tmp/tsm-igio/posey-buildings-igio-enriched.geojson \
+            --check-glbs
           while IFS= read -r -d '' file; do
             ./tsm-console/node_modules/.bin/gltf-transform validate "$file" --limit 1
           done < <(find /tmp/tsm-buildings/implicit -type f -name '*.glb' -print0 | sort -z)
