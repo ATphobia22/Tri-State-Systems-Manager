@@ -1,5 +1,6 @@
 name: TSM Production Build & Pages Deploy
 # Local-first production deployment: API connectivity is optional.
+# Restored full body 2026-10-14 after truncated intermediate commit.
 
 on:
   push:
@@ -29,3 +30,231 @@ env:
   NPM_REGISTRY: https://registry.npmjs.org
   CONSOLE_DIR: tsm-console
   VITE_PAGES_BASE_PATH: /Tri-State-Systems-Manager/
+
+jobs:
+  build:
+    name: Verify and build production console
+    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-24.04
+    env:
+      VITE_TSM_API_BASE_URL: ${{ vars.TSM_API_BASE_URL }}
+      VITE_TSM_TERRAIN_RGB_URL_TEMPLATE: https://atphobia22.github.io/Tri-State-Systems-Manager/terrain_3dep/{z}/{x}/{y}.png
+      VITE_POSEY_WTHGIS_GEOJSON_URL: https://atphobia22.github.io/Tri-State-Systems-Manager/data/posey-parcels.geojson
+    permissions:
+      contents: read
+      pages: write
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        with:
+          egress-policy: audit
+      - name: Validate public API binding
+        if: ${{ vars.TSM_REQUIRE_LIVE_API == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${VITE_TSM_API_BASE_URL}" ]]; then
+            echo 'TSM_REQUIRE_LIVE_API=true but TSM_API_BASE_URL is empty.' >&2
+            exit 1
+          fi
+          [[ "${VITE_TSM_API_BASE_URL}" == https://* ]] || { echo 'VITE_TSM_API_BASE_URL must use HTTPS.' >&2; exit 1; }
+      - name: Informational API binding status
+        if: ${{ vars.TSM_REQUIRE_LIVE_API != 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${VITE_TSM_API_BASE_URL}" ]]; then
+            echo 'Static console builds without live API (local-first).'
+          else
+            [[ "${VITE_TSM_API_BASE_URL}" == https://* ]] || { echo 'API URL must be HTTPS when set.' >&2; exit 1; }
+          fi
+          [[ "${VITE_TSM_TERRAIN_RGB_URL_TEMPLATE}" == https://* ]] || exit 1
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install pinned geospatial acquisition dependencies
+        run: python3 -m pip install --disable-pip-version-check --no-input --no-cache-dir "numpy==2.1.3" "rasterio==1.4.3" "shapely==2.0.6" "laspy==2.6.1" "lazrs==0.7.0" "pyproj==3.8.0"
+      - name: Acquire and elevation-join all Posey IGIO building footprints
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/tsm-igio
+          python3 scripts/geospatial/acquire-and-enrich-igio-posey-buildings.py \
+            --output /tmp/tsm-igio/posey-buildings-igio-enriched.geojson \
+            --expected-count 23082
+          test "$(python3 -c 'import json; print(len(json.load(open("/tmp/tsm-igio/posey-buildings-igio-enriched.geojson"))["features"]))')" = "23082"
+          cp /tmp/tsm-igio/posey-buildings-igio-enriched.geojson tsm-console/public/data/posey-buildings-igio-enriched.geojson
+          cp /tmp/tsm-igio/posey-buildings-igio-enriched.geojson.sha256 tsm-console/public/data/posey-buildings-igio-enriched.geojson.sha256
+          cp /tmp/tsm-igio/posey-buildings-igio-enriched.geojson.receipt.json tsm-console/public/data/posey-buildings-igio-enriched.geojson.receipt.json
+      - name: Acquire and validate Posey parcel snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f tsm-console/public/data/posey-parcels.geojson tsm-console/public/data/posey-parcels.geojson.sha256
+          python3 scripts/geospatial/acquire-posey-parcels.py --out tsm-console/public/data/posey-parcels.geojson
+          sha256sum tsm-console/public/data/posey-parcels.geojson > tsm-console/public/data/posey-parcels.geojson.sha256
+          test -s tsm-console/public/data/posey-parcels.geojson
+      - name: Validate committed Terrain-RGB tiles
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -d "tsm-console/public/3d-tiles/terrain-3dep" ]; then
+            echo "OK: terrain-3dep directory exists"
+          else
+            echo "WARN: terrain-3dep not found, skipping"
+          fi
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: ${{ env.NPM_REGISTRY }}
+          cache: npm
+          cache-dependency-path: ${{ env.CONSOLE_DIR }}/package-lock.json
+      - name: Verify pinned Node.js and npm versions
+        run: |
+          set -euo pipefail
+          test "$(node --version)" = "v${NODE_VERSION}"
+          npm_ver="$(npm --version)"
+          echo "node=$(node --version) npm=${npm_ver}"
+          test "$(echo "${npm_ver}" | cut -d. -f1-2)" = "$(echo "${NPM_VERSION}" | cut -d. -f1-2)"
+      - name: Configure public npm registry
+        working-directory: ${{ env.CONSOLE_DIR }}
+        run: npm config set registry ${{ env.NPM_REGISTRY }}
+      - name: Verify lockfile registry provenance
+        working-directory: ${{ env.CONSOLE_DIR }}
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const lockfile = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
+          const violations = [];
+          for (const [packagePath, metadata] of Object.entries(lockfile.packages ?? {})) {
+            if (typeof metadata?.resolved !== 'string') continue;
+            try {
+              const url = new URL(metadata.resolved);
+              if (url.hostname !== 'registry.npmjs.org') violations.push(`${packagePath}: ${metadata.resolved}`);
+            } catch {
+              violations.push(`${packagePath}: invalid resolved URL`);
+            }
+          }
+          if (violations.length) { console.error(violations.slice(0, 20)); process.exit(1); }
+          console.log('Lockfile provenance check passed.');
+          NODE
+      - name: Install locked dependencies
+        working-directory: ${{ env.CONSOLE_DIR }}
+        run: npm ci --no-audit --no-fund --registry=${{ env.NPM_REGISTRY }}
+      - name: Install pinned CI tooling for geospatial build
+        env:
+          TSM_INSTALL_EXTERNAL_TOOLING: 'true'
+        run: node scripts/ci/install-external-tooling.mjs
+      - name: Validate committed building 3D Tiles
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in tsm-console/public/3d-tiles/buildings-3d.json tsm-console/public/3d-tiles/tileset.json; do
+            test -f "$f" || { echo "Missing $f"; exit 1; }
+          done
+          python3 -c "import json; d=json.load(open('tsm-console/public/3d-tiles/buildings-3d.json')); assert len(d['features'])>20000"
+      - name: Test suite
+        working-directory: ${{ env.CONSOLE_DIR }}
+        run: npm run test:all
+      - name: Validate Pages base path
+        run: |
+          set -euo pipefail
+          BASE="${VITE_PAGES_BASE_PATH}"
+          [[ "${BASE}" == /* ]] || exit 1
+          [[ "${BASE}" == */ ]] || exit 1
+          echo "Pages base path OK: ${BASE}"
+      - name: Production Vite build
+        working-directory: ${{ env.CONSOLE_DIR }}
+        run: npm run build
+      - name: Validate committed 3D Tiles payload in dist
+        run: |
+          set -euo pipefail
+          test -f tsm-console/dist/3d-tiles/tileset.json
+          test -f tsm-console/dist/3d-tiles/buildings-3d.json
+      - name: Package committed 3D Tiles artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/tsm-building-artifacts
+          cp tsm-console/dist/3d-tiles/buildings-3d.json /tmp/tsm-building-artifacts/
+          cp tsm-console/dist/3d-tiles/tileset.json /tmp/tsm-building-artifacts/
+          cd /tmp/tsm-building-artifacts && sha256sum buildings-3d.json tileset.json > SHA256SUMS
+      - name: Upload verified building 3D Tiles artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: tsm-buildings-3d-tiles-${{ github.sha }}
+          path: /tmp/tsm-building-artifacts
+          if-no-files-found: error
+      - name: Prepare GitHub Pages SPA fallback
+        working-directory: ${{ env.CONSOLE_DIR }}
+        run: node scripts/generate-spa-fallback.mjs --out dist/404.html --base "${{ env.VITE_PAGES_BASE_PATH }}"
+      - name: Validate production artifact
+        working-directory: ${{ env.CONSOLE_DIR }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s dist/index.html
+          test -s dist/404.html
+          test -s dist/spa-redirect.js
+          test -s dist/3d-tiles/tileset.json
+          test -s dist/3d-tiles/buildings-3d.json
+          test -d dist/3d-tiles/buildings
+          grep -Fq '/Tri-State-Systems-Manager/' dist/index.html
+      - name: Upload production artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: tsm-console-production
+          path: ${{ env.CONSOLE_DIR }}/dist
+          if-no-files-found: error
+      - name: Configure GitHub Pages
+        if: ${{ github.event_name != 'pull_request' && vars.TSM_PAGES_ENABLED != 'false' && ((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && inputs.deploy_pages)) }}
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - name: Upload Pages artifact when deployment is requested
+        if: ${{ github.event_name != 'pull_request' && vars.TSM_PAGES_ENABLED != 'false' && ((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && inputs.deploy_pages)) }}
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: ${{ env.CONSOLE_DIR }}/dist
+
+  deploy:
+    name: Deploy production console
+    needs: build
+    if: ${{ github.event_name != 'pull_request' && vars.TSM_PAGES_ENABLED != 'false' && ((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && inputs.deploy_pages)) }}
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+      actions: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        with:
+          egress-policy: audit
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+      - name: Verify published site
+        shell: bash
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          [[ -n "${PAGE_URL}" ]] || exit 1
+          curl --fail --silent --show-error --location --max-time 30 "${PAGE_URL}" --output /tmp/tsm-pages-response.html
+          grep -Eiq '<title>[^<]+</title>' /tmp/tsm-pages-response.html
+          base="${PAGE_URL%/}/3d-tiles"
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${base}/tileset.json" -o /tmp/published-tileset.json
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${base}/buildings-3d.json" -o /tmp/published-buildings-3d.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          tileset = json.loads(Path("/tmp/published-tileset.json").read_text())
+          assert tileset.get("asset", {}).get("version") == "1.1"
+          buildings = json.loads(Path("/tmp/published-buildings-3d.json").read_text())
+          features = buildings.get("features", [])
+          assert len(features) == 22815
+          assert "height_m" in features[0].get("properties", {})
+          print(f"Published buildings-3d.json valid: {len(features)} features with height_m")
+          PY
