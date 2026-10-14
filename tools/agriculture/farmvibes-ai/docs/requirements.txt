@@ -1,0 +1,7 @@
+docutils==0.20.1
+sphinx==7.1.2
+sphinx_rtd_theme==2.0.0
+sphinxcontrib.mermaid==0.8.1
+myst_parser==2.0.0
+sphinx_autodoc_typehints==2.0.1
+sphinxcontrib-openapi==0.8.4

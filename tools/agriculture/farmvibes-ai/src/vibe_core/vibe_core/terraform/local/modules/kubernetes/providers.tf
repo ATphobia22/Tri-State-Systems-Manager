@@ -1,0 +1,55 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+terraform {
+  required_version = ">=1.6.0"
+
+  required_providers {
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "3.2.1"
+    }
+    helm = {
+      source  = "hashicorp/helm"
+      version = "3.2.0"
+    }
+    kubectl = {
+      source  = "gavinbunney/kubectl"
+      version = "1.19.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "3.9.0"
+    }
+  }
+}
+
+provider "kubernetes" {
+  config_path    = var.kubernetes_config_path
+  config_context = var.kubernetes_config_context
+
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    command     = "kubelogin"
+    args = [
+      "get-token",
+      "--use-azurerm-env-vars",
+      "|",
+      "jq",
+      ".status.token"
+    ]
+  }
+}
+
+provider "helm" {
+  kubernetes = {
+    config_path    = var.kubernetes_config_path
+    config_context = var.kubernetes_config_context
+  }
+}
+
+provider "kubectl" {
+  config_path      = var.kubernetes_config_path
+  config_context   = var.kubernetes_config_context
+  load_config_file = true
+}

@@ -1,0 +1,171 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+"""Utility functions for configuring logging."""
+
+import json
+import logging
+import logging.handlers
+import os
+from logging import Filter, LogRecord, getLogger
+from logging.handlers import RotatingFileHandler
+from platform import node
+from typing import Dict, List, Optional
+
+LOG_FORMAT = "[%(asctime)s] [%(hostname)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s"
+"""The default log format."""
+
+JSON_FORMAT = (
+    '{"app_id": "%(app)s", "instance": "%(hostname)s", "level": "%(levelname)s", '
+    '"msg": %(json_message)s, "scope": "%(name)s", "time": "%(asctime)s", "type": "log", '
+    '"ver": "dev"}'
+)
+"""JSON log format."""
+
+DEFAULT_LOGGER_LEVELS: Dict[str, str] = {
+    "gdal": "INFO",
+    "rasterio": "INFO",
+    "urllib3": "INFO",
+    "urllib3.connectionpool": "DEBUG",
+    "fiona": "INFO",
+    "werkzeug": "INFO",
+    "azure": "WARNING",
+    "matplotlib": "INFO",
+    "uvicorn": "WARNING",
+    "aiohttp_retry": "INFO",
+}
+"""The default log levels for the different loggers."""
+ONE_DAY_IN_SECONDS = 60 * 60 * 24
+MAX_LOG_FILE_BYTES = 1024 * 1024 * 100
+LOG_BACKUP_COUNT = 5
+
+
+class HostnameFilter(Filter):
+    """Filter class to add hostname field to the log record."""
+
+    hostname = node()
+
+    def filter(self, record: LogRecord):
+        """Add a hostname field to the log record with the value of the node() from the platform.
+
+        Args:
+            record: The log record to be filtered.
+
+        Returns:
+            True.
+        """
+        record.hostname = self.hostname
+        return True
+
+
+class AppFilter(Filter):
+    """Filter class to add app field to the log record.
+
+    Args:
+        app: The name of the application.
+    """
+
+    def __init__(self, app: str):
+        """Initialize an AppFilter instance."""
+        super().__init__()
+        self.app = app
+
+    def filter(self, record: LogRecord):
+        """Add an app field to the log record with the value of the app attribute.
+
+        Args:
+            record: The log record to be filtered.
+
+        Returns:
+            True.
+        """
+        record.app = self.app
+        return True
+
+
+class JsonMessageFilter(Filter):
+    """Log filter to convert messages to JSON."""
+
+    def filter(self, record: LogRecord):
+        """Convert the message of the log record to JSON.
+
+        Args:
+            record: The log record to be filtered.
+
+        Returns:
+            True.
+        """
+        if record.exc_info:
+            # Convert message to the message + traceback as json
+            record.msg = record.msg + "\n" + logging.Formatter().formatException(record.exc_info)
+            record.exc_info = None
+            record.exc_text = None
+
+        record.json_message = json.dumps(record.getMessage())
+        return True
+
+
+def change_logger_level(loggername: str, level: str):
+    """Set the default log level for a logger.
+
+    Args:
+        loggername: The name of the logger for which to set the log level.
+        level: The desired log level (e.g. INFO, DEBUG, WARNING).
+    """
+    logger = getLogger(loggername)
+    logger.setLevel(level)
+    for handler in logger.handlers:
+        handler.setLevel(level)
+
+
+def configure_logging(
+    default_level: Optional[str] = None,
+    logdir: Optional[str] = None,
+    max_log_file_bytes: Optional[int] = None,
+    log_backup_count: Optional[int] = None,
+    logfile: str = f"{node()}.log",
+    json: bool = True,
+    appname: str = "",
+):
+    """Configure logging for the calling process.
+
+    This method will create a logger and set its level to the given default_level argument.
+    It will also create a StreamHandler and FileHandler if the logdir argument is provided,
+    with the respective logfile name. It will add filters for the application name, hostname
+    and json message, and set the formatter to JSON_FORMAT if json is True,
+    or LOG_FORMAT otherwise.
+
+    Args:
+        default_level: Default log level.
+        logdir: Path to the directory where the log file will be stored.
+            If not provided, no FileHandler will be added.
+        max_log_file_bytes: Maximum size of the log file in bytes.
+        log_backup_count: Number of log files to keep.
+        logfile: Name of the log file.
+        json: Flag to enable or disable JSON format.
+        appname: Application name to be filtered.
+    """
+    handlers: List[logging.Handler] = [logging.StreamHandler()]
+    default_level = "INFO" if default_level is None else default_level
+
+    if logdir and max_log_file_bytes and log_backup_count:
+        os.makedirs(logdir, exist_ok=True)
+        logfile = os.path.join(logdir, logfile)
+        handler = RotatingFileHandler(
+            logfile,
+            maxBytes=max_log_file_bytes,
+            backupCount=log_backup_count,
+        )
+        handlers.append(handler)
+
+    logger = logging.getLogger()
+    for handler in handlers:
+        handler.addFilter(AppFilter(appname))
+        handler.addFilter(HostnameFilter())
+        handler.addFilter(JsonMessageFilter())
+        handler.setFormatter(logging.Formatter(JSON_FORMAT if json else LOG_FORMAT))
+        logger.addHandler(handler)
+
+    logger.setLevel(default_level)
+    for logger_name, level in DEFAULT_LOGGER_LEVELS.items():
+        change_logger_level(logger_name, level)
