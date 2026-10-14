@@ -317,8 +317,8 @@ jobs:
         run: |
           set -euo pipefail
           python3 scripts/geospatial/build-implicit-tileset.py \
-            --input /tmp/tsm-buildings/compressed/tileset.json \
-            --tiles-dir /tmp/tsm-buildings/compressed \
+            --input /tmp/tsm-buildings/hlod/tileset.json \
+            --tiles-dir /tmp/tsm-buildings/hlod \
             --output /tmp/tsm-buildings/implicit/tileset.json \
             --max-depth 6 --max-items 50
       - name: Validate implicit spatial coherence and feature metadata
