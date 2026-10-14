@@ -72,7 +72,7 @@ jobs:
       - name: Parse all workflow YAML
         run: |
           ruby -e 'require "yaml"; Dir[".github/workflows/*.yml"].sort.each { |f| YAML.safe_load_file(f, aliases: true); puts "valid: #{f}" }'
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
       - name: Validate native-first product contract
@@ -92,7 +92,7 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
       - name: Validate architecture contracts
@@ -123,7 +123,7 @@ jobs:
           output-file: dist/provenance/tsm-native-source.spdx.json
           upload-artifact: false
       - name: Upload source SBOM
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: tsm-native-source-sbom
           path: dist/provenance/tsm-native-source.spdx.json
@@ -138,7 +138,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
       - name: Generate build provenance
@@ -146,7 +146,7 @@ jobs:
           TSM_RUNNER_CLASS: linux-native
         run: node scripts/ci/generate-build-provenance.mjs
       - name: Upload provenance
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: tsm-native-build-provenance
           path: dist/provenance/build-provenance.json
@@ -160,7 +160,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
       - name: Native runtime boundary
@@ -194,7 +194,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
       - name: Validate native runtime gates
@@ -417,12 +417,12 @@ jobs:
           subject-path: dist/installer/**/*
           sbom-path: dist/provenance/windows-native.spdx.json
       - name: Upload tsm-native-windows release manifest
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: tsm-native-windows-release-manifest
           path: dist/provenance/windows-release-manifest.json
           if-no-files-found: error
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: tsm-native-windows-installer
           path: dist/installer/TSM-Native-Setup-*-windows-x64.exe
@@ -540,12 +540,12 @@ jobs:
           subject-path: dist/tsm-native/**/*
           sbom-path: dist/provenance/macos-native.spdx.json
       - name: Upload tsm-native-macos release manifest
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: tsm-native-macos-release-manifest
           path: dist/provenance/macos-release-manifest.json
           if-no-files-found: error
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: tsm-native-macos-package
           path: dist/tsm-native/**
@@ -622,12 +622,12 @@ jobs:
           subject-path: dist/tsm-native-ios/**/*
           sbom-path: dist/provenance/ios-native.spdx.json
       - name: Upload tsm-native-ios release manifest
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: tsm-native-ios-release-manifest
           path: dist/provenance/ios-release-manifest.json
           if-no-files-found: error
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: tsm-native-ios-package
           path: dist/tsm-native-ios/**
@@ -707,12 +707,12 @@ jobs:
           subject-path: dist/tsm-native-android/**/*
           sbom-path: dist/provenance/android-native.spdx.json
       - name: Upload tsm-native-android release manifest
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: tsm-native-android-release-manifest
           path: dist/provenance/android-release-manifest.json
           if-no-files-found: error
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: tsm-native-android-package
           path: dist/tsm-native-android/**
