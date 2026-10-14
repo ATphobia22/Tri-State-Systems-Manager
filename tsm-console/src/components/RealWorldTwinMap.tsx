@@ -8,7 +8,6 @@ import { buildArcGisImageServerExportTemplate, INDIANA_CURRENT_IMAGERY_WMS, USGS
 import { setupParcelProvenanceInspector } from '../lib/parcel-provenance';
 import { playCinematicTour } from '../lib/cinematic/camera-tour';
 import ThreeDTilesLayer from './ThreeDTilesLayer';
-import CesiumTilesLayer from './CesiumTilesLayer';
 
 // Self-hosted 3D terrain tiles (OGC 3D Tiles 1.1, generated from USGS 3DEP).
 const TERRAIN_3D_TILESET_URL = `${import.meta.env.BASE_URL}3d-tiles/terrain-3dep/tileset.json`;
@@ -166,7 +165,6 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
     <section aria-label="Real-source Indiana open-world digital twin" style={{ position: 'relative', height: '100%', minHeight: 480, background: '#020617' }}>
       <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
       {cesiumVisible && mapReady && (
-        <CesiumTilesLayer
           tilesetUrl={BUILDINGS_3D_TILESET_URL}
           onStatusChange={setCesiumStatus}
         />
