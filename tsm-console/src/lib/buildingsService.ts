@@ -26,9 +26,14 @@ export type BBox = [number, number, number, number];
 const EMPTY_FC: GeoJSONFeatureCollection = { type: 'FeatureCollection', features: [] };
 
 export function normalizeBuildingHeight(props: Record<string, unknown>): number {
+  // Prefer LiDAR / pipeline height_m (meters from buildings-3d.json).
+  const hm = props.height_m ?? props.heightM;
+  if (typeof hm === 'number' && Number.isFinite(hm) && hm > 0) return hm;
+  const h = props.height;
+  if (typeof h === 'number' && Number.isFinite(h) && h > 0) return h;
   const levels = (props.levels ?? props.BuildingLevels ?? props.num_floors) as number | undefined;
   if (typeof levels === 'number' && levels > 0) return levels * 3.2;
-  return (props.height as number | undefined) ?? 7.2;
+  return 7.2;
 }
 
 function enrichHeights(fc: GeoJSONFeatureCollection): GeoJSONFeatureCollection {
