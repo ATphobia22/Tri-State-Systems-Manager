@@ -42,6 +42,37 @@ MIN_PLAUSIBLE_HEIGHT_M = 1.0    # Below 1m is likely noise/ground
 MAX_PLAUSIBLE_HEIGHT_M = 50.0   # Above 50m in Posey County is suspicious
 
 
+def get_height_m(props):
+    """Extract height in meters from TSM lidar properties."""
+    # Direct meters
+    h_m = props.get("lidarHeightM")
+    if h_m and h_m > 0:
+        return float(h_m)
+    # Convert from feet
+    h_ft = props.get("lidarHeightFt")
+    if h_ft and h_ft > 0:
+        return float(h_ft) * 0.3048
+    # Fallback to generic fields
+    h = props.get("height_m") or props.get("derived_height_m")
+    if h and h > 0:
+        return float(h)
+    return 0
+
+
+def has_verified_height(props):
+    """Check if building has a verified OK height."""
+    if props.get("lidarHeightStatus") == "OK":
+        return get_height_m(props) > 0
+    # Fallback for non-TSM schema
+    h = props.get("height_m") or props.get("derived_height_m")
+    return h is not None and h > 0
+
+
+def get_building_id(props):
+    """Stable building ID."""
+    return str(props.get("igioObjectId") or props.get("id") or props.get("OBJECTID") or "unknown")
+
+
 def validate_geojson(path, expected_count):
     """Run the three-tier validation gate."""
     print("=" * 60)
@@ -80,11 +111,10 @@ def validate_geojson(path, expected_count):
 
     for feat in features:
         props = feat.get("properties", {})
-        # Check for verified height (not null, not zero, not placeholder)
-        h = props.get("height_m") or props.get("derived_height_m")
-        fid = props.get("id") or props.get("OBJECTID") or "unknown"
+        # Check for verified height using TSM lidar fields
+        fid = get_building_id(props)
 
-        if h is not None and h > 0:
+        if has_verified_height(props):
             with_height += 1
         else:
             missing_ids.append(str(fid))
@@ -128,10 +158,10 @@ def validate_geojson(path, expected_count):
 
     for feat in features:
         props = feat.get("properties", {})
-        h = props.get("height_m") or props.get("derived_height_m")
-        fid = props.get("id") or props.get("OBJECTID") or "unknown"
+        h = get_height_m(props)
+        fid = get_building_id(props)
 
-        if h is not None and h > 0:
+        if h > 0:
             if MIN_PLAUSIBLE_HEIGHT_M <= h <= MAX_PLAUSIBLE_HEIGHT_M:
                 plausible += 1
             else:
@@ -178,14 +208,22 @@ def validate_geojson(path, expected_count):
 
     for feat in features:
         props = feat.get("properties", {})
-        h = props.get("height_m") or props.get("derived_height_m")
-        fid = props.get("id") or props.get("OBJECTID") or "unknown"
+        fid = get_building_id(props)
 
-        if h is not None and h > 0:
-            # Must have source tile and method
-            src = props.get("source_tile") or props.get("copc_tile")
-            method = props.get("method") or props.get("height_method")
-            if src and method:
+        if has_verified_height(props):
+            # Must have method (source tile optional for 3DEP base)
+            method = (props.get("lidarHeightMethod") or props.get("method")
+                      or props.get("height_method") or props.get("heightProvenanceMethod"))
+            # For COPC-derived, also check source tile
+            is_copc = "footprint-clipped" in str(props.get("lidarHeightMethod", ""))
+            if is_copc:
+                src = props.get("source_tile") or props.get("copc_tile") or props.get("heightProvenance")
+                if src and method:
+                    with_provenance += 1
+                else:
+                    missing_prov.append(str(fid))
+            elif method:
+                # 3DEP base has method, that's sufficient
                 with_provenance += 1
             else:
                 missing_prov.append(str(fid))

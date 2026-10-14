@@ -1,0 +1,23 @@
+{
+  "asset": {
+    "version": "1.1"
+  },
+  "geometricError": 1000,
+  "root": {
+    "boundingVolume": {
+      "region": [
+        -88.12,
+        37.756,
+        -87.681,
+        38.239,
+        0,
+        200
+      ]
+    },
+    "geometricError": 100,
+    "refine": "ADD",
+    "content": {
+      "uri": "buildings-3d.json"
+    }
+  }
+}
