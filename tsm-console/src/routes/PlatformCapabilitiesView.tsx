@@ -10,13 +10,13 @@ const groups = [
   {
     title: 'Geospatial digital twin',
     summary: 'MapLibre interactive mapping, regional source overlays, flood and hydrology context, terrain derivatives, and building/terrain OGC 3D Tiles generation.',
-    items: ['tsm-console/src/components/RealWorldTwinMap.tsx', 'tsm-console/src/components/CesiumTilesLayer.tsx', 'scripts/geospatial/build-terrain-3d-tiles.py', 'scripts/geospatial/validate-terrain-3d-tiles.py', 'artifacts/tsm-terrain-3d-tiles-v1.json'],
+    items: ['tsm-console/src/components/RealWorldTwinMap.tsx', 'scripts/geospatial/build-terrain-3d-tiles.py', 'scripts/geospatial/validate-terrain-3d-tiles.py', 'artifacts/tsm-terrain-3d-tiles-v1.json'],
     status: 'Visualization is available when deployment assets are built, validated, and published.',
   },
   {
     title: 'Self-hosted 3D rendering',
-    summary: 'Pinned CesiumJS runtime and OGC 3D Tiles 1.1 terrain content served from the same GitHub Pages origin; no Cesium ion token is required for the committed runtime path.',
-    items: ['scripts/ci/install-cesium-static.mjs', '.github/workflows/deploy-pages.yml', 'tsm-console/public/terrain_3dep', 'tsm-console/src/routes/CesiumTerrainView.tsx'],
+    summary: 'MapLibre GL 3D buildings and terrain served from the same GitHub Pages origin; no external 3D services required.',
+    items: ['.github/workflows/deploy-pages.yml', 'tsm-console/public/terrain_3dep', 'tsm-console/src/routes/CesiumTerrainView.tsx'],
     status: '3DEP-derived terrain is screening/visualization data, not survey-grade or regulatory evidence.',
   },
   {

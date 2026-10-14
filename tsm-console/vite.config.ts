@@ -2,7 +2,6 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defineConfig, loadEnv, type IndexHtmlTransformResult } from 'vite';
 import react from '@vitejs/plugin-react';
-import cesium from 'vite-plugin-cesium';
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -28,7 +27,7 @@ function cspPlugin() {
         'https://gisdata.in.gov',
         'https://hazards.fema.gov',
         'https://*.arcgis.com',
-        'https://*.openstreetmap.org',
+        'https://*.openstreetmap.org https://tiles.openfreemap.org',
         'wss:',
         keycloakOrigin,
       ].filter(Boolean).join(' ');
@@ -61,7 +60,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     base: isGitHubPagesBuild ? githubPagesBasePath : '/',
-    plugins: [react(), cesium(), cspPlugin()],
+    plugins: [react(), cspPlugin()],
     server: {
       port: 5173,
       proxy: {

@@ -157,8 +157,6 @@ jobs:
       - name: Install locked dependencies
         working-directory: ${{ env.CONSOLE_DIR }}
         run: npm ci --ignore-scripts --no-audit --no-fund --registry=${{ env.NPM_REGISTRY }}
-      - name: Vendor pinned CesiumJS static runtime
-        run: node scripts/ci/install-cesium-static.mjs
       - name: Setup Node.js for geospatial tooling
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:

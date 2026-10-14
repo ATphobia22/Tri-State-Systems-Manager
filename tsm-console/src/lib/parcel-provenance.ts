@@ -39,6 +39,5 @@ export function setupParcelProvenanceInspector(map: Map): void {
     const provenance = readParcelProvenance(map, event);
     if (!provenance) return;
 
-    console.info('[TSM Provenance Inspection]', provenance);
   });
 }

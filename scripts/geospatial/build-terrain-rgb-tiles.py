@@ -75,7 +75,7 @@ def main() -> int:
     ap.add_argument("--out-dir", required=True, type=Path)
     ap.add_argument("--minzoom", type=int, default=11)
     ap.add_argument("--maxzoom", type=int, default=15)
-    ap.add_argument("--tiles-url", default="https://tiles.example.com/terrain-rgb/{z}/{x}/{y}.png",
+    ap.add_argument("--tiles-url", default="https://tiles.openfreemap.org/styles/liberty",
                     help="URL template written into tiles.json")
     args = ap.parse_args()
 
