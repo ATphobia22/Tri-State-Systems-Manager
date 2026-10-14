@@ -52,7 +52,7 @@ def read_glb_parts(path: Path) -> tuple[dict, bytes]:
             fail(f"truncated GLB chunk in {path}")
         if kind == b"JSON":
             doc = json.loads(chunk.rstrip(b" \\x00").decode())
-        elif kind == b"BIN\\x00":
+        elif kind == b"BIN\x00":
             binary = chunk
         offset += length
     if not isinstance(doc, dict):
