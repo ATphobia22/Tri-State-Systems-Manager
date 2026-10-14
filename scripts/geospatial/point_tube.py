@@ -69,9 +69,12 @@ class PointTube:
     def add(self, sample: TubeSample) -> None:
         if not isinstance(sample.state, StateType):
             raise ValueError(f"state must be StateType, got {sample.state!r}")
+        if not isinstance(sample.coords, (tuple, list)) or len(sample.coords) != 3:
+            raise ValueError("coords must contain exactly three numeric values")
         numeric_values = (sample.timestamp, sample.valid_from, sample.valid_to, *sample.coords)
-        if len(sample.coords) != 3 or not all(math.isfinite(value) for value in numeric_values):
-            raise ValueError("timestamp, validity bounds, and all three coordinates must be finite")
+        if any(isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value)
+               for value in numeric_values):
+            raise ValueError("timestamp, validity bounds, and all three coordinates must be finite numbers")
         if sample.valid_from > sample.valid_to:
             raise ValueError("valid_from > valid_to")
         if not (sample.valid_from <= sample.timestamp <= sample.valid_to):
