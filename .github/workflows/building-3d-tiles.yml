@@ -29,6 +29,7 @@ on:
       - 'scripts/geospatial/extract_lidar_heights.py'
       - 'scripts/geospatial/extract_derived_heights_copc.py'
       - 'scripts/geospatial/reconstruct_lod2_roofs.py'
+      - 'scripts/geospatial/validate_building_acceptance_chain.py'
       - 'tsm-console/public/data/posey-buildings-derived.geojson'
   push:
     branches: [main]
@@ -255,6 +256,13 @@ jobs:
           echo "LOD2 input features: $count (23,082 OBSERVED+DERIVED height-linked)"
           test "$count" = "23082"
           mv /tmp/tsm-igio/posey-buildings-lod2-enriched.geojson /tmp/tsm-igio/posey-buildings-igio-enriched.geojson
+      - name: Validate complete 23,082-feature acceptance chain
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/geospatial/validate_building_acceptance_chain.py \
+            --geojson /tmp/tsm-igio/posey-buildings-igio-enriched.geojson \
+            --expected-count "$EXPECTED_BUILDINGS"
       - name: Run topology-preservation regression tests
         run: python3 scripts/geospatial/test-building-3d-tiles-geometry.py
       - name: Install pinned CI tooling
