@@ -27,6 +27,8 @@ function cspPlugin() {
         'https://di-ingov.img.arcgis.com',
         'https://gisdata.in.gov',
         'https://hazards.fema.gov',
+        'https://api.cesium.com',
+        'https://assets.cesium.com',
         'https://*.arcgis.com',
         'https://*.openstreetmap.org',
         'wss:',
