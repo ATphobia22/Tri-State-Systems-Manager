@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tsm.local/contracts/quantum/ibm-quantum-job-v1.schema.json",
+  "title": "TSM IBM Quantum Job Request v1",
+  "description": "Metadata contract for a bounded, derived-only IBM Quantum workload. Circuit payloads are stored as immutable artifacts and must be validated before submission.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "workloadId",
+    "workerId",
+    "inputArtifactSha256",
+    "circuitArtifactSha256",
+    "authorityClass",
+    "outputPolicy",
+    "primitive",
+    "backend",
+    "apiVersion"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "TSM-IBMQuantumJob-1.0" },
+    "workloadId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[A-Za-z0-9._:-]+$" },
+    "workerId": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "inputArtifactSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "circuitArtifactSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "authorityClass": { "const": "DERIVED" },
+    "outputPolicy": { "const": "quarantine" },
+    "primitive": { "const": "sampler" },
+    "backend": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "apiVersion": { "type": "string", "const": "2026-04-15" },
+    "shots": { "type": "integer", "minimum": 1, "maximum": 10000000 },
+    "maxRuntimeSeconds": { "type": "integer", "minimum": 1, "maximum": 3600 },
+    "tags": {
+      "type": "array",
+      "maxItems": 20,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1, "maxLength": 128 }
+    }
+  }
+}
