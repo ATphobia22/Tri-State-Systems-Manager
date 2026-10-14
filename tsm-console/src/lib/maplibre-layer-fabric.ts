@@ -100,7 +100,7 @@ export const MAPLIBRE_FABRIC_LAYERS: readonly MapLibreFabricLayer[] = [
     title: 'OpenStreetMap Context',
     authorityClass: 'CONTEXT',
     kind: 'raster',
-    endpoint: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    endpoint: 'https://tiles.openfreemap.org/styles/liberty',
     attribution: '© OpenStreetMap contributors',
     defaultVisible: false,
   },
