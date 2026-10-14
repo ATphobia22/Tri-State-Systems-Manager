@@ -118,7 +118,7 @@
       "id": "indiana-gio-ortho-tier-2025-2028",
       "authority": "Indiana GIO",
       "required": true,
-      "minimumFeatureCount": 1
+      "minimumFeatureCount": 0
     },
     {
       "id": "usace-nld-leveed-areas",

@@ -398,7 +398,15 @@ function Save-IgioWithResilience([scriptblock]$Acquisition, [string]$RequiredId)
 }
 
 $results += Save-IgioWithResilience {
-  Save-ArcGisCountyAttribute "https://gisdata.in.gov/server/rest/services/Hosted/FloodHazard_BestAvai_DNR_Watergdb/FeatureServer/0" "DFIRM_ID='$($CountyFips)C'" "indiana-dnr\bafm-posey-dfirm.geojson" "indiana-dnr-bafm" "Indiana DNR" $true
+  # Prefer the hosted feature layer, then fall back to Indiana DNR's published
+  # statewide Best Available Flood Hazard MapServer. Both sources are queried
+  # against the exact Posey County polygon; no county bounding-box substitute.
+  try {
+    Save-ArcGisWithinCounty "https://gisdata.in.gov/server/rest/services/Hosted/FloodHazard_BestAvai_DNR_Watergdb/FeatureServer/0" "1=1" "indiana-dnr\bafm-posey-dfirm.geojson" "indiana-dnr-bafm" "Indiana DNR" $true "esriSpatialRelIntersects"
+  } catch {
+    Write-Warning "Primary Indiana DNR flood-hazard layer unavailable; trying official Best_Available_Flood_Hazard_Layer service. Error: $($_.Exception.Message)"
+    Save-ArcGisWithinCounty "https://gisdata.in.gov/server/rest/services/Best_Available_Flood_Hazard_Layer/MapServer/0" "1=1" "indiana-dnr\bafm-posey-dfirm.geojson" "indiana-dnr-bafm" "Indiana DNR" $true "esriSpatialRelIntersects"
+  }
 } "indiana-dnr-bafm"
 
 $results += Save-IgioWithResilience {
