@@ -333,9 +333,8 @@ jobs:
             --tiles-dir /tmp/tsm-buildings/implicit \
             --geojson /tmp/tsm-igio/posey-buildings-igio-enriched.geojson
           python3 scripts/geospatial/validate_authority_boundary.py \
-            --tiles-dir /tmp/tsm-buildings/implicit \
             --geojson /tmp/tsm-igio/posey-buildings-igio-enriched.geojson \
-            --check-glbs
+            --expected-count "$EXPECTED_BUILDINGS"
           while IFS= read -r -d '' file; do
             ./tsm-console/node_modules/.bin/gltf-transform validate "$file" --limit 1
           done < <(find /tmp/tsm-buildings/implicit -type f -name '*.glb' -print0 | sort -z)
