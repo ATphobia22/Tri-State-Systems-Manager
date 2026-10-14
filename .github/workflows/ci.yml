@@ -90,6 +90,8 @@ jobs:
         # rules, schemas, build, and bundle-secret checks) cannot silently
         # drift out of GitHub Actions.
         run: npm run ci
+      - name: Deployment artifact verification
+        run: bash ../scripts/ci/verify-deployment.sh
       - name: Community engineering boundary gate
         working-directory: .
         run: node scripts/ci/validate-community-engineering-boundaries.mjs
