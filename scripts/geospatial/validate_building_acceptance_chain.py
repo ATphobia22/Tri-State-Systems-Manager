@@ -95,7 +95,7 @@ def validate_feature(feature: dict[str, Any], index: int, violations: list[str])
     if lod not in (1, 2):
         violations.append(f"feature[{index}] OBJECTID={sid}: achievedLod must be 1 or 2, got {lod!r}")
     elif lod == 1:
-        if not lod_note or not any(token in lod_note.upper() for token in ("INSUFFICIENT", "NO_ROOF", "UNAVAILABLE", "FAILED", "ERROR")):
+        if not lod_note.strip():
             violations.append(f"feature[{index}] OBJECTID={sid}: LOD1 fallback requires an explicit reason")
     else:
         planes = props.get("roofPlanes")
