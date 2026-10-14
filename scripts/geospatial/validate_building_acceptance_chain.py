@@ -87,6 +87,14 @@ def validate_feature(feature: dict[str, Any], index: int, violations: list[str])
             violations.append(f"feature[{index}] OBJECTID={sid}: at least 3 qualifying ground points required")
         if not props.get("lidarSource") or not props.get("lidarHeightMethod"):
             violations.append(f"feature[{index}] OBJECTID={sid}: height source and method provenance are required")
+        uncertainty = props.get("lidarHeightUncertaintyM")
+        confidence = props.get("lidarHeightConfidence")
+        if not finite_number(uncertainty) or uncertainty < 0:
+            violations.append(f"feature[{index}] OBJECTID={sid}: finite non-negative robust height uncertainty indicator is required")
+        if confidence not in ("HIGH", "MEDIUM", "LOW"):
+            violations.append(f"feature[{index}] OBJECTID={sid}: lidarHeightConfidence must be HIGH, MEDIUM, or LOW")
+        if props.get("canopyOcclusionStatus") not in ("POSSIBLE_CANOPY_OCCLUSION", "NO_QUALIFYING_BUILDING_CLASS_POINTS", "NOT_FLAGGED_BY_CLASS_5_SCREEN"):
+            violations.append(f"feature[{index}] OBJECTID={sid}: canopy-occlusion screening status is required")
         if props.get("lidarHeightDatum") != "NAVD88":
             violations.append(f"feature[{index}] OBJECTID={sid}: height vertical datum must be NAVD88")
 
