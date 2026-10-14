@@ -207,16 +207,24 @@ jobs:
           test -f tsm-console/dist/3d-tiles/buildings-3d.json || (echo "Missing buildings-3d.json in dist" && exit 1)
           echo "3D Tiles payload validated" 
 
-      - name: Package and hash building 3D Tiles artifact
+      - name: Package committed 3D Tiles artifact
         shell: bash
-        run: bash scripts/geospatial/package-building-3d-tiles.sh /tmp/tsm-buildings/compressed /tmp/tsm-building-artifacts v1 "$GITHUB_SHA"
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/tsm-building-artifacts
+          cp tsm-console/dist/3d-tiles/buildings-3d.json /tmp/tsm-building-artifacts/
+          cp tsm-console/dist/3d-tiles/tileset.json /tmp/tsm-building-artifacts/
+          cd /tmp/tsm-building-artifacts
+          sha256sum buildings-3d.json > buildings-3d.json.sha256
+          sha256sum tileset.json > tileset.json.sha256
+          echo "Packaged committed 3D Tiles" 
       - name: Upload verified building 3D Tiles artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: tsm-buildings-3d-tiles-${{ github.sha }}
           path: |
-            /tmp/tsm-building-artifacts/*.zip
-            /tmp/tsm-building-artifacts/*.zip.sha256
+            /tmp/tsm-building-artifacts/*.json
+            /tmp/tsm-building-artifacts/*.sha256
           retention-days: 90
           compression-level: 0
           if-no-files-found: error
