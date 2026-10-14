@@ -389,9 +389,7 @@ def main():
     subtree_roots = set()
     for (lvl, x, y) in nodes:
         sl = (lvl // SUBTREE_LEVELS) * SUBTREE_LEVELS
-        sx = x // (4 ** (lvl - sl)) if lvl > sl else x
-        sy = y // (4 ** (lvl - sl)) if lvl > sl else y
-        # Simpler: subtree root at level sl containing this tile
+        # Quadtree coordinates double at each level (not quadruple).
         factor = 2 ** (lvl - sl)
         subtree_roots.add((sl, x // factor, y // factor))
 
@@ -415,6 +413,7 @@ def main():
         },
         "geometricError": args.geometric_error,
         "root": {
+            "transform": root_transform,
             "boundingVolume": {
                 "region": [math.radians(w), math.radians(s),
                            math.radians(e), math.radians(n),
