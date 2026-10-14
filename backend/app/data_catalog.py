@@ -23,6 +23,9 @@ COUNTIES: dict[str, dict[str, str]] = {
     "21225": {"state": "KY", "name": "union", "label": "Union County, KY"},
 }
 
+# Allowlisted dataset names — user-supplied dataset values must match exactly.
+VALID_DATASETS = frozenset({"parcels", "floodplain", "imagery", "elevation", "tiger", "hydrology"})
+
 # Directory name mapping: fips -> bundle directory
 def _bundle_dir(fips: str) -> str:
     info = COUNTIES[fips]
@@ -101,6 +104,8 @@ def county_detail(fips: str) -> dict[str, Any] | None:
 def find_dataset_file(fips: str, dataset: str, suffix: str = ".geojson") -> Path | None:
     """Find the primary data file for a county dataset."""
     if fips not in COUNTIES:
+        return None
+    if dataset not in VALID_DATASETS:
         return None
     dpath = county_dir(fips) / dataset
     if not dpath.is_dir():

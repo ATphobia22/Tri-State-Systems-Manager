@@ -64,7 +64,7 @@ if (fs.existsSync(workflowsRoot)) {
   for (const file of fs.readdirSync(workflowsRoot)) {
     if (!(file.endsWith('.yml') || file.endsWith('.yaml'))) continue;
     const content = fs.readFileSync(path.join(workflowsRoot, file), 'utf8');
-    if (/npm\s+ci/.test(content) && !/registry\.npmjs\.org/.test(content)) {
+    if (content.includes('npm ci') && !content.includes('registry.npmjs.org')) {
       failures.push(`workflow ${file}: npm ci workflow does not explicitly reference registry.npmjs.org`);
     }
   }

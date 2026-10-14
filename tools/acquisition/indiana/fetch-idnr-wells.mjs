@@ -325,5 +325,5 @@ async function main() {
 const invokedAs = process.argv[1] ? resolve(process.argv[1]) : null;
 const thisFile = new URL(import.meta.url).pathname;
 if (invokedAs === thisFile) {
-  main().catch((e) => { console.error(`FATAL: ${e.message}`); process.exit(1); });
+  main().catch((e) => { console.error(`FATAL: ${String(e?.message ?? e).replace(/[\r\n]+/g, ' ')}`); process.exit(1); });
 }

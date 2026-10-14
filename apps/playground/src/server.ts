@@ -22,7 +22,8 @@ export function createPlaygroundServer() {
         response.end(await upstream.text());
       } catch (error) {
         response.writeHead(400, { 'content-type': 'application/json' });
-        response.end(JSON.stringify({ error: String(error) }));
+        // Never expose internal error details (stack traces) to clients.
+        response.end(JSON.stringify({ error: 'Request failed' }));
       }
       return;
     }

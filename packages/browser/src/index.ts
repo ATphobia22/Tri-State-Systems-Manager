@@ -14,12 +14,30 @@ export interface BrowserClient {
 }
 
 function stripTags(html: string): string {
-  return html
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+  // Single-pass tag stripper (no regex tag filters — regex cannot reliably
+  // parse HTML). Removes script/style content and all tags for text extraction.
+  const lower = html.toLowerCase();
+  let text = '';
+  let i = 0;
+  while (i < html.length) {
+    if (lower.startsWith('<script', i)) {
+      const end = lower.indexOf('</script>', i);
+      i = end === -1 ? html.length : end + 9;
+      text += ' ';
+    } else if (lower.startsWith('<style', i)) {
+      const end = lower.indexOf('</style>', i);
+      i = end === -1 ? html.length : end + 8;
+      text += ' ';
+    } else if (html[i] === '<') {
+      const end = html.indexOf('>', i);
+      i = end === -1 ? html.length : end + 1;
+      text += ' ';
+    } else {
+      text += html[i];
+      i++;
+    }
+  }
+  return text.replace(/\s+/g, ' ').trim();
 }
 
 export class HttpBrowserClient implements BrowserClient {

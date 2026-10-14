@@ -77,7 +77,7 @@ test('live stage telemetry is button-only: no auto-fetch, no polling, gates stay
   assert.doesNotMatch(source, /setInterval/);
   assert.doesNotMatch(source, /requestAnimationFrame/);
   // USGS source binding with provisional qualifier and fail-closed gates.
-  assert.match(source, /waterservices\.usgs\.gov/);
+  assert.ok(source.includes('waterservices.usgs.gov'));
   assert.match(source, /qualifier: 'P'|qualifier: null/);
   assert.match(source, /REQUIRES_VALIDATED_HYDRAULIC_PROFILE/);
   assert.match(source, /NOT_ELIGIBLE_UNVERIFIED_SITE_TRANSFER/);

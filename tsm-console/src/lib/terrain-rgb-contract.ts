@@ -26,18 +26,22 @@ export type TerrainRgbBlockReason =
   | 'invalid_template'
   | 'insecure_scheme';
 
-/** Always rejected (production and development). */
-const PLACEHOLDER_PATTERNS = [
-  /example\.invalid/i,
-  /example\.com/i,
-  /example\.org/i,
-  /example\.net/i,
-  /YOUR[-_]?HOST/i,
-  /YOUR[-_]?PROVENANCE[-_]?HOST/i,
-  /YOUR[-_]?DOMAIN/i,
-  /REPLACE[-_]?ME/i,
-  /placeholder/i,
-  /\$\{VITE_TSM_TERRAIN/,
+/** Always rejected (production and development). Substring match — not anchored by design. */
+const PLACEHOLDER_SUBSTRINGS = [
+  'example.invalid',
+  'example.com',
+  'example.org',
+  'example.net',
+  'your_host',
+  'your-host',
+  'your_provenance_host',
+  'your-provenance-host',
+  'your_domain',
+  'your-domain',
+  'replace_me',
+  'replace-me',
+  'placeholder',
+  '${VITE_TSM_TERRAIN',
 ];
 
 /** Rejected in production; allowed only when allowHttpLocal (npm run dev). */
@@ -56,8 +60,9 @@ export function validateTerrainRgbUrlTemplate(
     return { enabled: false, template: null, reason: 'missing' };
   }
 
-  for (const re of PLACEHOLDER_PATTERNS) {
-    if (re.test(trimmed)) {
+  const lowerTrimmed = trimmed.toLowerCase();
+  for (const s of PLACEHOLDER_SUBSTRINGS) {
+    if (lowerTrimmed.includes(s)) {
       return { enabled: false, template: null, reason: 'placeholder' };
     }
   }
