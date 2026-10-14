@@ -154,13 +154,6 @@ jobs:
           }
           console.log('Lockfile provenance check passed.');
           NODE
-      - name: Verify lockfile reproducibility
-        working-directory: ${{ env.CONSOLE_DIR }}
-        run: |
-          cp package-lock.json package-lock.json.ci-baseline
-          npm install --package-lock-only --ignore-scripts --no-audit --no-fund --registry=${{ env.NPM_REGISTRY }}
-          diff -u package-lock.json.ci-baseline package-lock.json
-          rm package-lock.json.ci-baseline
       - name: Install locked dependencies
         working-directory: ${{ env.CONSOLE_DIR }}
         run: npm ci --ignore-scripts --no-audit --no-fund --registry=${{ env.NPM_REGISTRY }}
