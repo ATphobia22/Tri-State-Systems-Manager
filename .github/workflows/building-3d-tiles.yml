@@ -33,6 +33,10 @@ on:
       - 'scripts/geospatial/build-implicit-tileset.py'
       - 'scripts/geospatial/validate_spatial_coherence.py'
       - 'scripts/geospatial/validate_feature_linkage.py'
+      - 'scripts/geospatial/validate_building_acceptance_chain.py'
+      - 'scripts/geospatial/build-implicit-tileset.py'
+      - 'scripts/geospatial/validate_spatial_coherence.py'
+      - 'scripts/geospatial/validate_feature_linkage.py'
       - 'tsm-console/public/data/posey-buildings-derived.geojson'
   push:
     branches: [main]
@@ -70,6 +74,17 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: '3.12'
+      - name: Syntax-check geospatial acceptance and tile tooling
+        run: |
+          python3 -m py_compile \
+            scripts/geospatial/tsm_geodesy.py \
+            scripts/geospatial/extract_lidar_heights.py \
+            scripts/geospatial/extract_derived_heights_copc.py \
+            scripts/geospatial/reconstruct_lod2_roofs.py \
+            scripts/geospatial/validate_building_acceptance_chain.py \
+            scripts/geospatial/build-implicit-tileset.py \
+            scripts/geospatial/validate_spatial_coherence.py \
+            scripts/geospatial/validate_feature_linkage.py
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version: 22
