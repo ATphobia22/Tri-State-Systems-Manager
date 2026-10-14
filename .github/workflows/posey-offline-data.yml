@@ -7,6 +7,11 @@ on:
       - main
       - 'feat/posey-offline-authoritative-data-*'
       - 'fix/posey-complete-acquisition-*'
+    paths:
+      - 'scripts/posey/**'
+      - 'data/posey-county/authoritative-source-requirements-v1.json'
+      - 'scripts/geo/validate-exact-county.mjs'
+      - '.github/workflows/posey-offline-data.yml'
 
 permissions:
   contents: read
@@ -23,31 +28,32 @@ jobs:
 
       - name: Acquire official Posey County source snapshots
         shell: pwsh
-        run: .\scripts\posey\download-offline-authoritative-data.ps1
+        run: .\\scripts\\posey\\download-offline-authoritative-data.ps1
 
       - name: Validate mandatory authoritative sources and strict county geometry
         shell: pwsh
-        run: .\scripts\posey\verify-offline-authoritative-data.ps1
+        run: .\\scripts\\posey\\verify-offline-authoritative-data.ps1
 
       - name: Generate bundle manifest and SHA-256 inventory
         shell: pwsh
         run: |
-          $root = "data\posey-county\offline\2026-09-30"
+          $root = "data\\posey-county\\offline\\2026-09-30"
           Get-ChildItem -Recurse $root -File |
             Get-FileHash -Algorithm SHA256 |
             Select-Object Path,Hash |
             ConvertTo-Json -Depth 5 |
-            Set-Content "$root\sha256-files.json"
+            Set-Content "$root\\sha256-files.json"
           Get-ChildItem -Recurse $root -File | Measure-Object -Property Length -Sum |
             ConvertTo-Json |
-            Set-Content "$root\bundle-size.json"
+            Set-Content "$root\\bundle-size.json"
 
       - name: Upload complete offline source tree
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: posey-county-offline-authoritative-2026-09-30
-          path: data\posey-county\offline\2026-09-30
+          path: data\\posey-county\\offline\\2026-09-30
           if-no-files-found: error
           retention-days: 30
 
-# Retry marker: 2026-09-30 Posey authoritative acquisition
+# Fix 2026-10-14: mandatory BAFM/parcels no longer soft-fail to unavailable-igio-outage;
+# path filters prevent unrelated main pushes from re-running this long job.
