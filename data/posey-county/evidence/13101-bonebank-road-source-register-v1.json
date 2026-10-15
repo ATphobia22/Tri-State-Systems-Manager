@@ -3,7 +3,7 @@
   "site_id": "posey-13101-bonebank-road",
   "recorded_on": "2026-10-15",
   "status": "PARTIALLY_REFRESHED_LIVE_EVIDENCE_AND_TERRAIN_CATALOG_2026-10-15",
-  "note": "Live IGIO parcel/address query, Indiana CSLF flood polygon point intersection, and USGS TNM 1-meter DEM catalog search were captured on 2026-10-15. EPQS values remain quarantined due connector unit inconsistency; FEMA current query was not refreshed. The DEM GeoTIFF has not been downloaded or QA-checked. This is not a complete live-data snapshot or an approved engineering AOI.",
+  "note": "Live IGIO parcel/address query, Indiana CSLF point and parcel-polygon intersections, FEMA NFHL point query, and USGS TNM 1-meter DEM catalog search were captured on 2026-10-15. EPQS values remain quarantined due connector unit inconsistency. DEM GeoTIFF has not been downloaded or QA-checked. This is not a complete live-data snapshot or an approved engineering AOI.",
   "required_geometry_roles": [
     {
       "role": "property_parcel",
@@ -121,8 +121,9 @@
         "No-data sentinel -9999 is not a BFE",
         "Confirm effective panel/date and map amendments"
       ],
-      "status": "PRIOR_POINT_RESULT_ONLY_CURRENT_REFRESH_FAILED",
-      "latest_result": "Prior repository record: Zone AE/SFHA with STATIC_BFE=-9999 (no-data sentinel). Current NFHL direct query did not return a usable response through the research connector; requery via FEMA MSC/direct ArcGIS client."
+      "status": "LIVE_POINT_QUERY_CONFIRMS_ZONE_AE_BFE_UNAVAILABLE",
+      "latest_result": "Current direct NFHL point query at the IGIO parcel centroid returned FLD_ZONE=AE, STATIC_BFE=-9999, V_DATUM=null. -9999 is no-data, not a BFE. Parcel-polygon NFHL query was not completed through connector; effective panel/LOMC review remains open.",
+      "live_query_evidence": "data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json"
     },
     {
       "id": "FEMA_MSC",
@@ -161,8 +162,8 @@
         "Distinguish state best-available mapping from FEMA effective NFHL",
         "Capture datum, BFE point, layer vintage and metadata"
       ],
-      "status": "LIVE_STATE_POLYGON_POINT_INTERSECTION_VERIFIED_2026-10-15",
-      "latest_result": "Posey CSLF layer returned cslf_id 3785, pre_zone AE, new_zone AE, source citation STUDY10 at the IGIO parcel centroid. No BFE observation returned; point intersection is not a parcel/structure determination.",
+      "status": "LIVE_POINT_AND_PARCEL_INTERSECTION_VERIFIED_ZONE_AE",
+      "latest_result": "Live centroid query and full candidate-parcel polygon query each intersect state CSLF polygon cslf_id 3785, pre_zone AE, new_zone AE, source citation STUDY10. This establishes intersection only, not percent coverage, BFE, or structure-specific depth.",
       "live_query_evidence": "data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json"
     },
     {
@@ -255,7 +256,7 @@
     "legal_boundary": "OPEN",
     "structure_footprint": "OPEN",
     "site_dem": "CATALOG_PRODUCT_FOUND_ASSET_DOWNLOAD_AND_QA_PENDING",
-    "effective_fema_panel_bfe_fara": "OPEN",
+    "effective_fema_panel_bfe_fara": "ZONE_AE_POINT_CONFIRMED_BFE_UNAVAILABLE_PANEL_FARA_REVIEW_OPEN",
     "drainage_outlet": "OPEN",
     "catchment": "BLOCKED",
     "hec_hms_hec_ras": "BLOCKED_NOT_RUN",
