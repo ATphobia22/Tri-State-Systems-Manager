@@ -66,6 +66,8 @@ function assertExecutionReady(manifest) {
     if (!nonPlaceholder(runner?.product_version) || PLACEHOLDER.test(runner?.product_version ?? '') || runner?.command?.some((part) => PLACEHOLDER.test(part))) errors.push(name + ' must use a pinned version and configured command');
   }
   if (!nonPlaceholder(manifest.hydrograph_handoff?.time_zone) || !nonPlaceholder(manifest.hydrograph_handoff?.conversion_method)) errors.push('hydrograph handoff time zone and conversion method must be documented');
+  if (!nonPlaceholder(manifest.hydrograph_handoff?.adapter_version) || manifest.hydrograph_handoff?.adapter_command?.some((part) => PLACEHOLDER.test(part))) errors.push('hydrograph transfer adapter must be explicitly version-pinned and configured');
+  if (!/^[a-f0-9]{64}$/.test(manifest.hydrograph_handoff?.adapter_executable_sha256 ?? '') || manifest.hydrograph_handoff.adapter_executable_sha256 === '0'.repeat(64)) errors.push('hydrograph transfer adapter executable SHA-256 must be measured and pinned');
   if (manifest.hec_hms?.expected_outputs && !manifest.hec_hms.expected_outputs.includes(manifest.hydrograph_handoff?.source_output)) errors.push('hydrograph_handoff.source_output must be declared as a HEC-HMS expected output');
   if (manifest.hec_ras?.expected_outputs && !manifest.hec_ras.expected_outputs.some((file) => /\.hdf$/i.test(file))) errors.push('HEC-RAS expected_outputs must include a real HDF result artifact');
   return errors;
