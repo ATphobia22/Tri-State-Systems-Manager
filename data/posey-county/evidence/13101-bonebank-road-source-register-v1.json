@@ -3,7 +3,7 @@
   "site_id": "posey-13101-bonebank-road",
   "recorded_on": "2026-10-15",
   "status": "LIVE_EVIDENCE_REFRESHED_2026-10-15_TERRAIN_RASTER_PENDING",
-  "note": "Live IGIO parcel/address and Indiana CSLF centroid plus full-parcel polygon intersections verified. FEMA NFHL centroid query identifies panel 0300 (community 18129C, effective 2014-10-05) and Zone AE, but no usable BFE/datum; no LOMR/LOMA feature intersects the centroid. USGS 1-meter DEM catalog tile covers the parcel but the raster has not been downloaded/QA-checked. USGS 3DHP returned a canal ~7 m from the parcel boundary but no verified outlet or catchment. AOI remains candidate only.",
+  "note": "Live IGIO parcel/address point and building-footprint queries, Indiana CSLF parcel and candidate-building intersections, FEMA NFHL point query, USGS TNM 1-meter DEM catalog search, and USGS 3DHP local hydrography queries were captured on 2026-10-15. EPQS values remain quarantined due connector unit inconsistency. DEM GeoTIFF has not been downloaded or QA-checked because this execution environment could not resolve external DNS. Nearby NHD-derived hydrography is screening context only; no verified outlet/catchment or engineering approval.",
   "required_geometry_roles": [
     {
       "role": "property_parcel",
@@ -259,6 +259,37 @@
       "latest_result": "Small-bbox query returned a normalized count of 10 flowlines (same bbox geometry-returning variant normalized to 20); a companion ~1-km query returned 20 flowline records and identifies the returned nearby flowlines as NHD-derived. Canal H77EJ geometry from one local query is ~7.0 m from the candidate parcel boundary, but is not verified as the runoff outlet. Broader bbox returned four waterbodies, zero catchment-layer features and zero outlet hydrolocations. No catchment delineated.",
       "live_query_evidence": "data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json",
       "companion_evidence": "data/posey-county/evidence/13101-bonebank-road-terrain-hydrography-evidence-2026-10-15.json"
+    },
+    {
+      "id": "IGIO_ADDRESS_POINTS_2024",
+      "agency": "Indiana Geographic Information Office / Posey County",
+      "data": "Address Points of Indiana 2024",
+      "url": "https://gisdata.in.gov/server/rest/services/Hosted/Address_Points_of_Indiana_2024/FeatureServer/0",
+      "purpose": "Associate the candidate parcel and building footprint with the matching situs address",
+      "access": "ArcGIS FeatureServer query by state parcel ID",
+      "limitations": [
+        "Address point is a point reference, not a surveyed building entrance or legal parcel boundary",
+        "Point may not precisely represent the principal dwelling entrance or center"
+      ],
+      "status": "LIVE_MATCHING_ADDRESS_POINT_VERIFIED_2026-10-15",
+      "latest_result": "One feature for state_parcel_id 651908100008001010 returned geofulladdress and DLGF address 13101 BONEBANK RD; Posey County source originator; point (-88.005101, 37.845889); dateupdate 2022-08-01.",
+      "live_query_evidence": "data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json"
+    },
+    {
+      "id": "IGIO_BUILDING_FOOTPRINTS_2016_2020",
+      "agency": "Indiana Geographic Information Office",
+      "data": "Indiana Building Footprints 2016-2020",
+      "url": "https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0",
+      "purpose": "Identify candidate building footprints within the parcel and associate the address point with a footprint",
+      "access": "ArcGIS FeatureServer polygon query",
+      "limitations": [
+        "Historical footprint layer (LidarYear 2020); verify with current imagery/owner/survey",
+        "Footprint attributes do not classify principal dwelling versus accessory structures",
+        "Not a surveyed building outline, finished-floor elevation, or lowest adjacent grade"
+      ],
+      "status": "FOUR_FOOTPRINTS_FOUND_ADDRESS_ASSOCIATED_CANDIDATE_763173",
+      "latest_result": "Four footprint polygons returned in parcel bbox. Three are within the candidate parcel. Feature 763173 (~258.7 m²) contains the Posey County address point for 13101 BONEBANK RD and is the best available address-associated structure candidate. State CSLF polygon intersects this candidate footprint (AE).",
+      "live_query_evidence": "data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json"
     }
   ],
   "hard_blockers": [
@@ -301,7 +332,7 @@
     "fema_lomr_loma_centroid_query": "NO_FEATURE_INTERSECTED_CENTROID_REVIEW_MSC_FOR_CURRENT_STATUS",
     "epqs_and_image_server_elevation": "QUARANTINED_UNIT_OR_PIXEL_VALUE_AMBIGUITY",
     "legal_boundary": "OPEN",
-    "structure_footprint": "OPEN",
+    "structure_footprint": "ADDRESS_ASSOCIATED_CANDIDATE_763173_FOUND_CURRENT_CONFIRMATION_PENDING",
     "site_dem": "CATALOG_MATCH_RASTER_DOWNLOAD_HASH_QA_OPEN",
     "drainage_outlet": "NEARBY_CANAL_H77EJ_6.997M_AWAY_OUTLET_NOT_VERIFIED",
     "catchment": "BLOCKED_NOT_DELINEATED",
