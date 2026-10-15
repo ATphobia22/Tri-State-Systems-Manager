@@ -20,7 +20,7 @@ The parcel polygon is suitable as a *site candidate footprint only after the loc
 
 Existing repository records also assert a second “surveyed centroid” at longitude `-88.0007`, latitude `37.9035`, approximately **6.4 km** from the IGIO parcel centroid above. These coordinates are not interchangeable. Until a licensed survey, authoritative parcel documentation, or owner-confirmed site record resolves the discrepancy, the address-to-parcel association and all point-dependent analysis remain **unverified**. The USGS elevation and FEMA/Indiana DNR point intersections below apply only to the IGIO parcel centroid used for those queries; they must not be attributed to the conflicting point or assumed to represent a structure.
 
-See the full [candidate AOI report](../AOI-REPORT-13101-BONEBANK-ROAD-2026-10-15.md) for the coordinate conflict and evidence-gated next steps.
+See the full [candidate AOI report](../AOI-REPORT-13101-BONEBANK-ROAD-2026-10-15.md) for the coordinate conflict and evidence-gated next steps. Also see the [completion checklist](../AOI-COMPLETION-CHECKLIST-13101-BONEBANK-ROAD-2026-10-15.md) and [machine-readable source register](../../../data/posey-county/evidence/13101-bonebank-road-source-register-v1.json).
 
 ## Authoritative terrain and flood-data observations
 
