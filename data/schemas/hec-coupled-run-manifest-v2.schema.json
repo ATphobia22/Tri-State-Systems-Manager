@@ -18,7 +18,8 @@
     "hec_hms",
     "hydrograph_handoff",
     "hec_ras",
-    "artifact_storage"
+    "artifact_storage",
+    "python_environment"
   ],
   "properties": {
     "schema_version": {
@@ -685,6 +686,49 @@
       "type": "string",
       "pattern": "^[a-f0-9]{40}$",
       "description": "Exact TSM Git commit SHA that produced and launched this workflow."
+    },
+    "python_environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "python_version",
+        "platform",
+        "lock_uri",
+        "lock_workspace_path",
+        "lock_sha256",
+        "installed_packages_sha256"
+      ],
+      "properties": {
+        "python_version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Exact Python patch version installed on the HEC worker."
+        },
+        "platform": {
+          "type": "string",
+          "const": "windows-x64",
+          "description": "Only the Windows x64 coupled HEC runtime is qualified by these wrappers."
+        },
+        "lock_uri": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Immutable URI for the hash-locked transitive Python environment requirements."
+        },
+        "lock_workspace_path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Relative workspace path to the exact requirements lock file."
+        },
+        "lock_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "installed_packages_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA-256 of the canonical installed-distribution inventory including VCS commit IDs."
+        }
+      }
     }
   }
 }
