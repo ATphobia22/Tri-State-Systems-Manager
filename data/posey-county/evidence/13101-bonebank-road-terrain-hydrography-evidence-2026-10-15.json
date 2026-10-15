@@ -1,0 +1,141 @@
+{
+  "schema": "tsm.hydrology.aoi-terrain-hydrography-evidence/v1",
+  "site_id": "posey-13101-bonebank-road",
+  "retrieved_on": "2026-10-15",
+  "status": "LIVE_CATALOG_AND_HYDROGRAPHY_QUERY_PARTIAL",
+  "working_reference": {
+    "longitude": -88.00535128,
+    "latitude": 37.84579909,
+    "crs": "EPSG:4326",
+    "basis": "Live IGIO parcel centroid matching address and parcel ID"
+  },
+  "terrain": {
+    "source": "USGS 3DEP / The National Map / ScienceBase",
+    "product_title": "USGS 1 Meter 16 x41y419 IN_Indiana_Statewide_LiDAR_2017_B17",
+    "sciencebase_item": "https://www.sciencebase.gov/catalog/item/60e6aebcd34e2a7685d0271b",
+    "sciencebase_live_json": "https://www.sciencebase.gov/catalog/item/60e6aebcd34e2a7685d0271b?format=json",
+    "catalog_query_url": "https://tnmaccess.nationalmap.gov/api/v1/products?datasets=Digital%20Elevation%20Model%20(DEM)%201%20meter&bbox=-88.0062%2C37.8453%2C-88.0043%2C37.8463&max=10&prodFormats=GeoTIFF",
+    "geotiff_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1m/Projects/IN_Indiana_Statewide_LiDAR_2017_B17/TIFF/USGS_1M_16_x41y419_IN_Indiana_Statewide_LiDAR_2017_B17.tif",
+    "metadata_xml_url": "https://thor-f5.er.usgs.gov/ngtoc/metadata/waf/elevation/1_meter/geotiff/IN_Indiana_Statewide_LiDAR_2017_B17/USGS_1M_16_x41y419_IN_Indiana_Statewide_LiDAR_2017_B17.xml",
+    "catalog_http_status": 200,
+    "catalog_candidate_count": 4,
+    "matching_product": {
+      "tile": "x41y419",
+      "project": "IN_Indiana_Statewide_LiDAR_2017_B17",
+      "pixel_resolution_m": 1,
+      "surface": "topographic bare earth",
+      "horizontal_crs": "UTM, NAD83, units meters",
+      "vertical_datum": "NAVD88",
+      "vertical_units": "meters",
+      "product_publication_date": "2021-07-04",
+      "acquisition_dates": [
+        "2017-03-03",
+        "2020-04-11"
+      ],
+      "tile_bbox_wgs84": {
+        "west": -88.023036022,
+        "south": 37.762897306,
+        "east": -87.908274708,
+        "north": 37.853947521
+      },
+      "bbox_contains_candidate_parcel": true,
+      "source_metadata": "https://www.sciencebase.gov/catalog/item/60e6aebcd34e2a7685d0271b"
+    },
+    "known_limitations": [
+      "ScienceBase says 1m DEMs are seamless within collection projects but not necessarily across projects.",
+      "Catalog result and metadata were verified; GeoTIFF bytes were not downloaded, hashed, opened, or inspected in this execution environment.",
+      "No raster void, seam, artifact, local drainage enforcement, or vertical accuracy QA has been completed.",
+      "Catalog metadata does not certify survey-grade elevation."
+    ],
+    "acquisition_state": "BLOCKED_IN_THIS_EXECUTION_ENVIRONMENT_NETWORK_DNS_FAILURE",
+    "acquisition_attempt": "Container-side HEAD/download failed because external DNS resolution is unavailable. No local GeoTIFF exists from this attempt."
+  },
+  "hydrography": {
+    "source": "USGS 3D Hydrography Program web service",
+    "service_url": "https://3dhp.nationalmap.gov/arcgis/rest/services/usgs_3dhp_all/FeatureServer",
+    "service_metadata_url": "https://3dhp.nationalmap.gov/arcgis/rest/services/usgs_3dhp_all/FeatureServer?f=pjson",
+    "source_documentation": "https://www.usgs.gov/3d-hydrography-program/access-3dhp-data-products",
+    "service_last_updated_per_usgs_page": "July 2026",
+    "layers": {
+      "flowline": {
+        "id": 50,
+        "name": "Flowline",
+        "query_distance_m": 1000,
+        "http_status": 200,
+        "returned_feature_count": 20,
+        "unique_feature_ids": [
+          "153N2",
+          "1ESBT",
+          "1JM0V",
+          "1Y450",
+          "22XQO",
+          "27SIO",
+          "2W0OL",
+          "2W0WA",
+          "30VIZ",
+          "35PHX"
+        ],
+        "named_feature": "Levy Slough",
+        "types_observed": [
+          "Canal",
+          "Waterbody Connector",
+          "Channel Line",
+          "Drainageway"
+        ],
+        "source_product": "NHD"
+      },
+      "hydrolocation_outlets": {
+        "id": 30,
+        "name": "HydroLocation - Headwater, Terminus, Divergence, Confluence, Catchment Outlet",
+        "query_distance_m": 1000,
+        "http_status": 200,
+        "returned_feature_count": 0
+      },
+      "catchments": {
+        "id": 80,
+        "name": "Catchment",
+        "query_distance_m": 1000,
+        "http_status": 200,
+        "returned_feature_count": 0
+      }
+    },
+    "interpretation": "A 1 km proximity query found mapped NHD-derived flowlines including Levy Slough, canals, waterbody connectors, and drainageways. It did not identify a hydro-location/catchment-outlet point or return a catchment polygon. Nearby mapped lines are candidate drainage context only and cannot be promoted to the property's outlet without raster topology, conveyance inspection, and/or field confirmation.",
+    "limitation": "The service is not intended for site-specific regulatory determinations. Returned nearby flowlines have source_product=NHD; legacy NHD/WBD/NHDPlus HR products are no longer maintained by USGS."
+  },
+  "point_elevation_query": {
+    "service": "USGS 3DEP ImageServer identify",
+    "http_status": 200,
+    "returned_pixel_values": [
+      110.325,
+      110.24,
+      109.965,
+      110.253,
+      110.095,
+      109.472,
+      108.852,
+      105.806,
+      108.758,
+      116.557,
+      124.533,
+      134.133,
+      110.337,
+      110.312,
+      110.271,
+      110.332
+    ],
+    "reported_units": "NoData",
+    "pixel_size": 150,
+    "catalog_project": "Ov_i02_L01_R0000005A_C0000001A.tif",
+    "interpretation": "The identify response did not return a single trustworthy parcel elevation: units are NoData, pixel size is 150, and multiple pixel values were returned. It is not accepted for site elevation or catchment delineation."
+  },
+  "gates": {
+    "address_parcel_match": "VERIFIED_LIVE",
+    "one_meter_dem_catalog_coverage": "VERIFIED_CATALOG_ONLY",
+    "dem_download_hash_and_raster_qa": "OPEN_BLOCKED_BY_EXECUTION_ENVIRONMENT_NETWORK_ACCESS",
+    "nearby_hydrography_context": "VERIFIED_SCREENING_ONLY",
+    "specific_drainage_outlet": "OPEN",
+    "catchment_polygon": "NOT_RETURNED_BY_3DHP_SERVICE_AND_NOT_DELINEATED_FROM_DEM",
+    "regulatory_flood_determination": "OPEN",
+    "hec_hms_hec_ras": "BLOCKED_NOT_RUN"
+  }
+}
