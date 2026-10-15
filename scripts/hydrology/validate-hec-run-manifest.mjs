@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-export const SCHEMA_PATH = path.join(root, 'data/schemas/hec-coupled-run-manifest-v1.schema.json');
+export const SCHEMA_PATH = path.join(root, 'data/schemas/hec-coupled-run-manifest-v2.schema.json');
 
 function matchesType(value, type) {
   const types = Array.isArray(type) ? type : [type];
@@ -182,7 +182,7 @@ function main() {
     process.exitCode = 1;
     return;
   }
-  console.log(JSON.stringify({ ok: true, execution_ready: execution, schema: 'hec-coupled-run-manifest-v1' }, null, 2));
+  console.log(JSON.stringify({ ok: true, execution_ready: execution, schema: 'hec-coupled-run-manifest-v2' }, null, 2));
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();
 , errors = []) {
