@@ -69,12 +69,30 @@ class PointTube:
     def add(self, sample: TubeSample) -> None:
         if not isinstance(sample.state, StateType):
             raise ValueError(f"state must be StateType, got {sample.state!r}")
+        if not isinstance(sample.coords, (tuple, list)) or len(sample.coords) != 3:
+            raise ValueError("coords must contain exactly three numeric values")
+        numeric_values = (sample.timestamp, sample.valid_from, sample.valid_to, *sample.coords)
+        if any(isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value)
+               for value in numeric_values):
+            raise ValueError("timestamp, validity bounds, and all three coordinates must be finite numbers")
         if sample.valid_from > sample.valid_to:
             raise ValueError("valid_from > valid_to")
         if not (sample.valid_from <= sample.timestamp <= sample.valid_to):
             raise ValueError("timestamp outside validity interval")
+        if not sample.source.strip() or not sample.confidence.strip():
+            raise ValueError("source and confidence provenance are required")
+        if sample.interpolation not in ("none", "linear"):
+            raise ValueError(f"unsupported interpolation metadata {sample.interpolation!r}")
+        if sample.state == StateType.INTERPOLATED and sample.interpolation != "linear":
+            raise ValueError("INTERPOLATED samples must declare interpolation='linear'")
+        if sample.state != StateType.INTERPOLATED and sample.interpolation != "none":
+            raise ValueError(f"{sample.state.value} samples cannot declare interpolation")
+        if sample.state in (StateType.OBSERVED, StateType.DERIVED):
+            if any(s.state in (StateType.OBSERVED, StateType.DERIVED) and s.timestamp == sample.timestamp
+                   for s in self._samples):
+                raise ValueError(f"duplicate numeric anchor timestamp {sample.timestamp}")
         self._samples.append(sample)
-        self._samples.sort(key=lambda s: s.timestamp)
+        self._samples.sort(key=lambda s: (s.timestamp, s.state.value))
 
     def _anchors(self) -> list[TubeSample]:
         """Numeric interpolation anchors: OBSERVED and DERIVED only."""
@@ -87,6 +105,8 @@ class PointTube:
         Interpolates ONLY between OBSERVED/DERIVED anchors. Out-of-range
         timestamps raise TemporalRangeError (no silent extrapolation).
         """
+        if not math.isfinite(t):
+            raise TemporalRangeError(f"tube {self.tube_id}: timestamp must be finite")
         anchors = self._anchors()
         if not anchors:
             raise TemporalRangeError(f"tube {self.tube_id}: no OBSERVED/DERIVED anchors")
@@ -120,9 +140,17 @@ class PointTube:
         Returns the state of the sample whose validity interval contains t.
         Raises TemporalRangeError if no sample covers t.
         """
-        for s in self._samples:
-            if s.valid_from <= t <= s.valid_to:
-                return s.state
+        if not math.isfinite(t):
+            raise TemporalRangeError(f"tube {self.tube_id}: timestamp must be finite")
+        matches = [s for s in self._samples if s.valid_from <= t <= s.valid_to]
+        if len(matches) == 1:
+            return matches[0].state
+        if len(matches) > 1:
+            states = {s.state for s in matches}
+            if len(states) == 1:
+                return matches[0].state
+            raise TemporalRangeError(
+                f"tube {self.tube_id}: ambiguous overlapping categorical validity intervals at t={t}")
         raise TemporalRangeError(
             f"tube {self.tube_id}: no sample covers t={t}; "
             f"categorical state is never interpolated")

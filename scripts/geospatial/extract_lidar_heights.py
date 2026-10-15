@@ -133,6 +133,12 @@ def median(values: list[float]) -> float:
     return (s[mid] if n % 2 else (s[mid - 1] + s[mid]) / 2.0)
 
 
+def median_absolute_deviation(values: list[float]) -> float:
+    """Unscaled robust spread around the sample median."""
+    center = median(values)
+    return median([abs(value - center) for value in values])
+
+
 class EPTReader:
     def __init__(self, ept_url: str):
         self.base = ept_url.rsplit("/", 1)[0]
@@ -380,7 +386,7 @@ def extract_heights(geojson_path: Path, out_path: Path, ept_url: str | None,
             # here is a regression risk, especially for MultiPolygon inputs.
 
             idxs = np.where(in_buf)[0]
-            roof_z, ground_z = [], []
+            roof_z, ground_z, canopy_z = [], [], []
             try:
                 from pyproj import CRS
                 axis = CRS.from_user_input(reader.native_crs).axis_info[0]
@@ -401,10 +407,15 @@ def extract_heights(geojson_path: Path, out_path: Path, ept_url: str | None,
                 elif c == CLASS_GROUND:
                     if gx0 <= px <= gx1 and gy0 <= py <= gy1:
                         ground_z.append(float(zs[i]))
+                elif c == 5:
+                    if point_in_polygon(px, py, ring_native):
+                        canopy_z.append(float(zs[i]))
 
             if len(roof_z) < MIN_ROOF_POINTS:
                 stats["no_roof_points"] += 1
                 props["lidarHeightStatus"] = f"insufficient-roof-points:{len(roof_z)}"
+                props["canopyOcclusionStatus"] = ("POSSIBLE_CANOPY_OCCLUSION" if len(canopy_z) >= MIN_ROOF_POINTS else "NO_QUALIFYING_BUILDING_CLASS_POINTS")
+                props["canopyPointsWithinFootprint"] = len(canopy_z)
                 continue
             if len(ground_z) < MIN_GROUND_POINTS:
                 stats["no_ground_points"] += 1
@@ -426,7 +437,14 @@ def extract_heights(geojson_path: Path, out_path: Path, ept_url: str | None,
             props["lidarGroundElevM"] = round(ground_m, 3)
             props["lidarRoofPoints"] = len(roof_z)
             props["lidarGroundPoints"] = len(ground_z)
-            props["lidarHeightMethod"] = "median(Classification in {6,8} Z) - median(Classification=2 Z)"
+            roof_mad = median_absolute_deviation(roof_z)
+            ground_mad = median_absolute_deviation(ground_z)
+            robust_spread_m = 1.4826 * (roof_mad + ground_mad)  # robust spread, not survey accuracy
+            props["lidarHeightUncertaintyM"] = round(robust_spread_m, 3)
+            props["lidarHeightConfidence"] = ("HIGH" if len(roof_z) >= 30 and len(ground_z) >= 15 and robust_spread_m <= 0.30 else "MEDIUM" if len(roof_z) >= 10 and len(ground_z) >= 5 and robust_spread_m <= 0.75 else "LOW")
+            props["canopyOcclusionStatus"] = "NOT_FLAGGED_BY_CLASS_5_SCREEN"
+            props["canopyPointsWithinFootprint"] = len(canopy_z)
+            props["lidarHeightMethod"] = "median(Classification in {6,8} Z) - median(Classification=2 Z); robust spread indicator is not survey accuracy"
             props["lidarHeightDatum"] = "NAVD88"
             props["lidarHeightUnit"] = "ftUS"
             props["lidarSource"] = ept_url

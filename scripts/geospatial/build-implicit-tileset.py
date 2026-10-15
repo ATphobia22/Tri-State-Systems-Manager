@@ -51,13 +51,52 @@ def read_glb(path: Path):
     return doc, binary
 
 
-def merge_glbs(paths: list[Path]) -> bytes:
-    """Merge multiple GLBs into one (positions + normals + per-prim colors)."""
+def matmul(a: list[float], b: list[float]) -> list[float]:
+    """Multiply column-major 4x4 matrices."""
+    return [sum(a[k * 4 + row] * b[col * 4 + k] for k in range(4)) for col in range(4) for row in range(4)]
+
+
+def transform_point(matrix: list[float], point: tuple[float, float, float]) -> tuple[float, float, float]:
+    x, y, z = point
+    return (
+        matrix[0] * x + matrix[4] * y + matrix[8] * z + matrix[12],
+        matrix[1] * x + matrix[5] * y + matrix[9] * z + matrix[13],
+        matrix[2] * x + matrix[6] * y + matrix[10] * z + matrix[14],
+    )
+
+
+def transform_normal(matrix: list[float], normal: tuple[float, float, float]) -> tuple[float, float, float]:
+    x, y, z = normal
+    transformed = (
+        matrix[0] * x + matrix[4] * y + matrix[8] * z,
+        matrix[1] * x + matrix[5] * y + matrix[9] * z,
+        matrix[2] * x + matrix[6] * y + matrix[10] * z,
+    )
+    length = math.sqrt(sum(v * v for v in transformed))
+    if not math.isfinite(length) or length <= 1e-12:
+        raise ValueError("transformed GLB normal is degenerate")
+    return tuple(v / length for v in transformed)
+
+
+def merge_glbs(features: list[tuple[Path, int, list[float]]]) -> bytes:
+    """Merge GLBs into the tileset root frame and preserve feature metadata."""
     binary = bytearray()
     views, acc, mats, prims = [], [], [], []
-    for p in paths:
+    object_ids: list[int] = []
+    for feature_index, (p, source_object_id, tile_transform) in enumerate(features):
+        if isinstance(source_object_id, bool) or not isinstance(source_object_id, int) or source_object_id < 0 or source_object_id > 0xFFFFFFFF:
+            raise ValueError(f"invalid UINT32 source OBJECTID: {source_object_id!r}")
+        object_ids.append(source_object_id)
         doc, bindata = read_glb(p)
-        for prim in doc["meshes"][0]["primitives"]:
+        nodes = doc.get("nodes", [])
+        mesh_nodes = [node for node in nodes if isinstance(node, dict) and "mesh" in node]
+        if len(mesh_nodes) != 1:
+            raise ValueError(f"expected one mesh node in {p}, found {len(mesh_nodes)}")
+        node_matrix = mesh_nodes[0].get("matrix", [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1])
+        if len(node_matrix) != 16 or not all(math.isfinite(float(v)) for v in node_matrix):
+            raise ValueError(f"invalid glTF node matrix in {p}")
+        content_transform = matmul(tile_transform, [float(v) for v in node_matrix])
+        for prim in doc["meshes"][mesh_nodes[0]["mesh"]]["primitives"]:
             pa = doc["accessors"][prim["attributes"]["POSITION"]]
             na = doc["accessors"][prim["attributes"]["NORMAL"]]
             pv = doc["bufferViews"][pa["bufferView"]]
@@ -65,8 +104,14 @@ def merge_glbs(paths: list[Path]) -> bytes:
             po = int(pv.get("byteOffset", 0)) + int(pa.get("byteOffset", 0))
             no = int(nv.get("byteOffset", 0)) + int(na.get("byteOffset", 0))
             count = pa["count"]
-            pb = bindata[po:po + count * 12]
-            nb = bindata[no:no + count * 12]
+            pb_raw = bindata[po:po + count * 12]
+            nb_raw = bindata[no:no + count * 12]
+            if len(pb_raw) != count * 12 or len(nb_raw) != count * 12:
+                raise ValueError(f"truncated position/normal buffer in {p}")
+            positions = [transform_point(content_transform, struct.unpack_from("<3f", pb_raw, i * 12)) for i in range(count)]
+            normals = [transform_normal(content_transform, struct.unpack_from("<3f", nb_raw, i * 12)) for i in range(count)]
+            pb = b"".join(struct.pack("<3f", *point) for point in positions)
+            nb = b"".join(struct.pack("<3f", *normal) for normal in normals)
             mat = doc["materials"][prim["material"]]
             color = mat["pbrMetallicRoughness"]["baseColorFactor"]
             bo = len(binary)
@@ -83,15 +128,47 @@ def merge_glbs(paths: list[Path]) -> bytes:
             acc.append({"bufferView": pvi, "componentType": 5126, "count": count,
                         "type": "VEC3", "min": lo, "max": hi})
             acc.append({"bufferView": nvi, "componentType": 5126, "count": count, "type": "VEC3"})
+            # Per-vertex local feature index, linked to the property-table row.
+            fid_bytes = struct.pack("<I", feature_index) * count
+            fid_offset = len(binary)
+            binary.extend(fid_bytes)
+            fid_view = len(views)
+            views.append({"buffer": 0, "byteOffset": fid_offset, "byteLength": len(fid_bytes), "target": 34962})
+            fid_accessor = len(acc)
+            acc.append({"bufferView": fid_view, "componentType": 5125, "count": count, "type": "SCALAR"})
             mi = len(mats)
             mats.append({"pbrMetallicRoughness": {"baseColorFactor": color,
                                                   "metallicFactor": 0.0, "roughnessFactor": 0.9}})
-            prims.append({"attributes": {"POSITION": ai, "NORMAL": ni}, "mode": 4, "material": mi})
+            prims.append({
+                "attributes": {"POSITION": ai, "NORMAL": ni, "_FEATURE_ID_0": fid_accessor},
+                "extensions": {"EXT_mesh_features": {"featureIds": [{
+                    "featureCount": len(features), "attribute": 0, "propertyTable": 0
+                }]}},
+                "mode": 4, "material": mi
+            })
     while len(binary) % 4:
         binary.append(0)
-    doc = {"asset": {"version": "2.0", "generator": "TSM implicit tiling merger v1"},
+    object_id_offset = len(binary)
+    object_id_bytes = b"".join(struct.pack("<I", sid) for sid in object_ids)
+    binary.extend(object_id_bytes)
+    object_id_view = len(views)
+    views.append({"buffer": 0, "byteOffset": object_id_offset, "byteLength": len(object_id_bytes)})
+    while len(binary) % 4:
+        binary.append(0)
+    doc = {"asset": {"version": "2.0", "generator": "TSM implicit tiling merger v2"},
+           "extensionsUsed": ["EXT_mesh_features", "EXT_structural_metadata"],
+           "extensions": {"EXT_structural_metadata": {
+               "schema": {
+                   "id": "tsm-building-feature-schema",
+                   "classes": {"building": {"properties": {
+                       "OBJECTID": {"type": "SCALAR", "componentType": "UINT32"}
+                   }}}
+               },
+               "propertyTables": [{"class": "building", "count": len(object_ids),
+                                   "properties": {"OBJECTID": {"values": object_id_view}}}]
+           }},
            "scene": 0, "scenes": [{"nodes": [0]}],
-           "nodes": [{"mesh": 0, "matrix": [1,0,0,0, 0,0,-1,0, 0,1,0,0, 0,0,0,1]}],
+           "nodes": [{"mesh": 0}],
            "meshes": [{"primitives": prims}], "materials": mats,
            "buffers": [{"byteLength": len(binary)}],
            "bufferViews": views, "accessors": acc}
@@ -106,7 +183,7 @@ class QuadNode:
     def __init__(self, level, x, y, bounds):
         self.level, self.x, self.y = level, x, y
         self.bounds = bounds  # (w, s, e, n) lon/lat
-        self.items = []  # (glb_path, centroid_lon, centroid_lat, sid)
+        self.items = []  # (glb_path, centroid_lon, centroid_lat, sid, root_local_transform)
         self.children = []
 
     def subdivide(self, max_depth, max_items):
@@ -152,72 +229,77 @@ def tile_id(level, x, y):
     return f"{level}-{x}-{y}"
 
 
-def write_subtree(path: Path, nodes: dict, subtree_level: int, subtree_x: int, subtree_y: int):
-    """Write a subtree JSON file with availability bitstreams.
+def _morton_code(x: int, y: int) -> int:
+    """Return a 2D Morton/Z-order index for non-negative tile coordinates."""
+    code = 0
+    bit = 0
+    while (1 << bit) <= max(x, y):
+        code |= ((x >> bit) & 1) << (2 * bit)
+        code |= ((y >> bit) & 1) << (2 * bit + 1)
+        bit += 1
+    return code
 
-    nodes: dict mapping (level, x, y) -> {"has_content": bool, "has_children": bool}
-    Covers SUBTREE_LEVELS levels starting at (subtree_level, subtree_x, subtree_y).
-    """
-    # Morton-order tile indices within subtree
-    tile_count = sum(4 ** i for i in range(SUBTREE_LEVELS))
-    tile_avail = []
-    content_avail = []
-    idx = 0
-    index_of = {}
-    for i in range(SUBTREE_LEVELS):
-        lvl = subtree_level + i
-        for ty in range(subtree_y * (4 ** i), (subtree_y + 1) * (4 ** i)):
-            for tx in range(subtree_x * (4 ** i), (subtree_x + 1) * (4 ** i)):
-                # Note: y index mapping; simplified row-major
-                index_of[(lvl, tx, ty)] = idx
-                idx += 1
-    # This simplified version uses constant availability when all tiles present
-    # Full bitstream implementation:
-    bits_tile = []
-    bits_content = []
-    for i in range(SUBTREE_LEVELS):
-        lvl = subtree_level + i
-        span = 4 ** i
-        for ty in range(subtree_y * span, (subtree_y + 1) * span):
-            for tx in range(subtree_x * span, (subtree_x + 1) * span):
-                info = nodes.get((lvl, tx, ty))
-                bits_tile.append(1 if info else 0)
-                bits_content.append(1 if (info and info["has_content"]) else 0)
 
-    def to_bitstream(bits):
-        nbytes = (len(bits) + 7) // 8
-        data = bytearray(nbytes)
-        for i, b in enumerate(bits):
-            if b:
-                data[i // 8] |= 1 << (i % 8)
+def write_subtree(
+    path: Path,
+    nodes: dict,
+    subtree_roots: set[tuple[int, int, int]],
+    subtree_level: int,
+    subtree_x: int,
+    subtree_y: int,
+):
+    """Write a JSON-encoded 3D Tiles subtree with Morton-ordered bitstreams."""
+    tile_bits: list[int] = []
+    content_bits: list[int] = []
+    for depth in range(SUBTREE_LEVELS):
+        scale = 2 ** depth
+        local_tiles = [(lx, ly) for ly in range(scale) for lx in range(scale)]
+        local_tiles.sort(key=lambda point: _morton_code(point[0], point[1]))
+        for lx, ly in local_tiles:
+            tx, ty = subtree_x * scale + lx, subtree_y * scale + ly
+            info = nodes.get((subtree_level + depth, tx, ty))
+            tile_bits.append(1 if info else 0)
+            content_bits.append(1 if info and info.get("has_content") else 0)
+
+    child_bits: list[int] = []
+    child_scale = 2 ** SUBTREE_LEVELS
+    local_children = [(lx, ly) for ly in range(child_scale) for lx in range(child_scale)]
+    local_children.sort(key=lambda point: _morton_code(point[0], point[1]))
+    for lx, ly in local_children:
+        child_key = (
+            subtree_level + SUBTREE_LEVELS,
+            subtree_x * child_scale + lx,
+            subtree_y * child_scale + ly,
+        )
+        child_bits.append(1 if child_key in subtree_roots else 0)
+
+    def to_bitstream(bits: list[int]) -> bytes:
+        data = bytearray((len(bits) + 7) // 8)
+        for index, bit in enumerate(bits):
+            if bit:
+                data[index // 8] |= 1 << (index % 8)
         return bytes(data)
 
-    buffer = to_bitstream(bits_tile) + to_bitstream(bits_content)
-    tile_off, content_off = 0, (len(bits_tile) + 7) // 8
+    tile_bytes = to_bitstream(tile_bits)
+    content_bytes = to_bitstream(content_bits)
+    child_bytes = to_bitstream(child_bits)
+    binary = tile_bytes + content_bytes + child_bytes
+    views = [
+        {"buffer": 0, "byteOffset": 0, "byteLength": len(tile_bytes)},
+        {"buffer": 0, "byteOffset": len(tile_bytes), "byteLength": len(content_bytes)},
+        {"buffer": 0, "byteOffset": len(tile_bytes) + len(content_bytes), "byteLength": len(child_bytes)},
+    ]
     subtree = {
-        "buffers": [{"byteLength": len(buffer)}],
-        "bufferViews": [
-            {"buffer": 0, "byteOffset": tile_off,
-             "byteLength": (len(bits_tile) + 7) // 8},
-            {"buffer": 0, "byteOffset": content_off,
-             "byteLength": (len(bits_content) + 7) // 8},
-        ],
+        "buffers": [{"uri": path.with_suffix(".bin").name, "byteLength": len(binary)}],
+        "bufferViews": views,
         "tileAvailability": {"bitstream": 0},
         "contentAvailability": [{"bitstream": 1}],
-        "childSubtreeAvailability": {"constant": 0},
+        "childSubtreeAvailability": {"bitstream": 2},
     }
     path.parent.mkdir(parents=True, exist_ok=True)
-    # Write JSON + binary buffer
-    j = json.dumps(subtree, separators=(",", ":")).encode()
-    # Subtree files are JSON with embedded buffer as separate .bin? No:
-    # subtree format is JSON + binary buffer concatenated like GLB.
-    # For simplicity, use the .subtree JSON with bufferViews referencing
-    # an external buffer file.
-    bin_path = path.with_suffix(".bin")
-    bin_path.write_bytes(buffer)
-    subtree["buffers"] = [{"uri": bin_path.name, "byteLength": len(buffer)}]
-    path.write_text(json.dumps(subtree, indent=1))
-    return bits_tile, bits_content
+    path.with_suffix(".bin").write_bytes(binary)
+    path.write_text(json.dumps(subtree, indent=2) + "\n", encoding="utf-8")
+    return tile_bits, content_bits, child_bits
 
 
 def main():
@@ -235,29 +317,36 @@ def main():
     if not children:
         raise SystemExit("flat tileset has no children")
 
-    # Collect items with centroids from extras/transform
+    # Preserve the HLOD root frame. Leaf tile transforms are relative to
+    # that frame; content vertices are flattened into the same frame before
+    # merging so individual building placements are not lost.
+    identity = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+    root_node = ts.get("root", {})
+    root_transform = root_node.get("transform", identity)
+    if not isinstance(root_transform, list) or len(root_transform) != 16:
+        raise SystemExit("invalid root transform")
     items = []
-    for child in children:
-        extras = child.get("extras", {}).get("tsm", {})
-        sid = extras.get("sourceObjectId")
-        uri = child.get("content", {}).get("uri")
-        if not uri or sid is None:
-            continue
-        # Centroid from bounding volume box center (ENU local) transformed...
-        # Simpler: parse from manifest sourceObjectIds? Use transform origin.
-        # For quadtree placement we need lon/lat. Extract from the GLB's
-        # tileset transform: transform[12:15] is ECEF origin; convert to lon/lat.
-        m = child.get("transform", [])
-        if len(m) < 15:
-            continue
-        ox, oy, oz = m[12], m[13], m[14]
-        lon = math.degrees(math.atan2(oy, ox))
-        lat = math.degrees(math.atan2(oz, math.hypot(ox, oy)))
-        # Rough correction for ellipsoid (adequate for quadtree binning)
-        items.append((args.tiles_dir / uri, lon, lat, sid))
 
+    def visit(node: dict, parent_local: list[float], is_root: bool = False):
+        local = parent_local if is_root else matmul(parent_local, node.get("transform", identity))
+        content = node.get("content", {})
+        uri = content.get("uri")
+        sid = node.get("extras", {}).get("tsm", {}).get("sourceObjectId")
+        if uri and isinstance(sid, int) and not isinstance(sid, bool):
+            glb_path = args.tiles_dir / uri
+            if not glb_path.is_file():
+                raise SystemExit(f"missing source GLB: {glb_path}")
+            world_transform = matmul(root_transform, local)
+            ox, oy, oz = world_transform[12], world_transform[13], world_transform[14]
+            lon = math.degrees(math.atan2(oy, ox))
+            lat = math.degrees(math.atan2(oz, math.hypot(ox, oy)))
+            items.append((glb_path, lon, lat, sid, local))
+        for child in node.get("children", []):
+            visit(child, local)
+
+    visit(root_node, identity, is_root=True)
     if not items:
-        raise SystemExit("no placeable items")
+        raise SystemExit("no source building tiles with content and sourceObjectId were found")
 
     lons = [i[1] for i in items]
     lats = [i[2] for i in items]
@@ -282,7 +371,7 @@ def main():
         lvl, x, y = leaf.level, leaf.x, leaf.y
         glb_path = content_dir / str(lvl) / str(x) / f"{y}.glb"
         glb_path.parent.mkdir(parents=True, exist_ok=True)
-        merged = merge_glbs([it[0] for it in leaf.items])
+        merged = merge_glbs([(it[0], int(it[3]), it[4]) for it in leaf.items])
         glb_path.write_bytes(merged)
         nodes[(lvl, x, y)] = {"has_content": True,
                               "sids": [it[3] for it in leaf.items]}
@@ -300,15 +389,13 @@ def main():
     subtree_roots = set()
     for (lvl, x, y) in nodes:
         sl = (lvl // SUBTREE_LEVELS) * SUBTREE_LEVELS
-        sx = x // (4 ** (lvl - sl)) if lvl > sl else x
-        sy = y // (4 ** (lvl - sl)) if lvl > sl else y
-        # Simpler: subtree root at level sl containing this tile
+        # Quadtree coordinates double at each level (not quadruple).
         factor = 2 ** (lvl - sl)
         subtree_roots.add((sl, x // factor, y // factor))
 
     for sl, sx, sy in sorted(subtree_roots):
         spath = subtree_dir / str(sl) / str(sx) / f"{sy}.subtree"
-        write_subtree(spath, nodes, sl, sx, sy)
+        write_subtree(spath, nodes, subtree_roots, sl, sx, sy)
 
     # Root tileset.json with implicitTiling (NO legacy extension)
     w, s, e, n = root_bounds
@@ -326,6 +413,7 @@ def main():
         },
         "geometricError": args.geometric_error,
         "root": {
+            "transform": root_transform,
             "boundingVolume": {
                 "region": [math.radians(w), math.radians(s),
                            math.radians(e), math.radians(n),

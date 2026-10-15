@@ -35,24 +35,99 @@ def fail(msg: str):
     raise SystemExit(f"FAIL: {msg}")
 
 
-def read_glb_meta(path: Path) -> dict:
-    """Parse the GLB JSON chunk header. Returns (doc, extensions_used)."""
-    d = path.read_bytes()
-    if len(d) < 20 or d[:4] != b"glTF" or struct.unpack_from("<I", d, 4)[0] != 2:
+def read_glb_parts(path: Path) -> tuple[dict, bytes]:
+    """Parse GLB v2 JSON and BIN chunks without dropping binary metadata."""
+    data = path.read_bytes()
+    if len(data) < 20 or data[:4] != b"glTF" or struct.unpack_from("<I", data, 4)[0] != 2:
         fail(f"invalid GLB {path}")
-    o = 12
-    doc = None
-    while o < len(d):
-        n, t = struct.unpack_from("<I4s", d, o)
-        o += 8
-        chunk = d[o:o + n]
-        if t == b"JSON":
-            doc = json.loads(chunk.rstrip(b" ").decode())
-            break
-        o += n
+    declared_length = struct.unpack_from("<I", data, 8)[0]
+    if declared_length != len(data):
+        fail(f"GLB length header mismatch in {path}: {declared_length} != {len(data)}")
+    offset, doc, binary = 12, None, b""
+    while offset + 8 <= len(data):
+        length, kind = struct.unpack_from("<I4s", data, offset)
+        offset += 8
+        chunk = data[offset:offset + length]
+        if len(chunk) != length:
+            fail(f"truncated GLB chunk in {path}")
+        if kind == b"JSON":
+            doc = json.loads(chunk.rstrip(b" \x00").decode())
+        elif kind == b"BIN\x00":
+            binary = chunk
+        offset += length
     if not isinstance(doc, dict):
         fail(f"missing GLB JSON chunk {path}")
-    return doc
+    return doc, binary
+
+
+def read_glb_meta(path: Path) -> dict:
+    return read_glb_parts(path)[0]
+
+
+def implicit_glb_object_ids(path: Path, violations: list[str]) -> set[int]:
+    """Decode OBJECTID UINT32 values and validate every vertex feature index."""
+    context = str(path)
+    doc, binary = read_glb_parts(path)
+    used = set(doc.get("extensionsUsed", []))
+    if not {"EXT_mesh_features", "EXT_structural_metadata"}.issubset(used):
+        violations.append(f"{context}: missing required EXT_mesh_features / EXT_structural_metadata declarations")
+        return set()
+    sm = doc.get("extensions", {}).get("EXT_structural_metadata", {})
+    tables = sm.get("propertyTables")
+    if not isinstance(tables, list) or len(tables) != 1:
+        violations.append(f"{context}: expected exactly one structural metadata property table")
+        return set()
+    table = tables[0]
+    count = table.get("count")
+    prop = table.get("properties", {}).get("OBJECTID", {})
+    value_view_index = prop.get("values")
+    views = doc.get("bufferViews", [])
+    if not isinstance(count, int) or count <= 0 or not isinstance(value_view_index, int) or not (0 <= value_view_index < len(views)):
+        violations.append(f"{context}: invalid OBJECTID property table count/values reference")
+        return set()
+    view = views[value_view_index]
+    start, length = int(view.get("byteOffset", 0)), int(view.get("byteLength", -1))
+    if length != count * 4 or start < 0 or start + length > len(binary):
+        violations.append(f"{context}: OBJECTID UINT32 bufferView length/offset is invalid")
+        return set()
+    object_ids = set(struct.unpack_from("<" + "I" * count, binary, start))
+    if len(object_ids) != count:
+        violations.append(f"{context}: duplicate OBJECTID values in structural metadata table")
+    referenced_rows: set[int] = set()
+    for mesh_index, mesh in enumerate(doc.get("meshes", [])):
+        for primitive_index, primitive in enumerate(mesh.get("primitives", [])):
+            ctx = f"{context}: mesh[{mesh_index}].primitive[{primitive_index}]"
+            feature_ext = primitive.get("extensions", {}).get("EXT_mesh_features", {}).get("featureIds", [])
+            accessor_index = primitive.get("attributes", {}).get("_FEATURE_ID_0")
+            if not feature_ext or not isinstance(accessor_index, int):
+                violations.append(f"{ctx}: _FEATURE_ID_0 is not linked to EXT_mesh_features")
+                continue
+            if feature_ext[0].get("attribute") != 0 or feature_ext[0].get("propertyTable") != 0:
+                violations.append(f"{ctx}: feature-ID attribute/property-table linkage must be 0")
+            accessors = doc.get("accessors", [])
+            if not (0 <= accessor_index < len(accessors)):
+                violations.append(f"{ctx}: invalid feature-ID accessor index")
+                continue
+            accessor = accessors[accessor_index]
+            view_index = accessor.get("bufferView")
+            if accessor.get("componentType") != 5125 or accessor.get("type") != "SCALAR" or not isinstance(view_index, int) or not (0 <= view_index < len(views)):
+                violations.append(f"{ctx}: feature IDs must be UINT32 scalar accessor")
+                continue
+            feature_view = views[view_index]
+            fstart = int(feature_view.get("byteOffset", 0)) + int(accessor.get("byteOffset", 0))
+            fcount = accessor.get("count")
+            if not isinstance(fcount, int) or fcount <= 0 or fstart < 0 or fstart + fcount * 4 > len(binary):
+                violations.append(f"{ctx}: invalid feature-ID accessor range")
+                continue
+            feature_indices = struct.unpack_from("<" + "I" * fcount, binary, fstart)
+            for feature_index in feature_indices:
+                if feature_index >= count:
+                    violations.append(f"{ctx}: vertex feature index {feature_index} exceeds property-table count {count}")
+                else:
+                    referenced_rows.add(feature_index)
+    if referenced_rows != set(range(count)):
+        violations.append(f"{context}: metadata rows not referenced by geometry: {sorted(set(range(count)) - referenced_rows)[:10]}")
+    return object_ids
 
 
 def check_glb_linkage(glb_path: Path, expected_sid: int, violations: list, ctx: str):
@@ -123,14 +198,44 @@ def main():
     tiles: list[dict] = []
     collect_tiles(tileset.get("root", {}), tiles)
     if not tiles:
-        # Implicit mode: check content dir directly
+        # Implicit mode: decode actual per-tile property tables and vertex IDs.
         content_dir = args.tiles_dir / "content"
-        if content_dir.exists():
-            print(f"INFO: implicit tileset; {len(list(content_dir.rglob('*.glb')))} content GLBs "
-                  f"(per-tile linkage validated at build time)")
-            print("PASS: feature linkage OK (implicit mode, build-time gates)")
-            return
-        fail("no tiles with content found")
+        glbs = sorted(content_dir.rglob("*.glb")) if content_dir.exists() else []
+        if not glbs:
+            violations.append("implicit tileset has no content GLBs")
+        implicit_ids: set[int] = set()
+        for glb_path in glbs:
+            try:
+                tile_ids = implicit_glb_object_ids(glb_path, violations)
+                overlap = implicit_ids.intersection(tile_ids)
+                if overlap:
+                    violations.append(f"{glb_path}: duplicate OBJECTIDs across implicit content GLBs: {sorted(overlap)[:10]}")
+                implicit_ids.update(tile_ids)
+            except Exception as exc:
+                violations.append(f"{glb_path}: unable to validate feature metadata: {exc}")
+        if args.geojson:
+            data = json.loads(args.geojson.read_text())
+            source_ids = set()
+            for feature in data.get("features", []):
+                props = feature.get("properties", {}) or {}
+                raw = props.get("igioObjectId", props.get("sourceObjectId", props.get("OBJECTID", props.get("objectid"))))
+                if isinstance(raw, int) and not isinstance(raw, bool) and raw >= 0:
+                    source_ids.add(raw)
+                elif isinstance(raw, str) and raw.strip().isdigit():
+                    source_ids.add(int(raw.strip()))
+            missing = sorted(source_ids - implicit_ids)
+            extra = sorted(implicit_ids - source_ids)
+            if missing:
+                violations.append(f"OBJECTIDs in source but not implicit content: {len(missing)} missing, examples={missing[:10]}")
+            if extra:
+                violations.append(f"OBJECTIDs in implicit content but not source: {len(extra)} extra, examples={extra[:10]}")
+        if violations:
+            print(f"FAIL: {len(violations)} feature-linkage violations:", file=sys.stderr)
+            for violation in violations[:20]:
+                print(f"  - {violation}", file=sys.stderr)
+            sys.exit(1)
+        print(f"PASS: implicit feature linkage OK ({len(implicit_ids)} unique OBJECTIDs)")
+        return
 
     seen: dict[int, str] = {}
     ext_summary: dict[str, int] = {}

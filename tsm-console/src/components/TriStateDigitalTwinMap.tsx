@@ -128,6 +128,14 @@ function addFeatureSource(map: Map, item: MapPlaneLayer): void {
     return;
   }
   if (item.id === 'indiana-buildings') {
+    // Keep footprints visible when height is missing; never invent a height.
+    map.addLayer({
+      id: `${item.id}-footprint`,
+      type: 'fill',
+      source: item.id,
+      layout: { visibility: 'none' },
+      paint: { 'fill-color': '#94a3b8', 'fill-opacity': 0.28, 'fill-outline-color': '#cbd5e1' },
+    });
     map.addLayer({
       id: `${item.id}-extrusion`,
       type: 'fill-extrusion',
@@ -137,7 +145,7 @@ function addFeatureSource(map: Map, item: MapPlaneLayer): void {
       paint: {
         // Height-based color ramp (gray to blue), following ember-maplibre-gl pattern
         'fill-extrusion-color': [
-          'interpolate', ['linear'], ['coalesce', ['to-number', ['get', 'height_m']], 9],
+          'interpolate', ['linear'], ['coalesce', ['to-number', ['get', 'height_m']], 0],
           0, '#d9dee4',
           15, '#aeb6c2',
           30, '#6baed6',
@@ -148,7 +156,7 @@ function addFeatureSource(map: Map, item: MapPlaneLayer): void {
         'fill-extrusion-height': [
           'interpolate', ['linear'], ['zoom'],
           14, 0,
-          15, ['coalesce', ['to-number', ['get', 'height_m']], 9]
+          15, ['coalesce', ['to-number', ['get', 'height_m']], 0]
         ],
         'fill-extrusion-base': 0,
         'fill-extrusion-opacity': 0.85,
@@ -172,10 +180,14 @@ function describePickedFeature(layerId: string, props: Record<string, unknown>):
     const value = props[key];
     return typeof value === 'string' && value.length > 0 ? value : null;
   };
-  if (layerId === 'indiana-buildings-extrusion') {
+  if (layerId === 'indiana-buildings-extrusion' || layerId === 'indiana-buildings-footprint') {
     const county = str('county') ?? 'unknown county';
     const lidarYear = str('lidaryear') ?? 'unknown vintage';
-    return `Building footprint · ${county} · lidar ${lidarYear} (height: uniform 9 m fallback — source provides no height)`;
+    const rawHeight = props.height_m;
+    const height = typeof rawHeight === 'number' && Number.isFinite(rawHeight) && rawHeight > 0
+      ? `LiDAR height: ${rawHeight.toFixed(2)} m`
+      : 'height unavailable; footprint retained without extrusion';
+    return `Building footprint · ${county} · lidar ${lidarYear} · ${height}`;
   }
   if (layerId === 'indiana-roads-line') {
     const name = str('STREET_NAME') ?? str('FULLNAME') ?? str('name') ?? 'unnamed road';
@@ -244,6 +256,7 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
       `${item.id}-line`,
       `${item.id}-label`,
       `${item.id}-extrusion`,
+      `${item.id}-footprint`,
     ];
     for (const layerId of layerIds) {
       if (map.getLayer(layerId)) map.setLayoutProperty(layerId, 'visibility', enabled ? 'visible' : 'none');
@@ -336,7 +349,7 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
       map.setSky(lighting.sky);
       const terrain = getTerrainRgbStatus();
       setTerrainEnabled(terrain.enabled);
-      setStatus(terrain.enabled ? 'Terrain-RGB connected; source fabric online.' : 'Terrain-RGB fail-closed; configure VITE_TSM_TERRAIN_RGB_URL_TEMPLATE.');
+      setStatus(terrain.enabled ? 'Terrain-RGB connected; source fabric online.' : 'Terrain-RGB unavailable; continuing with the base map and available layers. Configure VITE_TSM_TERRAIN_RGB_URL_TEMPLATE to enable terrain.');
 
       if (terrain.enabled && !map.getSource(TERRAIN_RGB_SOURCE_ID)) {
         map.addSource(TERRAIN_RGB_SOURCE_ID, {
@@ -387,13 +400,14 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
 
       map.on('error', (event) => {
         const message = event.error instanceof Error ? event.error.message : 'MapLibre source error';
-        setStatus(message);
+        setStatus(`Layer warning: ${message}. The map remains available; affected data may be unavailable.`);
       });
 
       // Object picking (raycast selection): click buildings, roads, parcels, quads.
       map.on('click', (event) => {
         const pickable = [
           'indiana-buildings-extrusion',
+          'indiana-buildings-footprint',
           'indiana-roads-line',
           'indiana-parcels-fill',
           'usgs-quad-index-line',

@@ -25,6 +25,7 @@ from pathlib import Path
 
 WGS84_A = 6378137.0
 WGS84_E2 = 6.6943799901413165e-3
+_CONTAINMENT_TOLERANCE = 1e-6
 
 
 def ecef(lon_deg: float, lat_deg: float, h_m: float = 0.0):
@@ -88,14 +89,62 @@ def aabb(pts: list) -> tuple:
     return (min(xs), min(ys), min(zs), max(xs), max(ys), max(zs))
 
 
-def contains(outer_aabb: tuple, inner_aabb: tuple, tol: float = 1.0) -> bool:
-    """AABB containment with tolerance (meters, for float error)."""
-    return (outer_aabb[0] - tol <= inner_aabb[0] and
-            outer_aabb[1] - tol <= inner_aabb[1] and
-            outer_aabb[2] - tol <= inner_aabb[2] and
-            outer_aabb[3] + tol >= inner_aabb[3] and
-            outer_aabb[4] + tol >= inner_aabb[4] and
-            outer_aabb[5] + tol >= inner_aabb[5])
+def contains(outer_aabb: tuple, inner_aabb: tuple, tol: float | None = None) -> bool:
+    """AABB containment using a scale-relative tolerance, not a metre-sized slack."""
+    tol = _CONTAINMENT_TOLERANCE if tol is None else tol
+    scale = max(
+        outer_aabb[3] - outer_aabb[0],
+        outer_aabb[4] - outer_aabb[1],
+        outer_aabb[5] - outer_aabb[2],
+        1.0,
+    )
+    eps = max(1e-9, tol * scale)
+    return (outer_aabb[0] - eps <= inner_aabb[0] and
+            outer_aabb[1] - eps <= inner_aabb[1] and
+            outer_aabb[2] - eps <= inner_aabb[2] and
+            outer_aabb[3] + eps >= inner_aabb[3] and
+            outer_aabb[4] + eps >= inner_aabb[4] and
+            outer_aabb[5] + eps >= inner_aabb[5])
+
+
+def finite_values(values: list, context: str, violations: list) -> bool:
+    if not all(isinstance(v, (int, float)) and math.isfinite(v) for v in values):
+        violations.append(f"{context}: NaN or infinity in bounding-volume coordinates")
+        return False
+    return True
+
+
+def valid_volume(vol: dict, context: str, violations: list) -> bool:
+    if "box" in vol:
+        values = vol["box"]
+        if not isinstance(values, list) or len(values) != 12 or not finite_values(values, context, violations):
+            violations.append(f"{context}: box must contain 12 finite numbers")
+            return False
+        axes = [values[3:6], values[6:9], values[9:12]]
+        if any(math.sqrt(sum(v*v for v in axis)) <= 0 for axis in axes):
+            violations.append(f"{context}: zero-volume box axis")
+            return False
+        return True
+    if "sphere" in vol:
+        values = vol["sphere"]
+        if not isinstance(values, list) or len(values) != 4 or not finite_values(values, context, violations):
+            violations.append(f"{context}: sphere must contain 4 finite numbers")
+            return False
+        if values[3] <= 0:
+            violations.append(f"{context}: sphere radius must be positive")
+            return False
+        return True
+    if "region" in vol:
+        values = vol["region"]
+        if not isinstance(values, list) or len(values) != 6 or not finite_values(values, context, violations):
+            violations.append(f"{context}: region must contain 6 finite numbers")
+            return False
+        if values[0] >= values[2] or values[1] >= values[3] or values[4] > values[5]:
+            violations.append(f"{context}: zero/inverted region extent")
+            return False
+        return True
+    violations.append(f"{context}: unsupported boundingVolume type")
+    return False
 
 
 def apply_transform(m: list, p: tuple) -> tuple:
@@ -113,6 +162,8 @@ def check_explicit(node: dict, parent_aabb: tuple | None, path: str,
     vol = node.get("boundingVolume")
     if not vol:
         violations.append(f"{path}: missing boundingVolume")
+        return
+    if not valid_volume(vol, path, violations):
         return
     corners = volume_corners(vol)
     if not corners:
@@ -187,9 +238,7 @@ def main():
     ap.add_argument("--tiles-dir", required=True, type=Path,
                     help="directory containing tileset.json")
     ap.add_argument("--mode", choices=("auto", "explicit", "implicit"), default="auto")
-    ap.add_argument("--tolerance-m", type=float, default=1.0,
-                    help="AABB containment tolerance in meters")
-    args = ap.parse_args()
+    ap.add_argument("--tolerance-relative", type=float, default=1e-6,\n                    help="scale-relative AABB containment tolerance (default 1e-6)")\n    args = ap.parse_args()
 
     tileset = json.loads(args.tileset.read_text())
     violations: list[str] = []
@@ -199,9 +248,14 @@ def main():
     if mode == "auto":
         mode = "implicit" if is_implicit else "explicit"
 
+    if not math.isfinite(args.tolerance_relative) or args.tolerance_relative < 0 or args.tolerance_relative > 1e-2:
+        violations.append("tolerance-relative must be finite and within [0, 1e-2]")
     if mode == "implicit":
         check_implicit(tileset, args.tiles_dir, violations)
     else:
+        # Keep the containment tolerance scale-relative and consistent with the CLI.
+        global _CONTAINMENT_TOLERANCE
+        _CONTAINMENT_TOLERANCE = args.tolerance_relative
         check_explicit(tileset.get("root", {}), None, "root", violations, args.tiles_dir)
 
     if violations:
