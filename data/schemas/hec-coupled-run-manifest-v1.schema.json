@@ -250,7 +250,10 @@
         "command",
         "timeout_seconds",
         "expected_outputs",
-        "output_directory"
+        "output_directory",
+        "project_package_sha256",
+        "executable_sha256",
+        "version_evidence_uri"
       ],
       "properties": {
         "product_version": {
@@ -293,6 +296,21 @@
         "output_directory": {
           "type": "string",
           "minLength": 1
+        },
+        "project_package_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "Pinned SHA-256 of the source project directory tree before run mutation."
+        },
+        "executable_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "Pinned SHA-256 of the exact adapter executable at command[0]."
+        },
+        "version_evidence_uri": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Evidence reference establishing the installed HEC product version and platform."
         }
       }
     },
@@ -306,7 +324,11 @@
         "time_zone",
         "flow_units",
         "gap_policy",
-        "conversion_method"
+        "conversion_method",
+        "adapter_command",
+        "adapter_version",
+        "adapter_executable_sha256",
+        "timeout_seconds"
       ],
       "properties": {
         "source_output": {
@@ -344,6 +366,29 @@
         "conversion_method": {
           "type": "string",
           "minLength": 1
+        },
+        "adapter_command": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Shell-free argv for explicit DSS/hydrograph transfer. Supports {{workspace}}, {{project}}, {{output}}, {{source_output}}, {{ras_input}}, and {{manifest}} tokens."
+        },
+        "adapter_version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Exact transfer-adapter release or immutable commit."
+        },
+        "adapter_executable_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "timeout_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 86400
         }
       }
     },
@@ -357,7 +402,10 @@
         "command",
         "timeout_seconds",
         "expected_outputs",
-        "output_directory"
+        "output_directory",
+        "project_package_sha256",
+        "executable_sha256",
+        "version_evidence_uri"
       ],
       "properties": {
         "product_version": {
@@ -400,6 +448,21 @@
         "output_directory": {
           "type": "string",
           "minLength": 1
+        },
+        "project_package_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "Pinned SHA-256 of the source project directory tree before run mutation."
+        },
+        "executable_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "Pinned SHA-256 of the exact adapter executable at command[0]."
+        },
+        "version_evidence_uri": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Evidence reference establishing the installed HEC product version and platform."
         }
       }
     },
