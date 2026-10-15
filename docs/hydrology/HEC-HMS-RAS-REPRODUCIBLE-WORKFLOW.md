@@ -28,6 +28,7 @@ Do not stamp a software version into the manifest until the installed binary ver
 | Orchestration, stage receipts and artifact blobs | scripts/hydrology/run-hec-coupled-workflow.mjs |
 | Node contract/runner tests | tsm-console/tests/hec-coupled-run-manifest.test.mjs |
 | Python pure handoff tests | backend/tests/test_hec_hms_ras_handoff.py |
+| Immutable HMS/RAS Commander VCS dependency pins | scripts/hydrology/requirements-hec-handoff.txt |
 
 The v1 schema and its example are retained as immutable compatibility artifacts. New runs use v2. The v2 manifest pins the source Git commit, AOI/delineation hashes, source-input provenance and quality, project-package hashes, adapter and vendor-executable hashes, version evidence, exact DSS record and selected RAS boundary, interval/time zone, units/conversion method, output paths, artifact store mode, and run timeout. Unknown fields or unsupported schema keywords fail closed.
 
@@ -45,7 +46,7 @@ The v1 schema and its example are retained as immutable compatibility artifacts.
 
 Copy the v2 example to a controlled run directory outside the checked-out source packages, then replace all placeholders with reviewed evidence. The manifest's source_commit must be the full SHA of the TSM checkout on the execution worker; supply the same value in TSM_SOURCE_COMMIT for a local run or GITHUB_SHA for the runner environment.
 
-Every model-stage command is an argument array. Its first token is the absolute path to a reviewed adapter launcher (for example a pinned Python executable that invokes a local HEC installation); executable_sha256 hashes that launcher, while runtime_executable_path/runtime_executable_sha256 separately pin the actual HEC vendor binary. The command must use {{workspace}}, {{project}} and {{output}} placeholders as applicable and place expected output files underneath output_directory.
+Every model-stage command is an argument array. Its first token is the absolute path to a reviewed adapter launcher (for example a pinned Python executable that invokes a local HEC installation); executable_sha256 hashes that launcher, while runtime_executable_path/runtime_executable_sha256 separately pin the actual HEC vendor binary. The command must use {{workspace}}, {{project}}, {{output}}, {{manifest}}, and {{runtime_executable}} placeholders, and place expected output files underneath output_directory. The actual HEC binary is passed as a command token and its SHA-256/version evidence is separately verified.
 
 The handoff command must include all of the following exact placeholders so the orchestrator injects run-specific paths instead of trusting stale files:
 
