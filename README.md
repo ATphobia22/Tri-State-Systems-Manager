@@ -82,6 +82,7 @@ TSM includes source-aware hydrology ingestion contracts and a lumped SCS Curve N
 The NOAA/NWS CloudGIS context integration is merged, but live GetMap image validation remains pending. Radar reflectivity is not rainfall accumulation; warning overlays are not inundation boundaries; and raw gage stage must not be compared directly with NAVD88 elevations.
 
 - [Hydrology and hydraulics release contract](docs/hydrology/HYDROLOGY-RELEASE-CONTRACT.md)
+- [USACE HEC software integration plan](docs/hydrology/USACE-HEC-SOFTWARE-INTEGRATION.md)
 - [Current release-gate register](docs/release/RELEASE-GATES-2026-10-15.md)
 - [Engineering evidence pipeline](docs/ENGINEERING-EVIDENCE-PIPELINE.md)
 - [NOAA/NWS CloudGIS integration contract](docs/data-sources/NOAA-CLOUDGIS-INTEGRATION.md)
