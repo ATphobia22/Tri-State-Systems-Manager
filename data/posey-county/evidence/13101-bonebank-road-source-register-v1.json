@@ -3,7 +3,7 @@
   "site_id": "posey-13101-bonebank-road",
   "recorded_on": "2026-10-15",
   "status": "PARTIALLY_REFRESHED_LIVE_EVIDENCE_TERRAIN_CATALOG_AND_HYDROGRAPHY_2026-10-15",
-  "note": "Live IGIO parcel/address and Indiana CSLF flood polygon point intersections were verified. USGS 1-meter DEM catalog coverage and metadata were verified, but the GeoTIFF could not be downloaded in this execution environment because external DNS resolution was unavailable. Nearby 3DHP flowlines were found, but no outlet point or catchment polygon was returned within 1 km. EPQS and the 3DEP ImageServer identify output remain quarantined as site elevation values. This is not a complete live-data snapshot or an approved engineering AOI.",
+  "note": "Live IGIO parcel/address query, Indiana CSLF point and parcel-polygon intersections, FEMA NFHL point query, USGS TNM 1-meter DEM catalog search, and USGS 3DHP local hydrography queries were captured on 2026-10-15. EPQS values remain quarantined due connector unit inconsistency. DEM GeoTIFF has not been downloaded or QA-checked because this execution environment could not resolve external DNS. Nearby NHD-derived hydrography is screening context only; no verified outlet/catchment or engineering approval.",
   "required_geometry_roles": [
     {
       "role": "property_parcel",
@@ -251,11 +251,14 @@
         "Service refreshed 2026-09-04; service contains elevation-derived hydrography where available and legacy NHD where EDH has not yet been collected",
         "USGS explicitly says service is not intended for site-specific regulatory determinations",
         "Nearby feature does not establish a private parcel's runoff outlet",
-        "Zero catchment-layer features in the queried bbox does not imply no catchment exists"
+        "Zero catchment-layer features in the queried bbox does not imply no catchment exists",
+        "Query-normalized flowline counts differ between variants; treat individual features as screening context only and do not treat counts as a complete inventory.",
+        "Companion 1-km query identifies nearby flowlines as legacy NHD-derived; no outlet point or catchment polygon was returned."
       ],
-      "status": "LOCAL_FLOWLINES_FOUND_OUTLET_UNVERIFIED",
-      "latest_result": "Ten flowlines returned in bbox -88.008,37.843,-88.002,37.848; canal H77EJ is approximately 7.0 m from the candidate parcel boundary based on returned geometry. Broader bbox returned four waterbodies, zero catchment-layer features, and zero outlet hydrolocations. No catchment delineated.",
-      "live_query_evidence": "data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json"
+      "status": "LOCAL_FLOWLINES_SCREENED_COUNTS_INCONSISTENT_OUTLET_UNVERIFIED",
+      "latest_result": "Small-bbox query returned a normalized count of 10 flowlines (same bbox geometry-returning variant normalized to 20); a companion ~1-km query returned 20 flowline records and identifies the returned nearby flowlines as NHD-derived. Canal H77EJ geometry from one local query is ~7.0 m from the candidate parcel boundary, but is not verified as the runoff outlet. Broader bbox returned four waterbodies, zero catchment-layer features and zero outlet hydrolocations. No catchment delineated.",
+      "live_query_evidence": "data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json",
+      "companion_evidence": "data/posey-county/evidence/13101-bonebank-road-terrain-hydrography-evidence-2026-10-15.json"
     }
   ],
   "hard_blockers": [
