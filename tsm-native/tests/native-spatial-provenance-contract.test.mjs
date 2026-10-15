@@ -25,7 +25,7 @@ test('native spatial provenance boundary uses repository SHA-256 implementation'
 
 test('native manifest downloader is HTTPS and Pages-origin restricted', () => {
   assert.match(downloader, /IsSecureProtocol/);
-  assert.ok(downloader.includes('atphobia22.github.io'));
+  assert.match(downloader, /https:\/\/atphobia22\.github\.io\/Tri-State-Systems-Manager/);
   assert.match(downloader, /Tri-State-Systems-Manager/);
 });
 
