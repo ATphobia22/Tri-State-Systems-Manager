@@ -98,6 +98,22 @@ A downstream gate cannot be marked passed while a required upstream gate is bloc
 - [ ] Complete calibration, independent validation, sensitivity and uncertainty analysis.
 - [ ] Complete qualified engineering/regulatory review and production deployment verification.
 
+
+## Candidate-site evidence added 2026-10-15
+
+The candidate parcel evidence package is located at:
+
+- `data/posey-county/aoi/13101-bonebank-road-parcel.geojson` — source-hashed 2025 Indiana GIO parcel GIS geometry.
+- `data/posey-county/evidence/13101-bonebank-road-site-aoi-v1.json` — the structured source/evidence record, validated by `data/schemas/posey-site-aoi-v1.schema.json`.
+- `data/posey-county/elevation/bonebank-anchor-dem-10m.provenance.json` — CRS, documented units/datum, source tile URLs, DEM hash and one-point cross-check limits.
+
+Current supported observations are limited to address/parcel identity, a live USGS EPQS point elevation, a cached source-hashed terrain raster whose centroid sample is numerically consistent with EPQS, a parcel-polygon overlay on cached SFHA geometry, and service metadata for nearby USGS/NWS data. A previous planning extent conflicts with the current parcel location and remains explicitly unresolved.
+
+The NFHL centroid query returns FEMA Zone AE / SFHA but a `STATIC_BFE` no-data sentinel (`-9999`) and no vertical datum. The queried Indiana DNR-hosted feature explicitly has `source_dnr=NFHL`, so it is not independent flood evidence. An older 375 ft BFE statement remains unverified against its effective panel/letter and is not accepted as a model boundary.
+
+The parcel centroid falls inside WBD HUC12 051201130904; this is hydrographic-unit context, not a terrain-derived contributing watershed. The HEC-HMS watershed and outlet are still `NOT_DELINEATED`, AOI approval remains `NOT_APPROVED`, and both HEC-HMS and HEC-RAS execution remain `NOT_RUN`. No design flow, BFE, depth, WSE, permit, or engineering conclusion follows from this site evidence.
+
+
 ## Official technical references
 
 - [NOAA/NWS CloudGIS services](https://www.weather.gov/gis/cloudgiswebservices)
