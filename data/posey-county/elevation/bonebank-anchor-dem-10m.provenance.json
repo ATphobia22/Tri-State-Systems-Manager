@@ -1,0 +1,79 @@
+{
+  "schema": "tsm.terrain-provenance/v1",
+  "asset_path": "data/posey-county/elevation/bonebank-anchor-dem-10m.tif",
+  "asset_sha256": "2a6c85dfd9ab46fcdc22184091972e1ee04f6131de1aaf1107aaf7b75bef925f",
+  "assembled_on": "2026-09-27",
+  "source_agency": "U.S. Geological Survey",
+  "source_program": "3D Elevation Program (3DEP)",
+  "product_description": "USGS 1/3 arc-second elevation source tiles assembled into a county reference raster.",
+  "source_tiles": [
+    {
+      "tile": "n38w088",
+      "url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n38w088/USGS_13_n38w088_20260417.tif",
+      "source_vintage": "2026-04-17",
+      "source_file_sha256": "NOT_CAPTURED_AT_ASSEMBLY"
+    },
+    {
+      "tile": "n38w089",
+      "url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n38w089/USGS_13_n38w089_20260417.tif",
+      "source_vintage": "2026-04-17",
+      "source_file_sha256": "NOT_CAPTURED_AT_ASSEMBLY"
+    },
+    {
+      "tile": "n39w088",
+      "url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n39w088/USGS_13_n39w088_20221205.tif",
+      "source_vintage": "2022-12-05",
+      "source_file_sha256": "NOT_CAPTURED_AT_ASSEMBLY"
+    },
+    {
+      "tile": "n39w089",
+      "url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n39w089/USGS_13_n39w089_20221205.tif",
+      "source_vintage": "2022-12-05",
+      "source_file_sha256": "NOT_CAPTURED_AT_ASSEMBLY"
+    }
+  ],
+  "raster": {
+    "width_pixels": 648,
+    "height_pixels": 648,
+    "horizontal_crs": "EPSG:4269",
+    "horizontal_crs_metadata_source": "GeoTIFF CRS metadata",
+    "vertical_datum": "NAVD88",
+    "vertical_datum_metadata_source": "data/posey-county/README.md and source bundle records; not embedded as an explicit vertical CRS in the GeoTIFF",
+    "elevation_units": "metres",
+    "elevation_units_metadata_source": "data/posey-county/README.md and source bundle records; no explicit GeoTIFF vertical-unit tag",
+    "resolution_degrees": [
+      0.00009259259259259259,
+      0.00009259259259259259
+    ],
+    "nominal_ground_resolution_m": "approximately 10 m; east-west ground spacing varies with latitude",
+    "bounds_wgs84_approx": {
+      "west": -88.035075,
+      "south": 37.815887,
+      "east": -87.975075,
+      "north": 37.875887
+    },
+    "nodata": "NaN",
+    "geotiff_tags": {
+      "AREA_OR_POINT": "Area"
+    }
+  },
+  "reference_sample_at_candidate_parcel_centroid": {
+    "longitude": -88.00535128,
+    "latitude": 37.84579909,
+    "dem_value_m": 110.34063720703125,
+    "dem_value_ft": 362.0099645899975,
+    "usgs_epqs_value_m": 110.33710832778736,
+    "usgs_epqs_value_ft": 361.99838690218945,
+    "usgs_epqs_raster_id": 115190,
+    "dem_minus_epqs_m": 0.0035288792438876726,
+    "epqs_url": "https://epqs.nationalmap.gov/v1/json?x=-88.00535128&y=37.84579909&units=Feet&output=json",
+    "interpretation": "Single-point numerical consistency check only. Difference is not an accuracy estimate, uncertainty interval, or evidence of survey-grade vertical agreement."
+  },
+  "reproducibility_gaps": [
+    "Individual source tile SHA-256 hashes were not recorded during assembly and are not asserted here.",
+    "The assembled raster does not internally encode vertical datum or elevation units; keep this provenance sidecar with the raster.",
+    "No parcel-scale bare-earth verification, breakline survey, or hydraulic terrain QA/QC is represented."
+  ],
+  "allowed_use": "Regional context / screening reference only until a qualified engineer validates source lineage, CRS, vertical datum, units, resolution, void handling and fitness for the selected AOI.",
+  "disallowed_inference": "Do not use the single point sample as parcel lowest adjacent grade, base flood elevation, channel bathymetry, or a hydraulic terrain surface."
+}
