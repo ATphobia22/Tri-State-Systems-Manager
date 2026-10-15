@@ -1,0 +1,8 @@
+name: TSM CodeQL
+paths-ignore:
+  - tools/agriculture/farmvibes-ai/**
+  - "**/node_modules/**"
+  - "**/third_party/**"
+  - "**/thirdparty/**"
+queries:
+  - uses: security-extended
