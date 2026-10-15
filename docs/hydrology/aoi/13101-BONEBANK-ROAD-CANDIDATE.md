@@ -9,7 +9,7 @@
 - Parcel source: Indiana Geographic Information Office (IGIO), *Parcel Boundaries of Indiana 2025*.
 - Parcel ID: `65-19-08-100-008.001-010`; state parcel ID: `651908100008001010`.
 - Source layer record: object ID `335325`, local ID `15768`, source load date `2025-08-28`.
-- Parcel geometry: [candidate parcel GeoJSON](../../data/posey-county/aoi/13101-bonebank-road-parcel.geojson); SHA-256 `93d9115b21b14932674095b5267b482c9b38c6fc45399687a8b5126894b71572`.
+- Parcel geometry: [candidate parcel GeoJSON](../../../data/posey-county/aoi/13101-bonebank-road-parcel.geojson); SHA-256 `93d9115b21b14932674095b5267b482c9b38c6fc45399687a8b5126894b71572`.
 - IGIO source layer: https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer/0
 - Parcel-layer centroid: longitude `-88.00535128`, latitude `37.84579909`.
 - Calculated parcel polygon area: approximately 2.4453 acres (0.00989575 km²), geodesic area from the published parcel polygon; not surveyed legal acreage and **not** watershed area.
@@ -26,7 +26,7 @@ The point intersections are useful screening evidence. They do not establish how
 
 ## Hydrology / HEC model readiness
 
-The source-backed record is [site AOI evidence v1](../../data/posey-county/evidence/13101-bonebank-road-site-aoi-v1.json). The candidate run manifest is [HEC coupled-run manifest v2](../../data/posey-county/hec/13101-bonebank-road-candidate-run-manifest-v2.json); it is intentionally marked `DRAFT` and must fail execution readiness.
+The source-backed record is [site AOI evidence v1](../../../data/posey-county/evidence/13101-bonebank-road-site-aoi-v1.json). The candidate run manifest is [HEC coupled-run manifest v2](../../../data/posey-county/hec/13101-bonebank-road-candidate-run-manifest-v2.json); it is intentionally marked `DRAFT` and must fail execution readiness.
 
 **Not yet supplied or qualified:**
 
