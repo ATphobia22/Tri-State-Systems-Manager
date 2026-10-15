@@ -222,6 +222,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
         <div>Indiana Current Imagery: live ImageServer · USGS 3DEP: dynamic elevation/hillshade (visualization only)</div>
         <div role="status">{terrainMessage}</div>
         <div>FEMA NFHL: effective / insurance · Indiana BAFM: planning / Flood Control Act · NOAA/NWS: operational alerts and radar context</div>
+        <div><a href="https://www.weather.gov/radarfaq" target="_blank" rel="noopener noreferrer" style={{ color: '#93c5fd', textDecoration: 'underline' }}>NOAA radar product guide and limitations ↗</a></div>
         <div>Stage: {stage == null ? 'unavailable' : `${stage.toFixed(2)} ft`} {data.stage.qualifier ? `(${data.stage.qualifier})` : ''} · {data.stage.source}</div>
         <div>Station WSE NAVD88: {wse == null ? 'unavailable' : `${wse.toFixed(2)} ft`} · Datum: {data.stage.conversion_applied ? 'verified USGS station relationship' : 'blocked'} · Site transfer: {data.stage.site_transfer_status ?? 'required'} · Hydraulic extrusion: {data.stage.hydraulic_extrusion_eligibility === 'SITE_WSE_VERIFIED_FOR_EXTRUSION' ? 'enabled' : 'blocked — validated site WSE required'} · Discharge: {data.stage.discharge_cfs == null ? 'unavailable' : `${data.stage.discharge_cfs.toLocaleString()} cfs`}</div>
         <div>Site elevations: LAG {fmtElev(data.site.elevations.lag_ft)} · BFE {fmtElev(data.site.elevations.bfe_ft)} · Berm {fmtElev(data.site.elevations.bermCrest_ft)} · FFE {fmtElev(data.site.elevations.ffe_ft)}</div>
