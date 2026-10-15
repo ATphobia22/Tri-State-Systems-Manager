@@ -64,6 +64,9 @@ function assertExecutionReady(manifest) {
   if (manifest.source_inputs?.some((input) => input.quality_status !== 'QUALIFIED' || !nonPlaceholder(input.source_uri) || !nonPlaceholder(input.valid_time) || !nonPlaceholder(input.license_or_terms_uri) || !nonPlaceholder(input.units) || !nonPlaceholder(input.horizontal_crs) || !nonPlaceholder(input.vertical_datum) || input.sha256 === '0'.repeat(64))) errors.push('every source input must be qualified, licensed/source-referenced, datum-aware and have a measured SHA-256');
   for (const [name, runner] of [['hec_hms', manifest.hec_hms], ['hec_ras', manifest.hec_ras]]) {
     if (!nonPlaceholder(runner?.product_version) || PLACEHOLDER.test(runner?.product_version ?? '') || runner?.command?.some((part) => PLACEHOLDER.test(part))) errors.push(name + ' must use a pinned version and configured command');
+    if (!nonPlaceholder(runner?.version_evidence_uri)) errors.push(name + '.version_evidence_uri must cite installation/version evidence');
+    if (!/^[a-f0-9]{64}$/.test(runner?.project_package_sha256 ?? '') || runner.project_package_sha256 === '0'.repeat(64)) errors.push(name + '.project_package_sha256 must be measured and pinned');
+    if (!/^[a-f0-9]{64}$/.test(runner?.executable_sha256 ?? '') || runner.executable_sha256 === '0'.repeat(64)) errors.push(name + '.executable_sha256 must be measured and pinned');
   }
   if (!nonPlaceholder(manifest.hydrograph_handoff?.time_zone) || !nonPlaceholder(manifest.hydrograph_handoff?.conversion_method)) errors.push('hydrograph handoff time zone and conversion method must be documented');
   if (!nonPlaceholder(manifest.hydrograph_handoff?.adapter_version) || manifest.hydrograph_handoff?.adapter_command?.some((part) => PLACEHOLDER.test(part))) errors.push('hydrograph transfer adapter must be explicitly version-pinned and configured');
