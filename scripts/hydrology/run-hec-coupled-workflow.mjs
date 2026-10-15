@@ -364,47 +364,210 @@ function main() {
     return records;
   };
   try {
-    run.artifacts.push(persistArtifact(verifyHashedFile(workspace, manifest.aoi.geometry_workspace_path, manifest.aoi.geometry_sha256, 'AOI geometry'), 'approved AOI geometry'));
-    run.artifacts.push(persistArtifact(verifyHashedFile(workspace, manifest.aoi.watershed_delineation_workspace_path, manifest.aoi.watershed_delineation_sha256, 'watershed delineation'), 'approved watershed delineation'));
-    for (const input of manifest.source_inputs) run.artifacts.push(persistArtifact(verifyHashedFile(workspace, input.workspace_path, input.sha256, 'source input ' + input.input_id), 'source input:' + input.input_id));
-    const hmsProject = safeWorkspacePath(workspace, manifest.hec_hms.project_directory, 'HEC-HMS project directory');
-    run.artifacts.push(...persistTree(hmsProject, 'HEC-HMS model package'));
-    const hmsOutputDir = manifest.hec_hms.output_directory;
-    const hms = runStage({ name: 'HEC-HMS', stage: manifest.hec_hms, workspace, outputDirectory: hmsOutputDir });
-    run.stages.push(hms);
-    const sourceOutput = safeWorkspacePath(workspace, manifest.hydrograph_handoff.source_output, 'hydrograph source output');
-    if (!fs.existsSync(sourceOutput) || !fs.statSync(sourceOutput).isFile()) throw new Error('HEC-HMS handoff artifact missing: ' + manifest.hydrograph_handoff.source_output);
-    const declaredHmsOutput = hms.outputs.some((item) => path.resolve(workspace, item.path) === sourceOutput);
-    if (!declaredHmsOutput) throw new Error('hydrograph source_output must be one of the declared HEC-HMS expected_outputs');
-    const rasInput = safeWorkspacePath(workspace, manifest.hydrograph_handoff.ras_input, 'hydrograph RAS input');
-    fs.mkdirSync(path.dirname(rasInput), { recursive: true });
-    fs.copyFileSync(sourceOutput, rasInput);
-    run.hydrograph_handoff = {
-      ...manifest.hydrograph_handoff,
-      sha256: sha256File(rasInput),
-      size_bytes: fs.statSync(rasInput).size,
-      copied_to_ras_input: true,
-      semantic_validation: 'NOT_PERFORMED_BY_GENERIC_RUNNER',
+    run.manifest_file_sha256 = sha256File(manifestPath);
+    const aoiGeometry = verifyHashedFile(workspace, manifest.aoi.geometry_workspace_path, manifest.aoi.geometry_sha256, 'AOI geometry');
+    const watershed = verifyHashedFile(workspace, manifest.aoi.watershed_delineation_workspace_path, manifest.aoi.watershed_delineation_sha256, 'watershed delineation');
+    run.artifacts.push(persistArtifact(aoiGeometry, 'approved AOI geometry'));
+    run.artifacts.push(persistArtifact(watershed, 'approved watershed delineation'));
+    for (const input of manifest.source_inputs) {
+      run.artifacts.push(persistArtifact(verifyHashedFile(workspace, input.workspace_path, input.sha256, 'source input ' + input.input_id), 'source input:' + input.input_id));
+    }
+
+    const hmsSource = safeWorkspacePath(workspace, manifest.hec_hms.project_directory, 'HEC-HMS source project');
+    const rasSource = safeWorkspacePath(workspace, manifest.hec_ras.project_directory, 'HEC-RAS source project');
+    run.artifacts.push(...persistTree(hmsSource, 'HEC-HMS immutable source package'));
+    run.artifacts.push(...persistTree(rasSource, 'HEC-RAS immutable source package'));
+
+    const hmsWorking = path.join(runWorkRoot, 'models', 'hec-hms');
+    const rasWorking = path.join(runWorkRoot, 'models', 'hec-ras');
+    const hmsCopy = copyProjectChecked(hmsSource, hmsWorking, sourceHmsProjectSha256, 'HEC-HMS');
+    const rasCopy = copyProjectChecked(rasSource, rasWorking, sourceRasProjectSha256, 'HEC-RAS');
+    run.model_copies = {
+      hec_hms: { path: path.relative(workspace, hmsWorking).replace(/\\/g, '/'), source_sha256: hmsCopy.sourceHash, copied_sha256: hmsCopy.copiedHash },
+      hec_ras: { path: path.relative(workspace, rasWorking).replace(/\\/g, '/'), source_sha256: rasCopy.sourceHash, copied_sha256: rasCopy.copiedHash },
     };
-    const rasProject = safeWorkspacePath(workspace, manifest.hec_ras.project_directory, 'HEC-RAS project directory');
-    run.artifacts.push(...persistTree(rasProject, 'HEC-RAS model package including configured hydrograph handoff'));
-    const rasOutputDir = manifest.hec_ras.output_directory;
-    const ras = runStage({ name: 'HEC-RAS', stage: manifest.hec_ras, workspace, outputDirectory: rasOutputDir });
+
+    const hmsLayout = mapStageOutputLayout(manifest.hec_hms, workspace, runWorkRelative, 'hec-hms');
+    const rasLayout = mapStageOutputLayout(manifest.hec_ras, workspace, runWorkRelative, 'hec-ras');
+    const hmsRunStage = {
+      ...manifest.hec_hms,
+      project_directory: path.relative(workspace, hmsWorking).replace(/\\/g, '/'),
+      output_directory: hmsLayout.outputDirectory,
+      expected_outputs: hmsLayout.expectedOutputs,
+      project_package_sha256: hmsCopy.copiedHash,
+    };
+    const hms = runStage({
+      name: 'HEC-HMS', stage: hmsRunStage, workspace,
+      outputDirectory: hmsLayout.outputDirectory,
+      sourceProjectPackageSha256: sourceHmsProjectSha256,
+      tokenValues: { manifest: manifestPath },
+    });
+    run.stages.push(hms);
+    run.artifacts.push(...persistTree(hmsLayout.outputRoot, 'HEC-HMS stage outputs and logs'));
+    run.artifacts.push(...persistTree(hmsWorking, 'HEC-HMS run-copy package after compute'));
+
+    const configuredHmsOutputDir = safeWorkspacePath(workspace, manifest.hec_hms.output_directory, 'configured HEC-HMS output directory');
+    const configuredSourceOutput = safeWorkspacePath(workspace, manifest.hydrograph_handoff.source_output, 'configured hydrograph source output');
+    const sourceOutputWithin = path.relative(configuredHmsOutputDir, configuredSourceOutput);
+    if (sourceOutputWithin === '..' || sourceOutputWithin.startsWith('..' + path.sep) || path.isAbsolute(sourceOutputWithin)) {
+      throw new Error('hydrograph_handoff.source_output must be inside hec_hms.output_directory');
+    }
+    const sourceOutputRelative = path.posix.join(hmsLayout.outputDirectory, sourceOutputWithin.replace(/\\/g, '/'));
+    const sourceOutput = safeWorkspacePath(workspace, sourceOutputRelative, 'isolated HEC-HMS DSS output');
+    if (!hms.outputs.some((item) => path.resolve(workspace, item.path) === sourceOutput)) {
+      throw new Error('mapped source_output must be one of the declared HEC-HMS expected_outputs');
+    }
+    if (!fs.existsSync(sourceOutput) || !fs.statSync(sourceOutput).isFile() || fs.statSync(sourceOutput).size === 0) {
+      throw new Error('HEC-HMS handoff DSS artifact missing or empty: ' + sourceOutputRelative);
+    }
+
+    const rasInputRelativeFromSource = path.relative(rasProjectCheck, rasInputCheck);
+    const rasInput = path.resolve(rasWorking, rasInputRelativeFromSource);
+    const rasInputRelativeFromWorking = path.relative(rasWorking, rasInput);
+    if (rasInputRelativeFromWorking === '..' || rasInputRelativeFromWorking.startsWith('..' + path.sep) || path.isAbsolute(rasInputRelativeFromWorking)) {
+      throw new Error('mapped RAS .uNN path escapes the staged HEC-RAS project');
+    }
+    if (!fs.existsSync(rasInput) || !fs.statSync(rasInput).isFile()) throw new Error('staged HEC-RAS unsteady-flow input is missing: ' + rasInput);
+    const rasDss = path.resolve(rasWorking, handoff.ras_dss_relative_path);
+    const rasDssRelativeFromWorking = path.relative(rasWorking, rasDss);
+    if (rasDssRelativeFromWorking === '..' || rasDssRelativeFromWorking.startsWith('..' + path.sep) || path.isAbsolute(rasDssRelativeFromWorking)) {
+      throw new Error('target DSS path escapes the staged HEC-RAS project');
+    }
+    if (path.resolve(rasDss) === path.resolve(rasInput) || path.resolve(rasDss) === path.resolve(sourceOutput)) {
+      throw new Error('HMS DSS, RAS target DSS, and RAS .uNN files must be distinct artifacts');
+    }
+
+    const handoffOutput = path.join(runWorkRoot, 'handoff');
+    fs.mkdirSync(handoffOutput, { recursive: false });
+    const handoffReportPath = path.join(handoffOutput, 'handoff-report.json');
+    const adapterCommand = handoff.adapter_command.map((part) => replaceTokens(part, {
+      workspace,
+      project: rasWorking,
+      output: handoffOutput,
+      source_output: sourceOutput,
+      ras_input: rasInput,
+      ras_dss: rasDss,
+      manifest: manifestPath,
+      handoff_report: handoffReportPath,
+      adapter_script: handoffScriptPath,
+    }));
+    if (!adapterCommand.includes(handoffScriptPath)) throw new Error('adapter_command must invoke the exact hash-pinned {{adapter_script}}');
+    if (!path.isAbsolute(adapterCommand[0]) || !fs.existsSync(adapterCommand[0]) || !fs.statSync(adapterCommand[0]).isFile()) {
+      throw new Error('hydrograph adapter launcher must be an absolute path to an existing file');
+    }
+    if (sha256File(adapterCommand[0]) !== handoff.adapter_executable_sha256) {
+      throw new Error('hydrograph adapter launcher SHA-256 does not match the manifest');
+    }
+    const handoffStartedAt = new Date().toISOString();
+    const handoffProcess = spawnSync(adapterCommand[0], adapterCommand.slice(1), {
+      cwd: rasWorking,
+      encoding: 'utf8',
+      shell: false,
+      windowsHide: true,
+      timeout: handoff.timeout_seconds * 1000,
+      maxBuffer: 4 * 1024 * 1024,
+      env: checkedRuntimeEnvironment(),
+    });
+    const handoffStdout = handoffProcess.stdout ?? '';
+    const handoffStderr = handoffProcess.stderr ?? '';
+    const handoffStdoutPath = path.join(handoffOutput, 'handoff.stdout.log');
+    const handoffStderrPath = path.join(handoffOutput, 'handoff.stderr.log');
+    fs.writeFileSync(handoffStdoutPath, handoffStdout, { flag: 'wx', mode: 0o600 });
+    fs.writeFileSync(handoffStderrPath, handoffStderr, { flag: 'wx', mode: 0o600 });
+    run.stages.push({
+      name: 'HMS_TO_RAS_HYDROGRAPH_HANDOFF',
+      adapter_version: handoff.adapter_version,
+      adapter_command_sha256: sha256Buffer(Buffer.from(stableStringify(adapterCommand))),
+      adapter_executable_sha256: sha256File(adapterCommand[0]),
+      adapter_script_sha256: sha256File(handoffScriptPath),
+      started_at: handoffStartedAt,
+      finished_at: new Date().toISOString(),
+      exit_code: handoffProcess.status,
+      stdout_sha256: sha256Buffer(Buffer.from(handoffStdout)),
+      stderr_sha256: sha256Buffer(Buffer.from(handoffStderr)),
+      stdout_log_path: path.relative(workspace, handoffStdoutPath).replace(/\\/g, '/'),
+      stderr_log_path: path.relative(workspace, handoffStderrPath).replace(/\\/g, '/'),
+      stdout_tail: handoffStdout.slice(-8192),
+      stderr_tail: handoffStderr.slice(-8192),
+    });
+    if (handoffProcess.error) throw new Error('hydrograph transfer adapter error: ' + handoffProcess.error.message);
+    if (handoffProcess.status !== 0) throw new Error('hydrograph transfer adapter exited with status ' + handoffProcess.status + ': ' + handoffStderr.slice(-2000));
+    if (!fs.existsSync(handoffReportPath) || !fs.statSync(handoffReportPath).isFile() || fs.statSync(handoffReportPath).size === 0) {
+      throw new Error('hydrograph adapter did not produce its declared handoff report');
+    }
+    const handoffReport = JSON.parse(fs.readFileSync(handoffReportPath, 'utf8'));
+    if (handoffReport.adapter !== handoff.adapter_version) throw new Error('handoff report adapter version does not match the manifest');
+    if (handoffReport.status !== 'HANDOFF_WRITTEN_AND_STRUCTURALLY_CHECKED_HYDROLOGY_UNVALIDATED') {
+      throw new Error('handoff report does not confirm the required structured transfer state');
+    }
+    if (handoffReport.source_dss?.sha256 !== sha256File(sourceOutput)) throw new Error('handoff report source DSS hash does not match HEC-HMS output');
+    if (handoffReport.target_dss?.sha256 !== sha256File(rasDss) || handoffReport.target_dss?.pathname !== handoff.ras_dss_pathname) {
+      throw new Error('handoff report target DSS path/hash mismatch');
+    }
+    if (handoffReport.target_unsteady_flow?.after_sha256 !== sha256File(rasInput)) {
+      throw new Error('handoff report staged RAS .uNN hash mismatch');
+    }
+    if (!String(handoffReport.series?.status ?? '').startsWith('FORMAT_AND_UNIT_CONTRACT_VALIDATED')) {
+      throw new Error('handoff report does not demonstrate hydrograph format/unit contract validation');
+    }
+    run.hydrograph_handoff = {
+      status: handoffReport.status,
+      report: handoffReport,
+      report_path: path.relative(workspace, handoffReportPath).replace(/\\/g, '/'),
+      report_sha256: sha256File(handoffReportPath),
+      source_dss_sha256: sha256File(sourceOutput),
+      target_dss_sha256: sha256File(rasDss),
+      target_unsteady_flow_sha256: sha256File(rasInput),
+      scientific_validation_status: 'NOT_PERFORMED',
+    };
+    run.artifacts.push(...persistTree(handoffOutput, 'HMS-to-RAS handoff receipt and logs'));
+    run.artifacts.push(...persistTree(rasWorking, 'HEC-RAS run copy after explicit DSS boundary handoff'));
+
+    const rasRunStage = {
+      ...manifest.hec_ras,
+      project_directory: path.relative(workspace, rasWorking).replace(/\\/g, '/'),
+      output_directory: rasLayout.outputDirectory,
+      expected_outputs: rasLayout.expectedOutputs,
+      project_package_sha256: sha256Tree(rasWorking),
+    };
+    const ras = runStage({
+      name: 'HEC-RAS', stage: rasRunStage, workspace,
+      outputDirectory: rasLayout.outputDirectory,
+      sourceProjectPackageSha256: sourceRasProjectSha256,
+      tokenValues: { manifest: manifestPath, source_output: sourceOutput, ras_input: rasInput, ras_dss: rasDss, handoff_report: handoffReportPath },
+    });
     run.stages.push(ras);
-    for (const stage of run.stages) for (const output of stage.outputs) {
+    for (const output of ras.outputs) {
+      const file = safeWorkspacePath(workspace, output.path, 'HEC-RAS output');
+      if (/\.hdf$/i.test(file)) assertHdf5File(file, 'HEC-RAS result');
+    }
+    run.artifacts.push(...persistTree(rasLayout.outputRoot, 'HEC-RAS result artifacts and logs'));
+    run.artifacts.push(...persistTree(rasWorking, 'HEC-RAS run-copy package after computation'));
+    for (const stage of run.stages) for (const output of stage.outputs ?? []) {
       run.artifacts.push(persistArtifact(safeWorkspacePath(workspace, output.path, 'model output'), stage.name + ':' + output.path));
     }
-    run.artifacts.push(persistArtifact(rasInput, 'HEC-HMS-to-HEC-RAS handoff'));
+    if (sha256Tree(hmsProjectCheck) !== sourceHmsProjectSha256) throw new Error('HEC-HMS source package mutated during execution; provenance invalid');
+    if (sha256Tree(rasProjectCheck) !== sourceRasProjectSha256) throw new Error('HEC-RAS source package mutated during execution; provenance invalid');
+
     run.status = 'COMPLETED_UNVALIDATED';
     run.finished_at = new Date().toISOString();
     run.validation = {
       status: 'PENDING',
-      required_next_steps: ['validate hydrograph time axis, units, gaps and location', 'inspect real HEC-RAS HDF outputs and solver diagnostics', 'mass-balance and stability review', 'independent calibration and validation', 'uncertainty and sensitivity assessment', 'qualified engineering review'],
+      required_next_steps: [
+        'qualify observed hydrograph and document source-to-boundary mapping',
+        'inspect real HEC-RAS HDF output and solver diagnostics',
+        'review numerical stability and hydraulic mass balance',
+        'independent calibration and validation on separate observations',
+        'uncertainty and sensitivity assessment',
+        'qualified engineering review before engineering or regulatory use',
+      ],
     };
     const receipt = path.join(runRoot, 'run-receipt.json');
     fs.writeFileSync(receipt, JSON.stringify(run, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
     fs.writeFileSync(path.join(runRoot, 'input-manifest.json'), JSON.stringify(manifest, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
+    run.artifacts.push(persistArtifact(receipt, 'reproducible workflow run receipt'));
     console.log(JSON.stringify({ ok: true, run_id: run.run_id, status: run.status, receipt: path.relative(workspace, receipt), output_count: run.artifacts.length, note: 'Execution completed; scientific validation and human review remain pending.' }, null, 2));
+
   } catch (error) {
     run.status = 'FAILED_OR_BLOCKED';
     run.finished_at = new Date().toISOString();
