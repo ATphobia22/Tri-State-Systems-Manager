@@ -181,3 +181,45 @@ The live snapshot and source register now record the DEM catalog result. The nex
 The direct FEMA NFHL point query is now refreshed and returned `FLD_ZONE=AE`, `STATIC_BFE=-9999`, and `V_DATUM=null`. The query confirms the Zone AE point intersection but provides no usable BFE or datum. A full parcel-geometry query against FEMA's NFHL service did not complete through the research connector, so no parcel-wide FEMA overlay is claimed.
 
 Separately, the live Indiana CSLF service successfully queried the entire candidate parcel polygon and returned an intersecting state floodplain polygon (`cslf_id=3785`, `pre_zone=AE`, `new_zone=AE`, source `STUDY10`). This is stronger than the earlier centroid-only state result, but it is still a topological intersection, not a coverage percentage, house-footprint overlay, depth, or BFE. Review the effective FEMA panel, any LOMC, and Indiana INFIP/FARA before regulatory conclusions.
+
+
+## 12. Terrain and hydrography live verification
+
+### 12.1 One-meter DEM product identified; raster QA still open
+
+A live The National Map product query returned four 1-meter DEM catalog candidates for the parcel bounding box, including **USGS 1 Meter 16 x41y419 IN_Indiana_Statewide_LiDAR_2017_B17**. Its [ScienceBase metadata](https://www.sciencebase.gov/catalog/item/60e6aebcd34e2a7685d0271b) states:
+
+- 1-meter pixel resolution; bare-earth topographic surface derived from high-resolution lidar.
+- Horizontal reference: UTM, NAD83, meters.
+- Vertical reference: NAVD88, meters.
+- Product publication date: 2021-07-04; source acquisition dates include 2017-03-03 and 2020-04-11.
+- Tile bounds: west -88.023036022, south 37.762897306, east -87.908274708, north 37.853947521 (WGS84), which contain the candidate parcel.
+- DEM tiles are seamless within collection projects but may not be seamless across project boundaries.
+
+The exact GeoTIFF is [available from USGS TNM](https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1m/Projects/IN_Indiana_Statewide_LiDAR_2017_B17/TIFF/USGS_1M_16_x41y419_IN_Indiana_Statewide_LiDAR_2017_B17.tif). The current execution environment could not resolve external DNS for a direct download, so no raster bytes were acquired, hashed, opened, or inspected. The terrain gate therefore remains **PARTIALLY RESOLVED — CATALOG MATCH ONLY**. Do not claim that raster QA or flow routing has been completed.
+
+A separate direct 3DEP ImageServer identify request returned multiple pixel values, reported units as `NoData`, and a 150-unit pixel size. That response is not a trustworthy 1-meter DEM point sample and is excluded from site-elevation evidence. EPQS values also remain quarantined due the earlier adapter unit inconsistency.
+
+### 12.2 Nearby mapped hydrography is context, not an outlet
+
+A live query to the [USGS 3DHP FeatureServer](https://3dhp.nationalmap.gov/arcgis/rest/services/usgs_3dhp_all/FeatureServer) found 20 flowline records within a 1,000-meter query distance of the candidate parcel centroid, including records named **Levy Slough** and mapped features classified as canals, waterbody connectors, channel lines, and drainageways. The returned flowlines identify their source product as legacy `NHD`.
+
+The same 1,000-meter query returned **zero** features from the service's HydroLocation layer (including catchment-outlet points) and **zero** catchment polygons. The USGS service documentation says the national service is not intended for site-specific regulatory determinations; USGS also states legacy NHD/WBD/NHDPlus HR products are no longer maintained. Therefore, this query establishes nearby mapped drainage context only. It does not prove hydraulic connectivity from the property, identify a site outlet, or produce a watershed boundary.
+
+### 12.3 Evidence gate disposition
+
+The detailed query responses are in [terrain and hydrography evidence JSON](../../data/posey-county/evidence/13101-bonebank-road-terrain-hydrography-evidence-2026-10-15.json). Current state:
+
+| Gate | Disposition |
+|---|---|
+| Parcel/address reference | Verified by live IGIO record |
+| 1-meter DEM catalog coverage | Verified by USGS catalog metadata |
+| DEM download, checksum, and raster QA | Open; direct download blocked in this execution environment |
+| Nearby hydrography | Screening context verified; records are NHD-derived |
+| Actual structure footprint and legal boundary | Open |
+| Effective FEMA panel, BFE, floodway and applicable FARA | Open |
+| Specific outlet / culvert / ditch connectivity | Open; no 3DHP outlet point returned |
+| Catchment polygon | Not delineated |
+| HEC-HMS / HEC-RAS | `BLOCKED_NOT_RUN` |
+
+The evidence-gated next steps are now more specific, but they are not all closed. A defensible catchment cannot be produced without the DEM raster, outlet selection, and conveyance/flow-path validation. The residential AOI remains unapproved for engineering or model execution.
