@@ -58,24 +58,44 @@ function verifyHashedFile(workspace, relative, expectedHash, label) {
   return file;
 }
 function replaceTokens(token, values) {
-  return token.replace(/\{\{(workspace|project|output)\}\}/g, (_, key) => values[key]);
+  return token.replace(/\{\{([a-z_]+)\}\}/g, (whole, key) => {
+    if (!Object.hasOwn(values, key) || typeof values[key] !== 'string') {
+      throw new Error('unsupported or unresolved execution placeholder: ' + whole);
+    }
+    return values[key];
+  });
 }
-export function runStage({ name, stage, workspace, outputDirectory }) {
+function checkedRuntimeEnvironment() {
+  const allowed = [
+    'PATH', 'SystemRoot', 'WINDIR', 'TEMP', 'TMP', 'USERPROFILE', 'HOME',
+    'JAVA_HOME', 'HEC_HMS_HOME', 'HEC_RAS_HOME', 'PYTHONPATH', 'PYTHONHOME',
+    'LD_LIBRARY_PATH', 'DYLD_LIBRARY_PATH', 'OMP_NUM_THREADS',
+  ];
+  return Object.fromEntries(allowed.filter((key) => process.env[key] !== undefined).map((key) => [key, process.env[key]]));
+}
+function runStage({ name, stage, workspace, outputDirectory, tokenValues = {}, sourceProjectPackageSha256 = null }) {
   const project = safeWorkspacePath(workspace, stage.project_directory, name + '.project_directory');
   if (!fs.existsSync(project) || !fs.statSync(project).isDirectory()) throw new Error(name + ' project directory is missing: ' + stage.project_directory);
   if (fs.readdirSync(project).length === 0) throw new Error(name + ' project directory is empty; model project files are required');
   const output = safeWorkspacePath(workspace, outputDirectory, name + '.output_directory');
   if (fs.existsSync(output) && (!fs.statSync(output).isDirectory() || fs.readdirSync(output).length > 0)) {
-    throw new Error(name + ' output directory must be a new or empty directory to prevent stale-output reuse: ' + outputDirectory);
+    throw new Error(name + ' output directory must be new or empty to prevent stale-output reuse: ' + outputDirectory);
   }
   fs.mkdirSync(output, { recursive: true });
-  const command = stage.command.map((part) => replaceTokens(part, { workspace, project, output }));
+  const values = { workspace, project, output, ...tokenValues };
+  const command = stage.command.map((part) => replaceTokens(part, values));
   if (command[0] === 'UNCONFIGURED' || command.some((part) => /^(UNCONFIGURED|UNPINNED|TBD)$/i.test(part))) throw new Error(name + ' command is not configured');
   if (!path.isAbsolute(command[0]) || !fs.existsSync(command[0]) || !fs.statSync(command[0]).isFile()) {
     throw new Error(name + ' executable must be an absolute path to an existing executable file');
   }
   const executableSha256 = sha256File(command[0]);
+  if (!/^[a-f0-9]{64}$/.test(stage.executable_sha256 ?? '') || executableSha256 !== stage.executable_sha256) {
+    throw new Error(name + ' adapter executable SHA-256 does not match the pinned manifest digest');
+  }
   const projectPackageSha256 = sha256Tree(project);
+  if (!/^[a-f0-9]{64}$/.test(stage.project_package_sha256 ?? '') || projectPackageSha256 !== stage.project_package_sha256) {
+    throw new Error(name + ' staged project tree SHA-256 does not match the expected project package digest');
+  }
   const startedAt = new Date().toISOString();
   const completed = spawnSync(command[0], command.slice(1), {
     cwd: project,
@@ -84,11 +104,15 @@ export function runStage({ name, stage, workspace, outputDirectory }) {
     windowsHide: true,
     timeout: stage.timeout_seconds * 1000,
     maxBuffer: 4 * 1024 * 1024,
-    env: { PATH: process.env.PATH ?? '', SystemRoot: process.env.SystemRoot ?? '', TEMP: process.env.TEMP ?? '', TMP: process.env.TMP ?? '' },
+    env: checkedRuntimeEnvironment(),
   });
-  if (completed.error) throw new Error(name + ' runner error: ' + completed.error.message);
   const stdout = completed.stdout ?? '';
   const stderr = completed.stderr ?? '';
+  const stdoutPath = path.join(output, 'stage.stdout.log');
+  const stderrPath = path.join(output, 'stage.stderr.log');
+  fs.writeFileSync(stdoutPath, stdout, { flag: 'wx', mode: 0o600 });
+  fs.writeFileSync(stderrPath, stderr, { flag: 'wx', mode: 0o600 });
+  if (completed.error) throw new Error(name + ' runner error: ' + completed.error.message);
   if (completed.status !== 0) throw new Error(name + ' exited with status ' + completed.status + ': ' + stderr.slice(-2000));
   const outputs = stage.expected_outputs.map((relative) => {
     const file = safeWorkspacePath(workspace, relative, name + '.expected_output');
@@ -96,25 +120,52 @@ export function runStage({ name, stage, workspace, outputDirectory }) {
     if (relativeToOutput === '..' || relativeToOutput.startsWith('..' + path.sep) || path.isAbsolute(relativeToOutput)) {
       throw new Error(name + ' expected outputs must be contained by its isolated output_directory: ' + relative);
     }
-    if (!fs.existsSync(file) || !fs.statSync(file).isFile()) throw new Error(name + ' did not produce expected file: ' + relative);
+    if (!fs.existsSync(file) || !fs.statSync(file).isFile() || fs.statSync(file).size === 0) {
+      throw new Error(name + ' did not produce a non-empty expected file: ' + relative);
+    }
     return { path: relative, sha256: sha256File(file), size_bytes: fs.statSync(file).size };
   });
   return {
     name,
     product_version: stage.product_version,
     platform: stage.platform,
-    command_sha256: sha256Buffer(Buffer.from(stableStringify(command))),
-    executable_sha256: executableSha256,
+    adapter_executable_sha256: executableSha256,
+    source_project_package_sha256: sourceProjectPackageSha256 ?? stage.project_package_sha256,
     project_package_sha256: projectPackageSha256,
+    command_sha256: sha256Buffer(Buffer.from(stableStringify(command))),
     started_at: startedAt,
     finished_at: new Date().toISOString(),
     exit_code: completed.status,
     stdout_sha256: sha256Buffer(Buffer.from(stdout)),
     stderr_sha256: sha256Buffer(Buffer.from(stderr)),
+    stdout_log_path: path.relative(workspace, stdoutPath).replace(/\\/g, '/'),
+    stderr_log_path: path.relative(workspace, stderrPath).replace(/\\/g, '/'),
     stdout_tail: stdout.slice(-8192),
     stderr_tail: stderr.slice(-8192),
     outputs,
   };
+}
+function copyProjectChecked(source, destination, expectedHash, label) {
+  if (!fs.existsSync(source) || !fs.statSync(source).isDirectory()) throw new Error(label + ' source project directory is missing');
+  const beforeHash = sha256Tree(source);
+  if (!/^[a-f0-9]{64}$/.test(expectedHash ?? '') || beforeHash !== expectedHash) {
+    throw new Error(label + ' source project hash differs from the approved manifest');
+  }
+  if (fs.existsSync(destination)) throw new Error(label + ' run-copy path already exists; refusing to reuse prior state');
+  fs.mkdirSync(path.dirname(destination), { recursive: true });
+  fs.cpSync(source, destination, { recursive: true, errorOnExist: true, force: false });
+  const copiedHash = sha256Tree(destination);
+  if (copiedHash !== beforeHash) throw new Error(label + ' source-to-run-copy hash mismatch');
+  if (sha256Tree(source) !== beforeHash) throw new Error(label + ' source project changed while the run copy was made');
+  return { sourceHash: beforeHash, copiedHash };
+}
+function assertDirectoryDisjoint(left, right, leftName, rightName) {
+  const relative = path.relative(left, right);
+  const reverse = path.relative(right, left);
+  if (left === right || (!relative.startsWith('..' + path.sep) && relative !== '..' && !path.isAbsolute(relative)) ||
+      (!reverse.startsWith('..' + path.sep) && reverse !== '..' && !path.isAbsolute(reverse))) {
+    throw new Error(leftName + ' and ' + rightName + ' paths must not overlap');
+  }
 }
 
 function main() {
