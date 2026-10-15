@@ -1,0 +1,411 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:tsm:hec-coupled-run-manifest:v1",
+  "title": "TSM Coupled HEC-HMS to HEC-RAS Run Manifest",
+  "description": "Reproducible, fail-closed model execution contract. DRAFT manifests are structurally valid but cannot execute; the runner requires approval.status=APPROVED and approval.evidence_uri plus exact AOI and datum provenance.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "project_id",
+    "purpose",
+    "approval",
+    "aoi",
+    "reference_system",
+    "source_inputs",
+    "hec_hms",
+    "hydrograph_handoff",
+    "hec_ras",
+    "artifact_storage"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]+$"
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "purpose": {
+      "enum": [
+        "OBSERVED_EVENT_RECONSTRUCTION",
+        "FORECAST_SCENARIO",
+        "DESIGN_STORM",
+        "BASELINE",
+        "ALTERNATIVE_SCENARIO",
+        "BENCHMARK_ONLY"
+      ]
+    },
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "approved_by",
+        "approved_at",
+        "evidence_uri"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "DRAFT",
+            "APPROVED",
+            "REVOKED"
+          ]
+        },
+        "approved_by": {
+          "type": "string",
+          "minLength": 1
+        },
+        "approved_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "evidence_uri": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "aoi": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "geometry_uri",
+        "geometry_sha256",
+        "area_km2",
+        "watershed_delineation_uri",
+        "watershed_delineation_sha256"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "geometry_uri": {
+          "type": "string",
+          "minLength": 1
+        },
+        "geometry_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "area_km2": {
+          "type": "number",
+          "minimum": 0.000001
+        },
+        "watershed_delineation_uri": {
+          "type": "string",
+          "minLength": 1
+        },
+        "watershed_delineation_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "reference_system": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "horizontal_crs",
+        "vertical_datum",
+        "units_policy",
+        "datum_evidence_uri"
+      ],
+      "properties": {
+        "horizontal_crs": {
+          "type": "string",
+          "minLength": 1
+        },
+        "vertical_datum": {
+          "type": "string",
+          "minLength": 1
+        },
+        "units_policy": {
+          "type": "string",
+          "minLength": 1
+        },
+        "datum_evidence_uri": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "source_inputs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "input_id",
+          "authority_class",
+          "source_uri",
+          "retrieved_at",
+          "valid_time",
+          "sha256",
+          "media_type",
+          "units",
+          "horizontal_crs",
+          "vertical_datum",
+          "quality_status",
+          "license_or_terms_uri"
+        ],
+        "properties": {
+          "input_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "authority_class": {
+            "enum": [
+              "OBSERVED",
+              "FORECAST",
+              "DERIVED",
+              "MODELLED",
+              "SCENARIO",
+              "REGULATORY",
+              "PROJECT_ENGINEERING"
+            ]
+          },
+          "source_uri": {
+            "type": "string",
+            "minLength": 1
+          },
+          "retrieved_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "valid_time": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "media_type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "units": {
+            "type": "string",
+            "minLength": 1
+          },
+          "horizontal_crs": {
+            "type": "string",
+            "minLength": 1
+          },
+          "vertical_datum": {
+            "type": "string",
+            "minLength": 1
+          },
+          "quality_status": {
+            "enum": [
+              "QUALIFIED",
+              "PROVISIONAL",
+              "STALE",
+              "MISSING",
+              "REJECTED"
+            ]
+          },
+          "license_or_terms_uri": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "hec_hms": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "product_version",
+        "platform",
+        "project_directory",
+        "command",
+        "timeout_seconds",
+        "expected_outputs"
+      ],
+      "properties": {
+        "product_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "platform": {
+          "enum": [
+            "windows-x64",
+            "linux-x64",
+            "macos-arm64",
+            "other"
+          ]
+        },
+        "project_directory": {
+          "type": "string",
+          "minLength": 1
+        },
+        "command": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "timeout_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 86400
+        },
+        "expected_outputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "hydrograph_handoff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_output",
+        "ras_input",
+        "format",
+        "time_zone",
+        "flow_units",
+        "gap_policy",
+        "conversion_method"
+      ],
+      "properties": {
+        "source_output": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ras_input": {
+          "type": "string",
+          "minLength": 1
+        },
+        "format": {
+          "enum": [
+            "DSS",
+            "CSV",
+            "OTHER_DOCUMENTED"
+          ]
+        },
+        "time_zone": {
+          "type": "string",
+          "minLength": 1
+        },
+        "flow_units": {
+          "enum": [
+            "cfs",
+            "cms",
+            "OTHER_DOCUMENTED"
+          ]
+        },
+        "gap_policy": {
+          "enum": [
+            "REJECT",
+            "EXPLICITLY_DOCUMENTED_INTERPOLATION"
+          ]
+        },
+        "conversion_method": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "hec_ras": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "product_version",
+        "platform",
+        "project_directory",
+        "command",
+        "timeout_seconds",
+        "expected_outputs"
+      ],
+      "properties": {
+        "product_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "platform": {
+          "enum": [
+            "windows-x64",
+            "linux-x64",
+            "macos-arm64",
+            "other"
+          ]
+        },
+        "project_directory": {
+          "type": "string",
+          "minLength": 1
+        },
+        "command": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "timeout_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 86400
+        },
+        "expected_outputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "artifact_storage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "backend",
+        "root_directory",
+        "retention_policy",
+        "metadata_store"
+      ],
+      "properties": {
+        "backend": {
+          "const": "filesystem-content-addressed"
+        },
+        "root_directory": {
+          "type": "string",
+          "minLength": 1
+        },
+        "retention_policy": {
+          "type": "string",
+          "minLength": 1
+        },
+        "metadata_store": {
+          "enum": [
+            "run-manifest-only",
+            "tsm-evidence-store-adapter"
+          ]
+        }
+      }
+    }
+  }
+}
