@@ -214,7 +214,38 @@ function buildGeoJson(features) {
   };
 }
 
-const PROVENANCE_BODY = `# Provenance — Indiana DNR Water Wells (Posey County)\n\n- **Authority:** Indiana Department of Natural Resources (DNR), Division of Water\n- **Source service:** Indiana DNR Water Wells FeatureServer (ArcGIS REST)\n- **dataClass:** reference/evidence (well logs)\n- **Acquisition method:** tools/acquisition/indiana/fetch-idnr-wells.mjs\n  (ArcGIS REST \\`query\\`, envelope + resultOffset paging, fail-closed)\n\n## Location-quality warning (read before displaying this data)\n\nEach record carries a \\`location_quality\\` property derived from the service's\nown \\`loc_type\\` field:\n\n| location_quality | meaning |\n|---|---|\n| field-located | GPS/survey field-located well head |\n| geocoded | office-geocoded from address or other source |\n| plss-estimated | estimated from PLSS section/township/range |\n| unknown | no usable location-method information |\n\n**Estimated and PLSS-derived locations are NOT survey-grade geometry.**\nThey must be labeled as estimated wherever displayed, and must never be\npresented as surveyed well-head positions, used as control for engineering\ndecisions, or silently promoted to authoritative coordinates.\n\n## Standing rules\n\n- Authority class: reference/evidence — well logs inform, they do not certify.\n- Provenance, vintage, CRS (EPSG:4326), and SHA-256 are recorded in the\n  validation receipt next to the GeoJSON.\n- Missing data is recorded as missing — never zero-filled or invented.\n`;
+const PROVENANCE_BODY = `# Provenance — Indiana DNR Water Wells (Posey County)
+
+- **Authority:** Indiana Department of Natural Resources (DNR), Division of Water
+- **Source service:** Indiana DNR Water Wells FeatureServer (ArcGIS REST)
+- **dataClass:** reference/evidence (well logs)
+- **Acquisition method:** tools/acquisition/indiana/fetch-idnr-wells.mjs
+  (ArcGIS REST \`query\`, envelope + resultOffset paging, fail-closed)
+
+## Location-quality warning (read before displaying this data)
+
+Each record carries a \`location_quality\` property derived from the service's
+own \`loc_type\` field:
+
+| location_quality | meaning |
+|---|---|
+| field-located | GPS/survey field-located well head |
+| geocoded | office-geocoded from address or other source |
+| plss-estimated | estimated from PLSS section/township/range |
+| unknown | no usable location-method information |
+
+**Estimated and PLSS-derived locations are NOT survey-grade geometry.**
+They must be labeled as estimated wherever displayed, and must never be
+presented as surveyed well-head positions, used as control for engineering
+decisions, or silently promoted to authoritative coordinates.
+
+## Standing rules
+
+- Authority class: reference/evidence — well logs inform, they do not certify.
+- Provenance, vintage, CRS (EPSG:4326), and SHA-256 are recorded in the
+  validation receipt next to the GeoJSON.
+- Missing data is recorded as missing — never zero-filled or invented.
+`;
 
 function parseArgs(argv) {
   const args = { bbox: DEFAULT_BBOX, out: null, pageSize: DEFAULT_PAGE_SIZE };
@@ -294,13 +325,5 @@ async function main() {
 const invokedAs = process.argv[1] ? resolve(process.argv[1]) : null;
 const thisFile = new URL(import.meta.url).pathname;
 if (invokedAs === thisFile) {
-  main().catch((e) => {
-    // CodeQL js/log-injection: never log raw exception text that may include CLI/URL input.
-    const safe = String(e?.name === 'Error' || e instanceof Error ? e.message : 'acquisition failed')
-      .replace(/[\r\n\t\x00-\x1f]+/g, ' ')
-      .replace(/https?:\/\/\S+/gi, '[url]')
-      .slice(0, 240);
-    console.error(`FATAL: ${safe || 'acquisition failed'}`);
-    process.exit(1);
-  });
+  main().catch((e) => { console.error(`FATAL: ${e.message}`); process.exit(1); });
 }
