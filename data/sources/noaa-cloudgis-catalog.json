@@ -58,9 +58,10 @@
     {
       "id": "mrms-qpe",
       "title": "MRMS quantitative precipitation estimates",
-      "purpose": "Potential future precipitation forcing input after source product, units, accumulation window, timestamp, coverage, and quality metadata are verified.",
+      "purpose": "Radar-only quantitative precipitation estimate mosaics in inches for 1, 3, 6, 12, 24, 48, and 72 hour windows at approximately 1 km; service metadata says not time-enabled.",
       "enabled_by_default": false,
-      "status": "RESEARCH_CANDIDATE_NOT_IMPLEMENTED"
+      "status": "DOCUMENTED_CANDIDATE_NOT_IN_TWIN_MAP",
+      "service_url": "https://mapservices.weather.noaa.gov/raster/rest/services/obs/mrms_qpe/ImageServer"
     },
     {
       "id": "radar-rainfall-accumulation",
@@ -69,5 +70,33 @@
       "enabled_by_default": false,
       "status": "RESEARCH_CANDIDATE_NOT_IMPLEMENTED"
     }
-  ]
+  ],
+  "precipitation_estimate_service": {
+    "id": "mrms-qpe-image-service",
+    "title": "NWS MRMS quantitative precipitation estimates",
+    "service_type": "ArcGIS ImageServer",
+    "service_url": "https://mapservices.weather.noaa.gov/raster/rest/services/obs/mrms_qpe/ImageServer",
+    "tutorial_url": "https://www.weather.gov/gis/mrms_data_quick_tutorial",
+    "status": "DOCUMENTED_CANDIDATE_NOT_IN_TWIN_MAP",
+    "spatial_resolution": "1 km nominal",
+    "units": "inches",
+    "accumulation_windows_hours": [
+      1,
+      3,
+      6,
+      12,
+      24,
+      48,
+      72
+    ],
+    "temporal_semantics": "Service is documented as not time-enabled; available mosaics represent fixed accumulation windows and are not a time series.",
+    "source_semantics": "Radar-only MRMS/Q3 quantitative precipitation estimates; not gauge-corrected by this service description.",
+    "enabled_by_default": false,
+    "release_requirements": [
+      "Inspect service metadata and raster-function/rendering-rule names at runtime.",
+      "Record raster selection, accumulation window, retrieval time, units, nodata handling, and data coverage.",
+      "Validate an image or raster sample for the Tri-State region before presenting values.",
+      "Do not use as hydraulic model forcing until temporal alignment, missing-data handling, and hydrologic validation are implemented."
+    ]
+  }
 }
