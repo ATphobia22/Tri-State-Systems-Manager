@@ -89,6 +89,8 @@ function assertExecutionReady(manifest) {
     if (!nonPlaceholder(runner?.version_evidence_uri)) errors.push(name + '.version_evidence_uri must cite installation/version evidence');
     if (!/^[a-f0-9]{64}$/.test(runner?.project_package_sha256 ?? '') || runner.project_package_sha256 === '0'.repeat(64)) errors.push(name + '.project_package_sha256 must be measured and pinned');
     if (!/^[a-f0-9]{64}$/.test(runner?.executable_sha256 ?? '') || runner.executable_sha256 === '0'.repeat(64)) errors.push(name + '.executable_sha256 must be measured and pinned');
+    if (!nonPlaceholder(runner?.runtime_executable_path)) errors.push(name + '.runtime_executable_path must identify the actual vendor HEC executable');
+    if (!/^[a-f0-9]{64}$/.test(runner?.runtime_executable_sha256 ?? '') || runner.runtime_executable_sha256 === '0'.repeat(64)) errors.push(name + '.runtime_executable_sha256 must be measured and pinned');
   }
   if (!/^[a-f0-9]{40}$/.test(manifest.source_commit ?? '') || manifest.source_commit === '0'.repeat(40)) errors.push('source_commit must be the exact non-placeholder Git commit SHA');
   const handoff = manifest.hydrograph_handoff ?? {};
@@ -99,9 +101,12 @@ function assertExecutionReady(manifest) {
   if (!nonPlaceholder(handoff.adapter_script_path)) errors.push('hydrograph transfer adapter script path must be explicit');
   const parts = (pathname) => {
     if (typeof pathname !== 'string' || !pathname.startsWith('/') || !pathname.endsWith('/')) return null;
-    const values = pathname.slice(1, -1).split('/');
-    if (values[0] === '') values.shift();
-    return values.length === 6 && values.every((part) => part.length > 0) ? values : null;
+    const values = pathname.startsWith('//')
+      ? ['', ...pathname.slice(2, -1).split('/')]
+      : pathname.slice(1, -1).split('/');
+    return values.length === 6 && values.every((part, index) => part.length > 0 || index === 0 || index === 3)
+      ? values
+      : null;
   };
   const sourceParts = parts(handoff.source_dss_pathname);
   const rasParts = parts(handoff.ras_dss_pathname);
