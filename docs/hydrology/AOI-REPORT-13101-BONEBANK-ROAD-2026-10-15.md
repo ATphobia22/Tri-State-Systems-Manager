@@ -174,3 +174,10 @@ These studies are methodological evidence, not direct evidence about this parcel
 The research connector for scite could not be used because it reported that an active paid plan or free trial is required. Wolfram's contextual search returned no parcel-specific terrain or flood data. Official-source service queries and the SciSpace/Consensus/alphaXiv discovery results are captured through the source register and linked paper records; no unavailable connector is treated as evidence.
 
 The live snapshot and source register now record the DEM catalog result. The next gate is acquisition and QA of the GeoTIFF, followed by local drainage/outlet verification. A catchment remains blocked until the outlet is approved and terrain/conveyance evidence is checked.
+
+
+## 13. Updated regulatory flood query disposition
+
+The direct FEMA NFHL point query is now refreshed and returned `FLD_ZONE=AE`, `STATIC_BFE=-9999`, and `V_DATUM=null`. The query confirms the Zone AE point intersection but provides no usable BFE or datum. A full parcel-geometry query against FEMA's NFHL service did not complete through the research connector, so no parcel-wide FEMA overlay is claimed.
+
+Separately, the live Indiana CSLF service successfully queried the entire candidate parcel polygon and returned an intersecting state floodplain polygon (`cslf_id=3785`, `pre_zone=AE`, `new_zone=AE`, source `STUDY10`). This is stronger than the earlier centroid-only state result, but it is still a topological intersection, not a coverage percentage, house-footprint overlay, depth, or BFE. Review the effective FEMA panel, any LOMC, and Indiana INFIP/FARA before regulatory conclusions.
