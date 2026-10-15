@@ -8,12 +8,11 @@ const style = readFileSync(new URL('../src/lib/twin-map-style.ts', import.meta.u
 const layers = readFileSync(new URL('../src/lib/map-layers.ts', import.meta.url), 'utf8');
 const catalog = JSON.parse(readFileSync(new URL('../../data/sources/noaa-cloudgis-catalog.json', import.meta.url), 'utf8'));
 const packageJson = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
-
-const productionTwin = `${twin}\\n${renderer}\\n${style}`;
+const productionTwin = [twin, renderer, style].join('\n');
 
 test('TwinCanvas uses the real Indiana imagery and MapLibre terrain contract', () => {
   assert.match(twin, /RealWorldTwinMap/);
-  assert.match(layers, /Indiana_Current_Imagery\\/ImageServer/);
+  assert.ok(layers.includes('Indiana_Current_Imagery/ImageServer'));
   assert.match(layers, /raster-dem/);
   assert.match(productionTwin, /setTerrain/);
 });
@@ -26,13 +25,13 @@ test('flood authorities remain distinct in the twin', () => {
 });
 
 test('NOAA CloudGIS overlays are opt-in, attributed, and separate from flood authority layers', () => {
-  assert.match(renderer, /noaa-cloudgis-warnings-layer/);
-  assert.match(renderer, /noaa-cloudgis-radar-layer/);
-  assert.match(renderer, /visibility: 'none'/);
-  assert.match(renderer, /NOAA\\/National Weather Service CloudGIS/);
-  assert.match(renderer, /NOAA\\/NWS Multi-Radar/);
-  assert.match(renderer, /NWS Warnings/);
-  assert.match(renderer, /NOAA Radar/);
+  assert.ok(renderer.includes('noaa-cloudgis-warnings-layer'));
+  assert.ok(renderer.includes('noaa-cloudgis-radar-layer'));
+  assert.ok(renderer.includes("visibility: 'none'"));
+  assert.ok(renderer.includes('NOAA/National Weather Service CloudGIS'));
+  assert.ok(renderer.includes('NOAA/NWS Multi-Radar'));
+  assert.ok(renderer.includes('NWS Warnings'));
+  assert.ok(renderer.includes('NOAA Radar'));
   assert.equal(catalog.layers.length, 3);
   assert.equal(catalog.layers.every((layer) => layer.enabled_by_default === false), true);
   assert.equal(catalog.status, 'DOCUMENTED_NOT_RUNTIME_HEALTH_CHECKED');
