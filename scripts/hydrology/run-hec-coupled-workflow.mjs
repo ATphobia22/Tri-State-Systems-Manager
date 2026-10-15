@@ -271,6 +271,15 @@ function main() {
   if (path.isAbsolute(rasDssRelative) || rasDssRelative.replace(/\\/g, '/').split('/').some((part) => part === '..' || part === '.' || part === '')) {
     throw new Error('hydrograph_handoff.ras_dss_relative_path must be a safe relative project path');
   }
+  const runWorkRelative = path.posix.join('runs-work', manifest.run_id);
+  const runWorkRoot = safeWorkspacePath(workspace, runWorkRelative, 'isolated run workspace');
+  assertDirectoryDisjoint(storeRoot, runWorkRoot, 'artifact store', 'isolated run workspace');
+  for (const [dir, label] of [[hmsProjectCheck, 'HEC-HMS source project'], [rasProjectCheck, 'HEC-RAS source project'], [hmsOutputCheck, 'HEC-HMS configured output'], [rasOutputCheck, 'HEC-RAS configured output']]) {
+    assertDirectoryDisjoint(runWorkRoot, dir, 'isolated run workspace', label);
+  }
+  fs.mkdirSync(path.dirname(runWorkRoot), { recursive: true });
+  if (fs.existsSync(runWorkRoot)) throw new Error('isolated run workspace already exists; refusing to reuse prior state');
+  fs.mkdirSync(runWorkRoot, { recursive: false });
   fs.mkdirSync(storeRoot, { recursive: true });
   const runRoot = safeWorkspacePath(workspace, path.posix.join(manifest.artifact_storage.root_directory.replace(/\\/g, '/'), manifest.run_id), 'run artifact directory');
   fs.mkdirSync(runRoot, { recursive: false });
