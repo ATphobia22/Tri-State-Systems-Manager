@@ -1,0 +1,174 @@
+{
+  "schema": "tsm.hydrology.aoi-live-evidence/v1",
+  "site_id": "posey-13101-bonebank-road",
+  "retrieved_on": "2026-10-15",
+  "status": "PARTIAL_LIVE_SOURCE_VERIFICATION",
+  "interpretation": "Live service queries verify the address/parcel identity and state flood polygon intersection at the IGIO parcel centroid. They do not establish legal boundary, home footprint, whole-parcel flood coverage, BFE, catchment, or model fitness.",
+  "parcel_source": {
+    "agency": "Indiana Geographic Information Office",
+    "service": "Parcel Boundaries of Indiana 2025",
+    "layer_url": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer/0",
+    "query_url": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer/0/query?where=objectid%3D335325&outFields=*&returnGeometry=true&outSR=4326&f=json",
+    "query_status": "HTTP 200; one matching feature; exceededTransferLimit=false",
+    "attributes": {
+      "objectid": 335325,
+      "parcel_id": "65-19-08-100-008.001-010",
+      "state_parcel_id": "651908100008001010",
+      "county_fips": "18129",
+      "county_id": "65",
+      "county": "POSEY COUNTY",
+      "prop_add": "13101 BONEBANK RD",
+      "prop_city": "MT VERNON",
+      "prop_state": "IN",
+      "prop_zip": "47620-0000",
+      "latitude": 37.84579909,
+      "longitude": -88.00535128,
+      "source_originator": "Posey County",
+      "source_featureid": "821117010080896417",
+      "loaddate_epoch_ms": 1756339200000,
+      "load_date_utc": "2025-08-28T00:00:00Z"
+    },
+    "spatial_reference": {
+      "wkid": 4326,
+      "latestWkid": 4326
+    },
+    "polygon_ring_lon_lat": [
+      [
+        -88.00438673499997,
+        37.845621719000064
+      ],
+      [
+        -88.00606877999996,
+        37.84537966600004
+      ],
+      [
+        -88.00619900799995,
+        37.84601338900006
+      ],
+      [
+        -88.00475806299994,
+        37.84621427500008
+      ],
+      [
+        -88.00438673499997,
+        37.845621719000064
+      ]
+    ],
+    "conclusion": "Exact address and parcel ID match the repository candidate. This resolves the working GIS reference for the user-designated address, but does not certify that the geometry is a legal boundary or that the parcel record alone identifies the house footprint."
+  },
+  "state_floodplain_source": {
+    "agency": "Indiana Department of Natural Resources / Indiana Geographic Information Office",
+    "service": "Hosted/Posey_CSLF_Feb2025 FeatureServer layer 0 (S_CSLF_Ar)",
+    "service_url": "https://gisdata.in.gov/server/rest/services/Hosted/Posey_CSLF_Feb2025/FeatureServer/0",
+    "query_url": "https://gisdata.in.gov/server/rest/services/Hosted/Posey_CSLF_Feb2025/FeatureServer/0/query?geometry=-88.00535128%2C37.84579909&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=pjson",
+    "query_status": "HTTP 200; one intersecting polygon",
+    "matched_attributes": {
+      "objectid": 3785,
+      "cslf_id": "3785",
+      "pre_zone": "AE",
+      "new_zone": "AE",
+      "pre_srccit": "18129C_STUDY3",
+      "new_srccit": "STUDY10",
+      "source_cit": "STUDY10",
+      "sfha_chg": "Z",
+      "fldwychg": "Z",
+      "chhachg": "Z"
+    },
+    "service_vertical_metadata": {
+      "vertical_crs": "NAVD_1988",
+      "height_unit": "meter",
+      "note": "Layer service height-model metadata; not a BFE observation."
+    },
+    "conclusion": "The candidate parcel centroid intersects an Indiana state floodplain polygon classified AE in both pre- and new-zone fields. This is a point-to-polygon intersection only. The query returned no BFE value; do not infer a numeric BFE, parcel-wide percentage, flood depth, or building inundation."
+  },
+  "usgs_epqs": {
+    "agency": "U.S. Geological Survey",
+    "service_url": "https://epqs.nationalmap.gov/v1/json",
+    "query_points": [
+      {
+        "name": "IGIO parcel centroid",
+        "longitude": -88.00535128,
+        "latitude": 37.84579909,
+        "request_url": "https://epqs.nationalmap.gov/v1/json?x=-88.00535128&y=37.84579909&units=Feet&output=json",
+        "adapter_observation": {
+          "elevation": 361.99838690218945,
+          "units": "meters",
+          "source": "USGS",
+          "source_date": "2023-10-01"
+        },
+        "status": "QUARANTINED_UNIT_CONFLICT",
+        "reason": "The fetched adapter result labels the value as meters despite a request for Feet and conflicts with the previously stored 361.998 ft interpretation. The tool did not expose an unambiguous raw service payload. No value is promoted into approved site elevation evidence."
+      },
+      {
+        "name": "Legacy point",
+        "longitude": -88.0007,
+        "latitude": 37.9035,
+        "request_url": "https://epqs.nationalmap.gov/v1/json?x=-88.0007&y=37.9035&units=Feet&output=json",
+        "adapter_observation": {
+          "elevation": 359.48629353112005,
+          "units": "meters",
+          "source": "USGS EPQS",
+          "source_date": "2023-10-10"
+        },
+        "status": "QUARANTINED_UNIT_CONFLICT_AND_WRONG_SITE_CANDIDATE",
+        "reason": "Same adapter unit conflict; point is approximately 6.42 km from the matching IGIO parcel centroid and is not accepted as this parcel's reference point."
+      }
+    ],
+    "conclusion": "EPQS output is not accepted as elevation evidence in this snapshot until the raw response and requested units are verified. USGS documentation says EPQS is interpolated from dynamic 3DEP, with accuracy varying by source, and is not an official survey."
+  },
+  "fema_nfhl": {
+    "agency": "Federal Emergency Management Agency",
+    "service_url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer",
+    "current_query_status": "Current direct query attempt did not return a usable response through the research connector; prior repository point result recorded Zone AE/SFHA and STATIC_BFE=-9999.",
+    "interpretation": "Retain the prior result as historical evidence only. -9999 is a no-data sentinel, not a BFE. Requery NFHL/FIRM panel and effective LOMC in FEMA MSC or a direct ArcGIS client before making a regulatory determination."
+  },
+  "unresolved_gates": [
+    {
+      "id": "structure-footprint",
+      "state": "OPEN",
+      "reason": "Public parcel point and polygon do not establish the actual house footprint; verify against county structure data, current imagery and/or survey."
+    },
+    {
+      "id": "legal-boundary",
+      "state": "OPEN",
+      "reason": "IGIO polygon is not a survey; compare to county records/deed/plat and survey if needed."
+    },
+    {
+      "id": "site-dem",
+      "state": "OPEN",
+      "reason": "No site-wide DEM asset and metadata were retrieved in this pass."
+    },
+    {
+      "id": "epqs-unit-validation",
+      "state": "OPEN",
+      "reason": "Current connector response has an unresolved value/unit discrepancy; quarantine both point values."
+    },
+    {
+      "id": "fema-effective-panel-and-bfe",
+      "state": "OPEN",
+      "reason": "No current FEMA point query/BFE record captured; use FEMA MSC and INFIP/FARA."
+    },
+    {
+      "id": "drainage-outlet",
+      "state": "OPEN",
+      "reason": "No outlet has been selected or verified."
+    },
+    {
+      "id": "catchment",
+      "state": "BLOCKED",
+      "reason": "No verified outlet or site-wide terrain/conveyance evidence."
+    },
+    {
+      "id": "hydrologic-hydraulic-model",
+      "state": "BLOCKED_NOT_RUN",
+      "reason": "No approved catchment, model question, datum-consistent geometry, or validated input manifest."
+    }
+  ],
+  "quality_notes": [
+    "The source query returned an exact address and parcel ID match; legacy point at -88.0007, 37.9035 is not accepted for this address's AOI because it is approximately 6.42 km away.",
+    "The state floodplain polygon is a live, current service intersection but not a complete parcel/structure overlay.",
+    "No BFE was observed in the state polygon query. Service vertical metadata must not be substituted for an actual BFE datum.",
+    "EPQS values from the connector are quarantined because value/unit interpretation is inconsistent; do not use them in calculations or model inputs.",
+    "No DEM raster or watershed polygon was created by this pass."
+  ]
+}
