@@ -60,18 +60,37 @@
   },
   "hydrograph_handoff": {
     "source_output": "workspace/outputs/hms/hydrograph.dss",
-    "ras_input": "workspace/hec-ras/flow-data.dss",
+    "ras_input": "workspace/hec-ras/project.u01",
     "format": "DSS",
     "time_zone": "UNVERIFIED",
     "flow_units": "cfs",
     "gap_policy": "REJECT",
-    "conversion_method": "UNVERIFIED",
+    "conversion_method": "NONE_EXACT_VALUES",
     "adapter_command": [
       "UNCONFIGURED"
     ],
     "adapter_version": "UNPINNED",
     "adapter_executable_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
-    "timeout_seconds": 3600
+    "timeout_seconds": 3600,
+    "source_dss_pathname": "UNASSIGNED",
+    "source_element_name": "UNASSIGNED",
+    "source_run_name": "UNASSIGNED",
+    "ras_dss_relative_path": "flow-data.dss",
+    "ras_dss_pathname": "UNASSIGNED",
+    "interval": "1HOUR",
+    "source_flow_units": "CFS",
+    "boundary_selector": {
+      "mode": "1D",
+      "river": "UNASSIGNED",
+      "reach": "UNASSIGNED",
+      "station": "UNASSIGNED",
+      "area_2d": null,
+      "bc_line": null,
+      "boundary_index": null,
+      "expected_bc_type": "Flow Hydrograph"
+    },
+    "adapter_script_path": "scripts/hydrology/hms-ras-handoff.py",
+    "adapter_script_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
   },
   "hec_ras": {
     "product_version": "UNPINNED",
@@ -94,5 +113,6 @@
     "root_directory": "workspace/artifacts",
     "retention_policy": "retain all run manifests and referenced blobs; no automatic deletion",
     "metadata_store": "run-manifest-only"
-  }
+  },
+  "source_commit": "0000000000000000000000000000000000000000"
 }
