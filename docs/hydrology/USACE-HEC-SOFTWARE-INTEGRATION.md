@@ -85,16 +85,36 @@ No downstream status may pass while an upstream required gate is blocked. Docume
 - [Metamodel-based methodology for uncertainty propagation and global sensitivity analysis of tailings dam-breach flows](https://arxiv.org/abs/2607.19296) is a research lead on uncertainty/sensitivity propagation; its application domain differs from routine riverine flood modeling and must not be generalized without review.
 - Product manuals, current release notes, model-specific validation/verification references and applicable agency/jurisdiction criteria remain the primary operational documentation.
 
-## 7. Implementation status in TSM
+## 7. TSM implementation status (2026-10-15)
 
-This document defines the integration and acceptance contract. It does **not** claim HEC-HMS or HEC-RAS has been installed, executed, automated, or validated against a selected Tri-State AOI. No HEC project, live hydraulic result, or validated forecast is asserted by this documentation change.
+Implemented and committed:
 
-Next implementation sequence:
+- `data/schemas/hec-coupled-run-manifest-v1.schema.json` — JSON Schema 2020-12 contract for approved AOI, approval evidence, datum, source inputs, HEC-HMS/HEC-RAS runner commands, hydrograph handoff and artifact storage.
+- `scripts/hydrology/validate-hec-run-manifest.mjs` — structural and execution-readiness validation. A structurally valid DRAFT manifest cannot execute.
+- `scripts/hydrology/run-hec-coupled-workflow.mjs` — shell-free sequential command orchestration, pre-run SHA-256 verification of AOI/source inputs, explicit hydrograph handoff, expected-output checks, content-addressed output blobs and a run receipt. It rejects stale/non-empty output directories, path traversal, unapproved manifests and unsupported metadata-store mode.
+- `data/schemas/examples/hec-coupled-run-manifest-v1.example.json` — intentionally DRAFT-only fixture; it is not a real approved project.
+- `tsm-console/tests/hec-coupled-run-manifest.test.mjs` — structural, fail-closed approval, hash/extra-field and path-safety tests.
+- The root schema gate and `tsm-console/package.json` CI chain now include the new schema and manifest tests.
 
-1. Choose and approve a pilot AOI and intended use.
-2. Inspect existing runner, manifest, schema and artifact-store interfaces before adding duplicate abstractions.
-3. Implement the canonical manifest schema and validators; add positive and negative fixtures.
-4. Build isolated runner adapters only for officially supported, verifiable interfaces and a pinned target environment.
-5. Create a controlled, licensed, documented benchmark project; test ingestion/export round trips and deterministic evidence capture.
-6. Validate against independent observations, quantify uncertainty and obtain qualified review.
-7. Wire status to real CI/runtime evidence and refuse production promotion until all applicable gates pass.
+### Existing interfaces inspected
+
+- `packages/hydraulics/python/tsm_hec_ras/runtime.py` supports controlled local HEC-RAS 6.x execution on Windows and requires a real project plus a produced `.p*.hdf` artifact.
+- `backend/engineering/hec_ras_worker.py` hashes model-package trees and runs an operator-supplied argv without shell interpolation; its current receipt deliberately remains unvalidated.
+- `backend/api/v1/hecras_solver.py` inspects real HDF5 output and rejects synthetic hydraulic fallbacks.
+- `tsm-console/server/store/evidence-store.mjs` is an asynchronous file-backed metadata ledger under `TSM_EVIDENCE_DIR`; `database/migrations/052_artifacts.sql` defines a PostgreSQL artifact registry. Neither interface alone provides a transaction-safe content-addressed binary store with idempotent registration. The new runner therefore writes content-addressed files and a run receipt, and currently supports `metadata_store=run-manifest-only`. The declared evidence-store adapter mode is intentionally rejected until a transaction-safe adapter and integration tests exist.
+
+### Important execution boundary
+
+This is a reproducible **orchestration boundary**, not yet a turnkey solver adapter. Operators must provide exact, supported HEC-HMS and HEC-RAS executable argument vectors for the installed versions, already-configured projects, expected output paths, and a verified hydrograph export/import convention. The runner does not guess HEC command-line syntax, interpret DSS/CSV semantics, validate hydrograph time-series continuity, inspect hydraulic stability, or certify the resulting model. It marks a completed run `COMPLETED_UNVALIDATED`, never “validated” or “approved.”
+
+No real coupled run has been executed. No AOI has been approved in the current request, and no approved model project/input package was available to this implementation. The example remains DRAFT with placeholder hashes and must never be used as run input.
+
+### Remaining before the first real pilot run
+
+1. Approve the named AOI and intended decision/use.
+2. Supply the AOI polygon and watershed delineation, source input files with verified hashes/terms, explicit CRS and vertical datum evidence.
+3. Supply pinned HEC-HMS and HEC-RAS installations, supported command vectors, and complete baseline project packages.
+4. Confirm the exact hydrograph output/input format, location identifier, units, time zone/interval, missing-data policy and model boundary conditions.
+5. Run the validator and test suite, then execute only on the approved compatible runner.
+6. Verify HEC-RAS HDF5 output, numerical diagnostics, mass balance, independent calibration/validation, uncertainty and sensitivity; obtain qualified engineering review.
+7. Integrate receipts into the evidence ledger only after idempotency, transaction behavior and retention controls are tested. Keep deployment/release gates blocked until required evidence exists.
