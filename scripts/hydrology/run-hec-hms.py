@@ -19,6 +19,7 @@ from hec_runtime_common import (
     sha256_file,
     verify_pinned_distribution,
     verify_runtime_executable,
+    verify_stage_launcher,
     write_stage_receipt,
 )
 
@@ -43,6 +44,7 @@ def main(argv: list[str] | None = None) -> int:
         raise ValueError("hec_hms.run_name must identify the exact named HEC-HMS run")
     if not isinstance(timeout, int) or isinstance(timeout, bool) or timeout < 1 or timeout > 86400:
         raise ValueError("hec_hms.timeout_seconds must be between 1 and 86400")
+    verify_stage_launcher(stage)
     executable = verify_runtime_executable(stage)
     verify_pinned_distribution("hms-commander", HMS_PACKAGE_VERSION, HMS_PACKAGE_COMMIT, HMS_PACKAGE_URL)
 
