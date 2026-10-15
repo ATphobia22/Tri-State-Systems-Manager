@@ -152,6 +152,62 @@ class HecHmsRasHandoffTests(unittest.TestCase):
         self.assertEqual(summary["trapezoidal_volume_ft3"], 234000.0)
         self.assertEqual(summary["status"], "FORMAT_AND_UNIT_CONTRACT_VALIDATED_HYDROLOGY_UNVALIDATED")
 
+    def test_written_target_dss_round_trip_requires_exact_time_axis_and_values(self):
+        local, utc = HANDOFF.validate_local_times(
+            self.times, time_zone="America/Chicago", interval="1HOUR"
+        )
+        report = HANDOFF.validate_written_hydrograph_frame(
+            FakeFrame(self.times, [20.0, 40.0, 30.0], units="CFS"),
+            pathname="/RAS/UPSTREAM/FLOW//1HOUR/RAS_RUN1/",
+            target_element_name="UPSTREAM",
+            interval="1HOUR",
+            units="CFS",
+            time_zone="America/Chicago",
+            expected_local_times=local,
+            expected_utc_times=utc,
+            expected_values=[20.0, 40.0, 30.0],
+        )
+        self.assertEqual(report["status"], "PASS")
+        self.assertTrue(report["timestamps_exact"])
+        self.assertTrue(report["values_within_tolerance"])
+        self.assertEqual(report["point_count"], 3)
+        self.assertEqual(report["maximum_absolute_error"], 0.0)
+
+    def test_written_target_dss_round_trip_rejects_shifted_timestamps(self):
+        local, utc = HANDOFF.validate_local_times(
+            self.times, time_zone="America/Chicago", interval="1HOUR"
+        )
+        shifted = [self.times[0], self.times[1], self.times[2] + timedelta(hours=1)]
+        with self.assertRaisesRegex(ValueError, "gap, duplicate, or irregular timestamp"):
+            HANDOFF.validate_written_hydrograph_frame(
+                FakeFrame(shifted, [20.0, 40.0, 30.0], units="CFS"),
+                pathname="/RAS/UPSTREAM/FLOW//1HOUR/RAS_RUN1/",
+                target_element_name="UPSTREAM",
+                interval="1HOUR",
+                units="CFS",
+                time_zone="America/Chicago",
+                expected_local_times=local,
+                expected_utc_times=utc,
+                expected_values=[20.0, 40.0, 30.0],
+            )
+
+    def test_written_target_dss_round_trip_rejects_changed_values(self):
+        local, utc = HANDOFF.validate_local_times(
+            self.times, time_zone="America/Chicago", interval="1HOUR"
+        )
+        with self.assertRaisesRegex(HANDOFF.HandoffError, "read-back values differ"):
+            HANDOFF.validate_written_hydrograph_frame(
+                FakeFrame(self.times, [20.0, 40.5, 30.0], units="CFS"),
+                pathname="/RAS/UPSTREAM/FLOW//1HOUR/RAS_RUN1/",
+                target_element_name="UPSTREAM",
+                interval="1HOUR",
+                units="CFS",
+                time_zone="America/Chicago",
+                expected_local_times=local,
+                expected_utc_times=utc,
+                expected_values=[20.0, 40.0, 30.0],
+            )
+
     def test_frame_validation_rejects_unit_mismatch_gaps_and_negative_flows(self):
         frame = FakeFrame(self.times, [10.0, 20.0, 10.0], units="CMS")
         with self.assertRaisesRegex(ValueError, "mismatch"):
