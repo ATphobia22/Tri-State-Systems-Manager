@@ -43,10 +43,12 @@ def load_approved_manifest(path: Path) -> dict[str, Any]:
     if not isinstance(source_commit, str) or not re.fullmatch(r"[a-f0-9]{40}", source_commit) or source_commit == "0" * 40:
         raise ValueError("Manifest source_commit must be a real lowercase 40-character Git SHA")
     approval = manifest["approval"]
-    if not isinstance(approval.get("approved_by"), str) or not approval["approved_by"].strip():
+    if not isinstance(approval.get("approved_by"), str) or approval["approved_by"].strip().upper() in {"", "UNASSIGNED", "TBD"}:
         raise ValueError("Approval must identify an accountable approver")
-    if not isinstance(approval.get("evidence_uri"), str) or not approval["evidence_uri"].strip():
+    if not isinstance(approval.get("evidence_uri"), str) or approval["evidence_uri"].strip().upper() in {"", "UNASSIGNED", "TBD"}:
         raise ValueError("Approval evidence URI is required")
+    if not isinstance(approval.get("approved_at"), str) or not approval["approved_at"].strip():
+        raise ValueError("Approval timestamp is required")
     aoi = manifest.get("aoi")
     if not isinstance(aoi, dict):
         raise ValueError("Manifest AOI object is missing")
@@ -85,7 +87,36 @@ def get_stage(manifest: dict[str, Any], stage_name: str) -> dict[str, Any]:
     stage = manifest.get(stage_name)
     if not isinstance(stage, dict):
         raise ValueError(f"Manifest stage {stage_name} is missing")
+    for key in ("product_version", "platform", "version_evidence_uri", "project_directory", "output_directory"):
+        value = stage.get(key)
+        if not isinstance(value, str) or not value.strip() or value.strip().upper() in {"UNASSIGNED", "UNVERIFIED", "UNPINNED", "TBD"}:
+            raise ValueError(f"{stage_name}.{key} must be explicitly pinned")
+    for key in ("project_package_sha256", "executable_sha256", "runtime_executable_sha256"):
+        value = stage.get(key)
+        if not isinstance(value, str) or not re.fullmatch(r"[a-f0-9]{64}", value) or value == "0" * 64:
+            raise ValueError(f"{stage_name}.{key} must be a measured nonzero SHA-256")
+    expected_outputs = stage.get("expected_outputs")
+    if not isinstance(expected_outputs, list) or not expected_outputs or any(not isinstance(item, str) or not item.strip() for item in expected_outputs):
+        raise ValueError(f"{stage_name}.expected_outputs must list required output files")
+    command = stage.get("command")
+    if not isinstance(command, list) or not command or any(not isinstance(item, str) or not item for item in command):
+        raise ValueError(f"{stage_name}.command must be an explicit argument array")
     return stage
+
+
+def verify_stage_launcher(stage: dict[str, Any]) -> None:
+    """Require the exact Python interpreter used to launch this wrapper."""
+    command = stage.get("command")
+    if not isinstance(command, list) or not command or not isinstance(command[0], str):
+        raise ValueError("Stage command must begin with the pinned Python interpreter")
+    configured = Path(command[0]).resolve(strict=True)
+    current = Path(sys.executable).resolve(strict=True)
+    if configured != current:
+        raise ValueError(f"Stage Python interpreter mismatch: expected {configured}, running {current}")
+    expected_hash = stage.get("executable_sha256")
+    actual_hash = sha256_file(current)
+    if expected_hash != actual_hash:
+        raise ValueError(f"Stage Python interpreter hash mismatch: expected {expected_hash}, observed {actual_hash}")
 
 
 def resolve_stage_paths(project_value: str, output_value: str, manifest_path: Path) -> tuple[Path, Path, Path]:
