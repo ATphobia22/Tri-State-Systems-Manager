@@ -104,6 +104,7 @@ jobs:
       - name: Hydrology fail-closed integration tests
         working-directory: .
         run: |
+          python -m unittest discover -s tests -p 'test_boundary_flow_validator.py' -v
           python -m unittest discover -s tests -p 'test_hydrology_pipeline.py' -v
           python -m unittest discover -s tests -p 'test_erdc_tr22_4_boundary.py' -v
       - name: V35.1 strict contract typecheck
