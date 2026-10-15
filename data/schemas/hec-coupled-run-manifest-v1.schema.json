@@ -8,6 +8,7 @@
   "required": [
     "schema_version",
     "run_id",
+    "source_commit",
     "project_id",
     "purpose",
     "approval",
@@ -632,6 +633,11 @@
           ]
         }
       }
+    },
+    "source_commit": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$",
+      "description": "Exact TSM Git commit SHA that produced and launched this workflow."
     }
   }
 }
