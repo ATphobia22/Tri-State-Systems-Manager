@@ -2,7 +2,7 @@
   "schema": "tsm.posey.site-aoi/v1",
   "site_id": "posey-13101-bonebank-road",
   "recorded_on": "2026-10-15",
-  "scope": "Site evidence and candidate parcel geometry only. This record is not a delineated hydrologic watershed, a survey, a flood-depth determination, an HEC-HMS/HEC-RAS run, or engineering certification.",
+  "scope": "Site evidence and candidate parcel geometry only. This record is not a delineated hydrologic watershed, a survey, a flood-depth determination, an HEC-HMS/HEC-RAS run, or engineering certification. The property parcel, regional HUC boundaries, and the contributing drainage catchment are distinct geometries and must not be substituted for one another.",
   "record_status": "USER_SELECTED_CANDIDATE_NOT_ENGINEERING_APPROVED",
   "human_review_required": true,
   "approval": {
@@ -92,7 +92,8 @@
     "normalized_static_bfe": null,
     "normalized_depth": null,
     "normalized_velocity": null,
-    "interpretation": "Independent state-layer point query is consistent with the NFHL Zone AE/SFHA centroid result; -9999 values are no-data sentinels, not real measurements."
+    "interpretation": "The queried Indiana DNR-hosted feature explicitly reports source_dnr=NFHL and the same DFIRM/flood-area identifiers as the FEMA query. This is a same-source republishing/consistency check, not independent flood evidence. -9999 values are no-data sentinels, not measurements.",
+    "independence_status": "NOT_INDEPENDENT_SOURCE_DNR_NFHL"
   },
   "watershed_delineation": {
     "status": "NOT_DELINEATED",
@@ -145,6 +146,164 @@
     {
       "label": "Posey County government",
       "url": "https://www.poseycountyin.gov/"
+    },
+    {
+      "label": "USGS Elevation Point Query Service",
+      "url": "https://epqs.nationalmap.gov/v1/json"
+    },
+    {
+      "label": "USGS 3DEP download and elevation source data",
+      "url": "https://www.usgs.gov/the-national-map-data-delivery/gis-data-download"
+    },
+    {
+      "label": "USGS Water Data API",
+      "url": "https://api.waterdata.usgs.gov/"
+    },
+    {
+      "label": "USGS New Harmony Wabash River monitoring location",
+      "url": "https://waterdata.usgs.gov/monitoring-location/USGS-03378500/"
+    },
+    {
+      "label": "USGS Hovey Lake monitoring location",
+      "url": "https://waterdata.usgs.gov/monitoring-location/USGS-03322300/"
+    },
+    {
+      "label": "National Weather Service point metadata",
+      "url": "https://api.weather.gov/points/37.84579909,-88.00535128"
+    },
+    {
+      "label": "Indiana DNR Best Available Floodplain Mapping — scope and caveats",
+      "url": "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/the-indiana-best-available-floodplain-mapping"
+    }
+  ],
+  "source_conflicts": {
+    "status": "CONFLICT_UNRESOLVED",
+    "source_record": "prior_project_planning_envelope",
+    "summary": "A previously supplied planning extent associated with this site does not contain the independently returned 2025 Indiana GIO parcel centroid; the centroid is about 5.1 km south of that extent. The older extent's provenance and intended geometry role have not been independently established.",
+    "action": "Do not merge the extents, use the older envelope as the property boundary, or use either parcel geometry as the HEC-HMS drainage catchment. Retain the source conflict for human reconciliation before an AOI approval.",
+    "governing_reference": "data/posey-county/aoi/13101-bonebank-road-parcel.geojson"
+  },
+  "raster_crosscheck": {
+    "status": "NUMERICALLY_CONSISTENT_REFERENCE_CHECK",
+    "source_raster_path": "data/posey-county/elevation/bonebank-anchor-dem-10m.tif",
+    "source_raster_sha256": "2a6c85dfd9ab46fcdc22184091972e1ee04f6131de1aaf1107aaf7b75bef925f",
+    "source_raster_shape": [
+      648,
+      648
+    ],
+    "source_raster_horizontal_crs": "EPSG:4269",
+    "source_raster_nominal_resolution": "1/3 arc-second source DEM; approximately 10 m ground resolution, latitude-dependent",
+    "source_raster_value_at_parcel_centroid_m": 110.34063720703125,
+    "source_raster_vertical_datum_documented_in_bundle": "NAVD88",
+    "epqs_value_ft": 361.99838690218945,
+    "epqs_value_m": 110.33710832778736,
+    "epqs_raster_id": 115190,
+    "difference_raster_minus_epqs_m": 0.0035288792438876726,
+    "source_tiles": [
+      "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n38w088/USGS_13_n38w088_20260417.tif",
+      "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n38w089/USGS_13_n38w089_20260417.tif",
+      "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n39w088/USGS_13_n39w088_20221205.tif",
+      "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/13/TIFF/historical/n39w089/USGS_13_n39w089_20221205.tif"
+    ],
+    "metadata_note": "The GeoTIFF itself does not embed units or vertical datum tags; CRS, units, vertical datum, and source lineage are documented in the dataset README and companion provenance sidecar. Add the sidecar before using this raster as a model input.",
+    "interpretation": "The sample values agree numerically at one coordinate, but this does not establish survey accuracy, a continuous terrain surface at the parcel scale, bare-earth validity, vertical datum realization, or suitability for hydraulic geometry."
+  },
+  "hydrologic_unit_context": {
+    "status": "CONTEXT_ONLY_NOT_SITE_CATCHMENT",
+    "source_agency": "U.S. Geological Survey",
+    "source_dataset": "Watershed Boundary Dataset (WBD)",
+    "source_service": "https://hydro.nationalmap.gov/arcgis/rest/services/wbd/MapServer",
+    "feature_path": "data/posey-county/watersheds/posey-anchor-huc12-051201130904.geojson",
+    "feature_sha256": "f8cfea95d9ea772b1769e45a415e41d2345d8239573d890569a500bc1b7894cd",
+    "parcel_centroid_contained": true,
+    "huc12": {
+      "code": "051201130904",
+      "name": "Willow Pond Slough-Wabash River",
+      "area_sq_km": 120.5118137161
+    },
+    "huc10": {
+      "code": "0512011309",
+      "name": "Levy Slough-Wabash River"
+    },
+    "huc8": {
+      "code": "05120113",
+      "name": "Lower Wabash"
+    },
+    "limitation": "HUC polygons are regional hydrographic-unit boundaries. Inclusion of the parcel centroid in a HUC12 does not delineate the topographic contributing basin to a chosen hydraulic outlet and is not an HEC-HMS basin model."
+  },
+  "parcel_floodplain_overlay": {
+    "status": "OBSERVED_CACHED_GIS_OVERLAY",
+    "source_record": "data/posey-county/floodplain/posey-flood-hazard-sfha.geojson",
+    "source_record_sha256": "19f4a08e642f7eff4a6975856c5a2521e6b243fb81dec388de466a29830de41f",
+    "source_retrieved_date": "2026-09-27",
+    "source_service": "https://gisdata.in.gov/server/rest/services/Hosted/FloodHazard_BestAvai_DNR_Water_PROD/FeatureServer/0",
+    "intersecting_feature_count": 1,
+    "flood_zone": "AE",
+    "special_flood_hazard_area": true,
+    "source_dnr": "NFHL",
+    "study_type": "NP",
+    "computed_parcel_overlap_percent": 100,
+    "area_method": "Planar overlay in UTM Zone 16N (EPSG:26916) using the current IGIO parcel polygon and the cached, coordinate-rounded four-county SFHA polygon layer.",
+    "normalized_bfe_ft": null,
+    "vertical_datum": null,
+    "limitation": "A cached GIS polygon overlay and centroid query are reference observations only. This layer's matching polygon declares source_dnr=NFHL; it is not independent confirmation, a survey, a parcel-specific regulatory determination, or an approved hydraulic result. The -9999 sentinels in live services are no-data, not elevations."
+  },
+  "water_source_inventory": [
+    {
+      "source_id": "USGS-03378500",
+      "status": "AVAILABLE_REGIONAL_REFERENCE",
+      "name": "Wabash River at New Harmony, Indiana",
+      "source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03378500/",
+      "api_uri": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/monitoring-locations/items?f=json",
+      "approximate_distance_km": 32.139,
+      "available_parameters": [
+        "gage height (ft)",
+        "discharge (cfs)"
+      ],
+      "availability_note": "Official monitoring-location page reports continuous gage-height data over 2010-10-01 through 2026-10-15 at the time checked; available parameter/time coverage must be rechecked when acquiring a run's observations.",
+      "altitude_note": "The published 352.71 ft NAVD88 site/gage altitude is not a published gage-zero-to-water-surface conversion and is not a site ground or BFE value.",
+      "intended_use": "Regional Wabash River context and potential downstream-boundary evidence after review.",
+      "limitations": [
+        "Approximately 32 km from the candidate parcel and drains a much larger regional basin.",
+        "Do not use raw gage height as NAVD88 water-surface elevation.",
+        "No gage-to-site transfer without a validated hydraulic profile.",
+        "Provisional data must retain its provisional qualifier and UTC/local time semantics."
+      ]
+    },
+    {
+      "source_id": "USGS-03322300",
+      "status": "HISTORICAL_CONTEXT_ONLY",
+      "name": "Hovey Lake near Mount Vernon, Indiana",
+      "source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03322300/",
+      "approximate_distance_km": 5.344,
+      "available_parameters": [
+        "historical daily data"
+      ],
+      "availability_note": "The official location page reports a historic daily-data period ending 1968-09-29 at the time checked; the nearby point is not evidence of current continuous streamflow observations.",
+      "intended_use": "Hydrography/site context only unless a later parameter-specific data query proves a fit-for-purpose record.",
+      "limitations": [
+        "Lake/reservoir/impoundment station, not a substitute for a current stream gage at the selected outlet.",
+        "Historical record must not be treated as current or as a calibration set without relevance review."
+      ]
+    },
+    {
+      "source_id": "NWS-POINT-PAH-151-91",
+      "status": "AVAILABLE_FORECAST_CONTEXT",
+      "name": "National Weather Service forecast grid for the candidate parcel centroid",
+      "source_uri": "https://api.weather.gov/points/37.84579909,-88.00535128",
+      "forecast_uri": "https://api.weather.gov/gridpoints/PAH/151,91/forecast",
+      "hourly_forecast_uri": "https://api.weather.gov/gridpoints/PAH/151,91/forecast/hourly",
+      "forecast_grid_uri": "https://api.weather.gov/gridpoints/PAH/151,91",
+      "observation_stations_uri": "https://api.weather.gov/gridpoints/PAH/151,91/stations",
+      "forecast_office": "PAH",
+      "time_zone": "America/Chicago",
+      "radar_station": "KVWX",
+      "intended_use": "Forecast and operational context with source forecast valid times retained separately from observations.",
+      "limitations": [
+        "Point metadata does not supply observed rainfall totals or a design storm.",
+        "Select and validate a specific precipitation/QPE product before using it as HEC-HMS forcing.",
+        "Radar reflectivity in dBZ is not a rainfall accumulation."
+      ]
     }
   ]
 }
