@@ -12,8 +12,9 @@
     "description": "Aerial photograph showing extensive inundation around a large brick residence and nearby outbuildings.",
     "user_confirmation": "User confirmed that the large brick house near the center of the photograph is their home.",
     "message_timestamp": "2026-10-15T12:17:17Z",
-    "binary_sha256": null,
-    "sha256_status": "not_computed_in_repository"
+    "binary_sha256": "b2f7d7ed3bba6a50ab6058c5f78a68fee283a843474f16863382686a797edfda",
+    "sha256_status": "computed_from_exact_uploaded_bytes_available_in_session; original_image_bytes_not_yet_committed_to_repository",
+    "byte_length": 609767
   },
   "interpretation": {
     "principal_residence_identified_by_owner": true,
@@ -27,8 +28,8 @@
     "flood_source_verified": false
   },
   "next_gates": [
-    "Preserve uploaded image bytes in the repository evidence store and compute SHA-256 from the exact original bytes.",
-    "Record image provenance, original metadata, and any available photographer/date/event information without altering the original.",
+    "Preserve the original image bytes in the repository evidence store without recompression and verify the stored SHA-256.",
+    "Record image provenance and any available photographer/date/event information without altering the original.",
     "Reconcile the owner-identified residence with current orthophotography, address point, and building-footprint geometry.",
     "Obtain current parcel boundary/legal description and survey or plat evidence.",
     "Verify current FEMA effective mapping, floodway, BFE/datum, and Indiana floodplain records.",
