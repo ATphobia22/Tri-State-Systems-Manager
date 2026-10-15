@@ -132,7 +132,7 @@ function main() {
     return { label, source_path: path.relative(workspace, file).replace(/\\/g, '/'), sha256: hash, size_bytes: fs.statSync(file).size, storage_uri: path.relative(workspace, blob).replace(/\\/g, '/') };
   };
   try {
-    const hmsOutputDir = path.posix.join(manifest.artifact_storage.root_directory.replace(/\\/g, '/'), manifest.run_id, 'hms-output');
+    const hmsOutputDir = manifest.hec_hms.output_directory;
     const hms = runStage({ name: 'HEC-HMS', stage: manifest.hec_hms, workspace, outputDirectory: hmsOutputDir });
     run.stages.push(hms);
     const sourceOutput = safeWorkspacePath(workspace, manifest.hydrograph_handoff.source_output, 'hydrograph source output');
@@ -149,7 +149,7 @@ function main() {
       copied_to_ras_input: true,
       semantic_validation: 'NOT_PERFORMED_BY_GENERIC_RUNNER',
     };
-    const rasOutputDir = path.posix.join(manifest.artifact_storage.root_directory.replace(/\\/g, '/'), manifest.run_id, 'ras-output');
+    const rasOutputDir = manifest.hec_ras.output_directory;
     const ras = runStage({ name: 'HEC-RAS', stage: manifest.hec_ras, workspace, outputDirectory: rasOutputDir });
     run.stages.push(ras);
     for (const stage of run.stages) for (const output of stage.outputs) {
