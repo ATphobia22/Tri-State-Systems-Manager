@@ -99,6 +99,22 @@ function assertExecutionReady(manifest) {
   if (!/^[a-f0-9]{64}$/.test(handoff.adapter_executable_sha256 ?? '') || handoff.adapter_executable_sha256 === '0'.repeat(64)) errors.push('hydrograph transfer adapter executable SHA-256 must be measured and pinned');
   if (!/^[a-f0-9]{64}$/.test(handoff.adapter_script_sha256 ?? '') || handoff.adapter_script_sha256 === '0'.repeat(64)) errors.push('hydrograph transfer adapter script SHA-256 must be measured and pinned');
   if (!nonPlaceholder(handoff.adapter_script_path)) errors.push('hydrograph transfer adapter script path must be explicit');
+  for (const placeholder of ['{{workspace}}', '{{project}}', '{{output}}', '{{manifest}}', '{{source_output}}', '{{ras_input}}', '{{ras_dss}}', '{{handoff_report}}', '{{adapter_script}}']) {
+    if (!handoff.adapter_command?.some((part) => part.includes(placeholder))) errors.push('hydrograph adapter_command must include explicit placeholder ' + placeholder);
+  }
+  const configuredScript = path.resolve(root, handoff.adapter_script_path ?? '');
+  const scriptRelative = path.relative(root, configuredScript);
+  if (!scriptRelative || scriptRelative === '..' || scriptRelative.startsWith('..' + path.sep) || path.isAbsolute(scriptRelative)) {
+    errors.push('adapter_script_path must identify a file within the checked-out TSM repository');
+  } else if (!fs.existsSync(configuredScript) || !fs.statSync(configuredScript).isFile()) {
+    errors.push('handoff adapter script file is missing from the repository');
+  } else {
+    const scriptDigest = createHash('sha256').update(fs.readFileSync(configuredScript)).digest('hex');
+    if (scriptDigest !== handoff.adapter_script_sha256) errors.push('handoff adapter script SHA-256 does not match the checked-out source');
+    const scriptText = fs.readFileSync(configuredScript, 'utf8');
+    const versionMatch = scriptText.match(/ADAPTER_VERSION\\s*=\\s*['"]([^'"]+)['"]/);
+    if (!versionMatch || versionMatch[1] !== handoff.adapter_version) errors.push('handoff adapter version is inconsistent with the checked-out source');
+  }
   const parts = (pathname) => {
     if (typeof pathname !== 'string' || !pathname.startsWith('/') || !pathname.endsWith('/')) return null;
     const values = pathname.startsWith('//')
