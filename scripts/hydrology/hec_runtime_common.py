@@ -129,11 +129,17 @@ def get_stage(manifest: dict[str, Any], stage_name: str) -> dict[str, Any]:
         if not isinstance(value, str) or not re.fullmatch(r"[a-f0-9]{64}", value) or value == "0" * 64:
             raise ValueError(f"{stage_name}.{key} must be a measured nonzero SHA-256")
     expected_outputs = stage.get("expected_outputs")
-    if not isinstance(expected_outputs, list) or not expected_outputs or any(not isinstance(item, str) or not item.strip() for item in expected_outputs):
-        raise ValueError(f"{stage_name}.expected_outputs must list required output files")
+    if not isinstance(expected_outputs, list) or not expected_outputs or any(
+        not isinstance(item, str) or not item.strip() or item.strip().upper() in {"UNASSIGNED", "UNCONFIGURED", "TBD"}
+        for item in expected_outputs
+    ):
+        raise ValueError(f"{stage_name}.expected_outputs must list configured required output files")
     command = stage.get("command")
-    if not isinstance(command, list) or not command or any(not isinstance(item, str) or not item for item in command):
-        raise ValueError(f"{stage_name}.command must be an explicit argument array")
+    if not isinstance(command, list) or not command or any(
+        not isinstance(item, str) or not item or item.strip().upper() in {"UNASSIGNED", "UNCONFIGURED", "TBD"}
+        for item in command
+    ):
+        raise ValueError(f"{stage_name}.command must be an explicit configured argument array")
     return stage
 
 
@@ -169,6 +175,8 @@ def resolve_stage_paths(project_value: str, output_value: str, manifest_path: Pa
 
     if project == output or is_within(project, output) or is_within(output, project):
         raise ValueError("Project and output paths must be separate, non-nested directories")
+    if any(output.iterdir()):
+        raise ValueError("Stage output directory must be empty before solver launch")
     output_project = output / "project-copy"
     if output_project.exists():
         raise FileExistsError(f"Refusing to overwrite prior stage output: {output_project}")
@@ -181,7 +189,10 @@ def verify_runtime_executable(stage: dict[str, Any]) -> Path:
     expected_hash = stage.get("runtime_executable_sha256")
     if not isinstance(raw_path, str) or not raw_path:
         raise ValueError("runtime_executable_path must be an explicit absolute path")
-    executable = Path(raw_path).resolve(strict=True)
+    raw_executable_path = Path(raw_path)
+    if not raw_executable_path.is_absolute():
+        raise ValueError("runtime_executable_path must be absolute")
+    executable = raw_executable_path.resolve(strict=True)
     if not executable.is_file():
         raise ValueError("Configured HEC runtime executable is not a file")
     if not isinstance(expected_hash, str) or not re.fullmatch(r"[a-f0-9]{64}", expected_hash) or expected_hash == "0" * 64:
