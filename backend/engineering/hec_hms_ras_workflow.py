@@ -299,7 +299,9 @@ def run_argv(command: Sequence[str], *, cwd: Path, timeout_seconds: int) -> dict
     """Run an operator-tested adapter without shell interpolation."""
     if not command or any(not isinstance(v,str) or not v for v in command): raise ValueError("command must be a non-empty argv array")
     if not 1 <= timeout_seconds <= 86400: raise ValueError("timeout_seconds must be 1..86400")
-    completed = subprocess.run(list(command),cwd=cwd,check=False,shell=False,capture_output=True,text=True,timeout=timeout_seconds,env={"PATH":os.environ.get("PATH","")})
+    environment_keys = ("PATH", "SYSTEMROOT", "WINDIR", "TEMP", "TMP", "JAVA_HOME", "HEC_HMS_HOME", "HEC_RAS_HOME", "USERPROFILE", "HOME", "APPDATA", "LOCALAPPDATA")
+    child_env = {key: os.environ[key] for key in environment_keys if os.environ.get(key)}
+    completed = subprocess.run(list(command),cwd=cwd,check=False,shell=False,capture_output=True,text=True,timeout=timeout_seconds,env=child_env)
     return {"return_code":completed.returncode,"stdout":completed.stdout[-20000:],"stderr":completed.stderr[-20000:]}
 
 def main(argv: Sequence[str] | None = None) -> int:
