@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0.0",
+  "catalog_id": "tsm.noaa.cloudgis",
+  "authority": "NOAA / National Weather Service",
+  "retrieved_at": "2026-10-15",
+  "status": "DOCUMENTED_NOT_RUNTIME_HEALTH_CHECKED",
+  "service_directory": "https://www.weather.gov/gis/cloudgiswebservices",
+  "radar_directory": "https://opengeo.ncep.noaa.gov/geoserver/www/index.html",
+  "protocol_notes": [
+    "The NWS CloudGIS directory documents public-cloud OGC WMS, WFS, and WCS services.",
+    "The GeoServer directory documents current WFS/WMS layers and publishes GetCapabilities links.",
+    "Service and layer names can change; re-check GetCapabilities and service notices before operational release.",
+    "Map overlays are situational-awareness visualization only and must not be treated as a hydraulic simulation, survey, or regulatory flood boundary."
+  ],
+  "layers": [
+    {
+      "id": "nws-warnings",
+      "title": "NWS short-fuse warnings",
+      "service_type": "WMS",
+      "capabilities_url": "https://opengeo.ncep.noaa.gov/geoserver/wwa/warnings/ows?service=WMS&request=GetCapabilities&version=1.3.0",
+      "map_endpoint": "https://opengeo.ncep.noaa.gov/geoserver/wwa/warnings/ows",
+      "proposed_qualified_layer_name": "wwa:warnings",
+      "enabled_by_default": false,
+      "authority_class": "OBSERVATION",
+      "purpose": "Operational warning context, including flash-flood and severe-weather warnings.",
+      "validation_status": "LAYER_NAME_REQUIRES_LIVE_CAPABILITIES_CHECK"
+    },
+    {
+      "id": "mrms-conus-composite-reflectivity",
+      "title": "MRMS CONUS composite reflectivity (CREF QCD)",
+      "service_type": "WMS",
+      "capabilities_url": "https://opengeo.ncep.noaa.gov/geoserver/conus/conus_cref_qcd/ows?service=WMS&request=GetCapabilities&version=1.3.0",
+      "map_endpoint": "https://opengeo.ncep.noaa.gov/geoserver/conus/conus_cref_qcd/ows",
+      "proposed_qualified_layer_name": "conus:conus_cref_qcd",
+      "enabled_by_default": false,
+      "authority_class": "OBSERVATION",
+      "purpose": "Weather radar context; not a precipitation accumulation or flood-inundation product.",
+      "validation_status": "LAYER_NAME_REQUIRES_LIVE_CAPABILITIES_CHECK"
+    },
+    {
+      "id": "nws-long-duration-hazards",
+      "title": "NWS long-duration hazards",
+      "service_type": "WMS",
+      "capabilities_url": "https://opengeo.ncep.noaa.gov/geoserver/wwa/hazards/ows?service=WMS&request=GetCapabilities&version=1.3.0",
+      "map_endpoint": "https://opengeo.ncep.noaa.gov/geoserver/wwa/hazards/ows",
+      "proposed_qualified_layer_name": "wwa:hazards",
+      "enabled_by_default": false,
+      "authority_class": "OBSERVATION",
+      "purpose": "Long-duration hazard context.",
+      "validation_status": "LAYER_NAME_REQUIRES_LIVE_CAPABILITIES_CHECK"
+    }
+  ]
+}
