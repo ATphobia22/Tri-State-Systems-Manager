@@ -223,3 +223,12 @@ The detailed query responses are in [terrain and hydrography evidence JSON](../.
 | HEC-HMS / HEC-RAS | `BLOCKED_NOT_RUN` |
 
 The evidence-gated next steps are now more specific, but they are not all closed. A defensible catchment cannot be produced without the DEM raster, outlet selection, and conveyance/flow-path validation. The residential AOI remains unapproved for engineering or model execution.
+
+
+## 14. Local 3DHP conveyance screen
+
+The current [USGS 3DHP service](https://3dhp.nationalmap.gov/arcgis/rest/services/usgs_3dhp_all/FeatureServer) reports a service data refresh date of 2026-09-04. A query of a small bounding box around the candidate parcel returned ten flowline features. One returned feature, identifier `H77EJ`, is classified as a **Canal**. Using its returned EPSG:4326 line vertices and the candidate parcel ring, projected to NAD83 / UTM zone 16N (EPSG:32616), the line is approximately **7.0 m from the parcel boundary** at the nearest computed points. The nearest point on that mapped line is approximately `(-88.00443929, 37.84584730)`.
+
+This is a **nearby conveyance candidate for review, not a selected or verified outlet**. The 3DHP service itself cautions that its data may be temporally outdated in places and is not intended for site-specific regulatory determinations. The broader local query returned four waterbodies, zero catchment-layer features, and zero outlet hydrolocations; those are query results, not evidence that no watershed exists. No private drain, culvert connection, yard grading, or runoff direction has been verified. The owner/field/county evidence must establish where home-site runoff actually enters a conveyance before delineating the catchment.
+
+The live evidence JSON now records the flowline inventory, geometry-derived distance, candidate coordinates, source URL, service refresh date, and limitations. The next actionable task is to inspect the site and nearby ditch/canal with current imagery and field/county evidence, then confirm the outlet point; do not substitute the nearest mapped canal point automatically.
