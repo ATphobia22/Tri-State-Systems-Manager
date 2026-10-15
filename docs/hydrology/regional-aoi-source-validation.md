@@ -34,3 +34,21 @@ The gate evaluator is a defensive metadata and structure check. Evidence must be
 ## Candidate AOI
 
 `data/posey-county/aoi/lower-wabash-ohio-core-candidate.geojson` is explicitly marked `CANDIDATE_UNVERIFIED`. Its coordinates and candidate HUC are copied from the supplied proposal, not independently validated. Treat them as a starting hypothesis only.
+
+
+## ERDC/CHL TR-22-4 — regional confluence reference
+
+The supplied report, *Wabash and Ohio River Confluence Hydraulic and Sediment Transport Model Investigation* (February 2022), describes a two-dimensional **Adaptive Hydraulics (AdH)** model for the Wabash–Ohio confluence and sediment transport. It is a regional engineering reference, not a HEC-RAS project or a local parcel model.
+
+The report states that the study used NAD83 / UTM Zone 15 North in metres and an “Ohio River” vertical datum; at J. T. Myers Lock and Dam it reports a relationship of NGVD29 −0.35 ft. That conversion is location-specific and must not be applied elsewhere without authoritative datum control. The report also describes a Phase 2 domain extended downstream to Smithland Locks and Dam and a materially detailed bathymetric/mesh model. These study-specific data and geometry are not interchangeable with a 3DEP bare-earth DEM or a residential catchment.
+
+**Boundary-condition method described in the report:** USGS gage 03381700 measures combined Wabash + Ohio flow near Old Shawneetown. The Wabash contribution is the sum of gages 03378500 (Wabash River at New Harmony), 03378550 (Big Creek near Wadesville), and 03381500 (Little Wabash near Carmi). The report derives the J. T. Myers inflow by subtracting the summed Wabash flow from the combined 03381700 flow.
+
+Engineering consequences:
+- A single-gauge Wabash boundary CSV is not a reconstruction of this report's regional inflow hydrograph.
+- Boundary derivation requires time-aligned observations, explicit units, gap/quality checks, gauge metadata, and review of subtraction residuals; asynchronous daily values must not be silently combined.
+- The current `tsm_runtime.boundary_flow_validator` is a generic single-gauge structural screen. It does not implement this four-gauge aggregation method and does not establish that the gauge is live or physically representative.
+- The report's AdH mesh, bathymetry, sediment parameters, and boundary conditions must not be copied into HEC-RAS or treated as current inputs without source acquisition, format conversion, datum reconciliation, and independent verification.
+- This reference does not validate the candidate Posey County AOI, its HUC assignment, local outlet, flood depth, BFE, design discharge, or permit status.
+
+**Source:** user-supplied file `ERDC-CHL-TR-22-4.pdf`, especially the report abstract and Section 2.3 discussion of Phase 1 mesh/flow data (printed page 9), plus the Phase 2 model-domain discussion. The file is retained as reference material; source acquisition, exact input hashes, current observations, and model replication remain separate tasks.
