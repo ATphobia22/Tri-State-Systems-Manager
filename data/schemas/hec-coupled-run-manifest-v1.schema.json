@@ -254,7 +254,9 @@
         "output_directory",
         "project_package_sha256",
         "executable_sha256",
-        "version_evidence_uri"
+        "version_evidence_uri",
+        "runtime_executable_path",
+        "runtime_executable_sha256"
       ],
       "properties": {
         "product_version": {
@@ -312,6 +314,16 @@
           "type": "string",
           "minLength": 1,
           "description": "Evidence reference establishing the installed HEC product version and platform."
+        },
+        "runtime_executable_path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Absolute path to the actual vendor HEC runtime executable verified on the execution worker."
+        },
+        "runtime_executable_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA-256 of the actual vendor HEC executable, separate from the Python/adapter launcher hash."
         }
       }
     },
@@ -544,7 +556,9 @@
         "output_directory",
         "project_package_sha256",
         "executable_sha256",
-        "version_evidence_uri"
+        "version_evidence_uri",
+        "runtime_executable_path",
+        "runtime_executable_sha256"
       ],
       "properties": {
         "product_version": {
@@ -602,6 +616,16 @@
           "type": "string",
           "minLength": 1,
           "description": "Evidence reference establishing the installed HEC product version and platform."
+        },
+        "runtime_executable_path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Absolute path to the actual vendor HEC runtime executable verified on the execution worker."
+        },
+        "runtime_executable_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA-256 of the actual vendor HEC executable, separate from the Python/adapter launcher hash."
         }
       }
     },
