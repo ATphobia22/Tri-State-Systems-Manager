@@ -101,7 +101,10 @@ export async function verifyCatalog(catalog, fetchImpl = fetch) {
   }
   const results = [];
   for (const layer of catalog.layers) {
-    const xml = await fetchWmsCapabilities(layer.capabilities_url, fetchImpl);
+    // Re-parse and re-allowlist before any network I/O so outbound requests never
+    // use raw file-controlled URL strings without host/protocol validation.
+    const safeUrl = validateCapabilitiesUrl(String(layer.capabilities_url ?? '')).toString();
+    const xml = await fetchWmsCapabilities(safeUrl, fetchImpl);
     results.push({
       id: layer.id,
       ...assertExpectedLayer(xml, layer.expected_layer_name),
