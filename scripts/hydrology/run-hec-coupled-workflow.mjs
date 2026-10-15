@@ -169,6 +169,34 @@ function assertDirectoryDisjoint(left, right, leftName, rightName) {
   }
 }
 
+
+function assertHdf5File(file, label) {
+  const expected = Buffer.from([0x89, 0x48, 0x44, 0x46, 0x0d, 0x0a, 0x1a, 0x0a]);
+  const descriptor = fs.openSync(file, 'r');
+  let actual;
+  try {
+    actual = Buffer.alloc(expected.length);
+    fs.readSync(descriptor, actual, 0, expected.length, 0);
+  } finally {
+    fs.closeSync(descriptor);
+  }
+  if (!actual || !actual.equals(expected)) throw new Error(label + ' is not a valid HDF5 file signature: ' + file);
+}
+function mapStageOutputLayout(stage, workspace, runWorkRelative, label) {
+  const configuredRoot = safeWorkspacePath(workspace, stage.output_directory, label + ' configured output root');
+  const runtimeRootRelative = path.posix.join(runWorkRelative, 'outputs', label.toLowerCase().replace(/[^a-z0-9-]/g, '-'));
+  const runtimeRoot = safeWorkspacePath(workspace, runtimeRootRelative, label + ' isolated output root');
+  const mapped = stage.expected_outputs.map((relative) => {
+    const configuredFile = safeWorkspacePath(workspace, relative, label + ' configured expected output');
+    const within = path.relative(configuredRoot, configuredFile);
+    if (within === '..' || within.startsWith('..' + path.sep) || path.isAbsolute(within)) {
+      throw new Error(label + ' expected_outputs must be contained within its configured output_directory: ' + relative);
+    }
+    return path.posix.join(runtimeRootRelative, within.replace(/\\/g, '/'));
+  });
+  return { outputDirectory: runtimeRootRelative, outputRoot: runtimeRoot, expectedOutputs: mapped };
+}
+
 function main() {
   const manifestArg = process.argv[2];
   const workspaceArg = process.argv[3];
