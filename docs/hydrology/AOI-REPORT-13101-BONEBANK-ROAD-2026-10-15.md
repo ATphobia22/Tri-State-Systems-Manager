@@ -131,3 +131,19 @@ The report is intended to be committed on TSM `main`. Before this report's commi
 
 ---
 **Disposition:** Keep the parcel as a candidate record, not an approved hydrology AOI. Resolve the coordinate conflict, delineate and verify the watershed, acquire qualified inputs, and obtain human approval before any coupled HEC-HMS/HEC-RAS run or engineering recommendation.
+
+
+## 10. Completion artifacts and current source guidance
+
+The operational handoff is now split into three linked artifacts:
+
+- [Candidate hydrology AOI report](./AOI-REPORT-13101-BONEBANK-ROAD-2026-10-15.md) — findings and limitations.
+- [AOI completion checklist](./AOI-COMPLETION-CHECKLIST-13101-BONEBANK-ROAD-2026-10-15.md) — gate-by-gate evidence and approval requirements.
+- [Authoritative source register](../../data/posey-county/evidence/13101-bonebank-road-source-register-v1.json) — machine-readable inventory of datasets, access URLs, limitations, and acquisition status.
+
+Additional source review confirms two implementation details that should govern future ingestion:
+
+1. USGS states that in 2024 it shifted from maintaining the legacy National Hydrography Dataset (NHD), Watershed Boundary Dataset (WBD), and NHDPlus High Resolution to 3D Hydrography Program (3DHP) products. Legacy datasets remain accessible but are no longer updated/maintained. Record the precise product vintage in every run manifest. See [USGS 3DHP access and data products](https://www.usgs.gov/3d-hydrography-program/access-3dhp-data-products).
+2. Indiana DNR's [INFIP guidance](https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/indiana-floodplain-information-portal/) describes FARA requirements for certain A-zone permitting/LOMA cases and regulatory determinations involving drainage areas over 1 square mile, unmapped areas, or known flood-prone areas. The exact applicability must be confirmed with the state/local floodplain administrator; the current centroid point result is not a substitute for an INFIP/FARA review.
+
+These sources add a repeatable acquisition plan, not a new delineated catchment or an engineering approval. The coordinate conflict, site-wide terrain review, and outlet confirmation remain release blockers.
