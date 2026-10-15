@@ -8,6 +8,24 @@ import { validateManifest } from './validate-hec-run-manifest.mjs';
 
 const sha256Buffer = (buffer) => createHash('sha256').update(buffer).digest('hex');
 const sha256File = (file) => sha256Buffer(fs.readFileSync(file));
+function sha256Tree(root) {
+  const digest = createHash('sha256');
+  function walk(directory, relativeRoot = '') {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+      const relative = path.posix.join(relativeRoot, entry.name);
+      const absolute = path.join(directory, entry.name);
+      if (entry.isSymbolicLink()) throw new Error('model project contains a symbolic link; package hashing fails closed: ' + relative);
+      if (entry.isDirectory()) walk(absolute, relative);
+      else if (entry.isFile()) {
+        digest.update(relative.replace(/\\/g, '/'));
+        digest.update(Buffer.from([0]));
+        digest.update(Buffer.from(sha256File(absolute), 'hex'));
+      } else throw new Error('model project contains a non-regular filesystem entry: ' + relative);
+    }
+  }
+  walk(root);
+  return digest.digest('hex');
+}
 function stableStringify(value) {
   if (Array.isArray(value)) return '[' + value.map(stableStringify).join(',') + ']';
   if (value && typeof value === 'object') return '{' + Object.keys(value).sort().map((key) => JSON.stringify(key) + ':' + stableStringify(value[key])).join(',') + '}';
@@ -52,6 +70,11 @@ export function runStage({ name, stage, workspace, outputDirectory }) {
   fs.mkdirSync(output, { recursive: true });
   const command = stage.command.map((part) => replaceTokens(part, { workspace, project, output }));
   if (command[0] === 'UNCONFIGURED' || command.some((part) => /^(UNCONFIGURED|UNPINNED|TBD)$/i.test(part))) throw new Error(name + ' command is not configured');
+  if (!path.isAbsolute(command[0]) || !fs.existsSync(command[0]) || !fs.statSync(command[0]).isFile()) {
+    throw new Error(name + ' executable must be an absolute path to an existing executable file');
+  }
+  const executableSha256 = sha256File(command[0]);
+  const projectPackageSha256 = sha256Tree(project);
   const startedAt = new Date().toISOString();
   const completed = spawnSync(command[0], command.slice(1), {
     cwd: project,
@@ -76,6 +99,8 @@ export function runStage({ name, stage, workspace, outputDirectory }) {
     product_version: stage.product_version,
     platform: stage.platform,
     command_sha256: sha256Buffer(Buffer.from(stableStringify(command))),
+    executable_sha256: executableSha256,
+    project_package_sha256: projectPackageSha256,
     started_at: startedAt,
     finished_at: new Date().toISOString(),
     exit_code: completed.status,
