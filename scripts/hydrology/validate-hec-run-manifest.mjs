@@ -40,7 +40,8 @@ function findUnsupportedSchemaKeywords(schema, at = '$schema', errors = []) {
 
 /** Validates each JSON Schema 2020-12 keyword used by this specific contract.
  * The validator refuses unknown keywords rather than silently skipping them. */
-export function validateAgainstSchema(value, schema, at = '
+export function validateAgainstSchema(value, schema, at = '$', errors = []) {
+  if (schema.type && !matchesType(value, schema.type)) {
     errors.push(at + ': expected type ' + JSON.stringify(schema.type));
     return errors;
   }
