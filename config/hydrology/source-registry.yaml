@@ -74,9 +74,12 @@ adapters:
 
   federal_hydrology:
     candidate_sources:
-      - name: "USGS National Hydrography"
-        url: "https://www.usgs.gov/national-hydrography"
-        role: "Hydrography and watershed boundary source discovery"
+      - name: "USGS 3D Hydrography Program (3DHP)"
+        url: "https://www.usgs.gov/3d-hydrography-program/access-3dhp-data-products"
+        role: "Current hydrography product/service discovery; inspect coverage and version metadata"
+      - name: "USGS legacy NHD and Watershed Boundary Dataset (WBD)"
+        url: "https://www.usgs.gov/national-hydrography/watershed-boundary-dataset"
+        role: "Reference-only legacy products; USGS states these are no longer maintained or updated after transition to 3DHP"
       - name: "USGS Water Data"
         url: "https://waterdata.usgs.gov/"
         role: "Gauge identity and observations; site status and datum must be queried"
