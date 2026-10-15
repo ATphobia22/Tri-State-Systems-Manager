@@ -351,7 +351,8 @@
         "source_flow_units",
         "boundary_selector",
         "adapter_script_path",
-        "adapter_script_sha256"
+        "adapter_script_sha256",
+        "dss_version"
       ],
       "properties": {
         "source_output": {
@@ -540,6 +541,14 @@
         "adapter_script_sha256": {
           "type": "string",
           "pattern": "^[a-f0-9]{64}$"
+        },
+        "dss_version": {
+          "type": "integer",
+          "enum": [
+            6,
+            7
+          ],
+          "description": "Explicit HEC-DSS file version for the generated RAS handoff record."
         }
       }
     },
