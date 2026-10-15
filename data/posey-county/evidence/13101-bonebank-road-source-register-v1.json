@@ -2,8 +2,8 @@
   "schema": "tsm.hydrology.aoi-source-register/v1",
   "site_id": "posey-13101-bonebank-road",
   "recorded_on": "2026-10-15",
-  "status": "RESEARCHED_REGISTER_NOT_A_LIVE_DATA_SNAPSHOT",
-  "note": "URLs and source capabilities are inventoried for repeatable acquisition. This register does not claim every linked dataset has been downloaded or queried during this run.",
+  "status": "PARTIALLY_REFRESHED_LIVE_EVIDENCE_2026-10-15",
+  "note": "Live IGIO parcel/address query and Indiana CSLF flood polygon point intersection were captured on 2026-10-15. EPQS values are quarantined due connector unit inconsistency; FEMA current query was not refreshed in this pass. This is not a complete live-data snapshot or an approved engineering AOI.",
   "required_geometry_roles": [
     {
       "role": "property_parcel",
@@ -43,7 +43,9 @@
         "Source vintage/load date must be retained",
         "Parcel polygon is not a drainage catchment"
       ],
-      "status": "candidate feature recorded"
+      "status": "LIVE_QUERY_VERIFIED_2026-10-15",
+      "live_query_evidence": "data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json",
+      "latest_result": "Object ID 335325 matched parcel 65-19-08-100-008.001-010 and situs address 13101 BONEBANK RD; source originator Posey County; load date 2025-08-28; geometry returned in EPSG:4326."
     },
     {
       "id": "USGS_3DEP",
@@ -57,7 +59,7 @@
         "Check voids, artifacts, hydro-flattening and datum",
         "Survey-grade elevations may be required for design"
       ],
-      "status": "not yet assembled as site-wide DEM"
+      "status": "SITE_WIDE_DEM_NOT_RETRIEVED"
     },
     {
       "id": "USGS_EPQS",
@@ -71,7 +73,9 @@
         "Accuracy depends on source elevation data",
         "Do not use as finished-floor or adjacent-grade elevation"
       ],
-      "status": "one candidate-centroid sample recorded"
+      "status": "QUARANTINED_UNIT_CONFLICT_2026-10-15",
+      "latest_result": "Live research connector returned values labelled meters despite requests for feet; raw payload could not be independently verified. Do not use either elevation in site analysis until raw response and units are verified.",
+      "live_query_evidence": "data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json"
     },
     {
       "id": "USGS_3DHP",
@@ -85,7 +89,7 @@
         "USGS shifted from maintaining NHD/WBD/NHDPlus HR in 2024; legacy data are not updated",
         "Hydrography alone does not resolve culverts, tile drainage, or local flow paths"
       ],
-      "status": "source identified; site extract pending"
+      "status": "SOURCE_VERIFIED_SITE_EXTRACT_PENDING"
     },
     {
       "id": "USGS_STREAMSTATS_IN",
@@ -99,7 +103,7 @@
         "Regression equations have applicability ranges and uncertainty",
         "Verify current service/API migration; do not assume legacy endpoints"
       ],
-      "status": "not run; outlet unresolved"
+      "status": "NOT_RUN_OUTLET_UNRESOLVED"
     },
     {
       "id": "FEMA_NFHL",
@@ -113,7 +117,8 @@
         "No-data sentinel -9999 is not a BFE",
         "Confirm effective panel/date and map amendments"
       ],
-      "status": "centroid point observation recorded; polygon/structure overlay pending"
+      "status": "PRIOR_POINT_RESULT_ONLY_CURRENT_REFRESH_FAILED",
+      "latest_result": "Prior repository record: Zone AE/SFHA with STATIC_BFE=-9999 (no-data sentinel). Current NFHL direct query did not return a usable response through the research connector; requery via FEMA MSC/direct ArcGIS client."
     },
     {
       "id": "FEMA_MSC",
@@ -152,7 +157,9 @@
         "Distinguish state best-available mapping from FEMA effective NFHL",
         "Capture datum, BFE point, layer vintage and metadata"
       ],
-      "status": "state point cross-check recorded; full polygon extract pending"
+      "status": "LIVE_STATE_POLYGON_POINT_INTERSECTION_VERIFIED_2026-10-15",
+      "latest_result": "Posey CSLF layer returned cslf_id 3785, pre_zone AE, new_zone AE, source citation STUDY10 at the IGIO parcel centroid. No BFE observation returned; point intersection is not a parcel/structure determination.",
+      "live_query_evidence": "data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json"
     },
     {
       "id": "NOAA_ATLAS14",
@@ -165,7 +172,7 @@
         "Choose duration, AEP, temporal distribution and intended standard explicitly",
         "Precipitation-frequency estimate alone is not a runoff hydrograph"
       ],
-      "status": "not queried; catchment and modeling question pending"
+      "status": "NOT_QUERIED_MODEL_QUESTION_PENDING"
     },
     {
       "id": "USACE_HEC_HMS",
@@ -234,5 +241,20 @@
     "Do not mix NAVD88, Ohio River Datum, NGVD29, ellipsoidal heights or local datums without documented conversion.",
     "Every downloaded asset must retain source URL, retrieval timestamp, source vintage, CRS/datum, units, quality flags and SHA-256.",
     "No HEC-HMS/HEC-RAS run or design conclusion until the modeling question, outlet, geometry, inputs and review path are approved."
-  ]
+  ],
+  "evidence_snapshot": "data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json",
+  "gate_disposition": {
+    "site_address_parcel_match": "VERIFIED_LIVE",
+    "legacy_point": "REJECTED_FOR_THIS_CANDIDATE_AOI_PROVENANCE_UNKNOWN",
+    "state_floodplain_centroid_intersection": "VERIFIED_ZONE_AE_POINT_ONLY",
+    "epqs_elevation_values": "QUARANTINED_UNIT_CONFLICT",
+    "legal_boundary": "OPEN",
+    "structure_footprint": "OPEN",
+    "site_dem": "OPEN",
+    "effective_fema_panel_bfe_fara": "OPEN",
+    "drainage_outlet": "OPEN",
+    "catchment": "BLOCKED",
+    "hec_hms_hec_ras": "BLOCKED_NOT_RUN",
+    "engineering_approval": "NOT_APPROVED"
+  }
 }
