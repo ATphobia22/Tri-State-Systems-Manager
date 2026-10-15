@@ -20,6 +20,16 @@ export function safeWorkspacePath(workspace, relative, label) {
   const root = path.resolve(workspace);
   const resolved = path.resolve(root, normalized);
   if (resolved !== root && !resolved.startsWith(root + path.sep)) throw new Error(label + ' escapes workspace');
+  // Lexical containment alone is insufficient: a symlink inside the workspace
+  // could point outside it. Resolve the target or nearest existing ancestor.
+  let ancestor = resolved;
+  while (!fs.existsSync(ancestor) && ancestor !== path.dirname(ancestor)) ancestor = path.dirname(ancestor);
+  const realAncestor = fs.realpathSync(ancestor);
+  if (realAncestor !== root && !realAncestor.startsWith(root + path.sep)) throw new Error(label + ' traverses a symlink outside workspace');
+  if (fs.existsSync(resolved)) {
+    const realTarget = fs.realpathSync(resolved);
+    if (realTarget !== root && !realTarget.startsWith(root + path.sep)) throw new Error(label + ' resolves outside workspace');
+  }
   return resolved;
 }
 function verifyHashedFile(workspace, relative, expectedHash, label) {
