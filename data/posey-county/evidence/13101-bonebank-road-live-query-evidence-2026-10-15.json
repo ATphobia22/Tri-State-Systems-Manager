@@ -324,7 +324,25 @@
       "waterbody_count_returned_in_larger_bbox": 4,
       "catchment_query_url": "https://3dhp.nationalmap.gov/arcgis/rest/services/usgs_3dhp_all/FeatureServer/80/query?geometry=-88.015%2C37.835%2C-87.995%2C37.855&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=json",
       "catchment_features_returned_in_larger_bbox": 0,
-      "hydrolocation_outlet_features_returned_in_larger_bbox": 0
+      "hydrolocation_outlet_features_returned_in_larger_bbox": 0,
+      "flowline_count_discrepancy": {
+        "observations": [
+          {
+            "query": "small bbox -88.008,37.843,-88.002,37.848; returnGeometry=false",
+            "reported_count": 10
+          },
+          {
+            "query": "same small bbox; returnGeometry=true",
+            "reported_count": 20
+          },
+          {
+            "query": "broader ~1 km proximity query documented in companion evidence file",
+            "reported_count": 20,
+            "source_product": "NHD"
+          }
+        ],
+        "interpretation": "The research connector's normalized counts are not consistent between query variants. Treat the existence and geometry of returned local flowlines as screening evidence only; do not treat these counts as a complete inventory. Companion evidence reports the nearby 1-km flowline records as NHD-derived."
+      }
     },
     "nearby_feature_assessment": {
       "feature_identifier": "H77EJ",
@@ -340,14 +358,16 @@
       ],
       "calculated_planar_distance_m": 6.997,
       "distance_method": "Project parcel polygon and flowline coordinates from EPSG:4326 to NAD83 / UTM zone 16N (EPSG:32616), then compute Shapely polygon-to-line distance.",
-      "interpretation": "A mapped canal is approximately 7 m from the candidate parcel boundary in the returned geometry. It is a nearby conveyance candidate only, not a verified outlet, and its proximity does not prove the home's runoff drains to it."
+      "interpretation": "Feature H77EJ is one mapped canal returned in the local query; its returned line geometry is approximately 7 m from the candidate parcel boundary. This is not a claim that it is the nearest feature overall, a selected outlet, or proof of the home's runoff connection. Query counts vary by response/connector normalization, and companion 1-km evidence identifies nearby returned flowlines as NHD-derived."
     },
     "limitations": [
       "USGS describes 3DHP as a general hydrography service and explicitly says it is not intended for site-specific regulatory determinations.",
       "Service description says content can be a mix of elevation-derived hydrography and legacy NHD where EDH is not yet available; record local source lineage where exposed.",
       "A zero-result catchment-layer query does not mean no real-world catchment exists; no service catchment was returned for the queried bbox.",
       "No actual drainage outlet has been selected or field-verified.",
-      "No catchment polygon was delineated from this query."
+      "No catchment polygon was delineated from this query.",
+      "Local flowline feature counts differed between connector-normalized query variants (10 vs 20 for the same bbox). Use individual returned features only as screening candidates; do not rely on returned counts as a complete inventory."
     ]
-  }
+  },
+  "companion_evidence_file": "data/posey-county/evidence/13101-bonebank-road-terrain-hydrography-evidence-2026-10-15.json"
 }
