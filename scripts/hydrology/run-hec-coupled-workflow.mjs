@@ -74,7 +74,7 @@ function checkedRuntimeEnvironment() {
   ];
   return Object.fromEntries(allowed.filter((key) => process.env[key] !== undefined).map((key) => [key, process.env[key]]));
 }
-function runStage({ name, stage, workspace, outputDirectory, tokenValues = {}, sourceProjectPackageSha256 = null }) {
+export function runStage({ name, stage, workspace, outputDirectory, tokenValues = {}, sourceProjectPackageSha256 = null }) {
   const project = safeWorkspacePath(workspace, stage.project_directory, name + '.project_directory');
   if (!fs.existsSync(project) || !fs.statSync(project).isDirectory()) throw new Error(name + ' project directory is missing: ' + stage.project_directory);
   if (fs.readdirSync(project).length === 0) throw new Error(name + ' project directory is empty; model project files are required');
