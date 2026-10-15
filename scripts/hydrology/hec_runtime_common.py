@@ -163,15 +163,6 @@ def verify_python_environment(manifest: dict[str, Any], workspace_value: str | P
     environment = manifest.get("python_environment")
     if not isinstance(environment, dict):
         raise ValueError("Manifest python_environment object is missing")
-    if environment.get("platform") != "windows-x64":
-        raise RuntimeError("The current coupled HEC runtime only supports windows-x64")
-    if sys.platform != "win32" or struct.calcsize("P") != 8:
-        raise RuntimeError("The current coupled HEC runtime requires a 64-bit Windows worker")
-    if environment.get("python_version") != runtime_platform.python_version():
-        raise RuntimeError(
-            f"Python patch-version mismatch: expected {environment.get('python_version')}, "
-            f"observed {runtime_platform.python_version()}"
-        )
     root = Path(workspace_value).resolve(strict=True)
     if not root.is_dir():
         raise ValueError("Workspace must be a directory")
@@ -193,6 +184,15 @@ def verify_python_environment(manifest: dict[str, Any], workspace_value: str | P
     if expected_lock_hash != actual_lock_hash:
         raise ValueError(
             f"Python environment lock hash mismatch: expected {expected_lock_hash}, observed {actual_lock_hash}"
+        )
+    if environment.get("platform") != "windows-x64":
+        raise RuntimeError("The current coupled HEC runtime only supports windows-x64")
+    if sys.platform != "win32" or struct.calcsize("P") != 8:
+        raise RuntimeError("The current coupled HEC runtime requires a 64-bit Windows worker")
+    if environment.get("python_version") != runtime_platform.python_version():
+        raise RuntimeError(
+            f"Python patch-version mismatch: expected {environment.get('python_version')}, "
+            f"observed {runtime_platform.python_version()}"
         )
     expected_inventory_hash = environment.get("installed_packages_sha256")
     actual_inventory_hash = installed_environment_fingerprint()
