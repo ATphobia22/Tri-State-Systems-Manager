@@ -9,7 +9,7 @@ PR [#267](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/267) was 
 
 The hydrology/hydraulics acceptance contract is maintained in [HYDROLOGY-RELEASE-CONTRACT.md](../hydrology/HYDROLOGY-RELEASE-CONTRACT.md).
 
-Candidate-area update: the supplied 13101 Bonebank Road address now has an evidence-backed parcel footprint and screening-only terrain/flood-layer observations. The watershed and model area remain **unapproved**. Track it in the [candidate AOI assessment](../hydrology/aoi/13101-BONEBANK-ROAD-CANDIDATE.md) and [DRAFT HEC manifest](../../data/posey-county/hec/13101-bonebank-road-candidate-run-manifest-v2.json); this does not close the AOI/model-validation gate.
+Candidate-area update: the supplied 13101 Bonebank Road address has a candidate parcel footprint and screening-only terrain/flood-layer observations, but a second legacy centroid approximately 6.4 km away leaves the address-to-parcel association unresolved. The watershed and model area remain **unapproved**. Track it in the [candidate AOI assessment](../hydrology/aoi/13101-BONEBANK-ROAD-CANDIDATE.md) and [DRAFT HEC manifest](../../data/posey-county/hec/13101-bonebank-road-candidate-run-manifest-v2.json); this does not close the AOI/model-validation gate.
 
 ## Gates with repository evidence
 
