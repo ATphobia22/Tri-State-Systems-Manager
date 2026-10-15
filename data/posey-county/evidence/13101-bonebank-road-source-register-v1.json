@@ -288,8 +288,9 @@
         "Not a surveyed building outline, finished-floor elevation, or lowest adjacent grade"
       ],
       "status": "FOUR_FOOTPRINTS_FOUND_ADDRESS_ASSOCIATED_CANDIDATE_763173",
-      "latest_result": "Four footprint polygons returned in parcel bbox. Three are within the candidate parcel. Feature 763173 (~258.7 m²) contains the Posey County address point for 13101 BONEBANK RD and is the best available address-associated structure candidate. State CSLF polygon intersects this candidate footprint (AE).",
-      "live_query_evidence": "data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json"
+      "latest_result": "Four footprint polygons returned in parcel bbox. Three are within the candidate parcel. Feature 763173 (~258.7 m²) contains the Posey County address point for 13101 BONEBANK RD and is the best available address-associated structure candidate. State CSLF polygon intersects this candidate footprint (AE). Candidate geometry artifact committed but remains unapproved and unsurveyed.",
+      "live_query_evidence": "data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json",
+      "geojson_artifact": "data/posey-county/aoi/13101-bonebank-road-structure-candidate-763173.geojson"
     }
   ],
   "hard_blockers": [
@@ -332,7 +333,7 @@
     "fema_lomr_loma_centroid_query": "NO_FEATURE_INTERSECTED_CENTROID_REVIEW_MSC_FOR_CURRENT_STATUS",
     "epqs_and_image_server_elevation": "QUARANTINED_UNIT_OR_PIXEL_VALUE_AMBIGUITY",
     "legal_boundary": "OPEN",
-    "structure_footprint": "ADDRESS_POINT_INSIDE_HISTORIC_BUILDING_FOOTPRINT_763173_OWNER_CURRENT_IMAGERY_CONFIRMATION_PENDING",
+    "structure_footprint": "ADDRESS_ASSOCIATED_CANDIDATE_763173_GEOMETRY_COMMITTED_OWNER_CURRENT_IMAGE_CONFIRMATION_PENDING",
     "site_dem": "CATALOG_MATCH_RASTER_DOWNLOAD_HASH_QA_OPEN",
     "drainage_outlet": "NEARBY_CANAL_H77EJ_6.997M_AWAY_OUTLET_NOT_VERIFIED",
     "catchment": "BLOCKED_NOT_DELINEATED",
@@ -389,5 +390,6 @@
       "Not a surveyed building outline, finished-floor elevation, or lowest-adjacent-grade source.",
       "FEMA NFHL structure-footprint overlay and BFE remain unresolved."
     ]
-  }
+  },
+  "structure_candidate_geojson": "data/posey-county/aoi/13101-bonebank-road-structure-candidate-763173.geojson"
 }
