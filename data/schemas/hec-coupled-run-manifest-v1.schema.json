@@ -397,7 +397,7 @@
             "type": "string",
             "minLength": 1
           },
-          "description": "Shell-free argv for explicit, hash-pinned transfer adapter. Supports {{workspace}}, {{project}}, {{output}}, {{source_output}}, {{ras_input}}, {{ras_dss}}, {{manifest}}, and {{handoff_report}}."
+          "description": "Shell-free argv for explicit, hash-pinned transfer adapter. Supports {{workspace}}, {{project}}, {{output}}, {{source_output}}, {{ras_input}}, {{ras_dss}}, {{manifest}}, {{handoff_report}}, and {{adapter_script}}."
         },
         "adapter_version": {
           "type": "string",
