@@ -84,7 +84,9 @@
         "geometry_sha256",
         "area_km2",
         "watershed_delineation_uri",
-        "watershed_delineation_sha256"
+        "watershed_delineation_sha256",
+        "geometry_workspace_path",
+        "watershed_delineation_workspace_path"
       ],
       "properties": {
         "name": {
@@ -110,6 +112,14 @@
         "watershed_delineation_sha256": {
           "type": "string",
           "pattern": "^[a-f0-9]{64}$"
+        },
+        "geometry_workspace_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "watershed_delineation_workspace_path": {
+          "type": "string",
+          "minLength": 1
         }
       }
     },
@@ -159,7 +169,8 @@
           "horizontal_crs",
           "vertical_datum",
           "quality_status",
-          "license_or_terms_uri"
+          "license_or_terms_uri",
+          "workspace_path"
         ],
         "properties": {
           "input_id": {
@@ -219,6 +230,10 @@
             ]
           },
           "license_or_terms_uri": {
+            "type": "string",
+            "minLength": 1
+          },
+          "workspace_path": {
             "type": "string",
             "minLength": 1
           }
