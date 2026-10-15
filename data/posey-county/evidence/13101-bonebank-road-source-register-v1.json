@@ -1,0 +1,265 @@
+{
+  "schema": "tsm.hydrology.aoi-source-register/v1",
+  "site_id": "posey-13101-bonebank-road",
+  "recorded_on": "2026-10-15",
+  "status": "PARTIALLY_REFRESHED_LIVE_EVIDENCE_AND_TERRAIN_CATALOG_2026-10-15",
+  "note": "Live IGIO parcel/address query, Indiana CSLF flood polygon point intersection, and USGS TNM 1-meter DEM catalog search were captured on 2026-10-15. EPQS values remain quarantined due connector unit inconsistency; FEMA current query was not refreshed. The DEM GeoTIFF has not been downloaded or QA-checked. This is not a complete live-data snapshot or an approved engineering AOI.",
+  "required_geometry_roles": [
+    {
+      "role": "property_parcel",
+      "purpose": "Candidate legal parcel context only",
+      "source": "IGIO Parcel Boundaries of Indiana 2025",
+      "approval_status": "candidate; survey/county reconciliation pending"
+    },
+    {
+      "role": "structure_footprint",
+      "purpose": "Actual home/building location for site-specific screening",
+      "source": "County GIS, authoritative building footprint, imagery, or owner/survey evidence",
+      "approval_status": "not verified"
+    },
+    {
+      "role": "hydrologic_catchment",
+      "purpose": "Contributing area draining to a selected outlet",
+      "source": "3DEP DEM plus hydrography, conveyance/crossing evidence, outlet validation",
+      "approval_status": "not delineated"
+    },
+    {
+      "role": "hydraulic_model_domain",
+      "purpose": "Reach/floodplain domain and boundary conditions for a defined question",
+      "source": "Existing effective model/study or purpose-built HEC-RAS geometry and boundaries",
+      "approval_status": "not defined"
+    }
+  ],
+  "sources": [
+    {
+      "id": "IGIO_PARCELS_2025",
+      "agency": "Indiana Geographic Information Office",
+      "data": "Parcel Boundaries of Indiana 2025",
+      "url": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer/0",
+      "purpose": "Candidate parcel geometry and parcel IDs",
+      "access": "ArcGIS FeatureServer query",
+      "limitations": [
+        "Not a legal survey",
+        "Source vintage/load date must be retained",
+        "Parcel polygon is not a drainage catchment"
+      ],
+      "status": "LIVE_QUERY_VERIFIED_2026-10-15",
+      "live_query_evidence": "data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json",
+      "latest_result": "Object ID 335325 matched parcel 65-19-08-100-008.001-010 and situs address 13101 BONEBANK RD; source originator Posey County; load date 2025-08-28; geometry returned in EPSG:4326."
+    },
+    {
+      "id": "USGS_3DEP",
+      "agency": "U.S. Geological Survey",
+      "data": "3D Elevation Program terrain products",
+      "url": "https://www.usgs.gov/3d-elevation-program",
+      "purpose": "DEM, terrain metadata, coverage, resolution, vertical reference",
+      "access": "The National Map / 3DEP products",
+      "limitations": [
+        "Check native resolution and acquisition date",
+        "Check voids, artifacts, hydro-flattening and datum",
+        "Survey-grade elevations may be required for design",
+        "Candidate raster identified from catalog; not downloaded, hashed, inspected or processed. USGS warns 1m DEM tiles may not be seamless across collection-project boundaries."
+      ],
+      "status": "ONE_METER_DEM_CATALOG_MATCH_FOUND_FILE_NOT_DOWNLOADED",
+      "latest_result": "TNM Access API returned four 1-meter DEM products covering the parcel bbox. Candidate selected: USGS 1 Meter 16 x41y419 IN_Indiana_Statewide_LiDAR_2017_B17; bare-earth DEM, 1 m nominal resolution, NAD83/UTM horizontal reference, elevations in meters NAVD88; source acquisition 2017-03-03 to 2020-04-11; publication date 2021-07-04.",
+      "product_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1m/Projects/IN_Indiana_Statewide_LiDAR_2017_B17/TIFF/USGS_1M_16_x41y419_IN_Indiana_Statewide_LiDAR_2017_B17.tif",
+      "metadata_url": "https://www.sciencebase.gov/catalog/item/60e6aebcd34e2a7685d0271b"
+    },
+    {
+      "id": "USGS_EPQS",
+      "agency": "U.S. Geological Survey",
+      "data": "Elevation Point Query Service",
+      "url": "https://epqs.nationalmap.gov/v1/json",
+      "purpose": "Quick point elevation cross-check",
+      "access": "JSON service",
+      "limitations": [
+        "Interpolated point, not a site DEM or survey",
+        "Accuracy depends on source elevation data",
+        "Do not use as finished-floor or adjacent-grade elevation"
+      ],
+      "status": "QUARANTINED_UNIT_CONFLICT_2026-10-15",
+      "latest_result": "Live research connector returned values labelled meters despite requests for feet; raw payload could not be independently verified. Do not use either elevation in site analysis until raw response and units are verified.",
+      "live_query_evidence": "data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json"
+    },
+    {
+      "id": "USGS_3DHP",
+      "agency": "U.S. Geological Survey",
+      "data": "3D Hydrography Program",
+      "url": "https://www.usgs.gov/3d-hydrography-program/access-3dhp-data-products",
+      "purpose": "Current hydrography and elevation-derived hydrography",
+      "access": "Download products and web services",
+      "limitations": [
+        "Record product vintage and service layer",
+        "USGS shifted from maintaining NHD/WBD/NHDPlus HR in 2024; legacy data are not updated",
+        "Hydrography alone does not resolve culverts, tile drainage, or local flow paths"
+      ],
+      "status": "SOURCE_VERIFIED_SITE_EXTRACT_PENDING"
+    },
+    {
+      "id": "USGS_STREAMSTATS_IN",
+      "agency": "U.S. Geological Survey / Indiana partners",
+      "data": "Indiana StreamStats",
+      "url": "https://www.usgs.gov/streamstats/indiana-streamstats",
+      "purpose": "Independent basin delineation and applicable streamflow statistics",
+      "access": "Interactive app and documented services",
+      "limitations": [
+        "Inspect boundary and drainage characteristics, especially flat terrain",
+        "Regression equations have applicability ranges and uncertainty",
+        "Verify current service/API migration; do not assume legacy endpoints"
+      ],
+      "status": "NOT_RUN_OUTLET_UNRESOLVED"
+    },
+    {
+      "id": "FEMA_NFHL",
+      "agency": "Federal Emergency Management Agency",
+      "data": "National Flood Hazard Layer",
+      "url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer",
+      "purpose": "Effective FEMA flood zones and regulatory map context",
+      "access": "ArcGIS MapServer and FEMA MSC",
+      "limitations": [
+        "Point intersection does not establish parcel-wide coverage or structure depth",
+        "No-data sentinel -9999 is not a BFE",
+        "Confirm effective panel/date and map amendments"
+      ],
+      "status": "PRIOR_POINT_RESULT_ONLY_CURRENT_REFRESH_FAILED",
+      "latest_result": "Prior repository record: Zone AE/SFHA with STATIC_BFE=-9999 (no-data sentinel). Current NFHL direct query did not return a usable response through the research connector; requery via FEMA MSC/direct ArcGIS client."
+    },
+    {
+      "id": "FEMA_MSC",
+      "agency": "Federal Emergency Management Agency",
+      "data": "FEMA Map Service Center",
+      "url": "https://msc.fema.gov/portal/home",
+      "purpose": "Verify effective FIRM panels, map dates, LOMCs and map products",
+      "access": "Public map search",
+      "limitations": [
+        "Map interpretation is not an engineered flood-depth determination"
+      ],
+      "status": "manual verification pending"
+    },
+    {
+      "id": "IN_DNR_INFIP",
+      "agency": "Indiana Department of Natural Resources, Division of Water",
+      "data": "Indiana Floodplain Information Portal",
+      "url": "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/indiana-floodplain-information-portal/",
+      "purpose": "Indiana best-available floodplain mapping, BFE information, FARA where applicable",
+      "access": "Interactive portal and eFARA",
+      "limitations": [
+        "Save the FARA/report and source date when used",
+        "FARA is required in specified A-zone, unmapped, flood-prone, and >1-square-mile upstream-drainage situations; confirm local applicability",
+        "Centroid point output does not substitute for whole-site review"
+      ],
+      "status": "state point cross-check recorded; FARA/manual review pending"
+    },
+    {
+      "id": "IN_DNR_BAFM",
+      "agency": "Indiana Department of Natural Resources",
+      "data": "Indiana Best Available Floodplain Mapping",
+      "url": "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/the-indiana-best-available-floodplain-mapping",
+      "purpose": "State floodplain layers and flood-elevation point data",
+      "access": "County extracts and GIS services",
+      "limitations": [
+        "Distinguish state best-available mapping from FEMA effective NFHL",
+        "Capture datum, BFE point, layer vintage and metadata"
+      ],
+      "status": "LIVE_STATE_POLYGON_POINT_INTERSECTION_VERIFIED_2026-10-15",
+      "latest_result": "Posey CSLF layer returned cslf_id 3785, pre_zone AE, new_zone AE, source citation STUDY10 at the IGIO parcel centroid. No BFE observation returned; point intersection is not a parcel/structure determination.",
+      "live_query_evidence": "data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json"
+    },
+    {
+      "id": "NOAA_ATLAS14",
+      "agency": "National Oceanic and Atmospheric Administration",
+      "data": "Atlas 14 precipitation-frequency estimates",
+      "url": "https://hdsc.nws.noaa.gov/pfds/",
+      "purpose": "Design precipitation depths by location, duration and AEP",
+      "access": "PFDS web application / documented data",
+      "limitations": [
+        "Choose duration, AEP, temporal distribution and intended standard explicitly",
+        "Precipitation-frequency estimate alone is not a runoff hydrograph"
+      ],
+      "status": "NOT_QUERIED_MODEL_QUESTION_PENDING"
+    },
+    {
+      "id": "USACE_HEC_HMS",
+      "agency": "U.S. Army Corps of Engineers, Hydrologic Engineering Center",
+      "data": "HEC-HMS",
+      "url": "https://www.hec.usace.army.mil/software/hec-hms/",
+      "purpose": "Rainfall-runoff and routing model if needed",
+      "access": "Software and official manuals",
+      "limitations": [
+        "Requires approved catchment, meteorology, losses, transform, routing and calibration/validation plan"
+      ],
+      "status": "BLOCKED_NOT_RUN"
+    },
+    {
+      "id": "USACE_HEC_RAS",
+      "agency": "U.S. Army Corps of Engineers, Hydrologic Engineering Center",
+      "data": "HEC-RAS",
+      "url": "https://www.hec.usace.army.mil/software/hec-ras/",
+      "purpose": "Hydraulic model only if a defined question requires it",
+      "access": "Software and official manuals",
+      "limitations": [
+        "Requires domain, geometry, structures, roughness, flow and downstream boundary, and datum reconciliation",
+        "No-rise or regulatory conclusions require applicable review and evidence"
+      ],
+      "status": "BLOCKED_NOT_RUN"
+    },
+    {
+      "id": "ERDC_CHL_TR_22_4",
+      "agency": "U.S. Army Engineer Research and Development Center",
+      "data": "Wabash and Ohio River Confluence Hydraulic and Sediment Transport Model Investigation (ERDC/CHL TR-22-4, 2022)",
+      "url": "https://erdc-library.erdc.dren.mil/handle/11681/43441",
+      "purpose": "Regional hydraulic/sediment methodology context",
+      "access": "Official ERDC technical report",
+      "limitations": [
+        "Regional confluence model is not a parcel model",
+        "Preserve Ohio River Datum unless a documented conversion is supplied"
+      ],
+      "status": "reviewed as regional context only"
+    }
+  ],
+  "hard_blockers": [
+    {
+      "id": "coordinate-conflict",
+      "description": "IGIO centroid (-88.00535128, 37.84579909) and legacy point (-88.0007, 37.9035) are approximately 3.99 miles / 6.42 km apart.",
+      "required_resolution": "Identify provenance and intended meaning of both points; select site reference from parcel/structure/survey evidence."
+    },
+    {
+      "id": "outlet-unverified",
+      "description": "No selected and verified drainage outlet exists.",
+      "required_resolution": "Identify receiving conveyance and approved delineation point before catchment processing."
+    },
+    {
+      "id": "no-site-dem",
+      "description": "Only one interpolated EPQS point sample is recorded.",
+      "required_resolution": "Assemble site-wide DEM and metadata; determine if survey/spot grades are required."
+    },
+    {
+      "id": "regulatory-bfe-unresolved",
+      "description": "Recorded FEMA/DNR point queries return no usable BFE in the captured values.",
+      "required_resolution": "Review effective map products, state BFE points and INFIP/FARA; retain datum and source date."
+    }
+  ],
+  "quality_rules": [
+    "Never use parcel area as catchment area.",
+    "Never interpret -9999 as a numeric BFE/depth/elevation; preserve raw value and normalize to null.",
+    "Do not mix NAVD88, Ohio River Datum, NGVD29, ellipsoidal heights or local datums without documented conversion.",
+    "Every downloaded asset must retain source URL, retrieval timestamp, source vintage, CRS/datum, units, quality flags and SHA-256.",
+    "No HEC-HMS/HEC-RAS run or design conclusion until the modeling question, outlet, geometry, inputs and review path are approved."
+  ],
+  "evidence_snapshot": "data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json",
+  "gate_disposition": {
+    "site_address_parcel_match": "VERIFIED_LIVE",
+    "legacy_point": "REJECTED_FOR_THIS_CANDIDATE_AOI_PROVENANCE_UNKNOWN",
+    "state_floodplain_centroid_intersection": "VERIFIED_ZONE_AE_POINT_ONLY",
+    "epqs_elevation_values": "QUARANTINED_UNIT_CONFLICT",
+    "legal_boundary": "OPEN",
+    "structure_footprint": "OPEN",
+    "site_dem": "CATALOG_PRODUCT_FOUND_ASSET_DOWNLOAD_AND_QA_PENDING",
+    "effective_fema_panel_bfe_fara": "OPEN",
+    "drainage_outlet": "OPEN",
+    "catchment": "BLOCKED",
+    "hec_hms_hec_ras": "BLOCKED_NOT_RUN",
+    "engineering_approval": "NOT_APPROVED"
+  },
+  "terrain_product_candidate": "USGS 1 Meter 16 x41y419 IN_Indiana_Statewide_LiDAR_2017_B17"
+}
