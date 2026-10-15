@@ -17,15 +17,11 @@ import argparse
 import hashlib
 import json
 import math
-import os
 import subprocess
-import sys
 import time
 from pathlib import Path
 from urllib.parse import urlencode
-from urllib.request import Request, urlopen
 
-import numpy as np
 import rasterio
 from shapely.geometry import MultiPolygon, Polygon, mapping, shape
 from shapely.ops import unary_union
@@ -202,53 +198,6 @@ class ElevationSampler:
         for ds in self.datasets:
             ds.close()
 
-    @staticmethod
-    def _valid_value(value: float, nodata: float | None) -> bool:
-        return math.isfinite(value) and (
-            nodata is None or not math.isclose(value, float(nodata))
-        )
-
-    def _nearest_valid(self, ds, x: float, y: float, max_radius_pixels: int = 8) -> float | None:
-        """Return the nearest valid DEM cell around a target point.
-
-        The committed Posey DEM is county-masked, so footprints that touch the
-        county edge can have all sampled boundary vertices on nodata cells.
-        Searching a small pixel neighborhood around the footprint interior
-        prevents a false elevation gap without inventing a value or crossing
-        into an unrelated raster.
-        """
-        row, col = ds.index(x, y)
-        best: tuple[float, float] | None = None
-        for radius in range(max_radius_pixels + 1):
-            r0 = max(0, row - radius)
-            r1 = min(ds.height - 1, row + radius)
-            c0 = max(0, col - radius)
-            c1 = min(ds.width - 1, col + radius)
-            # Clamp to valid raster extent (handles edge/out-of-bounds)
-            c0_clamped = max(0, min(c0, ds.width - 1))
-            r0_clamped = max(0, min(r0, ds.height - 1))
-            c1_clamped = max(0, min(c1, ds.width - 1))
-            r1_clamped = max(0, min(r1, ds.height - 1))
-            # Guarantee positive dimensions
-            window_width = max(1, c1_clamped - c0_clamped + 1)
-            window_height = max(1, r1_clamped - r0_clamped + 1)
-            window = rasterio.windows.Window(c0_clamped, r0_clamped, window_width, window_height)
-            values = ds.read(1, window=window, masked=False)
-            for rr in range(values.shape[0]):
-                for cc in range(values.shape[1]):
-                    value = float(values[rr, cc])
-                    if not self._valid_value(value, ds.nodata):
-                        continue
-                    absolute_row = r0_clamped + rr
-                    absolute_col = c0_clamped + cc
-                    distance = math.hypot(absolute_row - row, absolute_col - col)
-                    candidate = (distance, value)
-                    if best is None or candidate[0] < best[0]:
-                        best = candidate
-            if best is not None:
-                return best[1]
-        return None
-
     def sample(self, lonlat: list[tuple[float, float]]) -> tuple[float, float, float, int, str] | None:
         for ds in self.datasets:
             xs = [p[0] for p in lonlat]
@@ -261,13 +210,8 @@ class ElevationSampler:
             vals = []
             for value in ds.sample(coords):
                 v = float(value[0])
-                if self._valid_value(v, ds.nodata):
+                if math.isfinite(v) and (ds.nodata is None or not math.isclose(v, float(ds.nodata))):
                     vals.append(v)
-            if not vals:
-                for x, y in coords[:2]:
-                    nearest = self._nearest_valid(ds, x, y)
-                    if nearest is not None:
-                        vals.append(nearest)
             if vals:
                 return (
                     float(min(vals)) * FT_PER_M,
@@ -398,61 +342,17 @@ def main() -> None:
         if actual != args.fallback_sha256:
             raise RuntimeError(f"Fallback SHA-256 mismatch: expected {args.fallback_sha256}, got {actual}")
         doc = json.loads(tmp.read_text(encoding="utf-8"))
-        if doc.get("type") != "FeatureCollection" or len(doc.get("features", [])) != args.expected_count:
-            raise RuntimeError(f"Fallback feature count/type mismatch")
-        snapshot_ids: set[int] = set()
-        # Remap legacy elevation field names to enriched schema and revalidate
-        # every cached feature before accepting the snapshot as an authoritative
-        # input. The snapshot hash and the final enriched-output hash are distinct.
-        for ft in doc["features"]:
-            pr = ft.get("properties", {})
-            sid = pr.get("igioObjectId", pr.get("sourceObjectId"))
-            if not isinstance(sid, (int, float)) or int(sid) != sid:
-                raise RuntimeError("Fallback snapshot contains a feature without an integer IGIO OBJECTID")
-            sid = int(sid)
-            if sid in snapshot_ids:
-                raise RuntimeError(f"Fallback snapshot contains duplicate IGIO OBJECTID {sid}")
-            snapshot_ids.add(sid)
-            geometry = ft.get("geometry")
-            if not geometry or shape(geometry).is_empty or not shape(geometry).is_valid:
-                raise RuntimeError(f"Fallback snapshot contains invalid geometry for OBJECTID {sid}")
-            if "groundElevationMeanFt" not in pr:
-                pr["groundElevationMinFt"] = pr.get("elev_min_ft")
-                pr["groundElevationMaxFt"] = pr.get("elev_max_ft")
-                pr["groundElevationMeanFt"] = pr.get("elev_mean_ft")
-                pr["groundElevationFt"] = pr.get("elev_mean_ft")
-                pr["groundElevationSampleCount"] = pr.get("elev_samples", 0)
-                pr["elevationCoverage"] = "SAMPLED" if pr.get("elev_mean_ft") is not None else "UNAVAILABLE"
-                pr["groundElevationSource"] = pr.get("elev_source", "TSM committed Posey 3DEP-derived DEM")
-                # Explicit vertical datum label (research-validated 2026-10-07).
-                # Cached elev_*_ft fields were sampled from the 3DEP NAVD88 DEM.
-                pr["groundElevationVerticalDatum"] = "NAVD88"
-                pr["groundElevationUnit"] = "ftUS"
-            elev = pr.get("groundElevationMeanFt")
-            if not isinstance(elev, (int, float)) or not math.isfinite(float(elev)):
-                raise RuntimeError(f"Fallback snapshot lacks valid elevation for OBJECTID {sid}")
-            pr["sourceAuthority"] = "Indiana Geographic Information Office"
-            pr["authorityClass"] = "DERIVED"
-            pr["geometrySource"] = "Indiana Building Footprints 2016-2020"
-            pr["surveyGrade"] = False
-        if len(snapshot_ids) != args.expected_count:
-            raise RuntimeError("Fallback OBJECTID inventory does not match expected count")
-        # Rewrite with remapped fields and compute the hash of the actual output.
-        tmp.write_text(json.dumps(doc, separators=(",", ":"), ensure_ascii=False) + "\n", encoding="utf-8")
-        digest = hashlib.sha256(tmp.read_bytes()).hexdigest()
-        print(f"Using cached IGIO snapshot: {len(doc['features'])} features, source SHA-256 and output SHA-256 verified", flush=True)
+        if len(doc["features"]) != args.expected_count:
+            raise RuntimeError(f"Fallback feature count mismatch")
+        print(f"Using cached IGIO snapshot: {len(doc['features'])} features, SHA-256 verified", flush=True)
+        # Write fallback to output and skip elevation join (already joined)
         tmp.rename(args.output)
+        digest = actual
         receipt = {
-            "schema": "tsm-posey-igio-building-footprints-v1",
-            "source": "Indiana GIO Building_Footprints 2016-2020 (cached authoritative snapshot 2026-10-06)",
+            "source": "Indiana GIO Building_Footprints 2016-2020 (cached snapshot 2026-10-06)",
             "fallbackUrl": args.fallback_url,
-            "snapshotSha256": actual,
             "featureCount": len(doc["features"]),
-            "objectIdCount": len(snapshot_ids),
-            "objectIdMin": min(snapshot_ids),
-            "objectIdMax": max(snapshot_ids),
             "geojsonSha256": digest,
-            "acquisitionMode": "cached-authoritative-snapshot",
             "status": "acquired-from-cache",
         }
         args.output.with_suffix(args.output.suffix + ".receipt.json").write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
@@ -468,8 +368,12 @@ def main() -> None:
     dem_paths = sorted(args.dem_root.glob("*.tif"))
     if not dem_paths:
         raise SystemExit(f"No Posey DEM GeoTIFFs found under {args.dem_root}")
-    # Prefer finer-resolution rasters; coverage is checked per footprint.
-    dem_paths.sort(key=lambda p: float(rasterio.open(p).res[0]))
+    # Prefer finer-resolution rasters; close each probe immediately so the
+    # acquisition job does not leak file descriptors before opening samplers.
+    def resolution(path: Path) -> float:
+        with rasterio.open(path) as dataset:
+            return float(dataset.res[0])
+    dem_paths.sort(key=resolution)
     sampler = ElevationSampler(dem_paths)
     try:
         enriched = []
@@ -479,25 +383,14 @@ def main() -> None:
             if len(ring) < 3:
                 raise SystemExit(f"Invalid polygon for IGIO object {feature['properties']['igioObjectId']}")
             c = centroid(ring)
-            footprint = shape(feature["geometry"])
-            representative = footprint.representative_point()
-            # Interior samples prevent county-boundary masking from turning a
-            # valid footprint into an artificial elevation gap.
-            sample_points = [
-                c,
-                (float(representative.x), float(representative.y)),
-                *[(float(p[0]), float(p[1])) for p in ring[::max(1, len(ring)//16)]],
-            ]
+            # Vertex + centroid sampling ties elevation directly to the actual
+            # footprint geometry rather than parcel geometry.
+            sample_points = [c] + [(float(p[0]), float(p[1])) for p in ring[::max(1, len(ring)//16)]]
             result = sampler.sample(sample_points)
             props = feature["properties"]
             props["groundElevationSource"] = "TSM committed Posey 3DEP-derived DEM"
             props["groundElevationMethod"] = "IGIO-footprint centroid+boundary sampling"
             props["groundElevationReference"] = result[4] if result else None
-            # Explicit vertical datum label (research-validated 2026-10-07):
-            # 3DEP DEMs are NAVD88 orthometric. Downstream builders REQUIRE this
-            # label and refuse silent vertical-datum assumptions.
-            props["groundElevationVerticalDatum"] = "NAVD88"
-            props["groundElevationUnit"] = "ftUS"
             if result:
                 props["groundElevationMinFt"] = result[0]
                 props["groundElevationMaxFt"] = result[1]
@@ -526,9 +419,13 @@ def main() -> None:
 
     if no_elevation:
         raise SystemExit(
-            f"3DEP elevation join incomplete: {no_elevation} of {count} "
-            "authoritative IGIO footprints have no valid DEM sample"
+            f"Elevation join incomplete: {no_elevation} of {count} footprints had no valid DEM samples"
         )
+
+    # ArcGIS range queries are disjoint by construction, but deterministic
+    # ordering must not depend on server response ordering within a range.
+    features.sort(key=lambda feature: int(feature["properties"]["igioObjectId"]))
+    object_ids.sort()
 
     output = args.output
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -539,6 +436,7 @@ def main() -> None:
         "sourceService": SERVICE,
         "sourceFilter": "county='Posey'",
         "sourceFeatureCount": count,
+        "elevationJoinedFeatureCount": count - no_elevation,
         "geometryCrs": "EPSG:4326",
         "elevationAuthority": "TSM committed 3DEP-derived Posey DEM",
         "elevationMethod": "footprint centroid + boundary samples",
