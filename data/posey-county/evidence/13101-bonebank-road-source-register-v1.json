@@ -353,7 +353,7 @@
     "fema_bfe_and_structure_overlay": "OPEN",
     "dem_catalog_coverage": "VERIFIED_CATALOG_ONLY",
     "dem_raster_acquisition_and_qa": "OPEN_BLOCKED_BY_CURRENT_EXECUTION_NETWORK",
-    "structure_footprint_and_legal_boundary": "STRUCTURE_CANDIDATE_763173_FOUND_CONFIRMATION_OPEN_LEGAL_BOUNDARY_OPEN",
+    "structure_footprint_and_legal_boundary": "STRUCTURE_CANDIDATE_763173_GEOJSON_COMMITTED_OWNER_CURRENT_IMAGERY_CONFIRMATION_OPEN_LEGAL_BOUNDARY_OPEN",
     "drainage_outlet": "NEARBY_CANAL_CANDIDATE_H77EJ_NOT_VERIFIED",
     "catchment": "BLOCKED_NOT_DELINEATED",
     "hec_hms_hec_ras": "BLOCKED_NOT_RUN",
@@ -389,7 +389,9 @@
       "Dataset does not classify principal dwelling versus accessory buildings.",
       "Not a surveyed building outline, finished-floor elevation, or lowest-adjacent-grade source.",
       "FEMA NFHL structure-footprint overlay and BFE remain unresolved."
-    ]
+    ],
+    "geojson_artifact": "data/posey-county/aoi/13101-bonebank-road-structure-candidate-763173.geojson",
+    "geojson_status": "VALID_JSON_GEOJSON_FEATURECOLLECTION_ONE_POLYGON_APPROVED_FALSE_SURVEYED_FALSE"
   },
   "structure_candidate_geojson": "data/posey-county/aoi/13101-bonebank-road-structure-candidate-763173.geojson"
 }
