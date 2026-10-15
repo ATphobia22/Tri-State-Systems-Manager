@@ -18,7 +18,7 @@ test('execution validation blocks unapproved or placeholder manifests', () => {
   const errors = validateManifest(validDraft, { execution: true });
   assert.ok(errors.some((error) => error.includes('approval.status must be APPROVED')));
   assert.ok(errors.some((error) => error.includes('AOI')));
-  assert.ok(errors.some((error) => error.includes('quality_status QUALIFIED')));
+  assert.ok(errors.some((error) => error.includes('every source input must be qualified')));
   assert.ok(errors.some((error) => error.includes('pinned version')));
 });
 
