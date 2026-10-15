@@ -90,6 +90,9 @@ function assertExecutionReady(manifest) {
     if (!/^[a-f0-9]{64}$/.test(runner?.executable_sha256 ?? '') || runner.executable_sha256 === '0'.repeat(64)) errors.push(name + '.executable_sha256 must be measured and pinned');
     if (!nonPlaceholder(runner?.runtime_executable_path)) errors.push(name + '.runtime_executable_path must identify the actual vendor HEC executable');
     if (!/^[a-f0-9]{64}$/.test(runner?.runtime_executable_sha256 ?? '') || runner.runtime_executable_sha256 === '0'.repeat(64)) errors.push(name + '.runtime_executable_sha256 must be measured and pinned');
+    for (const placeholder of ['{{workspace}}', '{{project}}', '{{output}}', '{{manifest}}', '{{runtime_executable}}']) {
+      if (!runner?.command?.some((part) => part.includes(placeholder))) errors.push(name + '.command must include explicit placeholder ' + placeholder);
+    }
   }
   if (!/^[a-f0-9]{40}$/.test(manifest.source_commit ?? '') || manifest.source_commit === '0'.repeat(40)) errors.push('source_commit must be the exact non-placeholder Git commit SHA');
   const handoff = manifest.hydrograph_handoff ?? {};
