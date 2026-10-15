@@ -250,11 +250,7 @@
         "command",
         "timeout_seconds",
         "expected_outputs",
-        "output_directory",
-        "working_directory",
-        "project_package_sha256",
-        "executable_sha256",
-        "version_evidence_uri"
+        "output_directory"
       ],
       "properties": {
         "product_version": {
@@ -297,26 +293,6 @@
         "output_directory": {
           "type": "string",
           "minLength": 1
-        },
-        "working_directory": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Isolated workspace clone used for execution; source project remains immutable."
-        },
-        "project_package_sha256": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$",
-          "description": "Measured SHA-256 of the immutable input project tree."
-        },
-        "executable_sha256": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$",
-          "description": "Measured SHA-256 of command[0], the pinned execution adapter."
-        },
-        "version_evidence_uri": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Evidence reference for the exact installed HEC product version and platform."
         }
       }
     },
@@ -330,20 +306,7 @@
         "time_zone",
         "flow_units",
         "gap_policy",
-        "conversion_method",
-        "source_flow_units",
-        "source_dss_pathname",
-        "ras_dss_pathname",
-        "boundary_file_path",
-        "handoff_receipt_path",
-        "expected_interval_seconds",
-        "negative_flow_policy",
-        "interpolation_method",
-        "boundary_selector",
-        "adapter_command",
-        "adapter_version",
-        "adapter_executable_sha256",
-        "timeout_seconds"
+        "conversion_method"
       ],
       "properties": {
         "source_output": {
@@ -381,119 +344,6 @@
         "conversion_method": {
           "type": "string",
           "minLength": 1
-        },
-        "source_flow_units": {
-          "enum": [
-            "cfs",
-            "cms",
-            "OTHER_DOCUMENTED"
-          ]
-        },
-        "source_dss_pathname": {
-          "type": "string",
-          "minLength": 7,
-          "description": "Exact source HEC-DSS pathname selected from the HEC-HMS run output catalog."
-        },
-        "ras_dss_pathname": {
-          "type": "string",
-          "minLength": 7,
-          "description": "Exact target HEC-DSS pathname written and verified in RAS DSS catalog."
-        },
-        "boundary_file_path": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Workspace-relative .u## file in the isolated HEC-RAS working directory that receives the boundary update."
-        },
-        "handoff_receipt_path": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Workspace-relative JSON receipt written by the pinned adapter and verified by TSM."
-        },
-        "expected_interval_seconds": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 31536000
-        },
-        "negative_flow_policy": {
-          "enum": [
-            "REJECT",
-            "ALLOW_WITH_APPROVAL"
-          ]
-        },
-        "interpolation_method": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Must identify the actual interpolation method when documented gap-filling is enabled; otherwise use NOT_APPLICABLE."
-        },
-        "boundary_selector": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "kind",
-            "expected_bc_type"
-          ],
-          "properties": {
-            "kind": {
-              "enum": [
-                "1D",
-                "2D"
-              ]
-            },
-            "river": {
-              "type": "string",
-              "minLength": 1
-            },
-            "reach": {
-              "type": "string",
-              "minLength": 1
-            },
-            "station": {
-              "type": "string",
-              "minLength": 1
-            },
-            "area_2d": {
-              "type": "string",
-              "minLength": 1
-            },
-            "bc_line": {
-              "type": "string",
-              "minLength": 1
-            },
-            "boundary_index": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "expected_bc_type": {
-              "enum": [
-                "Flow Hydrograph",
-                "Lateral Inflow Hydrograph",
-                "Uniform Lateral Inflow"
-              ]
-            }
-          }
-        },
-        "adapter_command": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "string",
-            "minLength": 1
-          },
-          "description": "Pinned shell-free adapter argv. Supported tokens: {{workspace}}, {{project}}, {{output}}, {{source_output}}, {{ras_input}}, {{boundary_file}}, {{receipt}}, {{manifest}}."
-        },
-        "adapter_version": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Exact transfer-adapter package version or immutable commit."
-        },
-        "adapter_executable_sha256": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$"
-        },
-        "timeout_seconds": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 86400
         }
       }
     },
@@ -507,11 +357,7 @@
         "command",
         "timeout_seconds",
         "expected_outputs",
-        "output_directory",
-        "working_directory",
-        "project_package_sha256",
-        "executable_sha256",
-        "version_evidence_uri"
+        "output_directory"
       ],
       "properties": {
         "product_version": {
@@ -554,26 +400,6 @@
         "output_directory": {
           "type": "string",
           "minLength": 1
-        },
-        "working_directory": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Isolated workspace clone used for execution; source project remains immutable."
-        },
-        "project_package_sha256": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$",
-          "description": "Measured SHA-256 of the immutable input project tree."
-        },
-        "executable_sha256": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{64}$",
-          "description": "Measured SHA-256 of command[0], the pinned execution adapter."
-        },
-        "version_evidence_uri": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Evidence reference for the exact installed HEC product version and platform."
         }
       }
     },
