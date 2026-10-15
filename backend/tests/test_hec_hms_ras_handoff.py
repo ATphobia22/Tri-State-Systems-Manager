@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import math
 import unittest
+from unittest.mock import patch
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -34,6 +36,40 @@ class HecHmsRasHandoffTests(unittest.TestCase):
             datetime(2026, 1, 1, 1, 0),
             datetime(2026, 1, 1, 2, 0),
         ]
+
+    def test_vcs_distribution_pin_requires_exact_version_and_commit(self):
+        class FakeDistribution:
+            version = HANDOFF.HMS_COMMANDER_VERSION
+            def read_text(self, name):
+                self_name = name
+                if self_name != "direct_url.json":
+                    return None
+                return json.dumps({
+                    "url": "https://github.com/ATphobia22/hms-commander.git",
+                    "vcs_info": {
+                        "vcs": "git",
+                        "commit_id": HANDOFF.HMS_COMMANDER_SOURCE_COMMIT,
+                    },
+                })
+        with patch.object(HANDOFF.importlib.metadata, "distribution", return_value=FakeDistribution()):
+            self.assertEqual(
+                HANDOFF._verify_vcs_distribution(
+                    "hms-commander", HANDOFF.HMS_COMMANDER_VERSION,
+                    HANDOFF.HMS_COMMANDER_SOURCE_COMMIT,
+                ),
+                (HANDOFF.HMS_COMMANDER_VERSION, HANDOFF.HMS_COMMANDER_SOURCE_COMMIT),
+            )
+        fake = FakeDistribution()
+        fake.read_text = lambda name: json.dumps({
+            "url": "https://github.com/ATphobia22/hms-commander.git",
+            "vcs_info": {"vcs": "git", "commit_id": "0" * 40},
+        })
+        with patch.object(HANDOFF.importlib.metadata, "distribution", return_value=fake):
+            with self.assertRaisesRegex(HANDOFF.HandoffError, "does not match pinned"):
+                HANDOFF._verify_vcs_distribution(
+                    "hms-commander", HANDOFF.HMS_COMMANDER_VERSION,
+                    HANDOFF.HMS_COMMANDER_SOURCE_COMMIT,
+                )
 
     def test_dss_pathname_parser_handles_blank_d_part_and_blank_a_part(self):
         regular = HANDOFF.parse_dss_pathname("/BASIN/OUTLET/FLOW//1HOUR/RUN:RUN1/")
