@@ -10,7 +10,10 @@
     "The NWS CloudGIS directory documents public-cloud OGC WMS, WFS, and WCS services.",
     "The GeoServer directory documents current WFS/WMS layers and publishes GetCapabilities links.",
     "Service and layer names can change; re-check GetCapabilities and service notices before operational release.",
-    "Map overlays are situational-awareness visualization only and must not be treated as a hydraulic simulation, survey, or regulatory flood boundary."
+    "Map overlays are situational-awareness visualization only and must not be treated as a hydraulic simulation, survey, or regulatory flood boundary.",
+    "The NWS radar FAQ defines CREF.QCD as maximum reflectivity within the radar volume (dBZ), not rainfall accumulation.",
+    "Rainfall accumulation products such as BOHA (one-hour) and BDSA (storm-total) are distinct estimates and must not be conflated with reflectivity.",
+    "The radar FAQ notes that a blank radar image may indicate a radar outage; overlay health must be visible and must not be interpreted as no hazard."
   ],
   "layers": [
     {
@@ -48,6 +51,23 @@
       "authority_class": "OBSERVATION",
       "purpose": "Long-duration hazard context.",
       "validation_status": "LAYER_NAME_REQUIRES_LIVE_CAPABILITIES_CHECK"
+    }
+  ],
+  "radar_faq": "https://www.weather.gov/radarfaq",
+  "future_products": [
+    {
+      "id": "mrms-qpe",
+      "title": "MRMS quantitative precipitation estimates",
+      "purpose": "Potential future precipitation forcing input after source product, units, accumulation window, timestamp, coverage, and quality metadata are verified.",
+      "enabled_by_default": false,
+      "status": "RESEARCH_CANDIDATE_NOT_IMPLEMENTED"
+    },
+    {
+      "id": "radar-rainfall-accumulation",
+      "title": "One-hour and storm-total precipitation accumulation",
+      "purpose": "Potential context/forcing inputs; not equivalent to radar reflectivity and not automatically suitable for hydraulic boundary conditions.",
+      "enabled_by_default": false,
+      "status": "RESEARCH_CANDIDATE_NOT_IMPLEMENTED"
     }
   ]
 }
