@@ -91,7 +91,7 @@ def sha256_tree(root: Path) -> str:
     digest = hashlib.sha256()
 
     def walk(directory: Path, relative_root: str = "") -> None:
-        for entry in sorted(directory.iterdir(), key=lambda item: item.name):
+        for entry in sorted(directory.iterdir(), key=lambda item: item.name.encode("utf-16-be", "surrogatepass")):
             relative = f"{relative_root}/{entry.name}" if relative_root else entry.name
             if entry.is_symlink():
                 raise ValueError(f"Model project contains a symbolic link: {relative}")
