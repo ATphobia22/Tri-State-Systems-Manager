@@ -2,8 +2,8 @@
   "schema": "tsm.hydrology.aoi-source-register/v1",
   "site_id": "posey-13101-bonebank-road",
   "recorded_on": "2026-10-15",
-  "status": "PARTIALLY_REFRESHED_LIVE_EVIDENCE_2026-10-15",
-  "note": "Live IGIO parcel/address query and Indiana CSLF flood polygon point intersection were captured on 2026-10-15. EPQS values are quarantined due connector unit inconsistency; FEMA current query was not refreshed in this pass. This is not a complete live-data snapshot or an approved engineering AOI.",
+  "status": "PARTIALLY_REFRESHED_LIVE_EVIDENCE_AND_TERRAIN_CATALOG_2026-10-15",
+  "note": "Live IGIO parcel/address query, Indiana CSLF flood polygon point intersection, and USGS TNM 1-meter DEM catalog search were captured on 2026-10-15. EPQS values remain quarantined due connector unit inconsistency; FEMA current query was not refreshed. The DEM GeoTIFF has not been downloaded or QA-checked. This is not a complete live-data snapshot or an approved engineering AOI.",
   "required_geometry_roles": [
     {
       "role": "property_parcel",
@@ -57,9 +57,13 @@
       "limitations": [
         "Check native resolution and acquisition date",
         "Check voids, artifacts, hydro-flattening and datum",
-        "Survey-grade elevations may be required for design"
+        "Survey-grade elevations may be required for design",
+        "Candidate raster identified from catalog; not downloaded, hashed, inspected or processed. USGS warns 1m DEM tiles may not be seamless across collection-project boundaries."
       ],
-      "status": "SITE_WIDE_DEM_NOT_RETRIEVED"
+      "status": "ONE_METER_DEM_CATALOG_MATCH_FOUND_FILE_NOT_DOWNLOADED",
+      "latest_result": "TNM Access API returned four 1-meter DEM products covering the parcel bbox. Candidate selected: USGS 1 Meter 16 x41y419 IN_Indiana_Statewide_LiDAR_2017_B17; bare-earth DEM, 1 m nominal resolution, NAD83/UTM horizontal reference, elevations in meters NAVD88; source acquisition 2017-03-03 to 2020-04-11; publication date 2021-07-04.",
+      "product_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1m/Projects/IN_Indiana_Statewide_LiDAR_2017_B17/TIFF/USGS_1M_16_x41y419_IN_Indiana_Statewide_LiDAR_2017_B17.tif",
+      "metadata_url": "https://www.sciencebase.gov/catalog/item/60e6aebcd34e2a7685d0271b"
     },
     {
       "id": "USGS_EPQS",
@@ -250,11 +254,12 @@
     "epqs_elevation_values": "QUARANTINED_UNIT_CONFLICT",
     "legal_boundary": "OPEN",
     "structure_footprint": "OPEN",
-    "site_dem": "OPEN",
+    "site_dem": "CATALOG_PRODUCT_FOUND_ASSET_DOWNLOAD_AND_QA_PENDING",
     "effective_fema_panel_bfe_fara": "OPEN",
     "drainage_outlet": "OPEN",
     "catchment": "BLOCKED",
     "hec_hms_hec_ras": "BLOCKED_NOT_RUN",
     "engineering_approval": "NOT_APPROVED"
-  }
+  },
+  "terrain_product_candidate": "USGS 1 Meter 16 x41y419 IN_Indiana_Statewide_LiDAR_2017_B17"
 }
