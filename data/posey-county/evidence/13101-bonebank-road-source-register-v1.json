@@ -2,8 +2,8 @@
   "schema": "tsm.hydrology.aoi-source-register/v1",
   "site_id": "posey-13101-bonebank-road",
   "recorded_on": "2026-10-15",
-  "status": "PARTIALLY_REFRESHED_LIVE_EVIDENCE_TERRAIN_CATALOG_AND_HYDROGRAPHY_2026-10-15",
-  "note": "Live IGIO parcel/address query, Indiana CSLF point and parcel-polygon intersections, FEMA NFHL point query, USGS TNM 1-meter DEM catalog search, and USGS 3DHP local hydrography queries were captured on 2026-10-15. EPQS values remain quarantined due connector unit inconsistency. DEM GeoTIFF has not been downloaded or QA-checked because this execution environment could not resolve external DNS. Nearby NHD-derived hydrography is screening context only; no verified outlet/catchment or engineering approval.",
+  "status": "LIVE_EVIDENCE_REFRESHED_2026-10-15_TERRAIN_RASTER_PENDING",
+  "note": "Live IGIO parcel/address and Indiana CSLF centroid plus full-parcel polygon intersections verified. FEMA NFHL centroid query identifies panel 0300 (community 18129C, effective 2014-10-05) and Zone AE, but no usable BFE/datum; no LOMR/LOMA feature intersects the centroid. USGS 1-meter DEM catalog tile covers the parcel but the raster has not been downloaded/QA-checked. USGS 3DHP returned a canal ~7 m from the parcel boundary but no verified outlet or catchment. AOI remains candidate only.",
   "required_geometry_roles": [
     {
       "role": "property_parcel",
@@ -113,10 +113,10 @@
         "USGS shifted from maintaining NHD/WBD/NHDPlus HR in 2024; legacy data are not updated",
         "Hydrography alone does not resolve culverts, tile drainage, or local flow paths"
       ],
-      "status": "LIVE_FLOWLINE_PROXIMITY_QUERY_ONLY_OUTLET_AND_CATCHMENT_NOT_FOUND",
+      "status": "LOCAL_FLOWLINES_VERIFIED_OUTLET_UNRESOLVED",
       "service_url": "https://3dhp.nationalmap.gov/arcgis/rest/services/usgs_3dhp_all/FeatureServer",
       "live_query_evidence": "data/posey-county/evidence/13101-bonebank-road-terrain-hydrography-evidence-2026-10-15.json",
-      "latest_result": "Within 1,000 m of parcel centroid: 20 returned flowline records, including Levy Slough, canals, connectors, channel lines and drainageways; returned flowline source_product=NHD. HydroLocation layer 30 returned zero features and Catchment layer 80 returned zero polygons. Nearby flowlines are screening context only, not a selected outlet or catchment."
+      "latest_result": "Local bbox query returned 10 flowlines; canal H77EJ is 6.997 m from candidate parcel boundary. Wider 1 km query had duplicate rows (20 returned, 10 unique IDs) including Levy Slough. No outlet hydrolocation or catchment polygon returned. Do not assume the nearby canal is the outlet."
     },
     {
       "id": "USGS_STREAMSTATS_IN",
@@ -144,8 +144,8 @@
         "No-data sentinel -9999 is not a BFE",
         "Confirm effective panel/date and map amendments"
       ],
-      "status": "LIVE_POINT_QUERY_CONFIRMS_ZONE_AE_BFE_UNAVAILABLE",
-      "latest_result": "Current direct NFHL point query at the IGIO parcel centroid returned FLD_ZONE=AE, STATIC_BFE=-9999, V_DATUM=null. -9999 is no-data, not a BFE. Parcel-polygon NFHL query was not completed through connector; effective panel/LOMC review remains open.",
+      "status": "ZONE_AE_AND_FIRM_PANEL_VERIFIED_BFE_UNRESOLVED",
+      "latest_result": "Centroid query: FLD_ZONE=AE, STATIC_BFE=-9999, V_DATUM=null. FIRM panel query: panel 0300, community 18129C, effective 2014-10-05, source 18129C_BASE12. BFE layer connector returned 0 with datum/panel/effective date N/A and is not accepted as a BFE. No LOMR/LOMA features intersected centroid. Full parcel/structure overlay and current MSC review remain open.",
       "live_query_evidence": "data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json"
     },
     {
@@ -185,8 +185,8 @@
         "Distinguish state best-available mapping from FEMA effective NFHL",
         "Capture datum, BFE point, layer vintage and metadata"
       ],
-      "status": "LIVE_POINT_AND_PARCEL_INTERSECTION_VERIFIED_ZONE_AE",
-      "latest_result": "Live centroid query and full candidate-parcel polygon query each intersect state CSLF polygon cslf_id 3785, pre_zone AE, new_zone AE, source citation STUDY10. This establishes intersection only, not percent coverage, BFE, or structure-specific depth.",
+      "status": "LIVE_FULL_PARCEL_POLYGON_AE_INTERSECTION_NO_BFE",
+      "latest_result": "Live point and full candidate parcel polygon queries intersect state CSLF polygon cslf_id 3785, pre_zone AE/new_zone AE, source STUDY10. This is an intersection, not a coverage percentage or structure-specific result; no BFE observation was returned.",
       "live_query_evidence": "data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json"
     },
     {
@@ -293,15 +293,18 @@
   "evidence_snapshot": "data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json",
   "gate_disposition": {
     "site_address_parcel_match": "VERIFIED_LIVE",
-    "legacy_point": "REJECTED_FOR_THIS_CANDIDATE_AOI_PROVENANCE_UNKNOWN",
-    "state_floodplain_centroid_intersection": "VERIFIED_ZONE_AE_POINT_ONLY",
-    "epqs_elevation_values": "QUARANTINED_UNIT_CONFLICT",
+    "legacy_point": "REJECTED_FOR_WORKING_CANDIDATE_REFERENCE_PROVENANCE_UNKNOWN",
+    "state_floodplain_parcel_intersection": "VERIFIED_AE_INTERSECTION_NO_BFE",
+    "fema_nfhl_centroid_zone": "ZONE_AE_VERIFIED",
+    "fema_firm_panel": "PANEL_0300_COMMUNITY_18129C_EFFECTIVE_2014-10-05",
+    "fema_bfe": "UNRESOLVED_NO_USABLE_BFE_DATUM",
+    "fema_lomr_loma_centroid_query": "NO_FEATURE_INTERSECTED_CENTROID_REVIEW_MSC_FOR_CURRENT_STATUS",
+    "epqs_and_image_server_elevation": "QUARANTINED_UNIT_OR_PIXEL_VALUE_AMBIGUITY",
     "legal_boundary": "OPEN",
     "structure_footprint": "OPEN",
-    "site_dem": "CATALOG_PRODUCT_FOUND_ASSET_DOWNLOAD_AND_QA_PENDING",
-    "effective_fema_panel_bfe_fara": "ZONE_AE_POINT_CONFIRMED_BFE_UNAVAILABLE_PANEL_FARA_REVIEW_OPEN",
-    "drainage_outlet": "NEARBY_CANAL_CANDIDATE_H77EJ_FOUND_APPROVAL_AND_FIELD_VERIFICATION_OPEN",
-    "catchment": "BLOCKED",
+    "site_dem": "CATALOG_MATCH_RASTER_DOWNLOAD_HASH_QA_OPEN",
+    "drainage_outlet": "NEARBY_CANAL_H77EJ_6.997M_AWAY_OUTLET_NOT_VERIFIED",
+    "catchment": "BLOCKED_NOT_DELINEATED",
     "hec_hms_hec_ras": "BLOCKED_NOT_RUN",
     "engineering_approval": "NOT_APPROVED"
   },
@@ -313,12 +316,13 @@
   "workflow_gate_status": {
     "address_parcel_match": "VERIFIED_LIVE",
     "legacy_coordinate": "REJECTED_FOR_WORKING_CANDIDATE_REFERENCE",
-    "state_floodplain_point_intersection": "VERIFIED_ZONE_AE_POINT_ONLY",
+    "state_floodplain_polygon_intersection": "VERIFIED_AE_INTERSECTION",
+    "fema_panel": "IDENTIFIED_0300_EFFECTIVE_2014-10-05",
+    "fema_bfe_and_structure_overlay": "OPEN",
     "dem_catalog_coverage": "VERIFIED_CATALOG_ONLY",
-    "dem_raster_acquisition_and_qa": "OPEN",
+    "dem_raster_acquisition_and_qa": "OPEN_BLOCKED_BY_CURRENT_EXECUTION_NETWORK",
     "structure_footprint_and_legal_boundary": "OPEN",
-    "effective_fema_panel_bfe_floodway_fara": "OPEN",
-    "drainage_outlet": "OPEN",
+    "drainage_outlet": "NEARBY_CANAL_CANDIDATE_H77EJ_NOT_VERIFIED",
     "catchment": "BLOCKED_NOT_DELINEATED",
     "hec_hms_hec_ras": "BLOCKED_NOT_RUN",
     "engineering_approval": "NOT_APPROVED"
