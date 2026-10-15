@@ -57,3 +57,14 @@ test('capabilities fetch accepts a bounded XML response', async () => {
   );
   assert.equal(assertExpectedLayer(xml, 'conus:conus_cref_qcd').available, true);
 });
+
+test('NWS radar FAQ and MRMS QPE candidate remain discoverable and semantically separate', async () => {
+  const fs = await import('node:fs');
+  const catalog = JSON.parse(fs.readFileSync(new URL('../../../data/sources/noaa-cloudgis-catalog.json', import.meta.url), 'utf8'));
+  assert.equal(catalog.radar_faq, 'https://www.weather.gov/radarfaq');
+  assert.equal(catalog.precipitation_estimate_service.service_url, 'https://mapservices.weather.noaa.gov/raster/rest/services/obs/mrms_qpe/ImageServer');
+  assert.equal(catalog.precipitation_estimate_service.enabled_by_default, false);
+  assert.deepEqual(catalog.precipitation_estimate_service.accumulation_windows_hours, [1, 3, 6, 12, 24, 48, 72]);
+  assert.match(catalog.precipitation_estimate_service.temporal_semantics, /not time-enabled/i);
+  assert.equal(catalog.precipitation_estimate_service.status, 'DOCUMENTED_CANDIDATE_NOT_IN_TWIN_MAP');
+});
