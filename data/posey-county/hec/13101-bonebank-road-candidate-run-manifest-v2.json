@@ -10,7 +10,7 @@
     "evidence_uri": "UNASSIGNED"
   },
   "aoi": {
-    "name": "13101 Bonebank Road parcel candidate (not a watershed)",
+    "name": "13101 Bonebank Road candidate parcel; site-coordinate conflict unresolved",
     "geometry_uri": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer/0",
     "geometry_sha256": "93d9115b21b14932674095b5267b482c9b38c6fc45399687a8b5126894b71572",
     "geometry_workspace_path": "data/posey-county/aoi/13101-bonebank-road-parcel.geojson",
