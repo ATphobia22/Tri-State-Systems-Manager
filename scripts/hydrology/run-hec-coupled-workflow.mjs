@@ -13,7 +13,7 @@ function stableStringify(value) {
   if (value && typeof value === 'object') return '{' + Object.keys(value).sort().map((key) => JSON.stringify(key) + ':' + stableStringify(value[key])).join(',') + '}';
   return JSON.stringify(value);
 }
-function safeWorkspacePath(workspace, relative, label) {
+export function safeWorkspacePath(workspace, relative, label) {
   if (typeof relative !== 'string' || !relative || path.isAbsolute(relative) || relative.includes('\0')) throw new Error(label + ' must be a non-empty relative workspace path');
   const normalized = relative.replace(/\\/g, '/');
   if (normalized.split('/').some((part) => part === '..' || part === '.')) throw new Error(label + ' cannot contain dot segments');
@@ -32,7 +32,7 @@ function verifyHashedFile(workspace, relative, expectedHash, label) {
 function replaceTokens(token, values) {
   return token.replace(/\{\{(workspace|project|output)\}\}/g, (_, key) => values[key]);
 }
-function runStage({ name, stage, workspace, outputDirectory }) {
+export function runStage({ name, stage, workspace, outputDirectory }) {
   const project = safeWorkspacePath(workspace, stage.project_directory, name + '.project_directory');
   if (!fs.existsSync(project) || !fs.statSync(project).isDirectory()) throw new Error(name + ' project directory is missing: ' + stage.project_directory);
   const output = safeWorkspacePath(workspace, outputDirectory, name + '.output_directory');
@@ -174,7 +174,9 @@ function main() {
     throw error;
   }
 }
-try { main(); } catch (error) {
-  console.error(JSON.stringify({ ok: false, status: 'FAILED_OR_BLOCKED', error: String(error.message ?? error) }, null, 2));
-  process.exitCode = 1;
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  try { main(); } catch (error) {
+    console.error(JSON.stringify({ ok: false, status: 'FAILED_OR_BLOCKED', error: String(error.message ?? error) }, null, 2));
+    process.exitCode = 1;
+  }
 }
