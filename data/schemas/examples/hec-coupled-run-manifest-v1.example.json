@@ -53,7 +53,10 @@
     "expected_outputs": [
       "workspace/outputs/hms/hydrograph.dss"
     ],
-    "output_directory": "workspace/outputs/hms"
+    "output_directory": "workspace/outputs/hms",
+    "project_package_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "executable_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "version_evidence_uri": "UNASSIGNED"
   },
   "hydrograph_handoff": {
     "source_output": "workspace/outputs/hms/hydrograph.dss",
@@ -62,7 +65,13 @@
     "time_zone": "UNVERIFIED",
     "flow_units": "cfs",
     "gap_policy": "REJECT",
-    "conversion_method": "UNVERIFIED"
+    "conversion_method": "UNVERIFIED",
+    "adapter_command": [
+      "UNCONFIGURED"
+    ],
+    "adapter_version": "UNPINNED",
+    "adapter_executable_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "timeout_seconds": 3600
   },
   "hec_ras": {
     "product_version": "UNPINNED",
@@ -75,7 +84,10 @@
     "expected_outputs": [
       "workspace/outputs/ras/plan.p01.hdf"
     ],
-    "output_directory": "workspace/outputs/ras"
+    "output_directory": "workspace/outputs/ras",
+    "project_package_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "executable_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "version_evidence_uri": "UNASSIGNED"
   },
   "artifact_storage": {
     "backend": "filesystem-content-addressed",
