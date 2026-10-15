@@ -54,7 +54,7 @@ Availability below means that an official source or service has been identified 
 
 The supplied USACE ERDC report, *Wabash and Ohio River Confluence Hydraulic and Sediment Transport Model Investigation* (February 2022), documents an AdH 2D hydrodynamic and sediment-transport investigation near the Wabash–Ohio confluence. It describes multi-beam bathymetry, floodplain LiDAR, flow measurements, hydraulic and sediment validation, and model scenarios. The study reach is near the confluence and extends downstream toward Smithland Locks and Dam.
 
-This is valuable **regional methodological context**, not evidence that its model covers this parcel, not a ready-to-run HEC-HMS/HEC-RAS package, and not a transferable site-specific flood elevation. The report uses an “Ohio River Datum” for elevations and notes that a current location-specific conversion is needed; do not relabel those elevations as NAVD88. Source: [ERDC Library / report](https://erdc-library.erdc.dren.mil/jspui/handle/11681/43526) and the supplied file `ERDC-CHL-TR-22-4.pdf`.
+This is valuable **regional methodological context**, not evidence that its model covers this parcel, not a ready-to-run HEC-HMS/HEC-RAS package, and not a transferable site-specific flood elevation. The report uses an “Ohio River Datum” for elevations and notes that a current location-specific conversion is needed; do not relabel those elevations as NAVD88. Source: [ERDC Library / report](https://erdc-library.erdc.dren.mil/handle/11681/43441) and the supplied file `ERDC-CHL-TR-22-4.pdf`.
 
 ## 4. AOI definition: keep the geometries separate
 
@@ -127,7 +127,7 @@ The report is intended to be committed on TSM `main`. Before this report's commi
 - USGS Water Data: https://waterdata.usgs.gov/
 - HEC-HMS: https://www.hec.usace.army.mil/software/hec-hms/
 - HEC-RAS: https://www.hec.usace.army.mil/software/hec-ras/
-- ERDC/CHL TR-22-4: https://erdc-library.erdc.dren.mil/jspui/handle/11681/43526
+- ERDC/CHL TR-22-4: https://erdc-library.erdc.dren.mil/handle/11681/43441
 
 ---
 **Disposition:** Keep the parcel as a candidate record, not an approved hydrology AOI. Resolve the coordinate conflict, delineate and verify the watershed, acquire qualified inputs, and obtain human approval before any coupled HEC-HMS/HEC-RAS run or engineering recommendation.
