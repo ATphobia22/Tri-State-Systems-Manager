@@ -178,3 +178,12 @@ def test_runtime_executable_path_must_be_absolute(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError, match="must be absolute"):
         verify_runtime_executable({"runtime_executable_path": "relative.exe", "runtime_executable_sha256": "a" * 64})
+
+
+def test_installed_environment_fingerprint_is_stable_sha256() -> None:
+    from hec_runtime_common import installed_environment_fingerprint
+
+    first = installed_environment_fingerprint()
+    second = installed_environment_fingerprint()
+    assert len(first) == 64
+    assert first == second
