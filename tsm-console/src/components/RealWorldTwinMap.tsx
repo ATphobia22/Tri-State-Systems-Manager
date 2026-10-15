@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { MapTwinLoaderData } from '../types/loaders';
@@ -8,16 +8,16 @@ import { buildArcGisImageServerExportTemplate, INDIANA_CURRENT_IMAGERY_WMS, USGS
 import { setupParcelProvenanceInspector } from '../lib/parcel-provenance';
 import { playCinematicTour } from '../lib/cinematic/camera-tour';
 import ThreeDTilesLayer from './ThreeDTilesLayer';
+import VerticalContextHud from './VerticalContextHud';
+import Geoid18AoiPanel from './Geoid18AoiPanel';
+import { fetchLiveStage } from '../lib/stage';
+import { readTwinUrlState, writeTwinUrlState } from '../lib/geodetic/twin-url-state';
 
-// Self-hosted 3D terrain tiles (OGC 3D Tiles 1.1, generated from USGS 3DEP).
 const TERRAIN_3D_TILESET_URL = `${import.meta.env.BASE_URL}3d-tiles/terrain-3dep/tileset.json`;
 const BUILDINGS_3D_TILESET_URL = `${import.meta.env.BASE_URL}3d-tiles/buildings/tileset.json`;
 
-// Anchor site (owner keep-data decision: docs/privacy/site-anchor-public-disclosure.md).
-// The /map twin opens on the property instead of the regional envelope midpoint.
 const ANCHOR: [number, number] = [-88.005075, 37.845887];
 
-/** Tri-state region constraint: Ohio–Wabash valley (IN/IL/KY). Prevents panning off the planet. */
 const TRI_STATE_MAX_BOUNDS: [[number, number], [number, number]] = [
   [-90.0, 36.0],
   [-82.0, 42.5],
@@ -26,30 +26,34 @@ const TRI_STATE_MAX_BOUNDS: [[number, number], [number, number]] = [
 interface RealWorldTwinMapProps { data: MapTwinLoaderData; }
 const NEW_HARMONY_GAGE: [number, number] = [-87.9414145, 38.13089124];
 
-function buildGagePopup(data: MapTwinLoaderData): maplibregl.Popup {
-  const stage = data.stage.value_ft == null ? 'unavailable' : `${data.stage.value_ft.toFixed(2)} ft`;
-  const qualifier = data.stage.qualifier ? ` ${data.stage.qualifier}` : '';
-  const wse = data.stage.wse_navd88_ft == null ? 'unavailable' : `${data.stage.wse_navd88_ft.toFixed(2)} ft NAVD88`;
-  const discharge = data.stage.discharge_cfs == null ? 'unavailable' : `${data.stage.discharge_cfs.toLocaleString()} cfs`;
-  const observed = data.stage.timestamp || 'unavailable';
-  return new maplibregl.Popup().setText(`USGS 03378500 / NOAA NHRI3 | Stage: ${stage}${qualifier} | WSE: ${wse} | Discharge: ${discharge} | Observed: ${observed}`);
-}
-
-function fmtElev(v: number | null): string {
-  return v == null ? 'unverified' : `${v.toFixed(2)} ft`;
+function buildGagePopup(stage: MapTwinLoaderData['stage']): maplibregl.Popup {
+  const stageTxt = stage.value_ft == null ? 'unavailable' : `${stage.value_ft.toFixed(2)} ft`;
+  const qualifier = stage.qualifier ? ` ${stage.qualifier}` : '';
+  const wse = stage.wse_navd88_ft == null ? 'unavailable' : `${stage.wse_navd88_ft.toFixed(2)} ft NAVD88`;
+  const discharge = stage.discharge_cfs == null ? 'unavailable' : `${stage.discharge_cfs.toLocaleString()} cfs`;
+  const observed = stage.timestamp || 'unavailable';
+  return new maplibregl.Popup().setText(`USGS 03378500 / NOAA NHRI3 | Stage: ${stageTxt}${qualifier} | WSE: ${wse} | Discharge: ${discharge} | Observed: ${observed}`);
 }
 
 export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
+  const initialUrl = readTwinUrlState();
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
-  const [femaVisible, setFemaVisible] = useState(false);
-  const [bafmVisible, setBafmVisible] = useState(false);
-  const [noaaWarningsVisible, setNoaaWarningsVisible] = useState(false);
-  const [noaaRadarVisible, setNoaaRadarVisible] = useState(false);
+  const markerRef = useRef<maplibregl.Marker | null>(null);
+
+  const [liveStage, setLiveStage] = useState(data.stage);
+  const [fetchBusy, setFetchBusy] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
+  const [femaVisible, setFemaVisible] = useState(initialUrl.fema);
+  const [bafmVisible, setBafmVisible] = useState(initialUrl.bafm);
+  const [noaaWarningsVisible, setNoaaWarningsVisible] = useState(initialUrl.noaaWarnings);
+  const [noaaRadarVisible, setNoaaRadarVisible] = useState(initialUrl.noaaRadar);
   const [cinematicActive, setCinematicActive] = useState(false);
-  const [tiles3DVisible, setTiles3DVisible] = useState(false);
+  const [tiles3DVisible, setTiles3DVisible] = useState(initialUrl.tiles3d);
   const [tiles3DStatus, setTiles3DStatus] = useState<'loading' | 'ready' | 'error' | 'disabled'>('disabled');
   const [mapReady, setMapReady] = useState(false);
+  const [reviewPitch, setReviewPitch] = useState(false);
   const cinematicStopRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
@@ -59,24 +63,21 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       style: buildTwinStyle(),
       center: ANCHOR,
       zoom: 14,
-      pitch: 55,
-      bearing: -15,
+      pitch: initialUrl.pitch,
+      bearing: initialUrl.bearing,
       maxPitch: 85,
       minZoom: 8,
       maxZoom: 19,
       maxBounds: TRI_STATE_MAX_BOUNDS,
-      // Keeps the map from trapping iOS page scroll: first swipe scrolls the page.
       cooperativeGestures: true,
     });
-    map.getCanvas().setAttribute('aria-label', 'Interactive tri-state river valley map — Ohio–Wabash valley, Indiana current imagery with USGS elevation');
-    map.addControl(new maplibregl.NavigationControl(), 'top-right');
+    map.getCanvas().setAttribute('aria-label', 'Interactive tri-state river valley map');
+    map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
     map.on('load', () => {
       applyTwinTerrain(map);
 
       const imagerySourceId = 'indiana-current-imagery-live';
       if (!map.getSource(imagerySourceId)) {
-        // ImageServer exportImage: the service exposes no WMSServer endpoint
-        // (verified 2026-09-30 — /WMSServer returns 404 "Invalid URL").
         map.addSource(imagerySourceId, {
           type: 'raster',
           tiles: [buildArcGisImageServerExportTemplate(INDIANA_CURRENT_IMAGERY_WMS)],
@@ -95,8 +96,6 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
 
       const elevationSourceId = 'usgs-3dep-hillshade-live';
       if (!map.getSource(elevationSourceId)) {
-        // Server-side hillshade via the official 3DEP rendering rule
-        // (verified live 2026-09-30; allowRasterFunction=true on the service).
         map.addSource(elevationSourceId, {
           type: 'raster',
           tiles: [buildArcGisImageServerExportTemplate(USGS_3DEP_ELEVATION_WMS, USGS_3DEP_HILLSHADE_RENDERING_RULE)],
@@ -115,15 +114,13 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
 
       addFloodAuthorityLayers(map);
 
-      // NOAA/NWS CloudGIS OGC WMS overlays. These are situational-awareness
-      // products, not hydraulic-model outputs or regulatory flood boundaries.
       const noaaWarningsSource = 'noaa-cloudgis-warnings';
       if (!map.getSource(noaaWarningsSource)) {
         map.addSource(noaaWarningsSource, {
           type: 'raster',
           tiles: ['https://opengeo.ncep.noaa.gov/geoserver/wwa/warnings/ows?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&FORMAT=image/png&TRANSPARENT=true&LAYERS=warnings&STYLES=&SRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}'],
           tileSize: 256,
-          attribution: 'NOAA/National Weather Service CloudGIS — warnings; operational status and layer availability may change',
+          attribution: 'NOAA/NWS CloudGIS warnings',
         });
       }
       if (!map.getLayer('noaa-cloudgis-warnings-layer')) {
@@ -142,7 +139,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
           type: 'raster',
           tiles: ['https://opengeo.ncep.noaa.gov/geoserver/conus/conus_cref_qcd/ows?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&FORMAT=image/png&TRANSPARENT=true&LAYERS=conus_cref_qcd&STYLES=&SRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}'],
           tileSize: 256,
-          attribution: 'NOAA/NWS Multi-Radar/Multi-Sensor (MRMS) composite radar — situational awareness only',
+          attribution: 'NOAA/NWS MRMS radar — situational awareness only',
         });
       }
       if (!map.getLayer('noaa-cloudgis-radar-layer')) {
@@ -155,11 +152,10 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
         });
       }
 
-      applyLiveStageMetadata(map, data);
-      // Hydraulic rendering is fail-closed: only an explicitly derived NAVD88 WSE drives water height.
-      addMartinHydraulicLayer(map, data.stage.hydraulic_extrusion_eligibility === 'SITE_WSE_VERIFIED_FOR_EXTRUSION' ? data.stage.wse_navd88_ft : null);
+      applyLiveStageMetadata(map, { ...data, stage: liveStage });
+      addMartinHydraulicLayer(map, liveStage.hydraulic_extrusion_eligibility === 'SITE_WSE_VERIFIED_FOR_EXTRUSION' ? liveStage.wse_navd88_ft : null);
       if (map.getLayer('tsm-hydraulic-extrusion')) setupParcelProvenanceInspector(map);
-      new maplibregl.Marker().setLngLat(NEW_HARMONY_GAGE).setPopup(buildGagePopup(data)).addTo(map);
+      markerRef.current = new maplibregl.Marker().setLngLat(NEW_HARMONY_GAGE).setPopup(buildGagePopup(liveStage)).addTo(map);
       mapRef.current = map;
       setMapReady(true);
     });
@@ -168,21 +164,60 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       cinematicStopRef.current = null;
       map.remove();
       mapRef.current = null;
+      markerRef.current = null;
     };
   }, [data]);
 
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    for (const [id, visible] of [['fema-nfhl-overlay', femaVisible], ['indiana-bafm-overlay', bafmVisible], ['noaa-cloudgis-warnings-layer', noaaWarningsVisible], ['noaa-cloudgis-radar-layer', noaaRadarVisible]] as const) {
+    for (const [id, visible] of [
+      ['fema-nfhl-overlay', femaVisible],
+      ['indiana-bafm-overlay', bafmVisible],
+      ['noaa-cloudgis-warnings-layer', noaaWarningsVisible],
+      ['noaa-cloudgis-radar-layer', noaaRadarVisible],
+    ] as const) {
       if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
     }
-  }, [femaVisible, bafmVisible, noaaWarningsVisible, noaaRadarVisible]);
+    writeTwinUrlState({
+      fema: femaVisible,
+      bafm: bafmVisible,
+      noaaWarnings: noaaWarningsVisible,
+      noaaRadar: noaaRadarVisible,
+      tiles3d: tiles3DVisible,
+    });
+  }, [femaVisible, bafmVisible, noaaWarningsVisible, noaaRadarVisible, tiles3DVisible]);
 
-  const stage = data.stage.value_ft;
-  const wse = data.stage.wse_navd88_ft;
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady) return;
+    applyLiveStageMetadata(map, { ...data, stage: liveStage });
+    addMartinHydraulicLayer(
+      map,
+      liveStage.hydraulic_extrusion_eligibility === 'SITE_WSE_VERIFIED_FOR_EXTRUSION' ? liveStage.wse_navd88_ft : null,
+    );
+    if (markerRef.current) {
+      markerRef.current.setPopup(buildGagePopup(liveStage));
+    }
+  }, [liveStage, data, mapReady]);
+
+  const onFetchLive = useCallback(async () => {
+    setFetchBusy(true);
+    setFetchError(null);
+    try {
+      const next = await fetchLiveStage();
+      if (next.source === 'UNAVAILABLE') {
+        setFetchError('USGS snapshot unavailable. Stage remains fail-closed (no fabricated values).');
+      }
+      setLiveStage(next);
+    } catch (e) {
+      setFetchError(e instanceof Error ? e.message : 'Fetch failed');
+    } finally {
+      setFetchBusy(false);
+    }
+  }, []);
+
   const terrainStatus = getTerrainRgbStatus();
-  const terrainConfigured = terrainStatus.enabled;
   const terrainMessage = terrainRgbBlockMessage(terrainStatus);
 
   const toggleCinematicTour = (): void => {
@@ -194,12 +229,18 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       setCinematicActive(false);
       return;
     }
-    // Reduced-motion gate lives in playCinematicTour: it renders a static
-    // frame and returns null instead of a live tour.
     const stop = playCinematicTour(map);
     if (stop === null) return;
     cinematicStopRef.current = stop;
     setCinematicActive(true);
+  };
+
+  const applyReviewPitch = (): void => {
+    const map = mapRef.current;
+    if (!map) return;
+    map.easeTo({ pitch: 55, bearing: -15, duration: 800 });
+    setReviewPitch(true);
+    writeTwinUrlState({ pitch: 55, bearing: -15, vert: 'NAVD88' });
   };
 
   return (
@@ -217,24 +258,31 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
           overlay
         />
       )}
-      <div style={{ position: 'absolute', left: 12, top: 12, zIndex: 2, maxWidth: 520, padding: 12, borderRadius: 10, background: 'rgba(2,6,23,0.9)', color: '#e2e8f0', fontSize: 12, lineHeight: 1.5 }}>
+      <div style={{ position: 'absolute', left: 12, top: 12, zIndex: 2, maxWidth: 540, maxHeight: 'calc(100% - 24px)', overflow: 'auto', padding: 12, borderRadius: 10, background: 'rgba(2,6,23,0.92)', color: '#e2e8f0', fontSize: 12, lineHeight: 1.5 }}>
         <strong>Real-source open-world twin</strong>
-        <div>Indiana Current Imagery: live ImageServer · USGS 3DEP: dynamic elevation/hillshade (visualization only)</div>
-        <div role="status">{terrainMessage}</div>
-        <div>FEMA NFHL: effective / insurance · Indiana BAFM: planning / Flood Control Act · NOAA/NWS: operational alerts and radar context</div>
-        <div><a href="https://www.weather.gov/radarfaq" target="_blank" rel="noopener noreferrer" style={{ color: '#93c5fd', textDecoration: 'underline' }}>NOAA radar product guide and limitations ↗</a></div>
-        <div>Stage: {stage == null ? 'unavailable' : `${stage.toFixed(2)} ft`} {data.stage.qualifier ? `(${data.stage.qualifier})` : ''} · {data.stage.source}</div>
-        <div>Station WSE NAVD88: {wse == null ? 'unavailable' : `${wse.toFixed(2)} ft`} · Datum: {data.stage.conversion_applied ? 'verified USGS station relationship' : 'blocked'} · Site transfer: {data.stage.site_transfer_status ?? 'required'} · Hydraulic extrusion: {data.stage.hydraulic_extrusion_eligibility === 'SITE_WSE_VERIFIED_FOR_EXTRUSION' ? 'enabled' : 'blocked — validated site WSE required'} · Discharge: {data.stage.discharge_cfs == null ? 'unavailable' : `${data.stage.discharge_cfs.toLocaleString()} cfs`}</div>
-        <div>Site elevations: LAG {fmtElev(data.site.elevations.lag_ft)} · BFE {fmtElev(data.site.elevations.bfe_ft)} · Berm {fmtElev(data.site.elevations.bermCrest_ft)} · FFE {fmtElev(data.site.elevations.ffe_ft)}</div>
-        <div style={{ color: '#94a3b8' }}>Elevation provenance: LAG/berm/FFE owner-supplied (uncertified); BFE working value per 2026-08-22 LOMA checklist (FIRM verification pending).</div>
-        <div>Transfer gate: {data.stage.site_transfer_status ?? 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE'} · Station conversion source: {data.stage.vertical_conversion_source ?? 'source required'}</div>
+        <div>Indiana Current Imagery · USGS 3DEP hillshade (visualization DERIVED)</div>
+        <div>FEMA NFHL: effective / insurance · Indiana BAFM: planning · NOAA/NWS: alerts/radar context only</div>
+        <div><a href="https://www.weather.gov/radarfaq" target="_blank" rel="noopener noreferrer" style={{ color: '#93c5fd', textDecoration: 'underline' }}>NOAA radar product guide ↗</a></div>
+
+        <VerticalContextHud
+          stage={liveStage}
+          site={data.site}
+          terrainMessage={terrainMessage}
+          onFetchLive={onFetchLive}
+          fetchBusy={fetchBusy}
+          fetchError={fetchError}
+        />
+
+        <Geoid18AoiPanel />
+
         <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
           {([
-            { id: 'fema', pressed: femaVisible, onClick: () => setFemaVisible((value) => !value), label: `FEMA NFHL ${femaVisible ? 'ON' : 'OFF'}` },
-            { id: 'bafm', pressed: bafmVisible, onClick: () => setBafmVisible((value) => !value), label: `Indiana BAFM ${bafmVisible ? 'ON' : 'OFF'}` },
-            { id: 'noaa-warnings', pressed: noaaWarningsVisible, onClick: () => setNoaaWarningsVisible((value) => !value), label: `NWS Warnings ${noaaWarningsVisible ? 'ON' : 'OFF'}` },
-            { id: 'noaa-radar', pressed: noaaRadarVisible, onClick: () => setNoaaRadarVisible((value) => !value), label: `NOAA Radar ${noaaRadarVisible ? 'ON' : 'OFF'}` },
-            { id: '3d', pressed: tiles3DVisible, onClick: () => setTiles3DVisible((value) => !value), label: `3D Terrain ${tiles3DVisible ? 'ON' : 'OFF'}` },
+            { id: 'fema', pressed: femaVisible, onClick: () => setFemaVisible((v) => !v), label: `FEMA NFHL ${femaVisible ? 'ON' : 'OFF'}` },
+            { id: 'bafm', pressed: bafmVisible, onClick: () => setBafmVisible((v) => !v), label: `Indiana BAFM ${bafmVisible ? 'ON' : 'OFF'}` },
+            { id: 'noaa-warnings', pressed: noaaWarningsVisible, onClick: () => setNoaaWarningsVisible((v) => !v), label: `NWS Warnings ${noaaWarningsVisible ? 'ON' : 'OFF'}` },
+            { id: 'noaa-radar', pressed: noaaRadarVisible, onClick: () => setNoaaRadarVisible((v) => !v), label: `NOAA Radar ${noaaRadarVisible ? 'ON' : 'OFF'}` },
+            { id: '3d', pressed: tiles3DVisible, onClick: () => setTiles3DVisible((v) => !v), label: `3D Terrain ${tiles3DVisible ? 'ON' : 'OFF'}` },
+            { id: 'review', pressed: reviewPitch, onClick: applyReviewPitch, label: reviewPitch ? 'Review pitch set' : 'Review pitch (55°)' },
             { id: 'cinematic', pressed: cinematicActive, onClick: toggleCinematicTour, label: cinematicActive ? 'Stop cinematic' : 'Cinematic fly-through' },
           ] as const).map((btn) => (
             <button
@@ -258,9 +306,11 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
             </button>
           ))}
         </div>
-        <div style={{ marginTop: 6, color: '#86efac' }}>USGS 03378500: live values only via the "Fetch live snapshot" button (no auto-fetch, no polling). Station WSE via published USGS SIR 2016-5119 conversion (+352.67 ft NAVD88). Site transfer and hydraulic extrusion remain gated on a validated hydraulic profile. HEC-RAS visualization authority remains SIMULATION_DEMO / MODEL_OUTPUT until evidence gates are satisfied. Visualization/model context only; human authority remains final.</div>
+        <div style={{ marginTop: 6, color: '#86efac' }}>
+          Live water level only via "Fetch live water level" (no auto-fetch, no polling). Hydraulic extrusion stays gated. Human authority remains final.
+        </div>
         {tiles3DVisible && (
-          <div style={{ marginTop: 6, color: '#94a3b8' }}>3D terrain: self-hosted OGC 3D Tiles 1.1 (USGS 3DEP) · status: {tiles3DStatus}</div>
+          <div style={{ marginTop: 6, color: '#94a3b8' }}>3D terrain: self-hosted OGC 3D Tiles 1.1 · status: {tiles3DStatus}</div>
         )}
       </div>
     </section>
