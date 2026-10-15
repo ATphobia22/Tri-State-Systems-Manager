@@ -83,6 +83,39 @@ def load_approved_manifest(path: Path) -> dict[str, Any]:
     return manifest
 
 
+def sha256_tree(root: Path) -> str:
+    """Hash a project tree using the exact cross-language TSM manifest algorithm."""
+    root = root.resolve(strict=True)
+    if not root.is_dir():
+        raise ValueError("Model project package must be a directory")
+    digest = hashlib.sha256()
+
+    def walk(directory: Path, relative_root: str = "") -> None:
+        for entry in sorted(directory.iterdir(), key=lambda item: item.name):
+            relative = f"{relative_root}/{entry.name}" if relative_root else entry.name
+            if entry.is_symlink():
+                raise ValueError(f"Model project contains a symbolic link: {relative}")
+            if entry.is_dir():
+                walk(entry, relative)
+            elif entry.is_file():
+                digest.update(relative.replace("\\\\", "/").encode("utf-8"))
+                digest.update(b"\\x00")
+                digest.update(bytes.fromhex(sha256_file(entry)))
+            else:
+                raise ValueError(f"Model project contains a non-regular entry: {relative}")
+
+    walk(root)
+    return digest.hexdigest()
+
+
+def verify_project_package_hash(stage: dict[str, Any], project: Path) -> None:
+    """Recheck the staged project bytes immediately before invoking HEC."""
+    expected = stage.get("project_package_sha256")
+    actual = sha256_tree(project)
+    if expected != actual:
+        raise ValueError(f"Staged project package hash mismatch: expected {expected}, observed {actual}")
+
+
 def get_stage(manifest: dict[str, Any], stage_name: str) -> dict[str, Any]:
     stage = manifest.get(stage_name)
     if not isinstance(stage, dict):
