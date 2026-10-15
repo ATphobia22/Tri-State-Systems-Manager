@@ -262,3 +262,12 @@ A live query of Indiana's **Building Footprints 2016–2020** layer returned fou
 A live Indiana CSLF overlay of candidate footprint 763173 intersects the state Zone AE polygon (`cslf_id=3785`, source `STUDY10`). This is a building-footprint-to-zone intersection only; it supplies no BFE, depth, velocity, finished-floor elevation, or regulatory determination. The footprint is historical and not a survey. Current imagery and owner confirmation are needed to confirm that feature 763173 is the actual home and that the footprint remains current. FEMA NFHL full-footprint overlay and effective panel/LOMC review remain open.
 
 The structure evidence and all returned footprint geometries are preserved in the [live query evidence JSON](../../data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json). The structure gate is now **ADDRESS-ASSOCIATED CANDIDATE FOUND — OWNER/CURRENT-IMAGERY CONFIRMATION PENDING**, not fully approved. The AOI remains candidate-only; no catchment or model result has been generated.
+
+
+## 10. Owner-confirmed aerial photograph update — 2026-10-15
+
+The owner confirmed that the large brick residence near the center of the uploaded aerial photograph is their home. See the [machine-readable owner photo confirmation](../../data/posey-county/evidence/13101-bonebank-road-owner-photo-confirmation-2026-10-15.json). The exact uploaded image bytes are 609,767 bytes with SHA-256 `b2f7d7ed3bba6a50ab6058c5f78a68fee283a843474f16863382686a797edfda`. The original bytes are not yet committed to this repository; the hash is recorded from the uploaded artifact available in the session.
+
+This confirmation resolves the identity question for the photographed residence but does not prove that historic building-footprint feature 763173 exactly matches the visible roof outline or current structure. Current orthophotography and geometry reconciliation remain required. The photograph shows extensive visible inundation around multiple structures; no event date, flood source, depth, water-surface elevation, BFE, or structure-floor elevation is inferred from the image.
+
+The AOI remains candidate-only. Parcel boundary/survey, DEM acquisition and QA, effective FEMA/Indiana flood review, drainage outlet, catchment delineation, and professional approval remain open. HEC-HMS and HEC-RAS remain `BLOCKED_NOT_RUN`. Reusable automation requirements are documented in [Home-site AOI automation contract](./HOME-SITE-AOI-AUTOMATION-CONTRACT.md).
