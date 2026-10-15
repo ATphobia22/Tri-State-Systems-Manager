@@ -1,0 +1,84 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "pilot-draft-2026-10",
+  "project_id": "UNAPPROVED-PILOT-PENDING",
+  "purpose": "BENCHMARK_ONLY",
+  "approval": {
+    "status": "DRAFT",
+    "approved_by": "UNASSIGNED",
+    "approved_at": "2026-10-15T00:00:00Z",
+    "evidence_uri": "UNASSIGNED"
+  },
+  "aoi": {
+    "name": "AOI_NOT_SELECTED",
+    "geometry_uri": "UNASSIGNED",
+    "geometry_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "geometry_workspace_path": "workspace/aoi.geojson",
+    "area_km2": 1,
+    "watershed_delineation_uri": "UNASSIGNED",
+    "watershed_delineation_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "watershed_delineation_workspace_path": "workspace/watershed.geojson"
+  },
+  "reference_system": {
+    "horizontal_crs": "UNVERIFIED",
+    "vertical_datum": "UNVERIFIED",
+    "units_policy": "UNVERIFIED",
+    "datum_evidence_uri": "UNASSIGNED"
+  },
+  "source_inputs": [
+    {
+      "input_id": "source-placeholder",
+      "authority_class": "DERIVED",
+      "source_uri": "UNASSIGNED",
+      "retrieved_at": "2026-10-15T00:00:00Z",
+      "valid_time": "UNASSIGNED",
+      "workspace_path": "workspace/data/input-placeholder.bin",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "media_type": "application/octet-stream",
+      "units": "UNVERIFIED",
+      "horizontal_crs": "UNVERIFIED",
+      "vertical_datum": "UNVERIFIED",
+      "quality_status": "MISSING",
+      "license_or_terms_uri": "UNASSIGNED"
+    }
+  ],
+  "hec_hms": {
+    "product_version": "UNPINNED",
+    "platform": "other",
+    "project_directory": "workspace/hec-hms",
+    "command": [
+      "UNCONFIGURED"
+    ],
+    "timeout_seconds": 3600,
+    "expected_outputs": [
+      "workspace/outputs/hydrograph.dss"
+    ]
+  },
+  "hydrograph_handoff": {
+    "source_output": "workspace/outputs/hydrograph.dss",
+    "ras_input": "workspace/hec-ras/flow-data.dss",
+    "format": "DSS",
+    "time_zone": "UNVERIFIED",
+    "flow_units": "cfs",
+    "gap_policy": "REJECT",
+    "conversion_method": "UNVERIFIED"
+  },
+  "hec_ras": {
+    "product_version": "UNPINNED",
+    "platform": "windows-x64",
+    "project_directory": "workspace/hec-ras",
+    "command": [
+      "UNCONFIGURED"
+    ],
+    "timeout_seconds": 7200,
+    "expected_outputs": [
+      "workspace/outputs/plan.p01.hdf"
+    ]
+  },
+  "artifact_storage": {
+    "backend": "filesystem-content-addressed",
+    "root_directory": "workspace/artifacts",
+    "retention_policy": "retain all run manifests and referenced blobs; no automatic deletion",
+    "metadata_store": "run-manifest-only"
+  }
+}
