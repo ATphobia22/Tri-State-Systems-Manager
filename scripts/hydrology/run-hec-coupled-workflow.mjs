@@ -161,6 +161,15 @@ function main() {
   for (const [dir, label] of [[hmsProjectCheck, 'HEC-HMS project'], [rasProjectCheck, 'HEC-RAS project']]) {
     disjoint(storeRoot, dir, 'artifact store', label);
   }
+  const immutableInputPaths = [
+    [manifest.aoi.geometry_workspace_path, 'AOI geometry'],
+    [manifest.aoi.watershed_delineation_workspace_path, 'watershed delineation'],
+    ...manifest.source_inputs.map((input) => [input.workspace_path, 'source input ' + input.input_id]),
+  ];
+  for (const [relative, label] of immutableInputPaths) {
+    const inputPath = safeWorkspacePath(workspace, relative, label);
+    disjoint(storeRoot, inputPath, 'artifact store', label);
+  }
   for (const [dir, label] of [[hmsOutputCheck, 'HEC-HMS output'], [rasOutputCheck, 'HEC-RAS output']]) {
     disjoint(storeRoot, dir, 'artifact store', label);
     disjoint(dir, hmsProjectCheck, label, 'HEC-HMS project');
