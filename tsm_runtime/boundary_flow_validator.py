@@ -13,8 +13,10 @@ from pathlib import Path
 from typing import Any, Mapping
 
 GAUGE_BY_BOUNDARY = {
-    "WABASH_INFLOW": "03378500",
-    "OHIO_TAILWATER": "03322000",
+    # This is one Wabash component gauge, not the total confluence inflow.
+    # Total Wabash flow for the ERDC regional scenario is derived from three gauges
+    # by tsm_runtime.erdc_tr22_4_boundary.
+    "WABASH_COMPONENT_03378500": "03378500",
 }
 MIN_SLOPE_FT_FT = 0.0001
 MAX_SLOPE_FT_FT = 0.0008
