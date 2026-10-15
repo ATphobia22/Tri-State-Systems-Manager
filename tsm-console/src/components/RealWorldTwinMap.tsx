@@ -89,7 +89,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
           type: 'raster',
           tiles: [buildArcGisImageServerExportTemplate(INDIANA_CURRENT_IMAGERY_WMS)],
           tileSize: 512,
-          attribution: 'Indiana Geographic Information Office — Current Orthophotography (CC0)',
+          attribution: 'Indiana Geographic Information Office \u2014 Current Orthophotography (CC0)',
         });
       }
       if (!map.getLayer('indiana-current-imagery-live-layer')) {
@@ -127,7 +127,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
           type: 'raster',
           tiles: ['https://opengeo.ncep.noaa.gov/geoserver/wwa/warnings/ows?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&FORMAT=image/png&TRANSPARENT=true&LAYERS=warnings&STYLES=&SRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}'],
           tileSize: 256,
-          attribution: 'NOAA/National Weather Service CloudGIS warnings',
+          attribution: 'NOAA/National Weather Service CloudGIS \u2014 warnings; operational status and layer availability may change',
         });
       }
       if (!map.getLayer('noaa-cloudgis-warnings-layer')) {
@@ -146,7 +146,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
           type: 'raster',
           tiles: ['https://opengeo.ncep.noaa.gov/geoserver/conus/conus_cref_qcd/ows?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&FORMAT=image/png&TRANSPARENT=true&LAYERS=conus_cref_qcd&STYLES=&SRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}'],
           tileSize: 256,
-          attribution: 'NOAA/NWS Multi-Radar (MRMS) — situational awareness only',
+          attribution: 'NOAA/NWS Multi-Radar/Multi-Sensor (MRMS) composite radar \u2014 situational awareness only',
         });
       }
       if (!map.getLayer('noaa-cloudgis-radar-layer')) {
@@ -233,7 +233,6 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       setMultiStations(snaps);
       const primary = snaps.find((s) => s.stationId === '03378500');
       if (primary && primary.stage_ft != null) {
-        // Refresh primary HUD stage from constellation without inventing WSE
         const refreshed = await fetchLiveStage();
         setLiveStage(refreshed);
       }
@@ -280,7 +279,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
         new maplibregl.Popup()
           .setLngLat(f.geometry.coordinates as [number, number])
           .setHTML(
-            `<strong>${p.name ?? 'Dam'}</strong><br/>Hazard: ${p.hazardPotential ?? '—'}<br/>Condition: ${p.condition ?? '—'}<br/>${p.ownerType ?? ''} · ${p.primaryPurpose ?? ''}<br/><em>Registry only — not a safety determination</em>`,
+            `<strong>${p.name ?? 'Dam'}</strong><br/>Hazard: ${p.hazardPotential ?? '\u2014'}<br/>Condition: ${p.condition ?? '\u2014'}<br/>${p.ownerType ?? ''} \u00b7 ${p.primaryPurpose ?? ''}<br/><em>Registry only \u2014 not a safety determination</em>`,
           )
           .addTo(map);
       });
@@ -330,9 +329,9 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       )}
       <div style={{ position: 'absolute', left: 12, top: 12, zIndex: 2, maxWidth: 540, maxHeight: 'calc(100% - 24px)', overflow: 'auto', padding: 12, borderRadius: 10, background: 'rgba(2,6,23,0.92)', color: '#e2e8f0', fontSize: 12, lineHeight: 1.5 }}>
         <strong>Real-source open-world twin</strong>
-        <div>Indiana Current Imagery · USGS 3DEP hillshade (visualization DERIVED)</div>
-        <div>FEMA NFHL: effective / insurance · Indiana BAFM: planning / Flood Control Act · NOAA/NWS: alerts/radar context only</div>
-        <div role="note" aria-label="Model evidence limitation" style={{ marginTop: 4, color: '#fbbf24' }}>HEC-RAS layers: SIMULATION_DEMO / MODEL_OUTPUT · Visualization/model context only; not a regulatory determination.</div>
+        <div>Indiana Current Imagery \u00b7 USGS 3DEP hillshade (visualization DERIVED)</div>
+        <div>FEMA NFHL: effective / insurance \u00b7 Indiana BAFM: planning / Flood Control Act \u00b7 NOAA/NWS: alerts/radar context only</div>
+        <div role="note" aria-label="Model evidence limitation" style={{ marginTop: 4, color: '#fbbf24' }}>HEC-RAS layers: SIMULATION_DEMO / MODEL_OUTPUT \u00b7 Visualization/model context only; not a regulatory determination.</div>
 
         <VerticalContextHud
           stage={liveStage}
@@ -362,7 +361,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
             { id: 'noaa-radar', pressed: noaaRadarVisible, onClick: () => setNoaaRadarVisible((v) => !v), label: `NOAA Radar ${noaaRadarVisible ? 'ON' : 'OFF'}` },
             { id: 'dams', pressed: damsVisible, onClick: () => setDamsVisible((v) => !v), label: `Local Dams ${damsVisible ? 'ON' : 'OFF'}` },
             { id: '3d', pressed: tiles3DVisible, onClick: () => setTiles3DVisible((v) => !v), label: `3D Terrain ${tiles3DVisible ? 'ON' : 'OFF'}` },
-            { id: 'review', pressed: reviewPitch, onClick: applyReviewPitch, label: reviewPitch ? 'Review pitch set' : 'Review pitch (55°)' },
+            { id: 'review', pressed: reviewPitch, onClick: applyReviewPitch, label: reviewPitch ? 'Review pitch set' : 'Review pitch (55\u00b0)' },
             { id: 'cinematic', pressed: cinematicActive, onClick: toggleCinematicTour, label: cinematicActive ? 'Stop cinematic' : 'Cinematic fly-through' },
           ] as const).map((btn) => (
             <button
@@ -387,10 +386,10 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
           ))}
         </div>
         <div style={{ marginTop: 6, color: '#86efac' }}>
-          Live water: button-only (single or constellation). No auto-fetch. Local dams = registry awareness only. Human authority remains final.
+          Live water: button-only (single or constellation). No auto-fetch. Local dams = registry awareness only. HEC-RAS remains SIMULATION_DEMO until evidence gates pass. Source required for verified datum conversion; unavailable stays unavailable. Human authority remains final.
         </div>
         {tiles3DVisible && (
-          <div style={{ marginTop: 6, color: '#94a3b8' }}>3D terrain: self-hosted OGC 3D Tiles 1.1 · status: {tiles3DStatus}</div>
+          <div style={{ marginTop: 6, color: '#94a3b8' }}>3D terrain: self-hosted OGC 3D Tiles 1.1 \u00b7 status: {tiles3DStatus}</div>
         )}
       </div>
     </section>
