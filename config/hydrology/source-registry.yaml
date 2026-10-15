@@ -92,6 +92,29 @@ adapters:
         role: "Flood hazard reference; not a substitute for local terrain or hydraulic modeling"
     status: "UNVERIFIED"
 
+engineering_references:
+  wabash_ohio_confluence:
+    title: "Wabash and Ohio River Confluence Hydraulic and Sediment Transport Model Investigation"
+    report_id: "ERDC/CHL TR-22-4"
+    publication_date: "2022-02"
+    authors: ["Gary Bell", "David Abraham", "Nate Clifton", "Kenneth H. Lamkin"]
+    issuing_agency: "US Army Engineer Research and Development Center, Coastal and Hydraulics Laboratory"
+    source_file: "ERDC-CHL-TR-22-4.pdf"
+    model_family: "Adaptive Hydraulics (AdH) 2D shallow-water and sediment transport"
+    status: "REFERENCE_ONLY_NOT_A_RUNTIME_INPUT"
+    documented_horizontal_crs: "NAD83 / UTM Zone 15 North"
+    documented_horizontal_units: "metres"
+    documented_vertical_datum: "Ohio River Datum; at J. T. Myers Lock and Dam, report states NGVD29 -0.35 ft"
+    documented_flow_method:
+      combined_gauge: "03381700"
+      wabash_component_gauges: ["03378500", "03378550", "03381500"]
+      ohio_inflow_derivation: "combined discharge at 03381700 minus the sum of the three Wabash component gauges"
+    constraints:
+      - "Do not treat the report's AdH mesh or model settings as a HEC-RAS project."
+      - "Do not use the Ohio River Datum conversion outside the report's stated location without authoritative local datum control."
+      - "Reconstructing the report's boundary hydrographs requires synchronized source observations, units, timestamps, and independent checks."
+      - "The report's regional confluence domain does not define a residential parcel catchment or local flood risk."
+
 invariants:
   geojson_exchange_format: "RFC7946_WGS84_LONGITUDE_LATITUDE"
   forbid_legacy_geojson_crs_member: true
