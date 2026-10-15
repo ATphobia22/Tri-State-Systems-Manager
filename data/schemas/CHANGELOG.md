@@ -40,3 +40,5 @@ Migration notes for schema version bumps. Breaking field/enum/constraint changes
 
 - Adds a required scope field and VERIFIED_SERVICE_METADATA as an enum value for assets verified via live service metadata rather than downloaded source data.
 - Backward compatibility: v1.1.0 artifacts are not readable by v1.0.0 validators. V1.0.0 artifacts validate against v1.1.0 only if they supply scope; producers must update schemaVersion.
+
+- **v2 execution gate:** requires explicit HEC-HMS `run_name`, HEC-RAS `plan_number`, and a hash-locked Python environment plus installed-distribution fingerprint. The current Bonebank candidate remains DRAFT and fails execution readiness.
