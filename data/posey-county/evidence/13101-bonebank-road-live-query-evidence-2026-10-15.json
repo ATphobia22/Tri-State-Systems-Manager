@@ -3,7 +3,7 @@
   "site_id": "posey-13101-bonebank-road",
   "retrieved_on": "2026-10-15",
   "status": "PARTIAL_LIVE_SOURCE_VERIFICATION",
-  "interpretation": "Live service queries verify the address/parcel identity and state flood polygon intersection at the IGIO parcel centroid. They do not establish legal boundary, home footprint, whole-parcel flood coverage, BFE, catchment, or model fitness.",
+  "interpretation": "Live service queries verify the address/parcel identity, a matching Posey County address point, an address-associated candidate building footprint (not owner/survey confirmed), state CSLF parcel and candidate-building intersections with Zone AE, and a FEMA NFHL Zone AE point result without a usable BFE/datum. The candidate 1-meter DEM is catalog-verified but not downloaded or QA-checked; nearby NHD-derived hydrography is screening context only. These sources do not establish legal boundaries, the confirmed principal dwelling, whole-parcel flood coverage, BFE, catchment, or model fitness.",
   "parcel_source": {
     "agency": "Indiana Geographic Information Office",
     "service": "Parcel Boundaries of Indiana 2025",
@@ -221,7 +221,8 @@
     "The full candidate parcel polygon intersects the Indiana state CSLF flood polygon cslf_id 3785 (AE). This is a topological intersection only; no coverage fraction or house-specific flood depth was computed.",
     "USGS 3DHP current service (metadata refresh 2026-09-04) returned ten flowlines in a ~0.6 km bbox around the candidate parcel. Canal H77EJ is approximately 7.0 m from the parcel boundary by projected geometric distance; this is only a candidate conveyance, not an outlet determination.",
     "The 3DHP catchment layer returned zero features in the broader query bbox and the outlet hydrolocation layer returned zero features there. This is a service query result, not evidence that the property has no drainage basin.",
-    "Live Indiana address-point and building-footprint queries identified candidate footprint objectid 763173 containing the Posey County address point; the state CSLF polygon also intersects this footprint (AE). This improves the structure-location candidate but does not identify the principal dwelling conclusively or provide a BFE."
+    "Live Indiana address-point and building-footprint queries identified candidate footprint objectid 763173 containing the Posey County address point; the state CSLF polygon also intersects this footprint (AE). This improves the structure-location candidate but does not identify the principal dwelling conclusively or provide a BFE.",
+    "Separate candidate structure GeoJSON created at data/posey-county/aoi/13101-bonebank-road-structure-candidate-763173.geojson. It is explicitly marked unapproved and not surveyed."
   ],
   "terrain_catalog": {
     "agency": "U.S. Geological Survey / The National Map",
@@ -609,7 +610,8 @@
           "new_srccit": "STUDY10"
         },
         "interpretation": "The address-associated candidate building footprint intersects the state CSLF AE polygon. This is a GIS overlay, not a BFE, flood depth, regulatory determination, or proof that the address point identifies the principal dwelling."
-      }
+      },
+      "geojson_path": "data/posey-county/aoi/13101-bonebank-road-structure-candidate-763173.geojson"
     },
     "limitations": [
       "Indiana Building Footprints 2016-2020 is a historical statewide layer (LidarYear 2020); current imagery and owner confirmation are still needed to identify the principal dwelling and current footprint.",
