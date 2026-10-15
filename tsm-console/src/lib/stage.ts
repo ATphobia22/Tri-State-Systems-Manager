@@ -22,10 +22,11 @@ import { fetchUsgsLatestContinuous } from './usgs-direct';
  *   approval_status replaces the legacy qualifier convention; Provisional
  *   still maps to qualifier 'P' and status 'provisional'.
  *
- * Vertical conversion uses the published USGS SIR 2016-5119 gage-zero
- * relationship for 03378500 (+352.67 ft NAVD88). This yields the STATION WSE
- * only. Transfer to the project site still requires a validated hydraulic
- * profile and remains fail-closed (site_transfer_status).
+ * The 03378500 SIR 2016-5119 value (+352.67 ft NAVD88) is retained as a
+ * candidate only while the recorded SIR/NWPS product-semantic conflict remains
+ * unresolved. The conversion is not published and station WSE remains null
+ * until that conflict is reconciled. Transfer to any project site additionally
+ * requires a validated hydraulic profile and remains fail-closed.
  *
  * USGS instantaneous values carry approval_status Provisional (subject to
  * revision). Missing values are returned as unavailable, never fabricated.
@@ -113,7 +114,9 @@ export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
     const stageProvisional = stageApproval === 'Provisional';
     const dischargeProvisional = dischargeApproval === 'Provisional';
     const datum = GAGE_DATUM_TABLE[PRIMARY_USGS];
-    const gageZero = datum?.gageZeroNavd88Ft ?? null;
+    const gageZero = datum?.conversionPublished === true
+      ? datum.gageZeroNavd88Ft
+      : null;
     const wse = gageZero != null ? stageFt + gageZero : null;
     return {
       source: 'USGS',
