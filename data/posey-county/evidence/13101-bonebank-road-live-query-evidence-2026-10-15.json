@@ -79,7 +79,7 @@
       "height_unit": "meter",
       "note": "Layer service height-model metadata; not a BFE observation."
     },
-    "conclusion": "The candidate parcel centroid intersects an Indiana state floodplain polygon classified AE in both pre- and new-zone fields. This is a point-to-polygon intersection only. The query returned no BFE value; do not infer a numeric BFE, parcel-wide percentage, flood depth, or building inundation.",
+    "conclusion": "Live centroid query and live full candidate-parcel polygon query both intersect the Indiana state floodplain polygon classified AE (cslf_id=3785, source STUDY10). This establishes that the parcel polygon intersects a state Zone AE feature, not the percentage of parcel area covered, structure-specific exposure, depth, or BFE.",
     "parcel_polygon_query": {
       "query_status": "HTTP 200; one intersecting polygon",
       "query_url": "https://gisdata.in.gov/server/rest/services/Hosted/Posey_CSLF_Feb2025/FeatureServer/0/query?geometry=<candidate-parcel-polygon>&geometryType=esriGeometryPolygon&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=objectid,cslf_id,pre_zone,new_zone,pre_srccit,new_srccit,source_cit&returnGeometry=false&f=json",
@@ -141,8 +141,32 @@
       "STATIC_BFE": -9999,
       "V_DATUM": null
     },
-    "interpretation": "Current direct NFHL point query confirms Zone AE at the IGIO parcel centroid. STATIC_BFE=-9999 is a no-data sentinel, not a BFE; V_DATUM is null. This is point-only evidence, not a parcel-wide or structure-specific determination.",
-    "parcel_polygon_query_status": "Failed through the research connector with connection closed; no parcel-wide NFHL overlay is claimed."
+    "interpretation": "Live FEMA NFHL point query confirms Zone AE and FIRM panel 0300 (community 18129C), effective 2014-10-05. The BFE layer did not yield a usable BFE/datum. No LOMR or LOMA feature intersected the centroid in their respective point queries. Full-parcel/structure NFHL overlay did not complete through the research connector; check FEMA MSC for current effective products and any map changes before regulatory use.",
+    "parcel_polygon_query_status": "Failed through the research connector with connection closed; no parcel-wide NFHL overlay is claimed.",
+    "firm_panel_query": {
+      "query_url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/3/query?geometry=-88.00535128%2C37.84579909&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=json",
+      "query_status": "HTTP 200; one FIRM panel feature",
+      "panel_id": "0300",
+      "community": "18129C",
+      "effective_date_utc": "2014-10-05T00:00:00Z",
+      "source": "18129C_BASE12",
+      "status": "Countywide, Panel Printed",
+      "interpretation": "FEMA panel metadata is resolved for the parcel centroid; retrieve and review the effective FIRM panel and index for the full parcel/structure and confirm any later revisions in FEMA MSC."
+    },
+    "bfe_layer_query": {
+      "query_url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/16/query?geometry=-88.00535128%2C37.84579909&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=json",
+      "query_status": "HTTP 200; connector summarized one feature with bfe_value=0, vertical_datum=N/A, firm_panel=N/A, effective_date=N/A",
+      "status": "NOT_ACCEPTED_AS_USABLE_BFE",
+      "interpretation": "The returned value lacks a usable vertical datum and panel/effective-date linkage; 0 is not accepted as the site's BFE. Keep BFE unresolved."
+    },
+    "lomr_point_query": {
+      "query_url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/1/query?geometry=-88.00535128%2C37.84579909&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=json",
+      "query_status": "HTTP 200; no LOMR feature intersected the parcel centroid"
+    },
+    "loma_point_query": {
+      "query_url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/34/query?geometry=-88.00535128%2C37.84579909&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=json",
+      "query_status": "HTTP 200; no LOMA feature intersected the parcel centroid"
+    }
   },
   "unresolved_gates": [
     {
@@ -166,11 +190,6 @@
       "reason": "Current connector response has an unresolved value/unit discrepancy; quarantine both point values."
     },
     {
-      "id": "fema-effective-panel-and-bfe",
-      "state": "POINT_ZONE_CONFIRMED_BFE_UNAVAILABLE_PANEL_REVIEW_OPEN",
-      "reason": "Current NFHL point query returned FLD_ZONE=AE, STATIC_BFE=-9999, V_DATUM=null. Effective panel/LOMC review and applicable INFIP/FARA remain open."
-    },
-    {
       "id": "drainage-outlet",
       "state": "OPEN",
       "reason": "No outlet has been selected or verified."
@@ -184,6 +203,11 @@
       "id": "hydrologic-hydraulic-model",
       "state": "BLOCKED_NOT_RUN",
       "reason": "No approved catchment, model question, datum-consistent geometry, or validated input manifest."
+    },
+    {
+      "id": "fema-bfe-structure-review",
+      "state": "PARTIALLY_RESOLVED",
+      "reason": "Panel 0300, effective 2014-10-05, is identified at centroid; BFE remains unusable and full-parcel/structure overlay plus current FEMA MSC review remain open."
     }
   ],
   "quality_notes": [
