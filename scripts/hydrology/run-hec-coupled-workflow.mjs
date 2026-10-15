@@ -233,7 +233,7 @@ function main() {
   if (manifest.artifact_storage.metadata_store !== 'run-manifest-only') {
     throw new Error('metadata_store=tsm-evidence-store-adapter is declared but the transaction-safe adapter is not implemented; use run-manifest-only until that adapter is separately verified');
   }
-  const expectedPlatform = process.platform === 'win32' ? 'windows-x64' : process.platform === 'linux' ? 'linux-x64' : process.platform === 'darwin' ? 'macos-arm64' : 'other';
+  const expectedPlatform = process.platform === 'win32' && process.arch === 'x64' ? 'windows-x64' : process.platform === 'linux' ? 'linux-x64' : process.platform === 'darwin' && process.arch === 'arm64' ? 'macos-arm64' : 'other';
   for (const [label, stage] of [['HEC-HMS', manifest.hec_hms], ['HEC-RAS', manifest.hec_ras]]) {
     if (stage.platform !== 'other' && stage.platform !== expectedPlatform) {
       throw new Error(label + ' platform mismatch: manifest=' + stage.platform + ', runtime=' + expectedPlatform);
