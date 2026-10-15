@@ -25,10 +25,10 @@ test('NOAA capabilities URLs are HTTPS and host/path allowlisted', () => {
 
 test('WMS parser extracts qualified layer names and checks expected layer', () => {
   const names = parseWmsLayerNames(capabilities);
-  assert.equal(names.has('wwa:warnings'), true);
-  assert.equal(names.has('conus:conus_cref_qcd'), true);
-  assert.deepEqual(assertExpectedLayer(capabilities, 'wwa:warnings'), { expectedLayer: 'wwa:warnings', available: true });
-  assert.throws(() => assertExpectedLayer(capabilities, 'wwa:renamed_layer'), /missing from GetCapabilities/);
+  assert.equal(names.has('warnings'), true);
+  assert.equal(names.has('conus_cref_qcd'), true);
+  assert.deepEqual(assertExpectedLayer(capabilities, 'warnings'), { expectedLayer: 'warnings', available: true });
+  assert.throws(() => assertExpectedLayer(capabilities, 'renamed_layer'), /missing from GetCapabilities/);
 });
 
 test('WMS parser rejects HTML, OGC exception documents, and oversized content', () => {
@@ -55,7 +55,7 @@ test('capabilities fetch accepts a bounded XML response', async () => {
     'https://opengeo.ncep.noaa.gov/geoserver/wwa/warnings/ows?service=WMS&request=GetCapabilities',
     async () => new Response(capabilities, { headers: { 'content-type': 'application/xml' } }),
   );
-  assert.equal(assertExpectedLayer(xml, 'conus:conus_cref_qcd').available, true);
+  assert.equal(assertExpectedLayer(xml, 'conus_cref_qcd').available, true);
 });
 
 test('NWS radar FAQ and MRMS QPE candidate remain discoverable and semantically separate', async () => {

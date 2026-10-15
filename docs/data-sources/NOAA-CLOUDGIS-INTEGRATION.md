@@ -1,6 +1,6 @@
 # NOAA / NWS CloudGIS integration contract
 
-**Status:** Directory references reviewed on 2026-10-15. The catalog is documented, but live layer health and qualified WMS layer names have not been validated in the target runtime.
+**Status:** Directory references reviewed on 2026-10-15. The catalog is documented, but live layer health and published WMS layer names have not been validated in the target runtime.
 
 ## Official service directories
 
@@ -12,7 +12,7 @@
 
 The Twin Canvas adds opt-in WMS overlays for NWS warnings and MRMS CONUS composite reflectivity. Both start **OFF**, are independently toggled, and are visually attributed to NOAA/NWS. They are operational context only. They do not create flood extents, replace FEMA NFHL/Indiana BAFM, or count as HEC-RAS model evidence. The NWS FAQ identifies CREF.QCD as maximum reflectivity in the radar volume (dBZ), not rainfall accumulation. A blank image can indicate an offline radar; it must never be interpreted as clear weather or absence of risk.
 
-The source URLs use the official GeoServer service paths identified by the directory. The qualified layer names are provisional until a live GetCapabilities response is parsed and checked in the release environment. If a layer is renamed or unavailable, the overlay must fail visibly and remain non-authoritative; do not silently substitute another layer.
+The source URLs use the official GeoServer service paths identified by the directory. The published layer names are provisional until a live GetCapabilities response is parsed and checked in the release environment. If a layer is renamed or unavailable, the overlay must fail visibly and remain non-authoritative; do not silently substitute another layer.
 
 ## Next innovation: rainfall-aware context, not fake inundation
 

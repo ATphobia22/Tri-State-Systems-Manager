@@ -121,7 +121,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       if (!map.getSource(noaaWarningsSource)) {
         map.addSource(noaaWarningsSource, {
           type: 'raster',
-          tiles: ['https://opengeo.ncep.noaa.gov/geoserver/wwa/warnings/ows?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&FORMAT=image/png&TRANSPARENT=true&LAYERS=wwa:warnings&STYLES=&SRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}'],
+          tiles: ['https://opengeo.ncep.noaa.gov/geoserver/wwa/warnings/ows?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&FORMAT=image/png&TRANSPARENT=true&LAYERS=warnings&STYLES=&SRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}'],
           tileSize: 256,
           attribution: 'NOAA/National Weather Service CloudGIS — warnings; operational status and layer availability may change',
         });
@@ -140,7 +140,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       if (!map.getSource(noaaRadarSource)) {
         map.addSource(noaaRadarSource, {
           type: 'raster',
-          tiles: ['https://opengeo.ncep.noaa.gov/geoserver/conus/conus_cref_qcd/ows?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&FORMAT=image/png&TRANSPARENT=true&LAYERS=conus:conus_cref_qcd&STYLES=&SRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}'],
+          tiles: ['https://opengeo.ncep.noaa.gov/geoserver/conus/conus_cref_qcd/ows?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&FORMAT=image/png&TRANSPARENT=true&LAYERS=conus_cref_qcd&STYLES=&SRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}'],
           tileSize: 256,
           attribution: 'NOAA/NWS Multi-Radar/Multi-Sensor (MRMS) composite radar — situational awareness only',
         });

@@ -32,13 +32,13 @@ export function parseWmsLayerNames(xml) {
   const namePattern = /<(?:[\w.-]+:)?Name\b[^>]*>\s*([^<\s][^<]*?)\s*<\/(?:[\w.-]+:)?Name\s*>/gi;
   for (const match of xml.matchAll(namePattern)) {
     const name = match[1].trim();
-    if (name.includes(':') && name.length <= 256) names.add(name);
+    if (/^[A-Za-z0-9_.:-]+$/.test(name) && name.length <= 256) names.add(name);
   }
   return names;
 }
 
 export function assertExpectedLayer(xml, expectedLayer) {
-  if (typeof expectedLayer !== 'string' || !/^[A-Za-z0-9_.-]+:[A-Za-z0-9_.-]+$/.test(expectedLayer)) {
+  if (typeof expectedLayer !== 'string' || !/^(?:[A-Za-z0-9_.-]+:)?[A-Za-z0-9_.-]+$/.test(expectedLayer)) {
     throw new Error('Expected qualified layer name is invalid.');
   }
   const names = parseWmsLayerNames(xml);
