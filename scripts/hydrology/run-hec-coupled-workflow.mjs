@@ -63,6 +63,7 @@ function replaceTokens(token, values) {
 export function runStage({ name, stage, workspace, outputDirectory }) {
   const project = safeWorkspacePath(workspace, stage.project_directory, name + '.project_directory');
   if (!fs.existsSync(project) || !fs.statSync(project).isDirectory()) throw new Error(name + ' project directory is missing: ' + stage.project_directory);
+  if (fs.readdirSync(project).length === 0) throw new Error(name + ' project directory is empty; model project files are required');
   const output = safeWorkspacePath(workspace, outputDirectory, name + '.output_directory');
   if (fs.existsSync(output) && (!fs.statSync(output).isDirectory() || fs.readdirSync(output).length > 0)) {
     throw new Error(name + ' output directory must be a new or empty directory to prevent stale-output reuse: ' + outputDirectory);
@@ -169,7 +170,27 @@ function main() {
     if (!fs.existsSync(blob)) fs.copyFileSync(file, blob, fs.constants.COPYFILE_EXCL);
     return { label, source_path: path.relative(workspace, file).replace(/\\/g, '/'), sha256: hash, size_bytes: fs.statSync(file).size, storage_uri: path.relative(workspace, blob).replace(/\\/g, '/') };
   };
+  const persistTree = (directory, label) => {
+    const records = [];
+    const walk = (current) => {
+      for (const entry of fs.readdirSync(current, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+        const file = path.join(current, entry.name);
+        if (entry.isSymbolicLink()) throw new Error(label + ' contains a symbolic link: ' + file);
+        if (entry.isDirectory()) walk(file);
+        else if (entry.isFile()) records.push(persistArtifact(file, label + ':' + path.relative(directory, file).replace(/\\/g, '/')));
+        else throw new Error(label + ' contains a non-regular filesystem entry: ' + file);
+      }
+    };
+    walk(directory);
+    if (records.length === 0) throw new Error(label + ' has no files to preserve');
+    return records;
+  };
   try {
+    run.artifacts.push(persistArtifact(verifyHashedFile(workspace, manifest.aoi.geometry_workspace_path, manifest.aoi.geometry_sha256, 'AOI geometry'), 'approved AOI geometry'));
+    run.artifacts.push(persistArtifact(verifyHashedFile(workspace, manifest.aoi.watershed_delineation_workspace_path, manifest.aoi.watershed_delineation_sha256, 'watershed delineation'), 'approved watershed delineation'));
+    for (const input of manifest.source_inputs) run.artifacts.push(persistArtifact(verifyHashedFile(workspace, input.workspace_path, input.sha256, 'source input ' + input.input_id), 'source input:' + input.input_id));
+    const hmsProject = safeWorkspacePath(workspace, manifest.hec_hms.project_directory, 'HEC-HMS project directory');
+    run.artifacts.push(...persistTree(hmsProject, 'HEC-HMS model package'));
     const hmsOutputDir = manifest.hec_hms.output_directory;
     const hms = runStage({ name: 'HEC-HMS', stage: manifest.hec_hms, workspace, outputDirectory: hmsOutputDir });
     run.stages.push(hms);
@@ -187,6 +208,8 @@ function main() {
       copied_to_ras_input: true,
       semantic_validation: 'NOT_PERFORMED_BY_GENERIC_RUNNER',
     };
+    const rasProject = safeWorkspacePath(workspace, manifest.hec_ras.project_directory, 'HEC-RAS project directory');
+    run.artifacts.push(...persistTree(rasProject, 'HEC-RAS model package including configured hydrograph handoff'));
     const rasOutputDir = manifest.hec_ras.output_directory;
     const ras = runStage({ name: 'HEC-RAS', stage: manifest.hec_ras, workspace, outputDirectory: rasOutputDir });
     run.stages.push(ras);
