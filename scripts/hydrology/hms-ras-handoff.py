@@ -113,8 +113,16 @@ def validate_local_times(raw_times: Iterable[Any], *, time_zone: str, interval: 
         if aware0.utcoffset() != aware1.utcoffset():
             raise ValueError(f"ambiguous local time at daylight-saving transition: {local.isoformat()}")
         utc = aware0.astimezone(timezone.utc)
-        if local_times and (local <= local_times[-1] or (local - local_times[-1]).total_seconds() != step):
-            raise ValueError(f"gap, duplicate, or irregular timestamp near {local.isoformat()}; gap filling is disabled")
+        if local_times:
+            previous = local_times[-1]
+            previous_offset = previous.replace(tzinfo=zone, fold=0).utcoffset()
+            if aware0.utcoffset() != previous_offset:
+                raise ValueError(
+                    f"UTC offset changed inside a single DSS hydrograph near {local.isoformat()}; "
+                    "split the run at the timezone transition or supply source-correct fixed-standard-time semantics"
+                )
+            if local <= previous or (local - previous).total_seconds() != step:
+                raise ValueError(f"gap, duplicate, or irregular timestamp near {local.isoformat()}; gap filling is disabled")
         local_times.append(local)
         utc_times.append(utc)
     if len(local_times) < 2:
