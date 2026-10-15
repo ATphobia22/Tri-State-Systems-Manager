@@ -10,6 +10,8 @@ TSM hydrology software is not fully released merely because an ingestion endpoin
 
 Current status is **BLOCKED for production hydraulic conclusions** until all applicable gates below have retained evidence. The NOAA CloudGIS integration merged by PR #267 adds context overlays and source-verification tooling; it does not close the hydraulic-model gates.
 
+A candidate parcel has since been recorded for **13101 Bonebank Road, Mount Vernon, Indiana** using the Indiana Geographic Information Office parcel geometry, one USGS EPQS centroid elevation sample, and point-intersection checks against FEMA NFHL and Indiana DNR flood-hazard layers. This is a **parcel candidate, not an approved hydrologic AOI**: no outlet or contributing watershed is approved, no BFE was returned by the point queries, and no HEC model has been run. See [candidate AOI assessment](aoi/13101-BONEBANK-ROAD-CANDIDATE.md), [source evidence](../../data/posey-county/evidence/13101-bonebank-road-site-aoi-v1.json), and the [DRAFT coupled-run manifest](../../data/posey-county/hec/13101-bonebank-road-candidate-run-manifest-v2.json).
+
 ## 2. Source-data contract
 
 For every observation, forecast, rainfall product, terrain surface, bathymetry surface, and model output, retain:
