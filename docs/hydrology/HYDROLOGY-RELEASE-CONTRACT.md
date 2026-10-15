@@ -77,6 +77,7 @@ A map overlay, flood-warning polygon, terrain visualization, rainfall image, syn
 | Source qualification | Complete metadata, checksums where retained, quality/freshness and terms | SOURCE_UNQUALIFIED |
 | Datum | Explicit CRS, vertical datum and validated transformation or documented non-comparability | DATUM_UNVERIFIED |
 | Rainfall/runoff | Reproducible input/output manifest, benchmark and mass-balance checks | RUNOFF_NOT_VALIDATED |
+| HMS-to-RAS handoff | Exact source/target DSS FLOW path, units/time-zone/interval checks, no-gap rule, target-record read-back, boundary selector and hash-bound receipt | HANDOFF_UNVERIFIED |
 | Hydraulic model | Real solver artifact, boundaries, diagnostics and paired baseline/scenario | HYDRAULIC_MODEL_MISSING |
 | Calibration/validation | Independent observations, stated tolerances and reviewer evidence | MODEL_NOT_VALIDATED |
 | Uncertainty | Sensitivity/uncertainty record appropriate to decision | UNCERTAINTY_UNASSESSED |
@@ -90,6 +91,7 @@ A downstream gate cannot be marked passed while a required upstream gate is bloc
 
 - [x] Existing SCS Curve Number primitive documents equations, units, limitations, validation and provenance.
 - [x] Existing engineering evidence pipeline defines terrain/bathymetry, datum, calibrated HEC-RAS, scenario, earthwork and independent QA/QC boundaries.
+- [x] The coupled runner defines source/target DSS record checks, a read-back fidelity gate, receipt/hash validation and explicit failure signaling; a passing software contract does not close the real-worker/model-validation gate.
 - [x] NOAA CloudGIS context catalog and opt-in map overlays are merged; service-runtime verification is explicitly pending.
 - [ ] Approve a specific pilot AOI and watershed delineation.
 - [ ] Acquire and qualify all AOI-specific rainfall, gage, terrain, bathymetry, structure and boundary-condition inputs.
@@ -106,3 +108,4 @@ A downstream gate cannot be marked passed while a required upstream gate is bloc
 - [Indiana DNR hydrology and hydraulics resources](https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/hydrology-and-hydraulics-links)
 - [USGS Water Data](https://waterdata.usgs.gov/)
 - [USDA NRCS TR-55](https://www.nrcs.usda.gov/resources/guides-and-instructions/urban-hydrology-for-small-watersheds-tr-55)
+- [HEC coupling validation research (2026-10-15)](HEC-COUPLING-VALIDATION-RESEARCH-2026-10-15.md)
