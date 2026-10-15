@@ -25,11 +25,10 @@ test('native spatial provenance boundary uses repository SHA-256 implementation'
 
 test('native manifest downloader is HTTPS and Pages-origin restricted', () => {
   assert.match(downloader, /IsSecureProtocol/);
-  assert.match(downloader, /AllowedPagesHost\\[\\] = TEXT\\("atphobia22\\.github\\.io"\\)/);
-  assert.match(downloader, /RequiredPagesPath\\[\\] = TEXT\\("\\/Tri-State-Systems-Manager\\/"\\)/);
+  assert.ok(downloader.includes('AllowedPagesHost[] = TEXT("atphobia22.github.io")'));
+  assert.ok(downloader.includes('RequiredPagesPath[] = TEXT("/Tri-State-Systems-Manager/")'));
   assert.match(downloader, /REJECTED: Manifest downloads require HTTPS/);
 });
-
 test('native verifier fails closed on missing or mismatched asset hashes', () => {
   assert.match(validator, /return false;/);
   assert.match(validator, /bProvenanceVerified/);
