@@ -67,6 +67,19 @@ def load_approved_manifest(path: Path) -> dict[str, Any]:
         value = reference_system.get(key)
         if not isinstance(value, str) or not value.strip() or value.strip().upper() in {"UNASSIGNED", "UNVERIFIED", "TBD"}:
             raise ValueError(f"Reference-system {key} must be qualified")
+    python_environment = manifest.get("python_environment")
+    if not isinstance(python_environment, dict):
+        raise ValueError("Manifest python_environment object is missing")
+    if python_environment.get("platform") != "windows-x64":
+        raise ValueError("python_environment.platform must be windows-x64")
+    for key in ("python_version", "lock_uri", "lock_workspace_path"):
+        value = python_environment.get(key)
+        if not isinstance(value, str) or not value.strip() or value.strip().upper() in {"UNASSIGNED", "UNVERIFIED", "TBD"}:
+            raise ValueError(f"python_environment.{key} must be explicitly pinned")
+    for key in ("lock_sha256", "installed_packages_sha256"):
+        value = python_environment.get(key)
+        if not isinstance(value, str) or not re.fullmatch(r"[a-f0-9]{64}", value) or value == "0" * 64:
+            raise ValueError(f"python_environment.{key} must be a measured nonzero SHA-256")
     source_inputs = manifest.get("source_inputs")
     if not isinstance(source_inputs, list) or not source_inputs:
         raise ValueError("At least one qualified source input is required")
@@ -114,6 +127,81 @@ def verify_project_package_hash(stage: dict[str, Any], project: Path) -> None:
     actual = sha256_tree(project)
     if expected != actual:
         raise ValueError(f"Staged project package hash mismatch: expected {expected}, observed {actual}")
+
+
+def installed_environment_inventory() -> list[str]:
+    """Return a stable inventory of installed distributions and VCS commit identities."""
+    records: list[str] = []
+    for distribution in importlib.metadata.distributions():
+        raw_name = distribution.metadata.get("Name", "")
+        canonical_name = re.sub(r"[-_.]+", "-", raw_name).lower()
+        if not canonical_name:
+            continue
+        record = f"{canonical_name}=={distribution.version}"
+        direct_url_text = distribution.read_text("direct_url.json")
+        if direct_url_text:
+            try:
+                direct_url = json.loads(direct_url_text)
+            except json.JSONDecodeError as exc:
+                raise RuntimeError(f"Invalid direct_url.json for {canonical_name}") from exc
+            vcs_info = direct_url.get("vcs_info", {})
+            commit = vcs_info.get("commit_id")
+            if commit:
+                record += f"@git:{commit}"
+        records.append(record)
+    return sorted(records, key=lambda item: item.encode("utf-16-be", "surrogatepass"))
+
+
+def installed_environment_fingerprint() -> str:
+    """Hash the canonical installed distribution inventory, independent of install paths."""
+    payload = "\n".join(installed_environment_inventory()) + "\n"
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def verify_python_environment(manifest: dict[str, Any], workspace_value: str | Path) -> Path:
+    """Verify the exact lockfile, Python patch version, platform, and installed package inventory."""
+    environment = manifest.get("python_environment")
+    if not isinstance(environment, dict):
+        raise ValueError("Manifest python_environment object is missing")
+    if environment.get("platform") != "windows-x64":
+        raise RuntimeError("The current coupled HEC runtime only supports windows-x64")
+    if sys.platform != "win32" or struct.calcsize("P") != 8:
+        raise RuntimeError("The current coupled HEC runtime requires a 64-bit Windows worker")
+    if environment.get("python_version") != runtime_platform.python_version():
+        raise RuntimeError(
+            f"Python patch-version mismatch: expected {environment.get('python_version')}, "
+            f"observed {runtime_platform.python_version()}"
+        )
+    root = Path(workspace_value).resolve(strict=True)
+    if not root.is_dir():
+        raise ValueError("Workspace must be a directory")
+    relative = environment.get("lock_workspace_path")
+    if not isinstance(relative, str) or not relative.strip():
+        raise ValueError("python_environment.lock_workspace_path is required")
+    relative_path = Path(relative)
+    if relative_path.is_absolute() or any(part in {".", ".."} for part in relative_path.parts):
+        raise ValueError("Python environment lock path must be relative and contain no dot segments")
+    lock_path = (root / relative_path).resolve(strict=True)
+    try:
+        lock_path.relative_to(root)
+    except ValueError as exc:
+        raise ValueError("Python environment lock path escapes the workspace") from exc
+    if not lock_path.is_file():
+        raise ValueError("Python environment lock path must be a file")
+    expected_lock_hash = environment.get("lock_sha256")
+    actual_lock_hash = sha256_file(lock_path)
+    if expected_lock_hash != actual_lock_hash:
+        raise ValueError(
+            f"Python environment lock hash mismatch: expected {expected_lock_hash}, observed {actual_lock_hash}"
+        )
+    expected_inventory_hash = environment.get("installed_packages_sha256")
+    actual_inventory_hash = installed_environment_fingerprint()
+    if expected_inventory_hash != actual_inventory_hash:
+        raise ValueError(
+            f"Installed Python environment fingerprint mismatch: expected {expected_inventory_hash}, "
+            f"observed {actual_inventory_hash}"
+        )
+    return lock_path
 
 
 def get_stage(manifest: dict[str, Any], stage_name: str) -> dict[str, Any]:
