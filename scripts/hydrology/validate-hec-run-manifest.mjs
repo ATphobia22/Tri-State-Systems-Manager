@@ -83,7 +83,25 @@ function assertExecutionReady(manifest) {
   if (!nonPlaceholder(manifest.aoi?.name) || !nonPlaceholder(manifest.aoi?.geometry_uri) || !nonPlaceholder(manifest.aoi?.watershed_delineation_uri)) errors.push('AOI geometry and watershed delineation must have named, source-backed references');
   if (manifest.aoi?.geometry_sha256 === '0'.repeat(64) || manifest.aoi?.watershed_delineation_sha256 === '0'.repeat(64)) errors.push('AOI geometry and watershed hashes must be measured, non-placeholder SHA-256 values');
   if (!nonPlaceholder(manifest.reference_system?.horizontal_crs) || !nonPlaceholder(manifest.reference_system?.vertical_datum) || !nonPlaceholder(manifest.reference_system?.datum_evidence_uri) || !nonPlaceholder(manifest.reference_system?.units_policy)) errors.push('horizontal CRS, vertical datum, units and datum evidence must be qualified');
-  if (!Array.isArray(manifest.source_inputs) || manifest.source_inputs.length === 0 || manifest.source_inputs.some((input) => input.quality_status !== 'QUALIFIED' || !nonPlaceholder(input.source_uri) || !nonPlaceholder(input.valid_time) || !nonPlaceholder(input.license_or_terms_uri) || !nonPlaceholder(input.units) || !nonPlaceholder(input.horizontal_crs) || !nonPlaceholder(input.vertical_datum) || !/^[a-f0-9]{64}$/.test(input.sha256 ?? '') || input.sha256 === '0'.repeat(64))) errors.push('every source input must be qualified, licensed/source-referenced, datum-aware and have a measured SHA-256');
+  if (!Array.isArray(manifest.source_inputs) || manifest.source_inputs.length === 0) {
+    errors.push('source_inputs must contain at least one qualified, provenance-backed input');
+  } else {
+    for (const input of manifest.source_inputs) {
+      const missingRequirements = [];
+      if (input.quality_status !== 'QUALIFIED') missingRequirements.push('quality_status=QUALIFIED');
+      if (!nonPlaceholder(input.source_uri)) missingRequirements.push('source_uri');
+      if (!nonPlaceholder(input.valid_time)) missingRequirements.push('valid_time');
+      if (!nonPlaceholder(input.license_or_terms_uri)) missingRequirements.push('license_or_terms_uri');
+      if (!nonPlaceholder(input.units)) missingRequirements.push('units');
+      if (!nonPlaceholder(input.horizontal_crs)) missingRequirements.push('horizontal_crs');
+      if (!nonPlaceholder(input.vertical_datum)) missingRequirements.push('vertical_datum');
+      if (!/^[a-f0-9]{64}$/.test(input.sha256 ?? '') || input.sha256 === '0'.repeat(64)) missingRequirements.push('measured SHA-256');
+      if (missingRequirements.length) {
+        errors.push('every source input must be qualified, licensed/source-referenced, datum-aware and have a measured SHA-256; ' +
+          String(input.input_id ?? 'unnamed input') + ' missing: ' + missingRequirements.join(', '));
+      }
+    }
+  }
   for (const [name, runner] of [['hec_hms', manifest.hec_hms], ['hec_ras', manifest.hec_ras]]) {
     if (!nonPlaceholder(runner?.product_version) || PLACEHOLDER.test(runner?.product_version ?? '') || runner?.command?.some((part) => PLACEHOLDER.test(part))) errors.push(name + ' must use a pinned version and configured command');
     if (!nonPlaceholder(runner?.version_evidence_uri)) errors.push(name + '.version_evidence_uri must cite installation/version evidence');
