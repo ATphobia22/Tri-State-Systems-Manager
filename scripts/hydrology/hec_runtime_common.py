@@ -98,8 +98,8 @@ def sha256_tree(root: Path) -> str:
             if entry.is_dir():
                 walk(entry, relative)
             elif entry.is_file():
-                digest.update(relative.replace("\\\\", "/").encode("utf-8"))
-                digest.update(b"\\x00")
+                digest.update(relative.encode("utf-8"))
+                digest.update(bytes([0]))
                 digest.update(bytes.fromhex(sha256_file(entry)))
             else:
                 raise ValueError(f"Model project contains a non-regular entry: {relative}")
