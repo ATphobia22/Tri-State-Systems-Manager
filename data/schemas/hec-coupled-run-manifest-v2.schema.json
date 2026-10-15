@@ -256,7 +256,8 @@
         "executable_sha256",
         "version_evidence_uri",
         "runtime_executable_path",
-        "runtime_executable_sha256"
+        "runtime_executable_sha256",
+        "run_name"
       ],
       "properties": {
         "product_version": {
@@ -324,6 +325,12 @@
           "type": "string",
           "pattern": "^[a-f0-9]{64}$",
           "description": "SHA-256 of the actual vendor HEC executable, separate from the Python/adapter launcher hash."
+        },
+        "run_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "Exact named HEC-HMS simulation run to compute in the isolated project copy."
         }
       }
     },
@@ -567,7 +574,8 @@
         "executable_sha256",
         "version_evidence_uri",
         "runtime_executable_path",
-        "runtime_executable_sha256"
+        "runtime_executable_sha256",
+        "plan_number"
       ],
       "properties": {
         "product_version": {
@@ -635,6 +643,12 @@
           "type": "string",
           "pattern": "^[a-f0-9]{64}$",
           "description": "SHA-256 of the actual vendor HEC executable, separate from the Python/adapter launcher hash."
+        },
+        "plan_number": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "Exact HEC-RAS plan number to compute in the isolated project copy."
         }
       }
     },
