@@ -127,3 +127,14 @@ def test_sha256_file_streams_exact_bytes(tmp_path: Path) -> None:
     path = tmp_path / "source.bin"
     path.write_bytes(b"source")
     assert sha256_file(path) == hashlib.sha256(b"source").hexdigest()
+
+
+def test_stage_launcher_is_bound_to_exact_python_executable() -> None:
+    from hec_runtime_common import verify_stage_launcher
+
+    executable = Path(sys.executable).resolve()
+    stage = {"command": [str(executable)], "executable_sha256": sha256_file(executable)}
+    verify_stage_launcher(stage)
+    stage["executable_sha256"] = "0" * 64
+    with pytest.raises(ValueError, match="interpreter hash mismatch"):
+        verify_stage_launcher(stage)
