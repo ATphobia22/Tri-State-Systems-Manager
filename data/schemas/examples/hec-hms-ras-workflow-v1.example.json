@@ -1,0 +1,104 @@
+{
+  "schema_version": "1.0.0",
+  "workflow_id": "approved-watershed-pilot",
+  "source_commit": "0000000000000000000000000000000000000000",
+  "pilot_area": {
+    "area_id": "REPLACE_WITH_APPROVED_AOI_ID",
+    "approval": {
+      "status": "NOT_APPROVED",
+      "approved_by": "",
+      "approved_at": "2026-01-01T00:00:00Z",
+      "evidence_ref": ""
+    },
+    "aoi_geometry": {
+      "path": "./aoi.geojson",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "horizontal_crs": "REPLACE_WITH_AUTHORITY_CRS",
+      "vertical_datum": "REPLACE_WITH_AUTHORITY_VERTICAL_DATUM",
+      "evidence_ref": "REPLACE_WITH_SOURCE_PROVENANCE"
+    },
+    "watershed": {
+      "area_sq_mi": 1,
+      "delineation_evidence_ref": "REPLACE_WITH_INDEPENDENT_DELINEATION_EVIDENCE"
+    }
+  },
+  "hec_hms": {
+    "project_dir": "./models/hec-hms",
+    "version": "REPLACE_WITH_VERIFIED_VERSION",
+    "installation_verification_ref": "REPLACE_WITH_INSTALLATION_EVIDENCE",
+    "horizontal_crs": "REPLACE_WITH_AUTHORITY_CRS",
+    "vertical_datum": "REPLACE_WITH_AUTHORITY_VERTICAL_DATUM",
+    "project_inventory": {
+      "reviewed": false,
+      "evidence_ref": "",
+      "files": [
+        {
+          "path": "project.hms",
+          "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      ]
+    },
+    "project_file": "project.hms",
+    "simulation_run": "REPLACE_WITH_REVIEWED_SIMULATION_RUN",
+    "output_dss_relative_path": "hms-results.dss",
+    "runner_command": [
+      "REPLACE_WITH_TESTED_HMS_ADAPTER",
+      "{project_dir}",
+      "{project_file}",
+      "{simulation_run}",
+      "{dss_file}"
+    ]
+  },
+  "hec_ras": {
+    "project_dir": "./models/hec-ras",
+    "version": "REPLACE_WITH_VERIFIED_VERSION",
+    "installation_verification_ref": "REPLACE_WITH_INSTALLATION_EVIDENCE",
+    "horizontal_crs": "REPLACE_WITH_AUTHORITY_CRS",
+    "vertical_datum": "REPLACE_WITH_AUTHORITY_VERTICAL_DATUM",
+    "project_inventory": {
+      "reviewed": false,
+      "evidence_ref": "",
+      "files": [
+        {
+          "path": "project.prj",
+          "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        {
+          "path": "project.u01",
+          "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      ]
+    },
+    "project_file": "project.prj",
+    "plan_name": "REPLACE_WITH_REVIEWED_PLAN",
+    "unsteady_flow_file_relative_path": "project.u01",
+    "expected_hdf_relative_path": "project.p01.hdf",
+    "runner_command": [
+      "REPLACE_WITH_TESTED_RAS_ADAPTER",
+      "{project_dir}",
+      "{project_file}",
+      "{plan_name}"
+    ]
+  },
+  "hydrograph_transfer": {
+    "adapter_command": [
+      "REPLACE_WITH_TESTED_DSS_TRANSFER_ADAPTER",
+      "{dss_file}",
+      "{ras_unsteady_flow_file}",
+      "{hydrograph_csv}"
+    ],
+    "output_csv_relative_path": "outputs/hydrograph.csv",
+    "timestamp_column": "timestamp_utc",
+    "flow_column": "flow_cfs",
+    "ras_unsteady_flow_file_relative_path": "project.u01",
+    "unit": "ft3/s"
+  },
+  "artifact_store": {
+    "root_dir": "./artifacts",
+    "storage_class": "LOCAL_OPERATOR_MANAGED"
+  },
+  "execution": {
+    "timeout_seconds": 7200,
+    "human_review_required": true
+  }
+}

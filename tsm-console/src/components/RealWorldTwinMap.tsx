@@ -127,7 +127,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
           type: 'raster',
           tiles: ['https://opengeo.ncep.noaa.gov/geoserver/wwa/warnings/ows?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&FORMAT=image/png&TRANSPARENT=true&LAYERS=warnings&STYLES=&SRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}'],
           tileSize: 256,
-          attribution: 'NOAA/NWS CloudGIS warnings',
+          attribution: 'NOAA/National Weather Service CloudGIS warnings',
         });
       }
       if (!map.getLayer('noaa-cloudgis-warnings-layer')) {
@@ -146,7 +146,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
           type: 'raster',
           tiles: ['https://opengeo.ncep.noaa.gov/geoserver/conus/conus_cref_qcd/ows?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&FORMAT=image/png&TRANSPARENT=true&LAYERS=conus_cref_qcd&STYLES=&SRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}'],
           tileSize: 256,
-          attribution: 'NOAA/NWS MRMS radar — situational awareness only',
+          attribution: 'NOAA/NWS Multi-Radar (MRMS) — situational awareness only',
         });
       }
       if (!map.getLayer('noaa-cloudgis-radar-layer')) {
@@ -331,7 +331,8 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       <div style={{ position: 'absolute', left: 12, top: 12, zIndex: 2, maxWidth: 540, maxHeight: 'calc(100% - 24px)', overflow: 'auto', padding: 12, borderRadius: 10, background: 'rgba(2,6,23,0.92)', color: '#e2e8f0', fontSize: 12, lineHeight: 1.5 }}>
         <strong>Real-source open-world twin</strong>
         <div>Indiana Current Imagery · USGS 3DEP hillshade (visualization DERIVED)</div>
-        <div>FEMA NFHL: effective / insurance · Indiana BAFM: planning · NOAA/NWS: alerts/radar context only</div>
+        <div>FEMA NFHL: effective / insurance · Indiana BAFM: planning / Flood Control Act · NOAA/NWS: alerts/radar context only</div>
+        <div role="note" aria-label="Model evidence limitation" style={{ marginTop: 4, color: '#fbbf24' }}>HEC-RAS layers: SIMULATION_DEMO / MODEL_OUTPUT · Visualization/model context only; not a regulatory determination.</div>
 
         <VerticalContextHud
           stage={liveStage}
