@@ -39,7 +39,7 @@ export function parseWmsLayerNames(xml) {
 
 export function assertExpectedLayer(xml, expectedLayer) {
   if (typeof expectedLayer !== 'string' || !/^(?:[A-Za-z0-9_.-]+:)?[A-Za-z0-9_.-]+$/.test(expectedLayer)) {
-    throw new Error('Expected qualified layer name is invalid.');
+    throw new Error('Expected published layer name is invalid.');
   }
   const names = parseWmsLayerNames(xml);
   if (!names.has(expectedLayer)) {
@@ -104,7 +104,7 @@ export async function verifyCatalog(catalog, fetchImpl = fetch) {
     const xml = await fetchWmsCapabilities(layer.capabilities_url, fetchImpl);
     results.push({
       id: layer.id,
-      ...assertExpectedLayer(xml, layer.proposed_qualified_layer_name),
+      ...assertExpectedLayer(xml, layer.expected_layer_name),
     });
   }
   return { checkedAt: new Date().toISOString(), results };

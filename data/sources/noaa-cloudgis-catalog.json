@@ -22,11 +22,11 @@
       "service_type": "WMS",
       "capabilities_url": "https://opengeo.ncep.noaa.gov/geoserver/wwa/warnings/ows?service=WMS&request=GetCapabilities&version=1.3.0",
       "map_endpoint": "https://opengeo.ncep.noaa.gov/geoserver/wwa/warnings/ows",
-      "proposed_qualified_layer_name": "warnings",
       "enabled_by_default": false,
       "authority_class": "OBSERVATION",
       "purpose": "Operational warning context, including flash-flood and severe-weather warnings.",
-      "validation_status": "CAPABILITIES_CONFIRMED_2026-10-15_GETMAP_RUNTIME_PENDING"
+      "validation_status": "CAPABILITIES_CONFIRMED_2026-10-15_GETMAP_RUNTIME_PENDING",
+      "expected_layer_name": "warnings"
     },
     {
       "id": "mrms-conus-composite-reflectivity",
@@ -34,11 +34,11 @@
       "service_type": "WMS",
       "capabilities_url": "https://opengeo.ncep.noaa.gov/geoserver/conus/conus_cref_qcd/ows?service=WMS&request=GetCapabilities&version=1.3.0",
       "map_endpoint": "https://opengeo.ncep.noaa.gov/geoserver/conus/conus_cref_qcd/ows",
-      "proposed_qualified_layer_name": "conus_cref_qcd",
       "enabled_by_default": false,
       "authority_class": "OBSERVATION",
       "purpose": "Weather radar context; not a precipitation accumulation or flood-inundation product.",
-      "validation_status": "CAPABILITIES_CONFIRMED_2026-10-15_GETMAP_RUNTIME_PENDING"
+      "validation_status": "CAPABILITIES_CONFIRMED_2026-10-15_GETMAP_RUNTIME_PENDING",
+      "expected_layer_name": "conus_cref_qcd"
     },
     {
       "id": "nws-long-duration-hazards",
@@ -46,11 +46,11 @@
       "service_type": "WMS",
       "capabilities_url": "https://opengeo.ncep.noaa.gov/geoserver/wwa/hazards/ows?service=WMS&request=GetCapabilities&version=1.3.0",
       "map_endpoint": "https://opengeo.ncep.noaa.gov/geoserver/wwa/hazards/ows",
-      "proposed_qualified_layer_name": "hazards",
       "enabled_by_default": false,
       "authority_class": "OBSERVATION",
       "purpose": "Long-duration hazard context.",
-      "validation_status": "CAPABILITIES_CONFIRMED_2026-10-15_GETMAP_RUNTIME_PENDING"
+      "validation_status": "CAPABILITIES_CONFIRMED_2026-10-15_GETMAP_RUNTIME_PENDING",
+      "expected_layer_name": "hazards"
     }
   ],
   "radar_faq": "https://www.weather.gov/radarfaq",

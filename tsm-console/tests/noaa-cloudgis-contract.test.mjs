@@ -11,8 +11,8 @@ const capabilities = `<?xml version="1.0"?>
 <WMS_Capabilities version="1.3.0">
   <Service><Name>WMS</Name><Title>Test service</Title></Service>
   <Capability><Layer><Title>Root</Title>
-    <Layer><Name>wwa:warnings</Name><Title>Warnings</Title></Layer>
-    <Layer><Name>conus:conus_cref_qcd</Name><Title>Composite reflectivity</Title></Layer>
+    <Layer><Name>warnings</Name><Title>Warnings</Title></Layer>
+    <Layer><Name>conus_cref_qcd</Name><Title>Composite reflectivity</Title></Layer>
   </Layer></Capability>
 </WMS_Capabilities>`;
 
@@ -23,7 +23,7 @@ test('NOAA capabilities URLs are HTTPS and host/path allowlisted', () => {
   assert.throws(() => validateCapabilitiesUrl('https://opengeo.ncep.noaa.gov.evil.example/geoserver/ows'), /approved NOAA/);
 });
 
-test('WMS parser extracts qualified layer names and checks expected layer', () => {
+test('WMS parser extracts published layer names and checks expected layer', () => {
   const names = parseWmsLayerNames(capabilities);
   assert.equal(names.has('warnings'), true);
   assert.equal(names.has('conus_cref_qcd'), true);
