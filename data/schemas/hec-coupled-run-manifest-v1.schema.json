@@ -249,7 +249,8 @@
         "project_directory",
         "command",
         "timeout_seconds",
-        "expected_outputs"
+        "expected_outputs",
+        "output_directory"
       ],
       "properties": {
         "product_version": {
@@ -288,6 +289,10 @@
             "type": "string",
             "minLength": 1
           }
+        },
+        "output_directory": {
+          "type": "string",
+          "minLength": 1
         }
       }
     },
@@ -351,7 +356,8 @@
         "project_directory",
         "command",
         "timeout_seconds",
-        "expected_outputs"
+        "expected_outputs",
+        "output_directory"
       ],
       "properties": {
         "product_version": {
@@ -390,6 +396,10 @@
             "type": "string",
             "minLength": 1
           }
+        },
+        "output_directory": {
+          "type": "string",
+          "minLength": 1
         }
       }
     },
