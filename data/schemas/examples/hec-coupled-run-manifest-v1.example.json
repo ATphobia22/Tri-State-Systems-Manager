@@ -92,7 +92,8 @@
       "expected_bc_type": "Flow Hydrograph"
     },
     "adapter_script_path": "scripts/hydrology/hms-ras-handoff.py",
-    "adapter_script_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    "adapter_script_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "dss_version": 7
   },
   "hec_ras": {
     "product_version": "UNPINNED",
