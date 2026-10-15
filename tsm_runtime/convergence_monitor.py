@@ -78,14 +78,11 @@ def inspect_hec_ras_log(
             instability += 1
         error_match = _WSE_ERROR.search(line)
         if error_match:
-            try:
-                value = float(error_match.group(1))
-                if not math.isfinite(value) or value < 0:
-                    errors.append("log contains invalid WSE error metric")
-                else:
-                    max_error = value if max_error is None else max(max_error, value)
-            except ValueError:
-                errors.append("log contains an unparseable WSE error metric")
+            value = float(error_match.group(1))
+            if not math.isfinite(value) or value < 0:
+                errors.append("log contains invalid WSE error metric")
+            else:
+                max_error = value if max_error is None else max(max_error, value)
         iteration_match = _ITERATIONS.search(line)
         if iteration_match:
             value = int(iteration_match.group(1))
