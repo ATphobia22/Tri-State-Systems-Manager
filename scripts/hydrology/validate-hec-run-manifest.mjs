@@ -57,13 +57,17 @@ function assertExecutionReady(manifest) {
   if (manifest.approval?.status !== 'APPROVED') errors.push('approval.status must be APPROVED before execution');
   if (!manifest.approval?.approved_by || PLACEHOLDER.test(manifest.approval.approved_by)) errors.push('approval.approved_by must identify an accountable approver');
   if (!manifest.approval?.evidence_uri || PLACEHOLDER.test(manifest.approval.evidence_uri)) errors.push('approval.evidence_uri must reference approval evidence');
-  if (PLACEHOLDER.test(manifest.aoi?.name ?? '')) errors.push('aoi.name must identify the approved area');
-  if (PLACEHOLDER.test(manifest.reference_system?.horizontal_crs ?? '') || PLACEHOLDER.test(manifest.reference_system?.vertical_datum ?? '') || PLACEHOLDER.test(manifest.reference_system?.datum_evidence_uri ?? '')) errors.push('horizontal CRS, vertical datum and datum evidence must be qualified');
-  if (manifest.source_inputs?.some((input) => input.quality_status !== 'QUALIFIED')) errors.push('every source input must have quality_status QUALIFIED');
+  const nonPlaceholder = (value) => typeof value === 'string' && value.trim().length > 0 && !PLACEHOLDER.test(value.trim());
+  if (!nonPlaceholder(manifest.aoi?.name) || !nonPlaceholder(manifest.aoi?.geometry_uri) || !nonPlaceholder(manifest.aoi?.watershed_delineation_uri)) errors.push('AOI geometry and watershed delineation must have named, source-backed references');
+  if (manifest.aoi?.geometry_sha256 === '0'.repeat(64) || manifest.aoi?.watershed_delineation_sha256 === '0'.repeat(64)) errors.push('AOI geometry and watershed hashes must be measured, non-placeholder SHA-256 values');
+  if (!nonPlaceholder(manifest.reference_system?.horizontal_crs) || !nonPlaceholder(manifest.reference_system?.vertical_datum) || !nonPlaceholder(manifest.reference_system?.datum_evidence_uri) || !nonPlaceholder(manifest.reference_system?.units_policy)) errors.push('horizontal CRS, vertical datum, units and datum evidence must be qualified');
+  if (manifest.source_inputs?.some((input) => input.quality_status !== 'QUALIFIED' || !nonPlaceholder(input.source_uri) || !nonPlaceholder(input.valid_time) || !nonPlaceholder(input.license_or_terms_uri) || !nonPlaceholder(input.units) || !nonPlaceholder(input.horizontal_crs) || !nonPlaceholder(input.vertical_datum) || input.sha256 === '0'.repeat(64))) errors.push('every source input must be qualified, licensed/source-referenced, datum-aware and have a measured SHA-256');
   for (const [name, runner] of [['hec_hms', manifest.hec_hms], ['hec_ras', manifest.hec_ras]]) {
-    if (PLACEHOLDER.test(runner?.product_version ?? '') || runner?.command?.some((part) => PLACEHOLDER.test(part))) errors.push(name + ' must use a pinned version and configured command');
+    if (!nonPlaceholder(runner?.product_version) || PLACEHOLDER.test(runner?.product_version ?? '') || runner?.command?.some((part) => PLACEHOLDER.test(part))) errors.push(name + ' must use a pinned version and configured command');
   }
-  if (PLACEHOLDER.test(manifest.hydrograph_handoff?.time_zone ?? '') || PLACEHOLDER.test(manifest.hydrograph_handoff?.conversion_method ?? '')) errors.push('hydrograph handoff time zone and conversion method must be documented');
+  if (!nonPlaceholder(manifest.hydrograph_handoff?.time_zone) || !nonPlaceholder(manifest.hydrograph_handoff?.conversion_method)) errors.push('hydrograph handoff time zone and conversion method must be documented');
+  if (manifest.hec_hms?.expected_outputs && !manifest.hec_hms.expected_outputs.includes(manifest.hydrograph_handoff?.source_output)) errors.push('hydrograph_handoff.source_output must be declared as a HEC-HMS expected output');
+  if (manifest.hec_ras?.expected_outputs && !manifest.hec_ras.expected_outputs.some((file) => /\.hdf$/i.test(file))) errors.push('HEC-RAS expected_outputs must include a real HDF result artifact');
   return errors;
 }
 
