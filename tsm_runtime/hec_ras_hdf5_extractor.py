@@ -31,7 +31,9 @@ def extract_wse_records(
     target = Path(output_json_path)
     if not source.is_file():
         return {"status": "EXTRACTION_BLOCKED", "reason": f"source file not found: {source}"}
-    if not water_surface_dataset.strip("/") or not cell_center_dataset.strip("/"):
+    water_surface_dataset = water_surface_dataset.strip("/")
+    cell_center_dataset = cell_center_dataset.strip("/")
+    if not water_surface_dataset or not cell_center_dataset:
         return {"status": "EXTRACTION_BLOCKED", "reason": "explicit dataset paths are required"}
     try:
         import h5py  # type: ignore[import-not-found]
@@ -51,13 +53,13 @@ def extract_wse_records(
                 return {"status": "EXTRACTION_BLOCKED", "reason": "cell centers must have shape (cells, >=2)"}
             if wse_ds.shape[1] != coords_ds.shape[0]:
                 return {"status": "EXTRACTION_BLOCKED", "reason": "WSE cell count does not match cell-center count"}
+            final_time_index = int(wse_ds.shape[0] - 1)
 
             attrs = {}
             for key in ("Projection EPSG", "EPSG", "Coordinate System EPSG", "Vertical Datum", "Units"):
                 if key in h5.attrs:
                     val = h5.attrs[key]
                     attrs[key] = val.decode("utf-8", "replace") if isinstance(val, bytes) else str(val)
-            # If metadata is present, reject contradictions; absence remains explicitly unverified.
             epsg_values = [v for k, v in attrs.items() if "EPSG" in k]
             if epsg_values and not any(str(expected_crs_epsg) in v for v in epsg_values):
                 return {"status": "EXTRACTION_BLOCKED", "reason": "file-level CRS metadata conflicts with requested EPSG"}
@@ -65,7 +67,7 @@ def extract_wse_records(
             if datum_values and not any(expected_vertical_datum.lower() in v.lower() for v in datum_values):
                 return {"status": "EXTRACTION_BLOCKED", "reason": "file-level vertical-datum metadata conflicts with requested datum"}
 
-            final_wse = np.asarray(wse_ds[-1, :], dtype=float)
+            final_wse = np.asarray(wse_ds[final_time_index, :], dtype=float)
             coords = np.asarray(coords_ds[:, :2], dtype=float)
             records = []
             for index, (wse, xy) in enumerate(zip(final_wse, coords)):
@@ -78,6 +80,14 @@ def extract_wse_records(
                     "coordinates_projected": [float(xy[0]), float(xy[1])],
                     "final_wse": round(float(wse), 3),
                 })
+
+        units_values = [v for k, v in attrs.items() if "Units" in k]
+        metadata_verified = bool(
+            epsg_values
+            and datum_values
+            and units_values
+            and any("ft" in value.lower() or "feet" in value.lower() for value in units_values)
+        )
         payload = {
             "extraction_meta": {
                 "source_file": source.name,
@@ -85,9 +95,10 @@ def extract_wse_records(
                 "cell_center_dataset": cell_center_dataset,
                 "requested_horizontal_crs_epsg": expected_crs_epsg,
                 "requested_vertical_datum": expected_vertical_datum,
-                "units_and_datum_verified": bool(datum_values and epsg_values),
+                "wse_units": "feet" if metadata_verified else "UNVERIFIED",
+                "crs_and_vertical_metadata_verified": metadata_verified,
                 "records_extracted": len(records),
-                "final_time_index": int(wse_ds.shape[0] - 1),
+                "final_time_index": final_time_index,
             },
             "spatial_wse_records": records,
         }
