@@ -170,6 +170,22 @@ function assertDirectoryDisjoint(left, right, leftName, rightName) {
 }
 
 
+function removeStaleRasPlanOutputs(projectDirectory) {
+  const removed = [];
+  const walk = (directory) => {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      const file = path.join(directory, entry.name);
+      if (entry.isSymbolicLink()) throw new Error('staged HEC-RAS project contains a symlink: ' + file);
+      if (entry.isDirectory()) walk(file);
+      else if (entry.isFile() && (/\.p\d{2}\.hdf$/i.test(entry.name) || /\.p\d{2}\.comp_msgs\.txt$/i.test(entry.name))) {
+        fs.rmSync(file);
+        removed.push(path.relative(projectDirectory, file).replace(/\\/g, '/'));
+      }
+    }
+  };
+  walk(projectDirectory);
+  return removed.sort();
+}
 function assertHdf5File(file, label) {
   const expected = Buffer.from([0x89, 0x48, 0x44, 0x46, 0x0d, 0x0a, 0x1a, 0x0a]);
   const descriptor = fs.openSync(file, 'r');
@@ -217,12 +233,11 @@ function main() {
   if (manifest.artifact_storage.metadata_store !== 'run-manifest-only') {
     throw new Error('metadata_store=tsm-evidence-store-adapter is declared but the transaction-safe adapter is not implemented; use run-manifest-only until that adapter is separately verified');
   }
-  if (manifest.hec_hms.platform !== process.platform && manifest.hec_hms.platform !== 'other') {
-    const expected = process.platform === 'win32' ? 'windows-x64' : process.platform === 'linux' ? 'linux-x64' : process.platform === 'darwin' ? 'macos-arm64' : 'other';
-    if (manifest.hec_hms.platform !== expected) throw new Error('HEC-HMS platform mismatch: manifest=' + manifest.hec_hms.platform + ', runtime=' + expected);
-  }
-  if (manifest.hec_ras.platform === 'windows-x64' && process.platform !== 'win32') {
-    throw new Error('HEC-RAS is configured for Windows but this runner is not Windows; run on the approved Windows HEC-RAS worker');
+  const expectedPlatform = process.platform === 'win32' ? 'windows-x64' : process.platform === 'linux' ? 'linux-x64' : process.platform === 'darwin' ? 'macos-arm64' : 'other';
+  for (const [label, stage] of [['HEC-HMS', manifest.hec_hms], ['HEC-RAS', manifest.hec_ras]]) {
+    if (stage.platform !== 'other' && stage.platform !== expectedPlatform) {
+      throw new Error(label + ' platform mismatch: manifest=' + stage.platform + ', runtime=' + expectedPlatform);
+    }
   }
 
   verifyHashedFile(workspace, manifest.aoi.geometry_workspace_path, manifest.aoi.geometry_sha256, 'AOI geometry');
@@ -523,6 +538,13 @@ function main() {
     run.artifacts.push(...persistTree(handoffOutput, 'HMS-to-RAS handoff receipt and logs'));
     run.artifacts.push(...persistTree(rasWorking, 'HEC-RAS run copy after explicit DSS boundary handoff'));
 
+    const staleRasOutputsRemoved = removeStaleRasPlanOutputs(rasWorking);
+    run.stages.push({
+      name: 'HEC_RAS_STALE_OUTPUT_PREFLIGHT',
+      status: 'PASS',
+      removed_stale_plan_hdf_and_message_files: staleRasOutputsRemoved,
+      note: 'Existing plan HDF and computation-message files were removed from the isolated run copy to prevent stale output reuse.',
+    });
     const rasRunStage = {
       ...manifest.hec_ras,
       project_directory: path.relative(workspace, rasWorking).replace(/\\/g, '/'),
