@@ -61,6 +61,7 @@ test('TSM contains an explicit government peer-review boundary', () => {
 
 test('live stage telemetry is button-only: no auto-fetch, no polling, gates stay blocked', () => {
   const source = read('src/lib/stage.ts');
+  const usgs = read('src/lib/usgs-direct.ts');
   const router = read('src/lib/router.tsx');
   // Owner direction 2026-10-01 (SUPERSEDING the 2026-09-29 retirement):
   // live values ONLY via a user-initiated "Fetch live snapshot" button.
@@ -78,7 +79,7 @@ test('live stage telemetry is button-only: no auto-fetch, no polling, gates stay
   assert.doesNotMatch(source, /requestAnimationFrame/);
   // USGS live path is OGC Water Data API (waterservices.usgs.gov retired 2026-02-22).
   // Assert hostname via URL-shaped literal, not an unanchored substring sanitization pattern.
-  assert.match(source, /https:\/\/api\.waterdata\.usgs\.gov\/ogcapi\/v1\/collections\/latest-continuous/);
+  assert.match(usgs, /https:\/\/api\.waterdata\.usgs\.gov\/ogcapi\/v1\/collections\/latest-continuous/);
   assert.match(source, /qualifier: 'P'|qualifier: null/);
   assert.match(source, /REQUIRES_VALIDATED_HYDRAULIC_PROFILE/);
   assert.match(source, /NOT_ELIGIBLE_UNVERIFIED_SITE_TRANSFER/);
