@@ -60,14 +60,16 @@ The repository now provides concrete stage adapters. After approval, use argumen
     "{{workspace}}/scripts/hydrology/run-hec-hms.py",
     "--project", "{{project}}",
     "--output", "{{output}}",
-    "--manifest", "{{manifest}}"
+    "--manifest", "{{manifest}}",
+    "--workspace", "{{workspace}}"
   ],
   "hec_ras.command": [
     "ABSOLUTE/PATH/TO/PINNED/PYTHON",
     "{{workspace}}/scripts/hydrology/run-hec-ras.py",
     "--project", "{{project}}",
     "--output", "{{output}}",
-    "--manifest", "{{manifest}}"
+    "--manifest", "{{manifest}}",
+    "--workspace", "{{workspace}}"
   ]
 }
 ~~~
@@ -95,7 +97,7 @@ A typical argument-array shape for the pinned handoff adapter (adapt paths to th
 ]
 ~~~
 
-Install the exact handoff dependency lock with python -m pip install -r scripts/hydrology/requirements-hec-handoff.txt in an isolated, reviewed H&H environment. The adapter verifies PEP 610 VCS commit metadata and refuses a package installed from an arbitrary PyPI release. Use the same requirements file and Python version on each worker. The adapter and each Python package version must be installed and verified on the actual worker. HEC-HMS and HEC-RAS installers are not downloaded or executed by the TSM runner. The HEC-RAS terms-and-conditions dialog must be accepted by an authorized operator before unattended execution; the wrapper does not auto-accept it. HEC-RAS desktop automation is platform-specific; use an approved Windows HEC-RAS worker unless the selected, version-matched engine adapter explicitly supports the chosen platform. Do not presume that the same RAS runner works on arbitrary Linux or hosted compute.
+Install the source-pinned handoff packages in an isolated, reviewed H&H environment. Before a run is eligible, generate and commit a transitive, hash-locked environment file (for example with a pinned pip-tools version and `pip-compile --generate-hashes`), then populate `python_environment.lock_uri`, `lock_workspace_path`, and `lock_sha256`. Run `python scripts/hydrology/fingerprint-hec-environment.py --workspace . --lock-file scripts/hydrology/requirements-hec-handoff.lock.txt --lock-uri <immutable-lock-uri>` on the actual Windows x64 worker and record its `python_version`, `platform`, and `installed_packages_sha256` in the manifest. The runner and both stage wrappers verify the lock bytes and installed-package fingerprint before any solver starts. The adapter verifies PEP 610 VCS commit metadata and refuses a package installed from an arbitrary PyPI release. Use the same requirements file and Python version on each worker. The adapter and each Python package version must be installed and verified on the actual worker. HEC-HMS and HEC-RAS installers are not downloaded or executed by the TSM runner. The HEC-RAS terms-and-conditions dialog must be accepted by an authorized operator before unattended execution; the wrapper does not auto-accept it. HEC-RAS desktop automation is platform-specific; use an approved Windows HEC-RAS worker unless the selected, version-matched engine adapter explicitly supports the chosen platform. Do not presume that the same RAS runner works on arbitrary Linux or hosted compute.
 
 ## Validate before execution
 
