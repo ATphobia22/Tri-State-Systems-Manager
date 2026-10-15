@@ -108,7 +108,7 @@ A parcel address cannot choose the hydraulic outlet, identify the contributing d
 
 ## 7. Main-branch / CI evidence
 
-The report is intended to be committed on TSM `main`. Before this report's commit, the latest observed branch commit was `43bd3c442fd7391eb3f1825ec5a581223762e768` (`Add verified Bonebank Road candidate AOI and flood evidence`). At the time checked, the associated workflows for the exact spatial-boundary acquisition, parse gate, CI pipeline, offline runtime, production build/deploy, CodeQL, and E2E visual regression were completed successfully on that commit. A new report commit will trigger new CI; the post-commit result must be checked separately before saying that the updated tip is green.
+The candidate AOI evidence and this report are present on TSM `main`. The current observed main tip during this revision is `4acbfb73ae9eb2e2909c976103a2e1eba6a6a08a`. At the time checked, 8 check runs for that exact tip had completed successfully, 2 were still in progress, and 3 were queued; no check run for that exact tip had concluded with failure. Therefore the tip was **not yet fully green** at the time of this snapshot. Re-query the current main tip and its exact check runs before claiming release readiness; status from an earlier commit is not evidence that a newer tip is green.
 
 ## 8. Source references
 
