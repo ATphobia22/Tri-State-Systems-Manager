@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0",
+  "status": "PROPOSAL_NOT_EXECUTABLE",
+  "hec_ras_mesh_meta": {
+    "mesh_version": "requires-installed-version-verification",
+    "associated_aoi_id": "UNASSIGNED",
+    "horizontal_crs": "EPSG:2967",
+    "vertical_datum": null,
+    "note": "Horizontal CRS does not define vertical datum. Configure vertical datum only from verified terrain and model metadata."
+  },
+  "computational_domain_parameters": {
+    "geometry_source": "public.tsm_reconciled_aoi.geom",
+    "nominal_cell_size_feet": null,
+    "max_cell_size_feet": null,
+    "min_cell_size_feet": null,
+    "cell_face_orientation_degrees": null,
+    "status": "REQUIRES_DOMAIN_AND_CONVERGENCE_STUDY"
+  },
+  "topological_breakline_refinements": [],
+  "numerical_solver_stability_settings": {
+    "status": "MUST_BE_SET_IN_SUPPORTED_HEC_RAS_WORKFLOW",
+    "note": "Do not inject arbitrary HDF5 datasets into a .g## file. Use supported HEC-RAS geometry editors/APIs and verify the resulting model in the target version."
+  },
+  "execution_gates": {
+    "source_manifest_verified": false,
+    "terrain_raster_downloaded_and_qc_passed": false,
+    "horizontal_crs_verified": false,
+    "vertical_datum_verified": false,
+    "catchment_and_outlet_verified": false,
+    "boundary_conditions_validated": false,
+    "mesh_convergence_reviewed": false,
+    "professional_review_complete": false,
+    "model_execution_allowed": false
+  }
+}
