@@ -92,6 +92,10 @@ export function runStage({ name, stage, workspace, outputDirectory }) {
   if (completed.status !== 0) throw new Error(name + ' exited with status ' + completed.status + ': ' + stderr.slice(-2000));
   const outputs = stage.expected_outputs.map((relative) => {
     const file = safeWorkspacePath(workspace, relative, name + '.expected_output');
+    const relativeToOutput = path.relative(output, file);
+    if (relativeToOutput === '..' || relativeToOutput.startsWith('..' + path.sep) || path.isAbsolute(relativeToOutput)) {
+      throw new Error(name + ' expected outputs must be contained by its isolated output_directory: ' + relative);
+    }
     if (!fs.existsSync(file) || !fs.statSync(file).isFile()) throw new Error(name + ' did not produce expected file: ' + relative);
     return { path: relative, sha256: sha256File(file), size_bytes: fs.statSync(file).size };
   });
@@ -142,6 +146,33 @@ function main() {
   for (const input of manifest.source_inputs) verifyHashedFile(workspace, input.workspace_path, input.sha256, 'source input ' + input.input_id);
 
   const storeRoot = safeWorkspacePath(workspace, manifest.artifact_storage.root_directory, 'artifact_storage.root_directory');
+  const hmsProjectCheck = safeWorkspacePath(workspace, manifest.hec_hms.project_directory, 'HEC-HMS project directory');
+  const rasProjectCheck = safeWorkspacePath(workspace, manifest.hec_ras.project_directory, 'HEC-RAS project directory');
+  const hmsOutputCheck = safeWorkspacePath(workspace, manifest.hec_hms.output_directory, 'HEC-HMS output directory');
+  const rasOutputCheck = safeWorkspacePath(workspace, manifest.hec_ras.output_directory, 'HEC-RAS output directory');
+  const disjoint = (left, right, leftName, rightName) => {
+    const relative = path.relative(left, right);
+    const reverse = path.relative(right, left);
+    if (left === right || (!relative.startsWith('..' + path.sep) && relative !== '..' && !path.isAbsolute(relative)) ||
+        (!reverse.startsWith('..' + path.sep) && reverse !== '..' && !path.isAbsolute(reverse))) {
+      throw new Error(leftName + ' and ' + rightName + ' directories must not overlap');
+    }
+  };
+  for (const [dir, label] of [[hmsProjectCheck, 'HEC-HMS project'], [rasProjectCheck, 'HEC-RAS project']]) {
+    disjoint(storeRoot, dir, 'artifact store', label);
+  }
+  for (const [dir, label] of [[hmsOutputCheck, 'HEC-HMS output'], [rasOutputCheck, 'HEC-RAS output']]) {
+    disjoint(storeRoot, dir, 'artifact store', label);
+    disjoint(dir, hmsProjectCheck, label, 'HEC-HMS project');
+    disjoint(dir, rasProjectCheck, label, 'HEC-RAS project');
+  }
+  disjoint(hmsProjectCheck, rasProjectCheck, 'HEC-HMS project', 'HEC-RAS project');
+  disjoint(hmsOutputCheck, rasOutputCheck, 'HEC-HMS output', 'HEC-RAS output');
+  const rasInputCheck = safeWorkspacePath(workspace, manifest.hydrograph_handoff.ras_input, 'hydrograph RAS input');
+  const relativeToRasProject = path.relative(rasProjectCheck, rasInputCheck);
+  if (relativeToRasProject === '..' || relativeToRasProject.startsWith('..' + path.sep) || path.isAbsolute(relativeToRasProject)) {
+    throw new Error('hydrograph RAS input must be inside the configured HEC-RAS project directory');
+  }
   fs.mkdirSync(storeRoot, { recursive: true });
   const runRoot = safeWorkspacePath(workspace, path.posix.join(manifest.artifact_storage.root_directory.replace(/\\/g, '/'), manifest.run_id), 'run artifact directory');
   fs.mkdirSync(runRoot, { recursive: false });
