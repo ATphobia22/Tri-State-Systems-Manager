@@ -323,8 +323,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         result = run_workflow(args.manifest, args.schema)
         print(json.dumps(result, indent=2, sort_keys=True, allow_nan=False))
         return 0
-    except (ManifestError, ReadinessError, OSError, ValueError, RuntimeError) as exc:
-        print(json.dumps({"status": "BLOCKED_OR_FAILED", "error": str(exc), "execution_performed": bool(args.run)}, indent=2), file=__import__("sys").stderr)
+    except (ManifestError, ReadinessError) as exc:
+        print(json.dumps({"status": "BLOCKED", "error": str(exc), "execution_performed": False}, indent=2), file=__import__("sys").stderr)
+        return 2
+    except (OSError, ValueError, RuntimeError) as exc:
+        print(json.dumps({"status": "FAILED", "error": str(exc), "execution_performed": bool(args.run)}, indent=2), file=__import__("sys").stderr)
         return 2
 
 if __name__ == "__main__":
