@@ -83,6 +83,7 @@ function assertExecutionReady(manifest) {
   if (!nonPlaceholder(manifest.aoi?.name) || !nonPlaceholder(manifest.aoi?.geometry_uri) || !nonPlaceholder(manifest.aoi?.watershed_delineation_uri)) errors.push('AOI geometry and watershed delineation must have named, source-backed references');
   if (manifest.aoi?.geometry_sha256 === '0'.repeat(64) || manifest.aoi?.watershed_delineation_sha256 === '0'.repeat(64)) errors.push('AOI geometry and watershed hashes must be measured, non-placeholder SHA-256 values');
   if (!nonPlaceholder(manifest.reference_system?.horizontal_crs) || !nonPlaceholder(manifest.reference_system?.vertical_datum) || !nonPlaceholder(manifest.reference_system?.datum_evidence_uri) || !nonPlaceholder(manifest.reference_system?.units_policy)) errors.push('horizontal CRS, vertical datum, units and datum evidence must be qualified');
+  if (manifest.source_inputs?.some((input) => input.quality_status !== 'QUALIFIED')) errors.push('every source input quality_status QUALIFIED is required before execution');
   if (!Array.isArray(manifest.source_inputs) || manifest.source_inputs.length === 0) {
     errors.push('source_inputs must contain at least one qualified, provenance-backed input');
   } else {
