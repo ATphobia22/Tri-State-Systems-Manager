@@ -313,6 +313,7 @@ def execute_handoff(
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--manifest", required=True, type=Path)
+    parser.add_argument("--workspace", required=True, type=Path)
     parser.add_argument("--hms-dss", required=True, type=Path)
     parser.add_argument("--ras-project", required=True, type=Path)
     parser.add_argument("--ras-input", required=True, type=Path)
@@ -321,11 +322,26 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
+        workspace = args.workspace.resolve(strict=True)
+        ras_project = args.ras_project.resolve(strict=True)
+        ras_input = args.ras_input.resolve(strict=True)
+        ras_dss = args.ras_dss.resolve(strict=False)
+        try:
+            source_project = (workspace / manifest["hec_ras"]["project_directory"]).resolve(strict=True)
+            source_input = (workspace / manifest["hydrograph_handoff"]["ras_input"]).resolve(strict=True)
+            expected_relative_input = source_input.relative_to(source_project)
+            actual_relative_input = ras_input.relative_to(ras_project)
+        except (OSError, ValueError) as exc:
+            raise ValueError("cannot map RAS boundary file into the staged project: " + str(exc)) from exc
+        if expected_relative_input != actual_relative_input:
+            raise ValueError("passed --ras-input does not correspond to hydrograph_handoff.ras_input in the staged project")
+        if ras_dss != (ras_project / manifest["hydrograph_handoff"]["ras_dss_relative_path"]).resolve():
+            raise ValueError("passed --ras-dss does not match hydrograph_handoff.ras_dss_relative_path")
         report = execute_handoff(
             manifest=manifest, hms_dss_path=args.hms_dss.resolve(strict=True),
-            ras_project_directory=args.ras_project.resolve(strict=True),
-            ras_unsteady_file=args.ras_input.resolve(strict=True),
-            ras_dss_file=args.ras_dss.resolve(strict=False),
+            ras_project_directory=ras_project,
+            ras_unsteady_file=ras_input,
+            ras_dss_file=ras_dss,
             report_path=args.report.resolve(strict=False),
         )
         print(json.dumps({"ok": True, "status": report["status"], "report": str(args.report),
