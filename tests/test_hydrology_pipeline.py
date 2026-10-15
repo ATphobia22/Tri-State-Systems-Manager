@@ -56,7 +56,7 @@ class HydrologyPipelineIntegrationTests(unittest.TestCase):
             "TSM_HYDROGRAPH_CSV": str(self.csv_path),
             "TSM_TELEMETRY_EVIDENCE_JSON": str(self.evidence_path) if with_evidence else "",
             "TSM_GAUGE_ID": "03378500",
-            "TSM_BOUNDARY": "WABASH_INFLOW",
+            "TSM_BOUNDARY": "WABASH_COMPONENT_03378500",
             "TSM_NORMAL_DEPTH_SLOPE_FT_FT": "0.0004",
         })
         return subprocess.run(
@@ -103,7 +103,7 @@ class HydrologyPipelineIntegrationTests(unittest.TestCase):
             "TSM_HYDROGRAPH_CSV": str(self.csv_path),
             "TSM_TELEMETRY_EVIDENCE_JSON": str(self.evidence_path),
             "TSM_GAUGE_ID": "03378500",
-            "TSM_BOUNDARY": "WABASH_INFLOW",
+            "TSM_BOUNDARY": "WABASH_COMPONENT_03378500",
             "TSM_NORMAL_DEPTH_SLOPE_FT_FT": "0.0004",
         })
         result = subprocess.run(
