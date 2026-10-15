@@ -239,7 +239,11 @@ function main() {
       throw new Error(label + ' platform mismatch: manifest=' + stage.platform + ', runtime=' + expectedPlatform);
     }
   }
+  if (manifest.python_environment.platform !== expectedPlatform) {
+    throw new Error('Python environment platform mismatch: manifest=' + manifest.python_environment.platform + ', runtime=' + expectedPlatform);
+  }
 
+  verifyHashedFile(workspace, manifest.python_environment.lock_workspace_path, manifest.python_environment.lock_sha256, 'Python environment lock');
   verifyHashedFile(workspace, manifest.aoi.geometry_workspace_path, manifest.aoi.geometry_sha256, 'AOI geometry');
   verifyHashedFile(workspace, manifest.aoi.watershed_delineation_workspace_path, manifest.aoi.watershed_delineation_sha256, 'watershed delineation');
   for (const input of manifest.source_inputs) verifyHashedFile(workspace, input.workspace_path, input.sha256, 'source input ' + input.input_id);
@@ -261,6 +265,7 @@ function main() {
     disjoint(storeRoot, dir, 'artifact store', label);
   }
   const immutableInputPaths = [
+    [manifest.python_environment.lock_workspace_path, 'Python environment lock'],
     [manifest.aoi.geometry_workspace_path, 'AOI geometry'],
     [manifest.aoi.watershed_delineation_workspace_path, 'watershed delineation'],
     ...manifest.source_inputs.map((input) => [input.workspace_path, 'source input ' + input.input_id]),
@@ -380,8 +385,10 @@ function main() {
   };
   try {
     run.manifest_file_sha256 = sha256File(manifestPath);
+    const environmentLock = verifyHashedFile(workspace, manifest.python_environment.lock_workspace_path, manifest.python_environment.lock_sha256, 'Python environment lock');
     const aoiGeometry = verifyHashedFile(workspace, manifest.aoi.geometry_workspace_path, manifest.aoi.geometry_sha256, 'AOI geometry');
     const watershed = verifyHashedFile(workspace, manifest.aoi.watershed_delineation_workspace_path, manifest.aoi.watershed_delineation_sha256, 'watershed delineation');
+    run.artifacts.push(persistArtifact(environmentLock, 'Python environment lock'));
     run.artifacts.push(persistArtifact(aoiGeometry, 'approved AOI geometry'));
     run.artifacts.push(persistArtifact(watershed, 'approved watershed delineation'));
     for (const input of manifest.source_inputs) {
