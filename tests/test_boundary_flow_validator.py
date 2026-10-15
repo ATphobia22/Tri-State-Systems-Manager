@@ -24,7 +24,7 @@ def test_valid_series_only_passes_for_review(tmp_path):
         "2026-10-15T12:00:00Z,1200,0.50",
     ])
     result = validate_boundary_csv(
-        path, boundary="WABASH_INFLOW", gauge_id="03378500",
+        path, boundary="WABASH_COMPONENT_03378500", gauge_id="03378500",
         normal_depth_slope_ft_ft=0.0004,
         telemetry_evidence=telemetry(now), now=now,
     )
@@ -39,7 +39,7 @@ def test_wrong_gauge_locks_pipeline(tmp_path):
         "2026-10-15T12:00:00Z,1100,0.4",
     ])
     result = validate_boundary_csv(
-        path, boundary="WABASH_INFLOW", gauge_id="03322000",
+        path, boundary="WABASH_COMPONENT_03378500", gauge_id="03322000",
         normal_depth_slope_ft_ft=0.0004,
         telemetry_evidence=telemetry(now, "03322000"), now=now,
     )
@@ -54,7 +54,7 @@ def test_missing_timestamp_counts_as_gap(tmp_path):
         "2026-10-15T12:00:00Z,1100,0.4",
     ])
     result = validate_boundary_csv(
-        path, boundary="WABASH_INFLOW", gauge_id="03378500",
+        path, boundary="WABASH_COMPONENT_03378500", gauge_id="03378500",
         normal_depth_slope_ft_ft=0.0004,
         telemetry_evidence=telemetry(now), now=now,
     )
@@ -69,7 +69,7 @@ def test_froude_and_slope_thresholds_lock_pipeline(tmp_path):
         "2026-10-15T12:00:00Z,1100,0.90",
     ])
     result = validate_boundary_csv(
-        path, boundary="WABASH_INFLOW", gauge_id="03378500",
+        path, boundary="WABASH_COMPONENT_03378500", gauge_id="03378500",
         normal_depth_slope_ft_ft=0.001,
         telemetry_evidence=telemetry(now), now=now,
     )
@@ -86,7 +86,7 @@ def test_stale_telemetry_locks_pipeline(tmp_path):
     ])
     evidence = telemetry(now - timedelta(hours=2))
     result = validate_boundary_csv(
-        path, boundary="WABASH_INFLOW", gauge_id="03378500",
+        path, boundary="WABASH_COMPONENT_03378500", gauge_id="03378500",
         normal_depth_slope_ft_ft=0.0004,
         telemetry_evidence=evidence, now=now,
     )
