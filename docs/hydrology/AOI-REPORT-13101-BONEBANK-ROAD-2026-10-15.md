@@ -264,3 +264,14 @@ A live query of [Address Points of Indiana 2024](https://gisdata.in.gov/server/r
 The same state CSLF polygon query against candidate footprint 763173 returned `cslf_id=3785`, `pre_zone=AE`, `new_zone=AE`, source `STUDY10`. Thus the address-associated candidate building footprint intersects the state AE polygon. This is not a surveyed outline, a definitive classification of principal dwelling versus accessory structure, or evidence of a BFE/flood depth. The statewide building footprint layer is vintage 2016–2020; verify current imagery and owner/county/survey evidence before treating 763173 as the actual home footprint or using it for regulatory decisions.
 
 Full geometries, areas, distances, query URLs and limitations are retained in [live query evidence JSON](../../data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json).
+
+
+## 15. Address-associated building footprint candidate
+
+A live query of Indiana's **Address Points of Indiana 2024** layer returned a Posey County address point for `13101 BONEBANK RD` tied to state parcel ID `651908100008001010`, at `(-88.005101, 37.845889)` in EPSG:4326. The point record's update date is 2022-08-01.
+
+A live query of Indiana's **Building Footprints 2016–2020** layer returned four nearby polygons. Candidate feature **objectid 763173** is the best available address-associated footprint because the county address point falls inside it, it is fully within the candidate parcel, and it is the closest of the returned footprints to that address point. Its reported planar area is approximately **258.7 m²** (2020 lidar footprint). Two additional footprints (objectids 763169 and 763172) also lie within the parcel, and one footprint lies about 5.18 m outside the parcel boundary. The dataset does not functionally classify which structures are the principal dwelling, accessory buildings, or other structures.
+
+A live Indiana CSLF overlay of candidate footprint 763173 intersects the state Zone AE polygon (`cslf_id=3785`, source `STUDY10`). This is a building-footprint-to-zone intersection only; it supplies no BFE, depth, velocity, finished-floor elevation, or regulatory determination. The footprint is historical and not a survey. Current imagery and owner confirmation are needed to confirm that feature 763173 is the actual home and that the footprint remains current. FEMA NFHL full-footprint overlay and effective panel/LOMC review remain open.
+
+The structure evidence and all returned footprint geometries are preserved in the [live query evidence JSON](../../data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json). The structure gate is now **ADDRESS-ASSOCIATED CANDIDATE FOUND — OWNER/CURRENT-IMAGERY CONFIRMATION PENDING**, not fully approved. The AOI remains candidate-only; no catchment or model result has been generated.
