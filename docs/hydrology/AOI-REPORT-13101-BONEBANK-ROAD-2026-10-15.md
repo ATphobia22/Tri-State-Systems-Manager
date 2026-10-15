@@ -234,7 +234,7 @@ This is a **nearby conveyance candidate for review, not a selected or verified o
 The live evidence JSON now records the flowline inventory, geometry-derived distance, candidate coordinates, source URL, service refresh date, and limitations. The connector-normalized flowline count was not consistent between query variants (10 vs. 20 for the same small bounding box); the companion 1-km query identified returned flowlines as NHD-derived. Treat these as screening records, not a complete hydrography inventory. The next actionable task is to inspect the site and nearby ditch/canal with current imagery and field/county evidence, then confirm the outlet point; do not substitute the nearby mapped canal automatically.
 
 
-## 15. FEMA panel lookup and local outlet candidate update
+## 14. FEMA panel lookup and local outlet candidate update
 
 A live FEMA NFHL query of the FIRM Panels layer at the parcel centroid returned panel **0300**, community **18129C**, effective date **2014-10-05**, source `18129C_BASE12`. This identifies the panel record for the centroid, but the current effective map index and any subsequent products must still be checked in the [FEMA Map Service Center](https://msc.fema.gov/portal/home) before regulatory use.
 
