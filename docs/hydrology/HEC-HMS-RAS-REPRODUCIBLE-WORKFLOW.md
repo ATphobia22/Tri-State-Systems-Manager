@@ -4,7 +4,7 @@
 
 The repository now defines a fail-closed v2 run-manifest contract, an execution-readiness validator, a reproducible orchestration runner, a DSS-to-HEC-RAS boundary handoff adapter, local content-addressed artifact capture, and regression tests for handoff rules.
 
-**No real coupled HEC simulation is claimed.** A candidate parcel for 13101 Bonebank Road has now been identified from IGIO parcel geometry and documented with USGS elevation and FEMA/Indiana DNR flood-layer observations. It is not an approved hydrologic AOI: the contributing watershed/outlet, qualified source inputs, HEC model packages, installed runtimes, transfer selector, and qualified engineering review remain unverified. The candidate-specific manifest stays DRAFT and execution must remain blocked.
+**No real coupled HEC simulation is claimed.** A candidate parcel for 13101 Bonebank Road has been identified from IGIO parcel geometry and documented with USGS elevation and FEMA/Indiana DNR flood-layer observations. A second legacy “surveyed centroid” lies approximately 6.4 km away, so the address-to-parcel/site location remains unresolved. It is not an approved hydrologic AOI: the contributing watershed/outlet, qualified source inputs, HEC model packages, installed runtimes, transfer selector, environment lock, and qualified engineering review remain unverified. See [full AOI report](AOI-REPORT-13101-BONEBANK-ROAD-2026-10-15.md). The candidate-specific manifest stays DRAFT and execution must remain blocked.
 
 ## Official product and adapter versions
 
