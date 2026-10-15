@@ -92,6 +92,14 @@ class HecHmsRasHandoffTests(unittest.TestCase):
                 time_zone="America/Chicago", interval="1HOUR"
             )
 
+    def test_offset_change_inside_series_is_rejected_even_when_local_clock_times_are_valid(self):
+        with self.assertRaisesRegex(ValueError, "UTC offset changed"):
+            HANDOFF.validate_local_times(
+                [datetime(2026, 3, 7, 12, 0), datetime(2026, 3, 8, 12, 0)],
+                time_zone="America/Chicago",
+                interval="1DAY",
+            )
+
     def test_frame_validation_checks_exact_path_units_interval_and_quality(self):
         frame = FakeFrame(self.times, [20.0, 40.0, 30.0])
         local, utc, values, summary = HANDOFF.validate_hydrograph_frame(
