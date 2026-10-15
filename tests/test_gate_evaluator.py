@@ -2,7 +2,7 @@
 import json
 import unittest
 
-from gate_evaluator import validate_tsm_payload
+from src.tsm.gate_evaluator import validate_tsm_payload
 
 
 def geojson():
