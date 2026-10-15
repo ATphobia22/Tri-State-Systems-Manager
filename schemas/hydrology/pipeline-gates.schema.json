@@ -1,0 +1,282 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atphobia22.github.io/Tri-State-Systems-Manager/schemas/hydrology/pipeline-gates.schema.json",
+  "title": "TSM Evidence-Gated Hydrology Pipeline",
+  "description": "Fail-closed contract for evidence, readiness, and solver execution. PASSED states require attached, validated evidence; no sample values imply real site readiness.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "pipeline_execution_id",
+    "aoi_target_id",
+    "created_at_utc",
+    "execution_policy",
+    "gates"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "pipeline_execution_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "aoi_target_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "execution_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fail_closed",
+        "human_approval_required",
+        "allow_solver_execution"
+      ],
+      "properties": {
+        "fail_closed": {
+          "const": true
+        },
+        "human_approval_required": {
+          "const": true
+        },
+        "allow_solver_execution": {
+          "type": "boolean"
+        }
+      }
+    },
+    "gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "terrain",
+        "jurisdiction_sources",
+        "outlet",
+        "catchment",
+        "model"
+      ],
+      "properties": {
+        "terrain": {
+          "$ref": "#/$defs/evidenceGate"
+        },
+        "jurisdiction_sources": {
+          "$ref": "#/$defs/evidenceGate"
+        },
+        "outlet": {
+          "$ref": "#/$defs/evidenceGate"
+        },
+        "catchment": {
+          "$ref": "#/$defs/evidenceGate"
+        },
+        "model": {
+          "$ref": "#/$defs/modelGate"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "status": {
+      "enum": [
+        "NOT_REQUESTED",
+        "QUEUED",
+        "FETCHED_UNVALIDATED",
+        "VALIDATED",
+        "PARTIAL_COVERAGE",
+        "BLOCKED_MISSING_INPUT",
+        "BLOCKED_SOURCE_FAILURE",
+        "BLOCKED_DATUM_OR_CRS",
+        "REQUIRES_HUMAN_REVIEW",
+        "APPROVED_FOR_SCREENING",
+        "BLOCKED_NOT_RUN",
+        "READY_FOR_REVIEW",
+        "COMPLETE_WITH_LIMITATIONS"
+      ]
+    },
+    "evidenceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_uri",
+        "sha256",
+        "source_id",
+        "retrieved_at_utc",
+        "validation_status"
+      ],
+      "properties": {
+        "artifact_uri": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "source_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "retrieved_at_utc": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source_vintage": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "horizontal_crs": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "vertical_datum": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "units": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "validation_status": {
+          "enum": [
+            "VALID",
+            "INVALID",
+            "PARTIAL",
+            "NOT_RUN"
+          ]
+        }
+      }
+    },
+    "evidenceGate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "evaluated_at_utc",
+        "execution_blocked",
+        "evidence",
+        "issues"
+      ],
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "evaluated_at_utc": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "execution_blocked": {
+          "type": "boolean"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidenceRef"
+          }
+        },
+        "issues": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "modelGate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "execution_blocked",
+        "dependencies",
+        "human_approval",
+        "solver_artifacts",
+        "issues"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "BLOCKED_NOT_RUN",
+            "READY_FOR_REVIEW",
+            "APPROVED_FOR_EXECUTION",
+            "RUNNING",
+            "SUCCEEDED",
+            "FAILED"
+          ]
+        },
+        "execution_blocked": {
+          "type": "boolean"
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "terrain",
+              "jurisdiction_sources",
+              "outlet",
+              "catchment"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "human_approval": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "approved",
+            "reviewer_id",
+            "approved_at_utc",
+            "scope"
+          ],
+          "properties": {
+            "approved": {
+              "type": "boolean"
+            },
+            "reviewer_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "approved_at_utc": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date-time"
+            },
+            "scope": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "solver_artifacts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/evidenceRef"
+          }
+        },
+        "issues": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
