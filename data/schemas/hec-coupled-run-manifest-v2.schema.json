@@ -1,0 +1,676 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:tsm:hec-coupled-run-manifest:v2",
+  "title": "TSM Coupled HEC-HMS to HEC-RAS Run Manifest v2",
+  "description": "Version 2 contract for reproducible, fail-closed, approved-area HEC-HMS to HEC-RAS execution. It pins input and model package hashes, actual HEC runtime binaries, the exact DSS record, the selected RAS boundary, the transfer adapter, and storage references. Draft manifests are structurally valid but cannot execute.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "source_commit",
+    "project_id",
+    "purpose",
+    "approval",
+    "aoi",
+    "reference_system",
+    "source_inputs",
+    "hec_hms",
+    "hydrograph_handoff",
+    "hec_ras",
+    "artifact_storage"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "2.0.0"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]+$"
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "purpose": {
+      "enum": [
+        "OBSERVED_EVENT_RECONSTRUCTION",
+        "FORECAST_SCENARIO",
+        "DESIGN_STORM",
+        "BASELINE",
+        "ALTERNATIVE_SCENARIO",
+        "BENCHMARK_ONLY"
+      ]
+    },
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "approved_by",
+        "approved_at",
+        "evidence_uri"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "DRAFT",
+            "APPROVED",
+            "REVOKED"
+          ]
+        },
+        "approved_by": {
+          "type": "string",
+          "minLength": 1
+        },
+        "approved_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "evidence_uri": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "aoi": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "geometry_uri",
+        "geometry_sha256",
+        "area_km2",
+        "watershed_delineation_uri",
+        "watershed_delineation_sha256",
+        "geometry_workspace_path",
+        "watershed_delineation_workspace_path"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "geometry_uri": {
+          "type": "string",
+          "minLength": 1
+        },
+        "geometry_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "area_km2": {
+          "type": "number",
+          "minimum": 0.000001
+        },
+        "watershed_delineation_uri": {
+          "type": "string",
+          "minLength": 1
+        },
+        "watershed_delineation_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "geometry_workspace_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "watershed_delineation_workspace_path": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "reference_system": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "horizontal_crs",
+        "vertical_datum",
+        "units_policy",
+        "datum_evidence_uri"
+      ],
+      "properties": {
+        "horizontal_crs": {
+          "type": "string",
+          "minLength": 1
+        },
+        "vertical_datum": {
+          "type": "string",
+          "minLength": 1
+        },
+        "units_policy": {
+          "type": "string",
+          "minLength": 1
+        },
+        "datum_evidence_uri": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "source_inputs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "input_id",
+          "authority_class",
+          "source_uri",
+          "retrieved_at",
+          "valid_time",
+          "sha256",
+          "media_type",
+          "units",
+          "horizontal_crs",
+          "vertical_datum",
+          "quality_status",
+          "license_or_terms_uri",
+          "workspace_path"
+        ],
+        "properties": {
+          "input_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "authority_class": {
+            "enum": [
+              "OBSERVED",
+              "FORECAST",
+              "DERIVED",
+              "MODELLED",
+              "SCENARIO",
+              "REGULATORY",
+              "PROJECT_ENGINEERING"
+            ]
+          },
+          "source_uri": {
+            "type": "string",
+            "minLength": 1
+          },
+          "retrieved_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "valid_time": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "media_type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "units": {
+            "type": "string",
+            "minLength": 1
+          },
+          "horizontal_crs": {
+            "type": "string",
+            "minLength": 1
+          },
+          "vertical_datum": {
+            "type": "string",
+            "minLength": 1
+          },
+          "quality_status": {
+            "enum": [
+              "QUALIFIED",
+              "PROVISIONAL",
+              "STALE",
+              "MISSING",
+              "REJECTED"
+            ]
+          },
+          "license_or_terms_uri": {
+            "type": "string",
+            "minLength": 1
+          },
+          "workspace_path": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "hec_hms": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "product_version",
+        "platform",
+        "project_directory",
+        "command",
+        "timeout_seconds",
+        "expected_outputs",
+        "output_directory",
+        "project_package_sha256",
+        "executable_sha256",
+        "version_evidence_uri",
+        "runtime_executable_path",
+        "runtime_executable_sha256"
+      ],
+      "properties": {
+        "product_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "platform": {
+          "enum": [
+            "windows-x64",
+            "linux-x64",
+            "macos-arm64",
+            "other"
+          ]
+        },
+        "project_directory": {
+          "type": "string",
+          "minLength": 1
+        },
+        "command": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "timeout_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 86400
+        },
+        "expected_outputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "output_directory": {
+          "type": "string",
+          "minLength": 1
+        },
+        "project_package_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "Pinned SHA-256 of the source project directory tree before run mutation."
+        },
+        "executable_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "Pinned SHA-256 of the exact adapter executable at command[0]."
+        },
+        "version_evidence_uri": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Evidence reference establishing the installed HEC product version and platform."
+        },
+        "runtime_executable_path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Absolute path to the actual vendor HEC runtime executable verified on the execution worker."
+        },
+        "runtime_executable_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA-256 of the actual vendor HEC executable, separate from the Python/adapter launcher hash."
+        }
+      }
+    },
+    "hydrograph_handoff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_output",
+        "ras_input",
+        "format",
+        "time_zone",
+        "flow_units",
+        "gap_policy",
+        "conversion_method",
+        "adapter_command",
+        "adapter_version",
+        "adapter_executable_sha256",
+        "timeout_seconds",
+        "source_dss_pathname",
+        "source_element_name",
+        "source_run_name",
+        "ras_dss_relative_path",
+        "ras_dss_pathname",
+        "interval",
+        "source_flow_units",
+        "boundary_selector",
+        "adapter_script_path",
+        "adapter_script_sha256",
+        "dss_version"
+      ],
+      "properties": {
+        "source_output": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ras_input": {
+          "type": "string",
+          "minLength": 1
+        },
+        "format": {
+          "enum": [
+            "DSS",
+            "CSV",
+            "OTHER_DOCUMENTED"
+          ]
+        },
+        "time_zone": {
+          "type": "string",
+          "minLength": 1
+        },
+        "flow_units": {
+          "enum": [
+            "cfs",
+            "cms"
+          ]
+        },
+        "gap_policy": {
+          "const": "REJECT",
+          "description": "Current implementation rejects missing, non-finite, duplicated, unordered, or irregularly timed source records. No interpolation or gap filling."
+        },
+        "conversion_method": {
+          "enum": [
+            "NONE_EXACT_VALUES",
+            "CFS_TO_CMS_0.028316846592",
+            "CMS_TO_CFS_35.314666721489"
+          ]
+        },
+        "adapter_command": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Shell-free argv for explicit, hash-pinned transfer adapter. Supports {{workspace}}, {{project}}, {{output}}, {{source_output}}, {{ras_input}}, {{ras_dss}}, {{manifest}}, {{handoff_report}}, and {{adapter_script}}."
+        },
+        "adapter_version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Exact transfer-adapter release or immutable commit."
+        },
+        "adapter_executable_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "timeout_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 86400
+        },
+        "source_dss_pathname": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Exact DSS pathname to a FLOW record in the HEC-HMS output file; no first-match selection."
+        },
+        "source_element_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_run_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ras_dss_relative_path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Project-relative target DSS file referenced by the exact RAS unsteady-flow boundary."
+        },
+        "ras_dss_pathname": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Exact six-part HEC-DSS pathname the staged .uNN boundary will reference."
+        },
+        "interval": {
+          "type": "string",
+          "enum": [
+            "1MIN",
+            "5MIN",
+            "10MIN",
+            "15MIN",
+            "30MIN",
+            "1HOUR",
+            "2HOUR",
+            "3HOUR",
+            "4HOUR",
+            "6HOUR",
+            "8HOUR",
+            "12HOUR",
+            "1DAY"
+          ]
+        },
+        "source_flow_units": {
+          "type": "string",
+          "enum": [
+            "CFS",
+            "CMS"
+          ]
+        },
+        "boundary_selector": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mode",
+            "river",
+            "reach",
+            "station",
+            "area_2d",
+            "bc_line",
+            "boundary_index",
+            "expected_bc_type"
+          ],
+          "properties": {
+            "mode": {
+              "enum": [
+                "1D",
+                "2D",
+                "INDEX"
+              ]
+            },
+            "river": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1
+            },
+            "reach": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1
+            },
+            "station": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1
+            },
+            "area_2d": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1
+            },
+            "bc_line": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1
+            },
+            "boundary_index": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "expected_bc_type": {
+              "enum": [
+                "Flow Hydrograph",
+                "Lateral Inflow Hydrograph"
+              ]
+            }
+          }
+        },
+        "adapter_script_path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Path to the reviewed TSM handoff adapter script; the file must match adapter_script_sha256."
+        },
+        "adapter_script_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "dss_version": {
+          "type": "integer",
+          "enum": [
+            6,
+            7
+          ],
+          "description": "Explicit HEC-DSS file version for the generated RAS handoff record."
+        }
+      }
+    },
+    "hec_ras": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "product_version",
+        "platform",
+        "project_directory",
+        "command",
+        "timeout_seconds",
+        "expected_outputs",
+        "output_directory",
+        "project_package_sha256",
+        "executable_sha256",
+        "version_evidence_uri",
+        "runtime_executable_path",
+        "runtime_executable_sha256"
+      ],
+      "properties": {
+        "product_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "platform": {
+          "enum": [
+            "windows-x64",
+            "linux-x64",
+            "macos-arm64",
+            "other"
+          ]
+        },
+        "project_directory": {
+          "type": "string",
+          "minLength": 1
+        },
+        "command": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "timeout_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 86400
+        },
+        "expected_outputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "output_directory": {
+          "type": "string",
+          "minLength": 1
+        },
+        "project_package_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "Pinned SHA-256 of the source project directory tree before run mutation."
+        },
+        "executable_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "Pinned SHA-256 of the exact adapter executable at command[0]."
+        },
+        "version_evidence_uri": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Evidence reference establishing the installed HEC product version and platform."
+        },
+        "runtime_executable_path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Absolute path to the actual vendor HEC runtime executable verified on the execution worker."
+        },
+        "runtime_executable_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA-256 of the actual vendor HEC executable, separate from the Python/adapter launcher hash."
+        }
+      }
+    },
+    "artifact_storage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "backend",
+        "root_directory",
+        "retention_policy",
+        "metadata_store"
+      ],
+      "properties": {
+        "backend": {
+          "const": "filesystem-content-addressed"
+        },
+        "root_directory": {
+          "type": "string",
+          "minLength": 1
+        },
+        "retention_policy": {
+          "type": "string",
+          "minLength": 1
+        },
+        "metadata_store": {
+          "enum": [
+            "run-manifest-only",
+            "tsm-evidence-store-adapter"
+          ]
+        }
+      }
+    },
+    "source_commit": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$",
+      "description": "Exact TSM Git commit SHA that produced and launched this workflow."
+    }
+  }
+}
