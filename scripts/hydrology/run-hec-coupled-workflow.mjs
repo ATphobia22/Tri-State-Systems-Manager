@@ -36,6 +36,9 @@ export function runStage({ name, stage, workspace, outputDirectory }) {
   const project = safeWorkspacePath(workspace, stage.project_directory, name + '.project_directory');
   if (!fs.existsSync(project) || !fs.statSync(project).isDirectory()) throw new Error(name + ' project directory is missing: ' + stage.project_directory);
   const output = safeWorkspacePath(workspace, outputDirectory, name + '.output_directory');
+  if (fs.existsSync(output) && (!fs.statSync(output).isDirectory() || fs.readdirSync(output).length > 0)) {
+    throw new Error(name + ' output directory must be a new or empty directory to prevent stale-output reuse: ' + outputDirectory);
+  }
   fs.mkdirSync(output, { recursive: true });
   const command = stage.command.map((part) => replaceTokens(part, { workspace, project, output }));
   if (command[0] === 'UNCONFIGURED' || command.some((part) => /^(UNCONFIGURED|UNPINNED|TBD)$/i.test(part))) throw new Error(name + ' command is not configured');
