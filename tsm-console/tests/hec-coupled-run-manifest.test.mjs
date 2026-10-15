@@ -111,7 +111,7 @@ test('Bonebank Road candidate manifest is structurally valid but execution-block
   const candidate = JSON.parse(readFileSync(new URL('../../data/posey-county/hec/13101-bonebank-road-candidate-run-manifest-v2.json', import.meta.url), 'utf8'));
   assert.deepEqual(validateManifest(candidate), []);
   assert.equal(candidate.approval.status, 'DRAFT');
-  assert.equal(candidate.aoi.name, '13101 Bonebank Road parcel candidate (not a watershed)');
+  assert.equal(candidate.aoi.name, '13101 Bonebank Road candidate parcel; site-coordinate conflict unresolved');
   assert.ok(validateManifest(candidate, { execution: true }).length > 0);
   assert.equal(candidate.aoi.watershed_delineation_sha256, '0'.repeat(64));
 });
