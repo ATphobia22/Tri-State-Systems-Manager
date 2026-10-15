@@ -6,7 +6,7 @@ const twin = readFileSync(new URL('../src/routes/TwinCanvasView.tsx', import.met
 const renderer = readFileSync(new URL('../src/components/RealWorldTwinMap.tsx', import.meta.url), 'utf8');
 const style = readFileSync(new URL('../src/lib/twin-map-style.ts', import.meta.url), 'utf8');
 const layers = readFileSync(new URL('../src/lib/map-layers.ts', import.meta.url), 'utf8');
-const catalog = JSON.parse(readFileSync(new URL('../../../data/sources/noaa-cloudgis-catalog.json', import.meta.url), 'utf8'));
+const catalog = JSON.parse(readFileSync(new URL('../../data/sources/noaa-cloudgis-catalog.json', import.meta.url), 'utf8'));
 const packageJson = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 
 const productionTwin = `${twin}\\n${renderer}\\n${style}`;
