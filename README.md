@@ -82,6 +82,7 @@ Screening primitives and contracts exist. Production hydraulic conclusions remai
 - [Hydrology release contract](docs/hydrology/HYDROLOGY-RELEASE-CONTRACT.md)
 - [USACE HEC integration plan](docs/hydrology/USACE-HEC-SOFTWARE-INTEGRATION.md)
 - [Reproducible HEC-HMS → HEC-RAS workflow v2](docs/hydrology/HEC-HMS-RAS-REPRODUCIBLE-WORKFLOW.md)
+- [HEC coupling validation research and handoff acceptance criteria](docs/hydrology/HEC-COUPLING-VALIDATION-RESEARCH-2026-10-15.md)
 - [HEC coupled-run manifest v2 schema](data/schemas/hec-coupled-run-manifest-v2.schema.json)
 - [Release gates 2026-10-15](docs/release/RELEASE-GATES-2026-10-15.md)
 
