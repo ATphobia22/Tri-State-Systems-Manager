@@ -623,7 +623,7 @@ function main() {
     run.finished_at = new Date().toISOString();
     run.failure = String(error.message ?? error);
     fs.writeFileSync(path.join(runRoot, 'run-receipt.json'), JSON.stringify(run, null, 2) + '\n', { mode: 0o600 });
-
+    throw error;
   }
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
