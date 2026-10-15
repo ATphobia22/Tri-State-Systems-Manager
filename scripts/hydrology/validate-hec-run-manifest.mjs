@@ -112,7 +112,7 @@ function assertExecutionReady(manifest) {
     const scriptDigest = createHash('sha256').update(fs.readFileSync(configuredScript)).digest('hex');
     if (scriptDigest !== handoff.adapter_script_sha256) errors.push('handoff adapter script SHA-256 does not match the checked-out source');
     const scriptText = fs.readFileSync(configuredScript, 'utf8');
-    const versionMatch = scriptText.match(/ADAPTER_VERSION\\s*=\\s*['"]([^'"]+)['"]/);
+    const versionMatch = scriptText.match(/ADAPTER_VERSION\s*=\s*['"]([^'"]+)['"]/);
     if (!versionMatch || versionMatch[1] !== handoff.adapter_version) errors.push('handoff adapter version is inconsistent with the checked-out source');
   }
   const parts = (pathname) => {
