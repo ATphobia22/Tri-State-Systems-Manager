@@ -28,6 +28,7 @@ Do not stamp a software version into the manifest until the installed binary ver
 | HEC-HMS compute wrapper | scripts/hydrology/run-hec-hms.py |
 | HEC-RAS compute/verification wrapper | scripts/hydrology/run-hec-ras.py |
 | Shared runtime/provenance gates | scripts/hydrology/hec_runtime_common.py |
+| Installed environment fingerprint | scripts/hydrology/fingerprint-hec-environment.py |
 | Wrapper regression tests | backend/tests/test_hec_solver_wrappers.py |
 | Orchestration, stage receipts and artifact blobs | scripts/hydrology/run-hec-coupled-workflow.mjs |
 | Node contract/runner tests | tsm-console/tests/hec-coupled-run-manifest.test.mjs |
