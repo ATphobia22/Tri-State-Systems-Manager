@@ -135,8 +135,8 @@
     },
     {
       "id": "site-dem",
-      "state": "OPEN",
-      "reason": "No site-wide DEM asset and metadata were retrieved in this pass."
+      "state": "CATALOG_PRODUCT_FOUND_ASSET_PENDING",
+      "reason": "A USGS 1-meter Indiana Statewide LiDAR DEM tile covers the candidate parcel bounding box; product metadata identifies bare-earth elevations in meters, NAVD88. The GeoTIFF has not been downloaded or QA-checked."
     },
     {
       "id": "epqs-unit-validation",
@@ -169,6 +169,62 @@
     "The state floodplain polygon is a live, current service intersection but not a complete parcel/structure overlay.",
     "No BFE was observed in the state polygon query. Service vertical metadata must not be substituted for an actual BFE datum.",
     "EPQS values from the connector are quarantined because value/unit interpretation is inconsistent; do not use them in calculations or model inputs.",
-    "No DEM raster or watershed polygon was created by this pass."
-  ]
+    "No DEM raster or watershed polygon was created by this pass.",
+    "USGS TNM Access API returned four 1-meter DEM products covering the parcel bounding box; the Indiana Statewide LiDAR 2017 tile is the selected candidate based on state/project match. It is metadata evidence only, not a local raster file or analyzed terrain surface."
+  ],
+  "terrain_catalog": {
+    "agency": "U.S. Geological Survey / The National Map",
+    "catalog_api": "https://tnmaccess.nationalmap.gov/api/v1/products",
+    "query_bbox_lonlat": [
+      -88.0062,
+      37.8453,
+      -88.0043,
+      37.8463
+    ],
+    "query_status": "HTTP 200; 4 one-meter DEM products returned for bounding box",
+    "selected_candidate": {
+      "title": "USGS 1 Meter 16 x41y419 IN_Indiana_Statewide_LiDAR_2017_B17",
+      "product_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1m/Projects/IN_Indiana_Statewide_LiDAR_2017_B17/TIFF/USGS_1M_16_x41y419_IN_Indiana_Statewide_LiDAR_2017_B17.tif",
+      "metadata_url": "https://www.sciencebase.gov/catalog/item/60e6aebcd34e2a7685d0271b",
+      "publication_date": "2021-07-04",
+      "source_acquisition_start": "2017-03-03",
+      "source_acquisition_end": "2020-04-11",
+      "file_modification_date": "2021-07-08T02:52:28",
+      "spatial_coverage": {
+        "min_longitude": -88.02303602199999,
+        "max_longitude": -87.90827470799996,
+        "min_latitude": 37.76289730600007,
+        "max_latitude": 37.853947521000066
+      },
+      "nominal_resolution_m": 1,
+      "surface": "bare-earth DEM",
+      "horizontal_reference": "NAD83 / UTM, meters; tile delivered in applicable UTM zone",
+      "vertical_reference": "NAVD88",
+      "vertical_unit": "meter",
+      "product_status": "CATALOG_MATCHED_AS_CANDIDATE; FILE_NOT_DOWNLOADED_OR_QA_CHECKED"
+    },
+    "other_returned_products": [
+      {
+        "title": "USGS 1 Meter 16 x41y419 IL_HicksDome_FluorsparDistrict_2019_D19",
+        "publication_date": "2022-03-19",
+        "metadata_url": "https://www.sciencebase.gov/catalog/item/624e7085d34e21f8276801a"
+      },
+      {
+        "title": "USGS 1 Meter 16 x41y419 KY_2020Western_C22",
+        "publication_date": "2026-04-17",
+        "metadata_url": "https://www.sciencebase.gov/catalog/item/69e6dcfbb66b01f903b6a5da"
+      },
+      {
+        "title": "USGS 1 Meter 16 x41y419 KY_FluorsparDistrict_2019_D19",
+        "publication_date": "2021-10-07",
+        "metadata_url": "https://www.sciencebase.gov/catalog/item/618cb1f3d34ec04fc9c8a796"
+      }
+    ],
+    "limitations": [
+      "The selected Indiana statewide LiDAR product is a candidate based on name, footprint and source metadata; it has not been downloaded, hashed, inspected or processed.",
+      "USGS metadata says 1-meter DEM tiles may not be seamless across project boundaries; check neighboring project edges and source quality.",
+      "Do not infer a watershed from a DEM catalog result. Verify culverts, road embankments, ditches, tile drainage and the intended outlet.",
+      "No elevation samples or slope/flow accumulation/catchment geometry were derived from this catalog result."
+    ]
+  }
 }
