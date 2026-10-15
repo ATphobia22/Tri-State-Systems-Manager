@@ -7,7 +7,7 @@ import { test } from 'node:test';
 import { validateManifest } from '../../scripts/hydrology/validate-hec-run-manifest.mjs';
 import { runStage, safeWorkspacePath } from '../../scripts/hydrology/run-hec-coupled-workflow.mjs';
 
-const examplePath = new URL('../../data/schemas/examples/hec-coupled-run-manifest-v1.example.json', import.meta.url);
+const examplePath = new URL('../../data/schemas/examples/hec-coupled-run-manifest-v2.example.json', import.meta.url);
 const validDraft = JSON.parse(readFileSync(examplePath, 'utf8'));
 
 test('draft HEC coupled-run example satisfies the manifest schema', () => {
