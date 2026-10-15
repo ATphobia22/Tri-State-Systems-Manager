@@ -187,7 +187,7 @@ def verify_python_environment(manifest: dict[str, Any], workspace_value: str | P
         )
     if environment.get("platform") != "windows-x64":
         raise RuntimeError("The current coupled HEC runtime only supports windows-x64")
-    if sys.platform != "win32" or struct.calcsize("P") != 8:
+    if sys.platform != "win32" or struct.calcsize("P") != 8 or runtime_platform.machine().lower() not in {"amd64", "x86_64"}:
         raise RuntimeError("The current coupled HEC runtime requires a 64-bit Windows worker")
     if environment.get("python_version") != runtime_platform.python_version():
         raise RuntimeError(
