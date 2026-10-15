@@ -1,0 +1,87 @@
+version: "1.0.0"
+region:
+  id: "TSM-REG-LOWER-WABASH-OHIO"
+  name: "Tri-State River Valley"
+  states: ["IN", "IL", "KY"]
+  domain_method: "hydrologic_units_and_connected_river_valley"
+  boundary_artifact_required: true
+  boundary_source_id_required: true
+orchestrator:
+  failure_policy: "FAIL_CLOSED_PER_GATE"
+  cache:
+    enabled: true
+    key_fields: ["source_id", "normalized_geometry_hash", "request_parameters_hash", "source_version", "auth_scope"]
+    never_cache_errors_as_empty_success: true
+  provenance:
+    hash_algorithm: "sha256"
+    preserve_raw_artifacts: true
+    record_retrieval_timestamp_utc: true
+    require_crs_and_units: true
+    require_vertical_datum_for_elevation: true
+  states:
+    IN: "Indiana"
+    IL: "Illinois"
+    KY: "Kentucky"
+adapters:
+  federal:
+    usgs_3dep:
+      purpose: "elevation"
+      discovery_url: "https://www.usgs.gov/3d-elevation-program"
+      require_product_metadata: true
+      require_vertical_datum: true
+    usgs_nhdplus_or_3d_hydrography:
+      purpose: "hydrography_and_watershed_context"
+      discovery_url: "https://www.usgs.gov/national-hydrography"
+      require_feature_lineage: true
+    fema_nfhl:
+      purpose: "effective_regulatory_flood_mapping"
+      discovery_url: "https://www.fema.gov/flood-maps/national-flood-hazard-layer"
+      separate_from_observed_events: true
+      require_effective_date_and_panel_metadata: true
+    usgs_water_services:
+      purpose: "observed_gage_data"
+      discovery_url: "https://waterdata.usgs.gov/nwis"
+      gauge_proximity_is_not_outlet_proof: true
+    noaa_precipitation_frequency:
+      purpose: "precipitation_frequency"
+      discovery_url: "https://hdsc.nws.noaa.gov/pfds/"
+      require_product_version_and_duration: true
+  states:
+    IN:
+      cadastral_discovery: "https://www.in.gov/gis/"
+      floodplain_discovery: "https://www.in.gov/dnr/water/"
+      elevation_discovery: "https://www.usgs.gov/3d-elevation-program"
+      source_coverage: "discover_per_aoi"
+    IL:
+      cadastral_discovery: "https://clearinghouse.isgs.illinois.edu/"
+      floodplain_discovery: "https://www.dnr.illinois.gov/WaterResources/Pages/default.aspx"
+      elevation_discovery: "https://www.usgs.gov/3d-elevation-program"
+      source_coverage: "discover_per_aoi"
+    KY:
+      cadastral_discovery: "https://kyfromabove.ky.gov/"
+      floodplain_discovery: "https://eec.ky.gov/Environmental-Protection/Water/FloodDrought/Pages/default.aspx"
+      elevation_discovery: "https://kyfromabove.ky.gov/"
+      source_coverage: "discover_per_aoi"
+validation:
+  geojson:
+    standard: "RFC7946"
+    coordinates: "WGS84 longitude_latitude"
+    reject_legacy_crs_member: true
+  geometry:
+    require_valid_topology: true
+    require_explicit_geometry_role: true
+    parcel_is_not_catchment: true
+  terrain:
+    require_nodata_report: true
+    require_horizontal_crs: true
+    require_vertical_datum: true
+    require_units: true
+    missing_data_policy: "BLOCK_AFFECTED_ANALYSIS"
+  flood:
+    normalize_sentinels_to_null_preserve_raw: true
+    never_infer_bfe_from_zero: true
+    keep_regulatory_observed_and_modeled_layers_separate: true
+  execution:
+    model_execution_default: "BLOCKED_NOT_RUN"
+    require_scope_bound_human_approval: true
+    require_independent_revalidation_at_execution: true
