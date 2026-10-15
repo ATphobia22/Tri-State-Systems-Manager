@@ -158,8 +158,14 @@ def validate_hydrograph_frame(
     if len(values) != len(local_times):
         raise ValueError("flow values and timestamps have different lengths")
     volume_ft3 = None
+    volume_m3 = None
     if target_units.upper() == "CFS":
         volume_ft3 = sum(
+            (utc_times[i + 1] - utc_times[i]).total_seconds() * (values[i] + values[i + 1]) / 2
+            for i in range(len(values) - 1)
+        )
+    elif target_units.upper() == "CMS":
+        volume_m3 = sum(
             (utc_times[i + 1] - utc_times[i]).total_seconds() * (values[i] + values[i + 1]) / 2
             for i in range(len(values) - 1)
         )
@@ -180,9 +186,82 @@ def validate_hydrograph_frame(
         "minimum_flow": min(values),
         "maximum_flow": max(values),
         "trapezoidal_volume_ft3": volume_ft3,
+        "trapezoidal_volume_m3": volume_m3,
         "status": "FORMAT_AND_UNIT_CONTRACT_VALIDATED_HYDROLOGY_UNVALIDATED",
     }
     return local_times, utc_times, values, summary
+
+
+
+ROUND_TRIP_RELATIVE_TOLERANCE = 1e-5
+ROUND_TRIP_ABSOLUTE_TOLERANCE = 1e-6
+
+
+def validate_written_hydrograph_frame(
+    frame: Any, *, pathname: str, target_element_name: str, interval: str,
+    units: str, time_zone: str, expected_local_times: Sequence[datetime],
+    expected_utc_times: Sequence[datetime], expected_values: Sequence[float],
+) -> dict[str, Any]:
+    """Read back the target DSS record and compare it with the intended series.
+
+    This validates the adapter/file handoff only, not the hydrologic or hydraulic
+    model. The relative tolerance is 1e-5 and the absolute floor is 1e-6 in the
+    declared discharge units; missing values, gaps, non-finite values, negative
+    discharge, and a shifted time axis still fail closed.
+    """
+    parts = parse_dss_pathname(pathname)
+    if parts[2].upper() != "FLOW" or parts[4].upper() != interval.upper():
+        raise HandoffError("read-back target pathname is not the declared FLOW interval")
+    local_times, utc_times, actual_values, series_summary = validate_hydrograph_frame(
+        frame,
+        pathname=pathname,
+        element_name=target_element_name,
+        run_name=parts[5],
+        interval=interval,
+        source_units=units,
+        target_units=units,
+        conversion_method="NONE_EXACT_VALUES",
+        time_zone=time_zone,
+    )
+    if list(local_times) != list(expected_local_times):
+        raise HandoffError("target DSS read-back timestamps differ from the intended local time axis")
+    if list(utc_times) != list(expected_utc_times):
+        raise HandoffError("target DSS read-back instants differ from the intended UTC time axis")
+    if len(actual_values) != len(expected_values):
+        raise HandoffError("target DSS read-back point count differs from the intended hydrograph")
+    if not actual_values:
+        raise HandoffError("target DSS read-back returned no hydrograph values")
+
+    absolute_errors = [abs(actual - float(expected)) for actual, expected in zip(actual_values, expected_values)]
+    relative_errors = [
+        error / max(abs(float(expected)), abs(actual), 1.0)
+        for error, actual, expected in zip(absolute_errors, actual_values, expected_values)
+    ]
+    allowed_errors = [
+        max(ROUND_TRIP_ABSOLUTE_TOLERANCE, ROUND_TRIP_RELATIVE_TOLERANCE * max(abs(float(expected)), 1.0))
+        for expected in expected_values
+    ]
+    if any(error > allowed for error, allowed in zip(absolute_errors, allowed_errors)):
+        worst = max(range(len(absolute_errors)), key=absolute_errors.__getitem__)
+        raise HandoffError(
+            "target DSS read-back values differ from the intended hydrograph beyond tolerance "
+            f"at row {worst}: expected={float(expected_values[worst])}, "
+            f"actual={actual_values[worst]}, absolute_error={absolute_errors[worst]}, "
+            f"allowed_error={allowed_errors[worst]}"
+        )
+    return {
+        "status": "PASS",
+        "pathname": pathname,
+        "units": units.upper(),
+        "point_count": len(actual_values),
+        "timestamps_exact": True,
+        "values_within_tolerance": True,
+        "relative_tolerance": ROUND_TRIP_RELATIVE_TOLERANCE,
+        "absolute_tolerance": ROUND_TRIP_ABSOLUTE_TOLERANCE,
+        "maximum_absolute_error": max(absolute_errors, default=0.0),
+        "maximum_relative_error": max(relative_errors, default=0.0),
+        "target_series_summary": series_summary,
+    }
 
 
 def catalog_paths(catalog: Any) -> list[str]:
@@ -301,6 +380,21 @@ def execute_handoff(
     if not validation_passed(validation):
         raise HandoffError(f"target DSS pathname did not validate: {validation}")
 
+    # A successful write call plus a catalog hit is not enough: independently
+    # read the exact record back from DSS and compare its time axis and values.
+    target_frame = RasDss.read_timeseries(ras_dss_file, target_path)
+    target_round_trip = validate_written_hydrograph_frame(
+        target_frame,
+        pathname=target_path,
+        target_element_name=target_parts[1],
+        interval=h["interval"],
+        units=h["flow_units"],
+        time_zone=h["time_zone"],
+        expected_local_times=local_times,
+        expected_utc_times=utc_times,
+        expected_values=values,
+    )
+
     reference = os.path.relpath(ras_dss_file, ras_unsteady_file.parent)
     if os.name == "nt":
         reference = reference.replace("/", "\\")
@@ -332,6 +426,7 @@ def execute_handoff(
             "path": str(ras_dss_file), "sha256": sha256_file(ras_dss_file),
             "byte_length": ras_dss_file.stat().st_size, "pathname": target_path,
             "previous_sha256": previous_dss_hash, "pathname_validation_passed": True,
+            "round_trip_validation": target_round_trip,
         },
         "target_unsteady_flow": {
             "path": str(ras_unsteady_file), "before_sha256": before_unsteady_hash,
