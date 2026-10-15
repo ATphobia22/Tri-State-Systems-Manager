@@ -27,6 +27,7 @@ mkdir -p -- "${LOG_DIR}" "${REPORT_DIR}"
 readonly RUN_ID="$(date -u +%Y%m%dT%H%M%SZ)"
 readonly LOG_PATH="${LOG_DIR}/pipeline-${RUN_ID}.log"
 readonly REPORT_PATH="${REPORT_DIR}/preflight-${RUN_ID}.json"
+readonly CONVERGENCE_REPORT_PATH="${REPORT_DIR}/convergence-${RUN_ID}.json"
 exec 3>&1 4>&2
 exec > >(tee -a "${LOG_PATH}") 2>&1
 
@@ -105,14 +106,14 @@ log INFO "Telemetry structural checks passed for review only; they do not author
 if [[ -n "${RUNTIME_LOG}" ]]; then
   [[ -f "${RUNTIME_LOG}" ]] || die "Configured runtime log does not exist: ${RUNTIME_LOG}"
   export TSM_RUNTIME_LOG="${RUNTIME_LOG}"
-  export TSM_REPORT_PATH
+  export TSM_CONVERGENCE_REPORT_PATH="${CONVERGENCE_REPORT_PATH}"
   python3 - <<'PY'
 import json, os, sys
 from pathlib import Path
 from tsm_runtime.convergence_monitor import inspect_hec_ras_log
 report = inspect_hec_ras_log(os.environ["TSM_RUNTIME_LOG"])
 payload = report.as_dict()
-Path(os.environ["TSM_REPORT_PATH"]).write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+Path(os.environ["TSM_CONVERGENCE_REPORT_PATH"]).write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 print(json.dumps(payload, indent=2))
 if report.status != "SCREENED_FOR_REVIEW":
     raise SystemExit(2)
@@ -129,6 +130,7 @@ fi
 cat >&3 <<EOF
 TSM pipeline result: PIPELINE_LOCKED
 Preflight report: ${REPORT_PATH}
+Convergence report (only when a log is supplied): ${CONVERGENCE_REPORT_PATH}
 Runtime log: ${LOG_PATH}
 Reason: no verified HEC-RAS-version-specific adapter is enabled. No geometry mutation,
 .u01 compilation, solver execution, GeoPackage publication, or stakeholder alert occurred.
