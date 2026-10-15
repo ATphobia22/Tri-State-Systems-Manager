@@ -3,31 +3,41 @@
 **Updated:** 2026-10-15  
 **Scope:** Repository and console release readiness; this is a status register, not an engineering certification.
 
+## Integration status
+
+PR [#267](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/267) was merged to `main` in commit `71979cb99e884f4fff40d58bec98f591f7385576`. This integrates the NOAA/NWS CloudGIS catalog, opt-in warning/radar overlays, bounded GetCapabilities verification, and contract tests. Merge status is not equivalent to a green release: this register does not claim that all post-merge checks or live runtime validations passed.
+
+The hydrology/hydraulics acceptance contract is maintained in [HYDROLOGY-RELEASE-CONTRACT.md](../hydrology/HYDROLOGY-RELEASE-CONTRACT.md).
+
 ## Gates with repository evidence
 
 | Gate | Current evidence | Status |
 |---|---|---|
-| Public console build and artifact validation | GitHub Actions production-console verification passed for the merged baseline; rerun is required for this feature branch | BASELINE_PASS / FEATURE_BRANCH_PENDING |
-| Twin entity invariant checks | Dependency-free checks and negative tests exist | PARTIAL — not full JSON Schema 2020-12 evaluation |
-| Public source metadata acquisition | Bounded, allowlisted snapshot tool with hashes and manifests | TOOL_READY / SOURCE_SNAPSHOTS_NOT_ACQUIRED |
-| NOAA/NWS source catalog | Official service directory links recorded in `data/sources/noaa-cloudgis-catalog.json` | DOCUMENTED / LIVE_CAPABILITIES_PENDING |
-| NOAA Twin Canvas overlays | Opt-in WMS warning and MRMS radar layers with source attribution | IMPLEMENTED / RUNTIME_HEALTH_PENDING |
-| Production backend deployment | No verified backend deployment target or live API health evidence | BLOCKED / NOT_CLAIMED |
+| NOAA/NWS source catalog | Official endpoints and published layer names recorded in `data/sources/noaa-cloudgis-catalog.json` | DOCUMENTED / GETMAP_RUNTIME_PENDING |
+| NOAA Twin Canvas overlays | Opt-in WMS warning and MRMS reflectivity layers with attribution | IMPLEMENTED / RUNTIME_HEALTH_PENDING |
+| GetCapabilities verifier | HTTPS and host/path allowlist, timeout, bounded response, content-type and layer checks, negative tests | IMPLEMENTED / LIVE RUN NOT CONFIRMED HERE |
+| SCS Curve Number runoff | Deterministic lumped event-method implementation, validation, provenance and hand-computed tests | IMPLEMENTED / SCREENING ONLY |
+| Engineering evidence pipeline | Terrain/bathymetry, datum, calibrated HEC-RAS, scenario, earthwork, environmental and independent QA/QC sequence documented | CONTRACT DOCUMENTED / AOI MODEL EVIDENCE REQUIRED |
+| Full JSON Schema 2020-12 validation | Existing twin invariant checks are not a substitute for standards-compliant schema and instance validation | PARTIAL / RELEASE GATE OPEN |
+| Source metadata acquisition | Bounded acquisition and hash/manifest tooling exists | TOOL AVAILABLE / AOI SNAPSHOTS NOT CONFIRMED |
+| Production backend deployment | No verified target plus live API health evidence established by this register | BLOCKED / NOT CLAIMED |
+| Post-merge CI and deployment | Merge commit is known; a complete passing status set and verified deployment URL have not been established in this register | PENDING VERIFICATION |
 
 ## Hard release blockers
 
-1. **Select and approve a pilot area of interest (AOI).** Do not silently select a river reach. The AOI determines data coverage, boundary conditions, model extent, and validation targets.
-2. **Acquire and qualify source inputs.** For each input, preserve exact source URI, retrieval time, license/terms, source-native ID, checksum, horizontal CRS, vertical datum, units, acquisition/forecast time, and transformation lineage. Do not infer missing datum metadata.
-3. **Validate NOAA WMS services in the release environment.** Fetch and parse GetCapabilities, confirm each qualified layer name and CRS, then assert GetMap returns valid image bytes for a Tri-State bounding box. The layer names in the current catalog are provisional until this test passes.
-4. **Use full JSON Schema 2020-12 validation.** The existing twin verifier intentionally checks only high-value invariants. A standards-compliant 2020-12 validator must validate the schema itself and all examples, including format assertions and negative fixtures.
-5. **Run a real hydraulic model for the approved AOI.** Record solver/version, mesh and terrain inputs, roughness assumptions, boundary conditions, forcing, convergence, calibration/validation evidence, uncertainty, and reproducibility tolerances. A visual water overlay is not model evidence.
-6. **Prove deployment separately.** Verify deployed frontend URL, API health, auth, telemetry, database/PostGIS, WebSocket behavior, and operational monitoring independently. A green Vite build does not prove those services exist.
-7. **Human engineering review.** No permit, floodway, life-safety, or property-level determination may be promoted from map visualization or unvalidated model output.
+1. **Approve a pilot area of interest (AOI).** Do not silently select a river reach. The AOI determines data coverage, watershed boundaries, boundary conditions, model extent, and validation targets.
+2. **Acquire and qualify source inputs.** Preserve exact source URI, retrieval time, license/terms, source-native ID, checksum when retained, horizontal CRS, vertical datum, units, observation/forecast time, quality/freshness and transformation lineage. Do not infer missing datum metadata.
+3. **Validate NOAA WMS services in the release environment.** Fetch and parse GetCapabilities, confirm each configured layer name and CRS, then assert GetMap returns valid image bytes for a Tri-State bounding box. A capabilities response alone does not prove successful image rendering.
+4. **Use full JSON Schema 2020-12 validation.** Validate the schema itself and all instances, including format assertions and negative fixtures. Existing invariant checks are useful but do not satisfy this gate.
+5. **Run a real hydraulic model for the approved AOI.** Record solver/version, mesh and terrain/bathymetry inputs, roughness assumptions, boundary conditions, rainfall/flow forcing, convergence, calibration/validation evidence, uncertainty and reproducibility tolerances. A visual water overlay is not model evidence.
+6. **Keep hydrologic semantics distinct.** NWPS observations and forecasts, USGS gage measurements, radar reflectivity, MRMS precipitation estimates, FEMA effective products, Indiana best-available flood mapping, and modeled inundation are different evidence classes. Do not use reflectivity as rainfall accumulation or raw gage stage as NAVD88 elevation.
+7. **Prove deployment separately.** Verify the deployed frontend URL, API health, authentication, telemetry, database/PostGIS, WebSocket behavior and operational monitoring independently. A green Vite build does not prove those services exist.
+8. **Complete qualified human review.** No permit, floodway, life-safety or property-level determination may be promoted from map visualization or unvalidated model output.
 
 ## Release policy
 
-- Keep external layers off by default; preserve visible attribution and authority boundaries.
+- Keep external context layers off by default; preserve attribution and authority boundaries.
 - Never substitute NOAA warning polygons or radar reflectivity for inundation, regulatory flood maps, or calibrated hydraulic output.
-- Do not commit live external payloads unless licensing, reproducibility, and retention are reviewed.
+- Do not commit live external payloads unless licensing, reproducibility and retention are reviewed.
 - Do not provision paid infrastructure without explicit authorization.
-- Keep the pull request unmerged until all applicable code gates pass. Scientific and deployment blockers remain open until supported by evidence.
+- PR #267 is merged. Scientific, runtime and deployment gates remain open until the required evidence is recorded and checks pass.
