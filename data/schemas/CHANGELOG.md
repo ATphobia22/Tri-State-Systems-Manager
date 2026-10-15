@@ -47,3 +47,13 @@ why, and whether the bump is backward compatible.
   validators (new required field + const change). v1.0.0 artifacts validate
   against v1.1.0 only if they supply a `scope` field; schemaVersion const must
   be updated by producers.
+
+
+## hec-coupled-run-manifest-v1.schema.json
+
+### v1.0.0 — initial release (2026-10-15)
+
+- Added a closed JSON Schema 2020-12 contract for AOI approval, geometry and watershed hashes, source input provenance, explicit CRS/vertical datum, pinned HEC runner configuration, hydrograph handoff semantics and artifact storage.
+- Added a DRAFT-only example; placeholders and missing/unqualified inputs are intentionally blocked by execution-readiness validation.
+- Added a shell-free orchestration runner and fail-closed tests. The runner writes content-addressed output blobs and a run receipt, but does not claim scientific validation or human approval.
+- Compatibility: new schema; no existing manifests require migration. HEC execution requires a separately approved AOI and real, version-pinned model packages.
