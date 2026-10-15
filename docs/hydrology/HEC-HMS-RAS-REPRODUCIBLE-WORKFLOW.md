@@ -25,6 +25,10 @@ Do not stamp a software version into the manifest until the installed binary ver
 | DRAFT manifest template | data/schemas/examples/hec-coupled-run-manifest-v2.example.json |
 | Fail-closed validation | scripts/hydrology/validate-hec-run-manifest.mjs |
 | HEC-HMS-to-RAS handoff | scripts/hydrology/hms-ras-handoff.py |
+| HEC-HMS compute wrapper | scripts/hydrology/run-hec-hms.py |
+| HEC-RAS compute/verification wrapper | scripts/hydrology/run-hec-ras.py |
+| Shared runtime/provenance gates | scripts/hydrology/hec_runtime_common.py |
+| Wrapper regression tests | backend/tests/test_hec_solver_wrappers.py |
 | Orchestration, stage receipts and artifact blobs | scripts/hydrology/run-hec-coupled-workflow.mjs |
 | Node contract/runner tests | tsm-console/tests/hec-coupled-run-manifest.test.mjs |
 | Python pure handoff tests | backend/tests/test_hec_hms_ras_handoff.py |
@@ -46,6 +50,29 @@ The v1 schema and its example are retained as immutable compatibility artifacts.
 Copy the v2 example to a controlled run directory outside the checked-out source packages, then replace all placeholders with reviewed evidence. The manifest's source_commit must be the full SHA of the TSM checkout on the execution worker; supply the same value in TSM_SOURCE_COMMIT for a local run or GITHUB_SHA for the runner environment.
 
 Every model-stage command is an argument array. Its first token is the absolute path to a reviewed adapter launcher (for example a pinned Python executable that invokes a local HEC installation); executable_sha256 hashes that launcher, while runtime_executable_path/runtime_executable_sha256 separately pin the actual HEC vendor binary. The command must use {{workspace}}, {{project}} and {{output}} placeholders as applicable and place expected output files underneath output_directory.
+
+The repository now provides concrete stage adapters. After approval, use argument arrays of this shape (replace the Python path with the exact, hash-pinned interpreter on the qualified worker):
+
+~~~json
+{
+  "hec_hms.command": [
+    "ABSOLUTE/PATH/TO/PINNED/PYTHON",
+    "scripts/hydrology/run-hec-hms.py",
+    "--project", "{{project}}",
+    "--output", "{{output}}",
+    "--manifest", "{{manifest}}"
+  ],
+  "hec_ras.command": [
+    "ABSOLUTE/PATH/TO/PINNED/PYTHON",
+    "scripts/hydrology/run-hec-ras.py",
+    "--project", "{{project}}",
+    "--output", "{{output}}",
+    "--manifest", "{{manifest}}"
+  ]
+}
+~~~
+
+Set `hec_hms.run_name` to the exact run in the HMS project and `hec_ras.plan_number` to the exact plan in the RAS project. Declare expected outputs relative to each stage output directory (normally under `project-copy/`). Both wrappers refuse a DRAFT manifest, verify the installed vendor executable hash and exact pinned Python-package VCS commit, compute only into a fresh project copy, and write a stage receipt. The RAS wrapper additionally requires the solver library to report verified completion. These checks do not replace independent numerical calibration, validation, or engineering review.
 
 The handoff command must include all of the following exact placeholders so the orchestrator injects run-specific paths instead of trusting stale files:
 
