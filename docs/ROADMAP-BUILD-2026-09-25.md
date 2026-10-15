@@ -1,17 +1,11 @@
 # Roadmap Build — 2026-09-25
 
-Implements the 7 genuine gaps from `docs/EXECUTIVE-REVIEW-VERIFICATION.md` §3.
-Built 2026-09-25 by 7 coordinated workstreams; all verification green (see log
-`build-logs/roadmap-build.log`). Committed on `main`, not pushed.
+Implements the 7 genuine gaps from `docs/EXECUTIVE-REVIEW-VERIFICATION.md` §3. Built on 2026-09-25; the historical verification log is `build-logs/roadmap-build.log`. The old note that this work was “committed on main, not pushed” is stale: repository state must be established from the current Git history and main branch, not this archived roadmap.
 
 ## What was built
 
 ### 1. Rainfall-runoff hydrology — `tsm-console/src/lib/hydrology-runoff.ts`
-SCS Curve Number method (S = 1000/CN − 10, Ia = 0.2S), cumulative runoff
-differenced per timestep into a Q(t) hydrograph (cfs via 645.33 cfs per
-sq-mi·in/hr). Lumped method: no routing, no baseflow — documented in the
-header. Fail-closed validation on all inputs. 14 vitest tests incl.
-hand-computed vectors (CN=80/P=3 → Q=1.25 in).
+SCS Curve Number method (S = 1000/CN − 10, Ia = 0.2S), cumulative runoff differenced per timestep into a Q(t) hydrograph (cfs via 645.33 cfs per sq-mi·in/hr). Lumped method: no routing, no baseflow — documented in the header. Fail-closed validation on all inputs. Historical test inventory: 14 Vitest tests including hand-computed vectors (CN=80/P=3 → Q=1.25 in).
 
 ### 2. Hazus depth-damage engine — `tsm-console/src/lib/hazus-depth-damage.ts`
 New module; `hazus-illustrative.ts` untouched. Occupancy types RES-1SNB,
