@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
 import { validateManifest } from '../../scripts/hydrology/validate-hec-run-manifest.mjs';
-import { safeWorkspacePath } from '../../scripts/hydrology/run-hec-coupled-workflow.mjs';
+import { runStage, safeWorkspacePath } from '../../scripts/hydrology/run-hec-coupled-workflow.mjs';
 
 const examplePath = new URL('../../data/schemas/examples/hec-coupled-run-manifest-v1.example.json', import.meta.url);
 const validDraft = JSON.parse(readFileSync(examplePath, 'utf8'));
@@ -36,6 +36,31 @@ test('workspace path guard rejects absolute and traversal paths', () => {
     assert.throws(() => safeWorkspacePath(directory, '../outside.txt', 'test'), /dot segments/);
     assert.throws(() => safeWorkspacePath(directory, path.resolve(directory, 'absolute.txt'), 'test'), /relative workspace path/);
     assert.equal(safeWorkspacePath(directory, 'project/input.dss', 'test'), path.join(directory, 'project', 'input.dss'));
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('runner executes argv without a shell and verifies expected output files', () => {
+  const directory = mkdtempSync(path.join(os.tmpdir(), 'tsm-hec-stage-test-'));
+  try {
+    mkdirSync(path.join(directory, 'project'));
+    const receipt = runStage({
+      name: 'fixture-stage',
+      workspace: directory,
+      outputDirectory: 'outputs',
+      stage: {
+        product_version: 'test-fixture-1',
+        platform: process.platform === 'win32' ? 'windows-x64' : process.platform === 'darwin' ? 'macos-arm64' : 'linux-x64',
+        project_directory: 'project',
+        command: [process.execPath, '-e', "require('node:fs').writeFileSync(process.argv[1], 'fixture-output')", '{{output}}/result.txt'],
+        timeout_seconds: 10,
+        expected_outputs: ['outputs/result.txt'],
+      },
+    });
+    assert.equal(receipt.exit_code, 0);
+    assert.equal(receipt.outputs.length, 1);
+    assert.equal(receipt.outputs[0].size_bytes, 'fixture-output'.length);
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }
