@@ -34,7 +34,7 @@ test('NOAA CloudGIS overlays are opt-in, attributed, and separate from flood aut
   assert.ok(renderer.includes('NOAA Radar'));
   assert.equal(catalog.layers.length, 3);
   assert.equal(catalog.layers.every((layer) => layer.enabled_by_default === false), true);
-  assert.equal(catalog.status, 'DOCUMENTED_NOT_RUNTIME_HEALTH_CHECKED');
+  assert.equal(catalog.status, 'CAPABILITIES_RETRIEVED_GETMAP_RUNTIME_PENDING');
   assert.ok(catalog.layers.every((layer) => layer.capabilities_url.startsWith('https://opengeo.ncep.noaa.gov/geoserver/')));
 });
 
