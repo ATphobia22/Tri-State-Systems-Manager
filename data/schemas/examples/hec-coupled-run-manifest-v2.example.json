@@ -121,5 +121,13 @@
     "retention_policy": "retain all run manifests and referenced blobs; no automatic deletion",
     "metadata_store": "run-manifest-only"
   },
-  "source_commit": "0000000000000000000000000000000000000000"
+  "source_commit": "0000000000000000000000000000000000000000",
+  "python_environment": {
+    "python_version": "UNVERIFIED",
+    "platform": "windows-x64",
+    "lock_uri": "UNASSIGNED",
+    "lock_workspace_path": "UNASSIGNED",
+    "lock_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "installed_packages_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  }
 }
