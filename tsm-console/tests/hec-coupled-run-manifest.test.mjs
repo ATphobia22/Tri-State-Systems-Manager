@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
 import { validateManifest } from '../../scripts/hydrology/validate-hec-run-manifest.mjs';
-import { runStage, safeWorkspacePath } from '../../scripts/hydrology/run-hec-coupled-workflow.mjs';
+import { runStage, safeWorkspacePath, validateHandoffReport } from '../../scripts/hydrology/run-hec-coupled-workflow.mjs';
 
 const examplePath = new URL('../../data/schemas/examples/hec-coupled-run-manifest-v2.example.json', import.meta.url);
 const validDraft = JSON.parse(readFileSync(examplePath, 'utf8'));
@@ -29,6 +29,129 @@ test('schema validation rejects unknown fields and malformed SHA-256 values', ()
   const errors = validateManifest(invalid);
   assert.ok(errors.some((error) => error.includes('unexpected property unexpected_field')));
   assert.ok(errors.some((error) => error.includes('pattern mismatch')));
+});
+
+function makeHandoffReportFixture(directory) {
+  const handoff = {
+    ...validDraft.hydrograph_handoff,
+    adapter_version: 'tsm-hms-ras-handoff@1.0.0',
+    source_dss_pathname: '/BASIN/OUTLET/FLOW//1HOUR/RUN:RUN1/',
+    source_element_name: 'OUTLET',
+    source_run_name: 'RUN1',
+    ras_dss_pathname: '/RAS/UPSTREAM/FLOW//1HOUR/RAS_RUN1/',
+    source_flow_units: 'CFS',
+    flow_units: 'CFS',
+    conversion_method: 'NONE_EXACT_VALUES',
+    interval: '1HOUR',
+    time_zone: 'America/Chicago',
+    boundary_selector: {
+      mode: '1D', river: 'River', reach: 'Reach', station: '1200',
+      area_2d: null, bc_line: null, boundary_index: null,
+      expected_bc_type: 'Flow Hydrograph',
+    },
+  };
+  const sourceOutput = path.join(directory, 'hms.dss');
+  const rasDss = path.join(directory, 'ras.dss');
+  const rasInput = path.join(directory, 'plan.u01');
+  writeFileSync(sourceOutput, 'source-dss-fixture');
+  writeFileSync(rasDss, 'target-dss-fixture');
+  writeFileSync(rasInput, 'target-u01-fixture');
+  const sha = (file) => createHash('sha256').update(readFileSync(file)).digest('hex');
+  const sourceSha256 = sha(sourceOutput);
+  const rasDssSha256 = sha(rasDss);
+  const rasInputSha256 = sha(rasInput);
+  const report = {
+    adapter: handoff.adapter_version,
+    status: 'HANDOFF_WRITTEN_AND_STRUCTURALLY_CHECKED_HYDROLOGY_UNVALIDATED',
+    scientific_validation_status: 'NOT_PERFORMED',
+    human_review_required: true,
+    source_dss: { path: sourceOutput, sha256: sourceSha256 },
+    target_dss: {
+      path: rasDss, sha256: rasDssSha256,
+      pathname: handoff.ras_dss_pathname,
+      pathname_validation_passed: true,
+      round_trip_validation: {
+        status: 'PASS', pathname: handoff.ras_dss_pathname, units: 'CFS',
+        point_count: 3, timestamps_exact: true, values_within_tolerance: true,
+        relative_tolerance: 1e-5, absolute_tolerance: 1e-6,
+        maximum_absolute_error: 0, maximum_relative_error: 0,
+      },
+    },
+    target_unsteady_flow: {
+      path: rasInput, before_sha256: 'd'.repeat(64), after_sha256: rasInputSha256,
+      relative_dss_reference: 'ras.dss',
+      boundary_selector: structuredClone(handoff.boundary_selector),
+    },
+    series: {
+      source_pathname: handoff.source_dss_pathname,
+      source_units: 'CFS', target_units: 'CFS', conversion_method: 'NONE_EXACT_VALUES',
+      interval: '1HOUR', time_zone: 'America/Chicago', point_count: 3,
+      status: 'FORMAT_AND_UNIT_CONTRACT_VALIDATED_HYDROLOGY_UNVALIDATED',
+    },
+  };
+  return { handoff, report, sourceOutput, sourceSha256, rasDss, rasDssSha256, rasInput, rasInputSha256 };
+}
+
+test('handoff report validator accepts matching source, target, boundary, and DSS read-back evidence', () => {
+  const directory = mkdtempSync(path.join(os.tmpdir(), 'tsm-hec-report-test-'));
+  try {
+    const fixture = makeHandoffReportFixture(directory);
+    const result = validateHandoffReport(fixture.report, {
+      handoff: fixture.handoff,
+      adapterVersion: fixture.handoff.adapter_version,
+      sourceOutput: fixture.sourceOutput,
+      sourceSha256: fixture.sourceSha256,
+      rasDss: fixture.rasDss,
+      rasDssSha256: fixture.rasDssSha256,
+      rasInput: fixture.rasInput,
+      rasInputSha256: fixture.rasInputSha256,
+    });
+    assert.equal(result.status, 'HANDOFF_WRITTEN_AND_STRUCTURALLY_CHECKED_HYDROLOGY_UNVALIDATED');
+    assert.equal(result.point_count, 3);
+    assert.equal(result.max_round_trip_absolute_error, 0);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('handoff report validator rejects absent read-back verification', () => {
+  const directory = mkdtempSync(path.join(os.tmpdir(), 'tsm-hec-report-missing-'));
+  try {
+    const fixture = makeHandoffReportFixture(directory);
+    fixture.report.target_dss.round_trip_validation.status = 'PENDING';
+    assert.throws(() => validateHandoffReport(fixture.report, {
+      handoff: fixture.handoff,
+      adapterVersion: fixture.handoff.adapter_version,
+      sourceOutput: fixture.sourceOutput,
+      sourceSha256: fixture.sourceSha256,
+      rasDss: fixture.rasDss,
+      rasDssSha256: fixture.rasDssSha256,
+      rasInput: fixture.rasInput,
+      rasInputSha256: fixture.rasInputSha256,
+    }), /target DSS record lacks passing read-back timestamp\/value checks/);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('handoff report validator rejects a boundary selector that differs from the approved manifest', () => {
+  const directory = mkdtempSync(path.join(os.tmpdir(), 'tsm-hec-report-selector-'));
+  try {
+    const fixture = makeHandoffReportFixture(directory);
+    fixture.report.target_unsteady_flow.boundary_selector.station = '9999';
+    assert.throws(() => validateHandoffReport(fixture.report, {
+      handoff: fixture.handoff,
+      adapterVersion: fixture.handoff.adapter_version,
+      sourceOutput: fixture.sourceOutput,
+      sourceSha256: fixture.sourceSha256,
+      rasDss: fixture.rasDss,
+      rasDssSha256: fixture.rasDssSha256,
+      rasInput: fixture.rasInput,
+      rasInputSha256: fixture.rasInputSha256,
+    }), /boundary selector differs from the approved manifest/);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
 });
 
 test('workspace path guard rejects absolute and traversal paths', () => {
