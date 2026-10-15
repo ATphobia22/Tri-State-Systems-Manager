@@ -1,0 +1,238 @@
+{
+  "schema": "tsm.hydrology.aoi-source-register/v1",
+  "site_id": "posey-13101-bonebank-road",
+  "recorded_on": "2026-10-15",
+  "status": "RESEARCHED_REGISTER_NOT_A_LIVE_DATA_SNAPSHOT",
+  "note": "URLs and source capabilities are inventoried for repeatable acquisition. This register does not claim every linked dataset has been downloaded or queried during this run.",
+  "required_geometry_roles": [
+    {
+      "role": "property_parcel",
+      "purpose": "Candidate legal parcel context only",
+      "source": "IGIO Parcel Boundaries of Indiana 2025",
+      "approval_status": "candidate; survey/county reconciliation pending"
+    },
+    {
+      "role": "structure_footprint",
+      "purpose": "Actual home/building location for site-specific screening",
+      "source": "County GIS, authoritative building footprint, imagery, or owner/survey evidence",
+      "approval_status": "not verified"
+    },
+    {
+      "role": "hydrologic_catchment",
+      "purpose": "Contributing area draining to a selected outlet",
+      "source": "3DEP DEM plus hydrography, conveyance/crossing evidence, outlet validation",
+      "approval_status": "not delineated"
+    },
+    {
+      "role": "hydraulic_model_domain",
+      "purpose": "Reach/floodplain domain and boundary conditions for a defined question",
+      "source": "Existing effective model/study or purpose-built HEC-RAS geometry and boundaries",
+      "approval_status": "not defined"
+    }
+  ],
+  "sources": [
+    {
+      "id": "IGIO_PARCELS_2025",
+      "agency": "Indiana Geographic Information Office",
+      "data": "Parcel Boundaries of Indiana 2025",
+      "url": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer/0",
+      "purpose": "Candidate parcel geometry and parcel IDs",
+      "access": "ArcGIS FeatureServer query",
+      "limitations": [
+        "Not a legal survey",
+        "Source vintage/load date must be retained",
+        "Parcel polygon is not a drainage catchment"
+      ],
+      "status": "candidate feature recorded"
+    },
+    {
+      "id": "USGS_3DEP",
+      "agency": "U.S. Geological Survey",
+      "data": "3D Elevation Program terrain products",
+      "url": "https://www.usgs.gov/3d-elevation-program",
+      "purpose": "DEM, terrain metadata, coverage, resolution, vertical reference",
+      "access": "The National Map / 3DEP products",
+      "limitations": [
+        "Check native resolution and acquisition date",
+        "Check voids, artifacts, hydro-flattening and datum",
+        "Survey-grade elevations may be required for design"
+      ],
+      "status": "not yet assembled as site-wide DEM"
+    },
+    {
+      "id": "USGS_EPQS",
+      "agency": "U.S. Geological Survey",
+      "data": "Elevation Point Query Service",
+      "url": "https://epqs.nationalmap.gov/v1/json",
+      "purpose": "Quick point elevation cross-check",
+      "access": "JSON service",
+      "limitations": [
+        "Interpolated point, not a site DEM or survey",
+        "Accuracy depends on source elevation data",
+        "Do not use as finished-floor or adjacent-grade elevation"
+      ],
+      "status": "one candidate-centroid sample recorded"
+    },
+    {
+      "id": "USGS_3DHP",
+      "agency": "U.S. Geological Survey",
+      "data": "3D Hydrography Program",
+      "url": "https://www.usgs.gov/3d-hydrography-program/access-3dhp-data-products",
+      "purpose": "Current hydrography and elevation-derived hydrography",
+      "access": "Download products and web services",
+      "limitations": [
+        "Record product vintage and service layer",
+        "USGS shifted from maintaining NHD/WBD/NHDPlus HR in 2024; legacy data are not updated",
+        "Hydrography alone does not resolve culverts, tile drainage, or local flow paths"
+      ],
+      "status": "source identified; site extract pending"
+    },
+    {
+      "id": "USGS_STREAMSTATS_IN",
+      "agency": "U.S. Geological Survey / Indiana partners",
+      "data": "Indiana StreamStats",
+      "url": "https://www.usgs.gov/streamstats/indiana-streamstats",
+      "purpose": "Independent basin delineation and applicable streamflow statistics",
+      "access": "Interactive app and documented services",
+      "limitations": [
+        "Inspect boundary and drainage characteristics, especially flat terrain",
+        "Regression equations have applicability ranges and uncertainty",
+        "Verify current service/API migration; do not assume legacy endpoints"
+      ],
+      "status": "not run; outlet unresolved"
+    },
+    {
+      "id": "FEMA_NFHL",
+      "agency": "Federal Emergency Management Agency",
+      "data": "National Flood Hazard Layer",
+      "url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer",
+      "purpose": "Effective FEMA flood zones and regulatory map context",
+      "access": "ArcGIS MapServer and FEMA MSC",
+      "limitations": [
+        "Point intersection does not establish parcel-wide coverage or structure depth",
+        "No-data sentinel -9999 is not a BFE",
+        "Confirm effective panel/date and map amendments"
+      ],
+      "status": "centroid point observation recorded; polygon/structure overlay pending"
+    },
+    {
+      "id": "FEMA_MSC",
+      "agency": "Federal Emergency Management Agency",
+      "data": "FEMA Map Service Center",
+      "url": "https://msc.fema.gov/portal/home",
+      "purpose": "Verify effective FIRM panels, map dates, LOMCs and map products",
+      "access": "Public map search",
+      "limitations": [
+        "Map interpretation is not an engineered flood-depth determination"
+      ],
+      "status": "manual verification pending"
+    },
+    {
+      "id": "IN_DNR_INFIP",
+      "agency": "Indiana Department of Natural Resources, Division of Water",
+      "data": "Indiana Floodplain Information Portal",
+      "url": "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/indiana-floodplain-information-portal/",
+      "purpose": "Indiana best-available floodplain mapping, BFE information, FARA where applicable",
+      "access": "Interactive portal and eFARA",
+      "limitations": [
+        "Save the FARA/report and source date when used",
+        "FARA is required in specified A-zone, unmapped, flood-prone, and >1-square-mile upstream-drainage situations; confirm local applicability",
+        "Centroid point output does not substitute for whole-site review"
+      ],
+      "status": "state point cross-check recorded; FARA/manual review pending"
+    },
+    {
+      "id": "IN_DNR_BAFM",
+      "agency": "Indiana Department of Natural Resources",
+      "data": "Indiana Best Available Floodplain Mapping",
+      "url": "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/the-indiana-best-available-floodplain-mapping",
+      "purpose": "State floodplain layers and flood-elevation point data",
+      "access": "County extracts and GIS services",
+      "limitations": [
+        "Distinguish state best-available mapping from FEMA effective NFHL",
+        "Capture datum, BFE point, layer vintage and metadata"
+      ],
+      "status": "state point cross-check recorded; full polygon extract pending"
+    },
+    {
+      "id": "NOAA_ATLAS14",
+      "agency": "National Oceanic and Atmospheric Administration",
+      "data": "Atlas 14 precipitation-frequency estimates",
+      "url": "https://hdsc.nws.noaa.gov/pfds/",
+      "purpose": "Design precipitation depths by location, duration and AEP",
+      "access": "PFDS web application / documented data",
+      "limitations": [
+        "Choose duration, AEP, temporal distribution and intended standard explicitly",
+        "Precipitation-frequency estimate alone is not a runoff hydrograph"
+      ],
+      "status": "not queried; catchment and modeling question pending"
+    },
+    {
+      "id": "USACE_HEC_HMS",
+      "agency": "U.S. Army Corps of Engineers, Hydrologic Engineering Center",
+      "data": "HEC-HMS",
+      "url": "https://www.hec.usace.army.mil/software/hec-hms/",
+      "purpose": "Rainfall-runoff and routing model if needed",
+      "access": "Software and official manuals",
+      "limitations": [
+        "Requires approved catchment, meteorology, losses, transform, routing and calibration/validation plan"
+      ],
+      "status": "BLOCKED_NOT_RUN"
+    },
+    {
+      "id": "USACE_HEC_RAS",
+      "agency": "U.S. Army Corps of Engineers, Hydrologic Engineering Center",
+      "data": "HEC-RAS",
+      "url": "https://www.hec.usace.army.mil/software/hec-ras/",
+      "purpose": "Hydraulic model only if a defined question requires it",
+      "access": "Software and official manuals",
+      "limitations": [
+        "Requires domain, geometry, structures, roughness, flow and downstream boundary, and datum reconciliation",
+        "No-rise or regulatory conclusions require applicable review and evidence"
+      ],
+      "status": "BLOCKED_NOT_RUN"
+    },
+    {
+      "id": "ERDC_CHL_TR_22_4",
+      "agency": "U.S. Army Engineer Research and Development Center",
+      "data": "Wabash and Ohio River Confluence Hydraulic and Sediment Transport Model Investigation (ERDC/CHL TR-22-4, 2022)",
+      "url": "https://erdc-library.erdc.dren.mil/handle/11681/43441",
+      "purpose": "Regional hydraulic/sediment methodology context",
+      "access": "Official ERDC technical report",
+      "limitations": [
+        "Regional confluence model is not a parcel model",
+        "Preserve Ohio River Datum unless a documented conversion is supplied"
+      ],
+      "status": "reviewed as regional context only"
+    }
+  ],
+  "hard_blockers": [
+    {
+      "id": "coordinate-conflict",
+      "description": "IGIO centroid (-88.00535128, 37.84579909) and legacy point (-88.0007, 37.9035) are approximately 3.99 miles / 6.42 km apart.",
+      "required_resolution": "Identify provenance and intended meaning of both points; select site reference from parcel/structure/survey evidence."
+    },
+    {
+      "id": "outlet-unverified",
+      "description": "No selected and verified drainage outlet exists.",
+      "required_resolution": "Identify receiving conveyance and approved delineation point before catchment processing."
+    },
+    {
+      "id": "no-site-dem",
+      "description": "Only one interpolated EPQS point sample is recorded.",
+      "required_resolution": "Assemble site-wide DEM and metadata; determine if survey/spot grades are required."
+    },
+    {
+      "id": "regulatory-bfe-unresolved",
+      "description": "Recorded FEMA/DNR point queries return no usable BFE in the captured values.",
+      "required_resolution": "Review effective map products, state BFE points and INFIP/FARA; retain datum and source date."
+    }
+  ],
+  "quality_rules": [
+    "Never use parcel area as catchment area.",
+    "Never interpret -9999 as a numeric BFE/depth/elevation; preserve raw value and normalize to null.",
+    "Do not mix NAVD88, Ohio River Datum, NGVD29, ellipsoidal heights or local datums without documented conversion.",
+    "Every downloaded asset must retain source URL, retrieval timestamp, source vintage, CRS/datum, units, quality flags and SHA-256.",
+    "No HEC-HMS/HEC-RAS run or design conclusion until the modeling question, outlet, geometry, inputs and review path are approved."
+  ]
+}
