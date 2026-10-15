@@ -57,14 +57,14 @@ The repository now provides concrete stage adapters. After approval, use argumen
 {
   "hec_hms.command": [
     "ABSOLUTE/PATH/TO/PINNED/PYTHON",
-    "scripts/hydrology/run-hec-hms.py",
+    "{{workspace}}/scripts/hydrology/run-hec-hms.py",
     "--project", "{{project}}",
     "--output", "{{output}}",
     "--manifest", "{{manifest}}"
   ],
   "hec_ras.command": [
     "ABSOLUTE/PATH/TO/PINNED/PYTHON",
-    "scripts/hydrology/run-hec-ras.py",
+    "{{workspace}}/scripts/hydrology/run-hec-ras.py",
     "--project", "{{project}}",
     "--output", "{{output}}",
     "--manifest", "{{manifest}}"
