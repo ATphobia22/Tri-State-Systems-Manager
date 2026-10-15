@@ -263,7 +263,7 @@ A live query of [Address Points of Indiana 2024](https://gisdata.in.gov/server/r
 
 The same state CSLF polygon query against candidate footprint 763173 returned `cslf_id=3785`, `pre_zone=AE`, `new_zone=AE`, source `STUDY10`. Thus the address-associated candidate building footprint intersects the state AE polygon. This is not a surveyed outline, a definitive classification of principal dwelling versus accessory structure, or evidence of a BFE/flood depth. The statewide building footprint layer is vintage 2016–2020; verify current imagery and owner/county/survey evidence before treating 763173 as the actual home footprint or using it for regulatory decisions.
 
-Full geometries, areas, distances, query URLs and limitations are retained in [live query evidence JSON](../../data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json).
+Full geometries, areas, distances, query URLs and limitations are retained in [live query evidence JSON](../../data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json). A separate [candidate structure GeoJSON](../../data/posey-county/aoi/13101-bonebank-road-structure-candidate-763173.geojson) is committed with explicit `approved=false` and `surveyed=false` metadata.
 
 
 ## 15. Address-associated building footprint candidate
