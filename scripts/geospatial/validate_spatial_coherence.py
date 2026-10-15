@@ -238,7 +238,9 @@ def main():
     ap.add_argument("--tiles-dir", required=True, type=Path,
                     help="directory containing tileset.json")
     ap.add_argument("--mode", choices=("auto", "explicit", "implicit"), default="auto")
-    ap.add_argument("--tolerance-relative", type=float, default=1e-6,\n                    help="scale-relative AABB containment tolerance (default 1e-6)")\n    args = ap.parse_args()
+    ap.add_argument("--tolerance-relative", type=float, default=1e-6,
+                    help="scale-relative AABB containment tolerance (default 1e-6)")
+    args = ap.parse_args()
 
     tileset = json.loads(args.tileset.read_text())
     violations: list[str] = []
