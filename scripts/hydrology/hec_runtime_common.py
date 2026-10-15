@@ -40,15 +40,44 @@ def load_approved_manifest(path: Path) -> dict[str, Any]:
     if not isinstance(approval, dict) or approval.get("status") != "APPROVED":
         raise ValueError("Execution wrapper refuses a manifest without approval.status=APPROVED")
     source_commit = manifest.get("source_commit")
-    if not isinstance(source_commit, str) or len(source_commit) != 40 or set(source_commit.lower()) == {"0"}:
-        raise ValueError("Manifest source_commit must be a real 40-character Git SHA")
+    if not isinstance(source_commit, str) or not re.fullmatch(r"[a-f0-9]{40}", source_commit) or source_commit == "0" * 40:
+        raise ValueError("Manifest source_commit must be a real lowercase 40-character Git SHA")
+    approval = manifest["approval"]
+    if not isinstance(approval.get("approved_by"), str) or not approval["approved_by"].strip():
+        raise ValueError("Approval must identify an accountable approver")
+    if not isinstance(approval.get("evidence_uri"), str) or not approval["evidence_uri"].strip():
+        raise ValueError("Approval evidence URI is required")
     aoi = manifest.get("aoi")
     if not isinstance(aoi, dict):
         raise ValueError("Manifest AOI object is missing")
     for key in ("geometry_sha256", "watershed_delineation_sha256"):
         value = aoi.get(key)
-        if not isinstance(value, str) or len(value) != SHA256_PATTERN_LENGTH or set(value.lower()) == {"0"}:
+        if not isinstance(value, str) or not re.fullmatch(r"[a-f0-9]{64}", value) or value == "0" * 64:
             raise ValueError(f"AOI {key} must be a measured nonzero SHA-256")
+    for key in ("geometry_uri", "watershed_delineation_uri", "geometry_workspace_path", "watershed_delineation_workspace_path"):
+        value = aoi.get(key)
+        if not isinstance(value, str) or not value.strip() or value.strip().upper() in {"UNASSIGNED", "UNVERIFIED", "TBD"}:
+            raise ValueError(f"AOI {key} must be explicitly assigned")
+    reference_system = manifest.get("reference_system")
+    if not isinstance(reference_system, dict):
+        raise ValueError("Reference-system evidence is required")
+    for key in ("horizontal_crs", "vertical_datum", "units_policy", "datum_evidence_uri"):
+        value = reference_system.get(key)
+        if not isinstance(value, str) or not value.strip() or value.strip().upper() in {"UNASSIGNED", "UNVERIFIED", "TBD"}:
+            raise ValueError(f"Reference-system {key} must be qualified")
+    source_inputs = manifest.get("source_inputs")
+    if not isinstance(source_inputs, list) or not source_inputs:
+        raise ValueError("At least one qualified source input is required")
+    for index, item in enumerate(source_inputs):
+        if not isinstance(item, dict) or item.get("quality_status") != "QUALIFIED":
+            raise ValueError(f"Source input {index} is not qualified")
+        for key in ("source_uri", "valid_time", "license_or_terms_uri", "units", "horizontal_crs", "vertical_datum"):
+            value = item.get(key)
+            if not isinstance(value, str) or not value.strip() or value.strip().upper() in {"UNASSIGNED", "UNVERIFIED", "TBD"}:
+                raise ValueError(f"Source input {index} {key} must be qualified")
+        digest = item.get("sha256")
+        if not isinstance(digest, str) or not re.fullmatch(r"[a-f0-9]{64}", digest) or digest == "0" * 64:
+            raise ValueError(f"Source input {index} sha256 must be measured")
     return manifest
 
 
@@ -91,8 +120,8 @@ def verify_runtime_executable(stage: dict[str, Any]) -> Path:
     executable = Path(raw_path).resolve(strict=True)
     if not executable.is_file():
         raise ValueError("Configured HEC runtime executable is not a file")
-    if not isinstance(expected_hash, str) or len(expected_hash) != SHA256_PATTERN_LENGTH:
-        raise ValueError("runtime_executable_sha256 must be a measured SHA-256")
+    if not isinstance(expected_hash, str) or not re.fullmatch(r"[a-f0-9]{64}", expected_hash) or expected_hash == "0" * 64:
+        raise ValueError("runtime_executable_sha256 must be a measured nonzero SHA-256")
     actual_hash = sha256_file(executable)
     if actual_hash != expected_hash:
         raise ValueError(f"HEC executable hash mismatch: expected {expected_hash}, observed {actual_hash}")
