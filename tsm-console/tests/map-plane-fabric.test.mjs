@@ -39,9 +39,9 @@ test('MapLibre plane uses real registered raster endpoints and no placeholder ho
   const { MAPLIBRE_FABRIC_LAYERS } = await import('../src/lib/maplibre-layer-fabric.ts');
   const endpoints = MAPLIBRE_FABRIC_LAYERS.map((l) => l.endpoint).join('\n');
   assert.match(endpoints, /(?:^|[\n\/])tiles\.openfreemap\.org(?:[\n\/]|$)/m);
-  assert.match(endpoints, /https:\/\/hazards\.fema\.gov\/arcgis\/rest\/services\/public\/NFHL\/MapServer/);
-  assert.match(endpoints, /gisdata\.in\.gov\/server\/rest\/services\/Best_Available_Flood_Hazard_Layer/);
-  assert.match(endpoints, /di-ingov\.img\.arcgis\.com\/arcgis\/rest\/services\/DynamicWebMercator\/Indiana_Current_Imagery\/ImageServer/);
+  assert.match(endpoints, /^https:\/\/hazards\.fema\.gov\/arcgis\/rest\/services\/public\/NFHL\/MapServer(?:\/|$)/m);
+  assert.match(endpoints, /(?:^|[\n\/])gisdata\.in\.gov\/server\/rest\/services\/Best_Available_Flood_Hazard_Layer(?:\/|$)/m);
+  assert.match(endpoints, /(?:^|[\n\/])di-ingov\.img\.arcgis\.com\/arcgis\/rest\/services\/DynamicWebMercator\/Indiana_Current_Imagery\/ImageServer(?:\/|$)/m);
   assert.doesNotMatch(endpoints, /example\.(com|org|invalid)/i);
   const source = fs.readFileSync(new URL('../src/components/TriStateDigitalTwinMap.tsx', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /example\\.(com|org|invalid)/i);

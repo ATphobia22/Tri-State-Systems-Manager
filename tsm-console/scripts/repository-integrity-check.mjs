@@ -64,8 +64,13 @@ if (fs.existsSync(workflowsRoot)) {
   for (const file of fs.readdirSync(workflowsRoot)) {
     if (!(file.endsWith('.yml') || file.endsWith('.yaml'))) continue;
     const content = fs.readFileSync(path.join(workflowsRoot, file), 'utf8');
-    if (content.includes('npm ci') && !content.includes('registry.npmjs.org')) {
-      failures.push(`workflow ${file}: npm ci workflow does not explicitly reference registry.npmjs.org`);
+    if (content.includes('npm ci')) {
+      // Require an explicit npm registry host token as a whole-line/host reference.
+      const hasPublicNpmRegistry = /(?:^|[\s"'`=])https:\/\/registry\.npmjs\.org(?:[\/"'\s`]|$)/m.test(content)
+        || /(?:^|[\s"'`])registry\.npmjs\.org(?:[\/"'\s`]|$)/m.test(content);
+      if (!hasPublicNpmRegistry) {
+        failures.push(`workflow ${file}: npm ci workflow does not explicitly reference registry.npmjs.org`);
+      }
     }
   }
 }
