@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0.0",
+  "twin_entity_id": "urn:tsm:entity:usgs:03378500",
+  "entity_type": "streamgage",
+  "display_name": "USGS monitoring location 03378500",
+  "identity_status": "resolved",
+  "aliases": [
+    {
+      "namespace": "USGS monitoring location",
+      "value": "03378500",
+      "source_uri": "https://api.waterdata.usgs.gov/"
+    }
+  ],
+  "geometry": {
+    "geometry_ref": "evidence://usgs-site-inventory/03378500/geometry",
+    "geometry_type": "Point",
+    "horizontal_crs": "OGC:CRS84",
+    "vertical_datum": null,
+    "linear_units": null,
+    "geometry_sha256": null
+  },
+  "temporal": {
+    "valid_time_start": null,
+    "valid_time_end": null,
+    "recorded_at": "2026-10-14T00:00:00Z",
+    "time_basis": "static"
+  },
+  "provenance": {
+    "class": "OBSERVATION",
+    "source_artifact_ids": ["evidence://usgs-site-inventory/03378500"],
+    "status": "provisional",
+    "content_sha256": null,
+    "license_or_terms_uri": "https://www.usgs.gov/information-policies-and-instructions"
+  },
+  "attributes": [
+    {
+      "name": "site_identifier",
+      "value": "03378500",
+      "value_type": "string",
+      "unit": null,
+      "effective_at": null,
+      "uncertainty": { "status": "not_applicable", "value": null, "unit": null, "method": null },
+      "provenance_class": "OBSERVATION",
+      "source_artifact_id": "evidence://usgs-site-inventory/03378500"
+    }
+  ],
+  "relationships": []
+}

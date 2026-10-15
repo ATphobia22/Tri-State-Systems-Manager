@@ -1,0 +1,52 @@
+name: Twin Entity Bundle Contract
+
+on:
+  pull_request:
+    paths:
+      - 'data/schemas/twin-entity-v1.schema.json'
+      - 'data/schemas/examples/twin-entity-v1.example.json'
+      - 'data/acquisitions/tsm-flood-twin-vertical-slice-v1.json'
+      - 'scripts/geospatial/verify-twin-bundle.mjs'
+      - 'scripts/geospatial/verify-twin-bundle.test.mjs'
+      - 'docs/digital-twin/IMPLEMENTATION-PLAN-2026-10.md'
+      - '.github/workflows/twin-bundle-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'data/schemas/twin-entity-v1.schema.json'
+      - 'data/schemas/examples/twin-entity-v1.example.json'
+      - 'data/acquisitions/tsm-flood-twin-vertical-slice-v1.json'
+      - 'scripts/geospatial/verify-twin-bundle.mjs'
+      - 'scripts/geospatial/verify-twin-bundle.test.mjs'
+      - 'docs/digital-twin/IMPLEMENTATION-PLAN-2026-10.md'
+      - '.github/workflows/twin-bundle-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: twin-entity-contract-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+      - name: Parse contract JSON
+        run: |
+          node -e "JSON.parse(require('fs').readFileSync('data/schemas/twin-entity-v1.schema.json','utf8'))"
+          node -e "JSON.parse(require('fs').readFileSync('data/schemas/examples/twin-entity-v1.example.json','utf8'))"
+          node -e "JSON.parse(require('fs').readFileSync('data/acquisitions/tsm-flood-twin-vertical-slice-v1.json','utf8'))"
+      - name: Syntax-check acquisition and verification tools
+        run: |
+          node --check scripts/geospatial/verify-twin-bundle.mjs
+          node --check scripts/geospatial/acquire-public-source-snapshot.mjs
+      - name: Verify stable identity and provenance invariants
+        run: node scripts/geospatial/verify-twin-bundle.mjs
+      - name: Run contract tests
+        run: node --test scripts/geospatial/verify-twin-bundle.test.mjs scripts/geospatial/acquire-public-source-snapshot.test.mjs

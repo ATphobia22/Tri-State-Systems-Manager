@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tri-state-systems-manager.org/schemas/twin-entity-v1.schema.json",
+  "title": "TSM Twin Entity v1",
+  "description": "Stable, renderer-independent identity and provenance contract for an entity in the TSM digital twin. A TwinEntityID is not an actor name or a provider row number.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "twin_entity_id",
+    "entity_type",
+    "display_name",
+    "identity_status",
+    "aliases",
+    "geometry",
+    "temporal",
+    "provenance",
+    "attributes",
+    "relationships"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "twin_entity_id": {
+      "type": "string",
+      "pattern": "^urn:tsm:entity:[a-z0-9][a-z0-9._:-]{2,180}$",
+      "description": "Immutable TSM-owned URI. Never recycle an ID after deletion or merge."
+    },
+    "entity_type": {
+      "type": "string",
+      "enum": [
+        "parcel", "road_segment", "berm", "levee", "river_segment", "streamgage",
+        "building", "utility_asset", "pump_station", "culvert", "bridge",
+        "hydraulic_structure", "policy", "program", "budget", "scenario",
+        "model_run", "evidence_artifact", "other"
+      ]
+    },
+    "display_name": { "type": "string", "minLength": 1, "maxLength": 300 },
+    "identity_status": {
+      "type": "string",
+      "enum": ["provisional", "resolved", "merged", "retired"]
+    },
+    "aliases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["namespace", "value"],
+        "properties": {
+          "namespace": { "type": "string", "minLength": 1 },
+          "value": { "type": "string", "minLength": 1 },
+          "source_uri": { "type": ["string", "null"], "format": "uri" }
+        }
+      }
+    },
+    "geometry": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["geometry_ref", "geometry_type", "horizontal_crs"],
+      "properties": {
+        "geometry_ref": { "type": "string", "minLength": 1 },
+        "geometry_type": {
+          "type": "string",
+          "enum": ["Point", "MultiPoint", "LineString", "MultiLineString", "Polygon", "MultiPolygon", "GeometryCollection", "RasterFootprint", "None"]
+        },
+        "horizontal_crs": { "type": "string", "minLength": 1 },
+        "vertical_datum": { "type": ["string", "null"] },
+        "linear_units": { "type": ["string", "null"] },
+        "geometry_sha256": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "temporal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["valid_time_start", "valid_time_end", "recorded_at"],
+      "properties": {
+        "valid_time_start": { "type": ["string", "null"], "format": "date-time" },
+        "valid_time_end": { "type": ["string", "null"], "format": "date-time" },
+        "recorded_at": { "type": "string", "format": "date-time" },
+        "time_basis": {
+          "type": "string",
+          "enum": ["observation", "forecast", "historical", "model_time", "scenario_time", "static", "unknown"]
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["class", "source_artifact_ids", "status"],
+      "properties": {
+        "class": {
+          "type": "string",
+          "enum": ["OBSERVATION", "FORECAST", "REGULATORY", "DERIVED", "MODEL_OUTPUT", "SCENARIO", "VISUALIZATION", "SIMULATION_DEMO", "UNKNOWN"]
+        },
+        "source_artifact_ids": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "provisional", "validated", "stale", "rejected", "unknown"]
+        },
+        "content_sha256": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+        "license_or_terms_uri": { "type": ["string", "null"], "format": "uri" }
+      }
+    },
+    "attributes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "value", "value_type", "unit", "provenance_class"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "value": {},
+          "value_type": { "type": "string", "enum": ["string", "number", "integer", "boolean", "object", "array", "null"] },
+          "unit": { "type": ["string", "null"] },
+          "effective_at": { "type": ["string", "null"], "format": "date-time" },
+          "uncertainty": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "required": ["status"],
+            "properties": {
+              "status": { "type": "string", "enum": ["quantified", "qualitative", "unknown", "not_applicable"] },
+              "value": { "type": ["number", "null"], "minimum": 0 },
+              "unit": { "type": ["string", "null"] },
+              "method": { "type": ["string", "null"] }
+            }
+          },
+          "provenance_class": {
+            "type": "string",
+            "enum": ["OBSERVATION", "FORECAST", "REGULATORY", "DERIVED", "MODEL_OUTPUT", "SCENARIO", "VISUALIZATION", "UNKNOWN"]
+          },
+          "source_artifact_id": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["predicate", "target_twin_entity_id", "status"],
+        "properties": {
+          "predicate": { "type": "string", "minLength": 1 },
+          "target_twin_entity_id": {
+            "type": "string",
+            "pattern": "^urn:tsm:entity:[a-z0-9][a-z0-9._:-]{2,180}$"
+          },
+          "status": { "type": "string", "enum": ["asserted", "derived", "proposed", "rejected"] },
+          "source_artifact_id": { "type": ["string", "null"] },
+          "valid_time_start": { "type": ["string", "null"], "format": "date-time" },
+          "valid_time_end": { "type": ["string", "null"], "format": "date-time" }
+        }
+      }
+    },
+    "supersedes_twin_entity_id": {
+      "type": ["string", "null"],
+      "pattern": "^urn:tsm:entity:[a-z0-9][a-z0-9._:-]{2,180}$"
+    }
+  }
+}
