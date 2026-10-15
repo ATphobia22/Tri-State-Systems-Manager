@@ -190,9 +190,9 @@ for (const relative of schemaPaths) {
   if (schema.$schema !== 'https://json-schema.org/draft/2020-12/schema') fail(relative + ': unexpected JSON Schema dialect');
   const example = relative.includes('posey-site-aoi-v1') ? poseySiteAoiExample : relative.includes('hec-coupled-run-manifest') ? hecCoupledRunManifestExample : relative.includes('data-contract') ? dataExample : relative.includes('regulatory-gate') ? regulatoryGateExample : relative.includes('nfip-discrepancy') ? nfipLayer2Example : relative.includes('flood-information-federation') ? floodFederationExample : evidenceExample;
   validate(example, schema, relative, schema);
-  // Case-specific evidence is operator-retained and intentionally excluded from
-  // the public repository. Validate the public schema against its synthetic,
-  // non-identifying contract example above.
+  // The Posey candidate AOI is a public parcel-evidence record and is validated
+  // against its own schema here. Other case-specific NFIP examples remain
+  // synthetic unless an explicit evidence package has been approved for release.
 }
 
 if (failures.length) {
