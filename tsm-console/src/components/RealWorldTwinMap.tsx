@@ -44,6 +44,8 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
   const mapRef = useRef<maplibregl.Map | null>(null);
   const [femaVisible, setFemaVisible] = useState(false);
   const [bafmVisible, setBafmVisible] = useState(false);
+  const [noaaWarningsVisible, setNoaaWarningsVisible] = useState(false);
+  const [noaaRadarVisible, setNoaaRadarVisible] = useState(false);
   const [cinematicActive, setCinematicActive] = useState(false);
   const [tiles3DVisible, setTiles3DVisible] = useState(false);
   const [tiles3DStatus, setTiles3DStatus] = useState<'loading' | 'ready' | 'error' | 'disabled'>('disabled');
@@ -112,6 +114,47 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       }
 
       addFloodAuthorityLayers(map);
+
+      // NOAA/NWS CloudGIS OGC WMS overlays. These are situational-awareness
+      // products, not hydraulic-model outputs or regulatory flood boundaries.
+      const noaaWarningsSource = 'noaa-cloudgis-warnings';
+      if (!map.getSource(noaaWarningsSource)) {
+        map.addSource(noaaWarningsSource, {
+          type: 'raster',
+          tiles: ['https://opengeo.ncep.noaa.gov/geoserver/wwa/warnings/ows?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&FORMAT=image/png&TRANSPARENT=true&LAYERS=wwa:warnings&STYLES=&SRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}'],
+          tileSize: 256,
+          attribution: 'NOAA/National Weather Service CloudGIS — warnings; operational status and layer availability may change',
+        });
+      }
+      if (!map.getLayer('noaa-cloudgis-warnings-layer')) {
+        map.addLayer({
+          id: 'noaa-cloudgis-warnings-layer',
+          type: 'raster',
+          source: noaaWarningsSource,
+          layout: { visibility: 'none' },
+          paint: { 'raster-opacity': 0.72 },
+        });
+      }
+
+      const noaaRadarSource = 'noaa-cloudgis-conus-radar';
+      if (!map.getSource(noaaRadarSource)) {
+        map.addSource(noaaRadarSource, {
+          type: 'raster',
+          tiles: ['https://opengeo.ncep.noaa.gov/geoserver/conus/conus_cref_qcd/ows?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&FORMAT=image/png&TRANSPARENT=true&LAYERS=conus:conus_cref_qcd&STYLES=&SRS=EPSG:3857&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-3857}'],
+          tileSize: 256,
+          attribution: 'NOAA/NWS Multi-Radar/Multi-Sensor (MRMS) composite radar — situational awareness only',
+        });
+      }
+      if (!map.getLayer('noaa-cloudgis-radar-layer')) {
+        map.addLayer({
+          id: 'noaa-cloudgis-radar-layer',
+          type: 'raster',
+          source: noaaRadarSource,
+          layout: { visibility: 'none' },
+          paint: { 'raster-opacity': 0.62 },
+        });
+      }
+
       applyLiveStageMetadata(map, data);
       // Hydraulic rendering is fail-closed: only an explicitly derived NAVD88 WSE drives water height.
       addMartinHydraulicLayer(map, data.stage.hydraulic_extrusion_eligibility === 'SITE_WSE_VERIFIED_FOR_EXTRUSION' ? data.stage.wse_navd88_ft : null);
@@ -131,10 +174,10 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-    for (const [id, visible] of [['fema-nfhl-overlay', femaVisible], ['indiana-bafm-overlay', bafmVisible]] as const) {
+    for (const [id, visible] of [['fema-nfhl-overlay', femaVisible], ['indiana-bafm-overlay', bafmVisible], ['noaa-cloudgis-warnings-layer', noaaWarningsVisible], ['noaa-cloudgis-radar-layer', noaaRadarVisible]] as const) {
       if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
     }
-  }, [femaVisible, bafmVisible]);
+  }, [femaVisible, bafmVisible, noaaWarningsVisible, noaaRadarVisible]);
 
   const stage = data.stage.value_ft;
   const wse = data.stage.wse_navd88_ft;
@@ -178,7 +221,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
         <strong>Real-source open-world twin</strong>
         <div>Indiana Current Imagery: live ImageServer · USGS 3DEP: dynamic elevation/hillshade (visualization only)</div>
         <div role="status">{terrainMessage}</div>
-        <div>FEMA NFHL: effective / insurance · Indiana BAFM: planning / Flood Control Act</div>
+        <div>FEMA NFHL: effective / insurance · Indiana BAFM: planning / Flood Control Act · NOAA/NWS: operational alerts and radar context</div>
         <div>Stage: {stage == null ? 'unavailable' : `${stage.toFixed(2)} ft`} {data.stage.qualifier ? `(${data.stage.qualifier})` : ''} · {data.stage.source}</div>
         <div>Station WSE NAVD88: {wse == null ? 'unavailable' : `${wse.toFixed(2)} ft`} · Datum: {data.stage.conversion_applied ? 'verified USGS station relationship' : 'blocked'} · Site transfer: {data.stage.site_transfer_status ?? 'required'} · Hydraulic extrusion: {data.stage.hydraulic_extrusion_eligibility === 'SITE_WSE_VERIFIED_FOR_EXTRUSION' ? 'enabled' : 'blocked — validated site WSE required'} · Discharge: {data.stage.discharge_cfs == null ? 'unavailable' : `${data.stage.discharge_cfs.toLocaleString()} cfs`}</div>
         <div>Site elevations: LAG {fmtElev(data.site.elevations.lag_ft)} · BFE {fmtElev(data.site.elevations.bfe_ft)} · Berm {fmtElev(data.site.elevations.bermCrest_ft)} · FFE {fmtElev(data.site.elevations.ffe_ft)}</div>
@@ -188,6 +231,8 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
           {([
             { id: 'fema', pressed: femaVisible, onClick: () => setFemaVisible((value) => !value), label: `FEMA NFHL ${femaVisible ? 'ON' : 'OFF'}` },
             { id: 'bafm', pressed: bafmVisible, onClick: () => setBafmVisible((value) => !value), label: `Indiana BAFM ${bafmVisible ? 'ON' : 'OFF'}` },
+            { id: 'noaa-warnings', pressed: noaaWarningsVisible, onClick: () => setNoaaWarningsVisible((value) => !value), label: `NWS Warnings ${noaaWarningsVisible ? 'ON' : 'OFF'}` },
+            { id: 'noaa-radar', pressed: noaaRadarVisible, onClick: () => setNoaaRadarVisible((value) => !value), label: `NOAA Radar ${noaaRadarVisible ? 'ON' : 'OFF'}` },
             { id: '3d', pressed: tiles3DVisible, onClick: () => setTiles3DVisible((value) => !value), label: `3D Terrain ${tiles3DVisible ? 'ON' : 'OFF'}` },
             { id: 'cinematic', pressed: cinematicActive, onClick: toggleCinematicTour, label: cinematicActive ? 'Stop cinematic' : 'Cinematic fly-through' },
           ] as const).map((btn) => (
