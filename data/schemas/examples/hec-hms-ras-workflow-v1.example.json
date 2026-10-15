@@ -37,7 +37,17 @@
           "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
         }
       ]
-    }
+    },
+    "project_file": "project.hms",
+    "simulation_run": "REPLACE_WITH_REVIEWED_SIMULATION_RUN",
+    "output_dss_relative_path": "hms-results.dss",
+    "runner_command": [
+      "REPLACE_WITH_TESTED_HMS_ADAPTER",
+      "{project_dir}",
+      "{project_file}",
+      "{simulation_run}",
+      "{dss_file}"
+    ]
   },
   "hec_ras": {
     "project_dir": "./models/hec-ras",

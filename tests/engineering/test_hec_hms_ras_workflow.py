@@ -4,8 +4,8 @@ import unittest
 from pathlib import Path
 
 from backend.engineering.hec_hms_ras_workflow import (
-    ContentAddressedArtifactStore, canonical_json, validate_geojson_polygon,
-    validate_hydrograph_csv, validate_manifest,
+    ContentAddressedArtifactStore, ReadinessError, canonical_json, readiness_blockers,
+    run_workflow, validate_geojson_polygon, validate_hydrograph_csv, validate_manifest,
 )
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -56,6 +56,15 @@ class TestHecHmsRasWorkflow(unittest.TestCase):
                 path.write_text(contents, encoding="utf-8")
                 with self.assertRaises(ValueError):
                     validate_hydrograph_csv(path, "timestamp_utc", "flow_cfs")
+
+
+    def test_readiness_fails_closed_before_artifact_store_creation(self):
+        manifest = json.loads(EXAMPLE.read_text(encoding="utf-8"))
+        blockers = readiness_blockers(manifest, EXAMPLE)
+        self.assertTrue(any("approval.status must be APPROVED" in item for item in blockers))
+        with self.assertRaises(ReadinessError):
+            run_workflow(EXAMPLE, SCHEMA)
+        self.assertFalse((EXAMPLE.parent / "artifacts").exists())
 
     def test_artifact_store_deduplicates_and_verifies_content(self):
         with tempfile.TemporaryDirectory() as temporary:

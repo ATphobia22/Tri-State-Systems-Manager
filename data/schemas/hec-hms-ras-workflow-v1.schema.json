@@ -295,6 +295,32 @@
       "allOf": [
         {
           "$ref": "#/$defs/commonModel"
+        },
+        {
+          "type": "object",
+          "required": [
+            "project_file",
+            "simulation_run",
+            "output_dss_relative_path",
+            "runner_command"
+          ],
+          "properties": {
+            "project_file": {
+              "type": "string",
+              "minLength": 1
+            },
+            "simulation_run": {
+              "type": "string",
+              "minLength": 1
+            },
+            "output_dss_relative_path": {
+              "type": "string",
+              "pattern": "^.+\\.dss$"
+            },
+            "runner_command": {
+              "$ref": "#/$defs/command"
+            }
+          }
         }
       ],
       "unevaluatedProperties": false
