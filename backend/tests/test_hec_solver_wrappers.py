@@ -159,3 +159,22 @@ def test_project_tree_hash_is_deterministic_and_rejects_symlinks(tmp_path: Path)
         pytest.skip("Symlink creation is not available on this platform")
     with pytest.raises(ValueError, match="symbolic link"):
         sha256_tree(project)
+
+
+def test_stage_output_directory_must_be_empty(tmp_path: Path) -> None:
+    project = tmp_path / "project"
+    output = tmp_path / "output"
+    project.mkdir()
+    output.mkdir()
+    (output / "stale-output.bin").write_bytes(b"stale")
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text("{}", encoding="utf-8")
+    with pytest.raises(ValueError, match="must be empty"):
+        resolve_stage_paths(str(project), str(output), manifest_path)
+
+
+def test_runtime_executable_path_must_be_absolute(tmp_path: Path) -> None:
+    from hec_runtime_common import verify_runtime_executable
+
+    with pytest.raises(ValueError, match="must be absolute"):
+        verify_runtime_executable({"runtime_executable_path": "relative.exe", "runtime_executable_sha256": "a" * 64})
