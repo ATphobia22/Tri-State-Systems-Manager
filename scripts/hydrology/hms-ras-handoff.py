@@ -21,7 +21,9 @@ from typing import Any, Iterable, Mapping, Sequence
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 HMS_COMMANDER_VERSION = "0.4.0"
+HMS_COMMANDER_SOURCE_COMMIT = "1404fee5c81820764197f38923764f8c1d1b2fb7"
 RAS_COMMANDER_VERSION = "0.105.0"
+RAS_COMMANDER_SOURCE_COMMIT = "574adbc725f9436a196698970febe39d98ef30c5"
 ADAPTER_VERSION = "tsm-hms-ras-handoff@1.0.0"
 INTERVAL_SECONDS = {
     "1MIN": 60, "5MIN": 300, "10MIN": 600, "15MIN": 900,
@@ -195,18 +197,46 @@ def validation_passed(result: Any) -> bool:
     return getattr(result, "passed", False) is True
 
 
+def _verify_vcs_distribution(distribution_name: str, expected_version: str, expected_commit: str) -> tuple[str, str]:
+    """Verify installed version and the exact VCS commit in PEP 610 metadata."""
+    try:
+        distribution = importlib.metadata.distribution(distribution_name)
+    except importlib.metadata.PackageNotFoundError as exc:
+        raise HandoffError(f"required pinned package is not installed: {distribution_name}") from exc
+    if distribution.version != expected_version:
+        raise HandoffError(
+            f"{distribution_name} version {distribution.version!r} does not match pinned {expected_version!r}"
+        )
+    raw_direct_url = distribution.read_text("direct_url.json")
+    if not raw_direct_url:
+        raise HandoffError(
+            f"{distribution_name} was not installed from a VCS URL; install scripts/hydrology/requirements-hec-handoff.txt"
+        )
+    try:
+        direct_url = json.loads(raw_direct_url)
+    except json.JSONDecodeError as exc:
+        raise HandoffError(f"{distribution_name} direct_url.json is invalid") from exc
+    vcs_info = direct_url.get("vcs_info") if isinstance(direct_url, dict) else None
+    actual_commit = vcs_info.get("commit_id") if isinstance(vcs_info, dict) else None
+    actual_vcs = vcs_info.get("vcs") if isinstance(vcs_info, dict) else None
+    if actual_vcs != "git" or actual_commit != expected_commit:
+        raise HandoffError(
+            f"{distribution_name} source commit {actual_commit!r} does not match pinned {expected_commit!r}"
+        )
+    return distribution.version, actual_commit
+
+
 def execute_handoff(
     *, manifest: Mapping[str, Any], hms_dss_path: Path, ras_project_directory: Path,
     ras_unsteady_file: Path, ras_dss_file: Path, report_path: Path,
 ) -> dict[str, Any]:
     h = manifest["hydrograph_handoff"]
-    try:
-        hms_version = importlib.metadata.version("hms-commander")
-        ras_version = importlib.metadata.version("ras-commander")
-    except importlib.metadata.PackageNotFoundError as exc:
-        raise HandoffError("install pinned hms-commander 0.4.0 and ras-commander 0.105.0 in the H&H worker") from exc
-    if hms_version != HMS_COMMANDER_VERSION or ras_version != RAS_COMMANDER_VERSION:
-        raise HandoffError(f"unsupported adapter libraries: hms-commander={hms_version}, ras-commander={ras_version}")
+    hms_version, hms_commit = _verify_vcs_distribution(
+        "hms-commander", HMS_COMMANDER_VERSION, HMS_COMMANDER_SOURCE_COMMIT
+    )
+    ras_version, ras_commit = _verify_vcs_distribution(
+        "ras-commander", RAS_COMMANDER_VERSION, RAS_COMMANDER_SOURCE_COMMIT
+    )
     if h["gap_policy"] != "REJECT":
         raise HandoffError("gap_policy must be REJECT; no interpolation is implemented")
     for path, label in ((hms_dss_path, "HMS DSS"), (ras_unsteady_file, "RAS unsteady file")):
@@ -294,7 +324,9 @@ def execute_handoff(
         "schema_version": "1.0.0",
         "adapter": ADAPTER_VERSION,
         "hms_commander_version": hms_version,
+        "hms_commander_source_commit": hms_commit,
         "ras_commander_version": ras_version,
+        "ras_commander_source_commit": ras_commit,
         "source_dss": {"path": str(hms_dss_path), "sha256": sha256_file(hms_dss_path), "byte_length": hms_dss_path.stat().st_size},
         "target_dss": {
             "path": str(ras_dss_file), "sha256": sha256_file(ras_dss_file),
