@@ -100,6 +100,10 @@ jobs:
         run: |
           bash -n scripts/reproject_tri_state.sh
           bash -n scripts/hydrology/tsm_pipeline.sh
+
+      - name: Hydrology pipeline fail-closed integration tests
+        working-directory: .
+        run: python -m unittest discover -s tests -p 'test_hydrology_pipeline.py' -v
       - name: V35.1 strict contract typecheck
         run: npm run check:v35.1
       - name: V35.1 contract tests
