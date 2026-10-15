@@ -42,3 +42,6 @@ Code and loaders should resolve paths under `data/schemas/` (or copy into runtim
 - **`$id` URI convention.** Schema `$id`s use either the non-resolving project URN form
   (`urn:tsm:<name>:v<N>`) or the canonical resolving base `https://tri-state-systems-manager.org/schemas/…`.
   The legacy `https://schemas.tsm-community.example/…` `$id`s are recognized but deprecated; do not mint new ones.
+
+
+Manifest v2 also requires a `python_environment` object: exact Python patch version, Windows x64 platform, immutable dependency-lock URI/path and SHA-256, and a SHA-256 fingerprint of the installed distribution inventory including VCS commit IDs. The checked-in draft examples deliberately leave these values unassigned/zero so they cannot execute.
