@@ -22,6 +22,8 @@ Candidate-area update: the supplied 13101 Bonebank Road address now has an evide
 | Engineering evidence pipeline | Terrain/bathymetry, datum, calibrated HEC-RAS, scenario, earthwork, environmental and independent QA/QC sequence documented | CONTRACT DOCUMENTED / AOI MODEL EVIDENCE REQUIRED |
 | Full JSON Schema 2020-12 validation | Existing twin invariant checks are not a substitute for standards-compliant schema and instance validation | PARTIAL / RELEASE GATE OPEN |
 | Source metadata acquisition | Bounded acquisition and hash/manifest tooling exists | TOOL AVAILABLE / AOI SNAPSHOTS NOT CONFIRMED |
+| HEC coupled-run manifest v2 and stage wrappers | Exact run/plan selectors, project/runtime hashes, explicit DSS handoff, stage receipts | IMPLEMENTED / EXECUTION BLOCKED UNTIL APPROVED AOI, MODEL INPUTS AND ENVIRONMENT LOCK | 
+| Hash-locked Python environment | Transitive dependency lock plus installed-package fingerprint on Windows x64 worker | OPEN / LOCK NOT GENERATED OR VERIFIED |
 | Production backend deployment | No verified target plus live API health evidence established by this register | BLOCKED / NOT CLAIMED |
 | Post-merge CI and deployment | Merge commit is known; a complete passing status set and verified deployment URL have not been established in this register | PENDING VERIFICATION |
 
