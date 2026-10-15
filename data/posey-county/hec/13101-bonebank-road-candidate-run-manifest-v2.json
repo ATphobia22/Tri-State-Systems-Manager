@@ -1,0 +1,123 @@
+{
+  "schema_version": "2.0.0",
+  "run_id": "posey-bonebank-road-candidate-draft-2026-10-15",
+  "project_id": "posey-13101-bonebank-road-candidate-not-approved",
+  "purpose": "BENCHMARK_ONLY",
+  "approval": {
+    "status": "DRAFT",
+    "approved_by": "UNASSIGNED",
+    "approved_at": "2026-10-15T00:00:00Z",
+    "evidence_uri": "UNASSIGNED"
+  },
+  "aoi": {
+    "name": "13101 Bonebank Road parcel candidate (not a watershed)",
+    "geometry_uri": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer/0",
+    "geometry_sha256": "93d9115b21b14932674095b5267b482c9b38c6fc45399687a8b5126894b71572",
+    "geometry_workspace_path": "data/posey-county/aoi/13101-bonebank-road-parcel.geojson",
+    "area_km2": 0.009895754251129926,
+    "watershed_delineation_uri": "UNASSIGNED",
+    "watershed_delineation_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "watershed_delineation_workspace_path": "workspace/watershed.geojson"
+  },
+  "reference_system": {
+    "horizontal_crs": "EPSG:4326",
+    "vertical_datum": "UNVERIFIED",
+    "units_policy": "UNVERIFIED",
+    "datum_evidence_uri": "data/posey-county/evidence/13101-bonebank-road-site-aoi-v1.json"
+  },
+  "source_inputs": [
+    {
+      "input_id": "source-placeholder",
+      "authority_class": "DERIVED",
+      "source_uri": "UNASSIGNED",
+      "retrieved_at": "2026-10-15T00:00:00Z",
+      "valid_time": "UNASSIGNED",
+      "workspace_path": "workspace/data/input-placeholder.bin",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "media_type": "application/octet-stream",
+      "units": "UNVERIFIED",
+      "horizontal_crs": "UNVERIFIED",
+      "vertical_datum": "UNVERIFIED",
+      "quality_status": "MISSING",
+      "license_or_terms_uri": "UNASSIGNED"
+    }
+  ],
+  "hec_hms": {
+    "product_version": "UNPINNED",
+    "platform": "other",
+    "project_directory": "workspace/hec-hms",
+    "command": [
+      "UNCONFIGURED"
+    ],
+    "timeout_seconds": 3600,
+    "expected_outputs": [
+      "workspace/outputs/hms/hydrograph.dss"
+    ],
+    "output_directory": "workspace/outputs/hms",
+    "project_package_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "executable_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "version_evidence_uri": "UNASSIGNED",
+    "runtime_executable_path": "UNCONFIGURED",
+    "runtime_executable_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "hydrograph_handoff": {
+    "source_output": "workspace/outputs/hms/hydrograph.dss",
+    "ras_input": "workspace/hec-ras/project.u01",
+    "format": "DSS",
+    "time_zone": "UNVERIFIED",
+    "flow_units": "cfs",
+    "gap_policy": "REJECT",
+    "conversion_method": "NONE_EXACT_VALUES",
+    "adapter_command": [
+      "UNCONFIGURED"
+    ],
+    "adapter_version": "UNPINNED",
+    "adapter_executable_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "timeout_seconds": 3600,
+    "source_dss_pathname": "UNASSIGNED",
+    "source_element_name": "UNASSIGNED",
+    "source_run_name": "UNASSIGNED",
+    "ras_dss_relative_path": "flow-data.dss",
+    "ras_dss_pathname": "UNASSIGNED",
+    "interval": "1HOUR",
+    "source_flow_units": "CFS",
+    "boundary_selector": {
+      "mode": "1D",
+      "river": "UNASSIGNED",
+      "reach": "UNASSIGNED",
+      "station": "UNASSIGNED",
+      "area_2d": null,
+      "bc_line": null,
+      "boundary_index": null,
+      "expected_bc_type": "Flow Hydrograph"
+    },
+    "adapter_script_path": "scripts/hydrology/hms-ras-handoff.py",
+    "adapter_script_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "dss_version": 7
+  },
+  "hec_ras": {
+    "product_version": "UNPINNED",
+    "platform": "windows-x64",
+    "project_directory": "workspace/hec-ras",
+    "command": [
+      "UNCONFIGURED"
+    ],
+    "timeout_seconds": 7200,
+    "expected_outputs": [
+      "workspace/outputs/ras/plan.p01.hdf"
+    ],
+    "output_directory": "workspace/outputs/ras",
+    "project_package_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "executable_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "version_evidence_uri": "UNASSIGNED",
+    "runtime_executable_path": "UNCONFIGURED",
+    "runtime_executable_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "artifact_storage": {
+    "backend": "filesystem-content-addressed",
+    "root_directory": "workspace/artifacts",
+    "retention_policy": "retain all run manifests and referenced blobs; no automatic deletion",
+    "metadata_store": "run-manifest-only"
+  },
+  "source_commit": "0000000000000000000000000000000000000000"
+}
