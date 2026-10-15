@@ -6,6 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validateManifest } from './validate-hec-run-manifest.mjs';
 
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const sha256Buffer = (buffer) => createHash('sha256').update(buffer).digest('hex');
 const sha256File = (file) => sha256Buffer(fs.readFileSync(file));
 function sha256Tree(root) {
@@ -181,6 +182,10 @@ function main() {
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
   const errors = validateManifest(manifest, { execution: true });
   if (errors.length) throw new Error('Manifest is not execution-ready: ' + errors.join('; '));
+  const sourceControlCommit = process.env.GITHUB_SHA ?? process.env.TSM_SOURCE_COMMIT ?? '';
+  if (!/^[a-f0-9]{40}$/.test(sourceControlCommit) || sourceControlCommit !== manifest.source_commit) {
+    throw new Error('execution must set GITHUB_SHA or TSM_SOURCE_COMMIT to the exact manifest.source_commit; unrecorded local execution is prohibited');
+  }
   if (manifest.artifact_storage.metadata_store !== 'run-manifest-only') {
     throw new Error('metadata_store=tsm-evidence-store-adapter is declared but the transaction-safe adapter is not implemented; use run-manifest-only until that adapter is separately verified');
   }
@@ -233,6 +238,39 @@ function main() {
   if (relativeToRasProject === '..' || relativeToRasProject.startsWith('..' + path.sep) || path.isAbsolute(relativeToRasProject)) {
     throw new Error('hydrograph RAS input must be inside the configured HEC-RAS project directory');
   }
+  const sourceHmsProjectSha256 = sha256Tree(hmsProjectCheck);
+  const sourceRasProjectSha256 = sha256Tree(rasProjectCheck);
+  if (sourceHmsProjectSha256 !== manifest.hec_hms.project_package_sha256) throw new Error('HEC-HMS source project SHA-256 differs from the approved manifest');
+  if (sourceRasProjectSha256 !== manifest.hec_ras.project_package_sha256) throw new Error('HEC-RAS source project SHA-256 differs from the approved manifest');
+  for (const [label, stage] of [['HEC-HMS', manifest.hec_hms], ['HEC-RAS', manifest.hec_ras]]) {
+    const adapterExecutable = stage.command[0];
+    if (!path.isAbsolute(adapterExecutable) || !fs.existsSync(adapterExecutable) || !fs.statSync(adapterExecutable).isFile()) {
+      throw new Error(label + ' adapter executable must be an existing absolute file');
+    }
+    if (sha256File(adapterExecutable) !== stage.executable_sha256) throw new Error(label + ' adapter executable does not match pinned SHA-256');
+    const runtimeExecutable = stage.runtime_executable_path;
+    if (!path.isAbsolute(runtimeExecutable) || !fs.existsSync(runtimeExecutable) || !fs.statSync(runtimeExecutable).isFile()) {
+      throw new Error(label + ' vendor HEC runtime must be an existing absolute file');
+    }
+    if (sha256File(runtimeExecutable) !== stage.runtime_executable_sha256) throw new Error(label + ' vendor HEC executable does not match pinned SHA-256');
+  }
+  const handoff = manifest.hydrograph_handoff;
+  const handoffScriptPath = path.resolve(REPO_ROOT, handoff.adapter_script_path);
+  const relativeScriptPath = path.relative(REPO_ROOT, handoffScriptPath);
+  if (path.isAbsolute(relativeScriptPath) || relativeScriptPath === '..' || relativeScriptPath.startsWith('..' + path.sep)) {
+    throw new Error('handoff adapter script path must be relative to the checked-out TSM repository');
+  }
+  if (!fs.existsSync(handoffScriptPath) || !fs.statSync(handoffScriptPath).isFile() || fs.lstatSync(handoffScriptPath).isSymbolicLink()) {
+    throw new Error('handoff adapter script is missing, not a regular file, or a symlink');
+  }
+  if (sha256File(handoffScriptPath) !== handoff.adapter_script_sha256) throw new Error('handoff adapter script SHA-256 does not match the manifest');
+  const adapterSource = fs.readFileSync(handoffScriptPath, 'utf8');
+  const adapterVersionMatch = adapterSource.match(/ADAPTER_VERSION\s*=\s*['"]([^'"]+)['"]/);
+  if (!adapterVersionMatch || adapterVersionMatch[1] !== handoff.adapter_version) throw new Error('handoff adapter version constant does not match the manifest');
+  const rasDssRelative = handoff.ras_dss_relative_path;
+  if (path.isAbsolute(rasDssRelative) || rasDssRelative.replace(/\\/g, '/').split('/').some((part) => part === '..' || part === '.' || part === '')) {
+    throw new Error('hydrograph_handoff.ras_dss_relative_path must be a safe relative project path');
+  }
   fs.mkdirSync(storeRoot, { recursive: true });
   const runRoot = safeWorkspacePath(workspace, path.posix.join(manifest.artifact_storage.root_directory.replace(/\\/g, '/'), manifest.run_id), 'run artifact directory');
   fs.mkdirSync(runRoot, { recursive: false });
@@ -245,7 +283,8 @@ function main() {
     aoi: manifest.aoi,
     reference_system: manifest.reference_system,
     input_manifest_sha256: inputManifestSha256,
-    source_control_commit: process.env.GITHUB_SHA ?? process.env.TSM_SOURCE_COMMIT ?? 'UNRECORDED_LOCAL_EXECUTION',
+    source_control_commit: sourceControlCommit,
+    source_project_hashes: { hec_hms: sourceHmsProjectSha256, hec_ras: sourceRasProjectSha256 },
     started_at: new Date().toISOString(),
     status: 'RUNNING',
     stages: [],
@@ -258,7 +297,18 @@ function main() {
     const blobDirectory = path.join(storeRoot, 'blobs', hash.slice(0, 2));
     fs.mkdirSync(blobDirectory, { recursive: true });
     const blob = path.join(blobDirectory, hash);
-    if (!fs.existsSync(blob)) fs.copyFileSync(file, blob, fs.constants.COPYFILE_EXCL);
+    if (fs.existsSync(blob)) {
+      if (!fs.statSync(blob).isFile() || sha256File(blob) !== hash) throw new Error('existing content-addressed blob failed integrity check: ' + blob);
+    } else {
+      const temporaryBlob = blob + '.tmp-' + process.pid + '-' + Math.random().toString(16).slice(2);
+      try {
+        fs.copyFileSync(file, temporaryBlob, fs.constants.COPYFILE_EXCL);
+        if (sha256File(temporaryBlob) !== hash) throw new Error('artifact changed during content-addressed copy: ' + file);
+        fs.renameSync(temporaryBlob, blob);
+      } finally {
+        if (fs.existsSync(temporaryBlob)) fs.rmSync(temporaryBlob, { force: true });
+      }
+    }
     return { label, source_path: path.relative(workspace, file).replace(/\\/g, '/'), sha256: hash, size_bytes: fs.statSync(file).size, storage_uri: path.relative(workspace, blob).replace(/\\/g, '/') };
   };
   const persistTree = (directory, label) => {
