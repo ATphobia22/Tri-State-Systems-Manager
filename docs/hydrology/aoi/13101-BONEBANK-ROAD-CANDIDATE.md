@@ -14,7 +14,13 @@
 - Parcel-layer centroid: longitude `-88.00535128`, latitude `37.84579909`.
 - Calculated parcel polygon area: approximately 2.4453 acres (0.00989575 km²), geodesic area from the published parcel polygon; not surveyed legal acreage and **not** watershed area.
 
-The parcel polygon is suitable as a *site candidate footprint only*. It is not a drainage catchment, a HEC-HMS basin boundary, a HEC-RAS 1D/2D computational domain, or a surveyor-certified boundary.
+The parcel polygon is suitable as a *site candidate footprint only after the location discrepancy is resolved*. Until then, do not treat the address-to-parcel association as verified. It is not a drainage catchment, a HEC-HMS basin boundary, a HEC-RAS 1D/2D computational domain, or a surveyor-certified boundary.
+
+## Critical location discrepancy
+
+Existing repository records also assert a second “surveyed centroid” at longitude `-88.0007`, latitude `37.9035`, approximately **6.4 km** from the IGIO parcel centroid above. These coordinates are not interchangeable. Until a licensed survey, authoritative parcel documentation, or owner-confirmed site record resolves the discrepancy, the address-to-parcel association and all point-dependent analysis remain **unverified**. The USGS elevation and FEMA/Indiana DNR point intersections below apply only to the IGIO parcel centroid used for those queries; they must not be attributed to the conflicting point or assumed to represent a structure.
+
+See the full [candidate AOI report](../AOI-REPORT-13101-BONEBANK-ROAD-2026-10-15.md) for the coordinate conflict and evidence-gated next steps.
 
 ## Authoritative terrain and flood-data observations
 
