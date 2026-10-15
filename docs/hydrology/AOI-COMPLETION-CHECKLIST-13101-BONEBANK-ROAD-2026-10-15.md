@@ -108,3 +108,12 @@ The live NFHL FIRM Panels query at the parcel centroid returned panel **0300**, 
 ## Structure footprint update
 
 The live Posey County address point for `13101 BONEBANK RD` lies inside Indiana Building Footprints 2016–2020 feature `763173` (about 258.7 m²), which is fully within the candidate parcel. The layer also contains two other footprints inside the parcel and does not label principal versus accessory structures. Candidate footprint `763173` intersects the state CSLF AE polygon. Confirm the principal dwelling and current footprint against owner/current-imagery evidence; do not treat the historical footprint as surveyed geometry or as a BFE/depth source.
+
+
+## Owner-confirmed aerial photo evidence (2026-10-15)
+
+The owner confirmed that the large brick residence near the center of the uploaded aerial photograph is their home. Machine-readable record: [owner photo confirmation JSON](../../data/posey-county/evidence/13101-bonebank-road-owner-photo-confirmation-2026-10-15.json). The exact uploaded bytes are 609,767 bytes; SHA-256 `b2f7d7ed3bba6a50ab6058c5f78a68fee283a843474f16863382686a797edfda`. The image bytes have not yet been committed to the repository, although the hash is recorded.
+
+**Effect on gates:** G0 advances to **OWNER IDENTIFICATION CONFIRMED; GEOMETRY RECONCILIATION OPEN**. The historic footprint 763173 remains a candidate only until reconciled against the image/current orthophotography and the parcel. The image visibly depicts inundation but does not establish event date, flood source, depth, elevation, BFE, or legal boundary. All terrain, outlet, catchment, regulatory-review, and model gates remain as previously stated.
+
+Reusable system requirements are in [Home-site AOI automation contract](./HOME-SITE-AOI-AUTOMATION-CONTRACT.md).
