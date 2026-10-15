@@ -1,0 +1,101 @@
+version: "35.0"
+registry_status: "CONFIGURATION_ONLY_UNVERIFIED"
+orchestrator:
+  node: "TSM Regional Source Orchestrator"
+  fail_safe_strategy: "FAIL_CLOSED"
+  supported_states: ["IN", "IL", "KY"]
+  execution_authorization:
+    enabled: false
+    reason: "Source availability, license/terms, coverage, CRS, datum, and provenance are not verified by this registry alone."
+
+adapters:
+  indiana_core:
+    jurisdiction: "IN"
+    provider: "Indiana geographic information / water and flood data authorities"
+    candidate_sources:
+      - name: "Indiana Floodplain Information Portal (INFIP)"
+        url: "https://infip.dnr.in.gov/"
+        role: "Floodplain reference; availability and service contract must be verified"
+      - name: "USGS 3DEP"
+        url: "https://www.usgs.gov/3d-elevation-program"
+        role: "Elevation source discovery"
+    projected_crs_candidates:
+      - "EPSG:2967"
+    vertical_datum: "REQUIRE_PER_DATASET_METADATA"
+    provenance:
+      require_sha256: true
+      require_source_url: true
+      require_retrieval_timestamp_utc: true
+      require_license_review: true
+      stale_threshold_days: 90
+    status: "UNVERIFIED"
+
+  illinois_core:
+    jurisdiction: "IL"
+    provider: "Illinois State Water Survey / Illinois state data authorities"
+    candidate_sources:
+      - name: "Illinois Height Modernization"
+        url: "https://www.isws.illinois.edu/"
+        role: "Elevation source discovery; dataset coverage and access must be verified"
+      - name: "USGS 3DEP"
+        url: "https://www.usgs.gov/3d-elevation-program"
+        role: "Elevation source discovery"
+    projected_crs_candidates:
+      - "EPSG:3443"
+    vertical_datum: "REQUIRE_PER_DATASET_METADATA"
+    provenance:
+      require_sha256: true
+      require_source_url: true
+      require_retrieval_timestamp_utc: true
+      require_license_review: true
+      stale_threshold_days: 120
+    status: "UNVERIFIED"
+
+  kentucky_core:
+    jurisdiction: "KY"
+    provider: "Kentucky geospatial and water data authorities"
+    candidate_sources:
+      - name: "KyFromAbove"
+        url: "https://kyfromabove.ky.gov/"
+        role: "Elevation source discovery; coverage and access must be verified"
+      - name: "USGS 3DEP"
+        url: "https://www.usgs.gov/3d-elevation-program"
+        role: "Elevation source discovery"
+    projected_crs_candidates:
+      - "EPSG:3089"
+    vertical_datum: "REQUIRE_PER_DATASET_METADATA"
+    provenance:
+      require_sha256: true
+      require_source_url: true
+      require_retrieval_timestamp_utc: true
+      require_license_review: true
+      stale_threshold_days: 90
+    status: "UNVERIFIED"
+
+  federal_hydrology:
+    candidate_sources:
+      - name: "USGS National Hydrography"
+        url: "https://www.usgs.gov/national-hydrography"
+        role: "Hydrography and watershed boundary source discovery"
+      - name: "USGS Water Data"
+        url: "https://waterdata.usgs.gov/"
+        role: "Gauge identity and observations; site status and datum must be queried"
+    status: "UNVERIFIED"
+
+  federal_flood_hazard:
+    candidate_sources:
+      - name: "FEMA National Flood Hazard Layer"
+        url: "https://www.fema.gov/flood-maps/national-flood-hazard-layer"
+        role: "Flood hazard reference; not a substitute for local terrain or hydraulic modeling"
+    status: "UNVERIFIED"
+
+invariants:
+  geojson_exchange_format: "RFC7946_WGS84_LONGITUDE_LATITUDE"
+  forbid_legacy_geojson_crs_member: true
+  require_per_layer_crs_metadata: true
+  require_vertical_datum_metadata: true
+  require_source_artifact_sha256: true
+  require_boundary_overlay_evidence: true
+  require_outlet_survey_or_authoritative_observation: true
+  no_execution_from_status_strings_alone: true
+  model_execution_requires_separate_scope_bound_approval: true
