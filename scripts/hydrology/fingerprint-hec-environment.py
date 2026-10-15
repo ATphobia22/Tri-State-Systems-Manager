@@ -45,7 +45,7 @@ def main(argv: list[str] | None = None) -> int:
 
     runtime_platform = (
         "windows-x64"
-        if sys.platform == "win32" and struct.calcsize("P") == 8
+        if sys.platform == "win32" and struct.calcsize("P") == 8 and platform.machine().lower() in {"amd64", "x86_64"}
         else "other"
     )
     payload = {
