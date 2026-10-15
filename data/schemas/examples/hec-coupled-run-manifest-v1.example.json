@@ -53,47 +53,16 @@
     "expected_outputs": [
       "workspace/outputs/hms/hydrograph.dss"
     ],
-    "output_directory": "workspace/outputs/hms",
-    "project_package_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
-    "executable_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
-    "version_evidence_uri": "UNASSIGNED",
-    "runtime_executable_path": "UNCONFIGURED",
-    "runtime_executable_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    "output_directory": "workspace/outputs/hms"
   },
   "hydrograph_handoff": {
     "source_output": "workspace/outputs/hms/hydrograph.dss",
-    "ras_input": "workspace/hec-ras/project.u01",
+    "ras_input": "workspace/hec-ras/flow-data.dss",
     "format": "DSS",
     "time_zone": "UNVERIFIED",
     "flow_units": "cfs",
     "gap_policy": "REJECT",
-    "conversion_method": "NONE_EXACT_VALUES",
-    "adapter_command": [
-      "UNCONFIGURED"
-    ],
-    "adapter_version": "UNPINNED",
-    "adapter_executable_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
-    "timeout_seconds": 3600,
-    "source_dss_pathname": "UNASSIGNED",
-    "source_element_name": "UNASSIGNED",
-    "source_run_name": "UNASSIGNED",
-    "ras_dss_relative_path": "flow-data.dss",
-    "ras_dss_pathname": "UNASSIGNED",
-    "interval": "1HOUR",
-    "source_flow_units": "CFS",
-    "boundary_selector": {
-      "mode": "1D",
-      "river": "UNASSIGNED",
-      "reach": "UNASSIGNED",
-      "station": "UNASSIGNED",
-      "area_2d": null,
-      "bc_line": null,
-      "boundary_index": null,
-      "expected_bc_type": "Flow Hydrograph"
-    },
-    "adapter_script_path": "scripts/hydrology/hms-ras-handoff.py",
-    "adapter_script_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
-    "dss_version": 7
+    "conversion_method": "UNVERIFIED"
   },
   "hec_ras": {
     "product_version": "UNPINNED",
@@ -106,18 +75,12 @@
     "expected_outputs": [
       "workspace/outputs/ras/plan.p01.hdf"
     ],
-    "output_directory": "workspace/outputs/ras",
-    "project_package_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
-    "executable_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
-    "version_evidence_uri": "UNASSIGNED",
-    "runtime_executable_path": "UNCONFIGURED",
-    "runtime_executable_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    "output_directory": "workspace/outputs/ras"
   },
   "artifact_storage": {
     "backend": "filesystem-content-addressed",
     "root_directory": "workspace/artifacts",
     "retention_policy": "retain all run manifests and referenced blobs; no automatic deletion",
     "metadata_store": "run-manifest-only"
-  },
-  "source_commit": "0000000000000000000000000000000000000000"
+  }
 }
