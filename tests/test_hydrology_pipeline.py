@@ -72,7 +72,7 @@ class HydrologyPipelineIntegrationTests(unittest.TestCase):
     def test_missing_telemetry_evidence_fails_closed(self) -> None:
         result = self._run(with_evidence=False)
         self.assertEqual(result.returncode, 1)
-        self.assertIn("verified telemetry evidence is required", result.stdout + result.stderr)
+        self.assertIn("telemetry evidence JSON is required", result.stdout + result.stderr)
         self.assertFalse(list(self.reports.glob("preflight-*.json")))
 
     def test_validated_inputs_still_cannot_launch_unverified_solver(self) -> None:
