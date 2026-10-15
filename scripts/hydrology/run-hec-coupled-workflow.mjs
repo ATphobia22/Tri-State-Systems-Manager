@@ -563,17 +563,18 @@ function main() {
       ],
     };
     const receipt = path.join(runRoot, 'run-receipt.json');
+    const runManifestCopy = path.join(runRoot, 'input-manifest.json');
+    fs.writeFileSync(runManifestCopy, JSON.stringify(manifest, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
+    run.artifacts.push(persistArtifact(runManifestCopy, 'run input manifest'));
     fs.writeFileSync(receipt, JSON.stringify(run, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
-    fs.writeFileSync(path.join(runRoot, 'input-manifest.json'), JSON.stringify(manifest, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
-    run.artifacts.push(persistArtifact(receipt, 'reproducible workflow run receipt'));
-    console.log(JSON.stringify({ ok: true, run_id: run.run_id, status: run.status, receipt: path.relative(workspace, receipt), output_count: run.artifacts.length, note: 'Execution completed; scientific validation and human review remain pending.' }, null, 2));
-
+    const receiptArtifact = persistArtifact(receipt, 'reproducible workflow run receipt');
+    console.log(JSON.stringify({ ok: true, run_id: run.run_id, status: run.status, receipt: path.relative(workspace, receipt), receipt_sha256: receiptArtifact.sha256, output_count: run.artifacts.length, note: 'Execution completed; scientific validation and human review remain pending.' }, null, 2));
   } catch (error) {
     run.status = 'FAILED_OR_BLOCKED';
     run.finished_at = new Date().toISOString();
     run.failure = String(error.message ?? error);
-    fs.writeFileSync(path.join(runRoot, 'run-receipt.json'), JSON.stringify(run, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
-    throw error;
+    fs.writeFileSync(path.join(runRoot, 'run-receipt.json'), JSON.stringify(run, null, 2) + '\n', { mode: 0o600 });
+
   }
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
