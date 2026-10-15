@@ -1,0 +1,342 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tri-state-systems-manager.invalid/schemas/hec-hms-ras-workflow-v1.schema.json",
+  "title": "TSM HEC-HMS to HEC-RAS workflow manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "workflow_id",
+    "source_commit",
+    "pilot_area",
+    "hec_hms",
+    "hec_ras",
+    "hydrograph_transfer",
+    "artifact_store",
+    "execution"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "workflow_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{2,63}$"
+    },
+    "source_commit": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "pilot_area": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "area_id",
+        "approval",
+        "aoi_geometry",
+        "watershed"
+      ],
+      "properties": {
+        "area_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "approval": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "approved_by",
+            "approved_at",
+            "evidence_ref"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "NOT_APPROVED",
+                "APPROVED",
+                "REVOKED"
+              ]
+            },
+            "approved_by": {
+              "type": "string"
+            },
+            "approved_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "evidence_ref": {
+              "type": "string"
+            }
+          }
+        },
+        "aoi_geometry": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "sha256",
+            "horizontal_crs",
+            "vertical_datum",
+            "evidence_ref"
+          ],
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "horizontal_crs": {
+              "type": "string",
+              "minLength": 1
+            },
+            "vertical_datum": {
+              "type": "string",
+              "minLength": 1
+            },
+            "evidence_ref": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "watershed": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "area_sq_mi",
+            "delineation_evidence_ref"
+          ],
+          "properties": {
+            "area_sq_mi": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "delineation_evidence_ref": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "hec_hms": {
+      "$ref": "#/$defs/hms"
+    },
+    "hec_ras": {
+      "$ref": "#/$defs/ras"
+    },
+    "hydrograph_transfer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "adapter_command",
+        "output_csv_relative_path",
+        "timestamp_column",
+        "flow_column",
+        "ras_unsteady_flow_file_relative_path"
+      ],
+      "properties": {
+        "adapter_command": {
+          "$ref": "#/$defs/command"
+        },
+        "output_csv_relative_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "timestamp_column": {
+          "type": "string",
+          "minLength": 1
+        },
+        "flow_column": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ras_unsteady_flow_file_relative_path": {
+          "type": "string",
+          "pattern": "^.+\\.u[0-9]{2}$"
+        },
+        "unit": {
+          "const": "ft3/s"
+        }
+      }
+    },
+    "artifact_store": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "root_dir",
+        "storage_class"
+      ],
+      "properties": {
+        "root_dir": {
+          "type": "string",
+          "minLength": 1
+        },
+        "storage_class": {
+          "enum": [
+            "LOCAL_OPERATOR_MANAGED",
+            "SHARED_FILESYSTEM",
+            "OBJECT_STORAGE"
+          ]
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "timeout_seconds",
+        "human_review_required"
+      ],
+      "properties": {
+        "timeout_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 86400
+        },
+        "human_review_required": {
+          "const": true
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "command": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "inventory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reviewed",
+        "evidence_ref",
+        "files"
+      ],
+      "properties": {
+        "reviewed": {
+          "type": "boolean"
+        },
+        "evidence_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "files": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "path",
+              "sha256"
+            ],
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sha256": {
+                "$ref": "#/$defs/sha256"
+              }
+            }
+          }
+        }
+      }
+    },
+    "commonModel": {
+      "type": "object",
+      "required": [
+        "project_dir",
+        "version",
+        "installation_verification_ref",
+        "horizontal_crs",
+        "vertical_datum",
+        "project_inventory"
+      ],
+      "properties": {
+        "project_dir": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "installation_verification_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "horizontal_crs": {
+          "type": "string",
+          "minLength": 1
+        },
+        "vertical_datum": {
+          "type": "string",
+          "minLength": 1
+        },
+        "project_inventory": {
+          "$ref": "#/$defs/inventory"
+        }
+      }
+    },
+    "hms": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/commonModel"
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "ras": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/commonModel"
+        },
+        {
+          "type": "object",
+          "required": [
+            "project_file",
+            "plan_name",
+            "unsteady_flow_file_relative_path",
+            "expected_hdf_relative_path",
+            "runner_command"
+          ],
+          "properties": {
+            "project_file": {
+              "type": "string",
+              "minLength": 1
+            },
+            "plan_name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "unsteady_flow_file_relative_path": {
+              "type": "string",
+              "pattern": "^.+\\.u[0-9]{2}$"
+            },
+            "expected_hdf_relative_path": {
+              "type": "string",
+              "pattern": "^.+\\.hdf$"
+            },
+            "runner_command": {
+              "$ref": "#/$defs/command"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    }
+  }
+}
