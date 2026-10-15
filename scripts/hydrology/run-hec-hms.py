@@ -18,6 +18,7 @@ from hec_runtime_common import (
     resolve_stage_paths,
     sha256_file,
     verify_pinned_distribution,
+    verify_project_package_hash,
     verify_runtime_executable,
     verify_stage_launcher,
     write_stage_receipt,
@@ -38,6 +39,7 @@ def main(argv: list[str] | None = None) -> int:
     manifest = load_approved_manifest(manifest_path)
     stage = get_stage(manifest, "hec_hms")
     project, output, output_project = resolve_stage_paths(args.project, args.output, manifest_path)
+    verify_project_package_hash(stage, project)
     run_name = stage.get("run_name")
     timeout = stage.get("timeout_seconds")
     if not isinstance(run_name, str) or not run_name.strip() or run_name.strip().upper() in {"UNASSIGNED", "TBD", "UNCONFIGURED"}:
