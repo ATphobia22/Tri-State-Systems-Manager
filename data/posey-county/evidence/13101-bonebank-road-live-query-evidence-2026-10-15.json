@@ -1,0 +1,254 @@
+{
+  "schema": "tsm.hydrology.aoi-live-evidence/v1",
+  "site_id": "posey-13101-bonebank-road",
+  "retrieved_on": "2026-10-15",
+  "status": "PARTIAL_LIVE_SOURCE_VERIFICATION",
+  "interpretation": "Live service queries verify the address/parcel identity and state flood polygon intersection at the IGIO parcel centroid. They do not establish legal boundary, home footprint, whole-parcel flood coverage, BFE, catchment, or model fitness.",
+  "parcel_source": {
+    "agency": "Indiana Geographic Information Office",
+    "service": "Parcel Boundaries of Indiana 2025",
+    "layer_url": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer/0",
+    "query_url": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer/0/query?where=objectid%3D335325&outFields=*&returnGeometry=true&outSR=4326&f=json",
+    "query_status": "HTTP 200; one matching feature; exceededTransferLimit=false",
+    "attributes": {
+      "objectid": 335325,
+      "parcel_id": "65-19-08-100-008.001-010",
+      "state_parcel_id": "651908100008001010",
+      "county_fips": "18129",
+      "county_id": "65",
+      "county": "POSEY COUNTY",
+      "prop_add": "13101 BONEBANK RD",
+      "prop_city": "MT VERNON",
+      "prop_state": "IN",
+      "prop_zip": "47620-0000",
+      "latitude": 37.84579909,
+      "longitude": -88.00535128,
+      "source_originator": "Posey County",
+      "source_featureid": "821117010080896417",
+      "loaddate_epoch_ms": 1756339200000,
+      "load_date_utc": "2025-08-28T00:00:00Z"
+    },
+    "spatial_reference": {
+      "wkid": 4326,
+      "latestWkid": 4326
+    },
+    "polygon_ring_lon_lat": [
+      [
+        -88.00438673499997,
+        37.845621719000064
+      ],
+      [
+        -88.00606877999996,
+        37.84537966600004
+      ],
+      [
+        -88.00619900799995,
+        37.84601338900006
+      ],
+      [
+        -88.00475806299994,
+        37.84621427500008
+      ],
+      [
+        -88.00438673499997,
+        37.845621719000064
+      ]
+    ],
+    "conclusion": "Exact address and parcel ID match the repository candidate. This resolves the working GIS reference for the user-designated address, but does not certify that the geometry is a legal boundary or that the parcel record alone identifies the house footprint."
+  },
+  "state_floodplain_source": {
+    "agency": "Indiana Department of Natural Resources / Indiana Geographic Information Office",
+    "service": "Hosted/Posey_CSLF_Feb2025 FeatureServer layer 0 (S_CSLF_Ar)",
+    "service_url": "https://gisdata.in.gov/server/rest/services/Hosted/Posey_CSLF_Feb2025/FeatureServer/0",
+    "query_url": "https://gisdata.in.gov/server/rest/services/Hosted/Posey_CSLF_Feb2025/FeatureServer/0/query?geometry=-88.00535128%2C37.84579909&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=pjson",
+    "query_status": "HTTP 200; one intersecting polygon",
+    "matched_attributes": {
+      "objectid": 3785,
+      "cslf_id": "3785",
+      "pre_zone": "AE",
+      "new_zone": "AE",
+      "pre_srccit": "18129C_STUDY3",
+      "new_srccit": "STUDY10",
+      "source_cit": "STUDY10",
+      "sfha_chg": "Z",
+      "fldwychg": "Z",
+      "chhachg": "Z"
+    },
+    "service_vertical_metadata": {
+      "vertical_crs": "NAVD_1988",
+      "height_unit": "meter",
+      "note": "Layer service height-model metadata; not a BFE observation."
+    },
+    "conclusion": "The candidate parcel centroid intersects an Indiana state floodplain polygon classified AE in both pre- and new-zone fields. This is a point-to-polygon intersection only. The query returned no BFE value; do not infer a numeric BFE, parcel-wide percentage, flood depth, or building inundation.",
+    "parcel_polygon_query": {
+      "query_status": "HTTP 200; one intersecting polygon",
+      "query_url": "https://gisdata.in.gov/server/rest/services/Hosted/Posey_CSLF_Feb2025/FeatureServer/0/query?geometry=<candidate-parcel-polygon>&geometryType=esriGeometryPolygon&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=objectid,cslf_id,pre_zone,new_zone,pre_srccit,new_srccit,source_cit&returnGeometry=false&f=json",
+      "matched_feature": {
+        "objectid": 3785,
+        "cslf_id": "3785",
+        "pre_zone": "AE",
+        "new_zone": "AE",
+        "pre_srccit": "18129C_STUDY3",
+        "new_srccit": "STUDY10",
+        "source_cit": "STUDY10"
+      },
+      "interpretation": "The candidate parcel polygon intersects a state floodplain polygon classified AE. This establishes an intersection, not the percentage of parcel area covered or a structure-specific depth/BFE."
+    }
+  },
+  "usgs_epqs": {
+    "agency": "U.S. Geological Survey",
+    "service_url": "https://epqs.nationalmap.gov/v1/json",
+    "query_points": [
+      {
+        "name": "IGIO parcel centroid",
+        "longitude": -88.00535128,
+        "latitude": 37.84579909,
+        "request_url": "https://epqs.nationalmap.gov/v1/json?x=-88.00535128&y=37.84579909&units=Feet&output=json",
+        "adapter_observation": {
+          "elevation": 361.99838690218945,
+          "units": "meters",
+          "source": "USGS",
+          "source_date": "2023-10-01"
+        },
+        "status": "QUARANTINED_UNIT_CONFLICT",
+        "reason": "The fetched adapter result labels the value as meters despite a request for Feet and conflicts with the previously stored 361.998 ft interpretation. The tool did not expose an unambiguous raw service payload. No value is promoted into approved site elevation evidence."
+      },
+      {
+        "name": "Legacy point",
+        "longitude": -88.0007,
+        "latitude": 37.9035,
+        "request_url": "https://epqs.nationalmap.gov/v1/json?x=-88.0007&y=37.9035&units=Feet&output=json",
+        "adapter_observation": {
+          "elevation": 359.48629353112005,
+          "units": "meters",
+          "source": "USGS EPQS",
+          "source_date": "2023-10-10"
+        },
+        "status": "QUARANTINED_UNIT_CONFLICT_AND_WRONG_SITE_CANDIDATE",
+        "reason": "Same adapter unit conflict; point is approximately 6.42 km from the matching IGIO parcel centroid and is not accepted as this parcel's reference point."
+      }
+    ],
+    "conclusion": "EPQS output is not accepted as elevation evidence in this snapshot until the raw response and requested units are verified. USGS documentation says EPQS is interpolated from dynamic 3DEP, with accuracy varying by source, and is not an official survey."
+  },
+  "fema_nfhl": {
+    "agency": "Federal Emergency Management Agency",
+    "service_url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer",
+    "point_query_url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28/query?where=1%3D1&geometry=-88.00535128%2C37.84579909&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=FLD_ZONE%2CZONE_SUBTY%2CSTATIC_BFE%2CV_DATUM&returnGeometry=false&f=json",
+    "point_query_status": "HTTP 200; one intersecting feature",
+    "point_result": {
+      "FLD_ZONE": "AE",
+      "ZONE_SUBTY": null,
+      "STATIC_BFE": -9999,
+      "V_DATUM": null
+    },
+    "interpretation": "Current direct NFHL point query confirms Zone AE at the IGIO parcel centroid. STATIC_BFE=-9999 is a no-data sentinel, not a BFE; V_DATUM is null. This is point-only evidence, not a parcel-wide or structure-specific determination.",
+    "parcel_polygon_query_status": "Failed through the research connector with connection closed; no parcel-wide NFHL overlay is claimed."
+  },
+  "unresolved_gates": [
+    {
+      "id": "structure-footprint",
+      "state": "OPEN",
+      "reason": "Public parcel point and polygon do not establish the actual house footprint; verify against county structure data, current imagery and/or survey."
+    },
+    {
+      "id": "legal-boundary",
+      "state": "OPEN",
+      "reason": "IGIO polygon is not a survey; compare to county records/deed/plat and survey if needed."
+    },
+    {
+      "id": "site-dem",
+      "state": "CATALOG_PRODUCT_FOUND_ASSET_PENDING",
+      "reason": "A USGS 1-meter Indiana Statewide LiDAR DEM tile covers the candidate parcel bounding box; product metadata identifies bare-earth elevations in meters, NAVD88. The GeoTIFF has not been downloaded or QA-checked."
+    },
+    {
+      "id": "epqs-unit-validation",
+      "state": "OPEN",
+      "reason": "Current connector response has an unresolved value/unit discrepancy; quarantine both point values."
+    },
+    {
+      "id": "fema-effective-panel-and-bfe",
+      "state": "POINT_ZONE_CONFIRMED_BFE_UNAVAILABLE_PANEL_REVIEW_OPEN",
+      "reason": "Current NFHL point query returned FLD_ZONE=AE, STATIC_BFE=-9999, V_DATUM=null. Effective panel/LOMC review and applicable INFIP/FARA remain open."
+    },
+    {
+      "id": "drainage-outlet",
+      "state": "OPEN",
+      "reason": "No outlet has been selected or verified."
+    },
+    {
+      "id": "catchment",
+      "state": "BLOCKED",
+      "reason": "No verified outlet or site-wide terrain/conveyance evidence."
+    },
+    {
+      "id": "hydrologic-hydraulic-model",
+      "state": "BLOCKED_NOT_RUN",
+      "reason": "No approved catchment, model question, datum-consistent geometry, or validated input manifest."
+    }
+  ],
+  "quality_notes": [
+    "The source query returned an exact address and parcel ID match; legacy point at -88.0007, 37.9035 is not accepted for this address's AOI because it is approximately 6.42 km away.",
+    "The state floodplain polygon is a live, current service intersection but not a complete parcel/structure overlay.",
+    "No BFE was observed in the state polygon query. Service vertical metadata must not be substituted for an actual BFE datum.",
+    "EPQS values from the connector are quarantined because value/unit interpretation is inconsistent; do not use them in calculations or model inputs.",
+    "No DEM raster or watershed polygon was created by this pass.",
+    "USGS TNM Access API returned four 1-meter DEM products covering the parcel bounding box; the Indiana Statewide LiDAR 2017 tile is the selected candidate based on state/project match. It is metadata evidence only, not a local raster file or analyzed terrain surface.",
+    "Current FEMA NFHL point query succeeded: FLD_ZONE=AE; STATIC_BFE=-9999; V_DATUM=null. No BFE is available in the returned feature.",
+    "The full candidate parcel polygon intersects the Indiana state CSLF flood polygon cslf_id 3785 (AE). This is a topological intersection only; no coverage fraction or house-specific flood depth was computed."
+  ],
+  "terrain_catalog": {
+    "agency": "U.S. Geological Survey / The National Map",
+    "catalog_api": "https://tnmaccess.nationalmap.gov/api/v1/products",
+    "query_bbox_lonlat": [
+      -88.0062,
+      37.8453,
+      -88.0043,
+      37.8463
+    ],
+    "query_status": "HTTP 200; 4 one-meter DEM products returned for bounding box",
+    "selected_candidate": {
+      "title": "USGS 1 Meter 16 x41y419 IN_Indiana_Statewide_LiDAR_2017_B17",
+      "product_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1m/Projects/IN_Indiana_Statewide_LiDAR_2017_B17/TIFF/USGS_1M_16_x41y419_IN_Indiana_Statewide_LiDAR_2017_B17.tif",
+      "metadata_url": "https://www.sciencebase.gov/catalog/item/60e6aebcd34e2a7685d0271b",
+      "publication_date": "2021-07-04",
+      "source_acquisition_start": "2017-03-03",
+      "source_acquisition_end": "2020-04-11",
+      "file_modification_date": "2021-07-08T02:52:28",
+      "spatial_coverage": {
+        "min_longitude": -88.02303602199999,
+        "max_longitude": -87.90827470799996,
+        "min_latitude": 37.76289730600007,
+        "max_latitude": 37.853947521000066
+      },
+      "nominal_resolution_m": 1,
+      "surface": "bare-earth DEM",
+      "horizontal_reference": "NAD83 / UTM, meters; tile delivered in applicable UTM zone",
+      "vertical_reference": "NAVD88",
+      "vertical_unit": "meter",
+      "product_status": "CATALOG_MATCHED_AS_CANDIDATE; FILE_NOT_DOWNLOADED_OR_QA_CHECKED"
+    },
+    "other_returned_products": [
+      {
+        "title": "USGS 1 Meter 16 x41y419 IL_HicksDome_FluorsparDistrict_2019_D19",
+        "publication_date": "2022-03-19",
+        "metadata_url": "https://www.sciencebase.gov/catalog/item/624e7085d34e21f8276801a"
+      },
+      {
+        "title": "USGS 1 Meter 16 x41y419 KY_2020Western_C22",
+        "publication_date": "2026-04-17",
+        "metadata_url": "https://www.sciencebase.gov/catalog/item/69e6dcfbb66b01f903b6a5da"
+      },
+      {
+        "title": "USGS 1 Meter 16 x41y419 KY_FluorsparDistrict_2019_D19",
+        "publication_date": "2021-10-07",
+        "metadata_url": "https://www.sciencebase.gov/catalog/item/618cb1f3d34ec04fc9c8a796"
+      }
+    ],
+    "limitations": [
+      "The selected Indiana statewide LiDAR product is a candidate based on name, footprint and source metadata; it has not been downloaded, hashed, inspected or processed.",
+      "USGS metadata says 1-meter DEM tiles may not be seamless across project boundaries; check neighboring project edges and source quality.",
+      "Do not infer a watershed from a DEM catalog result. Verify culverts, road embankments, ditches, tile drainage and the intended outlet.",
+      "No elevation samples or slope/flow accumulation/catchment geometry were derived from this catalog result."
+    ]
+  }
+}
