@@ -42,11 +42,6 @@ jobs:
           cache-dependency-path: tsm-console/package-lock.json
           registry-url: https://registry.npmjs.org
 
-      - name: Pin npm version for deterministic lockfile regeneration
-        run: |
-          npm install --global npm@10.9.2 --no-audit --no-fund
-          test "$(npm --version)" = "10.9.2"
-
       - name: Configure public npm registry
         run: npm config set registry https://registry.npmjs.org
 
