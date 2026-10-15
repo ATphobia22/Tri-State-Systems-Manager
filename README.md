@@ -75,6 +75,17 @@ Settings → Pages → Source must be **GitHub Actions**. The workflow does not 
 - **Building heights:** observed LiDAR subset + DERIVED COPC path with hard reject rules; never synthetic fill.
 - **4D temporal engine:** SIMULATED / SCENARIO labeled only.
 
+## Hydrology and hydraulic release status
+
+TSM includes source-aware hydrology ingestion contracts and a lumped SCS Curve Number rainfall-runoff screening primitive. These are not, by themselves, a validated flood forecast or hydraulic model. Production hydraulic conclusions remain gated on an approved pilot AOI, qualified rainfall/gage/terrain/bathymetry inputs, verified datum conversions, reproducible solver artifacts, independent calibration and validation, uncertainty analysis, qualified review, and deployment verification.
+
+The NOAA/NWS CloudGIS context integration is merged, but live GetMap image validation remains pending. Radar reflectivity is not rainfall accumulation; warning overlays are not inundation boundaries; and raw gage stage must not be compared directly with NAVD88 elevations.
+
+- [Hydrology and hydraulics release contract](docs/hydrology/HYDROLOGY-RELEASE-CONTRACT.md)
+- [Current release-gate register](docs/release/RELEASE-GATES-2026-10-15.md)
+- [Engineering evidence pipeline](docs/ENGINEERING-EVIDENCE-PIPELINE.md)
+- [NOAA/NWS CloudGIS integration contract](docs/data-sources/NOAA-CLOUDGIS-INTEGRATION.md)
+
 ## Architecture principles
 
 1. **Human authority is non-negotiable** (ADR-004 / ADR-006 S1 default).
