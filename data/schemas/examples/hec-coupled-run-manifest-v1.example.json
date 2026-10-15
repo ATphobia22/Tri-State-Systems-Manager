@@ -56,7 +56,9 @@
     "output_directory": "workspace/outputs/hms",
     "project_package_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
     "executable_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
-    "version_evidence_uri": "UNASSIGNED"
+    "version_evidence_uri": "UNASSIGNED",
+    "runtime_executable_path": "UNCONFIGURED",
+    "runtime_executable_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
   },
   "hydrograph_handoff": {
     "source_output": "workspace/outputs/hms/hydrograph.dss",
@@ -106,7 +108,9 @@
     "output_directory": "workspace/outputs/ras",
     "project_package_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
     "executable_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
-    "version_evidence_uri": "UNASSIGNED"
+    "version_evidence_uri": "UNASSIGNED",
+    "runtime_executable_path": "UNCONFIGURED",
+    "runtime_executable_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
   },
   "artifact_storage": {
     "backend": "filesystem-content-addressed",
