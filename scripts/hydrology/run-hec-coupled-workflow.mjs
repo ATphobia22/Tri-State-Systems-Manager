@@ -12,7 +12,7 @@ const sha256File = (file) => sha256Buffer(fs.readFileSync(file));
 function sha256Tree(root) {
   const digest = createHash('sha256');
   function walk(directory, relativeRoot = '') {
-    for (const entry of fs.readdirSync(directory, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true }).sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))) {
       const relative = path.posix.join(relativeRoot, entry.name);
       const absolute = path.join(directory, entry.name);
       if (entry.isSymbolicLink()) throw new Error('model project contains a symbolic link; package hashing fails closed: ' + relative);
