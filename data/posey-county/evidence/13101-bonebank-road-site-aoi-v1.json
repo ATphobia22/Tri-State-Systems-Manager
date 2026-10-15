@@ -1,0 +1,150 @@
+{
+  "schema": "tsm.posey.site-aoi/v1",
+  "site_id": "posey-13101-bonebank-road",
+  "recorded_on": "2026-10-15",
+  "scope": "Site evidence and candidate parcel geometry only. This record is not a delineated hydrologic watershed, a survey, a flood-depth determination, an HEC-HMS/HEC-RAS run, or engineering certification.",
+  "record_status": "USER_SELECTED_CANDIDATE_NOT_ENGINEERING_APPROVED",
+  "human_review_required": true,
+  "approval": {
+    "status": "NOT_APPROVED",
+    "approved_by": null,
+    "approved_at": null,
+    "evidence_ref": null
+  },
+  "address": "13101 Bonebank Road, Mount Vernon, IN 47620",
+  "administrative_area": {
+    "county_name": "Posey County",
+    "county_fips": "18129",
+    "state": "Indiana"
+  },
+  "parcel": {
+    "status": "OBSERVED",
+    "source_agency": "Indiana Geographic Information Office",
+    "source_dataset": "Parcel Boundaries of Indiana 2025",
+    "source_layer_url": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer/0",
+    "source_query_url": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer/0/query?where=prop_add%3D%2713101%20BONEBANK%20RD%27&outFields=objectid,prop_add,prop_city,prop_state,prop_zip,county_fips,parcel_id,state_parcel_id,local_id,latitude,longitude,loaddate&returnGeometry=true&outSR=4326&f=pjson",
+    "source_record_objectid": 335325,
+    "local_id": "15768",
+    "parcel_id": "65-19-08-100-008.001-010",
+    "state_parcel_id": "651908100008001010",
+    "source_load_date": "2025-08-28",
+    "horizontal_crs": "EPSG:4326",
+    "geometry_path": "data/posey-county/aoi/13101-bonebank-road-parcel.geojson",
+    "geometry_sha256": "93d9115b21b14932674095b5267b482c9b38c6fc45399687a8b5126894b71572",
+    "centroid": {
+      "longitude": -88.00535128,
+      "latitude": 37.84579909,
+      "method": "Centroid coordinates supplied by the IGIO parcel layer"
+    },
+    "area_estimate": {
+      "value_square_metres": 9895.754251129925,
+      "value_acres": 2.445294129130783,
+      "method": "WGS84 ellipsoidal geodesic area calculated from the published outer-ring vertices",
+      "limitation": "Calculated from statewide parcel GIS geometry; not surveyed legal acreage and not watershed drainage area"
+    },
+    "interpretation": "This geometry represents the property parcel only. Do not use it as the HMS drainage polygon, the RAS inundation domain, or a surveyed legal boundary."
+  },
+  "terrain_sample": {
+    "status": "OBSERVED",
+    "source_agency": "U.S. Geological Survey",
+    "service_url": "https://epqs.nationalmap.gov/v1/json",
+    "query": {
+      "longitude": -88.00535128,
+      "latitude": 37.84579909,
+      "units": "Feet"
+    },
+    "value": 361.99838690218945,
+    "unit": "ft",
+    "raster_id": 115190,
+    "reported_resolution_metres": 1,
+    "vertical_datum": "NAVD88",
+    "method": "USGS Elevation Point Query Service result at the parcel-layer centroid, interpolated from the dynamic 3DEP elevation service",
+    "limitation": "One point sample only; accuracy depends on source elevation data and it does not replace a site DEM, breaklines, field survey, or datum reconciliation."
+  },
+  "fema_nfhl_centroid_intersection": {
+    "status": "OBSERVED",
+    "source_agency": "Federal Emergency Management Agency",
+    "source_url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28/query?geometry=-88.00535128%2C37.84579909&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=DFIRM_ID%2CFLD_AR_ID%2CFLD_ZONE%2CZONE_SUBTY%2CSFHA_TF%2CSTATIC_BFE%2CV_DATUM&returnGeometry=false&f=pjson",
+    "query_geometry": "parcel-layer centroid point in EPSG:4326",
+    "dfirm_id": "18129C",
+    "flood_area_id": "18129C_105",
+    "flood_zone": "AE",
+    "special_flood_hazard_area": true,
+    "raw_static_bfe": -9999,
+    "normalized_static_bfe": null,
+    "vertical_datum": null,
+    "interpretation": "The parcel-layer centroid intersects an NFHL polygon mapped Zone AE and marked SFHA. The service returned -9999 for STATIC_BFE and no vertical datum, so no usable base flood elevation is established by this query.",
+    "limitation": "Point intersection only; does not determine the percentage of the parcel in each zone, flood depth, flood probability at the structure, or a site-specific hydraulic result. Verify effective FEMA map products in the FEMA Map Service Center."
+  },
+  "indiana_dnr_flood_hazard_crosscheck": {
+    "status": "OBSERVED",
+    "source_agency": "Indiana Department of Natural Resources / Indiana Geographic Information Office",
+    "source_url": "https://gisdata.in.gov/server/rest/services/Hosted/FLOODHAZARD_DNR_WATER_PROD/FeatureServer/0",
+    "query_geometry": "parcel-layer centroid point in EPSG:4326",
+    "dfirm_id": "18129C",
+    "flood_zone": "AE",
+    "special_flood_hazard_area": true,
+    "source_dnr": "NFHL",
+    "source_citation": "18129C_STUDY3",
+    "raw_static_bfe": -9999,
+    "raw_depth": -9999,
+    "raw_velocity": -9999,
+    "normalized_static_bfe": null,
+    "normalized_depth": null,
+    "normalized_velocity": null,
+    "interpretation": "Independent state-layer point query is consistent with the NFHL Zone AE/SFHA centroid result; -9999 values are no-data sentinels, not real measurements."
+  },
+  "watershed_delineation": {
+    "status": "NOT_DELINEATED",
+    "area_sq_mi": null,
+    "outlet_coordinates": null,
+    "candidate_method": "USGS StreamStats delineation checked against USGS 3DEP elevation and current 3D Hydrography Program / legacy NHD-WBD context as available",
+    "service_reference": "https://streamstats.usgs.gov/ss-delineate/docs",
+    "terrain_and_hydrography_reference": "https://www.usgs.gov/3d-hydrography-program/access-3dhp-data-products",
+    "required_checks": [
+      "Select and document the hydraulic outlet / point of interest before delineating the contributing catchment.",
+      "Review the basin boundary and drainage paths against high-resolution terrain and hydrography; USGS cautions that DEM-derived delineations can contain errors, especially in flat terrain.",
+      "Record catchment area, outlet, terrain acquisition/version, horizontal CRS, vertical datum, processing steps, and SHA-256 for every model input."
+    ]
+  },
+  "coupled_model_readiness": {
+    "status": "BLOCKED_NOT_RUN",
+    "hec_hms_execution": "NOT_RUN",
+    "hec_ras_execution": "NOT_RUN",
+    "blockers": [
+      "Hydrologic catchment and outlet have not been delineated and independently checked.",
+      "No approved AOI approval evidence/reviewer/timestamp is recorded.",
+      "Site-specific HEC-HMS and HEC-RAS model packages and inventories have not been supplied and reviewed.",
+      "Installed solver versions and immutable, version-tested HMS, DSS-transfer, and RAS adapter commands have not been verified.",
+      "Design-storm/observed rainfall selection, basin parameters, hydrograph and boundary-condition mappings are not established.",
+      "A suitable terrain/geometry package, CRS/vertical-datum reconciliation, calibration, independent validation, uncertainty review, and qualified engineering disposition remain required."
+    ],
+    "results_interpretation": "No flood simulation, design flow, flood depth, water-surface elevation, or engineering recommendation is claimed by this evidence record."
+  },
+  "references": [
+    {
+      "label": "Indiana statewide parcel boundaries metadata",
+      "url": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer/0"
+    },
+    {
+      "label": "USGS 3D Elevation Program",
+      "url": "https://www.usgs.gov/3d-elevation-program"
+    },
+    {
+      "label": "USGS 3D Hydrography Program data",
+      "url": "https://www.usgs.gov/3d-hydrography-program/access-3dhp-data-products"
+    },
+    {
+      "label": "FEMA Map Service Center",
+      "url": "https://msc.fema.gov/portal/home"
+    },
+    {
+      "label": "NWS radar FAQ and product descriptions",
+      "url": "https://www.weather.gov/radarfaq"
+    },
+    {
+      "label": "Posey County government",
+      "url": "https://www.poseycountyin.gov/"
+    }
+  ]
+}
