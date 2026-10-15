@@ -51,11 +51,12 @@
     ],
     "timeout_seconds": 3600,
     "expected_outputs": [
-      "workspace/outputs/hydrograph.dss"
-    ]
+      "workspace/outputs/hms/hydrograph.dss"
+    ],
+    "output_directory": "workspace/outputs/hms"
   },
   "hydrograph_handoff": {
-    "source_output": "workspace/outputs/hydrograph.dss",
+    "source_output": "workspace/outputs/hms/hydrograph.dss",
     "ras_input": "workspace/hec-ras/flow-data.dss",
     "format": "DSS",
     "time_zone": "UNVERIFIED",
@@ -72,8 +73,9 @@
     ],
     "timeout_seconds": 7200,
     "expected_outputs": [
-      "workspace/outputs/plan.p01.hdf"
-    ]
+      "workspace/outputs/ras/plan.p01.hdf"
+    ],
+    "output_directory": "workspace/outputs/ras"
   },
   "artifact_storage": {
     "backend": "filesystem-content-addressed",
