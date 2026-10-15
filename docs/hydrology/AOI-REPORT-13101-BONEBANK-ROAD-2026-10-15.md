@@ -11,7 +11,7 @@ The Indiana Geographic Information Office (IGIO) 2025 statewide parcel layer con
 
 This verifies a **candidate parcel record**, not the legal boundary by survey and not the hydrologic area of interest (AOI). The polygon-derived area estimate is approximately **2.445 acres**; it is not surveyed acreage and must never be used as the HEC-HMS drainage area.
 
-The parcel-centroid point intersects a FEMA National Flood Hazard Layer (NFHL) feature recorded as **Zone AE / Special Flood Hazard Area** in the captured query. The query returned `STATIC_BFE = -9999` and no vertical datum; the value is a no-data sentinel, **not a base flood elevation**. A fresh live point query of the Indiana DNR/IGIO Posey CSLF layer returned one intersecting polygon (`cslf_id=3785`) with `pre_zone=AE`, `new_zone=AE`, `pre_srccit=18129C_STUDY3`, and `new_srccit=STUDY10`. That polygon query did not return a BFE observation. The result corroborates a point-to-polygon Zone AE intersection only; it does not supply a numeric BFE or parcel-wide/structure-specific determination. The state-layer parcel polygon intersection establishes some overlap with the mapped AE polygon, but not the proportion of the parcel covered, the status of the actual house footprint, flood depth at the structure, or a property-specific hydraulic result.
+The parcel-centroid point intersects a FEMA National Flood Hazard Layer (NFHL) feature recorded as **Zone AE / Special Flood Hazard Area** in the captured query. The query returned `STATIC_BFE = -9999` and no vertical datum; the value is a no-data sentinel, **not a base flood elevation**. A fresh live point query of the Indiana DNR/IGIO Posey CSLF layer returned one intersecting polygon (`cslf_id=3785`) with `pre_zone=AE`, `new_zone=AE`, `pre_srccit=18129C_STUDY3`, and `new_srccit=STUDY10`. That polygon query did not return a BFE observation. The result corroborates a point-to-polygon Zone AE intersection only; it does not supply a numeric BFE or parcel-wide/structure-specific determination. The state-layer parcel polygon intersection establishes some overlap with the mapped AE polygon. A separate overlay also shows the address-associated candidate building footprint (IGIO building feature `763173`) intersects the same AE polygon. Neither result supplies the proportion of parcel/building area covered, a usable BFE, flood depth at the structure, or a property-specific hydraulic result.
 
 A prior repository record stated **361.998 ft, NAVD88**, at the IGIO parcel-layer centroid. A live refresh through the research connector returned a value of 361.9983869 labelled **meters** despite a request for feet; the same connector returned 359.4862935 labelled meters for the legacy point. Because the raw service payload could not be independently retrieved and the unit interpretation is inconsistent, both returned values are quarantined and **neither is accepted as verified site-elevation evidence**. EPQS interpolates from the dynamic 3DEP elevation service and is not a survey, site DEM, first-floor elevation, or Lowest Adjacent Grade (LAG). USGS explicitly cautions that EPQS values are interpolated and not official surveyed values.
 
@@ -30,6 +30,8 @@ Accordingly, the current coupled-model state remains **`BLOCKED_NOT_RUN`**. No H
 | Parcel geometry | EPSG:4326; SHA-256 `93d9115b21b14932674095b5267b482c9b38c6fc45399687a8b5126894b71572` | Hash pins the repository geometry bytes; does not certify the geometry's legal accuracy |
 | Polygon-derived area | 9,895.75 m² / 2.4453 acres | Geodesic estimate from published ring vertices; not surveyed acreage or drainage area |
 | IGIO parcel centroid | `-88.00535128, 37.84579909` (lon, lat) | Source-layer centroid used for point queries |
+| Address point | `-88.005101, 37.845889` (lon, lat); IGIO object ID 1948776 | Live Address Points of Indiana 2024 record matches the same state parcel ID and situs address; point is not a surveyed entrance |
+| Candidate building footprint | IGIO Building Footprints object ID 763173; approximately 258.7 m²; LidarYear 2020 | The matching Posey County address point falls inside this polygon; best available address-associated structure candidate, not owner/survey confirmed |
 | Legacy coordinate | `-88.0007, 37.9035` (lon, lat) | Rejected as the working point for this address because it is ~6.42 km from the live exact-address IGIO parcel reference; provenance remains unknown |
 | Approval | `NOT_APPROVED`; no approver, timestamp, or approval evidence | Keep fail-closed |
 
@@ -248,3 +250,17 @@ Updated raw query records are stored in:
 - [Source register](../../data/posey-county/evidence/13101-bonebank-road-source-register-v1.json)
 
 The AOI remains **CANDIDATE / NOT APPROVED**. Remaining hard blockers are the DEM file acquisition and raster QA, actual house footprint and boundary review, current effective flood review and BFE/datum, physical outlet confirmation, and catchment delineation with independent QC.
+
+
+### 13.5 Address-associated building footprint candidate
+
+A live query of [Address Points of Indiana 2024](https://gisdata.in.gov/server/rest/services/Hosted/Address_Points_of_Indiana_2024/FeatureServer/0) returned one Posey County address point for state parcel ID `651908100008001010` and `13101 BONEBANK RD`, at `(-88.005101, 37.845889)`. The same bounding-box query against [Indiana Building Footprints 2016-2020](https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0) returned four footprint polygons, each with `LidarYear=2020`:
+
+- **Object ID 763173**, approximately **258.7 m²**: fully within the candidate parcel and contains the matching address point (point-to-polygon distance 0 m). This is the strongest address-associated building candidate.
+- Object ID 763169, approximately 143.0 m²: within the parcel; address point is about 18.5 m from the polygon.
+- Object ID 763172, approximately 49.7 m²: within the parcel; address point is about 17.1 m from the polygon.
+- Object ID 763168, approximately 88.0 m²: outside the parcel polygon by about 5.2 m; likely adjacent context, not assigned to the parcel.
+
+The same state CSLF polygon query against candidate footprint 763173 returned `cslf_id=3785`, `pre_zone=AE`, `new_zone=AE`, source `STUDY10`. Thus the address-associated candidate building footprint intersects the state AE polygon. This is not a surveyed outline, a definitive classification of principal dwelling versus accessory structure, or evidence of a BFE/flood depth. The statewide building footprint layer is vintage 2016–2020; verify current imagery and owner/county/survey evidence before treating 763173 as the actual home footprint or using it for regulatory decisions.
+
+Full geometries, areas, distances, query URLs and limitations are retained in [live query evidence JSON](../../data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json).
