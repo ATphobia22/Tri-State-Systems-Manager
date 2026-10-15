@@ -28,8 +28,8 @@ export const GAGE_DATUM_TABLE: Record<string, GageDatumRecord> = {
     id: '03378500', name: 'Wabash River at New Harmony, IN', agency: 'USGS', usgsId: '03378500',
     lat: 38.13089124, lon: -87.9414145, gageZeroNavd88Ft: 352.67,
     sourceUri: 'https://pubs.usgs.gov/sir/2016/5119/sir20165119.pdf',
-    notes: 'USGS SIR 2016-5119 explicitly states that stage at 03378500 is referenced to the local gage datum and converts to NAVD88 by adding 352.67 ft. This conversion is valid for the New Harmony gage-site WSE; it is not a transfer to a downstream/upstream project site.',
-    conversionPublished: true, lastVerified: '2026-09-27',
+    notes: 'USGS SIR 2016-5119 documents a 352.67 ft candidate gage-zero relationship, but the previously recorded SIR/NWPS product-semantic conflict has not been closed in the release evidence. Retain the candidate for review only; do not publish a NAVD88 conversion until the source/product relationship is reconciled. This is never a transfer to a downstream/upstream project site.',
+    conversionPublished: false, lastVerified: '2026-10-15',
   },
   '03322000': {
     id: '03322000', name: 'Ohio River at Evansville, IN', agency: 'USGS', usgsId: '03322000', nwsId: 'EVVI3',
