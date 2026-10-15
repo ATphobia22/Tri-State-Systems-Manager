@@ -51,4 +51,4 @@ Engineering consequences:
 - The report's AdH mesh, bathymetry, sediment parameters, and boundary conditions must not be copied into HEC-RAS or treated as current inputs without source acquisition, format conversion, datum reconciliation, and independent verification.
 - This reference does not validate the candidate Posey County AOI, its HUC assignment, local outlet, flood depth, BFE, design discharge, or permit status.
 
-**Source:** user-supplied file `ERDC-CHL-TR-22-4.pdf`, especially the report abstract and Section 2.3 discussion of Phase 1 mesh/flow data (printed page 9), plus the Phase 2 model-domain discussion. The file is retained as reference material; source acquisition, exact input hashes, current observations, and model replication remain separate tasks.
+**Source:** user-supplied file `ERDC-CHL-TR-22-4.pdf`, especially the report abstract and Section 2.3 discussion of Phase 1 mesh/flow data (printed page 9), plus the Phase 2 model-domain discussion. The user-supplied attachment informs this note but is not committed to the repository; source acquisition, exact input hashes, current observations, and model replication remain separate tasks.
