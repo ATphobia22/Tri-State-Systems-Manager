@@ -16,7 +16,7 @@ The source URLs use the official GeoServer service paths identified by the direc
 
 ## Next innovation: rainfall-aware context, not fake inundation
 
-Add a separate, disabled-by-default precipitation-product track for MRMS quantitative precipitation estimates and one-hour/storm-total accumulation. Before integration, confirm the exact service layer, temporal window, units, spatial coverage, quality flags, retrieval timestamp, and licensing/retention terms. Keep these distinct from reflectivity and from model boundary conditions. Any forcing used by HEC-RAS must be explicitly transformed and documented, with a separate model run and validation record.
+NOAA documents an MRMS QPE ImageServer at [obs/mrms_qpe](https://mapservices.weather.noaa.gov/raster/rest/services/obs/mrms_qpe/ImageServer) and a [service tutorial](https://www.weather.gov/gis/mrms_data_quick_tutorial). The service description identifies radar-only precipitation mosaics in inches at about 1 km resolution for 1-, 3-, 6-, 12-, 24-, 48-, and 72-hour windows, and says the service is not time-enabled. TSM records this as a **documented candidate, not a live canvas overlay**. Before integration, verify current raster functions, the exact raster selected, timestamps/accumulation windows, nodata handling, coverage, quality metadata, and licensing/retention terms. Keep these distinct from reflectivity and from model boundary conditions. Any forcing used by HEC-RAS must be explicitly transformed and documented, with a separate model run and validation record.
 
 ## Release gates
 
