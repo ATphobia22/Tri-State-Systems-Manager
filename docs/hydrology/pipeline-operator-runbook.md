@@ -22,7 +22,7 @@ A preflight report with `execution_allowed: false` is expected. It is not a solv
 Required:
 - `TSM_HYDROGRAPH_CSV` (default: `modelling_zone/boundary.csv`): CSV with `timestamp`, `flow_cfs`, and `froude_number` columns.
 - `TSM_TELEMETRY_EVIDENCE_JSON`: separate JSON evidence with `verified: true`, a matching `gauge_id`, and timezone-aware `observed_at`.
-- `TSM_BOUNDARY` (default `WABASH_INFLOW`), `TSM_GAUGE_ID` (default `03378500`), and `TSM_NORMAL_DEPTH_SLOPE_FT_FT` (default `0.0004`).
+- `TSM_BOUNDARY` (default `WABASH_COMPONENT_03378500`), `TSM_GAUGE_ID` (default `03378500`), and `TSM_NORMAL_DEPTH_SLOPE_FT_FT` (default `0.0004`). This validates one Wabash component gauge only; it is not the total Wabash inflow boundary described in ERDC/CHL TR-22-4.
 
 Optional:
 - `TSM_HEC_RAS_LOG`: screens an existing log only. Log-token recognition is version/configuration dependent; the result is not independent proof of convergence.
