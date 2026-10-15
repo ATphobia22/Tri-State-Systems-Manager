@@ -194,7 +194,9 @@
     "No DEM raster or watershed polygon was created by this pass.",
     "USGS TNM Access API returned four 1-meter DEM products covering the parcel bounding box; the Indiana Statewide LiDAR 2017 tile is the selected candidate based on state/project match. It is metadata evidence only, not a local raster file or analyzed terrain surface.",
     "Current FEMA NFHL point query succeeded: FLD_ZONE=AE; STATIC_BFE=-9999; V_DATUM=null. No BFE is available in the returned feature.",
-    "The full candidate parcel polygon intersects the Indiana state CSLF flood polygon cslf_id 3785 (AE). This is a topological intersection only; no coverage fraction or house-specific flood depth was computed."
+    "The full candidate parcel polygon intersects the Indiana state CSLF flood polygon cslf_id 3785 (AE). This is a topological intersection only; no coverage fraction or house-specific flood depth was computed.",
+    "USGS 3DHP current service (metadata refresh 2026-09-04) returned ten flowlines in a ~0.6 km bbox around the candidate parcel. Canal H77EJ is approximately 7.0 m from the parcel boundary by projected geometric distance; this is only a candidate conveyance, not an outlet determination.",
+    "The 3DHP catchment layer returned zero features in the broader query bbox and the outlet hydrolocation layer returned zero features there. This is a service query result, not evidence that the property has no drainage basin."
   ],
   "terrain_catalog": {
     "agency": "U.S. Geological Survey / The National Map",
@@ -249,6 +251,103 @@
       "USGS metadata says 1-meter DEM tiles may not be seamless across project boundaries; check neighboring project edges and source quality.",
       "Do not infer a watershed from a DEM catalog result. Verify culverts, road embankments, ditches, tile drainage and the intended outlet.",
       "No elevation samples or slope/flow accumulation/catchment geometry were derived from this catalog result."
+    ]
+  },
+  "hydrography": {
+    "agency": "U.S. Geological Survey / The National Map",
+    "service": "USGS 3D Hydrography Program (3DHP) all-feature service",
+    "service_url": "https://3dhp.nationalmap.gov/arcgis/rest/services/usgs_3dhp_all/FeatureServer",
+    "service_metadata_url": "https://3dhp.nationalmap.gov/arcgis/rest/services/usgs_3dhp_all/FeatureServer?f=pjson",
+    "service_refresh_date": "2026-09-04",
+    "queried_bbox_lonlat": [
+      -88.008,
+      37.843,
+      -88.002,
+      37.848
+    ],
+    "query_results": {
+      "flowline_query_url": "https://3dhp.nationalmap.gov/arcgis/rest/services/usgs_3dhp_all/FeatureServer/50/query?geometry=-88.008%2C37.843%2C-88.002%2C37.848&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=json",
+      "flowline_count_returned": 10,
+      "flowline_features": [
+        {
+          "identifier": "1JM0V",
+          "feature_type": "Waterbody Connector",
+          "length_km": 0.0509
+        },
+        {
+          "identifier": "51H2R",
+          "feature_type": "Drainageway",
+          "length_km": 0.2615
+        },
+        {
+          "identifier": "6XG92",
+          "feature_type": "Drainageway",
+          "length_km": 0.3981
+        },
+        {
+          "identifier": "7VHYF",
+          "feature_type": "Drainageway",
+          "length_km": 0.0669
+        },
+        {
+          "identifier": "8TIZL",
+          "feature_type": "Canal",
+          "length_km": 0.1126
+        },
+        {
+          "identifier": "8YE8J",
+          "feature_type": "Channel Line",
+          "length_km": 0.4167
+        },
+        {
+          "identifier": "DJR0H",
+          "feature_type": "Drainageway",
+          "length_km": 0.0897
+        },
+        {
+          "identifier": "FFWOZ",
+          "feature_type": "Channel Line",
+          "length_km": 0.6085
+        },
+        {
+          "identifier": "FUHXA",
+          "feature_type": "Channel Line",
+          "length_km": 0.0166
+        },
+        {
+          "identifier": "H77EJ",
+          "feature_type": "Canal",
+          "length_km": 0.3199
+        }
+      ],
+      "waterbody_query_url": "https://3dhp.nationalmap.gov/arcgis/rest/services/usgs_3dhp_all/FeatureServer/60/query?geometry=-88.015%2C37.835%2C-87.995%2C37.855&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=json",
+      "waterbody_count_returned_in_larger_bbox": 4,
+      "catchment_query_url": "https://3dhp.nationalmap.gov/arcgis/rest/services/usgs_3dhp_all/FeatureServer/80/query?geometry=-88.015%2C37.835%2C-87.995%2C37.855&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=json",
+      "catchment_features_returned_in_larger_bbox": 0,
+      "hydrolocation_outlet_features_returned_in_larger_bbox": 0
+    },
+    "nearby_feature_assessment": {
+      "feature_identifier": "H77EJ",
+      "feature_type": "Canal",
+      "geometry_source": "3DHP flowline query returned coordinates in EPSG:4326",
+      "nearest_point_on_feature_lonlat": [
+        -88.00443929170358,
+        37.84584729579642
+      ],
+      "nearest_point_on_candidate_parcel_boundary_lonlat": [
+        -88.00451050735597,
+        37.84581923306591
+      ],
+      "calculated_planar_distance_m": 6.997,
+      "distance_method": "Project parcel polygon and flowline coordinates from EPSG:4326 to NAD83 / UTM zone 16N (EPSG:32616), then compute Shapely polygon-to-line distance.",
+      "interpretation": "A mapped canal is approximately 7 m from the candidate parcel boundary in the returned geometry. It is a nearby conveyance candidate only, not a verified outlet, and its proximity does not prove the home's runoff drains to it."
+    },
+    "limitations": [
+      "USGS describes 3DHP as a general hydrography service and explicitly says it is not intended for site-specific regulatory determinations.",
+      "Service description says content can be a mix of elevation-derived hydrography and legacy NHD where EDH is not yet available; record local source lineage where exposed.",
+      "A zero-result catchment-layer query does not mean no real-world catchment exists; no service catchment was returned for the queried bbox.",
+      "No actual drainage outlet has been selected or field-verified.",
+      "No catchment polygon was delineated from this query."
     ]
   }
 }
