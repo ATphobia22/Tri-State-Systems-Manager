@@ -47,7 +47,7 @@ The report states that the study used NAD83 / UTM Zone 15 North in metres and an
 Engineering consequences:
 - A single-gauge Wabash boundary CSV is not a reconstruction of this report's regional inflow hydrograph.
 - Boundary derivation requires time-aligned observations, explicit units, gap/quality checks, gauge metadata, and review of subtraction residuals; asynchronous daily values must not be silently combined.
-- The current `tsm_runtime.boundary_flow_validator` is a generic single-gauge structural screen. It does not implement this four-gauge aggregation method and does not establish that the gauge is live or physically representative.
+- The current `tsm_runtime.boundary_flow_validator` is a generic single-gauge structural screen, explicitly labelled `WABASH_COMPONENT_03378500`; it does not represent total Wabash inflow and does not establish that the gauge is live or physically representative. `tsm_runtime.erdc_tr22_4_boundary` implements the report's four-gauge arithmetic for review only, requiring exact timestamp-grid alignment and blocking negative residuals. It does not fetch or authenticate observations, correct for travel time, or authorize a model run.
 - The report's AdH mesh, bathymetry, sediment parameters, and boundary conditions must not be copied into HEC-RAS or treated as current inputs without source acquisition, format conversion, datum reconciliation, and independent verification.
 - This reference does not validate the candidate Posey County AOI, its HUC assignment, local outlet, flood depth, BFE, design discharge, or permit status.
 
