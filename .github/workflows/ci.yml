@@ -95,9 +95,11 @@ jobs:
       - name: Community engineering boundary gate
         working-directory: .
         run: node scripts/ci/validate-community-engineering-boundaries.mjs
-      - name: Reprojection script syntax gate
+      - name: Shell orchestration syntax gates
         working-directory: .
-        run: bash -n scripts/reproject_tri_state.sh
+        run: |
+          bash -n scripts/reproject_tri_state.sh
+          bash -n scripts/hydrology/tsm_pipeline.sh
       - name: V35.1 strict contract typecheck
         run: npm run check:v35.1
       - name: V35.1 contract tests
