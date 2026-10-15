@@ -98,6 +98,12 @@ function assertExecutionReady(manifest) {
     }
   }
   if (!/^[a-f0-9]{40}$/.test(manifest.source_commit ?? '') || manifest.source_commit === '0'.repeat(40)) errors.push('source_commit must be the exact non-placeholder Git commit SHA');
+  const pythonEnvironment = manifest.python_environment ?? {};
+  if (!nonPlaceholder(pythonEnvironment.python_version) || !nonPlaceholder(pythonEnvironment.lock_uri) || !nonPlaceholder(pythonEnvironment.lock_workspace_path)) errors.push('python_environment must pin Python version and immutable lock URI/path');
+  if (pythonEnvironment.platform !== 'windows-x64') errors.push('python_environment.platform must be windows-x64 for the current HEC coupled runner');
+  for (const field of ['lock_sha256', 'installed_packages_sha256']) {
+    if (!/^[a-f0-9]{64}$/.test(pythonEnvironment[field] ?? '') || pythonEnvironment[field] === '0'.repeat(64)) errors.push('python_environment.' + field + ' must be a measured nonzero SHA-256');
+  }
   const handoff = manifest.hydrograph_handoff ?? {};
   if (!nonPlaceholder(handoff.time_zone) || !nonPlaceholder(handoff.conversion_method)) errors.push('hydrograph handoff time zone and conversion method must be documented');
   if (!nonPlaceholder(handoff.adapter_version) || handoff.adapter_command?.some((part) => PLACEHOLDER.test(part))) errors.push('hydrograph transfer adapter must be explicitly version-pinned and configured');
