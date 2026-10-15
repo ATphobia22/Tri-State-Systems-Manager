@@ -112,7 +112,7 @@ export async function verifyCatalog(catalog, fetchImpl = fetch) {
 
 async function main() {
   const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-  const catalogPath = path.resolve(scriptDir, '../../data/sources/noaa-cloudgis-catalog.json');
+  const catalogPath = path.resolve(scriptDir, '../../../data/sources/noaa-cloudgis-catalog.json');
   const catalog = JSON.parse(fs.readFileSync(catalogPath, 'utf8'));
   const result = await verifyCatalog(catalog);
   console.log(JSON.stringify({ ok: true, ...result }, null, 2));
