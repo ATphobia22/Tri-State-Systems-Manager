@@ -12,8 +12,8 @@ import re
 from typing import Any
 
 
-_WSE_ERROR = re.compile(r"Max WSE Error:\\s*([-+]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][-+]?\\d+)?)", re.IGNORECASE)
-_ITERATIONS = re.compile(r"Iterations:\\s*(\\d+)", re.IGNORECASE)
+_WSE_ERROR = re.compile(r"Max WSE Error:\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?)", re.IGNORECASE)
+_ITERATIONS = re.compile(r"Iterations:\s*(\d+)", re.IGNORECASE)
 _UNSTABLE_TERMS = (
     "numerical instability",
     "convergence limit hit",
