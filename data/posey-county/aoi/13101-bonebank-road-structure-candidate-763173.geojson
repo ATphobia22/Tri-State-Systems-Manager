@@ -1,0 +1,78 @@
+{
+  "type": "FeatureCollection",
+  "name": "13101-bonebank-road-structure-candidate-763173",
+  "metadata": {
+    "site_id": "posey-13101-bonebank-road",
+    "status": "CANDIDATE_ONLY_NOT_OWNER_OR_SURVEY_VERIFIED",
+    "source_dataset": "Indiana Building Footprints 2016-2020",
+    "source_url": "https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0",
+    "source_feature_id": 763173,
+    "lidar_year": 2020,
+    "source_address_point_dataset": "Address Points of Indiana 2024",
+    "source_address_point_id": 1948776,
+    "address": "13101 BONEBANK RD, Posey County, Indiana",
+    "area_m2_approx": 258.7,
+    "crs": "OGC:CRS84 (GeoJSON coordinates are longitude, latitude)",
+    "state_floodplain_intersection": {
+      "service": "Posey_CSLF_Feb2025",
+      "cslf_id": "3785",
+      "pre_zone": "AE",
+      "new_zone": "AE",
+      "source_cit": "STUDY10"
+    },
+    "limitations": [
+      "Address point falls inside this footprint; this is the best available address-associated building candidate, not proof that it is the principal dwelling.",
+      "Historical 2016-2020 footprint dataset; confirm with current imagery and owner/county/survey evidence.",
+      "Not a surveyed building outline, finished-floor elevation, lowest adjacent grade, BFE, or flood-depth determination."
+    ]
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "763173",
+      "properties": {
+        "site_id": "posey-13101-bonebank-road",
+        "source_feature_id": 763173,
+        "source_dataset": "Indiana Building Footprints 2016-2020",
+        "lidar_year": 2020,
+        "county": "Posey",
+        "candidate_status": "ADDRESS_ASSOCIATED_STRUCTURE_CANDIDATE",
+        "address_point_id": 1948776,
+        "address_point_inside_footprint": true,
+        "area_m2_approx": 258.7,
+        "within_candidate_parcel": true,
+        "state_flood_zone_intersection": "AE",
+        "state_flood_source_cit": "STUDY10",
+        "approved": false,
+        "surveyed": false
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -88.00513690799991,
+              37.84577081100012
+            ],
+            [
+              -88.00518069299991,
+              37.84597762000006
+            ],
+            [
+              -88.00505608899991,
+              37.84599420900002
+            ],
+            [
+              -88.00501230399996,
+              37.845787400000134
+            ],
+            [
+              -88.00513690799991,
+              37.84577081100012
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}
