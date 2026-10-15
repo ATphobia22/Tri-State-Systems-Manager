@@ -10,7 +10,9 @@ const schemaPaths = [
   'data/schemas/regulatory-gate.schema.json',
   path.join('data', 'schemas', 'nfip-discrepancy.schema.json'),
   'data/schemas/tsm-flood-information-federation-v1.schema.json',
+  'data/schemas/hec-coupled-run-manifest-v1.schema.json',
 ];
+const hecCoupledRunManifestExample = JSON.parse(fs.readFileSync(path.join(repoRoot, 'data/schemas/examples/hec-coupled-run-manifest-v1.example.json'), 'utf8'));
 const failures = [];
 const fail = (message) => failures.push(message);
 
@@ -158,7 +160,7 @@ for (const relative of schemaPaths) {
   try { schema = JSON.parse(fs.readFileSync(file, 'utf8')); }
   catch (error) { fail(relative + ': invalid JSON: ' + error.message); continue; }
   if (schema.$schema !== 'https://json-schema.org/draft/2020-12/schema') fail(relative + ': unexpected JSON Schema dialect');
-  const example = relative.includes('data-contract') ? dataExample : relative.includes('regulatory-gate') ? regulatoryGateExample : relative.includes('nfip-discrepancy') ? nfipLayer2Example : relative.includes('flood-information-federation') ? floodFederationExample : evidenceExample;
+  const example = relative.includes('hec-coupled-run-manifest') ? hecCoupledRunManifestExample : relative.includes('data-contract') ? dataExample : relative.includes('regulatory-gate') ? regulatoryGateExample : relative.includes('nfip-discrepancy') ? nfipLayer2Example : relative.includes('flood-information-federation') ? floodFederationExample : evidenceExample;
   validate(example, schema, relative);
   // Case-specific evidence is operator-retained and intentionally excluded from
   // the public repository. Validate the public schema against its synthetic,
