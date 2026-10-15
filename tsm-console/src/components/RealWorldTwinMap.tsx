@@ -10,11 +10,14 @@ import { playCinematicTour } from '../lib/cinematic/camera-tour';
 import ThreeDTilesLayer from './ThreeDTilesLayer';
 import VerticalContextHud from './VerticalContextHud';
 import Geoid18AoiPanel from './Geoid18AoiPanel';
+import MultiStationWaterPanel from './MultiStationWaterPanel';
+import LocalDamsPanel from './LocalDamsPanel';
 import { fetchLiveStage } from '../lib/stage';
+import { fetchAllLiveStations, type StationLiveSnapshot } from '../lib/multi-stage-fetch';
+import { damsToGeoJson, type LocalDamsCatalog } from '../lib/local-dams';
 import { readTwinUrlState, writeTwinUrlState } from '../lib/geodetic/twin-url-state';
 
 const TERRAIN_3D_TILESET_URL = `${import.meta.env.BASE_URL}3d-tiles/terrain-3dep/tileset.json`;
-const BUILDINGS_3D_TILESET_URL = `${import.meta.env.BASE_URL}3d-tiles/buildings/tileset.json`;
 
 const ANCHOR: [number, number] = [-88.005075, 37.845887];
 
@@ -44,11 +47,15 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
   const [liveStage, setLiveStage] = useState(data.stage);
   const [fetchBusy, setFetchBusy] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [multiStations, setMultiStations] = useState<StationLiveSnapshot[]>([]);
+  const [multiBusy, setMultiBusy] = useState(false);
+  const [multiError, setMultiError] = useState<string | null>(null);
 
   const [femaVisible, setFemaVisible] = useState(initialUrl.fema);
   const [bafmVisible, setBafmVisible] = useState(initialUrl.bafm);
   const [noaaWarningsVisible, setNoaaWarningsVisible] = useState(initialUrl.noaaWarnings);
   const [noaaRadarVisible, setNoaaRadarVisible] = useState(initialUrl.noaaRadar);
+  const [damsVisible, setDamsVisible] = useState(true);
   const [cinematicActive, setCinematicActive] = useState(false);
   const [tiles3DVisible, setTiles3DVisible] = useState(initialUrl.tiles3d);
   const [tiles3DStatus, setTiles3DStatus] = useState<'loading' | 'ready' | 'error' | 'disabled'>('disabled');
@@ -176,6 +183,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       ['indiana-bafm-overlay', bafmVisible],
       ['noaa-cloudgis-warnings-layer', noaaWarningsVisible],
       ['noaa-cloudgis-radar-layer', noaaRadarVisible],
+      ['local-dams-circles', damsVisible],
     ] as const) {
       if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
     }
@@ -186,7 +194,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       noaaRadar: noaaRadarVisible,
       tiles3d: tiles3DVisible,
     });
-  }, [femaVisible, bafmVisible, noaaWarningsVisible, noaaRadarVisible, tiles3DVisible]);
+  }, [femaVisible, bafmVisible, noaaWarningsVisible, noaaRadarVisible, tiles3DVisible, damsVisible]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -216,6 +224,68 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       setFetchBusy(false);
     }
   }, []);
+
+  const onFetchAllStations = useCallback(async () => {
+    setMultiBusy(true);
+    setMultiError(null);
+    try {
+      const snaps = await fetchAllLiveStations();
+      setMultiStations(snaps);
+      const primary = snaps.find((s) => s.stationId === '03378500');
+      if (primary && primary.stage_ft != null) {
+        // Refresh primary HUD stage from constellation without inventing WSE
+        const refreshed = await fetchLiveStage();
+        setLiveStage(refreshed);
+      }
+      if (snaps.every((s) => s.status === 'unavailable')) {
+        setMultiError('All stations unavailable. Values remain fail-closed.');
+      }
+    } catch (e) {
+      setMultiError(e instanceof Error ? e.message : 'Multi-station fetch failed');
+    } finally {
+      setMultiBusy(false);
+    }
+  }, []);
+
+  const onDamsCatalog = useCallback((catalog: LocalDamsCatalog) => {
+    const map = mapRef.current;
+    if (!map || !mapReady) return;
+    const gj = damsToGeoJson(catalog);
+    if (map.getSource('local-dams')) {
+      (map.getSource('local-dams') as maplibregl.GeoJSONSource).setData(gj);
+    } else {
+      map.addSource('local-dams', { type: 'geojson', data: gj });
+      map.addLayer({
+        id: 'local-dams-circles',
+        type: 'circle',
+        source: 'local-dams',
+        paint: {
+          'circle-radius': 7,
+          'circle-color': [
+            'match',
+            ['get', 'hazardPotential'],
+            'High', '#ef4444',
+            'Significant', '#f59e0b',
+            'Low', '#a78bfa',
+            '#94a3b8',
+          ],
+          'circle-stroke-width': 1.5,
+          'circle-stroke-color': '#0f172a',
+        },
+      });
+      map.on('click', 'local-dams-circles', (e) => {
+        const f = e.features?.[0];
+        if (!f || f.geometry.type !== 'Point') return;
+        const p = f.properties || {};
+        new maplibregl.Popup()
+          .setLngLat(f.geometry.coordinates as [number, number])
+          .setHTML(
+            `<strong>${p.name ?? 'Dam'}</strong><br/>Hazard: ${p.hazardPotential ?? '—'}<br/>Condition: ${p.condition ?? '—'}<br/>${p.ownerType ?? ''} · ${p.primaryPurpose ?? ''}<br/><em>Registry only — not a safety determination</em>`,
+          )
+          .addTo(map);
+      });
+    }
+  }, [mapReady]);
 
   const terrainStatus = getTerrainRgbStatus();
   const terrainMessage = terrainRgbBlockMessage(terrainStatus);
@@ -262,7 +332,6 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
         <strong>Real-source open-world twin</strong>
         <div>Indiana Current Imagery · USGS 3DEP hillshade (visualization DERIVED)</div>
         <div>FEMA NFHL: effective / insurance · Indiana BAFM: planning · NOAA/NWS: alerts/radar context only</div>
-        <div><a href="https://www.weather.gov/radarfaq" target="_blank" rel="noopener noreferrer" style={{ color: '#93c5fd', textDecoration: 'underline' }}>NOAA radar product guide ↗</a></div>
 
         <VerticalContextHud
           stage={liveStage}
@@ -273,6 +342,15 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
           fetchError={fetchError}
         />
 
+        <MultiStationWaterPanel
+          stations={multiStations}
+          busy={multiBusy}
+          error={multiError}
+          onFetchAll={onFetchAllStations}
+        />
+
+        <LocalDamsPanel onCatalog={onDamsCatalog} />
+
         <Geoid18AoiPanel />
 
         <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
@@ -281,6 +359,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
             { id: 'bafm', pressed: bafmVisible, onClick: () => setBafmVisible((v) => !v), label: `Indiana BAFM ${bafmVisible ? 'ON' : 'OFF'}` },
             { id: 'noaa-warnings', pressed: noaaWarningsVisible, onClick: () => setNoaaWarningsVisible((v) => !v), label: `NWS Warnings ${noaaWarningsVisible ? 'ON' : 'OFF'}` },
             { id: 'noaa-radar', pressed: noaaRadarVisible, onClick: () => setNoaaRadarVisible((v) => !v), label: `NOAA Radar ${noaaRadarVisible ? 'ON' : 'OFF'}` },
+            { id: 'dams', pressed: damsVisible, onClick: () => setDamsVisible((v) => !v), label: `Local Dams ${damsVisible ? 'ON' : 'OFF'}` },
             { id: '3d', pressed: tiles3DVisible, onClick: () => setTiles3DVisible((v) => !v), label: `3D Terrain ${tiles3DVisible ? 'ON' : 'OFF'}` },
             { id: 'review', pressed: reviewPitch, onClick: applyReviewPitch, label: reviewPitch ? 'Review pitch set' : 'Review pitch (55°)' },
             { id: 'cinematic', pressed: cinematicActive, onClick: toggleCinematicTour, label: cinematicActive ? 'Stop cinematic' : 'Cinematic fly-through' },
@@ -307,7 +386,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
           ))}
         </div>
         <div style={{ marginTop: 6, color: '#86efac' }}>
-          Live water level only via "Fetch live water level" (no auto-fetch, no polling). Hydraulic extrusion stays gated. Human authority remains final.
+          Live water: button-only (single or constellation). No auto-fetch. Local dams = registry awareness only. Human authority remains final.
         </div>
         {tiles3DVisible && (
           <div style={{ marginTop: 6, color: '#94a3b8' }}>3D terrain: self-hosted OGC 3D Tiles 1.1 · status: {tiles3DStatus}</div>
