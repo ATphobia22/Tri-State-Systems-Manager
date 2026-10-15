@@ -200,4 +200,4 @@ if (failures.length) {
   failures.forEach((failure) => console.error('- ' + failure));
   process.exit(1);
 }
-console.log(JSON.stringify({ ok: true, schemas: schemaPaths, validatedExamples: 2, dialect: 'JSON Schema 2020-12 contract subset' }, null, 2));
+console.log(JSON.stringify({ ok: true, schemas: schemaPaths, validatedExamples: schemaPaths.length, dialect: 'JSON Schema 2020-12 contract subset with local $ref resolution' }, null, 2));
