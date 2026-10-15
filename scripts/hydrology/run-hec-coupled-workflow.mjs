@@ -130,6 +130,8 @@ function runStage({ name, stage, workspace, outputDirectory, tokenValues = {}, s
     name,
     product_version: stage.product_version,
     platform: stage.platform,
+    runtime_executable_path: stage.runtime_executable_path,
+    runtime_executable_sha256: stage.runtime_executable_sha256,
     adapter_executable_sha256: executableSha256,
     source_project_package_sha256: sourceProjectPackageSha256 ?? stage.project_package_sha256,
     project_package_sha256: projectPackageSha256,
@@ -415,7 +417,10 @@ function main() {
       name: 'HEC-HMS', stage: hmsRunStage, workspace,
       outputDirectory: hmsLayout.outputDirectory,
       sourceProjectPackageSha256: sourceHmsProjectSha256,
-      tokenValues: { manifest: manifestPath },
+      tokenValues: {
+        manifest: manifestPath,
+        runtime_executable: manifest.hec_hms.runtime_executable_path,
+      },
     });
     run.stages.push(hms);
     run.artifacts.push(...persistTree(hmsLayout.outputRoot, 'HEC-HMS stage outputs and logs'));
@@ -556,7 +561,14 @@ function main() {
       name: 'HEC-RAS', stage: rasRunStage, workspace,
       outputDirectory: rasLayout.outputDirectory,
       sourceProjectPackageSha256: sourceRasProjectSha256,
-      tokenValues: { manifest: manifestPath, source_output: sourceOutput, ras_input: rasInput, ras_dss: rasDss, handoff_report: handoffReportPath },
+      tokenValues: {
+        manifest: manifestPath,
+        runtime_executable: manifest.hec_ras.runtime_executable_path,
+        source_output: sourceOutput,
+        ras_input: rasInput,
+        ras_dss: rasDss,
+        handoff_report: handoffReportPath,
+      },
     });
     run.stages.push(ras);
     for (const output of ras.outputs) {
