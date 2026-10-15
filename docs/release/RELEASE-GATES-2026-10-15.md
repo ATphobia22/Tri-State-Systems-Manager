@@ -34,6 +34,10 @@ The hydrology/hydraulics acceptance contract is maintained in [HYDROLOGY-RELEASE
 7. **Prove deployment separately.** Verify the deployed frontend URL, API health, authentication, telemetry, database/PostGIS, WebSocket behavior and operational monitoring independently. A green Vite build does not prove those services exist.
 8. **Complete qualified human review.** No permit, floodway, life-safety or property-level determination may be promoted from map visualization or unvalidated model output.
 
+## USACE HEC model integration
+
+The integration contract is documented in [USACE-HEC-SOFTWARE-INTEGRATION.md](../hydrology/USACE-HEC-SOFTWARE-INTEGRATION.md). HEC-HMS, HEC-RAS, HEC-SSP and HEC-FIA are candidate engineering tools with distinct roles; TSM does not claim that they are installed, executed or validated for a Tri-State pilot AOI. Model runner, product version, source/input manifest, datum controls, solver diagnostics, independent validation, uncertainty and qualified review must be evidenced before promotion. Official downloads and release notes must be rechecked at implementation time; observed version strings in research are not hard-coded latest-version assertions.
+
 ## Release policy
 
 - Keep external context layers off by default; preserve attribution and authority boundaries.
