@@ -81,6 +81,8 @@ Screening primitives and contracts exist. Production hydraulic conclusions remai
 
 - [Hydrology release contract](docs/hydrology/HYDROLOGY-RELEASE-CONTRACT.md)
 - [USACE HEC integration plan](docs/hydrology/USACE-HEC-SOFTWARE-INTEGRATION.md)
+- [Candidate Posey parcel AOI evidence (not approved; watershed not delineated)](data/posey-county/evidence/13101-bonebank-road-site-aoi-v1.json)
+- [Candidate DEM provenance and one-point cross-check limitations](data/posey-county/elevation/bonebank-anchor-dem-10m.provenance.json)
 - [Release gates 2026-10-15](docs/release/RELEASE-GATES-2026-10-15.md)
 
 ## Architecture principles
