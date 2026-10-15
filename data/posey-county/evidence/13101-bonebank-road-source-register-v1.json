@@ -3,7 +3,7 @@
   "site_id": "posey-13101-bonebank-road",
   "recorded_on": "2026-10-15",
   "status": "LIVE_EVIDENCE_REFRESHED_2026-10-15_TERRAIN_RASTER_PENDING",
-  "note": "Live IGIO parcel/address point and building-footprint queries, Indiana CSLF parcel and candidate-building intersections, FEMA NFHL point query, USGS TNM 1-meter DEM catalog search, and USGS 3DHP local hydrography queries were captured on 2026-10-15. EPQS values remain quarantined due connector unit inconsistency. DEM GeoTIFF has not been downloaded or QA-checked because this execution environment could not resolve external DNS. Nearby NHD-derived hydrography is screening context only; no verified outlet/catchment or engineering approval.",
+  "note": "Live IGIO parcel and address records match. Candidate footprint 763173 contains the Posey County address point and lies within the parcel; owner/current imagery confirmation remains open. FEMA centroid zone AE and FIRM panel 0300 effective 2014-10-05 are identified, but BFE/datum and current regulatory review remain open. State CSLF AE polygon intersects the parcel and candidate footprint. USGS 1-meter DEM catalog coverage is verified but the raster has not been downloaded or QA-checked. Nearby 3DHP canal H77EJ is about 7 m from the parcel boundary but is not a verified outlet. Catchment and model execution remain blocked.",
   "required_geometry_roles": [
     {
       "role": "property_parcel",
@@ -332,7 +332,7 @@
     "fema_lomr_loma_centroid_query": "NO_FEATURE_INTERSECTED_CENTROID_REVIEW_MSC_FOR_CURRENT_STATUS",
     "epqs_and_image_server_elevation": "QUARANTINED_UNIT_OR_PIXEL_VALUE_AMBIGUITY",
     "legal_boundary": "OPEN",
-    "structure_footprint": "ADDRESS_ASSOCIATED_CANDIDATE_763173_FOUND_CURRENT_CONFIRMATION_PENDING",
+    "structure_footprint": "ADDRESS_POINT_INSIDE_HISTORIC_BUILDING_FOOTPRINT_763173_OWNER_CURRENT_IMAGERY_CONFIRMATION_PENDING",
     "site_dem": "CATALOG_MATCH_RASTER_DOWNLOAD_HASH_QA_OPEN",
     "drainage_outlet": "NEARBY_CANAL_H77EJ_6.997M_AWAY_OUTLET_NOT_VERIFIED",
     "catchment": "BLOCKED_NOT_DELINEATED",
@@ -352,10 +352,42 @@
     "fema_bfe_and_structure_overlay": "OPEN",
     "dem_catalog_coverage": "VERIFIED_CATALOG_ONLY",
     "dem_raster_acquisition_and_qa": "OPEN_BLOCKED_BY_CURRENT_EXECUTION_NETWORK",
-    "structure_footprint_and_legal_boundary": "OPEN",
+    "structure_footprint_and_legal_boundary": "STRUCTURE_CANDIDATE_763173_FOUND_CONFIRMATION_OPEN_LEGAL_BOUNDARY_OPEN",
     "drainage_outlet": "NEARBY_CANAL_CANDIDATE_H77EJ_NOT_VERIFIED",
     "catchment": "BLOCKED_NOT_DELINEATED",
     "hec_hms_hec_ras": "BLOCKED_NOT_RUN",
     "engineering_approval": "NOT_APPROVED"
+  },
+  "structure_footprint_candidate": {
+    "address_point_dataset": "Address Points of Indiana 2024",
+    "address_point_objectid": 1948776,
+    "address_point_lonlat": [
+      -88.005101,
+      37.845889
+    ],
+    "address_point_updated": "2022-08-01",
+    "building_footprints_dataset": "Indiana Building Footprints 2016-2020",
+    "candidate_objectid": 763173,
+    "lidar_year": 2020,
+    "area_m2": 258.7,
+    "address_point_inside_candidate": true,
+    "fully_within_candidate_parcel": true,
+    "other_footprints_within_parcel": [
+      763169,
+      763172
+    ],
+    "state_floodplain_intersection": {
+      "cslf_id": "3785",
+      "zone": "AE",
+      "source": "STUDY10"
+    },
+    "status": "CANDIDATE_NOT_OWNER_OR_SURVEY_VERIFIED",
+    "evidence_snapshot": "data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json",
+    "limitations": [
+      "Historical footprint layer; current imagery and owner confirmation required.",
+      "Dataset does not classify principal dwelling versus accessory buildings.",
+      "Not a surveyed building outline, finished-floor elevation, or lowest-adjacent-grade source.",
+      "FEMA NFHL structure-footprint overlay and BFE remain unresolved."
+    ]
   }
 }
