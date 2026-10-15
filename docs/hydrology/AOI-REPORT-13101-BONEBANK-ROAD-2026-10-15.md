@@ -232,3 +232,19 @@ The current [USGS 3DHP service](https://3dhp.nationalmap.gov/arcgis/rest/service
 This is a **nearby conveyance candidate for review, not a selected or verified outlet**. The 3DHP service itself cautions that its data may be temporally outdated in places and is not intended for site-specific regulatory determinations. The broader local query returned four waterbodies, zero catchment-layer features, and zero outlet hydrolocations; those are query results, not evidence that no watershed exists. No private drain, culvert connection, yard grading, or runoff direction has been verified. The owner/field/county evidence must establish where home-site runoff actually enters a conveyance before delineating the catchment.
 
 The live evidence JSON now records the flowline inventory, geometry-derived distance, candidate coordinates, source URL, service refresh date, and limitations. The connector-normalized flowline count was not consistent between query variants (10 vs. 20 for the same small bounding box); the companion 1-km query identified returned flowlines as NHD-derived. Treat these as screening records, not a complete hydrography inventory. The next actionable task is to inspect the site and nearby ditch/canal with current imagery and field/county evidence, then confirm the outlet point; do not substitute the nearby mapped canal automatically.
+
+
+## 15. FEMA panel lookup and local outlet candidate update
+
+A live FEMA NFHL query of the FIRM Panels layer at the parcel centroid returned panel **0300**, community **18129C**, effective date **2014-10-05**, source `18129C_BASE12`. This identifies the panel record for the centroid, but the current effective map index and any subsequent products must still be checked in the [FEMA Map Service Center](https://msc.fema.gov/portal/home) before regulatory use.
+
+The NFHL Base Flood Elevations layer query was not usable for a numeric site BFE: the research connector summarized a feature with `bfe_value=0`, vertical datum `N/A`, panel `N/A`, and effective date `N/A`. That value is not accepted as a BFE. The point queries to FEMA's LOMR and LOMA layers returned no intersecting feature at the parcel centroid; this does not replace a full property/structure review of effective products. The flood gate is therefore **partially resolved, not closed**: Zone AE and a panel record are confirmed, but usable BFE, floodway status, actual structure exposure, and current MSC/INFIP/FARA review remain open.
+
+The most local 3DHP bounding-box query returned ten flowline records. Feature `H77EJ`, classified as a canal, is approximately **6.997 m from the candidate parcel boundary** based on returned line geometry projected to EPSG:32616. This is the current nearby conveyance candidate to inspect. It is not the selected outlet: no drainage connection from the home to the canal, culvert, yard grading, or runoff direction has been verified. A separate 1-km query was summarized with duplicate rows (20 rows, 10 unique IDs) and included Levy Slough; retain that query as broad context, not as the local outlet inventory.
+
+Updated raw query records are stored in:
+- [Live parcel/flood query evidence](../../data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json)
+- [Terrain/hydrography evidence](../../data/posey-county/evidence/13101-bonebank-road-terrain-hydrography-evidence-2026-10-15.json)
+- [Source register](../../data/posey-county/evidence/13101-bonebank-road-source-register-v1.json)
+
+The AOI remains **CANDIDATE / NOT APPROVED**. Remaining hard blockers are the DEM file acquisition and raster QA, actual house footprint and boundary review, current effective flood review and BFE/datum, physical outlet confirmation, and catchment delineation with independent QC.
