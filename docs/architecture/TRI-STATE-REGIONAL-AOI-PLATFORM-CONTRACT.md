@@ -96,3 +96,13 @@ The existing `13101 Bonebank Road` record remains a private, owner-confirmed tes
 8. Add model-readiness manifests and explicit HMS/RAS blocked states.
 9. Add privacy isolation, integration tests, accessibility, and main-branch CI gates.
 10. Validate against several public/regional test locations across IN/IL/KY, not only the private owner case.
+
+
+## Gate contract implementation links
+
+- [JSON Schema for evidence-gated hydrology execution](../../schemas/hydrology/pipeline-gates.schema.json)
+- [Blocked-by-default example instance](../../schemas/hydrology/examples/pipeline-gates-blocked.example.json)
+
+The example is explicitly not a live run. No fabricated DEM accuracy, gauge telemetry, culvert survey, sealed engineer approval, or successful adapter synchronization is embedded. The schema enforces the required record shape; runtime policy must additionally enforce dependency semantics (a schema alone cannot prove evidence is authentic or prevent a caller from lying about a status). Before solver invocation, the orchestrator must independently verify artifact hashes, gate dependencies, evidence validation states, datum/CRS compatibility, and human authorization. Any absent or inconsistent dependency must keep execution blocked.
+
+The illustrative rectangular coordinates in the originating proposal must not be treated as an authoritative watershed polygon. Regional geometry must be built from versioned authoritative HUC/watershed products and validated against the declared hydrologic scope and tri-state coverage.
