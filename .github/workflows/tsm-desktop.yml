@@ -18,7 +18,8 @@ permissions:
 
 concurrency:
   group: tsm-desktop-${{ github.ref }}
-  cancel-in-progress: false
+  # Prefer the tip of main: long Tauri jobs must not queue indefinitely behind cancelled/stale SHAs.
+  cancel-in-progress: true
 
 jobs:
   validate:
