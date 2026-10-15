@@ -1,0 +1,47 @@
+{
+  "type": "Feature",
+  "id": 335325,
+  "properties": {
+    "site_id": "posey-13101-bonebank-road",
+    "feature_role": "property_parcel",
+    "selection_status": "USER_SELECTED_CANDIDATE_NOT_ENGINEERING_APPROVED",
+    "source_agency": "Indiana Geographic Information Office",
+    "source_dataset": "Parcel Boundaries of Indiana 2025",
+    "source_record_objectid": 335325,
+    "parcel_id": "65-19-08-100-008.001-010",
+    "state_parcel_id": "651908100008001010",
+    "county_fips": "18129",
+    "county_name": "Posey County",
+    "address": "13101 Bonebank Road, Mount Vernon, IN 47620",
+    "source_horizontal_crs": "EPSG:4326",
+    "source_load_date": "2025-08-28",
+    "authoritative_interpretation": "Parcel polygon, not a watershed/catchment boundary and not a surveyed property-line certification."
+  },
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [
+          -88.00438673499997,
+          37.845621719000064
+        ],
+        [
+          -88.00606877999996,
+          37.84537966600004
+        ],
+        [
+          -88.00619900799995,
+          37.84601338900006
+        ],
+        [
+          -88.00475806299994,
+          37.84621427500008
+        ],
+        [
+          -88.00438673499997,
+          37.845621719000064
+        ]
+      ]
+    ]
+  }
+}
