@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TSM Regional Download Failure Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "manifest_id",
+    "timestamp_utc",
+    "aoi_reference_id",
+    "nodes_reporting"
+  ],
+  "properties": {
+    "manifest_id": {
+      "type": "string",
+      "pattern": "^ERR-[A-Z0-9]{8}$"
+    },
+    "timestamp_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "aoi_reference_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "nodes_reporting": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/node"
+      }
+    }
+  },
+  "$defs": {
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "jurisdiction",
+        "node_status",
+        "captured_incidents"
+      ],
+      "properties": {
+        "jurisdiction": {
+          "enum": [
+            "IN",
+            "IL",
+            "KY",
+            "FED"
+          ]
+        },
+        "node_status": {
+          "enum": [
+            "OPERATIONAL",
+            "DEGRADED",
+            "OFFLINE"
+          ]
+        },
+        "captured_incidents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/incident"
+          }
+        }
+      }
+    },
+    "incident": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_type",
+        "source_uri",
+        "failure_mode",
+        "cryptographic_state"
+      ],
+      "properties": {
+        "artifact_type": {
+          "enum": [
+            "TERRAIN_DEM",
+            "HYDROGRAPHY_FLOWLINE",
+            "NFHL_SHAPEFILE",
+            "GAUGE_TELEMETRY"
+          ]
+        },
+        "source_uri": {
+          "type": "string",
+          "format": "uri",
+          "maxLength": 2048
+        },
+        "failure_mode": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "code",
+            "message"
+          ],
+          "properties": {
+            "code": {
+              "type": "integer"
+            },
+            "message": {
+              "type": "string",
+              "maxLength": 2000
+            }
+          }
+        },
+        "cryptographic_state": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "expected_hash_sha256",
+            "calculated_hash_sha256",
+            "action_taken"
+          ],
+          "properties": {
+            "expected_hash_sha256": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^[a-fA-F0-9]{64}$"
+            },
+            "calculated_hash_sha256": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^[a-fA-F0-9]{64}$"
+            },
+            "action_taken": {
+              "enum": [
+                "DISCLOSE_GAP_AND_CONTINUE",
+                "TERMINATE_PIPELINE"
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}
