@@ -328,7 +328,17 @@
         "adapter_command",
         "adapter_version",
         "adapter_executable_sha256",
-        "timeout_seconds"
+        "timeout_seconds",
+        "source_dss_pathname",
+        "source_element_name",
+        "source_run_name",
+        "ras_dss_relative_path",
+        "ras_dss_pathname",
+        "interval",
+        "source_flow_units",
+        "boundary_selector",
+        "adapter_script_path",
+        "adapter_script_sha256"
       ],
       "properties": {
         "source_output": {
@@ -353,19 +363,19 @@
         "flow_units": {
           "enum": [
             "cfs",
-            "cms",
-            "OTHER_DOCUMENTED"
+            "cms"
           ]
         },
         "gap_policy": {
-          "enum": [
-            "REJECT",
-            "EXPLICITLY_DOCUMENTED_INTERPOLATION"
-          ]
+          "const": "REJECT",
+          "description": "Current implementation rejects missing, non-finite, duplicated, unordered, or irregularly timed source records. No interpolation or gap filling."
         },
         "conversion_method": {
-          "type": "string",
-          "minLength": 1
+          "enum": [
+            "NONE_EXACT_VALUES",
+            "CFS_TO_CMS_0.028316846592",
+            "CMS_TO_CFS_35.314666721489"
+          ]
         },
         "adapter_command": {
           "type": "array",
@@ -374,7 +384,7 @@
             "type": "string",
             "minLength": 1
           },
-          "description": "Shell-free argv for explicit DSS/hydrograph transfer. Supports {{workspace}}, {{project}}, {{output}}, {{source_output}}, {{ras_input}}, and {{manifest}} tokens."
+          "description": "Shell-free argv for explicit, hash-pinned transfer adapter. Supports {{workspace}}, {{project}}, {{output}}, {{source_output}}, {{ras_input}}, {{ras_dss}}, {{manifest}}, and {{handoff_report}}."
         },
         "adapter_version": {
           "type": "string",
@@ -389,6 +399,134 @@
           "type": "integer",
           "minimum": 1,
           "maximum": 86400
+        },
+        "source_dss_pathname": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Exact DSS pathname to a FLOW record in the HEC-HMS output file; no first-match selection."
+        },
+        "source_element_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_run_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ras_dss_relative_path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Project-relative target DSS file referenced by the exact RAS unsteady-flow boundary."
+        },
+        "ras_dss_pathname": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Exact six-part HEC-DSS pathname the staged .uNN boundary will reference."
+        },
+        "interval": {
+          "type": "string",
+          "enum": [
+            "1MIN",
+            "5MIN",
+            "10MIN",
+            "15MIN",
+            "30MIN",
+            "1HOUR",
+            "2HOUR",
+            "3HOUR",
+            "4HOUR",
+            "6HOUR",
+            "8HOUR",
+            "12HOUR",
+            "1DAY"
+          ]
+        },
+        "source_flow_units": {
+          "type": "string",
+          "enum": [
+            "CFS",
+            "CMS"
+          ]
+        },
+        "boundary_selector": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mode",
+            "river",
+            "reach",
+            "station",
+            "area_2d",
+            "bc_line",
+            "boundary_index",
+            "expected_bc_type"
+          ],
+          "properties": {
+            "mode": {
+              "enum": [
+                "1D",
+                "2D",
+                "INDEX"
+              ]
+            },
+            "river": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1
+            },
+            "reach": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1
+            },
+            "station": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1
+            },
+            "area_2d": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1
+            },
+            "bc_line": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1
+            },
+            "boundary_index": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "expected_bc_type": {
+              "enum": [
+                "Flow Hydrograph",
+                "Lateral Inflow Hydrograph"
+              ]
+            }
+          }
+        },
+        "adapter_script_path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Path to the reviewed TSM handoff adapter script; the file must match adapter_script_sha256."
+        },
+        "adapter_script_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
         }
       }
     },
