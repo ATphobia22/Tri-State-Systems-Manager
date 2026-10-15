@@ -138,3 +138,24 @@ def test_stage_launcher_is_bound_to_exact_python_executable() -> None:
     stage["executable_sha256"] = "0" * 64
     with pytest.raises(ValueError, match="interpreter hash mismatch"):
         verify_stage_launcher(stage)
+
+
+def test_project_tree_hash_is_deterministic_and_rejects_symlinks(tmp_path: Path) -> None:
+    from hec_runtime_common import sha256_tree
+
+    project = tmp_path / "project"
+    nested = project / "nested"
+    nested.mkdir(parents=True)
+    (project / "a.txt").write_bytes(b"a")
+    (nested / "b.txt").write_bytes(b"b")
+    first = sha256_tree(project)
+    assert first == sha256_tree(project)
+    (nested / "b.txt").write_bytes(b"changed")
+    assert sha256_tree(project) != first
+    link = project / "symlink"
+    try:
+        link.symlink_to(nested / "b.txt")
+    except (OSError, NotImplementedError):
+        pytest.skip("Symlink creation is not available on this platform")
+    with pytest.raises(ValueError, match="symbolic link"):
+        sha256_tree(project)
