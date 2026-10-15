@@ -21,6 +21,7 @@ from hec_runtime_common import (
     verify_project_package_hash,
     verify_runtime_executable,
     verify_stage_launcher,
+    verify_python_environment,
     write_stage_receipt,
 )
 
@@ -30,6 +31,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--project", required=True, help="Isolated project directory supplied by the TSM runner")
     parser.add_argument("--output", required=True, help="Empty stage output directory supplied by the TSM runner")
     parser.add_argument("--manifest", required=True, help="Approved HEC coupled-run manifest v2")
+    parser.add_argument("--workspace", required=True, help="Pinned TSM workspace containing the hash-locked Python environment file")
     return parser
 
 
@@ -37,6 +39,7 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     manifest_path = Path(args.manifest)
     manifest = load_approved_manifest(manifest_path)
+    verify_python_environment(manifest, args.workspace)
     stage = get_stage(manifest, "hec_hms")
     project, output, output_project = resolve_stage_paths(args.project, args.output, manifest_path)
     verify_project_package_hash(stage, project)
