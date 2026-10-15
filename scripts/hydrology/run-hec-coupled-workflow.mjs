@@ -215,6 +215,56 @@ function mapStageOutputLayout(stage, workspace, runWorkRelative, label) {
   return { outputDirectory: runtimeRootRelative, outputRoot: runtimeRoot, expectedOutputs: mapped };
 }
 
+
+export function validateHandoffReport(report, {
+  handoff, adapterVersion, sourceOutput, sourceSha256, rasDss, rasDssSha256,
+  rasInput, rasInputSha256,
+}) {
+  const fail = (message) => { throw new Error('invalid HEC hydrograph handoff report: ' + message); };
+  const samePath = (left, right) => typeof left === 'string' && typeof right === 'string'
+    && path.resolve(left) === path.resolve(right);
+  if (!report || typeof report !== 'object' || Array.isArray(report)) fail('report must be an object');
+  if (report.adapter !== adapterVersion || report.adapter !== handoff.adapter_version) fail('adapter version mismatch');
+  if (report.status !== 'HANDOFF_WRITTEN_AND_STRUCTURALLY_CHECKED_HYDROLOGY_UNVALIDATED') fail('wrong status');
+  if (report.scientific_validation_status !== 'NOT_PERFORMED' || report.human_review_required !== true) fail('scientific-validation and human-review state must remain fail-closed');
+  if (!samePath(report.source_dss?.path, sourceOutput) || report.source_dss?.sha256 !== sourceSha256) fail('source DSS path/hash mismatch');
+  if (report.series?.source_pathname !== handoff.source_dss_pathname) fail('source DSS pathname mismatch');
+  if (report.series?.source_units !== String(handoff.source_flow_units).toUpperCase()) fail('source flow units mismatch');
+  if (report.series?.target_units !== String(handoff.flow_units).toUpperCase()) fail('target flow units mismatch');
+  if (report.series?.conversion_method !== handoff.conversion_method) fail('conversion method mismatch');
+  if (report.series?.interval !== String(handoff.interval).toUpperCase()) fail('series interval mismatch');
+  if (report.series?.time_zone !== handoff.time_zone) fail('series time zone mismatch');
+  if (!Number.isInteger(report.series?.point_count) || report.series.point_count < 2) fail('at least two validated source samples are required');
+  if (!samePath(report.target_dss?.path, rasDss) || report.target_dss?.sha256 !== rasDssSha256) fail('target DSS path/hash mismatch');
+  if (report.target_dss?.pathname !== handoff.ras_dss_pathname || report.target_dss?.pathname_validation_passed !== true) fail('target DSS pathname was not verified');
+  if (!samePath(report.target_unsteady_flow?.path, rasInput) || report.target_unsteady_flow?.after_sha256 !== rasInputSha256) fail('staged RAS boundary path/hash mismatch');
+  if (stableStringify(report.target_unsteady_flow?.boundary_selector) !== stableStringify(handoff.boundary_selector)) fail('boundary selector differs from the approved manifest');
+  if (!/^[a-f0-9]{64}$/.test(report.target_unsteady_flow?.before_sha256 ?? '')) fail('pre-update RAS boundary hash is missing');
+  if (typeof report.target_unsteady_flow?.relative_dss_reference !== 'string' || !report.target_unsteady_flow.relative_dss_reference) fail('relative DSS reference is missing');
+  const roundTrip = report.target_dss?.round_trip_validation;
+  if (
+    roundTrip?.status !== 'PASS'
+    || roundTrip?.pathname !== handoff.ras_dss_pathname
+    || roundTrip?.units !== String(handoff.flow_units).toUpperCase()
+    || roundTrip?.timestamps_exact !== true
+    || roundTrip?.values_within_tolerance !== true
+    || roundTrip?.point_count !== report.series.point_count
+    || !Number.isFinite(roundTrip?.maximum_absolute_error) || roundTrip.maximum_absolute_error < 0
+    || !Number.isFinite(roundTrip?.maximum_relative_error) || roundTrip.maximum_relative_error < 0
+    || roundTrip?.relative_tolerance !== 1e-5
+    || roundTrip?.absolute_tolerance !== 1e-6
+  ) fail('target DSS record lacks passing read-back timestamp/value checks');
+  return {
+    status: report.status,
+    point_count: report.series.point_count,
+    source_dss_sha256: sourceSha256,
+    target_dss_sha256: rasDssSha256,
+    target_unsteady_flow_sha256: rasInputSha256,
+    max_round_trip_absolute_error: roundTrip.maximum_absolute_error,
+    max_round_trip_relative_error: roundTrip.maximum_relative_error,
+  };
+}
+
 function main() {
   const manifestArg = process.argv[2];
   const workspaceArg = process.argv[3];
@@ -516,35 +566,20 @@ function main() {
       throw new Error('hydrograph adapter did not produce its declared handoff report');
     }
     const handoffReport = JSON.parse(fs.readFileSync(handoffReportPath, 'utf8'));
-    if (handoffReport.adapter !== handoff.adapter_version) throw new Error('handoff report adapter version does not match the manifest');
-    if (handoffReport.status !== 'HANDOFF_WRITTEN_AND_STRUCTURALLY_CHECKED_HYDROLOGY_UNVALIDATED') {
-      throw new Error('handoff report does not confirm the required structured transfer state');
-    }
-    if (handoffReport.source_dss?.sha256 !== sha256File(sourceOutput)) throw new Error('handoff report source DSS hash does not match HEC-HMS output');
-    if (handoffReport.target_dss?.sha256 !== sha256File(rasDss) || handoffReport.target_dss?.pathname !== handoff.ras_dss_pathname) {
-      throw new Error('handoff report target DSS path/hash mismatch');
-    }
-    if (handoffReport.target_unsteady_flow?.after_sha256 !== sha256File(rasInput)) {
-      throw new Error('handoff report staged RAS .uNN hash mismatch');
-    }
     if (!String(handoffReport.series?.status ?? '').startsWith('FORMAT_AND_UNIT_CONTRACT_VALIDATED')) {
       throw new Error('handoff report does not demonstrate hydrograph format/unit contract validation');
     }
-    const roundTrip = handoffReport.target_dss?.round_trip_validation;
-    if (
-      roundTrip?.status !== 'PASS'
-      || roundTrip?.timestamps_exact !== true
-      || roundTrip?.values_within_tolerance !== true
-      || roundTrip?.point_count !== handoffReport.series?.point_count
-      || !Number.isFinite(roundTrip?.maximum_absolute_error)
-      || roundTrip.maximum_absolute_error < 0
-      || !Number.isFinite(roundTrip?.maximum_relative_error)
-      || roundTrip.maximum_relative_error < 0
-      || roundTrip?.relative_tolerance !== 1e-5
-      || roundTrip?.absolute_tolerance !== 1e-6
-    ) {
-      throw new Error('handoff report lacks passing independent DSS record read-back checks for exact times and bounded value error');
-    }
+    const handoffValidation = validateHandoffReport(handoffReport, {
+      handoff,
+      adapterVersion: handoff.adapter_version,
+      sourceOutput,
+      sourceSha256: sha256File(sourceOutput),
+      rasDss,
+      rasDssSha256: sha256File(rasDss),
+      rasInput,
+      rasInputSha256: sha256File(rasInput),
+    });
+    run.hydrograph_handoff_validation = handoffValidation;
     run.hydrograph_handoff = {
       status: handoffReport.status,
       report: handoffReport,
