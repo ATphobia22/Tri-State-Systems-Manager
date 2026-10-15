@@ -82,5 +82,57 @@ class TestPoseyBonebankSiteAOI(unittest.TestCase):
         self.assertGreater(len(readiness["blockers"]), 0)
 
 
+
+    def test_state_layer_is_not_independent_of_fema_nfhl(self) -> None:
+        dnr = self.evidence["indiana_dnr_flood_hazard_crosscheck"]
+        self.assertEqual("NFHL", dnr["source_dnr"])
+        self.assertEqual("NOT_INDEPENDENT_SOURCE_DNR_NFHL", dnr["independence_status"])
+        self.assertIn("not independent flood evidence", dnr["interpretation"])
+
+    def test_source_conflict_remains_open_and_not_promoted_to_aoi(self) -> None:
+        conflict = self.evidence["source_conflicts"]
+        self.assertEqual("CONFLICT_UNRESOLVED", conflict["status"])
+        self.assertIn("must not", conflict["action"])
+        self.assertEqual("NOT_APPROVED", self.evidence["approval"]["status"])
+
+    def test_huc_context_is_never_mistaken_for_site_catchment(self) -> None:
+        context = self.evidence["hydrologic_unit_context"]
+        self.assertEqual("CONTEXT_ONLY_NOT_SITE_CATCHMENT", context["status"])
+        self.assertTrue(context["parcel_centroid_contained"])
+        self.assertEqual("NOT_DELINEATED", self.evidence["watershed_delineation"]["status"])
+        self.assertIn("not an HEC-HMS basin model", context["limitation"])
+
+    def test_cached_parcel_overlay_is_explicitly_reference_only(self) -> None:
+        overlay = self.evidence["parcel_floodplain_overlay"]
+        self.assertEqual("OBSERVED_CACHED_GIS_OVERLAY", overlay["status"])
+        self.assertEqual("AE", overlay["flood_zone"])
+        self.assertTrue(overlay["special_flood_hazard_area"])
+        self.assertEqual("NFHL", overlay["source_dnr"])
+        self.assertEqual(100, overlay["computed_parcel_overlap_percent"])
+        self.assertIsNone(overlay["normalized_bfe_ft"])
+        self.assertIsNone(overlay["vertical_datum"])
+        self.assertIn("not independent confirmation", overlay["limitation"])
+
+    def test_dem_and_epqs_point_values_have_traceable_provenance_but_not_survey_status(self) -> None:
+        terrain = self.evidence["raster_crosscheck"]
+        dem_path = ROOT / terrain["source_raster_path"]
+        self.assertEqual(terrain["source_raster_sha256"], hashlib.sha256(dem_path.read_bytes()).hexdigest())
+        self.assertEqual("EPSG:4269", terrain["source_raster_horizontal_crs"])
+        self.assertLess(abs(terrain["difference_raster_minus_epqs_m"]), 0.01)
+        self.assertIn("does not establish survey accuracy", terrain["interpretation"])
+        self.assertIn("does not embed units or vertical datum", terrain["metadata_note"])
+
+    def test_water_sources_are_classified_by_intended_use(self) -> None:
+        sources = {item["source_id"]: item for item in self.evidence["water_source_inventory"]}
+        wabash = sources["USGS-03378500"]
+        self.assertEqual("AVAILABLE_REGIONAL_REFERENCE", wabash["status"])
+        self.assertIn("not a published gage-zero-to-water-surface conversion", wabash["altitude_note"])
+        self.assertTrue(any("validated hydraulic profile" in text for text in wabash["limitations"]))
+        hovey = sources["USGS-03322300"]
+        self.assertEqual("HISTORICAL_CONTEXT_ONLY", hovey["status"])
+        nws = sources["NWS-POINT-PAH-151-91"]
+        self.assertEqual("AVAILABLE_FORECAST_CONTEXT", nws["status"])
+        self.assertTrue(any("dBZ" in text for text in nws["limitations"]))
+
 if __name__ == "__main__":
     unittest.main()
