@@ -79,7 +79,21 @@
       "height_unit": "meter",
       "note": "Layer service height-model metadata; not a BFE observation."
     },
-    "conclusion": "The candidate parcel centroid intersects an Indiana state floodplain polygon classified AE in both pre- and new-zone fields. This is a point-to-polygon intersection only. The query returned no BFE value; do not infer a numeric BFE, parcel-wide percentage, flood depth, or building inundation."
+    "conclusion": "The candidate parcel centroid intersects an Indiana state floodplain polygon classified AE in both pre- and new-zone fields. This is a point-to-polygon intersection only. The query returned no BFE value; do not infer a numeric BFE, parcel-wide percentage, flood depth, or building inundation.",
+    "parcel_polygon_query": {
+      "query_status": "HTTP 200; one intersecting polygon",
+      "query_url": "https://gisdata.in.gov/server/rest/services/Hosted/Posey_CSLF_Feb2025/FeatureServer/0/query?geometry=<candidate-parcel-polygon>&geometryType=esriGeometryPolygon&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=objectid,cslf_id,pre_zone,new_zone,pre_srccit,new_srccit,source_cit&returnGeometry=false&f=json",
+      "matched_feature": {
+        "objectid": 3785,
+        "cslf_id": "3785",
+        "pre_zone": "AE",
+        "new_zone": "AE",
+        "pre_srccit": "18129C_STUDY3",
+        "new_srccit": "STUDY10",
+        "source_cit": "STUDY10"
+      },
+      "interpretation": "The candidate parcel polygon intersects a state floodplain polygon classified AE. This establishes an intersection, not the percentage of parcel area covered or a structure-specific depth/BFE."
+    }
   },
   "usgs_epqs": {
     "agency": "U.S. Geological Survey",
@@ -119,8 +133,16 @@
   "fema_nfhl": {
     "agency": "Federal Emergency Management Agency",
     "service_url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer",
-    "current_query_status": "Current direct query attempt did not return a usable response through the research connector; prior repository point result recorded Zone AE/SFHA and STATIC_BFE=-9999.",
-    "interpretation": "Retain the prior result as historical evidence only. -9999 is a no-data sentinel, not a BFE. Requery NFHL/FIRM panel and effective LOMC in FEMA MSC or a direct ArcGIS client before making a regulatory determination."
+    "point_query_url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28/query?where=1%3D1&geometry=-88.00535128%2C37.84579909&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=FLD_ZONE%2CZONE_SUBTY%2CSTATIC_BFE%2CV_DATUM&returnGeometry=false&f=json",
+    "point_query_status": "HTTP 200; one intersecting feature",
+    "point_result": {
+      "FLD_ZONE": "AE",
+      "ZONE_SUBTY": null,
+      "STATIC_BFE": -9999,
+      "V_DATUM": null
+    },
+    "interpretation": "Current direct NFHL point query confirms Zone AE at the IGIO parcel centroid. STATIC_BFE=-9999 is a no-data sentinel, not a BFE; V_DATUM is null. This is point-only evidence, not a parcel-wide or structure-specific determination.",
+    "parcel_polygon_query_status": "Failed through the research connector with connection closed; no parcel-wide NFHL overlay is claimed."
   },
   "unresolved_gates": [
     {
@@ -145,8 +167,8 @@
     },
     {
       "id": "fema-effective-panel-and-bfe",
-      "state": "OPEN",
-      "reason": "No current FEMA point query/BFE record captured; use FEMA MSC and INFIP/FARA."
+      "state": "POINT_ZONE_CONFIRMED_BFE_UNAVAILABLE_PANEL_REVIEW_OPEN",
+      "reason": "Current NFHL point query returned FLD_ZONE=AE, STATIC_BFE=-9999, V_DATUM=null. Effective panel/LOMC review and applicable INFIP/FARA remain open."
     },
     {
       "id": "drainage-outlet",
@@ -170,7 +192,9 @@
     "No BFE was observed in the state polygon query. Service vertical metadata must not be substituted for an actual BFE datum.",
     "EPQS values from the connector are quarantined because value/unit interpretation is inconsistent; do not use them in calculations or model inputs.",
     "No DEM raster or watershed polygon was created by this pass.",
-    "USGS TNM Access API returned four 1-meter DEM products covering the parcel bounding box; the Indiana Statewide LiDAR 2017 tile is the selected candidate based on state/project match. It is metadata evidence only, not a local raster file or analyzed terrain surface."
+    "USGS TNM Access API returned four 1-meter DEM products covering the parcel bounding box; the Indiana Statewide LiDAR 2017 tile is the selected candidate based on state/project match. It is metadata evidence only, not a local raster file or analyzed terrain surface.",
+    "Current FEMA NFHL point query succeeded: FLD_ZONE=AE; STATIC_BFE=-9999; V_DATUM=null. No BFE is available in the returned feature.",
+    "The full candidate parcel polygon intersects the Indiana state CSLF flood polygon cslf_id 3785 (AE). This is a topological intersection only; no coverage fraction or house-specific flood depth was computed."
   ],
   "terrain_catalog": {
     "agency": "U.S. Geological Survey / The National Map",
