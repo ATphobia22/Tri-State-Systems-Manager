@@ -82,6 +82,7 @@ Screening primitives and contracts exist. Production hydraulic conclusions remai
 - [Hydrology release contract](docs/hydrology/HYDROLOGY-RELEASE-CONTRACT.md)
 - [USACE HEC integration plan](docs/hydrology/USACE-HEC-SOFTWARE-INTEGRATION.md)
 - [Reproducible HEC-HMS → HEC-RAS workflow](docs/hydrology/HEC-HMS-RAS-REPRODUCIBLE-WORKFLOW.md)
+- [Candidate AOI assessment: 13101 Bonebank Road](docs/hydrology/aoi/13101-BONEBANK-ROAD-CANDIDATE.md)
 - [Candidate AOI evidence: 13101 Bonebank Road](data/posey-county/evidence/13101-bonebank-road-site-aoi-v1.json)
 - [Candidate-only run manifest (v2; intentionally blocked)](data/posey-county/hec/13101-bonebank-road-candidate-run-manifest-v2.json)
 - [HEC coupled-run manifest v2 schema](data/schemas/hec-coupled-run-manifest-v2.schema.json)
