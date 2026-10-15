@@ -2,8 +2,8 @@
   "schema": "tsm.hydrology.aoi-source-register/v1",
   "site_id": "posey-13101-bonebank-road",
   "recorded_on": "2026-10-15",
-  "status": "PARTIALLY_REFRESHED_LIVE_EVIDENCE_AND_TERRAIN_CATALOG_2026-10-15",
-  "note": "Live IGIO parcel/address query, Indiana CSLF point and parcel-polygon intersections, FEMA NFHL point query, and USGS TNM 1-meter DEM catalog search were captured on 2026-10-15. EPQS values remain quarantined due connector unit inconsistency. DEM GeoTIFF has not been downloaded or QA-checked. This is not a complete live-data snapshot or an approved engineering AOI.",
+  "status": "PARTIALLY_REFRESHED_LIVE_EVIDENCE_TERRAIN_CATALOG_AND_HYDROGRAPHY_2026-10-15",
+  "note": "Live IGIO parcel/address query, Indiana CSLF point and parcel-polygon intersections, FEMA NFHL point query, USGS TNM 1-meter DEM catalog search, and USGS 3DHP local flowline query were captured on 2026-10-15. EPQS values remain quarantined due connector unit inconsistency. DEM GeoTIFF has not been downloaded or QA-checked. No verified outlet/catchment or engineering approval.",
   "required_geometry_roles": [
     {
       "role": "property_parcel",
@@ -216,6 +216,23 @@
         "Preserve Ohio River Datum unless a documented conversion is supplied"
       ],
       "status": "reviewed as regional context only"
+    },
+    {
+      "id": "USGS_3DHP_LOCAL_QUERY_2026_10_15",
+      "agency": "U.S. Geological Survey",
+      "data": "USGS 3D Hydrography Program (3DHP) all-feature service, flowlines, waterbodies, catchments and hydrolocations",
+      "url": "https://3dhp.nationalmap.gov/arcgis/rest/services/usgs_3dhp_all/FeatureServer",
+      "purpose": "Screen nearby mapped conveyances and locate potential drainage features for field verification",
+      "access": "ArcGIS FeatureServer layers 50 (Flowline), 60 (Waterbody), 80 (Catchment), 30 (outlet/hydrolocation)",
+      "limitations": [
+        "Service refreshed 2026-09-04; service contains elevation-derived hydrography where available and legacy NHD where EDH has not yet been collected",
+        "USGS explicitly says service is not intended for site-specific regulatory determinations",
+        "Nearby feature does not establish a private parcel's runoff outlet",
+        "Zero catchment-layer features in the queried bbox does not imply no catchment exists"
+      ],
+      "status": "LOCAL_FLOWLINES_FOUND_OUTLET_UNVERIFIED",
+      "latest_result": "Ten flowlines returned in bbox -88.008,37.843,-88.002,37.848; canal H77EJ is approximately 7.0 m from the candidate parcel boundary based on returned geometry. Broader bbox returned four waterbodies, zero catchment-layer features, and zero outlet hydrolocations. No catchment delineated.",
+      "live_query_evidence": "data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json"
     }
   ],
   "hard_blockers": [
@@ -257,7 +274,7 @@
     "structure_footprint": "OPEN",
     "site_dem": "CATALOG_PRODUCT_FOUND_ASSET_DOWNLOAD_AND_QA_PENDING",
     "effective_fema_panel_bfe_fara": "ZONE_AE_POINT_CONFIRMED_BFE_UNAVAILABLE_PANEL_FARA_REVIEW_OPEN",
-    "drainage_outlet": "OPEN",
+    "drainage_outlet": "NEARBY_CANAL_CANDIDATE_H77EJ_FOUND_APPROVAL_AND_FIELD_VERIFICATION_OPEN",
     "catchment": "BLOCKED",
     "hec_hms_hec_ras": "BLOCKED_NOT_RUN",
     "engineering_approval": "NOT_APPROVED"
