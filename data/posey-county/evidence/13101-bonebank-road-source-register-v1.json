@@ -3,7 +3,7 @@
   "site_id": "posey-13101-bonebank-road",
   "recorded_on": "2026-10-15",
   "status": "PARTIALLY_REFRESHED_LIVE_EVIDENCE_TERRAIN_CATALOG_AND_HYDROGRAPHY_2026-10-15",
-  "note": "Live IGIO parcel/address query, Indiana CSLF point and parcel-polygon intersections, FEMA NFHL point query, USGS TNM 1-meter DEM catalog search, and USGS 3DHP local flowline query were captured on 2026-10-15. EPQS values remain quarantined due connector unit inconsistency. DEM GeoTIFF has not been downloaded or QA-checked. No verified outlet/catchment or engineering approval.",
+  "note": "Live IGIO parcel/address and Indiana CSLF flood polygon point intersections were verified. USGS 1-meter DEM catalog coverage and metadata were verified, but the GeoTIFF could not be downloaded in this execution environment because external DNS resolution was unavailable. Nearby 3DHP flowlines were found, but no outlet point or catchment polygon was returned within 1 km. EPQS and the 3DEP ImageServer identify output remain quarantined as site elevation values. This is not a complete live-data snapshot or an approved engineering AOI.",
   "required_geometry_roles": [
     {
       "role": "property_parcel",
@@ -60,10 +60,30 @@
         "Survey-grade elevations may be required for design",
         "Candidate raster identified from catalog; not downloaded, hashed, inspected or processed. USGS warns 1m DEM tiles may not be seamless across collection-project boundaries."
       ],
-      "status": "ONE_METER_DEM_CATALOG_MATCH_FOUND_FILE_NOT_DOWNLOADED",
-      "latest_result": "TNM Access API returned four 1-meter DEM products covering the parcel bbox. Candidate selected: USGS 1 Meter 16 x41y419 IN_Indiana_Statewide_LiDAR_2017_B17; bare-earth DEM, 1 m nominal resolution, NAD83/UTM horizontal reference, elevations in meters NAVD88; source acquisition 2017-03-03 to 2020-04-11; publication date 2021-07-04.",
+      "status": "ONE_METER_DEM_CATALOG_MATCH_RASTER_DOWNLOAD_QA_OPEN",
+      "latest_result": "Live TNM query returned four 1-meter DEM candidates for the parcel bbox; matching Indiana Statewide LiDAR tile metadata covers the candidate parcel. Raster download/hash/QA not completed because the execution environment could not resolve external DNS.",
       "product_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1m/Projects/IN_Indiana_Statewide_LiDAR_2017_B17/TIFF/USGS_1M_16_x41y419_IN_Indiana_Statewide_LiDAR_2017_B17.tif",
-      "metadata_url": "https://www.sciencebase.gov/catalog/item/60e6aebcd34e2a7685d0271b"
+      "metadata_url": "https://www.sciencebase.gov/catalog/item/60e6aebcd34e2a7685d0271b",
+      "product": "USGS 1 Meter 16 x41y419 IN_Indiana_Statewide_LiDAR_2017_B17",
+      "product_metadata_url": "https://www.sciencebase.gov/catalog/item/60e6aebcd34e2a7685d0271b",
+      "download_url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1m/Projects/IN_Indiana_Statewide_LiDAR_2017_B17/TIFF/USGS_1M_16_x41y419_IN_Indiana_Statewide_LiDAR_2017_B17.tif",
+      "metadata_facts": {
+        "pixel_resolution_m": 1,
+        "horizontal_crs": "UTM / NAD83 / meters",
+        "vertical_datum": "NAVD88",
+        "vertical_units": "meters",
+        "product_publication_date": "2021-07-04",
+        "acquisition_dates": [
+          "2017-03-03",
+          "2020-04-11"
+        ],
+        "tile_bbox_wgs84": {
+          "west": -88.023036022,
+          "south": 37.762897306,
+          "east": -87.908274708,
+          "north": 37.853947521
+        }
+      }
     },
     {
       "id": "USGS_EPQS",
@@ -77,8 +97,8 @@
         "Accuracy depends on source elevation data",
         "Do not use as finished-floor or adjacent-grade elevation"
       ],
-      "status": "QUARANTINED_UNIT_CONFLICT_2026-10-15",
-      "latest_result": "Live research connector returned values labelled meters despite requests for feet; raw payload could not be independently verified. Do not use either elevation in site analysis until raw response and units are verified.",
+      "status": "QUARANTINED_UNIT_CONFLICT",
+      "latest_result": "Point values returned by research connector have inconsistent units; a separate 3DEP ImageServer identify call returned multiple pixel values with units=NoData and pixel size 150. No elevation value is accepted as trusted site evidence.",
       "live_query_evidence": "data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json"
     },
     {
@@ -93,7 +113,10 @@
         "USGS shifted from maintaining NHD/WBD/NHDPlus HR in 2024; legacy data are not updated",
         "Hydrography alone does not resolve culverts, tile drainage, or local flow paths"
       ],
-      "status": "SOURCE_VERIFIED_SITE_EXTRACT_PENDING"
+      "status": "LIVE_FLOWLINE_PROXIMITY_QUERY_ONLY_OUTLET_AND_CATCHMENT_NOT_FOUND",
+      "service_url": "https://3dhp.nationalmap.gov/arcgis/rest/services/usgs_3dhp_all/FeatureServer",
+      "live_query_evidence": "data/posey-county/evidence/13101-bonebank-road-terrain-hydrography-evidence-2026-10-15.json",
+      "latest_result": "Within 1,000 m of parcel centroid: 20 returned flowline records, including Levy Slough, canals, connectors, channel lines and drainageways; returned flowline source_product=NHD. HydroLocation layer 30 returned zero features and Catchment layer 80 returned zero polygons. Nearby flowlines are screening context only, not a selected outlet or catchment."
     },
     {
       "id": "USGS_STREAMSTATS_IN",
@@ -279,5 +302,22 @@
     "hec_hms_hec_ras": "BLOCKED_NOT_RUN",
     "engineering_approval": "NOT_APPROVED"
   },
-  "terrain_product_candidate": "USGS 1 Meter 16 x41y419 IN_Indiana_Statewide_LiDAR_2017_B17"
+  "terrain_product_candidate": "USGS 1 Meter 16 x41y419 IN_Indiana_Statewide_LiDAR_2017_B17",
+  "evidence_snapshots": [
+    "data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json",
+    "data/posey-county/evidence/13101-bonebank-road-terrain-hydrography-evidence-2026-10-15.json"
+  ],
+  "workflow_gate_status": {
+    "address_parcel_match": "VERIFIED_LIVE",
+    "legacy_coordinate": "REJECTED_FOR_WORKING_CANDIDATE_REFERENCE",
+    "state_floodplain_point_intersection": "VERIFIED_ZONE_AE_POINT_ONLY",
+    "dem_catalog_coverage": "VERIFIED_CATALOG_ONLY",
+    "dem_raster_acquisition_and_qa": "OPEN",
+    "structure_footprint_and_legal_boundary": "OPEN",
+    "effective_fema_panel_bfe_floodway_fara": "OPEN",
+    "drainage_outlet": "OPEN",
+    "catchment": "BLOCKED_NOT_DELINEATED",
+    "hec_hms_hec_ras": "BLOCKED_NOT_RUN",
+    "engineering_approval": "NOT_APPROVED"
+  }
 }
