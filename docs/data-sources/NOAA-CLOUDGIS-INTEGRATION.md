@@ -6,13 +6,17 @@
 
 - [NWS CloudGIS web services](https://www.weather.gov/gis/cloudgiswebservices) documents public-cloud OGC WMS, WFS, and WCS products.
 - [NCEP Open Source Geospatial Services Directory](https://opengeo.ncep.noaa.gov/geoserver/www/index.html) publishes WFS/WMS GetCapabilities links. It lists warning/hazard layers and MRMS radar products including CONUS CREF QCD.
-- [NWS service change notices](https://www.weather.gov/gis/cloudgiswebservices) should be checked before release because service availability and layer inventories can change.
+- [NWS radar FAQ](https://www.weather.gov/radarfaq) describes product definitions, supported downloads, and failure cases; [Service Change Notices](https://www.weather.gov/notification) should be checked before release because service availability and layer inventories can change.
 
 ## Canvas implementation
 
-The Twin Canvas adds opt-in WMS overlays for NWS warnings and MRMS CONUS composite reflectivity. Both start **OFF**, are independently toggled, and are visually attributed to NOAA/NWS. They are operational context only. They do not create flood extents, replace FEMA NFHL/Indiana BAFM, or count as HEC-RAS model evidence.
+The Twin Canvas adds opt-in WMS overlays for NWS warnings and MRMS CONUS composite reflectivity. Both start **OFF**, are independently toggled, and are visually attributed to NOAA/NWS. They are operational context only. They do not create flood extents, replace FEMA NFHL/Indiana BAFM, or count as HEC-RAS model evidence. The NWS FAQ identifies CREF.QCD as maximum reflectivity in the radar volume (dBZ), not rainfall accumulation. A blank image can indicate an offline radar; it must never be interpreted as clear weather or absence of risk.
 
 The source URLs use the official GeoServer service paths identified by the directory. The qualified layer names are provisional until a live GetCapabilities response is parsed and checked in the release environment. If a layer is renamed or unavailable, the overlay must fail visibly and remain non-authoritative; do not silently substitute another layer.
+
+## Next innovation: rainfall-aware context, not fake inundation
+
+Add a separate, disabled-by-default precipitation-product track for MRMS quantitative precipitation estimates and one-hour/storm-total accumulation. Before integration, confirm the exact service layer, temporal window, units, spatial coverage, quality flags, retrieval timestamp, and licensing/retention terms. Keep these distinct from reflectivity and from model boundary conditions. Any forcing used by HEC-RAS must be explicitly transformed and documented, with a separate model run and validation record.
 
 ## Release gates
 
