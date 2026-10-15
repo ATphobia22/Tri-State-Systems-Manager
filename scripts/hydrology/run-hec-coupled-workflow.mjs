@@ -530,6 +530,21 @@ function main() {
     if (!String(handoffReport.series?.status ?? '').startsWith('FORMAT_AND_UNIT_CONTRACT_VALIDATED')) {
       throw new Error('handoff report does not demonstrate hydrograph format/unit contract validation');
     }
+    const roundTrip = handoffReport.target_dss?.round_trip_validation;
+    if (
+      roundTrip?.status !== 'PASS'
+      || roundTrip?.timestamps_exact !== true
+      || roundTrip?.values_within_tolerance !== true
+      || roundTrip?.point_count !== handoffReport.series?.point_count
+      || !Number.isFinite(roundTrip?.maximum_absolute_error)
+      || roundTrip.maximum_absolute_error < 0
+      || !Number.isFinite(roundTrip?.maximum_relative_error)
+      || roundTrip.maximum_relative_error < 0
+      || roundTrip?.relative_tolerance !== 1e-5
+      || roundTrip?.absolute_tolerance !== 1e-6
+    ) {
+      throw new Error('handoff report lacks passing independent DSS record read-back checks for exact times and bounded value error');
+    }
     run.hydrograph_handoff = {
       status: handoffReport.status,
       report: handoffReport,
