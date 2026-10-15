@@ -1,0 +1,40 @@
+{
+  "type": "FeatureCollection",
+  "name": "lower-wabash-ohio-core-candidate",
+  "metadata": {
+    "region_id": "TSM-REG-01",
+    "description": "Candidate Lower Wabash-Ohio River Valley Core Hydrologic AOI",
+    "status": "CANDIDATE_UNVERIFIED",
+    "created_at_utc": "2026-10-15T12:26:00Z",
+    "generated_by": "TSM regional AOI workflow",
+    "target_huc_8_candidate": "05120113",
+    "important": "Candidate geometry only. HUC association and actual jurisdiction intersections have not been independently verified. Do not use to authorize catchment delineation or hydraulic modeling."
+  },
+  "bbox": [-88.05, 37.8, -87.9, 37.95],
+  "features": [
+    {
+      "type": "Feature",
+      "id": "AOI_LOWER_WABASH_OHIO_001",
+      "properties": {
+        "region_id": "TSM-REG-01",
+        "description": "Lower Wabash-Ohio River Valley Core Hydrologic AOI",
+        "declared_jurisdictions_to_test": ["IN", "IL", "KY"],
+        "target_huc_8_candidate": "05120113",
+        "approval_status": "UNAPPROVED",
+        "spatial_intersection_status": "NOT_COMPUTED",
+        "boundary_source_evidence": [],
+        "provenance_status": "PENDING"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-88.05, 37.95],
+          [-87.9, 37.95],
+          [-87.9, 37.8],
+          [-88.05, 37.8],
+          [-88.05, 37.95]
+        ]]
+      }
+    }
+  ]
+}
