@@ -2,7 +2,7 @@
   "name": "tsm-console",
   "version": "0.2.1",
   "private": true,
-  "description": "Tri-State Systems Manager — government engineering decision-support console",
+  "description": "Tri-State Systems Manager \u2014 government engineering decision-support console",
   "type": "module",
   "packageManager": "npm@10.9.2",
   "engines": {
@@ -89,8 +89,7 @@
     "test:backend": "bash ../run-backend-tests.sh",
     "check:h3-migration": "node ../scripts/ci/validate-h3-migration-contract.mjs",
     "build:terrain-3d-tiles": "python3 ../scripts/geospatial/build-terrain-3d-tiles.py",
-    "validate:terrain-3d-tiles": "python3 ../scripts/geospatial/validate-terrain-3d-tiles.py",
-    "noaa:verify-cloudgis": "node scripts/geospatial/verify-noaa-cloudgis.mjs"
+    "validate:terrain-3d-tiles": "python3 ../scripts/geospatial/validate-terrain-3d-tiles.py"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.16.0",
