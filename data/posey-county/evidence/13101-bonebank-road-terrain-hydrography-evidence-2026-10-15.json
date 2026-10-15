@@ -99,8 +99,91 @@
         "returned_feature_count": 0
       }
     },
-    "interpretation": "A 1 km proximity query found mapped NHD-derived flowlines including Levy Slough, canals, waterbody connectors, and drainageways. It did not identify a hydro-location/catchment-outlet point or return a catchment polygon. Nearby mapped lines are candidate drainage context only and cannot be promoted to the property's outlet without raster topology, conveyance inspection, and/or field confirmation.",
-    "limitation": "The service is not intended for site-specific regulatory determinations. Returned nearby flowlines have source_product=NHD; legacy NHD/WBD/NHDPlus HR products are no longer maintained by USGS."
+    "interpretation": "The local bbox query returned 10 flowline features, including canal H77EJ about 7.0 m from the parcel boundary, and a broader 1 km proximity query returned 10 unique flowline IDs (the adapter displayed 20 rows with duplicates) including Levy Slough. All are context only; the returned flowline source lineage is legacy NHD where exposed. No outlet point or catchment polygon was returned. Do not select the nearest canal as the outlet without DEM-derived flow topology and field/county/imagery evidence.",
+    "limitation": "The service is not intended for site-specific regulatory determinations. Returned nearby flowlines have source_product=NHD; legacy NHD/WBD/NHDPlus HR products are no longer maintained by USGS.",
+    "local_bbox_screen": {
+      "query_url": "https://3dhp.nationalmap.gov/arcgis/rest/services/usgs_3dhp_all/FeatureServer/50/query?geometry=-88.008%2C37.843%2C-88.002%2C37.848&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=json",
+      "query_bbox_lonlat": [
+        -88.008,
+        37.843,
+        -88.002,
+        37.848
+      ],
+      "service_refresh_date": "2026-09-04",
+      "http_status": 200,
+      "returned_flowline_count": 10,
+      "flowline_features": [
+        {
+          "identifier": "1JM0V",
+          "feature_type": "Waterbody Connector",
+          "length_km": 0.0509
+        },
+        {
+          "identifier": "51H2R",
+          "feature_type": "Drainageway",
+          "length_km": 0.2615
+        },
+        {
+          "identifier": "6XG92",
+          "feature_type": "Drainageway",
+          "length_km": 0.3981
+        },
+        {
+          "identifier": "7VHYF",
+          "feature_type": "Drainageway",
+          "length_km": 0.0669
+        },
+        {
+          "identifier": "8TIZL",
+          "feature_type": "Canal",
+          "length_km": 0.1126
+        },
+        {
+          "identifier": "8YE8J",
+          "feature_type": "Channel Line",
+          "length_km": 0.4167
+        },
+        {
+          "identifier": "DJR0H",
+          "feature_type": "Drainageway",
+          "length_km": 0.0897
+        },
+        {
+          "identifier": "FFWOZ",
+          "feature_type": "Channel Line",
+          "length_km": 0.6085
+        },
+        {
+          "identifier": "FUHXA",
+          "feature_type": "Channel Line",
+          "length_km": 0.0166
+        },
+        {
+          "identifier": "H77EJ",
+          "feature_type": "Canal",
+          "length_km": 0.3199
+        }
+      ],
+      "nearby_feature_assessment": {
+        "feature_identifier": "H77EJ",
+        "feature_type": "Canal",
+        "nearest_point_on_feature_lonlat": [
+          -88.00443929170358,
+          37.84584729579642
+        ],
+        "nearest_point_on_candidate_parcel_boundary_lonlat": [
+          -88.00451050735597,
+          37.84581923306591
+        ],
+        "calculated_planar_distance_m": 6.997,
+        "distance_method": "Project returned parcel polygon and flowline coordinates from EPSG:4326 to NAD83 / UTM zone 16N (EPSG:32616), then compute Shapely polygon-to-line distance.",
+        "interpretation": "Nearby conveyance candidate only; not the verified home-site outlet. Proximity does not prove the house's runoff drains to it."
+      },
+      "waterbodies_in_larger_bbox": 4,
+      "catchment_layer_80_features_in_larger_bbox": 0,
+      "hydrolocation_outlet_features_in_larger_bbox": 0,
+      "interpretation": "A local bounding-box query returned ten flowline features; one mapped canal (H77EJ) is approximately 7.0 m from the candidate parcel boundary. A separate 1 km proximity query returned duplicate records through the research connector (20 rows, 10 unique IDs) including a feature named Levy Slough. Treat the local bbox inventory as the more precise local feature inventory; preserve the second query as broader context. Neither query verifies a site outlet."
+    }
   },
   "point_elevation_query": {
     "service": "USGS 3DEP ImageServer identify",
@@ -132,8 +215,8 @@
     "address_parcel_match": "VERIFIED_LIVE",
     "one_meter_dem_catalog_coverage": "VERIFIED_CATALOG_ONLY",
     "dem_download_hash_and_raster_qa": "OPEN_BLOCKED_BY_EXECUTION_ENVIRONMENT_NETWORK_ACCESS",
-    "nearby_hydrography_context": "VERIFIED_SCREENING_ONLY",
-    "specific_drainage_outlet": "OPEN",
+    "nearby_hydrography_context": "VERIFIED_SCREENING_ONLY_LOCAL_CANAL_H77EJ_6.997M_FROM_PARCEL",
+    "specific_drainage_outlet": "OPEN_NEARBY_CANDIDATE_H77EJ_NOT_VERIFIED",
     "catchment_polygon": "NOT_RETURNED_BY_3DHP_SERVICE_AND_NOT_DELINEATED_FROM_DEM",
     "regulatory_flood_determination": "OPEN",
     "hec_hms_hec_ras": "BLOCKED_NOT_RUN"
