@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
@@ -45,6 +45,7 @@ test('runner executes argv without a shell and verifies expected output files', 
   const directory = mkdtempSync(path.join(os.tmpdir(), 'tsm-hec-stage-test-'));
   try {
     mkdirSync(path.join(directory, 'project'));
+    writeFileSync(path.join(directory, 'project', 'model-project.fixture'), 'pinned-test-project');
     const receipt = runStage({
       name: 'fixture-stage',
       workspace: directory,
