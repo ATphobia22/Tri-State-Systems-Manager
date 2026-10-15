@@ -60,7 +60,7 @@ test('capabilities fetch accepts a bounded XML response', async () => {
 
 test('NWS radar FAQ and MRMS QPE candidate remain discoverable and semantically separate', async () => {
   const fs = await import('node:fs');
-  const catalog = JSON.parse(fs.readFileSync(new URL('../../../data/sources/noaa-cloudgis-catalog.json', import.meta.url), 'utf8'));
+  const catalog = JSON.parse(fs.readFileSync(new URL('../../data/sources/noaa-cloudgis-catalog.json', import.meta.url), 'utf8'));
   assert.equal(catalog.radar_faq, 'https://www.weather.gov/radarfaq');
   assert.equal(catalog.precipitation_estimate_service.service_url, 'https://mapservices.weather.noaa.gov/raster/rest/services/obs/mrms_qpe/ImageServer');
   assert.equal(catalog.precipitation_estimate_service.enabled_by_default, false);
