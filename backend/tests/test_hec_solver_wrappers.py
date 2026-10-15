@@ -187,3 +187,43 @@ def test_installed_environment_fingerprint_is_stable_sha256() -> None:
     second = installed_environment_fingerprint()
     assert len(first) == 64
     assert first == second
+
+
+def test_python_environment_lock_bytes_are_verified(tmp_path: Path) -> None:
+    from hec_runtime_common import verify_python_environment
+
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    lock_file = workspace / "requirements.lock"
+    lock_file.write_text("locked-dependencies\n", encoding="utf-8")
+    manifest = {
+        "python_environment": {
+            "platform": "windows-x64",
+            "python_version": "0.0.0",
+            "lock_uri": "https://example.invalid/requirements.lock",
+            "lock_workspace_path": "requirements.lock",
+            "lock_sha256": "0" * 64,
+            "installed_packages_sha256": "a" * 64,
+        }
+    }
+    with pytest.raises(ValueError, match="lock hash mismatch"):
+        verify_python_environment(manifest, workspace)
+
+
+def test_python_environment_lock_path_cannot_escape_workspace(tmp_path: Path) -> None:
+    from hec_runtime_common import verify_python_environment
+
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    manifest = {
+        "python_environment": {
+            "platform": "windows-x64",
+            "python_version": "0.0.0",
+            "lock_uri": "https://example.invalid/requirements.lock",
+            "lock_workspace_path": "../outside.lock",
+            "lock_sha256": "a" * 64,
+            "installed_packages_sha256": "b" * 64,
+        }
+    }
+    with pytest.raises(ValueError, match="no dot segments"):
+        verify_python_environment(manifest, workspace)
