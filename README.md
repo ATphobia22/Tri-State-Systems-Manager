@@ -25,69 +25,63 @@ Missing assets produce visible errors rather than suppressing the console. Visua
 - **Evidence-aware 3D visualization:** MapLibre terrain/hillshade, source-derived building/terrain tiles when available, and camera navigation. Availability depends on published, validated tile assets.
 - **Hydrology and flood context:** USGS observations and NOAA/NWS products with timestamps, qualifiers, freshness, and station/datum constraints. FEMA effective products, Indiana best-available flood mapping, levee information, planning material, and model scenarios remain separate authority classes.
 - **Engineering and provenance contracts:** Geospatial transformations, deterministic screening models, hashes, schema checks, and human-review gates. A visualization or model output is not itself an engineering approval.
-- **Web and offline delivery:** Vite console on GitHub Pages; separate workflows build native/offline artifacts. Runtime/API capabilities require their own deployments and are not implied by the static site.
+- **Web and offline delivery:** Vite console on GitHub Pages; Tauri multi-installers for desktop; optional Unreal native plane is scaffold-only until built on a licensed Windows host.
 
 ### Visualization scope and maturity
 
 Source-aware regional/community visualization and engineering-review workspace—not a certified “Level 5” digital twin. **CityGML LOD4 interiors, continuous live 4D synchronization, and certified Level-5 twin conformance are not claimed.** Simulations and time-lapse presentation are labeled as scenarios or derived visualization, not live observations.
 
-## Current production status (2026-10-14)
+## Current production status (2026-10-15)
 
-**Deployment model:** GitHub Pages hosts the static Vite SPA. Windows x64 native runtime is distributed as a verified offline bundle. Browser/API surfaces remain independently deployable.
+**Deployment model:** GitHub Pages hosts the static Vite SPA. Desktop packaging uses Tauri (primary). Unreal Engine native is an optional high-fidelity plane and is **not** a finished CI binary.
 
 | Surface | Location |
 |---------|----------|
 | **Primary branch** | `main` |
 | **Public console** | https://atphobia22.github.io/Tri-State-Systems-Manager/ |
-| **Windows x64 offline runtime** | GitHub Actions artifact `TSM-OFFLINE-RUNTIME-WINDOWS-X64-<commit>` |
+| **Twin Canvas** | https://atphobia22.github.io/Tri-State-Systems-Manager/twin/ |
+| **Windows desktop (Tauri)** | NSIS/MSI via `tsm-console` `desktop:build:windows` / TSM Desktop workflow |
+| **Unreal native** | Scaffold — requires local UE 5.8 (see `tsm-native/`) |
 | **API readiness** | `GET /ready` when an authorized API deployment is configured |
-| **Console package** | `tsm-console` (React 19, Vite 8, MapLibre 6.x, deck.gl scoped modules, Three.js) |
+| **Finish register** | [REPO-FINISH-CHECKLIST-2026-10-15.md](docs/architecture/REPO-FINISH-CHECKLIST-2026-10-15.md) |
 
-Settings → Pages → Source must be **GitHub Actions**. The workflow does not fabricate or bypass that repository-level setting. Pages can publish the static console without a backend; when an API is configured, `VITE_TSM_API_BASE_URL` must be an HTTPS origin.
+Settings → Pages → Source must be **GitHub Actions**.
 
-## System status — 2026-10-14
+## System status — 2026-10-15
+
+### Twin Canvas (Scopes B + C)
+
+- **Vertical context HUD** with explicit **Fetch live water level** (button-only; no auto-poll).
+- **Multi-station constellation:** USGS 03378500 (New Harmony), 03322000 (Evansville), 03322420 (Uniontown / Myers context).
+- **Local dams:** Posey NID entries + John T. Myers L&D with **official NID API coordinates** (not approximate placeholders).
+- **GEOID18 educational playground** (DERIVED AOI samples) + [bias vs tilt docs](docs/geodesy/GEOID18-BIAS-VS-TILT.md).
+- WSE NAVD88 remains **blocked** until a published station conversion is validated (fail-closed).
 
 ### CI, Pages, and security
 
-- **GitHub Pages deploy green** on `main` after gate realignment to committed 3D assets (`buildings-3d.json` with `height_m`, tileset 1.1, terrain-3dep) and removal of stale SHA256SUMS/Cesium-only checks.
-- **Merged:** PR #266 IBM Quantum Compute integration; PR #265 evidence-first flood twin vertical-slice contracts; PR #264 geospatial acceptance chain and graceful degradation.
-- **CodeQL re-enabled** with `paths-ignore` for vendored `tools/agriculture/farmvibes-ai/**`. Core fixes: IDNR wells log-injection sanitize; anchored host assertions in map-plane and native provenance tests.
-- **Posey offline acquisition:** mandatory BAFM + parcels hard-fail (no soft-outage); path filters so unrelated main pushes do not re-run the long Windows job.
+- Pages path realigned to committed 3D assets; CodeQL core fixes + FarmVibes paths-ignore.
+- Merged: IBM Quantum DERIVED/quarantine; evidence-first flood contracts; geospatial acceptance chain.
 
 ### 3D assets on main
 
-- **22,815** buildings GeoJSON with `height_m` and `achievedLod` (LOD1/LOD2 from research-validated roof-plane pipeline; no fabricated geometry).
-- **4,121** GLB 3D Tiles 1.1 tileset with `extras.tsm.sourceObjectId`, `authorityClass=DERIVED`, validators green.
-- Terrain-RGB / hillshade layers for MapLibre visualization; production contract remains DERIVED / non-regulatory unless independently certified.
+- Buildings GeoJSON + GLB 3D Tiles 1.1 (DERIVED). Terrain-RGB / hillshade for visualization only.
 
-### IBM Quantum (opt-in, server-side only)
+### Explicitly not finished here
 
-- Bounded **IBM Quantum Compute Service REST** client + worker (`integrations/quantum/`).
-- Contracts locked to `authorityClass: DERIVED`, `outputPolicy: quarantine`, primitive `sampler` only, API version `2026-04-15`.
-- Results never auto-promote to Solver Result v1; classical comparison and human review required.
-- Docs: [`docs/integrations/ibm-quantum-compute.md`](docs/integrations/ibm-quantum-compute.md) — aligned with [IBM Quantum API index](https://quantum.cloud.ibm.com/docs/en/api), Compute Service REST, IAM, Resource Controller, and [Catalog Management API](https://cloud.ibm.com/docs/apis/resource-catalog/private-catalog).
-- Secrets: `IBM_QUANTUM_API_KEY` + `IBM_QUANTUM_INSTANCE_CRN` only (never Vite/browser).
+- Unreal 5.8 packaged operator app (host-only).
+- Continuous live 4D; LOD4 interiors; Blender pipeline (not in repo).
+- Production HEC-RAS/HMS run for an approved pilot AOI.
+- Live NOAA GetMap image proof; production API health claim.
 
-### Earlier closed gates (summary)
-
-- **GEOID18:** official NGS grid integrated; fail-closed sampler; Bonebank anchor uses real bilinear N (not regional constant).
-- **USGS:** live paths on Water Data OGC API (`api.waterdata.usgs.gov`); button-only telemetry; no auto-poll on load.
-- **Building heights:** observed LiDAR subset + DERIVED COPC path with hard reject rules; never synthetic fill.
-- **4D temporal engine:** SIMULATED / SCENARIO labeled only.
+See [release-gate register](docs/release/RELEASE-GATES-2026-10-15.md).
 
 ## Hydrology and hydraulic release status
 
-TSM includes source-aware hydrology ingestion contracts and a lumped SCS Curve Number rainfall-runoff screening primitive. These are not, by themselves, a validated flood forecast or hydraulic model. Production hydraulic conclusions remain gated on an approved pilot AOI, qualified rainfall/gage/terrain/bathymetry inputs, verified datum conversions, reproducible solver artifacts, independent calibration and validation, uncertainty analysis, qualified review, and deployment verification.
+Screening primitives and contracts exist. Production hydraulic conclusions remain gated on an approved pilot AOI, qualified inputs, verified datums, reproducible solver artifacts, independent validation, and qualified review.
 
-The NOAA/NWS CloudGIS context integration is merged, but live GetMap image validation remains pending. Radar reflectivity is not rainfall accumulation; warning overlays are not inundation boundaries; and raw gage stage must not be compared directly with NAVD88 elevations.
-
-- [Hydrology and hydraulics release contract](docs/hydrology/HYDROLOGY-RELEASE-CONTRACT.md)
-- [USACE HEC software integration plan](docs/hydrology/USACE-HEC-SOFTWARE-INTEGRATION.md)
-- [Coupled HEC-HMS → HEC-RAS manifest schema](data/schemas/hec-coupled-run-manifest-v1.schema.json)
-- [HEC manifest validator](scripts/hydrology/validate-hec-run-manifest.mjs) and [shell-free workflow runner](scripts/hydrology/run-hec-coupled-workflow.mjs) — execution requires an approved AOI and verified input hashes.
-- [Current release-gate register](docs/release/RELEASE-GATES-2026-10-15.md)
-- [Engineering evidence pipeline](docs/ENGINEERING-EVIDENCE-PIPELINE.md)
-- [NOAA/NWS CloudGIS integration contract](docs/data-sources/NOAA-CLOUDGIS-INTEGRATION.md)
+- [Hydrology release contract](docs/hydrology/HYDROLOGY-RELEASE-CONTRACT.md)
+- [USACE HEC integration plan](docs/hydrology/USACE-HEC-SOFTWARE-INTEGRATION.md)
+- [Release gates 2026-10-15](docs/release/RELEASE-GATES-2026-10-15.md)
 
 ## Architecture principles
 
@@ -96,8 +90,6 @@ The NOAA/NWS CloudGIS context integration is merged, but live GetMap image valid
 3. **Authority classes stay separate** — OBSERVED ≠ DERIVED ≠ SCENARIO ≠ REGULATORY.
 4. **Open source (Apache-2.0)** with contribution governance.
 5. **Zero-trust multi-tenant** readiness for production IdP (OIDC).
-
-See `ARCHITECTURE.md`, `COMPLIANCE.md`, `SECURITY.md`, and `docs/` for ADRs, NIST AI RMF mapping, and operational runbooks.
 
 ## Quick start (console)
 
@@ -108,7 +100,7 @@ npm install
 npm run dev --workspace=tsm-console
 ```
 
-Production build and offline Windows paths: see `docs/WINDOWS-11-OFFLINE-DESKTOP.md` and `MULTI-INSTALLER-MATRIX` docs in-repo.
+Desktop / offline: [WINDOWS-11-OFFLINE-DESKTOP.md](docs/WINDOWS-11-OFFLINE-DESKTOP.md) and [MULTI-INSTALLER-MATRIX.md](docs/MULTI-INSTALLER-MATRIX.md).
 
 ## License
 
