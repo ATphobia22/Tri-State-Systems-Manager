@@ -1,0 +1,64 @@
+{
+  "schema": "tsm.critical-facilities.v1",
+  "authorityClass": "SCREENING_INVENTORY",
+  "source": "TSM screening pins for Scenario Studio cascade UI; replace with official HIFLD/state inventories when licensed/open lists are bound.",
+  "disclaimer": "Not an official critical-facility determination. Coordinates are community screening pins. Fail-closed: cascade scores remain SIMULATION_DEMO.",
+  "retrievedAt": "2026-10-17T17:40:00Z",
+  "features": [
+    {
+      "id": "fac-mt-vernon-fire",
+      "name": "Mt. Vernon Fire (screening pin)",
+      "category": "fire",
+      "lat": 37.9323,
+      "lon": -87.895,
+      "county": "Posey",
+      "notes": "Approximate community pin for cascade UI only.",
+      "corridorExposure": 0.45,
+      "inventorySource": "screening"
+    },
+    {
+      "id": "fac-new-harmony-access",
+      "name": "New Harmony access node",
+      "category": "transport",
+      "lat": 38.1298,
+      "lon": -87.9345,
+      "county": "Posey",
+      "notes": "Near USGS 03378500 context; access screening only.",
+      "corridorExposure": 0.7,
+      "inventorySource": "screening"
+    },
+    {
+      "id": "fac-bonebank-corridor",
+      "name": "Bonebank Rd corridor node",
+      "category": "transport",
+      "lat": 37.8459,
+      "lon": -88.0051,
+      "county": "Posey",
+      "notes": "Candidate AOI corridor awareness — not approved pilot output.",
+      "corridorExposure": 0.82,
+      "inventorySource": "screening"
+    },
+    {
+      "id": "fac-myers-context",
+      "name": "John T. Myers L&D context",
+      "category": "utility",
+      "lat": 37.9023,
+      "lon": -87.9601,
+      "county": "OH-River",
+      "notes": "Navigation/structure context from NID awareness layer.",
+      "corridorExposure": 0.9,
+      "inventorySource": "nid_context"
+    },
+    {
+      "id": "fac-posey-school-pin",
+      "name": "Posey school cluster (screening)",
+      "category": "school",
+      "lat": 37.941,
+      "lon": -87.91,
+      "county": "Posey",
+      "notes": "Generic cluster pin; verify official facility lists before ops use.",
+      "corridorExposure": 0.35,
+      "inventorySource": "screening"
+    }
+  ]
+}
