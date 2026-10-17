@@ -13,6 +13,8 @@ import Geoid18AoiPanel from './Geoid18AoiPanel';
 import MultiStationWaterPanel from './MultiStationWaterPanel';
 import LocalDamsPanel from './LocalDamsPanel';
 import ScenarioStudioPanel from './ScenarioStudioPanel';
+import { applyScenarioCascadeLayer } from '../lib/scenario-cascade-layer';
+import type { ScenarioStudioResult } from '../lib/scenario-studio';
 import { fetchLiveStage } from '../lib/stage';
 import { fetchAllLiveStations, type StationLiveSnapshot } from '../lib/multi-stage-fetch';
 import { damsToGeoJson, type LocalDamsCatalog } from '../lib/local-dams';
@@ -287,6 +289,12 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
     }
   }, [mapReady]);
 
+  const onScenarioResult = useCallback((result: ScenarioStudioResult | null) => {
+    const map = mapRef.current;
+    if (!map || !mapReady) return;
+    applyScenarioCascadeLayer(map, result);
+  }, [mapReady]);
+
   const terrainStatus = getTerrainRgbStatus();
   const terrainMessage = terrainRgbBlockMessage(terrainStatus);
 
@@ -354,7 +362,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
 
         <Geoid18AoiPanel />
 
-        <ScenarioStudioPanel />
+        <ScenarioStudioPanel onResult={onScenarioResult} />
 
         <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
           {([
@@ -389,7 +397,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
           ))}
         </div>
         <div style={{ marginTop: 6, color: '#86efac' }}>
-          Live water: button-only (single or constellation). No auto-fetch. Local dams = registry awareness only. Scenario Studio = SIMULATION_DEMO cascade screening. HEC-RAS remains SIMULATION_DEMO until evidence gates pass. Source required for verified datum conversion; unavailable stays unavailable. Human authority remains final.
+          Live water: button-only (single or constellation). No auto-fetch. Local dams = registry awareness only. Scenario cascade pins = SIMULATION_DEMO screening only. HEC-RAS remains SIMULATION_DEMO until evidence gates pass. Source required for verified datum conversion; unavailable stays unavailable. Human authority remains final.
         </div>
         {tiles3DVisible && (
           <div style={{ marginTop: 6, color: '#94a3b8' }}>3D terrain: self-hosted OGC 3D Tiles 1.1 \u00b7 status: {tiles3DStatus}</div>
