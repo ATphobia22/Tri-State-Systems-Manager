@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -15,4 +15,10 @@ assert.doesNotMatch(src, /gageZeroNavd88\s*=\s*[0-9]/);
 assert.match(src, /residualFactor: 1/);
 assert.match(src, /intensity: 0\.55/);
 
-console.log('scenario-studio.test.mjs: contract strings OK');
+const panel = join(root, 'src/components/ScenarioStudioPanel.tsx');
+assert.equal(existsSync(panel), true);
+const panelSrc = readFileSync(panel, 'utf8');
+assert.match(panelSrc, /Run scenario \(human-triggered\)/);
+assert.match(panelSrc, /onResult/);
+
+console.log('scenario-studio.test.mjs: lib + panel contracts OK');
