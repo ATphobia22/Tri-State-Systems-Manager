@@ -1,0 +1,4 @@
+# Exact, immutable source revisions qualified by the HEC-HMS -> RAS adapter.
+# Use the dedicated H&H environment; these are not the latest unpinned PyPI releases.
+hms-commander[dss] @ git+https://github.com/ATphobia22/hms-commander.git@1404fee5c81820764197f38923764f8c1d1b2fb7
+ras-commander[dss] @ git+https://github.com/gpt-cmdr/ras-commander.git@574adbc725f9436a196698970febe39d98ef30c5

@@ -15,7 +15,8 @@ Root-level `tsm-*.json` copies are maintained here so the repository remains exe
 | `engineering-section.schema.json` | Subsurface-to-finished-grade section |
 | `historical-event.schema.json` | Privacy-safe historical replay |
 | `evidence-manifest.schema.json` | Cryptographic engineering evidence manifest |
-| `hec-coupled-run-manifest-v1.schema.json` | Approved-area, reproducible HEC-HMS → HEC-RAS run manifest |
+| `hec-coupled-run-manifest-v1.schema.json` | Legacy v1 HEC coupled-run contract (preserved unchanged) |
+| `hec-coupled-run-manifest-v2.schema.json` | Current strict HEC-HMS → HEC-RAS reproducible run contract |
 
 The community engineering system intentionally contains no private residence or parcel-specific site-constant schema. Runtime project geometry must come from the active community/project evidence set with explicit CRS, vertical datum, survey and provenance metadata.
 

@@ -1,59 +1,42 @@
 # TSM Data Schemas — CHANGELOG
 
-Migration notes for schema version bumps. Entries describe what changed,
-why, and whether the bump is backward compatible.
+Migration notes for schema version bumps. Breaking field/enum/constraint changes require a major version bump. Existing versioned contracts are preserved; new validation semantics are introduced under a new major schema identifier.
+
+## hec-coupled-run-manifest-v2.schema.json
+
+### v2.0.0 — initial release (2026-10-15)
+
+- Adds full source commit identity; pinned HEC-HMS and HEC-RAS model package hashes; adapter executable hashes; separately pinned vendor HEC runtime paths and hashes; version evidence; and strict command/output/timeout contracts.
+- Adds explicit DSS source record pathname, element and simulation-run identity, target RAS DSS pathname and version, interval/time-zone, source/target units and an enumerated conversion method.
+- Adds an explicit 1D/2D/index-selected RAS boundary selector, and a hash-pinned handoff adapter/script with required run-specific placeholders.
+- Execution validation now checks the exact handoff script hash and adapter version against the checked-out source, rejects unresolved/placeholder pins and unapproved AOIs, and validates DSS A-F path semantics and unit-conversion compatibility.
+- The orchestration runner uses hash-verified source project copies, disjoint isolated run/output roots, no-shell argv execution, stage logs, explicit DSS boundary wiring, HDF5 signature checks, a content-addressed filesystem store and a run receipt.
+- Compatibility: breaking major revision. The original v1 schema/example remain retained and unchanged. Existing v1 manifests are not silently upgraded; create a new v2 operator manifest and requalify all inputs, approval records and hashes.
+- Governance: the checked-in v2 example remains DRAFT and must fail execution readiness. Successful solver completion is recorded as COMPLETED_UNVALIDATED, never as engineering approval or regulatory acceptance.
+
+## hec-coupled-run-manifest-v1.schema.json
+
+### v1.0.0 — retained legacy contract (2026-10-15)
+
+- Preserved as the original v1 schema and example for compatibility. This contract predates the additional model-binary, source-commit, exact DSS pathname and boundary-selector pins introduced in v2.
+- Migration: no existing v1 artifact is rewritten. V2 requires a fresh manifest with an exact source commit, qualified AOI/delineation, project and runtime hashes, explicit transfer mapping, and approval evidence before execution.
 
 ## usace-hydrologic-node.schema.json
 
 ### 2026-09-25 — v1.0.0 (new)
 
-- New contract for river-management structure / gage nodes sourced from
-  USACE, USGS, and NWS open data (pool elevations, gate status, observed
-  stage). All numeric fields are nullable: null means "not published by the
-  authority," never an estimate. `gateStatus` includes `unknown`;
-  `provenanceLabel` is constrained to OBSERVED / MODELED / FORECAST /
-  UNAVAILABLE. Describes observations only; confers no regulatory standing.
+- New contract for river-management structure / gage nodes sourced from USACE, USGS, and NWS open data (pool elevations, gate status, observed stage). All numeric fields are nullable: null means "not published by the authority," never an estimate. Includes an unknown gate-status class and an observation-only provenance label. The schema confers no regulatory standing.
 
 ## tsm-data-contract-schema-v1.0.0.json
 
 ### 2026-09-25 (in place, version unchanged)
 
-- `provenance.content_hash` pattern tightened from `^(sha256:)?[a-fA-F0-9]{64}$`
-  to `^[a-f0-9]{64}$`: canonical hash form is now lowercase hex, 64
-  characters, no `sha256:` prefix. Emitters must emit the bare lowercase
-  digest; consumers (e.g. `tsm-console/src/lib/evidence.ts`) already normalize
-  defensively. The embedded example was updated to the canonical form.
-- New OPTIONAL top-level field `evidence_tier` (integer enum 0–6, numeric
-  only). Mirrors `tier: 0|1|2|3|4|5|6` in `tsm-console/src/types/loaders.ts`.
-  The labeled tier vocabulary is not defined anywhere in this repository, so
-  the description explicitly forbids presenting a numeric tier as an authority
-  claim. Tenant paths were deliberately NOT added: zero implementation exists.
+- Tightened the canonical SHA-256 format to 64 lowercase hexadecimal characters without a prefix.
+- Added an optional evidence_tier field, but the number must not be presented as an authority claim.
 
 ## geospatial-tile-fabric.schema.json
 
 ### v1.0.0 → v1.1.0
 
-- `schemaVersion` const changed `"1.0.0"` → `"1.1.0"`.
-- New top-level required field `scope` (string, minLength 1): a human-readable
-  statement of the geographic/operational scope the fabric covers. The
-  canonical artifact `artifacts/tsm-geospatial-tile-fabric-v1.json` already
-  carried this field (added during authoring) while the schema still pinned
-  v1.0.0 with closed top-level properties — this bump resolves that drift.
-- `authorityClass` enum gained `STATE_ELEVATION` and `STATE_DERIVED_GEOMETRY`
-  (assets already using them, e.g. state elevation program products).
-- `verification.state` enum gained `VERIFIED_SERVICE_METADATA` for assets
-  verified via live service metadata rather than downloaded source data.
-- Backward compatibility: v1.1.0 artifacts are not readable by v1.0.0
-  validators (new required field + const change). v1.0.0 artifacts validate
-  against v1.1.0 only if they supply a `scope` field; schemaVersion const must
-  be updated by producers.
-
-
-## hec-coupled-run-manifest-v1.schema.json
-
-### v1.0.0 — initial release (2026-10-15)
-
-- Added a closed JSON Schema 2020-12 contract for AOI approval, geometry and watershed hashes, source input provenance, explicit CRS/vertical datum, pinned HEC runner configuration, hydrograph handoff semantics and artifact storage.
-- Added a DRAFT-only example; placeholders and missing/unqualified inputs are intentionally blocked by execution-readiness validation.
-- Added a shell-free orchestration runner and fail-closed tests. The runner writes content-addressed output blobs and a run receipt, but does not claim scientific validation or human approval.
-- Compatibility: new schema; no existing manifests require migration. HEC execution requires a separately approved AOI and real, version-pinned model packages.
+- Adds a required scope field and VERIFIED_SERVICE_METADATA as an enum value for assets verified via live service metadata rather than downloaded source data.
+- Backward compatibility: v1.1.0 artifacts are not readable by v1.0.0 validators. V1.0.0 artifacts validate against v1.1.0 only if they supply scope; producers must update schemaVersion.

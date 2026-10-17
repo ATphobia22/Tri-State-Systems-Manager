@@ -11,7 +11,7 @@ The Indiana Geographic Information Office (IGIO) 2025 statewide parcel layer con
 
 This verifies a **candidate parcel record**, not the legal boundary by survey and not the hydrologic area of interest (AOI). The polygon-derived area estimate is approximately **2.445 acres**; it is not surveyed acreage and must never be used as the HEC-HMS drainage area.
 
-The parcel-centroid point intersects a FEMA National Flood Hazard Layer (NFHL) feature recorded as **Zone AE / Special Flood Hazard Area** in the captured query. The query returned `STATIC_BFE = -9999` and no vertical datum; the value is a no-data sentinel, **not a base flood elevation**. A fresh live point query of the Indiana DNR/IGIO Posey CSLF layer returned one intersecting polygon (`cslf_id=3785`) with `pre_zone=AE`, `new_zone=AE`, `pre_srccit=18129C_STUDY3`, and `new_srccit=STUDY10`. That polygon query did not return a BFE observation. The centroid query establishes a point intersection only; separate live state-layer overlays show that the full candidate parcel polygon and the address-associated candidate building footprint (IGIO building feature `763173`) both intersect the mapped AE polygon. None of these queries supplies a numeric BFE or establishes parcel/building coverage percentage, flood depth, or a regulatory determination. Neither result supplies the proportion of parcel/building area covered, a usable BFE, flood depth at the structure, or a property-specific hydraulic result.
+The parcel-centroid point intersects a FEMA National Flood Hazard Layer (NFHL) feature recorded as **Zone AE / Special Flood Hazard Area** in the captured query. The query returned `STATIC_BFE = -9999` and no vertical datum; the value is a no-data sentinel, **not a base flood elevation**. A fresh live point query of the Indiana DNR/IGIO Posey CSLF layer returned one intersecting polygon (`cslf_id=3785`) with `pre_zone=AE`, `new_zone=AE`, `pre_srccit=18129C_STUDY3`, and `new_srccit=STUDY10`. That polygon query did not return a BFE observation. The result corroborates a point-to-polygon Zone AE intersection only; it does not supply a numeric BFE or parcel-wide/structure-specific determination. These are point intersections only: they do not establish the proportion of the parcel in the mapped zone, flood depth at a structure, or a property-specific hydraulic result.
 
 A prior repository record stated **361.998 ft, NAVD88**, at the IGIO parcel-layer centroid. A live refresh through the research connector returned a value of 361.9983869 labelled **meters** despite a request for feet; the same connector returned 359.4862935 labelled meters for the legacy point. Because the raw service payload could not be independently retrieved and the unit interpretation is inconsistent, both returned values are quarantined and **neither is accepted as verified site-elevation evidence**. EPQS interpolates from the dynamic 3DEP elevation service and is not a survey, site DEM, first-floor elevation, or Lowest Adjacent Grade (LAG). USGS explicitly cautions that EPQS values are interpolated and not official surveyed values.
 
@@ -30,9 +30,7 @@ Accordingly, the current coupled-model state remains **`BLOCKED_NOT_RUN`**. No H
 | Parcel geometry | EPSG:4326; SHA-256 `93d9115b21b14932674095b5267b482c9b38c6fc45399687a8b5126894b71572` | Hash pins the repository geometry bytes; does not certify the geometry's legal accuracy |
 | Polygon-derived area | 9,895.75 m² / 2.4453 acres | Geodesic estimate from published ring vertices; not surveyed acreage or drainage area |
 | IGIO parcel centroid | `-88.00535128, 37.84579909` (lon, lat) | Source-layer centroid used for point queries |
-| Address point | `-88.005101, 37.845889` (lon, lat); IGIO object ID 1948776 | Live Address Points of Indiana 2024 record matches the same state parcel ID and situs address; point is not a surveyed entrance |
-| Candidate building footprint | IGIO Building Footprints object ID 763173; approximately 258.7 m²; LidarYear 2020 | The matching Posey County address point falls inside this polygon; best available address-associated structure candidate, not owner/survey confirmed |
-| Legacy coordinate | `-88.0007, 37.9035` (lon, lat) | Rejected as the working point for this address because it is ~6.42 km from the live exact-address IGIO parcel reference; provenance remains unknown |
+| Conflicting coordinate | `-88.0007, 37.9035` (lon, lat) | Repository legacy claim; approx. 6.4 km discrepancy; unresolved |
 | Approval | `NOT_APPROVED`; no approver, timestamp, or approval evidence | Keep fail-closed |
 
 The stored GeoJSON is a closed five-position exterior ring and is suitable as a **candidate parcel footprint for review**. It is not suitable as the watershed polygon, HEC-RAS computational domain, inundation boundary, or substitute for a surveyed property line.
@@ -110,7 +108,7 @@ A parcel address cannot choose the hydraulic outlet, identify the contributing d
 
 ## 7. Main-branch / CI evidence
 
-The report is committed to TSM `main`. The earlier verified workflow results on `43bd3c442fd7391eb3f1825ec5a581223762e768` do not prove the current tip is green. For the latest main commit, the connected GitHub status lookup returned no status entries and the available commit-workflow lookup returned no runs (that lookup is PR-triggered only). Therefore **current CI is not verified green**; inspect [GitHub Actions on main](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions?query=branch%3Amain) for the latest commit's actual run results.
+The report is intended to be committed on TSM `main`. Before this report's commit, the latest observed branch commit was `43bd3c442fd7391eb3f1825ec5a581223762e768` (`Add verified Bonebank Road candidate AOI and flood evidence`). At the time checked, the associated workflows for the exact spatial-boundary acquisition, parse gate, CI pipeline, offline runtime, production build/deploy, CodeQL, and E2E visual regression were completed successfully on that commit. A new report commit will trigger new CI; the post-commit result must be checked separately before saying that the updated tip is green.
 
 ## 8. Source references
 
@@ -135,7 +133,7 @@ The report is committed to TSM `main`. The earlier verified workflow results on 
 **Disposition:** Keep the parcel as a candidate record, not an approved hydrology AOI. Resolve the coordinate conflict, delineate and verify the watershed, acquire qualified inputs, and obtain human approval before any coupled HEC-HMS/HEC-RAS run or engineering recommendation.
 
 
-## 9. Completion artifacts and current source guidance
+## 10. Completion artifacts and current source guidance
 
 The operational handoff is now split into three linked artifacts:
 
@@ -151,7 +149,7 @@ Additional source review confirms two implementation details that should govern 
 These sources add a repeatable acquisition plan, not a new delineated catchment or an engineering approval. The coordinate conflict, site-wide terrain review, and outlet confirmation remain release blockers.
 
 
-## 10. Live source refresh and evidence corrections
+## 11. Live source refresh and evidence corrections
 
 A fresh query of the [IGIO 2025 parcel FeatureServer](https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer/0) returned one feature for object ID `335325` with the exact situs address and parcel identifiers recorded above. The service reports Posey County as source originator, source feature ID `821117010080896417`, and load date `2025-08-28`. The returned polygon ring matches the candidate geometry coordinates. This independently refreshes the candidate parcel/address match, while leaving legal boundary certification and house footprint confirmation open.
 
@@ -162,7 +160,7 @@ The live EPQS refresh exposed a **unit-normalization inconsistency** through the
 The full machine-readable record is [live query evidence (2026-10-15)](../../data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json). Current dispositions: working address/parcel match **verified from live service**; legacy point **rejected for this candidate AOI**; state floodplain point intersection **verified, limited**; EPQS elevations **quarantined**; legal boundary, actual structure footprint, site-wide DEM, effective FEMA/BFE review, outlet, catchment, and engineering approval **still open or blocked**.
 
 
-## 11. Terrain product availability and methodological QA
+## 12. Terrain product availability and methodological QA
 
 The USGS The National Map Access API was queried against the candidate parcel bounding box. It returned four 1-meter DEM products covering that area. The selected candidate for the next acquisition step is [USGS 1 Meter 16 x41y419 IN_Indiana_Statewide_LiDAR_2017_B17](https://www.sciencebase.gov/catalog/item/60e6aebcd34e2a7685d0271b), with official raster URL [GeoTIFF](https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1m/Projects/IN_Indiana_Statewide_LiDAR_2017_B17/TIFF/USGS_1M_16_x41y419_IN_Indiana_Statewide_LiDAR_2017_B17.tif). USGS metadata describes a 1-meter bare-earth DEM, horizontal reference NAD83 / UTM in meters, elevations in meters referenced to NAVD88, publication date 2021-07-04, and source acquisition dates 2017-03-03 to 2020-04-11. **The raster has not been downloaded, hashed, inspected, or processed in this pass.** Product availability is therefore verified, terrain suitability is not. The metadata also warns that one-meter tiles are not necessarily seamless across project boundaries.
 
@@ -178,96 +176,8 @@ The research connector for scite could not be used because it reported that an a
 The live snapshot and source register now record the DEM catalog result. The next gate is acquisition and QA of the GeoTIFF, followed by local drainage/outlet verification. A catchment remains blocked until the outlet is approved and terrain/conveyance evidence is checked.
 
 
-## 12. Updated regulatory flood query disposition
+## 13. Updated regulatory flood query disposition
 
 The direct FEMA NFHL point query is now refreshed and returned `FLD_ZONE=AE`, `STATIC_BFE=-9999`, and `V_DATUM=null`. The query confirms the Zone AE point intersection but provides no usable BFE or datum. A full parcel-geometry query against FEMA's NFHL service did not complete through the research connector, so no parcel-wide FEMA overlay is claimed.
 
 Separately, the live Indiana CSLF service successfully queried the entire candidate parcel polygon and returned an intersecting state floodplain polygon (`cslf_id=3785`, `pre_zone=AE`, `new_zone=AE`, source `STUDY10`). This is stronger than the earlier centroid-only state result, but it is still a topological intersection, not a coverage percentage, house-footprint overlay, depth, or BFE. Review the effective FEMA panel, any LOMC, and Indiana INFIP/FARA before regulatory conclusions.
-
-
-## 13. Terrain and hydrography live verification
-
-### 13.1 One-meter DEM product identified; raster QA still open
-
-A live The National Map product query returned four 1-meter DEM catalog candidates for the parcel bounding box, including **USGS 1 Meter 16 x41y419 IN_Indiana_Statewide_LiDAR_2017_B17**. Its [ScienceBase metadata](https://www.sciencebase.gov/catalog/item/60e6aebcd34e2a7685d0271b) states:
-
-- 1-meter pixel resolution; bare-earth topographic surface derived from high-resolution lidar.
-- Horizontal reference: UTM, NAD83, meters.
-- Vertical reference: NAVD88, meters.
-- Product publication date: 2021-07-04; source acquisition dates include 2017-03-03 and 2020-04-11.
-- Tile bounds: west -88.023036022, south 37.762897306, east -87.908274708, north 37.853947521 (WGS84), which contain the candidate parcel.
-- DEM tiles are seamless within collection projects but may not be seamless across project boundaries.
-
-The exact GeoTIFF is [available from USGS TNM](https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/1m/Projects/IN_Indiana_Statewide_LiDAR_2017_B17/TIFF/USGS_1M_16_x41y419_IN_Indiana_Statewide_LiDAR_2017_B17.tif). The current execution environment could not resolve external DNS for a direct download, so no raster bytes were acquired, hashed, opened, or inspected. The terrain gate therefore remains **PARTIALLY RESOLVED — CATALOG MATCH ONLY**. Do not claim that raster QA or flow routing has been completed.
-
-A separate direct 3DEP ImageServer identify request returned multiple pixel values, reported units as `NoData`, and a 150-unit pixel size. That response is not a trustworthy 1-meter DEM point sample and is excluded from site-elevation evidence. EPQS values also remain quarantined due the earlier adapter unit inconsistency.
-
-### 13.2 Nearby mapped hydrography is context, not an outlet
-
-A live query to the [USGS 3DHP FeatureServer](https://3dhp.nationalmap.gov/arcgis/rest/services/usgs_3dhp_all/FeatureServer) found 20 flowline records within a 1,000-meter query distance of the candidate parcel centroid, including records named **Levy Slough** and mapped features classified as canals, waterbody connectors, channel lines, and drainageways. The returned flowlines identify their source product as legacy `NHD`.
-
-The same 1,000-meter query returned **zero** features from the service's HydroLocation layer (including catchment-outlet points) and **zero** catchment polygons. The USGS service documentation says the national service is not intended for site-specific regulatory determinations; USGS also states legacy NHD/WBD/NHDPlus HR products are no longer maintained. Therefore, this query establishes nearby mapped drainage context only. It does not prove hydraulic connectivity from the property, identify a site outlet, or produce a watershed boundary.
-
-### 13.3 Evidence gate disposition
-
-The detailed query responses are in [terrain and hydrography evidence JSON](../../data/posey-county/evidence/13101-bonebank-road-terrain-hydrography-evidence-2026-10-15.json). Current state:
-
-| Gate | Disposition |
-|---|---|
-| Parcel/address reference | Verified by live IGIO record |
-| 1-meter DEM catalog coverage | Verified by USGS catalog metadata |
-| DEM download, checksum, and raster QA | Open; direct download blocked in this execution environment |
-| Nearby hydrography | Screening context verified; records are NHD-derived |
-| Actual structure footprint and legal boundary | Open |
-| Effective FEMA panel, BFE, floodway and applicable FARA | Open |
-| Specific outlet / culvert / ditch connectivity | Open; no 3DHP outlet point returned |
-| Catchment polygon | Not delineated |
-| HEC-HMS / HEC-RAS | `BLOCKED_NOT_RUN` |
-
-The evidence-gated next steps are now more specific, but they are not all closed. A defensible catchment cannot be produced without the DEM raster, outlet selection, and conveyance/flow-path validation. The residential AOI remains unapproved for engineering or model execution.
-
-
-### 13.4 Local 3DHP conveyance screen
-
-The current [USGS 3DHP service](https://3dhp.nationalmap.gov/arcgis/rest/services/usgs_3dhp_all/FeatureServer) reports a service data refresh date of 2026-09-04. A query of a small bounding box around the candidate parcel returned ten flowline features. One returned feature, identifier `H77EJ`, is classified as a **Canal**. Using its returned EPSG:4326 line vertices and the candidate parcel ring, projected to NAD83 / UTM zone 16N (EPSG:32616), the line is approximately **7.0 m from the parcel boundary** at the nearest computed points. The nearest point on that mapped line is approximately `(-88.00443929, 37.84584730)`.
-
-This is a **nearby conveyance candidate for review, not a selected or verified outlet**. The 3DHP service itself cautions that its data may be temporally outdated in places and is not intended for site-specific regulatory determinations. The broader local query returned four waterbodies, zero catchment-layer features, and zero outlet hydrolocations; those are query results, not evidence that no watershed exists. No private drain, culvert connection, yard grading, or runoff direction has been verified. The owner/field/county evidence must establish where home-site runoff actually enters a conveyance before delineating the catchment.
-
-The live evidence JSON now records the flowline inventory, geometry-derived distance, candidate coordinates, source URL, service refresh date, and limitations. The connector-normalized flowline count was not consistent between query variants (10 vs. 20 for the same small bounding box); the companion 1-km query identified returned flowlines as NHD-derived. Treat these as screening records, not a complete hydrography inventory. The next actionable task is to inspect the site and nearby ditch/canal with current imagery and field/county evidence, then confirm the outlet point; do not substitute the nearby mapped canal automatically.
-
-
-## 14. FEMA panel lookup and local outlet candidate update
-
-A live FEMA NFHL query of the FIRM Panels layer at the parcel centroid returned panel **0300**, community **18129C**, effective date **2014-10-05**, source `18129C_BASE12`. This identifies the panel record for the centroid, but the current effective map index and any subsequent products must still be checked in the [FEMA Map Service Center](https://msc.fema.gov/portal/home) before regulatory use.
-
-The NFHL Base Flood Elevations layer query was not usable for a numeric site BFE: the research connector summarized a feature with `bfe_value=0`, vertical datum `N/A`, panel `N/A`, and effective date `N/A`. That value is not accepted as a BFE. The point queries to FEMA's LOMR and LOMA layers returned no intersecting feature at the parcel centroid; this does not replace a full property/structure review of effective products. The flood gate is therefore **partially resolved, not closed**: Zone AE and a panel record are confirmed, but usable BFE, floodway status, actual structure exposure, and current MSC/INFIP/FARA review remain open.
-
-The most local 3DHP bounding-box query returned ten flowline records. Feature `H77EJ`, classified as a canal, is approximately **6.997 m from the candidate parcel boundary** based on returned line geometry projected to EPSG:32616. This is the current nearby conveyance candidate to inspect. It is not the selected outlet: no drainage connection from the home to the canal, culvert, yard grading, or runoff direction has been verified. A separate 1-km query was summarized with duplicate rows (20 rows, 10 unique IDs) and included Levy Slough; retain that query as broad context, not as the local outlet inventory.
-
-Updated raw query records are stored in:
-- [Live parcel/flood query evidence](../../data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json)
-- [Terrain/hydrography evidence](../../data/posey-county/evidence/13101-bonebank-road-terrain-hydrography-evidence-2026-10-15.json)
-- [Source register](../../data/posey-county/evidence/13101-bonebank-road-source-register-v1.json)
-
-The AOI remains **CANDIDATE / NOT APPROVED**. Remaining hard blockers are the DEM file acquisition and raster QA, actual house footprint and boundary review, current effective flood review and BFE/datum, physical outlet confirmation, and catchment delineation with independent QC.
-
-
-
-## 15. Address-associated building footprint candidate
-
-A live query of Indiana's **Address Points of Indiana 2024** layer returned a Posey County address point for `13101 BONEBANK RD` tied to state parcel ID `651908100008001010`, at `(-88.005101, 37.845889)` in EPSG:4326. The point record's update date is 2022-08-01.
-
-A live query of Indiana's **Building Footprints 2016–2020** layer returned four nearby polygons. Candidate feature **objectid 763173** is the best available address-associated footprint because the county address point falls inside it, it is fully within the candidate parcel, and it is the closest of the returned footprints to that address point. Its reported planar area is approximately **258.7 m²** (2020 lidar footprint). Two additional footprints (objectids 763169 and 763172) also lie within the parcel, and one footprint lies about 5.18 m outside the parcel boundary. The dataset does not functionally classify which structures are the principal dwelling, accessory buildings, or other structures.
-
-A live Indiana CSLF overlay of candidate footprint 763173 intersects the state Zone AE polygon (`cslf_id=3785`, source `STUDY10`). This is a building-footprint-to-zone intersection only; it supplies no BFE, depth, velocity, finished-floor elevation, or regulatory determination. The footprint is historical and not a survey. Current imagery and owner confirmation are needed to confirm that feature 763173 is the actual home and that the footprint remains current. FEMA NFHL full-footprint overlay and effective panel/LOMC review remain open.
-
-The structure evidence and all returned footprint geometries are preserved in the [live query evidence JSON](../../data/posey-county/evidence/13101-bonebank-road-live-query-evidence-2026-10-15.json). The structure gate is now **ADDRESS-ASSOCIATED CANDIDATE FOUND — OWNER/CURRENT-IMAGERY CONFIRMATION PENDING**, not fully approved. The AOI remains candidate-only; no catchment or model result has been generated.
-
-
-## 10. Owner-confirmed aerial photograph update — 2026-10-15
-
-The owner confirmed that the large brick residence near the center of the uploaded aerial photograph is their home. See the [machine-readable owner photo confirmation](../../data/posey-county/evidence/13101-bonebank-road-owner-photo-confirmation-2026-10-15.json). The exact uploaded image bytes are 609,767 bytes with SHA-256 `b2f7d7ed3bba6a50ab6058c5f78a68fee283a843474f16863382686a797edfda`. The original bytes are not yet committed to this repository; the hash is recorded from the uploaded artifact available in the session.
-
-This confirmation resolves the identity question for the photographed residence but does not prove that historic building-footprint feature 763173 exactly matches the visible roof outline or current structure. Current orthophotography and geometry reconciliation remain required. The photograph shows extensive visible inundation around multiple structures; no event date, flood source, depth, water-surface elevation, BFE, or structure-floor elevation is inferred from the image.
-
-The AOI remains candidate-only. Parcel boundary/survey, DEM acquisition and QA, effective FEMA/Indiana flood review, drainage outlet, catchment delineation, and professional approval remain open. HEC-HMS and HEC-RAS remain `BLOCKED_NOT_RUN`. Reusable automation requirements are documented in [Home-site AOI automation contract](./HOME-SITE-AOI-AUTOMATION-CONTRACT.md).

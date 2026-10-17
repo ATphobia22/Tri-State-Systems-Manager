@@ -3,7 +3,7 @@
   "site_id": "posey-13101-bonebank-road",
   "retrieved_on": "2026-10-15",
   "status": "PARTIAL_LIVE_SOURCE_VERIFICATION",
-  "interpretation": "Live service queries verify the address/parcel identity, a matching Posey County address point, an address-associated candidate building footprint (not owner/survey confirmed), state CSLF parcel and candidate-building intersections with Zone AE, and a FEMA NFHL Zone AE point result without a usable BFE/datum. The candidate 1-meter DEM is catalog-verified but not downloaded or QA-checked; nearby NHD-derived hydrography is screening context only. These sources do not establish legal boundaries, the confirmed principal dwelling, whole-parcel flood coverage, BFE, catchment, or model fitness.",
+  "interpretation": "Live service queries verify the address/parcel identity and state flood polygon intersection at the IGIO parcel centroid. They do not establish legal boundary, home footprint, whole-parcel flood coverage, BFE, catchment, or model fitness.",
   "parcel_source": {
     "agency": "Indiana Geographic Information Office",
     "service": "Parcel Boundaries of Indiana 2025",
@@ -79,7 +79,7 @@
       "height_unit": "meter",
       "note": "Layer service height-model metadata; not a BFE observation."
     },
-    "conclusion": "Live centroid query and live full candidate-parcel polygon query both intersect the Indiana state floodplain polygon classified AE (cslf_id=3785, source STUDY10). This establishes that the parcel polygon intersects a state Zone AE feature, not the percentage of parcel area covered, structure-specific exposure, depth, or BFE.",
+    "conclusion": "The candidate parcel centroid intersects an Indiana state floodplain polygon classified AE in both pre- and new-zone fields. This is a point-to-polygon intersection only. The query returned no BFE value; do not infer a numeric BFE, parcel-wide percentage, flood depth, or building inundation.",
     "parcel_polygon_query": {
       "query_status": "HTTP 200; one intersecting polygon",
       "query_url": "https://gisdata.in.gov/server/rest/services/Hosted/Posey_CSLF_Feb2025/FeatureServer/0/query?geometry=<candidate-parcel-polygon>&geometryType=esriGeometryPolygon&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=objectid,cslf_id,pre_zone,new_zone,pre_srccit,new_srccit,source_cit&returnGeometry=false&f=json",
@@ -141,38 +141,14 @@
       "STATIC_BFE": -9999,
       "V_DATUM": null
     },
-    "interpretation": "Live FEMA NFHL point query confirms Zone AE and FIRM panel 0300 (community 18129C), effective 2014-10-05. The BFE layer did not yield a usable BFE/datum. No LOMR or LOMA feature intersected the centroid in their respective point queries. Full-parcel/structure NFHL overlay did not complete through the research connector; check FEMA MSC for current effective products and any map changes before regulatory use.",
-    "parcel_polygon_query_status": "Failed through the research connector with connection closed; no parcel-wide NFHL overlay is claimed.",
-    "firm_panel_query": {
-      "query_url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/3/query?geometry=-88.00535128%2C37.84579909&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=json",
-      "query_status": "HTTP 200; one FIRM panel feature",
-      "panel_id": "0300",
-      "community": "18129C",
-      "effective_date_utc": "2014-10-05T00:00:00Z",
-      "source": "18129C_BASE12",
-      "status": "Countywide, Panel Printed",
-      "interpretation": "FEMA panel metadata is resolved for the parcel centroid; retrieve and review the effective FIRM panel and index for the full parcel/structure and confirm any later revisions in FEMA MSC."
-    },
-    "bfe_layer_query": {
-      "query_url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/16/query?geometry=-88.00535128%2C37.84579909&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=json",
-      "query_status": "HTTP 200; connector summarized one feature with bfe_value=0, vertical_datum=N/A, firm_panel=N/A, effective_date=N/A",
-      "status": "NOT_ACCEPTED_AS_USABLE_BFE",
-      "interpretation": "The returned value lacks a usable vertical datum and panel/effective-date linkage; 0 is not accepted as the site's BFE. Keep BFE unresolved."
-    },
-    "lomr_point_query": {
-      "query_url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/1/query?geometry=-88.00535128%2C37.84579909&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=json",
-      "query_status": "HTTP 200; no LOMR feature intersected the parcel centroid"
-    },
-    "loma_point_query": {
-      "query_url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/34/query?geometry=-88.00535128%2C37.84579909&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=json",
-      "query_status": "HTTP 200; no LOMA feature intersected the parcel centroid"
-    }
+    "interpretation": "Current direct NFHL point query confirms Zone AE at the IGIO parcel centroid. STATIC_BFE=-9999 is a no-data sentinel, not a BFE; V_DATUM is null. This is point-only evidence, not a parcel-wide or structure-specific determination.",
+    "parcel_polygon_query_status": "Failed through the research connector with connection closed; no parcel-wide NFHL overlay is claimed."
   },
   "unresolved_gates": [
     {
       "id": "structure-footprint",
-      "state": "ADDRESS_ASSOCIATED_FOOTPRINT_CANDIDATE_FOUND_OWNER_CONFIRMATION_PENDING",
-      "reason": "Posey County address point for 13101 BONEBANK RD falls inside Indiana Building Footprints 2016-2020 feature 763173 (~258.7 m²), fully inside the candidate parcel; current imagery/owner/survey confirmation still needed."
+      "state": "OPEN",
+      "reason": "Public parcel point and polygon do not establish the actual house footprint; verify against county structure data, current imagery and/or survey."
     },
     {
       "id": "legal-boundary",
@@ -190,6 +166,11 @@
       "reason": "Current connector response has an unresolved value/unit discrepancy; quarantine both point values."
     },
     {
+      "id": "fema-effective-panel-and-bfe",
+      "state": "POINT_ZONE_CONFIRMED_BFE_UNAVAILABLE_PANEL_REVIEW_OPEN",
+      "reason": "Current NFHL point query returned FLD_ZONE=AE, STATIC_BFE=-9999, V_DATUM=null. Effective panel/LOMC review and applicable INFIP/FARA remain open."
+    },
+    {
       "id": "drainage-outlet",
       "state": "OPEN",
       "reason": "No outlet has been selected or verified."
@@ -203,11 +184,6 @@
       "id": "hydrologic-hydraulic-model",
       "state": "BLOCKED_NOT_RUN",
       "reason": "No approved catchment, model question, datum-consistent geometry, or validated input manifest."
-    },
-    {
-      "id": "fema-bfe-structure-review",
-      "state": "PARTIALLY_RESOLVED",
-      "reason": "Panel 0300, effective 2014-10-05, is identified at centroid; BFE remains unusable and full-parcel/structure overlay plus current FEMA MSC review remain open."
     }
   ],
   "quality_notes": [
@@ -218,11 +194,7 @@
     "No DEM raster or watershed polygon was created by this pass.",
     "USGS TNM Access API returned four 1-meter DEM products covering the parcel bounding box; the Indiana Statewide LiDAR 2017 tile is the selected candidate based on state/project match. It is metadata evidence only, not a local raster file or analyzed terrain surface.",
     "Current FEMA NFHL point query succeeded: FLD_ZONE=AE; STATIC_BFE=-9999; V_DATUM=null. No BFE is available in the returned feature.",
-    "The full candidate parcel polygon intersects the Indiana state CSLF flood polygon cslf_id 3785 (AE). This is a topological intersection only; no coverage fraction or house-specific flood depth was computed.",
-    "USGS 3DHP current service (metadata refresh 2026-09-04) returned ten flowlines in a ~0.6 km bbox around the candidate parcel. Canal H77EJ is approximately 7.0 m from the parcel boundary by projected geometric distance; this is only a candidate conveyance, not an outlet determination.",
-    "The 3DHP catchment layer returned zero features in the broader query bbox and the outlet hydrolocation layer returned zero features there. This is a service query result, not evidence that the property has no drainage basin.",
-    "Live Indiana address-point and building-footprint queries identified candidate footprint objectid 763173 containing the Posey County address point; the state CSLF polygon also intersects this footprint (AE). This improves the structure-location candidate but does not identify the principal dwelling conclusively or provide a BFE.",
-    "Separate candidate structure GeoJSON created at data/posey-county/aoi/13101-bonebank-road-structure-candidate-763173.geojson. It is explicitly marked unapproved and not surveyed."
+    "The full candidate parcel polygon intersects the Indiana state CSLF flood polygon cslf_id 3785 (AE). This is a topological intersection only; no coverage fraction or house-specific flood depth was computed."
   ],
   "terrain_catalog": {
     "agency": "U.S. Geological Survey / The National Map",
@@ -277,348 +249,6 @@
       "USGS metadata says 1-meter DEM tiles may not be seamless across project boundaries; check neighboring project edges and source quality.",
       "Do not infer a watershed from a DEM catalog result. Verify culverts, road embankments, ditches, tile drainage and the intended outlet.",
       "No elevation samples or slope/flow accumulation/catchment geometry were derived from this catalog result."
-    ]
-  },
-  "hydrography": {
-    "agency": "U.S. Geological Survey / The National Map",
-    "service": "USGS 3D Hydrography Program (3DHP) all-feature service",
-    "service_url": "https://3dhp.nationalmap.gov/arcgis/rest/services/usgs_3dhp_all/FeatureServer",
-    "service_metadata_url": "https://3dhp.nationalmap.gov/arcgis/rest/services/usgs_3dhp_all/FeatureServer?f=pjson",
-    "service_refresh_date": "2026-09-04",
-    "queried_bbox_lonlat": [
-      -88.008,
-      37.843,
-      -88.002,
-      37.848
-    ],
-    "query_results": {
-      "flowline_query_url": "https://3dhp.nationalmap.gov/arcgis/rest/services/usgs_3dhp_all/FeatureServer/50/query?geometry=-88.008%2C37.843%2C-88.002%2C37.848&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=json",
-      "flowline_count_returned": 10,
-      "flowline_features": [
-        {
-          "identifier": "1JM0V",
-          "feature_type": "Waterbody Connector",
-          "length_km": 0.0509
-        },
-        {
-          "identifier": "51H2R",
-          "feature_type": "Drainageway",
-          "length_km": 0.2615
-        },
-        {
-          "identifier": "6XG92",
-          "feature_type": "Drainageway",
-          "length_km": 0.3981
-        },
-        {
-          "identifier": "7VHYF",
-          "feature_type": "Drainageway",
-          "length_km": 0.0669
-        },
-        {
-          "identifier": "8TIZL",
-          "feature_type": "Canal",
-          "length_km": 0.1126
-        },
-        {
-          "identifier": "8YE8J",
-          "feature_type": "Channel Line",
-          "length_km": 0.4167
-        },
-        {
-          "identifier": "DJR0H",
-          "feature_type": "Drainageway",
-          "length_km": 0.0897
-        },
-        {
-          "identifier": "FFWOZ",
-          "feature_type": "Channel Line",
-          "length_km": 0.6085
-        },
-        {
-          "identifier": "FUHXA",
-          "feature_type": "Channel Line",
-          "length_km": 0.0166
-        },
-        {
-          "identifier": "H77EJ",
-          "feature_type": "Canal",
-          "length_km": 0.3199
-        }
-      ],
-      "waterbody_query_url": "https://3dhp.nationalmap.gov/arcgis/rest/services/usgs_3dhp_all/FeatureServer/60/query?geometry=-88.015%2C37.835%2C-87.995%2C37.855&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=json",
-      "waterbody_count_returned_in_larger_bbox": 4,
-      "catchment_query_url": "https://3dhp.nationalmap.gov/arcgis/rest/services/usgs_3dhp_all/FeatureServer/80/query?geometry=-88.015%2C37.835%2C-87.995%2C37.855&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=json",
-      "catchment_features_returned_in_larger_bbox": 0,
-      "hydrolocation_outlet_features_returned_in_larger_bbox": 0,
-      "flowline_count_discrepancy": {
-        "observations": [
-          {
-            "query": "small bbox -88.008,37.843,-88.002,37.848; returnGeometry=false",
-            "reported_count": 10
-          },
-          {
-            "query": "same small bbox; returnGeometry=true",
-            "reported_count": 20
-          },
-          {
-            "query": "broader ~1 km proximity query documented in companion evidence file",
-            "reported_count": 20,
-            "source_product": "NHD"
-          }
-        ],
-        "interpretation": "The research connector's normalized counts are not consistent between query variants. Treat the existence and geometry of returned local flowlines as screening evidence only; do not treat these counts as a complete inventory. Companion evidence reports the nearby 1-km flowline records as NHD-derived."
-      }
-    },
-    "nearby_feature_assessment": {
-      "feature_identifier": "H77EJ",
-      "feature_type": "Canal",
-      "geometry_source": "3DHP flowline query returned coordinates in EPSG:4326",
-      "nearest_point_on_feature_lonlat": [
-        -88.00443929170358,
-        37.84584729579642
-      ],
-      "nearest_point_on_candidate_parcel_boundary_lonlat": [
-        -88.00451050735597,
-        37.84581923306591
-      ],
-      "calculated_planar_distance_m": 6.997,
-      "distance_method": "Project parcel polygon and flowline coordinates from EPSG:4326 to NAD83 / UTM zone 16N (EPSG:32616), then compute Shapely polygon-to-line distance.",
-      "interpretation": "Feature H77EJ is one mapped canal returned in the local query; its returned line geometry is approximately 7 m from the candidate parcel boundary. This is not a claim that it is the nearest feature overall, a selected outlet, or proof of the home's runoff connection. Query counts vary by response/connector normalization, and companion 1-km evidence identifies nearby returned flowlines as NHD-derived."
-    },
-    "limitations": [
-      "USGS describes 3DHP as a general hydrography service and explicitly says it is not intended for site-specific regulatory determinations.",
-      "Service description says content can be a mix of elevation-derived hydrography and legacy NHD where EDH is not yet available; record local source lineage where exposed.",
-      "A zero-result catchment-layer query does not mean no real-world catchment exists; no service catchment was returned for the queried bbox.",
-      "No actual drainage outlet has been selected or field-verified.",
-      "No catchment polygon was delineated from this query.",
-      "Local flowline feature counts differed between connector-normalized query variants (10 vs 20 for the same bbox). Use individual returned features only as screening candidates; do not rely on returned counts as a complete inventory."
-    ]
-  },
-  "companion_evidence_file": "data/posey-county/evidence/13101-bonebank-road-terrain-hydrography-evidence-2026-10-15.json",
-  "structure_footprint_screen": {
-    "address_point_source": {
-      "agency": "Indiana Geographic Information Office / Posey County",
-      "dataset": "Address Points of Indiana 2024",
-      "layer_url": "https://gisdata.in.gov/server/rest/services/Hosted/Address_Points_of_Indiana_2024/FeatureServer/0",
-      "query_url": "https://gisdata.in.gov/server/rest/services/Hosted/Address_Points_of_Indiana_2024/FeatureServer/0/query?where=state_parcel_id%3D%27651908100008001010%27&outFields=objectid%2Cgeofulladdress%2Cdlgf_prop_address%2Cstate_parcel_id%2Clatitude%2Clongitude%2Cplacement%2Csource_originator%2Cdateupdate&returnGeometry=true&outSR=4326&f=pjson",
-      "query_status": "HTTP 200; one matching address point",
-      "attributes": {
-        "objectid": 1948776,
-        "geofulladdress": "13101 BONEBANK RD",
-        "dlgf_prop_address": "13101 BONEBANK RD",
-        "state_parcel_id": "651908100008001010",
-        "latitude": 37.845889,
-        "longitude": -88.005101,
-        "source_originator": "Posey County",
-        "dateupdate_epoch_ms": 1659312000000,
-        "dateupdate_utc": "2022-08-01T00:00:00Z"
-      },
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -88.00510099999997,
-          37.84588900000006
-        ],
-        "crs": "EPSG:4326"
-      }
-    },
-    "building_footprint_source": {
-      "agency": "Indiana Geographic Information Office",
-      "dataset": "Indiana Building Footprints 2016-2020",
-      "layer_url": "https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0",
-      "query_url": "https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0/query?geometry=-88.0062%2C37.8453%2C-88.0043%2C37.8463&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=objectid%2Clidaryear%2Ccounty&returnGeometry=true&outSR=4326&f=pjson",
-      "query_status": "HTTP 200; four building-footprint polygons returned; LidarYear=2020; county=Posey",
-      "method": "Footprint polygons projected to NAD83 / UTM zone 16N (EPSG:32616); computed planar footprint area, parcel coverage and distance from the address point using Shapely.",
-      "features": [
-        {
-          "objectid": 763168,
-          "lidaryear": "2020",
-          "county": "Posey",
-          "geometry": {
-            "type": "Polygon",
-            "coordinates": [
-              [
-                [
-                  -88.00509043399991,
-                  37.846280881000034
-                ],
-                [
-                  -88.00495946499994,
-                  37.84631562100004
-                ],
-                [
-                  -88.00493336599995,
-                  37.846253749000006
-                ],
-                [
-                  -88.00506433399993,
-                  37.84621900900007
-                ],
-                [
-                  -88.00509043399991,
-                  37.846280881000034
-                ]
-              ]
-            ]
-          },
-          "area_m2": 88,
-          "within_parcel": false,
-          "intersection_area_m2": 0,
-          "distance_to_parcel_boundary_m": 5.18,
-          "distance_from_address_point_to_footprint_m": 36.76
-        },
-        {
-          "objectid": 763169,
-          "lidaryear": "2020",
-          "county": "Posey",
-          "geometry": {
-            "type": "Polygon",
-            "coordinates": [
-              [
-                [
-                  -88.00524596399995,
-                  37.8460700420001
-                ],
-                [
-                  -88.00522855099992,
-                  37.846072229000164
-                ],
-                [
-                  -88.00523636799993,
-                  37.84611135200006
-                ],
-                [
-                  -88.00509996799994,
-                  37.846128489000044
-                ],
-                [
-                  -88.00508617399997,
-                  37.84605944900018
-                ],
-                [
-                  -88.00530093099994,
-                  37.84603246700012
-                ],
-                [
-                  -88.00531518499994,
-                  37.84610380800011
-                ],
-                [
-                  -88.00525424099996,
-                  37.84611146500003
-                ],
-                [
-                  -88.00524596399995,
-                  37.8460700420001
-                ]
-              ]
-            ]
-          },
-          "area_m2": 143,
-          "within_parcel": true,
-          "intersection_area_m2": 142.98,
-          "distance_from_address_point_to_footprint_m": 18.48
-        },
-        {
-          "objectid": 763172,
-          "lidaryear": "2020",
-          "county": "Posey",
-          "geometry": {
-            "type": "Polygon",
-            "coordinates": [
-              [
-                [
-                  -88.00527982199995,
-                  37.84600478100005
-                ],
-                [
-                  -88.00527977499996,
-                  37.84594886000015
-                ],
-                [
-                  -88.0053708629999,
-                  37.84594881200013
-                ],
-                [
-                  -88.00537090999994,
-                  37.84600473300008
-                ],
-                [
-                  -88.00527982199995,
-                  37.84600478100005
-                ]
-              ]
-            ]
-          },
-          "area_m2": 49.7,
-          "within_parcel": true,
-          "intersection_area_m2": 49.73,
-          "distance_from_address_point_to_footprint_m": 17.08
-        },
-        {
-          "objectid": 763173,
-          "lidaryear": "2020",
-          "county": "Posey",
-          "geometry": {
-            "type": "Polygon",
-            "coordinates": [
-              [
-                [
-                  -88.00513690799991,
-                  37.84577081100012
-                ],
-                [
-                  -88.00518069299991,
-                  37.84597762000006
-                ],
-                [
-                  -88.00505608899991,
-                  37.84599420900002
-                ],
-                [
-                  -88.00501230399996,
-                  37.845787400000134
-                ],
-                [
-                  -88.00513690799991,
-                  37.84577081100012
-                ]
-              ]
-            ]
-          },
-          "area_m2": 258.7,
-          "within_parcel": true,
-          "intersection_area_m2": 258.68,
-          "distance_from_address_point_to_footprint_m": 0,
-          "address_point_inside_footprint": true
-        }
-      ]
-    },
-    "candidate_primary_structure": {
-      "objectid": 763173,
-      "basis": "The Posey County address point for 13101 BONEBANK RD falls inside this 2020 building footprint; footprint is fully within the candidate IGIO parcel and is the closest of the four returned footprints to the address point.",
-      "status": "BEST_AVAILABLE_ADDRESS_ASSOCIATED_STRUCTURE_CANDIDATE_NOT_OWNER_OR_SURVEY_VERIFIED",
-      "state_floodplain_query": {
-        "url": "https://gisdata.in.gov/server/rest/services/Hosted/Posey_CSLF_Feb2025/FeatureServer/0/query?geometry=<building-footprint-763173-polygon>&geometryType=esriGeometryPolygon&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=objectid,cslf_id,pre_zone,new_zone,source_cit,new_srccit&returnGeometry=false&f=pjson",
-        "result": {
-          "objectid": 3785,
-          "cslf_id": "3785",
-          "pre_zone": "AE",
-          "new_zone": "AE",
-          "source_cit": "STUDY10",
-          "new_srccit": "STUDY10"
-        },
-        "interpretation": "The address-associated candidate building footprint intersects the state CSLF AE polygon. This is a GIS overlay, not a BFE, flood depth, regulatory determination, or proof that the address point identifies the principal dwelling."
-      },
-      "geojson_path": "data/posey-county/aoi/13101-bonebank-road-structure-candidate-763173.geojson"
-    },
-    "limitations": [
-      "Indiana Building Footprints 2016-2020 is a historical statewide layer (LidarYear 2020); current imagery and owner confirmation are still needed to identify the principal dwelling and current footprint.",
-      "Three returned building footprints lie within the candidate parcel; only objectid 763173 contains the matching county address point. Other structures are not functionally classified by this layer.",
-      "A fourth footprint is about 5.18 m outside the parcel boundary; this may be a neighboring structure and is not treated as part of the candidate parcel.",
-      "The state flood polygon intersects the address-associated footprint, but no BFE/datum/depth is available in that query.",
-      "Do not use this footprint as a surveyed building outline or finished-floor/lowest-adjacent-grade source."
     ]
   }
 }

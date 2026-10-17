@@ -16,7 +16,7 @@ The USACE Hydrologic Engineering Center makes selected software available to the
 | HEC-FIA | Consequence and flood-impact analysis for a defined event and supported inputs | [Product](https://www.hec.usace.army.mil/software/hec-fia/), [downloads](https://www.hec.usace.army.mil/software/hec-fia/downloads.aspx) |
 | HEC software catalog and terms | Product discovery and software-use constraints | [HEC Software](https://www.hec.usace.army.mil/software/) |
 
-The official pages reviewed surfaced HEC-HMS 4.14 download materials, HEC-RAS 6.6 manuals, HEC-SSP 2.3 documentation, and HEC-FIA 3.4-series materials. These are source-observed versions, not an evergreen declaration of the latest release. Recheck official download and release-note pages when selecting a runner; never silently upgrade a model project between runs.
+The official pages checked on 2026-10-15 list HEC-HMS 4.14 and HEC-RAS 7.0.1 as current downloads. HEC-RAS documentation pages may still link to older-version manuals. HEC-SSP 2.3 and HEC-FIA 3.4-series materials were observed during earlier research; recheck their current pages before use. These are time-stamped source observations, not evergreen version assertions. Recheck official downloads and release notes when selecting a runner; never silently upgrade a model project between runs.
 
 ## 2. Target architecture
 
@@ -87,34 +87,38 @@ No downstream status may pass while an upstream required gate is blocked. Docume
 
 ## 7. TSM implementation status (2026-10-15)
 
-Implemented and committed:
+### Implemented in the coupled-workflow branch
 
-- `data/schemas/hec-coupled-run-manifest-v1.schema.json` — JSON Schema 2020-12 contract for approved AOI, approval evidence, datum, source inputs, HEC-HMS/HEC-RAS runner commands, hydrograph handoff and artifact storage.
-- `scripts/hydrology/validate-hec-run-manifest.mjs` — structural and execution-readiness validation. A structurally valid DRAFT manifest cannot execute.
-- `scripts/hydrology/run-hec-coupled-workflow.mjs` — shell-free sequential command orchestration, pre-run SHA-256 verification of AOI/source inputs, explicit hydrograph handoff, expected-output checks, content-addressed output blobs and a run receipt. It rejects stale/non-empty output directories, path traversal, unapproved manifests and unsupported metadata-store mode.
-- `data/schemas/examples/hec-coupled-run-manifest-v1.example.json` — intentionally DRAFT-only fixture; it is not a real approved project.
-- `tsm-console/tests/hec-coupled-run-manifest.test.mjs` — structural, fail-closed approval, hash/extra-field and path-safety tests.
-- The root schema gate and `tsm-console/package.json` CI chain now include the new schema and manifest tests.
+- The original v1 manifest schema and example are preserved as compatibility artifacts. The current v2 schema is data/schemas/hec-coupled-run-manifest-v2.schema.json; it pins source commit, AOI/delineation and source-input hashes, HEC model-package hashes, adapter hashes, vendor HEC executable paths/hashes, software-version evidence, exact DSS pathname and selected RAS boundary, conversion, interval/time-zone, outputs and artifact-store policy.
+- scripts/hydrology/validate-hec-run-manifest.mjs validates the checked-in JSON Schema 2020-12 keyword subset, fails closed on unsupported schema keywords, and distinguishes structural validation from execution readiness. The v2 DRAFT example must not execute.
+- scripts/hydrology/hms-ras-handoff.py uses version-pinned HMS/RAS Commander APIs to read one explicitly named HMS FLOW record, validate units and time continuity, write an explicitly named RAS DSS FLOW record, update a specifically selected RAS .uNN boundary, and retain a hash-rich handoff report. It rejects gaps, duplicates, irregular time steps, unqualified unit conversions, non-finite/negative discharge and ambiguous/nonexistent local timestamps around daylight-saving transitions.
+- The adapter reads the newly written RAS DSS FLOW record back and compares its exact declared time axis plus values against the intended hydrograph (relative tolerance 1e-5 with an absolute floor 1e-6 in target units). The runner checks the full receipt contract: source/target paths and hashes, selected boundary identity, target catalog pathname, series semantics, and passing read-back checks. This verifies the transfer representation only; it does not qualify the hydrologic model.
+- scripts/hydrology/run-hec-coupled-workflow.mjs verifies the manifest, hashes source projects and actual vendor binaries, creates isolated run copies, executes pinned argv commands without shell interpolation, invokes the handoff adapter, checks the output file/HDF5 signature, and writes stage logs, content-addressed filesystem blobs and a run receipt.
+- Regression suites cover manifest validation, runner path/hash guards, DSS pathname/units/timestamp contracts, post-write read-back fidelity, boundary-receipt consistency, and fail-closed behavior.
+- The reusable run contract and operator steps are documented in [HEC-HMS-RAS-REPRODUCIBLE-WORKFLOW.md](HEC-HMS-RAS-REPRODUCIBLE-WORKFLOW.md); research rationale and sources are in [HEC-COUPLING-VALIDATION-RESEARCH-2026-10-15.md](HEC-COUPLING-VALIDATION-RESEARCH-2026-10-15.md).
 
-### Existing interfaces inspected
+### Interfaces inspected and storage boundary
 
-- `packages/hydraulics/python/tsm_hec_ras/runtime.py` supports controlled local HEC-RAS 6.x execution on Windows and requires a real project plus a produced `.p*.hdf` artifact.
-- `backend/engineering/hec_ras_worker.py` hashes model-package trees and runs an operator-supplied argv without shell interpolation; its current receipt deliberately remains unvalidated.
-- `backend/api/v1/hecras_solver.py` inspects real HDF5 output and rejects synthetic hydraulic fallbacks.
-- `tsm-console/server/store/evidence-store.mjs` is an asynchronous file-backed metadata ledger under `TSM_EVIDENCE_DIR`; `database/migrations/052_artifacts.sql` defines a PostgreSQL artifact registry. Neither interface alone provides a transaction-safe content-addressed binary store with idempotent registration. The new runner therefore writes content-addressed files and a run receipt, and currently supports `metadata_store=run-manifest-only`. The declared evidence-store adapter mode is intentionally rejected until a transaction-safe adapter and integration tests exist.
+- packages/hydraulics/python/tsm_hec_ras/runtime.py supports controlled local HEC-RAS 6.x execution on Windows with a real project and produced .p*.hdf artifact; this is not a verified runner for all later HEC-RAS versions.
+- backend/engineering/hec_ras_worker.py hashes model-package trees and runs operator-supplied argv without shell interpolation; its receipt deliberately remains unvalidated.
+- backend/api/v1/hecras_solver.py inspects real HDF5 outputs and rejects synthetic hydraulic fallbacks.
+- tsm-console/server/store/evidence-store.mjs is a file-backed metadata ledger under TSM_EVIDENCE_DIR; database/migrations/052_artifacts.sql defines artifact metadata in PostgreSQL. Neither alone guarantees transaction-safe registration of large binary objects and manifests. The coupled runner therefore uses local filesystem content-addressed blobs and metadata_store=run-manifest-only. A shared object store/database adapter remains a separate integration task requiring security, integrity, idempotency and transaction tests.
 
 ### Important execution boundary
 
-This is a reproducible **orchestration boundary**, not yet a turnkey solver adapter. Operators must provide exact, supported HEC-HMS and HEC-RAS executable argument vectors for the installed versions, already-configured projects, expected output paths, and a verified hydrograph export/import convention. The runner does not guess HEC command-line syntax, interpret DSS/CSV semantics, validate hydrograph time-series continuity, inspect hydraulic stability, or certify the resulting model. It marks a completed run `COMPLETED_UNVALIDATED`, never “validated” or “approved.”
+The workflow implementation is reproducible orchestration plus a specific source-DSS-to-RAS-boundary adapter; it is not a completed engineering model. The adapter libraries are explicitly pinned, but this repository still has no approved pilot area and no supplied qualified HMS/RAS project. The checked-in v2 manifest is DRAFT with placeholder hashes and must never be used for a model run.
 
-No real coupled run has been executed. No AOI has been approved in the current request, and no approved model project/input package was available to this implementation. The example remains DRAFT with placeholder hashes and must never be used as run input.
+A solver exit code, present HDF5 file, structurally valid hydrograph, or generated receipt does not establish model skill, stable numerical solutions, valid calibration or engineering approval. Completed computations are labeled COMPLETED_UNVALIDATED, and no model execution is claimed in this change.
 
 ### Remaining before the first real pilot run
 
-1. Approve the named AOI and intended decision/use.
-2. Supply the AOI polygon and watershed delineation, source input files with verified hashes/terms, explicit CRS and vertical datum evidence.
-3. Supply pinned HEC-HMS and HEC-RAS installations, supported command vectors, and complete baseline project packages.
-4. Confirm the exact hydrograph output/input format, location identifier, units, time zone/interval, missing-data policy and model boundary conditions.
-5. Run the validator and test suite, then execute only on the approved compatible runner.
-6. Verify HEC-RAS HDF5 output, numerical diagnostics, mass balance, independent calibration/validation, uncertainty and sensitivity; obtain qualified engineering review.
-7. Integrate receipts into the evidence ledger only after idempotency, transaction behavior and retention controls are tested. Keep deployment/release gates blocked until required evidence exists.
+1. A named AOI and purpose must be approved with a traceable reviewer/evidence record.
+2. The AOI polygon, independently checked watershed delineation, model-forcing/observation inputs, usage terms, units and CRS/vertical datum must be supplied and hashed.
+3. Compatible HEC-HMS and HEC-RAS installations must be made available on a qualified worker, with exact version evidence, vendor binary hashes, a model package inventory and tested stage adapters.
+4. Confirm the exact HEC-HMS FLOW pathname, time zone, interval/units and the correct RAS receiving boundary/location; require the target DSS read-back comparison and review the receipt hashes/selector against the staged .uNN file.
+5. Run the v2 readiness gate, unit tests and model-specific checks on the selected worker, then execute only with an approved manifest.
+6. Review HEC-HMS warnings, hydrologic volume/continuity, HEC-RAS computational diagnostics, mass balance and output time/spatial coverage.
+7. Independently calibrate and validate using appropriately qualified separate observation sets; assess uncertainty/sensitivity; obtain qualified engineering review for the stated use.
+8. Integrate run metadata into a shared evidence/object-store service only after its concurrency, retention, permissions, integrity and idempotency semantics are tested.
+9. Prove deployment/service health separately from repository CI and model execution.
+

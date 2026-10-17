@@ -10,9 +10,9 @@ const schemaPaths = [
   'data/schemas/regulatory-gate.schema.json',
   path.join('data', 'schemas', 'nfip-discrepancy.schema.json'),
   'data/schemas/tsm-flood-information-federation-v1.schema.json',
-  'data/schemas/hec-coupled-run-manifest-v1.schema.json',
+  'data/schemas/hec-coupled-run-manifest-v2.schema.json',
 ];
-const hecCoupledRunManifestExample = JSON.parse(fs.readFileSync(path.join(repoRoot, 'data/schemas/examples/hec-coupled-run-manifest-v1.example.json'), 'utf8'));
+const hecCoupledRunManifestExample = JSON.parse(fs.readFileSync(path.join(repoRoot, 'data/schemas/examples/hec-coupled-run-manifest-v2.example.json'), 'utf8'));
 const failures = [];
 const fail = (message) => failures.push(message);
 
