@@ -1,0 +1,76 @@
+{
+  "authority_class": "SCREENING_INVENTORY",
+  "source": "Secondary compilation consistent with published NID-derived Posey County dam tables (2026). NOT a substitute for nid.sec.usace.army.mil official export.",
+  "official_portal": "https://nid.sec.usace.army.mil/",
+  "county": "Posey",
+  "state": "IN",
+  "fips": "18129",
+  "count": 5,
+  "dams": [
+    {
+      "name": "A.B. Brown Power Plant Dam",
+      "hazard": "High",
+      "condition": "Fair",
+      "owner_type": "Public Utility",
+      "purpose": "Other",
+      "height_ft": 68,
+      "storage_acre_ft": 3400,
+      "lon": -87.92,
+      "lat": 37.90,
+      "coord_quality": "APPROXIMATE_SITE"
+    },
+    {
+      "name": "Harold Mann Lake Dam",
+      "hazard": "Low",
+      "condition": "Poor",
+      "owner_type": "Private",
+      "purpose": "Recreation",
+      "height_ft": 30,
+      "storage_acre_ft": 150,
+      "lon": -87.95,
+      "lat": 38.05,
+      "coord_quality": "COUNTY_APPROX"
+    },
+    {
+      "name": "Pahoka Camp Lake Dam",
+      "hazard": "Low",
+      "condition": "Poor",
+      "owner_type": "Private",
+      "purpose": "Recreation",
+      "height_ft": 37,
+      "storage_acre_ft": 193,
+      "lon": -87.88,
+      "lat": 38.08,
+      "coord_quality": "COUNTY_APPROX"
+    },
+    {
+      "name": "Willow Marsh Dam",
+      "hazard": "Low",
+      "condition": "Not Rated",
+      "owner_type": "State",
+      "purpose": "Recreation",
+      "height_ft": 10,
+      "storage_acre_ft": 75,
+      "lon": -87.98,
+      "lat": 38.02,
+      "coord_quality": "COUNTY_APPROX"
+    },
+    {
+      "name": "Koester Lake Dam",
+      "hazard": "Low",
+      "condition": "Poor",
+      "owner_type": "Private",
+      "purpose": "Water Supply",
+      "height_ft": 27,
+      "storage_acre_ft": 38,
+      "lon": -87.85,
+      "lat": 38.10,
+      "coord_quality": "COUNTY_APPROX"
+    }
+  ],
+  "notes": [
+    "Coordinates are APPROXIMATE for map awareness only; refine from official NID CSV/GPKG download.",
+    "Do not use for regulatory decisions or emergency action plans.",
+    "NID REST/API endpoints returned 400/404 from this environment; portal remains authoritative."
+  ]
+}
