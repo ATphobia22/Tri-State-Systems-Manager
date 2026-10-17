@@ -70,8 +70,8 @@ function validate(value, schema, at, rootSchema = schema) {
     if (schema.format === 'uri') {
       try { new URL(value); } catch { fail(at + ': invalid URI'); }
     }
-    if (schema.format === 'date-time' && (!/^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d+)?(?:Z|[+-]\\d\\d:\\d\\d)$/.test(value) || Number.isNaN(Date.parse(value)))) fail(at + ': invalid RFC 3339 date-time');
-    if (schema.format === 'date' && !/^\\d{4}-\\d\\d-\\d\\d$/.test(value)) fail(at + ': invalid date');
+    if (schema.format === 'date-time' && (!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)$/.test(value) || Number.isNaN(Date.parse(value)))) fail(at + ': invalid RFC 3339 date-time');
+    if (schema.format === 'date' && !/^\d{4}-\d\d-\d\d$/.test(value)) fail(at + ': invalid date');
 
   }
   if (typeof value === 'number') {
