@@ -305,5 +305,100 @@
         "Radar reflectivity in dBZ is not a rainfall accumulation."
       ]
     }
-  ]
+  ],
+  "coordinate_reconciliation": {
+    "status": "ADDRESS_SELECTED_FOR_CANDIDATE_AOI_ONLY",
+    "user_instruction_recorded_on": "2026-10-15",
+    "selected_address": "13101 Bonebank Road, Mount Vernon, IN 47620",
+    "selected_parcel_id": "65-19-08-100-008.001-010",
+    "selected_parcel_centroid": {
+      "longitude": -88.00535128,
+      "latitude": 37.84579909,
+      "source": "Indiana Geographic Information Office, Parcel Boundaries of Indiana 2025"
+    },
+    "legacy_conflicting_point": {
+      "latitude": 37.9035,
+      "longitude": -88.0007,
+      "claimed_role": "PTDT v35 codex 'surveyed centroid' assertion",
+      "source_document": "docs/OWNER-ACTION-REQUIRED.md; originally described as present in archived PTDT v32-33 notes and tsm-console/src/lib/scientific-analytics.ts",
+      "distance_from_selected_parcel_centroid_km": 6.4175218733,
+      "status": "UNVERIFIED_LEGACY_ASSERTION_NOT_USED_FOR_THIS_AOI"
+    },
+    "prior_address_point": {
+      "latitude": 37.84589,
+      "longitude": -88.0051,
+      "source": "MT-1 mapping / geocoded address point as recorded in docs/OWNER-ACTION-REQUIRED.md",
+      "distance_from_selected_parcel_centroid_metres": 24.3097
+    },
+    "prior_public_disclosure_point": {
+      "latitude": 37.845887,
+      "longitude": -88.005075,
+      "source": "docs/privacy/site-anchor-public-disclosure.md",
+      "distance_from_selected_parcel_centroid_metres": 26.2017
+    },
+    "interpretation": "The user explicitly selected the street address for this candidate AOI. This workflow therefore uses only the matching 2025 IGIO parcel polygon and its layer centroid. The separate legacy PTDT point 6.42 km away is not used. The address choice does not certify a legal survey or resolve all historical design records that still reference the conflicting point.",
+    "engineering_use_guard": "SURVEY_REQUIRED_BEFORE_ENGINEERING_DESIGN_OR_REGULATORY_SUBMISSION"
+  },
+  "fema_nfhl_parcel_intersection": {
+    "status": "OBSERVED",
+    "source_agency": "Federal Emergency Management Agency",
+    "source_layer_url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28",
+    "query_method": "ArcGIS geometry query using the full IGIO parcel Polygon in EPSG:4326; spatialRel=esriSpatialRelIntersects; returnGeometry=false",
+    "geometry_source_path": "data/posey-county/aoi/13101-bonebank-road-parcel.geojson",
+    "geometry_source_sha256": "93d9115b21b14932674095b5267b482c9b38c6fc45399687a8b5126894b71572",
+    "returned_feature_count": 1,
+    "intersecting_features": [
+      {
+        "dfirm_id": "18129C",
+        "flood_area_id": "18129C_105",
+        "flood_zone": "AE",
+        "zone_subtype": null,
+        "special_flood_hazard_area": true,
+        "raw_static_bfe": -9999,
+        "normalized_static_bfe": null,
+        "vertical_datum": null
+      }
+    ],
+    "interpretation": "The parcel polygon intersects a FEMA NFHL feature mapped Zone AE and flagged as a Special Flood Hazard Area. The query returned no intersected geometry, so it does not establish the percentage of parcel area inside the feature. STATIC_BFE=-9999 and the null vertical datum mean this query provides no usable Base Flood Elevation."
+  },
+  "indiana_dnr_parcel_intersection": {
+    "status": "OBSERVED",
+    "source_agency": "Indiana Department of Natural Resources / Indiana Geographic Information Office",
+    "source_layer_url": "https://gisdata.in.gov/server/rest/services/Hosted/FLOODHAZARD_DNR_WATER_PROD/FeatureServer/0",
+    "query_method": "ArcGIS geometry query using the full IGIO parcel Polygon in EPSG:4326; spatialRel=esriSpatialRelIntersects; returnGeometry=false",
+    "geometry_source_path": "data/posey-county/aoi/13101-bonebank-road-parcel.geojson",
+    "geometry_source_sha256": "93d9115b21b14932674095b5267b482c9b38c6fc45399687a8b5126894b71572",
+    "returned_feature_count": 1,
+    "intersecting_features": [
+      {
+        "dfirm_id": "18129C",
+        "flood_zone": "AE",
+        "zone_subtype": null,
+        "special_flood_hazard_area": true,
+        "source_dnr": "NFHL",
+        "source_citation": "18129C_STUDY3",
+        "raw_static_bfe": -9999,
+        "raw_depth": -9999,
+        "raw_velocity": -9999,
+        "normalized_static_bfe": null,
+        "normalized_depth": null,
+        "normalized_velocity": null
+      }
+    ],
+    "interpretation": "State-layer polygon intersection independently returns the same Zone AE/SFHA feature, identifying NFHL as its source. The -9999 values are no-data sentinels; the query yields neither BFE, depth, nor velocity."
+  },
+  "hydrologic_context": {
+    "status": "OBSERVED_REGIONAL_CONTEXT",
+    "source_agency": "U.S. Geological Survey",
+    "source_dataset": "Watershed Boundary Dataset (WBD), HUC12",
+    "source_service_url": "https://hydro.nationalmap.gov/arcgis/rest/services/wbd/MapServer",
+    "source_geometry_path": "data/posey-county/watersheds/posey-anchor-huc12-051201130904.geojson",
+    "source_geometry_sha256": "f8cfea95d9ea772b1769e45a415e41d2345d8239573d890569a500bc1b7894cd",
+    "source_vintage_note": "Vendored in the Posey County data bundle after WBD query recorded 2026-09-27.",
+    "huc12_code": "051201130904",
+    "name": "Willow Pond Slough-Wabash River",
+    "parcel_intersects_huc12": true,
+    "parcel_centroid_within_huc12": true,
+    "interpretation": "The site parcel and its IGIO centroid are within this regional HUC12 boundary. HUC12 membership is basin context only; this hydrologic unit is not a delineation of the contributing catchment to a local outlet and must not be copied into HEC-HMS as the local watershed area."
+  }
 }

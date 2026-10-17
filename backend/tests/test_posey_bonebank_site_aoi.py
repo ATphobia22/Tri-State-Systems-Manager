@@ -74,6 +74,42 @@ class TestPoseyBonebankSiteAOI(unittest.TestCase):
         self.assertEqual("NAVD88", terrain["vertical_datum"])
         self.assertIn("One point sample only", terrain["limitation"])
 
+    def test_user_selected_address_supersedes_legacy_point_for_candidate_aoi_only(self) -> None:
+        selection = self.evidence["coordinate_reconciliation"]
+        self.assertEqual("ADDRESS_SELECTED_FOR_CANDIDATE_AOI_ONLY", selection["status"])
+        self.assertEqual(self.evidence["address"], selection["selected_address"])
+        self.assertEqual("NOT_APPROVED", self.evidence["approval"]["status"])
+        self.assertGreater(selection["legacy_conflicting_point"]["distance_from_selected_parcel_centroid_km"], 6.4)
+        self.assertEqual("UNVERIFIED_LEGACY_ASSERTION_NOT_USED_FOR_THIS_AOI", selection["legacy_conflicting_point"]["status"])
+        self.assertEqual(
+            "SURVEY_REQUIRED_BEFORE_ENGINEERING_DESIGN_OR_REGULATORY_SUBMISSION",
+            selection["engineering_use_guard"],
+        )
+
+    def test_full_parcel_polygon_flood_intersections_are_recorded_without_inventing_bfe(self) -> None:
+        parcel_sha = self.evidence["parcel"]["geometry_sha256"]
+        for key in ("fema_nfhl_parcel_intersection", "indiana_dnr_parcel_intersection"):
+            result = self.evidence[key]
+            self.assertEqual(parcel_sha, result["geometry_source_sha256"])
+            self.assertEqual(1, result["returned_feature_count"])
+            self.assertEqual("AE", result["intersecting_features"][0]["flood_zone"])
+            self.assertTrue(result["intersecting_features"][0]["special_flood_hazard_area"])
+            self.assertIsNone(result["intersecting_features"][0]["normalized_static_bfe"])
+
+    def test_huc12_is_context_not_local_hec_hms_catchment(self) -> None:
+        from hashlib import sha256
+
+        context = self.evidence["hydrologic_context"]
+        huc_path = ROOT / context["source_geometry_path"]
+        self.assertTrue(huc_path.is_file())
+        self.assertEqual(context["source_geometry_sha256"], sha256(huc_path.read_bytes()).hexdigest())
+        huc = json.loads(huc_path.read_text(encoding="utf-8"))["features"][0]["properties"]
+        self.assertEqual("051201130904", huc["huc12"])
+        self.assertEqual("Willow Pond Slough-Wabash River", huc["name"])
+        self.assertTrue(context["parcel_centroid_within_huc12"])
+        self.assertEqual("NOT_DELINEATED", self.evidence["watershed_delineation"]["status"])
+        self.assertIsNone(self.evidence["watershed_delineation"]["area_sq_mi"])
+
     def test_coupled_model_is_blocked_and_not_run(self) -> None:
         readiness = self.evidence["coupled_model_readiness"]
         self.assertEqual("BLOCKED_NOT_RUN", readiness["status"])

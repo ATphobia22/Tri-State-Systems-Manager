@@ -20,12 +20,11 @@
     "indiana_dnr_flood_hazard_crosscheck",
     "watershed_delineation",
     "coupled_model_readiness",
-    "source_conflicts",
-    "raster_crosscheck",
-    "hydrologic_unit_context",
-    "parcel_floodplain_overlay",
-    "water_source_inventory",
-    "references"
+    "references",
+    "coordinate_reconciliation",
+    "fema_nfhl_parcel_intersection",
+    "indiana_dnr_parcel_intersection",
+    "hydrologic_context"
   ],
   "properties": {
     "schema": {
@@ -397,139 +396,170 @@
         }
       }
     },
-    "source_conflicts": {
+    "coordinate_reconciliation": {
       "type": "object",
       "additionalProperties": false,
       "required": [
         "status",
-        "source_record",
-        "summary",
-        "action",
-        "governing_reference"
+        "user_instruction_recorded_on",
+        "selected_address",
+        "selected_parcel_id",
+        "selected_parcel_centroid",
+        "legacy_conflicting_point",
+        "prior_address_point",
+        "prior_public_disclosure_point",
+        "interpretation",
+        "engineering_use_guard"
       ],
       "properties": {
         "status": {
-          "const": "CONFLICT_UNRESOLVED"
+          "const": "ADDRESS_SELECTED_FOR_CANDIDATE_AOI_ONLY"
         },
-        "source_record": {
+        "user_instruction_recorded_on": {
           "type": "string",
-          "minLength": 1
+          "format": "date"
         },
-        "summary": {
-          "type": "string",
-          "minLength": 1
-        },
-        "action": {
-          "type": "string",
-          "minLength": 1
-        },
-        "governing_reference": {
-          "type": "string",
-          "minLength": 1
-        }
-      }
-    },
-    "raster_crosscheck": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "status",
-        "source_raster_path",
-        "source_raster_sha256",
-        "source_raster_shape",
-        "source_raster_horizontal_crs",
-        "source_raster_nominal_resolution",
-        "source_raster_value_at_parcel_centroid_m",
-        "source_raster_vertical_datum_documented_in_bundle",
-        "epqs_value_ft",
-        "epqs_value_m",
-        "epqs_raster_id",
-        "difference_raster_minus_epqs_m",
-        "source_tiles",
-        "metadata_note",
-        "interpretation"
-      ],
-      "properties": {
-        "status": {
-          "const": "NUMERICALLY_CONSISTENT_REFERENCE_CHECK"
-        },
-        "source_raster_path": {
-          "type": "string",
-          "minLength": 1
-        },
-        "source_raster_sha256": {
-          "$ref": "#/$defs/sha256"
-        },
-        "source_raster_shape": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "minimum": 1
-          },
-          "minItems": 2,
-          "maxItems": 2
-        },
-        "source_raster_horizontal_crs": {
-          "const": "EPSG:4269"
-        },
-        "source_raster_nominal_resolution": {
+        "selected_address": {
           "type": "string"
         },
-        "source_raster_value_at_parcel_centroid_m": {
-          "type": "number"
-        },
-        "source_raster_vertical_datum_documented_in_bundle": {
+        "selected_parcel_id": {
           "type": "string"
         },
-        "epqs_value_ft": {
-          "type": "number"
-        },
-        "epqs_value_m": {
-          "type": "number"
-        },
-        "epqs_raster_id": {
-          "type": "integer"
-        },
-        "difference_raster_minus_epqs_m": {
-          "type": "number"
-        },
-        "source_tiles": {
-          "type": "array",
-          "minItems": 4,
-          "items": {
-            "type": "string",
-            "format": "uri"
+        "selected_parcel_centroid": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "longitude",
+            "latitude",
+            "source"
+          ],
+          "properties": {
+            "longitude": {
+              "type": "number"
+            },
+            "latitude": {
+              "type": "number"
+            },
+            "source": {
+              "type": "string"
+            }
           }
         },
-        "metadata_note": {
-          "type": "string",
-          "minLength": 1
+        "legacy_conflicting_point": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "latitude",
+            "longitude",
+            "claimed_role",
+            "source_document",
+            "distance_from_selected_parcel_centroid_km",
+            "status"
+          ],
+          "properties": {
+            "latitude": {
+              "type": "number"
+            },
+            "longitude": {
+              "type": "number"
+            },
+            "claimed_role": {
+              "type": "string"
+            },
+            "source_document": {
+              "type": "string"
+            },
+            "distance_from_selected_parcel_centroid_km": {
+              "type": "number",
+              "minimum": 6.4
+            },
+            "status": {
+              "const": "UNVERIFIED_LEGACY_ASSERTION_NOT_USED_FOR_THIS_AOI"
+            }
+          }
+        },
+        "prior_address_point": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "latitude",
+            "longitude",
+            "source",
+            "distance_from_selected_parcel_centroid_metres"
+          ],
+          "properties": {
+            "latitude": {
+              "type": "number"
+            },
+            "longitude": {
+              "type": "number"
+            },
+            "source": {
+              "type": "string"
+            },
+            "distance_from_selected_parcel_centroid_metres": {
+              "type": "number"
+            }
+          }
+        },
+        "prior_public_disclosure_point": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "latitude",
+            "longitude",
+            "source",
+            "distance_from_selected_parcel_centroid_metres"
+          ],
+          "properties": {
+            "latitude": {
+              "type": "number"
+            },
+            "longitude": {
+              "type": "number"
+            },
+            "source": {
+              "type": "string"
+            },
+            "distance_from_selected_parcel_centroid_metres": {
+              "type": "number"
+            }
+          }
         },
         "interpretation": {
-          "type": "string",
-          "minLength": 1
+          "type": "string"
+        },
+        "engineering_use_guard": {
+          "const": "SURVEY_REQUIRED_BEFORE_ENGINEERING_DESIGN_OR_REGULATORY_SUBMISSION"
         }
       }
     },
-    "hydrologic_unit_context": {
+    "fema_nfhl_parcel_intersection": {
+      "$ref": "#/$defs/parcelFemaIntersection"
+    },
+    "indiana_dnr_parcel_intersection": {
+      "$ref": "#/$defs/parcelDnrIntersection"
+    },
+    "hydrologic_context": {
       "type": "object",
       "additionalProperties": false,
       "required": [
         "status",
         "source_agency",
         "source_dataset",
-        "source_service",
-        "feature_path",
-        "feature_sha256",
-        "parcel_centroid_contained",
-        "huc12",
-        "huc10",
-        "huc8",
-        "limitation"
+        "source_service_url",
+        "source_geometry_path",
+        "source_geometry_sha256",
+        "source_vintage_note",
+        "huc12_code",
+        "name",
+        "parcel_intersects_huc12",
+        "parcel_centroid_within_huc12",
+        "interpretation"
       ],
       "properties": {
         "status": {
-          "const": "CONTEXT_ONLY_NOT_SITE_CATCHMENT"
+          "const": "OBSERVED_REGIONAL_CONTEXT"
         },
         "source_agency": {
           "type": "string"
@@ -537,245 +567,33 @@
         "source_dataset": {
           "type": "string"
         },
-        "source_service": {
+        "source_service_url": {
           "type": "string",
           "format": "uri"
         },
-        "feature_path": {
+        "source_geometry_path": {
           "type": "string"
         },
-        "feature_sha256": {
+        "source_geometry_sha256": {
           "$ref": "#/$defs/sha256"
         },
-        "parcel_centroid_contained": {
-          "type": "boolean"
-        },
-        "huc12": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "code",
-            "name",
-            "area_sq_km"
-          ],
-          "properties": {
-            "code": {
-              "type": "string",
-              "pattern": "^[0-9]{12}$"
-            },
-            "name": {
-              "type": "string"
-            },
-            "area_sq_km": {
-              "type": "number",
-              "exclusiveMinimum": 0
-            }
-          }
-        },
-        "huc10": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "code",
-            "name"
-          ],
-          "properties": {
-            "code": {
-              "type": "string",
-              "pattern": "^[0-9]{10}$"
-            },
-            "name": {
-              "type": "string"
-            }
-          }
-        },
-        "huc8": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "code",
-            "name"
-          ],
-          "properties": {
-            "code": {
-              "type": "string",
-              "pattern": "^[0-9]{8}$"
-            },
-            "name": {
-              "type": "string"
-            }
-          }
-        },
-        "limitation": {
-          "type": "string",
-          "minLength": 1
-        }
-      }
-    },
-    "parcel_floodplain_overlay": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "status",
-        "source_record",
-        "source_record_sha256",
-        "source_retrieved_date",
-        "source_service",
-        "intersecting_feature_count",
-        "flood_zone",
-        "special_flood_hazard_area",
-        "source_dnr",
-        "study_type",
-        "computed_parcel_overlap_percent",
-        "area_method",
-        "normalized_bfe_ft",
-        "vertical_datum",
-        "limitation"
-      ],
-      "properties": {
-        "status": {
-          "const": "OBSERVED_CACHED_GIS_OVERLAY"
-        },
-        "source_record": {
+        "source_vintage_note": {
           "type": "string"
         },
-        "source_record_sha256": {
-          "$ref": "#/$defs/sha256"
+        "huc12_code": {
+          "const": "051201130904"
         },
-        "source_retrieved_date": {
-          "type": "string",
-          "format": "date"
+        "name": {
+          "const": "Willow Pond Slough-Wabash River"
         },
-        "source_service": {
-          "type": "string",
-          "format": "uri"
-        },
-        "intersecting_feature_count": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "flood_zone": {
-          "const": "AE"
-        },
-        "special_flood_hazard_area": {
+        "parcel_intersects_huc12": {
           "const": true
         },
-        "source_dnr": {
-          "const": "NFHL"
+        "parcel_centroid_within_huc12": {
+          "const": true
         },
-        "study_type": {
+        "interpretation": {
           "type": "string"
-        },
-        "computed_parcel_overlap_percent": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 100
-        },
-        "area_method": {
-          "type": "string"
-        },
-        "normalized_bfe_ft": {
-          "type": "null"
-        },
-        "vertical_datum": {
-          "type": "null"
-        },
-        "limitation": {
-          "type": "string",
-          "minLength": 1
-        }
-      }
-    },
-    "water_source_inventory": {
-      "type": "array",
-      "minItems": 3,
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "source_id",
-          "status",
-          "name",
-          "source_uri",
-          "intended_use",
-          "limitations"
-        ],
-        "properties": {
-          "source_id": {
-            "type": "string",
-            "minLength": 1
-          },
-          "status": {
-            "enum": [
-              "AVAILABLE_REGIONAL_REFERENCE",
-              "HISTORICAL_CONTEXT_ONLY",
-              "AVAILABLE_FORECAST_CONTEXT"
-            ]
-          },
-          "name": {
-            "type": "string"
-          },
-          "source_uri": {
-            "type": "string",
-            "format": "uri"
-          },
-          "api_uri": {
-            "type": "string",
-            "format": "uri"
-          },
-          "approximate_distance_km": {
-            "type": "number",
-            "minimum": 0
-          },
-          "available_parameters": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "availability_note": {
-            "type": "string"
-          },
-          "altitude_note": {
-            "type": "string"
-          },
-          "forecast_uri": {
-            "type": "string",
-            "format": "uri"
-          },
-          "hourly_forecast_uri": {
-            "type": "string",
-            "format": "uri"
-          },
-          "forecast_grid_uri": {
-            "type": "string",
-            "format": "uri"
-          },
-          "observation_stations_uri": {
-            "type": "string",
-            "format": "uri"
-          },
-          "forecast_office": {
-            "type": "string"
-          },
-          "time_zone": {
-            "type": "string"
-          },
-          "radar_station": {
-            "type": "string"
-          },
-          "intended_use": {
-            "type": "string",
-            "minLength": 1
-          },
-          "limitations": {
-            "type": "array",
-            "minItems": 1,
-            "items": {
-              "type": "string",
-              "minLength": 1
-            }
-          }
         }
       }
     }
@@ -865,8 +683,7 @@
         "normalized_static_bfe",
         "normalized_depth",
         "normalized_velocity",
-        "interpretation",
-        "independence_status"
+        "interpretation"
       ],
       "properties": {
         "status": {
@@ -917,9 +734,200 @@
         },
         "interpretation": {
           "type": "string"
+        }
+      }
+    },
+    "parcelFemaIntersection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "source_agency",
+        "source_layer_url",
+        "query_method",
+        "geometry_source_path",
+        "geometry_source_sha256",
+        "returned_feature_count",
+        "intersecting_features",
+        "interpretation"
+      ],
+      "properties": {
+        "status": {
+          "const": "OBSERVED"
         },
-        "independence_status": {
-          "const": "NOT_INDEPENDENT_SOURCE_DNR_NFHL"
+        "source_agency": {
+          "type": "string"
+        },
+        "source_layer_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "query_method": {
+          "type": "string"
+        },
+        "geometry_source_path": {
+          "type": "string"
+        },
+        "geometry_source_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "returned_feature_count": {
+          "const": 1
+        },
+        "intersecting_features": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "dfirm_id",
+              "flood_area_id",
+              "flood_zone",
+              "zone_subtype",
+              "special_flood_hazard_area",
+              "raw_static_bfe",
+              "normalized_static_bfe",
+              "vertical_datum"
+            ],
+            "properties": {
+              "dfirm_id": {
+                "type": "string"
+              },
+              "flood_area_id": {
+                "type": "string"
+              },
+              "flood_zone": {
+                "const": "AE"
+              },
+              "zone_subtype": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "special_flood_hazard_area": {
+                "const": true
+              },
+              "raw_static_bfe": {
+                "type": "number"
+              },
+              "normalized_static_bfe": {
+                "type": "null"
+              },
+              "vertical_datum": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        "interpretation": {
+          "type": "string"
+        }
+      }
+    },
+    "parcelDnrIntersection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "source_agency",
+        "source_layer_url",
+        "query_method",
+        "geometry_source_path",
+        "geometry_source_sha256",
+        "returned_feature_count",
+        "intersecting_features",
+        "interpretation"
+      ],
+      "properties": {
+        "status": {
+          "const": "OBSERVED"
+        },
+        "source_agency": {
+          "type": "string"
+        },
+        "source_layer_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "query_method": {
+          "type": "string"
+        },
+        "geometry_source_path": {
+          "type": "string"
+        },
+        "geometry_source_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "returned_feature_count": {
+          "const": 1
+        },
+        "intersecting_features": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "dfirm_id",
+              "flood_zone",
+              "zone_subtype",
+              "special_flood_hazard_area",
+              "source_dnr",
+              "source_citation",
+              "raw_static_bfe",
+              "raw_depth",
+              "raw_velocity",
+              "normalized_static_bfe",
+              "normalized_depth",
+              "normalized_velocity"
+            ],
+            "properties": {
+              "dfirm_id": {
+                "type": "string"
+              },
+              "flood_zone": {
+                "const": "AE"
+              },
+              "zone_subtype": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "special_flood_hazard_area": {
+                "const": true
+              },
+              "source_dnr": {
+                "const": "NFHL"
+              },
+              "source_citation": {
+                "type": "string"
+              },
+              "raw_static_bfe": {
+                "type": "number"
+              },
+              "raw_depth": {
+                "type": "number"
+              },
+              "raw_velocity": {
+                "type": "number"
+              },
+              "normalized_static_bfe": {
+                "type": "null"
+              },
+              "normalized_depth": {
+                "type": "null"
+              },
+              "normalized_velocity": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        "interpretation": {
+          "type": "string"
         }
       }
     }

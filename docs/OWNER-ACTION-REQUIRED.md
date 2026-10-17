@@ -11,22 +11,18 @@ rather than guessing.)
 
 ---
 
-## 1. Site-coordinate discrepancy (~6.4 km)
+## 1. Site-coordinate discrepancy (~6.4 km) — candidate address selected, survey still unresolved
 
-**What:** Two coordinates are asserted for the anchor site (13101 Bonebank Road):
-- `37.9035, -88.0007` — PTDT v35 codex "surveyed centroid" (also in `docs/archive/drive-import/ptdt-v32-33-engineering-workspace.md` and `tsm-console/src/lib/scientific-analytics.ts`).
+**What:** Repository history contains conflicting site coordinates for 13101 Bonebank Road:
+- `37.9035, -88.0007` — PTDT v35 codex "surveyed centroid" assertion (also referenced in `docs/archive/drive-import/ptdt-v32-33-engineering-workspace.md` and `tsm-console/src/lib/scientific-analytics.ts`). This point is approximately **6.42 km** from the address-matched parcel centroid.
 - `37.84589, -88.0051` — MT-1 mapping / geocoded address point.
+- `37.84579909, -88.00535128` — centroid supplied by the Indiana Geographic Information Office's 2025 parcel record matching the exact address and parcel ID `65-19-08-100-008.001-010`.
 
-These are **6.42 km apart** — far beyond any rounding or CRS nuance; they cannot
-both be the site.
+**Workflow selection recorded 2026-10-15:** the repository owner/user explicitly instructed TSM to use the supplied street address as the candidate AOI. The new hydrology evidence therefore uses the matching IGIO parcel polygon, not the conflicting legacy PTDT point. See `data/posey-county/aoi/13101-bonebank-road-parcel.geojson` and `data/posey-county/evidence/13101-bonebank-road-site-aoi-v1.json`.
 
-**Why code can't fix it:** only a licensed survey or authoritative site record
-can establish the true coordinate. Code comparing the two just reports the gap.
+**Boundary of this decision:** selecting the address and matching public parcel record for the candidate AOI is not a professional survey, does not establish legal boundary, and does not certify a final engineering design coordinate. The historical `37.9035, -88.0007` assertion remains unverified and must not be used in this site workflow. Other legacy files that still contain it must not feed model inputs until reconciled.
 
-**What's needed:** owner confirms which coordinate is correct (survey plat,
-county parcel record, or professional survey) and retires the other across the
-codex documents. Until then, nothing in the repo may treat either as an
-engineering design input.
+**What's still required:** for engineering design or regulatory filing, attach the authoritative site survey/plat or owner-confirmed source record and have the responsible qualified professional reconcile the old coordinate. The candidate HEC-HMS watershed remains a separate required outlet/catchment delineation.
 
 ## 2. FEMA Community ID disagreement
 
