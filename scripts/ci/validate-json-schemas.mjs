@@ -10,9 +10,11 @@ const schemaPaths = [
   'data/schemas/regulatory-gate.schema.json',
   path.join('data', 'schemas', 'nfip-discrepancy.schema.json'),
   'data/schemas/tsm-flood-information-federation-v1.schema.json',
-  'data/schemas/hec-coupled-run-manifest-v2.schema.json',
+  'data/schemas/hec-coupled-run-manifest-v1.schema.json',
+  'data/schemas/posey-site-aoi-v1.schema.json',
 ];
-const hecCoupledRunManifestExample = JSON.parse(fs.readFileSync(path.join(repoRoot, 'data/schemas/examples/hec-coupled-run-manifest-v2.example.json'), 'utf8'));
+const hecCoupledRunManifestExample = JSON.parse(fs.readFileSync(path.join(repoRoot, 'data/schemas/examples/hec-coupled-run-manifest-v1.example.json'), 'utf8'));
+const poseySiteAoiExample = JSON.parse(fs.readFileSync(path.join(repoRoot, 'data/posey-county/evidence/13101-bonebank-road-site-aoi-v1.json'), 'utf8'));
 const failures = [];
 const fail = (message) => failures.push(message);
 
@@ -29,7 +31,29 @@ function typeMatches(value, expected) {
   ));
 }
 
-function validate(value, schema, at) {
+function resolveLocalReference(rootSchema, reference, at) {
+  if (typeof reference !== 'string' || !reference.startsWith('#/')) {
+    fail(at + ': unsupported non-local schema reference ' + String(reference));
+    return null;
+  }
+  let current = rootSchema;
+  for (const rawToken of reference.slice(2).split('/')) {
+    const token = rawToken.replace(/~1/g, '/').replace(/~0/g, '~');
+    if (!current || typeof current !== 'object' || !(token in current)) {
+      fail(at + ': unresolved schema reference ' + reference);
+      return null;
+    }
+    current = current[token];
+  }
+  return current;
+}
+
+function validate(value, schema, at, rootSchema = schema) {
+  if (schema.$ref) {
+    const referenced = resolveLocalReference(rootSchema, schema.$ref, at);
+    if (referenced) validate(value, referenced, at, rootSchema);
+    return;
+  }
   if (schema.type && !typeMatches(value, schema.type)) {
     fail(at + ': expected type ' + JSON.stringify(schema.type)); return;
   }
@@ -46,11 +70,15 @@ function validate(value, schema, at) {
     if (schema.format === 'uri') {
       try { new URL(value); } catch { fail(at + ': invalid URI'); }
     }
-    if (schema.format === 'date-time' && Number.isNaN(Date.parse(value))) fail(at + ': invalid date-time');
+    if (schema.format === 'date-time' && (!/^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d+)?(?:Z|[+-]\\d\\d:\\d\\d)$/.test(value) || Number.isNaN(Date.parse(value)))) fail(at + ': invalid RFC 3339 date-time');
+    if (schema.format === 'date' && !/^\\d{4}-\\d\\d-\\d\\d$/.test(value)) fail(at + ': invalid date');
+
   }
   if (typeof value === 'number') {
     if (schema.minimum !== undefined && value < schema.minimum) fail(at + ': below minimum');
     if (schema.maximum !== undefined && value > schema.maximum) fail(at + ': above maximum');
+    if (typeof schema.exclusiveMinimum === 'number' && value <= schema.exclusiveMinimum) fail(at + ': at or below exclusive minimum');
+    if (typeof schema.exclusiveMaximum === 'number' && value >= schema.exclusiveMaximum) fail(at + ': at or above exclusive maximum');
   }
   if (Array.isArray(value)) {
     if (schema.minItems !== undefined && value.length < schema.minItems) fail(at + ': minItems');
@@ -59,14 +87,14 @@ function validate(value, schema, at) {
       const seen = new Set(value.map((item) => JSON.stringify(item)));
       if (seen.size !== value.length) fail(at + ': uniqueItems violated');
     }
-    if (schema.items) value.forEach((item, index) => validate(item, schema.items, at + '[' + index + ']'));
+    if (schema.items) value.forEach((item, index) => validate(item, schema.items, at + '[' + index + ']', rootSchema));
   }
   if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
     for (const required of schema.required ?? []) {
       if (!(required in value)) fail(at + ': missing required property ' + required);
     }
     for (const [key, child] of Object.entries(value)) {
-      if (schema.properties?.[key]) validate(child, schema.properties[key], at + '.' + key);
+      if (schema.properties?.[key]) validate(child, schema.properties[key], at + '.' + key, rootSchema);
       else if (schema.additionalProperties === false) fail(at + ': unexpected property ' + key);
     }
   }
@@ -160,11 +188,11 @@ for (const relative of schemaPaths) {
   try { schema = JSON.parse(fs.readFileSync(file, 'utf8')); }
   catch (error) { fail(relative + ': invalid JSON: ' + error.message); continue; }
   if (schema.$schema !== 'https://json-schema.org/draft/2020-12/schema') fail(relative + ': unexpected JSON Schema dialect');
-  const example = relative.includes('hec-coupled-run-manifest') ? hecCoupledRunManifestExample : relative.includes('data-contract') ? dataExample : relative.includes('regulatory-gate') ? regulatoryGateExample : relative.includes('nfip-discrepancy') ? nfipLayer2Example : relative.includes('flood-information-federation') ? floodFederationExample : evidenceExample;
-  validate(example, schema, relative);
-  // Case-specific evidence is operator-retained and intentionally excluded from
-  // the public repository. Validate the public schema against its synthetic,
-  // non-identifying contract example above.
+  const example = relative.includes('posey-site-aoi-v1') ? poseySiteAoiExample : relative.includes('hec-coupled-run-manifest') ? hecCoupledRunManifestExample : relative.includes('data-contract') ? dataExample : relative.includes('regulatory-gate') ? regulatoryGateExample : relative.includes('nfip-discrepancy') ? nfipLayer2Example : relative.includes('flood-information-federation') ? floodFederationExample : evidenceExample;
+  validate(example, schema, relative, schema);
+  // The Posey candidate AOI is a public parcel-evidence record and is validated
+  // against its own schema here. Other case-specific NFIP examples remain
+  // synthetic unless an explicit evidence package has been approved for release.
 }
 
 if (failures.length) {
@@ -172,4 +200,4 @@ if (failures.length) {
   failures.forEach((failure) => console.error('- ' + failure));
   process.exit(1);
 }
-console.log(JSON.stringify({ ok: true, schemas: schemaPaths, validatedExamples: 2, dialect: 'JSON Schema 2020-12 contract subset' }, null, 2));
+console.log(JSON.stringify({ ok: true, schemas: schemaPaths, validatedExamples: schemaPaths.length, dialect: 'JSON Schema 2020-12 contract subset with local $ref resolution' }, null, 2));

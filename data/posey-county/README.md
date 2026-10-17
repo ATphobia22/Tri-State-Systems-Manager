@@ -31,9 +31,16 @@ nulled. Zone X (minimal flood hazard, 2,816 polygons) excluded for size.
 | `floodplain/posey-flood-hazard-sfha.geojson` | 5,606 SFHA polygons, 24.6 MB; fields: fld_zone, zone_subty, sfha, bfe_ft, v_datum, depth_ft, study_typ, dfirm_id. **SCOPE: 4-county extract** — DFIRMs 18129C Posey (2,807), 18163C Vanderburgh (1,591), 18051C Gibson (1,179), 18173C Warrick (29); bounds -88.0972..-87.2685, 37.7718..38.4263. Not Posey-only despite the filename. | `19f4a08e…f7eff` |
 | `floodplain/posey-flood-elevation-points.geojson` | 22,636 flood elevation points, 7.4 MB; fields: huc10, streamname, wsel10, wsel4, wsel2, wsel1, wsel02, wsel1plus, da, version | `5e745db7…c2` |
 
-Anchor check: 13101 Bonebank Rd falls in zone **AE**, SFHA = T. The layer's AE
-polygon there carries no static BFE — the case BFE 375.0 ft NAVD88 comes from
-FIRM panel 18129C0265C / the FEMA letter, not this layer. Reference only.
+Anchor check: the 2025 Indiana GIO parcel polygon for 13101 Bonebank Road
+overlays the cached SFHA polygon as Zone **AE**, SFHA = T (GIS reference only).
+The matching live FEMA NFHL centroid query returned `STATIC_BFE = -9999` and
+no vertical datum; the matching Indiana DNR-hosted feature declares
+`source_dnr=NFHL`, so it is not independent flood evidence. An older project
+record cites a 375.0 ft NAVD88 BFE for panel 18129C0265C, but that value has not
+been verified against the effective panel and underlying letter in the current
+evidence package. Do not use it as a model boundary or site elevation until the
+original map/letter and datum provenance are retrieved and reviewed. Reference
+only; no flood depth or design conclusion is implied.
 
 ## Flood elevation points
 
@@ -133,3 +140,32 @@ here.
   (GEOID `18129`, STATEFP `18`, NAMELSAD `Posey County`).
 - Roads zip verified intact (`testzip` clean), kept zipped: 630 KB.
 - Coordinate reference: NAD83 (EPSG:4269) as published by the Census Bureau.
+
+
+## Candidate AOI — 13101 Bonebank Road
+
+The parcel is represented by a source-hashed 2025 Indiana Geographic Information
+Office parcel feature at `data/posey-county/aoi/13101-bonebank-road-parcel.geojson`,
+with a provenance record at `data/posey-county/evidence/13101-bonebank-road-site-aoi-v1.json`
+validated by `data/schemas/posey-site-aoi-v1.schema.json`.
+
+**Status: candidate parcel only; not an approved hydrologic AOI.** A source
+conflict remains open between a previously supplied planning extent and the
+current statewide parcel feature. A HUC12 boundary contains the parcel centroid,
+but that HUC is regional context rather than a terrain-derived contributing
+catchment. The parcel polygon is not an HEC-HMS basin boundary.
+
+A live USGS EPQS point elevation agrees numerically with the vendored DEM's
+sample at the same centroid to about 0.0035 m. This is a one-point consistency
+check, not survey accuracy or validation of the full raster surface. The
+GeoTIFF's CRS is EPSG:4269; units and vertical datum are documented externally
+in this bundle rather than embedded as complete raster tags. The companion
+`elevation/bonebank-anchor-dem-10m.provenance.json` records this limitation.
+
+The current FEMA NFHL point query returns Zone AE / SFHA and a no-data sentinel
+for static BFE; the state-hosted result sampled for the same polygon reports
+`source_dnr=NFHL`. That state layer result is not an independent confirmation.
+The cached parcel overlay and effective NFHL observation do not supply a usable
+BFE or parcel-specific depth. See the evidence JSON for source URIs, dates,
+hashes, the USGS gage inventory, NWS forecast endpoint, and the outstanding
+approval/model readiness gates.
