@@ -11,6 +11,15 @@ Downloaded from verified sources per MISSING.md / PROVENANCE.md audit.
 | NWPS EVVI3 | nwps/EVVI3.json | 42 KB | api.water.noaa.gov |
 | USGS 03378500 | usgs-water/latest-continuous-03378500.json | 5 KB | api.waterdata.usgs.gov |
 | Posey CSLF Feb 2025 | cslf/posey-cslf-feb2025.geojson | 4,131 features | gisdata.in.gov |
+| USGS 3DEP 1m DEM | usgs-3dep-1m/USGS_1M_16_x41y419_IN.tif | 246 MB | prd-tnm.s3.amazonaws.com (direct HTTPS) |
+
+## Working alternatives found (2026-10-17 deep search)
+
+- **USGS 3DEP**: Direct HTTPS to `prd-tnm.s3.amazonaws.com` works (S3 API blocked, plain HTTPS OK)
+- **Overture buildings**: Azure Blob Storage `overturemapswestus2.blob.core.windows.net` works
+- **Indiana LiDAR DEM**: ArcGIS ImageServer `di-ingov.img.arcgis.com` exportImage works
+- **FEMA NFHL**: Still blocked; use IDNR ArcGIS Online layers (different authority class)
+- **USACE NLD**: Site loads; API routes need browser discovery
 
 ## Blocked (infrastructure)
 
