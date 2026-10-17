@@ -21,6 +21,17 @@ Migration notes for schema version bumps. Breaking field/enum/constraint changes
 - Preserved as the original v1 schema and example for compatibility. This contract predates the additional model-binary, source-commit, exact DSS pathname and boundary-selector pins introduced in v2.
 - Migration: no existing v1 artifact is rewritten. V2 requires a fresh manifest with an exact source commit, qualified AOI/delineation, project and runtime hashes, explicit transfer mapping, and approval evidence before execution.
 
+## hec-coupled-run-manifest-v2.schema.json
+
+### v2.0.0 — initial release (2026-10-15)
+
+- Adds exact source commit, approved AOI/watershed hashes, qualified source-input provenance, HEC-HMS run name, HEC-RAS plan number, project-package and vendor executable hashes, version evidence, and explicit output contracts.
+- Adds an explicit DSS FLOW pathname and transfer adapter, interval/time-zone/unit conversion policy, and selected RAS boundary selector; the runner retains stage receipts and content-addressed artifacts.
+- Requires a Windows x64 Python environment lock SHA-256 and installed-distribution fingerprint including VCS commit IDs. The checked-in draft examples deliberately use unassigned/zero pins and must fail execution readiness.
+- Compatibility: major schema version. The v1 schema and example below are retained; do not silently upgrade existing manifests. A v2 run requires fresh approval, source evidence, runtime pins and independent scientific validation.
+- Governance: solver completion is not model validation, engineering approval or regulatory acceptance. No real coupled HEC run is claimed by the initial implementation.
+
+
 ## usace-hydrologic-node.schema.json
 
 ### 2026-09-25 — v1.0.0 (new)

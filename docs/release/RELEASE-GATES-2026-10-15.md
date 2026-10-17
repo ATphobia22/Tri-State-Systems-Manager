@@ -9,6 +9,8 @@ PR [#267](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/267) was 
 
 The hydrology/hydraulics acceptance contract is maintained in [HYDROLOGY-RELEASE-CONTRACT.md](../hydrology/HYDROLOGY-RELEASE-CONTRACT.md).
 
+Candidate-area update: the supplied 13101 Bonebank Road address has a candidate parcel footprint and screening-only terrain/flood-layer observations, but a second legacy centroid approximately 6.4 km away leaves the address-to-parcel association unresolved. The watershed and model area remain **unapproved**. Track it in the [candidate AOI assessment](../hydrology/aoi/13101-BONEBANK-ROAD-CANDIDATE.md) and [DRAFT HEC manifest](../../data/posey-county/hec/13101-bonebank-road-candidate-run-manifest-v2.json); this does not close the AOI/model-validation gate.
+
 ## Gates with repository evidence
 
 | Gate | Current evidence | Status |
@@ -21,6 +23,8 @@ The hydrology/hydraulics acceptance contract is maintained in [HYDROLOGY-RELEASE
 | Engineering evidence pipeline | Terrain/bathymetry, datum, calibrated HEC-RAS, scenario, earthwork, environmental and independent QA/QC sequence documented | CONTRACT DOCUMENTED / AOI MODEL EVIDENCE REQUIRED |
 | Full JSON Schema 2020-12 validation | Existing twin invariant checks are not a substitute for standards-compliant schema and instance validation | PARTIAL / RELEASE GATE OPEN |
 | Source metadata acquisition | Bounded acquisition and hash/manifest tooling exists | TOOL AVAILABLE / AOI SNAPSHOTS NOT CONFIRMED |
+| HEC coupled-run manifest v2 and stage wrappers | Exact run/plan selectors, project/runtime hashes, explicit DSS handoff, stage receipts | IMPLEMENTED / EXECUTION BLOCKED UNTIL APPROVED AOI, MODEL INPUTS AND ENVIRONMENT LOCK | 
+| Hash-locked Python environment | Transitive dependency lock plus installed-package fingerprint on Windows x64 worker | OPEN / LOCK NOT GENERATED OR VERIFIED |
 | Production backend deployment | No verified target plus live API health evidence established by this register | BLOCKED / NOT CLAIMED |
 | Post-merge CI and deployment | Merge commit is known; a complete passing status set and verified deployment URL have not been established in this register | PENDING VERIFICATION |
 

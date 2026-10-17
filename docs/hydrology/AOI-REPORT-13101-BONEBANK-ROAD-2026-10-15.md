@@ -108,8 +108,7 @@ A parcel address cannot choose the hydraulic outlet, identify the contributing d
 
 ## 7. Main-branch / CI evidence
 
-The report is intended to be committed on TSM `main`. Before this report's commit, the latest observed branch commit was `43bd3c442fd7391eb3f1825ec5a581223762e768` (`Add verified Bonebank Road candidate AOI and flood evidence`). At the time checked, the associated workflows for the exact spatial-boundary acquisition, parse gate, CI pipeline, offline runtime, production build/deploy, CodeQL, and E2E visual regression were completed successfully on that commit. A new report commit will trigger new CI; the post-commit result must be checked separately before saying that the updated tip is green.
-
+The AOI report and its source-register/checklist artifacts are present on TSM `main`. The latest observed main tip during this edit was `011ae4927aafa613793ce5a93c335494fa22cd9c`. CI status is time-sensitive: do not infer that a newer tip is green from an earlier commit. Before a release decision, query the exact current `main` SHA and confirm all required check runs have completed successfully. The [repository Actions page](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions) is the live status surface.
 ## 8. Source references
 
 - IGIO 2025 parcel service: https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer/0

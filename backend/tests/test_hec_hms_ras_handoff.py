@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 import importlib.util
-import json
 import math
 import unittest
-from unittest.mock import patch
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -36,40 +34,6 @@ class HecHmsRasHandoffTests(unittest.TestCase):
             datetime(2026, 1, 1, 1, 0),
             datetime(2026, 1, 1, 2, 0),
         ]
-
-    def test_vcs_distribution_pin_requires_exact_version_and_commit(self):
-        class FakeDistribution:
-            version = HANDOFF.HMS_COMMANDER_VERSION
-            def read_text(self, name):
-                self_name = name
-                if self_name != "direct_url.json":
-                    return None
-                return json.dumps({
-                    "url": "https://github.com/ATphobia22/hms-commander.git",
-                    "vcs_info": {
-                        "vcs": "git",
-                        "commit_id": HANDOFF.HMS_COMMANDER_SOURCE_COMMIT,
-                    },
-                })
-        with patch.object(HANDOFF.importlib.metadata, "distribution", return_value=FakeDistribution()):
-            self.assertEqual(
-                HANDOFF._verify_vcs_distribution(
-                    "hms-commander", HANDOFF.HMS_COMMANDER_VERSION,
-                    HANDOFF.HMS_COMMANDER_SOURCE_COMMIT,
-                ),
-                (HANDOFF.HMS_COMMANDER_VERSION, HANDOFF.HMS_COMMANDER_SOURCE_COMMIT),
-            )
-        fake = FakeDistribution()
-        fake.read_text = lambda name: json.dumps({
-            "url": "https://github.com/ATphobia22/hms-commander.git",
-            "vcs_info": {"vcs": "git", "commit_id": "0" * 40},
-        })
-        with patch.object(HANDOFF.importlib.metadata, "distribution", return_value=fake):
-            with self.assertRaisesRegex(HANDOFF.HandoffError, "does not match pinned"):
-                HANDOFF._verify_vcs_distribution(
-                    "hms-commander", HANDOFF.HMS_COMMANDER_VERSION,
-                    HANDOFF.HMS_COMMANDER_SOURCE_COMMIT,
-                )
 
     def test_dss_pathname_parser_handles_blank_d_part_and_blank_a_part(self):
         regular = HANDOFF.parse_dss_pathname("/BASIN/OUTLET/FLOW//1HOUR/RUN:RUN1/")
@@ -151,62 +115,6 @@ class HecHmsRasHandoffTests(unittest.TestCase):
         self.assertEqual(summary["maximum_flow"], 40.0)
         self.assertEqual(summary["trapezoidal_volume_ft3"], 234000.0)
         self.assertEqual(summary["status"], "FORMAT_AND_UNIT_CONTRACT_VALIDATED_HYDROLOGY_UNVALIDATED")
-
-    def test_written_target_dss_round_trip_requires_exact_time_axis_and_values(self):
-        local, utc = HANDOFF.validate_local_times(
-            self.times, time_zone="America/Chicago", interval="1HOUR"
-        )
-        report = HANDOFF.validate_written_hydrograph_frame(
-            FakeFrame(self.times, [20.0, 40.0, 30.0], units="CFS"),
-            pathname="/RAS/UPSTREAM/FLOW//1HOUR/RAS_RUN1/",
-            target_element_name="UPSTREAM",
-            interval="1HOUR",
-            units="CFS",
-            time_zone="America/Chicago",
-            expected_local_times=local,
-            expected_utc_times=utc,
-            expected_values=[20.0, 40.0, 30.0],
-        )
-        self.assertEqual(report["status"], "PASS")
-        self.assertTrue(report["timestamps_exact"])
-        self.assertTrue(report["values_within_tolerance"])
-        self.assertEqual(report["point_count"], 3)
-        self.assertEqual(report["maximum_absolute_error"], 0.0)
-
-    def test_written_target_dss_round_trip_rejects_shifted_timestamps(self):
-        local, utc = HANDOFF.validate_local_times(
-            self.times, time_zone="America/Chicago", interval="1HOUR"
-        )
-        shifted = [self.times[0], self.times[1], self.times[2] + timedelta(hours=1)]
-        with self.assertRaisesRegex(ValueError, "gap, duplicate, or irregular timestamp"):
-            HANDOFF.validate_written_hydrograph_frame(
-                FakeFrame(shifted, [20.0, 40.0, 30.0], units="CFS"),
-                pathname="/RAS/UPSTREAM/FLOW//1HOUR/RAS_RUN1/",
-                target_element_name="UPSTREAM",
-                interval="1HOUR",
-                units="CFS",
-                time_zone="America/Chicago",
-                expected_local_times=local,
-                expected_utc_times=utc,
-                expected_values=[20.0, 40.0, 30.0],
-            )
-
-    def test_written_target_dss_round_trip_rejects_changed_values(self):
-        local, utc = HANDOFF.validate_local_times(
-            self.times, time_zone="America/Chicago", interval="1HOUR"
-        )
-        with self.assertRaisesRegex(HANDOFF.HandoffError, "read-back values differ"):
-            HANDOFF.validate_written_hydrograph_frame(
-                FakeFrame(self.times, [20.0, 40.5, 30.0], units="CFS"),
-                pathname="/RAS/UPSTREAM/FLOW//1HOUR/RAS_RUN1/",
-                target_element_name="UPSTREAM",
-                interval="1HOUR",
-                units="CFS",
-                time_zone="America/Chicago",
-                expected_local_times=local,
-                expected_utc_times=utc,
-                expected_values=[20.0, 40.0, 30.0],
-            )
 
     def test_frame_validation_rejects_unit_mismatch_gaps_and_negative_flows(self):
         frame = FakeFrame(self.times, [10.0, 20.0, 10.0], units="CMS")

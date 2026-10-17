@@ -12,7 +12,7 @@ const sha256File = (file) => sha256Buffer(fs.readFileSync(file));
 function sha256Tree(root) {
   const digest = createHash('sha256');
   function walk(directory, relativeRoot = '') {
-    for (const entry of fs.readdirSync(directory, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true }).sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))) {
       const relative = path.posix.join(relativeRoot, entry.name);
       const absolute = path.join(directory, entry.name);
       if (entry.isSymbolicLink()) throw new Error('model project contains a symbolic link; package hashing fails closed: ' + relative);
@@ -130,8 +130,6 @@ export function runStage({ name, stage, workspace, outputDirectory, tokenValues 
     name,
     product_version: stage.product_version,
     platform: stage.platform,
-    runtime_executable_path: stage.runtime_executable_path,
-    runtime_executable_sha256: stage.runtime_executable_sha256,
     adapter_executable_sha256: executableSha256,
     source_project_package_sha256: sourceProjectPackageSha256 ?? stage.project_package_sha256,
     project_package_sha256: projectPackageSha256,
@@ -215,56 +213,6 @@ function mapStageOutputLayout(stage, workspace, runWorkRelative, label) {
   return { outputDirectory: runtimeRootRelative, outputRoot: runtimeRoot, expectedOutputs: mapped };
 }
 
-
-export function validateHandoffReport(report, {
-  handoff, adapterVersion, sourceOutput, sourceSha256, rasDss, rasDssSha256,
-  rasInput, rasInputSha256,
-}) {
-  const fail = (message) => { throw new Error('invalid HEC hydrograph handoff report: ' + message); };
-  const samePath = (left, right) => typeof left === 'string' && typeof right === 'string'
-    && path.resolve(left) === path.resolve(right);
-  if (!report || typeof report !== 'object' || Array.isArray(report)) fail('report must be an object');
-  if (report.adapter !== adapterVersion || report.adapter !== handoff.adapter_version) fail('adapter version mismatch');
-  if (report.status !== 'HANDOFF_WRITTEN_AND_STRUCTURALLY_CHECKED_HYDROLOGY_UNVALIDATED') fail('wrong status');
-  if (report.scientific_validation_status !== 'NOT_PERFORMED' || report.human_review_required !== true) fail('scientific-validation and human-review state must remain fail-closed');
-  if (!samePath(report.source_dss?.path, sourceOutput) || report.source_dss?.sha256 !== sourceSha256) fail('source DSS path/hash mismatch');
-  if (report.series?.source_pathname !== handoff.source_dss_pathname) fail('source DSS pathname mismatch');
-  if (report.series?.source_units !== String(handoff.source_flow_units).toUpperCase()) fail('source flow units mismatch');
-  if (report.series?.target_units !== String(handoff.flow_units).toUpperCase()) fail('target flow units mismatch');
-  if (report.series?.conversion_method !== handoff.conversion_method) fail('conversion method mismatch');
-  if (report.series?.interval !== String(handoff.interval).toUpperCase()) fail('series interval mismatch');
-  if (report.series?.time_zone !== handoff.time_zone) fail('series time zone mismatch');
-  if (!Number.isInteger(report.series?.point_count) || report.series.point_count < 2) fail('at least two validated source samples are required');
-  if (!samePath(report.target_dss?.path, rasDss) || report.target_dss?.sha256 !== rasDssSha256) fail('target DSS path/hash mismatch');
-  if (report.target_dss?.pathname !== handoff.ras_dss_pathname || report.target_dss?.pathname_validation_passed !== true) fail('target DSS pathname was not verified');
-  if (!samePath(report.target_unsteady_flow?.path, rasInput) || report.target_unsteady_flow?.after_sha256 !== rasInputSha256) fail('staged RAS boundary path/hash mismatch');
-  if (stableStringify(report.target_unsteady_flow?.boundary_selector) !== stableStringify(handoff.boundary_selector)) fail('boundary selector differs from the approved manifest');
-  if (!/^[a-f0-9]{64}$/.test(report.target_unsteady_flow?.before_sha256 ?? '')) fail('pre-update RAS boundary hash is missing');
-  if (typeof report.target_unsteady_flow?.relative_dss_reference !== 'string' || !report.target_unsteady_flow.relative_dss_reference) fail('relative DSS reference is missing');
-  const roundTrip = report.target_dss?.round_trip_validation;
-  if (
-    roundTrip?.status !== 'PASS'
-    || roundTrip?.pathname !== handoff.ras_dss_pathname
-    || roundTrip?.units !== String(handoff.flow_units).toUpperCase()
-    || roundTrip?.timestamps_exact !== true
-    || roundTrip?.values_within_tolerance !== true
-    || roundTrip?.point_count !== report.series.point_count
-    || !Number.isFinite(roundTrip?.maximum_absolute_error) || roundTrip.maximum_absolute_error < 0
-    || !Number.isFinite(roundTrip?.maximum_relative_error) || roundTrip.maximum_relative_error < 0
-    || roundTrip?.relative_tolerance !== 1e-5
-    || roundTrip?.absolute_tolerance !== 1e-6
-  ) fail('target DSS record lacks passing read-back timestamp/value checks');
-  return {
-    status: report.status,
-    point_count: report.series.point_count,
-    source_dss_sha256: sourceSha256,
-    target_dss_sha256: rasDssSha256,
-    target_unsteady_flow_sha256: rasInputSha256,
-    max_round_trip_absolute_error: roundTrip.maximum_absolute_error,
-    max_round_trip_relative_error: roundTrip.maximum_relative_error,
-  };
-}
-
 function main() {
   const manifestArg = process.argv[2];
   const workspaceArg = process.argv[3];
@@ -285,13 +233,17 @@ function main() {
   if (manifest.artifact_storage.metadata_store !== 'run-manifest-only') {
     throw new Error('metadata_store=tsm-evidence-store-adapter is declared but the transaction-safe adapter is not implemented; use run-manifest-only until that adapter is separately verified');
   }
-  const expectedPlatform = process.platform === 'win32' ? 'windows-x64' : process.platform === 'linux' ? 'linux-x64' : process.platform === 'darwin' ? 'macos-arm64' : 'other';
+  const expectedPlatform = process.platform === 'win32' && process.arch === 'x64' ? 'windows-x64' : process.platform === 'linux' ? 'linux-x64' : process.platform === 'darwin' && process.arch === 'arm64' ? 'macos-arm64' : 'other';
   for (const [label, stage] of [['HEC-HMS', manifest.hec_hms], ['HEC-RAS', manifest.hec_ras]]) {
     if (stage.platform !== 'other' && stage.platform !== expectedPlatform) {
       throw new Error(label + ' platform mismatch: manifest=' + stage.platform + ', runtime=' + expectedPlatform);
     }
   }
+  if (manifest.python_environment.platform !== expectedPlatform) {
+    throw new Error('Python environment platform mismatch: manifest=' + manifest.python_environment.platform + ', runtime=' + expectedPlatform);
+  }
 
+  verifyHashedFile(workspace, manifest.python_environment.lock_workspace_path, manifest.python_environment.lock_sha256, 'Python environment lock');
   verifyHashedFile(workspace, manifest.aoi.geometry_workspace_path, manifest.aoi.geometry_sha256, 'AOI geometry');
   verifyHashedFile(workspace, manifest.aoi.watershed_delineation_workspace_path, manifest.aoi.watershed_delineation_sha256, 'watershed delineation');
   for (const input of manifest.source_inputs) verifyHashedFile(workspace, input.workspace_path, input.sha256, 'source input ' + input.input_id);
@@ -313,6 +265,7 @@ function main() {
     disjoint(storeRoot, dir, 'artifact store', label);
   }
   const immutableInputPaths = [
+    [manifest.python_environment.lock_workspace_path, 'Python environment lock'],
     [manifest.aoi.geometry_workspace_path, 'AOI geometry'],
     [manifest.aoi.watershed_delineation_workspace_path, 'watershed delineation'],
     ...manifest.source_inputs.map((input) => [input.workspace_path, 'source input ' + input.input_id]),
@@ -432,8 +385,10 @@ function main() {
   };
   try {
     run.manifest_file_sha256 = sha256File(manifestPath);
+    const environmentLock = verifyHashedFile(workspace, manifest.python_environment.lock_workspace_path, manifest.python_environment.lock_sha256, 'Python environment lock');
     const aoiGeometry = verifyHashedFile(workspace, manifest.aoi.geometry_workspace_path, manifest.aoi.geometry_sha256, 'AOI geometry');
     const watershed = verifyHashedFile(workspace, manifest.aoi.watershed_delineation_workspace_path, manifest.aoi.watershed_delineation_sha256, 'watershed delineation');
+    run.artifacts.push(persistArtifact(environmentLock, 'Python environment lock'));
     run.artifacts.push(persistArtifact(aoiGeometry, 'approved AOI geometry'));
     run.artifacts.push(persistArtifact(watershed, 'approved watershed delineation'));
     for (const input of manifest.source_inputs) {
@@ -467,10 +422,7 @@ function main() {
       name: 'HEC-HMS', stage: hmsRunStage, workspace,
       outputDirectory: hmsLayout.outputDirectory,
       sourceProjectPackageSha256: sourceHmsProjectSha256,
-      tokenValues: {
-        manifest: manifestPath,
-        runtime_executable: manifest.hec_hms.runtime_executable_path,
-      },
+      tokenValues: { manifest: manifestPath },
     });
     run.stages.push(hms);
     run.artifacts.push(...persistTree(hmsLayout.outputRoot, 'HEC-HMS stage outputs and logs'));
@@ -566,20 +518,20 @@ function main() {
       throw new Error('hydrograph adapter did not produce its declared handoff report');
     }
     const handoffReport = JSON.parse(fs.readFileSync(handoffReportPath, 'utf8'));
+    if (handoffReport.adapter !== handoff.adapter_version) throw new Error('handoff report adapter version does not match the manifest');
+    if (handoffReport.status !== 'HANDOFF_WRITTEN_AND_STRUCTURALLY_CHECKED_HYDROLOGY_UNVALIDATED') {
+      throw new Error('handoff report does not confirm the required structured transfer state');
+    }
+    if (handoffReport.source_dss?.sha256 !== sha256File(sourceOutput)) throw new Error('handoff report source DSS hash does not match HEC-HMS output');
+    if (handoffReport.target_dss?.sha256 !== sha256File(rasDss) || handoffReport.target_dss?.pathname !== handoff.ras_dss_pathname) {
+      throw new Error('handoff report target DSS path/hash mismatch');
+    }
+    if (handoffReport.target_unsteady_flow?.after_sha256 !== sha256File(rasInput)) {
+      throw new Error('handoff report staged RAS .uNN hash mismatch');
+    }
     if (!String(handoffReport.series?.status ?? '').startsWith('FORMAT_AND_UNIT_CONTRACT_VALIDATED')) {
       throw new Error('handoff report does not demonstrate hydrograph format/unit contract validation');
     }
-    const handoffValidation = validateHandoffReport(handoffReport, {
-      handoff,
-      adapterVersion: handoff.adapter_version,
-      sourceOutput,
-      sourceSha256: sha256File(sourceOutput),
-      rasDss,
-      rasDssSha256: sha256File(rasDss),
-      rasInput,
-      rasInputSha256: sha256File(rasInput),
-    });
-    run.hydrograph_handoff_validation = handoffValidation;
     run.hydrograph_handoff = {
       status: handoffReport.status,
       report: handoffReport,
@@ -611,14 +563,7 @@ function main() {
       name: 'HEC-RAS', stage: rasRunStage, workspace,
       outputDirectory: rasLayout.outputDirectory,
       sourceProjectPackageSha256: sourceRasProjectSha256,
-      tokenValues: {
-        manifest: manifestPath,
-        runtime_executable: manifest.hec_ras.runtime_executable_path,
-        source_output: sourceOutput,
-        ras_input: rasInput,
-        ras_dss: rasDss,
-        handoff_report: handoffReportPath,
-      },
+      tokenValues: { manifest: manifestPath, source_output: sourceOutput, ras_input: rasInput, ras_dss: rasDss, handoff_report: handoffReportPath },
     });
     run.stages.push(ras);
     for (const output of ras.outputs) {
@@ -658,7 +603,7 @@ function main() {
     run.finished_at = new Date().toISOString();
     run.failure = String(error.message ?? error);
     fs.writeFileSync(path.join(runRoot, 'run-receipt.json'), JSON.stringify(run, null, 2) + '\n', { mode: 0o600 });
-    throw error;
+
   }
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

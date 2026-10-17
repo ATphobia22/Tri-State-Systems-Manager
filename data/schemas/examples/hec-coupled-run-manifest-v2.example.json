@@ -58,7 +58,8 @@
     "executable_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
     "version_evidence_uri": "UNASSIGNED",
     "runtime_executable_path": "UNCONFIGURED",
-    "runtime_executable_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    "runtime_executable_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "run_name": "UNASSIGNED"
   },
   "hydrograph_handoff": {
     "source_output": "workspace/outputs/hms/hydrograph.dss",
@@ -111,7 +112,8 @@
     "executable_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
     "version_evidence_uri": "UNASSIGNED",
     "runtime_executable_path": "UNCONFIGURED",
-    "runtime_executable_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    "runtime_executable_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "plan_number": "UNASSIGNED"
   },
   "artifact_storage": {
     "backend": "filesystem-content-addressed",
@@ -119,5 +121,13 @@
     "retention_policy": "retain all run manifests and referenced blobs; no automatic deletion",
     "metadata_store": "run-manifest-only"
   },
-  "source_commit": "0000000000000000000000000000000000000000"
+  "source_commit": "0000000000000000000000000000000000000000",
+  "python_environment": {
+    "python_version": "UNVERIFIED",
+    "platform": "windows-x64",
+    "lock_uri": "UNASSIGNED",
+    "lock_workspace_path": "UNASSIGNED",
+    "lock_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "installed_packages_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  }
 }

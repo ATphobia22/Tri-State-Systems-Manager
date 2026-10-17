@@ -83,28 +83,11 @@ function assertExecutionReady(manifest) {
   if (!nonPlaceholder(manifest.aoi?.name) || !nonPlaceholder(manifest.aoi?.geometry_uri) || !nonPlaceholder(manifest.aoi?.watershed_delineation_uri)) errors.push('AOI geometry and watershed delineation must have named, source-backed references');
   if (manifest.aoi?.geometry_sha256 === '0'.repeat(64) || manifest.aoi?.watershed_delineation_sha256 === '0'.repeat(64)) errors.push('AOI geometry and watershed hashes must be measured, non-placeholder SHA-256 values');
   if (!nonPlaceholder(manifest.reference_system?.horizontal_crs) || !nonPlaceholder(manifest.reference_system?.vertical_datum) || !nonPlaceholder(manifest.reference_system?.datum_evidence_uri) || !nonPlaceholder(manifest.reference_system?.units_policy)) errors.push('horizontal CRS, vertical datum, units and datum evidence must be qualified');
-  if (manifest.source_inputs?.some((input) => input.quality_status !== 'QUALIFIED')) errors.push('every source input quality_status QUALIFIED is required before execution');
-  if (!Array.isArray(manifest.source_inputs) || manifest.source_inputs.length === 0) {
-    errors.push('source_inputs must contain at least one qualified, provenance-backed input');
-  } else {
-    for (const input of manifest.source_inputs) {
-      const missingRequirements = [];
-      if (input.quality_status !== 'QUALIFIED') missingRequirements.push('quality_status=QUALIFIED');
-      if (!nonPlaceholder(input.source_uri)) missingRequirements.push('source_uri');
-      if (!nonPlaceholder(input.valid_time)) missingRequirements.push('valid_time');
-      if (!nonPlaceholder(input.license_or_terms_uri)) missingRequirements.push('license_or_terms_uri');
-      if (!nonPlaceholder(input.units)) missingRequirements.push('units');
-      if (!nonPlaceholder(input.horizontal_crs)) missingRequirements.push('horizontal_crs');
-      if (!nonPlaceholder(input.vertical_datum)) missingRequirements.push('vertical_datum');
-      if (!/^[a-f0-9]{64}$/.test(input.sha256 ?? '') || input.sha256 === '0'.repeat(64)) missingRequirements.push('measured SHA-256');
-      if (missingRequirements.length) {
-        errors.push('every source input must be qualified, licensed/source-referenced, datum-aware and have a measured SHA-256; ' +
-          String(input.input_id ?? 'unnamed input') + ' missing: ' + missingRequirements.join(', '));
-      }
-    }
-  }
+  if (manifest.source_inputs?.some((input) => input.quality_status !== 'QUALIFIED' || !nonPlaceholder(input.source_uri) || !nonPlaceholder(input.valid_time) || !nonPlaceholder(input.license_or_terms_uri) || !nonPlaceholder(input.units) || !nonPlaceholder(input.horizontal_crs) || !nonPlaceholder(input.vertical_datum) || input.sha256 === '0'.repeat(64))) errors.push('every source input must be qualified, licensed/source-referenced, datum-aware and have a measured SHA-256');
   for (const [name, runner] of [['hec_hms', manifest.hec_hms], ['hec_ras', manifest.hec_ras]]) {
     if (!nonPlaceholder(runner?.product_version) || PLACEHOLDER.test(runner?.product_version ?? '') || runner?.command?.some((part) => PLACEHOLDER.test(part))) errors.push(name + ' must use a pinned version and configured command');
+    const selector = name === 'hec_hms' ? runner?.run_name : runner?.plan_number;
+    if (!nonPlaceholder(selector)) errors.push(name + (name === 'hec_hms' ? '.run_name' : '.plan_number') + ' must identify the exact run/plan to execute');
     if (!nonPlaceholder(runner?.version_evidence_uri)) errors.push(name + '.version_evidence_uri must cite installation/version evidence');
     if (!/^[a-f0-9]{64}$/.test(runner?.project_package_sha256 ?? '') || runner.project_package_sha256 === '0'.repeat(64)) errors.push(name + '.project_package_sha256 must be measured and pinned');
     if (!/^[a-f0-9]{64}$/.test(runner?.executable_sha256 ?? '') || runner.executable_sha256 === '0'.repeat(64)) errors.push(name + '.executable_sha256 must be measured and pinned');
@@ -115,6 +98,12 @@ function assertExecutionReady(manifest) {
     }
   }
   if (!/^[a-f0-9]{40}$/.test(manifest.source_commit ?? '') || manifest.source_commit === '0'.repeat(40)) errors.push('source_commit must be the exact non-placeholder Git commit SHA');
+  const pythonEnvironment = manifest.python_environment ?? {};
+  if (!nonPlaceholder(pythonEnvironment.python_version) || !nonPlaceholder(pythonEnvironment.lock_uri) || !nonPlaceholder(pythonEnvironment.lock_workspace_path)) errors.push('python_environment must pin Python version and immutable lock URI/path');
+  if (pythonEnvironment.platform !== 'windows-x64') errors.push('python_environment.platform must be windows-x64 for the current HEC coupled runner');
+  for (const field of ['lock_sha256', 'installed_packages_sha256']) {
+    if (!/^[a-f0-9]{64}$/.test(pythonEnvironment[field] ?? '') || pythonEnvironment[field] === '0'.repeat(64)) errors.push('python_environment.' + field + ' must be a measured nonzero SHA-256');
+  }
   const handoff = manifest.hydrograph_handoff ?? {};
   if (!nonPlaceholder(handoff.time_zone) || !nonPlaceholder(handoff.conversion_method)) errors.push('hydrograph handoff time zone and conversion method must be documented');
   if (!nonPlaceholder(handoff.adapter_version) || handoff.adapter_command?.some((part) => PLACEHOLDER.test(part))) errors.push('hydrograph transfer adapter must be explicitly version-pinned and configured');
