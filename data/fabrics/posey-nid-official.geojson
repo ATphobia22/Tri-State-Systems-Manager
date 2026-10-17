@@ -1,0 +1,70 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-87.71242457, 37.90261268] },
+      "properties": {
+        "name": "A.B. Brown Power Plant",
+        "nidId": "IN00516",
+        "hazard": "High",
+        "height_ft": "68",
+        "color": "#c0392b",
+        "authority": "CONTEXT",
+        "source": "USACE NID official API 2026-10-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-87.70177379, 38.06000346] },
+      "properties": {
+        "name": "Harold Mann Lake Dam",
+        "nidId": "IN03354",
+        "hazard": "Low",
+        "height_ft": "30",
+        "color": "#27ae60",
+        "authority": "CONTEXT",
+        "source": "USACE NID official API 2026-10-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-87.9785484, 38.05049966] },
+      "properties": {
+        "name": "Pahoka Camp Lake Dam",
+        "nidId": "IN00397",
+        "hazard": "Low",
+        "height_ft": "37",
+        "color": "#27ae60",
+        "authority": "CONTEXT",
+        "source": "USACE NID official API 2026-10-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-87.70328969, 38.1159266] },
+      "properties": {
+        "name": "Koester Lake Dam",
+        "nidId": "IN00631",
+        "hazard": "Low",
+        "height_ft": "27",
+        "color": "#27ae60",
+        "authority": "CONTEXT",
+        "source": "USACE NID official API 2026-10-17"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-87.92527016, 37.81025553] },
+      "properties": {
+        "name": "Willow Marsh Dam",
+        "nidId": "IN03797",
+        "hazard": "Low",
+        "height_ft": "10",
+        "color": "#27ae60",
+        "authority": "CONTEXT",
+        "source": "USACE NID official API 2026-10-17"
+      }
+    }
+  ]
+}
