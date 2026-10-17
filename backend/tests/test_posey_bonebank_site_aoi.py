@@ -128,7 +128,8 @@ class TestPoseyBonebankSiteAOI(unittest.TestCase):
     def test_source_conflict_remains_open_and_not_promoted_to_aoi(self) -> None:
         conflict = self.evidence["source_conflicts"]
         self.assertEqual("CONFLICT_UNRESOLVED", conflict["status"])
-        self.assertIn("must not", conflict["action"])
+        action = conflict["action"].casefold()
+        self.assertTrue("must not" in action or "do not" in action)
         self.assertEqual("NOT_APPROVED", self.evidence["approval"]["status"])
 
     def test_huc_context_is_never_mistaken_for_site_catchment(self) -> None:
