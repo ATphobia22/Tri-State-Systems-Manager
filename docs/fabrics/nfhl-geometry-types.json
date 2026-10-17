@@ -1,13 +1,16 @@
 {
   "service": {
-    "name": "FEMA National Flood Hazard Layer",
+    "name": "National Flood Hazard Layer",
+    "provider": "FEMA",
     "url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer",
-    "source": "FEMA NFHL",
-    "version": "effective",
     "authoritative": true,
-    "liveValidatedAt": "2026-10-17T19:25:00Z",
-    "liveLayerCount": 32,
-    "note": "Numeric layer IDs verified against live MapServer?f=pjson. Thematic names align with FEMA NFHL published documentation."
+    "liveValidatedAt": "2026-10-17T19:30:00Z"
+  },
+  "expectedCounts": {
+    "total": 32,
+    "polygon": 12,
+    "polyline": 12,
+    "point": 8
   },
   "summary": {
     "polygonCount": 12,
@@ -50,16 +53,6 @@
     { "id": 13, "name": "Station Start Points", "geometryType": "Point", "category": "Engineering" },
     { "id": 34, "name": "LOMAs", "geometryType": "Point", "category": "Regulatory" }
   ],
-  "maplibreSourceLayerNames": {
-    "28": "flood_hazard_zones",
-    "27": "flood_hazard_boundaries",
-    "23": "levees",
-    "16": "base_flood_elevations",
-    "34": "lomas",
-    "3": "firm_panels",
-    "22": "political_jurisdictions",
-    "32": "water_areas"
-  },
   "authorityClass": "REGULATORY_DISPLAY",
   "hardcopyControlsConflicts": true
 }
