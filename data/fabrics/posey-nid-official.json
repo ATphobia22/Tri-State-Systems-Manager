@@ -1,0 +1,73 @@
+{
+  "authority_class": "CONTEXT",
+  "source": "nid.sec.usace.army.mil/api/query?sy=@stateKey:IN&addProps=all",
+  "fetched": "2026-10-17",
+  "county": "Posey",
+  "state": "Indiana",
+  "fips": "18129",
+  "count": 5,
+  "dams": [
+    {
+      "nidId": "IN03797",
+      "name": "Willow Marsh Dam",
+      "latitude": 37.81025553,
+      "longitude": -87.92527016,
+      "damHeight_ft": "10",
+      "hazard": 2,
+      "hazard_label": "Low",
+      "condition": null,
+      "primaryPurpose": null,
+      "ownerNames": null,
+      "riverName": null,
+      "eap": null,
+      "lastInspection": null,
+      "stateRegulated": null,
+      "authority_class": "CONTEXT"
+    },
+    {
+      "nidId": "IN03354",
+      "name": "Harold Mann Lake Dam",
+      "latitude": 38.06000346,
+      "longitude": -87.70177379,
+      "damHeight_ft": "30",
+      "hazard": 2,
+      "hazard_label": "Low",
+      "authority_class": "CONTEXT"
+    },
+    {
+      "nidId": "IN00631",
+      "name": "Koester Lake Dam",
+      "latitude": 38.1159266,
+      "longitude": -87.70328969,
+      "damHeight_ft": "27",
+      "hazard": 2,
+      "hazard_label": "Low",
+      "authority_class": "CONTEXT"
+    },
+    {
+      "nidId": "IN00397",
+      "name": "Pahoka Camp Lake Dam",
+      "latitude": 38.05049966,
+      "longitude": -87.9785484,
+      "damHeight_ft": "37",
+      "hazard": 2,
+      "hazard_label": "Low",
+      "authority_class": "CONTEXT"
+    },
+    {
+      "nidId": "IN00516",
+      "name": "A.B. Brown Power Plant",
+      "latitude": 37.90261268,
+      "longitude": -87.71242457,
+      "damHeight_ft": "68",
+      "hazard": 4,
+      "hazard_label": "High",
+      "authority_class": "CONTEXT"
+    }
+  ],
+  "protocol_notes": [
+    "Hazard classification drives EAP expectations for High hazard dams",
+    "State-regulated dams fall under Indiana DNR Dam Safety",
+    "NID is inventory awareness; not an EAP or inundation map product"
+  ]
+}

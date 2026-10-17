@@ -1,0 +1,31 @@
+{
+  "updated": "2026-10-17",
+  "nid": {
+    "portal": "https://nid.sec.usace.army.mil/",
+    "developer": "https://nid.sec.usace.army.mil/api/developer",
+    "query_state": "https://nid.sec.usace.army.mil/api/query?sy=@stateKey:IN&addProps=all",
+    "query_radius": "https://nid.sec.usace.army.mil/api/query?nr={lon},{lat},{radius_miles}&addProps=all",
+    "dam_inventory": "https://nid.sec.usace.army.mil/api/dams/{nidId}/inventory",
+    "arcgis_nid_v1": "https://services2.arcgis.com/FiaPA4ga0iQKduv3/arcgis/rest/services/NID_v1/FeatureServer/0",
+    "broken_old": [
+      "https://services2.arcgis.com/FiaPAUquYYgj3MCp/... (wrong org id)",
+      "https://nid.sec.usace.army.mil/api/dams/search (404)"
+    ]
+  },
+  "igio": {
+    "building_footprints": "https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0",
+    "building_footprints_legacy_name": "Hosted/Building_Footprints_of_Indiana_2016_2020 (404 — renamed)",
+    "parcels_2025": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer/0",
+    "posey_building_count_envelope": 16116
+  },
+  "nfhl": {
+    "mapserver": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer",
+    "flood_hazard_zones": 28,
+    "bfe": 16,
+    "firm_panels": 3,
+    "lomr": 1,
+    "loma": 34,
+    "levees": 23,
+    "posey_dfirm_prefix": "18129"
+  }
+}
