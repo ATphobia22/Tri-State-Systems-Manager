@@ -2,5 +2,13 @@
   "name": "@tsm-uacf/geo",
   "version": "0.1.0",
   "private": true,
-  "type": "module"
+  "type": "module",
+  "exports": {
+    "./nfhl": "./src/nfhl/NfhlMetadataValidator.ts",
+    "./nfhl/registry": "./src/nfhl/nfhl-geometry-types.json"
+  },
+  "scripts": {
+    "nfhl:validate": "tsx src/nfhl/cli/validate-nfhl.ts",
+    "nfhl:check": "npm run nfhl:validate"
+  }
 }
