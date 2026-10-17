@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://tri-state-systems-manager/data/registries/tsm-tri-state-data-fabric-v2.json",
   "title": "TSM Tri-State River Valley Authoritative Data Fabric",
-  "version": "2026-09-28",
+  "version": "2026-10-17",
   "scope": {
     "description": "Community-scale Ohio-Wabash confluence and connected Lower Wabash river valley. Coverage is AOI/HUC/river-reach driven rather than a private-property anchor.",
     "horizontal_crs": "EPSG:2966",
@@ -43,7 +43,7 @@
       "id": "FEMA-NFHL",
       "authority": "FEMA",
       "dataset": "National Flood Hazard Layer",
-      "access": "https://hazards.fema.gov/arcgis/rest/services/FIRMette/NFHLREST_FIRMette/MapServer",
+      "access": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer",
       "role": [
         "effective_flood_hazard",
         "SFHA",
@@ -53,7 +53,18 @@
       ],
       "vintage": "Effective FIRM panels 18129C0265C/18129C0300C",
       "crs": "EPSG:4326",
-      "datum": "Horizontal: NAD83, Vertical: NAVD88"
+      "datum": "Horizontal: NAD83, Vertical: NAVD88",
+      "portalPages": [
+        {
+          "url": "https://hazards.fema.gov/femaportal/wps/portal/NFHLWMS",
+          "role": "interactive viewer / WMS-oriented portal; not a bulk data archive"
+        },
+        {
+          "url": "https://hazards.fema.gov/femaportal/NFHL/searchResult/",
+          "role": "interactive search / discovery UI; not a stable machine-readable query endpoint"
+        }
+      ],
+      "machineReadableAccess": "ArcGIS REST MapServer; use layer metadata and spatially bounded query operations. Portal UI failures do not establish REST service failure."
     },
     {
       "id": "FEMA-MSC",
@@ -194,6 +205,130 @@
         "elevation",
         "hydrography",
         "imagery"
+      ]
+    },
+    {
+      "id": "OVERTURE-MAPS-BUILDINGS",
+      "authority": "Overture Maps Foundation / Overture contributors",
+      "dataset": "Overture Maps buildings theme (global vector feature data)",
+      "access": "https://docs.overturemaps.org/getting-data/overturemaps-py/",
+      "clientRepository": "https://github.com/OvertureMaps/overturemaps-py",
+      "catalog": "https://stac.overturemaps.org/catalog.json",
+      "formats": [
+        "GeoParquet",
+        "GeoJSON",
+        "GeoJSONSeq"
+      ],
+      "role": [
+        "building_footprint_context",
+        "building_part_context",
+        "derived_3d_context"
+      ],
+      "authorityClass": "OPEN_COMMUNITY_VECTOR_CONTEXT",
+      "license": "ODbL-1.0 (buildings theme; preserve attribution/licence obligations)",
+      "acquisitionMethod": "Official overturemaps Python CLI; mandatory bounded bbox for AOI jobs; never download all global feature types by default.",
+      "repoStatus": "Existing Posey extract and shard manifests are present in data/overture; data/overture/README.md records the release used by those extracts.",
+      "releasePolicy": "Record CLI version, STAC/release identifier, exact bbox, retrieval time, command, content hash, and licence for each new acquisition; latest STAC release may change.",
+      "limitations": [
+        "Community vector context, not a survey or government authority.",
+        "Building height attributes are not assumed to be surveyed heights.",
+        "Global parquet shards are not mirrored into standard Git."
+      ]
+    },
+    {
+      "id": "INDIANA-3DEP-QL2-2016-2020",
+      "authority": "Indiana Geographic Information Office / USGS 3DEP program / Indiana Spatial Data Portal",
+      "dataset": "Indiana statewide QL2 LiDAR and derived elevation, 2016-2020",
+      "access": "https://gis.iu.edu/s/isdp/page/20162020elevation",
+      "catalogItemSet": "https://gis.iu.edu/s/isdp/item-set/71301",
+      "alternateAccessUrls": [
+        "https://lidar.digitalforestry.org/",
+        "https://lidar.digitalforestry.org/outbox/Indiana_2016_2020_LiDAR_Metadata.zip",
+        "https://lidar.digitalforestry.org/docs/Indiana_3DEP_Lidar_Data_Products_Data_Accuracy_and_Data_Access.pdf",
+        "https://www.igic.org/countywide-lidar-and-dem-tiles"
+      ],
+      "formats": [
+        "LAS",
+        "IMG",
+        "GeoTIFF",
+        "hydro-breaklines"
+      ],
+      "role": [
+        "bare_earth_terrain",
+        "lidar_point_cloud",
+        "hydroflattening_evidence",
+        "elevation_provenance"
+      ],
+      "authorityClass": "STATE_AND_FEDERAL_ELEVATION_PROGRAM",
+      "vintage": "2016-2020 acquisition program; source page lists Posey, Vanderburgh, and Warrick among 2020 counties.",
+      "horizontalCrsPolicy": "Use per-county/per-product metadata. Indiana State Plane East is EPSG:2965; Indiana State Plane West is EPSG:2966; both use US survey feet in the ISDP description.",
+      "verticalDatumPolicy": "Do not infer a vertical datum from EPSG:2965/2966 alone; preserve each specific product's metadata and verify actual file headers before combining.",
+      "license": "CC0/public domain as stated by the Indiana LiDAR portal for the listed 3DEP products; retain origin attribution and product metadata.",
+      "repoStatus": "Partially present: data-sources/manifests/indiana-dem-2020.json inventories 581 per-tile references; one Posey 2.5-ft DEM tile and small derivatives are committed. The countywide DEM is not vendored wholesale.",
+      "limitations": [
+        "The portal notes some metadata/vertical-accuracy review may lag acquisition.",
+        "A DEM is not a survey certification and does not provide submerged channel bathymetry.",
+        "Download only tiles intersecting an approved AOI and necessary buffer."
+      ]
+    },
+    {
+      "id": "INDIANA-IGIC-LIDAR-DEM-CATALOG",
+      "authority": "Indiana Geographic Information Council (IGIC)",
+      "dataset": "Countywide LiDAR and DEM tile discovery catalogue",
+      "access": "https://www.igic.org/countywide-lidar-and-dem-tiles",
+      "downloadPortal": "https://lidar.digitalforestry.org/",
+      "role": [
+        "elevation_data_discovery",
+        "tile_download_discovery",
+        "metadata_discovery"
+      ],
+      "authorityClass": "STATEWIDE_DATA_DISCOVERY",
+      "status": "DISCOVERY_CATALOG_NOT_A_SEPARATE_RASTER_PRODUCT",
+      "limitations": [
+        "Use linked product-level metadata and direct tile artifacts as source records; the portal listing alone is not an acquired dataset."
+      ]
+    },
+    {
+      "id": "NOAA-OCM-2024-IN-DNR-COASTLINE-10356",
+      "authority": "NOAA Office for Coastal Management; source data contributed by Indiana Department of Natural Resources",
+      "dataset": "2024 IN DNR Lidar: Indiana Coastline",
+      "access": "https://noaa-nos-coastal-lidar-pds.s3.amazonaws.com/laz/geoid18/10356/index.html",
+      "discoveryUrl": "https://portal.opentopography.org/noaaDataset?noaaID=10356",
+      "bulkObjectPrefix": "s3://noaa-nos-coastal-lidar-pds/laz/geoid18/10356",
+      "formats": [
+        "LAZ (compressed LAS 1.4)",
+        "GeoPackage tile index",
+        "Shapefile tile index",
+        "metadata XML/HTML",
+        "tile URL list"
+      ],
+      "role": [
+        "regional_lidar",
+        "bare_earth_elevation_support",
+        "coastal_elevation_context"
+      ],
+      "authorityClass": "FEDERAL_OPEN_DATA_WITH_STATE_SOURCE",
+      "surveyDate": "2024-04-15 to 2024-04-19",
+      "reportedInventory": {
+        "tileCount": 2139,
+        "totalDownloadSizeApprox": "24 GB",
+        "surveyAreaApproxKm2": 310,
+        "nominalPulseSpacingM": 0.35
+      },
+      "geographicCoverage": [
+        "Cook County, Illinois",
+        "Lake, LaPorte, and Porter Counties, Indiana",
+        "Berrien County, Michigan"
+      ],
+      "metadataSpatialReference": "NOAA's direct S3 index identifies NAD83(HARN) / UTM Zone 16N horizontally and NAVD88 using GEOID18 in metres vertically; verify each downloaded file's LAS/LAZ header and metadata before use.",
+      "accessPolicy": "The OpenTopography web page reports eligibility restrictions (US academic .edu, certain educators by application, or OpenTopography+). The NOAA S3 metadata index is a separate direct distribution route.",
+      "license": "Record exact product-level use constraints from source metadata before redistributing derived files.",
+      "status": "OPTIONAL_REGIONAL_SOURCE_NOT_ACQUIRED_FOR_PRIMARY_LOWER_WABASH_OHIO_AOI",
+      "overlapWithPrimaryTriStatePilotAOI": false,
+      "limitations": [
+        "The dataset footprint is in northwest Indiana/northeast Illinois/southwest Michigan, not the current Posey/Lower Wabash-Ohio pilot area.",
+        "Do not pull the entire approximately 24 GB dataset unless a verified AOI intersects the footprint.",
+        "The OpenTopography overview has an original-product CRS description that differs from the S3 index's spatial-reference section; actual tile metadata must control."
       ]
     }
   ],

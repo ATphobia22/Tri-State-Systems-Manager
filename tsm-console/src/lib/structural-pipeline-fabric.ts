@@ -1,4 +1,4 @@
-export type StructuralPipelineLayerKind = 'terrain' | 'raster' | 'feature' | 'api' | 'presentation' | 'geojson-local';
+export type StructuralPipelineLayerKind = 'terrain' | 'raster' | 'feature' | 'vector-style' | 'api' | 'presentation' | 'geojson-local';
 
 export interface StructuralPipelineLayer {
   readonly index: number;

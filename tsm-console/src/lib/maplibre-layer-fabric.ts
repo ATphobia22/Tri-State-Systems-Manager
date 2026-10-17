@@ -1,4 +1,4 @@
-export type MapLibreFabricKind = 'terrain' | 'raster' | 'feature';
+export type MapLibreFabricKind = 'terrain' | 'raster' | 'feature' | 'vector-style';
 
 export interface MapLibreFabricLayer {
   readonly id: string;

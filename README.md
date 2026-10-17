@@ -72,6 +72,10 @@ Screening primitives and contracts exist. Production hydraulic conclusions remai
 - [Candidate DEM provenance and one-point cross-check limitations](data/posey-county/elevation/bonebank-anchor-dem-10m.provenance.json)
 - [Release gates 2026-10-15](docs/release/RELEASE-GATES-2026-10-15.md)
 
+## Geospatial source acquisition and data fabrics
+
+The acquisition status of Overture vector context, Indiana LiDAR/DEM products, FEMA NFHL, and regional NOAA LiDAR is documented in [source access and acquisition notes](docs/fabrics/OVERTURE-INDIANA-LIDAR-FEMA-ACCESS-2026-10-17.md). The notes distinguish installed tools, portal discovery pages, live REST endpoints, downloaded files, and datasets that are out-of-area or access-controlled. Large global or regional products are not mirrored wholesale into standard Git.
+
 ## Architecture principles
 
 1. **Human authority is non-negotiable** (ADR-004 / ADR-006 S1 default).

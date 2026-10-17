@@ -7,7 +7,12 @@ describe('TSM data-fabric registry', () => {
     expect(TSM_DATA_FABRICS.find((f) => f.id === 'apple-maps')?.persistenceAllowed).toBe(false);
     expect(TSM_DATA_FABRICS.find((f) => f.id === 'mapillary')?.persistenceAllowed).toBe(false);
   });
-  it('keeps buildings derived rather than authoritative', () => expect(TSM_DATA_FABRICS.find((f) => f.id === 'buildings')?.authority).toBe('DERIVED'));
+  it('keeps buildings derived rather than authoritative', () => {
+    const fabric = TSM_DATA_FABRICS.find((f) => f.id === 'buildings');
+    expect(fabric?.authority).toBe('DERIVED');
+    expect(fabric?.sources).toContain('OVERTURE-MAPS-BUILDINGS');
+    expect(fabric?.notes).toMatch(/ODbL obligations/);
+  });
   it('keeps H3 derived/index-only', () => expect(TSM_DATA_FABRICS.find((f) => f.id === 'spatial-index')?.authority).toBe('DERIVED'));
   it('requires authoritative bathymetry as a distinct evidence fabric', () => {
     const fabric = TSM_DATA_FABRICS.find((f) => f.id === 'bathymetry-topobathy');
