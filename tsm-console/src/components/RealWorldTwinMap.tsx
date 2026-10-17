@@ -14,6 +14,7 @@ import MultiStationWaterPanel from './MultiStationWaterPanel';
 import LocalDamsPanel from './LocalDamsPanel';
 import ScenarioStudioPanel from './ScenarioStudioPanel';
 import LiveShadowPanel from './LiveShadowPanel';
+import FacilityStatusDashboard from './FacilityStatusDashboard';
 import { SessionLiveShadow, type LiveShadowStatus } from '../lib/session-live-shadow';
 import { applyScenarioCascadeLayer } from '../lib/scenario-cascade-layer';
 import type { ScenarioStudioResult } from '../lib/scenario-studio';
@@ -66,6 +67,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
     autoStoppedReason: null,
   });
   const shadowRef = useRef<SessionLiveShadow | null>(null);
+  const [scenarioResult, setScenarioResult] = useState<ScenarioStudioResult | null>(null);
 
   const [femaVisible, setFemaVisible] = useState(initialUrl.fema);
   const [bafmVisible, setBafmVisible] = useState(initialUrl.bafm);
@@ -303,6 +305,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
   }, [mapReady]);
 
   const onScenarioResult = useCallback((result: ScenarioStudioResult | null) => {
+    setScenarioResult(result);
     const map = mapRef.current;
     if (!map || !mapReady) return;
     applyScenarioCascadeLayer(map, result);
@@ -399,6 +402,12 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
 
         <ScenarioStudioPanel onResult={onScenarioResult} />
 
+        <FacilityStatusDashboard
+          compact
+          scenarioResult={scenarioResult}
+          stations={multiStations}
+        />
+
         <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
           {([
             { id: 'fema', pressed: femaVisible, onClick: () => setFemaVisible((v) => !v), label: `FEMA NFHL ${femaVisible ? 'ON' : 'OFF'}` },
@@ -432,7 +441,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
           ))}
         </div>
         <div style={{ marginTop: 6, color: '#86efac' }}>
-          Live water: button-only by default; opt-in session shadow available (auto-stops). Local dams = registry awareness only. Scenario cascade pins = SIMULATION_DEMO screening only. HEC-RAS remains SIMULATION_DEMO until evidence gates pass. Source required for verified datum conversion; unavailable stays unavailable. Human authority remains final.
+          Live water: button-only by default; opt-in session shadow available (auto-stops). Local dams = registry awareness only. Scenario cascade pins = SIMULATION_DEMO screening only. Facility dashboard = screening context, not SCADA. HEC-RAS remains SIMULATION_DEMO until evidence gates pass. Source required for verified datum conversion; unavailable stays unavailable. Human authority remains final.
         </div>
         {tiles3DVisible && (
           <div style={{ marginTop: 6, color: '#94a3b8' }}>3D terrain: self-hosted OGC 3D Tiles 1.1 \u00b7 status: {tiles3DStatus}</div>
