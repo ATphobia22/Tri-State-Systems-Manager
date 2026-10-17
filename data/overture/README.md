@@ -1,35 +1,43 @@
-# Overture Maps buildings — Posey AOI extract
+# Overture Maps buildings — Posey AOI extracts
 
 **Release:** 2026-09-23.1  
-**Theme:** buildings / type=building  
 **Downloaded:** 2026-10-17
 
-## What was downloaded
+## Policy on “full parquet shards”
 
-Full global Overture buildings is **~2.53 billion features across 512 GeoParquet shards** (~hundreds of GB). That is not practical to mirror in-repo.
+| Theme | Global scale | What we download |
+|-------|--------------|------------------|
+| `building` | ~2.53B features, **512** shards (~hundreds of GB) | STAC filter → **2** shards covering Posey (~1.25 GB) → bbox extract |
+| `building_part` | ~4.49M features, **3** shards | STAC filter → **1** shard covering Posey (~157 MB) → bbox extract |
 
-Instead:
+**Full global mirrors are not stored in-repo.** Covering shards were downloaded, filtered, and only small AOI extracts are retained.
 
-1. STAC scanned all 512 building items for intersection with Posey approx bbox  
-   `[-88.25, 37.75, -87.75, 38.20]`
-2. **Two** shards cover that AOI (part-00043, part-00050; ~1.25 GB total).
-3. Both shards were downloaded from S3, then DuckDB filtered to the bbox.
-4. Deliverable: `posey-buildings-extract.parquet`
+## Extracts
+
+### building (Posey bbox)
 
 | Metric | Value |
 |--------|--------|
-| Buildings in Posey bbox extract | **24,375** |
-| With `height > 0` | **18,302** |
+| Count | **24,375** |
+| With height > 0 | **18,302** |
 | Median height (m) | **3.666** |
-| Mean height (m) | **3.88** |
 
-## Paths
+### building_part (Posey bbox)
 
-- S3 release: `s3://overturemaps-us-west-2/release/2026-09-23.1/theme=buildings/type=building/`
-- License: ODbL-1.0 (buildings theme)
-- Schema: height in meters (optional); sources may include OSM, Microsoft, Google Open Buildings
+| Metric | Value |
+|--------|--------|
+| Count | **15** |
+| Covering global shard | `part-00000` (~157 MB) |
 
-## Not included
+Posey is largely rural; few multipart 3D building models exist in Overture here.
 
-- Full 512 global shards (terabyte-class)
-- building_part theme
+## License
+
+ODbL-1.0 (buildings theme).
+
+## S3 paths
+
+```
+s3://overturemaps-us-west-2/release/2026-09-23.1/theme=buildings/type=building/
+s3://overturemaps-us-west-2/release/2026-09-23.1/theme=buildings/type=building_part/
+```
