@@ -26,7 +26,7 @@ CRS_RE = re.compile(
     re.IGNORECASE,
 )
 VERTICAL_RE = re.compile(
-    r"\b(?:NAVD\s*88|NAVD88|NGVD\s*29|NGVD29|GEOID\s*\d{2,4}|VERTICAL\s+DATUM|"
+    r"\b(?:NAVD\s*88|NAVD88|NGVD\s*(?:29|1929)|NGVD29|GEOID\s*\d{2,4}|VERTICAL\s+DATUM|"
     r"VERTICAL\s+UNITS?)\b",
     re.IGNORECASE,
 )
