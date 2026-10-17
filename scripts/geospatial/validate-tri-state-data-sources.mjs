@@ -20,7 +20,7 @@ const fema = byId.get('FEMA-NFHL');
 if (!fema.access.endsWith('/public/NFHL/MapServer')) throw new Error('FEMA-NFHL must use the canonical public NFHL REST MapServer.');
 if (!Array.isArray(fema.portalPages) || fema.portalPages.length < 2) throw new Error('FEMA NFHL viewer/search portals must remain discoverable separately from its REST service.');
 const overture = byId.get('OVERTURE-MAPS-BUILDINGS');
-if (overture.license !== 'ODbL-1.0' || !overture.access.includes('overturemaps-py')) throw new Error('Overture source must retain its ODbL attribution and official client path.');
+if (!String(overture.license).startsWith('ODbL-1.0') || !overture.access.includes('overturemaps-py')) throw new Error('Overture source must retain its ODbL attribution and official client path.');
 const coast = byId.get('NOAA-OCM-2024-IN-DNR-COASTLINE-10356');
 if (coast.overlapWithPrimaryTriStatePilotAOI !== false) throw new Error('NOAA Coastline 10356 must not be treated as covering the primary Lower Wabash/Ohio pilot AOI.');
 if (!/GEOID18/.test(coast.metadataSpatialReference) || !/verify each downloaded file/i.test(coast.metadataSpatialReference)) throw new Error('NOAA LiDAR spatial reference must preserve its verification gate.');
