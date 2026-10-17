@@ -17,9 +17,9 @@
          arrived via 404.html (?/path) before the router boots.
          MIT, adapted from rafgraph/spa-github-pages. -->
     <script src="%BASE_URL%spa-redirect.js"></script>
-    <!-- TerraDraw for berm/road placement drawing tools (via CDN, no npm needed) -->
-    <script src="https://unpkg.com/terra-draw@1.0.0/dist/terra-draw.umd.js"></script>
-    <script src="https://unpkg.com/terra-draw-maplibre-gl-adapter@1.0.0/dist/terra-draw-maplibre-gl-adapter.umd.js"></script>
+    <!-- TerraDraw for berm/road placement drawing tools (vendored locally for air-gapped deployment) -->
+    <script src="%BASE_URL%vendor/terradraw/terra-draw.umd.js"></script>
+    <script src="%BASE_URL%vendor/terradraw/terra-draw-maplibre-gl-adapter.umd.js"></script>
     <style>
       html, body, #root { margin: 0; padding: 0; height: 100%; background: #0f172a; }
       /* iPhone notch / Dynamic Island / home-indicator safe areas.

@@ -1,8 +1,9 @@
 /**
  * TerraDrawMapTools.tsx — Drawing tools for berm/road placement using TerraDraw.
  *
- * Loads TerraDraw via CDN (UMD builds in index.html). Provides polygon,
- * line, and point drawing modes for the engineering workbench.
+ * Loads TerraDraw from vendored UMD builds (public/vendor/terradraw/, loaded
+ * via index.html). Provides polygon, line, and point drawing modes for the
+ * engineering workbench. Fully air-gapped — no CDN required.
  *
  * The drawn features are emitted as GeoJSON for the berm-road-placement
  * engineering calculations. Human authority remains final — drawing
@@ -11,7 +12,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-// TerraDraw is loaded via CDN script tags in index.html
+// TerraDraw is loaded from vendored script tags in index.html (air-gapped)
 declare global {
   interface Window {
     terraDraw?: any;

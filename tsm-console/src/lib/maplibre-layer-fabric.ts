@@ -97,11 +97,11 @@ export const MAPLIBRE_FABRIC_LAYERS: readonly MapLibreFabricLayer[] = [
   },
   {
     id: 'osm-base',
-    title: 'OpenStreetMap Context',
+    title: 'OpenFreeMap Liberty Context',
     authorityClass: 'CONTEXT',
-    kind: 'raster',
+    kind: 'vector-style',
     endpoint: 'https://tiles.openfreemap.org/styles/liberty',
-    attribution: '© OpenStreetMap contributors',
+    attribution: '© OpenMapTiles © OpenStreetMap contributors',
     defaultVisible: false,
   },
   {
