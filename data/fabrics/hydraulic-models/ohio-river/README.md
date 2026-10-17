@@ -2,7 +2,8 @@
 
 **Source:** Indiana DNR Water Division Model Library  
 **Catalog download date:** 2026-10-17  
-**Archive validation:** [CI run 39079514563](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions/runs/39079514563)
+**Archive validation:** [CI run 39080234967](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions/runs/39080234967)  
+**Detailed QA:** [HEC-RAS archive QA record](../../../../docs/validation/HECRAS-ARCHIVE-QA-2026-10-17.md)
 
 | Archive | Model ID | Size (bytes) | Full SHA-256 | Catalog classification |
 |---|---:|---:|---|---|
@@ -12,25 +13,25 @@
 
 ## Integrity and structure
 
-All three archives passed ZIP CRC validation and contain a HEC-RAS project file plus geometry files.
+All three archives passed ZIP CRC validation and contain a HEC-RAS project file plus geometry files. The automated gate checks ZIP integrity, hashes, member-path safety, and basic project/geometry structure; it does not open HEC-RAS or validate model results.
 
 - **4449:** `jtmyers.prj`, `jtmyers.g01`, flow/plan files and output files.
 - **8778:** `untohioriver#5.prj`, `untohioriver#5.g01`, flow/plan files and output files.
-- **3551:** `abengoa_unt_jmk.prj`, geometry files `.g02/.g04/.g05`, flow/plan files and outputs. **This archive is not output-only.**
+- **3551:** `abengoa_unt_jmk.prj`, geometry files `.g02/.g04/.g05`, flow/plan files and outputs. This archive is not output-only.
 
 ## CRS and vertical datum
 
-- **4449:** Model review identifies **NGVD 1929 (NGVD29)**. Do not mix these elevations with NAVD88 terrain without a verified vertical-datum transformation. The conversion is location-dependent; do not apply a generic offset. Horizontal CRS evidence was not found by the bounded text scan.
+- **4449:** A prior AI-authored review asserted NGVD29, but the bounded archive scan did not find explicit horizontal-CRS or vertical-datum evidence. Treat both as **unverified** until corroborated directly from the model/project documentation or DNR source record. Do not mix elevations with NAVD88 terrain or apply a fixed offset without a documented, location-appropriate NGS transformation.
 - **8778:** Text metadata states `GIS Map Projection=STATEPLANE`, `GIS Projection Zone=2966`, and `GIS Datum=NAD83`. Its `GIS Vertical Datum=` field is blank.
 - **3551:** Text metadata states `GIS Map Projection=STATEPLANE` and `GIS Datum=NAD83`; the GIS projection-zone field is blank. The project states `Model Vertical Datum is NAVD 1988`, while the separate GIS vertical-datum field is blank.
 
-The Model 4449 review reports an Ohio River reach spanning river miles 846–773; the spatial overlay against the candidate AOI remains pending.
+The prior AI-authored review reported an Ohio River reach spanning river miles 846–773. The archive scan did not independently verify reach limits or geographic overlap with the candidate AOI.
 
 ## Acceptance status
 
 - [x] ZIP CRC validation and full SHA-256 hashes
 - [x] Project/geometry/flow-plan/output file inventory
-- [x] Literal CRS and datum clues recorded
+- [x] Literal CRS and datum clues recorded, including missing fields
 - [ ] Verify exact horizontal CRS, coordinate units, and model extents in a format-aware GIS workflow
 - [ ] Confirm vertical datum and elevation units; use a documented transformation where required
 - [ ] Compare model reach/extent to a separately sourced AOI in a common, verified CRS
@@ -38,4 +39,4 @@ The Model 4449 review reports an Ohio River reach spanning river miles 846–773
 - [ ] Review upstream/downstream boundary conditions, calibration, assumptions, and software compatibility
 - [ ] Qualified hydraulic reviewer approval
 
-**None of these archives is approved for execution or for flood-depth/design conclusions.**
+**This archive is a candidate source artifact only. It is not approved for execution or for flood-depth/design conclusions.**

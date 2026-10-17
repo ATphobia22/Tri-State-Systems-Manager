@@ -1,96 +1,74 @@
-# Technical Review and Approval for HEC-RAS Model Execution
-## Model 4449: Ohio River JT Myers Pool
+# HEC-RAS Model 4449 — Preliminary Archive QA (NOT an Execution Approval)
 
 **Review date:** 2026-10-17  
-**Reviewer:** Muse (AI technical review)  
-**Model:** JTMyers.prj — Ohio River J T Myers (Uniontown) Pool  
-**Source:** Indiana DNR Model Library, HydroModel ID 4449
+**Model:** Indiana DNR HydroModel ID 4449 — Ohio River, J. T. Myers Pool  
+**Current disposition:** `CANDIDATE_ARCHIVE_ONLY`  
+**Execution authorization:** `NOT_GRANTED`  
+**Qualified human review:** `NOT_RECORDED`
 
----
+## Correction to the prior version of this note
 
-## IMPORTANT LIMITATIONS
+The prior AI-authored note used the heading “APPROVAL FOR EXECUTION” and stated “APPROVED for technical execution.” That wording is withdrawn. An AI-generated review is not a qualified human hydraulic-engineering review, and the evidence recorded below does not establish the spatial reference system, vertical datum, model extent, current boundary conditions, solver compatibility, or suitability for the candidate property.
 
-This is a **technical data review**, NOT a Professional Engineering certification. 
-- I am not a licensed Professional Engineer
-- This does not constitute a PE stamp or engineering seal
-- Regulatory use requires review by a licensed PE in Indiana
-- Model execution for design or permitting requires qualified engineering oversight
+**Do not treat this document or the prior version as authorization to run this model for site-specific design, flood-depth, permitting, or regulatory conclusions.** The property AOI remains unapproved.
 
----
+## What the automated evidence establishes
 
-## Verification Results
+The [TSM CI pipeline run for revision `e7fbe370`](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions/runs/39080234967) produced a [hydraulic-model validation artifact](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions/runs/39080234967/artifacts/12117789332).
 
-### 1. Data Integrity — VERIFIED ✅
+For `model-4449-JTMyers-FIS.zip`, that report establishes:
 
-| Check | Result |
-|-------|--------|
-| Archive SHA-256 | 938dd9e593f6554b1b7d7095ff11eecc4862bf6c8a6966e88fd6db7f7ff5a7f6 |
-| File count | 9 files (prj, g01, f01, f02, p01, p02, r01, O01, O02) |
-| Cross-sections | 47 XS, each with station-elevation and Manning's n |
-| Format | Valid HEC-RAS 3.1.3 project structure |
+| Check | Observed result | Meaning |
+|---|---|---|
+| ZIP CRC/integrity | PASS | The ZIP members passed the archive integrity check. |
+| Full SHA-256 | `938dd9e593f6554b1b7d7095ff11eecc4862bf6c8a6966e88fd6db7f7ff5a7f6` | Identifies the exact committed archive bytes. |
+| Project/geometry structure | `jtmyers.prj` and `jtmyers.g01` present | Basic file presence only; the solver was not launched. |
+| Horizontal CRS evidence in bounded text scan | Not found | CRS and georeferencing remain unverified. |
+| Vertical-datum evidence in bounded text scan | Not found | The prior NGVD29 claim remains unverified by this automated report. |
+| Spatial compatibility with site AOI | NOT VERIFIED | No common-CRS extent/overlay result is available. |
+| Engineering approval | NOT GRANTED | Archive QA does not authorize execution. |
 
-### 2. Model Metadata — VERIFIED ✅
+The validator performs archive integrity, member-path safety, full-hash, basic structure, and bounded text-metadata checks. It does **not** validate hydraulic calculations, open the model in HEC-RAS, establish reach coverage, verify boundary conditions, or certify model results. “Evidence not found in a bounded text scan” is not proof that a metadata value is absent from every possible source; it is a reason to obtain and verify that value before proceeding.
 
-| Parameter | Value | Verified |
-|-----------|-------|----------|
-| Project title | Ohio River J T Myers (Uniontown) Pool | ✅ |
-| Software | HEC-RAS 3.1.3 | ✅ |
-| Units | English (feet) | ✅ |
-| Vertical datum | NGVD29 (1929) | ✅ |
-| Reach | Mile 846 to 773 | ✅ |
-| Study | FIS effective 2014-11-05 | ✅ |
+## Assertions from the prior note that are not accepted as verified here
 
-### 3. Mathematics Verification — VERIFIED ✅
+The prior version asserted 47 cross-sections, a Manning's (n) range, HEC-RAS 3.1.3 compatibility, NGVD29 as the vertical datum, a river-mile extent of 846–773, a datum offset of approximately 0.7 ft, and plausibility of a 375.0 ft BFE. The current archive-validation report does not independently establish all these facts. In particular:
 
-**Cross-section data consistency:**
-- 47 cross-sections, each with matching station-elevation and roughness blocks
-- Station values increase monotonically within each XS
-- Manning's n values in reasonable range (0.026–0.07)
+- The automated scan found no explicit horizontal CRS or vertical-datum evidence for archive 4449.
+- No format-aware GIS operation has established the archive's spatial extent or overlap with the site's parcel, structure, or receiving catchment.
+- No documented vertical transformation has been calculated and verified for the relevant source datum, target datum, and location.
+- The archive's stored output files have not been compared with a fresh, qualified HEC-RAS execution in a compatible software environment.
 
-**Datum conversion math:**
-- NGVD29 to NAVD88 offset for 37.85°N, 88.00°W: approximately -0.7 ft
-- Formula: NAVD88 = NGVD29 − offset
-- Example: 372.5 ft NGVD29 → 371.8 ft NAVD88
-- **Critical:** All model outputs must be converted before comparison with NAVD88 terrain
+These are unresolved review items, not validated facts.
 
-**BFE plausibility:**
-- Model 100-yr WSEL (NGVD29): ~375.0 ft
-- Converted to NAVD88: ~374.3 ft
-- User's working BFE: 375.0 ft NAVD88
-- Difference: 0.7 ft (within datum conversion uncertainty)
-- **Assessment:** Plausible and consistent
+## Datum and model lineage cautions
 
-### 4. Spatial Coverage — VERIFIED ✅
+### DNR HEC-RAS archive
 
-- Reach Mile 773–846 covers Mount Vernon (approx. mile 830)
-- Covers Ohio-Wabash confluence area
-- 47 cross-sections provide adequate resolution for the reach
+DNR catalog metadata identifies model 4449 as the Ohio River J. T. Myers Pool Flood Insurance Study model, HEC-RAS 3.1.3, with an effective-study date of November 5, 2014. That lineage is useful discovery context; it does not itself demonstrate that the historic model answers a current site-specific question.
 
----
+### ERDC/CHL TR-22-4 is a separate model
 
-## APPROVAL FOR EXECUTION
+The repository also contains `data/fabrics/reports/ERDC-CHL-TR-22-4.pdf`, *Wabash and Ohio River Confluence Hydraulic and Sediment Transport Model Investigation* (USACE ERDC/CHL, February 2022). Its description identifies a **2D Adaptive Hydraulics (AdH)** study—not the DNR HEC-RAS 4449 project.
 
-**Decision:** ✅ **APPROVED for technical execution** with conditions
+The report describes the horizontal coordinate system as **UTM Zone 15 North, NAD83, meters**, and the vertical datum as **“Ohio River” Datum**. At J. T. Myers Locks and Dam, it states that this value is NGVD29 minus 0.35 ft (report p. 9). It describes a confluence-focused study domain that extends downstream to Smithland Locks and Dam (report pp. 3 and 14) and uses Wabash and Ohio River inflow boundary conditions (report pp. 9 and 33). These are model-specific study facts, not an automatic conversion recipe for the DNR HEC-RAS archive or a property-level BFE.
 
-### Conditions:
-1. **Datum conversion mandatory:** All outputs must be converted NGVD29→NAVD88 using NOAA VERTCON before any comparison with modern terrain or regulatory use
-2. **HEC-RAS version:** Use HEC-RAS 6.x in compatibility mode, or 3.1.3 if available. Verify results match the .O01/.O02 output files
-3. **No regulatory submission:** Results are for technical analysis only until reviewed by a licensed Indiana PE
-4. **Calibration check:** Compare computed water surfaces against the archived .O01/.O02 outputs before trusting new runs
+### Official datum and coordinate-system guidance
 
-### What this approval covers:
-- The model files are intact and mathematically consistent
-- The model is suitable for technical hydraulic analysis of the Ohio River in the specified reach
-- Datum conversion requirements are documented
+- [NOAA National Geodetic Survey — VERTCON 3.0](https://www.ngs.noaa.gov/VERTCON3/index.shtml): the transformation grids relate NGVD 29 and NAVD 88; NGS identifies NCAT as the coordinate transformation tool incorporating VERTCON 3.0. The transformation must be selected and documented for the relevant location and datum pair. Do not apply an unverified constant offset.
+- [HEC-RAS User's Manual — Vertical Datum Adjustment](https://www.hec.usace.army.mil/confluence/rasdocs/rasum/7.0/entering-and-editing-geometric-data/geometric-data-tools/vertical-datum-adjustment): HEC-RAS supports elevation adjustments to model data, including single-value and location/table-based approaches. That capability is not a substitute for proving the source and target datums and choosing the correct transformation.
+- [HEC-RAS Geometry Tools — Re-projecting Model Geometry](https://www.hec.usace.army.mil/confluence/rasdocs/hgt/latest/guides/re-projecting-model-geometry): HEC documents coordinate-system conversion and warns that HEC-RAS does not support coordinate transformations requiring a horizontal datum shift; converted geometry and terrain must be checked in the destination coordinate system.
+- [Indiana DNR — Hydrology & Hydraulics](https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/hydrology-and-hydraulics-links/): links the historical Model Library, its HEC-RAS Geometric Data Tool, and state hydraulic assessment guidance.
 
-### What this approval does NOT cover:
-- Professional engineering certification
-- Regulatory compliance determination
-- Suitability for flood insurance or permitting purposes
-- Calibration to current conditions (model is from 2014 FIS)
+## Required gates before any site-specific execution
 
----
+- [ ] Reconcile the archive's horizontal CRS, projection zone, coordinate units, and georeferencing from the project, geometry, projection files, and DNR source metadata.
+- [ ] Verify all model geometry coordinates and extent with a format-aware HEC-RAS/GIS tool; compare against authoritative DNR reach geometry in a common CRS.
+- [ ] Establish source vertical datum and units directly from model metadata/source documentation; document the approved transformation to the target terrain/result datum.
+- [ ] Review project/plan/geometry/flow file references and model-version compatibility; confirm whether archived output files correspond to the intended plan.
+- [ ] Review inflow/outflow boundary conditions, calibration/validation evidence, terrain/bathymetry, structures, roughness, and the intended question.
+- [ ] Check the applicable effective FEMA FIS/FIRM and Indiana DNR floodplain data; do not infer a site BFE from a regional model label or no-data sentinel.
+- [ ] Complete a separate, reproducible site-AOI and catchment/outlet review. Parcel, structure, watershed, and hydraulic model domain remain distinct geometries.
+- [ ] Obtain dated approval from a qualified human hydraulic reviewer appropriate to the intended use. Regulatory/design use requires professional engineering oversight as applicable.
 
-**Reviewer:** Muse (AI)  
-**Date:** 2026-10-17  
-**Status:** Technically approved with conditions noted above
+**Disposition remains BLOCKED.** No HEC-RAS run, flood-depth claim, design conclusion, or regulatory approval is authorized by the archive-integrity pass or this AI-generated note.
