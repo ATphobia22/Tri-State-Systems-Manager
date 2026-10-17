@@ -1,0 +1,51 @@
+{
+  "id": "tsm-nfhl-operational",
+  "version": 8,
+  "name": "TSM NFHL Priority Operational (style fragment)",
+  "metadata": {
+    "tsm.authority": "REGULATORY_DISPLAY",
+    "tsm.note": "Vector source-layer names assume Martin/PostGIS MVT; until then use MapServer export image overlay."
+  },
+  "layers": [
+    {
+      "id": "nfhl-sfha-fill",
+      "type": "fill",
+      "source": "nfhl",
+      "source-layer": "flood_zones",
+      "metadata": { "nfhlLayerId": 28 },
+      "paint": { "fill-color": "#3b82f6", "fill-opacity": 0.35 }
+    },
+    {
+      "id": "nfhl-boundaries",
+      "type": "line",
+      "source": "nfhl",
+      "source-layer": "flood_boundaries",
+      "metadata": { "nfhlLayerId": 27 },
+      "paint": { "line-color": "#2563eb", "line-width": 1 }
+    },
+    {
+      "id": "nfhl-bfe",
+      "type": "line",
+      "source": "nfhl",
+      "source-layer": "bfe",
+      "metadata": { "nfhlLayerId": 16 },
+      "paint": { "line-color": "#1d4ed8", "line-width": 1.5 }
+    },
+    {
+      "id": "nfhl-levees",
+      "type": "line",
+      "source": "nfhl",
+      "source-layer": "levees",
+      "metadata": { "nfhlLayerId": 23 },
+      "paint": { "line-color": "#ef4444", "line-width": 3 }
+    },
+    {
+      "id": "nfhl-lomas",
+      "type": "circle",
+      "source": "nfhl",
+      "source-layer": "lomas",
+      "metadata": { "nfhlLayerId": 34 },
+      "paint": { "circle-radius": 5, "circle-color": "#f59e0b", "circle-stroke-width": 1, "circle-stroke-color": "#fff" }
+    }
+  ]
+}
