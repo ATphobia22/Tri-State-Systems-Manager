@@ -2,17 +2,23 @@
  * Scenario Studio panel — cascading impact rehearsal on Twin Canvas.
  * SIMULATION_DEMO only; human-triggered; fail-closed evidence posture preserved.
  */
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ADAPTATION_OPTIONS,
   SCENARIO_EVENTS,
   SCREENING_CRITICAL_FACILITIES,
   runScenarioStudio,
   type AdaptationId,
+  type CriticalFacility,
   type ScenarioEventId,
   type ScenarioStudioResult,
   type ImpactSeverity,
 } from '../lib/scenario-studio';
+import { loadCriticalFacilitiesCatalog } from '../lib/critical-facilities';
+import {
+  downloadEvidencePackage,
+  exportScenarioStudioEvidence,
+} from '../lib/scenario-evidence-export';
 
 const SEV_COLOR: Record<ImpactSeverity, string> = {
   none: '#64748b',
@@ -29,6 +35,28 @@ export default function ScenarioStudioPanel({ onResult }: Props): React.JSX.Elem
   const [eventId, setEventId] = useState<ScenarioEventId>('screening-100yr');
   const [adaptationId, setAdaptationId] = useState<AdaptationId>('none');
   const [result, setResult] = useState<ScenarioStudioResult | null>(null);
+  const [facilities, setFacilities] = useState<readonly CriticalFacility[]>(SCREENING_CRITICAL_FACILITIES);
+  const [catalogNote, setCatalogNote] = useState('Loading facility inventory…');
+  const [reviewer, setReviewer] = useState('');
+  const [reason, setReason] = useState('');
+  const [exportBusy, setExportBusy] = useState(false);
+  const [exportMsg, setExportMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadCriticalFacilitiesCatalog()
+      .then((c) => {
+        if (cancelled) return;
+        setFacilities(c.features);
+        setCatalogNote(`${c.authorityClass} · ${c.features.length} facilities · ${c.source.slice(0, 80)}`);
+      })
+      .catch(() => {
+        if (!cancelled) setCatalogNote('Using built-in screening pins');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const eventMeta = useMemo(
     () => SCENARIO_EVENTS.find((e) => e.id === eventId) ?? SCENARIO_EVENTS[0],
@@ -36,14 +64,34 @@ export default function ScenarioStudioPanel({ onResult }: Props): React.JSX.Elem
   );
 
   const run = (): void => {
-    const next = runScenarioStudio(eventId, adaptationId, SCREENING_CRITICAL_FACILITIES);
+    const next = runScenarioStudio(eventId, adaptationId, facilities);
     setResult(next);
+    setExportMsg(null);
     onResult?.(next);
   };
 
   const clear = (): void => {
     setResult(null);
+    setExportMsg(null);
     onResult?.(null);
+  };
+
+  const exportMerkle = async (): Promise<void> => {
+    if (!result) return;
+    setExportBusy(true);
+    setExportMsg(null);
+    try {
+      const exp = await exportScenarioStudioEvidence(result, {
+        reviewer_identity: reviewer || undefined,
+        review_reason: reason || undefined,
+      });
+      downloadEvidencePackage(exp.package, `tsm-scenario-${exp.evidence_id}.json`);
+      setExportMsg(`Stamped ${exp.evidence_id} · root ${exp.merkleRoot.slice(0, 12)}… · ${exp.label}`);
+    } catch (e) {
+      setExportMsg(e instanceof Error ? e.message : 'Export failed');
+    } finally {
+      setExportBusy(false);
+    }
   };
 
   return (
@@ -62,6 +110,7 @@ export default function ScenarioStudioPanel({ onResult }: Props): React.JSX.Elem
       <div style={{ marginTop: 4, color: '#94a3b8', fontSize: 11 }}>
         SIMULATION_DEMO / SCENARIO · relative screening only · not SFHA · not a warning system · human authority final
       </div>
+      <div style={{ marginTop: 4, fontSize: 10, color: '#64748b' }}>{catalogNote}</div>
 
       <label style={{ display: 'block', marginTop: 8, fontSize: 11, color: '#cbd5e1' }}>
         Event
@@ -143,6 +192,53 @@ export default function ScenarioStudioPanel({ onResult }: Props): React.JSX.Elem
               </li>
             ))}
           </ul>
+
+          <div style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid #334155' }}>
+            <strong style={{ fontSize: 11, color: '#a78bfa' }}>Merkle-stamped evidence export</strong>
+            <div style={{ fontSize: 10, color: '#64748b', marginTop: 2 }}>
+              Local client ledger · SCENARIO only · optional reviewer fields do not elevate to REGULATORY
+            </div>
+            <label style={{ display: 'block', marginTop: 6, fontSize: 11, color: '#cbd5e1' }}>
+              Reviewer (optional)
+              <input
+                value={reviewer}
+                onChange={(e) => setReviewer(e.target.value)}
+                placeholder="name or role"
+                style={{ display: 'block', width: '100%', marginTop: 4, minHeight: 36, background: '#020617', color: '#e2e8f0', border: '1px solid #1e293b', borderRadius: 6 }}
+              />
+            </label>
+            <label style={{ display: 'block', marginTop: 6, fontSize: 11, color: '#cbd5e1' }}>
+              Reason (optional)
+              <input
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="why exporting this scenario"
+                style={{ display: 'block', width: '100%', marginTop: 4, minHeight: 36, background: '#020617', color: '#e2e8f0', border: '1px solid #1e293b', borderRadius: 6 }}
+              />
+            </label>
+            <button
+              type="button"
+              disabled={exportBusy}
+              onClick={() => void exportMerkle()}
+              style={{
+                marginTop: 8,
+                minHeight: 44,
+                padding: '0.5rem 0.9rem',
+                borderRadius: 8,
+                border: '1px solid #5b21b6',
+                background: 'rgba(167,139,250,0.15)',
+                color: '#c4b5fd',
+                fontWeight: 700,
+                cursor: exportBusy ? 'wait' : 'pointer',
+              }}
+            >
+              {exportBusy ? 'Stamping…' : 'Export Merkle-stamped package'}
+            </button>
+            {exportMsg && (
+              <div style={{ marginTop: 6, fontSize: 11, color: '#a78bfa' }}>{exportMsg}</div>
+            )}
+          </div>
+
           <p style={{ marginTop: 8, fontSize: 10, color: '#78716c' }}>{result.disclaimer}</p>
         </div>
       )}
