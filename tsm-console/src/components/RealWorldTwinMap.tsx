@@ -13,6 +13,8 @@ import Geoid18AoiPanel from './Geoid18AoiPanel';
 import MultiStationWaterPanel from './MultiStationWaterPanel';
 import LocalDamsPanel from './LocalDamsPanel';
 import ScenarioStudioPanel from './ScenarioStudioPanel';
+import LiveShadowPanel from './LiveShadowPanel';
+import { SessionLiveShadow, type LiveShadowStatus } from '../lib/session-live-shadow';
 import { applyScenarioCascadeLayer } from '../lib/scenario-cascade-layer';
 import type { ScenarioStudioResult } from '../lib/scenario-studio';
 import { fetchLiveStage } from '../lib/stage';
@@ -53,6 +55,17 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
   const [multiStations, setMultiStations] = useState<StationLiveSnapshot[]>([]);
   const [multiBusy, setMultiBusy] = useState(false);
   const [multiError, setMultiError] = useState<string | null>(null);
+  const [shadowStatus, setShadowStatus] = useState<LiveShadowStatus>({
+    enabled: false,
+    lastFetchAt: null,
+    ageMs: null,
+    stale: false,
+    error: null,
+    ticks: 0,
+    sessionStartedAt: null,
+    autoStoppedReason: null,
+  });
+  const shadowRef = useRef<SessionLiveShadow | null>(null);
 
   const [femaVisible, setFemaVisible] = useState(initialUrl.fema);
   const [bafmVisible, setBafmVisible] = useState(initialUrl.bafm);
@@ -295,6 +308,26 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
     applyScenarioCascadeLayer(map, result);
   }, [mapReady]);
 
+  useEffect(() => {
+    const shadow = new SessionLiveShadow({
+      onStations: setMultiStations,
+      onPrimaryStage: setLiveStage,
+      onStatus: setShadowStatus,
+    });
+    shadowRef.current = shadow;
+    return () => {
+      shadow.dispose();
+      shadowRef.current = null;
+    };
+  }, []);
+
+  const onShadowToggle = useCallback((enable: boolean) => {
+    const s = shadowRef.current;
+    if (!s) return;
+    if (enable) s.start();
+    else s.stop('user_stop');
+  }, []);
+
   const terrainStatus = getTerrainRgbStatus();
   const terrainMessage = terrainRgbBlockMessage(terrainStatus);
 
@@ -358,6 +391,8 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
           onFetchAll={onFetchAllStations}
         />
 
+        <LiveShadowPanel status={shadowStatus} onToggle={onShadowToggle} />
+
         <LocalDamsPanel onCatalog={onDamsCatalog} />
 
         <Geoid18AoiPanel />
@@ -397,7 +432,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
           ))}
         </div>
         <div style={{ marginTop: 6, color: '#86efac' }}>
-          Live water: button-only (single or constellation). No auto-fetch. Local dams = registry awareness only. Scenario cascade pins = SIMULATION_DEMO screening only. HEC-RAS remains SIMULATION_DEMO until evidence gates pass. Source required for verified datum conversion; unavailable stays unavailable. Human authority remains final.
+          Live water: button-only by default; opt-in session shadow available (auto-stops). Local dams = registry awareness only. Scenario cascade pins = SIMULATION_DEMO screening only. HEC-RAS remains SIMULATION_DEMO until evidence gates pass. Source required for verified datum conversion; unavailable stays unavailable. Human authority remains final.
         </div>
         {tiles3DVisible && (
           <div style={{ marginTop: 6, color: '#94a3b8' }}>3D terrain: self-hosted OGC 3D Tiles 1.1 \u00b7 status: {tiles3DStatus}</div>
