@@ -596,6 +596,250 @@
           "type": "string"
         }
       }
+    },
+    "source_conflicts": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "source_record": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string"
+        },
+        "governing_reference": {
+          "type": "string"
+        }
+      }
+    },
+    "raster_crosscheck": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "source_raster_path": {
+          "type": "string"
+        },
+        "source_raster_sha256": {
+          "type": "string"
+        },
+        "source_raster_shape": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "source_raster_horizontal_crs": {
+          "type": "string"
+        },
+        "source_raster_nominal_resolution": {
+          "type": "string"
+        },
+        "source_raster_value_at_parcel_centroid_m": {
+          "type": "number"
+        },
+        "source_raster_vertical_datum_documented_in_bundle": {
+          "type": "string"
+        },
+        "epqs_value_ft": {
+          "type": "number"
+        },
+        "epqs_value_m": {
+          "type": "number"
+        },
+        "epqs_raster_id": {
+          "type": "number"
+        },
+        "difference_raster_minus_epqs_m": {
+          "type": "number"
+        },
+        "source_tiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "metadata_note": {
+          "type": "string"
+        },
+        "interpretation": {
+          "type": "string"
+        }
+      }
+    },
+    "hydrologic_unit_context": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "source_agency": {
+          "type": "string"
+        },
+        "source_dataset": {
+          "type": "string"
+        },
+        "source_service": {
+          "type": "string"
+        },
+        "feature_path": {
+          "type": "string"
+        },
+        "feature_sha256": {
+          "type": "string"
+        },
+        "parcel_centroid_contained": {
+          "type": "boolean"
+        },
+        "huc12": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "area_sq_km": {
+              "type": "number"
+            }
+          }
+        },
+        "huc10": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            }
+          }
+        },
+        "huc8": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            }
+          }
+        },
+        "limitation": {
+          "type": "string"
+        }
+      }
+    },
+    "parcel_floodplain_overlay": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "source_record": {
+          "type": "string"
+        },
+        "source_record_sha256": {
+          "type": "string"
+        },
+        "source_retrieved_date": {
+          "type": "string"
+        },
+        "source_service": {
+          "type": "string"
+        },
+        "intersecting_feature_count": {
+          "type": "number"
+        },
+        "flood_zone": {
+          "type": "string"
+        },
+        "special_flood_hazard_area": {
+          "type": "boolean"
+        },
+        "source_dnr": {
+          "type": "string"
+        },
+        "study_type": {
+          "type": "string"
+        },
+        "computed_parcel_overlap_percent": {
+          "type": "number"
+        },
+        "area_method": {
+          "type": "string"
+        },
+        "normalized_bfe_ft": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "vertical_datum": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "limitation": {
+          "type": "string"
+        }
+      }
+    },
+    "water_source_inventory": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "source_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "source_uri": {
+            "type": "string"
+          },
+          "api_uri": {
+            "type": "string"
+          },
+          "approximate_distance_km": {
+            "type": "number"
+          },
+          "available_parameters": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "availability_note": {
+            "type": "string"
+          },
+          "altitude_note": {
+            "type": "string"
+          },
+          "intended_use": {
+            "type": "string"
+          },
+          "limitations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
     }
   },
   "$defs": {
@@ -733,6 +977,9 @@
           "type": "null"
         },
         "interpretation": {
+          "type": "string"
+        },
+        "independence_status": {
           "type": "string"
         }
       }
