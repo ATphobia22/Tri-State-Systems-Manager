@@ -110,7 +110,7 @@
     "h3-js": "4.5.0",
     "lucide-react": "^1.55.0",
     "maplibre-gl": "6.13.0",
-    "pmtiles": "4.5.0",
+    "pmtiles": "^4.5.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-router": "^8.4.0",
