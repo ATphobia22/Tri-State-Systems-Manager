@@ -1,0 +1,18 @@
+{
+  "gate_m": 20.0,
+  "sample_n": 1000,
+  "matched_n": 244,
+  "match_rate_pct": 24.4,
+  "median_abs_dh_m": 0.942,
+  "mean_abs_dh_m": 1.67,
+  "within_2m_pct": 77.9,
+  "p90_abs_dh_m": 3.069,
+  "full_tsm_n": 22815,
+  "full_matched_n": 5566,
+  "full_match_rate_pct": 24.4,
+  "full_median_abs_dh_m": 1.038,
+  "ms_with_height": 24583,
+  "seed": 42,
+  "tsm_source": "buildings-3d.json (GitHub Pages)",
+  "ms_source": "GlobalMLBuildingFootprints quadkey 032000212"
+}
