@@ -107,6 +107,20 @@ jobs:
           python -m unittest discover -s tests -p 'test_boundary_flow_validator.py' -v
           python -m unittest discover -s tests -p 'test_hydrology_pipeline.py' -v
           python -m unittest discover -s tests -p 'test_erdc_tr22_4_boundary.py' -v
+
+      - name: Validate committed hydraulic model archives
+        working-directory: .
+        run: |
+          python scripts/hydrology/validate_model_archives.py --root . --output artifacts/hydraulic-model-validation.json
+          python -m json.tool artifacts/hydraulic-model-validation.json >/dev/null
+
+      - name: Upload hydraulic model validation report
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v6
+        with:
+          name: hydraulic-model-validation-${{ github.sha }}
+          path: artifacts/hydraulic-model-validation.json
+          if-no-files-found: error
+          retention-days: 30
       - name: V35.1 strict contract typecheck
         run: npm run check:v35.1
       - name: V35.1 contract tests
