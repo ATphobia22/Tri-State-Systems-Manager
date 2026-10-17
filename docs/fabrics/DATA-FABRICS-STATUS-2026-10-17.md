@@ -8,7 +8,7 @@
 | **IGIO Building Footprints** | **FIXED URL** | `Hosted/Building_Footprints` — 16,116 in Posey envelope |
 | **FEMA NFHL** | **Live** | Layer 16 BFE count 21 for DFIRM 18129%; zones live |
 | **buildings-3d / MS / Overture** | Production / validated | See validation docs |
-| **Critical facilities HIFLD** | Still open | SCREENING remains |
+| **Critical facilities HIFLD** | **CLOSED 2026-10-17** | 15 fire stations + 14 fire depts (NERIS live); 0 hospitals in Posey (verified) |
 | **data/fabrics/live** | Empty | Optional |
 
 ## Working endpoints
