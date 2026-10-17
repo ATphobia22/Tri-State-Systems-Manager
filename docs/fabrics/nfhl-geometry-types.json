@@ -1,72 +1,65 @@
 {
-  "schema": "tsm.nfhl.layer-registry.v1",
-  "service": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer",
-  "totalLayers": 32,
-  "authorityDefault": "REGULATORY_DISPLAY",
-  "notes": [
-    "Hardcopy FIRM+FIS control conflicts with digital NFHL (44 CFR).",
-    "Preliminary/CSLF must not be labeled effective SFHA.",
-    "Geometry types from live MapServer inventory 2026-10-17."
-  ],
-  "priorityOperational": [28, 27, 23, 16, 34, 3, 22, 32],
-  "capabilities": [
-    "geo.nfhl.layers",
-    "geo.nfhl.zones",
-    "geo.nfhl.boundaries",
-    "geo.nfhl.lomas",
-    "geo.nfhl.levees",
-    "geo.nfhl.bfes"
-  ],
-  "groups": {
-    "polygon": [
-      { "id": 0, "name": "NFHL Availability", "authority": "CONTEXT" },
-      { "id": 1, "name": "LOMRs", "authority": "REGULATORY_DISPLAY" },
-      { "id": 3, "name": "FIRM Panels", "authority": "REGULATORY_DISPLAY" },
-      { "id": 4, "name": "Base Index", "authority": "CONTEXT" },
-      { "id": 5, "name": "PLSS", "authority": "CONTEXT" },
-      { "id": 6, "name": "Topographic Low Confidence Areas", "authority": "CONTEXT" },
-      { "id": 22, "name": "Political Jurisdictions", "authority": "CONTEXT" },
-      { "id": 28, "name": "Flood Hazard Zones", "authority": "REGULATORY_DISPLAY", "maplibreHint": "fill" },
-      { "id": 29, "name": "Seclusion Boundaries", "authority": "CONTEXT" },
-      { "id": 30, "name": "Alluvial Fans", "authority": "REGULATORY_DISPLAY" },
-      { "id": 31, "name": "Subbasins", "authority": "CONTEXT" },
-      { "id": 32, "name": "Water Areas", "authority": "CONTEXT" }
-    ],
-    "polyline": [
-      { "id": 14, "name": "Cross-Sections", "authority": "CONTEXT" },
-      { "id": 15, "name": "Coastal Transects", "authority": "CONTEXT" },
-      { "id": 16, "name": "Base Flood Elevations", "authority": "REGULATORY_DISPLAY", "maplibreHint": "line" },
-      { "id": 17, "name": "Profile Baselines", "authority": "CONTEXT" },
-      { "id": 18, "name": "Transect Baselines", "authority": "CONTEXT" },
-      { "id": 19, "name": "Limit of Moderate Wave Action", "authority": "REGULATORY_DISPLAY" },
-      { "id": 20, "name": "Water Lines", "authority": "CONTEXT" },
-      { "id": 23, "name": "Levees", "authority": "REGULATORY_DISPLAY", "maplibreHint": "line" },
-      { "id": 24, "name": "General Structures", "authority": "CONTEXT" },
-      { "id": 25, "name": "Primary Frontal Dunes", "authority": "CONTEXT" },
-      { "id": 26, "name": "Hydrologic Reaches", "authority": "CONTEXT" },
-      { "id": 27, "name": "Flood Hazard Boundaries", "authority": "REGULATORY_DISPLAY", "maplibreHint": "line" }
-    ],
-    "point": [
-      { "id": 7, "name": "River Mile Markers", "authority": "CONTEXT" },
-      { "id": 8, "name": "Datum Conversion Points", "authority": "CONTEXT" },
-      { "id": 9, "name": "Coastal Gages", "authority": "CONTEXT" },
-      { "id": 10, "name": "Gages", "authority": "CONTEXT" },
-      { "id": 11, "name": "Nodes", "authority": "CONTEXT" },
-      { "id": 12, "name": "High Water Marks", "authority": "CONTEXT" },
-      { "id": 13, "name": "Station Start Points", "authority": "CONTEXT" },
-      { "id": 34, "name": "LOMAs", "authority": "REGULATORY_DISPLAY", "maplibreHint": "circle" }
-    ]
+  "service": {
+    "name": "FEMA National Flood Hazard Layer",
+    "url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer",
+    "source": "FEMA NFHL",
+    "version": "effective",
+    "authoritative": true,
+    "liveValidatedAt": "2026-10-17T19:25:00Z",
+    "liveLayerCount": 32,
+    "note": "Numeric layer IDs verified against live MapServer?f=pjson. Thematic names align with FEMA NFHL published documentation."
   },
-  "unrealMapping": {
-    "Polygon": "ProceduralMeshComponent overlay",
-    "Polyline": "SplineComponent + optional text labels",
-    "Point": "Actor instances / billboard markers"
+  "summary": {
+    "polygonCount": 12,
+    "polylineCount": 12,
+    "pointCount": 8,
+    "totalLayers": 32
   },
-  "maplibreStyleStrategy": {
-    "nfhl-sfha-fill": { "type": "fill", "nfhlLayerId": 28, "paint": { "fill-color": "#3b82f6", "fill-opacity": 0.35 } },
-    "nfhl-boundaries": { "type": "line", "nfhlLayerId": 27, "paint": { "line-color": "#2563eb", "line-width": 1 } },
-    "nfhl-bfe": { "type": "line", "nfhlLayerId": 16, "paint": { "line-color": "#1d4ed8", "line-width": 1.5 } },
-    "nfhl-levees": { "type": "line", "nfhlLayerId": 23, "paint": { "line-color": "#ef4444", "line-width": 3 } },
-    "nfhl-lomas": { "type": "circle", "nfhlLayerId": 34, "paint": { "circle-radius": 5, "circle-color": "#f59e0b" } }
-  }
+  "priorityOperational": [28, 27, 16, 23, 34, 3, 22, 32],
+  "layers": [
+    { "id": 0, "name": "NFHL Availability", "geometryType": "Polygon", "category": "Reference" },
+    { "id": 1, "name": "LOMRs", "geometryType": "Polygon", "category": "Regulatory" },
+    { "id": 3, "name": "FIRM Panels", "geometryType": "Polygon", "category": "Regulatory" },
+    { "id": 4, "name": "Base Index", "geometryType": "Polygon", "category": "Reference" },
+    { "id": 5, "name": "PLSS", "geometryType": "Polygon", "category": "Reference" },
+    { "id": 6, "name": "Topographic Low Confidence Areas", "geometryType": "Polygon", "category": "Reference" },
+    { "id": 22, "name": "Political Jurisdictions", "geometryType": "Polygon", "category": "Reference" },
+    { "id": 28, "name": "Flood Hazard Zones", "geometryType": "Polygon", "category": "Risk" },
+    { "id": 29, "name": "Seclusion Boundaries", "geometryType": "Polygon", "category": "Reference" },
+    { "id": 30, "name": "Alluvial Fans", "geometryType": "Polygon", "category": "Risk" },
+    { "id": 31, "name": "Subbasins", "geometryType": "Polygon", "category": "Hydrology" },
+    { "id": 32, "name": "Water Areas", "geometryType": "Polygon", "category": "Hydrology" },
+    { "id": 14, "name": "Cross-Sections", "geometryType": "Polyline", "category": "Engineering" },
+    { "id": 15, "name": "Coastal Transects", "geometryType": "Polyline", "category": "Engineering" },
+    { "id": 16, "name": "Base Flood Elevations", "geometryType": "Polyline", "category": "Engineering" },
+    { "id": 17, "name": "Profile Baselines", "geometryType": "Polyline", "category": "Engineering" },
+    { "id": 18, "name": "Transect Baselines", "geometryType": "Polyline", "category": "Engineering" },
+    { "id": 19, "name": "Limit of Moderate Wave Action", "geometryType": "Polyline", "category": "Risk" },
+    { "id": 20, "name": "Water Lines", "geometryType": "Polyline", "category": "Hydrology" },
+    { "id": 23, "name": "Levees", "geometryType": "Polyline", "category": "Infrastructure" },
+    { "id": 24, "name": "General Structures", "geometryType": "Polyline", "category": "Infrastructure" },
+    { "id": 25, "name": "Primary Frontal Dunes", "geometryType": "Polyline", "category": "Reference" },
+    { "id": 26, "name": "Hydrologic Reaches", "geometryType": "Polyline", "category": "Hydrology" },
+    { "id": 27, "name": "Flood Hazard Boundaries", "geometryType": "Polyline", "category": "Boundary" },
+    { "id": 7, "name": "River Mile Markers", "geometryType": "Point", "category": "Reference" },
+    { "id": 8, "name": "Datum Conversion Points", "geometryType": "Point", "category": "Engineering" },
+    { "id": 9, "name": "Coastal Gages", "geometryType": "Point", "category": "Hydrology" },
+    { "id": 10, "name": "Gages", "geometryType": "Point", "category": "Hydrology" },
+    { "id": 11, "name": "Nodes", "geometryType": "Point", "category": "Engineering" },
+    { "id": 12, "name": "High Water Marks", "geometryType": "Point", "category": "Engineering" },
+    { "id": 13, "name": "Station Start Points", "geometryType": "Point", "category": "Engineering" },
+    { "id": 34, "name": "LOMAs", "geometryType": "Point", "category": "Regulatory" }
+  ],
+  "maplibreSourceLayerNames": {
+    "28": "flood_hazard_zones",
+    "27": "flood_hazard_boundaries",
+    "23": "levees",
+    "16": "base_flood_elevations",
+    "34": "lomas",
+    "3": "firm_panels",
+    "22": "political_jurisdictions",
+    "32": "water_areas"
+  },
+  "authorityClass": "REGULATORY_DISPLAY",
+  "hardcopyControlsConflicts": true
 }
