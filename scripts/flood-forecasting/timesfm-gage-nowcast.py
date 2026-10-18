@@ -121,7 +121,15 @@ def fetch_usgs_gage(site: str, parameter: str, days: int = 30) -> pd.DataFrame:
             continue
         if not np.isfinite(value):
             continue
-        observed_units.add(str(unit).strip().lower())
+        normalized_unit = str(unit).strip().lower()
+        if parameter == "00065":
+            if normalized_unit not in {"ft", "foot", "feet"}:
+                raise ValueError(
+                    "USGS gage-height parameter 00065 must be in feet; "
+                    f"received {unit!r}. Convert explicitly before forecasting."
+                )
+            normalized_unit = "ft"
+        observed_units.add(normalized_unit)
         records.append(
             {
                 "datetime": pd.to_datetime(raw_time, utc=True),
