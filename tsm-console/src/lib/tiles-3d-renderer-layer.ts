@@ -12,7 +12,8 @@
  * - Local ENU coordinates and control-point tolerances are validated in the
  *   geospatial build/test pipeline; this layer does not certify source CRS or datum.
  * - PBR/IBL via three.js PMREMGenerator + RoomEnvironment (procedural HDR)
- * - 5D state-word (uint16) carried via EXT_structural_metadata per feature
+ * - State-word codec is a separate primitive; no EXT_structural_metadata
+ *   extraction/binding is implied by this renderer layer
  *
  * Resilient design: the layer normalizes tileset URLs and always attempts
  * to render. Problems are logged with recovery info; only javascript:/data:
