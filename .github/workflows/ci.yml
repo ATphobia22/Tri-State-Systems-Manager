@@ -42,6 +42,9 @@ jobs:
         run: |
           test "$(node --version | cut -d. -f1)" = "v22"
           test "$(npm --version)" = "10.9.2"
+      - name: Validate intentional source/public data copies
+        working-directory: .
+        run: node scripts/ci/validate-data-copy-parity.mjs
       - name: Configure public npm registry
         run: npm config set registry https://registry.npmjs.org
       - name: Install dependencies from lockfile
