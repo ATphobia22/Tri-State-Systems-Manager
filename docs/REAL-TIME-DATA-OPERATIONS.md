@@ -1,6 +1,6 @@
 # Real-Time Data Operations
 
-> **RETIRED BY OWNER DECISION 2026-09-29.** Live river telemetry (NOAA NWPS / USGS Water Data API) is retired. The API now answers these routes with `410 RIVER_TELEMETRY_RETIRED` and no request reaches upstream endpoints. This document is preserved for historical reference only.
+> **Current policy (2026-10-18): user-triggered read-only snapshots enabled; automatic polling prohibited.** `/api/hydrologic/community` and `/api/hydrologic/live` use server-side NOAA NWPS / modern USGS adapters. Community writes, alerts, and ingestion mutation routes remain retired until separately authorized and tested.
 
 **Verified architecture date:** 2026-09-12
 
@@ -8,13 +8,13 @@
 
 Authoritative provider → server-side adapter → normalization/contract validation → evidence/cache layer → TSM API → React/MapLibre.
 
-Browser code must not call USGS, NOAA, FEMA, Indiana GIS, or USACE operational endpoints directly when the data is part of the TSM decision-support plane.
+Browser code must not call USGS, NOAA, FEMA, Indiana GIS, or USACE operational endpoints directly when the data is part of the TSM decision-support plane. Live snapshots go through the TSM API only after a user action; no background polling is permitted.
 
 ## Hydrologic sources
 
 - **NOAA NWPS:** first live observed-stage attempt for the TSM console; NWS gauge `NHRI3` is the New Harmony Wabash identifier. Forecast and observed products remain separate data classes.
 - **USGS Water Data API:** fallback for authoritative instantaneous observations. Runtime uses `latest-continuous`; parameter `00065` is gage height and `00060` is discharge. Raw stage remains `GAGE_DATUM`.
-- **Legacy USGS WaterServices IV:** compatibility/evidence path only. USGS states the WaterServices family is scheduled for decommissioning in early 2027; it is not the runtime dependency.
+- **Legacy USGS WaterServices IV:** compatibility/evidence path only. USGS states WaterServices will permanently shut down on 2027-02-22, with intentional slowdowns/outages beginning in January 2027; it is not the runtime dependency.
 - Every observation carries `observedAt`, `retrievedAt`, source identifier, provenance, status, CRS, and vertical datum. USGS provisional observations retain qualifier `P`.
 
 ## Spatial source classes
