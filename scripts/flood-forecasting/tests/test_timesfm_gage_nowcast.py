@@ -71,6 +71,18 @@ class FetchUsgsGageTests(unittest.TestCase):
         get.return_value = self.response
 
         with self.assertRaisesRegex(ValueError, "inconsistent units"):
+            MODULE.fetch_usgs_gage("03378500", "00060", days=2)
+
+    @patch.object(MODULE.requests, "get")
+    def test_rejects_metric_gage_height_without_explicit_conversion(self, get: Mock) -> None:
+        self.response.json.return_value = {
+            "features": [
+                {"properties": {"time": "2026-10-18T12:00:00Z", "value": "2.50", "unit_of_measure": "m"}}
+            ]
+        }
+        get.return_value = self.response
+
+        with self.assertRaisesRegex(ValueError, "must be in feet"):
             MODULE.fetch_usgs_gage("03378500", "00065", days=2)
 
     @patch.object(MODULE.requests, "get")
