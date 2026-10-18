@@ -34,13 +34,19 @@ export const STATE_WORD_BITS = {
 
 export type StateWordDimension = keyof typeof STATE_WORD_BITS;
 
-/**
- * Decode one dimension from a 16-bit state word. O(1) bitwise operation.
- * Mirrors the GLSL decode in the shader chunk (must stay in sync).
- */
+/** Validate the unsigned 16-bit state-word boundary before bitwise operations. */
+export function assertStateWord(word: number): void {
+  if (!Number.isInteger(word) || word < 0 || word > 0xffff) {
+    throw new RangeError(`State word must be an unsigned 16-bit integer; received ${word}`);
+  }
+}
+
+/** Decode one dimension from a 16-bit state word. O(1) bitwise operation. */
 export function decodeStateWord(word: number, dim: StateWordDimension): number {
-  const { offset, mask } = STATE_WORD_BITS[dim];
-  return (word >> offset) & mask;
+  assertStateWord(word);
+  const bits = STATE_WORD_BITS[dim];
+  if (!bits) throw new RangeError(`Unknown state-word dimension: ${String(dim)}`);
+  return (word >>> bits.offset) & bits.mask;
 }
 
 /**
@@ -48,6 +54,8 @@ export function decodeStateWord(word: number, dim: StateWordDimension): number {
  * Used for incremental update scheduling (only fetch changed chunks).
  */
 export function diffStateWords(prev: number, next: number): number {
+  assertStateWord(prev);
+  assertStateWord(next);
   return prev ^ next;
 }
 
@@ -55,8 +63,11 @@ export function diffStateWords(prev: number, next: number): number {
  * Check if a specific dimension changed between two state words.
  */
 export function didDimensionChange(prev: number, next: number, dim: StateWordDimension): boolean {
-  const { offset, mask } = STATE_WORD_BITS[dim];
-  return (((prev ^ next) >> offset) & mask) !== 0;
+  assertStateWord(prev);
+  assertStateWord(next);
+  const bits = STATE_WORD_BITS[dim];
+  if (!bits) throw new RangeError(`Unknown state-word dimension: ${String(dim)}`);
+  return (((prev ^ next) >>> bits.offset) & bits.mask) !== 0;
 }
 
 export interface Tiles3DRendererLayerConfig {
