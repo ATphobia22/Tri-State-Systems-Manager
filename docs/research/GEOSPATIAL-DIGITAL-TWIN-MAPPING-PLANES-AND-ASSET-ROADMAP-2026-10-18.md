@@ -2,7 +2,17 @@
 
 **Status:** research and implementation roadmap; not a claim that every proposed feature exists in TSM or is already implemented.  
 **Review date:** 2026-10-18  
-**Decision:** adopt the standards-grounded concepts (CRS/provenance, multi-resolution delivery, separate geometry and semantics, measured asset budgets) as design guidance. Treat the 5D B-D-C-T-S state word as an optional research-derived design pattern that requires a TSM-specific fit assessment and tests before implementation. Do not introduce a new 3D rendering stack solely because the paper describes one.
+**Decision:** align asset finalization with TSM's existing application LOD contract, OGC 3D Tiles 1.1 pipeline, MapLibre GL JS primary renderer and optional separate WebGPU presentation renderer. Adopt the standards-grounded concepts (CRS/provenance, multi-resolution delivery, separate geometry and semantics, measured asset budgets) as design guidance. Treat the 5D B-D-C-T-S state word as an optional research-derived extension requiring a TSM-specific fit assessment and tests before implementation. Do not introduce a parallel renderer or tile protocol solely because the paper describes one.
+
+## 0. Existing TSM architecture verified in repository contracts
+
+Repository documents already establish relevant foundations:
+
+- `docs/TSM-LOD-CONTRACT.md` and `contracts/tsm-lod-contract-v1.json` define an **application-level** LOD contract, including provenance, deterministic derivation, fail-closed behavior, and OGC 3D Tiles 1.1 output. Its LOD4 label means application integration with flood/hydrology data; it is explicitly **not** CityGML LOD4 or indoor modeling.
+- `docs/WEBGPU-PRESENTATION-CONTRACT.md` identifies MapLibre GL JS as the primary browser renderer and WebGPU as an optional separate presentation renderer. WebGPU does not silently become a MapLibre custom layer. It requires caller-supplied, provenance-hashed terrain inputs and falls back to MapLibre/WebGL when unavailable.
+- Repository code search finds existing 3D Tiles/LOD/geometric-error assets, including `scripts/geospatial/build-hlod-tileset.py`. A code search for the literal term `state-word` did not find an existing B-D-C-T-S implementation.
+
+**Consequence:** this is not a greenfield 3D architecture. The next engineering step is a contract/code-level gap analysis against existing asset generation, validation, manifest and renderer behavior. Do not reimplement existing 3D Tiles or WebGPU contracts. The paper's 5D scheduler remains a candidate extension, not a proven missing dependency.
 
 ## 1. Executive findings
 
@@ -72,9 +82,9 @@ For a 3D Tiles 1.1 path, follow its tile and glTF transform rules and the curren
 ## 6. TSM asset finalization roadmap
 
 ### Phase 0 — Inventory and scope gate
-- Identify the actual map/rendering stack, supported 3D formats, CRS transformation library, current asset catalogue, data schemas, offline/runtime constraints and CI checks.
-- Search the repository for CityGML, glTF/GLB, 3D Tiles, BIM/IFC, GPU/WebGPU, texture/mesh processing and existing LOD scheduling.
-- Decide whether TSM currently needs city-scale 3D building visualization. If the active product scope is 2D hydrology/GIS, keep this as a future architecture note rather than adding a heavy 3D engine without a demonstrated requirement.
+- Compare `docs/TSM-LOD-CONTRACT.md`, `contracts/tsm-lod-contract-v1.json`, `docs/WEBGPU-PRESENTATION-CONTRACT.md`, `scripts/geospatial/build-hlod-tileset.py`, the tileset validator and current asset manifests as one release path.
+- Trace coordinate transforms from source CRS through tile transforms and renderer-local coordinates; verify horizontal CRS, vertical datum, axis order, units and provenance at each boundary.
+- Verify which parts of LOD1/LOD2/LOD3 and WebGPU presentation are implemented and test-covered versus contract-only or data-gated. Avoid treating planned items as shipped functionality.
 
 **Exit criteria:** documented current-state inventory and an approved, bounded use case with representative datasets.
 
@@ -95,8 +105,8 @@ For a 3D Tiles 1.1 path, follow its tile and glTF transform rules and the curren
 **Exit criteria:** fixture-based QA report, reproducible outputs, bounded asset sizes and no unreviewed geometry drift.
 
 ### Phase 3 — Progressive delivery and state scheduling
-- Start with standard 3D Tiles hierarchical refinement and current renderer controls.
-- Only prototype B-D-C-T-S if independent texture/component/semantic scheduling addresses a measured bottleneck that standard tiling does not solve.
+- Keep OGC 3D Tiles 1.1 hierarchical refinement and the existing TSM LOD contract as the baseline.
+- Only prototype B-D-C-T-S as a compatible extension if independent texture/component/semantic scheduling addresses a measured bottleneck that standard tiling and the current renderer do not solve.
 - Define a legal-state table, versioned 16-bit encoding, degradation priorities and telemetry. If the 16-bit schema cannot express future states safely, version the schema rather than reinterpret existing bits.
 - Use graceful fallbacks for low bandwidth, memory pressure, WebGPU absence and mobile hardware. Do not require unsupported VRAM introspection.
 
