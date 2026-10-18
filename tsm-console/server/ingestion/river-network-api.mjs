@@ -237,6 +237,74 @@ async function fetchNoaaGauge(nwsId, station) {
   }
 }
 
+/**
+ * Fetch NOAA NWPS forecast records only when explicitly requested by the caller.
+ * Forecasts are returned separately from observations and are never written to
+ * the observed-stage field or published as current-truth tile data.
+ */
+export async function fetchRiverForecasts({ stationIds = null } = {}) {
+  const registry = await loadRiverStationRegistry();
+  const selected = registry.verified_observation_stations.filter(
+    (station) => !stationIds || stationIds.includes(station.station_id),
+  );
+
+  const forecasts = await Promise.all(selected.map(async (station) => {
+    if (!station.nws_location_id) {
+      return {
+        stationId: station.station_id,
+        provider: 'NOAA',
+        status: 'unavailable',
+        forecasts: [],
+        error: 'No verified NOAA NWPS gauge mapping is registered for this station.',
+      };
+    }
+
+    const { controller, timer } = createTimeoutController(15000);
+    try {
+      const records = await fetchNoaaStageFlow({
+        identifier: station.nws_location_id,
+        product: 'forecast',
+        signal: controller.signal,
+      });
+      return {
+        stationId: station.station_id,
+        nwsId: station.nws_location_id,
+        provider: 'NOAA',
+        status: records.length ? 'available' : 'unavailable',
+        forecasts: records.map((record) => ({
+          validAt: record.observedAt,
+          retrievedAt: record.retrievedAt,
+          value: record.value,
+          unit: record.unit,
+          dataClass: 'forecast',
+          verticalDatum: record.verticalDatum || 'GAGE_DATUM',
+          sourceUri: record.sourceUri,
+        })),
+        error: null,
+      };
+    } catch (error) {
+      return {
+        stationId: station.station_id,
+        nwsId: station.nws_location_id,
+        provider: 'NOAA',
+        status: 'unavailable',
+        forecasts: [],
+        error: error instanceof Error ? error.message : 'NOAA forecast unavailable.',
+      };
+    } finally {
+      clearTimeout(timer);
+    }
+  }));
+
+  return {
+    generatedAt: new Date().toISOString(),
+    registryVersion: registry.version,
+    dataClass: 'forecast',
+    forecasts,
+    authority: 'NOAA/NWS forecast products; distinct from observed conditions',
+  };
+}
+
 export async function fetchRiverNetwork({ stationIds = null, includeNoaa = true } = {}) {
   const registry = await loadRiverStationRegistry();
   const selected = registry.verified_observation_stations.filter((station) => !stationIds || stationIds.includes(station.station_id));
