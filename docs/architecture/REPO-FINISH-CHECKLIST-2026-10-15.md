@@ -20,9 +20,10 @@
 - [x] NOAA CloudGIS catalog + opt-in overlays (GetMap live validation still open)
 - [x] Tauri multi-installer matrix documented (Win/macOS/Linux)
 
-## B. Open PRs (operator action)
+## B. Pull requests (status checked 2026-10-18)
 
-- [ ] **PR #268** (draft): HEC-HMS → HEC-RAS reproducible workflow contracts — merge only after CI green and engineering review. Remains NOT_APPROVED pilot template; does not install HEC solvers.
+- [x] **PR #268** — HEC-HMS → HEC-RAS reproducible workflow contracts — merged. The workflow remains a NOT_APPROVED pilot template; merge does not install HEC solvers or authorize a production run.
+- [ ] **PR #273** — repository secret scanning and audit-applicability documentation — open during this checklist update; merge only after all PR checks pass.
 
 ## C. Host-only (cannot be finished in cloud sandbox / Linux CI alone)
 
@@ -78,7 +79,7 @@ Until those steps succeed on a licensed host, Unreal is **not** a finished deliv
 
 1. Approve a written pilot AOI (do not invent a reach)
 2. Qualify inputs (URI, time, CRS, datum, hashes)
-3. Complete PR #268 review or equivalent manifest
+3. Use the merged PR #268 workflow contracts and validate the generated manifest
 4. Run licensed HEC tools; mark outputs COMPLETED_UNVALIDATED until independent validation
 5. Human sign-off before any regulatory-adjacent use
 
