@@ -1,0 +1,1351 @@
+{
+  "schemaVersion": "1.0.0",
+  "auditDate": "2026-10-18",
+  "repository": "ATphobia22/Tri-State-Systems-Manager",
+  "auditedRef": "main",
+  "auditedCommit": "e68f24a1b8cee2700118fb2bd82abd2cef3958a4",
+  "trackedTreeEntries": 10276,
+  "duplicateBlobGroupCount": 68,
+  "method": "Group Git tree blob entries by exact Git blob SHA. This is byte-identity only; it does not establish semantic duplication or justify deletion.",
+  "limitations": [
+    "Tree response is GitHub's recursive tree snapshot for the audited commit.",
+    "A matching blob can be intentional (e.g. templates, package markers, identical tile payloads, or public mirrors).",
+    "Content-level/geospatial validation is required before classifying repeated 3D Tiles payloads as erroneous.",
+    "The inventory does not inspect untracked files, build outputs outside Git, external services, or live runtime data."
+  ],
+  "duplicateGroups": [
+    {
+      "sha": "48e09411acaa49240fcc46cf49015e6462dd011f",
+      "size": 6,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/10/12.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/10/15.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/10/5.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/10/8.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/11/12.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/11/13.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/11/14.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/11/5.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/11/6.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/11/7.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/11/8.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/11/9.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/13/12.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/14/8.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/15/11.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/15/12.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/15/13.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/15/9.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/3/0.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/3/1.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/4/0.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/4/11.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/4/5.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/4/9.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/5/0.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/5/1.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/5/10.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/5/11.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/5/2.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/5/8.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/5/9.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/6/13.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/6/14.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/6/15.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/6/7.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/6/8.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/7/10.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/7/11.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/7/13.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/8/10.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/8/11.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/8/14.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/8/15.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/8/7.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/8/8.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/8/9.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/9/10.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/9/11.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/9/13.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/9/14.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/9/15.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/9/8.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/9/9.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/20/16.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/20/17.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/20/24.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/20/25.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/21/16.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/21/17.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/21/24.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/21/25.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/24/18.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/24/19.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/24/47.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/24/48.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/24/49.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/25/18.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/25/19.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/25/46.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/25/47.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/25/48.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/25/49.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/26/18.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/26/19.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/26/20.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/26/21.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/26/40.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/26/41.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/26/44.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/26/45.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/26/48.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/26/49.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/27/18.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/27/19.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/27/20.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/27/21.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/27/41.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/27/45.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/27/48.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/27/49.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/28/18.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/28/19.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/28/20.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/28/21.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/28/22.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/28/23.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/28/58.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/28/59.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/29/18.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/29/19.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/29/20.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/29/21.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/29/22.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/29/23.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/29/58.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/29/59.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/30/20.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/30/21.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/30/22.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/31/20.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/31/21.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/31/22.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/31/23.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/32/20.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/32/21.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/33/20.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/33/21.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/34/20.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/34/21.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/34/22.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/34/23.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/34/26.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/34/27.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/35/20.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/35/21.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/35/22.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/35/26.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/35/27.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/38/26.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/38/27.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/39/26.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/39/27.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/40/26.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/40/27.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/40/28.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/40/29.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/41/27.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/41/28.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/41/29.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/42/28.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/42/29.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/42/56.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/42/57.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/43/28.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/43/29.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/43/56.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/43/57.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/46/46.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/46/47.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/47/46.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/47/47.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/50/24.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/50/25.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/50/44.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/50/45.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/50/53.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/50/54.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/50/55.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/51/24.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/51/25.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/51/44.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/51/45.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/51/52.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/51/53.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/51/54.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/51/55.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/52/54.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/52/55.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/53/54.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/53/55.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/54/22.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/54/23.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/54/24.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/54/25.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/54/38.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/54/39.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/54/40.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/54/41.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/55/22.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/55/23.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/55/24.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/55/25.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/55/38.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/55/39.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/55/40.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/55/41.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/56/20.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/56/21.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/56/22.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/56/23.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/56/24.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/56/25.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/56/40.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/56/41.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/57/20.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/57/21.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/57/22.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/57/23.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/57/24.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/57/25.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/57/40.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/57/41.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/58/20.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/58/21.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/58/22.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/58/23.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/58/40.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/59/20.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/59/21.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/59/22.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/59/23.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/59/40.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/59/41.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/60/22.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/60/23.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/60/25.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/60/31.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/60/40.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/61/22.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/61/23.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/61/24.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/61/25.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/61/30.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/61/31.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/61/40.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/61/41.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/62/22.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/62/23.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/62/24.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/62/25.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/62/26.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/62/27.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/62/30.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/62/31.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/63/22.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/63/23.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/63/24.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/63/25.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/63/26.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/63/27.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/63/30.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/63/31.bin"
+      ],
+      "count": 242,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "606a865ef29880cfff0771f3dc5ffa70b386e88e",
+      "size": 6,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/2/0/2.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/2/1/2.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/2/1/3.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/2/2/1.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/2/2/2.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/2/2/3.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/2/3/1.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/2/3/2.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/2/3/3.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/10/10.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/10/11.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/10/13.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/10/14.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/10/6.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/10/7.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/10/9.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/11/10.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/11/11.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/11/15.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/12/10.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/12/11.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/12/12.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/12/13.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/12/5.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/12/6.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/12/7.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/12/8.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/12/9.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/13/10.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/13/11.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/13/13.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/13/5.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/13/6.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/13/7.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/13/8.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/13/9.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/14/10.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/14/11.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/14/12.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/14/13.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/14/5.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/14/6.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/14/7.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/14/9.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/15/10.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/15/5.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/15/6.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/15/7.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/15/8.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/3/8.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/4/4.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/4/7.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/4/8.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/6/10.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/6/11.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/6/12.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/6/9.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/7/12.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/7/14.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/7/15.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/7/7.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/7/8.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/7/9.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/8/12.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/8/13.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/8/5.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/8/6.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/9/12.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/9/5.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/9/6.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/9/7.bin"
+      ],
+      "count": 71,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "b7c525821a811a09e77cfd652052fb83566f62c1",
+      "size": 74,
+      "paths": [
+        "tools/agriculture/farmvibes-ai/src/tests/__init__.py",
+        "tools/agriculture/farmvibes-ai/src/tests/workflows_integration/__init__.py",
+        "tools/agriculture/farmvibes-ai/src/vibe_agent/vibe_agent/__init__.py",
+        "tools/agriculture/farmvibes-ai/src/vibe_common/vibe_common/__init__.py",
+        "tools/agriculture/farmvibes-ai/src/vibe_common/vibe_common/workflow/__init__.py",
+        "tools/agriculture/farmvibes-ai/src/vibe_core/vibe_core/cli/__init__.py",
+        "tools/agriculture/farmvibes-ai/src/vibe_core/vibe_core/terraform/__init__.py",
+        "tools/agriculture/farmvibes-ai/src/vibe_core/vibe_core/terraform/aks/__init__.py",
+        "tools/agriculture/farmvibes-ai/src/vibe_core/vibe_core/terraform/aks/modules/__init__.py",
+        "tools/agriculture/farmvibes-ai/src/vibe_core/vibe_core/terraform/local/__init__.py",
+        "tools/agriculture/farmvibes-ai/src/vibe_core/vibe_core/terraform/local/modules/__init__.py",
+        "tools/agriculture/farmvibes-ai/src/vibe_core/vibe_core/terraform/services/__init__.py",
+        "tools/agriculture/farmvibes-ai/src/vibe_core/vibe_core/terraform/services/init.tf",
+        "tools/agriculture/farmvibes-ai/src/vibe_core/vibe_core/testing/__init__.py",
+        "tools/agriculture/farmvibes-ai/src/vibe_dev/vibe_dev/__init__.py",
+        "tools/agriculture/farmvibes-ai/src/vibe_lib/vibe_lib/__init__.py",
+        "tools/agriculture/farmvibes-ai/src/vibe_lib/vibe_lib/comet_farm/__init__.py",
+        "tools/agriculture/farmvibes-ai/src/vibe_lib/vibe_lib/spaceeye/__init__.py",
+        "tools/agriculture/farmvibes-ai/src/vibe_notebook/vibe_notebook/deepmc/__init__.py",
+        "tools/agriculture/farmvibes-ai/src/vibe_server/vibe_server/__init__.py"
+      ],
+      "count": 20,
+      "classification": "duplicate-content-review",
+      "reason": "Byte-identical content at distinct paths; inspect consumer intent before removing either copy."
+    },
+    {
+      "sha": "8d2bf767fb99a7744d0c8269c693dfdb65164428",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/28/22.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/29/22.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/30/22.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/31/22.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/34/22.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/35/22.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/54/22.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/55/22.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/56/22.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/57/22.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/58/22.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/59/22.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/60/22.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/61/22.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/62/22.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/63/22.subtree"
+      ],
+      "count": 16,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "3f7d165a33c608642b1e54843203f66878f2f3c4",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/26/20.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/27/20.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/28/20.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/29/20.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/30/20.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/31/20.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/32/20.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/33/20.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/34/20.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/35/20.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/56/20.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/57/20.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/58/20.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/59/20.subtree"
+      ],
+      "count": 14,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "1cf28635cf283bf7b8903b5685bbf92e1a3551f5",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/26/21.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/27/21.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/28/21.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/29/21.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/30/21.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/31/21.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/32/21.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/33/21.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/34/21.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/35/21.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/56/21.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/57/21.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/58/21.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/59/21.subtree"
+      ],
+      "count": 14,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "163c3db11d98f8fc5b83ef3cf9934b136a8cd8de",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/28/23.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/29/23.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/31/23.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/34/23.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/54/23.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/55/23.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/56/23.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/57/23.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/58/23.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/59/23.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/60/23.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/61/23.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/62/23.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/63/23.subtree"
+      ],
+      "count": 14,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "6f14ef93cd2c2ce79b36bf1931ca991b6ec5cff5",
+      "size": 366,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/10/8.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/11/8.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/12/8.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/13/8.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/14/8.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/15/8.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/3/8.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/4/8.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/5/8.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/6/8.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/7/8.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/8/8.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/9/8.subtree"
+      ],
+      "count": 13,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "23cabd9f7d572f59eee903293e7018fbc96dea9f",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/10/11.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/11/11.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/12/11.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/13/11.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/14/11.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/15/11.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/4/11.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/5/11.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/6/11.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/7/11.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/8/11.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/9/11.subtree"
+      ],
+      "count": 12,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "380e012d2788ea877cf958146492b8ab3893a3e5",
+      "size": 366,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/10/5.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/11/5.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/12/5.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/13/5.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/14/5.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/15/5.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/4/5.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/5/5.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/6/5.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/7/5.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/8/5.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/9/5.subtree"
+      ],
+      "count": 12,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "56c84599443ea6a2069573799d40ad757835c56b",
+      "size": 366,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/10/6.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/11/6.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/12/6.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/13/6.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/14/6.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/15/6.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/4/6.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/5/6.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/6/6.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/7/6.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/8/6.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/9/6.subtree"
+      ],
+      "count": 12,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "47180f09d7a168cfe224ba0a8724b5f1cccbeecc",
+      "size": 366,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/10/7.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/11/7.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/12/7.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/13/7.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/14/7.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/15/7.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/4/7.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/5/7.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/6/7.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/7/7.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/8/7.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/9/7.subtree"
+      ],
+      "count": 12,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "8974eced617bd3a2df9724f081cdce83fd4f71f2",
+      "size": 366,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/10/9.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/11/9.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/12/9.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/13/9.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/14/9.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/15/9.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/4/9.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/5/9.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/6/9.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/7/9.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/8/9.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/9/9.subtree"
+      ],
+      "count": 12,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "c5d78588dc85fe550731955c599946328fc59154",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/20/25.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/21/25.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/50/25.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/51/25.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/54/25.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/55/25.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/56/25.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/57/25.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/60/25.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/61/25.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/62/25.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/63/25.subtree"
+      ],
+      "count": 12,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "b64ff73fc81b4a89772237f885b887e2ac84a1e0",
+      "size": 205,
+      "paths": [
+        "apps/admin/tsconfig.json",
+        "plugins/ai-ready/tsconfig.json",
+        "plugins/digital-twin/tsconfig.json",
+        "plugins/engineering/tsconfig.json",
+        "plugins/evidence-ledger/tsconfig.json",
+        "plugins/fema/tsconfig.json",
+        "plugins/grants/tsconfig.json",
+        "plugins/hydrology/tsconfig.json",
+        "plugins/monitoring/tsconfig.json",
+        "plugins/research/tsconfig.json",
+        "plugins/seo/tsconfig.json"
+      ],
+      "count": 11,
+      "classification": "shared-configuration-template",
+      "reason": "Repeated TypeScript configuration; likely intentional, but changes should be managed consistently."
+    },
+    {
+      "sha": "69eed88755153365f7b99249f39907842df58437",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/10/10.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/11/10.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/12/10.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/13/10.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/14/10.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/15/10.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/5/10.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/6/10.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/7/10.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/8/10.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/9/10.subtree"
+      ],
+      "count": 11,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "4e9da843eba062d3a522020513db8b038e56181a",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/20/24.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/21/24.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/50/24.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/51/24.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/54/24.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/55/24.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/56/24.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/57/24.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/61/24.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/62/24.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/63/24.subtree"
+      ],
+      "count": 11,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "size": 0,
+      "paths": [
+        "scripts/__init__.py",
+        "scripts/geospatial/__init__.py",
+        "tools/agriculture/farmvibes-ai/notebooks/crop_segmentation/notebook_lib/__init__.py",
+        "tools/agriculture/farmvibes-ai/notebooks/deepmc/__init__.py",
+        "tools/agriculture/farmvibes-ai/notebooks/deepmc/notebook_lib/__init__.py",
+        "tools/agriculture/farmvibes-ai/notebooks/heatmaps/notebook_lib/__init__.py",
+        "tools/agriculture/farmvibes-ai/notebooks/irrigation/notebook_lib/__init__.py",
+        "tools/agriculture/farmvibes-ai/notebooks/segment_anything/notebook_lib/__init__.py",
+        "tools/agriculture/farmvibes-ai/notebooks/weed_detection/__init__.py",
+        "tsm-console/public/.nojekyll"
+      ],
+      "count": 10,
+      "classification": "empty-marker-or-package-init",
+      "reason": "Repeated empty marker/package initializer; normally intentional."
+    },
+    {
+      "sha": "fdb3a316de4e967c72fd5522c51edaaf2b946cb5",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/10/12.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/11/12.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/12/12.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/13/12.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/14/12.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/15/12.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/6/12.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/7/12.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/8/12.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/9/12.subtree"
+      ],
+      "count": 10,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "401d3af682838a47e4c5a91b3b1e46c4fa27a818",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/10/13.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/11/13.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/12/13.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/13/13.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/14/13.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/15/13.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/6/13.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/7/13.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/8/13.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/9/13.subtree"
+      ],
+      "count": 10,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "b1e9c634ea6ef3026ec31e1c94998abe4915f70c",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/26/40.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/54/40.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/55/40.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/56/40.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/57/40.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/58/40.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/59/40.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/60/40.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/61/40.subtree"
+      ],
+      "count": 9,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "c85db3585563861537b5131d031946fc0c29d58f",
+      "size": 366,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/2/0/2.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/2/1/2.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/2/2/2.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/2/3/2.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/2/2.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/3/2.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/4/2.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/5/2.subtree"
+      ],
+      "count": 8,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "40cd5d8b0c9b1c6ce94335a09f4525aa99d2a0d3",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/26/41.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/27/41.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/54/41.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/55/41.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/56/41.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/57/41.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/59/41.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/61/41.subtree"
+      ],
+      "count": 8,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "b061afbb8ab5311fef585bbe1240e18881d81572",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/34/27.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/35/27.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/38/27.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/39/27.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/40/27.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/41/27.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/62/27.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/63/27.subtree"
+      ],
+      "count": 8,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "c4802f56dca87c35cfd644b22bc5895802051abd",
+      "size": 366,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/2/0/1.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/2/1/1.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/2/2/1.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/2/3/1.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/2/1.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/3/1.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/5/1.subtree"
+      ],
+      "count": 7,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "159272a5ee8591d083a1cbc7c778eec6654ae6d8",
+      "size": 366,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/2/1/3.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/2/2/3.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/2/3/3.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/2/3.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/3/3.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/4/3.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/5/3.subtree"
+      ],
+      "count": 7,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "f50accbee826beead9a75537b20a13aea44fc9dc",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/34/26.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/35/26.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/38/26.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/39/26.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/40/26.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/62/26.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/63/26.subtree"
+      ],
+      "count": 7,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "95f5be821457497e8f7f9504a8d668ce808a55c3",
+      "size": 366,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/0/0/0.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/2/0/0.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/2/1/0.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/3/0.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/4/0.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/5/0.subtree"
+      ],
+      "count": 6,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "7892787991a636beb5b1b6cd52f9edb81dad2b9a",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/10/14.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/11/14.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/6/14.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/7/14.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/8/14.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/9/14.subtree"
+      ],
+      "count": 6,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "f678da4d8eb2ad134c65f0a912f1370be3237c1e",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/10/15.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/11/15.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/6/15.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/7/15.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/8/15.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/9/15.subtree"
+      ],
+      "count": 6,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "4087b61045588a7e93b8aac84fd46d2b5e62fd46",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/24/18.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/25/18.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/26/18.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/27/18.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/28/18.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/29/18.subtree"
+      ],
+      "count": 6,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "0793deff9b52d4f220628bc2c4a9946b3e524c35",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/24/19.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/25/19.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/26/19.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/27/19.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/28/19.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/29/19.subtree"
+      ],
+      "count": 6,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "fdf1541d32e670cfb5c0cd354d31ec8faf85d8e0",
+      "size": 47,
+      "paths": [
+        "tsm-native/Source/TSMNative/TSMCinematicFabric.h",
+        "tsm-native/Source/TSMNative/TSMEngineeringDesignFabric.h",
+        "tsm-native/Source/TSMNative/TSMEvidenceFabric.h",
+        "tsm-native/Source/TSMNative/TSMFloodFabric.h",
+        "tsm-native/Source/TSMNative/TSMWorldInteractionSubsystem.h"
+      ],
+      "count": 5,
+      "classification": "duplicate-content-review",
+      "reason": "Byte-identical content at distinct paths; inspect consumer intent before removing either copy."
+    },
+    {
+      "sha": "7ef29059a3961f38c81fd38fcccc735ec4836761",
+      "size": 366,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/4/4.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/5/4.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/6/4.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/7/4.subtree"
+      ],
+      "count": 4,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "ca00711afe4ed7dae76e6b07cf8979acc4130443",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/24/47.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/25/47.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/46/47.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/47/47.subtree"
+      ],
+      "count": 4,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "87081a0961e7a4abfd10ad4dcd5de60deecfcf84",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/24/48.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/25/48.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/26/48.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/27/48.subtree"
+      ],
+      "count": 4,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "fc20f7e8a4831269c69c27e84d7347108e849719",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/24/49.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/25/49.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/26/49.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/27/49.subtree"
+      ],
+      "count": 4,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "a24672476266ec6ad377425d096a537304fa515e",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/26/45.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/27/45.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/50/45.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/51/45.subtree"
+      ],
+      "count": 4,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "73d94e8961900c3a6ef1592e6ebc76cc0c815ecc",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/40/28.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/41/28.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/42/28.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/43/28.subtree"
+      ],
+      "count": 4,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "296e83010bd6fa62dcf00dd8e5f48053d3bddc7a",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/40/29.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/41/29.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/42/29.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/43/29.subtree"
+      ],
+      "count": 4,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "d575cbaa332833c83e0098f6c34a50f1f36200cd",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/50/54.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/51/54.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/52/54.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/53/54.subtree"
+      ],
+      "count": 4,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "b82f1fec83151f04b32ba14148ce06cf5b11b3ec",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/50/55.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/51/55.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/52/55.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/53/55.subtree"
+      ],
+      "count": 4,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "8735245047de892de4e544378308cd0845f5e151",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/60/31.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/61/31.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/62/31.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/63/31.subtree"
+      ],
+      "count": 4,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "95164aba7dd91619ca1b29b7f35a4cfd558df648",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/25/46.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/46/46.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/47/46.subtree"
+      ],
+      "count": 3,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "402cd44d573223083aeb65dcd62bc80260f065ce",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/26/44.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/50/44.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/51/44.subtree"
+      ],
+      "count": 3,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "6d87ab90806fad0c3ef3d9b60d5c8739df125b06",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/61/30.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/62/30.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/63/30.subtree"
+      ],
+      "count": 3,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "7f2feb292a79d65abdddff405d755c804f6530aa",
+      "size": 14961402,
+      "paths": [
+        "data-sources/downloads/usgs/sir2016-5119-report.pdf",
+        "data/fabrics/reports/USGS-SIR-2016-5119.pdf"
+      ],
+      "count": 2,
+      "classification": "same-pdf-multiple-paths",
+      "reason": "Same report stored under multiple paths; confirm both paths are consumed and retain provenance."
+    },
+    {
+      "sha": "7085087b80767b49890706bcb7cc511924188510",
+      "size": 7991,
+      "paths": [
+        "data/engineering/evidence-pipeline-contract.json",
+        "data/schemas/examples/engineering-evidence-pipeline-v1.example.json"
+      ],
+      "count": 2,
+      "classification": "example-matches-live-config",
+      "reason": "An example is byte-identical to a live configuration; confirm this is intentional and document fixture versus authoritative-config semantics."
+    },
+    {
+      "sha": "c22af72f7f03d2de195a3768698fd0a400c6ca14",
+      "size": 1945,
+      "paths": [
+        "data/engineering/spatial-frame-config.json",
+        "data/schemas/examples/spatial-frame-config-v1.example.json"
+      ],
+      "count": 2,
+      "classification": "example-matches-live-config",
+      "reason": "An example is byte-identical to a live configuration; confirm this is intentional and document fixture versus authoritative-config semantics."
+    },
+    {
+      "sha": "229c447f4fcac9729ca007c112d64c3d0b4e2366",
+      "size": 14186,
+      "paths": [
+        "data/posey-county/reference/usgs-24k-quadrangle-boundaries.geojson",
+        "tsm-console/public/reference/usgs-24k-quadrangle-boundaries.geojson"
+      ],
+      "count": 2,
+      "classification": "source-public-mirror",
+      "reason": "Likely intentional published mirror; add or retain CI parity checks and never auto-overwrite a source from a public copy."
+    },
+    {
+      "sha": "94306e159998c7e4990b623089998e8e2cc05b40",
+      "size": 97484,
+      "paths": [
+        "data/usace-nld/leveed-areas-wabash-v1.geojson",
+        "tsm-console/public/data/leveed-areas-wabash-v1.geojson"
+      ],
+      "count": 2,
+      "classification": "source-public-mirror",
+      "reason": "Likely intentional published mirror; add or retain CI parity checks and never auto-overwrite a source from a public copy."
+    },
+    {
+      "sha": "1a51c3db00edb6ab6669d36165d2cef898bee0e9",
+      "size": 2065,
+      "paths": [
+        "data/usace-nld/PROVENANCE.md",
+        "tsm-console/public/data/leveed-areas-wabash-PROVENANCE.md"
+      ],
+      "count": 2,
+      "classification": "source-public-mirror",
+      "reason": "Likely intentional published mirror; add or retain CI parity checks and never auto-overwrite a source from a public copy."
+    },
+    {
+      "sha": "d867f3c4d5233203ef76e46139b9b3e3abf58809",
+      "size": 1398,
+      "paths": [
+        "tools/agriculture/farmvibes-ai/notebooks/heatmaps/sensor_farm_boundary.geojson",
+        "tools/agriculture/farmvibes-ai/notebooks/sensor/sensor_farm_boundary.geojson"
+      ],
+      "count": 2,
+      "classification": "duplicate-content-review",
+      "reason": "Byte-identical content at distinct paths; inspect consumer intent before removing either copy."
+    },
+    {
+      "sha": "ea95f12007cf244a3dc313dc2747089c28ee446d",
+      "size": 19523,
+      "paths": [
+        "tools/agriculture/farmvibes-ai/notebooks/heatmaps/sensor_samples.geojson",
+        "tools/agriculture/farmvibes-ai/notebooks/sensor/sensor_samples.geojson"
+      ],
+      "count": 2,
+      "classification": "duplicate-content-review",
+      "reason": "Byte-identical content at distinct paths; inspect consumer intent before removing either copy."
+    },
+    {
+      "sha": "55298c9244a179829a8f028bf8f0a9fdcf6ae72e",
+      "size": 184,
+      "paths": [
+        "tools/agriculture/farmvibes-ai/src/vibe_core/vibe_core/terraform/aks/modules/infra/random.tf",
+        "tools/agriculture/farmvibes-ai/src/vibe_core/vibe_core/terraform/aks/modules/rg/random.tf"
+      ],
+      "count": 2,
+      "classification": "duplicate-content-review",
+      "reason": "Byte-identical content at distinct paths; inspect consumer intent before removing either copy."
+    },
+    {
+      "sha": "056162ab84aeb7be24fd7f63712ad98e8a8f1186",
+      "size": 3456,
+      "paths": [
+        "tools/agriculture/farmvibes-ai/src/vibe_core/vibe_core/terraform/aks/modules/kubernetes/redis.tf",
+        "tools/agriculture/farmvibes-ai/src/vibe_core/vibe_core/terraform/local/modules/kubernetes/redis.tf"
+      ],
+      "count": 2,
+      "classification": "duplicate-content-review",
+      "reason": "Byte-identical content at distinct paths; inspect consumer intent before removing either copy."
+    },
+    {
+      "sha": "68239224d09b2a71e112ec506a51578ceb5746a4",
+      "size": 5106,
+      "paths": [
+        "tsm-authority-registry-v35.json",
+        "tsm-console/data/authority/tsm-authority-registry-v35.json"
+      ],
+      "count": 2,
+      "classification": "source-public-mirror",
+      "reason": "Likely intentional published mirror; add or retain CI parity checks and never auto-overwrite a source from a public copy."
+    },
+    {
+      "sha": "71d09776ea5694cd939d83760e59847ce87ca423",
+      "size": 21473,
+      "paths": [
+        "tsm-console/desktop/assets/icon.png",
+        "tsm-console/public/assets/icon-512.png"
+      ],
+      "count": 2,
+      "classification": "identical-named-image-assets",
+      "reason": "Identical image bytes under different names/sizes; verify naming and downstream expectations."
+    },
+    {
+      "sha": "49f72eecf5bc902b1e1c6818481bb6b81ff521b4",
+      "size": 6,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/5/4.bin",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/4/5/6.bin"
+      ],
+      "count": 2,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "87cd00843d9aeb3e0e05e4f206bf4885f3dc3f76",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/20/16.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/21/16.subtree"
+      ],
+      "count": 2,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "bea4d69526310c1fd75c1f75f9c5a189818025f9",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/20/17.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/21/17.subtree"
+      ],
+      "count": 2,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "6961c8196ac0a7808cfcf3ebd03344a4278b3447",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/28/58.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/29/58.subtree"
+      ],
+      "count": 2,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "19ef2984025e97289dda257030672726d2ac5bac",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/28/59.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/29/59.subtree"
+      ],
+      "count": 2,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "c6b553cc4766d401104f95abd7c2bdbc3675a5c5",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/42/56.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/43/56.subtree"
+      ],
+      "count": 2,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "a496895a7d847d72ce1aa963f66745e78323c2b3",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/42/57.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/43/57.subtree"
+      ],
+      "count": 2,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "55d4d58c03de8b248c869df37fd02ce433945de4",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/50/53.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/51/53.subtree"
+      ],
+      "count": 2,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "fd8a32a4a02ba48cdde23e48ed344bcb717f3f3c",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/54/38.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/55/38.subtree"
+      ],
+      "count": 2,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    },
+    {
+      "sha": "1ead1437e36eaa568464f3d14a6b0cd98c076d3d",
+      "size": 367,
+      "paths": [
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/54/39.subtree",
+        "tsm-console/public/3d-tiles/buildings-lidar-12450/subtrees/6/55/39.subtree"
+      ],
+      "count": 2,
+      "classification": "repeated-3dtiles-payload",
+      "reason": "Repeated tile/subtree payload bytes can be valid, but tile coordinates, availability, and content references require separate integrity checks."
+    }
+  ]
+}
