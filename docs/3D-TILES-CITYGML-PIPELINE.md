@@ -90,9 +90,10 @@ blender -b --factory-startup scene.blend --python scripts/3d-tiles/bake-pbr.py \
 See `scripts/3d-tiles/bake-pbr.py`. Then:
 
 ```bash
-# Optimize + atlas: glTF-Transform (MIT) — installed as devDependency
-npx gltf-transform optimize in.glb out.glb --compress draco --texture-compress webp
-npx gltf-transform join lod2-*.glb merged.glb
+# Optimize + atlas: glTF-Transform (MIT) — explicit CI tooling, not app dependency
+TSM_INSTALL_EXTERNAL_TOOLING=true node scripts/ci/install-external-tooling.mjs
+./tsm-console/node_modules/.bin/gltf-transform optimize in.glb out.glb --compress draco --texture-compress webp
+./tsm-console/node_modules/.bin/gltf-transform join lod2-*.glb merged.glb
 ```
 
 UV atlasing: xatlas (check repo LICENSE before use). Atlas sub-regions are
