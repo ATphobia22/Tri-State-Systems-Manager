@@ -92,6 +92,10 @@ Historical scans, 2017–2020 LiDAR, and older source packages remain useful for
 - **USGS SIR 2016-5119:** Fowler (2016), *Flood inundation maps for the Wabash River at New Harmony, Indiana*, https://pubs.usgs.gov/publication/sir20165119. Its published maps cover a 3.68-mile reach around gage 03378500 and stage profiles referenced to that gage datum. They must not be extrapolated beyond the mapped reach or treated as current site-specific design results.
 - **Indiana DNR INFIP/FARA:** https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/indiana-floodplain-information-portal/ — use for site-specific Indiana floodplain information and FARA workflow where applicable. Preserve FEMA effective products and state best-available mapping as distinct authorities.
 
-### Source consistency rule
+### Verified station metadata correction
+
+The live station inventory was checked against the modern USGS Water Data monitoring-location pages on 2026-10-18. The old `03293600` entry did not resolve and has been corrected to `03293551` (McAlpine, Louisville). USGS `03381700` currently lists zero continuous data types in the modern catalog, so it is retained as historical/reference material and excluded from active live requests. The map locations use WGS84 coordinates from the official USGS metadata pages; source timestamps and stage datums remain separate.
+
+## Source consistency rule
 
 A source listed in a catalog or tile manifest is not thereby an active runtime feed. The live-hydrology registry is authoritative for runtime activation. As of 2026-10-18, NOAA NWPS and modern USGS Water Data adapters are configured for user-triggered read-only observations; automatic polling is prohibited. The NOAA forecast/tile product remains `PROGRAM_PENDING` and `currentTruth: false` until forecast-specific end-to-end validation passes. NOAA NWM experimental model guidance remains retired.
