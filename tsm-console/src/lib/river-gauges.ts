@@ -19,6 +19,17 @@ export interface RiverGaugeDefinition {
   status: 'active' | 'candidate_realtime_station' | 'historical_or_research_reference';
 }
 
+export interface FetchCommunityGaugesOptions {
+  /** Deterministic clock override for tests. */
+  nowMs?: number;
+  /** Maximum observation age before status becomes stale. */
+  maxAgeMs?: number;
+  /** Explicitly select the native bridge or read-only web snapshot path. */
+  source?: 'auto' | 'native' | 'web';
+  /** Optional injected native bridge for deterministic tests or host integration. */
+  nativeBridge?: NativeDataFabricBridge;
+}
+
 export interface RiverGaugeObservation {
   gaugeId: string;
   provider: GaugeProvider | 'UNKNOWN';
