@@ -5,7 +5,6 @@ import {
 } from './native-data-fabric';
 import { tsmApiUrl } from './api-base';
 import { resilientFetchJson } from './resilient-fetch';
-import { fetchUsgsLatestContinuous } from './usgs-direct';
 
 export type GaugeProvider = 'USGS' | 'NOAA_NWS';
 
@@ -152,9 +151,11 @@ function normalizeObservation(
     retrievedAt:
       typeof payload.retrievedAt === 'string' ? payload.retrievedAt : new Date(nowMs).toISOString(),
     qualifier: typeof payload.qualifier === 'string' ? payload.qualifier : null,
-    provisional: Boolean(payload.provisional ?? true),
+    provisional: Boolean(payload.provisional ?? (payload.qualifier === 'P')),
     status:
-      value != null && value !== -999 && isFresh(observedAt, nowMs, maxAgeMs) ? 'current' : 'stale',
+      payload.status === 'unavailable' || value == null || value === -999
+        ? 'unavailable'
+        : isFresh(observedAt, nowMs, maxAgeMs) ? 'current' : 'stale',
     dischargeCfs:
       typeof payload.dischargeCfs === 'number'
         ? payload.dischargeCfs
@@ -163,75 +164,8 @@ function normalizeObservation(
           : null,
     sourceUri: typeof payload.sourceUri === 'string' ? payload.sourceUri : null,
     provenancePath,
+    error: typeof payload.error === 'string' ? payload.error : undefined,
   };
-}
-
-async function fetchUsgsFallback(
-  definition: RiverGaugeDefinition,
-  nowMs: number,
-  maxAgeMs: number,
-): Promise<RiverGaugeObservation | null> {
-  if (!definition.usgsId) return null;
-  try {
-    const rows = await fetchUsgsLatestContinuous(definition.usgsId, ['00065', '00060'], {
-      timeoutMs: 8000,
-    });
-    const stage = rows.find((r) => r.parameterCode === '00065') ?? rows[0];
-    const discharge = rows.find((r) => r.parameterCode === '00060');
-    if (!stage) return null;
-    return normalizeObservation(
-      definition,
-      {
-        provider: 'USGS',
-        value: stage.value,
-        unit: stage.unit,
-        observedAt: stage.observedAt,
-        retrievedAt: stage.retrievedAt,
-        dischargeCfs: discharge?.value ?? null,
-        sourceUri: stage.sourceUri,
-        provisional: true,
-      },
-      nowMs,
-      maxAgeMs,
-      'usgs-direct',
-    );
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Which data path supplies gauge observations.
- * - `'auto'` (default): prefer the native data-fabric plugin when available,
- *   fall back to the web fetch path on any native failure.
- * - `'native'`: use only the native plugin; a native failure yields
- *   `unavailable` observations (fail closed, no silent web fallback).
- * - `'web'`: use only the resilient web fetch path (community endpoint,
- *   USGS direct fallback, last-known-good cache).
- */
-export type GaugeDataSource = 'auto' | 'native' | 'web';
-
-export interface FetchCommunityGaugesOptions {
-  /** Legacy hook: the web path uses the resilient fetch client, not a custom fetcher. */
-  fetcher?: typeof fetch;
-  nowMs?: number;
-  maxAgeMs?: number;
-  source?: GaugeDataSource;
-  nativeBridge?: NativeDataFabricBridge;
-}
-
-/**
- * Reports which data path `fetchCommunityGauges` will prefer with default
- * options. Useful for provenance display; the actual path used on a given
- * refresh may still fall back to web if the native call fails.
- */
-export function getPreferredGaugeDataSource(nativeBridge?: NativeDataFabricBridge): 'native' | 'web' {
-  const bridge = nativeBridge ?? createCapacitorBridge();
-  try {
-    return bridge.isAvailable() ? 'native' : 'web';
-  } catch {
-    return 'web';
-  }
 }
 
 export async function fetchCommunityGauges(
@@ -299,6 +233,7 @@ export async function fetchCommunityGauges(
       const remote = observations.find(
         (item) =>
           item.stationId === key ||
+          item.nwsId === key ||
           item.usgs_id === key ||
           item.nws_id === key ||
           item.gaugeId === key,
@@ -312,32 +247,29 @@ export async function fetchCommunityGauges(
     }
   }
 
-  await Promise.all(
-    activeDefinitions.map(async (definition) => {
-      const key = definition.usgsId ?? definition.nwsId ?? definition.id;
-      const existing = result.get(key);
-      if (existing && existing.value != null) return;
-      const fallback = await fetchUsgsFallback(definition, nowMs, maxAgeMs);
-      if (fallback) result.set(key, fallback);
-      else if (!existing)
-        result.set(
-          key,
-          unavailable(
-            definition,
-            nowMs,
-            community.error,
-            community.source === 'lkg' ? 'lkg' : 'none',
-          ),
-        );
-    }),
-  );
+  // No direct browser-to-provider fallback. If the TSM API is unavailable,
+  // keep the observation unavailable (or explicitly stale from last-known-good).
+  for (const definition of activeDefinitions) {
+    const key = definition.usgsId ?? definition.nwsId ?? definition.id;
+    if (!result.has(key)) {
+      result.set(
+        key,
+        unavailable(
+          definition,
+          nowMs,
+          community.error,
+          community.source === 'lkg' ? 'lkg' : 'none',
+        ),
+      );
+    }
+  }
 
   if (community.source === 'lkg' && community.data) {
     for (const definition of activeDefinitions) {
       const key = definition.usgsId ?? definition.nwsId ?? definition.id;
       const existing = result.get(key);
       if (existing?.value != null) continue;
-      const remote = observations.find((item) => item.stationId === key || item.usgs_id === key);
+      const remote = observations.find((item) => item.stationId === key || item.nwsId === key || item.usgs_id === key);
       if (remote) {
         result.set(key, normalizeObservation(definition, remote, nowMs, maxAgeMs, 'lkg'));
       }
