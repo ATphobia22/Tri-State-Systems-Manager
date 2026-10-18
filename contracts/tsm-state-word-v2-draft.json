@@ -1,0 +1,15 @@
+{
+  "schema": "tsm-state-word-contract",
+  "version": 2,
+  "status": "DRAFT_NOT_IMPLEMENTED",
+  "bitWidth": 16,
+  "layout": {
+    "B": { "bits": [0, 1], "width": 2, "range": [0, 3] },
+    "D": { "bits": [2, 4], "width": 3, "range": [0, 7] },
+    "C": { "bits": [5, 7], "width": 3, "range": [0, 7] },
+    "T": { "bits": [8, 10], "width": 3, "range": [0, 7] },
+    "S": { "bits": [11, 13], "width": 3, "range": [0, 7] },
+    "M": { "bits": [14, 15], "width": 2, "range": [0, 3], "role": "manager_flags_optional" }
+  },
+  "migration": "Do not encode production data as v2 until decoder/encoder land and CI round-trip passes."
+}
