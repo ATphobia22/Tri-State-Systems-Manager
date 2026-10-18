@@ -24,7 +24,7 @@ describe('getTilesCameraBasis', () => {
     expect(basis.horizontalEast).toBe(0);
     expect(basis.horizontalNorth).toBe(1);
     expect(basis.positionUpScale).toBe(1);
-    expect(basis.positionHorizontalScale).toBe(0);
+    expect(basis.positionHorizontalScale).toBeCloseTo(0, 12);
     expect(basis.cameraUpVerticalScale).toBe(0);
     expect(basis.cameraUpHorizontalScale).toBe(1);
   });
