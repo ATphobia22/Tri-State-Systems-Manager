@@ -1,7 +1,7 @@
 /**
  * ThreeDTilesLayer — Open-source 3D Tiles renderer for TSM.
  *
- * Uses nasa-ammos/3d-tiles-renderer (MIT license, no token required) with
+ * Uses NASA-AMMOS 3d-tiles-renderer (Apache-2.0, no token required) with
  * Three.js to render 3D Tiles (b3dm, i3dm, pnts, glb) in the webview.
  *
  * This component creates a Three.js scene synchronized with the MapLibre
