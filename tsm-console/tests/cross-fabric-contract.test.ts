@@ -46,6 +46,16 @@ describe('cross-fabric contract integrity', () => {
     }
   });
 
+  it('uses stable IDs for the intentional default-visible map layers', () => {
+    expect(MAP_PLANE_FABRIC.filter((layer) => layer.defaultVisible).map((layer) => layer.id).sort()).toEqual([
+      'indiana-parcels',
+      'indiana-roads',
+      'posey-cslf',
+      'terrain-rgb',
+      'usgs-3dep-elevation',
+    ]);
+  });
+
   it('does not make non-renderable map layers visible by default', () => {
     for (const layer of MAP_PLANE_FABRIC) {
       if (layer.defaultVisible) expect(layer.mapRenderable, layer.id).toBe(true);
@@ -77,6 +87,13 @@ describe('cross-fabric contract integrity', () => {
 
     const ids = tileManifest.assets.map((asset) => asset.id);
     expect(new Set(ids).size).toBe(ids.length);
+
+    const fema = tileManifest.assets.find((asset) => asset.id === 'fema-effective');
+    const indianaBafm = tileManifest.assets.find((asset) => asset.id === 'indiana-bafm');
+    expect(fema).toBeDefined();
+    expect(indianaBafm).toBeDefined();
+    expect(fema?.authorityClass).not.toBe(indianaBafm?.authorityClass);
+    expect(fema?.provenanceClass).not.toBe(indianaBafm?.provenanceClass);
 
     for (const asset of tileManifest.assets) {
       expect(asset.id.trim().length, 'tile asset id').toBeGreaterThan(0);
