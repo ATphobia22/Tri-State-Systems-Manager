@@ -31,15 +31,28 @@ def box(lo,hi,p=.5):
 @dataclass(frozen=True)
 class Item: tile:dict; sid:int|None; center:V; lo:V; hi:V
 class Q:
- def __init__(self,items,depth,max_items,max_depth):
+ def __init__(self,items,depth,max_items,max_depth,fallback_error):
   self.items=sorted(items,key=lambda i:(i.center.x,i.center.y,i.center.z,i.sid if i.sid is not None else -1)); self.depth=depth
+  # Internal ADD tiles carry no simplified geometry. Keep the source-root
+  # fallback as a floor and preserve any larger declared descendant error.
+  # A depth-based reduction would imply an accuracy improvement for which no
+  # generalized parent geometry has been generated.
+  if isinstance(fallback_error,bool) or not isinstance(fallback_error,(int,float)) or not math.isfinite(fallback_error) or fallback_error<0:
+   raise ValueError(f"invalid fallback geometricError: {fallback_error!r}")
+  errors=[]
+  for item in self.items:
+   value=item.tile.get("geometricError",fallback_error)
+   if isinstance(value,bool) or not isinstance(value,(int,float)) or not math.isfinite(value) or value<0:
+    raise ValueError(f"invalid source tile geometricError: {value!r}")
+   errors.append(float(value))
+  self.geometric_error=max([float(fallback_error), *errors])
   self.lo=V(min(i.lo.x for i in items),min(i.lo.y for i in items),min(i.lo.z for i in items)); self.hi=V(max(i.hi.x for i in items),max(i.hi.y for i in items),max(i.hi.z for i in items)); self.children=[]
   if len(items)>max_items and depth<max_depth:
    mx=(self.lo.x+self.hi.x)/2; my=(self.lo.y+self.hi.y)/2; q=[[] for _ in range(4)]
    for i in self.items:q[(0 if i.center.y<my else 1)*2+(0 if i.center.x<mx else 1)].append(i)
-   self.children=[Q(x,depth+1,max_items,max_depth) for x in q if x]
+   self.children=[Q(x,depth+1,max_items,max_depth,self.geometric_error) for x in q if x]
  def tile(self,ge):
-  r={"boundingVolume":{"box":box(self.lo,self.hi)},"geometricError":ge/(2**self.depth),"refine":"ADD"}
+  r={"boundingVolume":{"box":box(self.lo,self.hi)},"geometricError":self.geometric_error,"refine":"ADD"}
   r["children"]=[x.tile(ge) for x in self.children] if self.children else [i.tile for i in self.items]; return r
 def main():
  ap=argparse.ArgumentParser(); ap.add_argument("--input",required=True,type=Path); ap.add_argument("--output",required=True,type=Path); ap.add_argument("--max-items",type=int,default=50); ap.add_argument("--max-depth",type=int,default=6); a=ap.parse_args()
@@ -58,8 +71,14 @@ def main():
   tc=json.loads(json.dumps(t))
   if isinstance(tc.get("transform"),list): tc["transform"]=mm(ri,tc["transform"])
   sid=tc.get("extras",{}).get("tsm",{}).get("sourceObjectId"); items.append(Item(tc,sid,V((lo.x+hi.x)/2,(lo.y+hi.y)/2,(lo.z+hi.z)/2),lo,hi))
- ge=max(float(ts["root"].get("geometricError",1)),1); q=Q(items,0,a.max_items,a.max_depth); nr=q.tile(ge); nr["transform"]=rt
- out={"asset":ts["asset"],"geometricError":ge,"root":nr,"extras":{"tsm":{"hlod":True,"partition":"quadtree-ecef-derived-enu","maxItemsPerLeaf":a.max_items,"maxDepth":a.max_depth,"leafCountTarget":"derived"}}}
+ raw_source_root_error=ts["root"].get("geometricError",1)
+ if isinstance(raw_source_root_error,bool) or not isinstance(raw_source_root_error,(int,float)) or not math.isfinite(raw_source_root_error) or raw_source_root_error<0:
+  raise SystemExit("invalid source root geometricError")
+ source_root_error=float(raw_source_root_error)
+ ge=max(source_root_error,1)
+ q=Q(items,0,a.max_items,a.max_depth,ge); nr=q.tile(ge); nr["transform"]=rt
+ ge=max(ge,q.geometric_error)
+ out={"asset":ts["asset"],"geometricError":ge,"root":nr,"extras":{"tsm":{"hlod":True,"partition":"quadtree-ecef-derived-enu","maxItemsPerLeaf":a.max_items,"maxDepth":a.max_depth,"leafCountTarget":"derived","geometricErrorPolicy":"contentless-nodes-inherit-parent-error-floor-v1","geometricErrorInterpretation":"conservative traversal proxy on empty partition nodes; not measured mesh-simplification error"}}}
  a.output.parent.mkdir(parents=True,exist_ok=True); a.output.write_text(json.dumps(out,separators=(",",":"))+"\n")
  print(json.dumps({"buildings":len(items),"rootFrame":"ENU@ECEF-centroid","output":str(a.output)}))
 if __name__=="__main__":main()
