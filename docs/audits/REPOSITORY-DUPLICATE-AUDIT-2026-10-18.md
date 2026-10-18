@@ -36,7 +36,8 @@ The following branches are stale/diverged and should not be bulk-merged:
 - `feat/mapping-plane-hlod-release-gates-2026-10-18`: current register and HLOD test are on main; older implicit-tileset implementation must not replace current main.
 - `fix/hlod-geometric-error-contract`: production builder already matches main; stronger tests consolidated into active PR #303 via closed PRs #301 and #300.
 - `fix/3d-tiles-renderer-mainline`: HLOD builder/test and CI test wiring are already present on main; PR #291 closed.
-- `fix/3d-tiles-hlod-renderer-hardening`: PR #297 closed; this branch ref was observed at the same SHA as main at audit time.
+- `fix/3d-tiles-renderer-hardening`: this ref was observed at main's SHA at one audit checkpoint, but later changed to a different SHA; recompare its current tree before any branch cleanup.
+- `fix/3d-tiles-hlod-renderer-hardening`: PR #297 closed; branch remains stale/diverged and should not be merged wholesale.
 - `fix/3d-tiles-hlod-renderer-hardening-rebased`: stale and non-mergeable; PR #298 closed. Its `state-word.ts` bit layout conflicts with main and must not be merged wholesale.
 - `fix/maplibre-three-peer-dependency` and `fix/state-word-paper-layout`: old divergent branches whose earlier PRs were superseded/closed; do not merge without a fresh per-file diff against current main.
 - `feat/on-demand-hydrology-snapshots-20261018`: active PR #303. This is the fuller on-demand hydrology implementation; it keeps read-only snapshots user-triggered and leaves automatic polling prohibited. NOAA forecast/tile publication remains pending until a live receipt and verification are captured.
