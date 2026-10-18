@@ -30,6 +30,7 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import { STATE_WORD_BITS, assertValidStateWord, decodeStateWord } from './state-word-codec';
 import { decodeFeatureStateWord, type MeshFeaturesReader, type StructuralMetadataReader } from './state-word-metadata';
 import { WebGL2DepthOcclusionController } from './webgl2-depth-occlusion';
+import { AdaptiveSseBudget } from './adaptive-sse-budget';
 
 export {
   STATE_WORD_BITS,
@@ -230,6 +231,7 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
   private readonly stateWordMeshes = new Map<THREE.Mesh, ManagedStateWordMesh>();
   private lastFrameTimestamp = 0;
   private smoothedFrameTimeMs: number | null = null;
+  private readonly adaptiveSseBudget: AdaptiveSseBudget;
   private readonly config: Required<Omit<Tiles3DRendererLayerConfig, 'id' | 'tilesetUrl'>> &
     Pick<Tiles3DRendererLayerConfig, 'id' | 'tilesetUrl'>;
 
@@ -249,6 +251,11 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
     if (!Number.isFinite(this.config.fpsRecoveryMargin) || this.config.fpsRecoveryMargin < 0) {
       throw new RangeError('fpsRecoveryMargin must be a finite non-negative number');
     }
+    this.adaptiveSseBudget = new AdaptiveSseBudget({
+      baseSse: this.config.maxSse,
+      minFps: this.config.minFps,
+      recoveryFps: this.config.minFps + this.config.fpsRecoveryMargin,
+    });
   }
 
   onAdd(map: maplibregl.Map, gl: WebGLRenderingContext): void {
@@ -324,6 +331,12 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
         camera.updateMatrixWorld(true);
         this.tilesRenderer.setCamera(camera);
         this.tilesRenderer.setResolutionFromRenderer(camera, ms.renderer);
+        // NASA-AMMOS 3D Tiles Renderer already owns hierarchy traversal, frustum
+        // rejection, and screen-space-error refinement. Adapt its real refinement
+        // threshold instead of adding a duplicate culler beside the live tileset.
+        this.tilesRenderer.errorTarget = this.adaptiveSseBudget.update(
+          this.smoothedFrameTimeMs === null ? null : 1000 / this.smoothedFrameTimeMs,
+        );
         this.tilesRenderer.update();
         this.tilesRenderer.group.updateMatrixWorld(true);
         if (this.occlusion) {
@@ -357,6 +370,7 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
     }
     this.lastFrameTimestamp = 0;
     this.smoothedFrameTimeMs = null;
+    this.adaptiveSseBudget.reset();
     this.tilesRenderer = null;
     this.mapScene = null;
     this.pmrem = null;

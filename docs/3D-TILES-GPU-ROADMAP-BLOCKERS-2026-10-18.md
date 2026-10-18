@@ -68,6 +68,31 @@ inside today's WebGL2 custom layer would not be an executable feature.
 Reference: [MapLibre CustomLayerInterface](https://maplibre.org/maplibre-gl-js/docs/API/interfaces/CustomLayerInterface/),
 [MapLibre graphics modernization roadmap](https://maplibre.org/roadmap/maplibre-gl-js/graphics-modernization/).
 
+## 3A. Integrated adaptive LOD (2026-10-18)
+
+**Implementation on branch `feat/integrated-3d-render-budget`:** the live
+`tsm-console/src/lib/tiles-3d-renderer-layer.ts` now feeds the existing
+frame-time EMA into `AdaptiveSseBudget` and updates
+`TilesRenderer.errorTarget`. The existing NASA-AMMOS renderer remains the
+owner of 3D Tiles hierarchy traversal, frustum selection, and SSE refinement.
+The budget raises the SSE target under sustained low FPS (less refinement) and
+lowers it only above a separate recovery threshold. Values are clamped, invalid
+samples are ignored, and teardown resets the controller. This complements the
+existing StateWord texture/component degradation and bounded WebGL2 occlusion
+queries; it does not claim to implement GPU compute culling or voxel streaming.
+
+**Why no second culler was added:** the active runtime consumes hierarchical
+OGC 3D Tiles content, not the SDF voxel chunks specified by the voxel-density
+contract. Duplicating frustum traversal beside `TilesRenderer` risks conflicting
+visibility decisions. Worker/octree culling belongs to the future volumetric
+runtime after its balanced 2:1 octree, chunk manifest, neighbor scheduler, and
+WASM/meshing boundary are implemented and tested. For current 3D Tiles, tune
+the renderer's existing SSE mechanism first.
+
+**Verification still required:** run the adaptive SSE unit tests, TypeScript
+typecheck, production build, and latest-head CI. This branch is not considered
+verified until those gates pass.
+
 ## 4. Depth occlusion / hierarchical-Z
 
 **Status: WebGL2 query-based occlusion implemented; hierarchical-Z compute is not implemented.**
