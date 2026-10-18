@@ -1,7 +1,7 @@
 # Tri-State Systems Manager — Authoritative Data Source Catalog
 
-**Status:** Production source registry  
-**Updated:** 2026-09-30
+**Status:** Authoritative source catalog; runtime activation is controlled separately by the live-hydrology registry  
+**Updated:** 2026-10-18
 
 This catalog defines external sources that may supply hydrologic, regulatory-reference, scientific, or geospatial data to TSM. **Posey County offline operation is snapshot-first:** the newest suitable agency product is acquired, dated, hashed, and frozen. A live service may be used to obtain a snapshot, but the offline runtime does not depend on a live API.
 
@@ -36,7 +36,7 @@ It records the agency, authority class, newest-vintage selection rule, official 
 
 | Source ID | Authority | Primary endpoint | Data | Class / boundary |
 |---|---|---|---|---|
-| `USGS-NWIS-IV` | U.S. Geological Survey | `https://waterservices.usgs.gov/nwis/iv/` — **RETIRED 2026-02-22**; current endpoint `https://api.waterdata.usgs.gov/ogcapi/v1/collections/latest-continuous/items` | Historical/instantaneous stage and discharge | Observation snapshot; raw stage remains GAGE_DATUM |
+| `USGS-NWIS-IV` | U.S. Geological Survey | `https://waterservices.usgs.gov/nwis/iv/` — **LEGACY; scheduled for decommissioning 2027-02-22**; migrate now to `https://api.waterdata.usgs.gov/ogcapi/v1/collections/latest-continuous/items` | Historical/instantaneous stage and discharge | Observation snapshot; raw stage remains GAGE_DATUM |
 | `USGS-TNM` | U.S. Geological Survey National Map | `https://tnmaccess.nationalmap.gov/` | 3DEP lidar, DEM and related products | Scientific/geospatial acquisition |
 | `USGS-3DEP-LIDAREXPLORER` | U.S. Geological Survey | `https://www.usgs.gov/tools/lidarexplorer` | Current lidar/DEM/topobathymetry discovery | Scientific/geospatial acquisition |
 | `FEMA-NFHL` | Federal Emergency Management Agency | `https://hazards.fema.gov/arcgis/rest/services/FIRMette/NFHLREST_FIRMette/MapServer` | Effective FIRM panels, zones, BFEs, cross sections, levees and map-change layers | FEMA effective reference |
@@ -85,7 +85,7 @@ Historical scans, 2017–2020 LiDAR, and older source packages remain useful for
 
 ## Hydrology sources and AOI evidence additions (2026-10-18)
 
-- **USGS Water Data APIs (modern OGC APIs):** https://api.waterdata.usgs.gov/docs/ — use the modern continuous-values, latest-continuous, daily-values, monitoring-location, and time-series-metadata collections. USGS states WaterServices will permanently shut down on 2027-02-22, with intentional slowdowns/outages beginning in January 2027; do not add new production dependencies on `waterservices.usgs.gov/nwis/iv/`. Preserve UTC timestamps, `approval_status`, `qualifier`, parameter code, unit, and station identity. See https://www.usgs.gov/tools/usgs-water-data-apis and https://api.waterdata.usgs.gov/docs/ogcapi/migration/.
+- **USGS Water Data APIs (modern OGC APIs):** https://api.waterdata.usgs.gov/docs/ — use the modern continuous-values, latest-continuous, daily-values, monitoring-location, and time-series-metadata collections. USGS states WaterServices will permanently shut down on 2027-02-22; scheduled degradation begins 2026-11-16, followed by staged slowdowns and outages; do not add new production dependencies on `waterservices.usgs.gov/nwis/iv/`. Preserve UTC timestamps, `approval_status`, `qualifier`, parameter code, unit, and station identity. See https://www.usgs.gov/tools/usgs-water-data-apis and https://api.waterdata.usgs.gov/docs/ogcapi/migration/.
 - **USGS Real-Time Flood Impacts (RTFI):** https://api.waterdata.usgs.gov/rtfi-api/docs — surveyed vulnerable infrastructure points associated with nearby USGS streamgages. Treat results as provisional decision-support evidence, not proof that a road/building is flooded or safe.
 - **USGS NHDPlus High Resolution (NHDPlus HR):** https://www.usgs.gov/national-hydrography/nhdplus-high-resolution — flowlines, catchments, flow direction/accumulation and hydrologic-unit context. Preserve dataset version and geography; do not substitute network-derived catchments for a verified AOI delineation.
 - **USACE ERDC/CHL TR-22-4:** Bell, Abraham, Clifton, and Lamkin (February 2022), *Wabash and Ohio River Confluence Hydraulic and Sediment Transport Model Investigation*, https://doi.org/10.21079/11681/43441. The supplied report documents an AdH 2D hydraulic/sediment study, field bathymetry/sediment/flow measurements, and calibration/validation for its specific confluence study. It is historical regional engineering evidence—not a current terrain surface, a Posey parcel flood model, or a transferable design without input data and model revalidation. The report's stated UTM Zone 15N conflicts with the confluence's geographic location near 87.8°W (UTM Zone 16N); confirm the original model CRS/control points with USACE before reuse.
