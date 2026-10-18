@@ -151,6 +151,12 @@ jobs:
       - name: Install backend engineering dependencies
         working-directory: .
         run: python -m pip install --upgrade pip && python -m pip install -r backend/requirements.txt
+      - name: Install TimesFM adapter test dependencies
+        working-directory: .
+        run: python -m pip install pandas requests
+      - name: Test modern USGS continuous-values adapter
+        working-directory: .
+        run: python -m unittest discover -s scripts/flood-forecasting/tests -p 'test_*.py' -v
       - name: Root backend unittest discovery gate
         working-directory: .
         run: bash ./run-backend-tests.sh
