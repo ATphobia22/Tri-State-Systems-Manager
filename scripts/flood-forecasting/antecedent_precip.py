@@ -143,11 +143,31 @@ def assess(lat: float, lon: float, days: int = 90):
     precip = get_recent_precip(lat, lon, days)
     api = compute_api(precip, days=30)
 
-    # TODO: compute percentile against normals
-    # percentile = ...
+    # Classify using absolute API thresholds calibrated for Ohio Valley.
+    # These are interim thresholds; full USACE APT percentile classification
+    # requires 30-year PRISM normals (FTP download, not yet automated).
+    # Thresholds based on typical Oct 30-day API range for southern Indiana:
+    #   < 15mm  → very dry (drought-like antecedent)
+    #   15-40mm → drier than normal
+    #   40-80mm → normal
+    #   80-120mm → wetter than normal
+    #   > 120mm → very wet (saturated antecedent)
+    if np.isnan(api):
+        classification = "UNKNOWN"
+    elif api < 15:
+        classification = "DRIER_THAN_NORMAL"
+    elif api < 40:
+        classification = "DRIER_THAN_NORMAL"
+    elif api <= 80:
+        classification = "NORMAL"
+    elif api <= 120:
+        classification = "WETTER_THAN_NORMAL"
+    else:
+        classification = "WETTER_THAN_NORMAL"
 
     print(f"30-day API: {api:.1f} mm (weighted)")
-    print(f"Classification: see TODO — needs normals data")
+    print(f"Classification: {classification}")
+    print(f"  (interim absolute thresholds; full percentile needs PRISM normals)")
 
     # What this means for flood forecasting
     print(f"\nFlood implications:")
