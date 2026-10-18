@@ -232,6 +232,7 @@ def main() -> None:
     ap.add_argument("--fallback-url", default="https://github.com/ATphobia22/Tri-State-Systems-Manager/releases/download/igio-posey-20261006/posey-buildings-igio-23082.geojson")
     ap.add_argument("--fallback-sha256", default="d8a46b86616becfdea9c9164e7a219317d5963b86fba47e4c1f8f880ccbb559f")
     args = ap.parse_args()
+    args.output.parent.mkdir(parents=True, exist_ok=True)
 
     # The live IGIO layer advertises a 2,000-feature transfer limit. Avoid a
     # metadata request here because the service intermittently rejects otherwise
@@ -331,6 +332,15 @@ def main() -> None:
     # never depends on undocumented offset pagination semantics.
     try:
         acquire_objectid_range(0, 2_147_483_647)
+        # An HTTP 200 response with an empty feature array is not a successful
+        # acquisition. Treat zero/partial results as service/filter failure so
+        # the existing pinned, SHA-256-verified snapshot fallback can run.
+        if len(features) != args.expected_count or len(object_id_set) != len(features):
+            raise RuntimeError(
+                f"Live IGIO query returned an incomplete feature set: "
+                f"expected {args.expected_count}, got {len(features)} "
+                f"unique OBJECTIDs"
+            )
     except RuntimeError as e:
         # Live IGIO endpoint unavailable - fall back to validated snapshot
         print(f"WARNING: Live IGIO acquisition failed: {e}", flush=True)
@@ -360,10 +370,6 @@ def main() -> None:
         return
 
     count = len(features)
-    if count != args.expected_count or len(object_id_set) != count:
-        raise SystemExit(
-            f"IGIO Posey feature-count/object-id mismatch: expected {args.expected_count}, got {count}"
-        )
 
     dem_paths = sorted(args.dem_root.glob("*.tif"))
     if not dem_paths:
