@@ -20,11 +20,11 @@ An exact blob duplicate is a byte-identical file at more than one path. It is no
 | #293 — hierarchical voxel visibility | Closed as superseded | The LOD scheduler is byte-identical to main and the test differs only at blob metadata, not line content. Its documentation is stale relative to current main and its lockfile change would replace a pinned Three.js dependency with a range. |
 | #294 — mapping-plane HLOD release gates | Closed as superseded | The implementation register and HLOD test are byte-identical to main. Its alternate implicit-tileset builder/test are older than main's current state-word and metadata contract; merging them would regress current implementation. |
 | #295 — HLOD geometric-error contract | Closed as superseded after salvage | Production builder is byte-identical to main. Its stronger regression cases were ported into PR #301 without merging the stale, divergent branch. |
-| #298 — HLOD renderer hardening rebased | Retain for targeted review | It is 151 commits behind and not mergeable. The camera component uses the same camera-basis helper and appears functionally equivalent aside from explanatory comments; however, the branch's `tiles-3d-renderer-layer.ts` and state-word scheduler are older/different, and it adds a `state-word.ts` module absent at that path on main. Do not merge wholesale; review whether any unique contract or test should be ported to current architecture. |
+| #298 — HLOD renderer hardening rebased | Closed as superseded | Its camera basis helper is already on main; its renderer layer and scheduler are substantially older. The added `state-word.ts` uses a bit layout that conflicts with main's `state-word-codec`, so wholesale merge is unsafe. Any needed behavior must be reimplemented in a focused PR against main. |
 | #300 — hydrology source consistency / AOI readiness | Retain for CI review | Hydrology source, API migration, manifest, and AOI-readiness changes are not duplicates of the renderer work. Must pass the current CI head before merge. |
 | #301 — HLOD regression coverage | Retain for CI review | Test-only salvage of stronger deterministic/error-bound cases from #295. Current CI must be green before merge. |
 
-PRs #291, #293, #294, and #295 were closed as superseded during this audit. No stale branch was merged merely to make a PR appear complete.
+PRs #291, #293, #294, #295, and #298 were closed as superseded during this audit. PR #301 was consolidated into #300 so the HLOD regression test runs with the dependency-lockfile repair. No stale branch was merged merely to make a PR appear complete.
 
 ## Branch-level assessment
 
@@ -35,8 +35,9 @@ The following branches are stale/diverged and should not be bulk-merged:
 - `fix/hlod-geometric-error-contract`: production builder already matches main; stronger tests salvaged to PR #301.
 - `fix/3d-tiles-renderer-mainline`: HLOD builder/test and CI test wiring are already present on main; PR #291 closed.
 - `fix/3d-tiles-hlod-renderer-hardening`: PR #297 closed; this branch ref was observed at the same SHA as main at audit time.
-- `fix/3d-tiles-hlod-renderer-hardening-rebased`: stale and non-mergeable; keep PR #298 for targeted state-word/renderer-layer review rather than wholesale merge. Its camera component's basis helper matches main, so do not treat the camera comments as missing functionality.
+- `fix/3d-tiles-hlod-renderer-hardening-rebased`: stale and non-mergeable; PR #298 closed. Its `state-word.ts` bit layout conflicts with main and must not be merged wholesale.
 - `fix/maplibre-three-peer-dependency` and `fix/state-word-paper-layout`: old divergent branches whose earlier PRs were superseded/closed; do not merge without a fresh per-file diff against current main.
+- `feat/on-demand-hydrology-snapshots-20261018`: no open PR; compared with the active hydrology branch, it shares the same merge base and differs in only three files. It is a near-duplicate snapshot branch; after PR #300 is validated/merged, retire this stale ref rather than merge both.
 - `fix/hydrology-source-consistency-and-aoi-readiness-20261018`: active hydrology PR #300.
 - `docs/repository-duplicate-audit-2026-10-18`: this report branch.
 - `main`: protected default branch.
@@ -56,7 +57,7 @@ The 68 blob groups include both harmless duplication and data-copy pairs that ne
 ## High-priority follow-up
 
 1. Add CI contracts for source/public-copy synchronization where duplication is intentional; do not remove copies until deployment paths and consumers are verified.
-2. Review PR #298's renderer changes against main and port only demonstrably missing camera-basis/clipping behavior in a fresh branch.
+2. Do not merge the stale state-word scheduler in PR #298; if needed, add tests against main's current `state-word-codec` and renderer architecture.
 3. Wait for PR #300 CI, inspect all test failures, and only merge after its exact head passes required checks.
 4. Wait for PR #301 CI; its initial parse-gate attempt failed during locked dependency installation before the regression tests ran, so that attempt did not validate the new tests.
 5. Run a complete branch-ref cleanup after review. Branch deletion is not available through the currently connected GitHub action set.
