@@ -51,8 +51,7 @@ pg2b3dm \
   -o ./tiles/
 ```
 
-Serve `./tiles/` as static files. Render in MapLibre via 3d-tiles-renderer
-(`src/lib/tiles-3d-renderer-layer.ts`); SSE refinement comes free.
+Serve `./tiles/` as static files. TSM's active map path is `src/components/ThreeDTilesLayer.tsx`, which uses `3d-tiles-renderer` with the MapLibre camera. Screen-space-error refinement is driven by the renderer's camera and pixel resolution; validate the selected geometric-error policy against actual camera paths.
 
 ## LOD → geometricError heuristic
 
@@ -90,10 +89,9 @@ blender -b --factory-startup scene.blend --python scripts/3d-tiles/bake-pbr.py \
 See `scripts/3d-tiles/bake-pbr.py`. Then:
 
 ```bash
-# Optimize + atlas: glTF-Transform (MIT) — explicit CI tooling, not app dependency
-TSM_INSTALL_EXTERNAL_TOOLING=true node scripts/ci/install-external-tooling.mjs
-./tsm-console/node_modules/.bin/gltf-transform optimize in.glb out.glb --compress draco --texture-compress webp
-./tsm-console/node_modules/.bin/gltf-transform join lod2-*.glb merged.glb
+# Optimize + atlas: glTF-Transform (MIT) — installed as devDependency
+npx gltf-transform optimize in.glb out.glb --compress draco --texture-compress webp
+npx gltf-transform join lod2-*.glb merged.glb
 ```
 
 UV atlasing: xatlas (check repo LICENSE before use). Atlas sub-regions are
@@ -103,8 +101,7 @@ addressed per-material via `KHR_texture_transform` UV offset/scale.
 
 - **LOD3 from aerial data:** no good open-source solution (R&D gap).
 - **AI LOD2:** production LOD2 is classical geometry (roofer); no turnkey AI generator.
-- **5D state-word framework:** no implementation exists; see
-  `src/lib/state-word-scheduler.ts` for TSM's clean-room client-side scheduler.
+- **5D state-word framework:** TSM has a pure scheduling planner in `src/lib/state-word-scheduler.ts` and bit-layout helpers in `src/lib/state-word.ts`. The planner is not yet connected to `EXT_structural_metadata`, resource fetch/release operations, or GPU attributes; treat it as a prototype, not an operational scheduler.
 - **WebGPU volumetric terrain:** no browser library; use canvas flood-fill for
   near-term flood visualization.
 - **MapLibre-native IBL:** does not exist; PBR/IBL requires the Three.js
