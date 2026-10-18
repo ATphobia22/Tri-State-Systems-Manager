@@ -15,9 +15,9 @@
 
 ## HLOD geometric-error policy
 
-The HLOD builder previously assigned intermediate nodes `rootError / 2**depth`. Depth alone is not a measurement of geometric simplification error. The builder now assigns each generated internal node the maximum declared `geometricError` of source content in that node's subtree, using the source root error only when a source content tile omits its own value. Invalid, negative, boolean, NaN, or infinite error values fail closed.
+The HLOD builder previously assigned intermediate nodes `rootError / 2**depth`. Depth alone is not a measurement of geometric simplification error. The builder now calculates each empty partition node's error from the maximum of its inherited parent floor and declared source-descendant errors; the root floor is at least the source root error (with the existing 1 m policy floor). Each contentless child inherits its parent's computed error floor, so tree depth cannot make an empty node look like a lower-error LOD that has not been generated. Source leaf content preserves its declared `geometricError`. Invalid, negative, boolean, NaN, or infinite source/fallback values fail closed.
 
-This is a **conservative TSM policy for contentless ADD hierarchy nodes**, not a claim that OGC requires every parent error to be greater than or equal to every child error. It may cause additional refinement when descendant errors remain high. It must be evaluated against representative target-renderer camera paths and payload/frame-time budgets before performance claims are made.
+The generated metadata labels this policy `contentless-nodes-inherit-parent-error-floor-v1`. This is a **conservative TSM policy for contentless ADD hierarchy nodes**, not a claim that OGC requires all parent errors to exceed every child's error. It can trigger additional refinement because empty intermediate nodes have no generalized renderable content; target-renderer camera-path, spatial-boundary, payload, and frame-time tests remain required before performance claims are made.
 
 Regression command:
 
