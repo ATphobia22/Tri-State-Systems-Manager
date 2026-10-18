@@ -6,7 +6,7 @@ Audited the live `ATphobia22/Tri-State-Systems-Manager` repository using the Git
 
 - Audited main SHA: `e68f24a1b8cee2700118fb2bd82abd2cef3958a4`
 - Main tree entries: 10,276
-- Branches visible at audit time: 11 (including `main`)
+- Branches visible at audit time before this audit branch was created: 11 (including `main`); the audit branch and HLOD test branch were added afterward
 - Open PRs before cleanup: 6
 - Exact duplicate blob groups in the main tree: 68
 
@@ -20,7 +20,7 @@ An exact blob duplicate is a byte-identical file at more than one path. It is no
 | #293 — hierarchical voxel visibility | Closed as superseded | The LOD scheduler is byte-identical to main and the test differs only at blob metadata, not line content. Its documentation is stale relative to current main and its lockfile change would replace a pinned Three.js dependency with a range. |
 | #294 — mapping-plane HLOD release gates | Closed as superseded | The implementation register and HLOD test are byte-identical to main. Its alternate implicit-tileset builder/test are older than main's current state-word and metadata contract; merging them would regress current implementation. |
 | #295 — HLOD geometric-error contract | Closed as superseded after salvage | Production builder is byte-identical to main. Its stronger regression cases were ported into PR #301 without merging the stale, divergent branch. |
-| #298 — HLOD renderer hardening rebased | Retain for review | It is 151 commits behind and not mergeable, but the renderer component has a distinct camera synchronization implementation. Do not merge wholesale; compare its camera-basis and clipping changes against main and port only verified missing behavior. |
+| #298 — HLOD renderer hardening rebased | Retain for targeted review | It is 151 commits behind and not mergeable. The camera component uses the same camera-basis helper and appears functionally equivalent aside from explanatory comments; however, the branch's `tiles-3d-renderer-layer.ts` and state-word scheduler are older/different, and it adds a `state-word.ts` module absent at that path on main. Do not merge wholesale; review whether any unique contract or test should be ported to current architecture. |
 | #300 — hydrology source consistency / AOI readiness | Retain for CI review | Hydrology source, API migration, manifest, and AOI-readiness changes are not duplicates of the renderer work. Must pass the current CI head before merge. |
 | #301 — HLOD regression coverage | Retain for CI review | Test-only salvage of stronger deterministic/error-bound cases from #295. Current CI must be green before merge. |
 
@@ -35,7 +35,7 @@ The following branches are stale/diverged and should not be bulk-merged:
 - `fix/hlod-geometric-error-contract`: production builder already matches main; stronger tests salvaged to PR #301.
 - `fix/3d-tiles-renderer-mainline`: HLOD builder/test and CI test wiring are already present on main; PR #291 closed.
 - `fix/3d-tiles-hlod-renderer-hardening`: PR #297 closed; this branch ref was observed at the same SHA as main at audit time.
-- `fix/3d-tiles-hlod-renderer-hardening-rebased`: stale and non-mergeable; keep PR #298 for targeted renderer-diff review rather than wholesale merge.
+- `fix/3d-tiles-hlod-renderer-hardening-rebased`: stale and non-mergeable; keep PR #298 for targeted state-word/renderer-layer review rather than wholesale merge. Its camera component's basis helper matches main, so do not treat the camera comments as missing functionality.
 - `fix/maplibre-three-peer-dependency` and `fix/state-word-paper-layout`: old divergent branches whose earlier PRs were superseded/closed; do not merge without a fresh per-file diff against current main.
 - `fix/hydrology-source-consistency-and-aoi-readiness-20261018`: active hydrology PR #300.
 - `docs/repository-duplicate-audit-2026-10-18`: this report branch.
