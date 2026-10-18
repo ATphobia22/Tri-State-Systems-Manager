@@ -83,6 +83,8 @@ export interface LodTransition {
 export type LodTransitionListener = (t: LodTransition) => void;
 
 const EPS = 1e-6;
+/** Prevent accidental quadratic adjacency construction on large octrees. */
+const MAX_AUTOMATIC_ADJACENCY_NODES = 5_000;
 
 /** Clamp a value into [lo, hi]. */
 function clamp(v: number, lo: number, hi: number): number {
@@ -186,7 +188,16 @@ export class LodScheduler {
       if (n.parentId === null) this.roots.push(n);
     }
     if (this.roots.length === 0) throw new Error('[LodScheduler] no root nodes (parentId === null)');
-    this.adjacency = adjacency ?? buildAdjacency(nodes);
+    if (adjacency) {
+      this.adjacency = adjacency;
+    } else {
+      if (nodes.length > MAX_AUTOMATIC_ADJACENCY_NODES) {
+        throw new RangeError(
+          `[LodScheduler] ${nodes.length} nodes exceed the automatic adjacency limit ${MAX_AUTOMATIC_ADJACENCY_NODES}; provide a precomputed adjacency map for large octrees`,
+        );
+      }
+      this.adjacency = buildAdjacency(nodes);
+    }
     this.maxSse = options.maxScreenSpaceError ?? 2.0;
     this.maxLevel = options.maxLevel ?? Infinity;
   }
