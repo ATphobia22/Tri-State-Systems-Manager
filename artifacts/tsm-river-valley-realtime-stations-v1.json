@@ -1,7 +1,7 @@
 {
   "artifact_type": "tsm.river_valley_realtime_station_registry.v1",
-  "artifact_version": "1.0.2",
-  "version": "1.0.2",
+  "artifact_version": "1.0.3",
+  "version": "1.0.3",
   "generated_at": "2026-09-14T16:40:00Z",
   "scope": "lower_wabash_ohio_confluence_and_louisville_district_ohio_river_influence_network",
   "registry_scope": "USGS stations only; NWS nodes MTVI3/UNWK2 tracked in the authority registry",
