@@ -8,6 +8,7 @@ Runs the complete flood forecasting pipeline:
   3. Operational forecasts (GEOGloWS 10-day)
   4. Rating curves (ras2fim → discharge to depth)
   5. Flood alerting (stage thresholds)
+  6. BFE synthesis (InFRM estBFE + FIS PDF parsing)
 
 Each step can run independently. This orchestrator chains them.
 
@@ -124,6 +125,16 @@ def step_alert_check():
     return True
 
 
+def step_bfe():
+    """Synthesize BFE estimate for the anchor site (InFRM + FIS)."""
+    print("\n🏔️  Step 7: BFE Synthesis (InFRM estBFE + FIS)")
+    from tsm_config import ANCHOR_LAT, ANCHOR_LON
+    return run_script("bfe_ingestion.py", [
+        "--lat", str(ANCHOR_LAT),
+        "--lon", str(ANCHOR_LON),
+    ])
+
+
 STEPS = {
     "ingest": step_ingest,
     "antecedent": step_antecedent,
@@ -131,9 +142,10 @@ STEPS = {
     "forecast": step_forecast,
     "rating": step_rating,
     "alert": step_alert_check,
+    "bfe": step_bfe,
 }
 
-STEP_ORDER = ["ingest", "antecedent", "nowcast", "forecast", "rating", "alert"]
+STEP_ORDER = ["ingest", "antecedent", "nowcast", "forecast", "rating", "alert", "bfe"]
 
 
 def main():

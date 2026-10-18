@@ -51,6 +51,7 @@ HEC-RAS ──→ ras2fim ──→ depth rasters + rating curves
 | `tnm_bulk_download.py` | USGS National Map bulk downloads | https://apps.nationalmap.gov/downloader/ |
 | `tsm_usgs_lidar_ept.py` | USGS 3DEP LiDAR EPT config | [ATphobia22/usgs-lidar](https://github.com/ATphobia22/usgs-lidar) |
 | `earthdata_tristate.py` | NASA Earthdata (GPM, Landsat, Sentinel) | [ATphobia22/earthaccess](https://github.com/ATphobia22/earthaccess) |
+| `bfe_ingestion.py` | BFE synthesis: InFRM estBFE query + FIS PDF parsing | https://webapps.usgs.gov/infrm/estbfe/ |
 
 ## Gages
 
