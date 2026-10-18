@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import re
 import sys
 import zipfile
@@ -19,6 +20,15 @@ from typing import Any
 ARCHIVE_ROOT = Path("data/fabrics/hydraulic-models")
 TEXT_SUFFIXES = {".prj", ".txt", ".dat", ".xml", ".csv", ".rasmap", ".ini"}
 HECRAS_SUFFIX = re.compile(r"^\.(?:g|f|p|u|r|o)\d{2}$", re.IGNORECASE)
+GEOMETRY_SUFFIX = re.compile(r"^\.g\d{2}$", re.IGNORECASE)
+XS_CUT_LINE_RE = re.compile(r"^\s*XS GIS Cut Line\s*=\s*(\d+)\s*$", re.IGNORECASE)
+GIS_CLAIM_PATTERNS = {
+    "gis_map_projection": re.compile(r"^\s*GIS Map Projection\s*=\s*(.*?)\s*$", re.IGNORECASE),
+    "gis_projection_zone": re.compile(r"^\s*GIS Projection Zone\s*=\s*(.*?)\s*$", re.IGNORECASE),
+    "gis_datum": re.compile(r"^\s*GIS Datum\s*=\s*(.*?)\s*$", re.IGNORECASE),
+    "gis_vertical_datum": re.compile(r"^\s*GIS Vertical Datum\s*=\s*(.*?)\s*$", re.IGNORECASE),
+    "model_vertical_datum": re.compile(r"^\s*Model Vertical Datum\s+is\s+(.*?)\s*$", re.IGNORECASE),
+}
 EPSG_RE = re.compile(r"\bEPSG\s*[:=]?\s*(\d{4,6})\b", re.IGNORECASE)
 CRS_RE = re.compile(
     r"\b(?:NAD\s*83|NAD83|NAD\s*27|WGS\s*84|WGS84|UTM\s*(?:ZONE)?\s*\d{1,2}[NS]?|"
@@ -31,7 +41,9 @@ VERTICAL_RE = re.compile(
     re.IGNORECASE,
 )
 MAX_TEXT_SCAN_BYTES = 2 * 1024 * 1024
+MAX_GEOMETRY_SCAN_BYTES = 32 * 1024 * 1024
 MAX_MEMBER_BYTES = 1024 * 1024 * 1024
+MAX_GIS_CUT_LINE_POINTS = 100_000
 
 
 def sha256_file(path: Path) -> str:
@@ -84,6 +96,212 @@ def extract_text_evidence(archive: zipfile.ZipFile, names: list[str]) -> dict[st
     }
 
 
+
+
+def _read_small_text_member(archive: zipfile.ZipFile, name: str, max_bytes: int) -> str | None:
+    """Read a bounded UTF-8 text member without extracting it to disk."""
+    try:
+        info = archive.getinfo(name)
+        if info.file_size > max_bytes:
+            return None
+        return archive.read(name).decode("utf-8", errors="ignore")
+    except (KeyError, OSError, RuntimeError, zipfile.BadZipFile):
+        return None
+
+
+def extract_spatial_reference_claims(archive: zipfile.ZipFile, names: list[str]) -> dict[str, Any]:
+    """Capture literal CRS/datum fields; a claim is not verification."""
+    claims: list[dict[str, str]] = []
+    for name in names:
+        suffix = PurePosixPath(name).suffix.lower()
+        if suffix not in TEXT_SUFFIXES and not HECRAS_SUFFIX.match(suffix):
+            continue
+        text = _read_small_text_member(archive, name, MAX_TEXT_SCAN_BYTES)
+        if text is None:
+            continue
+        matched: dict[str, str] = {}
+        for line in text.splitlines():
+            for key, pattern in GIS_CLAIM_PATTERNS.items():
+                match = pattern.match(line)
+                if match:
+                    matched[key] = match.group(1).strip()
+        if not matched:
+            continue
+        record: dict[str, str] = {"member": name, **matched}
+        projection = record.get("gis_map_projection", "").strip().upper()
+        zone = record.get("gis_projection_zone", "").strip()
+        datum = record.get("gis_datum", "").strip().upper()
+        if projection == "STATEPLANE" and zone == "2966" and datum in {"NAD83", "NAD 83"}:
+            record["candidate_crs"] = "EPSG:2966"
+            record["candidate_crs_status"] = "INFERRED_FROM_LITERAL_GIS_FIELDS_NOT_INDEPENDENTLY_VERIFIED"
+        claims.append(record)
+    return {
+        "spatial_reference_claims": claims,
+        "spatial_reference_claim_status": "LITERAL_METADATA_FOUND" if claims else "NO_LITERAL_METADATA_FOUND",
+        "candidate_crs_codes": sorted({item["candidate_crs"] for item in claims if item.get("candidate_crs")}),
+    }
+
+
+def _parse_numeric_coordinate_line(line: str) -> list[float]:
+    """Parse fixed-width HEC-RAS XY values or whitespace/comma-delimited numeric tokens."""
+    raw = line.rstrip("\r\n")
+    if not raw.strip():
+        return []
+    if len(raw) >= 32 and len(raw) % 16 == 0:
+        fields = [raw[i:i + 16].strip() for i in range(0, len(raw), 16)]
+        try:
+            values = [float(field) for field in fields if field]
+            if len(values) >= 2:
+                return values
+        except ValueError:
+            pass
+    tokens = [token for token in re.split(r"[\s,;]+", raw.strip()) if token]
+    if len(tokens) < 2:
+        return []
+    try:
+        return [float(token) for token in tokens]
+    except ValueError:
+        return []
+
+
+def inspect_gis_cut_lines(text: str, member_name: str) -> dict[str, Any]:
+    """Extract native XY values from HEC-RAS XS GIS Cut Line records only.
+
+    Coordinates are intentionally not reprojected or used to claim AOI overlap.
+    CRS, units, model-domain coverage, and suitability require separate review.
+    """
+    lines = text.splitlines()
+    blocks: list[dict[str, Any]] = []
+    all_x: list[float] = []
+    all_y: list[float] = []
+    errors: list[str] = []
+    i = 0
+    while i < len(lines):
+        match = XS_CUT_LINE_RE.match(lines[i])
+        if not match:
+            i += 1
+            continue
+        point_count = int(match.group(1))
+        if point_count < 2 or point_count > MAX_GIS_CUT_LINE_POINTS:
+            errors.append(f"{member_name}:{i + 1}: cut-line point count outside accepted bounds: {point_count}")
+            blocks.append({"line": i + 1, "declared_point_count": point_count, "parsed_point_count": 0, "status": "INVALID_POINT_COUNT"})
+            i += 1
+            continue
+
+        required_values = point_count * 2
+        values: list[float] = []
+        j = i + 1
+        while j < len(lines) and len(values) < required_values:
+            candidate = lines[j]
+            stripped = candidate.strip()
+            if not stripped:
+                j += 1
+                continue
+            if re.match(r"^[A-Za-z#][A-Za-z0-9 _/#().-]*=", stripped):
+                break
+            parsed = _parse_numeric_coordinate_line(candidate)
+            if not parsed:
+                break
+            values.extend(parsed[:required_values - len(values)])
+            j += 1
+
+        if len(values) == required_values and all(math.isfinite(value) for value in values):
+            pairs = [(values[k], values[k + 1]) for k in range(0, required_values, 2)]
+            xs = [pair[0] for pair in pairs]
+            ys = [pair[1] for pair in pairs]
+            all_x.extend(xs)
+            all_y.extend(ys)
+            blocks.append({
+                "line": i + 1,
+                "declared_point_count": point_count,
+                "parsed_point_count": len(pairs),
+                "raw_xy_bounds": {"min_x": min(xs), "min_y": min(ys), "max_x": max(xs), "max_y": max(ys)},
+                "status": "PARSED",
+            })
+        else:
+            errors.append(f"{member_name}:{i + 1}: expected {point_count} XY pairs, parsed {len(values) // 2}")
+            blocks.append({
+                "line": i + 1,
+                "declared_point_count": point_count,
+                "parsed_point_count": len(values) // 2,
+                "status": "INCOMPLETE_COORDINATES",
+            })
+        i = max(i + 1, j)
+
+    bounds = None
+    if all_x and all_y:
+        bounds = {"min_x": min(all_x), "min_y": min(all_y), "max_x": max(all_x), "max_y": max(all_y)}
+    return {
+        "member": member_name,
+        "cross_section_cut_line_count": len(blocks),
+        "complete_cut_line_count": sum(block["status"] == "PARSED" for block in blocks),
+        "coordinate_pair_count": sum(block.get("parsed_point_count", 0) for block in blocks),
+        "raw_xy_bounds": bounds,
+        "blocks": blocks,
+        "errors": errors,
+        "coordinate_space": "NATIVE_MODEL_COORDINATES_NOT_REPROJECTED",
+        "status": "PARSED" if blocks and not errors else "PARTIAL_PARSE" if blocks else "NO_XS_GIS_CUT_LINES_FOUND",
+    }
+
+
+def extract_geometry_coordinate_summary(archive: zipfile.ZipFile, names: list[str]) -> dict[str, Any]:
+    geometry_names = [name for name in names if GEOMETRY_SUFFIX.match(PurePosixPath(name).suffix)]
+    per_file: list[dict[str, Any]] = []
+    skipped_size_limit: list[str] = []
+    for name in geometry_names:
+        try:
+            info = archive.getinfo(name)
+        except KeyError:
+            continue
+        if info.file_size > MAX_GEOMETRY_SCAN_BYTES:
+            skipped_size_limit.append(name)
+            continue
+        text = _read_small_text_member(archive, name, MAX_GEOMETRY_SCAN_BYTES)
+        if text is None:
+            continue
+        parsed = inspect_gis_cut_lines(text, name)
+        if parsed["cross_section_cut_line_count"] or parsed["errors"]:
+            per_file.append(parsed)
+
+    usable = [item for item in per_file if item["raw_xy_bounds"] is not None]
+    bounds = None
+    if usable:
+        bounds = {
+            "min_x": min(item["raw_xy_bounds"]["min_x"] for item in usable),
+            "min_y": min(item["raw_xy_bounds"]["min_y"] for item in usable),
+            "max_x": max(item["raw_xy_bounds"]["max_x"] for item in usable),
+            "max_y": max(item["raw_xy_bounds"]["max_y"] for item in usable),
+        }
+    line_count = sum(item["cross_section_cut_line_count"] for item in per_file)
+    complete_count = sum(item["complete_cut_line_count"] for item in per_file)
+    errors = [error for item in per_file for error in item["errors"]]
+    if bounds is None:
+        status = "SCAN_SIZE_LIMIT" if skipped_size_limit and not per_file else "NO_XS_GIS_CUT_LINES_FOUND"
+    elif errors or complete_count < line_count:
+        status = "PARTIAL_PARSE"
+    else:
+        status = "PARSED"
+    return {
+        "geometry_files_present": geometry_names,
+        "geometry_files_scanned": [item["member"] for item in per_file],
+        "geometry_files_skipped_size_limit": skipped_size_limit,
+        "cross_section_cut_line_count": line_count,
+        "complete_cut_line_count": complete_count,
+        "coordinate_pair_count": sum(item["coordinate_pair_count"] for item in per_file),
+        "native_xy_bounds": bounds,
+        "coordinate_space": "NATIVE_MODEL_COORDINATES_NOT_REPROJECTED",
+        "spatial_overlap": "NOT_COMPUTED",
+        "spatial_compatibility": "NOT_VERIFIED",
+        "status": status,
+        "per_file": per_file,
+        "errors": errors,
+        "note": (
+            "Bounds use parsed XS GIS Cut Line points only and remain in native model coordinates. "
+            "CRS, coordinate units, true model-domain coverage, and overlap with parcel/structure/catchment are not established."
+        ),
+    }
+
+
 def inspect_archive(path: Path, root: Path) -> dict[str, Any]:
     result: dict[str, Any] = {
         "path": path.relative_to(root).as_posix(),
@@ -100,6 +318,10 @@ def inspect_archive(path: Path, root: Path) -> dict[str, Any]:
         "crs_evidence": [],
         "epsg_codes": [],
         "vertical_datum_evidence": [],
+        "spatial_reference_claims": [],
+        "spatial_reference_claim_status": "NO_LITERAL_METADATA_FOUND",
+        "candidate_crs_codes": [],
+        "gis_geometry": {},
         "spatial_compatibility": "NOT_VERIFIED",
         "engineering_approval": "NOT_GRANTED",
         "errors": [],
@@ -145,6 +367,8 @@ def inspect_archive(path: Path, root: Path) -> dict[str, Any]:
             ]
             evidence = extract_text_evidence(archive, names)
             result.update(evidence)
+            result.update(extract_spatial_reference_claims(archive, names))
+            result["gis_geometry"] = extract_geometry_coordinate_summary(archive, names)
             if not result["project_files"]:
                 result["warnings"].append("No HEC-RAS .prj project file detected.")
             if not result["geometry_files"]:
@@ -153,6 +377,10 @@ def inspect_archive(path: Path, root: Path) -> dict[str, Any]:
                 result["warnings"].append("No explicit horizontal CRS evidence found in scanned text members.")
             if not result["vertical_datum_evidence"]:
                 result["warnings"].append("No explicit vertical datum evidence found in scanned text members.")
+            if result["gis_geometry"]["status"] != "PARSED":
+                result["warnings"].append(
+                    "GIS cross-section coordinate extraction is absent, incomplete, or size-limited; spatial overlap remains unverified."
+                )
             result["structure_review"] = (
                 "PROJECT_AND_GEOMETRY_PRESENT"
                 if result["project_files"] and result["geometry_files"]
@@ -186,7 +414,7 @@ def main() -> int:
 
     records = [inspect_archive(path, root) for path in archives]
     report = {
-        "schema_version": "1.0.0",
+        "schema_version": "1.1.0",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "repository_relative_archive_root": archive_root.relative_to(root).as_posix(),
         "archive_count": len(records),
@@ -194,9 +422,9 @@ def main() -> int:
         "failed_zip_count": sum(record["zip_integrity"] != "PASS" for record in records),
         "gate": "PASS" if all(record["zip_integrity"] == "PASS" for record in records) else "FAIL",
         "scope_note": (
-            "ZIP integrity, full SHA-256, structure hints, and textual CRS/datum discovery only. "
-            "This does not establish spatial overlap, model currency, boundary-condition validity, "
-            "solver compatibility, or engineering approval."
+            "ZIP integrity, full SHA-256, structure hints, bounded CRS/datum discovery, and native HEC-RAS XS GIS cut-line coordinate extraction. "
+            "Coordinates are not reprojected; this does not establish exact CRS/units, model-domain coverage, spatial overlap, model currency, "
+            "boundary-condition validity, solver compatibility, or engineering approval."
         ),
         "archives": records,
     }
@@ -210,6 +438,8 @@ def main() -> int:
         "archive_count": report["archive_count"],
         "valid_zip_count": report["valid_zip_count"],
         "failed_zip_count": report["failed_zip_count"],
+        "native_xy_bounds_extracted": sum(record["gis_geometry"]["native_xy_bounds"] is not None for record in records),
+        "spatial_overlap": "NOT_COMPUTED",
         "full_sha256_emitted": True,
         "output": str(args.output) if args.output else None,
         "spatial_compatibility": "NOT_VERIFIED",

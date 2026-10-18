@@ -111,6 +111,7 @@ jobs:
       - name: Validate committed hydraulic model archives
         working-directory: .
         run: |
+          python -m unittest discover -s tests -p 'test_model_archive_validator.py' -v
           python scripts/hydrology/validate_model_archives.py --root . --output artifacts/hydraulic-model-validation.json
           python -m json.tool artifacts/hydraulic-model-validation.json >/dev/null
 
