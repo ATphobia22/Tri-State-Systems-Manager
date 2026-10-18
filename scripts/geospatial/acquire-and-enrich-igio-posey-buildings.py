@@ -34,7 +34,7 @@ EXPECTED_POSEY = 23082
 FT_PER_M = 3.280839895013123
 
 
-def request_json(params: dict[str, object], attempts: int = 8) -> dict:
+def request_json(params: dict[str, object], attempts: int = 3) -> dict:
     query = urlencode(params)
     url = f"{QUERY}?{query}"
     last: Exception | None = None
@@ -43,15 +43,15 @@ def request_json(params: dict[str, object], attempts: int = 8) -> dict:
             result = subprocess.run(
                 [
                     "curl", "--silent", "--show-error", "--location",
-                    "--retry", "3", "--retry-delay", "2", "--retry-all-errors",
-                    "--http1.1", "--max-time", "300",
+                    "--retry", "1", "--retry-delay", "2", "--retry-all-errors",
+                    "--http1.1", "--max-time", "45",
                     "-A", "TSM-IGIO-Posey-Building-Acquisition/1.0",
                     "-w", "\n%{http_code}",
                     url,
                 ],
                 capture_output=True,
                 text=True,
-                timeout=330,
+                timeout=60,
             )
             # Split HTTP status from body (curl -w appends it)
             out = result.stdout.rsplit("\n", 1)
@@ -78,7 +78,7 @@ def request_json(params: dict[str, object], attempts: int = 8) -> dict:
             last = exc
             if attempt == attempts:
                 break
-            time.sleep(min(60, 5 * attempt))
+            time.sleep(min(10, 2 * attempt))
     raise RuntimeError(f"IGIO request failed after {attempts} attempts: {last}")
 
 
