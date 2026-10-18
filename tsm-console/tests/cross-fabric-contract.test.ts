@@ -21,7 +21,7 @@ const tileManifest = JSON.parse(
 };
 
 const liveHydrologyRegistry = JSON.parse(
-  readFileSync(resolve(repositoryRoot, '../data/fabrics/live/tsm-live-hydrology-fabric-v1.json'), 'utf8'),
+  readFileSync(resolve(repositoryRoot, 'data/fabrics/live/tsm-live-hydrology-fabric-v1.json'), 'utf8'),
 ) as {
   sources: Array<{ id: string; status: string; retiredReason?: string }>;
 };
