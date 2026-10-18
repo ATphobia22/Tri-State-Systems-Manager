@@ -22,10 +22,14 @@ test('runtime gauge client preserves provenance and fails closed', () => {
 });
 
 test('river gauge board uses explicit on-demand snapshots and never polls', () => {
-  assert.match(board, /on-demand live snapshots/);
+  assert.match(board, /on-demand snapshots/);
   assert.match(board, /No automatic polling/);
   assert.match(board, /Fetch live snapshot/);
   assert.match(board, /const fetchSnapshot = useCallback/);
+  assert.match(board, /tsmApiUrl/);
+  assert.doesNotMatch(board, /fetchUsgsLatestContinuous/);
+  assert.match(source, /gaugeEndpoint\(\)/);
+  assert.doesNotMatch(source, /fetchUsgsFallback/);
   assert.match(board, /not fabricated/);
   assert.match(board, /aria-labelledby/);
   assert.doesNotMatch(board, /setInterval/);
