@@ -61,7 +61,7 @@ function compileShader(gl: WebGL2RenderingContext, type: number, source: string)
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
     const log = gl.getShaderInfoLog(shader) ?? 'no compiler log';
     gl.deleteShader(shader);
-    throw new Error(\`WebGL2 occlusion shader compilation failed: \${log}\`);
+    throw new Error(`WebGL2 occlusion shader compilation failed: ${log}`);
   }
   return shader;
 }
@@ -89,14 +89,14 @@ function createProgram(gl: WebGL2RenderingContext): WebGLProgram {
   if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
     const log = gl.getProgramInfoLog(program) ?? 'no linker log';
     gl.deleteProgram(program);
-    throw new Error(\`WebGL2 occlusion shader linking failed: \${log}\`);
+    throw new Error(`WebGL2 occlusion shader linking failed: ${log}`);
   }
   return program;
 }
 
 function getUniform(gl: WebGL2RenderingContext, program: WebGLProgram, name: string): WebGLUniformLocation {
   const location = gl.getUniformLocation(program, name);
-  if (location === null) throw new Error(\`WebGL2 occlusion uniform was not found: \${name}\`);
+  if (location === null) throw new Error(`WebGL2 occlusion uniform was not found: ${name}`);
   return location;
 }
 
