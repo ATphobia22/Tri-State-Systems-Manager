@@ -358,5 +358,6 @@
         "sourceHashPolicy": "Hash service metadata and compact extracted records; preserve source URL and retrieval timestamp."
       }
     }
-  ]
+  ],
+  "lastReviewedAt": "2026-10-18"
 }
