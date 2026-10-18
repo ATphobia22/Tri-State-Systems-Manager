@@ -119,9 +119,6 @@ describe('cross-fabric contract integrity', () => {
       }
     }
   });
-});
-
-
   it('does not publish NOAA NWPS as current truth while the live source registry retires it', () => {
     const noaa = liveHydrologyRegistry.sources.find((source) => source.id === 'NOAA_NWPS');
     const tileNoaa = tileManifest.assets.find((asset) => asset.id === 'noaa-nwps');
@@ -132,13 +129,4 @@ describe('cross-fabric contract integrity', () => {
     expect(tileNoaa?.currentTruth).toBe(false);
   });
 
-  it('does not publish NOAA NWPS as current truth while the live source registry retires it', () => {
-    const noaa = liveHydrologyRegistry.sources.find((source) => source.id === 'NOAA_NWPS');
-    const tileNoaa = tileManifest.assets.find((asset) => asset.id === 'noaa-nwps');
-    expect(noaa?.status).toBe('retired');
-    expect(noaa?.retiredReason?.trim().length).toBeGreaterThan(0);
-    expect(tileNoaa).toBeDefined();
-    expect(tileNoaa?.status).not.toBe('PUBLISHED');
-    expect(tileNoaa?.currentTruth).toBe(false);
-  });
 });
