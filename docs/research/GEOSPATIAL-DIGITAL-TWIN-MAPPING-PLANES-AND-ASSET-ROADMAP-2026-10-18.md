@@ -133,7 +133,7 @@ For a 3D Tiles 1.1 path, follow its tile and glTF transform rules and the curren
 
 ## 7. Recommended immediate actions
 
-For current per-plane implementation state, release-gate evidence, and home-site AOI blockers, use the maintained [Mapping-Plane Implementation Status and Completion Gates](MAPPING-PLANES-IMPLEMENTATION-STATUS-2026-10-18.md). The roadmap below remains the architecture-level guidance; the linked matrix separates capabilities already present from data-gated functions and research proposals that remain deferred.
+For current per-plane implementation state, release-gate evidence, and home-site AOI blockers, use the maintained [Mapping-Plane Implementation Status and Completion Gates](MAPPING-PLANE-IMPLEMENTATION-STATUS-2026-10-18.md). The roadmap below remains the architecture-level guidance; the linked matrix separates capabilities already present from data-gated functions and research proposals that remain deferred.
 
 1. Add this research note and cite the primary standards and paper.
 2. Run a focused repository inventory before introducing any renderer or 16-bit decoder; record evidence and existing implementation gaps.
@@ -156,8 +156,8 @@ For current per-plane implementation state, release-gate evidence, and home-site
 
 ## 8. Implementation follow-up (2026-10-18)
 
-The depth-based intermediate HLOD error heuristic has been replaced on the follow-up branch with a conservative subtree policy: contentless ADD nodes use the maximum declared source-content error within their subtree, and malformed source/fallback values fail closed. A standard-library regression suite is added at `scripts/geospatial/test_build_hlod_geometric_error.py` and wired into the geospatial CI workflow.
+The depth-based intermediate HLOD error heuristic is being replaced on the follow-up branch with an inherited error-floor policy: each contentless ADD node uses the maximum of its parent floor, the source-root fallback, and the declared errors of descendant source content. Descendant contentless nodes inherit the calculated floor; leaf source-content errors are preserved. Malformed source/fallback values fail closed. The standard-library regression suite `scripts/geospatial/test_build_hlod_geometric_error.py` is wired into geospatial CI.
 
-This policy avoids inventing a geometric-error reduction from tree depth alone. It is intentionally conservative and may over-refine; it does **not** establish correct renderer behavior by itself. The next acceptance gate remains a representative camera-path test with the target renderer, measured payload/frame-time behavior, the repository's strict validator, and the independent CesiumGS validator. See [Mapping-plane implementation status](MAPPING-PLANE-IMPLEMENTATION-STATUS-2026-10-18.md) for the plane-by-plane evidence gates and home-site AOI readiness boundary.
+This policy avoids inventing a geometric-error reduction from tree depth alone and avoids changing empty intermediate nodes into lower-error representations that were never generated. It is intentionally conservative and may force additional refinement; it does **not** establish correct renderer behavior by itself. The next acceptance gate remains representative camera-path testing with the target renderer, measured payload/frame-time behavior, the repository's strict validator, and the independent CesiumGS validator. See [Mapping-plane implementation status](MAPPING-PLANE-IMPLEMENTATION-STATUS-2026-10-18.md) for the plane-by-plane evidence gates and home-site AOI readiness boundary.
 
 The 5D B-D-C-T-S state word, GPU voxel/SDF terrain, and any custom renderer remain proposals. They are not being added merely to make a roadmap appear complete; each requires a demonstrated TSM gap and a tested, measured acceptance case.
