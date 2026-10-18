@@ -35,6 +35,21 @@ The HLOD builder derives a common ENU frame from the ECEF centroid of the buildi
 
 This avoids partitioning on independent per-building ENU coordinates, which would collapse unrelated buildings into an invalid common spatial space.
 
+
+## Geometric-error policy for contentless partition nodes
+
+The HLOD quadtree contains spatial partition nodes without their own renderable geometry; source building content is retained below those nodes. Dividing the root error by tree depth assigned progressively lower error to empty nodes even though no progressively simplified representation had been generated for them. Because geometric error participates in screen-space-error refinement, a too-small value on an empty node can cause a client to stop traversal before a descendant with content is considered.
+
+The builder applies a conservative inherited error floor:
+
+`node.geometricError = max(inherited parent floor, source-root fallback, maximum declared source-content error in the subtree)`
+
+The source-root fallback preserves the existing minimum 1 m policy floor when the source root declares a smaller value. Each contentless child inherits its parent's computed floor; source-content leaf errors are retained. Invalid, negative, boolean, NaN, or infinite root, fallback, or source errors fail closed. Generated metadata labels the policy `contentless-nodes-inherit-parent-error-floor-v1`.
+
+**Important interpretation:** this is a conservative traversal proxy for empty partition nodes, not a measured mesh-simplification error and not proof of improved rendering quality. It can force additional refinement and increase requests. The regression suite covers tree-depth behavior and malformed values; representative renderer camera paths and payload/frame-time measurements remain separate acceptance gates.
+
+The policy is informed by the [OGC 3D Tiles 1.1 specification](https://docs.ogc.org/cs/22-025r4/22-025r4.html), the [CesiumJS empty-tile refinement discussion](https://github.com/CesiumGS/cesium/issues/9356), and the [CesiumGS 3D Tiles Validator](https://github.com/CesiumGS/3d-tiles-validator).
+
 ## Stitching and Draco
 
 Each HLOD leaf is transformed into the shared root frame and stitched into one GLB. Source normals and flood-screening materials are retained as separate primitives.
