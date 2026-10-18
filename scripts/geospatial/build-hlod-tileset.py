@@ -30,6 +30,15 @@ def box(lo,hi,p=.5):
  return [c.x,c.y,c.z,max((hi.x-lo.x)/2,.01),0,0,0,max((hi.y-lo.y)/2,.01),0,0,0,max((hi.z-lo.z)/2,.01)]
 @dataclass(frozen=True)
 class Item: tile:dict; sid:int|None; center:V; lo:V; hi:V
+def _numeric_geometric_error(value,label):
+ if isinstance(value,bool) or not isinstance(value,(int,float)) or not math.isfinite(float(value)) or value<0: raise ValueError(f"{label}: geometricError must be finite and non-negative")
+ return float(value)
+def _tree_geometric_error(tile,label="tile"):
+ if not isinstance(tile,dict): raise ValueError(f"{label}: tile must be an object")
+ value=_numeric_geometric_error(tile.get("geometricError"),f"{label}.geometricError")
+ children=tile.get("children",[])
+ if not isinstance(children,list): raise ValueError(f"{label}.children must be an array")
+ return max([value,*[_tree_geometric_error(child,f"{label}.children[{index}]") for index,child in enumerate(children)]])
 class Q:
  def __init__(self,items,depth,max_items,max_depth):
   self.items=sorted(items,key=lambda i:(i.center.x,i.center.y,i.center.z,i.sid if i.sid is not None else -1)); self.depth=depth
@@ -38,8 +47,12 @@ class Q:
    mx=(self.lo.x+self.hi.x)/2; my=(self.lo.y+self.hi.y)/2; q=[[] for _ in range(4)]
    for i in self.items:q[(0 if i.center.y<my else 1)*2+(0 if i.center.x<mx else 1)].append(i)
    self.children=[Q(x,depth+1,max_items,max_depth) for x in q if x]
+ def geometric_error(self,base_error):
+  depth_baseline=base_error/(2**self.depth)
+  descendant_error=max((_tree_geometric_error(i.tile,f"source-tile[{i.sid}]") for i in self.items),default=0.0)
+  return max(depth_baseline,descendant_error)
  def tile(self,ge):
-  r={"boundingVolume":{"box":box(self.lo,self.hi)},"geometricError":ge/(2**self.depth),"refine":"ADD"}
+  r={"boundingVolume":{"box":box(self.lo,self.hi)},"geometricError":self.geometric_error(ge),"refine":"ADD"}
   r["children"]=[x.tile(ge) for x in self.children] if self.children else [i.tile for i in self.items]; return r
 def main():
  ap=argparse.ArgumentParser(); ap.add_argument("--input",required=True,type=Path); ap.add_argument("--output",required=True,type=Path); ap.add_argument("--max-items",type=int,default=50); ap.add_argument("--max-depth",type=int,default=6); a=ap.parse_args()
@@ -58,8 +71,10 @@ def main():
   tc=json.loads(json.dumps(t))
   if isinstance(tc.get("transform"),list): tc["transform"]=mm(ri,tc["transform"])
   sid=tc.get("extras",{}).get("tsm",{}).get("sourceObjectId"); items.append(Item(tc,sid,V((lo.x+hi.x)/2,(lo.y+hi.y)/2,(lo.z+hi.z)/2),lo,hi))
- ge=max(float(ts["root"].get("geometricError",1)),1); q=Q(items,0,a.max_items,a.max_depth); nr=q.tile(ge); nr["transform"]=rt
- out={"asset":ts["asset"],"geometricError":ge,"root":nr,"extras":{"tsm":{"hlod":True,"partition":"quadtree-ecef-derived-enu","maxItemsPerLeaf":a.max_items,"maxDepth":a.max_depth,"leafCountTarget":"derived"}}}
+ source_root_error=_numeric_geometric_error(ts.get("root",{}).get("geometricError",1),"root.geometricError")
+ descendant_error=max((_tree_geometric_error(t,f"root.children[{index}]") for index,t in enumerate(children)),default=0.0)
+ ge=max(source_root_error,descendant_error,1.0); q=Q(items,0,a.max_items,a.max_depth); nr=q.tile(ge); nr["transform"]=rt
+ out={"asset":ts["asset"],"geometricError":ge,"root":nr,"extras":{"tsm":{"hlod":True,"partition":"quadtree-ecef-derived-enu","maxItemsPerLeaf":a.max_items,"maxDepth":a.max_depth,"leafCountTarget":"derived","geometricErrorPolicy":"max-root-depth-baseline-and-source-descendant-error-v1","geometricErrorAccuracy":"REFINEMENT_HEURISTIC_NOT_MEASURED_SIMPLIFICATION_ERROR"}}}
  a.output.parent.mkdir(parents=True,exist_ok=True); a.output.write_text(json.dumps(out,separators=(",",":"))+"\n")
  print(json.dumps({"buildings":len(items),"rootFrame":"ENU@ECEF-centroid","output":str(a.output)}))
 if __name__=="__main__":main()
