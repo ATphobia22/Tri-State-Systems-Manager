@@ -32,6 +32,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 SUBTREE_LEVELS = 2  # levels per subtree file
 
+# Presentation-only baseline: B=1, D=1, C=1, T=1, S=1, R=0.
+# This does not assert hydraulic meaning or a measured source LOD.
+STATE_WORD_SCHEMA = "tsm-visual-state-word-v1"
+DEFAULT_STATE_WORD = 0x5248
+
+
 
 def read_glb(path: Path):
     d = path.read_bytes()
@@ -78,18 +84,43 @@ def transform_normal(matrix: list[float], normal: tuple[float, float, float]) ->
     return tuple(v / length for v in transformed)
 
 
-def merge_glbs(features: list[tuple[Path, int] | tuple[Path, int, list[float]]]) -> bytes:
-    """Merge GLBs and preserve metadata; two-tuples use an identity transform."""
+def validate_state_word(value: object) -> int:
+    """Validate the current TSM visual-state schema (uint16, reserved bits fail closed)."""
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0 or value > 0xFFFF:
+        raise ValueError(f"state word must be an unsigned 16-bit integer, got {value!r}")
+    fields = {
+        "B": (value >> 14) & 0x3,
+        "D": (value >> 12) & 0x3,
+        "C": (value >> 9) & 0x7,
+        "T": (value >> 6) & 0x7,
+        "S": (value >> 3) & 0x7,
+    }
+    reserved = {name: level for name, level in fields.items() if level > 3}
+    extension = value & 0x7
+    if reserved or extension > 1:
+        raise ValueError(f"reserved state-word pattern: fields={reserved}, R={extension}")
+    return value
+
+
+def merge_glbs(features: list[tuple[Path, int] | tuple[Path, int, list[float]] | tuple[Path, int, list[float], int]]) -> bytes:
+    """Merge GLBs and preserve feature metadata; two-tuples use an identity transform.
+
+    Each property-table row carries a presentation-only StateWord. Callers may
+    supply it as the fourth tuple element; legacy callers receive the published
+    TSM baseline profile, not inferred engineering/hydraulic semantics.
+    """
     identity = [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
                 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
     binary = bytearray()
     views, acc, mats, prims = [], [], [], []
     object_ids: list[int] = []
+    state_words: list[int] = []
     for feature_index, feature in enumerate(features):
-        if not isinstance(feature, (tuple, list)) or len(feature) not in (2, 3):
-            raise ValueError("each feature must be (path, OBJECTID) or (path, OBJECTID, transform)")
+        if not isinstance(feature, (tuple, list)) or len(feature) not in (2, 3, 4):
+            raise ValueError("each feature must be (path, OBJECTID[, transform[, state_word]])")
         p, source_object_id = feature[0], feature[1]
         tile_transform = identity if len(feature) == 2 else feature[2]
+        state_word = validate_state_word(feature[3]) if len(feature) == 4 else DEFAULT_STATE_WORD
         if isinstance(source_object_id, bool) or not isinstance(source_object_id, int) or source_object_id < 0 or source_object_id > 0xFFFFFFFF:
             raise ValueError(f"invalid UINT32 source OBJECTID: {source_object_id!r}")
         if not isinstance(p, Path):
@@ -98,6 +129,7 @@ def merge_glbs(features: list[tuple[Path, int] | tuple[Path, int, list[float]]])
             not all(isinstance(value, (int, float)) and math.isfinite(float(value)) for value in tile_transform)):
             raise ValueError(f"invalid tile transform for {p}")
         object_ids.append(source_object_id)
+        state_words.append(state_word)
         doc, bindata = read_glb(p)
         nodes = doc.get("nodes", [])
         mesh_nodes = [node for node in nodes if isinstance(node, dict) and "mesh" in node]
@@ -159,6 +191,16 @@ def merge_glbs(features: list[tuple[Path, int] | tuple[Path, int, list[float]]])
             })
     while len(binary) % 4:
         binary.append(0)
+    while len(binary) % 2:
+        binary.append(0)
+    state_word_offset = len(binary)
+    state_word_bytes = b"".join(struct.pack("<H", state_word) for state_word in state_words)
+    binary.extend(state_word_bytes)
+    state_word_view = len(views)
+    views.append({"buffer": 0, "byteOffset": state_word_offset, "byteLength": len(state_word_bytes)})
+
+    while len(binary) % 4:
+        binary.append(0)
     object_id_offset = len(binary)
     object_id_bytes = b"".join(struct.pack("<I", sid) for sid in object_ids)
     binary.extend(object_id_bytes)
@@ -172,11 +214,20 @@ def merge_glbs(features: list[tuple[Path, int] | tuple[Path, int, list[float]]])
                "schema": {
                    "id": "tsm-building-feature-schema",
                    "classes": {"building": {"properties": {
-                       "OBJECTID": {"type": "SCALAR", "componentType": "UINT32"}
+                       "OBJECTID": {"type": "SCALAR", "componentType": "UINT32"},
+                       "StateWord": {"type": "SCALAR", "componentType": "UINT16"}
                    }}}
                },
                "propertyTables": [{"class": "building", "count": len(object_ids),
-                                   "properties": {"OBJECTID": {"values": object_id_view}}}]
+                                   "properties": {
+                                       "OBJECTID": {"values": object_id_view},
+                                       "StateWord": {"values": state_word_view}
+                                   }}]
+           }},
+           "extras": {"tsm": {
+               "stateWordSchema": STATE_WORD_SCHEMA,
+               "stateWordDefault": "presentation-baseline",
+               "stateWordHasAuthoritativeMeaning": False
            }},
            "scene": 0, "scenes": [{"nodes": [0]}],
            "nodes": [{"mesh": 0}],
@@ -209,7 +260,7 @@ class QuadNode:
         for cx, cy, cb in quads:
             child = QuadNode(self.level + 1, cx, cy, cb)
             for item in self.items:
-                _, lon, lat, _, _ = item
+                _, lon, lat, _, _, _ = item
                 if cb[0] <= lon <= cb[2] and cb[1] <= lat <= cb[3]:
                     child.items.append(item)
             if child.items:
@@ -351,7 +402,13 @@ def main():
             ox, oy, oz = world_transform[12], world_transform[13], world_transform[14]
             lon = math.degrees(math.atan2(oy, ox))
             lat = math.degrees(math.atan2(oz, math.hypot(ox, oy)))
-            items.append((glb_path, lon, lat, sid, local))
+            state_word = node.get("extras", {}).get("tsm", {}).get("stateWord")
+        if state_word is not None:
+            try:
+                state_word = validate_state_word(state_word)
+            except ValueError as exc:
+                raise SystemExit(f"invalid StateWord on source object {sid}: {exc}") from exc
+        items.append((glb_path, lon, lat, sid, local, state_word))
         for child in node.get("children", []):
             visit(child, local)
 
@@ -382,7 +439,11 @@ def main():
         lvl, x, y = leaf.level, leaf.x, leaf.y
         glb_path = content_dir / str(lvl) / str(x) / f"{y}.glb"
         glb_path.parent.mkdir(parents=True, exist_ok=True)
-        merged = merge_glbs([(it[0], int(it[3]), it[4]) for it in leaf.items])
+        merged = merge_glbs([
+            (it[0], int(it[3]), it[4], it[5]) if it[5] is not None
+            else (it[0], int(it[3]), it[4])
+            for it in leaf.items
+        ])
         glb_path.write_bytes(merged)
         nodes[(lvl, x, y)] = {"has_content": True,
                               "sids": [it[3] for it in leaf.items]}
