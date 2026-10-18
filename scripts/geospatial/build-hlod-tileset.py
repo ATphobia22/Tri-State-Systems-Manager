@@ -70,8 +70,9 @@ def main():
   tc=json.loads(json.dumps(t))
   if isinstance(tc.get("transform"),list): tc["transform"]=mm(ri,tc["transform"])
   sid=tc.get("extras",{}).get("tsm",{}).get("sourceObjectId"); items.append(Item(tc,sid,V((lo.x+hi.x)/2,(lo.y+hi.y)/2,(lo.z+hi.z)/2),lo,hi))
- ge=max(float(ts["root"].get("geometricError",1)),1)
- if not math.isfinite(ge) or ge<0: raise SystemExit("invalid source root geometricError")
+ source_root_error=float(ts["root"].get("geometricError",1))
+ if not math.isfinite(source_root_error) or source_root_error<0: raise SystemExit("invalid source root geometricError")
+ ge=max(source_root_error,1)
  q=Q(items,0,a.max_items,a.max_depth,ge); nr=q.tile(ge); nr["transform"]=rt
  ge=max(ge,q.geometric_error)
  out={"asset":ts["asset"],"geometricError":ge,"root":nr,"extras":{"tsm":{"hlod":True,"partition":"quadtree-ecef-derived-enu","maxItemsPerLeaf":a.max_items,"maxDepth":a.max_depth,"leafCountTarget":"derived"}}}
