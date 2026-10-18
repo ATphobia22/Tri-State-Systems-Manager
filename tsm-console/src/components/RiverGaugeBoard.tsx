@@ -286,7 +286,7 @@ export default function RiverGaugeBoard(): JSX.Element {
                     Discharge: <strong>{formatValue(observation?.dischargeCfs, 'ft³/s', 0)}</strong>
                   </span>
                   <span style={{ marginRight: 16 }}>
-                    Gage height: <strong>{formatValue(observation?.value, observation?.unit, 2)}</strong>
+                    Gage height: <strong>{formatValue(observation?.value, observation?.unit ?? null, 2)}</strong>
                   </span>
                   <span
                     style={{
