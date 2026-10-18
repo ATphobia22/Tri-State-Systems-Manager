@@ -8,9 +8,9 @@ Audited the live `ATphobia22/Tri-State-Systems-Manager` repository using the Git
 - Main tree entries: 10,276
 - Branches visible at audit time before this audit branch was created: 11 (including `main`); the audit branch and HLOD test branch were added afterward
 - Open PRs before cleanup: 6
-- Exact duplicate blob groups in the main tree: 68
+- Exact duplicate blob groups in the main tree: 68; all groups and paths are inventoried in `artifacts/repository-duplicate-audit-2026-10-18.json`
 
-An exact blob duplicate is a byte-identical file at more than one path. It is not automatically a defect: identical templates, empty package markers, copied public assets, and repeated tile payloads can be intentional.
+The JSON artifact lists every duplicate SHA, all matching paths, blob size, group count, and a cautious path-based triage label. An exact blob duplicate is a byte-identical file at more than one path. It is not automatically a defect: identical templates, empty package markers, copied public assets, and repeated tile payloads can be intentional.
 
 ## Pull-request decisions
 
