@@ -21,11 +21,13 @@ test('ledger UI exposes a mandatory human sign gate', () => {
 test('production CI scripts include schema and browser secret gates', () => {
   assert.equal(pkg.scripts['check:schemas'], 'node ../scripts/ci/validate-json-schemas.mjs');
   assert.equal(pkg.scripts['check:client-bundle-secrets'], 'node scripts/check-client-bundle-secrets.mjs');
+  assert.equal(pkg.scripts['test:nfhl'], 'node --test tests/nfhl-registry-contract.test.mjs');
 });
 
 test('three peer satisfies maplibre-three-plugin (npm ci ERESOLVE gate)', () => {
   // Cascading CI failures 2026-10-18: three@0.186 vs plugin peer ^0.178.0
   assert.match(String(pkg.dependencies.three), /0\.178/);
+  assert.equal(pkg.overrides?.three, '0.178.0');
   assert.ok(pkg.dependencies['@dvt3d/maplibre-three-plugin']);
 });
 
