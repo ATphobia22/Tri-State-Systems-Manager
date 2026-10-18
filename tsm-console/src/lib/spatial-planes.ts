@@ -160,12 +160,10 @@ export const SPATIAL_PLANES: SpatialPlane[] = [
   },
   {
     id: 'plane-gauge-telemetry',
-    name: 'Live Gauge Telemetry',
-    description: 'USGS NWIS live river gauges.',
-    layerIds: [],
-    retired: true,
-    retirementNote:
-      'Retired by owner decision 2026-09-29: live river data dropped. Use operator-imported observations instead.',
+    name: 'Verified River Gauge Stations',
+    description:
+      'Static verified station locations are map-visible; observed values and NOAA forecasts are user-triggered through the TSM API. No background polling and no inference of flood safety.',
+    layerIds: ['usgs-gauge-locations'],
   },
 ];
 
