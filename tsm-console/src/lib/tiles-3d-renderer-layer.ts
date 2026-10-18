@@ -9,12 +9,11 @@
  * - 3D Tiles 1.1: RTC center in glTF root-node translation (double precision)
  * - Renderer handles double-precision internally; GPU sees only small relatives
  * - PBR/IBL via three.js PMREMGenerator + RoomEnvironment (procedural HDR)
- * - 5D state-word (uint16) carried via EXT_structural_metadata per feature
+ * - 5D state-word helpers are experimental; metadata-to-attribute binding
+ *   and renderer scheduling are not implemented by this layer.
  *
- * Resilient design: the layer normalizes tileset URLs and always attempts
- * to render. Problems are logged with recovery info; only javascript:/data:
- * URLs are rejected (genuine XSS risk). Loader failures are contained and
- * the layer keeps rendering whatever loaded successfully.
+ * Resilient design: supported URL forms are validated before loader startup;
+ * loader/render failures are contained so already-loaded content remains visible.
  */
 
 import * as maplibregl from 'maplibre-gl';
@@ -22,6 +21,8 @@ import * as THREE from 'three';
 import { TilesRenderer } from '3d-tiles-renderer';
 import { MapScene } from '@dvt3d/maplibre-three-plugin';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { normalizeTilesetUrl } from './tileset-url';
+export { normalizeTilesetUrl } from './tileset-url';
 
 /** 5D state-word bit layout: B(3) D(3) C(3) T(4) S(3) = 16 bits */
 export const STATE_WORD_BITS = {
@@ -71,27 +72,6 @@ export interface Tiles3DRendererLayerConfig {
   maxSse?: number;
 }
 
-const isSafeUrl = (u: string): boolean =>
-  /^(https?:\/\/|\.\.?\/|[^:/?#]+\/)/i.test(u) && !/^\s*javascript:/i.test(u);
-
-/**
- * Normalize a tileset URL so the layer can work instead of refusing.
- * - Trims whitespace
- * - Resolves bare filenames against the app base path
- * - Returns null only for javascript:/data: URLs (genuine XSS risk)
- */
-export function normalizeTilesetUrl(raw: string): string | null {
-  const u = raw.trim();
-  if (/^\s*javascript:/i.test(u) || /^\s*data:/i.test(u)) return null;
-  if (/^https?:\/\//i.test(u)) return u;
-  if (u.startsWith('/') || u.startsWith('./') || u.startsWith('../')) return u;
-  // Bare filename or relative path: resolve against app base
-  if (/^[A-Za-z0-9._-]+(\/[A-Za-z0-9._-]+)*(\.json)?$/i.test(u)) {
-    return u.endsWith('.json') ? u : `${u}/tileset.json`;
-  }
-  return u;
-}
-
 /**
  * MapLibre custom layer hosting a 3d-tiles-renderer TilesRenderer.
  * Uses MapScene from the plugin for camera sync; RTC handled by the renderer.
@@ -102,7 +82,9 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
   readonly renderingMode: '3d' = '3d';
 
   private mapScene: MapScene | null = null;
+  private map: maplibregl.Map | null = null;
   private tilesRenderer: TilesRenderer | null = null;
+  private readonly handleTilesChanged = (): void => { this.map?.triggerRepaint(); };
   private pmrem: THREE.PMREMGenerator | null = null;
   private readonly config: Required<Omit<Tiles3DRendererLayerConfig, 'id' | 'tilesetUrl'>> &
     Pick<Tiles3DRendererLayerConfig, 'id' | 'tilesetUrl'>;
@@ -118,8 +100,7 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
   }
 
   onAdd(map: maplibregl.Map, gl: WebGLRenderingContext): void {
-    // Resilient: normalize the URL and work with what we get instead of
-    // refusing. Only javascript:/data: URLs are rejected (XSS risk).
+    this.map = map;
     const url = normalizeTilesetUrl(this.config.tilesetUrl);
     if (url === null) {
       console.warn(`[Tiles3D] Rejected unsafe tileset URL: ${this.config.tilesetUrl}`);
@@ -150,10 +131,13 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
       // internally in double precision; GPU sees small relative positions.
       this.tilesRenderer = new TilesRenderer(url);
       this.tilesRenderer.errorTarget = this.config.maxSse;
+      this.tilesRenderer.addEventListener('load-tileset', this.handleTilesChanged);
+      this.tilesRenderer.addEventListener('load-model', this.handleTilesChanged);
       scene.add(this.tilesRenderer.group as unknown as THREE.Object3D);
     } catch (err) {
       console.warn('[Tiles3D] Failed to initialize layer:', err);
       this.mapScene = null;
+      this.map = null;
       this.tilesRenderer = null;
     }
   }
@@ -182,6 +166,8 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
 
   onRemove(): void {
     try {
+      this.tilesRenderer?.removeEventListener('load-tileset', this.handleTilesChanged);
+      this.tilesRenderer?.removeEventListener('load-model', this.handleTilesChanged);
       this.tilesRenderer?.dispose();
       this.pmrem?.dispose();
       (this.mapScene?.scene as THREE.Scene | undefined)?.environment?.dispose?.();
@@ -190,6 +176,7 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
     }
     this.tilesRenderer = null;
     this.mapScene = null;
+    this.map = null;
     this.pmrem = null;
   }
 }
