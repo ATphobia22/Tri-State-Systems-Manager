@@ -68,5 +68,42 @@ class HecRasGeometryInspectionTests(unittest.TestCase):
         self.assertTrue(result["errors"])
 
 
+    def test_plan_references_resolve_to_geometry_and_flow_members(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            zip_path = root / "model.zip"
+            with zipfile.ZipFile(zip_path, "w") as archive:
+                archive.writestr("Model.prj", "Project title=Test\n")
+                archive.writestr("Model.p01", "Plan Title=Test Plan\nGeom File=g01\nFlow File=f01\n")
+                archive.writestr("Model.g01", "Geometry placeholder\n")
+                archive.writestr("Model.f01", "Flow placeholder\n")
+            report = validator.inspect_archive(zip_path, root)
+            self.assertIn("project_reference_closure", report)
+            closure = report["project_reference_closure"]
+            self.assertEqual(closure["status"], "CLOSED")
+            self.assertEqual(len(closure["plans"]), 1)
+            self.assertEqual(
+                [reference["status"] for reference in closure["plans"][0]["references"]],
+                ["RESOLVED", "RESOLVED"],
+            )
+
+    def test_missing_plan_reference_is_reported_as_open_not_as_zip_failure(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            zip_path = root / "model.zip"
+            with zipfile.ZipFile(zip_path, "w") as archive:
+                archive.writestr("Model.prj", "Project title=Test\n")
+                archive.writestr("Model.p01", "Plan Title=Test Plan\nGeom File=g01\nFlow File=f01\n")
+                archive.writestr("Model.g01", "Geometry placeholder\n")
+            report = validator.inspect_archive(zip_path, root)
+            self.assertIn("project_reference_closure", report)
+            self.assertEqual(report["zip_integrity"], "PASS")
+            closure = report["project_reference_closure"]
+            self.assertEqual(closure["status"], "UNRESOLVED_REFERENCE")
+            self.assertTrue(
+                any(reference["status"] == "MISSING" for reference in closure["plans"][0]["references"])
+            )
+
+
 if __name__ == "__main__":
     unittest.main()

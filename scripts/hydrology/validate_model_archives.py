@@ -302,6 +302,133 @@ def extract_geometry_coordinate_summary(archive: zipfile.ZipFile, names: list[st
     }
 
 
+
+def _resolve_plan_reference(plan_name: str, reference: str, names: list[str], reference_kind: str) -> dict[str, Any]:
+    """Resolve a HEC-RAS plan's short file reference against archive members."""
+    normalized = reference.strip().replace("\\", "/")
+    if not normalized:
+        return {"kind": reference_kind, "reference": reference, "status": "NOT_SPECIFIED", "candidates": []}
+    basename = PurePosixPath(normalized).name
+    normalized_lower = normalized.casefold()
+    members = [name for name in names if not name.endswith("/")]
+
+    candidates = [name for name in members if name.replace("\\", "/").casefold() == normalized_lower]
+    if not candidates:
+        candidates = [name for name in members if PurePosixPath(name.replace("\\", "/")).name.casefold() == basename.casefold()]
+
+    # HEC-RAS plan files commonly use short references like g01/f01/u01.
+    if not candidates:
+        short = re.search(r"([gfuqb]\d{2})$", basename, re.IGNORECASE)
+        if short:
+            suffix = "." + short.group(1).lower()
+            candidates = [name for name in members if PurePosixPath(name).suffix.lower() == suffix]
+
+    allowed_suffix = (
+        re.compile(r"^\.g\d{2}$", re.IGNORECASE)
+        if reference_kind == "geometry"
+        else re.compile(r"^\.[fuqb]\d{2}$", re.IGNORECASE)
+    )
+    candidates = [name for name in candidates if allowed_suffix.match(PurePosixPath(name).suffix)]
+
+    if len(candidates) > 1:
+        plan_parent = PurePosixPath(plan_name).parent
+        siblings = [name for name in candidates if PurePosixPath(name).parent == plan_parent]
+        if len(siblings) == 1:
+            candidates = siblings
+
+    if len(candidates) == 1:
+        return {
+            "kind": reference_kind,
+            "reference": reference,
+            "status": "RESOLVED",
+            "resolved_member": candidates[0],
+            "candidates": candidates,
+        }
+    if not candidates:
+        recognizable = bool(PurePosixPath(basename).suffix) or bool(
+            re.search(r"[gfuqb]\d{2}$", basename, re.IGNORECASE)
+        )
+        return {
+            "kind": reference_kind,
+            "reference": reference,
+            "status": "MISSING" if recognizable else "UNRECOGNIZED_REFERENCE",
+            "candidates": [],
+        }
+    return {
+        "kind": reference_kind,
+        "reference": reference,
+        "status": "AMBIGUOUS",
+        "candidates": sorted(candidates),
+    }
+
+
+def extract_plan_reference_closure(archive: zipfile.ZipFile, names: list[str]) -> dict[str, Any]:
+    """Check geometry/flow references declared by ASCII HEC-RAS plan files."""
+    plan_files = [
+        name for name in names
+        if re.search(r"\.p\d{2}$", name, re.IGNORECASE) and not name.endswith("/")
+    ]
+    plans: list[dict[str, Any]] = []
+    for plan_name in plan_files:
+        text = _read_small_text_member(archive, plan_name, MAX_TEXT_SCAN_BYTES)
+        if text is None:
+            plans.append({
+                "member": plan_name,
+                "status": "UNREADABLE_OR_SIZE_LIMIT",
+                "references": [],
+                "errors": ["Plan file could not be read within the bounded scan limit."],
+            })
+            continue
+        references_by_kind: dict[str, str] = {}
+        for line in text.splitlines():
+            geom_match = re.match(r"^\s*Geom File\s*=\s*(.*?)\s*$", line, re.IGNORECASE)
+            flow_match = re.match(r"^\s*Flow File\s*=\s*(.*?)\s*$", line, re.IGNORECASE)
+            if geom_match:
+                references_by_kind["geometry"] = geom_match.group(1).strip()
+            if flow_match:
+                references_by_kind["flow"] = flow_match.group(1).strip()
+
+        references = [
+            _resolve_plan_reference(plan_name, value, names, kind)
+            for kind, value in references_by_kind.items()
+        ]
+        missing_fields = sorted({"geometry", "flow"} - set(references_by_kind))
+        statuses = [reference["status"] for reference in references]
+        if any(status in {"MISSING", "AMBIGUOUS", "UNRECOGNIZED_REFERENCE"} for status in statuses):
+            plan_status = "UNRESOLVED_REFERENCE"
+        elif missing_fields or any(status == "NOT_SPECIFIED" for status in statuses):
+            plan_status = "INCOMPLETE_REFERENCE_METADATA"
+        elif statuses and all(status == "RESOLVED" for status in statuses):
+            plan_status = "CLOSED"
+        else:
+            plan_status = "INCOMPLETE_REFERENCE_METADATA"
+        plans.append({
+            "member": plan_name,
+            "status": plan_status,
+            "references": references,
+            "missing_reference_fields": missing_fields,
+        })
+
+    if not plan_files:
+        overall_status = "NOT_CHECKED_NO_PLAN_FILES"
+    elif any(plan["status"] == "UNRESOLVED_REFERENCE" for plan in plans):
+        overall_status = "UNRESOLVED_REFERENCE"
+    elif any(plan["status"] != "CLOSED" for plan in plans):
+        overall_status = "INCOMPLETE_REFERENCE_METADATA"
+    else:
+        overall_status = "CLOSED"
+    return {
+        "status": overall_status,
+        "plan_count": len(plan_files),
+        "checked_plan_count": len(plans),
+        "plans": plans,
+        "scope_note": (
+            "Checks explicit Geom File and Flow File links in ASCII plan files. "
+            "It does not establish solver compatibility, plan currency, or hydraulic validity."
+        ),
+    }
+
+
 def inspect_archive(path: Path, root: Path) -> dict[str, Any]:
     result: dict[str, Any] = {
         "path": path.relative_to(root).as_posix(),
@@ -313,7 +440,10 @@ def inspect_archive(path: Path, root: Path) -> dict[str, Any]:
         "member_count": 0,
         "project_files": [],
         "geometry_files": [],
+        "plan_files": [],
+        "flow_files": [],
         "flow_plan_files": [],
+        "project_reference_closure": {"status": "NOT_CHECKED_NO_PLAN_FILES", "plan_count": 0, "checked_plan_count": 0, "plans": []},
         "output_files": [],
         "crs_evidence": [],
         "epsg_codes": [],
@@ -361,6 +491,8 @@ def inspect_archive(path: Path, root: Path) -> dict[str, Any]:
             result["flow_plan_files"] = [
                 n for n in lower_names if re.search(r"\.[fpu]\d{2}$", n, re.IGNORECASE)
             ]
+            result["plan_files"] = [n for n in lower_names if re.search(r"\.p\d{2}$", n, re.IGNORECASE)]
+            result["flow_files"] = [n for n in lower_names if re.search(r"\.[fuqb]\d{2}$", n, re.IGNORECASE)]
             result["output_files"] = [
                 n for n in lower_names if re.search(r"\.o\d{2}$", n, re.IGNORECASE)
                 or n.endswith(".hdf")
@@ -369,6 +501,11 @@ def inspect_archive(path: Path, root: Path) -> dict[str, Any]:
             result.update(evidence)
             result.update(extract_spatial_reference_claims(archive, names))
             result["gis_geometry"] = extract_geometry_coordinate_summary(archive, names)
+            result["project_reference_closure"] = extract_plan_reference_closure(archive, names)
+            if result["project_reference_closure"]["status"] != "CLOSED":
+                result["warnings"].append(
+                    "Plan-to-geometry/flow reference closure is incomplete, unresolved, or not checkable."
+                )
             if not result["project_files"]:
                 result["warnings"].append("No HEC-RAS .prj project file detected.")
             if not result["geometry_files"]:
@@ -414,7 +551,7 @@ def main() -> int:
 
     records = [inspect_archive(path, root) for path in archives]
     report = {
-        "schema_version": "1.1.0",
+        "schema_version": "1.2.0",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "repository_relative_archive_root": archive_root.relative_to(root).as_posix(),
         "archive_count": len(records),
@@ -422,7 +559,7 @@ def main() -> int:
         "failed_zip_count": sum(record["zip_integrity"] != "PASS" for record in records),
         "gate": "PASS" if all(record["zip_integrity"] == "PASS" for record in records) else "FAIL",
         "scope_note": (
-            "ZIP integrity, full SHA-256, structure hints, bounded CRS/datum discovery, and native HEC-RAS XS GIS cut-line coordinate extraction. "
+            "ZIP integrity, full SHA-256, structure hints, bounded CRS/datum discovery, native HEC-RAS XS GIS cut-line coordinate extraction, and plan-to-file closure. "
             "Coordinates are not reprojected; this does not establish exact CRS/units, model-domain coverage, spatial overlap, model currency, "
             "boundary-condition validity, solver compatibility, or engineering approval."
         ),
