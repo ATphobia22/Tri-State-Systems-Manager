@@ -51,6 +51,13 @@ These concerns can be layered on OGC 3D Tiles and glTF. They are not new normati
 
 The current pipeline partitions and stitches building tiles into spatial leaf content. A spatial hierarchy by itself does not prove that coarse proxy representations exist at each level. Before describing the result as view-dependent geometric simplification, capture the generated hierarchy and verify what content exists at each level, which refinement strategy is used, and what the target client renders when parent nodes have no content. Add measured LOD proxies only if they are derived from source geometry, traceable, and tested; do not synthesize survey-quality or engineering geometry from bounding boxes.
 
+### MAP-02a — Implicit 3D Tiles transform tuple contract
+**State: contract fix and regression added; awaiting the refreshed CI run.**
+
+The PR's full 3D Tiles workflow surfaced an existing mismatch between `QuadNode.subdivide` and its five-field item representation: the loop unpacked four values while each item also carried a local transform. The split/merge API fixture likewise still passed two-field GLB records after `merge_glbs` had changed to require a source object ID and tile transform. The implementation now unpacks the current tuple shape; the test passes identity transforms explicitly and exercises a five-field item through subdivision. Both the implicit-tiling and HLOD regression suites now run in the regular CI workflow as well as the 3D Tiles workflow.
+
+This fix addresses tuple shape/transform propagation only. Full implicit-tile correctness is still subject to the OGC 3D Tiles and glTF validators included in the complete artifact pipeline.
+
 ### MAP-03 — Reproducible native Rust dependency graph
 **State: release-risk open.**
 
