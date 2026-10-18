@@ -29,10 +29,14 @@ on:
       - 'integrations/registry/**'
       - 'scripts/geospatial/**'
       - 'scripts/ci/**'
+      - 'packages/geo/**'
+      - 'docs/fabrics/nfhl-geometry-types.json'
       - 'tsm-console/package.json'
       - 'tsm-console/package-lock.json'
       - 'tsm-console/src/integrations/mapillary/**'
+      - 'tsm-console/src/lib/nfhl/**'
       - 'tsm-console/tests/mapillary-evidence-contract.test.ts'
+      - 'tsm-console/tests/nfhl-registry-contract.test.mjs'
       - '.github/workflows/geospatial-ci.yml'
       - 'artifacts/tsm-geospatial-tile-fabric-v1.json'
       - 'tsm-console/server/ingestion/**'
@@ -69,9 +73,13 @@ on:
       - 'integrations/registry/**'
       - 'scripts/geospatial/**'
       - 'scripts/ci/**'
+      - 'packages/geo/**'
+      - 'docs/fabrics/nfhl-geometry-types.json'
       - 'tsm-console/package.json'
       - 'tsm-console/package-lock.json'
       - 'tsm-console/src/integrations/mapillary/**'
+      - 'tsm-console/src/lib/nfhl/**'
+      - 'tsm-console/tests/nfhl-registry-contract.test.mjs'
       - 'tsm-console/tests/mapillary-evidence-contract.test.ts'
       - '.github/workflows/geospatial-ci.yml'
 
@@ -124,6 +132,12 @@ jobs:
       - name: Run Mapillary evidence contract tests
         working-directory: tsm-console
         run: npm run test:mapillary
+      - name: NFHL registry contract (offline)
+        working-directory: tsm-console
+        run: node --test tests/nfhl-registry-contract.test.mjs
+      - name: NFHL live MapServer drift validate
+        run: npm run nfhl:validate
+        continue-on-error: false
       - name: Verify Docker engine and public registry DNS
         run: |
           set -euo pipefail
