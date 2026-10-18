@@ -298,8 +298,8 @@ export default function CinematicTwinHud(props: CinematicTwinHudProps) {
                 </label>
               ))}
               <p style={{ fontSize: 10, color: '#94a3b8', marginTop: 8 }}>
-                Live river telemetry is retired. Layers show the newest verified
-                government snapshots, never live readings.
+                Live snapshots are available in River Watch after a user action. This HUD
+                shows only verified map layers and never polls gauge providers.
               </p>
             </div>
           )}
