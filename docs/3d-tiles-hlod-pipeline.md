@@ -35,6 +35,14 @@ The HLOD builder derives a common ENU frame from the ECEF centroid of the buildi
 
 This avoids partitioning on independent per-building ENU coordinates, which would collapse unrelated buildings into an invalid common spatial space.
 
+## Geometric-error provenance and refinement limits
+
+The HLOD builder assigns generated hierarchy-node error using a depth baseline bounded below by the maximum declared source-tile error in that node's descendant subtree. The root baseline also includes all declared source-descendant errors. Invalid, Boolean, negative, non-finite, or non-numeric source error values fail closed. The generated tileset records the policy identifier `max-root-depth-baseline-and-source-descendant-error-v1`.
+
+**Important limitation:** this is a numerically conservative refinement heuristic relative to the source tiles' declared values, not a measurement of geometric simplification error. The builder creates spatial grouping nodes and the pipeline stitches content at spatial leaves; that alone does not prove intermediate simplified proxy geometry exists. The OGC 3D Tiles definition ties geometric error to the error introduced when a tile's content is rendered instead of its children. Accordingly, passing the finite/range and parent/child regression tests is necessary but not sufficient to claim visual HLOD correctness.
+
+The fast regression fixture runs in main CI and this workflow. Release acceptance still requires: (1) the full generated output to pass TSM and pinned OGC/Cesium/glTF validators; (2) the target renderer to be exercised along representative far-, mid-, and near-camera paths; and (3) captured evidence that visible content, refinement, requests and loading remain useful at each distance. Do not report a performance improvement or measured geometric accuracy without those results.
+
 ## Stitching and Draco
 
 Each HLOD leaf is transformed into the shared root frame and stitched into one GLB. Source normals and flood-screening materials are retained as separate primitives.
