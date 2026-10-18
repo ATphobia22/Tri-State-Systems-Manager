@@ -42,14 +42,17 @@ library appears, or the project funds dedicated R&D for it.
 ## What WAS Completed (2026-10-18)
 
 - **Texture atlas consolidation:** `scripts/3d-tiles/pack-atlas.py` imports
-  multiple GLBs, globally packs UV islands, bakes a unified albedo atlas, and
-  assigns one shared PBR material. The script was hardened to preserve source
-  materials until the bake completes; a Blender-host functional run is still
-  required before claiming the pipeline verified.
-- **PBR baking:** `tsm-console/scripts/3d-tiles/bake-pbr.py` supports diffuse,
-  normal, roughness, AO, emission, and a guarded metallic-to-emission bake path.
-  Complex material graphs fail closed. A Blender-host functional run remains
-  required; syntax checks alone do not establish bake correctness.
+  multiple GLBs, globally packs UV islands, and bakes one albedo atlas. It is
+  **not yet a lossless PBR atlas pipeline**: its shared material intentionally
+  uses roughness=1 and metallic=0, so source normal/roughness/metallic/AO maps
+  are not preserved by this operation. The script now keeps source materials
+  attached through the albedo bake and fails closed for missing inputs. A
+  Blender-host functional run is still required.
+- **PBR map baking:** `tsm-console/scripts/3d-tiles/bake-pbr.py` supports
+  diffuse/albedo, normal, roughness, AO, emission, and a guarded metallic bake
+  for direct Principled BSDF graphs. Complex graphs fail closed. This produces
+  individual channel maps; atlas-wide PBR channel packing and exporter round
+  trips remain unverified. Syntax checks alone do not establish bake correctness.
 - **State-word codec and scheduler primitives:** the PR branch aligns field
   offsets with the published B[15:14], D[13:12], C[11:9], T[8:6], S[5:3],
   R[2:0] layout and rejects reserved patterns. Metadata extraction from
