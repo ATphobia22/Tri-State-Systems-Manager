@@ -90,7 +90,8 @@
     "check:h3-migration": "node ../scripts/ci/validate-h3-migration-contract.mjs",
     "build:terrain-3d-tiles": "python3 ../scripts/geospatial/build-terrain-3d-tiles.py",
     "validate:terrain-3d-tiles": "python3 ../scripts/geospatial/validate-terrain-3d-tiles.py",
-    "check:hec-manifest": "node ../scripts/hydrology/validate-hec-run-manifest.mjs ../data/schemas/examples/hec-coupled-run-manifest-v2.example.json && node --test tests/hec-coupled-run-manifest.test.mjs"
+    "check:hec-manifest": "node ../scripts/hydrology/validate-hec-run-manifest.mjs ../data/schemas/examples/hec-coupled-run-manifest-v2.example.json && node --test tests/hec-coupled-run-manifest.test.mjs",
+    "test:nfhl": "node --test tests/nfhl-registry-contract.test.mjs"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.16.0",
@@ -144,6 +145,7 @@
   },
   "overrides": {
     "uuid": "^11.1.1",
-    "source-map-js": "^1.2.2"
+    "source-map-js": "^1.2.2",
+    "three": "0.178.0"
   }
 }
