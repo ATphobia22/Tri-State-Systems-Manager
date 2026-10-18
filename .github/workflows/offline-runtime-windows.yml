@@ -137,12 +137,16 @@ jobs:
           if (-not (Test-Path tsm-console/dist/index.html)) { throw 'Vite production artifact missing' }
           if ((Get-Item tsm-console/dist/index.html).Length -le 0) { throw 'Vite production artifact empty' }
 
-      - name: Vendor and configure Rust dependencies for native offline builds
+      - name: Resolve Rust dependencies, generate lockfile, and configure vendor source
         working-directory: tsm-console/src-tauri
         shell: pwsh
         run: |
+          cargo generate-lockfile
+          if ($LASTEXITCODE -ne 0) { throw 'Cargo lockfile generation failed' }
+          if (-not (Test-Path 'Cargo.lock')) { throw 'Cargo.lock was not generated' }
           cargo vendor --locked ..\..\offline-runtime\native\cargo-vendor
           if ($LASTEXITCODE -ne 0) { throw 'cargo vendor failed' }
+          Copy-Item -Force Cargo.lock ..\..\offline-runtime\native\Cargo.lock
           $vendorPath = (Resolve-Path '..\..\offline-runtime\native\cargo-vendor').Path.Replace('\', '/')
           $configDir = Join-Path $PWD '.cargo'
           New-Item -ItemType Directory -Force $configDir | Out-Null
@@ -175,6 +179,7 @@ jobs:
           $files = @(
             'tsm-console/package.json',
             'tsm-console/package-lock.json',
+            'tsm-console/src-tauri/Cargo.lock',
             'tsm-console/dist/index.html',
             'packages/hydraulics/python/requirements.txt',
             'backend/requirements.txt'
