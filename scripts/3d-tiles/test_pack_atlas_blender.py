@@ -35,9 +35,15 @@ def clear_scene() -> None:
     bpy.ops.object.delete(use_global=False)
 
 
-def create_fixture_glb(path: Path, color: tuple[float, float, float], roughness: float, metallic: float) -> None:
+def create_fixture_glb(
+    path: Path,
+    color: tuple[float, float, float],
+    roughness: float,
+    metallic: float,
+    location_x: float,
+) -> None:
     clear_scene()
-    bpy.ops.mesh.primitive_cube_add(size=2.0, location=(0.0, 0.0, 0.0))
+    bpy.ops.mesh.primitive_cube_add(size=2.0, location=(location_x, 0.0, 0.0))
     mesh = bpy.context.active_object
     mesh.name = f"TSMFixture_{path.stem}"
     material = bpy.data.materials.new(f"TSMFixtureMaterial_{path.stem}")
@@ -142,8 +148,8 @@ def main() -> None:
         second = root / "blue-dielectric.glb"
         output = root / "atlas-packed.glb"
 
-        create_fixture_glb(first, (0.8, 0.05, 0.02), roughness=0.25, metallic=0.9)
-        create_fixture_glb(second, (0.02, 0.08, 0.8), roughness=0.8, metallic=0.05)
+        create_fixture_glb(first, (0.8, 0.05, 0.02), roughness=0.25, metallic=0.9, location_x=-2.5)
+        create_fixture_glb(second, (0.02, 0.08, 0.8), roughness=0.8, metallic=0.05, location_x=2.5)
 
         command = [
             bpy.app.binary_path,
