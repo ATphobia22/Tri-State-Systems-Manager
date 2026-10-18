@@ -78,7 +78,11 @@ class ImplicitTilesetContractTests(unittest.TestCase):
             first, second = root / "a.glb", root / "b.glb"
             make_fixture_glb(first)
             make_fixture_glb(second)
-            merged = MODULE.merge_glbs([(first, 101), (second, 202)])
+            custom_state_word = 0xE2C0
+            merged = MODULE.merge_glbs([
+                (first, 101),
+                (second, 202, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], custom_state_word),
+            ])
             path = root / "merged.glb"
             path.write_bytes(merged)
             document, binary = MODULE.read_glb(path)
@@ -88,6 +92,14 @@ class ImplicitTilesetContractTests(unittest.TestCase):
             view = document["bufferViews"][table["properties"]["OBJECTID"]["values"]]
             offset = view.get("byteOffset", 0)
             self.assertEqual(struct.unpack_from("<II", binary, offset), (101, 202))
+            state_view = document["bufferViews"][table["properties"]["StateWord"]["values"]]
+            state_offset = state_view.get("byteOffset", 0)
+            self.assertEqual(
+                struct.unpack_from("<HH", binary, state_offset),
+                (MODULE.DEFAULT_STATE_WORD, custom_state_word),
+            )
+            self.assertEqual(document["extras"]["tsm"]["stateWordSchema"], MODULE.STATE_WORD_SCHEMA)
+            self.assertFalse(document["extras"]["tsm"]["stateWordHasAuthoritativeMeaning"])
             for primitive in document["meshes"][0]["primitives"]:
                 self.assertIn("_FEATURE_ID_0", primitive["attributes"])
                 self.assertIn("EXT_mesh_features", primitive["extensions"])
@@ -111,6 +123,14 @@ class ImplicitTilesetContractTests(unittest.TestCase):
             offset = view.get("byteOffset", 0) + accessor.get("byteOffset", 0)
             self.assertEqual(struct.unpack_from("<3f", binary, offset), (10.0, -2.0, 3.0))
 
+    def test_merge_glbs_rejects_invalid_state_word(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source = root / "a.glb"
+            make_fixture_glb(source)
+            with self.assertRaisesRegex(ValueError, "reserved state-word pattern"):
+                MODULE.merge_glbs([(source, 101, [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], 0xE800)])
+
     def test_merge_glbs_rejects_invalid_transform(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
@@ -119,12 +139,12 @@ class ImplicitTilesetContractTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "invalid tile transform"):
                 MODULE.merge_glbs([(source, 101, [1.0, 0.0])])
 
-    def test_quadtree_subdivision_handles_five_field_items(self):
+    def test_quadtree_subdivision_handles_six_field_items(self):
         node = MODULE.QuadNode(0, 0, 0, (0.0, 0.0, 1.0, 1.0))
         identity = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
         points = [(0.15, 0.15), (0.35, 0.15), (0.65, 0.15), (0.85, 0.15),
                   (0.15, 0.85), (0.35, 0.85), (0.65, 0.85), (0.85, 0.85)]
-        node.items = [(Path(f"{index}.glb"), x, y, 100 + index, identity[:])
+        node.items = [(Path(f"{index}.glb"), x, y, 100 + index, identity[:], None)
                       for index, (x, y) in enumerate(points)]
         node.subdivide(max_depth=2, max_items=2)
         self.assertTrue(node.children)
