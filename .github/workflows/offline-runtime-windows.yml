@@ -134,19 +134,36 @@ jobs:
           if (-not (Test-Path tsm-console/dist/index.html)) { throw 'Vite production artifact missing' }
           if ((Get-Item tsm-console/dist/index.html).Length -le 0) { throw 'Vite production artifact empty' }
 
-      - name: Vendor Rust dependencies for native offline builds
+      - name: Vendor and configure Rust dependencies for native offline builds
         working-directory: tsm-console/src-tauri
         shell: pwsh
-        run: cargo vendor ..\..\offline-runtime\native\cargo-vendor
+        run: |
+          cargo vendor --locked ..\..\offline-runtime\native\cargo-vendor
+          if ($LASTEXITCODE -ne 0) { throw 'cargo vendor failed' }
+          $vendorPath = (Resolve-Path '..\..\offline-runtime\native\cargo-vendor').Path.Replace('\', '/')
+          $configDir = Join-Path $PWD '.cargo'
+          New-Item -ItemType Directory -Force $configDir | Out-Null
+          $cargoConfig = @"
+          [source.crates-io]
+          replace-with = "vendored-sources"
 
-      - name: Verify native Rust toolchain
+          [source.vendored-sources]
+          directory = "$vendorPath"
+          "@
+          [System.IO.File]::WriteAllText((Join-Path $configDir 'config.toml'), $cargoConfig, [System.Text.UTF8Encoding]::new($false))
+
+      - name: Verify native Rust toolchain and offline dependency resolution
         working-directory: tsm-console/src-tauri
         shell: pwsh
-        run: cargo metadata --offline --format-version 1 --no-deps | Out-File ..\..\offline-runtime\native\cargo-metadata.json -Encoding utf8
+        run: |
+          cargo metadata --offline --locked --format-version 1 | Out-File ..\..\offline-runtime\native\cargo-metadata.json -Encoding utf8
+          if ($LASTEXITCODE -ne 0) { throw 'Cargo dependency metadata failed in offline mode' }
 
       - name: Build Windows Tauri native runtime
         working-directory: tsm-console
         shell: pwsh
+        env:
+          CARGO_NET_OFFLINE: 'true'
         run: npm run tauri:build
 
       - name: Generate runtime and checksum manifests
