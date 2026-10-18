@@ -45,7 +45,7 @@ class Q:
    if isinstance(value,bool) or not isinstance(value,(int,float)) or not math.isfinite(value) or value<0:
     raise ValueError(f"invalid source tile geometricError: {value!r}")
    errors.append(float(value))
-  self.geometric_error=max(errors,default=float(fallback_error))
+  self.geometric_error=max([float(fallback_error), *errors])
   self.lo=V(min(i.lo.x for i in items),min(i.lo.y for i in items),min(i.lo.z for i in items)); self.hi=V(max(i.hi.x for i in items),max(i.hi.y for i in items),max(i.hi.z for i in items)); self.children=[]
   if len(items)>max_items and depth<max_depth:
    mx=(self.lo.x+self.hi.x)/2; my=(self.lo.y+self.hi.y)/2; q=[[] for _ in range(4)]
