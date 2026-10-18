@@ -198,7 +198,7 @@ class QuadNode:
         for cx, cy, cb in quads:
             child = QuadNode(self.level + 1, cx, cy, cb)
             for item in self.items:
-                _, lon, lat, _ = item
+                _, lon, lat, _, _ = item
                 if cb[0] <= lon <= cb[2] and cb[1] <= lat <= cb[3]:
                     child.items.append(item)
             if child.items:
