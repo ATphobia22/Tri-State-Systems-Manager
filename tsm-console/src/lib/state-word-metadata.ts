@@ -48,7 +48,7 @@ export function decodeFeatureStateWord(
 
     const rows = metadata.getPropertyTableData([tableIndex], [featureId], []);
     const row = rows[0];
-    if (!isRecord(row) || !Object.hasOwn(row, 'stateWord')) continue;
+    if (!isRecord(row) || (!Object.hasOwn(row, 'stateWord') && !Object.hasOwn(row, 'StateWord'))) continue;
 
     // `stateWord` is the canonical TSM property. `StateWord` is accepted
     // for older source schemas that used PascalCase; both are uint16 values.
