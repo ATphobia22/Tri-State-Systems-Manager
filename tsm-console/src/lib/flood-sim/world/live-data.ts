@@ -504,9 +504,9 @@ export class LiveDataManager {
   start(): void {
     if (this.running) return;
     this.running = true;
-    // NOTE: live river-gauge polling was retired by owner decision on
-    // 2026-09-29 ("drop live river data"). gaugeRows stays an empty array
-    // and the gauges record stays empty; only the terrain endpoint health
+    // NOTE: automatic river-gauge polling remains prohibited. This simulation
+    // data adapter intentionally leaves gaugeRows empty; explicit snapshots
+    // are requested separately through River Watch and never refreshed here.
     // probe remains.
     const probe = () => {
       void this.terrainClient.probe(this.probeTile.z, this.probeTile.x, this.probeTile.y).then(() => this.emit());
