@@ -26,63 +26,83 @@ import { TilesRenderer } from '3d-tiles-renderer';
 import { MapScene } from '@dvt3d/maplibre-three-plugin';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
-/** 5D state-word bit layout: B(3) D(3) C(3) T(4) S(3) = 16 bits */
+/**
+ * Published 16-bit B-D-C-T-S layout:
+ * B[15:14], D[13:12], C[11:9], T[8:6], S[5:3], R[2:0].
+ * B/D use two bits; C/T/S use three storage bits but levels 4-7 are reserved
+ * and rejected until explicitly registered by a versioned TSM contract.
+ */
 export const STATE_WORD_BITS = {
-  B: { offset: 0, mask: 0x7 },    // Boundary proxy: 0-7
-  D: { offset: 3, mask: 0x7 },    // Geometric detail: 0-7
-  C: { offset: 6, mask: 0x7 },    // Component complexity: 0-7
-  T: { offset: 9, mask: 0xf },    // Texture appearance: 0-15
-  S: { offset: 13, mask: 0x7 },   // Semantic depth: 0-7
+  B: { offset: 14, mask: 0x3 }, // Boundary proxy: 0-3
+  D: { offset: 12, mask: 0x3 }, // Geometric detail: 0-3
+  C: { offset: 9, mask: 0x7 },  // Component complexity: valid levels 0-3
+  T: { offset: 6, mask: 0x7 },  // Texture appearance: valid levels 0-3
+  S: { offset: 3, mask: 0x7 },  // Semantic depth: valid levels 0-3
 } as const;
 
+export const STATE_WORD_EXTENSION_BITS = { offset: 0, mask: 0x7 } as const;
 export type StateWordDimension = keyof typeof STATE_WORD_BITS;
 export type StateWordValues = Record<StateWordDimension, number>;
 
-/** Validate the unsigned 16-bit state-word boundary before bitwise operations. */
+/** Validate the unsigned 16-bit storage boundary before bitwise operations. */
 export function assertStateWord(word: number): void {
   if (!Number.isInteger(word) || word < 0 || word > 0xffff) {
     throw new RangeError(`State word must be an unsigned 16-bit integer; received ${word}`);
   }
 }
 
-/** Encode all five dimensions into the current 16-bit state-word layout. */
-export function encodeStateWord(values: StateWordValues): number {
-  let word = 0;
+/** Reject reserved B-D-C-T-S levels before the word enters scheduling. */
+export function assertValidStateWord(word: number): void {
+  assertStateWord(word);
   for (const dim of Object.keys(STATE_WORD_BITS) as StateWordDimension[]) {
     const { offset, mask } = STATE_WORD_BITS[dim];
+    const value = (word >>> offset) & mask;
+    if (value > 3) throw new RangeError(`Reserved ${dim} state-word level: ${value}`);
+  }
+}
+
+/** Encode a valid B-D-C-T-S state and the three-bit R extension field. */
+export function encodeStateWord(values: StateWordValues, extension = 0): number {
+  if (!Number.isInteger(extension) || extension < 0 || extension > STATE_WORD_EXTENSION_BITS.mask) {
+    throw new RangeError(`R extension must be an integer in [0, 7]; received ${extension}`);
+  }
+  let word = extension;
+  for (const dim of Object.keys(STATE_WORD_BITS) as StateWordDimension[]) {
+    const { offset } = STATE_WORD_BITS[dim];
     const value = values[dim];
-    if (!Number.isInteger(value) || value < 0 || value > mask) {
-      throw new RangeError(`${dim} must be an integer in [0, ${mask}]; received ${value}`);
+    if (!Number.isInteger(value) || value < 0 || value > 3) {
+      throw new RangeError(`${dim} must be an integer in [0, 3]; received ${value}`);
     }
     word |= value << offset;
   }
   return word;
 }
 
-/** Decode one dimension from a 16-bit state word. O(1) bitwise operation. */
+/** Decode one dimension from a valid 16-bit state word. O(1) bitwise operation. */
 export function decodeStateWord(word: number, dim: StateWordDimension): number {
-  assertStateWord(word);
+  assertValidStateWord(word);
   const bits = STATE_WORD_BITS[dim];
   if (!bits) throw new RangeError(`Unknown state-word dimension: ${String(dim)}`);
   return (word >>> bits.offset) & bits.mask;
 }
 
-/**
- * XOR-diff two state words. Non-zero result = dimensions that changed.
- * Used for incremental update scheduling (only fetch changed chunks).
- */
+/** Decode the three-bit R extension field (not one of the five dimensions). */
+export function decodeStateWordExtension(word: number): number {
+  assertValidStateWord(word);
+  return (word >>> STATE_WORD_EXTENSION_BITS.offset) & STATE_WORD_EXTENSION_BITS.mask;
+}
+
+/** XOR-diff two words; a non-zero result may indicate dimension and/or R changes. */
 export function diffStateWords(prev: number, next: number): number {
-  assertStateWord(prev);
-  assertStateWord(next);
+  assertValidStateWord(prev);
+  assertValidStateWord(next);
   return prev ^ next;
 }
 
-/**
- * Check if a specific dimension changed between two state words.
- */
+/** Check whether one B-D-C-T-S dimension changed between two valid state words. */
 export function didDimensionChange(prev: number, next: number, dim: StateWordDimension): boolean {
-  assertStateWord(prev);
-  assertStateWord(next);
+  assertValidStateWord(prev);
+  assertValidStateWord(next);
   const bits = STATE_WORD_BITS[dim];
   if (!bits) throw new RangeError(`Unknown state-word dimension: ${String(dim)}`);
   return (((prev ^ next) >>> bits.offset) & bits.mask) !== 0;
@@ -224,19 +244,22 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
 }
 
 /**
- * GLSL chunk for 5D state-word decode in shaders. Include in onBeforeCompile.
- * Reads a per-instance `aStateWord` uint16 attribute; outputs b/d/c/t/s ints.
+ * GLSL chunk for the published 16-bit B-D-C-T-S state word.
+ * Reads a per-instance `aStateWord` uint16 attribute; outputs b/d/c/t/s/r ints.
  *
  * Usage:
  *   shader.vertexShader = shader.vertexShader
  *     .replace('#include <common>', '#include <common>\nattribute uint aStateWord;\n...')
  */
 export const STATE_WORD_GLSL_DECODE = /* glsl */ `
-  // 5D state-word decode: B(3) D(3) C(3) T(4) S(3)
+  // Published layout: B[15:14] D[13:12] C[11:9] T[8:6] S[5:3] R[2:0]
   uint _sw = aStateWord;
-  int swB = int((_sw >> 0u) & 0x7u);
-  int swD = int((_sw >> 3u) & 0x7u);
-  int swC = int((_sw >> 6u) & 0x7u);
-  int swT = int((_sw >> 9u) & 0xFu);
-  int swS = int((_sw >> 13u) & 0x7u);
+  int swB = int((_sw >> 14u) & 0x3u);
+  int swD = int((_sw >> 12u) & 0x3u);
+  int swC = int((_sw >> 9u) & 0x7u);
+  int swT = int((_sw >> 6u) & 0x7u);
+  int swS = int((_sw >> 3u) & 0x7u);
+  int swR = int(_sw & 0x7u);
+  // C/T/S levels 4-7 are reserved in the current contract.
+  bool swValid = (swC <= 3) && (swT <= 3) && (swS <= 3);
 `;
