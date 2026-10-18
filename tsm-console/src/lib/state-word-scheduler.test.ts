@@ -76,6 +76,13 @@ describe('degradeWord', () => {
     expect(decodeStateWord(degraded, 'B')).toBe(3);
   });
 
+  it('continues to C when T is already at its minimum', () => {
+    const word = (2 << 3) | (2 << 6) | (0 << 9) | (2 << 13);
+    const once = degradeWord(word, 1);
+    expect(decodeStateWord(once, 'T')).toBe(0);
+    expect(decodeStateWord(once, 'C')).toBe(1);
+  });
+
   it('reduces T first under pressure', () => {
     const word = (0 << 0) | (2 << 3) | (2 << 6) | (8 << 9) | (2 << 13);
     const once = degradeWord(word, 1);
