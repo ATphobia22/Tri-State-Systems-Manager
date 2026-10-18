@@ -17,6 +17,12 @@ Browser code must not call USGS, NOAA, FEMA, Indiana GIS, or USACE operational e
 - **Legacy USGS WaterServices IV:** compatibility/evidence path only. USGS states WaterServices will permanently shut down on 2027-02-22, with intentional slowdowns/outages beginning in January 2027; it is not the runtime dependency.
 - Every observation carries `observedAt`, `retrievedAt`, source identifier, provenance, status, CRS, and vertical datum. USGS provisional observations retain qualifier `P`.
 
+### Station registry corrections (2026-10-18)
+
+- **McAlpine:** the repository's former station ID `03293600` does not resolve in the modern USGS monitoring-location catalog. It was corrected to **USGS 03293551**, whose official page supplies current gage-height metadata and WGS84 coordinates: https://waterdata.usgs.gov/monitoring-location/USGS-03293551/.
+- **Old Shawneetown:** USGS 03381700's modern monitoring-location page currently reports zero continuous data types. It is retained as a historical/research reference and excluded from live requests until the modern API advertises a supported continuous series: https://waterdata.usgs.gov/monitoring-location/USGS-03381700/.
+- Active station coordinates in the static map layer are WGS84 coordinates copied from official USGS monitoring-location metadata. The map layer contains station locations only; it is not an observation layer and does not imply current conditions.
+
 ## Spatial source classes
 
 - **FEMA NFHL:** effective/insurance reference; never conflated with Indiana Best Available data.
