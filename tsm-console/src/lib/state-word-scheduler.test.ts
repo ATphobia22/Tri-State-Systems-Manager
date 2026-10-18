@@ -8,7 +8,7 @@ import {
   diffStateWords,
   didDimensionChange,
   STATE_WORD_BITS,
-} from '../lib/tiles-3d-renderer-layer';
+} from '../lib/state-word';
 import {
   chunksToFetch,
   chunksToRelease,
