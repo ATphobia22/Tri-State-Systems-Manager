@@ -36,6 +36,8 @@ class Q:
   # Internal ADD tiles carry no simplified geometry. Use the maximum declared
   # source-content error in this subtree rather than inventing a depth-based
   # reduction. Missing source errors use the source root's declared fallback.
+  if isinstance(fallback_error,bool) or not isinstance(fallback_error,(int,float)) or not math.isfinite(fallback_error) or fallback_error<0:
+   raise ValueError(f"invalid fallback geometricError: {fallback_error!r}")
   errors=[]
   for item in self.items:
    value=item.tile.get("geometricError",fallback_error)
