@@ -74,7 +74,15 @@ export class TSMAssistant {
 
     // Dynamic import — web-llm is large, don't bundle it
     // Install: npm install @mlc-ai/web-llm
-    const { CreateMLCEngine } = await import('@mlc-ai/web-llm');
+    let CreateMLCEngine: any;
+    try {
+      const webllm = await import('@mlc-ai/web-llm');
+      CreateMLCEngine = webllm.CreateMLCEngine;
+    } catch (e) {
+      throw new Error(
+        'web-llm not installed. Run: npm install @mlc-ai/web-llm'
+      );
+    }
 
     const initProgressCallback = (report: any) => {
       onProgress?.(report.progress, report.text);

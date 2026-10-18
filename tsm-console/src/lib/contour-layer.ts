@@ -16,7 +16,7 @@
  *   });
  */
 
-import maplibregl from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
 
 export interface ContourLayerOptions {
   /** Terrarium PNG tile URL template */
