@@ -44,3 +44,16 @@ The scanner is intentionally not configured with a blanket allowlist. If it repo
 ## 6. Limitations
 
 This change adds a scanner workflow but does not itself rotate credentials, alter GitHub's remote branch protection, prove that every historical secret is absent, or establish that the repository is vulnerability-free. The workflow result and actual GitHub settings remain required evidence.
+
+## 7. Review of proposed C++ remediation snippets
+
+The proposed snippets were reviewed as external suggestions, not accepted as repository patches. A repository code search for `std::atomic` and `PhysicalMemoryMapper` returned no matches; the inspected application stack is TypeScript/Python. Therefore no C++ source files were created.
+
+The snippets also need corrections before they could safely be used in a genuine memory-mapped hardware project:
+
+- **CAS plus mutex is redundant for the shown state update, but does not make the hardware write atomic.** The state is changed before `writeBusRegister` executes. If the hardware write fails, the software state can claim a transition that the device never accepted. A lock is not a reentrancy guard: calling the same lock-taking method recursively can deadlock with a non-recursive mutex. A correct design must define the source of truth, device-write failure semantics, synchronization of all writers/readers, and device-specific MMIO ordering.
+- **The memory boundary check can overflow.** Expressions `targetAddress + sizeof(uint32_t)` and `baseAddress + size` can wrap around `uintptr_t`. Prefer subtraction-based checked range validation after proving `targetAddress >= baseAddress`, require `offset <= size` and `sizeof(uint32_t) <= size - offset`, validate alignment, and handle the hardware/platform's MMIO mapping and access rules. A numeric bounds check alone does not make an arbitrary address safe to dereference.
+- **The transition table needs input validation.** Casting an arbitrary enum value to `size_t` and indexing the matrix can access out of bounds. Validate both indices or use an explicit mapping that rejects unknown enum values; add exhaustive transition tests.
+- **The complexity claim is not established.** Replacing branches with a lookup table may improve auditability, but it does not prove a specific cyclomatic-complexity score or remove the need to test transition semantics.
+
+These are code-review observations about the supplied examples, not confirmed defects in TSM. If future requirements introduce hardware control, isolate it in a separately scoped subsystem with platform-specific MMIO contracts, deterministic tests, and an explicit safety/security review.
