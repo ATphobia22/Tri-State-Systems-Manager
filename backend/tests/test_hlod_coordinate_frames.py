@@ -89,7 +89,7 @@ def test_frame_matrix_composed_with_inverse_is_identity() -> None:
     assert product == pytest.approx(expected, abs=1e-7)
 
 
-def test_axis_calculation_rejects_no_finite_values_by_contract() -> None:
+def test_axis_calculation_is_finite_for_valid_ecef_point() -> None:
     # Guard this test against accidental NaN propagation in the vector math.
     # Input validation belongs at the source/manifest boundary; this test
     # asserts the current helper output is finite for a valid ECEF point.
