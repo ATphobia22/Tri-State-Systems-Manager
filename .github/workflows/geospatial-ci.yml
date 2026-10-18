@@ -119,6 +119,8 @@ jobs:
           cache-dependency-path: backend/requirements.txt
       - name: Install backend engineering dependencies
         run: python -m pip install --upgrade pip && python -m pip install -r backend/requirements.txt
+      - name: Test HLOD geometric-error propagation
+        run: python3 scripts/geospatial/test_build_hlod_geometric_error.py
       - name: Run geospatial backend contract tests
         run: python3 -m unittest backend.tests.test_geospatial_contracts backend.tests.test_hec_ras_worker backend.tests.test_hecras_geometry
       - name: Run Mapillary evidence contract tests
