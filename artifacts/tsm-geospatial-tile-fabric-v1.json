@@ -246,7 +246,7 @@
       "dataset": "NOAA National Water Prediction Service",
       "authority": "NOAA / NWS",
       "authorityClass": "HYDROLOGIC_FORECAST",
-      "purpose": "Catalog reference only. Live NOAA river telemetry was retired by owner decision on 2026-09-29; this record is not an active feed.",
+      "purpose": "NOAA NWPS source configured for user-triggered observations. The geospatial forecast/tile product remains pending and is not current truth.",
       "layerType": "live-forecast",
       "sourceUrl": "https://api.water.noaa.gov/nwps/v1/",
       "status": "PROGRAM_PENDING",
@@ -257,7 +257,7 @@
       "currentTruth": false,
       "acquiredAt": null,
       "effectiveAt": null,
-      "freshnessPolicy": "Do not poll or display as live while the live-hydrology registry marks NOAA_NWPS retired. Reactivation requires explicit owner authorization, verified endpoint integration, and health/freshness tests.",
+      "freshnessPolicy": "On-demand snapshots only; automatic polling prohibited. Publish a forecast tile layer only after forecast adapter, provenance, freshness, and end-to-end validation pass.",
       "verification": {
         "state": "PENDING",
         "checkedAt": "2026-09-14T16:30:00Z",
