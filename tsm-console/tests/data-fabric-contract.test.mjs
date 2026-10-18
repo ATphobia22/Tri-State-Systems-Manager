@@ -16,19 +16,19 @@ test('Indiana data catalog is wired to authoritative source classes and contains
   assert.doesNotMatch(JSON.stringify(catalog), /\bHIPAA\b|\bPHI\b|\bIRB\b|\bClinicalResearch\b/i);
 });
 
-test('live hydrologic routes are retired and fail closed with 410', () => {
+test('on-demand hydrology snapshots use the server-side source adapter and remain rate-limited', () => {
   const source = read('server/token-proxy.mjs');
-  assert.match(source, /RIVER_TELEMETRY_RETIRED/);
-  assert.match(source, /\/api\/hydrologic\/live/);
+  assert.match(source, /fetchRiverNetwork/);
+  assert.match(source, /loadRiverStationRegistry/);
   assert.match(source, /\/api\/hydrologic\/community/);
+  assert.match(source, /\/api\/hydrologic\/live/);
+  assert.match(source, /checkRouteRateLimit\(req, res, requestId\)/);
+  assert.match(source, /automatic polling is prohibited/);
   assert.match(source, /\/api\/hydrologic\/alerts/);
   assert.match(source, /\/api\/ingest\/usgs/);
   assert.match(source, /\/api\/ingest\/nwps/);
   assert.match(source, /\/api\/ingest\/hydrologic/);
   assert.doesNotMatch(source, /if \(source === 'noaa'\)/);
-  assert.doesNotMatch(source, /fetchNoaaStageFlow\(\{ identifier: nwsId/);
-  assert.doesNotMatch(source, /fetchUsgsInstantaneousValues\(\{ stationIds/);
-  assert.doesNotMatch(source, /fetchRiverNetwork\(/);
 });
 
 test('USGS provisional qualifier is preserved in normalized records', () => {
