@@ -10,9 +10,7 @@ This contract defines Levels of Detail (LOD) for the Tri-State Systems Manager
 digital twin **at the application level**: what data each twin object carries,
 what provenance it must have, and what computation produces it.
 
-It is **not** CityGML. CityGML LOD4 means interior rooms and furniture — that
-scope is explicitly out of TSM. TSM targets LOD1/LOD2 because flood work needs
-parcel geometry + structure height + ground elevation, not floor plans.
+It is **not** a CityGML LOD. In CityGML 2.0 and earlier, LOD4 was used for interior rooms and furniture; CityGML 3.0 removed LOD4 and allows indoor and outdoor representations across LOD0–LOD3. TSM's application LOD4 means application integration with flood/hydrology data, not indoor geometry, and must not be encoded as CityGML LOD4. TSM targets LOD1/LOD2 because flood work needs parcel geometry + structure height + ground elevation, not floor plans.
 
 **Governing axiom:** Technology informs people; it does not silently govern
 people. Human authority remains final.
