@@ -94,4 +94,4 @@ Historical scans, 2017–2020 LiDAR, and older source packages remain useful for
 
 ### Source consistency rule
 
-A source listed in a catalog or tile manifest is not thereby an active runtime feed. The live-hydrology registry is authoritative for runtime activation. As of 2026-10-18, NOAA NWPS is retired by owner decision; its tile-manifest record is catalog-only and must not be marked `PUBLISHED` or `currentTruth: true`. USGS live snapshot functionality is also subject to the repository's explicit retirement gate and must not be inferred active from a station inventory alone.
+A source listed in a catalog or tile manifest is not thereby an active runtime feed. The live-hydrology registry is authoritative for runtime activation. As of 2026-10-18, NOAA NWPS and modern USGS Water Data adapters are configured for user-triggered read-only observations; automatic polling is prohibited. The NOAA forecast/tile product remains `PROGRAM_PENDING` and `currentTruth: false` until forecast-specific end-to-end validation passes. NOAA NWM experimental model guidance remains retired.
