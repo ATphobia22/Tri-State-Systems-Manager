@@ -2,12 +2,15 @@
  * tiles-3d-renderer-layer.ts — 3D Tiles 1.1 renderer for MapLibre GL JS.
  *
  * Integrates NASA JPL's 3d-tiles-renderer (Apache-2.0) with MapLibre via
- * @dvt3d/maplibre-three-plugin's MapScene, with RTC (Relative-To-Center)
- * coordinate handling for 32-bit float precision.
+ * @dvt3d/maplibre-three-plugin's MapScene. The renderer applies 3D Tiles tile
+ * transforms and glTF node transforms; precision depends on the source frame
+ * and the renderer's actual transform path.
  *
- * Research basis: mapping-planes-lod-integration-20261018-0426
- * - 3D Tiles 1.1: RTC center in glTF root-node translation (double precision)
- * - Renderer handles double-precision internally; GPU sees only small relatives
+ * Coordinate safety:
+ * - TSM's 3D Tiles 1.1 producers must emit explicit, validated transforms.
+ * - Legacy RTC_CENTER handling must not be treated as a 3D Tiles 1.1 contract.
+ * - Local ENU coordinates and control-point tolerances are validated in the
+ *   geospatial build/test pipeline; this layer does not certify source CRS or datum.
  * - PBR/IBL via three.js PMREMGenerator + RoomEnvironment (procedural HDR)
  * - 5D state-word (uint16) carried via EXT_structural_metadata per feature
  *
@@ -172,8 +175,8 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
         scene.environmentIntensity = this.config.iblIntensity;
       }
 
-      // 3D Tiles renderer. Handles RTC_CENTER / root-node translation
-      // internally in double precision; GPU sees small relative positions.
+      // 3D Tiles renderer applies tile and glTF transforms. Do not assume
+      // legacy RTC_CENTER metadata exists or supplies a valid local frame.
       this.tilesRenderer = new TilesRenderer(url);
       this.tilesRenderer.errorTarget = this.config.maxSse;
       scene.add(this.tilesRenderer.group as unknown as THREE.Object3D);
