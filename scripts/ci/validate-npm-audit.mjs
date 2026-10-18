@@ -124,4 +124,8 @@ function main() {
   console.log(JSON.stringify(result));
 }
 
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main();
+}
+
 export { validateAllowedDevOnlyAdvisory };
