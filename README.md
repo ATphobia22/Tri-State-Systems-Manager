@@ -8,6 +8,8 @@ TSM integrates public hydrology, terrain, imagery, flood-hazard data, infrastruc
 
 **In memory of Beverly Ann Tucker.** This work is guided by the Beverly Ann Tucker Memorial Stewardship Charter and the God's Love Protocol.
 
+**GitHub:** https://github.com/ATphobia22/Tri-State-Systems-Manager
+
 ---
 
 ## Live Artifacts
