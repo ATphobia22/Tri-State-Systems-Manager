@@ -159,11 +159,12 @@ jobs:
           python -m py_compile tools/geospatial/indiana_elevation.py tools/geospatial/test_indiana_elevation.py tools/validation/validate_fema_panels.py
           python tools/geospatial/indiana_elevation.py --help >/dev/null
           python -m unittest discover -s tools/geospatial -p 'test_*.py' -v
-      - name: HLOD geometric-error contract tests
+      - name: Geospatial HLOD and implicit tiling contract tests
         working-directory: .
         run: |
-          python -m py_compile scripts/geospatial/build-hlod-tileset.py scripts/geospatial/test-hlod-tileset.py
+          python -m py_compile scripts/geospatial/build-hlod-tileset.py scripts/geospatial/test-hlod-tileset.py scripts/geospatial/build-implicit-tileset.py scripts/geospatial/test_build_implicit_tileset.py
           python3 scripts/geospatial/test-hlod-tileset.py
+          python3 scripts/geospatial/test_build_implicit_tileset.py
 
       - name: Backend engineering primitive tests
         working-directory: .
