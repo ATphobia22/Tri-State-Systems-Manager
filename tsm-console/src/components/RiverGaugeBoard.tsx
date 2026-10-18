@@ -215,7 +215,7 @@ export default function RiverGaugeBoard(): JSX.Element {
             >
               <div style={{ fontWeight: 700 }}>{snapshot.station.name}</div>
               <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>
-                {snapshot.station.river} · USGS {snapshot.station.siteNo}
+                {snapshot.station.river} · Station {snapshot.station.siteNo}
                 {observation?.provider ? ` · source ${observation.provider}` : ''}
               </div>
               {!hasData ? (
