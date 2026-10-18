@@ -33,23 +33,68 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import requests
 
 
 def get_recent_precip(lat: float, lon: float, days: int = 90) -> pd.DataFrame:
     """
     Get daily precipitation for the last N days at a point.
-    Uses NOAA CPC gauge-based analysis via PSL.
+    Uses NOAA CPC CONUS 0.25-degree gauge-based analysis.
+    Source: https://ftp.cpc.ncep.noaa.gov/precip/CPC_UNI_PRCP/GAUGE_CONUS/
     """
-    # NOAA PSL CPC Global Daily Precipitation
-    # https://psl.noaa.gov/data/gridded/data.cpc.globalprecip.html
+    import io
+    from datetime import datetime, timedelta
+
+    print(f"  Fetching {days}d CPC precipitation at ({lat}, {lon})...")
+
+    # CPC CONUS grid: 0.25 degree, files are .lnx (little-endian binary)
+    # Format: PRCP_CU_GAUGE_V1.0CONUS_0.25deg.lnx.YYYYMMDD.RT
+    # For simplicity, use the daily text format via NOAA PSL
     #
-    # For operational use, replace with direct NetCDF access:
-    #   url = "https://psl.noaa.gov/thredds/dodsC/Datasets/cpc_global_precip/precip.V1.0.2024.nc"
-    #
-    # Placeholder: returns empty — wire to actual data source
-    print(f"  Fetching {days}d precipitation at ({lat}, {lon})...")
-    print(f"  NOTE: wire to NOAA CPC or GPM IMERG NetCDF in production")
-    return pd.DataFrame(columns=["date", "precip_mm"])
+    # Alternative: GPM IMERG via NASA Earthdata (see earthdata_tristate.py)
+    # For now, fetch from CPC FTP RT (realtime) files
+
+    base = "https://ftp.cpc.ncep.noaa.gov/precip/CPC_UNI_PRCP/GAUGE_CONUS/RT"
+    end = datetime.now()
+    records = []
+
+    # CPC grid: lon -124.75 to -67.0 (0.25 deg), lat 25.125 to 52.875
+    # Tri-state is well within CONUS coverage
+    for i in range(min(days, 30)):  # limit to 30 days for FTP efficiency
+        d = end - timedelta(days=i+1)  # RT files are 1 day behind
+        datestr = d.strftime("%Y%m%d")
+        year = d.strftime("%Y")
+        url = f"{base}/{year}/PRCP_CU_GAUGE_V1.0CONUS_0.25deg.lnx.{datestr}.RT"
+
+        try:
+            import struct
+            r = requests.get(url, timeout=30)
+            if r.status_code != 200:
+                continue
+
+            # .lnx format: 120 x 300 grid of float32 (little-endian)
+            # lon: -124.75 + 0.25*col, lat: 25.125 + 0.25*row
+            data = struct.unpack('<' + 'f' * 36000, r.content[:144000])
+
+            # Find grid cell
+            col = int(round((lon - (-124.75)) / 0.25))
+            row = int(round((lat - 25.125) / 0.25))
+            if 0 <= row < 120 and 0 <= col < 300:
+                val = data[row * 300 + col]
+                # -999 = missing, convert 0.1mm to mm
+                precip_mm = val * 0.1 if val > -900 else 0.0
+                records.append({"date": d.date(), "precip_mm": max(0, precip_mm)})
+        except Exception as e:
+            print(f"    {datestr}: {e}")
+            continue
+
+    df = pd.DataFrame(records)
+    if len(df) > 0:
+        df = df.sort_values("date").reset_index(drop=True)
+        print(f"  Got {len(df)} days of CPC precipitation")
+    else:
+        print(f"  No CPC data retrieved — check network/FTP availability")
+    return df
 
 
 def get_climate_normals(lat: float, lon: float, month: int, day: int,

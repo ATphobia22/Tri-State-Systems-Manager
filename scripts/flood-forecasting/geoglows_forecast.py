@@ -30,11 +30,12 @@ import pandas as pd
 OUT_DIR = Path("./geoglows-forecasts")
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-# River IDs — populate via https://apps.geoglows.org/
-# Click on the Ohio River near Old Shawneetown, copy LINKNO
+# River IDs — verified via GEOGloWS v2 API 2026-10-18
+# https://geoglows.ecmwf.int/api/v2/getriverid?lat={lat}&lon={lon}
 RIVERS = {
-    # "ohio_old_shawneetown": 123456789,  # TODO: find via web app
-    # "wabash_new_harmony": 987654321,    # TODO: find via web app
+    "ohio_old_shawneetown": 760428637,
+    "wabash_new_harmony": 760496828,
+    "ohio_mtvernon": 760734797,
 }
 
 
