@@ -62,7 +62,6 @@ interface MeshFeatureInfo {
 
 interface MeshFeaturesReader {
   getFeatureInfo(): MeshFeatureInfo[];
-  getFeatures(triangle: number, barycoord: THREE.Vector3): number[];
 }
 
 interface StructuralMetadataReader {
@@ -97,17 +96,19 @@ export function readStateWordFromMesh(mesh: THREE.Mesh): number | null {
   const indexCount = mesh.geometry.getIndex()?.count ?? position?.count ?? 0;
   if (!position || indexCount < 3) return null;
 
-  let featureIds: number[];
-  try {
-    featureIds = features.getFeatures(0, new THREE.Vector3(1 / 3, 1 / 3, 1 / 3));
-  } catch {
-    return null;
+  const featureAttribute = mesh.geometry.getAttribute(`_feature_id_${featureInfoIndex}`) ??
+    mesh.geometry.getAttribute(`_FEATURE_ID_${featureInfoIndex}`);
+  // Texture/index-derived feature IDs or mixed-feature meshes are not safe for
+  // per-mesh material changes; only act when every vertex has the same ID.
+  if (!featureAttribute || featureAttribute.count !== position.count) return null;
+  const featureId = featureAttribute.getX(0);
+  if (typeof featureId !== 'number' || !Number.isInteger(featureId) || featureId < 0) return null;
+  for (let index = 1; index < featureAttribute.count; index++) {
+    if (featureAttribute.getX(index) !== featureId) return null;
   }
 
-  const featureId = featureIds[featureInfoIndex];
   const propertyTable = featureInfo[featureInfoIndex].propertyTable;
-  if (typeof featureId !== 'number' || !Number.isInteger(featureId) || featureId < 0 ||
-      typeof propertyTable !== 'number' || propertyTable < 0) return null;
+  if (typeof propertyTable !== 'number' || propertyTable < 0) return null;
 
   try {
     const rows = metadata.getPropertyTableData([propertyTable], [featureId]);
