@@ -20,7 +20,7 @@ import { bootstrapOidc } from './auth/oidc-bootstrap.mjs';
 import { calculateGaugeWseNavd88, getHydrologicNode } from './ingestion/hydraulic-calibration.mjs';
 import { evaluateLevel5, listLevel5Proposals, approveLevel5Proposal, executeLevel5Proposal, autonomyStatus } from './autonomy/level5-orchestrator.mjs';
 import { calculateLocalProfileWSE } from './engineering/hydraulic-transfer.mjs';
-import { fetchRiverNetwork, loadRiverStationRegistry } from './ingestion/river-network-api.mjs';
+import { fetchRiverForecasts, fetchRiverNetwork, loadRiverStationRegistry } from './ingestion/river-network-api.mjs';
 import { acceptSyslog } from './alerts/syslog.mjs';
 import { detectTelemetrySourceFailures } from './alerts/telemetry-status.mjs';
 import { createRateLimiter } from './reliability/rate-limiter.mjs';
@@ -109,11 +109,14 @@ function json(res, status, body, requestId) {
 // Keys are route + client IP; denials answer 429 with Retry-After.
 const dataSourcesFetchLimiter = createRateLimiter({ windowMs: 60_000, maxRequests: 60 });
 const hydrologicLiveLimiter = createRateLimiter({ windowMs: 60_000, maxRequests: 120 });
+const hydrologicForecastLimiter = createRateLimiter({ windowMs: 60_000, maxRequests: 30 });
 const poseyRasterLimiter = createRateLimiter({ windowMs: 60_000, maxRequests: 30 });
 const osrmRouteLimiter = createRateLimiter({ windowMs: 60_000, maxRequests: 60 });
 const routeLimiters = [
   ['/api/data-sources/fetch', dataSourcesFetchLimiter],
   ['/api/hydrologic/live', hydrologicLiveLimiter],
+  ['/api/hydrologic/community', hydrologicLiveLimiter],
+  ['/api/hydrologic/forecast', hydrologicForecastLimiter],
   ['/api/geospatial/posey/raster', poseyRasterLimiter],
   ['/api/routing/route', osrmRouteLimiter],
 ];
@@ -256,6 +259,38 @@ const server = http.createServer(async (req, res) => {
           ok: false,
           code: 'HYDROLOGY_SOURCE_UNAVAILABLE',
           error: error instanceof Error ? error.message : 'Hydrology source unavailable.',
+        }, requestId);
+      }
+    }
+    if (url.pathname === '/api/hydrologic/forecast') {
+      if (req.method !== 'GET') {
+        res.setHeader('Allow', 'GET, OPTIONS');
+        return json(res, 405, { ok: false, code: 'HYDROLOGY_METHOD_NOT_ALLOWED' }, requestId);
+      }
+      if (!checkRouteRateLimit(req, res, requestId)) return;
+      if (OFFLINE_MODE) {
+        return json(res, 503, { ok: false, code: 'OFFLINE_MODE', error: 'Upstream hydrology sources are disabled in offline mode.' }, requestId);
+      }
+      const rawStationIds = String(url.searchParams.get('stationIds') || '').trim();
+      const stationIds = rawStationIds
+        ? [...new Set(rawStationIds.split(',').map((value) => value.trim()).filter(Boolean))]
+        : null;
+      if (stationIds && (stationIds.length > 20 || stationIds.some((id) => !/^\\d{5,15}$/.test(id)))) {
+        return json(res, 400, { ok: false, code: 'HYDROLOGY_STATION_FILTER_INVALID', error: 'stationIds must contain at most 20 numeric station IDs.' }, requestId);
+      }
+      try {
+        const registry = await loadRiverStationRegistry();
+        const allowedStationIds = new Set((registry.verified_observation_stations || []).map((station) => station.station_id));
+        if (stationIds && stationIds.some((id) => !allowedStationIds.has(id))) {
+          return json(res, 400, { ok: false, code: 'HYDROLOGY_STATION_NOT_REGISTERED', error: 'Requested station is not in the verified observation registry.' }, requestId);
+        }
+        const forecasts = await fetchRiverForecasts({ stationIds });
+        return json(res, 200, forecasts, requestId);
+      } catch (error) {
+        return json(res, 502, {
+          ok: false,
+          code: 'HYDROLOGY_FORECAST_UNAVAILABLE',
+          error: error instanceof Error ? error.message : 'NOAA forecast unavailable.',
         }, requestId);
       }
     }
