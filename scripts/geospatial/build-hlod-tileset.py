@@ -50,7 +50,7 @@ class Q:
   if len(items)>max_items and depth<max_depth:
    mx=(self.lo.x+self.hi.x)/2; my=(self.lo.y+self.hi.y)/2; q=[[] for _ in range(4)]
    for i in self.items:q[(0 if i.center.y<my else 1)*2+(0 if i.center.x<mx else 1)].append(i)
-   self.children=[Q(x,depth+1,max_items,max_depth,fallback_error) for x in q if x]
+   self.children=[Q(x,depth+1,max_items,max_depth,self.geometric_error) for x in q if x]
  def tile(self,ge):
   r={"boundingVolume":{"box":box(self.lo,self.hi)},"geometricError":self.geometric_error,"refine":"ADD"}
   r["children"]=[x.tile(ge) for x in self.children] if self.children else [i.tile for i in self.items]; return r
@@ -71,12 +71,14 @@ def main():
   tc=json.loads(json.dumps(t))
   if isinstance(tc.get("transform"),list): tc["transform"]=mm(ri,tc["transform"])
   sid=tc.get("extras",{}).get("tsm",{}).get("sourceObjectId"); items.append(Item(tc,sid,V((lo.x+hi.x)/2,(lo.y+hi.y)/2,(lo.z+hi.z)/2),lo,hi))
- source_root_error=float(ts["root"].get("geometricError",1))
- if not math.isfinite(source_root_error) or source_root_error<0: raise SystemExit("invalid source root geometricError")
+ raw_source_root_error=ts["root"].get("geometricError",1)
+ if isinstance(raw_source_root_error,bool) or not isinstance(raw_source_root_error,(int,float)) or not math.isfinite(raw_source_root_error) or raw_source_root_error<0:
+  raise SystemExit("invalid source root geometricError")
+ source_root_error=float(raw_source_root_error)
  ge=max(source_root_error,1)
  q=Q(items,0,a.max_items,a.max_depth,ge); nr=q.tile(ge); nr["transform"]=rt
  ge=max(ge,q.geometric_error)
- out={"asset":ts["asset"],"geometricError":ge,"root":nr,"extras":{"tsm":{"hlod":True,"partition":"quadtree-ecef-derived-enu","maxItemsPerLeaf":a.max_items,"maxDepth":a.max_depth,"leafCountTarget":"derived","geometricErrorPolicy":"contentless-nodes-use-source-root-floor-v1","geometricErrorInterpretation":"conservative traversal proxy on empty partition nodes; not measured mesh-simplification error"}}}
+ out={"asset":ts["asset"],"geometricError":ge,"root":nr,"extras":{"tsm":{"hlod":True,"partition":"quadtree-ecef-derived-enu","maxItemsPerLeaf":a.max_items,"maxDepth":a.max_depth,"leafCountTarget":"derived","geometricErrorPolicy":"contentless-nodes-inherit-parent-error-floor-v1","geometricErrorInterpretation":"conservative traversal proxy on empty partition nodes; not measured mesh-simplification error"}}}
  a.output.parent.mkdir(parents=True,exist_ok=True); a.output.write_text(json.dumps(out,separators=(",",":"))+"\n")
  print(json.dumps({"buildings":len(items),"rootFrame":"ENU@ECEF-centroid","output":str(a.output)}))
 if __name__=="__main__":main()
