@@ -1,10 +1,11 @@
 name: Building 3D Tiles
 
 concurrency:
-  # Keep production geospatial work from being cancelled by a newer run.
-  # PR runs are isolated from the main-branch production queue.
+  # PR validation is superseded when a newer commit arrives, avoiding a stale
+  # multi-hour COPC extraction blocking the final head. Main-branch production
+  # runs use a separate ref-based group and are never cancelled by this policy.
   group: building-3d-tiles-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # HLOD Pipeline
 
