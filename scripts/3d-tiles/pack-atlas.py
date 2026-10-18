@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-pack-atlas.py — Texture atlas consolidation for TSM 3D assets.
+pack-atlas.py — deterministic UV packing and albedo atlas consolidation.
 
-Takes multiple GLB files, bakes their materials into a single unified
-texture atlas (albedo), and rewrites UVs so all meshes share one material.
-Minimizes draw calls for the MapLibre/three.js render path.
+Imports multiple GLBs, globally packs their UV islands, bakes source diffuse
+color into one atlas, then assigns one shared glTF-compatible PBR material.
+Source materials remain attached until the bake completes.
 
 Usage:
     blender --background --python pack-atlas.py -- \
@@ -12,170 +12,231 @@ Usage:
         --output atlas-packed.glb \
         --atlas-size 2048
 
-Research basis: mapping-planes-lod-integration-20261018-0426 §2
-(T-dimension: texture atlas consolidation).
-
-Requires: Blender 3.x+ (headless). No other dependencies.
+Requires Blender 3.x+ with the glTF 2.0 importer/exporter enabled.
 """
+from __future__ import annotations
 
 import argparse
+import math
 import os
 import sys
+from pathlib import Path
 
-# Blender python runs with its own interpreter; bpy only exists inside Blender.
 try:
     import bpy
 except ImportError:
-    print("ERROR: This script must run inside Blender:")
+    print("ERROR: This script must run inside Blender.")
     print("  blender --background --python pack-atlas.py -- --inputs a.glb b.glb --output out.glb")
     sys.exit(1)
 
 
-def parse_args():
-    # Blender consumes argv before --; ours come after.
+def parse_args() -> argparse.Namespace:
     argv = sys.argv
     if "--" in argv:
-        argv = argv[argv.index("--") + 1:]
-    p = argparse.ArgumentParser()
-    p.add_argument("--inputs", nargs="+", required=True, help="Input GLB files")
-    p.add_argument("--output", required=True, help="Output packed GLB")
-    p.add_argument("--atlas-size", type=int, default=2048, help="Atlas texture size (px)")
-    return p.parse_args(argv)
+        argv = argv[argv.index("--") + 1 :]
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--inputs", nargs="+", required=True, help="Input GLB files")
+    parser.add_argument("--output", required=True, help="Output packed GLB")
+    parser.add_argument("--atlas-size", type=int, default=2048, help="Square atlas size in pixels")
+    return parser.parse_args(argv)
 
 
-def clear_scene():
+def validate_args(args: argparse.Namespace) -> tuple[list[Path], Path]:
+    inputs = [Path(value).expanduser().resolve() for value in args.inputs]
+    output = Path(args.output).expanduser().resolve()
+
+    if args.atlas_size < 256 or args.atlas_size > 8192 or args.atlas_size & (args.atlas_size - 1):
+        raise SystemExit("--atlas-size must be a power of two between 256 and 8192")
+    if len({str(path) for path in inputs}) != len(inputs):
+        raise SystemExit("Input list contains duplicate paths")
+    missing = [str(path) for path in inputs if not path.is_file()]
+    if missing:
+        raise SystemExit(f"Missing input GLB file(s): {', '.join(missing)}")
+    invalid = [str(path) for path in inputs if path.suffix.lower() != ".glb"]
+    if invalid:
+        raise SystemExit(f"Only .glb inputs are supported: {', '.join(invalid)}")
+    if output.suffix.lower() != ".glb":
+        raise SystemExit("--output must end with .glb")
+    if output in inputs:
+        raise SystemExit("Output path must not overwrite an input GLB")
+
+    output.parent.mkdir(parents=True, exist_ok=True)
+    return inputs, output
+
+
+def clear_scene() -> None:
     bpy.ops.object.select_all(action="SELECT")
     bpy.ops.object.delete(use_global=False)
-    # Purge orphaned data blocks so the atlas is the only texture left.
+
     for block in list(bpy.data.meshes):
-        bpy.data.meshes.remove(block)
+        if block.users == 0:
+            bpy.data.meshes.remove(block)
     for block in list(bpy.data.materials):
-        bpy.data.materials.remove(block)
+        if block.users == 0:
+            bpy.data.materials.remove(block)
     for block in list(bpy.data.images):
-        bpy.data.images.remove(block)
+        if block.users == 0:
+            bpy.data.images.remove(block)
 
 
-def import_glbs(paths):
+def import_glbs(paths: list[Path]) -> None:
     for path in paths:
-        if not os.path.exists(path):
-            print(f"WARNING: input not found, skipping: {path}")
-            continue
         print(f"Importing {path}")
-        bpy.ops.import_scene.gltf(filepath=path)
+        bpy.ops.import_scene.gltf(filepath=str(path))
+
+    meshes = [obj for obj in bpy.context.scene.objects if obj.type == "MESH"]
+    if not meshes:
+        raise RuntimeError("No mesh geometry was imported; refusing to export an empty atlas")
 
 
-def smart_unwrap_all():
-    """Smart UV project every mesh so the atlas bake has clean UVs."""
-    bpy.ops.object.select_all(action="SELECT")
-    for obj in bpy.context.selected_objects:
-        if obj.type != "MESH":
-            obj.select_set(False)
-    bpy.context.view_layer.objects.active = next(
-        (o for o in bpy.context.selected_objects if o.type == "MESH"), None
-    )
-    if bpy.context.view_layer.objects.active is None:
-        print("WARNING: no meshes found after import")
-        return
+def mesh_objects() -> list:
+    return [obj for obj in bpy.context.scene.objects if obj.type == "MESH"]
+
+
+def smart_unwrap_all() -> None:
+    """Create UVs and pack islands across all selected mesh objects together."""
+    meshes = mesh_objects()
+    if not meshes:
+        raise RuntimeError("No meshes available for UV unwrapping")
+
+    bpy.ops.object.select_all(action="DESELECT")
+    for obj in meshes:
+        obj.select_set(True)
+    bpy.context.view_layer.objects.active = meshes[0]
+
     bpy.ops.object.mode_set(mode="EDIT")
-    bpy.ops.mesh.select_all(action="SELECT")
-    # Smart UV project with a small island margin to avoid bleeding.
-    bpy.ops.uv.smart_project(angle_limit=66, island_margin=0.02)
-    bpy.ops.object.mode_set(mode="OBJECT")
+    try:
+        bpy.ops.mesh.select_all(action="SELECT")
+        # Smart Project's angle is in radians. Pack islands globally afterwards
+        # so separate GLBs do not all overlap in the same 0..1 UV square.
+        bpy.ops.uv.smart_project(angle_limit=math.radians(66.0), island_margin=0.0)
+        bpy.ops.uv.pack_islands(rotate=True, margin=0.02)
+    finally:
+        bpy.ops.object.mode_set(mode="OBJECT")
+
+    for obj in meshes:
+        if obj.data.uv_layers.active is None:
+            raise RuntimeError(f"UV unwrap failed for mesh object {obj.name!r}")
 
 
-def make_atlas_material(size):
-    """Create one shared material with a blank atlas image."""
-    atlas_img = bpy.data.images.new("TSM_Atlas", width=size, height=size, alpha=True)
+def make_atlas_material(size: int, atlas_path: Path):
+    """Create the target image and one glTF metallic-roughness material."""
+    atlas_img = bpy.data.images.new(
+        "TSM_Albedo_Atlas", width=size, height=size, alpha=False, float_buffer=False
+    )
     atlas_img.colorspace_settings.name = "sRGB"
-    # Fill with mid-grey so unbaked areas are visible, not black.
-    pixels = [0.5, 0.5, 0.5, 1.0] * (size * size)
-    atlas_img.pixels = pixels
+    atlas_img.filepath_raw = str(atlas_path)
+    atlas_img.file_format = "PNG"
 
-    mat = bpy.data.materials.new("TSM_Atlas_Material")
+    mat = bpy.data.materials.new("TSM_Atlas_PBR")
     mat.use_nodes = True
     nodes = mat.node_tree.nodes
     links = mat.node_tree.links
     nodes.clear()
 
-    out = nodes.new("ShaderNodeOutputMaterial")
+    output = nodes.new("ShaderNodeOutputMaterial")
     bsdf = nodes.new("ShaderNodeBsdfPrincipled")
-    tex = nodes.new("ShaderNodeTexImage")
-    tex.image = atlas_img
-    tex.label = "Atlas"
-
-    links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
-    links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
+    texture = nodes.new("ShaderNodeTexImage")
+    texture.image = atlas_img
+    texture.label = "TSM Albedo Atlas"
+    bsdf.inputs["Metallic"].default_value = 0.0
+    bsdf.inputs["Roughness"].default_value = 1.0
+    links.new(texture.outputs["Color"], bsdf.inputs["Base Color"])
+    links.new(bsdf.outputs["BSDF"], output.inputs["Surface"])
+    nodes.active = texture
+    texture.select = True
     return mat, atlas_img
 
 
-def assign_atlas_material(mat):
-    for obj in bpy.data.objects:
-        if obj.type == "MESH":
-            if not obj.data.materials:
-                obj.data.materials.append(mat)
-            else:
-                obj.data.materials[0] = mat
+def bake_atlas(atlas_img) -> None:
+    """Bake source materials' diffuse color without baked lighting."""
+    meshes = mesh_objects()
+    if not meshes:
+        raise RuntimeError("No meshes available to bake")
 
-
-def bake_atlas(atlas_img, size):
-    """Bake combined diffuse from all source materials into the atlas."""
     bpy.context.scene.render.engine = "CYCLES"
-    # CPU bake; GPU optional via preferences if available.
     bpy.context.scene.cycles.device = "CPU"
     bpy.context.scene.cycles.samples = 16
     bpy.context.scene.render.bake.use_pass_direct = False
     bpy.context.scene.render.bake.use_pass_indirect = False
     bpy.context.scene.render.bake.margin = 4
 
-    # Select all meshes for the bake.
+    # Every source material used by the bake needs the same active target image.
+    # Do not replace source materials before this operation: doing so destroys
+    # the appearance being baked.
+    for obj in meshes:
+        if not obj.data.uv_layers.active:
+            raise RuntimeError(f"Mesh {obj.name!r} has no active UV map")
+        if not obj.data.materials:
+            fallback = bpy.data.materials.new(f"{obj.name}_UntexturedSource")
+            fallback.diffuse_color = (0.5, 0.5, 0.5, 1.0)
+            fallback.use_nodes = True
+            obj.data.materials.append(fallback)
+
+        for material in obj.data.materials:
+            if material is None:
+                raise RuntimeError(f"Mesh {obj.name!r} has an unassigned material slot")
+            material.use_nodes = True
+            nodes = material.node_tree.nodes
+            target = nodes.new("ShaderNodeTexImage")
+            target.image = atlas_img
+            target.label = "Temporary TSM bake target"
+            for node in nodes:
+                node.select = False
+            target.select = True
+            nodes.active = target
+
     bpy.ops.object.select_all(action="DESELECT")
-    for obj in bpy.data.objects:
-        if obj.type == "MESH":
-            obj.select_set(True)
-    active = next((o for o in bpy.data.objects if o.type == "MESH"), None)
-    if active is None:
-        print("WARNING: nothing to bake")
-        return
-    bpy.context.view_layer.objects.active = active
+    for obj in meshes:
+        obj.select_set(True)
+    bpy.context.view_layer.objects.active = meshes[0]
 
-    # Make the atlas image the active bake target on every material.
-    for m in bpy.data.materials:
-        if m.use_nodes:
-            for n in m.node_tree.nodes:
-                if n.type == "TEX_IMAGE":
-                    n.select = (n.image == atlas_img)
-            m.node_tree.nodes.active = next(
-                (n for n in m.node_tree.nodes
-                 if n.type == "TEX_IMAGE" and n.image == atlas_img),
-                None,
-            )
-
-    print(f"Baking {size}x{size} atlas (DIFFUSE, no lighting)...")
+    print(f"Baking {atlas_img.size[0]}x{atlas_img.size[1]} albedo atlas...")
     bpy.ops.object.bake(type="DIFFUSE", pass_filter={"COLOR"})
     atlas_img.save()
+    atlas_img.pack()
 
 
-def export_packed(output):
+def assign_atlas_material(material) -> None:
+    """Replace every mesh's material slots and face assignments with the atlas."""
+    meshes = mesh_objects()
+    if not meshes:
+        raise RuntimeError("No meshes available for atlas material assignment")
+
+    for obj in meshes:
+        obj.data.materials.clear()
+        obj.data.materials.append(material)
+        for polygon in obj.data.polygons:
+            polygon.material_index = 0
+
+
+def export_packed(output: Path) -> None:
     bpy.ops.object.select_all(action="SELECT")
     print(f"Exporting {output}")
     bpy.ops.export_scene.gltf(
-        filepath=output,
+        filepath=str(output),
         export_format="GLB",
         export_materials="EXPORT",
         export_image_format="AUTO",
     )
+    if not output.is_file() or output.stat().st_size == 0:
+        raise RuntimeError(f"Blender did not produce a non-empty output GLB: {output}")
 
 
-def main():
+def main() -> None:
     args = parse_args()
+    inputs, output = validate_args(args)
+    atlas_path = output.with_name(f"{output.stem}.albedo-atlas.png")
+
     clear_scene()
-    import_glbs(args.inputs)
+    import_glbs(inputs)
     smart_unwrap_all()
-    mat, atlas_img = make_atlas_material(args.atlas_size)
-    assign_atlas_material(mat)
-    bake_atlas(atlas_img, args.atlas_size)
-    export_packed(args.output)
-    print(f"Done. Atlas-packed GLB: {args.output}")
+    atlas_material, atlas_img = make_atlas_material(args.atlas_size, atlas_path)
+    bake_atlas(atlas_img)
+    assign_atlas_material(atlas_material)
+    export_packed(output)
+    print(f"Done. Atlas-packed GLB: {output}")
+    print(f"Atlas image: {atlas_path}")
 
 
 if __name__ == "__main__":
