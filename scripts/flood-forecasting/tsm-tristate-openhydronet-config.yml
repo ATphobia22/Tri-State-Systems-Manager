@@ -1,0 +1,123 @@
+# =============================================================================
+# TSM Tri-State OpenHydroNet Configuration
+# =============================================================================
+# Custom basin configuration for Ohio River / Wabash River forecasting
+# in the TSM tri-state region (IN/IL/KY).
+#
+# Based on: example-configs/floodhub-settings-config.yml (Google FloodHub operational settings)
+# Adapted for custom basins (Ohio/Wabash main-stem gages not in CAMELS).
+#
+# Place this file in your flood-forecasting clone as:
+#   example-configs/tsm-tristate-config.yml
+# Then run training per the tutorial notebook.
+# =============================================================================
+
+# --- 1. General Experiment Settings ------------------------------------------
+
+experiment_name: tsm-tristate-ohio-wabash
+
+run_dir: ./runs/tsm-tristate
+
+logging_level: INFO
+detect_anomaly: False
+print_warnings_once: True
+
+# --- 2. Data Configuration ---------------------------------------------------
+
+# Custom basin list — NOT from CAMELS (main-stem gages excluded from CAMELS).
+# Each basin needs a delineated catchment polygon and attributes.
+# See: catchment_delineation/ in the flood-forecasting repo for tools.
+
+basins:
+  - basin_id: ohio_old_shawneetown
+    usgs_gage: "03381700"
+    name: "Ohio River at Old Shawneetown, IL"
+    # Catchment polygon: delineate upstream of gage using 3DEP DEM
+    # Outlet coordinates (gage location)
+    outlet_lon: -88.1369
+    outlet_lat: 37.6936
+    # Drainage area ~203,000 sq mi (entire upper Ohio basin)
+    # NOTE: This is a very large basin. Consider sub-basin delineation
+    # for the tri-state reach (Smithland Dam to J.T. Myers Dam).
+
+  - basin_id: wabash_new_harmony
+    usgs_gage: "03378500"
+    name: "Wabash River at New Harmony, IN"
+    outlet_lon: -87.9361
+    outlet_lat: 38.1289
+    # Drainage area ~29,000 sq mi
+
+  - basin_id: ohio_mount_vernon
+    nws_gage: "MTVI3"
+    name: "Ohio River at Mount Vernon, IN"
+    outlet_lon: -87.8987
+    outlet_lat: 37.9361
+    # Between Smithland Dam (upstream) and J.T. Myers Dam (downstream)
+
+# Static catchment attributes — source from TSM data fabrics:
+#   - Topography:    USGS 3DEP 1m DEM → mean elevation, slope
+#   - Soils:         SSURGO → sand/silt/clay fractions, depth
+#   - Land cover:    TESSERA embeddings → reduce 128-dim to land-cover classes
+#                    (or use first 3 PCs as continuous attributes)
+#   - Climate:       PRISM normals → mean annual precip, temperature
+#
+# Format: one CSV row per basin_id, columns = attribute names
+# See: scripts/prepare-static-attributes.py (companion script)
+static_attributes_file: ./data/tsm-static-attributes.csv
+
+# Dynamic meteorological forcings:
+#   - Precipitation: NOAA CPC / IMERG / MRMS
+#   - Temperature:   NOAA RTMA / ERA5-Land
+#   - Format: NetCDF or Zarr, daily timestep
+# See: scripts/prepare-forcings.py (companion script)
+forcings_dir: ./data/tsm-forcings/
+
+# Target variable: daily mean streamflow (m³/s or mm/day)
+# Source: USGS NWIS daily values for 03381700, 03378500
+#         NWS observed stage for MTVI3 → convert via rating curve
+target_file: ./data/tsm-targets.csv
+
+# --- 3. Model Architecture ---------------------------------------------------
+# Mean Embedding Forecast LSTM (operational FloodHub architecture as of 2025)
+# See: Gauch et al. 2025, HESS 29(21):6221-6235
+
+model: mean_embedding_forecast_lstm
+
+# LSTM hyperparameters (FloodHub operational defaults — tune as needed)
+hidden_size: 256
+num_layers: 1
+dropout: 0.0
+
+# Forecast horizons (days ahead)
+forecast_horizons: [1, 2, 3, 4, 5, 6, 7]
+
+# Input sequence length (days of history per prediction)
+sequence_length: 365
+
+# --- 4. Training -------------------------------------------------------------
+
+# Transfer learning strategy:
+#   Phase 1: Start from Caravan-pretrained weights (if available in pretrained-models/)
+#   Phase 2: Fine-tune on tri-state basins
+# This is critical — 3 basins alone are insufficient for training from scratch.
+
+pretrained_weights: ./pretrained-models/floodhub-lstm.pt  # if available
+freeze_encoder: False  # fine-tune all layers
+
+epochs: 50
+batch_size: 256
+learning_rate: 0.0005
+
+# Validation: temporal split (train on pre-2020, validate 2020-2023, test 2024+)
+train_period: ["1980-01-01", "2019-12-31"]
+valid_period: ["2020-01-01", "2023-12-31"]
+test_period:  ["2024-01-01", "2025-12-31"]
+
+# --- 5. Output ----------------------------------------------------------------
+
+# Save model weights, predictions, and metrics to run_dir
+save_weights: True
+save_predictions: True
+
+# Metrics: NSE, KGE, Pearson-r, plus flood-specific (peak timing error, CSI)
+metrics: [nse, kge, pearson_r, peak_timing_error]
