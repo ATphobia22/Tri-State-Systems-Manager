@@ -16,7 +16,9 @@ test('nfhl-export builds MapServer export with priority show layers', () => {
   assert.match(src, /poseyNfhlPriorityExportUrl/);
   assert.match(src, /POSEY_BBOX_WGS84/);
   assert.match(src, /NFHL_PRIORITY_IDS/);
-  assert.match(src, /MapServer\/export/);
+  // URL is `${NFHL_MAPSERVER_URL}/export?...` — MapServer is in the constant, not inlined
+  assert.match(src, /NFHL_MAPSERVER_URL.*\/export/s);
+  assert.match(src, /\/export\?/);
   assert.match(src, /show:/);
   assert.match(src, /bboxSR.*4326/);
 });
