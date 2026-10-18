@@ -1,4 +1,4 @@
-name: Temporary lockfile repair for hydrology verification
+name: Temporary full lockfile regeneration for hydrology PR
 
 on:
   push:
@@ -9,13 +9,13 @@ permissions:
   contents: write
 
 concurrency:
-  group: tsm-lockfile-repair-${{ github.ref }}
+  group: tsm-full-lockfile-regeneration
   cancel-in-progress: false
 
 jobs:
-  regenerate-lockfile:
+  regenerate:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout repair branch
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -26,21 +26,30 @@ jobs:
         with:
           node-version: '22'
       - name: Pin npm CLI
-        run: npm install --global npm@10.9.2 --no-audit --no-fund
-      - name: Regenerate lockfile without executing package scripts
+        run: npm install --global npm@11.6.2 --no-audit --no-fund
+      - name: Regenerate lockfile from package.json using public npm
         working-directory: tsm-console
-        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
-      - name: Verify clean install against regenerated lockfile
-        working-directory: tsm-console
-        run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
-      - name: Commit lockfile repair to this branch only
+        run: |
+          rm -f package-lock.json
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
+      - name: Commit regenerated lockfile to this branch
         run: |
           if git diff --quiet -- tsm-console/package-lock.json; then
-            echo "Lockfile is already consistent; no commit required."
+            echo "No lockfile changes generated."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add tsm-console/package-lock.json
-          git commit -m "chore: regenerate console package lockfile"
+          git commit -m "chore: regenerate complete console lockfile"
           git push origin "HEAD:${GITHUB_REF_NAME}"
+      - name: Verify clean install
+        working-directory: tsm-console
+        run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
+      - name: Verify no private package mirror URLs
+        working-directory: tsm-console
+        run: |
+          if grep -Eqi '35\.245\.43\.102|http://[^ ]*/npm/' package-lock.json; then
+            echo "ERROR: lockfile contains private or insecure package mirror URL"
+            exit 1
+          fi
