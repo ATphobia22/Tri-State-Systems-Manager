@@ -1,91 +1,128 @@
-# GPU Pipeline Items — Honest Status (2026-10-18)
+# TSM 3D Asset / GPU Pipeline — Gate Status (2026-10-18)
 
-The remaining GPU/terrain items have different statuses: compute-shader
-frustum culling and Transvoxel stitching are blocked by the current stack;
-query-based depth occlusion is technically possible in WebGL 2 but is not
-implemented. Each status and its unblock condition is documented below.
+This document distinguishes implemented work, automated tests, and architectural
+blockers. A checked-in implementation is not considered verified until its
+applicable CI and integration tests pass.
 
-## 1. GPU-Driven Frustum Culling (Compute Shaders)
+## 1. State-word decoding and presentation fallback
 
-**Status:** BLOCKED — no implementation path exists in the current stack.
+**Implementation:** the current TSM 16-bit visual-state schema is
+`B[15:14] D[13:12] C[11:9] T[8:6] S[5:3] R[2:0]`. B/D store levels 0–3;
+C/T/S store three-bit fields but levels 4–7 are reserved; the R field accepts
+0 (normal) or 1 (exception) and rejects 2–7.
 
-**Why:** MapLibre GL JS renders with WebGL 2. Custom compute-shader passes
-require WebGPU. MapLibre's WebGPU renderer is not yet production-ready
-(as of the research cut-off), and there is no open-source library that adds
-GPU frustum-culling compute passes to a MapLibre scene. The three.js
-custom-layer path (`tiles-3d-renderer-layer.ts`) provides ordinary
-CPU-side object frustum culling; that is not a GPU-driven compute pass.
-A custom compute path would need an independently owned WebGPU rendering
-pipeline, visibility-buffer integration, and device-specific benchmarks.
+The implicit 3D Tiles builder now writes `StateWord` into the
+`EXT_structural_metadata` property table associated with `EXT_mesh_features`.
+The default `0x5248` represents a **presentation-only baseline** when the source
+does not explicitly provide `extras.tsm.stateWord`; it is not a surveyed fact,
+a hydrologic classification, or evidence that four LODs exist.
 
-**Unblock condition:** MapLibre ships a stable WebGPU renderer, or the
-project moves terrain rendering fully into the three.js custom layer where
-three.js controls the pipeline.
+The Three.js runtime registers the installed renderer's
+`GLTFExtensionsPlugin`, reads valid state words only for single-feature meshes,
+and uses measured frame rate with hysteresis to lower/restore the T texture
+dimension. A low-T state disables material texture maps without deleting
+geometry. Invalid or mixed-feature metadata is ignored. Component-complexity
+and semantic-depth asset swapping remain unimplemented because TSM's current
+building tiles do not include registered C/S resource variants or a network
+resource manifest. The pure scheduler remains a plan generator; it does not
+claim to have a network fetch/release engine.
 
-## 2. Depth Occlusion / Hierarchical-Z
+**Verification:** exhaustive codec/scheduler tests, metadata-reader runtime
+tests, and parser/typecheck/build CI are required for this branch.
 
-**Status:** NOT IMPLEMENTED. Query-based occlusion is technically possible in
-WebGL 2, but TSM does not currently own a query lifecycle, temporal result
-buffer, visibility hysteresis, or per-object occlusion policy in its
-MapLibre/Three.js layer.
+## 2. PBR baking and texture atlas consolidation
 
-**Current behavior:** Three.js `Object3D.frustumCulled` is view-frustum culling,
-not occlusion culling. WebGL 2 exposes asynchronous occlusion-query results,
-but wiring them into a shared MapLibre context requires avoiding synchronous
-GPU stalls and stale visibility decisions. A hierarchical-Z compute path
-would require a different renderer capability and is not supplied by this
-WebGL 2 path.
+**Implementation:** `scripts/3d-tiles/pack-atlas.py` imports multiple GLBs,
+globally unwraps/packs UV islands, bakes base color, tangent-space normal,
+roughness, metallic, and ambient occlusion. It packages glTF's ORM texture as
+R=AO, G=roughness, B=metallic, then exports one shared PBR material with three
+texture bindings: base color, normal, and ORM. Individual channel PNGs are
+retained as audit artifacts. Unsupported metallic shader graphs and missing
+source materials fail closed instead of silently replacing them with invented
+appearance.
 
-**Unblock condition:** Implement a separately reviewed WebGL 2 occlusion-query
-pass with non-blocking `QUERY_RESULT_AVAILABLE` polling, conservative fallback
-visibility, query reuse/disposal, and device-level performance tests; or adopt
-a renderer backend whose occlusion implementation is verified in TSM.
+`tsm-console/scripts/3d-tiles/bake-pbr.py` also supports individual channel
+bakes. Data maps use Non-Color and base-color/emissive maps use sRGB.
 
-References: [Three.js Object3D frustum-culling contract](https://threejs.org/docs/pages/Object3D.html),
-[Three.js Renderer occlusion API](https://threejs.org/docs/pages/Renderer),
-[MDN WebGL 2 query results](https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext/getQueryParameter).
+**Verification:** `scripts/3d-tiles/test_pack_atlas_blender.py` generates
+fixture GLBs, runs a real headless Blender bake/export, and verifies the final
+GLB embeds base-color, normal, metallic-roughness, and AO texture bindings.
+`.github/workflows/pbr-atlas-validation.yml` runs this round-trip. The script
+is implemented; it is not release-verified until the Blender workflow passes.
 
-## 3. Transvoxel Stitching (WebGPU Compute Pipeline)
+Reference: [Blender glTF 2.0 material export](https://docs.blender.org/manual/en/latest/addons/scene_gltf2.html).
 
-**Status:** BLOCKED — research-scale, no library exists.
+## 3. GPU frustum culling
 
-**Why:** Per the deep research (mapping-planes-lod-integration-20261018-0426
-§5, Honest Gap #2): "WebGPU SDF/Dual Contouring/Transvoxel terrain library
-for the browser: does not exist as a reusable library; only research demos
-(Will Usher webtoys) and a WebGL thesis engine." Implementing Transvoxel
-from scratch is a multi-month R&D project, not an integration task.
+**Status:** GPU-compute culling is not implemented. TSM uses MapLibre's
+custom-layer WebGL2 context and NASA-AMMOS 3D Tiles Renderer JS. The 3D Tiles
+renderer performs its own conventional visibility/frustum selection; that is
+not a custom GPU compute pass.
 
-**What ships instead:** The HazardSim-style canvas flood layer
-(`tsm-console/src/lib/canvas-flood-layer.ts`) — map-aligned grid,
-BFS flood-fill respecting terrain, canvas source updated per frame.
-Proven technique, local-first, no WebGPU required.
+MapLibre documents WebGPU as a renderer backend under active graphics
+modernization. A WebGPU compute pass must wait for a supported TSM renderer
+backend and an integrated visibility pipeline; adding an isolated WGSL shader
+inside today's WebGL2 custom layer would not be an executable feature.
 
-**Unblock condition:** A maintained open-source Transvoxel/WebGPU terrain
-library appears, or the project funds dedicated R&D for it.
+Reference: [MapLibre CustomLayerInterface](https://maplibre.org/maplibre-gl-js/docs/API/interfaces/CustomLayerInterface/),
+[MapLibre graphics modernization roadmap](https://maplibre.org/roadmap/maplibre-gl-js/graphics-modernization/).
 
-## What WAS Completed (2026-10-18)
+## 4. Depth occlusion / hierarchical-Z
 
-- **Texture atlas consolidation:** `scripts/3d-tiles/pack-atlas.py` imports
-  multiple GLBs, globally packs UV islands, and bakes one albedo atlas. It is
-  **not yet a lossless PBR atlas pipeline**: its shared material intentionally
-  uses roughness=1 and metallic=0, so source normal/roughness/metallic/AO maps
-  are not preserved by this operation. The script now keeps source materials
-  attached through the albedo bake and fails closed for missing inputs. A
-  Blender-host functional run is still required.
-- **PBR map baking:** `tsm-console/scripts/3d-tiles/bake-pbr.py` supports
-  diffuse/albedo, normal, roughness, AO, emission, and a guarded metallic bake
-  for direct Principled BSDF graphs. Complex graphs fail closed. This produces
-  individual channel maps; atlas-wide PBR channel packing and exporter round
-  trips remain unverified. Syntax checks alone do not establish bake correctness.
-- **State-word codec and scheduler primitives:** the PR branch aligns field
-  offsets with the published B[15:14], D[13:12], C[11:9], T[8:6], S[5:3],
-  R[2:0] layout and rejects reserved patterns. Metadata extraction from
-  `EXT_structural_metadata` and real network/GPU scheduling remain separate
-  integration work; the current code does not claim they are wired.
-- **Local ENU transform verification:** numerical regression tests cover the
-  HLOD builder's basis, origin projection, matrix inverse, and round trips.
-  This verifies transform math only, not source CRS, vertical datum, or survey
-  accuracy. A passing test run is still required.
-- **RTC:** `3d-tiles-renderer` applies tile and glTF transforms, but TSM must
-  still validate input frame/provenance and must not treat legacy RTC_CENTER
-  as a 3D Tiles 1.1 contract.
+**Status:** not implemented. WebGL2 asynchronous occlusion queries are technically
+possible, but a safe implementation needs occluder/depth ordering, non-blocking
+query-result polling, a temporal visibility cache, hysteresis, conservative
+fallback visibility, query reuse/disposal, and GPU/device performance tests.
+Three.js `Object3D.frustumCulled` is frustum culling, not occlusion culling.
+A hierarchical-Z compute implementation would require a WebGPU/backend change.
+
+This remains an explicit release gate for any claim that the TSM renderer performs
+depth occlusion; do not treat the existing frustum path as completion.
+
+References: [Three.js Object3D](https://threejs.org/docs/pages/Object3D.html),
+[MDN WebGL2 query results](https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext/getQueryParameter).
+
+## 5. Transvoxel / terrain LOD transition stitching
+
+**Status:** not integrated into TSM's current runtime. An open-source Rust
+`transvoxel` crate exists ([docs.rs](https://docs.rs/crate/transvoxel/latest);
+[source](https://github.com/ling0x/transvoxel)). It implements block-level
+Transvoxel meshing; the calling application remains responsible for block
+neighborhoods, balanced 2:1 LOD relationships, boundary transitions, and
+streaming/orchestration. It is not a drop-in browser WebGPU terrain renderer.
+
+TSM's relevant committed runtime currently loads raster/DEM terrain and building
+GLB/3D Tiles content; it does not provide a volumetric density field and balanced
+voxel octree for that crate to consume. Integrating the crate without that data
+model would create an unconnected demo rather than close the engineering gate.
+The current canvas flood layer remains a raster-grid visualization, not
+Transvoxel seam stitching.
+
+Unblock condition: introduce an explicit voxel-density/voxel-chunk data contract
+and balanced octree/neighbor scheduler, then port or call the crate through a
+tested WASM adapter and validate all 2:1 transition faces. If the desired goal is
+terrain made directly from DEM heightfields instead, specify a heightfield LOD
+edge-stitching algorithm rather than Transvoxel.
+
+## 6. Coordinate transforms / RTC
+
+The HLOD builder uses an ECEF-derived local ENU frame and has numerical tests
+for its basis, origin projection, inverse transform, and round-trip matrix math.
+These tests do not certify input CRS, vertical datum, coordinate epoch, source
+accuracy, or survey suitability. The renderer applies tile and glTF transforms;
+legacy `RTC_CENTER` is not treated as a 3D Tiles 1.1 transform contract.
+Coordinate/provenance and engineering review gates remain mandatory.
+
+## 7. CI and release discipline
+
+The IGIO acquisition step now treats incomplete live feature responses as
+unavailable and uses the existing pinned snapshot only after SHA-256 and feature
+count validation. The cached fallback writes the GeoJSON, checksum sidecar, and
+receipt expected by the production workflow. Live endpoint availability is not
+allowed to turn a zero-feature response into a successful acquisition.
+
+The release remains gated on passing latest-head Parse/Typecheck/Geospatial CI,
+production build, Building 3D Tiles acceptance, PBR Atlas Validation, desktop/
+offline checks, and security scanning. A queued, cancelled, or missing workflow
+run is not a pass. Do not merge or describe `main` as green until the same commit
+has the required passing results.
