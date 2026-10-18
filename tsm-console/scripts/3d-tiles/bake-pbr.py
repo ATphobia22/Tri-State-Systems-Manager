@@ -9,7 +9,6 @@ an emission shader. Complex shader graphs are rejected rather than approximated.
 from __future__ import annotations
 
 import argparse
-import os
 import sys
 from pathlib import Path
 
@@ -89,49 +88,64 @@ def make_bake_targets(materials, image):
 def prepare_metallic_emission(materials):
     """Temporarily expose Principled metallic values as emissive color."""
     changes = []
-    for material in materials:
-        nodes = material.node_tree.nodes
-        links = material.node_tree.links
-        outputs = [
-            node for node in nodes
-            if node.type == "OUTPUT_MATERIAL" and getattr(node, "is_active_output", False)
-        ]
-        if not outputs:
-            raise RuntimeError(f"Material {material.name!r} has no active material output")
-        surface = outputs[0].inputs.get("Surface")
-        surface_links = list(surface.links) if surface is not None else []
-        if len(surface_links) != 1 or surface_links[0].from_node.type != "BSDF_PRINCIPLED":
-            raise RuntimeError(
-                f"Material {material.name!r} uses a non-simple surface graph; "
-                "metallic baking supports a direct Principled BSDF connection only"
+    try:
+        for material in materials:
+            nodes = material.node_tree.nodes
+            links = material.node_tree.links
+            outputs = [
+                node for node in nodes
+                if node.type == "OUTPUT_MATERIAL" and getattr(node, "is_active_output", False)
+            ]
+            if not outputs:
+                raise RuntimeError(f"Material {material.name!r} has no active material output")
+            surface = outputs[0].inputs.get("Surface")
+            surface_links = list(surface.links) if surface is not None else []
+            if len(surface_links) != 1 or surface_links[0].from_node.type != "BSDF_PRINCIPLED":
+                raise RuntimeError(
+                    f"Material {material.name!r} uses a non-simple surface graph; "
+                    "metallic baking supports a direct Principled BSDF connection only"
+                )
+
+            original_from_socket = surface_links[0].from_socket
+            principled = surface_links[0].from_node
+            metallic = principled.inputs.get("Metallic")
+            if metallic is None:
+                raise RuntimeError(f"Material {material.name!r} has no Principled Metallic input")
+            metallic_links = list(metallic.links)
+            emission = nodes.new("ShaderNodeEmission")
+            change_index = len(changes)
+            changes.append((material, surface, original_from_socket, None, emission))
+
+            if metallic_links:
+                links.new(metallic_links[0].from_socket, emission.inputs["Color"])
+            else:
+                value = float(metallic.default_value)
+                emission.inputs["Color"].default_value = (value, value, value, 1.0)
+
+            links.remove(surface_links[0])
+            replacement_link = links.new(emission.outputs["Emission"], surface)
+            changes[change_index] = (
+                material, surface, original_from_socket, replacement_link, emission
             )
-
-        principled = surface_links[0].from_node
-        metallic = principled.inputs.get("Metallic")
-        if metallic is None:
-            raise RuntimeError(f"Material {material.name!r} has no Principled Metallic input")
-        source_link = list(metallic.links)
-        emission = nodes.new("ShaderNodeEmission")
-        if source_link:
-            links.new(source_link[0].from_socket, emission.inputs["Color"])
-        else:
-            value = float(metallic.default_value)
-            emission.inputs["Color"].default_value = (value, value, value, 1.0)
-
-        links.remove(surface_links[0])
-        replacement_link = links.new(emission.outputs["Emission"], surface)
-        changes.append((material, surface, surface_links[0], replacement_link, emission))
-    return changes
+        return changes
+    except Exception:
+        restore_metallic_materials(changes)
+        raise
 
 
 def restore_metallic_materials(changes) -> None:
-    for material, surface, original_link, replacement_link, emission in reversed(changes):
+    for material, surface, original_from_socket, replacement_link, emission in reversed(changes):
+        nodes = material.node_tree.nodes
         links = material.node_tree.links
-        if replacement_link in links:
-            links.remove(replacement_link)
-        if original_link.from_node.name in material.node_tree.nodes:
-            links.new(original_link.from_socket, surface)
-        material.node_tree.nodes.remove(emission)
+        if replacement_link is not None:
+            try:
+                links.remove(replacement_link)
+            except (ReferenceError, RuntimeError):
+                pass
+        if not any(link.from_socket == original_from_socket for link in surface.links):
+            links.new(original_from_socket, surface)
+        if emission.name in nodes:
+            nodes.remove(emission)
 
 
 def cleanup_bake_targets(targets) -> None:
