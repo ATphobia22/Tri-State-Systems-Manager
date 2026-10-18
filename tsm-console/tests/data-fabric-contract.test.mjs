@@ -49,3 +49,15 @@ test('current Indiana imagery is registered in the runtime geospatial source pla
   assert.match(source, /Indiana_Current_Imagery\/ImageServer/);
   assert.match(source, /Indiana Current Imagery/);
 });
+
+
+test('NOAA forecasts are exposed on demand as a distinct data class', () => {
+  const server = read('server/token-proxy.mjs');
+  const adapter = read('server/ingestion/river-network-api.mjs');
+  assert.match(server, /\/api\/hydrologic\/forecast/);
+  assert.match(server, /fetchRiverForecasts/);
+  assert.match(server, /hydrologicForecastLimiter/);
+  assert.match(adapter, /dataClass: 'forecast'/);
+  assert.match(adapter, /validAt: record\.observedAt/);
+  assert.match(adapter, /never written to the observed-stage field/);
+});
