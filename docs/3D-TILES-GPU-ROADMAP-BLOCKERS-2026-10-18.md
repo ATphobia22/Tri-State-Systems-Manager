@@ -53,12 +53,22 @@ The final branch head must still pass the same gate after all changes.
 
 Reference: [Blender glTF 2.0 material export](https://docs.blender.org/manual/en/latest/addons/scene_gltf2.html).
 
-## 3. GPU frustum culling
+## 3. CPU and GPU frustum culling
 
-**Status:** GPU-compute culling is not implemented. TSM uses MapLibre's
-custom-layer WebGL2 context and NASA-AMMOS 3D Tiles Renderer JS. The 3D Tiles
-renderer performs its own conventional visibility/frustum selection; that is
-not a custom GPU compute pass.
+**Status:** a conservative six-plane AABB/frustum predicate is available in
+`tsm-console/src/lib/lod-scheduler.ts` for the Transvoxel LOD scheduler. It
+rejects a node only when its positive support vertex is outside a frustum
+plane; plane-touching bounds remain visible. Tests cover malformed planes,
+boundary contact, and resident-set eviction. This is a CPU selection primitive;
+the live MapLibre 3D Tiles renderer is not yet wired to pass its current camera
+frustum into this Transvoxel scheduler.
+
+GPU-compute culling remains **not implemented**. TSM uses MapLibre's custom-layer
+WebGL2 context and NASA-AMMOS 3D Tiles Renderer JS. The 3D Tiles renderer
+performs its own conventional visibility/frustum selection; that is not a
+custom GPU compute pass. Automatic LOD adjacency construction is quadratic and
+now has an explicit 5,000-node safety limit; larger octrees must supply a
+precomputed adjacency map.
 
 MapLibre documents WebGPU as a renderer backend under active graphics
 modernization. A WebGPU compute pass must wait for a supported TSM renderer

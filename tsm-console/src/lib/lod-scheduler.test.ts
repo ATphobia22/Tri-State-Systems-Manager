@@ -10,8 +10,10 @@ import {
   buildAdjacency,
   computeSse,
   distanceToBounds,
+  intersectsFrustum,
   LodScheduler,
   type LodCamera,
+  type LodFrustumPlane,
   type LodNode,
 } from '../lib/lod-scheduler';
 
@@ -190,5 +192,58 @@ describe('LodScheduler.update', () => {
     const plan = s.update(farCamera); // must not hang or throw
     expect(plan.selected).toContain('leaf');
     expect(plan.selected).toContain('deep');
+  });
+});
+
+
+const outsideFrustum: LodFrustumPlane[] = [
+  { normal: [1, 0, 0], constant: -10 },
+  { normal: [-1, 0, 0], constant: 100 },
+  { normal: [0, 1, 0], constant: 100 },
+  { normal: [0, -1, 0], constant: 100 },
+  { normal: [0, 0, 1], constant: 100 },
+  { normal: [0, 0, -1], constant: 100 },
+];
+
+describe('conservative frustum culling', () => {
+  it('keeps an AABB whose support vertex touches a frustum plane', () => {
+    const planes: LodFrustumPlane[] = [
+      { normal: [1, 0, 0], constant: 0 },
+      { normal: [-1, 0, 0], constant: 4 },
+      { normal: [0, 1, 0], constant: 0 },
+      { normal: [0, -1, 0], constant: 4 },
+      { normal: [0, 0, 1], constant: 0 },
+      { normal: [0, 0, -1], constant: 4 },
+    ];
+    expect(intersectsFrustum([0, 0, 0, 4, 4, 4], planes)).toBe(true);
+  });
+
+  it('rejects an AABB fully outside a plane', () => {
+    expect(intersectsFrustum([0, 0, 0, 4, 4, 4], outsideFrustum)).toBe(false);
+  });
+
+  it('skips an off-screen subtree and emits evictions for its prior residency', () => {
+    const scheduler = new LodScheduler([box('root', 0, [0, 0, 0, 4, 4, 4], 1, null)]);
+    scheduler.setLoaded(['root']);
+    const plan = scheduler.update({ ...farCamera, frustumPlanes: outsideFrustum });
+    expect(plan.selected).toEqual([]);
+    expect(plan.load).toEqual([]);
+    expect(plan.evict).toEqual(['root']);
+  });
+
+  it('rejects malformed frusta instead of silently producing an unsafe selection', () => {
+    const scheduler = new LodScheduler([box('root', 0, [0, 0, 0, 4, 4, 4], 1, null)]);
+    expect(() => scheduler.update({ ...farCamera, frustumPlanes: outsideFrustum.slice(0, 5) })).toThrow(/six planes/);
+    expect(() => scheduler.update({ ...farCamera, frustumPlanes: [
+      ...outsideFrustum.slice(0, 5), { normal: [0, 0, 0], constant: 1 },
+    ] })).toThrow(/invalid frustum plane/);
+  });
+
+  it('requires precomputed adjacency for large octrees instead of quadratic construction', () => {
+    const nodes = Array.from({ length: 5_001 }, (_, index) =>
+      box(`root-${index}`, 0, [index * 2, 0, 0, index * 2 + 1, 1, 1], 0, null),
+    );
+    expect(() => new LodScheduler(nodes)).toThrow(/provide a precomputed adjacency map/);
+    expect(() => new LodScheduler(nodes, {}, new Map<string, string[]>(nodes.map((node): [string, string[]] => [node.id, []])))).not.toThrow();
   });
 });
