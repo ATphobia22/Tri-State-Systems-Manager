@@ -2,13 +2,20 @@
 """Regression tests for conservative HLOD geometric-error propagation."""
 from __future__ import annotations
 
+import importlib.util
 import math
 import sys
 import unittest
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from build_hlod_tileset import Item, Q, V  # noqa: E402
+SCRIPT = Path(__file__).with_name("build-hlod-tileset.py")
+SPEC = importlib.util.spec_from_file_location("build_hlod_tileset", SCRIPT)
+if SPEC is None or SPEC.loader is None:
+    raise RuntimeError(f"cannot load HLOD builder: {SCRIPT}")
+MODULE = importlib.util.module_from_spec(SPEC)
+sys.modules[SPEC.name] = MODULE
+SPEC.loader.exec_module(MODULE)
+Item, Q, V = MODULE.Item, MODULE.Q, MODULE.V
 
 
 def item(x: float, y: float, error: float) -> Item:
