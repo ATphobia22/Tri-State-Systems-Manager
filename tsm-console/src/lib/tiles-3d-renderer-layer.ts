@@ -22,6 +22,8 @@ import * as THREE from 'three';
 import { TilesRenderer } from '3d-tiles-renderer';
 import { MapScene } from '@dvt3d/maplibre-three-plugin';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { normalizeTilesetUrl } from './tileset-url';
+export { normalizeTilesetUrl } from './tileset-url';
 
 /** 5D state-word bit layout: B(3) D(3) C(3) T(4) S(3) = 16 bits */
 export const STATE_WORD_BITS = {
@@ -71,27 +73,6 @@ export interface Tiles3DRendererLayerConfig {
   maxSse?: number;
 }
 
-const isSafeUrl = (u: string): boolean =>
-  /^(https?:\/\/|\.\.?\/|[^:/?#]+\/)/i.test(u) && !/^\s*javascript:/i.test(u);
-
-/**
- * Normalize a tileset URL so the layer can work instead of refusing.
- * - Trims whitespace
- * - Resolves bare filenames against the app base path
- * - Returns null only for javascript:/data: URLs (genuine XSS risk)
- */
-export function normalizeTilesetUrl(raw: string): string | null {
-  const u = raw.trim();
-  if (/^\s*javascript:/i.test(u) || /^\s*data:/i.test(u)) return null;
-  if (/^https?:\/\//i.test(u)) return u;
-  if (u.startsWith('/') || u.startsWith('./') || u.startsWith('../')) return u;
-  // Bare filename or relative path: resolve against app base
-  if (/^[A-Za-z0-9._-]+(\/[A-Za-z0-9._-]+)*(\.json)?$/i.test(u)) {
-    return u.endsWith('.json') ? u : `${u}/tileset.json`;
-  }
-  return u;
-}
-
 /**
  * MapLibre custom layer hosting a 3d-tiles-renderer TilesRenderer.
  * Uses MapScene from the plugin for camera sync; RTC handled by the renderer.
@@ -118,8 +99,7 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
   }
 
   onAdd(map: maplibregl.Map, gl: WebGLRenderingContext): void {
-    // Resilient: normalize the URL and work with what we get instead of
-    // refusing. Only javascript:/data: URLs are rejected (XSS risk).
+    // Reject unsupported URL schemes and ambiguous URL forms before loading.
     const url = normalizeTilesetUrl(this.config.tilesetUrl);
     if (url === null) {
       console.warn(`[Tiles3D] Rejected unsafe tileset URL: ${this.config.tilesetUrl}`);
