@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '../..');
+const CANONICAL_PRIORITY = [28, 27, 16, 23, 34, 3, 22, 32];
 
 test('NFHL geometry registry has expected layer counts', () => {
   const reg = JSON.parse(
@@ -32,14 +33,14 @@ test('NFHL priority operational stack is complete', () => {
     readFileSync(join(root, 'docs/fabrics/nfhl-geometry-types.json'), 'utf8'),
   );
   const priority = reg.priorityOperational ?? [];
-  assert.deepEqual(priority, [28, 27, 16, 23, 34, 3, 22, 32]);
+  assert.deepEqual(priority, CANONICAL_PRIORITY);
   const ids = new Set((reg.layers ?? []).map((l) => l.id));
   for (const id of priority) {
     assert.ok(ids.has(id), `priority layer ${id} missing from registry`);
   }
 });
 
-test('NfhlLayerRegistry.ts exports priority and capability constants', () => {
+test('NfhlLayerRegistry.ts priority order matches JSON registry', () => {
   const src = readFileSync(
     join(root, 'tsm-console/src/lib/nfhl/NfhlLayerRegistry.ts'),
     'utf8',
@@ -48,6 +49,10 @@ test('NfhlLayerRegistry.ts exports priority and capability constants', () => {
   assert.match(src, /geo\.nfhl\.zones/);
   assert.match(src, /Flood Hazard Zones/);
   assert.match(src, /REGULATORY_DISPLAY/);
+  const m = src.match(/NFHL_PRIORITY_IDS[^=]*=\s*\[([\s\S]*?)\]\s*as const/);
+  assert.ok(m, 'NFHL_PRIORITY_IDS array not found');
+  const nums = m[1].match(/\d+/g)?.map(Number) ?? [];
+  assert.deepEqual(nums, CANONICAL_PRIORITY);
 });
 
 test('maplibre-three-plugin peer is compatible with pinned three', () => {
@@ -55,8 +60,8 @@ test('maplibre-three-plugin peer is compatible with pinned three', () => {
     readFileSync(join(root, 'tsm-console/package.json'), 'utf8'),
   );
   const three = pkg.dependencies.three;
-  // Must satisfy @dvt3d/maplibre-three-plugin peer three@^0.178.0
   assert.match(String(three), /0\.178/);
+  assert.equal(pkg.overrides?.three, '0.178.0');
   assert.ok(
     pkg.dependencies['@dvt3d/maplibre-three-plugin'],
     'maplibre-three-plugin must remain declared',
