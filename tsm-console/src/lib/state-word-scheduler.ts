@@ -5,24 +5,26 @@
  * (ISPRS IJGI 2026, 15, 215). No open-source implementation exists; this is a
  * clean-room client-side scheduler implementing the paper's core mechanics:
  *
- * - F = B x D x C x T x S, packed into a 16-bit word:
- *     B (boundary proxy) : bits 0-2
- *     D (geometric detail): bits 3-5
- *     C (component complexity): bits 6-8
- *     T (texture appearance): bits 9-12
- *     S (semantic depth)  : bits 13-15
+ * - F = B x D x C x T x S, packed in the published 16-bit layout:
+ *     B (boundary proxy) : bits 14-15 (2 bits)
+ *     D (geometric detail): bits 12-13 (2 bits)
+ *     C (component complexity): bits 9-11 (3 bits)
+ *     T (texture appearance): bits 6-8 (3 bits)
+ *     S (semantic depth)  : bits 3-5 (3 bits)
+ *     R (reserved/exception extension): bits 0-2 (3 bits)
  * - O(1) bitwise decode (no library needed; GLSL ES 3.00 / WGSL both support it)
  * - XOR-diff incremental updates: only fetch chunks whose dimensions changed
  * - Constraint-aware degradation: drop T/C/S before D under memory pressure
  * - Home Tile routing: full semantics live in the centroid tile; guest tiles
- *   carry { objectId, homeTileId, uri } pointers (44.1% semantic payload cut)
+ *   carry { objectId, homeTileId, uri } pointers (a study-specific technique;
+ *   its reported 44.1% payload reduction is not a TSM benchmark)
  *
  * The word is carried per-feature via 3D Tiles 1.1 EXT_structural_metadata
  * (uint16 property, zero schema changes). Tiles do spatial selection; the
  * state word drives object-level resource scheduling afterwards.
  */
 
-import { decodeStateWord, didDimensionChange, type StateWordDimension } from './tiles-3d-renderer-layer';
+import { assertValidStateWord, decodeStateWord, didDimensionChange, STATE_WORD_BITS, type StateWordDimension } from './tiles-3d-renderer-layer';
 
 /** Degradation order under memory pressure: strip T, then C, then S; keep D. */
 const DEGRADATION_ORDER: StateWordDimension[] = ['T', 'C', 'S'];
@@ -67,21 +69,14 @@ export interface FeatureSchedule {
  * Drops texture, then components, then semantics — never geometric detail.
  */
 export function degradeWord(word: number, stepsDown: number): number {
-  if (!Number.isInteger(word) || word < 0 || word > 0xffff) {
-    throw new RangeError("word must be an unsigned 16-bit integer");
-  }
+  assertValidStateWord(word);
   if (!Number.isInteger(stepsDown) || stepsDown < 0) {
     throw new RangeError("stepsDown must be a non-negative integer");
   }
   let out = word;
   // Bit layout (must match tiles-3d-renderer-layer.ts):
-  // B:0-2 D:3-5 C:6-8 T:9-12 S:13-15
   // Exhaust each dimension in priority order before reducing the next one.
-  const dims: Array<{ offset: number; mask: number }> = [
-    { offset: 9, mask: 0xf },  // T: texture appearance
-    { offset: 6, mask: 0x7 },  // C: component complexity
-    { offset: 13, mask: 0x7 }, // S: optional semantic depth
-  ];
+  const dims = DEGRADATION_ORDER.map((dimension) => STATE_WORD_BITS[dimension]);
   for (let step = 0; step < stepsDown; step++) {
     const reducible = dims.find(({ offset, mask }) => ((out >>> offset) & mask) > 0);
     if (!reducible) break;
