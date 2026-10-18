@@ -150,3 +150,12 @@ For a 3D Tiles 1.1 path, follow its tile and glTF transform rules and the curren
 - Transvoxel, [algorithm overview and reference implementation](https://transvoxel.org/).
 
 **Scope note:** This document is research guidance, not an implementation attestation. It does not assert that TSM currently contains CityGML/3D Tiles/WebGPU pipelines, that the paper's benchmarks reproduce in TSM, or that any asset is suitable for hydraulic/flood engineering without independent data validation and review.
+
+
+## 8. Implementation follow-up (2026-10-18)
+
+The depth-based intermediate HLOD error heuristic has been replaced on the follow-up branch with a conservative subtree policy: contentless ADD nodes use the maximum declared source-content error within their subtree, and malformed source/fallback values fail closed. A standard-library regression suite is added at `scripts/geospatial/test_build_hlod_geometric_error.py` and wired into the geospatial CI workflow.
+
+This policy avoids inventing a geometric-error reduction from tree depth alone. It is intentionally conservative and may over-refine; it does **not** establish correct renderer behavior by itself. The next acceptance gate remains a representative camera-path test with the target renderer, measured payload/frame-time behavior, the repository's strict validator, and the independent CesiumGS validator. See [Mapping-plane implementation status](MAPPING-PLANE-IMPLEMENTATION-STATUS-2026-10-18.md) for the plane-by-plane evidence gates and home-site AOI readiness boundary.
+
+The 5D B-D-C-T-S state word, GPU voxel/SDF terrain, and any custom renderer remain proposals. They are not being added merely to make a roadmap appear complete; each requires a demonstrated TSM gap and a tested, measured acceptance case.
