@@ -53,6 +53,6 @@ The available single-point USGS elevation sample and parcel-centroid FEMA inters
 
 ## Release status snapshot
 
-At review time, GitHub Actions reported successful post-merge runs on commit `6516528cd8ca7be28d965c9112a038df071ec54f` for production build/deploy, CI pipeline, parse gate, CodeQL, secret scanning, open-world validation, standard offline runtime, Windows x64 offline runtime, and eight-county boundary acquisition. The Windows x64 artifact was uploaded successfully; artifact ID `12124805594`, SHA-256 `3df98006ccfb989b4fda9a03f49a9fe4f7cec2735d23a54ff255b403fdfc1ebd`, expires 2026-11-17.
+At review time, GitHub Actions reported successful post-merge runs on commit `6516528cd8ca7be28d965c9112a038df071ec54f` for production build/deploy, CI pipeline, parse gate, CodeQL, secret scanning, open-world validation, standard offline runtime, Windows x64 offline runtime, and eight-county boundary acquisition. The Windows x64 artifact was uploaded successfully; artifact ID `12124499394`, size 715,582,253 bytes, SHA-256 `63aadc210f44944b63ce3208d1aad56dec874342ba79457549f23a737e5bc925`, expires 2026-11-17.
 
 This is a snapshot of the reviewed commit, not a promise that later commits remain green. Check the current `main` head and its required checks for each release.
