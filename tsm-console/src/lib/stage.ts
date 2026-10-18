@@ -17,7 +17,7 @@ import { tsmApiUrl } from './api-base';
  *   fetchLiveStage(), called from an explicit button press (RiverGaugeBoard
  *   "Fetch live snapshot"; Digital Twin "Fetch live snapshot").
  * - 2026-10-06: migrated from USGS Water Services (waterservices.usgs.gov,
- *   decommissioned 2026-02-22) to the USGS Water Data OGC API
+ *   scheduled for shutdown on 2027-02-22) to the USGS Water Data OGC API
  *   (api.waterdata.usgs.gov/ogcapi/v1/collections/latest-continuous).
  *   approval_status replaces the legacy qualifier convention; Provisional
  *   still maps to qualifier 'P' and status 'provisional'.
