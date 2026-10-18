@@ -23,9 +23,9 @@
 
 import * as maplibregl from 'maplibre-gl';
 import * as THREE from 'three';
-import { GLTFMeshFeaturesExtension, GLTFStructuralMetadataExtension, TilesRenderer } from '3d-tiles-renderer';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { GLTFExtensionsPlugin, TilesRenderer } from '3d-tiles-renderer';
 import { MapScene } from '@dvt3d/maplibre-three-plugin';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import {
   STATE_WORD_BITS,
   STATE_WORD_EXTENSION_BITS,
@@ -53,20 +53,6 @@ export {
   encodeStateWord,
 } from './state-word-codec';
 export type { StateWordDimension, StateWordValues } from './state-word-codec';
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
-
-
-interface MeshFeatureInfo {
-  propertyTable: number | null;
-}
-
-interface MeshFeaturesReader {
-  getFeatureInfo(): MeshFeatureInfo[];
-}
-
-interface StructuralMetadataReader {
-  getPropertyTableData(tableIndices: number[], ids: number[], target?: unknown[]): unknown[];
-}
 
 const TEXTURE_MAP_PROPERTIES = [
   'map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap',
@@ -80,50 +66,61 @@ const TEXTURE_MAP_PROPERTIES = [
 type TextureMapProperty = (typeof TEXTURE_MAP_PROPERTIES)[number];
 type TextureBearingMaterial = THREE.Material & Partial<Record<TextureMapProperty, THREE.Texture | null>>;
 
-/** Read the first property-table-backed feature on a mesh; invalid metadata fails closed. */
-export function readStateWordFromMesh(mesh: THREE.Mesh): number | null {
-  const features = mesh.userData.meshFeatures as MeshFeaturesReader | undefined;
-  const metadata = mesh.userData.structuralMetadata as StructuralMetadataReader | undefined;
-  if (!features || !metadata) return null;
-
-  const featureInfo = features.getFeatureInfo();
-  const featureInfoIndex = featureInfo.findIndex(
-    (info) => typeof info.propertyTable === 'number' && Number.isInteger(info.propertyTable),
-  );
-  if (featureInfoIndex < 0) return null;
-
-  const position = mesh.geometry.getAttribute('position');
-  const indexCount = mesh.geometry.getIndex()?.count ?? position?.count ?? 0;
-  if (!position || indexCount < 3) return null;
-
-  const featureAttribute = mesh.geometry.getAttribute(`_feature_id_${featureInfoIndex}`) ??
-    mesh.geometry.getAttribute(`_FEATURE_ID_${featureInfoIndex}`);
-  // Texture/index-derived feature IDs or mixed-feature meshes are not safe for
-  // per-mesh material changes; only act when every vertex has the same ID.
-  if (!featureAttribute || featureAttribute.count !== position.count) return null;
-  const featureId = featureAttribute.getX(0);
-  if (typeof featureId !== 'number' || !Number.isInteger(featureId) || featureId < 0) return null;
-  for (let index = 1; index < featureAttribute.count; index++) {
-    if (featureAttribute.getX(index) !== featureId) return null;
-  }
-
-  const propertyTable = featureInfo[featureInfoIndex].propertyTable;
-  if (typeof propertyTable !== 'number' || propertyTable < 0) return null;
-
-  try {
-    const rows = metadata.getPropertyTableData([propertyTable], [featureId]);
-    const row = rows[0];
-    if (row === null || typeof row !== 'object') return null;
-    const candidate = (row as Record<string, unknown>).StateWord;
-    if (typeof candidate !== 'number' || !Number.isInteger(candidate)) return null;
-    assertValidStateWord(candidate);
-    return candidate;
-  } catch {
-    return null;
-  }
+interface ManagedStateWordMesh {
+  baseWord: number;
+  currentWord: number;
+  originalMaterial: THREE.Material | THREE.Material[];
+  originalMaterials: THREE.Material[];
+  clonedMaterials: THREE.Material[];
+  originalVisible: boolean;
+  isBoundaryProxy: boolean;
+  componentLevel: number | null;
+  semanticLevel: number | null;
+  semanticOverlay: boolean;
 }
 
-/** Change one representational level along T -> C -> S without touching B or D. */
+function readUniformFeatureId(mesh: THREE.Mesh): number | null {
+  const entry = Object.entries(mesh.geometry.attributes).find(([name]) =>
+    /_?FEATURE_?ID_?0$/i.test(name),
+  );
+  if (!entry) return null;
+  const attribute = entry[1];
+  if (attribute.count < 1) return null;
+  const featureId = attribute.getX(0);
+  if (!Number.isSafeInteger(featureId) || featureId < 0) return null;
+  // Object-level state must not be applied to a primitive with mixed feature IDs.
+  for (let i = 1; i < attribute.count; i++) {
+    if (attribute.getX(i) !== featureId) return null;
+  }
+  return featureId;
+}
+
+function asOptionalLevel(value: unknown): number | null {
+  return typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= 3
+    ? value
+    : null;
+}
+
+/** Clone materials per feature and drop only the channels permitted by T. */
+function applyTextureLevel(source: THREE.Material, target: THREE.Material, level: number): void {
+  const original = source as TextureBearingMaterial;
+  const reduced = target as TextureBearingMaterial;
+  const requiredLevel = (key: TextureMapProperty): number => {
+    if (key === 'map') return 1;
+    if (key === 'roughnessMap' || key === 'metalnessMap' || key === 'aoMap' || key === 'lightMap') return 2;
+    if (key === 'alphaMap') return 0; // silhouette coverage is always preserved
+    return 3;
+  };
+  for (const key of TEXTURE_MAP_PROPERTIES) {
+    if (!(key in original)) continue;
+    const channel = original[key];
+    const next = level >= requiredLevel(key) ? (channel ?? null) : null;
+    if (reduced[key] !== next) reduced[key] = next;
+  }
+  target.needsUpdate = true;
+}
+
+/** Reduce T, then C, then S; never alter boundary proxy B or geometric detail D. */
 export function degradeStateWordOneStep(word: number): number {
   assertValidStateWord(word);
   for (const dimension of ['T', 'C', 'S'] as const) {
@@ -138,30 +135,51 @@ export function degradeStateWordOneStep(word: number): number {
   return word;
 }
 
-/** Hysteresis prevents texture-map flicker around the FPS target. */
+function upgradeStateWordOneStep(currentWord: number, baseWord: number): number {
+  assertValidStateWord(currentWord);
+  assertValidStateWord(baseWord);
+  // Reverse the degradation order so recovery restores semantics/components
+  // before paying for richer textures again.
+  for (const dimension of ['S', 'C', 'T'] as const) {
+    const current = decodeStateWord(currentWord, dimension);
+    const base = decodeStateWord(baseWord, dimension);
+    if (current < base) {
+      const { offset, mask } = STATE_WORD_BITS[dimension];
+      const next = (currentWord & ~(mask << offset)) | ((current + 1) << offset);
+      assertValidStateWord(next);
+      return next;
+    }
+  }
+  return currentWord;
+}
+
+/** Apply one-step degradation/recovery with FPS hysteresis. */
 export function stateWordForFrameBudget(
   baseWord: number,
   currentWord: number,
   smoothedFps: number,
   minFps = 30,
-  recoveryFps = 35,
+  recoveryFps = 38,
 ): number {
   assertValidStateWord(baseWord);
   assertValidStateWord(currentWord);
   if (![smoothedFps, minFps, recoveryFps].every(Number.isFinite) ||
-      smoothedFps < 0 || minFps < 0 || recoveryFps < minFps) {
-    throw new RangeError('frame-budget values must be finite and non-negative, with recoveryFps >= minFps');
+      smoothedFps < 0 || minFps <= 0 || recoveryFps < minFps) {
+    throw new RangeError('frame-budget values must be finite, minFps > 0, and recoveryFps >= minFps');
   }
-  const baseTexture = decodeStateWord(baseWord, 'T');
-  const currentTexture = decodeStateWord(currentWord, 'T');
-  const { offset, mask } = STATE_WORD_BITS.T;
-  if (smoothedFps < minFps && currentTexture > 0) {
-    return (currentWord & ~(mask << offset)) | ((currentTexture - 1) << offset);
-  }
-  if (smoothedFps > recoveryFps && currentTexture < baseTexture) {
-    return (currentWord & ~(mask << offset)) | ((currentTexture + 1) << offset);
-  }
+  if (smoothedFps < minFps) return degradeStateWordOneStep(currentWord);
+  if (smoothedFps > recoveryFps) return upgradeStateWordOneStep(currentWord, baseWord);
   return currentWord;
+}
+
+/** Pull a stateWord only from a uniform feature-ID primitive and validated metadata. */
+export function readStateWordFromMesh(mesh: THREE.Mesh): number | null {
+  const features = mesh.userData.meshFeatures as MeshFeaturesReader | undefined;
+  const metadata = mesh.userData.structuralMetadata as StructuralMetadataReader | undefined;
+  if (!features || !metadata) return null;
+  const featureId = readUniformFeatureId(mesh);
+  if (featureId === null) return null;
+  return decodeFeatureStateWord(metadata, features, featureId);
 }
 
 export interface Tiles3DRendererLayerConfig {
@@ -174,6 +192,10 @@ export interface Tiles3DRendererLayerConfig {
   iblIntensity?: number;
   /** Maximum SSE (screen-space error) for refinement. Passed to renderer. */
   maxSse?: number;
+  /** FPS below which feature material quality is reduced. Default 30. */
+  minFps?: number;
+  /** FPS recovery hysteresis above minFps. Default 8. */
+  fpsRecoveryMargin?: number;
 }
 
 const isSafeUrl = (u: string): boolean =>
