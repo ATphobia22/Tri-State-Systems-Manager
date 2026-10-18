@@ -20,13 +20,26 @@
 
 import {
   STATE_WORD_BITS,
-  decodeStateWord as baseDecode,
+  decodeStateWord as decodeSingleDim,
   StateWordValues,
+  StateWordDimension,
 } from './state-word-codec';
 
 // Re-export for convenience
-export { baseDecode as decodeStateWord };
 export type { StateWordValues };
+
+/**
+ * Decode a full state word into all 5 dimensions.
+ */
+export function decodeStateWord(word: number): StateWordValues {
+  return {
+    B: decodeSingleDim(word, 'B'),
+    D: decodeSingleDim(word, 'D'),
+    C: decodeSingleDim(word, 'C'),
+    T: decodeSingleDim(word, 'T'),
+    S: decodeSingleDim(word, 'S'),
+  };
+}
 
 /**
  * GLSL snippet for decoding state words in shaders.
@@ -123,7 +136,7 @@ export function createStateWordUniforms() {
  * Get a human-readable label for a state word.
  */
 export function stateWordLabel(word: number): string {
-  const v = baseDecode(word);
+  const v = decodeStateWord(word);
   const dims: Array<[string, number]> = [
     ['B', v.B], ['D', v.D], ['C', v.C], ['T', v.T], ['S', v.S],
   ];
