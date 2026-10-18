@@ -27,7 +27,13 @@ if (fema && indianaBafm && (fema.authorityClass === indianaBafm.authorityClass |
   errors.push('FEMA effective mapping and Indiana Best Available mapping must retain distinct authority and provenance classes');
 }
 
-const required = ['fema-effective', 'indiana-bafm', 'indiana-parcels-2025', 'indiana-current-imagery', 'usgs-3dep-terrain', 'usgs-03378500', 'noaa-nwps'];
+const required = ['fema-effective', 'indiana-bafm', 'indiana-parcels-2025', 'indiana-current-imagery', 'usgs-3dep-terrain', 'usgs-03378500'];
+
+// A retired source may remain catalogued, but must not be advertised as current operational truth.
+const noaaNwps = manifest.assets.find((asset) => asset.id === 'noaa-nwps');
+if (noaaNwps && (noaaNwps.status === 'PUBLISHED' || noaaNwps.currentTruth)) {
+  errors.push('noaa-nwps is retired in the live-hydrology registry and cannot be published as current truth');
+}
 for (const id of required) if (!ids.has(id)) errors.push(`required layer missing: ${id}`);
 
 if (errors.length) {
