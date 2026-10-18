@@ -2,8 +2,8 @@
  * state-word-scheduler.ts — client-side 5D state-word scheduler.
  *
  * Research basis: "A 5D Orthogonal Decoupling Framework and 16-Bit State-Word"
- * (ISPRS IJGI 2026, 15, 215). No open-source implementation exists; this is a
- * clean-room client-side scheduler implementing the paper's core mechanics:
+ * (ISPRS IJGI 2026, 15, 215). This module supplies tested codec and pure
+ * scheduling primitives; it does not itself perform network or GPU operations:
  *
  * - F = B x D x C x T x S, packed in the published 16-bit layout:
  *     B (boundary proxy) : bits 14-15 (2 bits)
@@ -15,13 +15,9 @@
  * - O(1) bitwise decode (no library needed; GLSL ES 3.00 / WGSL both support it)
  * - XOR-diff incremental updates: only fetch chunks whose dimensions changed
  * - Constraint-aware degradation: drop T/C/S before D under memory pressure
- * - Home Tile routing: full semantics live in the centroid tile; guest tiles
- *   carry { objectId, homeTileId, uri } pointers (a study-specific technique;
- *   its reported 44.1% payload reduction is not a TSM benchmark)
- *
- * The word is carried per-feature via 3D Tiles 1.1 EXT_structural_metadata
- * (uint16 property, zero schema changes). Tiles do spatial selection; the
- * state word drives object-level resource scheduling afterwards.
+ * - Home Tile helper resolves a provided homeTileId or falls back to objectId.
+ *   The full metadata schema, tile-carrier mapping and resource fetch pipeline
+ *   remain separate integration work; no paper benchmark is claimed for TSM.
  */
 
 import { assertValidStateWord, decodeStateWord, didDimensionChange, STATE_WORD_BITS, type StateWordDimension } from './tiles-3d-renderer-layer';
