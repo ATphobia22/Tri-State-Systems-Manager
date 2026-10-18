@@ -42,8 +42,8 @@ class HlodGeometricErrorTests(unittest.TestCase):
         tree = root.tile(1.0)
         self.assertEqual(tree["geometricError"], 8.0)
         child_errors = [child["geometricError"] for child in tree["children"]]
-        self.assertEqual(sorted(child_errors), [2.0, 8.0])
-        self.assertTrue(all(tree["geometricError"] >= child for child in child_errors))
+        self.assertEqual(sorted(child_errors), [8.0, 8.0])
+        self.assertTrue(all(child >= tree["geometricError"] for child in child_errors))
 
     def test_empty_nodes_keep_fallback_floor_and_leaves_keep_source_errors(self) -> None:
         coords = [
@@ -60,6 +60,9 @@ class HlodGeometricErrorTests(unittest.TestCase):
         self.assertGreater(len(empty_nodes), 1, "fixture must cover nested empty nodes")
         for node in empty_nodes:
             self.assertGreaterEqual(node["geometricError"], fallback)
+            for child in node.get("children", []):
+                if "content" not in child:
+                    self.assertGreaterEqual(child["geometricError"], node["geometricError"])
 
         expected = {obj.tile["content"]["uri"]: obj.tile["geometricError"] for obj in items}
         actual = {
