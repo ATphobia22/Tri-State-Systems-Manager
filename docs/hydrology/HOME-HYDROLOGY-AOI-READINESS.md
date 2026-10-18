@@ -48,7 +48,7 @@ ERDC/CHL TR-22-4 text states UTM Zone 15 North, NAD83, metres for the Phase 1 mo
 
 ## 4. Runtime state is not source availability
 
-The source catalog, tile manifest, and runtime registry must agree. NOAA NWPS is currently marked retired by the repository's owner-decision registry, so a catalog entry cannot claim it is published/current operational truth. The modern USGS API is publicly documented, but that does not override the repository's explicit telemetry gate or prove that an endpoint, AOI, units, freshness policy, and runtime integration have passed tests.
+The source catalog, tile manifest, and runtime registry must agree. NOAA NWPS and modern USGS Water Data are configured for user-triggered read-only observations; automatic polling is prohibited. The NOAA forecast/tile product remains pending and is not current truth. The adapters are configured, but no live snapshot receipt has been captured in this report, so operational availability, station freshness, and AOI coverage remain unverified.
 
 ## 5. Release decision
 
