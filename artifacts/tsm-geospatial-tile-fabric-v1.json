@@ -246,22 +246,22 @@
       "dataset": "NOAA National Water Prediction Service",
       "authority": "NOAA / NWS",
       "authorityClass": "HYDROLOGIC_FORECAST",
-      "purpose": "Official observed and forecast hydrologic state",
+      "purpose": "Catalog reference only. Live NOAA river telemetry was retired by owner decision on 2026-09-29; this record is not an active feed.",
       "layerType": "live-forecast",
       "sourceUrl": "https://api.water.noaa.gov/nwps/v1/",
-      "status": "PUBLISHED",
+      "status": "PROGRAM_PENDING",
       "crs": "EPSG:4326",
       "verticalDatum": "SOURCE_PRODUCT_DECLARED",
       "tileScheme": "NONE",
       "provenanceClass": "AGENCY_FORECAST",
-      "currentTruth": true,
+      "currentTruth": false,
       "acquiredAt": null,
       "effectiveAt": null,
-      "freshnessPolicy": "Preserve forecast issuance/valid time and distinguish forecast records from observations.",
+      "freshnessPolicy": "Do not poll or display as live while the live-hydrology registry marks NOAA_NWPS retired. Reactivation requires explicit owner authorization, verified endpoint integration, and health/freshness tests.",
       "verification": {
-        "state": "VERIFIED",
+        "state": "PENDING",
         "checkedAt": "2026-09-14T16:30:00Z",
-        "sourceHashPolicy": "Hash normalized forecast batches and retain issuance metadata."
+        "sourceHashPolicy": "No current operational data verified. Keep as a source reference only until explicit reactivation and end-to-end verification."
       }
     },
     {
