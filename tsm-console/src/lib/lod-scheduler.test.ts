@@ -186,7 +186,7 @@ describe('LodScheduler.update', () => {
       box(`root-${index}`, 0, [index * 2, 0, 0, index * 2 + 1, 1, 1], 0, null),
     );
     expect(() => new LodScheduler(nodes)).toThrow(/provide a precomputed adjacency map/);
-    expect(() => new LodScheduler(nodes, {}, new Map(nodes.map((node) => [node.id, []])))).not.toThrow();
+    expect(() => new LodScheduler(nodes, {}, new Map<string, string[]>(nodes.map((node): [string, string[]] => [node.id, []])))).not.toThrow();
   });
 
   it('accepts a 2:1 violation it cannot repair (leaf with no children)', () => {
