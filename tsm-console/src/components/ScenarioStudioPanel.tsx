@@ -19,6 +19,7 @@ import {
   downloadEvidencePackage,
   exportScenarioStudioEvidence,
 } from '../lib/scenario-evidence-export';
+import FloodScenarioAnimation from './FloodScenarioAnimation';
 
 const SEV_COLOR: Record<ImpactSeverity, string> = {
   none: '#64748b',
@@ -242,6 +243,8 @@ export default function ScenarioStudioPanel({ onResult }: Props): React.JSX.Elem
           <p style={{ marginTop: 8, fontSize: 10, color: '#78716c' }}>{result.disclaimer}</p>
         </div>
       )}
+
+      <FloodScenarioAnimation />
     </div>
   );
 }
