@@ -261,7 +261,7 @@
       "verification": {
         "state": "PENDING",
         "checkedAt": "2026-09-14T16:30:00Z",
-        "sourceHashPolicy": "No current operational data verified. Keep as a source reference only until explicit reactivation and end-to-end verification."
+        "sourceHashPolicy": "No current forecast tile or forecast-layer response has been verified. The source adapter is configured for user-triggered observations only; keep the forecast tile pending until forecast-specific integration and provenance tests pass."
       }
     },
     {
