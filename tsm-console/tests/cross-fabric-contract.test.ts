@@ -12,6 +12,8 @@ const tileManifest = JSON.parse(
   schemaVersion: string;
   assets: Array<{
     id: string;
+    authorityClass: string;
+    provenanceClass: string;
     sourceUrl: string;
     status: string;
     crs: string;
