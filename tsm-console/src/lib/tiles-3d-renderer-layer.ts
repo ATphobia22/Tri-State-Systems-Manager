@@ -9,7 +9,8 @@
  * - 3D Tiles 1.1: RTC center in glTF root-node translation (double precision)
  * - Renderer handles double-precision internally; GPU sees only small relatives
  * - PBR/IBL via three.js PMREMGenerator + RoomEnvironment (procedural HDR)
- * - 5D state-word (uint16) carried via EXT_structural_metadata per feature
+ * - 5D state-word decoding helpers are experimental; metadata-to-attribute
+ *   binding and renderer scheduling are not implemented by this layer.
  *
  * Resilient design: the layer accepts only supported HTTP(S) or local asset
  * URL forms, rejects unsupported schemes before invoking the loader, and
@@ -82,7 +83,14 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
   readonly renderingMode: '3d' = '3d';
 
   private mapScene: MapScene | null = null;
+  private map: maplibregl.Map | null = null;
   private tilesRenderer: TilesRenderer | null = null;
+  private readonly handleTilesChanged = (): void => {
+    // TilesRenderer loads asynchronously. Request another MapLibre frame when
+    // the tileset/model arrives; otherwise a static map can remain stale until
+    // the user pans or zooms.
+    this.map?.triggerRepaint();
+  };
   private pmrem: THREE.PMREMGenerator | null = null;
   private readonly config: Required<Omit<Tiles3DRendererLayerConfig, 'id' | 'tilesetUrl'>> &
     Pick<Tiles3DRendererLayerConfig, 'id' | 'tilesetUrl'>;
@@ -99,6 +107,7 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
 
   onAdd(map: maplibregl.Map, gl: WebGLRenderingContext): void {
     // Reject unsupported URL schemes and ambiguous URL forms before loading.
+    this.map = map;
     const url = normalizeTilesetUrl(this.config.tilesetUrl);
     if (url === null) {
       console.warn(`[Tiles3D] Rejected unsafe tileset URL: ${this.config.tilesetUrl}`);
@@ -129,10 +138,13 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
       // internally in double precision; GPU sees small relative positions.
       this.tilesRenderer = new TilesRenderer(url);
       this.tilesRenderer.errorTarget = this.config.maxSse;
+      this.tilesRenderer.addEventListener('load-tileset', this.handleTilesChanged);
+      this.tilesRenderer.addEventListener('load-model', this.handleTilesChanged);
       scene.add(this.tilesRenderer.group as unknown as THREE.Object3D);
     } catch (err) {
       console.warn('[Tiles3D] Failed to initialize layer:', err);
       this.mapScene = null;
+      this.map = null;
       this.tilesRenderer = null;
     }
   }
@@ -161,6 +173,8 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
 
   onRemove(): void {
     try {
+      this.tilesRenderer?.removeEventListener('load-tileset', this.handleTilesChanged);
+      this.tilesRenderer?.removeEventListener('load-model', this.handleTilesChanged);
       this.tilesRenderer?.dispose();
       this.pmrem?.dispose();
       (this.mapScene?.scene as THREE.Scene | undefined)?.environment?.dispose?.();
@@ -169,13 +183,15 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
     }
     this.tilesRenderer = null;
     this.mapScene = null;
+    this.map = null;
     this.pmrem = null;
   }
 }
 
 /**
- * GLSL chunk for 5D state-word decode in shaders. Include in onBeforeCompile.
- * Reads a per-instance `aStateWord` uint16 attribute; outputs b/d/c/t/s ints.
+ * Optional GLSL snippet for a future 5D state-word integration. This layer does
+ * not attach it to tile materials or populate `aStateWord`; callers must supply
+ * a validated metadata-to-attribute bridge before using this snippet.
  *
  * Usage:
  *   shader.vertexShader = shader.vertexShader
