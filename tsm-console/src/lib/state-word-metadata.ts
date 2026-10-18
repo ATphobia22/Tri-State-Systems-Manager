@@ -50,7 +50,9 @@ export function decodeFeatureStateWord(
     const row = rows[0];
     if (!isRecord(row) || !Object.hasOwn(row, 'stateWord')) continue;
 
-    const word = row.stateWord;
+    // `stateWord` is the canonical TSM property. `StateWord` is accepted
+    // for older source schemas that used PascalCase; both are uint16 values.
+    const word = Object.hasOwn(row, 'stateWord') ? row.stateWord : row.StateWord;
     if (typeof word !== 'number') {
       throw new TypeError(`Structural metadata stateWord must be a number; received ${typeof word}`);
     }
