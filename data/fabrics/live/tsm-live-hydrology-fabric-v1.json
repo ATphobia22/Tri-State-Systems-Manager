@@ -1,8 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "status": "PARTIALLY_RETIRED_BY_OWNER",
-  "verifiedAt": "2026-09-18T12:30:00Z",
-  "retiredAt": "2026-09-29",
+  "status": "ACTIVE_SOURCE_REGISTRY",
+  "verifiedAt": "2026-10-18T00:00:00Z",
   "retirementNote": "Owner decision 2026-09-29: drop live river data. NOAA live river observation/forecast sources are retired; no runtime code may poll them. Static reference sources (USACE NLD infrastructure inventory, USGS 3DEP elevation) remain active.",
   "sources": [
     {
@@ -17,8 +16,10 @@
       ],
       "class": "OBSERVATION_AND_FORECAST",
       "id": "NOAA_NWPS",
-      "retiredReason": "Owner dropped live river data on 2026-09-29. No polling, no values shown.",
-      "status": "retired"
+      "status": "active",
+      "activationMode": "user_triggered",
+      "automaticPolling": false,
+      "runtimeVerification": "PENDING_LIVE_SNAPSHOT_RECEIPT"
     },
     {
       "apiBase": "https://api.water.noaa.gov",
@@ -26,7 +27,7 @@
       "class": "MODEL_GUIDANCE",
       "experimental": true,
       "id": "NOAA_NWM",
-      "retiredReason": "Owner dropped live river data on 2026-09-29. No polling, no values shown.",
+      "retiredReason": "Experimental model-guidance feed remains disabled; not required for on-demand observed-stage snapshots.",
       "status": "retired"
     },
     {
@@ -53,6 +54,21 @@
       "id": "USGS_3DEP",
       "service": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
       "status": "active"
+    },
+    {
+      "apiBase": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/latest-continuous",
+      "authority": "USGS",
+      "capabilities": [
+        "latest continuous gage height",
+        "latest continuous discharge",
+        "monitoring-location metadata"
+      ],
+      "class": "OBSERVATION",
+      "id": "USGS_WATERDATA",
+      "activationMode": "user_triggered",
+      "automaticPolling": false,
+      "runtimeVerification": "PENDING_LIVE_SNAPSHOT_RECEIPT",
+      "status": "active"
     }
   ],
   "controls": {
@@ -61,6 +77,8 @@
     "observation_forecast_model_separation": true,
     "retired_sources_must_not_be_polled": true,
     "source_timestamps_required": true,
-    "vertical_datum_must_be_explicit_or_unverified": true
-  }
+    "vertical_datum_must_be_explicit_or_unverified": true,
+    "automatic_polling_prohibited": true
+  },
+  "activationNote": "Owner instruction 2026-10-18 supersedes the 2026-09-29 full-retirement decision: enable user-triggered read-only snapshots through the server API; automatic polling remains prohibited. NOAA NWPS and modern USGS Water Data adapters are configured. Runtime end-to-end availability is not certified until a live snapshot receipt is captured."
 }
