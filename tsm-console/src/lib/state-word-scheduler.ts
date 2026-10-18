@@ -28,8 +28,8 @@ import { decodeStateWord, didDimensionChange, type StateWordDimension } from './
 const DEGRADATION_ORDER: StateWordDimension[] = ['T', 'C', 'S'];
 
 export interface SchedulerBudget {
-  /** Available GPU memory in MB, as reported by a supported telemetry source. */
-  vramMB: number;
+  /** Available GPU memory in MB, if exposed by a supported telemetry source. */
+  vramMB?: number;
   /** Current frame rate. Below threshold triggers degradation. */
   fps: number;
   /** FPS below which we degrade. Default 30. */
@@ -40,9 +40,12 @@ export interface SchedulerBudget {
 
 function validateBudget(budget: SchedulerBudget): void {
   for (const [name, value] of [["vramMB", budget.vramMB], ["fps", budget.fps]] as const) {
-    if (!Number.isFinite(value) || value < 0) {
-      throw new RangeError(`${name} must be a finite non-negative number`);
+    if (value !== undefined && (!Number.isFinite(value) || value < 0)) {
+      throw new RangeError(`${name} must be a finite non-negative number when provided`);
     }
+  }
+  if (budget.fps === undefined) {
+    throw new RangeError("fps must be provided as a finite non-negative number");
   }
   for (const [name, value] of [["minFps", budget.minFps], ["minVramMB", budget.minVramMB]] as const) {
     if (value !== undefined && (!Number.isFinite(value) || value < 0)) {
@@ -130,7 +133,9 @@ export function scheduleFrame(
   const minFps = budget.minFps ?? 30;
   const underFpsPressure = budget.fps < minFps;
   const underMemoryPressure =
-    budget.minVramMB !== undefined && budget.vramMB < budget.minVramMB;
+    budget.minVramMB !== undefined &&
+    budget.vramMB !== undefined &&
+    budget.vramMB < budget.minVramMB;
   const underPressure = underFpsPressure || underMemoryPressure;
 
   const fetch: Array<{ objectId: string; dims: StateWordDimension[] }> = [];
