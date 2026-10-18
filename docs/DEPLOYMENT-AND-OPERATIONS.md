@@ -1,6 +1,6 @@
 # Tri-State Systems Manager — Deployment and Operations
 
-> **RETIRED BY OWNER DECISION 2026-09-29.** Live river observations and the "Live River Watch" UI states described below are retired; the API answers hydrologic routes with `410 RIVER_TELEMETRY_RETIRED`. Login is disabled (`TSM_AUTH_MODE` defaults to `disabled`). This document is preserved for historical reference only.
+> **Current policy (2026-10-18): user-triggered read-only snapshots enabled; automatic polling prohibited.** The Node API exposes `/api/hydrologic/community` and `/api/hydrologic/live` through server-side adapters. Community writes, alerts, and ingestion mutation routes remain retired. Login is disabled (`TSM_AUTH_MODE` defaults to `disabled`).
 
 ## Production boundary
 
@@ -42,7 +42,7 @@ CI is the authoritative repository verification environment when a local Node to
 
 ## Live River Watch
 
-The browser uses `/api/hydrologic/community`, which performs server-side aggregation against the registered USGS/NOAA sources. Each observation retains source identity, observed time, retrieval time, qualifier, discharge where available, freshness state and source URI.
+The browser uses `/api/hydrologic/community`, which performs server-side aggregation against registered NOAA NWPS and modern USGS sources only after explicit user action. Each observation retains source identity, observed time, retrieval time, qualifier, discharge where available, freshness state and source URI. No background polling is allowed.
 
 The UI deliberately shows `LIVE OBSERVATION`, `STALE`, `CANDIDATE — NOT LIVE`, or `SOURCE UNAVAILABLE`; it never substitutes a guessed value for a missing upstream observation.
 
