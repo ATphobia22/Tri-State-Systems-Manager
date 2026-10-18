@@ -3,17 +3,24 @@
  * No private residence fallback geometry is embedded in the application.
  */
 
+import {
+  attachStateWordToFeatureProperties,
+  STATE_WORD_DEFAULT,
+  StateWordDecoder,
+} from '../geospatial/state-word';
+
+export type BBox = [number, number, number, number];
+
 export interface GeoJSONFeature {
   type: 'Feature';
-  properties: {
-    id: string;
-    height?: number;
-    levels?: number;
-    name?: string;
-    source?: string;
-    [key: string]: unknown;
+  geometry: {
+    type: string;
+    coordinates: unknown;
   };
-  geometry: { type: 'Polygon'; coordinates: number[][][] };
+  properties: Record<string, unknown> & {
+    height?: number;
+    height_m?: number;
+  };
 }
 
 export interface GeoJSONFeatureCollection {
@@ -21,12 +28,9 @@ export interface GeoJSONFeatureCollection {
   features: GeoJSONFeature[];
 }
 
-export type BBox = [number, number, number, number];
-
 const EMPTY_FC: GeoJSONFeatureCollection = { type: 'FeatureCollection', features: [] };
 
 export function normalizeBuildingHeight(props: Record<string, unknown>): number {
-  // Prefer LiDAR / pipeline height_m (meters from buildings-3d.json).
   const hm = props.height_m ?? props.heightM;
   if (typeof hm === 'number' && Number.isFinite(hm) && hm > 0) return hm;
   const h = props.height;
@@ -41,7 +45,10 @@ function enrichHeights(fc: GeoJSONFeatureCollection): GeoJSONFeatureCollection {
     ...fc,
     features: fc.features.map((f) => ({
       ...f,
-      properties: { ...f.properties, height_m: normalizeBuildingHeight(f.properties) },
+      properties: attachStateWordToFeatureProperties(
+        { ...f.properties, height_m: normalizeBuildingHeight(f.properties) },
+        STATE_WORD_DEFAULT,
+      ),
     })),
   };
 }
@@ -62,8 +69,12 @@ async function fetchPublishedIgIoBuildings(bbox: BBox): Promise<GeoJSONFeatureCo
       const xs = coordinates.filter((v): v is number => typeof v === 'number').filter((_, i) => i % 2 === 0);
       const ys = coordinates.filter((v): v is number => typeof v === 'number').filter((_, i) => i % 2 === 1);
       if (!xs.length || !ys.length) return false;
-      return Math.max(...xs) >= xmin && Math.min(...xs) <= xmax &&
-        Math.max(...ys) >= ymin && Math.min(...ys) <= ymax;
+      return (
+        Math.max(...xs) >= xmin &&
+        Math.min(...xs) <= xmax &&
+        Math.max(...ys) >= ymin &&
+        Math.min(...ys) <= ymax
+      );
     })
     .map((feature) => ({
       type: 'Feature' as const,
@@ -100,4 +111,16 @@ export async function fetchBuildings(bbox: BBox): Promise<GeoJSONFeatureCollecti
   }
 }
 
-export { EMPTY_FC };
+export function degradeBuildingStateWord(
+  feature: GeoJSONFeature,
+  vramUsageRatio: number,
+  bandwidthMbps: number,
+): number {
+  const current =
+    typeof feature.properties.tsmStateWord === 'number'
+      ? feature.properties.tsmStateWord
+      : StateWordDecoder.encode(STATE_WORD_DEFAULT);
+  return StateWordDecoder.evaluateDegradation(current, vramUsageRatio, bandwidthMbps);
+}
+
+export { EMPTY_FC, StateWordDecoder, STATE_WORD_DEFAULT };
