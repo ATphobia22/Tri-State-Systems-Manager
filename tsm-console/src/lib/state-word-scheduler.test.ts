@@ -44,7 +44,7 @@ describe('published state-word bit layout', () => {
         for (let C = 0; C <= 3; C++) {
           for (let T = 0; T <= 3; T++) {
             for (let S = 0; S <= 3; S++) {
-              for (let R = 0; R <= 7; R++) {
+              for (let R = 0; R <= 1; R++) {
                 const word = state(B, D, C, T, S, R);
                 if (
                   decodeStateWord(word, 'B') !== B ||
@@ -78,7 +78,9 @@ describe('published state-word bit layout', () => {
     expect(() => state(0, 0, 4, 0, 0)).toThrow(RangeError);
     expect(() => state(0, 0, 0, 4, 0)).toThrow(RangeError);
     expect(() => state(0, 0, 0, 0, 4)).toThrow(RangeError);
+    expect(() => encodeStateWord({ B: 0, D: 0, C: 0, T: 0, S: 0 }, 2)).toThrow(RangeError);
     expect(() => encodeStateWord({ B: 0, D: 0, C: 0, T: 0, S: 0 }, 8)).toThrow(RangeError);
+    expect(() => decodeStateWordExtension(2)).toThrow(RangeError);
   });
 
   it('keeps the R extension separate from B-D-C-T-S change detection', () => {
