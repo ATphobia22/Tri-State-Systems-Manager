@@ -234,23 +234,26 @@ const server = http.createServer(async (req, res) => {
         const observations = snapshot.observations.map((frame) => {
           const observation = frame.observation || null;
           const qualifier = observation?.provenance?.qualifier || null;
+          const validStage = typeof observation?.value === 'number' &&
+            typeof observation?.unit === 'string' && observation.unit.trim().length > 0 &&
+            typeof observation?.verticalDatum === 'string' && observation.verticalDatum.trim().length > 0;
           return {
             stationId: frame.stationId,
             nwsId: frame.nwsId || null,
             provider: frame.provider,
             name: frame.name || null,
-            value: typeof observation?.value === 'number' ? observation.value : null,
+            value: validStage ? observation.value : null,
             unit: observation?.unit || null,
             observedAt: observation?.observedAt || null,
             retrievedAt: observation?.retrievedAt || snapshot.generatedAt,
             qualifier,
             provisional: String(qualifier || '').toUpperCase() === 'P',
-            status: frame.status === 'unavailable' || !observation ? 'unavailable' : frame.freshness || frame.status,
+            status: frame.status === 'unavailable' || !validStage ? 'unavailable' : frame.freshness || frame.status,
             dischargeCfs: typeof frame.dischargeCfs === 'number' ? frame.dischargeCfs : null,
             dischargeObservedAt: frame.dischargeObservedAt || null,
             sourceUri: observation?.sourceUri || null,
-            verticalDatum: observation?.verticalDatum || 'GAGE_DATUM',
-            error: frame.error || null,
+            verticalDatum: observation?.verticalDatum || null,
+            error: frame.error || (!validStage ? 'Missing numeric stage, units, or vertical-reference metadata.' : null),
           };
         });
         return json(res, 200, { ...snapshot, observations }, requestId);
