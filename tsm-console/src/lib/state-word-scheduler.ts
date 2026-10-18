@@ -73,17 +73,18 @@ export function degradeWord(word: number, stepsDown: number): number {
   let out = word;
   // Bit layout (must match tiles-3d-renderer-layer.ts):
   // B:0-2 D:3-5 C:6-8 T:9-12 S:13-15
-  const dims: Array<{ offset: number; mask: number; levels: number }> = [
-    { offset: 9, mask: 0xf, levels: 4 },  // T
-    { offset: 6, mask: 0x7, levels: 3 },  // C
-    { offset: 13, mask: 0x7, levels: 3 }, // S
+  // Exhaust each dimension in priority order before reducing the next one.
+  const dims: Array<{ offset: number; mask: number }> = [
+    { offset: 9, mask: 0xf },  // T: texture appearance
+    { offset: 6, mask: 0x7 },  // C: component complexity
+    { offset: 13, mask: 0x7 }, // S: optional semantic depth
   ];
-  for (let s = 0; s < stepsDown; s++) {
-    const d = dims[s % dims.length];
-    const cur = (out >> d.offset) & d.mask;
-    if (cur > 0) {
-      out = (out & ~(d.mask << d.offset)) | ((cur - 1) << d.offset);
-    }
+  for (let step = 0; step < stepsDown; step++) {
+    const reducible = dims.find(({ offset, mask }) => ((out >>> offset) & mask) > 0);
+    if (!reducible) break;
+    const current = (out >>> reducible.offset) & reducible.mask;
+    out = (out & ~(reducible.mask << reducible.offset)) |
+      ((current - 1) << reducible.offset);
   }
   return out;
 }
