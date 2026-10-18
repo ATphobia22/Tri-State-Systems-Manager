@@ -13,11 +13,12 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "node --test tests/geodetic-pipeline.test.mjs",
-    "ci": "npm run check:full-tree-hardening && npm run check:engineering-fabric && npm run check:native-product && npm run check:action-pins && npm run check:file-health && npm run check:parse && npm run check:type && npm run check:geospatial && npm run check:flood-federation && npm run check:openfema && npm run check:tri-state-data && npm run check:government-sources && npm run check:live-fabric && npm run check:regulatory-rules && npm run check:engineering-pipeline && npm run check:schemas && npm run check:hec-manifest && npm run check:spatial-runtime && npm run check:h3-migration && npm run build && npm run check:client-bundle-secrets && npm run check:enterprise-architecture && npm run check:architecture-repository && npm run check:data-fabric-contract && npm run check:provenance-plane && npm run test:production-gates && npm run check:external-tooling && npm run check:3d-tiles-tools && npm run test:external-capabilities",
+    "ci": "npm run check:full-tree-hardening && npm run check:engineering-fabric && npm run check:native-product && npm run check:action-pins && npm run check:file-health && npm run check:parse && npm run check:type && npm run check:geospatial && npm run check:flood-federation && npm run check:openfema && npm run check:tri-state-data && npm run check:government-sources && npm run check:live-fabric && npm run check:regulatory-rules && npm run check:engineering-pipeline && npm run check:schemas && npm run check:hec-manifest && npm run check:spatial-runtime && npm run check:h3-migration && npm run build && npm run check:client-bundle-secrets && npm run check:enterprise-architecture && npm run check:architecture-repository && npm run check:data-fabric-contract && npm run check:provenance-plane && npm run test:production-gates && npm run test:nfhl && npm run check:external-tooling && npm run check:3d-tiles-tools && npm run test:external-capabilities",
     "ci:full": "npm run ci && npm run test:all && npm run test:backend",
     "check:action-pins": "node ../scripts/ci/validate-action-pins.mjs",
     "check:schemas": "node ../scripts/ci/validate-json-schemas.mjs",
     "test:production-gates": "node --test tests/production-gates.test.mjs",
+    "test:nfhl": "node --test tests/nfhl-registry-contract.test.mjs",
     "test:agent-autonomy": "node --test tests/agent-autonomy.test.mjs",
     "storybook": "echo 'Storybook optional: install storybook@9+ when Vite 8 peer support is available' && exit 0",
     "storybook:build": "echo 'Storybook build skipped (optional)' && exit 0",
@@ -118,7 +119,7 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-router": "^8.4.0",
-    "three": "^0.178.0"
+    "three": "0.178.0"
   },
   "optionalDependencies": {
     "lightningcss-darwin-arm64": "1.33.0",
@@ -133,7 +134,7 @@
     "@types/node": "^26.6.5",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
-    "@types/three": "^0.178.1",
+    "@types/three": "0.178.1",
     "@vitejs/plugin-react": "^6.1.2",
     "@webgpu/types": "^0.1.74",
     "cypress": "16.1.1",
@@ -143,6 +144,7 @@
   },
   "overrides": {
     "uuid": "^11.1.1",
-    "source-map-js": "^1.2.2"
+    "source-map-js": "^1.2.2",
+    "three": "0.178.0"
   }
 }
