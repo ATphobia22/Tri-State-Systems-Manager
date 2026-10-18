@@ -19,7 +19,12 @@ for (const asset of manifest.assets) {
   if (!asset.verification?.checkedAt) errors.push(`${asset.id}: missing verification timestamp`);
   if (asset.status === 'PROGRAM_PENDING' && asset.currentTruth) errors.push(`${asset.id}: program-pending source cannot be current truth`);
   if (asset.provenanceClass === 'HISTORICAL_COMMUNITY_EVIDENCE' && asset.currentTruth) errors.push(`${asset.id}: historical evidence cannot be current truth`);
-  if (asset.id === 'fema-effective' && asset.id === 'indiana-bafm') errors.push('FEMA and BAFM identifiers must remain distinct');
+}
+
+const fema = manifest.assets.find((asset) => asset.id === 'fema-effective');
+const indianaBafm = manifest.assets.find((asset) => asset.id === 'indiana-bafm');
+if (fema && indianaBafm && (fema.authorityClass === indianaBafm.authorityClass || fema.provenanceClass === indianaBafm.provenanceClass)) {
+  errors.push('FEMA effective mapping and Indiana Best Available mapping must retain distinct authority and provenance classes');
 }
 
 const required = ['fema-effective', 'indiana-bafm', 'indiana-parcels-2025', 'indiana-current-imagery', 'usgs-3dep-terrain', 'usgs-03378500', 'noaa-nwps'];

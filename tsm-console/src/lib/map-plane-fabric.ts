@@ -20,6 +20,14 @@ const sourceLayerIds: Partial<Record<StructuralPipelineLayer['id'], number>> = {
   'indiana-bafm': 104,
 };
 
+const DEFAULT_VISIBLE_LAYER_IDS = new Set<StructuralPipelineLayer['id']>([
+  'terrain-rgb',
+  'indiana-parcels',
+  'indiana-roads',
+  'posey-cslf',
+  'usgs-3dep-elevation',
+]);
+
 function toMapPlaneLayer(layer: StructuralPipelineLayer): MapPlaneLayer {
   const kind: MapPlaneLayerKind =
     layer.kind === 'terrain' ? 'raster-dem' :
@@ -33,7 +41,7 @@ function toMapPlaneLayer(layer: StructuralPipelineLayer): MapPlaneLayer {
     authority: layer.sourceAuthority,
     kind,
     endpoint: layer.endpoint,
-    defaultVisible: layer.index === 1 || layer.index === 5 || layer.index === 6 || layer.index === 9 || layer.index === 12,
+    defaultVisible: DEFAULT_VISIBLE_LAYER_IDS.has(layer.id),
     notes: layer.notes,
     mapRenderable: layer.mapRenderable,
     sourceLayerId: sourceLayerIds[layer.id],
