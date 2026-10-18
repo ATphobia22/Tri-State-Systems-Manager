@@ -31,6 +31,7 @@ import { STATE_WORD_BITS, assertValidStateWord, decodeStateWord } from './state-
 import { decodeFeatureStateWord, type MeshFeaturesReader, type StructuralMetadataReader } from './state-word-metadata';
 import { WebGL2DepthOcclusionController } from './webgl2-depth-occlusion';
 import { AdaptiveSseBudget } from './adaptive-sse-budget';
+import { normalizeTilesetUrl as normalizeSafeTilesetUrl } from './tileset-url';
 
 export {
   STATE_WORD_BITS,
@@ -204,15 +205,7 @@ const isSafeUrl = (u: string): boolean =>
  * - Returns null only for javascript:/data: URLs (genuine XSS risk)
  */
 export function normalizeTilesetUrl(raw: string): string | null {
-  const u = raw.trim();
-  if (/^\s*javascript:/i.test(u) || /^\s*data:/i.test(u)) return null;
-  if (/^https?:\/\//i.test(u)) return u;
-  if (u.startsWith('/') || u.startsWith('./') || u.startsWith('../')) return u;
-  // Bare filename or relative path: resolve against app base
-  if (/^[A-Za-z0-9._-]+(\/[A-Za-z0-9._-]+)*(\.json)?$/i.test(u)) {
-    return u.endsWith('.json') ? u : `${u}/tileset.json`;
-  }
-  return u;
+  return normalizeSafeTilesetUrl(raw);
 }
 
 /**
