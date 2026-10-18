@@ -36,14 +36,16 @@ describe('state-word bit layout', () => {
 
   it('round-trips all 65,536 words through the encoder and decoder', () => {
     for (let word = 0; word <= 0xffff; word++) {
-      expect(encodeStateWord({
+      const encoded = encodeStateWord({
         B: decodeStateWord(word, 'B'),
         D: decodeStateWord(word, 'D'),
         C: decodeStateWord(word, 'C'),
         T: decodeStateWord(word, 'T'),
         S: decodeStateWord(word, 'S'),
-      })).toBe(word);
+      });
+      if (encoded !== word) throw new Error(`Round-trip mismatch for state word ${word}`);
     }
+    expect(true).toBe(true);
   });
 
   it('rejects field values outside their bit capacity', () => {
