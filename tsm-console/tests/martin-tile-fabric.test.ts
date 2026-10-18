@@ -40,3 +40,28 @@ describe('Martin tile fabric', () => {
     ).toThrow(/HTTP or HTTPS/);
   });
 });
+
+describe('3D Tiles URL validation', () => {
+  it('rejects URLs with embedded credentials', () => {
+    expect(() =>
+      resolveThreeDTilesetUrl({
+        id: 'photogrammetry',
+        tilesetUrl: 'https://user:secret@tiles.example.invalid/tileset.json',
+        enabled: true,
+      }),
+    ).toThrow(/without embedded credentials/);
+  });
+
+  it('rejects protocol-relative and unsupported URL forms', () => {
+    for (const tilesetUrl of [
+      '//tiles.example.invalid/tileset.json',
+      'javascript:alert(1)',
+      'https://tiles.example.invalid\\\\@evil.invalid/tileset.json',
+      ' https://tiles.example.invalid/tileset.json ',
+    ]) {
+      expect(() =>
+        resolveThreeDTilesetUrl({ id: 'photogrammetry', tilesetUrl, enabled: true }),
+      ).toThrow();
+    }
+  });
+});
