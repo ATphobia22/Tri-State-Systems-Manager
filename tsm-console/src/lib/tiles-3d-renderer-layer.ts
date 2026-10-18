@@ -59,12 +59,14 @@ export function assertValidStateWord(word: number): void {
     const value = (word >>> offset) & mask;
     if (value > 3) throw new RangeError(`Reserved ${dim} state-word level: ${value}`);
   }
+  const extension = (word >>> STATE_WORD_EXTENSION_BITS.offset) & STATE_WORD_EXTENSION_BITS.mask;
+  if (extension > 1) throw new RangeError(`Reserved R extension value: ${extension}`);
 }
 
 /** Encode a valid B-D-C-T-S state and the three-bit R extension field. */
 export function encodeStateWord(values: StateWordValues, extension = 0): number {
-  if (!Number.isInteger(extension) || extension < 0 || extension > STATE_WORD_EXTENSION_BITS.mask) {
-    throw new RangeError(`R extension must be an integer in [0, 7]; received ${extension}`);
+  if (!Number.isInteger(extension) || extension < 0 || extension > 1) {
+    throw new RangeError(`R extension must be 0 or 1 in the current schema; received ${extension}`);
   }
   let word = extension;
   for (const dim of Object.keys(STATE_WORD_BITS) as StateWordDimension[]) {
@@ -261,5 +263,5 @@ export const STATE_WORD_GLSL_DECODE = /* glsl */ `
   int swS = int((_sw >> 3u) & 0x7u);
   int swR = int(_sw & 0x7u);
   // C/T/S levels 4-7 are reserved in the current contract.
-  bool swValid = (swC <= 3) && (swT <= 3) && (swS <= 3);
+  bool swValid = (swC <= 3) && (swT <= 3) && (swS <= 3) && (swR <= 1);
 `;
