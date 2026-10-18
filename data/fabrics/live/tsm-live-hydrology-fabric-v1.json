@@ -2,7 +2,7 @@
   "schemaVersion": "1.0.0",
   "status": "ACTIVE_SOURCE_REGISTRY",
   "verifiedAt": "2026-10-18T00:00:00Z",
-  "retirementNote": "Owner decision 2026-09-29: drop live river data. NOAA live river observation/forecast sources are retired; no runtime code may poll them. Static reference sources (USACE NLD infrastructure inventory, USGS 3DEP elevation) remain active.",
+  "retirementNote": "Historical owner decision 2026-09-29 retired live river polling. Superseded by the 2026-10-18 owner instruction permitting read-only, user-triggered snapshots only. Automatic polling remains prohibited; runtime availability is not certified until a live snapshot receipt is captured.",
   "sources": [
     {
       "apiBase": "https://api.water.noaa.gov/nwps/v1",
