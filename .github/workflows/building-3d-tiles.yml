@@ -20,6 +20,7 @@ on:
     paths:
       - 'scripts/geospatial/build-building-3d-tiles.py'
       - 'scripts/geospatial/build-hlod-tileset.py'
+      - 'scripts/geospatial/test_build_hlod_geometric_error.py'
       - 'scripts/geospatial/stitch-building-glbs.py'
       - 'scripts/geospatial/validate-building-3d-tiles.py'
       - 'scripts/geospatial/build-building-3d-tiles-pipeline.sh'
@@ -47,6 +48,7 @@ on:
       - '.github/workflows/building-3d-tiles.yml'
       - 'scripts/geospatial/build-building-3d-tiles.py'
       - 'scripts/geospatial/build-hlod-tileset.py'
+      - 'scripts/geospatial/test_build_hlod_geometric_error.py'
       - 'scripts/geospatial/stitch-building-glbs.py'
       - 'scripts/geospatial/validate-building-3d-tiles.py'
       - 'scripts/geospatial/build-building-3d-tiles-pipeline.sh'
@@ -90,8 +92,11 @@ jobs:
             scripts/geospatial/validate_feature_linkage.py \
             scripts/geospatial/validate_authority_boundary.py \
             scripts/geospatial/point_tube.py \
-            scripts/geospatial/test_build_implicit_tileset.py
+            scripts/geospatial/build-hlod-tileset.py \
+            scripts/geospatial/test_build_implicit_tileset.py \
+            scripts/geospatial/test_build_hlod_geometric_error.py
           python3 scripts/geospatial/test_build_implicit_tileset.py
+          python3 scripts/geospatial/test_build_hlod_geometric_error.py
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version: 22
