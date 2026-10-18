@@ -21,15 +21,15 @@ Consequently, the audit's module names, complexity numbers, defect-density figur
 
 ## 3. Change in this remediation branch
 
-Added `.github/workflows/secret-scan.yml` to run Gitleaks on pull requests to `main`, pushes to `main`, and manual dispatch. The workflow uses a full commit SHA for checkout and the scanner, reads complete Git history, disables persisted checkout credentials, and grants only `contents: read`.
+Added `.github/workflows/secret-scan.yml` to run Gitleaks on pull requests to `main`, pushes to `main`, and manual dispatch. The workflow uses a full commit SHA for checkout and the Node 24-compatible Gitleaks v3 scanner, reads complete Git history, disables persisted checkout credentials and scanner PR comments, and grants only `contents: read`.
 
 The scanner is intentionally not configured with a blanket allowlist. If it reports a candidate, a maintainer must determine whether it is a real credential, rotate exposed credentials where necessary, and add a narrow documented exception only for a confirmed false positive. Historical findings must not be dismissed merely because a credential appears in a test or old commit.
 
 ## 4. Required follow-up gates
 
-1. Run the new secret-scanning workflow and remediate any confirmed findings; verify the result on the PR commit.
+1. Verify the Node 24-compatible secret-scanning workflow completes successfully on the latest PR commit; investigate and remediate any confirmed findings, rotating exposed credentials where necessary.
 2. Run the full existing CI, CodeQL, dependency-integrity, SBOM, npm audit/signature, Python tests, and deployment artifact gates; record their actual statuses.
-3. Inspect GitHub repository rulesets/branch protection in repository settings. Require pull requests, independent approval where available, dismiss stale approvals, require conversation resolution, restrict force pushes/deletions, and require the intended CI checks. This repository API connection did not expose a branch-protection mutation operation, so this document does not claim those remote settings were changed.
+3. **Branch protection gap verified 2026-10-18:** the active `TSM main protection` ruleset currently enforces only branch deletion and non-fast-forward restrictions. It does not require pull requests, independent approvals, conversation resolution, or CI status checks; the repository-role bypass is configured as `always`. Update the ruleset in GitHub settings to require PRs, approvals where available, conversation resolution, and the intended CI checks, and restrict bypass to a documented emergency process. The available repository connection supports reading but not mutating rulesets, so this remote governance change remains outstanding.
 4. Continue the existing fail-closed engineering release gates: approved AOI, qualified source inputs and datums, reproducible model artifacts, independent review, and separate runtime/deployment verification.
 5. For any genuine state-machine/concurrency issue, identify the exact implementation file and prove the defect with a deterministic test before changing semantics. Do not introduce a hardware-oriented CAS state machine into TSM's unrelated geospatial architecture.
 
