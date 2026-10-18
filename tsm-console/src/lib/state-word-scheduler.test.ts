@@ -135,6 +135,14 @@ describe('scheduleFrame', () => {
     expect(plan.fetch).toHaveLength(0);
   });
 
+  it('supports FPS-only fallback when VRAM telemetry is unavailable', () => {
+    const plan = scheduleFrame(
+      [{ objectId: 'b1', homeTileId: 't0', currentWord: 0, targetWord: 1 << 9 }],
+      { fps: 60 },
+    );
+    expect(plan.fetch[0].dims).toEqual(['T']);
+  });
+
   it('rejects invalid telemetry rather than silently scheduling', () => {
     expect(() => scheduleFrame([], { vramMB: -1, fps: 60 })).toThrow(RangeError);
     expect(() => scheduleFrame([], { vramMB: 512, fps: Number.NaN })).toThrow(RangeError);
