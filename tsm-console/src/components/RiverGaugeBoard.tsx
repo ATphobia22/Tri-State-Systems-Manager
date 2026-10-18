@@ -40,6 +40,31 @@ interface SnapshotPayload {
   sourceRegistryVersion?: string;
 }
 
+interface ForecastValue {
+  validAt: string;
+  retrievedAt: string;
+  value: number;
+  unit: string;
+  dataClass: 'forecast';
+  verticalDatum: string;
+  sourceUri: string;
+}
+
+interface StationForecast {
+  stationId: string;
+  provider: string;
+  status: 'available' | 'unavailable';
+  forecasts: ForecastValue[];
+  error?: string | null;
+}
+
+interface ForecastPayload {
+  generatedAt?: string;
+  dataClass: 'forecast';
+  forecasts?: StationForecast[];
+  authority?: string;
+}
+
 interface StationSnapshot {
   station: SnapshotStation;
   observation: SnapshotObservation | null;
@@ -95,6 +120,8 @@ export default function RiverGaugeBoard(): JSX.Element {
   const [snapshots, setSnapshots] = useState<StationSnapshot[] | null>(null);
   const [fetching, setFetching] = useState(false);
   const [fetchedAt, setFetchedAt] = useState<string | null>(null);
+  const [forecasts, setForecasts] = useState<StationForecast[] | null>(null);
+  const [forecastError, setForecastError] = useState<string | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const runId = useRef(0);
 
@@ -104,6 +131,8 @@ export default function RiverGaugeBoard(): JSX.Element {
     setFetchError(null);
     setSnapshots(null);
     setFetchedAt(null);
+    setForecasts(null);
+    setForecastError(null);
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 25000);
@@ -140,6 +169,31 @@ export default function RiverGaugeBoard(): JSX.Element {
       });
       setSnapshots(results);
       setFetchedAt(payload.generatedAt || new Date().toISOString());
+
+      // Forecasts are a separate NOAA data class. A forecast failure does not
+      // invalidate a successfully fetched observation snapshot.
+      try {
+        const forecastResponse = await fetch(
+          tsmApiUrl(`/api/hydrologic/forecast?stationIds=${encodeURIComponent(stationIds)}`),
+          {
+            method: 'GET',
+            headers: { Accept: 'application/json' },
+            cache: 'no-store',
+            signal: controller.signal,
+          },
+        );
+        if (!forecastResponse.ok) throw new Error(`TSM forecast API returned HTTP ${forecastResponse.status}`);
+        const forecastPayload = await forecastResponse.json() as ForecastPayload;
+        if (!Array.isArray(forecastPayload.forecasts) || forecastPayload.dataClass !== 'forecast') {
+          throw new Error('TSM forecast API returned an invalid forecast payload');
+        }
+        if (runId.current === id) setForecasts(forecastPayload.forecasts);
+      } catch (error) {
+        if (runId.current === id) {
+          setForecastError(error instanceof Error ? error.message : 'NOAA forecast unavailable.');
+        }
+      }
+
       if (results.every((result) => result.unavailable)) {
         setFetchError('No registered station returned a usable observation. Values were not fabricated; retry later.');
       }
@@ -185,7 +239,7 @@ export default function RiverGaugeBoard(): JSX.Element {
 
       {fetchedAt && snapshots && (
         <p style={{ margin: '12px 0 0', color: '#94a3b8', fontSize: '0.9rem' }}>
-          Snapshot retrieved {formatTime(fetchedAt)} · user-initiated · provider timestamps and datum retained
+          Snapshot retrieved {formatTime(fetchedAt)} · user-initiated · provider timestamps and datum retained. Forecasts are separate from observations.
         </p>
       )}
 
@@ -262,6 +316,36 @@ export default function RiverGaugeBoard(): JSX.Element {
                   <div style={{ color: '#94a3b8', fontSize: '0.85rem', marginTop: 2 }}>
                     Observed {formatTime(observation?.observedAt)} · datum {observation?.verticalDatum || 'unverified'}
                   </div>
+                </div>
+              )}
+              {hasData && (
+                <div style={{ marginTop: 8, borderTop: '1px solid #334155', paddingTop: 8, fontSize: '0.9rem' }}>
+                  <strong>NOAA forecast (separate from observation)</strong>
+                  {(() => {
+                    const forecastEntry = forecasts?.find((item) => item.stationId === snapshot.station.siteNo);
+                    const series = [...(forecastEntry?.forecasts ?? [])]
+                      .filter((item) => Number.isFinite(item.value) && item.validAt)
+                      .sort((a, b) => Date.parse(a.validAt) - Date.parse(b.validAt));
+                    const next = series[0];
+                    const peak = series.reduce<ForecastValue | null>(
+                      (highest, item) => !highest || item.value > highest.value ? item : highest,
+                      null,
+                    );
+                    if (forecastEntry?.status === 'available' && next && peak) {
+                      return (
+                        <div style={{ color: '#cbd5e1', marginTop: 4 }}>
+                          Next: {formatValue(next.value, next.unit, 2)} at {formatTime(next.validAt)} ·
+                          max in returned horizon: {formatValue(peak.value, peak.unit, 2)} ·
+                          datum {next.verticalDatum}
+                        </div>
+                      );
+                    }
+                    return (
+                      <div style={{ color: '#94a3b8', marginTop: 4 }}>
+                        Forecast unavailable — {forecastEntry?.error || forecastError || 'no verified forecast mapping or records'}
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
             </div>
