@@ -1,8 +1,11 @@
 /**
- * 16-bit 5D orthogonal state word: F encodes (B, D, C, T, S)
- * B[0-3] boundary · D[4-6] geometric detail · C[7-9] components
- * T[10-12] texture appearance · S[13-15] semantic depth
+ * 16-bit 5D orthogonal state word (LAYOUT v1 — FROZEN).
+ * Contract: contracts/tsm-state-word-v1.json
+ * B[0-3] D[4-6] C[7-9] T[10-12] S[13-15]
+ * Manager/spatial phase is NOT in this word — see spatial-entity-phase.ts
  */
+
+export const STATE_WORD_LAYOUT_VERSION = 1 as const;
 
 export interface LodState {
   B: number;
@@ -59,6 +62,7 @@ export class StateWordDecoder {
 }
 
 export const STATE_WORD_PROP = 'tsmStateWord' as const;
+export const STATE_WORD_LAYOUT_PROP = 'tsmStateWordLayoutVersion' as const;
 
 export function attachStateWordToFeatureProperties(
   props: Record<string, unknown>,
@@ -67,6 +71,7 @@ export function attachStateWordToFeatureProperties(
   return {
     ...props,
     [STATE_WORD_PROP]: StateWordDecoder.encode(state),
+    [STATE_WORD_LAYOUT_PROP]: STATE_WORD_LAYOUT_VERSION,
     tsmLod: state,
   };
 }
@@ -81,6 +86,7 @@ export function attachStateWordToTileset(
   root.extras = {
     ...((root.extras as Record<string, unknown>) ?? {}),
     [STATE_WORD_PROP]: word,
+    [STATE_WORD_LAYOUT_PROP]: STATE_WORD_LAYOUT_VERSION,
     tsmLod: state,
   };
   clone.root = root;

@@ -1,7 +1,10 @@
 /**
- * 16-bit 5D state word: F encodes (B, D, C, T, S)
- * Bits: B[0-3] D[4-6] C[7-9] T[10-12] S[13-15]
+ * 16-bit 5D state word LAYOUT v1 (FROZEN) — mirrors tsm-console state-word.ts
+ * B[0-3] D[4-6] C[7-9] T[10-12] S[13-15]
+ * Spatial phase UNLOADED|DORMANT|ACTIVE is NOT stored here.
  */
+
+export const STATE_WORD_LAYOUT_VERSION = 1 as const;
 
 export interface LodState {
   B: number;
