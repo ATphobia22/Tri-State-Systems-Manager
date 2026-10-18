@@ -92,7 +92,7 @@
     "validate:terrain-3d-tiles": "python3 ../scripts/geospatial/validate-terrain-3d-tiles.py",
     "check:hec-manifest": "node ../scripts/hydrology/validate-hec-run-manifest.mjs ../data/schemas/examples/hec-coupled-run-manifest-v2.example.json && node --test tests/hec-coupled-run-manifest.test.mjs",
     "test:martin-tile-fabric": "vitest run tests/martin-tile-fabric.test.ts",
-    "test:renderer-contracts": "vitest run tests/martin-tile-fabric.test.ts tests/tiles-3d-camera.test.ts"
+    "test:renderer-contracts": "vitest run tests/martin-tile-fabric.test.ts tests/tiles-3d-camera.test.ts src/lib/state-word-scheduler.test.ts"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^2.16.0",
