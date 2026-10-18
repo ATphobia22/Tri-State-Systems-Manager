@@ -4,8 +4,9 @@
  * The map stays honest through plain HTTPS polling (the repo forbids streaming
  * transports in the simulator; see the transport gate test): the terrain
  * endpoint is health-probed on an interval with an in-memory tile cache.
- * Live river-gauge polling was retired by owner decision on 2026-09-29
- * ("drop live river data") — gauge snapshots are always empty.
+ * Automatic river-gauge polling remains prohibited. This simulator's gauge
+ * snapshot collection stays empty; user-triggered snapshots are served separately
+ * through River Watch and are never injected into a model without validation.
  *
  * Terrain fallback chain (fail-closed, owner policy 2026-09-29: no demo terrain):
  *
