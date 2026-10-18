@@ -33,6 +33,13 @@ describe('state-word bit layout', () => {
     expect(cursor).toBe(16);
   });
 
+  it('rejects values outside the unsigned 16-bit domain', () => {
+    expect(() => decodeStateWord(-1, 'B')).toThrow(RangeError);
+    expect(() => decodeStateWord(1.5, 'B')).toThrow(RangeError);
+    expect(() => decodeStateWord(0x10000, 'B')).toThrow(RangeError);
+    expect(() => diffStateWords(0, -1)).toThrow(RangeError);
+  });
+
   it('decodes each dimension independently', () => {
     // word: B=5, D=3, C=2, T=9, S=4
     const word = (5 << 0) | (3 << 3) | (2 << 6) | (9 << 9) | (4 << 13);
@@ -56,6 +63,12 @@ describe('state-word bit layout', () => {
 });
 
 describe('degradeWord', () => {
+  it('rejects invalid degradation step counts', () => {
+    expect(() => degradeWord(0, -1)).toThrow(RangeError);
+    expect(() => degradeWord(0, 1.5)).toThrow(RangeError);
+    expect(() => degradeWord(0x10000, 1)).toThrow(RangeError);
+  });
+
   it('never degrades geometric detail (D)', () => {
     const word = (3 << 0) | (4 << 3) | (2 << 6) | (8 << 9) | (2 << 13);
     const degraded = degradeWord(word, 5);
@@ -103,6 +116,22 @@ describe('scheduleFrame', () => {
     expect(plan.fetch).toHaveLength(1);
     expect(plan.fetch[0].dims).toEqual(['T']);
     expect(plan.release).toHaveLength(0);
+  });
+
+  it('degrades under reported VRAM pressure when a threshold is configured', () => {
+    const full = (2 << 3) | (2 << 6) | (8 << 9) | (2 << 13);
+    const plan = scheduleFrame(
+      [{ objectId: 'b1', homeTileId: 't0', currentWord: full, targetWord: full }],
+      { vramMB: 128, minVramMB: 256, fps: 60 },
+    );
+    expect(plan.release.flatMap((f) => f.dims)).toContain('T');
+    expect(plan.fetch).toHaveLength(0);
+  });
+
+  it('rejects invalid telemetry rather than silently scheduling', () => {
+    expect(() => scheduleFrame([], { vramMB: -1, fps: 60 })).toThrow(RangeError);
+    expect(() => scheduleFrame([], { vramMB: 512, fps: Number.NaN })).toThrow(RangeError);
+    expect(() => scheduleFrame([], { vramMB: 512, fps: 60, minVramMB: -1 })).toThrow(RangeError);
   });
 
   it('degrades under FPS pressure instead of fetching up', () => {
