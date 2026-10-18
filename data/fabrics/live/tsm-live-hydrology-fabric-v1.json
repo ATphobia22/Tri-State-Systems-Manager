@@ -2,7 +2,7 @@
   "schemaVersion": "1.0.0",
   "status": "ACTIVE_SOURCE_REGISTRY",
   "verifiedAt": "2026-09-18T12:30:00Z",
-  "retirementNote": "Historical owner decision 2026-09-29 retired live river polling. Superseded by the 2026-10-18 owner instruction permitting read-only, user-triggered snapshots only. Automatic polling remains prohibited; runtime availability is not certified until a live snapshot receipt is captured.",
+  "retirementNote": "Prior owner decision 2026-09-29 to drop live river data was superseded by the owner instruction on 2026-10-18 enabling user-triggered read-only snapshots. Automatic polling remains prohibited.",
   "sources": [
     {
       "apiBase": "https://api.water.noaa.gov/nwps/v1",
