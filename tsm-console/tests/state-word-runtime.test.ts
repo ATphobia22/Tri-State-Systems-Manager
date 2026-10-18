@@ -24,9 +24,12 @@ describe('runtime StateWord metadata binding', () => {
   it('resolves StateWord via the associated structural-metadata property table', () => {
     const mesh = makeFeatureMesh();
     const word = encodeStateWord({ B: 3, D: 2, C: 1, T: 3, S: 0 });
+    mesh.geometry.setAttribute(
+      '_feature_id_1',
+      new THREE.Uint32BufferAttribute([7, 7, 7], 1),
+    );
     mesh.userData.meshFeatures = {
       getFeatureInfo: () => [{ propertyTable: null }, { propertyTable: 2 }],
-      getFeatures: () => [17, 7],
     };
     mesh.userData.structuralMetadata = {
       getPropertyTableData: (tableIndices: number[], ids: number[]) => {
@@ -44,12 +47,23 @@ describe('runtime StateWord metadata binding', () => {
     const mesh = makeFeatureMesh();
     expect(readStateWordFromMesh(mesh)).toBeNull();
 
+    mesh.geometry.setAttribute('_feature_id_0', new THREE.Uint32BufferAttribute([0, 0, 0], 1));
     mesh.userData.meshFeatures = {
       getFeatureInfo: () => [{ propertyTable: 0 }],
-      getFeatures: () => [0],
     };
     mesh.userData.structuralMetadata = {
       getPropertyTableData: () => [{ StateWord: baseline() | 0x2 }],
+    };
+    expect(readStateWordFromMesh(mesh)).toBeNull();
+  });
+
+
+  it('does not apply per-feature material state to meshes that contain multiple feature IDs', () => {
+    const mesh = makeFeatureMesh();
+    mesh.geometry.setAttribute('_feature_id_0', new THREE.Uint32BufferAttribute([1, 1, 2], 1));
+    mesh.userData.meshFeatures = { getFeatureInfo: () => [{ propertyTable: 0 }] };
+    mesh.userData.structuralMetadata = {
+      getPropertyTableData: () => [{ StateWord: baseline() }],
     };
     expect(readStateWordFromMesh(mesh)).toBeNull();
   });
