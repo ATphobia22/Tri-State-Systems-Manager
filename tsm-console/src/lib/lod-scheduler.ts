@@ -44,6 +44,12 @@ export interface LodNode {
   childrenIds: string[];
 }
 
+export interface LodFrustumPlane {
+  /** Plane normal; the retained half-space satisfies n·p + constant >= 0. */
+  normal: [number, number, number];
+  constant: number;
+}
+
 export interface LodCamera {
   /** Camera world position [x, y, z] in meters. */
   position: [number, number, number];
@@ -51,6 +57,8 @@ export interface LodCamera {
   fovDeg: number;
   /** Viewport height in pixels. */
   screenHeightPx: number;
+  /** Optional six-plane view frustum in world coordinates; omitted means no frustum culling. */
+  frustumPlanes?: LodFrustumPlane[];
 }
 
 export interface LodFetchPlan {
@@ -75,6 +83,8 @@ export interface LodTransition {
 export type LodTransitionListener = (t: LodTransition) => void;
 
 const EPS = 1e-6;
+/** Prevent accidental quadratic adjacency construction on large octrees. */
+const MAX_AUTOMATIC_ADJACENCY_NODES = 5_000;
 
 /** Clamp a value into [lo, hi]. */
 function clamp(v: number, lo: number, hi: number): number {
@@ -105,6 +115,25 @@ export function computeSse(node: LodNode, camera: LodCamera): number {
   const denom = 2 * dist * Math.tan(fovRad / 2);
   if (denom <= 0 || !Number.isFinite(denom)) return Number.POSITIVE_INFINITY;
   return (node.geometricError * camera.screenHeightPx) / denom;
+}
+
+/**
+ * Conservative AABB/frustum test. A node is rejected only when its positive
+ * support vertex is outside a plane; boundary-touching nodes remain visible.
+ * Plane equations must use the retained half-space n·p + constant >= 0.
+ */
+export function intersectsFrustum(
+  bounds: LodNode['bounds'],
+  planes: readonly LodFrustumPlane[],
+): boolean {
+  for (const plane of planes) {
+    const [nx, ny, nz] = plane.normal;
+    const px = nx >= 0 ? bounds[3] : bounds[0];
+    const py = ny >= 0 ? bounds[4] : bounds[1];
+    const pz = nz >= 0 ? bounds[5] : bounds[2];
+    if (nx * px + ny * py + nz * pz + plane.constant < 0) return false;
+  }
+  return true;
 }
 
 /**
@@ -159,7 +188,16 @@ export class LodScheduler {
       if (n.parentId === null) this.roots.push(n);
     }
     if (this.roots.length === 0) throw new Error('[LodScheduler] no root nodes (parentId === null)');
-    this.adjacency = adjacency ?? buildAdjacency(nodes);
+    if (adjacency) {
+      this.adjacency = adjacency;
+    } else {
+      if (nodes.length > MAX_AUTOMATIC_ADJACENCY_NODES) {
+        throw new RangeError(
+          `[LodScheduler] ${nodes.length} nodes exceed the automatic adjacency limit ${MAX_AUTOMATIC_ADJACENCY_NODES}; provide a precomputed adjacency map for large octrees`,
+        );
+      }
+      this.adjacency = buildAdjacency(nodes);
+    }
     this.maxSse = options.maxScreenSpaceError ?? 2.0;
     this.maxLevel = options.maxLevel ?? Infinity;
   }
@@ -209,9 +247,22 @@ export class LodScheduler {
     if (!camera.position.every(Number.isFinite)) {
       throw new Error('[LodScheduler] camera position must be finite');
     }
+    if (camera.frustumPlanes !== undefined) {
+      if (camera.frustumPlanes.length !== 6) {
+        throw new Error('[LodScheduler] frustumPlanes must contain exactly six planes');
+      }
+      for (const [index, plane] of camera.frustumPlanes.entries()) {
+        if (!plane.normal.every(Number.isFinite) || !Number.isFinite(plane.constant) ||
+            Math.hypot(...plane.normal) === 0) {
+          throw new Error(`[LodScheduler] invalid frustum plane at index ${index}`);
+        }
+      }
+    }
   }
 
   private traverse(node: LodNode, camera: LodCamera, selected: Map<string, LodNode>): void {
+    // Reject whole subtrees conservatively before SSE refinement work.
+    if (camera.frustumPlanes && !intersectsFrustum(node.bounds, camera.frustumPlanes)) return;
     const sse = computeSse(node, camera);
     const canRefine = node.childrenIds.length > 0 && node.level < this.maxLevel;
     if (sse > this.maxSse && canRefine) {
