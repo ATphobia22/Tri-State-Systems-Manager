@@ -45,7 +45,7 @@ jobs:
       - name: Configure public npm registry
         run: npm config set registry https://registry.npmjs.org
       - name: Verify mirrored data-copy parity
-        run: node scripts/ci/validate-data-copy-parity.mjs
+        run: node ../scripts/ci/validate-data-copy-parity.mjs
       - name: Install dependencies from lockfile
         run: npm ci --no-audit --no-fund
       - name: Dependency integrity gate

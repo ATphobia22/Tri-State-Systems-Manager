@@ -220,6 +220,23 @@
       "latitude": 38.2803473627806,
       "longitude": -85.7991305041063,
       "horizontal_crs": "EPSG:4326"
+    },
+    {
+      "station_id": "03381700",
+      "provider": "USGS",
+      "name": "Ohio River at Old Shawneetown, IL-KY",
+      "river": "Ohio River",
+      "variables": [
+        "00065",
+        "00060"
+      ],
+      "horizontal_crs": "EPSG:4326",
+      "vertical_datum": "NAVD88",
+      "latitude": 37.6956,
+      "longitude": -88.1319,
+      "source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03381700",
+      "datum_ft_navd88": 309.1,
+      "flood_stage_ft": 33.0
     }
   ],
   "runtime_rules": {

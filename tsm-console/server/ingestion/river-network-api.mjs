@@ -239,8 +239,7 @@ async function fetchNoaaGauge(nwsId, station) {
 
 /**
  * Fetch NOAA NWPS forecast records only when explicitly requested by the caller.
- * Forecasts are returned separately from observations and are never written to
- * the observed-stage field or published as current-truth tile data.
+ * Forecasts are returned separately from observations and are never written to the observed-stage field or published as current-truth tile data.
  */
 export async function fetchRiverForecasts({ stationIds = null } = {}) {
   const registry = await loadRiverStationRegistry();
