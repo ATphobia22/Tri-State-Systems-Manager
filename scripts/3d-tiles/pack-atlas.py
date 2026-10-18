@@ -81,10 +81,17 @@ def clear_scene() -> None:
 
 def import_glbs(paths: list[Path]) -> None:
     for path in paths:
+        before = {obj.as_pointer() for obj in bpy.context.scene.objects if obj.type == "MESH"}
         print(f"Importing {path}")
         bpy.ops.import_scene.gltf(filepath=str(path))
+        added = [
+            obj for obj in bpy.context.scene.objects
+            if obj.type == "MESH" and obj.as_pointer() not in before
+        ]
+        if not added:
+            raise RuntimeError(f"Input GLB contains no imported mesh geometry: {path}")
 
-    meshes = [obj for obj in bpy.context.scene.objects if obj.type == "MESH"]
+    meshes = mesh_objects()
     if not meshes:
         raise RuntimeError("No mesh geometry was imported; refusing to export an empty atlas")
 
