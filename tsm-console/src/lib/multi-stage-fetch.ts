@@ -128,14 +128,11 @@ export async function fetchLiveStationSnapshot(stationId: string): Promise<Stati
       payload.observations?.find((observation) => observation.stationId === stationId),
     );
   } catch (error) {
-    return toStationSnapshot(stationId, undefinedWithError(error));
+    return {
+      ...toStationSnapshot(stationId, undefined),
+      error: error instanceof Error ? error.message : 'Hydrology source unavailable.',
+    };
   }
-}
-
-function undefinedWithError(error: unknown): undefined {
-  // Kept as a tiny helper so the same fail-closed mapper is used for single and batch fetches.
-  void error;
-  return undefined;
 }
 
 /**
