@@ -13,7 +13,7 @@ C/T/S store three-bit fields but levels 4–7 are reserved; the R field accepts
 
 The implicit 3D Tiles builder now writes `StateWord` into the
 `EXT_structural_metadata` property table associated with `EXT_mesh_features`.
-The default `0x5248` represents a **presentation-only baseline** when the source
+The default `0x52C8` represents a **presentation-only baseline** when the source
 does not explicitly provide `extras.tsm.stateWord`; it is not a surveyed fact,
 a hydrologic classification, or evidence that four LODs exist.
 

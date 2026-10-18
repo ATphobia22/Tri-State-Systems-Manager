@@ -25,11 +25,11 @@ describe('runtime StateWord metadata binding', () => {
     const mesh = makeFeatureMesh();
     const word = encodeStateWord({ B: 3, D: 2, C: 1, T: 3, S: 0 });
     mesh.geometry.setAttribute(
-      '_feature_id_1',
+      '_FEATURE_ID_0',
       new THREE.Uint32BufferAttribute([7, 7, 7], 1),
     );
     mesh.userData.meshFeatures = {
-      getFeatureInfo: () => [{ propertyTable: null }, { propertyTable: 2 }],
+      getFeatureInfo: () => [{ propertyTable: 2 }],
     };
     mesh.userData.structuralMetadata = {
       getPropertyTableData: (tableIndices: number[], ids: number[]) => {

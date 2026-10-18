@@ -168,7 +168,12 @@ export function readStateWordFromMesh(mesh: THREE.Mesh): number | null {
   if (!features || !metadata) return null;
   const featureId = readUniformFeatureId(mesh);
   if (featureId === null) return null;
-  return decodeFeatureStateWord(metadata, features, featureId);
+  try {
+    return decodeFeatureStateWord(metadata, features, featureId);
+  } catch {
+    // Broken or reserved metadata must not break ordinary asset rendering.
+    return null;
+  }
 }
 
 export interface Tiles3DRendererLayerConfig {

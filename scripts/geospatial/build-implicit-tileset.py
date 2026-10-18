@@ -32,10 +32,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 SUBTREE_LEVELS = 2  # levels per subtree file
 
-# Presentation-only baseline: B=1, D=1, C=1, T=1, S=1, R=0.
+# Presentation-only baseline: B=1, D=1, C=1, T=3, S=1, R=0.
 # This does not assert hydraulic meaning or a measured source LOD.
 STATE_WORD_SCHEMA = "tsm-visual-state-word-v1"
-DEFAULT_STATE_WORD = 0x5248
+DEFAULT_STATE_WORD = 0x52C8
 
 
 
