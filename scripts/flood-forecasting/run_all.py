@@ -135,6 +135,27 @@ def step_bfe():
     ])
 
 
+def step_hydromt():
+    """Build HydroMT data catalog for SFINCS flood modeling."""
+    print("\n🔧 Step 8: HydroMT Data Catalog (SFINCS inputs)")
+    return run_script("hydromt_tsm_catalog.py", ["--build-catalog"])
+
+
+def step_hydrofabric():
+    """Show hydrofabric extraction command for the confluence area."""
+    print("\n🌐 Step 9: NOAA Hydrofabric Subset")
+    print("  Fork: ATphobia22/hfsubsetR (R package)")
+    print("  Run: python hydrofabric_subset.py --print-r")
+    print("  Then execute the R script to download from spatial.water.noaa.gov")
+    return True
+
+
+def step_wres():
+    """Check WRES evaluation framework for NWM forecast skill."""
+    print("\n📊 Step 10: WRES Forecast Evaluation")
+    return run_script("wres_evaluation.py", ["--all-gages"])
+
+
 STEPS = {
     "ingest": step_ingest,
     "antecedent": step_antecedent,
@@ -143,9 +164,13 @@ STEPS = {
     "rating": step_rating,
     "alert": step_alert_check,
     "bfe": step_bfe,
+    "hydromt": step_hydromt,
+    "hydrofabric": step_hydrofabric,
+    "wres": step_wres,
 }
 
-STEP_ORDER = ["ingest", "antecedent", "nowcast", "forecast", "rating", "alert", "bfe"]
+STEP_ORDER = ["ingest", "antecedent", "nowcast", "forecast", "rating", "alert", "bfe",
+              "hydromt", "hydrofabric", "wres"]
 
 
 def main():
