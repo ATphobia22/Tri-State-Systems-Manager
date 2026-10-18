@@ -173,10 +173,17 @@ export default function ThreeDTilesLayer({
           .addScaledVector(north, Math.cos(bearing))
           .normalize();
 
+        // MapLibre pitch 0 is a top-down view. Place the camera behind the
+        // target along the bearing-relative horizontal axis, and rotate its up
+        // vector continuously from map-north to local-up as pitch increases.
+        // This keeps camera.up orthogonal to the view direction at pitch 0 and
+        // avoids the degenerate up/view alignment of using the ECEF radial up.
         camera.position.copy(target)
           .addScaledVector(up, Math.cos(pitch) * distance)
-          .addScaledVector(horizontal, Math.sin(pitch) * distance);
-        camera.up.copy(up);
+          .addScaledVector(horizontal, -Math.sin(pitch) * distance);
+        camera.up.copy(up)
+          .multiplyScalar(Math.sin(pitch))
+          .addScaledVector(horizontal, Math.cos(pitch));
         camera.lookAt(target);
         camera.updateMatrixWorld();
       };
