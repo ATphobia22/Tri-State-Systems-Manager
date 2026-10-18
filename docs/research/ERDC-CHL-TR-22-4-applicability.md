@@ -31,7 +31,7 @@ This is a **domain-specific engineering reference** for sediment transport, conf
 
 ## Related official technical documentation
 
-ERDC publishes current AdH manuals, including the [AdH documentation page](https://www.erdc.usace.army.mil/Locations/CHL/AdH/Documentation/) and its sediment-transport manual. Use the version applicable to any future, explicitly authorized AdH implementation; do not assume this 2022 report identifies the current software version.
+ERDC's AdH site currently identifies **AdH 4.7.2** as released. Its [official documentation page](https://www.erdc.usace.army.mil/Locations/CHL/AdH/Documentation/) lists 2D shallow-water and sediment-transport manuals; it notes that the v4.7.2 manuals are identical to those published for v4.7.1. See also the [official AdH overview/downloads](https://www.erdc.usace.army.mil/Locations/CHL/AdH/). Use the version applicable to any future, explicitly authorized AdH implementation; do not assume this 2022 report identifies the software version used in another project.
 
 ## Provenance
 
