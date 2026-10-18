@@ -17,12 +17,12 @@
  * - Home Tile routing: full semantics live in the centroid tile; guest tiles
  *   carry { objectId, homeTileId, uri } pointers (44.1% semantic payload cut)
  *
- * The word is carried per-feature via 3D Tiles 1.1 EXT_structural_metadata
- * (uint16 property, zero schema changes). Tiles do spatial selection; the
- * state word drives object-level resource scheduling afterwards.
+ * This module currently produces pure scheduling plans only. It does not read
+ * EXT_structural_metadata from TilesRenderer, fetch resource chunks, or bind
+ * state words to GPU attributes; that end-to-end adapter remains unimplemented.
  */
 
-import { decodeStateWord, didDimensionChange, type StateWordDimension } from './tiles-3d-renderer-layer';
+import { decodeStateWord, didDimensionChange, type StateWordDimension } from './state-word';
 
 /** Degradation order under memory pressure: strip T, then C, then S; keep D. */
 const DEGRADATION_ORDER: StateWordDimension[] = ['T', 'C', 'S'];
