@@ -181,6 +181,14 @@ describe('LodScheduler.update', () => {
     expect(() => s.update({ position: [NaN, 0, 0], fovDeg: 60, screenHeightPx: 800 })).toThrow();
   });
 
+  it('requires precomputed adjacency for large octrees instead of quadratic construction', () => {
+    const nodes = Array.from({ length: 5_001 }, (_, index) =>
+      box(`root-${index}`, 0, [index * 2, 0, 0, index * 2 + 1, 1, 1], 0, null),
+    );
+    expect(() => new LodScheduler(nodes)).toThrow(/provide a precomputed adjacency map/);
+    expect(() => new LodScheduler(nodes, {}, new Map(nodes.map((node) => [node.id, []])))).not.toThrow();
+  });
+
   it('accepts a 2:1 violation it cannot repair (leaf with no children)', () => {
     const nodes: LodNode[] = [
       box('leaf', 0, [0, 0, 0, 4, 4, 4], 0.05, null), // no children: cannot split
