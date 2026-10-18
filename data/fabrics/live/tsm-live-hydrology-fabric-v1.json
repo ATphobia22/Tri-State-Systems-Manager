@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "status": "ACTIVE_SOURCE_REGISTRY",
-  "verifiedAt": "2026-10-18T00:00:00Z",
+  "verifiedAt": "2026-09-18T12:30:00Z",
   "retirementNote": "Historical owner decision 2026-09-29 retired live river polling. Superseded by the 2026-10-18 owner instruction permitting read-only, user-triggered snapshots only. Automatic polling remains prohibited; runtime availability is not certified until a live snapshot receipt is captured.",
   "sources": [
     {
@@ -80,5 +80,6 @@
     "vertical_datum_must_be_explicit_or_unverified": true,
     "automatic_polling_prohibited": true
   },
-  "activationNote": "Owner instruction 2026-10-18 supersedes the 2026-09-29 full-retirement decision: enable user-triggered read-only snapshots through the server API; automatic polling remains prohibited. NOAA NWPS and modern USGS Water Data adapters are configured. Runtime end-to-end availability is not certified until a live snapshot receipt is captured."
+  "activationNote": "Owner instruction 2026-10-18 supersedes the 2026-09-29 full-retirement decision: enable user-triggered read-only snapshots through the server API; automatic polling remains prohibited. NOAA NWPS and modern USGS Water Data adapters are configured. Runtime end-to-end availability is not certified until a live snapshot receipt is captured.",
+  "configuredAt": "2026-10-18"
 }
