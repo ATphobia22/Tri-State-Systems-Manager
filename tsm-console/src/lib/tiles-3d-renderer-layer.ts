@@ -11,10 +11,9 @@
  * - PBR/IBL via three.js PMREMGenerator + RoomEnvironment (procedural HDR)
  * - 5D state-word (uint16) carried via EXT_structural_metadata per feature
  *
- * Resilient design: the layer normalizes tileset URLs and always attempts
- * to render. Problems are logged with recovery info; only javascript:/data:
- * URLs are rejected (genuine XSS risk). Loader failures are contained and
- * the layer keeps rendering whatever loaded successfully.
+ * Resilient design: the layer accepts only supported HTTP(S) or local asset
+ * URL forms, rejects unsupported schemes before invoking the loader, and
+ * contains loader/render failures so already-loaded content remains visible.
  */
 
 import * as maplibregl from 'maplibre-gl';
