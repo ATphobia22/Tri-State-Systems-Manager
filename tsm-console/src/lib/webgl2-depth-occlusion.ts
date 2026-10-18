@@ -209,6 +209,10 @@ export class WebGL2DepthOcclusionController {
     return this.targets.get(mesh)?.occluded ?? false;
   }
 
+  baseVisible(mesh: THREE.Mesh): boolean {
+    return this.targets.get(mesh)?.baseVisible ?? mesh.visible;
+  }
+
   update(
     camera: THREE.Camera,
     shouldBeVisible: (mesh: THREE.Mesh) => boolean = (mesh) => this.targets.get(mesh)?.baseVisible ?? true,
