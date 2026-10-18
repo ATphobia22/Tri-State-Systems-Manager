@@ -56,7 +56,7 @@ The 68 blob groups include both harmless duplication and data-copy pairs that ne
 
 ## High-priority follow-up
 
-1. Add CI contracts for source/public-copy synchronization where duplication is intentional; do not remove copies until deployment paths and consumers are verified.
+1. **Implemented in this PR:** add `scripts/ci/validate-data-copy-parity.mjs` and run it in CI for the four known intentional source/public mirrors (quadrangle GeoJSON, leveed-area GeoJSON, leveed-area provenance, and authority registry). It fails on drift and never auto-copies over a source. Do not remove mirrors until deployment paths and consumers are verified.
 2. Do not merge the stale state-word scheduler in PR #298; if needed, add tests against main's current `state-word-codec` and renderer architecture.
 3. Wait for PR #300 CI, inspect all test failures, and only merge after its exact head passes required checks.
 4. Wait for PR #301 CI; its initial parse-gate attempt failed during locked dependency installation before the regression tests ran, so that attempt did not validate the new tests.
