@@ -116,4 +116,19 @@ describe('scheduleFrame', () => {
     expect(releasedT).toBe(true);
     expect(plan.fetch).toHaveLength(0);
   });
+  it('degrades under VRAM pressure even when FPS is healthy', () => {
+    const full = (2 << 3) | (2 << 6) | (8 << 9) | (2 << 13);
+    const plan = scheduleFrame(
+      [{ objectId: 'b1', homeTileId: 't0', currentWord: full, targetWord: full }],
+      { vramMB: 256, fps: 60, minVramMB: 512 },
+    );
+    expect(plan.release.flatMap((feature) => feature.dims)).toContain('T');
+    expect(plan.fetch).toHaveLength(0);
+  });
+
+  it('rejects invalid VRAM and FPS budgets', () => {
+    expect(() => scheduleFrame([], { vramMB: Number.NaN, fps: 60 })).toThrow(RangeError);
+    expect(() => scheduleFrame([], { vramMB: 1024, fps: -1 })).toThrow(RangeError);
+  });
+
 });
