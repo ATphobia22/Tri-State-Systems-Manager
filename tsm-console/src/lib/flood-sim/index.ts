@@ -7,8 +7,8 @@
  * human sign-off and are never auto-applied.
  *
  * Data flow: interval-HTTPS terrain health probes plus the local
- * deterministic engine. Live river-gauge polling was retired by owner
- * decision on 2026-09-29. Push/streaming transports are forbidden in this
+ * deterministic engine. User-triggered river snapshots are not model inputs;
+ * automatic gauge polling and push/streaming transports remain forbidden in this
  * package — enforced by the source-grep gate test in this directory.
  */
 
