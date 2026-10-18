@@ -1,0 +1,32 @@
+name: TriState Core Build & Test
+
+on:
+  push:
+    paths:
+      - 'native/tristate-core/**'
+  pull_request:
+    paths:
+      - 'native/tristate-core/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: native/tristate-core
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Install toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake g++ build-essential
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - name: Build
+        run: cmake --build build -j"$(nproc)"
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
