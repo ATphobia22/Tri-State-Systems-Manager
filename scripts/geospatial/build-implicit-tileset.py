@@ -403,12 +403,12 @@ def main():
             lon = math.degrees(math.atan2(oy, ox))
             lat = math.degrees(math.atan2(oz, math.hypot(ox, oy)))
             state_word = node.get("extras", {}).get("tsm", {}).get("stateWord")
-        if state_word is not None:
-            try:
-                state_word = validate_state_word(state_word)
-            except ValueError as exc:
-                raise SystemExit(f"invalid StateWord on source object {sid}: {exc}") from exc
-        items.append((glb_path, lon, lat, sid, local, state_word))
+            if state_word is not None:
+                try:
+                    state_word = validate_state_word(state_word)
+                except ValueError as exc:
+                    raise SystemExit(f"invalid StateWord on source object {sid}: {exc}") from exc
+            items.append((glb_path, lon, lat, sid, local, state_word))
         for child in node.get("children", []):
             visit(child, local)
 
