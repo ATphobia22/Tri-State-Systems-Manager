@@ -23,6 +23,11 @@ test('production CI scripts include schema and browser secret gates', () => {
   assert.equal(pkg.scripts['check:client-bundle-secrets'], 'node scripts/check-client-bundle-secrets.mjs');
 });
 
+test('three peer satisfies maplibre-three-plugin (npm ci ERESOLVE gate)', () => {
+  // Cascading CI failures 2026-10-18: three@0.186 vs plugin peer ^0.178.0
+  assert.match(String(pkg.dependencies.three), /0\.178/);
+  assert.ok(pkg.dependencies['@dvt3d/maplibre-three-plugin']);
+});
 
 test('server ingestion evidence boundary is fail-closed', async () => {
   const { validateEvidenceArtifact } = await import('../server/ingestion/workers.mjs');
