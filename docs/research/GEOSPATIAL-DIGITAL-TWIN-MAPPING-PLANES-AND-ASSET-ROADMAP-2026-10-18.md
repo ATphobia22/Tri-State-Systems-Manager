@@ -150,3 +150,8 @@ For a 3D Tiles 1.1 path, follow its tile and glTF transform rules and the curren
 - Transvoxel, [algorithm overview and reference implementation](https://transvoxel.org/).
 
 **Scope note:** This document is research guidance, not an implementation attestation. It does not assert that TSM currently contains CityGML/3D Tiles/WebGPU pipelines, that the paper's benchmarks reproduce in TSM, or that any asset is suitable for hydraulic/flood engineering without independent data validation and review.
+
+
+## Mainline renderer hardening — 2026-10-18
+
+The active renderer hardening change replaces depth-only HLOD error reduction with a conservative inherited error floor for contentless partition nodes, adds strict 3D Tiles URL validation (including embedded credentials and ambiguous URL forms), corrects the top-down camera basis, scales clipping planes with camera distance, and refreshes screen-space-error resolution after resize. CI now runs HLOD error-propagation and renderer contract regression tests. These checks validate contracts, not measured frame-time improvements or AOI-specific engineering suitability.

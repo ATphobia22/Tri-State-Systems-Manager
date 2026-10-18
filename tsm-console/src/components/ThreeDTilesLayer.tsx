@@ -17,6 +17,7 @@ import * as THREE from 'three';
 import { TilesRenderer } from '3d-tiles-renderer';
 import type { ThreeDTilesSource } from '../lib/martin-tile-fabric';
 import { resolveThreeDTilesetUrl } from '../lib/martin-tile-fabric';
+import { getTilesCameraBasis, getTilesCameraClipPlanes } from '../lib/tiles-3d-camera';
 
 interface ThreeDTilesMapCamera {
   getCenter(): { lng: number; lat: number };
@@ -159,15 +160,24 @@ export default function ThreeDTilesLayer({
         const bearing = THREE.MathUtils.degToRad(map.getBearing());
         const zoom = THREE.MathUtils.clamp(map.getZoom(), 0, 24);
         const distance = (40075016.686 / 2 ** zoom) * 2.5;
+        const { near: nextNear, far: nextFar } = getTilesCameraClipPlanes(distance);
+        if (Math.abs(camera.near - nextNear) > 0.01 || Math.abs(camera.far - nextFar) > 1) {
+          camera.near = nextNear;
+          camera.far = nextFar;
+          camera.updateProjectionMatrix();
+        }
+        const basis = getTilesCameraBasis(pitch, bearing);
         const horizontal = new THREE.Vector3()
-          .addScaledVector(east, Math.sin(bearing))
-          .addScaledVector(north, Math.cos(bearing))
+          .addScaledVector(east, basis.horizontalEast)
+          .addScaledVector(north, basis.horizontalNorth)
           .normalize();
 
         camera.position.copy(target)
-          .addScaledVector(up, Math.cos(pitch) * distance)
-          .addScaledVector(horizontal, Math.sin(pitch) * distance);
-        camera.up.copy(up);
+          .addScaledVector(up, basis.positionUpScale * distance)
+          .addScaledVector(horizontal, basis.positionHorizontalScale * distance);
+        camera.up.copy(up)
+          .multiplyScalar(basis.cameraUpVerticalScale)
+          .addScaledVector(horizontal, basis.cameraUpHorizontalScale);
         camera.lookAt(target);
         camera.updateMatrixWorld();
       };
@@ -190,11 +200,14 @@ export default function ThreeDTilesLayer({
         if (!mountRef.current || !camera || !renderer) return;
         const w = mountRef.current.clientWidth;
         const h = mountRef.current.clientHeight;
+        if (w <= 0 || h <= 0) return;
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
         renderer.setSize(w, h);
+        tilesRenderer?.setResolutionFromRenderer(camera, renderer);
       };
       window.addEventListener('resize', handleResize);
+      map?.on('resize', handleResize);
 
       // Graceful WebGL context loss recovery (mobile GPUs, tab switches).
       const canvas = renderer.domElement;
@@ -238,6 +251,7 @@ export default function ThreeDTilesLayer({
       return () => {
         disposed = true;
         window.removeEventListener('resize', handleResize);
+        map?.off('resize', handleResize);
         canvas.removeEventListener('webglcontextlost', handleContextLost);
         canvas.removeEventListener('webglcontextrestored', handleContextRestored);
         tilesRenderer?.removeEventListener('load-tileset', handleTilesetLoaded);

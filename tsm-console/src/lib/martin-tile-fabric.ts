@@ -24,6 +24,16 @@ function requireSourceId(sourceId: string): string {
 }
 
 function requireHttpUrl(url: string): string {
+  if (
+    typeof url !== 'string' ||
+    url.length === 0 ||
+    url !== url.trim() ||
+    /[\\\\\u0000-\u001f\u007f]/.test(url) ||
+    url.startsWith('//')
+  ) {
+    throw new Error('Invalid tile source URL.');
+  }
+
   let parsed: URL;
   try {
     parsed = new URL(url, 'http://localhost');
@@ -31,8 +41,12 @@ function requireHttpUrl(url: string): string {
     throw new Error('Invalid tile source URL.');
   }
 
-  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-    throw new Error('Tile source URL must use HTTP or HTTPS.');
+  if (
+    (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') ||
+    parsed.username.length > 0 ||
+    parsed.password.length > 0
+  ) {
+    throw new Error('Tile source URL must use HTTP or HTTPS without embedded credentials.');
   }
 
   return url;
