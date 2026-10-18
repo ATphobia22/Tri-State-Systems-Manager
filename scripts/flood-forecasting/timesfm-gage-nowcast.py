@@ -64,7 +64,20 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 # ---------------------------------------------------------------------------
 
 def fetch_usgs_gage(site: str, parameter: str, days: int = 30) -> pd.DataFrame:
-    """Fetch recent gage height from USGS Water Services API."""
+    """
+    Fetch recent gage height via TSM USGS ingest module
+    (wraps dataretrieval-python, the USGS-maintained client).
+    Falls back to direct API if the module is unavailable.
+    """
+    try:
+        from tsm_usgs_ingest import get_gage_height
+        df = get_gage_height(site, days=days, parameter=parameter)
+        df = df.rename(columns={"value_ft": "value"})
+        return df
+    except ImportError:
+        pass  # fallback below
+
+    # Fallback: direct USGS Water Services API
     end = datetime.utcnow()
     start = end - timedelta(days=days)
     url = (
