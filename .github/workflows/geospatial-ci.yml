@@ -136,8 +136,8 @@ jobs:
         working-directory: tsm-console
         run: node --test tests/nfhl-registry-contract.test.mjs
       - name: NFHL live MapServer drift validate
-        run: npm run nfhl:validate
-        continue-on-error: false
+        # Pure Node — no root npm install / tsx required (CI only installs tsm-console)
+        run: node packages/geo/src/nfhl/cli/validate-nfhl.mjs
       - name: Verify Docker engine and public registry DNS
         run: |
           set -euo pipefail
