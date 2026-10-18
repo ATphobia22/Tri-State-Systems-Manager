@@ -53,6 +53,8 @@ jobs:
           cache: npm
           cache-dependency-path: tsm-console/package-lock.json
 
+      - name: Pin npm CLI to packageManager contract
+        run: npm install --global npm@10.9.2 --no-audit --no-fund
       - name: Install locked dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
       - run: npm run test:firm
