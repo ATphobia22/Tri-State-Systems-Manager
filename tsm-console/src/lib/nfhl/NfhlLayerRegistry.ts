@@ -25,9 +25,12 @@ export interface NfhlLayer {
 export const NFHL_MAPSERVER_URL =
   'https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer' as const;
 
-/** Priority operational set for PTDT / Twin Canvas first paint */
+/**
+ * Priority operational set for PTDT / Twin Canvas first paint.
+ * Order matches docs/fabrics/nfhl-geometry-types.json priorityOperational.
+ */
 export const NFHL_PRIORITY_IDS: readonly number[] = [
-  28, 27, 23, 16, 34, 3, 22, 32,
+  28, 27, 16, 23, 34, 3, 22, 32,
 ] as const;
 
 export const NFHL_CAPABILITIES = [
@@ -90,7 +93,10 @@ export function nfhlLayersByGeometry(geometryType: NfhlGeometryType): NfhlLayer[
 }
 
 export function nfhlPriorityLayers(): NfhlLayer[] {
-  return NFHL_LAYERS.filter((l) => l.priority);
+  // Preserve canonical paint order from NFHL_PRIORITY_IDS
+  return NFHL_PRIORITY_IDS.map((id) => byId.get(id)).filter(
+    (l): l is NfhlLayer => l != null,
+  );
 }
 
 /** MapServer export `layers=show:` list for priority operational paint */
