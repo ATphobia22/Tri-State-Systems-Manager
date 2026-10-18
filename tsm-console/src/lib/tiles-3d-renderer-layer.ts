@@ -26,20 +26,7 @@ import * as THREE from 'three';
 import { GLTFExtensionsPlugin, TilesRenderer } from '3d-tiles-renderer';
 import { MapScene } from '@dvt3d/maplibre-three-plugin';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
-import {
-  STATE_WORD_BITS,
-  STATE_WORD_EXTENSION_BITS,
-  assertStateWord,
-  assertValidStateWord,
-  decodeStateWord,
-  decodeStateWordExtension,
-  diffStateWords,
-  didDimensionChange,
-  encodeStateWord,
-  STATE_WORD_BITS,
-  type StateWordDimension,
-  type StateWordValues,
-} from './state-word-codec';
+import { STATE_WORD_BITS, assertValidStateWord, decodeStateWord } from './state-word-codec';
 import { decodeFeatureStateWord, type MeshFeaturesReader, type StructuralMetadataReader } from './state-word-metadata';
 
 export {
@@ -82,7 +69,7 @@ interface ManagedStateWordMesh {
 
 function readUniformFeatureId(mesh: THREE.Mesh): number | null {
   const entry = Object.entries(mesh.geometry.attributes).find(([name]) =>
-    /_?FEATURE_?ID_?0$/i.test(name),
+    /_*FEATURE_*ID_*0$/i.test(name),
   );
   if (!entry) return null;
   const attribute = entry[1];
