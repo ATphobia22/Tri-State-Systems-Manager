@@ -145,7 +145,6 @@
   },
   "overrides": {
     "uuid": "^11.1.1",
-    "source-map-js": "^1.2.2",
-    "three": "0.178.0"
+    "source-map-js": "^1.2.2"
   }
 }
