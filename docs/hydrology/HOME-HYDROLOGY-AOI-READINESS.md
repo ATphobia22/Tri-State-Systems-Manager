@@ -24,6 +24,16 @@ Official report record: https://doi.org/10.21079/11681/43441
 8. **USACE National Levee Database** — https://levees.sec.usace.army.mil/data-services/services/. Levee inventory presence is not evidence of accreditation, performance, or protection at a site.
 9. **USGS 3DEP terrain** — https://www.usgs.gov/3d-elevation-program-standards-and-specifications. Select a product whose native horizontal CRS, vertical datum, acquisition date, resolution, and coverage are verified from its metadata.
 
+## 2A. Existing home-AOI candidate: unresolved location and elevation limits
+
+The repository's candidate report for the Bonebank Road site records a candidate IGIO 2025 parcel footprint of approximately 2.4453 acres, but explicitly marks the address-to-parcel association unverified. Its parcel centroid is longitude -88.00535128, latitude 37.84579909. A separate legacy “surveyed centroid” is longitude -88.0007, latitude 37.9035—approximately 6.4 km away. These points are not interchangeable; no point-dependent result should be attributed to the structure until the discrepancy is resolved by authoritative parcel/site documentation or qualified survey evidence.
+
+Existing screening observations are similarly bounded: the USGS EPQS point query returned 361.9984 ft NAVD88 at the parcel centroid, but that is a single interpolated point, not a terrain surface or verified building/ground elevation. FEMA NFHL reports a Zone AE / SFHA intersection, but `STATIC_BFE=-9999` and no vertical datum were supplied; the state flood-hazard point query likewise returned no-data sentinels for BFE/depth/velocity. Therefore, **no usable site-specific BFE, flood depth, or design elevation is established**. See the [candidate AOI evidence report](aoi/13101-BONEBANK-ROAD-CANDIDATE.md).
+
+### ERDC coordinate-reference discrepancy to resolve
+
+ERDC/CHL TR-22-4 text states UTM Zone 15 North, NAD83, metres for the Phase 1 model. The Wabash–Ohio confluence lies near 87.8°W, geographically within UTM Zone 16N (the 90°W–84°W zone). Treat the report's written CRS declaration as a source claim that requires confirmation—not as a corrected or silently interchangeable CRS. Before reusing model geometry or elevations, inspect original model files/control points and obtain USACE clarification on the intended projection and vertical datum. Do not transform, overlay, or combine the model with current AOI layers until this discrepancy is resolved.
+
 ## 3. Hard gates before a site-level run
 
 - [ ] Confirm address, parcel boundary, jurisdiction, and AOI polygon; retain the geocoding method and uncertainty.
