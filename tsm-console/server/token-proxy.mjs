@@ -223,7 +223,7 @@ const server = http.createServer(async (req, res) => {
       }
       try {
         const registry = await loadRiverStationRegistry();
-        const allowedStationIds = new Set((registry.verified_observation_stations || []).map((station) => station.station_id));
+        const allowedStationIds = new Set((registry.verified_observation_stations || []).filter((station) => station.status === 'active').map((station) => station.station_id));
         if (stationIds && stationIds.some((id) => !allowedStationIds.has(id))) {
           return json(res, 400, { ok: false, code: 'HYDROLOGY_STATION_NOT_REGISTERED', error: 'Requested station is not in the verified observation registry.' }, requestId);
         }
