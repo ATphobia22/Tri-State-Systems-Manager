@@ -69,8 +69,9 @@ async function fetchStation(station: SnapshotStation): Promise<StationSnapshot> 
     const observations = await fetchUsgsLatestContinuous(station.siteNo, ['00065', '00060']);
     return { station, observations, unavailable: false };
   } catch (error) {
-    // Fail closed: no legacy fallback (USGS Water Services decommissioned
-    // 2026-02-22). A station that does not return data is unavailable.
+    // Fail closed: no legacy fallback. USGS WaterServices is scheduled to shut
+    // down on 2027-02-22; this adapter uses the modern Water Data API. A station
+    // that does not return data is unavailable.
     return {
       station,
       observations: [],
