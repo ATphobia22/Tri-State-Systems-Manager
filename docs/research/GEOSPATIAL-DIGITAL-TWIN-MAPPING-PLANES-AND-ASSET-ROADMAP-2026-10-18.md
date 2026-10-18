@@ -14,6 +14,13 @@ Repository documents already establish relevant foundations:
 
 **Consequence:** this is not a greenfield 3D architecture. The next engineering step is a contract/code-level gap analysis against existing asset generation, validation, manifest and renderer behavior. Do not reimplement existing 3D Tiles or WebGPU contracts. The paper's 5D scheduler remains a candidate extension, not a proven missing dependency.
 
+### Concrete HLOD audit item
+
+A source review of `scripts/geospatial/build-hlod-tileset.py` shows intermediate tile `geometricError` is currently assigned as the source root error divided by `2 ** depth`. That is a heuristic; the OGC specification defines geometric error in terms of the error introduced by the tile's simplified representation relative to its source geometry. The existing `scripts/geospatial/validate-building-3d-tiles.py` checks that each value is finite and non-negative, but that check alone does not establish that the values represent measured/defensible simplification error or produce appropriate SSE refinement.
+
+**Required follow-up before relying on the generated HLOD tree for performance claims:** add fixtures with known tile transforms/bounds and expected refinement behavior; document how error values are derived; test parent/child error assumptions against actual simplification and the target renderer; and run the OGC 3D Tiles validator plus the repository's strict validator. Do not change the heuristic blindly: choose a policy that matches the tree's actual content/refinement semantics and verify it with representative camera paths.
+
+
 ## 1. Executive findings
 
 The supplied architecture text combines three different evidence classes that must not be conflated:
