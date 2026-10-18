@@ -7,7 +7,7 @@ on:
       - '.github/workflows/regenerate-npm-lock.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   regenerate:
@@ -31,3 +31,17 @@ jobs:
           path: tsm-console/package-lock.json
           if-no-files-found: error
           retention-days: 1
+
+      - name: Commit regenerated lockfile to the working branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tsm-console/package-lock.json
+          if git diff --cached --quiet; then
+            echo "Lockfile is already current."
+            exit 0
+          fi
+          git commit -m "fix(deps): regenerate npm lockfile"
+          git push origin HEAD:fix/3d-tiles-hlod-renderer-hardening
