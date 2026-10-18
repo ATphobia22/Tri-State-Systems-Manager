@@ -1,8 +1,9 @@
 # GPU Pipeline Items — Honest Status (2026-10-18)
 
-Two items from the gap analysis cannot be implemented today. This is not
-a placeholder — it is a documented blocker with the reason and the
-unblock condition.
+The remaining GPU/terrain items have different statuses: compute-shader
+frustum culling and Transvoxel stitching are blocked by the current stack;
+query-based depth occlusion is technically possible in WebGL 2 but is not
+implemented. Each status and its unblock condition is documented below.
 
 ## 1. GPU-Driven Frustum Culling (Compute Shaders)
 
