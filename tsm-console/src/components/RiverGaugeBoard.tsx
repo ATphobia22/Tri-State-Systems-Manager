@@ -1,20 +1,14 @@
 /**
- * RiverGaugeBoard — on-demand live snapshots.
+ * RiverGaugeBoard — user-triggered hydrology snapshots.
  *
- * Owner direction 2026-10-01: river data yes, live polling no — plus a button
- * that fetches a live snapshot of all gauges when the user presses it.
- *
- * This component NEVER polls. The button is the only trigger: it fetches
- * current values from the USGS Water Data OGC API (latest-continuous),
- * timestamps the snapshot, and marks every value provisional. Stations that
- * do not return data are shown as unavailable — never filled in.
- * Gage-height values are on the USGS gage datum, NOT NAVD88.
+ * Live observations are fetched only after an explicit button press through
+ * the TSM server API. The browser never calls USGS/NOAA provider endpoints
+ * directly, and this component never polls or refreshes in the background.
+ * Gage height remains on the source gage datum unless a verified conversion
+ * is explicitly supplied by the source adapter.
  */
 import { useCallback, useRef, useState } from 'react';
-import {
-  fetchUsgsLatestContinuous,
-  type UsgsDirectObservation,
-} from '../lib/usgs-direct';
+import { tsmApiUrl } from '../lib/api-base';
 
 interface SnapshotStation {
   siteNo: string;
@@ -22,9 +16,39 @@ interface SnapshotStation {
   river: string;
 }
 
+interface SnapshotObservation {
+  stationId: string;
+  provider: string;
+  name?: string | null;
+  value: number | null;
+  unit: string | null;
+  observedAt: string | null;
+  retrievedAt: string | null;
+  qualifier: string | null;
+  provisional: boolean;
+  status: string;
+  dischargeCfs: number | null;
+  dischargeObservedAt: string | null;
+  sourceUri: string | null;
+  verticalDatum: string;
+  error?: string | null;
+}
+
+interface SnapshotPayload {
+  generatedAt?: string;
+  observations?: SnapshotObservation[];
+  sourceRegistryVersion?: string;
+}
+
+interface StationSnapshot {
+  station: SnapshotStation;
+  observation: SnapshotObservation | null;
+  unavailable: boolean;
+  error?: string;
+}
+
 const SNAPSHOT_STATIONS: readonly SnapshotStation[] = [
   { siteNo: '03378500', name: 'Wabash River at New Harmony, IN', river: 'Wabash River' },
-  { siteNo: '03377500', name: 'Wabash River at Mount Carmel, IL', river: 'Wabash River' },
   { siteNo: '03322000', name: 'Ohio River at Evansville, IN', river: 'Ohio River' },
   { siteNo: '03304300', name: 'Ohio River at Newburgh Lock and Dam, IN', river: 'Ohio River' },
   { siteNo: '03322420', name: 'Ohio River at Uniontown Dam, KY', river: 'Ohio River' },
@@ -35,15 +59,7 @@ const SNAPSHOT_STATIONS: readonly SnapshotStation[] = [
   { siteNo: '03277200', name: 'Ohio River at Markland Dam near Warsaw, KY', river: 'Ohio River' },
   { siteNo: '03293600', name: 'Ohio River at McAlpine Dam — Headwater', river: 'Ohio River' },
   { siteNo: '03294500', name: 'Ohio River at Louisville, KY', river: 'Ohio River' },
-  { siteNo: '03293551', name: 'Ohio River upstream of McAlpine Dam at railroad bridge, Louisville, KY', river: 'Ohio River' },
 ];
-
-interface StationSnapshot {
-  station: SnapshotStation;
-  observations: UsgsDirectObservation[];
-  unavailable: boolean;
-  error?: string;
-}
 
 const cardStyle = {
   background: '#06101a',
@@ -64,32 +80,15 @@ const buttonStyle = {
   cursor: 'pointer',
 } as const;
 
-async function fetchStation(station: SnapshotStation): Promise<StationSnapshot> {
-  try {
-    const observations = await fetchUsgsLatestContinuous(station.siteNo, ['00065', '00060']);
-    return { station, observations, unavailable: false };
-  } catch (error) {
-    // Fail closed: no legacy fallback. USGS WaterServices is scheduled to shut
-    // down on 2027-02-22; this adapter uses the modern Water Data API. A station
-    // that does not return data is unavailable.
-    return {
-      station,
-      observations: [],
-      unavailable: true,
-      error: error instanceof Error ? error.message : String(error),
-    };
-  }
-}
-
-function formatValue(obs: UsgsDirectObservation | undefined, digits: number): string {
-  if (!obs) return '—';
-  return `${obs.value.toFixed(digits)}${obs.unit ? ` ${obs.unit}` : ''}`;
+function formatValue(value: number | null | undefined, unit: string | null, digits: number): string {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return '—';
+  return `${value.toFixed(digits)}${unit ? ` ${unit}` : ''}`;
 }
 
 function formatTime(iso: string | null | undefined): string {
   if (!iso) return '—';
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? iso : d.toLocaleString();
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? iso : date.toLocaleString();
 }
 
 export default function RiverGaugeBoard(): JSX.Element {
@@ -97,36 +96,64 @@ export default function RiverGaugeBoard(): JSX.Element {
   const [fetching, setFetching] = useState(false);
   const [fetchedAt, setFetchedAt] = useState<string | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [doneCount, setDoneCount] = useState(0);
   const runId = useRef(0);
 
   const fetchSnapshot = useCallback(async () => {
     const id = ++runId.current;
     setFetching(true);
     setFetchError(null);
-    setDoneCount(0);
     setSnapshots(null);
+    setFetchedAt(null);
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 25000);
     try {
-      const results: StationSnapshot[] = [];
-      await Promise.all(
-        SNAPSHOT_STATIONS.map(async (station) => {
-          const snap = await fetchStation(station);
-          if (runId.current !== id) return;
-          results.push(snap);
-          setDoneCount((c) => c + 1);
-        }),
+      const stationIds = SNAPSHOT_STATIONS.map((station) => station.siteNo).join(',');
+      const response = await fetch(
+        tsmApiUrl(`/api/hydrologic/community?stationIds=${encodeURIComponent(stationIds)}`),
+        {
+          method: 'GET',
+          headers: { Accept: 'application/json' },
+          cache: 'no-store',
+          signal: controller.signal,
+        },
       );
-      if (runId.current !== id) return;
-      results.sort((a, b) => a.station.siteNo.localeCompare(b.station.siteNo));
-      setSnapshots(results);
-      setFetchedAt(new Date().toISOString());
-      if (results.every((r) => r.unavailable)) {
-        setFetchError('USGS did not return data for any station. Nothing is fabricated — try again later.');
+      if (!response.ok) {
+        throw new Error(`TSM hydrology API returned HTTP ${response.status}`);
       }
-    } catch (err) {
+      const payload = (await response.json()) as SnapshotPayload;
+      if (!Array.isArray(payload.observations)) {
+        throw new Error('TSM hydrology API returned no observations array');
+      }
       if (runId.current !== id) return;
-      setFetchError(err instanceof Error ? err.message : String(err));
+
+      const results = SNAPSHOT_STATIONS.map((station): StationSnapshot => {
+        const observation = payload.observations!.find((item) => item.stationId === station.siteNo) ?? null;
+        const unavailable = !observation || observation.status === 'unavailable' ||
+          (observation.value == null && observation.dischargeCfs == null);
+        return {
+          station,
+          observation,
+          unavailable,
+          error: observation?.error || (unavailable ? 'No usable observation was returned.' : undefined),
+        };
+      });
+      setSnapshots(results);
+      setFetchedAt(payload.generatedAt || new Date().toISOString());
+      if (results.every((result) => result.unavailable)) {
+        setFetchError('No registered station returned a usable observation. Values were not fabricated; retry later.');
+      }
+    } catch (error) {
+      if (runId.current !== id) return;
+      setSnapshots(SNAPSHOT_STATIONS.map((station) => ({
+        station,
+        observation: null,
+        unavailable: true,
+        error: error instanceof Error ? error.message : 'Hydrology source unavailable.',
+      })));
+      setFetchError(error instanceof Error ? error.message : 'Hydrology source unavailable.');
     } finally {
+      clearTimeout(timeout);
       if (runId.current === id) setFetching(false);
     }
   }, []);
@@ -137,8 +164,9 @@ export default function RiverGaugeBoard(): JSX.Element {
         River Watch — on-demand snapshots
       </h2>
       <p style={{ margin: '6px 0 12px', color: '#cbd5e1', fontSize: '1rem' }}>
-        No automatic polling. Press the button to fetch one live snapshot of all{' '}
-        {SNAPSHOT_STATIONS.length} registry gauges from USGS. Every value is provisional.
+        No automatic polling. Press the button to request one snapshot for {SNAPSHOT_STATIONS.length} registered
+        stations through the TSM server. Source approval status is shown only when supplied; gage heights remain
+        on the source gage datum, not NAVD88.
       </p>
       <button
         type="button"
@@ -146,7 +174,7 @@ export default function RiverGaugeBoard(): JSX.Element {
         disabled={fetching}
         style={{ ...buttonStyle, opacity: fetching ? 0.6 : 1, cursor: fetching ? 'wait' : 'pointer' }}
       >
-        {fetching ? `Fetching… ${doneCount}/${SNAPSHOT_STATIONS.length}` : 'Fetch live snapshot'}
+        {fetching ? 'Fetching snapshot…' : 'Fetch live snapshot'}
       </button>
 
       {fetchError && (
@@ -157,69 +185,74 @@ export default function RiverGaugeBoard(): JSX.Element {
 
       {fetchedAt && snapshots && (
         <p style={{ margin: '12px 0 0', color: '#94a3b8', fontSize: '0.9rem' }}>
-          Snapshot taken {formatTime(fetchedAt)} · user-initiated · provisional USGS observations ·
-          gage heights on USGS gage datum (not NAVD88)
+          Snapshot retrieved {formatTime(fetchedAt)} · user-initiated · provider timestamps and datum retained
         </p>
       )}
 
       <div style={{ marginTop: 14, display: 'grid', gap: 10 }}>
-        {(snapshots ?? SNAPSHOT_STATIONS.map((station) => ({ station, observations: [], unavailable: false }))).map(
-          (snap) => {
-            const s = snap as StationSnapshot;
-            const discharge = s.observations.find((o) => o.parameterCode === '00060');
-            const gageHeight = s.observations.find((o) => o.parameterCode === '00065');
-            const hasData = snapshots !== null;
-            return (
-              <div
-                key={s.station.siteNo}
-                style={{
-                  border: '1px solid #1e293b',
-                  borderRadius: 12,
-                  padding: '10px 14px',
-                  background: '#0a1622',
-                }}
-              >
-                <div style={{ fontWeight: 700 }}>{s.station.name}</div>
-                <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>
-                  {s.station.river} · USGS {s.station.siteNo}
-                </div>
-                {!hasData ? (
-                  <div style={{ color: '#64748b', fontSize: '0.9rem', marginTop: 4 }}>
-                    No snapshot yet — press the button above.
-                  </div>
-                ) : s.unavailable ? (
-                  <div style={{ color: '#fca5a5', fontSize: '0.9rem', marginTop: 4 }}>
-                    Unavailable{s.error ? ` — ${s.error}` : ''} (not fabricated)
-                  </div>
-                ) : (
-                  <div style={{ marginTop: 4, fontSize: '0.95rem' }}>
-                    <span style={{ marginRight: 16 }}>
-                      Discharge: <strong>{formatValue(discharge, 0)}</strong>
-                    </span>
-                    <span style={{ marginRight: 16 }}>
-                      Gage height: <strong>{formatValue(gageHeight, 2)}</strong>
-                    </span>
-                    <span
-                      style={{
-                        background: '#854d0e',
-                        color: '#fef3c7',
-                        borderRadius: 6,
-                        padding: '2px 8px',
-                        fontSize: '0.8rem',
-                        fontWeight: 700,
-                      }}
-                    >
-                      PROVISIONAL
-                    </span>
-                    <div style={{ color: '#94a3b8', fontSize: '0.85rem', marginTop: 2 }}>
-                      Observed {formatTime((discharge ?? gageHeight)?.observedAt)}
-                    </div>
-                  </div>
-                )}
+        {(snapshots ?? SNAPSHOT_STATIONS.map((station) => ({
+          station,
+          observation: null,
+          unavailable: false,
+        }))).map((snapshot) => {
+          const observation = snapshot.observation;
+          const hasData = snapshots !== null;
+          const qualityLabel = observation?.provisional
+            ? 'PROVISIONAL'
+            : observation?.qualifier
+              ? `QUALIFIER ${observation.qualifier}`
+              : 'QUALITY NOT SUPPLIED';
+          return (
+            <div
+              key={snapshot.station.siteNo}
+              style={{
+                border: '1px solid #1e293b',
+                borderRadius: 12,
+                padding: '10px 14px',
+                background: '#0a1622',
+              }}
+            >
+              <div style={{ fontWeight: 700 }}>{snapshot.station.name}</div>
+              <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>
+                {snapshot.station.river} · USGS {snapshot.station.siteNo}
+                {observation?.provider ? ` · source ${observation.provider}` : ''}
               </div>
-            );
-          },
-        )}
+              {!hasData ? (
+                <div style={{ color: '#64748b', fontSize: '0.9rem', marginTop: 4 }}>
+                  No snapshot yet — press the button above.
+                </div>
+              ) : snapshot.unavailable ? (
+                <div style={{ color: '#fca5a5', fontSize: '0.9rem', marginTop: 4 }}>
+                  Unavailable{snapshot.error ? ` — ${snapshot.error}` : ''} (not fabricated)
+                </div>
+              ) : (
+                <div style={{ marginTop: 4, fontSize: '0.95rem' }}>
+                  <span style={{ marginRight: 16 }}>
+                    Discharge: <strong>{formatValue(observation?.dischargeCfs, 'ft³/s', 0)}</strong>
+                  </span>
+                  <span style={{ marginRight: 16 }}>
+                    Gage height: <strong>{formatValue(observation?.value, observation?.unit, 2)}</strong>
+                  </span>
+                  <span
+                    style={{
+                      background: observation?.provisional ? '#854d0e' : '#334155',
+                      color: '#fef3c7',
+                      borderRadius: 6,
+                      padding: '2px 8px',
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                    }}
+                  >
+                    {qualityLabel}
+                  </span>
+                  <div style={{ color: '#94a3b8', fontSize: '0.85rem', marginTop: 2 }}>
+                    Observed {formatTime(observation?.observedAt)} · datum {observation?.verticalDatum || 'unverified'}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </section>
   );
