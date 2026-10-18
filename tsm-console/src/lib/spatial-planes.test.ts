@@ -21,13 +21,15 @@ function statesFor(
 }
 
 describe('spatial-planes fabric', () => {
-  it('declares 16 active planes plus the retired gauge plane', () => {
+  it('declares 17 active planes with a static verified gauge-location layer', () => {
     const active = SPATIAL_PLANES.filter((p) => !p.retired);
     const retired = SPATIAL_PLANES.filter((p) => p.retired);
-    expect(active).toHaveLength(16);
-    expect(retired).toHaveLength(1);
-    expect(retired[0].id).toBe('plane-gauge-telemetry');
-    expect(retired[0].retirementNote).toMatch(/2026-09-29/);
+    expect(active).toHaveLength(17);
+    expect(retired).toHaveLength(0);
+    const gauges = SPATIAL_PLANES.find((p) => p.id === 'plane-gauge-telemetry')!;
+    expect(gauges.name).toBe('Verified River Gauge Stations');
+    expect(gauges.layerIds).toContain('usgs-gauge-locations');
+    expect(getPlaneLayers(gauges).map((layer) => layer.id)).toContain('usgs-gauge-locations');
   });
 
   it('every non-retired plane layer id exists in the MAP_LAYERS catalog', () => {
@@ -77,10 +79,10 @@ describe('spatial-planes fabric', () => {
     expect(derivePlaneState(plane, blank)).toBe('not_configured');
   });
 
-  it('derives retired for the retired gauge plane regardless of states', () => {
+  it('derives live or unavailable for the static gauge-location plane from actual layer state', () => {
     const plane = SPATIAL_PLANES.find((p) => p.id === 'plane-gauge-telemetry')!;
-    expect(derivePlaneState(plane, blank)).toBe('retired');
-    expect(derivePlaneState(plane, statesFor(plane, 'live'))).toBe('retired');
+    expect(derivePlaneState(plane, statesFor(plane, 'live'))).toBe('live');
+    expect(derivePlaneState(plane, statesFor(plane, 'source_unavailable'))).toBe('source_unavailable');
   });
 
   it('summarizeFabric counts planes by derived state', () => {
@@ -93,7 +95,7 @@ describe('spatial-planes fabric', () => {
     const summary = summarizeFabric(SPATIAL_PLANES, layerStates);
     expect(summary.total).toBe(SPATIAL_PLANES.length);
     expect(summary.degraded).toBe(1);
-    expect(summary.retired).toBe(1);
+    expect(summary.retired).toBe(0);
     expect(summary.notConfigured).toBe(3); // hecras, streamstats, sec204 planes (bathymetry now wired to eHydro extents)
     expect(
       summary.live +
