@@ -17,7 +17,7 @@ import * as THREE from 'three';
 import { TilesRenderer } from '3d-tiles-renderer';
 import type { ThreeDTilesSource } from '../lib/martin-tile-fabric';
 import { resolveThreeDTilesetUrl } from '../lib/martin-tile-fabric';
-import { getTilesCameraClipPlanes } from '../lib/tiles-3d-camera';
+import { getTilesCameraBasis, getTilesCameraClipPlanes } from '../lib/tiles-3d-camera';
 
 interface ThreeDTilesMapCamera {
   getCenter(): { lng: number; lat: number };
@@ -168,9 +168,10 @@ export default function ThreeDTilesLayer({
           camera.far = nextFar;
           camera.updateProjectionMatrix();
         }
+        const basis = getTilesCameraBasis(pitch, bearing);
         const horizontal = new THREE.Vector3()
-          .addScaledVector(east, Math.sin(bearing))
-          .addScaledVector(north, Math.cos(bearing))
+          .addScaledVector(east, basis.horizontalEast)
+          .addScaledVector(north, basis.horizontalNorth)
           .normalize();
 
         // MapLibre pitch 0 is a top-down view. Place the camera behind the
@@ -179,11 +180,11 @@ export default function ThreeDTilesLayer({
         // This keeps camera.up orthogonal to the view direction at pitch 0 and
         // avoids the degenerate up/view alignment of using the ECEF radial up.
         camera.position.copy(target)
-          .addScaledVector(up, Math.cos(pitch) * distance)
-          .addScaledVector(horizontal, -Math.sin(pitch) * distance);
+          .addScaledVector(up, basis.positionUpScale * distance)
+          .addScaledVector(horizontal, basis.positionHorizontalScale * distance);
         camera.up.copy(up)
-          .multiplyScalar(Math.sin(pitch))
-          .addScaledVector(horizontal, Math.cos(pitch));
+          .multiplyScalar(basis.cameraUpVerticalScale)
+          .addScaledVector(horizontal, basis.cameraUpHorizontalScale);
         camera.lookAt(target);
         camera.updateMatrixWorld();
       };
