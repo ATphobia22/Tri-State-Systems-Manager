@@ -78,14 +78,25 @@ def transform_normal(matrix: list[float], normal: tuple[float, float, float]) ->
     return tuple(v / length for v in transformed)
 
 
-def merge_glbs(features: list[tuple[Path, int, list[float]]]) -> bytes:
-    """Merge GLBs into the tileset root frame and preserve feature metadata."""
+def merge_glbs(features: list[tuple[Path, int] | tuple[Path, int, list[float]]]) -> bytes:
+    """Merge GLBs and preserve metadata; two-tuples use an identity transform."""
+    identity = [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
+                0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
     binary = bytearray()
     views, acc, mats, prims = [], [], [], []
     object_ids: list[int] = []
-    for feature_index, (p, source_object_id, tile_transform) in enumerate(features):
+    for feature_index, feature in enumerate(features):
+        if not isinstance(feature, (tuple, list)) or len(feature) not in (2, 3):
+            raise ValueError("each feature must be (path, OBJECTID) or (path, OBJECTID, transform)")
+        p, source_object_id = feature[0], feature[1]
+        tile_transform = identity if len(feature) == 2 else feature[2]
         if isinstance(source_object_id, bool) or not isinstance(source_object_id, int) or source_object_id < 0 or source_object_id > 0xFFFFFFFF:
             raise ValueError(f"invalid UINT32 source OBJECTID: {source_object_id!r}")
+        if not isinstance(p, Path):
+            p = Path(p)
+        if (not isinstance(tile_transform, list) or len(tile_transform) != 16 or
+            not all(isinstance(value, (int, float)) and math.isfinite(float(value)) for value in tile_transform)):
+            raise ValueError(f"invalid tile transform for {p}")
         object_ids.append(source_object_id)
         doc, bindata = read_glb(p)
         nodes = doc.get("nodes", [])
@@ -198,7 +209,7 @@ class QuadNode:
         for cx, cy, cb in quads:
             child = QuadNode(self.level + 1, cx, cy, cb)
             for item in self.items:
-                _, lon, lat, _ = item
+                _, lon, lat, _, _ = item
                 if cb[0] <= lon <= cb[2] and cb[1] <= lat <= cb[3]:
                     child.items.append(item)
             if child.items:
