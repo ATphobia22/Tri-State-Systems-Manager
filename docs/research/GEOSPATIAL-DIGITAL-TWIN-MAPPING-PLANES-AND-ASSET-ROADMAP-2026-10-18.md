@@ -57,11 +57,11 @@ Source: [Full open-access paper](https://www.mdpi.com/2220-9964/15/5/215).
 
 ## 3. State-word design review
 
-The proposed bit allocation is arithmetically consistent: B uses 4 bits and D/C/T/S use 3 bits each, for 16 total bits. That only establishes encoding capacity, not correctness of the state machine.
+The published bit allocation is B=2 bits, D=2 bits, C=3 bits, T=3 bits, S=3 bits, and R=3 extension bits, for 16 total bits. The R field is not a sixth representation dimension: the paper describes its low bit as a runtime exception flag and reserves other patterns for future extensions. TSM's decoder follows these offsets and rejects unregistered C/T/S levels 4–7. Encoding capacity alone does not establish correctness of the state machine.
 
 Before adopting it, define and test:
 
-- The valid enum values for each field and the handling of all unused bit patterns. In particular, a 4-bit B field can encode 16 values although the described B levels only enumerate B0–B3; each 3-bit field can encode eight values while the prose describes only levels 0–3.
+- The valid enum values for each field and the handling of all unused bit patterns. The published layout is B[15:14], D[13:12], C[11:9], T[8:6], S[5:3], R[2:0]. B/D have 2-bit storage; C/T/S have 3-bit storage, but levels 4–7 are reserved unless explicitly registered. The R field is separate from B-D-C-T-S and must not be decoded as a sixth dimension.
 - A versioned state-word schema and explicit masks/shifts, including endianness/serialization rules if the value crosses process or network boundaries.
 - A canonical legality predicate for combinations. Metadata without a valid feature identity/locatable carrier and components without a compatible host representation should be rejected or normalized deterministically; do not rely on undocumented implicit constraints.
 - A degradation order with invariant preservation: keep stable feature identity and required safety/engineering semantics while lowering optional visual detail. Rendering quality can degrade; authoritative hydraulic, terrain, coordinate, provenance and uncertainty data must not silently be discarded or confused with presentation assets.
