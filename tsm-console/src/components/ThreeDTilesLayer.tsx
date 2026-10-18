@@ -159,6 +159,15 @@ export default function ThreeDTilesLayer({
         const bearing = THREE.MathUtils.degToRad(map.getBearing());
         const zoom = THREE.MathUtils.clamp(map.getZoom(), 0, 24);
         const distance = (40075016.686 / 2 ** zoom) * 2.5;
+        // Keep the ECEF camera's target inside the far plane at regional zooms.
+        // Scale the near plane with camera distance to avoid an extreme depth range.
+        const nextNear = Math.max(0.1, distance / 10_000);
+        const nextFar = Math.max(10_000, distance * 4);
+        if (Math.abs(camera.near - nextNear) > 0.01 || Math.abs(camera.far - nextFar) > 1) {
+          camera.near = nextNear;
+          camera.far = nextFar;
+          camera.updateProjectionMatrix();
+        }
         const horizontal = new THREE.Vector3()
           .addScaledVector(east, Math.sin(bearing))
           .addScaledVector(north, Math.cos(bearing))
@@ -190,11 +199,14 @@ export default function ThreeDTilesLayer({
         if (!mountRef.current || !camera || !renderer) return;
         const w = mountRef.current.clientWidth;
         const h = mountRef.current.clientHeight;
+        if (w <= 0 || h <= 0) return;
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
         renderer.setSize(w, h);
+        tilesRenderer?.setResolutionFromRenderer(camera, renderer);
       };
       window.addEventListener('resize', handleResize);
+      map?.on('resize', handleResize);
 
       // Graceful WebGL context loss recovery (mobile GPUs, tab switches).
       const canvas = renderer.domElement;
@@ -238,6 +250,7 @@ export default function ThreeDTilesLayer({
       return () => {
         disposed = true;
         window.removeEventListener('resize', handleResize);
+        map?.off('resize', handleResize);
         canvas.removeEventListener('webglcontextlost', handleContextLost);
         canvas.removeEventListener('webglcontextrestored', handleContextRestored);
         tilesRenderer?.removeEventListener('load-tileset', handleTilesetLoaded);
