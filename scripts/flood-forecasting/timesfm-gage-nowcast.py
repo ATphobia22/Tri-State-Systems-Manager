@@ -56,7 +56,6 @@ GAGES = {
 }
 
 OUT_DIR = Path("./timesfm-forecasts")
-OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
 # ---------------------------------------------------------------------------
@@ -264,7 +263,8 @@ def forecast_gage(gage_id: str, horizon_hours: int = 48, history_days: int = 30)
     })
 
     # 5. Save
-    stamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     out_path = OUT_DIR / f"{gage_id}_forecast_{stamp}.csv"
     out.to_csv(out_path, index=False)
     print(f"  Saved: {out_path}")
