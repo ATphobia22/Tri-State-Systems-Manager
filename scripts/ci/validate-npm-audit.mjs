@@ -8,6 +8,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const ALLOWED_ADVISORY = 'https://github.com/advisories/GHSA-vfj7-8cjw-p6xm';
 const EXPECTED_FINDINGS = new Set(['@gltf-transform/cli', 'braces', 'micromatch']);
@@ -115,7 +116,9 @@ function main() {
 
   const reportPath = resolve(reportArgument);
   const report = JSON.parse(readFileSync(reportPath, 'utf8'));
-  const lockfile = JSON.parse(readFileSync(resolve('tsm-console/package-lock.json'), 'utf8'));
+  const repositoryRoot = fileURLToPath(new URL('../..', import.meta.url));
+  const lockfilePath = resolve(repositoryRoot, 'tsm-console/package-lock.json');
+  const lockfile = JSON.parse(readFileSync(lockfilePath, 'utf8'));
   const auditStatus = Number(statusArgument);
   const result = validateAllowedDevOnlyAdvisory(report, auditStatus, lockfile);
   console.log(JSON.stringify(result));
