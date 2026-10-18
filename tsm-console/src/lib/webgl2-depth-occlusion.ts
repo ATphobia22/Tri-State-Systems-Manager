@@ -22,6 +22,8 @@ interface TargetState {
 
 export interface WebGL2DepthOcclusionOptions {
   maxQueriesPerFrame?: number;
+  /** Hard cap on allocated GPU query objects; overflow remains visible (fail open). */
+  maxTrackedMeshes?: number;
   consecutiveOccludedFrames?: number;
 }
 
@@ -119,7 +121,9 @@ export function nextOcclusionVisibility(
 export class WebGL2DepthOcclusionController {
   private readonly gl: WebGL2RenderingContext;
   private readonly maxQueriesPerFrame: number;
+  private readonly maxTrackedMeshes: number;
   private readonly consecutiveOccludedFrames: number;
+  private warnedTargetLimit = false;
   private readonly targets = new Map<THREE.Mesh, TargetState>();
   private readonly program: WebGLProgram;
   private readonly vao: WebGLVertexArrayObject;
@@ -138,9 +142,13 @@ export class WebGL2DepthOcclusionController {
     }
     this.gl = gl;
     this.maxQueriesPerFrame = options.maxQueriesPerFrame ?? 64;
+    this.maxTrackedMeshes = options.maxTrackedMeshes ?? 2048;
     this.consecutiveOccludedFrames = options.consecutiveOccludedFrames ?? 2;
     if (!Number.isInteger(this.maxQueriesPerFrame) || this.maxQueriesPerFrame < 1) {
       throw new RangeError('maxQueriesPerFrame must be a positive integer');
+    }
+    if (!Number.isInteger(this.maxTrackedMeshes) || this.maxTrackedMeshes < 1 || this.maxTrackedMeshes > 16384) {
+      throw new RangeError('maxTrackedMeshes must be an integer in [1, 16384]');
     }
     if (!Number.isInteger(this.consecutiveOccludedFrames) || this.consecutiveOccludedFrames < 1) {
       throw new RangeError('consecutiveOccludedFrames must be a positive integer');
@@ -181,6 +189,17 @@ export class WebGL2DepthOcclusionController {
     if (this.disposed) return;
     root.traverse((object) => {
       if (!(object instanceof THREE.Mesh) || this.targets.has(object)) return;
+      if (this.targets.size >= this.maxTrackedMeshes) {
+        // Query objects consume driver resources. Meshes beyond the configured
+        // cap are simply left visible rather than allocating without a bound.
+        if (!this.warnedTargetLimit) {
+          this.warnedTargetLimit = true;
+          console.warn(
+            `[Tiles3D] Occlusion target cap (${this.maxTrackedMeshes}) reached; remaining meshes stay visible`,
+          );
+        }
+        return;
+      }
       const query = this.gl.createQuery();
       if (!query) return;
       this.targets.set(object, {
@@ -239,6 +258,8 @@ export class WebGL2DepthOcclusionController {
       const blendEnabled = gl.isEnabled(gl.BLEND);
       const cullEnabled = gl.isEnabled(gl.CULL_FACE);
       const depthEnabled = gl.isEnabled(gl.DEPTH_TEST);
+      const stencilEnabled = gl.isEnabled(gl.STENCIL_TEST);
+      const polygonOffsetEnabled = gl.isEnabled(gl.POLYGON_OFFSET_FILL);
 
       try {
         gl.useProgram(this.program);
@@ -249,6 +270,10 @@ export class WebGL2DepthOcclusionController {
         gl.colorMask(false, false, false, false);
         gl.disable(gl.BLEND);
         gl.disable(gl.CULL_FACE);
+        // Host-layer stencil and polygon-offset state must not invalidate
+        // visibility queries against the shared depth buffer.
+        gl.disable(gl.STENCIL_TEST);
+        gl.disable(gl.POLYGON_OFFSET_FILL);
         gl.uniformMatrix4fv(this.viewProjectionUniform, false, viewProjection.elements);
         for (const state of selected) {
           if (state.pending) continue;
@@ -277,6 +302,8 @@ export class WebGL2DepthOcclusionController {
         if (blendEnabled) gl.enable(gl.BLEND); else gl.disable(gl.BLEND);
         if (cullEnabled) gl.enable(gl.CULL_FACE); else gl.disable(gl.CULL_FACE);
         if (depthEnabled) gl.enable(gl.DEPTH_TEST); else gl.disable(gl.DEPTH_TEST);
+        if (stencilEnabled) gl.enable(gl.STENCIL_TEST); else gl.disable(gl.STENCIL_TEST);
+        if (polygonOffsetEnabled) gl.enable(gl.POLYGON_OFFSET_FILL); else gl.disable(gl.POLYGON_OFFSET_FILL);
         gl.bindVertexArray(savedVao);
         gl.bindBuffer(gl.ARRAY_BUFFER, savedArrayBuffer);
         gl.useProgram(savedProgram);
