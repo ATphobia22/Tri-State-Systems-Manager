@@ -12,7 +12,7 @@
 | Evidence and data governance | `data/acquisitions/tsm-authoritative-source-manifest-v1.json`, `data/acquisitions/tsm-data-plane-integration-v1.json`, `data/schemas/evidence-manifest.schema.json`, `scripts/ci/validate-provenance-plane.mjs`, `data-sources/manifests/` | Contracts and CI checks exist. AOI-specific freshness, coverage, CRS, vertical datum, units, retrieval timestamps, and source hashes still require current acquisition evidence. |
 | Scientific simulation | `docs/hydrology/HEC-HMS-RAS-REPRODUCIBLE-WORKFLOW.md`, `docs/hydrology/HYDROLOGY-RELEASE-CONTRACT.md`, `scripts/hydrology/run-hec-coupled-workflow.mjs`, HEC run-manifest validators | Orchestration and safety contracts exist. Do not run or present a site-specific HEC-HMS/HEC-RAS model until the AOI, terrain, hydrography, boundary conditions, datums, solver environment, and human scope approval gates pass. |
 | Governance and decisions | `docs/FOUR-PLANE-ARCHITECTURE.md`, `data/schemas/tsm-four-plane-architecture-v1.json`, jurisdiction and authority-boundary contracts | Architecture and authority boundaries exist. CI success is not human approval, regulatory certification, or an engineering determination. |
-| Public experience and visualization | `docs/TSM-LOD-CONTRACT.md`, `docs/WEBGPU-PRESENTATION-CONTRACT.md`, `scripts/geospatial/build-hlod-tileset.py`, `scripts/geospatial/validate-building-3d-tiles.py`, `tsm-console/src/components/ThreeDTilesLayer.tsx`, `tsm-console/src/lib/martin-tile-fabric.ts` | 3D Tiles pipeline and active renderer integration exist. This change adds an HLOD error-floor policy, zoom-aware camera clipping, resize-aware screen-space-error resolution, URL validation, and regression tests. Target-renderer camera-path, refinement-boundary, and performance tests remain required. |
+| Public experience and visualization | `docs/TSM-LOD-CONTRACT.md`, `docs/WEBGPU-PRESENTATION-CONTRACT.md`, `scripts/geospatial/build-hlod-tileset.py`, `scripts/geospatial/validate-building-3d-tiles.py`, `tsm-console/src/components/ThreeDTilesLayer.tsx`, `tsm-console/src/lib/martin-tile-fabric.ts`, `tsm-console/src/lib/tiles-3d-renderer-layer.ts` | 3D Tiles pipeline and active renderer integration exist. This change adds an HLOD error-floor policy, zoom-aware camera clipping, resize-aware screen-space-error resolution, URL validation, and regression tests. Target-renderer camera-path, refinement-boundary, and performance tests remain required. |
 
 ## 3D Tiles renderer: implementation vs. proposals
 
@@ -22,8 +22,8 @@
 - A MapLibre-hosted Three.js `TilesRenderer` integration with camera/resolution synchronization and screen-space-error configuration.
 - A conservative HLOD geometric-error floor for empty ADD partition nodes; the new test suite is wired into geospatial CI.
 - The active `ThreeDTilesLayer` adjusts camera near/far clipping planes as zoom changes and refreshes the 3D Tiles renderer's pixel resolution on container/map resize.
-- `resolveThreeDTilesetUrl` rejects unsupported schemes, embedded credentials, control characters, backslashes, and protocol-relative URLs before loader initialization.
-- The unused `Tiles3DRendererLayer` adapter was removed instead of retaining a peer-dependency conflict: its plugin required Three.js `^0.178.0` while the app uses `^0.186.1`.
+- `resolveThreeDTilesetUrl` rejects unsupported schemes, embedded credentials, control characters, backslashes, and protocol-relative URLs before loader initialization; the optional MapScene adapter uses a matching fail-closed URL normalizer.
+- Main's dependency conflict was resolved upstream in commit `432263ee` by aligning the Three.js package and lockfile with the bridge plugin's peer range. This branch preserves that resolution and adds renderer tests without editing the lockfile.
 
 ### Not yet a complete feature
 
