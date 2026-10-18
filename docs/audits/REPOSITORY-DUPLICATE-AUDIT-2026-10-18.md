@@ -34,7 +34,7 @@ The following branches are stale/diverged and should not be bulk-merged:
 
 - `feat/hierarchical-voxel-visibility-2026-10-18`: scheduler already exists on main; branch includes stale docs and a lockfile regression.
 - `feat/mapping-plane-hlod-release-gates-2026-10-18`: current register and HLOD test are on main; older implicit-tileset implementation must not replace current main.
-- `fix/hlod-geometric-error-contract`: production builder already matches main; stronger tests salvaged to PR #301.
+- `fix/hlod-geometric-error-contract`: production builder already matches main; stronger tests consolidated into active PR #303 via closed PRs #301 and #300.
 - `fix/3d-tiles-renderer-mainline`: HLOD builder/test and CI test wiring are already present on main; PR #291 closed.
 - `fix/3d-tiles-hlod-renderer-hardening`: PR #297 closed; this branch ref was observed at the same SHA as main at audit time.
 - `fix/3d-tiles-hlod-renderer-hardening-rebased`: stale and non-mergeable; PR #298 closed. Its `state-word.ts` bit layout conflicts with main and must not be merged wholesale.
