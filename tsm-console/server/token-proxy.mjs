@@ -233,6 +233,7 @@ const server = http.createServer(async (req, res) => {
           const qualifier = observation?.provenance?.qualifier || null;
           return {
             stationId: frame.stationId,
+            nwsId: frame.nwsId || null,
             provider: frame.provider,
             name: frame.name || null,
             value: typeof observation?.value === 'number' ? observation.value : null,
