@@ -17,6 +17,7 @@ import * as THREE from 'three';
 import { TilesRenderer } from '3d-tiles-renderer';
 import type { ThreeDTilesSource } from '../lib/martin-tile-fabric';
 import { resolveThreeDTilesetUrl } from '../lib/martin-tile-fabric';
+import { getTilesCameraClipPlanes } from '../lib/tiles-3d-camera';
 
 interface ThreeDTilesMapCamera {
   getCenter(): { lng: number; lat: number };
@@ -161,8 +162,7 @@ export default function ThreeDTilesLayer({
         const distance = (40075016.686 / 2 ** zoom) * 2.5;
         // Keep the ECEF camera's target inside the far plane at regional zooms.
         // Scale the near plane with camera distance to avoid an extreme depth range.
-        const nextNear = Math.max(0.1, distance / 10_000);
-        const nextFar = Math.max(10_000, distance * 4);
+        const { near: nextNear, far: nextFar } = getTilesCameraClipPlanes(distance);
         if (Math.abs(camera.near - nextNear) > 0.01 || Math.abs(camera.far - nextFar) > 1) {
           camera.near = nextNear;
           camera.far = nextFar;
