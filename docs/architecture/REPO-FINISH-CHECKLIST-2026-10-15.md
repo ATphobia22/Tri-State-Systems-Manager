@@ -23,7 +23,7 @@
 ## B. Pull requests (status checked 2026-10-18)
 
 - [x] **PR #268** — HEC-HMS → HEC-RAS reproducible workflow contracts — merged. The workflow remains a NOT_APPROVED pilot template; merge does not install HEC solvers or authorize a production run.
-- [ ] **PR #273** — repository secret scanning and audit-applicability documentation — open during this checklist update; merge only after all PR checks pass.
+- [x] **PR #273** — repository secret scanning and audit-applicability documentation — merged after Secret Scanning, Parse Gate, full CI, CodeQL, headed visual E2E, and production-console verification passed on the PR head. Main-push workflows and actual deployment remain separately verified gates.
 
 ## C. Host-only (cannot be finished in cloud sandbox / Linux CI alone)
 
