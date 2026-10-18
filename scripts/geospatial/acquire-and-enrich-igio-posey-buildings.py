@@ -358,6 +358,9 @@ def main() -> None:
         # Write fallback to output and skip elevation join (already joined)
         tmp.rename(args.output)
         digest = actual
+        args.output.with_suffix(args.output.suffix + ".sha256").write_text(
+            f"{digest}  {args.output.name}\n", encoding="utf-8"
+        )
         receipt = {
             "source": "Indiana GIO Building_Footprints 2016-2020 (cached snapshot 2026-10-06)",
             "fallbackUrl": args.fallback_url,
