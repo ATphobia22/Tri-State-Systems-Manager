@@ -36,6 +36,7 @@ import {
   diffStateWords,
   didDimensionChange,
   encodeStateWord,
+  STATE_WORD_BITS,
   type StateWordDimension,
   type StateWordValues,
 } from './state-word-codec';
@@ -231,8 +232,7 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
   private mapScene: MapScene | null = null;
   private tilesRenderer: TilesRenderer | null = null;
   private pmrem: THREE.PMREMGenerator | null = null;
-  private readonly stateWordMeshes = new Map<THREE.Mesh, { baseWord: number; currentWord: number }>();
-  private readonly originalTextureMaps = new WeakMap<THREE.Material, Map<TextureMapProperty, THREE.Texture | null>>();
+  private readonly stateWordMeshes = new Map<THREE.Mesh, ManagedStateWordMesh>();
   private lastFrameTimestamp = 0;
   private smoothedFrameTimeMs: number | null = null;
   private readonly config: Required<Omit<Tiles3DRendererLayerConfig, 'id' | 'tilesetUrl'>> &
@@ -245,12 +245,18 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
       enableIBL: config.enableIBL ?? true,
       iblIntensity: config.iblIntensity ?? 1.0,
       maxSse: config.maxSse ?? 16,
+      minFps: config.minFps ?? 30,
+      fpsRecoveryMargin: config.fpsRecoveryMargin ?? 8,
     };
+    if (!Number.isFinite(this.config.minFps) || this.config.minFps <= 0) {
+      throw new RangeError('minFps must be a finite number greater than zero');
+    }
+    if (!Number.isFinite(this.config.fpsRecoveryMargin) || this.config.fpsRecoveryMargin < 0) {
+      throw new RangeError('fpsRecoveryMargin must be a finite non-negative number');
+    }
   }
 
-  onAdd(map: maplibregl.Map, gl: WebGLRenderingContext): void {
-    // Resilient: normalize the URL and work with what we get instead of
-    // refusing. Only javascript:/data: URLs are rejected (XSS risk).
+  onAdd(map: maplibregl.Map, _gl: WebGLRenderingContext): void {
     const url = normalizeTilesetUrl(this.config.tilesetUrl);
     if (url === null) {
       console.warn(`[Tiles3D] Rejected unsafe tileset URL: ${this.config.tilesetUrl}`);
@@ -260,15 +266,9 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
       console.info(`[Tiles3D] Normalized tileset URL: ${this.config.tilesetUrl} -> ${url}`);
     }
     try {
-      // MapScene syncs the three.js camera with MapLibre's camera.
-      this.mapScene = new MapScene(map as never, {
-        enablePostProcessing: false,
-      });
-
+      this.mapScene = new MapScene(map as never, { enablePostProcessing: false });
       const scene = this.mapScene.scene as THREE.Scene;
 
-      // PBR image-based lighting: procedural RoomEnvironment, no external HDR.
-      // Gives every PBR material (including GLTF-loaded) realistic ambient.
       if (this.config.enableIBL) {
         const renderer = this.mapScene.renderer as THREE.WebGLRenderer;
         this.pmrem = new THREE.PMREMGenerator(renderer);
@@ -277,11 +277,11 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
         scene.environmentIntensity = this.config.iblIntensity;
       }
 
-      // 3D Tiles renderer applies tile and glTF transforms. Do not assume
-      // legacy RTC_CENTER metadata exists or supplies a valid local frame.
+      // Register the official loader extensions for 3D Tiles 1.1. Without this
+      // plugin, EXT_mesh_features and EXT_structural_metadata stay unbound.
       const tilesRenderer = new TilesRenderer(url);
       tilesRenderer.errorTarget = this.config.maxSse;
-      tilesRenderer.registerPlugin(new GLTFExtensionsPlugin({ metadata: true, rtc: true }));
+      tilesRenderer.registerPlugin(new GLTFExtensionsPlugin({ metadata: true, rtc: false }));
       tilesRenderer.addEventListener('load-model', (event: { scene: THREE.Object3D }) => {
         this.attachStateWords(event.scene);
       });
@@ -290,8 +290,8 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
       });
       this.tilesRenderer = tilesRenderer;
       scene.add(tilesRenderer.group as unknown as THREE.Object3D);
-    } catch (err) {
-      console.warn('[Tiles3D] Failed to initialize layer:', err);
+    } catch (error) {
+      console.warn('[Tiles3D] Failed to initialize layer:', error);
       this.mapScene = null;
       this.tilesRenderer = null;
     }
@@ -308,19 +308,24 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
         render?: () => void;
       } | null;
       ms?.cameraSync?.syncCamera?.();
-      const cam = ms?.camera;
-      if (this.tilesRenderer && cam && ms?.renderer) {
-        this.tilesRenderer.setCamera(cam);
-        this.tilesRenderer.setResolutionFromRenderer(cam, ms.renderer);
+      const camera = ms?.camera;
+      if (this.tilesRenderer && camera && ms?.renderer) {
+        this.tilesRenderer.setCamera(camera);
+        this.tilesRenderer.setResolutionFromRenderer(camera, ms.renderer);
         this.tilesRenderer.update();
       }
       ms?.render?.();
-    } catch (err) {
-      console.warn('[Tiles3D] Render error (suppressed):', err);
+    } catch (error) {
+      console.warn('[Tiles3D] Render error (suppressed):', error);
     }
   }
 
   onRemove(): void {
+    // Restore shared source resources before the renderer disposes tile content.
+    for (const [mesh, managed] of this.stateWordMeshes) {
+      this.restoreManagedMesh(mesh, managed);
+    }
+    this.stateWordMeshes.clear();
     try {
       this.tilesRenderer?.dispose();
       this.pmrem?.dispose();
@@ -328,8 +333,6 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
     } catch {
       /* ignore teardown errors */
     }
-    for (const mesh of this.stateWordMeshes.keys()) this.setMeshTexturesEnabled(mesh, true);
-    this.stateWordMeshes.clear();
     this.lastFrameTimestamp = 0;
     this.smoothedFrameTimeMs = null;
     this.tilesRenderer = null;
@@ -338,68 +341,107 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
   }
 
   private attachStateWords(root: THREE.Object3D): void {
+    let count = 0;
     root.traverse((object) => {
-      const mesh = object as THREE.Mesh;
-      if (mesh.isMesh !== true) return;
-      const stateWord = readStateWordFromMesh(mesh);
-      if (stateWord === null) return;
-      this.stateWordMeshes.set(mesh, { baseWord: stateWord, currentWord: stateWord });
-      mesh.userData.tsmStateWord = stateWord;
-      this.setMeshTexturesEnabled(mesh, decodeStateWord(stateWord, 'T') > 0);
+      if (!(object instanceof THREE.Mesh) || this.stateWordMeshes.has(object)) return;
+      try {
+        const stateWord = readStateWordFromMesh(object);
+        if (stateWord === null) return;
+        const originalMaterial = object.material;
+        const originalMaterials = Array.isArray(originalMaterial) ? originalMaterial : [originalMaterial];
+        // Per-mesh clones are required: the loader may share one Material across
+        // features with different state words, and per-feature degradation must
+        // never mutate another feature's original material.
+        const clonedMaterials = originalMaterials.map((material) => material.clone());
+        object.material = Array.isArray(originalMaterial) ? clonedMaterials : clonedMaterials[0];
+        const managed: ManagedStateWordMesh = {
+          baseWord: stateWord,
+          currentWord: stateWord,
+          originalMaterial,
+          originalMaterials,
+          clonedMaterials,
+          originalVisible: object.visible,
+          isBoundaryProxy: object.userData.tsmBoundaryProxy === true,
+          componentLevel: object.userData.tsmOptionalComponent === true
+            ? asOptionalLevel(object.userData.tsmComponentLevel)
+            : null,
+          semanticLevel: object.userData.tsmSemanticOverlay === true
+            ? asOptionalLevel(object.userData.tsmSemanticLevel)
+            : null,
+          semanticOverlay: object.userData.tsmSemanticOverlay === true,
+        };
+        this.stateWordMeshes.set(object, managed);
+        object.userData.tsmStateWord = stateWord;
+        this.applyStateWord(object, managed);
+        count++;
+      } catch (error) {
+        console.warn('[Tiles3D] Skipping invalid state-word metadata for one feature:', error);
+      }
     });
+    if (count > 0) console.info(`[Tiles3D] Bound validated stateWord metadata to ${count} feature mesh(es)`);
   }
 
   private detachStateWords(root: THREE.Object3D): void {
     root.traverse((object) => {
-      const mesh = object as THREE.Mesh;
-      if (mesh.isMesh !== true || !this.stateWordMeshes.has(mesh)) return;
-      this.setMeshTexturesEnabled(mesh, true);
-      this.stateWordMeshes.delete(mesh);
-      delete mesh.userData.tsmStateWord;
+      if (!(object instanceof THREE.Mesh)) return;
+      const managed = this.stateWordMeshes.get(object);
+      if (!managed) return;
+      this.restoreManagedMesh(object, managed);
+      this.stateWordMeshes.delete(object);
     });
   }
 
-  private setMeshTexturesEnabled(mesh: THREE.Mesh, enabled: boolean): void {
-    const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-    for (const material of materials) {
-      const candidate = material as TextureBearingMaterial;
-      let snapshot = this.originalTextureMaps.get(material);
-      if (!snapshot) {
-        snapshot = new Map<TextureMapProperty, THREE.Texture | null>();
-        for (const key of TEXTURE_MAP_PROPERTIES) {
-          const value = candidate[key];
-          if (key in candidate && (value === null || value instanceof THREE.Texture)) {
-            snapshot.set(key, value ?? null);
-          }
-        }
-        this.originalTextureMaps.set(material, snapshot);
-      }
-      let changed = false;
-      for (const [key, original] of snapshot) {
-        const value = enabled ? original : null;
-        if (candidate[key] !== value) {
-          candidate[key] = value;
-          changed = true;
-        }
-      }
-      if (changed) material.needsUpdate = true;
+  private restoreManagedMesh(mesh: THREE.Mesh, managed: ManagedStateWordMesh): void {
+    mesh.material = managed.originalMaterial;
+    mesh.visible = managed.originalVisible;
+    delete mesh.userData.tsmStateWord;
+    delete mesh.userData.tsmEffectiveStateWord;
+    for (const material of managed.clonedMaterials) material.dispose();
+  }
+
+  private applyStateWord(mesh: THREE.Mesh, managed: ManagedStateWordMesh): void {
+    const effectiveWord = managed.currentWord;
+    const textureLevel = decodeStateWord(effectiveWord, 'T');
+    managed.clonedMaterials.forEach((material, index) => {
+      applyTextureLevel(managed.originalMaterials[index], material, textureLevel);
+    });
+
+    let visible = managed.originalVisible;
+    if (!managed.isBoundaryProxy && managed.componentLevel !== null) {
+      visible = visible && managed.componentLevel <= decodeStateWord(effectiveWord, 'C');
     }
+    if (!managed.isBoundaryProxy && managed.semanticOverlay && managed.semanticLevel !== null) {
+      visible = visible && managed.semanticLevel <= decodeStateWord(effectiveWord, 'S');
+    }
+    mesh.visible = visible;
+    mesh.userData.tsmStateWord = managed.baseWord;
+    mesh.userData.tsmEffectiveStateWord = effectiveWord;
   }
 
   private updateFrameBudget(): void {
-    const now = performance.now();
+    const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
     if (this.lastFrameTimestamp > 0) {
-      const delta = Math.min(250, Math.max(1, now - this.lastFrameTimestamp));
-      this.smoothedFrameTimeMs = this.smoothedFrameTimeMs === null
-        ? delta
-        : this.smoothedFrameTimeMs * 0.85 + delta * 0.15;
-      const smoothedFps = 1000 / this.smoothedFrameTimeMs;
-      for (const [mesh, runtimeState] of this.stateWordMeshes) {
-        const nextWord = stateWordForFrameBudget(runtimeState.baseWord, runtimeState.currentWord, smoothedFps);
-        if (nextWord === runtimeState.currentWord) continue;
-        runtimeState.currentWord = nextWord;
-        mesh.userData.tsmStateWord = nextWord;
-        this.setMeshTexturesEnabled(mesh, decodeStateWord(nextWord, 'T') > 0);
+      const deltaMs = now - this.lastFrameTimestamp;
+      // Ignore background-tab pauses and invalid clock deltas.
+      if (deltaMs >= 4 && deltaMs <= 250) {
+        this.smoothedFrameTimeMs = this.smoothedFrameTimeMs === null
+          ? deltaMs
+          : this.smoothedFrameTimeMs * 0.85 + deltaMs * 0.15;
+      }
+      if (this.smoothedFrameTimeMs !== null && this.stateWordMeshes.size > 0) {
+        const smoothedFps = 1000 / this.smoothedFrameTimeMs;
+        for (const [mesh, managed] of this.stateWordMeshes) {
+          const nextWord = stateWordForFrameBudget(
+            managed.baseWord,
+            managed.currentWord,
+            smoothedFps,
+            this.config.minFps,
+            this.config.minFps + this.config.fpsRecoveryMargin,
+          );
+          if (nextWord === managed.currentWord) continue;
+          managed.currentWord = nextWord;
+          this.applyStateWord(mesh, managed);
+        }
       }
     }
     this.lastFrameTimestamp = now;
