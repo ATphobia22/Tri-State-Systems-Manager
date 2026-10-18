@@ -46,6 +46,12 @@ GAGES = {
         "lon": -87.9361,
         "datum_ft": 353.07,
         "datum": "NGVD29",
+        # Dual-datum equivalents per USGS (verified 2026-10-18):
+        # - WDR 2005: "353.07 ft NGVD29 (352.67 ft NAVD88)"
+        # - WY2025: "352.71 ft NAVD88, 353.07 ft NGVD29" (most current)
+        # Local NGVD29->NAVD88 shift: -0.36 to -0.40 ft
+        "datum_ngvd29_ft": 353.07,
+        "datum_navd88_ft": 352.71,  # per USGS WY2025; 352.67 per WDR 2005/SIR 2016-5119
         "params": {
             "stage": "00065",
             "discharge": "00060",
