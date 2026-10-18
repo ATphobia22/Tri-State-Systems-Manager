@@ -1,7 +1,7 @@
 # Tri-State Systems Manager — Authoritative Data Source Catalog
 
-**Status:** Production source registry  
-**Updated:** 2026-09-30
+**Status:** Authoritative source catalog; runtime activation is controlled separately by the live-hydrology registry  
+**Updated:** 2026-10-18
 
 This catalog defines external sources that may supply hydrologic, regulatory-reference, scientific, or geospatial data to TSM. **Posey County offline operation is snapshot-first:** the newest suitable agency product is acquired, dated, hashed, and frozen. A live service may be used to obtain a snapshot, but the offline runtime does not depend on a live API.
 
