@@ -266,21 +266,27 @@ export async function fetchRiverForecasts({ stationIds = null } = {}) {
         product: 'forecast',
         signal: controller.signal,
       });
+      const validRecords = records.filter((record) =>
+        typeof record.value === 'number' && Number.isFinite(record.value) &&
+        typeof record.unit === 'string' && record.unit.trim().length > 0 &&
+        typeof record.observedAt === 'string' && record.observedAt.trim().length > 0 &&
+        typeof record.verticalDatum === 'string' && record.verticalDatum.trim().length > 0,
+      );
       return {
         stationId: station.station_id,
         nwsId: station.nws_location_id,
         provider: 'NOAA',
-        status: records.length ? 'available' : 'unavailable',
-        forecasts: records.map((record) => ({
+        status: validRecords.length ? 'available' : 'unavailable',
+        forecasts: validRecords.map((record) => ({
           validAt: record.observedAt,
           retrievedAt: record.retrievedAt,
           value: record.value,
           unit: record.unit,
           dataClass: 'forecast',
-          verticalDatum: record.verticalDatum || 'GAGE_DATUM',
+          verticalDatum: record.verticalDatum,
           sourceUri: record.sourceUri,
         })),
-        error: null,
+        error: validRecords.length ? null : 'Forecast records are missing numeric values, units, valid times, or vertical-reference metadata.',
       };
     } catch (error) {
       return {
