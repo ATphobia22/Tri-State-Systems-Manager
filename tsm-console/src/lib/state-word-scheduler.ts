@@ -34,6 +34,8 @@ export interface SchedulerBudget {
   fps: number;
   /** FPS below which we degrade. Default 30. */
   minFps?: number;
+  /** Available VRAM below which we degrade. Default 512 MB. */
+  minVramMB?: number;
 }
 
 /** Per-feature scheduling record. */
@@ -49,6 +51,12 @@ export interface FeatureSchedule {
  * Drops texture, then components, then semantics — never geometric detail.
  */
 export function degradeWord(word: number, stepsDown: number): number {
+  if (!Number.isInteger(word) || word < 0 || word > 0xffff) {
+    throw new RangeError('State word must be an unsigned 16-bit integer.');
+  }
+  if (!Number.isInteger(stepsDown) || stepsDown < 0) {
+    throw new RangeError('stepsDown must be a non-negative integer.');
+  }
   let out = word;
   // Bit layout (must match tiles-3d-renderer-layer.ts):
   // B:0-2 D:3-5 C:6-8 T:9-12 S:13-15
@@ -105,7 +113,20 @@ export function scheduleFrame(
   budget: SchedulerBudget,
 ): { fetch: Array<{ objectId: string; dims: StateWordDimension[] }>; release: Array<{ objectId: string; dims: StateWordDimension[] }> } {
   const minFps = budget.minFps ?? 30;
-  const underPressure = budget.fps < minFps;
+  const minVramMB = budget.minVramMB ?? 512;
+  if (!Number.isFinite(budget.fps) || budget.fps < 0) {
+    throw new RangeError('FPS budget must be a non-negative finite number.');
+  }
+  if (!Number.isFinite(budget.vramMB) || budget.vramMB < 0) {
+    throw new RangeError('VRAM budget must be a non-negative finite number.');
+  }
+  if (!Number.isFinite(minFps) || minFps <= 0) {
+    throw new RangeError('minFps must be a positive finite number.');
+  }
+  if (!Number.isFinite(minVramMB) || minVramMB < 0) {
+    throw new RangeError('minVramMB must be a non-negative finite number.');
+  }
+  const underPressure = budget.fps < minFps || budget.vramMB < minVramMB;
 
   const fetch: Array<{ objectId: string; dims: StateWordDimension[] }> = [];
   const release: Array<{ objectId: string; dims: StateWordDimension[] }> = [];
