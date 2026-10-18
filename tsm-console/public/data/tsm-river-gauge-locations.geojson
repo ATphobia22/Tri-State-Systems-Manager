@@ -2,7 +2,7 @@
   "type": "FeatureCollection",
   "name": "TSM verified river gauge locations",
   "description": "Static verified station coordinates only. Live observations and NOAA forecasts are fetched separately on user action; this layer does not imply current conditions or flood safety.",
-  "authority": "USGS Water Data API monitoring-location metadata; NOAA NWPS mappings where verified",
+  "authority": "USGS Water Data monitoring-location metadata; NOAA NWPS mappings where verified",
   "crs": "EPSG:4326",
   "sourceArtifact": "artifacts/tsm-river-valley-realtime-stations-v1.json",
   "lastReviewedAt": "2026-10-18",
@@ -23,8 +23,9 @@
         "status": "active",
         "nwsId": "NHRI3",
         "sourceUri": "https://waterdata.usgs.gov/monitoring-location/USGS-03378500/",
-        "authorityClass": "OBSERVATION",
+        "coordinateSource": "USGS Water Data monitoring-location metadata",
         "coordinateReferenceSystem": "EPSG:4326",
+        "authorityClass": "OBSERVATION",
         "locationOnly": true,
         "automaticPolling": false
       }
@@ -45,8 +46,9 @@
         "status": "active",
         "nwsId": null,
         "sourceUri": "https://waterdata.usgs.gov/monitoring-location/USGS-03322000/",
-        "authorityClass": "OBSERVATION",
+        "coordinateSource": "USGS Water Data monitoring-location metadata",
         "coordinateReferenceSystem": "EPSG:4326",
+        "authorityClass": "OBSERVATION",
         "locationOnly": true,
         "automaticPolling": false
       }
@@ -56,8 +58,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          null,
-          null
+          -87.3750073246418,
+          37.9283776944039
         ]
       },
       "properties": {
@@ -67,8 +69,9 @@
         "status": "active",
         "nwsId": "NBGI3",
         "sourceUri": "https://waterdata.usgs.gov/monitoring-location/USGS-03304300/",
-        "authorityClass": "OBSERVATION",
+        "coordinateSource": "USGS Water Data monitoring-location metadata",
         "coordinateReferenceSystem": "EPSG:4326",
+        "authorityClass": "OBSERVATION",
         "locationOnly": true,
         "automaticPolling": false
       }
@@ -78,8 +81,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          null,
-          null
+          -87.9983356426059,
+          37.7971555584685
         ]
       },
       "properties": {
@@ -89,8 +92,9 @@
         "status": "active",
         "nwsId": null,
         "sourceUri": "https://waterdata.usgs.gov/monitoring-location/USGS-03322420/",
-        "authorityClass": "OBSERVATION",
+        "coordinateSource": "USGS Water Data monitoring-location metadata",
         "coordinateReferenceSystem": "EPSG:4326",
+        "authorityClass": "OBSERVATION",
         "locationOnly": true,
         "automaticPolling": false
       }
@@ -100,30 +104,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          null,
-          null
-        ]
-      },
-      "properties": {
-        "stationId": "03381700",
-        "name": "Ohio River at Old Shawneetown, IL-KY",
-        "river": "Ohio River",
-        "status": "active",
-        "nwsId": "SHNI2",
-        "sourceUri": "https://waterdata.usgs.gov/monitoring-location/USGS-03381700/",
-        "authorityClass": "OBSERVATION",
-        "coordinateReferenceSystem": "EPSG:4326",
-        "locationOnly": true,
-        "automaticPolling": false
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          null,
-          null
+          -88.4272615640516,
+          37.1592221479973
         ]
       },
       "properties": {
@@ -133,8 +115,9 @@
         "status": "active",
         "nwsId": null,
         "sourceUri": "https://waterdata.usgs.gov/monitoring-location/USGS-03399800/",
-        "authorityClass": "OBSERVATION",
+        "coordinateSource": "USGS Water Data monitoring-location metadata",
         "coordinateReferenceSystem": "EPSG:4326",
+        "authorityClass": "OBSERVATION",
         "locationOnly": true,
         "automaticPolling": false
       }
@@ -144,8 +127,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          null,
-          null
+          -86.7055417913802,
+          37.8995008762744
         ]
       },
       "properties": {
@@ -155,8 +138,9 @@
         "status": "active",
         "nwsId": null,
         "sourceUri": "https://waterdata.usgs.gov/monitoring-location/USGS-03303280/",
-        "authorityClass": "OBSERVATION",
+        "coordinateSource": "USGS Water Data monitoring-location metadata",
         "coordinateReferenceSystem": "EPSG:4326",
+        "authorityClass": "OBSERVATION",
         "locationOnly": true,
         "automaticPolling": false
       }
@@ -166,8 +150,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          null,
-          null
+          -89.0584040037475,
+          37.1792186733202
         ]
       },
       "properties": {
@@ -177,8 +161,9 @@
         "status": "active",
         "nwsId": null,
         "sourceUri": "https://waterdata.usgs.gov/monitoring-location/USGS-03612600/",
-        "authorityClass": "OBSERVATION",
+        "coordinateSource": "USGS Water Data monitoring-location metadata",
         "coordinateReferenceSystem": "EPSG:4326",
+        "authorityClass": "OBSERVATION",
         "locationOnly": true,
         "automaticPolling": false
       }
@@ -188,8 +173,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          null,
-          null
+          -84.9723888888889,
+          38.77525
         ]
       },
       "properties": {
@@ -199,8 +184,9 @@
         "status": "active",
         "nwsId": null,
         "sourceUri": "https://waterdata.usgs.gov/monitoring-location/USGS-03277200/",
-        "authorityClass": "OBSERVATION",
+        "coordinateSource": "USGS Water Data monitoring-location metadata",
         "coordinateReferenceSystem": "EPSG:4326",
+        "authorityClass": "OBSERVATION",
         "locationOnly": true,
         "automaticPolling": false
       }
@@ -210,19 +196,20 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          null,
-          null
+          -85.7688518284703,
+          38.2659037628604
         ]
       },
       "properties": {
-        "stationId": "03293600",
-        "name": "Ohio River at McAlpine Dam - Headwater",
+        "stationId": "03293551",
+        "name": "Ohio River upstream of McAlpine Dam at railroad bridge at Louisville, KY",
         "river": "Ohio River",
         "status": "active",
         "nwsId": null,
-        "sourceUri": "https://waterdata.usgs.gov/monitoring-location/USGS-03293600/",
-        "authorityClass": "OBSERVATION",
+        "sourceUri": "https://waterdata.usgs.gov/monitoring-location/USGS-03293551/",
+        "coordinateSource": "USGS Water Data monitoring-location metadata",
         "coordinateReferenceSystem": "EPSG:4326",
+        "authorityClass": "OBSERVATION",
         "locationOnly": true,
         "automaticPolling": false
       }
@@ -232,8 +219,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          null,
-          null
+          -85.7991305041063,
+          38.2803473627806
         ]
       },
       "properties": {
@@ -243,8 +230,9 @@
         "status": "active",
         "nwsId": null,
         "sourceUri": "https://waterdata.usgs.gov/monitoring-location/USGS-03294500/",
-        "authorityClass": "OBSERVATION",
+        "coordinateSource": "USGS Water Data monitoring-location metadata",
         "coordinateReferenceSystem": "EPSG:4326",
+        "authorityClass": "OBSERVATION",
         "locationOnly": true,
         "automaticPolling": false
       }
