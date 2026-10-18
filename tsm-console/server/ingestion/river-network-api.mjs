@@ -245,7 +245,7 @@ async function fetchNoaaGauge(nwsId, station) {
 export async function fetchRiverForecasts({ stationIds = null } = {}) {
   const registry = await loadRiverStationRegistry();
   const selected = registry.verified_observation_stations.filter(
-    (station) => !stationIds || stationIds.includes(station.station_id),
+    (station) => station.status === 'active' && (!stationIds || stationIds.includes(station.station_id)),
   );
 
   const forecasts = await Promise.all(selected.map(async (station) => {
@@ -307,7 +307,7 @@ export async function fetchRiverForecasts({ stationIds = null } = {}) {
 
 export async function fetchRiverNetwork({ stationIds = null, includeNoaa = true } = {}) {
   const registry = await loadRiverStationRegistry();
-  const selected = registry.verified_observation_stations.filter((station) => !stationIds || stationIds.includes(station.station_id));
+  const selected = registry.verified_observation_stations.filter((station) => station.status === 'active' && (!stationIds || stationIds.includes(station.station_id)));
 
   // Batch every USGS station into ONE latest-continuous request (comma-joined
   // monitoring_location_id) instead of one request per station (N+1 → 1).
