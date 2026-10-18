@@ -78,7 +78,8 @@ class ImplicitTilesetContractTests(unittest.TestCase):
             first, second = root / "a.glb", root / "b.glb"
             make_fixture_glb(first)
             make_fixture_glb(second)
-            merged = MODULE.merge_glbs([(first, 101), (second, 202)])
+            identity = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+            merged = MODULE.merge_glbs([(first, 101, identity), (second, 202, identity)])
             path = root / "merged.glb"
             path.write_bytes(merged)
             document, binary = MODULE.read_glb(path)
