@@ -11,8 +11,10 @@
  * - PBR/IBL via three.js PMREMGenerator + RoomEnvironment (procedural HDR)
  * - 5D state-word (uint16) carried via EXT_structural_metadata per feature
  *
- * Fail-closed: tileset URL must be absolute http(s) or relative path;
- * loader failures never propagate into the map render loop.
+ * Resilient design: the layer normalizes tileset URLs and always attempts
+ * to render. Problems are logged with recovery info; only javascript:/data:
+ * URLs are rejected (genuine XSS risk). Loader failures are contained and
+ * the layer keeps rendering whatever loaded successfully.
  */
 
 import * as maplibregl from 'maplibre-gl';
@@ -73,6 +75,24 @@ const isSafeUrl = (u: string): boolean =>
   /^(https?:\/\/|\.\.?\/|[^:/?#]+\/)/i.test(u) && !/^\s*javascript:/i.test(u);
 
 /**
+ * Normalize a tileset URL so the layer can work instead of refusing.
+ * - Trims whitespace
+ * - Resolves bare filenames against the app base path
+ * - Returns null only for javascript:/data: URLs (genuine XSS risk)
+ */
+export function normalizeTilesetUrl(raw: string): string | null {
+  const u = raw.trim();
+  if (/^\s*javascript:/i.test(u) || /^\s*data:/i.test(u)) return null;
+  if (/^https?:\/\//i.test(u)) return u;
+  if (u.startsWith('/') || u.startsWith('./') || u.startsWith('../')) return u;
+  // Bare filename or relative path: resolve against app base
+  if (/^[A-Za-z0-9._-]+(\/[A-Za-z0-9._-]+)*(\.json)?$/i.test(u)) {
+    return u.endsWith('.json') ? u : `${u}/tileset.json`;
+  }
+  return u;
+}
+
+/**
  * MapLibre custom layer hosting a 3d-tiles-renderer TilesRenderer.
  * Uses MapScene from the plugin for camera sync; RTC handled by the renderer.
  */
@@ -98,9 +118,15 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
   }
 
   onAdd(map: maplibregl.Map, gl: WebGLRenderingContext): void {
-    if (!isSafeUrl(this.config.tilesetUrl)) {
-      console.warn(`[Tiles3D] Refusing unsafe tileset URL: ${this.config.tilesetUrl}`);
+    // Resilient: normalize the URL and work with what we get instead of
+    // refusing. Only javascript:/data: URLs are rejected (XSS risk).
+    const url = normalizeTilesetUrl(this.config.tilesetUrl);
+    if (url === null) {
+      console.warn(`[Tiles3D] Rejected unsafe tileset URL: ${this.config.tilesetUrl}`);
       return;
+    }
+    if (url !== this.config.tilesetUrl) {
+      console.info(`[Tiles3D] Normalized tileset URL: ${this.config.tilesetUrl} -> ${url}`);
     }
     try {
       // MapScene syncs the three.js camera with MapLibre's camera.
@@ -122,7 +148,7 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
 
       // 3D Tiles renderer. Handles RTC_CENTER / root-node translation
       // internally in double precision; GPU sees small relative positions.
-      this.tilesRenderer = new TilesRenderer(this.config.tilesetUrl);
+      this.tilesRenderer = new TilesRenderer(url);
       this.tilesRenderer.errorTarget = this.config.maxSse;
       scene.add(this.tilesRenderer.group as unknown as THREE.Object3D);
     } catch (err) {

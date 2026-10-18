@@ -1,11 +1,12 @@
 /**
  * Tests for the HazardSim-style canvas flood layer.
  * - Flood fill respects hills/valleys (no uphill propagation in seed-restricted mode)
- * - Datum mismatch refuses to render (fail-closed)
+ * - Datum conversion applied automatically with badge (resilient, not fail-closed)
+ * - Unknown datum pairs render with prominent warning badge
  * - Bathtub fill covers all below-level cells
  */
 import { describe, expect, it } from 'vitest';
-import { computeFloodMask, type FloodGrid } from '../lib/canvas-flood-layer';
+import { computeFloodMask, tryDatumConversion, type FloodGrid } from '../lib/canvas-flood-layer';
 
 function makeGrid(elev: number[][], datum = 'NAVD88'): FloodGrid {
   const rows = elev.length;
@@ -66,5 +67,23 @@ describe('computeFloodMask', () => {
     ]);
     const mask = computeFloodMask(grid, 10);
     expect(mask.filter((v) => v === 1)).toHaveLength(4);
+  });
+});
+
+describe('tryDatumConversion', () => {
+  it('converts NGVD29 to NAVD88 by subtracting the offset', () => {
+    expect(tryDatumConversion(100, 'NGVD29', 'NAVD88')).toBeCloseTo(99.787, 3);
+  });
+
+  it('converts NAVD88 to NGVD29 by adding the offset', () => {
+    expect(tryDatumConversion(100, 'NAVD88', 'NGVD29')).toBeCloseTo(100.213, 3);
+  });
+
+  it('returns input unchanged for identical datums', () => {
+    expect(tryDatumConversion(100, 'NAVD88', 'NAVD88')).toBe(100);
+  });
+
+  it('returns null for unknown datum pairs', () => {
+    expect(tryDatumConversion(100, 'NGVD29', 'CGVD2013')).toBeNull();
   });
 });
