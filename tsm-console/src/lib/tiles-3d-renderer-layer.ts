@@ -29,6 +29,7 @@ import { MapScene } from '@dvt3d/maplibre-three-plugin';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { STATE_WORD_BITS, assertValidStateWord, decodeStateWord } from './state-word-codec';
 import { decodeFeatureStateWord, type MeshFeaturesReader, type StructuralMetadataReader } from './state-word-metadata';
+import { WebGL2DepthOcclusionController } from './webgl2-depth-occlusion';
 
 export {
   STATE_WORD_BITS,
@@ -225,6 +226,7 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
   private mapScene: MapScene | null = null;
   private tilesRenderer: TilesRenderer | null = null;
   private pmrem: THREE.PMREMGenerator | null = null;
+  private occlusion: WebGL2DepthOcclusionController | null = null;
   private readonly stateWordMeshes = new Map<THREE.Mesh, ManagedStateWordMesh>();
   private lastFrameTimestamp = 0;
   private smoothedFrameTimeMs: number | null = null;
@@ -249,7 +251,7 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
     }
   }
 
-  onAdd(map: maplibregl.Map, _gl: WebGLRenderingContext): void {
+  onAdd(map: maplibregl.Map, gl: WebGLRenderingContext): void {
     const url = normalizeTilesetUrl(this.config.tilesetUrl);
     if (url === null) {
       console.warn(`[Tiles3D] Rejected unsafe tileset URL: ${this.config.tilesetUrl}`);
@@ -274,11 +276,27 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
       // plugin, EXT_mesh_features and EXT_structural_metadata stay unbound.
       const tilesRenderer = new TilesRenderer(url);
       tilesRenderer.errorTarget = this.config.maxSse;
+
+      // Occlusion queries use the WebGL2 depth buffer MapLibre has already
+      // populated. If the host did not supply a WebGL2 context, rendering
+      // remains functional without this optional optimization.
+      try {
+        this.occlusion = new WebGL2DepthOcclusionController(gl as WebGL2RenderingContext, {
+          maxQueriesPerFrame: 64,
+          consecutiveOccludedFrames: 2,
+        });
+      } catch (error) {
+        console.warn('[Tiles3D] WebGL2 depth occlusion unavailable; using conservative visibility:', error);
+        this.occlusion = null;
+      }
+
       tilesRenderer.registerPlugin(new GLTFExtensionsPlugin({ metadata: true, rtc: false }));
       tilesRenderer.addEventListener('load-model', (event: { scene: THREE.Object3D }) => {
+        this.occlusion?.registerRoot(event.scene);
         this.attachStateWords(event.scene);
       });
       tilesRenderer.addEventListener('dispose-model', (event: { scene: THREE.Object3D }) => {
+        this.occlusion?.unregisterRoot(event.scene, (mesh) => this.shouldMeshBeVisible(mesh));
         this.detachStateWords(event.scene);
       });
       this.tilesRenderer = tilesRenderer;
@@ -303,9 +321,17 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
       ms?.cameraSync?.syncCamera?.();
       const camera = ms?.camera;
       if (this.tilesRenderer && camera && ms?.renderer) {
+        camera.updateMatrixWorld(true);
         this.tilesRenderer.setCamera(camera);
         this.tilesRenderer.setResolutionFromRenderer(camera, ms.renderer);
         this.tilesRenderer.update();
+        this.tilesRenderer.group.updateMatrixWorld(true);
+        if (this.occlusion) {
+          this.occlusion.update(camera, (mesh) => this.shouldMeshBeVisible(mesh));
+          // Raw WebGL2 queries adjust GL state directly. Invalidate Three.js'
+          // state cache before MapScene performs its normal render.
+          ms.renderer.resetState();
+        }
       }
       ms?.render?.();
     } catch (error) {
@@ -314,7 +340,10 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
   }
 
   onRemove(): void {
-    // Restore shared source resources before the renderer disposes tile content.
+    // Remove queries first, restoring computed state, then restore source
+    // material/visibility as the final lifecycle cleanup step.
+    this.occlusion?.dispose((mesh) => this.shouldMeshBeVisible(mesh));
+    this.occlusion = null;
     for (const [mesh, managed] of this.stateWordMeshes) {
       this.restoreManagedMesh(mesh, managed);
     }
@@ -392,6 +421,20 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
     for (const material of managed.clonedMaterials) material.dispose();
   }
 
+  private shouldMeshBeVisible(mesh: THREE.Mesh): boolean {
+    const managed = this.stateWordMeshes.get(mesh);
+    if (!managed) return this.occlusion?.baseVisible(mesh) ?? mesh.visible;
+
+    let visible = managed.originalVisible;
+    if (!managed.isBoundaryProxy && managed.componentLevel !== null) {
+      visible = visible && managed.componentLevel <= decodeStateWord(managed.currentWord, 'C');
+    }
+    if (!managed.isBoundaryProxy && managed.semanticOverlay && managed.semanticLevel !== null) {
+      visible = visible && managed.semanticLevel <= decodeStateWord(managed.currentWord, 'S');
+    }
+    return visible;
+  }
+
   private applyStateWord(mesh: THREE.Mesh, managed: ManagedStateWordMesh): void {
     const effectiveWord = managed.currentWord;
     const textureLevel = decodeStateWord(effectiveWord, 'T');
@@ -406,7 +449,7 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
     if (!managed.isBoundaryProxy && managed.semanticOverlay && managed.semanticLevel !== null) {
       visible = visible && managed.semanticLevel <= decodeStateWord(effectiveWord, 'S');
     }
-    mesh.visible = visible;
+    mesh.visible = visible && !(this.occlusion?.isOccluded(mesh) ?? false);
     mesh.userData.tsmStateWord = managed.baseWord;
     mesh.userData.tsmEffectiveStateWord = effectiveWord;
   }
