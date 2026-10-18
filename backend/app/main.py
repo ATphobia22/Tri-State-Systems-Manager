@@ -91,7 +91,7 @@ SNAPSHOT_STATIONS: tuple[tuple[str, str, str], ...] = (
     ("03293551", "Ohio River upstream of McAlpine Dam at railroad bridge at Louisville, KY", "Ohio River"),
 )
 SNAPSHOT_PARAMETER_LABELS = {"00060": "Discharge", "00065": "Gage height"}
-# USGS Water Services (waterservices.usgs.gov) decommissioned 2026-02-22.
+# USGS WaterServices is scheduled for permanent shutdown on 2027-02-22.
 # Live snapshots now use the USGS Water Data OGC API latest-continuous
 # collection: one request, comma-separated monitoring_location_id values.
 SNAPSHOT_OGC_URL = "https://api.waterdata.usgs.gov/ogcapi/v1/collections/latest-continuous/items"
