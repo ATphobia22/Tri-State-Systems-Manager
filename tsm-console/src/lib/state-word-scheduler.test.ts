@@ -1,13 +1,13 @@
-/**
- * Tests for the 5D state-word scheduler and bit-layout helpers.
- * Research basis: mapping-planes-lod-integration-20261018-0426
- */
+/** Tests for the 16-bit B-D-C-T-S state-word scheduler. */
 import { describe, expect, it } from 'vitest';
 import {
   decodeStateWord,
+  decodeStateWordExtension,
   diffStateWords,
   didDimensionChange,
+  encodeStateWord,
   STATE_WORD_BITS,
+  STATE_WORD_EXTENSION_BITS,
 } from '../lib/tiles-3d-renderer-layer';
 import {
   chunksToFetch,
@@ -17,73 +17,138 @@ import {
   scheduleFrame,
 } from '../lib/state-word-scheduler';
 
-describe('state-word bit layout', () => {
-  it('covers exactly 16 bits with no overlap', () => {
-    const ranges = Object.values(STATE_WORD_BITS).map(({ offset, mask }) => {
+const state = (B: number, D: number, C: number, T: number, S: number, R = 0) =>
+  encodeStateWord({ B, D, C, T, S }, R);
+
+describe('published state-word bit layout', () => {
+  it('covers exactly 16 bits with no overlap, including the R extension', () => {
+    const ranges = [
+      ...Object.values(STATE_WORD_BITS),
+      STATE_WORD_EXTENSION_BITS,
+    ].map(({ offset, mask }) => {
       const width = Math.ceil(Math.log2(mask + 1));
       return { start: offset, end: offset + width };
     });
     ranges.sort((a, b) => a.start - b.start);
-    expect(ranges[0].start).toBe(0);
     let cursor = 0;
-    for (const r of ranges) {
-      expect(r.start).toBe(cursor);
-      cursor = r.end;
+    for (const range of ranges) {
+      expect(range.start).toBe(cursor);
+      cursor = range.end;
     }
     expect(cursor).toBe(16);
   });
 
-  it('decodes each dimension independently', () => {
-    // word: B=5, D=3, C=2, T=9, S=4
-    const word = (5 << 0) | (3 << 3) | (2 << 6) | (9 << 9) | (4 << 13);
-    expect(decodeStateWord(word, 'B')).toBe(5);
-    expect(decodeStateWord(word, 'D')).toBe(3);
-    expect(decodeStateWord(word, 'C')).toBe(2);
-    expect(decodeStateWord(word, 'T')).toBe(9);
-    expect(decodeStateWord(word, 'S')).toBe(4);
+  it('encodes and decodes every legal B-D-C-T-S combination and R value', () => {
+    for (let B = 0; B <= 3; B++) {
+      for (let D = 0; D <= 3; D++) {
+        for (let C = 0; C <= 3; C++) {
+          for (let T = 0; T <= 3; T++) {
+            for (let S = 0; S <= 3; S++) {
+              for (let R = 0; R <= 1; R++) {
+                const word = state(B, D, C, T, S, R);
+                if (
+                  decodeStateWord(word, 'B') !== B ||
+                  decodeStateWord(word, 'D') !== D ||
+                  decodeStateWord(word, 'C') !== C ||
+                  decodeStateWord(word, 'T') !== T ||
+                  decodeStateWord(word, 'S') !== S ||
+                  decodeStateWordExtension(word) !== R
+                ) {
+                  throw new Error(`State-word round-trip mismatch: ${word}`);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    expect(true).toBe(true);
   });
 
-  it('XOR-diff detects changed dimensions only', () => {
-    const a = (1 << 0) | (2 << 3) | (1 << 6) | (3 << 9) | (1 << 13);
-    const b = (1 << 0) | (2 << 3) | (1 << 6) | (7 << 9) | (1 << 13); // T changed
-    expect(diffStateWords(a, b)).not.toBe(0);
-    expect(didDimensionChange(a, b, 'T')).toBe(true);
-    expect(didDimensionChange(a, b, 'B')).toBe(false);
-    expect(didDimensionChange(a, b, 'D')).toBe(false);
-    expect(didDimensionChange(a, b, 'C')).toBe(false);
-    expect(didDimensionChange(a, b, 'S')).toBe(false);
+  it('rejects out-of-range words, reserved levels, and illegal field values', () => {
+    expect(() => decodeStateWord(-1, 'B')).toThrow(RangeError);
+    expect(() => decodeStateWord(1.5, 'B')).toThrow(RangeError);
+    expect(() => decodeStateWord(0x10000, 'B')).toThrow(RangeError);
+    expect(() => decodeStateWord(4 << STATE_WORD_BITS.C.offset, 'B')).toThrow(RangeError);
+    expect(() => decodeStateWord(4 << STATE_WORD_BITS.T.offset, 'T')).toThrow(RangeError);
+    expect(() => decodeStateWord(4 << STATE_WORD_BITS.S.offset, 'S')).toThrow(RangeError);
+    expect(() => diffStateWords(0, -1)).toThrow(RangeError);
+    expect(() => state(4, 0, 0, 0, 0)).toThrow(RangeError);
+    expect(() => state(0, 4, 0, 0, 0)).toThrow(RangeError);
+    expect(() => state(0, 0, 4, 0, 0)).toThrow(RangeError);
+    expect(() => state(0, 0, 0, 4, 0)).toThrow(RangeError);
+    expect(() => state(0, 0, 0, 0, 4)).toThrow(RangeError);
+    expect(() => encodeStateWord({ B: 0, D: 0, C: 0, T: 0, S: 0 }, 2)).toThrow(RangeError);
+    expect(() => encodeStateWord({ B: 0, D: 0, C: 0, T: 0, S: 0 }, 8)).toThrow(RangeError);
+    expect(() => decodeStateWordExtension(2)).toThrow(RangeError);
+  });
+
+  it('keeps the R extension separate from B-D-C-T-S change detection', () => {
+    const previous = state(1, 2, 3, 1, 2, 0);
+    const next = state(1, 2, 3, 1, 2, 1);
+    expect(diffStateWords(previous, next)).toBe(1);
+    for (const dimension of ['B', 'D', 'C', 'T', 'S'] as const) {
+      expect(didDimensionChange(previous, next, dimension)).toBe(false);
+    }
+    expect(decodeStateWordExtension(next)).toBe(1);
+  });
+
+  it('detects changes in one dimension only', () => {
+    const previous = state(1, 2, 1, 1, 2);
+    const next = state(1, 2, 1, 3, 2);
+    expect(diffStateWords(previous, next)).not.toBe(0);
+    expect(didDimensionChange(previous, next, 'T')).toBe(true);
+    expect(didDimensionChange(previous, next, 'B')).toBe(false);
+    expect(didDimensionChange(previous, next, 'D')).toBe(false);
+    expect(didDimensionChange(previous, next, 'C')).toBe(false);
+    expect(didDimensionChange(previous, next, 'S')).toBe(false);
   });
 });
 
 describe('degradeWord', () => {
-  it('never degrades geometric detail (D)', () => {
-    const word = (3 << 0) | (4 << 3) | (2 << 6) | (8 << 9) | (2 << 13);
+  it('preserves boundary proxy and geometric detail', () => {
+    const word = state(3, 3, 2, 3, 2);
     const degraded = degradeWord(word, 5);
-    expect(decodeStateWord(degraded, 'D')).toBe(4);
+    expect(decodeStateWord(degraded, 'D')).toBe(3);
     expect(decodeStateWord(degraded, 'B')).toBe(3);
+    expect(decodeStateWord(degraded, 'T')).toBe(0);
+    expect(decodeStateWord(degraded, 'C')).toBe(0);
+    expect(decodeStateWord(degraded, 'S')).toBe(2);
+  });
+
+  it('rejects invalid degradation step counts and invalid words', () => {
+    expect(() => degradeWord(0, -1)).toThrow(RangeError);
+    expect(() => degradeWord(0, 1.5)).toThrow(RangeError);
+    expect(() => degradeWord(0x10000, 1)).toThrow(RangeError);
+    expect(() => degradeWord(4 << STATE_WORD_BITS.C.offset, 1)).toThrow(RangeError);
+  });
+
+  it('continues to C when T is already at its minimum', () => {
+    const once = degradeWord(state(2, 2, 2, 0, 2), 1);
+    expect(decodeStateWord(once, 'T')).toBe(0);
+    expect(decodeStateWord(once, 'C')).toBe(1);
   });
 
   it('reduces T first under pressure', () => {
-    const word = (0 << 0) | (2 << 3) | (2 << 6) | (8 << 9) | (2 << 13);
-    const once = degradeWord(word, 1);
-    expect(decodeStateWord(once, 'T')).toBe(7);
+    const once = degradeWord(state(0, 2, 2, 3, 2), 1);
+    expect(decodeStateWord(once, 'T')).toBe(2);
     expect(decodeStateWord(once, 'C')).toBe(2);
   });
 });
 
 describe('chunksToFetch / chunksToRelease', () => {
   it('fetches only dimensions that increased', () => {
-    const prev = (0 << 9) | (0 << 13); // T=0 S=0
-    const next = (3 << 9) | (0 << 13); // T=3 S=0
-    expect(chunksToFetch(prev, next)).toEqual(['T']);
-    expect(chunksToRelease(prev, next)).toEqual([]);
+    const previous = state(0, 0, 0, 0, 0);
+    const next = state(0, 0, 0, 3, 0);
+    expect(chunksToFetch(previous, next)).toEqual(['T']);
+    expect(chunksToRelease(previous, next)).toEqual([]);
   });
 
   it('releases only dimensions that decreased', () => {
-    const prev = (3 << 9) | (2 << 13);
-    const next = (1 << 9) | (2 << 13);
-    expect(chunksToRelease(prev, next)).toEqual(['T']);
-    expect(chunksToFetch(prev, next)).toEqual([]);
+    const previous = state(0, 0, 0, 3, 2);
+    const next = state(0, 0, 0, 1, 2);
+    expect(chunksToRelease(previous, next)).toEqual(['T']);
+    expect(chunksToFetch(previous, next)).toEqual([]);
   });
 });
 
@@ -97,7 +162,7 @@ describe('resolveHomeTile', () => {
 describe('scheduleFrame', () => {
   it('produces fetch plans without pressure', () => {
     const plan = scheduleFrame(
-      [{ objectId: 'b1', homeTileId: 't0', currentWord: 0, targetWord: 1 << 9 }],
+      [{ objectId: 'b1', homeTileId: 't0', currentWord: 0, targetWord: state(0, 0, 0, 1, 0) }],
       { vramMB: 4000, fps: 60 },
     );
     expect(plan.fetch).toHaveLength(1);
@@ -105,15 +170,37 @@ describe('scheduleFrame', () => {
     expect(plan.release).toHaveLength(0);
   });
 
+  it('degrades under reported VRAM pressure when a threshold is configured', () => {
+    const full = state(2, 2, 2, 3, 2);
+    const plan = scheduleFrame(
+      [{ objectId: 'b1', homeTileId: 't0', currentWord: full, targetWord: full }],
+      { vramMB: 128, minVramMB: 256, fps: 60 },
+    );
+    expect(plan.release.flatMap((feature) => feature.dims)).toContain('T');
+    expect(plan.fetch).toHaveLength(0);
+  });
+
+  it('supports FPS-only fallback when VRAM telemetry is unavailable', () => {
+    const plan = scheduleFrame(
+      [{ objectId: 'b1', homeTileId: 't0', currentWord: 0, targetWord: state(0, 0, 0, 1, 0) }],
+      { fps: 60 },
+    );
+    expect(plan.fetch[0].dims).toEqual(['T']);
+  });
+
+  it('rejects invalid telemetry rather than silently scheduling', () => {
+    expect(() => scheduleFrame([], { vramMB: -1, fps: 60 })).toThrow(RangeError);
+    expect(() => scheduleFrame([], { vramMB: 512, fps: Number.NaN })).toThrow(RangeError);
+    expect(() => scheduleFrame([], { vramMB: 512, fps: 60, minVramMB: -1 })).toThrow(RangeError);
+  });
+
   it('degrades under FPS pressure instead of fetching up', () => {
-    const full = (2 << 3) | (2 << 6) | (8 << 9) | (2 << 13);
+    const full = state(2, 2, 2, 3, 2);
     const plan = scheduleFrame(
       [{ objectId: 'b1', homeTileId: 't0', currentWord: full, targetWord: full }],
       { vramMB: 512, fps: 12 },
     );
-    // Under pressure the target degrades (T 8 -> 7): expect a release of T, no fetch.
-    const releasedT = plan.release.flatMap((f) => f.dims).includes('T');
-    expect(releasedT).toBe(true);
+    expect(plan.release.flatMap((feature) => feature.dims)).toContain('T');
     expect(plan.fetch).toHaveLength(0);
   });
 });

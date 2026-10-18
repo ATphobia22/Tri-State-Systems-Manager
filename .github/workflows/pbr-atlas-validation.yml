@@ -1,0 +1,55 @@
+name: TSM PBR Atlas Validation
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/3d-tiles/pack-atlas.py'
+      - 'scripts/3d-tiles/test_pack_atlas_blender.py'
+      - 'tsm-console/scripts/3d-tiles/bake-pbr.py'
+      - '.github/workflows/pbr-atlas-validation.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/3d-tiles/pack-atlas.py'
+      - 'scripts/3d-tiles/test_pack_atlas_blender.py'
+      - 'tsm-console/scripts/3d-tiles/bake-pbr.py'
+      - '.github/workflows/pbr-atlas-validation.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tsm-pbr-atlas-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  blender-pbr:
+    name: Headless Blender PBR atlas round-trip
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        with:
+          egress-policy: audit
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install Blender
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y blender
+          blender --version
+      - name: Syntax-check Blender scripts
+        run: |
+          set -euo pipefail
+          python3 -m py_compile \
+            scripts/3d-tiles/pack-atlas.py \
+            scripts/3d-tiles/test_pack_atlas_blender.py \
+            tsm-console/scripts/3d-tiles/bake-pbr.py
+      - name: Run end-to-end albedo/normal/ORM bake and GLB round-trip
+        shell: bash
+        run: |
+          set -euo pipefail
+          blender --background --factory-startup --python scripts/3d-tiles/test_pack_atlas_blender.py

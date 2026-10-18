@@ -34,7 +34,7 @@ EXPECTED_POSEY = 23082
 FT_PER_M = 3.280839895013123
 
 
-def request_json(params: dict[str, object], attempts: int = 8) -> dict:
+def request_json(params: dict[str, object], attempts: int = 3) -> dict:
     query = urlencode(params)
     url = f"{QUERY}?{query}"
     last: Exception | None = None
@@ -43,15 +43,15 @@ def request_json(params: dict[str, object], attempts: int = 8) -> dict:
             result = subprocess.run(
                 [
                     "curl", "--silent", "--show-error", "--location",
-                    "--retry", "3", "--retry-delay", "2", "--retry-all-errors",
-                    "--http1.1", "--max-time", "300",
+                    "--retry", "1", "--retry-delay", "2", "--retry-all-errors",
+                    "--http1.1", "--max-time", "45",
                     "-A", "TSM-IGIO-Posey-Building-Acquisition/1.0",
                     "-w", "\n%{http_code}",
                     url,
                 ],
                 capture_output=True,
                 text=True,
-                timeout=330,
+                timeout=60,
             )
             # Split HTTP status from body (curl -w appends it)
             out = result.stdout.rsplit("\n", 1)
@@ -78,7 +78,7 @@ def request_json(params: dict[str, object], attempts: int = 8) -> dict:
             last = exc
             if attempt == attempts:
                 break
-            time.sleep(min(60, 5 * attempt))
+            time.sleep(min(10, 2 * attempt))
     raise RuntimeError(f"IGIO request failed after {attempts} attempts: {last}")
 
 
@@ -232,6 +232,7 @@ def main() -> None:
     ap.add_argument("--fallback-url", default="https://github.com/ATphobia22/Tri-State-Systems-Manager/releases/download/igio-posey-20261006/posey-buildings-igio-23082.geojson")
     ap.add_argument("--fallback-sha256", default="d8a46b86616becfdea9c9164e7a219317d5963b86fba47e4c1f8f880ccbb559f")
     args = ap.parse_args()
+    args.output.parent.mkdir(parents=True, exist_ok=True)
 
     # The live IGIO layer advertises a 2,000-feature transfer limit. Avoid a
     # metadata request here because the service intermittently rejects otherwise
@@ -331,6 +332,15 @@ def main() -> None:
     # never depends on undocumented offset pagination semantics.
     try:
         acquire_objectid_range(0, 2_147_483_647)
+        # An HTTP 200 response with an empty feature array is not a successful
+        # acquisition. Treat zero/partial results as service/filter failure so
+        # the existing pinned, SHA-256-verified snapshot fallback can run.
+        if len(features) != args.expected_count or len(object_id_set) != len(features):
+            raise RuntimeError(
+                f"Live IGIO query returned an incomplete feature set: "
+                f"expected {args.expected_count}, got {len(features)} "
+                f"unique OBJECTIDs"
+            )
     except RuntimeError as e:
         # Live IGIO endpoint unavailable - fall back to validated snapshot
         print(f"WARNING: Live IGIO acquisition failed: {e}", flush=True)
@@ -348,6 +358,9 @@ def main() -> None:
         # Write fallback to output and skip elevation join (already joined)
         tmp.rename(args.output)
         digest = actual
+        args.output.with_suffix(args.output.suffix + ".sha256").write_text(
+            f"{digest}  {args.output.name}\n", encoding="utf-8"
+        )
         receipt = {
             "source": "Indiana GIO Building_Footprints 2016-2020 (cached snapshot 2026-10-06)",
             "fallbackUrl": args.fallback_url,
@@ -360,10 +373,6 @@ def main() -> None:
         return
 
     count = len(features)
-    if count != args.expected_count or len(object_id_set) != count:
-        raise SystemExit(
-            f"IGIO Posey feature-count/object-id mismatch: expected {args.expected_count}, got {count}"
-        )
 
     dem_paths = sorted(args.dem_root.glob("*.tif"))
     if not dem_paths:
