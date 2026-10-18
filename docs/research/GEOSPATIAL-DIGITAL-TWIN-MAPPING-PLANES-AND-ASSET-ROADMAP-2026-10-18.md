@@ -150,3 +150,13 @@ For a 3D Tiles 1.1 path, follow its tile and glTF transform rules and the curren
 - Transvoxel, [algorithm overview and reference implementation](https://transvoxel.org/).
 
 **Scope note:** This document is research guidance, not an implementation attestation. It does not assert that TSM currently contains CityGML/3D Tiles/WebGPU pipelines, that the paper's benchmarks reproduce in TSM, or that any asset is suitable for hydraulic/flood engineering without independent data validation and review.
+
+## 8. Implementation audit and release gates
+
+The current plane-by-plane implementation matrix is maintained in [Mapping-plane implementation status and release gates](MAPPING-PLANE-IMPLEMENTATION-STATUS-2026-10-18.md). It distinguishes existing contracts from features that remain research proposals or require AOI-specific evidence.
+
+The HLOD builder's depth-divided error heuristic is being replaced with a conservative inherited error-floor policy for contentless ADD nodes. This is a traversal proxy, not measured simplification error; target-renderer camera-path, boundary, cache-pressure, payload, and frame-time verification remain separate acceptance gates.
+
+The active `ThreeDTilesLayer` now scales camera clipping planes with zoom and refreshes screen-space-error resolution on resize. Its source resolver rejects unsupported schemes, embedded credentials, control characters, backslashes, and protocol-relative URLs. The unused adapter that required a conflicting Three.js peer version was removed. The 5D state-word code remains a pure planning prototype: it does not yet bind structural metadata to a GPU attribute or perform actual resource fetch/release.
+
+The B-D-C-T-S scheduler, SDF/voxel terrain, and a parallel renderer remain deferred until an evidenced TSM gap and measurable acceptance test justify them.
