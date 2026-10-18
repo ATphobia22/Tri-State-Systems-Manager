@@ -33,12 +33,27 @@ export const STATE_WORD_BITS = {
 } as const;
 
 export type StateWordDimension = keyof typeof STATE_WORD_BITS;
+export type StateWordValues = Record<StateWordDimension, number>;
 
 /** Validate the unsigned 16-bit state-word boundary before bitwise operations. */
 export function assertStateWord(word: number): void {
   if (!Number.isInteger(word) || word < 0 || word > 0xffff) {
     throw new RangeError(`State word must be an unsigned 16-bit integer; received ${word}`);
   }
+}
+
+/** Encode all five dimensions into the current 16-bit state-word layout. */
+export function encodeStateWord(values: StateWordValues): number {
+  let word = 0;
+  for (const dim of Object.keys(STATE_WORD_BITS) as StateWordDimension[]) {
+    const { offset, mask } = STATE_WORD_BITS[dim];
+    const value = values[dim];
+    if (!Number.isInteger(value) || value < 0 || value > mask) {
+      throw new RangeError(`${dim} must be an integer in [0, ${mask}]; received ${value}`);
+    }
+    word |= value << offset;
+  }
+  return word;
 }
 
 /** Decode one dimension from a 16-bit state word. O(1) bitwise operation. */
