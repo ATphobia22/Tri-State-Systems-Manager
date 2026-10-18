@@ -164,6 +164,7 @@ def main() -> None:
     image_name = f"{obj.name}_{args.map}".replace("/", "_").replace("\\", "_")
     image_path = output_dir / f"{image_name}.png"
     image = bpy.data.images.new(image_name, args.size, args.size, alpha=False)
+    image.colorspace_settings.name = "sRGB" if args.map in {"diffuse", "emit"} else "Non-Color"
     image.filepath_raw = str(image_path)
     image.file_format = "PNG"
 
