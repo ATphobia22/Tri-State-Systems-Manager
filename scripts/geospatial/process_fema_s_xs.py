@@ -93,16 +93,82 @@ def process_fema_cross_sections(shapefile_path, output_csv_path=None):
     return sub_gdf
 
 
+def filter_to_floodway(xs_gdf, fld_haz_path, zone_subtype="FLOODWAY"):
+    """Spatial join: keep only cross-sections intersecting the floodway.
+
+    Args:
+        xs_gdf: GeoDataFrame of cross-sections (from process_fema_cross_sections).
+        fld_haz_path: Path to S_Fld_Haz_Ar shapefile.
+        zone_subtype: ZONE_SUBTY value to match (default "FLOODWAY").
+
+    Returns:
+        Filtered GeoDataFrame with only floodway-intersecting cross-sections.
+    """
+    try:
+        import geopandas as gpd
+    except ImportError:
+        print("ERROR: geopandas is required", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"Loading flood hazard zones from {fld_haz_path}...")
+    try:
+        haz = gpd.read_file(fld_haz_path, engine="pyogrio")
+    except Exception:
+        haz = gpd.read_file(fld_haz_path)
+
+    haz.columns = [c.upper() for c in haz.columns]
+
+    # Filter to floodway polygons
+    if 'ZONE_SUBTY' in haz.columns:
+        floodway = haz[haz['ZONE_SUBTY'].str.upper() == zone_subtype.upper()]
+    elif 'FL_ZONE' in haz.columns:
+        # Fallback: floodway is often encoded in FL_ZONE
+        floodway = haz[haz['FL_ZONE'].str.contains('FW', na=False)]
+    else:
+        print("Warning: no ZONE_SUBTY or FL_ZONE column found, using all polygons")
+        floodway = haz
+
+    print(f"Found {len(floodway)} floodway polygons")
+
+    # Ensure same CRS
+    if xs_gdf.crs != floodway.crs:
+        print(f"Reprojecting floodway from {floodway.crs} to {xs_gdf.crs}")
+        floodway = floodway.to_crs(xs_gdf.crs)
+
+    # Spatial join: cross-sections intersecting floodway
+    joined = gpd.sjoin(xs_gdf, floodway, how="inner", predicate="intersects")
+    # Deduplicate (a cross-section may intersect multiple polygons)
+    id_col = 'Cross_Section_ID' if 'Cross_Section_ID' in joined.columns else joined.columns[0]
+    filtered = joined.drop_duplicates(subset=[id_col])
+
+    print(f"Filtered to {len(filtered)} cross-sections intersecting floodway "
+          f"(from {len(xs_gdf)})")
+    return filtered
+
+
 def main():
     import argparse
     p = argparse.ArgumentParser(description="Process FEMA S_XS cross-section shapefile")
     p.add_argument("shapefile", help="Path to S_XS.shp")
     p.add_argument("--output", "-o", default=None, help="Output CSV path")
     p.add_argument("--head", type=int, default=10, help="Preview rows to print")
+    p.add_argument("--floodway", default=None,
+                   help="Path to S_Fld_Haz_Ar.shp for floodway-only filtering")
+    p.add_argument("--zone-subtype", default="FLOODWAY",
+                   help="ZONE_SUBTY value to match (default: FLOODWAY)")
     args = p.parse_args()
 
     try:
         result = process_fema_cross_sections(args.shapefile, args.output)
+
+        if args.floodway:
+            result = filter_to_floodway(result, args.floodway, args.zone_subtype)
+            if args.output:
+                # Re-export after filtering
+                import pandas as pd
+                pd.DataFrame(result.drop(columns='geometry')).to_csv(args.output, index=False)
+                print(f"Re-exported filtered results to {args.output}")
+
         cols = [c for c in ['Letter_Marker', 'Waterway_Name', 'Stream_Station',
                             'Regulatory_WSEL'] if c in result.columns]
         print(f"\nPreview ({args.head} rows):")
