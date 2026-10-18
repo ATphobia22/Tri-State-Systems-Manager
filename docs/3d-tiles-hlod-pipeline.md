@@ -39,11 +39,11 @@ This avoids partitioning on independent per-building ENU coordinates, which woul
 
 The HLOD quadtree contains spatial partition nodes without their own renderable geometry; source building content is retained below those nodes. Dividing the root error by tree depth assigned progressively lower error to empty nodes even though no progressively simplified representation had been generated for them. Because geometric error participates in screen-space-error refinement, a too-small value on an empty node can cause a client to stop traversal before a descendant with content is considered.
 
-The builder now applies a conservative floor to each contentless partition node:
+The builder now applies an inherited conservative floor to each contentless partition node:
 
-`node.geometricError = max(source-root fallback, maximum declared error of source descendants)`
+`node.geometricError = max(inherited parent floor, source-root fallback, maximum declared error of source descendants)`
 
-The current source-root fallback retains the existing nonzero 1 m policy floor where the source root declares less. Source content tiles keep their declared error values. Generated tileset metadata identifies this as `contentless-nodes-use-source-root-floor-v1`.
+The source-root fallback retains the existing nonzero 1 m policy floor where the source root declares less. Each contentless child inherits its computed parent's error floor, so the empty spatial hierarchy cannot progressively understate error by depth or classify an empty child as a lower-detail rendered surface. Original source-content leaves retain their declared error values. Generated metadata identifies this as `contentless-nodes-inherit-parent-error-floor-v1`.
 
 **Important interpretation:** this is a conservative traversal proxy for empty partition nodes, not a measured mesh-simplification error and not proof of improved rendering quality. Do not lower it by tree depth unless each affected parent has a valid, renderable generalized representation and the target renderer has been tested across representative camera distances and spatial boundaries. Structural regression tests verify that empty nodes do not reduce the fallback by depth; the full 3D Tiles build and target-renderer refinement test remain separate acceptance gates.
 
