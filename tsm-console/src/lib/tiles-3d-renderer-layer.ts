@@ -23,7 +23,8 @@
 
 import * as maplibregl from 'maplibre-gl';
 import * as THREE from 'three';
-import { GLTFExtensionsPlugin, TilesRenderer } from '3d-tiles-renderer';
+import { TilesRenderer } from '3d-tiles-renderer';
+import { GLTFExtensionsPlugin } from '3d-tiles-renderer/plugins';
 import { MapScene } from '@dvt3d/maplibre-three-plugin';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { STATE_WORD_BITS, assertValidStateWord, decodeStateWord } from './state-word-codec';
