@@ -51,8 +51,7 @@ pg2b3dm \
   -o ./tiles/
 ```
 
-Serve `./tiles/` as static files. Render in MapLibre via 3d-tiles-renderer
-(`src/lib/tiles-3d-renderer-layer.ts`); SSE refinement comes free.
+Serve `./tiles/` as static files. TSM's active map path is `src/components/ThreeDTilesLayer.tsx`, which uses `3d-tiles-renderer` with the MapLibre camera. Screen-space-error refinement is driven by the renderer's camera and pixel resolution; validate the selected geometric-error policy against actual camera paths.
 
 ## LOD → geometricError heuristic
 
@@ -102,8 +101,7 @@ addressed per-material via `KHR_texture_transform` UV offset/scale.
 
 - **LOD3 from aerial data:** no good open-source solution (R&D gap).
 - **AI LOD2:** production LOD2 is classical geometry (roofer); no turnkey AI generator.
-- **5D state-word framework:** no implementation exists; see
-  `src/lib/state-word-scheduler.ts` for TSM's clean-room client-side scheduler.
+- **5D state-word framework:** TSM has a pure scheduling planner in `src/lib/state-word-scheduler.ts` and bit-layout helpers in `src/lib/state-word.ts`. The planner is not yet connected to `EXT_structural_metadata`, resource fetch/release operations, or GPU attributes; treat it as a prototype, not an operational scheduler.
 - **WebGPU volumetric terrain:** no browser library; use canvas flood-fill for
   near-term flood visualization.
 - **MapLibre-native IBL:** does not exist; PBR/IBL requires the Three.js
