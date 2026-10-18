@@ -65,17 +65,31 @@ function mapGeometry(arcgisType) {
   }
 }
 
+async function fetchJsonWithRetry(url, attempts = 3) {
+  let lastError;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`NFHL request failed ${response.status}`);
+      }
+      return await response.json();
+    } catch (err) {
+      lastError = err;
+      if (i < attempts - 1) {
+        await new Promise((r) => setTimeout(r, 1000 * (i + 1)));
+      }
+    }
+  }
+  throw lastError;
+}
+
 async function validateLiveNfhl() {
   const warnings = [];
   const errors = [];
   const checkedAt = new Date().toISOString();
 
-  const response = await fetch(SERVICE_URL);
-  if (!response.ok) {
-    throw new Error(`NFHL request failed ${response.status}`);
-  }
-
-  const service = await response.json();
+  const service = await fetchJsonWithRetry(SERVICE_URL);
   const layers = service.layers ?? [];
 
   const actualCounts = { Polygon: 0, Polyline: 0, Point: 0 };
@@ -147,8 +161,19 @@ async function validateLiveNfhl() {
   };
 }
 
-const result = await validateLiveNfhl();
-console.log(JSON.stringify(result, null, 2));
-if (!result.valid) {
+try {
+  const result = await validateLiveNfhl();
+  console.log(JSON.stringify(result, null, 2));
+  if (!result.valid) {
+    process.exit(1);
+  }
+} catch (err) {
+  console.error(
+    JSON.stringify(
+      { valid: false, error: String(err), kind: 'NFHL_METADATA_DRIFT_CHECK' },
+      null,
+      2,
+    ),
+  );
   process.exit(1);
 }
