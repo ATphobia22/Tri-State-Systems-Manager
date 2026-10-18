@@ -197,6 +197,7 @@ export default function RiverGaugeBoard(): JSX.Element {
         }))).map((snapshot) => {
           const observation = snapshot.observation;
           const hasData = snapshots !== null;
+          const freshnessLabel = observation?.status === 'current' ? 'FRESH' : 'STALE';
           const qualityLabel = observation?.provisional
             ? 'PROVISIONAL'
             : observation?.qualifier
@@ -232,6 +233,19 @@ export default function RiverGaugeBoard(): JSX.Element {
                   </span>
                   <span style={{ marginRight: 16 }}>
                     Gage height: <strong>{formatValue(observation?.value, observation?.unit, 2)}</strong>
+                  </span>
+                  <span
+                    style={{
+                      background: freshnessLabel === 'FRESH' ? '#14532d' : '#7f1d1d',
+                      color: '#fef2f2',
+                      borderRadius: 6,
+                      padding: '2px 8px',
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                      marginRight: 6,
+                    }}
+                  >
+                    {freshnessLabel}
                   </span>
                   <span
                     style={{
