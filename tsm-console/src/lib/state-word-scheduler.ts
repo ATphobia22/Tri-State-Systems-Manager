@@ -20,7 +20,7 @@
  *   remain separate integration work; no paper benchmark is claimed for TSM.
  */
 
-import { assertValidStateWord, decodeStateWord, didDimensionChange, STATE_WORD_BITS, type StateWordDimension } from './tiles-3d-renderer-layer';
+import { assertValidStateWord, decodeStateWord, didDimensionChange, STATE_WORD_BITS, type StateWordDimension } from './state-word-codec';
 
 /** Degradation order under memory pressure: strip T, then C, then S; keep D. */
 const DEGRADATION_ORDER: StateWordDimension[] = ['T', 'C', 'S'];
