@@ -378,10 +378,10 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
       addRasterSource(map, 'indiana-bafm', getMapLibreFabricLayer('indiana-bafm').endpoint, [104, 438], false);
       addRasterSource(map, 'usgs-3dep-index', getMapLibreFabricLayer('usgs-3dep-index').endpoint, undefined, false);
       addRasterSource(map, 'usgs-3dep-elevation', getMapLibreFabricLayer('usgs-3dep-elevation').endpoint, undefined, false);
-      if (!map.getSource('osm-base')) {
-        map.addSource('osm-base', { type: 'raster', tiles: [getMapLibreFabricLayer('osm-base').endpoint], tileSize: 256, attribution: getMapLibreFabricLayer('osm-base').attribution });
-        map.addLayer({ id: 'osm-base-layer', type: 'raster', source: 'osm-base', layout: { visibility: 'none' }, paint: { 'raster-opacity': 0.65 } });
-      }
+      // osm-base is a vector *style* (https://tiles.openfreemap.org/styles/liberty),
+      // not raster tiles — it cannot work as a raster source. The catalog types it
+      // correctly as 'vector-style'. Apply via map.setStyle() when switching
+      // basemaps; do not add a broken raster source here.
 
       for (const item of MAP_PLANE_FABRIC) {
         if (item.kind === 'arcgis-feature') addFeatureSource(map, item);
