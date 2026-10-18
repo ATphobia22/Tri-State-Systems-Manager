@@ -27,8 +27,9 @@ for (const [key, value] of Object.entries(registry.controls ?? {})) {
   if (value !== true) throw new Error('live fabric control is disabled: ' + key);
 }
 
-// Owner decision 2026-09-29: live river data is dropped. The live river
-// observation/forecast sources must be retired in this registry.
+// Current policy: NOAA NWPS and USGS Water Data are read-only, user-triggered
+// observation sources. NOAA NWM remains retired until its experimental model
+// guidance is independently validated. Automatic polling is always prohibited.
 const retiredIds = new Set(
   registry.sources.filter((s) => s.status === 'retired').map((s) => s.id),
 );
