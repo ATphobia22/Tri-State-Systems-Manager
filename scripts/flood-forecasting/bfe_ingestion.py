@@ -403,13 +403,26 @@ def parse_fis_profiles(pdf_path: str | Path,
 # 3. BFE boundary synthesis
 # ---------------------------------------------------------------------------
 
-# Working target from Bonebank_LOMA_Checklist.pdf (2026-08-22), explicitly
-# labeled there as a working value, NOT a confirmed regulatory BFE.
-WORKING_BFE_FT_NAVD88 = 375.0
+# Regulatory BFE from FEMA FIS Table 9 (Posey County, effective 2014-11-05).
+# Product ID 18129CV000A. Section A (RM 844.75, 0.46 mi from anchor):
+# Regulatory BFE = 369.1 ft NAVD88. Confirmed by:
+# - FIS Table 9 (official)
+# - Indiana DNR FLOOD_XS_EFFECTIVE_DNR.csv (matches exactly)
+# - FEMA FIRMette BFE contour lines at site (369 / 369.1)
+# Previous working target of 375.0 ft (from Bonebank_LOMA_Checklist.pdf)
+# was 5.9 ft too high. Corrected 2026-10-18.
+REGULATORY_BFE_FT_NAVD88 = 369.1
+REGULATORY_BFE_SOURCE = (
+    "FEMA FIS 18129CV000A Table 9, Section A (RM 844.75), "
+    "effective 2014-11-05; confirmed by DNR cross-sections and FIRMette"
+)
+# Legacy working target (superseded 2026-10-18)
+WORKING_BFE_FT_NAVD88 = 369.1
 WORKING_BFE_NOTE = (
-    "Working target from Bonebank_LOMA_Checklist.pdf; DFIRM 18129C "
-    "STATIC_BFE is NULL at the anchor parcel (sentinel -9999 is genuine). "
-    "Requires INFIP FARA report or FIS PDF (MSC, CID 180209) to confirm."
+    "Regulatory BFE 369.1 ft NAVD88 from FEMA FIS 18129CV000A Table 9 "
+    "Section A (RM 844.75). Previous working target 375.0 ft from "
+    "Bonebank_LOMA_Checklist.pdf was superseded 2026-10-18 after "
+    "verification against FIS, DNR cross-sections, and FIRMette."
 )
 
 
