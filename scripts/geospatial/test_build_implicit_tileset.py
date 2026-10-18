@@ -72,13 +72,24 @@ class ImplicitTilesetContractTests(unittest.TestCase):
             self.assertEqual(len(raw), 4)  # 1 byte tile + 1 byte content + 2 bytes child subtrees
             self.assertEqual(raw[2], 0b00000011)
 
+    def test_quadnode_subdivides_five_field_transformed_items(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            node = MODULE.QuadNode(0, 0, 0, (0.0, 0.0, 1.0, 1.0))
+            identity = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+            node.items = [(root / "feature.glb", 0.5, 0.5, 101, identity)]
+            node.subdivide(max_depth=2, max_items=0)
+            self.assertTrue(node.children)
+            self.assertEqual(sum(len(leaf.items) for leaf in node.leaves()), 1)
+
     def test_merged_glb_keeps_objectid_property_table_and_feature_ids(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             first, second = root / "a.glb", root / "b.glb"
             make_fixture_glb(first)
             make_fixture_glb(second)
-            merged = MODULE.merge_glbs([(first, 101), (second, 202)])
+            identity = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+            merged = MODULE.merge_glbs([(first, 101, identity), (second, 202, identity)])
             path = root / "merged.glb"
             path.write_bytes(merged)
             document, binary = MODULE.read_glb(path)
