@@ -65,9 +65,10 @@ async function fetchPublishedIgIoBuildings(bbox: BBox): Promise<GeoJSONFeatureCo
   const [xmin, ymin, xmax, ymax] = bbox;
   const features = raw.features
     .filter((feature) => {
-      const coordinates = feature.geometry?.coordinates.flat(2) ?? [];
-      const xs = coordinates.filter((v): v is number => typeof v === 'number').filter((_, i) => i % 2 === 0);
-      const ys = coordinates.filter((v): v is number => typeof v === 'number').filter((_, i) => i % 2 === 1);
+      const rawCoords: unknown = feature.geometry?.coordinates;
+      const coordinates: unknown[] = Array.isArray(rawCoords) ? (rawCoords as unknown[]).flat(2) : [];
+      const xs = coordinates.filter((v): v is number => typeof v === 'number').filter((_: unknown, i: number) => i % 2 === 0);
+      const ys = coordinates.filter((v): v is number => typeof v === 'number').filter((_: unknown, i: number) => i % 2 === 1);
       if (!xs.length || !ys.length) return false;
       return (
         Math.max(...xs) >= xmin &&
