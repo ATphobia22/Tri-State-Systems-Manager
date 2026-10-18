@@ -4,10 +4,12 @@ These items must NOT be represented as complete in docs, dashboard, or artifacts
 Each lists what exists vs. what is missing.
 
 ## 1. Hierarchical-Z and GPU Compute Culling
-- **Status:** NOT IMPLEMENTED
-- **What exists:** Nothing. Three.js does per-object frustum culling internally in the custom layer; that is not Hierarchical-Z.
-- **Missing:** GPU compute-shader passes for bounding-sphere frustum culling and depth occlusion. Blocked: MapLibre has no WebGPU renderer; no library exists.
-- **Do not claim:** Any form of GPU-driven culling.
+- **Status:** PARTIAL — OCCLUSION QUERIES BUILT, H-Z STILL BLOCKED
+- **Built 2026-10-18:**
+  - WebGL2 occlusion-query culling (`tsm-console/src/lib/occlusion-culling.ts`) — `OcclusionCuller` adapter over the existing `WebGL2DepthOcclusionController`, per-object `ANY_SAMPLES_PASSED` queries, async result polling, re-probe every N frames, fail-open fallback. 8 tests passing.
+  - 3D Tiles fetch bridge (`tsm-console/src/lib/tiles-fetch-bridge.ts`) — connects LOD scheduler → TilesRenderer: load/evict via LRU cache, queue-depth backpressure triggers `degradeWord`. 7 tests passing.
+- **Still missing:** True Hierarchical-Z (mipmapped depth pyramid + GPU compute). Blocked: MapLibre has no WebGPU renderer; no library exists.
+- **Do not claim:** Hierarchical-Z or GPU compute-shader culling.
 
 ## 2. Transvoxel Terrain Stitching
 - **Status:** POC ONLY — NOT PRODUCTION
@@ -26,8 +28,10 @@ Each lists what exists vs. what is missing.
 - **What exists:** `state-word-scheduler.ts` — clean-room 5D state-word logic: `degradeWord`, `chunksToFetch`/`chunksToRelease`, `scheduleFrame`. Unit-tested.
 - **Built 2026-10-18:**
   - Resource variant descriptors (`tsm-console/src/lib/state-resource-variants.ts`) — maps state words to geometry LODs, texture resolutions, component lists, byte estimates. 9 tests passing.
+- **Built 2026-10-18:**
+  - Fetch bridge (`tiles-fetch-bridge.ts`) — LRU cache load/evict, queue-depth monitoring, backpressure → state degradation. Uses the real 3d-tiles-renderer APIs.
 - **Still missing:**
-  - Production network fetch/release engine (real tile fetching, cache eviction, bandwidth adaptation against live telemetry)
+  - Bandwidth-adaptive fetching against live telemetry (bridge monitors queue depth; does not yet adapt to measured throughput)
   - Actual binary assets (descriptors exist, not the data)
 - **Do not claim:** A working adaptive streaming system.
 
