@@ -107,7 +107,10 @@
       ],
       "nws_location_id": "NBGI3",
       "source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03304300/",
-      "status": "active"
+      "status": "active",
+      "latitude": 37.9283776944039,
+      "longitude": -87.3750073246418,
+      "horizontal_crs": "EPSG:4326"
     },
     {
       "station_id": "03322420",
@@ -118,22 +121,12 @@
         "00065"
       ],
       "related_infrastructure": "John T. Myers Locks and Dam",
-      "source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03322420",
+      "source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03322420/",
       "status": "active",
-      "verification_note": "Official USGS station identity verified 2026-09-14; tailwater gage height is the observed parameter."
-    },
-    {
-      "station_id": "03381700",
-      "provider": "USGS",
-      "name": "Ohio River at Old Shawneetown, IL-KY",
-      "river": "Ohio River",
-      "variables": [
-        "00065",
-        "00060"
-      ],
-      "nws_location_id": "SHNI2",
-      "source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03381700/",
-      "status": "active"
+      "verification_note": "Official USGS station identity verified 2026-09-14; tailwater gage height is the observed parameter.",
+      "latitude": 37.7971555584685,
+      "longitude": -87.9983356426059,
+      "horizontal_crs": "EPSG:4326"
     },
     {
       "station_id": "03399800",
@@ -146,7 +139,10 @@
         "00060"
       ],
       "source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03399800/",
-      "status": "active"
+      "status": "active",
+      "latitude": 37.1592221479973,
+      "longitude": -88.4272615640516,
+      "horizontal_crs": "EPSG:4326"
     },
     {
       "station_id": "03303280",
@@ -158,7 +154,10 @@
         "00060"
       ],
       "source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03303280/",
-      "status": "active"
+      "status": "active",
+      "latitude": 37.8995008762744,
+      "longitude": -86.7055417913802,
+      "horizontal_crs": "EPSG:4326"
     },
     {
       "station_id": "03612600",
@@ -171,7 +170,10 @@
         "00060"
       ],
       "source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03612600/",
-      "status": "active"
+      "status": "active",
+      "latitude": 37.1792186733202,
+      "longitude": -89.0584040037475,
+      "horizontal_crs": "EPSG:4326"
     },
     {
       "station_id": "03277200",
@@ -183,18 +185,26 @@
         "00060"
       ],
       "source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03277200/",
-      "status": "active"
+      "status": "active",
+      "latitude": 38.77525,
+      "longitude": -84.9723888888889,
+      "horizontal_crs": "EPSG:4326"
     },
     {
-      "station_id": "03293600",
+      "station_id": "03293551",
       "provider": "USGS",
-      "name": "Ohio River at McAlpine Dam - Headwater",
+      "name": "Ohio River upstream of McAlpine Dam at railroad bridge at Louisville, KY",
       "river": "Ohio River",
       "variables": [
         "00065"
       ],
-      "source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03293600/",
-      "status": "active"
+      "source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03293551/",
+      "status": "active",
+      "horizontal_crs": "EPSG:4326",
+      "latitude": 38.2659037628604,
+      "longitude": -85.7688518284703,
+      "vertical_datum": "NAVD88",
+      "verification_note": "Official USGS Water Data monitoring-location metadata confirms station 03293551 and recent gage-height observations; the previously listed 03293600 does not resolve in the modern monitoring-location catalog."
     },
     {
       "station_id": "03294500",
@@ -206,18 +216,10 @@
         "00060"
       ],
       "source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03294500/",
-      "status": "active"
-    },
-    {
-      "station_id": "03293551",
-      "provider": "USGS",
-      "name": "Ohio River upstream of McAlpine Dam at railroad bridge at Louisville, KY",
-      "river": "Ohio River",
-      "variables": [
-        "surface_water_level"
-      ],
-      "source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03293551/",
-      "status": "historical_or_research_reference"
+      "status": "active",
+      "latitude": 38.2803473627806,
+      "longitude": -85.7991305041063,
+      "horizontal_crs": "EPSG:4326"
     }
   ],
   "runtime_rules": {
@@ -241,5 +243,24 @@
     "https://waterdata.usgs.gov/monitoring-location/USGS-03293600/",
     "https://waterdata.usgs.gov/monitoring-location/USGS-03294500/"
   ],
-  "lastReviewedAt": "2026-10-18"
+  "lastReviewedAt": "2026-10-18",
+  "historical_or_research_references": [
+    {
+      "station_id": "03381700",
+      "provider": "USGS",
+      "name": "Ohio River at Old Shawneetown, IL-KY",
+      "river": "Ohio River",
+      "variables": [
+        "00065",
+        "00060"
+      ],
+      "nws_location_id": "SHNI2",
+      "source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03381700/",
+      "status": "historical_or_research_reference",
+      "verification_note": "Modern USGS Water Data monitoring-location page currently reports zero continuous data types. Retain as historical/reference only until the modern API provides a verified continuous series.",
+      "latitude": 37.6925,
+      "longitude": -88.1347222222222,
+      "horizontal_crs": "EPSG:4326"
+    }
+  ]
 }
