@@ -4,9 +4,11 @@ import path from 'node:path';
 const root = path.resolve(import.meta.dirname, '..', '..', '..');
 const manifestPath = path.join(root, 'artifacts', 'tsm-geospatial-tile-fabric-v1.json');
 const schemaPath = path.join(root, 'data', 'schemas', 'geospatial-tile-fabric.schema.json');
+const liveRegistryPath = path.join(root, 'data', 'fabrics', 'live', 'tsm-live-hydrology-fabric-v1.json');
 
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 JSON.parse(fs.readFileSync(schemaPath, 'utf8'));
+const liveRegistry = JSON.parse(fs.readFileSync(liveRegistryPath, 'utf8'));
 
 const errors = [];
 const ids = new Set();
@@ -31,8 +33,12 @@ const required = ['fema-effective', 'indiana-bafm', 'indiana-parcels-2025', 'ind
 
 // A retired source may remain catalogued, but must not be advertised as current operational truth.
 const noaaNwps = manifest.assets.find((asset) => asset.id === 'noaa-nwps');
-if (noaaNwps && (noaaNwps.status === 'PUBLISHED' || noaaNwps.currentTruth)) {
+const noaaRegistryEntry = liveRegistry.sources.find((source) => source.id === 'NOAA_NWPS');
+if (noaaRegistryEntry?.status === 'retired' && noaaNwps && (noaaNwps.status === 'PUBLISHED' || noaaNwps.currentTruth)) {
   errors.push('noaa-nwps is retired in the live-hydrology registry and cannot be published as current truth');
+}
+if (noaaRegistryEntry?.status === 'retired' && noaaNwps && noaaNwps.status !== 'PROGRAM_PENDING') {
+  errors.push('noaa-nwps must remain PROGRAM_PENDING while its runtime source is retired');
 }
 for (const id of required) if (!ids.has(id)) errors.push(`required layer missing: ${id}`);
 
