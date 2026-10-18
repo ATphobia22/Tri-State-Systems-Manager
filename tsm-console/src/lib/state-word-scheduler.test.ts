@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 import {
   decodeStateWord,
   diffStateWords,
+  encodeStateWord,
   didDimensionChange,
   STATE_WORD_BITS,
 } from '../lib/tiles-3d-renderer-layer';
@@ -31,6 +32,24 @@ describe('state-word bit layout', () => {
       cursor = r.end;
     }
     expect(cursor).toBe(16);
+  });
+
+  it('round-trips all 65,536 words through the encoder and decoder', () => {
+    for (let word = 0; word <= 0xffff; word++) {
+      expect(encodeStateWord({
+        B: decodeStateWord(word, 'B'),
+        D: decodeStateWord(word, 'D'),
+        C: decodeStateWord(word, 'C'),
+        T: decodeStateWord(word, 'T'),
+        S: decodeStateWord(word, 'S'),
+      })).toBe(word);
+    }
+  });
+
+  it('rejects field values outside their bit capacity', () => {
+    expect(() => encodeStateWord({ B: 8, D: 0, C: 0, T: 0, S: 0 })).toThrow(RangeError);
+    expect(() => encodeStateWord({ B: 0, D: 0, C: 0, T: 16, S: 0 })).toThrow(RangeError);
+    expect(() => encodeStateWord({ B: 0, D: 0, C: 0, T: 0, S: 1.2 })).toThrow(RangeError);
   });
 
   it('rejects values outside the unsigned 16-bit domain', () => {
