@@ -2,11 +2,11 @@
 
 ## Contract gate
 
-`tsm-console/tests/cross-fabric-contract.test.ts` checks map-plane alignment with the structural layer registry, unique registry IDs, renderable default-visible layers, and explicit source/CRS/vertical-datum/verification metadata in the tile manifest. It also checks that retired live-hydrology sources carry a retirement reason. The test is included in `npm run test:renderer-contracts`.
+`tsm-console/tests/cross-fabric-contract.test.ts` checks map-plane alignment with the structural layer registry, unique registry IDs, renderable default-visible layers, and explicit source/CRS/vertical-datum/verification metadata in the tile manifest. It also checks that NOAA NWPS and modern USGS observations are active only for user-triggered snapshots, NOAA NWM remains retired, and the NOAA forecast tile stays pending. The test is included in `npm run test:renderer-contracts`.
 
 ## Open reconciliation gate
 
-The live-hydrology registry says NOAA NWPS/NWM live river sources were retired by an owner decision. Other registry, tile-manifest, and runtime files still describe or reference live river products. Project documentation also describes USGS observations and NOAA/NWS products as hydrology context. Until this is reconciled, TSM must not claim that live hydrology is uniformly enabled, disabled, or production-healthy. A source catalog entry is not proof of polling, freshness, geographic applicability, or engineering suitability.
+The live-hydrology registry now enables NOAA NWPS and modern USGS Water Data for user-triggered read-only observations, with automatic polling prohibited. NOAA NWM remains retired, and the geospatial forecast tile stays pending. Adapter configuration is not proof of a successful live response: release evidence still needs a captured snapshot, per-station freshness/units/provenance checks, and AOI applicability review.
 
 ## Completion criteria
 
