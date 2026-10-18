@@ -77,12 +77,11 @@ const SNAPSHOT_STATIONS: readonly SnapshotStation[] = [
   { siteNo: '03322000', name: 'Ohio River at Evansville, IN', river: 'Ohio River' },
   { siteNo: '03304300', name: 'Ohio River at Newburgh Lock and Dam, IN', river: 'Ohio River' },
   { siteNo: '03322420', name: 'Ohio River at Uniontown Dam, KY', river: 'Ohio River' },
-  { siteNo: '03381700', name: 'Ohio River at Old Shawneetown, IL-KY', river: 'Ohio River' },
   { siteNo: '03399800', name: 'Ohio River at Smithland Dam, Smithland, KY', river: 'Ohio River' },
   { siteNo: '03303280', name: 'Ohio River at Cannelton Dam at Cannelton, IN', river: 'Ohio River' },
   { siteNo: '03612600', name: 'Ohio River at Olmsted, IL', river: 'Ohio River' },
   { siteNo: '03277200', name: 'Ohio River at Markland Dam near Warsaw, KY', river: 'Ohio River' },
-  { siteNo: '03293600', name: 'Ohio River at McAlpine Dam — Headwater', river: 'Ohio River' },
+  { siteNo: '03293551', name: 'Ohio River upstream of McAlpine Dam at railroad bridge at Louisville, KY', river: 'Ohio River' },
   { siteNo: '03294500', name: 'Ohio River at Louisville, KY', river: 'Ohio River' },
 ];
 
