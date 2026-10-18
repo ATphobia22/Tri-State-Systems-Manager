@@ -5,7 +5,7 @@
  * to Merkle unless explicitly piped by an operator-approved job.
  *
  * 2026-10-06: migrated from USGS Water Services (waterservices.usgs.gov,
- * decommissioned 2026-02-22) to the Water Data OGC API
+ * scheduled for shutdown on 2027-02-22) to the Water Data OGC API
  * (api.waterdata.usgs.gov/ogcapi/v1).
  *
  * Usage: node scripts/hydrologic-health-check.mjs

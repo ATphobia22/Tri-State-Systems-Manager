@@ -119,4 +119,19 @@ describe('cross-fabric contract integrity', () => {
       }
     }
   });
+  it('enables NOAA NWPS only for on-demand observations while its forecast tile remains pending', () => {
+    const noaa = liveHydrologyRegistry.sources.find((source) => source.id === 'NOAA_NWPS');
+    const nwm = liveHydrologyRegistry.sources.find((source) => source.id === 'NOAA_NWM');
+    const usgs = liveHydrologyRegistry.sources.find((source) => source.id === 'USGS_WATERDATA');
+    const tileNoaa = tileManifest.assets.find((asset) => asset.id === 'noaa-nwps');
+    expect(noaa?.status).toBe('active');
+    expect(noaa?.activationMode).toBe('user_triggered');
+    expect(noaa?.automaticPolling).toBe(false);
+    expect(usgs?.status).toBe('active');
+    expect(usgs?.automaticPolling).toBe(false);
+    expect(nwm?.status).toBe('retired');
+    expect(tileNoaa?.status).toBe('PROGRAM_PENDING');
+    expect(tileNoaa?.currentTruth).toBe(false);
+  });
+
 });

@@ -1,7 +1,7 @@
 import { siteSpatialReference, siteVerticalReference } from './geodetic';
 import type { MapTwinLoaderData } from '../types/loaders';
 import { GAGE_DATUM_TABLE } from './gage-datums';
-import { fetchUsgsLatestContinuous } from './usgs-direct';
+import { tsmApiUrl } from './api-base';
 
 /**
  * Live stage — user-initiated USGS snapshot ONLY.
@@ -17,7 +17,7 @@ import { fetchUsgsLatestContinuous } from './usgs-direct';
  *   fetchLiveStage(), called from an explicit button press (RiverGaugeBoard
  *   "Fetch live snapshot"; Digital Twin "Fetch live snapshot").
  * - 2026-10-06: migrated from USGS Water Services (waterservices.usgs.gov,
- *   decommissioned 2026-02-22) to the USGS Water Data OGC API
+ *   scheduled for shutdown on 2027-02-22) to the USGS Water Data OGC API
  *   (api.waterdata.usgs.gov/ogcapi/v1/collections/latest-continuous).
  *   approval_status replaces the legacy qualifier convention; Provisional
  *   still maps to qualifier 'P' and status 'provisional'.
@@ -85,50 +85,63 @@ function floodCategoryFor(stageFt: number): MapTwinLoaderData['stage']['floodCat
 export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
   const retrievedAt = new Date().toISOString();
   try {
-    // OGC API path (USGS Water Services decommissioned 2026-02-22).
-    const observations = await fetchUsgsLatestContinuous(PRIMARY_USGS, ['00065', '00060'], {
-      timeoutMs: 15000,
-    });
-
-    let stageFt: number | null = null;
-    let stageTime: string | null = null;
-    let stageApproval: string | null = null;
-    let stageSourceUri: string | null = null;
-    let dischargeCfs: number | null = null;
-    let dischargeTime: string | null = null;
-    let dischargeApproval: string | null = null;
-    for (const obs of observations) {
-      if (obs.parameterCode === '00065' && stageFt == null) {
-        stageFt = obs.value;
-        stageTime = obs.observedAt;
-        stageApproval = obs.approvalStatus;
-        stageSourceUri = obs.sourceUri;
-      } else if (obs.parameterCode === '00060' && dischargeCfs == null) {
-        dischargeCfs = obs.value;
-        dischargeTime = obs.observedAt;
-        dischargeApproval = obs.approvalStatus;
-      }
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    let payload: {
+      observations?: Array<{
+        stationId: string;
+        provider?: string;
+        value: number | null;
+        observedAt: string | null;
+        retrievedAt: string | null;
+        qualifier: string | null;
+        provisional: boolean;
+        status: string;
+        dischargeCfs: number | null;
+        dischargeObservedAt: string | null;
+        sourceUri: string | null;
+        verticalDatum: string;
+      }>;
+    };
+    try {
+      const response = await fetch(
+        tsmApiUrl(`/api/hydrologic/community?stationIds=${PRIMARY_USGS}`),
+        { headers: { Accept: 'application/json' }, cache: 'no-store', signal: controller.signal },
+      );
+      if (!response.ok) throw new Error(`TSM hydrology API returned HTTP ${response.status}`);
+      payload = await response.json() as typeof payload;
+    } finally {
+      clearTimeout(timeout);
     }
-    if (stageFt == null) return unavailableStage();
+    const observation = payload.observations?.find((item) => item.stationId === PRIMARY_USGS);
+    if (!observation || typeof observation.value !== 'number' || observation.status === 'unavailable') {
+      return unavailableStage();
+    }
 
-    const stageProvisional = stageApproval === 'Provisional';
-    const dischargeProvisional = dischargeApproval === 'Provisional';
+    const stageFt = observation.value;
+    const stageTime = observation.observedAt;
+    const stageApproval = observation.qualifier;
+    const stageSourceUri = observation.sourceUri;
+    const dischargeCfs = observation.dischargeCfs;
+    const dischargeTime = observation.dischargeObservedAt;
+    const stageProvisional = observation.provisional === true;
+    const dischargeProvisional = observation.provisional === true;
     const datum = GAGE_DATUM_TABLE[PRIMARY_USGS];
     const gageZero = datum?.conversionPublished === true
       ? datum.gageZeroNavd88Ft
       : null;
     const wse = gageZero != null ? stageFt + gageZero : null;
     return {
-      source: 'USGS',
+      source: observation.provider === 'NOAA' || observation.provider === 'NOAA_NWS' ? 'NOAA' : 'USGS',
       gaugeId: PRIMARY_USGS,
       value_ft: stageFt,
       timestamp: stageTime,
       retrievedAt,
-      status: stageProvisional ? 'provisional' : 'current',
-      qualifier: stageProvisional ? 'P' : 'A',
+      status: observation.status === 'stale' ? 'stale' : stageProvisional ? 'provisional' : 'current',
+      qualifier: stageApproval || (stageProvisional ? 'P' : null),
       discharge_cfs: dischargeCfs,
       discharge_observedAt: dischargeTime,
-      discharge_status: dischargeCfs != null ? (dischargeProvisional ? 'provisional' : 'current') : 'unavailable',
+      discharge_status: dischargeCfs != null ? (observation.status === 'stale' ? 'stale' : dischargeProvisional ? 'provisional' : 'current') : 'unavailable',
       floodCategory: floodCategoryFor(stageFt),
       vertical_reference: 'GAGE_DATUM',
       wse_navd88_ft: wse,

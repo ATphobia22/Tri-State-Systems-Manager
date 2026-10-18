@@ -4,8 +4,9 @@
  * The map stays honest through plain HTTPS polling (the repo forbids streaming
  * transports in the simulator; see the transport gate test): the terrain
  * endpoint is health-probed on an interval with an in-memory tile cache.
- * Live river-gauge polling was retired by owner decision on 2026-09-29
- * ("drop live river data") — gauge snapshots are always empty.
+ * Automatic river-gauge polling remains prohibited. This simulator's gauge
+ * snapshot collection stays empty; user-triggered snapshots are served separately
+ * through River Watch and are never injected into a model without validation.
  *
  * Terrain fallback chain (fail-closed, owner policy 2026-09-29: no demo terrain):
  *
@@ -504,9 +505,9 @@ export class LiveDataManager {
   start(): void {
     if (this.running) return;
     this.running = true;
-    // NOTE: live river-gauge polling was retired by owner decision on
-    // 2026-09-29 ("drop live river data"). gaugeRows stays an empty array
-    // and the gauges record stays empty; only the terrain endpoint health
+    // NOTE: automatic river-gauge polling remains prohibited. This simulation
+    // data adapter intentionally leaves gaugeRows empty; explicit snapshots
+    // are requested separately through River Watch and never refreshed here.
     // probe remains.
     const probe = () => {
       void this.terrainClient.probe(this.probeTile.z, this.probeTile.x, this.probeTile.y).then(() => this.emit());

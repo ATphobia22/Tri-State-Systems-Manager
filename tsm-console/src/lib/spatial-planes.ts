@@ -8,9 +8,8 @@
  * capabilities and honest gaps were cataloged; the count is not the contract,
  * the wiring is.
  *
- * Live gauge telemetry was retired by owner decision on 2026-09-29
- * ("drop login and live river data"). The retired plane documents that
- * decision in the UI instead of silently disappearing.
+ * Automatic gauge polling remains prohibited. User-triggered read-only
+ * snapshots are served through the TSM API; this plane does not poll sources.
  *
  * Owner simulation policy (2026-09-29): no demo simulations. The only
  * simulation capabilities retained are flooding (screening hydraulics),
@@ -161,12 +160,10 @@ export const SPATIAL_PLANES: SpatialPlane[] = [
   },
   {
     id: 'plane-gauge-telemetry',
-    name: 'Live Gauge Telemetry',
-    description: 'USGS NWIS live river gauges.',
-    layerIds: [],
-    retired: true,
-    retirementNote:
-      'Retired by owner decision 2026-09-29: live river data dropped. Use operator-imported observations instead.',
+    name: 'Verified River Gauge Stations',
+    description:
+      'Static verified station locations are map-visible; observed values and NOAA forecasts are user-triggered through the TSM API. No background polling and no inference of flood safety.',
+    layerIds: ['usgs-gauge-locations'],
   },
 ];
 

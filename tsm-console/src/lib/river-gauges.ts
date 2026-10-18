@@ -5,7 +5,6 @@ import {
 } from './native-data-fabric';
 import { tsmApiUrl } from './api-base';
 import { resilientFetchJson } from './resilient-fetch';
-import { fetchUsgsLatestContinuous } from './usgs-direct';
 
 export type GaugeProvider = 'USGS' | 'NOAA_NWS';
 
@@ -18,6 +17,17 @@ export interface RiverGaugeDefinition {
   nwsId?: string;
   variables: readonly string[];
   status: 'active' | 'candidate_realtime_station' | 'historical_or_research_reference';
+}
+
+export interface FetchCommunityGaugesOptions {
+  /** Deterministic clock override for tests. */
+  nowMs?: number;
+  /** Maximum observation age before status becomes stale. */
+  maxAgeMs?: number;
+  /** Explicitly select the native bridge or read-only web snapshot path. */
+  source?: 'auto' | 'native' | 'web';
+  /** Optional injected native bridge for deterministic tests or host integration. */
+  nativeBridge?: NativeDataFabricBridge;
 }
 
 export interface RiverGaugeObservation {
@@ -40,18 +50,17 @@ export interface RiverGaugeObservation {
 
 export const COMMUNITY_RIVER_GAUGES: readonly RiverGaugeDefinition[] = [
   { id: 'nws-NHRI3', provider: 'NOAA_NWS', name: 'Wabash River at New Harmony, IN', river: 'Wabash River', usgsId: '03378500', nwsId: 'NHRI3', variables: ['stage'], status: 'active' },
-  { id: 'usgs-03378500', provider: 'USGS', name: 'Wabash River at New Harmony, IN', river: 'Wabash River', usgsId: '03378500', variables: ['00065', '00060'], status: 'active' },
   { id: 'usgs-03322000', provider: 'USGS', name: 'Ohio River at Evansville, IN', river: 'Ohio River', usgsId: '03322000', variables: ['00065', '00060'], status: 'active' },
   { id: 'usgs-03304300', provider: 'USGS', name: 'Ohio River at Newburgh Lock and Dam, IN', river: 'Ohio River', usgsId: '03304300', nwsId: 'NBGI3', variables: ['00065'], status: 'active' },
-  { id: 'usgs-03322420', provider: 'USGS', name: 'Ohio River at J.T. Myers Dam Pool near Uniontown, KY', river: 'Ohio River', usgsId: '03322420', variables: ['00065'], status: 'candidate_realtime_station' },
-  { id: 'usgs-03381700', provider: 'USGS', name: 'Ohio River at Old Shawneetown, IL-KY', river: 'Ohio River', usgsId: '03381700', nwsId: 'SHNI2', variables: ['00065', '00060'], status: 'active' },
+  { id: 'usgs-03322420', provider: 'USGS', name: 'Ohio River at J.T. Myers Dam Pool near Uniontown, KY', river: 'Ohio River', usgsId: '03322420', variables: ['00065'], status: 'active' },
+  { id: 'usgs-03381700', provider: 'USGS', name: 'Ohio River at Old Shawneetown, IL-KY', river: 'Ohio River', usgsId: '03381700', nwsId: 'SHNI2', variables: ['00065', '00060'], status: 'historical_or_research_reference' },
   { id: 'usgs-03399800', provider: 'USGS', name: 'Ohio River at Smithland Dam, Smithland, KY', river: 'Ohio River', usgsId: '03399800', variables: ['00065_headwater', '00065_tailwater', '00060'], status: 'active' },
   { id: 'usgs-03303280', provider: 'USGS', name: 'Ohio River at Cannelton Dam at Cannelton, IN', river: 'Ohio River', usgsId: '03303280', variables: ['00065', '00060'], status: 'active' },
   { id: 'usgs-03612600', provider: 'USGS', name: 'Ohio River at Olmsted, IL', river: 'Ohio River', usgsId: '03612600', variables: ['00065_headwater', '00065_tailwater', '00060'], status: 'active' },
   { id: 'usgs-03277200', provider: 'USGS', name: 'Ohio River at Markland Dam near Warsaw, KY', river: 'Ohio River', usgsId: '03277200', variables: ['00065', '00060'], status: 'active' },
-  { id: 'usgs-03293600', provider: 'USGS', name: 'Ohio River at McAlpine Dam — Headwater', river: 'Ohio River', usgsId: '03293600', variables: ['00065'], status: 'active' },
+  { id: 'usgs-03293551', provider: 'USGS', name: 'Ohio River upstream of McAlpine Dam at railroad bridge at Louisville, KY', river: 'Ohio River', usgsId: '03293551', variables: ['00065'], status: 'active' },
   { id: 'usgs-03294500', provider: 'USGS', name: 'Ohio River at Louisville, KY', river: 'Ohio River', usgsId: '03294500', variables: ['00065', '00060'], status: 'active' },
-  { id: 'nws-MTVI3', provider: 'NOAA_NWS', name: 'Ohio River at Mount Vernon, IN', river: 'Ohio River', nwsId: 'MTVI3', variables: ['stage'], status: 'active' },
+  { id: 'nws-MTVI3', provider: 'NOAA_NWS', name: 'Ohio River at Mount Vernon, IN', river: 'Ohio River', nwsId: 'MTVI3', variables: ['stage'], status: 'historical_or_research_reference' },
 ];
 
 export function gaugeEndpoint(_definition?: RiverGaugeDefinition): string {
@@ -152,9 +161,11 @@ function normalizeObservation(
     retrievedAt:
       typeof payload.retrievedAt === 'string' ? payload.retrievedAt : new Date(nowMs).toISOString(),
     qualifier: typeof payload.qualifier === 'string' ? payload.qualifier : null,
-    provisional: Boolean(payload.provisional ?? true),
+    provisional: Boolean(payload.provisional ?? (payload.qualifier === 'P')),
     status:
-      value != null && value !== -999 && isFresh(observedAt, nowMs, maxAgeMs) ? 'current' : 'stale',
+      payload.status === 'unavailable' || value == null || value === -999
+        ? 'unavailable'
+        : isFresh(observedAt, nowMs, maxAgeMs) ? 'current' : 'stale',
     dischargeCfs:
       typeof payload.dischargeCfs === 'number'
         ? payload.dischargeCfs
@@ -163,75 +174,8 @@ function normalizeObservation(
           : null,
     sourceUri: typeof payload.sourceUri === 'string' ? payload.sourceUri : null,
     provenancePath,
+    error: typeof payload.error === 'string' ? payload.error : undefined,
   };
-}
-
-async function fetchUsgsFallback(
-  definition: RiverGaugeDefinition,
-  nowMs: number,
-  maxAgeMs: number,
-): Promise<RiverGaugeObservation | null> {
-  if (!definition.usgsId) return null;
-  try {
-    const rows = await fetchUsgsLatestContinuous(definition.usgsId, ['00065', '00060'], {
-      timeoutMs: 8000,
-    });
-    const stage = rows.find((r) => r.parameterCode === '00065') ?? rows[0];
-    const discharge = rows.find((r) => r.parameterCode === '00060');
-    if (!stage) return null;
-    return normalizeObservation(
-      definition,
-      {
-        provider: 'USGS',
-        value: stage.value,
-        unit: stage.unit,
-        observedAt: stage.observedAt,
-        retrievedAt: stage.retrievedAt,
-        dischargeCfs: discharge?.value ?? null,
-        sourceUri: stage.sourceUri,
-        provisional: true,
-      },
-      nowMs,
-      maxAgeMs,
-      'usgs-direct',
-    );
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Which data path supplies gauge observations.
- * - `'auto'` (default): prefer the native data-fabric plugin when available,
- *   fall back to the web fetch path on any native failure.
- * - `'native'`: use only the native plugin; a native failure yields
- *   `unavailable` observations (fail closed, no silent web fallback).
- * - `'web'`: use only the resilient web fetch path (community endpoint,
- *   USGS direct fallback, last-known-good cache).
- */
-export type GaugeDataSource = 'auto' | 'native' | 'web';
-
-export interface FetchCommunityGaugesOptions {
-  /** Legacy hook: the web path uses the resilient fetch client, not a custom fetcher. */
-  fetcher?: typeof fetch;
-  nowMs?: number;
-  maxAgeMs?: number;
-  source?: GaugeDataSource;
-  nativeBridge?: NativeDataFabricBridge;
-}
-
-/**
- * Reports which data path `fetchCommunityGauges` will prefer with default
- * options. Useful for provenance display; the actual path used on a given
- * refresh may still fall back to web if the native call fails.
- */
-export function getPreferredGaugeDataSource(nativeBridge?: NativeDataFabricBridge): 'native' | 'web' {
-  const bridge = nativeBridge ?? createCapacitorBridge();
-  try {
-    return bridge.isAvailable() ? 'native' : 'web';
-  } catch {
-    return 'web';
-  }
 }
 
 export async function fetchCommunityGauges(
@@ -299,6 +243,7 @@ export async function fetchCommunityGauges(
       const remote = observations.find(
         (item) =>
           item.stationId === key ||
+          item.nwsId === key ||
           item.usgs_id === key ||
           item.nws_id === key ||
           item.gaugeId === key,
@@ -312,32 +257,29 @@ export async function fetchCommunityGauges(
     }
   }
 
-  await Promise.all(
-    activeDefinitions.map(async (definition) => {
-      const key = definition.usgsId ?? definition.nwsId ?? definition.id;
-      const existing = result.get(key);
-      if (existing && existing.value != null) return;
-      const fallback = await fetchUsgsFallback(definition, nowMs, maxAgeMs);
-      if (fallback) result.set(key, fallback);
-      else if (!existing)
-        result.set(
-          key,
-          unavailable(
-            definition,
-            nowMs,
-            community.error,
-            community.source === 'lkg' ? 'lkg' : 'none',
-          ),
-        );
-    }),
-  );
+  // No direct browser-to-provider fallback. If the TSM API is unavailable,
+  // keep the observation unavailable (or explicitly stale from last-known-good).
+  for (const definition of activeDefinitions) {
+    const key = definition.usgsId ?? definition.nwsId ?? definition.id;
+    if (!result.has(key)) {
+      result.set(
+        key,
+        unavailable(
+          definition,
+          nowMs,
+          community.error,
+          community.source === 'lkg' ? 'lkg' : 'none',
+        ),
+      );
+    }
+  }
 
   if (community.source === 'lkg' && community.data) {
     for (const definition of activeDefinitions) {
       const key = definition.usgsId ?? definition.nwsId ?? definition.id;
       const existing = result.get(key);
       if (existing?.value != null) continue;
-      const remote = observations.find((item) => item.stationId === key || item.usgs_id === key);
+      const remote = observations.find((item) => item.stationId === key || item.nwsId === key || item.usgs_id === key);
       if (remote) {
         result.set(key, normalizeObservation(definition, remote, nowMs, maxAgeMs, 'lkg'));
       }

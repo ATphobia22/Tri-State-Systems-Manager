@@ -3,8 +3,9 @@
  * NEVER use websockets, socket.io, EventSource (SSE), or MQTT.
  *
  * All data enters via interval-HTTPS polling (terrain endpoint health
- * probes) plus the local deterministic engine. Live river-gauge polling
- * was retired by owner decision on 2026-09-29. This test reads every file
+ * probes) plus the local deterministic engine. User-triggered snapshots are
+ * handled outside this simulator; automatic gauge polling remains prohibited.
+ * This test reads every file
  * under src/lib/flood-sim/ and fails on any match of the forbidden
  * transports — including inside comments, so even *mentioning* them in
  * prose must go through this allowlist note (this file's own docstring is

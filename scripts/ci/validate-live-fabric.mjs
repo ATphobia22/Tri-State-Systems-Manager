@@ -27,18 +27,27 @@ for (const [key, value] of Object.entries(registry.controls ?? {})) {
   if (value !== true) throw new Error('live fabric control is disabled: ' + key);
 }
 
-// Owner decision 2026-09-29: live river data is dropped. The live river
-// observation/forecast sources must be retired in this registry.
+// Current policy: NOAA NWPS and USGS Water Data are read-only, user-triggered
+// observation sources. NOAA NWM remains retired until its experimental model
+// guidance is independently validated. Automatic polling is always prohibited.
 const retiredIds = new Set(
   registry.sources.filter((s) => s.status === 'retired').map((s) => s.id),
 );
-for (const mustBeRetired of ['NOAA_NWPS', 'NOAA_NWM']) {
-  if (!retiredIds.has(mustBeRetired)) {
-    throw new Error(mustBeRetired + ' must be retired: live river data was dropped by owner decision 2026-09-29');
-  }
+const sourceById = new Map(registry.sources.map((source) => [source.id, source]));
+if (sourceById.get('NOAA_NWPS')?.status !== 'active') {
+  throw new Error('NOAA_NWPS must be active for user-triggered snapshots; automatic polling remains prohibited');
+}
+if (sourceById.get('USGS_WATERDATA')?.status !== 'active') {
+  throw new Error('USGS_WATERDATA must be active for user-triggered snapshots');
+}
+if (sourceById.get('NOAA_NWM')?.status !== 'retired') {
+  throw new Error('NOAA_NWM remains retired until experimental model-guidance integration is independently verified');
+}
+if (registry.controls?.automatic_polling_prohibited !== true) {
+  throw new Error('automatic hydrology polling must remain prohibited');
 }
 
 const activeCount = registry.sources.filter((s) => s.status === 'active').length;
 console.log(
-  `validated live fabric registry: ${activeCount} active, ${retiredIds.size} retired (live river data dropped 2026-09-29)`,
+  `validated live fabric registry: ${activeCount} active, ${retiredIds.size} retired (on-demand snapshots only; automatic polling prohibited)`,
 );

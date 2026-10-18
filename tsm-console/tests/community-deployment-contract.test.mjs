@@ -17,12 +17,12 @@ test('root layout does not expose parcel or private-site fields', async () => {
   assert.match(layout, /Community River Valley|community river valley/i);
 });
 
-test('community aggregation endpoint is retired and fails closed', async () => {
+test('community read-only snapshots are user-triggered; community writes remain retired', async () => {
   const server = await read('../server/token-proxy.mjs');
   assert.match(server, /\/api\/hydrologic\/community/);
   assert.match(server, /RETIRED_TELEMETRY_ROUTES/);
   assert.match(server, /RIVER_TELEMETRY_RETIRED/);
-  assert.doesNotMatch(server, /fetchRiverNetwork\(/);
+  assert.match(server, /fetchRiverNetwork\(/);
   assert.doesNotMatch(server, /private residence|RESTRICTED_SITE-digital-twin-engine/);
 });
 

@@ -22,9 +22,9 @@ Usage:
 """
 
 import argparse
-import io
+import os
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import numpy as np
@@ -56,7 +56,6 @@ GAGES = {
 }
 
 OUT_DIR = Path("./timesfm-forecasts")
-OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
 # ---------------------------------------------------------------------------
@@ -65,47 +64,90 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 def fetch_usgs_gage(site: str, parameter: str, days: int = 30) -> pd.DataFrame:
     """
-    Fetch recent gage height via TSM USGS ingest module
-    (wraps dataretrieval-python, the USGS-maintained client).
-    Falls back to direct API if the module is unavailable.
+    Fetch continuous observations from the modern USGS Water Data OGC API.
+
+    The legacy WaterServices /nwis/iv endpoint is scheduled for decommissioning
+    and must not be used as a production fallback. Values retain the provider's
+    native units; callers must not infer water-surface elevation from gage height.
     """
     try:
         from tsm_usgs_ingest import get_gage_height
+    except ImportError:
+        get_gage_height = None
+
+    if get_gage_height is not None:
         df = get_gage_height(site, days=days, parameter=parameter)
         df = df.rename(columns={"value_ft": "value"})
-        return df
-    except ImportError:
-        pass  # fallback below
+        required = {"datetime", "value"}
+        if not required.issubset(df.columns):
+            raise ValueError(
+                "tsm_usgs_ingest must return datetime and value columns"
+            )
+        return df[["datetime", "value"]].dropna().sort_values("datetime")
 
-    # Fallback: direct USGS Water Services API
-    end = datetime.utcnow()
+    end = datetime.now(timezone.utc)
     start = end - timedelta(days=days)
-    url = (
-        "https://waterservices.usgs.gov/nwis/iv/"
-        f"?sites={site}&parameterCd={parameter}"
-        f"&startDT={start:%Y-%m-%d}&endDT={end:%Y-%m-%d}"
-        "&format=rdb"
-    )
-    r = requests.get(url, timeout=60)
-    r.raise_for_status()
+    url = "https://api.waterdata.usgs.gov/ogcapi/v1/collections/continuous/items"
+    params = {
+        "f": "json",
+        "monitoring_location_id": f"USGS-{site}",
+        "parameter_code": parameter,
+        "datetime": f"{start.isoformat()}/{end.isoformat()}",
+        "limit": 10000,
+    }
+    api_key = os.getenv("USGS_WATERDATA_API_KEY")
+    if api_key:
+        params["api_key"] = api_key
 
-    # Parse RDB (tab-separated, comments start with #)
-    lines = [l for l in r.text.splitlines() if not l.startswith("#") and l.strip()]
-    if len(lines) < 3:
-        raise ValueError(f"No data returned for USGS site {site}")
-    df = pd.read_csv(io.StringIO("\n".join(lines)), sep="\t")
-    df = df.iloc[1:].reset_index(drop=True)  # drop format row
+    response = requests.get(url, params=params, timeout=30)
+    response.raise_for_status()
+    payload = response.json()
+    features = payload.get("features")
+    if not isinstance(features, list):
+        raise ValueError("USGS Water Data API response has no features array")
 
-    # Find the value column (ends with _cd stripped, numeric)
-    val_col = [c for c in df.columns if c.endswith(f"_{parameter}") and not c.endswith("_cd")]
-    if not val_col:
-        raise ValueError(f"Parameter {parameter} not found for site {site}")
-    val_col = val_col[0]
+    records = []
+    observed_units = set()
+    for feature in features:
+        properties = feature.get("properties", {})
+        raw_time = properties.get("time")
+        raw_value = properties.get("value")
+        unit = properties.get("unit_of_measure")
+        if raw_time is None or raw_value is None or unit is None:
+            continue
+        try:
+            value = float(raw_value)
+        except (TypeError, ValueError):
+            continue
+        if not np.isfinite(value):
+            continue
+        normalized_unit = str(unit).strip().lower()
+        if parameter == "00065":
+            if normalized_unit not in {"ft", "foot", "feet"}:
+                raise ValueError(
+                    "USGS gage-height parameter 00065 must be in feet; "
+                    f"received {unit!r}. Convert explicitly before forecasting."
+                )
+            normalized_unit = "ft"
+        observed_units.add(normalized_unit)
+        records.append(
+            {
+                "datetime": pd.to_datetime(raw_time, utc=True),
+                "value": value,
+            }
+        )
 
-    df["datetime"] = pd.to_datetime(df["datetime"])
-    df["value"] = pd.to_numeric(df[val_col], errors="coerce")
-    df = df[["datetime", "value"]].dropna().sort_values("datetime")
-    return df
+    if not records:
+        raise ValueError(f"No valid continuous observations returned for USGS site {site}")
+    if len(observed_units) != 1:
+        raise ValueError(
+            f"USGS site {site} returned missing or inconsistent units: "
+            f"{sorted(observed_units)}"
+        )
+
+    result = pd.DataFrame(records)
+    result = result.drop_duplicates(subset=["datetime"], keep="last")
+    return result.sort_values("datetime").reset_index(drop=True)
 
 
 def fetch_nws_gage(gage_id: str, days: int = 30) -> pd.DataFrame:
@@ -229,7 +271,8 @@ def forecast_gage(gage_id: str, horizon_hours: int = 48, history_days: int = 30)
     })
 
     # 5. Save
-    stamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     out_path = OUT_DIR / f"{gage_id}_forecast_{stamp}.csv"
     out.to_csv(out_path, index=False)
     print(f"  Saved: {out_path}")

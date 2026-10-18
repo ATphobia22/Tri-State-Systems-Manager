@@ -6,8 +6,8 @@
  * console. Two deliberate divergences from the Swift original:
  *
  * 1. NO live polling. The Swift `fetchCommunityGauges()` called a live
- *    hydrologic endpoint. Live river telemetry is retired in this system;
- *    this module accepts only caller-supplied payloads and never fetches.
+ *    hydrologic endpoint. This bridge accepts only caller-supplied payloads
+ *    and never fetches; user-triggered snapshots use the TSM API.
  * 2. NO fabricated fallbacks. The Swift `getOfflineFallbackStations()` returned
  *    invented stage/WSE readings with fake provenance signatures. Offline here
  *    means UNAVAILABLE — never invented observations.

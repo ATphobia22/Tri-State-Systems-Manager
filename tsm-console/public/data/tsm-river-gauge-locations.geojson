@@ -1,0 +1,241 @@
+{
+  "type": "FeatureCollection",
+  "name": "TSM verified river gauge locations",
+  "description": "Static verified station coordinates only. Live observations and NOAA forecasts are fetched separately on user action; this layer does not imply current conditions or flood safety.",
+  "authority": "USGS Water Data monitoring-location metadata; NOAA NWPS mappings where verified",
+  "crs": "EPSG:4326",
+  "sourceArtifact": "artifacts/tsm-river-valley-realtime-stations-v1.json",
+  "lastReviewedAt": "2026-10-18",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -87.94141452141561,
+          38.13089124398878
+        ]
+      },
+      "properties": {
+        "stationId": "03378500",
+        "name": "Wabash River at New Harmony, IN",
+        "river": "Wabash River",
+        "status": "active",
+        "nwsId": "NHRI3",
+        "sourceUri": "https://waterdata.usgs.gov/monitoring-location/USGS-03378500/",
+        "coordinateSource": "USGS Water Data monitoring-location metadata",
+        "coordinateReferenceSystem": "EPSG:4326",
+        "authorityClass": "OBSERVATION",
+        "locationOnly": true,
+        "automaticPolling": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -87.57640285193835,
+          37.97228264107407
+        ]
+      },
+      "properties": {
+        "stationId": "03322000",
+        "name": "Ohio River at Evansville, IN",
+        "river": "Ohio River",
+        "status": "active",
+        "nwsId": null,
+        "sourceUri": "https://waterdata.usgs.gov/monitoring-location/USGS-03322000/",
+        "coordinateSource": "USGS Water Data monitoring-location metadata",
+        "coordinateReferenceSystem": "EPSG:4326",
+        "authorityClass": "OBSERVATION",
+        "locationOnly": true,
+        "automaticPolling": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -87.3750073246418,
+          37.9283776944039
+        ]
+      },
+      "properties": {
+        "stationId": "03304300",
+        "name": "Ohio River at Newburgh Lock and Dam, IN",
+        "river": "Ohio River",
+        "status": "active",
+        "nwsId": "NBGI3",
+        "sourceUri": "https://waterdata.usgs.gov/monitoring-location/USGS-03304300/",
+        "coordinateSource": "USGS Water Data monitoring-location metadata",
+        "coordinateReferenceSystem": "EPSG:4326",
+        "authorityClass": "OBSERVATION",
+        "locationOnly": true,
+        "automaticPolling": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -87.9983356426059,
+          37.7971555584685
+        ]
+      },
+      "properties": {
+        "stationId": "03322420",
+        "name": "OHIO RIVER AT UNIONTOWN DAM, KY",
+        "river": "Ohio River",
+        "status": "active",
+        "nwsId": null,
+        "sourceUri": "https://waterdata.usgs.gov/monitoring-location/USGS-03322420/",
+        "coordinateSource": "USGS Water Data monitoring-location metadata",
+        "coordinateReferenceSystem": "EPSG:4326",
+        "authorityClass": "OBSERVATION",
+        "locationOnly": true,
+        "automaticPolling": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -88.4272615640516,
+          37.1592221479973
+        ]
+      },
+      "properties": {
+        "stationId": "03399800",
+        "name": "Ohio River at Smithland Dam, Smithland, KY",
+        "river": "Ohio River",
+        "status": "active",
+        "nwsId": null,
+        "sourceUri": "https://waterdata.usgs.gov/monitoring-location/USGS-03399800/",
+        "coordinateSource": "USGS Water Data monitoring-location metadata",
+        "coordinateReferenceSystem": "EPSG:4326",
+        "authorityClass": "OBSERVATION",
+        "locationOnly": true,
+        "automaticPolling": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -86.7055417913802,
+          37.8995008762744
+        ]
+      },
+      "properties": {
+        "stationId": "03303280",
+        "name": "Ohio River at Cannelton Dam at Cannelton, IN",
+        "river": "Ohio River",
+        "status": "active",
+        "nwsId": null,
+        "sourceUri": "https://waterdata.usgs.gov/monitoring-location/USGS-03303280/",
+        "coordinateSource": "USGS Water Data monitoring-location metadata",
+        "coordinateReferenceSystem": "EPSG:4326",
+        "authorityClass": "OBSERVATION",
+        "locationOnly": true,
+        "automaticPolling": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -89.0584040037475,
+          37.1792186733202
+        ]
+      },
+      "properties": {
+        "stationId": "03612600",
+        "name": "Ohio River at Olmsted, IL",
+        "river": "Ohio River",
+        "status": "active",
+        "nwsId": null,
+        "sourceUri": "https://waterdata.usgs.gov/monitoring-location/USGS-03612600/",
+        "coordinateSource": "USGS Water Data monitoring-location metadata",
+        "coordinateReferenceSystem": "EPSG:4326",
+        "authorityClass": "OBSERVATION",
+        "locationOnly": true,
+        "automaticPolling": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -84.9723888888889,
+          38.77525
+        ]
+      },
+      "properties": {
+        "stationId": "03277200",
+        "name": "Ohio River at Markland Dam near Warsaw, KY",
+        "river": "Ohio River",
+        "status": "active",
+        "nwsId": null,
+        "sourceUri": "https://waterdata.usgs.gov/monitoring-location/USGS-03277200/",
+        "coordinateSource": "USGS Water Data monitoring-location metadata",
+        "coordinateReferenceSystem": "EPSG:4326",
+        "authorityClass": "OBSERVATION",
+        "locationOnly": true,
+        "automaticPolling": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -85.7688518284703,
+          38.2659037628604
+        ]
+      },
+      "properties": {
+        "stationId": "03293551",
+        "name": "Ohio River upstream of McAlpine Dam at railroad bridge at Louisville, KY",
+        "river": "Ohio River",
+        "status": "active",
+        "nwsId": null,
+        "sourceUri": "https://waterdata.usgs.gov/monitoring-location/USGS-03293551/",
+        "coordinateSource": "USGS Water Data monitoring-location metadata",
+        "coordinateReferenceSystem": "EPSG:4326",
+        "authorityClass": "OBSERVATION",
+        "locationOnly": true,
+        "automaticPolling": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -85.7991305041063,
+          38.2803473627806
+        ]
+      },
+      "properties": {
+        "stationId": "03294500",
+        "name": "Ohio River at Louisville, KY",
+        "river": "Ohio River",
+        "status": "active",
+        "nwsId": null,
+        "sourceUri": "https://waterdata.usgs.gov/monitoring-location/USGS-03294500/",
+        "coordinateSource": "USGS Water Data monitoring-location metadata",
+        "coordinateReferenceSystem": "EPSG:4326",
+        "authorityClass": "OBSERVATION",
+        "locationOnly": true,
+        "automaticPolling": false
+      }
+    }
+  ]
+}

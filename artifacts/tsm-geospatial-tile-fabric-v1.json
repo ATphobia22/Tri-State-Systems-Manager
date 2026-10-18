@@ -246,22 +246,22 @@
       "dataset": "NOAA National Water Prediction Service",
       "authority": "NOAA / NWS",
       "authorityClass": "HYDROLOGIC_FORECAST",
-      "purpose": "Official observed and forecast hydrologic state",
+      "purpose": "NOAA NWPS source configured for user-triggered observations. The geospatial forecast/tile product remains pending and is not current truth.",
       "layerType": "live-forecast",
       "sourceUrl": "https://api.water.noaa.gov/nwps/v1/",
-      "status": "PUBLISHED",
+      "status": "PROGRAM_PENDING",
       "crs": "EPSG:4326",
       "verticalDatum": "SOURCE_PRODUCT_DECLARED",
       "tileScheme": "NONE",
       "provenanceClass": "AGENCY_FORECAST",
-      "currentTruth": true,
+      "currentTruth": false,
       "acquiredAt": null,
       "effectiveAt": null,
-      "freshnessPolicy": "Preserve forecast issuance/valid time and distinguish forecast records from observations.",
+      "freshnessPolicy": "On-demand snapshots only; automatic polling prohibited. Publish a forecast tile layer only after forecast adapter, provenance, freshness, and end-to-end validation pass.",
       "verification": {
-        "state": "VERIFIED",
+        "state": "PENDING",
         "checkedAt": "2026-09-14T16:30:00Z",
-        "sourceHashPolicy": "Hash normalized forecast batches and retain issuance metadata."
+        "sourceHashPolicy": "No current forecast tile or forecast-layer response has been verified. The source adapter is configured for user-triggered observations only; keep the forecast tile pending until forecast-specific integration and provenance tests pass."
       }
     },
     {
@@ -358,5 +358,6 @@
         "sourceHashPolicy": "Hash service metadata and compact extracted records; preserve source URL and retrieval timestamp."
       }
     }
-  ]
+  ],
+  "lastReviewedAt": "2026-10-18"
 }

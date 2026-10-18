@@ -4,7 +4,7 @@
  */
 
 export const WEB_ENDPOINTS = {
-  // USGS Water Services (waterservices.usgs.gov) decommissioned 2026-02-22.
+  // USGS WaterServices is scheduled for permanent shutdown on 2027-02-22.
   // All USGS live paths now use the Water Data OGC API (latest-continuous).
   usgs_nwis_iv: 'https://api.waterdata.usgs.gov/ogcapi/v1/collections/latest-continuous', // legacy key; now aliases the OGC collection
   usgs_ogc_latest_continuous: 'https://api.waterdata.usgs.gov/ogcapi/v1/collections/latest-continuous',

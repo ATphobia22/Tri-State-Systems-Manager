@@ -14,9 +14,9 @@ import EngineeringSectionCutaway, {
  *  - berm / road placement mode buttons
  *  - hydraulic cutaway trigger opening the evidence-bound EngineeringSectionCutaway
  *
- * Deliberate divergences from the uploads: no live gauge readings (telemetry is
- * retired), no "ray tracing" toggle, no invented BFE/fill numbers. Every number
- * shown comes from the FEMA case record or is labeled as user input.
+ * Deliberate divergences from the uploads: this HUD does not render live gauge
+ * readings; River Watch provides user-triggered snapshots through the TSM API.
+ * Automatic polling is prohibited. No invented BFE/fill numbers are shown.
  */
 
 export type TwinLayerId =
@@ -298,8 +298,8 @@ export default function CinematicTwinHud(props: CinematicTwinHudProps) {
                 </label>
               ))}
               <p style={{ fontSize: 10, color: '#94a3b8', marginTop: 8 }}>
-                Live river telemetry is retired. Layers show the newest verified
-                government snapshots, never live readings.
+                Live snapshots are available in River Watch after a user action. This HUD
+                shows only verified map layers and never polls gauge providers.
               </p>
             </div>
           )}

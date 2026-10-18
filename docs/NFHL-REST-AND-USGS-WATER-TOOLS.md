@@ -47,7 +47,7 @@ NFHL is the **digital** National Flood Hazard Layer. Official NFIP products rema
 
 ### Instantaneous Values (IV) — live stage / discharge
 
-> **RETIRED 2026-02-22** — USGS Water Services is decommissioned. Use the Water Data OGC API:
+> **LEGACY — shutdown scheduled 2027-02-22**. USGS says WaterServices will permanently shut down on 2027-02-22, with intentional slowdowns/outages beginning in January 2027. Do not build new dependencies on the legacy endpoint; use the modern Water Data OGC API:
 >
 > ```text
 > https://api.waterdata.usgs.gov/ogcapi/v1/collections/latest-continuous/items?f=json&monitoring_location_id=USGS-{SITE}&parameter_code=00065&limit=2

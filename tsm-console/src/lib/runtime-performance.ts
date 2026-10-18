@@ -139,8 +139,8 @@ function installNavigationObserver(router: RuntimeRouter): void {
  * Shared visibility guard for polling loops (e.g. terrain health probes).
  * Polling sites should skip their tick while the tab is hidden instead of
  * burning battery/network on updates nobody sees.
- * NOTE: live river-gauge polling was retired 2026-09-29; the former call
- * sites (RiverGaugeBoard, startGaugePoll) no longer poll.
+ * NOTE: automatic river-gauge polling remains prohibited. RiverGaugeBoard
+ * now requests a snapshot only after an explicit user action; no background refresh.
  */
 export function shouldSkipPoll(): boolean {
   return typeof document !== 'undefined' && document.hidden;
