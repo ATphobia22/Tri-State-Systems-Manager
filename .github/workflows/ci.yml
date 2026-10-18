@@ -55,6 +55,8 @@ jobs:
           GITHUB_SHA: ${{ github.sha }}
           TSM_ARTIFACT_DIR: artifacts
         run: npm run generate:sbom
+      - name: Test scoped npm audit exception
+        run: node --test ../scripts/ci/validate-npm-audit.test.mjs
       - name: npm audit gate
         run: |
           set +e
@@ -62,7 +64,7 @@ jobs:
           status=$?
           set -e
           cat artifacts/npm-audit.json
-          exit "$status"
+          node ../scripts/ci/validate-npm-audit.mjs artifacts/npm-audit.json "$status"
       - name: npm audit signatures evidence and gate
         run: |
           set +e
