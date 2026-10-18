@@ -91,8 +91,14 @@ class InfrmResult:
 class FisRow:
     cross_section: str
     river_mile: float | None
-    floodway_width_ft: float | None
-    base_flood_elevation_ft: float | None
+    distance_ft: float | None = None
+    floodway_width_ft: float | None = None
+    section_area_sqft: float | None = None
+    mean_velocity_fps: float | None = None
+    base_flood_wsel_ft: float | None = None      # regulatory WSEL without encroachment
+    with_floodway_wsel_ft: float | None = None  # WSEL with floodway encroachment
+    surcharge_ft: float | None = None            # increase (capped at 1.0 ft by law)
+    base_flood_elevation_ft: float | None = None  # legacy alias for base_flood_wsel_ft
     datum: str | None = None
 
 
@@ -275,10 +281,22 @@ def parse_fis_floodway_table(pdf_path: str | Path) -> FisParseResult:
 
                     c_xs = col("cross", "section")
                     c_rm = col("river", "mile")
+                    c_dist = col("distance")
                     c_fw = col("floodway")
-                    c_bfe = col("base", "flood")
-                    if c_bfe is None:
-                        c_bfe = col("water", "surface")
+                    # Full FDT schema per FEMA IS-274
+                    c_area = col("section", "area")
+                    c_vel = col("mean", "velocity")
+                    if c_vel is None:
+                        c_vel = col("velocity")
+                    c_wsel_base = col("regulatory")  # "Regulatory" WSEL
+                    if c_wsel_base is None:
+                        c_wsel_base = col("base", "flood")
+                    if c_wsel_base is None:
+                        c_wsel_base = col("water", "surface")
+                    c_wsel_with = col("with", "floodway")
+                    c_surch = col("increase")
+                    if c_surch is None:
+                        c_surch = col("surcharge")
 
                     for line in table[1:]:
                         cells = [str(c or "").strip() for c in line]
@@ -287,11 +305,23 @@ def parse_fis_floodway_table(pdf_path: str | Path) -> FisParseResult:
                         xs = cells[c_xs] if c_xs is not None else ""
                         if not xs or "total" in xs.lower():
                             continue
+                        wsel_base = _num(cells[c_wsel_base]) if c_wsel_base is not None else None
+                        wsel_with = _num(cells[c_wsel_with]) if c_wsel_with is not None else None
+                        surcharge = _num(cells[c_surch]) if c_surch is not None else None
+                        # Compute surcharge if both WSELs present but surcharge column missing
+                        if surcharge is None and wsel_base is not None and wsel_with is not None:
+                            surcharge = round(wsel_with - wsel_base, 2)
                         rows.append(FisRow(
                             cross_section=xs,
                             river_mile=_num(cells[c_rm]) if c_rm is not None else None,
+                            distance_ft=_num(cells[c_dist]) if c_dist is not None else None,
                             floodway_width_ft=_num(cells[c_fw]) if c_fw is not None else None,
-                            base_flood_elevation_ft=_num(cells[c_bfe]) if c_bfe is not None else None,
+                            section_area_sqft=_num(cells[c_area]) if c_area is not None else None,
+                            mean_velocity_fps=_num(cells[c_vel]) if c_vel is not None else None,
+                            base_flood_wsel_ft=wsel_base,
+                            with_floodway_wsel_ft=wsel_with,
+                            surcharge_ft=surcharge,
+                            base_flood_elevation_ft=wsel_base,  # legacy alias
                         ))
     except Exception as e:  # noqa: BLE001 -- report, don't crash
         return FisParseResult(status="error", source_pdf=str(pdf_path),
