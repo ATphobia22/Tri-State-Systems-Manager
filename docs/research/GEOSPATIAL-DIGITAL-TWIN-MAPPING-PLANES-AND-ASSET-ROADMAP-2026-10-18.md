@@ -157,6 +157,6 @@ The current plane-by-plane implementation matrix is maintained in [Mapping-plane
 
 The HLOD builder's depth-divided error heuristic is being replaced with a conservative inherited error-floor policy for contentless ADD nodes. This is a traversal proxy, not measured simplification error; target-renderer camera-path, boundary, cache-pressure, payload, and frame-time verification remain separate acceptance gates.
 
-The MapLibre-hosted Three.js renderer now requests repaint when 3D Tiles reports `load-tileset` or `load-model`, and tileset URL normalization rejects unsupported schemes. The existing 5D state-word code is only a decoder/GLSL prototype: it does not yet bind structural metadata to a GPU attribute or implement the proposed scheduling framework.
+The active `ThreeDTilesLayer` now scales camera clipping planes with zoom and refreshes screen-space-error resolution on resize. Its source resolver rejects unsupported schemes, embedded credentials, control characters, backslashes, and protocol-relative URLs. The unused adapter that required a conflicting Three.js peer version was removed. The 5D state-word code remains a pure planning prototype: it does not yet bind structural metadata to a GPU attribute or perform actual resource fetch/release.
 
 The B-D-C-T-S scheduler, SDF/voxel terrain, and a parallel renderer remain deferred until an evidenced TSM gap and measurable acceptance test justify them.
