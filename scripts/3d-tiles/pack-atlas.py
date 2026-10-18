@@ -257,6 +257,13 @@ def bake_channel(channel: str, image, materials: list, meshes: list) -> None:
         set_mesh_selection(meshes)
         if channel == "metallic":
             metallic_state = temporarily_route_metallic_to_emission(materials)
+            # Creating the temporary emission nodes must not steal the active
+            # image target from the baking system.
+            for material, target, _previous_active, _previous_selection in target_state:
+                for node in material.node_tree.nodes:
+                    node.select = False
+                target.select = True
+                material.node_tree.nodes.active = target
             bpy.ops.object.bake(type="EMIT")
         elif channel == "albedo":
             bpy.ops.object.bake(type="DIFFUSE", pass_filter={"COLOR"})
