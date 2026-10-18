@@ -21,7 +21,30 @@ pipeline, visibility-buffer integration, and device-specific benchmarks.
 project moves terrain rendering fully into the three.js custom layer where
 three.js controls the pipeline.
 
-## 2. Transvoxel Stitching (WebGPU Compute Pipeline)
+## 2. Depth Occlusion / Hierarchical-Z
+
+**Status:** NOT IMPLEMENTED. Query-based occlusion is technically possible in
+WebGL 2, but TSM does not currently own a query lifecycle, temporal result
+buffer, visibility hysteresis, or per-object occlusion policy in its
+MapLibre/Three.js layer.
+
+**Current behavior:** Three.js `Object3D.frustumCulled` is view-frustum culling,
+not occlusion culling. WebGL 2 exposes asynchronous occlusion-query results,
+but wiring them into a shared MapLibre context requires avoiding synchronous
+GPU stalls and stale visibility decisions. A hierarchical-Z compute path
+would require a different renderer capability and is not supplied by this
+WebGL 2 path.
+
+**Unblock condition:** Implement a separately reviewed WebGL 2 occlusion-query
+pass with non-blocking `QUERY_RESULT_AVAILABLE` polling, conservative fallback
+visibility, query reuse/disposal, and device-level performance tests; or adopt
+a renderer backend whose occlusion implementation is verified in TSM.
+
+References: [Three.js Object3D frustum-culling contract](https://threejs.org/docs/pages/Object3D.html),
+[Three.js Renderer occlusion API](https://threejs.org/docs/pages/Renderer),
+[MDN WebGL 2 query results](https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext/getQueryParameter).
+
+## 3. Transvoxel Stitching (WebGPU Compute Pipeline)
 
 **Status:** BLOCKED — research-scale, no library exists.
 
