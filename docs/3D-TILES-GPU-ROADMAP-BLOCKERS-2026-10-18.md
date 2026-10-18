@@ -47,8 +47,9 @@ bakes. Data maps use Non-Color and base-color/emissive maps use sRGB.
 **Verification:** `scripts/3d-tiles/test_pack_atlas_blender.py` generates
 fixture GLBs, runs a real headless Blender bake/export, and verifies the final
 GLB embeds base-color, normal, metallic-roughness, and AO texture bindings.
-`.github/workflows/pbr-atlas-validation.yml` runs this round-trip. The script
-is implemented; it is not release-verified until the Blender workflow passes.
+`.github/workflows/pbr-atlas-validation.yml` runs this round-trip; it passed
+on the TSM PR head `4132c9e6a4313e8328f1e634f6506b0118ea6eb5` on 2026-10-18.
+The final branch head must still pass the same gate after all changes.
 
 Reference: [Blender glTF 2.0 material export](https://docs.blender.org/manual/en/latest/addons/scene_gltf2.html).
 
@@ -69,18 +70,31 @@ Reference: [MapLibre CustomLayerInterface](https://maplibre.org/maplibre-gl-js/d
 
 ## 4. Depth occlusion / hierarchical-Z
 
-**Status:** not implemented. WebGL2 asynchronous occlusion queries are technically
-possible, but a safe implementation needs occluder/depth ordering, non-blocking
-query-result polling, a temporal visibility cache, hysteresis, conservative
-fallback visibility, query reuse/disposal, and GPU/device performance tests.
-Three.js `Object3D.frustumCulled` is frustum culling, not occlusion culling.
-A hierarchical-Z compute implementation would require a WebGPU/backend change.
+**Status: WebGL2 query-based occlusion implemented; hierarchical-Z compute is not implemented.**
 
-This remains an explicit release gate for any claim that the TSM renderer performs
-depth occlusion; do not treat the existing frustum path as completion.
+`tsm-console/src/lib/webgl2-depth-occlusion.ts` uses non-blocking
+`ANY_SAMPLES_PASSED_CONSERVATIVE` queries against the shared WebGL2 depth
+buffer. Query results are polled only when `QUERY_RESULT_AVAILABLE` is true.
+A target is suppressed after two consecutive no-sample results and restored
+immediately when a sample passes. Query allocation is capped (default 2,048
+tracked meshes), work is capped per frame (default 64 queries), and meshes past
+the cap remain visible. Unsupported contexts and query errors fail open.
+
+The layer registers/unregisters tile meshes with the controller, combines
+occlusion visibility with StateWord-derived visibility, and resets Three.js'
+state cache after raw WebGL calls. Probe tests exercise visibility hysteresis.
+
+**Scope and remaining validation:** this is conservative, delayed WebGL2 query
+occlusion against depth already present when the TSM custom layer runs. It is
+not a hierarchical-Z pyramid or GPU-compute culling pass, and effectiveness
+depends on layer order and prior depth-writing geometry. The current unit and
+visual checks do not replace browser/device profiling across target GPUs,
+context-loss testing, or proving occluder coverage for each deployment style.
+Do not claim universal all-mesh occlusion or hierarchical-Z support.
 
 References: [Three.js Object3D](https://threejs.org/docs/pages/Object3D.html),
-[MDN WebGL2 query results](https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext/getQueryParameter).
+[MDN WebGL2 query results](https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext/getQueryParameter),
+[NASA-AMMOS 3D Tiles Renderer metadata plugin API](https://github.com/NASA-AMMOS/3DTilesRendererJS/blob/master/src/three/plugins/API.md).
 
 ## 5. Transvoxel / terrain LOD transition stitching
 
