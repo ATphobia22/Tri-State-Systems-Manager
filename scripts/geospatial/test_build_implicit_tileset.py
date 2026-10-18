@@ -77,7 +77,7 @@ class ImplicitTilesetContractTests(unittest.TestCase):
             root = Path(temp)
             node = MODULE.QuadNode(0, 0, 0, (0.0, 0.0, 1.0, 1.0))
             identity = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
-            node.items = [(root / "feature.glb", 0.5, 0.5, 101, identity)]
+            node.items = [(root / "feature.glb", 0.25, 0.25, 101, identity)]
             node.subdivide(max_depth=2, max_items=0)
             self.assertTrue(node.children)
             self.assertEqual(sum(len(leaf.items) for leaf in node.leaves()), 1)
