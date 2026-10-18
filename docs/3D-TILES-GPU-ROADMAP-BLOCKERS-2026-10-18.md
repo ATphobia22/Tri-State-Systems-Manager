@@ -12,10 +12,10 @@ unblock condition.
 require WebGPU. MapLibre's WebGPU renderer is not yet production-ready
 (as of the research cut-off), and there is no open-source library that adds
 GPU frustum-culling compute passes to a MapLibre scene. The three.js
-custom-layer path (`tiles-3d-renderer-layer.ts`) gets frustum culling from
-three.js itself — which already culls per-object on the CPU/GPU via its
-internal pipeline. A hand-rolled compute pass would duplicate what the
-renderer already does.
+custom-layer path (`tiles-3d-renderer-layer.ts`) provides ordinary
+CPU-side object frustum culling; that is not a GPU-driven compute pass.
+A custom compute path would need an independently owned WebGPU rendering
+pipeline, visibility-buffer integration, and device-specific benchmarks.
 
 **Unblock condition:** MapLibre ships a stable WebGPU renderer, or the
 project moves terrain rendering fully into the three.js custom layer where
@@ -41,13 +41,24 @@ library appears, or the project funds dedicated R&D for it.
 
 ## What WAS Completed (2026-10-18)
 
-- **Texture atlas consolidation:** `scripts/3d-tiles/pack-atlas.py` —
-  headless Blender script that imports multiple GLBs, smart-UV-unwraps,
-  bakes a unified diffuse atlas, assigns one shared PBR material, and
-  exports a packed GLB. Syntax-verified.
-- **PBR baking:** `scripts/3d-tiles/bake-pbr.py` (already committed).
-- **State-word decoders:** `decodeStateWord` + `STATE_WORD_GLSL_DECODE`
-  in `tiles-3d-renderer-layer.ts` (already committed).
-- **State degradation:** `state-word-scheduler.ts` (already committed).
-- **RTC:** handled inside 3d-tiles-renderer's TilesRenderer
-  (already committed).
+- **Texture atlas consolidation:** `scripts/3d-tiles/pack-atlas.py` imports
+  multiple GLBs, globally packs UV islands, bakes a unified albedo atlas, and
+  assigns one shared PBR material. The script was hardened to preserve source
+  materials until the bake completes; a Blender-host functional run is still
+  required before claiming the pipeline verified.
+- **PBR baking:** `tsm-console/scripts/3d-tiles/bake-pbr.py` supports diffuse,
+  normal, roughness, AO, emission, and a guarded metallic-to-emission bake path.
+  Complex material graphs fail closed. A Blender-host functional run remains
+  required; syntax checks alone do not establish bake correctness.
+- **State-word codec and scheduler primitives:** the PR branch aligns field
+  offsets with the published B[15:14], D[13:12], C[11:9], T[8:6], S[5:3],
+  R[2:0] layout and rejects reserved patterns. Metadata extraction from
+  `EXT_structural_metadata` and real network/GPU scheduling remain separate
+  integration work; the current code does not claim they are wired.
+- **Local ENU transform verification:** numerical regression tests cover the
+  HLOD builder's basis, origin projection, matrix inverse, and round trips.
+  This verifies transform math only, not source CRS, vertical datum, or survey
+  accuracy. A passing test run is still required.
+- **RTC:** `3d-tiles-renderer` applies tile and glTF transforms, but TSM must
+  still validate input frame/provenance and must not treat legacy RTC_CENTER
+  as a 3D Tiles 1.1 contract.
