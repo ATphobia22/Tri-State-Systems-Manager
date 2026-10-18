@@ -12,9 +12,11 @@ Each lists what exists vs. what is missing.
 ## 2. Transvoxel Terrain Stitching
 - **Status:** POC ONLY — NOT PRODUCTION
 - **What exists:** `dem_to_transvoxel.py` (SDF grid + balanced octree + uniform mesh), `transvoxel_stitch_poc.py` (pragmatic face stitching, crack-free at 1mm on test data).
-- **Missing:**
-  - Formal voxel-density data contract (SDF format specification: grid alignment, units, datum, nodata handling, tiling scheme)
-  - Balanced 2:1 LOD-neighbor *scheduling* (runtime system deciding which LOD to fetch/render per frame — the octree structure exists, the scheduler does not)
+- **Built 2026-10-18:**
+  - Formal voxel-density data contract v1.0 (`docs/3D-TILES-VOXEL-DENSITY-CONTRACT-v1.md`)
+  - Runtime LOD-neighbor scheduler (`tsm-console/src/lib/lod-scheduler.ts`) — SSE-driven selection, 2:1 balance enforcement, fetch plans with load/evict/refine/coarsen events. 14 tests passing.
+- **Still missing:**
+  - True Transvoxel transition cell tables (73 classes); current stitching is pragmatic edge-matching
   - True Transvoxel transition cell tables (73 classes); current stitching is pragmatic edge-matching, not the Lengyel algorithm
   - Production tiling for full-terrain scale
 - **Do not claim:** Production Transvoxel terrain.
@@ -22,9 +24,11 @@ Each lists what exists vs. what is missing.
 ## 3. Full C/S State Transitions
 - **Status:** LOGIC ONLY — NOT PRODUCTION
 - **What exists:** `state-word-scheduler.ts` — clean-room 5D state-word logic: `degradeWord`, `chunksToFetch`/`chunksToRelease`, `scheduleFrame`. Unit-tested.
-- **Missing:**
-  - Resource variants (actual multi-resolution assets per state word — geometry LODs, texture mip chains)
+- **Built 2026-10-18:**
+  - Resource variant descriptors (`tsm-console/src/lib/state-resource-variants.ts`) — maps state words to geometry LODs, texture resolutions, component lists, byte estimates. 9 tests passing.
+- **Still missing:**
   - Production network fetch/release engine (real tile fetching, cache eviction, bandwidth adaptation against live telemetry)
+  - Actual binary assets (descriptors exist, not the data)
 - **Do not claim:** A working adaptive streaming system.
 
 ## 4. Coordinate Validation
@@ -38,11 +42,11 @@ Each lists what exists vs. what is missing.
 - **Do not claim:** System-wide datum or CRS validation.
 
 ## 5. Occlusion Validation
-- **Status:** NOT DONE
-- **What exists:** Nothing.
-- **Missing:**
+- **Status:** PARTIAL
+- **Built 2026-10-18:**
+  - WebGL context-loss recovery (`tsm-console/src/lib/webgl-context-recovery.ts`) — pauses rendering, rebuilds GPU resources on restore, handles failure. 12 tests passing.
+- **Still missing:**
   - Browser/device profiling (frame timing across target devices, especially iOS 15-era Safari)
-  - WebGL context-loss testing (recovery behavior when the GPU context is lost)
 - **Do not claim:** Any performance or robustness validation.
 
 ---
