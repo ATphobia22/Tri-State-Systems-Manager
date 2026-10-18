@@ -151,14 +151,14 @@ export function stateWordForFrameBudget(
       smoothedFps < 0 || minFps < 0 || recoveryFps < minFps) {
     throw new RangeError('frame-budget values must be finite and non-negative, with recoveryFps >= minFps');
   }
-  if (smoothedFps < minFps) return degradeStateWordOneStep(currentWord);
-  if (smoothedFps > recoveryFps) {
-    const baseTexture = decodeStateWord(baseWord, 'T');
-    const currentTexture = decodeStateWord(currentWord, 'T');
-    if (currentTexture < baseTexture) {
-      const { offset, mask } = STATE_WORD_BITS.T;
-      return (currentWord & ~(mask << offset)) | ((currentTexture + 1) << offset);
-    }
+  const baseTexture = decodeStateWord(baseWord, 'T');
+  const currentTexture = decodeStateWord(currentWord, 'T');
+  const { offset, mask } = STATE_WORD_BITS.T;
+  if (smoothedFps < minFps && currentTexture > 0) {
+    return (currentWord & ~(mask << offset)) | ((currentTexture - 1) << offset);
+  }
+  if (smoothedFps > recoveryFps && currentTexture < baseTexture) {
+    return (currentWord & ~(mask << offset)) | ((currentTexture + 1) << offset);
   }
   return currentWord;
 }
