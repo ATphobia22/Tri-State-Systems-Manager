@@ -215,7 +215,7 @@ const server = http.createServer(async (req, res) => {
       const stationIds = rawStationIds
         ? [...new Set(rawStationIds.split(',').map((value) => value.trim()).filter(Boolean))]
         : null;
-      if (stationIds && (stationIds.length > 20 || stationIds.some((id) => !/^\\d{5,15}$/.test(id)))) {
+      if (stationIds && (stationIds.length > 20 || stationIds.some((id) => !/^\d{5,15}$/.test(id)))) {
         return json(res, 400, { ok: false, code: 'HYDROLOGY_STATION_FILTER_INVALID', error: 'stationIds must contain at most 20 numeric station IDs.' }, requestId);
       }
       try {
