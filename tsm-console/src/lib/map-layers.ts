@@ -1,11 +1,99 @@
 /** MapLibre layer catalog — Public Visualization Plane. Regulatory/effective layers are display-only. */
+import { NFHL_PRIORITY_IDS, NFHL_MAPSERVER_URL } from './nfhl/NfhlLayerRegistry';
+
 export type LayerAuthority = 'OBSERVATION' | 'REGULATORY' | 'PLANNING' | 'DERIVED' | 'VISUALIZATION' | 'CONTEXT';
-export interface MapLayerSpec { id: string; title: string; authority_class: LayerAuthority; type: 'raster' | 'raster-dem' | 'vector-tile' | 'vector-style' | 'geojson' | 'arcgis-mapserver'; url: string; attribution?: string; notes?: string; defaultVisible?: boolean; maplibre?: Record<string, unknown>; }
+export interface MapLayerSpec {
+  id: string;
+  title: string;
+  authority_class: LayerAuthority;
+  type: 'raster' | 'raster-dem' | 'vector-tile' | 'vector-style' | 'geojson' | 'arcgis-mapserver';
+  url: string;
+  attribution?: string;
+  notes?: string;
+  defaultVisible?: boolean;
+  maplibre?: Record<string, unknown>;
+}
 
 export const MAP_LAYERS: MapLayerSpec[] = [
   { id: 'osm-base', title: 'OpenFreeMap Liberty', authority_class: 'CONTEXT', type: 'vector-style', url: 'https://tiles.openfreemap.org/styles/liberty', attribution: '© OpenMapTiles © OpenStreetMap contributors', notes: 'Vector basemap style (not raster tiles).', defaultVisible: false },
-  { id: 'fema-nfhl', title: 'FEMA National Flood Hazard Layer', authority_class: 'REGULATORY', type: 'arcgis-mapserver', url: 'https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer', attribution: 'FEMA NFHL', notes: 'Effective FIRM/SFHA evidence for insurance. Flood Hazard Zones, BFEs, FIRM Panels, LOMA/LOMR and levee products are kept in the FEMA authority plane. Layers discovered dynamically by semantic name (hardcoded layer-28 dependency removed 2026-10-06).', defaultVisible: false },
-  { id: 'fema-firm-panels', title: 'FEMA FIRM Panels', authority_class: 'REGULATORY', type: 'arcgis-mapserver', url: 'https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer', attribution: 'FEMA NFHL / FIRM Panel data', notes: 'FEMA effective evidence; never merged with Indiana BAFM.', defaultVisible: false, maplibre: { arcgisLayerId: 3 } },
+  {
+    id: 'fema-nfhl',
+    title: 'FEMA National Flood Hazard Layer',
+    authority_class: 'REGULATORY',
+    type: 'arcgis-mapserver',
+    url: NFHL_MAPSERVER_URL,
+    attribution: 'FEMA NFHL',
+    notes:
+      'Effective FIRM/SFHA evidence for insurance. Priority operational stack from NfhlLayerRegistry (28/27/16/23/34/3/22/32). REGULATORY_DISPLAY only — hardcopy FIRM+FIS control conflicts. Never collapse with Indiana BAFM.',
+    defaultVisible: false,
+    maplibre: { arcgisLayerIds: [...NFHL_PRIORITY_IDS] },
+  },
+  {
+    id: 'fema-nfhl-zones',
+    title: 'FEMA Flood Hazard Zones (SFHA)',
+    authority_class: 'REGULATORY',
+    type: 'arcgis-mapserver',
+    url: NFHL_MAPSERVER_URL,
+    attribution: 'FEMA NFHL',
+    notes: 'Layer 28 — primary SFHA fill. Capability geo.nfhl.zones.',
+    defaultVisible: false,
+    maplibre: { arcgisLayerId: 28 },
+  },
+  {
+    id: 'fema-nfhl-boundaries',
+    title: 'FEMA Flood Hazard Boundaries',
+    authority_class: 'REGULATORY',
+    type: 'arcgis-mapserver',
+    url: NFHL_MAPSERVER_URL,
+    attribution: 'FEMA NFHL',
+    notes: 'Layer 27 — SFHA outline. Capability geo.nfhl.boundaries.',
+    defaultVisible: false,
+    maplibre: { arcgisLayerId: 27 },
+  },
+  {
+    id: 'fema-nfhl-bfe',
+    title: 'FEMA Base Flood Elevations',
+    authority_class: 'REGULATORY',
+    type: 'arcgis-mapserver',
+    url: NFHL_MAPSERVER_URL,
+    attribution: 'FEMA NFHL',
+    notes: 'Layer 16 — BFE polylines. Capability geo.nfhl.bfes. Whole-foot rating may apply.',
+    defaultVisible: false,
+    maplibre: { arcgisLayerId: 16 },
+  },
+  {
+    id: 'fema-nfhl-levees',
+    title: 'FEMA Levees',
+    authority_class: 'REGULATORY',
+    type: 'arcgis-mapserver',
+    url: NFHL_MAPSERVER_URL,
+    attribution: 'FEMA NFHL',
+    notes: 'Layer 23 — levees. Capability geo.nfhl.levees. Cross-check USACE NLD for inventory.',
+    defaultVisible: false,
+    maplibre: { arcgisLayerId: 23 },
+  },
+  {
+    id: 'fema-nfhl-lomas',
+    title: 'FEMA LOMAs',
+    authority_class: 'REGULATORY',
+    type: 'arcgis-mapserver',
+    url: NFHL_MAPSERVER_URL,
+    attribution: 'FEMA NFHL',
+    notes: 'Layer 34 — LOMA points. Capability geo.nfhl.lomas.',
+    defaultVisible: false,
+    maplibre: { arcgisLayerId: 34 },
+  },
+  {
+    id: 'fema-firm-panels',
+    title: 'FEMA FIRM Panels',
+    authority_class: 'REGULATORY',
+    type: 'arcgis-mapserver',
+    url: NFHL_MAPSERVER_URL,
+    attribution: 'FEMA NFHL / FIRM Panel data',
+    notes: 'Layer 3 — FEMA effective evidence; never merged with Indiana BAFM.',
+    defaultVisible: false,
+    maplibre: { arcgisLayerId: 3 },
+  },
   { id: 'indiana-bafm', title: 'Indiana Best Available Flood Hazard Layer', authority_class: 'PLANNING', type: 'arcgis-mapserver', url: 'https://gisdata.in.gov/server/rest/services/Best_Available_Flood_Hazard_Layer/MapServer', attribution: 'Indiana DNR Division of Water', notes: 'Planning/construction and Indiana Flood Control Act context. Layers 104 and 438. NOT flood insurance. Never collapse with FEMA NFHL.', defaultVisible: false, maplibre: { arcgisLayerIds: [104, 438] } },
   { id: 'in-parcels-current', title: 'Indiana Parcel Boundaries 2025', authority_class: 'CONTEXT', type: 'arcgis-mapserver', url: 'https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer', attribution: 'IGIO Data Harvest', notes: 'Statewide harvest layer released 2025-12-01 (verified live 2026-09-30). Not a survey product; county accuracy varies.', defaultVisible: false },
   { id: 'in-roads-current', title: 'Indiana Current Road Centerlines', authority_class: 'CONTEXT', type: 'arcgis-mapserver', url: 'https://gisdata.in.gov/server/rest/services/Hosted/Road_Centerlines_of_Indiana_Current/FeatureServer', attribution: 'IGIO Data Harvest', defaultVisible: false },
@@ -33,5 +121,5 @@ export const HECRAS_INTEGRATION = {
   workflow: ['Acquire DEM/LiDAR metadata from TNMAccess', 'Clip to AOI; reproject only with recorded transformation', 'RAS Mapper → Create New RAS Terrain', 'Define 2D Flow Areas and breaklines', 'Use USGS/NWPS boundary conditions', 'Export inundation rasters → EvidenceArtifact MODEL_OUTPUT with model_version and SIMULATION_DEMO status'],
   project_constants_ft: { lag: null, bfe: null, berm_crest: null, ffe: null, no_rise_tolerance: 0.0 },
   openmi: 'Future OpenMI 2.0 contracts couple HEC-RAS outputs to TSM Evidence Bus — human gate before regulatory use',
-  references: ['https://www.hec.usace.army.mil/software/hec-ras/']
+  references: ['https://www.hec.usace.army.mil/software/hec-ras/'],
 };
