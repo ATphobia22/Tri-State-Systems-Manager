@@ -31,6 +31,12 @@ describe('decodeFeatureStateWord', () => {
     expect(decodeFeatureStateWord(metadata, meshFeatures, 42)).toBe(word);
   });
 
+  it('accepts the documented legacy PascalCase StateWord field', () => {
+    const word = encodeStateWord({ B: 0, D: 1, C: 2, T: 3, S: 1 });
+    const { metadata, meshFeatures } = fixture({ OBJECTID: 42, StateWord: word });
+    expect(decodeFeatureStateWord(metadata, meshFeatures, 42)).toBe(word);
+  });
+
   it('returns null for legacy OBJECTID-only metadata instead of inventing a state', () => {
     const { metadata, meshFeatures } = fixture({ OBJECTID: 42 });
     expect(decodeFeatureStateWord(metadata, meshFeatures, 42)).toBeNull();
