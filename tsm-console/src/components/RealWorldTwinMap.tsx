@@ -22,6 +22,8 @@ import { fetchLiveStage } from '../lib/stage';
 import { fetchAllLiveStations, type StationLiveSnapshot } from '../lib/multi-stage-fetch';
 import { damsToGeoJson, type LocalDamsCatalog } from '../lib/local-dams';
 import { readTwinUrlState, writeTwinUrlState } from '../lib/geodetic/twin-url-state';
+import { attachSupabaseParcelBboxLayer } from '../lib/supabase-parcel-bbox';
+import { attachConfiguredPmtilesPolygonLayer } from '../lib/pmtiles-overlay';
 
 const TERRAIN_3D_TILESET_URL = `${import.meta.env.BASE_URL}3d-tiles/terrain-3dep/tileset.json`;
 
@@ -78,28 +80,43 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
   const [tiles3DVisible, setTiles3DVisible] = useState(initialUrl.tiles3d);
   const [tiles3DStatus, setTiles3DStatus] = useState<'loading' | 'ready' | 'error' | 'disabled'>('disabled');
   const [mapReady, setMapReady] = useState(false);
+  const [mapInitializationError, setMapInitializationError] = useState<string | null>(null);
   const [reviewPitch, setReviewPitch] = useState(false);
   const cinematicStopRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
-    const map = new maplibregl.Map({
-      container: containerRef.current,
-      style: buildTwinStyle(),
-      center: ANCHOR,
-      zoom: 14,
-      pitch: initialUrl.pitch,
-      bearing: initialUrl.bearing,
-      maxPitch: 85,
-      minZoom: 8,
-      maxZoom: 19,
-      maxBounds: TRI_STATE_MAX_BOUNDS,
-      cooperativeGestures: true,
-    });
+    let disposeParcelBboxLayer: (() => void) | null = null;
+    let disposePmtilesLayer: (() => void) | null = null;
+    let map: maplibregl.Map;
+    try {
+      map = new maplibregl.Map({
+        container: containerRef.current,
+        style: buildTwinStyle(),
+        center: ANCHOR,
+        zoom: 14,
+        pitch: initialUrl.pitch,
+        bearing: initialUrl.bearing,
+        maxPitch: 85,
+        minZoom: 8,
+        maxZoom: 19,
+        maxBounds: TRI_STATE_MAX_BOUNDS,
+        cooperativeGestures: true,
+      });
+      setMapInitializationError(null);
+    } catch (error) {
+      setMapInitializationError(error instanceof Error ? error.message : 'MapLibre could not initialize the map canvas.');
+      setMapReady(false);
+      return;
+    }
     map.getCanvas().setAttribute('aria-label', 'Interactive tri-state river valley map');
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
     map.on('load', () => {
-      applyTwinTerrain(map);
+      try {
+        applyTwinTerrain(map);
+      } catch (error) {
+        setMapInitializationError('3D terrain unavailable: ' + (error instanceof Error ? error.message : 'terrain source could not initialize') + '. The 2D map and independent layers remain available.');
+      }
 
       const imagerySourceId = 'indiana-current-imagery-live';
       if (!map.getSource(imagerySourceId)) {
@@ -138,6 +155,18 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       }
 
       addFloodAuthorityLayers(map);
+      // Optional public-safe PostGIS parcel lookup; keep map usability if unavailable.
+      try {
+        disposeParcelBboxLayer = attachSupabaseParcelBboxLayer(map);
+      } catch {
+        setMapInitializationError('Optional parcel layer unavailable; the base map remains usable.');
+      }
+      // Optional immutable vector archive; configured .pmtiles URL only.
+      try {
+        disposePmtilesLayer = attachConfiguredPmtilesPolygonLayer(map);
+      } catch {
+        setMapInitializationError('Optional PMTiles layer unavailable; the base map remains usable.');
+      }
 
       const noaaWarningsSource = 'noaa-cloudgis-warnings';
       if (!map.getSource(noaaWarningsSource)) {
@@ -187,6 +216,8 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
     return () => {
       cinematicStopRef.current?.();
       cinematicStopRef.current = null;
+      disposeParcelBboxLayer?.();
+      disposePmtilesLayer?.();
       map.remove();
       mapRef.current = null;
       markerRef.current = null;
@@ -233,7 +264,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
     try {
       const next = await fetchLiveStage();
       if (next.source === 'UNAVAILABLE') {
-        setFetchError('USGS snapshot unavailable. Stage remains fail-closed (no fabricated values).');
+        setFetchError('USGS snapshot unavailable. Stage is not displayed; the map remains available.');
       }
       setLiveStage(next);
     } catch (e) {
@@ -255,7 +286,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
         setLiveStage(refreshed);
       }
       if (snaps.every((s) => s.status === 'unavailable')) {
-        setMultiError('All stations unavailable. Values remain fail-closed.');
+        setMultiError('All stations unavailable. Observation cards show unavailable status; the map remains available.');
       }
     } catch (e) {
       setMultiError(e instanceof Error ? e.message : 'Multi-station fetch failed');
@@ -360,6 +391,11 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
   return (
     <section aria-label="Real-source Indiana open-world digital twin" style={{ position: 'relative', height: '100%', minHeight: 480, background: '#020617' }}>
       <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
+      {mapInitializationError && (
+        <div role="status" aria-live="polite" style={{ position: 'absolute', left: 12, bottom: 12, zIndex: 25, maxWidth: 'min(92%, 520px)', padding: '10px 14px', borderRadius: 10, border: '1px solid rgba(251,191,36,.4)', background: 'rgba(15,23,42,.94)', color: '#fde68a', fontSize: 12, lineHeight: 1.5, pointerEvents: 'none' }}>
+          Map rendering degraded: {mapInitializationError}. Other panels and controls remain available.
+        </div>
+      )}
       {tiles3DVisible && mapReady && mapRef.current && (
         <ThreeDTilesLayer
           source={{

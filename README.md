@@ -112,6 +112,13 @@ See the [finishing-touch inventory](docs/validation/FINISH-TOUCHES-2026-10-19.md
 
 ---
 
+## Optional Spatial Data Services (Gated)
+
+- **Dynamic PostGIS parcel lookup:** `supabase/migrations/20261019194559_posey_parcel_bbox.sql` defines a bounded, RLS-protected spatial RPC. It returns only records explicitly marked public and verified, without owner names. The connected deployment currently contains **zero parcel rows**, so the endpoint should return an empty FeatureCollection until licensed, provenance-verified records are loaded. Configure `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` only for the intended project and reviewed dataset.
+- **Static PMTiles polygon overlay:** opt-in through `VITE_TSM_PMTILES_URL`, `VITE_TSM_PMTILES_SOURCE_LAYER`, and `VITE_TSM_PMTILES_ATTRIBUTION`. The hosted archive must support HTTP Range requests and CORS. The feature remains optional until a validated archive is built and hosted behavior is tested.
+- **Build:** `python3 scripts/geospatial/build_pmtiles.py --input <validated.geojson> --output <archive.pmtiles> --name <source-layer>`; use `--allow-lossy-simplification` only for display layers where feature dropping is explicitly acceptable. `python3 -m unittest scripts.geospatial.test_build_pmtiles` exercises output/validation behavior without requiring Tippecanoe.
+- **Boundary:** parcel/building geometry is not flood-hazard evidence. Verify license/redistribution rights, source vintage, geometry, source hashes, and review state before publishing data or representing an overlay as complete.
+
 ## Key Capabilities (October 2026)
 
 ### Flood Forecasting Toolkit (`scripts/flood-forecasting/`)

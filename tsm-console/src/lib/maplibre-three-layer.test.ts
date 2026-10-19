@@ -1,8 +1,8 @@
 /**
  * maplibre-three-layer.test.ts — vitest suite for the MapLibre Three.js
  * custom layer. maplibre-gl and three are mocked; the suite verifies the
- * Mercator transform math, matrix composition order, fail-closed URL
- * handling, and error-free rendering with an empty scene.
+ * Mercator transform math, matrix composition order, safe URL validation,
+ * diagnostic reporting for degraded layers, and error-free rendering.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CustomRenderMethodInput, Map as MaplibreMap } from 'maplibre-gl';
@@ -293,6 +293,9 @@ describe('MapLibreThreeLayer', () => {
     });
     expect(() => layer.onAdd(makeMap(), {} as WebGL2RenderingContext)).not.toThrow();
     expect(built).toHaveLength(1);
+    expect(layer.getDiagnostics()).toEqual([
+      { code: 'content-builder-1-failed', message: 'boom' },
+    ]);
   });
 
   it('skips non-http(s) HDR and model URLs without calling the loaders', () => {
@@ -305,9 +308,11 @@ describe('MapLibreThreeLayer', () => {
     expect(() => layer.onAdd(makeMap(), {} as WebGL2RenderingContext)).not.toThrow();
     expect(mocks.rgbeLoads).toHaveLength(0);
     expect(mocks.gltfLoads).toHaveLength(0);
+    expect(layer.getDiagnostics().some((diagnostic) => diagnostic.code === 'invalid-hdr-url')).toBe(true);
+    expect(layer.getDiagnostics().some((diagnostic) => diagnostic.code === 'invalid-model-url')).toBe(true);
   });
 
-  it('loads valid HDR and GLTF urls and stays fail-closed when they error', () => {
+  it('loads valid HDR and GLTF urls and degrades gracefully when they error', () => {
     const layer = new MapLibreThreeLayer({
       id: 'x',
       origin: [0, 0],
@@ -323,6 +328,8 @@ describe('MapLibreThreeLayer', () => {
       mocks.rgbeLoads[0].onError();
       mocks.gltfLoads[0].onError();
     }).not.toThrow();
+    expect(layer.getDiagnostics().some((diagnostic) => diagnostic.code === 'hdr-load-failed')).toBe(true);
+    expect(layer.getDiagnostics().some((diagnostic) => diagnostic.code === 'model-load-failed-0')).toBe(true);
   });
 
   it('applies the HDR environment map and shadow flags on successful loads', () => {

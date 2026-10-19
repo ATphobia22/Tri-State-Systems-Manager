@@ -13,7 +13,7 @@
  *
  * Data honesty labels shown in-UI:
  * - terrain: resolved source label — "live Terrarium tiles" or "3DEP-derived
- *   screening grid". Fail-closed: no synthetic terrain is ever substituted.
+ *   screening grid". Graceful degradation: no synthetic terrain is substituted; the base map remains available.
  * - water: "real-time approximation, not path tracing"
  * - gauges: RETIRED 2026-09-29 (owner: drop live river data).
  */
@@ -101,7 +101,7 @@ export default function FloodSimulator(): React.JSX.Element {
   const [error, setError] = useState<string | null>(null);
   const [buildKey, setBuildKey] = useState(0);
   // Terrain source: 'auto' resolves the bundled source-derived screening
-  // grid (fail-closed when unavailable); 'live' attempts a live tile fetch
+  // grid (show source-unavailable status when unavailable); 'live' attempts a live tile fetch
   // with fallback to the bundled grid. No synthetic terrain is substituted.
   const [terrainMode, setTerrainMode] = useState<'auto' | 'live'>('auto');
   const [liveTerrain, setLiveTerrain] = useState<ResolvedLiveTerrain | null>(null);
@@ -277,7 +277,7 @@ export default function FloodSimulator(): React.JSX.Element {
       setBuildKey((k) => k + 1);
     }).catch((err) => {
       if (cancelled) return;
-      // Fail-closed: no synthetic terrain is substituted.
+      // Keep the base map usable; never fabricate terrain when inputs are missing.
       setError(
         `Terrain unavailable: ${err instanceof Error ? err.message : String(err)}`,
       );
@@ -351,6 +351,10 @@ export default function FloodSimulator(): React.JSX.Element {
       if (pausedRef.current) engine.pause();
 
       const renderer = createFloodRenderer(canvas, quality);
+      if (!renderer) {
+        setError('3D rendering is unavailable on this device. The base map remains usable; no substitute terrain was generated.');
+        return undefined;
+      }
       const spec = QUALITY_TIERS[quality];
       const elev = engine.getElevationGrid();
       const terrain = buildTerrainMesh({
@@ -823,7 +827,7 @@ export default function FloodSimulator(): React.JSX.Element {
                   setTerrainMode(e.target.value as 'auto' | 'live');
                 }}
                 style={{ marginLeft: 6, padding: 4 }}
-                title="Elevation source: auto uses the bundled 3DEP-derived screening grid (fail-closed); live attempts a real-time tile fetch with fallback to the bundled grid. No synthetic terrain."
+                title="Elevation source: auto uses the bundled 3DEP-derived screening grid when available; live attempts a real-time tile fetch with fallback to the bundled grid. No synthetic terrain."
               >
                 <option value="auto">Auto (3DEP-derived screening grid)</option>
                 <option value="live">Live tiles (→ bundled grid fallback)</option>

@@ -14,7 +14,7 @@ import {
 
 const imagery = MAP_LAYERS.find((layer) => layer.id === 'indiana-imagery');
 
-/** Fail-closed Terrain-RGB status (no invented mesh when blocked). */
+/** Terrain status is separate from map availability; disabled terrain leaves the 2D map active. */
 export function getTerrainRgbStatus(): TerrainRgbStatus {
   return resolveTerrainRgbFromEnv(import.meta.env.VITE_TSM_TERRAIN_RGB_URL_TEMPLATE);
 }
@@ -36,18 +36,19 @@ const IMAGERY_EXPORT_PATH = 'exportImage';
 
 export function buildTwinStyle(): StyleSpecification {
   const imageryUrl = imagery?.url;
-  if (!imageryUrl) throw new Error('Indiana current imagery source contract is missing');
   const terrain = getTerrainRgbStatus();
-  const sources: StyleSpecification['sources'] = {
+  const sources: StyleSpecification['sources'] = imageryUrl ? {
     'indiana-current-imagery': {
       type: 'raster',
       tiles: [`${imageryUrl}/${IMAGERY_EXPORT_PATH}?${ARCGIS_EXPORT_QUERY}`],
       tileSize: 512,
       attribution: imagery?.attribution || 'Indiana Geographic Information Office (CC0)',
     },
-  };
-  const layers: StyleSpecification['layers'] = [
+  } : {};
+  const layers: StyleSpecification['layers'] = imageryUrl ? [
     { id: 'indiana-current-imagery', type: 'raster', source: 'indiana-current-imagery', paint: { 'raster-opacity': 1 } },
+  ] : [
+    { id: 'tsm-base-map-degraded-background', type: 'background', paint: { 'background-color': '#101c2a' } },
   ];
   if (terrain.enabled) {
     sources[TERRAIN_RGB_SOURCE_ID] = buildTerrainDemSourceSpec(terrain.template);

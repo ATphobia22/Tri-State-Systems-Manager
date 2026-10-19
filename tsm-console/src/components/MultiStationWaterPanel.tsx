@@ -27,7 +27,7 @@ export default function MultiStationWaterPanel({ stations, busy, error, onFetchA
     >
       <div style={{ fontWeight: 700, color: '#f8fafc' }}>Live water levels (multi-station)</div>
       <div style={{ color: '#94a3b8', fontSize: 11, marginTop: 2 }}>
-        Button-only · parallel USGS OGC · each station fail-closed independently · GAGE_DATUM until conversion published
+        Button-only · parallel USGS OGC · each station reports its own availability · GAGE_DATUM until conversion is published
       </div>
       <button
         type="button"
@@ -60,7 +60,7 @@ export default function MultiStationWaterPanel({ stations, busy, error, onFetchA
             <tr style={{ color: '#94a3b8', textAlign: 'left' }}>
               <th style={{ padding: '4px 2px' }}>Station</th>
               <th style={{ padding: '4px 2px' }}>Stage</th>
-              <th style={{ padding: '4px 2px' }}>WSE NAVD88</th>
+              <th style={{ padding: '4px 2px' }} title="Requires a verified station-specific vertical-datum conversion">WSE NAVD88</th>
               <th style={{ padding: '4px 2px' }}>Status</th>
             </tr>
           </thead>
@@ -73,7 +73,7 @@ export default function MultiStationWaterPanel({ stations, busy, error, onFetchA
                 </td>
                 <td style={{ padding: '4px 2px' }}>{fmt(s.stage_ft)}</td>
                 <td style={{ padding: '4px 2px' }}>
-                  {s.conversion_applied ? fmt(s.wse_navd88_ft) : 'blocked'}
+                  {s.conversion_applied ? fmt(s.wse_navd88_ft) : <span title="A published, verified station gage-zero conversion is not available.">unavailable</span>}
                 </td>
                 <td style={{ padding: '4px 2px', color: s.error ? '#fca5a5' : '#86efac' }}>
                   {s.error ? s.error.slice(0, 40) : s.status}

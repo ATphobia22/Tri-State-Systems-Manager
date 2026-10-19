@@ -1,5 +1,8 @@
 /**
- * Terrain-RGB / MapLibre 3D terrain contract (fail-closed).
+ * Terrain-RGB / MapLibre 3D terrain availability contract.
+ *
+ * Missing/invalid configuration disables only the optional 3D terrain mesh;
+ * it must not prevent the base 2D map or other valid overlays from rendering.
  *
  * MapLibre `setTerrain()` is allowed only when a materialized, provenance-controlled
  * Terrain-RGB XYZ template is supplied via VITE_TSM_TERRAIN_RGB_URL_TEMPLATE.
@@ -118,19 +121,19 @@ export function resolveTerrainRgbFromEnv(
 
 export function terrainRgbBlockMessage(status: TerrainRgbStatus): string {
   if (status.enabled) {
-    return 'MapLibre 3D terrain mesh: ENABLED (provenance-controlled Terrain-RGB template).';
+    return '3D terrain enabled with the configured, provenance-controlled Terrain-RGB template.';
   }
   switch (status.reason) {
     case 'missing':
-      return 'MapLibre 3D terrain mesh: FAIL-CLOSED — VITE_TSM_TERRAIN_RGB_URL_TEMPLATE not set. Flat basemap only; no synthetic elevation.';
+      return '3D terrain unavailable — VITE_TSM_TERRAIN_RGB_URL_TEMPLATE is not configured. The 2D base map remains available; no substitute elevation is generated.';
     case 'placeholder':
-      return 'MapLibre 3D terrain mesh: FAIL-CLOSED — template looks like a placeholder/example/local host. Refusing synthetic or demo terrain.';
+      return '3D terrain disabled — the template appears to be a placeholder, example host, or local host. The 2D base map remains available; no demo terrain is substituted.';
     case 'invalid_template':
-      return 'MapLibre 3D terrain mesh: FAIL-CLOSED — template must be an absolute URL containing {z}, {x}, and {y}.';
+      return '3D terrain disabled — the template must be an absolute URL containing {z}, {x}, and {y}. The 2D base map remains available.';
     case 'insecure_scheme':
-      return 'MapLibre 3D terrain mesh: FAIL-CLOSED — production templates must use https:// on a real host.';
+      return '3D terrain disabled — production templates must use HTTPS on a real host. The 2D base map remains available.';
     default:
-      return 'MapLibre 3D terrain mesh: FAIL-CLOSED.';
+      return '3D terrain unavailable; the 2D base map remains available.';
   }
 }
 
