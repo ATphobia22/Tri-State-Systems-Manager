@@ -58,3 +58,26 @@ test('JSON schema is present and declares the tile asset contract', () => {
   assert.ok(schema.properties.assets);
   assert.ok(schema.$defs.GeospatialTileAsset);
 });
+
+
+test('hydrology tile and runtime source states remain consistent', () => {
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  const registryPath = path.join(root, '..', '..', 'data', 'fabrics', 'live', 'tsm-live-hydrology-fabric-v1.json');
+  const registry = JSON.parse(fs.readFileSync(registryPath, 'utf8'));
+  const noaa = registry.sources.find((source) => source.id === 'NOAA_NWPS');
+  const usgs = registry.sources.find((source) => source.id === 'USGS_WATERDATA');
+  const nwm = registry.sources.find((source) => source.id === 'NOAA_NWM');
+  const forecast = manifest.assets.find((asset) => asset.id === 'noaa-nwps');
+
+  for (const source of [noaa, usgs]) {
+    assert.equal(source.status, 'active');
+    assert.equal(source.activationMode, 'user_triggered');
+    assert.equal(source.automaticPolling, false);
+    assert.equal(source.runtimeVerification, 'PENDING_LIVE_SNAPSHOT_RECEIPT');
+  }
+  assert.equal(registry.controls.automatic_polling_prohibited, true);
+  assert.equal(nwm.status, 'retired');
+  assert.equal(forecast.status, 'PROGRAM_PENDING');
+  assert.equal(forecast.currentTruth, false);
+  assert.equal(forecast.verification.state, 'PENDING');
+});
