@@ -18,13 +18,11 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-# Local import when run from scripts/geospatial
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from citygml_compiler import (  # noqa: E402
     compile_cityjson,
     compile_file,
     result_to_geojson,
-    self_test as compiler_self_test,
 )
 
 
@@ -35,7 +33,6 @@ def _bbox_from_features(fc: Dict[str, Any]) -> Optional[Tuple[float, float, floa
     for f in fc.get("features") or []:
         geom = f.get("geometry") or {}
         coords = geom.get("coordinates") or []
-        # Polygon: [ring]
         rings = coords if geom.get("type") == "Polygon" else []
         for ring in rings:
             for c in ring:
@@ -49,7 +46,6 @@ def _bbox_from_features(fc: Dict[str, Any]) -> Optional[Tuple[float, float, floa
 
 
 def _region_radians(west: float, south: float, east: float, north: float, zmin: float, zmax: float) -> List[float]:
-    """EPSG:4326 degrees → 3D Tiles region (radians + meters)."""
     return [
         math.radians(west),
         math.radians(south),
@@ -63,15 +59,13 @@ def _region_radians(west: float, south: float, east: float, north: float, zmin: 
 def build_tileset_from_geojson(fc: Dict[str, Any], content_uri: str = "buildings.geojson") -> Dict[str, Any]:
     bbox = _bbox_from_features(fc)
     if bbox is None:
-        # Empty but valid shell
         region = _region_radians(-88.1, 37.7, -87.7, 38.2, 0.0, 200.0)
         ge = 1000.0
     else:
         west, south, zmin, east, north, zmax = bbox
-        # Assume lon/lat if CRS is geographic; still valid shell for DERIVED preview
         region = _region_radians(west, south, east, north, zmin, zmax)
         span = max(east - west, north - south)
-        ge = max(50.0, span * 111_000.0 * 0.25)  # rough meters from degrees
+        ge = max(50.0, span * 111_000.0 * 0.25)
 
     n = len(fc.get("features") or [])
     return {
@@ -107,7 +101,6 @@ def convert_cityjson_file(path: Path, out_dir: Path) -> Dict[str, Any]:
     result = compile_file(path, out_dir)
     fc_path = out_dir / "buildings.geojson"
     if not fc_path.is_file():
-        # compile_file should have written; rebuild if needed
         fc = result_to_geojson(result)
         fc_path.write_text(json.dumps(fc, separators=(",", ":")), encoding="utf-8")
     else:
@@ -119,9 +112,15 @@ def convert_cityjson_file(path: Path, out_dir: Path) -> Dict[str, Any]:
 
 
 def self_test() -> None:
-    fixture = Path(__file__).resolve().parents[2] / "tests" / "fixtures" / "sample_building.city.json"
-    if not fixture.is_file():
-        # minimal inline fixture
+    here = Path(__file__).resolve()
+    candidates = []
+    if len(here.parents) > 2:
+        candidates.append(here.parents[2] / "tests" / "fixtures" / "sample_building.city.json")
+    if len(here.parents) > 1:
+        candidates.append(here.parents[1] / "tests" / "fixtures" / "sample_building.city.json")
+    candidates.append(Path("tests/fixtures/sample_building.city.json"))
+    fixture = next((c for c in candidates if c.is_file()), None)
+    if fixture is None:
         doc = {
             "type": "CityJSON",
             "version": "2.0",
