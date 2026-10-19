@@ -4,6 +4,7 @@ import type { MapTwinLoaderData } from '../types/loaders';
 import { t } from '../lib/design-tokens';
 import { toH3Cell } from '../lib/h3-spatial-fabric';
 import { fetchLiveStage } from '../lib/stage';
+import { NanitePlanePanel } from '../components/NanitePlanePanel';
 
 function MapTwinView() {
   const data = useLoaderData() as MapTwinLoaderData;
@@ -103,6 +104,7 @@ function MapTwinView() {
           is fabricated to fill the gap; see River Watch for the multi-gauge board.
         </p>
       </div>
+      <NanitePlanePanel centerLng={centerLon} centerLat={centerLat} />
       <p style={{ marginTop: '1rem', fontSize: t.font.size.sm, color: t.color.text.secondary }}>
         FEMA community {data.fema.communityNumber} · No-Rise tolerance {data.fema.noRiseTolerance_ft} ft ·
         Human authority required for all LOMA/LOMR actions · MapLibre twin: /map
