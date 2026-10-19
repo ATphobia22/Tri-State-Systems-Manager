@@ -163,11 +163,13 @@ export function createFloodRenderer(
         const old = api.renderer;
         const size = new THREE.Vector2();
         old.getSize(size);
-        old.dispose();
         try {
-          renderer = buildRenderer(canvas, next);
-          api.renderer = renderer;
-          api.resize(size.x, size.y);
+          const replacement = buildRenderer(canvas, next);
+          replacement.setSize(size.x, size.y, false);
+          replacement.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2, next.pixelRatioCap));
+          renderer = replacement;
+          api.renderer = replacement;
+          old.dispose();
         } catch (error) {
           console.warn('[flood-sim-renderer] Quality rebuild failed; retaining previous renderer.', error);
           return;
