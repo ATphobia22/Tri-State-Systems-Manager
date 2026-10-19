@@ -51,7 +51,7 @@ Authoritative registry: [`docs/validation/NOT-COMPLETE-REGISTRY-2026-10-18.md`](
 | Multi-device occlusion profiling | **Not complete.** Context-loss recovery and CPU-side tooling exist; representative hardware profiles and performance evidence are missing. |
 | Nanite-style meshlet path | **Advanced scaffold, not production Nanite.** GLB extraction, meshlet import/culling, and pilot bake paths exist; the full continuous LOD DAG, CI bake path, live-scene depth integration, and browser WebGPU CI validation remain open. |
 
-See the [finishing-touch inventory](docs/validation/FINISH-TOUCHES-2026-10-19.md) for the recent implementation inventory and remaining limitations.
+See the [finishing-touch inventory](docs/validation/FINISH-TOUCHES-2026-10-19.md) for the recent implementation inventory and remaining limitations. The [technical release-gate contract](docs/architecture/TECHNICAL-RELEASE-GATES.md) documents `StationDatumVerifier` and `HECReleaseGateChecker`, including the limits of what automated evidence checks can establish.
 
 ---
 
