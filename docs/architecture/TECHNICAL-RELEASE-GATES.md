@@ -15,7 +15,7 @@ For ellipsoid-to-orthometric conversion, the documented GEOID18 relationship is 
 `tsm-console/src/lib/hec-release-gates.ts` emits five independently inspectable gates:
 
 1. **AOI/watershed boundary:** identifiers, CRS, positive area, source URI, topology/intersection result, and SHA-256 of the supplied GeoJSON text.
-2. **DEM provenance:** source, acquisition date, resolution, horizontal CRS, NAVD88 vertical datum, vertical units, and raster checksum.
+2. **DEM provenance:** source, acquisition date, resolution, horizontal CRS, NAVD88 vertical datum, vertical units, and a SHA-256 checksum recomputed over the supplied raster bytes.
 3. **Vertical datum:** source/target datum consistency and named transformation evidence when a conversion is claimed.
 4. **Solver evidence:** solver name/version and SHA-256 verification of the supplied input manifest and output artifact text.
 5. **PE sign-off:** license number, jurisdiction, discipline, timestamp, signed-artifact checksum, and external license-verification evidence.
