@@ -39,6 +39,8 @@ jobs:
         run: python3 scripts/geospatial/regenerate_lengyel_tables.py
       - name: Transition mesh self-test
         run: python3 scripts/geospatial/transvoxel_transition_mesh.py --self-test
+      - name: Synthetic DEM Transvoxel Stage 1–2
+        run: python3 scripts/geospatial/dem_to_transvoxel_selftest.py
       - name: CityJSON → 3D Tiles chain self-test
         run: python3 scripts/geospatial/cityjson_to_3d_tiles.py --self-test
       - name: Live SSE cert (published tileset)
@@ -61,3 +63,6 @@ jobs:
       - name: Typecheck geospatial stream modules
         working-directory: tsm-console
         run: npx --no-install tsc --noEmit
+      - name: Tile-stream unit tests
+        working-directory: tsm-console
+        run: node --test src/geospatial/tile-stream-controller.test.mjs
