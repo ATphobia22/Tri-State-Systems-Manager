@@ -57,8 +57,25 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
 
       - name: Install and verify Cypress runtime
+        shell: bash
         run: |
-          npx --no-install cypress install
+          set -euo pipefail
+          installed=false
+          for attempt in 1 2 3; do
+            if npx --no-install cypress install; then
+              installed=true
+              break
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              echo "Cypress download attempt $attempt failed; clear partial cache and retry."
+              npx --no-install cypress cache clear || true
+              sleep "$((attempt * 5))"
+            fi
+          done
+          if [ "$installed" != "true" ]; then
+            echo "Cypress binary could not be downloaded after 3 attempts." >&2
+            exit 1
+          fi
           npx --no-install cypress verify
 
       - name: Validate committed 3D Tiles payload
