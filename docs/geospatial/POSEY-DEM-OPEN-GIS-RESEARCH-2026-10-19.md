@@ -22,6 +22,7 @@
 | [IGIC Countywide LiDAR and DEM Tiles](https://www.igic.org/countywide-lidar-and-dem-tiles) / [Purdue distribution portal](https://lidar.digitalforestry.org/) | Indiana QL2 3DEP lidar and DEM discovery/download | Download source point cloud or derived raster when direct tile delivery is preferable | Confirm the selected release, metadata, license, CRS, vertical datum and point-cloud classification. The IGIC page references final 2016–2020 data and published metadata. |
 | [USGS The National Map Downloader](https://apps.nationalmap.gov/downloader/) | 3DEP DEM and lidar, boundaries, imagery, hydrography, and topo products | Independent national coverage, gap-filling and cross-checks | Use the product-specific metadata; 3DEP products can differ in resolution, CRS and vertical datum. |
 | [USGS 3DEP products](https://www.usgs.gov/3d-elevation-program/about-3dep-products-services) | National elevation product family, including lidar and DEM | Nationally consistent fallback/reference and provenance | The seamless 1-meter DEM can integrate inputs with differing coordinate systems, vertical datums, resolutions and dates. Do not treat a seamless mosaic as homogeneous source observations. |
+| [USGS 3D Hydrography Program (3DHP)](https://www.usgs.gov/3d-hydrography-program/access-3dhp-data-products) | Current hydrography features and elevation-derived hydrography through services and annual downloads | Prefer current coverage for streams, flow networks, and hydrography-derived attributes when released for the AOI | USGS states 3DHP services are updated quarterly and downloadable products annually. Validate work-unit coverage and known issues; do not imply Posey County is fully covered just because a service exists. NHD/WBD/NHDPlus HR are legacy/reference products. |
 | [AWS elevation-tiles-prod](https://registry.opendata.aws/terrain-tiles/) | Terrarium elevation tiles | Low-resolution basemap terrain / preview / graceful fallback | Existing TSM grid is explicitly screening-level and blends multiple source vintages/datums. Never substitute it for the Indiana 2.5-ft DEM or survey control. |
 
 ### DEM handling contract
@@ -34,6 +35,14 @@
 - **Create derivatives separately:** hillshade, slope, aspect, contours, flow direction, flow accumulation, depression treatment, watershed boundaries and terrain-based screening layers must point to their source raster hashes and processing parameters.
 - **Validate outputs:** run COG validation for Cloud-Optimized GeoTIFF outputs; check raster bounds and coverage against the AOI, NoData percentage, statistics, seam artifacts, and vertical plausibility. Never turn NoData into zero elevation.
 - **Do not commit bulk county raster data by default.** Store source URLs and checksums in Git; store downloaded rasters in external storage, release assets, or an explicitly versioned data package with license and storage budget reviewed.
+
+## Additional open mapping sources and tools
+
+- **USGS National Map Access API**: use the documented product and dataset endpoints to discover exact download products and retain product IDs, publication dates, and service metadata. The API is a discovery/acquisition mechanism, not evidence that a product covers the AOI.
+- **USGS 3D Hydrography Program (3DHP)**: prefer current 3DHP service/product coverage where available. Its service and annual-download update cadence differs; store the release/update vintage and known issues. Keep legacy NHD, WBD, and NHDPlus HR clearly labeled when they are used for gaps or historical comparison.
+- **USACE National Levee Database (NLD)**: public Feature Service, Map Service, OGC WMS/WFS, and JSON API support levee inventory context. In TSM, retain the levee system ID, source update date, responsible entity when provided, and a clear distinction between mapped presence and engineering performance. NLD presence/absence is not a certification that a levee is safe or that an area is protected.
+- **FEMA NFHL / Map Service Center**: keep effective flood-hazard boundaries, effective map dates, FIRM panels, cross-sections, LOMAs/LOMRs, and BFE values as regulatory evidence. A no-data sentinel (for example -9999) is missing information, not a zero BFE. Do not infer a BFE from zone AE alone.
+- **QGIS Processing**: supported terrain algorithms include slope, aspect, hillshade, relief, ruggedness, flow direction, sink filling, and channel-network/drainage-basin derivation. Pin the QGIS/GDAL version and parameters for automated outputs; the current docs describe `native:channelnetworkfromdem` and `native:flowdirection` algorithms. These are derived results and need a source raster hash, AOI, CRS, units, and validation receipt.
 
 ## Open GIS tooling to adopt
 
@@ -88,6 +97,10 @@ The public 2022 brochure also describes custom layers/aerials, automatic base-la
 - IGIC / Purdue countywide LiDAR: https://www.igic.org/countywide-lidar-and-dem-tiles
 - USGS National Map Downloader: https://apps.nationalmap.gov/downloader/
 - USGS 3DEP products: https://www.usgs.gov/3d-elevation-program/about-3dep-products-services
+- USGS 3D Hydrography Program data products: https://www.usgs.gov/3d-hydrography-program/access-3dhp-data-products
+- USGS National Map Access API: https://tnmaccess.nationalmap.gov/api/v1/docs
+- USACE National Levee Database services: https://nld.sec.usace.army.mil/data-services/services/
+- QGIS raster terrain analysis: https://docs.qgis.org/3.44/en/docs/user_manual/processing_algs/qgis/rasterterrainanalysis.html
 - FEMA NFHL: https://www.fema.gov/flood-maps/national-flood-hazard-layer
 - USACE National Levee Database data services: https://levees.sec.usace.army.mil/data-services/services/
 - QGIS terrain analysis and 3D: https://docs.qgis.org/latest/en/docs/training_manual/rasters/terrain_analysis.html and https://docs.qgis.org/latest/en/docs/user_manual/map_views/3d_map_view.html
