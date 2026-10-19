@@ -7,6 +7,7 @@ on:
       - main
       - 'feat/posey-offline-authoritative-data-*'
       - 'fix/posey-complete-acquisition-*'
+      - 'fix/posey-bafm-geojson-*'
     paths:
       - 'scripts/posey/**'
       - 'data/posey-county/authoritative-source-requirements-v1.json'
