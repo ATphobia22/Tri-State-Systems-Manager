@@ -8,8 +8,8 @@
  * camera, allowing 3D Tiles to overlay the 2D map. No Cesium ion token
  * required — self-hosted tilesets only.
  *
- * Fail-closed: if the tileset URL is invalid or unreachable, the layer
- * reports unavailable rather than fabricating geometry.
+ * Graceful degradation: invalid or unreachable tilesets show an unavailable
+ * layer status while the surrounding 2D map remains interactive. No geometry is fabricated.
  */
 
 import { useEffect, useRef, useState } from 'react';
