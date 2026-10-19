@@ -40,6 +40,7 @@ test('integration doc exists', () => {
     join(root, '../docs/architecture/NANITE-PLANE-INTEGRATION-2026-10-19.md'),
     'utf8',
   );
-  assert.match(doc, /meshopt_buildMeshlets/);
+  assert.match(doc, /meshoptimizer\+METIS/);
+  assert.match(doc, /Greedy in-console path is for CI and pilots/);
   assert.match(doc, /Plane B/);
 });
