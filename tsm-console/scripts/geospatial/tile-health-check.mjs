@@ -31,14 +31,33 @@ if (fema && indianaBafm && (fema.authorityClass === indianaBafm.authorityClass |
 
 const required = ['fema-effective', 'indiana-bafm', 'indiana-parcels-2025', 'indiana-current-imagery', 'usgs-3dep-terrain', 'usgs-03378500'];
 
-// A retired source may remain catalogued, but must not be advertised as current operational truth.
+// NOAA NWPS is configured only for user-triggered snapshots. Its forecast tile
+// remains pending until the forecast-specific adapter and provenance checks pass.
 const noaaNwps = manifest.assets.find((asset) => asset.id === 'noaa-nwps');
 const noaaRegistryEntry = liveRegistry.sources.find((source) => source.id === 'NOAA_NWPS');
-if (noaaRegistryEntry?.status === 'retired' && noaaNwps && (noaaNwps.status === 'PUBLISHED' || noaaNwps.currentTruth)) {
-  errors.push('noaa-nwps is retired in the live-hydrology registry and cannot be published as current truth');
+const noaaNwmRegistryEntry = liveRegistry.sources.find((source) => source.id === 'NOAA_NWM');
+const usgsRegistryEntry = liveRegistry.sources.find((source) => source.id === 'USGS_WATERDATA');
+
+for (const [id, source] of [['NOAA_NWPS', noaaRegistryEntry], ['USGS_WATERDATA', usgsRegistryEntry]]) {
+  if (source?.status !== 'active') errors.push(`${id} must be active in the on-demand source registry`);
+  if (source?.activationMode !== 'user_triggered') errors.push(`${id} must require explicit user-triggered snapshots`);
+  if (source?.automaticPolling !== false) errors.push(`${id} must prohibit automatic polling`);
+  if (source?.runtimeVerification !== 'PENDING_LIVE_SNAPSHOT_RECEIPT') {
+    errors.push(`${id} must not claim runtime availability without a captured live snapshot receipt`);
+  }
 }
-if (noaaRegistryEntry?.status === 'retired' && noaaNwps && noaaNwps.status !== 'PROGRAM_PENDING') {
-  errors.push('noaa-nwps must remain PROGRAM_PENDING while its runtime source is retired');
+if (liveRegistry.controls?.automatic_polling_prohibited !== true) {
+  errors.push('live hydrology registry must prohibit automatic polling');
+}
+if (noaaNwmRegistryEntry?.status !== 'retired') {
+  errors.push('NOAA_NWM experimental model guidance must remain retired until independently validated');
+}
+if (!noaaNwps) {
+  errors.push('noaa-nwps forecast asset is missing');
+} else {
+  if (noaaNwps.status !== 'PROGRAM_PENDING') errors.push('noaa-nwps forecast tile must remain PROGRAM_PENDING');
+  if (noaaNwps.currentTruth !== false) errors.push('noaa-nwps forecast tile must not be current truth');
+  if (noaaNwps.verification?.state !== 'PENDING') errors.push('noaa-nwps forecast tile must remain unverified until end-to-end checks pass');
 }
 for (const id of required) if (!ids.has(id)) errors.push(`required layer missing: ${id}`);
 
