@@ -54,6 +54,51 @@ def lod_to_d_level(lod: Any) -> int:
     return 6
 
 
+def _select_geometry(geoms: list, max_lod: float = 3.0) -> Optional[Dict[str, Any]]:
+    """P2.1: prefer highest available lod <= max_lod."""
+    if not isinstance(geoms, list) or not geoms:
+        return None
+    best = None
+    best_v = -1.0
+    for g in geoms:
+        if not isinstance(g, dict):
+            continue
+        try:
+            v = float(g.get("lod")) if g.get("lod") is not None else 0.0
+        except (TypeError, ValueError):
+            v = 0.0
+        if v <= max_lod and v >= best_v:
+            best_v = v
+            best = g
+    return best if best is not None else (geoms[0] if isinstance(geoms[0], dict) else None)
+
+
+def _boundary_rings_from_geometry(
+    geom: Dict[str, Any],
+    vertices: List[List[float]],
+    transform: Optional[Dict[str, Any]],
+) -> List[List[List[float]]]:
+    """Extract exterior rings from Solid/MultiSurface boundary index structure."""
+    rings: List[List[List[float]]] = []
+    boundaries = geom.get("boundaries")
+    if not isinstance(boundaries, list):
+        return rings
+
+    def walk(node):
+        if not isinstance(node, list) or not node:
+            return
+        if all(isinstance(x, int) for x in node):
+            ring = _ring_from_indices(node, vertices, transform)
+            if len(ring) >= 3:
+                rings.append(ring)
+            return
+        for child in node:
+            walk(child)
+
+    walk(boundaries)
+    return rings
+
+
 @dataclass
 class SpaceBoundary:
     id: str
@@ -179,23 +224,37 @@ def compile_cityjson(doc: Dict[str, Any]) -> CompileResult:
         geoms = obj.get("geometry") or []
         lod = None
         footprint = None
-        if isinstance(geoms, list) and geoms and isinstance(geoms[0], dict):
-            g0 = geoms[0]
+        g0 = _select_geometry(geoms if isinstance(geoms, list) else [])
+        if g0 is not None:
             lod = str(g0.get("lod")) if g0.get("lod") is not None else None
             footprint = _extract_footprint_from_geometry(g0, vertices, transform)
+            rings = _boundary_rings_from_geometry(g0, vertices, transform)
             semantics = g0.get("semantics")
+            surfaces = []
             if isinstance(semantics, dict):
-                for s in semantics.get("surfaces") or []:
-                    if not isinstance(s, dict):
-                        continue
+                surfaces = [s for s in (semantics.get("surfaces") or []) if isinstance(s, dict)]
+            if surfaces:
+                for i, s in enumerate(surfaces):
                     sem = s.get("type")
+                    coords = rings[i] if i < len(rings) else (footprint or [])
                     boundaries.append(
                         SpaceBoundary(
                             id=f"{oid}:{sem}:{len(boundaries)}",
                             semantic=str(sem) if sem else None,
                             parent_space_id=oid,
                             lod=lod,
-                            coordinates=footprint or [],
+                            coordinates=coords or [],
+                        )
+                    )
+            else:
+                for ring in rings:
+                    boundaries.append(
+                        SpaceBoundary(
+                            id=f"{oid}:surface:{len(boundaries)}",
+                            semantic=None,
+                            parent_space_id=oid,
+                            lod=lod,
+                            coordinates=ring,
                         )
                     )
 
