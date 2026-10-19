@@ -175,10 +175,10 @@ export function paintFloodCanvas(
  * MapLibre canvas-source flood layer. Caller owns the elevation grid and
  * sets the water level explicitly (human authority — no auto-fetch).
  *
- * Resilient design: the layer always attaches and renders. Problems are
- * surfaced visually (badges, placeholder states) rather than by refusing
- * to work. Datum differences are handled by documented conversion with
- * a visible badge, not by blocking.
+ * Resilient design: the layer has its own ready, pending, or degraded state.
+ * Problems are surfaced visually without interrupting the base map. Datum
+ * differences never render raw values as converted depths; the flood mask is
+ * cleared until a verified transformation exists.
  */
 export class CanvasFloodLayer {
   readonly id: string;
@@ -318,13 +318,7 @@ export class CanvasFloodLayer {
         this.waterLevelM = null;
         this.datumBadge = `Datum mismatch: ${datum} → ${this.config.grid.verticalDatum}; no flood mask rendered.`;
         this.statusMessage = this.datumBadge;
-        paintFloodCanvas(
-          this.config.grid,
-          new Uint8Array(this.config.grid.rows * this.config.grid.cols),
-          this.canvas,
-          this.config.fillColor,
-          this.config.debugGrid,
-        );
+        this.clearOverlayCanvas();
         return;
       }
       level = converted;
