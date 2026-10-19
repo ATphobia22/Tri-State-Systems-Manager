@@ -307,7 +307,7 @@ describe('MapLibreThreeLayer', () => {
     expect(mocks.gltfLoads).toHaveLength(0);
   });
 
-  it('loads valid HDR and GLTF urls and stays fail-closed when they error', () => {
+  it('loads valid HDR and GLTF urls and degrades gracefully when they error', () => {
     const layer = new MapLibreThreeLayer({
       id: 'x',
       origin: [0, 0],
