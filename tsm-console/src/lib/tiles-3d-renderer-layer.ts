@@ -32,6 +32,8 @@ import { decodeFeatureStateWord, type MeshFeaturesReader, type StructuralMetadat
 import { WebGL2DepthOcclusionController } from './webgl2-depth-occlusion';
 import { AdaptiveSseBudget } from './adaptive-sse-budget';
 import { normalizeTilesetUrl as normalizeSafeTilesetUrl } from './tileset-url';
+import { VramTelemetryMonitor, evaluateDegradation, type TelemetrySnapshot } from './vram-telemetry';
+import { LiveSSEEvaluator } from './live-sse-evaluator';
 
 export {
   STATE_WORD_BITS,
@@ -44,6 +46,9 @@ export {
   didDimensionChange,
   encodeStateWord,
 } from './state-word-codec';
+export { LiveSSEEvaluator } from './live-sse-evaluator';
+export { TransvoxelStitcher, TRANSVOXEL_TRANSITION_CASES } from './transvoxel-stitcher';
+export { VramTelemetryMonitor, evaluateDegradation, captureTelemetry } from './vram-telemetry';
 export type { StateWordDimension, StateWordValues } from './state-word-codec';
 
 const TEXTURE_MAP_PROPERTIES = [
@@ -225,6 +230,9 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
   private lastFrameTimestamp = 0;
   private smoothedFrameTimeMs: number | null = null;
   private readonly adaptiveSseBudget: AdaptiveSseBudget;
+  private readonly vramMonitor: VramTelemetryMonitor;
+  private telemetryDegraded = false;
+  private lastTelemetry: TelemetrySnapshot | null = null;
   private readonly config: Required<Omit<Tiles3DRendererLayerConfig, 'id' | 'tilesetUrl'>> &
     Pick<Tiles3DRendererLayerConfig, 'id' | 'tilesetUrl'>;
 
@@ -249,6 +257,16 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
       minFps: this.config.minFps,
       recoveryFps: this.config.minFps + this.config.fpsRecoveryMargin,
     });
+    // VRAM/bandwidth telemetry supplements FPS-based degradation.
+    // When memory pressure or bandwidth congestion is detected, state-words
+    // are degraded via evaluateDegradation (T→1, C→0, S→1; D never touched).
+    this.vramMonitor = new VramTelemetryMonitor(5000, (degraded, telemetry) => {
+      this.telemetryDegraded = degraded;
+      this.lastTelemetry = telemetry;
+      if (degraded) {
+        console.info('[Tiles3D] Telemetry degradation active:', telemetry);
+      }
+    });
   }
 
   onAdd(map: maplibregl.Map, gl: WebGLRenderingContext): void {
@@ -262,6 +280,8 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
     }
     try {
       this.mapScene = new MapScene(map as never, { enablePostProcessing: false });
+      // Start VRAM/bandwidth telemetry monitoring for adaptive degradation.
+      this.vramMonitor.start();
       const scene = this.mapScene.scene as THREE.Scene;
 
       if (this.config.enableIBL) {
@@ -346,6 +366,10 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
   }
 
   onRemove(): void {
+    // Stop telemetry monitoring first.
+    this.vramMonitor.stop();
+    this.telemetryDegraded = false;
+    this.lastTelemetry = null;
     // Remove queries first, restoring computed state, then restore source
     // material/visibility as the final lifecycle cleanup step.
     this.occlusion?.dispose((mesh) => this.shouldMeshBeVisible(mesh));
@@ -474,13 +498,21 @@ export class Tiles3DRendererLayer implements maplibregl.CustomLayerInterface {
       if (this.smoothedFrameTimeMs !== null && this.stateWordMeshes.size > 0) {
         const smoothedFps = 1000 / this.smoothedFrameTimeMs;
         for (const [mesh, managed] of this.stateWordMeshes) {
-          const nextWord = stateWordForFrameBudget(
+          let nextWord = stateWordForFrameBudget(
             managed.baseWord,
             managed.currentWord,
             smoothedFps,
             this.config.minFps,
             this.config.minFps + this.config.fpsRecoveryMargin,
           );
+          // Supplement FPS-based degradation with VRAM/bandwidth telemetry.
+          // If telemetry indicates pressure, apply evaluateDegradation rules.
+          if (this.telemetryDegraded && this.lastTelemetry) {
+            const result = evaluateDegradation(nextWord, this.lastTelemetry);
+            if (result.degraded) {
+              nextWord = result.degradedWord;
+            }
+          }
           if (nextWord === managed.currentWord) continue;
           managed.currentWord = nextWord;
           this.applyStateWord(mesh, managed);

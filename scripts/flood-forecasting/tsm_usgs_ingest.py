@@ -64,6 +64,8 @@ GAGES = {
         "gage_height_vertical_datum": "GAGE_DATUM",
         "gage_zero_navd88_ft_candidate": 352.67,
         "gage_zero_conversion_status": "UNVERIFIED_PRODUCT_SEMANTICS",
+        "datum_ft": 352.71,
+        "datum": "NAVD88",
     },
 }
 
