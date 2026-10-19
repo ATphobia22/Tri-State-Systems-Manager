@@ -369,7 +369,7 @@ export function resolveElevationGrid(
   throw new Error(
     '[flood-sim-terrain] source-derived elevation requested but the bundled source-derived ' +
       'grid is missing, corrupt, or does not cover the requested domain. ' +
-      'No synthetic terrain is substituted (fail-closed).',
+      'No synthetic terrain is substituted (resilient).',
   );
 }
 

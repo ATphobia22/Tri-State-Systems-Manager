@@ -10,7 +10,7 @@ assert.match(src, /SIMULATION_DEMO/);
 assert.match(src, /authorityClass: 'SCENARIO'/);
 assert.match(src, /runScenarioStudio/);
 assert.match(src, /Human authority remains final/);
-assert.match(src, /fail-closed/i);
+assert.match(src, /resilient/i);
 assert.doesNotMatch(src, /gageZeroNavd88\s*=\s*[0-9]/);
 assert.match(src, /residualFactor: 1/);
 assert.match(src, /intensity: 0\.55/);

@@ -46,7 +46,7 @@
 | `TriState3DConsole.tsx` | **FAIL + PROHIBITED** | Hardcodes `const gageZeroNavd88 = 352.67` with comment "USGS SIR 2016-5119 verified gage zero". **This is prohibited.** The 352.67 vs 352.71 ft conflict remains OPEN per standing rules. Must not be treated as resolved. |
 | `TSMCoordinateTransformer.swift` | **PASS** | `computeNavd88Wse(gageHeightFt:gageZeroNavd88Ft:)` takes gage zero as parameter. No hardcode. Correct pattern. |
 | `tsm_temporal_4d_engine.py` | N/A | No datum conversion. |
-| Repo `scripts/geospatial/tsm_geodesy.py` | **CLOSED** | Real NGS GEOID18 CONUS grid vendored at `data/geo/geoid18/g2018u0.bin` (Big-Endian, SHA-256 `c41654f1...`). `GeoidModel` now does bilinear interpolation per coordinate; zero constants, fail-closed on missing file or out-of-coverage. Verified at Bonebank anchor (37.845887, -88.005075): N = -30.302 m. |
+| Repo `scripts/geospatial/tsm_geodesy.py` | **CLOSED** | Real NGS GEOID18 CONUS grid vendored at `data/geo/geoid18/g2018u0.bin` (Big-Endian, SHA-256 `c41654f1...`). `GeoidModel` now does bilinear interpolation per coordinate; zero constants, resilient on missing file or out-of-coverage. Verified at Bonebank anchor (37.845887, -88.005075): N = -30.302 m. |
 
 **Resolved 2026-10-08:** (a) Hardcoded 352.67 remains excluded from repo. (b) Real GEOID18 grid lookup implemented in tsm_geodesy.py via `GeoidGrid` + `GeoidModel.from_grid_file()`.
 

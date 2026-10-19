@@ -48,7 +48,7 @@ class TestEvidencePipelineContract(unittest.TestCase):
         for stage_id in stages:
             visit(stage_id, set(), visited)
 
-    def test_fail_closed_controls_are_enabled(self) -> None:
+    def test_resilient_controls_are_enabled(self) -> None:
         controls = self.contract["controls"]
         required_true = (
             "no_downstream_without_upstream",

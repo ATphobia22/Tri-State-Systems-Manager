@@ -2,7 +2,7 @@
  * berm-three-geometry.test.ts — vitest suite for the berm prism geometry
  * builder. Uses the real three.js BufferGeometry (no WebGL needed) to
  * verify cross-section math, winding/normals, unit conversion, and
- * fail-closed behavior on invalid input.
+ * resilient behavior on invalid input.
  */
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
@@ -97,7 +97,7 @@ describe('buildBermPrismGeometry', () => {
     expect(nor[6 * 3 + 2]).toBeCloseTo(0, 4);
   });
 
-  it('is fail-closed on invalid input', () => {
+  it('is resilient on invalid input', () => {
     expect(buildBermPrismGeometry([], section)).toBeNull();
     expect(
       buildBermPrismGeometry([{ stationFt: 0, groundElevFt: 376 }], section),

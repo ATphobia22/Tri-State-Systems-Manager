@@ -26,7 +26,7 @@ describe('TSM data-fabric registry', () => {
     expect(fabric?.sources).toContain('AWS_OPEN_DATA_REGISTRY');
     expect(fabric?.notes).toMatch(/never becomes survey\/FEMA certification/);
   });
-  it('registers the fail-closed engineering evidence pipeline', () => {
+  it('registers the resilient engineering evidence pipeline', () => {
     expect(TSM_DATA_FABRICS.find((f) => f.id === 'engineering-evidence-pipeline')?.plane).toBe('GOVERNANCE_DECISION');
   });
 });

@@ -43,7 +43,7 @@ The branch changes the actual `Tiles3DRendererLayer` used by TSM:
 
 - TSM current architecture and release gates: [GPU roadmap blockers](../3D-TILES-GPU-ROADMAP-BLOCKERS-2026-10-18.md).
 - TSM voxel input contract: [Voxel-density contract v1](../3D-TILES-VOXEL-DENSITY-CONTRACT-v1.md).
-- TSM LOD semantics and fail-closed authority rules: [LOD contract](../../contracts/tsm-lod-contract-v1.json).
+- TSM LOD semantics and resilient authority rules: [LOD contract](../../contracts/tsm-lod-contract-v1.json).
 - MapLibre custom layer API: https://maplibre.org/maplibre-gl-js/docs/API/interfaces/CustomLayerInterface/
 - MapLibre graphics modernization roadmap: https://maplibre.org/roadmap/maplibre-gl-js/graphics-modernization/
 - WebGPU availability, secure-context, and compute capability overview: https://developer.mozilla.org/en-US/docs/Web/API/WebGPU_API

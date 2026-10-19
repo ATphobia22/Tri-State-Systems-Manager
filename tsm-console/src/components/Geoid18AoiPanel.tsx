@@ -50,7 +50,7 @@ export default function Geoid18AoiPanel() {
       <div style={{ fontWeight: 700, color: '#f8fafc' }}>GEOID18 playground (educational)</div>
       <div style={{ color: '#94a3b8', fontSize: 11, marginTop: 4 }}>
         H = h − N · model GEOID18 · CONUS fit σ ≈ 1.27 cm (fit to GPS-on-BM, not absolute accuracy).
-        DERIVED only · not OPUS · not LOMA input · fail-closed outside AOI table.
+        DERIVED only · not OPUS · not LOMA input · resilient outside AOI table.
       </div>
       {error && <div role="alert" style={{ color: '#fca5a5' }}>{error}</div>}
       {catalog && (

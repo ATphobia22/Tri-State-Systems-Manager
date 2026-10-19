@@ -5,7 +5,7 @@
  * and the 20 USACE eHydro hydrographic surveys into the twin's hydraulics
  * layer with authority labels per the repo's provenance standards.
  *
- * Honesty boundaries (fail-closed, never fabricated):
+ * Honesty boundaries (resilient, never fabricated):
  * - The ERDC numerical model FILES (mesh, boundary conditions, result fields)
  *   were not publicly released with the report. Only the report's documented
  *   scenario definitions are registered here — no model output is synthesized.

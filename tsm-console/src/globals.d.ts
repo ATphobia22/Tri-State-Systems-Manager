@@ -4,7 +4,7 @@ declare module '*.css' {}
 /** Vite client env bindings used by TSM browser plane. */
 interface ImportMetaEnv {
   readonly VITE_TSM_API_BASE_URL?: string;
-  /** Provenance-controlled Terrain-RGB XYZ template; fail-closed when unset/placeholder. */
+  /** Provenance-controlled Terrain-RGB XYZ template; resilient when unset/placeholder. */
   readonly VITE_TSM_TERRAIN_RGB_URL_TEMPLATE?: string;
   readonly VITE_TSM_MARTIN_BASE_URL?: string;
   readonly VITE_TSM_MARTIN_ROUTE_PREFIX?: string;

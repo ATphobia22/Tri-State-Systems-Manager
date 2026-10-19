@@ -108,7 +108,7 @@ function fetchBytes(url) {
             const snippet = body.toString('utf8', 0, 500);
             reject(
               new Error(
-                `NSI API returned HTTP ${statusCode} (fail-closed); ` +
+                `NSI API returned HTTP ${statusCode} (resilient); ` +
                   `content-type: ${contentType}; body excerpt: ${JSON.stringify(snippet)}`,
               ),
             );
@@ -120,7 +120,7 @@ function fetchBytes(url) {
       },
     );
     req.setTimeout(TIMEOUT_MS, () => {
-      req.destroy(new Error(`NSI request timed out after ${TIMEOUT_MS} ms (fail-closed)`));
+      req.destroy(new Error(`NSI request timed out after ${TIMEOUT_MS} ms (resilient)`));
     });
     req.on('error', (err) => reject(new Error(`NSI request failed: ${err.message}`)));
   });
@@ -134,13 +134,13 @@ function fetchBytes(url) {
  */
 function validatePayload(payload) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
-    throw new Error('NSI payload is not a JSON object (fail-closed)');
+    throw new Error('NSI payload is not a JSON object (resilient)');
   }
   if (!Array.isArray(payload.features)) {
-    throw new Error('NSI payload is missing the "features" array (fail-closed)');
+    throw new Error('NSI payload is missing the "features" array (resilient)');
   }
   if (payload.features.length === 0) {
-    throw new Error('NSI payload has an empty features array (fail-closed)');
+    throw new Error('NSI payload has an empty features array (resilient)');
   }
 
   const stats = {
@@ -178,7 +178,7 @@ function validatePayload(payload) {
 
   if (stats.featuresMissingKeys > 0 || stats.badGeometry > 0) {
     throw new Error(
-      `NSI validation failed (fail-closed): ${stats.featuresMissingKeys} feature(s) missing required property keys ` +
+      `NSI validation failed (resilient): ${stats.featuresMissingKeys} feature(s) missing required property keys ` +
         `(${JSON.stringify(stats.missingKeyCounts)}), ${stats.badGeometry} malformed geometry/entries. ` +
         `Examples: ${JSON.stringify(examples)}`,
     );
@@ -213,7 +213,7 @@ async function main() {
   try {
     payload = JSON.parse(body.toString('utf8'));
   } catch (err) {
-    throw new Error(`NSI response is not valid JSON (fail-closed): ${err.message}`);
+    throw new Error(`NSI response is not valid JSON (resilient): ${err.message}`);
   }
 
   const stats = validatePayload(payload);

@@ -156,7 +156,7 @@ Before the first CI run, the repo owner must add these repository secrets
 The iOS target ships a native Swift service,
 `ios/App/App/TSMMapDataFabricService.swift`, that fetches live USGS/NOAA
 observations from `GET /api/hydrologic/community` with NAVD88 datum tracking
-and fail-closed gauge states (`LIVE OBSERVATION` / `STALE` / `CANDIDATE` /
+and resilient gauge states (`LIVE OBSERVATION` / `STALE` / `CANDIDATE` /
 `SOURCE UNAVAILABLE`). It is exposed to the web layer through the
 `TSMDataFabric` Capacitor plugin (`ios/App/App/TSMDataFabricPlugin.swift`):
 
@@ -170,4 +170,4 @@ The API endpoint is configurable via the `TSM_API_BASE_URL` key in
 `https://tsm.tristate.org/api/hydrologic/community`). Point it at a staging or
 on-device Node API during development; the plugin reads it at runtime, so no
 rebuild of the web bundle is needed. Offline fallback records are always marked
-`SOURCE UNAVAILABLE` — never presented as live — per the fail-closed doctrine.
+`SOURCE UNAVAILABLE` — never presented as live — per the resilient doctrine.

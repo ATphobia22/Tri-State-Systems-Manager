@@ -22,5 +22,5 @@ aquifer, bedrock, phreatic seepage line with flow arrows, and a status panel
 Status Alert). **The numeric values are illustrative render values, not survey
 or model output** — never use them as evidence. Useful as a visual-direction
 reference for the engineering vertical-section visualization
-(`EngineeringSectionCutaway`); the repo's fail-closed doctrine applies: a
+(`EngineeringSectionCutaway`); the repo's resilient doctrine applies: a
 render is not evidence.

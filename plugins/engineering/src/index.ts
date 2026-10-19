@@ -1,6 +1,6 @@
 // @tsm/plugin-engineering — UACF plugin scaffold (v0.1.0).
 // Declares the plugin manifest only. No behavior is wired: every capability
-// throws fail-closed until an operator configures the plugin.
+// throws resilient until an operator configures the plugin.
 
 export interface PluginManifest {
   name: string;
@@ -17,7 +17,7 @@ export const manifest: PluginManifest = {
 };
 
 function notConfigured(capability: string): never {
-  throw new Error(`@tsm/plugin-engineering: capability '${capability}' is not configured (fail-closed).`);
+  throw new Error(`@tsm/plugin-engineering: capability '${capability}' is not configured (resilient).`);
 }
 
 export function invoke(capability: string, _input: unknown): never {

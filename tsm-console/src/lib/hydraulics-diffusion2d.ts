@@ -31,7 +31,7 @@
  *     dt <= dx^2 / (4 * D_max)
  * evaluated over all cell faces. runDiffusionWave computes D_max from the initial
  * state (with faces of zero slope contributing no constraint, since zero slope
- * means zero flux and an unconditionally stable update) and THROWS — fail-closed —
+ * means zero flux and an unconditionally stable update) and THROWS — resilient —
  * if the requested dt violates the criterion. Depths are clamped >= 0 every step.
  *
  * LIMITATIONS
@@ -227,7 +227,7 @@ export function runDiffusionWave(input: DiffusionWaveInput, durationHrs: number,
         let v = h[j][i] + dt * (rainFtPerSec - divQ);
         if (v < 0) v = 0; // clamp: depths never negative
         if (!Number.isFinite(v)) {
-          fail(`non-finite depth at cell (${i},${j}) on step ${step}; aborting fail-closed.`);
+          fail(`non-finite depth at cell (${i},${j}) on step ${step}; aborting resilient.`);
         }
         outRow.push(v);
       }

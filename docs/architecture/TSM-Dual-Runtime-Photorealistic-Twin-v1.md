@@ -13,7 +13,7 @@ Two runtime planes share one evidence-gated data fabric. Cinematic fidelity neve
   3DEP / LiDAR · Copernicus DEM (context only) · INFIP/BAFM · USGS/NOAA gages · NFHL
            │
 [ Datum & spatial harmonization ]
-  PROJ / EPSG:2966 · NAVD88 vertical · H3 · fail-closed gage-zero
+  PROJ / EPSG:2966 · NAVD88 vertical · H3 · resilient gage-zero
            │
      ┌─────┴─────┐
      ▼           ▼

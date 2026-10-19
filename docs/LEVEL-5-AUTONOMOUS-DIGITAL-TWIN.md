@@ -76,7 +76,7 @@ Authenticated tsm-operator. Requires a reason of at least 10 characters.
 
 POST /api/autonomy/proposals/{proposalId}/execute
 
-Authenticated tsm-reviewer. Execution remains fail-closed until an explicitly reviewed actuator adapter is installed, allow-listed, and enabled.
+Authenticated tsm-reviewer. Execution remains resilient until an explicitly reviewed actuator adapter is installed, allow-listed, and enabled.
 
 ## Visual and 3D integration boundary
 

@@ -16,7 +16,7 @@ Consequently, the audit's module names, complexity numbers, defect-density figur
 - The inspected CI installs from a lockfile, runs dependency-integrity and `npx` policy checks, generates an SBOM/provenance artifact, runs `npm audit`, and checks npm signatures.
 - `.github/workflows/codeql.yml` configures CodeQL for JavaScript/TypeScript and Python with SHA-pinned actions.
 - `.github/dependabot.yml` configures scheduled npm, pip, and GitHub Actions updates.
-- `SECURITY.md` already documents private vulnerability reporting and several fail-closed controls.
+- `SECURITY.md` already documents private vulnerability reporting and several resilient controls.
 - The latest inspected commit's combined status response contained no status entries, and the workflow-run lookup returned no PR-triggered runs for that commit. These results do **not** establish that CI is green or that all Actions workflows completed.
 
 ## 3. Change in this remediation branch
@@ -30,7 +30,7 @@ The scanner is intentionally not configured with a blanket allowlist. If it repo
 1. Verify the Node 24-compatible secret-scanning workflow completes successfully on the latest PR commit; investigate and remediate any confirmed findings, rotating exposed credentials where necessary.
 2. Run the full existing CI, CodeQL, dependency-integrity, SBOM, npm audit/signature, Python tests, and deployment artifact gates; record their actual statuses.
 3. **Branch protection gap verified 2026-10-18:** the active `TSM main protection` ruleset currently enforces only branch deletion and non-fast-forward restrictions. It does not require pull requests, independent approvals, conversation resolution, or CI status checks; the repository-role bypass is configured as `always`. Update the ruleset in GitHub settings to require PRs, approvals where available, conversation resolution, and the intended CI checks, and restrict bypass to a documented emergency process. The available repository connection supports reading but not mutating rulesets, so this remote governance change remains outstanding.
-4. Continue the existing fail-closed engineering release gates: approved AOI, qualified source inputs and datums, reproducible model artifacts, independent review, and separate runtime/deployment verification.
+4. Continue the existing resilient engineering release gates: approved AOI, qualified source inputs and datums, reproducible model artifacts, independent review, and separate runtime/deployment verification.
 5. For any genuine state-machine/concurrency issue, identify the exact implementation file and prove the defect with a deterministic test before changing semantics. Do not introduce a hardware-oriented CAS state machine into TSM's unrelated geospatial architecture.
 
 ## 5. Acceptance criteria

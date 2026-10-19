@@ -4,7 +4,7 @@ DERIVED height extraction from Indiana 2020 COPC for gap buildings.
 
 The 2020 statewide QL2 delivery did not classify building points (zero Class 6).
 This script derives heights from elevated Class 1 (unclassified) returns clipped
-to building footprints, using the same fail-closed thresholds as the OBSERVED
+to building footprints, using the same resilient thresholds as the OBSERVED
 (3DEP EPT Class 6) pipeline.
 
 Methodology:
@@ -102,7 +102,7 @@ def download_tile(url: str, dest: str, max_attempts: int = 3) -> str:
     exception from the read loop), so the received byte count is verified
     against the Content-Length response header on every attempt. A mismatch
     discards the partial file and retries; persistent failure raises
-    fail-closed (the tile is marked download-failed and retried on rerun,
+    resilient (the tile is marked download-failed and retried on rerun,
     never silently committed as a truncated file).
     """
     if os.path.exists(dest) and os.path.getsize(dest) > 0:
@@ -316,7 +316,7 @@ def main() -> int:
     ap.add_argument("--tile-manifest", required=True,
                     help="Output JSON with tile SHA-256 digests")
     ap.add_argument("--checkpoint-dir", default=None,
-                    help="Directory for fail-closed per-tile resume checkpoints; defaults to TILE_MANIFEST.checkpoint")
+                    help="Directory for resilient per-tile resume checkpoints; defaults to TILE_MANIFEST.checkpoint")
     ap.add_argument("--limit-tiles", type=int, default=0,
                     help="Process only first N tiles (0 = all, for testing)")
     args = ap.parse_args()

@@ -1,6 +1,6 @@
 # Live Data Fabric
 
-TSM uses source-native, fail-closed live government data adapters.
+TSM uses source-native, resilient live government data adapters.
 
 ## Verified active sources
 

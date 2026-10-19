@@ -78,7 +78,7 @@ TSM is decision support. It does not replace the responsible floodplain administ
 TSM uses an explicit machine-readable quality contract at `data/engineering/system-quality-contract-v1.json`. The contract applies systems-engineering principles across the browser, API, ingestion, geospatial, simulation, evidence and deployment planes:
 
 - requirements traceability and deterministic reproduction;
-- fail-closed authority/provenance boundaries;
+- resilient authority/provenance boundaries;
 - bounded network, retry, cache, polling and memory behavior;
 - route-level and large-asset lazy loading;
 - source-freshness and readiness observability;

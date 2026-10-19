@@ -64,7 +64,7 @@ absolute provenance.
 Engage)
 ●​ Parcel Normalization: Strict adherence to 50 IAC 26-8-1 digit formatting
 (65-19-08-100-008.001-010), supervised by Posey County Assessor Nancy A. Hoehn.
-●​ Firewall Protection: Internal fail-closed FSM blocks any LOMA or grant export if
+●​ Firewall Protection: Internal resilient FSM blocks any LOMA or grant export if
 dual-APN discrepancies occur.
 
 3. Civic & Administrative Domain (Posey County Election Archives)

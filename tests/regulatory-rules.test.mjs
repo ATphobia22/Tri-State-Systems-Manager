@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-test('active regulatory registry is source-bound and fail-closed', async () => {
+test('active regulatory registry is source-bound and resilient', async () => {
   const registry = JSON.parse(await readFile(
     new URL('../data/regulatory/tsm-floodway-rules-v1.json', import.meta.url),
     'utf8',

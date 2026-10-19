@@ -92,7 +92,7 @@ def query_dataset(
             "retrieved_at": utc_now_iso(),
             "api": OPENFEMA_BASE,
         }
-    except Exception as exc:  # fail-closed
+    except Exception as exc:  # resilient
         return {
             "status": "UNAVAILABLE",
             "reason": "OpenFEMA query failed: %s" % type(exc).__name__,

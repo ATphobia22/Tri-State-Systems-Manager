@@ -10,7 +10,7 @@ points (Classification 6) and ground points (Classification 2), and compute:
 This REPLACES the prohibited storeys*3.5 assumption and the fixed 10-ft
 extrusion default. Heights are written as `lidarHeightFt` with full
 provenance. Features without sufficient LiDAR coverage are left without a
-height (the builder skips them fail-closed); nothing is invented.
+height (the builder skips them resilient); nothing is invented.
 
 Data sources:
   - EPT: USGS 3DEP LiDAR via https://s3-us-west-2.amazonaws.com/usgs-lidar-public/
@@ -244,7 +244,7 @@ class EPTReader:
 
         Retries transient network failures (IncompleteRead, connection reset,
         timeouts) with exponential backoff. A node that fails after retries
-        raises, and the calling building is marked as an error (fail-closed).
+        raises, and the calling building is marked as an error (resilient).
         """
         import time
         if node_id in self._cache:

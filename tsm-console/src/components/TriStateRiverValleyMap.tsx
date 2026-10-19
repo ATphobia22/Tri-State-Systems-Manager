@@ -18,7 +18,7 @@ import {
  * Tri-State River Valley spatial fabric — master MapLibre plane for the TSM web console.
  *
  * Honest-by-construction:
- * - Base style and fail-closed 3D terrain come from lib/twin-map-style.ts and
+ * - Base style and resilient 3D terrain come from lib/twin-map-style.ts and
  *   lib/terrain-rgb-contract.ts. No terrain mesh without a provenance-controlled template.
  * - Overlays are wired only to endpoints in the MAP_LAYERS catalog. Planes with no
  *   configured endpoint render as NOT_CONFIGURED — never synthesized.

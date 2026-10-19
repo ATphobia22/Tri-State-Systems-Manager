@@ -36,7 +36,7 @@ Anonymous access is protected with server-side controls rather than mandatory re
 - server-side credential isolation;
 - no secrets in browser bundles;
 - explicit source freshness and provenance;
-- fail-closed behavior for engineering/regulatory calculations lacking verified inputs.
+- resilient behavior for engineering/regulatory calculations lacking verified inputs.
 
 ## Cloud and CI credentials
 

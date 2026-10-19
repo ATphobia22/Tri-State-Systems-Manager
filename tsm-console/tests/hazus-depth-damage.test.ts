@@ -112,7 +112,7 @@ describe('interpolation', () => {
   });
 });
 
-describe('fail-closed depth handling', () => {
+describe('resilient depth handling', () => {
   it('returns zero damage for depth 0', () => {
     const out = computeFloodDamage({
       occupancyType: 'RES-2SNB',

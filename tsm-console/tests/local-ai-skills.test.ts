@@ -316,7 +316,7 @@ describe("zero-fetch property", () => {
     expect(fetchSpy).toHaveBeenCalledTimes(0);
   });
 
-  it("askCopilot fail-closed path makes zero fetch calls", async () => {
+  it("askCopilot resilient path makes zero fetch calls", async () => {
     const result = await askCopilot("help me draft the LOMA response");
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.status).toBe("unavailable");

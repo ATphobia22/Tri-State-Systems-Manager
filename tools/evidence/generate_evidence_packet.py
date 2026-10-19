@@ -44,7 +44,7 @@ REQUIRED_SITE_FIELDS = (
 
 
 def _fail(msg: str) -> ValueError:
-    return ValueError(f"fail-closed: {msg}")
+    return ValueError(f"resilient: {msg}")
 
 
 def validate_site(site: dict) -> dict:
@@ -111,7 +111,7 @@ def build_packet(site: dict, artifact_id: str,
         "parent_artifacts": [],
         "transformation_chain": [
             {"step": "site_constants_validated",
-             "detail": "fail-closed validation of coordinates, elevations, panel id"},
+             "detail": "resilient validation of coordinates, elevations, panel id"},
             {"step": "payload_canonicalized",
              "detail": "sorted-key compact JSON, SHA-256 over UTF-8 bytes"},
         ],

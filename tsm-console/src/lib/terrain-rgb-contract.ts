@@ -1,5 +1,5 @@
 /**
- * Terrain-RGB / MapLibre 3D terrain contract (fail-closed).
+ * Terrain-RGB / MapLibre 3D terrain contract (resilient).
  *
  * MapLibre `setTerrain()` is allowed only when a materialized, provenance-controlled
  * Terrain-RGB XYZ template is supplied via VITE_TSM_TERRAIN_RGB_URL_TEMPLATE.

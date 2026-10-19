@@ -71,5 +71,5 @@ martin --config ops/postgis/martin-config.yaml
 
 Point the web client's tile sources at `http://localhost:3000` (or the
 deployed Martin host) for `flood_zones` MVT layers and PMTiles basemaps.
-Keep the fail-closed rule: a tile backend that is unreachable must surface
+Keep the resilient rule: a tile backend that is unreachable must surface
 tiles as unavailable, never as silently empty.

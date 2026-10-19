@@ -100,7 +100,7 @@ describe('scenario runner: rainfall-to-inundation chain', () => {
     expect(result.alerts).toEqual([]);
   });
 
-  it('rejects invalid definitions fail-closed', () => {
+  it('rejects invalid definitions resilient', () => {
     // Empty name.
     expect(() => runScenario(baseDef({ name: '' }))).toThrow();
     expect(() => runScenario(baseDef({ name: '   ' }))).toThrow();
@@ -129,7 +129,7 @@ describe('scenario runner: rainfall-to-inundation chain', () => {
     expect(() => runScenario(baseDef({ alertThresholds: { floodedCellCount: NaN } }))).toThrow();
     expect(() => runScenario(baseDef({ alertThresholds: { peakDischargeCfs: Infinity } }))).toThrow();
 
-    // Malformed rainfall propagates the SCS module's own fail-closed validation.
+    // Malformed rainfall propagates the SCS module's own resilient validation.
     expect(() =>
       runScenario(
         baseDef({ rainfall: { ...RAINFALL, curveNumber: 101 } }),

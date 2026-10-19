@@ -1,4 +1,4 @@
-"""Integration tests for the fail-closed hydrology shell preflight.
+"""Integration tests for the resilient hydrology shell preflight.
 
 These tests exercise only input validation and lock behavior. They never launch
 HEC-RAS, mutate model geometry, publish GIS, or send notifications.

@@ -11,7 +11,7 @@
  *
  * Production prefer HTTPS reverse proxy + Cache-Control immutable for real tiles.
  * Do not point VITE_TSM_TERRAIN_RGB_URL_TEMPLATE at localhost in production builds
- * (fail-closed validator rejects localhost placeholders outside DEV).
+ * (resilient validator rejects localhost placeholders outside DEV).
  */
 import express from 'express';
 import path from 'path';

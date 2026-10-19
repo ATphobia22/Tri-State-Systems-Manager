@@ -101,7 +101,7 @@ export default function FloodSimulator(): React.JSX.Element {
   const [error, setError] = useState<string | null>(null);
   const [buildKey, setBuildKey] = useState(0);
   // Terrain source: 'auto' resolves the bundled source-derived screening
-  // grid (fail-closed when unavailable); 'live' attempts a live tile fetch
+  // grid (resilient when unavailable); 'live' attempts a live tile fetch
   // with fallback to the bundled grid. No synthetic terrain is substituted.
   const [terrainMode, setTerrainMode] = useState<'auto' | 'live'>('auto');
   const [liveTerrain, setLiveTerrain] = useState<ResolvedLiveTerrain | null>(null);
@@ -823,7 +823,7 @@ export default function FloodSimulator(): React.JSX.Element {
                   setTerrainMode(e.target.value as 'auto' | 'live');
                 }}
                 style={{ marginLeft: 6, padding: 4 }}
-                title="Elevation source: auto uses the bundled 3DEP-derived screening grid (fail-closed); live attempts a real-time tile fetch with fallback to the bundled grid. No synthetic terrain."
+                title="Elevation source: auto uses the bundled 3DEP-derived screening grid (resilient); live attempts a real-time tile fetch with fallback to the bundled grid. No synthetic terrain."
               >
                 <option value="auto">Auto (3DEP-derived screening grid)</option>
                 <option value="live">Live tiles (→ bundled grid fallback)</option>

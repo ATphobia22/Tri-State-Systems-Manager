@@ -1,7 +1,7 @@
 /**
  * Tests for the HazardSim-style canvas flood layer.
  * - Flood fill respects hills/valleys (no uphill propagation in seed-restricted mode)
- * - Datum conversion applied automatically with badge (resilient, not fail-closed)
+ * - Datum conversion applied automatically with badge (resilient, not resilient)
  * - Unknown datum pairs render with prominent warning badge
  * - Bathtub fill covers all below-level cells
  */

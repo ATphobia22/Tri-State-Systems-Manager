@@ -94,7 +94,7 @@ function requireFiniteElevation(value: number, name: string): void {
  *
  * Freeboard margins are simple differences vs BFE, rounded to 2 decimals.
  * H3 cells form a strict parent chain: res10 -> res8 -> res5.
- * Throws (fail-closed) on non-finite elevation constants or coordinates.
+ * Throws (resilient) on non-finite elevation constants or coordinates.
  */
 export function scientificSiteSnapshot(
   lat: number = BONEBANK_GEOCODED_LAT,

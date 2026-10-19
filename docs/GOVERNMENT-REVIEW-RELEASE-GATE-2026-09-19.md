@@ -17,7 +17,7 @@ This document records the repository controls added for pre-agency review. A gre
 - Circuit state telemetry explicitly clears prior states during transitions.
 - Prometheus runtime configuration and hydrology alert rules are checked with pinned `promtool`.
 - Missing hydrology telemetry is itself an alert condition.
-- Existing evidence signing, LOMA packet signing, terrain fail-closed runtime contract, FEMA evidence contracts, geospatial gates, and supply-chain gates remain in the canonical CI path.
+- Existing evidence signing, LOMA packet signing, terrain resilient runtime contract, FEMA evidence contracts, geospatial gates, and supply-chain gates remain in the canonical CI path.
 
 ## Deliberate non-claims
 

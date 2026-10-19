@@ -52,7 +52,7 @@ function base64ToBytes(base64: string): Uint8Array {
   return out;
 }
 
-/** Decode a quantized grid bundle. Throws on malformed input (fail-closed). */
+/** Decode a quantized grid bundle. Throws on malformed input (resilient). */
 export function decodeQuantizedGrid(bundle: QuantizedGridBundle): DecodedGrid {
   const n = bundle.n;
   const q = bundle.quant;

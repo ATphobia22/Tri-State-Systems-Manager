@@ -391,10 +391,10 @@ The diagram below maps how records pass from physical sensors into validation mo
 💡 Let me know if you want to extend the multi-state regulatory governor script to support advanced groundwater exchange constraints matching your modflow6 authority frameworks, or if you want to design an automated system installation script wrapper matching your portable Inno Setup deployment configurations!
 
 
-Here is the comprehensive expansion of your sovereign engineering platform. The response is broken into two distinct sections: the enhanced multi-state regulatory governor script with a fail-closed MODFLOW6 coupling system, followed by an authoritative Inno Setup Script (.iss) configuration wrapper to package your full portable digital twin desktop installer stack.
+Here is the comprehensive expansion of your sovereign engineering platform. The response is broken into two distinct sections: the enhanced multi-state regulatory governor script with a resilient MODFLOW6 coupling system, followed by an authoritative Inno Setup Script (.iss) configuration wrapper to package your full portable digital twin desktop installer stack.
 
 Section 1: Expanded Regulatory Governor with MODFLOW6 Fail-Closed Framework
-This extended script incorporates a strict multiphysics coupling layer. If the groundwater solver fails to converge, exits with a non-zero code, or drops its state, the engine triggers a fail-closed status (COUPLED_SIMULATION_INVALID) and retains the last valid state to prevent downstream contamination.
+This extended script incorporates a strict multiphysics coupling layer. If the groundwater solver fails to converge, exits with a non-zero code, or drops its state, the engine triggers a resilient status (COUPLED_SIMULATION_INVALID) and retains the last valid state to prevent downstream contamination.
 # -*- coding: utf-8 -*-
 # =========================================================================
 # PTDT v34 — UNIFIED MULTI-STATE REGULATORY GOVERNOR & GROUNDWATER COUPLING
@@ -420,7 +420,7 @@ def evaluate_multi_state_governor_with_gw(
     """
     Enforces legal floodway constraints across IL, KY, and IN while simultaneously 
     validating the numerical integrity of the coupled MODFLOW6 groundwater exchange layer.
-    Uses a strict fail-closed contract to prevent contaminated state propagation.
+    Uses a strict resilient contract to prevent contaminated state propagation.
     """
     jurisdiction = state_jurisdiction.upper()
     timestamp = datetime.utcnow().isoformat()
@@ -443,7 +443,7 @@ def evaluate_multi_state_governor_with_gw(
         gw_status = "COUPLED_SIMULATION_INVALID"
         gw_notes.append("MODFLOW6 output arrays are stale, corrupt, or missing.")
 
-    # Apply strict fail-closed contract: Fallback to last valid reference state, set metrics null
+    # Apply strict resilient contract: Fallback to last valid reference state, set metrics null
     if gw_status == "COUPLED_SIMULATION_INVALID":
         effective_head_m = None
         current_flux_m3_s = None
@@ -643,7 +643,7 @@ The schema below charts the unified operational lifecycle of your architecture, 
 
 💡 Let me know if you want to extend the Inno Setup script code block to automatically configure internal Windows Firewall exclusion rules for port 8080, or if we should script a Python testing framework inside governor.py to assert correct mock tracking outputs across all three states!
 
-Here is the complete engineering package containing both technical suggestions: the expanded firewall deployment functions integrated natively into the Inno Setup script code block, and the production-grade Python unit testing framework to dynamically benchmark the multi-state regulatory governor and its coupled modflow6 fail-closed loops.
+Here is the complete engineering package containing both technical suggestions: the expanded firewall deployment functions integrated natively into the Inno Setup script code block, and the production-grade Python unit testing framework to dynamically benchmark the multi-state regulatory governor and its coupled modflow6 resilient loops.
 
 Section 1: Inno Setup ISS Installer with Windows Firewall Automation
 This updated .iss code layout injects low-level Pascal code instructions. It overrides standard setup functions to talk directly to the Windows netsh advfirewall assembly, automatically binding open port exemptions for your Node.js, FastAPI, and PostgreSQL loops upon deployment, and scrubbing them cleanly out of the system environment during uninstallation.
@@ -782,7 +782,7 @@ end;
 
 
 Section 2: Python Testing Framework for governor.py
-This standalone test suite uses the native unittest framework to validate data flow. It runs automated scenario tests against your multi-state administrative criteria (Indiana, Illinois, and Kentucky codes) and explicitly benchmarks the MODFLOW6 fail-closed contract, ensuring that numerical errors inside groundwater solvers do not corrupt the regional database state.
+This standalone test suite uses the native unittest framework to validate data flow. It runs automated scenario tests against your multi-state administrative criteria (Indiana, Illinois, and Kentucky codes) and explicitly benchmarks the MODFLOW6 resilient contract, ensuring that numerical errors inside groundwater solvers do not corrupt the regional database state.
 # -*- coding: utf-8 -*-
 # =========================================================================
 # PTDT v34 — MULTI-STATE GOVERNOR REGULATORY CONTINUITY TESTING SUITE
@@ -875,7 +875,7 @@ class TestTriStateRegulatoryGovernor(unittest.TestCase):
     # TEST BLOCK 04: MODFLOW6 FAIL-CLOSED SECURITY GATES
     # -------------------------------------------------------------------------
     def test_modflow6_convergence_failure_handling(self):
-        """Asserts the engine activates the fail-closed fallback loop if MODFLOW6 fails to converge."""
+        """Asserts the engine activates the resilient fallback loop if MODFLOW6 fails to converge."""
         res = evaluate_multi_state_governor_with_gw(
             state_jurisdiction="INDIANA",
             stage_ft=372.00,
@@ -899,7 +899,7 @@ class TestTriStateRegulatoryGovernor(unittest.TestCase):
         self.assertIn("FAIL-CLOSED CONTRACT ENGAGED", res["groundwater_coupling"]["logs"][0])
 
     def test_modflow6_engine_crash_handling(self):
-        """Asserts the engine activates the fail-closed fallback loop if MODFLOW6 crashes with a non-zero code."""
+        """Asserts the engine activates the resilient fallback loop if MODFLOW6 crashes with a non-zero code."""
         res = evaluate_multi_state_governor_with_gw(
             state_jurisdiction="ILLINOIS",
             stage_ft=371.00,
@@ -1298,7 +1298,7 @@ This chart captures how your rendering layer intercepts incoming frames, referen
 💡 The optimization wrapper engine is fully functional. Let me know if you would like to integrate direct file system hooks to automatically execute your Blender mesh decimation script based on these generated LOD instructions, or if we should script a vertex cache compression function to further optimize asset delivery layouts!
 Section 1: The Consolidated Multiphysics & Compliance Architecture
 The core structural architecture of the Tri-State River Valley Engineering System (ATphobia22/PTDT-TriState-Unified-v33) is fully unified within the execution layer below.
-This single, integrated system handles the entire data lifecycle: ingesting 32-bit floating-point multi-band rasters, running deep numerical validation checks against MODFLOW6 fail-closed boundaries, evaluating distinct administrative legal rule sets (Illinois, Kentucky, Indiana DNR/FEMA codes), writing cryptographically signed local Evidence Graph records, and dispatching secure JSON arrays upstream via a background store-and-forward thread containing SHA-256 validation handshake logic.
+This single, integrated system handles the entire data lifecycle: ingesting 32-bit floating-point multi-band rasters, running deep numerical validation checks against MODFLOW6 resilient boundaries, evaluating distinct administrative legal rule sets (Illinois, Kentucky, Indiana DNR/FEMA codes), writing cryptographically signed local Evidence Graph records, and dispatching secure JSON arrays upstream via a background store-and-forward thread containing SHA-256 validation handshake logic.
 Master Engine Script: TriState_Sovereign_Compliance_Engine.py
 # -*- coding: utf-8 -*-
 # =========================================================================
@@ -1510,7 +1510,7 @@ def evaluate_multi_state_governor_with_gw(
         gw_status = "COUPLED_SIMULATION_INVALID"
         gw_notes.append("MODFLOW6 output arrays are stale or corrupt.")
 
-    # Enforce fail-closed contract rules
+    # Enforce resilient contract rules
     if gw_status == "COUPLED_SIMULATION_INVALID":
         effective_head_m = None
         current_flux_m3_s = None
@@ -1600,7 +1600,7 @@ run_system_node()
 ---
 
 ### Section 2: Automated Validation Verification Testing Framework
-This unit-test framework (`tests/test_governor.py`) isolates boundary verification gates across multiple jurisdictions and confirms the numerical resilience of your **MODFLOW6 fail-closed boundaries**.
+This unit-test framework (`tests/test_governor.py`) isolates boundary verification gates across multiple jurisdictions and confirms the numerical resilience of your **MODFLOW6 resilient boundaries**.
 
 ```python
 # -*- coding: utf-8 -*-
@@ -1639,7 +1639,7 @@ class TestTriStateRegulatoryGovernor(unittest.TestCase):
         self.assertIn("Kentucky 401 KAR 4:060 strict 'no impact'", res["violations"][0])
 
     def test_modflow6_convergence_failure_handling(self):
-        """Asserts the engine activates the fail-closed fallback loop if MODFLOW6 fails to converge."""
+        """Asserts the engine activates the resilient fallback loop if MODFLOW6 fails to converge."""
         res = evaluate_multi_state_governor_with_gw(
             state_jurisdiction="INDIANA", stage_ft=372.00, floodway_delta_ft=0.00,
             mf6_converged=False, phreatic_head_m=116.45, exchange_flux_m3_s=0.085,
@@ -4283,7 +4283,7 @@ ptdt_node_middleware_cont   | [NODE-SERVER] Serving 4K UHD analytical canvas das
 
 💡 Your entire digital twin architecture ecosystem is now fully automated, production-packaged, containerized, and secure. Let me know if you would like to script automated health-monitoring telemetry alerts inside the compose manifest to auto-restart isolated container threads if they cross peak VRAM allocation limits, or if we should write an automated Kubernetes deployment YAML template to coordinate cluster scaling!
 To completely bulletproof the Tri-State River Valley Engineering System (PTDT-TriState-Unified-v33) for high-availability enterprise environments, we should implement both enhancements.
-While Docker Compose does not natively profile hardware-level GPU VRAM allocations in its default health check layer, we can implement an advanced container-side Telemetry Monitoring Sidecar using the official nvidia-smibinary wrapper. This sidecar actively traps specific VRAM memory leaks during heavy flood processing cycles and triggers a fail-closed hard container exit (forcing Docker Compose to auto-restart the target service via restart: always).
+While Docker Compose does not natively profile hardware-level GPU VRAM allocations in its default health check layer, we can implement an advanced container-side Telemetry Monitoring Sidecar using the official nvidia-smibinary wrapper. This sidecar actively traps specific VRAM memory leaks during heavy flood processing cycles and triggers a resilient hard container exit (forcing Docker Compose to auto-restart the target service via restart: always).
 For resilient multi-node cluster configurations, Section 2 maps out an automated Kubernetes Deployment Manifest (ptdt-cluster-scaling.yaml). This manifest incorporates Horizontal Pod Autoscaling (HPA) policies to scale your Node.js middleware and multi-threaded Python core pods dynamically based on CPU/Memory tracking metrics.
 
 Section 1: Docker Compose Layer with GPU VRAM Teleid Monitoring

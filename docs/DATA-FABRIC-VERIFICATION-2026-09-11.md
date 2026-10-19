@@ -23,7 +23,7 @@ This verification record covers the non-medical Tri-State Systems Manager data f
 3. Source retrieval time and upstream observation time are distinct fields.
 4. Forecast and observed products are not silently conflated.
 5. CRS and vertical datum metadata are mandatory on normalized source records.
-6. Provenance hashes are fail-closed.
+6. Provenance hashes are resilient.
 7. Duplicate evidence hashes are rejected.
 8. Simulation/demo data cannot silently claim authoritative observation status.
 9. Source failure returns `unavailable`/error state; it does not fabricate continuity.

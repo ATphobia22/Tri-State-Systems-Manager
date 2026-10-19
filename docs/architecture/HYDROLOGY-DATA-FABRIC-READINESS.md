@@ -18,7 +18,7 @@ A street address alone must never transition an AOI to approved, and a model arc
 
 ## 2. Readiness state machine
 
-Use a monotonic, fail-closed state progression:
+Use a monotonic, resilient state progression:
 
 - DISCOVERED: source or AOI is known but not validated.
 - INGESTED: bytes and source metadata are captured with immutable identifiers.

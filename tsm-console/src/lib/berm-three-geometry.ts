@@ -111,7 +111,7 @@ function pushTri(
  * winding: left slope, crest top, right slope per segment, plus end caps.
  * The base is left open (it intersects the terrain).
  *
- * Returns null when the input is invalid (fail-closed).
+ * Returns null when the input is invalid (resilient).
  */
 export function buildBermPrismGeometry(
   stations: AlignmentStation[],
@@ -156,7 +156,7 @@ export function buildBermPrismGeometry(
 
 /**
  * Build a render-ready Mesh with the shared earthwork PBR material.
- * Returns null on invalid input (fail-closed).
+ * Returns null on invalid input (resilient).
  */
 export function createBermMesh(
   stations: AlignmentStation[],
@@ -189,7 +189,7 @@ export function bermSceneContent(
       const mesh = createBermMesh(stations, section);
       if (mesh) scene.add(mesh);
     } catch {
-      /* fail-closed: leave the scene untouched */
+      /* resilient: leave the scene untouched */
     }
   };
 }

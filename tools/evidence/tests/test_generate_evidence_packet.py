@@ -64,31 +64,31 @@ def test_always_human_review():
     assert packet["validation_status"] == "provisional"
 
 
-def test_fail_closed_missing_field():
+def test_resilient_missing_field():
     bad = dict(VALID_SITE)
     del bad["panel_id"]
-    with pytest.raises(ValueError, match="fail-closed"):
+    with pytest.raises(ValueError, match="resilient"):
         build_packet(bad, "ev-test-001")
 
 
-def test_fail_closed_bad_coordinates():
+def test_resilient_bad_coordinates():
     bad = dict(VALID_SITE, latitude=95.0)
-    with pytest.raises(ValueError, match="fail-closed"):
+    with pytest.raises(ValueError, match="resilient"):
         build_packet(bad, "ev-test-001")
 
 
-def test_fail_closed_non_numeric_lag():
+def test_resilient_non_numeric_lag():
     bad = dict(VALID_SITE, calculated_lag_navd88_ft="high")
-    with pytest.raises(ValueError, match="fail-closed"):
+    with pytest.raises(ValueError, match="resilient"):
         build_packet(bad, "ev-test-001")
 
 
-def test_fail_closed_empty_panel():
+def test_resilient_empty_panel():
     bad = dict(VALID_SITE, panel_id="  ")
-    with pytest.raises(ValueError, match="fail-closed"):
+    with pytest.raises(ValueError, match="resilient"):
         build_packet(bad, "ev-test-001")
 
 
 def test_validate_site_rejects_non_dict():
-    with pytest.raises(ValueError, match="fail-closed"):
+    with pytest.raises(ValueError, match="resilient"):
         validate_site(["not", "a", "dict"])

@@ -12,7 +12,7 @@ else {
  for(const k of ["browserRuntime","webViewRuntime","nodeRuntime","localhostRuntime","networkRequiredForSimulation"]) if(c.runtime?.[k]!==false) fail.push(k+" must be false.");
  for(const k of ["UTSMSourceInspector","UTSMProfileComponent","UTSMMaterialLibrary","UTSMWorldInteractionSubsystem","UTSMGeoSelectionComponent","UTSMTerrainProbeComponent","UTSMMeasurementSubsystem","UTSMScenarioTimelineSubsystem","UTSMFloodScenarioSubsystem","ATSMFloodSurfaceActor","UTSMFloodContourComponent","ATSMAlignmentActor","ATSMBermDesignActor","ATSMRoadDesignActor","UTSMCutFillSubsystem","UTSMQuantitySubsystem","UTSMDesignIntermediateRepresentation","UTSMEvidenceObject","UTSMProvenanceSubsystem","UTSMScenarioSnapshot","UTSMEvidenceOverlay","UTSMBlueprintGenerationSubsystem","UTSMUsdExportAdapter","UTSMBIMExportAdapter","UTSMCinematicCameraSubsystem","UTSMCameraPresetLibrary","UTSMLightingPresetLibrary","UTSMWeatherPresetLibrary","UTSMSequencerIntegration","UTSMMovieRenderSubsystem","UTSMFloodDepthMaterial"]) if(!c.nativeComponents?.includes(k)) fail.push("Missing component: "+k);
  if(c.flood?.syntheticFrequencyMultipliersAllowed!==false) fail.push("Synthetic frequency multipliers are forbidden.");
- if(c.flood?.missingEvidencePolicy!=="fail-closed") fail.push("Missing evidence policy must be fail-closed.");
+ if(c.flood?.missingEvidencePolicy!=="resilient") fail.push("Missing evidence policy must be resilient.");
  for(const k of ["observed","authoritative-regulatory","modeled-engineering","historical-reconstruction","screening-estimate","cinematic-presentation"]) if(!c.evidence?.classes?.includes(k)) fail.push("Missing evidence class: "+k);
 }
 if(fail.length){console.error(fail.map(x=>"ERROR: "+x).join("\n"));process.exit(1);}

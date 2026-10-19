@@ -28,7 +28,7 @@
 |-----------|----------|
 | NFHL-FIRM-SSOT | Panel 18129C0300C, zone AE, FIRMette, SHA-256 |
 | SITE-VERTICAL-WORKING | BFE 375.0 / LAG 377.2 / FFE 382.5 (uncertified until survey seals) |
-| HYDRO-GAGE-CONTEXT | USGS OGC stages; gage-zero fail-closed |
+| HYDRO-GAGE-CONTEXT | USGS OGC stages; gage-zero resilient |
 | PER-TEMPLATE | Preliminary Engineering Report skeleton |
 | LOMA-26-05-2022A | Case tracker only; **no auto-file** |
 

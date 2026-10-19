@@ -1,4 +1,4 @@
-"""Regression tests for fail-closed TSM gate evaluation."""
+"""Regression tests for resilient TSM gate evaluation."""
 import json
 import unittest
 

@@ -6,7 +6,7 @@ Executed in order **A → B → C → D** on `main`.
 
 | File | Purpose |
 |------|---------|
-| `090_tsm_hydrology.sql` | Gage stations/observations; conversionPublished fail-closed |
+| `090_tsm_hydrology.sql` | Gage stations/observations; conversionPublished resilient |
 | `091_tsm_simulation.sql` | Simulation runs + mesh centroids; human auth required for seal |
 | `092_tsm_evidence.sql` | Evidence artifacts + Merkle fields |
 | `093_tsm_render.sql` | Render/tiles provenance; non-authoritative by default |

@@ -9,7 +9,7 @@ This document defines how the external authoritative/public datasets are transfo
 
 `source → acquisition → source validation → provenance capture → SHA-256 → derived artifact → artifact validation → publication → integrity verification → runtime consumption`
 
-A failed mandatory validation is fail-closed. Retrieval time is never substituted for product vintage.
+A failed mandatory validation is resilient. Retrieval time is never substituted for product vintage.
 
 ## Source authorities
 

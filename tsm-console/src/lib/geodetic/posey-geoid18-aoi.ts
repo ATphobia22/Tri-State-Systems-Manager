@@ -85,7 +85,7 @@ export function nearestAoiPoint(
 
 /**
  * Convert ellipsoid h → orthometric H, or reverse.
- * Returns an explicit unavailable result when no catalog point is available; never invents N.
+ * Fail-closed: requires a catalog point (no invented N).
  */
 export function convertWithAoiN(
   catalog: Geoid18AoiCatalog,
@@ -96,7 +96,7 @@ export function convertWithAoiN(
   }
   const point = nearestAoiPoint(catalog, opts.lat, opts.lon);
   if (!point) {
-    return { ok: false, reason: 'No GEOID18 AOI sample near this location; conversion unavailable for this AOI sample set.' };
+    return { ok: false, reason: 'No GEOID18 AOI sample near this location (resilient).' };
   }
   const N = point.N_m;
   const output_m = opts.mode === 'h_to_H' ? opts.value_m - N : opts.value_m + N;

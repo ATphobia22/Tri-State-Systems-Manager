@@ -156,7 +156,7 @@ def _validate_value_set(value_set: QuantityValueSet) -> None:
 
 
 class OpenMIService:
-    """gRPC service implementation with fail-closed exchange validation."""
+    """gRPC service implementation with resilient exchange validation."""
 
     def __init__(self, router: ExchangeRouter | None = None) -> None:
         self.router = router or ExchangeRouter()

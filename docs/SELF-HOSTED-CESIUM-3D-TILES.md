@@ -25,7 +25,7 @@ The viewer uses the local base URL so it works at the GitHub Pages project subpa
 
 ## Visual availability versus evidence gates
 
-**Visualization is not globally fail-closed.** When a valid bundled or deployed terrain asset is present, the browser should render it without waiting for live gauges, API credentials, a login, or an unrelated provider. If the 3D asset cannot load, display the error and retain the other console surfaces. The build/deployment pipeline must still reject malformed or missing assets rather than publishing a broken tileset silently.
+**Visualization is not globally resilient.** When a valid bundled or deployed terrain asset is present, the browser should render it without waiting for live gauges, API credentials, a login, or an unrelated provider. If the 3D asset cannot load, display the error and retain the other console surfaces. The build/deployment pipeline must still reject malformed or missing assets rather than publishing a broken tileset silently.
 
 **Scientific and regulatory claims remain evidence-gated.** This mesh is a derived visualization from USGS 3DEP inputs. It is not survey-grade vertical control, does not itself establish NAVD88-to-ellipsoid conversion, and is not FEMA regulatory evidence or an engineering certification. Source metadata, vertical datum, coordinate transforms, processing versions, hashes, and limitations remain visible in the artifact manifests.
 

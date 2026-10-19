@@ -44,7 +44,7 @@
 | 2024 peak | ~16.9 ft | moderate year | Event severity ≠ map revision |
 | 2025 peak | ~22.5 ft (near major) | **47.67** (minor≈moderate) | Validates hazard; LOMA still elevation-vs-BFE on **effective** map |
 
-Gage → NAVD88 requires published gage-zero; TSM fail-closed until verified.
+Gage → NAVD88 requires published gage-zero; TSM resilient until verified.
 
 ---
 

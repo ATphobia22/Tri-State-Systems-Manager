@@ -64,7 +64,7 @@ class ERDCBoundaryDerivationTests(unittest.TestCase):
         self.assertEqual(result.status, "PIPELINE_LOCKED")
         self.assertTrue(any("below the summed Wabash flow" in error for error in result.errors))
 
-    def test_duplicate_timestamps_fail_closed(self) -> None:
+    def test_duplicate_timestamps_resilient(self) -> None:
         gauge = WABASH_COMPONENT_GAUGES[1]
         self.paths[gauge] = self._write(gauge, [(self.stamp, 150.0), (self.stamp, 151.0)])
         result = derive_erdc_tr22_4_boundaries(self.paths)

@@ -184,7 +184,7 @@ describe('native gauge provenance wiring', () => {
     }
   });
 
-  it('labels an unknown wire status as UNAVAILABLE via fail-closed mapping', async () => {
+  it('labels an unknown wire status as UNAVAILABLE via resilient mapping', async () => {
     const observations = await fetchCommunityGauges(DEFINITIONS, {
       nowMs: NOW_MS,
       source: 'native',

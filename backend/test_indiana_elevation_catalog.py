@@ -4,7 +4,7 @@ from backend.indiana_elevation_catalog import source_manifest
 
 
 class IndianaElevationCatalogTests(unittest.TestCase):
-    def test_manifest_is_state_managed_and_fail_closed(self) -> None:
+    def test_manifest_is_state_managed_and_resilient(self) -> None:
         manifest = source_manifest()
         self.assertEqual(manifest["authority_class"], "STATE_MANAGED_ELEVATION_ARCHIVE")
         self.assertEqual(manifest["license"], "CC0")

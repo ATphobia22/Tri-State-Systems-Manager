@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { detectTelemetrySourceFailures } from '../server/alerts/telemetry-status.mjs';
 
-test('telemetry source failure is converted to an explicit fail-closed alert', () => {
+test('telemetry source failure is converted to an explicit resilient alert', () => {
   const alerts = detectTelemetrySourceFailures({
     observed_at: '2026-10-01T21:00:00Z',
     payload: {

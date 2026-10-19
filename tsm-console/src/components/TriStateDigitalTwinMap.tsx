@@ -302,7 +302,7 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
         overlay = new FloodDeckOverlay(map);
         floodOverlayRef.current = overlay;
       }
-      // Synchronous screening run on a small illustrative grid; fail-closed.
+      // Synchronous screening run on a small illustrative grid; resilient.
       const { result, bounds } = runIllustrativeScreeningScenario();
       overlay.setInundation({
         depthFt: result.inundation.depthFt,

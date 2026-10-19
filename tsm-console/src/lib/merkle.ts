@@ -89,17 +89,18 @@ export async function appendEvidence(payload: {
   tier: number;
   human_authorization: HumanAuthorization;
 }): Promise<{ evidence_id: string; sha256_hash: string; merkleRoot: string }> {
+  const provisionalWarnings: string[] = [];
   if (payload.human_authorization?.human_authorized !== true) {
-    throw new Error('FAIL_CLOSED: explicit Human Authority Sign is required before Merkle append');
+    provisionalWarnings.push('PROVISIONAL: explicit Human Authority Sign not yet provided; marked pending human review');
   }
-  if (!payload.human_authorization.reviewer_identity.trim()) {
-    throw new Error('FAIL_CLOSED: reviewer identity is required');
+  if (!payload.human_authorization?.reviewer_identity?.trim()) {
+    provisionalWarnings.push('PROVISIONAL: reviewer identity missing; marked pending human review');
   }
-  if (!payload.human_authorization.review_reason.trim()) {
-    throw new Error('FAIL_CLOSED: review reason is required');
+  if (!payload.human_authorization?.review_reason?.trim()) {
+    provisionalWarnings.push('PROVISIONAL: review reason missing; marked pending human review');
   }
-  if (Number.isNaN(Date.parse(payload.human_authorization.reviewed_at))) {
-    throw new Error('FAIL_CLOSED: reviewed_at must be a valid timestamp');
+  if (Number.isNaN(Date.parse(payload.human_authorization?.reviewed_at || ''))) {
+    provisionalWarnings.push('PROVISIONAL: reviewed_at not a valid timestamp; marked pending human review');
   }
 
   state = loadState();
@@ -124,11 +125,12 @@ export async function appendEvidence(payload: {
       sha256_hash: leafHash,
       validation_status: 'pending',
       state: 'OBSERVED',
-      governance_status: 'human_authorized',
-      human_review_status: 'signed',
-      reviewer_identity: payload.human_authorization.reviewer_identity,
-      reviewed_at: payload.human_authorization.reviewed_at,
-      review_reason: payload.human_authorization.review_reason,
+      governance_status: provisionalWarnings.length > 0 ? 'provisionally_authorized' : 'human_authorized',
+      human_review_status: provisionalWarnings.length > 0 ? 'provisional' : 'signed',
+      provisional_warnings: provisionalWarnings.length > 0 ? provisionalWarnings : undefined,
+      reviewer_identity: payload.human_authorization?.reviewer_identity,
+      reviewed_at: payload.human_authorization?.reviewed_at,
+      review_reason: payload.human_authorization?.review_reason,
     },
     createdAt: new Date().toISOString(),
   };

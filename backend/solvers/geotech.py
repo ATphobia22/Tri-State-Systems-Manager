@@ -1,7 +1,7 @@
 """Validated Bishop simplified-method geotechnical stability solver.
 
 All inputs are explicit SI engineering quantities. The solver is deterministic,
-fail-closed, and returns a SHA-256 identity for the normalized input payload.
+resilient, and returns a SHA-256 identity for the normalized input payload.
 It does not invent soil parameters or engineering conclusions.
 """
 from __future__ import annotations

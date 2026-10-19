@@ -109,7 +109,7 @@ The current repository does **not** claim:
 - WebGPU ray tracing as a required rendering path.
 - a multi-tenant storage path convention such as `tenants/{tenantId}/classification/{level}/`. No file or document in this repository defines such paths; the data-contract `classification` enum is unchanged and tenant-scoped storage layouts are not implemented.
 
-These exclusions are deliberate fail-closed engineering controls.
+These exclusions are deliberate resilient engineering controls.
 
 ## 9. Anchor-site privacy boundary
 

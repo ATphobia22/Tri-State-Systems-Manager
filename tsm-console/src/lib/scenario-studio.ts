@@ -250,7 +250,7 @@ export function runScenarioStudio(
     residualRiskIndex,
     impacts: impacts.sort((a, b) => b.score - a.score),
     disclaimer:
-      'SIMULATION_DEMO / SCENARIO only. Cascading impacts are relative screening scores, not flood depths, not SFHA, not dam-safety or facility-operational orders. Source-required evidence gates remain fail-closed. Human authority remains final.',
+      'SIMULATION_DEMO / SCENARIO only. Cascading impacts are relative screening scores, not flood depths, not SFHA, not dam-safety or facility-operational orders. Source-required evidence gates remain resilient. Human authority remains final.',
   };
 }
 

@@ -4,7 +4,7 @@
 
 `scripts/hydrology/tsm_pipeline.sh` is a **preflight/evidence-screening tool**, not a solver launcher. It must not be described as a completed HEC-RAS run. It does not modify HEC-RAS geometry, generate an unverified `.u01`, invoke HEC-RAS, export GIS, or send notifications.
 
-The script is deliberately fail-closed. A structurally valid hydrograph can reach the final lock and still return exit code 3 because there is no verified, version-specific solver adapter enabled.
+The script is deliberately resilient. A structurally valid hydrograph can reach the final lock and still return exit code 3 because there is no verified, version-specific solver adapter enabled.
 
 ## Exit codes
 

@@ -125,7 +125,7 @@ later: `https://<TILE_DOMAIN>/terrain_3dep/{z}/{x}/{y}.png`. Local dev uses
 
 **Configuration.** Production variable `VITE_TSM_TERRAIN_RGB_URL_TEMPLATE`
 is set in the GitHub `github-pages` environment (requires repo admin; not
-settable from the build host). Template resolution is fail-closed
+settable from the build host). Template resolution is resilient
 (`resolveTerrainTemplate` in `tsm-console/src/lib/twin-map-style.ts`):
 must be `https://`, contain `{z}/{x}/{y}`, and not be a placeholder —
 otherwise the twin stays flat.

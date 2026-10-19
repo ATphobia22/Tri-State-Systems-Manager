@@ -3,7 +3,7 @@
  * fetch-idnr-wells.mjs — Indiana DNR Water Wells acquisition (Posey County, IN)
  *
  * Queries the Indiana DNR Water Wells ArcGIS REST FeatureServer, pages through
- * all results (fail-closed), classifies each record's location quality from the
+ * all results (resilient), classifies each record's location quality from the
  * service's own fields, and writes a GeoJSON bundle with SHA-256 and a
  * validation receipt.
  *
@@ -86,7 +86,7 @@ export function findUnmappedLocTypes(features) {
 }
 
 // ---------------------------------------------------------------------------
-// HTTP helpers (node stdlib only, fail-closed)
+// HTTP helpers (node stdlib only, resilient)
 // ---------------------------------------------------------------------------
 
 function httpGetJson(url) {
@@ -121,7 +121,7 @@ function sha256Hex(buf) {
 }
 
 // ---------------------------------------------------------------------------
-// Query + paging (fail-closed). Pages with resultOffset until a short page is
+// Query + paging (resilient). Pages with resultOffset until a short page is
 // returned. An `exceededTransferLimit: true` flag on a short page is treated
 // as a server-contract violation and throws — never silently drop records.
 // ---------------------------------------------------------------------------
@@ -220,7 +220,7 @@ const PROVENANCE_BODY = `# Provenance — Indiana DNR Water Wells (Posey County)
 - **Source service:** Indiana DNR Water Wells FeatureServer (ArcGIS REST)
 - **dataClass:** reference/evidence (well logs)
 - **Acquisition method:** tools/acquisition/indiana/fetch-idnr-wells.mjs
-  (ArcGIS REST \`query\`, envelope + resultOffset paging, fail-closed)
+  (ArcGIS REST \`query\`, envelope + resultOffset paging, resilient)
 
 ## Location-quality warning (read before displaying this data)
 

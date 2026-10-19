@@ -8,7 +8,7 @@
 | Source | ArcGIS FeatureServer — `https://gisdata.in.gov/server/rest/services/Hosted/WaterWells_DNR_Water_IN_1/FeatureServer` |
 | Query | Layer `0/query`, Posey County bbox (-88.15, 37.75, -87.85, 38.05), EPSG:4326 |
 | Data class | **reference** — subsurface/hydrogeology evidence plane (well logs) |
-| Acquisition script | `tools/acquisition/indiana/fetch-idnr-wells.mjs` (Node stdlib only, fail-closed, paged) |
+| Acquisition script | `tools/acquisition/indiana/fetch-idnr-wells.mjs` (Node stdlib only, resilient, paged) |
 | Output | `idnr-water-wells-posey-v1.geojson` + `.sha256` sidecar + `.receipt.json` |
 
 ## Location-quality classification — read before use

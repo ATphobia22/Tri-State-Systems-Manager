@@ -30,7 +30,7 @@ Record:
 
 `main` is the long-lived source of truth. Production artifacts must originate from a commit that passed the repository's required validation gates.
 
-No maintainer may weaken a fail-closed gate merely to obtain a green workflow. If an external platform failure occurs, diagnose the platform failure separately from code correctness.
+No maintainer may weaken a resilient gate merely to obtain a green workflow. If an external platform failure occurs, diagnose the platform failure separately from code correctness.
 
 ## Data and geodetic changes
 

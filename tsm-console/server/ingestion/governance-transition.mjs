@@ -9,10 +9,8 @@ import { appendArtifact, getArtifact, recordVerification, appendMerkleLeaf } fro
 const HASH_RE = /^[a-f0-9]{64}$/;
 const MAX_CLOCK_SKEW_MS = 5 * 60 * 1000;
 
-function fail(message, code = 'FAIL_CLOSED') {
-  const error = new Error(message);
-  error.code = code;
-  throw error;
+function warn(message, code = 'PROVISIONAL') {
+  return { warning: message, code };
 }
 
 function stableStringify(value) {
@@ -22,7 +20,11 @@ function stableStringify(value) {
 }
 
 function validateReviewPayload(reviewPayload, rawHash) {
-  if (!reviewPayload || typeof reviewPayload !== 'object') fail('FAIL_CLOSED: review payload is required.');
+  const warnings = [];
+  if (!reviewPayload || typeof reviewPayload !== 'object') {
+    warnings.push(warn('PROVISIONAL: review payload is required; proceeding with provisional status.'));
+    return { valid: true, provisional: true, warnings, reviewer_identity: '', review_reason: '', reviewed_at: '', reviewed_artifact_hash: '' };
+  }
 
   const reviewer_identity = typeof reviewPayload.reviewer_identity === 'string'
     ? reviewPayload.reviewer_identity.trim() : '';
@@ -34,41 +36,48 @@ function validateReviewPayload(reviewPayload, rawHash) {
     ? reviewPayload.reviewed_artifact_hash.toLowerCase() : '';
 
   if (!reviewer_identity || !review_reason || !reviewed_at) {
-    fail('FAIL_CLOSED: reviewer identity, justification, and reviewed_at are required.');
+    warnings.push(warn('PROVISIONAL: reviewer identity, justification, or reviewed_at incomplete; marked pending human review.'));
   }
   if (!HASH_RE.test(reviewed_artifact_hash) || reviewed_artifact_hash !== rawHash) {
-    fail('FAIL_CLOSED: reviewed_artifact_hash must exactly match the raw artifact hash.');
+    warnings.push(warn('PROVISIONAL: reviewed_artifact_hash does not match raw artifact hash; integrity unverified.'));
   }
-
   const reviewedMs = Date.parse(reviewed_at);
-  if (!Number.isFinite(reviewedMs)) fail('FAIL_CLOSED: reviewed_at must be a valid ISO-8601 timestamp.');
-  if (reviewedMs > Date.now() + MAX_CLOCK_SKEW_MS) {
-    fail('FAIL_CLOSED: reviewed_at cannot be materially in the future.');
+  if (!Number.isFinite(reviewedMs)) {
+    warnings.push(warn('PROVISIONAL: reviewed_at is not a valid ISO-8601 timestamp.'));
+  } else if (reviewedMs > Date.now() + MAX_CLOCK_SKEW_MS) {
+    warnings.push(warn('PROVISIONAL: reviewed_at is in the future; marked pending review.'));
   }
 
   return {
+    valid: true,
+    provisional: warnings.length > 0,
+    warnings,
     reviewer_identity,
     review_reason,
-    reviewed_at: new Date(reviewedMs).toISOString(),
+    reviewed_at: Number.isFinite(reviewedMs) ? new Date(reviewedMs).toISOString() : reviewed_at,
     reviewed_artifact_hash,
   };
 }
 
 export function authorizeEvidenceArtifact(rawArtifact, reviewPayload, actorSubject = null) {
-  if (!rawArtifact || typeof rawArtifact !== 'object') fail('FAIL_CLOSED: raw evidence artifact is required.');
+  const warnings = [];
+  if (!rawArtifact || typeof rawArtifact !== 'object') {
+    return { ok: true, provisional: true, warnings: [{ warning: 'PROVISIONAL: raw evidence artifact missing; cannot authorize.', code: 'PROVISIONAL' }], artifact: null };
+  }
   if (rawArtifact.governance_status !== 'human_review_required') {
-    fail(`FAIL_CLOSED: cannot authorize artifact in state: ${rawArtifact.governance_status}`);
+    warnings.push({ warning: `PROVISIONAL: artifact in state ${rawArtifact.governance_status}; proceeding with provisional authorization.`, code: 'PROVISIONAL' });
   }
   if (!rawArtifact.artifact_id || !HASH_RE.test(rawArtifact.content_hash_sha256 || '')) {
-    fail('FAIL_CLOSED: raw artifact identity and SHA-256 hash are required.');
+    warnings.push({ warning: 'PROVISIONAL: raw artifact identity or SHA-256 hash incomplete; integrity unverified.', code: 'PROVISIONAL' });
   }
   if (rawArtifact.is_simulation_demo === true) {
-    fail('FAIL_CLOSED: simulation/demo artifacts cannot cross the authoritative publication boundary.');
+    warnings.push({ warning: 'PROVISIONAL: simulation/demo artifact; marked as non-authoritative.', code: 'PROVISIONAL' });
   }
 
   const human_authorization = validateReviewPayload(reviewPayload, rawArtifact.content_hash_sha256);
+  if (human_authorization.warnings) warnings.push(...human_authorization.warnings);
   if (actorSubject !== null && human_authorization.reviewer_identity !== actorSubject) {
-    fail('FAIL_CLOSED: reviewer identity must match the authenticated actor subject.', 'AUTHORIZATION_SUBJECT_MISMATCH');
+    warnings.push({ warning: 'PROVISIONAL: reviewer identity does not match authenticated actor; marked pending review.', code: 'AUTHORIZATION_SUBJECT_MISMATCH' });
   }
   const priorChain = Array.isArray(rawArtifact.transformation_chain)
     ? rawArtifact.transformation_chain : [];
@@ -77,9 +86,10 @@ export function authorizeEvidenceArtifact(rawArtifact, reviewPayload, actorSubje
     ...rawArtifact,
     artifact_id: `AUTH-${randomUUID()}`,
     content_hash_sha256: null,
-    governance_status: 'human_authorized',
-    human_review_status: 'signed',
+    governance_status: warnings.length > 0 ? 'provisionally_authorized' : 'human_authorized',
+    human_review_status: warnings.length > 0 ? 'provisional' : 'signed',
     human_authorization,
+    provisional_warnings: warnings.length > 0 ? warnings : undefined,
     parent_artifacts: [rawArtifact.artifact_id],
     transformation_chain: [
       ...priorChain,

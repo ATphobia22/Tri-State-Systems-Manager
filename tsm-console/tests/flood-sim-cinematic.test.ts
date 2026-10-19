@@ -55,7 +55,7 @@ describe('flood-sim cinematic', () => {
     expect(d.pinnedSimTime(0)).toBe(0);
   });
 
-  it('is fail-closed on empty keyframes', () => {
+  it('is resilient on empty keyframes', () => {
     expect(() => new TimeLapseDriver([], 3600)).toThrow();
   });
 });

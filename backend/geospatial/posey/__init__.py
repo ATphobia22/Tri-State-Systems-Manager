@@ -1,6 +1,6 @@
 """Posey County parcel -> floodplain -> terrain spatial join chain.
 
-Public-data chain only. Every step is fail-closed: a source observation is
+Public-data chain only. Every step is resilient: a source observation is
 recorded as OBSERVED, UNAVAILABLE, or NOT_CONFIGURED, and no observation is
 ever promoted to a regulatory or engineering conclusion by this module.
 

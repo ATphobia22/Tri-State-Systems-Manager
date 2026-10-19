@@ -14,7 +14,7 @@ POSEY_COUNTY_GISMAPS_OVERVIEW_URL: Final[str] = "https://countygismaps.com/in/po
 
 
 def source_manifest() -> dict[str, str]:
-    """Return an explicit fail-closed provenance manifest."""
+    """Return an explicit resilient provenance manifest."""
     return {
         "source_id": "POSEY_COUNTYGISMAPS",
         "authority_class": "SECONDARY_DATA_SERVICE",

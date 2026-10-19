@@ -616,7 +616,7 @@ def test_update_provisions_before_services_and_restarts_services(
     ]
 
 
-def test_update_token_failure_is_fail_closed_before_services(
+def test_update_token_failure_is_resilient_before_services(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ):
     artifacts, az, terraform, kubectl, _ = configured_update(

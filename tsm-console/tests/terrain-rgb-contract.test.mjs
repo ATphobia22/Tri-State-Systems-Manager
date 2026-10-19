@@ -66,13 +66,13 @@ function validateTerrainRgbUrlTemplate(raw, options = {}) {
   return { enabled: false, reason: 'invalid_template' };
 }
 
-test('missing template is fail-closed', () => {
+test('missing template is resilient', () => {
   assert.equal(validateTerrainRgbUrlTemplate('').enabled, false);
   assert.equal(validateTerrainRgbUrlTemplate(undefined).reason, 'missing');
   assert.equal(validateTerrainRgbUrlTemplate('   ').reason, 'missing');
 });
 
-test('placeholder hosts are fail-closed', () => {
+test('placeholder hosts are resilient', () => {
   assert.equal(
     validateTerrainRgbUrlTemplate('https://tiles.example.invalid/terrain/{z}/{x}/{y}.png').reason,
     'placeholder',
@@ -91,7 +91,7 @@ test('placeholder hosts are fail-closed', () => {
   );
 });
 
-test('templates without z/x/y tokens are fail-closed', () => {
+test('templates without z/x/y tokens are resilient', () => {
   assert.equal(
     validateTerrainRgbUrlTemplate('https://tiles.usgs.gov/terrain/0/0/0.png').reason,
     'invalid_template',
@@ -136,7 +136,7 @@ test('localhost blocked in production; allowed only when allowHttpLocal', () => 
   );
 });
 
-test('twin-map-style wires fail-closed applyTwinTerrain', () => {
+test('twin-map-style wires resilient applyTwinTerrain', () => {
   const source = read('src/lib/twin-map-style.ts');
   assert.match(source, /getTerrainRgbStatus/);
   assert.match(source, /if \(!terrain\.enabled\)/);
@@ -150,19 +150,19 @@ test('twin-map-style wires fail-closed applyTwinTerrain', () => {
   assert.doesNotMatch(source, /mockTerrain|fabricatedTerrain/i);
 });
 
-test('terrain-rgb-contract module exports fail-closed helpers', () => {
+test('terrain-rgb-contract module exports resilient helpers', () => {
   const source = read('src/lib/terrain-rgb-contract.ts');
   assert.match(source, /validateTerrainRgbUrlTemplate/);
-  assert.match(source, /fail-closed/i);
+  assert.match(source, /resilient/i);
   assert.match(source, /TERRAIN_RGB_SOURCE_ID/);
   assert.match(source, /TERRAIN_RGB_TILE_SIZE\s*=\s*256/);
   assert.match(source, /TERRAIN_RGB_ENCODING\s*=\s*'mapbox'/);
   assert.match(source, /TERRAIN_RGB_DEFAULT_EXAGGERATION\s*=\s*1\.0/);
 });
 
-test('terrain-pipeline.json requires fail_closed_when_missing', () => {
+test('terrain-pipeline.json requires resilient_when_missing', () => {
   const cfg = JSON.parse(read('config/terrain-pipeline.json'));
-  assert.equal(cfg.runtime.fail_closed_when_missing, true);
+  assert.equal(cfg.runtime.resilient_when_missing, true);
   assert.equal(cfg.runtime.environment_variable, 'VITE_TSM_TERRAIN_RGB_URL_TEMPLATE');
   assert.equal(cfg.processing.browser_source_type, 'raster-dem');
   assert.equal(cfg.processing.encoding, 'mapbox');
@@ -170,7 +170,7 @@ test('terrain-pipeline.json requires fail_closed_when_missing', () => {
   assert.equal(cfg.evidence.bulk_source_data_committed_to_git, false);
 });
 
-test('RealWorldTwinMap surfaces fail-closed terrain status', () => {
+test('RealWorldTwinMap surfaces resilient terrain status', () => {
   const ui = read('src/components/RealWorldTwinMap.tsx');
   assert.match(ui, /terrainRgbBlockMessage|getTerrainRgbStatus/);
   assert.match(ui, /FAIL-CLOSED|terrainMessage|terrainStatus/);

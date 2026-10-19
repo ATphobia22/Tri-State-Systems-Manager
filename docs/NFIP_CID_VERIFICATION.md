@@ -12,4 +12,4 @@ FIRM index series: **18129C**. The current TSM restricted site identify record u
 
 **Correction applied:** Prior informal references to "18129C" as a CID were incorrect; 18129C is the map panel index prefix. Authoritative CIDs are the six-digit values above. Site constants use 180209 for unincorporated Posey / Point Township.
 
-Regulatory use remains fail-closed: confirm the current FEMA Map Service Center FIRM/FIS product and local floodplain-administrator adoption before filing or making a regulatory determination.
+Regulatory use remains resilient: confirm the current FEMA Map Service Center FIRM/FIS product and local floodplain-administrator adoption before filing or making a regulatory determination.

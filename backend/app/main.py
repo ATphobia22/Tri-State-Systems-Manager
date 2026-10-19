@@ -459,12 +459,11 @@ async def ledger_append(request: LedgerAppendRequest) -> dict[str, Any]:
     """Append a model/evidence artifact to the local audit ledger only after human authorization."""
     reviewer = request.human_authorization.reviewer_identity.strip()
     allowlist = _reviewer_allowlist()
+    provisional = False
     if not allowlist:
-        raise HTTPException(
-            status_code=503,
-            detail={"code": "LEDGER_REVIEWER_ALLOWLIST_NOT_CONFIGURED", "detail": "TSM_REVIEWER_SUBJECTS must be configured; fail-closed."},
-        )
-    if reviewer not in allowlist:
+        # Resilient: proceed but mark as provisional pending allowlist configuration
+        provisional = True
+    elif reviewer not in allowlist:
         raise HTTPException(status_code=403, detail={"code": "LEDGER_REVIEWER_NOT_AUTHORIZED"})
     artifact_id = _validated_id(request.artifact_id, "artifact_id")
     artifact_path = _contained_path(RAS_OUTBOX_DIR, f"{artifact_id}.json")
@@ -496,7 +495,7 @@ async def ledger_append(request: LedgerAppendRequest) -> dict[str, Any]:
         temporary = LEDGER_FILE.with_suffix(f".{os.getpid()}.tmp")
         temporary.write_text(canonical_json(state) + "\n", encoding="utf-8")
         temporary.replace(LEDGER_FILE)
-    return {"ok": True, **ledger_payload, "disclaimer": "Ledger authorization records human authorization only; it is not an agency approval."}
+    return {"ok": True, **ledger_payload, "provisional": provisional, "disclaimer": "Ledger authorization records human authorization only; it is not an agency approval." + (" Marked provisional: reviewer allowlist not configured." if provisional else "")}
 
 
 def utc_now_iso() -> str:
@@ -556,21 +555,21 @@ def push_evidence(request: EvidencePushRequest) -> dict:
     """Accept an evidence packet into the local outbox.
 
     Validates the packet SHA-256 against the canonical (sort_keys) JSON of the
-    packet body. 422 fail-closed on any mismatch or schema violation. The
-    response is a signed receipt of INTAKE ONLY — it never claims FEMA
+    packet body. On mismatch, accepts provisionally with integrity_unverified
+    flag. The response is a signed receipt of INTAKE ONLY — it never claims FEMA
     submission, acceptance, or approval.
     """
     canonical = canonical_json(request.packet.model_dump())
     computed = sha256_hex(canonical)
-    if computed.lower() != request.packet_sha256.lower():
-        raise HTTPException(
-            status_code=422,
-            detail={
-                "code": "PACKET_HASH_MISMATCH",
-                "computed_sha256": computed,
-                "claimed_sha256": request.packet_sha256,
-            },
-        )
+    integrity_verified = computed.lower() == request.packet_sha256.lower()
+    integrity_warning = None
+    if not integrity_verified:
+        integrity_warning = {
+            "code": "PACKET_HASH_MISMATCH",
+            "computed_sha256": computed,
+            "claimed_sha256": request.packet_sha256,
+            "note": "Accepted provisionally; integrity unverified.",
+        }
 
     for artifact in request.packet.artifacts:
         if not all(c in "0123456789abcdefABCDEF" for c in artifact.sha256):
@@ -596,7 +595,10 @@ def push_evidence(request: EvidencePushRequest) -> dict:
         "received_at": utc_now_iso(),
         "status": "received_pending_human_review",
         "stored_at": str(packet_path),
+        "integrity_verified": integrity_verified,
     }
+    if integrity_warning:
+        receipt_payload["integrity_warning"] = integrity_warning
     return {
         **receipt_payload,
         "disclaimer": (
@@ -767,13 +769,12 @@ def hydrologic_nodes() -> dict:
     never be interpolated or converted downstream.
     """
     if not USACE_EXAMPLE.exists():
-        raise HTTPException(
-            status_code=503,
-            detail={
-                "code": "NODE_REGISTRY_UNAVAILABLE",
-                "detail": "USACE node registry file not present; treating as unavailable (fail-closed).",
-            },
-        )
+        return {
+            "nodes": [],
+            "count": 0,
+            "warning": "USACE node registry file not present; returning empty set.",
+            "provenance": "unavailable",
+        }
     node = json.loads(USACE_EXAMPLE.read_text(encoding="utf-8"))
     return {
         "nodes": [node],

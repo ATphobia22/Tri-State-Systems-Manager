@@ -74,7 +74,7 @@ describe('SCS runoff known-value check (wired module)', () => {
     expect(out.provenance.labels).toContain('MODELED');
   });
 
-  it('is fail-closed on non-finite inputs', () => {
+  it('is resilient on non-finite inputs', () => {
     expect(() =>
       computeSCSRunoff({
         curveNumber: Number.NaN,
@@ -87,7 +87,7 @@ describe('SCS runoff known-value check (wired module)', () => {
 });
 
 describe('diffusion-wave stability (wired module)', () => {
-  it('throws fail-closed when dt violates the diffusive limit', () => {
+  it('throws resilient when dt violates the diffusive limit', () => {
     // Steep, deep, smooth, tiny cells => huge D_max => dt=60 s violates.
     const nx = 8;
     const ny = 8;
@@ -232,7 +232,7 @@ describe('FloodSimEngine determinism', () => {
     expect(Number.isFinite(report[0].damage.totalUsd)).toBe(true);
   });
 
-  it('is fail-closed on bad config', () => {
+  it('is resilient on bad config', () => {
     const bad = engineConfig();
     bad.elevationFt[0][0] = Number.NaN;
     expect(() => new FloodSimEngine(bad)).toThrow();

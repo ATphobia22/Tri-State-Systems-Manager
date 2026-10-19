@@ -5,8 +5,8 @@ Chain:
         -> StateCombi normalization
         -> real ArcGIS parcel polygon (EPSG:4326)
         -> polygon INTERSECTS
-               |- Indiana DNR Best Available Flood Hazard (fail-closed)
-               |- FEMA NFHL FIRM Panels (fail-closed; never fabricated)
+               |- Indiana DNR Best Available Flood Hazard (resilient)
+               |- FEMA NFHL FIRM Panels (resilient; never fabricated)
         -> parcel centroid
         -> USGS 3DEP elevation (EPQS)
         -> engineering evidence object
@@ -65,7 +65,7 @@ def utc_now_iso() -> str:
 
 
 def _http_get_json(url: str, timeout: int = _REQUEST_TIMEOUT_S) -> dict | None:
-    """GET a JSON endpoint. Returns None on any failure (fail-closed)."""
+    """GET a JSON endpoint. Returns None on any failure (resilient)."""
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "TSM-parcel-flood-join/1.0"})
         with urllib.request.urlopen(req, timeout=timeout) as resp:
@@ -363,7 +363,7 @@ def epqs_elevation(lon: float, lat: float) -> dict:
 
 
 def build_parcel_flood_evidence(parcel_number: str) -> dict:
-    """Run the full parcel -> floodplain -> terrain chain, fail-closed.
+    """Run the full parcel -> floodplain -> terrain chain, resilient.
 
     Returns an engineering evidence object. Regulatory and hydraulic
     conclusions are explicitly out of scope for this object.

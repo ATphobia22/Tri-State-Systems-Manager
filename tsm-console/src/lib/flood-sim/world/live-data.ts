@@ -1,5 +1,5 @@
 /**
- * world/live-data.ts — terrain endpoint health with a fail-closed fallback chain.
+ * world/live-data.ts — terrain endpoint health with a resilient fallback chain.
  *
  * The map stays honest through plain HTTPS polling (the repo forbids streaming
  * transports in the simulator; see the transport gate test): the terrain
@@ -8,7 +8,7 @@
  * snapshot collection stays empty; user-triggered snapshots are served separately
  * through River Watch and are never injected into a model without validation.
  *
- * Terrain fallback chain (fail-closed, owner policy 2026-09-29: no demo terrain):
+ * Terrain fallback chain (resilient, owner policy 2026-09-29: no demo terrain):
  *
  *   terrain:  live tiles → bundled 3DEP-derived grid → thrown error (no synthetic terrain)
  *
@@ -409,7 +409,7 @@ export interface ResolvedLiveTerrain {
  */
 /**
  * Resolve the visualization terrain grid: live Terrarium tiles first,
- * bundled source-derived grid second, thrown error third (fail-closed —
+ * bundled source-derived grid second, thrown error third (resilient —
  * owner policy 2026-09-29: no synthetic demo terrain is ever substituted).
  */
 export async function resolveTerrainWithFallback(args: {

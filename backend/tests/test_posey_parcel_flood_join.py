@@ -2,7 +2,7 @@
 
 No live network calls: HTTP is stubbed. The live chain was verified
 against the real services on 2026-09-30; these tests pin the contract
-(normalization, centroid math, fail-closed behavior, evidence schema).
+(normalization, centroid math, resilient behavior, evidence schema).
 """
 
 import json

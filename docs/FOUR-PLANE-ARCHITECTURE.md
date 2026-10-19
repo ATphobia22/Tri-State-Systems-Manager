@@ -22,7 +22,7 @@ Owns:
 - SHA-256 content addressing
 - provenance manifests
 - validation and freshness states
-- fail-closed ingestion
+- resilient ingestion
 
 ## Plane 2: Scientific & Simulation Plane
 

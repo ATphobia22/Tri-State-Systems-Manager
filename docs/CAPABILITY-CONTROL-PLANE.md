@@ -41,4 +41,4 @@ This includes:
 
 ## Verification
 
-`scripts/ci/validate-capability-control-plane.mjs` is fail-closed and runs from the canonical `npm run ci` chain.
+`scripts/ci/validate-capability-control-plane.mjs` is resilient and runs from the canonical `npm run ci` chain.

@@ -52,7 +52,7 @@ tests; pre-existing native-data-fabric suite still green.
 ### 7. LiDAR-merge job — `tools/terrain/merge-dem.py`
 Operationalizes `docs/TERRAIN-RGB-3DEP-PIPELINE.md`: 3DEP/TNM tile discovery,
 GDAL warp to EPSG:2966, per-tile SHA-256 manifest, resume-on-checksum-match,
-atomic manifest writes, fail-closed on bad bbox/paths. `--dry-run` exercises
+atomic manifest writes, resilient on bad bbox/paths. `--dry-run` exercises
 the full logic with synthetic tiles and zero network/GDAL (the CI path; GDAL
 is absent here). 13 pytest tests.
 
@@ -112,7 +112,7 @@ infiltration) or revise claims to match the implemented diffusion-wave
 **Rationale:** diffusion-wave is the operational standard for floodplain
 inundation screening, it is tractable and testable (5 vitest tests incl.
 mass conservation and symmetry), and full Saint-Venant would add
-substantial complexity without changing the fail-closed screening posture
+substantial complexity without changing the resilient screening posture
 of the console. Building it now is not justified; over-claiming what exists
 would violate the honest-labeling design rule.
 

@@ -14,9 +14,9 @@ This record reconciles the requested production-readiness actions against the re
 | Production Pages bindings | Pages build binds Keycloak and live API values from repository Variables and fails closed when Pages is enabled but values are absent. |
 | CSP | Deployment-aware Vite CSP added with WebAssembly, workers, map/tile endpoints and configured Keycloak origin. |
 | Hydrologic resilience | Retry/backoff/circuit-breaking existed; bounded stale-cache fallback is now added. |
-| Vertical datum | Explicit fail-closed datum normalization middleware added. Unverified gage/NGVD29 offsets are blocked. |
+| Vertical datum | Explicit resilient datum normalization middleware added. Unverified gage/NGVD29 offsets are blocked. |
 | Event bus | Server-side Kafka REST Proxy-compatible telemetry bridge added, disabled by default. |
-| FEMA 18129C0265C | BFE-to-mesh equality contract added with NAVD88/provenance requirements. Existing source evidence remains fail-closed where exact current authoritative metadata is missing. |
+| FEMA 18129C0265C | BFE-to-mesh equality contract added with NAVD88/provenance requirements. Existing source evidence remains resilient where exact current authoritative metadata is missing. |
 | LOMC packet | ReportLab evidence-index PDF + SHA-256 manifest + ZIP assembly added; detached Ed25519 signing utility added. |
 | Databricks CD | OIDC-gated workflow and production configuration contract added; intentionally disabled until workspace federation variables are configured. |
 | CRS audit | HEC-RAS contract corrected from EPSG:26916 to the TSM engineering frame EPSG:2966. Native Indiana BAFM EPSG:26916 remains correctly documented as source-native. |

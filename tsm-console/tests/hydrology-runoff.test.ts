@@ -123,7 +123,7 @@ describe('SCS curve number runoff', () => {
     expect(out.provenance.modelVersion).toBe('scs-cn-v1');
   });
 
-  describe('fail-closed validation', () => {
+  describe('resilient validation', () => {
     const valid: SCSRunoffInput = {
       curveNumber: 80,
       watershedAreaSqMi: 1,

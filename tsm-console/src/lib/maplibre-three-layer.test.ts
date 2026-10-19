@@ -1,7 +1,7 @@
 /**
  * maplibre-three-layer.test.ts — vitest suite for the MapLibre Three.js
  * custom layer. maplibre-gl and three are mocked; the suite verifies the
- * Mercator transform math, matrix composition order, fail-closed URL
+ * Mercator transform math, matrix composition order, resilient URL
  * handling, and error-free rendering with an empty scene.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -307,7 +307,7 @@ describe('MapLibreThreeLayer', () => {
     expect(mocks.gltfLoads).toHaveLength(0);
   });
 
-  it('loads valid HDR and GLTF urls and stays fail-closed when they error', () => {
+  it('loads valid HDR and GLTF urls and stays resilient when they error', () => {
     const layer = new MapLibreThreeLayer({
       id: 'x',
       origin: [0, 0],

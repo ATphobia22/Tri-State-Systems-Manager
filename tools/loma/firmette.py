@@ -67,7 +67,7 @@ def validate_inputs(
     address: object,
     bfe_ft: object,
 ) -> tuple[list[list[float]], str, str, float]:
-    """Validate fail-closed inputs. Raises ValueError on any invalid input."""
+    """Validate resilient inputs. Raises ValueError on any invalid input."""
     if not isinstance(polygon, (list, tuple)) or len(polygon) < 3:
         raise ValueError(
             f"parcel polygon must contain at least 3 [lon, lat] points, "
@@ -159,7 +159,7 @@ def render_panel_svg(
     """SVG map panel: parcel polygon overlay, north arrow, scale disclaimer.
 
     When the base map could not be retrieved, the panel is a placeholder
-    watermarked with BASE_MAP_UNAVAILABLE_MARK (fail-closed, never fabricated).
+    watermarked with BASE_MAP_UNAVAILABLE_MARK (resilient, never fabricated).
     """
     projected = _project(points, bbox, width, height)
     poly_pts = " ".join(f"{x:.1f},{y:.1f}" for x, y in projected)

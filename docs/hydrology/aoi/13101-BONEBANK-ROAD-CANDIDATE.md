@@ -46,7 +46,7 @@ Use USGS StreamStats only after selecting and documenting the relevant outlet, t
 
 ## Reproducibility controls
 
-The HEC workflow uses manifest v2, exact commit binding, pinned project/runtime/adapter hashes, explicit DSS FLOW pathname and units, fail-closed gap handling, isolated run copies, content-addressed artifacts, and a handoff receipt. HEC-HMS/HEC-RAS computations, validation, and approval are separate states; this candidate address does not authorize a run.
+The HEC workflow uses manifest v2, exact commit binding, pinned project/runtime/adapter hashes, explicit DSS FLOW pathname and units, resilient gap handling, isolated run copies, content-addressed artifacts, and a handoff receipt. HEC-HMS/HEC-RAS computations, validation, and approval are separate states; this candidate address does not authorize a run.
 
 Official references:
 - [USGS Water Data APIs](https://api.waterdata.usgs.gov/docs/ogcapi/)

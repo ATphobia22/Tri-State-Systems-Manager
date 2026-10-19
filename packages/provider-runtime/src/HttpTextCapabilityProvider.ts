@@ -31,7 +31,7 @@ export interface HttpModelRequest {
   readonly body: Readonly<Record<string, unknown>>;
 }
 
-/** Shared fail-closed lifecycle for HTTP-backed text providers. */
+/** Shared resilient lifecycle for HTTP-backed text providers. */
 export abstract class HttpTextCapabilityProvider
   implements CapabilityProvider<TextModelInput, TextModelOutput>
 {

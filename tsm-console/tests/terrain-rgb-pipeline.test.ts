@@ -1,6 +1,6 @@
 /**
  * terrain-rgb-pipeline.test.ts — Mapbox Terrain-RGB decoding and the
- * fail-closed HTTPS template validation for the production tile pyramid.
+ * resilient HTTPS template validation for the production tile pyramid.
  */
 import { describe, expect, it } from 'vitest';
 import { decodeTerrainRgb } from '../src/lib/flood-sim/world/live-data';
@@ -22,7 +22,7 @@ describe('decodeTerrainRgb', () => {
   });
 });
 
-describe('validateTerrainRgbUrlTemplate (fail-closed)', () => {
+describe('validateTerrainRgbUrlTemplate (resilient)', () => {
   const good = 'https://tiles.river-valley.org/terrain_3dep/{z}/{x}/{y}.png';
 
   it('accepts a real https template', () => {

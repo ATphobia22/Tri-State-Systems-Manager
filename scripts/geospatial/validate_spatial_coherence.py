@@ -12,7 +12,7 @@ Bounding volume types handled: box (12 numbers), region (6 numbers),
 sphere (4 numbers). All comparisons in a common frame: boxes/spheres are
 ECEF; regions are converted to an approximate ECEF box via corner sampling.
 
-Exit non-zero with FAIL details on any violation (fail-closed).
+Exit non-zero with FAIL details on any violation (resilient).
 """
 
 from __future__ import annotations

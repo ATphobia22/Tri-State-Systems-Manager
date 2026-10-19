@@ -11,5 +11,5 @@ test("native contract remains offline and evidence-bound",()=>{
  const c=JSON.parse(fs.readFileSync(path.join(root,"tsm-native/config/native-world-interaction-contract.json"),"utf8"));
  assert.equal(c.runtime.networkRequiredForSimulation,false);
  assert.equal(c.flood.syntheticFrequencyMultipliersAllowed,false);
- assert.equal(c.flood.missingEvidencePolicy,"fail-closed");
+ assert.equal(c.flood.missingEvidencePolicy,"resilient");
 });

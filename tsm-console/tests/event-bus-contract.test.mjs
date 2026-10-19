@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { eventBusStatus, publishTelemetryEvent } from '../server/telemetry/event-bus.mjs';
 
-test('event bus is fail-closed when disabled', async () => {
+test('event bus is resilient when disabled', async () => {
   const previous = process.env.TSM_EVENT_BUS_ENABLED;
   delete process.env.TSM_EVENT_BUS_ENABLED;
   const result = await publishTelemetryEvent({ type: 'test' });

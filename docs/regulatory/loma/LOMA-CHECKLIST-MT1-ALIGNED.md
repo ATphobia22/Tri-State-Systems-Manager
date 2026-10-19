@@ -8,7 +8,7 @@ and MT-EZ 2021 instructions PDF did **not** download correctly (viewer
 screenshots, not the forms) and are NOT used below.
 
 **Posture:** reference checklist only. No filing is authorized. Button-only /
-fail-closed telemetry rules apply; missing items are `UNAVAILABLE`, never
+resilient telemetry rules apply; missing items are `UNAVAILABLE`, never
 assumed present.
 
 ## MT-EZ vs full MT-1 — which path

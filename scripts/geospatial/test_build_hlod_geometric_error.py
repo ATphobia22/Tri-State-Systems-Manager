@@ -90,7 +90,7 @@ class HlodGeometricErrorTests(unittest.TestCase):
         second = Q(second_points, 0, 1, 4, 1.0).tile(1.0)
         self.assertEqual(first, second)
 
-    def test_invalid_source_and_fallback_errors_fail_closed(self) -> None:
+    def test_invalid_source_and_fallback_errors_resilient(self) -> None:
         for bad_error in (-1.0, float("nan"), float("inf"), True):
             with self.subTest(source_error=bad_error):
                 with self.assertRaises(ValueError):

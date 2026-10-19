@@ -30,7 +30,7 @@ else is done, partial, or not applicable.
 | 7 | NOAA weather data | **Done** — `noaa-nwps.mjs`, `nws-weather.mjs` (+ tests) |
 | 8 | Terrain/DEM processing | **Partial** — `usgs-tnm.mjs` (The National Map) exists; `TERRAIN-RGB-3DEP-PIPELINE.md` documents the pipeline; no full LiDAR-merge job |
 | 9 | Hydrologic modeling (rainfall→runoff) | **Genuine gap** — no HEC-HMS/PyNHD/curve-number implementation found |
-| 10 | Hydraulic modeling (HEC-RAS) | **Partial** — 1D Saint-Venant C++ solver exists; HEC-RAS worker is fail-closed with no model packages/executable; no 2D |
+| 10 | Hydraulic modeling (HEC-RAS) | **Partial** — 1D Saint-Venant C++ solver exists; HEC-RAS worker is resilient with no model packages/executable; no 2D |
 | 11 | Depth calculations | **Partial** — exists inside simulation WSE migration (`ops/postgis/migrations/20260918_simulation_wse.sql`); not a standalone service |
 | 12 | Exposure database | **Partial** — `src/lib/buildingsService.ts` exists; no parcel-wide building inventory load |
 | 13 | Damage/Loss engine (Hazus) | **Partial** — `src/lib/hazus-illustrative.ts` is illustrative only; no full depth-damage engine |

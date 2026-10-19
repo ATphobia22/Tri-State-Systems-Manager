@@ -14,7 +14,7 @@ Three modules, chained by a fourth. All in `tsm-console/src/lib/`.
 | Stage | File | Method | Provenance label |
 |---|---|---|---|
 | Rainfall → runoff | `hydrology-runoff.ts` | SCS Curve Number (TR-55): S = 1000/CN − 10, Ia = 0.2S; cumulative Q differenced per timestep into a Q(t) hydrograph | `scs-cn-v1` |
-| Runoff → inundation | `hydraulics-diffusion2d.ts` | Explicit finite-difference **diffusion-wave (zero-inertia)** on a raster grid; Manning-based face fluxes; closed boundaries; enforced diffusive-CFL stability check (throws fail-closed on violation) | `diffusion-wave-2d-v1` |
+| Runoff → inundation | `hydraulics-diffusion2d.ts` | Explicit finite-difference **diffusion-wave (zero-inertia)** on a raster grid; Manning-based face fluxes; closed boundaries; enforced diffusive-CFL stability check (throws resilient on violation) | `diffusion-wave-2d-v1` |
 | Orchestration + alerts | `scenario-runner.ts` | Chains SCS → diffusion-wave; evaluates threshold alert rules → `triggered: true/false/'unknown'` (missing data yields `'unknown'`, never silent `false`) | `scenario-runner-v1` |
 | Damage screening | `hazus-depth-damage.ts` | Occupancy depth-damage curves (RES-1SNB from published USACE generic curve; others adapted to published Hazus/USACE shapes); linear interpolation; 10-ft clamp, no extrapolation | labeled **Hazus-compatible methodology — not FEMA-certified** |
 
@@ -47,7 +47,7 @@ OBSERVATION / PLANNING / DERIVED / CONTEXT / VISUALIZATION.
 | USACE NLD leveed areas | Local `tsm-console/public/data/leveed-areas-wabash-v1.geojson` | Retrieved 2026-10-06 | REGULATORY (federal) | Wabash Levee Units 1 & 2 (270005000005/6). SHA-256 `695bb9bd…41a519` byte-identical to live NLD2 API payload. NAD83/NAVD88. Re-fetch: `tools/acquisition/usace/fetch-leveed-areas.mjs`. |
 | Indiana parcels | IGIO `Parcel_Boundaries_of_Indiana_2025` (live) | Released 2025-12-01 | CONTEXT | Not a survey product; county accuracy varies. No owner-name fields. |
 | Indiana imagery | IGIO `Indiana_Current_Imagery` ImageServer (live) | 2022–2025 | OBSERVATION | Base imagery; `exportImage` operation (corrected 2026-10-06). |
-| USGS 3DEP terrain | Self-hosted Terrain-RGB tiles, zooms 8–12 | 3DEP QL2 / best-available | OBSERVATION | No fabricated terrain fallback; fail-closed if template unset. |
+| USGS 3DEP terrain | Self-hosted Terrain-RGB tiles, zooms 8–12 | 3DEP QL2 / best-available | OBSERVATION | No fabricated terrain fallback; resilient if template unset. |
 | Building footprints | IGIO `Building_Footprints` 2016–2020 (live) | **2016–2020 — STALE** | DERIVED | LiDAR-derived reference only. Do not treat as current survey geometry. |
 | Posey CSLF | `Posey_CSLF_Feb2025` (live) | Feb 2025 | CONTEXT | Preliminary/pending map-change evidence; not effective NFHL. |
 | USGS gauges | `api.waterdata.usgs.gov` (live); `waterservices.usgs.gov` retired 2026-02-22 | Live | OBSERVATION | **Button-only**: fetched solely on explicit user "Fetch live snapshot"; page loaders return unavailable sentinel; no polling (dead `startGaugePoll` removed 2026-10-06). |

@@ -200,7 +200,7 @@ describe('resolveTerrainWithFallback', () => {
   it('never synthesizes procedural terrain, even when asked', async () => {
     // 'procedural' was removed from TerrainSourcePreference on 2026-09-29:
     // procedural terrain must never stand in as evidence. A stale caller
-    // passing it degrades to the fail-closed chain (live -> source-derived
+    // passing it degrades to the resilient chain (live -> source-derived
     // -> throw), never to synthesis.
     const fetchMock = vi.mocked(fetch);
     const client = new TerrainTileClient('https://tiles.example/t', clientOpts);

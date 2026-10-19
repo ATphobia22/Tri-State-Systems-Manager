@@ -96,7 +96,7 @@ export default function ProjectUpdatesView() {
           <li><strong style={{ color: t.color.text.primary }}>Graceful layer degradation</strong> — every globe layer is probed independently; a missing layer shows &quot;unavailable&quot; in the layer panel instead of blanking the scene. Missing data stays unavailable, never invented.</li>
           <li><strong style={{ color: t.color.text.primary }}>Confluence hydraulics wiring</strong> — ERDC/CHL TR-22-4 validated 2D AdH model record plus 20 eHydro bathymetry survey extents wired into the twin&apos;s layer system (Ohio River Datum labeled honestly; NAVD88 offset unavailable).</li>
           <li><strong style={{ color: t.color.text.primary }}>Five validated dike scenarios</strong> — base, It2_W3, It2_MD, It2_PC330, and the selected 3+4 dike plan from the ERDC report, exposed for selection with report references.</li>
-          <li><strong style={{ color: t.color.text.primary }}>UACF platform scaffolding</strong> — <code>apps/admin</code>, ten plugins, nine provider stubs (fail-closed), six TSM database migrations, runtime boundaries, and root project files.</li>
+          <li><strong style={{ color: t.color.text.primary }}>UACF platform scaffolding</strong> — <code>apps/admin</code>, ten plugins, nine provider stubs (resilient), six TSM database migrations, runtime boundaries, and root project files.</li>
           <li><strong style={{ color: t.color.text.primary }}>Reproducible map-pack build</strong> — the tri-state map-pack build script was reconstructed outside the build directory and verified byte-identical against the shipped 152 MB pack.</li>
         </ul>
       </section>

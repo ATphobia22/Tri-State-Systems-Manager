@@ -1,4 +1,4 @@
-# PTDT v35 — Pydantic V2 Validation (fail-closed)
+# PTDT v35 — Pydantic V2 Validation (resilient)
 # Requires: pydantic>=2.5
 from __future__ import annotations
 

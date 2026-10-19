@@ -48,7 +48,7 @@ Forbidden without a new ADR:
 |----------|---------|
 | Govern | ADR-004 + this ladder; human authority non-negotiable |
 | Map | Explicit tool allow-list, SIMULATION_DEMO labeling, plane separation |
-| Measure | Merkle provenance, fail-closed SHA-256 store, scientific uncertainty fields |
+| Measure | Merkle provenance, resilient SHA-256 store, scientific uncertainty fields |
 | Manage | Human gates, no auto-filing, local-first AI, kill-switch requirement for any future S3 |
 
 ## Consequences

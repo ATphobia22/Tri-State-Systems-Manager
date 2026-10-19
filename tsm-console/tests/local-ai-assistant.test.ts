@@ -2,7 +2,7 @@
  * Tests for local-ai/assistant.
  * - Prompt construction asserts the governing axiom is embedded in every
  *   system prompt.
- * - Graceful fail-closed paths return { status: 'unavailable', reason }.
+ * - Graceful resilient paths return { status: 'unavailable', reason }.
  * - Successful results carry full provenance + provisional status + label.
  * - Zero fetch calls on the entire local-AI path (no server fallback).
  */
@@ -142,7 +142,7 @@ describe("local-ai assistant", () => {
     }
   });
 
-  it("fail-closed: returns unavailable when the needed API is missing", async () => {
+  it("resilient: returns unavailable when the needed API is missing", async () => {
     const r1 = await explainFloodResult({ scenarioName: "x", keyFindings: [] });
     const r2 = await summarizeEvidencePacket({ packetId: "p", title: "t", items: [] });
     const r3 = await proofreadFiling("some text");
@@ -156,7 +156,7 @@ describe("local-ai assistant", () => {
     }
   });
 
-  it("fail-closed: never returns a fake result while the model is downloading", async () => {
+  it("resilient: never returns a fake result while the model is downloading", async () => {
     (selfScope()["self"] as Record<string, unknown>)["LanguageModel"] = {
       availability: async () => "downloading",
       create: vi.fn(),
@@ -166,7 +166,7 @@ describe("local-ai assistant", () => {
     if (!result.ok) expect(result.reason).toMatch(/downloading|not ready/i);
   });
 
-  it("fail-closed: session creation failure yields unavailable, never throws", async () => {
+  it("resilient: session creation failure yields unavailable, never throws", async () => {
     (selfScope()["self"] as Record<string, unknown>)["LanguageModel"] = {
       availability: async () => "available",
       create: async () => {

@@ -14,7 +14,7 @@
 - `backend/app/openapi.json` is generated from the live FastAPI route tree and is checked for exact path/schema synchronization.
 - Python bytecode is ignored by Git and the current repository tree contains no committed `.pyc` files.
 - The retired `artifacts/tsm-indiana-data-catalog-v1.1.json` pointer remains intentionally retired; the canonical catalog is `data/schemas/tsm-indiana-data-catalog-v1.json`.
-- Global government source-boundary placeholders remain fail-closed by design; site-specific parcel, FIRM, community, and vertical-control values must come from evidence rather than global constants.
+- Global government source-boundary placeholders remain resilient by design; site-specific parcel, FIRM, community, and vertical-control values must come from evidence rather than global constants.
 
 ## Engineering boundary
 

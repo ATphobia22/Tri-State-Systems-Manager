@@ -32,7 +32,7 @@ Honest product name: **evidence-governed digital shadow + scenario workspace**.
 │  Scenario Studio cascade scores (screening, not calibrated)     │
 ├─────────────────────────────────────────────────────────────────┤
 │ EVIDENCE / GOVERNANCE                                           │
-│  Merkle ledger · authority classes · fail-closed gage-zero      │
+│  Merkle ledger · authority classes · resilient gage-zero      │
 │  human_authorized requires reviewer identity                    │
 └─────────────────────────────────────────────────────────────────┘
 ```

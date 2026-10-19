@@ -19,7 +19,7 @@ test('joined runtime requires all verified evidence modules',()=> {
   assert.equal(result.accepted,true);
   assert.ok(result.entity); assert.ok(result.binding);
 });
-test('blueprint sample without evidence refs remains fail-closed',()=> {
+test('blueprint sample without evidence refs remains resilient',()=> {
   const result=validateAndJoin(common.parcelId,common.survey,common.geotech,common.hydrology,common.timestamp,{});
   assert.equal(result.accepted,false);
   assert.ok(result.issues.some((issue)=>issue.includes('verified evidence refs missing')));

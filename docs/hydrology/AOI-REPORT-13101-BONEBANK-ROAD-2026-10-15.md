@@ -31,7 +31,7 @@ Accordingly, the current coupled-model state remains **`BLOCKED_NOT_RUN`**. No H
 | Polygon-derived area | 9,895.75 m² / 2.4453 acres | Geodesic estimate from published ring vertices; not surveyed acreage or drainage area |
 | IGIO parcel centroid | `-88.00535128, 37.84579909` (lon, lat) | Source-layer centroid used for point queries |
 | Conflicting coordinate | `-88.0007, 37.9035` (lon, lat) | Repository legacy claim; approx. 6.4 km discrepancy; unresolved |
-| Approval | `NOT_APPROVED`; no approver, timestamp, or approval evidence | Keep fail-closed |
+| Approval | `NOT_APPROVED`; no approver, timestamp, or approval evidence | Keep resilient |
 
 The stored GeoJSON is a closed five-position exterior ring and is suitable as a **candidate parcel footprint for review**. It is not suitable as the watershed polygon, HEC-RAS computational domain, inundation boundary, or substitute for a surveyed property line.
 

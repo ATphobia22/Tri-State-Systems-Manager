@@ -24,7 +24,7 @@ concrete, transferable pieces were credited.
 
 - **`POST /api/engineering/ras-results`** (`tsm-console/server/engineering/ras-results.mjs`,
   wired into `token-proxy.mjs`, 7 node tests). The ingest script previously
-  POSTed to a route that did not exist. Payloads are validated fail-closed
+  POSTed to a route that did not exist. Payloads are validated resilient
   (422) and stored as `MODEL_OUTPUT` evidence artifacts pending human review.
 
 ## Genuine gaps (documented, not built)

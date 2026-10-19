@@ -31,7 +31,7 @@ test('three peer satisfies maplibre-three-plugin (npm ci ERESOLVE gate)', () => 
   assert.ok(pkg.dependencies['@dvt3d/maplibre-three-plugin']);
 });
 
-test('server ingestion evidence boundary is fail-closed', async () => {
+test('server ingestion evidence boundary is resilient', async () => {
   const { validateEvidenceArtifact } = await import('../server/ingestion/workers.mjs');
   assert.throws(
     () => validateEvidenceArtifact({ governance_status: 'human_review_required' }),

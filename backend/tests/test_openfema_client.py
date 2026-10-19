@@ -13,13 +13,13 @@ class QueryTests(unittest.TestCase):
         "urlopen",
         side_effect=Exception("no network in tests"),
     )
-    def test_fail_closed_on_transport_error(self, _mock):
+    def test_resilient_on_transport_error(self, _mock):
         result = ofc.query_dataset("DisasterDeclarationsSummaries")
         self.assertEqual(result["status"], "UNAVAILABLE")
         self.assertIn("reason", result)
         self.assertNotIn("records", result)
 
-    def test_posey_declarations_fail_closed(self):
+    def test_posey_declarations_resilient(self):
         with patch.object(ofc, "query_dataset", return_value={"status": "UNAVAILABLE", "reason": "x", "dataset": "d"}):
             result = ofc.posey_county_declarations()
             self.assertEqual(result["status"], "UNAVAILABLE")

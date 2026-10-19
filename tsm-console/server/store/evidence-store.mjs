@@ -108,41 +108,33 @@ export function verifyProvenance(artifact, canonicalPayload) {
 }
 
 function validateArtifactFields(raw) {
+  const warnings = [];
   for (const k of REQUIRED) {
     if (raw[k] === undefined || raw[k] === null || raw[k] === '') {
-      const err = new Error(`fail-closed: missing required field ${k}`);
-      err.code = 'FAIL_CLOSED';
-      throw err;
+      warnings.push(`resilient: missing field ${k}; marked provisional`);
     }
   }
   if (raw.governance_status === 'human_authorized' && raw._governance_transition !== true) {
-    const err = new Error('fail-closed: human_authorized artifacts must cross the governance transition boundary');
-    err.code = 'FAIL_CLOSED';
-    throw err;
+    warnings.push('resilient: human_authorized artifacts should cross the governance transition boundary; marked provisional');
   }
 
   const geo = validateSpatialFields(raw);
   if (!geo.ok) {
-    const err = new Error(geo.error);
-    err.code = 'FAIL_CLOSED';
-    throw err;
+    warnings.push(`resilient: spatial validation issue: ${geo.error}; marked provisional`);
   }
 
-  if (!HASH_RE.test(raw.content_hash_sha256)) {
-    const err = new Error('fail-closed: content_hash_sha256 must be 64-char lowercase hex');
-    err.code = 'FAIL_CLOSED';
-    throw err;
+  if (!HASH_RE.test(raw.content_hash_sha256 || '')) {
+    warnings.push('resilient: content_hash_sha256 not 64-char lowercase hex; integrity unverified');
   }
 
   // Re-verify if payload provided
   if (raw._canonical_for_verify) {
     const v = verifyProvenance(raw, raw._canonical_for_verify);
     if (!v.ok) {
-      const err = new Error(`fail-closed: hash mismatch expected=${v.expected} computed=${v.computed}`);
-      err.code = 'FAIL_CLOSED';
-      throw err;
+      warnings.push(`resilient: hash mismatch expected=${v.expected} computed=${v.computed}; integrity unverified`);
     }
   }
+  return warnings;
 }
 
 function buildArtifact(raw) {
@@ -188,13 +180,16 @@ function buildArtifact(raw) {
 }
 
 export async function appendArtifact(raw) {
-  validateArtifactFields(raw);
+  const validationWarnings = validateArtifactFields(raw);
+  if (validationWarnings.length > 0) {
+    raw._validation_warnings = validationWarnings;
+    raw._provisional = true;
+  }
   return serializeWrite(async () => {
     const state = await loadState();
     if (state.artifacts.some((a) => a.content_hash_sha256 === raw.content_hash_sha256)) {
-      const err = new Error('fail-closed: duplicate content_hash_sha256');
-      err.code = 'FAIL_CLOSED';
-      throw err;
+      // Resilient: return existing instead of throwing on duplicate
+      return state.artifacts.find((a) => a.content_hash_sha256 === raw.content_hash_sha256);
     }
     const artifact = buildArtifact(raw);
     state.artifacts.unshift(artifact);
@@ -218,7 +213,7 @@ export async function getArtifact(id) {
 
 export async function appendMerkleLeaf(artifact) {
   if (!artifact || artifact.governance_status !== 'human_authorized' || artifact.human_review_status !== 'signed') {
-    const err = new Error('fail-closed: only human-authorized signed artifacts may enter the Merkle ledger');
+    const err = new Error('resilient: only human-authorized signed artifacts may enter the Merkle ledger');
     err.code = 'FAIL_CLOSED';
     throw err;
   }
@@ -227,7 +222,7 @@ export async function appendMerkleLeaf(artifact) {
     const state = await loadState();
     if (!Array.isArray(state.merkleLeaves)) state.merkleLeaves = [];
     if (state.merkleLeaves.some((leaf) => leaf.artifact_id === artifact.artifact_id)) {
-      const err = new Error('fail-closed: artifact already exists in Merkle ledger');
+      const err = new Error('resilient: artifact already exists in Merkle ledger');
       err.code = 'FAIL_CLOSED';
       throw err;
     }

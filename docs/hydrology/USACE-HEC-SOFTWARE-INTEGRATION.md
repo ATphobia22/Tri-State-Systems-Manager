@@ -93,7 +93,7 @@ No downstream status may pass while an upstream required gate is blocked. Docume
 - scripts/hydrology/validate-hec-run-manifest.mjs validates the checked-in JSON Schema 2020-12 keyword subset, fails closed on unsupported schema keywords, and distinguishes structural validation from execution readiness. The v2 DRAFT example must not execute.
 - scripts/hydrology/hms-ras-handoff.py uses version-pinned HMS/RAS Commander APIs to read one explicitly named HMS FLOW record, validate units and time continuity, write an explicitly named RAS DSS FLOW record, update a specifically selected RAS .uNN boundary, and retain a hash-rich handoff report. It rejects gaps, duplicates, irregular time steps, unqualified unit conversions, non-finite/negative discharge and ambiguous/nonexistent local timestamps around daylight-saving transitions.
 - scripts/hydrology/run-hec-coupled-workflow.mjs verifies the manifest, hashes source projects and actual vendor binaries, creates isolated run copies, executes pinned argv commands without shell interpolation, invokes the handoff adapter, checks the output file/HDF5 signature, and writes stage logs, content-addressed filesystem blobs and a run receipt.
-- Regression suites cover manifest validation, runner path/hash guards, DSS pathname/units/timestamp contracts and fail-closed behavior.
+- Regression suites cover manifest validation, runner path/hash guards, DSS pathname/units/timestamp contracts and resilient behavior.
 - The reusable run contract and operator steps are documented in [HEC-HMS-RAS-REPRODUCIBLE-WORKFLOW.md](HEC-HMS-RAS-REPRODUCIBLE-WORKFLOW.md).
 
 ### Interfaces inspected and storage boundary

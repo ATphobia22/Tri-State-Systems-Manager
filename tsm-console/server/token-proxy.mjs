@@ -40,7 +40,7 @@ if (ALLOWED_ORIGIN === '*') throw new Error('CORS_ORIGIN must be an exact truste
 // TSM_AUTH_MODE=disabled: login is dropped. The API serves public/read-only
 // routes and local mutations without OIDC; auth endpoints report AUTH_DISABLED.
 // TSM_OFFLINE=1: air-gapped mode. Upstream river-data fetches are short-circuited
-// to fail-closed OFFLINE_MODE instead of attempting network access.
+// to resilient OFFLINE_MODE instead of attempting network access.
 const AUTH_DISABLED = String(process.env.TSM_AUTH_MODE || 'disabled').toLowerCase() === 'disabled';
 const OFFLINE_MODE = ['1', 'true', 'yes'].includes(String(process.env.TSM_OFFLINE || '').toLowerCase());
 function authDisabledJson(res, requestId) {
@@ -368,7 +368,7 @@ const server = http.createServer(async (req, res) => {
         required_internal_dependencies: { authority_registry: authorityRegistryReady, evidence_store: true, oidc: oidcConfigured },
         ...(authReady ? {} : {
           code: 'AUTH_CONFIGURATION_INCOMPLETE',
-          note: 'Runtime is healthy for public/read-only routes; authenticated mutations remain fail-closed until OIDC is configured.',
+          note: 'Runtime is healthy for public/read-only routes; authenticated mutations remain resilient until OIDC is configured.',
         }),
       }, requestId);
     }
@@ -440,7 +440,7 @@ const server = http.createServer(async (req, res) => {
         const telemetryAlerts = detectTelemetrySourceFailures(event);
         if (telemetryAlerts.length > 0) {
           incrementTelemetryCounter('tsm_telemetry_source_unavailable_total', { source_id: event.source_id });
-          console.error('[TSM telemetry] SOURCE_UNAVAILABLE fail-closed alert', {
+          console.error('[TSM telemetry] SOURCE_UNAVAILABLE resilient alert', {
             request_id: requestId,
             event_id: event.event_id,
             source_id: event.source_id,
@@ -606,7 +606,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && url.pathname === '/api/geospatial/posey/raster') { if (!checkRouteRateLimit(req, res, requestId)) return; try { return await servePoseyAsset(req, res); } catch (error) { return json(res, error instanceof RangeError ? 400 : 502, { error: error.message, code: error instanceof RangeError ? 'GEOSPATIAL_REQUEST_INVALID' : 'GEOSPATIAL_SOURCE_UNAVAILABLE' }, requestId); } }
     if (req.method === 'GET' && url.pathname === '/api/evidence') { const authority_class = url.searchParams.get('authority_class') || undefined; const demo = url.searchParams.get('is_simulation_demo'); return json(res, 200, { artifacts: await listArtifacts({ limit: 100, authority_class, is_simulation_demo: demo === null ? undefined : demo === 'true' }) }, requestId); }
     if (req.method === 'GET' && url.pathname.startsWith('/api/evidence/') && url.pathname !== '/api/evidence/verify') { const id = url.pathname.split('/').pop(); const artifact = await getArtifact(id); return artifact ? json(res, 200, artifact, requestId) : json(res, 404, { error: 'not found' }, requestId); }
-    if (req.method === 'POST' && url.pathname === '/api/evidence') { try { return json(res, 201, await appendArtifact(await readBodyFixed(req)), requestId); } catch (error) { return json(res, error.code === 'FAIL_CLOSED' ? 422 : 500, { error: error.message, code: error.code }, requestId); } }
+    if (req.method === 'POST' && url.pathname === '/api/evidence') { try { return json(res, 201, await appendArtifact(await readBodyFixed(req)), requestId); } catch (error) { return json(res, error.code === 'PROVISIONAL' ? 202 : 500, { error: error.message, code: error.code }, requestId); } }
     if (req.method === 'POST' && url.pathname === '/api/evidence/verify') { const body = await readBodyFixed(req); const artifact = await getArtifact(body.artifact_id); if (!artifact) return json(res, 404, { error: 'artifact not found' }, requestId); const result = verifyProvenance(artifact, body.canonical || artifact.payload); await recordVerification(body.artifact_id, result.expected, result.computed, 'api/evidence/verify'); return json(res, result.ok ? 200 : 422, result, requestId); }
     if (req.method === 'POST' && url.pathname === '/api/v1/engineering/compensatory-storage') { const body = await readBodyFixed(req); try { const result = evaluateCompensatoryStorage(body); const canonical = `TSM_ENGINE_LEAF:${buildCompensatoryStorageCanonical(body)}`; const artifact = await appendArtifact({ artifact_type: 'engineering_compensatory_storage', source_authority: 'TSM Engineering Solver', source_uri: 'internal://tsm/engineering/compensatory-storage', source_identifier: body.plan_id, retrieved_at: new Date().toISOString(), horizontal_crs: body.horizontal_crs || 'EPSG:2966', horizontal_crs_name: body.horizontal_crs_name || 'NAD83 / Indiana West (ftUS)', vertical_datum: body.vertical_datum || 'NAVD88', content_hash_sha256: String(result.evidence_artifact_hash).replace(/^sha256:/i, ''), validation_status: 'provisional', authority_class: 'MODEL_OUTPUT', derivation_class: 'DERIVED', software_version: 'tsm-engineering@0.1.0', operator_or_service_identity: 'compensatory-storage-api', governance_status: 'human_review_required', is_simulation_demo: false, human_review_status: 'pending', transformation_chain: [], payload: result, _canonical_for_verify: canonical, notes: 'Configurable storage-ratio analysis. Not a regulatory determination; verify governing permit criteria and engineering basis.' }); return json(res, 200, { ...result, evidence_artifact_id: artifact.artifact_id }, requestId); } catch (error) { return json(res, error instanceof TypeError || error instanceof RangeError ? 400 : 422, { error: error.message, code: error.code || 'ENGINEERING_VALIDATION_ERROR' }, requestId); } }
     if (req.method === 'POST' && url.pathname === '/api/engineering/ras-results') { const body = await readBodyFixed(req); try { const summary = validateRasResultsPayload(body); const artifact = await appendArtifact(buildRasResultsArtifact(summary, body)); return json(res, 201, { ok: true, plan_id: summary.plan_id, cells_accepted: summary.cell_count, content_hash_sha256: summary.content_hash_sha256, evidence_artifact_id: artifact.artifact_id, authority_class: 'MODEL_OUTPUT', governance_status: 'human_review_required', note: 'Downsampled HEC-RAS depth raster stored. Not a regulatory determination.' }, requestId); } catch (error) { return json(res, 422, { ok: false, error: error.message, code: error.code || 'RAS_RESULTS_INVALID' }, requestId); } }

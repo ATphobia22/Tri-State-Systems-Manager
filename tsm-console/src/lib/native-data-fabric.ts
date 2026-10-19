@@ -21,7 +21,7 @@ import {
  * desktop, or any native failure — the existing web fetch path is used, and
  * its behavior is unchanged. A native failure never produces fabricated
  * "live" data: in `auto` mode it falls back to the web path (which is itself
- * fail-closed); in explicit `native` mode it yields `unavailable`
+ * resilient); in explicit `native` mode it yields `unavailable`
  * observations.
  */
 
@@ -55,7 +55,7 @@ export interface NativeFetchGaugesResult {
 
 /**
  * A native-mapped gauge observation with its provenance label attached.
- * Live (and stale) native readings carry `OBSERVED`; fail-closed mappings
+ * Live (and stale) native readings carry `OBSERVED`; resilient mappings
  * carry `UNAVAILABLE`. Additive: every field of `RiverGaugeObservation` is
  * unchanged.
  */
@@ -200,7 +200,7 @@ export interface FetchNativeGaugeObservationsOptions {
  * them onto the app's gauge model, keyed to the given definitions.
  * Candidate (non-active) definitions keep their `candidate` status.
  * Throws if the native call fails — callers decide between web fallback
- * (`auto`) and fail-closed `unavailable` output (`native`).
+ * (`auto`) and resilient `unavailable` output (`native`).
  */
 export async function fetchNativeGaugeObservations(
   definitions: readonly RiverGaugeDefinition[],

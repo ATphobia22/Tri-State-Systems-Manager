@@ -8,7 +8,7 @@
 | Source | National Structure Inventory (NSI) API — `https://nsi.sec.usace.army.mil/nsiapi/structures?fips=18129&fmt=fc` |
 | County | Posey County, Indiana (FIPS 18129) |
 | Data class | **reference** — consequence/structure context only |
-| Acquisition script | `tools/acquisition/usace/fetch-nsi-structures.mjs` (Node stdlib only, fail-closed) |
+| Acquisition script | `tools/acquisition/usace/fetch-nsi-structures.mjs` (Node stdlib only, resilient) |
 | Output | `nsi-posey-in-18129-v1.geojson` + `.sha256` sidecar + `.receipt.json` |
 
 ## What this data is

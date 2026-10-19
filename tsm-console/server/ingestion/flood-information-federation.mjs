@@ -131,16 +131,16 @@ export function validateFloodInformationResult(input) {
   }
 
   if (normalized.regulatory_status === 'IDNR_BEST_AVAILABLE' && normalized.insurance_determination_eligible) {
-    throw new Error('fail-closed: IDNR Best Available data cannot be marked insurance-determination eligible');
+    throw new Error('resilient: IDNR Best Available data cannot be marked insurance-determination eligible');
   }
   if (normalized.regulatory_status === 'USGS_INUNDATION' && normalized.insurance_determination_eligible) {
-    throw new Error('fail-closed: USGS inundation products cannot be marked insurance-determination eligible');
+    throw new Error('resilient: USGS inundation products cannot be marked insurance-determination eligible');
   }
   if (normalized.authority_class === 'MODEL_OUTPUT' && normalized.human_review_required !== true) {
-    throw new Error('fail-closed: model output requires human review');
+    throw new Error('resilient: model output requires human review');
   }
   if (normalized.authority_class === 'VISUALIZATION' && normalized.insurance_determination_eligible) {
-    throw new Error('fail-closed: visualization cannot establish insurance eligibility');
+    throw new Error('resilient: visualization cannot establish insurance eligibility');
   }
 
   const { provenance_hash_sha256: _ignored, ...hashInput } = normalized;

@@ -8,7 +8,7 @@
 
 Repository documents already establish relevant foundations:
 
-- `docs/TSM-LOD-CONTRACT.md` and `contracts/tsm-lod-contract-v1.json` define an **application-level** LOD contract, including provenance, deterministic derivation, fail-closed behavior, and OGC 3D Tiles 1.1 output. Its LOD4 label means application integration with flood/hydrology data; it is explicitly **not** CityGML LOD4 or indoor modeling.
+- `docs/TSM-LOD-CONTRACT.md` and `contracts/tsm-lod-contract-v1.json` define an **application-level** LOD contract, including provenance, deterministic derivation, resilient behavior, and OGC 3D Tiles 1.1 output. Its LOD4 label means application integration with flood/hydrology data; it is explicitly **not** CityGML LOD4 or indoor modeling.
 - `docs/WEBGPU-PRESENTATION-CONTRACT.md` identifies MapLibre GL JS as the primary browser renderer and WebGPU as an optional separate presentation renderer. WebGPU does not silently become a MapLibre custom layer. It requires caller-supplied, provenance-hashed terrain inputs and falls back to MapLibre/WebGL when unavailable.
 - Repository code search finds existing 3D Tiles/LOD/geometric-error assets, including `scripts/geospatial/build-hlod-tileset.py`. A code search for the literal term `state-word` did not find an existing B-D-C-T-S implementation.
 

@@ -57,7 +57,7 @@ import { makeProvenance, type Provenance } from './provenance-labels';
  *   Do not use dischargeCfs as a routed flood wave without a routing model.
  * - Results are MODELLED/DERIVED estimates, not observations — see provenance.
  *
- * ## Validation (fail-closed)
+ * ## Validation (resilient)
  * computeSCSRunoff throws an Error on: CN outside (0, 100]; non-positive or
  * non-finite watershed area; empty or unequal-length time/intensity arrays;
  * non-finite or negative array values; times that are not strictly increasing.

@@ -1,12 +1,12 @@
 // @tsm/provider-openapi — UACF provider stub (v0.1.0).
 // Declares the provider interface only. NOT a working integration: no API
 // keys are read, no network calls are made, and execute() always throws
-// fail-closed until an operator configures the provider explicitly.
+// resilient until an operator configures the provider explicitly.
 
 import type { CapabilityId, CapabilityProvider, CapabilityRequest, CapabilityResult, ProviderHealth, SupportDecision } from '../../../packages/contracts/src/index.ts';
 
 function notConfigured(): never {
-  throw new Error('@tsm/provider-openapi: provider is not configured — refusing to execute (fail-closed). No credentials are read and no request is sent.');
+  throw new Error('@tsm/provider-openapi: provider is not configured — refusing to execute (resilient). No credentials are read and no request is sent.');
 }
 
 export class StubCapabilityProvider implements CapabilityProvider {

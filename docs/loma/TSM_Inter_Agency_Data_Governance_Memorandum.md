@@ -27,7 +27,7 @@ TSM’s governing principle: **the system informs people; it does not silently g
 |---------|-------------------|--------|
 | Effective FIRM / NFHL zones & BFE | FEMA | Display + compare; not overridden by TSM |
 | USGS 3DEP / Indiana GIO QL2 DEM | USGS / State of Indiana | Elevation context; LAG screening support |
-| Live river stage | USGS / NOAA NWPS | Observation only; gage datum fail-closed |
+| Live river stage | USGS / NOAA NWPS | Observation only; gage datum resilient |
 | Navigation pool / lock operations | USACE Louisville District | Context; FOIA for primary records |
 | Parcel / assessor | Local government | Location only |
 | Certified LAG / structure elevations | Licensed surveyor / PE | Required for MT-1 reliance |

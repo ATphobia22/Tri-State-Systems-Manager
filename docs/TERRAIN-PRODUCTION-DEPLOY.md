@@ -49,7 +49,7 @@ Until then the client correctly stays **FAIL-CLOSED** (flat imagery + hillshade 
 ### 1. Rebuild Pages (owner)
 
 Actions → **TSM Production Build & Pages Deploy** → Run workflow.
-Confirm 3D terrain enables on the published site (flat = fail-closed, check
+Confirm 3D terrain enables on the published site (flat = resilient, check
 the template made it into the build).
 
 ### 2. Full-production tiles (workstation, optional upgrade)
@@ -87,7 +87,7 @@ Prerequisites you must do in your DNS/hosting provider:
    (or set the `VITE_TSM_TERRAIN_RGB_URL_TEMPLATE` repository variable and
    reference it as `${{ vars.VITE_TSM_TERRAIN_RGB_URL_TEMPLATE }}`) and
    redeploy Pages. Never use `example.com`, `YOUR-HOST`, or `localhost` —
-   the fail-closed validator will keep terrain flat.
+   the resilient validator will keep terrain flat.
 
 ### 4. Evidence
 

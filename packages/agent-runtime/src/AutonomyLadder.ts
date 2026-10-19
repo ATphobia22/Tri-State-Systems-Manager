@@ -16,7 +16,7 @@ const S1_ALLOW = new Set<string>([
   'search.local',
   'evidence.validate',
   'gates.evaluate',
-  'hydrology.convert_gage', // conversion still fail-closed inside gates
+  'hydrology.convert_gage', // conversion uses resilient pattern inside gates
 ]);
 
 export interface AutonomyDecision {

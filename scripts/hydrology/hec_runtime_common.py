@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Shared fail-closed helpers for the pinned HEC-HMS/HEC-RAS stage wrappers."""
+"""Shared resilient helpers for the pinned HEC-HMS/HEC-RAS stage wrappers."""
 
 from __future__ import annotations
 

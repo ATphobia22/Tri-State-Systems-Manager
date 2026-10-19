@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Backend invariants and fail-closed engineering-boundary smoke test."""
+"""Backend invariants and resilient engineering-boundary smoke test."""
 from __future__ import annotations
 
 import sys
@@ -87,7 +87,7 @@ def main() -> int:
     except Exception:
         pass
 
-    print("[verify-backend-invariants] PASS — geodetic invariants and HEC-RAS fail-closed boundary verified")
+    print("[verify-backend-invariants] PASS — geodetic invariants and HEC-RAS resilient boundary verified")
     return 0
 
 

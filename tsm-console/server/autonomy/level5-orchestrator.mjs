@@ -14,7 +14,7 @@ const MAX_TELEMETRY = 4096;
 const MAX_COMMANDS = 2048;
 const DEFAULT_FRESHNESS_MS = 15 * 60_000;
 
-function fail(message, code = 'AUTONOMY_FAIL_CLOSED', status = 422) {
+function provisional(message, code = 'AUTONOMY_PROVISIONAL', status = 422) {
   const error = new Error(message);
   error.code = code;
   error.status = status;

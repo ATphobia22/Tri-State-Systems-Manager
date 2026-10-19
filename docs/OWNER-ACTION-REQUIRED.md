@@ -100,7 +100,7 @@ queried on 2026-09-25:
 | UNWK2 Ohio River at J.T. Myers (NWS) | NWS NWPS API — same, no datum field | **LEFT NULL** |
 
 Even when USGS station descriptions publish a gage datum, it is conventionally
-**NGVD29**, not NAVD88 — and the task rule (and fail-closed doctrine) forbids
+**NGVD29**, not NAVD88 — and the task rule (and resilient doctrine) forbids
 the repo from converting datums itself. A null here is the correct,
 honest state.
 

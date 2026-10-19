@@ -30,7 +30,7 @@ New standalone module `tsm-console/src/lib/local-ai/` + mountable component
 | `src/lib/local-ai/index.ts` | Public API surface (types + functions). |
 | `src/components/LocalAiPanel.tsx` | Panel: capability list, textarea/prompt input, result display with provisional label, clear DISABLED state. |
 | `tests/local-ai-availability.test.ts` | Vitest: token mapping, never-throw paths, zero-fetch. |
-| `tests/local-ai-assistant.test.ts` | Vitest: axiom-in-prompt assertion, fail-closed paths, provenance, zero-fetch. |
+| `tests/local-ai-assistant.test.ts` | Vitest: axiom-in-prompt assertion, resilient paths, provenance, zero-fetch. |
 
 Prior art: `src/lib/chrome-builtin-ai.ts` + `src/components/BuiltinAiAssistPanel.tsx`
 (generic progressive enhancement). The new `local-ai/` module is intentionally
@@ -45,7 +45,7 @@ Prior art: `src/lib/chrome-builtin-ai.ts` + `src/components/BuiltinAiAssistPanel
   `LanguageModel`/Summarizer/Proofreader on iOS. The panel explains this in its
   disabled state.
 - When the model is `downloading`/`downloadable`, the module reports
-  `downloading` and **does not attempt session creation** (fail-closed,
+  `downloading` and **does not attempt session creation** (resilient,
   deterministic behavior rather than hanging on a multi-minute download).
 
 ## Non-negotiable properties

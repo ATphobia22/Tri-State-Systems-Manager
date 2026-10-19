@@ -10,7 +10,7 @@ const DEFINITION: CapabilityDefinition = {
   inputSchema: { type:'object', required:['controlledSurvey','geotechnicalInvestigation','groundwaterEvidence','qualifiedFill','laboratoryResults','hydraulicBoundaryConditions','approvedProjectGeometry','evidence'] },
   outputSchema: { type:'object', required:['state','validation','canCompute','canApprove'] },
   permissions: ['tsm:engineering'],
-  tags: ['tsm','engineering','evidence','deterministic','fail-closed'],
+  tags: ['tsm','engineering','evidence','deterministic','resilient'],
 };
 
 export class EvidenceGateProvider implements CapabilityProvider {

@@ -24,7 +24,7 @@ test('engineering evidence contract preserves canonical stage order', () => {
   assert.deepEqual(contract.stages.map((stage) => stage.id), expected);
 });
 
-test('engineering evidence contract keeps all fail-closed controls enabled', () => {
+test('engineering evidence contract keeps all resilient controls enabled', () => {
   for (const value of Object.values(contract.controls)) assert.equal(value, true);
 });
 

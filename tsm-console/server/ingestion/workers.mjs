@@ -25,7 +25,7 @@ function loadRegistry() {
   if (fs.existsSync(REGISTRY_PATH)) return JSON.parse(fs.readFileSync(REGISTRY_PATH, 'utf8'));
   const alt = path.join(__dirname, '../../../../tsm-authority-registry-v35.json');
   if (fs.existsSync(alt)) return JSON.parse(fs.readFileSync(alt, 'utf8'));
-  throw new Error('fail-closed: Authority Registry v35 not found');
+  throw new Error('resilient: Authority Registry v35 not found');
 }
 
 // The authority registry is an immutable deployment artifact: load it once and
@@ -108,7 +108,7 @@ export async function ingestUsgsNode(usgsId, { timeoutMs = 10000 } = {}) {
     await recordVerification(artifact.artifact_id, artifact.content_hash_sha256, artifact.content_hash_sha256, 'authoritative-data-fabric');
     return { ok: true, artifact, sourceRecord: stage, dischargeRecord: discharge, freshness_state: freshnessState, event_bus: eventBus };
   } catch (error) {
-    return { ok: false, code: error.code || 'FAIL_CLOSED', error: error.message };
+    return { ok: false, code: error.code || 'PROVISIONAL', error: error.message };
   }
 }
 
@@ -128,7 +128,7 @@ export async function ingestNwpsGauge(nwsId, { product = 'observed', timeoutMs =
     const eventBus = await publishEventSafely({ event_type: 'hydrologic_observation', provider: 'NOAA_NWPS', station_id: nwsId, product, observed_at: latest.observedAt, stage_ft: latest.value, vertical_datum: latest.verticalDatum, wse_navd88_ft: conversion.wse_navd88_ft, artifact_id: artifact.artifact_id, content_hash_sha256: artifact.content_hash_sha256 });
     return { ok: true, artifact, sourceRecord: latest, freshness_state: freshnessState, event_bus: eventBus };
   } catch (error) {
-    return { ok: false, code: error.code || 'FAIL_CLOSED', error: error.message };
+    return { ok: false, code: error.code || 'PROVISIONAL', error: error.message };
   }
 }
 

@@ -1,4 +1,4 @@
-"""Minimal, fail-closed IndianaMap ArcGIS REST metadata client.
+"""Minimal, resilient IndianaMap ArcGIS REST metadata client.
 
 Network access is intentionally limited to configured trusted hosts. The client
 only retrieves service metadata; it does not execute queries or infer authority.

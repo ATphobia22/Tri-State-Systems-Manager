@@ -91,7 +91,7 @@ function MapTwinView() {
           {fetching ? 'Fetching…' : 'Fetch live snapshot'}
         </button>
         <p style={{ color: t.color.text.secondary, fontSize: t.font.size.sm, margin: '0.5rem 0 0' }}>
-          One-time USGS snapshot on press. No automatic polling. Provisional values; site transfer stays fail-closed.
+          One-time USGS snapshot on press. No automatic polling. Provisional values; site transfer stays resilient.
         </p>
       </div>
       <div style={{ background: t.color.surface.base, borderRadius: t.radius.lg, padding: '1rem', border: `1px solid ${t.color.surface.card}` }}>

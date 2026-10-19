@@ -2,7 +2,7 @@
 
 FEMA's open-data API (no key required): `https://www.fema.gov/api/open/v2/{DataSetName}`.
 Verified live 2026-09-30. Client: `backend/geospatial/fema/openfema_client.py`
-(stdlib only, fail-closed; tests in `backend/tests/test_openfema_client.py`).
+(stdlib only, resilient; tests in `backend/tests/test_openfema_client.py`).
 
 ## Datasets wired
 

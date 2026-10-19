@@ -100,7 +100,7 @@ All blueprint modules now exported from `tiles-3d-renderer-layer.ts`:
 - ✅ **BFE 369.1 ft NAVD88** used consistently (regulatory, FIS 18129CV000A Table 9)
 - ✅ **No AWS, no Cesium, no Mapbox**
 - ✅ **No new charter references** (memorial is memorial-only per 2026-10-19 directive)
-- ✅ **Resilient patterns** used (graceful degradation, not fail-closed blocking)
+- ✅ **Resilient patterns** used (graceful degradation, not resilient blocking)
 - ✅ **Never fabricate:** All values sourced from verified records
 
 ---

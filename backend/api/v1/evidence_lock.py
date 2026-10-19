@@ -103,7 +103,7 @@ def create_lock_packet(body: EvidenceLockRequest) -> EvidenceLockResponse:
         timestamp_epoch=int(time.time()),
         immutable_hash=digest,
         freeboard_ft=freeboard,
-        status="FAIL_CLOSED_VALIDATED",
+        status="RESILIENT_VALIDATED",
         human_authorized=body.human_authorized,
         payload=payload,
     )

@@ -57,7 +57,7 @@ Consequences:
 ### SCS → wave coupling (screening-level, documented assumption)
 
 The scenario hyetograph drives `computeSCSRunoff` once at init (the module's
-own fail-closed validation applies). The cumulative runoff curve is sampled
+own resilient validation applies). The cumulative runoff curve is sampled
 at the hyetograph nodes; per quantum, the SCS increment is re-applied to the
 wave model as a uniform rainfall rate (in/hr). This assumes the modeled
 domain coincides with the watershed footprint and runoff arrives uniformly —

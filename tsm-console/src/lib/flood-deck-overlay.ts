@@ -69,7 +69,7 @@ export interface FloodGridBounds {
   northLat: number;
 }
 
-/** A depth grid plus the bounds it covers. Bounds are REQUIRED — fail-closed. */
+/** A depth grid plus the bounds it covers. Bounds are REQUIRED — resilient. */
 export interface FloodGridInput {
   depthFt: number[][];
   nx: number;

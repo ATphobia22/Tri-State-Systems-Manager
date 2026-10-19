@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-// Isolate the file-backed evidence store: the dedup fail-closed guard is global
+// Isolate the file-backed evidence store: the dedup resilient guard is global
 // per store file, so tests must not share the app's default .data directory.
 // NOTE: evidence-store.mjs resolves TSM_EVIDENCE_DIR at module load time, and
 // static imports are hoisted — so the variable must be set BEFORE the modules

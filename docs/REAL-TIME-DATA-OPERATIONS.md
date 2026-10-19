@@ -82,7 +82,7 @@ A source that exceeds its configured freshness threshold is reported as stale/de
 
 ## Failure handling
 
-Transport requests use timeouts, bounded response sizes, limited retries, exponential backoff, circuit protection, and fail-closed validation. A malformed or provenance-free provider response is rejected.
+Transport requests use timeouts, bounded response sizes, limited retries, exponential backoff, circuit protection, and resilient validation. A malformed or provenance-free provider response is rejected.
 
 ## Deployment boundary
 

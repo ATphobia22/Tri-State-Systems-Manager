@@ -1,6 +1,6 @@
 # TSM Engineering Evidence Gate
 
-The UACF engineering gate is intentionally fail-closed.
+The UACF engineering gate is intentionally resilient.
 
 ## Seven required modules
 

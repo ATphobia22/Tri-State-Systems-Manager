@@ -1,7 +1,7 @@
 # Posey XSoft parcel -> floodplain -> terrain spatial join
 
 Verified live 2026-09-30. Implementation:
-`backend/geospatial/posey/parcel_flood_join.py` (stdlib only, fail-closed),
+`backend/geospatial/posey/parcel_flood_join.py` (stdlib only, resilient),
 tests in `backend/tests/test_posey_parcel_flood_join.py` (9/9 passing),
 worked evidence in
 `data/posey-county/evidence/parcel-65-27-08-130-051600-018-join-v1.json`.
@@ -54,7 +54,7 @@ Elevation Point Query Service (`epqs.nationalmap.gov/v1/json`):
   dynamic elevation service; accuracy varies with source data
 * Resolution: 1 m, raster 113780
 
-## 4. FEMA NFHL — fail-closed, not fabricated
+## 4. FEMA NFHL — resilient, not fabricated
 
 The FEMA NFHL REST endpoint (`hazards.fema.gov`) is intermittently
 unreachable from this environment. The parcel-specific FIRM panel is

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Join building footprints to Terrain-RGB elevations (ft NAVD88).
 
-Reuses the same fail-closed TerrainSampler rules as derive-building-models.py:
+Reuses the same resilient TerrainSampler rules as derive-building-models.py:
   * null elevation = unavailable (never zero)
   * mean/min/max + sample count written on each feature
   * no invented WSE; optional --wse-ft for screening flood depth only

@@ -76,7 +76,7 @@ export class SessionLiveShadow {
       this.lastFetchAt = new Date().toISOString();
       this.ticks += 1;
       if (snaps.every((s) => s.status === 'unavailable') && primary.source === 'UNAVAILABLE') {
-        this.error = 'Shadow tick: all stations unavailable (fail-closed; no fabricated values).';
+        this.error = 'Shadow tick: all stations unavailable (resilient; no fabricated values).';
       }
     } catch (e) {
       this.error = e instanceof Error ? e.message : 'Shadow tick failed';

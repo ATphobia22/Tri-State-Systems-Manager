@@ -29,7 +29,7 @@ const generateDef: CapabilityDefinition = {
 
 const convertGageDef: CapabilityDefinition = {
   id: 'hydrology.convert_gage',
-  name: 'Gage height to NAVD88 (fail-closed)',
+  name: 'Gage height to NAVD88 (resilient)',
   description: 'Converts gage height only when conversionPublished is true; never invents WSE.',
   version: '1.0.0',
   inputSchema: {
@@ -44,7 +44,7 @@ const convertGageDef: CapabilityDefinition = {
   },
   outputSchema: { type: 'object' },
   permissions: [],
-  tags: ['hydrology', 'local', 'offline', 'fail-closed'],
+  tags: ['hydrology', 'local', 'offline', 'resilient'],
 };
 
 const gatesEvaluateDef: CapabilityDefinition = {

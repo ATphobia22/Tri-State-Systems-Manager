@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Exact, fail-closed HEC-HMS DSS FLOW to HEC-RAS DSS boundary handoff.
+"""Exact, resilient HEC-HMS DSS FLOW to HEC-RAS DSS boundary handoff.
 
 Pinned library interface: hms-commander 0.4.0 and ras-commander 0.105.0.
 The adapter never chooses a first-match hydrograph, fills gaps, creates fake

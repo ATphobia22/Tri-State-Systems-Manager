@@ -8,7 +8,7 @@
 | Layer | Tool | Role for TSM |
 |-------|------|----------------|
 | **1 — Baseline SAST** | **CodeQL** (GitHub native) | JS/TS + Python deep analysis on PR/push; results in Security tab |
-| **2 — Fast / custom rules** | **Semgrep** (optional later) | Project-specific patterns (e.g. fail-closed gates, no silent NAVD88 conversion) |
+| **2 — Fast / custom rules** | **Semgrep** (optional later) | Project-specific patterns (e.g. resilient gates, no silent NAVD88 conversion) |
 | **3 — Dependencies** | Existing **Dependabot** + optional OSV | Keep action/npm pins current |
 | **4 — Containers** | **Trivy** only if Docker images are release artifacts | Scan images before publish |
 | **5 — Python-only** | Bandit only if CodeQL gaps appear | Avoid duplicate noise |

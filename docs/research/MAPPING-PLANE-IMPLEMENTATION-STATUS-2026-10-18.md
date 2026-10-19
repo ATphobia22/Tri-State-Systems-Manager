@@ -22,7 +22,7 @@
 - A MapLibre-hosted Three.js `TilesRenderer` integration with camera/resolution synchronization and screen-space-error configuration.
 - A conservative HLOD geometric-error floor for empty ADD partition nodes; the new test suite is wired into geospatial CI.
 - The active `ThreeDTilesLayer` adjusts camera near/far clipping planes as zoom changes and refreshes the 3D Tiles renderer's pixel resolution on container/map resize.
-- `resolveThreeDTilesetUrl` rejects unsupported schemes, embedded credentials, control characters, backslashes, and protocol-relative URLs before loader initialization; the optional MapScene adapter uses a matching fail-closed URL normalizer.
+- `resolveThreeDTilesetUrl` rejects unsupported schemes, embedded credentials, control characters, backslashes, and protocol-relative URLs before loader initialization; the optional MapScene adapter uses a matching resilient URL normalizer.
 - Main's dependency conflict was resolved upstream in commit `432263ee` by aligning the Three.js package and lockfile with the bridge plugin's peer range. This branch preserves that resolution and adds renderer tests without editing the lockfile.
 
 ### Not yet a complete feature

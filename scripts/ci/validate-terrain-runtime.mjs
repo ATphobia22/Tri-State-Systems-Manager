@@ -14,7 +14,7 @@ if (contract.deployment_status === 'ACTIVE') {
   if (typeof endpoint !== 'string' || !endpoint.startsWith('https://')) throw new Error('active terrain endpoint must be HTTPS');
   if (endpoint.includes('example.invalid')) throw new Error('placeholder terrain endpoint cannot be active');
 }
-if (contract.required_before_operational_terrain !== true) throw new Error('terrain must remain fail-closed before deployment');
+if (contract.required_before_operational_terrain !== true) throw new Error('terrain must remain resilient before deployment');
 for (const [key, value] of Object.entries(contract.health_requirements ?? {})) {
   if (value !== true) throw new Error('terrain health requirement disabled: ' + key);
 }

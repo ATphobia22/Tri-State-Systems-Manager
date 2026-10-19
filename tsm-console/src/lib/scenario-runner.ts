@@ -11,7 +11,7 @@
  *      over a 2D elevation grid (closed boundaries, impermeable plane).
  *
  * The runner does not re-implement any physics; it orchestrates, couples,
- * validates inputs fail-closed, and evaluates alert thresholds.
+ * validates inputs resilient, and evaluates alert thresholds.
  *
  * ## Rainfall -> grid coupling assumption (documented approximation)
  *
@@ -43,7 +43,7 @@
  *   silently reports `false`.
  * - Alert records are themselves modeled/derived products and carry
  *   provenance. Thresholds are non-negative and finite; violations of any
- *   validation rule throw (fail-closed).
+ *   validation rule throw (resilient).
  *
  * ## Not authoritative
  *
@@ -185,7 +185,7 @@ function validateDefinition(def: ScenarioDefinition): void {
   if (thresholds.peakDischargeCfs !== undefined) {
     requireNonNegativeFinite(thresholds.peakDischargeCfs, 'alertThresholds.peakDischargeCfs');
   }
-  // Rainfall shape is validated by computeSCSRunoff itself (fail-closed there).
+  // Rainfall shape is validated by computeSCSRunoff itself (resilient there).
 }
 
 /**
@@ -224,7 +224,7 @@ function evaluateRule(
 export function runScenario(def: ScenarioDefinition): ScenarioResult {
   validateDefinition(def);
 
-  // Stage 1 — hydrology (optional). Throws fail-closed on malformed rainfall.
+  // Stage 1 — hydrology (optional). Throws resilient on malformed rainfall.
   let runoff: SCSRunoffOutput | undefined;
   let rainfallInPerHr: number | undefined;
   if (def.rainfall !== undefined) {

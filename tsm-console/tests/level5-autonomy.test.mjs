@@ -12,7 +12,7 @@ async function loadModule() {
   return import(url.href + '?test=' + Math.random());
 }
 
-test('Level 5 evaluation is bounded and fail-closed around stale telemetry', async () => {
+test('Level 5 evaluation is bounded and resilient around stale telemetry', async () => {
   const { evaluateLevel5 } = await loadModule();
   const now = Date.now();
   const proposal = evaluateLevel5({

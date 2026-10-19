@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 
 const appPath = new URL('../digital-twin-app-v2.tsx', import.meta.url);
 
-test('digital twin v2 is fail-closed around WTHGIS and OpenMI evidence', async () => {
+test('digital twin v2 is resilient around WTHGIS and OpenMI evidence', async () => {
   const source = await fs.readFile(appPath, 'utf8');
 
   assert.match(source, /POSEY_WTHGIS_URL/);

@@ -5,7 +5,7 @@ Follow-on to foundation pass A→B→C→D.
 | Suggestion | Action |
 |------------|--------|
 | Wire new tests into verify | `test:gates-hydrology`, `test:autonomy-ladder` in `verify:uacf` |
-| providers/local only | Extended with fail-closed hydrology + gates capabilities (no cloud) |
+| providers/local only | Extended with resilient hydrology + gates capabilities (no cloud) |
 | packages/geo | Site frame EPSG:2966 / NAVD88 + Bonebank + gage metadata |
 | packages/hydraulics | Simulation authority classifier (never regulatory) |
 | plugins/ | `hydrology`, `grants`, `evidence-ledger` real adapters |

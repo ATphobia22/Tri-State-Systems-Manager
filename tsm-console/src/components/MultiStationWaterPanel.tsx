@@ -27,7 +27,7 @@ export default function MultiStationWaterPanel({ stations, busy, error, onFetchA
     >
       <div style={{ fontWeight: 700, color: '#f8fafc' }}>Live water levels (multi-station)</div>
       <div style={{ color: '#94a3b8', fontSize: 11, marginTop: 2 }}>
-        Button-only · parallel USGS OGC · each station fail-closed independently · GAGE_DATUM until conversion published
+        Button-only · parallel USGS OGC · each station resilient independently · GAGE_DATUM until conversion published
       </div>
       <button
         type="button"

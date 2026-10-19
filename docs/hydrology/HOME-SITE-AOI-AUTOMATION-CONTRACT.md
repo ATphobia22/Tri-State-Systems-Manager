@@ -42,7 +42,7 @@ A user must be able to supply an address and/or site photograph and have TSM orc
    - Preserve solver logs, mass balance/convergence diagnostics, output hashes, and review record for any authorized run.
 8. **Report and continuous verification**
    - Generate an evidence-linked report and checklist after each stage.
-   - Tests cover schema, geometry, sentinel handling, CRS/unit conversion, duplicate features, stale source metadata, failed downloads, cache integrity, and fail-closed model gating.
+   - Tests cover schema, geometry, sentinel handling, CRS/unit conversion, duplicate features, stale source metadata, failed downloads, cache integrity, and resilient model gating.
    - CI must run on pull requests and main; status is green only when actual required checks succeed. Missing statuses are unknown, never success.
 
 ## Site-specific current state

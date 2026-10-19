@@ -15,7 +15,7 @@
  * call sequence, two runs are bit-identical (see `stateHash()`).
  *
  * ## SCS → wave coupling (screening-level, documented assumption)
- * The scenario hyetograph drives `computeSCSRunoff` at init (fail-closed
+ * The scenario hyetograph drives `computeSCSRunoff` at init (resilient
  * validation + watershed totals). The cumulative runoff curve is sampled at
  * the hyetograph nodes; SCS runoff is then re-applied to the wave model as a
  * uniform rainfall rate (in/hr) over each fixed quantum. This is a
@@ -598,5 +598,5 @@ function validateConfig(config: FloodSimEngineConfig): void {
       fail(`structure ${s.id}: firstFloorElevFt must be finite`);
     }
   }
-  // Hyetograph shape is validated fail-closed by computeSCSRunoff at init.
+  // Hyetograph shape is validated resilient by computeSCSRunoff at init.
 }

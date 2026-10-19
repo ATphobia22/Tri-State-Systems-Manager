@@ -22,7 +22,7 @@ It also computes deadline math: days remaining on the 90-day track and
 whether the track is OPEN or EXPIRED.
 
 The overall verdict is **READY** only when every item is PASS. Any FAIL or
-MISSING item yields **NOT_READY** (fail-closed; exit code 1).
+MISSING item yields **NOT_READY** (resilient; exit code 1).
 
 ## Usage
 

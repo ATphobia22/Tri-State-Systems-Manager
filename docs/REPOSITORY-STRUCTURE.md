@@ -11,7 +11,7 @@ This document defines the expected ownership and authority boundaries for the Tr
 
 | Path | Authority / purpose | Change standard |
 |---|---|---|
-| `.github/workflows/` | CI/CD policy and automated verification | Security-sensitive; preserve fail-closed behavior |
+| `.github/workflows/` | CI/CD policy and automated verification | Security-sensitive; preserve resilient behavior |
 | `backend/` | Server-side Python helpers and government-domain services | Typed, validated, testable |
 | `data/` | Source-controlled datasets, registries, schemas, and provenance-controlled artifacts | Preserve provenance; never silently overwrite authoritative data |
 | `db/` | Database migrations and persistence definitions | Forward-compatible, reviewed, reversible where practical |

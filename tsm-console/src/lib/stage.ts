@@ -26,7 +26,7 @@ import { tsmApiUrl } from './api-base';
  * candidate only while the recorded SIR/NWPS product-semantic conflict remains
  * unresolved. The conversion is not published and station WSE remains null
  * until that conflict is reconciled. Transfer to any project site additionally
- * requires a validated hydraulic profile and remains fail-closed.
+ * requires a validated hydraulic profile and remains resilient.
  *
  * USGS instantaneous values carry approval_status Provisional (subject to
  * revision). Missing values are returned as unavailable, never fabricated.

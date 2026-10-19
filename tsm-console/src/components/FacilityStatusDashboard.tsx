@@ -136,7 +136,7 @@ export default function FacilityStatusDashboard({
       setLocalStations(snaps);
       setRefreshedAt(new Date().toISOString());
       if (snaps.every((s) => s.status === 'unavailable')) {
-        setError('All stations unavailable (fail-closed).');
+        setError('All stations unavailable (resilient).');
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Stage refresh failed');

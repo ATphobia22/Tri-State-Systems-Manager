@@ -20,12 +20,12 @@ export function validateSpatialFields(raw) {
   if (epsg != null && REJECTED_EPSG.has(epsg)) {
     return {
       ok: false,
-      error: `fail-closed: rejected horizontal CRS EPSG:${epsg} — use EPSG:${AUTHORITATIVE_EPSG}`,
+      error: `resilient: rejected horizontal CRS EPSG:${epsg} — use EPSG:${AUTHORITATIVE_EPSG}`,
     };
   }
   const vd = raw.vertical_datum ?? raw.vertical_reference?.vertical_datum;
   if (vd && String(vd).toUpperCase().includes('NAVD29')) {
-    return { ok: false, error: 'fail-closed: NAVD29 not accepted for new artifacts; use NAVD88' };
+    return { ok: false, error: 'resilient: NAVD29 not accepted for new artifacts; use NAVD88' };
   }
   // Warn-only if non-2966 without chain
   if (epsg != null && epsg !== AUTHORITATIVE_EPSG) {
@@ -33,7 +33,7 @@ export function validateSpatialFields(raw) {
     if (!Array.isArray(chain) || chain.length === 0) {
       return {
         ok: false,
-        error: `fail-closed: EPSG:${epsg} requires non-empty transformation_chain (analysis frame is EPSG:${AUTHORITATIVE_EPSG})`,
+        error: `resilient: EPSG:${epsg} requires non-empty transformation_chain (analysis frame is EPSG:${AUTHORITATIVE_EPSG})`,
       };
     }
   }

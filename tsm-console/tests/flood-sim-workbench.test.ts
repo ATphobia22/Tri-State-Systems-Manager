@@ -33,7 +33,7 @@ describe('Hazus damage monotonicity (wired module)', () => {
     }
   });
 
-  it('yields zero damage at zero depth and throws fail-closed on bad input', () => {
+  it('yields zero damage at zero depth and throws resilient on bad input', () => {
     const out = computeFloodDamage({ occupancyType: 'RES-1SNB', depthFt: 0, structureValueUsd: 100000 });
     expect(out.totalUsd).toBe(0);
     expect(() =>
@@ -164,7 +164,7 @@ describe('cutFillVolumes', () => {
     expect(r.provenance).toBe('simulation');
   });
 
-  it('is fail-closed on dimension mismatch', () => {
+  it('is resilient on dimension mismatch', () => {
     expect(() => cutFillVolumes([[1]], [[1, 2]], 10)).toThrow();
   });
 });

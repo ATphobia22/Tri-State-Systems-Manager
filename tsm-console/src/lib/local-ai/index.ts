@@ -3,7 +3,7 @@
  *
  * Standalone: does not depend on `flood-sim/` or any other TSM subsystem.
  * Consumed either by mounting `<LocalAiPanel/>` or by calling the assistant
- * functions directly. All AI output is provisional, labeled, and fail-closed.
+ * functions directly. All AI output is provisional, labeled, and resilient.
  */
 
 export {

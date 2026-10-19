@@ -16,7 +16,7 @@ test('modern HEC-RAS runtime artifacts exist', () => {
   for (const path of required) assert.equal(existsSync(new URL(path, root)), true, path);
 });
 
-test('runtime is fail-closed and read-only for HDF5', () => {
+test('runtime is resilient and read-only for HDF5', () => {
   const reader = readFileSync(new URL('packages/hydraulics/python/tsm_hec_ras/hdf5_reader.py', root), 'utf8');
   const runtime = readFileSync(new URL('packages/hydraulics/python/tsm_hec_ras/runtime.py', root), 'utf8');
   assert.match(reader, /Read-only HEC-RAS HDF5 result inspection/);

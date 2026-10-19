@@ -6,7 +6,7 @@
   This is the J.T. Myers Locks and Dam reach (USACE NID KY03060).
 - **Hovey Lake FWA / Twin Swamps:** real IDNR properties in Posey County;
   coordinates as contributed, not field-verified.
-- **gage_zero_navd88: null** is intentional fail-closed — no unpublished datum
+- **gage_zero_navd88: null** is intentional resilient — no unpublished datum
   conversion is applied. Missing means unavailable, never zero or invented.
 - **Not ingested:** the accompanying `MapManager.js` (references PMTiles that
   return HTTP 404), `floodSim.wgsl` (bathtub fill labeled "hydrodynamic" —

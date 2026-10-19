@@ -24,7 +24,7 @@ Status: implemented on main.
    - Uses verified USGS station 03322420 associated with John T. Myers Locks and Dam.
    - Does not relabel 03322000, which remains the separate Ohio River at Evansville station.
    - Uses the modern USGS Water Data API adapter already present in TSM.
-   - AbortController timeout and response-shape validation remain fail-closed.
+   - AbortController timeout and response-shape validation remain resilient.
    - Last-known-good observations are explicitly marked STALE_CACHE and expose cache age.
    - Source station metadata and observation provenance remain distinct from TSM-derived dam influence.
 

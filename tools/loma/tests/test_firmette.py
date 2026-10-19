@@ -1,4 +1,4 @@
-"""Tests for tools/loma/firmette.py — offline fail-closed paths only.
+"""Tests for tools/loma/firmette.py — offline resilient paths only.
 
 No network calls are made by these tests: every generation uses
 base_map_mode="offline".

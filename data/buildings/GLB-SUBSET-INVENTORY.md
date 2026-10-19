@@ -6,7 +6,7 @@
 |-------|------:|------|
 | GeoJSON features (`height_m`, `achievedLod`) | **22,815** | `tsm-console/public/3d-tiles/buildings-3d.json` |
 | LOD2 roof planes (RANSAC) | **7,453** | properties on GeoJSON features |
-| LOD1 fail-closed remainder | **15,362** | no fabricated roof geometry |
+| LOD1 resilient remainder | **15,362** | no fabricated roof geometry |
 | Mesh GLBs (LOD1 prisms / meshes) | **~4,121** | `tsm-console/public/3d-tiles/buildings/<sourceObjectId>.glb` |
 | IGIO CI acquire target | **23,082** | `acquire-and-enrich-igio-posey-buildings.py --expected-count` |
 
