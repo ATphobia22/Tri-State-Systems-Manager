@@ -8,8 +8,8 @@
  * camera, allowing 3D Tiles to overlay the 2D map. No Cesium ion token
  * required — self-hosted tilesets only.
  *
- * Fail-closed: if the tileset URL is invalid or unreachable, the layer
- * reports unavailable rather than fabricating geometry.
+ * Graceful degradation: invalid or unreachable tilesets show an unavailable
+ * layer status while the surrounding 2D map remains interactive. No geometry is fabricated.
  */
 
 import { useEffect, useRef, useState } from 'react';
@@ -295,18 +295,35 @@ export default function ThreeDTilesLayer({
   if (status === 'error') {
     return (
       <div
-        style={{
-          padding: '1rem',
-          background: 'rgba(239,68,68,.1)',
-          border: '1px solid rgba(239,68,68,.3)',
-          borderRadius: 8,
-          color: '#fca5a5',
-          fontSize: '0.85rem',
-        }}
+        role="status"
+        aria-live="polite"
+        style={overlay
+          ? {
+              position: 'absolute',
+              left: 12,
+              bottom: 12,
+              zIndex: 30,
+              maxWidth: 'min(92%, 440px)',
+              padding: '0.75rem 1rem',
+              pointerEvents: 'none',
+              background: 'rgba(15, 23, 42, .92)',
+              border: '1px solid rgba(251, 191, 36, .45)',
+              borderRadius: 8,
+              color: '#fde68a',
+              fontSize: '0.85rem',
+            }
+          : {
+              padding: '1rem',
+              background: 'rgba(251,191,36,.08)',
+              border: '1px solid rgba(251,191,36,.35)',
+              borderRadius: 8,
+              color: '#fde68a',
+              fontSize: '0.85rem',
+            }}
       >
-        3D Tiles unavailable: {error || 'Failed to load tileset'}
+        3D Tiles unavailable; the base map remains usable.
         <div style={{ fontSize: '0.75rem', marginTop: 4, opacity: 0.8 }}>
-          Source: {source.id} — not fabricated, marked unavailable.
+          {error || 'Tileset could not load'} · source {source.id} · no substitute geometry generated.
         </div>
       </div>
     );
