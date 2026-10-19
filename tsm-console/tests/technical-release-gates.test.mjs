@@ -82,7 +82,6 @@ test('HEC release checker detects a solver artifact hash mismatch', async () => 
       outputArtifact,
       outputSha256: '0'.repeat(64),
     },
-    peSignoff: null,
   });
   assert.equal(report.status, 'blocked');
   assert.ok(report.gates.find((item) => item.id === 'solver-hash').findings.some((item) => item.includes('does not match')));
