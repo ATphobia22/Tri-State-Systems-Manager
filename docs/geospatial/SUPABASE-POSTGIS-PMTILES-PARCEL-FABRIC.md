@@ -47,6 +47,14 @@ python3 scripts/geospatial/build_pmtiles.py \\
 
 Tippecanoe supports PMTiles output directly (no intermediate MBTiles conversion is required). The preconfigured building-display profile opts into `--drop-densest-as-needed` plus zoom extension for tile-size safety. The custom-input path does **not** enable feature dropping by default, so parcel/building records are not intentionally discarded by the builder. Validate tile-size limits and decoded feature counts at each required zoom; if a display-only profile must simplify/drop features, make that lossy policy explicit in the layer configuration and never use the generalized archive as a complete legal/engineering parcel inventory.
 
+## Parcel source acquisition and licensing gate
+
+The Indiana Geographic Information Office announced that the **2025 Data Harvest parcel boundaries** are available through the Indiana GIS Data Harvest portal and IndianaMap (release notice dated 2025-12-18): [official release notice](https://www.in.gov/gis/geoinsights/posts/data-releases-data-harvest-2025-and-imagery/) and [Parcel Boundaries of Indiana 2025 dataset page](https://www.indianamap.org/datasets/INMap%3A%3Aparcel-boundaries-of-indiana-2025/about).
+
+The [Posey County WTHGIS viewer](https://poseyin.wthgis.com/) is a useful local reference, but its published disclaimer says mapped information is not warranted and must not be used as a legal description. Do not treat the viewer alone as evidence that bulk redistribution is licensed.
+
+**Activation gate:** inspect the 2025 dataset's license/terms and item metadata, verify Posey County coverage and data vintage, record the exact source URL, item ID, update date, license text, attribution, CRS, geometry type, and feature count, then validate geometry and lineage. Until that review is captured in the source manifest, do not bulk-load or publicly redistribute the data. The database schema intentionally defaults records to `verification_status='pending'` and `is_public=false`.
+
 ## Source references
 
 - Supabase PostGIS and bounding-box queries: https://supabase.com/docs/guides/database/extensions/postgis
