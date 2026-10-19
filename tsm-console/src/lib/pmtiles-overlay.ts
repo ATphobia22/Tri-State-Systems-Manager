@@ -16,6 +16,11 @@ function getConfiguredSource(): {
   const attribution = import.meta.env.VITE_TSM_PMTILES_ATTRIBUTION?.trim();
   if (!archiveUrl || !sourceLayer || !attribution) return null;
   if (!/^[a-zA-Z0-9_-]{1,128}$/.test(sourceLayer)) return null;
+  try {
+    if (new URL(archiveUrl).protocol !== 'https:') return null;
+  } catch {
+    return null;
+  }
   return { archiveUrl, sourceLayer, attribution };
 }
 
@@ -35,33 +40,41 @@ export function attachConfiguredPmtilesPolygonLayer(map: maplibregl.Map): () => 
   const configured = getConfiguredSource();
   if (!configured || map.getSource(SOURCE_ID)) return () => undefined;
 
-  ensureProtocolRegistered();
-  const url = toPmtilesSourceUrl({
-    id: 'configured-static-polygons',
-    archiveUrl: configured.archiveUrl,
-    attribution: configured.attribution,
-    enabled: true,
-  });
+  try {
+    ensureProtocolRegistered();
+    const url = toPmtilesSourceUrl({
+      id: 'configured-static-polygons',
+      archiveUrl: configured.archiveUrl,
+      attribution: configured.attribution,
+      enabled: true,
+    });
 
-  map.addSource(SOURCE_ID, {
-    type: 'vector',
-    url,
-    attribution: configured.attribution,
-  });
-  map.addLayer({
-    id: FILL_LAYER_ID,
-    type: 'fill',
-    source: SOURCE_ID,
-    'source-layer': configured.sourceLayer,
-    paint: { 'fill-color': '#a78bfa', 'fill-opacity': 0.07 },
-  });
-  map.addLayer({
-    id: LINE_LAYER_ID,
-    type: 'line',
-    source: SOURCE_ID,
-    'source-layer': configured.sourceLayer,
-    paint: { 'line-color': '#a78bfa', 'line-width': 1 },
-  });
+    map.addSource(SOURCE_ID, {
+      type: 'vector',
+      url,
+      attribution: configured.attribution,
+    });
+    map.addLayer({
+      id: FILL_LAYER_ID,
+      type: 'fill',
+      source: SOURCE_ID,
+      'source-layer': configured.sourceLayer,
+      paint: { 'fill-color': '#a78bfa', 'fill-opacity': 0.07 },
+    });
+    map.addLayer({
+      id: LINE_LAYER_ID,
+      type: 'line',
+      source: SOURCE_ID,
+      'source-layer': configured.sourceLayer,
+      paint: { 'line-color': '#a78bfa', 'line-width': 1 },
+    });
+  } catch (error) {
+    if (map.getLayer(LINE_LAYER_ID)) map.removeLayer(LINE_LAYER_ID);
+    if (map.getLayer(FILL_LAYER_ID)) map.removeLayer(FILL_LAYER_ID);
+    if (map.getSource(SOURCE_ID)) map.removeSource(SOURCE_ID);
+    console.warn('Configured PMTiles overlay unavailable; map continues without it.', error);
+    return () => undefined;
+  }
 
   return () => {
     if (map.getLayer(LINE_LAYER_ID)) map.removeLayer(LINE_LAYER_ID);
