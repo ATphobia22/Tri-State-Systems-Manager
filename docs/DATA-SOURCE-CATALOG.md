@@ -120,3 +120,13 @@ The live station inventory was checked against the modern USGS Water Data monito
 ## Source consistency rule
 
 A source listed in a catalog or tile manifest is not thereby an active runtime feed. The live-hydrology registry is authoritative for runtime activation. As of 2026-10-18, NOAA NWPS and modern USGS Water Data adapters are configured for user-triggered read-only observations; automatic polling is prohibited. The NOAA forecast/tile product remains `PROGRAM_PENDING` and `currentTruth: false` until forecast-specific end-to-end validation passes. NOAA NWM experimental model guidance remains retired.
+
+
+## Posey DEM and open GIS implementation references (2026-10-19)
+
+- **Indiana high-resolution DEM / lidar:** use the versioned Posey tile manifest and guarded downloader documented in [Posey DEM and Open GIS Research](geospatial/POSEY-DEM-OPEN-GIS-RESEARCH-2026-10-19.md). Tile manifests are not raster payloads. Download only selected AOI-intersecting tiles unless the operator explicitly confirms the storage budget; emit SHA-256 and GDAL metadata receipts.
+- **USGS 3D Hydrography Program:** https://www.usgs.gov/3d-hydrography-program/access-3dhp-data-products — current services and downloadable products; service data update quarterly and downloadable releases annually per USGS. Record release/update dates and known issues; keep NHD/WBD/NHDPlus HR labeled as legacy/reference where used.
+- **USGS National Map Access API:** https://tnmaccess.nationalmap.gov/api/v1/docs — discover product IDs and available staged downloads; preserve product metadata, native CRS, vertical datum, resolution, and source vintage.
+- **USACE National Levee Database:** https://nld.sec.usace.army.mil/data-services/services/ — public Feature Service, Map Service, OGC WMS/WFS, and JSON API. Treat mapped levee inventory as context, not a safety/performance certification.
+- **QGIS terrain processing:** https://docs.qgis.org/3.44/en/docs/user_manual/processing_algs/qgis/rasterterrainanalysis.html — slope, aspect, hillshade, flow direction, sink filling, channel networks, and drainage basins. Store processing version, parameters, source raster hash, CRS, units, and NoData behavior.
+- **Source-policy distinction:** Think GIS/WTH remains a commercial capability reference. Use public documentation for clean-room feature requirements only; do not scrape authenticated customer content or copy proprietary layers/code. Public government services are not automatically permission to mirror all payloads; inspect each dataset's license, terms, attribution, and redistribution constraints.
