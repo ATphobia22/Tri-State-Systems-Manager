@@ -103,6 +103,26 @@ function getVisibleBbox(map: MapLibreMap): ParcelBbox {
   };
 }
 
+function createParcelStatus(map: MapLibreMap): HTMLDivElement {
+  const element = document.createElement('div');
+  element.setAttribute('role', 'status');
+  element.setAttribute('aria-live', 'polite');
+  element.setAttribute('aria-atomic', 'true');
+  element.style.position = 'absolute';
+  element.style.right = '12px';
+  element.style.bottom = '12px';
+  element.style.zIndex = '3';
+  element.style.maxWidth = '320px';
+  element.style.padding = '6px 9px';
+  element.style.borderRadius = '6px';
+  element.style.background = 'rgba(15, 23, 42, 0.92)';
+  element.style.color = '#e2e8f0';
+  element.style.fontSize = '12px';
+  element.style.pointerEvents = 'none';
+  map.getContainer().appendChild(element);
+  return element;
+}
+
 function popupForFeature(
   map: MapLibreMap,
   event: MapLayerMouseEvent,
@@ -155,6 +175,7 @@ export function attachSupabaseParcelBboxLayer(map: MapLibreMap): () => void {
     paint: { 'line-color': '#38bdf8', 'line-width': 1.25 },
   });
 
+  const status = createParcelStatus(map);
   let timer: ReturnType<typeof setTimeout> | undefined;
   let controller: AbortController | undefined;
   let requestSequence = 0;
@@ -173,28 +194,40 @@ export function attachSupabaseParcelBboxLayer(map: MapLibreMap): () => void {
 
       if (map.getZoom() < 13) {
         clearFeatures();
+        status.textContent = 'Zoom to level 13 or higher to query public parcels.';
         return;
       }
       const bbox = getVisibleBbox(map);
       if (!validateParcelBbox(bbox)) {
         clearFeatures();
+        status.textContent = 'Viewport is too broad or invalid. Zoom in to query public parcels.';
         return;
       }
 
+      status.textContent = 'Loading verified public parcel boundaries…';
       controller = new AbortController();
       const activeController = controller;
       void fetchParcelBbox(bbox, activeController.signal)
         .then((collection) => {
           if (sequence !== requestSequence || activeController.signal.aborted) return;
+          if (collection.truncated) {
+            clearFeatures();
+            status.textContent = 'More than 1,000 verified parcels intersect this viewport. Zoom in for complete local results; partial results are hidden.';
+            return;
+          }
           const source = map.getSource(SOURCE_ID) as GeoJSONSource | undefined;
           source?.setData({
             type: 'FeatureCollection',
             features: collection.features,
           });
+          status.textContent = collection.features.length === 0
+            ? 'No verified public parcels in this viewport.'
+            : `${collection.features.length} verified public parcel records in this viewport.`;
         })
         .catch((error: unknown) => {
           if (activeController.signal.aborted || sequence !== requestSequence) return;
           clearFeatures();
+          status.textContent = 'Public parcel data unavailable; no stale parcel results are shown.';
           console.warn('Public parcel overlay unavailable; map continues without parcel features.', error);
         });
     }, 250);
@@ -219,5 +252,6 @@ export function attachSupabaseParcelBboxLayer(map: MapLibreMap): () => void {
     if (map.getLayer(LINE_LAYER_ID)) map.removeLayer(LINE_LAYER_ID);
     if (map.getLayer(FILL_LAYER_ID)) map.removeLayer(FILL_LAYER_ID);
     if (map.getSource(SOURCE_ID)) map.removeSource(SOURCE_ID);
+    status.remove();
   };
 }
