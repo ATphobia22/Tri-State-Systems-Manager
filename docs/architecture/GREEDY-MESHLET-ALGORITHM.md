@@ -13,7 +13,7 @@ The renderer can cull a cluster as a unit before submitting its triangles. This 
 
 ## Greedy sequential clustering used by TSM
 
-The current portable builder deliberately preserves source triangle order. It is not the meshoptimizer cone-aware clustering algorithm.
+The current portable builder deliberately preserves source triangle order. It is not the meshoptimizer cone-aware clustering algorithm. The TSM batch contract caps clusters at 64 vertices and 124 triangles; this is a project-specific conservative limit, not a claim that the meshoptimizer API uses the same triangle cap (its documented examples commonly use 64/126).
 
 1. Validate the input arrays, triangle topology, finite positions/normals, and global index range.
 2. Start an empty meshlet with a global-to-local vertex map.
