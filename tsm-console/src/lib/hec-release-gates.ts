@@ -10,7 +10,7 @@
 export type GateState = 'passed' | 'unavailable' | 'blocked';
 
 export interface GateResult {
-  id: 'aoi-boundary' | 'dem-provenance' | 'vertical-datum' | 'solver-hash' | 'pe-signoff';
+  id: 'aoi-boundary' | 'dem-provenance' | 'vertical-datum' | 'solver-hash';
   state: GateState;
   summary: string;
   findings: string[];
@@ -58,23 +58,11 @@ export interface SolverEvidence {
   outputSha256: string;
 }
 
-export interface PeSignoffEvidence {
-  peName: string;
-  peLicenseNumber: string;
-  jurisdiction: string;
-  discipline: string;
-  signedAt: string;
-  signedArtifactSha256: string;
-  licenseRegistryStatus: 'verified' | 'unverified' | 'invalid';
-  verificationEvidenceUri: string | null;
-}
-
 export interface HecReleaseGateInput {
   aoi: AoiBoundaryEvidence | null;
   dem: DemProvenanceEvidence | null;
   verticalDatum: VerticalDatumEvidence | null;
   solver: SolverEvidence | null;
-  peSignoff: PeSignoffEvidence | null;
 }
 
 export interface HecReleaseGateReport {
@@ -158,7 +146,9 @@ async function checkDem(input: DemProvenanceEvidence | null): Promise<GateResult
   if (!input.rasterBytes || input.rasterBytes.byteLength === 0) {
     findings.push('DEM raster bytes were not supplied; checksum cannot be independently verified.');
   } else if (SHA256.test(input.rasterSha256)) {
-    const digest = await globalThis.crypto.subtle.digest('SHA-256', input.rasterBytes);
+    const rasterCopy = new Uint8Array(input.rasterBytes.byteLength);
+    rasterCopy.set(input.rasterBytes);
+    const digest = await globalThis.crypto.subtle.digest('SHA-256', rasterCopy.buffer);
     const actual = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
     if (actual.toLowerCase() !== input.rasterSha256.toLowerCase()) findings.push('BLOCKED: DEM raster SHA-256 does not match the supplied raster bytes.');
   }
@@ -197,25 +187,6 @@ async function checkSolver(input: SolverEvidence | null): Promise<GateResult> {
   return gate('solver-hash', findings, 'Solver identity and input/output SHA-256 checks passed.');
 }
 
-function checkPeSignoff(input: PeSignoffEvidence | null, solver: SolverEvidence | null): GateResult {
-  if (!input) return gate('pe-signoff', ['PE sign-off evidence was not supplied.'], '');
-  const findings: string[] = [];
-  requiredString(input.peName, 'PE name', findings);
-  requiredString(input.peLicenseNumber, 'PE license number', findings);
-  requiredString(input.jurisdiction, 'PE licensing jurisdiction', findings);
-  requiredString(input.discipline, 'PE discipline', findings);
-  if (!input.signedAt || !Number.isFinite(Date.parse(input.signedAt))) findings.push('Missing or invalid PE sign-off timestamp.');
-  validHash(input.signedArtifactSha256, 'PE-signed artifact checksum', findings);
-  if (input.licenseRegistryStatus === 'invalid') findings.push('BLOCKED: supplied license verification marks the PE license invalid.');
-  else if (input.licenseRegistryStatus !== 'verified') findings.push('PE license has not been verified against the issuing jurisdiction registry.');
-  if (input.licenseRegistryStatus === 'verified') validHttps(input.verificationEvidenceUri ?? '', 'license verification evidence URI', findings);
-  if (solver && SHA256.test(solver.outputSha256) && SHA256.test(input.signedArtifactSha256)
-      && solver.outputSha256.toLowerCase() !== input.signedArtifactSha256.toLowerCase()) {
-    findings.push('BLOCKED: PE sign-off hash does not match the solver output hash.');
-  }
-  return gate('pe-signoff', findings, 'PE sign-off metadata and external license-verification evidence are present.');
-}
-
 export class HECReleaseGateChecker {
   static async check(input: HecReleaseGateInput): Promise<HecReleaseGateReport> {
     const gates = [
@@ -223,7 +194,6 @@ export class HECReleaseGateChecker {
       await checkDem(input.dem),
       checkVerticalDatum(input.verticalDatum),
       await checkSolver(input.solver),
-      checkPeSignoff(input.peSignoff, input.solver),
     ];
     const passed = gates.filter((item) => item.state === 'passed').length;
     const unavailable = gates.filter((item) => item.state === 'unavailable').length;
@@ -235,7 +205,7 @@ export class HECReleaseGateChecker {
       passed,
       unavailable,
       blocked,
-      note: 'Ready-for-engineering-review is a technical evidence result, not a HEC-RAS execution, PE license registry attestation, agency approval, or regulatory determination.',
+      note: 'Ready-for-engineering-review is a technical evidence result, not a HEC-RAS execution, agency approval, regulatory determination, or professional certification. A PE license is not required for TSM software runtime; separate professional sign-off may apply to particular deliverables or uses under applicable law or contract.',
     };
   }
 }
