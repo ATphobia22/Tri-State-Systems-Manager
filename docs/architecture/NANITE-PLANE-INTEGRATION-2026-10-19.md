@@ -55,6 +55,8 @@ Run it from GitHub Actions: [Meshlet Batch Build](https://github.com/ATphobia22/
 
 ### Greedy algorithm (TSM importer)
 
+See [GREEDY-MESHLET-ALGORITHM.md](./GREEDY-MESHLET-ALGORITHM.md) for the algorithm steps, complexity, validation contract, and distinction from meshoptimizer's production clusterizer.
+
 1. Traverse the selected GLB scene and apply parent × child node transforms to each instance.
 2. Concatenate each supported triangle primitive into a tile-local position/index buffer; record each primitive's material index and triangle span, but do not bake UVs, colors, textures or final materials.
 3. Process triangles in their existing input order. A meshlet grows while adding the next triangle keeps the unique global-vertex set at or below 64 and the triangle count at or below 124.
