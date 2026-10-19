@@ -116,11 +116,46 @@ function withinGeometry(source, county) {
   return !sourceSegs.some(sa=>countySegs.some(sb=>segmentsIntersect(sa[0],sa[1],sb[0],sb[1])));
 }
 
+function normalizeArcGisGeometry(geometry) {
+  if (!geometry || typeof geometry !== "object") return null;
+  if (geometry.type && geometry.coordinates) return geometry;
+  // ArcGIS REST MapServer queries may return Esri JSON geometry rather than
+  // GeoJSON. The 3DEP index service uses { rings, spatialReference } polygons.
+  // Queries request outSR=4326, so coordinate pairs remain longitude/latitude.
+  if (Array.isArray(geometry.rings)) {
+    return { type: "Polygon", coordinates: geometry.rings };
+  }
+  if (Array.isArray(geometry.paths)) {
+    return geometry.paths.length === 1
+      ? { type: "LineString", coordinates: geometry.paths[0] }
+      : { type: "MultiLineString", coordinates: geometry.paths };
+  }
+  if (Array.isArray(geometry.points)) {
+    return { type: "MultiPoint", coordinates: geometry.points };
+  }
+  if (typeof geometry.x === "number" && typeof geometry.y === "number") {
+    return { type: "Point", coordinates: [geometry.x, geometry.y] };
+  }
+  return null;
+}
+
 function eachGeometry(gj) {
   if(gj.type==="FeatureCollection") return gj.features.flatMap(eachGeometry);
-  if(gj.type==="Feature") return gj.geometry ? [gj.geometry] : [];
+  if(gj.type==="Feature") {
+    const geometry = normalizeArcGisGeometry(gj.geometry);
+    return geometry ? [geometry] : [];
+  }
   if(gj.type==="GeometryCollection") return gj.geometries.flatMap(eachGeometry);
-  return [gj];
+  // Esri JSON FeatureSets use features with geometry.rings and attributes,
+  // without the GeoJSON Feature type discriminator.
+  if(Array.isArray(gj.features)) {
+    return gj.features.flatMap((feature) => {
+      const geometry = normalizeArcGisGeometry(feature?.geometry);
+      return geometry ? [geometry] : [];
+    });
+  }
+  const normalized = normalizeArcGisGeometry(gj);
+  return normalized ? [normalized] : [gj];
 }
 
 function main() {
