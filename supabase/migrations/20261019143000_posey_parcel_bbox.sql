@@ -11,6 +11,8 @@ create table if not exists public.posey_parcels (
   source_updated_at timestamptz,
   geom extensions.geometry(MultiPolygon, 4326) not null,
   is_public boolean not null default false,
+  verification_status text not null default 'pending'
+    check (verification_status in ('pending', 'verified', 'rejected')),
   created_at timestamptz not null default now(),
   constraint posey_parcels_parcel_id_nonempty check (length(btrim(parcel_id)) > 0),
   constraint posey_parcels_source_id_nonempty check (length(btrim(source_id)) > 0),
@@ -32,7 +34,7 @@ create policy posey_parcels_public_read
   on public.posey_parcels
   for select
   to anon, authenticated
-  using (is_public = true);
+  using (is_public = true and verification_status = 'verified');
 
 create or replace function public.get_parcels_in_bbox(
   p_xmin double precision,
@@ -66,6 +68,7 @@ begin
            p.source_updated_at, p.geom
     from public.posey_parcels as p
     where p.is_public = true
+      and p.verification_status = 'verified'
       and p.geom operator(extensions.&&)
           extensions.st_makeenvelope(p_xmin, p_ymin, p_xmax, p_ymax, 4326)
       and extensions.st_intersects(
@@ -110,6 +113,8 @@ revoke all on function public.get_parcels_in_bbox(double precision, double preci
 grant execute on function public.get_parcels_in_bbox(double precision, double precision, double precision, double precision) to anon, authenticated;
 
 comment on table public.posey_parcels is
-  'Curated, public-safe Posey County parcel geometry. Do not store owner names or other personal data in this table.';
+  'Public-safe Posey parcel geometry. Only explicitly verified rows may be queried publicly; do not store owner names or other personal data in this table.';
 comment on function public.get_parcels_in_bbox(double precision, double precision, double precision, double precision) is
   'Returns at most 1000 public parcel features intersecting a validated WGS84 bounding box; includes truncation metadata.';
+
+notify pgrst, 'reload schema';
