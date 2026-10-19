@@ -1,6 +1,6 @@
 # Supabase PostGIS + PMTiles parcel fabric
 
-**Status:** implementation-ready code is committed on this branch; cloud activation is not certified. The connected Supabase projects **supabase-amber-island** and **TuckerConsoleDb** were both reported **INACTIVE** on 2026-10-19. No project was restored or modified by this change, and no parcel rows were uploaded.
+**Status:** implementation-ready code is committed on this branch; cloud activation is not certified. Live inspection on 2026-10-19 found **supabase-amber-island** `INACTIVE` and **TuckerConsoleDb** `ACTIVE_HEALTHY`, with no public tables or migration history in TuckerConsoleDb. No project was restored or modified by this change, and no parcel rows were uploaded. The correct deployment target still requires owner confirmation; active status alone does not establish that TuckerConsoleDb is the intended production project.
 
 ## Design
 
@@ -28,7 +28,7 @@ These values are public-client credentials. Never set \`VITE_SUPABASE_SERVICE_RO
 
 ## Activation checklist
 
-1. Restore the intended Supabase project only after confirming the correct project and current billing/plan status. The connected projects were inactive during implementation.
+1. Confirm which Supabase project is the authorized deployment target. `TuckerConsoleDb` is currently `ACTIVE_HEALTHY` but has no public tables or migration history; `supabase-amber-island` is `INACTIVE`. Do not restore or mutate the inactive project without explicit target confirmation.
 2. Enable PostGIS in the \`extensions\` schema, apply the committed migration, and run Supabase security/performance advisors.
 3. Import only the authoritative Posey County parcel dataset after validating its license, source date, CRS, geometry validity, stable parcel identifier, and row count. Normalize polygon geometries to \`MultiPolygon, EPSG:4326\`; retain source record IDs and timestamps. Do not import owner names.
 4. Test RLS and RPC behavior for anonymous and authenticated roles, including invalid/reversed/oversized bounds, zero matches, 1,000 matches, truncation, and spatial intersection correctness.
