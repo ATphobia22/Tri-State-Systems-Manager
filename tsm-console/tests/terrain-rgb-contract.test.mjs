@@ -136,7 +136,7 @@ test('localhost blocked in production; allowed only when allowHttpLocal', () => 
   );
 });
 
-test('twin-map-style wires fail-closed applyTwinTerrain', () => {
+test('twin-map-style isolates optional terrain from base-map availability', () => {
   const source = read('src/lib/twin-map-style.ts');
   assert.match(source, /getTerrainRgbStatus/);
   assert.match(source, /if \(!terrain\.enabled\)/);
@@ -150,17 +150,18 @@ test('twin-map-style wires fail-closed applyTwinTerrain', () => {
   assert.doesNotMatch(source, /mockTerrain|fabricatedTerrain/i);
 });
 
-test('terrain-rgb-contract module exports fail-closed helpers', () => {
+test('terrain-rgb-contract validates optional terrain templates', () => {
   const source = read('src/lib/terrain-rgb-contract.ts');
   assert.match(source, /validateTerrainRgbUrlTemplate/);
-  assert.match(source, /fail-closed/i);
+  assert.match(source, /Missing, placeholder, or non-template values must not enable 3D terrain mesh/);
+  assert.match(source, /base 2D map or other valid overlays/);
   assert.match(source, /TERRAIN_RGB_SOURCE_ID/);
   assert.match(source, /TERRAIN_RGB_TILE_SIZE\s*=\s*256/);
   assert.match(source, /TERRAIN_RGB_ENCODING\s*=\s*'mapbox'/);
   assert.match(source, /TERRAIN_RGB_DEFAULT_EXAGGERATION\s*=\s*1\.0/);
 });
 
-test('terrain-pipeline.json requires fail_closed_when_missing', () => {
+test('terrain pipeline records behavior when terrain configuration is missing', () => {
   const cfg = JSON.parse(read('config/terrain-pipeline.json'));
   assert.equal(cfg.runtime.fail_closed_when_missing, true);
   assert.equal(cfg.runtime.environment_variable, 'VITE_TSM_TERRAIN_RGB_URL_TEMPLATE');
