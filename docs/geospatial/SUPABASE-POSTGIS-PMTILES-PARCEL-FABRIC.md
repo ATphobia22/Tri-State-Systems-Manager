@@ -45,7 +45,7 @@ python3 scripts/geospatial/build_pmtiles.py \\
   --name posey-parcels --minzoom 13 --maxzoom 17
 \`\`\`
 
-Tippecanoe supports PMTiles output directly (no intermediate MBTiles conversion is required). The builder uses \`--drop-densest-as-needed\` for tile-size safety; if legal/engineering workflows require every feature at a specific zoom, validate tile contents and use a zoom-specific export/partition rather than assuming \`--drop-rate=0\` is universally safe.
+Tippecanoe supports PMTiles output directly (no intermediate MBTiles conversion is required). The preconfigured building-display profile opts into `--drop-densest-as-needed` plus zoom extension for tile-size safety. The custom-input path does **not** enable feature dropping by default, so parcel/building records are not intentionally discarded by the builder. Validate tile-size limits and decoded feature counts at each required zoom; if a display-only profile must simplify/drop features, make that lossy policy explicit in the layer configuration and never use the generalized archive as a complete legal/engineering parcel inventory.
 
 ## Source references
 
