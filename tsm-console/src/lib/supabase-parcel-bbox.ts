@@ -191,6 +191,7 @@ export function attachSupabaseParcelBboxLayer(map: MapLibreMap): () => void {
       const sequence = ++requestSequence;
       controller?.abort();
       controller = undefined;
+      clearFeatures();
 
       if (map.getZoom() < 13) {
         clearFeatures();
