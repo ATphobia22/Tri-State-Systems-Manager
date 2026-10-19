@@ -39,14 +39,22 @@ GAGES = {
     "03381700": {
         "name": "Ohio River at Old Shawneetown, IL",
         "source": "usgs",
-        "parameter": "00065",  # gage height, feet
-        "datum_ft": 309.10,   # NAVD88
+        "parameter": "00065",  # raw gage height, feet in source gage datum
+        "station_altitude_ft_navd88": 309.10,
+        "station_altitude_source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03381700/",
+        "gage_height_vertical_datum": "GAGE_DATUM",
+        "gage_zero_navd88_ft": None
     },
     "03378500": {
         "name": "Wabash River at New Harmony, IN",
         "source": "usgs",
         "parameter": "00065",
-        "datum_ft": 353.07,   # NGVD29
+        "station_altitude_ft_navd88": 352.71,
+        "station_altitude_ft_ngvd29": 353.07,
+        "station_altitude_source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03378500/",
+        "gage_height_vertical_datum": "GAGE_DATUM",
+        "gage_zero_navd88_ft_candidate": 352.67,
+        "gage_zero_conversion_status": "UNVERIFIED_PRODUCT_SEMANTICS"
     },
     "MTVI3": {
         "name": "Mount Vernon, IN (Ohio River)",
