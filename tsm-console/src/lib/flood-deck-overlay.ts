@@ -69,7 +69,7 @@ export interface FloodGridBounds {
   northLat: number;
 }
 
-/** A depth grid plus the bounds it covers. Bounds are REQUIRED — fail-closed. */
+/** A depth grid plus bounds; invalid inputs produce a visible degraded status. */
 export interface FloodGridInput {
   depthFt: number[][];
   nx: number;
@@ -77,34 +77,32 @@ export interface FloodGridInput {
   bounds: FloodGridBounds;
 }
 
-function fail(message: string): never {
-  throw new Error(`[flood-deck-overlay] ${message}`);
-}
-
-function validateGrid(input: FloodGridInput): void {
+function validateGrid(input: FloodGridInput): string | null {
   const { depthFt, nx, ny, bounds } = input;
   if (!Number.isInteger(nx) || nx <= 0 || !Number.isInteger(ny) || ny <= 0) {
-    fail(`nx/ny must be positive integers (got ${String(nx)}/${String(ny)}).`);
+    return `Grid dimensions must be positive integers (received ${String(nx)}×${String(ny)}).`;
   }
   if (!Array.isArray(depthFt) || depthFt.length !== ny) {
-    fail(`depthFt must have exactly ny=${ny} rows.`);
+    return `Depth grid must contain exactly ${ny} rows.`;
   }
   for (let j = 0; j < ny; j += 1) {
     const row = depthFt[j];
-    if (!Array.isArray(row) || row.length !== nx) fail(`depthFt row ${j} must have nx=${nx} columns.`);
+    if (!Array.isArray(row) || row.length !== nx) return `Depth grid row ${j} must contain ${nx} columns.`;
     for (let i = 0; i < nx; i += 1) {
       if (typeof row[i] !== 'number' || !Number.isFinite(row[i])) {
-        fail(`depthFt[${j}][${i}] must be a finite number.`);
+        return `Depth grid cell [${j},${i}] is not finite.`;
       }
     }
   }
   const b = bounds;
+  if (!b || typeof b !== 'object') return 'Geographic bounds are unavailable.';
   for (const [k, v] of Object.entries(b) as Array<[string, number]>) {
-    if (typeof v !== 'number' || !Number.isFinite(v)) fail(`bounds.${k} must be a finite number.`);
+    if (typeof v !== 'number' || !Number.isFinite(v)) return `Geographic bound ${k} is not finite.`;
   }
   if (!(b.westLng < b.eastLng && b.southLat < b.northLat)) {
-    fail('bounds must satisfy westLng < eastLng and southLat < northLat.');
+    return 'Geographic bounds are not ordered west-to-east and south-to-north.';
   }
+  return null;
 }
 
 /**
@@ -131,7 +129,7 @@ export function renderDepthCanvas(input: FloodGridInput): HTMLCanvasElement {
 
 /** Cell-center points for the contour layer (redundant depth encoding). */
 export function gridCellCenters(input: FloodGridInput): Array<{ position: [number, number]; depthFt: number }> {
-  validateGrid(input);
+  if (validateGrid(input)) return [];
   const { westLng, southLat, eastLng, northLat } = input.bounds;
   const dx = (eastLng - westLng) / input.nx;
   const dy = (northLat - southLat) / input.ny;
@@ -163,6 +161,7 @@ export class FloodDeckOverlay {
   private visible = false;
   private cellSizeMeters: number;
   private attached = false;
+  private status: { state: 'idle' | 'ready' | 'degraded'; message: string | null } = { state: 'idle', message: null };
 
   constructor(map: MapLibreMap, options: FloodDeckOverlayOptions = {}) {
     this.map = map;
@@ -173,14 +172,22 @@ export class FloodDeckOverlay {
   /** Attach the overlay control to the map. Idempotent. */
   attach(): void {
     if (this.attached) return;
-    this.map.addControl(this.overlay);
-    this.attached = true;
+    try {
+      this.map.addControl(this.overlay);
+      this.attached = true;
+      this.status = { state: this.grid ? 'ready' : 'idle', message: this.grid ? null : 'No inundation grid supplied yet.' };
+    } catch (error) {
+      this.status = { state: 'degraded', message: error instanceof Error ? error.message : 'Map overlay could not attach.' };
+    }
   }
 
   /** Supply (or replace) the inundation grid to render. Does not show it. */
   setInundation(grid: FloodGridInput): void {
-    validateGrid(grid);
     this.grid = grid;
+    const validation = validateGrid(grid);
+    this.status = validation
+      ? { state: 'degraded', message: validation }
+      : { state: 'ready', message: null };
     this.refresh();
   }
 
@@ -195,6 +202,11 @@ export class FloodDeckOverlay {
     return this.visible;
   }
 
+  /** Current renderer state; degraded overlays never block the base map. */
+  getStatus(): { state: 'idle' | 'ready' | 'degraded'; message: string | null } {
+    return { ...this.status };
+  }
+
   /** Remove the control from the map. */
   dispose(): void {
     if (this.attached) {
@@ -203,11 +215,12 @@ export class FloodDeckOverlay {
     }
     this.grid = null;
     this.visible = false;
+    this.status = { state: 'idle', message: null };
   }
 
   private refresh(): void {
-    if (!this.visible || !this.grid) {
-      this.overlay.setProps({ layers: [] });
+    if (!this.visible || !this.grid || validateGrid(this.grid) || !this.attached) {
+      try { this.overlay.setProps({ layers: [] }); } catch { /* base map remains usable */ }
       return;
     }
     const grid = this.grid;
@@ -232,7 +245,13 @@ export class FloodDeckOverlay {
       })),
       pickable: false,
     });
-    this.overlay.setProps({ layers: [heatmap, contours] });
+    try {
+      this.overlay.setProps({ layers: [heatmap, contours] });
+      this.status = { state: 'ready', message: null };
+    } catch (error) {
+      this.status = { state: 'degraded', message: error instanceof Error ? error.message : 'Flood overlay rendering failed.' };
+      try { this.overlay.setProps({ layers: [] }); } catch { /* retain the base map */ }
+    }
   }
 }
 
