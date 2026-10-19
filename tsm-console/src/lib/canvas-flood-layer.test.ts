@@ -71,12 +71,12 @@ describe('computeFloodMask', () => {
 });
 
 describe('tryDatumConversion', () => {
-  it('converts NGVD29 to NAVD88 by subtracting the offset', () => {
-    expect(tryDatumConversion(100, 'NGVD29', 'NAVD88')).toBeCloseTo(99.787, 3);
+  it('does not invent a constant NGVD29-to-NAVD88 offset', () => {
+    expect(tryDatumConversion(100, 'NGVD29', 'NAVD88')).toBeNull();
   });
 
-  it('converts NAVD88 to NGVD29 by adding the offset', () => {
-    expect(tryDatumConversion(100, 'NAVD88', 'NGVD29')).toBeCloseTo(100.213, 3);
+  it('does not invent a constant NAVD88-to-NGVD29 offset', () => {
+    expect(tryDatumConversion(100, 'NAVD88', 'NGVD29')).toBeNull();
   });
 
   it('returns input unchanged for identical datums', () => {
