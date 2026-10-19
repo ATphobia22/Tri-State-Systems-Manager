@@ -28,6 +28,7 @@ on:
       - 'ops/cadquery-worker.Dockerfile'
       - 'integrations/registry/**'
       - 'scripts/geospatial/**'
+      - 'scripts/geo/validate-exact-county*.mjs'
       - 'scripts/ci/**'
       - 'packages/geo/**'
       - 'docs/fabrics/nfhl-geometry-types.json'
@@ -72,6 +73,7 @@ on:
       - 'ops/cadquery-worker.Dockerfile'
       - 'integrations/registry/**'
       - 'scripts/geospatial/**'
+      - 'scripts/geo/validate-exact-county*.mjs'
       - 'scripts/ci/**'
       - 'packages/geo/**'
       - 'docs/fabrics/nfhl-geometry-types.json'
@@ -102,6 +104,8 @@ jobs:
           node-version: '22'
           cache: npm
           cache-dependency-path: tsm-console/package-lock.json
+      - name: Test exact-county validator Esri JSON normalization
+        run: node --test scripts/geo/validate-exact-county-arcgis-json.test.mjs
       - name: Install locked console dependencies
         working-directory: tsm-console
         run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
