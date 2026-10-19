@@ -33,8 +33,19 @@ export interface MeshletGeometry {
   positions: Float32Array;
   /** Optional normals xyz */
   normals?: Float32Array;
-  /** Triangle indices into positions (global after rewrite) */
+  /** Original triangle index buffer into positions (global indices). */
   indices: Uint32Array;
+  /**
+   * Optional compact meshlet vertex map. Each descriptor's vertexOffset indexes
+   * this flat array; each value is an index into positions.
+   */
+  meshletVertexIndices?: Uint32Array;
+  /**
+   * Optional packed local triangle indices (3 bytes per triangle).
+   * Each descriptor's triangleOffset is measured in triangle units; indices
+   * are local to that descriptor's vertex slice, each value < vertexCount.
+   */
+  meshletTriangles?: Uint8Array;
 }
 
 export interface MeshletPack {
