@@ -2,11 +2,9 @@
  * world/renderer.ts — WebGL renderer + scene scaffold for the flood simulator.
  *
  * PLATFORM RULES (do not relax):
- * - Pure WebGL (THREE.WebGLRenderer) only. WebGPU (`navigator.gpu`,
- *   `src/gpu/`) is NOT iOS-safe under the Capacitor WKWebView target, so
- *   this module never touches it — no feature-detect, no fallback branch,
- *   just WebGL. If WebGL context creation fails, the module throws a clear
- *   error instead of silently degrading to a blank canvas.
+ * - WebGL is the preferred 3D renderer. If context creation fails, this
+ *   module paints an explicit 2D status message and returns null so the
+ *   surrounding map and controls remain usable. It never fabricates terrain.
  * - ACESFilmicToneMapping for the Hollywood grade (task requirement).
  * - Device-pixel-ratio capped at 2, following the existing
  *   `ThreeGeospatialHarness` pattern.
@@ -114,9 +112,31 @@ function buildRenderer(canvas: HTMLCanvasElement, spec: QualityTierSpec): THREE.
 export function createFloodRenderer(
   canvas: HTMLCanvasElement,
   initialTier: QualityTier = 'medium',
-): FloodRenderer {
+): FloodRenderer | null {
   let spec = QUALITY_TIERS[initialTier];
-  let renderer = buildRenderer(canvas, spec);
+  let renderer: THREE.WebGLRenderer;
+  try {
+    renderer = buildRenderer(canvas, spec);
+  } catch (error) {
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      const width = Math.max(1, canvas.clientWidth || canvas.width || 640);
+      const height = Math.max(1, canvas.clientHeight || canvas.height || 360);
+      canvas.width = width;
+      canvas.height = height;
+      ctx.fillStyle = '#101c2a';
+      ctx.fillRect(0, 0, width, height);
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = '600 16px system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('3D flood view unavailable', width / 2, height / 2 - 10);
+      ctx.font = '13px system-ui, sans-serif';
+      ctx.fillStyle = '#cbd5e1';
+      ctx.fillText('WebGL could not initialize. The base map remains available.', width / 2, height / 2 + 18);
+    }
+    console.warn('[flood-sim-renderer] 3D rendering unavailable; kept map usable.', error);
+    return null;
+  }
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x9db4c6);
@@ -144,9 +164,14 @@ export function createFloodRenderer(
         const size = new THREE.Vector2();
         old.getSize(size);
         old.dispose();
-        renderer = buildRenderer(canvas, next);
-        api.renderer = renderer;
-        api.resize(size.x, size.y);
+        try {
+          renderer = buildRenderer(canvas, next);
+          api.renderer = renderer;
+          api.resize(size.x, size.y);
+        } catch (error) {
+          console.warn('[flood-sim-renderer] Quality rebuild failed; retaining previous renderer.', error);
+          return;
+        }
       }
       spec = next;
       api.tier = tier;
