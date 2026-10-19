@@ -31,6 +31,7 @@ test('NOT-COMPLETE registry still lists Hierarchical-Z and Transvoxel PoC', () =
     'utf8',
   );
   assert.match(reg, /Hierarchical-Z/);
-  assert.match(reg, /POC ONLY/);
+  assert.match(reg, /ADVANCED POC/);
+  assert.match(reg, /GPU H-Z STILL BLOCKED/);
   assert.match(reg, /Do not claim/);
 });
