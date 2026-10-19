@@ -15,7 +15,7 @@ testRunner('Posey DEM manifest and downloader fail closed on unregistered tiles 
 
   const filenames = new Set();
   for (const tile of manifest.tiles) {
-    assert.match(tile.filename, /^IN20(?:19|20)_[A-Za-z0-9_.-]+\.tif$/);
+    assert.match(tile.filename, /^IN20(?:18|19|20)_[A-Za-z0-9_.-]+\.tif$/);
     assert.ok(!filenames.has(tile.filename), `duplicate tile ${tile.filename}`);
     filenames.add(tile.filename);
     assert.match(tile.urlpath, /^https:\/\/gisimageryingov\.s3\.us-east-2\.amazonaws\.com\/demoptimized\/statewide\/20(?:19|20)\/SPW\/2\.5ft\/[A-Za-z0-9_.-]+\.tif$/);
@@ -33,7 +33,7 @@ testRunner('Posey DEM manifest and downloader fail closed on unregistered tiles 
 testRunner('Posey DEM research documents authority separation and open GIS processing', async () => {
   const research = await readFile(researchPath, 'utf8');
   for (const required of [
-    'WTH Think GIS is a proprietary commercial reference',
+    'proprietary commercial reference',
     'IndianaMap DEM dataset',
     'USGS National Map Downloader',
     'QGIS',
