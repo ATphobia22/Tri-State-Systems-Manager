@@ -63,7 +63,7 @@ See [GREEDY-MESHLET-ALGORITHM.md](./GREEDY-MESHLET-ALGORITHM.md) for the algorit
 4. Assign each meshlet a compact local vertex remap and local 8-bit triangle indices, then compute a bounding sphere over the meshlet's transformed vertices.
 5. Validate local index ranges, vertex/triangle budgets, contiguous offsets, total triangle coverage, source hash, compressed-pack hash and content hash.
 
-This is a deterministic, linear greedy pass over the triangle order, not an optimizer: it does not reorder triangles for spatial coherence, optimize vertex reuse globally, generate cone-aware bounds, or build a continuous LOD/DAG hierarchy. Production-quality clustering should use upstream meshoptimizer `meshopt_buildMeshlets`/`meshopt_buildMeshletsScan` plus the separately versioned METIS simplification/DAG pipeline. These algorithmic limits remain explicit in the manifest.
+This is a deterministic, linear greedy pass over the triangle order, not an optimizer: it does not reorder triangles for spatial coherence, optimize vertex reuse globally, generate cone-aware bounds, or build a continuous LOD/DAG hierarchy. Production-quality clustering should use upstream meshoptimizer `meshopt_buildMeshlets` (topology/culling-aware clustering) or `meshopt_buildMeshletsScan` (greedy aggregation of consecutive triangles after vertex-cache optimization), followed by the separately versioned simplification and continuous-LOD/DAG pipeline. These are upstream APIs, not functions called by the current TSM greedy prototype. These algorithmic limits remain explicit in the manifest.
 
 ## Honest limits
 
