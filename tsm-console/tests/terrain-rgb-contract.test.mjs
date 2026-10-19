@@ -170,9 +170,10 @@ test('terrain-pipeline.json requires fail_closed_when_missing', () => {
   assert.equal(cfg.evidence.bulk_source_data_committed_to_git, false);
 });
 
-test('RealWorldTwinMap surfaces fail-closed terrain status', () => {
+test('RealWorldTwinMap surfaces optional-terrain status while preserving the map', () => {
   const ui = read('src/components/RealWorldTwinMap.tsx');
   assert.match(ui, /terrainRgbBlockMessage|getTerrainRgbStatus/);
-  assert.match(ui, /FAIL-CLOSED|terrainMessage|terrainStatus/);
+  assert.match(ui, /terrainMessage|terrainStatus/);
+  assert.doesNotMatch(ui, /FAIL-CLOSED/);
   assert.match(ui, /applyTwinTerrain/);
 });
