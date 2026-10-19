@@ -1,29 +1,25 @@
-# NOT COMPLETE — Technical Gaps Registry (updated 2026-10-19 WebGPU pass)
+# NOT COMPLETE — Technical Gaps Registry (updated 2026-10-19 finish)
 
 ## 1. Hierarchical-Z and GPU Compute Culling
-- **Status:** PARTIAL — **GPU depth pyramid scaffold on Nanite plane B**; MapLibre still WebGL-only
+- **Status:** PARTIAL — plane B smoke complete; production meshlets not inlined
 - **Built:**
-  - WebGL2 occlusion queries (`occlusion-culling.ts`)
-  - CPU depth pyramid (`hierarchical-z-software.ts`)
-  - WebGPU device bootstrap + portable limits (`webgpu-nanite/webgpu-device.ts`)
-  - GPU depth pyramid compute (`webgpu-nanite/depth-pyramid.ts`) — max-reduce mips, workgroup 8×8
-  - Plan: `docs/research/WEBGPU-COMPUTE-LIMITS-AND-NANITE-PLAN-2026-10-19.md`
-- **Still missing:** Full nanite-webgpu meshlet cull integration; production camera shared with MapLibre; Chrome-only runtime validation in CI
-- **Do not claim:** Hierarchical-Z inside MapLibre, or complete Nanite production renderer
+  - WebGL occlusion queries; CPU depth pyramid
+  - WebGPU device + limits; GPU depth pyramid compute
+  - MapLibre → WebGPU camera bridge
+  - Nanite plane runtime smoke + **NanitePlanePanel** on MapTwinView (`VITE_TSM_WEBGPU_NANITE`)
+- **Still missing:** meshlet cull from nanite-webgpu; live depth from real scene; CI Chrome WebGPU job
+- **Do not claim:** H-Z inside MapLibre or full Nanite production
 
 ## 2. Transvoxel Terrain Stitching
-- **Status:** ADVANCED POC — Lengyel class tables in TS; mesh emission at county scale partial
-- Unchanged from prior pass.
+- Lengyel class tables in TS; county-scale mesh emission still partial
 
 ## 3. Full C/S State Transitions
-- Lifecycle + bandwidth adaptive wired into TilesFetchBridge. Asset coverage partial.
+- Lifecycle + bandwidth in TilesFetchBridge; full AOI assets partial
 
 ## 4. Coordinate Validation
-- Contract + batch harness; system-wide catalog pass still required.
+- Contract + batch harness; full catalog coverage report not committed
 
 ## 5. Occlusion Validation
-- Context-loss + unit tests; multi-device profiles still missing.
+- Unit/context-loss; multi-device profiles outstanding
 
----
-
-**WebGPU limit rule:** Design to `maxStorageBufferBindingSize ≥ 128MiB`, workgroup product ≤ 256, prefer `@workgroup_size(64)` or 8×8. No portable `atomic<u64>` — Nanite software raster stays 32-bit packed until WGSL 64-bit atomics ship widely.
+**WebGPU rule:** portable 128 MiB storage binding; workgroup ≤ 256 invocations; no portable `atomic<u64>` for visibility buffer yet.
