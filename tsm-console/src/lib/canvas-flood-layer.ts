@@ -16,7 +16,8 @@
  *    at/below the level (respects hills/valleys — water cannot climb).
  * 4. Flooded cells are painted translucent blue; the canvas source updates.
  *
- * Fail-closed: no elevation grid = no flood rendering (never fabricates).
+ * Graceful degradation: an absent/invalid grid displays a pending-data placeholder;
+ * it never fabricates terrain or flood depths.
  * Water level must be an explicit caller-supplied number (human authority).
  */
 
