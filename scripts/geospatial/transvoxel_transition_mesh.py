@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """Per-leaf adaptive Transvoxel meshing using official Lengyel tables.
 
-Loads transitionCellData[56] + transitionVertexData[512] from
-lengyel_transition_data.json or split lengyel_cell_data.json +
-lengyel_vertex_{0..3}.json (EricLengyel/Transvoxel MIT).
+Loads transitionCellData[56] + transitionVertexData[512] from local JSON,
+or regenerates from EricLengyel/Transvoxel (MIT) if missing/incomplete.
 
   python3 transvoxel_transition_mesh.py --self-test
 """
@@ -12,6 +11,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
+import sys
 from pathlib import Path
 from typing import Callable, List, Optional, Tuple
 
@@ -25,31 +26,56 @@ SdfFn = Callable[[float, float, float], float]
 _DATA: Optional[dict] = None
 
 
+def _ensure_tables(here: Path) -> None:
+    """Regenerate Lengyel JSON tables if vertex chunks are missing or incomplete."""
+    need = False
+    for i in range(4):
+        p = here / f"lengyel_vertex_{i}.json"
+        if not p.is_file():
+            need = True
+            break
+        try:
+            rows = json.loads(p.read_text(encoding="utf-8"))
+            if not isinstance(rows, list) or len(rows) != 128:
+                need = True
+                break
+            if any(not isinstance(r, list) or len(r) != 12 for r in rows):
+                need = True
+                break
+        except Exception:
+            need = True
+            break
+    cell = here / "lengyel_cell_data.json"
+    if not cell.is_file():
+        need = True
+    if not need:
+        return
+    regen = here / "regenerate_lengyel_tables.py"
+    if not regen.is_file():
+        raise FileNotFoundError(f"missing tables and regenerator at {here}")
+    subprocess.check_call([sys.executable, str(regen)], cwd=str(here))
+
+
 def _load_data() -> dict:
     global _DATA
     if _DATA is not None:
         return _DATA
     here = Path(__file__).resolve().parent
+    _ensure_tables(here)
     full = here / "lengyel_transition_data.json"
-    if not full.is_file():
-        full = Path("scripts/geospatial/lengyel_transition_data.json")
     if full.is_file():
-        _DATA = json.loads(full.read_text(encoding="utf-8"))
-    else:
-        cell_path = here / "lengyel_cell_data.json"
-        if not cell_path.is_file():
-            cell_path = Path("scripts/geospatial/lengyel_cell_data.json")
-        cell = json.loads(cell_path.read_text(encoding="utf-8"))
-        verts = []
-        for i in range(4):
-            vp = here / f"lengyel_vertex_{i}.json"
-            if not vp.is_file():
-                vp = Path(f"scripts/geospatial/lengyel_vertex_{i}.json")
-            verts.extend(json.loads(vp.read_text(encoding="utf-8")))
-        _DATA = {
-            "transitionCellData": cell["transitionCellData"],
-            "transitionVertexData": verts,
-        }
+        try:
+            data = json.loads(full.read_text(encoding="utf-8"))
+            if len(data.get("transitionVertexData", [])) == 512:
+                _DATA = data
+                return _DATA
+        except Exception:
+            pass
+    cell = json.loads((here / "lengyel_cell_data.json").read_text(encoding="utf-8"))
+    verts: list = []
+    for i in range(4):
+        verts.extend(json.loads((here / f"lengyel_vertex_{i}.json").read_text(encoding="utf-8")))
+    _DATA = {"transitionCellData": cell["transitionCellData"], "transitionVertexData": verts}
     assert len(_DATA["transitionCellData"]) == 56
     assert len(_DATA["transitionVertexData"]) == 512
     return _DATA
