@@ -11,7 +11,7 @@
  * content comes from caller-supplied builder functions — there are no
  * placeholder or demo meshes. An empty content list renders an empty scene.
  *
- * Fail-closed rules:
+ * Graceful rendering policy:
  * - HDR / GLTF URLs must be absolute http(s); anything else is skipped.
  * - Loader failures and throwing content builders never propagate into the
  *   map render loop; the layer keeps rendering whatever loaded successfully.
@@ -142,7 +142,7 @@ export class MapLibreThreeLayer implements maplibregl.CustomLayerInterface {
       try {
         build(this.scene);
       } catch {
-        // Fail-closed: a bad builder must not break the map.
+        // Graceful degradation: skip this builder and preserve the rest of the map.
       }
     }
 
@@ -166,11 +166,11 @@ export class MapLibreThreeLayer implements maplibregl.CustomLayerInterface {
         },
         undefined,
         () => {
-          // Fail-closed: keep rendering without image-based lighting.
+          // Graceful degradation: render without image-based lighting.
         },
       );
     } catch {
-      // Fail-closed: RGBELoader construction must never break the map.
+      // Graceful degradation: skip the environment map if the loader cannot initialize.
     }
   }
 
@@ -190,11 +190,11 @@ export class MapLibreThreeLayer implements maplibregl.CustomLayerInterface {
         },
         undefined,
         () => {
-          // Fail-closed: keep rendering without the model.
+          // Graceful degradation: keep rendering the successfully loaded scene.
         },
       );
     } catch {
-      // Fail-closed: GLTFLoader construction must never break the map.
+      // Graceful degradation: skip the model if the loader cannot initialize.
     }
   }
 
