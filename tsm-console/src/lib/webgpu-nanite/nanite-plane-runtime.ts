@@ -1,10 +1,12 @@
 /**
- * Nanite plane B runtime — capability gate, device, camera sample, pyramid smoke.
+ * Nanite plane B runtime — device, camera, depth pyramid, meshlet import/cull.
  * SIMULATION_DEMO only. Never substitutes for MapLibre regulatory layers.
  */
 
 import { buildDepthPyramidCpu } from './depth-pyramid';
 import { mapLibreCameraToWebGpu, type MapLibreCameraState } from './maplibre-webgpu-camera';
+import { cullMeshlets } from './meshlet-cull';
+import { buildMeshletsGreedy, createUnitCubeMesh } from './meshlet-import';
 import {
   isNanitePlaneEnabled,
   requestTsmWebGpuDevice,
@@ -21,12 +23,18 @@ export type NanitePlaneStatus =
       features: string[];
       pyramidLevels: number;
       cameraDistanceM: number;
+      meshlets: {
+        count: number;
+        triangles: number;
+        visible: number;
+        culled: number;
+        warnings: string[];
+      };
       label: 'SIMULATION_DEMO';
     };
 
 export interface NaniteSmokeInput {
   camera: MapLibreCameraState;
-  /** Optional depth proxy; if omitted a synthetic ramp is used for smoke only */
   depthProxy?: { data: Float32Array; width: number; height: number };
 }
 
@@ -41,10 +49,6 @@ export async function probeNanitePlane(): Promise<WebGpuSupport | { ok: false; r
   return cachedDevice;
 }
 
-/**
- * Run a one-shot smoke: resolve device (if flagged), build camera matrices,
- * build CPU depth pyramid (GPU path when device present — upload deferred).
- */
 export async function runNanitePlaneSmoke(input: NaniteSmokeInput): Promise<NanitePlaneStatus> {
   if (!isNanitePlaneEnabled()) {
     return { phase: 'disabled' };
@@ -62,6 +66,9 @@ export async function runNanitePlaneSmoke(input: NaniteSmokeInput): Promise<Nani
   }
   const pyramid = buildDepthPyramidCpu(depth, width, height);
 
+  const imported = buildMeshletsGreedy(createUnitCubeMesh('tsm-smoke-cube'));
+  const cull = cullMeshlets(imported.pack, cam);
+
   if (!probe.ok) {
     return { phase: 'unsupported', reason: probe.reason };
   }
@@ -72,6 +79,13 @@ export async function runNanitePlaneSmoke(input: NaniteSmokeInput): Promise<Nani
     features: probe.features,
     pyramidLevels: pyramid.levels.length,
     cameraDistanceM: cam.distanceM,
+    meshlets: {
+      count: imported.meshletCount,
+      triangles: imported.triangleCount,
+      visible: cull.visible.length,
+      culled: cull.culled,
+      warnings: imported.warnings,
+    },
     label: 'SIMULATION_DEMO',
   };
 }
