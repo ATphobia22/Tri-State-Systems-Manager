@@ -75,59 +75,112 @@ function triangleBounds(
  */
 export function buildMeshletsGreedy(input: RawMeshInput): MeshletImportResult {
   const warnings: string[] = [];
-  const triCount = Math.floor(input.indices.length / 3);
-  if (triCount === 0) {
-    throw new Error('mesh has no triangles');
+  if (input.positions.length % 3 !== 0) {
+    throw new Error('positions length must be divisible by 3');
+  }
+  if (input.indices.length === 0 || input.indices.length % 3 !== 0) {
+    throw new Error('indices must contain complete triangles');
   }
   if (input.positions.length < 9) {
     throw new Error('mesh has insufficient positions');
   }
+  if (input.normals && input.normals.length !== input.positions.length) {
+    throw new Error('normal count must match position count');
+  }
+  if (![...input.positions].every(Number.isFinite)) {
+    throw new Error('positions contain non-finite values');
+  }
+  if (input.normals && ![...input.normals].every(Number.isFinite)) {
+    throw new Error('normals contain non-finite values');
+  }
+
+  const vertexCount = input.positions.length / 3;
+  for (let i = 0; i < input.indices.length; i++) {
+    if (input.indices[i]! >= vertexCount) {
+      throw new Error(`index ${i} references vertex ${input.indices[i]} outside ${vertexCount} vertices`);
+    }
+  }
+
+  const triCount = input.indices.length / 3;
+  const maxVertices = MESHLET_MAX_VERTICES;
+  const maxTriangles = MESHLET_MAX_TRIANGLES;
+  if (maxVertices < 3 || maxVertices > 256) {
+    throw new Error(`invalid meshlet vertex budget: ${maxVertices}`);
+  }
+  if (maxTriangles < 1 || maxTriangles > 512) {
+    throw new Error(`invalid meshlet triangle budget: ${maxTriangles}`);
+  }
 
   const meshlets: MeshletDescriptor[] = [];
+  const meshletVertexIndices: number[] = [];
+  const meshletTriangles: number[] = [];
   let cursor = 0;
+
+  // Greedy sequential clustering: accept the next triangle while both hard
+  // limits hold. Triangle order is preserved; each meshlet gets a local
+  // vertex remap so its packed triangle indices fit the 64-vertex budget.
   while (cursor < triCount) {
-    const remaining = triCount - cursor;
-    const take = Math.min(MESHLET_MAX_TRIANGLES, remaining);
-    // Approximate unique verts in window
-    const vertSet = new Set<number>();
-    for (let t = 0; t < take; t++) {
-      for (let k = 0; k < 3; k++) {
-        vertSet.add(input.indices[(cursor + t) * 3 + k]!);
+    const vertexMap = new Map<number, number>();
+    const globalVertices: number[] = [];
+    const localTriangles: number[] = [];
+    let actualTake = 0;
+
+    while (cursor + actualTake < triCount && actualTake < maxTriangles) {
+      const triOffset = (cursor + actualTake) * 3;
+      const tri = [
+        input.indices[triOffset]!,
+        input.indices[triOffset + 1]!,
+        input.indices[triOffset + 2]!,
+      ];
+      let additionalVertices = 0;
+      const newThisTriangle = new Set<number>();
+      for (const globalIndex of tri) {
+        if (!vertexMap.has(globalIndex) && !newThisTriangle.has(globalIndex)) {
+          newThisTriangle.add(globalIndex);
+          additionalVertices += 1;
+        }
       }
+      if (vertexMap.size + additionalVertices > maxVertices) break;
+
+      for (const globalIndex of tri) {
+        let localIndex = vertexMap.get(globalIndex);
+        if (localIndex === undefined) {
+          localIndex = globalVertices.length;
+          vertexMap.set(globalIndex, localIndex);
+          globalVertices.push(globalIndex);
+        }
+        localTriangles.push(localIndex);
+      }
+      actualTake += 1;
     }
-    let actualTake = take;
-    if (vertSet.size > MESHLET_MAX_VERTICES) {
-      // shrink until under vertex budget
-      actualTake = 0;
-      vertSet.clear();
-      for (let t = 0; t < take; t++) {
-        const next = new Set(vertSet);
-        for (let k = 0; k < 3; k++) next.add(input.indices[(cursor + t) * 3 + k]!);
-        if (next.size > MESHLET_MAX_VERTICES) break;
-        vertSet.clear();
-        next.forEach((v) => vertSet.add(v));
-        actualTake = t + 1;
-      }
-      if (actualTake === 0) actualTake = 1; // force progress
-      warnings.push(`meshlet at tri ${cursor}: reduced to ${actualTake} tris for vertex budget`);
+
+    // A valid triangle has at most three unique vertices, so no valid input
+    // can stall with the configured 64-vertex budget.
+    if (actualTake === 0) {
+      throw new Error(`meshlet builder made no progress at triangle ${cursor}`);
     }
 
     const bounds = triangleBounds(input.positions, input.indices, cursor, actualTake);
     meshlets.push({
-      vertexOffset: 0,
-      vertexCount: vertSet.size,
-      triangleOffset: cursor,
+      vertexOffset: meshletVertexIndices.length,
+      vertexCount: globalVertices.length,
+      triangleOffset: meshletTriangles.length / 3,
       triangleCount: actualTake,
       bounds,
       lodError: 0,
       parentIndex: -1,
     });
+    meshletVertexIndices.push(...globalVertices);
+    meshletTriangles.push(...localTriangles);
     cursor += actualTake;
   }
 
+  warnings.push(
+    'greedy sequential clusters preserve input triangle order; no meshoptimizer reordering, cone-aware clustering, or LOD DAG is generated',
+  );
   if (meshlets.length > 1) {
     warnings.push(
-      'greedy clusters only — run ATphobia22/nanite-webgpu preprocess for LOD DAG + meshoptimizer quality',
+      'greedy clusters only — use the offline meshoptimizer/METIS pipeline for production-quality spatial clustering and continuous LOD',
     );
   }
 
@@ -135,14 +188,16 @@ export function buildMeshletsGreedy(input: RawMeshInput): MeshletImportResult {
     positions: input.positions,
     indices: input.indices,
     normals: input.normals,
+    meshletVertexIndices: Uint32Array.from(meshletVertexIndices),
+    meshletTriangles: Uint8Array.from(meshletTriangles),
   };
 
   const pack: MeshletPack = {
     version: 1,
     authority: 'SIMULATION_DEMO',
     sourceId: input.sourceId,
-    horizontalCrs: input.horizontalCrs ?? 'EPSG:4326',
-    verticalDatum: input.verticalDatum ?? 'NAVD88',
+    horizontalCrs: input.horizontalCrs ?? 'LOCAL_3D_TILE_FRAME',
+    verticalDatum: input.verticalDatum ?? 'LOCAL_3D_TILE_Z',
     meshlets,
     geometry,
     contentSha256: null,
@@ -180,7 +235,13 @@ export function importMeshletPackJson(json: unknown): MeshletImportResult {
     horizontalCrs: String(o.horizontalCrs ?? 'EPSG:4326'),
     verticalDatum: String(o.verticalDatum ?? 'NAVD88'),
     meshlets,
-    geometry: { positions, indices, normals },
+    geometry: {
+      positions,
+      indices,
+      normals,
+      meshletVertexIndices: geom.meshletVertexIndices ? Uint32Array.from(geom.meshletVertexIndices as number[]) : undefined,
+      meshletTriangles: geom.meshletTriangles ? Uint8Array.from(geom.meshletTriangles as number[]) : undefined,
+    },
     contentSha256: (o.contentSha256 as string | null) ?? null,
   };
 
@@ -202,6 +263,8 @@ export function exportMeshletPackJson(pack: MeshletPack): Record<string, unknown
       positions: Array.from(pack.geometry.positions),
       indices: Array.from(pack.geometry.indices),
       normals: pack.geometry.normals ? Array.from(pack.geometry.normals) : null,
+      ...(pack.geometry.meshletVertexIndices ? { meshletVertexIndices: Array.from(pack.geometry.meshletVertexIndices) } : {}),
+      ...(pack.geometry.meshletTriangles ? { meshletTriangles: Array.from(pack.geometry.meshletTriangles) } : {}),
     },
   };
 }
