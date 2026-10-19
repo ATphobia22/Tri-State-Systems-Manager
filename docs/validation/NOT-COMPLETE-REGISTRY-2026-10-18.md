@@ -1,61 +1,50 @@
-# NOT COMPLETE — Technical Gaps Registry (2026-10-18, updated 2026-10-19)
+# NOT COMPLETE — Technical Gaps Registry (updated 2026-10-19)
 
-These items must NOT be represented as complete in docs, dashboard, or artifacts.
-Each lists what exists vs. what is missing.
+These items must NOT be over-claimed. Status reflects code on main after the 2026-10-19 closure pass.
 
 ## 1. Hierarchical-Z and GPU Compute Culling
-- **Status:** PARTIAL — OCCLUSION QUERIES BUILT, H-Z STILL BLOCKED
-- **Built 2026-10-18:**
-  - WebGL2 occlusion-query culling (`tsm-console/src/lib/occlusion-culling.ts`) — `OcclusionCuller` adapter over the existing `WebGL2DepthOcclusionController`, per-object `ANY_SAMPLES_PASSED` queries, async result polling, re-probe every N frames, fail-open fallback. 8 tests passing.
-  - 3D Tiles fetch bridge (`tsm-console/src/lib/tiles-fetch-bridge.ts`) — connects LOD scheduler → TilesRenderer: load/evict via LRU cache, queue-depth backpressure triggers `degradeWord`. 7 tests passing.
-- **Still missing:** True Hierarchical-Z (mipmapped depth pyramid + GPU compute). Blocked: MapLibre has no WebGPU renderer; no library exists.
-- **Do not claim:** Hierarchical-Z or GPU compute-shader culling.
+- **Status:** PARTIAL — SOFTWARE PYRAMID + OCCLUSION QUERIES; **GPU H-Z STILL BLOCKED**
+- **Built:**
+  - WebGL2 occlusion-query culling (`occlusion-culling.ts`)
+  - Software CPU depth pyramid (`hierarchical-z-software.ts`) — offline/test only; `HIERARCHICAL_Z_STATUS.gpuHierarchicalZ === false`
+- **Still missing:** True GPU Hierarchical-Z (mipmapped depth + compute). Blocked: MapLibre has no WebGPU renderer path.
+- **Do not claim:** Production GPU Hierarchical-Z.
 
 ## 2. Transvoxel Terrain Stitching
-- **Status:** POC ONLY — NOT PRODUCTION
-- **What exists:** `dem_to_transvoxel.py` (SDF grid + balanced octree + uniform mesh), `transvoxel_stitch_poc.py` (pragmatic face stitching, crack-free at 1mm on test data).
-- **Built 2026-10-18:**
-  - Formal voxel-density data contract v1.0 (`docs/3D-TILES-VOXEL-DENSITY-CONTRACT-v1.md`)
-  - Runtime LOD-neighbor scheduler (`tsm-console/src/lib/lod-scheduler.ts`) — SSE-driven selection, 2:1 balance enforcement, fetch plans with load/evict/refine/coarsen events. 14 tests passing.
+- **Status:** ADVANCED POC — CLASS TABLES COMPLETE; FULL MESH TABLES + TERRAIN SCALE STILL PARTIAL
+- **Built:**
+  - Voxel-density contract v1.0
+  - LOD 2:1 scheduler (`lod-scheduler.ts`)
+  - Lengyel `transitionCellClass[512]` in Python **and** TypeScript (`transvoxel-lengyel-classes.ts`, 56 classes certified)
+  - Pragmatic stitch PoC (crack-check ~1mm on test data)
 - **Still missing:**
-  - True Transvoxel transition cell tables (73 classes); current stitching is pragmatic edge-matching, not the Lengyel algorithm
-  - Production tiling for full-terrain scale
-- **Do not claim:** Production Transvoxel terrain.
+  - Full 56-class **triangle vertex** tables at runtime scale (classification is complete; mesh emission for all classes is Python-side / sparse in JS)
+  - Production tiling for full-county terrain
+- **Do not claim:** Complete production Transvoxel terrain for Posey at interactive rates.
 
 ## 3. Full C/S State Transitions
-- **Status:** LOGIC + LIFECYCLE — NOT FULL PRODUCTION STREAMING
-- **What exists:** `state-word-scheduler.ts` — clean-room 5D state-word logic: `degradeWord`, `chunksToFetch`/`chunksToRelease`, `scheduleFrame`. Unit-tested.
-- **Built 2026-10-18:**
-  - Resource variant descriptors (`tsm-console/src/lib/state-resource-variants.ts`) — maps state words to geometry LODs, texture resolutions, component lists, byte estimates. 9 tests passing.
-  - Fetch bridge (`tiles-fetch-bridge.ts`) — LRU cache load/evict, queue-depth monitoring, backpressure → state degradation. Uses the real 3d-tiles-renderer APIs.
-- **Built 2026-10-19:**
-  - Tile resource lifecycle (`tsm-console/src/lib/tile-resource-lifecycle.ts`) — status machine (`idle|queued|fetching|ready|stale|failed|released`), bounded in-flight + ready-byte budget, `assertNotSynthetic` guard.
-- **Still missing:**
-  - Bandwidth-adaptive fetching against live telemetry (bridge monitors queue depth; does not yet adapt to measured throughput)
-  - Actual binary assets at all LODs for production AOIs
-- **Do not claim:** A working adaptive streaming system.
+- **Status:** LOGIC + LIFECYCLE + BANDWIDTH ADAPTIVE — ASSET COVERAGE STILL PARTIAL
+- **Built:**
+  - State-word scheduler, variants, tiles-fetch-bridge
+  - Tile resource lifecycle (`tile-resource-lifecycle.ts`)
+  - Bandwidth-adaptive concurrency (`bandwidth-adaptive-fetch.ts`) — throughput samples → concurrency + degrade steps
+- **Still missing:** Full binary LOD asset sets for all production AOIs; live telemetry wiring into every render path.
+- **Do not claim:** Fully populated adaptive streaming for every county tile.
 
 ## 4. Coordinate Validation
-- **Status:** PARTIAL — CONTRACT STRENGTHENED, SYSTEM-WIDE EVIDENCE INCOMPLETE
-- **What exists:** `GeoidModel.get_geoid_height` validated at one anchor point (37.845887, -88.005075 → -30.302 m). Local-frame math has regression coverage. Canonical CRS guards (`geodetic/guards.ts`). Backend `GeodeticFrame` contract tests.
-- **Built 2026-10-19:**
-  - `ElevationEvidenceProduct` (`tsm-console/src/lib/elevation-evidence-product.ts`) — requires horizontal CRS, vertical datum, accuracy class, authority class; rejects AUTHORITATIVE+SCREENING pairing; never invents datum.
-- **Missing (needs separate evidence):**
-  - Authoritative CRS validation across all 23,082 features (not just the anchor)
-  - Vertical-datum validation per-source (NGVD29 confirmed for model 4449 only; other sources unverified)
-  - Coordinate epoch validation (tectonic/plate motion over time) attached to live products
-  - Survey-accuracy validation (stated vs. achieved precision per dataset) at scale
-- **Do not claim:** System-wide datum or CRS validation.
+- **Status:** CONTRACT + BATCH HARNESS — SYSTEM-WIDE DATA PASS STILL REQUIRED
+- **Built:**
+  - Geodetic guards, `ElevationEvidenceProduct`, terrain `assertTerrainEvidence`
+  - Batch harness (`coordinate-validation-batch.ts`) with coverage metrics
+- **Still missing:** Running the batch to 100% coverage on all ~23k building features with verified per-source datum/epoch evidence.
+- **Do not claim:** 100% feature catalog CRS/datum validation until a green batch report is committed.
 
 ## 5. Occlusion Validation
 - **Status:** PARTIAL
-- **Built 2026-10-18:**
-  - WebGL context-loss recovery (`tsm-console/src/lib/webgl-context-recovery.ts`) — pauses rendering, rebuilds GPU resources on restore, handles failure. 12 tests passing.
-- **Still missing:**
-  - Browser/device profiling (frame timing across target devices, especially iOS 15-era Safari)
-- **Do not claim:** Any performance or robustness validation beyond unit tests.
+- **Built:** WebGL context-loss recovery; occlusion query unit tests; software H-Z pyramid tests (structure)
+- **Still missing:** Multi-device frame-timing profiles (especially older iOS Safari)
+- **Do not claim:** Device-certified performance.
 
 ---
 
-**Rule:** A PoC validates an approach. It does not constitute a complete subsystem.
-When in doubt, check this registry before writing status claims.
+**Rule:** Closing a *code* gap is not the same as closing a *data* or *platform* gap. GPU H-Z remains platform-blocked. System-wide coordinate coverage remains a data job.
