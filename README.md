@@ -30,11 +30,18 @@ TSM integrates public hydrology, terrain, imagery, flood-hazard data, infrastruc
 
 ## What TSM Does
 
-- **River monitoring:** Live USGS gage levels with flood-stage alerts (user-initiated fetch, no auto-polling)
+- **River monitoring:** User-triggered USGS/NOAA gauge snapshots through the TSM server API (no background polling). Alert generation is not active unless a verified alert feed is configured and tested.
 - **Flood forecasting:** Multi-model pipeline (TimesFM, GEOGloWS v2, OpenHydroNet) with 2-day to 10-day horizons
 - **3D visualization:** MapLibre-based 3D buildings, terrain, LiDAR point clouds, and flood zones
 - **Data integration:** 30+ government and open data sources with full provenance tracking
 - **Decision support:** Scenario analysis, antecedent conditions, and plain-language summaries for all ages
+
+### Live-data and publication boundaries
+
+- Hydrology observations are requested by explicit user action; automatic polling is prohibited.
+- Observations, forecasts, alerts, and regulatory products remain separate. A live observation is not a forecast, warning, or regulatory determination.
+- The Supabase PostGIS parcel endpoint is optional and disabled until the authorized project is migrated, licensed parcel geometry is validated/imported, and public-client configuration is set.
+- PMTiles overlays are optional. Do not mark an archive as published until the file exists and its provenance, attribution, HTTP Range/CORS behavior, and browser rendering have been verified.
 
 ### What TSM Is Not
 
@@ -60,7 +67,7 @@ Full registry: [`docs/validation/NOT-COMPLETE-REGISTRY-2026-10-18.md`](docs/vali
 
 | Source | Data Used | Access |
 |--------|-----------|--------|
-| **USGS** (U.S. Geological Survey) | Stream gages (NWIS), 3DEP elevation (1m DEM, LiDAR point clouds via EPT), National Map products | Public API, S3 |
+| **USGS** (U.S. Geological Survey) | Modern Water Data API for continuous/daily stream observations; 3DEP elevation (1m DEM, LiDAR point clouds via EPT); National Map products | Public API, S3. Legacy WaterServices/NWIS endpoints are migrating/deprecating; do not use them as the runtime dependency. |
 | **NOAA** (National Oceanic and Atmospheric Administration) | CPC precipitation (daily gauge analysis), NWS flood stages, weather forecasts | Public FTP/API |
 | **FEMA** (Federal Emergency Management Agency) | NFHL (National Flood Hazard Layer), FIRM panels, LOMA cases | MapServer, MSC |
 | **USACE** (U.S. Army Corps of Engineers) | National Levee Database (NLD), HEC-RAS models, eHydro surveys | Public REST API |
@@ -104,7 +111,7 @@ Full registry: [`docs/validation/NOT-COMPLETE-REGISTRY-2026-10-18.md`](docs/vali
 | **MapLibre GL** | Rendering engine | All interactive maps |
 | **USGS National Map** | Raster tiles | Topographic basemap option |
 | **IndianaMap** | ArcGIS REST | Indiana imagery and parcels |
-| **PMTiles** | Vector tiles | Self-hosted building/parcel layers |
+| **PMTiles** | Static vector-tile archive format | Optional self-hosted layers; not published until provenance, attribution, HTTP Range (206), CORS, and browser rendering are verified |
 | **3D Tiles 1.1** | 3D geospatial | Buildings, terrain meshes |
 | **Terrarium** | Raster DEM tiles | Elevation contours |
 | **Potree / EPT** | Point clouds | LiDAR visualization |
@@ -155,7 +162,7 @@ Full registry: [`docs/validation/NOT-COMPLETE-REGISTRY-2026-10-18.md`](docs/vali
 
 The TSM Console (10 tabs) provides:
 - 🏠 Home — Project overview
-- 🌊 River Watch — Live gage levels with flood alerts
+- 🌊 River Watch — User-triggered gauge snapshots; alerts remain disabled unless a verified feed is active
 - 🔮 Flood Forecast — Multi-model predictions in plain language
 - 🗺️ 3D Map — Interactive MapLibre visualization
 - 🤖 Ask TSM — Offline AI assistant
