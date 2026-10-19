@@ -169,3 +169,21 @@ The cached parcel overlay and effective NFHL observation do not supply a usable
 BFE or parcel-specific depth. See the evidence JSON for source URIs, dates,
 hashes, the USGS gage inventory, NWS forecast endpoint, and the outstanding
 approval/model readiness gates.
+
+
+## Downloading the Indiana 2016–2020 DEM tiles
+
+`elevation/posey-dem-tile-manifest-2020.json` lists the county-intersecting tile URLs; it does not vendor the raster payloads. Use the guarded downloader from the repository root:
+
+```powershell
+# Download one tile to validate the environment and inspect the receipt.
+pwsh -File scripts/posey/download-dem-tiles.ps1 -TileName IN2020_26700930_12.tif -MaxTiles 1
+
+# Strict metadata and Cloud-Optimized GeoTIFF validation (requires GDAL).
+pwsh -File scripts/posey/download-dem-tiles.ps1 -TileName IN2020_26700930_12.tif -MaxTiles 1 -RequireGdalValidation
+
+# Download all Posey-intersecting tiles only after confirming disk/storage budget.
+pwsh -File scripts/posey/download-dem-tiles.ps1 -AllPoseyTiles -MaxTiles 581
+```
+
+The script saves files under `data/posey-county/downloads/indiana-dem-2016-2020` by default and writes a SHA-256 receipt. Downloaded DEMs are intentionally not committed automatically. Review each tile's source CRS, vertical datum, units, NoData, vintage and metadata before mosaic, reproject, or engineering use. Full workflow and open-source GIS recommendations: [Posey DEM and Open GIS Research](../../docs/geospatial/POSEY-DEM-OPEN-GIS-RESEARCH-2026-10-19.md).

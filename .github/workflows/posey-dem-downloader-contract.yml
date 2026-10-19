@@ -1,0 +1,65 @@
+name: Posey DEM Downloader Contract
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/posey/download-dem-tiles.ps1'
+      - 'data/posey-county/elevation/posey-dem-tile-manifest-2020.json'
+      - '.github/workflows/posey-dem-downloader-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/posey/download-dem-tiles.ps1'
+      - 'data/posey-county/elevation/posey-dem-tile-manifest-2020.json'
+      - '.github/workflows/posey-dem-downloader-contract.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-downloader:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Parse PowerShell script
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $parseErrors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile(
+            "$PWD/scripts/posey/download-dem-tiles.ps1",
+            [ref]$tokens,
+            [ref]$parseErrors
+          ) | Out-Null
+          if ($parseErrors.Count -gt 0) {
+            $parseErrors | Format-List | Out-String | Write-Error
+            exit 1
+          }
+      - name: Verify unknown tile fails before any network request
+        shell: pwsh
+        run: |
+          try {
+            & ./scripts/posey/download-dem-tiles.ps1 -TileName 'NOT_REGISTERED.tif' -MaxTiles 1
+            throw 'Expected unknown tile to be rejected before download.'
+          } catch {
+            if ($_.Exception.Message -notmatch 'Tile\(s\) not found in the checked-in Posey manifest') {
+              throw
+            }
+            Write-Host 'Unknown tile was rejected before any network request.'
+          }
+      - name: Download and hash one official Posey DEM tile
+        shell: pwsh
+        run: |
+          $sampleDir = Join-Path $env:RUNNER_TEMP 'posey-dem-sample'
+          & ./scripts/posey/download-dem-tiles.ps1 -TileName 'IN2020_26700930_12.tif' -MaxTiles 1 -OutDir $sampleDir -ReceiptPath (Join-Path $sampleDir 'download-receipt.json')
+          if ($LASTEXITCODE -ne 0) { throw 'DEM tile acquisition failed.' }
+          if (-not (Test-Path (Join-Path $sampleDir 'IN2020_26700930_12.tif'))) { throw 'Downloaded DEM tile is missing.' }
+      - name: Upload sample DEM and acquisition receipt
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: posey-dem-sample-tile
+          path: ${{ runner.temp }}/posey-dem-sample/
+          if-no-files-found: error
+          retention-days: 14

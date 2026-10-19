@@ -32,6 +32,27 @@ It records the agency, authority class, newest-vintage selection rule, official 
 
 **Important:** “newest available” means newest according to the source's own publication/acquisition/product metadata. Retrieval date alone is never treated as product vintage.
 
+
+## Posey DEM acquisition and open GIS tooling
+
+The research and implementation matrix is maintained in [Posey DEM and Open GIS Research](geospatial/POSEY-DEM-OPEN-GIS-RESEARCH-2026-10-19.md). The checked-in `data/posey-county/elevation/posey-dem-tile-manifest-2020.json` is a **tile URL/footprint manifest, not a downloaded county raster bundle**. Download selected tiles using `scripts/posey/download-dem-tiles.ps1`; the script allowlists the expected Indiana S3 path, caps the number of tiles unless explicitly raised, and writes a SHA-256 acquisition receipt. Use `-RequireGdalValidation` when GDAL is installed and a strict raster/COG validation is required. Large DEMs belong in the acquisition cache or an explicitly versioned data package, not in routine source commits.
+
+Official source discovery:
+- IndianaMap / Indiana GIO DEM search: https://www.indianamap.org/search?tags=dem
+- Indiana DEM tile footprints: https://www.indianamap.org/maps/ff98e3834d464619bd5c8974b0038a13
+- Indiana Elevation Program: https://elevation.gio.in.gov/
+- IGIC / Purdue countywide LiDAR and DEM: https://www.igic.org/countywide-lidar-and-dem-tiles
+- USGS National Map Downloader: https://apps.nationalmap.gov/downloader/
+- USGS 3DEP products: https://www.usgs.gov/3d-elevation-program/about-3dep-products-services
+
+Open GIS processing references:
+- QGIS terrain analysis and 3D view: https://docs.qgis.org/latest/en/docs/training_manual/rasters/terrain_analysis.html and https://docs.qgis.org/latest/en/docs/user_manual/map_views/3d_map_view.html
+- GRASS GIS watershed and depression handling: https://grass.osgeo.org/grass-stable/manuals/r.watershed.html and https://grass.osgeo.org/grass-stable/manuals/r.fill.dir.html
+- GDAL COG creation and validation: https://gdal.org/en/stable/drivers/raster/cog.html and https://gdal.org/en/stable/programs/gdal_driver_cog_validate.html
+- Overture buildings and transportation: https://docs.overturemaps.org/guides/buildings/ and https://docs.overturemaps.org/guides/transportation/
+
+WTH Think GIS is a proprietary commercial product. TSM may use publicly described functions as clean-room requirements inspiration, but must not copy proprietary code, graphics, screenshots, private customer layers, undocumented APIs, or data schemas. See the research matrix for specific capability mappings and safeguards.
+
 ## Federal sources
 
 | Source ID | Authority | Primary endpoint | Data | Class / boundary |
@@ -99,3 +120,13 @@ The live station inventory was checked against the modern USGS Water Data monito
 ## Source consistency rule
 
 A source listed in a catalog or tile manifest is not thereby an active runtime feed. The live-hydrology registry is authoritative for runtime activation. As of 2026-10-18, NOAA NWPS and modern USGS Water Data adapters are configured for user-triggered read-only observations; automatic polling is prohibited. The NOAA forecast/tile product remains `PROGRAM_PENDING` and `currentTruth: false` until forecast-specific end-to-end validation passes. NOAA NWM experimental model guidance remains retired.
+
+
+## Posey DEM and open GIS implementation references (2026-10-19)
+
+- **Indiana high-resolution DEM / lidar:** use the versioned Posey tile manifest and guarded downloader documented in [Posey DEM and Open GIS Research](geospatial/POSEY-DEM-OPEN-GIS-RESEARCH-2026-10-19.md). Tile manifests are not raster payloads. Download only selected AOI-intersecting tiles unless the operator explicitly confirms the storage budget; emit SHA-256 and GDAL metadata receipts.
+- **USGS 3D Hydrography Program:** https://www.usgs.gov/3d-hydrography-program/access-3dhp-data-products — current services and downloadable products; service data update quarterly and downloadable releases annually per USGS. Record release/update dates and known issues; keep NHD/WBD/NHDPlus HR labeled as legacy/reference where used.
+- **USGS National Map Access API:** https://tnmaccess.nationalmap.gov/api/v1/docs — discover product IDs and available staged downloads; preserve product metadata, native CRS, vertical datum, resolution, and source vintage.
+- **USACE National Levee Database:** https://nld.sec.usace.army.mil/data-services/services/ — public Feature Service, Map Service, OGC WMS/WFS, and JSON API. Treat mapped levee inventory as context, not a safety/performance certification.
+- **QGIS terrain processing:** https://docs.qgis.org/3.44/en/docs/user_manual/processing_algs/qgis/rasterterrainanalysis.html — slope, aspect, hillshade, flow direction, sink filling, channel networks, and drainage basins. Store processing version, parameters, source raster hash, CRS, units, and NoData behavior.
+- **Source-policy distinction:** Think GIS/WTH remains a commercial capability reference. Use public documentation for clean-room feature requirements only; do not scrape authenticated customer content or copy proprietary layers/code. Public government services are not automatically permission to mirror all payloads; inspect each dataset's license, terms, attribution, and redistribution constraints.
