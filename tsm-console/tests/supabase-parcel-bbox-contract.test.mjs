@@ -2,6 +2,11 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
+const parcelClient = readFileSync(
+  new URL('../src/lib/supabase-parcel-bbox.ts', import.meta.url),
+  'utf8',
+);
+
 const migration = readFileSync(
   new URL('../../supabase/migrations/20261019143000_posey_parcel_bbox.sql', import.meta.url),
   'utf8',
@@ -32,4 +37,12 @@ test('parcel API does not grant write access to anonymous clients', () => {
   assert.match(migration, /revoke all on table public\.posey_parcels from anon, authenticated/i);
   assert.match(migration, /grant select on table public\.posey_parcels to anon, authenticated/i);
   assert.match(migration, /grant execute on function public\.get_parcels_in_bbox/i);
+});
+
+
+test('parcel viewport never silently displays a truncated page', () => {
+  assert.match(parcelClient, /collection\.truncated/);
+  assert.match(parcelClient, /aria-live/);
+  assert.match(parcelClient, /partial results are hidden/);
+  assert.match(parcelClient, /no stale parcel results are shown/);
 });
