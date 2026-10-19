@@ -67,6 +67,21 @@ export function gaugeEndpoint(_definition?: RiverGaugeDefinition): string {
   return tsmApiUrl('/api/hydrologic/community');
 }
 
+/**
+ * Selects a data-fabric path without initiating a network request.
+ * Native is preferred only when the host reports the plugin available;
+ * capability-probe failures safely select the read-only web snapshot path.
+ */
+export function getPreferredGaugeDataSource(
+  bridge: NativeDataFabricBridge = createCapacitorBridge(),
+): 'native' | 'web' {
+  try {
+    return bridge.isAvailable() ? 'native' : 'web';
+  } catch {
+    return 'web';
+  }
+}
+
 const LKG_KEY = 'tsm.river-gauges.lkg.v1';
 
 function isFresh(observedAt: string | null, nowMs: number, maxAgeMs: number): boolean {
