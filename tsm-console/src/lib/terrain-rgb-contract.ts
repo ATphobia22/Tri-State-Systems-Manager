@@ -1,5 +1,8 @@
 /**
- * Terrain-RGB / MapLibre 3D terrain contract (fail-closed).
+ * Terrain-RGB / MapLibre 3D terrain availability contract.
+ *
+ * Missing/invalid configuration disables only the optional 3D terrain mesh;
+ * it must not prevent the base 2D map or other valid overlays from rendering.
  *
  * MapLibre `setTerrain()` is allowed only when a materialized, provenance-controlled
  * Terrain-RGB XYZ template is supplied via VITE_TSM_TERRAIN_RGB_URL_TEMPLATE.
