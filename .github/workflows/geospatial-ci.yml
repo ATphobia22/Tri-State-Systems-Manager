@@ -28,6 +28,12 @@ on:
       - 'ops/cadquery-worker.Dockerfile'
       - 'integrations/registry/**'
       - 'scripts/geospatial/**'
+      - 'tsm-console/tests/supabase-parcel-bbox.test.ts'
+      - 'tsm-console/tests/supabase-parcel-bbox-contract.test.mjs'
+      - 'tsm-console/src/lib/supabase-parcel-bbox.ts'
+      - 'tsm-console/src/lib/pmtiles-overlay.ts'
+      - 'tsm-console/src/components/RealWorldTwinMap.tsx'
+      - 'supabase/migrations/**'
       - 'scripts/ci/**'
       - 'packages/geo/**'
       - 'docs/fabrics/nfhl-geometry-types.json'
@@ -72,6 +78,12 @@ on:
       - 'ops/cadquery-worker.Dockerfile'
       - 'integrations/registry/**'
       - 'scripts/geospatial/**'
+      - 'tsm-console/tests/supabase-parcel-bbox.test.ts'
+      - 'tsm-console/tests/supabase-parcel-bbox-contract.test.mjs'
+      - 'tsm-console/src/lib/supabase-parcel-bbox.ts'
+      - 'tsm-console/src/lib/pmtiles-overlay.ts'
+      - 'tsm-console/src/components/RealWorldTwinMap.tsx'
+      - 'supabase/migrations/**'
       - 'scripts/ci/**'
       - 'packages/geo/**'
       - 'docs/fabrics/nfhl-geometry-types.json'
@@ -105,6 +117,14 @@ jobs:
       - name: Install locked console dependencies
         working-directory: tsm-console
         run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
+      - name: Build PMTiles builder contract tests
+        run: python3 -m unittest scripts.geospatial.test_build_pmtiles
+      - name: Validate Supabase PostGIS parcel contract
+        working-directory: tsm-console
+        run: node --test tests/supabase-parcel-bbox-contract.test.mjs
+      - name: Validate Supabase parcel viewport unit tests
+        working-directory: tsm-console
+        run: npx vitest run tests/supabase-parcel-bbox.test.ts
       - name: Validate capability registry
         run: node scripts/ci/validate-capability-registry.mjs
       - name: Run full-tree hardening gate
