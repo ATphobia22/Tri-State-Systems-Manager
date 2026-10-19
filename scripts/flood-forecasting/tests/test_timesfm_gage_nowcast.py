@@ -56,8 +56,14 @@ class FetchUsgsGageTests(unittest.TestCase):
         self.assertEqual(kwargs["params"]["parameter_code"], "00065")
         self.assertIn("/", kwargs["params"]["datetime"])
         self.assertEqual(kwargs["timeout"], 30)
-        self.assertEqual(list(result.columns), ["datetime", "value"])
+        self.assertEqual(
+            list(result.columns),
+            ["datetime", "value", "unit_of_measure", "approval_status", "qualifier", "source_uri", "retrieved_at"],
+        )
         self.assertEqual(result["value"].tolist(), [8.10, 8.25])
+        self.assertEqual(result["approval_status"].tolist(), ["Approved", "Provisional"])
+        self.assertEqual(result["unit_of_measure"].tolist(), ["ft", "ft"])
+        self.assertTrue(result["retrieved_at"].notna().all())
         self.assertTrue(pd.api.types.is_datetime64tz_dtype(result["datetime"].dtype))
 
     @patch.object(MODULE.requests, "get")
