@@ -47,11 +47,11 @@ Smoke loads `/3d-tiles/buildings-lidar-12450/content/3/3/0.glb` (36 verts, 12 tr
 ## Production upgrade path
 
 ```text
-GLB (repo) → optional nanite-webgpu meshoptimizer+METIS bake
+GLB (repo) → optional nanite-webgpu `meshopt_buildMeshlets` + METIS bake (not wired in TSM yet)
            → MeshletPack JSON → importMeshletPackJson
 ```
 
-Greedy in-console path is for CI and pilots; continuous LOD DAG stays upstream.
+Greedy in-console path is for CI and pilots. TSM does **not** currently call `meshopt_buildMeshlets`; meshoptimizer+METIS baking and the continuous LOD DAG remain upstream/future integration work. Do not infer native meshoptimizer execution from the optional upgrade path.
 
 ## Honest limits
 
