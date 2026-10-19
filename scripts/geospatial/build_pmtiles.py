@@ -23,6 +23,7 @@ LAYERS: dict[str, dict[str, Any]] = {
         "maxzoom": 15,
         "layer_name": "buildings",
         "description": "TSM building footprints with heights",
+        "drop_densest_as_needed": True,
         "attribution": "Tri-State Systems Manager; source attribution is retained in source metadata",
     },
     # Add parcel configuration only after a validated, licensed GeoJSON input
@@ -50,8 +51,7 @@ def build_layer(
     """Build one PMTiles archive directly, honoring the requested output path."""
     input_path = Path(cfg["input"])
     if not input_path.is_file():
-        print(f"  SKIP {name}: input not found: {input_path}", file=sys.stderr)
-        return None
+        raise FileNotFoundError(f"Input GeoJSON not found for {name}: {input_path}")
 
     minzoom = int(cfg["minzoom"])
     maxzoom = int(cfg["maxzoom"])
@@ -79,11 +79,11 @@ def build_layer(
         layer_name,
         "--attribution",
         str(cfg.get("attribution", "Tri-State Systems Manager")),
-        "--drop-densest-as-needed",
-        "--extend-zooms-if-still-dropping",
         "--force",
-        str(input_path),
     ]
+    if cfg.get("drop_densest_as_needed", False):
+        cmd.extend(["--drop-densest-as-needed", "--extend-zooms-if-still-dropping"])
+    cmd.append(str(input_path))
 
     print(f"Building {name}: {input_path} -> {output}")
     subprocess.run(cmd, check=True)
