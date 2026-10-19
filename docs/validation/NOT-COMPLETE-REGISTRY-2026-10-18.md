@@ -1,4 +1,4 @@
-# NOT COMPLETE — Technical Gaps Registry (2026-10-18)
+# NOT COMPLETE — Technical Gaps Registry (2026-10-18, updated 2026-10-19)
 
 These items must NOT be represented as complete in docs, dashboard, or artifacts.
 Each lists what exists vs. what is missing.
@@ -18,31 +18,33 @@ Each lists what exists vs. what is missing.
   - Formal voxel-density data contract v1.0 (`docs/3D-TILES-VOXEL-DENSITY-CONTRACT-v1.md`)
   - Runtime LOD-neighbor scheduler (`tsm-console/src/lib/lod-scheduler.ts`) — SSE-driven selection, 2:1 balance enforcement, fetch plans with load/evict/refine/coarsen events. 14 tests passing.
 - **Still missing:**
-  - True Transvoxel transition cell tables (73 classes); current stitching is pragmatic edge-matching
   - True Transvoxel transition cell tables (73 classes); current stitching is pragmatic edge-matching, not the Lengyel algorithm
   - Production tiling for full-terrain scale
 - **Do not claim:** Production Transvoxel terrain.
 
 ## 3. Full C/S State Transitions
-- **Status:** LOGIC ONLY — NOT PRODUCTION
+- **Status:** LOGIC + LIFECYCLE — NOT FULL PRODUCTION STREAMING
 - **What exists:** `state-word-scheduler.ts` — clean-room 5D state-word logic: `degradeWord`, `chunksToFetch`/`chunksToRelease`, `scheduleFrame`. Unit-tested.
 - **Built 2026-10-18:**
   - Resource variant descriptors (`tsm-console/src/lib/state-resource-variants.ts`) — maps state words to geometry LODs, texture resolutions, component lists, byte estimates. 9 tests passing.
-- **Built 2026-10-18:**
   - Fetch bridge (`tiles-fetch-bridge.ts`) — LRU cache load/evict, queue-depth monitoring, backpressure → state degradation. Uses the real 3d-tiles-renderer APIs.
+- **Built 2026-10-19:**
+  - Tile resource lifecycle (`tsm-console/src/lib/tile-resource-lifecycle.ts`) — status machine (`idle|queued|fetching|ready|stale|failed|released`), bounded in-flight + ready-byte budget, `assertNotSynthetic` guard.
 - **Still missing:**
   - Bandwidth-adaptive fetching against live telemetry (bridge monitors queue depth; does not yet adapt to measured throughput)
-  - Actual binary assets (descriptors exist, not the data)
+  - Actual binary assets at all LODs for production AOIs
 - **Do not claim:** A working adaptive streaming system.
 
 ## 4. Coordinate Validation
-- **Status:** PARTIAL — LOCAL MATH ONLY
-- **What exists:** `GeoidModel.get_geoid_height` validated at one anchor point (37.845887, -88.005075 → -30.302 m). Local-frame math has regression coverage.
+- **Status:** PARTIAL — CONTRACT STRENGTHENED, SYSTEM-WIDE EVIDENCE INCOMPLETE
+- **What exists:** `GeoidModel.get_geoid_height` validated at one anchor point (37.845887, -88.005075 → -30.302 m). Local-frame math has regression coverage. Canonical CRS guards (`geodetic/guards.ts`). Backend `GeodeticFrame` contract tests.
+- **Built 2026-10-19:**
+  - `ElevationEvidenceProduct` (`tsm-console/src/lib/elevation-evidence-product.ts`) — requires horizontal CRS, vertical datum, accuracy class, authority class; rejects AUTHORITATIVE+SCREENING pairing; never invents datum.
 - **Missing (needs separate evidence):**
   - Authoritative CRS validation across all 23,082 features (not just the anchor)
   - Vertical-datum validation per-source (NGVD29 confirmed for model 4449 only; other sources unverified)
-  - Coordinate epoch validation (tectonic/plate motion over time)
-  - Survey-accuracy validation (stated vs. achieved precision per dataset)
+  - Coordinate epoch validation (tectonic/plate motion over time) attached to live products
+  - Survey-accuracy validation (stated vs. achieved precision per dataset) at scale
 - **Do not claim:** System-wide datum or CRS validation.
 
 ## 5. Occlusion Validation
@@ -51,7 +53,7 @@ Each lists what exists vs. what is missing.
   - WebGL context-loss recovery (`tsm-console/src/lib/webgl-context-recovery.ts`) — pauses rendering, rebuilds GPU resources on restore, handles failure. 12 tests passing.
 - **Still missing:**
   - Browser/device profiling (frame timing across target devices, especially iOS 15-era Safari)
-- **Do not claim:** Any performance or robustness validation.
+- **Do not claim:** Any performance or robustness validation beyond unit tests.
 
 ---
 
