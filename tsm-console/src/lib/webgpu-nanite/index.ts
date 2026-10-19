@@ -47,3 +47,24 @@ export {
 } from './meshlet-import';
 
 export { cullMeshlets, type MeshletCullResult } from './meshlet-cull';
+
+export {
+  extractMeshFromGlb,
+  extractMeshFromGlbUrl,
+  type ExtractedMesh,
+} from './glb-mesh-extract';
+
+export {
+  MESH_CATALOG,
+  DEFAULT_MESHLET_PILOT_ID,
+  getMeshSource,
+  listGlbPilots,
+  type MeshSourceEntry,
+} from './mesh-catalog';
+
+export {
+  meshletsFromGlbUrl,
+  meshletsFromGlbArrayBuffer,
+  meshletsFromDefaultPilot,
+  type GlbMeshletOptions,
+} from './meshlet-from-glb';
