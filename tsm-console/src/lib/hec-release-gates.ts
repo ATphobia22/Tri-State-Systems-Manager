@@ -37,6 +37,8 @@ export interface DemProvenanceEvidence {
   verticalDatum: string;
   verticalUnits: 'm' | 'ft';
   rasterSha256: string;
+  /** Original raster bytes from the acquisition/validation pipeline. */
+  rasterBytes: Uint8Array | null;
 }
 
 export interface VerticalDatumEvidence {
@@ -153,7 +155,14 @@ async function checkDem(input: DemProvenanceEvidence | null): Promise<GateResult
   if (input.verticalDatum !== 'NAVD88') findings.push(`BLOCKED: DEM vertical datum must be NAVD88; received ${input.verticalDatum || 'missing'}.`);
   if (input.verticalUnits !== 'm' && input.verticalUnits !== 'ft') findings.push('Missing or unsupported DEM vertical units.');
   validHash(input.rasterSha256, 'DEM raster checksum', findings);
-  return gate('dem-provenance', findings, 'DEM source, acquisition, resolution, CRS, vertical datum, units, and checksum are present.');
+  if (!input.rasterBytes || input.rasterBytes.byteLength === 0) {
+    findings.push('DEM raster bytes were not supplied; checksum cannot be independently verified.');
+  } else if (SHA256.test(input.rasterSha256)) {
+    const digest = await globalThis.crypto.subtle.digest('SHA-256', input.rasterBytes);
+    const actual = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+    if (actual.toLowerCase() !== input.rasterSha256.toLowerCase()) findings.push('BLOCKED: DEM raster SHA-256 does not match the supplied raster bytes.');
+  }
+  return gate('dem-provenance', findings, 'DEM source, acquisition, resolution, CRS, vertical datum, units, and raster-byte SHA-256 verification passed.');
 }
 
 function checkVerticalDatum(input: VerticalDatumEvidence | null): GateResult {
