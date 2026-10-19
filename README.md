@@ -40,6 +40,18 @@ TSM integrates public hydrology, terrain, imagery, flood-hazard data, infrastruc
 
 TSM is decision-support software — not a surveying instrument, not a certified digital twin, not a licensed engineering service, not a regulatory determination, and not an emergency warning system. A layer appearing in a visualization does not make it survey-grade. Missing data is labeled as missing, never invented.
 
+### Incomplete technical gaps (must not be claimed complete)
+
+Full registry: [`docs/validation/NOT-COMPLETE-REGISTRY-2026-10-18.md`](docs/validation/NOT-COMPLETE-REGISTRY-2026-10-18.md)
+
+| Item | Status |
+|------|--------|
+| Hierarchical-Z / GPU compute culling | Not complete (WebGL2 occlusion queries only) |
+| Transvoxel terrain stitching | PoC + density contract + 2:1 LOD scheduler; not production Lengyel tables |
+| Full C/S adaptive streaming | Logic + fetch bridge; bandwidth-adaptive path incomplete |
+| System-wide coordinate/datum/epoch/survey validation | Partial (local math + guards; not all features) |
+| Multi-device occlusion profiling | Partial (context-loss recovery exists) |
+
 ---
 
 ## Government Data Sources
@@ -136,6 +148,8 @@ TSM is decision-support software — not a surveying instrument, not a certified
 - **State-word WebGIS** (`tsm-console/src/lib/state-word-webgis.ts`): 16-bit decoders for MapLibre/Three.js
 - **WebGPU terrain** (`tsm-console/src/lib/webgpu-volumetric-terrain.ts`): GPU marching cubes
 - **PBR baking** (`scripts/3d-tiles/bake-pbr-standard.py`): Headless Blender standardization
+- **Elevation evidence product** (`tsm-console/src/lib/elevation-evidence-product.ts`): CRS / vertical datum / epoch / accuracy class — required before survey claims
+- **Tile resource lifecycle** (`tsm-console/src/lib/tile-resource-lifecycle.ts`): status machine + bounded release (no synthetic tiles)
 
 ### Console Features
 
@@ -160,7 +174,7 @@ The TSM Console (10 tabs) provides:
 3. **Authority classes stay separate.** OBSERVED ≠ DERIVED ≠ SCENARIO ≠ REGULATORY.
 4. **Open source (Apache-2.0).** No lock-in, no token gates.
 5. **Local-first.** Runs offline, USB-deployable, air-gappable.
-6. **Resilient, not fail-closed.** Problems surface with visible badges, not silent blocks.
+6. **Problems surface with visible badges** — missing evidence is labeled, never invented as survey truth.
 
 ---
 
