@@ -85,14 +85,12 @@ export const FLOOD_SCENARIOS: readonly FloodScenario[] = [
     status: "unverified",
     crests: [],
     notes:
-      "Regulatory design event anchored to the owner-supplied working BFE of " +
-      "375.0 ft NAVD88 at 13101 Bonebank Rd (FIRM panel 18129C0265C, Zone AE). " +
-      "UNVERIFIED: the DFIRM database returns STATIC_BFE = NULL at the anchor " +
-      "— the digital FIRM carries no BFE at this location, so 375.0 ft remains " +
-      "a working target from Bonebank_LOMA_Checklist.pdf, not a confirmed " +
-      "effective BFE. No 100-year depth grid or extent polygon is held in the " +
-      "repository. See data/scenarios/q100-design-event.json for the " +
-      "provisional screening replay (simulation).",
+      "Regulatory design event anchored to the FEMA-effective BFE of " +
+      "369.1 ft NAVD88 at 13101 Bonebank Rd (FIS 18129CV000A Table 9, " +
+      "Section A, RM 844.75; FIRM panel 18129C0265C, Zone AE). " +
+      "Corrected 2026-10-18 from the 375.0 ft working target in " +
+      "Bonebank_LOMA_Checklist.pdf. See data/scenarios/q100-design-event.json " +
+      "for the provisional screening replay (simulation).",
     sources: [
       "docs/validation/site-gaps-research-2026-10-17.md (BFE investigation)",
       "data/scenarios/q100-design-event.json",

@@ -36,13 +36,15 @@ export interface SiteElevationConstants {
 }
 
 /**
- * Owner-supplied elevation constants for the Bonebank operational node.
- * Source: owner records (FEMA LOMA case 26-05-2022A: BFE 375.00 ft NAVD88,
- * LAG 377.20 ft). Override per-site via the `siteConstants` parameter —
+ * Elevation constants for the Bonebank operational node.
+ * Source: FEMA FIS 18129CV000A Table 9, Section A (RM 844.75):
+ * regulatory BFE 369.1 ft NAVD88 (corrected 2026-10-18 from 375.0 ft
+ * working target in Bonebank_LOMA_Checklist.pdf). LAG 377.20 ft owner-supplied.
+ * Override per-site via the `siteConstants` parameter —
  * these defaults describe one property, not the region.
  */
 export const BONEBANK_SITE_CONSTANTS: SiteElevationConstants = {
-  BFE: 375.0,
+  BFE: 369.1,
   LAG: 377.2,
   FFE: 382.5,
   BERM: 379.8,

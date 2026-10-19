@@ -49,7 +49,7 @@ export function evaluateLomaStructurePath(input: LomaElevationInputs): {
 
 const DEFAULTS: LomaElevationInputs = {
   lagFtNavd88: 377.2,
-  bfeFtNavd88: 375.0,
+  bfeFtNavd88: 369.1,
   firmPanel: "18129C0300C",
   fillPlaced: false,
   humanReviewed: false,
