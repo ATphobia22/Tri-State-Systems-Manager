@@ -1,12 +1,15 @@
 /**
- * Nanite plane B runtime — device, camera, depth pyramid, meshlet import/cull.
- * SIMULATION_DEMO only. Never substitutes for MapLibre regulatory layers.
+ * Nanite plane B runtime — device, camera, pyramid, real GLB meshlets.
+ * SIMULATION_DEMO / DERIVED only — never MapLibre regulatory substitute.
  */
 
 import { buildDepthPyramidCpu } from './depth-pyramid';
 import { mapLibreCameraToWebGpu, type MapLibreCameraState } from './maplibre-webgpu-camera';
+import { DEFAULT_MESHLET_PILOT_ID, getMeshSource } from './mesh-catalog';
 import { cullMeshlets } from './meshlet-cull';
 import { buildMeshletsGreedy, createUnitCubeMesh } from './meshlet-import';
+import { meshletsFromDefaultPilot } from './meshlet-from-glb';
+import type { MeshletImportResult } from './meshlet-types';
 import {
   isNanitePlaneEnabled,
   requestTsmWebGpuDevice,
@@ -24,6 +27,7 @@ export type NanitePlaneStatus =
       pyramidLevels: number;
       cameraDistanceM: number;
       meshlets: {
+        sourceId: string;
         count: number;
         triangles: number;
         visible: number;
@@ -49,6 +53,18 @@ export async function probeNanitePlane(): Promise<WebGpuSupport | { ok: false; r
   return cachedDevice;
 }
 
+async function loadPilotMeshlets(): Promise<MeshletImportResult> {
+  try {
+    return await meshletsFromDefaultPilot();
+  } catch (e) {
+    const fallback = buildMeshletsGreedy(createUnitCubeMesh('tsm-smoke-cube-fallback'));
+    fallback.warnings.push(
+      `GLB pilot fetch failed (${e instanceof Error ? e.message : String(e)}); using unit cube`,
+    );
+    return fallback;
+  }
+}
+
 export async function runNanitePlaneSmoke(input: NaniteSmokeInput): Promise<NanitePlaneStatus> {
   if (!isNanitePlaneEnabled()) {
     return { phase: 'disabled' };
@@ -66,8 +82,9 @@ export async function runNanitePlaneSmoke(input: NaniteSmokeInput): Promise<Nani
   }
   const pyramid = buildDepthPyramidCpu(depth, width, height);
 
-  const imported = buildMeshletsGreedy(createUnitCubeMesh('tsm-smoke-cube'));
+  const imported = await loadPilotMeshlets();
   const cull = cullMeshlets(imported.pack, cam);
+  const pilot = getMeshSource(DEFAULT_MESHLET_PILOT_ID);
 
   if (!probe.ok) {
     return { phase: 'unsupported', reason: probe.reason };
@@ -80,11 +97,15 @@ export async function runNanitePlaneSmoke(input: NaniteSmokeInput): Promise<Nani
     pyramidLevels: pyramid.levels.length,
     cameraDistanceM: cam.distanceM,
     meshlets: {
+      sourceId: imported.pack.sourceId,
       count: imported.meshletCount,
       triangles: imported.triangleCount,
       visible: cull.visible.length,
       culled: cull.culled,
-      warnings: imported.warnings,
+      warnings: [
+        ...imported.warnings,
+        pilot ? `catalog: ${pilot.publicUrl}` : 'catalog pilot missing',
+      ],
     },
     label: 'SIMULATION_DEMO',
   };
