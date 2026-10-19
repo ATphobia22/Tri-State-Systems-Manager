@@ -94,7 +94,7 @@ def fetch_usgs_gage(site: str, parameter: str, days: int = 30) -> pd.DataFrame:
             "f": "json",
             "monitoring_location_id": f"USGS-{site}",
             "parameter_code": parameter,
-            "datetime": f"{start.isoformat()}/{end.isoformat()}",
+            "time": f"{start.isoformat()}/{end.isoformat()}",
             "limit": 10000,
         }
         api_key = os.getenv("USGS_WATERDATA_API_KEY")
