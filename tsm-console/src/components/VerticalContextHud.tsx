@@ -15,7 +15,7 @@ function fmt(v: number | null | undefined, unit = 'ft'): string {
 
 /**
  * Vertical truth HUD — makes datum class visible.
- * Fail-closed: does not invent gage-zero or WSE.
+ * Missing conversion inputs remain explicitly unavailable; no gage-zero or WSE is inferred.
  */
 export default function VerticalContextHud({
   stage,
@@ -60,7 +60,7 @@ export default function VerticalContextHud({
         Station WSE NAVD88:{' '}
         {stage.conversion_applied && stage.wse_navd88_ft != null
           ? fmt(stage.wse_navd88_ft)
-          : 'blocked — published gage-zero required'}
+          : 'unavailable — published gage-zero required'}
       </div>
       <div>
         Site (orthometric labels): BFE {fmt(site.elevations.bfe_ft)} · LAG {fmt(site.elevations.lag_ft)} ·
