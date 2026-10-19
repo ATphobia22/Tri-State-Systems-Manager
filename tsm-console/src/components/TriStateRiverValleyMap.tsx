@@ -119,7 +119,7 @@ function initialLayerStates(): Record<string, LayerRuntimeState> {
     if (plane.retired) continue;
     for (const layer of getPlaneLayers(plane)) {
       if (layer.id === 'indiana-terrain-rgb') {
-        states[layer.id] = terrainStatus.enabled ? 'loading' : 'blocked';
+        states[layer.id] = terrainStatus.enabled ? 'loading' : 'not_configured';
       } else {
         states[layer.id] = 'loading';
       }
@@ -201,13 +201,21 @@ export default function TriStateRiverValleyMap({
     };
 
     map.on('load', () => {
-      // Fail-closed 3D terrain: only when the contract validates the template.
-      const terrainApplied = applyTwinTerrain(map);
+      // Optional 3D terrain is isolated: a terrain failure must not prevent other layers from loading.
       const terrainStatus = getTerrainRgbStatus();
+      let terrainApplied = false;
+      try {
+        terrainApplied = applyTwinTerrain(map);
+      } catch (error) {
+        markLayer('indiana-terrain-rgb', 'source_unavailable');
+        console.warn('[TSM map] 3D terrain unavailable; continuing with other layers.', error);
+      }
       if (terrainStatus.enabled && !terrainApplied) {
         markLayer('indiana-terrain-rgb', 'source_unavailable');
       } else if (terrainStatus.enabled && terrainApplied) {
         markLayer('indiana-terrain-rgb', 'live');
+      } else {
+        markLayer('indiana-terrain-rgb', 'not_configured');
       }
 
       for (const plane of SPATIAL_PLANES) {
