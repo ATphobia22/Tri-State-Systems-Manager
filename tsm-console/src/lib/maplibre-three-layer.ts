@@ -27,6 +27,11 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 /** Builds scene content. Receives the layer's THREE.Scene; must not throw. */
 export type ThreeSceneContentBuilder = (scene: THREE.Scene) => void;
 
+export interface MapLibreThreeLayerDiagnostic {
+  code: string;
+  message: string;
+}
+
 export interface MapLibreThreeLayerConfig {
   /** MapLibre layer id. */
   id: string;
@@ -43,6 +48,8 @@ export interface MapLibreThreeLayerConfig {
   hdrUrl?: string;
   /** Optional absolute http(s) URLs of GLTF/GLB models to place at the origin. */
   modelUrls?: string[];
+  /** Optional non-throwing diagnostic sink for degraded rendering states. */
+  onDiagnostic?: (diagnostic: MapLibreThreeLayerDiagnostic) => void;
   /** ACES tone-mapping exposure. Default 1.1. */
   exposure?: number;
   /** Shadow map resolution. Default 2048. */
@@ -64,6 +71,8 @@ export class MapLibreThreeLayer implements maplibregl.CustomLayerInterface {
   private readonly contentBuilders: ThreeSceneContentBuilder[];
   private readonly hdrUrl?: string;
   private readonly modelUrls: string[];
+  private readonly onDiagnostic?: (diagnostic: MapLibreThreeLayerDiagnostic) => void;
+  private readonly diagnostics = new Map<string, string>();
   private readonly exposure: number;
   private readonly shadowMapSize: number;
 
@@ -86,6 +95,7 @@ export class MapLibreThreeLayer implements maplibregl.CustomLayerInterface {
     this.contentBuilders = config.content ?? [];
     this.hdrUrl = config.hdrUrl;
     this.modelUrls = config.modelUrls ?? [];
+    this.onDiagnostic = config.onDiagnostic;
     this.exposure = config.exposure ?? DEFAULT_EXPOSURE;
     this.shadowMapSize = config.shadowMapSize ?? DEFAULT_SHADOW_MAP_SIZE;
 
@@ -99,58 +109,84 @@ export class MapLibreThreeLayer implements maplibregl.CustomLayerInterface {
     this.mercatorScale = mercator.meterInMercatorCoordinateUnits();
   }
 
-  /** Absolute http(s) URLs only — everything else is skipped, never fetched. */
-  private static isLoadableUrl(value: unknown): value is string {
-    if (typeof value !== 'string' || value.length === 0) return false;
+  /** Read-only diagnostics; presentation failures never propagate into MapLibre. */
+  getDiagnostics(): MapLibreThreeLayerDiagnostic[] {
+    return [...this.diagnostics.entries()].map(([code, message]) => ({ code, message }));
+  }
+
+  private reportDiagnostic(code: string, message: string): void {
+    if (this.diagnostics.has(code)) return;
+    this.diagnostics.set(code, message);
     try {
-      const parsed = new URL(value);
-      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+      this.onDiagnostic?.({ code, message });
     } catch {
+      // A consumer's diagnostic callback must never break map rendering.
+    }
+  }
+
+  /** Absolute http(s) URLs only — unsafe URLs are skipped and reported, never fetched. */
+  private isLoadableUrl(value: unknown, kind: string): value is string {
+    if (typeof value !== 'string' || value.length === 0) {
+      this.reportDiagnostic(`invalid-${kind.toLowerCase()}-url`, `${kind} URL is missing or invalid; that optional layer was skipped.`);
       return false;
     }
+    try {
+      const parsed = new URL(value);
+      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') return true;
+    } catch {
+      // Report the invalid URL below; parsing failure is expected for malformed input.
+    }
+    this.reportDiagnostic(`invalid-${kind.toLowerCase()}-url`, `${kind} URL must use absolute HTTP(S); that optional layer was skipped.`);
+    return false;
   }
 
   onAdd(map: maplibregl.Map, gl: WebGL2RenderingContext): void {
     this.map = map;
 
-    this.renderer = new THREE.WebGLRenderer({
-      canvas: map.getCanvas(),
-      context: gl,
-      antialias: true,
-    });
-    this.renderer.autoClear = false;
-    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
-    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = this.exposure;
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    try {
+      this.renderer = new THREE.WebGLRenderer({
+        canvas: map.getCanvas(),
+        context: gl,
+        antialias: true,
+      });
+      this.renderer.autoClear = false;
+      this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+      this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      this.renderer.toneMappingExposure = this.exposure;
+      this.renderer.shadowMap.enabled = true;
+      this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    const ambient = new THREE.AmbientLight(0xffffff, 0.8);
-    const sun = new THREE.DirectionalLight(0xfff5ea, 2.5);
-    sun.position.set(50, 100, 50);
-    sun.castShadow = true;
-    sun.shadow.mapSize.set(this.shadowMapSize, this.shadowMapSize);
-    sun.shadow.camera.left = -SHADOW_CAMERA_EXTENT_METERS;
-    sun.shadow.camera.right = SHADOW_CAMERA_EXTENT_METERS;
-    sun.shadow.camera.top = SHADOW_CAMERA_EXTENT_METERS;
-    sun.shadow.camera.bottom = -SHADOW_CAMERA_EXTENT_METERS;
-    sun.shadow.camera.near = 1;
-    sun.shadow.camera.far = 1000;
-    this.scene.add(ambient, sun);
+      const ambient = new THREE.AmbientLight(0xffffff, 0.8);
+      const sun = new THREE.DirectionalLight(0xfff5ea, 2.5);
+      sun.position.set(50, 100, 50);
+      sun.castShadow = true;
+      sun.shadow.mapSize.set(this.shadowMapSize, this.shadowMapSize);
+      sun.shadow.camera.left = -SHADOW_CAMERA_EXTENT_METERS;
+      sun.shadow.camera.right = SHADOW_CAMERA_EXTENT_METERS;
+      sun.shadow.camera.top = SHADOW_CAMERA_EXTENT_METERS;
+      sun.shadow.camera.bottom = -SHADOW_CAMERA_EXTENT_METERS;
+      sun.shadow.camera.near = 1;
+      sun.shadow.camera.far = 1000;
+      this.scene.add(ambient, sun);
+    } catch (error) {
+      this.renderer = null;
+      this.reportDiagnostic('renderer-init-failed', error instanceof Error ? error.message : 'WebGL renderer could not initialize.');
+      return;
+    }
 
     for (const build of this.contentBuilders) {
       try {
         build(this.scene);
-      } catch {
-        // Graceful degradation: skip this builder and preserve the rest of the map.
+      } catch (error) {
+        this.reportDiagnostic(`content-builder-${this.contentBuilders.indexOf(build)}-failed`, error instanceof Error ? error.message : 'A scene content builder failed; remaining map layers are preserved.');
       }
     }
 
-    if (MapLibreThreeLayer.isLoadableUrl(this.hdrUrl)) {
+    if (this.isLoadableUrl(this.hdrUrl, 'HDR')) {
       this.loadEnvironment(this.hdrUrl);
     }
     for (const modelUrl of this.modelUrls) {
-      if (MapLibreThreeLayer.isLoadableUrl(modelUrl)) {
+      if (this.isLoadableUrl(modelUrl, 'Model')) {
         this.loadModel(modelUrl);
       }
     }
@@ -166,11 +202,11 @@ export class MapLibreThreeLayer implements maplibregl.CustomLayerInterface {
         },
         undefined,
         () => {
-          // Graceful degradation: render without image-based lighting.
+          this.reportDiagnostic('hdr-load-failed', 'Environment map failed to load; rendering continues without image-based lighting.');
         },
       );
-    } catch {
-      // Graceful degradation: skip the environment map if the loader cannot initialize.
+    } catch (error) {
+      this.reportDiagnostic('hdr-loader-init-failed', error instanceof Error ? error.message : 'Environment-map loader could not initialize.');
     }
   }
 
@@ -190,11 +226,11 @@ export class MapLibreThreeLayer implements maplibregl.CustomLayerInterface {
         },
         undefined,
         () => {
-          // Graceful degradation: keep rendering the successfully loaded scene.
+          // The model is added only after a successful load.
         },
       );
-    } catch {
-      // Graceful degradation: skip the model if the loader cannot initialize.
+    } catch (error) {
+      this.reportDiagnostic(`model-loader-init-failed-${this.modelUrls.indexOf(url)}`, error instanceof Error ? error.message : 'Model loader could not initialize.');
     }
   }
 
@@ -204,30 +240,35 @@ export class MapLibreThreeLayer implements maplibregl.CustomLayerInterface {
     // Compose the model matrix: translate to the Mercator origin, scale
     // meters into Mercator coordinate units, then rotate Z-up into
     // Mercator space; the map camera matrix goes on the left.
-    const rotationX = new THREE.Matrix4().makeRotationX(Math.PI / 2);
-    const scale = new THREE.Matrix4().makeScale(
-      this.mercatorScale,
-      -this.mercatorScale,
-      this.mercatorScale,
-    );
-    const translation = new THREE.Matrix4().makeTranslation(
-      this.mercatorX,
-      this.mercatorY,
-      this.mercatorZ,
-    );
-    const cameraMatrix = new THREE.Matrix4().fromArray(
-      Array.from(options.modelViewProjectionMatrix),
-    );
-    this.camera.projectionMatrix
-      .copy(cameraMatrix)
-      .multiply(translation)
-      .multiply(scale)
-      .multiply(rotationX);
-    this.camera.projectionMatrixInverse.copy(this.camera.projectionMatrix).invert();
+    try {
+      const rotationX = new THREE.Matrix4().makeRotationX(Math.PI / 2);
+      const scale = new THREE.Matrix4().makeScale(
+        this.mercatorScale,
+        -this.mercatorScale,
+        this.mercatorScale,
+      );
+      const translation = new THREE.Matrix4().makeTranslation(
+        this.mercatorX,
+        this.mercatorY,
+        this.mercatorZ,
+      );
+      const cameraMatrix = new THREE.Matrix4().fromArray(
+        Array.from(options.modelViewProjectionMatrix),
+      );
+      this.camera.projectionMatrix
+        .copy(cameraMatrix)
+        .multiply(translation)
+        .multiply(scale)
+        .multiply(rotationX);
+      this.camera.projectionMatrixInverse.copy(this.camera.projectionMatrix).invert();
 
-    this.renderer.resetState();
-    this.renderer.render(this.scene, this.camera);
-    this.map.triggerRepaint();
+      this.renderer.resetState();
+      this.renderer.render(this.scene, this.camera);
+      this.map.triggerRepaint();
+    } catch (error) {
+      this.reportDiagnostic('render-failed', error instanceof Error ? error.message : '3D layer render failed; the base map remains usable.');
+      this.renderer = null;
+    }
   }
 
   onRemove(_map: maplibregl.Map, _gl: WebGL2RenderingContext): void {
