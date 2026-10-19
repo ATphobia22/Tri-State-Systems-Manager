@@ -18,8 +18,8 @@ import {
  * Tri-State River Valley spatial fabric — master MapLibre plane for the TSM web console.
  *
  * Honest-by-construction:
- * - Base style and fail-closed 3D terrain come from lib/twin-map-style.ts and
- *   lib/terrain-rgb-contract.ts. No terrain mesh without a provenance-controlled template.
+ * - Base style and optional 3D terrain come from lib/twin-map-style.ts and
+ *   lib/terrain-rgb-contract.ts. Missing terrain configuration leaves the 2D base map available with an explicit status.
  * - Overlays are wired only to endpoints in the MAP_LAYERS catalog. Planes with no
  *   configured endpoint render as NOT_CONFIGURED — never synthesized.
  * - Per-layer status is driven by real MapLibre source load/error events plus a
@@ -45,7 +45,7 @@ const ANCHOR: [number, number] = [-88.005075, 37.845887];
 
 const OVERLAY_OPACITY = 0.5;
 const OVERLAY_TILE_SIZE = 512;
-/** Fail-closed: a source still loading after this long is reported unavailable. */
+/** Slow source loads are reported in the layer status panel without blocking the base map. */
 const SOURCE_LOAD_TIMEOUT_MS = 30000;
 
 const ARCGIS_EXPORT_QUERY =
