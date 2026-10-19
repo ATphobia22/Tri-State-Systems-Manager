@@ -82,6 +82,7 @@ function validateGrid(input: FloodGridInput): string | null {
   if (!Number.isInteger(nx) || nx <= 0 || !Number.isInteger(ny) || ny <= 0) {
     return `Grid dimensions must be positive integers (received ${String(nx)}×${String(ny)}).`;
   }
+  if (nx > 4096 || ny > 4096) return 'Grid exceeds the 4096×4096 rendering budget; reduce resolution.';
   if (!Array.isArray(depthFt) || depthFt.length !== ny) {
     return `Depth grid must contain exactly ${ny} rows.`;
   }
