@@ -430,7 +430,7 @@ async function loadGreedyWorker() {
       '  return { mesh: { ...mesh, positions, indices, normals }, result, pack: exportMeshletPackJson(result.pack) };',
       '}',
       '',
-    ].join('\\n');
+    ].join('\n');
     const workerPath = path.join(temporaryRoot, 'worker.mts');
     await writeFile(workerPath, workerSource);
     const worker = await import(pathToFileURL(workerPath).href);
