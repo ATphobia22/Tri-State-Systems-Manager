@@ -116,12 +116,16 @@ function withinGeometry(source, county) {
   return !sourceSegs.some(sa=>countySegs.some(sb=>segmentsIntersect(sa[0],sa[1],sb[0],sb[1])));
 }
 
-function normalizeArcGisGeometry(geometry) {
+function normalizeArcGisGeometry(geometry, inheritedSpatialReference = null) {
   if (!geometry || typeof geometry !== "object") return null;
+  // RFC 7946 GeoJSON coordinates are longitude/latitude. Do not reinterpret
+  // Esri JSON coordinates as WGS84 unless its spatial reference explicitly says 4326.
   if (geometry.type && geometry.coordinates) return geometry;
-  // ArcGIS REST MapServer queries may return Esri JSON geometry rather than
-  // GeoJSON. The 3DEP index service uses { rings, spatialReference } polygons.
-  // Queries request outSR=4326, so coordinate pairs remain longitude/latitude.
+  const spatialReference = geometry.spatialReference || inheritedSpatialReference;
+  const wkid = Number(spatialReference?.latestWkid ?? spatialReference?.wkid);
+  if (wkid !== 4326) return null;
+  // ArcGIS REST geometry is not GeoJSON: its polygon rings and paths need
+  // representation conversion only after the source CRS is verified as WGS84.
   if (Array.isArray(geometry.rings)) {
     return { type: "Polygon", coordinates: geometry.rings };
   }
@@ -139,23 +143,28 @@ function normalizeArcGisGeometry(geometry) {
   return null;
 }
 
-function eachGeometry(gj) {
-  if(gj.type==="FeatureCollection") return gj.features.flatMap(eachGeometry);
+function eachGeometry(gj, inheritedSpatialReference = null) {
+  if(gj.type==="FeatureCollection") return gj.features.flatMap((feature) => eachGeometry(feature, gj.crs || inheritedSpatialReference));
   if(gj.type==="Feature") {
-    const geometry = normalizeArcGisGeometry(gj.geometry);
+    const geometry = normalizeArcGisGeometry(gj.geometry, inheritedSpatialReference);
     return geometry ? [geometry] : [];
   }
-  if(gj.type==="GeometryCollection") return gj.geometries.flatMap(eachGeometry);
-  // Esri JSON FeatureSets use features with geometry.rings and attributes,
-  // without the GeoJSON Feature type discriminator.
+  if(gj.type==="GeometryCollection") return gj.geometries.flatMap((geometry) => eachGeometry(geometry, inheritedSpatialReference));
+  // Esri JSON FeatureSets may carry the spatial reference on the FeatureSet
+  // instead of repeating it on each feature geometry.
   if(Array.isArray(gj.features)) {
     return gj.features.flatMap((feature) => {
-      const geometry = normalizeArcGisGeometry(feature?.geometry);
+      const geometry = normalizeArcGisGeometry(feature?.geometry, gj.spatialReference);
       return geometry ? [geometry] : [];
     });
   }
-  const normalized = normalizeArcGisGeometry(gj);
-  return normalized ? [normalized] : [gj];
+  const normalized = normalizeArcGisGeometry(gj, inheritedSpatialReference);
+  if (normalized) return [normalized];
+  if (Array.isArray(gj.rings) || Array.isArray(gj.paths) || Array.isArray(gj.points)
+      || (typeof gj.x === "number" && typeof gj.y === "number")) {
+    return [];
+  }
+  return [gj];
 }
 
 function main() {
