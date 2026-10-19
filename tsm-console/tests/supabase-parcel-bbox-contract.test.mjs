@@ -45,4 +45,7 @@ test('parcel viewport never silently displays a truncated page', () => {
   assert.match(parcelClient, /aria-live/);
   assert.match(parcelClient, /partial results are hidden/);
   assert.match(parcelClient, /no stale parcel results are shown/);
+  assert.match(parcelClient, /const sequence = \+\+requestSequence/);
+  assert.match(parcelClient, /controller\?\.abort\(\)/);
+  assert.match(parcelClient, /requestSequence \+= 1/);
 });
