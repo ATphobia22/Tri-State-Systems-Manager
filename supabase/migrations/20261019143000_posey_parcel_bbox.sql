@@ -35,10 +35,10 @@ create policy posey_parcels_public_read
   using (is_public = true);
 
 create or replace function public.get_parcels_in_bbox(
-  xmin double precision,
-  ymin double precision,
-  xmax double precision,
-  ymax double precision
+  p_xmin double precision,
+  p_ymin double precision,
+  p_xmax double precision,
+  p_ymax double precision
 )
 returns jsonb
 language plpgsql
@@ -50,13 +50,13 @@ declare
   result_features jsonb;
   was_truncated boolean;
 begin
-  if xmin is null or ymin is null or xmax is null or ymax is null
-     or not (xmin between -180 and 180)
-     or not (xmax between -180 and 180)
-     or not (ymin between -85.05112878 and 85.05112878)
-     or not (ymax between -85.05112878 and 85.05112878)
-     or xmin >= xmax or ymin >= ymax
-     or (xmax - xmin) > 2.0 or (ymax - ymin) > 2.0 then
+  if p_xmin is null or p_ymin is null or p_xmax is null or p_ymax is null
+     or not (p_xmin between -180 and 180)
+     or not (p_xmax between -180 and 180)
+     or not (p_ymin between -85.05112878 and 85.05112878)
+     or not (p_ymax between -85.05112878 and 85.05112878)
+     or p_xmin >= p_xmax or p_ymin >= p_ymax
+     or (p_xmax - p_xmin) > 2.0 or (p_ymax - p_ymin) > 2.0 then
     raise exception 'Invalid bounding box; bounds must be ordered and span at most 2 degrees'
       using errcode = '22023';
   end if;
@@ -67,7 +67,7 @@ begin
     from public.posey_parcels as p
     where p.is_public = true
       and p.geom operator(extensions.&&)
-          extensions.st_makeenvelope(xmin, ymin, xmax, ymax, 4326)
+          extensions.st_makeenvelope(p_xmin, p_ymin, p_xmax, p_ymax, 4326)
       and extensions.st_intersects(
           p.geom, extensions.st_makeenvelope(xmin, ymin, xmax, ymax, 4326)
       )
