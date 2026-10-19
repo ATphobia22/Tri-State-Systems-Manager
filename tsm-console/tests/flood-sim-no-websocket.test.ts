@@ -4,8 +4,8 @@
  * source-grep transport gate that lives in
  * src/lib/flood-sim/no-websocket-gate.test.ts.
  *
- * Policy: all live data enters the flood simulator via REST polling
- * (`startGaugePoll`) plus the local deterministic engine. Push/streaming
- * transports are forbidden anywhere under src/lib/flood-sim/.
+ * Policy: the simulator uses interval HTTPS terrain-health probes plus its
+ * local deterministic engine. User-triggered river snapshots are outside the
+ * simulator; automatic gauge polling and push/streaming transports are forbidden.
  */
 import '../src/lib/flood-sim/no-websocket-gate.test';
