@@ -19,7 +19,7 @@ permissions:
 jobs:
   validate-downloader:
     runs-on: windows-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -49,3 +49,17 @@ jobs:
             }
             Write-Host 'Unknown tile was rejected before any network request.'
           }
+      - name: Download and hash one official Posey DEM tile
+        shell: pwsh
+        run: |
+          $sampleDir = Join-Path $env:RUNNER_TEMP 'posey-dem-sample'
+          & ./scripts/posey/download-dem-tiles.ps1 -TileName 'IN2020_26700930_12.tif' -MaxTiles 1 -OutDir $sampleDir -ReceiptPath (Join-Path $sampleDir 'download-receipt.json')
+          if ($LASTEXITCODE -ne 0) { throw 'DEM tile acquisition failed.' }
+          if (-not (Test-Path (Join-Path $sampleDir 'IN2020_26700930_12.tif'))) { throw 'Downloaded DEM tile is missing.' }
+      - name: Upload sample DEM and acquisition receipt
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: posey-dem-sample-tile
+          path: ${{ runner.temp }}/posey-dem-sample/
+          if-no-files-found: error
+          retention-days: 14
