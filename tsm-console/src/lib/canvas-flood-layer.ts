@@ -46,6 +46,28 @@ export interface CanvasFloodLayerConfig {
 
 const DEFAULT_FILL = 'rgba(30, 120, 220, 0.55)';
 
+function validateFloodGrid(grid: FloodGrid): string | null {
+  if (!grid || typeof grid !== 'object') return 'Elevation grid is missing.';
+  if (!(grid.elevations instanceof Float32Array)) return 'Elevation values must be a Float32Array.';
+  if (!Number.isInteger(grid.rows) || !Number.isInteger(grid.cols) ||
+      grid.rows < 1 || grid.cols < 1 || grid.rows > 4096 || grid.cols > 4096) {
+    return 'Elevation grid dimensions are outside the supported range.';
+  }
+  if (grid.elevations.length !== grid.rows * grid.cols) {
+    return 'Elevation array length does not match grid dimensions.';
+  }
+  if (!Array.isArray(grid.bounds) || grid.bounds.length !== 4 ||
+      !grid.bounds.every((value) => typeof value === 'number' && Number.isFinite(value))) {
+    return 'Geographic bounds must contain four finite coordinates.';
+  }
+  const [west, south, east, north] = grid.bounds;
+  if (west >= east || south >= north) return 'Geographic bounds must have positive width and height.';
+  if (typeof grid.verticalDatum !== 'string' || !grid.verticalDatum.trim()) {
+    return 'Vertical datum is required.';
+  }
+  return null;
+}
+
 /**
  * Resolve a vertical-datum conversion only when an explicit transformation exists.
  * No regional constant offset is applied here. Unknown pairs return null so the
@@ -56,8 +78,9 @@ export function tryDatumConversion(
   fromDatum: string,
   toDatum: string,
 ): number | null {
-  const from = fromDatum.toUpperCase();
-  const to = toDatum.toUpperCase();
+  if (!Number.isFinite(elevM) || typeof fromDatum !== 'string' || typeof toDatum !== 'string' || !fromDatum.trim() || !toDatum.trim()) return null;
+  const from = fromDatum.trim().toUpperCase();
+  const to = toDatum.trim().toUpperCase();
   if (from === to) return elevM;
   // No constant regional offset is valid for a vertical-datum transformation.
   // Require a geoid/grid transformation service and its provenance; otherwise
@@ -259,34 +282,31 @@ export class CanvasFloodLayer {
    *   (0.7 ft ≈ 0.213 m). Applied automatically with visible badge.
    */
   setWaterLevel(elevM: number | null, datum: string): void {
+    const validation = validateFloodGrid(this.config.grid);
+    if (validation) {
+      this.waterLevelM = null;
+      this.datumBadge = 'Flood overlay unavailable: ' + validation;
+      this.statusMessage = this.datumBadge;
+      this.clearOverlayCanvas();
+      return;
+    }
     if (!this.canvas || !this.map) {
       this.statusMessage = 'Flood overlay is not attached to a map.';
+      this.clearOverlayCanvas();
       return;
     }
     if (elevM === null) {
       this.waterLevelM = null;
       this.datumBadge = '';
       this.statusMessage = 'Flood overlay cleared; no water level is selected.';
-      paintFloodCanvas(
-        this.config.grid,
-        new Uint8Array(this.config.grid.rows * this.config.grid.cols),
-        this.canvas,
-        this.config.fillColor,
-        this.config.debugGrid,
-      );
+      this.clearOverlayCanvas();
       return;
     }
     if (!Number.isFinite(elevM)) {
       this.waterLevelM = null;
       this.datumBadge = 'Water level is unavailable because the value is not finite.';
       this.statusMessage = this.datumBadge;
-      paintFloodCanvas(
-        this.config.grid,
-        new Uint8Array(this.config.grid.rows * this.config.grid.cols),
-        this.canvas,
-        this.config.fillColor,
-        this.config.debugGrid,
-      );
+      this.clearOverlayCanvas();
       return;
     }
 
@@ -326,13 +346,7 @@ export class CanvasFloodLayer {
       this.waterLevelM = null;
       this.datumBadge = 'Flood overlay unavailable: ' + (error instanceof Error ? error.message : 'rendering failed.');
       this.statusMessage = this.datumBadge;
-      paintFloodCanvas(
-        this.config.grid,
-        new Uint8Array(this.config.grid.rows * this.config.grid.cols),
-        this.canvas,
-        this.config.fillColor,
-        this.config.debugGrid,
-      );
+      this.clearOverlayCanvas();
     }
   }
 
@@ -343,6 +357,22 @@ export class CanvasFloodLayer {
       return { state: 'pending', message: this.statusMessage };
     }
     return { state: 'degraded', message: this.statusMessage };
+  }
+
+  private clearOverlayCanvas(): void {
+    if (!this.canvas) return;
+    try {
+      const context = this.canvas.getContext('2d');
+      context?.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    } catch {
+      // Canvas cleanup is best-effort; it must not interrupt MapLibre.
+    }
+    try {
+      const source = this.map?.getSource(this.config.sourceId) as { play?: () => void } | undefined;
+      source?.play?.();
+    } catch {
+      // The map base and unrelated overlays remain usable.
+    }
   }
 
   /** Human-readable note for the datum conversion or mismatch status. */
