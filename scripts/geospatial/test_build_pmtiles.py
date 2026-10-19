@@ -80,18 +80,18 @@ class BuildPmtilesTests(unittest.TestCase):
             )
         run_mock.assert_not_called()
 
-    def test_missing_input_is_skipped_without_external_tool(self) -> None:
-        result = build_pmtiles.build_layer(
-            "missing",
-            {
-                "input": str(self.root / "missing.geojson"),
-                "minzoom": 10,
-                "maxzoom": 12,
-                "layer_name": "missing",
-            },
-            output_path=self.root / "missing.pmtiles",
-        )
-        self.assertIsNone(result)
+    def test_missing_input_fails_closed(self) -> None:
+        with self.assertRaises(FileNotFoundError):
+            build_pmtiles.build_layer(
+                "missing",
+                {
+                    "input": str(self.root / "missing.geojson"),
+                    "minzoom": 10,
+                    "maxzoom": 12,
+                    "layer_name": "missing",
+                },
+                output_path=self.root / "missing.pmtiles",
+            )
 
 
 if __name__ == "__main__":
