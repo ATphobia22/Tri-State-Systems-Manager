@@ -144,7 +144,7 @@ function normalizeArcGisGeometry(geometry, inheritedSpatialReference = null) {
 }
 
 function eachGeometry(gj, inheritedSpatialReference = null) {
-  if(gj.type==="FeatureCollection") return gj.features.flatMap((feature) => eachGeometry(feature, gj.crs || inheritedSpatialReference));
+  if(gj.type==="FeatureCollection") return gj.features.flatMap((feature) => eachGeometry(feature, gj.spatialReference || gj.crs || inheritedSpatialReference));
   if(gj.type==="Feature") {
     const geometry = normalizeArcGisGeometry(gj.geometry, inheritedSpatialReference);
     return geometry ? [geometry] : [];
