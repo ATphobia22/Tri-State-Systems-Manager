@@ -22,6 +22,8 @@ import { fetchLiveStage } from '../lib/stage';
 import { fetchAllLiveStations, type StationLiveSnapshot } from '../lib/multi-stage-fetch';
 import { damsToGeoJson, type LocalDamsCatalog } from '../lib/local-dams';
 import { readTwinUrlState, writeTwinUrlState } from '../lib/geodetic/twin-url-state';
+import { attachSupabaseParcelBboxLayer } from '../lib/supabase-parcel-bbox';
+import { attachConfiguredPmtilesPolygonLayer } from '../lib/pmtiles-overlay';
 
 const TERRAIN_3D_TILESET_URL = `${import.meta.env.BASE_URL}3d-tiles/terrain-3dep/tileset.json`;
 
@@ -84,6 +86,8 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
+    let disposeParcelBboxLayer: (() => void) | null = null;
+    let disposePmtilesLayer: (() => void) | null = null;
     let map: maplibregl.Map;
     try {
       map = new maplibregl.Map({
@@ -151,6 +155,18 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       }
 
       addFloodAuthorityLayers(map);
+      // Optional public-safe PostGIS parcel lookup; keep map usability if unavailable.
+      try {
+        disposeParcelBboxLayer = attachSupabaseParcelBboxLayer(map);
+      } catch {
+        setMapInitializationError('Optional parcel layer unavailable; the base map remains usable.');
+      }
+      // Optional immutable vector archive; configured .pmtiles URL only.
+      try {
+        disposePmtilesLayer = attachConfiguredPmtilesPolygonLayer(map);
+      } catch {
+        setMapInitializationError('Optional PMTiles layer unavailable; the base map remains usable.');
+      }
 
       const noaaWarningsSource = 'noaa-cloudgis-warnings';
       if (!map.getSource(noaaWarningsSource)) {
@@ -200,6 +216,8 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
     return () => {
       cinematicStopRef.current?.();
       cinematicStopRef.current = null;
+      disposeParcelBboxLayer?.();
+      disposePmtilesLayer?.();
       map.remove();
       mapRef.current = null;
       markerRef.current = null;
