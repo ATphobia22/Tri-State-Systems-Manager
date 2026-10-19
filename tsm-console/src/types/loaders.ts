@@ -2,7 +2,7 @@
 import type { SiteConstants } from './site';
 export interface AuthContext { uid: string; tenantId: string; roles: string[]; classificationMax: 'public' | 'internal' | 'restricted' | 'confidential'; authenticatedAt: string; }
 export interface RootLoaderData { auth: AuthContext | null; systemClock: string; communitySummary: { scope: string; township: string; county: string; region: string }; stage: MapTwinLoaderData['stage']; }
-export interface CharterLoaderData { charterVersion: string; memorialName: string; principle: string; humanAuthorityRule: string; }
+export interface MemorialLoaderData { memorialName: string; dedication: string; }
 export interface ArchitectureLoaderData { trustPlanes: Array<{ level: number; name: string; description: string }>; coreFlow: string[]; }
 export interface NeedsLoaderData { selectedLocation: { id: string; level: 'region' | 'county' | 'township' | 'municipality'; name: string }; metrics: { housing: number; mobility: number; healthcare: number; employment: number; food: number; education: number; safety: number }; dataContractId: string; deidentified: true; source: string; }
 export interface EvidenceBlock { evidence_id: string; source_org: string; source_uri: string; tier: 0 | 1 | 2 | 3 | 4 | 5 | 6; state: 'OBSERVED' | 'DERIVED' | 'MODELED' | 'ADJUDICATED'; sha256_hash: string; merkle_proof?: string[]; validation_status: 'pending' | 'verified' | 'rejected'; acquired_at: string; confidence_score: number; }

@@ -41,7 +41,7 @@ export default function RouteErrorPage() {
             to="/"
             style={{ minHeight: 44, display: 'inline-flex', alignItems: 'center', padding: '0.6rem 1.25rem', borderRadius: t.radius.sm, border: `1px solid ${t.color.border.default}`, color: t.color.accent.brand, textDecoration: 'none', fontWeight: 600, fontSize: t.font.size.base }}
           >
-            Back to Charter
+            Back to Memorial
           </Link>
         </div>
       </div>

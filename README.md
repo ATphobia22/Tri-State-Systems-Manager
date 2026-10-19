@@ -4,7 +4,9 @@
 
 TSM integrates public hydrology, terrain, imagery, flood-hazard data, infrastructure context, and engineering models into a reviewable workspace for communities, public agencies, and engineering teams. Every dataset carries its provenance: source identity, acquisition date, coordinate reference system, vertical datum, and review status.
 
-**Personal dedication:** This project is dedicated to the memory of Beverly Ann Tucker. The dedication is personal and is not a software specification, architecture constraint, or release gate.
+> **Operating principle:** Technology informs people; it does not silently govern people. Human authority remains final.
+
+**In memory of Beverly Ann Tucker.** *This dedication is personal and is not a software specification, architecture constraint, or release gate.*
 
 **GitHub:** https://github.com/ATphobia22/Tri-State-Systems-Manager
 
@@ -151,7 +153,17 @@ The repository contains a multi-step forecasting pipeline with ingestion, antece
 
 ### Console Features
 
-The console presents navigation and tools for project overview, river data, forecast workflows, 3D mapping, the offline assistant, data sources, tools, build workflows, and project information. Treat each view as a user interface to a workflow, not as proof that upstream data, inference, or an engineering computation succeeded.
+The TSM Console (10 tabs) provides:
+- 🏠 Home — Project overview
+- 🌊 River Watch — Live gage levels with flood alerts
+- 🔮 Flood Forecast — Multi-model predictions in plain language
+- 🗺️ 3D Map — Interactive MapLibre visualization
+- 🤖 Ask TSM — Offline AI assistant
+- 📊 Data Sources — Every source explained simply
+- 🛠️ Tools — All scripts described without jargon
+- 🔗 Build — Visual pipeline builder (ComfyUI-inspired)
+- 🎵 Music — Complete 13-song album
+- 💛 About — Memorial dedication
 
 ---
 

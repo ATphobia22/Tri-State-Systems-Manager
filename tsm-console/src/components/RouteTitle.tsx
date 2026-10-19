@@ -14,7 +14,7 @@ const SITE = 'Tri-State Systems Manager';
  *   /digital-twin-v2→ Digital Twin 3D (immersive open-world app, lazy)
  */
 const ROUTE_TITLES: Record<string, string> = {
-  '/': 'Charter',
+  '/': 'Memorial',
   '/architecture': 'Trust Planes',
   '/data-fabric': 'Public Data Fabric',
   '/river-watch': 'River Watch',

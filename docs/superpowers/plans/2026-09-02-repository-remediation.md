@@ -72,7 +72,7 @@
 
 - [ ] **Step 2: Remove stale or ambiguous presentation language.**
 
-  Replace promotional or cinematic wording with precise engineering terminology. Preserve the public-interest mission and stewardship charter without presenting simulations as engineering determinations.
+  Replace promotional or cinematic wording with precise engineering terminology. Preserve the public-interest mission and engineering principles without presenting simulations as engineering determinations.
 
 - [ ] **Step 3: Rewrite quickstart for operators and engineers.**
 

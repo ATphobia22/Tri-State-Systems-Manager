@@ -9,7 +9,7 @@ import { t } from './design-tokens';
 import RootLayout from '../components/RootLayout';
 import RouteErrorPage from '../components/RouteErrorPage';
 import NotFoundView from '../routes/NotFoundView';
-import CharterView from '../routes/CharterView';
+import MemorialView from '../routes/MemorialView';
 import NeedsView from '../routes/NeedsView';
 import LedgerView from '../routes/LedgerView';
 import BenefitView from '../routes/BenefitView';
@@ -21,7 +21,7 @@ import LoginCallbackView from '../routes/LoginCallbackView';
 import PublicDataFabricDashboard from '../components/PublicDataFabricDashboard';
 // TwinCanvasView (unified 2D + 3D twin) pulls in maplibre-gl (~1 MB vendor chunk + 82 KB CSS).
 // Lazy-load it so map code leaves the critical path for non-map visitors.
-import type { RootLoaderData, CharterLoaderData, ArchitectureLoaderData, NeedsLoaderData, LedgerLoaderData, LineageLoaderData, BenefitLoaderData, MapTwinLoaderData, EvidenceBlock, InterventionRecord, DataContractSummary } from '../types/loaders';
+import type { RootLoaderData, MemorialLoaderData, ArchitectureLoaderData, NeedsLoaderData, LedgerLoaderData, LineageLoaderData, BenefitLoaderData, MapTwinLoaderData, EvidenceBlock, InterventionRecord, DataContractSummary } from '../types/loaders';
 
 let interventions: InterventionRecord[] = [];
 let contracts: DataContractSummary[] = [
@@ -40,13 +40,13 @@ async function rootLoader(): Promise<RootLoaderData> {
   };
 }
 
-async function charterLoader(): Promise<CharterLoaderData> {
-  return { charterVersion: '1.0.0', memorialName: 'Community Stewardship Charter', principle: 'Technology is a stewardship of knowledge and capability. Its purpose is to protect life, strengthen communities, expand opportunity, preserve truth, respect human dignity, and serve people without discrimination.', humanAuthorityRule: 'The system informs people; it does not silently govern people. Human authority remains final.' };
+async function memorialLoader(): Promise<MemorialLoaderData> {
+  return { memorialName: 'In Memory of Beverly Ann Tucker', dedication: 'This work is dedicated to Beverly Ann Tucker, whose love for family and community inspires everything built here. A memorial only — not governance, not policy.' };
 }
 
 async function architectureLoader(): Promise<ArchitectureLoaderData> {
   return { trustPlanes: [
-    { level: 1, name: 'Evidence & Data Governance Plane', description: 'Authoritative ingestion (USGS/NOAA/3DEP/NFHL), immutable snapshots, SHA-256 content addressing, provenance manifests, fail-closed ingestion.' },
+    { level: 1, name: 'Evidence & Data Governance Plane', description: 'Authoritative ingestion (USGS/NOAA/3DEP/NFHL), immutable snapshots, SHA-256 content addressing, provenance manifests, resilient ingestion.' },
     { level: 2, name: 'Scientific & Simulation Plane', description: 'Versioned model inputs, explicit uncertainty propagation, traceable HAZUS/BCA adapters, explicit CRS/datum transformations; derived geometry tagged DERIVED, never AUTHORITATIVE.' },
     { level: 3, name: 'Governance & Decision Plane', description: 'Jurisdiction profiles, machine-readable policies, human approval gates, AI governance, evidence-ledger adjudication, public audit trail; no AI result silently becomes a regulatory determination.' },
     { level: 4, name: 'Public Experience / Visualization Plane', description: 'MapLibre/WebGPU clients, 2D/3D terrain, telemetry displays, accessibility-first low-bandwidth UI, downloadable evidence packages, source provenance visible in UI.' },
@@ -113,8 +113,8 @@ export const appRoutes = [
   { path: 'login', element: <LoginView /> },
   { path: 'login/callback', element: <LoginCallbackView /> },
   { id: 'root', path: '/', loader: rootLoader, element: <RootLayout />, errorElement: <RouteErrorPage />, children: [
-  { index: true, loader: charterLoader, element: <CharterView /> },
-  { path: 'index.html', loader: charterLoader, element: <CharterView /> },
+  { index: true, loader: memorialLoader, element: <MemorialView /> },
+  { path: 'index.html', loader: memorialLoader, element: <MemorialView /> },
   { path: 'architecture', loader: architectureLoader, element: <ArchitectureView /> },
   { path: 'data-fabric', element: <PublicDataFabricDashboard /> },
   { path: 'river-watch', element: <RiverWatchView /> },

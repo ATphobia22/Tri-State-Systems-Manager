@@ -8,7 +8,7 @@
  * Added after the iPhone home-screen manifest (`start_url: ./index.html` and
  * the `./index.html?mode=...` shortcuts) was found to land on an explicit
  * `/index.html` path with no matching route, which surfaced as a console
- * error instead of the charter.
+ * error instead of the memorial page.
  */
 
 import { Link } from 'react-router';
@@ -35,7 +35,7 @@ export default function NotFoundView() {
           This console doesn&rsquo;t have a page at that address.
         </p>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: '1.25rem', flexWrap: 'wrap' }}>
-          <Link to="/" style={linkStyle}>Back to Charter</Link>
+          <Link to="/" style={linkStyle}>Back to Memorial</Link>
           <Link to="/map" style={linkStyle}>Open the map</Link>
           <Link to="/river-watch" style={linkStyle}>River Watch</Link>
         </div>

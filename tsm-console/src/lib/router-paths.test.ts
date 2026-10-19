@@ -4,7 +4,7 @@
  * The iPhone home-screen manifest uses `start_url: ./index.html` (plus
  * `./index.html?mode=...` shortcuts), which lands on an explicit
  * `/index.html` path. That used to match no route and surfaced as a console
- * error; it must render the charter. Unknown addresses must hit the friendly
+ * error; it must render the memorial page. Unknown addresses must hit the friendly
  * catch-all instead of the error boundary.
  */
 import { describe, expect, it } from 'vitest';
@@ -21,11 +21,11 @@ function matchedPaths(url: string): string[] | null {
 }
 
 describe('console route matching', () => {
-  it('matches the charter at /', () => {
+  it('matches the memorial page at /', () => {
     expect(matchedPaths('/')).toContain('(index)');
   });
 
-  it('matches the charter at /index.html (PWA start_url)', () => {
+  it('matches the memorial page at /index.html (PWA start_url)', () => {
     const paths = matchedPaths('/index.html');
     expect(paths).not.toBeNull();
     expect(paths).toContain('index.html');

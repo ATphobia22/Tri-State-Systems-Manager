@@ -42,7 +42,7 @@ test('core data-router loaders and actions remain attached to non-medical routes
 });
 
 test('lightweight core routes remain eagerly imported without medical sandbox code', () => {
-  for (const route of ['CharterView', 'NeedsView', 'LedgerView', 'BenefitView', 'LineageView']) {
+  for (const route of ['MemorialView', 'NeedsView', 'LedgerView', 'BenefitView', 'LineageView']) {
     assert.match(routerSource, new RegExp(`import ${route} from ['\"]\\.\\.\\/routes\\/${route}['\"]`));
   }
   assert.doesNotMatch(routerSource, /SandboxView/);

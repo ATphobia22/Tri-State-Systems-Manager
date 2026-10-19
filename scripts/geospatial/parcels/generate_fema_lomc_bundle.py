@@ -22,7 +22,7 @@ Data sources: parcel_provenance PostGIS table (psycopg optional) or a JSON
 parcel record passed via --parcel-json. If no database is reachable the
 script fails closed with a clear message — it never invents parcel data.
 
-Conventions mirror the TSM charter:
+Conventions follow TSM engineering principles (ADR-004):
   * "Technology informs people; it does not silently govern people."
   * Every derived value is labeled with its derivation; uncertified values
     are NEVER presented as certified.

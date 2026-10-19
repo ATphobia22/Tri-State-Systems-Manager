@@ -21,7 +21,7 @@ Horizontal CRS must never be written as 2967 in TSM configs or UI copy.
 
 | Canvas tab | TSM plane | Integration rule |
 |------------|-----------|------------------|
-| **Community Heritage Archive** | Governance / Charter | Community stewardship material only; no private-person records |
+| **Community Heritage Archive** | Memorial | Memorial dedication material only; no private-person records |
 | **PTDT v35** | Evidence + Visualization + Simulation | MapLibre + TwinCanvas; stage from USGS/NWPS loaders; Three water = demo |
 | **TMRDS (Medical AI)** | **Out of public Evidence plane** | Separate product boundary; no clinical claims in public TSM; no PHI in ledger |
 | **Energy & Resilience Scenarios** | Benefit / Scientific scenario | Product/energy plans as MODEL_OUTPUT or external product DB — not floodway truth |
@@ -30,7 +30,7 @@ Horizontal CRS must never be written as 2967 in TSM configs or UI copy.
 ## Reusable UI patterns (safe to port)
 
 - HUD panel / monospace status aesthetic → already aligned with Trust Fabric bar
-- Subsystem sidebar → maps to React Router routes (Charter, Map, Ledger, Benefit, Lineage)
+- Subsystem sidebar → maps to React Router routes (Memorial, Map, Ledger, Benefit, Lineage)
 - Local event log (50 lines) → optional EOC terminal; not a substitute for Merkle ledger
 - “Seal Ledger State” button → must call **server** Merkle append, never client-only SHA theatre
 

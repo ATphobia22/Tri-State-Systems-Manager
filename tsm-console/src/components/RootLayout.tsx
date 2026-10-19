@@ -11,7 +11,7 @@ import { TourOnboardingHint } from './TourOnboardingHint';
 import BackgroundMusic from './BackgroundMusic';
 
 const nav = [
-  { to: '/', label: 'Charter', end: true }, { to: '/architecture', label: 'Trust Planes' }, { to: '/river-watch', label: 'River Watch' },
+  { to: '/', label: 'Memorial', end: true }, { to: '/architecture', label: 'Trust Planes' }, { to: '/river-watch', label: 'River Watch' },
   { to: '/engineering-section', label: 'Engineering Section' }, { to: '/needs', label: 'Human Needs' }, { to: '/ledger', label: 'Evidence Ledger' },
   { to: '/lineage', label: 'Data Contracts' }, { to: '/benefit', label: 'Benefit Engine' }, { to: '/map', label: 'Hydraulic Map' },
   { to: '/twin', label: 'Twin Canvas' }, { to: '/digital-twin-v2', label: '3D Twin' }, { to: '/eoc', label: 'EOC Surface' },
