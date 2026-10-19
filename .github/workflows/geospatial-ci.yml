@@ -128,7 +128,7 @@ jobs:
         run: node --test tests/supabase-parcel-bbox-contract.test.mjs
       - name: Validate Supabase parcel viewport unit tests
         working-directory: tsm-console
-        run: npx vitest run tests/supabase-parcel-bbox.test.ts
+        run: ./node_modules/.bin/vitest run tests/supabase-parcel-bbox.test.ts
       - name: Validate capability registry
         run: node scripts/ci/validate-capability-registry.mjs
       - name: Run full-tree hardening gate
