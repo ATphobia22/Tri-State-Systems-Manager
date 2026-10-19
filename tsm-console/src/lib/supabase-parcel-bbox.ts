@@ -187,27 +187,27 @@ export function attachSupabaseParcelBboxLayer(map: MapLibreMap): () => void {
 
   const queryVisibleParcels = (): void => {
     if (timer) clearTimeout(timer);
-    timer = setTimeout(() => {
-      const sequence = ++requestSequence;
-      controller?.abort();
-      controller = undefined;
-      clearFeatures();
+    const sequence = ++requestSequence;
+    controller?.abort();
+    controller = undefined;
+    clearFeatures();
+    status.textContent = 'Updating public parcel boundaries…';
 
+    timer = setTimeout(() => {
+      if (sequence !== requestSequence) return;
       if (map.getZoom() < 13) {
-        clearFeatures();
         status.textContent = 'Zoom to level 13 or higher to query public parcels.';
         return;
       }
       const bbox = getVisibleBbox(map);
       if (!validateParcelBbox(bbox)) {
-        clearFeatures();
         status.textContent = 'Viewport is too broad or invalid. Zoom in to query public parcels.';
         return;
       }
 
       status.textContent = 'Loading verified public parcel boundaries…';
-      controller = new AbortController();
-      const activeController = controller;
+      const activeController = new AbortController();
+      controller = activeController;
       void fetchParcelBbox(bbox, activeController.signal)
         .then((collection) => {
           if (sequence !== requestSequence || activeController.signal.aborted) return;
@@ -244,6 +244,7 @@ export function attachSupabaseParcelBboxLayer(map: MapLibreMap): () => void {
   queryVisibleParcels();
 
   return () => {
+    requestSequence += 1;
     if (timer) clearTimeout(timer);
     controller?.abort();
     map.off('moveend', queryVisibleParcels);
