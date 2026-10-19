@@ -233,7 +233,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
     try {
       const next = await fetchLiveStage();
       if (next.source === 'UNAVAILABLE') {
-        setFetchError('USGS snapshot unavailable. Stage remains fail-closed (no fabricated values).');
+        setFetchError('USGS snapshot unavailable. Stage is not displayed; the map remains available.');
       }
       setLiveStage(next);
     } catch (e) {
@@ -255,7 +255,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
         setLiveStage(refreshed);
       }
       if (snaps.every((s) => s.status === 'unavailable')) {
-        setMultiError('All stations unavailable. Values remain fail-closed.');
+        setMultiError('All stations unavailable. Observation cards show unavailable status; the map remains available.');
       }
     } catch (e) {
       setMultiError(e instanceof Error ? e.message : 'Multi-station fetch failed');
