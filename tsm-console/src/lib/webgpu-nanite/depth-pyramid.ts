@@ -1,15 +1,9 @@
 /**
  * GPU depth pyramid (Hierarchical-Z) via WebGPU compute.
- *
- * Each mip is max-reduced 2x2 from the parent. Used for occlusion tests on the
- * Nanite / dense-geometry plane — NOT inside MapLibre.
- *
- * Does not require 64-bit atomics (unlike software-raster visibility buffers).
- *
- * @see docs/research/WEBGPU-COMPUTE-LIMITS-AND-NANITE-PLAN-2026-10-19.md
+ * Max-reduce 2×2 per mip. Nanite plane B only — not MapLibre.
  */
 
-import { RECOMMENDED_WORKGROUP_SIZE } from './webgpu-device';
+const WG = 8;
 
 const PYRAMID_WGSL = /* wgsl */ `
 struct Params {
@@ -23,7 +17,7 @@ struct Params {
 @group(0) @binding(1) var<storage, read_write> dst_depth: array<f32>;
 @group(0) @binding(2) var<uniform> params: Params;
 
-@compute @workgroup_size(${RECOMMENDED_WORKGROUP_SIZE})
+@compute @workgroup_size(${WG}, ${WG})
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let x = gid.x;
   let y = gid.y;
@@ -74,10 +68,6 @@ export class DepthPyramidBuilder {
     return this.pipeline;
   }
 
-  /**
-   * Build a full mip chain from a base depth buffer (f32, row-major, width*height).
-   * Uploads base level; returns GPU buffers for each mip including level 0.
-   */
   async buildFromDepthArray(
     depth: Float32Array,
     width: number,
@@ -95,7 +85,7 @@ export class DepthPyramidBuilder {
     let h = height;
     const base = this.device.createBuffer({
       label: 'tsm-depth-l0',
-      size: depth.byteLength,
+      size: Math.max(4, depth.byteLength),
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
     });
     this.device.queue.writeBuffer(base, 0, depth);
@@ -108,7 +98,7 @@ export class DepthPyramidBuilder {
       const nh = Math.max(1, Math.ceil(h / 2));
       const dst = this.device.createBuffer({
         label: `tsm-depth-l${levels.length}`,
-        size: nw * nh * 4,
+        size: Math.max(4, nw * nh * 4),
         usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST,
       });
 
@@ -128,19 +118,8 @@ export class DepthPyramidBuilder {
       const pass = encoder.beginComputePass();
       pass.setPipeline(pipeline);
       pass.setBindGroup(0, bindGroup);
-      const groupsX = Math.ceil(nw / RECOMMENDED_WORKGROUP_SIZE);
-      const groupsY = nh; // one row per workgroup dimension y via dispatch
-      // Dispatch: workgroup_size is (64) 1D — encode 2D as x = pixel index flattened
-      // Simpler: dispatch over dst pixels with 1D mapping in shader was x,y from gid
-      // Our shader uses gid.x and gid.y — need 2D workgroup. Re-dispatch:
-      pass.dispatchWorkgroups(Math.ceil(nw / 8), Math.ceil(nh / 8));
-      // Note: shader workgroup is 64x1; for 2D use linear id. Fix: use 8x8 in a follow-up.
-      // Current shader expects gid.x = x, gid.y = y — with workgroup_size(64) only x advances.
-      // Use linear fallback dispatch:
+      pass.dispatchWorkgroups(Math.ceil(nw / WG), Math.ceil(nh / WG));
       pass.end();
-
-      // Correct 2D dispatch: replace pass body for production — linearize
-      // For scaffold correctness, run CPU fallback path if 1D mismatch.
       this.device.queue.submit([encoder.finish()]);
 
       levels.push(dst);
@@ -167,10 +146,6 @@ export class DepthPyramidBuilder {
   }
 }
 
-/**
- * Pure-CPU pyramid (same math as hierarchical-z-software) for tests and
- * when WebGPU is unavailable. Kept for parity with GPU builder.
- */
 export function buildDepthPyramidCpu(
   depth: Float32Array,
   width: number,
