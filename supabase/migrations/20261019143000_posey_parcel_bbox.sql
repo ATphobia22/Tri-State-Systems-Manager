@@ -72,7 +72,7 @@ begin
       and p.geom operator(extensions.&&)
           extensions.st_makeenvelope(p_xmin, p_ymin, p_xmax, p_ymax, 4326)
       and extensions.st_intersects(
-          p.geom, extensions.st_makeenvelope(xmin, ymin, xmax, ymax, 4326)
+          p.geom, extensions.st_makeenvelope(p_xmin, p_ymin, p_xmax, p_ymax, 4326)
       )
     order by p.id
     limit 1001
