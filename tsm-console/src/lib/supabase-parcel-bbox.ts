@@ -212,5 +212,10 @@ export function attachSupabaseParcelBboxLayer(map: maplibregl.Map): () => void {
     controller?.abort();
     map.off('moveend', queryVisibleParcels);
     map.off('click', FILL_LAYER_ID, handleClick);
+    map.off('mouseenter', FILL_LAYER_ID, handleMouseEnter);
+    map.off('mouseleave', FILL_LAYER_ID, handleMouseLeave);
+    if (map.getLayer(LINE_LAYER_ID)) map.removeLayer(LINE_LAYER_ID);
+    if (map.getLayer(FILL_LAYER_ID)) map.removeLayer(FILL_LAYER_ID);
+    if (map.getSource(SOURCE_ID)) map.removeSource(SOURCE_ID);
   };
 }
