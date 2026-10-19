@@ -1,57 +1,38 @@
 /**
- * tiles-fetch-bridge.ts — connects LodScheduler → 3d-tiles-renderer → state-word scheduler.
+ * tiles-fetch-bridge.ts — LodScheduler → lifecycle → bandwidth → 3d-tiles-renderer.
  *
- * Three existing pieces, one bridge:
- *   scheduler decides  (LodScheduler.update -> LodFetchPlan: load / evict)
- *   bridge translates   (this module: plan -> renderer cache/queue operations)
- *   renderer fetches    (nasa-ammos/3d-tiles-renderer TilesRenderer: its own
- *                        download/parse queues and LRU cache do the real work)
- *
- * Per-frame responsibilities:
- * 1. Run the scheduler for the camera and get the fetch plan.
- * 2. Translate: mark loaded tiles used, mark evicted tiles unused and run an
- *    LRU pass so memory frees promptly (the renderer's own update() still
- *    owns actual downloading and rendering).
- * 3. Backpressure: measure queued (download + parse + process) items against
- *    a cap; when overfull, suggest a degraded state word via degradeWord()
- *    from the state-word scheduler so the 5D pipeline sheds detail instead
- *    of stalling.
- * 4. Progress: expose pending/bytes/load-progress for UI.
- *
- * The bridge never calls renderer.update() — the host layer owns the render
- * loop. Node-id -> tile mapping is caller-supplied because the scheduler's
- * Transvoxel octree nodes and the tileset's tiles are different tile systems;
- * the default mapping is identity (node id == tile key lookup skipped).
+ * Per-frame:
+ * 1. Scheduler produces load/evict plan
+ * 2. TileResourceLifecycle bounds in-flight + ready bytes (no synthetic tiles)
+ * 3. BandwidthAdaptiveFetchController adjusts concurrency / degrade steps
+ * 4. Renderer LRU mark used/unused
  */
 
 import type { TilesRenderer } from '3d-tiles-renderer';
+import { BandwidthAdaptiveFetchController } from './bandwidth-adaptive-fetch';
 import { LodScheduler, type LodCamera, type LodFetchPlan } from './lod-scheduler';
 import { degradeWord } from './state-word-scheduler';
+import { TileResourceLifecycle } from './tile-resource-lifecycle';
 
 export interface BridgeBackpressureInfo {
   queuedItems: number;
   maxQueuedItems: number;
   suggestedDegradeSteps: number;
+  bytesPerSec: number;
+  adaptiveConcurrency: number;
 }
 
 export interface TilesFetchBridgeOptions {
-  /**
-   * Map a scheduler node id to the renderer's tile object (or null when the
-   * node has no corresponding tile). When omitted, no per-tile cache
-   * operations are performed — the bridge still reports plans, progress and
-   * backpressure.
-   */
   resolveTile?: (nodeId: string) => unknown;
-  /** Queued-item cap before backpressure fires. Default 24. */
   maxQueuedItems?: number;
-  /** degradeWord steps suggested under backpressure. Default 1. */
   backpressureSteps?: number;
-  /** Called when the fetch queue is overfull. */
   onBackpressure?: (info: BridgeBackpressureInfo) => void;
-  /** Supplies the current representative state word for degradation. */
   getStateWord?: () => number | null;
-  /** Receives the degraded word suggestion (caller applies it). */
   onDegradedWord?: (word: number) => void;
+  /** Optional external lifecycle (tests / shared caches). */
+  lifecycle?: TileResourceLifecycle;
+  /** Optional bandwidth controller. */
+  bandwidth?: BandwidthAdaptiveFetchController;
 }
 
 export interface BridgeFrameStats {
@@ -60,8 +41,11 @@ export interface BridgeFrameStats {
   cachedBytes: number;
   loadProgress: number;
   backpressured: boolean;
-  /** Tiles marked unused this frame (eviction hints applied). */
   evictedTiles: number;
+  lifecycleFetch: string[];
+  lifecycleRelease: string[];
+  adaptiveConcurrency: number;
+  bytesPerSec: number;
 }
 
 export interface BridgeProgress {
@@ -69,6 +53,8 @@ export interface BridgeProgress {
   cachedBytes: number;
   loadProgress: number;
   evictedTotal: number;
+  adaptiveConcurrency: number;
+  bytesPerSec: number;
 }
 
 export class TilesFetchBridge {
@@ -80,8 +66,12 @@ export class TilesFetchBridge {
   private readonly onBackpressure?: (info: BridgeBackpressureInfo) => void;
   private readonly getStateWord?: () => number | null;
   private readonly onDegradedWord?: (word: number) => void;
+  private readonly lifecycle: TileResourceLifecycle;
+  private readonly bandwidth: BandwidthAdaptiveFetchController;
   private evictedTotal = 0;
   private disposed = false;
+  private lastCacheBytes = 0;
+  private lastSampleAt = 0;
 
   constructor(renderer: TilesRenderer, scheduler: LodScheduler, options: TilesFetchBridgeOptions = {}) {
     if (!renderer) throw new Error('[TilesFetchBridge] renderer is required');
@@ -102,12 +92,10 @@ export class TilesFetchBridge {
     this.onBackpressure = options.onBackpressure;
     this.getStateWord = options.getStateWord;
     this.onDegradedWord = options.onDegradedWord;
+    this.lifecycle = options.lifecycle ?? new TileResourceLifecycle({ maxInFlight: maxQueuedItems });
+    this.bandwidth = options.bandwidth ?? new BandwidthAdaptiveFetchController();
   }
 
-  /**
-   * Run one bridge pass for the camera. Safe to call every frame; cheap when
-   * the plan is empty and no resolver is configured.
-   */
   update(camera: LodCamera): BridgeFrameStats {
     const empty: BridgeFrameStats = {
       plan: { load: [], evict: [], selected: [], transitions: [] },
@@ -116,24 +104,38 @@ export class TilesFetchBridge {
       loadProgress: 1,
       backpressured: false,
       evictedTiles: 0,
+      lifecycleFetch: [],
+      lifecycleRelease: [],
+      adaptiveConcurrency: this.bandwidth.getConcurrency(),
+      bytesPerSec: this.bandwidth.getBytesPerSec(),
     };
     if (this.disposed) return empty;
 
     const plan = this.scheduler.update(camera);
+    const lifePlan = this.lifecycle.plan(plan.selected);
     let evictedTiles = 0;
+
+    for (const id of lifePlan.toFetch) {
+      this.lifecycle.markQueued(id);
+    }
+    for (const id of lifePlan.toRelease) {
+      this.lifecycle.markReleased(id);
+    }
 
     if (this.resolveTile) {
       const cache = this.renderer.lruCache;
-      for (const nodeId of plan.load) {
+      const loadCap = Math.min(plan.load.length, this.bandwidth.getConcurrency());
+      for (let i = 0; i < loadCap; i++) {
+        const nodeId = plan.load[i]!;
+        this.lifecycle.markFetching(nodeId);
         const tile = this.resolveTile(nodeId);
-        // Keep freshly selected tiles resident; the renderer's own update()
-        // already marks visible tiles used — this is a no-op safety net.
         if (tile !== null && tile !== undefined && cache.has(tile)) cache.markUsed(tile);
       }
       for (const nodeId of plan.evict) {
         const tile = this.resolveTile(nodeId);
         if (tile !== null && tile !== undefined && cache.has(tile)) {
           cache.markUnused(tile);
+          this.lifecycle.markReleased(nodeId);
           evictedTiles++;
         }
       }
@@ -143,15 +145,25 @@ export class TilesFetchBridge {
 
     const queuedItems = this.pendingCount();
     const cachedBytes = this.cacheBytes();
+    const now = Date.now();
+    if (this.lastSampleAt > 0 && now > this.lastSampleAt) {
+      const deltaBytes = Math.max(0, cachedBytes - this.lastCacheBytes);
+      this.bandwidth.recordSample(deltaBytes, now - this.lastSampleAt, now);
+    }
+    this.lastCacheBytes = cachedBytes;
+    this.lastSampleAt = now;
+
     const loadProgress = this.renderer.loadProgress;
-    const backpressured = queuedItems > this.maxQueuedItems;
+    const adaptiveSteps = this.bandwidth.suggestedDegradeSteps();
+    const queueBackpressure = queuedItems > this.maxQueuedItems;
+    const backpressured = queueBackpressure || adaptiveSteps > 0;
+    const steps = Math.max(this.backpressureSteps, adaptiveSteps);
 
     if (backpressured) {
-      // Shed detail instead of stalling: suggest a degraded state word.
       const word = this.getStateWord?.();
       if (word !== null && word !== undefined) {
         try {
-          this.onDegradedWord?.(degradeWord(word, this.backpressureSteps));
+          this.onDegradedWord?.(degradeWord(word, steps));
         } catch (error) {
           console.warn('[TilesFetchBridge] degradeWord failed:', error);
         }
@@ -159,27 +171,55 @@ export class TilesFetchBridge {
       this.onBackpressure?.({
         queuedItems,
         maxQueuedItems: this.maxQueuedItems,
-        suggestedDegradeSteps: this.backpressureSteps,
+        suggestedDegradeSteps: steps,
+        bytesPerSec: this.bandwidth.getBytesPerSec(),
+        adaptiveConcurrency: this.bandwidth.getConcurrency(),
       });
     }
 
-    return { plan, queuedItems, cachedBytes, loadProgress, backpressured, evictedTiles };
+    return {
+      plan,
+      queuedItems,
+      cachedBytes,
+      loadProgress,
+      backpressured,
+      evictedTiles,
+      lifecycleFetch: lifePlan.toFetch,
+      lifecycleRelease: lifePlan.toRelease,
+      adaptiveConcurrency: this.bandwidth.getConcurrency(),
+      bytesPerSec: this.bandwidth.getBytesPerSec(),
+    };
   }
 
-  /** UI-facing progress snapshot. */
   getProgress(): BridgeProgress {
     if (this.disposed) {
-      return { pendingTiles: 0, cachedBytes: 0, loadProgress: 1, evictedTotal: this.evictedTotal };
+      return {
+        pendingTiles: 0,
+        cachedBytes: 0,
+        loadProgress: 1,
+        evictedTotal: this.evictedTotal,
+        adaptiveConcurrency: this.bandwidth.getConcurrency(),
+        bytesPerSec: this.bandwidth.getBytesPerSec(),
+      };
     }
     return {
       pendingTiles: this.pendingCount(),
       cachedBytes: this.cacheBytes(),
       loadProgress: this.renderer.loadProgress,
       evictedTotal: this.evictedTotal,
+      adaptiveConcurrency: this.bandwidth.getConcurrency(),
+      bytesPerSec: this.bandwidth.getBytesPerSec(),
     };
   }
 
-  /** Reset the scheduler's loaded set (e.g. after a cache clear). */
+  getLifecycle(): TileResourceLifecycle {
+    return this.lifecycle;
+  }
+
+  getBandwidth(): BandwidthAdaptiveFetchController {
+    return this.bandwidth;
+  }
+
   reset(): void {
     this.scheduler.setLoaded([]);
   }
@@ -188,8 +228,7 @@ export class TilesFetchBridge {
     this.disposed = true;
   }
 
-  private pendingCount(): number {    // PriorityQueue exposes `items` in JS (absent from the .d.ts); fall back
-    // to 0 rather than crashing if the shape ever changes.
+  private pendingCount(): number {
     const len = (q: object): number => {
       const items = (q as { items?: unknown }).items;
       return Array.isArray(items) ? items.length : 0;
@@ -199,7 +238,6 @@ export class TilesFetchBridge {
   }
 
   private cacheBytes(): number {
-    // LRUCache tracks cachedBytes in JS (absent from the .d.ts).
     const v = (this.renderer.lruCache as unknown as { cachedBytes?: unknown }).cachedBytes;
     return typeof v === 'number' && Number.isFinite(v) ? v : 0;
   }
