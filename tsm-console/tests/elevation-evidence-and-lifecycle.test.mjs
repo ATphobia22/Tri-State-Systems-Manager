@@ -32,6 +32,6 @@ test('NOT-COMPLETE registry still lists Hierarchical-Z and Transvoxel PoC', () =
   );
   assert.match(reg, /Hierarchical-Z/);
   assert.match(reg, /ADVANCED POC/);
-  assert.match(reg, /Full 56-class.*triangle vertex/);
+  assert.match(reg, /mesh emission at county scale partial/);
   assert.match(reg, /Do not claim/);
 });
