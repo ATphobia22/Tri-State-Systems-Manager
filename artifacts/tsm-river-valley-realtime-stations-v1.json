@@ -79,7 +79,12 @@
       ],
       "source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03378500/",
       "status": "active",
-      "nws_location_id": "NHRI3"
+      "nws_location_id": "NHRI3",
+      "station_altitude_ft_navd88": 352.71,
+      "station_altitude_vertical_datum": "NAVD88",
+      "station_altitude_source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03378500/",
+      "gage_zero_navd88_ft": null,
+      "gage_zero_conversion_status": "UNVERIFIED_PRODUCT_SEMANTICS"
     },
     {
       "station_id": "03322000",
@@ -203,8 +208,12 @@
       "horizontal_crs": "EPSG:4326",
       "latitude": 38.2659037628604,
       "longitude": -85.7688518284703,
-      "vertical_datum": "NAVD88",
-      "verification_note": "Official USGS Water Data monitoring-location metadata confirms station 03293551 and recent gage-height observations; the previously listed 03293600 does not resolve in the modern monitoring-location catalog."
+      "vertical_datum": "SOURCE_GAGE_DATUM",
+      "verification_note": "USGS monitoring-location metadata verifies station identity, coordinates, and land-surface altitude (406.68 ft NAVD88, 0.05-ft accuracy). The altitude is not a gage-zero conversion. Treat runtime stage as unavailable unless the modern API returns a current observation.",
+      "station_altitude_ft_navd88": 406.68,
+      "station_altitude_vertical_datum": "NAVD88",
+      "station_altitude_accuracy_ft": 0.05,
+      "station_altitude_source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03293551/"
     },
     {
       "station_id": "03294500",
@@ -231,12 +240,22 @@
         "00060"
       ],
       "horizontal_crs": "EPSG:4326",
-      "vertical_datum": "NAVD88",
-      "latitude": 37.6956,
-      "longitude": -88.1319,
+      "vertical_datum": "SOURCE_GAGE_DATUM",
+      "latitude": 37.6925,
+      "longitude": -88.1347222222222,
       "source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03381700",
-      "datum_ft_navd88": 309.1,
-      "flood_stage_ft": 33.0
+      "flood_stage_ft": 33,
+      "station_altitude_ft_navd88": 309.1,
+      "station_altitude_vertical_datum": "NAVD88",
+      "station_altitude_accuracy_ft": 0.01,
+      "station_altitude_source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03381700/",
+      "coordinate_method": "INTERPOLATED_FROM_DIGITAL_MAP",
+      "coordinate_accuracy_seconds": 5,
+      "action_stage_ft": 30,
+      "minor_flood_stage_ft": 33,
+      "moderate_flood_stage_ft": 43,
+      "major_flood_stage_ft": 53,
+      "flood_stage_reference": "USGS gage-height thresholds (action/minor/moderate/major), not NAVD88 elevations."
     }
   ],
   "runtime_rules": {
