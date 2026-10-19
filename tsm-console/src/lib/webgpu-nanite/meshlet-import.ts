@@ -87,11 +87,19 @@ export function buildMeshletsGreedy(input: RawMeshInput): MeshletImportResult {
   if (input.normals && input.normals.length !== input.positions.length) {
     throw new Error('normal count must match position count');
   }
-  if (![...input.positions].every(Number.isFinite)) {
-    throw new Error('positions contain non-finite values');
+  // Scan typed arrays in place; spreading large meshes creates avoidable
+  // transient allocations that can exhaust memory during the full batch bake.
+  for (let i = 0; i < input.positions.length; i++) {
+    if (!Number.isFinite(input.positions[i])) {
+      throw new Error(`position component ${i} is non-finite`);
+    }
   }
-  if (input.normals && ![...input.normals].every(Number.isFinite)) {
-    throw new Error('normals contain non-finite values');
+  if (input.normals) {
+    for (let i = 0; i < input.normals.length; i++) {
+      if (!Number.isFinite(input.normals[i])) {
+        throw new Error(`normal component ${i} is non-finite`);
+      }
+    }
   }
 
   const vertexCount = input.positions.length / 3;
