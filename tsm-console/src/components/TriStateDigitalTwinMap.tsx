@@ -44,11 +44,7 @@ const DEGRADED_BASE_STYLE: StyleSpecification = {
 function baseStyle(): StyleSpecification {
   try {
     const imagery = getMapLibreFabricLayer('indiana-imagery').endpoint;
-    const tileTemplate = buildArcGisExportTemplate(imagery, [], {
-      format: 'jpg',
-      transparent: false,
-      compressionQuality: 90,
-    });
+    const tileTemplate = buildArcGisExportTemplate(imagery, [], { format: 'jpg', transparent: false, compressionQuality: 90 });
     return {
       version: 8,
       sources: {
