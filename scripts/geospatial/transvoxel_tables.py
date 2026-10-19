@@ -1,239 +1,90 @@
 #!/usr/bin/env python3
 """
-Transvoxel Transition Tables for TSM (P1.2)
+Transvoxel transition tables (P1.2) — official Lengyel MIT data.
 
-Implements Eric Lengyel's Transvoxel algorithm transition cells for
-seamless LOD stitching in volumetric terrain.
+Source: https://github.com/EricLengyel/Transvoxel (MIT License)
+        Transvoxel.cpp — transitionCellClass[512]
 
-Reference: Lengyel, E. "Voxel-Based Terrain for Real-Time Virtual
-Simulations" (transvoxel.org/Lengyel-VoxelTerrain.pdf)
-
-The Transvoxel algorithm generates transition cells along boundary faces
-where a high-resolution chunk meets a lower-resolution neighbor. Each
-transition cell is classified by a 9-bit case index (512 possible cases),
-which maps to one of 73 unique equivalence classes under rotation/reflection.
-
-This module implements:
-1. Case index computation from SDF corner signs
-2. Mapping from 512 cases to 73 equivalence classes
-3. Triangulation for the most common transition geometries
-4. Integration hooks for the TSM terrain pipeline
-
-Status: Core framework implemented. Full 73-class triangulation tables
-are generated procedurally for common cases; rare cases fall back to
-skirt-based crack prevention.
+Lengyel notes 73 equivalence classes; combined into **56** distinct triangulation
+entries. High bit (0x80) = invert winding.
 """
 
-import numpy as np
-from dataclasses import dataclass
-from typing import Optional
+from __future__ import annotations
+
+from typing import List, Optional, Tuple
+
+TRANSITION_CELL_CLASS: List[int] = [
+    0x00, 0x01, 0x02, 0x84, 0x01, 0x05, 0x04, 0x04, 0x02, 0x87, 0x09, 0x8C, 0x84, 0x0B, 0x05, 0x05,
+    0x01, 0x08, 0x07, 0x8D, 0x05, 0x0F, 0x8B, 0x0B, 0x04, 0x0D, 0x0C, 0x1C, 0x04, 0x8B, 0x85, 0x85,
+    0x02, 0x07, 0x09, 0x8C, 0x87, 0x10, 0x0C, 0x0C, 0x09, 0x12, 0x15, 0x9A, 0x8C, 0x19, 0x90, 0x10,
+    0x84, 0x8D, 0x8C, 0x9C, 0x0B, 0x9D, 0x0F, 0x0F, 0x05, 0x1B, 0x10, 0xAC, 0x05, 0x0F, 0x8B, 0x0B,
+    0x01, 0x05, 0x87, 0x0B, 0x08, 0x0F, 0x0D, 0x8B, 0x07, 0x10, 0x12, 0x19, 0x8D, 0x9D, 0x1B, 0x0F,
+    0x05, 0x0F, 0x10, 0x9D, 0x0F, 0x1E, 0x1D, 0xA1, 0x8B, 0x1D, 0x99, 0x32, 0x0B, 0xA1, 0x8F, 0x94,
+    0x04, 0x8B, 0x0C, 0x0F, 0x0D, 0x1D, 0x1C, 0x8F, 0x0C, 0x99, 0x1A, 0x31, 0x1C, 0x32, 0x2C, 0xA7,
+    0x04, 0x0B, 0x0C, 0x0F, 0x8B, 0xA1, 0x8F, 0x96, 0x85, 0x8F, 0x90, 0x27, 0x85, 0x94, 0x8B, 0x8A,
+    0x02, 0x04, 0x09, 0x05, 0x07, 0x8B, 0x0C, 0x85, 0x09, 0x0C, 0x15, 0x90, 0x8C, 0x0F, 0x10, 0x8B,
+    0x87, 0x0D, 0x12, 0x1B, 0x10, 0x1D, 0x99, 0x8F, 0x0C, 0x1C, 0x1A, 0x2C, 0x0C, 0x8F, 0x90, 0x8B,
+    0x09, 0x0C, 0x15, 0x10, 0x12, 0x99, 0x1A, 0x90, 0x15, 0x1A, 0x23, 0x30, 0x9A, 0x31, 0x30, 0x19,
+    0x8C, 0x1C, 0x9A, 0xAC, 0x19, 0x32, 0x31, 0x27, 0x90, 0x2C, 0x30, 0x29, 0x10, 0xA7, 0x19, 0x24,
+    0x84, 0x04, 0x8C, 0x05, 0x8D, 0x0B, 0x1C, 0x85, 0x8C, 0x0C, 0x9A, 0x10, 0x9C, 0x0F, 0xAC, 0x0B,
+    0x0B, 0x8B, 0x19, 0x0F, 0x9D, 0xA1, 0x32, 0x94, 0x0F, 0x8F, 0x31, 0xA7, 0x0F, 0x96, 0x27, 0x8A,
+    0x05, 0x85, 0x90, 0x8B, 0x1B, 0x8F, 0x2C, 0x8B, 0x10, 0x90, 0x30, 0x19, 0xAC, 0x27, 0x29, 0x24,
+    0x05, 0x85, 0x10, 0x0B, 0x0F, 0x94, 0xA7, 0x8A, 0x8B, 0x8B, 0x19, 0x24, 0x0B, 0x8A, 0x24, 0x83,
+    0x03, 0x06, 0x0A, 0x8B, 0x06, 0x0E, 0x0B, 0x0B, 0x0A, 0x91, 0x14, 0x8F, 0x8B, 0x17, 0x05, 0x85,
+    0x06, 0x13, 0x11, 0x98, 0x0E, 0x1F, 0x97, 0x2B, 0x0B, 0x18, 0x0F, 0x36, 0x0B, 0xAB, 0x05, 0x85,
+    0x0A, 0x11, 0x16, 0x8F, 0x91, 0x20, 0x0F, 0x8F, 0x14, 0x22, 0x21, 0x1D, 0x8F, 0x2D, 0x0B, 0x8B,
+    0x8B, 0x98, 0x8F, 0xB7, 0x17, 0xAE, 0x8C, 0x0C, 0x05, 0x2F, 0x8B, 0xB5, 0x85, 0xA6, 0x84, 0x04,
+    0x06, 0x0E, 0x91, 0x17, 0x13, 0x1F, 0x18, 0xAB, 0x11, 0x20, 0x22, 0x2D, 0x98, 0xAE, 0x2F, 0xA6,
+    0x0E, 0x1F, 0x20, 0xAE, 0x1F, 0x33, 0x2E, 0x2A, 0x97, 0x2E, 0xAD, 0x28, 0x2B, 0x2A, 0x26, 0x25,
+    0x0B, 0x97, 0x0F, 0x8C, 0x18, 0x2E, 0x37, 0x8C, 0x0F, 0xAD, 0x9D, 0x90, 0x36, 0x28, 0x35, 0x07,
+    0x0B, 0x2B, 0x8F, 0x0C, 0xAB, 0x2A, 0x8C, 0x89, 0x05, 0x26, 0x0B, 0x87, 0x85, 0x25, 0x84, 0x82,
+    0x0A, 0x0B, 0x14, 0x05, 0x11, 0x97, 0x0F, 0x05, 0x16, 0x0F, 0x21, 0x0B, 0x8F, 0x8C, 0x8B, 0x84,
+    0x91, 0x18, 0x22, 0x2F, 0x20, 0x2E, 0xAD, 0x26, 0x0F, 0x37, 0x9D, 0x35, 0x8F, 0x8C, 0x0B, 0x84,
+    0x14, 0x0F, 0x21, 0x8B, 0x22, 0xAD, 0x9D, 0x0B, 0x21, 0x9D, 0x9E, 0x8F, 0x1D, 0x90, 0x8F, 0x85,
+    0x8F, 0x36, 0x1D, 0xB5, 0x2D, 0x28, 0x90, 0x87, 0x0B, 0x35, 0x8F, 0x34, 0x8B, 0x07, 0x85, 0x81,
+    0x8B, 0x0B, 0x8F, 0x85, 0x98, 0x2B, 0x36, 0x85, 0x8F, 0x8F, 0x1D, 0x8B, 0xB7, 0x0C, 0xB5, 0x04,
+    0x17, 0xAB, 0x2D, 0xA6, 0xAE, 0x2A, 0x28, 0x25, 0x8C, 0x8C, 0x90, 0x07, 0x0C, 0x89, 0x87, 0x82,
+    0x05, 0x05, 0x0B, 0x84, 0x2F, 0x26, 0x35, 0x84, 0x8B, 0x0B, 0x8F, 0x85, 0xB5, 0x87, 0x34, 0x81,
+    0x85, 0x85, 0x8B, 0x04, 0xA6, 0x25, 0x07, 0x82, 0x84, 0x84, 0x85, 0x81, 0x04, 0x82, 0x81, 0x80,
+]
+
+assert len(TRANSITION_CELL_CLASS) == 512
 
 
-@dataclass
-class TransitionCell:
-    """A Transvoxel transition cell on a chunk boundary face."""
-    case_index: int          # 9-bit index (0-511)
-    equivalence_class: int   # Mapped class (0-72)
-    triangles: list          # List of (v0, v1, v2) vertex indices
-
-
-def compute_case_index(corner_sdfs: list) -> Optional[int]:
-    """
-    Compute the 9-bit Transvoxel case index from SDF values.
-
-    The 9 sample points are arranged on the boundary face:
-        6 -- 7 -- 8
-        |    |    |
-        3 -- 4 -- 5
-        |    |    |
-        0 -- 1 -- 2
-
-    Points 0,2,6,8 are corners (shared with neighbor).
-    Points 1,3,5,7 are edge midpoints.
-    Point 4 is the face center.
-
-    Returns None if the cell is uniform (all inside or all outside).
-    """
+def compute_case_index(corner_sdfs: list, iso: float = 0.0) -> Optional[int]:
     if len(corner_sdfs) != 9:
-        raise ValueError(f"Expected 9 SDF values, got {len(corner_sdfs)}")
-
-    case_index = 0
-    for i, sdf in enumerate(corner_sdfs):
-        if sdf < 0.0:  # Inside (solid)
-            case_index |= (1 << i)
-
-    # Uniform cases need no transition geometry
-    if case_index == 0 or case_index == 511:
+        raise ValueError("need 9 SDF samples")
+    case = 0
+    for i, s in enumerate(corner_sdfs):
+        if s < iso:
+            case |= 1 << i
+    if case in (0, 511):
         return None
-
-    return case_index
-
-
-# Mapping from 9-bit case index to equivalence class.
-# The 512 cases reduce to 73 unique classes under the dihedral group D4
-# (rotations and reflections of the square face).
-#
-# This table was generated by canonicalizing each case under D4 symmetry.
-# For brevity, we store the mapping as a computed function rather than
-# a 512-entry literal table.
-
-def _canonicalize_case(case_index: int) -> int:
-    """
-    Find the canonical (minimum) representation of a case under D4 symmetry
-    plus complement symmetry (inside/outside inversion).
-
-    Lengyel's 73 classes account for:
-    - D4 dihedral symmetry of the square face (8 operations)
-    - Complement symmetry: inverting all bits produces the same
-      triangulation with reversed winding order.
-
-    This reduces 512 cases → 73 equivalence classes.
-    """
-    # Grid positions: index -> (row, col)
-    # 6(0,0) 7(0,1) 8(0,2)
-    # 3(1,0) 4(1,1) 5(1,2)
-    # 0(2,0) 1(2,1) 2(2,2)
-
-    def idx_to_rc(i):
-        mapping = {0: (2,0), 1: (2,1), 2: (2,2),
-                   3: (1,0), 4: (1,1), 5: (1,2),
-                   6: (0,0), 7: (0,1), 8: (0,2)}
-        return mapping[i]
-
-    def rc_to_idx(r, c):
-        mapping = {(2,0): 0, (2,1): 1, (2,2): 2,
-                   (1,0): 3, (1,1): 4, (1,2): 5,
-                   (0,0): 6, (0,1): 7, (0,2): 8}
-        return mapping[(r, c)]
-
-    def transform_case(case, transform):
-        result = 0
-        for i in range(9):
-            if case & (1 << i):
-                r, c = idx_to_rc(i)
-                nr, nc = transform(r, c)
-                ni = rc_to_idx(nr, nc)
-                result |= (1 << ni)
-        return result
-
-    # D4 transforms on (row, col) with center at (1,1)
-    transforms = [
-        lambda r, c: (r, c),                    # Identity
-        lambda r, c: (c, 2-r),                  # Rot 90 CW
-        lambda r, c: (2-r, 2-c),                # Rot 180
-        lambda r, c: (2-c, r),                  # Rot 270 CW
-        lambda r, c: (2-r, c),                  # Reflect horizontal
-        lambda r, c: (r, 2-c),                  # Reflect vertical
-        lambda r, c: (c, r),                    # Reflect main diagonal
-        lambda r, c: (2-c, 2-r),                # Reflect anti-diagonal
-    ]
-
-    canonical = case_index
-    for t in transforms:
-        transformed = transform_case(case_index, t)
-        canonical = min(canonical, transformed)
-
-    return canonical
+    return case
 
 
-# Precomputed mapping: canonical case -> equivalence class ID (0-72)
-# Built lazily on first use.
-_equivalence_map: dict = {}
-
-
-def _build_equivalence_map():
-    """Build the 512 -> 73 equivalence class mapping."""
-    global _equivalence_map
-    if _equivalence_map:
-        return
-
-    class_id = 0
-    canonical_to_class = {}
-
-    for case in range(512):
-        if case == 0 or case == 511:
-            continue  # Uniform cases
-        canonical = _canonicalize_case(case)
-        if canonical not in canonical_to_class:
-            canonical_to_class[canonical] = class_id
-            class_id += 1
-        _equivalence_map[case] = canonical_to_class[canonical]
-
-
-def get_equivalence_class(case_index: int) -> int:
-    """Map a 9-bit case index to its equivalence class (0-72)."""
-    _build_equivalence_map()
-    return _equivalence_map.get(case_index, -1)
-
-
-def get_transition_triangles(case_index: int) -> list:
-    """
-    Get triangulation for a transition cell case.
-
-    Returns a list of triangles, each as (v0, v1, v2) where vertices
-    are indices into the 9-point boundary grid.
-
-    For common cases, returns the correct Transvoxel triangulation.
-    For rare cases, returns a conservative fan triangulation.
-    """
-    eq_class = get_equivalence_class(case_index)
-    if eq_class < 0:
-        return []
-
-    # Common transition patterns (most frequent in terrain):
-    # These cover the majority of real-world boundary configurations.
-
-    # Single corner inside: fan from center
-    single_corners = {1: 0, 4: 2, 64: 6, 256: 8}  # case -> corner idx
-    if case_index in single_corners:
-        c = single_corners[case_index]
-        # Fan triangulation connecting corner to adjacent edge midpoints
-        return _fan_triangulation(case_index)
-
-    # Two adjacent corners: standard bridge
-    # (Simplified - full table would enumerate all)
-
-    # Default: conservative triangulation
-    return _fan_triangulation(case_index)
-
-
-def _fan_triangulation(case_index: int) -> list:
-    """
-    Conservative fan triangulation from face center (index 4).
-    Used as fallback for uncommon cases.
-    """
-    triangles = []
-    # Connect center to each boundary edge where sign changes
-    # This is a simplified fallback; production use should have
-    # the full per-class tables.
-    for i in range(8):
-        # Each edge of the 3x3 grid
-        pass
-    return triangles
+def get_transition_class(case_index: int) -> Tuple[int, bool]:
+    if not 0 <= case_index < 512:
+        raise ValueError("case_index must be 0..511")
+    raw = TRANSITION_CELL_CLASS[case_index]
+    return raw & 0x7F, bool(raw & 0x80)
 
 
 def validate_transition_tables() -> bool:
-    """
-    Validate that the equivalence mapping produces exactly 73 classes.
-    This is the P1.2 certification test.
-    """
-    _build_equivalence_map()
-
-    unique_classes = set(_equivalence_map.values())
-    num_classes = len(unique_classes)
-
-    print(f"Transvoxel equivalence classes: {num_classes}")
-    print(f"Expected (Lengyel): 73")
-
-    if num_classes == 73:
-        print("P1.2 CERTIFICATION: PASS - 73 equivalence classes confirmed")
+    ids = [TRANSITION_CELL_CLASS[i] & 0x7F for i in range(512)]
+    unique = sorted(set(ids))
+    ok_range = all(0 <= c <= 55 for c in unique)
+    ok_count = len(unique) == 56
+    print(f"transitionCellClass entries: 512")
+    print(f"unique triangulation classes: {len(unique)} (expect 56)")
+    print(f"class id range OK: {ok_range}")
+    if ok_range and ok_count:
+        print("P1.2 CERTIFICATION: PASS — Lengyel MIT transitionCellClass embedded (56 classes)")
         return True
-    else:
-        print(f"P1.2 CERTIFICATION: FAIL - got {num_classes}, expected 73")
-        return False
+    print("P1.2 CERTIFICATION: FAIL")
+    return False
 
 
 if __name__ == "__main__":
     import sys
-    success = validate_transition_tables()
-    sys.exit(0 if success else 1)
+    sys.exit(0 if validate_transition_tables() else 1)
