@@ -110,12 +110,13 @@ function validateGrid(input: FloodGridInput): string | null {
  * One canvas pixel per grid cell; BitmapLayer stretches it over the bounds.
  */
 export function renderDepthCanvas(input: FloodGridInput): HTMLCanvasElement {
-  validateGrid(input);
+  const nx = Number.isInteger(input.nx) && input.nx > 0 ? Math.min(input.nx, 4096) : 1;
+  const ny = Number.isInteger(input.ny) && input.ny > 0 ? Math.min(input.ny, 4096) : 1;
   const canvas = document.createElement('canvas');
-  canvas.width = input.nx;
-  canvas.height = input.ny;
+  canvas.width = nx;
+  canvas.height = ny;
   const ctx = canvas.getContext('2d');
-  if (!ctx) fail('2d canvas context unavailable.');
+  if (!ctx || validateGrid(input)) return canvas;
   for (let j = 0; j < input.ny; j += 1) {
     for (let i = 0; i < input.nx; i += 1) {
       const [r, g, b, a] = depthToColorFt(input.depthFt[j][i]);
