@@ -126,8 +126,9 @@ export class MapLibreThreeLayer implements maplibregl.CustomLayerInterface {
 
   /** Absolute http(s) URLs only — unsafe URLs are skipped and reported, never fetched. */
   private isLoadableUrl(value: unknown, kind: string): value is string {
-    if (typeof value !== 'string' || value.length === 0) {
-      this.reportDiagnostic(`invalid-${kind.toLowerCase()}-url`, `${kind} URL is missing or invalid; that optional layer was skipped.`);
+    if (value == null || value === '') return false;
+    if (typeof value !== 'string') {
+      this.reportDiagnostic(`invalid-${kind.toLowerCase()}-url`, `${kind} URL is invalid; that optional layer was skipped.`);
       return false;
     }
     try {
@@ -226,7 +227,7 @@ export class MapLibreThreeLayer implements maplibregl.CustomLayerInterface {
         },
         undefined,
         () => {
-          // The model is added only after a successful load.
+          this.reportDiagnostic(`model-load-failed-${this.modelUrls.indexOf(url)}`, `Model failed to load: ${url}`);
         },
       );
     } catch (error) {
