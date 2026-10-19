@@ -365,7 +365,14 @@ $boundarySourcePath="data\posey-county\boundaries\posey-county.geojson"
 if(-not (Test-Path $boundarySourcePath)){ throw "Missing committed exact Posey County boundary: $boundarySourcePath" }
 $boundary=Get-Content $boundarySourcePath -Raw | ConvertFrom-Json
 if(@($boundary.features).Count -ne 1 -or $boundary.features[0].properties.GEOID -ne $CountyGEOID){ throw "Committed Posey boundary is not exactly GEOID 18129" }
-$script:CountyGeometry=[ordered]@{rings=@($boundary.features[0].geometry.coordinates[0]);spatialReference=[ordered]@{wkid=4326}}
+$countyRing = @($boundary.features[0].geometry.coordinates[0])
+if ($countyRing.Count -lt 4 -or @($countyRing[0]).Count -ne 2 -or @($countyRing[-1]).Count -ne 2) {
+  throw "Committed Posey County polygon ring is malformed; refusing spatial acquisition."
+}
+# Preserve the ring as one nested ring. PowerShell's normal array enumeration
+# otherwise flattens the ring into point arrays; ArcGIS then receives invalid
+# polygon JSON and fails OperatorImportFromJson with a null geometry.
+$script:CountyGeometry=[ordered]@{rings=,@($countyRing);spatialReference=[ordered]@{wkid=4326}}
 $boundaryPath=Join-Path $OutDir "boundary\posey-county-exact-tigerline.geojson"
 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $boundaryPath)|Out-Null
 $boundary|ConvertTo-Json -Depth 100|Set-Content $boundaryPath -Encoding utf8
