@@ -106,16 +106,9 @@ function Save-ArcGisWithinCounty(
   $all=@()
   $queryGeometry = ConvertTo-EsriPolygonGeometry $script:CountyGeometry
   $queryGeometryType = "esriGeometryPolygon"
-  if($RequiredId -eq "usgs-3dep-lidar-index"){
-    # Acquisition prefilter only. Exact TIGER geometry remains authoritative and
-    # is used by the downstream spatial validator. These bounds are a conservative
-    # superset of Posey County's published Census county extent.
-    $queryGeometry=[ordered]@{
-      xmin=-88.10; ymin=37.76; xmax=-87.68; ymax=38.24
-      spatialReference=@{wkid=4326}
-    }
-    $queryGeometryType="esriGeometryEnvelope"
-  }
+  # Every returned feature must independently intersect the exact county polygon.
+  # Do not use a county envelope here: a broad prefilter would include adjacent
+  # 3DEP index cells that correctly fail the downstream per-feature geometry audit.
   $geometryJson=$queryGeometry | ConvertTo-Json -Compress -Depth 100
   # Retry metadata fetch: IGIO endpoints intermittently return 504 Gateway Time-out
   $meta=$null
@@ -365,7 +358,14 @@ $boundarySourcePath="data\posey-county\boundaries\posey-county.geojson"
 if(-not (Test-Path $boundarySourcePath)){ throw "Missing committed exact Posey County boundary: $boundarySourcePath" }
 $boundary=Get-Content $boundarySourcePath -Raw | ConvertFrom-Json
 if(@($boundary.features).Count -ne 1 -or $boundary.features[0].properties.GEOID -ne $CountyGEOID){ throw "Committed Posey boundary is not exactly GEOID 18129" }
-$script:CountyGeometry=[ordered]@{rings=@($boundary.features[0].geometry.coordinates[0]);spatialReference=[ordered]@{wkid=4326}}
+$countyRing = @($boundary.features[0].geometry.coordinates[0])
+if ($countyRing.Count -lt 4 -or @($countyRing[0]).Count -ne 2 -or @($countyRing[-1]).Count -ne 2) {
+  throw "Committed Posey County polygon ring is malformed; refusing spatial acquisition."
+}
+# Preserve the ring as one nested ring. PowerShell's normal array enumeration
+# otherwise flattens the ring into point arrays; ArcGIS then receives invalid
+# polygon JSON and fails OperatorImportFromJson with a null geometry.
+$script:CountyGeometry=[ordered]@{rings=,@($countyRing);spatialReference=[ordered]@{wkid=4326}}
 $boundaryPath=Join-Path $OutDir "boundary\posey-county-exact-tigerline.geojson"
 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $boundaryPath)|Out-Null
 $boundary|ConvertTo-Json -Depth 100|Set-Content $boundaryPath -Encoding utf8
