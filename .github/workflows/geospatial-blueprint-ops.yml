@@ -1,0 +1,63 @@
+name: Geospatial Blueprint Ops
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/geospatial/**'
+      - 'tsm-console/src/geospatial/**'
+      - 'tsm-console/src/components/ThreeDTilesLayer.tsx'
+      - '.github/workflows/geospatial-blueprint-ops.yml'
+  pull_request:
+    paths:
+      - 'scripts/geospatial/**'
+      - 'tsm-console/src/geospatial/**'
+      - 'tsm-console/src/components/ThreeDTilesLayer.tsx'
+      - '.github/workflows/geospatial-blueprint-ops.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: geospatial-blueprint-ops-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python-ops:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+      - name: Install minimal Python deps
+        run: pip install --quiet numpy
+      - name: Transvoxel class tables
+        run: python3 scripts/geospatial/transvoxel_tables.py
+      - name: Regenerate Lengyel tables from MIT upstream
+        run: python3 scripts/geospatial/regenerate_lengyel_tables.py
+      - name: Transition mesh self-test
+        run: python3 scripts/geospatial/transvoxel_transition_mesh.py --self-test
+      - name: CityJSON → 3D Tiles chain self-test
+        run: python3 scripts/geospatial/cityjson_to_3d_tiles.py --self-test
+      - name: Live SSE cert (published tileset)
+        run: python3 scripts/geospatial/sse_live_cert.py
+
+  console-stream-types:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tsm-console/package-lock.json
+      - name: Pin npm
+        run: npm install --global npm@10.9.2 --no-audit --no-fund
+      - name: Install
+        working-directory: tsm-console
+        run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
+      - name: Typecheck geospatial stream modules
+        working-directory: tsm-console
+        run: npx --no-install tsc --noEmit
