@@ -47,7 +47,7 @@ Smoke loads `/3d-tiles/buildings-lidar-12450/content/3/3/0.glb` (36 verts, 12 tr
 ## Production upgrade path
 
 ```text
-GLB (repo) → optional nanite-webgpu meshoptimizer+METIS bake
+GLB (repo) → optional nanite-webgpu / meshoptimizer `meshopt_buildMeshlets` + METIS bake
            → MeshletPack JSON → importMeshletPackJson
 ```
 
