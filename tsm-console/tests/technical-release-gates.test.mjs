@@ -60,12 +60,11 @@ test('HEC release checker reports missing inputs without pretending run is accep
     dem: null,
     verticalDatum: null,
     solver: null,
-    peSignoff: null,
   });
   assert.equal(report.schema, 'tsm.hec-release-gates.v1');
   assert.equal(report.status, 'incomplete');
-  assert.equal(report.gates.length, 5);
-  assert.equal(report.unavailable, 5);
+  assert.equal(report.gates.length, 4);
+  assert.equal(report.unavailable, 4);
   assert.equal(report.blocked, 0);
 });
 
@@ -90,7 +89,7 @@ test('HEC release checker detects a solver artifact hash mismatch', async () => 
 });
 
 
-test('all five HEC gates pass only when supplied evidence is internally consistent', async () => {
+test('all four technical HEC gates pass only when supplied evidence is internally consistent', async () => {
   const boundaryGeoJson = JSON.stringify({
     type: 'Polygon',
     coordinates: [[[-88, 37], [-87, 37], [-87, 38], [-88, 38], [-88, 37]]],
@@ -137,20 +136,10 @@ test('all five HEC gates pass only when supplied evidence is internally consiste
       outputArtifact,
       outputSha256,
     },
-    peSignoff: {
-      peName: 'Fixture Reviewer',
-      peLicenseNumber: 'TEST-ONLY',
-      jurisdiction: 'IN',
-      discipline: 'civil',
-      signedAt: '2026-10-19T12:00:00Z',
-      signedArtifactSha256: outputSha256,
-      licenseRegistryStatus: 'verified',
-      verificationEvidenceUri: 'https://example.gov/registry-check',
-    },
   });
   assert.equal(report.status, 'ready-for-engineering-review');
-  assert.equal(report.passed, 5);
+  assert.equal(report.passed, 4);
   assert.equal(report.unavailable, 0);
   assert.equal(report.blocked, 0);
-  assert.match(report.note, /not a HEC-RAS execution/);
+  assert.match(report.note, /PE license is not required for TSM software runtime/);
 });
