@@ -17,9 +17,10 @@ permissions:
   contents: read
 
 concurrency:
-  group: tsm-desktop-${{ github.ref }}
-  # Prefer the tip of main: long Tauri jobs must not queue indefinitely behind cancelled/stale SHAs.
-  cancel-in-progress: true
+  # Separate push, pull-request, and manual runs; never cancel the release-gate matrix.
+  # A cancelled native build cannot be counted as a passing cross-platform release check.
+  group: tsm-desktop-${{ github.event.pull_request.head.ref || github.ref }}-${{ github.event_name }}
+  cancel-in-progress: false
 
 jobs:
   validate:

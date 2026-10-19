@@ -61,3 +61,19 @@ test('NOAA forecasts are exposed on demand as a distinct data class', () => {
   assert.match(adapter, /validAt: record\.observedAt/);
   assert.match(adapter, /never written to the observed-stage field/);
 });
+
+test('USGS raw gage height is kept separate from NAVD88 station altitude metadata', () => {
+  const registry = JSON.parse(read('../artifacts/tsm-river-valley-realtime-stations-v1.json'));
+  for (const stationId of ['03293551', '03381700']) {
+    const station = registry.verified_observation_stations.find((item) => item.station_id === stationId);
+    assert.ok(station, `missing station ${stationId}`);
+    assert.equal(station.vertical_datum, 'SOURCE_GAGE_DATUM');
+    assert.equal(station.station_altitude_vertical_datum, 'NAVD88');
+    assert.equal(typeof station.station_altitude_ft_navd88, 'number');
+    assert.equal(Object.hasOwn(station, 'datum_ft_navd88'), false);
+  }
+  const oldShawneetown = registry.verified_observation_stations.find((item) => item.station_id === '03381700');
+  assert.equal(oldShawneetown.latitude, 37.6925);
+  assert.equal(oldShawneetown.longitude, -88.1347222222222);
+  assert.equal(oldShawneetown.station_altitude_ft_navd88, 309.1);
+});

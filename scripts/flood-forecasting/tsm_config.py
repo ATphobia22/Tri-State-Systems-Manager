@@ -30,10 +30,12 @@ GAGES = {
     "03381700": {
         "name": "Ohio River at Old Shawneetown, IL",
         "short": "ohio_shawneetown",
-        "lat": 37.6936,
-        "lon": -88.1369,
-        "datum_ft": 309.10,
-        "datum": "NAVD88",
+        "lat": 37.6925,
+        "lon": -88.1347222222222,
+        "station_altitude_ft_navd88": 309.10,
+        "station_altitude_source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03381700/",
+        "gage_height_vertical_datum": "GAGE_DATUM",
+        "gage_zero_navd88_ft": None,
         "params": {
             "stage": "00065",      # gage height, ft
             "discharge": "00060",  # discharge, cfs
@@ -42,16 +44,17 @@ GAGES = {
     "03378500": {
         "name": "Wabash River at New Harmony, IN",
         "short": "wabash_new_harmony",
-        "lat": 38.1289,
-        "lon": -87.9361,
-        "datum_ft": 353.07,
-        "datum": "NGVD29",
-        # Dual-datum equivalents per USGS (verified 2026-10-18):
-        # - WDR 2005: "353.07 ft NGVD29 (352.67 ft NAVD88)"
-        # - WY2025: "352.71 ft NAVD88, 353.07 ft NGVD29" (most current)
-        # Local NGVD29->NAVD88 shift: -0.36 to -0.40 ft
-        "datum_ngvd29_ft": 353.07,
-        "datum_navd88_ft": 352.71,  # per USGS WY2025; 352.67 per WDR 2005/SIR 2016-5119
+        "lat": 38.13089124398878,
+        "lon": -87.94141452141561,
+        "station_altitude_ft_navd88": 352.71,
+        "station_altitude_ft_ngvd29": 353.07,
+        "station_altitude_source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03378500/",
+        "gage_height_vertical_datum": "GAGE_DATUM",
+        # USGS SIR 2016-5119 documents a candidate 352.67-ft NAVD88 gage-zero
+        # relationship. TSM has not released this conversion because the source
+        # product semantics remain under reconciliation; raw stage is not WSE.
+        "gage_zero_navd88_ft_candidate": 352.67,
+        "gage_zero_conversion_status": "UNVERIFIED_PRODUCT_SEMANTICS",
         "params": {
             "stage": "00065",
             "discharge": "00060",

@@ -179,11 +179,13 @@ cd scripts/flood-forecasting && python3 run_all.py --step all
 
 ## Key Gages
 
-| Gage | Location | Datum | Flood Stage |
-|------|----------|-------|-------------|
-| 03381700 | Ohio River at Old Shawneetown, IL | 309.10 ft NAVD88 | 33.0 ft |
-| 03378500 | Wabash River at New Harmony, IN | 353.07 ft NGVD29 | 15.0 ft |
-| MTVI3 | Ohio River at Mount Vernon, IN | — | 35.0 ft |
+| Site | Location | Station / land-surface altitude | Stage thresholds |
+|------|----------|----------------------------------|------------------|
+| USGS 03381700 | Ohio River at Old Shawneetown, IL-KY | 309.10 ft NAVD88 (station altitude; not a gage-zero offset) | Action 30 ft; minor 33 ft; moderate 43 ft; major 53 ft (gage height) |
+| USGS 03378500 | Wabash River at New Harmony, IN | 352.71 ft NAVD88; published historical metadata also lists 353.07 ft NGVD29 | Action 10 ft; minor 15 ft; moderate 20 ft; major 23 ft (gage height) |
+| NWS MTVI3 | Ohio River at Mount Vernon, IN | No verified gage-zero conversion recorded here | 35 ft (stage threshold; verify current NWPS metadata) |
+
+**Datum rule:** Station altitude is not gage-zero datum. Raw USGS parameter 00065 is gage height on source gage datum. TSM does not infer NAVD88 water-surface elevation from station altitude. A candidate 352.67 ft NAVD88 gage-zero relationship for USGS 03378500 remains unpublished in TSM pending product-semantic review. Sources: [USGS 03381700](https://waterdata.usgs.gov/monitoring-location/USGS-03381700/), [USGS 03378500](https://waterdata.usgs.gov/monitoring-location/USGS-03378500/).
 
 ---
 

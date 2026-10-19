@@ -13,10 +13,13 @@ Equations implemented:
   - Exact unit conversions (feet/meters, cfs/cms, NGVD29/NAVD88)
   - Normal depth in a trapezoidal channel (solved symbolically)
 
-Datum note: the NGVD29 <-> NAVD88 offset used here (0.213 m) is the
-documented working approximation for the Ohio-Wabash confluence area
-(see tsm-console/src/lib/canvas-flood-layer.ts). It is NOT a certified
-conversion for regulatory use.
+Datum note: NGVD29_TO_NAVD88_M below is a demonstration-only approximation,
+not a spatially varying geodetic transformation. It must not be used to
+convert source gage heights to WSE, drive hydraulic boundary conditions, or
+support regulatory/design conclusions. Station altitude, source gage datum,
+and site-specific vertical transformations are distinct. Production workflows
+must use a verified transformation operation and preserve its model/grid,
+area of use, and uncertainty; otherwise the conversion is withheld.
 """
 
 from __future__ import annotations
@@ -41,8 +44,8 @@ MANNING_K_ENGLISH = sp.Rational(1486, 1000)
 #: Feet per meter (exact definition: 1 ft = 0.3048 m exactly)
 FT_PER_M = sp.Rational(3048, 10000)
 
-#: Documented NGVD29 -> NAVD88 offset for the confluence area (meters).
-#: NGVD29 elevations run ~0.213 m higher; subtract to go NGVD29 -> NAVD88.
+#: Illustrative NGVD29 -> NAVD88 approximation for a teaching example only.
+#: Not a production/geodetic transformation and not a gage-zero conversion.
 NGVD29_TO_NAVD88_M = sp.Rational(213, 1000)
 
 # ---------------------------------------------------------------------------
@@ -292,12 +295,14 @@ if __name__ == "__main__":
     print("3. Exact conversions (SymPy rational):")
     print(f"   33.0 ft = {feet_to_meters(33)} m")
     print(f"   100000 cfs = {cfs_to_cms(100000)} cms")
-    # 03378500 datum 353.07 ft NGVD29 -> NAVD88
-    datum_ngvd29_ft = sp.Rational(35307, 100)
-    datum_m = feet_to_meters(datum_ngvd29_ft)
-    datum_navd88_m = ngvd29_to_navd88_m(datum_m)
-    print(f"   03378500 datum 353.07 ft NGVD29 = {datum_navd88_m} m NAVD88 "
-          f"(~{float(meters_to_feet(datum_navd88_m)):.2f} ft)\n")
+    # Illustrative station-altitude datum arithmetic only. This is not an
+    # operational conversion for raw gage height or a published gage-zero.
+    station_altitude_ngvd29_ft = sp.Rational(35307, 100)
+    station_altitude_m = feet_to_meters(station_altitude_ngvd29_ft)
+    station_altitude_navd88_m_illustration = ngvd29_to_navd88_m(station_altitude_m)
+    print("   DEMONSTRATION ONLY — not for operational hydrology:")
+    print(f"   03378500 station altitude 353.07 ft NGVD29 → approximate "
+          f"{float(meters_to_feet(station_altitude_navd88_m_illustration)):.2f} ft NAVD88\n")
 
     # 4. Normal depth: Wabash River near New Harmony, trapezoidal approx.
     nd = normal_depth(discharge_cfs=60000, roughness=0.032, slope=0.0003,

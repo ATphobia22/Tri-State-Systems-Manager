@@ -18,15 +18,21 @@ import pandas as pd
 GAGES = {
     "03381700": {
         "name": "Ohio River at Old Shawneetown, IL",
-        "parameter": "00065",  # gage height, ft
-        "datum_ft": 309.10,
-        "datum": "NAVD88",
+        "parameter": "00065",  # gage height, ft, raw source gage datum
+        "station_altitude_ft_navd88": 309.10,
+        "station_altitude_source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03381700/",
+        "gage_height_vertical_datum": "GAGE_DATUM",
+        "gage_zero_navd88_ft": None,
     },
     "03378500": {
         "name": "Wabash River at New Harmony, IN",
-        "parameter": "00065",
-        "datum_ft": 353.07,
-        "datum": "NGVD29",
+        "parameter": "00065",  # raw stage remains source gage datum
+        "station_altitude_ft_navd88": 352.71,
+        "station_altitude_ft_ngvd29": 353.07,
+        "station_altitude_source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03378500/",
+        "gage_height_vertical_datum": "GAGE_DATUM",
+        "gage_zero_navd88_ft_candidate": 352.67,
+        "gage_zero_conversion_status": "UNVERIFIED_PRODUCT_SEMANTICS",
     },
 }
 
