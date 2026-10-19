@@ -59,9 +59,10 @@ describe('no-websocket gate (flood-sim)', () => {
     expect(violations).toEqual([]);
   });
 
-  it('documents the polling-only data path in the package index', () => {
+  it('documents on-demand snapshots outside the simulator and forbids automatic gauge polling', () => {
     const index = readFileSync(join(HERE, 'index.ts'), 'utf8');
     expect(index).toMatch(/interval-HTTPS/i);
-    expect(index).toMatch(/retired by owner/i);
+    expect(index).toMatch(/User-triggered river snapshots are not model inputs/i);
+    expect(index).toMatch(/automatic gauge polling and push\\/streaming transports remain forbidden/i);
   });
 });
