@@ -106,16 +106,9 @@ function Save-ArcGisWithinCounty(
   $all=@()
   $queryGeometry = ConvertTo-EsriPolygonGeometry $script:CountyGeometry
   $queryGeometryType = "esriGeometryPolygon"
-  if($RequiredId -eq "usgs-3dep-lidar-index"){
-    # Acquisition prefilter only. Exact TIGER geometry remains authoritative and
-    # is used by the downstream spatial validator. These bounds are a conservative
-    # superset of Posey County's published Census county extent.
-    $queryGeometry=[ordered]@{
-      xmin=-88.10; ymin=37.76; xmax=-87.68; ymax=38.24
-      spatialReference=@{wkid=4326}
-    }
-    $queryGeometryType="esriGeometryEnvelope"
-  }
+  # Every returned feature must independently intersect the exact county polygon.
+  # Do not use a county envelope here: a broad prefilter would include adjacent
+  # 3DEP index cells that correctly fail the downstream per-feature geometry audit.
   $geometryJson=$queryGeometry | ConvertTo-Json -Compress -Depth 100
   # Retry metadata fetch: IGIO endpoints intermittently return 504 Gateway Time-out
   $meta=$null
