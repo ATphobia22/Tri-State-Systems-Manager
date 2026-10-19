@@ -54,7 +54,7 @@ class FetchUsgsGageTests(unittest.TestCase):
         )
         self.assertEqual(kwargs["params"]["monitoring_location_id"], "USGS-03378500")
         self.assertEqual(kwargs["params"]["parameter_code"], "00065")
-        self.assertIn("/", kwargs["params"]["datetime"])
+        self.assertIn("/", kwargs["params"]["time"])
         self.assertEqual(kwargs["timeout"], 30)
         self.assertEqual(
             list(result.columns),
