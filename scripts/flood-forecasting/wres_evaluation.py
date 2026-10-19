@@ -14,8 +14,8 @@ trust NWM forecasts at our specific gages before using them in
 flood forecasting.
 
 TSM gages:
-    - 03381700: Ohio River at Old Shawneetown, IL (datum 309.10 ft NAVD88)
-    - 03378500: Wabash River at New Harmony, IN (datum 352.71 ft NAVD88)
+    - 03381700: Ohio River at Old Shawneetown, IL (station altitude 309.10 ft NAVD88; not a gage-zero offset)
+    - 03378500: Wabash River at New Harmony, IN (station altitude 352.71 ft NAVD88; gage-zero conversion remains unverified)
     - MTVI3: Ohio River at Mount Vernon, IN (NWS)
 
 Prerequisites:
@@ -35,13 +35,19 @@ from pathlib import Path
 TSM_GAGES = {
     "03381700": {
         "name": "Ohio River at Old Shawneetown, IL",
-        "datum_ft_navd88": 309.10,
+        "station_altitude_ft_navd88": 309.10,
+        "station_altitude_source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03381700/",
+        "gage_height_vertical_datum": "GAGE_DATUM",
+        "gage_zero_navd88_ft": None,
         "flood_stage_ft": 33.0,
         "nwm_feature_id": None,  # TODO: Look up NWM feature ID for this gage
     },
     "03378500": {
         "name": "Wabash River at New Harmony, IN",
-        "datum_ft_navd88": 352.71,
+        "station_altitude_ft_navd88": 352.71,
+        "station_altitude_source_uri": "https://waterdata.usgs.gov/monitoring-location/USGS-03378500/",
+        "gage_height_vertical_datum": "GAGE_DATUM",
+        "gage_zero_navd88_ft": None,
         "flood_stage_ft": 15.0,
         "nwm_feature_id": None,  # TODO: Look up NWM feature ID for this gage
     },
@@ -76,7 +82,10 @@ def evaluate_gage(gage_id: str, output_dir: Path) -> None:
 
     gage = TSM_GAGES[gage_id]
     print(f"Evaluating NWM skill at {gage['name']} ({gage_id})")
-    print(f"  Datum: {gage['datum_ft_navd88']} ft NAVD88")
+    print(f"  Station altitude: {gage['station_altitude_ft_navd88']} ft NAVD88 (land-surface metadata, not a gage-zero offset)")
+    print(f"  Raw gage-height vertical datum: {gage['gage_height_vertical_datum']}")
+    if gage["gage_zero_navd88_ft"] is None:
+        print("  Gage-height-to-NAVD88 conversion: not configured; no WSE conversion is applied.")
     print(f"  Flood stage: {gage['flood_stage_ft']} ft")
     print("")
 
