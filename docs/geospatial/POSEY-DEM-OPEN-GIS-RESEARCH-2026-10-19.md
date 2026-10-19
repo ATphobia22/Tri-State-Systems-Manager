@@ -60,6 +60,10 @@ The public materials describe these functional patterns, which can be implemente
 - Work orders and field task workflows with geometry, status, timestamps, assignee, attachments and an audit trail.
 - Customer-managed roles and least-privilege permissions. This is a security requirement, not a UI-only feature.
 
+The public [utility tutorial index](https://www.wthgis.com/resources/video-resources/think-gis-utility-tutorials) specifically demonstrates **Utility Trace Out** ([video](https://www.youtube.com/watch?v=XXP2azLx2W4)), **Adding a New Utility Line** ([video](https://www.youtube.com/watch?v=s1acqN4T580)), **Work Order Tool** ([video](https://www.youtube.com/watch?v=LsItGWcU0d4)), and **Flow Isolation Tool** ([video](https://www.youtube.com/watch?v=54p-oHkohOI)). These are requirements leads only: TSM would need validated network topology, authorized utility asset data, edit permissions, auditability and field-tested failure handling before implementing equivalents.
+
+The public 2022 brochure also describes custom layers/aerials, automatic base-layer updates, field editing, live situational-awareness data, customer-managed user security, response boundaries, mutual-aid zones, critical facilities, traffic-control points, AVL/CAD/event markers, and 911 caller-location/confidence-circle overlays. For TSM, caller-location and CAD/AVL capabilities are high-sensitivity integrations: they must remain disabled until data agreements, access controls, retention rules, and authorized upstream connectors are present.
+
 **Do not** scrape or redistribute authenticated Think GIS content, private customer maps, screenshots, proprietary data models, or code. Public feature descriptions can inform a clean-room requirements matrix; they do not establish that TSM has access to WTH's underlying datasets or integrations.
 
 ## TSM implementation matrix
