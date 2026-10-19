@@ -29,27 +29,49 @@ const layerColor = (id: string): string => {
   return '#94a3b8';
 };
 
-function baseStyle(): StyleSpecification {
-  const imagery = getMapLibreFabricLayer('indiana-imagery').endpoint;
-  return {
-    version: 8,
-    sources: {
-      'indiana-imagery': {
-        type: 'raster',
-        tiles: [buildArcGisExportTemplate(imagery, [], { format: 'jpg', transparent: false, compressionQuality: 90 })],
-        tileSize: 512,
-        attribution: 'Indiana Geographic Information Office',
-      },
+const DEGRADED_BASE_STYLE: StyleSpecification = {
+  version: 8,
+  sources: {},
+  layers: [
+    {
+      id: 'tsm-map-degraded-background',
+      type: 'background',
+      paint: { 'background-color': '#101c2a' },
     },
-    layers: [
-      {
-        id: 'indiana-imagery-layer',
-        type: 'raster',
-        source: 'indiana-imagery',
-        paint: { 'raster-opacity': 1 },
+  ],
+};
+
+function baseStyle(): StyleSpecification {
+  try {
+    const imagery = getMapLibreFabricLayer('indiana-imagery').endpoint;
+    const tileTemplate = buildArcGisExportTemplate(imagery, [], {
+      format: 'jpg',
+      transparent: false,
+      compressionQuality: 90,
+    });
+    return {
+      version: 8,
+      sources: {
+        'indiana-imagery': {
+          type: 'raster',
+          tiles: [tileTemplate],
+          tileSize: 512,
+          attribution: 'Indiana Geographic Information Office',
+        },
       },
-    ],
-  };
+      layers: [
+        {
+          id: 'indiana-imagery-layer',
+          type: 'raster',
+          source: 'indiana-imagery',
+          paint: { 'raster-opacity': 1 },
+        },
+      ],
+    };
+  } catch {
+    // Keep a valid canvas/map shell; source failures are displayed in status.
+    return DEGRADED_BASE_STYLE;
+  }
 }
 
 async function fetchGeoJson(source: string, map: Map, signal: AbortSignal): Promise<Parameters<GeoJSONSource['setData']>[0]> {
@@ -302,7 +324,7 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
         overlay = new FloodDeckOverlay(map);
         floodOverlayRef.current = overlay;
       }
-      // Synchronous screening run on a small illustrative grid; fail-closed.
+      // Synchronous illustrative screening run; a failed overlay must not block the base map.
       const { result, bounds } = runIllustrativeScreeningScenario();
       overlay.setInundation({
         depthFt: result.inundation.depthFt,
@@ -311,9 +333,17 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
         bounds,
       });
       overlay.setVisible(true);
+      const overlayStatus = overlay.getStatus();
+      if (overlayStatus.state !== 'ready') {
+        setFloodOverlayOn(false);
+        setStatus(
+          `Flood overlay unavailable: ${overlayStatus.message || 'renderer is not ready'}. The base map remains available.`,
+        );
+        return;
+      }
       setFloodOverlayOn(true);
       setStatus(
-        `Flood overlay: screening run complete — max depth ${result.inundation.maxDepthFt.toFixed(2)} ft, ` +
+        `Flood overlay: illustrative screening run complete — max depth ${result.inundation.maxDepthFt.toFixed(2)} ft, ` +
           `${result.inundation.floodedCellCount} wet cells. ${FLOOD_OVERLAY_METADATA.disclaimer}`,
       );
     } catch (error) {
@@ -326,20 +356,29 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
-    const map = new maplibregl.Map({
-      container: containerRef.current,
-      style: baseStyle(),
-      center: INITIAL_CENTER,
-      zoom: 13,
-      pitch: 58,
-      bearing: -15,
-      maxPitch: 85,
-      minZoom: 9,
-      maxZoom: 19,
-      maxBounds: MAX_BOUNDS,
-      cooperativeGestures: true,
-      fadeDuration: 300,
-    });
+    let map: maplibregl.Map;
+    try {
+      map = new maplibregl.Map({
+        container: containerRef.current,
+        style: baseStyle(),
+        center: INITIAL_CENTER,
+        zoom: 13,
+        pitch: 58,
+        bearing: -15,
+        maxPitch: 85,
+        minZoom: 9,
+        maxZoom: 19,
+        maxBounds: MAX_BOUNDS,
+        cooperativeGestures: true,
+        fadeDuration: 300,
+      });
+    } catch (error) {
+      setTerrainEnabled(false);
+      setStatus(
+        `Interactive map renderer unavailable: ${error instanceof Error ? error.message : 'MapLibre could not initialize'}. The surrounding controls remain available.`,
+      );
+      return;
+    }
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
 
     map.on('load', () => {
@@ -352,25 +391,37 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
       setStatus(terrain.enabled ? 'Terrain-RGB connected; source fabric online.' : 'Terrain-RGB unavailable; continuing with the base map and available layers. Configure VITE_TSM_TERRAIN_RGB_URL_TEMPLATE to enable terrain.');
 
       if (terrain.enabled && !map.getSource(TERRAIN_RGB_SOURCE_ID)) {
-        map.addSource(TERRAIN_RGB_SOURCE_ID, {
-          type: 'raster-dem',
-          tiles: [terrain.template],
-          tileSize: 256,
-          encoding: 'mapbox',
-          maxzoom: 14,
-        });
-        map.setTerrain({ source: TERRAIN_RGB_SOURCE_ID, exaggeration: 1 });
-        // Hillshade layer for 3D terrain visualization (per maplibre-agent-skills guide)
-        if (!map.getLayer('terrain-hillshade')) {
-          map.addLayer({
-            id: 'terrain-hillshade',
-            type: 'hillshade',
-            source: TERRAIN_RGB_SOURCE_ID,
-            paint: {
-              'hillshade-exaggeration': 0.5,
-              'hillshade-shadow-color': '#473B2B',
-            },
+        try {
+          map.addSource(TERRAIN_RGB_SOURCE_ID, {
+            type: 'raster-dem',
+            tiles: [terrain.template],
+            tileSize: 256,
+            encoding: 'mapbox',
+            maxzoom: 14,
           });
+          map.setTerrain({ source: TERRAIN_RGB_SOURCE_ID, exaggeration: 1 });
+          // Optional hillshade; failures must not skip independent map layers.
+          if (!map.getLayer('terrain-hillshade')) {
+            map.addLayer({
+              id: 'terrain-hillshade',
+              type: 'hillshade',
+              source: TERRAIN_RGB_SOURCE_ID,
+              paint: {
+                'hillshade-exaggeration': 0.5,
+                'hillshade-shadow-color': '#473B2B',
+              },
+            });
+          }
+        } catch (error) {
+          setTerrainEnabled(false);
+          setStatus(
+            `3D terrain unavailable: ${error instanceof Error ? error.message : 'terrain source could not initialize'}. Other map layers remain active.`,
+          );
+          try {
+            if (map.getTerrain()) map.setTerrain(null);
+          } catch {
+            // The invalid optional terrain must not interrupt base-map rendering.
+          }
         }
       }
 
@@ -495,7 +546,7 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
       <aside style={{ position: 'absolute', top: 12, left: 12, width: 360, maxHeight: 'calc(100% - 24px)', overflow: 'auto', padding: 14, border: '1px solid rgba(148,163,184,.25)', borderRadius: 12, background: 'rgba(5,8,15,.92)', backdropFilter: 'blur(8px)' }}>
         <strong style={{ letterSpacing: '.12em' }}>TSM // MAPLIBRE PLANE</strong>
         <div style={{ marginTop: 6, fontSize: 12, color: terrainEnabled ? '#86efac' : '#fbbf24' }}>
-          {terrainEnabled ? '● TERRAIN-RGB ONLINE' : '● TERRAIN-RGB FAIL-CLOSED'}
+          {terrainEnabled ? '● 3D TERRAIN ONLINE' : '● 2D MAP ACTIVE · 3D TERRAIN UNAVAILABLE'}
         </div>
         <div role="status" aria-live="polite" style={{ marginTop: 6, fontSize: 11, color: '#94a3b8' }}>{status}</div>
         <div style={{ marginTop: 12, display: 'grid', gap: 6 }}>
