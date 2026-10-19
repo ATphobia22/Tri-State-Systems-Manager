@@ -1,5 +1,5 @@
 /**
- * Fail-closed Terrain-RGB / MapLibre 3D terrain contract tests.
+ * Terrain-RGB availability and template-validation tests.
  * Pure logic mirrored from src/lib/terrain-rgb-contract.ts for node:test
  * (avoids Vite import.meta.env in the unit path).
  */
@@ -66,13 +66,13 @@ function validateTerrainRgbUrlTemplate(raw, options = {}) {
   return { enabled: false, reason: 'invalid_template' };
 }
 
-test('missing template is fail-closed', () => {
+test('missing template disables optional 3D terrain', () => {
   assert.equal(validateTerrainRgbUrlTemplate('').enabled, false);
   assert.equal(validateTerrainRgbUrlTemplate(undefined).reason, 'missing');
   assert.equal(validateTerrainRgbUrlTemplate('   ').reason, 'missing');
 });
 
-test('placeholder hosts are fail-closed', () => {
+test('placeholder hosts disable optional 3D terrain', () => {
   assert.equal(
     validateTerrainRgbUrlTemplate('https://tiles.example.invalid/terrain/{z}/{x}/{y}.png').reason,
     'placeholder',
@@ -91,7 +91,7 @@ test('placeholder hosts are fail-closed', () => {
   );
 });
 
-test('templates without z/x/y tokens are fail-closed', () => {
+test('templates without z/x/y tokens disable optional 3D terrain', () => {
   assert.equal(
     validateTerrainRgbUrlTemplate('https://tiles.usgs.gov/terrain/0/0/0.png').reason,
     'invalid_template',
@@ -106,7 +106,7 @@ test('valid https XYZ template is enabled', () => {
   assert.equal(s.reason, 'configured');
 });
 
-test('http non-local is blocked (production)', () => {
+test('insecure non-local HTTP templates are disabled in production', () => {
   assert.equal(
     validateTerrainRgbUrlTemplate('http://tiles.real-cdn.example.net/{z}/{x}/{y}.png').reason,
     'placeholder',
@@ -117,7 +117,7 @@ test('http non-local is blocked (production)', () => {
   );
 });
 
-test('localhost blocked in production; allowed only when allowHttpLocal', () => {
+test('localhost templates are disabled in production and allowed for local development only', () => {
   assert.equal(
     validateTerrainRgbUrlTemplate('http://localhost:8080/terrain/{z}/{x}/{y}.png').reason,
     'placeholder',
