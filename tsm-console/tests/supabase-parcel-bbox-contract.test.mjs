@@ -11,7 +11,9 @@ test('PostGIS parcel RPC is bounded, indexed, and row-security aware', () => {
   assert.match(migration, /create extension if not exists postgis with schema extensions/i);
   assert.match(migration, /using gist \(geom\)/i);
   assert.match(migration, /enable row level security/i);
-  assert.match(migration, /using \(is_public = true\)/i);
+  assert.match(migration, /using \(is_public = true and verification_status = 'verified'\)/i);
+  assert.match(migration, /verification_status text not null default 'pending'/i);
+  assert.match(migration, /p\.verification_status = 'verified'/i);
   assert.match(migration, /security invoker/i);
   assert.match(migration, /set search_path = ''/i);
   assert.match(migration, /limit 1001/i);
