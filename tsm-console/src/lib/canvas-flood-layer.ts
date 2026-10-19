@@ -59,10 +59,9 @@ export function tryDatumConversion(
   const from = fromDatum.toUpperCase();
   const to = toDatum.toUpperCase();
   if (from === to) return elevM;
-  // NGVD29 elevations run ~0.7 ft (≈0.213 m) higher than NAVD88 in the
-  // Ohio–Wabash confluence area. Subtract to go NGVD29 -> NAVD88.
-  if (from === 'NGVD29' && to === 'NAVD88') return elevM - 0.213;
-  if (from === 'NAVD88' && to === 'NGVD29') return elevM + 0.213;
+  // No constant regional offset is valid for a vertical-datum transformation.
+  // Require a geoid/grid transformation service and its provenance; otherwise
+  // preserve the source datum and report conversion unavailable.
   return null;
 }
 
