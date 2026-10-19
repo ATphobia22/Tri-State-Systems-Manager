@@ -1,157 +1,137 @@
 #!/usr/bin/env python3
+"""Build TSM vector archives directly as PMTiles using Tippecanoe.
+
+PMTiles archives are immutable, static artifacts served with HTTP Range support.
+Dynamic parcel lookup remains a separate PostGIS RPC concern.
 """
-TSM PMTiles Builder.
 
-Generates PMTiles archives from TSM vector data for the console.
-Uses tippecanoe (MapLibre-compatible vector tiles) + pmtiles CLI.
-
-PMTiles: https://github.com/protomaps/PMTiles
-tippecanoe: https://github.com/felt/tippecanoe
-
-Prerequisites:
-  # Ubuntu/Debian
-  sudo apt install tippecanoe
-  # Or build from source
-
-  # PMTiles CLI
-  # Download from https://github.com/protomaps/go-pmtiles/releases
-
-  # Python PMTiles tools (alternative)
-  pip install pmtiles
-
-Console expects files in: tsm-console/public/data/pmtiles/
-Protocol registered in: tsm-console/src/lib/pmtiles-protocol.ts
-
-Usage:
-  python build_pmtiles.py --input buildings.geojson --output tristate-buildings.pmtiles
-  python build_pmtiles.py --all  # build all configured layers
-"""
+from __future__ import annotations
 
 import argparse
 import shutil
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 OUT_DIR = Path("tsm-console/public/data/pmtiles")
-OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-# TSM layers to convert to PMTiles
-LAYERS = {
+LAYERS: dict[str, dict[str, Any]] = {
     "buildings": {
         "input": "tsm-console/public/3d-tiles/buildings-3d.json",
         "minzoom": 10,
         "maxzoom": 15,
         "layer_name": "buildings",
-        "description": "TSM building footprints with heights (22,815 features)",
+        "description": "TSM building footprints with heights",
+        "attribution": "Tri-State Systems Manager; source attribution is retained in source metadata",
     },
-    # Add more as data becomes available:
-    # "parcels": {
-    #     "input": "data/parcels/tristate-parcels.geojson",
-    #     "minzoom": 10,
-    #     "maxzoom": 14,
-    #     "layer_name": "parcels",
-    # },
+    # Add parcel configuration only after a validated, licensed GeoJSON input
+    # has been normalized to EPSG:4326 and its source lineage has been recorded.
 }
 
 
-def check_tools():
-    """Verify tippecanoe and pmtiles CLI are available."""
-    missing = []
-    if not shutil.which("tippecanoe"):
-        missing.append("tippecanoe (https://github.com/felt/tippecanoe)")
-    # pmtiles CLI is optional if using Python pmtiles lib
-    if missing:
-        print("Missing tools:", file=sys.stderr)
-        for m in missing:
-            print(f"  - {m}", file=sys.stderr)
-        print("\nInstall and re-run.", file=sys.stderr)
-        return False
-    return True
+def check_tools() -> bool:
+    """Return whether Tippecanoe is available."""
+    if shutil.which("tippecanoe"):
+        return True
+    print(
+        "Missing required tool: tippecanoe. See https://github.com/felt/tippecanoe",
+        file=sys.stderr,
+    )
+    return False
 
 
-def build_layer(name: str, cfg: dict, out_dir: Path = OUT_DIR) -> Path:
-    """Build a single PMTiles archive from GeoJSON."""
+def build_layer(
+    name: str,
+    cfg: dict[str, Any],
+    out_dir: Path = OUT_DIR,
+    output_path: Path | None = None,
+) -> Path | None:
+    """Build one PMTiles archive directly, honoring the requested output path."""
     input_path = Path(cfg["input"])
-    if not input_path.exists():
-        print(f"  SKIP {name}: input not found: {input_path}")
+    if not input_path.is_file():
+        print(f"  SKIP {name}: input not found: {input_path}", file=sys.stderr)
         return None
 
-    output = out_dir / f"tristate-{name}.pmtiles"
-    tmp_mbtiles = out_dir / f"_{name}.mbtiles"
+    minzoom = int(cfg["minzoom"])
+    maxzoom = int(cfg["maxzoom"])
+    if minzoom < 0 or maxzoom > 22 or minzoom > maxzoom:
+        raise ValueError(f"Invalid zoom range for {name}: {minzoom}..{maxzoom}")
 
-    print(f"\nBuilding {name}...")
-    print(f"  Input: {input_path}")
-    print(f"  Output: {output}")
+    layer_name = str(cfg["layer_name"])
+    if not layer_name or len(layer_name) > 128:
+        raise ValueError(f"Invalid vector layer name for {name}")
 
-    # Step 1: GeoJSON → MBTiles via tippecanoe
+    output = output_path if output_path is not None else out_dir / f"tristate-{name}.pmtiles"
+    if output.suffix.lower() != ".pmtiles":
+        raise ValueError(f"Output must use the .pmtiles extension: {output}")
+
+    output.parent.mkdir(parents=True, exist_ok=True)
     cmd = [
         "tippecanoe",
-        f"--output={tmp_mbtiles}",
-        f"--minimum-zoom={cfg['minzoom']}",
-        f"--maximum-zoom={cfg['maxzoom']}",
-        f"--layer={cfg['layer_name']}",
+        "--output",
+        str(output),
+        "--minimum-zoom",
+        str(minzoom),
+        "--maximum-zoom",
+        str(maxzoom),
+        "--layer",
+        layer_name,
+        "--attribution",
+        str(cfg.get("attribution", "Tri-State Systems Manager")),
         "--drop-densest-as-needed",
         "--extend-zooms-if-still-dropping",
         "--force",
         str(input_path),
     ]
-    print(f"  Running: {' '.join(cmd[:4])} ...")
+
+    print(f"Building {name}: {input_path} -> {output}")
     subprocess.run(cmd, check=True)
 
-    # Step 2: MBTiles → PMTiles
-    # Option A: pmtiles CLI (go-pmtiles)
-    if shutil.which("pmtiles"):
-        subprocess.run(
-            ["pmtiles", "convert", str(tmp_mbtiles), str(output)],
-            check=True,
-        )
-    else:
-        # Option B: Python pmtiles library
-        print("  pmtiles CLI not found, using Python pmtiles...")
-        from pmtiles.tile import zxy_to_tileid  # noqa
-        # Full conversion via Python is complex; recommend installing CLI
-        print("  Install go-pmtiles for MBTiles→PMTiles conversion:")
-        print("  https://github.com/protomaps/go-pmtiles/releases")
-        return None
+    if not output.is_file() or output.stat().st_size <= 0:
+        raise RuntimeError(f"Tippecanoe completed without producing a non-empty archive: {output}")
 
-    # Cleanup
-    tmp_mbtiles.unlink(missing_ok=True)
-
-    size_mb = output.stat().st_size / 1e6
-    print(f"  Done: {output} ({size_mb:.1f} MB)")
+    print(f"Built {output} ({output.stat().st_size / 1_000_000:.1f} MB)")
     return output
 
 
-def main():
-    ap = argparse.ArgumentParser(description="TSM PMTiles builder")
-    ap.add_argument("--input", help="Input GeoJSON file")
-    ap.add_argument("--output", help="Output .pmtiles path")
-    ap.add_argument("--name", default="custom", help="Layer name")
-    ap.add_argument("--minzoom", type=int, default=10)
-    ap.add_argument("--maxzoom", type=int, default=15)
-    ap.add_argument("--all", action="store_true", help="Build all configured layers")
-    args = ap.parse_args()
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Build TSM PMTiles vector archives")
+    parser.add_argument("--input", help="Input GeoJSON file")
+    parser.add_argument("--output", help="Output .pmtiles path (honored exactly)")
+    parser.add_argument("--name", default="custom", help="Vector layer name")
+    parser.add_argument("--minzoom", type=int, default=10)
+    parser.add_argument("--maxzoom", type=int, default=15)
+    parser.add_argument("--all", action="store_true", help="Build all configured layers")
+    args = parser.parse_args()
 
+    if args.all and (args.input or args.output):
+        parser.error("--all cannot be combined with --input or --output")
+    if not args.all and not (args.input and args.output):
+        parser.error("Provide --input and --output, or use --all")
     if not check_tools():
-        sys.exit(1)
+        return 2
 
-    if args.all:
-        for name, cfg in LAYERS.items():
-            build_layer(name, cfg)
-    elif args.input and args.output:
-        build_layer(args.name, {
-            "input": args.input,
-            "minzoom": args.minzoom,
-            "maxzoom": args.maxzoom,
-            "layer_name": args.name,
-        }, out_dir=Path(args.output).parent)
-    else:
-        ap.print_help()
-        print("\nConfigured layers:")
-        for name, cfg in LAYERS.items():
-            print(f"  {name}: {cfg['description']}")
+    try:
+        if args.all:
+            for name, cfg in LAYERS.items():
+                build_layer(name, cfg)
+        else:
+            build_layer(
+                args.name,
+                {
+                    "input": args.input,
+                    "minzoom": args.minzoom,
+                    "maxzoom": args.maxzoom,
+                    "layer_name": args.name,
+                },
+                output_path=Path(args.output),
+            )
+    except (OSError, ValueError, subprocess.CalledProcessError, RuntimeError) as error:
+        print(f"PMTiles build failed: {error}", file=sys.stderr)
+        return 1
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
