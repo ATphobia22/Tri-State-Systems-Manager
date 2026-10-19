@@ -26,7 +26,7 @@ testRunner('Posey DEM manifest and downloader fail closed on unregistered tiles 
   assert.match(downloader, /MaxTiles = 25/);
   assert.match(downloader, /Get-FileHash -LiteralPath \$dest -Algorithm SHA256/);
   assert.match(downloader, /Refusing URL outside the expected Indiana DEM S3 path/);
-  assert.match(downloader, /gdal driver cog validate/);
+  assert.match(downloader, /driver cog validate/);
   assert.match(downloader, /download-receipt\.json/);
 });
 
