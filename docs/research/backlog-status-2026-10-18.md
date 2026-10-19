@@ -1,15 +1,14 @@
-# Open-world blueprint backlog status (2026-10-18)
+# Open-world blueprint backlog status (2026-10-19)
 
 | Item | Status | Artifact |
 |------|--------|----------|
 | Freeze 16-bit layout v1 | **DONE** | `contracts/tsm-state-word-v1.json` |
-| Optional M-bits layout | DRAFT only | `contracts/tsm-state-word-v2-draft.json` |
 | Spatial Tri-State ≠ hardware | **DONE** | `spatial-entity-phase.ts` |
-| Cesium-form SSE (CPU+GPU) | **DONE** (formula) | `geometric-sse.ts`, `lod_sse_select.wgsl` |
-| Soft-min volumetric blend | **DONE** | `sdf_softmin.py` |
-| Morton implicit keys | **DONE** | `morton_keys.py`, `morton.ts` |
-| Implicit tileset builder | **EXISTS** | `build-implicit-tileset.py` |
-| CityGML 3.0 / CityJSON compiler | **DONE** (Core+Building subset) | `citygml_compiler.py` |
-| Transvoxel transition cells | **SCAFFOLD only** | `transvoxel_transition_scaffold.py` |
-| Live Cesium SSE A/B on Posey tileset | **OPEN** | `sse_cesium_ab.py` algebraic only |
-| Full GML XML / 17-module ADE | **OUT OF SCOPE** | use citygml-tools + 3DCityDB |
+| Cesium-form SSE formula | **DONE** | `geometric-sse.ts`, `lod_sse_select.wgsl` |
+| **P1.1 Live SSE cert (Posey tileset)** | **DONE** | `sse_live_cert.py` PASS |
+| Soft-min SDF | **DONE** | `sdf_softmin.py` |
+| Morton + implicit builder | **DONE** | `morton_keys.py`, `build-implicit-tileset.py` |
+| CityGML/CityJSON compiler | **DONE** | `citygml_compiler.py` |
+| **P1.2 Transvoxel tables** | **DONE** | `transvoxel_tables.py` Lengyel MIT `transitionCellClass` (56 classes) |
+| Per-leaf adaptive meshing using full vertex data | OPEN | stitch PoC is crack-free heightfield path |
+| CityEngine runtime | OPTIONAL P3 | glTF bridge only |
