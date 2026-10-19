@@ -104,7 +104,7 @@ function getVisibleBbox(map: MapLibreMap): ParcelBbox {
 }
 
 function popupForFeature(
-  map: maplibregl.Map,
+  map: MapLibreMap,
   event: MapLayerMouseEvent,
 ): void {
   const feature = event.features?.[0];
@@ -133,7 +133,7 @@ function popupForFeature(
  * Queries occur only after map movement and at zoom >= 13. No timer or polling.
  * The source is disabled unless public Supabase URL + publishable key are set.
  */
-export function attachSupabaseParcelBboxLayer(map: maplibregl.Map): () => void {
+export function attachSupabaseParcelBboxLayer(map: MapLibreMap): () => void {
   if (!getSupabaseConfig()) return () => undefined;
   if (map.getSource(SOURCE_ID)) return () => undefined;
 
@@ -186,7 +186,7 @@ export function attachSupabaseParcelBboxLayer(map: maplibregl.Map): () => void {
       void fetchParcelBbox(bbox, activeController.signal)
         .then((collection) => {
           if (sequence !== requestSequence || activeController.signal.aborted) return;
-          const source = map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
+          const source = map.getSource(SOURCE_ID) as GeoJSONSource | undefined;
           source?.setData({
             type: 'FeatureCollection',
             features: collection.features,
@@ -200,11 +200,13 @@ export function attachSupabaseParcelBboxLayer(map: maplibregl.Map): () => void {
     }, 250);
   };
 
-  const handleClick = (event: maplibregl.MapLayerMouseEvent): void => popupForFeature(map, event);
+  const handleClick = (event: MapLayerMouseEvent): void => popupForFeature(map, event);
+  const handleMouseEnter = (): void => { map.getCanvas().style.cursor = 'pointer'; };
+  const handleMouseLeave = (): void => { map.getCanvas().style.cursor = ''; };
   map.on('moveend', queryVisibleParcels);
   map.on('click', FILL_LAYER_ID, handleClick);
-  map.on('mouseenter', FILL_LAYER_ID, () => { map.getCanvas().style.cursor = 'pointer'; });
-  map.on('mouseleave', FILL_LAYER_ID, () => { map.getCanvas().style.cursor = ''; });
+  map.on('mouseenter', FILL_LAYER_ID, handleMouseEnter);
+  map.on('mouseleave', FILL_LAYER_ID, handleMouseLeave);
   queryVisibleParcels();
 
   return () => {
