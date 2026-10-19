@@ -75,6 +75,19 @@ The public 2022 brochure also describes custom layers/aerials, automatic base-la
 
 **Do not** scrape or redistribute authenticated Think GIS content, private customer maps, screenshots, proprietary data models, or code. Public feature descriptions can inform a clean-room requirements matrix; they do not establish that TSM has access to WTH's underlying datasets or integrations.
 
+## Clean-room workflow requirements derived from public Think GIS utility tutorials
+
+WTH's public utility tutorial page lists a **Utility Trace Out Tool**, **Adding a New Utility Line**, **Work Order Tool**, and **Think GIS Flow Isolation Tool**. These are capability references only; the public tutorials do not provide TSM with utility-network data or permission to access private customer layers.
+
+- **Network trace-out:** support upstream/downstream traversal over a versioned network graph with explicit connectivity rules, valve/device states only when sourced, path explanation, and deterministic results. Refuse a trace when connectivity is incomplete or stale.
+- **Flow isolation:** model network topology and isolation boundaries; distinguish a computed candidate isolation from a verified operational isolation. Require authorized asset data, valve status, network connectivity QA, and field confirmation for safety-critical decisions.
+- **Utility line editing:** create/edit line geometry only behind authentication, role-based authorization, optimistic concurrency, geometry validation, immutable audit events, conflict resolution, and offline-sync rules.
+- **Work orders:** attach an order to stable asset IDs and geometry versions; record status transitions, assigned team, timestamps, evidence attachments, and source lineage. Keep work-order data separate from authoritative utility asset geometry.
+- **Offline field use:** use versioned local snapshots, explicit stale-data labels, idempotent sync, and visible conflict handling. Do not imply that an offline edit has been accepted by the authoritative system until server confirmation.
+- **Map inspection/search:** reproduce the useful public patterns—address/parcel search, identify, layer toggles, distance/area measurement, coordinate readout, print/export, and shareable map state—using TSM-owned UI and documented data sources.
+
+Acceptance should include synthetic network fixtures for disconnected edges, loops, missing valves, stale states, concurrent edits, and partial sync. No operational utility-trace or isolation action should be enabled for real infrastructure until an authorized, topology-validated dataset and operator workflow are available.
+
 ## TSM implementation matrix
 
 | Priority | Capability / change | Existing project surface | Acceptance evidence |
