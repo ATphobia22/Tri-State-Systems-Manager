@@ -7,6 +7,7 @@ on:
       - main
       - 'feat/posey-offline-authoritative-data-*'
       - 'fix/posey-complete-acquisition-*'
+      - 'fix/posey-bafm-geojson-*'
     paths:
       - 'scripts/posey/**'
       - 'data/posey-county/authoritative-source-requirements-v1.json'
@@ -25,6 +26,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           fetch-depth: 1
+      - name: Setup Node.js for acquisition contract tests
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+
+      - name: Verify ArcGIS GeoJSON acquisition contract
+        run: node scripts/posey/acquisition-geojson-contract.test.mjs
+
 
       - name: Patch mandatory-source hard-fail (BAFM + parcels)
         shell: pwsh

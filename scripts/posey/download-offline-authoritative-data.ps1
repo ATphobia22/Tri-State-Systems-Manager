@@ -130,11 +130,25 @@ function Save-ArcGisWithinCounty(
   do {
     $params=@{
       where=$Where; geometry=$geometryJson; geometryType=$queryGeometryType; inSR="4326"
-      spatialRel=$SpatialRelation; outFields="*"; returnGeometry="true"; outSR="4326"; resultType="standard"; f="json"
+      spatialRel=$SpatialRelation; outFields="*"; returnGeometry="true"; outSR="4326"; resultType="standard"; f="geojson"
     }
     if($supportsPagination){ $params.resultOffset=$offset; $params.resultRecordCount=$pageSize }
     $r=Invoke-ArcGisQuery $ServiceLayerUrl $params
+    # The output file is consumed by a GeoJSON geometry validator and web GIS
+    # tooling. ArcGIS f=json returns Esri JSON (rings/paths + attributes), which
+    # is not GeoJSON despite the .geojson suffix and will fail the independent
+    # exact-county audit. Request RFC 7946 GeoJSON explicitly and fail closed
+    # if the service returns an unexpected shape or missing geometry.
+    if($r.type -ne "FeatureCollection" -or $null -eq $r.features){
+      throw "ArcGIS source did not return a GeoJSON FeatureCollection: $RequiredId"
+    }
     $features=@($r.features)
+    foreach($feature in $features){
+      if($feature.type -ne "Feature" -or $null -eq $feature.geometry -or
+         $feature.geometry.type -notin @("Point","MultiPoint","LineString","MultiLineString","Polygon","MultiPolygon")){
+        throw "ArcGIS source returned a non-GeoJSON feature or missing geometry: $RequiredId"
+      }
+    }
     if($features.Count -eq 0){ break }
     $all += $features
     if(-not $supportsPagination -or $features.Count -lt $pageSize){ break }
