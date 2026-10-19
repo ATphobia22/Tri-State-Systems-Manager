@@ -17,7 +17,7 @@ test('PostGIS parcel RPC is bounded, indexed, and row-security aware', () => {
   assert.match(migration, /limit 1001/i);
   assert.match(migration, /limit 1000/i);
   assert.match(migration, /'truncated'/i);
-  assert.match(migration, /xmax - xmin\) > 2\.0/i);
+  assert.match(migration, /p_xmax - p_xmin\) > 2\.0/i);
   assert.match(migration, /st_intersects/i);
   assert.doesNotMatch(migration, /security definer/i);
   assert.doesNotMatch(migration, /\bowner\s+text\b/i);
