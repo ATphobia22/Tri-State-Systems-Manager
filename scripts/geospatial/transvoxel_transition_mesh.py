@@ -2,8 +2,8 @@
 """Per-leaf adaptive Transvoxel meshing using official Lengyel tables.
 
 Loads transitionCellData[56] + transitionVertexData[512] from
-lengyel_transition_data.json (EricLengyel/Transvoxel MIT).
-Case→class via transvoxel_tables.TRANSITION_CELL_CLASS.
+lengyel_transition_data.json or split lengyel_cell_data.json +
+lengyel_vertex_{0..3}.json (EricLengyel/Transvoxel MIT).
 
   python3 transvoxel_transition_mesh.py --self-test
 """
@@ -30,10 +30,26 @@ def _load_data() -> dict:
     if _DATA is not None:
         return _DATA
     here = Path(__file__).resolve().parent
-    path = here / "lengyel_transition_data.json"
-    if not path.is_file():
-        path = Path("scripts/geospatial/lengyel_transition_data.json")
-    _DATA = json.loads(path.read_text(encoding="utf-8"))
+    full = here / "lengyel_transition_data.json"
+    if not full.is_file():
+        full = Path("scripts/geospatial/lengyel_transition_data.json")
+    if full.is_file():
+        _DATA = json.loads(full.read_text(encoding="utf-8"))
+    else:
+        cell_path = here / "lengyel_cell_data.json"
+        if not cell_path.is_file():
+            cell_path = Path("scripts/geospatial/lengyel_cell_data.json")
+        cell = json.loads(cell_path.read_text(encoding="utf-8"))
+        verts = []
+        for i in range(4):
+            vp = here / f"lengyel_vertex_{i}.json"
+            if not vp.is_file():
+                vp = Path(f"scripts/geospatial/lengyel_vertex_{i}.json")
+            verts.extend(json.loads(vp.read_text(encoding="utf-8")))
+        _DATA = {
+            "transitionCellData": cell["transitionCellData"],
+            "transitionVertexData": verts,
+        }
     assert len(_DATA["transitionCellData"]) == 56
     assert len(_DATA["transitionVertexData"]) == 512
     return _DATA
