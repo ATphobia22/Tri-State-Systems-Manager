@@ -88,3 +88,69 @@ test('HEC release checker detects a solver artifact hash mismatch', async () => 
   assert.equal(report.status, 'blocked');
   assert.ok(report.gates.find((item) => item.id === 'solver-hash').findings.some((item) => item.includes('does not match')));
 });
+
+
+test('all five HEC gates pass only when supplied evidence is internally consistent', async () => {
+  const boundaryGeoJson = JSON.stringify({
+    type: 'Polygon',
+    coordinates: [[[-88, 37], [-87, 37], [-87, 38], [-88, 38], [-88, 37]]],
+  });
+  const rasterBytes = new Uint8Array(Buffer.from('dem-raster-fixture'));
+  const inputManifest = JSON.stringify({ demSha256: hash('dem-raster-fixture'), boundarySha256: hash(boundaryGeoJson) });
+  const outputArtifact = JSON.stringify({ solver: 'HEC-RAS', status: 'fixture-only' });
+  const outputSha256 = hash(outputArtifact);
+  const report = await HECReleaseGateChecker.check({
+    aoi: {
+      aoiId: 'fixture-aoi',
+      watershedId: 'fixture-watershed',
+      boundaryGeoJson,
+      boundarySha256: hash(boundaryGeoJson),
+      crs: 'EPSG:4326',
+      areaSqKm: 1,
+      sourceUri: 'https://example.gov/boundary',
+      topologyValidation: 'passed',
+      intersectsWatershed: true,
+    },
+    dem: {
+      sourceName: 'test fixture only',
+      sourceUri: 'https://example.gov/dem',
+      acquisitionDate: '2026-10-01',
+      resolutionM: 1,
+      horizontalCrs: 'EPSG:2966',
+      verticalDatum: 'NAVD88',
+      verticalUnits: 'ft',
+      rasterSha256: hash('dem-raster-fixture'),
+      rasterBytes,
+    },
+    verticalDatum: {
+      sourceVerticalDatum: 'NAVD88',
+      targetVerticalDatum: 'NAVD88',
+      transformationModel: 'identity (same datum)',
+      transformationApplied: false,
+      evidenceUri: 'https://example.gov/datum-evidence',
+    },
+    solver: {
+      solverName: 'HEC-RAS',
+      solverVersion: 'fixture',
+      inputManifest,
+      inputSha256: hash(inputManifest),
+      outputArtifact,
+      outputSha256,
+    },
+    peSignoff: {
+      peName: 'Fixture Reviewer',
+      peLicenseNumber: 'TEST-ONLY',
+      jurisdiction: 'IN',
+      discipline: 'civil',
+      signedAt: '2026-10-19T12:00:00Z',
+      signedArtifactSha256: outputSha256,
+      licenseRegistryStatus: 'verified',
+      verificationEvidenceUri: 'https://example.gov/registry-check',
+    },
+  });
+  assert.equal(report.status, 'ready-for-engineering-review');
+  assert.equal(report.passed, 5);
+  assert.equal(report.unavailable, 0);
+  assert.equal(report.blocked, 0);
+  assert.match(report.note, /not a HEC-RAS execution/);
+});
