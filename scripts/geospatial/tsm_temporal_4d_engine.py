@@ -127,7 +127,7 @@ class Procedural4DCityGrowth:
             "year_built": year,
             "storeys": 1 + (year % 3),
             "location_epsg2966": new_node,
-            "bfe_ft_navd88": 375.0,
+            "bfe_ft_navd88": 369.1,
             "base_elev_ft_navd88": 368.0 + (year % 5) * 1.2
         }
         self.buildings.append(new_building)

@@ -12,9 +12,9 @@ export const BONEBANK_SITE = {
   apn: '65-19-08-100-008.001-010',
   centroidLon: -88.0051,
   centroidLat: 37.84589,
-  bfeFtNavd88: 375.0,
+  bfeFtNavd88: 369.1,
   lagFtNavd88: 377.2,
-  freeboardFt: 2.2,
+  freeboardFt: 8.1,
   ffeFtNavd88: 382.5,
   firmPanelPreferred: '18129C0300C',
 } as const;

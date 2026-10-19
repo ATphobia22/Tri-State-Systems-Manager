@@ -81,8 +81,8 @@ class GocadTSurfExporter:
                 v_id = self.v_counter
                 grid_map[(i, j)] = v_id
                 
-                # PVRTX properties: z, time_year=2020, bfe=375.0, bldg_id=0, flood_depth=0.0
-                self.vertices.append((v_id, x, y, z, z, 2020.0, 375.0, 0, 0.0))
+                # PVRTX properties: z, time_year=2020, bfe=369.1, bldg_id=0, flood_depth=0.0
+                self.vertices.append((v_id, x, y, z, z, 2020.0, 369.1, 0, 0.0))
                 self.v_counter += 1
 
         trgl_start = len(self.triangles)
