@@ -72,7 +72,7 @@ test('reads a GLB 2.0 and validates one supported triangle primitive', () => {
 
 test('rejects truncated, non-GLB, and inconsistent-length containers', () => {
   assert.throws(() => readGlbJson(Buffer.alloc(8)), /GLB too small/);
-  assert.throws(() => readGlbJson(Buffer.from('not a GLB file')), /not a GLB file/);
+  assert.throws(() => readGlbJson(Buffer.from('this is definitely not a GLB file')), /not a GLB file/);
   const valid = makeGlb();
   const invalidLength = Buffer.from(valid);
   invalidLength.writeUInt32LE(valid.length - 4, 8);
