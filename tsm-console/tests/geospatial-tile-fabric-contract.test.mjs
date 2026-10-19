@@ -62,7 +62,7 @@ test('JSON schema is present and declares the tile asset contract', () => {
 
 test('hydrology tile and runtime source states remain consistent', () => {
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-  const registryPath = path.join(root, '..', '..', 'data', 'fabrics', 'live', 'tsm-live-hydrology-fabric-v1.json');
+  const registryPath = path.join(root, 'data', 'fabrics', 'live', 'tsm-live-hydrology-fabric-v1.json');
   const registry = JSON.parse(fs.readFileSync(registryPath, 'utf8'));
   const noaa = registry.sources.find((source) => source.id === 'NOAA_NWPS');
   const usgs = registry.sources.find((source) => source.id === 'USGS_WATERDATA');
