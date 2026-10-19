@@ -1,4 +1,4 @@
-import type * as maplibregl from 'maplibre-gl';
+import { Popup, type GeoJSONSource, type Map as MapLibreMap, type MapLayerMouseEvent } from 'maplibre-gl';
 
 export interface ParcelBbox {
   readonly xmin: number;
@@ -93,7 +93,7 @@ export async function fetchParcelBbox(
   return payload as ParcelFeatureCollection;
 }
 
-function getVisibleBbox(map: maplibregl.Map): ParcelBbox {
+function getVisibleBbox(map: MapLibreMap): ParcelBbox {
   const bounds = map.getBounds();
   return {
     xmin: bounds.getWest(),
@@ -105,7 +105,7 @@ function getVisibleBbox(map: maplibregl.Map): ParcelBbox {
 
 function popupForFeature(
   map: maplibregl.Map,
-  event: maplibregl.MapLayerMouseEvent,
+  event: MapLayerMouseEvent,
 ): void {
   const feature = event.features?.[0];
   if (!feature) return;
@@ -122,7 +122,7 @@ function popupForFeature(
   const note = document.createElement('small');
   note.textContent = 'Parcel boundary is not a survey or a flood-model result.';
   content.append(heading, id, source, updated, note);
-  new (maplibregl as typeof import('maplibre-gl')).Popup()
+  new Popup()
     .setLngLat(event.lngLat)
     .setDOMContent(content)
     .addTo(map);
@@ -160,7 +160,7 @@ export function attachSupabaseParcelBboxLayer(map: maplibregl.Map): () => void {
   let requestSequence = 0;
 
   const clearFeatures = (): void => {
-    const source = map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
+    const source = map.getSource(SOURCE_ID) as GeoJSONSource | undefined;
     source?.setData(EMPTY_COLLECTION);
   };
 
