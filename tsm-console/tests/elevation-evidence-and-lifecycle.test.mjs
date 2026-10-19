@@ -31,7 +31,7 @@ test('NOT-COMPLETE registry still lists Hierarchical-Z and Transvoxel PoC', () =
     'utf8',
   );
   assert.match(reg, /Hierarchical-Z/);
-  assert.match(reg, /ADVANCED POC/);
+  assert.match(reg, /ADVANCED SCAFFOLD/);
   assert.match(reg, /mesh emission at county scale partial/);
   assert.match(reg, /Do not claim/);
 });
