@@ -1,12 +1,10 @@
 # Tri-State Systems Manager (TSM)
 
-**An open-source, evidence-governed geospatial decision-support platform for the Ohio–Wabash River Valley (Indiana, Illinois, Kentucky).**
+**An open-source geospatial engineering and decision-support platform for the Ohio–Wabash River Valley (Indiana, Illinois, Kentucky).**
 
 TSM integrates public hydrology, terrain, imagery, flood-hazard data, infrastructure context, and engineering models into a reviewable workspace for communities, public agencies, and engineering teams. Every dataset carries its provenance: source identity, acquisition date, coordinate reference system, vertical datum, and review status.
 
-> **Operating principle:** Technology informs people; it does not silently govern people. Human authority remains final.
-
-**In memory of Beverly Ann Tucker.** This work is guided by the Beverly Ann Tucker Memorial Stewardship Charter and the God's Love Protocol.
+**Personal dedication:** This project is dedicated to the memory of Beverly Ann Tucker. The dedication is personal and is not a software specification, architecture constraint, or release gate.
 
 **GitHub:** https://github.com/ATphobia22/Tri-State-Systems-Manager
 
@@ -42,7 +40,7 @@ TSM is decision-support software — not a surveying instrument, not a certified
 
 ### Incomplete technical gaps (must not be claimed complete)
 
-Authoritative registry: [`docs/validation/NOT-COMPLETE-REGISTRY-2026-10-18.md`](docs/validation/NOT-COMPLETE-REGISTRY-2026-10-18.md). A capability is not production-complete merely because code or a proof of concept exists.
+Authoritative registry: [`docs/validation/NOT-COMPLETE-REGISTRY-2026-10-18.md`](docs/validation/NOT-COMPLETE-REGISTRY-2026-10-18.md). A capability is not production-complete merely because code or a proof of concept exists. Release gates are technical acceptance checks; unavailable inputs should surface as explicit degraded/unavailable states, while invalid or unverified scientific outputs must never be represented as valid.
 
 | Item | Current evidence-based status |
 |------|-------------------------------|
