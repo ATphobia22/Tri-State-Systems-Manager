@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 const migration = readFileSync(
-  new URL('../../../supabase/migrations/20261019143000_posey_parcel_bbox.sql', import.meta.url),
+  new URL('../../supabase/migrations/20261019143000_posey_parcel_bbox.sql', import.meta.url),
   'utf8',
 );
 
