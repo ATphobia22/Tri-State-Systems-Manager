@@ -21,7 +21,9 @@ permissions:
   id-token: write
 
 concurrency:
-  group: github-pages-${{ github.sha }}
+  # One deployment lane for the github-pages environment (not per-SHA).
+  # Per-SHA groups allowed overlapping deploys that race and fail deploy-pages.
+  group: github-pages
   cancel-in-progress: false
 
 env:
