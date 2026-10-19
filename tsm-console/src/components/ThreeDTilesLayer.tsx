@@ -18,6 +18,7 @@ import { TilesRenderer } from '3d-tiles-renderer';
 import type { ThreeDTilesSource } from '../lib/martin-tile-fabric';
 import { resolveThreeDTilesetUrl } from '../lib/martin-tile-fabric';
 import { getTilesCameraBasis, getTilesCameraClipPlanes } from '../lib/tiles-3d-camera';
+import { applyStreamBudgetToTilesRenderer } from '../geospatial/tile-stream-runtime';
 
 interface ThreeDTilesMapCamera {
   getCenter(): { lng: number; lat: number };
@@ -186,10 +187,19 @@ export default function ThreeDTilesLayer({
       map?.on('move', syncCameraToMap);
       map?.on('resize', syncCameraToMap);
 
-      // Animation loop
+      // Animation loop — apply open-world stream budget (SSE / phase) each frame
       const animate = () => {
         if (disposed) return;
         animationId = requestAnimationFrame(animate);
+        if (tilesRenderer && map) {
+          applyStreamBudgetToTilesRenderer(tilesRenderer as { errorTarget?: number; errorThreshold?: number }, {
+            zoom: map.getZoom(),
+            viewportHeightPx: mountRef.current?.clientHeight || 900,
+            vramUsageRatio: 0.55,
+            bandwidthMbps: 40,
+            inFrustum: true,
+          });
+        }
         tilesRenderer?.update();
         renderer?.render(scene!, camera!);
       };
@@ -224,8 +234,6 @@ export default function ThreeDTilesLayer({
         setStatus('loading');
         onStatusChange?.('loading');
         syncCameraToMap();
-        // Re-arm one-shot load confirmation: only report 'ready' once the
-        // tileset reloads after context restoration.
         const onReload = () => {
           if (disposed) return;
           tilesRenderer?.removeEventListener('load-tileset', onReload);
@@ -237,13 +245,20 @@ export default function ThreeDTilesLayer({
           const resume = () => {
             if (disposed) return;
             animationId = requestAnimationFrame(resume);
+            if (tilesRenderer && map) {
+              applyStreamBudgetToTilesRenderer(tilesRenderer as { errorTarget?: number; errorThreshold?: number }, {
+                zoom: map.getZoom(),
+                viewportHeightPx: mountRef.current?.clientHeight || 900,
+                vramUsageRatio: 0.55,
+                bandwidthMbps: 40,
+                inFrustum: true,
+              });
+            }
             tilesRenderer?.update();
             renderer?.render(scene!, camera!);
           };
           resume();
         }
-        // 'ready' is reported by the one-shot load-tileset listener above,
-        // not here — the render loop restarting proves nothing about tiles.
       };
       canvas.addEventListener('webglcontextlost', handleContextLost);
       canvas.addEventListener('webglcontextrestored', handleContextRestored);
