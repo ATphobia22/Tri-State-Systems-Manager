@@ -124,7 +124,7 @@ export default function CinematicTwinHud(props: CinematicTwinHudProps) {
                 3D Digital Twin
               </div>
               <div style={{ fontSize: 9, color: '#94a3b8', marginTop: 2 }}>
-                EPSG:2966 · NAVD88 · FEMA case 26-05-2022A · BFE 375.0 ft
+                EPSG:2966 · NAVD88 · FIS 18129CV000A Table 9 · BFE 369.1 ft
               </div>
             </div>
             <button

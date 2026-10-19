@@ -93,10 +93,10 @@ export function resolveAnimationTarget(scenario: FloodScenario): AnimTarget {
       };
     case '100yr':
       return {
-        targetM: 375.0 * FT_TO_M,
+        targetM: 369.1 * FT_TO_M,
         reason: null,
         provenance:
-          'Target 375.0 ft NAVD88 — working BFE (FIRM 18129C0265C); UNVERIFIED, DFIRM STATIC_BFE is NULL here.',
+          'Target 369.1 ft NAVD88 — regulatory BFE (FIS 18129CV000A Table 9, Section A).',
       };
     case 'historical-2011':
       return {

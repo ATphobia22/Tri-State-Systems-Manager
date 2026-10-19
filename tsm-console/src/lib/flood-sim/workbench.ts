@@ -59,8 +59,8 @@ export function lagBfeProbe(
     derivation: ARITHMETIC_NOT_SURVEY,
     provenance: 'simulation',
     note:
-      'Arithmetic on owner-supplied site constants only (BFE 375.0 / LAG 377.2 / FFE 382.5 / BERM 379.8 ft NAVD88). ' +
-      'Not a survey, not a FEMA determination. Human review required before any use.',
+      'Arithmetic on site constants only (BFE 369.1 / LAG 377.2 / FFE 382.5 / BERM 379.8 ft NAVD88). ' +
+      'BFE per FIS 18129CV000A Table 9. Not a survey. Human review required before any use.',
   };
 }
 

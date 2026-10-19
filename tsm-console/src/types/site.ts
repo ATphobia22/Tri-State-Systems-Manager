@@ -74,18 +74,18 @@ export const SITE: SiteConstants = {
     verticalDatum: 'UNVERIFIED',
   },
   elevations: {
-    bfe_ft: 375.0,
+    bfe_ft: 369.1,
     lag_ft: 377.2,
     ffe_ft: 382.5,
     bermCrest_ft: 379.8,
-    clearanceAboveBfe_ft: 2.2,
+    clearanceAboveBfe_ft: 8.1,
   },
   elevationsProvenance: {
-    bfe_ft: 'Working value per 2026-08-22 Bonebank LOMA checklist; FIRM panel 18129C0300C not independently verified',
+    bfe_ft: 'Regulatory BFE per FEMA FIS 18129CV000A Table 9, Section A (RM 844.75); corrected 2026-10-18 from 375.0 ft working target',
     lag_ft: 'Owner-supplied; not a certified survey',
     ffe_ft: 'Owner-supplied; not a certified survey',
     bermCrest_ft: 'Owner-supplied; not a certified survey',
-    clearanceAboveBfe_ft: 'Derived: owner-supplied LAG 377.2 minus checklist BFE 375.0',
+    clearanceAboveBfe_ft: 'Derived: owner-supplied LAG 377.2 minus regulatory BFE 369.1',
   },
   boundingEnvelope: {
     minLon: -88.35,

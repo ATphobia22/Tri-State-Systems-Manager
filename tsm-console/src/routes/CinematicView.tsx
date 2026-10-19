@@ -35,7 +35,7 @@ const SITE_CUTAWAY: EngineeringSectionModel = {
   horizontalCrs: 'EPSG:2966',
   reviewState: 'INPUT_INCOMPLETE',
   layers: [
-    { id: 'bfe', name: 'FEMA Base Flood Elevation', topFt: 375.0, bottomFt: 375.0, materialClass: 'regulatory water-surface elevation', provenanceId: 'FEMA-CASE-26-05-2022A', publicExplanation: 'BFE 375.0 ft NAVD88 from the FEMA case record. Regulatory water surface, not a surveyed ground elevation.' },
+    { id: 'bfe', name: 'FEMA Base Flood Elevation', topFt: 369.1, bottomFt: 369.1, materialClass: 'regulatory water-surface elevation', provenanceId: 'FIS-18129CV000A-TABLE9', publicExplanation: 'BFE 369.1 ft NAVD88 from FIS 18129CV000A Table 9, Section A. Regulatory water surface, not a surveyed ground elevation.' },
     { id: 'lag', name: 'Lowest Adjacent Grade (case record)', topFt: 377.2, bottomFt: 377.2, materialClass: 'case-record grade', provenanceId: 'FEMA-CASE-26-05-2022A', publicExplanation: 'LAG 377.2 ft NAVD88 from the case record. Field survey required to confirm.' },
     { id: 'berm', name: 'Berm crest (case record)', topFt: 379.8, bottomFt: 379.8, materialClass: 'case-record crest', provenanceId: 'FEMA-CASE-26-05-2022A', publicExplanation: 'Berm crest 379.8 ft from the case record. As-built survey required.' },
     { id: 'ffe', name: 'Finished Floor Elevation (case record)', topFt: 382.5, bottomFt: 382.5, materialClass: 'case-record finished floor', provenanceId: 'FEMA-CASE-26-05-2022A', publicExplanation: 'FFE 382.5 ft from the case record.' },
