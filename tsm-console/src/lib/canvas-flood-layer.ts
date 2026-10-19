@@ -47,9 +47,9 @@ export interface CanvasFloodLayerConfig {
 const DEFAULT_FILL = 'rgba(30, 120, 220, 0.55)';
 
 /**
- * Documented vertical-datum conversions for the tri-state area.
- * Offsets are approximations — caller must verify for regulatory use.
- * Returns the converted elevation, or null if the pair is unknown.
+ * Resolve a vertical-datum conversion only when an explicit transformation exists.
+ * No regional constant offset is applied here. Unknown pairs return null so the
+ * flood overlay can show a datum warning without drawing a misleading flood mask.
  */
 export function tryDatumConversion(
   elevM: number,
@@ -72,6 +72,9 @@ export function tryDatumConversion(
  */
 export function computeFloodMask(grid: FloodGrid, waterLevelM: number): Uint8Array {
   const { elevations, rows, cols } = grid;
+  if (!Number.isInteger(rows) || !Number.isInteger(cols) || rows <= 0 || cols <= 0 || elevations.length !== rows * cols || !Number.isFinite(waterLevelM)) {
+    return new Uint8Array(0);
+  }
   const flooded = new Uint8Array(rows * cols);
   const queue: number[] = [];
 
@@ -118,10 +121,14 @@ export function paintFloodCanvas(
   debugGrid = false,
 ): void {
   const { rows, cols } = grid;
-  canvas.width = cols;
-  canvas.height = rows;
+  const gridIsValid = Number.isInteger(rows) && Number.isInteger(cols) && rows > 0 && cols > 0 &&
+    grid.elevations.length === rows * cols && mask.length === rows * cols;
+  canvas.width = gridIsValid ? cols : 1;
+  canvas.height = gridIsValid ? rows : 1;
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!gridIsValid) return;
   ctx.clearRect(0, 0, cols, rows);
   ctx.fillStyle = fillColor;
   for (let r = 0; r < rows; r++) {
@@ -158,6 +165,7 @@ export class CanvasFloodLayer {
   private map: maplibregl.Map | null = null;
   private waterLevelM: number | null = null;
   private datumBadge = '';
+  private statusMessage: string | null = 'Flood overlay has not been attached.';
 
   constructor(config: CanvasFloodLayerConfig) {
     this.id = config.id;
@@ -174,11 +182,23 @@ export class CanvasFloodLayer {
     this.map = map;
     this.canvas = document.createElement('canvas');
     const [w, s, e, n] = grid.bounds;
+    const boundsValid = grid.bounds.every(Number.isFinite) && w < e && s < n;
+    const dimensionsValid = Number.isInteger(grid.rows) && Number.isInteger(grid.cols) &&
+      grid.rows > 0 && grid.cols > 0 && grid.rows <= 4096 && grid.cols <= 4096 &&
+      grid.elevations.length === grid.rows * grid.cols;
+    if (!boundsValid || !dimensionsValid || !grid.verticalDatum.trim()) {
+      this.statusMessage = !boundsValid
+        ? 'Flood overlay unavailable: geographic bounds are invalid.'
+        : !dimensionsValid
+          ? 'Flood overlay unavailable: elevation grid dimensions or data length are invalid.'
+          : 'Flood overlay unavailable: vertical datum is missing.';
+      this.datumBadge = this.statusMessage;
+      return;
+    }
 
-    // Resilient: always attach. If the elevation grid is empty/missing,
-    // paint a "data pending" placeholder so the user sees the layer exists
-    // and knows what is needed — instead of silently not adding it.
-    const hasData = grid.elevations.length > 0 && Number.isFinite(grid.elevations[0]);
+    // Empty or nodata grids remain visible as a labeled pending-data state;
+    // they never create a synthetic elevation surface or flood mask.
+    const hasData = grid.elevations.length > 0 && grid.elevations.some(Number.isFinite);
     if (!hasData) {
       this.canvas.width = 256;
       this.canvas.height = 256;
@@ -191,6 +211,9 @@ export class CanvasFloodLayer {
         ctx.textAlign = 'center';
         ctx.fillText('Elevation data pending', 128, 128);
       }
+      this.statusMessage = 'Elevation data pending. The map remains available; no flood depths are displayed.';
+    } else {
+      this.statusMessage = null;
     }
 
     try {
@@ -211,8 +234,16 @@ export class CanvasFloodLayer {
         source: sourceId,
         paint: { 'raster-opacity': 0.85 },
       });
-    } catch (err) {
-      console.warn('[FloodLayer] Failed to add source/layer:', err);
+    } catch (error) {
+      try {
+        if (map.getLayer(this.id)) map.removeLayer(this.id);
+        if (map.getSource(sourceId)) map.removeSource(sourceId);
+      } catch {
+        // Keep the rest of MapLibre intact if partial teardown is impossible.
+      }
+      this.statusMessage = 'Flood overlay unavailable: ' + (error instanceof Error ? error.message : 'MapLibre could not attach the raster layer.');
+      this.datumBadge = this.statusMessage;
+      console.warn('[FloodLayer] Overlay unavailable; base map preserved.', error);
     }
   }
 
@@ -228,38 +259,93 @@ export class CanvasFloodLayer {
    *   (0.7 ft ≈ 0.213 m). Applied automatically with visible badge.
    */
   setWaterLevel(elevM: number | null, datum: string): void {
+    if (!this.canvas || !this.map) {
+      this.statusMessage = 'Flood overlay is not attached to a map.';
+      return;
+    }
+    if (elevM === null) {
+      this.waterLevelM = null;
+      this.datumBadge = '';
+      this.statusMessage = 'Flood overlay cleared; no water level is selected.';
+      paintFloodCanvas(
+        this.config.grid,
+        new Uint8Array(this.config.grid.rows * this.config.grid.cols),
+        this.canvas,
+        this.config.fillColor,
+        this.config.debugGrid,
+      );
+      return;
+    }
+    if (!Number.isFinite(elevM)) {
+      this.waterLevelM = null;
+      this.datumBadge = 'Water level is unavailable because the value is not finite.';
+      this.statusMessage = this.datumBadge;
+      paintFloodCanvas(
+        this.config.grid,
+        new Uint8Array(this.config.grid.rows * this.config.grid.cols),
+        this.canvas,
+        this.config.fillColor,
+        this.config.debugGrid,
+      );
+      return;
+    }
+
     let level = elevM;
     let badge = '';
-    if (elevM !== null && datum !== this.config.grid.verticalDatum) {
+    if (datum !== this.config.grid.verticalDatum) {
       const converted = tryDatumConversion(elevM, datum, this.config.grid.verticalDatum);
-      if (converted !== null) {
-        level = converted;
-        badge = ` (converted ${datum}→${this.config.grid.verticalDatum})`;
-        console.info(`[FloodLayer] Applied datum conversion${badge}: ${elevM} → ${level?.toFixed(3)} m`);
-      } else {
-        // Unknown conversion: render anyway using the raw value, but badge it
-        // prominently so the operator knows the datum is unverified.
-        badge = ` (datum ${datum} unverified vs grid ${this.config.grid.verticalDatum})`;
-        console.warn(`[FloodLayer] Unknown datum conversion${badge} — rendering with raw value.`);
+      if (converted === null) {
+        this.waterLevelM = null;
+        this.datumBadge = `Datum mismatch: ${datum} → ${this.config.grid.verticalDatum}; no flood mask rendered.`;
+        this.statusMessage = this.datumBadge;
+        paintFloodCanvas(
+          this.config.grid,
+          new Uint8Array(this.config.grid.rows * this.config.grid.cols),
+          this.canvas,
+          this.config.fillColor,
+          this.config.debugGrid,
+        );
+        return;
       }
+      level = converted;
+      badge = ` (converted ${datum}→${this.config.grid.verticalDatum})`;
     }
-    this.waterLevelM = level;
-    this.datumBadge = badge;
-    if (!this.canvas || !this.map) return;
-    const mask =
-      level === null
-        ? new Uint8Array(this.config.grid.rows * this.config.grid.cols)
-        : computeFloodMask(this.config.grid, level);
-    paintFloodCanvas(this.config.grid, mask, this.canvas, this.config.fillColor, this.config.debugGrid);
+
     try {
+      const mask = computeFloodMask(this.config.grid, level);
+      if (mask.length !== this.config.grid.rows * this.config.grid.cols) {
+        throw new Error('Elevation grid dimensions are inconsistent.');
+      }
+      this.waterLevelM = level;
+      this.datumBadge = badge;
+      this.statusMessage = null;
+      paintFloodCanvas(this.config.grid, mask, this.canvas, this.config.fillColor, this.config.debugGrid);
       const src = this.map.getSource(this.config.sourceId) as { play?: () => void } | undefined;
       src?.play?.();
-    } catch {
-      /* source may not support play; canvas animate:true handles it */
+    } catch (error) {
+      this.waterLevelM = null;
+      this.datumBadge = 'Flood overlay unavailable: ' + (error instanceof Error ? error.message : 'rendering failed.');
+      this.statusMessage = this.datumBadge;
+      paintFloodCanvas(
+        this.config.grid,
+        new Uint8Array(this.config.grid.rows * this.config.grid.cols),
+        this.canvas,
+        this.config.fillColor,
+        this.config.debugGrid,
+      );
     }
   }
 
-  /** Human-readable badge describing any datum conversion applied. */
+  /** Current overlay state; degraded overlays do not block the base map. */
+  getStatus(): { state: 'ready' | 'degraded' | 'pending'; message: string | null } {
+    if (this.statusMessage === null) return { state: 'ready', message: null };
+    if (this.statusMessage.includes('pending') || this.statusMessage.includes('not attached')) {
+      return { state: 'pending', message: this.statusMessage };
+    }
+    return { state: 'degraded', message: this.statusMessage };
+  }
+
+  /** Human-readable note for the datum conversion or mismatch status. */
   getDatumBadge(): string {
     return this.datumBadge;
   }
