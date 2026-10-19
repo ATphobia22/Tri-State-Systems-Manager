@@ -19,6 +19,7 @@
     "check:schemas": "node ../scripts/ci/validate-json-schemas.mjs",
     "test:production-gates": "node --test tests/production-gates.test.mjs",
     "test:agent-autonomy": "node --test tests/agent-autonomy.test.mjs",
+    "test:gap-closure": "node --test tests/gap-closure-contracts.test.mjs tests/elevation-evidence-and-lifecycle.test.mjs",
     "storybook": "echo 'Storybook optional: install storybook@9+ when Vite 8 peer support is available' && exit 0",
     "storybook:build": "echo 'Storybook build skipped (optional)' && exit 0",
     "check:file-health": "node ../scripts/ci/validate-system-quality.mjs",
