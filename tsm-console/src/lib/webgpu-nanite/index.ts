@@ -27,3 +27,23 @@ export {
   type NanitePlaneStatus,
   type NaniteSmokeInput,
 } from './nanite-plane-runtime';
+
+export {
+  MESHLET_MAX_VERTICES,
+  MESHLET_MAX_TRIANGLES,
+  type MeshletBounds,
+  type MeshletDescriptor,
+  type MeshletGeometry,
+  type MeshletPack,
+  type MeshletImportResult,
+} from './meshlet-types';
+
+export {
+  buildMeshletsGreedy,
+  importMeshletPackJson,
+  exportMeshletPackJson,
+  createUnitCubeMesh,
+  type RawMeshInput,
+} from './meshlet-import';
+
+export { cullMeshlets, type MeshletCullResult } from './meshlet-cull';
