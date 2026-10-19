@@ -12,15 +12,14 @@ For ellipsoid-to-orthometric conversion, the documented GEOID18 relationship is 
 
 ## HECReleaseGateChecker
 
-`tsm-console/src/lib/hec-release-gates.ts` emits five independently inspectable gates:
+`tsm-console/src/lib/hec-release-gates.ts` emits four independently inspectable technical gates:
 
 1. **AOI/watershed boundary:** identifiers, CRS, positive area, source URI, topology/intersection result, and SHA-256 of the supplied GeoJSON text.
 2. **DEM provenance:** source, acquisition date, resolution, horizontal CRS, NAVD88 vertical datum, vertical units, and a SHA-256 checksum recomputed over the supplied raster bytes.
 3. **Vertical datum:** source/target datum consistency and named transformation evidence when a conversion is claimed.
 4. **Solver evidence:** solver name/version and SHA-256 verification of the supplied input manifest and output artifact text.
-5. **PE sign-off:** license number, jurisdiction, discipline, timestamp, signed-artifact checksum, and external license-verification evidence.
 
-The checker returns `ready-for-engineering-review`, `incomplete`, or `blocked`. A green technical report is **not** a HEC-RAS run, a verified license-registry query, a sealed engineering report, an agency approval, or a regulatory determination. The PE license registry status is supplied evidence and must be verified by the acquisition/review workflow; the checker does not claim to contact a licensing board.
+The checker returns `ready-for-engineering-review`, `incomplete`, or `blocked`. A green technical report is **not** a HEC-RAS run, a sealed engineering report, an agency approval, a regulatory determination, or professional certification. **A PE license is not a prerequisite for TSM software to run its technical workflows.** If a particular deliverable or intended use requires a PE under applicable law, contract, or agency rules, that professional review is a separate workflow and is not a blanket runtime gate. TSM does not claim that correct calculations alone confer authority to certify or submit regulated engineering deliverables.
 
 ## Runtime behavior
 
