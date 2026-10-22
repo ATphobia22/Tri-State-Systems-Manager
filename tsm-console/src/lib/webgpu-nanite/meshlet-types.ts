@@ -35,6 +35,10 @@ export interface MeshletGeometry {
   normals?: Float32Array;
   /** Triangle indices into positions (global after rewrite) */
   indices: Uint32Array;
+  /** Global vertex remap, concatenated per meshlet. */
+  meshletVertexIndices?: Uint32Array;
+  /** Local triangle corner indices (0–63), concatenated per meshlet. */
+  meshletTriangles?: Uint8Array;
 }
 
 export interface MeshletPack {
