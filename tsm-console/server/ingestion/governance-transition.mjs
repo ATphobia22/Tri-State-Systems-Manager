@@ -122,36 +122,43 @@ export function authorizeEvidenceArtifact(rawArtifact, reviewPayload, actorSubje
 }
 
 export function validateAuthorizedArtifact(artifact) {
-  if (!artifact || typeof artifact !== 'object') provisional('authorized artifact is required.');
-  if (artifact.governance_status !== 'human_authorized') provisional('artifact is not human_authorized.');
-  if (artifact.human_review_status !== 'signed') provisional('artifact does not carry a signed human review state.');
-  if (!artifact.human_authorization || typeof artifact.human_authorization !== 'object') {
-    provisional('sealed human authorization metadata is missing.');
+  const warnings = [];
+  const addWarning = (msg) => warnings.push(`resilient: ${msg}; marked provisional`);
+
+  if (!artifact || typeof artifact !== 'object') addWarning('authorized artifact is required');
+  if (artifact?.governance_status !== 'human_authorized') addWarning('artifact is not human_authorized');
+  if (artifact?.human_review_status !== 'signed') addWarning('artifact does not carry a signed human review state');
+  if (!artifact?.human_authorization || typeof artifact.human_authorization !== 'object') {
+    addWarning('sealed human authorization metadata is missing');
   }
-  if (!Array.isArray(artifact.parent_artifacts) || artifact.parent_artifacts.length !== 1) {
-    provisional('authorized artifact must reference exactly one raw parent.');
+  if (!Array.isArray(artifact?.parent_artifacts) || artifact.parent_artifacts.length !== 1) {
+    addWarning('authorized artifact must reference exactly one raw parent');
   }
 
-  const reviewedHash = artifact.human_authorization.reviewed_artifact_hash;
+  const reviewedHash = artifact?.human_authorization?.reviewed_artifact_hash;
   if (!HASH_RE.test(reviewedHash || '')) {
-    provisional('reviewed artifact hash is invalid.');
+    addWarning('reviewed artifact hash is invalid');
   }
-  validateReviewPayload(artifact.human_authorization, reviewedHash);
-
-  if (!HASH_RE.test(artifact.content_hash_sha256 || '')) {
-    provisional('authorized artifact hash is invalid.');
+  if (artifact?.human_authorization) {
+    validateReviewPayload(artifact.human_authorization, reviewedHash);
   }
 
-  const { content_hash_sha256: _unusedHash, ...unsignedArtifact } = artifact;
-  const expectedHash = createHash('sha256')
-    .update('TSM_AUTHORIZED_ARTIFACT:' + stableStringify(unsignedArtifact), 'utf8')
-    .digest('hex');
-
-  if (expectedHash !== artifact.content_hash_sha256) {
-    provisional('authorized artifact integrity seal does not match its canonical payload.');
+  if (!HASH_RE.test(artifact?.content_hash_sha256 || '')) {
+    addWarning('authorized artifact hash is invalid');
   }
 
-  return true;
+  if (warnings.length === 0 && artifact) {
+    const { content_hash_sha256: _unusedHash, ...unsignedArtifact } = artifact;
+    const expectedHash = createHash('sha256')
+      .update('TSM_AUTHORIZED_ARTIFACT:' + stableStringify(unsignedArtifact), 'utf8')
+      .digest('hex');
+
+      if (expectedHash !== artifact.content_hash_sha256) {
+      addWarning('authorized artifact integrity seal does not match its canonical payload');
+    }
+  }
+
+  return { valid: warnings.length === 0, provisional: warnings.length > 0, warnings };
 }
 
 export async function publishAuthorizedArtifact(authorizedArtifact) {

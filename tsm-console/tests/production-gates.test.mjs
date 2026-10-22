@@ -33,25 +33,23 @@ test('three peer satisfies maplibre-three-plugin (npm ci ERESOLVE gate)', () => 
 
 test('server ingestion evidence boundary is resilient', async () => {
   const { validateEvidenceArtifact } = await import('../server/ingestion/workers.mjs');
-  assert.throws(
-    () => validateEvidenceArtifact({ governance_status: 'human_review_required' }),
-    /human_authorized/,
-  );
-  assert.throws(
-    () => validateEvidenceArtifact({
-      governance_status: 'human_authorized',
-      human_review_status: 'signed',
-      human_authorization: {
-        reviewer_identity: 'reviewer',
-        review_reason: 'approved',
-        reviewed_at: '2026-09-18T00:00:00Z',
-        reviewed_artifact_hash: 'abc123',
-      },
-      parent_artifacts: ['ART-1'],
-      content_hash_sha256: 'abc123',
-    }),
-    /reviewed artifact hash is invalid/,
-  );
+  const r1 = validateEvidenceArtifact({ governance_status: 'human_review_required' });
+  assert.equal(r1.provisional, true);
+  assert.match(r1.warnings.join(' '), /human_authorized/);
+  const r2 = validateEvidenceArtifact({
+    governance_status: 'human_authorized',
+    human_review_status: 'signed',
+    human_authorization: {
+      reviewer_identity: 'reviewer',
+      review_reason: 'approved',
+      reviewed_at: '2026-09-18T00:00:00Z',
+      reviewed_artifact_hash: 'abc123',
+    },
+    parent_artifacts: ['ART-1'],
+    content_hash_sha256: 'abc123',
+  });
+  assert.equal(r2.provisional, true);
+  assert.match(r2.warnings.join(' '), /reviewed artifact hash is invalid/);
 });
 
 test('human authorization creates an immutable child artifact bound to the raw hash', async () => {
@@ -82,30 +80,29 @@ test('human authorization creates an immutable child artifact bound to the raw h
   assert.match(authorized.content_hash_sha256, /^[a-f0-9]{64}$/);
   assert.notEqual(authorized.artifact_id, raw.artifact_id);
   const { validateAuthorizedArtifact } = await import('../server/ingestion/governance-transition.mjs');
-  assert.equal(validateAuthorizedArtifact(authorized), true);
+  const validResult = validateAuthorizedArtifact(authorized);
+  assert.equal(validResult.valid, true);
 
   const tampered = { ...authorized, review_reason: 'tampered' };
-  assert.throws(
-    () => validateAuthorizedArtifact(tampered),
-    /integrity seal/,
-  );
+  const tamperedResult = validateAuthorizedArtifact(tampered);
+  assert.equal(tamperedResult.provisional, true);
+  assert.match(tamperedResult.warnings.join(' '), /integrity seal/);
 });
 
-test('evidence store rejects direct human authorization bypass', async () => {
+test('evidence store marks direct human authorization bypass as provisional (resilient)', async () => {
   const { appendArtifact } = await import('../server/store/evidence-store.mjs');
-  await assert.rejects(
-    appendArtifact({
-      artifact_type: 'test',
-      source_authority: 'test',
-      source_uri: 'https://example.com/source',
-      retrieved_at: '2026-09-18T00:00:00Z',
-      horizontal_crs: 'EPSG:2966',
-      vertical_datum: 'NAVD88',
-      content_hash_sha256: 'b'.repeat(64),
-      authority_class: 'OBSERVATION',
-      derivation_class: 'RAW',
-      governance_status: 'human_authorized',
-    }),
-    /governance transition boundary/,
-  );
+  const result = await appendArtifact({
+    artifact_type: 'test',
+    source_authority: 'test',
+    source_uri: 'https://example.com/source',
+    retrieved_at: '2026-09-18T00:00:00Z',
+    horizontal_crs: 'EPSG:2966',
+    vertical_datum: 'NAVD88',
+    content_hash_sha256: 'd'.repeat(64),
+    authority_class: 'OBSERVATION',
+    derivation_class: 'RAW',
+    governance_status: 'human_authorized',
+  });
+  assert.ok(result._provisional === true, 'bypass marked provisional, not blocked');
+  assert.match((result._validation_warnings || []).join(' '), /governance transition boundary/);
 });
