@@ -32,27 +32,27 @@ export interface GageConversionResult {
   readonly reason: string;
 }
 
-/** Resilient NAVD88 conversion: returns best available value with provenance labeling. */
+/** Fail-closed NAVD88 conversion: never report success unless a published, valid conversion is applied. */
 export function convertGageHeightToNavd88(input: GageConversionInput): GageConversionResult {
   if (!input.conversionPublished) {
     return {
-      ok: true,
+      ok: false,
       wseNavd88Ft: null,
-      reason: 'PROVISIONAL: conversionPublished=false; returning stage-only value, not NAVD88',
+      reason: 'GAGE_CONVERSION_UNPUBLISHED: stage remains source-datum-only; NAVD88 conversion unavailable',
     };
   }
-  if (input.gageZeroNavd88Ft == null || Number.isNaN(input.gageZeroNavd88Ft)) {
+  if (input.gageZeroNavd88Ft == null || !Number.isFinite(input.gageZeroNavd88Ft)) {
     return {
-      ok: true,
+      ok: false,
       wseNavd88Ft: null,
-      reason: 'PROVISIONAL: gage_zero_navd88_ft is null; WSE unavailable, stage value preserved',
+      reason: 'GAGE_DATUM_UNAVAILABLE: gage_zero_navd88_ft is null; NAVD88 WSE unavailable',
     };
   }
-  if (input.gageHeightFt === -999 || Number.isNaN(input.gageHeightFt)) {
+  if (input.gageHeightFt === -999 || !Number.isFinite(input.gageHeightFt)) {
     return {
-      ok: true,
+      ok: false,
       wseNavd88Ft: null,
-      reason: 'PROVISIONAL: invalid gage height (sentinel or NaN); no value computed',
+      reason: 'GAGE_HEIGHT_INVALID: sentinel or non-finite stage; no WSE computed',
     };
   }
   return {
@@ -93,12 +93,12 @@ export function requireHumanAuthoritySeal(seal: Partial<HumanAuthoritySeal> | nu
   readonly reason: string;
 } {
   if (!seal?.humanAuthorized) {
-    return { ok: true, reason: 'PROVISIONAL: human_authorized not yet provided; marked pending human review' };
+    return { ok: false, reason: 'HUMAN_AUTHORITY_REQUIRED: explicit human authorization is missing' };
   }
   if (!seal.reviewerIdentity?.trim() || !seal.reviewReason?.trim() || !seal.reviewedAt?.trim()) {
     return {
-      ok: true,
-      reason: 'PROVISIONAL: reviewer_identity, review_reason, or reviewed_at incomplete; marked pending human review',
+      ok: false,
+      reason: 'HUMAN_AUTHORITY_SEAL_INCOMPLETE: reviewer identity, review reason, and reviewed timestamp are required',
     };
   }
   return { ok: true, reason: 'ok' };
