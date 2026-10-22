@@ -10,7 +10,7 @@ Gage height (NWIS parameter **00065**, NWPS observed primary) is **relative to g
 
 ## Why this matters for restricted site
 
-Site BFE (375.0) and LAG (377.2) are **NAVD88**. Comparing raw gage height (e.g. 11.5 ft) to 375 ft without conversion is a **category error** and can produce false “below BFE” or false “above BFE” findings.
+Current FIS reference BFE (369.1 ft per FEMA FIS 18129CV000A Table 9) and owner-supplied LAG (377.2 ft) are expressed in **NAVD88**; the older 375.0 ft BFE was a superseded working target. Comparing raw gage height (e.g. 11.5 ft) to 375 ft without conversion is a **category error** and can produce false “below BFE” or false “above BFE” findings.
 
 ## Published zeros in TSM (`src/lib/gage-datums.ts`)
 

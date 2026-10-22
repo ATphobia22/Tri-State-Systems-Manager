@@ -2,7 +2,7 @@
 precision highp float;
 
 // PTDT v35 — WebGL fallback fragment (no normal buffer)
-// BFE reference plane = 375.0 ft NAVD88 (presentation only)
+// BFE reference plane = 369.1 ft NAVD88 per FEMA FIS 18129CV000A Table 9 (presentation only; AOI approval separate)
 
 uniform vec3 uColor;
 uniform float uTime;
