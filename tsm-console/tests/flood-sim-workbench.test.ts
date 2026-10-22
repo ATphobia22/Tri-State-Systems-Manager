@@ -45,9 +45,9 @@ describe('Hazus damage monotonicity (wired module)', () => {
 describe('lagBfeProbe', () => {
   it('does freeboard arithmetic on the owner-supplied constants', () => {
     const r = lagBfeProbe(37.845887, -88.005075, BONEBANK_SITE_CONSTANTS);
-    expect(r.lagMinusBfeFt).toBeCloseTo(377.2 - 375.0, 10);
-    expect(r.ffeMinusBfeFt).toBeCloseTo(382.5 - 375.0, 10);
-    expect(r.bermMinusBfeFt).toBeCloseTo(379.8 - 375.0, 10);
+    expect(r.lagMinusBfeFt).toBeCloseTo(BONEBANK_SITE_CONSTANTS.LAG - BONEBANK_SITE_CONSTANTS.BFE, 10);
+    expect(r.ffeMinusBfeFt).toBeCloseTo(BONEBANK_SITE_CONSTANTS.FFE - BONEBANK_SITE_CONSTANTS.BFE, 10);
+    expect(r.bermMinusBfeFt).toBeCloseTo(BONEBANK_SITE_CONSTANTS.BERM - BONEBANK_SITE_CONSTANTS.BFE, 10);
     expect(r.derivation).toBe(ARITHMETIC_NOT_SURVEY);
     expect(r.provenance).toBe('simulation');
     expect(r.note).toMatch(/not a survey/i);
