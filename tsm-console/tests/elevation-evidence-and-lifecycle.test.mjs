@@ -33,5 +33,5 @@ test('NOT-COMPLETE registry still lists Hierarchical-Z and Transvoxel PoC', () =
   assert.match(reg, /Hierarchical-Z/);
   assert.match(reg, /Advanced scaffold/);
   assert.match(reg, /County-scale Transvoxel terrain stitching/);
-  assert.match(reg, /do not claim complete/i);
+  assert.match(reg, /remain open until their acceptance evidence is committed/i);
 });
