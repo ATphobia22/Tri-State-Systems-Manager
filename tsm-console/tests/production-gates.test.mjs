@@ -56,6 +56,12 @@ test('human authorization creates an immutable child artifact bound to the raw h
   const { authorizeEvidenceArtifact } = await import('../server/ingestion/governance-transition.mjs');
   const raw = {
     artifact_id: 'ART-RAW-1',
+    artifact_type: 'source_observation',
+    source_authority: 'test-fixture',
+    source_uri: 'https://example.com/source-record',
+    retrieved_at: '2026-09-18T00:00:00Z',
+    horizontal_crs: 'EPSG:2966',
+    vertical_datum: 'NAVD88',
     content_hash_sha256: 'a'.repeat(64),
     governance_status: 'human_review_required',
     human_review_status: 'pending',
