@@ -468,7 +468,7 @@ function validateMeshletTopology(pack, expectedTriangleCount) {
       const globalIndex = geometry.meshletVertexIndices[i];
       if (globalIndex >= geometry.positions.length / 3) fail('meshlet vertex map references an invalid global vertex');
     }
-    const localIndices = geometry.meshletTriangles.subarray(meshlet.triangleOffset * 3, localTriangleEnd);
+    const localIndices = geometry.meshletTriangles.slice(meshlet.triangleOffset * 3, localTriangleEnd);
     for (const localIndex of localIndices) {
       if (localIndex >= meshlet.vertexCount) fail('meshlet local triangle index exceeds its meshlet vertex range');
     }
