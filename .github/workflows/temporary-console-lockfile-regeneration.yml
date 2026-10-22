@@ -42,3 +42,5 @@ jobs:
           git add tsm-console/package-lock.json
           git commit -m "chore(deps): regenerate compatible console lockfile"
           git push origin "HEAD:\${{ github.ref_name }}"
+
+# This one-time workflow is removed after lockfile generation.
