@@ -21,10 +21,10 @@ permissions:
   id-token: write
 
 concurrency:
-  # One deployment lane for the github-pages environment (not per-SHA).
-  # Per-SHA groups allowed overlapping deploys that race and fail deploy-pages.
-  group: github-pages
-  cancel-in-progress: false
+  # PR verification must not evict a queued main deployment (or vice versa).
+  # Serialize deployments on main; supersede only older runs of the same PR.
+  group: ${{ github.event_name == 'pull_request' && format('github-pages-pr-{0}', github.event.pull_request.number) || 'github-pages-main' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   NODE_VERSION: '22.16.0'
