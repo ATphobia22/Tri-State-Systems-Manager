@@ -10,7 +10,7 @@ import { seedFromString } from '../src/lib/flood-sim/prng';
 
 describe('flood-sim scenario registry', () => {
   it('ships exactly the two required flooding scenarios, all schema-valid', () => {
-    // live-gauge-driven was retired 2026-09-29 (owner dropped live river data).
+    // Automatic live-gauge-driven simulation remains retired; read-only snapshots are user-triggered.
     const scenarios = listScenarios();
     expect(scenarios.map((s) => s.scenarioId).sort()).toEqual([
       '1937-ohio-river-flood',
@@ -52,7 +52,7 @@ describe('flood-sim scenario registry', () => {
   });
 
   it('live-gauge-driven scenario is retired and unknown to the registry', () => {
-    // Owner decision 2026-09-29: live river data dropped.
+    // Automatic gauge-driven simulation remains retired; user-triggered read-only snapshots are a separate feature.
     expect(() => getScenario('live-gauge-driven')).toThrow(/unknown scenario/);
   });
 
