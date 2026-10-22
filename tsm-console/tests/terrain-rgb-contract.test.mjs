@@ -1,5 +1,5 @@
 /**
- * Fail-closed Terrain-RGB / MapLibre 3D terrain contract tests.
+ * Terrain-RGB availability and template-validation tests.
  * Pure logic mirrored from src/lib/terrain-rgb-contract.ts for node:test
  * (avoids Vite import.meta.env in the unit path).
  */
@@ -66,13 +66,13 @@ function validateTerrainRgbUrlTemplate(raw, options = {}) {
   return { enabled: false, reason: 'invalid_template' };
 }
 
-test('missing template is resilient', () => {
+test('missing template disables optional 3D terrain', () => {
   assert.equal(validateTerrainRgbUrlTemplate('').enabled, false);
   assert.equal(validateTerrainRgbUrlTemplate(undefined).reason, 'missing');
   assert.equal(validateTerrainRgbUrlTemplate('   ').reason, 'missing');
 });
 
-test('placeholder hosts are resilient', () => {
+test('placeholder hosts disable optional 3D terrain', () => {
   assert.equal(
     validateTerrainRgbUrlTemplate('https://tiles.example.invalid/terrain/{z}/{x}/{y}.png').reason,
     'placeholder',
@@ -91,7 +91,7 @@ test('placeholder hosts are resilient', () => {
   );
 });
 
-test('templates without z/x/y tokens are resilient', () => {
+test('templates without z/x/y tokens disable optional 3D terrain', () => {
   assert.equal(
     validateTerrainRgbUrlTemplate('https://tiles.usgs.gov/terrain/0/0/0.png').reason,
     'invalid_template',
@@ -106,7 +106,7 @@ test('valid https XYZ template is enabled', () => {
   assert.equal(s.reason, 'configured');
 });
 
-test('http non-local is blocked (production)', () => {
+test('insecure non-local HTTP templates are disabled in production', () => {
   assert.equal(
     validateTerrainRgbUrlTemplate('http://tiles.real-cdn.example.net/{z}/{x}/{y}.png').reason,
     'placeholder',
@@ -117,7 +117,7 @@ test('http non-local is blocked (production)', () => {
   );
 });
 
-test('localhost blocked in production; allowed only when allowHttpLocal', () => {
+test('localhost templates are disabled in production and allowed for local development only', () => {
   assert.equal(
     validateTerrainRgbUrlTemplate('http://localhost:8080/terrain/{z}/{x}/{y}.png').reason,
     'placeholder',
@@ -136,7 +136,7 @@ test('localhost blocked in production; allowed only when allowHttpLocal', () => 
   );
 });
 
-test('twin-map-style wires resilient applyTwinTerrain', () => {
+test('twin-map-style isolates optional terrain from base-map availability', () => {
   const source = read('src/lib/twin-map-style.ts');
   assert.match(source, /getTerrainRgbStatus/);
   assert.match(source, /if \(!terrain\.enabled\)/);
@@ -150,19 +150,20 @@ test('twin-map-style wires resilient applyTwinTerrain', () => {
   assert.doesNotMatch(source, /mockTerrain|fabricatedTerrain/i);
 });
 
-test('terrain-rgb-contract module exports resilient helpers', () => {
+test('terrain-rgb-contract validates optional terrain templates', () => {
   const source = read('src/lib/terrain-rgb-contract.ts');
   assert.match(source, /validateTerrainRgbUrlTemplate/);
-  assert.match(source, /resilient/i);
+  assert.match(source, /Missing, placeholder, or non-template values must not enable 3D terrain mesh/);
+  assert.match(source, /base 2D map or other valid overlays/);
   assert.match(source, /TERRAIN_RGB_SOURCE_ID/);
   assert.match(source, /TERRAIN_RGB_TILE_SIZE\s*=\s*256/);
   assert.match(source, /TERRAIN_RGB_ENCODING\s*=\s*'mapbox'/);
   assert.match(source, /TERRAIN_RGB_DEFAULT_EXAGGERATION\s*=\s*1\.0/);
 });
 
-test('terrain-pipeline.json requires resilient_when_missing', () => {
+test('terrain pipeline records behavior when terrain configuration is missing', () => {
   const cfg = JSON.parse(read('config/terrain-pipeline.json'));
-  assert.equal(cfg.runtime.resilient_when_missing, true);
+  assert.equal(cfg.runtime.fail_closed_when_missing, true);
   assert.equal(cfg.runtime.environment_variable, 'VITE_TSM_TERRAIN_RGB_URL_TEMPLATE');
   assert.equal(cfg.processing.browser_source_type, 'raster-dem');
   assert.equal(cfg.processing.encoding, 'mapbox');
@@ -170,9 +171,10 @@ test('terrain-pipeline.json requires resilient_when_missing', () => {
   assert.equal(cfg.evidence.bulk_source_data_committed_to_git, false);
 });
 
-test('RealWorldTwinMap surfaces resilient terrain status', () => {
+test('RealWorldTwinMap surfaces optional-terrain status while preserving the map', () => {
   const ui = read('src/components/RealWorldTwinMap.tsx');
   assert.match(ui, /terrainRgbBlockMessage|getTerrainRgbStatus/);
-  assert.match(ui, /FAIL-CLOSED|terrainMessage|terrainStatus/);
+  assert.match(ui, /terrainMessage|terrainStatus/);
+  assert.doesNotMatch(ui, /FAIL-CLOSED/);
   assert.match(ui, /applyTwinTerrain/);
 });
