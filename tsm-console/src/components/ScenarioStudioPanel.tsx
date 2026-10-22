@@ -1,6 +1,6 @@
 /**
  * Scenario Studio panel — cascading impact rehearsal on Twin Canvas.
- * SIMULATION_DEMO only; human-triggered; resilient evidence posture preserved.
+ * SIMULATION_DEMO only; human-triggered; missing evidence stays explicitly unavailable.
  */
 import { useEffect, useMemo, useState } from 'react';
 import {
