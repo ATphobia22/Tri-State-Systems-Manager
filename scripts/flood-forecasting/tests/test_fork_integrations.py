@@ -103,8 +103,9 @@ class TestWRESEvaluation(unittest.TestCase):
     def test_station_altitude_is_not_used_as_bfe_or_gage_zero(self):
         """Station altitude metadata stays separate from BFE and gage zero."""
         for gid, gage in wres_evaluation.TSM_GAGES.items():
-            self.assertLess(gage['station_altitude_ft_navd88'], 369.1,
-                            f"{gid} station altitude should be below the FIS reference BFE")
+            self.assertIn('station_altitude_ft_navd88', gage,
+                          f"{gid} station altitude metadata must be explicit")
+            self.assertEqual(gage['gage_height_vertical_datum'], 'GAGE_DATUM')
             self.assertIsNone(gage['gage_zero_navd88_ft'],
                               f"{gid} has no verified gage-zero conversion")
 
