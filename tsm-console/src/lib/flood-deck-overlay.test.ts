@@ -73,15 +73,19 @@ describe('gridCellCenters', () => {
     }
   });
 
-  it('fails closed on malformed grids', () => {
-    expect(() =>
-      gridCellCenters({
-        nx: 2,
-        ny: 2,
-        depthFt: [[1]],
-        bounds: { westLng: -88.01, southLat: 37.84, eastLng: -88.0, northLat: 37.85 },
-      }),
-    ).toThrow();
+  it('degrades to an empty overlay on malformed grids without throwing', () => {
+    expect(() => gridCellCenters({
+      nx: 2,
+      ny: 2,
+      depthFt: [[1]],
+      bounds: { westLng: -88.01, southLat: 37.84, eastLng: -88.0, northLat: 37.85 },
+    })).not.toThrow();
+    expect(gridCellCenters({
+      nx: 2,
+      ny: 2,
+      depthFt: [[1]],
+      bounds: { westLng: -88.01, southLat: 37.84, eastLng: -88.0, northLat: 37.85 },
+    })).toEqual([]);
   });
 });
 
