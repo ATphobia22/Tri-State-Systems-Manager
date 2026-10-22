@@ -13,8 +13,9 @@ This document maps each blueprint section to existing TSM repository components 
 | CityGML 3.0 Space/SpaceBoundary model | 📄 Documented | `docs/3D-TILES-CITYGML-PIPELINE.md` |
 | Multi-plane spatial organization | ✅ Implemented | 8 Trust Planes (L1–L8) |
 | OGC 3D Tiles 1.1 (glTF 2.0, implicit octree) | ✅ Implemented | `scripts/geospatial/build-*-3d-tiles.py` |
+| CityGML 3.0 importer | ✅ Implemented | `scripts/geospatial/citygml_to_3dtiles.py` |
 
-**Gap:** CityGML 3.0 XML/JSON parser — documented as concept, no import pipeline exists.
+**Status (2026-10-22):** CityGML importer complete. No open gaps in this section.
 
 ---
 
@@ -31,7 +32,10 @@ This document maps each blueprint section to existing TSM repository components 
 
 **Note:** The blueprint uses a slightly different bit layout than TSM's canonical codec. TSM's layout (B:14, D:12, C:9, T:6, S:3) is authoritative for this repo.
 
-**Gap:** VRAM telemetry hooks for automatic degradation — architecture documented, not wired to real GPU memory APIs.
+**Status (2026-10-22):** VRAM telemetry wired. `VramTelemetryMonitor` is instantiated
+in `Tiles3DRendererLayer.onAdd()`, monitors on a 5s interval, and drives
+state-word degradation (VRAM >85% → T→1, C→0; bandwidth <10 Mbps → S→1).
+Exported from `tsm-console/src/lib/vram-telemetry.ts`. No open gaps in this section.
 
 ---
 
@@ -54,8 +58,9 @@ This document maps each blueprint section to existing TSM repository components 
 | SDF volume representation | ✅ Implemented (CPU) | `scripts/geospatial/dem_to_transvoxel.py` |
 | Frustum culling shader | ✅ Implemented | `tsm-console/src/lib/shaders/culling.wgsl` |
 | Dual Contouring extraction | ✅ Implemented (CPU) | `scripts/geospatial/dem_to_transvoxel.py` |
-| GPU mesh extraction | 📄 Architecture only | `tsm-console/src/lib/webgpu-volumetric-terrain.ts` (stub) |
-| Transvoxel stitching | ❌ Deliberately not ported | Documented in NOT-COMPLETE registry |
+| GPU mesh extraction | 📄 CPU bridge (permanent) | `tsm-console/src/lib/webgpu-volumetric-terrain.ts` — documented as permanent CPU bridge 2026-10-22; GPU path not needed for offline-baked terrain |
+| Transvoxel stitcher | ✅ Implemented | `tsm-console/src/lib/transvoxel-stitcher.ts` (9-bit case evaluation) |
+| Transvoxel tables | ⚠️ Partial | `scripts/geospatial/transvoxel_tables.py` — framework yields 100 classes via D4, not Lengyel's 73; full classification not implemented |
 
 ---
 
@@ -68,7 +73,12 @@ This document maps each blueprint section to existing TSM repository components 
 | T_2 (Single texture) | ✅ | Current 3D tiles |
 | T_3 (Full PBR) | ✅ Script ready | `scripts/3d-tiles/bake-pbr-standard.py` |
 
-**Gap:** The baking script requires Blender headless — not yet run on production assets.
+**Status (2026-10-22):** Baking script is complete and test-verified, but requires
+Blender 3.0+ headless which is not installed in this environment. To run:
+1. Install Blender 3.0+ on a machine with sufficient RAM
+2. Run: `blender -b --factory-startup model.blend --python bake-pbr-standard.py -- --input /path/to/model.glb --output /path/to/output/ --resolution 2048`
+3. Outputs: albedo, normal, roughness, metallic, AO maps as PNG
+Blocked on: Blender installation (user action, not automatable here).
 
 ---
 
@@ -83,10 +93,10 @@ This document maps each blueprint section to existing TSM repository components 
 
 ---
 
-## Priority Gaps (in order)
+## Priority Gaps (in order) — Updated 2026-10-22
 
-1. **CityGML 3.0 importer** — Parse Space/SpaceBoundary into 3D Tiles
-2. **VRAM telemetry** — Wire state-word degradation to real GPU memory pressure
-3. **WebGPU mesh extraction** — Implement `extractMesh()` or document permanent CPU bridge
-4. **PBR baking run** — Execute `bake-pbr-standard.py` on production building assets
-5. **Transvoxel tables** — Decide: port or permanently defer (currently deferred)
+1. **CityGML 3.0 importer** — ✅ COMPLETE (`scripts/geospatial/citygml_to_3dtiles.py`)
+2. **VRAM telemetry** — ✅ COMPLETE (wired into `Tiles3DRendererLayer`, 2026-10-19)
+3. **WebGPU mesh extraction** — ✅ RESOLVED as permanent CPU bridge (documented 2026-10-22; GPU path not needed for offline-baked terrain)
+4. **PBR baking run** — ⏳ BLOCKED on Blender installation (user action; script ready and test-verified)
+5. **Transvoxel tables** — ⚠️ PARTIAL (framework yields 100 classes via D4; full Lengyel 73-class classification not implemented; tracked in NOT-COMPLETE registry item #2)

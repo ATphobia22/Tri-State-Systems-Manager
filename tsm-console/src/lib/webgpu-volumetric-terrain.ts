@@ -1,22 +1,41 @@
 /**
  * TSM WebGPU Volumetric Terrain Renderer
  *
- * Implements GPU-accelerated isosurface extraction for volumetric terrain
- * using WebGPU compute shaders. Based on:
+ * STATUS (2026-10-22): Permanent CPU bridge. The GPU compute path below is
+ * architecture documentation only — it is NOT a working implementation.
+ *
+ * Rationale for CPU bridge (not a temporary stub):
+ * 1. The CPU pipeline (scripts/geospatial/dem_to_transvoxel.py) is complete,
+ *    tested, and produces correct Transvoxel meshes from real DEM data.
+ * 2. A full GPU marching-cubes implementation requires the 256-entry edge
+ *    table and 256-entry triangle table ported to WGSL — substantial work
+ *    with no correctness benefit over the CPU path for TSM's use case
+ *    (static terrain baked offline, not real-time deformation).
+ * 3. TSM's terrain is precomputed offline and served as 3D Tiles. GPU
+ *    extraction would only help for real-time SDF editing, which is not
+ *    a TSM requirement (no simulations except flooding/berm/road placement).
+ * 4. Cannot be tested here: this environment has no GPU and no WebGPU-capable
+ *    browser. Shipping untested GPU compute code would violate the
+ *    evidence-over-theater principle.
+ *
+ * If real-time GPU isosurface extraction becomes a requirement:
+ * - Port the full MC edge/triangle tables to WGSL const arrays
+ * - Implement atomic triangle compaction and indirect draw
+ * - Test on real WebGPU hardware (Chrome 113+, not this VM)
+ * - See scripts/geospatial/dem_to_transvoxel.py for the reference CPU logic
+ *
+ * Based on:
  * - Lengyel Transvoxel algorithm (2010) for LOD transitions
  * - WebGPU marching cubes with compute shaders (jeantimex/fluid pattern)
  * - TSM's existing transvoxel bridge (scripts/geospatial/dem_to_transvoxel.py)
  *
- * Architecture:
+ * Architecture (documented, not implemented):
  * 1. Upload DEM-derived SDF volume to GPU as 3D texture
  * 2. Compute shader: marching cubes per voxel (parallel)
  *    - Uses precomputed edge/triangle tables
  *    - Atomic counter for triangle output
  * 3. Render pass: draw extracted mesh with indirect commands
  * 4. Transvoxel transition cells for crack-free LOD boundaries
- *
- * This replaces the CPU-side marching cubes with GPU acceleration,
- * enabling real-time volumetric terrain at 60fps.
  */
 
 // WGSL Compute Shader: Marching Cubes Extraction
@@ -163,29 +182,22 @@ export class WebGPUVolumetricTerrain {
 
   /**
    * Upload SDF volume to GPU and extract mesh.
-   * @param sdfData - 3D array of signed distance values
-   * @param config - Volume configuration
+   *
+   * NOT IMPLEMENTED — permanent CPU bridge (see file header).
+   * Use scripts/geospatial/dem_to_transvoxel.py for mesh extraction.
+   * This method returns an empty array and logs the redirection.
+   *
+   * @param sdfData - 3D array of signed distance values (unused)
+   * @param config - Volume configuration (unused)
    */
   async extractMesh(
-    sdfData: Float32Array,
-    config: WebGPUVolumetricTerrainConfig
+    _sdfData: Float32Array,
+    _config: WebGPUVolumetricTerrainConfig
   ): Promise<Float32Array> {
-    if (!this.device) {
-      throw new Error('WebGPU not initialized. Call initialize() first.');
-    }
-
-    // TODO: Full implementation needs:
-    // 1. Create 3D texture from sdfData
-    // 2. Create storage buffers for triangles
-    // 3. Dispatch compute shader
-    // 4. Read back triangle buffer
-    //
-    // For now, this documents the architecture.
-    // CPU fallback: use scripts/geospatial/dem_to_transvoxel.py
-
-    console.log('WebGPU volumetric extraction: architecture documented,');
-    console.log('full GPU implementation pending. Use CPU bridge for now.');
-
+    console.warn(
+      'WebGPUVolumetricTerrain.extractMesh: GPU path not implemented (permanent CPU bridge). ' +
+      'Use scripts/geospatial/dem_to_transvoxel.py for mesh extraction.'
+    );
     return new Float32Array(0);
   }
 

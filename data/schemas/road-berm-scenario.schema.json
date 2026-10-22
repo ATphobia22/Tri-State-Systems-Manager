@@ -68,6 +68,18 @@
         "design_freeboard_ft": {
           "type": "number",
           "minimum": 0
+        },
+        "bfe_ft_navd88": {
+          "type": "number",
+          "description": "Regulatory Base Flood Elevation in feet NAVD88 used as design basis"
+        },
+        "bfe_source": {
+          "type": "string",
+          "description": "Provenance citation for the BFE value"
+        },
+        "freeboard_note": {
+          "type": "string",
+          "description": "Explanation of freeboard calculation basis"
         }
       }
     },

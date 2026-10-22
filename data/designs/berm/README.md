@@ -11,11 +11,11 @@
 ## Design basis
 
 - **Reference datum:** NAVD88 (all elevations in feet).
-- **Base Flood Elevation (BFE):** 375.0 ft NAVD88 — a *working target* for the
+- **Base Flood Elevation (BFE):** 369.1 ft NAVD88 — regulatory BFE for the
   anchor site vicinity (FIRM panel 18129C0265C, Zone AE, effective 2014-11-05).
-  The effective DFIRM polygon at the anchor carries a null/static BFE; the
-  375.0 ft value requires confirmation from the Flood Insurance Study tables
-  or an INFIP FARA report before design use.
+  Verified against FEMA FIS 18129CV000A Table 9 Section A (RM 844.75) and
+  Indiana DNR FLOOD_XS_EFFECTIVE_DNR.csv. The prior 375.0 ft working target
+  (Bonebank_LOMA_Checklist.pdf, 2026-08-22) was superseded 2026-10-18.
 - **Anchor reference:** 37.845887, −88.005075 (13101 Bonebank Road, Point Township).
 - **Alignments are approximate** planning-level polylines, not surveyed. They
   are drawn parallel to the Ohio River bank in the river bottoms west/southwest
