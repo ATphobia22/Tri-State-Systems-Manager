@@ -38,8 +38,8 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
     let ndotl = max(dot(normal, lightDir), 0.0);
 
     var albedo = vec3<f32>(0.12, 0.22, 0.10);
-    // Near BFE/LAG transition (~0.67 m Twin Z for +2.2 ft)
-    if (input.world_position.y < 0.67) {
+    // Near BFE/LAG transition (~2.47 m Twin Z for +8.1 ft, using corrected BFE)
+    if (input.world_position.y < 2.47) {
         albedo = vec3<f32>(0.28, 0.24, 0.18);
     }
 

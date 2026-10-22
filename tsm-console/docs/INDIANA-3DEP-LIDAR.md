@@ -26,7 +26,7 @@ Practical guidance from the sheet: elevations in final QL2 products should gener
 
 ## TSM implications
 
-- Site constants BFE **375.0** / LAG **377.2** ft NAVD88 remain **regulatory/site** values, not LiDAR tile mins.
+- Current FIS reference BFE **369.1** ft NAVD88 (FIS 18129CV000A Table 9); LAG **377.2** ft remains owner-supplied and uncertified. The +8.1 ft difference is arithmetic only, not survey verification or AOI approval.
 - restricted site tile `IN2020_26800940_12` is low-ground; LAG sits **outside** tile max — adjacent tiles + sealed survey required.
 - PDAL Class 2 + foundation buffer remains the LAG extraction path.
 - Free data via Indiana GIO, Purdue tiles, OpenTopography (2011–13), USGS National Map, IndianaMap REST.

@@ -1,39 +1,84 @@
-# Artifact Update Scan — Historical Audit (2026-10-19)
+# Artifact Update Scan — 2026-10-19
 
-**Status:** Historical snapshot, reviewed and superseded on 2026-10-22. Do not use the original findings below as a statement of current repository state.
+**Scope:** Historical scan of repo content not yet reflected in public artifacts (dashboard + console).
 
-## 1. BFE display and arithmetic findings — resolved in current code
+**Resolution update — 2026-10-22:** The runtime files listed in Finding 1 have since been corrected to use BFE 369.1 ft NAVD88 per FEMA FIS 18129CV000A Table 9; derived differences from the owner-supplied LAG/FFE/berm values are +8.1/+13.4/+10.7 ft. The prior 375.0 ft value is a superseded working target, not current application truth. This correction does **not** approve a parcel AOI, certify owner-supplied elevations, or authorize design/regulatory submissions. The coordinate discrepancy and independent survey/datum verification remain blockers.
+**Already covered (excluded):** BFE 369.1 correction, Unified Digital Twin Blueprint, Flood Forecasting Stack (3 forks/10 steps), Repository Health & Data Strategy, Fork Integrations in console Tools tab.
 
-The 2026-10-18 correction record identifies **369.1 ft NAVD88** in FEMA FIS 18129CV000A, Table 9, Section A as the current reference value, replacing the prior 375.0 ft working target. Current source files now use that reference in:
+---
 
-- `tsm-console/src/components/FloodScenarioAnimation.tsx`
-- `tsm-console/src/components/CinematicTwinHud.tsx`
-- `tsm-console/src/routes/CinematicView.tsx`
-- `tsm-console/src/lib/flood-sim/workbench.ts`
-- `tsm-console/src/types/site.ts`
-- `tsm-console/src/lib/scientific-analytics.ts`
-- `data/scenarios/q100-design-event.json`
+## 🔴 FINDING 1: Six user-facing console files still show stale BFE 375.0 ft
 
-The active regression tests and local-AI skill facts were also reconciled with the corrected reference. Arithmetic differences against owner-supplied elevations are LAG +8.1 ft, FFE +13.4 ft, and berm +10.7 ft. These are arithmetic only, not a survey, parcel-specific flood determination, or regulatory approval.
+The 2026-10-18 BFE correction (369.1 ft NAVD88) was applied to `scientific-analytics.ts`, `site.ts` (packages/geo), `LomaLagBfeChecklist.tsx`, and `floodScenario.ts` — but **six user-facing console files were missed** and still display or compute from the old 375.0 ft value. These ship in the published console artifact.
 
-**Important unresolved site limitation:** the independently geocoded address point and the asserted surveyed centroid differ by approximately 6.4 km, and the sampled effective FIRM layer did not provide a usable BFE. Therefore, applicability of the FIS reference to the candidate parcel remains **unverified** pending certified survey/location reconciliation and review by the responsible authority.
+| File | Line(s) | What's stale | User impact |
+|------|---------|--------------|-------------|
+| `tsm-console/src/components/FloodScenarioAnimation.tsx` | 96, 99 | `targetM: 375.0 * FT_TO_M` + label "Target 375.0 ft NAVD88 — working BFE (FIRM 18129C0265C); UNVERIFIED" | Animation targets wrong elevation; label contradicts the corrected BFE card |
+| `tsm-console/src/components/CinematicTwinHud.tsx` | 127 | HUD text "BFE 375.0 ft" | Heads-up display shows wrong BFE to every viewer |
+| `tsm-console/src/routes/CinematicView.tsx` | 38 | BFE layer: `topFt: 375.0`, "BFE 375.0 ft NAVD88 from the FEMA case record" | 3D BFE plane renders 5.9 ft too high |
+| `tsm-console/src/lib/flood-sim/workbench.ts` | 62 | Note: "BFE 375.0 / LAG 377.2 / FFE 382.5 / BERM 379.8 ft NAVD88" | Flood workbench disclaimer cites wrong BFE |
+| `tsm-console/src/types/site.ts` | 77, 88 | `bfe_ft: 375.0`, `clearanceAboveBfe_ft: 2.2`, provenance "checklist BFE 375.0" | Site type defaults wrong; clearance should be 8.1 ft (377.2 − 369.1), not 2.2 ft |
 
-## 2. Finished-floor elevation — owner-supplied, not independently verified
+**Artifact-worthy:** YES — all five are user-facing. The clearance value (2.2 → 8.1 ft) is the most visible error since it changes the flood-safety narrative.
 
-The 382.5 ft NAVD88 FFE remains owner-supplied. It must not be represented as survey-certified or as a verified regulatory fact without supporting records. Any arithmetic involving it must retain the owner-supplied provenance label.
+**Recommended update:** Change all `375.0` → `369.1` with FIS 18129CV000A Table 9 citation; change `clearanceAboveBfe_ft: 2.2` → `8.1` and its derivation string. Rebuild + republish console.
 
-## 3. Development tooling recommendations
+**Intentionally NOT flagged (internal/historical):**
+- `*.test.ts` files, Storybook stories (`LomaLagBfeChecklist.stories.tsx`) — test fixtures
+- `tsm-console/src/data/poseyEvidence.ts:189` — documents the historical 375.0 claim as evidence (correct to keep)
+- `tsm-console/src/data/posey408Review.ts:11` — review record of the 375.0 claim (correct to keep)
+- `scripts/verify-backend-invariants.py` — explicit test fixture ("not application/site defaults")
+- restricted historical case packet evidence (retained outside the public/runtime plane)
+- `scripts/flood-forecasting/bfe_ingestion.py` — documents 375.0 as the superseded working target
 
-A previous scan recommended evaluating `uv` for Python dependency management. This is a tooling recommendation, not a production blocker; adoption should be a separate reviewed change with reproducibility and lockfile verification.
+---
 
-## 4. Reference documentation and public artifacts
+## 🟡 FINDING 2: FFE 382.5 ft still presented without verification flag in console
 
-The previous scan identified reference documents that could be surfaced more clearly in the public dashboard. This remains a documentation/product decision and does not establish that any scientific, geospatial, or regulatory capability is production-complete.
+**Files:** `tsm-console/src/lib/scientific-analytics.ts:49`, `tsm-console/src/types/site.ts:79`, `tsm-console/src/routes/CinematicView.tsx:41`, `tsm-console/src/lib/flood-sim/workbench.ts:62`
 
-## 5. Repository and deployment status
+**Status:** Currently labeled as "case record" / "owner-supplied" / "FFE 382.5 ft from the case record" — honest provenance labeling, but the value is **unverified** (traced to the Archemidese gdoc, same risk pattern as the corrected 375.0 BFE). The parent agent asked the user whether to flag it; no answer yet.
 
-The prior scan's statements about a local-only commit, expired credentials, and published artifacts were point-in-time observations from 2026-10-19 and are not asserted as current. Current source changes must be evaluated against the live GitHub branch and its exact commit status.
+**Artifact-worthy:** YES (conditionally). If the user confirms flagging, the console should show "FFE 382.5 ft (unverified — confirm against LOMA 26-05-2022A documents)" instead of presenting it as a case-record value.
 
-## Release rule
+**Recommended update:** Await user decision; then update the four files + rebuild console.
 
-Do not treat a queued or failed workflow as verification. Publish only artifacts built from the intended commit after the required checks pass. Missing, stale, owner-supplied, or spatially unverified evidence must remain visibly qualified and must not be promoted to an authoritative site conclusion.
+---
+
+## 🟢 FINDING 3: uv adoption recommended but not implemented
+
+**Source:** `docs/reference/local-ai-devtools-guide.md` (committed 2026-10-18)
+
+**Status:** The guide recommends adopting `uv` for CI (Phase 1: drop-in `uv pip install` swap in workflows). Checked `.github/workflows/*.yml` — **no workflow uses `setup-uv` yet**. Migration not started.
+
+**Artifact-worthy:** NO — internal CI/dev tooling. Not user-facing. (Mention in repo health section only if desired.)
+
+---
+
+## 🟢 FINDING 4: New reference docs not surfaced in artifacts
+
+**New since 2026-10-18:**
+- `docs/reference/hydromt-noaa-inundation-integration.md` — HydroMT/SFINCS + NOAA HAND guide
+- `docs/reference/local-ai-devtools-guide.md` — uv/ollama/hindsight evaluation
+- `docs/reference/turbovec-compression-guide.md` — vector quantization guide
+- `docs/reference/cityengine-pbr-cga-guide.md` — CityEngine PBR guide
+
+**Artifact-worthy:** PARTIAL. The dashboard's "Repository Health & Data Strategy" section could link the turbovec/compression findings (user-facing data strategy). The HydroMT guide is developer-facing. Recommend adding one line to the dashboard data-strategy section referencing the compression guide.
+
+---
+
+## 🟢 FINDING 5: Unpushed commits — artifacts built from local, remote is behind
+
+**Status:** Local HEAD (`7002ac0d`) is significantly ahead of `origin/main`. The PAT expired; pushes are failing. The published artifacts were built from local sources, so they include the local BFE fixes — but **anyone cloning from GitHub gets stale code**.
+
+**Artifact-worthy:** NO (infrastructure). But the parent agent needs a fresh PAT to push.
+
+---
+
+## Summary of recommended artifact updates
+
+| Priority | Action | Files to change | Artifact |
+|----------|--------|-----------------|----------|
+| **P0** | Fix 5 stale 375.0 → 369.1 in console UI + clearance 2.2 → 8.1 | FloodScenarioAnimation.tsx, CinematicTwinHud.tsx, CinematicView.tsx, workbench.ts, site.ts | Console (rebuild + republish) |
+| P1 | Flag FFE 382.5 as unverified (pending user OK) | scientific-analytics.ts, site.ts, CinematicView.tsx, workbench.ts | Console (rebuild + republish) |
+| P2 | Add compression-guide mention to data strategy | Dashboard source | Dashboard (rebuild + republish) |

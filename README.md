@@ -212,3 +212,10 @@ Apache-2.0 — see [LICENSE](LICENSE).
 ## Disclaimer
 
 TSM is public-interest decision-support software. It does not replace licensed survey, engineering, or regulatory determinations. Always verify critical elevations and flood determinations against official FEMA/IDNR/USACE products and qualified professionals.
+
+
+## Optional spatial data services
+
+- **Dynamic parcel viewport queries:** `supabase/migrations/20261019194559_posey_parcel_bbox.sql` defines a bounded, RLS-protected PostGIS RPC. It returns only explicitly verified public records and never exposes owner names. Configure `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` only after the intended Supabase project and parcel data licensing are verified.
+- **Static polygon overlays:** the MapLibre PMTiles overlay is opt-in through `VITE_TSM_PMTILES_URL`, `VITE_TSM_PMTILES_SOURCE_LAYER`, and `VITE_TSM_PMTILES_ATTRIBUTION`. The hosted archive must support HTTP Range requests and CORS. Do not mark a layer published until the archive is built from validated data and hosted behavior is checked.
+- **Build:** `python3 scripts/geospatial/build_pmtiles.py --input <validated.geojson> --output <archive.pmtiles> --name <source-layer>`; use `--allow-lossy-simplification` only for display layers where feature dropping is explicitly acceptable. `python3 -m unittest scripts.geospatial.test_build_pmtiles` exercises output/validation behavior without requiring Tippecanoe.
