@@ -1,6 +1,8 @@
 # Artifact Update Scan — 2026-10-19
 
-**Scope:** Search for repo content not yet reflected in the public artifacts (dashboard + console).
+**Scope:** Historical scan of repo content not yet reflected in public artifacts (dashboard + console).
+
+**Resolution update — 2026-10-22:** The runtime files listed in Finding 1 have since been corrected to use BFE 369.1 ft NAVD88 per FEMA FIS 18129CV000A Table 9; derived differences from the owner-supplied LAG/FFE/berm values are +8.1/+13.4/+10.7 ft. The prior 375.0 ft value is a superseded working target, not current application truth. This correction does **not** approve a parcel AOI, certify owner-supplied elevations, or authorize design/regulatory submissions. The coordinate discrepancy and independent survey/datum verification remain blockers.
 **Already covered (excluded):** BFE 369.1 correction, Unified Digital Twin Blueprint, Flood Forecasting Stack (3 forks/10 steps), Repository Health & Data Strategy, Fork Integrations in console Tools tab.
 
 ---
