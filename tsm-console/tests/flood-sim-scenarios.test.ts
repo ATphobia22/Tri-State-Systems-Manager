@@ -45,7 +45,7 @@ describe('flood-sim scenario registry', () => {
   it('q100 scenario carries the repo constants and FIRM panel', () => {
     const s = getScenario('q100-design-event');
     const byField = Object.fromEntries((s.sourcedValues ?? []).map((v) => [v.field, v]));
-    expect(byField['baseFloodElevationFtNavd88']?.value).toBe(375.0);
+    expect(byField['baseFloodElevationFtNavd88']?.value).toBe(369.1);
     expect(byField['lowestAdjacentGradeFtNavd88']?.value).toBe(377.2);
     expect(s.source).toMatch(/18129C0265C/);
     expect(s.provisional).toBe(true); // storm shape + terrain remain provisional
