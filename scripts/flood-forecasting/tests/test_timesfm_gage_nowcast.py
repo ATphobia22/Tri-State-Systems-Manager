@@ -17,6 +17,12 @@ SPEC.loader.exec_module(MODULE)
 
 class FetchUsgsGageTests(unittest.TestCase):
     def setUp(self) -> None:
+        # These tests cover the standalone HTTP fallback. The integrated
+        # tsm_usgs_ingest adapter has its own contract tests and must not
+        # perform live network calls in this mocked fallback suite.
+        self.adapter_patch = patch.dict("sys.modules", {"tsm_usgs_ingest": None})
+        self.adapter_patch.start()
+        self.addCleanup(self.adapter_patch.stop)
         self.response = Mock()
         self.response.raise_for_status.return_value = None
 
