@@ -11,6 +11,9 @@ protobuf>=7.36.2,<8
 # Optional HEC-RAS bridge (Windows + licensed HEC-RAS)
 # hecrasapi>=0.1.0
 
+# Modern USGS Water Data API adapter; use `waterdata`, not deprecated NWIS `nwis` APIs
+dataretrieval==1.2.0
+
 # Spatial / DEM / PostGIS validation
 rasterio>=1.5.1,<2
 psycopg2-binary>=2.9.13,<3
