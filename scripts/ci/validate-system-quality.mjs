@@ -54,7 +54,7 @@ if (risk?.single_source_of_truth !== 'source authority and provenance metadata, 
 if (risk?.model_output !== 'derived evidence only') throw new Error('model-output authority boundary changed');
 if (risk?.regulatory_output !== 'human/agency authority only') throw new Error('regulatory authority boundary changed');
 if (risk?.credential_metadata !== 'human capability metadata only') throw new Error('credential authority boundary changed');
-if (risk?.external_dependencies !== 'pinned, auditable, resilient where required') {
+if (risk?.external_dependencies !== 'pinned, auditable, fail-closed where required') {
   throw new Error('external dependency boundary changed');
 }
 
