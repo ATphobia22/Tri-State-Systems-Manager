@@ -9,7 +9,14 @@
     "minimum_vertical_datum": "NAVD88"
   },
   "processing": {
-    "steps": ["gdalwarp", "hydro-enforcement", "rio-rgbify", "pmtiles-or-xyz", "martin-optional", "maplibre-raster-dem"],
+    "steps": [
+      "gdalwarp",
+      "hydro-enforcement",
+      "rio-rgbify",
+      "pmtiles-or-xyz",
+      "martin-optional",
+      "maplibre-raster-dem"
+    ],
     "tile_container": "PMTiles",
     "browser_source_type": "raster-dem",
     "encoding": "mapbox",
@@ -21,10 +28,9 @@
     "environment_variable": "VITE_TSM_TERRAIN_RGB_URL_TEMPLATE",
     "example_template": "https://tiles.example.invalid/terrain/{z}/{x}/{y}.png",
     "required_before_operational_terrain": true,
-    "fail_closed_when_missing": true,
     "bulk_source_rasters_in_repository": false,
     "bulk_tile_pyramids_in_repository": false,
-    "status": "FAIL_CLOSED_PENDING_MATERIALIZATION",
+    "status": "RESILIENT_PENDING_MATERIALIZATION",
     "requires_https": true,
     "no_synthetic_mesh": true,
     "flat_fallback_layers": [
@@ -32,11 +38,23 @@
       "usgs-3dep-hillshade-live",
       "fema-nfhl-overlay",
       "indiana-bafm-overlay"
-    ]
+    ],
+    "resilient_when_missing": true
   },
   "evidence": {
     "hash_algorithm": "SHA-256",
-    "required_fields": ["source_uri", "source_identifier", "source_version", "retrieved_at", "content_hash_sha256", "horizontal_crs", "vertical_datum", "transformation_chain", "validation_status", "human_review_status"],
+    "required_fields": [
+      "source_uri",
+      "source_identifier",
+      "source_version",
+      "retrieved_at",
+      "content_hash_sha256",
+      "horizontal_crs",
+      "vertical_datum",
+      "transformation_chain",
+      "validation_status",
+      "human_review_status"
+    ],
     "bulk_source_data_committed_to_git": false,
     "verification_documentation": "docs/TERRAIN-RGB-3DEP-PIPELINE.md"
   }

@@ -16,7 +16,7 @@ test('telemetry source failure is converted to an explicit resilient alert', () 
     station_id: '03378500',
     station_name: 'Wabash River at New Harmony, IN',
     observed_at: '2026-10-01T21:00:00Z',
-    alert_code: 'STATION_FAIL_CLOSED',
+    alert_code: 'STATION_PROVISIONAL',
     status: 'SOURCE_UNAVAILABLE',
   }]);
 });

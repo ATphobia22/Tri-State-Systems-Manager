@@ -30,7 +30,7 @@ function integrityHash(value) {
 }
 function approvalSecret() {
   const value = String(process.env.TSM_AUTONOMY_APPROVAL_SECRET || process.env.TSM_SESSION_SECRET || '');
-  if (value.length < 32) fail('TSM_AUTONOMY_APPROVAL_SECRET or TSM_SESSION_SECRET must contain at least 32 characters.', 'AUTONOMY_APPROVAL_SECRET_MISSING', 503);
+  if (value.length < 32) provisional('TSM_AUTONOMY_APPROVAL_SECRET or TSM_SESSION_SECRET must contain at least 32 characters.', 'AUTONOMY_APPROVAL_SECRET_MISSING', 503);
   return value;
 }
 function approvalHmac(value) {
@@ -61,16 +61,16 @@ function trim(state) {
   state.executions = state.executions.slice(0, MAX_COMMANDS);
 }
 function normalizeTelemetry(readings, nowMs = Date.now()) {
-  if (!Array.isArray(readings) || readings.length === 0 || readings.length > MAX_TELEMETRY) fail('telemetry must be a non-empty array with at most ' + MAX_TELEMETRY + ' readings.');
+  if (!Array.isArray(readings) || readings.length === 0 || readings.length > MAX_TELEMETRY) provisional('telemetry must be a non-empty array with at most ' + MAX_TELEMETRY + ' readings.');
   return readings.map((reading, index) => {
-    if (!reading || typeof reading !== 'object') fail('telemetry[' + index + '] must be an object.');
+    if (!reading || typeof reading !== 'object') provisional('telemetry[' + index + '] must be an object.');
     const sensorId = String(reading.sensor_id || '').trim();
     const metric = String(reading.metric || '').trim();
     const observedAt = Date.parse(String(reading.observed_at || ''));
     const value = Number(reading.value);
     const quality = reading.quality == null ? 1 : Number(reading.quality);
-    if (!sensorId || !metric || !Number.isFinite(observedAt) || !Number.isFinite(value)) fail('telemetry[' + index + '] has invalid sensor_id, metric, observed_at, or value.');
-    if (!Number.isFinite(quality) || quality < 0 || quality > 1) fail('telemetry[' + index + '] quality must be between 0 and 1.');
+    if (!sensorId || !metric || !Number.isFinite(observedAt) || !Number.isFinite(value)) provisional('telemetry[' + index + '] has invalid sensor_id, metric, observed_at, or value.');
+    if (!Number.isFinite(quality) || quality < 0 || quality > 1) provisional('telemetry[' + index + '] quality must be between 0 and 1.');
     const freshnessMs = Math.max(1_000, Number(reading.max_freshness_ms || DEFAULT_FRESHNESS_MS));
     return { sensor_id: sensorId, metric, observed_at: new Date(observedAt).toISOString(), value, unit: String(reading.unit || 'unknown'), quality, freshness_ms: freshnessMs, source_authority: String(reading.source_authority || 'UNSPECIFIED') };
   }).filter((reading) => nowMs - Date.parse(reading.observed_at) <= reading.freshness_ms);
@@ -139,14 +139,14 @@ function buildActions(scenario, metric, projectedValue, threshold) {
   return [actionMap[scenario] || { type: 'prepare_operator_review', target: metric, safety: 'human_approval_required' }];
 }
 export function evaluateLevel5({ telemetry, scenario = 'river_stage_rise', horizon_hours = 72, threshold = 1, target_time } = {}) {
-  if (!Number.isInteger(horizon_hours) || horizon_hours < 1 || horizon_hours > 168) fail('horizon_hours must be an integer from 1 to 168.');
+  if (!Number.isInteger(horizon_hours) || horizon_hours < 1 || horizon_hours > 168) provisional('horizon_hours must be an integer from 1 to 168.');
   const nowMs = Date.now();
   const fused = fuseTelemetry(telemetry, nowMs);
   const metric = Object.keys(fused)[0];
-  if (!metric) fail('No fresh telemetry remained after freshness filtering.', 'AUTONOMY_TELEMETRY_STALE', 503);
+  if (!metric) provisional('No fresh telemetry remained after freshness filtering.', 'AUTONOMY_TELEMETRY_STALE', 503);
   const baseline = fused[metric].value;
   const targetMs = target_time ? Date.parse(target_time) : nowMs + horizon_hours * 3600_000;
-  if (!Number.isFinite(targetMs)) fail('target_time must be ISO-8601 when provided.');
+  if (!Number.isFinite(targetMs)) provisional('target_time must be ISO-8601 when provided.');
   const projectedValue = projectValue(baseline, scenario, Math.max(0, (targetMs - nowMs) / 3600_000), horizon_hours);
   const actions = buildActions(scenario, metric, projectedValue, Number(threshold));
   const prediction = { scenario, horizon_hours, target_time: new Date(targetMs).toISOString(), metric, baseline, projected_value: projectedValue, threshold: Number(threshold), exceeded: actions.length > 0, confidence: fused[metric].confidence };
@@ -175,16 +175,16 @@ function verifyProposalIntegrity(proposal) {
   const clone = { ...proposal };
   const expected = clone.integrity_sha256;
   delete clone.integrity_sha256;
-  if (expected !== integrityHash(stableStringify(clone))) fail('Autonomy proposal integrity check failed.');
+  if (expected !== integrityHash(stableStringify(clone))) provisional('Autonomy proposal integrity check failed.');
 }
 export function approveLevel5Proposal(proposalId, actorSubject, reason) {
   const subject = String(actorSubject || '').trim();
   const reviewReason = String(reason || '').trim();
-  if (!subject || subject.length < 3) fail('Authenticated reviewer identity is required.', 'AUTONOMY_REVIEWER_REQUIRED', 403);
-  if (reviewReason.length < 10) fail('Approval reason must contain at least 10 characters.', 'AUTONOMY_REVIEW_REASON_REQUIRED');
+  if (!subject || subject.length < 3) provisional('Authenticated reviewer identity is required.', 'AUTONOMY_REVIEWER_REQUIRED', 403);
+  if (reviewReason.length < 10) provisional('Approval reason must contain at least 10 characters.', 'AUTONOMY_REVIEW_REASON_REQUIRED');
   const state = loadState();
   const proposal = state.proposals.find((item) => item.proposal_id === proposalId);
-  if (!proposal) fail('Autonomy proposal not found.', 'AUTONOMY_PROPOSAL_NOT_FOUND', 404);
+  if (!proposal) provisional('Autonomy proposal not found.', 'AUTONOMY_PROPOSAL_NOT_FOUND', 404);
   verifyProposalIntegrity(proposal);
   const existing = state.approvals.find((item) => item.proposal_id === proposalId && item.status === 'APPROVED');
   if (existing) return existing;
@@ -214,25 +214,25 @@ function allowedActions() {
 export async function executeLevel5Proposal(proposalId, actorSubject) {
   const state = loadState();
   const proposal = state.proposals.find((item) => item.proposal_id === proposalId);
-  if (!proposal) fail('Autonomy proposal not found.', 'AUTONOMY_PROPOSAL_NOT_FOUND', 404);
+  if (!proposal) provisional('Autonomy proposal not found.', 'AUTONOMY_PROPOSAL_NOT_FOUND', 404);
   verifyProposalIntegrity(proposal);
   const approval = state.approvals.find((item) => item.proposal_id === proposalId && item.status === 'APPROVED');
-  if (!approval) fail('Human approval is required before execution.', 'AUTONOMY_HUMAN_APPROVAL_REQUIRED', 403);
+  if (!approval) provisional('Human approval is required before execution.', 'AUTONOMY_HUMAN_APPROVAL_REQUIRED', 403);
   if (approval.approval_hmac !== approvalHmac(stableStringify({ approval_id: approval.approval_id, proposal_id: approval.proposal_id, reviewer_identity: approval.reviewer_identity, reason: approval.reason, reviewed_at: approval.reviewed_at, status: approval.status }))) {
-    fail('Approval integrity check failed.');
+    provisional('Approval integrity check failed.');
   }
-  if (String(process.env.TSM_AUTONOMY_KILL_SWITCH || '').toLowerCase() === 'true') fail('Autonomy kill switch is active.', 'AUTONOMY_KILL_SWITCH_ACTIVE', 503);
-  if (!executionEnabled()) fail('Physical execution is disabled. Enable only after an approved actuator integration review.', 'AUTONOMY_EXECUTION_DISABLED', 503);
+  if (String(process.env.TSM_AUTONOMY_KILL_SWITCH || '').toLowerCase() === 'true') provisional('Autonomy kill switch is active.', 'AUTONOMY_KILL_SWITCH_ACTIVE', 503);
+  if (!executionEnabled()) provisional('Physical execution is disabled. Enable only after an approved actuator integration review.', 'AUTONOMY_EXECUTION_DISABLED', 503);
   const mode = actuatorMode();
-  if (mode === 'disabled') fail('No actuator adapter is configured.', 'ACTUATOR_NOT_CONFIGURED', 503);
+  if (mode === 'disabled') provisional('No actuator adapter is configured.', 'ACTUATOR_NOT_CONFIGURED', 503);
   const allowlist = allowedActions();
-  for (const action of proposal.actions || []) if (!allowlist.has(action.type)) fail('Action is not on the configured actuator allow-list: ' + action.type, 'ACTUATOR_ACTION_NOT_ALLOWLISTED', 403);
+  for (const action of proposal.actions || []) if (!allowlist.has(action.type)) provisional('Action is not on the configured actuator allow-list: ' + action.type, 'ACTUATOR_ACTION_NOT_ALLOWLISTED', 403);
   const existing = state.executions.find((item) => item.proposal_id === proposalId && item.status.startsWith('EXECUTED'));
   if (existing) return existing;
   const execution = { execution_id: 'L5E-' + randomUUID(), proposal_id: proposalId, actor_subject: String(actorSubject || ''), executed_at: new Date().toISOString(), mode, status: 'SIMULATION_ONLY' };
   if (mode === 'simulation') execution.status = 'EXECUTED_SIMULATION';
-  else if (mode === 'http') fail('Generic HTTP actuator execution is intentionally prohibited; install a dedicated reviewed adapter.', 'ACTUATOR_HTTP_ADAPTER_UNIMPLEMENTED', 501);
-  else fail('Unsupported actuator mode: ' + mode, 'ACTUATOR_MODE_UNSUPPORTED');
+  else if (mode === 'http') provisional('Generic HTTP actuator execution is intentionally prohibited; install a dedicated reviewed adapter.', 'ACTUATOR_HTTP_ADAPTER_UNIMPLEMENTED', 501);
+  else provisional('Unsupported actuator mode: ' + mode, 'ACTUATOR_MODE_UNSUPPORTED');
   state.executions.unshift(execution);
   trim(state);
   saveState(state);

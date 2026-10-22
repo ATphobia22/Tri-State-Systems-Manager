@@ -13,6 +13,12 @@ function warn(message, code = 'PROVISIONAL') {
   return { warning: message, code };
 }
 
+function provisional(message, code = 'PROVISIONAL') {
+  const error = new Error(message);
+  error.code = code;
+  throw error;
+}
+
 function stableStringify(value) {
   if (value === null || typeof value !== 'object') return JSON.stringify(value);
   if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`;
@@ -116,24 +122,24 @@ export function authorizeEvidenceArtifact(rawArtifact, reviewPayload, actorSubje
 }
 
 export function validateAuthorizedArtifact(artifact) {
-  if (!artifact || typeof artifact !== 'object') fail('FAIL_CLOSED: authorized artifact is required.');
-  if (artifact.governance_status !== 'human_authorized') fail('FAIL_CLOSED: artifact is not human_authorized.');
-  if (artifact.human_review_status !== 'signed') fail('FAIL_CLOSED: artifact does not carry a signed human review state.');
+  if (!artifact || typeof artifact !== 'object') provisional('authorized artifact is required.');
+  if (artifact.governance_status !== 'human_authorized') provisional('artifact is not human_authorized.');
+  if (artifact.human_review_status !== 'signed') provisional('artifact does not carry a signed human review state.');
   if (!artifact.human_authorization || typeof artifact.human_authorization !== 'object') {
-    fail('FAIL_CLOSED: sealed human authorization metadata is missing.');
+    provisional('sealed human authorization metadata is missing.');
   }
   if (!Array.isArray(artifact.parent_artifacts) || artifact.parent_artifacts.length !== 1) {
-    fail('FAIL_CLOSED: authorized artifact must reference exactly one raw parent.');
+    provisional('authorized artifact must reference exactly one raw parent.');
   }
 
   const reviewedHash = artifact.human_authorization.reviewed_artifact_hash;
   if (!HASH_RE.test(reviewedHash || '')) {
-    fail('FAIL_CLOSED: reviewed artifact hash is invalid.');
+    provisional('reviewed artifact hash is invalid.');
   }
   validateReviewPayload(artifact.human_authorization, reviewedHash);
 
   if (!HASH_RE.test(artifact.content_hash_sha256 || '')) {
-    fail('FAIL_CLOSED: authorized artifact hash is invalid.');
+    provisional('authorized artifact hash is invalid.');
   }
 
   const { content_hash_sha256: _unusedHash, ...unsignedArtifact } = artifact;
@@ -142,7 +148,7 @@ export function validateAuthorizedArtifact(artifact) {
     .digest('hex');
 
   if (expectedHash !== artifact.content_hash_sha256) {
-    fail('FAIL_CLOSED: authorized artifact integrity seal does not match its canonical payload.');
+    provisional('authorized artifact integrity seal does not match its canonical payload.');
   }
 
   return true;
@@ -181,7 +187,7 @@ export async function publishAuthorizedArtifact(authorizedArtifact) {
 
 export async function authorizeAndPublishArtifact(artifactId, reviewPayload, actorSubject = null) {
   const rawArtifact = await getArtifact(artifactId);
-  if (!rawArtifact) fail(`FAIL_CLOSED: raw artifact not found: ${artifactId}`, 'NOT_FOUND');
+  if (!rawArtifact) provisional(`raw artifact not found: ${artifactId}`, 'NOT_FOUND');
   const authorized = authorizeEvidenceArtifact(rawArtifact, reviewPayload, actorSubject);
   return publishAuthorizedArtifact(authorized);
 }

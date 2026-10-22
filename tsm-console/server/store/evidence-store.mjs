@@ -115,7 +115,9 @@ function validateArtifactFields(raw) {
     }
   }
   if (raw.governance_status === 'human_authorized' && raw._governance_transition !== true) {
-    warnings.push('resilient: human_authorized artifacts should cross the governance transition boundary; marked provisional');
+    const error = new Error('human_authorized artifacts must cross the governance transition boundary');
+    error.code = 'GOVERNANCE_TRANSITION_REQUIRED';
+    throw error;
   }
 
   const geo = validateSpatialFields(raw);
