@@ -22,7 +22,7 @@
 ## Authoritative math (never visual-only)
 
 - Gage height is **GAGE_DATUM**; NAVD88 only after published zero
-- LAG − BFE = **+2.2 ft** site lock
+- LAG − BFE = **+8.1 ft** arithmetic difference (LAG 377.2 owner-supplied; BFE 369.1 per FIS 18129CV000A Table 9; AOI/survey approval remains separate)
 - FEMA floodway **0.00 ft** No-Rise vs IDNR **0.15 ft** adverse (312 IAC 10-2-3)
 - Compensatory storage default **1.2×** (confirm Posey ordinance)
 - Class-2 LiDAR LAG is **support**, not LOMA without sealed survey
