@@ -26,7 +26,7 @@ The 2026-10-18 BFE correction (369.1 ft NAVD88) was applied to `scientific-analy
 - `tsm-console/src/data/poseyEvidence.ts:189` — documents the historical 375.0 claim as evidence (correct to keep)
 - `tsm-console/src/data/posey408Review.ts:11` — review record of the 375.0 claim (correct to keep)
 - `scripts/verify-backend-invariants.py` — explicit test fixture ("not application/site defaults")
-- `data/evidence/layer2/26-05-2022A/case.json` — historical packet evidence
+- restricted historical case packet evidence (retained outside the public/runtime plane)
 - `scripts/flood-forecasting/bfe_ingestion.py` — documents 375.0 as the superseded working target
 
 ---
