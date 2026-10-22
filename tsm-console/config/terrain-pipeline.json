@@ -21,7 +21,7 @@
     "browser_source_type": "raster-dem",
     "encoding": "mapbox",
     "tile_size": 256,
-    "terrain_exaggeration": 1.0,
+    "terrain_exaggeration": 1,
     "browser_crs": "EPSG:3857"
   },
   "runtime": {
@@ -39,7 +39,8 @@
       "fema-nfhl-overlay",
       "indiana-bafm-overlay"
     ],
-    "resilient_when_missing": true
+    "resilient_when_missing": true,
+    "fail_closed_when_missing": true
   },
   "evidence": {
     "hash_algorithm": "SHA-256",

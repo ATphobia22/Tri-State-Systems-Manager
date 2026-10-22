@@ -1,0 +1,73 @@
+name: Meshlet Batch Build
+
+on:
+  push:
+    branches:
+      - 'feat/meshlet-batch-*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tsm-meshlet-batch-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-all-meshlets:
+    name: Build and validate all checked-in GLB meshlets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - name: Checkout exact source commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # pinned release
+      - name: Setup Node.js 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # pinned release
+        with:
+          node-version: '22'
+      - name: Test GLB parser and meshlet batch validation contracts
+        run: node --experimental-strip-types --test scripts/geospatial/test-meshlet-batch.mjs
+      - name: Build every checked-in GLB to deterministic compressed MeshletPack
+        env:
+          EXPECTED_GLB_COUNT: '4628'
+        run: |
+          set -euo pipefail
+          node --experimental-strip-types scripts/geospatial/build-meshlet-batch.mjs \
+            --input-dir tsm-console/public/3d-tiles \
+            --output-dir "$RUNNER_TEMP/tsm-meshlet-batch" \
+            --expected-count "$EXPECTED_GLB_COUNT"
+      - name: Verify batch manifest and meshlet budgets
+        if: always()
+        env:
+          MESHLET_OUTPUT: ${{ runner.temp }}/tsm-meshlet-batch
+          EXPECTED_GLB_COUNT: '4628'
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib, sys
+          root = pathlib.Path(os.environ["MESHLET_OUTPUT"])
+          manifest_path = root / "manifest.json"
+          if not manifest_path.exists():
+              print("meshlet manifest missing", file=sys.stderr)
+              sys.exit(1)
+          data = json.loads(manifest_path.read_text(encoding="utf-8"))
+          checks = {
+              "expected_count": data.get("discoveredGlbCount") == int(os.environ["EXPECTED_GLB_COUNT"]),
+              "accounting": data.get("builtCount", 0) + data.get("failedCount", 0) == data.get("discoveredGlbCount"),
+              "all_built": data.get("complete") is True and data.get("failedCount") == 0,
+              "meshlet_budget": data.get("algorithm", {}).get("maxVertices") == 64 and data.get("algorithm", {}).get("maxTriangles") == 124,
+          }
+          print(json.dumps({"checks": checks, "discovered": data.get("discoveredGlbCount"), "built": data.get("builtCount"), "failed": data.get("failedCount"), "totals": data.get("totals")}, indent=2))
+          sys.exit(0 if all(checks.values()) else 1)
+          PY
+      - name: Upload meshlet packs and failure ledger
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # pinned release
+        with:
+          name: tsm-meshlet-batch-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/tsm-meshlet-batch/manifest.json
+            ${{ runner.temp }}/tsm-meshlet-batch/failures.json
+            ${{ runner.temp }}/tsm-meshlet-batch/packs/
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0

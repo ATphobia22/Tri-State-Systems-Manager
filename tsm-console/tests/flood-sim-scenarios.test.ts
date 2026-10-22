@@ -7,11 +7,10 @@ import {
   scenarioSeed,
 } from '../src/lib/flood-sim/scenarios';
 import { seedFromString } from '../src/lib/flood-sim/prng';
-import { BONEBANK_SITE_CONSTANTS } from '../src/lib/scientific-analytics';
 
 describe('flood-sim scenario registry', () => {
   it('ships exactly the two required flooding scenarios, all schema-valid', () => {
-    // live-gauge-driven was retired 2026-09-29 (owner dropped live river data).
+    // Automatic live-gauge-driven simulation remains retired; read-only snapshots are user-triggered.
     const scenarios = listScenarios();
     expect(scenarios.map((s) => s.scenarioId).sort()).toEqual([
       '1937-ohio-river-flood',
@@ -46,14 +45,14 @@ describe('flood-sim scenario registry', () => {
   it('q100 scenario carries the repo constants and FIRM panel', () => {
     const s = getScenario('q100-design-event');
     const byField = Object.fromEntries((s.sourcedValues ?? []).map((v) => [v.field, v]));
-    expect(byField['baseFloodElevationFtNavd88']?.value).toBe(BONEBANK_SITE_CONSTANTS.BFE);
+    expect(byField['baseFloodElevationFtNavd88']?.value).toBe(369.1);
     expect(byField['lowestAdjacentGradeFtNavd88']?.value).toBe(377.2);
     expect(s.source).toMatch(/18129C0265C/);
     expect(s.provisional).toBe(true); // storm shape + terrain remain provisional
   });
 
   it('live-gauge-driven scenario is retired and unknown to the registry', () => {
-    // Owner decision 2026-09-29: live river data dropped.
+    // Automatic gauge-driven simulation remains retired; user-triggered read-only snapshots are a separate feature.
     expect(() => getScenario('live-gauge-driven')).toThrow(/unknown scenario/);
   });
 
