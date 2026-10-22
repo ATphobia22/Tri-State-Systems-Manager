@@ -11,8 +11,8 @@
 ## Design basis
 
 - **Reference datum:** NAVD88 (all elevations in feet).
-- **Base Flood Elevation (BFE):** 375.0 ft NAVD88 — a *working target* for the
-  anchor site vicinity (FIRM panel 18129C0265C, Zone AE, effective 2014-11-05).
+- **Current FIS reference BFE:** 369.1 ft NAVD88 per FEMA FIS 18129CV000A Table 9, Section A. The older 375.0 ft value is a superseded working target.
+- **Use gate:** The project AOI, panel-to-parcel relationship, LAG, horizontal CRS, and vertical datum must be independently reconciled before any design or regulatory use.
   The effective DFIRM polygon at the anchor carries a null/static BFE; the
   375.0 ft value requires confirmation from the Flood Insurance Study tables
   or an INFIP FARA report before design use.
