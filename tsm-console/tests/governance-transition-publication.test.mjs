@@ -41,7 +41,7 @@ test('provisional evidence is recorded honestly and excluded from the authoritat
     assert.equal(stored.governance_status, 'provisionally_authorized');
     assert.equal(stored.human_review_status, 'provisional');
     assert.equal(stored._provisional, true);
-    await assert.rejects(() => appendMerkleLeaf(stored), { code: 'FAIL_CLOSED' });
+    await assert.rejects(() => appendMerkleLeaf(stored), { code: 'RESILIENT' });
   } finally {
     await rm(evidenceDir, { recursive: true, force: true });
   }

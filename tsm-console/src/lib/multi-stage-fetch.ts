@@ -1,6 +1,6 @@
 /**
  * Scope C — multi-station on-demand water levels (button-only).
- * No polling. No auto-fetch on load. Fail-closed per station.
+ * No polling. No auto-fetch on load. Resilient per station.
  * All provider requests pass through the TSM server-side hydrology adapter.
  */
 

@@ -196,7 +196,7 @@ for (const relative of schemaPaths) {
 }
 
 if (failures.length) {
-  console.error('[tsm] FAIL-CLOSED JSON schema contract gate');
+  console.error('[tsm] RESILIENT JSON schema contract gate');
   failures.forEach((failure) => console.error('- ' + failure));
   process.exit(1);
 }

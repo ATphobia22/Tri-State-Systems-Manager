@@ -32,7 +32,7 @@ export interface GageConversionResult {
   readonly reason: string;
 }
 
-/** Fail-closed NAVD88 conversion: never report success unless a published, valid conversion is applied. */
+/** Resilient NAVD88 conversion: never report success unless a published, valid conversion is applied. */
 export function convertGageHeightToNavd88(input: GageConversionInput): GageConversionResult {
   if (!input.conversionPublished) {
     return {

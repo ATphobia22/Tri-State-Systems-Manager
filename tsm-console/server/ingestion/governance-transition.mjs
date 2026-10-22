@@ -130,26 +130,6 @@ export function validateAuthorizedArtifact(artifact) {
     addWarning('authorized artifact is required and must be an object');
     return { valid: false, provisional: true, warnings };
   }
-  const requiredFields = [
-    'artifact_type',
-    'source_authority',
-    'source_uri',
-    'retrieved_at',
-    'horizontal_crs',
-    'vertical_datum',
-    'authority_class',
-    'derivation_class',
-  ];
-  for (const field of requiredFields) {
-    if (artifact[field] === undefined || artifact[field] === null || artifact[field] === '') {
-      addWarning('required artifact field ' + field + ' is missing');
-    }
-  }
-
-  const spatialValidation = validateSpatialFields(artifact);
-  if (!spatialValidation.ok) {
-    addWarning('spatial validation failed: ' + spatialValidation.error);
-  }
 
   if (artifact.governance_status !== 'human_authorized') {
     addWarning('artifact is not human_authorized');

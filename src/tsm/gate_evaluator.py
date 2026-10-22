@@ -1,4 +1,4 @@
-"""Fail-closed evaluator for TSM AOI and hydrology execution manifests.
+"""Resilient evaluator for TSM AOI and hydrology execution manifests.
 
 This module validates evidence claims; it does not acquire authoritative data, prove
 that a cited source is genuine, or replace geospatial overlay/engineering review.

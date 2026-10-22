@@ -1,6 +1,6 @@
 {
   "registry_version": "35.0.2",
-  "trust_model": "FAIL_CLOSED",
+  "trust_model": "RESILIENT",
   "authorities": [
     {
       "id": "AUTH_USGS_WDFN",

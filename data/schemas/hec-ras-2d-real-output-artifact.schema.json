@@ -36,7 +36,7 @@
   },
   "$id": "urn:tsm:hec-ras-2d-real-output-artifact:v1",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "Companion to hec-ras-2d-evidence-artifact.schema.json. This schema describes artifacts produced by a real, calibrated HEC-RAS 2D model run \u2014 it is NOT for demonstration or synthetic outputs. Demonstration artifacts remain locked to is_simulation_demo: true in the sibling schema and can never validate here. Per TSM fail-closed doctrine, no field may be invented: a missing model package hash, calibration reference, or human review status means the artifact cannot exist.",
+  "description": "Companion to hec-ras-2d-evidence-artifact.schema.json. This schema describes artifacts produced by a real, calibrated HEC-RAS 2D model run \u2014 it is NOT for demonstration or synthetic outputs. Demonstration artifacts remain locked to is_simulation_demo: true in the sibling schema and can never validate here. Per TSM resilient doctrine, no field may be invented: a missing model package hash, calibration reference, or human review status means the artifact cannot exist.",
   "properties": {
     "artifact_type": {
       "minLength": 1,

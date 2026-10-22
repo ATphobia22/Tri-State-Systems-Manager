@@ -9,7 +9,7 @@ Verified live 2026-09-30. Datasets confirmed:
   - FimaNfipClaims
   - IndividualsAndHouseholdsProgramValidRegistrations
 
-Fail-closed: transport or API failures return {"status": "UNAVAILABLE", ...},
+Resilient: transport or API failures return {"status": "UNAVAILABLE", ...},
 never fabricated records. Stdlib only (urllib).
 """
 

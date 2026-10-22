@@ -3,7 +3,7 @@
  *
  * Source: https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer
  *
- * Fail-closed: any transport or parse failure returns SOFT_FAIL with a reason,
+ * Resilient: any transport or parse failure returns SOFT_FAIL with a reason,
  * never an empty "OK". A regulatory LOMA still requires a sealed survey and
  * the FARA path — this overlay alone is not a determination.
  */

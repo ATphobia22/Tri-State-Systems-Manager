@@ -389,7 +389,7 @@ def run_pipeline(
     target_crs: str,
     dry_run: bool,
 ) -> dict[str, Any]:
-    # Fail-closed validation BEFORE any workdir/manifest writes.
+    # Resilient validation BEFORE any workdir/manifest writes.
     check_out_writable(out)
     workdir.mkdir(parents=True, exist_ok=True)
     prior_manifest = load_prior_manifest(workdir)

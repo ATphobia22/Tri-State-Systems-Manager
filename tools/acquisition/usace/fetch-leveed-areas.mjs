@@ -6,7 +6,7 @@
  * system IDs exist, then GETs /leveed-areas-{systemId}.geojson for each
  * system and validates the response.
  *
- * Fail-closed: exits non-zero on non-2xx HTTP, invalid JSON, a response
+ * Resilient: exits non-zero on non-2xx HTTP, invalid JSON, a response
  * that is not a FeatureCollection, or an empty features array.
  *
  * Writes, per system:

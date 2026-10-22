@@ -213,7 +213,7 @@ export function screenPlacement(
 ): PlacementScreening {
   const earthwork = computeEarthwork(stations, section);
   const dredge = estimateDredgeSourcing(earthwork, section, opts.haulMiles);
-  // Fail-closed: caller must supply a sourced unit cost; no placeholder default.
+  // Resilient: caller must supply a sourced unit cost; no placeholder default.
   const unitCost = opts.unitConstructionCostPerCy;
   const construction = earthwork.fillCubicYards * unitCost + dredge.haulCostUsd;
   return {

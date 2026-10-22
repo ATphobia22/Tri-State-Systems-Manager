@@ -10,7 +10,7 @@ Usage:
   python3 scripts/geospatial/join-footprints-elevation.py \\
     --input data/buildings/posey-ms-buildings-aoi.geojson \\
     --output data/buildings/posey-buildings-elev-joined.geojson \\
-    --wse-ft 375.0
+    --wse-ft 369.1
 """
 from __future__ import annotations
 

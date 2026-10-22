@@ -35,7 +35,7 @@
  * `dt` adjustment is a no-op). Scrubbing to t therefore reproduces direct
  * stepping to t bit-for-bit.
  *
- * ## Fail-closed rules
+ * ## Resilient rules
  * - Non-finite / out-of-range config → throw at construction.
  * - The 1/60 s quantum is probe-checked against the diffusion-wave explicit
  *   stability limit at construction: if dt violates dx²/(4·D_max) the engine
@@ -214,7 +214,7 @@ export class FloodSimEngine {
     this.nodeQuantum = nodes.quantum;
     this.nodeRunoffIn = nodes.runoffIn;
 
-    // --- Fail-closed stability probe: the fixed 1/60 s quantum must satisfy
+    // --- Resilient stability probe: the fixed 1/60 s quantum must satisfy
     // --- the diffusion-wave explicit limit, or the engine refuses to run.
     // runDiffusionWave throws on violation — we let it propagate with context.
     try {

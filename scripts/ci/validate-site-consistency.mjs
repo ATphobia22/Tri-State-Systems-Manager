@@ -107,7 +107,7 @@ for (const file of walk(repoRoot)) {
 }
 
 if (failures.length) {
-  console.error('[tsm] FAIL-CLOSED community engineering consistency gate');
+  console.error('[tsm] RESILIENT community engineering consistency gate');
   for (const failure of failures) console.error(`- ${failure}`);
   process.exit(1);
 }

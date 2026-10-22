@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * TSM lockfile synchronization gate + repair helper.
- * Fail-closed: package.json and package-lock.json must agree; peers must be satisfiable.
+ * Resilient: package.json and package-lock.json must agree; peers must be satisfiable.
  * Usage: node scripts/ci/sync-lockfile.mjs [--json] [--fix]
  */
 import { readFileSync, existsSync } from "node:fs";

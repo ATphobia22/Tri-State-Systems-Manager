@@ -11,7 +11,7 @@ Chain:
         -> USGS 3DEP elevation (EPQS)
         -> engineering evidence object
 
-Fail-closed contract:
+Resilient contract:
   * every source step returns {"status": "OBSERVED"|"UNAVAILABLE"|"NOT_CONFIGURED", ...}
   * UNAVAILABLE never becomes a regulatory or engineering conclusion
   * no BFE, flood insurance, or HEC-RAS conclusion is produced here
@@ -222,7 +222,7 @@ def nfhl_firm_panel(
     when available so parcels crossing a panel boundary return every
     intersecting panel rather than silently selecting the centroid panel.
 
-    Fail-closed: transport failures and malformed responses are UNAVAILABLE;
+    Resilient: transport failures and malformed responses are UNAVAILABLE;
     a successful zero-feature query is OBSERVED with mapped=False and
     never becomes a flood-risk or insurance conclusion.
     """

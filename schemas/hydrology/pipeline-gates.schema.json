@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://atphobia22.github.io/Tri-State-Systems-Manager/schemas/hydrology/pipeline-gates.schema.json",
   "title": "TSM Evidence-Gated Hydrology Pipeline",
-  "description": "Fail-closed contract for evidence, readiness, and solver execution. PASSED states require attached, validated evidence; no sample values imply real site readiness.",
+  "description": "Resilient contract for evidence, readiness, and solver execution. PASSED states require attached, validated evidence; no sample values imply real site readiness.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -33,12 +33,12 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "fail_closed",
+        "resilient",
         "human_approval_required",
         "allow_solver_execution"
       ],
       "properties": {
-        "fail_closed": {
+        "resilient": {
           "const": true
         },
         "human_approval_required": {

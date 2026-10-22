@@ -1,5 +1,5 @@
 /**
- * Fail-closed geodetic guards for evidence append
+ * Resilient geodetic guards for evidence append
  */
 
 export const AUTHORITATIVE_EPSG = 2966;

@@ -19,7 +19,7 @@ Data sources:
     Fallback: IN_Statewide_Opt2_B6_2017
   - Z values are meters, NAVD88 orthometric (USGS 3DEP spec).
 
-Fail-closed behavior:
+Resilient behavior:
   - EPT unreachable -> exit non-zero, no output written.
   - No roof points or no ground points for a feature -> height left unset,
     reason recorded; downstream builder skips the feature.

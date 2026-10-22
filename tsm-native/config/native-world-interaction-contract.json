@@ -46,7 +46,7 @@
     "modeledScenarioSurfaceSeparate": true,
     "cinematicWaterSeparate": true,
     "syntheticFrequencyMultipliersAllowed": false,
-    "missingEvidencePolicy": "fail-closed"
+    "missingEvidencePolicy": "resilient"
   },
   "evidence": {
     "classes": [

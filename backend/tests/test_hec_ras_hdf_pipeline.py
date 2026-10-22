@@ -2,7 +2,7 @@
 
 Drive import 2026-09-25 — source: Google Drive "tests_test_hec_ras_pipeline.py"
 (2026-08-16). Validated: 4/4 pass with synthetic mock HDF fixtures; no production
-HEC-RAS installation or real model data required or used. Fail-closed: missing HDF
+HEC-RAS installation or real model data required or used. Resilient: missing HDF
 paths and out-of-bounds timesteps return SOFT_FAIL, never fabricated values.
 """
 # PTDT v35 — HEC-RAS 2D HDF Array Pipeline Parser Test Suite

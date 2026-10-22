@@ -4,7 +4,7 @@
   "source": "USACE National Inventory of Dams (NID) API query 2026-10-15; nid.sec.usace.army.mil",
   "coordinateSource": "NID API latitude/longitude fields (dam centerline)",
   "retrievedAt": "2026-10-15T10:40:00Z",
-  "disclaimer": "Inventory for situational awareness only. Not a dam-safety determination. Coordinates and attributes from official NID API; verify at nid.sec.usace.army.mil before operational use. Fail-closed: no pool elevation invented.",
+  "disclaimer": "Inventory for situational awareness only. Not a dam-safety determination. Coordinates and attributes from official NID API; verify at nid.sec.usace.army.mil before operational use. Resilient: no pool elevation invented.",
   "aoi": "Posey County IN + John T. Myers Locks and Dam (Ohio River near Wabash mouth)",
   "features": [
     {

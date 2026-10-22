@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:tsm:hec-coupled-run-manifest:v1",
   "title": "TSM Coupled HEC-HMS to HEC-RAS Run Manifest",
-  "description": "Reproducible, fail-closed model execution contract. DRAFT manifests are structurally valid but cannot execute; the runner requires approval.status=APPROVED and approval.evidence_uri plus exact AOI and datum provenance.",
+  "description": "Reproducible, resilient model execution contract. DRAFT manifests are structurally valid but cannot execute; the runner requires approval.status=APPROVED and approval.evidence_uri plus exact AOI and datum provenance.",
   "type": "object",
   "additionalProperties": false,
   "required": [

@@ -7,7 +7,7 @@ wired into the Node server: run it separately (see backend/README.md).
 Governing axiom: "Technology informs people; it does not silently govern
 people. Human authority remains final." Nothing here submits, issues, or
 approves anything with FEMA or any agency. Every accepted artifact is
-provisional and human-review-required. Fail-closed on invalid input.
+provisional and human-review-required. Resilient on invalid input.
 """
 
 from __future__ import annotations
@@ -66,7 +66,7 @@ MAX_GAUGE_INGEST_BODY_BYTES = 2 * 1024 * 1024  # 2 MiB
 # This endpoint performs NO background polling, NO scheduling, and stores
 # NOTHING. It fetches current instantaneous values from USGS Water Services
 # at the moment of the request and returns them with fetch timestamps.
-# Every value is marked provisional (USGS data qualifier). Fail-closed: if
+# Every value is marked provisional (USGS data qualifier). Resilient: if
 # the upstream service is unreachable or returns no data, the station is
 # reported unavailable — never filled in.
 #

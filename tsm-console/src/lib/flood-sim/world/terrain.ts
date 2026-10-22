@@ -331,7 +331,7 @@ export function generateElevationGrid(opts: TerrainGenOptions): number[][] {
 /**
  * Resolve the elevation grid for a scenario domain.
  *
- * Fail-closed reliability contract (owner policy 2026-09-29: no demo terrain):
+ * Resilient reliability contract (owner policy 2026-09-29: no demo terrain):
  *   1. `source-derived` preference → bundled source-derived grid resampled
  *      to the domain; throws a descriptive error when the bundle is
  *      missing/invalid (explicit choice ⇒ fail loudly, never silently

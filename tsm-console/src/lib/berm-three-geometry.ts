@@ -15,7 +15,7 @@
  * here — it belongs to the caller, which must supply surveyed or
  * operator-confirmed values. This module never invents coordinates.
  *
- * Fail-closed: every export returns null (or adds nothing) on invalid
+ * Resilient: every export returns null (or adds nothing) on invalid
  * input instead of producing degenerate geometry. Nothing here throws.
  */
 

@@ -27,7 +27,7 @@ Rules:
   8. Implicit tilesets: template URIs (containing '{') are skipped in
      explicit collection; GLBs under content/ are validated structurally.
 
-Fail-closed: any violation -> non-zero exit with details.
+Resilient: any violation -> non-zero exit with details.
 """
 
 from __future__ import annotations

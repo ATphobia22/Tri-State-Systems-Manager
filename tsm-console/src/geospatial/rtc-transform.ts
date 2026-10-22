@@ -7,7 +7,7 @@
  *   - Input positions are double-precision Cartesian (meters preferred) or
  *     lon/lat/height when using fromGeodeticDegrees.
  *   - Output relative positions are float32-safe; model matrix restores world pose.
- *   - Fail-closed on empty arrays, non-finite values, and length not divisible by 3.
+ *   - Resilient on empty arrays, non-finite values, and length not divisible by 3.
  */
 
 export type Vec3 = readonly [number, number, number];

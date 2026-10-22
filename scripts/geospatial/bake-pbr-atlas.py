@@ -11,7 +11,7 @@ Outputs under --out-dir:
 ORM packing (glTF):
   R = occlusion (or 255), G = roughness, B = metallic, A = 255
 
-Fail-closed: mismatched sizes, missing required maps, non-finite paths.
+Resilient: mismatched sizes, missing required maps, non-finite paths.
 """
 
 from __future__ import annotations

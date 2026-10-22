@@ -127,7 +127,7 @@ def test_checksum_mismatch_triggers_refetch(tmp_path):
 
 
 # ---------------------------------------------------------------------------
-# Fail-closed validation
+# Resilient validation
 # ---------------------------------------------------------------------------
 
 @pytest.mark.parametrize("bbox", [

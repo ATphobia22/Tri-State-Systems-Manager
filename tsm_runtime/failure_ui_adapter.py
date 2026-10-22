@@ -1,4 +1,4 @@
-"""Fail-closed adapter from regional failure manifests to safe UI alert payloads."""
+"""Resilient adapter from regional failure manifests to safe UI alert payloads."""
 from __future__ import annotations
 import json
 import re

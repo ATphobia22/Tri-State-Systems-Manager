@@ -2,7 +2,7 @@
   "schema": "tsm.critical-facilities.v1",
   "authorityClass": "SCREENING_INVENTORY",
   "source": "TSM screening pins for Scenario Studio cascade UI; replace with official HIFLD/state inventories when licensed/open lists are bound.",
-  "disclaimer": "Not an official critical-facility determination. Coordinates are community screening pins. Fail-closed: cascade scores remain SIMULATION_DEMO.",
+  "disclaimer": "Not an official critical-facility determination. Coordinates are community screening pins. Resilient: cascade scores remain SIMULATION_DEMO.",
   "retrievedAt": "2026-10-17T17:40:00Z",
   "features": [
     {

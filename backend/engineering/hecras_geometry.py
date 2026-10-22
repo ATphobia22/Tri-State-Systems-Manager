@@ -1,4 +1,4 @@
-"""Fail-closed HEC-RAS 2D cell-center geometry extraction.
+"""Resilient HEC-RAS 2D cell-center geometry extraction.
 
 HEC-RAS project geometry is stored in the model's projected coordinate system.
 The source CRS must therefore be supplied explicitly; this module never assumes

@@ -281,7 +281,7 @@
   ],
   "evaluation": {
     "evaluated_by": "scripts/ci/validate-engineering-pipeline.mjs",
-    "declarative_limits": "This JSON declares stage order, gate preconditions and fail-closed controls; it does not execute transitions. Enforcement lives in the pipeline runner / CI validator code.",
+    "declarative_limits": "This JSON declares stage order, gate preconditions and resilient controls; it does not execute transitions. Enforcement lives in the pipeline runner / CI validator code.",
     "transition_rule": "Stage statuses advance not_started|blocked -> provisional -> verified -> approved. A downstream stage in the canonical order may not carry a status rank higher than any upstream stage it depends on (rank: not_started=0, blocked=0, provisional=1, verified=2, approved=3); violations fail the build."
   }
 }

@@ -72,7 +72,7 @@ if (!Number.isFinite(major) || major < 22) {
 }
 
 if (failures.length) {
-  console.error('[tsm] FAIL-CLOSED parse gate');
+  console.error('[tsm] RESILIENT parse gate');
   for (const failure of failures) console.error(`- ${failure}`);
   process.exit(1);
 }

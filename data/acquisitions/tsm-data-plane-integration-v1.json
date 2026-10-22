@@ -131,7 +131,7 @@
       "sourceIds": [],
       "derivatives": ["openapi", "route-inventory", "data-contract-index"],
       "browserAssets": ["api/openapi.json", "api/catalog.json"],
-      "validation": ["route-presence", "schema", "authorization", "size-limits", "fail-closed"]
+      "validation": ["route-presence", "schema", "authorization", "size-limits", "resilient"]
     },
     {
       "id": "pages",

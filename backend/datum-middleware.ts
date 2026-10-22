@@ -1,4 +1,4 @@
-/** Fail-closed vertical-datum reconciliation contract. */
+/** Resilient vertical-datum reconciliation contract. */
 import { createHash } from 'node:crypto';
 
 export type VerticalDatum = 'GAGE_DATUM' | 'NAVD88';

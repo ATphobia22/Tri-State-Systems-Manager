@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://schemas.tsm-community.example/schemas/flood-information-federation/v1.json",
   "title": "TSM Flood Information Federation Result",
-  "description": "Fail-closed provenance contract for every TSM flood-information result. A result may be authoritative source evidence, derived analysis, model output, observational inundation, or visualization, but its authority and regulatory status must remain explicit.",
+  "description": "Resilient provenance contract for every TSM flood-information result. A result may be authoritative source evidence, derived analysis, model output, observational inundation, or visualization, but its authority and regulatory status must remain explicit.",
   "type": "object",
   "additionalProperties": false,
   "required": [

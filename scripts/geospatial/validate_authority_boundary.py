@@ -7,7 +7,7 @@ Enforces docs/TSM-BRANCH-ISOLATION.md:
   3. Every lidarHeightFt carries lidarHeightMethod provenance
      (blocks assumed heights re-entering through the side door).
 
-Fail-closed: any violation -> non-zero exit.
+Resilient: any violation -> non-zero exit.
 """
 
 from __future__ import annotations

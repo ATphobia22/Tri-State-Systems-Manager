@@ -45,9 +45,9 @@ describe('resolveAnimationTarget', () => {
     expect(t.reason).toBeNull();
   });
 
-  it('targets the working 100yr BFE', () => {
+  it('targets the regulatory 100yr BFE', () => {
     const t = resolveAnimationTarget(getScenario('100yr')!);
-    expect(t.targetM).toBeCloseTo(375.0 * 0.3048, 4);
+    expect(t.targetM).toBeCloseTo(369.1 * 0.3048, 4);
   });
 
   it('refuses to animate 2011 without a site crest', () => {

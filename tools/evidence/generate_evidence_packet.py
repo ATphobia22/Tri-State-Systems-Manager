@@ -7,7 +7,7 @@ address, coordinates, FIRM panel, lowest adjacent grade (LAG), and base flood
 elevation (BFE). The packet's ``content_hash_sha256`` is computed over the
 canonical JSON of the payload, so any later alteration is detectable.
 
-Fail-closed: every required input must be present and sane (coordinate ranges,
+Resilient: every required input must be present and sane (coordinate ranges,
 finite elevations, non-empty identifiers). Nothing is guessed or defaulted.
 
 The packet is a *draft supporting artifact* (``governance_status`` is always

@@ -304,7 +304,7 @@ def main():
             json.dump(results, f, indent=2)
         print(f"\nResults written to {args.json_out}")
 
-    # Exit code: 0 for PASS/WARN, 1 for FAIL_CLOSED
+    # Exit code: 0 for PASS/WARN, 1 for RESILIENT
     sys.exit(0 if results["overall"] in ("PASS", "PASS_WITH_WARNINGS") else 1)
 
 

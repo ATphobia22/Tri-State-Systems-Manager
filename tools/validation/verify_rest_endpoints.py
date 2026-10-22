@@ -2,7 +2,7 @@
 """Re-verify liveness of the tri-state REST endpoint registry.
 
 Reads ``data/registries/tri-state-rest-endpoints-v1.json`` and issues a live
-HTTP request to each entry's ``base_url``. Fail-closed: exits non-zero if any
+HTTP request to each entry's ``base_url``. Resilient: exits non-zero if any
 previously-verified endpoint is dead (non-200 or unreachable), or if any
 entry violates the registry schema.
 

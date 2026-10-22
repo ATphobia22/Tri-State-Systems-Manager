@@ -45,7 +45,7 @@ class CentroidTests(unittest.TestCase):
         self.assertAlmostEqual(lat, 1.0)
 
 
-class FailClosedTests(unittest.TestCase):
+class ResilientTests(unittest.TestCase):
     @patch.object(pfj, "_http_get_json", return_value=None)
     def test_parcel_unavailable_on_transport_failure(self, _mock):
         result = pfj.fetch_parcel_polygon("652708130051600018")

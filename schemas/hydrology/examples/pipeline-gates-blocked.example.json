@@ -4,7 +4,7 @@
   "aoi_target_id": "AOI-UNRESOLVED-EXAMPLE",
   "created_at_utc": "2026-10-15T12:30:00Z",
   "execution_policy": {
-    "fail_closed": true,
+    "resilient": true,
     "human_approval_required": true,
     "allow_solver_execution": false
   },

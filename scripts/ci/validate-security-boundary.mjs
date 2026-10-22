@@ -54,7 +54,7 @@ for (const relative of ['docker-compose.yml', 'tsm-console/docker-compose.yml'])
 }
 
 if (failures.length) {
-  console.error('[tsm] FAIL-CLOSED security boundary gate');
+  console.error('[tsm] RESILIENT security boundary gate');
   failures.forEach((failure) => console.error('- ' + failure));
   process.exit(1);
 }

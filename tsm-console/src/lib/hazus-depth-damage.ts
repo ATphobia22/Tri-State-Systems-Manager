@@ -30,7 +30,7 @@
  *    losses for any grant, insurance, or regulatory claim without human
  *    expert review.
  *
- * Fail-closed rules: depth ≤ 0 → zero damage; unknown occupancy,
+ * Resilient rules: depth ≤ 0 → zero damage; unknown occupancy,
  * negative dollar values, or non-finite inputs → throw.
  */
 

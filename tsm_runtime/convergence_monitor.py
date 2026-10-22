@@ -1,4 +1,4 @@
-"""Fail-closed HEC-RAS text-log screening.
+"""Resilient HEC-RAS text-log screening.
 
 Log tokens are version/configuration dependent. A clean parse is only a screening
 result and is not proof of numerical convergence or a successful HEC-RAS run.

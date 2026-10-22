@@ -45,7 +45,7 @@ class RegisteredComponent:
 
 
 class ExchangeRouter:
-    """Fail-closed in-process exchange router."""
+    """Resilient in-process exchange router."""
 
     def __init__(self) -> None:
         self._components: dict[str, RegisteredComponent] = {}

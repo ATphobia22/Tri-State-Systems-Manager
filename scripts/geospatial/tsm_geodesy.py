@@ -225,7 +225,7 @@ class GeoidModel:
         return cls(grid_path=path)
 
     def get_geoid_height(self, lat_deg: float, lon_deg: float) -> float:
-        """Geoid separation N in meters at (lat, lon). Fail-closed."""
+        """Geoid separation N in meters at (lat, lon). Resilient."""
         return self._grid.sample(lat_deg, lon_deg)
 
     def separation_m(self, lon_deg: float, lat_deg: float) -> tuple[float, bool]:

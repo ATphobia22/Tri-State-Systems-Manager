@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed SHA-256 validation for FIRM/panel/evidence bytes vs register.
+"""Resilient SHA-256 validation for FIRM/panel/evidence bytes vs register.
 
 Does NOT determine LOMA status, SFHA status, or FEMA outcomes.
 Exit 0 only when every expected hash that is present on disk matches.

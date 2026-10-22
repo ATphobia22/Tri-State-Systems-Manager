@@ -4,7 +4,7 @@
  * Production: swap persistence to pg; keep same API.
  *
  * SHA-256 proves integrity only.
- * Fail-closed: invalid hash or missing required fields → reject.
+ * Resilient: invalid hash or missing required fields → reject.
  *
  * Persistence is fully async (node:fs/promises). Mutations are serialized
  * through an in-process write queue so concurrent appends cannot interleave
@@ -96,7 +96,7 @@ export function sha256Hex(input) {
 
 /**
  * Verify that payload recomputes to content_hash_sha256.
- * Fail-closed: mismatch → { ok: false }.
+ * Resilient: mismatch → { ok: false }.
  */
 export function verifyProvenance(artifact, canonicalPayload) {
   const computed = sha256Hex(typeof canonicalPayload === 'string'
@@ -217,7 +217,7 @@ export async function getArtifact(id) {
 export async function appendMerkleLeaf(artifact) {
   if (!artifact || artifact.governance_status !== 'human_authorized' || artifact.human_review_status !== 'signed') {
     const err = new Error('resilient: only human-authorized signed artifacts may enter the Merkle ledger');
-    err.code = 'FAIL_CLOSED';
+    err.code = 'RESILIENT';
     throw err;
   }
 
@@ -226,7 +226,7 @@ export async function appendMerkleLeaf(artifact) {
     if (!Array.isArray(state.merkleLeaves)) state.merkleLeaves = [];
     if (state.merkleLeaves.some((leaf) => leaf.artifact_id === artifact.artifact_id)) {
       const err = new Error('resilient: artifact already exists in Merkle ledger');
-      err.code = 'FAIL_CLOSED';
+      err.code = 'RESILIENT';
       throw err;
     }
 

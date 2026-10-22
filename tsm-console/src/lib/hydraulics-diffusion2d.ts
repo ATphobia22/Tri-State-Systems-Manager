@@ -196,7 +196,7 @@ export function runDiffusionWave(input: DiffusionWaveInput, durationHrs: number,
     h.push(row);
   }
 
-  // Fail-closed diffusive stability check on the initial state.
+  // Resilient diffusive stability check on the initial state.
   const dtMax = maxStableDt(elevationFt, h, nx, ny, dx, manningN);
   if (dtSec > dtMax) {
     fail(

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed FEMA FIRM/PostGIS structural validator for TSM.
+"""Resilient FEMA FIRM/PostGIS structural validator for TSM.
 
 This validator verifies database integrity only. It does not determine the
 current regulatory effectiveness of a FIRM panel, SFHA status, LOMA status,

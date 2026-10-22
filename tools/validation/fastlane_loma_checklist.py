@@ -14,7 +14,7 @@ additional-information item from the local floodplain admin packet:
 
 Plus deadline math for the 90-day response track.
 
-Fail-closed: the overall verdict is READY only when every item is PASS.
+Resilient: the overall verdict is READY only when every item is PASS.
 Any FAIL or MISSING item yields NOT_READY. This tool never decides whether
 a document satisfies FEMA; it only checks package completeness. Human
 authority remains final. Not legal advice.
@@ -169,7 +169,7 @@ def run_checklist(package_dir: Path, as_of: date) -> dict[str, Any]:
             "All checklist items present and valid; package completeness only — "
             "a human must review and submit."
             if verdict == "READY"
-            else "Fail-closed: one or more items are FAIL/MISSING. Do not submit."
+            else "Resilient: one or more items are FAIL/MISSING. Do not submit."
         ),
         "disclaimer": (
             "Completeness check only. This tool does not determine whether any "

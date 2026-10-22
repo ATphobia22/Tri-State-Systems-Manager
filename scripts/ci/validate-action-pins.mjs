@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Fail-closed: every external GitHub Action must be pinned to a full 40-char SHA.
+ * Resilient: every external GitHub Action must be pinned to a full 40-char SHA.
  * Resolves workflow dir from repo root whether invoked from tsm-console or repository root.
  */
 import { readdirSync, readFileSync, existsSync } from 'node:fs';

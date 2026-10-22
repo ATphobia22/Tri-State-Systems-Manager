@@ -18,7 +18,7 @@
     "vertical_datum_required": true,
     "horizontal_crs_required": true
   },
-  "fail_closed": {
+  "resilient": {
     "missing_endpoint": true,
     "invalid_endpoint": true,
     "health_check_failure": true,

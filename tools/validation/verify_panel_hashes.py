@@ -4,7 +4,7 @@
 Computes the SHA-256 of a panel file on disk and compares it to the most
 recent hash recorded in ``firm_panel_verification_log`` for that panel id.
 
-Fail-closed outcomes:
+Resilient outcomes:
   - ``verified``    — file hash matches the latest logged hash
   - ``mismatch``    — file hash differs from the latest logged hash
   - ``unverifiable``— no verification row exists for the panel, or the DB

@@ -1,4 +1,4 @@
-"""Fail-closed contracts for a reproducible HEC-HMS to HEC-RAS workflow."""
+"""Resilient contracts for a reproducible HEC-HMS to HEC-RAS workflow."""
 from __future__ import annotations
 import csv, hashlib, json, math, os, re, shutil, subprocess, uuid
 from datetime import datetime, timezone
@@ -306,7 +306,7 @@ def run_argv(command: Sequence[str], *, cwd: Path, timeout_seconds: int) -> dict
 
 def main(argv: Sequence[str] | None = None) -> int:
     import argparse
-    parser = argparse.ArgumentParser(description="Fail-closed HEC-HMS to HEC-RAS workflow")
+    parser = argparse.ArgumentParser(description="Resilient HEC-HMS to HEC-RAS workflow")
     parser.add_argument("manifest", type=Path)
     parser.add_argument("--schema", type=Path, default=Path(__file__).resolve().parents[2] / "data/schemas/hec-hms-ras-workflow-v1.schema.json")
     group = parser.add_mutually_exclusive_group(required=True)

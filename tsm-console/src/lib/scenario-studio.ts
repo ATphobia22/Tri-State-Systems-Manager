@@ -90,7 +90,7 @@ export const SCENARIO_EVENTS: readonly ScenarioEvent[] = [
     intensity: 0.78,
     authorityClass: 'SCENARIO',
     status: 'unverified',
-    evidenceNote: 'Not a regulatory product. Fail-closed: no invented NAVD88 depths.',
+    evidenceNote: 'Not a regulatory product. Resilient: no invented NAVD88 depths.',
   },
   {
     id: 'historical-1937-context',

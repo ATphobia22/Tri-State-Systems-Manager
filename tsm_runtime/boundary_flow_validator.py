@@ -1,4 +1,4 @@
-"""Fail-closed CSV validation for proposed HEC-RAS boundary hydrographs.
+"""Resilient CSV validation for proposed HEC-RAS boundary hydrographs.
 
 This validates data shape and supplied hydraulic evidence only. It does not query
 USGS, prove a gauge is live/representative, or certify boundary conditions.

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:tsm:hec-coupled-run-manifest:v2",
   "title": "TSM Coupled HEC-HMS to HEC-RAS Run Manifest v2",
-  "description": "Version 2 contract for reproducible, fail-closed, approved-area HEC-HMS to HEC-RAS execution. It pins input and model package hashes, actual HEC runtime binaries, the exact DSS record, the selected RAS boundary, the transfer adapter, and storage references. Draft manifests are structurally valid but cannot execute.",
+  "description": "Version 2 contract for reproducible, resilient, approved-area HEC-HMS to HEC-RAS execution. It pins input and model package hashes, actual HEC runtime binaries, the exact DSS record, the selected RAS boundary, the transfer adapter, and storage references. Draft manifests are structurally valid but cannot execute.",
   "type": "object",
   "additionalProperties": false,
   "required": [

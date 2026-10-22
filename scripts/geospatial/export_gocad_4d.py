@@ -155,19 +155,19 @@ class GocadTSurfExporter:
     def add_flood_surface(self, min_x: float, min_y: float, max_x: float, max_y: float, year: int, wse_z: float):
         """Generates a dynamic 3D Water Surface Elevation (WSE) plane for a given flood crest year."""
         v1 = self.v_counter
-        self.vertices.append((v1, min_x, min_y, wse_z, wse_z, float(year), 375.0, 0, wse_z - 365.0))
+        self.vertices.append((v1, min_x, min_y, wse_z, wse_z, float(year), 369.1, 0, wse_z - 365.0))
         self.v_counter += 1
 
         v2 = self.v_counter
-        self.vertices.append((v2, max_x, min_y, wse_z, wse_z, float(year), 375.0, 0, wse_z - 365.0))
+        self.vertices.append((v2, max_x, min_y, wse_z, wse_z, float(year), 369.1, 0, wse_z - 365.0))
         self.v_counter += 1
 
         v3 = self.v_counter
-        self.vertices.append((v3, max_x, max_y, wse_z, wse_z, float(year), 375.0, 0, wse_z - 365.0))
+        self.vertices.append((v3, max_x, max_y, wse_z, wse_z, float(year), 369.1, 0, wse_z - 365.0))
         self.v_counter += 1
 
         v4 = self.v_counter
-        self.vertices.append((v4, min_x, max_y, wse_z, wse_z, float(year), 375.0, 0, wse_z - 365.0))
+        self.vertices.append((v4, min_x, max_y, wse_z, wse_z, float(year), 369.1, 0, wse_z - 365.0))
         self.v_counter += 1
 
         trgl_start = len(self.triangles)
@@ -236,13 +236,13 @@ def generate_full_4d_gocad_model(output_tsurf_path: str, output_multi_path: str)
 
     # 2. Add 4D City Growth Buildings (2020-2026)
     bldg_locations = [
-        (2952500.0, 2460500.0, 2020, 18129001, 2, 368.5, 375.0),
-        (2952800.0, 2460900.0, 2021, 18129002, 3, 369.2, 375.0),
-        (2953200.0, 2461200.0, 2022, 18129003, 1, 370.1, 375.0),
-        (2953600.0, 2461600.0, 2023, 18129004, 4, 371.0, 375.0),
-        (2954000.0, 2462000.0, 2024, 18129005, 2, 369.8, 375.0),
-        (2954400.0, 2462400.0, 2025, 18129006, 3, 370.5, 375.0),
-        (2954800.0, 2462800.0, 2026, 18129007, 2, 372.0, 375.0)
+        (2952500.0, 2460500.0, 2020, 18129001, 2, 368.5, 369.1),
+        (2952800.0, 2460900.0, 2021, 18129002, 3, 369.2, 369.1),
+        (2953200.0, 2461200.0, 2022, 18129003, 1, 370.1, 369.1),
+        (2953600.0, 2461600.0, 2023, 18129004, 4, 371.0, 369.1),
+        (2954000.0, 2462000.0, 2024, 18129005, 2, 369.8, 369.1),
+        (2954400.0, 2462400.0, 2025, 18129006, 3, 370.5, 369.1),
+        (2954800.0, 2462800.0, 2026, 18129007, 2, 372.0, 369.1)
     ]
 
     for cx, cy, yr, b_id, storeys, b_elev, bfe in bldg_locations:

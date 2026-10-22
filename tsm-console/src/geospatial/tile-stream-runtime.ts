@@ -1,6 +1,6 @@
 /**
  * Operational bridge: apply decideTileStream budgets to 3d-tiles-renderer.
- * Graceful streaming policy: budget adjustments affect request quality/telemetry only; missing tiles stay unavailable, never fabricated.
+ * Resilient: never fabricates tiles; only adjusts SSE / error targets and telemetry.
  */
 
 import {

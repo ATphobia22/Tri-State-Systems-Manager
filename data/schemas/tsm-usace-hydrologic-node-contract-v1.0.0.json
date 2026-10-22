@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://tuckerinc82.org/schemas/tsm-usace-hydrologic-node-contract-v1.0.0.json",
   "title": "TSM USACE Hydrologic Node Data Contract",
-  "description": "Versioned contract for ingesting USACE / NWIS / NWPS hydrologic nodes into the TSM Evidence plane. Fail-closed: observation vs simulation must be labeled. Does not assert FEMA model dependency on navigation pools without primary records.",
+  "description": "Versioned contract for ingesting USACE / NWIS / NWPS hydrologic nodes into the TSM Evidence plane. Resilient: observation vs simulation must be labeled. Does not assert FEMA model dependency on navigation pools without primary records.",
   "type": "object",
   "required": [
     "contract_version",
@@ -65,7 +65,7 @@
     },
     "gage_zero_navd88_ft": {
       "type": ["number", "null"],
-      "description": "Published zero only; null if not validated (fail-closed)"
+      "description": "Published zero only; null if not validated (resilient)"
     },
     "normal_pool_elevation_ft": {
       "type": ["number", "null"],

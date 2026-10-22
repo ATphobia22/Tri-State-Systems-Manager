@@ -75,7 +75,7 @@ Required terrain/modeling controls:
 - berm crest reference: **379.8 ft**;
 - sub-grid/high-resolution terrain property tables where computational-cell scale would otherwise lose terrain detail;
 - boundary conditions from the project profile with explicit provenance;
-- engineering constants: LAG **377.2 ft**, BFE **375.0 ft**, berm crest **379.8 ft**, FFE **382.5 ft**.
+- engineering constants: LAG **377.2 ft**, BFE **369.1 ft NAVD88** (regulatory, FIS 18129CV000A Table 9), berm crest **379.8 ft**, FFE **382.5 ft** (unverified).
 
 These are project modeling requirements/targets, not universally applicable regulatory mesh standards. The project engineer/model owner remains responsible for selecting and documenting final discretization, stability criteria, roughness, calibration, boundary conditions, and validation.
 

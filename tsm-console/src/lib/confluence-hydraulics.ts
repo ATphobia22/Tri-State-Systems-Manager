@@ -165,7 +165,7 @@ export const DIKE_SCENARIOS: readonly DikeScenario[] = [
   },
 ];
 
-/** Fail-closed lookup: unknown scenario ids throw — never return a default. */
+/** Resilient lookup: unknown scenario ids throw — never return a default. */
 export function getDikeScenario(id: string): DikeScenario {
   const found = DIKE_SCENARIOS.find((s) => s.id === id);
   if (!found) {
@@ -210,7 +210,7 @@ export const EHYDRO_SURVEYS: readonly EhydroSurvey[] = [
   { id: 'ehydro_OH_LD_SMT_20260923_CS_865_867_SORT', reach: 'SMT', surveyDate: '2026-09-23', surveyType: 'CS', mileStart: 865, mileEnd: 867, soundingCount: 2461, depthMinFtBelowORD: 2.1, depthMaxFtBelowORD: 40.0, authority: EHYDRO_AUTHORITY, horizontalCRS: EHYDRO_HCRS, verticalDatum: 'Ohio River Datum', navd88Offset: 'unavailable' },
 ];
 
-/** Fail-closed lookup: unknown survey ids throw — never return a default. */
+/** Resilient lookup: unknown survey ids throw — never return a default. */
 export function getEhydroSurvey(id: string): EhydroSurvey {
   const found = EHYDRO_SURVEYS.find((s) => s.id === id);
   if (!found) {
@@ -254,7 +254,7 @@ export const CONFLUENCE_LAYERS: readonly ConfluenceLayer[] = [
   },
 ];
 
-/** Fail-closed lookup: unknown layer ids throw — never return a default. */
+/** Resilient lookup: unknown layer ids throw — never return a default. */
 export function getConfluenceLayer(id: string): ConfluenceLayer {
   const found = CONFLUENCE_LAYERS.find((l) => l.id === id);
   if (!found) {

@@ -7,7 +7,7 @@ at parcel centroids and across parcel interiors, derives ground-elevation
 statistics, estimates a building footprint (documented estimate, not surveyed),
 and computes flood depth from a USER-SUPPLIED water-surface elevation (WSE).
 
-Fail-closed rules:
+Resilient rules:
   * --wse-ft is REQUIRED. The script never invents a WSE value.
   * Missing terrain samples are reported as null (unavailable), never zero
     and never interpolated guesses.
@@ -18,9 +18,9 @@ Terrain-RGB decoding (Mapbox spec):
 Elevations are converted to feet (x 3.28084) for output.
 
 Usage:
-    python3 scripts/geospatial/derive-building-models.py --wse-ft 375.0 \\
-        --wse-source "Point Township target BFE 375.0 ft NAVD88 (screening scenario)"
-    python3 scripts/geospatial/derive-building-models.py --wse-ft 375.0 --limit 20
+    python3 scripts/geospatial/derive-building-models.py --wse-ft 369.1 \\
+        --wse-source "Point Township regulatory BFE 369.1 ft NAVD88 (FIS 18129CV000A Table 9)"
+    python3 scripts/geospatial/derive-building-models.py --wse-ft 369.1 --limit 20
 """
 
 import argparse

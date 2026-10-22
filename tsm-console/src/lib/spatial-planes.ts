@@ -54,7 +54,7 @@ export const SPATIAL_PLANES: SpatialPlane[] = [
     id: 'plane-terrain',
     name: 'Terrain Mesh',
     description:
-      'Optional USGS 3DEP Terrain-RGB elevation mesh. Requires a provenance-controlled VITE_TSM_TERRAIN_RGB_URL_TEMPLATE; otherwise the 2D map remains available.',
+      'USGS 3DEP Terrain-RGB elevation mesh for MapLibre 3D terrain. Resilient: enabled only with a provenance-controlled VITE_TSM_TERRAIN_RGB_URL_TEMPLATE.',
     layerIds: ['indiana-terrain-rgb'],
   },
   {

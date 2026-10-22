@@ -35,11 +35,11 @@ test('local provider LOMA helper never auto-files', async () => {
   const provider = new LocalCapabilityProvider();
   const result = await provider.execute({
     capability: 'gates.loma_lag_bfe',
-    input: { lagFtNavd88: 377.2, bfeFtNavd88: 375.0 },
+    input: { lagFtNavd88: 377.2, bfeFtNavd88: 369.1 },
     context: { requestId: 'req-loma-1', permissions: { allow: [] } },
   });
   assert.equal(result.success, true);
   assert.equal((result.output as { autoFile: boolean }).autoFile, false);
   const freeboard = (result.output as { freeboardFt: number }).freeboardFt;
-  assert.ok(Math.abs(freeboard - 2.2) < 1e-9);
+  assert.ok(Math.abs(freeboard - 8.1) < 1e-9);
 });

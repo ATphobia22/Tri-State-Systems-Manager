@@ -31,7 +31,7 @@ for (const capability of catalog.capabilities ?? []) {
 if (catalog.capabilities.length < 25) failures.push('capability control plane is incomplete: expected at least 25 capabilities');
 
 if (failures.length) {
-  console.error('[tsm] FAIL-CLOSED capability control-plane gate');
+  console.error('[tsm] RESILIENT capability control-plane gate');
   failures.forEach((failure) => console.error('- ' + failure));
   process.exit(1);
 }

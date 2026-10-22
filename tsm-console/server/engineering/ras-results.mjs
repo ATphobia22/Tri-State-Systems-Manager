@@ -5,7 +5,7 @@
  * (POST /api/engineering/ras-results): downsampled depth cells from a
  * HEC-RAS depth raster, stamped with Bonebank BFE/LAG constants.
  *
- * Fail-closed: validateRasResultsPayload throws on any schema violation and
+ * Resilient: validateRasResultsPayload throws on any schema violation and
  * the caller must answer 422. Nothing here is a regulatory determination;
  * accepted payloads are MODEL_OUTPUT / DERIVATION pending human review.
  *

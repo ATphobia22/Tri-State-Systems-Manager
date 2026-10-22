@@ -7,7 +7,7 @@
  * - Proofreader API: proofreadFiling
  *
  * Non-negotiable properties:
- * - Fail-closed: when the needed API is not 'available', every function returns
+ * - Resilient: when the needed API is not 'available', every function returns
  *   `{ status: 'unavailable', reason }`. No fake results, no server fallback.
  * - Governing axiom is embedded in every system prompt:
  *   "Technology informs people; it does not silently govern people. Human authority remains final."

@@ -1,4 +1,4 @@
-"""Fail-closed HEC-RAS HDF5 output discovery and time-series extraction."""
+"""Resilient HEC-RAS HDF5 output discovery and time-series extraction."""
 from __future__ import annotations
 
 from dataclasses import dataclass

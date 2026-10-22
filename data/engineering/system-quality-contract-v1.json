@@ -67,7 +67,7 @@
     "model_output": "derived evidence only",
     "regulatory_output": "human/agency authority only",
     "credential_metadata": "human capability metadata only",
-    "external_dependencies": "pinned, auditable, fail-closed where required",
+    "external_dependencies": "pinned, auditable, resilient where required",
     "availability_policy": "degrade to explicit provisional/unverified state; never relabel unverified data as authoritative"
   },
   "runtime_observability": {

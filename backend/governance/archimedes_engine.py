@@ -1,4 +1,4 @@
-"""Fail-closed regulatory screening for TSM.
+"""Resilient regulatory screening for TSM.
 
 This module is a screening aid, not a regulatory determination. It records the
 source-backed rule thresholds verified on 2026-09-18 and requires human review

@@ -1,4 +1,4 @@
-"""Fail-closed validation for hydrologic boundary time series.
+"""Resilient validation for hydrologic boundary time series.
 
 This module validates supplied samples; it does not assert that a USGS gauge is
 representative of a model boundary or that a gauge is currently transmitting.

@@ -8,7 +8,7 @@
  * Source: USACE National Structure Inventory API
  *   https://nsi.sec.usace.army.mil/nsiapi/structures?fips=<FIPS>&fmt=fc
  *
- * Fail-closed: the script throws (and writes nothing) when the HTTP status is
+ * Resilient: the script throws (and writes nothing) when the HTTP status is
  * not 2xx, the body is not valid JSON, the payload is not a FeatureCollection
  * with a features array, or when any feature is missing a required NSI key
  * field. Never writes partial or placeholder output.
@@ -127,7 +127,7 @@ function fetchBytes(url) {
 }
 
 /**
- * Fail-closed validation of the parsed payload. Returns a stats object.
+ * Resilient validation of the parsed payload. Returns a stats object.
  * Throws on: non-object payload, missing/non-array features, empty features,
  * malformed feature/geometry entries, missing required property keys,
  * or coordinates outside WGS84 ranges.

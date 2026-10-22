@@ -31,7 +31,7 @@ function walk(dir) {
 }
 roots.forEach(walk);
 if (failures.length) {
-  console.error('[tsm] FAIL-CLOSED browser secret/credential gate');
+  console.error('[tsm] RESILIENT browser secret/credential gate');
   failures.forEach((failure) => console.error('- ' + failure));
   process.exit(1);
 }

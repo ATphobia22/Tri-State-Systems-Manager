@@ -18,7 +18,7 @@ TRUTHFUL LOD LABELING (per ArcGIS LOD2 spec, research-validated):
 Output: GeoJSON with per-feature `roofPlanes` (plane equation, normal,
 slope_deg, azimuth_deg, inlier_count, rmse_m) and `achievedLod` (1 or 2).
 
-Fail-closed: buildings with insufficient roof points (<30 Class 6 points)
+Resilient: buildings with insufficient roof points (<30 Class 6 points)
 or failed plane fits get achievedLod=1 and no fabricated roof geometry.
 """
 

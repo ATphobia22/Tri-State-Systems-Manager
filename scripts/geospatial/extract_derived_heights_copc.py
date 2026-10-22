@@ -23,7 +23,7 @@ CRS: NAD83(HARN) / Indiana West (ftUS) + NAVD88 height - Geoid12B (ftUS)
 Z values in feet. Height = median(roof) - median(ground) cancels the
 Geoid12B-vs-Geoid18 difference.
 
-Fail-closed: buildings where DERIVED extraction fails get
+Resilient: buildings where DERIVED extraction fails get
 lidarHeightStatus="UNAVAILABLE", never synthetic heights.
 """
 
@@ -398,11 +398,11 @@ def main() -> int:
         try:
             saved = json.load(open(state_path, encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as exc:
-            raise SystemExit(f"FAIL-CLOSED: unreadable checkpoint {state_path}: {exc}")
+            raise SystemExit(f"RESILIENT: unreadable checkpoint {state_path}: {exc}")
         if any(saved.get(k) != v for k, v in checkpoint_identity.items()):
-            raise SystemExit("FAIL-CLOSED: checkpoint input, tile list, script, or schema changed; use a fresh --checkpoint-dir")
+            raise SystemExit("RESILIENT: checkpoint input, tile list, script, or schema changed; use a fresh --checkpoint-dir")
         if not isinstance(saved.get("completed_tiles"), dict):
-            raise SystemExit("FAIL-CLOSED: checkpoint completed_tiles is invalid")
+            raise SystemExit("RESILIENT: checkpoint completed_tiles is invalid")
         state = saved
 
     # Restore validated per-tile results. Each result file is written before
@@ -413,18 +413,18 @@ def main() -> int:
     completed = state["completed_tiles"]
     for tile_url, record in completed.items():
         if tile_url not in tiles or not isinstance(record, dict):
-            raise SystemExit("FAIL-CLOSED: checkpoint references a tile outside the current tile list")
+            raise SystemExit("RESILIENT: checkpoint references a tile outside the current tile list")
         result_path = os.path.join(checkpoint_dir, record.get("results_file", ""))
         if not os.path.isfile(result_path) or sha256_file(result_path) != record.get("results_sha256"):
-            raise SystemExit(f"FAIL-CLOSED: checkpoint result missing or hash mismatch for {tile_url}")
+            raise SystemExit(f"RESILIENT: checkpoint result missing or hash mismatch for {tile_url}")
         tile_result = json.load(open(result_path, encoding="utf-8"))
         if tile_result.get("url") != tile_url or tile_result.get("tile_sha256") != record.get("sha256"):
-            raise SystemExit(f"FAIL-CLOSED: checkpoint tile identity mismatch for {tile_url}")
+            raise SystemExit(f"RESILIENT: checkpoint tile identity mismatch for {tile_url}")
         for index_text, saved_props in tile_result.get("feature_properties", {}).items():
             index = int(index_text)
             gap = gap_by_index.get(index)
             if gap is None or not isinstance(saved_props, dict):
-                raise SystemExit(f"FAIL-CLOSED: invalid feature index in checkpoint for {tile_url}: {index}")
+                raise SystemExit(f"RESILIENT: invalid feature index in checkpoint for {tile_url}: {index}")
             gap["props"].clear()
             gap["props"].update(saved_props)
             gap["done"] = True
@@ -586,7 +586,7 @@ def main() -> int:
     print(f"\n  Final: {ok_obs} OBSERVED + {ok_der} DERIVED + {unav} UNAVAILABLE = {len(features)}", flush=True)
 
     if stats["tiles_failed"]:
-        print(f"FAIL-CLOSED: {stats['tiles_failed']} tile(s) failed; rerun with the same checkpoint directory after resolving network/source failures.", file=sys.stderr, flush=True)
+        print(f"RESILIENT: {stats['tiles_failed']} tile(s) failed; rerun with the same checkpoint directory after resolving network/source failures.", file=sys.stderr, flush=True)
         return 2
     return 0
 

@@ -85,7 +85,7 @@ export function nearestAoiPoint(
 
 /**
  * Convert ellipsoid h → orthometric H, or reverse.
- * Fail-closed: requires a catalog point (no invented N).
+ * Resilient: requires a catalog point (no invented N).
  */
 export function convertWithAoiN(
   catalog: Geoid18AoiCatalog,
