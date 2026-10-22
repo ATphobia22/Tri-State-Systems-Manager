@@ -123,37 +123,47 @@ export function authorizeEvidenceArtifact(rawArtifact, reviewPayload, actorSubje
 
 export function validateAuthorizedArtifact(artifact) {
   const warnings = [];
-  const addWarning = (msg) => warnings.push(`resilient: ${msg}; marked provisional`);
+  const addWarning = (message) => warnings.push(String(message));
 
-  if (!artifact || typeof artifact !== 'object') addWarning('authorized artifact is required');
-  if (artifact?.governance_status !== 'human_authorized') addWarning('artifact is not human_authorized');
-  if (artifact?.human_review_status !== 'signed') addWarning('artifact does not carry a signed human review state');
-  if (!artifact?.human_authorization || typeof artifact.human_authorization !== 'object') {
+  if (!artifact || typeof artifact !== 'object' || Array.isArray(artifact)) {
+    addWarning('authorized artifact is required and must be an object');
+    return { valid: false, provisional: true, warnings };
+  }
+  if (artifact.governance_status !== 'human_authorized') {
+    addWarning('artifact is not human_authorized');
+  }
+  if (artifact.human_review_status !== 'signed') {
+    addWarning('artifact does not carry a signed human review state');
+  }
+  if (!artifact.human_authorization || typeof artifact.human_authorization !== 'object') {
     addWarning('sealed human authorization metadata is missing');
   }
-  if (!Array.isArray(artifact?.parent_artifacts) || artifact.parent_artifacts.length !== 1) {
+  if (!Array.isArray(artifact.parent_artifacts) || artifact.parent_artifacts.length !== 1) {
     addWarning('authorized artifact must reference exactly one raw parent');
   }
 
-  const reviewedHash = artifact?.human_authorization?.reviewed_artifact_hash;
+  const reviewedHash = artifact.human_authorization?.reviewed_artifact_hash;
   if (!HASH_RE.test(reviewedHash || '')) {
     addWarning('reviewed artifact hash is invalid');
   }
-  if (artifact?.human_authorization) {
-    validateReviewPayload(artifact.human_authorization, reviewedHash);
+
+  if (artifact.human_authorization && typeof artifact.human_authorization === 'object') {
+    const review = validateReviewPayload(artifact.human_authorization, reviewedHash);
+    if (review.provisional) {
+      for (const warning of review.warnings || []) {
+        addWarning(warning?.warning || warning?.message || JSON.stringify(warning));
+      }
+    }
   }
 
-  if (!HASH_RE.test(artifact?.content_hash_sha256 || '')) {
+  if (!HASH_RE.test(artifact.content_hash_sha256 || '')) {
     addWarning('authorized artifact hash is invalid');
-  }
-
-  if (warnings.length === 0 && artifact) {
+  } else if (warnings.length === 0) {
     const { content_hash_sha256: _unusedHash, ...unsignedArtifact } = artifact;
     const expectedHash = createHash('sha256')
       .update('TSM_AUTHORIZED_ARTIFACT:' + stableStringify(unsignedArtifact), 'utf8')
       .digest('hex');
-
-      if (expectedHash !== artifact.content_hash_sha256) {
+    if (expectedHash !== artifact.content_hash_sha256) {
       addWarning('authorized artifact integrity seal does not match its canonical payload');
     }
   }
@@ -162,15 +172,61 @@ export function validateAuthorizedArtifact(artifact) {
 }
 
 export async function publishAuthorizedArtifact(authorizedArtifact) {
-  validateAuthorizedArtifact(authorizedArtifact);
+  const validation = validateAuthorizedArtifact(authorizedArtifact);
+  let candidate = authorizedArtifact;
+  let provisionalWarnings = validation.warnings;
 
-  const { content_hash_sha256: _unusedHash, ...unsignedArtifact } = authorizedArtifact;
-  const canonical = `TSM_AUTHORIZED_ARTIFACT:${stableStringify(unsignedArtifact)}`;
+  // Resilient ingestion may persist questionable evidence, but it must never
+  // preserve an authoritative status or enter the authoritative Merkle ledger.
+  if (!validation.valid) {
+    candidate = {
+      ...authorizedArtifact,
+      governance_status: 'provisionally_authorized',
+      human_review_status: 'provisional',
+      validation_status: 'provisional',
+      provisional_warnings: provisionalWarnings,
+      _provisional: true,
+      _validation_warnings: provisionalWarnings,
+    };
+    const { content_hash_sha256: _unusedHash, ...unsignedCandidate } = candidate;
+    candidate.content_hash_sha256 = createHash('sha256')
+      .update('TSM_AUTHORIZED_ARTIFACT:' + stableStringify(unsignedCandidate), 'utf8')
+      .digest('hex');
+  }
+
+  const { content_hash_sha256: _unusedHash, ...unsignedArtifact } = candidate;
+  const canonical = 'TSM_AUTHORIZED_ARTIFACT:' + stableStringify(unsignedArtifact);
   const stored = await appendArtifact({
-    ...authorizedArtifact,
+    ...candidate,
     _governance_transition: true,
     _canonical_for_verify: canonical,
+    _provisional: Boolean(candidate._provisional),
+    _validation_warnings: candidate._validation_warnings || [],
   });
+
+  const isAuthoritative = validation.valid
+    && stored.governance_status === 'human_authorized'
+    && stored.human_review_status === 'signed'
+    && stored._provisional !== true;
+
+  if (!isAuthoritative) {
+    const warnings = [
+      ...provisionalWarnings,
+      ...(stored._validation_warnings || []),
+    ];
+    return {
+      publication_id: stored.artifact_id,
+      artifact_id: stored.artifact_id,
+      content_hash_sha256: stored.content_hash_sha256,
+      published_at: new Date().toISOString(),
+      status: 'PROVISIONAL_RECORDED',
+      provisional: true,
+      warnings: [...new Set(warnings)],
+      merkle_sequence: null,
+      merkle_leaf_hash: null,
+      merkle_root: null,
+    };
+  }
 
   await recordVerification(
     stored.artifact_id,
@@ -186,6 +242,8 @@ export async function publishAuthorizedArtifact(authorizedArtifact) {
     content_hash_sha256: stored.content_hash_sha256,
     published_at: new Date().toISOString(),
     status: 'MERKLE_APPEND_COMPLETE',
+    provisional: false,
+    warnings: [],
     merkle_sequence: merkle.sequence,
     merkle_leaf_hash: merkle.leaf_hash,
     merkle_root: merkle.root_hash,
