@@ -92,16 +92,22 @@ class TestWRESEvaluation(unittest.TestCase):
         self.assertIn('03381700', gages)
         self.assertIn('03378500', gages)
 
-        # Verify datums use NAVD88
-        self.assertEqual(gages['03381700']['datum_ft_navd88'], 309.10)
-        self.assertEqual(gages['03378500']['datum_ft_navd88'], 352.71)
+        # Station altitude is monitoring-location metadata, not the gage-zero
+        # conversion needed to transform stage to NAVD88.
+        self.assertEqual(gages['03381700']['station_altitude_ft_navd88'], 309.10)
+        self.assertEqual(gages['03378500']['station_altitude_ft_navd88'], 352.71)
+        for gage in gages.values():
+            self.assertEqual(gage['gage_height_vertical_datum'], 'GAGE_DATUM')
+            self.assertIsNone(gage['gage_zero_navd88_ft'])
 
-    def test_bfe_not_in_gage_data(self):
-        """Gage datums are not confused with BFE."""
-        # BFE is 369.1 ft, gage datums are much lower
-        for gid, g in wres_evaluation.TSM_GAGES.items():
-            self.assertLess(g['datum_ft_navd88'], 369.1,
-                          f"{gid} datum should be below BFE")
+    def test_station_altitude_is_not_used_as_bfe_or_gage_zero(self):
+        """Station altitude metadata stays separate from BFE and gage zero."""
+        for gid, gage in wres_evaluation.TSM_GAGES.items():
+            self.assertIn('station_altitude_ft_navd88', gage,
+                          f"{gid} station altitude metadata must be explicit")
+            self.assertEqual(gage['gage_height_vertical_datum'], 'GAGE_DATUM')
+            self.assertIsNone(gage['gage_zero_navd88_ft'],
+                              f"{gid} has no verified gage-zero conversion")
 
 
 if __name__ == '__main__':

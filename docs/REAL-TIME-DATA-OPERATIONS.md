@@ -51,10 +51,11 @@ Terrain should be hydro-enforced, preferably 3DEP 1 m or better. Required breakl
 
 Project constants:
 
-- LAG 377.2 ft NAVD88
-- BFE 375.0 ft NAVD88
-- Berm crest 379.8 ft NAVD88
-- FFE 382.5 ft NAVD88
+- LAG 377.2 ft NAVD88 (owner-supplied)
+- FEMA FIS reference BFE 369.1 ft NAVD88 (Table 9, Section A, RM 844.75); parcel-specific applicability remains UNVERIFIED because the address/centroid discrepancy is unresolved and the sampled effective FIRM layer has no usable BFE
+- Berm crest 379.8 ft NAVD88 (owner-supplied)
+- FFE 382.5 ft NAVD88 (owner-supplied)
+- Arithmetic differences from that reference: LAG +8.1 ft, berm +10.7 ft, FFE +13.4 ft; not a site-specific flood determination
 - No-rise tolerance 0.0 ft
 - Compensatory storage analysis range 1.2x–1.3x
 

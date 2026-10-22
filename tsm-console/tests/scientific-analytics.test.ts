@@ -10,9 +10,9 @@ import {
 describe('scientificSiteSnapshot', () => {
   it('computes deterministic freeboard margins vs BFE', () => {
     const snap = scientificSiteSnapshot();
-    expect(snap.freeboardMargins.lagFreeboard).toBe(2.2);
-    expect(snap.freeboardMargins.ffeFreeboard).toBe(7.5);
-    expect(snap.freeboardMargins.bermFreeboard).toBe(4.8);
+    expect(snap.freeboardMargins.lagFreeboard).toBe(8.1);
+    expect(snap.freeboardMargins.ffeFreeboard).toBe(13.4);
+    expect(snap.freeboardMargins.bermFreeboard).toBe(10.7);
   });
 
   it('derives a strict H3 parent chain res10 -> res8 -> res5', () => {

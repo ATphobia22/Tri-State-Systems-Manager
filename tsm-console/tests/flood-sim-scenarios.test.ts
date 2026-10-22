@@ -7,6 +7,7 @@ import {
   scenarioSeed,
 } from '../src/lib/flood-sim/scenarios';
 import { seedFromString } from '../src/lib/flood-sim/prng';
+import { BONEBANK_SITE_CONSTANTS } from '../src/lib/scientific-analytics';
 
 describe('flood-sim scenario registry', () => {
   it('ships exactly the two required flooding scenarios, all schema-valid', () => {
@@ -45,7 +46,7 @@ describe('flood-sim scenario registry', () => {
   it('q100 scenario carries the repo constants and FIRM panel', () => {
     const s = getScenario('q100-design-event');
     const byField = Object.fromEntries((s.sourcedValues ?? []).map((v) => [v.field, v]));
-    expect(byField['baseFloodElevationFtNavd88']?.value).toBe(375.0);
+    expect(byField['baseFloodElevationFtNavd88']?.value).toBe(BONEBANK_SITE_CONSTANTS.BFE);
     expect(byField['lowestAdjacentGradeFtNavd88']?.value).toBe(377.2);
     expect(s.source).toMatch(/18129C0265C/);
     expect(s.provisional).toBe(true); // storm shape + terrain remain provisional
