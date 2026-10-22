@@ -43,7 +43,7 @@ describe('Hazus damage monotonicity (wired module)', () => {
 });
 
 describe('lagBfeProbe', () => {
-  it('does freeboard arithmetic on the owner-supplied constants', () => {
+  it('does freeboard arithmetic on current constants without implying survey certification', () => {
     const r = lagBfeProbe(37.845887, -88.005075, BONEBANK_SITE_CONSTANTS);
     expect(r.lagMinusBfeFt).toBeCloseTo(377.2 - 369.1, 10);
     expect(r.ffeMinusBfeFt).toBeCloseTo(382.5 - 369.1, 10);
