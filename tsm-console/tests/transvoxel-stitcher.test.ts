@@ -48,6 +48,37 @@ describe('official Transvoxel transition mesher', () => {
     expect(TRANSITION_VERTEX_DATA_TABLE).toHaveLength(512);
     expect(TransvoxelStitcher.validateTables()).toBe(true);
   });
+  it('uses official case-bit order and every table edge crosses the scalar field', () => {
+    expect(TRANSITION_CASE_BITS).toEqual([0x01, 0x02, 0x04, 0x80, 0x100, 0x08, 0x40, 0x20, 0x10]);
+    const coarseCornerSamples = [0, 2, 6, 8];
+    const seenCases = new Set<number>();
+    for (let signMask = 0; signMask < 512; signMask++) {
+      const sdf = new Float32Array(9);
+      let expected = 0;
+      for (let i = 0; i < 9; i++) {
+        sdf[i] = (signMask & (1 << i)) !== 0 ? -1 : 1;
+        if (sdf[i]! < 0) expected |= TRANSITION_CASE_BITS[i]!;
+      }
+      const caseIndex = TransvoxelStitcher.evaluateTransitionCase(sdf);
+      expect(caseIndex).toBe(expected);
+      if (caseIndex === 0 || caseIndex === 0x1ff) continue;
+      seenCases.add(caseIndex);
+      const classId = TRANSITION_CELL_CLASS[caseIndex]! & 0x7f;
+      const [counts] = TRANSITION_CELL_DATA_TABLE[classId]!;
+      const vertexCount = counts >>> 4;
+      const vertices = TRANSITION_VERTEX_DATA_TABLE[caseIndex]!;
+      for (let vertex = 0; vertex < vertexCount; vertex++) {
+        const encodedEdge = vertices[vertex]! & 0xff;
+        const endpointA = encodedEdge & 0x0f;
+        const endpointB = (encodedEdge >>> 4) & 0x0f;
+        const sampleA = sdf[endpointA < 9 ? endpointA : coarseCornerSamples[endpointA - 9]!]!;
+        const sampleB = sdf[endpointB < 9 ? endpointB : coarseCornerSamples[endpointB - 9]!]!;
+        expect(sampleA < 0, `case ${caseIndex} edge ${endpointA}-${endpointB}`).not.toBe(sampleB < 0);
+      }
+    }
+    expect(seenCases.size).toBe(510);
+  });
+
   it('maps all 512 cases to valid canonical triangle indices', () => {
     for (let mask = 0; mask < 512; mask++) {
       const indices = TransvoxelStitcher.generateTransitionGeometry(mask);
