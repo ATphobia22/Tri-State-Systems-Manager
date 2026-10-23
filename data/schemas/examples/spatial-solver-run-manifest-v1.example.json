@@ -1,0 +1,66 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "fixture.synthetic-rainfall.modflow6.v1",
+  "purpose": "SYNTHETIC_FIXTURE",
+  "project_id": "TSM-SCHEMA-CONTRACT-TEST",
+  "approval_status": "DRAFT",
+  "solver": {
+    "name": "MODFLOW-6",
+    "version": "UNEXECUTED-FIXTURE",
+    "model_kind": "groundwater_flow",
+    "configuration_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "executable_sha256": null,
+    "runtime_image_digest": null
+  },
+  "execution": {
+    "status": "NOT_STARTED",
+    "started_at": null,
+    "finished_at": null,
+    "exit_code": null,
+    "timeout_seconds": 3600,
+    "command_argv": [
+      "not-executed-fixture"
+    ],
+    "environment_lock_sha256": null
+  },
+  "spatial_reference": {
+    "horizontal_crs": "UNVERIFIED-FIXTURE",
+    "vertical_datum": "UNVERIFIED-FIXTURE",
+    "horizontal_units": "UNVERIFIED",
+    "vertical_units": "UNVERIFIED",
+    "coordinate_epoch": null
+  },
+  "inputs": [
+    {
+      "input_id": "synthetic-recharge-fixture",
+      "source_uri": "urn:tsm:fixture:synthetic-recharge-v1",
+      "retrieved_at": "2026-10-23T00:00:00Z",
+      "valid_time": null,
+      "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "media_type": "application/octet-stream",
+      "units": null,
+      "horizontal_crs": null,
+      "vertical_datum": null,
+      "quality_status": "UNASSESSED",
+      "license_or_terms_uri": null
+    }
+  ],
+  "outputs": [],
+  "provenance": {
+    "source_commit": "cccccccccccccccccccccccccccccccccccccccc",
+    "created_at": "2026-10-23T00:00:00Z",
+    "manifest_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "parent_run_ids": [],
+    "evidence_uri": null
+  },
+  "scientific_validation": {
+    "status": "NOT_RUN",
+    "checks": [],
+    "uncertainty_notes": [
+      "Synthetic contract fixture only; no solver was executed and no scientific result is asserted."
+    ],
+    "human_review_required": true,
+    "reviewer_id": null,
+    "reviewed_at": null
+  }
+}

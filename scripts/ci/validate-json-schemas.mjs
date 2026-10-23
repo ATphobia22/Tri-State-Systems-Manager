@@ -11,9 +11,11 @@ const schemaPaths = [
   path.join('data', 'schemas', 'nfip-discrepancy.schema.json'),
   'data/schemas/tsm-flood-information-federation-v1.schema.json',
   'data/schemas/hec-coupled-run-manifest-v1.schema.json',
+  'data/schemas/spatial-solver-run-manifest-v1.schema.json',
   'data/schemas/posey-site-aoi-v1.schema.json',
 ];
 const hecCoupledRunManifestExample = JSON.parse(fs.readFileSync(path.join(repoRoot, 'data/schemas/examples/hec-coupled-run-manifest-v1.example.json'), 'utf8'));
+const spatialSolverRunManifestExample = JSON.parse(fs.readFileSync(path.join(repoRoot, 'data/schemas/examples/spatial-solver-run-manifest-v1.example.json'), 'utf8'));
 const poseySiteAoiExample = JSON.parse(fs.readFileSync(path.join(repoRoot, 'data/posey-county/evidence/13101-bonebank-road-site-aoi-v1.json'), 'utf8'));
 const failures = [];
 const fail = (message) => failures.push(message);
@@ -188,7 +190,7 @@ for (const relative of schemaPaths) {
   try { schema = JSON.parse(fs.readFileSync(file, 'utf8')); }
   catch (error) { fail(relative + ': invalid JSON: ' + error.message); continue; }
   if (schema.$schema !== 'https://json-schema.org/draft/2020-12/schema') fail(relative + ': unexpected JSON Schema dialect');
-  const example = relative.includes('posey-site-aoi-v1') ? poseySiteAoiExample : relative.includes('hec-coupled-run-manifest') ? hecCoupledRunManifestExample : relative.includes('data-contract') ? dataExample : relative.includes('regulatory-gate') ? regulatoryGateExample : relative.includes('nfip-discrepancy') ? nfipLayer2Example : relative.includes('flood-information-federation') ? floodFederationExample : evidenceExample;
+  const example = relative.includes('spatial-solver-run-manifest') ? spatialSolverRunManifestExample : relative.includes('posey-site-aoi-v1') ? poseySiteAoiExample : relative.includes('hec-coupled-run-manifest') ? hecCoupledRunManifestExample : relative.includes('data-contract') ? dataExample : relative.includes('regulatory-gate') ? regulatoryGateExample : relative.includes('nfip-discrepancy') ? nfipLayer2Example : relative.includes('flood-information-federation') ? floodFederationExample : evidenceExample;
   validate(example, schema, relative, schema);
   // The Posey candidate AOI is a public parcel-evidence record and is validated
   // against its own schema here. Other case-specific NFIP examples remain
