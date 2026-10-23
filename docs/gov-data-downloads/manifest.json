@@ -1,0 +1,183 @@
+{
+ "collection": "TSM tri-state government data downloads",
+ "counties": [
+  "Posey IN",
+  "Vanderburgh IN",
+  "Warrick IN",
+  "Henderson KY",
+  "Union KY",
+  "White IL",
+  "Wabash IL",
+  "Gallatin IL"
+ ],
+ "date_accessed_utc": "2026-10-23T14:12:45Z",
+ "items": [
+  {
+   "file": "fema-mt1-instructions-102021.pdf",
+   "agency": "FEMA",
+   "url": "https://www.fema.gov/sites/default/files/documents/fema_MT-1-instructions_102021.pdf",
+   "date_accessed": "2026-10-23T14:12:45Z",
+   "description": "MT-1 application instructions (Oct 2021) for CLOMA/LOMA/LOMR-F requests"
+  },
+  {
+   "file": "fema-mt1-form-042013.pdf",
+   "agency": "FEMA",
+   "url": "https://www.fema.gov/sites/default/files/2020-07/mt_1_form_rev_04_2013.pdf",
+   "date_accessed": "2026-10-23T14:12:45Z",
+   "description": "MT-1 application form (rev 04/2013)"
+  },
+  {
+   "file": "fema-payment-information-form.pdf",
+   "agency": "FEMA",
+   "url": "https://www.fema.gov/sites/default/files/documents/fema_flood-maps-payment-information-form.pdf",
+   "date_accessed": "2026-10-23T14:12:45Z",
+   "description": "FEMA flood-map-related fee payment information form"
+  },
+  {
+   "file": "fema-mt1-page.html",
+   "agency": "FEMA",
+   "url": "https://www.fema.gov/flood-maps/change-your-flood-zone/paper-application-forms/mt-1",
+   "date_accessed": "2026-10-23T14:12:45Z",
+   "description": "FEMA MT-1 paper application forms landing page (HTML snapshot)"
+  },
+  {
+   "file": "fema-fma-program-page.html",
+   "agency": "FEMA",
+   "url": "https://www.fema.gov/grants/mitigation/learn/flood-mitigation-assistance",
+   "date_accessed": "2026-10-23T14:12:45Z",
+   "description": "FMA program page: FY2026 NOFO published 2026-10-22, up to $400M, applications due 2027-02-26 3pm ET"
+  },
+  {
+   "file": "grantsgov-fy2026-fma-swift-current.html",
+   "agency": "Grants.gov/FEMA",
+   "url": "https://simpler.grants.gov/opportunity/4802584e-01a8-4435-9ce9-710fbc85cba0",
+   "date_accessed": "2026-10-23T14:12:45Z",
+   "description": "FY2026 FMA Swift Current opportunity listing (closes 2028-01-31); NOFO PDF FY2026_FMA_Swift_Current_NOFO_Final_07-10-2026_508.pdf linked on page"
+  },
+  {
+   "file": "fema-hmgp-program-page.html",
+   "agency": "FEMA",
+   "url": "https://www.fema.gov/grants/mitigation/learn/hazard-mitigation",
+   "date_accessed": "2026-10-23T14:12:45Z",
+   "description": "FEMA Hazard Mitigation Grant Program page (HTML snapshot)"
+  },
+  {
+   "file": "usgs-5gage-sites.json",
+   "agency": "USGS NWIS",
+   "url": "https://waterservices.usgs.gov/nwis/site/?format=rdb&sites=03378500,03381700,03322000,03377500,03304300&siteOutput=expanded&siteStatus=all",
+   "date_accessed": "2026-10-23T14:12:45Z",
+   "description": "Site metadata for 5 tri-state gages incl. datums: 03304300 Newburgh 329.20, 03322000 Evansville 328.32, 03377500 Mt Carmel 368.98, 03378500 New Harmony 352.71, 03381700 Shawneetown 309.10 ft NAVD88 (raw: usgs-5gage-sites.rdb)"
+  },
+  {
+   "file": "usgs-5gage-current.json",
+   "agency": "USGS NWIS",
+   "url": "https://waterservices.usgs.gov/nwis/iv/?format=json&sites=03378500,03381700,03322000,03377500,03304300&parameterCd=00065,00060&siteStatus=all",
+   "date_accessed": "2026-10-23T14:12:45Z",
+   "description": "Latest instantaneous gage height/discharge snapshot 2026-10-23 ~08:30-09:00 CT (raw: usgs-5gage-iv.json)"
+  },
+  {
+   "file": "nws-hydro-definitions.html",
+   "agency": "NWS",
+   "url": "https://www.weather.gov/dtx/hydro_defs",
+   "date_accessed": "2026-10-23T14:12:45Z",
+   "description": "NWS hydrology watch/warning/advisory definitions (minor/moderate/major flooding, action stage)"
+  },
+  {
+   "file": "nws-directive-10-902-flood-ops.pdf",
+   "agency": "NWS",
+   "url": "https://www.weather.gov/media/directives/010_pdfs_archived/pd01009022c022002d.pdf",
+   "date_accessed": "2026-10-23T14:12:45Z",
+   "description": "NWS directive 10-902: flood watch (50-80% chance) / warning (80%+) issuance criteria"
+  },
+  {
+   "file": "nws-nwps-mtvi3.json",
+   "agency": "NWS NWPS",
+   "url": "https://api.water.noaa.gov/nwps/v1/gauges/MTVI3",
+   "date_accessed": "2026-10-23T14:12:45Z",
+   "description": "Mount Vernon OH River gauge: action 28, flood 35, moderate 45, major 52 ft; 1937 crest 59.21 ft; WFO Paducah (PAH)"
+  },
+  {
+   "file": "nws-nwps-shni2.json",
+   "agency": "NWS NWPS",
+   "url": "https://api.water.noaa.gov/nwps/v1/gauges/SHNI2",
+   "date_accessed": "2026-10-23T14:12:45Z",
+   "description": "Shawneetown OH River gauge: action 30, flood 33, moderate 43, major 53 ft"
+  },
+  {
+   "file": "nws-nwps-NHRI3.json",
+   "agency": "NWS NWPS",
+   "url": "https://api.water.noaa.gov/nwps/v1/gauges/NHRI3",
+   "date_accessed": "2026-10-23T14:12:45Z",
+   "description": "New Harmony Wabash River gauge: action 10, flood 15, moderate 20, major 23 ft"
+  },
+  {
+   "file": "nws-nwps-EVVI3.json",
+   "agency": "NWS NWPS",
+   "url": "https://api.water.noaa.gov/nwps/v1/gauges/EVVI3",
+   "date_accessed": "2026-10-23T14:12:45Z",
+   "description": "Evansville OH River gauge: action 24, flood 42, moderate 48, major 52 ft"
+  },
+  {
+   "file": "indiana-dnr-bafm-page.html",
+   "agency": "Indiana DNR",
+   "url": "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/the-indiana-best-available-floodplain-mapping/",
+   "date_accessed": "2026-10-23T14:12:45Z",
+   "description": "IN DNR Best Available Floodplain Mapping program page (18,000+ stream miles Zone A studies; county downloads)"
+  },
+  {
+   "file": "indiana-dnr-floodplain-faq.pdf",
+   "agency": "Indiana DNR",
+   "url": "https://secure.in.gov/dnr/water/files/wa-floodplain-FAQ.pdf",
+   "date_accessed": "2026-10-23T14:12:45Z",
+   "description": "IN DNR Division of Water floodplain FAQ"
+  },
+  {
+   "file": "indiana-dnr-bafm-anchor-query.json",
+   "agency": "Indiana DNR (ArcGIS REST)",
+   "url": "https://services.arcgis.com/tKsJAIiLjd90D5q2/ArcGIS/rest/services/FloodHazard_Best_Merge/FeatureServer/0/query",
+   "date_accessed": "2026-10-23T14:12:45Z",
+   "description": "BAFM query at anchor 37.845887,-88.005075: FLD_ZONE=AE, SOURCE_CIT=18129C_STUDY3 (service def: indiana-dnr-bafm-service.json)"
+  },
+  {
+   "file": "indiana-ocra-cdbg-construction-grants.html",
+   "agency": "Indiana OCRA",
+   "url": "https://www.in.gov/ocra/cdbg/cdbg-construction-grants/",
+   "date_accessed": "2026-10-23T14:12:45Z",
+   "description": "OCRA CDBG construction grants incl. Stormwater Improvements Program (max $750,000; 10% local match; $5,000/beneficiary)"
+  },
+  {
+   "file": "illinois-iema-mitigation-programs.html",
+   "agency": "Illinois IEMA-OHS",
+   "url": "https://iemaohs.illinois.gov/recovery/mitigation/mitigationprograms.html",
+   "date_accessed": "2026-10-23T14:12:45Z",
+   "description": "IL IEMA mitigation programs page: FMA, HMGP, PDM, SRL (75/25 cost share)"
+  }
+ ],
+ "not_downloaded": [
+  {
+   "what": "USGS SIR 2016-5119 (Flood-Inundation Maps, Wabash River at New Harmony) PDF",
+   "url": "https://pubs.usgs.gov/sir/2016/5119/sir20165119.pdf",
+   "reason": "Cloudflare 403 from this network; already ingested in TSM repo from prior work"
+  },
+  {
+   "what": "USACE Louisville District Section 205 page and news articles",
+   "url": "https://www.lrd.usace.army.mil/Submit-ArticleCS/Programs/Article/3648710/section-205-flood-damage-reduction/",
+   "reason": "HTTP 403 Access Denied (Akamai) from this network; same for mvp.usace.army.mil fact sheet"
+  },
+  {
+   "what": "Kentucky Emergency Management hazard mitigation page",
+   "url": "https://www.kyem.ky.gov/recover-and-mitigate/disaster-mitigation",
+   "reason": "HTTP 403 from this network"
+  },
+  {
+   "what": "FEMA MSC direct NFHL county downloads (8 counties)",
+   "url": "https://msc.fema.gov",
+   "reason": "Blocked by egress proxy per prior TSM work; NFHL data already chunked in repo data/fabrics/government-downloads/"
+  },
+  {
+   "what": "NWS NWPS bulk/WFO gauge list endpoints",
+   "url": "https://api.water.noaa.gov/nwps/v1/gauges (+ ?wfo=PAH)",
+   "reason": "Bulk list times out from this network; per-gauge endpoints work (MTVI3, SHNI2, NHRI3, EVVI3 fetched)"
+  }
+ ]
+}

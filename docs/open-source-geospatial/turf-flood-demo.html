@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TSM Turf.js Flood Buffer Analysis Demo</title>
+<script src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f3f8fb; color: #12263e; padding: 20px; }
+  h1 { font-size: 1.5rem; margin-bottom: 8px; }
+  p.subtitle { color: #5a6c7d; margin-bottom: 20px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .card h2 { font-size: 1.1rem; margin-bottom: 12px; color: #1a5276; }
+  .result { background: #eef4fb; border-radius: 8px; padding: 12px; margin-top: 12px; font-family: monospace; font-size: 0.85rem; white-space: pre-wrap; }
+  .result .highlight { color: #1a5276; font-weight: bold; }
+  button { background: #1a5276; color: #fff; border: none; border-radius: 8px; padding: 12px 24px; font-size: 1rem; cursor: pointer; min-height: 48px; }
+  button:hover { background: #2471a3; }
+  .controls { margin-bottom: 20px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  label { font-weight: 600; }
+  input[type="number"] { padding: 10px; border: 2px solid #d4e6f1; border-radius: 8px; font-size: 1rem; width: 100px; }
+  #map { width: 100%; height: 400px; border-radius: 12px; background: #e8f4f8; position: relative; overflow: hidden; }
+  .legend { display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap; font-size: 0.9rem; }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .swatch { width: 20px; height: 20px; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<h1>🌊 TSM Turf.js Flood Buffer Analysis</h1>
+<p class="subtitle">Client-side spatial analysis using Turf.js v7 (no server required). All calculations run in your browser.</p>
+
+<div class="controls">
+  <label for="bufferDist">Buffer distance (meters):</label>
+  <input type="number" id="bufferDist" value="500" min="50" max="5000" step="50">
+  <button onclick="runAnalysis()">Run Flood Buffer Analysis</button>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h2>📐 Buffer Analysis</h2>
+    <p>Creates a buffer zone around the Zone AE floodplain polygon. Properties inside this buffer are at elevated flood risk.</p>
+    <div class="result" id="bufferResult">Click "Run" to calculate...</div>
+  </div>
+  <div class="card">
+    <h2>📏 Distance &amp; Area</h2>
+    <p>Calculates distances from gauges to the anchor site and the floodplain area.</p>
+    <div class="result" id="distanceResult">Click "Run" to calculate...</div>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h2>🔗 Intersection Test</h2>
+    <p>Checks if a hypothetical building footprint intersects the flood zone.</p>
+    <div class="result" id="intersectResult">Click "Run" to calculate...</div>
+  </div>
+  <div class="card">
+    <h2>📍 Point-in-Polygon</h2>
+    <p>Tests whether key locations fall inside the flood zone.</p>
+    <div class="result" id="pipResult">Click "Run" to calculate...</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>🗺️ Visual Map (SVG rendering of Turf.js output)</h2>
+  <div id="map"></div>
+  <div class="legend">
+    <div class="legend-item"><div class="swatch" style="background:#85c1e9"></div> Flood Zone (Zone AE)</div>
+    <div class="legend-item"><div class="swatch" style="background:#f9e79f"></div> Buffer Zone</div>
+    <div class="legend-item"><div class="swatch" style="background:#e74c3c"></div> Anchor Site</div>
+    <div class="legend-item"><div class="swatch" style="background:#2ecc71"></div> Gauges</div>
+  </div>
+</div>
+
+<script>
+// TSM verified data (BFE 369.1 ft NAVD88, anchor 37.845887, -88.005075)
+const floodZone = turf.polygon([[
+  [-88.020, 37.840], [-87.990, 37.840], [-87.990, 37.850],
+  [-88.020, 37.850], [-88.020, 37.840]
+]], { name: "Zone AE Floodplain", bfe_ft: 369.1 });
+
+const anchorSite = turf.point([-88.005075, 37.845887], { name: "Anchor Site (13101 Bonebank Rd)" });
+
+const gauges = turf.featureCollection([
+  turf.point([-87.9354, 38.1294], { name: "USGS 03378500 New Harmony" }),
+  turf.point([-88.1334, 37.6967], { name: "USGS 03381700 Shawneetown" }),
+  turf.point([-87.8967, 37.9356], { name: "NWS MTVI3 Mount Vernon" })
+]);
+
+// Hypothetical building near the flood zone edge
+const building = turf.polygon([[
+  [-88.008, 37.843], [-88.004, 37.843], [-88.004, 37.846],
+  [-88.008, 37.846], [-88.008, 37.843]
+]], { name: "Proposed Building" });
+
+function runAnalysis() {
+  const bufferMeters = parseFloat(document.getElementById('bufferDist').value) || 500;
+  const bufferKm = bufferMeters / 1000;
+
+  // 1. BUFFER
+  const buffered = turf.buffer(floodZone, bufferKm, { units: 'kilometers' });
+  const bufferAreaKm2 = turf.area(buffered) / 1e6;
+  const floodAreaKm2 = turf.area(floodZone) / 1e6;
+  document.getElementById('bufferResult').innerHTML =
+    `Flood zone area: <span class="highlight">${floodAreaKm2.toFixed(3)} km²</span>\n` +
+    `Buffer (${bufferMeters}m): <span class="highlight">${bufferAreaKm2.toFixed(3)} km²</span>\n` +
+    `Buffer adds: <span class="highlight">${(bufferAreaKm2 - floodAreaKm2).toFixed(3)} km²</span> of at-risk area`;
+
+  // 2. DISTANCES
+  let distText = '';
+  gauges.features.forEach(g => {
+    const d = turf.distance(anchorSite, g, { units: 'kilometers' });
+    distText += `${g.properties.name}\n  → <span class="highlight">${d.toFixed(2)} km</span> from anchor\n`;
+  });
+  document.getElementById('distanceResult').innerHTML = distText;
+
+  // 3. INTERSECTION
+  const intersects = turf.booleanIntersects(building, floodZone);
+  const buildingInBuffer = turf.booleanIntersects(building, buffered);
+  document.getElementById('intersectResult').innerHTML =
+    `Building intersects flood zone: <span class="highlight">${intersects ? 'YES ⚠️' : 'NO ✓'}</span>\n` +
+    `Building intersects buffer zone: <span class="highlight">${buildingInBuffer ? 'YES ⚠️' : 'NO ✓'}</span>`;
+
+  // 4. POINT IN POLYGON
+  let pipText = '';
+  const inFlood = turf.booleanPointInPolygon(anchorSite, floodZone);
+  pipText += `Anchor site in flood zone: <span class="highlight">${inFlood ? 'YES' : 'NO'}</span>\n`;
+  gauges.features.forEach(g => {
+    const inside = turf.booleanPointInPolygon(g, floodZone);
+    pipText += `${g.properties.name}: <span class="highlight">${inside ? 'INSIDE' : 'OUTSIDE'}</span>\n`;
+  });
+  document.getElementById('pipResult').innerHTML = pipText;
+
+  // 5. DRAW MAP
+  drawMap(buffered);
+}
+
+function drawMap(buffered) {
+  const mapDiv = document.getElementById('map');
+  const W = mapDiv.clientWidth, H = 400;
+
+  // Project lon/lat to SVG coordinates
+  const allCoords = [];
+  turf.coordAll(turf.featureCollection([floodZone, buffered, anchorSite, gauges, building]))
+    .forEach(c => allCoords.push(c));
+  const lons = allCoords.map(c => c[0]), lats = allCoords.map(c => c[1]);
+  const minLon = Math.min(...lons) - 0.005, maxLon = Math.max(...lons) + 0.005;
+  const minLat = Math.min(...lats) - 0.005, maxLat = Math.max(...lats) + 0.005;
+
+  const px = lon => ((lon - minLon) / (maxLon - minLon)) * (W - 40) + 20;
+  const py = lat => H - (((lat - minLat) / (maxLat - minLat)) * (H - 40) + 20);
+
+  const polyToPath = (coords) =>
+    coords[0].map((c, i) => `${i === 0 ? 'M' : 'L'}${px(c[0]).toFixed(1)},${py(c[1]).toFixed(1)}`).join(' ') + ' Z';
+
+  let svg = `<svg width="${W}" height="${H}" style="display:block">`;
+
+  // Buffer zone
+  svg += `<path d="${polyToPath(buffered.geometry.coordinates)}" fill="#f9e79f" fill-opacity="0.6" stroke="#f39c12" stroke-width="1.5"/>`;
+  // Flood zone
+  svg += `<path d="${polyToPath(floodZone.geometry.coordinates)}" fill="#85c1e9" fill-opacity="0.7" stroke="#2471a3" stroke-width="2"/>`;
+  // Building
+  svg += `<path d="${polyToPath(building.geometry.coordinates)}" fill="#a569bd" fill-opacity="0.5" stroke="#7d3c98" stroke-width="1.5"/>`;
+  // Gauges
+  gauges.features.forEach(g => {
+    svg += `<circle cx="${px(g.geometry.coordinates[0])}" cy="${py(g.geometry.coordinates[1])}" r="6" fill="#2ecc71" stroke="#1e8449" stroke-width="2"/>`;
+  });
+  // Anchor
+  const ax = px(anchorSite.geometry.coordinates[0]), ay = py(anchorSite.geometry.coordinates[1]);
+  svg += `<circle cx="${ax}" cy="${ay}" r="8" fill="#e74c3c" stroke="#fff" stroke-width="2"/>`;
+  svg += `<text x="${ax + 12}" y="${ay + 4}" font-size="12" font-weight="bold" fill="#c0392b">Anchor</text>`;
+
+  svg += '</svg>';
+  mapDiv.innerHTML = svg;
+}
+
+// Auto-run on load
+window.onload = runAnalysis;
+</script>
+
+</body>
+</html>

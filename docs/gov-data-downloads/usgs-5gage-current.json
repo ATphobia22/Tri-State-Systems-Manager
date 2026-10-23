@@ -1,0 +1,54 @@
+{
+ "03304300": {
+  "site": "03304300",
+  "name": "OHIO RIVER AT NEWBURGH LOCK AND DAM, IN",
+  "Gage height, ft": {
+   "value": "13.87",
+   "dateTime": "2026-10-23T08:00:00.000-05:00"
+  }
+ },
+ "03322000": {
+  "site": "03322000",
+  "name": "OHIO RIVER AT EVANSVILLE, IN",
+  "Gage height, ft": {
+   "value": "14.18",
+   "dateTime": "2026-10-23T09:00:00.000-05:00"
+  }
+ },
+ "03377500": {
+  "site": "03377500",
+  "name": "WABASH RIVER AT MT. CARMEL, IL",
+  "Streamflow, ft&#179;/s": {
+   "value": "8340",
+   "dateTime": "2026-10-23T08:45:00.000-05:00"
+  },
+  "Gage height, ft": {
+   "value": "3.75",
+   "dateTime": "2026-10-23T08:45:00.000-05:00"
+  }
+ },
+ "03378500": {
+  "site": "03378500",
+  "name": "WABASH RIVER AT NEW HARMONY, IN",
+  "Streamflow, ft&#179;/s": {
+   "value": "8850",
+   "dateTime": "2026-10-23T08:30:00.000-05:00"
+  },
+  "Gage height, ft": {
+   "value": "2.20",
+   "dateTime": "2026-10-23T08:30:00.000-05:00"
+  }
+ },
+ "03381700": {
+  "site": "03381700",
+  "name": "OHIO RIVER AT OLD SHAWNEETOWN, IL-KY",
+  "Streamflow, ft&#179;/s": {
+   "value": "255000",
+   "dateTime": "2024-02-09T08:45:00.000-06:00"
+  },
+  "Gage height, ft": {
+   "value": "15.31",
+   "dateTime": "2026-10-23T07:30:00.000-06:00"
+  }
+ }
+}
