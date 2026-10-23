@@ -62,6 +62,7 @@ jobs:
           --evidence "$RUNNER_TEMP/tsm-posey-47620-evidence/posey-county-47620-terrain-evidence.json"
           --output "$RUNNER_TEMP/tsm-posey-47620-evidence/real-dem-transvoxel-benchmark.json"
       - name: Upload Posey County ZIP 47620 terrain bundle
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: posey-county-47620-terrain-evidence-${{ github.sha }}
