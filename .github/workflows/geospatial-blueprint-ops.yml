@@ -66,3 +66,6 @@ jobs:
       - name: Tile-stream unit tests
         working-directory: tsm-console
         run: node --test src/geospatial/tile-stream-controller.test.mjs
+      - name: Exhaustive TypeScript Transvoxel mesher tests
+        working-directory: tsm-console
+        run: npx --no-install vitest run tests/transvoxel-stitcher.test.ts
