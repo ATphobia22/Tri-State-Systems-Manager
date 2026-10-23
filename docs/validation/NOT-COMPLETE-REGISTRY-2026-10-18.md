@@ -42,6 +42,13 @@ This registry is the authoritative list of the five remaining terrain/geospatial
 - **Acceptance evidence:** Reproducible benchmark protocol, device/browser/runtime versions, raw result artifact, percentile timings, memory measurements, failure observations, and explicitly declared support limits.
 - **Scope boundary:** A successful desktop build is not evidence of cross-device performance or mobile compatibility.
 
+## Verification updates (2026-10-23)
+
+- Added a WebGPU probe that distinguishes API absence, adapter failure, device-creation failure, and a usable device; the `ready` state explicitly does not imply that a terrain workload is implemented.
+- Removed the placeholder GPU mesh behavior: `extractMesh()` now raises an explicit `WebGPUWorkloadUnavailableError` instead of returning an empty array that could be misinterpreted as valid geometry. Device-loss state is observed and exposed.
+- Hardened the CPU depth pyramid against invalid dimensions, non-finite/out-of-range depth samples, and off-screen/invalid query rectangles. Invalid queries conservatively remain visible; the implementation remains CPU-only.
+- Added automated contract tests for these behaviors. These are software-level improvements, not closure of the hardware/data-dependent acceptance gates below.
+
 ## Release status
 
 These five items remain open until their acceptance evidence is committed and CI has completed against the exact candidate commit. A queued, pending, or cancelled workflow is not a passing result. If external datasets, services, or suitable hardware are unavailable, record the limitation and keep the affected capability marked unverified rather than inventing evidence.
