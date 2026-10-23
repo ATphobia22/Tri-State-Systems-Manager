@@ -56,6 +56,7 @@
     "packages/quantum/src/**/*.ts",
     "packages/compute/src/**/*.ts",
     "packages/units/src/**/*.ts",
-    "packages/validation/src/**/*.ts"
+    "packages/validation/src/**/*.ts",
+    "packages/government/src/**/*.ts"
   ]
 }
