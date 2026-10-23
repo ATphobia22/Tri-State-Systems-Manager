@@ -55,6 +55,20 @@ class ProductionBridgeContractTests(unittest.TestCase):
         self.assertIs(balanced, root)
         self.assertTrue(bridge.get_leaves(balanced))
 
+    def test_transition_mesher_samples_independent_coarse_side_values(self):
+        from transvoxel_transition_mesh import sample_transition_sdfs
+
+        samples = sample_transition_sdfs(
+            lambda x, y, z: x + 2.0 * y + 3.0 * z,
+            origin=(0.0, 0.0, 0.0),
+            axis=0,
+            extent=1.0,
+            direction=1,
+        )
+        self.assertEqual(len(samples), 13)
+        self.assertEqual(samples[9:13], [1.0, 4.0, 6.0, 3.0])
+        self.assertNotEqual(samples[9:13], [samples[i] for i in (0, 2, 8, 6)])
+
     def test_height_sampler_rejects_extrapolation_and_nonfinite_inputs(self):
         height = bridge.make_height_sampler(np.arange(16, dtype=float).reshape(4, 4), 2.0)
         self.assertAlmostEqual(height(2.0, 2.0), 5.0)
