@@ -66,17 +66,129 @@ def s3_list(prefix: str, max_keys: int = 1000) -> list:
     return keys
 
 
+import math
+import re
+
+# ---------------------------------------------------------------------------
+# Tile-name parsing (verified against live prd-tnm S3 keys, 2026-10-23)
+#
+# Seamless 1as / 1/3as:  USGS_{1|13}_n{lat}{e|w}{lon}  e.g. USGS_1_n37w088
+#   -> 1-degree tile; the name encodes the tile's NE corner:
+#      lat in [lat-1, lat]; for 'w': lon in [-lon, -lon+1];
+#      for 'e': lon in [lon-1, lon].  ('s' flips the latitude sign.)
+#   Verified: n37w088 sidecar XML bounds lon -88.0..-87.0, lat 36.0..37.0.
+#
+# 1m DEM:  USGS_1M_{zone}_x{E}y{N}_{project}  e.g. USGS_1M_18_x54y491_...
+#   -> 1 km x 1 km tile; zone = UTM zone number, E/N = lower-left corner
+#      easting/northing in KILOMETERS (northern hemisphere, CONUS).
+# Hydrography (NHD/NHDPlusHR/WBD): HUC-tiled (NHDPLUS_H_{HUC4}_HU4_...);
+#   HUC<->bbox mapping needs the WBD dataset itself, so these are NOT
+#   bbox-filtered (all keys returned with an honest note).
+# ---------------------------------------------------------------------------
+
+_SEAMLESS_RE = re.compile(r"USGS_(?:1|13)_([ns])(\d{2})([ew])(\d{3})", re.IGNORECASE)
+_ONEM_RE = re.compile(r"USGS_1M_(\d{1,2})_x(\d+)y(\d+)", re.IGNORECASE)
+
+
+def _utm_to_lonlat(easting_m: float, northing_m: float, zone: int):
+    """Inverse UTM (WGS84), pure python — no pyproj dependency.
+
+    Standard Snyder/USGS series. Accurate to ~1 mm inside the zone;
+    used here only for bbox overlap tests, so ample precision.
+    """
+    a = 6378137.0
+    f = 1 / 298.257223563
+    k0 = 0.9996
+    e2 = 2 * f - f * f
+    e4 = e2 * e2
+    e6 = e4 * e2
+    lon0 = math.radians((zone - 1) * 6 - 180 + 3)
+    x = easting_m - 500000.0
+    y = northing_m  # northern hemisphere (CONUS)
+    m = y / k0
+    mu = m / (a * (1 - e2 / 4 - 3 * e4 / 64 - 5 * e6 / 256))
+    e1 = (1 - math.sqrt(1 - e2)) / (1 + math.sqrt(1 - e2))
+    phi1 = (mu + (3 * e1 / 2 - 27 * e1 ** 3 / 32) * math.sin(2 * mu)
+            + (21 * e1 ** 2 / 16 - 55 * e1 ** 4 / 32) * math.sin(4 * mu)
+            + (151 * e1 ** 3 / 96) * math.sin(6 * mu)
+            + (1097 * e1 ** 4 / 512) * math.sin(8 * mu))
+    sin_p1 = math.sin(phi1)
+    n1 = a / math.sqrt(1 - e2 * sin_p1 * sin_p1)
+    t1 = math.tan(phi1) ** 2
+    c1 = e2 / (1 - e2) * math.cos(phi1) ** 2
+    r1 = a * (1 - e2) / (1 - e2 * sin_p1 * sin_p1) ** 1.5
+    d = x / (n1 * k0)
+    lat = (phi1 - (n1 * math.tan(phi1) / r1)
+           * (d * d / 2
+              - (5 + 3 * t1 + 10 * c1 - 4 * c1 * c1
+                 - 9 * e2 / (1 - e2)) * d ** 4 / 24
+              + (61 + 90 * t1 + 298 * c1 + 45 * t1 * t1
+                 - 252 * e2 / (1 - e2) - 3 * c1 * c1) * d ** 6 / 720))
+    lon = (lon0 + (d - (1 + 2 * t1 + c1) * d ** 3 / 6
+                   + (5 - 2 * c1 + 28 * t1 - 3 * c1 * c1
+                      + 8 * e2 / (1 - e2) + 24 * t1 * t1) * d ** 5 / 120)
+           / math.cos(phi1))
+    return math.degrees(lon), math.degrees(lat)
+
+
+def _tile_lonlat_bounds(key: str):
+    """Return (lon_lo, lat_lo, lon_hi, lat_hi) for a TNM tile key, or None
+    when the key's product uses a naming scheme we cannot parse
+    (HUC-tiled hydrography, LPC project tiles, sidecar files)."""
+    name = key.rsplit("/", 1)[-1]
+    m = _SEAMLESS_RE.search(name)
+    if m:
+        ns, lat_s, ew, lon_s = m.groups()
+        lat_hi = int(lat_s) * (-1 if ns.lower() == "s" else 1)
+        lon_n = int(lon_s)
+        lat_lo = lat_hi - 1
+        if ew.lower() == "w":
+            lon_lo, lon_hi = -lon_n, -lon_n + 1
+        else:
+            lon_lo, lon_hi = lon_n - 1, lon_n
+        return (lon_lo, lat_lo, lon_hi, lat_hi)
+    m = _ONEM_RE.search(name)
+    if m:
+        zone, e_km, n_km = int(m.group(1)), int(m.group(2)), int(m.group(3))
+        # 1 km tile: sample the four corners, take the lon/lat envelope.
+        corners = [
+            _utm_to_lonlat(e_km * 1000.0, n_km * 1000.0, zone),
+            _utm_to_lonlat(e_km * 1000.0 + 1000.0, n_km * 1000.0, zone),
+            _utm_to_lonlat(e_km * 1000.0, n_km * 1000.0 + 1000.0, zone),
+            _utm_to_lonlat(e_km * 1000.0 + 1000.0, n_km * 1000.0 + 1000.0, zone),
+        ]
+        lons = [c[0] for c in corners]
+        lats = [c[1] for c in corners]
+        return (min(lons), min(lats), max(lons), max(lats))
+    return None
+
+
+def _overlaps(b, lon_lo, lat_lo, lon_hi, lat_hi) -> bool:
+    """bbox (lon_min, lat_min, lon_max, lat_max) overlap test."""
+    return not (lon_hi < b[0] or lon_lo > b[2] or lat_hi < b[1] or lat_lo > b[3])
+
+
 def filter_by_bbox(keys: list, bbox: tuple) -> list:
+    """Filter TNM tile keys by bounding box using the tile-name conventions
+    above (verified against live S3 keys 2026-10-23).
+
+    Keys whose naming scheme cannot be parsed (hydrography HUC tiles,
+    LPC project tiles, sidecar .xml/.jpg/.vrt files) are KEPT with an
+    honest note rather than silently dropped — resilient, never blocking.
     """
-    Filter tile keys by bounding box.
-    TNM tiles are typically named with lat/lon or UTM grid references.
-    This is a heuristic — check tile naming for the specific product.
-    """
-    # TODO: implement tile-name parsing per product
-    # For now, return all (user filters manually or downloads all)
-    print(f"  Note: bbox filtering not yet implemented for tile names,")
-    print(f"  returning all {len(keys)} tiles. Filter manually as needed.")
-    return keys
+    kept, skipped_unparsed = [], 0
+    for key in keys:
+        bounds = _tile_lonlat_bounds(key)
+        if bounds is None:
+            skipped_unparsed += 1
+            kept.append(key)  # keep: do not silently drop unparseable products
+            continue
+        if _overlaps(bbox, *bounds):
+            kept.append(key)
+    n_filtered = len(keys) - len(kept)
+    print(f"  bbox filter: kept {len(kept)}/{len(keys)} keys "
+          f"({n_filtered} outside bbox; {skipped_unparsed} unparseable kept).")
+    return kept
 
 
 def download_key(key: str, out_dir: Path) -> Path:

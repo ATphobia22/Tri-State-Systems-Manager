@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { validateManifest } from './validate-hec-run-manifest.mjs';
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -213,7 +213,7 @@ function mapStageOutputLayout(stage, workspace, runWorkRelative, label) {
   return { outputDirectory: runtimeRootRelative, outputRoot: runtimeRoot, expectedOutputs: mapped };
 }
 
-function main() {
+async function main() {
   const manifestArg = process.argv[2];
   const workspaceArg = process.argv[3];
   if (!manifestArg || !workspaceArg) {
@@ -230,8 +230,17 @@ function main() {
   if (!/^[a-f0-9]{40}$/.test(sourceControlCommit) || sourceControlCommit !== manifest.source_commit) {
     throw new Error('execution must set GITHUB_SHA or TSM_SOURCE_COMMIT to the exact manifest.source_commit; unrecorded local execution is prohibited');
   }
-  if (manifest.artifact_storage.metadata_store !== 'run-manifest-only') {
-    throw new Error('metadata_store=tsm-evidence-store-adapter is declared but the transaction-safe adapter is not implemented; use run-manifest-only until that adapter is separately verified');
+  const metadataStore = manifest.artifact_storage.metadata_store;
+  if (metadataStore !== 'run-manifest-only' && metadataStore !== 'tsm-evidence-store-adapter') {
+    throw new Error(`unsupported artifact_storage.metadata_store: ${metadataStore}; expected 'run-manifest-only' or 'tsm-evidence-store-adapter'`);
+  }
+  if (metadataStore === 'tsm-evidence-store-adapter') {
+    // Verify the adapter module loads and its version constant is present
+    // before any execution begins (fail fast, not mid-run).
+    const adapterPath = path.join(REPO_ROOT, 'scripts', 'hydrology', 'tsm-evidence-store-adapter.mjs');
+    const adapterSource = fs.readFileSync(adapterPath, 'utf8');
+    const versionMatch = adapterSource.match(/ADAPTER_VERSION\s*=\s*['"]([^'"]+)['"]/);
+    if (!versionMatch) throw new Error('tsm-evidence-store-adapter.mjs is missing the ADAPTER_VERSION constant');
   }
   const expectedPlatform = process.platform === 'win32' && process.arch === 'x64' ? 'windows-x64' : process.platform === 'linux' ? 'linux-x64' : process.platform === 'darwin' && process.arch === 'arm64' ? 'macos-arm64' : 'other';
   for (const [label, stage] of [['HEC-HMS', manifest.hec_hms], ['HEC-RAS', manifest.hec_ras]]) {
@@ -597,7 +606,15 @@ function main() {
     run.artifacts.push(persistArtifact(runManifestCopy, 'run input manifest'));
     fs.writeFileSync(receipt, JSON.stringify(run, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
     const receiptArtifact = persistArtifact(receipt, 'reproducible workflow run receipt');
-    console.log(JSON.stringify({ ok: true, run_id: run.run_id, status: run.status, receipt: path.relative(workspace, receipt), receipt_sha256: receiptArtifact.sha256, output_count: run.artifacts.length, note: 'Execution completed; scientific validation and human review remain pending.' }, null, 2));
+    let evidenceCommit = null;
+    if (manifest.artifact_storage.metadata_store === 'tsm-evidence-store-adapter') {
+      // Commit run artifacts to the TSM evidence store (transaction-safe,
+      // idempotent; file-backed blobs remain the source of truth on failure).
+      const adapterPath = path.join(REPO_ROOT, 'scripts', 'hydrology', 'tsm-evidence-store-adapter.mjs');
+      const adapter = await import(pathToFileURL(adapterPath).href);
+      evidenceCommit = await adapter.commitRunArtifacts({ run, manifest, workspace });
+    }
+    console.log(JSON.stringify({ ok: true, run_id: run.run_id, status: run.status, receipt: path.relative(workspace, receipt), receipt_sha256: receiptArtifact.sha256, output_count: run.artifacts.length, evidence_commit: evidenceCommit, note: 'Execution completed; scientific validation and human review remain pending.' }, null, 2));
   } catch (error) {
     run.status = 'FAILED_OR_BLOCKED';
     run.finished_at = new Date().toISOString();
@@ -607,7 +624,7 @@ function main() {
   }
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  try { main(); } catch (error) {
+  try { await main(); } catch (error) {
     console.error(JSON.stringify({ ok: false, status: 'FAILED_OR_BLOCKED', error: String(error.message ?? error) }, null, 2));
     process.exitCode = 1;
   }

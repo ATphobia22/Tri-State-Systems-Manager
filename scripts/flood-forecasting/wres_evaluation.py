@@ -40,7 +40,10 @@ TSM_GAGES = {
         "gage_height_vertical_datum": "GAGE_DATUM",
         "gage_zero_navd88_ft": None,
         "flood_stage_ft": 33.0,
-        "nwm_feature_id": None,  # TODO: Look up NWM feature ID for this gage
+        # NWM v3.0.17 RouteLink (CUAHSI HydroShare DOI 10.4211/hs.1fe9975004ce4b5097d41939afa14f84):
+        # usgs_site_code 03381700 -> feature_id 1347434, nwm_feature_id 11866736
+        # (reach centroid lon -88.13341, lat 37.68983)
+        "nwm_feature_id": 11866736,
     },
     "03378500": {
         "name": "Wabash River at New Harmony, IN",
@@ -49,7 +52,10 @@ TSM_GAGES = {
         "gage_height_vertical_datum": "GAGE_DATUM",
         "gage_zero_navd88_ft": None,
         "flood_stage_ft": 15.0,
-        "nwm_feature_id": None,  # TODO: Look up NWM feature ID for this gage
+        # NWM v3.0.17 RouteLink (CUAHSI HydroShare DOI 10.4211/hs.1fe9975004ce4b5097d41939afa14f84):
+        # usgs_site_code 03378500 -> feature_id 1346192, nwm_feature_id 10382125
+        # (reach centroid lon -87.94322, lat 38.130775)
+        "nwm_feature_id": 10382125,
     },
 }
 

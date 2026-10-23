@@ -1,0 +1,15 @@
+{
+  "source": "PRISM Climate Group, Oregon State University",
+  "source_uri": "https://prism.oregonstate.edu/normals/",
+  "ftp_path": "https://ftp.prism.oregonstate.edu/normals/us/800m/ppt/monthly/prism_ppt_us_30s_2020_avg_30y.zip",
+  "dataset": "ppt 30-year normal (1991-2020), 800m (30 arc-sec), annual",
+  "units": "mm",
+  "clip_window": [
+    -90.0,
+    37.0,
+    -86.0,
+    39.5
+  ],
+  "downloaded": "2026-10-23",
+  "nodata": -9999
+}
