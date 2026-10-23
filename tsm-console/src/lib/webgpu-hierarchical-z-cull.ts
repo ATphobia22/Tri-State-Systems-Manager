@@ -43,16 +43,18 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   }
   let minPixel = vec2<u32>(floor(clamp(rect.xy, vec2<f32>(0.0), vec2<f32>(f32(params.width - 1u), f32(params.height - 1u)))));
   let maxPixel = vec2<u32>(floor(clamp(rect.zw, vec2<f32>(0.0), vec2<f32>(f32(params.width - 1u), f32(params.height - 1u)))));
+  let baseDims = vec2<u32>(params.width, params.height);
   var level = 0u;
   var lo = minPixel;
   var hi = maxPixel;
   loop {
-    if (level + 1u >= textureNumLevels(pyramid)) { break; }
     let span = hi - lo + vec2<u32>(1u);
-    if (span.x <= 2u && span.y <= 2u) { break; }
+    if ((span.x <= 2u && span.y <= 2u) || level + 1u >= textureNumLevels(pyramid)) { break; }
     level += 1u;
-    lo = minPixel / (1u << level);
-    hi = maxPixel / (1u << level);
+    let levelDims = textureDimensions(pyramid, i32(level));
+    lo = (minPixel * levelDims) / baseDims;
+    hi = ((maxPixel + vec2<u32>(1u)) * levelDims) / baseDims - vec2<u32>(1u);
+    hi = min(hi, levelDims - vec2<u32>(1u));
   }
   var maxDepth = 0.0;
   for (var y = lo.y; y <= hi.y; y++) {
