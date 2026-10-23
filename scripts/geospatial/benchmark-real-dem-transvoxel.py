@@ -73,6 +73,51 @@ def _seam_key(vertices: list[tuple[float, float, float]], axis: int, coordinate:
     return tuple(sorted(unique))
 
 
+def _seam_intersection_key(
+    vertices: list[tuple[float, float, float]],
+    triangles: list[tuple[int, int, int]],
+    axis: int,
+    coordinate: float,
+) -> tuple[str, ...]:
+    """Compare the actual triangle/plane intersection, not only existing vertices.
+
+    A valid mesh edge can cross a shared cell plane between its endpoints. Looking
+    only for vertices already lying on the plane produces false seam failures.
+    """
+    plane_epsilon_m = 1e-4
+    unique: set[str] = set()
+
+    def add(point: tuple[float, float, float]) -> None:
+        normalized = list(point)
+        normalized[axis] = coordinate
+        unique.add(",".join(f"{value:.2f}" for value in normalized))
+
+    for triangle in triangles:
+        if len(triangle) != 3 or any(index < 0 or index >= len(vertices) for index in triangle):
+            raise ValueError("seam validation received an invalid triangle index")
+        points = [vertices[index] for index in triangle]
+        distances = [point[axis] - coordinate for point in points]
+
+        for point, distance in zip(points, distances):
+            if abs(distance) <= plane_epsilon_m:
+                add(point)
+
+        for edge_start, edge_end in ((0, 1), (1, 2), (2, 0)):
+            p0, p1 = points[edge_start], points[edge_end]
+            d0, d1 = distances[edge_start], distances[edge_end]
+            if (d0 < -plane_epsilon_m and d1 > plane_epsilon_m) or (
+                d0 > plane_epsilon_m and d1 < -plane_epsilon_m
+            ):
+                denominator = d0 - d1
+                if abs(denominator) <= 1e-20:
+                    continue
+                t = d0 / denominator
+                intersection = tuple(p0[axis_i] + (p1[axis_i] - p0[axis_i]) * t for axis_i in range(3))
+                add(intersection)
+
+    return tuple(sorted(unique))
+
+
 def run_benchmark(raster_path: Path, evidence_path: Path, output_path: Path, patch_pixels: int) -> dict[str, Any]:
     evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
     if evidence.get("evidenceStatus") != "REAL_DATA_SCREENING_ONLY":
@@ -226,8 +271,8 @@ def run_benchmark(raster_path: Path, evidence_path: Path, output_path: Path, pat
             y_boundary = y_min + (j + 1) * CELL_SIZE_METERS
             if left or right:
                 seam_pairs_checked += 1
-                left_seam = _seam_key(left, 1, y_boundary)
-                right_seam = _seam_key(right, 1, y_boundary)
+                left_seam = _seam_intersection_key(left, triangles_by_cell.get((j, k), []), 1, y_boundary)
+                right_seam = _seam_intersection_key(right, triangles_by_cell.get((j + 1, k), []), 1, y_boundary)
                 if left_seam != right_seam:
                     seam_mismatches += 1
                     if len(seam_mismatch_examples) < 10:
@@ -242,8 +287,8 @@ def run_benchmark(raster_path: Path, evidence_path: Path, output_path: Path, pat
             z_boundary = z_min + (k + 1) * CELL_SIZE_METERS
             if lower or upper:
                 seam_pairs_checked += 1
-                lower_seam = _seam_key(lower, 2, z_boundary)
-                upper_seam = _seam_key(upper, 2, z_boundary)
+                lower_seam = _seam_intersection_key(lower, triangles_by_cell.get((j, k), []), 2, z_boundary)
+                upper_seam = _seam_intersection_key(upper, triangles_by_cell.get((j, k + 1), []), 2, z_boundary)
                 if lower_seam != upper_seam:
                     seam_mismatches += 1
                     if len(seam_mismatch_examples) < 10:
