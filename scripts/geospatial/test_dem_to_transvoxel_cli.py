@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import importlib.util
+import sys
 import unittest
 from pathlib import Path
 
 MODULE_PATH = Path(__file__).with_name("dem_to_transvoxel.py")
+sys.path.insert(0, str(MODULE_PATH.parent))
 SPEC = importlib.util.spec_from_file_location("dem_to_transvoxel_cli", MODULE_PATH)
 if SPEC is None or SPEC.loader is None:
     raise RuntimeError("Unable to load DEM-to-Transvoxel adapter")
