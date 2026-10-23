@@ -46,7 +46,11 @@ class ProductionBridgeContractTests(unittest.TestCase):
         self.assertIsNotNone(leaf)
         self.assertTrue(any(item is leaf for item in leaves))
         self.assertIsNone(bridge.leaf_at(root, -1, 0, 0))
-        self.assertEqual(bridge.face_neighbor_max_level(root, leaf, "+x"), -1 if leaf.i0 + leaf.n >= n else bridge.face_neighbor_max_level(root, leaf, "+x"))
+        neighbor_level = bridge.face_neighbor_max_level(root, leaf, "+x")
+        if leaf.i0 + leaf.n >= n:
+            self.assertEqual(neighbor_level, -1)
+        else:
+            self.assertGreaterEqual(neighbor_level, 0)
         balanced = bridge.balance_octree(root)
         self.assertIs(balanced, root)
         self.assertTrue(bridge.get_leaves(balanced))
@@ -58,6 +62,10 @@ class ProductionBridgeContractTests(unittest.TestCase):
             height(8.0, 0.0)
         with self.assertRaisesRegex(ValueError, "finite"):
             height(float("nan"), 0.0)
+
+    def test_missing_dem_path_fails_with_actionable_error(self):
+        with self.assertRaisesRegex(FileNotFoundError, "set TSM_DEM_PATH"):
+            bridge.load_dem_window(SCRIPT_DIR / "definitely-missing-dem.tif", 0, 0, 8)
 
     def test_invalid_sdf_and_octree_inputs_fail_closed(self):
         with self.assertRaisesRegex(ValueError, "finite cubic"):
