@@ -45,6 +45,12 @@ jobs:
         run: pip install --quiet rasterio shapely
       - name: Download real USGS 3DEP terrain for Posey County ZIP 47620
         run: python3 scripts/geospatial/acquire-posey-47620-3dep.py --output-dir "$RUNNER_TEMP/tsm-posey-47620-evidence"
+      - name: Run real-DEM Transvoxel transition benchmark
+        run: >-
+          python3 scripts/geospatial/benchmark-real-dem-transvoxel.py
+          --raster "$RUNNER_TEMP/tsm-posey-47620-evidence/posey-county-47620-usgs-3dep-screening.tif"
+          --evidence "$RUNNER_TEMP/tsm-posey-47620-evidence/posey-county-47620-terrain-evidence.json"
+          --output "$RUNNER_TEMP/tsm-posey-47620-evidence/real-dem-transvoxel-benchmark.json"
       - name: Upload Posey County ZIP 47620 terrain bundle
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
