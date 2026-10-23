@@ -46,23 +46,21 @@ export interface CanvasFloodLayerConfig {
 const DEFAULT_FILL = 'rgba(30, 120, 220, 0.55)';
 
 /**
- * Documented vertical-datum conversions for the tri-state area.
- * Offsets are approximations — caller must verify for regulatory use.
- * Returns the converted elevation, or null if the pair is unknown.
+ * Only identity conversion is safe without a location-specific, authoritative
+ * vertical-datum transformation. A constant NGVD29/NAVD88 offset is not valid
+ * across the tri-state area. Returns null for invalid values or unsupported
+ * datum pairs so callers can fail closed rather than invent a conversion.
  */
 export function tryDatumConversion(
   elevM: number,
   fromDatum: string,
   toDatum: string,
 ): number | null {
-  const from = fromDatum.toUpperCase();
-  const to = toDatum.toUpperCase();
-  if (from === to) return elevM;
-  // NGVD29 elevations run ~0.7 ft (≈0.213 m) higher than NAVD88 in the
-  // Ohio–Wabash confluence area. Subtract to go NGVD29 -> NAVD88.
-  if (from === 'NGVD29' && to === 'NAVD88') return elevM - 0.213;
-  if (from === 'NAVD88' && to === 'NGVD29') return elevM + 0.213;
-  return null;
+  if (!Number.isFinite(elevM)) return null;
+  const from = fromDatum.trim().toUpperCase();
+  const to = toDatum.trim().toUpperCase();
+  if (!from || !to) return null;
+  return from === to ? elevM : null;
 }
 
 /**
@@ -71,6 +69,19 @@ export function tryDatumConversion(
  * water cannot flow uphill over cells above the level.
  */
 export function computeFloodMask(grid: FloodGrid, waterLevelM: number): Uint8Array {
+  if (
+    !grid ||
+    !grid.elevations ||
+    !Number.isInteger(grid.rows) ||
+    !Number.isInteger(grid.cols) ||
+    grid.rows <= 0 ||
+    grid.cols <= 0 ||
+    grid.elevations.length !== grid.rows * grid.cols ||
+    !Number.isFinite(waterLevelM)
+  ) {
+    return new Uint8Array(0);
+  }
+
   const { elevations, rows, cols } = grid;
   const flooded = new Uint8Array(rows * cols);
   const queue: number[] = [];
@@ -220,27 +231,28 @@ export class CanvasFloodLayer {
    * Set the water surface elevation in meters (caller-supplied, explicit).
    * Recomputes the flood mask and repaints. Pass null to clear.
    *
-   * Datum handling: if the caller's datum differs from the grid's datum,
-   * apply the documented conversion and render with a badge instead of
-   * refusing. Supported conversions (tri-state area approximations,
-   * caller should verify for regulatory use):
-   * - NGVD29 -> NAVD88: subtract ~0.7 m-equivalent offset in feet terms
-   *   (0.7 ft ≈ 0.213 m). Applied automatically with visible badge.
+   * Datum handling: only identical datum labels are accepted without an
+   * authoritative location-specific transformation. Unsupported datum pairs
+   * clear the mask and report a badge instead of applying a guessed offset.
    */
   setWaterLevel(elevM: number | null, datum: string): void {
     let level = elevM;
     let badge = '';
-    if (elevM !== null && datum !== this.config.grid.verticalDatum) {
+    if (elevM !== null && !Number.isFinite(elevM)) {
+      level = null;
+      badge = ' (invalid water level — flood rendering withheld)';
+    } else if (
+      elevM !== null &&
+      datum.trim().toUpperCase() !== this.config.grid.verticalDatum.trim().toUpperCase()
+    ) {
       const converted = tryDatumConversion(elevM, datum, this.config.grid.verticalDatum);
       if (converted !== null) {
         level = converted;
         badge = ` (converted ${datum}→${this.config.grid.verticalDatum})`;
-        console.info(`[FloodLayer] Applied datum conversion${badge}: ${elevM} → ${level?.toFixed(3)} m`);
       } else {
-        // Unknown conversion: render anyway using the raw value, but badge it
-        // prominently so the operator knows the datum is unverified.
-        badge = ` (datum ${datum} unverified vs grid ${this.config.grid.verticalDatum})`;
-        console.warn(`[FloodLayer] Unknown datum conversion${badge} — rendering with raw value.`);
+        level = null;
+        badge = ` (unsupported datum ${datum} vs grid ${this.config.grid.verticalDatum} — flood rendering withheld)`;
+        console.warn(`[FloodLayer] Unsupported datum conversion${badge}.`);
       }
     }
     this.waterLevelM = level;
