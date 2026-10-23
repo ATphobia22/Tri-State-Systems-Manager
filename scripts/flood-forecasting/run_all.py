@@ -2,7 +2,8 @@
 """
 TSM Flood Forecasting — Master Orchestrator.
 
-Runs the complete flood forecasting pipeline:
+Orchestrates available pipeline stages. Stages that only print guidance or lack
+required model configuration must report unavailable/failure, never success:
   1. Data ingestion (USGS gages, antecedent precipitation)
   2. Nowcasting (TimesFM 0-48h)
   3. Operational forecasts (GEOGloWS 10-day)
@@ -24,7 +25,7 @@ Steps:
   antecedent  → antecedent_precip.py (wet/dry conditions)
   nowcast     → timesfm-gage-nowcast.py (0-48h zero-shot forecast)
   forecast    → geoglows_forecast.py (10-day operational)
-  rating      → ras2fim_tristate.py (discharge → depth curves)
+  rating      → ras2fim_tristate.py (catalog only; generation unavailable)
 """
 
 import argparse
@@ -81,15 +82,18 @@ def step_nowcast():
 def step_forecast():
     """Pull GEOGloWS 10-day operational forecast."""
     print("\n🌊 Step 4: GEOGloWS Forecast (10-day)")
-    print("  NOTE: Requires river IDs from https://apps.geoglows.org/")
-    print("  Skipping — configure RIVERS in geoglows_forecast.py first")
-    return True
+    print("  UNAVAILABLE: no verified river IDs are configured in geoglows_forecast.py.")
+    print("  No operational forecast was retrieved or produced.")
+    return False
 
 
 def step_rating():
-    """Check rating curve status."""
+    """Report rating-curve stage as unavailable until solver execution is implemented."""
     print("\n📐 Step 5: Rating Curves (ras2fim)")
-    return run_script("ras2fim_tristate.py", ["--list-models"])
+    # The model listing is only a catalog display; it is not a rating-curve run.
+    run_script("ras2fim_tristate.py", ["--list-models"])
+    print("  UNAVAILABLE: this wrapper does not execute HEC-RAS/ras2fim or generate rating curves.")
+    return False
 
 
 def step_alert_check():
@@ -147,7 +151,8 @@ def step_hydrofabric():
     print("  Fork: ATphobia22/hfsubsetR (R package)")
     print("  Run: python hydrofabric_subset.py --print-r")
     print("  Then execute the R script to download from spatial.water.noaa.gov")
-    return True
+    print("  UNAVAILABLE: the extraction has not been executed by this step.")
+    return False
 
 
 def step_wres():

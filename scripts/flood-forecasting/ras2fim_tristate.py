@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-TSM ras2fim Integration — HEC-RAS to Flood Inundation Mapping.
+TSM HEC-RAS/ras2fim workflow adapter scaffold.
 
-Takes HEC-RAS 1D model outputs and generates:
-  1. Flood depth inundation rasters for a range of discharges
-  2. Synthetic rating curves (stage-discharge relationships)
-  3. Floodplain mapping libraries paired with forecast discharges
+IMPORTANT: actual HEC-RAS/ras2fim inundation generation is NOT implemented here.
+The current CLI can print setup guidance, list candidate model catalog entries,
+and convert an already generated rating-curve CSV. It must not report a model
+run as successful or imply that rasters were generated when no solver was run.
 
 Upstream: https://github.com/NOAA-OWP/ras2fim
   "Creation of flood inundation raster libraries and rating curves
@@ -18,27 +18,26 @@ TSM connection:
   - Rating curves → paired with TimesFM/OpenHydroNet discharge forecasts
     for real-time flood depth prediction
 
-Workflow:
-  1. Run HEC-RAS model for range of flows (steady-state profiles)
-  2. ras2fim clips results to NWM hydrofabric reaches
-  3. Generate depth grids for each flow
-  4. Build synthetic rating curves (reach-averaged depth vs discharge)
-  5. TSM console: forecast discharge → lookup depth grid → render flood extent
+Intended future workflow (not implemented by this script):
+  1. Run HEC-RAS model for a validated range of flows.
+  2. Run a pinned NOAA-OWP ras2fim workflow against compatible hydrofabric inputs.
+  3. Generate depth grids and rating curves, with documented CRS/datum/provenance.
+  4. Validate outputs against independent gauge, water-mark, or inundation evidence.
 
 Usage:
   python ras2fim_tristate.py --ras-project /path/to/4449.prj --flows 1000,5000,10000,50000
-  python ras2fim_tristate.py --rating-curve --reach ohio_846_773
+    # Currently exits nonzero: generation is not implemented.
+  python ras2fim_tristate.py --rating-curve /path/to/precomputed-rating.csv --reach ohio_846_773
+    # Converts a precomputed CSV; it does not verify how that CSV was produced.
 
-Requires:
-  - HEC-RAS installed (Windows) or ras2fim Docker container
-  - GDAL, rasterio, geopandas
-  - NWM hydrofabric for the Ohio/Wabash region
+Future generation preconditions include a verified HEC-RAS executable/version or pinned execution container,
+compatible project data, NWM hydrofabric version, datum reconciliation, and independent validation.
 """
 
 import argparse
 import json
-import subprocess
-import sys
+import math
+import re
 from pathlib import Path
 
 # TSM HEC-RAS models (from data/fabrics/hydraulic-models/)
@@ -57,11 +56,10 @@ TSM_RAS_MODELS = {
 }
 
 OUT_DIR = Path("./ras2fim-output")
-OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def check_ras2fim():
-    """Check if ras2fim is available."""
+    """Print setup guidance; this function does not probe runtime availability."""
     # ras2fim is typically run via Docker or direct Python
     # https://github.com/NOAA-OWP/ras2fim#installation
     print("ras2fim setup:")
@@ -75,33 +73,14 @@ def check_ras2fim():
     print("  For Linux: use the ras2fim Docker container which includes Wine.")
 
 
-def generate_inundation_library(ras_project: str, flows: list, output_dir: Path):
-    """
-    Generate flood depth rasters for a range of discharges.
-
-    This wraps the ras2fim workflow:
-    1. clip_hecras_to_nwm.py — clip HEC-RAS geometry to NWM reaches
-    2. create_fim_rasters.py — generate depth grids per flow
-    3. rating_curve.py — build synthetic rating curves
-    """
-    print(f"HEC-RAS Project: {ras_project}")
-    print(f"Flows (cfs): {flows}")
-    print(f"Output: {output_dir}")
-    print()
-    print("ras2fim steps:")
-    print("  1. Clip HEC-RAS cross-sections to NWM hydrofabric")
-    print("  2. Run steady-state profiles for each discharge")
-    print("  3. Generate depth rasters (GeoTIFF)")
-    print("  4. Build rating curves (CSV: discharge → reach-averaged depth)")
-    print()
-    print("  NOTE: Requires HEC-RAS execution environment.")
-    print("  See check_ras2fim() for setup options.")
-
-    # TODO: implement actual ras2fim calls once environment is available
-    # subprocess.run([
-    #     "python", "ras2fim/src/clip_hecras_to_nwm.py",
-    #     "-p", ras_project, ...
-    # ])
+def generate_inundation_library(ras_project: str, flows: list, output_dir: Path) -> None:
+    """Fail closed until the real HEC-RAS/ras2fim execution contract is implemented."""
+    del ras_project, flows, output_dir
+    raise NotImplementedError(
+        "Inundation generation is not implemented by this TSM wrapper. "
+        "It does not execute HEC-RAS or NOAA-OWP ras2fim and produces no "
+        "inundation rasters or rating curves. No model run was performed."
+    )
 
 
 def rating_curve_to_tsm(rating_csv: Path, reach_id: str):
@@ -113,32 +92,59 @@ def rating_curve_to_tsm(rating_csv: Path, reach_id: str):
     """
     import pandas as pd
 
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,127}", reach_id):
+        raise ValueError("reach_id must contain only letters, digits, underscores, or hyphens")
+    if not rating_csv.is_file():
+        raise FileNotFoundError(f"Rating-curve CSV not found: {rating_csv}")
+
     df = pd.read_csv(rating_csv)
+    required_columns = ["discharge_cfs", "depth_ft"]
+    missing = [column for column in required_columns if column not in df.columns]
+    if missing:
+        raise ValueError(f"Rating-curve CSV is missing required columns: {', '.join(missing)}")
+    if df.empty:
+        raise ValueError("Rating-curve CSV contains no points")
+
+    # Validate numerical semantics before producing JSON that downstream code
+    # might mistake for model evidence. JSON NaN/Infinity are not valid numbers.
+    for column in required_columns:
+        try:
+            df[column] = pd.to_numeric(df[column], errors="raise")
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"Rating-curve column {column} must be numeric") from exc
+        values = df[column].tolist()
+        if any(pd.isna(value) or not math.isfinite(float(value)) for value in values):
+            raise ValueError(f"Rating-curve column {column} must contain finite values")
+        if any(float(value) < 0 for value in values):
+            raise ValueError(f"Rating-curve column {column} cannot contain negative values")
+
     print(f"Rating curve for {reach_id}: {len(df)} points")
     print(f"  Discharge range: {df['discharge_cfs'].min():.0f} - {df['discharge_cfs'].max():.0f} cfs")
     print(f"  Depth range: {df['depth_ft'].min():.1f} - {df['depth_ft'].max():.1f} ft")
 
-    # Write TSM format
+    # This conversion preserves the upstream source identity; it does not
+    # establish whether the CSV was produced by a validated model run.
     out = OUT_DIR / f"rating_{reach_id}.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
     tsm_format = {
         "reach_id": reach_id,
-        "source": "ras2fim synthetic rating curve",
+        "source": "precomputed rating-curve CSV (upstream provenance must be verified)",
         "units": {"discharge": "cfs", "depth": "ft"},
-        "points": df[["discharge_cfs", "depth_ft"]].to_dict("records"),
+        "points": df[required_columns].to_dict("records"),
     }
-    out.write_text(json.dumps(tsm_format, indent=2))
+    out.write_text(json.dumps(tsm_format, indent=2, allow_nan=False), encoding="utf-8")
     print(f"  TSM format: {out}")
     return out
 
 
 def main():
-    ap = argparse.ArgumentParser(description="TSM ras2fim integration")
+    ap = argparse.ArgumentParser(description="TSM HEC-RAS/ras2fim workflow scaffold")
     ap.add_argument("--ras-project", help="Path to HEC-RAS .prj file")
     ap.add_argument("--flows", help="Comma-separated discharges in cfs")
     ap.add_argument("--rating-curve", help="Path to ras2fim rating curve CSV")
     ap.add_argument("--reach", default="ohio_846_773", help="Reach identifier")
-    ap.add_argument("--check", action="store_true", help="Show setup instructions")
-    ap.add_argument("--list-models", action="store_true")
+    ap.add_argument("--check", action="store_true", help="Print setup guidance (does not probe availability)")
+    ap.add_argument("--list-models", action="store_true", help="List candidate models only; does not validate or run them")
     args = ap.parse_args()
 
     if args.check:
@@ -146,7 +152,7 @@ def main():
         return
 
     if args.list_models:
-        print("TSM HEC-RAS models:")
+        print("TSM HEC-RAS model catalog (paths/data are not verified; nothing is executed):")
         for name, info in TSM_RAS_MODELS.items():
             print(f"\n  {name}:")
             print(f"    Reach: {info['reach']}")
@@ -156,13 +162,27 @@ def main():
                 print(f"    ⚠️  {info['note']}")
         return
 
+    if bool(args.ras_project) != bool(args.flows):
+        ap.error("--ras-project and --flows must be supplied together")
+
     if args.ras_project and args.flows:
-        flows = [float(f) for f in args.flows.split(",")]
-        generate_inundation_library(args.ras_project, flows, OUT_DIR)
+        try:
+            flows = [float(value.strip()) for value in args.flows.split(",")]
+        except ValueError:
+            ap.error("--flows must be a comma-separated list of numeric discharges in cfs")
+        if not flows or any(not math.isfinite(flow) or flow < 0 for flow in flows):
+            ap.error("--flows must contain finite, non-negative discharges in cfs")
+        try:
+            generate_inundation_library(args.ras_project, flows, OUT_DIR)
+        except NotImplementedError as exc:
+            ap.error(str(exc))
         return
 
     if args.rating_curve:
-        rating_curve_to_tsm(Path(args.rating_curve), args.reach)
+        try:
+            rating_curve_to_tsm(Path(args.rating_curve), args.reach)
+        except (FileNotFoundError, ImportError, ValueError) as exc:
+            ap.error(str(exc))
         return
 
     ap.print_help()
