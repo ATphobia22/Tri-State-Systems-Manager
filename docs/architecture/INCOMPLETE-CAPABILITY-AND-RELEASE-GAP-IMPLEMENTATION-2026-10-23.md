@@ -36,14 +36,14 @@ Contracts honored:
 - WebGPU remains optional; MapLibre WebGL stays the primary path.
 - Caller must supply verified height/satellite GPUTextures with provenance + datum labels.
 
-### Tiles cache byte policy — PARTIAL (GUIDANCE ONLY)
+### Tiles cache byte policy — PARTIAL (LRU BYTE EVICTION THRESHOLDS WIRED)
 
 | Piece | Path |
 |-------|------|
 | Byte budgets | `tsm-console/src/lib/tiles-cache-policy.ts` (`maxCacheBytes`, `errorTargetBytes`) |
 | Renderer wiring | `tsm-console/src/components/OpenWorld3DTilesRenderer.tsx` |
 
-TilesRenderer still receives tile-count LRU. Byte budgets are **not enforced**: no byte accounting, byte-based eviction, hard ceiling, or backpressure is wired in. This gap remains open.
+The renderer now wires `lruCache-maxBytesSize` (512 MiB) and `lruCache-minBytesSize` (384 MiB) to the package LRU cache, in addition to tile-count limits. These thresholds invoke byte-based eviction, but they are **not a hard process or GPU-VRAM ceiling**: in-use tiles can remain resident above target, request/download buffers are outside this cache budget, and GPU memory is tracked separately. The gap remains PARTIAL until package-version-specific runtime tests and sustained-load evidence pass.
 
 ### C/S resource scheduler — PARTIAL (PLAN-ONLY)
 
@@ -87,7 +87,7 @@ Adapters: OpenUSD/Houdini, OpenCue, rayshader, 4D Gaussian splats. All return `o
 | AOI terrain coverage | OPEN | Pinned source manifest, coverage/nodata report, recovery tests |
 | CRS/datum/epoch/accuracy catalog | OPEN | Whole-catalog report with denominators, failures, and provenance |
 | Cross-device GPU validation | OPEN | Representative browser/device correctness, performance, and memory matrix |
-| Hard 3D Tiles cache byte budget | PARTIAL | Byte accounting and enforcement/eviction/backpressure required |
+| Hard 3D Tiles cache byte budget | PARTIAL | LRU byte thresholds are wired; verify package-version accounting, active-tile over-budget behavior, sustained-load bounds, and GPU memory separately |
 | Gage-zero NAVD88 conversion | GATED_OPERATOR | conversionPublished=false fail-closed until SIR/NWPS conflict resolved |
 | FEMA LOMA external filing | GATED_OPERATOR | Prepare evidence only; no automatic filing |
 
@@ -108,6 +108,6 @@ node --test \
 
 ## Finish note
 
-**The repository does not yet have evidence to declare all terrain/GPU release gates complete.** The renderer/camera bridge and some contract helpers exist, but GPU H-Z, complete Transvoxel acceptance, full AOI coverage, whole-catalog CRS/datum evidence, cross-device validation, hard cache enforcement, and real C/S swapping remain open or partial. Current-main CI status has not been established by this ledger.
+**The repository does not yet have evidence to declare all terrain/GPU release gates complete.** The renderer/camera bridge and some contract helpers exist, but GPU H-Z, complete Transvoxel acceptance, full AOI coverage, whole-catalog CRS/datum evidence, cross-device validation, hard process/GPU memory bounds, and real C/S swapping remain open or partial. Current-main CI status has not been established by this ledger.
 
 **Human authority remains final.**
