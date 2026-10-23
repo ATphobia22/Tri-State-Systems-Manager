@@ -105,3 +105,6 @@ jobs:
       - name: GPU H-Z culling contract and conservative-coverage tests
         working-directory: tsm-console
         run: npx --no-install vitest run tests/webgpu-hz-cull.test.ts tests/webgpu-hz-reference.test.ts
+      - name: Production console build
+        working-directory: tsm-console
+        run: npm run build
