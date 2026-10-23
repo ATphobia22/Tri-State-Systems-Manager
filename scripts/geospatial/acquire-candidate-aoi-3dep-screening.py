@@ -63,8 +63,8 @@ def main() -> int:
     parser.add_argument("--aoi", type=Path, default=DEFAULT_AOI, help="GeoJSON AOI file; ignored when --zip-code is set")
     parser.add_argument("--zip-code", help="Download the Census 2020 ZCTA polygon for this five-digit ZIP approximation")
     parser.add_argument("--output-dir", type=Path, required=True)
-    parser.add_argument("--width", type=int, default=1024)
-    parser.add_argument("--height", type=int, default=1024)
+    parser.add_argument("--width", type=int, default=4096)
+    parser.add_argument("--height", type=int, default=4096)
     args = parser.parse_args()
     if args.width < 64 or args.height < 64 or args.width > 4096 or args.height > 4096:
         parser.error("width/height must be in 64..4096")
