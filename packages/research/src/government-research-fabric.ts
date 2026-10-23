@@ -11,7 +11,7 @@ export interface ResearchFabricResult {
  readonly hashes:{input:string;output:string};readonly limitations:readonly string[];
 }
 export interface ResearchProvider {readonly id:ResearchProviderId;search(query:string,signal?:AbortSignal):Promise<readonly ResearchDocument[]>}
-const stable=(value:unknown):string=>value===null||typeof value!=='object'?JSON.stringify(value):Array.isArray(value)?'['+value.map(stable).join(',')+']':'{'+Object.keys(value as object).sort().map(k=>JSON.stringify(k)+':'+stable((value as Record<string,unknown>)[k])).join(',')+'}';
+const stable=(value:unknown):string=>value===null||typeof value!=='object'?(JSON.stringify(value)??'null'):Array.isArray(value)?'['+value.map(stable).join(',')+']':'{'+Object.keys(value as object).sort().map(k=>JSON.stringify(k)+':'+stable((value as Record<string,unknown>)[k])).join(',')+'}';
 const hash=(value:unknown)=>createHash('sha256').update(typeof value==='string'?value:stable(value)).digest('hex');
 export async function researchSearch(query:string,providers:readonly ResearchProvider[],options:{signal?:AbortSignal;maxDocuments?:number}={}):Promise<ResearchFabricResult>{
  if(!query.trim()) throw new Error('RESEARCH_QUERY_REQUIRED');
