@@ -12,26 +12,29 @@ This registry is the authoritative list of the five remaining terrain/geospatial
 
 ## 2. County-scale Transvoxel terrain stitching
 
-- **Status:** Algorithm/table and LOD-scheduling components exist; county-scale mesh generation and field validation remain incomplete.
-- **Present:** Lengyel transition-cell classification table, stitcher integration, and 2:1 LOD scheduling contracts.
-- **Outstanding:** End-to-end mesh emission from real neighboring terrain tiles; transition coverage at all supported LOD boundaries; seam/crack checks; nodata, tile-edge, and mixed-resolution behavior; memory/runtime measurements at the declared AOI scale.
-- **Acceptance evidence:** Reproducible fixtures for all supported transition cases, automated seam/topology checks, deterministic output hashes, and a measured representative-county run with inputs and hardware/runtime recorded.
+- **Status:** Substantially advanced 2026-10-23; full-county production run remains open.
+- **Present:** Lengyel transition-cell classification tables (regenerated 2026-10-23 from the official EricLengyel/Transvoxel MIT source — the previously committed Python JSONs were theater: one truncated ending in a literal `[PLACEHOLDER]`, four empty; replaced and verified), stitcher integration, 2:1 LOD scheduling contracts, and a measured representative-county run.
+- **Measured 2026-10-23:** 400 km² Posey County sub-AOI (36.8% of the county) from 4 real 3DEP 1 m tiles (SHA-256 recorded); 36,875 transition cells tested, 5,721 meshed, 28,694 verts / 17,252 tris; deterministic output (identical mesh SHA-256 across runs); 0 true cracks across 17,162 seam checks (7 one-sided mismatches at nodata margins, labeled); 21.3 s wall, 707 MB peak RSS. Full-county cost projected ~2.2 h (labeled PROJECTION, not measured).
+- **Outstanding:** Full adaptive-octree extraction (the run emitted transition-face strips per the benchmark model, not full octree terrain), all-six-orientation seam coverage, and the full-county measured run.
+- **Acceptance evidence (partial):** Reproducible fixtures, automated seam/topology checks, deterministic hashes, and a measured representative-county run with inputs/hardware recorded — committed in `docs/validation/transvoxel-county-run/`.
 - **Scope boundary:** A complete lookup table or synthetic fixture does not prove county-scale production readiness.
 
 ## 3. Full C/S state transitions and terrain/asset coverage
 
-- **Status:** Streaming lifecycle and adaptive scheduling components exist; complete AOI asset coverage and operational recovery are not verified.
-- **Present:** Tile lifecycle state machine, fetch bridge integration, and bandwidth-adaptive concurrency controls.
-- **Outstanding:** Exact AOI manifest for required source assets; coverage and nodata report; cancellation/timeout behavior across providers; cache freshness and eviction tests; offline/online transition tests; alternate-source recovery on representative missing-source cases.
-- **Acceptance evidence:** A committed manifest/report binds source IDs, hashes, CRS/datum, acquisition times, coverage, and gaps; deterministic tests exercise timeout, cancellation, partial coverage, stale cache, provider failure, and recovery without fabricating data.
+- **Status:** Substantially advanced 2026-10-23; broader provider coverage remains open.
+- **Present:** Tile lifecycle state machine, fetch bridge integration, bandwidth-adaptive concurrency controls, an exact AOI manifest (34 entries, committed `docs/validation/cs-coverage/aoi-manifest-2026-10-23.json`), and a coverage/nodata report (16 VERIFIED / 13 PROVISIONAL / 5 UNAVAILABLE — missing is labeled unavailable, never filled).
+- **Measured 2026-10-23:** All 16 held snapshots (8 NFHL + 8 SSURGO) had SHA-256 recomputed on the VM — matched manifest claims exactly. 23 new deterministic tests (injected clock + scripted fake provider, zero network): timeout, cancellation, partial coverage, stale cache, provider 5xx/empty-body, retry-recovery — all green. Added the missing `markStale()` producer; failed providers surface labeled degraded states, no fail-closed.
+- **Outstanding:** Coverage of additional providers beyond the scripted fakes, long-run cache freshness/eviction behavior under real network conditions, and offline/online transition tests on device.
+- **Acceptance evidence (partial):** Committed manifest/report binding source IDs, hashes, CRS/datum, acquisition times, coverage, and gaps; deterministic tests for timeout, cancellation, partial coverage, stale cache, provider failure, and recovery.
 - **Scope boundary:** An empty or partial data catalog cannot be represented as complete geographic coverage.
 
 ## 4. System-wide CRS, vertical datum, epoch, and accuracy evidence
 
-- **Status:** Evidence schema and validation helpers exist; whole-catalog coverage has not been demonstrated.
-- **Present:** Elevation evidence product, terrain evidence assertions, and batch coordinate-validation harness.
-- **Outstanding:** Execute the harness against the complete supported feature/source catalog; report missing/unsupported CRS, vertical datum, coordinate epoch, units, transformation-grid/version, accuracy class, and source provenance; test the report against a pinned catalog snapshot.
-- **Acceptance evidence:** A committed, machine-readable catalog coverage report with denominator, numerator, skipped records, error categories, and input snapshot digest; CI checks the report for unintended regressions. Unknown transformations remain explicitly unavailable and are not approximated silently.
+- **Status:** Substantially advanced 2026-10-23; one missing-critical record remains open.
+- **Present:** Elevation evidence product, terrain evidence assertions, batch coordinate-validation harness, and a full-catalog coverage run.
+- **Measured 2026-10-23:** Harness executed against the complete supported feature/source catalog (`scripts/geospatial/crs-datum-coverage-report.mjs`); committed machine-readable report `docs/validation/crs-datum-coverage/coverage-report-2026-10-23.json` with input snapshot SHA-256: denominator 10, validated 7 (70%), 2 explicitly UNAVAILABLE (USGS 03378500 gage zero, NWPS forecast reference — never approximated), 1 missing-critical (Point Township historical, null vertical datum). 6-test regression suite + `check:crs-coverage` npm script wired for CI.
+- **Outstanding:** Resolve the 1 missing-critical record (Point Township historical null vertical datum); re-run the harness as the catalog changes.
+- **Acceptance evidence (partial):** Committed machine-readable catalog coverage report with denominator, numerator, skipped records, error categories, and input snapshot digest; CI regression check wired. Unknown transformations remain explicitly unavailable and are not approximated silently.
 - **Scope boundary:** A validator or schema does not prove every catalog record has valid metadata. Survey-grade accuracy must not be inferred from metadata presence.
 
 ## 5. Multi-device occlusion, rendering, and performance validation
