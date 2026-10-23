@@ -6,13 +6,21 @@ on:
     paths:
       - 'scripts/geospatial/**'
       - 'tsm-console/src/geospatial/**'
+      - 'tsm-console/src/lib/**'
+      - 'tsm-console/src/gpu/**'
+      - 'tsm-console/src/components/WebGpuTerrainCanvas.tsx'
       - 'tsm-console/src/components/ThreeDTilesLayer.tsx'
+      - 'tsm-console/tests/**'
       - '.github/workflows/geospatial-blueprint-ops.yml'
   pull_request:
     paths:
       - 'scripts/geospatial/**'
       - 'tsm-console/src/geospatial/**'
+      - 'tsm-console/src/lib/**'
+      - 'tsm-console/src/gpu/**'
+      - 'tsm-console/src/components/WebGpuTerrainCanvas.tsx'
       - 'tsm-console/src/components/ThreeDTilesLayer.tsx'
+      - 'tsm-console/tests/**'
       - '.github/workflows/geospatial-blueprint-ops.yml'
   workflow_dispatch:
 
@@ -79,3 +87,9 @@ jobs:
       - name: Exhaustive TypeScript Transvoxel mesher tests
         working-directory: tsm-console
         run: npx --no-install vitest run tests/transvoxel-stitcher.test.ts
+      - name: WebGPU capability probe tests
+        working-directory: tsm-console
+        run: node --experimental-strip-types --test tests/webgpu-capabilities.test.mjs
+      - name: GPU H-Z culling contract tests
+        working-directory: tsm-console
+        run: npx --no-install vitest run tests/webgpu-hz-cull.test.ts
