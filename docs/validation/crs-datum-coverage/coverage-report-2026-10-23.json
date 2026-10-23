@@ -1,0 +1,514 @@
+{
+  "schema_version": "crs-datum-coverage/1.0.0",
+  "report_id": "coverage-report-2026-10-23",
+  "run_timestamp": "2026-10-23T23:20:26.747Z",
+  "harness": {
+    "module": "tsm-console/src/lib/crs-vertical-datum-evidence.ts",
+    "version": "1.0.0",
+    "git_commit": "9616cc45c0b904b1019cfc46f231348790317de1",
+    "git_branch": "feat/finish-technical-gaps-20261023"
+  },
+  "input_snapshot": {
+    "catalog_source": "tsm-console/src/lib/crs-vertical-datum-evidence.ts :: TSM_SUPPORTED_SOURCE_CATALOG",
+    "entry_count": 10,
+    "sha256": "9dee3404c33d84330c34510268c0ec03c201be1546e8cd312da4f0dbac2dde51",
+    "pinned_fixture": "tsm-console/tests/fixtures/crs-datum-catalog-snapshot-2026-10-23.json"
+  },
+  "coverage": {
+    "denominator": 10,
+    "numerator": 7,
+    "fraction": 0.7
+  },
+  "status_counts": {
+    "VALIDATED": 7,
+    "UNAVAILABLE": 2,
+    "INCOMPLETE": 0,
+    "MISSING_CRITICAL": 1
+  },
+  "skipped": [],
+  "skip_policy": "A catalog record is skipped only when it cannot be evaluated — i.e. it has no usable identifier. Unknown or unresolvable CRS/datum values are never skipped; they are evaluated and labeled (UNSUPPORTED / UNKNOWN_UNAVAILABLE / MISSING).",
+  "error_categories": [
+    {
+      "category": "accuracy-class-not-catalogued",
+      "count": 10,
+      "entries": [
+        "fema-effective",
+        "indiana-bafm",
+        "indiana-current-imagery",
+        "indiana-parcels-2025",
+        "nfhl-s-bfe",
+        "noaa-nwps",
+        "point-township-historical",
+        "usace-nld",
+        "usgs-03378500",
+        "usgs-3dep-terrain"
+      ]
+    },
+    {
+      "category": "coordinate-epoch-not-catalogued",
+      "count": 10,
+      "entries": [
+        "fema-effective",
+        "indiana-bafm",
+        "indiana-current-imagery",
+        "indiana-parcels-2025",
+        "nfhl-s-bfe",
+        "noaa-nwps",
+        "point-township-historical",
+        "usace-nld",
+        "usgs-03378500",
+        "usgs-3dep-terrain"
+      ]
+    },
+    {
+      "category": "transform-grid-version-not-catalogued",
+      "count": 10,
+      "entries": [
+        "fema-effective",
+        "indiana-bafm",
+        "indiana-current-imagery",
+        "indiana-parcels-2025",
+        "nfhl-s-bfe",
+        "noaa-nwps",
+        "point-township-historical",
+        "usace-nld",
+        "usgs-03378500",
+        "usgs-3dep-terrain"
+      ]
+    },
+    {
+      "category": "units-not-catalogued",
+      "count": 10,
+      "entries": [
+        "fema-effective",
+        "indiana-bafm",
+        "indiana-current-imagery",
+        "indiana-parcels-2025",
+        "nfhl-s-bfe",
+        "noaa-nwps",
+        "point-township-historical",
+        "usace-nld",
+        "usgs-03378500",
+        "usgs-3dep-terrain"
+      ]
+    },
+    {
+      "category": "vertical-datum-unknown-unresolvable-transform",
+      "count": 2,
+      "entries": [
+        "noaa-nwps",
+        "usgs-03378500"
+      ]
+    },
+    {
+      "category": "missing-vertical-datum",
+      "count": 1,
+      "entries": [
+        "point-township-historical"
+      ]
+    }
+  ],
+  "entries": [
+    {
+      "id": "usgs-3dep-terrain",
+      "dataset": "USGS 3DEP",
+      "authority": "USGS",
+      "layerType": "terrain",
+      "horizontal_crs": {
+        "value": "EPSG:3857",
+        "status": "SUPPORTED"
+      },
+      "vertical_datum": {
+        "value": "NAVD88",
+        "status": "SUPPORTED",
+        "transform_availability": "NATIVE"
+      },
+      "coordinate_epoch": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "units": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "accuracy_class": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "transform_grid_version": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "source_provenance": {
+        "value": "https://elevation.nationalmap.gov/",
+        "status": "PRESENT"
+      },
+      "status": "VALIDATED",
+      "notes": [
+        "Vertical heights native in NAVD88; no datum transform required."
+      ]
+    },
+    {
+      "id": "fema-effective",
+      "dataset": "NFHL Effective",
+      "authority": "FEMA",
+      "layerType": "vector",
+      "horizontal_crs": {
+        "value": "EPSG:4326",
+        "status": "SUPPORTED"
+      },
+      "vertical_datum": {
+        "value": "NAVD88",
+        "status": "SUPPORTED",
+        "transform_availability": "NATIVE"
+      },
+      "coordinate_epoch": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "units": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "accuracy_class": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "transform_grid_version": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "source_provenance": {
+        "value": "https://hazards.fema.gov/",
+        "status": "PRESENT"
+      },
+      "status": "VALIDATED",
+      "notes": [
+        "Vertical heights native in NAVD88; no datum transform required."
+      ]
+    },
+    {
+      "id": "indiana-bafm",
+      "dataset": "Indiana Best Available Flood Mapping",
+      "authority": "IDNR / IGIO",
+      "layerType": "vector",
+      "horizontal_crs": {
+        "value": "EPSG:2965",
+        "status": "SUPPORTED"
+      },
+      "vertical_datum": {
+        "value": "NAVD88",
+        "status": "SUPPORTED",
+        "transform_availability": "NATIVE"
+      },
+      "coordinate_epoch": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "units": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "accuracy_class": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "transform_grid_version": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "source_provenance": {
+        "value": "PENDING",
+        "status": "PRESENT"
+      },
+      "status": "VALIDATED",
+      "notes": [
+        "Vertical heights native in NAVD88; no datum transform required."
+      ]
+    },
+    {
+      "id": "indiana-parcels-2025",
+      "dataset": "Indiana Parcels",
+      "authority": "IGIO",
+      "layerType": "vector",
+      "horizontal_crs": {
+        "value": "EPSG:2965",
+        "status": "SUPPORTED"
+      },
+      "vertical_datum": {
+        "value": "NONE",
+        "status": "NONE_NO_VERTICAL",
+        "transform_availability": "NOT_APPLICABLE"
+      },
+      "coordinate_epoch": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "units": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "accuracy_class": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "transform_grid_version": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "source_provenance": {
+        "value": "PENDING",
+        "status": "PRESENT"
+      },
+      "status": "VALIDATED",
+      "notes": [
+        "Vertical datum NONE: layer carries no vertical component; no transform applies."
+      ]
+    },
+    {
+      "id": "indiana-current-imagery",
+      "dataset": "Indiana Imagery",
+      "authority": "IGIO",
+      "layerType": "raster",
+      "horizontal_crs": {
+        "value": "EPSG:3857",
+        "status": "SUPPORTED"
+      },
+      "vertical_datum": {
+        "value": "NONE",
+        "status": "NONE_NO_VERTICAL",
+        "transform_availability": "NOT_APPLICABLE"
+      },
+      "coordinate_epoch": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "units": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "accuracy_class": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "transform_grid_version": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "source_provenance": {
+        "value": "PENDING",
+        "status": "PRESENT"
+      },
+      "status": "VALIDATED",
+      "notes": [
+        "Vertical datum NONE: layer carries no vertical component; no transform applies."
+      ]
+    },
+    {
+      "id": "usgs-03378500",
+      "dataset": "USGS Gage 03378500 stage",
+      "authority": "USGS",
+      "layerType": "live-observation",
+      "horizontal_crs": {
+        "value": "EPSG:4326",
+        "status": "SUPPORTED"
+      },
+      "vertical_datum": {
+        "value": "UNKNOWN",
+        "status": "UNKNOWN_UNAVAILABLE",
+        "transform_availability": "UNAVAILABLE"
+      },
+      "coordinate_epoch": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "units": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "accuracy_class": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "transform_grid_version": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "source_provenance": {
+        "value": "https://waterdata.usgs.gov/monitoring-location/USGS-03378500/",
+        "status": "PRESENT"
+      },
+      "status": "UNAVAILABLE",
+      "notes": [
+        "Vertical datum explicitly UNKNOWN — vertical transform unresolvable; labeled UNAVAILABLE. Example: USGS gage 03378500 stage is reported against an unpublished gage zero, not an orthometric datum."
+      ]
+    },
+    {
+      "id": "noaa-nwps",
+      "dataset": "NOAA NWPS",
+      "authority": "NWS",
+      "layerType": "live-forecast",
+      "horizontal_crs": {
+        "value": "EPSG:4326",
+        "status": "SUPPORTED"
+      },
+      "vertical_datum": {
+        "value": "UNKNOWN",
+        "status": "UNKNOWN_UNAVAILABLE",
+        "transform_availability": "UNAVAILABLE"
+      },
+      "coordinate_epoch": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "units": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "accuracy_class": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "transform_grid_version": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "source_provenance": {
+        "value": "https://water.noaa.gov/",
+        "status": "PRESENT"
+      },
+      "status": "UNAVAILABLE",
+      "notes": [
+        "Vertical datum explicitly UNKNOWN — vertical transform unresolvable; labeled UNAVAILABLE. Example: USGS gage 03378500 stage is reported against an unpublished gage zero, not an orthometric datum."
+      ]
+    },
+    {
+      "id": "usace-nld",
+      "dataset": "USACE National Levee Database",
+      "authority": "USACE",
+      "layerType": "vector",
+      "horizontal_crs": {
+        "value": "EPSG:4326",
+        "status": "SUPPORTED"
+      },
+      "vertical_datum": {
+        "value": "NAVD88",
+        "status": "SUPPORTED",
+        "transform_availability": "NATIVE"
+      },
+      "coordinate_epoch": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "units": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "accuracy_class": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "transform_grid_version": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "source_provenance": {
+        "value": "https://levees.sec.usace.army.mil/",
+        "status": "PRESENT"
+      },
+      "status": "VALIDATED",
+      "notes": [
+        "Vertical heights native in NAVD88; no datum transform required."
+      ]
+    },
+    {
+      "id": "point-township-historical",
+      "dataset": "Point Township historical",
+      "authority": "Local / TSM",
+      "layerType": "historical-raster",
+      "horizontal_crs": {
+        "value": "EPSG:4326",
+        "status": "SUPPORTED"
+      },
+      "vertical_datum": {
+        "value": null,
+        "status": "MISSING",
+        "transform_availability": "UNRESOLVABLE"
+      },
+      "coordinate_epoch": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "units": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "accuracy_class": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "transform_grid_version": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "source_provenance": {
+        "value": "HISTORICAL_REFERENCE",
+        "status": "PRESENT"
+      },
+      "status": "MISSING_CRITICAL",
+      "notes": []
+    },
+    {
+      "id": "nfhl-s-bfe",
+      "dataset": "NFHL S_BFE",
+      "authority": "FEMA",
+      "layerType": "vector",
+      "horizontal_crs": {
+        "value": "EPSG:4326",
+        "status": "SUPPORTED"
+      },
+      "vertical_datum": {
+        "value": "NAVD88",
+        "status": "SUPPORTED",
+        "transform_availability": "NATIVE"
+      },
+      "coordinate_epoch": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "units": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "accuracy_class": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "transform_grid_version": {
+        "value": null,
+        "status": "NOT_CATALOGUED"
+      },
+      "source_provenance": {
+        "value": "https://hazards.fema.gov/nfhl/",
+        "status": "PRESENT"
+      },
+      "status": "VALIDATED",
+      "notes": [
+        "Vertical heights native in NAVD88; no datum transform required."
+      ]
+    }
+  ],
+  "ci_hook": {
+    "npm_script": "check:crs-coverage",
+    "command": "cd tsm-console && npm run check:crs-coverage",
+    "description": "Runs the coverage harness against the live catalog and rewrites the committed JSON report. Intended CI regression check: compare the regenerated report against the committed file and the pinned catalog fixture (tests/crs-datum-coverage.test.mjs) without editing .github/workflows."
+  },
+  "notes": [
+    "Denominator = complete supported source catalog: TSM_SUPPORTED_SOURCE_CATALOG (aligned with REQUIRED_OPEN_WORLD_LAYERS + NFHL S_BFE). No entries invented; no records silently skipped.",
+    "VALIDATED = supported horizontal CRS + usable vertical datum (NONE accepted for layers with no vertical component) + present source provenance.",
+    "UNAVAILABLE = vertical datum explicitly UNKNOWN (e.g. gage-zero / forecast reference); transform unresolvable, never approximated.",
+    "coordinate_epoch / units / accuracy_class / transform_grid_version are NOT_CATALOGUED in the current catalog schema — reported as coverage gaps, not invented. Epoch is required by validateFeatureCoordinates only under its requireEpoch policy, not globally.",
+    "Metadata presence does not imply survey-grade accuracy.",
+    "Human authority remains final."
+  ]
+}

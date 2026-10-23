@@ -29,6 +29,7 @@
     "check:type": "tsc --noEmit",
     "check:geospatial": "bash ../scripts/ci/geospatial-contract.sh",
     "check:government-sources": "node scripts/geospatial/validate-government-sources.mjs",
+    "check:crs-coverage": "node ../scripts/geospatial/crs-datum-coverage-report.mjs",
     "check:live-fabric": "node ../scripts/ci/validate-live-fabric.mjs",
     "check:regulatory-rules": "node ../scripts/ci/validate-regulatory-rules.mjs",
     "check:engineering-pipeline": "node ../scripts/ci/validate-engineering-pipeline.mjs",
