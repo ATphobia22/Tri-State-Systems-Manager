@@ -82,7 +82,7 @@ def run_benchmark(raster_path: Path, evidence_path: Path, output_path: Path, pat
         if src.count < 1 or src.crs is None:
             raise ValueError("source raster must have a band and a declared CRS")
         src_crs = src.crs
-        src_nodata = src.nodata
+        src_nodata = src.nodata if src.nodata is not None else -999999.0
         transform, width, height = calculate_default_transform(
             src_crs, TARGET_CRS, src.width, src.height, *src.bounds,
             resolution=(CELL_SIZE_METERS, CELL_SIZE_METERS),
