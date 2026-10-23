@@ -12,7 +12,7 @@ export const GOVERNMENT_CAPABILITIES:readonly GovernmentCapability[]=[
  {id:'geo.flood.risk',authority:'FEMA',operation:'discovery',status:'discovery-only',description:'Discover Risk MAP study products; not a regulatory determination.'},
  {id:'geo.dem.query',authority:'USGS',operation:'discovery',status:'registered',description:'Query 3DEP elevation service metadata with provenance (UsgsAdapter).'},
  {id:'geo.elevation.profile',authority:'USGS',operation:'profile',status:'discovery-only',description:'Elevation profile capability pending CRS/datum/nodata validation.'},
- {id:'geo.hydrology.query',authority:'USGS',operation:'discovery',status:'discovery-only',description:'Discover NHD and hydrography products.'},
+ {id:'geo.hydrology.query',authority:'USGS',operation:'discovery',status:'discovery-only',description:'Discover current 3DHP hydrography and legacy NHD reference products.'},
  {id:'geo.watershed.query',authority:'USGS',operation:'watershed',status:'discovery-only',description:'Watershed delineation requires a validated DEM, pour point, and pinned algorithm.'},
  {id:'weather.forecast',authority:'NOAA',operation:'forecast',status:'registered',description:'NWS forecast metadata via api.weather.gov with provenance (NoaaAdapter). Live fetch is user-initiated only.'},
  {id:'river.gauge.query',authority:'NOAA',operation:'read-only-query',status:'registered',description:'NWPS river gauge metadata, flood thresholds, and stageflow (NwpsAdapter). Live fetch is user-initiated only; pinned snapshots are the default.'},

@@ -16,7 +16,7 @@ export interface GovernmentSource {
 export const GOVERNMENT_SOURCES: readonly GovernmentSource[] = [
  {id:'fema-nfhl',authority:'FEMA',title:'National Flood Hazard Layer',endpoint:'https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer',access:'REST_JSON',purpose:'Effective flood hazard layer discovery and query',limitations:['A layer query is not a site-specific flood determination. Verify effective date, community, panel, and LOMR status.']},
  {id:'usgs-3dep',authority:'USGS',title:'3D Elevation Program',endpoint:'https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer',access:'REST_JSON',purpose:'Elevation service discovery and profile/query',limitations:['Resolution, acquisition vintage, vertical datum, units, and nodata must be retained per result.']},
- {id:'usgs-hydrography',authority:'USGS',title:'National Hydrography',endpoint:'https://hydro.nationalmap.gov/arcgis/rest/services/nhd/MapServer',access:'REST_JSON',purpose:'Hydrography feature discovery',limitations:['Hydrography is not a surveyed channel cross-section or hydraulic model.']},
+ {id:'usgs-hydrography',authority:'USGS',title:'3D Hydrography Program (3DHP)',endpoint:'https://hydro.nationalmap.gov/arcgis/rest/services/3DHP_all/FeatureServer',access:'REST_JSON',purpose:'Current hydrography feature and flow-network discovery',limitations:['Coverage and vintage vary; legacy NHD may supplement areas without elevation-derived hydrography.','Hydrography is not a surveyed channel cross-section, bathymetric surface, or hydraulic model.','Not intended for site-specific regulatory determinations.']},
  {id:'noaa-coops',authority:'NOAA',title:'CO-OPS water levels and tides',endpoint:'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter',access:'REST_JSON',purpose:'Tides and observed water levels',limitations:['Station coverage varies; tidal predictions are not storm-surge forecasts.']},
  {id:'noaa-weather',authority:'NOAA',title:'National Weather Service API',endpoint:'https://api.weather.gov',access:'REST_JSON',purpose:'Forecasts, alerts, and grid metadata',limitations:['Forecasts are time- and grid-specific; retain issuance and valid times.']},
  {id:'census-tiger',authority:'CENSUS',title:'TIGER/Line and Census geographies',endpoint:'https://api.census.gov/data',access:'REST_JSON',purpose:'Census statistical geographies and attributes',limitations:['Statistical boundaries are not parcel or legal property boundaries.']},
@@ -35,11 +35,19 @@ export const GOVERNMENT_SOURCES: readonly GovernmentSource[] = [
  {id:'usgs-nwis',authority:'USGS',title:'NWIS instantaneous values (legacy waterservices)',endpoint:'https://waterservices.usgs.gov/nwis',access:'REST_JSON',purpose:'Instantaneous gage height and discharge via the JSON IV service',limitations:['The site-metadata service has no JSON format (verified 2026-10-23: format=json returns HTTP 400); use the pinned site snapshot for datums. Live values are user-initiated only per the river-data policy.']},
  ] as const;
 
-function canonical(value:unknown):string {
- if(value===null||typeof value!=='object') return JSON.stringify(value) ?? 'null';
- if(Array.isArray(value)) return '['+value.map(canonical).join(',')+']';
- const object=value as Record<string,unknown>;
- return '{'+Object.keys(object).sort().map(key=>JSON.stringify(key)+':'+canonical(object[key])).join(',')+'}';
+function canonical(value:unknown,ancestors:WeakSet<object>=new WeakSet()):string {
+ if(value===null)return 'null';
+ if(typeof value==='string')return JSON.stringify(value);
+ if(typeof value==='boolean')return value?'true':'false';
+ if(typeof value==='number'){if(!Number.isFinite(value))throw new TypeError('CANONICAL_VALUE_MUST_BE_FINITE');return JSON.stringify(value);}
+ if(typeof value!=='object')throw new TypeError('CANONICAL_VALUE_MUST_BE_JSON_COMPATIBLE');
+ if(ancestors.has(value))throw new TypeError('CANONICAL_VALUE_MUST_NOT_BE_CIRCULAR');
+ ancestors.add(value);
+ try {
+  if(Array.isArray(value))return '['+value.map(item=>canonical(item,ancestors)).join(',')+']';
+  const object=value as Record<string,unknown>;
+  return '{'+Object.keys(object).sort().map(key=>JSON.stringify(key)+':'+canonical(object[key],ancestors)).join(',')+'}';
+ } finally {ancestors.delete(value);}
 }
 export function sha256(value:unknown):string{return createHash('sha256').update(typeof value==='string'?value:canonical(value)).digest('hex');}
 export function getGovernmentSource(id:string):GovernmentSource {
@@ -47,6 +55,36 @@ export function getGovernmentSource(id:string):GovernmentSource {
  if(!source) throw new Error('GOVERNMENT_SOURCE_NOT_REGISTERED:'+id);
  return source;
 }
+async function readBoundedResponseText(response:Response,maxBytes:number):Promise<string> {
+ const declaredLength=response.headers.get('content-length');
+ if(declaredLength&&/^\d+$/.test(declaredLength)&&Number(declaredLength)>maxBytes)throw new Error('GOVERNMENT_RESPONSE_TOO_LARGE');
+ if(!response.body) {
+  const raw=await response.text();
+  if(new TextEncoder().encode(raw).byteLength>maxBytes)throw new Error('GOVERNMENT_RESPONSE_TOO_LARGE');
+  return raw;
+ }
+ const reader=response.body.getReader();
+ const chunks:Uint8Array[]=[];
+ let totalBytes=0;
+ try {
+  while(true) {
+   const {done,value}=await reader.read();
+   if(done)break;
+   totalBytes+=value.byteLength;
+   if(totalBytes>maxBytes) {
+    await reader.cancel().catch(()=>undefined);
+    throw new Error('GOVERNMENT_RESPONSE_TOO_LARGE');
+   }
+   chunks.push(value);
+  }
+ } finally {reader.releaseLock();}
+ const bytes=new Uint8Array(totalBytes);
+ let offset=0;
+ for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.byteLength;}
+ try{return new TextDecoder('utf-8',{fatal:true}).decode(bytes);}
+ catch{throw new Error('GOVERNMENT_SOURCE_INVALID_UTF8');}
+}
+
 export async function queryGovernmentJson<T=unknown>(sourceId:string,url:string,options:{signal?:AbortSignal;timeoutMs?:number;fetcher?:typeof fetch}={}):Promise<EvidenceEnvelope<T>> {
  const source=getGovernmentSource(sourceId);
  if(source.access!=='REST_JSON') throw new Error('GOVERNMENT_SOURCE_REQUIRES_SPECIALIZED_ADAPTER');
@@ -54,19 +92,19 @@ export async function queryGovernmentJson<T=unknown>(sourceId:string,url:string,
  if(requested.protocol!=='https:'||requested.username!==''||requested.password!==''||requested.hash!==''||requested.origin!==registered.origin||(registered.pathname!=='/'&&requested.pathname!==registered.pathname&&!requested.pathname.startsWith(registered.pathname+'/')))
    throw new Error('GOVERNMENT_URL_OUTSIDE_REGISTERED_ENDPOINT');
  const timeoutMs=options.timeoutMs??15000;
- if(!Number.isFinite(timeoutMs)||timeoutMs<1||timeoutMs>120000) throw new Error('INVALID_TIMEOUT_MS');
+ if(typeof timeoutMs!=='number'||!Number.isFinite(timeoutMs)||timeoutMs<1||timeoutMs>120000) throw new Error('INVALID_TIMEOUT_MS');
  const traceId=randomUUID(),generatedAt=new Date().toISOString(),inputHash=sha256({sourceId,url:requested.toString()});
  const controller=new AbortController(); const timeout=setTimeout(()=>controller.abort(new Error('timeout')),timeoutMs);
  const abort=()=>controller.abort(options.signal?.reason);
  if(options.signal?.aborted) controller.abort(options.signal.reason);
  else options.signal?.addEventListener('abort',abort,{once:true});
  try {
+   if(controller.signal.aborted) throw controller.signal.reason??new Error('GOVERNMENT_REQUEST_ABORTED');
    const response=await (options.fetcher??fetch)(requested,{signal:controller.signal,headers:{accept:'application/json'}});
    if(!response.ok) throw new Error('GOVERNMENT_SOURCE_HTTP_'+response.status);
    const mediaType=response.headers.get('content-type')??'';
    if(!/json/i.test(mediaType)) throw new Error('GOVERNMENT_SOURCE_NON_JSON_RESPONSE');
-   const raw=await response.text();
-   if(raw.length>25_000_000) throw new Error('GOVERNMENT_RESPONSE_TOO_LARGE');
+   const raw=await readBoundedResponseText(response,25_000_000);
    let result:T; try { result=JSON.parse(raw) as T; } catch { throw new Error('GOVERNMENT_SOURCE_INVALID_JSON'); }
    const outputHash=sha256(result);
    const retrievedAt=new Date().toISOString();
@@ -75,12 +113,39 @@ export async function queryGovernmentJson<T=unknown>(sourceId:string,url:string,
 }
 export function validateEvidenceEnvelope(value:EvidenceEnvelope<unknown>):readonly string[] {
  const errors:string[]=[];
- if(!value.traceId.trim()||value.traceId!==value.provenance.traceId) errors.push('traceId is required and must match provenance');
- if(value.hash!==value.hashes.output) errors.push('hash must match normalized output hash');
- if(!/^[a-f0-9]{64}$/.test(value.hashes.input)||!/^[a-f0-9]{64}$/.test(value.hashes.output)) errors.push('SHA-256 hashes must be lowercase 64-character hex');
- if(value.provenance.outputHash!==value.hashes.output||sha256(value.result)!==value.hashes.output) errors.push('output hash does not match result');
- if(value.evidence.length===0) errors.push('at least one evidence record is required');
- if(value.citations.some(citation=>new URL(citation.url).protocol!=='https:')) errors.push('citations must use HTTPS');
+ if(!value||typeof value!=='object')return ['evidence envelope must be an object'];
+ const provenance=value.provenance;
+ const hashes=value.hashes;
+ const hashPattern=/^[a-f0-9]{64}$/;
+ if(typeof value.traceId!=='string'||!value.traceId.trim()||!provenance||value.traceId!==provenance.traceId)errors.push('traceId is required and must match provenance');
+ if(!provenance||typeof provenance.provider!=='string'||!provenance.provider.trim())errors.push('provider is required');
+ if(!provenance||typeof provenance.providerVersion!=='string'||!provenance.providerVersion.trim())errors.push('providerVersion is required');
+ if(!provenance||!Number.isFinite(Date.parse(provenance.generatedAt)))errors.push('generatedAt must be a valid timestamp');
+ if(!provenance||!['VALIDATED','UNVERIFIED','UNAVAILABLE','REJECTED'].includes(provenance.status))errors.push('evidence status is invalid');
+ if(!hashes||!hashPattern.test(hashes.input)||!hashPattern.test(hashes.output))errors.push('SHA-256 hashes must be lowercase 64-character hex');
+ if(typeof value.hash!=='string'||!hashPattern.test(value.hash)||value.hash!==hashes?.output)errors.push('hash must match normalized output hash');
+ if(provenance&&hashes&&provenance.inputHash!==hashes.input)errors.push('input hash does not match provenance');
+ if(provenance&&hashes&&provenance.outputHash!==hashes.output)errors.push('output hash does not match provenance');
+ if(hashes&&hashPattern.test(hashes.output)) {
+  try {if(sha256(value.result)!==hashes.output)errors.push('output hash does not match result');}
+  catch {errors.push('result must be canonical JSON-compatible data');}
+ }
+ if(!Array.isArray(value.evidence)||value.evidence.length===0)errors.push('at least one evidence record is required');
+ for(const record of Array.isArray(value.evidence)?value.evidence:[]) {
+  if(!record||typeof record!=='object'){errors.push('evidence records must be objects');continue;}
+  if(!hashPattern.test(record.sha256))errors.push('evidence SHA-256 must be lowercase 64-character hex');
+  if(typeof record.mediaType!=='string'||!record.mediaType.trim())errors.push('evidence mediaType is required');
+  if(!Number.isFinite(Date.parse(record.retrievedAt)))errors.push('evidence retrievedAt must be a valid timestamp');
+  try {if(getGovernmentSource(record.sourceId).authority!==record.authority)errors.push('evidence authority does not match source registry');}
+  catch {errors.push('evidence sourceId is not registered');}
+ }
+ if(!Array.isArray(value.citations)||value.citations.length===0)errors.push('at least one citation is required');
+ for(const citation of Array.isArray(value.citations)?value.citations:[]) {
+  if(!citation||typeof citation!=='object'){errors.push('citations must be objects');continue;}
+  try {const url=new URL(citation.url);if(url.protocol!=='https:'||url.username||url.password)errors.push('citations must use credential-free HTTPS');}
+  catch {errors.push('citations must contain valid URLs');}
+  if(!Number.isFinite(Date.parse(citation.retrievedAt)))errors.push('citation retrievedAt must be a valid timestamp');
+ }
  return errors;
 }
 
