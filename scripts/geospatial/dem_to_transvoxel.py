@@ -80,19 +80,18 @@ def load_dem_window(path: str | os.PathLike[str], wx: int, wy: int, n: int, heig
         pixel_y = abs(float(src.transform.e))
         if not math.isfinite(pixel_x) or not math.isfinite(pixel_y) or pixel_x <= 0 or pixel_y <= 0:
             raise ValueError("DEM pixel transform is invalid")
-        # Projected CRS axis units may be feet; normalize horizontal spacing too.
-        axis_units = [axis.unit_name.lower() for axis in src.crs.axis_info[:2] if axis.unit_name]
-        if len(axis_units) < 2:
-            raise ValueError("DEM CRS does not declare horizontal axis units")
-        horizontal_factors = []
-        for axis in src.crs.axis_info[:2]:
-            factor = axis.unit_conversion_factor
-            if factor is None or not math.isfinite(float(factor)) or float(factor) <= 0:
-                raise ValueError("DEM horizontal CRS has no usable axis unit conversion factor")
-            horizontal_factors.append(float(factor))
-        if not math.isclose(horizontal_factors[0], horizontal_factors[1], rel_tol=1e-9):
-            raise ValueError("anisotropic horizontal CRS units are unsupported by this mesher")
-        px_m = pixel_x * horizontal_factors[0]
+        # Rasterio exposes the projected linear-unit conversion as a CRS property.
+        # Convert the raster's native horizontal units to metres without assuming feet.
+        if abs(float(src.transform.b)) > 1e-12 or abs(float(src.transform.d)) > 1e-12:
+            raise ValueError("rotated/sheared DEM transforms are unsupported by this mesher")
+        try:
+            unit_info = src.crs.linear_units_factor
+            horizontal_factor = float(unit_info[1])
+        except (AttributeError, TypeError, ValueError, IndexError) as exc:
+            raise ValueError("DEM CRS has no usable projected linear-unit conversion factor") from exc
+        if not math.isfinite(horizontal_factor) or horizontal_factor <= 0:
+            raise ValueError("DEM CRS has an invalid horizontal unit conversion factor")
+        px_m = pixel_x * horizontal_factor
         if not math.isclose(pixel_x, pixel_y, rel_tol=1e-6):
             raise ValueError("non-square DEM pixels are unsupported by this mesher")
         data = src.read(1, window=Window(wx, wy, n, height), masked=True).astype(np.float64)
