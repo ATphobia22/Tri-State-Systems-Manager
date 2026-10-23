@@ -175,7 +175,7 @@ export class WebGPUHierarchicalZ {
 export const WEBGPU_HIERARCHICAL_Z_STATUS = {
   implementation: 'gpu_compute_max_depth_pyramid',
   gpuComputeImplemented: true,
-  rendererIntegration: 'caller_supplied_depth_texture_required',
-  cullingDispatch: false,
+  rendererIntegration: 'TsmWebGpuRayTracer.renderFrameWithOcclusion',
+  cullingDispatch: 'gpu_compute_candidate_classifier',
   benchmarkEvidence: 'not_collected',
 } as const;
