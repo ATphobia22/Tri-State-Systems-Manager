@@ -2,13 +2,17 @@
 from __future__ import annotations
 
 import json
+import importlib.util
 import sys
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-import acquire_candidate_aoi_3dep_screening as evidence  # noqa: E402
+MODULE_PATH = Path(__file__).resolve().parent / "acquire-candidate-aoi-3dep-screening.py"
+SPEC = importlib.util.spec_from_file_location("aoi_3dep_evidence", MODULE_PATH)
+assert SPEC is not None and SPEC.loader is not None
+evidence = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(evidence)
 
 
 class AoiBoundaryTests(unittest.TestCase):
