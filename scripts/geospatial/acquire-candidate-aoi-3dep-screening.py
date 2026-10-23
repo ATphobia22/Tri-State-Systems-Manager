@@ -197,6 +197,20 @@ def main() -> int:
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     stem = f"zcta-{args.zcta}" if args.zcta else "candidate-aoi"
+    boundary_path = args.output_dir / f"{stem}-boundary.geojson"
+    boundary_document = {
+        "type": "FeatureCollection",
+        "name": stem,
+        "metadata": {
+            "boundaryAuthority": boundary_evidence.get("boundaryAuthority"),
+            "boundaryVintage": boundary_evidence.get("boundaryVintage"),
+            "boundaryResponseSha256": boundary_evidence.get("boundaryResponseSha256"),
+            "approvalStatus": approval,
+            "geometrySha256": geometry_hash,
+        },
+        "features": [feature],
+    }
+    boundary_path.write_text(json.dumps(boundary_document, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     raster_path = args.output_dir / f"{stem}-usgs-3dep-screening.tif"
     raster_path.write_bytes(image_bytes)
     with rasterio.open(raster_path) as dataset:
