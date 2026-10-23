@@ -1,65 +1,121 @@
-/**
- * TSM Transvoxel Transition Tables & Stitcher
- *
- * Lengyel transitionCellClass[512] (56 classes) via transvoxel-lengyel-classes.ts.
- * Full triangle vertex tables for all 56 classes still expand in the Python
- * mesher (scripts/geospatial); this module provides case classification for
- * runtime / PoC consumers.
- *
- * Reference: Lengyel, E. "Voxel-Based Terrain for Real-Time Virtual Simulations"
- */
 
-import { getTransitionClass, TRANSITION_CELL_CLASS, validateLengyelTables } from './transvoxel-lengyel-classes';
+/**
+ * Table-driven Transvoxel transition-cell mesher.
+ * Table source: Eric Lengyel, https://github.com/EricLengyel/Transvoxel (MIT).
+ *
+ * The 9 fine-side samples determine the 9-bit case. The full 13-sample scalar
+ * field (9 fine samples plus 4 coarse-side corners) is required to interpolate
+ * the table's edge vertices. Positions are caller supplied in world/local space.
+ */
+import {
+  TRANSITION_CELL_CLASS_TABLE,
+  TRANSITION_CELL_DATA_TABLE,
+  TRANSITION_VERTEX_DATA_TABLE,
+} from './transvoxel-lengyel-tables';
 
 export interface TransitionCellData {
-  vertexCount: number;
-  indexCount: number;
-  triangles: number[];
+  readonly vertexCount: number;
+  readonly triangleCount: number;
+  readonly triangles: readonly number[];
+}
+export interface TransitionMesh {
+  readonly caseIndex: number;
+  readonly classId: number;
+  readonly invertWinding: boolean;
+  /** xyz triplets; vertices follow the official per-case transitionVertexData order. */
+  readonly positions: Float32Array;
+  /** Triangle-list indices into positions. */
+  readonly indices: Uint32Array;
 }
 
-/** Sparse common-case geometry; full 56-class mesh tables remain in Python. */
-export const TRANSVOXEL_TRANSITION_CASES: Record<number, TransitionCellData> = {
-  0x000: { vertexCount: 0, indexCount: 0, triangles: [] },
-  0x001: { vertexCount: 4, indexCount: 6, triangles: [0, 1, 2, 0, 2, 3] },
-  0x002: { vertexCount: 4, indexCount: 6, triangles: [1, 2, 3, 1, 3, 0] },
-  0x004: { vertexCount: 4, indexCount: 6, triangles: [0, 1, 4, 0, 4, 3] },
-  0x1ff: { vertexCount: 0, indexCount: 0, triangles: [] },
-};
+export const TRANSITION_CELL_CLASS: readonly number[] = TRANSITION_CELL_CLASS_TABLE;
+
+export function getTransitionClass(caseIndex: number): { classId: number; invertWinding: boolean } {
+  if (!Number.isInteger(caseIndex) || caseIndex < 0 || caseIndex > 511) {
+    throw new RangeError('caseIndex must be an integer in 0..511');
+  }
+  const encoded = TRANSITION_CELL_CLASS_TABLE[caseIndex]!;
+  return { classId: encoded & 0x7f, invertWinding: (encoded & 0x80) !== 0 };
+}
 
 export class TransvoxelStitcher {
+  /** Case bits follow the official transitionCellClass table: negative = solid. */
   public static evaluateTransitionCase(cornerSdfs: Float32Array): number {
-    if (cornerSdfs.length !== 9) {
-      throw new Error(`Expected 9 SDF values, got ${cornerSdfs.length}`);
-    }
+    if (cornerSdfs.length !== 9) throw new Error(`Expected 9 fine-side SDF values, got ${cornerSdfs.length}`);
     let caseIndex = 0;
     for (let i = 0; i < 9; i++) {
-      if (cornerSdfs[i]! < 0.0) {
-        caseIndex |= 1 << i;
-      }
-    }
-    if (caseIndex === 0x000 || caseIndex === 0x1ff) {
-      return -1;
+      const value = cornerSdfs[i]!;
+      if (!Number.isFinite(value)) throw new Error(`Non-finite SDF at fine sample ${i}`);
+      if (value < 0) caseIndex |= 1 << i;
     }
     return caseIndex;
   }
 
+  /** Return canonical triangle-list indices for a case, without positions. */
   public static generateTransitionGeometry(caseIndex: number): number[] | null {
-    if (caseIndex < 0) return null;
-    const cellData = TRANSVOXEL_TRANSITION_CASES[caseIndex];
-    if (!cellData || cellData.indexCount === 0) {
-      return null;
-    }
-    return cellData.triangles;
+    if (!Number.isInteger(caseIndex) || caseIndex < 0 || caseIndex > 511) throw new RangeError('caseIndex must be 0..511');
+    const { classId, invertWinding } = getTransitionClass(caseIndex);
+    const row = TRANSITION_CELL_DATA_TABLE[classId];
+    if (!row) throw new Error(`Missing Transvoxel transition class ${classId}`);
+    const triangleCount = row[0] & 0x0f;
+    const indices = row[1].slice(0, triangleCount * 3);
+    if (invertWinding) for (let i = 0; i < indices.length; i += 3) [indices[i + 1], indices[i + 2]] = [indices[i + 2]!, indices[i + 1]!];
+    return indices;
   }
 
-  /** Lengyel equivalence class 0..55 + invert winding flag. */
-  public static getEquivalenceClass(caseIndex: number): { classId: number; invertWinding: boolean } {
-    return getTransitionClass(caseIndex);
+  /**
+   * Polygonize one official transition cell. sdf has 13 samples; positions has
+   * 13 xyz triplets. The final four SDFs/positions are coarse-side corner samples.
+   */
+  public static polygonizeTransitionCell(sdf: Float32Array, positions: Float32Array): TransitionMesh {
+    if (sdf.length !== 13) throw new Error(`Expected 13 scalar samples, got ${sdf.length}`);
+    if (positions.length !== 39) throw new Error(`Expected 13 xyz positions (39 floats), got ${positions.length}`);
+    for (let i = 0; i < 13; i++) {
+      if (!Number.isFinite(sdf[i]!)) throw new Error(`Non-finite SDF sample ${i}`);
+      for (let axis = 0; axis < 3; axis++) if (!Number.isFinite(positions[i * 3 + axis]!)) throw new Error(`Non-finite position at sample ${i}`);
+    }
+    const caseIndex = this.evaluateTransitionCase(sdf.subarray(0, 9));
+    const { classId, invertWinding } = getTransitionClass(caseIndex);
+    const [geometryCounts, rawTriangleIndices] = TRANSITION_CELL_DATA_TABLE[classId]!;
+    const vertexCount = geometryCounts >>> 4;
+    const triangleCount = geometryCounts & 0x0f;
+    const encodedVertices = TRANSITION_VERTEX_DATA_TABLE[caseIndex]!;
+    const outputPositions = new Float32Array(vertexCount * 3);
+    for (let vertex = 0; vertex < vertexCount; vertex++) {
+      const edge = encodedVertices[vertex]! & 0xff;
+      const endpointA = (edge >>> 4) & 0x0f;
+      const endpointB = edge & 0x0f;
+      if (endpointA > 12 || endpointB > 12) throw new Error(`Invalid transition edge endpoints ${endpointA},${endpointB} for case ${caseIndex}`);
+      const a = sdf[endpointA]!;
+      const b = sdf[endpointB]!;
+      const denominator = a - b;
+      const t = Math.abs(denominator) < 1e-20 ? 0.5 : Math.max(0, Math.min(1, a / denominator));
+      for (let axis = 0; axis < 3; axis++) {
+        const pa = positions[endpointA * 3 + axis]!;
+        const pb = positions[endpointB * 3 + axis]!;
+        outputPositions[vertex * 3 + axis] = pa + (pb - pa) * t;
+      }
+    }
+    const indices = rawTriangleIndices.slice(0, triangleCount * 3);
+    for (const index of indices) if (index < 0 || index >= vertexCount) throw new Error(`Invalid triangle vertex index ${index} in class ${classId}`);
+    if (invertWinding) for (let i = 0; i < indices.length; i += 3) [indices[i + 1], indices[i + 2]] = [indices[i + 2]!, indices[i + 1]!];
+    return { caseIndex, classId, invertWinding, positions: outputPositions, indices: new Uint32Array(indices) };
   }
 
   public static validateTables(): boolean {
-    return validateLengyelTables().ok && TRANSITION_CELL_CLASS.length === 512;
+    if (TRANSITION_CELL_CLASS_TABLE.length !== 512 || TRANSITION_CELL_DATA_TABLE.length !== 56 || TRANSITION_VERTEX_DATA_TABLE.length !== 512) return false;
+    for (let caseIndex = 0; caseIndex < 512; caseIndex++) {
+      const { classId } = getTransitionClass(caseIndex);
+      const row = TRANSITION_CELL_DATA_TABLE[classId];
+      if (!row) return false;
+      const vertexCount = row[0] >>> 4;
+      const triangleCount = row[0] & 0x0f;
+      if (vertexCount > 12 || row[1].length < triangleCount * 3) return false;
+      if (row[1].slice(0, triangleCount * 3).some((index) => index >= vertexCount)) return false;
+      if (TRANSITION_VERTEX_DATA_TABLE[caseIndex]!.length !== 12) return false;
+    }
+    return true;
   }
 }
 
-export { TRANSITION_CELL_CLASS, getTransitionClass, validateLengyelTables };
+export { TRANSITION_CELL_CLASS_TABLE, TRANSITION_CELL_DATA_TABLE, TRANSITION_VERTEX_DATA_TABLE };
