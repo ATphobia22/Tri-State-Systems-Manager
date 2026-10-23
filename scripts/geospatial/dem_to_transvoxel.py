@@ -41,8 +41,8 @@ def _polygonize(cell: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("cell.direction must be -1 or 1")
     if extent <= 0:
         raise ValueError("cell.extent must be > 0")
-    if not isinstance(samples_raw, list) or len(samples_raw) != 13:
-        raise ValueError("cell.samples must contain 13 scalar samples: 9 fine-side and 4 coarse-side")
+    if not isinstance(samples_raw, list) or len(samples_raw) != 9:
+        raise ValueError("cell.samples must contain exactly 9 fine-side scalar samples")
     samples = [_finite_number(v, f"samples[{i}]") for i, v in enumerate(samples_raw)]
 
     def sdf(x: float, y: float, z: float) -> float:
@@ -52,11 +52,9 @@ def _polygonize(cell: dict[str, Any]) -> dict[str, Any]:
         v = min(1.0, max(0.0, (point[b] - origin[b]) / extent))
         ix = min(2, max(0, int(round(u * 2))))
         iy = min(2, max(0, int(round(v * 2))))
-        on_coarse_side = abs(point[axis] - origin[axis]) >= extent * 0.5
-        if on_coarse_side:
-            corner = {(0, 0): 9, (2, 0): 10, (2, 2): 11, (0, 2): 12}.get((ix, iy))
-            if corner is not None:
-                return samples[corner]
+        # The official transition cell has 13 spatial positions but only nine
+        # independent scalar values. Coarse-side corner scalars duplicate the
+        # fine-face corners; interpolate_edge applies that endpoint mapping.
         return samples[iy * 3 + ix]
 
     vertices, triangles, metadata = mesh_transition_cell(sdf, origin, axis, extent, direction=direction)
