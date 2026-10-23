@@ -117,15 +117,6 @@ export class TransvoxelStitcher {
   }
 
 
-/** Compatibility validator used by release-gate tests and diagnostics. */
-export function validateLengyelTables(): { ok: boolean; uniqueClasses: number } {
-  const uniqueClasses = new Set(TRANSITION_CELL_CLASS_TABLE.map((encoded) => encoded & 0x7f)).size;
-  return {
-    ok: TransvoxelStitcher.validateTables() && uniqueClasses === 56,
-    uniqueClasses,
-  };
-}
-
   public static validateTables(): boolean {
     if (TRANSITION_CELL_CLASS_TABLE.length !== 512 || TRANSITION_CELL_DATA_TABLE.length !== 56 || TRANSITION_VERTEX_DATA_TABLE.length !== 512) return false;
     for (let caseIndex = 0; caseIndex < 512; caseIndex++) {
@@ -140,6 +131,15 @@ export function validateLengyelTables(): { ok: boolean; uniqueClasses: number } 
     }
     return true;
   }
+}
+
+/** Compatibility validator used by release-gate tests and diagnostics. */
+export function validateLengyelTables(): { ok: boolean; uniqueClasses: number } {
+  const uniqueClasses = new Set(TRANSITION_CELL_CLASS_TABLE.map((encoded) => encoded & 0x7f)).size;
+  return {
+    ok: TransvoxelStitcher.validateTables() && uniqueClasses === 56,
+    uniqueClasses,
+  };
 }
 
 export { TRANSITION_CELL_CLASS_TABLE, TRANSITION_CELL_DATA_TABLE, TRANSITION_VERTEX_DATA_TABLE };
