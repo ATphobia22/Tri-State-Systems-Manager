@@ -87,7 +87,12 @@ for (const id of [
 }
 assert(csManifest.scheduler.swap_enabled === false, 'cs swap must remain disabled until variants exist');
 const cachePolicy = readFileSync(resolve(root, 'tsm-console/src/lib/tiles-cache-policy.ts'), 'utf8');
-assert(cachePolicy.includes('Byte budgets are host guidance'), 'cache policy must not imply hard byte enforcement');
+assert(cachePolicy.includes('maxCacheBytes: 512 * 1024 * 1024'), 'cache byte target must be explicit');
+assert(cachePolicy.includes('minCacheBytes: 384 * 1024 * 1024'), 'cache byte floor must be explicit');
+const rendererSource = readFileSync(resolve(root, 'tsm-console/src/components/OpenWorld3DTilesRenderer.tsx'), 'utf8');
+assert(rendererSource.includes('lruCache-maxBytesSize={lruMaxBytes}'), 'renderer must wire maxBytesSize into LRU cache');
+assert(rendererSource.includes('lruCache-minBytesSize={lruMinBytes}'), 'renderer must wire minBytesSize into LRU cache');
+assert(rendererSource.includes('not a hard'), 'renderer must document that cache thresholds are not a hard process/GPU cap');
 
 const plane = load('integrations/registry/tsm-capability-control-plane.json');
 const planeEntry = plane.capabilities.find((c) => c.id === 'webgpu-terrain-presentation');
