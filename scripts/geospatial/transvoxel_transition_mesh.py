@@ -127,11 +127,9 @@ def _transition_point(origin: Vec3, axis: int, extent: float, endpoint: int, dir
 
 
 def _transition_endpoint_sample_index(endpoint: int) -> int:
-    if 0 <= endpoint < 9:
+    """Each of the 13 transition vertices has its own scalar sample slot."""
+    if 0 <= endpoint < 13:
         return endpoint
-    if 9 <= endpoint < 13:
-        # The opposite face duplicates fine-face corners in row-major order [0, 2, 6, 8].
-        return (0, 2, 6, 8)[endpoint - 9]
     raise ValueError(f"transition vertex endpoint must be 0..12, got {endpoint}")
 
 
@@ -148,6 +146,13 @@ def interpolate_edge(sdf, origin, axis, extent, i0, i1, iso=0.0, direction=1, fi
 def mesh_transition_cell(sdf, origin, axis, extent, iso=0.0, direction=1):
     data = _load_data()
     samples = sample_face_sdfs(sdf, origin, axis, extent)
+    coarse_samples = []
+    for endpoint in range(9, 13):
+        px, py, pz = _transition_point(origin, axis, extent, endpoint, direction)
+        coarse_samples.append(float(sdf(px, py, pz)))
+    transition_samples = samples + coarse_samples
+    if not np.isfinite(transition_samples).all():
+        raise ValueError("transition scalar samples must all be finite")
     case = compute_case_index(samples, iso)
     if case is None:
         return [], [], {"case": None, "class_id": None}
@@ -164,7 +169,7 @@ def mesh_transition_cell(sdf, origin, axis, extent, iso=0.0, direction=1):
         if code == 0xFFFF:
             break
         i0, i1 = _edge_endpoints(code)
-        cell_verts.append(interpolate_edge(sdf, origin, axis, extent, i0, i1, iso, direction, fine_samples=samples))
+        cell_verts.append(interpolate_edge(sdf, origin, axis, extent, i0, i1, iso, direction, fine_samples=transition_samples))
     if len(cell_verts) < vcount:
         raise ValueError(f"case {case} needs {vcount} vertices but table supplied {len(cell_verts)}")
     cell_verts = cell_verts[:vcount]
