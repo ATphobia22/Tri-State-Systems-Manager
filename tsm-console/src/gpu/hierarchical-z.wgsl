@@ -28,7 +28,6 @@ fn hiz_downsample(@builtin(global_invocation_id) gid: vec3<u32>) {
   let x1 = min(sx + 1u, params.src_width - 1u);
   let y1 = min(sy + 1u, params.src_height - 1u);
 
-  // Max-depth reduction so an occluder still occludes at coarser levels.
   var d = textureLoad(src_depth, vec2<i32>(i32(sx), i32(sy)), 0).r;
   d = max(d, textureLoad(src_depth, vec2<i32>(i32(x1), i32(sy)), 0).r);
   d = max(d, textureLoad(src_depth, vec2<i32>(i32(sx), i32(y1)), 0).r);
