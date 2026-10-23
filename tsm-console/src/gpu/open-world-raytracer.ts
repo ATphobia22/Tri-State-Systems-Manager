@@ -3,6 +3,7 @@
  * Independent of MapLibre WebGL; source-bound textures only; presentation-only.
  */
 
+import * as THREE from 'three';
 import { WebGPUHierarchicalZ } from '../lib/webgpu-hierarchical-z';
 import { WebGPUHierarchicalZCuller, type GpuHZAabbCandidate } from '../lib/webgpu-hierarchical-z-cull';
 
@@ -34,6 +35,7 @@ export interface WebGpuInitializationResult {
 export const OPEN_WORLD_WEBGPU_WGSL = /* wgsl */ `
 struct Uniforms {
   inverseViewProjection : mat4x4<f32>,
+  viewProjection : mat4x4<f32>,
   cameraTime : vec4<f32>,
   sunBase : vec4<f32>,
   stageScaleOffset : vec4<f32>,
@@ -116,8 +118,13 @@ fn intersect_heightfield(origin : vec3<f32>, direction : vec3<f32>) -> vec4<f32>
   return vec4<f32>(0.0);
 }
 
+struct FragmentOutput {
+  @location(0) color : vec4<f32>,
+  @builtin(frag_depth) depth : f32,
+};
+
 @fragment
-fn fs_main(@location(0) uv : vec2<f32>) -> @location(0) vec4<f32> {
+fn fs_main(@location(0) uv : vec2<f32>) -> FragmentOutput {
   let ndc = vec4<f32>(uv.x * 2.0 - 1.0, (1.0 - uv.y) * 2.0 - 1.0, 1.0, 1.0);
   var target = u.inverseViewProjection * ndc;
   target = target / target.w;
@@ -126,7 +133,10 @@ fn fs_main(@location(0) uv : vec2<f32>) -> @location(0) vec4<f32> {
   let hit = intersect_heightfield(origin, direction);
   if (hit.w == 0.0) {
     let sky = mix(vec3<f32>(0.08, 0.16, 0.30), vec3<f32>(0.55, 0.72, 0.92), max(direction.y, 0.0));
-    return vec4<f32>(sky, 1.0);
+    var output : FragmentOutput;
+    output.color = vec4<f32>(sky, 1.0);
+    output.depth = 1.0;
+    return output;
   }
   let point = hit.xyz;
   let normal = terrain_normal(point.xz);
@@ -141,11 +151,15 @@ fn fs_main(@location(0) uv : vec2<f32>) -> @location(0) vec4<f32> {
   }
   let fog = 1.0 - exp(-distance(point, origin) * 0.00015);
   color = mix(color, vec3<f32>(0.72, 0.80, 0.90), clamp(fog, 0.0, 0.75));
-  return vec4<f32>(color, 1.0);
+  let clipPosition = u.viewProjection * vec4<f32>(point, 1.0);
+  var output : FragmentOutput;
+  output.color = vec4<f32>(color, 1.0);
+  output.depth = select(clamp(clipPosition.z / clipPosition.w, 0.0, 1.0), 1.0, abs(clipPosition.w) < 0.000001);
+  return output;
 }
 `;
 
-const UNIFORM_BUFFER_SIZE_BYTES = 128;
+const UNIFORM_BUFFER_SIZE_BYTES = 192;
 
 export class TsmWebGpuRayTracer {
   private device: GPUDevice | null = null;
@@ -154,6 +168,9 @@ export class TsmWebGpuRayTracer {
   private uniformBuffer: GPUBuffer | null = null;
   private bindGroup: GPUBindGroup | null = null;
   private source: WebGpuTerrainSource | null = null;
+  private depthTexture: GPUTexture | null = null;
+  private depthWidth = 0;
+  private depthHeight = 0;
   private initialized = false;
   private hierarchicalZ: WebGPUHierarchicalZ | null = null;
   private hierarchicalZCuller: WebGPUHierarchicalZCuller | null = null;
@@ -177,6 +194,10 @@ export class TsmWebGpuRayTracer {
         this.hierarchicalZCuller = null;
         this.bindGroup = null;
         this.pipeline = null;
+        this.depthTexture?.destroy();
+        this.depthTexture = null;
+        this.depthWidth = 0;
+        this.depthHeight = 0;
         this.uniformBuffer?.destroy();
         this.uniformBuffer = null;
         console.warn('[TSM WEBGPU] Device lost:', info.message);
@@ -198,6 +219,7 @@ export class TsmWebGpuRayTracer {
       }
       this.device = device;
       this.context = context;
+      this.ensureDepthTexture(Math.max(1, canvas.width), Math.max(1, canvas.height));
       this.uniformBuffer = device.createBuffer({
         label: 'TSM WebGPU presentation uniforms',
         size: UNIFORM_BUFFER_SIZE_BYTES,
@@ -217,6 +239,7 @@ export class TsmWebGpuRayTracer {
         vertex: { module: shaderModule, entryPoint: 'vs_main' },
         fragment: { module: shaderModule, entryPoint: 'fs_main', targets: [{ format }] },
         primitive: { topology: 'triangle-list' },
+        depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'less-equal' },
       });
       this.initialized = true;
       return { ok: true };
@@ -287,23 +310,33 @@ export class TsmWebGpuRayTracer {
     if (parameters.inverseViewProjection.length !== 16) {
       throw new Error('inverseViewProjection must contain exactly 16 float values.');
     }
-    const uniformData = new Float32Array(32);
+    const uniformData = new Float32Array(48);
     uniformData.set(parameters.inverseViewProjection, 0);
+    const viewProjection = new THREE.Matrix4().fromArray(Array.from(parameters.inverseViewProjection)).invert().toArray();
+    uniformData.set(viewProjection, 16);
     uniformData.set([
       parameters.cameraPositionMeters[0], parameters.cameraPositionMeters[1], parameters.cameraPositionMeters[2], parameters.timeSeconds,
       parameters.sunDirection[0], parameters.sunDirection[1], parameters.sunDirection[2], 0,
       parameters.activeWaterStageMeters ?? -1, this.source?.heightScaleMeters ?? 1, this.source?.heightOffsetMeters ?? 0, 5000,
       ...(this.source?.boundsMeters ?? [0, 0, 1, 1]),
-    ], 16);
+    ], 32);
     this.device.queue.writeBuffer(this.uniformBuffer, 0, uniformData);
     const encoder = this.device.createCommandEncoder({ label: 'TSM WebGPU frame' });
+    const currentTexture = this.context.getCurrentTexture();
+    this.ensureDepthTexture(currentTexture.width, currentTexture.height);
     const pass = encoder.beginRenderPass({
       colorAttachments: [{
-        view: this.context.getCurrentTexture().createView(),
+        view: currentTexture.createView(),
         clearValue: { r: 0.02, g: 0.04, b: 0.08, a: 1 },
         loadOp: 'clear',
         storeOp: 'store',
       }],
+      depthStencilAttachment: {
+        view: this.depthTexture!.createView(),
+        depthClearValue: 1.0,
+        depthLoadOp: 'clear',
+        depthStoreOp: 'store',
+      },
     });
     pass.setPipeline(this.pipeline);
     pass.setBindGroup(0, this.bindGroup);
@@ -314,6 +347,10 @@ export class TsmWebGpuRayTracer {
 
   public dispose(): void {
     this.initialized = false;
+    this.depthTexture?.destroy();
+    this.depthTexture = null;
+    this.depthWidth = 0;
+    this.depthHeight = 0;
     this.hierarchicalZ?.destroy();
     this.hierarchicalZ = null;
     this.hierarchicalZCuller?.destroy();
@@ -328,6 +365,32 @@ export class TsmWebGpuRayTracer {
     this.device?.destroy();
     this.device = null;
     this.source = null;
+  }
+
+  /** Render then classify candidate bounds against this renderer's actual depth attachment. */
+  public async renderFrameWithOcclusion(
+    parameters: WebGpuRenderParameters,
+    candidates: readonly GpuHZAabbCandidate[],
+    depthBias = 1e-5,
+  ): Promise<Uint32Array> {
+    this.renderFrame(parameters);
+    if (!this.initialized || !this.depthTexture) throw new Error('WebGPU frame did not produce a depth attachment');
+    return this.classifyOcclusion(this.depthTexture, this.depthWidth, this.depthHeight, candidates, depthBias);
+  }
+
+  private ensureDepthTexture(width: number, height: number): void {
+    if (!this.device) throw new Error('Cannot allocate a depth attachment without a WebGPU device');
+    if (width < 1 || height < 1) throw new RangeError('depth attachment dimensions must be positive');
+    if (this.depthTexture && this.depthWidth === width && this.depthHeight === height) return;
+    this.depthTexture?.destroy();
+    this.depthTexture = this.device.createTexture({
+      label: 'TSM WebGPU terrain depth attachment',
+      size: { width, height, depthOrArrayLayers: 1 },
+      format: 'depth32float',
+      usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+    });
+    this.depthWidth = width;
+    this.depthHeight = height;
   }
 
   private rebuildBindGroup(): void {
