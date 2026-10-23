@@ -91,7 +91,7 @@ export class TransvoxelStitcher {
   }
 
   /**
-   * Polygonize one official transition cell. sdf has 9 independent fine-face scalar samples and positions has 13 xyz triplets.
+   * Polygonize one official transition cell. sdf has 13 scalars: 9 fine-face values for case selection and 4 coarse-face values for interpolation.
    */
   public static polygonizeTransitionCell(sdf: Float32Array, positions: Float32Array): TransitionMesh {
     if (sdf.length !== 13) {
