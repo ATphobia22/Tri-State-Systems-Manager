@@ -167,9 +167,9 @@ def build_octree(sdf: np.ndarray, max_level_fn: Callable[[Node], int]) -> Node:
     grid = np.asarray(sdf)
     if grid.ndim != 3 or len(set(grid.shape)) != 1 or grid.shape[0] < 2 or not np.isfinite(grid).all():
         raise ValueError("SDF must be a finite cubic 3D array")
-    cells = grid.shape[0] - 1
+    cells = grid.shape[0]
     if cells & (cells - 1):
-        raise ValueError("SDF grid must have 2^k cells per axis (grid dimension 2^k + 1)")
+        raise ValueError("SDF grid dimension must be a power of two (for example 32 or 64)")
     root = Node(0, 0, 0, cells, 0)
 
     def split(node: Node) -> None:
