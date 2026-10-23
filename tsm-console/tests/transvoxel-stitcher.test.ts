@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { TransvoxelStitcher, TRANSITION_CELL_CLASS } from '../src/lib/transvoxel-stitcher';
+import { TransvoxelStitcher, TRANSITION_CASE_BITS, TRANSITION_CELL_CLASS } from '../src/lib/transvoxel-stitcher';
 import { TRANSITION_CELL_DATA_TABLE, TRANSITION_VERTEX_DATA_TABLE } from '../src/lib/transvoxel-lengyel-tables';
 
 function transitionCellInput(
