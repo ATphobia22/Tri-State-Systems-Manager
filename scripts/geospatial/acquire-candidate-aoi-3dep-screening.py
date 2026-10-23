@@ -187,8 +187,8 @@ def main() -> int:
     image_url = SERVICE + "/exportImage?" + query
     image_bytes, image_content_type = fetch(image_url)
     if len(image_bytes) < 1024 or not (
-        image_bytes[:4] in (b"II*\\x00", b"MM\\x00*")
-        or image_bytes[:4] in (b"II+\\x00", b"MM\\x00+")
+        image_bytes[:4] in (b"II*\x00", b"MM\x00*")
+        or image_bytes[:4] in (b"II+\x00", b"MM\x00+")
     ):
         raise RuntimeError(
             f"USGS 3DEP export was not a GeoTIFF (content-type={image_content_type!r}, "
@@ -281,7 +281,7 @@ def main() -> int:
         ],
     }
     report_path = args.output_dir / f"{stem}-terrain-evidence.json"
-    report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\\n", encoding="utf-8")
+    report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2, sort_keys=True))
     return 0 if valid_count else 2
 
