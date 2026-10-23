@@ -62,3 +62,42 @@ tsm-console/.data/
 
 # Raw terrain tile downloads (re-fetchable via tools/terrain/fetch-terrarium-dem.py)
 tools/terrain/.tile-cache/
+
+# Python test/type/lint caches and generated coverage
+.pytest_cache/
+**/.pytest_cache/
+.mypy_cache/
+**/.mypy_cache/
+.ruff_cache/
+**/.ruff_cache/
+.pyright/
+.hypothesis/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+*.egg-info/
+pip-wheel-metadata/
+
+# Browser/e2e test outputs
+playwright-report/
+test-results/
+blob-report/
+storybook-static/
+
+# Additional frontend/native build caches
+.parcel-cache/
+**/.parcel-cache/
+.angular/
+**/.angular/
+.svelte-kit/
+**/.svelte-kit/
+**/target/
+**/CMakeFiles/
+**/CMakeCache.txt
+compile_commands.json
+
+# Download/resume fragments and editor-created backup artifacts
+*.part-*
+*.flat-backup
