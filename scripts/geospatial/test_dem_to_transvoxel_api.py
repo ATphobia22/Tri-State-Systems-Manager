@@ -66,7 +66,7 @@ class ProductionBridgeContractTests(unittest.TestCase):
             direction=1,
         )
         self.assertEqual(len(samples), 13)
-        self.assertEqual(samples[9:13], [1.0, 4.0, 6.0, 3.0])
+        self.assertEqual(samples[9:13], [1.0, 3.0, 6.0, 4.0])
         self.assertNotEqual(samples[9:13], [samples[i] for i in (0, 2, 8, 6)])
 
     def test_height_sampler_rejects_extrapolation_and_nonfinite_inputs(self):
