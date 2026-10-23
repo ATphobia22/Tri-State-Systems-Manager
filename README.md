@@ -9,20 +9,31 @@ TSM integrates public hydrology, terrain, imagery, flood-hazard data, infrastruc
 **In memory of Beverly Ann Tucker.** *This dedication is personal and is not a software specification, architecture constraint, or release gate.*
 
 **GitHub:** https://github.com/ATphobia22/Tri-State-Systems-Manager
+**Live site:** https://atphobia22.github.io/Tri-State-Systems-Manager/
+**3D story:** [Tri-State Systems Manager — Ohio-Wabash Confluence](https://ion.cesium.com/stories/viewer/?id=82d4a592-c33e-4239-86d5-d53c329a7f7f) (Cesium ion)
 
 ---
 
 ## Live Artifacts
 
+Public, no-expiration companion pages:
+
 | Artifact | Link | Description |
 |----------|------|-------------|
-| **TSM Dashboard** | https://muse.ai/s/tri-state-systems-manager-dashboard-txp6c9xxxctmkf | Project status, engineering updates, flood forecasting toolkit |
-| **TSM Console** | https://muse.ai/s/tsm-console-xsxh6nxg1xpy1xyo | Interactive console: river watch, flood forecast, 3D map, AI assistant, music |
-| **Complete Song Album** | https://muse.ai/s/complete-song-album-xxx | Anthony's 13-song album — the soundtrack of the valley |
+| **TSM Dashboard** | https://muse.ai/s/tri-state-systems-manager-dashboard-txp6c9xxxctmkf/BiZgScbiemuiBiQSXXjED4ulVUxZIjLWgARYdGRzLwI | Project status, engineering updates, flood forecasting toolkit |
+| **TSM Mission Control** | https://muse.ai/s/tsm-mission-control-jxf6qi3axqxpdxp/HruMwn8Fpn4X2jtkeKyaTyX9MfLK6h0zv-gAdd1bILE | Operations overview |
+| **TSM Evidence Workbench** | https://muse.ai/s/tsm-evidence-workbench-uxl6qhxwvlxtgxa/q7Y8j3P-cijwXGVD93ygymQPZgeGq5bbxoxxjrstAas | Evidence review workspace |
+| **TSM Flood Ops** | https://muse.ai/s/tsm-flood-ops-xlw6qic7xnbxb7/TH2KsOXt2k2FFBNhfuUQergOoy5Sxy_3xytg82FIpHM | Flood operations view |
+| **TSM Model Lab** | https://muse.ai/s/tsm-model-lab-xkr6qhxxdzd5xw/9uESU_ZtW-BNFUZNLBHTs30cPi8qHl8EuA6ICLpNFzg | Model experimentation |
+| **TSM Console** | https://muse.ai/s/tsm-console-xsxh6nxg1xpy1xyo/6cvHgHoXKVEwDjTQnPxc-0tT8DpsJx614Hj5k9LrxUE | Interactive console snapshot |
+| **TSM Source Master Inventory** | https://muse.ai/s/tsm-government-mapping-source-master-ct6idl9wxvlxe/T-JSIwvRkX1HZcDEPdvSP9hrBiugRPkI4yaJsF081kI | Government & mapping source catalog (26 sections) |
+| **Complete Song Album** | https://muse.ai/s/complete-song-album-xuxq6cxhxhxyzxhpxu/e9AFx0tZBnQAAIPwvxrMMnzAasQSNKHWBoFPxc2sc_U | Anthony's 13-song album — the soundtrack of the valley |
 
-### GitHub Pages
+### GitHub Pages (live, builds from `main`)
 
 - [Public console (SPA)](https://atphobia22.github.io/Tri-State-Systems-Manager/)
+- [3D Twin — engineering + photorealistic](https://atphobia22.github.io/Tri-State-Systems-Manager/digital-twin-v2/)
+- [Photorealistic 3D globe](https://atphobia22.github.io/Tri-State-Systems-Manager/photorealistic-3d/)
 - [3D terrain viewer](https://atphobia22.github.io/Tri-State-Systems-Manager/terrain-3d/)
 - [Platform capabilities](https://atphobia22.github.io/Tri-State-Systems-Manager/platform/)
 
@@ -30,11 +41,14 @@ TSM integrates public hydrology, terrain, imagery, flood-hazard data, infrastruc
 
 ## What TSM Does
 
-- **River monitoring:** User-initiated USGS gage data retrieval; operational alerts and current values must be checked against the live source.
-- **Flood forecasting:** Model integrations and scripts for forecast horizons that depend on the selected model, available inputs, and successful upstream retrieval.
-- **3D visualization:** MapLibre-based 3D buildings, terrain, LiDAR point clouds, and flood zones.
+- **River monitoring:** User-initiated USGS gage data retrieval (NWIS) and NOAA NWPS gauge queries; operational alerts and current values must be checked against the live source. No background polling — live values only on user request.
+- **Flood forecasting:** Multi-step pipeline (`scripts/flood-forecasting/`): ingest → antecedent precipitation → nowcast → forecast → rating → alert. Includes a working TimesFM path (verified live 12-hour forecasts) and GEOGloWS v2 integration. Model outputs are labeled with their provenance; a pipeline existing does not prove a current forecast run.
+- **Unified 3D Twin:** One "3D Twin" view with two modes. *Engineering Twin* (MapLibre, offline-first): the project's own 22,815 buildings with heights, 3DEP terrain, flood zones and layers. *Photorealistic* (Cesium ion, opt-in, free Community tier): Google Photorealistic 3D Tiles covering all eight counties. The engineering twin is the default; nothing 3D is ever gated behind the ion token.
+- **3D story:** A public Cesium ion story presenting the Ohio–Wabash confluence and eight-county coverage (linked above).
+- **Government data fabric:** 28-source registry with resilient adapters, hash-chained provenance, and local holdings. SSURGO soils for all 8 counties served hash-verified from local holdings; NFHL flood zones served from verified local GeoJSONs; NWPS/NWIS adapters with pinned snapshots. Missing data is labeled `UNAVAILABLE`, never invented.
+- **3D visualization:** MapLibre-based 3D buildings, terrain, LiDAR point clouds (EPT), flood zones, Transvoxel terrain stitching (verified against the reference implementation).
+- **Decision support:** Scenario analysis, antecedent conditions, benefit engine, and plain-language summaries for review by people with the relevant authority.
 - **Data integration:** Government and open-data source adapters with provenance tracking; source availability and freshness are runtime properties, not guaranteed by adapter presence.
-- **Decision support:** Scenario analysis, antecedent conditions, and plain-language summaries for review by people with the relevant authority.
 
 ### What TSM Is Not
 
@@ -57,6 +71,22 @@ See the [finishing-touch inventory](docs/validation/FINISH-TOUCHES-2026-10-19.md
 
 ---
 
+## What's Next (roadmap — plans, not promises)
+
+Near-term work, in rough order:
+
+1. **23,082-feature acceptance chain** — resolve the schema drift between the deliverable files and the strict chain validator (align the validator to the files, or regenerate the files), then run the full acceptance chain.
+2. **LOD2 production run** — emit full LOD2 roof geometry for the 7,453-building production set (proof of concept only, so far).
+3. **County-scale Transvoxel** — run full mesh emission at AOI scale with seam validation.
+4. **Bathymetry & sediment** — cheapest first step if authorized: Tinfour TINs from USACE eHydro soundings (assessment complete; no integration authorized yet).
+5. **GPU/device validation** — Hierarchical-Z on real hardware and multi-device occlusion profiling (needs a device lab).
+6. **Grant submissions** — FY2026 FEMA Flood Mitigation Assistance is open (up to $400M, applications due 2027-02-26); USACE §205 is the most direct path for levee/berm work. No submission without explicit per-submission authorization.
+7. **LOMA case 26-05-2022A support** — evidence packages for the 90-day FEMA track (ends 2026-12-21); still needs recorded deed/plat, tax assessor map, and PE/RLS-certified elevation.
+8. **Union County KY parcels** — via the county PVA (requires owner authorization to contact).
+9. **Release distribution** — TSM data releases ship on Google Drive (never temporary links), chunked for offline/USB deployment.
+
+---
+
 ## Government Data Sources
 
 ### Federal
@@ -64,13 +94,15 @@ See the [finishing-touch inventory](docs/validation/FINISH-TOUCHES-2026-10-19.md
 | Source | Data Used | Access |
 |--------|-----------|--------|
 | **USGS** (U.S. Geological Survey) | Stream gages (NWIS), 3DEP elevation (1m DEM, LiDAR point clouds via EPT), National Map products | Public API, S3 |
-| **NOAA** (National Oceanic and Atmospheric Administration) | CPC precipitation (daily gauge analysis), NWS flood stages, weather forecasts | Public FTP/API |
-| **FEMA** (Federal Emergency Management Agency) | NFHL (National Flood Hazard Layer), FIRM panels, LOMA cases | MapServer, MSC |
+| **NOAA** (National Oceanic and Atmospheric Administration) | CPC precipitation (daily gauge analysis), NWS flood stages, NWPS gauge API, weather forecasts | Public FTP/API |
+| **FEMA** (Federal Emergency Management Agency) | NFHL (National Flood Hazard Layer), FIRM panels, LOMA cases, FY2026 FMA NOFO | MapServer, MSC |
 | **USACE** (U.S. Army Corps of Engineers) | National Levee Database (NLD), hydraulic models, eHydro surveys | Public REST API |
 | **U.S. Census Bureau** | TIGER/Line (roads, water, boundaries) | Public download |
-| **USDA** (Dept. of Agriculture) | NAIP imagery, SSURGO soils, CDL cropland | Public download |
+| **USDA** (Dept. of Agriculture) | NAIP imagery, SSURGO soils (all 8 tri-state counties, locally held), CDL cropland | Public download |
 | **NASA** | Earthdata (Landsat, MODIS, GPM IMERG), Crisis Mapping Toolkit patterns | Earthdata API |
 | **EPA** | EnviroAtlas, PRISM climate normals | Public download |
+
+Recently wired into the data fabric: SSURGO (Web Soil Survey direct download, hash-verified local holdings), NWPS + NWIS query adapters with pinned snapshots, and NFHL served from verified local GeoJSONs. Verified-live endpoints are recorded in `~/workspace/gov-data-downloads/manifest.json` (local); only probed/downloaded claims are adopted.
 
 ### State — Indiana
 
@@ -92,7 +124,7 @@ See the [finishing-touch inventory](docs/validation/FINISH-TOUCHES-2026-10-19.md
 | Source | Data Used |
 |--------|-----------|
 | **ECMWF** | GEOGloWS v2 global streamflow forecasts |
-| **Google Research** | OpenHydroNet, TimesFM, WeatherNext 2 (availability/licensing must be checked for the chosen deployment) |
+| **Google Research** | OpenHydroNet, TimesFM (live 12h forecasts verified), WeatherNext 2 (availability/licensing must be checked for the chosen deployment) |
 | **dClimate / U. Cambridge** | TESSERA satellite embeddings |
 | **Overture Maps Foundation** | Global building footprints (ODbL) |
 | **Microsoft** | Global ML Building Footprints (validation) |
@@ -104,7 +136,8 @@ See the [finishing-touch inventory](docs/validation/FINISH-TOUCHES-2026-10-19.md
 | Source | Type | Used For |
 |--------|------|----------|
 | **OpenFreeMap** | Vector tiles | Default basemap (no API key) |
-| **MapLibre GL** | Rendering engine | Interactive maps |
+| **MapLibre GL** | Rendering engine | Interactive maps, engineering 3D twin |
+| **Cesium ion** | 3D Tiles / stories | Opt-in photorealistic 3D globe + public story (free Community tier) |
 | **USGS National Map** | Raster tiles | Topographic basemap option |
 | **IndianaMap** | ArcGIS REST | Indiana imagery and parcels |
 | **PMTiles** | Vector tiles | Self-hosted building/parcel layers |
@@ -124,13 +157,13 @@ The repository contains a multi-step forecasting pipeline with ingestion, antece
 |--------|----------|
 | `run_all.py` | Master orchestrator: ingest → antecedent → nowcast → forecast → rating → alert |
 | `tsm_config.py` | Shared configuration (gages, bounding boxes, paths) |
-| `timesfm-gage-nowcast.py` | TimesFM-based nowcasting path (0–48h design horizon; verify model/runtime availability) |
+| `timesfm-gage-nowcast.py` | TimesFM-based nowcasting path (0–48h design horizon; live 12h runs verified) |
 | `geoglows_forecast.py` | GEOGloWS v2 forecast integration (10-day design horizon; verify live service response and station mapping) |
 | `tsm-tristate-openhydronet-config.yml` | OpenHydroNet basin configuration |
 | `antecedent_precip.py` | Antecedent Precipitation Index from NOAA CPC data |
 | `tessera-tristate-download.py` | TESSERA satellite embeddings via Icechunk |
 | `weathernext-forcing.py` | WeatherNext forcing integration |
-| `ras2fim_tristate.py` | HEC-RAS to flood inundation mapping |
+| `ras2fim_tristate.py` | HEC-RAS to flood inundation mapping (resilient: honest UNAVAILABLE when the Windows-only toolchain can't run) |
 | `tsm_usgs_ingest.py` | USGS data ingestion wrapper |
 | `tsm_usgs_lidar_ept.py` | USGS 3DEP LiDAR via Entwine Point Tiles |
 | `tnm_bulk_download.py` | National Map bulk downloader |
@@ -141,6 +174,7 @@ The repository contains a multi-step forecasting pipeline with ingestion, antece
 
 ### 3D & Geospatial
 
+- **Unified 3D Twin** (`tsm-console/src/routes/UnifiedTwinView.tsx`): one "3D Twin" with Engineering Twin (MapLibre, offline-first) and Photorealistic (Cesium ion, opt-in) modes.
 - **Building inventory:** Counts and classifications are versioned data products; verify the current manifest and provenance before quoting counts as current.
 - **LOD2 geometry:** Roof geometry is a derived data product and requires coverage and quality checks before engineering use.
 - **LOD2 AI automation** (`scripts/geospatial/lod2-ai-automation.py`): SAT2LOD2/HEAT integration guide.
@@ -153,17 +187,7 @@ The repository contains a multi-step forecasting pipeline with ingestion, antece
 
 ### Console Features
 
-The TSM Console (10 tabs) provides:
-- 🏠 Home — Project overview
-- 🌊 River Watch — Live gage levels with flood alerts
-- 🔮 Flood Forecast — Multi-model predictions in plain language
-- 🗺️ 3D Map — Interactive MapLibre visualization
-- 🤖 Ask TSM — Offline AI assistant
-- 📊 Data Sources — Every source explained simply
-- 🛠️ Tools — All scripts described without jargon
-- 🔗 Build — Visual pipeline builder (ComfyUI-inspired)
-- 🎵 Music — Complete 13-song album
-- 💛 About — Memorial dedication
+The TSM Console provides: Memorial, Trust Planes, River Watch (gage levels with flood context), Engineering Section, Human Needs, Evidence Ledger, Data Contracts, Benefit Engine, Hydraulic Map, Twin Canvas, 3D Twin (engineering + photorealistic modes), EOC Surface, Data Fabric, Flood Simulator, Globe (MapLibre), 3D Terrain (3DEP), Platform Capabilities — plus Ask TSM (offline assistant), build tools, and the 13-song album.
 
 ---
 
