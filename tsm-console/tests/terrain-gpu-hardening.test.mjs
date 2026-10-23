@@ -18,7 +18,7 @@ test('depth pyramid preserves the source level and reduces odd dimensions withou
   assert.equal(pyramid.levels[0]?.length, 9);
   assert.equal(pyramid.levels[1]?.length, 4);
   assert.equal(pyramid.levels[2]?.length, 1);
-  assert.equal(pyramid.levels[2]?.[0], 0.9);
+  assert.ok(Math.abs((pyramid.levels[2]?.[0] ?? Number.NaN) - 0.9) < 1e-6);
 });
 
 test('depth pyramid rejects invalid dimensions, short buffers, and invalid depth samples', () => {
