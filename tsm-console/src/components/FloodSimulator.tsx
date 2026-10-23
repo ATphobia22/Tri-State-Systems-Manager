@@ -415,7 +415,7 @@ export default function FloodSimulator(): React.JSX.Element {
         target: new THREE.Vector3(0, 0, 0),
       };
 
-      world = {
+      const activeWorld = {
         renderer,
         engine,
         terrain,
@@ -428,7 +428,8 @@ export default function FloodSimulator(): React.JSX.Element {
         tourStartWall: 0,
         raf: 0,
       };
-      worldRef.current = world;
+      world = activeWorld;
+      worldRef.current = activeWorld;
 
       const resize = (): void => {
         const parent = canvas.parentElement;
@@ -575,7 +576,7 @@ export default function FloodSimulator(): React.JSX.Element {
       if (reducedMotion && pausedRef.current) {
         frame(performance.now());
       } else {
-        world.raf = requestAnimationFrame(frame);
+        activeWorld.raf = requestAnimationFrame(frame);
       }
 
       return () => {
