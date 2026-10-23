@@ -93,7 +93,7 @@ def _corner_uv(i: int) -> Tuple[float, float]:
         3: (0.0, 0.5), 4: (0.5, 0.5), 5: (1.0, 0.5),
         6: (0.0, 1.0), 7: (0.5, 1.0), 8: (1.0, 1.0),
         9: (0.0, 0.0), 10: (1.0, 0.0),
-        11: (1.0, 1.0), 12: (0.0, 1.0),
+        11: (0.0, 1.0), 12: (1.0, 1.0),
     }
     if i not in mapping:
         raise ValueError(f"transition vertex endpoint must be 0..12, got {i}")
