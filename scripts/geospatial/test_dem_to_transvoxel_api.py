@@ -63,6 +63,14 @@ class ProductionBridgeContractTests(unittest.TestCase):
             [_corner_uv(i) for i in range(9, 13)],
             [(0.0, 0.0), (1.0, 0.0), (0.0, 1.0), (1.0, 1.0)],
         )
+        self.assertEqual(
+            [_corner_uv(i) for i in range(9)],
+            [
+                (0.0, 0.0), (0.5, 0.0), (1.0, 0.0),
+                (1.0, 0.5), (1.0, 1.0), (0.5, 1.0),
+                (0.0, 1.0), (0.0, 0.5), (0.5, 0.5),
+            ],
+        )
 
     def test_seam_validator_intersects_triangle_edges_with_shared_plane(self):
         import importlib.util
