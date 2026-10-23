@@ -10,6 +10,7 @@ import { McpCapabilityProvider } from '../../../packages/mcp/src/McpCapabilityPr
 import { OpenApiCapabilityProvider } from '../../../packages/openapi/src/OpenApiCapabilityProvider.ts';
 import { EvidenceGateProvider } from '../../../packages/provider-runtime/src/EvidenceGateProvider.ts';
 import { GovernmentDataProvider } from '../../../packages/government/src/GovernmentDataProvider.ts';
+import { GovernmentSourceCapabilityProvider } from '../../../packages/government/src/GovernmentSourceCapabilityProvider.ts';
 import { LocalCapabilityProvider } from '../../../providers/local/src/index.ts';
 import { createJob, getJob, pruneJobs } from './jobs.ts';
 import { authenticateGatewayRequest, createGatewaySecurityConfig } from './security.ts';
@@ -28,6 +29,7 @@ registry.register(new EchoProvider());
 registry.register(new TsmEngineeringProvider());
 registry.register(new EvidenceGateProvider());
 registry.register(new GovernmentDataProvider());
+registry.register(new GovernmentSourceCapabilityProvider());
 registry.register(new LocalCapabilityProvider());
 
 const mcpEndpoints = String(process.env.UACF_MCP_ENDPOINTS ?? '')
@@ -62,6 +64,7 @@ const policyRules = [
   { capability: 'tsm.hydrologic.*', allow: true, permissions: ['tsm:hydrologic'] },
   { capability: 'tsm.geospatial.*', allow: true, permissions: ['tsm:geospatial'] },
   { capability: 'geo.nfhl.query', allow: true, permissions: ['tsm:geospatial'] },
+  { capability: 'source.*', allow: true, permissions: ['tsm:government-data'] },
   { capability: '*', allow: false, permissions: [] },
 ] as const;
 const fabric = new UniversalCapabilityFabric(
