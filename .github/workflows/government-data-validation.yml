@@ -1,0 +1,40 @@
+name: Government Data Fabric Validation
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 5 * * *'
+  pull_request:
+    paths:
+      - 'packages/government/**'
+      - 'packages/geo/src/nfhl/**'
+      - 'packages/research/src/government-research-fabric.ts'
+      - 'tests/contracts/government-data-fabric.test.ts'
+      - '.github/workflows/government-data-validation.yml'
+permissions:
+  contents: read
+concurrency:
+  group: government-data-validation-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  contract-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npx tsx --test tests/contracts/government-data-fabric.test.ts
+  nfhl-live-validation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run live FEMA NFHL inventory check
+        env:
+          TSM_NFHL_REQUIRE_LIVE: 'true'
+        run: node packages/geo/src/nfhl/cli/validate-nfhl.mjs
