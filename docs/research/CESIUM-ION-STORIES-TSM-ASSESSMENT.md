@@ -99,13 +99,20 @@ A Story's visual state is not an integrity proof. The TSM manifest and evidence 
 7. **No correctness inference from rendering.** A 3D overlay can be visually compelling while its datum, terrain, flood boundary, or model assumptions are wrong. Display provenance and limitations in TSM independently of the Story.
 8. **Offline operation remains independent.** A Story may depend on hosted content, account permissions, network access, and third-party services. The self-hosted CesiumJS/3D Tiles workflow must continue to work without ion.
 
+## Repository artifacts added by this research change
+
+- `packages/government/schemas/cesium-story-publication-manifest.schema.json` defines a strict JSON Schema 2020-12 contract for source/run provenance, SHA-256 artifact digests, CRS/datum, data classification, publication review, optional Story URL, and sharing/embed flags. Unknown properties are rejected; an approved publication requires reviewer identity/time and positive license, sensitive-data, and property-allowlist checks.
+- `packages/government/schemas/cesium-story-publication-manifest.example.json` is a clearly marked, non-approved fixture. It uses illustrative identifiers and hashes only; it is not a real dataset or approval.
+
+These are contracts and fixture data, not a claim that runtime publication, upload, or schema validation has already been wired into the console. CI results for this PR remain the validation gate.
+
 ## Suggested implementation sequence
 
 ### Phase 0 — no-account work (safe to do now)
 
 - Keep the existing self-hosted CesiumJS and OGC 3D Tiles path as the default.
-- Add this decision record and link it from the geospatial architecture index if one exists.
-- Define and test a local publication-manifest schema using fixture data.
+- Keep this decision record and the publication manifest schema/fixture under version control.
+- Wire the schema into an automated validation test before enabling any export workflow.
 - Add a static Story-link configuration field that is optional, validated as HTTPS, and disabled by default; do not add a live link until a Story is created and reviewed.
 - Add a publication checklist and redaction/allow-list rules for exported properties.
 - Test that builds and routes do not require any ion environment variable.
