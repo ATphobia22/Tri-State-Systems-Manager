@@ -193,11 +193,9 @@ def mesh_transition_face_grid(sdf, origin, axis, extent, fine_res=2, iso=0.0, di
 def self_test() -> None:
     _load_data()
     tested = 0
-    coarse_values = (-0.75, 0.65, -0.55, 0.85)
-
     # Exhaust all 512 fine-side masks on all six signed face orientations.
-    # Coarse-side values are deliberately distinct to exercise real 13-sample
-    # interpolation rather than silently reusing fine-side corner values.
+    # Coarse-side positions are displaced but their scalar values reuse the
+    # corresponding fine corners, as specified by the nine-bit Transvoxel case.
     for axis in range(3):
         a, b = (axis + 1) % 3, (axis + 2) % 3
         for direction in (-1, 1):
@@ -208,12 +206,7 @@ def self_test() -> None:
                     point = (x, y, z)
                     u = min(2, max(0, int(round(point[a] * 2))))
                     v = min(2, max(0, int(round(point[b] * 2))))
-                    if abs(point[cell_axis]) <= 1e-8:
-                        return fine[v * 3 + u]
-                    coarse_slot = {(0, 0): 0, (2, 0): 1, (2, 2): 2, (0, 2): 3}.get((u, v))
-                    if coarse_slot is None:
-                        raise AssertionError(f"unexpected coarse endpoint ({u},{v})")
-                    return coarse_values[coarse_slot]
+                    return fine[v * 3 + u]
 
                 verts, tris, meta = mesh_transition_cell(
                     case_sdf, (0.0, 0.0, 0.0), axis=axis, extent=1.0, direction=direction
