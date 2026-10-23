@@ -36,7 +36,19 @@ assert(webgpu, 'webgpu-terrain-presentation must be registered');
 assert(webgpu.status === 'IMPLEMENTED', 'webgpu-terrain-presentation must be IMPLEMENTED');
 
 const culling = incomplete.capabilities.find((c) => c.id === 'gpu-compute-culling');
-assert(culling && culling.status === 'IMPLEMENTED', 'gpu-compute-culling must be IMPLEMENTED');
+assert(culling && culling.status === 'PARTIAL', 'CPU frustum planning must not be labeled GPU compute culling');
+const csSwap = incomplete.capabilities.find((c) => c.id === 'cs-asset-swapping');
+assert(csSwap && csSwap.status === 'PARTIAL', 'plan-only C/S scheduling must remain PARTIAL');
+for (const id of [
+  'gpu-hierarchical-z-occlusion',
+  'transvoxel-transition-mesh-coverage',
+  'aoi-terrain-coverage',
+  'crs-vertical-datum-epoch-accuracy-catalog',
+  'cross-device-gpu-validation',
+]) {
+  const capability = incomplete.capabilities.find((c) => c.id === id);
+  assert(capability && ['PARTIAL', 'PLANNED'].includes(capability.status), `${id} must remain open until acceptance evidence exists`);
+}
 
 for (const rel of [
   'tsm-console/src/gpu/open-world-raytracer.ts',
@@ -53,9 +65,7 @@ for (const rel of [
 assert(gaps.registry_id === 'tsm-release-gap-registry', 'bad gap registry id');
 const codeClosable = [
   'gap-webgpu-host-bridge',
-  'gap-gpu-compute-culling',
-  'gap-cs-resource-manifest',
-  'gap-renderer-cache-bytes',
+  'gap-vitest-lock-5.0.5',
   'gap-vitest-lock-5.0.5',
 ];
 for (const id of codeClosable) {
@@ -63,7 +73,22 @@ for (const id of codeClosable) {
   assert(g && String(g.status).startsWith('CLOSED'), `${id} must be CLOSED`);
 }
 
+for (const id of [
+  'gap-gpu-compute-culling',
+  'gap-renderer-cache-bytes',
+  'gap-cs-resource-manifest',
+  'gap-gpu-hierarchical-z',
+  'gap-transvoxel-full-coverage',
+  'gap-aoi-terrain-coverage',
+  'gap-crs-datum-accuracy-catalog',
+  'gap-cross-device-gpu-validation',
+]) {
+  const g = gaps.gaps.find((x) => x.id === id);
+  assert(g && !String(g.status).startsWith('CLOSED'), `${id} must remain open until acceptance evidence exists`);
+}
 assert(csManifest.scheduler.swap_enabled === false, 'cs swap must remain disabled until variants exist');
+const cachePolicy = readFileSync(resolve(root, 'tsm-console/src/lib/tiles-cache-policy.ts'), 'utf8');
+assert(cachePolicy.includes('Byte budgets are host guidance'), 'cache policy must not imply hard byte enforcement');
 
 const plane = load('integrations/registry/tsm-capability-control-plane.json');
 const planeEntry = plane.capabilities.find((c) => c.id === 'webgpu-terrain-presentation');
@@ -76,6 +101,7 @@ console.log(
     release_gaps: gaps.gaps.length,
     webgpu_terrain: webgpu.status,
     code_closable_closed: codeClosable.length,
+    open_technical_gaps: gaps.gaps.filter((g) => ['PARTIAL_2026-10-23', 'OPEN'].includes(g.status)).map((g) => g.id),
     gated_operator: gaps.gaps.filter((g) => g.status === 'GATED_OPERATOR').map((g) => g.id),
   }),
 );
