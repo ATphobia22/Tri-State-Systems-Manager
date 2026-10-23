@@ -44,6 +44,14 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _stable_sdf_sample(z: float, height: float, tolerance_m: float = 1e-5) -> float:
+    """Canonicalize float32 DEM samples near the zero isosurface to exact zero."""
+    if not math.isfinite(z) or not math.isfinite(height) or not math.isfinite(tolerance_m) or tolerance_m < 0:
+        raise ValueError("SDF inputs must be finite and tolerance must be nonnegative")
+    distance = float(z) - float(height)
+    return 0.0 if abs(distance) <= tolerance_m else distance
+
+
 def _rss_bytes() -> int:
     value = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     # Linux reports KiB; macOS reports bytes. This CI runs on Linux, but retain
@@ -170,12 +178,9 @@ def run_benchmark(raster_path: Path, evidence_path: Path, output_path: Path, pat
             z_cell = z_min + k * CELL_SIZE_METERS
 
             def sdf(x: float, y: float, z: float) -> float:
-                value = z - height_at(x, y)
-                # The source DEM is Float32 and cell boundaries are computed
-                # through different but mathematically equivalent expressions.
                 # Canonicalize near-iso values so shared cells cannot classify
-                # the same boundary sample with opposite signs due to ulp noise.
-                return 0.0 if abs(value) <= 1e-5 else value
+                # the same boundary sample with opposite signs due to float32/ulp noise.
+                return _stable_sdf_sample(z, height_at(x, y))
 
             tested_cells += 1
             try:
