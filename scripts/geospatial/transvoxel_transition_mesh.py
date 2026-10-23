@@ -207,7 +207,7 @@ def self_test() -> None:
     _load_data()
     tested = 0
     # Exhaust all 512 fine-side masks on all six signed face orientations.
-    # The nine scalar samples are row-major; case bits use the official permutation and coarse corners reuse fine endpoint scalars 0, 2, 8, and 6 in the canonical transition-cell layout.
+    # The nine scalar samples are row-major; case bits use the official permutation and coarse corners reuse fine endpoint scalars 0, 2, 6, and 8 in the official transition-cell layout.
     for axis in range(3):
         a, b = (axis + 1) % 3, (axis + 2) % 3
         for direction in (-1, 1):
