@@ -87,12 +87,11 @@ def _edge_endpoints(code: int) -> Tuple[int, int]:
 
 
 def _corner_uv(i: int) -> Tuple[float, float]:
-    """Official Transvoxel endpoint order: perimeter samples 0..7, then center 8."""
+    """Spatial endpoint IDs are row-major; case bits use a separate official permutation."""
     mapping = {
         0: (0.0, 0.0), 1: (0.5, 0.0), 2: (1.0, 0.0),
-        3: (1.0, 0.5), 4: (1.0, 1.0), 5: (0.5, 1.0),
-        6: (0.0, 1.0), 7: (0.0, 0.5), 8: (0.5, 0.5),
-        # Opposite-face corners reuse the scalar values at official fine endpoints 0, 2, 6, 4.
+        3: (0.0, 0.5), 4: (0.5, 0.5), 5: (1.0, 0.5),
+        6: (0.0, 1.0), 7: (0.5, 1.0), 8: (1.0, 1.0),
         9: (0.0, 0.0), 10: (1.0, 0.0),
         11: (0.0, 1.0), 12: (1.0, 1.0),
     }
@@ -131,7 +130,7 @@ def _transition_endpoint_sample_index(endpoint: int) -> int:
     if 0 <= endpoint < 9:
         return endpoint
     if 9 <= endpoint < 13:
-        return (0, 2, 6, 4)[endpoint - 9]
+        return (0, 2, 6, 8)[endpoint - 9]
     raise ValueError(f"transition vertex endpoint must be 0..12, got {endpoint}")
 
 
@@ -149,8 +148,8 @@ def interpolate_edge(sdf, origin, axis, extent, i0, i1, iso=0.0, direction=1, fi
 
 def mesh_transition_cell(sdf, origin, axis, extent, iso=0.0, direction=1):
     data = _load_data()
-    # The 9 values are sampled in official table endpoint order (perimeter, then center).
-    # Coarse-face corners duplicate fine endpoints 0, 2, 6, and 4 by definition.
+    # Scalar samples are row-major. compute_case_index applies the official case-bit permutation.
+    # Coarse-face corners duplicate row-major corner samples 0, 2, 6, and 8.
     samples = sample_face_sdfs(sdf, origin, axis, extent)
     case = compute_case_index(samples, iso)
     if case is None:
@@ -213,13 +212,14 @@ def self_test() -> None:
         a, b = (axis + 1) % 3, (axis + 2) % 3
         for direction in (-1, 1):
             for mask in range(512):
-                fine_values = [-1.0 if (mask & (1 << i)) else 1.0 for i in range(9)]
+                fine_case_bit_for_sample = (0, 1, 2, 7, 8, 3, 6, 5, 4)
+        values = [-1.0 if (mask & (1 << case_bit_for_sample[i])) else 1.0 for i in range(9)]
 
                 def case_sdf(x, y, z, fine=fine_values, cell_axis=axis, face_direction=direction):
                     point = (x, y, z)
                     u = min(2, max(0, int(round(point[a] * 2))))
                     v = min(2, max(0, int(round(point[b] * 2))))
-                    return fine[((0, 1, 2), (7, 8, 3), (6, 5, 4))[v][u]]
+                    return fine[v * 3 + u]
 
                 verts, tris, meta = mesh_transition_cell(
                     case_sdf, (0.0, 0.0, 0.0), axis=axis, extent=1.0, direction=direction
