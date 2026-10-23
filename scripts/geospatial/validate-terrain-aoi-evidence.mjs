@@ -11,6 +11,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const REQUIRED_SOURCE_FIELDS = [
   'sourceId', 'sourceUrl', 'horizontalCrs', 'verticalDatum', 'units',
@@ -134,7 +135,7 @@ async function main() {
   if (report.status !== 'VALIDATED_INPUT_EVIDENCE') process.exitCode = 1;
 }
 
-if (process.argv[1] && import.meta.url === new URL(`file://${resolve(process.argv[1])}`).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   main().catch((error) => {
     console.error(error instanceof Error ? error.message : String(error));
     process.exitCode = 2;
