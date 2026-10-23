@@ -47,6 +47,8 @@ jobs:
         run: python3 scripts/geospatial/transvoxel_tables.py
       - name: Regenerate Lengyel tables from MIT upstream
         run: python3 scripts/geospatial/regenerate_lengyel_tables.py
+      - name: Test bounded provider retry and fail-closed behavior
+        run: python3 -m unittest scripts/geospatial/test_posey_3dep_provider_recovery.py
       - name: Download real USGS 3DEP terrain for Posey County ZIP 47620
         run: python3 scripts/geospatial/acquire-posey-47620-3dep.py --output-dir "$RUNNER_TEMP/tsm-posey-47620-evidence"
       - name: Audit complete CRS and vertical-datum catalog
