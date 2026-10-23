@@ -1,0 +1,62 @@
+[
+ {
+  "site_no": "03304300",
+  "station_nm": "OHIO RIVER AT NEWBURGH LOCK AND DAM, IN",
+  "dec_lat_va": "37.92837769",
+  "dec_long_va": "-87.3750073",
+  "alt_va": " 329.20",
+  "alt_datum_cd": "NAVD88",
+  "alt_meth_cd": "X",
+  "huc_cd": "05140202",
+  "drain_area_va": "100000.0",
+  "contrib_drain_area_va": ""
+ },
+ {
+  "site_no": "03322000",
+  "station_nm": "OHIO RIVER AT EVANSVILLE, IN",
+  "dec_lat_va": "37.97228264",
+  "dec_long_va": "-87.5764029",
+  "alt_va": " 328.32",
+  "alt_datum_cd": "NAVD88",
+  "alt_meth_cd": "X",
+  "huc_cd": "05140202",
+  "drain_area_va": "",
+  "contrib_drain_area_va": ""
+ },
+ {
+  "site_no": "03377500",
+  "station_nm": "WABASH RIVER AT MT. CARMEL, IL",
+  "dec_lat_va": "38.3983333",
+  "dec_long_va": "-87.75638889",
+  "alt_va": " 368.98",
+  "alt_datum_cd": "NAVD88",
+  "alt_meth_cd": "G",
+  "huc_cd": "05120113",
+  "drain_area_va": "28635",
+  "contrib_drain_area_va": ""
+ },
+ {
+  "site_no": "03378500",
+  "station_nm": "WABASH RIVER AT NEW HARMONY, IN",
+  "dec_lat_va": "38.13089124",
+  "dec_long_va": "-87.9414145",
+  "alt_va": " 352.71",
+  "alt_datum_cd": "NAVD88",
+  "alt_meth_cd": "L",
+  "huc_cd": "05120113",
+  "drain_area_va": "29234",
+  "contrib_drain_area_va": ""
+ },
+ {
+  "site_no": "03381700",
+  "station_nm": "OHIO RIVER AT OLD SHAWNEETOWN, IL-KY",
+  "dec_lat_va": "37.6925",
+  "dec_long_va": "-88.1347222",
+  "alt_va": " 309.10",
+  "alt_datum_cd": "NAVD88",
+  "alt_meth_cd": "L",
+  "huc_cd": "05140203",
+  "drain_area_va": "141000",
+  "contrib_drain_area_va": ""
+ }
+]
