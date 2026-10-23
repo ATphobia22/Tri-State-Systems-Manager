@@ -77,6 +77,28 @@ class ProductionBridgeContractTests(unittest.TestCase):
         seam = benchmark._seam_intersection_key(vertices, [(0, 1, 2)], axis=1, coordinate=0.0)
         self.assertEqual(seam, ("0.00,0.00,0.00", "1.00,0.00,0.00"))
 
+    def test_adjacent_transition_cells_match_actual_shared_plane_intersections(self):
+        from transvoxel_transition_mesh import mesh_transition_cell
+        import importlib.util
+
+        benchmark_path = SCRIPT_DIR / "benchmark-real-dem-transvoxel.py"
+        spec = importlib.util.spec_from_file_location("real_dem_transvoxel_benchmark", benchmark_path)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        benchmark = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(benchmark)
+
+        sdf = lambda x, y, z: z - (5.0 + 0.3 * y + 0.1 * x)
+        left_vertices, left_triangles, _ = mesh_transition_cell(
+            sdf, (0.0, 0.0, 0.0), axis=0, extent=20.0
+        )
+        right_vertices, right_triangles, _ = mesh_transition_cell(
+            sdf, (0.0, 20.0, 0.0), axis=0, extent=20.0
+        )
+        left_seam = benchmark._seam_intersection_key(left_vertices, left_triangles, axis=1, coordinate=20.0)
+        right_seam = benchmark._seam_intersection_key(right_vertices, right_triangles, axis=1, coordinate=20.0)
+        self.assertEqual(left_seam, right_seam)
+
     def test_height_sampler_rejects_extrapolation_and_nonfinite_inputs(self):
         height = bridge.make_height_sampler(np.arange(16, dtype=float).reshape(4, 4), 2.0)
         self.assertAlmostEqual(height(2.0, 2.0), 5.0)
