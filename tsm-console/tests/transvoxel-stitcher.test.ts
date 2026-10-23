@@ -58,7 +58,7 @@ describe('official Transvoxel transition mesher', () => {
     }
   });
   it('polygonizes a nontrivial transition cell into finite indexed geometry', () => {
-    const sdf = new Float32Array(13).fill(1);
+    const sdf = new Float32Array(9).fill(1);
     sdf[0] = -1; sdf[1] = -1; sdf[4] = -1;
     const p = new Float32Array(39);
     const coords = [[0,0,0],[0.5,0,0],[1,0,0],[0,0.5,0],[0.5,0.5,0],[1,0.5,0],[0,1,0],[0.5,1,0],[1,1,0],[0,0,1],[1,0,1],[1,1,1],[0,1,1]];
@@ -68,18 +68,17 @@ describe('official Transvoxel transition mesher', () => {
     expect(mesh.positions.every(Number.isFinite)).toBe(true);
     expect(mesh.indices.every((v)=>v < mesh.positions.length / 3)).toBe(true);
   });
-  it('uses independent coarse-side scalar values for edge interpolation', () => {
-    const sdf = new Float32Array(13).fill(1);
+  it('reuses fine-corner scalar values at displaced coarse-side positions', () => {
+    const sdf = new Float32Array(9).fill(1);
     sdf[0] = -1;
     const positions = new Float32Array(39);
     const coords = [[0,0,0],[0.5,0,0],[1,0,0],[0,0.5,0],[0.5,0.5,0],[1,0.5,0],[0,1,0],[0.5,1,0],[1,1,0],[0,0,1],[1,0,1],[1,1,1],[0,1,1]];
     coords.forEach((v,i)=>v.forEach((n,a)=>positions[i*3+a]=n));
-    sdf[11] = -0.5;
-    const original = TransvoxelStitcher.polygonizeTransitionCell(sdf, positions);
-    const changed = sdf.slice();
-    changed[9] = -1;
-    const updated = TransvoxelStitcher.polygonizeTransitionCell(changed, positions);
-    expect(Array.from(updated.positions)).not.toEqual(Array.from(original.positions));
+    const mesh = TransvoxelStitcher.polygonizeTransitionCell(sdf, positions);
+    const hasCoarseEdgeMidpoint = Array.from({ length: mesh.positions.length / 3 }, (_, i) => [
+      mesh.positions[i * 3]!, mesh.positions[i * 3 + 1]!, mesh.positions[i * 3 + 2]!,
+    ]).some(([x, y, z]) => Math.abs(x - 0.5) < 1e-6 && Math.abs(y - 0.5) < 1e-6 && Math.abs(z - 1) < 1e-6);
+    expect(hasCoarseEdgeMidpoint).toBe(true);
   });
   it('matches intersection vertices across adjacent transition cells', () => {
     const sdfAt = (x: number, y: number, z: number) => x + 0.37 * y - 0.61 * z - 0.43;
@@ -95,8 +94,8 @@ describe('official Transvoxel transition mesher', () => {
     }
   });
   it('rejects incomplete and non-finite sample fields', () => {
-    expect(() => TransvoxelStitcher.polygonizeTransitionCell(new Float32Array(12),new Float32Array(39))).toThrow(/13 transition-cell scalar/);
-    const sdf = new Float32Array(13); sdf[9] = Number.NaN;
+    expect(() => TransvoxelStitcher.polygonizeTransitionCell(new Float32Array(8),new Float32Array(39))).toThrow(/9 independent fine-side/);
+    const sdf = new Float32Array(9); sdf[4] = Number.NaN;
     expect(() => TransvoxelStitcher.polygonizeTransitionCell(sdf,new Float32Array(39))).toThrow(/Non-finite/);
   });
 });
