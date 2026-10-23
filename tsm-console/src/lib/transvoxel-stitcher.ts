@@ -128,7 +128,7 @@ export class TransvoxelStitcher {
       if (endpointA > 12 || endpointB > 12) {
         throw new Error(`Invalid transition edge endpoints ${endpointA},${endpointB} for case ${caseIndex}`);
       }
-      const endpointSampleIndex = (endpoint: number): number => endpoint < 9 ? endpoint : [0, 2, 6, 4][endpoint - 9]!;
+      const endpointSampleIndex = (endpoint: number): number => endpoint < 9 ? endpoint : [0, 2, 8, 6][endpoint - 9]!;
       const a = sdf[endpointSampleIndex(endpointA)]!;
       const b = sdf[endpointSampleIndex(endpointB)]!;
       const denominator = a - b;
