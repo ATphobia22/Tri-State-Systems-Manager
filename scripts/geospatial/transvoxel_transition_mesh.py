@@ -186,12 +186,38 @@ def mesh_transition_face_grid(sdf, origin, axis, extent, fine_res=2, iso=0.0):
 
 def self_test() -> None:
     _load_data()
+
+    # Exhaustively exercise every 9-bit mask against the canonical 512-case
+    # table, including inverted winding and coarse-corner endpoint encodings.
+    tested = 0
+    for mask in range(512):
+        values = [-1.0 if (mask & (1 << i)) else 1.0 for i in range(9)]
+
+        def case_sdf(x, y, z, samples=values):
+            u = min(2, max(0, int(round(x * 2))))
+            v = min(2, max(0, int(round(y * 2))))
+            return samples[v * 3 + u]
+
+        verts, tris, meta = mesh_transition_cell(
+            case_sdf, (0.0, 0.0, 0.0), axis=2, extent=1.0
+        )
+        expected = None if mask in (0, 511) else mask
+        if meta["case"] != expected:
+            raise AssertionError(f"case {mask}: got {meta['case']}, expected {expected}")
+        if any(index < 0 or index >= len(verts) for tri in tris for index in tri):
+            raise AssertionError(f"case {mask}: triangle index outside vertex array")
+        if any(not np.isfinite(component) for vertex in verts for component in vertex):
+            raise AssertionError(f"case {mask}: non-finite vertex")
+        tested += 1
+
     def sdf2(x, y, z):
         return (x + y) * 0.5 - 0.5
+
     verts, tris, meta = mesh_transition_cell(sdf2, (0.0, 0.0, 0.0), axis=2, extent=1.0)
-    print("self-test meta", meta, "V", len(verts), "T", len(tris))
     V, T, metas = mesh_transition_face_grid(sdf2, (0.0, 0.0, 0.0), axis=2, extent=2.0, fine_res=2)
+    print("self-test meta", meta, "V", len(verts), "T", len(tris))
     print("grid V", len(V), "T", len(T), "cells", len(metas))
+    print(f"TRANSVOXEL_EXHAUSTIVE_CASES: PASS ({tested}/512)")
     print("PER_LEAF_ADAPTIVE: PASS")
 
 
