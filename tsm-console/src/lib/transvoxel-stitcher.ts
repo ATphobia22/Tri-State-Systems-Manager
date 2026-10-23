@@ -9,7 +9,7 @@
  * Reference: Lengyel, E. "Voxel-Based Terrain for Real-Time Virtual Simulations"
  */
 
-import { getTransitionClass, TRANSITION_CELL_CLASS, validateLengyelTables } from './transvoxel-lengyel-classes';
+import { getTransitionClass, TRANSITION_CELL_CLASS, validateLengyelTables } from './transvoxel-lengyel-classes.ts';
 
 export interface TransitionCellData {
   vertexCount: number;
@@ -33,7 +33,11 @@ export class TransvoxelStitcher {
     }
     let caseIndex = 0;
     for (let i = 0; i < 9; i++) {
-      if (cornerSdfs[i]! < 0.0) {
+      const value = cornerSdfs[i]!;
+      if (!Number.isFinite(value)) {
+        throw new RangeError(`SDF sample at index ${i} must be finite`);
+      }
+      if (value < 0.0) {
         caseIndex |= 1 << i;
       }
     }
@@ -44,7 +48,9 @@ export class TransvoxelStitcher {
   }
 
   public static generateTransitionGeometry(caseIndex: number): number[] | null {
-    if (caseIndex < 0) return null;
+    // Only sparse common cases have runtime geometry in this module. Do not
+    // coerce malformed indices or invent geometry for unsupported classes.
+    if (!Number.isInteger(caseIndex) || caseIndex < 0 || caseIndex > 0x1ff) return null;
     const cellData = TRANSVOXEL_TRANSITION_CASES[caseIndex];
     if (!cellData || cellData.indexCount === 0) {
       return null;
