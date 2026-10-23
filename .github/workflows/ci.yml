@@ -111,6 +111,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_boundary_flow_validator.py' -v
           python -m unittest discover -s tests -p 'test_hydrology_pipeline.py' -v
           python -m unittest discover -s tests -p 'test_erdc_tr22_4_boundary.py' -v
+          python -m unittest discover -s tests -p 'test_ras2fim_tristate.py' -v
 
       - name: Validate committed hydraulic model archives
         working-directory: .
