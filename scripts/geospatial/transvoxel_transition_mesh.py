@@ -138,18 +138,14 @@ def _transition_endpoint_sample_index(endpoint: int) -> int:
 def interpolate_edge(sdf, origin, axis, extent, i0, i1, iso=0.0, direction=1, fine_samples=None) -> Vec3:
     p0 = _transition_point(origin, axis, extent, i0, direction)
     p1 = _transition_point(origin, axis, extent, i1, direction)
-    samples = fine_samples
-    if samples is None:
-        fine = sample_face_sdfs(sdf, origin, axis, extent)
-        coarse = [float(sdf(*_transition_point(origin, axis, extent, endpoint, direction))) for endpoint in range(9, 13)]
-        samples = fine + coarse
-    if len(samples) != 13:
-        raise ValueError(f"transition interpolation requires 13 scalar samples, got {len(samples)}")
+    samples = fine_samples if fine_samples is not None else sample_face_sdfs(sdf, origin, axis, extent)
+    if len(samples) != 9:
+        raise ValueError(f"transition interpolation requires 9 independent scalar samples, got {len(samples)}")
     s0 = float(samples[_transition_endpoint_sample_index(i0)]) - iso
     s1 = float(samples[_transition_endpoint_sample_index(i1)]) - iso
-    t = 0.5 if abs(s0 - s1) < 1e-12 else float(np.clip(s0 / (s0 - s1), 0.0, 1.0))
+    denominator = s0 - s1
+    t = 0.5 if abs(denominator) < 1e-12 else float(np.clip(s0 / denominator, 0.0, 1.0))
     return (p0[0] + (p1[0] - p0[0]) * t, p0[1] + (p1[1] - p0[1]) * t, p0[2] + (p1[2] - p0[2]) * t)
-
 
 def mesh_transition_cell(sdf, origin, axis, extent, iso=0.0, direction=1):
     data = _load_data()
