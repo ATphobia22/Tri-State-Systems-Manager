@@ -57,16 +57,7 @@ FT_TO_M = FT_TO_M  # noqa: F811  (re-export for clarity)
 
 def dem_window_for_region(wx, wy, W, H):
     """Load a DEM region (pixels) and return (dem_m, px, sampler)."""
-    import rasterio
-    path = DEM_PATH
-    with rasterio.open(path) as src:
-        a = src.read(1, window=((wy, wy + H), (wx, wx + W))).astype(np.float64)
-        px = float(abs(src.transform.a))
-    a[a < -1e30] = np.nan
-    if np.isnan(a).any():
-        a = np.where(np.isnan(a), np.nanmean(a), a)
-        log.warning("filled NaN DEM values with mean")
-    dem_m = a * FT_TO_M
+    dem_m, px = load_dem_window(DEM_PATH, wx, wy, W, height=H)
     return dem_m, px, make_height_sampler(dem_m, px)
 
 
