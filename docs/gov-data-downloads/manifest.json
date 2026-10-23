@@ -59,7 +59,7 @@
    "agency": "FEMA",
    "url": "https://www.fema.gov/grants/mitigation/learn/hazard-mitigation",
    "date_accessed": "2026-10-23T14:12:45Z",
-   "description": "FEMA Hazard Mitigation Grant Program page (HTML snapshot)"
+   "description": "FEMA Hazard Mitigation Grant Program page (HTML snapshot); sanitized static HTML snapshot with transient Drupal contextual-token attributes removed before commit"
   },
   {
    "file": "usgs-5gage-sites.json",
