@@ -1,0 +1,52 @@
+[
+ {
+  "objectid": 748866,
+  "status": "ok",
+  "watertight": true,
+  "triangles": 14,
+  "vertices": 9,
+  "volume": 3660.0172376631886,
+  "cells": 1,
+  "glb_bytes": 1108
+ },
+ {
+  "objectid": 760981,
+  "status": "ok",
+  "watertight": true,
+  "triangles": 14,
+  "vertices": 9,
+  "volume": 1715.6094352522052,
+  "cells": 1,
+  "glb_bytes": 1108
+ },
+ {
+  "objectid": 751569,
+  "status": "ok",
+  "watertight": true,
+  "triangles": 22,
+  "vertices": 13,
+  "volume": 652.017999588104,
+  "cells": 1,
+  "glb_bytes": 1252
+ },
+ {
+  "objectid": 740323,
+  "status": "ok",
+  "watertight": false,
+  "triangles": 93,
+  "vertices": 49,
+  "volume": 0.0,
+  "cells": 1,
+  "glb_bytes": 2532
+ },
+ {
+  "objectid": 740339,
+  "status": "ok",
+  "watertight": false,
+  "triangles": 76,
+  "vertices": 39,
+  "volume": 0.0,
+  "cells": 1,
+  "glb_bytes": 2212
+ }
+]

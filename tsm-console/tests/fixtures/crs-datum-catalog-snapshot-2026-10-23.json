@@ -1,0 +1,136 @@
+{
+  "schema_version": "crs-datum-catalog-snapshot/1.0.0",
+  "captured_at": "2026-10-23T23:20:01.815Z",
+  "captured_from": "tsm-console/src/lib/crs-vertical-datum-evidence.ts :: TSM_SUPPORTED_SOURCE_CATALOG",
+  "canonicalization": "canonicalCatalogJson (sorted keys) over the catalog array",
+  "entry_count": 10,
+  "sha256": "9dee3404c33d84330c34510268c0ec03c201be1546e8cd312da4f0dbac2dde51",
+  "entry_ids": [
+    "usgs-3dep-terrain",
+    "fema-effective",
+    "indiana-bafm",
+    "indiana-parcels-2025",
+    "indiana-current-imagery",
+    "usgs-03378500",
+    "noaa-nwps",
+    "usace-nld",
+    "point-township-historical",
+    "nfhl-s-bfe"
+  ],
+  "catalog": [
+    {
+      "id": "usgs-3dep-terrain",
+      "dataset": "USGS 3DEP",
+      "authority": "USGS",
+      "layerType": "terrain",
+      "crs": "EPSG:3857",
+      "verticalDatum": "NAVD88",
+      "sourceUrl": "https://elevation.nationalmap.gov/",
+      "status": "PROGRAM_PENDING",
+      "verificationState": "PENDING",
+      "provenanceClass": "federal-elevation"
+    },
+    {
+      "id": "fema-effective",
+      "dataset": "NFHL Effective",
+      "authority": "FEMA",
+      "layerType": "vector",
+      "crs": "EPSG:4326",
+      "verticalDatum": "NAVD88",
+      "sourceUrl": "https://hazards.fema.gov/",
+      "status": "PUBLISHED",
+      "verificationState": "VERIFIED",
+      "provenanceClass": "federal-flood"
+    },
+    {
+      "id": "indiana-bafm",
+      "dataset": "Indiana Best Available Flood Mapping",
+      "authority": "IDNR / IGIO",
+      "layerType": "vector",
+      "crs": "EPSG:2965",
+      "verticalDatum": "NAVD88",
+      "sourceUrl": null,
+      "status": "PROGRAM_PENDING",
+      "verificationState": "PENDING"
+    },
+    {
+      "id": "indiana-parcels-2025",
+      "dataset": "Indiana Parcels",
+      "authority": "IGIO",
+      "layerType": "vector",
+      "crs": "EPSG:2965",
+      "verticalDatum": "NONE",
+      "sourceUrl": null,
+      "status": "PROGRAM_PENDING",
+      "verificationState": "PENDING"
+    },
+    {
+      "id": "indiana-current-imagery",
+      "dataset": "Indiana Imagery",
+      "authority": "IGIO",
+      "layerType": "raster",
+      "crs": "EPSG:3857",
+      "verticalDatum": "NONE",
+      "sourceUrl": null,
+      "status": "PROGRAM_PENDING",
+      "verificationState": "PENDING"
+    },
+    {
+      "id": "usgs-03378500",
+      "dataset": "USGS Gage 03378500 stage",
+      "authority": "USGS",
+      "layerType": "live-observation",
+      "crs": "EPSG:4326",
+      "verticalDatum": "UNKNOWN",
+      "sourceUrl": "https://waterdata.usgs.gov/monitoring-location/USGS-03378500/",
+      "status": "PUBLISHED",
+      "verificationState": "VERIFIED",
+      "notes_via_gage": "gage-zero conversion unpublished"
+    },
+    {
+      "id": "noaa-nwps",
+      "dataset": "NOAA NWPS",
+      "authority": "NWS",
+      "layerType": "live-forecast",
+      "crs": "EPSG:4326",
+      "verticalDatum": "UNKNOWN",
+      "sourceUrl": "https://water.noaa.gov/",
+      "status": "PUBLISHED",
+      "verificationState": "VERIFIED"
+    },
+    {
+      "id": "usace-nld",
+      "dataset": "USACE National Levee Database",
+      "authority": "USACE",
+      "layerType": "vector",
+      "crs": "EPSG:4326",
+      "verticalDatum": "NAVD88",
+      "sourceUrl": "https://levees.sec.usace.army.mil/",
+      "status": "PUBLISHED",
+      "verificationState": "PROVISIONAL"
+    },
+    {
+      "id": "point-township-historical",
+      "dataset": "Point Township historical",
+      "authority": "Local / TSM",
+      "layerType": "historical-raster",
+      "crs": "EPSG:4326",
+      "verticalDatum": null,
+      "sourceUrl": null,
+      "status": "REQUIRES_DOWNLOAD",
+      "verificationState": "HISTORICAL_REFERENCE"
+    },
+    {
+      "id": "nfhl-s-bfe",
+      "dataset": "NFHL S_BFE",
+      "authority": "FEMA",
+      "layerType": "vector",
+      "crs": "EPSG:4326",
+      "verticalDatum": "NAVD88",
+      "sourceUrl": "https://hazards.fema.gov/nfhl/",
+      "status": "PUBLISHED",
+      "verificationState": "VERIFIED",
+      "provenanceClass": "firm-fis-hardcopy-controls"
+    }
+  ]
+}

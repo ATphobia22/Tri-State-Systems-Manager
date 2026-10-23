@@ -1,0 +1,1751 @@
+{
+  "aoi": {
+    "aoiInsetMeters": 6.0,
+    "areaKm2": 399.9999999999907,
+    "boundsMeters": [
+      399999.99969608913,
+      4180000.0003289343,
+      419999.99969608913,
+      4200000.000328934
+    ],
+    "cellMeters": 20.0,
+    "chunkCells": 125,
+    "chunkGrid": [
+      8,
+      8
+    ],
+    "chunksRun": 64,
+    "crs": "EPSG:26916",
+    "fractionOfPoseyCounty": 0.3679852805887679,
+    "verticalUnits": "meters (source DEM meters; NAVD88 per 3DEP 1 m spec, not re-certified here)"
+  },
+  "evidenceStatus": "REAL_DEM_TRANSVOXEL_COUNTY_RUN",
+  "fullCountyProjection": {
+    "basis": "PROJECTION from measured end-to-end per-cell rate; not a measured county run",
+    "fullColumnModel": {
+      "countyColumns20m": 2717500.0,
+      "meanZCellsPerColumn": 5.0,
+      "note": "Production-scale interpretation: every 20 m column of the county meshed across its z-range. Uses the measured blended cell rate (empty + surface cells); a real adaptive octree would change constant factors. Treat as order-of-magnitude planning arithmetic, not a commitment.",
+      "projectedTransitionCells": 13587500.0,
+      "projectedWallHours": 2.181449558696656,
+      "projectedWallSeconds": 7853.218411307961
+    },
+    "measuredCellsPerSecond": 1730.1823645239722,
+    "poseyCountyKm2": 1087.0,
+    "stripModel": {
+      "note": "Same transition-face strip model as measured, scaled by county/AOI area.",
+      "projectedTransitionCells": 100207.81250000233,
+      "projectedWallHours": 0.016088190495388212,
+      "projectedWallSeconds": 57.91748578339756
+    }
+  },
+  "inputs": {
+    "skippedTiles": [],
+    "tileEdgeX": [
+      399994,
+      409994,
+      410006,
+      420006
+    ],
+    "tileEdgeY": [
+      4179994,
+      4189994,
+      4190006,
+      4200006
+    ],
+    "tileLayout": "2x2 neighboring USGS 3DEP 1 m LiDAR tiles (2017 Indiana statewide); 12 m overlaps resolved by fixed input-order priority",
+    "tileUnionMeters": [
+      399993.99969608913,
+      4179994.0003289343,
+      420005.99971842556,
+      4200006.000333173
+    ],
+    "tiles": [
+      {
+        "bounds": [
+          399993.99969608913,
+          4179994.0003289343,
+          410005.99969608913,
+          4190006.0003289343
+        ],
+        "bytes": 127949586,
+        "crs": "EPSG:26916",
+        "dtype": "float32",
+        "height": 10012,
+        "nodata": -999999.0,
+        "path": "USGS_1M_16_x40y419_IN_Indiana_Statewide_LiDAR_2017_B17.tif",
+        "sha256": "e4693cf540da82b925ea8b49da75c7972f395bd9d5ba585a829bf9f6bdb2853f",
+        "width": 10012
+      },
+      {
+        "bounds": [
+          399993.99969608913,
+          4189994.0002513425,
+          410005.99969608913,
+          4200006.000251343
+        ],
+        "bytes": 183728948,
+        "crs": "EPSG:26916",
+        "dtype": "float32",
+        "height": 10012,
+        "nodata": -999999.0,
+        "path": "USGS_1M_16_x40y420_IN_Indiana_Statewide_LiDAR_2017_B17.tif",
+        "sha256": "ecbecfe94e4191b9ce3f4b316195cc255554a421db1421f1b983898ba594f127",
+        "width": 10012
+      },
+      {
+        "bounds": [
+          409993.99968593876,
+          4179994.0003289343,
+          420005.99968593876,
+          4190006.0003289343
+        ],
+        "bytes": 257825774,
+        "crs": "EPSG:26916",
+        "dtype": "float32",
+        "height": 10012,
+        "nodata": -999999.0,
+        "path": "USGS_1M_16_x41y419_IN_Indiana_Statewide_LiDAR_2017_B17.tif",
+        "sha256": "fad61772041521ff9dcf38f9e0f742122141da0bbfddf9be765c4bb4f9a847c6",
+        "width": 10012
+      },
+      {
+        "bounds": [
+          409993.99971842556,
+          4189994.000333173,
+          420005.99971842556,
+          4200006.000333173
+        ],
+        "bytes": 296540961,
+        "crs": "EPSG:26916",
+        "dtype": "float32",
+        "height": 10012,
+        "nodata": -999999.0,
+        "path": "USGS_1M_16_x41y420_IN_Indiana_Statewide_LiDAR_2017_B17.tif",
+        "sha256": "9ae9e9a7ee2a5a79241850ca87d85dfc47dd7acdbee70b84207b98d4dea163cf",
+        "width": 10012
+      }
+    ]
+  },
+  "limitations": [
+    "AOI is a ~400 km^2 sub-county tile union, not all of Posey County (~37%).",
+    "Emits transition-face meshes per chunk (benchmark model), not a full adaptive-octree terrain mesh.",
+    "Seam checks cover y-boundaries within and across chunks (the stitched faces), not all six orientations.",
+    "Vertical datum/accuracy per 3DEP 1 m product spec; not re-certified by this run.",
+    "12 m tile overlaps resolved by fixed input-order priority; overlap disagreement between tiles is not separately measured.",
+    "TABLE INTEGRITY (corrected by this run): the previously committed scripts/geospatial/lengyel_cell_data.json (37 distinct classes) and lengyel_vertex_0.json (truncated, literal [PLACEHOLDER]) were not official Lengyel data; this run regenerated all lengyel_*.json from EricLengyel/Transvoxel (MIT) and verified 0 differences against the TS-side official port (56 cell entries / 512 vertex rows). All mesh evidence herein used the verified tables."
+  ],
+  "mesh": {
+    "cellsSkippedNoData": 8340,
+    "chunkReports": [
+      {
+        "chunk": [
+          0,
+          0
+        ],
+        "meshed": 0,
+        "skipped_nodata": 0,
+        "status": "NO_VALID_DATA",
+        "tested": 0
+      },
+      {
+        "chunk": [
+          0,
+          1
+        ],
+        "meshed": 0,
+        "skipped_nodata": 0,
+        "status": "NO_VALID_DATA",
+        "tested": 0
+      },
+      {
+        "chunk": [
+          0,
+          2
+        ],
+        "meshed": 0,
+        "skipped_nodata": 0,
+        "status": "NO_VALID_DATA",
+        "tested": 0
+      },
+      {
+        "chunk": [
+          0,
+          3
+        ],
+        "meshed": 0,
+        "skipped_nodata": 0,
+        "status": "NO_VALID_DATA",
+        "tested": 0
+      },
+      {
+        "chunk": [
+          0,
+          4
+        ],
+        "meshed": 0,
+        "skipped_nodata": 0,
+        "status": "NO_VALID_DATA",
+        "tested": 0
+      },
+      {
+        "boundsMeters": [
+          399999.99969608913,
+          4192500.0003289343,
+          402499.99969608913,
+          4195000.000328934
+        ],
+        "chunk": [
+          0,
+          5
+        ],
+        "meshed": 0,
+        "skippedNoData": 625,
+        "tested": 625,
+        "triangles": 0,
+        "validGridFraction": 0.04315208630417261,
+        "vertices": 0,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          399999.99969608913,
+          4195000.000328934,
+          402499.99969608913,
+          4197500.000328934
+        ],
+        "chunk": [
+          0,
+          6
+        ],
+        "meshed": 0,
+        "skippedNoData": 625,
+        "tested": 625,
+        "triangles": 0,
+        "validGridFraction": 0.2283464566929134,
+        "vertices": 0,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          399999.99969608913,
+          4197500.000328934,
+          402499.99969608913,
+          4200000.000328934
+        ],
+        "chunk": [
+          0,
+          7
+        ],
+        "meshed": 0,
+        "skippedNoData": 625,
+        "tested": 625,
+        "triangles": 0,
+        "validGridFraction": 0.010788021576043152,
+        "vertices": 0,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          402499.99969608913,
+          4180000.0003289343,
+          404999.99969608913,
+          4182500.0003289343
+        ],
+        "chunk": [
+          1,
+          0
+        ],
+        "meshed": 0,
+        "skippedNoData": 625,
+        "tested": 625,
+        "triangles": 0,
+        "validGridFraction": 0.001116002232004464,
+        "vertices": 0,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          402499.99969608913,
+          4182500.0003289343,
+          404999.99969608913,
+          4185000.0003289343
+        ],
+        "chunk": [
+          1,
+          1
+        ],
+        "meshed": 0,
+        "skippedNoData": 625,
+        "tested": 625,
+        "triangles": 0,
+        "validGridFraction": 0.2890445780891562,
+        "vertices": 0,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          402499.99969608913,
+          4185000.0003289343,
+          404999.99969608913,
+          4187500.0003289343
+        ],
+        "chunk": [
+          1,
+          2
+        ],
+        "meshed": 0,
+        "skippedNoData": 625,
+        "tested": 625,
+        "triangles": 0,
+        "validGridFraction": 0.6141732283464567,
+        "vertices": 0,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          402499.99969608913,
+          4187500.0003289343,
+          404999.99969608913,
+          4190000.0003289343
+        ],
+        "chunk": [
+          1,
+          3
+        ],
+        "meshed": 0,
+        "skippedNoData": 625,
+        "tested": 625,
+        "triangles": 0,
+        "validGridFraction": 0.24663649327298653,
+        "vertices": 0,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          402499.99969608913,
+          4190000.0003289343,
+          404999.99969608913,
+          4192500.0003289343
+        ],
+        "chunk": [
+          1,
+          4
+        ],
+        "meshed": 0,
+        "skippedNoData": 625,
+        "tested": 625,
+        "triangles": 0,
+        "validGridFraction": 0.2607725215450431,
+        "vertices": 0,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          402499.99969608913,
+          4192500.0003289343,
+          404999.99969608913,
+          4195000.000328934
+        ],
+        "chunk": [
+          1,
+          5
+        ],
+        "meshed": 22,
+        "skippedNoData": 515,
+        "tested": 625,
+        "triangles": 66,
+        "validGridFraction": 0.6870853741707483,
+        "vertices": 110,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          402499.99969608913,
+          4195000.000328934,
+          404999.99969608913,
+          4197500.000328934
+        ],
+        "chunk": [
+          1,
+          6
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 375,
+        "validGridFraction": 1.0,
+        "vertices": 625,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          402499.99969608913,
+          4197500.000328934,
+          404999.99969608913,
+          4200000.000328934
+        ],
+        "chunk": [
+          1,
+          7
+        ],
+        "meshed": 4,
+        "skippedNoData": 605,
+        "tested": 625,
+        "triangles": 12,
+        "validGridFraction": 0.05195610391220783,
+        "vertices": 20,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          404999.99969608913,
+          4180000.0003289343,
+          407499.99969608913,
+          4182500.0003289343
+        ],
+        "chunk": [
+          2,
+          0
+        ],
+        "meshed": 7,
+        "skippedNoData": 590,
+        "tested": 625,
+        "triangles": 21,
+        "validGridFraction": 0.07086614173228346,
+        "vertices": 35,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          404999.99969608913,
+          4182500.0003289343,
+          407499.99969608913,
+          4185000.0003289343
+        ],
+        "chunk": [
+          2,
+          1
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 375,
+        "validGridFraction": 1.0,
+        "vertices": 625,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          404999.99969608913,
+          4185000.0003289343,
+          407499.99969608913,
+          4187500.0003289343
+        ],
+        "chunk": [
+          2,
+          2
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 375,
+        "validGridFraction": 1.0,
+        "vertices": 625,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          404999.99969608913,
+          4187500.0003289343,
+          407499.99969608913,
+          4190000.0003289343
+        ],
+        "chunk": [
+          2,
+          3
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 375,
+        "validGridFraction": 1.0,
+        "vertices": 625,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          404999.99969608913,
+          4190000.0003289343,
+          407499.99969608913,
+          4192500.0003289343
+        ],
+        "chunk": [
+          2,
+          4
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 375,
+        "validGridFraction": 1.0,
+        "vertices": 625,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          404999.99969608913,
+          4192500.0003289343,
+          407499.99969608913,
+          4195000.000328934
+        ],
+        "chunk": [
+          2,
+          5
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 375,
+        "validGridFraction": 1.0,
+        "vertices": 625,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          404999.99969608913,
+          4195000.000328934,
+          407499.99969608913,
+          4197500.000328934
+        ],
+        "chunk": [
+          2,
+          6
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 375,
+        "validGridFraction": 1.0,
+        "vertices": 625,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          404999.99969608913,
+          4197500.000328934,
+          407499.99969608913,
+          4200000.000328934
+        ],
+        "chunk": [
+          2,
+          7
+        ],
+        "meshed": 4,
+        "skippedNoData": 605,
+        "tested": 625,
+        "triangles": 12,
+        "validGridFraction": 0.6409572819145638,
+        "vertices": 20,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          407499.99969608913,
+          4180000.0003289343,
+          409999.99969608913,
+          4182500.0003289343
+        ],
+        "chunk": [
+          3,
+          0
+        ],
+        "meshed": 7,
+        "skippedNoData": 590,
+        "tested": 625,
+        "triangles": 21,
+        "validGridFraction": 0.8024676049352099,
+        "vertices": 35,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          407499.99969608913,
+          4182500.0003289343,
+          409999.99969608913,
+          4185000.0003289343
+        ],
+        "chunk": [
+          3,
+          1
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 375,
+        "validGridFraction": 1.0,
+        "vertices": 625,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          407499.99969608913,
+          4185000.0003289343,
+          409999.99969608913,
+          4187500.0003289343
+        ],
+        "chunk": [
+          3,
+          2
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 375,
+        "validGridFraction": 1.0,
+        "vertices": 625,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          407499.99969608913,
+          4187500.0003289343,
+          409999.99969608913,
+          4190000.0003289343
+        ],
+        "chunk": [
+          3,
+          3
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 375,
+        "validGridFraction": 1.0,
+        "vertices": 625,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          407499.99969608913,
+          4190000.0003289343,
+          409999.99969608913,
+          4192500.0003289343
+        ],
+        "chunk": [
+          3,
+          4
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 375,
+        "validGridFraction": 1.0,
+        "vertices": 625,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          407499.99969608913,
+          4192500.0003289343,
+          409999.99969608913,
+          4195000.000328934
+        ],
+        "chunk": [
+          3,
+          5
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 375,
+        "validGridFraction": 1.0,
+        "vertices": 625,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          407499.99969608913,
+          4195000.000328934,
+          409999.99969608913,
+          4197500.000328934
+        ],
+        "chunk": [
+          3,
+          6
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 375,
+        "validGridFraction": 1.0,
+        "vertices": 625,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          407499.99969608913,
+          4197500.000328934,
+          409999.99969608913,
+          4200000.000328934
+        ],
+        "chunk": [
+          3,
+          7
+        ],
+        "meshed": 80,
+        "skippedNoData": 225,
+        "tested": 625,
+        "triangles": 240,
+        "validGridFraction": 0.9218798437596876,
+        "vertices": 400,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          409999.99969608913,
+          4180000.0003289343,
+          412499.99969608913,
+          4182500.0003289343
+        ],
+        "chunk": [
+          4,
+          0
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 375,
+        "validGridFraction": 0.8138136276272553,
+        "vertices": 625,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          409999.99969608913,
+          4182500.0003289343,
+          412499.99969608913,
+          4185000.0003289343
+        ],
+        "chunk": [
+          4,
+          1
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 375,
+        "validGridFraction": 1.0,
+        "vertices": 625,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          409999.99969608913,
+          4185000.0003289343,
+          412499.99969608913,
+          4187500.0003289343
+        ],
+        "chunk": [
+          4,
+          2
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 375,
+        "validGridFraction": 1.0,
+        "vertices": 625,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          409999.99969608913,
+          4187500.0003289343,
+          412499.99969608913,
+          4190000.0003289343
+        ],
+        "chunk": [
+          4,
+          3
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 376,
+        "validGridFraction": 1.0,
+        "vertices": 626,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          409999.99969608913,
+          4190000.0003289343,
+          412499.99969608913,
+          4192500.0003289343
+        ],
+        "chunk": [
+          4,
+          4
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 378,
+        "validGridFraction": 1.0,
+        "vertices": 628,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          409999.99969608913,
+          4192500.0003289343,
+          412499.99969608913,
+          4195000.000328934
+        ],
+        "chunk": [
+          4,
+          5
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 375,
+        "validGridFraction": 1.0,
+        "vertices": 625,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          409999.99969608913,
+          4195000.000328934,
+          412499.99969608913,
+          4197500.000328934
+        ],
+        "chunk": [
+          4,
+          6
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 375,
+        "validGridFraction": 1.0,
+        "vertices": 625,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          409999.99969608913,
+          4197500.000328934,
+          412499.99969608913,
+          4200000.000328934
+        ],
+        "chunk": [
+          4,
+          7
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 376,
+        "validGridFraction": 1.0,
+        "vertices": 626,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          412499.99969608913,
+          4180000.0003289343,
+          414999.99969608913,
+          4182500.0003289343
+        ],
+        "chunk": [
+          5,
+          0
+        ],
+        "meshed": 86,
+        "skippedNoData": 210,
+        "tested": 625,
+        "triangles": 259,
+        "validGridFraction": 0.7877735755471511,
+        "vertices": 431,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          412499.99969608913,
+          4182500.0003289343,
+          414999.99969608913,
+          4185000.0003289343
+        ],
+        "chunk": [
+          5,
+          1
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 375,
+        "validGridFraction": 1.0,
+        "vertices": 625,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          412499.99969608913,
+          4185000.0003289343,
+          414999.99969608913,
+          4187500.0003289343
+        ],
+        "chunk": [
+          5,
+          2
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 380,
+        "validGridFraction": 1.0,
+        "vertices": 630,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          412499.99969608913,
+          4187500.0003289343,
+          414999.99969608913,
+          4190000.0003289343
+        ],
+        "chunk": [
+          5,
+          3
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 381,
+        "validGridFraction": 1.0,
+        "vertices": 631,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          412499.99969608913,
+          4190000.0003289343,
+          414999.99969608913,
+          4192500.0003289343
+        ],
+        "chunk": [
+          5,
+          4
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 379,
+        "validGridFraction": 1.0,
+        "vertices": 629,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          412499.99969608913,
+          4192500.0003289343,
+          414999.99969608913,
+          4195000.000328934
+        ],
+        "chunk": [
+          5,
+          5
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 381,
+        "validGridFraction": 1.0,
+        "vertices": 631,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          412499.99969608913,
+          4195000.000328934,
+          414999.99969608913,
+          4197500.000328934
+        ],
+        "chunk": [
+          5,
+          6
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 379,
+        "validGridFraction": 1.0,
+        "vertices": 629,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          412499.99969608913,
+          4197500.000328934,
+          414999.99969608913,
+          4200000.000328934
+        ],
+        "chunk": [
+          5,
+          7
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 382,
+        "validGridFraction": 1.0,
+        "vertices": 632,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          414999.99969608913,
+          4180000.0003289343,
+          417499.99969608913,
+          4182500.0003289343
+        ],
+        "chunk": [
+          6,
+          0
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 375,
+        "validGridFraction": 1.0,
+        "vertices": 625,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          414999.99969608913,
+          4182500.0003289343,
+          417499.99969608913,
+          4185000.0003289343
+        ],
+        "chunk": [
+          6,
+          1
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 378,
+        "validGridFraction": 1.0,
+        "vertices": 628,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          414999.99969608913,
+          4185000.0003289343,
+          417499.99969608913,
+          4187500.0003289343
+        ],
+        "chunk": [
+          6,
+          2
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 381,
+        "validGridFraction": 1.0,
+        "vertices": 631,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          414999.99969608913,
+          4187500.0003289343,
+          417499.99969608913,
+          4190000.0003289343
+        ],
+        "chunk": [
+          6,
+          3
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 383,
+        "validGridFraction": 1.0,
+        "vertices": 633,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          414999.99969608913,
+          4190000.0003289343,
+          417499.99969608913,
+          4192500.0003289343
+        ],
+        "chunk": [
+          6,
+          4
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 375,
+        "validGridFraction": 1.0,
+        "vertices": 625,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          414999.99969608913,
+          4192500.0003289343,
+          417499.99969608913,
+          4195000.000328934
+        ],
+        "chunk": [
+          6,
+          5
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 379,
+        "validGridFraction": 1.0,
+        "vertices": 629,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          414999.99969608913,
+          4195000.000328934,
+          417499.99969608913,
+          4197500.000328934
+        ],
+        "chunk": [
+          6,
+          6
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 375,
+        "validGridFraction": 1.0,
+        "vertices": 625,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          414999.99969608913,
+          4197500.000328934,
+          417499.99969608913,
+          4200000.000328934
+        ],
+        "chunk": [
+          6,
+          7
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 388,
+        "validGridFraction": 1.0,
+        "vertices": 638,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          417499.99969608913,
+          4180000.0003289343,
+          419999.99969608913,
+          4182500.0003289343
+        ],
+        "chunk": [
+          7,
+          0
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 389,
+        "validGridFraction": 0.5212350424700849,
+        "vertices": 639,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          417499.99969608913,
+          4182500.0003289343,
+          419999.99969608913,
+          4185000.0003289343
+        ],
+        "chunk": [
+          7,
+          1
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 375,
+        "validGridFraction": 1.0,
+        "vertices": 625,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          417499.99969608913,
+          4185000.0003289343,
+          419999.99969608913,
+          4187500.0003289343
+        ],
+        "chunk": [
+          7,
+          2
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 375,
+        "validGridFraction": 1.0,
+        "vertices": 625,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          417499.99969608913,
+          4187500.0003289343,
+          419999.99969608913,
+          4190000.0003289343
+        ],
+        "chunk": [
+          7,
+          3
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 378,
+        "validGridFraction": 1.0,
+        "vertices": 628,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          417499.99969608913,
+          4190000.0003289343,
+          419999.99969608913,
+          4192500.0003289343
+        ],
+        "chunk": [
+          7,
+          4
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 376,
+        "validGridFraction": 1.0,
+        "vertices": 626,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          417499.99969608913,
+          4192500.0003289343,
+          419999.99969608913,
+          4195000.000328934
+        ],
+        "chunk": [
+          7,
+          5
+        ],
+        "meshed": 125,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 380,
+        "validGridFraction": 1.0,
+        "vertices": 630,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          417499.99969608913,
+          4195000.000328934,
+          419999.99969608913,
+          4197500.000328934
+        ],
+        "chunk": [
+          7,
+          6
+        ],
+        "meshed": 128,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 382,
+        "validGridFraction": 1.0,
+        "vertices": 638,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      },
+      {
+        "boundsMeters": [
+          417499.99969608913,
+          4197500.000328934,
+          419999.99969608913,
+          4200000.000328934
+        ],
+        "chunk": [
+          7,
+          7
+        ],
+        "meshed": 133,
+        "skippedNoData": 0,
+        "tested": 625,
+        "triangles": 395,
+        "validGridFraction": 1.0,
+        "vertices": 661,
+        "zCells": 5,
+        "zRangeMeters": [
+          80.0,
+          180.0
+        ],
+        "zRangeNote": "global AOI z-range shared by all chunks for like-for-like seam checks"
+      }
+    ],
+    "maxCrackMeters": 0.0,
+    "maxCrackNote": "max over two-sided mismatches only, at 2 cm seam-key quantization; one-sided nodata-edge mismatches carry crackMeters=null",
+    "meshSha256": "4c4b3a69ea0e1aebaf477d029dfc0a81b94a752bb96042f80c89a25d9413166d",
+    "seamMismatchExamples": [
+      {
+        "adjacentToNoData": true,
+        "axis": "y",
+        "boundary": 4194560.000328934,
+        "chunk": [
+          1,
+          5
+        ],
+        "crackMeters": null,
+        "leftPoints": 0,
+        "oneSided": true,
+        "rightPoints": 2,
+        "scope": "within-chunk"
+      },
+      {
+        "adjacentToNoData": true,
+        "axis": "y",
+        "boundary": 4197580.000328934,
+        "chunk": [
+          1,
+          7
+        ],
+        "crackMeters": null,
+        "leftPoints": 2,
+        "oneSided": true,
+        "rightPoints": 0,
+        "scope": "within-chunk"
+      },
+      {
+        "adjacentToNoData": true,
+        "axis": "y",
+        "boundary": 4182360.0003289343,
+        "chunk": [
+          2,
+          0
+        ],
+        "crackMeters": null,
+        "leftPoints": 0,
+        "oneSided": true,
+        "rightPoints": 2,
+        "scope": "within-chunk"
+      },
+      {
+        "adjacentToNoData": true,
+        "axis": "y",
+        "boundary": 4197580.000328934,
+        "chunk": [
+          2,
+          7
+        ],
+        "crackMeters": null,
+        "leftPoints": 2,
+        "oneSided": true,
+        "rightPoints": 0,
+        "scope": "within-chunk"
+      },
+      {
+        "adjacentToNoData": true,
+        "axis": "y",
+        "boundary": 4182360.0003289343,
+        "chunk": [
+          3,
+          0
+        ],
+        "crackMeters": null,
+        "leftPoints": 0,
+        "oneSided": true,
+        "rightPoints": 2,
+        "scope": "within-chunk"
+      },
+      {
+        "adjacentToNoData": true,
+        "axis": "y",
+        "boundary": 4199100.000328934,
+        "chunk": [
+          3,
+          7
+        ],
+        "crackMeters": null,
+        "leftPoints": 2,
+        "oneSided": true,
+        "rightPoints": 0,
+        "scope": "within-chunk"
+      },
+      {
+        "adjacentToNoData": true,
+        "axis": "y",
+        "boundary": 4180840.0003289343,
+        "chunk": [
+          5,
+          0
+        ],
+        "crackMeters": null,
+        "leftPoints": 0,
+        "oneSided": true,
+        "rightPoints": 2,
+        "scope": "within-chunk"
+      }
+    ],
+    "seamMismatchesOneSidedNoDataEdge": 7,
+    "seamMismatchesTwoSidedTrueCrack": 0,
+    "seamToleranceMeters": 0.02,
+    "seamsCrossChunk": {
+      "checked": 44,
+      "mismatches": 0
+    },
+    "seamsWithinChunk": {
+      "checked": 17118,
+      "mismatches": 7
+    },
+    "transitionCaseHistogram": {
+      "1": 6,
+      "135": 23,
+      "15": 23,
+      "271": 29,
+      "3": 1,
+      "391": 28,
+      "399": 1410,
+      "4": 7,
+      "415": 7,
+      "463": 6,
+      "495": 1,
+      "7": 4180
+    },
+    "transitionCellsMeshed": 5721,
+    "transitionCellsTested": 36875,
+    "triangleCount": 17252,
+    "vertexCount": 28694
+  },
+  "performance": {
+    "hardware": "VM: 2 vCPU, 7.7 GiB RAM, no GPU; concurrent sibling workload present",
+    "measurement": "actual Python process wall time and ru_maxrss on this VM",
+    "processPeakRssBytes": 707174400,
+    "transitionCellsPerSecond": 1730.1823645239722,
+    "wallTimeSeconds": 21.312782256999526
+  },
+  "runDateUtc": "2026-10-23T23:29:26Z",
+  "runScope": "multi-tile transition-face mesh emission over a declared sub-county AOI; not a full adaptive-octree terrain extraction of the county",
+  "schemaVersion": "1.0.0"
+}
