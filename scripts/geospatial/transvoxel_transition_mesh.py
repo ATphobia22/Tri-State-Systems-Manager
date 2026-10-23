@@ -127,19 +127,18 @@ def _transition_point(origin: Vec3, axis: int, extent: float, endpoint: int, dir
 
 
 def _transition_endpoint_sample_index(endpoint: int) -> int:
-    """Each of the 13 spatial endpoints has its own scalar sample."""
-    if 0 <= endpoint < 13:
+    if 0 <= endpoint < 9:
         return endpoint
+    if 9 <= endpoint < 13:
+        # Official coarse-side corners reuse fine-side scalar samples [0, 2, 6, 8].
+        return (0, 2, 6, 8)[endpoint - 9]
     raise ValueError(f"transition vertex endpoint must be 0..12, got {endpoint}")
 
 
 def interpolate_edge(sdf, origin, axis, extent, i0, i1, iso=0.0, direction=1, fine_samples=None) -> Vec3:
     p0 = _transition_point(origin, axis, extent, i0, direction)
     p1 = _transition_point(origin, axis, extent, i1, direction)
-    samples = fine_samples if fine_samples is not None else [
-        float(sdf(*_transition_point(origin, axis, extent, endpoint, direction)))
-        for endpoint in range(13)
-    ]
+    samples = fine_samples if fine_samples is not None else sample_face_sdfs(sdf, origin, axis, extent)
     s0 = float(samples[_transition_endpoint_sample_index(i0)]) - iso
     s1 = float(samples[_transition_endpoint_sample_index(i1)]) - iso
     t = 0.5 if abs(s0 - s1) < 1e-12 else float(np.clip(s0 / (s0 - s1), 0.0, 1.0))
@@ -148,16 +147,10 @@ def interpolate_edge(sdf, origin, axis, extent, i0, i1, iso=0.0, direction=1, fi
 
 def mesh_transition_cell(sdf, origin, axis, extent, iso=0.0, direction=1):
     data = _load_data()
-    fine_samples = sample_face_sdfs(sdf, origin, axis, extent)
-    case = compute_case_index(fine_samples, iso)
+    samples = sample_face_sdfs(sdf, origin, axis, extent)
+    case = compute_case_index(samples, iso)
     if case is None:
         return [], [], {"case": None, "class_id": None}
-    # The 9 fine-side values select the 9-bit case; the 4 coarse-side values
-    # are sampled independently at their displaced spatial positions.
-    samples = fine_samples + [
-        float(sdf(*_transition_point(origin, axis, extent, endpoint, direction)))
-        for endpoint in range(9, 13)
-    ]
     class_id, invert = get_transition_class(case)
     cell = data["transitionCellData"][class_id]
     counts = cell["geometryCounts"]
@@ -211,7 +204,7 @@ def self_test() -> None:
     _load_data()
     tested = 0
     # Exhaust all 512 fine-side masks on all six signed face orientations.
-    # The case uses only fine-side signs; displaced coarse-side scalars are sampled independently.
+    # The coarse-side corner values duplicate fine-side corners [0, 2, 6, 8].
     for axis in range(3):
         a, b = (axis + 1) % 3, (axis + 2) % 3
         for direction in (-1, 1):
