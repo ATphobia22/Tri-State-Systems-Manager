@@ -37,7 +37,7 @@ export function validateTerrainAoiManifest(manifest) {
     errors.push('aoi object is required; an address alone is not an AOI');
   } else {
     if (typeof aoi.id !== 'string' || !aoi.id.trim()) errors.push('aoi.id is required');
-    if (typeof aoi.horizontalCrs !== 'string' || !/^EPSG:\\d+$/.test(aoi.horizontalCrs)) {
+    if (typeof aoi.horizontalCrs !== 'string' || !/^EPSG:\d+$/.test(aoi.horizontalCrs)) {
       errors.push('aoi.horizontalCrs must be an explicit EPSG identifier');
     }
     if (!Array.isArray(aoi.bbox) || aoi.bbox.length !== 4 ||
@@ -129,7 +129,7 @@ async function main() {
   }
   const manifest = JSON.parse(await readFile(resolve(inputArg), 'utf8'));
   const report = validateTerrainAoiManifest(manifest);
-  const json = JSON.stringify(report, null, 2) + '\\n';
+  const json = JSON.stringify(report, null, 2) + '\n';
   if (outputArg) await writeFile(resolve(outputArg), json, 'utf8');
   else process.stdout.write(json);
   if (report.status !== 'VALIDATED_INPUT_EVIDENCE') process.exitCode = 1;
