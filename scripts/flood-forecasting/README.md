@@ -1,7 +1,6 @@
 # TSM Flood Forecasting Toolkit
 
-Complete flood forecasting pipeline for the Ohio-Wabash tri-state region.
-All scripts share configuration via `tsm_config.py`.
+Flood-forecasting orchestration and data/model adapters for the Ohio–Wabash tri-state region. Availability is stage-specific: a listed adapter or printed command is not evidence that a forecast, rating curve, or model run was executed. All scripts share configuration via `tsm_config.py`.
 
 ## Quick Start
 
@@ -14,7 +13,7 @@ python run_all.py --step ingest       # USGS gage data
 python run_all.py --step antecedent   # precipitation conditions
 python run_all.py --step nowcast      # TimesFM 0-48h
 python run_all.py --step forecast     # GEOGloWS 10-day
-python run_all.py --step rating       # ras2fim rating curves
+python run_all.py --step rating       # catalog only; reports unavailable until solver execution is implemented
 python run_all.py --step alert        # flood stage check
 ```
 
@@ -30,7 +29,7 @@ TESSERA        ──┤                                 ├──→ Console fl
 PRISM normals  ──┤──→ OpenHydroNet ──→ 7-day ─────┤
 WeatherNext    ──┘                                 │
 GEOGloWS ──────────→ 10-day operational ──────────┘
-HEC-RAS ──→ ras2fim ──→ depth rasters + rating curves
+HEC-RAS ──→ ras2fim (generation not implemented in current TSM wrapper)
 ```
 
 ## Scripts
@@ -47,7 +46,7 @@ HEC-RAS ──→ ras2fim ──→ depth rasters + rating curves
 | `geoglows_forecast.py` | GEOGloWS v2 streamflow (10-day) | [ATphobia22/pygeoglows](https://github.com/ATphobia22/pygeoglows) |
 | `tessera-tristate-download.py` | TESSERA land embeddings (Icechunk) | [ATphobia22/tessera](https://github.com/ATphobia22/tessera) |
 | `antecedent_precip.py` | Antecedent precipitation index | [erdc/Antecedent-Precipitation-Tool](https://github.com/erdc/Antecedent-Precipitation-Tool) |
-| `ras2fim_tristate.py` | HEC-RAS → inundation rasters + rating curves | [NOAA-OWP/ras2fim](https://github.com/NOAA-OWP/ras2fim) |
+| `ras2fim_tristate.py` | Lists candidate model entries and converts precomputed rating-curve CSVs; HEC-RAS/ras2fim generation is not implemented | [NOAA-OWP/ras2fim](https://github.com/NOAA-OWP/ras2fim) |
 | `tnm_bulk_download.py` | USGS National Map bulk downloads | https://apps.nationalmap.gov/downloader/ |
 | `tsm_usgs_lidar_ept.py` | USGS 3DEP LiDAR EPT config | [ATphobia22/usgs-lidar](https://github.com/ATphobia22/usgs-lidar) |
 | `earthdata_tristate.py` | NASA Earthdata (GPM, Landsat, Sentinel) | [ATphobia22/earthaccess](https://github.com/ATphobia22/earthaccess) |
@@ -69,7 +68,7 @@ Raw USGS parameter 00065 is source-gage-datum height, not NAVD88 WSE. Station al
 2. **Antecedent**: Check if conditions are wetter/drier than normal
 3. **Nowcast**: TimesFM predicts next 48h from recent gage data (zero-shot, no training)
 4. **Forecast**: GEOGloWS provides 10-day operational streamflow
-5. **Rating**: ras2fim curves convert discharge → flood depth
+5. **Rating**: precomputed rating curves may convert discharge → flood depth; the current wrapper does not generate curves
 6. **Alert**: Compare current/forecast stages to NWS flood thresholds
 
 ## Requirements
