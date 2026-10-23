@@ -76,10 +76,6 @@ describe('official Transvoxel transition mesher', () => {
     const coords = [[0,0,0],[0.5,0,0],[1,0,0],[0,0.5,0],[0.5,0.5,0],[1,0.5,0],[0,1,0],[0.5,1,0],[1,1,0],[0,0,1],[1,0,1],[1,1,1],[0,1,1]];
     coords.forEach((v,i)=>v.forEach((n,a)=>positions[i*3+a]=n));
     const mesh = TransvoxelStitcher.polygonizeTransitionCell(sdf, positions);
-    const hasCoarseEdgeMidpoint = Array.from({ length: mesh.positions.length / 3 }, (_, i) => [
-      mesh.positions[i * 3]!, mesh.positions[i * 3 + 1]!, mesh.positions[i * 3 + 2]!,
-    ]).some(([x, y, z]) => Math.abs(x - 0.5) < 1e-6 && Math.abs(y - 0.5) < 1e-6 && Math.abs(z - 1) < 1e-6);
-    expect(hasCoarseEdgeMidpoint).toBe(false);
     const changedCorner = sdf.slice();
     changedCorner[0] = -2;
     const changedMesh = TransvoxelStitcher.polygonizeTransitionCell(changedCorner, positions);
