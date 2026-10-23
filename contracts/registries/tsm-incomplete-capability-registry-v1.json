@@ -3,7 +3,13 @@
   "registry_id": "tsm-incomplete-capability-registry",
   "generated_at": "2026-10-23",
   "policy": "Technology informs people; it does not silently govern people. Human authority remains final.",
-  "status_enum": ["PLANNED", "PARTIAL", "IMPLEMENTED", "GATED_OPERATOR", "REJECTED"],
+  "status_enum": [
+    "PLANNED",
+    "PARTIAL",
+    "IMPLEMENTED",
+    "GATED_OPERATOR",
+    "REJECTED"
+  ],
   "capabilities": [
     {
       "id": "webgpu-terrain-presentation",
@@ -19,79 +25,166 @@
       "remaining": [
         "Caller must supply verified height/satellite GPUTextures (no fabricated textures).",
         "Optional overlay only; never replaces MapLibre authority path."
-      ]
+      ],
+      "verification_status": "NOT_VERIFIED_ON_CURRENT_MAIN"
     },
     {
       "id": "webgpu-ndvi-compute",
       "status": "IMPLEMENTED",
       "authority_class": "ANALYSIS",
       "summary": "Transient NDVI compute kernels; no evidence ledger writes.",
-      "code_paths": ["tsm-console/src/webgpu/compute_ndvi.ts", "tsm-console/src/gpu/TurboVecWebGPU.ts"]
+      "code_paths": [
+        "tsm-console/src/webgpu/compute_ndvi.ts",
+        "tsm-console/src/gpu/TurboVecWebGPU.ts"
+      ],
+      "verification_status": "NOT_VERIFIED_ON_CURRENT_MAIN"
     },
     {
       "id": "gpu-compute-culling",
-      "status": "IMPLEMENTED",
+      "status": "PARTIAL",
       "authority_class": "PRESENTATION",
-      "summary": "Frustum culling plan generator for presentation nodes; safety-capped; MapLibre primary.",
-      "code_paths": ["tsm-console/src/gpu/frustum-culling.ts"]
-    },
-    {
-      "id": "cs-asset-swapping",
-      "status": "IMPLEMENTED",
-      "authority_class": "PRESENTATION",
-      "summary": "C/S manifest + plan-only scheduler; swap disabled until REGISTERED variants with uri+sha256.",
-      "remaining": ["Register real C/S tile variants to enable swap."],
+      "summary": "CPU frustum-culling plan generator for presentation nodes; no GPU compute culling or Hierarchical-Z implementation.",
       "code_paths": [
-        "contracts/registries/tsm-cs-resource-manifest-v1.json",
-        "tsm-console/src/lib/cs-resource-scheduler.ts"
+        "tsm-console/src/gpu/frustum-culling.ts"
+      ],
+      "verification_status": "NOT_VERIFIED_ON_CURRENT_MAIN",
+      "remaining": [
+        "GPU compute dispatch and renderer integration are not implemented.",
+        "GPU Hierarchical-Z occlusion is a separate open capability."
       ]
     },
     {
+      "id": "cs-asset-swapping",
+      "status": "PARTIAL",
+      "authority_class": "PRESENTATION",
+      "summary": "C/S manifest and plan-only scheduler exist; actual asset swapping is disabled until registered variants with URI and SHA-256 are supplied.",
+      "remaining": [
+        "Register real C/S tile variants to enable swap."
+      ],
+      "code_paths": [
+        "contracts/registries/tsm-cs-resource-manifest-v1.json",
+        "tsm-console/src/lib/cs-resource-scheduler.ts"
+      ],
+      "verification_status": "NOT_VERIFIED_ON_CURRENT_MAIN"
+    },
+    {
       "id": "openusd-houdini-interchange",
-      "status": "IMPLEMENTED",
+      "status": "PARTIAL",
       "authority_class": "PRESENTATION",
       "summary": "OpenUSD/Houdini interchange adapter — presentation/asset only. Boundary adapter fail-closed and ready.",
-      "code_paths": ["integrations/adapters/external-presentation-adapters.mjs"],
-      "boundary_mode": "BOUNDARY_READY"
+      "code_paths": [
+        "integrations/adapters/external-presentation-adapters.mjs"
+      ],
+      "boundary_mode": "BOUNDARY_READY",
+      "verification_status": "BOUNDARY_ONLY_NOT_INTEGRATION_VERIFIED"
     },
     {
       "id": "opencue-render-farm",
-      "status": "IMPLEMENTED",
+      "status": "PARTIAL",
       "authority_class": "COMPUTE",
       "summary": "OpenCue worker adapter — compute/rendering only. Boundary adapter fail-closed and ready.",
-      "code_paths": ["integrations/adapters/external-presentation-adapters.mjs"],
-      "boundary_mode": "BOUNDARY_READY"
+      "code_paths": [
+        "integrations/adapters/external-presentation-adapters.mjs"
+      ],
+      "boundary_mode": "BOUNDARY_READY",
+      "verification_status": "BOUNDARY_ONLY_NOT_INTEGRATION_VERIFIED"
     },
     {
       "id": "rayshader-terrain-viz",
-      "status": "IMPLEMENTED",
+      "status": "PARTIAL",
       "authority_class": "PRESENTATION",
       "summary": "rayshader reference visualization — never authoritative elevation. Boundary adapter fail-closed and ready.",
-      "code_paths": ["integrations/adapters/external-presentation-adapters.mjs"],
-      "boundary_mode": "BOUNDARY_READY"
+      "code_paths": [
+        "integrations/adapters/external-presentation-adapters.mjs"
+      ],
+      "boundary_mode": "BOUNDARY_READY",
+      "verification_status": "BOUNDARY_ONLY_NOT_INTEGRATION_VERIFIED"
     },
     {
       "id": "4d-gaussian-splats",
-      "status": "IMPLEMENTED",
+      "status": "PARTIAL",
       "authority_class": "PRESENTATION",
       "summary": "4D Gaussian splat flood replay as SIMULATION_DEMO only. Boundary adapter fail-closed and ready.",
-      "code_paths": ["integrations/adapters/external-presentation-adapters.mjs"],
-      "boundary_mode": "BOUNDARY_READY"
+      "code_paths": [
+        "integrations/adapters/external-presentation-adapters.mjs"
+      ],
+      "boundary_mode": "BOUNDARY_READY",
+      "verification_status": "BOUNDARY_ONLY_NOT_INTEGRATION_VERIFIED"
     },
     {
       "id": "fema-loma-external-filing",
       "status": "GATED_OPERATOR",
       "authority_class": "REGULATORY_REFERENCE",
       "summary": "Prepare LOMA evidence only; no automatic FEMA filing.",
-      "governance": "human_approval_required"
+      "governance": "human_approval_required",
+      "verification_status": "NOT_VERIFIED_ON_CURRENT_MAIN"
     },
     {
       "id": "gage-zero-navd88-conversion",
       "status": "GATED_OPERATOR",
       "authority_class": "OBSERVATION",
       "summary": "Gage-zero to NAVD88 remains unpublished until SIR/NWPS conflict resolved.",
-      "governance": "conversionPublished=false fail-closed"
+      "governance": "conversionPublished=false fail-closed",
+      "verification_status": "NOT_VERIFIED_ON_CURRENT_MAIN"
+    },
+    {
+      "id": "gpu-hierarchical-z-occlusion",
+      "status": "PLANNED",
+      "authority_class": "PRESENTATION",
+      "summary": "GPU H-Z compute pyramid and renderer-integrated conservative occlusion not yet implemented or validated.",
+      "remaining": [
+        "Implement depth prepass/pyramid compute and bounds tests.",
+        "Compare visibility against a conservative CPU reference.",
+        "Capture browser/device correctness and performance evidence."
+      ],
+      "verification_status": "OPEN"
+    },
+    {
+      "id": "transvoxel-transition-mesh-coverage",
+      "status": "PARTIAL",
+      "authority_class": "PRESENTATION",
+      "summary": "Transition meshing support exists, but complete runtime case coverage and seam/topology acceptance are not demonstrated.",
+      "remaining": [
+        "Exercise every supported transition case.",
+        "Add seam, manifold/topology, and LOD-boundary fixtures.",
+        "Document unsupported cases explicitly."
+      ],
+      "verification_status": "OPEN"
+    },
+    {
+      "id": "aoi-terrain-coverage",
+      "status": "PARTIAL",
+      "authority_class": "DATA_QUALITY",
+      "summary": "AOI terrain acquisition/coverage and recovery are not demonstrated for a pinned full catalog.",
+      "remaining": [
+        "Pin source manifests and hashes.",
+        "Generate AOI coverage/nodata report.",
+        "Test retries and recovery without fabricating data."
+      ],
+      "verification_status": "OPEN"
+    },
+    {
+      "id": "crs-vertical-datum-epoch-accuracy-catalog",
+      "status": "PARTIAL",
+      "authority_class": "DATA_QUALITY",
+      "summary": "CRS and datum validation helpers do not constitute whole-catalog evidence for CRS, vertical datum, epoch, and accuracy.",
+      "remaining": [
+        "Produce whole-catalog denominator and failure report.",
+        "Record transformation provenance and epoch/datum assumptions.",
+        "Fail closed for unknown or incompatible vertical references."
+      ],
+      "verification_status": "OPEN"
+    },
+    {
+      "id": "cross-device-gpu-validation",
+      "status": "PLANNED",
+      "authority_class": "PRESENTATION",
+      "summary": "No representative cross-device WebGPU correctness/performance matrix is recorded.",
+      "remaining": [
+        "Capture browser, OS, adapter, limits, timings, memory, and correctness results on representative devices."
+      ],
+      "verification_status": "OPEN"
     }
   ],
-  "finish_note": "Code-implementable capabilities complete. GATED_OPERATOR remain human-only by design."
+  "finish_note": "Implementation and acceptance are tracked separately. CPU frustum plans, plan-only C/S scheduling, and fail-closed adapter boundaries are not full GPU/integration implementations. GPU H-Z, full transition coverage, AOI/catalog evidence, and cross-device validation remain open; human/operator gates remain human-only by design."
 }
