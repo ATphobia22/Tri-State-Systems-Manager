@@ -88,7 +88,7 @@ def main() -> int:
         "inputSha256": __import__("hashlib").sha256(args.input.read_bytes()).hexdigest(),
         "cells": [_polygonize(cell) for cell in cells],
     }
-    encoded = json.dumps(output, sort_keys=True, separators=(",", ":")) + "\\n"
+    encoded = json.dumps(output, sort_keys=True, separators=(",", ":")) + "\n"
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(encoded, encoding="utf-8")
