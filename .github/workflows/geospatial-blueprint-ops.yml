@@ -33,6 +33,16 @@ jobs:
           python-version: '3.12'
       - name: Install minimal Python deps
         run: pip install --quiet numpy
+      - name: Install raster evidence dependencies
+        run: pip install --quiet rasterio
+      - name: Acquire real USGS 3DEP candidate-AOI screening evidence
+        run: python3 scripts/geospatial/acquire-candidate-aoi-3dep-screening.py --output-dir "$RUNNER_TEMP/tsm-aoi-evidence"
+      - name: Upload candidate-AOI terrain evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: candidate-aoi-terrain-evidence-${{ github.sha }}
+          path: ${{ runner.temp }}/tsm-aoi-evidence/
+          retention-days: 14
       - name: Transvoxel class tables
         run: python3 scripts/geospatial/transvoxel_tables.py
       - name: Regenerate Lengyel tables from MIT upstream
@@ -66,3 +76,6 @@ jobs:
       - name: Tile-stream unit tests
         working-directory: tsm-console
         run: node --test src/geospatial/tile-stream-controller.test.mjs
+      - name: Exhaustive TypeScript Transvoxel mesher tests
+        working-directory: tsm-console
+        run: npx --no-install vitest run tests/transvoxel-stitcher.test.ts

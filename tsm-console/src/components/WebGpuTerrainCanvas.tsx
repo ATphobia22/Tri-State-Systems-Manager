@@ -9,6 +9,7 @@ import {
   type WebGpuTerrainSource,
   type WebGpuRenderParameters,
 } from '../gpu/open-world-raytracer';
+import type { GpuHZAabbCandidate } from '../lib/webgpu-hierarchical-z-cull';
 import {
   bridgeMapLibreCameraToWebGpu,
   type MapLibreCameraSnapshot,
@@ -21,6 +22,10 @@ export interface WebGpuTerrainCanvasProps {
   readonly origin: MetricLocalOrigin;
   readonly camera: MapLibreCameraSnapshot;
   readonly bindSource?: (device: GPUDevice) => Promise<WebGpuTerrainSource | null>;
+  /** Optional projected terrain-chunk bounds. No synthetic candidates are generated. */
+  readonly occlusionCandidates?: readonly GpuHZAabbCandidate[];
+  /** Called only when GPU H-Z classification ran for the supplied candidates. */
+  readonly onOcclusionResults?: (visibility: Uint32Array) => void;
   readonly activeWaterStageMeters?: number | null;
   readonly className?: string;
 }
@@ -40,6 +45,58 @@ export default function WebGpuTerrainCanvas(props: WebGpuTerrainCanvasProps): Re
     let cancelled = false;
     const tracer = new TsmWebGpuRayTracer();
     tracerRef.current = tracer;
+    let recoveryAttempts = 0;
+    const recoverAfterDeviceLoss = async (): Promise<void> => {
+      if (cancelled || recoveryAttempts >= 3) {
+        if (!cancelled) setStatus('WebGPU device recovery exhausted; use the active MapLibre WebGL renderer.');
+        return;
+      }
+      recoveryAttempts += 1;
+      setReady(false);
+      setStatus(`WebGPU device lost; rebuilding resources (attempt ${recoveryAttempts}/3)…`);
+      await new Promise<void>((resolve) => window.setTimeout(resolve, Math.min(500 * (2 ** (recoveryAttempts - 1)), 4000)));
+      if (cancelled) return;
+      tracer.dispose();
+      tracer.setDeviceLostHandler((info) => {
+        if (!cancelled) {
+          setStatus(`WebGPU device lost: ${info.message}`);
+          void recoverAfterDeviceLoss();
+        }
+      });
+      const recovered = await tracer.initialize(canvas);
+      if (cancelled) return;
+      if (!recovered.ok) {
+        setStatus(`WebGPU recovery failed: ${recovered.reason ?? 'unknown error'}`);
+        void recoverAfterDeviceLoss();
+        return;
+      }
+      if (!props.bindSource) {
+        setStatus('WebGPU recovered; bind a verified terrain source to resume presentation.');
+        setReady(false);
+        return;
+      }
+      try {
+        const device = tracer.getDevice();
+        if (!device) throw new Error('Recovered device is unavailable.');
+        const source = await props.bindSource(device);
+        if (!source) throw new Error('No verified terrain source was returned.');
+        if (!source.provenanceHashSha256 || !source.verticalDatum || !source.horizontalCrs) {
+          throw new Error('Recovered terrain source is missing provenance or datum labels.');
+        }
+        tracer.setTerrainSource(source);
+        setStatus(`WebGPU recovered · ${source.horizontalCrs} / ${source.verticalDatum} · ${source.provenanceUri}`);
+        setReady(true);
+      } catch (error) {
+        setStatus(`WebGPU recovered but terrain rebind failed: ${error instanceof Error ? error.message : String(error)}`);
+        setReady(false);
+      }
+    };
+    tracer.setDeviceLostHandler((info) => {
+      if (!cancelled) {
+        setStatus(`WebGPU device lost: ${info.message}`);
+        void recoverAfterDeviceLoss();
+      }
+    });
 
     void (async () => {
       const init = await tracer.initialize(canvas);
@@ -95,20 +152,32 @@ export default function WebGpuTerrainCanvas(props: WebGpuTerrainCanvasProps): Re
 
   useEffect(() => {
     if (!ready || !tracerRef.current) return;
-    try {
-      const bridged = bridgeMapLibreCameraToWebGpu(props.camera, props.origin);
-      const params: WebGpuRenderParameters = {
-        inverseViewProjection: bridged.inverseViewProjection,
-        cameraPositionMeters: bridged.cameraPositionMeters,
-        timeSeconds: performance.now() / 1000,
-        sunDirection: [0.4, 0.85, 0.35],
-        activeWaterStageMeters: props.activeWaterStageMeters ?? null,
-      };
-      tracerRef.current.renderFrame(params);
-    } catch (err) {
-      setStatus(`Camera bridge error: ${err instanceof Error ? err.message : String(err)}`);
-    }
-  }, [ready, props.camera, props.origin, props.activeWaterStageMeters]);
+    let cancelled = false;
+    const render = async (): Promise<void> => {
+      try {
+        const bridged = bridgeMapLibreCameraToWebGpu(props.camera, props.origin);
+        const params: WebGpuRenderParameters = {
+          inverseViewProjection: bridged.inverseViewProjection,
+          cameraPositionMeters: bridged.cameraPositionMeters,
+          timeSeconds: performance.now() / 1000,
+          sunDirection: [0.4, 0.85, 0.35],
+          activeWaterStageMeters: props.activeWaterStageMeters ?? null,
+        };
+        const tracer = tracerRef.current;
+        if (!tracer) return;
+        if (props.occlusionCandidates && props.occlusionCandidates.length > 0) {
+          const visibility = await tracer.renderFrameWithOcclusion(params, props.occlusionCandidates);
+          if (!cancelled) props.onOcclusionResults?.(visibility);
+        } else {
+          tracer.renderFrame(params);
+        }
+      } catch (err) {
+        if (!cancelled) setStatus(`Camera/H-Z rendering error: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    };
+    void render();
+    return () => { cancelled = true; };
+  }, [ready, props.camera, props.origin, props.activeWaterStageMeters, props.occlusionCandidates, props.onOcclusionResults]);
 
   return (
     <div className={props.className} style={{ position: 'relative', width: props.width, height: props.height }}>

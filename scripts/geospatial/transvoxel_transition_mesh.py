@@ -91,8 +91,13 @@ def _corner_uv(i: int) -> Tuple[float, float]:
         0: (0.0, 0.0), 1: (0.5, 0.0), 2: (1.0, 0.0),
         3: (0.0, 0.5), 4: (0.5, 0.5), 5: (1.0, 0.5),
         6: (0.0, 1.0), 7: (0.5, 1.0), 8: (1.0, 1.0),
+        # Coarse-side corner slots map to the four corners of the 3x3 face.
+        9: (0.0, 0.0), 10: (1.0, 0.0),
+        11: (1.0, 1.0), 12: (0.0, 1.0),
     }
-    return mapping.get(i, (0.5, 0.5))
+    if i not in mapping:
+        raise ValueError(f"transition vertex endpoint must be 0..12, got {i}")
+    return mapping[i]
 
 
 def face_point(origin: Vec3, axis: int, extent: float, u: float, v: float) -> Vec3:
@@ -113,18 +118,24 @@ def sample_face_sdfs(sdf: SdfFn, origin: Vec3, axis: int, extent: float) -> List
     return out
 
 
-def interpolate_edge(sdf, origin, axis, extent, i0, i1, iso=0.0) -> Vec3:
-    u0, v0 = _corner_uv(i0)
-    u1, v1 = _corner_uv(i1)
-    p0 = face_point(origin, axis, extent, u0, v0)
-    p1 = face_point(origin, axis, extent, u1, v1)
+def _transition_point(origin: Vec3, axis: int, extent: float, endpoint: int, direction: int = 1) -> Vec3:
+    u, v = _corner_uv(endpoint)
+    point = list(face_point(origin, axis, extent, u, v))
+    if endpoint >= 9:
+        point[axis] = origin[axis] + direction * extent
+    return (point[0], point[1], point[2])
+
+
+def interpolate_edge(sdf, origin, axis, extent, i0, i1, iso=0.0, direction=1) -> Vec3:
+    p0 = _transition_point(origin, axis, extent, i0, direction)
+    p1 = _transition_point(origin, axis, extent, i1, direction)
     s0 = float(sdf(*p0)) - iso
     s1 = float(sdf(*p1)) - iso
     t = 0.5 if abs(s0 - s1) < 1e-12 else float(np.clip(s0 / (s0 - s1), 0.0, 1.0))
     return (p0[0] + (p1[0] - p0[0]) * t, p0[1] + (p1[1] - p0[1]) * t, p0[2] + (p1[2] - p0[2]) * t)
 
 
-def mesh_transition_cell(sdf, origin, axis, extent, iso=0.0):
+def mesh_transition_cell(sdf, origin, axis, extent, iso=0.0, direction=1):
     data = _load_data()
     samples = sample_face_sdfs(sdf, origin, axis, extent)
     case = compute_case_index(samples, iso)
@@ -143,8 +154,10 @@ def mesh_transition_cell(sdf, origin, axis, extent, iso=0.0):
         if code == 0xFFFF:
             break
         i0, i1 = _edge_endpoints(code)
-        cell_verts.append(interpolate_edge(sdf, origin, axis, extent, i0, i1, iso))
-    cell_verts = cell_verts[: max(vcount, len(cell_verts))]
+        cell_verts.append(interpolate_edge(sdf, origin, axis, extent, i0, i1, iso, direction))
+    if len(cell_verts) < vcount:
+        raise ValueError(f"case {case} needs {vcount} vertices but table supplied {len(cell_verts)}")
+    cell_verts = cell_verts[:vcount]
     tris = []
     for t in range(tcount):
         base = t * 3
@@ -158,7 +171,7 @@ def mesh_transition_cell(sdf, origin, axis, extent, iso=0.0):
     return cell_verts, tris, meta
 
 
-def mesh_transition_face_grid(sdf, origin, axis, extent, fine_res=2, iso=0.0):
+def mesh_transition_face_grid(sdf, origin, axis, extent, fine_res=2, iso=0.0, direction=1):
     all_v, all_t, metas = [], [], []
     cell_e = extent / fine_res
     a, b = (axis + 1) % 3, (axis + 2) % 3
@@ -167,7 +180,7 @@ def mesh_transition_face_grid(sdf, origin, axis, extent, fine_res=2, iso=0.0):
             o = [origin[0], origin[1], origin[2]]
             o[a] = origin[a] + i * cell_e
             o[b] = origin[b] + j * cell_e
-            verts, tris, meta = mesh_transition_cell(sdf, tuple(o), axis, cell_e, iso)
+            verts, tris, meta = mesh_transition_cell(sdf, tuple(o), axis, cell_e, iso, direction)
             base = len(all_v)
             all_v.extend(verts)
             all_t.extend((base + t[0], base + t[1], base + t[2]) for t in tris)
@@ -179,12 +192,44 @@ def mesh_transition_face_grid(sdf, origin, axis, extent, fine_res=2, iso=0.0):
 
 def self_test() -> None:
     _load_data()
+    tested = 0
+    # Exhaust all 512 fine-side masks on all six signed face orientations.
+    # Coarse-side positions are displaced but their scalar values reuse the
+    # corresponding fine corners, as specified by the nine-bit Transvoxel case.
+    for axis in range(3):
+        a, b = (axis + 1) % 3, (axis + 2) % 3
+        for direction in (-1, 1):
+            for mask in range(512):
+                fine_values = [-1.0 if (mask & (1 << i)) else 1.0 for i in range(9)]
+
+                def case_sdf(x, y, z, fine=fine_values, cell_axis=axis, face_direction=direction):
+                    point = (x, y, z)
+                    u = min(2, max(0, int(round(point[a] * 2))))
+                    v = min(2, max(0, int(round(point[b] * 2))))
+                    return fine[v * 3 + u]
+
+                verts, tris, meta = mesh_transition_cell(
+                    case_sdf, (0.0, 0.0, 0.0), axis=axis, extent=1.0, direction=direction
+                )
+                expected = None if mask in (0, 511) else mask
+                if meta["case"] != expected:
+                    raise AssertionError(
+                        f"axis {axis} direction {direction} case {mask}: got {meta['case']}, expected {expected}"
+                    )
+                if any(index < 0 or index >= len(verts) for tri in tris for index in tri):
+                    raise AssertionError(f"axis {axis} direction {direction} case {mask}: invalid triangle index")
+                if any(not np.isfinite(component) for vertex in verts for component in vertex):
+                    raise AssertionError(f"axis {axis} direction {direction} case {mask}: non-finite vertex")
+                tested += 1
+
     def sdf2(x, y, z):
-        return (x + y) * 0.5 - 0.5
+        return (x + y + z) / 3.0 - 0.5
+
     verts, tris, meta = mesh_transition_cell(sdf2, (0.0, 0.0, 0.0), axis=2, extent=1.0)
-    print("self-test meta", meta, "V", len(verts), "T", len(tris))
     V, T, metas = mesh_transition_face_grid(sdf2, (0.0, 0.0, 0.0), axis=2, extent=2.0, fine_res=2)
+    print("self-test meta", meta, "V", len(verts), "T", len(tris))
     print("grid V", len(V), "T", len(T), "cells", len(metas))
+    print(f"TRANSVOXEL_EXHAUSTIVE_CASES: PASS ({tested}/3072 signed-orientation cases)")
     print("PER_LEAF_ADAPTIVE: PASS")
 
 
