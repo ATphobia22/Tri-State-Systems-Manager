@@ -50,6 +50,10 @@ const DEFAULT_FILL = 'rgba(30, 120, 220, 0.55)';
  * vertical-datum transformation. A constant NGVD29/NAVD88 offset is not valid
  * across the tri-state area. Returns null for invalid values or unsupported
  * datum pairs so callers can fail closed rather than invent a conversion.
+ *
+ * Authoritative background:
+ * docs/geospatial/vertical-datum-authoritative-reference-2026-10-23.md
+ * (NGS VERTCON/NCAT for location-specific NGVD29↔NAVD88 shifts; FEMA guidance)
  */
 export function tryDatumConversion(
   elevM: number,

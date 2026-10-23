@@ -119,9 +119,13 @@ export function buildCrsDatumEvidenceReport(
     supported_vertical_datums: [...KNOWN_V_DATUMS],
     notes: [
       'Missing CRS or vertical datum is MISSING_CRITICAL — runtime must fail closed.',
-      'NGVD29↔NAVD88 is not auto-converted without published transform evidence.',
+      'NGVD29↔NAVD88 is not auto-converted without published transform evidence. ' +
+        'Per NGS: the shift varies by location (tenths of a foot to several feet); ' +
+        'no single offset is valid nationwide. Use NGS VERTCON/NCAT at the lat/lon. ' +
+        'See docs/geospatial/vertical-datum-authoritative-reference-2026-10-23.md.',
       'Web Mercator (EPSG:3857) is never treated as engineering metres without explicit bridge.',
       'Report does not invent CRS/datum values for incomplete catalog rows.',
+      'Orthometric heights (H, NAVD88) required for flood work — not raw GNSS ellipsoidal heights (h). h = H + N.',
     ],
     authority: 'EVIDENCE_REPORT',
   };
