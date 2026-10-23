@@ -2,6 +2,45 @@ import { describe, expect, it } from 'vitest';
 import { TransvoxelStitcher, TRANSITION_CELL_CLASS } from '../src/lib/transvoxel-stitcher';
 import { TRANSITION_CELL_DATA_TABLE, TRANSITION_VERTEX_DATA_TABLE } from '../src/lib/transvoxel-lengyel-tables';
 
+function transitionCellInput(
+  origin: readonly [number, number, number],
+  axis: 0 | 1 | 2,
+  extent: number,
+  direction: -1 | 1,
+  sdfAt: (x: number, y: number, z: number) => number,
+): { sdf: Float32Array; positions: Float32Array } {
+  const tangentA = (axis + 1) % 3;
+  const tangentB = (axis + 2) % 3;
+  const uv: Array<readonly [number, number]> = [
+    [0, 0], [0.5, 0], [1, 0],
+    [0, 0.5], [0.5, 0.5], [1, 0.5],
+    [0, 1], [0.5, 1], [1, 1],
+    [0, 0], [1, 0], [1, 1], [0, 1],
+  ];
+  const sdf = new Float32Array(13);
+  const positions = new Float32Array(39);
+  for (let i = 0; i < 13; i++) {
+    const point = [...origin] as [number, number, number];
+    point[tangentA] += uv[i]![0] * extent;
+    point[tangentB] += uv[i]![1] * extent;
+    if (i >= 9) point[axis] += direction * extent;
+    positions.set(point, i * 3);
+    sdf[i] = sdfAt(point[0], point[1], point[2]);
+  }
+  return { sdf, positions };
+}
+
+function seamVertices(mesh: ReturnType<typeof TransvoxelStitcher.polygonizeTransitionCell>, axis: number, coordinate: number): string[] {
+  const vertices: string[] = [];
+  for (let i = 0; i < mesh.positions.length; i += 3) {
+    const point = [mesh.positions[i]!, mesh.positions[i + 1]!, mesh.positions[i + 2]!];
+    if (Math.abs(point[axis]! - coordinate) < 1e-5) {
+      vertices.push(point.map((value) => Math.round(value * 1e5) / 1e5).join(','));
+    }
+  }
+  return vertices.sort();
+}
+
 describe('official Transvoxel transition mesher', () => {
   it('contains all 512 cases, 56 canonical classes, and 12 vertex slots per case', () => {
     expect(TRANSITION_CELL_CLASS).toHaveLength(512);
@@ -41,6 +80,19 @@ describe('official Transvoxel transition mesher', () => {
     changed[9] = -1;
     const updated = TransvoxelStitcher.polygonizeTransitionCell(changed, positions);
     expect(Array.from(updated.positions)).not.toEqual(Array.from(original.positions));
+  });
+  it('matches intersection vertices across adjacent transition cells', () => {
+    const sdfAt = (x: number, y: number, z: number) => x + 0.37 * y - 0.61 * z - 0.43;
+    for (const direction of [-1, 1] as const) {
+      const leftInput = transitionCellInput([0, 0, 0], 2, 1, direction, sdfAt);
+      const rightInput = transitionCellInput([1, 0, 0], 2, 1, direction, sdfAt);
+      const left = TransvoxelStitcher.polygonizeTransitionCell(leftInput.sdf, leftInput.positions);
+      const right = TransvoxelStitcher.polygonizeTransitionCell(rightInput.sdf, rightInput.positions);
+      const leftSeam = seamVertices(left, 0, 1);
+      const rightSeam = seamVertices(right, 0, 1);
+      expect(leftSeam.length).toBeGreaterThan(0);
+      expect(rightSeam).toEqual(leftSeam);
+    }
   });
   it('rejects incomplete and non-finite sample fields', () => {
     expect(() => TransvoxelStitcher.polygonizeTransitionCell(new Float32Array(12),new Float32Array(39))).toThrow(/13 transition-cell scalar/);
