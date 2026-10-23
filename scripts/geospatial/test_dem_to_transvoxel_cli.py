@@ -19,16 +19,15 @@ SPEC.loader.exec_module(MESHER)
 class DemToTransvoxelAdapterTests(unittest.TestCase):
     def _cell(self, direction: int = 1) -> dict:
         fine = [-1.0 if index in (0, 1, 4) else 1.0 for index in range(9)]
-        coarse = [fine[0], fine[2], fine[6], fine[8]]
         return {
             "origin": [0.0, 0.0, 0.0],
             "axis": 0,
             "direction": direction,
             "extent": 1.0,
-            "samples": fine + coarse,
+            "samples": fine,
         }
 
-    def test_polygonizes_nine_case_scalars_and_four_coarse_interpolation_scalars(self):
+    def test_polygonizes_nine_independent_scalars_with_canonical_coarse_corner_reuse(self):
         for direction in (-1, 1):
             cell = self._cell(direction)
             result = MESHER._polygonize(cell)
@@ -42,7 +41,7 @@ class DemToTransvoxelAdapterTests(unittest.TestCase):
     def test_rejects_wrong_scalar_count_and_non_finite_values(self):
         cell = self._cell()
         cell["samples"] = cell["samples"][:-1]
-        with self.assertRaisesRegex(ValueError, "exactly 13 scalars"):
+        with self.assertRaisesRegex(ValueError, "exactly 9 fine-side scalar samples"):
             MESHER._polygonize(cell)
         cell = self._cell()
         cell["samples"][4] = float("nan")
@@ -52,7 +51,7 @@ class DemToTransvoxelAdapterTests(unittest.TestCase):
     def test_coarse_scalar_changes_interpolated_vertices(self):
         cell = self._cell()
         first = MESHER._polygonize(cell)
-        cell["samples"][9] = -2.0
+        cell["samples"][8] = -2.0
         second = MESHER._polygonize(cell)
         self.assertNotEqual(first["vertices"], second["vertices"])
 
