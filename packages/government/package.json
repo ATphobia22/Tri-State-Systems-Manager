@@ -6,6 +6,7 @@
   "exports": {
     "./fabric": "./src/index.ts",
     "./capabilities": "./src/capabilities.ts",
-    "./ingestion": "./src/ingestion.ts"
+    "./ingestion": "./src/ingestion.ts",
+    "./provider": "./src/GovernmentDataProvider.ts"
   }
 }
