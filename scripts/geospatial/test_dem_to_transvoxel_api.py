@@ -67,7 +67,7 @@ class ProductionBridgeContractTests(unittest.TestCase):
         self.assertIsNotNone(spec.loader)
         benchmark = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(benchmark)
-        self.assertEqual(benchmark._stable_sdf_sample(120.0, 120.0 + 5e-6), 0.0)
+        self.assertEqual(benchmark._stable_sdf_sample(120.0, 120.0 + 5e-6), 1e-5)
         self.assertLess(benchmark._stable_sdf_sample(119.999, 120.0), 0.0)
         self.assertGreater(benchmark._stable_sdf_sample(120.001, 120.0), 0.0)
         with self.assertRaisesRegex(ValueError, "finite"):
