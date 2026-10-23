@@ -8,7 +8,15 @@
  */
 
 const SERVICE_URL =
+  process.env.TSM_NFHL_SERVICE_URL ??
   'https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer?f=pjson';
+
+class NfhlSourceUnavailableError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'NfhlSourceUnavailableError';
+  }
+}
 
 const NFHL_EXPECTED_COUNTS = {
   total: 32,
@@ -80,6 +88,12 @@ async function fetchJsonWithRetry(url, attempts = 3) {
         await new Promise((r) => setTimeout(r, 1000 * (i + 1)));
       }
     }
+  }
+  if (
+    lastError instanceof TypeError ||
+    /request failed (429|5\\d\\d)/.test(String(lastError))
+  ) {
+    throw new NfhlSourceUnavailableError(String(lastError));
   }
   throw lastError;
 }
@@ -168,9 +182,35 @@ try {
     process.exit(1);
   }
 } catch (err) {
+  if (err instanceof NfhlSourceUnavailableError) {
+    console.warn(
+      JSON.stringify(
+        {
+          kind: 'NFHL_METADATA_DRIFT_CHECK',
+          status: 'UNAVAILABLE',
+          valid: null,
+          checkedAt: new Date().toISOString(),
+          warnings: [
+            'Live FEMA NFHL metadata could not be reached after retries.',
+            'Committed local layer registry remains available; live drift validation is deferred.',
+            String(err),
+          ],
+        },
+        null,
+        2,
+      ),
+    );
+    process.exit(0);
+  }
+
   console.error(
     JSON.stringify(
-      { valid: false, error: String(err), kind: 'NFHL_METADATA_DRIFT_CHECK' },
+      {
+        kind: 'NFHL_METADATA_DRIFT_CHECK',
+        status: 'INVALID',
+        valid: false,
+        error: String(err),
+      },
       null,
       2,
     ),
