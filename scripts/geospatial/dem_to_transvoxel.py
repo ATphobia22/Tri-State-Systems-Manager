@@ -5,8 +5,8 @@ Consumes real scalar samples/positions exported by the DEM/SDF pipeline and
 emits indexed transition geometry using the official Lengyel transition tables.
 The input is a JSON object with a "cells" array. Each cell contains:
   {"origin":[x,y,z],"axis":0|1|2,"extent":positive_number,"samples":[9 finite values]}
-The nine samples are the fine-side 3x3 scalar field in row-major order. This
-module generates transition-cell triangles; it does not approve an AOI, infer
+The 13 samples are the fine-side 3x3 scalar field followed by four coarse-side
+corner values in canonical order. This module generates transition-cell triangles; it does not approve an AOI, infer
 missing elevations, or fabricate raster input. Official tables are MIT-licensed.
 """
 from __future__ import annotations
@@ -30,16 +30,19 @@ def _polygonize(cell: dict[str, Any]) -> dict[str, Any]:
     origin_raw = cell.get("origin")
     samples_raw = cell.get("samples")
     axis = cell.get("axis")
+    direction = cell.get("direction", 1)
     extent = _finite_number(cell.get("extent"), "extent")
     if not isinstance(origin_raw, list) or len(origin_raw) != 3:
         raise ValueError("cell.origin must contain xyz")
     origin = tuple(_finite_number(v, f"origin[{i}]") for i, v in enumerate(origin_raw))
     if isinstance(axis, bool) or not isinstance(axis, int) or axis not in (0, 1, 2):
         raise ValueError("cell.axis must be 0, 1, or 2")
+    if isinstance(direction, bool) or direction not in (-1, 1):
+        raise ValueError("cell.direction must be -1 or 1")
     if extent <= 0:
         raise ValueError("cell.extent must be > 0")
-    if not isinstance(samples_raw, list) or len(samples_raw) != 9:
-        raise ValueError("cell.samples must contain exactly 9 fine-side scalar samples")
+    if not isinstance(samples_raw, list) or len(samples_raw) != 13:
+        raise ValueError("cell.samples must contain 13 scalar samples: 9 fine-side and 4 coarse-side")
     samples = [_finite_number(v, f"samples[{i}]") for i, v in enumerate(samples_raw)]
 
     def sdf(x: float, y: float, z: float) -> float:
@@ -49,9 +52,16 @@ def _polygonize(cell: dict[str, Any]) -> dict[str, Any]:
         v = min(1.0, max(0.0, (point[b] - origin[b]) / extent))
         ix = min(2, max(0, int(round(u * 2))))
         iy = min(2, max(0, int(round(v * 2))))
-        return samples[iy * 3 + ix]
+        if abs(point[axis] - origin[axis]) <= max(1e-8, extent * 1e-8):
+            return samples[iy * 3 + ix]
+        # Coarse-side samples are ordered around the face: lower-left,
+        # lower-right, upper-right, upper-left (slots 9..12).
+        coarse_slot = {(0, 0): 9, (2, 0): 10, (2, 2): 11, (0, 2): 12}.get((ix, iy))
+        if coarse_slot is None:
+            raise ValueError("transition endpoint is not on the coarse-side face corner")
+        return samples[coarse_slot]
 
-    vertices, triangles, metadata = mesh_transition_cell(sdf, origin, axis, extent)
+    vertices, triangles, metadata = mesh_transition_cell(sdf, origin, axis, extent, direction=direction)
     if any(not math.isfinite(component) for vertex in vertices for component in vertex):
         raise ValueError("mesher produced a non-finite vertex")
     if any(index < 0 or index >= len(vertices) for triangle in triangles for index in triangle):
