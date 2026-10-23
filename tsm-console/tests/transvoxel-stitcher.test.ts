@@ -80,7 +80,7 @@ describe('official Transvoxel transition mesher', () => {
     changedCorner[9] = -2;
     const changedMesh = TransvoxelStitcher.polygonizeTransitionCell(changedCorner, positions);
     expect(Array.from(mesh.positions)).not.toEqual(Array.from(changedMesh.positions));
-    expect(() => TransvoxelStitcher.polygonizeTransitionCell(new Float32Array(13), positions)).toThrow(/13 scalar samples/);
+    expect(() => TransvoxelStitcher.polygonizeTransitionCell(new Float32Array(12), positions)).toThrow(/13 scalar samples/);
   });
   it('matches intersection vertices across adjacent transition cells', () => {
     const sdfAt = (_x: number, y: number, _z: number) => 0.37 * y - 0.15;
