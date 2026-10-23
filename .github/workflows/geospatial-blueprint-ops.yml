@@ -35,12 +35,12 @@ jobs:
         run: pip install --quiet numpy
       - name: Install raster evidence dependencies
         run: pip install --quiet rasterio
-      - name: Acquire real USGS 3DEP candidate-AOI screening evidence
-        run: python3 scripts/geospatial/acquire-candidate-aoi-3dep-screening.py --output-dir "$RUNNER_TEMP/tsm-aoi-evidence"
-      - name: Upload candidate-AOI terrain evidence
+      - name: Acquire Census ZCTA 47620 boundary and real USGS 3DEP screening evidence
+        run: python3 scripts/geospatial/acquire-candidate-aoi-3dep-screening.py --zcta 47620 --output-dir "$RUNNER_TEMP/tsm-aoi-evidence"
+      - name: Upload ZCTA 47620 terrain evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: candidate-aoi-terrain-evidence-${{ github.sha }}
+          name: posey-47620-terrain-evidence-${{ github.sha }}
           path: ${{ runner.temp }}/tsm-aoi-evidence/
           retention-days: 14
       - name: Transvoxel class tables
