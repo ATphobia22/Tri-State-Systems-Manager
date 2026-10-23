@@ -177,6 +177,6 @@ export class WebGPUHierarchicalZCuller {
 export const WEBGPU_HZ_CULL_STATUS = {
   implementation: 'gpu_compute_candidate_visibility',
   resultSemantics: '1_visible_or_uncertain_0_occluded',
-  rendererIntegration: 'renderer_must_supply_depth_texture_and_candidate_bounds',
+  rendererIntegration: 'renderer_owned_depth_attachment_with_opt_in_candidate_bounds',
   benchmarkEvidence: 'not_collected',
 } as const;
