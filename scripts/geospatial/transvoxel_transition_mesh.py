@@ -126,11 +126,22 @@ def _transition_point(origin: Vec3, axis: int, extent: float, endpoint: int, dir
     return (point[0], point[1], point[2])
 
 
-def interpolate_edge(sdf, origin, axis, extent, i0, i1, iso=0.0, direction=1) -> Vec3:
+def _transition_endpoint_sample_index(endpoint: int) -> int:
+    if 0 <= endpoint < 9:
+        return endpoint
+    if 9 <= endpoint < 13:
+        # Official Transvoxel coarse-side positions duplicate the fine-face
+        # corner values 0, 2, 8, 6; they are not four independent SDF samples.
+        return (0, 2, 8, 6)[endpoint - 9]
+    raise ValueError(f"transition vertex endpoint must be 0..12, got {endpoint}")
+
+
+def interpolate_edge(sdf, origin, axis, extent, i0, i1, iso=0.0, direction=1, fine_samples=None) -> Vec3:
     p0 = _transition_point(origin, axis, extent, i0, direction)
     p1 = _transition_point(origin, axis, extent, i1, direction)
-    s0 = float(sdf(*p0)) - iso
-    s1 = float(sdf(*p1)) - iso
+    samples = fine_samples if fine_samples is not None else sample_face_sdfs(sdf, origin, axis, extent)
+    s0 = float(samples[_transition_endpoint_sample_index(i0)]) - iso
+    s1 = float(samples[_transition_endpoint_sample_index(i1)]) - iso
     t = 0.5 if abs(s0 - s1) < 1e-12 else float(np.clip(s0 / (s0 - s1), 0.0, 1.0))
     return (p0[0] + (p1[0] - p0[0]) * t, p0[1] + (p1[1] - p0[1]) * t, p0[2] + (p1[2] - p0[2]) * t)
 
@@ -154,7 +165,7 @@ def mesh_transition_cell(sdf, origin, axis, extent, iso=0.0, direction=1):
         if code == 0xFFFF:
             break
         i0, i1 = _edge_endpoints(code)
-        cell_verts.append(interpolate_edge(sdf, origin, axis, extent, i0, i1, iso, direction))
+        cell_verts.append(interpolate_edge(sdf, origin, axis, extent, i0, i1, iso, direction, fine_samples=samples))
     if len(cell_verts) < vcount:
         raise ValueError(f"case {case} needs {vcount} vertices but table supplied {len(cell_verts)}")
     cell_verts = cell_verts[:vcount]
