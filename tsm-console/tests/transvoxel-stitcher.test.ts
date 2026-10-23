@@ -84,7 +84,7 @@ describe('official Transvoxel transition mesher', () => {
     expect(() => TransvoxelStitcher.polygonizeTransitionCell(new Float32Array(12), positions)).toThrow(/9 scalar samples/);
   });
   it('matches intersection vertices across adjacent transition cells', () => {
-    const sdfAt = (x: number, y: number, z: number) => z - (0.5 + 0.37 * y + 0.1 * x);
+    const sdfAt = (x: number, y: number, _z: number) => 0.37 * y + 0.1 * x - 0.4;
     for (const direction of [-1, 1] as const) {
       const leftInput = transitionCellInput([0, 0, 0], 2, 1, direction, sdfAt);
       const rightInput = transitionCellInput([1, 0, 0], 2, 1, direction, sdfAt);
