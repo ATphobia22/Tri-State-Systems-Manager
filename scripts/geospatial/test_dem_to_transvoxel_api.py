@@ -72,6 +72,8 @@ class ProductionBridgeContractTests(unittest.TestCase):
         self.assertGreater(benchmark._stable_sdf_sample(120.001, 120.0), 0.0)
         with self.assertRaisesRegex(ValueError, "finite"):
             benchmark._stable_sdf_sample(float("nan"), 120.0)
+        seam = benchmark._seam_key([(1.0, 0.0, 2.0), (1.0, 0.01, 2.0)], 1, 0.0)
+        self.assertEqual(seam, ("1.00,0.00,2.00",))
 
     def test_neighbor_query_rejects_unknown_face(self):
         root = bridge.Node(0, 0, 0, 8, 0)
