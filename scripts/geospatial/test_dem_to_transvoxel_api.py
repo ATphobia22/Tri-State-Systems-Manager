@@ -55,14 +55,49 @@ class ProductionBridgeContractTests(unittest.TestCase):
         self.assertIs(balanced, root)
         self.assertTrue(bridge.get_leaves(balanced))
 
-    def test_transition_mesher_uses_canonical_coarse_corner_reuse(self):
+    def test_transition_mesher_uses_official_row_major_coarse_corner_reuse(self):
         from transvoxel_transition_mesh import _corner_uv, _transition_endpoint_sample_index
 
-        self.assertEqual([_transition_endpoint_sample_index(i) for i in range(9, 13)], [0, 2, 8, 6])
+        self.assertEqual([_transition_endpoint_sample_index(i) for i in range(9, 13)], [0, 2, 6, 8])
         self.assertEqual(
             [_corner_uv(i) for i in range(9, 13)],
-            [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0)],
+            [(0.0, 0.0), (1.0, 0.0), (0.0, 1.0), (1.0, 1.0)],
         )
+
+    def test_seam_validator_intersects_triangle_edges_with_shared_plane(self):
+        import importlib.util
+
+        benchmark_path = SCRIPT_DIR / "benchmark-real-dem-transvoxel.py"
+        spec = importlib.util.spec_from_file_location("real_dem_transvoxel_benchmark", benchmark_path)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        benchmark = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(benchmark)
+        vertices = [(0.0, 0.0, 0.0), (1.0, 1.0, 0.0), (1.0, -1.0, 0.0)]
+        seam = benchmark._seam_intersection_key(vertices, [(0, 1, 2)], axis=1, coordinate=0.0)
+        self.assertEqual(seam, ("0.00,0.00,0.00", "1.00,0.00,0.00"))
+
+    def test_adjacent_transition_cells_match_actual_shared_plane_intersections(self):
+        from transvoxel_transition_mesh import mesh_transition_cell
+        import importlib.util
+
+        benchmark_path = SCRIPT_DIR / "benchmark-real-dem-transvoxel.py"
+        spec = importlib.util.spec_from_file_location("real_dem_transvoxel_benchmark", benchmark_path)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        benchmark = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(benchmark)
+
+        sdf = lambda x, y, z: z - (5.0 + 0.3 * y + 0.1 * x)
+        left_vertices, left_triangles, _ = mesh_transition_cell(
+            sdf, (0.0, 0.0, 0.0), axis=0, extent=20.0
+        )
+        right_vertices, right_triangles, _ = mesh_transition_cell(
+            sdf, (0.0, 20.0, 0.0), axis=0, extent=20.0
+        )
+        left_seam = benchmark._seam_intersection_key(left_vertices, left_triangles, axis=1, coordinate=20.0)
+        right_seam = benchmark._seam_intersection_key(right_vertices, right_triangles, axis=1, coordinate=20.0)
+        self.assertEqual(left_seam, right_seam)
 
     def test_height_sampler_rejects_extrapolation_and_nonfinite_inputs(self):
         height = bridge.make_height_sampler(np.arange(16, dtype=float).reshape(4, 4), 2.0)
