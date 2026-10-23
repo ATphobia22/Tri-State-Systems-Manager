@@ -26,7 +26,8 @@ from rasterio.warp import transform_geom
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_AOI = ROOT / "data/posey-county/aoi/lower-wabash-ohio-core-candidate.geojson"
-SERVICE = "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer"\nCENSUS_ZCTA_LAYER = "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Current/MapServer/2/query"
+SERVICE = "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer"
+CENSUS_ZCTA_LAYER = "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Current/MapServer/2/query"
 
 
 def fetch(url: str, timeout: int = 120, attempts: int = 4) -> tuple[bytes, str]:
@@ -59,7 +60,8 @@ def sha256(data: bytes) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--aoi", type=Path, default=DEFAULT_AOI)
+    parser.add_argument("--aoi", type=Path, default=DEFAULT_AOI, help="GeoJSON AOI file; ignored when --zip-code is set")
+    parser.add_argument("--zip-code", help="Download the Census 2020 ZCTA polygon for this five-digit ZIP approximation")
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--width", type=int, default=1024)
     parser.add_argument("--height", type=int, default=1024)
