@@ -27,7 +27,7 @@ export const GOVERNMENT_SOURCES: readonly GovernmentSource[] = [
 ] as const;
 
 function canonical(value:unknown):string {
- if(value===null||typeof value!=='object') return JSON.stringify(value);
+ if(value===null||typeof value!=='object') return JSON.stringify(value) ?? 'null';
  if(Array.isArray(value)) return '['+value.map(canonical).join(',')+']';
  const object=value as Record<string,unknown>;
  return '{'+Object.keys(object).sort().map(key=>JSON.stringify(key)+':'+canonical(object[key])).join(',')+'}';
@@ -40,6 +40,7 @@ export function getGovernmentSource(id:string):GovernmentSource {
 }
 export async function queryGovernmentJson<T=unknown>(sourceId:string,url:string,options:{signal?:AbortSignal;timeoutMs?:number;fetcher?:typeof fetch}={}):Promise<EvidenceEnvelope<T>> {
  const source=getGovernmentSource(sourceId);
+ if(source.access!=='REST_JSON') throw new Error('GOVERNMENT_SOURCE_REQUIRES_SPECIALIZED_ADAPTER');
  const requested=new URL(url); const registered=new URL(source.endpoint);
  if(requested.protocol!=='https:'||requested.origin!==registered.origin||!requested.pathname.startsWith(registered.pathname))
    throw new Error('GOVERNMENT_URL_OUTSIDE_REGISTERED_ENDPOINT');
@@ -48,7 +49,8 @@ export async function queryGovernmentJson<T=unknown>(sourceId:string,url:string,
  const traceId=randomUUID(),generatedAt=new Date().toISOString(),inputHash=sha256({sourceId,url:requested.toString()});
  const controller=new AbortController(); const timeout=setTimeout(()=>controller.abort(new Error('timeout')),timeoutMs);
  const abort=()=>controller.abort(options.signal?.reason);
- options.signal?.addEventListener('abort',abort,{once:true});
+ if(options.signal?.aborted) controller.abort(options.signal.reason);
+ else options.signal?.addEventListener('abort',abort,{once:true});
  try {
    const response=await (options.fetcher??fetch)(requested,{signal:controller.signal,headers:{accept:'application/json'}});
    if(!response.ok) throw new Error('GOVERNMENT_SOURCE_HTTP_'+response.status);
