@@ -70,8 +70,9 @@ describe('official Transvoxel transition mesher', () => {
     expect(mesh.indices.every((v)=>v < mesh.positions.length / 3)).toBe(true);
   });
   it('uses independent coarse scalar values at displaced coarse-side positions', () => {
-    const sdf = new Float32Array(9).fill(1);
+    const sdf = new Float32Array(13).fill(1);
     sdf[0] = -1;
+    sdf[9] = 3;
     const positions = new Float32Array(39);
     const coords = [[0,0,0],[0.5,0,0],[1,0,0],[0,0.5,0],[0.5,0.5,0],[1,0.5,0],[0,1,0],[0.5,1,0],[1,1,0],[0,0,1],[1,0,1],[1,1,1],[0,1,1]];
     coords.forEach((v,i)=>v.forEach((n,a)=>positions[i*3+a]=n));
@@ -80,6 +81,10 @@ describe('official Transvoxel transition mesher', () => {
       mesh.positions[i * 3]!, mesh.positions[i * 3 + 1]!, mesh.positions[i * 3 + 2]!,
     ]).some(([x, y, z]) => Math.abs(x - 0.5) < 1e-6 && Math.abs(y - 0.5) < 1e-6 && Math.abs(z - 1) < 1e-6);
     expect(hasCoarseEdgeMidpoint).toBe(false);
+    const baseline = new Float32Array(13).fill(1);
+    baseline[0] = -1;
+    const baselineMesh = TransvoxelStitcher.polygonizeTransitionCell(baseline, positions);
+    expect(Array.from(mesh.positions)).not.toEqual(Array.from(baselineMesh.positions));
   });
   it('matches intersection vertices across adjacent transition cells', () => {
     const sdfAt = (_x: number, y: number, _z: number) => 0.37 * y - 0.15;
