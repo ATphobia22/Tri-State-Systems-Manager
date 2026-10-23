@@ -295,7 +295,12 @@ def _polygonize(cell: dict[str, Any]) -> dict[str, Any]:
         p = (x, y, z); a, b = (axis + 1) % 3, (axis + 2) % 3
         u = min(1.0, max(0.0, (p[a] - origin[a]) / extent))
         v = min(1.0, max(0.0, (p[b] - origin[b]) / extent))
-        return samples[min(2, round(v * 2)) * 3 + min(2, round(u * 2))]
+        ix = min(2, max(0, int(round(u * 2))))
+        iy = min(2, max(0, int(round(v * 2))))
+        on_coarse_face = abs((p[axis] - origin[axis]) - direction * extent) <= max(1e-8, extent * 1e-6)
+        if on_coarse_face:
+            return samples[9 + (2 if iy == 2 else 0) + (1 if ix == 2 else 0)]
+        return samples[iy * 3 + ix]
     vertices, triangles, metadata = mesh_transition_cell(sdf, origin, axis, extent, direction=direction)
     return {"case": metadata.get("case"), "classId": metadata.get("class_id"),
             "invertWinding": metadata.get("invert", False),
