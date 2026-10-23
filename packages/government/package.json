@@ -7,6 +7,10 @@
     "./fabric": "./src/index.ts",
     "./capabilities": "./src/capabilities.ts",
     "./ingestion": "./src/ingestion.ts",
-    "./provider": "./src/GovernmentDataProvider.ts"
+    "./provider": "./src/GovernmentDataProvider.ts",
+    "./source-registry": "./src/GovernmentSourceRegistry.ts",
+    "./source-provider": "./src/GovernmentSourceCapabilityProvider.ts",
+    "./validators/*": "./src/validators/*.ts",
+    "./adapters/*": "./src/adapters/*.ts"
   }
 }
