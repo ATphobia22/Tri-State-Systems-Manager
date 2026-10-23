@@ -3,7 +3,7 @@ import { createHash, randomUUID } from 'node:crypto';
 export type GovernmentAuthority = 'FEMA'|'USGS'|'NOAA'|'CENSUS'|'EPA'|'USDA'|'DOT'|'USACE';
 export type EvidenceStatus = 'VALIDATED'|'UNVERIFIED'|'UNAVAILABLE'|'REJECTED';
 export interface EvidenceEnvelope<T> {
-  result: T; citations: readonly {url:string; title?:string; retrievedAt:string}[];
+  result: T; traceId:string; hash:string; citations: readonly {url:string; title?:string; retrievedAt:string}[];
   evidence: readonly {sourceId:string; authority:GovernmentAuthority; retrievedAt:string; sha256:string; mediaType:string}[];
   provenance: {traceId:string; provider:string; providerVersion:string; generatedAt:string; inputHash:string; outputHash:string; status:EvidenceStatus};
   hashes: {input:string; output:string};
@@ -68,12 +68,13 @@ export async function queryGovernmentJson<T=unknown>(sourceId:string,url:string,
    let result:T; try { result=JSON.parse(raw) as T; } catch { throw new Error('GOVERNMENT_SOURCE_INVALID_JSON'); }
    const outputHash=sha256(result);
    const retrievedAt=new Date().toISOString();
-   return {result,citations:[{url:requested.toString(),title:source.title,retrievedAt}],evidence:[{sourceId:source.id,authority:source.authority,retrievedAt,sha256:sha256(raw),mediaType}],provenance:{traceId,provider:source.id,providerVersion:'1',generatedAt,inputHash,outputHash,status:'UNVERIFIED'},hashes:{input:inputHash,output:outputHash}};
+   return {result,traceId,hash:outputHash,citations:[{url:requested.toString(),title:source.title,retrievedAt}],evidence:[{sourceId:source.id,authority:source.authority,retrievedAt,sha256:sha256(raw),mediaType}],provenance:{traceId,provider:source.id,providerVersion:'1',generatedAt,inputHash,outputHash,status:'UNVERIFIED'},hashes:{input:inputHash,output:outputHash}};
  } finally {clearTimeout(timeout);options.signal?.removeEventListener('abort',abort);}
 }
 export function validateEvidenceEnvelope(value:EvidenceEnvelope<unknown>):readonly string[] {
  const errors:string[]=[];
- if(!value.provenance.traceId.trim()) errors.push('traceId is required');
+ if(!value.traceId.trim()||value.traceId!==value.provenance.traceId) errors.push('traceId is required and must match provenance');
+ if(value.hash!==value.hashes.output) errors.push('hash must match normalized output hash');
  if(!/^[a-f0-9]{64}$/.test(value.hashes.input)||!/^[a-f0-9]{64}$/.test(value.hashes.output)) errors.push('SHA-256 hashes must be lowercase 64-character hex');
  if(value.provenance.outputHash!==value.hashes.output||sha256(value.result)!==value.hashes.output) errors.push('output hash does not match result');
  if(value.evidence.length===0) errors.push('at least one evidence record is required');
