@@ -47,6 +47,10 @@ jobs:
         run: python3 scripts/geospatial/transvoxel_tables.py
       - name: Regenerate Lengyel tables from MIT upstream
         run: python3 scripts/geospatial/regenerate_lengyel_tables.py
+      - name: Compile DEM-to-Transvoxel bridge and consumers
+        run: python3 -m py_compile scripts/geospatial/dem_to_transvoxel.py scripts/geospatial/transvoxel_complete.py scripts/geospatial/transvoxel_stitch_poc.py
+      - name: Test production DEM bridge contract and synthetic pipeline
+        run: python3 -m unittest scripts/geospatial/test_dem_to_transvoxel_api.py
       - name: Test Transvoxel JSON adapter
         run: python3 -m unittest scripts/geospatial/test_dem_to_transvoxel_cli.py
       - name: Test bounded provider retry and fail-closed behavior
