@@ -22,14 +22,15 @@
     "test:gates-hydrology": "tsx --test tests/contracts/gates-hydrology.test.ts",
     "test:autonomy-ladder": "tsx --test tests/contracts/autonomy-ladder.test.ts",
     "test:local-hydrology": "tsx --test tests/contracts/local-hydrology-provider.test.ts",
-    "verify:uacf": "npm run build:uacf && npm run test:uacf && npm run test:uacf-contracts && npm run test:evidence && npm run test:gates-hydrology && npm run test:autonomy-ladder && npm run test:local-hydrology && npm run test:twin-fabric && npm run test:uacf-agent && npm run test:uacf-providers && npm run test:uacf-apps",
+    "verify:uacf": "npm run build:uacf && npm run test:uacf && npm run test:uacf-contracts && npm run test:evidence && npm run test:gates-hydrology && npm run test:autonomy-ladder && npm run test:local-hydrology && npm run test:twin-fabric && npm run test:uacf-agent && npm run test:uacf-providers && npm run test:uacf-apps && npm run test:government-fabric",
     "test:twin-fabric": "tsx --test tests/contracts/unified-twin-fabric.test.ts",
     "test:uacf-agent": "tsx --test tests/contracts/agent-runtime.test.ts",
     "test:uacf-providers": "tsx --test tests/contracts/provider-boundaries.test.ts",
     "test:uacf-apps": "tsx --test tests/contracts/uacf-apps.test.ts",
     "test:uacf-contracts": "tsx --test tests/contracts/canonical-contract-exports.test.ts",
     "nfhl:validate": "node packages/geo/src/nfhl/cli/validate-nfhl.mjs",
-    "nfhl:check": "npm run nfhl:validate"
+    "nfhl:check": "npm run nfhl:validate",
+    "test:government-fabric": "tsx --test tests/contracts/government-data-fabric.test.ts tests/contracts/government-snapshot.test.ts tests/contracts/government-source-registry.test.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

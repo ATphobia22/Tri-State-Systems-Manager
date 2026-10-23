@@ -7,6 +7,8 @@
  * Exit 1 on layer count / geometry / missing ID drift.
  */
 
+import { createHash } from 'node:crypto';
+
 const SERVICE_URL =
   process.env.TSM_NFHL_SERVICE_URL ??
   'https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer?f=pjson';
@@ -144,10 +146,9 @@ async function validateLiveNfhl() {
       continue;
     }
     if (actual.name !== exp.name) {
-      warnings.push(
-        `Name mismatch for ${exp.id}: expected "${exp.name}" actual "${actual.name}"`,
-      );
+      errors.push(`Name mismatch for ${exp.id}: expected \"${exp.name}\" actual \"${actual.name}\"`);
     }
+
     const actualGeometry = mapGeometry(actual.geometryType);
     if (actualGeometry !== exp.geometryType) {
       errors.push(
@@ -163,6 +164,10 @@ async function validateLiveNfhl() {
     }
   }
 
+  const canonicalLayers = (items) => items.map((layer) => ({ id: layer.id, name: layer.name, geometryType: mapGeometry(layer.geometryType) })).sort((a, b) => a.id - b.id);
+  const actualMetadataHash = createHash('sha256').update(JSON.stringify(canonicalLayers(layers))).digest('hex');
+  const expectedMetadataHash = createHash('sha256').update(JSON.stringify(canonicalLayers(NFHL_EXPECTED_LAYERS))).digest('hex');
+
   return {
     kind: 'NFHL_METADATA_DRIFT_CHECK',
     authority_class: 'REGULATORY_DISPLAY',
@@ -172,6 +177,9 @@ async function validateLiveNfhl() {
     checkedAt,
     actualTotal: layers.length,
     expectedTotal: NFHL_EXPECTED_COUNTS.total,
+    actualMetadataHash,
+    expectedMetadataHash,
+    metadataHashMatches: actualMetadataHash === expectedMetadataHash,
   };
 }
 
@@ -200,7 +208,7 @@ try {
         2,
       ),
     );
-    process.exit(0);
+    process.exit(process.env.TSM_NFHL_REQUIRE_LIVE === 'true' ? 1 : 0);
   }
 
   console.error(
