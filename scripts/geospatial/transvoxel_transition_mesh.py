@@ -220,7 +220,7 @@ def self_test() -> None:
                 verts, tris, meta = mesh_transition_cell(
                     case_sdf, (0.0, 0.0, 0.0), axis=axis, extent=1.0, direction=direction
                 )
-                expected = None if mask in (0, 511) else mask
+                expected = compute_case_index(fine_values)
                 if meta["case"] != expected:
                     raise AssertionError(
                         f"axis {axis} direction {direction} case {mask}: got {meta['case']}, expected {expected}"
