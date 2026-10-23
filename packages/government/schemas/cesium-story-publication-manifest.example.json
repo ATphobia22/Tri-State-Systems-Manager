@@ -1,0 +1,39 @@
+{
+  "$comment": "Fixture only. Identifiers and digests are illustrative; this is not an actual dataset, approval, or Cesium Story.",
+  "schemaVersion": "1.0.0",
+  "publicationId": "fixture.cesium-story-publication.v1",
+  "createdAt": "2026-10-23T00:00:00Z",
+  "dataset": {
+    "datasetId": "fixture-public-flood-context",
+    "version": "fixture-1",
+    "sourceAuthority": "FEMA",
+    "sourceUrl": "https://www.fema.gov/flood-maps",
+    "retrievedAt": "2026-10-22T00:00:00Z",
+    "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "horizontalCrs": "EPSG:4326",
+    "classification": "public",
+    "attribution": "Fixture only; replace with the applicable source attribution before use."
+  },
+  "exportedArtifacts": [
+    {
+      "path": "fixture/flood-context.geojson",
+      "mediaType": "application/geo+json",
+      "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "byteLength": 128,
+      "role": "regulatory_context",
+      "redactionReviewed": true
+    }
+  ],
+  "review": {
+    "publicationDecision": "pending",
+    "dataLicenseReviewed": false,
+    "sensitiveDataReviewed": false,
+    "propertyAllowlistReviewed": false,
+    "reviewNotes": "Fixture only. This manifest is intentionally not approved for publication."
+  },
+  "presentation": {
+    "provider": "cesium-ion-stories",
+    "externalSharingEnabled": false,
+    "embedEnabled": false
+  }
+}
