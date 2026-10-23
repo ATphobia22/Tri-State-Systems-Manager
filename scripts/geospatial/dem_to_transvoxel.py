@@ -259,25 +259,29 @@ def face_neighbor_max_level(root: Node, leaf: Node, face: str) -> int:
     return -1 if neighbor is None or neighbor is leaf else neighbor.level
 
 
+def _finite_number(value: Any, label: str) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+        raise ValueError("{} must be a finite number".format(label))
+    return float(value)
+
+
 def _polygonize(cell: dict[str, Any]) -> dict[str, Any]:
     from transvoxel_transition_mesh import mesh_transition_cell
     origin_raw, samples_raw, axis = cell.get("origin"), cell.get("samples"), cell.get("axis")
-    extent = float(cell.get("extent", 0))
+    extent = _finite_number(cell.get("extent"), "extent")
     direction = cell.get("direction", 1)
     if not isinstance(origin_raw, list) or len(origin_raw) != 3:
         raise ValueError("cell.origin must contain xyz")
-    origin = tuple(float(v) for v in origin_raw)
-    if axis not in (0, 1, 2) or isinstance(axis, bool) or not isinstance(axis, int):
+    origin = tuple(_finite_number(v, "origin[{}]".format(i)) for i, v in enumerate(origin_raw))
+    if isinstance(axis, bool) or not isinstance(axis, int) or axis not in (0, 1, 2):
         raise ValueError("cell.axis must be 0, 1, or 2")
-    if direction not in (-1, 1) or isinstance(direction, bool):
+    if isinstance(direction, bool) or not isinstance(direction, int) or direction not in (-1, 1):
         raise ValueError("cell.direction must be -1 or 1")
-    if not math.isfinite(extent) or extent <= 0:
+    if extent <= 0:
         raise ValueError("cell.extent must be positive and finite")
     if not isinstance(samples_raw, list) or len(samples_raw) != 9:
-        raise ValueError("cell.samples must contain 9 fine-side scalar samples")
-    samples = [float(v) for v in samples_raw]
-    if not all(math.isfinite(v) for v in (*origin, *samples)):
-        raise ValueError("origin and scalar samples must be finite")
+        raise ValueError("cell.samples must contain exactly 9 fine-side scalar samples")
+    samples = [_finite_number(v, "samples[{}]".format(i)) for i, v in enumerate(samples_raw)]
     def sdf(x: float, y: float, z: float) -> float:
         p = (x, y, z); a, b = (axis + 1) % 3, (axis + 2) % 3
         u = min(1.0, max(0.0, (p[a] - origin[a]) / extent))
