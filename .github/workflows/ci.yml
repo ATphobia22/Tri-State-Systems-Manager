@@ -62,7 +62,7 @@ jobs:
           status=$?
           set -e
           cat artifacts/npm-audit.json
-          exit "$status"
+          node ../scripts/ci/validate-npm-audit.mjs artifacts/npm-audit.json "$status"
       - name: npm audit signatures evidence and gate
         run: |
           set +e
