@@ -191,7 +191,7 @@ def run_benchmark(raster_path: Path, evidence_path: Path, output_path: Path, pat
         for k in range(z_cells):
             left = meshes.get((j, k), [])
             right = meshes.get((j + 1, k), [])
-            y_boundary = y0 - (j + 1) * CELL_SIZE_METERS
+            y_boundary = y_min + (j + 1) * CELL_SIZE_METERS
             if left or right:
                 seam_pairs_checked += 1
                 if _seam_key(left, 1, y_boundary) != _seam_key(right, 1, y_boundary):
