@@ -96,8 +96,9 @@ export class TransvoxelStitcher {
     const outputPositions = new Float32Array(vertexCount * 3);
     for (let vertex = 0; vertex < vertexCount; vertex++) {
       const edge = encodedVertices[vertex]! & 0xff;
-      const endpointA = (edge >>> 4) & 0x0f;
-      const endpointB = edge & 0x0f;
+      // The official table's low byte stores endpoint A in its low nibble and B in its high nibble.
+      const endpointA = edge & 0x0f;
+      const endpointB = (edge >>> 4) & 0x0f;
       if (endpointA > 12 || endpointB > 12) throw new Error(`Invalid transition edge endpoints ${endpointA},${endpointB} for case ${caseIndex}`);
       const scalarSample = (endpoint: number): number => endpoint < 9 ? endpoint : [0, 2, 8, 6][endpoint - 9]!;
       const a = sdf[scalarSample(endpointA)]!;
