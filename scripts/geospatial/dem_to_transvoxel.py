@@ -250,14 +250,19 @@ def balance_octree(root: Node) -> Node:
 
 
 def face_neighbor_max_level(root: Node, leaf: Node, face: str) -> int:
+    """Return the maximum level of any leaf sharing this face, or -1 at the domain boundary."""
     axes = {"+x": (0, 1), "-x": (0, -1), "+y": (1, 1), "-y": (1, -1), "+z": (2, 1), "-z": (2, -1)}
     if face not in axes:
-        raise ValueError(f"unknown face {face!r}; expected one of {tuple(axes)}")
+        raise ValueError("unknown face {!r}; expected one of {}".format(face, tuple(axes)))
     axis, direction = axes[face]
-    coords = [leaf.i0 + leaf.n // 2, leaf.j0 + leaf.n // 2, leaf.k0 + leaf.n // 2]
-    coords[axis] = (leaf.i0, leaf.j0, leaf.k0)[axis] + (leaf.n if direction > 0 else -1)
-    neighbor = leaf_at(root, *coords)
-    return -1 if neighbor is None or neighbor is leaf else neighbor.level
+    levels = []
+    for other in get_leaves(root):
+        if other is leaf:
+            continue
+        adjacent = _face_adjacent(leaf, other)
+        if adjacent == (axis, direction):
+            levels.append(other.level)
+    return max(levels, default=-1)
 
 
 def _finite_number(value: Any, label: str) -> float:
