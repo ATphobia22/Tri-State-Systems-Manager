@@ -140,6 +140,8 @@ def main() -> int:
         raise RuntimeError(f"Expected polygon AOI, got {aoi.geom_type}")
     # Geometry is from Census TIGER/Line shapefiles in geographic coordinates (NAD83).
     geometry = mapping(aoi)
+    geometry_bytes = json.dumps(geometry, sort_keys=True, separators=(",", ":")).encode()
+    geometry_sha256 = sha256(geometry_bytes)
     minx, miny, maxx, maxy = aoi.bounds
     bbox = [minx, miny, maxx, maxy]
     aoi_json = {
@@ -225,7 +227,7 @@ def main() -> int:
         "aoi": {
             "id": "TSM-IN-POSEY-47620", "approvalStatus": "UNAPPROVED",
             "geometryType": aoi.geom_type, "bboxWgs84": bbox, "areaSquareDegrees": aoi.area,
-            "geometrySha256": sha256(aoi_bytes), "geojsonSha256": sha256(aoi_bytes),
+            "geometrySha256": geometry_sha256, "geojsonSha256": sha256(aoi_bytes),
             "censusZctaVintage": 2020, "countyBoundaryVintage": 2024,
             "zctaArchiveSha256": sha256(zcta_bytes), "countyArchiveSha256": sha256(county_bytes),
         },
