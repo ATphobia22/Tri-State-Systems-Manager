@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://tsm.example/schemas/government-dataset.schema.json",
+  "$id": "urn:tsm:schemas:government-dataset:v1",
   "title": "GovernmentDataset",
   "type": "object",
   "additionalProperties": false,
