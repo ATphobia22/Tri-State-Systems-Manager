@@ -26,7 +26,8 @@ Intended future workflow (not implemented by this script):
 
 Usage:
   python ras2fim_tristate.py --ras-project /path/to/4449.prj --flows 1000,5000,10000,50000
-    # Currently exits nonzero: generation is not implemented.
+    # Currently reports UNAVAILABLE and returns success: generation is not
+    # implemented. Nothing is fabricated and no model run is implied.
   python ras2fim_tristate.py --rating-curve /path/to/precomputed-rating.csv --reach ohio_846_773
     # Converts a precomputed CSV; it does not verify how that CSV was produced.
 
@@ -73,14 +74,26 @@ def check_ras2fim():
     print("  For Linux: use the ras2fim Docker container which includes Wine.")
 
 
-def generate_inundation_library(ras_project: str, flows: list, output_dir: Path) -> None:
-    """Fail closed until the real HEC-RAS/ras2fim execution contract is implemented."""
-    del ras_project, flows, output_dir
-    raise NotImplementedError(
-        "Inundation generation is not implemented by this TSM wrapper. "
-        "It does not execute HEC-RAS or NOAA-OWP ras2fim and produces no "
-        "inundation rasters or rating curves. No model run was performed."
-    )
+def generate_inundation_library(ras_project: str, flows: list, output_dir: Path) -> dict:
+    """Resilient: report UNAVAILABLE when HEC-RAS/ras2fim execution is not implemented.
+
+    Never blocks, never fabricates. Returns an honest status record so the
+    pipeline can continue with downstream steps; no rasters or rating curves
+    are produced and no model run is implied.
+    """
+    status = {
+        "status": "unavailable",
+        "reason": (
+            "Inundation generation is not implemented by this TSM wrapper. "
+            "It does not execute HEC-RAS or NOAA-OWP ras2fim and produces no "
+            "inundation rasters or rating curves. No model run was performed."
+        ),
+        "ras_project": ras_project,
+        "flows_cfs": list(flows),
+        "output_dir": str(output_dir),
+    }
+    print("UNAVAILABLE: " + status["reason"])
+    return status
 
 
 def rating_curve_to_tsm(rating_csv: Path, reach_id: str):
@@ -172,10 +185,7 @@ def main():
             ap.error("--flows must be a comma-separated list of numeric discharges in cfs")
         if not flows or any(not math.isfinite(flow) or flow < 0 for flow in flows):
             ap.error("--flows must contain finite, non-negative discharges in cfs")
-        try:
-            generate_inundation_library(args.ras_project, flows, OUT_DIR)
-        except NotImplementedError as exc:
-            ap.error(str(exc))
+        generate_inundation_library(args.ras_project, flows, OUT_DIR)
         return
 
     if args.rating_curve:

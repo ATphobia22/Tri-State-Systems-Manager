@@ -3,7 +3,7 @@
 TSM Flood Forecasting — Master Orchestrator.
 
 Orchestrates available pipeline stages. Stages that only print guidance or lack
-required model configuration must report unavailable/failure, never success:
+required model configuration must report unavailable (never success, never fabricated):
   1. Data ingestion (USGS gages, antecedent precipitation)
   2. Nowcasting (TimesFM 0-48h)
   3. Operational forecasts (GEOGloWS 10-day)

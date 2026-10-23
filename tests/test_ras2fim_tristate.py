@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regression tests for honest, fail-closed hydrology stage reporting."""
+"""Regression tests for honest, resilient hydrology stage reporting."""
 from __future__ import annotations
 
 from contextlib import redirect_stderr, redirect_stdout
@@ -30,28 +30,29 @@ RAS2FIM = _load_module("tsm_ras2fim_tristate_test", FLOODING_DIR / "ras2fim_tris
 RUN_ALL = _load_module("tsm_flood_forecast_run_all_test", FLOODING_DIR / "run_all.py")
 
 
-class Ras2FimFailClosedTests(unittest.TestCase):
-    def test_generator_raises_not_implemented_and_does_not_create_output(self) -> None:
+class Ras2FimResilientTests(unittest.TestCase):
+    def test_generator_reports_unavailable_without_creating_output(self) -> None:
         with tempfile.TemporaryDirectory(prefix="tsm-ras2fim-test-") as temp:
             output = Path(temp) / "inundation-output"
-            with self.assertRaisesRegex(NotImplementedError, "does not execute HEC-RAS"):
-                RAS2FIM.generate_inundation_library("candidate.prj", [1000.0], output)
+            status = RAS2FIM.generate_inundation_library("candidate.prj", [1000.0], output)
+            self.assertEqual(status["status"], "unavailable")
+            self.assertIn("does not execute HEC-RAS", status["reason"])
+            self.assertIn("No model run was performed", status["reason"])
             self.assertFalse(output.exists(), "an unavailable solver must not create an output directory")
 
-    def test_cli_model_generation_exits_nonzero_and_reports_no_run(self) -> None:
+    def test_cli_model_generation_reports_unavailable_and_returns_success(self) -> None:
         with tempfile.TemporaryDirectory(prefix="tsm-ras2fim-test-") as temp:
             RAS2FIM.OUT_DIR = Path(temp) / "ras2fim-output"
-            stderr = io.StringIO()
+            stdout = io.StringIO()
             with mock.patch.object(
                 sys,
                 "argv",
                 ["ras2fim_tristate.py", "--ras-project", "candidate.prj", "--flows", "1000,5000"],
-            ), redirect_stderr(stderr):
-                with self.assertRaises(SystemExit) as exc:
-                    RAS2FIM.main()
-            self.assertEqual(exc.exception.code, 2)
-            self.assertIn("Inundation generation is not implemented", stderr.getvalue())
-            self.assertIn("No model run was performed", stderr.getvalue())
+            ), redirect_stdout(stdout):
+                RAS2FIM.main()  # resilient: must not raise SystemExit, never blocking
+            self.assertIn("UNAVAILABLE", stdout.getvalue())
+            self.assertIn("Inundation generation is not implemented", stdout.getvalue())
+            self.assertIn("No model run was performed", stdout.getvalue())
             self.assertFalse(RAS2FIM.OUT_DIR.exists())
 
     def test_cli_requires_project_and_flows_together(self) -> None:
