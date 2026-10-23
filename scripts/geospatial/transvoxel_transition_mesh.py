@@ -144,7 +144,9 @@ def mesh_transition_cell(sdf, origin, axis, extent, iso=0.0):
             break
         i0, i1 = _edge_endpoints(code)
         cell_verts.append(interpolate_edge(sdf, origin, axis, extent, i0, i1, iso))
-    cell_verts = cell_verts[: max(vcount, len(cell_verts))]
+    if len(cell_verts) < vcount:
+        raise ValueError(f\"case {case} needs {vcount} vertices but table supplied {len(cell_verts)}\")
+    cell_verts = cell_verts[:vcount]
     tris = []
     for t in range(tcount):
         base = t * 3
