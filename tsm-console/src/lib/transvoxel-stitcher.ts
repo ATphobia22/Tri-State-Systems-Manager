@@ -2,9 +2,9 @@
  * Table-driven Transvoxel transition-cell mesher.
  * Table source: Eric Lengyel, https://github.com/EricLengyel/Transvoxel (MIT).
  *
- * The nine fine-side samples determine the 9-bit case. Coarse-side slots 9..12
- * reuse corner scalar samples [0,2,8,6]; all 13 xyz positions follow the
- * official transitionVertexData edge encoding.
+ * The nine fine-side samples determine the 9-bit case. The four coarse-side
+ * samples at slots 9..12 retain their own scalar values for edge interpolation;
+ * all 13 xyz positions follow the official transitionVertexData edge encoding.
  */
 import {
   TRANSITION_CELL_CLASS_TABLE,
@@ -92,12 +92,11 @@ export class TransvoxelStitcher {
   }
 
   /**
-   * Polygonize one official transition cell. sdf has 9 fine-side samples and
-   * positions has 13 xyz triplets; position slots 9..12 are coarse corner vertices.
+   * Polygonize one official transition cell. sdf has 13 samples (9 fine-side plus 4 coarse-side) and positions has 13 xyz triplets.
    */
   public static polygonizeTransitionCell(sdf: Float32Array, positions: Float32Array): TransitionMesh {
-    if (sdf.length !== 9) {
-      throw new Error(`Expected 9 fine-side scalar samples, got ${sdf.length}`);
+    if (sdf.length !== 13) {
+      throw new Error(`Expected 13 transition-cell scalar samples (9 fine + 4 coarse), got ${sdf.length}`);
     }
     if (positions.length !== 39) {
       throw new Error(`Expected 13 xyz positions (39 floats), got ${positions.length}`);
@@ -113,7 +112,7 @@ export class TransvoxelStitcher {
       }
     }
 
-    const caseIndex = this.evaluateTransitionCase(sdf);
+    const caseIndex = this.evaluateTransitionCase(sdf.subarray(0, 9));
     const { classId, invertWinding } = getTransitionClass(caseIndex);
     const [geometryCounts, rawTriangleIndices] = TRANSITION_CELL_DATA_TABLE[classId]!;
     const vertexCount = geometryCounts >>> 4;
