@@ -207,15 +207,18 @@ def self_test() -> None:
     _load_data()
     tested = 0
     # Exhaust all 512 fine-side masks on all six signed face orientations.
-    # The nine samples are ordered by the official table endpoint IDs; coarse corners reuse fine endpoint values 0, 2, 6, and 4.
+    # The nine scalar samples are row-major; case bits use the official permutation and coarse corners reuse row-major samples 0, 2, 6, and 8.
     for axis in range(3):
         a, b = (axis + 1) % 3, (axis + 2) % 3
         for direction in (-1, 1):
             for mask in range(512):
-                fine_case_bit_for_sample = (0, 1, 2, 7, 8, 3, 6, 5, 4)
-        values = [-1.0 if (mask & (1 << case_bit_for_sample[i])) else 1.0 for i in range(9)]
+                case_bit_for_sample = (0, 1, 2, 7, 8, 3, 6, 5, 4)
+                values = [
+                    -1.0 if (mask & (1 << case_bit_for_sample[i])) else 1.0
+                    for i in range(9)
+                ]
 
-                def case_sdf(x, y, z, fine=fine_values, cell_axis=axis, face_direction=direction):
+                def case_sdf(x, y, z, fine=values, cell_axis=axis, face_direction=direction):
                     point = (x, y, z)
                     u = min(2, max(0, int(round(point[a] * 2))))
                     v = min(2, max(0, int(round(point[b] * 2))))
