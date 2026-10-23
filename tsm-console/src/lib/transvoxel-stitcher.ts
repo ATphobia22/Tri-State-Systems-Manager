@@ -2,7 +2,7 @@
  * Table-driven Transvoxel transition-cell mesher.
  * Table source: Eric Lengyel, https://github.com/EricLengyel/Transvoxel (MIT).
  *
- * Scalar input and endpoint positions 0..8 are row-major; case bits use the official permutation (0,1,2,7,8,3,6,5,4). Coarse positions reuse scalars 0, 2, 8, and 6 in canonical perimeter order.
+ * Scalar input and endpoint positions 0..8 are row-major; case bits use the official permutation (0,1,2,7,8,3,6,5,4). Coarse positions reuse scalars 0, 2, 6, and 8 in the official endpoint order.
  * All 13 xyz positions follow the official transitionVertexData edge encoding.
  */
 import {
