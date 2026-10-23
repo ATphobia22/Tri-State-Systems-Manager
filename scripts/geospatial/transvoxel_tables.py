@@ -50,14 +50,31 @@ TRANSITION_CELL_CLASS: List[int] = [
 
 assert len(TRANSITION_CELL_CLASS) == 512
 
+# Official Transvoxel high-resolution 3x3 sample -> case-bit mapping.
+# This differs from row-major 1 << sample_index. It is used by Lengyel's
+# transitionCellClass and transitionVertexData tables. See the official
+# Transvoxel.cpp implementation's transition case bit construction.
+HIGH_RES_CASE_BITS: Tuple[int, ...] = (
+    0x001, 0x002, 0x004,
+    0x080, 0x100, 0x008,
+    0x040, 0x020, 0x010,
+)
+assert len(HIGH_RES_CASE_BITS) == 9 and sum(HIGH_RES_CASE_BITS) == 0x1FF
+
 
 def compute_case_index(corner_sdfs: list, iso: float = 0.0) -> Optional[int]:
     if len(corner_sdfs) != 9:
         raise ValueError("need 9 SDF samples")
+    if not isinstance(iso, (int, float)) or isinstance(iso, bool):
+        raise ValueError("iso value must be numeric")
     case = 0
-    for i, s in enumerate(corner_sdfs):
-        if s < iso:
-            case |= 1 << i
+    for bit, value in zip(HIGH_RES_CASE_BITS, corner_sdfs, strict=True):
+        if not isinstance(value, (int, float)) or isinstance(value, bool):
+            raise ValueError("SDF samples must be numeric")
+        if not float(value) == value or not __import__("math").isfinite(float(value)):
+            raise ValueError("SDF samples must be finite")
+        if value < iso:
+            case |= bit
     if case in (0, 511):
         return None
     return case
