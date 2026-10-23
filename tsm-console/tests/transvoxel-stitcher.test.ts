@@ -63,18 +63,18 @@ describe('official Transvoxel transition mesher', () => {
     sdf[0] = -1;
     sdf[1] = -1; sdf[4] = -1;
     const p = new Float32Array(39);
-    const coords = [[0,0,0],[0.5,0,0],[1,0,0],[0,0.5,0],[0.5,0.5,0],[1,0.5,0],[0,1,0],[0.5,1,0],[1,1,0],[0,0,1],[1,0,1],[1,1,1],[0,1,1]];
+    const coords = [[0,0,0],[0.5,0,0],[1,0,0],[1,0.5,0],[1,1,0],[0.5,1,0],[0,1,0],[0,0.5,0],[0.5,0.5,0],[0,0,1],[1,0,1],[0,1,1],[1,1,1]];
     coords.forEach((v,i)=>v.forEach((n,a)=>p[i*3+a]=n));
     const mesh = TransvoxelStitcher.polygonizeTransitionCell(sdf,p);
     expect(mesh.indices.length % 3).toBe(0);
     expect(mesh.positions.every(Number.isFinite)).toBe(true);
     expect(mesh.indices.every((v)=>v < mesh.positions.length / 3)).toBe(true);
   });
-  it('uses independently sampled coarse-side scalars for edge interpolation', () => {
+  it('reuses canonical fine-corner scalars for coarse-side endpoints', () => {
     const sdf = new Float32Array(9).fill(1);
     sdf[0] = -1;
     const positions = new Float32Array(39);
-    const coords = [[0,0,0],[0.5,0,0],[1,0,0],[0,0.5,0],[0.5,0.5,0],[1,0.5,0],[0,1,0],[0.5,1,0],[1,1,0],[0,0,1],[1,0,1],[1,1,1],[0,1,1]];
+    const coords = [[0,0,0],[0.5,0,0],[1,0,0],[1,0.5,0],[1,1,0],[0.5,1,0],[0,1,0],[0,0.5,0],[0.5,0.5,0],[0,0,1],[1,0,1],[0,1,1],[1,1,1]];
     coords.forEach((v,i)=>v.forEach((n,a)=>positions[i*3+a]=n));
     const mesh = TransvoxelStitcher.polygonizeTransitionCell(sdf, positions);
     const changedCorner = sdf.slice();
