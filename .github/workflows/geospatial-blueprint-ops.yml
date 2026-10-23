@@ -34,7 +34,7 @@ jobs:
       - name: Install minimal Python deps
         run: pip install --quiet numpy
       - name: Install raster evidence dependencies
-        run: pip install --quiet rasterio pyshp shapely
+        run: pip install --quiet rasterio shapely
       - name: Download real USGS 3DEP terrain for Posey County ZIP 47620
         run: python3 scripts/geospatial/acquire-posey-47620-3dep.py --output-dir "$RUNNER_TEMP/tsm-posey-47620-evidence"
       - name: Upload Posey County ZIP 47620 terrain bundle
