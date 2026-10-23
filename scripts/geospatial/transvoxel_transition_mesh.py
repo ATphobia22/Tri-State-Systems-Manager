@@ -223,7 +223,7 @@ def self_test() -> None:
                     point = (x, y, z)
                     u = min(2, max(0, int(round(point[a] * 2))))
                     v = min(2, max(0, int(round(point[b] * 2))))
-                    return fine[v * 3 + u]
+                    return fine[((0, 1, 2), (7, 8, 3), (6, 5, 4))[v][u]]
 
                 verts, tris, meta = mesh_transition_cell(
                     case_sdf, (0.0, 0.0, 0.0), axis=axis, extent=1.0, direction=direction
