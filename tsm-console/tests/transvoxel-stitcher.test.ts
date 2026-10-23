@@ -71,7 +71,7 @@ describe('official Transvoxel transition mesher', () => {
   });
   it('maps coarse-side endpoints to the matching fine-corner scalar values', () => {
     const sdf = new Float32Array(9).fill(1);
-    sdf[0] = -1;
+    sdf[8] = -1;
     const positions = new Float32Array(39);
     const coords = [[0,0,0],[0.5,0,0],[1,0,0],[0,0.5,0],[0.5,0.5,0],[1,0.5,0],[0,1,0],[0.5,1,0],[1,1,0],[0,0,1],[1,0,1],[1,1,1],[0,1,1]];
     coords.forEach((v,i)=>v.forEach((n,a)=>positions[i*3+a]=n));
