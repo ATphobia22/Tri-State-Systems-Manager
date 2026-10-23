@@ -170,7 +170,12 @@ def run_benchmark(raster_path: Path, evidence_path: Path, output_path: Path, pat
             z_cell = z_min + k * CELL_SIZE_METERS
 
             def sdf(x: float, y: float, z: float) -> float:
-                return z - height_at(x, y)
+                value = z - height_at(x, y)
+                # The source DEM is Float32 and cell boundaries are computed
+                # through different but mathematically equivalent expressions.
+                # Canonicalize near-iso values so shared cells cannot classify
+                # the same boundary sample with opposite signs due to ulp noise.
+                return 0.0 if abs(value) <= 1e-5 else value
 
             tested_cells += 1
             try:
