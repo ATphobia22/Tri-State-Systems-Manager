@@ -40,6 +40,15 @@ Thumbs.db
 *.log
 *.swp
 *.swo
+*.orig
+*.rej
+*.bak
+
+# TypeScript / build caches
+*.tsbuildinfo
+.turbo/
+.next/
+*.tgz
 
 # Native C++ dependency/bootstrap outputs
 .native-tools/
