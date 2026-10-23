@@ -13,9 +13,18 @@ import json
 import struct
 import subprocess
 import tempfile
+import unittest
 from pathlib import Path
 
-import bpy
+try:
+    import bpy
+except ModuleNotFoundError as exc:
+    # Environment limitation: bpy exists only inside Blender. Skip honestly
+    # under plain pytest instead of erroring at collection.
+    raise unittest.SkipTest(
+        "requires Blender (run: blender --background --factory-startup "
+        "--python scripts/3d-tiles/test_pack_atlas_blender.py)"
+    ) from exc
 
 SCRIPT = Path(__file__).resolve().with_name("pack-atlas.py")
 
