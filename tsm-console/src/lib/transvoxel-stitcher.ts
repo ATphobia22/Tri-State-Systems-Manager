@@ -2,7 +2,7 @@
  * Table-driven Transvoxel transition-cell mesher.
  * Table source: Eric Lengyel, https://github.com/EricLengyel/Transvoxel (MIT).
  *
- * Scalar input and endpoint positions 0..8 are row-major; case bits use the official permutation (0,1,2,7,8,3,6,5,4). Coarse positions reuse scalars 0, 2, 6, and 8.
+ * Scalar input and endpoint positions 0..8 are row-major; case bits use the official permutation (0,1,2,7,8,3,6,5,4). Coarse positions reuse scalars 0, 2, 8, and 6 in canonical perimeter order.
  * All 13 xyz positions follow the official transitionVertexData edge encoding.
  */
 import {
@@ -128,7 +128,7 @@ export class TransvoxelStitcher {
       if (endpointA > 12 || endpointB > 12) {
         throw new Error(`Invalid transition edge endpoints ${endpointA},${endpointB} for case ${caseIndex}`);
       }
-      const endpointSampleIndex = (endpoint: number): number => endpoint < 9 ? endpoint : [0, 2, 6, 8][endpoint - 9]!;
+      const endpointSampleIndex = (endpoint: number): number => endpoint < 9 ? endpoint : [0, 2, 8, 6][endpoint - 9]!;
       const a = sdf[endpointSampleIndex(endpointA)]!;
       const b = sdf[endpointSampleIndex(endpointB)]!;
       const denominator = a - b;
