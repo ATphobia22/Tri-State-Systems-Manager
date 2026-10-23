@@ -19,16 +19,15 @@ SPEC.loader.exec_module(MESHER)
 class DemToTransvoxelAdapterTests(unittest.TestCase):
     def _cell(self, direction: int = 1) -> dict:
         fine = [-1.0 if index in (0, 1, 4) else 1.0 for index in range(9)]
-        coarse = [fine[index] for index in (0, 2, 6, 8)]
         return {
             "origin": [0.0, 0.0, 0.0],
             "axis": 0,
             "direction": direction,
             "extent": 1.0,
-            "samples": fine + coarse,
+            "samples": fine,
         }
 
-    def test_polygonizes_nine_case_samples_and_four_coarse_interpolation_samples(self):
+    def test_polygonizes_nine_officially_ordered_scalar_samples(self):
         for direction in (-1, 1):
             cell = self._cell(direction)
             result = MESHER._polygonize(cell)
@@ -39,18 +38,18 @@ class DemToTransvoxelAdapterTests(unittest.TestCase):
             self.assertTrue(all(0 <= index < result["vertexCount"] for tri in result["triangles"] for index in tri))
             self.assertTrue(all(len(vertex) == 3 for vertex in result["vertices"]))
 
-    def test_coarse_face_scalar_changes_interpolated_geometry(self):
+    def test_reused_coarse_corner_scalar_changes_interpolated_geometry(self):
         cell = self._cell()
-        cell["samples"] = [(-1.0 if index == 0 else 1.0) for index in range(9)] + [1.0, 1.0, 1.0, 1.0]
+        cell["samples"] = [(-1.0 if index == 0 else 1.0) for index in range(9)]
         baseline = MESHER._polygonize(cell)
-        cell["samples"][9] = -2.0
+        cell["samples"][6] = 2.0
         changed = MESHER._polygonize(cell)
         self.assertNotEqual(baseline["vertices"], changed["vertices"])
 
     def test_rejects_wrong_scalar_count_and_non_finite_values(self):
         cell = self._cell()
         cell["samples"] = cell["samples"][:-1]
-        with self.assertRaisesRegex(ValueError, "13 scalars: 9 fine-side plus 4 coarse-side samples"):
+        with self.assertRaisesRegex(ValueError, "exactly 9 scalar values in official Transvoxel endpoint order"):
             MESHER._polygonize(cell)
         cell = self._cell()
         cell["samples"][4] = float("nan")
