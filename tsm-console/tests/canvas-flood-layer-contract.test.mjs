@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { computeFloodMask, tryDatumConversion } from '../src/lib/canvas-flood-layer.ts';
+import { CanvasFloodLayer, computeFloodMask, tryDatumConversion } from '../src/lib/canvas-flood-layer.ts';
 
 test('unknown vertical-datum pairs do not substitute a constant offset', () => {
   assert.equal(tryDatumConversion(12.5, 'NAVD88', 'NAVD88'), 12.5);
@@ -30,4 +30,26 @@ test('invalid grids and non-finite water levels degrade to an empty mask', () =>
   assert.equal(computeFloodMask(malformed, 2).length, 0);
   const valid = { ...malformed, elevations: new Float32Array([1, 2, 3, 4]) };
   assert.equal(computeFloodMask(valid, Number.NaN).length, 0);
+});
+
+test('unsupported datum pairs withhold flood rendering instead of applying a guessed offset', () => {
+  const layer = new CanvasFloodLayer({
+    id: 'flood',
+    sourceId: 'flood-source',
+    grid: {
+      elevations: new Float32Array([1, 2, 3, 4]),
+      rows: 2,
+      cols: 2,
+      bounds: [-88, 37, -87, 38],
+      verticalDatum: 'NAVD88',
+    },
+  });
+
+  layer.setWaterLevel(12.5, 'NGVD29');
+  assert.equal(layer.getWaterLevel(), null);
+  assert.match(layer.getDatumBadge(), /flood rendering withheld/i);
+
+  layer.setWaterLevel(Number.NaN, 'NAVD88');
+  assert.equal(layer.getWaterLevel(), null);
+  assert.match(layer.getDatumBadge(), /invalid water level/i);
 });
