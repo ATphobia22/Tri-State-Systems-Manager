@@ -5,7 +5,7 @@ export type ResearchProviderId='github'|'search'|'browser'|'firecrawl-compatible
 export interface ResearchDocument {readonly url:string;readonly title:string;readonly text:string;readonly retrievedAt:string;readonly provider:ResearchProviderId;readonly sha256:string}
 export interface ResearchEvidence {readonly claim:string;readonly documentUrls:readonly string[];readonly confidence:'high'|'medium'|'low'|'unverified'}
 export interface ResearchFabricResult {
- readonly answer:string;readonly evidence:readonly ResearchEvidence[];
+ readonly answer:string;readonly traceId:string;readonly hash:string;readonly evidence:readonly ResearchEvidence[];
  readonly citations:readonly {url:string;title:string}[];
  readonly provenance:{traceId:string;providers:readonly ResearchProviderId[];generatedAt:string;inputHash:string;outputHash:string};
  readonly hashes:{input:string;output:string};readonly limitations:readonly string[];
@@ -30,5 +30,5 @@ export async function researchSearch(query:string,providers:readonly ResearchPro
  const limitations=[...failures,'Provider adapters must preserve upstream terms, retrieval times, licensing, and source identity. No claim is marked verified by retrieval alone.'];
  const payload={answer,evidence,citations,providers:providers.map(p=>p.id).sort(),limitations};
  const outputHash=hash(payload);
- return {answer,evidence,citations,provenance:{traceId,providers:providers.map(p=>p.id).sort(),generatedAt,inputHash,outputHash},hashes:{input:inputHash,output:outputHash},limitations};
+ return {answer,traceId,hash:outputHash,evidence,citations,provenance:{traceId,providers:providers.map(p=>p.id).sort(),generatedAt,inputHash,outputHash},hashes:{input:inputHash,output:outputHash},limitations};
 }
