@@ -190,25 +190,28 @@ def self_test() -> None:
     # Exhaustively exercise every 9-bit mask against the canonical 512-case
     # table, including inverted winding and coarse-corner endpoint encodings.
     tested = 0
-    for mask in range(512):
-        values = [-1.0 if (mask & (1 << i)) else 1.0 for i in range(9)]
+    for axis in range(3):
+        for mask in range(512):
+            values = [-1.0 if (mask & (1 << i)) else 1.0 for i in range(9)]
 
-        def case_sdf(x, y, z, samples=values):
-            u = min(2, max(0, int(round(x * 2))))
-            v = min(2, max(0, int(round(y * 2))))
-            return samples[v * 3 + u]
+            def case_sdf(x, y, z, samples=values, cell_axis=axis):
+                point = (x, y, z)
+                a, b = (cell_axis + 1) % 3, (cell_axis + 2) % 3
+                u = min(2, max(0, int(round(point[a] * 2))))
+                v = min(2, max(0, int(round(point[b] * 2))))
+                return samples[v * 3 + u]
 
-        verts, tris, meta = mesh_transition_cell(
-            case_sdf, (0.0, 0.0, 0.0), axis=2, extent=1.0
-        )
-        expected = None if mask in (0, 511) else mask
-        if meta["case"] != expected:
-            raise AssertionError(f"case {mask}: got {meta['case']}, expected {expected}")
-        if any(index < 0 or index >= len(verts) for tri in tris for index in tri):
-            raise AssertionError(f"case {mask}: triangle index outside vertex array")
-        if any(not np.isfinite(component) for vertex in verts for component in vertex):
-            raise AssertionError(f"case {mask}: non-finite vertex")
-        tested += 1
+            verts, tris, meta = mesh_transition_cell(
+                case_sdf, (0.0, 0.0, 0.0), axis=axis, extent=1.0
+            )
+            expected = None if mask in (0, 511) else mask
+            if meta["case"] != expected:
+                raise AssertionError(f"axis {axis} case {mask}: got {meta['case']}, expected {expected}")
+            if any(index < 0 or index >= len(verts) for tri in tris for index in tri):
+                raise AssertionError(f"axis {axis} case {mask}: triangle index outside vertex array")
+            if any(not np.isfinite(component) for vertex in verts for component in vertex):
+                raise AssertionError(f"axis {axis} case {mask}: non-finite vertex")
+            tested += 1
 
     def sdf2(x, y, z):
         return (x + y) * 0.5 - 0.5
@@ -217,7 +220,7 @@ def self_test() -> None:
     V, T, metas = mesh_transition_face_grid(sdf2, (0.0, 0.0, 0.0), axis=2, extent=2.0, fine_res=2)
     print("self-test meta", meta, "V", len(verts), "T", len(tris))
     print("grid V", len(V), "T", len(T), "cells", len(metas))
-    print(f"TRANSVOXEL_EXHAUSTIVE_CASES: PASS ({tested}/512)")
+    print(f"TRANSVOXEL_EXHAUSTIVE_CASES: PASS ({tested}/1536 face-orientation cases)")
     print("PER_LEAF_ADAPTIVE: PASS")
 
 
