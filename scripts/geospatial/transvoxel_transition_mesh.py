@@ -130,8 +130,7 @@ def _transition_endpoint_sample_index(endpoint: int) -> int:
     if 0 <= endpoint < 9:
         return endpoint
     if 9 <= endpoint < 13:
-        # Official Transvoxel coarse-side positions duplicate the fine-face
-        # corner values 0, 2, 6, 8; they are not four independent SDF samples.
+        # Official coarse-side corners reuse fine-side scalar samples [0, 2, 6, 8].
         return (0, 2, 6, 8)[endpoint - 9]
     raise ValueError(f"transition vertex endpoint must be 0..12, got {endpoint}")
 
@@ -205,8 +204,7 @@ def self_test() -> None:
     _load_data()
     tested = 0
     # Exhaust all 512 fine-side masks on all six signed face orientations.
-    # Coarse-side positions are displaced but their scalar values reuse the
-    # corresponding fine corners, as specified by the nine-bit Transvoxel case.
+    # The coarse-side corner values duplicate fine-side corners [0, 2, 6, 8].
     for axis in range(3):
         a, b = (axis + 1) % 3, (axis + 2) % 3
         for direction in (-1, 1):
