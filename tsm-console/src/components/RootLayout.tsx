@@ -16,7 +16,7 @@ const nav = [
   { to: '/lineage', label: 'Data Contracts' }, { to: '/benefit', label: 'Benefit Engine' }, { to: '/map', label: 'Hydraulic Map' },
   { to: '/twin', label: 'Twin Canvas' }, { to: '/digital-twin-v2', label: '3D Twin' }, { to: '/eoc', label: 'EOC Surface' },
   { to: '/data-fabric', label: 'Data Fabric' }, { to: '/flood-sim', label: 'Flood Simulator' },
-  { to: '/globe', label: 'Cesium Globe' }, { to: '/terrain-3d', label: '3D Terrain (3DEP)' }, { to: '/platform', label: 'Platform Capabilities' },
+  { to: '/globe', label: 'Globe (MapLibre)' }, { to: '/terrain-3d', label: '3D Terrain (3DEP)' }, { to: '/photorealistic-3d', label: 'Photorealistic 3D' }, { to: '/platform', label: 'Platform Capabilities' },
 ];
 
 const SHELL_CSS = `

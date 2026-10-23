@@ -31,16 +31,25 @@ function cspPlugin() {
         'wss:',
         keycloakOrigin,
       ].filter(Boolean).join(' ');
+      // Cesium ion is strictly opt-in: the loosened script/connect allowances below apply
+      // ONLY to builds that set VITE_CESIUM_ION_TOKEN. Token-less builds keep the strict
+      // policy (no 'unsafe-eval', no cesium.com origins). CesiumJS requires 'unsafe-eval'
+      // — that is why it was removed in 2026-10-14, and why it stays out by default.
+      const cesiumEnabled = (process.env.VITE_CESIUM_ION_TOKEN || '').trim().length > 0;
+      const cesiumScriptSrc = cesiumEnabled ? " 'unsafe-eval' https://cesium.com" : '';
+      const cesiumConnectSrc = cesiumEnabled
+        ? ' https://api.cesium.com https://assets.ion.cesium.com https://assets.cesium.com'
+        : '';
       const policy = [
         "default-src 'self'",
         "base-uri 'self'",
         "object-src 'none'",
-        "script-src 'self' 'wasm-unsafe-eval'",
+        "script-src 'self' 'wasm-unsafe-eval'" + cesiumScriptSrc,
         "style-src 'self' 'unsafe-inline'",
         "img-src 'self' data: blob: https:",
         "font-src 'self' data:",
         "worker-src 'self' blob:",
-        "connect-src " + connect,
+        "connect-src " + connect + cesiumConnectSrc,
         "manifest-src 'self'",
         "media-src 'self' blob:",
         "frame-src 'self'",
