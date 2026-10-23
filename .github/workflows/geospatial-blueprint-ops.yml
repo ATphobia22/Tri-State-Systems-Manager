@@ -100,6 +100,6 @@ jobs:
       - name: WebGPU capability probe tests
         working-directory: tsm-console
         run: node --experimental-strip-types --test tests/webgpu-capabilities.test.mjs
-      - name: GPU H-Z culling contract tests
+      - name: GPU H-Z culling contract and conservative-coverage tests
         working-directory: tsm-console
-        run: npx --no-install vitest run tests/webgpu-hz-cull.test.ts
+        run: npx --no-install vitest run tests/webgpu-hz-cull.test.ts tests/webgpu-hz-reference.test.ts
