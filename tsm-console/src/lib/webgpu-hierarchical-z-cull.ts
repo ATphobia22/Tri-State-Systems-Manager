@@ -53,8 +53,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     level += 1u;
     let levelDims = textureDimensions(pyramid, i32(level));
     lo = (minPixel * levelDims) / baseDims;
-    hi = ((maxPixel + vec2<u32>(1u)) * levelDims) / baseDims - vec2<u32>(1u);
-    hi = min(hi, levelDims - vec2<u32>(1u));
+    let endExclusive = max(vec2<u32>(1u), ((maxPixel + vec2<u32>(1u)) * levelDims) / baseDims);
+    hi = min(endExclusive - vec2<u32>(1u), levelDims - vec2<u32>(1u));
+    hi = max(hi, lo);
   }
   var maxDepth = 0.0;
   for (var y = lo.y; y <= hi.y; y++) {
