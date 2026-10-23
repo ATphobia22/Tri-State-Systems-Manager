@@ -18,21 +18,20 @@ TSM connection:
   - Rating curves → paired with TimesFM/OpenHydroNet discharge forecasts
     for real-time flood depth prediction
 
-Workflow:
-  1. Run HEC-RAS model for range of flows (steady-state profiles)
-  2. ras2fim clips results to NWM hydrofabric reaches
-  3. Generate depth grids for each flow
-  4. Build synthetic rating curves (reach-averaged depth vs discharge)
-  5. TSM console: forecast discharge → lookup depth grid → render flood extent
+Intended future workflow (not implemented by this script):
+  1. Run HEC-RAS model for a validated range of flows.
+  2. Run a pinned NOAA-OWP ras2fim workflow against compatible hydrofabric inputs.
+  3. Generate depth grids and rating curves, with documented CRS/datum/provenance.
+  4. Validate outputs against independent gauge, water-mark, or inundation evidence.
 
 Usage:
   python ras2fim_tristate.py --ras-project /path/to/4449.prj --flows 1000,5000,10000,50000
-  python ras2fim_tristate.py --rating-curve --reach ohio_846_773
+    # Currently exits nonzero: generation is not implemented.
+  python ras2fim_tristate.py --rating-curve /path/to/precomputed-rating.csv --reach ohio_846_773
+    # Converts a precomputed CSV; it does not verify how that CSV was produced.
 
-Requires:
-  - HEC-RAS installed (Windows) or ras2fim Docker container
-  - GDAL, rasterio, geopandas
-  - NWM hydrofabric for the Ohio/Wabash region
+Future generation preconditions include a verified HEC-RAS executable/version or pinned execution container,
+compatible project data, NWM hydrofabric version, datum reconciliation, and independent validation.
 """
 
 import argparse
