@@ -35,6 +35,8 @@ jobs:
         run: pip install --quiet numpy
       - name: Install raster evidence dependencies
         run: pip install --quiet rasterio
+      - name: Test ZCTA AOI boundary validation
+        run: python3 scripts/geospatial/test_aoi_3dep_screening.py
       - name: Acquire Census ZCTA 47620 boundary and real USGS 3DEP screening evidence
         run: python3 scripts/geospatial/acquire-candidate-aoi-3dep-screening.py --zcta 47620 --output-dir "$RUNNER_TEMP/tsm-aoi-evidence"
       - name: Upload ZCTA 47620 terrain evidence
