@@ -66,7 +66,6 @@ assert(gaps.registry_id === 'tsm-release-gap-registry', 'bad gap registry id');
 const codeClosable = [
   'gap-webgpu-host-bridge',
   'gap-vitest-lock-5.0.5',
-  'gap-vitest-lock-5.0.5',
 ];
 for (const id of codeClosable) {
   const g = gaps.gaps.find((x) => x.id === id);
