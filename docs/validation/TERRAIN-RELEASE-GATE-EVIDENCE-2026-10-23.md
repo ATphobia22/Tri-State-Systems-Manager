@@ -10,7 +10,7 @@ This document separates implementation artifacts from acceptance evidence. Do no
 - `validate-terrain-aoi-evidence.mjs` validates evidence supplied from real AOI geometry and source/raster inspection. It intentionally leaves unique AOI coverage null because overlapping footprints must be spatially unioned.
 - `benchmark-real-dem-transvoxel.py` now consumes the CI-acquired GeoTIFF, reprojects a bounded patch to EPSG:32616, runs the real transition-cell mesher, hashes emitted geometry, compares adjacent-cell seam intersections, and records wall time/process peak RSS. This is a bounded transition-face run—not a full adaptive-octree terrain mesh.
 - `report-crs-datum-catalog.mjs` inventories all 19 catalog entries and records missing/unverified CRS, datum, epoch, units, accuracy, vintage, and hash metadata. Its release gate remains open wherever evidence is absent.
-- Provider tests exercise successful fetch, transient HTTP 503 recovery, permanent HTTP 404 fail-closed behavior, and exhausted network retries. Adapter tests exercise 13-sample transition inputs, independent coarse-side values, invalid inputs, and both signed directions.
+- Provider tests exercise successful fetch, transient HTTP 503 recovery, permanent HTTP 404 fail-closed behavior, and exhausted network retries. Adapter tests exercise nine independent scalar inputs, duplicated coarse-side corner values, invalid inputs, and both signed directions.
 - `webgpu-hz-reference.test.ts` compares conservative H-Z mip lookup to a CPU max-depth oracle for every rectangle at viewport sizes 1–9 pixels, including odd dimensions and far-depth holes. It does not execute the WGSL on physical GPU hardware.
 
 ## GPU H-Z acceptance
@@ -23,7 +23,7 @@ This document separates implementation artifacts from acceptance evidence. Do no
 
 ## Transvoxel acceptance
 
-- The transition-cell table uses 9 independent fine-side scalar values to select one of 512 masks; 13 spatial sample positions include nine fine-side scalar samples that select the 9-bit case plus four independent coarse-side scalar samples used to interpolate edges touching the coarse face. Do not treat this as a 13-bit case table.
+- The transition-cell table uses 9 independent fine-side scalar values to select one of 512 masks. The 13 spatial positions include four coarse-side corner positions whose scalar values duplicate fine-face samples [0, 2, 8, 6]; they are not independent samples. Do not treat this as a 13-bit case table.
 - Exhaustively enumerate all 512 transition case masks and validate all 56 equivalence classes against the canonical table. The Python fixture self-test covers all six signed face orientations; the TypeScript suite includes adjacent-cell boundary-intersection checks, which must pass on the exact release head.
 - For every supported LOD face/orientation, emit adjacent meshes from shared scalar-field fixtures and check boundary edge pairing, manifoldness, no duplicate/degenerate triangles, consistent winding, and no cracks beyond the declared geometric tolerance.
 - Include nodata, tile-edge, sign ambiguity, mixed-resolution, and neighboring-tile ordering fixtures. Hash deterministic mesh outputs.
