@@ -19,16 +19,15 @@ SPEC.loader.exec_module(MESHER)
 class DemToTransvoxelAdapterTests(unittest.TestCase):
     def _cell(self, direction: int = 1) -> dict:
         fine = [-1.0 if index in (0, 1, 4) else 1.0 for index in range(9)]
-        coarse = [1.5, -0.5, 2.0, 0.25]
         return {
             "origin": [0.0, 0.0, 0.0],
             "axis": 0,
             "direction": direction,
             "extent": 1.0,
-            "samples": fine + coarse,
+            "samples": fine,
         }
 
-    def test_polygonizes_independent_fine_and_coarse_scalar_samples(self):
+    def test_polygonizes_nine_independent_scalars_with_duplicated_coarse_corners(self):
         for direction in (-1, 1):
             cell = self._cell(direction)
             result = MESHER._polygonize(cell)
@@ -42,11 +41,11 @@ class DemToTransvoxelAdapterTests(unittest.TestCase):
     def test_rejects_wrong_scalar_count_and_non_finite_values(self):
         cell = self._cell()
         cell["samples"] = cell["samples"][:-1]
-        with self.assertRaisesRegex(ValueError, "contain 13 scalar samples"):
+        with self.assertRaisesRegex(ValueError, "exactly 9 fine-side scalar samples"):
             MESHER._polygonize(cell)
         cell = self._cell()
-        cell["samples"][10] = float("nan")
-        with self.assertRaisesRegex(ValueError, r"samples\[10\] must be a finite number"):
+        cell["samples"][4] = float("nan")
+        with self.assertRaisesRegex(ValueError, r"samples\[4\] must be a finite number"):
             MESHER._polygonize(cell)
 
     def test_rejects_invalid_axis_direction_and_extent(self):
