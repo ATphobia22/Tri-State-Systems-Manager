@@ -288,17 +288,14 @@ def _polygonize(cell: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("cell.direction must be -1 or 1")
     if extent <= 0:
         raise ValueError("cell.extent must be positive and finite")
-    if not isinstance(samples_raw, list) or len(samples_raw) != 13:
-        raise ValueError("cell.samples must contain exactly 13 scalars: 9 fine-side and 4 coarse-side")
+    if not isinstance(samples_raw, list) or len(samples_raw) != 9:
+        raise ValueError("cell.samples must contain exactly 9 fine-side scalar samples")
     samples = [_finite_number(v, "samples[{}]".format(i)) for i, v in enumerate(samples_raw)]
     def sdf(x: float, y: float, z: float) -> float:
         p = (x, y, z); a, b = (axis + 1) % 3, (axis + 2) % 3
         u = min(1.0, max(0.0, (p[a] - origin[a]) / extent))
         v = min(1.0, max(0.0, (p[b] - origin[b]) / extent))
-        ix, iy = min(2, round(u * 2)), min(2, round(v * 2))
-        if abs(p[axis] - (origin[axis] + direction * extent)) <= max(1e-8, extent * 1e-7):
-            return samples[9 + iy * 2 + ix]
-        return samples[iy * 3 + ix]
+        return samples[min(2, round(v * 2)) * 3 + min(2, round(u * 2))]
     vertices, triangles, metadata = mesh_transition_cell(sdf, origin, axis, extent, direction=direction)
     return {"case": metadata.get("case"), "classId": metadata.get("class_id"),
             "invertWinding": metadata.get("invert", False),
