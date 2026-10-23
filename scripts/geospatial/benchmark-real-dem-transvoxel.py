@@ -134,6 +134,14 @@ def run_benchmark(raster_path: Path, evidence_path: Path, output_path: Path, pat
     def height_at(x: float, y: float) -> float:
         col_corner, row_corner = inverse * (x, y)
         col_f, row_f = col_corner - 0.5, row_corner - 0.5
+        # Shared cell boundaries can land a few ulps either side of an integer
+        # after affine inversion. Snap only within a tiny pixel-space tolerance
+        # so adjacent cells sample the identical raster row/column deterministically.
+        nearest_col, nearest_row = round(col_f), round(row_f)
+        if abs(col_f - nearest_col) <= 1e-6:
+            col_f = float(nearest_col)
+        if abs(row_f - nearest_row) <= 1e-6:
+            row_f = float(nearest_row)
         c0, r0 = math.floor(col_f), math.floor(row_f)
         fx, fy = col_f - c0, row_f - r0
         if r0 < 0 or c0 < 0 or r0 + 1 >= height or c0 + 1 >= width:
