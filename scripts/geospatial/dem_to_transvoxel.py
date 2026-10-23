@@ -6,8 +6,7 @@ emits indexed transition geometry using the official Lengyel transition tables.
 The input is a JSON object with a "cells" array. Each cell contains:
   {"origin":[x,y,z],"axis":0|1|2,"extent":positive_number,"samples":[9 finite values]}
 Samples 0..8 are the fine-side 3x3 scalar field and choose the 9-bit case.
-Samples 9..12 are independent coarse-side corner values used for edge interpolation. This module generates transition-cell triangles; it does not approve an AOI, infer
-missing elevations, or fabricate raster input. Official tables are MIT-licensed.
+The coarse-side spatial positions duplicate fine-face corner scalars [0, 2, 8, 6]. This module generates transition-cell triangles; it does not approve an AOI, infer missing elevations, or fabricate raster input. Official tables are MIT-licensed.
 """
 from __future__ import annotations
 
