@@ -374,7 +374,7 @@ export class TsmWebGpuRayTracer {
     depthBias = 1e-5,
   ): Promise<Uint32Array> {
     this.renderFrame(parameters);
-    if (!this.initialized || !this.depthTexture) throw new Error('WebGPU frame did not produce a depth attachment');
+    if (!this.initialized || !this.depthTexture || !this.bindGroup) throw new Error('WebGPU frame did not render a source-bound depth attachment');
     return this.classifyOcclusion(this.depthTexture, this.depthWidth, this.depthHeight, candidates, depthBias);
   }
 
@@ -418,8 +418,8 @@ export class TsmWebGpuRayTracer {
 /** H-Z is wired to the WebGPU renderer API; callers must provide its actual depth attachment. */
 export const WEBGPU_RENDERER_HZ_STATUS = {
   rendererApiIntegration: true,
-  automaticPerFrameCulling: false,
-  depthAttachment: 'caller_must_supply_same_device_depth_texture',
-  deviceLoss: 'renderer_marks_uninitialized_and_notifies_host_for_recreation',
+  automaticPerFrameCulling: 'opt_in_via_renderFrameWithOcclusion',
+  depthAttachment: 'renderer_owned_depth32float_attachment',
+  deviceLoss: 'renderer_marks_uninitialized_and_host_recreates_device_and_resources',
   hardwareEvidence: 'not_collected',
 } as const;
