@@ -30,7 +30,7 @@ describe('official Transvoxel transition mesher', () => {
     expect(mesh.indices.every((v)=>v < mesh.positions.length / 3)).toBe(true);
   });
   it('rejects incomplete and non-finite sample fields', () => {
-    expect(() => TransvoxelStitcher.polygonizeTransitionCell(new Float32Array(9),new Float32Array(39))).toThrow(/9 fine-side scalar/);
+    expect(() => TransvoxelStitcher.polygonizeTransitionCell(new Float32Array(8),new Float32Array(39))).toThrow(/9 fine-side scalar/);
     const sdf = new Float32Array(9); sdf[4] = Number.NaN;
     expect(() => TransvoxelStitcher.polygonizeTransitionCell(sdf,new Float32Array(39))).toThrow(/Non-finite/);
   });
