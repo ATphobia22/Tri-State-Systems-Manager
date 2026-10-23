@@ -232,6 +232,9 @@ def run_benchmark(raster_path: Path, evidence_path: Path, output_path: Path, pat
             "sourceVerticalDatum": usgs_source.get("verticalDatum", "UNRESOLVED"),
             "sourceAccuracyClass": usgs_source.get("accuracyClass", "UNRESOLVED"),
             "sourceAcquisitionVintage": usgs_source.get("acquisitionVintage", "NOT_REPORTED_BY_DYNAMIC_MOSAIC"),
+            "verticalCoordinateUnitsUsedForScreening": "meters",
+            "verticalUnitsBasis": "USGS National Map Seamless DEM Specifications; source-item-specific unit/datum is not certified by this dynamic mosaic export",
+            "verticalUnitsBasisUrl": "https://pubs.usgs.gov/tm/11b9/tm11B9.pdf",
         },
         "projection": {"sourceCrs": str(src_crs), "benchmarkCrs": TARGET_CRS, "cellSizeMeters": CELL_SIZE_METERS},
         "patch": {
@@ -259,7 +262,7 @@ def run_benchmark(raster_path: Path, evidence_path: Path, output_path: Path, pat
         },
         "limitations": [
             "The AOI is an unapproved ZIP/county screening polygon, not a parcel or watershed.",
-            "The USGS dynamic mosaic does not establish one acquisition vintage, vertical datum, or accuracy class.",
+            "The benchmark uses meters vertically under the USGS National Map seamless-DEM specification as a screening assumption; source-item-specific unit, acquisition vintage, vertical datum, and accuracy are not certified by this dynamic mosaic export.",
             "This benchmark meshes the real DEM-derived implicit surface only along one bounded transition face; it is not a full terrain meshing pipeline.",
             "Seam checks cover adjacent transition cells in this bounded face only, not all six orientations or inter-tile adaptive octree seams.",
         ],
