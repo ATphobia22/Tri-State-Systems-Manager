@@ -81,7 +81,7 @@ describe('official Transvoxel transition mesher', () => {
     changedCorner[6] = 2;
     const changedMesh = TransvoxelStitcher.polygonizeTransitionCell(changedCorner, positions);
     expect(Array.from(mesh.positions)).not.toEqual(Array.from(changedMesh.positions));
-    expect(() => TransvoxelStitcher.polygonizeTransitionCell(new Float32Array(12), positions)).toThrow(/9 scalar samples/);
+    expect(() => TransvoxelStitcher.polygonizeTransitionCell(new Float32Array(12), positions)).toThrow(/9 row-major scalar samples/);
   });
   it('maps row-major scalar samples to official case bits', () => {
     const caseBitForSample = [0, 1, 2, 7, 8, 3, 6, 5, 4] as const;
