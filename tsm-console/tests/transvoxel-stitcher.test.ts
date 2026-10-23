@@ -69,17 +69,41 @@ describe('official Transvoxel transition mesher', () => {
     expect(mesh.positions.every(Number.isFinite)).toBe(true);
     expect(mesh.indices.every((v)=>v < mesh.positions.length / 3)).toBe(true);
   });
-  it('maps coarse-side endpoints to the matching fine-corner scalar values', () => {
-    const sdf = new Float32Array(9).fill(1);
-    sdf[8] = -1;
+  it('reuses canonical fine-corner scalars on coarse-side interpolation edges', () => {
+    const sampleIndex = (endpoint: number): number => endpoint < 9 ? endpoint : [0, 2, 8, 6][endpoint - 9]!;
+    const coords = [
+      [0,0,0],[0.5,0,0],[1,0,0],[0,0.5,0],[0.5,0.5,0],[1,0.5,0],
+      [0,1,0],[0.5,1,0],[1,1,0],[0,0,1],[1,0,1],[1,1,1],[0,1,1],
+    ];
     const positions = new Float32Array(39);
-    const coords = [[0,0,0],[0.5,0,0],[1,0,0],[0,0.5,0],[0.5,0.5,0],[1,0.5,0],[0,1,0],[0.5,1,0],[1,1,0],[0,0,1],[1,0,1],[1,1,1],[0,1,1]];
     coords.forEach((v,i)=>v.forEach((n,a)=>positions[i*3+a]=n));
-    const mesh = TransvoxelStitcher.polygonizeTransitionCell(sdf, positions);
-    const changedCorner = sdf.slice();
-    changedCorner[8] = -2;
-    const changedMesh = TransvoxelStitcher.polygonizeTransitionCell(changedCorner, positions);
-    expect(Array.from(mesh.positions)).not.toEqual(Array.from(changedMesh.positions));
+    let verified = false;
+    for (let mask = 1; mask < 511 && !verified; mask++) {
+      const sdf = new Float32Array(9);
+      for (let bit = 0; bit < 9; bit++) sdf[bit] = (mask & (1 << bit)) ? -1 : 1;
+      const encodedVertices = TRANSITION_VERTEX_DATA_TABLE[mask]!;
+      const data = TRANSITION_CELL_DATA_TABLE[TRANSITION_CELL_CLASS[mask]! & 0x7f]!;
+      const vertexCount = data[0] >>> 4;
+      for (let vertex = 0; vertex < vertexCount; vertex++) {
+        const edge = encodedVertices[vertex]! & 0xff;
+        const endpointA = edge & 0x0f;
+        const endpointB = (edge >>> 4) & 0x0f;
+        if (endpointA < 9 && endpointB < 9) continue;
+        const a = sampleIndex(endpointA);
+        const b = sampleIndex(endpointB);
+        if (a === b || Math.sign(sdf[a]!) === Math.sign(sdf[b]!)) continue;
+        const mesh = TransvoxelStitcher.polygonizeTransitionCell(sdf, positions);
+        const changed = sdf.slice();
+        changed[a] = changed[a]! * 2;
+        const changedMesh = TransvoxelStitcher.polygonizeTransitionCell(changed, positions);
+        if (Array.from(mesh.positions).some((value, index) => value !== changedMesh.positions[index])) {
+          expect(Array.from(mesh.positions)).not.toEqual(Array.from(changedMesh.positions));
+          verified = true;
+          break;
+        }
+      }
+    }
+    expect(verified).toBe(true);
     expect(() => TransvoxelStitcher.polygonizeTransitionCell(new Float32Array(13), positions)).toThrow(/9 fine-side scalar samples/);
   });
   it('matches intersection vertices across adjacent transition cells', () => {
