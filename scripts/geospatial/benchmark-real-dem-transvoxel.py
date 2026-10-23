@@ -195,6 +195,7 @@ def run_benchmark(raster_path: Path, evidence_path: Path, output_path: Path, pat
             all_triangles.extend(tuple(base + index for index in tri) for tri in triangles)
 
     seam_pairs_checked = seam_mismatches = 0
+    seam_mismatch_examples: list[dict[str, Any]] = []
     for j in range(patch_pixels - 1):
         for k in range(z_cells):
             left = meshes.get((j, k), [])
@@ -202,8 +203,15 @@ def run_benchmark(raster_path: Path, evidence_path: Path, output_path: Path, pat
             y_boundary = y_min + (j + 1) * CELL_SIZE_METERS
             if left or right:
                 seam_pairs_checked += 1
-                if _seam_key(left, 1, y_boundary) != _seam_key(right, 1, y_boundary):
+                left_seam = _seam_key(left, 1, y_boundary)
+                right_seam = _seam_key(right, 1, y_boundary)
+                if left_seam != right_seam:
                     seam_mismatches += 1
+                    if len(seam_mismatch_examples) < 10:
+                        seam_mismatch_examples.append({
+                            "axis": "y", "cells": [[j, k], [j + 1, k]],
+                            "boundary": y_boundary, "left": left_seam[:8], "right": right_seam[:8],
+                        })
     for j in range(patch_pixels):
         for k in range(z_cells - 1):
             lower = meshes.get((j, k), [])
@@ -211,8 +219,15 @@ def run_benchmark(raster_path: Path, evidence_path: Path, output_path: Path, pat
             z_boundary = z_min + (k + 1) * CELL_SIZE_METERS
             if lower or upper:
                 seam_pairs_checked += 1
-                if _seam_key(lower, 2, z_boundary) != _seam_key(upper, 2, z_boundary):
+                lower_seam = _seam_key(lower, 2, z_boundary)
+                upper_seam = _seam_key(upper, 2, z_boundary)
+                if lower_seam != upper_seam:
                     seam_mismatches += 1
+                    if len(seam_mismatch_examples) < 10:
+                        seam_mismatch_examples.append({
+                            "axis": "z", "cells": [[j, k], [j, k + 1]],
+                            "boundary": z_boundary, "lower": lower_seam[:8], "upper": upper_seam[:8],
+                        })
     elapsed = time.perf_counter() - started
     mesh_digest_payload = json.dumps(
         {"vertices": all_vertices, "triangles": all_triangles},
@@ -254,6 +269,7 @@ def run_benchmark(raster_path: Path, evidence_path: Path, output_path: Path, pat
             "seamPairsChecked": seam_pairs_checked,
             "seamMismatches": seam_mismatches,
             "seamToleranceMeters": SEAM_TOLERANCE_METERS,
+            "seamMismatchExamples": seam_mismatch_examples,
         },
         "performance": {
             "wallTimeSeconds": elapsed,
@@ -270,7 +286,8 @@ def run_benchmark(raster_path: Path, evidence_path: Path, output_path: Path, pat
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     if seam_mismatches:
-        raise RuntimeError(f"real-DEM transition seam validation failed: {seam_mismatches}/{seam_pairs_checked} pairs mismatched")
+        print(json.dumps(report, indent=2, sort_keys=True), flush=True)
+        raise RuntimeError(f"real-DEM transition seam validation failed: {seam_mismatches}/{seam_pairs_checked} pairs mismatched; see seamMismatchExamples above")
     if nonempty_cells == 0 or len(all_triangles) == 0:
         raise RuntimeError("real-DEM benchmark produced no terrain triangles")
     return report
