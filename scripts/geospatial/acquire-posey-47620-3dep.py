@@ -183,7 +183,7 @@ def main() -> int:
         raster_geom = geometry if ds.crs.to_epsg() == 4326 else transform_geom("EPSG:4326", ds.crs, geometry, precision=8)
         inside = geometry_mask([raster_geom], out_shape=(ds.height, ds.width), transform=ds.transform, invert=True, all_touched=False)
         values = ds.read(1, masked=False)
-        valid = inside & (ds.dataset_mask() > 0) & np.isfinite(values)
+        valid = inside & (ds.dataset_mask() > 0) & np.isfinite(values) & (values != -999999)
         if ds.nodata is not None:
             valid &= values != ds.nodata
         inside_count = int(np.count_nonzero(inside))
