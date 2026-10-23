@@ -57,10 +57,15 @@
       "id": "gap-renderer-cache-bytes",
       "severity": "medium",
       "status": "PARTIAL_2026-10-23",
-      "summary": "Byte budgets are guidance only; no byte accounting, hard ceiling, byte-based eviction, or backpressure is wired into TilesRenderer.",
+      "summary": "3d-tiles-renderer LRU minBytesSize/maxBytesSize thresholds are wired for cache eviction. They are not a hard process/GPU-VRAM ceiling; active tiles may remain resident above target and GPU memory is separate.",
       "closure": [
         "tsm-console/src/lib/tiles-cache-policy.ts",
         "tsm-console/src/components/OpenWorld3DTilesRenderer.tsx"
+      ],
+      "acceptance": [
+        "Verify package-version-specific byte accounting and eviction behavior in CI",
+        "Exercise over-budget active/inactive tiles and confirm no unbounded growth under sustained traversal",
+        "Track GPU-VRAM estimates separately; do not equate cachedBytes with GPU memory"
       ]
     },
     {
