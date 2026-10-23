@@ -42,7 +42,7 @@ export async function queryGovernmentJson<T=unknown>(sourceId:string,url:string,
  const source=getGovernmentSource(sourceId);
  if(source.access!=='REST_JSON') throw new Error('GOVERNMENT_SOURCE_REQUIRES_SPECIALIZED_ADAPTER');
  const requested=new URL(url); const registered=new URL(source.endpoint);
- if(requested.protocol!=='https:'||requested.origin!==registered.origin||!requested.pathname.startsWith(registered.pathname))
+ if(requested.protocol!=='https:'||requested.username!==''||requested.password!==''||requested.hash!==''||requested.origin!==registered.origin||(requested.pathname!==registered.pathname&&!requested.pathname.startsWith(registered.pathname+'/')))
    throw new Error('GOVERNMENT_URL_OUTSIDE_REGISTERED_ENDPOINT');
  const timeoutMs=options.timeoutMs??15000;
  if(!Number.isFinite(timeoutMs)||timeoutMs<1||timeoutMs>120000) throw new Error('INVALID_TIMEOUT_MS');
