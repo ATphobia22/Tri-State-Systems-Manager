@@ -32,11 +32,15 @@ VERTICAL_UNIT_TO_METERS = {"m": 1.0, "meter": 1.0, "meters": 1.0, "metre": 1.0, 
 def _vertical_unit(dataset: Any) -> tuple[str, float]:
     override = os.environ.get("TSM_DEM_VERTICAL_UNIT")
     tags = {str(k).lower(): str(v).strip().lower() for k, v in dataset.tags().items()}
+    band_tags = {str(k).lower(): str(v).strip().lower() for k, v in dataset.tags(1).items()}
+    band_units = getattr(dataset, "units", ()) or ()
     unit = override.strip().lower() if override else ""
+    if not unit and band_units and band_units[0]:
+        unit = str(band_units[0]).strip().lower()
     if not unit:
         for key in ("vertical_units", "z_units", "elevation_units", "unit"):
-            if tags.get(key):
-                unit = tags[key]
+            if tags.get(key) or band_tags.get(key):
+                unit = tags.get(key) or band_tags.get(key)
                 break
     aliases = {"metres": "m", "meters": "m", "meter": "m", "metre": "m",
                "feet": "ft", "foot": "ft", "us survey foot": "us-ft", "us survey feet": "us-ft"}
