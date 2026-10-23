@@ -38,14 +38,14 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let dims = textureDimensions(targetMip);
   if (gid.x >= dims.x || gid.y >= dims.y) { return; }
   let srcDims = textureDimensions(sourceMip, 0);
-  let base = vec2<i32>(gid.xy * 2u);
+  // Partition the full source extent across target texels. Unlike naive 2x2
+  // reduction, this includes odd trailing rows/columns and stays conservative.
+  let start = (gid.xy * srcDims) / dims;
+  let end = ((gid.xy + vec2<u32>(1u)) * srcDims) / dims;
   var maximum = 0.0;
-  for (var dy = 0; dy < 2; dy++) {
-    for (var dx = 0; dx < 2; dx++) {
-      let p = base + vec2<i32>(dx, dy);
-      if (p.x < i32(srcDims.x) && p.y < i32(srcDims.y)) {
-        maximum = max(maximum, textureLoad(sourceMip, p, 0).r);
-      }
+  for (var y = start.y; y < end.y; y++) {
+    for (var x = start.x; x < end.x; x++) {
+      maximum = max(maximum, textureLoad(sourceMip, vec2<i32>(i32(x), i32(y)), 0).r);
     }
   }
   textureStore(targetMip, vec2<i32>(gid.xy), vec4<f32>(maximum, 0.0, 0.0, 1.0));
@@ -129,8 +129,8 @@ export class WebGPUHierarchicalZ {
     let sourceWidth = width;
     let sourceHeight = height;
     for (let level = 1; level < levels; level++) {
-      const targetWidth = Math.max(1, Math.ceil(sourceWidth / 2));
-      const targetHeight = Math.max(1, Math.ceil(sourceHeight / 2));
+      const targetWidth = Math.max(1, Math.floor(sourceWidth / 2));
+      const targetHeight = Math.max(1, Math.floor(sourceHeight / 2));
       const pass = encoder.beginComputePass({ label: `TSM H-Z reduce mip ${level}` });
       pass.setPipeline(this.reducePipeline);
       pass.setBindGroup(0, this.device.createBindGroup({
