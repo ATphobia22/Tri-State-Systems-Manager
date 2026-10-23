@@ -1,0 +1,469 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:tsm:schemas:spatial-solver-run-manifest:v1",
+  "title": "TSM Spatial Solver Run Manifest v1",
+  "description": "Portable provenance contract for reproducible geospatial simulation runs. A structurally valid manifest is not evidence that a model is scientifically valid or approved for a real AOI.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "purpose",
+    "solver",
+    "execution",
+    "spatial_reference",
+    "inputs",
+    "outputs",
+    "provenance",
+    "scientific_validation"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "purpose": {
+      "type": "string",
+      "enum": [
+        "SYNTHETIC_FIXTURE",
+        "BENCHMARK",
+        "RESEARCH",
+        "DECISION_SUPPORT"
+      ]
+    },
+    "project_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "approval_status": {
+      "type": "string",
+      "enum": [
+        "DRAFT",
+        "PENDING_REVIEW",
+        "APPROVED_FOR_EXECUTION",
+        "REJECTED"
+      ],
+      "description": "Approval is explicit and independent from technical execution status."
+    },
+    "solver": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version",
+        "model_kind",
+        "configuration_sha256"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "enum": [
+            "HEC-RAS",
+            "MODFLOW-6",
+            "OpenFOAM",
+            "CARLA",
+            "OTHER"
+          ]
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model_kind": {
+          "type": "string",
+          "enum": [
+            "surface_water_hydraulics",
+            "groundwater_flow",
+            "computational_fluid_dynamics",
+            "traffic_simulation",
+            "other"
+          ]
+        },
+        "configuration_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "executable_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "runtime_image_digest": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "started_at",
+        "finished_at",
+        "exit_code",
+        "timeout_seconds"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "NOT_STARTED",
+            "RUNNING",
+            "SUCCEEDED",
+            "FAILED",
+            "CANCELLED",
+            "TIMED_OUT"
+          ]
+        },
+        "started_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "finished_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "exit_code": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "timeout_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 604800
+        },
+        "command_argv": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        },
+        "environment_lock_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "spatial_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "horizontal_crs",
+        "vertical_datum",
+        "horizontal_units",
+        "vertical_units"
+      ],
+      "properties": {
+        "horizontal_crs": {
+          "type": "string",
+          "minLength": 1
+        },
+        "vertical_datum": {
+          "type": "string",
+          "minLength": 1
+        },
+        "horizontal_units": {
+          "type": "string",
+          "minLength": 1
+        },
+        "vertical_units": {
+          "type": "string",
+          "minLength": 1
+        },
+        "coordinate_epoch": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "inputs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "input_id",
+          "source_uri",
+          "retrieved_at",
+          "sha256",
+          "media_type",
+          "quality_status"
+        ],
+        "properties": {
+          "input_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_uri": {
+            "type": "string",
+            "format": "uri"
+          },
+          "retrieved_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "valid_time": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "media_type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "units": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "horizontal_crs": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "vertical_datum": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "quality_status": {
+            "type": "string",
+            "enum": [
+              "UNASSESSED",
+              "QUALIFIED",
+              "REJECTED"
+            ]
+          },
+          "license_or_terms_uri": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "artifact_id",
+          "uri",
+          "sha256",
+          "media_type",
+          "role"
+        ],
+        "properties": {
+          "artifact_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uri": {
+            "type": "string",
+            "format": "uri"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "media_type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "primary_result",
+              "diagnostic",
+              "log",
+              "visualization",
+              "intermediate"
+            ]
+          },
+          "units": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "horizontal_crs": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "vertical_datum": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_commit",
+        "created_at",
+        "manifest_sha256",
+        "parent_run_ids"
+      ],
+      "properties": {
+        "source_commit": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}$"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "manifest_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "Hash of canonical manifest content with this field omitted."
+        },
+        "parent_run_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "evidence_uri": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uri"
+        }
+      }
+    },
+    "scientific_validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "checks",
+        "uncertainty_notes",
+        "human_review_required"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "NOT_RUN",
+            "STRUCTURAL_ONLY",
+            "PASSED",
+            "FAILED",
+            "INDETERMINATE"
+          ]
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "check_id",
+              "status",
+              "method"
+            ],
+            "properties": {
+              "check_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "NOT_RUN",
+                  "PASSED",
+                  "FAILED",
+                  "INDETERMINATE"
+                ]
+              },
+              "method": {
+                "type": "string",
+                "minLength": 1
+              },
+              "evidence_uri": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uri"
+              },
+              "notes": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        },
+        "uncertainty_notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "human_review_required": {
+          "type": "boolean"
+        },
+        "reviewer_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reviewed_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      }
+    }
+  }
+}
