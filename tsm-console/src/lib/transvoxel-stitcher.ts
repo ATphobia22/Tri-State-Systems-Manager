@@ -15,6 +15,7 @@ import {
 
 export interface TransitionCellData {
   readonly vertexCount: number;
+  readonly indexCount: number;
   readonly triangleCount: number;
   readonly triangles: readonly number[];
 }
@@ -29,6 +30,19 @@ export interface TransitionMesh {
 }
 
 export const TRANSITION_CELL_CLASS: readonly number[] = TRANSITION_CELL_CLASS_TABLE;
+
+/** Backwards-compatible, fully table-derived case map; no sparse hand-authored cases. */
+export const TRANSVOXEL_TRANSITION_CASES: Readonly<Record<number, TransitionCellData>> = Object.freeze(
+  Object.fromEntries(Array.from({ length: 512 }, (_, caseIndex) => {
+    const { classId, invertWinding } = getTransitionClass(caseIndex);
+    const row = TRANSITION_CELL_DATA_TABLE[classId]!;
+    const vertexCount = row[0] >>> 4;
+    const triangleCount = row[0] & 0x0f;
+    const triangles = row[1].slice(0, triangleCount * 3);
+    if (invertWinding) for (let i = 0; i < triangles.length; i += 3) [triangles[i + 1], triangles[i + 2]] = [triangles[i + 2]!, triangles[i + 1]!];
+    return [caseIndex, Object.freeze({ vertexCount, indexCount: triangles.length, triangleCount, triangles: Object.freeze(triangles) })] as const;
+  })),
+);
 
 export function getTransitionClass(caseIndex: number): { classId: number; invertWinding: boolean } {
   if (!Number.isInteger(caseIndex) || caseIndex < 0 || caseIndex > 511) {
