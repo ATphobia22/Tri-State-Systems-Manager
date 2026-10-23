@@ -1,0 +1,155 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-10-23T06:03:25.167Z",
+  "source_count": 10,
+  "complete_count": 9,
+  "incomplete_count": 0,
+  "missing_critical_count": 1,
+  "sources": [
+    {
+      "id": "usgs-3dep-terrain",
+      "dataset": "USGS 3DEP",
+      "authority": "USGS",
+      "horizontalCrs": "EPSG:3857",
+      "verticalDatum": "NAVD88",
+      "crsPresent": true,
+      "datumPresent": true,
+      "provenancePresent": true,
+      "missing": [],
+      "status": "COMPLETE"
+    },
+    {
+      "id": "fema-effective",
+      "dataset": "NFHL Effective",
+      "authority": "FEMA",
+      "horizontalCrs": "EPSG:4326",
+      "verticalDatum": "NAVD88",
+      "crsPresent": true,
+      "datumPresent": true,
+      "provenancePresent": true,
+      "missing": [],
+      "status": "COMPLETE"
+    },
+    {
+      "id": "indiana-bafm",
+      "dataset": "Indiana Best Available Flood Mapping",
+      "authority": "IDNR / IGIO",
+      "horizontalCrs": "EPSG:2965",
+      "verticalDatum": "NAVD88",
+      "crsPresent": true,
+      "datumPresent": true,
+      "provenancePresent": true,
+      "missing": [],
+      "status": "COMPLETE"
+    },
+    {
+      "id": "indiana-parcels-2025",
+      "dataset": "Indiana Parcels",
+      "authority": "IGIO",
+      "horizontalCrs": "EPSG:2965",
+      "verticalDatum": "NONE",
+      "crsPresent": true,
+      "datumPresent": true,
+      "provenancePresent": true,
+      "missing": [],
+      "status": "COMPLETE"
+    },
+    {
+      "id": "indiana-current-imagery",
+      "dataset": "Indiana Imagery",
+      "authority": "IGIO",
+      "horizontalCrs": "EPSG:3857",
+      "verticalDatum": "NONE",
+      "crsPresent": true,
+      "datumPresent": true,
+      "provenancePresent": true,
+      "missing": [],
+      "status": "COMPLETE"
+    },
+    {
+      "id": "usgs-03378500",
+      "dataset": "USGS Gage 03378500 stage",
+      "authority": "USGS",
+      "horizontalCrs": "EPSG:4326",
+      "verticalDatum": "UNKNOWN",
+      "crsPresent": true,
+      "datumPresent": true,
+      "provenancePresent": true,
+      "missing": [],
+      "status": "COMPLETE"
+    },
+    {
+      "id": "noaa-nwps",
+      "dataset": "NOAA NWPS",
+      "authority": "NWS",
+      "horizontalCrs": "EPSG:4326",
+      "verticalDatum": "UNKNOWN",
+      "crsPresent": true,
+      "datumPresent": true,
+      "provenancePresent": true,
+      "missing": [],
+      "status": "COMPLETE"
+    },
+    {
+      "id": "usace-nld",
+      "dataset": "USACE National Levee Database",
+      "authority": "USACE",
+      "horizontalCrs": "EPSG:4326",
+      "verticalDatum": "NAVD88",
+      "crsPresent": true,
+      "datumPresent": true,
+      "provenancePresent": true,
+      "missing": [],
+      "status": "COMPLETE"
+    },
+    {
+      "id": "point-township-historical",
+      "dataset": "Point Township historical",
+      "authority": "Local / TSM",
+      "horizontalCrs": "EPSG:4326",
+      "verticalDatum": null,
+      "crsPresent": true,
+      "datumPresent": false,
+      "provenancePresent": true,
+      "missing": [
+        "vertical_datum"
+      ],
+      "status": "MISSING_CRITICAL"
+    },
+    {
+      "id": "nfhl-s-bfe",
+      "dataset": "NFHL S_BFE",
+      "authority": "FEMA",
+      "horizontalCrs": "EPSG:4326",
+      "verticalDatum": "NAVD88",
+      "crsPresent": true,
+      "datumPresent": true,
+      "provenancePresent": true,
+      "missing": [],
+      "status": "COMPLETE"
+    }
+  ],
+  "supported_horizontal_crs": [
+    "EPSG:4326",
+    "EPSG:3857",
+    "EPSG:2965",
+    "EPSG:2966",
+    "NAD83",
+    "WGS84",
+    "local-ENU-approx"
+  ],
+  "supported_vertical_datums": [
+    "NAVD88",
+    "NGVD29",
+    "ELLIPSOID_WGS84",
+    "UNKNOWN",
+    "NONE"
+  ],
+  "notes": [
+    "Missing CRS or vertical datum is MISSING_CRITICAL — runtime must fail closed.",
+    "NGVD29↔NAVD88 is not auto-converted without published transform evidence.",
+    "Web Mercator (EPSG:3857) is never treated as engineering metres without explicit bridge.",
+    "Report does not invent CRS/datum values for incomplete catalog rows."
+  ],
+  "authority": "EVIDENCE_REPORT"
+}
