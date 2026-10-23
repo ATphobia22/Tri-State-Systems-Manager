@@ -21,3 +21,31 @@ export function assertPromotableSnapshot(manifest:GovernmentSnapshotManifest):vo
  if(!manifest.horizontalCrs)throw new Error('SNAPSHOT_HORIZONTAL_CRS_REQUIRED');
  if(!manifest.acquisitionDate)throw new Error('SNAPSHOT_ACQUISITION_DATE_REQUIRED');
 }
+
+function canonicalJson(value:unknown):string {
+ if(value===null||typeof value!=='object')return JSON.stringify(value)??'null';
+ if(Array.isArray(value))return '['+value.map(canonicalJson).join(',')+']';
+ const record=value as Record<string,unknown>;
+ return '{'+Object.keys(record).sort().map(key=>JSON.stringify(key)+':'+canonicalJson(record[key])).join(',')+'}';
+}
+function hashCanonical(value:unknown):string{return createHash('sha256').update(canonicalJson(value)).digest('hex');}
+export interface DatasetAttestationInput {
+ readonly sourceId:string;readonly datasetVersion:string;readonly retrievedAt:string;
+ readonly metadata:Readonly<Record<string,unknown>>;readonly features:readonly unknown[];
+ readonly validatorVersion:string;readonly parentHash?:string;
+}
+export interface DatasetAttestation {
+ readonly metadataHash:string;readonly featureHashes:readonly string[];readonly datasetHash:string;
+ readonly evidenceHash:string;readonly attestationHash:string;readonly featureCount:number;
+}
+export function createDatasetAttestation(input:DatasetAttestationInput):DatasetAttestation {
+ if(!input.sourceId.trim()||!input.datasetVersion.trim()||!input.validatorVersion.trim())throw new Error('ATTESTATION_IDENTITY_REQUIRED');
+ if(!Number.isFinite(Date.parse(input.retrievedAt)))throw new Error('ATTESTATION_RETRIEVAL_TIME_INVALID');
+ if(input.parentHash!==undefined&&!/^[a-f0-9]{64}$/.test(input.parentHash))throw new Error('ATTESTATION_PARENT_HASH_INVALID');
+ const metadataHash=hashCanonical(input.metadata);
+ const featureHashes=input.features.map(hashCanonical).sort();
+ const datasetHash=hashCanonical({sourceId:input.sourceId,datasetVersion:input.datasetVersion,retrievedAt:input.retrievedAt,metadataHash,featureHashes});
+ const evidenceHash=hashCanonical({sourceId:input.sourceId,retrievedAt:input.retrievedAt,datasetHash,metadataHash,validatorVersion:input.validatorVersion});
+ const attestationHash=hashCanonical({sourceId:input.sourceId,datasetVersion:input.datasetVersion,retrievedAt:input.retrievedAt,metadataHash,featureHashes,datasetHash,evidenceHash,validatorVersion:input.validatorVersion,parentHash:input.parentHash??null});
+ return {metadataHash,featureHashes,datasetHash,evidenceHash,attestationHash,featureCount:input.features.length};
+}
