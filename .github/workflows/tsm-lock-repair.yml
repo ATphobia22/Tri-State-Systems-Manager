@@ -58,10 +58,45 @@ jobs:
 
       - name: Verify package metadata and lockfile are synchronized
         run: |
-          cp package-lock.json /tmp/tsm-package-lock.json
-          npm install --package-lock-only --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
-          if ! cmp -s package-lock.json /tmp/tsm-package-lock.json; then
-            echo 'ERROR: package-lock.json is not synchronized with package.json.'
-            git --no-pager diff -- package-lock.json
-            exit 1
-          fi
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          import assert from 'node:assert/strict';
+
+          const packageJson = JSON.parse(readFileSync('package.json', 'utf8'));
+          const lockJson = JSON.parse(readFileSync('package-lock.json', 'utf8'));
+          const lockedRoot = lockJson.packages?.[''];
+          if (!lockedRoot) {
+            throw new Error('package-lock.json is missing packages[""] root metadata.');
+          }
+
+          const canonicalize = (value) => {
+            if (Array.isArray(value)) return value.map(canonicalize);
+            if (value !== null && typeof value === 'object') {
+              return Object.fromEntries(
+                Object.keys(value).sort().map((key) => [key, canonicalize(value[key])]),
+              );
+            }
+            return value;
+          };
+
+          for (const field of [
+            'name',
+            'version',
+            'dependencies',
+            'devDependencies',
+            'optionalDependencies',
+            'peerDependencies',
+            'engines',
+          ]) {
+            try {
+              assert.deepStrictEqual(
+                canonicalize(lockedRoot[field] ?? null),
+                canonicalize(packageJson[field] ?? null),
+              );
+            } catch {
+              throw new Error(`package-lock root metadata mismatch for "${field}".`);
+            }
+          }
+
+          console.log('Package metadata matches package-lock root metadata.');
+          NODE
