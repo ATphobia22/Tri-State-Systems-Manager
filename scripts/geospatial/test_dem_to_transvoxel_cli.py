@@ -42,7 +42,7 @@ class DemToTransvoxelAdapterTests(unittest.TestCase):
         cell = self._cell()
         cell["samples"] = [(-1.0 if index == 0 else 1.0) for index in range(9)]
         baseline = MESHER._polygonize(cell)
-        cell["samples"][6] = 2.0
+        cell["samples"][8] = 2.0
         changed = MESHER._polygonize(cell)
         self.assertNotEqual(baseline["vertices"], changed["vertices"])
 
