@@ -50,14 +50,14 @@ throw "Unsupported county geometry type: $($GeoJsonGeometry.type)"
 
 function Get-ArcGisFeatures {
 param([hashtable]$Source,[string]$Fips)
-$metadata=Invoke-RestMethod -Method Get -Uri "$($Source.Url)?f=pjson" -TimeoutSec 120
+$metadata=Invoke-RestMethodWithRetry -Uri "$($Source.Url)?f=pjson" -TimeoutSec 120 -MaxAttempts 4
 if($metadata.error){throw($metadata.error|ConvertTo-Json -Depth 20)}
 $pageSize=[int]$metadata.maxRecordCount;if($pageSize -lt 1){$pageSize=1000}
 $supportsPagination=[bool]$metadata.advancedQueryCapabilities.supportsPagination
 if($Source.Mode -eq "id-chunk"){
   $all=[System.Collections.Generic.List[object]]::new()
   $idUri="$($Source.Url)/query?where=$([uri]::EscapeDataString($Source.Where))&returnIdsOnly=true&f=json"
-  $idResponse=Invoke-RestMethod -Method Get -Uri $idUri -TimeoutSec 300
+  $idResponse=Invoke-RestMethodWithRetry -Uri $idUri -TimeoutSec 300 -MaxAttempts 4
   if($idResponse.error){throw($idResponse.error|ConvertTo-Json -Depth 20)}
   $objectIds=@($idResponse.objectIds|Sort-Object {[int64]$_})
   if($objectIds.Count -eq 0){throw "Required source returned zero object IDs for FIPS ${Fips}: $($Source.Url)"}
