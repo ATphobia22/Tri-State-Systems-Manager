@@ -59,6 +59,20 @@ class ProductionBridgeContractTests(unittest.TestCase):
         from transvoxel_transition_mesh import _transition_endpoint_sample_index
         self.assertEqual([_transition_endpoint_sample_index(i) for i in range(9, 13)], [0, 2, 6, 8])
 
+    def test_real_dem_sdf_canonicalizes_float_noise_at_isosurface(self):
+        import importlib.util
+        benchmark_path = SCRIPT_DIR / "benchmark-real-dem-transvoxel.py"
+        spec = importlib.util.spec_from_file_location("real_dem_transvoxel_benchmark", benchmark_path)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        benchmark = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(benchmark)
+        self.assertEqual(benchmark._stable_sdf_sample(120.0, 120.0 + 5e-6), 0.0)
+        self.assertLess(benchmark._stable_sdf_sample(119.999, 120.0), 0.0)
+        self.assertGreater(benchmark._stable_sdf_sample(120.001, 120.0), 0.0)
+        with self.assertRaisesRegex(ValueError, "finite"):
+            benchmark._stable_sdf_sample(float("nan"), 120.0)
+
     def test_neighbor_query_rejects_unknown_face(self):
         root = bridge.Node(0, 0, 0, 8, 0)
         with self.assertRaisesRegex(ValueError, "unknown face"):
