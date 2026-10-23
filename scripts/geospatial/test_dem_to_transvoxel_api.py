@@ -55,6 +55,28 @@ class ProductionBridgeContractTests(unittest.TestCase):
         self.assertIs(balanced, root)
         self.assertTrue(bridge.get_leaves(balanced))
 
+    def test_transition_mesher_uses_official_row_major_coarse_corner_reuse(self):
+        from transvoxel_transition_mesh import _corner_uv, _transition_endpoint_sample_index
+
+        self.assertEqual([_transition_endpoint_sample_index(i) for i in range(9, 13)], [0, 2, 6, 8])
+        self.assertEqual(
+            [_corner_uv(i) for i in range(9, 13)],
+            [(0.0, 0.0), (1.0, 0.0), (0.0, 1.0), (1.0, 1.0)],
+        )
+
+    def test_seam_validator_intersects_triangle_edges_with_shared_plane(self):
+        import importlib.util
+
+        benchmark_path = SCRIPT_DIR / "benchmark-real-dem-transvoxel.py"
+        spec = importlib.util.spec_from_file_location("real_dem_transvoxel_benchmark", benchmark_path)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        benchmark = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(benchmark)
+        vertices = [(0.0, 0.0, 0.0), (1.0, 1.0, 0.0), (1.0, -1.0, 0.0)]
+        seam = benchmark._seam_intersection_key(vertices, [(0, 1, 2)], axis=1, coordinate=0.0)
+        self.assertEqual(seam, ("0.00,0.00,0.00", "1.00,0.00,0.00"))
+
     def test_height_sampler_rejects_extrapolation_and_nonfinite_inputs(self):
         height = bridge.make_height_sampler(np.arange(16, dtype=float).reshape(4, 4), 2.0)
         self.assertAlmostEqual(height(2.0, 2.0), 5.0)
