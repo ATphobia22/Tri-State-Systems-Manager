@@ -115,7 +115,7 @@ def main() -> int:
         )
         values = dataset.read(1, masked=False)
         dataset_valid = dataset.dataset_mask() > 0
-        valid = inside & dataset_valid & np.isfinite(values)
+        valid = inside & dataset_valid & np.isfinite(values) & (values != -999999.0)
         if dataset.nodata is not None:
             valid &= values != dataset.nodata
         inside_count = int(np.count_nonzero(inside))
