@@ -50,6 +50,20 @@ Thumbs.db
 .next/
 *.tgz
 
+# Rust/Cargo build output (Tauri desktop builds)
+**/target/
+
+# Python test/type/lint caches and coverage output
+.pytest_cache/
+**/.pytest_cache/
+.mypy_cache/
+**/.mypy_cache/
+.ruff_cache/
+**/.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
 # Native C++ dependency/bootstrap outputs
 .native-tools/
 native/dependencies/vcpkg_installed/
