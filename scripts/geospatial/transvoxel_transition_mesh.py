@@ -87,18 +87,18 @@ def _edge_endpoints(code: int) -> Tuple[int, int]:
 
 
 def _corner_uv(i: int) -> Tuple[float, float]:
+    """Official Transvoxel endpoint order: perimeter samples 0..7, then center 8."""
     mapping = {
         0: (0.0, 0.0), 1: (0.5, 0.0), 2: (1.0, 0.0),
-        3: (0.0, 0.5), 4: (0.5, 0.5), 5: (1.0, 0.5),
-        6: (0.0, 1.0), 7: (0.5, 1.0), 8: (1.0, 1.0),
-        # Coarse-side corner slots map to the four corners of the 3x3 face.
+        3: (1.0, 0.5), 4: (1.0, 1.0), 5: (0.5, 1.0),
+        6: (0.0, 1.0), 7: (0.0, 0.5), 8: (0.5, 0.5),
+        # Opposite-face corners reuse the scalar values at official fine endpoints 0, 2, 6, 4.
         9: (0.0, 0.0), 10: (1.0, 0.0),
         11: (0.0, 1.0), 12: (1.0, 1.0),
     }
     if i not in mapping:
         raise ValueError(f"transition vertex endpoint must be 0..12, got {i}")
     return mapping[i]
-
 
 def face_point(origin: Vec3, axis: int, extent: float, u: float, v: float) -> Vec3:
     p = [origin[0], origin[1], origin[2]]
@@ -127,9 +127,11 @@ def _transition_point(origin: Vec3, axis: int, extent: float, endpoint: int, dir
 
 
 def _transition_endpoint_sample_index(endpoint: int) -> int:
-    """Scalar sample index follows its spatial endpoint; coarse-face values are independent."""
-    if 0 <= endpoint < 13:
+    """Map table endpoint IDs to the nine independent scalar samples."""
+    if 0 <= endpoint < 9:
         return endpoint
+    if 9 <= endpoint < 13:
+        return (0, 2, 6, 4)[endpoint - 9]
     raise ValueError(f"transition vertex endpoint must be 0..12, got {endpoint}")
 
 
@@ -151,15 +153,9 @@ def interpolate_edge(sdf, origin, axis, extent, i0, i1, iso=0.0, direction=1, fi
 
 def mesh_transition_cell(sdf, origin, axis, extent, iso=0.0, direction=1):
     data = _load_data()
+    # The 9 values are sampled in official table endpoint order (perimeter, then center).
+    # Coarse-face corners duplicate fine endpoints 0, 2, 6, and 4 by definition.
     samples = sample_face_sdfs(sdf, origin, axis, extent)
-    # The nine fine-face samples select the case. The four coarse-face corner
-    # samples are evaluated at their actual opposite-face positions for edge
-    # interpolation; reusing fine-face values creates cracks on sloped fields.
-    coarse_samples = [
-        float(sdf(*_transition_point(origin, axis, extent, endpoint, direction)))
-        for endpoint in range(9, 13)
-    ]
-    endpoint_samples = samples + coarse_samples
     case = compute_case_index(samples, iso)
     if case is None:
         return [], [], {"case": None, "class_id": None}
@@ -176,7 +172,7 @@ def mesh_transition_cell(sdf, origin, axis, extent, iso=0.0, direction=1):
         if code == 0xFFFF:
             break
         i0, i1 = _edge_endpoints(code)
-        cell_verts.append(interpolate_edge(sdf, origin, axis, extent, i0, i1, iso, direction, fine_samples=endpoint_samples))
+        cell_verts.append(interpolate_edge(sdf, origin, axis, extent, i0, i1, iso, direction, fine_samples=samples))
     if len(cell_verts) < vcount:
         raise ValueError(f"case {case} needs {vcount} vertices but table supplied {len(cell_verts)}")
     cell_verts = cell_verts[:vcount]
@@ -216,7 +212,7 @@ def self_test() -> None:
     _load_data()
     tested = 0
     # Exhaust all 512 fine-side masks on all six signed face orientations.
-    # The case uses the nine fine-side samples; four coarse-side samples are evaluated at the actual opposite face.
+    # The nine samples are ordered by the official table endpoint IDs; coarse corners reuse fine endpoint values 0, 2, 6, and 4.
     for axis in range(3):
         a, b = (axis + 1) % 3, (axis + 2) % 3
         for direction in (-1, 1):
