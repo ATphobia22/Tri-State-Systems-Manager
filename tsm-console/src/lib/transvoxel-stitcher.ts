@@ -2,7 +2,7 @@
  * Table-driven Transvoxel transition-cell mesher.
  * Table source: Eric Lengyel, https://github.com/EricLengyel/Transvoxel (MIT).
  *
- * The nine fine-side samples determine the 9-bit case. Coarse-side slots 9..12 are spatial positions whose scalar values duplicate fine-face samples [0, 2, 8, 6].
+ * The nine fine-side samples determine the 9-bit case. Coarse-side slots 9..12 are spatial positions whose scalar values duplicate fine-face samples [0, 2, 6, 8].
  * All 13 xyz positions follow the official transitionVertexData edge encoding.
  */
 import {
@@ -127,7 +127,7 @@ export class TransvoxelStitcher {
       if (endpointA > 12 || endpointB > 12) {
         throw new Error(`Invalid transition edge endpoints ${endpointA},${endpointB} for case ${caseIndex}`);
       }
-      const endpointSampleIndex = (endpoint: number): number => endpoint < 9 ? endpoint : [0, 2, 8, 6][endpoint - 9]!;
+      const endpointSampleIndex = (endpoint: number): number => endpoint < 9 ? endpoint : [0, 2, 6, 8][endpoint - 9]!;
       const a = sdf[endpointSampleIndex(endpointA)]!;
       const b = sdf[endpointSampleIndex(endpointB)]!;
       const denominator = a - b;
