@@ -1,0 +1,9 @@
+{
+  "name": "@tsm-uacf/government",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./fabric": "./src/index.ts"
+  }
+}
