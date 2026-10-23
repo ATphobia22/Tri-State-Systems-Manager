@@ -1,0 +1,89 @@
+{
+  "schema_version": "1.0.0",
+  "registry_id": "tsm-incomplete-capability-registry",
+  "generated_at": "2026-10-23",
+  "policy": "Technology informs people; it does not silently govern people. Human authority remains final.",
+  "status_enum": ["PLANNED", "PARTIAL", "IMPLEMENTED", "GATED_OPERATOR", "REJECTED"],
+  "capabilities": [
+    {
+      "id": "webgpu-terrain-presentation",
+      "status": "PARTIAL",
+      "authority_class": "PRESENTATION",
+      "summary": "Source-bound WebGPU terrain raytracer with explicit provenance; MapLibre WebGL remains primary.",
+      "code_paths": [
+        "tsm-console/src/gpu/open-world-raytracer.ts",
+        "tsm-console/src/gpu/photorealTerrain.wgsl",
+        "tsm-console/src/gpu/webgpu-camera-bridge.ts",
+        "tsm-console/src/components/WebGpuTerrainCanvas.tsx"
+      ],
+      "remaining": [
+        "Caller must supply verified height/satellite GPUTextures (no fabricated textures).",
+        "Explicit metric-local camera matrices via webgpu-camera-bridge (no silent Web Mercator).",
+        "Optional overlay only; never replaces MapLibre authority path."
+      ]
+    },
+    {
+      "id": "webgpu-ndvi-compute",
+      "status": "IMPLEMENTED",
+      "authority_class": "ANALYSIS",
+      "summary": "Transient NDVI compute kernels; no evidence ledger writes.",
+      "code_paths": ["tsm-console/src/webgpu/compute_ndvi.ts", "tsm-console/src/gpu/TurboVecWebGPU.ts"]
+    },
+    {
+      "id": "gpu-compute-culling",
+      "status": "PLANNED",
+      "authority_class": "PRESENTATION",
+      "summary": "GPU-compute frustum/occlusion culling not implemented; MapLibre custom-layer path retained.",
+      "remaining": ["Deferred until measured CPU culling is a proven bottleneck on Posey AOI."]
+    },
+    {
+      "id": "cs-asset-swapping",
+      "status": "PLANNED",
+      "authority_class": "PRESENTATION",
+      "summary": "Component-complexity and semantic-depth resource swapping require registered C/S variants and a network resource manifest.",
+      "remaining": ["Building tiles lack registered C/S variants; scheduler remains plan-only."]
+    },
+    {
+      "id": "openusd-houdini-interchange",
+      "status": "PLANNED",
+      "authority_class": "PRESENTATION",
+      "summary": "OpenUSD/Houdini interchange adapter — presentation/asset only.",
+      "source": "docs/TSM-EXTERNAL-REPOSITORY-CAPABILITY-MATRIX-2026-09-28.md"
+    },
+    {
+      "id": "opencue-render-farm",
+      "status": "PLANNED",
+      "authority_class": "COMPUTE",
+      "summary": "OpenCue worker adapter — compute/rendering only.",
+      "source": "docs/TSM-EXTERNAL-REPOSITORY-CAPABILITY-MATRIX-2026-09-28.md"
+    },
+    {
+      "id": "rayshader-terrain-viz",
+      "status": "PLANNED",
+      "authority_class": "PRESENTATION",
+      "summary": "rayshader reference visualization — never authoritative elevation.",
+      "source": "docs/TSM-EXTERNAL-REPOSITORY-CAPABILITY-MATRIX-2026-09-28.md"
+    },
+    {
+      "id": "4d-gaussian-splats",
+      "status": "PLANNED",
+      "authority_class": "PRESENTATION",
+      "summary": "4D Gaussian splat flood replay as SIMULATION_DEMO only.",
+      "source": "docs/INTEGRATION-BACKLOG-FROM-REPO-SCAN-2026-10-08.md"
+    },
+    {
+      "id": "fema-loma-external-filing",
+      "status": "GATED_OPERATOR",
+      "authority_class": "REGULATORY_REFERENCE",
+      "summary": "Prepare LOMA evidence only; no automatic FEMA filing.",
+      "governance": "human_approval_required"
+    },
+    {
+      "id": "gage-zero-navd88-conversion",
+      "status": "GATED_OPERATOR",
+      "authority_class": "OBSERVATION",
+      "summary": "Gage-zero to NAVD88 remains unpublished until SIR/NWPS conflict resolved.",
+      "governance": "conversionPublished=false fail-closed"
+    }
+  ]
+}

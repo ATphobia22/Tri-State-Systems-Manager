@@ -1,0 +1,72 @@
+{
+  "schema_version": "1.0.0",
+  "registry_id": "tsm-release-gap-registry",
+  "generated_at": "2026-10-23",
+  "policy": "A checked-in implementation is not verified until applicable CI passes. Human authority remains final.",
+  "sources": [
+    "docs/3D-TILES-GPU-ROADMAP-BLOCKERS-2026-10-18.md",
+    "docs/PRODUCTION-READINESS-GAP-CLOSURE-2026-09-18.md",
+    "docs/INTEGRATION-BACKLOG-FROM-REPO-SCAN-2026-10-08.md",
+    "docs/WEBGPU-PRESENTATION-CONTRACT.md"
+  ],
+  "gaps": [
+    {
+      "id": "gap-webgpu-host-bridge",
+      "severity": "medium",
+      "status": "CLOSED_2026-10-23",
+      "summary": "WebGPU terrain host required explicit metric camera bridge and React canvas host without fabricated textures.",
+      "closure": [
+        "tsm-console/src/gpu/webgpu-camera-bridge.ts",
+        "tsm-console/src/components/WebGpuTerrainCanvas.tsx",
+        "tsm-console/tests/webgpu-camera-bridge-contract.test.mjs"
+      ]
+    },
+    {
+      "id": "gap-npm-audit-high-braces",
+      "severity": "high",
+      "status": "WAIVED_DOCUMENTED",
+      "summary": "GHSA-vfj7-8cjw-p6xm braces via @gltf-transform/cli dev-only; no upstream patch.",
+      "closure": [
+        "scripts/ci/validate-npm-audit.mjs",
+        "docs/security/NPM-AUDIT-EXCEPTIONS.md",
+        ".github/workflows/ci.yml npm audit gate"
+      ]
+    },
+    {
+      "id": "gap-gpu-compute-culling",
+      "severity": "low",
+      "status": "OPEN",
+      "summary": "GPU-compute culling not implemented; MapLibre path retained."
+    },
+    {
+      "id": "gap-cs-resource-manifest",
+      "severity": "low",
+      "status": "OPEN",
+      "summary": "C/S asset swapping needs registered variants and network resource manifest."
+    },
+    {
+      "id": "gap-renderer-cache-bytes",
+      "severity": "medium",
+      "status": "OPEN",
+      "summary": "Replace maxMemoryMB with maxCacheBytes / queue / errorTarget when TilesRenderer is integrated."
+    },
+    {
+      "id": "gap-operator-secrets",
+      "severity": "high",
+      "status": "GATED_OPERATOR",
+      "summary": "Keycloak, production API origin, Databricks, Kafka, Ed25519 signing key, sealed LOMA survey evidence cannot be invented by the repository."
+    },
+    {
+      "id": "gap-loma-26-05-2022A",
+      "severity": "high",
+      "status": "GATED_OPERATOR",
+      "summary": "Layer-2 response for case 26-05-2022A before FEMA letter deadline; human filing only."
+    },
+    {
+      "id": "gap-vitest-lock-5.0.5",
+      "severity": "low",
+      "status": "OPEN",
+      "summary": "package.json requires vitest ^5.0.5; lockfile refresh may still be pending on main."
+    }
+  ]
+}
