@@ -9,6 +9,7 @@ import {
   type WebGpuTerrainSource,
   type WebGpuRenderParameters,
 } from '../gpu/open-world-raytracer';
+import type { GpuHZAabbCandidate } from '../lib/webgpu-hierarchical-z-cull';
 import {
   bridgeMapLibreCameraToWebGpu,
   type MapLibreCameraSnapshot,
@@ -21,6 +22,10 @@ export interface WebGpuTerrainCanvasProps {
   readonly origin: MetricLocalOrigin;
   readonly camera: MapLibreCameraSnapshot;
   readonly bindSource?: (device: GPUDevice) => Promise<WebGpuTerrainSource | null>;
+  /** Optional projected terrain-chunk bounds. No synthetic candidates are generated. */
+  readonly occlusionCandidates?: readonly GpuHZAabbCandidate[];
+  /** Called only when GPU H-Z classification ran for the supplied candidates. */
+  readonly onOcclusionResults?: (visibility: Uint32Array) => void;
   readonly activeWaterStageMeters?: number | null;
   readonly className?: string;
 }
@@ -147,20 +152,32 @@ export default function WebGpuTerrainCanvas(props: WebGpuTerrainCanvasProps): Re
 
   useEffect(() => {
     if (!ready || !tracerRef.current) return;
-    try {
-      const bridged = bridgeMapLibreCameraToWebGpu(props.camera, props.origin);
-      const params: WebGpuRenderParameters = {
-        inverseViewProjection: bridged.inverseViewProjection,
-        cameraPositionMeters: bridged.cameraPositionMeters,
-        timeSeconds: performance.now() / 1000,
-        sunDirection: [0.4, 0.85, 0.35],
-        activeWaterStageMeters: props.activeWaterStageMeters ?? null,
-      };
-      tracerRef.current.renderFrame(params);
-    } catch (err) {
-      setStatus(`Camera bridge error: ${err instanceof Error ? err.message : String(err)}`);
-    }
-  }, [ready, props.camera, props.origin, props.activeWaterStageMeters]);
+    let cancelled = false;
+    const render = async (): Promise<void> => {
+      try {
+        const bridged = bridgeMapLibreCameraToWebGpu(props.camera, props.origin);
+        const params: WebGpuRenderParameters = {
+          inverseViewProjection: bridged.inverseViewProjection,
+          cameraPositionMeters: bridged.cameraPositionMeters,
+          timeSeconds: performance.now() / 1000,
+          sunDirection: [0.4, 0.85, 0.35],
+          activeWaterStageMeters: props.activeWaterStageMeters ?? null,
+        };
+        const tracer = tracerRef.current;
+        if (!tracer) return;
+        if (props.occlusionCandidates && props.occlusionCandidates.length > 0) {
+          const visibility = await tracer.renderFrameWithOcclusion(params, props.occlusionCandidates);
+          if (!cancelled) props.onOcclusionResults?.(visibility);
+        } else {
+          tracer.renderFrame(params);
+        }
+      } catch (err) {
+        if (!cancelled) setStatus(`Camera/H-Z rendering error: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    };
+    void render();
+    return () => { cancelled = true; };
+  }, [ready, props.camera, props.origin, props.activeWaterStageMeters, props.occlusionCandidates, props.onOcclusionResults]);
 
   return (
     <div className={props.className} style={{ position: 'relative', width: props.width, height: props.height }}>
