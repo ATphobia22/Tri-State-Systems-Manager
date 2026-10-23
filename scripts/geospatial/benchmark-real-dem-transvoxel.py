@@ -44,6 +44,14 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _stable_sdf_sample(z: float, height: float, tolerance_m: float = 1e-5) -> float:
+    """Bias near-zero float32 DEM samples consistently positive to avoid exact-corner ambiguity."""
+    if not math.isfinite(z) or not math.isfinite(height) or not math.isfinite(tolerance_m) or tolerance_m < 0:
+        raise ValueError("SDF inputs must be finite and tolerance must be nonnegative")
+    distance = float(z) - float(height)
+    return tolerance_m if abs(distance) <= tolerance_m else distance
+
+
 def _rss_bytes() -> int:
     value = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     # Linux reports KiB; macOS reports bytes. This CI runs on Linux, but retain
@@ -52,11 +60,16 @@ def _rss_bytes() -> int:
 
 
 def _seam_key(vertices: list[tuple[float, float, float]], axis: int, coordinate: float) -> tuple[str, ...]:
-    unique = {
-        ",".join(f"{value:.2f}" for value in point)
-        for point in vertices
-        if abs(point[axis] - coordinate) <= SEAM_TOLERANCE_METERS
-    }
+    # Positional seam tolerance is 2 cm; plane membership must be much tighter.
+    # Otherwise near-face interior vertices can be falsely counted as seam points.
+    plane_epsilon_m = 1e-4
+    unique = set()
+    for point in vertices:
+        if abs(point[axis] - coordinate) > plane_epsilon_m:
+            continue
+        normalized = list(point)
+        normalized[axis] = coordinate
+        unique.add(",".join(f"{value:.2f}" for value in normalized))
     return tuple(sorted(unique))
 
 
@@ -134,6 +147,14 @@ def run_benchmark(raster_path: Path, evidence_path: Path, output_path: Path, pat
     def height_at(x: float, y: float) -> float:
         col_corner, row_corner = inverse * (x, y)
         col_f, row_f = col_corner - 0.5, row_corner - 0.5
+        # Shared cell boundaries can land a few ulps either side of an integer
+        # after affine inversion. Snap only within a tiny pixel-space tolerance
+        # so adjacent cells sample the identical raster row/column deterministically.
+        nearest_col, nearest_row = round(col_f), round(row_f)
+        if abs(col_f - nearest_col) <= 1e-6:
+            col_f = float(nearest_col)
+        if abs(row_f - nearest_row) <= 1e-6:
+            row_f = float(nearest_row)
         c0, r0 = math.floor(col_f), math.floor(row_f)
         fx, fy = col_f - c0, row_f - r0
         if r0 < 0 or c0 < 0 or r0 + 1 >= height or c0 + 1 >= width:
@@ -162,7 +183,9 @@ def run_benchmark(raster_path: Path, evidence_path: Path, output_path: Path, pat
             z_cell = z_min + k * CELL_SIZE_METERS
 
             def sdf(x: float, y: float, z: float) -> float:
-                return z - height_at(x, y)
+                # Canonicalize near-iso values so shared cells cannot classify
+                # the same boundary sample with opposite signs due to float32/ulp noise.
+                return _stable_sdf_sample(z, height_at(x, y))
 
             tested_cells += 1
             try:
