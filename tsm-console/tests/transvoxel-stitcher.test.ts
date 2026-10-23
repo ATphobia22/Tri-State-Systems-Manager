@@ -11,6 +11,7 @@ function transitionCellInput(
 ): { sdf: Float32Array; positions: Float32Array } {
   const tangentA = (axis + 1) % 3;
   const tangentB = (axis + 2) % 3;
+  // Vertex endpoint positions are row-major; case-bit mapping is validated separately.
   const uv: Array<readonly [number, number]> = [
     [0, 0], [0.5, 0], [1, 0],
     [0, 0.5], [0.5, 0.5], [1, 0.5],
@@ -62,14 +63,14 @@ describe('official Transvoxel transition mesher', () => {
     sdf[0] = -1;
     sdf[1] = -1; sdf[4] = -1;
     const p = new Float32Array(39);
-    const coords = [[0,0,0],[0.5,0,0],[1,0,0],[0,0.5,0],[0.5,0.5,0],[1,0.5,0],[0,1,0],[0.5,1,0],[1,1,0],[0,0,1],[1,0,1],[1,1,1],[0,1,1]];
+    const coords = [[0,0,0],[0.5,0,0],[1,0,0],[0,0.5,0],[0.5,0.5,0],[1,0.5,0],[0,1,0],[0.5,1,0],[1,1,0],[0,0,1],[1,0,1],[0,1,1],[1,1,1]];
     coords.forEach((v,i)=>v.forEach((n,a)=>p[i*3+a]=n));
     const mesh = TransvoxelStitcher.polygonizeTransitionCell(sdf,p);
     expect(mesh.indices.length % 3).toBe(0);
     expect(mesh.positions.every(Number.isFinite)).toBe(true);
     expect(mesh.indices.every((v)=>v < mesh.positions.length / 3)).toBe(true);
   });
-  it('reuses the correct fine-corner scalar for each coarse-side endpoint', () => {
+  it('reuses canonical fine-corner scalars for coarse-side endpoints', () => {
     const sdf = new Float32Array(9).fill(1);
     sdf[0] = -1;
     const positions = new Float32Array(39);
@@ -77,13 +78,21 @@ describe('official Transvoxel transition mesher', () => {
     coords.forEach((v,i)=>v.forEach((n,a)=>positions[i*3+a]=n));
     const mesh = TransvoxelStitcher.polygonizeTransitionCell(sdf, positions);
     const changedCorner = sdf.slice();
-    changedCorner[8] = -2;
+    changedCorner[6] = 2;
     const changedMesh = TransvoxelStitcher.polygonizeTransitionCell(changedCorner, positions);
     expect(Array.from(mesh.positions)).not.toEqual(Array.from(changedMesh.positions));
-    expect(() => TransvoxelStitcher.polygonizeTransitionCell(new Float32Array(13), positions)).toThrow(/9 fine-side scalar samples/);
+    expect(() => TransvoxelStitcher.polygonizeTransitionCell(new Float32Array(12), positions)).toThrow(/9 row-major scalar samples/);
+  });
+  it('maps row-major scalar samples to official case bits', () => {
+    const caseBitForSample = [0, 1, 2, 7, 8, 3, 6, 5, 4] as const;
+    for (let mask = 0; mask < 512; mask++) {
+      const samples = new Float32Array(9);
+      for (let i = 0; i < 9; i++) samples[i] = (mask & (1 << caseBitForSample[i]!)) ? -1 : 1;
+      expect(TransvoxelStitcher.evaluateTransitionCase(samples)).toBe(mask);
+    }
   });
   it('matches intersection vertices across adjacent transition cells', () => {
-    const sdfAt = (_x: number, y: number, _z: number) => 0.37 * y - 0.15;
+    const sdfAt = (x: number, y: number, _z: number) => 0.37 * y + 0.1 * x - 0.4;
     for (const direction of [-1, 1] as const) {
       const leftInput = transitionCellInput([0, 0, 0], 2, 1, direction, sdfAt);
       const rightInput = transitionCellInput([1, 0, 0], 2, 1, direction, sdfAt);
@@ -96,8 +105,8 @@ describe('official Transvoxel transition mesher', () => {
     }
   });
   it('rejects incomplete and non-finite sample fields', () => {
-    expect(() => TransvoxelStitcher.polygonizeTransitionCell(new Float32Array(8),new Float32Array(39))).toThrow(/9 fine-side scalar samples/);
-    const sdf = new Float32Array(9); sdf[8] = Number.NaN;
+    expect(() => TransvoxelStitcher.polygonizeTransitionCell(new Float32Array(8),new Float32Array(39))).toThrow(/9 row-major scalar samples/);
+    const sdf = new Float32Array(9); sdf[6] = Number.NaN;
     expect(() => TransvoxelStitcher.polygonizeTransitionCell(sdf,new Float32Array(39))).toThrow(/Non-finite/);
   });
 });

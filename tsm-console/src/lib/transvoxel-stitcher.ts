@@ -2,7 +2,7 @@
  * Table-driven Transvoxel transition-cell mesher.
  * Table source: Eric Lengyel, https://github.com/EricLengyel/Transvoxel (MIT).
  *
- * The nine fine-side samples determine the 9-bit case; coarse-side slots 9..12 reuse the corresponding fine-corner scalar values.
+ * Scalar input and endpoint positions 0..8 are row-major; case bits use the official permutation (0,1,2,7,8,3,6,5,4). Coarse positions reuse scalars 0, 2, 8, and 6 in canonical perimeter order.
  * All 13 xyz positions follow the official transitionVertexData edge encoding.
  */
 import {
@@ -61,16 +61,17 @@ export const TRANSVOXEL_TRANSITION_CASES: Readonly<Record<number, TransitionCell
 );
 
 export class TransvoxelStitcher {
-  /** Case bits follow the official transitionCellClass table: negative = solid. */
+  /** Case bits follow the official transitionCellClass permutation from row-major samples: negative = solid. */
   public static evaluateTransitionCase(cornerSdfs: Float32Array): number {
     if (cornerSdfs.length !== 9) {
       throw new Error(`Expected 9 fine-side SDF values, got ${cornerSdfs.length}`);
     }
+    const caseBitForSample = [0, 1, 2, 7, 8, 3, 6, 5, 4] as const;
     let caseIndex = 0;
     for (let i = 0; i < 9; i++) {
       const value = cornerSdfs[i]!;
       if (!Number.isFinite(value)) throw new Error(`Non-finite SDF at fine sample ${i}`);
-      if (value < 0) caseIndex |= 1 << i;
+      if (value < 0) caseIndex |= 1 << caseBitForSample[i]!;
     }
     return caseIndex;
   }
@@ -91,11 +92,11 @@ export class TransvoxelStitcher {
   }
 
   /**
-   * Polygonize one official transition cell. sdf has 9 independent fine-face scalar samples and positions has 13 xyz triplets.
+   * Polygonize one official transition cell. sdf has 9 independent scalar values in official table endpoint order; positions has 13 xyz triplets.
    */
   public static polygonizeTransitionCell(sdf: Float32Array, positions: Float32Array): TransitionMesh {
     if (sdf.length !== 9) {
-      throw new Error(`Expected 9 fine-side scalar samples, got ${sdf.length}`);
+      throw new Error(`Expected 9 row-major scalar samples, got ${sdf.length}`);
     }
     if (positions.length !== 39) {
       throw new Error(`Expected 13 xyz positions (39 floats), got ${positions.length}`);
@@ -127,7 +128,7 @@ export class TransvoxelStitcher {
       if (endpointA > 12 || endpointB > 12) {
         throw new Error(`Invalid transition edge endpoints ${endpointA},${endpointB} for case ${caseIndex}`);
       }
-      const endpointSampleIndex = (endpoint: number): number => endpoint < 9 ? endpoint : [0, 2, 6, 8][endpoint - 9]!;
+      const endpointSampleIndex = (endpoint: number): number => endpoint < 9 ? endpoint : [0, 2, 6, 4][endpoint - 9]!;
       const a = sdf[endpointSampleIndex(endpointA)]!;
       const b = sdf[endpointSampleIndex(endpointB)]!;
       const denominator = a - b;

@@ -87,18 +87,17 @@ def _edge_endpoints(code: int) -> Tuple[int, int]:
 
 
 def _corner_uv(i: int) -> Tuple[float, float]:
+    """Spatial endpoint IDs are row-major; case bits use a separate official permutation."""
     mapping = {
         0: (0.0, 0.0), 1: (0.5, 0.0), 2: (1.0, 0.0),
         3: (0.0, 0.5), 4: (0.5, 0.5), 5: (1.0, 0.5),
         6: (0.0, 1.0), 7: (0.5, 1.0), 8: (1.0, 1.0),
-        # Coarse-side corner slots map to the four corners of the 3x3 face.
         9: (0.0, 0.0), 10: (1.0, 0.0),
-        11: (0.0, 1.0), 12: (1.0, 1.0),
+        11: (1.0, 1.0), 12: (0.0, 1.0),
     }
     if i not in mapping:
         raise ValueError(f"transition vertex endpoint must be 0..12, got {i}")
     return mapping[i]
-
 
 def face_point(origin: Vec3, axis: int, extent: float, u: float, v: float) -> Vec3:
     p = [origin[0], origin[1], origin[2]]
@@ -127,11 +126,11 @@ def _transition_point(origin: Vec3, axis: int, extent: float, endpoint: int, dir
 
 
 def _transition_endpoint_sample_index(endpoint: int) -> int:
+    """Map table endpoint IDs to the nine independent scalar samples."""
     if 0 <= endpoint < 9:
         return endpoint
     if 9 <= endpoint < 13:
-        # The opposite face duplicates fine-face corners in row-major order [0, 2, 6, 8].
-        return (0, 2, 6, 8)[endpoint - 9]
+        return (0, 2, 8, 6)[endpoint - 9]
     raise ValueError(f"transition vertex endpoint must be 0..12, got {endpoint}")
 
 
@@ -139,14 +138,18 @@ def interpolate_edge(sdf, origin, axis, extent, i0, i1, iso=0.0, direction=1, fi
     p0 = _transition_point(origin, axis, extent, i0, direction)
     p1 = _transition_point(origin, axis, extent, i1, direction)
     samples = fine_samples if fine_samples is not None else sample_face_sdfs(sdf, origin, axis, extent)
+    if len(samples) != 9:
+        raise ValueError(f"transition interpolation requires 9 independent scalar samples, got {len(samples)}")
     s0 = float(samples[_transition_endpoint_sample_index(i0)]) - iso
     s1 = float(samples[_transition_endpoint_sample_index(i1)]) - iso
-    t = 0.5 if abs(s0 - s1) < 1e-12 else float(np.clip(s0 / (s0 - s1), 0.0, 1.0))
+    denominator = s0 - s1
+    t = 0.5 if abs(denominator) < 1e-12 else float(np.clip(s0 / denominator, 0.0, 1.0))
     return (p0[0] + (p1[0] - p0[0]) * t, p0[1] + (p1[1] - p0[1]) * t, p0[2] + (p1[2] - p0[2]) * t)
-
 
 def mesh_transition_cell(sdf, origin, axis, extent, iso=0.0, direction=1):
     data = _load_data()
+    # Scalar samples are row-major. compute_case_index applies the official case-bit permutation.
+    # Coarse-face endpoint slots 9..12 reuse corner samples [0, 2, 8, 6] in canonical perimeter order.
     samples = sample_face_sdfs(sdf, origin, axis, extent)
     case = compute_case_index(samples, iso)
     if case is None:
@@ -204,14 +207,18 @@ def self_test() -> None:
     _load_data()
     tested = 0
     # Exhaust all 512 fine-side masks on all six signed face orientations.
-    # The opposite coarse face duplicates fine corner scalars [0, 2, 8, 6].
+    # The nine scalar samples are row-major; case bits use the official permutation and coarse corners reuse fine endpoint scalars 0, 2, 8, and 6 in the canonical transition-cell layout.
     for axis in range(3):
         a, b = (axis + 1) % 3, (axis + 2) % 3
         for direction in (-1, 1):
             for mask in range(512):
-                fine_values = [-1.0 if (mask & (1 << i)) else 1.0 for i in range(9)]
+                case_bit_for_sample = (0, 1, 2, 7, 8, 3, 6, 5, 4)
+                values = [
+                    -1.0 if (mask & (1 << case_bit_for_sample[i])) else 1.0
+                    for i in range(9)
+                ]
 
-                def case_sdf(x, y, z, fine=fine_values, cell_axis=axis, face_direction=direction):
+                def case_sdf(x, y, z, fine=values, cell_axis=axis, face_direction=direction):
                     point = (x, y, z)
                     u = min(2, max(0, int(round(point[a] * 2))))
                     v = min(2, max(0, int(round(point[b] * 2))))

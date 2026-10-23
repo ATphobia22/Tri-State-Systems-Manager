@@ -55,13 +55,21 @@ class ProductionBridgeContractTests(unittest.TestCase):
         self.assertIs(balanced, root)
         self.assertTrue(bridge.get_leaves(balanced))
 
-    def test_transition_mesher_uses_official_row_major_coarse_corner_reuse(self):
+    def test_transition_mesher_reuses_canonical_coarse_corner_samples_and_maps_case_bits(self):
         from transvoxel_transition_mesh import _corner_uv, _transition_endpoint_sample_index
 
-        self.assertEqual([_transition_endpoint_sample_index(i) for i in range(9, 13)], [0, 2, 6, 8])
+        self.assertEqual([_transition_endpoint_sample_index(i) for i in range(9, 13)], [0, 2, 6, 4])
         self.assertEqual(
             [_corner_uv(i) for i in range(9, 13)],
             [(0.0, 0.0), (1.0, 0.0), (0.0, 1.0), (1.0, 1.0)],
+        )
+        self.assertEqual(
+            [_corner_uv(i) for i in range(9)],
+            [
+                (0.0, 0.0), (0.5, 0.0), (1.0, 0.0),
+                (0.0, 0.5), (0.5, 0.5), (1.0, 0.5),
+                (0.0, 1.0), (0.5, 1.0), (1.0, 1.0),
+            ],
         )
 
     def test_seam_validator_intersects_triangle_edges_with_shared_plane(self):

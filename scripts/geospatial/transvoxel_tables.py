@@ -54,10 +54,13 @@ assert len(TRANSITION_CELL_CLASS) == 512
 def compute_case_index(corner_sdfs: list, iso: float = 0.0) -> Optional[int]:
     if len(corner_sdfs) != 9:
         raise ValueError("need 9 SDF samples")
+    # Input samples are row-major (u-fastest); Lengyel's case bits use a
+    # different 3x3 ordering. Keep this permutation separate from vertex endpoints.
+    case_bit_for_sample = (0, 1, 2, 7, 8, 3, 6, 5, 4)
     case = 0
-    for i, s in enumerate(corner_sdfs):
+    for sample_index, s in enumerate(corner_sdfs):
         if s < iso:
-            case |= 1 << i
+            case |= 1 << case_bit_for_sample[sample_index]
     if case in (0, 511):
         return None
     return case
