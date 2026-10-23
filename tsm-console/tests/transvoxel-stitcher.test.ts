@@ -89,12 +89,14 @@ describe('official Transvoxel transition mesher', () => {
         const endpointA = edge & 0x0f;
         const endpointB = (edge >>> 4) & 0x0f;
         if (endpointA < 9 && endpointB < 9) continue;
-        const a = sampleIndex(endpointA);
-        const b = sampleIndex(endpointB);
-        if (a === b || Math.sign(sdf[a]!) === Math.sign(sdf[b]!)) continue;
+        const coarseEndpoint = endpointA >= 9 ? endpointA : endpointB;
+        const otherEndpoint = endpointA >= 9 ? endpointB : endpointA;
+        const coarseSample = sampleIndex(coarseEndpoint);
+        const otherSample = sampleIndex(otherEndpoint);
+        if (coarseSample === otherSample || Math.sign(sdf[coarseSample]!) === Math.sign(sdf[otherSample]!)) continue;
         const mesh = TransvoxelStitcher.polygonizeTransitionCell(sdf, positions);
         const changed = sdf.slice();
-        changed[a] = changed[a]! * 2;
+        changed[coarseSample] = changed[coarseSample]! * 2;
         const changedMesh = TransvoxelStitcher.polygonizeTransitionCell(changed, positions);
         if (Array.from(mesh.positions).some((value, index) => value !== changedMesh.positions[index])) {
           expect(Array.from(mesh.positions)).not.toEqual(Array.from(changedMesh.positions));
