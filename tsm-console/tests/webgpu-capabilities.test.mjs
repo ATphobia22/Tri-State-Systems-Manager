@@ -10,16 +10,14 @@ test('WebGPU probe reports unsupported when API is absent', async () => {
 });
 
 test('WebGPU probe distinguishes missing adapter from unsupported API', async () => {
-  const result = await probeWebGPU({
-    requestAdapter: async () => null,
-  } as unknown as GPU);
+  const result = await probeWebGPU({ requestAdapter: async () => null });
   assert.equal(result.status, 'adapter-unavailable');
 });
 
 test('WebGPU probe catches adapter acquisition errors', async () => {
   const result = await probeWebGPU({
     requestAdapter: async () => { throw new Error('adapter blocked'); },
-  } as unknown as GPU);
+  });
   assert.equal(result.status, 'adapter-unavailable');
   assert.match(result.reason ?? '', /adapter blocked/);
 });
@@ -30,7 +28,7 @@ test('WebGPU probe reports device creation failure and adapter features', async 
       features: new Set(['timestamp-query']),
       requestDevice: async () => { throw new Error('device denied'); },
     }),
-  } as unknown as GPU);
+  });
   assert.equal(result.status, 'device-unavailable');
   assert.deepEqual(result.features, ['timestamp-query']);
   assert.match(result.reason ?? '', /device denied/);
