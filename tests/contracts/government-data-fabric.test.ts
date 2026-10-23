@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { GOVERNMENT_SOURCES, getGovernmentSource, queryGovernmentJson, validateEvidenceEnvelope, sha256 } from '../../packages/government/src/index.ts';
 import { researchSearch, type ResearchProvider } from '../../packages/research/src/government-research-fabric.ts';
+import { GovernmentDataProvider } from '../../packages/government/src/GovernmentDataProvider.ts';
 
 test('government source registry covers required authorities and uses HTTPS',()=>{
  const authorities=new Set(GOVERNMENT_SOURCES.map(s=>s.authority));
@@ -30,3 +31,5 @@ test('research fabric marks retrieved sources unverified and validates source ha
  assert.equal(result.citations[0].url,'https://example.gov/data');
  assert.equal(result.hashes.output,result.provenance.outputHash);
 });
+
+test('UACF government provider advertises only the implemented NFHL capability',async()=>{ const provider=new GovernmentDataProvider(); assert.deepEqual(provider.capabilities.map(c=>c.id),['geo.nfhl.query']); assert.equal((await provider.supports('geo.nfhl.query',{layerId:28,where:'1=1'})).supported,true); assert.equal((await provider.supports('geo.nfhl.query',{layerId:999})).supported,false); assert.equal((await provider.supports('geo.dem.query',{layerId:28})).supported,false); });
