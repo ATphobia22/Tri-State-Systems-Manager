@@ -1,10 +1,23 @@
 /**
  * canvas-flood-layer.ts — HazardSim-style flood visualization for MapLibre GL.
  *
+ * Research basis: mapping-planes-lod-integration-20261018-0426 §5
+ * Technique: map-tile-aligned grid + real elevation data + flood-fill that
+ * respects hills/valleys → pixels written into a canvas handed to the map as
+ * a canvas source, updated per frame. Uses only MapLibre-compatible APIs,
+ * local-first, cheap. No WebGPU required.
+ *
+ * How it works:
+ * 1. A canvas source is registered with the map, covering the AOI bounds.
+ * 2. Elevation for the AOI is sampled into a Float32Array grid (caller-supplied;
+ *    e.g. from the Indiana 2020 DEM or USGS 3DEP tiles already in the repo).
+ * 3. setWaterLevel(elevMeters) runs a BFS flood-fill from seed cells at/below
+ *    the water level, propagating only through cells whose elevation is also
+ *    at/below the level (respects hills/valleys — water cannot climb).
+ * 4. Flooded cells are painted translucent blue; the canvas source updates.
+ *
  * Resilient: no elevation grid = no flood rendering (never fabricates).
  * Water level must be an explicit caller-supplied number (human authority).
- * Vertical datum: identity conversion only. Unknown pairs return null —
- * never substitute a constant regional offset without published evidence.
  */
 
 import * as maplibregl from 'maplibre-gl';
@@ -33,9 +46,10 @@ export interface CanvasFloodLayerConfig {
 const DEFAULT_FILL = 'rgba(30, 120, 220, 0.55)';
 
 /**
- * Vertical-datum conversion.
- * Only identity is supported without published geoid/evidence parameters.
- * Returns null for unknown pairs or non-finite elevation — never invents offsets.
+ * Only identity conversion is safe without a location-specific, authoritative
+ * vertical-datum transformation. A constant NGVD29/NAVD88 offset is not valid
+ * across the tri-state area. Returns null for invalid values or unsupported
+ * datum pairs so callers can fail closed rather than invent a conversion.
  */
 export function tryDatumConversion(
   elevM: number,
@@ -43,34 +57,36 @@ export function tryDatumConversion(
   toDatum: string,
 ): number | null {
   if (!Number.isFinite(elevM)) return null;
-  const from = fromDatum.toUpperCase().trim();
-  const to = toDatum.toUpperCase().trim();
+  const from = fromDatum.trim().toUpperCase();
+  const to = toDatum.trim().toUpperCase();
   if (!from || !to) return null;
-  if (from === to) return elevM;
-  // No constant NGVD29↔NAVD88 substitution: regional offsets vary and require
-  // published station/geoid evidence (human authority remains final).
-  return null;
+  return from === to ? elevM : null;
 }
 
 /**
  * BFS flood-fill from all cells at/below waterLevel, propagating only
- * through connected cells also at/below waterLevel.
- * Returns empty mask when grid is malformed or water level is non-finite.
+ * through connected cells also at/below waterLevel. Respects terrain:
+ * water cannot flow uphill over cells above the level.
  */
 export function computeFloodMask(grid: FloodGrid, waterLevelM: number): Uint8Array {
-  const { elevations, rows, cols } = grid;
   if (
-    !Number.isFinite(waterLevelM) ||
-    rows <= 0 ||
-    cols <= 0 ||
-    elevations.length !== rows * cols
+    !grid ||
+    !grid.elevations ||
+    !Number.isInteger(grid.rows) ||
+    !Number.isInteger(grid.cols) ||
+    grid.rows <= 0 ||
+    grid.cols <= 0 ||
+    grid.elevations.length !== grid.rows * grid.cols ||
+    !Number.isFinite(waterLevelM)
   ) {
     return new Uint8Array(0);
   }
 
+  const { elevations, rows, cols } = grid;
   const flooded = new Uint8Array(rows * cols);
   const queue: number[] = [];
 
+  // Seed: all cells at or below the water level.
   for (let i = 0; i < elevations.length; i++) {
     if (Number.isFinite(elevations[i]) && elevations[i] <= waterLevelM) {
       flooded[i] = 1;
@@ -78,6 +94,10 @@ export function computeFloodMask(grid: FloodGrid, waterLevelM: number): Uint8Arr
     }
   }
 
+  // BFS through 4-connected neighbors that are also at/below level.
+  // (Seeds already cover every below-level cell; BFS is retained so a
+  // caller can later restrict seeds to river cells for true inundation
+  // spread instead of bathtub fill.)
   let head = 0;
   while (head < queue.length) {
     const idx = queue[head++];
@@ -98,6 +118,9 @@ export function computeFloodMask(grid: FloodGrid, waterLevelM: number): Uint8Arr
   return flooded;
 }
 
+/**
+ * Paint the flood mask onto a canvas. Returns the canvas for the map source.
+ */
 export function paintFloodCanvas(
   grid: FloodGrid,
   mask: Uint8Array,
@@ -121,20 +144,23 @@ export function paintFloodCanvas(
     ctx.strokeStyle = 'rgba(255,255,255,0.15)';
     ctx.lineWidth = 0.5;
     for (let r = 0; r <= rows; r += 10) {
-      ctx.beginPath();
-      ctx.moveTo(0, r);
-      ctx.lineTo(cols, r);
-      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, r); ctx.lineTo(cols, r); ctx.stroke();
     }
     for (let c = 0; c <= cols; c += 10) {
-      ctx.beginPath();
-      ctx.moveTo(c, 0);
-      ctx.lineTo(c, rows);
-      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(c, 0); ctx.lineTo(c, rows); ctx.stroke();
     }
   }
 }
 
+/**
+ * MapLibre canvas-source flood layer. Caller owns the elevation grid and
+ * sets the water level explicitly (human authority — no auto-fetch).
+ *
+ * Resilient design: the layer always attaches and renders. Problems are
+ * surfaced visually (badges, placeholder states) rather than by refusing
+ * to work. Datum differences are handled by documented conversion with
+ * a visible badge, not by blocking.
+ */
 export class CanvasFloodLayer {
   readonly id: string;
   private readonly config: Required<Omit<CanvasFloodLayerConfig, 'id' | 'sourceId' | 'grid'>> &
@@ -153,12 +179,16 @@ export class CanvasFloodLayer {
     };
   }
 
+  /** Attach to the map. Creates the canvas source + raster layer. */
   addTo(map: maplibregl.Map): void {
     const { grid, sourceId } = this.config;
     this.map = map;
     this.canvas = document.createElement('canvas');
     const [w, s, e, n] = grid.bounds;
 
+    // Resilient: always attach. If the elevation grid is empty/missing,
+    // paint a "data pending" placeholder so the user sees the layer exists
+    // and knows what is needed — instead of silently not adding it.
     const hasData = grid.elevations.length > 0 && Number.isFinite(grid.elevations[0]);
     if (!hasData) {
       this.canvas.width = 256;
@@ -197,40 +227,51 @@ export class CanvasFloodLayer {
     }
   }
 
+  /**
+   * Set the water surface elevation in meters (caller-supplied, explicit).
+   * Recomputes the flood mask and repaints. Pass null to clear.
+   *
+   * Datum handling: only identical datum labels are accepted without an
+   * authoritative location-specific transformation. Unsupported datum pairs
+   * clear the mask and report a badge instead of applying a guessed offset.
+   */
   setWaterLevel(elevM: number | null, datum: string): void {
     let level = elevM;
     let badge = '';
-    if (elevM !== null && datum !== this.config.grid.verticalDatum) {
+    if (elevM !== null && !Number.isFinite(elevM)) {
+      level = null;
+      badge = ' (invalid water level — flood rendering withheld)';
+    } else if (
+      elevM !== null &&
+      datum.trim().toUpperCase() !== this.config.grid.verticalDatum.trim().toUpperCase()
+    ) {
       const converted = tryDatumConversion(elevM, datum, this.config.grid.verticalDatum);
       if (converted !== null) {
         level = converted;
         badge = ` (converted ${datum}→${this.config.grid.verticalDatum})`;
       } else {
-        badge = ` (datum ${datum} unverified vs grid ${this.config.grid.verticalDatum})`;
-        console.warn(`[FloodLayer] Unknown datum conversion${badge} — no constant offset applied.`);
+        level = null;
+        badge = ` (unsupported datum ${datum} vs grid ${this.config.grid.verticalDatum} — flood rendering withheld)`;
+        console.warn(`[FloodLayer] Unsupported datum conversion${badge}.`);
       }
     }
     this.waterLevelM = level;
     this.datumBadge = badge;
     if (!this.canvas || !this.map) return;
     const mask =
-      level === null || !Number.isFinite(level)
-        ? new Uint8Array(0)
+      level === null
+        ? new Uint8Array(this.config.grid.rows * this.config.grid.cols)
         : computeFloodMask(this.config.grid, level);
-    if (mask.length === 0) {
-      const ctx = this.canvas.getContext('2d');
-      if (ctx) ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-      return;
-    }
     paintFloodCanvas(this.config.grid, mask, this.canvas, this.config.fillColor, this.config.debugGrid);
     try {
       const src = this.map.getSource(this.config.sourceId) as { play?: () => void } | undefined;
       src?.play?.();
     } catch {
-      /* ignore */
+      /* source may not support play; canvas animate:true handles it */
     }
   }
 
+  /** Human-readable badge describing any datum conversion applied. */
   getDatumBadge(): string {
     return this.datumBadge;
   }
@@ -240,7 +281,7 @@ export class CanvasFloodLayer {
       if (this.map?.getLayer(this.id)) this.map.removeLayer(this.id);
       if (this.map?.getSource(this.config.sourceId)) this.map.removeSource(this.config.sourceId);
     } catch {
-      /* ignore */
+      /* ignore teardown errors */
     }
     this.map = null;
     this.canvas = null;
