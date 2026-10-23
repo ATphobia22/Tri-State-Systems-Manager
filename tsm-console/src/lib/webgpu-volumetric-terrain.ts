@@ -9,7 +9,7 @@
  * A GPU device being available is not evidence that GPU terrain extraction,
  * GPU Hierarchical-Z, or Transvoxel transitions are implemented.
  */
-import { probeWebGPU, type WebGPUCapabilityReport } from './webgpu-capabilities';
+import { probeWebGPU, type WebGPUCapabilityReport } from './webgpu-capabilities.ts';
 
 export interface WebGPUVolumetricTerrainConfig {
   volumeDimensions: [number, number, number];
