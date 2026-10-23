@@ -27,16 +27,21 @@ class DemToTransvoxelAdapterTests(unittest.TestCase):
             "samples": fine,
         }
 
-    def test_polygonizes_nine_independent_scalars_with_duplicated_coarse_corners(self):
+    def test_polygonizes_nine_samples_using_official_case_bits_and_orients_both_faces(self):
+        results = []
         for direction in (-1, 1):
             cell = self._cell(direction)
             result = MESHER._polygonize(cell)
-            self.assertEqual(result["case"], (1 << 0) | (1 << 1) | (1 << 4))
+            # Samples 0, 1, and 4 are negative. Lengyel's published case-bit
+            # order maps these to bits 0x001, 0x002, and 0x100 (not 1 << i).
+            self.assertEqual(result["case"], 0x001 | 0x002 | 0x100)
             self.assertGreater(result["vertexCount"], 0)
             self.assertGreater(result["triangleCount"], 0)
             self.assertEqual(len(result["triangles"]), result["triangleCount"])
             self.assertTrue(all(0 <= index < result["vertexCount"] for tri in result["triangles"] for index in tri))
             self.assertTrue(all(len(vertex) == 3 for vertex in result["vertices"]))
+            results.append(result)
+        self.assertNotEqual(results[0]["vertices"], results[1]["vertices"])
 
     def test_rejects_wrong_scalar_count_and_non_finite_values(self):
         cell = self._cell()
