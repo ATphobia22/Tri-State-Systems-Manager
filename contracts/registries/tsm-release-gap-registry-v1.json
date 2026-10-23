@@ -35,8 +35,8 @@
     {
       "id": "gap-gpu-compute-culling",
       "severity": "low",
-      "status": "CLOSED_2026-10-23",
-      "summary": "Frustum culling plan generator implemented (CPU presentation); 5000-node safety limit; MapLibre primary.",
+      "status": "PARTIAL_2026-10-23",
+      "summary": "CPU frustum-culling plan generator exists; GPU compute culling and GPU H-Z are not implemented.",
       "closure": [
         "tsm-console/src/gpu/frustum-culling.ts",
         "tsm-console/tests/frustum-culling-contract.test.mjs"
@@ -45,8 +45,8 @@
     {
       "id": "gap-cs-resource-manifest",
       "severity": "low",
-      "status": "CLOSED_2026-10-23",
-      "summary": "Manifest + plan-only scheduler implemented; swap stays false until REGISTERED variants exist.",
+      "status": "PARTIAL_2026-10-23",
+      "summary": "Manifest and plan-only scheduler exist; actual swap remains disabled pending registered URI/SHA-256 variants.",
       "closure": [
         "contracts/registries/tsm-cs-resource-manifest-v1.json",
         "tsm-console/src/lib/cs-resource-scheduler.ts",
@@ -56,11 +56,16 @@
     {
       "id": "gap-renderer-cache-bytes",
       "severity": "medium",
-      "status": "CLOSED_2026-10-23",
-      "summary": "Explicit maxCacheBytes / errorTargetBytes / queue recorded; TilesRenderer still uses tile-count LRU until upstream maxBytes.",
+      "status": "PARTIAL_2026-10-23",
+      "summary": "3d-tiles-renderer LRU minBytesSize/maxBytesSize thresholds are wired for cache eviction. They are not a hard process/GPU-VRAM ceiling; active tiles may remain resident above target and GPU memory is separate.",
       "closure": [
         "tsm-console/src/lib/tiles-cache-policy.ts",
         "tsm-console/src/components/OpenWorld3DTilesRenderer.tsx"
+      ],
+      "acceptance": [
+        "Verify package-version-specific byte accounting and eviction behavior in CI",
+        "Exercise over-budget active/inactive tiles and confirm no unbounded growth under sustained traversal",
+        "Track GPU-VRAM estimates separately; do not equate cachedBytes with GPU memory"
       ]
     },
     {
@@ -78,10 +83,68 @@
     {
       "id": "gap-vitest-lock-5.0.5",
       "severity": "low",
-      "status": "CLOSED_2026-10-23",
-      "summary": "package.json requires vitest ^5.0.5; lockfile artifact applied to tsm-console when pushed.",
-      "closure": ["tsm-console/package.json", "tsm-console/package-lock.json"]
+      "status": "PARTIAL_2026-10-23",
+      "summary": "The committed lockfile resolves Vitest 5.0.2; package.json was aligned to the existing lockfile to restore deterministic npm ci. Upgrade only alongside a regenerated lockfile and passing install.",
+      "closure": [
+        "tsm-console/package.json",
+        "tsm-console/package-lock.json"
+      ]
+    },
+    {
+      "id": "gap-gpu-hierarchical-z",
+      "severity": "high",
+      "status": "OPEN",
+      "summary": "No GPU depth-pyramid compute path and renderer-integrated conservative occlusion validation.",
+      "acceptance": [
+        "GPU compute implementation and renderer integration",
+        "CPU-reference visibility correctness tests",
+        "Representative hardware measurements"
+      ]
+    },
+    {
+      "id": "gap-transvoxel-full-coverage",
+      "severity": "high",
+      "status": "OPEN",
+      "summary": "Complete runtime transition-case coverage and seam/topology evidence not demonstrated.",
+      "acceptance": [
+        "Transition case coverage report",
+        "LOD seam/topology tests",
+        "Unsupported cases explicitly surfaced"
+      ]
+    },
+    {
+      "id": "gap-aoi-terrain-coverage",
+      "severity": "high",
+      "status": "OPEN",
+      "summary": "Pinned full-AOI terrain coverage, nodata, and recovery evidence absent.",
+      "acceptance": [
+        "Source manifest with hashes",
+        "Coverage/nodata denominator report",
+        "Recovery tests"
+      ]
+    },
+    {
+      "id": "gap-crs-datum-accuracy-catalog",
+      "severity": "high",
+      "status": "OPEN",
+      "summary": "Whole-catalog CRS, vertical datum, epoch, and accuracy evidence absent.",
+      "acceptance": [
+        "Whole-catalog report with denominator and failures",
+        "Transformation provenance",
+        "Fail-closed unknown datum tests"
+      ]
+    },
+    {
+      "id": "gap-cross-device-gpu-validation",
+      "severity": "medium",
+      "status": "OPEN",
+      "summary": "Representative cross-device GPU correctness/performance evidence absent.",
+      "acceptance": [
+        "Device/browser matrix",
+        "Correctness results",
+        "Timing and memory measurements"
+      ]
     }
   ],
-  "finish_note": "All code-closable gaps closed. GATED_OPERATOR items require human/operator action outside the repository."
+  "finish_note": "Only individually evidenced work is closed. PARTIAL gaps remain open until the named acceptance criteria pass; hardware, dataset, and operator gates require external evidence."
 }

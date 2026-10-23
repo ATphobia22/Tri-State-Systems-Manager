@@ -8,17 +8,23 @@ export interface OpenWorld3DTilesRendererProps {
   readonly enabled?: boolean;
   readonly lruMaxSizeTiles?: number;
   readonly lruMinSizeTiles?: number;
+  readonly lruMaxBytes?: number;
+  readonly lruMinBytes?: number;
 }
 
 /**
  * Production 3D Tiles renderer boundary.
- * Visualization-only. Cache size uses explicit maxCacheBytes policy.
+ * Visualization-only. Both tile-count and byte thresholds are configured on
+ * the renderer's LRU cache. Byte limits are eviction thresholds, not a hard
+ * process/GPU memory cap; active tiles can remain resident over budget.
  */
 export function OpenWorld3DTilesRenderer({
   source,
   enabled = true,
   lruMaxSizeTiles = TSM_TILES_CACHE_POLICY.lruMaxSizeTiles,
   lruMinSizeTiles = TSM_TILES_CACHE_POLICY.lruMinSizeTiles,
+  lruMaxBytes = TSM_TILES_CACHE_POLICY.maxCacheBytes,
+  lruMinBytes = TSM_TILES_CACHE_POLICY.minCacheBytes,
 }: OpenWorld3DTilesRendererProps) {
   if (!source.enabled) {
     return null;
@@ -30,7 +36,10 @@ export function OpenWorld3DTilesRenderer({
       enabled={enabled}
       lruCache-maxSize={lruMaxSizeTiles}
       lruCache-minSize={lruMinSizeTiles}
-      data-tsm-max-cache-bytes={TSM_TILES_CACHE_POLICY.maxCacheBytes}
+      lruCache-maxBytesSize={lruMaxBytes}
+      lruCache-minBytesSize={lruMinBytes}
+      data-tsm-max-cache-bytes={lruMaxBytes}
+      data-tsm-min-cache-bytes={lruMinBytes}
       data-tsm-error-target-bytes={TSM_TILES_CACHE_POLICY.errorTargetBytes}
       data-tsm-cache-authority={TSM_TILES_CACHE_POLICY.authority}
     />
