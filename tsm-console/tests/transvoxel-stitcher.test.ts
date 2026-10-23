@@ -29,9 +29,21 @@ describe('official Transvoxel transition mesher', () => {
     expect(mesh.positions.every(Number.isFinite)).toBe(true);
     expect(mesh.indices.every((v)=>v < mesh.positions.length / 3)).toBe(true);
   });
+  it('uses independent coarse-side scalar values for edge interpolation', () => {
+    const sdf = new Float32Array(13).fill(1);
+    sdf[0] = -1;
+    const positions = new Float32Array(39);
+    const coords = [[0,0,0],[0.5,0,0],[1,0,0],[0,0.5,0],[0.5,0.5,0],[1,0.5,0],[0,1,0],[0.5,1,0],[1,1,0],[0,0,1],[1,0,1],[1,1,1],[0,1,1]];
+    coords.forEach((v,i)=>v.forEach((n,a)=>positions[i*3+a]=n));
+    const original = TransvoxelStitcher.polygonizeTransitionCell(sdf, positions);
+    const changed = sdf.slice();
+    changed[9] = -1;
+    const updated = TransvoxelStitcher.polygonizeTransitionCell(changed, positions);
+    expect(Array.from(updated.positions)).not.toEqual(Array.from(original.positions));
+  });
   it('rejects incomplete and non-finite sample fields', () => {
     expect(() => TransvoxelStitcher.polygonizeTransitionCell(new Float32Array(12),new Float32Array(39))).toThrow(/13 transition-cell scalar/);
-    const sdf = new Float32Array(13); sdf[4] = Number.NaN;
+    const sdf = new Float32Array(13); sdf[9] = Number.NaN;
     expect(() => TransvoxelStitcher.polygonizeTransitionCell(sdf,new Float32Array(39))).toThrow(/Non-finite/);
   });
 });
