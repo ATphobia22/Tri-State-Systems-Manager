@@ -120,23 +120,16 @@ export class TransvoxelStitcher {
     const encodedVertices = TRANSITION_VERTEX_DATA_TABLE[caseIndex]!;
     const outputPositions = new Float32Array(vertexCount * 3);
 
-    const scalarSample = (endpoint: number): number => {
-      if (endpoint < 9) return endpoint;
-      const coarseCornerSamples = [0, 2, 8, 6] as const;
-      const mapped = coarseCornerSamples[endpoint - 9];
-      if (mapped === undefined) throw new Error(`Invalid scalar endpoint ${endpoint}`);
-      return mapped;
-    };
-
     for (let vertex = 0; vertex < vertexCount; vertex++) {
       const edge = encodedVertices[vertex]! & 0xff;
-      const endpointA = (edge >>> 4) & 0x0f;
-      const endpointB = edge & 0x0f;
+      // Official table low byte: endpoint A is the low nibble, B the high nibble.
+      const endpointA = edge & 0x0f;
+      const endpointB = (edge >>> 4) & 0x0f;
       if (endpointA > 12 || endpointB > 12) {
         throw new Error(`Invalid transition edge endpoints ${endpointA},${endpointB} for case ${caseIndex}`);
       }
-      const a = sdf[scalarSample(endpointA)]!;
-      const b = sdf[scalarSample(endpointB)]!;
+      const a = sdf[endpointA]!;
+      const b = sdf[endpointB]!;
       const denominator = a - b;
       const t = Math.abs(denominator) < 1e-20
         ? 0.5
