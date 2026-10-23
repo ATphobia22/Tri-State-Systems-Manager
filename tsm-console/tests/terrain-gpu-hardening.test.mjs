@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { buildDepthPyramid, isOccludedByPyramid } from '../src/lib/hierarchical-z-software.ts';
+import { TransvoxelStitcher } from '../src/lib/transvoxel-stitcher.ts';
 import {
   WebGPUWorkloadUnavailableError,
   WebGPUVolumetricTerrain,
@@ -53,4 +54,14 @@ test('WebGPU terrain does not return a placeholder mesh as if it were valid', as
     }),
     WebGPUWorkloadUnavailableError,
   );
+});
+
+test('Transvoxel classifier rejects non-finite SDF samples and invalid geometry indices', () => {
+  const invalid = new Float32Array(9);
+  invalid[4] = Number.NaN;
+  assert.throws(() => TransvoxelStitcher.evaluateTransitionCase(invalid), /must be finite/i);
+  assert.equal(TransvoxelStitcher.generateTransitionGeometry(-1), null);
+  assert.equal(TransvoxelStitcher.generateTransitionGeometry(512), null);
+  assert.equal(TransvoxelStitcher.generateTransitionGeometry(1.5), null);
+  assert.deepEqual(TransvoxelStitcher.generateTransitionGeometry(1), [0, 1, 2, 0, 2, 3]);
 });
