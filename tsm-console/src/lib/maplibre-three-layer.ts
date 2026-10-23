@@ -54,11 +54,6 @@ const DEFAULT_SHADOW_MAP_SIZE = 2048;
 /** Half-extent, in meters, of the directional-light shadow camera. */
 const SHADOW_CAMERA_EXTENT_METERS = 150;
 
-export interface MapLibreThreeDiagnostic {
-  code: string;
-  message: string;
-}
-
 export class MapLibreThreeLayer implements maplibregl.CustomLayerInterface {
   readonly id: string;
   readonly type: 'custom' = 'custom';
@@ -71,12 +66,12 @@ export class MapLibreThreeLayer implements maplibregl.CustomLayerInterface {
   private readonly modelUrls: string[];
   private readonly exposure: number;
   private readonly shadowMapSize: number;
+  private readonly diagnostics: Array<{ code: string; message: string }> = [];
 
   private map: maplibregl.Map | null = null;
   private renderer: THREE.WebGLRenderer | null = null;
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.Camera();
-  private readonly diagnostics: MapLibreThreeDiagnostic[] = [];
 
   /** Mercator-space translation of the origin. */
   private readonly mercatorX: number;
@@ -144,35 +139,38 @@ export class MapLibreThreeLayer implements maplibregl.CustomLayerInterface {
     sun.shadow.camera.far = 1000;
     this.scene.add(ambient, sun);
 
-    this.contentBuilders.forEach((build, index) => {
+    for (const build of this.contentBuilders) {
       try {
         build(this.scene);
-      } catch (err) {
+      } catch (error) {
         // Resilient: a bad builder must not break the map.
+        const index = this.contentBuilders.indexOf(build);
         this.diagnostics.push({
           code: `content-builder-${index}-failed`,
-          message: err instanceof Error ? err.message : String(err),
+          message: error instanceof Error ? error.message : String(error),
         });
       }
-    });
+    }
 
-    if (MapLibreThreeLayer.isLoadableUrl(this.hdrUrl)) {
-      this.loadEnvironment(this.hdrUrl);
-    } else if (this.hdrUrl) {
-      this.diagnostics.push({ code: 'invalid-hdr-url', message: 'HDR URL must be absolute http(s)' });
+    if (this.hdrUrl !== undefined) {
+      if (MapLibreThreeLayer.isLoadableUrl(this.hdrUrl)) {
+        this.loadEnvironment(this.hdrUrl);
+      } else {
+        this.diagnostics.push({ code: 'invalid-hdr-url', message: this.hdrUrl });
+      }
     }
     this.modelUrls.forEach((modelUrl, index) => {
       if (MapLibreThreeLayer.isLoadableUrl(modelUrl)) {
         this.loadModel(modelUrl, index);
-      } else if (modelUrl) {
-        this.diagnostics.push({ code: 'invalid-model-url', message: 'Model URL must be absolute http(s)' });
+      } else {
+        this.diagnostics.push({ code: 'invalid-model-url', message: modelUrl });
       }
     });
   }
 
-  /** Read-only diagnostic records for degraded load/build paths. */
-  getDiagnostics(): ReadonlyArray<MapLibreThreeDiagnostic> {
-    return this.diagnostics;
+  /** Resilient diagnostics: non-fatal issues recorded during load. */
+  getDiagnostics(): Array<{ code: string; message: string }> {
+    return [...this.diagnostics];
   }
 
   private loadEnvironment(url: string): void {
@@ -186,16 +184,19 @@ export class MapLibreThreeLayer implements maplibregl.CustomLayerInterface {
         undefined,
         () => {
           // Resilient: keep rendering without image-based lighting.
-          this.diagnostics.push({ code: 'hdr-load-failed', message: 'HDR environment load failed' });
+          this.diagnostics.push({ code: 'hdr-load-failed', message: url });
         },
       );
-    } catch {
+    } catch (error) {
       // Resilient: RGBELoader construction must never break the map.
-      this.diagnostics.push({ code: 'hdr-load-failed', message: 'HDR environment loader unavailable' });
+      this.diagnostics.push({
+        code: 'hdr-load-failed',
+        message: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 
-  private loadModel(url: string, index = 0): void {
+  private loadModel(url: string, index: number = 0): void {
     try {
       new GLTFLoader().load(
         url,
@@ -212,17 +213,14 @@ export class MapLibreThreeLayer implements maplibregl.CustomLayerInterface {
         undefined,
         () => {
           // Resilient: keep rendering without the model.
-          this.diagnostics.push({
-            code: `model-load-failed-${index}`,
-            message: 'GLTF/GLB model load failed',
-          });
+          this.diagnostics.push({ code: `model-load-failed-${index}`, message: url });
         },
       );
-    } catch {
+    } catch (error) {
       // Resilient: GLTFLoader construction must never break the map.
       this.diagnostics.push({
         code: `model-load-failed-${index}`,
-        message: 'GLTF/GLB loader unavailable',
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
