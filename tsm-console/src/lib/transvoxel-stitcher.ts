@@ -3,9 +3,10 @@
  * Table-driven Transvoxel transition-cell mesher.
  * Table source: Eric Lengyel, https://github.com/EricLengyel/Transvoxel (MIT).
  *
- * The 9 fine-side samples determine the 9-bit case. The full 13-sample scalar
- * field (9 fine samples plus 4 coarse-side corners) is required to interpolate
- * the table's edge vertices. Positions are caller supplied in world/local space.
+ * The 9 fine-side samples determine the 9-bit case. Four coarse-side corner
+ * vertices (slots 9..12) reuse the corner scalar values at fine slots [0,2,8,6].
+ * Positions are caller supplied in world/local space, with 13 slots following
+ * the official transitionVertexData edge encoding.
  */
 import {
   TRANSITION_CELL_CLASS_TABLE,
@@ -82,13 +83,11 @@ export class TransvoxelStitcher {
    * 13 xyz triplets. The final four SDFs/positions are coarse-side corner samples.
    */
   public static polygonizeTransitionCell(sdf: Float32Array, positions: Float32Array): TransitionMesh {
-    if (sdf.length !== 13) throw new Error(`Expected 13 scalar samples, got ${sdf.length}`);
+    if (sdf.length !== 9) throw new Error(`Expected 9 fine-side scalar samples, got ${sdf.length}`);
     if (positions.length !== 39) throw new Error(`Expected 13 xyz positions (39 floats), got ${positions.length}`);
-    for (let i = 0; i < 13; i++) {
-      if (!Number.isFinite(sdf[i]!)) throw new Error(`Non-finite SDF sample ${i}`);
-      for (let axis = 0; axis < 3; axis++) if (!Number.isFinite(positions[i * 3 + axis]!)) throw new Error(`Non-finite position at sample ${i}`);
-    }
-    const caseIndex = this.evaluateTransitionCase(sdf.subarray(0, 9));
+    for (let i = 0; i < 9; i++) if (!Number.isFinite(sdf[i]!)) throw new Error(`Non-finite SDF sample ${i}`);
+    for (let i = 0; i < 13; i++) for (let axis = 0; axis < 3; axis++) if (!Number.isFinite(positions[i * 3 + axis]!)) throw new Error(`Non-finite position at sample ${i}`);
+    const caseIndex = this.evaluateTransitionCase(sdf);
     const { classId, invertWinding } = getTransitionClass(caseIndex);
     const [geometryCounts, rawTriangleIndices] = TRANSITION_CELL_DATA_TABLE[classId]!;
     const vertexCount = geometryCounts >>> 4;
@@ -100,8 +99,9 @@ export class TransvoxelStitcher {
       const endpointA = (edge >>> 4) & 0x0f;
       const endpointB = edge & 0x0f;
       if (endpointA > 12 || endpointB > 12) throw new Error(`Invalid transition edge endpoints ${endpointA},${endpointB} for case ${caseIndex}`);
-      const a = sdf[endpointA]!;
-      const b = sdf[endpointB]!;
+      const scalarSample = (endpoint: number): number => endpoint < 9 ? endpoint : [0, 2, 8, 6][endpoint - 9]!;
+      const a = sdf[scalarSample(endpointA)]!;
+      const b = sdf[scalarSample(endpointB)]!;
       const denominator = a - b;
       const t = Math.abs(denominator) < 1e-20 ? 0.5 : Math.max(0, Math.min(1, a / denominator));
       for (let axis = 0; axis < 3; axis++) {
