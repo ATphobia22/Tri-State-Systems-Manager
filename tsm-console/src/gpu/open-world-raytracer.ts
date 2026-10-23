@@ -3,6 +3,9 @@
  * Independent of MapLibre WebGL; source-bound textures only; presentation-only.
  */
 
+import { WebGPUHierarchicalZ } from '../lib/webgpu-hierarchical-z';
+import { WebGPUHierarchicalZCuller, type GpuHZAabbCandidate } from '../lib/webgpu-hierarchical-z-cull';
+
 export interface WebGpuTerrainSource {
   readonly heightTexture: GPUTexture;
   readonly satelliteTexture: GPUTexture;
@@ -152,6 +155,9 @@ export class TsmWebGpuRayTracer {
   private bindGroup: GPUBindGroup | null = null;
   private source: WebGpuTerrainSource | null = null;
   private initialized = false;
+  private hierarchicalZ: WebGPUHierarchicalZ | null = null;
+  private hierarchicalZCuller: WebGPUHierarchicalZCuller | null = null;
+  private deviceLostHandler: ((info: GPUDeviceLostInfo) => void) | null = null;
 
   public async initialize(canvas: HTMLCanvasElement): Promise<WebGpuInitializationResult> {
     if (!navigator.gpu) {
@@ -165,7 +171,16 @@ export class TsmWebGpuRayTracer {
       const device = await adapter.requestDevice();
       device.lost.then((info) => {
         this.initialized = false;
+        this.hierarchicalZ?.destroy();
+        this.hierarchicalZ = null;
+        this.hierarchicalZCuller?.destroy();
+        this.hierarchicalZCuller = null;
+        this.bindGroup = null;
+        this.pipeline = null;
+        this.uniformBuffer?.destroy();
+        this.uniformBuffer = null;
         console.warn('[TSM WEBGPU] Device lost:', info.message);
+        this.deviceLostHandler?.(info);
       });
       const context = canvas.getContext('webgpu');
       if (!context) {
@@ -232,6 +247,35 @@ export class TsmWebGpuRayTracer {
     return this.device;
   }
 
+  /** Let the host UI recover the renderer after a real GPUDevice.lost event. */
+  public setDeviceLostHandler(handler: ((info: GPUDeviceLostInfo) => void) | null): void {
+    this.deviceLostHandler = handler;
+  }
+
+  /**
+   * Run the H-Z pyramid and GPU culler on this renderer's device. The depth
+   * texture must be a real depth attachment created by this same GPUDevice;
+   * this method deliberately rejects software guesses and cross-device textures.
+   * Candidate bounds are screen-space pixel rectangles with standard [0,1] depth.
+   */
+  public async classifyOcclusion(
+    depthTexture: GPUTexture,
+    width: number,
+    height: number,
+    candidates: readonly GpuHZAabbCandidate[],
+    depthBias = 1e-5,
+  ): Promise<Uint32Array> {
+    if (!this.initialized || !this.device) throw new Error('WebGPU renderer is not initialized; reacquire a device before H-Z culling');
+    this.hierarchicalZ ??= new WebGPUHierarchicalZ(this.device);
+    this.hierarchicalZCuller ??= new WebGPUHierarchicalZCuller(this.device);
+    const pyramid = this.hierarchicalZ.build(depthTexture, width, height);
+    try {
+      return await this.hierarchicalZCuller.classify(pyramid.texture, width, height, candidates, depthBias);
+    } finally {
+      pyramid.destroy();
+    }
+  }
+
   public render(parameters: WebGpuRenderParameters): void {
     this.renderFrame(parameters);
   }
@@ -270,6 +314,11 @@ export class TsmWebGpuRayTracer {
 
   public dispose(): void {
     this.initialized = false;
+    this.hierarchicalZ?.destroy();
+    this.hierarchicalZ = null;
+    this.hierarchicalZCuller?.destroy();
+    this.hierarchicalZCuller = null;
+    this.deviceLostHandler = null;
     this.bindGroup = null;
     this.pipeline = null;
     this.context?.unconfigure();
@@ -301,3 +350,13 @@ export class TsmWebGpuRayTracer {
     });
   }
 }
+
+
+/** H-Z is wired to the WebGPU renderer API; callers must provide its actual depth attachment. */
+export const WEBGPU_RENDERER_HZ_STATUS = {
+  rendererApiIntegration: true,
+  automaticPerFrameCulling: false,
+  depthAttachment: 'caller_must_supply_same_device_depth_texture',
+  deviceLoss: 'renderer_marks_uninitialized_and_notifies_host_for_recreation',
+  hardwareEvidence: 'not_collected',
+} as const;
