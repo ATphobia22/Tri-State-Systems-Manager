@@ -157,7 +157,7 @@ def run_benchmark(raster_path: Path, evidence_path: Path, output_path: Path, pat
     all_triangles: list[tuple[int, int, int]] = []
     started = time.perf_counter()
     for j in range(patch_pixels):
-        y_cell = y0 - j * CELL_SIZE_METERS
+        y_cell = y_min + j * CELL_SIZE_METERS
         for k in range(z_cells):
             z_cell = z_min + k * CELL_SIZE_METERS
 
