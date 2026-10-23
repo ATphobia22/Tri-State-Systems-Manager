@@ -19,7 +19,8 @@ export type CapabilityId =
   | `tsm.${string}`
   | `gates.${string}`
   | `hydrology.${string}`
-  | `evidence.${string}`;
+  | `evidence.${string}`
+  | `source.${string}`;
 export type JsonSchema = Record<string, unknown>;
 export interface PermissionSet {
   readonly allow: readonly string[];
