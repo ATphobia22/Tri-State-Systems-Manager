@@ -127,26 +127,18 @@ def _transition_point(origin: Vec3, axis: int, extent: float, endpoint: int, dir
 
 
 def _transition_endpoint_sample_index(endpoint: int) -> int:
-    if 0 <= endpoint < 13:
+    if 0 <= endpoint < 9:
         return endpoint
+    if 9 <= endpoint < 13:
+        # The opposite face duplicates the four fine-face corner scalar values.
+        return (0, 2, 8, 6)[endpoint - 9]
     raise ValueError(f"transition vertex endpoint must be 0..12, got {endpoint}")
 
 
-def sample_transition_sdfs(sdf: SdfFn, origin: Vec3, axis: int, extent: float, direction: int = 1) -> List[float]:
-    """Sample all 13 independent scalar values; only the first nine choose the case."""
-    samples = sample_face_sdfs(sdf, origin, axis, extent)
-    for endpoint in range(9, 13):
-        x, y, z = _transition_point(origin, axis, extent, endpoint, direction)
-        samples.append(float(sdf(x, y, z)))
-    if not np.isfinite(np.asarray(samples, dtype=np.float64)).all():
-        raise ValueError("transition SDF samples must all be finite")
-    return samples
-
-
-def interpolate_edge(sdf, origin, axis, extent, i0, i1, iso=0.0, direction=1, transition_samples=None) -> Vec3:
+def interpolate_edge(sdf, origin, axis, extent, i0, i1, iso=0.0, direction=1, fine_samples=None) -> Vec3:
     p0 = _transition_point(origin, axis, extent, i0, direction)
     p1 = _transition_point(origin, axis, extent, i1, direction)
-    samples = transition_samples if transition_samples is not None else sample_transition_sdfs(sdf, origin, axis, extent, direction)
+    samples = fine_samples if fine_samples is not None else sample_face_sdfs(sdf, origin, axis, extent)
     s0 = float(samples[_transition_endpoint_sample_index(i0)]) - iso
     s1 = float(samples[_transition_endpoint_sample_index(i1)]) - iso
     t = 0.5 if abs(s0 - s1) < 1e-12 else float(np.clip(s0 / (s0 - s1), 0.0, 1.0))
@@ -155,8 +147,8 @@ def interpolate_edge(sdf, origin, axis, extent, i0, i1, iso=0.0, direction=1, tr
 
 def mesh_transition_cell(sdf, origin, axis, extent, iso=0.0, direction=1):
     data = _load_data()
-    samples = sample_transition_sdfs(sdf, origin, axis, extent, direction)
-    case = compute_case_index(samples[:9], iso)
+    samples = sample_face_sdfs(sdf, origin, axis, extent)
+    case = compute_case_index(samples, iso)
     if case is None:
         return [], [], {"case": None, "class_id": None}
     class_id, invert = get_transition_class(case)
@@ -172,7 +164,7 @@ def mesh_transition_cell(sdf, origin, axis, extent, iso=0.0, direction=1):
         if code == 0xFFFF:
             break
         i0, i1 = _edge_endpoints(code)
-        cell_verts.append(interpolate_edge(sdf, origin, axis, extent, i0, i1, iso, direction, transition_samples=samples))
+        cell_verts.append(interpolate_edge(sdf, origin, axis, extent, i0, i1, iso, direction, fine_samples=samples))
     if len(cell_verts) < vcount:
         raise ValueError(f"case {case} needs {vcount} vertices but table supplied {len(cell_verts)}")
     cell_verts = cell_verts[:vcount]
@@ -212,7 +204,7 @@ def self_test() -> None:
     _load_data()
     tested = 0
     # Exhaust all 512 fine-side masks on all six signed face orientations.
-    # The nine fine samples select the case; coarse-side scalar values are sampled independently.
+    # The opposite coarse face duplicates fine corner scalars [0, 2, 8, 6].
     for axis in range(3):
         a, b = (axis + 1) % 3, (axis + 2) % 3
         for direction in (-1, 1):
