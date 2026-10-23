@@ -43,6 +43,10 @@ jobs:
         run: pip install --quiet numpy
       - name: Install raster evidence dependencies
         run: pip install --quiet rasterio shapely
+      - name: Transvoxel class tables
+        run: python3 scripts/geospatial/transvoxel_tables.py
+      - name: Regenerate Lengyel tables from MIT upstream
+        run: python3 scripts/geospatial/regenerate_lengyel_tables.py
       - name: Download real USGS 3DEP terrain for Posey County ZIP 47620
         run: python3 scripts/geospatial/acquire-posey-47620-3dep.py --output-dir "$RUNNER_TEMP/tsm-posey-47620-evidence"
       - name: Run real-DEM Transvoxel transition benchmark
@@ -57,10 +61,6 @@ jobs:
           name: posey-county-47620-terrain-evidence-${{ github.sha }}
           path: ${{ runner.temp }}/tsm-posey-47620-evidence/
           retention-days: 30
-      - name: Transvoxel class tables
-        run: python3 scripts/geospatial/transvoxel_tables.py
-      - name: Regenerate Lengyel tables from MIT upstream
-        run: python3 scripts/geospatial/regenerate_lengyel_tables.py
       - name: Transition mesh self-test
         run: python3 scripts/geospatial/transvoxel_transition_mesh.py --self-test
       - name: Synthetic DEM Transvoxel Stage 1–2
