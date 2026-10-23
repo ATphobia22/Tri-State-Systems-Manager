@@ -4,9 +4,9 @@
 Consumes real scalar samples/positions exported by the DEM/SDF pipeline and
 emits indexed transition geometry using the official Lengyel transition tables.
 The input is a JSON object with a "cells" array. Each cell contains:
-  {"origin":[x,y,z],"axis":0|1|2,"extent":positive_number,"samples":[9 finite values]}
-The 9 samples are the independent fine-side 3x3 scalar field; coarse-side corner
-positions reuse the corresponding corner values and are displaced along the face normal. This module generates transition-cell triangles; it does not approve an AOI, infer
+  {"origin":[x,y,z],"axis":0|1|2,"extent":positive_number,"samples":[13 finite values]}
+Samples 0..8 are the fine-side 3x3 scalar field and choose the 9-bit case.
+Samples 9..12 are independent coarse-side corner values used for edge interpolation. This module generates transition-cell triangles; it does not approve an AOI, infer
 missing elevations, or fabricate raster input. Official tables are MIT-licensed.
 """
 from __future__ import annotations
@@ -41,8 +41,8 @@ def _polygonize(cell: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("cell.direction must be -1 or 1")
     if extent <= 0:
         raise ValueError("cell.extent must be > 0")
-    if not isinstance(samples_raw, list) or len(samples_raw) != 9:
-        raise ValueError("cell.samples must contain exactly 9 independent fine-side scalar samples")
+    if not isinstance(samples_raw, list) or len(samples_raw) != 13:
+        raise ValueError("cell.samples must contain 13 scalar samples: 9 fine-side and 4 coarse-side")
     samples = [_finite_number(v, f"samples[{i}]") for i, v in enumerate(samples_raw)]
 
     def sdf(x: float, y: float, z: float) -> float:
@@ -52,6 +52,11 @@ def _polygonize(cell: dict[str, Any]) -> dict[str, Any]:
         v = min(1.0, max(0.0, (point[b] - origin[b]) / extent))
         ix = min(2, max(0, int(round(u * 2))))
         iy = min(2, max(0, int(round(v * 2))))
+        on_coarse_side = abs(point[axis] - origin[axis]) >= extent * 0.5
+        if on_coarse_side:
+            corner = {(0, 0): 9, (2, 0): 10, (2, 2): 11, (0, 2): 12}.get((ix, iy))
+            if corner is not None:
+                return samples[corner]
         return samples[iy * 3 + ix]
 
     vertices, triangles, metadata = mesh_transition_cell(sdf, origin, axis, extent, direction=direction)
