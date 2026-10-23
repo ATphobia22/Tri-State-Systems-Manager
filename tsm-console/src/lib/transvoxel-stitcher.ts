@@ -2,7 +2,7 @@
  * Table-driven Transvoxel transition-cell mesher.
  * Table source: Eric Lengyel, https://github.com/EricLengyel/Transvoxel (MIT).
  *
- * The nine fine-side samples determine the 9-bit case. Coarse-side slots 9..12 are spatial positions whose scalar values duplicate fine-face samples [0, 2, 6, 8].
+ * Nine fine-side scalars select the 9-bit case; four coarse-side scalars are sampled independently at their displaced spatial positions.
  * All 13 xyz positions follow the official transitionVertexData edge encoding.
  */
 import {
@@ -91,16 +91,16 @@ export class TransvoxelStitcher {
   }
 
   /**
-   * Polygonize one official transition cell. sdf has 9 independent fine-face scalar samples and positions has 13 xyz triplets.
+   * Polygonize one official transition cell. sdf has 13 scalar samples (fine-side 0..8, coarse-side 9..12) and positions has 13 xyz triplets.
    */
   public static polygonizeTransitionCell(sdf: Float32Array, positions: Float32Array): TransitionMesh {
-    if (sdf.length !== 9) {
-      throw new Error(`Expected 9 independent scalar samples, got ${sdf.length}`);
+    if (sdf.length !== 13) {
+      throw new Error(`Expected 13 independent scalar samples, got ${sdf.length}`);
     }
     if (positions.length !== 39) {
       throw new Error(`Expected 13 xyz positions (39 floats), got ${positions.length}`);
     }
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < 13; i++) {
       if (!Number.isFinite(sdf[i]!)) throw new Error(`Non-finite SDF sample ${i}`);
     }
     for (let i = 0; i < 13; i++) {
@@ -127,9 +127,8 @@ export class TransvoxelStitcher {
       if (endpointA > 12 || endpointB > 12) {
         throw new Error(`Invalid transition edge endpoints ${endpointA},${endpointB} for case ${caseIndex}`);
       }
-      const endpointSampleIndex = (endpoint: number): number => endpoint < 9 ? endpoint : [0, 2, 6, 8][endpoint - 9]!;
-      const a = sdf[endpointSampleIndex(endpointA)]!;
-      const b = sdf[endpointSampleIndex(endpointB)]!;
+      const a = sdf[endpointA]!;
+      const b = sdf[endpointB]!;
       const denominator = a - b;
       const t = Math.abs(denominator) < 1e-20
         ? 0.5
