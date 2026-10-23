@@ -64,11 +64,19 @@ def run_benchmark(raster_path: Path, evidence_path: Path, output_path: Path, pat
     evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
     if evidence.get("evidenceStatus") != "REAL_DATA_SCREENING_ONLY":
         raise ValueError("input evidence report is not marked REAL_DATA_SCREENING_ONLY")
-    if evidence.get("aoi", {}).get("approval_status") not in (None, "UNAPPROVED", "UNAPPROVED_SCREENING_AOI"):
-        raise ValueError("unexpected AOI approval state; this benchmark is screening-only")
+    approval = evidence.get("aoi", {}).get("approvalStatus")
+    if approval != "UNAPPROVED":
+        raise ValueError(f"expected an explicitly unapproved screening AOI, got {approval!r}")
     raster_hash = sha256_file(raster_path)
-    if evidence.get("raster", {}).get("sha256") not in (None, raster_hash):
-        raise ValueError("raster SHA-256 does not match acquisition evidence report")
+    source_records = evidence.get("sources")
+    if not isinstance(source_records, list):
+        raise ValueError("acquisition evidence has no source provenance list")
+    usgs_source = next(
+        (record for record in source_records if record.get("authority") == "U.S. Geological Survey"),
+        None,
+    )
+    if not isinstance(usgs_source, dict) or usgs_source.get("rasterSha256") != raster_hash:
+        raise ValueError("raster SHA-256 does not match the authoritative USGS source record")
 
     with rasterio.open(raster_path) as src:
         if src.count < 1 or src.crs is None:
@@ -219,9 +227,11 @@ def run_benchmark(raster_path: Path, evidence_path: Path, output_path: Path, pat
             "rasterSha256": raster_hash,
             "acquisitionEvidencePath": evidence_path.name,
             "acquisitionEvidenceSha256": sha256_bytes(evidence_path.read_bytes()),
-            "sourceAoiId": evidence.get("aoi", {}).get("aoi_id", evidence.get("aoi", {}).get("id")),
-            "sourceVerticalDatum": evidence.get("source", {}).get("verticalDatum", "UNRESOLVED"),
-            "sourceAccuracyClass": evidence.get("source", {}).get("accuracyClass", "UNRESOLVED"),
+            "sourceAoiId": evidence.get("aoi", {}).get("id"),
+            "aoiApprovalStatus": approval,
+            "sourceVerticalDatum": usgs_source.get("verticalDatum", "UNRESOLVED"),
+            "sourceAccuracyClass": usgs_source.get("accuracyClass", "UNRESOLVED"),
+            "sourceAcquisitionVintage": usgs_source.get("acquisitionVintage", "NOT_REPORTED_BY_DYNAMIC_MOSAIC"),
         },
         "projection": {"sourceCrs": str(src_crs), "benchmarkCrs": TARGET_CRS, "cellSizeMeters": CELL_SIZE_METERS},
         "patch": {
