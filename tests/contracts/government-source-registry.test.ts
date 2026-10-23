@@ -5,6 +5,7 @@ import { GeometryValidator } from '../../packages/government/src/validators/Geom
 import { DatasetValidator } from '../../packages/government/src/validators/DatasetValidator.ts';
 import { MetadataValidator } from '../../packages/government/src/validators/MetadataValidator.ts';
 import { GovernmentSourceCapabilityProvider } from '../../packages/government/src/GovernmentSourceCapabilityProvider.ts';
+import { queryGovernmentJson } from '../../packages/government/src/index.ts';
 
 test('source registry contains requested agencies with HTTPS provenance policies',()=>{
  assert.deepEqual(validateGovernmentSourceRegistry(),[]);
@@ -39,4 +40,11 @@ test('UACF source capability provider fails closed for unimplemented ingest/publ
  assert.equal((await provider.supports('source.register',{sourceId:'unknown'})).supported,false);
  assert.equal((await provider.supports('source.ingest',{sourceId:'fema.nfhl'})).supported,false);
  assert.equal((await provider.supports('source.publish',{sourceId:'fema.nfhl'})).supported,false);
+});
+
+test('root-host API allowlisting supports scoped NOAA weather paths without allowing other hosts',async()=>{
+ const fetcher=async()=>new Response(JSON.stringify({properties:{forecast:'https://api.weather.gov/gridpoints/FFC/50,50/forecast'}}),{status:200,headers:{'content-type':'application/geo+json'}});
+ const result=await queryGovernmentJson('noaa-weather','https://api.weather.gov/points/33.7,-84.4',{fetcher});
+ assert.equal(result.provenance.status,'UNVERIFIED');
+ await assert.rejects(()=>queryGovernmentJson('noaa-weather','https://api.weather.gov.evil.example/points/33,-84',{fetcher}),/OUTSIDE_REGISTERED_ENDPOINT/);
 });
