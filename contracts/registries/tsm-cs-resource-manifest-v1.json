@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0.0",
+  "registry_id": "tsm-cs-resource-manifest",
+  "generated_at": "2026-10-23",
+  "policy": "Presentation assets only. No regulatory or evidence mutation. Human authority remains final.",
+  "note": "Component/semantic (C/S) variants for building tiles. Empty variants list means scheduler remains plan-only.",
+  "network_resource_policy": {
+    "allow_unregistered_fetch": false,
+    "require_provenance_uri": true,
+    "require_sha256": true
+  },
+  "assets": [
+    {
+      "id": "posey-3dtiles-base",
+      "kind": "3d-tiles",
+      "complexity": "C0",
+      "semantic_depth": "S0",
+      "uri_template": null,
+      "sha256": null,
+      "status": "PLANNED",
+      "note": "No registered C/S variants yet; OpenWorld3DTilesRenderer uses caller-supplied tilesetUrl only."
+    }
+  ],
+  "scheduler": {
+    "mode": "plan_only",
+    "swap_enabled": false,
+    "reason": "Building tiles lack registered C/S variants"
+  }
+}
