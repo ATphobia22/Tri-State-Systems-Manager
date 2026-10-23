@@ -55,6 +55,11 @@ class ProductionBridgeContractTests(unittest.TestCase):
         self.assertIs(balanced, root)
         self.assertTrue(bridge.get_leaves(balanced))
 
+    def test_neighbor_query_rejects_unknown_face(self):
+        root = bridge.Node(0, 0, 0, 8, 0)
+        with self.assertRaisesRegex(ValueError, "unknown face"):
+            bridge.face_neighbor_max_level(root, root, "north")
+
     def test_height_sampler_rejects_extrapolation_and_nonfinite_inputs(self):
         height = bridge.make_height_sampler(np.arange(16, dtype=float).reshape(4, 4), 2.0)
         self.assertAlmostEqual(height(2.0, 2.0), 5.0)
