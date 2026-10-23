@@ -93,7 +93,7 @@ def _corner_uv(i: int) -> Tuple[float, float]:
         3: (0.0, 0.5), 4: (0.5, 0.5), 5: (1.0, 0.5),
         6: (0.0, 1.0), 7: (0.5, 1.0), 8: (1.0, 1.0),
         9: (0.0, 0.0), 10: (1.0, 0.0),
-        11: (0.0, 1.0), 12: (1.0, 1.0),
+        11: (1.0, 1.0), 12: (0.0, 1.0),
     }
     if i not in mapping:
         raise ValueError(f"transition vertex endpoint must be 0..12, got {i}")
@@ -130,7 +130,7 @@ def _transition_endpoint_sample_index(endpoint: int) -> int:
     if 0 <= endpoint < 9:
         return endpoint
     if 9 <= endpoint < 13:
-        return (0, 2, 6, 4)[endpoint - 9]
+        return (0, 2, 8, 6)[endpoint - 9]
     raise ValueError(f"transition vertex endpoint must be 0..12, got {endpoint}")
 
 
@@ -149,7 +149,7 @@ def interpolate_edge(sdf, origin, axis, extent, i0, i1, iso=0.0, direction=1, fi
 def mesh_transition_cell(sdf, origin, axis, extent, iso=0.0, direction=1):
     data = _load_data()
     # Scalar samples are row-major. compute_case_index applies the official case-bit permutation.
-    # Coarse-face corners duplicate row-major corner samples 0, 2, 6, and 8.
+    # Coarse-face endpoint slots 9..12 reuse corner samples [0, 2, 8, 6] in canonical perimeter order.
     samples = sample_face_sdfs(sdf, origin, axis, extent)
     case = compute_case_index(samples, iso)
     if case is None:
@@ -207,7 +207,7 @@ def self_test() -> None:
     _load_data()
     tested = 0
     # Exhaust all 512 fine-side masks on all six signed face orientations.
-    # The nine scalar samples are row-major; case bits use the official permutation and coarse corners reuse fine endpoint scalars 0, 2, 6, and 4 in the canonical transition-cell layout.
+    # The nine scalar samples are row-major; case bits use the official permutation and coarse corners reuse fine endpoint scalars 0, 2, 8, and 6 in the canonical transition-cell layout.
     for axis in range(3):
         a, b = (axis + 1) % 3, (axis + 2) % 3
         for direction in (-1, 1):
