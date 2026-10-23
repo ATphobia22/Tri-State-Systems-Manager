@@ -161,6 +161,23 @@ export class TileResourceLifecycle {
     });
   }
 
+  /**
+   * Mark a resident record stale when its acquisition time has expired
+   * (now - acquiredAt > ttlMs, evaluated by the caller with an injected
+   * clock). Stale records stay resident and usable — staleness is a
+   * provenance label, never a fetch gate (resilient: no fail-closed).
+   */
+  markStale(id: string, now = Date.now()): void {
+    const prev = this.resources.get(id);
+    this.resources.set(id, {
+      id,
+      status: 'stale',
+      bytes: prev?.bytes ?? 0,
+      lastError: prev?.lastError,
+      updatedAt: now,
+    });
+  }
+
   /** Never synthesizes geometry for failed/missing tiles. */
   assertNotSynthetic(id: string): void {
     const rec = this.resources.get(id);

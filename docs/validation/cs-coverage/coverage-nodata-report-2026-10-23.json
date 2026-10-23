@@ -1,0 +1,744 @@
+{
+  "reportId": "tsm-cs-coverage-nodata-2026-10-23",
+  "generatedAt": "2026-10-23T18:30:00-05:00",
+  "manifest": "docs/validation/cs-coverage/aoi-manifest-2026-10-23.json",
+  "aoi": {
+    "name": "Ohio\u2013Wabash confluence tri-state region",
+    "counties": [
+      {
+        "county": "Posey",
+        "state": "IN",
+        "fips": "18129"
+      },
+      {
+        "county": "Vanderburgh",
+        "state": "IN",
+        "fips": "18163"
+      },
+      {
+        "county": "Warrick",
+        "state": "IN",
+        "fips": "18173"
+      },
+      {
+        "county": "Henderson",
+        "state": "KY",
+        "fips": "21101"
+      },
+      {
+        "county": "Union",
+        "state": "KY",
+        "fips": "21225"
+      },
+      {
+        "county": "White",
+        "state": "IL",
+        "fips": "17193"
+      },
+      {
+        "county": "Wabash",
+        "state": "IL",
+        "fips": "17185"
+      },
+      {
+        "county": "Gallatin",
+        "state": "IL",
+        "fips": "17059"
+      }
+    ]
+  },
+  "stalenessPolicy": {
+    "FRESH": "age <= 30 days",
+    "STALE": "31..90 days",
+    "EXPIRED": "> 90 days",
+    "note": "Age measured from verification/acquisition timestamp to 2026-10-23."
+  },
+  "labels": {
+    "VERIFIED": "hash re-verified against the source manifest on 2026-10-23",
+    "PROVISIONAL": "provider claim not re-verified live from this VM (egress-blocked)",
+    "UNAVAILABLE": "missing from held sources; never zero-filled or interpolated"
+  },
+  "assets": [
+    {
+      "assetId": "fema-effective",
+      "class": "streaming-source",
+      "presence": "PRESENT_PROVISIONAL",
+      "coverageFraction": 1.0,
+      "coverageBasis": "county-complete",
+      "nodataRegions": [],
+      "acquisitionTime": "2026-09-28T00:00:00Z",
+      "ageDays": 25,
+      "staleness": "FRESH",
+      "stalenessNote": "Provider verification not re-run live from this VM (egress-blocked); age is measured from the fabric verification timestamp.",
+      "crs": "SOURCE_NATIVE_DECLARED",
+      "verticalDatum": "SOURCE_PRODUCT_DECLARED",
+      "label": "PROVISIONAL"
+    },
+    {
+      "assetId": "indiana-bafm",
+      "class": "streaming-source",
+      "presence": "PRESENT_PROVISIONAL",
+      "coverageFraction": 0.375,
+      "coverageBasis": "IN AOI counties only (3/8)",
+      "nodataRegions": [
+        "Henderson KY (21101), Union KY (21225), White IL (17193), Wabash IL (17185), Gallatin IL (17059) \u2014 Indiana-scoped service; no KY/IL counterpart registered"
+      ],
+      "acquisitionTime": "2026-09-14T16:30:00Z",
+      "ageDays": 39,
+      "staleness": "STALE",
+      "stalenessNote": "Provider verification not re-run live from this VM (egress-blocked); age is measured from the fabric verification timestamp.",
+      "crs": "EPSG:26916",
+      "verticalDatum": "FIELD_DECLARED_PER_FEATURE",
+      "label": "PROVISIONAL"
+    },
+    {
+      "assetId": "indiana-parcels-2025",
+      "class": "streaming-source",
+      "presence": "PRESENT_PROVISIONAL",
+      "coverageFraction": 0.375,
+      "coverageBasis": "IN AOI counties only (3/8)",
+      "nodataRegions": [
+        "Henderson KY (21101), Union KY (21225), White IL (17193), Wabash IL (17185), Gallatin IL (17059) \u2014 Indiana-scoped service; no KY/IL counterpart registered"
+      ],
+      "acquisitionTime": "2026-09-14T16:30:00Z",
+      "ageDays": 39,
+      "staleness": "STALE",
+      "stalenessNote": "Provider verification not re-run live from this VM (egress-blocked); age is measured from the fabric verification timestamp.",
+      "crs": "EPSG:4326",
+      "verticalDatum": "NOT_APPLICABLE",
+      "label": "PROVISIONAL"
+    },
+    {
+      "assetId": "indiana-parcels-current",
+      "class": "streaming-source",
+      "presence": "PRESENT_PROVISIONAL",
+      "coverageFraction": 0.375,
+      "coverageBasis": "IN AOI counties only (3/8)",
+      "nodataRegions": [
+        "Henderson KY (21101), Union KY (21225), White IL (17193), Wabash IL (17185), Gallatin IL (17059) \u2014 Indiana-scoped service; no KY/IL counterpart registered"
+      ],
+      "acquisitionTime": "2026-09-14T16:30:00Z",
+      "ageDays": 39,
+      "staleness": "STALE",
+      "stalenessNote": "Provider verification not re-run live from this VM (egress-blocked); age is measured from the fabric verification timestamp.",
+      "crs": "EPSG:4326",
+      "verticalDatum": "NOT_APPLICABLE",
+      "label": "PROVISIONAL"
+    },
+    {
+      "assetId": "indiana-current-imagery",
+      "class": "streaming-source",
+      "presence": "PRESENT_PROVISIONAL",
+      "coverageFraction": 0.375,
+      "coverageBasis": "IN AOI counties only (3/8)",
+      "nodataRegions": [
+        "Henderson KY (21101), Union KY (21225), White IL (17193), Wabash IL (17185), Gallatin IL (17059) \u2014 Indiana-scoped service; no KY/IL counterpart registered"
+      ],
+      "acquisitionTime": "2026-09-14T16:30:00Z",
+      "ageDays": 39,
+      "staleness": "STALE",
+      "stalenessNote": "Provider verification not re-run live from this VM (egress-blocked); age is measured from the fabric verification timestamp.",
+      "crs": "EPSG:3857",
+      "verticalDatum": "NOT_APPLICABLE",
+      "label": "PROVISIONAL"
+    },
+    {
+      "assetId": "usgs-3dep-terrain",
+      "class": "streaming-source",
+      "presence": "PRESENT_PROVISIONAL",
+      "coverageFraction": 1.0,
+      "coverageBasis": "county-complete",
+      "nodataRegions": [],
+      "acquisitionTime": "2026-09-14T16:30:00Z",
+      "ageDays": 39,
+      "staleness": "STALE",
+      "stalenessNote": "Provider verification not re-run live from this VM (egress-blocked); age is measured from the fabric verification timestamp.",
+      "crs": "EPSG:3857",
+      "verticalDatum": "SOURCE_PRODUCT_DECLARED",
+      "label": "PROVISIONAL"
+    },
+    {
+      "assetId": "indiana-2016-2020-elevation",
+      "class": "streaming-source",
+      "presence": "PRESENT_PROVISIONAL",
+      "coverageFraction": 0.375,
+      "coverageBasis": "IN AOI counties only (3/8)",
+      "nodataRegions": [
+        "Henderson KY (21101), Union KY (21225), White IL (17193), Wabash IL (17185), Gallatin IL (17059) \u2014 Indiana-scoped service; no KY/IL counterpart registered"
+      ],
+      "acquisitionTime": "2026-09-18T09:33:24Z",
+      "ageDays": 35,
+      "staleness": "STALE",
+      "stalenessNote": "Provider verification not re-run live from this VM (egress-blocked); age is measured from the fabric verification timestamp.",
+      "crs": "EPSG:3857",
+      "verticalDatum": "SOURCE_PRODUCT_DECLARED",
+      "label": "PROVISIONAL"
+    },
+    {
+      "assetId": "usgs-03378500",
+      "class": "streaming-source",
+      "presence": "PRESENT_PROVISIONAL",
+      "coverageFraction": 0.0,
+      "coverageBasis": "point observation",
+      "nodataRegions": [
+        "area coverage not applicable \u2014 point gage observation"
+      ],
+      "acquisitionTime": "2026-09-14T16:30:00Z",
+      "ageDays": 39,
+      "staleness": "STALE",
+      "stalenessNote": "Provider verification not re-run live from this VM (egress-blocked); age is measured from the fabric verification timestamp.",
+      "crs": "EPSG:4326",
+      "verticalDatum": "SOURCE_GAGE_DATUM",
+      "label": "PROVISIONAL"
+    },
+    {
+      "assetId": "usgs-03322000",
+      "class": "streaming-source",
+      "presence": "PRESENT_PROVISIONAL",
+      "coverageFraction": 0.0,
+      "coverageBasis": "point observation",
+      "nodataRegions": [
+        "area coverage not applicable \u2014 point gage observation"
+      ],
+      "acquisitionTime": "2026-09-14T16:30:00Z",
+      "ageDays": 39,
+      "staleness": "STALE",
+      "stalenessNote": "Provider verification not re-run live from this VM (egress-blocked); age is measured from the fabric verification timestamp.",
+      "crs": "EPSG:4326",
+      "verticalDatum": "SOURCE_GAGE_DATUM",
+      "label": "PROVISIONAL"
+    },
+    {
+      "assetId": "usgs-03322420",
+      "class": "streaming-source",
+      "presence": "PRESENT_PROVISIONAL",
+      "coverageFraction": 0.0,
+      "coverageBasis": "point observation",
+      "nodataRegions": [
+        "area coverage not applicable \u2014 point gage observation"
+      ],
+      "acquisitionTime": "2026-09-14T16:30:00Z",
+      "ageDays": 39,
+      "staleness": "STALE",
+      "stalenessNote": "Provider verification not re-run live from this VM (egress-blocked); age is measured from the fabric verification timestamp.",
+      "crs": "EPSG:4326",
+      "verticalDatum": "SOURCE_GAGE_DATUM",
+      "label": "PROVISIONAL"
+    },
+    {
+      "assetId": "noaa-nwps",
+      "class": "streaming-source",
+      "presence": "UNAVAILABLE",
+      "coverageFraction": 0.0,
+      "coverageBasis": "none",
+      "nodataRegions": [
+        "entire AOI \u2014 no verified forecast tile exists"
+      ],
+      "acquisitionTime": "2026-09-14T16:30:00Z",
+      "ageDays": 39,
+      "staleness": "STALE",
+      "stalenessNote": "Provider verification not re-run live from this VM (egress-blocked); age is measured from the fabric verification timestamp.",
+      "crs": "EPSG:4326",
+      "verticalDatum": "SOURCE_PRODUCT_DECLARED",
+      "label": "UNAVAILABLE"
+    },
+    {
+      "assetId": "usace-nld",
+      "class": "streaming-source",
+      "presence": "PRESENT_PROVISIONAL",
+      "coverageFraction": 1.0,
+      "coverageBasis": "county-complete",
+      "nodataRegions": [],
+      "acquisitionTime": "2026-09-14T16:30:00Z",
+      "ageDays": 39,
+      "staleness": "STALE",
+      "stalenessNote": "Provider verification not re-run live from this VM (egress-blocked); age is measured from the fabric verification timestamp.",
+      "crs": "SOURCE_SERVICE_DECLARED",
+      "verticalDatum": "SOURCE_PRODUCT_DECLARED",
+      "label": "PROVISIONAL"
+    },
+    {
+      "assetId": "point-township-historical",
+      "class": "streaming-source",
+      "presence": "UNAVAILABLE",
+      "coverageFraction": 0.0,
+      "coverageBasis": "none",
+      "nodataRegions": [
+        "entire AOI \u2014 historical scan not materialized"
+      ],
+      "acquisitionTime": "2026-09-14T16:30:00Z",
+      "ageDays": 39,
+      "staleness": "STALE",
+      "stalenessNote": "Provider verification not re-run live from this VM (egress-blocked); age is measured from the fabric verification timestamp.",
+      "crs": "HISTORICAL_MAP_COORDINATE_SYSTEM_UNVERIFIED",
+      "verticalDatum": "NOT_APPLICABLE",
+      "label": "UNAVAILABLE"
+    },
+    {
+      "assetId": "indiana-building-footprints-2016-2020",
+      "class": "streaming-source",
+      "presence": "PRESENT_PROVISIONAL",
+      "coverageFraction": 0.375,
+      "coverageBasis": "IN AOI counties only (3/8)",
+      "nodataRegions": [
+        "Henderson KY (21101), Union KY (21225), White IL (17193), Wabash IL (17185), Gallatin IL (17059) \u2014 Indiana-scoped service; no KY/IL counterpart registered"
+      ],
+      "acquisitionTime": "2026-09-19T11:26:08Z",
+      "ageDays": 34,
+      "staleness": "STALE",
+      "stalenessNote": "Provider verification not re-run live from this VM (egress-blocked); age is measured from the fabric verification timestamp.",
+      "crs": "EPSG:3857",
+      "verticalDatum": "NOT_APPLICABLE",
+      "label": "PROVISIONAL"
+    },
+    {
+      "assetId": "fema-nfhl-firmette",
+      "class": "streaming-source",
+      "presence": "PRESENT_PROVISIONAL",
+      "coverageFraction": 1.0,
+      "coverageBasis": "county-complete",
+      "nodataRegions": [],
+      "acquisitionTime": "2026-09-28T00:00:00Z",
+      "ageDays": 25,
+      "staleness": "FRESH",
+      "stalenessNote": "Provider verification not re-run live from this VM (egress-blocked); age is measured from the fabric verification timestamp.",
+      "crs": "EPSG:4326",
+      "verticalDatum": "SOURCE_PRODUCT_DECLARED",
+      "label": "PROVISIONAL"
+    },
+    {
+      "assetId": "nfhl-flood-zones-18129",
+      "class": "held-snapshot-nfhl",
+      "presence": "PRESENT_VERIFIED",
+      "coverageFraction": 1.0,
+      "coverageBasis": "county-complete derived clip, hash-verified",
+      "nodataRegions": [],
+      "acquisitionTime": "2026-09-30T16:02:55.552496+00:00",
+      "ageDays": 23,
+      "staleness": "FRESH",
+      "stalenessNote": "Held snapshot age; underlying product vintage is the 2026-03-03 Esri NFHL view.",
+      "crs": "EPSG:4326 (observed from coordinate ranges in the held files)",
+      "verticalDatum": "per-feature V_DATUM; majority undeclared in this derived copy (sampled 2026-10-23) \u2014 do not assume NAVD88",
+      "label": "VERIFIED",
+      "sha256": "799bf2bd6c0ba5d3880b9ac77346f48cef422a42d790f99d5dd53919edaf9c8c",
+      "bytes": 2417899,
+      "features": 84
+    },
+    {
+      "assetId": "nfhl-flood-zones-18163",
+      "class": "held-snapshot-nfhl",
+      "presence": "PRESENT_VERIFIED",
+      "coverageFraction": 1.0,
+      "coverageBasis": "county-complete derived clip, hash-verified",
+      "nodataRegions": [],
+      "acquisitionTime": "2026-09-30T16:02:55.552496+00:00",
+      "ageDays": 23,
+      "staleness": "FRESH",
+      "stalenessNote": "Held snapshot age; underlying product vintage is the 2026-03-03 Esri NFHL view.",
+      "crs": "EPSG:4326 (observed from coordinate ranges in the held files)",
+      "verticalDatum": "per-feature V_DATUM; majority undeclared in this derived copy (sampled 2026-10-23) \u2014 do not assume NAVD88",
+      "label": "VERIFIED",
+      "sha256": "2655a3eb862ddc2a765f93c84e1e8fc12cdc0386f8d35f1e610148ea2f8d7019",
+      "bytes": 13007253,
+      "features": 830
+    },
+    {
+      "assetId": "nfhl-flood-zones-18173",
+      "class": "held-snapshot-nfhl",
+      "presence": "PRESENT_VERIFIED",
+      "coverageFraction": 1.0,
+      "coverageBasis": "county-complete derived clip, hash-verified",
+      "nodataRegions": [],
+      "acquisitionTime": "2026-09-30T16:02:55.552496+00:00",
+      "ageDays": 23,
+      "staleness": "FRESH",
+      "stalenessNote": "Held snapshot age; underlying product vintage is the 2026-03-03 Esri NFHL view.",
+      "crs": "EPSG:4326 (observed from coordinate ranges in the held files)",
+      "verticalDatum": "per-feature V_DATUM; majority undeclared in this derived copy (sampled 2026-10-23) \u2014 do not assume NAVD88",
+      "label": "VERIFIED",
+      "sha256": "5fc57a0a0eb5d5764ee8dcb453ba4c75c8c8d82260ef61771c72286159677c8d",
+      "bytes": 419306,
+      "features": 43
+    },
+    {
+      "assetId": "nfhl-flood-zones-17193",
+      "class": "held-snapshot-nfhl",
+      "presence": "PRESENT_VERIFIED",
+      "coverageFraction": 1.0,
+      "coverageBasis": "county-complete derived clip, hash-verified",
+      "nodataRegions": [],
+      "acquisitionTime": "2026-09-30T16:02:55.552496+00:00",
+      "ageDays": 23,
+      "staleness": "FRESH",
+      "stalenessNote": "Held snapshot age; underlying product vintage is the 2026-03-03 Esri NFHL view.",
+      "crs": "EPSG:4326 (observed from coordinate ranges in the held files)",
+      "verticalDatum": "per-feature V_DATUM; majority undeclared in this derived copy (sampled 2026-10-23) \u2014 do not assume NAVD88",
+      "label": "VERIFIED",
+      "sha256": "f49dc061494ab50122b0ec042daa576b9853bbb73e8b4c3c544a5d30c1e828e8",
+      "bytes": 2091737,
+      "features": 106
+    },
+    {
+      "assetId": "nfhl-flood-zones-17059",
+      "class": "held-snapshot-nfhl",
+      "presence": "PRESENT_VERIFIED",
+      "coverageFraction": 1.0,
+      "coverageBasis": "county-complete derived clip, hash-verified",
+      "nodataRegions": [],
+      "acquisitionTime": "2026-09-30T16:02:55.552496+00:00",
+      "ageDays": 23,
+      "staleness": "FRESH",
+      "stalenessNote": "Held snapshot age; underlying product vintage is the 2026-03-03 Esri NFHL view.",
+      "crs": "EPSG:4326 (observed from coordinate ranges in the held files)",
+      "verticalDatum": "per-feature V_DATUM; majority undeclared in this derived copy (sampled 2026-10-23) \u2014 do not assume NAVD88",
+      "label": "VERIFIED",
+      "sha256": "5f8d8f0f4571a5748d103c990b6c3f4bb00a859a2504b99876d3cc3921e868ba",
+      "bytes": 2299428,
+      "features": 88
+    },
+    {
+      "assetId": "nfhl-flood-zones-21101",
+      "class": "held-snapshot-nfhl",
+      "presence": "PRESENT_VERIFIED",
+      "coverageFraction": 1.0,
+      "coverageBasis": "county-complete derived clip, hash-verified",
+      "nodataRegions": [],
+      "acquisitionTime": "2026-09-30T16:02:55.552496+00:00",
+      "ageDays": 23,
+      "staleness": "FRESH",
+      "stalenessNote": "Held snapshot age; underlying product vintage is the 2026-03-03 Esri NFHL view.",
+      "crs": "EPSG:4326 (observed from coordinate ranges in the held files)",
+      "verticalDatum": "per-feature V_DATUM; majority undeclared in this derived copy (sampled 2026-10-23) \u2014 do not assume NAVD88",
+      "label": "VERIFIED",
+      "sha256": "61b070af861e7b7981cc34e8b1abd3ed28bd511bf3c2533e04bc175d207bf218",
+      "bytes": 100408345,
+      "features": 633
+    },
+    {
+      "assetId": "nfhl-flood-zones-21225",
+      "class": "held-snapshot-nfhl",
+      "presence": "PRESENT_VERIFIED",
+      "coverageFraction": 1.0,
+      "coverageBasis": "county-complete derived clip, hash-verified",
+      "nodataRegions": [],
+      "acquisitionTime": "2026-09-30T16:02:55.552496+00:00",
+      "ageDays": 23,
+      "staleness": "FRESH",
+      "stalenessNote": "Held snapshot age; underlying product vintage is the 2026-03-03 Esri NFHL view.",
+      "crs": "EPSG:4326 (observed from coordinate ranges in the held files)",
+      "verticalDatum": "per-feature V_DATUM; majority undeclared in this derived copy (sampled 2026-10-23) \u2014 do not assume NAVD88",
+      "label": "VERIFIED",
+      "sha256": "1a4e3e4c4756b0527afb7395ef05b265f8f8cad978201ab3ce284e64a1a14497",
+      "bytes": 37695671,
+      "features": 187
+    },
+    {
+      "assetId": "nfhl-flood-zones-all",
+      "class": "held-snapshot-nfhl",
+      "presence": "PRESENT_VERIFIED",
+      "coverageFraction": 1.0,
+      "coverageBasis": "multi-county aggregate incl. all 8 AOI counties (15 DFIRMs; 20 features of DFIRM 17185C)",
+      "nodataRegions": [
+        "Wabash IL (17185) represented only by 20 features in this aggregate \u2014 no dedicated county clip"
+      ],
+      "acquisitionTime": "2026-09-30T16:02:55.552496+00:00",
+      "ageDays": 23,
+      "staleness": "FRESH",
+      "stalenessNote": "Held snapshot age; underlying product vintage is the 2026-03-03 Esri NFHL view (EXPIRED as a product vintage, FRESH as a held snapshot).",
+      "crs": "EPSG:4326 (observed from coordinate ranges in the held files)",
+      "verticalDatum": "per-feature V_DATUM; majority undeclared in this derived copy (sampled 2026-10-23) \u2014 do not assume NAVD88",
+      "label": "VERIFIED",
+      "sha256": "306e74eebe337e109cf2a9c310c00bc2ac7883fa87c5a02580787131c174b697",
+      "bytes": 153052008,
+      "features": 2196
+    },
+    {
+      "assetId": "nfhl-flood-zones-17185",
+      "class": "held-snapshot-nfhl",
+      "presence": "UNAVAILABLE",
+      "coverageFraction": 0.0,
+      "coverageBasis": "no county clip held; partial fallback via regional aggregate (20 features)",
+      "nodataRegions": [
+        "Wabash County IL (17185) \u2014 no dedicated NFHL county clip in the holdings manifest or offline-data"
+      ],
+      "acquisitionTime": null,
+      "ageDays": null,
+      "staleness": "UNKNOWN",
+      "stalenessNote": "Asset does not exist; staleness not applicable.",
+      "crs": null,
+      "verticalDatum": null,
+      "label": "UNAVAILABLE",
+      "sha256": null,
+      "bytes": null,
+      "features": null
+    },
+    {
+      "assetId": "ssurgo-in129",
+      "class": "held-snapshot-ssurgo",
+      "presence": "PRESENT_VERIFIED",
+      "coverageFraction": 1.0,
+      "coverageBasis": "county-complete survey area, hash-verified",
+      "nodataRegions": [],
+      "acquisitionTime": "2026-10-23T20:31:00Z",
+      "ageDays": 0,
+      "staleness": "FRESH",
+      "stalenessNote": "Fresh held snapshot; query adapter pending spatial stack per source manifest (held, not yet queryable by the client).",
+      "crs": "GCS_WGS_1984 (EPSG:4326) per .prj inside the held zip (soil_IN129.zip sampled 2026-10-23)",
+      "verticalDatum": "NOT_APPLICABLE (soil survey polygons; no elevation)",
+      "label": "VERIFIED",
+      "sha256": "a2764d3afa3001dc4baaff96ac125858a0235338e30a01dab85b889211c1aaae",
+      "bytes": 21454832
+    },
+    {
+      "assetId": "ssurgo-in163",
+      "class": "held-snapshot-ssurgo",
+      "presence": "PRESENT_VERIFIED",
+      "coverageFraction": 1.0,
+      "coverageBasis": "county-complete survey area, hash-verified",
+      "nodataRegions": [],
+      "acquisitionTime": "2026-10-23T20:31:00Z",
+      "ageDays": 0,
+      "staleness": "FRESH",
+      "stalenessNote": "Fresh held snapshot; query adapter pending spatial stack per source manifest (held, not yet queryable by the client).",
+      "crs": "GCS_WGS_1984 (EPSG:4326) per .prj inside the held zip (soil_IN129.zip sampled 2026-10-23)",
+      "verticalDatum": "NOT_APPLICABLE (soil survey polygons; no elevation)",
+      "label": "VERIFIED",
+      "sha256": "39423a8f0c3d14c1cf92db835750b9e5e02304e8824512e72e0ae549295f7eca",
+      "bytes": 13961203
+    },
+    {
+      "assetId": "ssurgo-in173",
+      "class": "held-snapshot-ssurgo",
+      "presence": "PRESENT_VERIFIED",
+      "coverageFraction": 1.0,
+      "coverageBasis": "county-complete survey area, hash-verified",
+      "nodataRegions": [],
+      "acquisitionTime": "2026-10-23T20:31:00Z",
+      "ageDays": 0,
+      "staleness": "FRESH",
+      "stalenessNote": "Fresh held snapshot; query adapter pending spatial stack per source manifest (held, not yet queryable by the client).",
+      "crs": "GCS_WGS_1984 (EPSG:4326) per .prj inside the held zip (soil_IN129.zip sampled 2026-10-23)",
+      "verticalDatum": "NOT_APPLICABLE (soil survey polygons; no elevation)",
+      "label": "VERIFIED",
+      "sha256": "54977adc083be2df3dafcf26b7aa0df8704a39ddd8cba1832bad9b92c087a6cc",
+      "bytes": 19689680
+    },
+    {
+      "assetId": "ssurgo-ky101",
+      "class": "held-snapshot-ssurgo",
+      "presence": "PRESENT_VERIFIED",
+      "coverageFraction": 1.0,
+      "coverageBasis": "county-complete survey area, hash-verified",
+      "nodataRegions": [],
+      "acquisitionTime": "2026-10-23T20:31:00Z",
+      "ageDays": 0,
+      "staleness": "FRESH",
+      "stalenessNote": "Fresh held snapshot; query adapter pending spatial stack per source manifest (held, not yet queryable by the client).",
+      "crs": "GCS_WGS_1984 (EPSG:4326) per .prj inside the held zip (soil_IN129.zip sampled 2026-10-23)",
+      "verticalDatum": "NOT_APPLICABLE (soil survey polygons; no elevation)",
+      "label": "VERIFIED",
+      "sha256": "7029c4825e2ed22efeae013ec0db28a602efcafd174fc6431235f2f4a4335389",
+      "bytes": 23282890
+    },
+    {
+      "assetId": "ssurgo-ky635",
+      "class": "held-snapshot-ssurgo",
+      "presence": "PRESENT_VERIFIED",
+      "coverageFraction": 1.0,
+      "coverageBasis": "county-complete survey area, hash-verified",
+      "nodataRegions": [],
+      "acquisitionTime": "2026-10-23T20:31:00Z",
+      "ageDays": 0,
+      "staleness": "FRESH",
+      "stalenessNote": "Fresh held snapshot; query adapter pending spatial stack per source manifest (held, not yet queryable by the client).",
+      "crs": "GCS_WGS_1984 (EPSG:4326) per .prj inside the held zip (soil_IN129.zip sampled 2026-10-23)",
+      "verticalDatum": "NOT_APPLICABLE (soil survey polygons; no elevation)",
+      "label": "VERIFIED",
+      "sha256": "20ce5e0256e4d6f8e11493963d4e454c4254586a2dc843914521e0aa191f1e01",
+      "bytes": 23627280
+    },
+    {
+      "assetId": "ssurgo-il059",
+      "class": "held-snapshot-ssurgo",
+      "presence": "PRESENT_VERIFIED",
+      "coverageFraction": 1.0,
+      "coverageBasis": "county-complete survey area, hash-verified",
+      "nodataRegions": [],
+      "acquisitionTime": "2026-10-23T20:31:00Z",
+      "ageDays": 0,
+      "staleness": "FRESH",
+      "stalenessNote": "Fresh held snapshot; query adapter pending spatial stack per source manifest (held, not yet queryable by the client).",
+      "crs": "GCS_WGS_1984 (EPSG:4326) per .prj inside the held zip (soil_IN129.zip sampled 2026-10-23)",
+      "verticalDatum": "NOT_APPLICABLE (soil survey polygons; no elevation)",
+      "label": "VERIFIED",
+      "sha256": "2cddccfba8bb29c904897e710e2765ad0609274e54eda3aac37200f97706e329",
+      "bytes": 14214721
+    },
+    {
+      "assetId": "ssurgo-il185",
+      "class": "held-snapshot-ssurgo",
+      "presence": "PRESENT_VERIFIED",
+      "coverageFraction": 1.0,
+      "coverageBasis": "county-complete survey area, hash-verified",
+      "nodataRegions": [],
+      "acquisitionTime": "2026-10-23T20:31:00Z",
+      "ageDays": 0,
+      "staleness": "FRESH",
+      "stalenessNote": "Fresh held snapshot; query adapter pending spatial stack per source manifest (held, not yet queryable by the client).",
+      "crs": "GCS_WGS_1984 (EPSG:4326) per .prj inside the held zip (soil_IN129.zip sampled 2026-10-23)",
+      "verticalDatum": "NOT_APPLICABLE (soil survey polygons; no elevation)",
+      "label": "VERIFIED",
+      "sha256": "a1e184e5aab1419b2e76ffaf0f907b5a6effdee1f35deed804d1c81972697d22",
+      "bytes": 10649769
+    },
+    {
+      "assetId": "ssurgo-il193",
+      "class": "held-snapshot-ssurgo",
+      "presence": "PRESENT_VERIFIED",
+      "coverageFraction": 1.0,
+      "coverageBasis": "county-complete survey area, hash-verified",
+      "nodataRegions": [],
+      "acquisitionTime": "2026-10-23T20:31:00Z",
+      "ageDays": 0,
+      "staleness": "FRESH",
+      "stalenessNote": "Fresh held snapshot; query adapter pending spatial stack per source manifest (held, not yet queryable by the client).",
+      "crs": "GCS_WGS_1984 (EPSG:4326) per .prj inside the held zip (soil_IN129.zip sampled 2026-10-23)",
+      "verticalDatum": "NOT_APPLICABLE (soil survey polygons; no elevation)",
+      "label": "VERIFIED",
+      "sha256": "ab03d62e4b7f25ca3339e399d8c5f3dfcf0d9707d8ed0588f7b93ddf77077c36",
+      "bytes": 20082818
+    },
+    {
+      "assetId": "in-2016-2020-elevation-posey-26800940",
+      "class": "site-raster",
+      "presence": "UNAVAILABLE",
+      "coverageFraction": 0.0,
+      "coverageBasis": "registered in code only; no asset-download-manifest.json materialized in the repo",
+      "nodataRegions": [
+        "entire AOI \u2014 raster not materialized; live service endpoint remains the only path"
+      ],
+      "acquisitionTime": "2020 (acquisitionYear)",
+      "ageDays": 2487,
+      "staleness": "EXPIRED",
+      "stalenessNote": "Acquisition year 2020; product vintage is 6+ years old and the asset is not held.",
+      "crs": "EPSG:2966",
+      "verticalDatum": null,
+      "label": "UNAVAILABLE",
+      "sha256": null
+    },
+    {
+      "assetId": "usda-naip-2020-indiana-posey",
+      "class": "site-raster",
+      "presence": "UNAVAILABLE",
+      "coverageFraction": 0.0,
+      "coverageBasis": "registered in code only; no asset-download-manifest.json materialized in the repo",
+      "nodataRegions": [
+        "entire AOI \u2014 raster not materialized; live service endpoint remains the only path"
+      ],
+      "acquisitionTime": "2020 (acquisitionYear)",
+      "ageDays": 2487,
+      "staleness": "EXPIRED",
+      "stalenessNote": "Acquisition year 2020; product vintage is 6+ years old and the asset is not held.",
+      "crs": "EPSG:2966",
+      "verticalDatum": "NOT_APPLICABLE",
+      "label": "UNAVAILABLE",
+      "sha256": null
+    }
+  ],
+  "countyMatrix": [
+    {
+      "county": "Posey IN",
+      "fips": "18129",
+      "nfhlHeldClip": 1.0,
+      "nfhlNote": "hash-verified county clip",
+      "ssurgoHeld": 1.0,
+      "indianaStateServices": 1.0,
+      "indianaStateServicesNote": "covered",
+      "nationalStreamingServices": "PROVISIONAL (provider claim; not re-verified live)"
+    },
+    {
+      "county": "Vanderburgh IN",
+      "fips": "18163",
+      "nfhlHeldClip": 1.0,
+      "nfhlNote": "hash-verified county clip",
+      "ssurgoHeld": 1.0,
+      "indianaStateServices": 1.0,
+      "indianaStateServicesNote": "covered",
+      "nationalStreamingServices": "PROVISIONAL (provider claim; not re-verified live)"
+    },
+    {
+      "county": "Warrick IN",
+      "fips": "18173",
+      "nfhlHeldClip": 1.0,
+      "nfhlNote": "hash-verified county clip",
+      "ssurgoHeld": 1.0,
+      "indianaStateServices": 1.0,
+      "indianaStateServicesNote": "covered",
+      "nationalStreamingServices": "PROVISIONAL (provider claim; not re-verified live)"
+    },
+    {
+      "county": "Henderson KY",
+      "fips": "21101",
+      "nfhlHeldClip": 1.0,
+      "nfhlNote": "hash-verified county clip",
+      "ssurgoHeld": 1.0,
+      "indianaStateServices": 0.0,
+      "indianaStateServicesNote": "UNAVAILABLE \u2014 Indiana-scoped services do not cover KY/IL counties",
+      "nationalStreamingServices": "PROVISIONAL (provider claim; not re-verified live)"
+    },
+    {
+      "county": "Union KY",
+      "fips": "21225",
+      "nfhlHeldClip": 1.0,
+      "nfhlNote": "hash-verified county clip",
+      "ssurgoHeld": 1.0,
+      "indianaStateServices": 0.0,
+      "indianaStateServicesNote": "UNAVAILABLE \u2014 Indiana-scoped services do not cover KY/IL counties",
+      "nationalStreamingServices": "PROVISIONAL (provider claim; not re-verified live)"
+    },
+    {
+      "county": "White IL",
+      "fips": "17193",
+      "nfhlHeldClip": 1.0,
+      "nfhlNote": "hash-verified county clip",
+      "ssurgoHeld": 1.0,
+      "indianaStateServices": 0.0,
+      "indianaStateServicesNote": "UNAVAILABLE \u2014 Indiana-scoped services do not cover KY/IL counties",
+      "nationalStreamingServices": "PROVISIONAL (provider claim; not re-verified live)"
+    },
+    {
+      "county": "Wabash IL",
+      "fips": "17185",
+      "nfhlHeldClip": 0.0,
+      "nfhlNote": "UNAVAILABLE as county clip; 20 features in regional aggregate only",
+      "ssurgoHeld": 1.0,
+      "indianaStateServices": 0.0,
+      "indianaStateServicesNote": "UNAVAILABLE \u2014 Indiana-scoped services do not cover KY/IL counties",
+      "nationalStreamingServices": "PROVISIONAL (provider claim; not re-verified live)"
+    },
+    {
+      "county": "Gallatin IL",
+      "fips": "17059",
+      "nfhlHeldClip": 1.0,
+      "nfhlNote": "hash-verified county clip",
+      "ssurgoHeld": 1.0,
+      "indianaStateServices": 0.0,
+      "indianaStateServicesNote": "UNAVAILABLE \u2014 Indiana-scoped services do not cover KY/IL counties",
+      "nationalStreamingServices": "PROVISIONAL (provider claim; not re-verified live)"
+    }
+  ],
+  "summary": {
+    "totalAssets": 34,
+    "presentVerified": 16,
+    "presentProvisional": 13,
+    "unavailable": 5,
+    "countyClipCoverage": "NFHL 7/8 AOI counties hash-verified; SSURGO 8/8 hash-verified",
+    "explicitNodata": [
+      "Wabash County IL (17185): no dedicated NFHL county clip (UNAVAILABLE); 20 features via regional aggregate",
+      "Henderson/Union KY + White/Wabash/Gallatin IL: Indiana-scoped services provide no coverage (UNAVAILABLE)",
+      "NOAA NWPS forecast tile: PROGRAM_PENDING (UNAVAILABLE)",
+      "Posey terrain/orthophoto rasters: registered, not materialized (UNAVAILABLE as held assets)",
+      "Historical point-township scan: REQUIRES_DOWNLOAD (UNAVAILABLE)"
+    ]
+  }
+}
