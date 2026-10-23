@@ -19,7 +19,7 @@ describe('official Transvoxel transition mesher', () => {
     }
   });
   it('polygonizes a nontrivial transition cell into finite indexed geometry', () => {
-    const sdf = new Float32Array(9).fill(1);
+    const sdf = new Float32Array(13).fill(1);
     sdf[0] = -1; sdf[1] = -1; sdf[4] = -1;
     const p = new Float32Array(39);
     const coords = [[0,0,0],[0.5,0,0],[1,0,0],[0,0.5,0],[0.5,0.5,0],[1,0.5,0],[0,1,0],[0.5,1,0],[1,1,0],[0,0,1],[1,0,1],[1,1,1],[0,1,1]];
@@ -30,8 +30,8 @@ describe('official Transvoxel transition mesher', () => {
     expect(mesh.indices.every((v)=>v < mesh.positions.length / 3)).toBe(true);
   });
   it('rejects incomplete and non-finite sample fields', () => {
-    expect(() => TransvoxelStitcher.polygonizeTransitionCell(new Float32Array(8),new Float32Array(39))).toThrow(/9 fine-side scalar/);
-    const sdf = new Float32Array(9); sdf[4] = Number.NaN;
+    expect(() => TransvoxelStitcher.polygonizeTransitionCell(new Float32Array(12),new Float32Array(39))).toThrow(/13 transition-cell scalar/);
+    const sdf = new Float32Array(13); sdf[4] = Number.NaN;
     expect(() => TransvoxelStitcher.polygonizeTransitionCell(sdf,new Float32Array(39))).toThrow(/Non-finite/);
   });
 });
