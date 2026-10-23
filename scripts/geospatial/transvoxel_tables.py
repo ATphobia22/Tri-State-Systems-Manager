@@ -11,6 +11,7 @@ entries. High bit (0x80) = invert winding.
 
 from __future__ import annotations
 
+import math
 from typing import List, Optional, Tuple
 
 TRANSITION_CELL_CLASS: List[int] = [
@@ -65,13 +66,13 @@ assert len(HIGH_RES_CASE_BITS) == 9 and sum(HIGH_RES_CASE_BITS) == 0x1FF
 def compute_case_index(corner_sdfs: list, iso: float = 0.0) -> Optional[int]:
     if len(corner_sdfs) != 9:
         raise ValueError("need 9 SDF samples")
-    if not isinstance(iso, (int, float)) or isinstance(iso, bool):
-        raise ValueError("iso value must be numeric")
+    if isinstance(iso, bool) or not isinstance(iso, (int, float)) or not math.isfinite(float(iso)):
+        raise ValueError("iso value must be a finite number")
     case = 0
     for bit, value in zip(HIGH_RES_CASE_BITS, corner_sdfs, strict=True):
         if not isinstance(value, (int, float)) or isinstance(value, bool):
             raise ValueError("SDF samples must be numeric")
-        if not float(value) == value or not __import__("math").isfinite(float(value)):
+        if not math.isfinite(float(value)):
             raise ValueError("SDF samples must be finite")
         if value < iso:
             case |= bit
