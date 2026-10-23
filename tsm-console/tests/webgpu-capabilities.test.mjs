@@ -34,6 +34,32 @@ test('WebGPU probe reports device creation failure and adapter features', async 
   assert.match(result.reason ?? '', /device denied/);
 });
 
+test('WebGPU probe reports adapter metadata, device features, and limits on success', async () => {
+  const device = {
+    features: new Set(['timestamp-query']),
+    limits: {
+      maxBufferSize: 1024,
+      maxStorageBufferBindingSize: 512,
+      maxTextureDimension2D: 2048,
+      maxTextureDimension3D: 256,
+      maxComputeWorkgroupsPerDimension: 65535,
+    },
+    lost: new Promise(() => {}),
+  };
+  const result = await probeWebGPU({
+    requestAdapter: async () => ({
+      info: { vendor: 'test-vendor', architecture: 'test-arch', device: 'test-device', description: 'mock' },
+      features: new Set(['timestamp-query']),
+      requestDevice: async () => device,
+    }),
+  });
+  assert.equal(result.status, 'ready');
+  assert.deepEqual(result.features, ['timestamp-query']);
+  assert.equal(result.adapterInfo?.vendor, 'test-vendor');
+  assert.equal(result.limits?.maxTextureDimension3D, 256);
+  assert.equal(result.device, device);
+});
+
 test('WebGPU ready label does not claim terrain workload completion', () => {
   assert.match(getWebGPUCapabilityLabel('ready'), /workload support must be validated/i);
 });
