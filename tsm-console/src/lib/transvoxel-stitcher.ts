@@ -101,7 +101,7 @@ export class TransvoxelStitcher {
     if (positions.length !== 39) {
       throw new Error(`Expected 13 xyz positions (39 floats), got ${positions.length}`);
     }
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < 13; i++) {
       if (!Number.isFinite(sdf[i]!)) throw new Error(`Non-finite SDF sample ${i}`);
     }
     for (let i = 0; i < 13; i++) {
