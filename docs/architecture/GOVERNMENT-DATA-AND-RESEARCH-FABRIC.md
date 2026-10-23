@@ -6,7 +6,7 @@ Government source retrieval returns a typed evidence envelope with result, HTTPS
 
 ## Source coverage
 
-The registry defines FEMA NFHL; USGS 3DEP and hydrography; NOAA NWS and CO-OPS; Census API/TIGER; EPA WATERS discovery; USDA soil-data discovery; FHWA bridge inventory discovery; and USACE levee/study discovery. Provider URLs are constrained to the registered HTTPS origin and path. Source-specific endpoints, licenses, coverage, vintage, units, CRS, datum, quality flags, and query semantics still require validation before engineering use.
+The UACF gateway registers `GovernmentDataProvider` for the read-only `geo.nfhl.query` capability under the `tsm:geospatial` permission. The registry defines FEMA NFHL; USGS 3DEP and hydrography; NOAA NWS and CO-OPS; Census API/TIGER; EPA WATERS discovery; USDA soil-data discovery; FHWA bridge inventory discovery; and USACE levee/study discovery. Provider URLs are constrained to the registered HTTPS origin and path. Source-specific endpoints, licenses, coverage, vintage, units, CRS, datum, quality flags, and query semantics still require validation before engineering use.
 
 ## Research adapters
 
