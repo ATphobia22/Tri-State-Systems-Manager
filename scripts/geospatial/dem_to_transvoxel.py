@@ -46,16 +46,17 @@ def _vertical_unit(dataset: Any) -> tuple[str, float]:
     return unit, VERTICAL_UNIT_TO_METERS[unit]
 
 
-def load_dem_window(path: str | os.PathLike[str], wx: int, wy: int, n: int) -> tuple[np.ndarray, float]:
+def load_dem_window(path: str | os.PathLike[str], wx: int, wy: int, n: int, height: int | None = None) -> tuple[np.ndarray, float]:
     """Read a bounded n×n raster window; return elevations in metres and pixel size in metres.
 
     Geographic-degree rasters are rejected because a single scalar pixel size
     is not a valid metric spacing for the mesher. Missing values are not filled.
     """
-    if isinstance(wx, bool) or isinstance(wy, bool) or isinstance(n, bool) or not all(isinstance(v, int) for v in (wx, wy, n)):
-        raise TypeError("wx, wy, and n must be integers")
-    if wx < 0 or wy < 0 or n < 2 or n > 8192:
-        raise ValueError("window origin must be nonnegative and n must be in 2..8192")
+    height = n if height is None else height
+    if any(isinstance(v, bool) or not isinstance(v, int) for v in (wx, wy, n, height)):
+        raise TypeError("wx, wy, width, and height must be integers")
+    if wx < 0 or wy < 0 or n < 2 or height < 2 or n > 8192 or height > 8192:
+        raise ValueError("window origin must be nonnegative and width/height must be in 2..8192")
     try:
         import rasterio
         from rasterio.windows import Window
@@ -72,8 +73,8 @@ def load_dem_window(path: str | os.PathLike[str], wx: int, wy: int, n: int) -> t
             raise ValueError(f"TSM_DEM_HORIZONTAL_CRS={override_crs!r} conflicts with raster CRS {src.crs}")
         if src.crs.is_geographic:
             raise ValueError("DEM uses angular coordinates; reproject to a suitable projected CRS before metric meshing")
-        if wx + n > src.width or wy + n > src.height:
-            raise ValueError(f"requested window x={wx} y={wy} n={n} exceeds raster bounds {src.width}×{src.height}")
+        if wx + n > src.width or wy + height > src.height:
+            raise ValueError(f"requested window x={wx} y={wy} width={n} height={height} exceeds raster bounds {src.width}×{src.height}")
         unit, scale = _vertical_unit(src)
         pixel_x = abs(float(src.transform.a))
         pixel_y = abs(float(src.transform.e))
@@ -94,8 +95,8 @@ def load_dem_window(path: str | os.PathLike[str], wx: int, wy: int, n: int) -> t
         px_m = pixel_x * horizontal_factors[0]
         if not math.isclose(pixel_x, pixel_y, rel_tol=1e-6):
             raise ValueError("non-square DEM pixels are unsupported by this mesher")
-        data = src.read(1, window=Window(wx, wy, n, n), masked=True).astype(np.float64)
-        if data.shape != (n, n):
+        data = src.read(1, window=Window(wx, wy, n, height), masked=True).astype(np.float64)
+        if data.shape != (height, n):
             raise ValueError(f"raster returned unexpected window shape {data.shape}")
         mask = np.ma.getmaskarray(data)
         values = np.asarray(data.filled(np.nan), dtype=np.float64) * scale
