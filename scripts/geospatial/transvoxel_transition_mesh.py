@@ -192,41 +192,51 @@ def mesh_transition_face_grid(sdf, origin, axis, extent, fine_res=2, iso=0.0, di
 
 def self_test() -> None:
     _load_data()
-
-    # Exhaustively exercise every 9-bit mask against the canonical 512-case
-    # table, including inverted winding and coarse-corner endpoint encodings.
     tested = 0
+    coarse_values = (-0.75, 0.65, -0.55, 0.85)
+
+    # Exhaust all 512 fine-side masks on all six signed face orientations.
+    # Coarse-side values are deliberately distinct to exercise real 13-sample
+    # interpolation rather than silently reusing fine-side corner values.
     for axis in range(3):
-        for mask in range(512):
-            values = [-1.0 if (mask & (1 << i)) else 1.0 for i in range(9)]
+        a, b = (axis + 1) % 3, (axis + 2) % 3
+        for direction in (-1, 1):
+            for mask in range(512):
+                fine_values = [-1.0 if (mask & (1 << i)) else 1.0 for i in range(9)]
 
-            def case_sdf(x, y, z, samples=values, cell_axis=axis):
-                point = (x, y, z)
-                a, b = (cell_axis + 1) % 3, (cell_axis + 2) % 3
-                u = min(2, max(0, int(round(point[a] * 2))))
-                v = min(2, max(0, int(round(point[b] * 2))))
-                return samples[v * 3 + u]
+                def case_sdf(x, y, z, fine=fine_values, cell_axis=axis, face_direction=direction):
+                    point = (x, y, z)
+                    u = min(2, max(0, int(round(point[a] * 2))))
+                    v = min(2, max(0, int(round(point[b] * 2))))
+                    if abs(point[cell_axis]) <= 1e-8:
+                        return fine[v * 3 + u]
+                    coarse_slot = {(0, 0): 0, (2, 0): 1, (2, 2): 2, (0, 2): 3}.get((u, v))
+                    if coarse_slot is None:
+                        raise AssertionError(f"unexpected coarse endpoint ({u},{v})")
+                    return coarse_values[coarse_slot]
 
-            verts, tris, meta = mesh_transition_cell(
-                case_sdf, (0.0, 0.0, 0.0), axis=axis, extent=1.0
-            )
-            expected = None if mask in (0, 511) else mask
-            if meta["case"] != expected:
-                raise AssertionError(f"axis {axis} case {mask}: got {meta['case']}, expected {expected}")
-            if any(index < 0 or index >= len(verts) for tri in tris for index in tri):
-                raise AssertionError(f"axis {axis} case {mask}: triangle index outside vertex array")
-            if any(not np.isfinite(component) for vertex in verts for component in vertex):
-                raise AssertionError(f"axis {axis} case {mask}: non-finite vertex")
-            tested += 1
+                verts, tris, meta = mesh_transition_cell(
+                    case_sdf, (0.0, 0.0, 0.0), axis=axis, extent=1.0, direction=direction
+                )
+                expected = None if mask in (0, 511) else mask
+                if meta["case"] != expected:
+                    raise AssertionError(
+                        f"axis {axis} direction {direction} case {mask}: got {meta['case']}, expected {expected}"
+                    )
+                if any(index < 0 or index >= len(verts) for tri in tris for index in tri):
+                    raise AssertionError(f"axis {axis} direction {direction} case {mask}: invalid triangle index")
+                if any(not np.isfinite(component) for vertex in verts for component in vertex):
+                    raise AssertionError(f"axis {axis} direction {direction} case {mask}: non-finite vertex")
+                tested += 1
 
     def sdf2(x, y, z):
-        return (x + y) * 0.5 - 0.5
+        return (x + y + z) / 3.0 - 0.5
 
     verts, tris, meta = mesh_transition_cell(sdf2, (0.0, 0.0, 0.0), axis=2, extent=1.0)
     V, T, metas = mesh_transition_face_grid(sdf2, (0.0, 0.0, 0.0), axis=2, extent=2.0, fine_res=2)
     print("self-test meta", meta, "V", len(verts), "T", len(tris))
     print("grid V", len(V), "T", len(T), "cells", len(metas))
-    print(f"TRANSVOXEL_EXHAUSTIVE_CASES: PASS ({tested}/1536 face-orientation cases)")
+    print(f"TRANSVOXEL_EXHAUSTIVE_CASES: PASS ({tested}/3072 signed-orientation cases)")
     print("PER_LEAF_ADAPTIVE: PASS")
 
 
