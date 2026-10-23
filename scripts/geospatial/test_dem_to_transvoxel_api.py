@@ -64,6 +64,41 @@ class ProductionBridgeContractTests(unittest.TestCase):
             [(0.0, 0.0), (1.0, 0.0), (0.0, 1.0), (1.0, 1.0)],
         )
 
+    def test_official_case_bits_make_every_table_edge_a_scalar_crossing(self):
+        from transvoxel_tables import HIGH_RES_CASE_BITS, compute_case_index, get_transition_class
+        import transvoxel_transition_mesh as transition
+
+        data = transition._load_data()
+        self.assertEqual(HIGH_RES_CASE_BITS, (0x01, 0x02, 0x04, 0x80, 0x100, 0x08, 0x40, 0x20, 0x10))
+        coarse_corner_samples = (0, 2, 6, 8)
+        checked_cases = set()
+
+        # Treat each of the 512 possible sign arrangements as a 3x3 row-major
+        # fine face; table edges must always connect opposite-sign field values.
+        for sign_mask in range(512):
+            samples = [-1.0 if sign_mask & (1 << i) else 1.0 for i in range(9)]
+            case = compute_case_index(samples)
+            expected_case = sum(bit for bit, value in zip(HIGH_RES_CASE_BITS, samples, strict=True) if value < 0)
+            self.assertEqual(case, None if expected_case in (0, 511) else expected_case)
+            if case is None:
+                continue
+            checked_cases.add(case)
+            class_id, _invert = get_transition_class(case)
+            cell = data["transitionCellData"][class_id]
+            vertex_count = cell["geometryCounts"] >> 4
+            table_vertices = data["transitionVertexData"][case]
+            self.assertGreaterEqual(len(table_vertices), vertex_count)
+            for raw in table_vertices[:vertex_count]:
+                endpoint_a, endpoint_b = transition._edge_endpoints(raw)
+                scalar_a = samples[endpoint_a if endpoint_a < 9 else coarse_corner_samples[endpoint_a - 9]]
+                scalar_b = samples[endpoint_b if endpoint_b < 9 else coarse_corner_samples[endpoint_b - 9]]
+                self.assertNotEqual(
+                    scalar_a < 0,
+                    scalar_b < 0,
+                    f"case {case}: table edge {endpoint_a}-{endpoint_b} does not cross the isosurface",
+                )
+        self.assertEqual(len(checked_cases), 510)
+
     def test_seam_validator_intersects_triangle_edges_with_shared_plane(self):
         import importlib.util
 
