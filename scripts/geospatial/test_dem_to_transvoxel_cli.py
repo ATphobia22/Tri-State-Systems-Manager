@@ -50,6 +50,7 @@ class DemToTransvoxelAdapterTests(unittest.TestCase):
 
     def test_coarse_scalar_changes_interpolated_vertices(self):
         cell = self._cell()
+        cell["samples"][8] = -1.0
         first = MESHER._polygonize(cell)
         cell["samples"][8] = -2.0
         second = MESHER._polygonize(cell)
