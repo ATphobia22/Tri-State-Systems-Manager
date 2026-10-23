@@ -127,7 +127,7 @@ export const appRoutes = [
   { path: 'eoc', loader: mapTwinLoader, hydrateFallbackElement: <RouteLoadingFallback label="the EOC surface" />, lazy: async () => ({ Component: (await import('../routes/MapLibreEocView')).default }) },
   { path: 'twin', loader: mapTwinLoader, hydrateFallbackElement: <RouteLoadingFallback label="the twin canvas" />, lazy: async () => ({ Component: (await import('../routes/TwinCanvasView')).default }) },
   { path: 'digital-twin', loader: mapTwinLoader, hydrateFallbackElement: <RouteLoadingFallback label="the twin summary" />, lazy: async () => ({ Component: (await import('../routes/MapTwinView')).default }) },
-  { path: 'digital-twin-v2', loader: mapTwinLoader, hydrateFallbackElement: <RouteLoadingFallback label="the unified 3D twin" />, lazy: async () => ({ Component: (await import('../routes/TwinCanvasView')).default }) },
+  { path: 'digital-twin-v2', loader: mapTwinLoader, hydrateFallbackElement: <RouteLoadingFallback label="the unified 3D twin" />, lazy: async () => ({ Component: (await import('../routes/UnifiedTwinView')).default }) },
   { path: 'globe', hydrateFallbackElement: <RouteLoadingFallback label="the 3D map (MapLibre GL)" />, lazy: async () => ({ Component: (await import('../routes/GlobeView')).default }) },
   { path: 'terrain-3d', hydrateFallbackElement: <RouteLoadingFallback label="3D terrain (MapLibre)" />, lazy: async () => ({ Component: (await import('../routes/GlobeView')).default }) },
   { path: 'photorealistic-3d', hydrateFallbackElement: <RouteLoadingFallback label="photorealistic 3D (Cesium ion, opt-in)" />, lazy: async () => ({ Component: (await import('../routes/CesiumPhotorealisticView')).default }) },
