@@ -49,6 +49,8 @@ jobs:
         run: python3 scripts/geospatial/regenerate_lengyel_tables.py
       - name: Download real USGS 3DEP terrain for Posey County ZIP 47620
         run: python3 scripts/geospatial/acquire-posey-47620-3dep.py --output-dir "$RUNNER_TEMP/tsm-posey-47620-evidence"
+      - name: Audit complete CRS and vertical-datum catalog
+        run: node scripts/geospatial/report-crs-datum-catalog.mjs "$RUNNER_TEMP/tsm-posey-47620-evidence/crs-datum-catalog-report.json"
       - name: Run real-DEM Transvoxel transition benchmark
         run: >-
           python3 scripts/geospatial/benchmark-real-dem-transvoxel.py
