@@ -66,11 +66,12 @@ export class TransvoxelStitcher {
     if (cornerSdfs.length !== 9) {
       throw new Error(`Expected 9 fine-side SDF values, got ${cornerSdfs.length}`);
     }
+    const caseBitForSample = [0, 1, 2, 7, 8, 3, 6, 5, 4] as const;
     let caseIndex = 0;
     for (let i = 0; i < 9; i++) {
       const value = cornerSdfs[i]!;
       if (!Number.isFinite(value)) throw new Error(`Non-finite SDF at fine sample ${i}`);
-      if (value < 0) caseIndex |= 1 << i;
+      if (value < 0) caseIndex |= 1 << caseBitForSample[i]!;
     }
     return caseIndex;
   }
