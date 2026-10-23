@@ -31,6 +31,8 @@ export const GOVERNMENT_SOURCES: readonly GovernmentSource[] = [
  {id:'epa-facilities',authority:'EPA',title:'EPA ECHO facility data',endpoint:'https://echo.epa.gov/',access:'CATALOG',purpose:'Discover regulated facility and compliance-reporting records',limitations:['Reported compliance data may lag and is not an independent site inspection.']},
  {id:'usda-cropland',authority:'USDA',title:'USDA Cropland Data Layer',endpoint:'https://www.nass.usda.gov/Research_and_Science/Cropland/',access:'CATALOG',purpose:'Discover annual cropland classification products',limitations:['Classification accuracy and vintage vary by class and geography.']},
  {id:'usda-forest',authority:'USDA',title:'US Forest Service data discovery',endpoint:'https://www.fs.usda.gov/',access:'CATALOG',purpose:'Discover forest and land-cover data products',limitations:['Product coverage, vintage, and classification semantics must be verified.']},
+ {id:'noaa-nwps',authority:'NOAA',title:'National Water Prediction Service gauges',endpoint:'https://api.water.noaa.gov/nwps/v1/gauges',access:'REST_JSON',purpose:'River gauge metadata, flood thresholds, and stageflow observations/forecasts',limitations:['Per-gauge endpoints only; the bulk gauge list is unreliable from some networks. Live values are user-initiated only per the river-data policy; default to pinned snapshots.']},
+ {id:'usgs-nwis',authority:'USGS',title:'NWIS instantaneous values (legacy waterservices)',endpoint:'https://waterservices.usgs.gov/nwis',access:'REST_JSON',purpose:'Instantaneous gage height and discharge via the JSON IV service',limitations:['The site-metadata service has no JSON format (verified 2026-10-23: format=json returns HTTP 400); use the pinned site snapshot for datums. Live values are user-initiated only per the river-data policy.']},
  ] as const;
 
 function canonical(value:unknown,ancestors:WeakSet<object>=new WeakSet()):string {
@@ -145,6 +147,27 @@ export function validateEvidenceEnvelope(value:EvidenceEnvelope<unknown>):readon
   if(!Number.isFinite(Date.parse(citation.retrievedAt)))errors.push('citation retrievedAt must be a valid timestamp');
  }
  return errors;
+}
+
+export interface PinnedSnapshotReference {
+ readonly sourceId:string;readonly url:string;readonly retrievedAt:string;
+ readonly sha256:string;readonly mediaType:string;
+}
+export function wrapPinnedSnapshot<T=unknown>(reference:PinnedSnapshotReference,raw:string):EvidenceEnvelope<T> {
+ const source=getGovernmentSource(reference.sourceId);
+ if(!/^[a-f0-9]{64}$/.test(reference.sha256))throw new Error('SNAPSHOT_MANIFEST_HASH_INVALID');
+ if(!Number.isFinite(Date.parse(reference.retrievedAt)))throw new Error('SNAPSHOT_RETRIEVAL_TIME_INVALID');
+ const actual=createHash('sha256').update(raw,'utf8').digest('hex');
+ if(actual!==reference.sha256.toLowerCase())throw new Error('SNAPSHOT_HASH_MISMATCH:'+reference.url);
+ let result:T;try{result=JSON.parse(raw) as T;}catch{throw new Error('SNAPSHOT_INVALID_JSON');}
+ const traceId=randomUUID(),generatedAt=new Date().toISOString();
+ const inputHash=sha256({sourceId:reference.sourceId,url:reference.url,snapshotSha256:reference.sha256});
+ const outputHash=sha256(result);
+ return {result,traceId,hash:outputHash,
+  citations:[{url:reference.url,title:source.title+' (pinned snapshot '+reference.retrievedAt+')',retrievedAt:reference.retrievedAt}],
+  evidence:[{sourceId:source.id,authority:source.authority,retrievedAt:reference.retrievedAt,sha256:actual,mediaType:reference.mediaType}],
+  provenance:{traceId,provider:source.id,providerVersion:'1',generatedAt,inputHash,outputHash,status:'VALIDATED'},
+  hashes:{input:inputHash,output:outputHash}};
 }
 
 export { SourceAuthorityLevel, getRegisteredGovernmentSource, validateGovernmentSourceRegistry } from './GovernmentSourceRegistry.ts';
