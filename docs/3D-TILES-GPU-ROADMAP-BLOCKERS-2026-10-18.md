@@ -61,7 +61,9 @@ rejects a node only when its positive support vertex is outside a frustum
 plane; plane-touching bounds remain visible. Tests cover malformed planes,
 boundary contact, and resident-set eviction. This is a CPU selection primitive;
 the live MapLibre 3D Tiles renderer is not yet wired to pass its current camera
-frustum into this Transvoxel scheduler.
+frustum into this Transvoxel scheduler. Automatic LOD adjacency construction is
+quadratic and has an explicit 5,000-node safety limit; larger octrees must supply
+a precomputed adjacency map.
 
 GPU-compute culling remains **not implemented**. TSM uses MapLibre's custom-layer
 WebGL2 context and NASA-AMMOS 3D Tiles Renderer JS. The 3D Tiles renderer

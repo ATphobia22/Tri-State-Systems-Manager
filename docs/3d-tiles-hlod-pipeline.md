@@ -83,6 +83,6 @@ with payload rooted at:
 
 ## Geometric-error policy for contentless partition nodes
 
-The HLOD quadtree uses contentless ADD partition nodes to organize source content. Tree depth alone is not evidence of a more accurate simplified representation, so the builder must not reduce geometric error by dividing by depth. Internal partition nodes use a conservative inherited error floor that preserves the source-root fallback and the maximum declared source-content error in the partition. Invalid, negative, boolean, NaN, infinite, or malformed error values fail closed.
+The HLOD quadtree uses contentless ADD partition nodes to organize source content. Tree depth alone is not evidence of a more accurate simplified representation, so the builder must not reduce geometric error by dividing by depth. Internal partition nodes use a conservative inherited error floor that preserves the source-root fallback and the maximum declared source-content error in the partition. Invalid, negative, boolean, NaN, infinite, or malformed error values are rejected with a clear error identifying the offending value; the builder never silently substitutes a default.
 
 This value is a traversal proxy for empty partition nodes, not measured mesh-simplification error or proof of improved rendering quality. It can cause additional refinement and network requests. Regression coverage is wired into Building 3D Tiles and geospatial CI; representative camera-path, boundary, cache-pressure, payload, and frame-time acceptance remains required.

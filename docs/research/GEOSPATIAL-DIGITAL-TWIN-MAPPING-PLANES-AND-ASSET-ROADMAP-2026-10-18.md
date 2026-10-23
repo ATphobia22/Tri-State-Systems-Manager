@@ -133,6 +133,8 @@ For a 3D Tiles 1.1 path, follow its tile and glTF transform rules and the curren
 
 ## 7. Recommended immediate actions
 
+For current per-plane implementation state, release-gate evidence, and home-site AOI blockers, use the maintained [Mapping-Plane Implementation Status and Completion Gates](MAPPING-PLANE-IMPLEMENTATION-STATUS-2026-10-18.md). The roadmap below remains the architecture-level guidance; the linked matrix separates capabilities already present from data-gated functions and research proposals that remain deferred.
+
 1. Add this research note and cite the primary standards and paper.
 2. Run a focused repository inventory before introducing any renderer or 16-bit decoder; record evidence and existing implementation gaps.
 3. Add a CRS/provenance/asset-manifest contract only where it aligns with the current data model.

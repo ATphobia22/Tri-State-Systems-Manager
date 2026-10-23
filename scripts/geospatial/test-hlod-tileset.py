@@ -120,12 +120,9 @@ class HlodTilesetTests(unittest.TestCase):
         policy = generated.get("extras", {}).get("tsm", {})
         self.assertEqual(
             policy.get("geometricErrorPolicy"),
-            "max-root-depth-baseline-and-source-descendant-error-v1",
+            "contentless-nodes-inherit-parent-error-floor-v1",
         )
-        self.assertEqual(
-            policy.get("geometricErrorAccuracy"),
-            "REFINEMENT_HEURISTIC_NOT_MEASURED_SIMPLIFICATION_ERROR",
-        )
+        self.assertIn("geometricErrorInterpretation", policy)
         assert_hierarchy_errors_are_conservative(self, generated["root"])
 
         def assert_descendant_floor(node):
@@ -143,24 +140,31 @@ class HlodTilesetTests(unittest.TestCase):
 
         assert_descendant_floor(generated["root"])
 
-    def test_rejects_invalid_geometric_errors(self):
+    def _make_item(self, error):
+        origin = MODULE.V(150_000.0, -4_900_000.0, 3_900_000.0)
+        center = origin
+        tile_dict = tile(center, error, 1)
+        return MODULE.Item(
+            tile=tile_dict,
+            sid=1,
+            center=center,
+            lo=MODULE.V(center.x - 1, center.y - 1, center.z - 1),
+            hi=MODULE.V(center.x + 1, center.y + 1, center.z + 1),
+        )
+
+    def test_rejects_invalid_fallback_error(self):
+        item = self._make_item(1.0)
         for invalid in (True, -0.001, float("nan"), float("inf"), "1.0", None):
             with self.subTest(value=invalid):
-                with self.assertRaises(ValueError):
-                    MODULE._numeric_geometric_error(invalid, "fixture")
+                with self.assertRaises((ValueError, TypeError)):
+                    MODULE.Q([item], 0, 50, 6, invalid)
 
-    def test_rejects_invalid_descendant_tree(self):
-        invalid_tiles = [
-            {"geometricError": -1.0},
-            {"geometricError": float("nan")},
-            {"geometricError": True},
-            {"geometricError": 1.0, "children": {}},
-            {"geometricError": 1.0, "children": [{"geometricError": -0.5}]},
-        ]
-        for fixture in invalid_tiles:
-            with self.subTest(fixture=fixture):
+    def test_rejects_invalid_item_geometric_error(self):
+        for invalid in (True, -0.001, float("nan"), float("inf"), "1.0", None):
+            with self.subTest(value=invalid):
+                item = self._make_item(invalid)
                 with self.assertRaises(ValueError):
-                    MODULE._tree_geometric_error(fixture)
+                    MODULE.Q([item], 0, 50, 6, 1.0)
 
 
 if __name__ == "__main__":

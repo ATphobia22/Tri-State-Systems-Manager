@@ -1,11 +1,10 @@
 name: Building 3D Tiles
 
 concurrency:
-  # PR validation is superseded when a newer commit arrives, avoiding a stale
-  # multi-hour COPC extraction blocking the final head. Main-branch production
-  # runs use a separate ref-based group and are never cancelled by this policy.
+  # Keep production geospatial work from being cancelled by a newer run.
+  # PR runs are isolated from the main-branch production queue.
   group: building-3d-tiles-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: false
 
 # HLOD Pipeline
 
@@ -21,7 +20,7 @@ on:
     paths:
       - 'scripts/geospatial/build-building-3d-tiles.py'
       - 'scripts/geospatial/build-hlod-tileset.py'
-      - 'scripts/geospatial/test_build_hlod_geometric_error.py'
+      - 'scripts/geospatial/test-hlod-tileset.py'
       - 'scripts/geospatial/stitch-building-glbs.py'
       - 'scripts/geospatial/validate-building-3d-tiles.py'
       - 'scripts/geospatial/build-building-3d-tiles-pipeline.sh'
@@ -49,6 +48,7 @@ on:
       - '.github/workflows/building-3d-tiles.yml'
       - 'scripts/geospatial/build-building-3d-tiles.py'
       - 'scripts/geospatial/build-hlod-tileset.py'
+      - 'scripts/geospatial/test-hlod-tileset.py'
       - 'scripts/geospatial/stitch-building-glbs.py'
       - 'scripts/geospatial/validate-building-3d-tiles.py'
       - 'scripts/geospatial/build-building-3d-tiles-pipeline.sh'
@@ -83,6 +83,8 @@ jobs:
         run: |
           python3 -m py_compile \
             scripts/geospatial/tsm_geodesy.py \
+            scripts/geospatial/build-hlod-tileset.py \
+            scripts/geospatial/test-hlod-tileset.py \
             scripts/geospatial/extract_lidar_heights.py \
             scripts/geospatial/extract_derived_heights_copc.py \
             scripts/geospatial/reconstruct_lod2_roofs.py \
@@ -94,7 +96,7 @@ jobs:
             scripts/geospatial/point_tube.py \
             scripts/geospatial/test_build_implicit_tileset.py
           python3 scripts/geospatial/test_build_implicit_tileset.py
-          python3 scripts/geospatial/test_build_hlod_geometric_error.py
+          python3 scripts/geospatial/test-hlod-tileset.py
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version: 22
