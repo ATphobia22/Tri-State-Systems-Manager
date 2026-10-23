@@ -2,10 +2,24 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { findUnsupportedSchemaKeywords, validateAgainstSchema } from './validate-hec-run-manifest.mjs';
+import { validateAgainstSchema } from './validate-hec-run-manifest.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const schemaPath = path.join(repoRoot, 'data/schemas/spatial-solver-run-manifest-v1.schema.json');
+
+function findUnsupportedSchemaKeywords(schema, at = '$schema', errors = []) {
+  const supported = new Set(['$schema', '$id', 'title', 'description', 'type', 'additionalProperties', 'required', 'properties', 'items', 'const', 'enum', 'minLength', 'maxLength', 'pattern', 'format', 'minimum', 'maximum', 'minItems', 'maxItems']);
+  if (!schema || typeof schema !== 'object' || Array.isArray(schema)) return errors;
+  for (const [keyword, value] of Object.entries(schema)) {
+    if (!supported.has(keyword)) errors.push(at + ': unsupported schema keyword ' + keyword);
+    if (keyword === 'properties' && value && typeof value === 'object') {
+      for (const [name, child] of Object.entries(value)) findUnsupportedSchemaKeywords(child, at + '.properties.' + name, errors);
+    } else if (keyword === 'items' && value && typeof value === 'object') {
+      findUnsupportedSchemaKeywords(value, at + '.items', errors);
+    }
+  }
+  return errors;
+}
 
 export function validateSpatialSolverManifest(manifest, schema = JSON.parse(fs.readFileSync(schemaPath, 'utf8'))) {
   const errors = findUnsupportedSchemaKeywords(schema);
