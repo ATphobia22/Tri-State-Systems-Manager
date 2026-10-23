@@ -48,7 +48,7 @@ class DemToTransvoxelAdapterTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, r"samples\[4\] must be a finite number"):
             MESHER._polygonize(cell)
 
-    def test_coarse_scalar_changes_interpolated_vertices(self):
+    def test_fine_corner_scalar_reuse_changes_interpolated_vertices(self):
         cell = self._cell()
         cell["samples"][8] = -1.0
         first = MESHER._polygonize(cell)
