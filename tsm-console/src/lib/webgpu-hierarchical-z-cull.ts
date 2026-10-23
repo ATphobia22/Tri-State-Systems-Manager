@@ -6,7 +6,7 @@
  * Screen coordinates are inclusive pixel coordinates. Output is one u32 per
  * candidate: 1 = visible/uncertain, 0 = occluded. Invalid candidates fail open.
  */
-const CULL_WGSL = `
+export const WEBGPU_HZ_CULL_WGSL = `
 struct Candidate {
   rect: vec4<f32>,
   nearestDepth: f32,
@@ -52,9 +52,13 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     if ((span.x <= 2u && span.y <= 2u) || level + 1u >= textureNumLevels(pyramid)) { break; }
     level += 1u;
     let levelDims = textureDimensions(pyramid, i32(level));
-    lo = (minPixel * levelDims) / baseDims;
-    let endExclusive = max(vec2<u32>(1u), ((maxPixel + vec2<u32>(1u)) * levelDims) / baseDims);
-    hi = min(endExclusive - vec2<u32>(1u), levelDims - vec2<u32>(1u));
+    // A source pixel may map to a later mip texel when odd dimensions are
+    // partitioned by floor boundaries. Use a conservative expanded interval;
+    // sampling an extra texel costs work but cannot create false occlusion.
+    let scaledLo = (minPixel * levelDims) / baseDims;
+    let scaledHiExclusive = max(vec2<u32>(1u), (((maxPixel + vec2<u32>(1u)) * levelDims) + baseDims - vec2<u32>(1u)) / baseDims);
+    lo = select(vec2<u32>(0u), scaledLo - vec2<u32>(1u), all(scaledLo > vec2<u32>(0u)));
+    hi = min(scaledHiExclusive, levelDims - vec2<u32>(1u));
     hi = max(hi, lo);
   }
   var maxDepth = 0.0;
@@ -82,7 +86,7 @@ export class WebGPUHierarchicalZCuller {
   private destroyed = false;
 
   constructor(private readonly device: GPUDevice) {
-    const module = device.createShaderModule({ label: 'TSM H-Z candidate culling', code: CULL_WGSL });
+    const module = device.createShaderModule({ label: 'TSM H-Z candidate culling', code: WEBGPU_HZ_CULL_WGSL });
     this.pipeline = device.createComputePipeline({
       label: 'TSM H-Z candidate culling pipeline',
       layout: 'auto',
