@@ -25,7 +25,7 @@ function transitionCellInput(
     point[tangentB] += uv[i]![1] * extent;
     if (i >= 9) point[axis] += direction * extent;
     positions.set(point, i * 3);
-    sdf[i] = sdfAt(point[0], point[1], point[2]);
+    if (i < 9) sdf[i] = sdfAt(point[0], point[1], point[2]);
   }
   return { sdf, positions };
 }
@@ -58,7 +58,7 @@ describe('official Transvoxel transition mesher', () => {
     }
   });
   it('polygonizes a nontrivial transition cell into finite indexed geometry', () => {
-    const sdf = new Float32Array(13).fill(1);
+    const sdf = new Float32Array(9).fill(1);
     sdf[0] = -1;
     sdf[1] = -1; sdf[4] = -1;
     const p = new Float32Array(39);
