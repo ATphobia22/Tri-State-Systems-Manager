@@ -288,8 +288,8 @@ def _polygonize(cell: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("cell.direction must be -1 or 1")
     if extent <= 0:
         raise ValueError("cell.extent must be positive and finite")
-    if not isinstance(samples_raw, list) or len(samples_raw) != 13:
-        raise ValueError("cell.samples must contain 13 scalars: 9 fine-side plus 4 coarse-side samples")
+    if not isinstance(samples_raw, list) or len(samples_raw) != 9:
+        raise ValueError("cell.samples must contain exactly 9 scalar values in official Transvoxel endpoint order")
     samples = [_finite_number(v, "samples[{}]".format(i)) for i, v in enumerate(samples_raw)]
     def sdf(x: float, y: float, z: float) -> float:
         p = (x, y, z); a, b = (axis + 1) % 3, (axis + 2) % 3
@@ -297,10 +297,9 @@ def _polygonize(cell: dict[str, Any]) -> dict[str, Any]:
         v = min(1.0, max(0.0, (p[b] - origin[b]) / extent))
         ix = min(2, max(0, int(round(u * 2))))
         iy = min(2, max(0, int(round(v * 2))))
-        on_coarse_face = abs((p[axis] - origin[axis]) - direction * extent) <= max(1e-8, extent * 1e-6)
-        if on_coarse_face:
-            return samples[9 + (2 if iy == 2 else 0) + (1 if ix == 2 else 0)]
-        return samples[iy * 3 + ix]
+        # Input scalars use official endpoint order: 0,1,2 / 7,8,3 / 6,5,4.
+        official_index = ((0, 1, 2), (7, 8, 3), (6, 5, 4))[iy][ix]
+        return samples[official_index]
     vertices, triangles, metadata = mesh_transition_cell(sdf, origin, axis, extent, direction=direction)
     return {"case": metadata.get("case"), "classId": metadata.get("class_id"),
             "invertWinding": metadata.get("invert", False),
