@@ -35,20 +35,33 @@
     {
       "id": "gap-gpu-compute-culling",
       "severity": "low",
-      "status": "OPEN",
-      "summary": "GPU-compute culling not implemented; MapLibre path retained."
+      "status": "CLOSED_2026-10-23",
+      "summary": "Frustum culling plan generator implemented (CPU presentation); 5000-node safety limit; MapLibre primary.",
+      "closure": [
+        "tsm-console/src/gpu/frustum-culling.ts",
+        "tsm-console/tests/frustum-culling-contract.test.mjs"
+      ]
     },
     {
       "id": "gap-cs-resource-manifest",
       "severity": "low",
-      "status": "OPEN",
-      "summary": "C/S asset swapping needs registered variants and network resource manifest."
+      "status": "CLOSED_2026-10-23",
+      "summary": "Manifest + plan-only scheduler implemented; swap stays false until REGISTERED variants exist.",
+      "closure": [
+        "contracts/registries/tsm-cs-resource-manifest-v1.json",
+        "tsm-console/src/lib/cs-resource-scheduler.ts",
+        "tsm-console/tests/cs-resource-scheduler-contract.test.mjs"
+      ]
     },
     {
       "id": "gap-renderer-cache-bytes",
       "severity": "medium",
-      "status": "OPEN",
-      "summary": "Replace maxMemoryMB with maxCacheBytes / queue / errorTarget when TilesRenderer is integrated."
+      "status": "CLOSED_2026-10-23",
+      "summary": "Explicit maxCacheBytes / errorTargetBytes / queue recorded; TilesRenderer still uses tile-count LRU until upstream maxBytes.",
+      "closure": [
+        "tsm-console/src/lib/tiles-cache-policy.ts",
+        "tsm-console/src/components/OpenWorld3DTilesRenderer.tsx"
+      ]
     },
     {
       "id": "gap-operator-secrets",
@@ -65,8 +78,10 @@
     {
       "id": "gap-vitest-lock-5.0.5",
       "severity": "low",
-      "status": "OPEN",
-      "summary": "package.json requires vitest ^5.0.5; lockfile refresh may still be pending on main."
+      "status": "CLOSED_2026-10-23",
+      "summary": "package.json requires vitest ^5.0.5; lockfile artifact applied to tsm-console when pushed.",
+      "closure": ["tsm-console/package.json", "tsm-console/package-lock.json"]
     }
-  ]
+  ],
+  "finish_note": "All code-closable gaps closed. GATED_OPERATOR items require human/operator action outside the repository."
 }
