@@ -131,7 +131,7 @@ def _transition_endpoint_sample_index(endpoint: int) -> int:
         return endpoint
     if 9 <= endpoint < 13:
         # Official Transvoxel coarse-side positions duplicate the fine-face
-        # corner values 0, 2, 8, 6; they are not four independent SDF samples.
+        # corner values 0, 2, 6, 8; they are not four independent SDF samples.
         return (0, 2, 6, 8)[endpoint - 9]
     raise ValueError(f"transition vertex endpoint must be 0..12, got {endpoint}")
 
