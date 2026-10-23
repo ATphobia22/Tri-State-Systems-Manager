@@ -93,7 +93,7 @@ def _corner_uv(i: int) -> Tuple[float, float]:
         6: (0.0, 1.0), 7: (0.5, 1.0), 8: (1.0, 1.0),
         # Coarse-side corner slots map to the four corners of the 3x3 face.
         9: (0.0, 0.0), 10: (1.0, 0.0),
-        11: (1.0, 1.0), 12: (0.0, 1.0),
+        11: (0.0, 1.0), 12: (1.0, 1.0),
     }
     if i not in mapping:
         raise ValueError(f"transition vertex endpoint must be 0..12, got {i}")
@@ -130,8 +130,8 @@ def _transition_endpoint_sample_index(endpoint: int) -> int:
     if 0 <= endpoint < 9:
         return endpoint
     if 9 <= endpoint < 13:
-        # The opposite face duplicates the four fine-face corner scalar values.
-        return (0, 2, 8, 6)[endpoint - 9]
+        # The opposite face duplicates fine-face corners in row-major order [0, 2, 6, 8].
+        return (0, 2, 6, 8)[endpoint - 9]
     raise ValueError(f"transition vertex endpoint must be 0..12, got {endpoint}")
 
 
