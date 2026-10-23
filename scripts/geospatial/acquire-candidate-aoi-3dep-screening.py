@@ -26,7 +26,7 @@ from rasterio.warp import transform_geom
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_AOI = ROOT / "data/posey-county/aoi/lower-wabash-ohio-core-candidate.geojson"
-SERVICE = "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer"
+SERVICE = "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer"\nCENSUS_ZCTA_LAYER = "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Current/MapServer/2/query"
 
 
 def fetch(url: str, timeout: int = 120, attempts: int = 4) -> tuple[bytes, str]:
@@ -66,15 +66,61 @@ def main() -> int:
     args = parser.parse_args()
     if args.width < 64 or args.height < 64 or args.width > 4096 or args.height > 4096:
         parser.error("width/height must be in 64..4096")
-    aoi_doc = json.loads(args.aoi.read_text(encoding="utf-8"))
-    features = aoi_doc.get("features")
-    if not isinstance(features, list) or len(features) != 1:
-        raise ValueError("AOI file must contain exactly one candidate feature")
-    feature = features[0]
-    geometry = feature.get("geometry")
-    properties = feature.get("properties", {})
-    if not isinstance(geometry, dict) or geometry.get("type") != "Polygon":
-        raise ValueError("AOI feature must have a Polygon geometry")
+    boundary_source = None
+    if args.zip_code is not None:
+        zip_code = args.zip_code.strip()
+        if len(zip_code) != 5 or not zip_code.isdigit():
+            parser.error("--zip-code must be exactly five digits")
+        boundary_url = CENSUS_ZCTA_LAYER + "?" + urllib.parse.urlencode({
+            "where": f"GEOID='{zip_code}'",
+            "outFields": "GEOID,BASENAME,NAME",
+            "returnGeometry": "true",
+            "outSR": "4326",
+            "f": "geojson",
+        })
+        boundary_bytes, boundary_content_type = fetch(boundary_url, timeout=60)
+        aoi_doc = json.loads(boundary_bytes.decode("utf-8"))
+        if aoi_doc.get("error"):
+            raise RuntimeError(f"Census TIGERweb ZCTA query failed: {aoi_doc['error']}")
+        features = aoi_doc.get("features")
+        if not isinstance(features, list) or len(features) != 1:
+            raise ValueError(f"Census TIGERweb returned {len(features) if isinstance(features, list) else 'no'} polygons for ZCTA {zip_code}; refusing to guess a boundary")
+        feature = features[0]
+        properties = feature.get("properties", {})
+        found_code = str(properties.get("GEOID", properties.get("BASENAME", "")))
+        if found_code != zip_code:
+            raise ValueError(f"Census ZCTA result code {found_code!r} does not match requested ZIP {zip_code}")
+        geometry = feature.get("geometry")
+        if not isinstance(geometry, dict) or geometry.get("type") not in ("Polygon", "MultiPolygon"):
+            raise ValueError("Census ZCTA response did not contain a Polygon or MultiPolygon")
+        feature["properties"] = {
+            **properties,
+            "zip_code_requested": zip_code,
+            "boundary_type": "2020 Census ZIP Code Tabulation Area (ZCTA)",
+            "approval_status": "UNAPPROVED",
+        }
+        source_file_sha256 = sha256(boundary_bytes)
+        boundary_source = {
+            "authority": "U.S. Census Bureau TIGERweb",
+            "url": boundary_url,
+            "contentType": boundary_content_type,
+            "boundaryType": "2020 Census ZIP Code Tabulation Area (ZCTA)",
+            "requestedZipCode": zip_code,
+            "returnedGeoId": found_code,
+            "responseSha256": source_file_sha256,
+            "limitation": "ZCTA is a statistical approximation of a USPS ZIP service area, not a USPS delivery route, parcel, or county boundary.",
+        }
+    else:
+        aoi_doc = json.loads(args.aoi.read_text(encoding="utf-8"))
+        features = aoi_doc.get("features")
+        if not isinstance(features, list) or len(features) != 1:
+            raise ValueError("AOI file must contain exactly one candidate feature")
+        feature = features[0]
+        properties = feature.get("properties", {})
+        geometry = feature.get("geometry")
+        source_file_sha256 = sha256(args.aoi.read_bytes())
+    if not isinstance(geometry, dict) or geometry.get("type") not in ("Polygon", "MultiPolygon"):
+        raise ValueError("AOI feature must have a Polygon or MultiPolygon geometry")
     approval = properties.get("approval_status", "UNAPPROVED")
     canonical_geometry = json.dumps(geometry, sort_keys=True, separators=(",", ":")).encode()
     geometry_hash = sha256(canonical_geometry)
@@ -112,7 +158,7 @@ def main() -> int:
         )
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    raster_path = args.output_dir / "candidate-aoi-usgs-3dep-screening.tif"
+    if boundary_source is not None:\n        (args.output_dir / f"zip-{args.zip_code}-census-zcta-2020.geojson").write_text(json.dumps(aoi_doc, indent=2) + "\\n", encoding="utf-8")\n    raster_name = f"zip-{args.zip_code}-usgs-3dep-screening.tif" if args.zip_code else "candidate-aoi-usgs-3dep-screening.tif"\n    raster_path = args.output_dir / raster_name
     raster_path.write_bytes(image_bytes)
     with rasterio.open(raster_path) as dataset:
         if dataset.count < 1 or dataset.width < 1 or dataset.height < 1:
@@ -168,7 +214,7 @@ def main() -> int:
             "geometryType": geometry.get("type"),
             "geometrySha256": geometry_hash,
             "bboxWgs84": bbox,
-            "sourceFileSha256": sha256(args.aoi.read_bytes()),
+            "sourceFileSha256": source_file_sha256,
         },
         "source": {
             "authority": "USGS 3D Elevation Program (3DEP)",
@@ -188,13 +234,13 @@ def main() -> int:
         },
         "raster": raster_info,
         "limitations": [
-            "The AOI geometry remains a candidate and is not approved for design or modeling.",
+            "The AOI geometry remains unapproved for design or modeling.",\n            "When using ZIP mode, the Census ZCTA is only a statistical approximation of the USPS ZIP service area and must not be treated as a parcel or exact delivery boundary.",
             "This is a resampled dynamic-mosaic screening raster, not a native 3DEP QL2 asset.",
             "The mosaic does not establish a single vertical datum, acquisition date, or accuracy class.",
             "No watershed, parcel, outlet, flood model, or engineering design conclusion is authorized by this artifact.",
         ],
     }
-    report_path = args.output_dir / "candidate-aoi-terrain-evidence.json"
+    report_name = f"zip-{args.zip_code}-terrain-evidence.json" if args.zip_code else "candidate-aoi-terrain-evidence.json"\n    report_path = args.output_dir / report_name
     report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2, sort_keys=True))
     return 0 if valid_count else 2
