@@ -55,6 +55,10 @@ class ProductionBridgeContractTests(unittest.TestCase):
         self.assertIs(balanced, root)
         self.assertTrue(bridge.get_leaves(balanced))
 
+    def test_transvoxel_coarse_corners_reuse_official_fine_corner_samples(self):
+        from transvoxel_transition_mesh import _transition_endpoint_sample_index
+        self.assertEqual([_transition_endpoint_sample_index(i) for i in range(9, 13)], [0, 2, 6, 8])
+
     def test_neighbor_query_rejects_unknown_face(self):
         root = bridge.Node(0, 0, 0, 8, 0)
         with self.assertRaisesRegex(ValueError, "unknown face"):
