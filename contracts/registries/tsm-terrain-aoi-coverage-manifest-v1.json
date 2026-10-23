@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0.0",
+  "aoi_id": "posey-bonebank-13101",
+  "name": "Posey County — Bonebank / Point Township AOI",
+  "bbox": {
+    "westLon": -88.05,
+    "southLat": 37.8,
+    "eastLon": -87.96,
+    "northLat": 37.89
+  },
+  "horizontal_crs": "EPSG:4326",
+  "vertical_datum": "NAVD88",
+  "cell_size_deg": 0.01,
+  "providers": [
+    {
+      "id": "usgs-3dep-terrain-rgb",
+      "authority": "USGS",
+      "product": "3DEP Terrain-RGB (screening)",
+      "horizontalCrs": "EPSG:3857",
+      "verticalDatum": "NAVD88",
+      "sourceUri": "https://elevation.nationalmap.gov/",
+      "tileTemplate": null,
+      "status": "PROGRAM_PENDING"
+    },
+    {
+      "id": "indiana-dem-igic",
+      "authority": "Indiana GIO / IGIC",
+      "product": "Statewide DEM",
+      "horizontalCrs": "EPSG:2965",
+      "verticalDatum": "NAVD88",
+      "sourceUri": null,
+      "tileTemplate": null,
+      "status": "PROGRAM_PENDING"
+    }
+  ],
+  "verification": {
+    "state": "PROVISIONAL",
+    "checked_at": "2026-10-23",
+    "notes": "AOI geometry verified against site constants. Tile endpoints remain program-pending until operator deploys Terrain-RGB URL template."
+  },
+  "site_anchor": {
+    "label": "13101 Bonebank Rd",
+    "lon": -88.005075,
+    "lat": 37.845887
+  }
+}
