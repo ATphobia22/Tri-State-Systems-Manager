@@ -60,11 +60,16 @@ def _rss_bytes() -> int:
 
 
 def _seam_key(vertices: list[tuple[float, float, float]], axis: int, coordinate: float) -> tuple[str, ...]:
-    unique = {
-        ",".join(f"{value:.2f}" for value in point)
-        for point in vertices
-        if abs(point[axis] - coordinate) <= SEAM_TOLERANCE_METERS
-    }
+    # Positional seam tolerance is 2 cm; plane membership must be much tighter.
+    # Otherwise near-face interior vertices can be falsely counted as seam points.
+    plane_epsilon_m = 1e-4
+    unique = set()
+    for point in vertices:
+        if abs(point[axis] - coordinate) > plane_epsilon_m:
+            continue
+        normalized = list(point)
+        normalized[axis] = coordinate
+        unique.add(",".join(f"{value:.2f}" for value in normalized))
     return tuple(sorted(unique))
 
 
