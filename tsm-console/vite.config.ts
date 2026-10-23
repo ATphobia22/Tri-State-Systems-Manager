@@ -37,8 +37,10 @@ function cspPlugin() {
       // — that is why it was removed in 2026-10-14, and why it stays out by default.
       const cesiumEnabled = (process.env.VITE_CESIUM_ION_TOKEN || '').trim().length > 0;
       const cesiumScriptSrc = cesiumEnabled ? " 'unsafe-eval' https://cesium.com" : '';
+      // tile.googleapis.com serves Google Photorealistic 3D Tiles directly (ion
+      // only brokers the session); without it the tileset fetch is CSP-blocked.
       const cesiumConnectSrc = cesiumEnabled
-        ? ' https://api.cesium.com https://assets.ion.cesium.com https://assets.cesium.com'
+        ? ' https://api.cesium.com https://assets.ion.cesium.com https://assets.cesium.com https://tile.googleapis.com'
         : '';
       const policy = [
         "default-src 'self'",
