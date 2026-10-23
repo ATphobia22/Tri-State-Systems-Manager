@@ -81,7 +81,7 @@ describe('official Transvoxel transition mesher', () => {
     expect(hasCoarseEdgeMidpoint).toBe(true);
   });
   it('matches intersection vertices across adjacent transition cells', () => {
-    const sdfAt = (x: number, y: number, z: number) => x + 0.37 * y - 0.61 * z - 0.43;
+    const sdfAt = (_x: number, y: number, _z: number) => 0.37 * y - 0.15;
     for (const direction of [-1, 1] as const) {
       const leftInput = transitionCellInput([0, 0, 0], 2, 1, direction, sdfAt);
       const rightInput = transitionCellInput([1, 0, 0], 2, 1, direction, sdfAt);
