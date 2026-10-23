@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
 
+export const RESEARCH_CAPABILITY_ID = 'research.search' as const;
 export type ResearchProviderId='github'|'search'|'browser'|'firecrawl-compatible'|'exa-compatible'|'government-api';
 export interface ResearchDocument {readonly url:string;readonly title:string;readonly text:string;readonly retrievedAt:string;readonly provider:ResearchProviderId;readonly sha256:string}
 export interface ResearchEvidence {readonly claim:string;readonly documentUrls:readonly string[];readonly confidence:'high'|'medium'|'low'|'unverified'}
