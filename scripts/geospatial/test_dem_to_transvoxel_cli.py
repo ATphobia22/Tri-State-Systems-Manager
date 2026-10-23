@@ -39,6 +39,14 @@ class DemToTransvoxelAdapterTests(unittest.TestCase):
             self.assertTrue(all(0 <= index < result["vertexCount"] for tri in result["triangles"] for index in tri))
             self.assertTrue(all(len(vertex) == 3 for vertex in result["vertices"]))
 
+    def test_coarse_face_scalar_changes_interpolated_geometry(self):
+        cell = self._cell()
+        cell["samples"] = [(-1.0 if index == 0 else 1.0) for index in range(9)] + [1.0, 1.0, 1.0, 1.0]
+        baseline = MESHER._polygonize(cell)
+        cell["samples"][9] = -2.0
+        changed = MESHER._polygonize(cell)
+        self.assertNotEqual(baseline["vertices"], changed["vertices"])
+
     def test_rejects_wrong_scalar_count_and_non_finite_values(self):
         cell = self._cell()
         cell["samples"] = cell["samples"][:-1]
