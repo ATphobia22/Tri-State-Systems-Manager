@@ -9,6 +9,10 @@ on:
       - 'packages/geo/src/nfhl/**'
       - 'packages/research/src/government-research-fabric.ts'
       - 'tests/contracts/government-data-fabric.test.ts'
+      - 'tests/contracts/government-source-registry.test.ts'
+      - 'tests/contracts/government-snapshot.test.ts'
+      - 'packages/contracts/src/index.ts'
+      - 'apps/uacf-gateway/src/server.ts'
       - '.github/workflows/government-data-validation.yml'
 permissions:
   contents: read
@@ -25,7 +29,7 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --ignore-scripts --no-audit --no-fund
-      - run: npx tsx --test tests/contracts/government-data-fabric.test.ts
+      - run: npx tsx --test tests/contracts/government-data-fabric.test.ts tests/contracts/government-snapshot.test.ts tests/contracts/government-source-registry.test.ts
   nfhl-live-validation:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
