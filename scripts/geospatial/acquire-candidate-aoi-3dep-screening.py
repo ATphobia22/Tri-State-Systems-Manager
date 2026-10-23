@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Acquire a reproducible, screening-only USGS 3DEP raster for the candidate Lower Wabash-Ohio AOI.
+"""Acquire USGS 3DEP screening terrain for an AOI or Census ZCTA (default target: ZIP 47620).
 
-This downloads real pixel values from the authoritative USGS 3DEP dynamic ImageServer.
-It is a coarse 1024x1024 AOI data-availability screen, not a native QL2 download,
-vertical-datum certification, engineering surface, or permission to run a flood model.
+The ZIP target uses the official Census 2020 ZIP Code Tabulation Area polygon, a
+statistical approximation of a USPS ZIP service area. This is screening data,
+not native QL2, datum certification, an engineering surface, or modeling authorization.
 """
 from __future__ import annotations
 
@@ -124,9 +124,10 @@ def main() -> int:
     approval = properties.get("approval_status", "UNAPPROVED")
     canonical_geometry = json.dumps(geometry, sort_keys=True, separators=(",", ":")).encode()
     geometry_hash = sha256(canonical_geometry)
-    ring = geometry["coordinates"][0]
-    xs = [float(point[0]) for point in ring]
-    ys = [float(point[1]) for point in ring]
+    polygons = geometry["coordinates"] if geometry["type"] == "MultiPolygon" else [geometry["coordinates"]]
+    points = [point for polygon in polygons for ring in polygon for point in ring]
+    xs = [float(point[0]) for point in points]
+    ys = [float(point[1]) for point in points]
     bbox = [min(xs), min(ys), max(xs), max(ys)]
     if bbox[0] >= bbox[2] or bbox[1] >= bbox[3]:
         raise ValueError("AOI geometry has invalid bounds")
@@ -158,7 +159,12 @@ def main() -> int:
         )
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    if boundary_source is not None:\n        (args.output_dir / f"zip-{args.zip_code}-census-zcta-2020.geojson").write_text(json.dumps(aoi_doc, indent=2) + "\\n", encoding="utf-8")\n    raster_name = f"zip-{args.zip_code}-usgs-3dep-screening.tif" if args.zip_code else "candidate-aoi-usgs-3dep-screening.tif"\n    raster_path = args.output_dir / raster_name
+    if boundary_source is not None:
+        (args.output_dir / f"zip-{args.zip_code}-census-zcta-2020.geojson").write_text(
+            json.dumps(aoi_doc, indent=2) + "\n", encoding="utf-8"
+        )
+    raster_name = f"zip-{args.zip_code}-usgs-3dep-screening.tif" if args.zip_code else "candidate-aoi-usgs-3dep-screening.tif"
+    raster_path = args.output_dir / raster_name
     raster_path.write_bytes(image_bytes)
     with rasterio.open(raster_path) as dataset:
         if dataset.count < 1 or dataset.width < 1 or dataset.height < 1:
@@ -205,7 +211,8 @@ def main() -> int:
 
     retrieved = datetime.now(timezone.utc).isoformat()
     report = {
-        "schemaVersion": "1.0.0",
+        "schemaVersion": "1.1.0",
+        "boundarySource": boundary_source,
         "evidenceStatus": "CANDIDATE_AOI_SCREENING_ONLY",
         "retrievedAtUtc": retrieved,
         "aoi": {
@@ -234,13 +241,15 @@ def main() -> int:
         },
         "raster": raster_info,
         "limitations": [
-            "The AOI geometry remains unapproved for design or modeling.",\n            "When using ZIP mode, the Census ZCTA is only a statistical approximation of the USPS ZIP service area and must not be treated as a parcel or exact delivery boundary.",
+            "The AOI geometry remains unapproved for design or modeling.",
+            "When using ZIP mode, the Census ZCTA is only a statistical approximation of the USPS ZIP service area and must not be treated as a parcel or exact delivery boundary.",
             "This is a resampled dynamic-mosaic screening raster, not a native 3DEP QL2 asset.",
             "The mosaic does not establish a single vertical datum, acquisition date, or accuracy class.",
             "No watershed, parcel, outlet, flood model, or engineering design conclusion is authorized by this artifact.",
         ],
     }
-    report_name = f"zip-{args.zip_code}-terrain-evidence.json" if args.zip_code else "candidate-aoi-terrain-evidence.json"\n    report_path = args.output_dir / report_name
+    report_name = f"zip-{args.zip_code}-terrain-evidence.json" if args.zip_code else "candidate-aoi-terrain-evidence.json"
+    report_path = args.output_dir / report_name
     report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2, sort_keys=True))
     return 0 if valid_count else 2
