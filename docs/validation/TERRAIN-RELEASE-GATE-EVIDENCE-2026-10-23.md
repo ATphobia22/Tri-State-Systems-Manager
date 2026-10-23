@@ -6,7 +6,7 @@ This document separates implementation artifacts from acceptance evidence. Do no
 
 - `webgpu-hierarchical-z.ts` builds a max-depth mip chain with WebGPU compute from a real `GPUTexture` depth attachment. Odd-size mip reduction partitions the complete source extent to retain edge samples.
 - `webgpu-hierarchical-z-cull.ts` computes conservative candidate visibility on the GPU and returns `1` for visible/uncertain and `0` for occluded. Invalid and off-viewport candidates fail open.
-- Both GPU modules are primitives, not a claim that MapLibre or the production renderer is wired to a WebGPU depth attachment. The renderer must supply its actual depth texture and screen-space candidate bounds. Device loss is terminal for a builder/culler instance; the host must acquire a replacement device and recreate resources.
+- `TsmWebGpuRayTracer` now owns a `depth32float` attachment and exposes `renderFrameWithOcclusion()`, which renders a source-bound frame, builds the H-Z pyramid, dispatches GPU candidate classification on the same device, and returns visibility flags. This is opt-in and does not connect MapLibre's separate WebGL render graph to WebGPU. Device loss invalidates the renderer resources; the host must reacquire a device and rebind verified terrain resources.
 - `validate-terrain-aoi-evidence.mjs` validates evidence supplied from real AOI geometry and source/raster inspection. It intentionally leaves unique AOI coverage null because overlapping footprints must be spatially unioned.
 
 ## GPU H-Z acceptance
@@ -19,7 +19,8 @@ This document separates implementation artifacts from acceptance evidence. Do no
 
 ## Transvoxel acceptance
 
-- Exhaustively enumerate all 512 transition case masks and validate all 56 equivalence classes against the canonical table.
+- The transition-cell table uses 9 independent fine-side scalar values to select one of 512 masks; 13 spatial sample positions include four displaced coarse-side positions whose scalar values reuse fine-face corners [0, 2, 8, 6]. Do not treat this as a 13-bit case table.
+- Exhaustively enumerate all 512 transition case masks and validate all 56 equivalence classes against the canonical table. The Python fixture self-test covers all six signed face orientations; the TypeScript suite includes adjacent-cell boundary-intersection checks, which must pass on the exact release head.
 - For every supported LOD face/orientation, emit adjacent meshes from shared scalar-field fixtures and check boundary edge pairing, manifoldness, no duplicate/degenerate triangles, consistent winding, and no cracks beyond the declared geometric tolerance.
 - Include nodata, tile-edge, sign ambiguity, mixed-resolution, and neighboring-tile ordering fixtures. Hash deterministic mesh outputs.
 - Run the actual mesher over a named, bounded representative AOI using source assets whose SHA-256, CRS, vertical datum, units, resolution, and acquisition vintage are recorded. Publish wall time, peak RSS, triangle/vertex counts, seam-test outcomes, and hardware/software versions.
@@ -46,4 +47,7 @@ For each device, capture GPU adapter/features/limits, browser/OS/driver, viewpor
 
 ## Evidence status
 
-No AOI polygon, terrain catalog snapshot, source raster hashes, reference-control dataset, or physical device-lab outputs were supplied in this task. Consequently this change can add implementation and validation infrastructure, but cannot truthfully generate a verified representative-area result or cross-device performance measurements. Those acceptance gates stay open until evidence is captured and reviewed.
+- A candidate AOI polygon already exists in the repository and remains `UNAPPROVED`. Its WGS84 bounds are `[-88.05, 37.8, -87.9, 37.95]`; canonical geometry SHA-256 is `6c8a2b7b38fd47fa4a19e220c5969fd57a83026a37354834d94e9939789ac7e5`.
+- A live USGS 3DEP dynamic-mosaic screening raster was acquired and hashed. The 1024×1024 EPSG:4326 GeoTIFF covers 1,048,576 rasterized AOI pixels with valid-data fraction 1.0 and NoData fraction 0.0; raster SHA-256 is `d327faab79a770dd3c5b6d4c26669b653761b5776009f4d91062761eab484f31`. This is resampled screening evidence only—not native QL2 data, a certified single vertical datum, acquisition-vintage evidence, or an accuracy statement.
+- The live acquisition workflow has successfully produced a GeoTIFF + JSON artifact; it uses bounded retry for transient USGS HTTP/network errors.
+- No physical GPU/device-lab outputs, reference-control dataset, verified native-resolution terrain assets, or representative-area full adaptive-mesh run have been captured. Consequently desktop/mobile GPU correctness and performance, true LOD manifold/seam closure over a representative AOI, and CRS/datum accuracy acceptance remain open. Do not infer these results from CI table tests or the screening raster.
