@@ -12,8 +12,10 @@ import hashlib
 import json
 import os
 import sys
+import urllib.error
 import urllib.parse
 import urllib.request
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -27,14 +29,28 @@ DEFAULT_AOI = ROOT / "data/posey-county/aoi/lower-wabash-ohio-core-candidate.geo
 SERVICE = "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer"
 
 
-def fetch(url: str, timeout: int = 120) -> tuple[bytes, str]:
+def fetch(url: str, timeout: int = 120, attempts: int = 4) -> tuple[bytes, str]:
+    """Fetch authoritative service data with bounded retry for transient HTTP/network faults."""
     request = urllib.request.Request(
         url,
         headers={"User-Agent": "TSM-AOI-Terrain-Evidence/1.0", "Accept": "*/*"},
     )
-    with urllib.request.urlopen(request, timeout=timeout) as response:
-        body = response.read()
-        return body, response.headers.get("Content-Type", "")
+    for attempt in range(attempts):
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                body = response.read()
+                return body, response.headers.get("Content-Type", "")
+        except urllib.error.HTTPError as exc:
+            transient = exc.code in (408, 425, 429, 500, 502, 503, 504)
+            if not transient or attempt + 1 >= attempts:
+                raise
+        except (urllib.error.URLError, TimeoutError, ConnectionError):
+            if attempt + 1 >= attempts:
+                raise
+        delay = min(2 ** attempt, 8)
+        print(f"Transient USGS request failure; retrying in {delay}s ({attempt + 2}/{attempts})", file=sys.stderr)
+        time.sleep(delay)
+    raise RuntimeError("USGS request retry loop exited unexpectedly")
 
 
 def sha256(data: bytes) -> str:
