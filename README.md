@@ -146,7 +146,7 @@ The repository contains a multi-step forecasting pipeline with ingestion, antece
 - **LOD2 AI automation** (`scripts/geospatial/lod2-ai-automation.py`): SAT2LOD2/HEAT integration guide.
 - **RTC transforms** (`tsm-console/src/lib/rtc-transform.ts`): 3D Tiles precision handling.
 - **State-word WebGIS** (`tsm-console/src/lib/state-word-webgis.ts`): 16-bit decoders for MapLibre/Three.js.
-- **WebGPU terrain** (`tsm-console/src/lib/webgpu-volumetric-terrain.ts`): GPU marching-cubes implementation; runtime/device support and numerical validation are separate acceptance gates.
+- **WebGPU terrain** (`tsm-console/src/lib/webgpu-volumetric-terrain.ts`): capability detection and device-loss handling only; GPU isosurface extraction is not implemented. Static DEM terrain continues through the CPU mesher. A detected WebGPU device does not imply GPU H-Z or GPU terrain support.
 - **PBR baking** (`scripts/3d-tiles/bake-pbr-standard.py`): Headless Blender standardization.
 - **Elevation evidence product** (`tsm-console/src/lib/elevation-evidence-product.ts`): CRS / vertical datum / epoch / accuracy class — required before survey claims.
 - **Tile resource lifecycle** (`tsm-console/src/lib/tile-resource-lifecycle.ts`): status machine and bounded release; synthetic tiles are not authoritative evidence.
