@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./fabric": "./src/index.ts"
+    "./fabric": "./src/index.ts",
+    "./capabilities": "./src/capabilities.ts",
+    "./ingestion": "./src/ingestion.ts"
   }
 }
