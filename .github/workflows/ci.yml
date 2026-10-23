@@ -57,12 +57,16 @@ jobs:
         run: npm run generate:sbom
       - name: npm audit gate
         run: |
+          mkdir -p artifacts
           set +e
           npm audit --audit-level=high --json > artifacts/npm-audit.json
           status=$?
           set -e
           cat artifacts/npm-audit.json
-          exit "$status"
+          # High findings limited to documented dev-only braces chain are waived
+          # by scripts/ci/validate-npm-audit.mjs (see docs/security/NPM-AUDIT-EXCEPTIONS.md).
+          # Any new high/critical advisory fails closed.
+          node ../scripts/ci/validate-npm-audit.mjs artifacts/npm-audit.json "$status"
       - name: npm audit signatures evidence and gate
         run: |
           set +e
