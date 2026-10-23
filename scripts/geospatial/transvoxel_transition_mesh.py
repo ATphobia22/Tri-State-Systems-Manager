@@ -149,7 +149,7 @@ def interpolate_edge(sdf, origin, axis, extent, i0, i1, iso=0.0, direction=1, fi
 def mesh_transition_cell(sdf, origin, axis, extent, iso=0.0, direction=1):
     data = _load_data()
     # Scalar samples are row-major. compute_case_index applies the official case-bit permutation.
-    # Coarse-face endpoint slots 9..12 reuse corner samples [0, 2, 8, 6] in canonical perimeter order.
+    # Coarse-face endpoint slots 9..12 reuse corner samples [0, 2, 6, 8] in official endpoint order.
     samples = sample_face_sdfs(sdf, origin, axis, extent)
     case = compute_case_index(samples, iso)
     if case is None:
