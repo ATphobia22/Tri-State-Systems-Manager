@@ -79,8 +79,8 @@ export class TransvoxelStitcher {
   }
 
   /**
-   * Polygonize one official transition cell. sdf has 13 samples; positions has
-   * 13 xyz triplets. The final four SDFs/positions are coarse-side corner samples.
+   * Polygonize one official transition cell. sdf has 9 fine-side samples and
+   * positions has 13 xyz triplets. Position slots 9..12 represent the coarse corners.
    */
   public static polygonizeTransitionCell(sdf: Float32Array, positions: Float32Array): TransitionMesh {
     if (sdf.length !== 9) throw new Error(`Expected 9 fine-side scalar samples, got ${sdf.length}`);
