@@ -21,7 +21,7 @@ export const GOVERNMENT_CAPABILITIES:readonly GovernmentCapability[]=[
  {id:'stormsurge.analysis',authority:'NOAA',operation:'analysis',status:'discovery-only',description:'Storm-surge analysis requires validated forcing and model inputs.'},
  {id:'census.lookup',authority:'CENSUS',operation:'lookup',status:'discovery-only',description:'Query Census geography and attributes.'},
  {id:'census.boundary.query',authority:'CENSUS',operation:'boundary',status:'discovery-only',description:'Retrieve versioned Census statistical boundaries.'},
- {id:'soil.lookup',authority:'USDA',operation:'lookup',status:'discovery-only',description:'Discover SSURGO and soil map-unit attributes.'},
+ {id:'soil.lookup',authority:'USDA',operation:'lookup',status:'discovery-only',description:'SSURGO county surveys held locally, hash-verified (8/8 tri-state counties, saverest 2026-08/09, via Web Soil Survey); serve via localHoldings + ssurgo-holdings-manifest.json. Tabular/spatial query adapter pending (needs GDAL/shapely). SoilGrids v2.0 REST remains the operational raster substitute.'},
  {id:'agriculture.analysis',authority:'USDA',operation:'analysis',status:'discovery-only',description:'Discover cropland and forest products; derived analysis requires versioned inputs.'},
  {id:'epa.water.query',authority:'EPA',operation:'discovery',status:'discovery-only',description:'Discover EPA water program and water-quality data.'},
  {id:'epa.facility.lookup',authority:'EPA',operation:'lookup',status:'discovery-only',description:'Discover EPA facility records and reporting metadata.'},

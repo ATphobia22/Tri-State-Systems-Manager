@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { getGovernmentSource, queryGovernmentJson, validateEvidenceEnvelope, wrapPinnedSnapshot, sha256 } from '../../packages/government/src/index.ts';
 import { loadPinnedSnapshot, listPinnedSnapshots } from '../../packages/government/src/snapshots.ts';
 import { NwpsAdapter } from '../../packages/government/src/adapters/NwpsAdapter.ts';
@@ -152,6 +153,22 @@ test('source.fetch supports the river sources via configured REST adapters',asyn
  const unknown=await provider.supports('source.fetch',{sourceId:'noaa.nwps',url:'https://evil.example/x'});
  assert.equal(unknown.supported,true,'supports() checks registration and shape; URL allowlisting is enforced at execute time');
  await assert.rejects(()=>queryGovernmentJson('noaa-nwps','https://evil.example/x',{fetcher:mockFetcher({})}),/OUTSIDE_REGISTERED_ENDPOINT/);
+});
+
+test('SSURGO holdings manifest describes the 8 held county surveys honestly',()=>{
+ const manifestPath=fileURLToPath(new URL('../../packages/government/snapshots/ssurgo-holdings-manifest.json',import.meta.url));
+ const entries=listLocalHoldings(manifestPath);
+ assert.equal(entries.length,8);
+ for(const entry of entries){
+  assert.match(entry.sha256,/^[a-f0-9]{64}$/);
+  assert.equal(entry.status,'acquired');
+  assert.ok(entry.url.startsWith('https://websoilsurvey.sc.egov.usda.gov/'));
+ }
+ const root=process.env.TSM_OFFLINE_DATA_ROOT;
+ if(root){
+  const envelope=getLocalHolding(manifestPath,e=>e.county==='IN129',{dataRoot:root});
+  assert.deepEqual(validateEvidenceEnvelope(envelope),[]);
+ }
 });
 
 test('wrapPinnedSnapshot rejects bad manifest hashes and non-JSON bytes',()=>{

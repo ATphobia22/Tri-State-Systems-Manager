@@ -10,15 +10,19 @@ Gages:
   03378500  Wabash River at New Harmony, IN    (USGS)
   MTVI3     Mount Vernon, IN                   (NWS/NOAA)
 
-Prereqs:
-  pip install torch transformers pandas numpy requests
+Prereqs (verified 2026-10-23):
+  System pip is PEP-668 externally-managed, so torch/timesfm live in a venv:
+    python3 -m venv ~/workspace/torch-venv
+    ~/workspace/torch-venv/bin/pip install torch --index-url https://download.pytorch.org/whl/cpu
+    ~/workspace/torch-venv/bin/pip install timesfm numpy transformers pandas requests
+  (torch 2.14.1+cpu, timesfm 3.0.2 — installed through the egress proxy fine)
 
   TimesFM 3.0 checkpoint downloads automatically from HuggingFace:
-  google/timesfm-3.0-pytorch
+  google/timesfm-3.0-pytorch  (public, ungated)
 
 Usage:
-  python timesfm-gage-nowcast.py --hours 48
-  python timesfm-gage-nowcast.py --hours 48 --gage 03381700
+  ~/workspace/torch-venv/bin/python timesfm-gage-nowcast.py --hours 48
+  ~/workspace/torch-venv/bin/python timesfm-gage-nowcast.py --hours 48 --gage 03381700
 """
 
 import argparse
@@ -219,31 +223,26 @@ def run_timesfm_forecast(values: np.ndarray, horizon: int) -> np.ndarray:
     """
     Run TimesFM 3.0 zero-shot forecast.
 
+    Verified API (2026-10-23): timesfm 3.0.2 exposes
+    TimesFM3Forecaster.from_pretrained(model_id, device="cpu") and
+    .predict(context, horizon) -> ForecastOutput(forecast=...); torch 2.14.1+cpu.
+    Run inside ~/workspace/torch-venv (system pip is PEP-668 externally-managed,
+    so torch/timesfm live in the venv, installed through the egress proxy).
+
     values: 1D array of historical observations (hourly or regular interval)
     horizon: number of future steps to predict
     returns: 1D array of forecasted values
     """
-    import torch
-    from transformers import AutoModelForCausalLM, AutoTokenizer
+    from timesfm import TimesFM3Forecaster
 
     model_id = "google/timesfm-3.0-pytorch"
     print(f"Loading {model_id} ...")
-
-    # TimesFM 3.0 via HuggingFace transformers
-    # Note: exact API may vary — check the timesfm repo README for updates
-    try:
-        from timesfm import TimesFm
-        model = TimesFm.from_pretrained(model_id)
-        freq = [0] * len(values)  # 0 = high frequency (hourly)
-        point_forecast, _ = model.forecast(
-            horizon=horizon,
-            inputs=[values.tolist()],
-            freq=freq,
-        )
-        return np.array(point_forecast[0])
-    except ImportError:
-        print("timesfm package not found, trying transformers path...", file=sys.stderr)
-        raise
+    forecaster = TimesFM3Forecaster.from_pretrained(model_id, device="cpu")
+    output = forecaster.predict(context=np.asarray(values, dtype=np.float32), horizon=horizon)
+    if output.forecast is None:
+        raise RuntimeError("TimesFM returned no forecast")
+    point = np.asarray(output.forecast, dtype=np.float32).ravel()
+    return point[:horizon]
 
 
 def resample_hourly(df: pd.DataFrame) -> pd.DataFrame:
