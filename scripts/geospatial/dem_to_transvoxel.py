@@ -37,7 +37,7 @@ def _polygonize(cell: dict[str, Any]) -> dict[str, Any]:
     origin = tuple(_finite_number(v, f"origin[{i}]") for i, v in enumerate(origin_raw))
     if isinstance(axis, bool) or not isinstance(axis, int) or axis not in (0, 1, 2):
         raise ValueError("cell.axis must be 0, 1, or 2")
-    if isinstance(direction, bool) or direction not in (-1, 1):
+    if isinstance(direction, bool) or not isinstance(direction, int) or direction not in (-1, 1):
         raise ValueError("cell.direction must be -1 or 1")
     if extent <= 0:
         raise ValueError("cell.extent must be > 0")
