@@ -61,7 +61,7 @@ class ProductionBridgeContractTests(unittest.TestCase):
         self.assertEqual([_transition_endpoint_sample_index(i) for i in range(9, 13)], [0, 2, 6, 8])
         self.assertEqual(
             [_corner_uv(i) for i in range(9, 13)],
-            [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0)],
+            [(0.0, 0.0), (1.0, 0.0), (0.0, 1.0), (1.0, 1.0)],
         )
         self.assertEqual(
             [_corner_uv(i) for i in range(9)],
