@@ -2,7 +2,7 @@
  * Table-driven Transvoxel transition-cell mesher.
  * Table source: Eric Lengyel, https://github.com/EricLengyel/Transvoxel (MIT).
  *
- * The nine fine-side samples determine the 9-bit case. Coarse-side slots 9..12 are spatial positions whose scalar values duplicate fine-face samples [0, 2, 6, 8].
+ * The nine fine-side samples determine the 9-bit case. Coarse-side slots 9..12 reuse fine-face corner scalars [0, 2, 6, 8].
  * All 13 xyz positions follow the official transitionVertexData edge encoding.
  */
 import {
