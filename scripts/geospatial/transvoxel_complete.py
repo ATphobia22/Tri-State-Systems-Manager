@@ -58,7 +58,16 @@ FT_TO_M = FT_TO_M  # noqa: F811  (re-export for clarity)
 def dem_window_for_region(wx, wy, W, H):
     """Load a DEM region (pixels) and return (dem_m, px, sampler)."""
     dem_m, px = load_dem_window(DEM_PATH, wx, wy, W, height=H)
-    return dem_m, px, make_height_sampler(dem_m, px)
+    local_sampler = make_height_sampler(dem_m, px)
+
+    # Downstream tiling helpers pass raster-global pixel coordinates multiplied
+    # by metric pixel spacing; translate them into this window's local frame.
+    origin_x_m, origin_y_m = wx * px, wy * px
+
+    def global_sampler(x, y):
+        return local_sampler(np.asarray(x) - origin_x_m, np.asarray(y) - origin_y_m)
+
+    return dem_m, px, global_sampler
 
 
 def mesh_tile(h, tile_wx, tile_wy, n, px, Z0, dz):
