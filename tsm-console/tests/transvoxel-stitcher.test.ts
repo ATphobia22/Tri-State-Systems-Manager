@@ -16,7 +16,7 @@ function transitionCellInput(
     [0, 0], [0.5, 0], [1, 0],
     [0, 0.5], [0.5, 0.5], [1, 0.5],
     [0, 1], [0.5, 1], [1, 1],
-    [0, 0], [1, 0], [1, 1], [0, 1],
+    [0, 0], [1, 0], [0, 1], [1, 1],
   ];
   const sdf = new Float32Array(9);
   const positions = new Float32Array(39);
@@ -63,7 +63,7 @@ describe('official Transvoxel transition mesher', () => {
     sdf[0] = -1;
     sdf[1] = -1; sdf[4] = -1;
     const p = new Float32Array(39);
-    const coords = [[0,0,0],[0.5,0,0],[1,0,0],[0,0.5,0],[0.5,0.5,0],[1,0.5,0],[0,1,0],[0.5,1,0],[1,1,0],[0,0,1],[1,0,1],[1,1,1],[0,1,1]];
+    const coords = [[0,0,0],[0.5,0,0],[1,0,0],[0,0.5,0],[0.5,0.5,0],[1,0.5,0],[0,1,0],[0.5,1,0],[1,1,0],[0,0,1],[1,0,1],[0,1,1],[1,1,1]];
     coords.forEach((v,i)=>v.forEach((n,a)=>p[i*3+a]=n));
     const mesh = TransvoxelStitcher.polygonizeTransitionCell(sdf,p);
     expect(mesh.indices.length % 3).toBe(0);
@@ -78,7 +78,7 @@ describe('official Transvoxel transition mesher', () => {
     coords.forEach((v,i)=>v.forEach((n,a)=>positions[i*3+a]=n));
     const mesh = TransvoxelStitcher.polygonizeTransitionCell(sdf, positions);
     const changedCorner = sdf.slice();
-    changedCorner[8] = 2;
+    changedCorner[6] = 2;
     const changedMesh = TransvoxelStitcher.polygonizeTransitionCell(changedCorner, positions);
     expect(Array.from(mesh.positions)).not.toEqual(Array.from(changedMesh.positions));
     expect(() => TransvoxelStitcher.polygonizeTransitionCell(new Float32Array(12), positions)).toThrow(/9 row-major scalar samples/);
