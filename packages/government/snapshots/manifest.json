@@ -1,0 +1,62 @@
+[
+ {
+  "name": "nws-nwps-mtvi3.json",
+  "sourceId": "noaa-nwps",
+  "description": "MTVI3 gauge metadata + flood thresholds",
+  "url": "https://api.water.noaa.gov/nwps/v1/gauges/MTVI3",
+  "retrievedAt": "2026-10-23T14:12:45Z",
+  "sha256": "ce7b4b335da857bf357c4a60bb83e38a21bd5da92faac535abea0a69c83339e6",
+  "mediaType": "application/json",
+  "bytes": 33000
+ },
+ {
+  "name": "nws-nwps-shni2.json",
+  "sourceId": "noaa-nwps",
+  "description": "SHNI2 gauge metadata + flood thresholds",
+  "url": "https://api.water.noaa.gov/nwps/v1/gauges/SHNI2",
+  "retrievedAt": "2026-10-23T14:12:45Z",
+  "sha256": "3798e4e74919cee6b6c0cf73090a09788539365ef153a4c622243de9058b13db",
+  "mediaType": "application/json",
+  "bytes": 47008
+ },
+ {
+  "name": "nws-nwps-nhri3.json",
+  "sourceId": "noaa-nwps",
+  "description": "NHRI3 gauge metadata + flood thresholds",
+  "url": "https://api.water.noaa.gov/nwps/v1/gauges/NHRI3",
+  "retrievedAt": "2026-10-23T14:12:45Z",
+  "sha256": "ce4607c0625d1c3b9d892653e0b50cded9a9dca02ca0a7c462d628fb9c08cb20",
+  "mediaType": "application/json",
+  "bytes": 26114
+ },
+ {
+  "name": "nws-nwps-evvi3.json",
+  "sourceId": "noaa-nwps",
+  "description": "EVVI3 gauge metadata + flood thresholds",
+  "url": "https://api.water.noaa.gov/nwps/v1/gauges/EVVI3",
+  "retrievedAt": "2026-10-23T14:12:45Z",
+  "sha256": "aa6802856819a750a9145b27d57335219ce2b62d7fc7753afdfab6e4e0be3d4a",
+  "mediaType": "application/json",
+  "bytes": 42149
+ },
+ {
+  "name": "nws-nwps-mtvi3-stageflow.json",
+  "sourceId": "noaa-nwps",
+  "description": "MTVI3 stageflow observations/forecast",
+  "url": "https://api.water.noaa.gov/nwps/v1/gauges/MTVI3/stageflow",
+  "retrievedAt": "2026-10-23T19:36:00Z",
+  "sha256": "edb3236717999426915471f668c41c4234efcac50e718fbc4a877ade77b8206a",
+  "mediaType": "application/json",
+  "bytes": 3898
+ },
+ {
+  "name": "usgs-5gage-sites.json",
+  "sourceId": "usgs-nwis",
+  "description": "5 tri-state gage site metadata incl. NAVD88 datums",
+  "url": "https://waterservices.usgs.gov/nwis/site/?format=rdb&sites=03378500,03381700,03322000,03377500,03304300&siteOutput=expanded&siteStatus=all",
+  "retrievedAt": "2026-10-23T14:12:45Z",
+  "sha256": "07e42bb7a3a8fdb5faa55a8995eb58d33b7422ce035975fc88c5b0f2b066e017",
+  "mediaType": "application/json",
+  "bytes": 1511
+ }
+]

@@ -11,7 +11,7 @@ const definitions:readonly CapabilityDefinition[]=[
  {id:'source.hash',name:'Hash government evidence',description:'Create a deterministic SHA-256 hash of a canonical JSON value.',version:'1.0.0',inputSchema:{type:'object',required:['value'],properties:{value:{}}},outputSchema:{type:'object',required:['sha256']},permissions:['tsm:government-data'],tags:['government','hash']},
  {id:'source.register',name:'Resolve registered government source',description:'Resolve a source in the checked-in registry. This does not persist a database row.',version:'1.0.0',inputSchema:{type:'object',required:['sourceId'],properties:{sourceId:{type:'string'}}},outputSchema:{type:'object',required:['source']},permissions:['tsm:government-data'],tags:['government','registry']}
 ] as const;
-const idAliases:Readonly<Record<string,string>>={'fema.nfhl':'fema-nfhl','usgs.3dep':'usgs-3dep','usgs.nhd':'usgs-hydrography','noaa.tides':'noaa-coops','noaa.weather':'noaa-weather','census.places':'census-tiger','usda.ssurgo':'usda-soils'};
+const idAliases:Readonly<Record<string,string>>={'fema.nfhl':'fema-nfhl','usgs.3dep':'usgs-3dep','usgs.nhd':'usgs-hydrography','noaa.tides':'noaa-coops','noaa.weather':'noaa-weather','census.places':'census-tiger','usda.ssurgo':'usda-soils','noaa.nwps':'noaa-nwps','usgs.nwis':'usgs-nwis'};
 function objectInput(value:unknown):Record<string,unknown>{if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('SOURCE_INPUT_MUST_BE_OBJECT');return value as Record<string,unknown>;}
 export class GovernmentSourceCapabilityProvider implements CapabilityProvider {
  readonly id='government-source-fabric';readonly version='1.0.0';readonly capabilities=definitions;
