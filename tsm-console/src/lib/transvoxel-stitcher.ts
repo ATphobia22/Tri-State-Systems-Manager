@@ -60,6 +60,13 @@ export const TRANSVOXEL_TRANSITION_CASES: Readonly<Record<number, TransitionCell
   })),
 );
 
+/** Lengyel's official high-resolution sample -> case-bit mapping; not row-major bit order. */
+export const TRANSITION_CASE_BITS: readonly number[] = Object.freeze([
+  0x001, 0x002, 0x004,
+  0x080, 0x100, 0x008,
+  0x040, 0x020, 0x010,
+]);
+
 export class TransvoxelStitcher {
   /** Case bits follow the official transitionCellClass table: negative = solid. */
   public static evaluateTransitionCase(cornerSdfs: Float32Array): number {
