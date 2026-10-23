@@ -81,3 +81,9 @@ export function validateEvidenceEnvelope(value:EvidenceEnvelope<unknown>):readon
  if(value.citations.some(citation=>new URL(citation.url).protocol!=='https:')) errors.push('citations must use HTTPS');
  return errors;
 }
+
+export { SourceAuthorityLevel, getRegisteredGovernmentSource, validateGovernmentSourceRegistry } from './GovernmentSourceRegistry.ts';
+export type { GovernmentSource as RegisteredGovernmentSource } from './GovernmentSourceRegistry.ts';
+export { DatasetValidator } from './validators/DatasetValidator.ts';
+export { GeometryValidator, SUPPORTED_GEOMETRY_TYPES } from './validators/GeometryValidator.ts';
+export { MetadataValidator } from './validators/MetadataValidator.ts';
