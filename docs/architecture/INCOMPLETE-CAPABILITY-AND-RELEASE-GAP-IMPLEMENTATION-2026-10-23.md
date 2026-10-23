@@ -11,12 +11,12 @@ Presentation pixels only — no evidence, model, or regulatory mutation from Web
 
 | Registry | Path | Status |
 |----------|------|--------|
-| Incomplete capabilities | `contracts/registries/tsm-incomplete-capability-registry-v1.json` | 10 capabilities; code items IMPLEMENTED |
-| Release gaps | `contracts/registries/tsm-release-gap-registry-v1.json` | Code-closable CLOSED; operator items GATED |
+| Incomplete capabilities | `contracts/registries/tsm-incomplete-capability-registry-v1.json` | Implementation status separated from verification; technical gates remain open |
+| Release gaps | `contracts/registries/tsm-release-gap-registry-v1.json` | Individually evidenced items closed; technical and operator gates remain open |
 | C/S resource manifest | `contracts/registries/tsm-cs-resource-manifest-v1.json` | plan_only; swap_enabled=false |
 | CI validator | `scripts/ci/validate-capability-and-gap-registries.mjs` | Wired in `.github/workflows/ci.yml` |
 
-### WebGPU terrain (presentation plane) — IMPLEMENTED
+### WebGPU terrain (presentation plane) — CODE PATH PRESENT; DEVICE ACCEPTANCE UNVERIFIED
 
 | Piece | Path |
 |-------|------|
@@ -36,16 +36,16 @@ Contracts honored:
 - WebGPU remains optional; MapLibre WebGL stays the primary path.
 - Caller must supply verified height/satellite GPUTextures with provenance + datum labels.
 
-### Tiles cache byte policy — CLOSED
+### Tiles cache byte policy — PARTIAL (GUIDANCE ONLY)
 
 | Piece | Path |
 |-------|------|
 | Byte budgets | `tsm-console/src/lib/tiles-cache-policy.ts` (`maxCacheBytes`, `errorTargetBytes`) |
 | Renderer wiring | `tsm-console/src/components/OpenWorld3DTilesRenderer.tsx` |
 
-TilesRenderer still receives tile-count LRU; byte budgets are recorded for operators and future upstream maxBytes.
+TilesRenderer still receives tile-count LRU. Byte budgets are **not enforced**: no byte accounting, byte-based eviction, hard ceiling, or backpressure is wired in. This gap remains open.
 
-### C/S resource scheduler — IMPLEMENTED (plan-only)
+### C/S resource scheduler — PARTIAL (PLAN-ONLY)
 
 | Piece | Path |
 |-------|------|
@@ -68,28 +68,34 @@ Adapters: OpenUSD/Houdini, OpenCue, rayshader, 4D Gaussian splats. All return `o
 
 `webgpu-terrain-presentation` → **ENABLED** / **PRESENTATION** with human_review_required boundary note.
 
-### Other capabilities marked IMPLEMENTED
+### Other capability boundaries
 
 - `webgpu-ndvi-compute` — transient NDVI kernels; no evidence ledger writes
-- `gpu-compute-culling` — CPU frustum plan generator (presentation)
-- `cs-asset-swapping` — plan-only until variants registered
-- `openusd-houdini-interchange`, `opencue-render-farm`, `rayshader-terrain-viz`, `4d-gaussian-splats` — boundary adapters ready
+- `gpu-compute-culling` — **PARTIAL**; CPU frustum plan generator only, no GPU compute or H-Z
+- `cs-asset-swapping` — **PARTIAL**; plan-only until variants registered
+- OpenUSD/Houdini, OpenCue, rayshader, and 4D Gaussian splats — fail-closed adapter boundaries only; production integration is not verified
 
-## Still open (operator / human only — not closable by repository code)
+## Still open (technical and operator acceptance gates)
 
 | Item | Registry status | Reason |
 |------|-----------------|--------|
 | Operator secrets | GATED_OPERATOR | Keycloak, production API origin, Databricks, Kafka, Ed25519 signing keys — never invented in repo |
 | LOMA 26-05-2022A Layer-2 | GATED_OPERATOR | Human filing only; FEMA additional-info deadline 2026-12-21 |
-| C/S swap enablement | remaining note on capability | Needs real registered tile variants (uri+sha256) from operators |
+| C/S swap enablement | PARTIAL | Needs real registered tile variants (uri+sha256) from operators |
+| GPU Hierarchical-Z | OPEN | GPU compute depth pyramid, renderer integration, CPU-reference correctness, hardware evidence |
+| Full Transvoxel transition coverage | OPEN | Runtime case coverage plus seam/topology fixtures |
+| AOI terrain coverage | OPEN | Pinned source manifest, coverage/nodata report, recovery tests |
+| CRS/datum/epoch/accuracy catalog | OPEN | Whole-catalog report with denominators, failures, and provenance |
+| Cross-device GPU validation | OPEN | Representative browser/device correctness, performance, and memory matrix |
+| Hard 3D Tiles cache byte budget | PARTIAL | Byte accounting and enforcement/eviction/backpressure required |
 | Gage-zero NAVD88 conversion | GATED_OPERATOR | conversionPublished=false fail-closed until SIR/NWPS conflict resolved |
 | FEMA LOMA external filing | GATED_OPERATOR | Prepare evidence only; no automatic filing |
 
-## Validation (all green)
+## Validation commands (not evidence of current-main CI status)
 
 ```bash
 node scripts/ci/validate-capability-and-gap-registries.mjs
-# → ok:true, webgpu_terrain:IMPLEMENTED, code_closable_closed:5
+# Expected to validate registry consistency and preserve open technical gates; run on the PR branch and confirm CI.
 
 node --test \
   tsm-console/tests/webgpu-camera-bridge-contract.test.mjs \
@@ -97,12 +103,11 @@ node --test \
   tsm-console/tests/cs-resource-scheduler-contract.test.mjs \
   tsm-console/tests/webgpu-presentation-contract.test.mjs \
   tests/external-presentation-adapters.test.mjs
-# → 14/14 pass
+# Previously recorded result only; rerun on the current PR head to establish fresh evidence.
 ```
 
 ## Finish note
 
-**All code-implementable items from the incomplete-capability registry, release-gap registry, and WebGPU terrain implementation are complete.**  
-Nothing remains that the repository can close without operator secrets, human LOMA filing, or registered C/S tile variants.
+**The repository does not yet have evidence to declare all terrain/GPU release gates complete.** The renderer/camera bridge and some contract helpers exist, but GPU H-Z, complete Transvoxel acceptance, full AOI coverage, whole-catalog CRS/datum evidence, cross-device validation, hard cache enforcement, and real C/S swapping remain open or partial. Current-main CI status has not been established by this ledger.
 
 **Human authority remains final.**
