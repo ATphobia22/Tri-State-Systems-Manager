@@ -98,7 +98,7 @@ pip install earthaccess
 - **TimesFM** requires PyTorch — run on your local machine, not this VM (proxy blocks large wheels)
 - **GEOGloWS** river IDs must be found manually at https://apps.geoglows.org/ (pygeoglows `latlon_to_river` is broken in v2)
 - **TESSERA** full tri-state is 130+ GB — use the anchor window (20km) by default
-- **ras2fim** requires HEC-RAS execution environment (Windows or Docker)
+- **ras2fim**: `ras2fim_tristate.py --ras-project ... --flows ...` intentionally exits nonzero until actual HEC-RAS/NOAA-OWP execution is implemented. It generates no rasters or rating curves. The `rating` orchestration step lists candidate catalog entries and is reported unavailable. A precomputed-CSV conversion is not evidence of model execution.
 - **Earthdata** requires free NASA Earthdata login at https://urs.earthdata.nasa.gov/
 
 ## License
