@@ -288,8 +288,8 @@ def _polygonize(cell: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("cell.direction must be -1 or 1")
     if extent <= 0:
         raise ValueError("cell.extent must be positive and finite")
-    if not isinstance(samples_raw, list) or len(samples_raw) != 9:
-        raise ValueError("cell.samples must contain exactly 9 fine-side scalar samples")
+    if not isinstance(samples_raw, list) or len(samples_raw) != 13:
+        raise ValueError("cell.samples must contain 13 scalars: 9 fine-side plus 4 coarse-side samples")
     samples = [_finite_number(v, "samples[{}]".format(i)) for i, v in enumerate(samples_raw)]
     def sdf(x: float, y: float, z: float) -> float:
         p = (x, y, z); a, b = (axis + 1) % 3, (axis + 2) % 3
