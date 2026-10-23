@@ -31,7 +31,7 @@ class DemToTransvoxelAdapterTests(unittest.TestCase):
         for direction in (-1, 1):
             cell = self._cell(direction)
             result = MESHER._polygonize(cell)
-            self.assertEqual(result["case"], (1 << 0) | (1 << 1) | (1 << 4))
+            self.assertEqual(result["case"], (1 << 0) | (1 << 1) | (1 << 8))
             self.assertGreater(result["vertexCount"], 0)
             self.assertGreater(result["triangleCount"], 0)
             self.assertEqual(len(result["triangles"]), result["triangleCount"])
@@ -49,7 +49,7 @@ class DemToTransvoxelAdapterTests(unittest.TestCase):
     def test_rejects_wrong_scalar_count_and_non_finite_values(self):
         cell = self._cell()
         cell["samples"] = cell["samples"][:-1]
-        with self.assertRaisesRegex(ValueError, "exactly 9 scalar values in official Transvoxel endpoint order"):
+        with self.assertRaisesRegex(ValueError, "exactly 9 row-major scalar values"):
             MESHER._polygonize(cell)
         cell = self._cell()
         cell["samples"][4] = float("nan")
