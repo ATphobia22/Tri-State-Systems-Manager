@@ -42,7 +42,7 @@ class DemToTransvoxelAdapterTests(unittest.TestCase):
     def test_rejects_wrong_scalar_count_and_non_finite_values(self):
         cell = self._cell()
         cell["samples"] = cell["samples"][:-1]
-        with self.assertRaisesRegex(ValueError, "exactly 13"):
+        with self.assertRaisesRegex(ValueError, "contain 13 scalar samples"):
             MESHER._polygonize(cell)
         cell = self._cell()
         cell["samples"][10] = float("nan")
