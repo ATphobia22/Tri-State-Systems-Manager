@@ -73,7 +73,7 @@ describe('official Transvoxel transition mesher', () => {
     const sdf = new Float32Array(13).fill(1);
     sdf[0] = -1;
     const positions = new Float32Array(39);
-    const coords = [[0,0,0],[0.5,0,0],[1,0,0],[0,0.5,0],[0.5,0.5,0],[1,0.5,0],[0,1,0],[0.5,1,0],[1,1,0],[0,0,1],[1,0,1],[1,1,1],[0,1,1]];
+    const coords = [[0,0,0],[0.5,0,0],[1,0,0],[0,0.5,0],[0.5,0.5,0],[1,0.5,0],[0,1,0],[0.5,1,0],[1,1,0],[0,0,1],[1,0,1],[0,1,1],[1,1,1]];
     coords.forEach((v,i)=>v.forEach((n,a)=>positions[i*3+a]=n));
     const mesh = TransvoxelStitcher.polygonizeTransitionCell(sdf, positions);
     const changedCorner = sdf.slice();
