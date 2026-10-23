@@ -79,7 +79,7 @@ async function fetchJsonWithRetry(url, attempts = 3) {
   let lastError;
   for (let i = 0; i < attempts; i++) {
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, { signal: AbortSignal.timeout(15_000) });
       if (!response.ok) {
         throw new Error(`NFHL request failed ${response.status}`);
       }
@@ -93,7 +93,9 @@ async function fetchJsonWithRetry(url, attempts = 3) {
   }
   if (
     lastError instanceof TypeError ||
-    /request failed (429|5\\d\\d)/.test(String(lastError))
+    lastError?.name === 'TimeoutError' ||
+    lastError?.name === 'AbortError' ||
+    /request failed (429|5\d\d)/.test(String(lastError))
   ) {
     throw new NfhlSourceUnavailableError(String(lastError));
   }

@@ -11,7 +11,7 @@ export const GOVERNMENT_CAPABILITIES:readonly GovernmentCapability[]=[
  {id:'geo.flood.risk',authority:'FEMA',operation:'discovery',status:'discovery-only',description:'Discover Risk MAP study products; not a regulatory determination.'},
  {id:'geo.dem.query',authority:'USGS',operation:'discovery',status:'discovery-only',description:'Discover 3DEP elevation products and service metadata.'},
  {id:'geo.elevation.profile',authority:'USGS',operation:'profile',status:'discovery-only',description:'Elevation profile capability pending CRS/datum/nodata validation.'},
- {id:'geo.hydrology.query',authority:'USGS',operation:'discovery',status:'discovery-only',description:'Discover NHD and hydrography products.'},
+ {id:'geo.hydrology.query',authority:'USGS',operation:'discovery',status:'discovery-only',description:'Discover current 3DHP hydrography and legacy NHD reference products.'},
  {id:'geo.watershed.query',authority:'USGS',operation:'watershed',status:'discovery-only',description:'Watershed delineation requires a validated DEM, pour point, and pinned algorithm.'},
  {id:'weather.forecast',authority:'NOAA',operation:'forecast',status:'discovery-only',description:'Discover NWS forecast data with issue and valid times.'},
  {id:'coastal.flood.risk',authority:'NOAA',operation:'discovery',status:'discovery-only',description:'Discover coastal flooding and sea-level-rise products.'},

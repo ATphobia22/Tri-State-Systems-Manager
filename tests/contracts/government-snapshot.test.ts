@@ -20,3 +20,13 @@ test('dataset attestation creates deterministic metadata feature dataset evidenc
  assert.equal(first.featureCount,2);
  assert.notEqual(first.datasetHash,createDatasetAttestation({...input,features:[...input.features,{id:3,value:'c'}]}).datasetHash);
 });
+
+test('snapshot manifests reject credentialed URLs and incomplete promotion metadata',()=>{
+ const base={datasetId:'usgs-3dep-test',authority:'USGS',sourceUrl:'https://elevation.nationalmap.gov/3dep',retrievedAt:'2026-10-23T00:00:00Z',sourceVersion:'2026-07',mediaType:'application/json',attribution:'U.S. Geological Survey',license:'Public domain',horizontalCrs:'EPSG:4326',acquisitionDate:'2026-07-01',schemaVersion:'1',validationStatus:'PASS' as const,bytes:new TextEncoder().encode('snapshot')};
+ const manifest=createSnapshotManifest(base);
+ assert.equal(manifest.byteLength,8);
+ assert.doesNotThrow(()=>assertPromotableSnapshot(manifest));
+ assert.throws(()=>createSnapshotManifest({...base,sourceUrl:'https://user:password@elevation.nationalmap.gov/3dep'}),/CREDENTIAL_FREE_HTTPS/);
+ assert.throws(()=>assertPromotableSnapshot({...manifest,acquisitionDate:undefined}),/ACQUISITION_DATE_REQUIRED/);
+ assert.throws(()=>assertPromotableSnapshot({...manifest,validationStatus:'UNVERIFIED'}),/REQUIRES_VALIDATION_PASS/);
+});
