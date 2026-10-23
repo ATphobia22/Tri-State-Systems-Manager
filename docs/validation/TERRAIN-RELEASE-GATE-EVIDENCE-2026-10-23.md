@@ -19,7 +19,7 @@ This document separates implementation artifacts from acceptance evidence. Do no
 
 ## Transvoxel acceptance
 
-- The transition-cell table uses 9 independent fine-side scalar values to select one of 512 masks; 13 spatial sample positions include four displaced coarse-side positions whose scalar values reuse fine-face corners [0, 2, 8, 6]. Do not treat this as a 13-bit case table.
+- The transition-cell table uses 9 independent fine-side scalar values to select one of 512 masks; 13 spatial sample positions include nine fine-side scalar samples that select the 9-bit case plus four independent coarse-side scalar samples used to interpolate edges touching the coarse face. Do not treat this as a 13-bit case table.
 - Exhaustively enumerate all 512 transition case masks and validate all 56 equivalence classes against the canonical table. The Python fixture self-test covers all six signed face orientations; the TypeScript suite includes adjacent-cell boundary-intersection checks, which must pass on the exact release head.
 - For every supported LOD face/orientation, emit adjacent meshes from shared scalar-field fixtures and check boundary edge pairing, manifoldness, no duplicate/degenerate triangles, consistent winding, and no cracks beyond the declared geometric tolerance.
 - Include nodata, tile-edge, sign ambiguity, mixed-resolution, and neighboring-tile ordering fixtures. Hash deterministic mesh outputs.
