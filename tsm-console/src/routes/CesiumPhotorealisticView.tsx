@@ -23,8 +23,6 @@ declare global {
 const CESIUM_VERSION = '1.146';
 const CESIUM_SCRIPT_URL = `https://cesium.com/downloads/cesiumjs/releases/${CESIUM_VERSION}/Build/Cesium/Cesium.js`;
 const CESIUM_CSS_URL = `https://cesium.com/downloads/cesiumjs/releases/${CESIUM_VERSION}/Build/Cesium/Widgets/widgets.css`;
-/** Google Photorealistic 3D Tiles — public asset on Cesium ion. */
-const GOOGLE_PHOTOREALISTIC_TILES_ASSET_ID = 2275207;
 
 const ION_TOKEN = (import.meta.env.VITE_CESIUM_ION_TOKEN as string | undefined)?.trim() ?? '';
 
@@ -74,13 +72,17 @@ export default function CesiumPhotorealisticView() {
         if (cancelled || !containerRef.current) return;
         const C = window.Cesium;
         C.Ion.defaultAccessToken = ION_TOKEN;
+        // Official pattern per https://cesium.com/learn/cesiumjs-learn/cesiumjs-photorealistic-3d-tiles/:
+        // the Google tiles cover the whole globe, so the default globe is turned
+        // off; the tileset is built with the dedicated helper (ion-brokered).
         viewer = new C.Viewer(containerRef.current, {
+          globe: false,
           timeline: false,
           animation: false,
-          baseLayerPicker: true,
-          geocoder: true,
+          baseLayerPicker: false,
+          geocoder: C.IonGeocodeProviderType.GOOGLE,
         });
-        const tileset = await C.Cesium3DTileset.fromIonAssetId(GOOGLE_PHOTOREALISTIC_TILES_ASSET_ID);
+        const tileset = await C.createGooglePhotorealistic3DTileset();
         viewer.scene.primitives.add(tileset);
         viewer.camera.flyTo({
           destination: C.Cartesian3.fromDegrees(-88.01, 37.85, 12000),
