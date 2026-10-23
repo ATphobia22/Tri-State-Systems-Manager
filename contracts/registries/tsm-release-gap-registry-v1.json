@@ -78,8 +78,8 @@
     {
       "id": "gap-vitest-lock-5.0.5",
       "severity": "low",
-      "status": "CLOSED_2026-10-23",
-      "summary": "package.json requires vitest ^5.0.5; lockfile artifact applied to tsm-console when pushed.",
+      "status": "PARTIAL_2026-10-23",
+      "summary": "The committed lockfile resolves Vitest 5.0.2; package.json was aligned to the existing lockfile to restore deterministic npm ci. Upgrade only alongside a regenerated lockfile and passing install.",
       "closure": [
         "tsm-console/package.json",
         "tsm-console/package-lock.json"
