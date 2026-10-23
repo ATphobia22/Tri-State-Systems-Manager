@@ -91,8 +91,13 @@ def _corner_uv(i: int) -> Tuple[float, float]:
         0: (0.0, 0.0), 1: (0.5, 0.0), 2: (1.0, 0.0),
         3: (0.0, 0.5), 4: (0.5, 0.5), 5: (1.0, 0.5),
         6: (0.0, 1.0), 7: (0.5, 1.0), 8: (1.0, 1.0),
+        # Coarse-side corner slots map to the four corners of the 3x3 face.
+        9: (0.0, 0.0), 10: (1.0, 0.0),
+        11: (1.0, 1.0), 12: (0.0, 1.0),
     }
-    return mapping.get(i, (0.5, 0.5))
+    if i not in mapping:
+        raise ValueError(f"transition vertex endpoint must be 0..12, got {i}")
+    return mapping[i]
 
 
 def face_point(origin: Vec3, axis: int, extent: float, u: float, v: float) -> Vec3:
