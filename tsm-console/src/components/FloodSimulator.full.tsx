@@ -1,4 +1,6 @@
-/** PLACEHOLDER_FULL - will update next */
-export default function FloodSimulator(): React.JSX.Element {
-  return <div>Loading full flood simulator…</div>;
-}
+/**
+ * Placeholder removed — full Level-5 FloodSimulator lives at
+ * artifacts/FloodSimulator.tsx.fixed until credentialed local push.
+ * This file is intentionally not imported.
+ */
+export {};
