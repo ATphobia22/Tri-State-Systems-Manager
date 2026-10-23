@@ -40,6 +40,58 @@ export default function WebGpuTerrainCanvas(props: WebGpuTerrainCanvasProps): Re
     let cancelled = false;
     const tracer = new TsmWebGpuRayTracer();
     tracerRef.current = tracer;
+    let recoveryAttempts = 0;
+    const recoverAfterDeviceLoss = async (): Promise<void> => {
+      if (cancelled || recoveryAttempts >= 3) {
+        if (!cancelled) setStatus('WebGPU device recovery exhausted; use the active MapLibre WebGL renderer.');
+        return;
+      }
+      recoveryAttempts += 1;
+      setReady(false);
+      setStatus(`WebGPU device lost; rebuilding resources (attempt ${recoveryAttempts}/3)…`);
+      await new Promise<void>((resolve) => window.setTimeout(resolve, Math.min(500 * (2 ** (recoveryAttempts - 1)), 4000)));
+      if (cancelled) return;
+      tracer.dispose();
+      tracer.setDeviceLostHandler((info) => {
+        if (!cancelled) {
+          setStatus(`WebGPU device lost: ${info.message}`);
+          void recoverAfterDeviceLoss();
+        }
+      });
+      const recovered = await tracer.initialize(canvas);
+      if (cancelled) return;
+      if (!recovered.ok) {
+        setStatus(`WebGPU recovery failed: ${recovered.reason ?? 'unknown error'}`);
+        void recoverAfterDeviceLoss();
+        return;
+      }
+      if (!props.bindSource) {
+        setStatus('WebGPU recovered; bind a verified terrain source to resume presentation.');
+        setReady(false);
+        return;
+      }
+      try {
+        const device = tracer.getDevice();
+        if (!device) throw new Error('Recovered device is unavailable.');
+        const source = await props.bindSource(device);
+        if (!source) throw new Error('No verified terrain source was returned.');
+        if (!source.provenanceHashSha256 || !source.verticalDatum || !source.horizontalCrs) {
+          throw new Error('Recovered terrain source is missing provenance or datum labels.');
+        }
+        tracer.setTerrainSource(source);
+        setStatus(`WebGPU recovered · ${source.horizontalCrs} / ${source.verticalDatum} · ${source.provenanceUri}`);
+        setReady(true);
+      } catch (error) {
+        setStatus(`WebGPU recovered but terrain rebind failed: ${error instanceof Error ? error.message : String(error)}`);
+        setReady(false);
+      }
+    };
+    tracer.setDeviceLostHandler((info) => {
+      if (!cancelled) {
+        setStatus(`WebGPU device lost: ${info.message}`);
+        void recoverAfterDeviceLoss();
+      }
+    });
 
     void (async () => {
       const init = await tracer.initialize(canvas);
