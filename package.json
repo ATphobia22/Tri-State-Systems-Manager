@@ -30,7 +30,7 @@
     "test:uacf-contracts": "tsx --test tests/contracts/canonical-contract-exports.test.ts",
     "nfhl:validate": "node packages/geo/src/nfhl/cli/validate-nfhl.mjs",
     "nfhl:check": "npm run nfhl:validate",
-    "test:government-fabric": "tsx --test tests/contracts/government-data-fabric.test.ts tests/contracts/government-snapshot.test.ts"
+    "test:government-fabric": "tsx --test tests/contracts/government-data-fabric.test.ts tests/contracts/government-snapshot.test.ts tests/contracts/government-source-registry.test.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
