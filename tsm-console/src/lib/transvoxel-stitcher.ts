@@ -9,7 +9,7 @@
  * Reference: Lengyel, E. "Voxel-Based Terrain for Real-Time Virtual Simulations"
  */
 
-import { getTransitionClass, TRANSITION_CELL_CLASS, validateLengyelTables } from './transvoxel-lengyel-classes';
+import { getTransitionClass, TRANSITION_CELL_CLASS, validateLengyelTables } from './transvoxel-lengyel-classes.ts';
 
 export interface TransitionCellData {
   vertexCount: number;
