@@ -118,18 +118,24 @@ def sample_face_sdfs(sdf: SdfFn, origin: Vec3, axis: int, extent: float) -> List
     return out
 
 
-def interpolate_edge(sdf, origin, axis, extent, i0, i1, iso=0.0) -> Vec3:
-    u0, v0 = _corner_uv(i0)
-    u1, v1 = _corner_uv(i1)
-    p0 = face_point(origin, axis, extent, u0, v0)
-    p1 = face_point(origin, axis, extent, u1, v1)
+def _transition_point(origin: Vec3, axis: int, extent: float, endpoint: int, direction: int = 1) -> Vec3:
+    u, v = _corner_uv(endpoint)
+    point = list(face_point(origin, axis, extent, u, v))
+    if endpoint >= 9:
+        point[axis] = origin[axis] + direction * extent
+    return (point[0], point[1], point[2])
+
+
+def interpolate_edge(sdf, origin, axis, extent, i0, i1, iso=0.0, direction=1) -> Vec3:
+    p0 = _transition_point(origin, axis, extent, i0, direction)
+    p1 = _transition_point(origin, axis, extent, i1, direction)
     s0 = float(sdf(*p0)) - iso
     s1 = float(sdf(*p1)) - iso
     t = 0.5 if abs(s0 - s1) < 1e-12 else float(np.clip(s0 / (s0 - s1), 0.0, 1.0))
     return (p0[0] + (p1[0] - p0[0]) * t, p0[1] + (p1[1] - p0[1]) * t, p0[2] + (p1[2] - p0[2]) * t)
 
 
-def mesh_transition_cell(sdf, origin, axis, extent, iso=0.0):
+def mesh_transition_cell(sdf, origin, axis, extent, iso=0.0, direction=1):
     data = _load_data()
     samples = sample_face_sdfs(sdf, origin, axis, extent)
     case = compute_case_index(samples, iso)
@@ -148,7 +154,7 @@ def mesh_transition_cell(sdf, origin, axis, extent, iso=0.0):
         if code == 0xFFFF:
             break
         i0, i1 = _edge_endpoints(code)
-        cell_verts.append(interpolate_edge(sdf, origin, axis, extent, i0, i1, iso))
+        cell_verts.append(interpolate_edge(sdf, origin, axis, extent, i0, i1, iso, direction))
     if len(cell_verts) < vcount:
         raise ValueError(f"case {case} needs {vcount} vertices but table supplied {len(cell_verts)}")
     cell_verts = cell_verts[:vcount]
@@ -165,7 +171,7 @@ def mesh_transition_cell(sdf, origin, axis, extent, iso=0.0):
     return cell_verts, tris, meta
 
 
-def mesh_transition_face_grid(sdf, origin, axis, extent, fine_res=2, iso=0.0):
+def mesh_transition_face_grid(sdf, origin, axis, extent, fine_res=2, iso=0.0, direction=1):
     all_v, all_t, metas = [], [], []
     cell_e = extent / fine_res
     a, b = (axis + 1) % 3, (axis + 2) % 3
@@ -174,7 +180,7 @@ def mesh_transition_face_grid(sdf, origin, axis, extent, fine_res=2, iso=0.0):
             o = [origin[0], origin[1], origin[2]]
             o[a] = origin[a] + i * cell_e
             o[b] = origin[b] + j * cell_e
-            verts, tris, meta = mesh_transition_cell(sdf, tuple(o), axis, cell_e, iso)
+            verts, tris, meta = mesh_transition_cell(sdf, tuple(o), axis, cell_e, iso, direction)
             base = len(all_v)
             all_v.extend(verts)
             all_t.extend((base + t[0], base + t[1], base + t[2]) for t in tris)
