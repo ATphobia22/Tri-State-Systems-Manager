@@ -55,9 +55,9 @@ class ProductionBridgeContractTests(unittest.TestCase):
         self.assertIs(balanced, root)
         self.assertTrue(bridge.get_leaves(balanced))
 
-    def test_transvoxel_coarse_corners_reuse_official_fine_corner_samples(self):
+    def test_transvoxel_coarse_corner_samples_are_independent(self):
         from transvoxel_transition_mesh import _transition_endpoint_sample_index
-        self.assertEqual([_transition_endpoint_sample_index(i) for i in range(9, 13)], [0, 2, 6, 8])
+        self.assertEqual([_transition_endpoint_sample_index(i) for i in range(9, 13)], [9, 10, 11, 12])
 
     def test_real_dem_sdf_canonicalizes_float_noise_at_isosurface(self):
         import importlib.util
