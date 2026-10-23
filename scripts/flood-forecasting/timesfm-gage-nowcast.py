@@ -190,15 +190,20 @@ def fetch_nws_gage(gage_id: str, days: int = 30) -> pd.DataFrame:
     data = r.json()
 
     records = []
-    for obs in data.get("observed", []):
+    observed = data.get("observed", {}) or {}
+    for obs in observed.get("data", []):
+        value = float(obs["primary"])
+        # NWS missing-value sentinels are not observations
+        if value in (-9999.0, -999.0) or not np.isfinite(value):
+            continue
         records.append({
             "datetime": pd.to_datetime(obs["validTime"]),
-            "value": float(obs["primary"]),
+            "value": value,
         })
     df = pd.DataFrame(records).dropna().sort_values("datetime")
-    # Filter to last N days
-    cutoff = datetime.utcnow() - timedelta(days=days)
-    df = df[df["datetime"] >= pd.Timestamp(cutoff, tz="UTC").tz_convert(None)]
+    # Filter to last N days (keep tz-aware comparison)
+    cutoff = pd.Timestamp.now(tz="UTC") - pd.Timedelta(days=days)
+    df = df[df["datetime"] >= cutoff]
     return df
 
 
@@ -249,7 +254,7 @@ def resample_hourly(df: pd.DataFrame) -> pd.DataFrame:
     """Resample to regular hourly intervals, forward-filling short gaps."""
     df = df.set_index("datetime").sort_index()
     df = df[~df.index.duplicated(keep="last")]
-    hourly = df.resample("1H").mean()
+    hourly = df.resample("1h").mean()
     # Fill gaps up to 6 hours; longer gaps break the series
     hourly["value"] = hourly["value"].interpolate(limit=6)
     hourly = hourly.dropna()

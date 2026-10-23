@@ -62,3 +62,6 @@ tsm-console/.data/
 
 # Raw terrain tile downloads (re-fetchable via tools/terrain/fetch-terrarium-dem.py)
 tools/terrain/.tile-cache/
+
+# TimesFM nowcast run outputs (regenerated per run; venv + model live outside git)
+timesfm-forecasts/
