@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tsm.example/schemas/government-dataset.schema.json",
+  "title": "GovernmentDataset",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["sourceId", "datasetName", "version", "retrievedAt", "checksum"],
+  "properties": {
+    "sourceId": {"type":"string","minLength":1},
+    "datasetName": {"type":"string","minLength":1},
+    "version": {"type":"string","minLength":1},
+    "retrievedAt": {"type":"string","format":"date-time"},
+    "checksum": {"type":"string","pattern":"^[a-f0-9]{64}$"},
+    "featureCount": {"type":"integer","minimum":0},
+    "geometryType": {"enum":["Point","MultiPoint","Polygon","MultiPolygon","Polyline","MultiLineString"]}
+  }
+}
