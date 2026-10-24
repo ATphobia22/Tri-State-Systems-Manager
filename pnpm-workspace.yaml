@@ -1,6 +1,4 @@
 packages:
-  - 'packages/*'
-  - 'apps/*'
-  - 'plugins/*'
-  - 'providers/*'
-  - 'tsm-console'
+  - "apps/*"
+  - "packages/*"
+  - "tsm-console"
