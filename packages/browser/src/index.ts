@@ -1,62 +1,43 @@
-export interface BrowserPage {
-  url: string;
-  title: string;
-  text: string;
+export interface BrowserCapabilities {
+  webgpu: boolean;
+  webgl2: boolean;
+  offscreenCanvas: boolean;
+  sharedArrayBuffer: boolean;
+  serviceWorker: boolean;
 }
 
-export interface BrowserFetchOptions {
-  timeoutMs?: number;
-  userAgent?: string;
-}
-
-export interface BrowserClient {
-  fetchText(url: string, options?: BrowserFetchOptions): Promise<BrowserPage>;
-}
-
-function stripTags(html: string): string {
-  // Single-pass tag stripper (no regex tag filters — regex cannot reliably
-  // parse HTML). Removes script/style content and all tags for text extraction.
-  const lower = html.toLowerCase();
-  let text = '';
-  let i = 0;
-  while (i < html.length) {
-    if (lower.startsWith('<script', i)) {
-      const end = lower.indexOf('</script>', i);
-      i = end === -1 ? html.length : end + 9;
-      text += ' ';
-    } else if (lower.startsWith('<style', i)) {
-      const end = lower.indexOf('</style>', i);
-      i = end === -1 ? html.length : end + 8;
-      text += ' ';
-    } else if (html[i] === '<') {
-      const end = html.indexOf('>', i);
-      i = end === -1 ? html.length : end + 1;
-      text += ' ';
-    } else {
-      text += html[i];
-      i++;
-    }
+export function detectCapabilities(): BrowserCapabilities {
+  if (typeof window === "undefined" || typeof navigator === "undefined") {
+    return { webgpu: false, webgl2: false, offscreenCanvas: false, sharedArrayBuffer: false, serviceWorker: false };
   }
-  return text.replace(/\s+/g, ' ').trim();
-}
-
-export class HttpBrowserClient implements BrowserClient {
-  public async fetchText(url: string, options: BrowserFetchOptions = {}): Promise<BrowserPage> {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), options.timeoutMs ?? 30_000);
-    try {
-      const response = await fetch(url, {
-        signal: controller.signal,
-        headers: { "User-Agent": options.userAgent ?? "tsm-uacf-browser/0.1.0" },
-      });
-      if (!response.ok) {
-        throw new Error(`Browser fetch failed: ${response.status} ${url}`);
+  return {
+    webgpu: "gpu" in navigator,
+    webgl2: (() => {
+      try {
+        const c = document.createElement("canvas");
+        return !!c.getContext("webgl2");
+      } catch {
+        return false;
       }
-      const html = await response.text();
-      const title = html.match(/<title[^>]*>([^<]*)<\/title>/i)?.[1]?.trim() ?? "";
-      return { url, title, text: stripTags(html) };
-    } finally {
-      clearTimeout(timer);
-    }
-  }
+    })(),
+    offscreenCanvas: typeof OffscreenCanvas !== "undefined",
+    sharedArrayBuffer: typeof SharedArrayBuffer !== "undefined",
+    serviceWorker: "serviceWorker" in navigator,
+  };
 }
+
+export function isSecureContext(): boolean {
+  return typeof window !== "undefined" && window.isSecureContext === true;
+}
+
+export function setPreference(key: string, value: string): void {
+  if (typeof localStorage === "undefined") return;
+  localStorage.setItem(`tsm.pref.${key}`, value);
+}
+
+export function getPreference(key: string): string | null {
+  if (typeof localStorage === "undefined") return null;
+  return localStorage.getItem(`tsm.pref.${key}`);
+}
+
+export const BROWSER_PACKAGE_VERSION = "1.0.0" as const;
