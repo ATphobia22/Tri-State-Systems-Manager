@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "1.0.0",
+  "reviewDate": "2026-10-24",
+  "status": "research-only-no-dependencies-added",
+  "policy": {
+    "canonicalUpstreamRequired": true,
+    "licenseMustBeVerified": true,
+    "lockfileRequired": true,
+    "securityReviewRequired": true,
+    "independentValidationRequiredForEngineeringAlgorithms": true,
+    "searchRankingIsNotEvidence": true
+  },
+  "candidates": [
+    {
+      "id": "proj",
+      "url": "https://proj.org/en/stable/about.html",
+      "license": "MIT",
+      "runtimeFit": "native-geospatial-library",
+      "decision": "evaluate-backend-adapter",
+      "status": "not-integrated"
+    },
+    {
+      "id": "gdal",
+      "url": "https://gdal.org/",
+      "license": "MIT-style-OSGeo",
+      "runtimeFit": "native-geospatial-library",
+      "decision": "evaluate-isolated-processing-worker",
+      "status": "not-integrated"
+    },
+    {
+      "id": "earthkit-hydro",
+      "url": "https://github.com/ecmwf/earthkit-hydro",
+      "license": "Apache-2.0-with-ECMWF-notice",
+      "runtimeFit": "Python-hydrology-library",
+      "decision": "prototype-only-verify-maturity",
+      "status": "not-integrated"
+    },
+    {
+      "id": "pysheds",
+      "url": "https://github.com/pysheds/pysheds",
+      "license": "GPL-3.0",
+      "runtimeFit": "Python-hydrology-library",
+      "decision": "license-review-before-distribution",
+      "status": "not-integrated"
+    },
+    {
+      "id": "apple-pkl",
+      "url": "https://opensource.apple.com/projects/pkl/",
+      "license": "Apache-2.0",
+      "runtimeFit": "configuration-tooling",
+      "decision": "principle-already-applied-no-new-toolchain",
+      "status": "not-integrated"
+    },
+    {
+      "id": "apple-foundationdb",
+      "url": "https://opensource.apple.com/projects/foundationdb/",
+      "license": "Apache-2.0",
+      "runtimeFit": "distributed-database",
+      "decision": "not-justified-without-storage-requirement",
+      "status": "not-integrated"
+    },
+    {
+      "id": "apple-swiftnio",
+      "url": "https://opensource.apple.com/projects/swiftnio/",
+      "license": "Apache-2.0",
+      "runtimeFit": "Swift-networking",
+      "decision": "not-applicable-to-current-runtime",
+      "status": "not-integrated"
+    }
+  ]
+}
