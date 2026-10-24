@@ -26,7 +26,7 @@ from .openmi_contract import (
     QuantityValueSet,
 )
 
-SERVICE_VERSION = "tsm-openmi-bridge-1.0.0"
+SERVICE_VERSION = "tsm-openmi-bridge-1.1.0"
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 logger = logging.getLogger(__name__)
