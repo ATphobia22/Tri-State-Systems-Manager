@@ -135,6 +135,8 @@ def _validate_value_set(value_set: QuantityValueSet) -> None:
     if missing:
         raise ValueError(f"missing required exchange metadata: {', '.join(missing)}")
 
+    if value_set.validation_status != "VALIDATED":
+        raise ValueError("exchange validation_status must be VALIDATED; solver success is a separate evidence gate")
     if not value_set.values:
         raise ValueError("exchange item must contain at least one value")
     if any(not math.isfinite(value) for value in value_set.values):
@@ -179,11 +181,20 @@ class OpenMIService:
     def __init__(self, router: ExchangeRouter | None = None) -> None:
         self.router = router or ExchangeRouter()
 
+    @staticmethod
+    async def _require_finite_deadline(context: grpc.aio.ServicerContext) -> None:
+        remaining = context.time_remaining()
+        # Bound the no-deadline sentinel and unbounded streams. Clients must set
+        # an explicit finite deadline; cancellation is still honored separately.
+        if remaining is None or not math.isfinite(remaining) or remaining <= 0 or remaining > 86400:
+            await context.abort(grpc.StatusCode.INVALID_ARGUMENT, "finite RPC deadline (at most 24 hours) is required")
+
     async def RegisterComponent(
         self,
         request: ComponentInfo,
         context: grpc.aio.ServicerContext,
     ) -> ExchangeResponse:
+        await self._require_finite_deadline(context)
         try:
             await self.router.register_component(request)
         except ValueError as exc:
@@ -199,7 +210,8 @@ class OpenMIService:
         request: HealthRequest,
         context: grpc.aio.ServicerContext,
     ) -> HealthResponse:
-        del request, context
+        await self._require_finite_deadline(context)
+        del request
         return HealthResponse(
             status="SERVING",
             service_version=SERVICE_VERSION,
@@ -211,6 +223,7 @@ class OpenMIService:
         request_iterator: AsyncIterator[QuantityValueSet],
         context: grpc.aio.ServicerContext,
     ) -> AsyncIterator[QuantityValueSet]:
+        await self._require_finite_deadline(context)
         queue = await self.router.subscribe()
         reader_task = asyncio.create_task(
             self._read_requests(request_iterator, context),
