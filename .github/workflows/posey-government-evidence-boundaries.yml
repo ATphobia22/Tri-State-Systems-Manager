@@ -6,6 +6,13 @@ on:
       - 'data/posey-county/government-evidence-boundaries-v1.json'
       - 'docs/architecture/POSEY-GOVERNMENT-EVIDENCE-BOUNDARIES.md'
       - 'tests/contracts/posey-government-evidence.test.mjs'
+      - 'tests/contracts/npm-workspace-dependencies.test.mjs'
+      - 'package.json'
+      - 'apps/admin/package.json'
+      - 'apps/dashboard/package.json'
+      - 'apps/playground/package.json'
+      - 'packages/agent-runtime/package.json'
+      - 'packages/jobs/package.json'
       - '.github/workflows/posey-government-evidence-boundaries.yml'
   push:
     branches: [main]
@@ -13,6 +20,13 @@ on:
       - 'data/posey-county/government-evidence-boundaries-v1.json'
       - 'docs/architecture/POSEY-GOVERNMENT-EVIDENCE-BOUNDARIES.md'
       - 'tests/contracts/posey-government-evidence.test.mjs'
+      - 'tests/contracts/npm-workspace-dependencies.test.mjs'
+      - 'package.json'
+      - 'apps/admin/package.json'
+      - 'apps/dashboard/package.json'
+      - 'apps/playground/package.json'
+      - 'packages/agent-runtime/package.json'
+      - 'packages/jobs/package.json'
       - '.github/workflows/posey-government-evidence-boundaries.yml'
   workflow_dispatch:
 
@@ -30,5 +44,5 @@ jobs:
           node-version: 22
       - name: Parse evidence contract
         run: node -e "JSON.parse(require('node:fs').readFileSync('data/posey-county/government-evidence-boundaries-v1.json', 'utf8'))"
-      - name: Validate evidence boundaries
-        run: node --test tests/contracts/posey-government-evidence.test.mjs
+      - name: Validate evidence and workspace boundaries
+        run: node --test tests/contracts/posey-government-evidence.test.mjs tests/contracts/npm-workspace-dependencies.test.mjs
