@@ -29,15 +29,13 @@ def _value_set(**overrides: object) -> QuantityValueSet:
         "time_convention": "instant-at-step",
     }
     payload.update(overrides)
-    return QuantityValueSet(
-        **payload,
-        spatial_reference=SpatialReference(
-            horizontal_crs="EPSG:2966",
-            vertical_datum="NAVD88",
-            horizontal_units="ftUS",
-            vertical_units="m",
-        ),
-    )
+    spatial_reference = payload.pop("spatial_reference", SpatialReference(
+        horizontal_crs="EPSG:2966",
+        vertical_datum="NAVD88",
+        horizontal_units="ftUS",
+        vertical_units="m",
+    ))
+    return QuantityValueSet(**payload, spatial_reference=spatial_reference)
 
 
 class OpenMIContractTests(unittest.TestCase):
