@@ -1,0 +1,48 @@
+// Engineering execution transport for the Tri-State Systems Manager.
+//
+// Proto + contract types ONLY. This file does not claim a running service:
+// the live transport boundary is the existing tsm.openmi.v1 service in
+// backend/openmi_service.py. A future engineering execution service would
+// implement this contract with deadlines, cancellation, streaming logs, and
+// the failure states below. No solver execution is implied by this file.
+//
+// Failure states (shared vocabulary with the evidence extractors):
+//   FAILED, TIMEOUT, CANCELLED, NON_CONVERGENT, DATA_ERROR,
+//   UNIT_MISMATCH, DATUM_MISMATCH, VERIFIED, UNAVAILABLE.
+//
+// Resilient policy: a failed run still yields a SimulationResponse with a
+// failure status and an evidence bundle hash when one exists. The transport
+// never blocks a caller on a solver failure and never fabricates outputs.
+
+syntax = "proto3";
+
+package tsm.engineering.v1;
+
+message CoordinateReferenceSystem {
+  string epsg = 1;            // e.g. "EPSG:2966"
+  string vertical_datum = 2;  // e.g. "NAVD88"
+}
+
+message UnitReference {
+  string unit = 1;  // e.g. "feet", "meters", "cfs", "m3/s"
+}
+
+message SimulationRequest {
+  string run_id = 1;
+  CoordinateReferenceSystem crs = 2;
+  UnitReference units = 3;
+  string model_hash = 4;
+  int64 deadline_ms = 5;
+  string solver_name = 6;
+  string solver_version = 7;
+}
+
+message SimulationResponse {
+  string run_id = 1;
+  // One of: FAILED, TIMEOUT, CANCELLED, NON_CONVERGENT, DATA_ERROR,
+  // UNIT_MISMATCH, DATUM_MISMATCH, VERIFIED, UNAVAILABLE.
+  string status = 2;
+  string evidence_bundle_hash = 3;
+  int64 execution_duration_ms = 4;
+  string failure_detail = 5;
+}
