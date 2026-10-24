@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TSM Research Model Catalog",
+  "version": "1.0.0",
+  "policy": {
+    "public_spa": false,
+    "auto_execute": false,
+    "requires_operator_package_hash": true,
+    "human_review_recommended": true
+  },
+  "engines": [
+    {
+      "id": "hec-ras",
+      "name": "HEC-RAS",
+      "authority": "USACE HEC",
+      "docs": "https://www.hec.usace.army.mil/software/hec-ras/documentation.aspx",
+      "priority": "P0",
+      "plane": "scientific_simulation",
+      "runner": "backend/engineering/hec_ras_worker.py",
+      "notes": "Operator-supplied executable + empty output dir + tree hash"
+    },
+    {
+      "id": "swmm",
+      "name": "EPA SWMM",
+      "repo": "https://github.com/USEPA/Stormwater-Management-Model",
+      "priority": "P2",
+      "plane": "research",
+      "domain": "urban_rainfall_runoff"
+    },
+    {
+      "id": "anuga",
+      "name": "AnuGA",
+      "repo": "https://github.com/anuga-community/anuga-core",
+      "priority": "P2",
+      "plane": "research",
+      "domain": "shallow_water_overland"
+    },
+    {
+      "id": "delft3d-flow",
+      "name": "Delft3D-FLOW",
+      "repo": "https://github.com/Deltares/Delft3D",
+      "priority": "P2",
+      "plane": "research",
+      "domain": "hydrodynamics_sediment"
+    },
+    {
+      "id": "modflow6",
+      "name": "MODFLOW 6",
+      "repo": "https://github.com/MODFLOW-ORG/modflow6",
+      "priority": "P2",
+      "plane": "research",
+      "domain": "groundwater"
+    },
+    {
+      "id": "flopy",
+      "name": "FloPy",
+      "repo": "https://github.com/modflowpy/flopy",
+      "priority": "P2",
+      "plane": "research",
+      "domain": "groundwater_python"
+    },
+    {
+      "id": "openfoam",
+      "name": "OpenFOAM",
+      "repo": "https://github.com/OpenFOAM/OpenFOAM-dev",
+      "priority": "P2",
+      "plane": "research",
+      "domain": "cfd"
+    },
+    {
+      "id": "turbinesfoam",
+      "name": "turbinesFoam",
+      "repo": "https://github.com/turbinesFoam/turbinesFoam",
+      "priority": "P2",
+      "plane": "research",
+      "domain": "hydrokinetic_actuator_line"
+    },
+    {
+      "id": "openfast",
+      "name": "OpenFAST",
+      "repo": "https://github.com/OpenFAST/openfast",
+      "priority": "defer",
+      "plane": "research",
+      "domain": "aero_hydro_servo_elastic"
+    },
+    {
+      "id": "bmi-python",
+      "name": "bmi-python",
+      "repo": "https://github.com/csdms/bmi-python",
+      "priority": "P1",
+      "plane": "interface",
+      "domain": "model_coupling"
+    },
+    {
+      "id": "hydroerr",
+      "name": "HydroErr",
+      "repo": "https://github.com/BYU-Hydroinformatics/HydroErr",
+      "priority": "P1",
+      "plane": "metrics",
+      "domain": "streamflow_fit"
+    },
+    {
+      "id": "bihar-culvert-proposal",
+      "name": "Culvert micro-hydro Bihar proposal",
+      "repo": "https://github.com/Sumit77884/culvert-hydro-power--Bihar-Government-Proposal--At-IIT-PATNA-",
+      "priority": "reference_only",
+      "plane": "none",
+      "domain": "concept_pdf",
+      "notes": "Not a solver; dual-use infrastructure narrative only"
+    }
+  ]
+}

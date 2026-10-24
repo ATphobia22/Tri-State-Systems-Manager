@@ -143,6 +143,18 @@ jobs:
         run: node scripts/ci/validate-external-tooling.mjs
       - name: Validate 3D Tiles tool contract
         run: node scripts/ci/validate-3d-tiles-tools.mjs
+      - name: Validate open-source engine registry
+        run: node scripts/ci/validate-open-source-engine-registry.mjs
+      - name: Test open-source engine registry contract
+        run: node --test scripts/ci/validate-open-source-engine-registry.test.mjs
+      - name: Validate hydrology engine adapter registry
+        run: node scripts/ci/validate-hydrology-engine-adapters.mjs
+      - name: Test hydrology engine adapter contract
+        run: node --test scripts/ci/validate-hydrology-engine-adapters.test.mjs
+      - name: Validate Cesium Story publication manifest
+        run: node scripts/ci/validate-cesium-story-manifest.mjs
+      - name: Test Cesium Story publication safety gates
+        run: node --test scripts/ci/validate-cesium-story-manifest.test.mjs
       - name: Setup Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.1.0
         with:

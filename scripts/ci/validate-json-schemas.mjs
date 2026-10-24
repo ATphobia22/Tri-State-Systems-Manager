@@ -13,10 +13,12 @@ const schemaPaths = [
   'data/schemas/hec-coupled-run-manifest-v1.schema.json',
   'data/schemas/spatial-solver-run-manifest-v1.schema.json',
   'data/schemas/posey-site-aoi-v1.schema.json',
+  'packages/government/schemas/cesium-story-publication-manifest.schema.json',
 ];
 const hecCoupledRunManifestExample = JSON.parse(fs.readFileSync(path.join(repoRoot, 'data/schemas/examples/hec-coupled-run-manifest-v1.example.json'), 'utf8'));
 const spatialSolverRunManifestExample = JSON.parse(fs.readFileSync(path.join(repoRoot, 'data/schemas/examples/spatial-solver-run-manifest-v1.example.json'), 'utf8'));
 const poseySiteAoiExample = JSON.parse(fs.readFileSync(path.join(repoRoot, 'data/posey-county/evidence/13101-bonebank-road-site-aoi-v1.json'), 'utf8'));
+const cesiumStoryPublicationManifestExample = JSON.parse(fs.readFileSync(path.join(repoRoot, 'packages/government/schemas/cesium-story-publication-manifest.example.json'), 'utf8'));
 const failures = [];
 const fail = (message) => failures.push(message);
 
@@ -48,6 +50,14 @@ function resolveLocalReference(rootSchema, reference, at) {
     current = current[token];
   }
   return current;
+}
+
+function schemaMatches(value, schema, rootSchema) {
+  const before = failures.length;
+  validate(value, schema, '<condition>', rootSchema);
+  const matched = failures.length === before;
+  failures.splice(before);
+  return matched;
 }
 
 function validate(value, schema, at, rootSchema = schema) {
@@ -90,6 +100,14 @@ function validate(value, schema, at, rootSchema = schema) {
       if (seen.size !== value.length) fail(at + ': uniqueItems violated');
     }
     if (schema.items) value.forEach((item, index) => validate(item, schema.items, at + '[' + index + ']', rootSchema));
+  }
+  if (Array.isArray(schema.allOf)) {
+    schema.allOf.forEach((subSchema, index) => validate(value, subSchema, at + '.allOf[' + index + ']', rootSchema));
+  }
+  if (schema.if && schemaMatches(value, schema.if, rootSchema) && schema.then) {
+    validate(value, schema.then, at + '.then', rootSchema);
+  } else if (schema.if && !schemaMatches(value, schema.if, rootSchema) && schema.else) {
+    validate(value, schema.else, at + '.else', rootSchema);
   }
   if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
     for (const required of schema.required ?? []) {
@@ -190,7 +208,7 @@ for (const relative of schemaPaths) {
   try { schema = JSON.parse(fs.readFileSync(file, 'utf8')); }
   catch (error) { fail(relative + ': invalid JSON: ' + error.message); continue; }
   if (schema.$schema !== 'https://json-schema.org/draft/2020-12/schema') fail(relative + ': unexpected JSON Schema dialect');
-  const example = relative.includes('spatial-solver-run-manifest') ? spatialSolverRunManifestExample : relative.includes('posey-site-aoi-v1') ? poseySiteAoiExample : relative.includes('hec-coupled-run-manifest') ? hecCoupledRunManifestExample : relative.includes('data-contract') ? dataExample : relative.includes('regulatory-gate') ? regulatoryGateExample : relative.includes('nfip-discrepancy') ? nfipLayer2Example : relative.includes('flood-information-federation') ? floodFederationExample : evidenceExample;
+  const example = relative.includes('cesium-story-publication-manifest') ? cesiumStoryPublicationManifestExample : relative.includes('spatial-solver-run-manifest') ? spatialSolverRunManifestExample : relative.includes('posey-site-aoi-v1') ? poseySiteAoiExample : relative.includes('hec-coupled-run-manifest') ? hecCoupledRunManifestExample : relative.includes('data-contract') ? dataExample : relative.includes('regulatory-gate') ? regulatoryGateExample : relative.includes('nfip-discrepancy') ? nfipLayer2Example : relative.includes('flood-information-federation') ? floodFederationExample : evidenceExample;
   validate(example, schema, relative, schema);
   // The Posey candidate AOI is a public parcel-evidence record and is validated
   // against its own schema here. Other case-specific NFIP examples remain

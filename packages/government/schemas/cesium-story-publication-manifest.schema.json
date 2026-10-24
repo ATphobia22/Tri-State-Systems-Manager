@@ -103,7 +103,8 @@
           "mediaType",
           "sha256",
           "byteLength",
-          "role"
+          "role",
+          "redactionReviewed"
         ],
         "properties": {
           "path": {
@@ -311,5 +312,55 @@
       "type": "string",
       "pattern": "^[a-f0-9]{64}$"
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "presentation": {
+            "properties": {
+              "externalSharingEnabled": {
+                "const": true
+              }
+            },
+            "required": [
+              "externalSharingEnabled"
+            ]
+          }
+        },
+        "required": [
+          "presentation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "review": {
+            "properties": {
+              "publicationDecision": {
+                "const": "approved"
+              },
+              "dataLicenseReviewed": {
+                "const": true
+              },
+              "sensitiveDataReviewed": {
+                "const": true
+              },
+              "propertyAllowlistReviewed": {
+                "const": true
+              }
+            },
+            "required": [
+              "publicationDecision",
+              "dataLicenseReviewed",
+              "sensitiveDataReviewed",
+              "propertyAllowlistReviewed"
+            ]
+          }
+        },
+        "required": [
+          "review"
+        ]
+      }
+    }
+  ]
 }

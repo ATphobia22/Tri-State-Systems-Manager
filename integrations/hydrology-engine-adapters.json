@@ -1,0 +1,502 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Credential-free adapter inventory for hydrology, hydraulics, radar, groundwater, turbine, and time-series workflows. Catalog entries are not executable integrations unless status explicitly says so.",
+  "policy": {
+    "executionEnabledByDefault": false,
+    "runtimeCredentialsRequired": false,
+    "automaticDependencyInstall": false,
+    "humanReviewRequired": true,
+    "noSilentAuthorityPromotion": true,
+    "requireContentHashes": true,
+    "requireExplicitCrsAndDatum": true,
+    "requireValidationEvidenceBeforeScientificPass": true
+  },
+  "requiredRunEvidence": [
+    "engine_id",
+    "engine_version_evidence",
+    "input_manifest_sha256",
+    "input_artifact_sha256",
+    "configuration_sha256",
+    "started_at",
+    "finished_at",
+    "exit_status",
+    "output_artifact_sha256",
+    "validation_report_sha256",
+    "source_provenance",
+    "crs_and_datum",
+    "units",
+    "review_status"
+  ],
+  "adapters": [
+    {
+      "id": "swmm",
+      "project": "EPA SWMM",
+      "modelFamily": "stormwater-runoff",
+      "interface": "external-cli-or-api",
+      "sourceUrl": "https://github.com/USEPA/Stormwater-Management-Model",
+      "status": "catalog-only",
+      "runtimeCredentialsRequired": false,
+      "expectedInputs": [
+        "versioned .inp model",
+        "rainfall/runoff forcing",
+        "catchment and drainage network",
+        "parameter and unit manifest"
+      ],
+      "expectedOutputs": [
+        "runoff and node/link time series",
+        "solver logs",
+        "mass-balance diagnostics"
+      ],
+      "validationGates": [
+        "input-schema",
+        "rainfall-timestamp-quality",
+        "mass-balance",
+        "calibration-or-benchmark",
+        "human-review"
+      ],
+      "limitations": "Urban drainage and stormwater scope; not a general riverine 2D flood solver."
+    },
+    {
+      "id": "delft3d-flow",
+      "project": "Delft3D-FLOW",
+      "modelFamily": "surface-water-hydrodynamics",
+      "interface": "external-cli",
+      "sourceUrl": "https://github.com/Deltares/Delft3D",
+      "status": "catalog-only",
+      "runtimeCredentialsRequired": false,
+      "expectedInputs": [
+        "versioned model grid/mesh",
+        "bathymetry/topography",
+        "forcing and boundary conditions",
+        "time-step and solver settings"
+      ],
+      "expectedOutputs": [
+        "water levels",
+        "velocities",
+        "flow/sediment outputs where configured",
+        "logs and numerical diagnostics"
+      ],
+      "validationGates": [
+        "grid-integrity",
+        "crs-datum-units",
+        "boundary-condition-review",
+        "stability",
+        "benchmark-or-observation-comparison",
+        "human-review"
+      ],
+      "limitations": "No direct model conversion or solver execution is claimed; use requires a pinned compatible build."
+    },
+    {
+      "id": "anuga",
+      "project": "ANUGA",
+      "modelFamily": "shallow-water-inundation",
+      "interface": "python-api-or-cli",
+      "sourceUrl": "https://github.com/GeoscienceAustralia/anuga_core",
+      "status": "catalog-only",
+      "runtimeCredentialsRequired": false,
+      "expectedInputs": [
+        "validated elevation and mesh",
+        "friction and boundary conditions",
+        "rainfall/inflow hydrographs",
+        "time-step settings"
+      ],
+      "expectedOutputs": [
+        "depth and velocity fields",
+        "inundation extent",
+        "mass-balance and run logs"
+      ],
+      "validationGates": [
+        "mesh-quality",
+        "wetting-drying-check",
+        "mass-conservation",
+        "known-answer-test",
+        "human-review"
+      ],
+      "limitations": "No site-specific model, mesh, or flood prediction is included."
+    },
+    {
+      "id": "modflow-6",
+      "project": "MODFLOW 6",
+      "modelFamily": "groundwater-flow-and-transport",
+      "interface": "external-cli",
+      "sourceUrl": "https://github.com/MODFLOW-ORG/modflow6",
+      "status": "catalog-only",
+      "runtimeCredentialsRequired": false,
+      "expectedInputs": [
+        "MODFLOW simulation files",
+        "aquifer and stress-period parameters",
+        "boundary/stress package configuration"
+      ],
+      "expectedOutputs": [
+        "heads and flows",
+        "budget output",
+        "convergence diagnostics",
+        "run logs"
+      ],
+      "validationGates": [
+        "input-file-integrity",
+        "water-budget",
+        "convergence",
+        "calibration-or-benchmark",
+        "human-review"
+      ],
+      "limitations": "Groundwater modelling; not a surface-water floodplain solver. Runtime binary is not provisioned by this contract."
+    },
+    {
+      "id": "flopy",
+      "project": "FloPy",
+      "modelFamily": "groundwater-model-authoring",
+      "interface": "python-library",
+      "sourceUrl": "https://github.com/modflowpy/flopy",
+      "status": "catalog-only",
+      "runtimeCredentialsRequired": false,
+      "expectedInputs": [
+        "version-pinned Python environment",
+        "model configuration",
+        "compatible MODFLOW executable"
+      ],
+      "expectedOutputs": [
+        "generated model input files",
+        "run manifest",
+        "parsed MODFLOW results"
+      ],
+      "validationGates": [
+        "environment-lock",
+        "generated-input-hash",
+        "solver-version",
+        "budget-and-convergence",
+        "human-review"
+      ],
+      "limitations": "FloPy orchestrates/creates models but does not itself replace the MODFLOW solver."
+    },
+    {
+      "id": "opengeosys",
+      "project": "OpenGeoSys",
+      "modelFamily": "coupled-porous-media-multiphysics",
+      "interface": "external-cli-or-python-api",
+      "sourceUrl": "https://github.com/ufz/ogs",
+      "status": "catalog-only",
+      "runtimeCredentialsRequired": false,
+      "expectedInputs": [
+        "mesh",
+        "material properties",
+        "initial and boundary conditions",
+        "coupling configuration"
+      ],
+      "expectedOutputs": [
+        "state fields",
+        "convergence diagnostics",
+        "logs"
+      ],
+      "validationGates": [
+        "mesh-quality",
+        "units",
+        "material-provenance",
+        "convergence",
+        "benchmark",
+        "human-review"
+      ],
+      "limitations": "Specialist coupled-physics lane; not the default flood solver."
+    },
+    {
+      "id": "bmi-python",
+      "project": "BMI Python",
+      "modelFamily": "model-coupling-interface",
+      "interface": "python-library",
+      "sourceUrl": "https://github.com/csdms/bmi-python",
+      "status": "catalog-only",
+      "runtimeCredentialsRequired": false,
+      "expectedInputs": [
+        "BMI-compatible model wrapper",
+        "variable mapping",
+        "grid/time/unit contract"
+      ],
+      "expectedOutputs": [
+        "standardized model lifecycle and variable access"
+      ],
+      "validationGates": [
+        "interface-conformance",
+        "variable-units",
+        "grid-mapping",
+        "time-alignment",
+        "conservation-test"
+      ],
+      "limitations": "A shared interface does not guarantee numerical or physical compatibility."
+    },
+    {
+      "id": "hydroerr",
+      "project": "HydroErr",
+      "modelFamily": "hydrologic-evaluation",
+      "interface": "python-library",
+      "sourceUrl": "https://github.com/ThibHlln/HydroErr",
+      "status": "catalog-only",
+      "runtimeCredentialsRequired": false,
+      "expectedInputs": [
+        "observed time series",
+        "simulated time series",
+        "explicit units and missing-value policy"
+      ],
+      "expectedOutputs": [
+        "named error metrics",
+        "evaluation metadata"
+      ],
+      "validationGates": [
+        "time-alignment",
+        "unit-consistency",
+        "missing-data-policy",
+        "metric-known-answer-tests"
+      ],
+      "limitations": "Evaluation metrics are not, by themselves, scientific validation or proof of suitability."
+    },
+    {
+      "id": "pyrad",
+      "project": "PyRAD",
+      "modelFamily": "weather-radar-processing",
+      "interface": "python-library-or-pipeline",
+      "sourceUrl": "https://github.com/MeteoSwiss/pyrad",
+      "status": "catalog-only",
+      "runtimeCredentialsRequired": false,
+      "expectedInputs": [
+        "radar data and product metadata",
+        "quality flags",
+        "processing configuration",
+        "gauge comparison data where available"
+      ],
+      "expectedOutputs": [
+        "processed radar fields",
+        "QPE products where configured",
+        "processing provenance"
+      ],
+      "validationGates": [
+        "product-semantics",
+        "time-window",
+        "quality-control",
+        "gauge-comparison",
+        "hash-and-version"
+      ],
+      "limitations": "Reflectivity must not be relabeled as rainfall accumulation or flood depth."
+    },
+    {
+      "id": "openfoam",
+      "project": "OpenFOAM",
+      "modelFamily": "computational-fluid-dynamics",
+      "interface": "external-cli",
+      "sourceUrl": "https://github.com/OpenFOAM/OpenFOAM-dev",
+      "status": "prototype-in-repository",
+      "runtimeCredentialsRequired": false,
+      "expectedInputs": [
+        "version-pinned case directory",
+        "mesh and quality report",
+        "physical models",
+        "boundary/initial conditions",
+        "solver controls"
+      ],
+      "expectedOutputs": [
+        "field results",
+        "residual/convergence logs",
+        "continuity diagnostics",
+        "case manifest"
+      ],
+      "validationGates": [
+        "mesh-quality",
+        "solver-version",
+        "residuals",
+        "mass-conservation",
+        "mesh/time-step-sensitivity",
+        "benchmark",
+        "human-review"
+      ],
+      "limitations": "Repository contains a prototype runner, not a validated turbine or flood model; execution requires a compatible OpenFOAM runtime."
+    },
+    {
+      "id": "turbinesfoam",
+      "project": "turbinesFoam",
+      "modelFamily": "hydrokinetic-turbine-cfd",
+      "interface": "openfoam-plugin",
+      "sourceUrl": "https://github.com/turbinesFoam/turbinesFoam",
+      "status": "catalog-only",
+      "runtimeCredentialsRequired": false,
+      "expectedInputs": [
+        "compatible OpenFOAM version",
+        "rotor/controller configuration",
+        "validated case and mesh",
+        "flow and turbulence conditions"
+      ],
+      "expectedOutputs": [
+        "turbine force/torque and flow fields where supported",
+        "solver logs"
+      ],
+      "validationGates": [
+        "openfoam-version-compatibility",
+        "rotor-model-verification",
+        "mesh-and-time-step-sensitivity",
+        "energy-balance",
+        "ecological-and-structural-review"
+      ],
+      "limitations": "Not installed; no turbine output or site feasibility is inferred."
+    },
+    {
+      "id": "dualsphysics",
+      "project": "DualSPHysics",
+      "modelFamily": "free-surface-sph-hydrodynamics",
+      "interface": "external-cli",
+      "sourceUrl": "https://github.com/DualSPHysics/DualSPHysics",
+      "status": "catalog-only",
+      "runtimeCredentialsRequired": false,
+      "expectedInputs": [
+        "particle/domain setup",
+        "material and boundary definitions",
+        "time-step/stability controls",
+        "hardware/runtime manifest"
+      ],
+      "expectedOutputs": [
+        "particle state outputs",
+        "energy/conservation diagnostics",
+        "logs"
+      ],
+      "validationGates": [
+        "resolution-sensitivity",
+        "stability",
+        "conservation",
+        "benchmark",
+        "human-review"
+      ],
+      "limitations": "Specialist computationally intensive solver; no default deployment."
+    },
+    {
+      "id": "elmerfem",
+      "project": "Elmer FEM",
+      "modelFamily": "multiphysics-finite-elements",
+      "interface": "external-cli",
+      "sourceUrl": "https://github.com/ElmerCSC/elmerfem",
+      "status": "catalog-only",
+      "runtimeCredentialsRequired": false,
+      "expectedInputs": [
+        "mesh",
+        "material/constitutive properties",
+        "equation and solver configuration",
+        "boundary conditions"
+      ],
+      "expectedOutputs": [
+        "field solutions",
+        "convergence diagnostics",
+        "logs"
+      ],
+      "validationGates": [
+        "mesh-quality",
+        "units",
+        "convergence",
+        "benchmark",
+        "sensitivity",
+        "human-review"
+      ],
+      "limitations": "Requires an explicitly scoped finite-element study."
+    },
+    {
+      "id": "openfast",
+      "project": "OpenFAST",
+      "modelFamily": "aero-hydro-servo-elastic-turbine",
+      "interface": "external-cli",
+      "sourceUrl": "https://github.com/OpenFAST/openfast",
+      "status": "catalog-only",
+      "runtimeCredentialsRequired": false,
+      "expectedInputs": [
+        "supported turbine definition",
+        "environmental forcing",
+        "structural/controller configuration",
+        "version manifest"
+      ],
+      "expectedOutputs": [
+        "loads",
+        "motions",
+        "power and controller time series where configured",
+        "logs"
+      ],
+      "validationGates": [
+        "model-compatibility",
+        "parameter-provenance",
+        "stability",
+        "benchmark",
+        "sensitivity",
+        "human-review"
+      ],
+      "limitations": "Primarily wind/offshore turbine dynamics; not a river hydrology engine."
+    },
+    {
+      "id": "rosco",
+      "project": "ROSCO",
+      "modelFamily": "turbine-controller",
+      "interface": "library-or-coupled-simulation",
+      "sourceUrl": "https://github.com/NREL/ROSCO",
+      "status": "catalog-only",
+      "runtimeCredentialsRequired": false,
+      "expectedInputs": [
+        "compatible turbine model",
+        "controller configuration",
+        "supported OpenFAST version"
+      ],
+      "expectedOutputs": [
+        "controller configuration",
+        "control and simulation diagnostics"
+      ],
+      "validationGates": [
+        "version-compatibility",
+        "controller-parameter-review",
+        "benchmark",
+        "human-review"
+      ],
+      "limitations": "No supported hydrokinetic controller model is implied."
+    },
+    {
+      "id": "windpowerlib",
+      "project": "windpowerlib",
+      "modelFamily": "wind-energy-yield",
+      "interface": "python-library",
+      "sourceUrl": "https://github.com/wind-python/windpowerlib",
+      "status": "catalog-only",
+      "runtimeCredentialsRequired": false,
+      "expectedInputs": [
+        "wind speed/weather time series",
+        "turbine power curve",
+        "hub-height and loss assumptions"
+      ],
+      "expectedOutputs": [
+        "wind-power time series",
+        "energy-yield metrics"
+      ],
+      "validationGates": [
+        "unit-and-time-alignment",
+        "power-curve-provenance",
+        "known-answer-test"
+      ],
+      "limitations": "Wind energy only; not valid for river/culvert turbine estimation."
+    },
+    {
+      "id": "hec-ras",
+      "project": "HEC-RAS",
+      "modelFamily": "surface-water-hydraulics",
+      "interface": "external-engineering-software",
+      "sourceUrl": "https://www.hec.usace.army.mil/software/hec-ras/",
+      "status": "external-engine",
+      "runtimeCredentialsRequired": false,
+      "expectedInputs": [
+        "approved model project",
+        "terrain/geometry and boundary conditions",
+        "solver version evidence"
+      ],
+      "expectedOutputs": [
+        "water surface/depth/velocity outputs",
+        "HDF and run logs"
+      ],
+      "validationGates": [
+        "project-readiness",
+        "crs-and-vertical-datum",
+        "boundary-condition-review",
+        "convergence-and-volume-balance",
+        "validation-data",
+        "qualified-human-review"
+      ],
+      "limitations": "External non-open-source software with separate terms/runtime requirements; do not label it open source."
+    }
+  ]
+}

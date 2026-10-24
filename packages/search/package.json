@@ -1,1 +1,13 @@
-{"name": "@tsm-uacf/search", "version": "0.1.0", "private": true, "type": "module"}
+{
+  "name": "@tsm/search",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Search adapters for TSM evidence, catalogs, and public geospatial indices",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "scripts": { "build": "tsc -p tsconfig.json", "typecheck": "tsc -p tsconfig.json --noEmit" },
+  "devDependencies": { "typescript": "^5.6.0" },
+  "license": "Apache-2.0"
+}

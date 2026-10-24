@@ -1,52 +1,60 @@
+export type SearchDomain = "evidence" | "catalog" | "nfhl" | "gage" | "parcel" | "docs";
+
 export interface SearchQuery {
-  text: string;
-  limit?: number;
-  offset?: number;
-  filters?: Record<string, string>;
+  readonly q: string;
+  readonly domain: SearchDomain;
+  readonly limit?: number;
+  readonly jurisdiction?: string;
 }
 
 export interface SearchHit {
-  id: string;
-  title: string;
-  snippet: string;
-  score: number;
-  url?: string;
+  readonly id: string;
+  readonly domain: SearchDomain;
+  readonly title: string;
+  readonly snippet: string;
+  readonly score: number;
+  readonly uri?: string;
+  readonly metadata?: Record<string, string>;
 }
 
 export interface SearchResult {
-  hits: SearchHit[];
-  total: number;
-  query: string;
+  readonly query: SearchQuery;
+  readonly hits: SearchHit[];
+  readonly tookMs: number;
+  readonly disclaimer: string;
 }
 
-export interface SearchBackend {
-  search(query: SearchQuery): Promise<SearchResult>;
-}
+const DISCLAIMER =
+  "Search results inform operators. They are not FEMA determinations, surveys, or legal advice. Human authority remains final.";
 
-export class InMemorySearch implements SearchBackend {
-  private readonly documents: SearchHit[] = [];
+export class MemorySearchIndex {
+  private readonly docs: SearchHit[] = [];
 
-  public index(documents: SearchHit[]): void {
-    this.documents.push(...documents);
+  add(hit: SearchHit): void {
+    this.docs.push(hit);
   }
 
-  public async search(query: SearchQuery): Promise<SearchResult> {
-    const terms = query.text.toLowerCase().split(/\s+/).filter(Boolean);
-    const scored = this.documents
-      .map((doc) => {
-        const haystack = `${doc.title} ${doc.snippet}`.toLowerCase();
-        const score = terms.reduce((acc, term) => acc + (haystack.includes(term) ? 1 : 0), 0);
-        return { doc, score };
+  search(query: SearchQuery): SearchResult {
+    const start = Date.now();
+    const terms = query.q.toLowerCase().split(/\s+/).filter(Boolean);
+    const limit = query.limit ?? 20;
+    const hits = this.docs
+      .filter((d) => d.domain === query.domain)
+      .map((d) => {
+        const hay = `${d.title} ${d.snippet}`.toLowerCase();
+        const score = terms.reduce((s, t) => s + (hay.includes(t) ? 1 : 0), 0);
+        return { ...d, score };
       })
-      .filter(({ score }) => score > 0)
-      .sort((a, b) => b.score - a.score || b.doc.score - a.doc.score);
-    const limit = query.limit ?? 10;
-    const offset = query.offset ?? 0;
-    const page = scored.slice(offset, offset + limit);
-    return {
-      hits: page.map(({ doc, score }) => ({ ...doc, score: doc.score + score })),
-      total: scored.length,
-      query: query.text,
-    };
+      .filter((d) => d.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limit);
+
+    return { query, hits, tookMs: Date.now() - start, disclaimer: DISCLAIMER };
   }
 }
+
+export function createEmptyIndex(): MemorySearchIndex {
+  return new MemorySearchIndex();
+}
+
+export const SEARCH_PACKAGE_VERSION = "1.0.0" as const;

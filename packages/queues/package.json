@@ -1,1 +1,29 @@
-{"name": "@tsm-uacf/queues", "version": "0.1.0", "private": true, "type": "module"}
+{
+  "name": "@tsm/queues",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "description": "In-process and adapter queue interfaces for TSM jobs and approval workflows",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "peerDependencies": {
+    "bullmq": "^5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "bullmq": { "optional": true }
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  },
+  "license": "Apache-2.0"
+}
