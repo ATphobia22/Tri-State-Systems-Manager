@@ -1,1 +1,27 @@
-{"name":"@tsm-uacf/agent-runtime","version":"0.1.0","private":true,"type":"module"}
+{
+  "name": "@tsm/agent-runtime",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "TSM agentic runtime — Autonomy Ladder S1 default / S2 human-gated (ADR-006)",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@tsm/approvals": "workspace:*",
+    "@tsm/queues": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  },
+  "license": "Apache-2.0"
+}
