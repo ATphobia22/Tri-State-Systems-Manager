@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from datetime import datetime, timezone
 from typing import Any, Final, Literal
 
@@ -77,15 +78,22 @@ class ArchimedesEngine:
         compliant boolean. A numerical screen cannot establish permit
         eligibility or regulatory compliance.
         """
-        if not all(
-            isinstance(value, (int, float)) and value == value
-            for value in (stage_ft_navd88, bfe_ft_navd88)
+        numeric_inputs = (stage_ft_navd88, bfe_ft_navd88)
+        if any(
+            isinstance(value, bool)
+            or not isinstance(value, (int, float))
+            or not math.isfinite(value)
+            for value in numeric_inputs
         ):
             raise ValueError("stage_ft_navd88 and bfe_ft_navd88 must be finite numbers.")
         if floodway_delta_ft is not None and (
-            not isinstance(floodway_delta_ft, (int, float)) or floodway_delta_ft != floodway_delta_ft
+            isinstance(floodway_delta_ft, bool)
+            or not isinstance(floodway_delta_ft, (int, float))
+            or not math.isfinite(floodway_delta_ft)
         ):
             raise ValueError("floodway_delta_ft must be finite when supplied.")
+        if floodway_context not in {"FEMA", "STATE", "UNKNOWN"}:
+            raise ValueError("floodway_context must be FEMA, STATE, or UNKNOWN.")
 
         jurisdiction_code = self._jurisdiction(jurisdiction)
         evaluated_at = datetime.now(timezone.utc).isoformat()
@@ -148,6 +156,15 @@ class ArchimedesEngine:
             },
             "authoritative_model_id": authoritative_model_id,
             "source_evidence_hash": source_evidence_hash,
+            "input_record": {
+                "jurisdiction": jurisdiction_code,
+                "stage_ft_navd88": stage_ft_navd88,
+                "bfe_ft_navd88": bfe_ft_navd88,
+                "floodway_delta_ft": floodway_delta_ft,
+                "floodway_context": floodway_context,
+                "authoritative_model_id": authoritative_model_id,
+                "source_evidence_hash": source_evidence_hash,
+            },
             "evaluated_at": evaluated_at,
             "source_rule": RULE_SOURCES[jurisdiction_code],
         }
@@ -165,6 +182,13 @@ class ArchimedesEngine:
         signed = bool(reviewer_identity and reviewer_identity.strip() and review_reason and review_reason.strip())
         now = datetime.now(timezone.utc).isoformat()
 
+        canonical_json = lambda value: json.dumps(
+            value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
+        )
+        input_record = evaluation_result.get("input_record")
+        if not isinstance(input_record, dict):
+            raise ValueError("Evaluation result is missing its canonical input_record.")
+
         manifest: dict[str, Any] = {
             "manifest_type": "TSM_ARCHIMEDES_SCREENING_PROOF",
             "engine_version": ENGINE_VERSION,
@@ -174,6 +198,10 @@ class ArchimedesEngine:
             "reviewer_identity": reviewer_identity.strip() if signed else None,
             "review_reason": review_reason.strip() if signed else None,
             "reviewed_at": now if signed else None,
+            "input_hash_sha256": hashlib.sha256(canonical_json(input_record).encode("utf-8")).hexdigest(),
+            "evaluation_hash_sha256": hashlib.sha256(canonical_json(evaluation_result).encode("utf-8")).hexdigest(),
+            "solver_hash_sha256": None,
+            "solver_status": "NOT_PROVIDED",
             "evaluation_body": evaluation_result,
             "disclaimer": (
                 "Technology informs people; it does not silently govern people. "
@@ -181,6 +209,6 @@ class ArchimedesEngine:
             ),
         }
 
-        canonical = json.dumps(manifest, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+        canonical = canonical_json(manifest)
         manifest["proof_hash_sha256"] = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
         return manifest
