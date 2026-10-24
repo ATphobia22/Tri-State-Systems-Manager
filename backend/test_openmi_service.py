@@ -98,6 +98,22 @@ class OpenMIContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "finite RPC deadline"):
             asyncio.run(service._require_finite_deadline(Context(90000.0)))
 
+    def test_cancelled_exchange_cleans_up_subscription(self) -> None:
+        async def run() -> None:
+            router = ExchangeRouter()
+            service = OpenMIService(router)
+            class CancelledContext:
+                def time_remaining(self): return 10.0
+                def is_active(self): return False
+                async def abort(self, code, message): raise RuntimeError(message)
+            async def requests():
+                yield _value_set()
+            stream = service.Exchange(requests(), CancelledContext())
+            with self.assertRaises(StopAsyncIteration):
+                await stream.__anext__()
+            self.assertEqual(len(router._subscribers), 0)
+        asyncio.run(run())
+
     def test_service_has_router(self) -> None:
         service = OpenMIService()
         self.assertIsNotNone(service.router)
