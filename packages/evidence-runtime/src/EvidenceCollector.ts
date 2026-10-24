@@ -49,7 +49,7 @@ export function canonicalJson(value: unknown): string {
   return encode(value);
 }
 
-function sha256(value: string): string {
+function sha256(value: string | Uint8Array): string {
   return 'sha256:' + createHash('sha256').update(value).digest('hex');
 }
 
@@ -65,6 +65,14 @@ export class EvidenceCollector {
   /** Computes a deterministic SHA-256 hash for JSON-compatible data. */
   public static hashPayload(payload: unknown): string {
     return sha256(canonicalJson(payload));
+  }
+
+  /** Hash raw artifact bytes without decoding or normalizing the byte stream. */
+  public static hashArtifact(bytes: Uint8Array): string {
+    if (!(bytes instanceof Uint8Array) || bytes.byteLength === 0) {
+      throw new TypeError('EVIDENCE_ARTIFACT_BYTES_REQUIRED');
+    }
+    return sha256(bytes);
   }
 
   /** Seal the exact evidence payload with its own digest and freeze it at runtime. */
