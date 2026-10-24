@@ -3,7 +3,7 @@ import json, sqlite3, tempfile, unittest
 from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
-from backend.engineering_evidence import ExecutionState, SQLiteEvidenceLedger, build_solver_evidence, validate_exchange_metadata, verify_evidence_hash
+from backend.engineering_evidence import ExecutionState, SQLiteEvidenceLedger, build_solver_evidence, validate_exchange_metadata, verify_evidence_hash, verify_ed25519_signature
 class EngineeringEvidenceTests(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory(); self.root=Path(self.temp.name); self.input=self.root/"input.dat"; self.output=self.root/"output.dat"
@@ -24,6 +24,13 @@ class EngineeringEvidenceTests(unittest.TestCase):
         ledger=SQLiteEvidenceLedger(self.root/"ledger.sqlite"); ledger.append(self.evidence(run_id="a")); ledger.append(self.evidence(run_id="b")); self.assertTrue(ledger.verify_chain())
         with sqlite3.connect(self.root/"ledger.sqlite") as c: c.execute("UPDATE solver_evidence_ledger SET evidence_json=? WHERE run_id=?",(json.dumps({"tampered":True}),"a"))
         self.assertFalse(ledger.verify_chain())
+    def test_ed25519_signature_verification_and_tampering(self):
+        from cryptography.hazmat.primitives import serialization
+        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+        private=Ed25519PrivateKey.generate(); public=private.public_key().public_bytes(encoding=serialization.Encoding.Raw,format=serialization.PublicFormat.Raw)
+        payload=b"immutable evidence bytes"; signature=private.sign(payload)
+        self.assertTrue(verify_ed25519_signature(payload,signature,public))
+        self.assertFalse(verify_ed25519_signature(payload+b"tampered",signature,public))
     def test_units_crs_and_vertical_datum_mismatch(self):
         now=datetime(2026,10,24,12,tzinfo=timezone.utc); args=dict(units="ft",expected_units="ft",horizontal_crs="EPSG:2966",expected_horizontal_crs="EPSG:2966",vertical_datum="NAVD88",expected_vertical_datum="NAVD88",timestamp=now.isoformat(),now_utc=now)
         self.assertEqual(validate_exchange_metadata(**{**args,"units":"m"}),ExecutionState.UNIT_MISMATCH)
