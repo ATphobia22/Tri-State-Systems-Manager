@@ -157,6 +157,8 @@ jobs:
         run: node --test scripts/ci/validate-cesium-story-manifest.test.mjs
       - name: Validate station datum modernization policy
         run: node scripts/ci/validate-station-datum-policy.mjs
+      - name: Validate FEMA BLE advisory layer separation
+        run: node scripts/ci/validate-fema-ble-layer-contract.mjs
       - name: Setup Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.1.0
         with:
