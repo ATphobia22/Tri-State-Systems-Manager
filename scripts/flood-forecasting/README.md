@@ -15,6 +15,7 @@ python run_all.py --step nowcast      # TimesFM 0-48h
 python run_all.py --step forecast     # GEOGloWS 10-day
 python run_all.py --step rating       # catalog only; reports unavailable until solver execution is implemented
 python run_all.py --step alert        # flood stage check
+python run_all.py --step openhydronet # FloodHub LSTM smoke run (SYNTHETIC input)
 ```
 
 ## Architecture
@@ -26,7 +27,8 @@ USGS gages     ──┐
 NWS NWPS       ──┤
 GPM precip     ──┤──→ TimesFM ──→ 0-48h nowcast ──┐
 TESSERA        ──┤                                 ├──→ Console flood layer
-PRISM normals  ──┤──→ OpenHydroNet ──→ 7-day ─────┤
+PRISM normals  ──┤──→ OpenHydroNet ──→ smoke only ──────────────────────────────┤
+                    (SYNTHETIC input; production 7-day training not built)    │
 WeatherNext    ──┘                                 │
 GEOGloWS ──────────→ 10-day operational ──────────┘
 HEC-RAS ──→ ras2fim (generation not implemented in current TSM wrapper)
@@ -41,6 +43,7 @@ HEC-RAS ──→ ras2fim (generation not implemented in current TSM wrapper)
 | `tsm_usgs_ingest.py` | USGS gage data via dataretrieval-python | [DOI-USGS/dataretrieval-python](https://github.com/DOI-USGS/dataretrieval-python) |
 | `timesfm-gage-nowcast.py` | TimesFM 3.0 zero-shot nowcasting (0-48h) | [ATphobia22/timesfm](https://github.com/ATphobia22/timesfm) |
 | `tsm-tristate-openhydronet-config.yml` | OpenHydroNet basin config | [ATphobia22/flood-forecasting](https://github.com/ATphobia22/flood-forecasting) |
+| `openhydronet_tristate.py` | OpenHydroNet FloodHub LSTM smoke run (SYNTHETIC input); references `$OPENHYDRONET_HOME`, does not vendor | [googlehydrology/googlehydrology](https://github.com/googlehydrology/googlehydrology) |
 | `prepare-static-attributes.py` | Basin attributes (DEM, TESSERA PCs) | — |
 | `weathernext-forcing.py` | WeatherNext 2 meteorological forcing | [ATphobia22/weathernext](https://github.com/ATphobia22/weathernext) |
 | `geoglows_forecast.py` | GEOGloWS v2 streamflow (10-day) | [ATphobia22/pygeoglows](https://github.com/ATphobia22/pygeoglows) |
@@ -84,7 +87,7 @@ pip install dataretrieval
 pip install torch transformers
 
 # TESSERA
-pip install icechunk "numcodecs[pcodec]" xarray s3fs pyproj
+pip install "icechunk>=2" "numcodecs[pcodec]" xarray dask s3fs pyproj
 
 # GEOGloWS
 pip install geoglows
@@ -98,6 +101,21 @@ pip install earthaccess
 - **TimesFM** requires PyTorch — run on your local machine, not this VM (proxy blocks large wheels)
 - **GEOGloWS** river IDs must be found manually at https://apps.geoglows.org/ (pygeoglows `latlon_to_river` is broken in v2)
 - **TESSERA** full tri-state is 130+ GB — use the anchor window (20km) by default
+- **TESSERA sample clip (privacy-safe)**: `python tessera-tristate-download.py --sample-clip` pulls a ~3 MB
+  one-year window in the general Point Township vicinity with rounded coordinates (deliberately NOT
+  anchor-targeted). It writes `tessera_2025_sample_800m.npy` plus a `.manifest.json` with SHA-256, store URL,
+  access date, vintage (2017-2025), CRS (EPSG:32616), and the CC-BY-SA license. Access path verified live
+  2026-10-23/24 (icechunk 2.x — the store is Icechunk v2 format, 1.x cannot open it; group `16N`:
+  time 2017–2025, embeddings int8, scales float32, northing descending). Anonymous read-only S3 — the script
+  never writes to the bucket or creates AWS resources. Egress caveat: this VM's proxy truncates S3 streams
+  above ~4MB, so the script reissues large chunk reads as <=2MB range requests (same bytes, same order);
+  on an unrestricted network the wrapper is a harmless no-op for small ranges.
+- **TESSERA full-bbox download (NOT approved by default)**: `python tessera-tristate-download.py --full-tristate`
+  downloads the entire tri-state bbox as 20km tiles (~130+ GB). The script asks for an explicit y/N
+  confirmation and states the approval requirement. Do NOT run it without the user's explicit approval, and
+  not on a disk without the headroom. Store: `s3://tessera-embeddings/v1.1/dclimate.icechunk` (us-west-2),
+  registry entry https://registry.opendata.aws/tessera/ — dataset is CC-BY-SA (attribute dClimate; derived
+  products share alike).
 - **ras2fim**: `ras2fim_tristate.py --ras-project ... --flows ...` reports UNAVAILABLE and returns success (resilient, never blocking) until actual HEC-RAS/NOAA-OWP execution is implemented. It generates no rasters or rating curves. The `rating` orchestration step lists candidate catalog entries and is reported unavailable. A precomputed-CSV conversion is not evidence of model execution.
 - **Earthdata** requires free NASA Earthdata login at https://urs.earthdata.nasa.gov/
 
