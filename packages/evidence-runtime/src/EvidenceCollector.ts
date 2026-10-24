@@ -49,7 +49,7 @@ export function canonicalJson(value: unknown): string {
   return encode(value);
 }
 
-function sha256(value: string | Uint8Array): string {
+function sha256(value: string): string {
   return 'sha256:' + createHash('sha256').update(value).digest('hex');
 }
 
