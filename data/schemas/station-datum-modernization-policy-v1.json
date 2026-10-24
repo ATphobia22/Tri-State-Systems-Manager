@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tsm.example/geodesy/station-datum-modernization-policy-v1.json",
+  "title": "TSM Station Datum Modernization Policy",
+  "description": "Policy registry for accepted datum labels and future NSRS planning. This schema does not perform coordinate transformations or authorize conversion of existing observations.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "supported_frames", "active_default", "transformation_policy"],
+  "properties": {
+    "version": { "const": "1.0.0" },
+    "supported_frames": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["horizontal", "vertical"],
+      "properties": {
+        "horizontal": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": ["NAD83(2011)", "NAD83(NSRS2007)", "WGS84", "NATRF2022_PRELIMINARY"]
+          }
+        },
+        "vertical": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": ["NAVD88", "NGVD29", "NAPGD2022_PRELIMINARY"]
+          }
+        }
+      }
+    },
+    "active_default": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["horizontal", "vertical", "realization_epoch"],
+      "properties": {
+        "horizontal": { "const": "NAD83(2011)" },
+        "vertical": { "const": "NAVD88" },
+        "realization_epoch": { "const": "2010.00" }
+      }
+    },
+    "transformation_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allow_silent_conversion", "require_approved_grid", "unsupported_action", "preliminary_frames_transformable"],
+      "properties": {
+        "allow_silent_conversion": { "const": false },
+        "require_approved_grid": { "const": true },
+        "unsupported_action": { "const": "MARK_UNAVAILABLE" },
+        "preliminary_frames_transformable": { "const": false }
+      }
+    }
+  }
+}
