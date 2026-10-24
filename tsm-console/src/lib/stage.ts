@@ -6,7 +6,8 @@ import { tsmApiUrl } from './api-base';
 import { formatContextGapsForUi } from './authoritative-context';
 
 /**
- * Live stage fetch — always via TSM server hydrologic plane.
+ * Live stage fetch — call ONLY from an explicit user button press; no auto-fetch or polling.
+ * Always via TSM server hydrologic plane.
  * Never calls legacy waterservices.usgs.gov from the browser.
  * Prefer USGS modern OGC (source=usgs); NOAA MTVI3 is often obs_not_current.
  * Vertical reference remains GAGE_DATUM unless a validated gage-zero exists.
@@ -77,6 +78,8 @@ export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
         wse_navd88_ft: conversion?.wseNavd88Ft ?? null,
         gage_zero_navd88_ft: conversion?.gageZeroNavd88Ft ?? null,
         conversion_applied: conversion?.conversionApplied ?? false,
+        site_transfer_status: 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE',
+        hydraulic_extrusion_eligibility: 'NOT_ELIGIBLE_UNVERIFIED_SITE_TRANSFER',
         sourceUri: typeof record.sourceUri === 'string' ? record.sourceUri : null,
         ...((conversion ? stageVerticalMetadata(PRIMARY_USGS, conversion) : {}) as Record<
           string,
@@ -97,7 +100,9 @@ export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
     timestamp: null,
     retrievedAt: new Date().toISOString(),
     status: 'unavailable',
-    qualifier: gapSummary ? `missing_live_stage; ${gapSummary.slice(0, 240)}` : 'missing_live_stage',
+    qualifier: null,
+    context_gap_summary: gapSummary || null,
+    context_gap_code: 'missing_live_stage',
     discharge_cfs: null,
     discharge_observedAt: null,
     discharge_status: 'unavailable',
@@ -106,6 +111,8 @@ export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
     wse_navd88_ft: null,
     gage_zero_navd88_ft: null,
     conversion_applied: false,
+    site_transfer_status: 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE',
+    hydraulic_extrusion_eligibility: 'NOT_ELIGIBLE_UNVERIFIED_SITE_TRANSFER',
     sourceUri: null,
   };
 }
@@ -115,5 +122,30 @@ export function withSiteGeodesy<T extends Record<string, unknown>>(payload: T) {
     ...payload,
     spatial_reference: siteSpatialReference(),
     vertical_reference_site: siteVerticalReference(),
+  };
+}
+
+
+/** Stable fail-closed fallback used by route loaders before a live request runs. */
+export function unavailableStage(): MapTwinLoaderData['stage'] {
+  const gapSummary = formatContextGapsForUi();
+  return {
+    source: 'UNAVAILABLE',
+    gaugeId: PRIMARY_USGS,
+    value_ft: null,
+    timestamp: null,
+    retrievedAt: new Date().toISOString(),
+    status: 'unavailable',
+    qualifier: null,
+    context_gap_summary: gapSummary || null,
+    discharge_cfs: null,
+    discharge_observedAt: null,
+    discharge_status: 'unavailable',
+    floodCategory: 'unknown',
+    vertical_reference: 'GAGE_DATUM',
+    wse_navd88_ft: null,
+    gage_zero_navd88_ft: null,
+    conversion_applied: false,
+    sourceUri: null,
   };
 }

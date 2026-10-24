@@ -28,3 +28,4 @@ h3>=4.5.0  # offline H3 hexagonal indexing for scripts/geospatial/h3_utils.py (A
 
 # HEC-HMS/HEC-RAS workflow manifest validation (JSON Schema Draft 2020-12)
 jsonschema>=4.23,<5
+\n# Public-key verification for externally signed evidence envelopes (verification only)\ncryptography>=44,<47\n
