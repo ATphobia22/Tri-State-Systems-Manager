@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('../..', import.meta.url));
 const registryPath = join(root, 'integrations/hydrology-engine-adapters.json');
 const ALLOWED_STATUS = new Set(['catalog-only', 'prototype-in-repository', 'external-engine']);
-const ALLOWED_INTERFACES = new Set(['external-cli', 'external-cli-or-api', 'python-api-or-cli', 'python-library', 'python-library-or-pipeline', 'openfoam-plugin', 'library-or-coupled-simulation', 'external-engineering-software']);
+const ALLOWED_INTERFACES = new Set(['external-cli', 'external-cli-or-api', 'external-cli-or-python-api', 'python-api-or-cli', 'python-library', 'python-library-or-pipeline', 'openfoam-plugin', 'library-or-coupled-simulation', 'external-engineering-software']);
 
 export function validateHydrologyAdapters(registry) {
   const errors = [];
