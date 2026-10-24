@@ -175,6 +175,13 @@ The repository contains a multi-step forecasting pipeline with ingestion, antece
 
 **Operational-status rule:** No current precipitation condition, gage value, forecast, alert, or source-availability claim is made by this README. Check the live source and runtime health at the time of use; record observation time, source URL/identifier, units, datum, quality flags, and model version with any operational report.
 
+### Apple Developer Forums findings — applied guardrails
+
+- `docs/integrations/APPLE-DEVELOPER-FORUMS-FINDINGS.md` records findings from Apple Developer Forums and official Apple networking/App Intents documentation, separating forum advice from normative API contracts.
+- `integrations/apple-platform/apple-developer-forums-findings.json` records the implementation decisions and honest status for future native App Intents, heading quality metadata, geodesic coordinate calculations, and idempotency-aware retries.
+- `schemas/compass-waypoint.schema.json` now supports optional heading accuracy, device orientation, and Core Location activity-context metadata. Missing accuracy remains unknown, and device compass data remains unauthorized for engineering use.
+- `npm run test:apple-platform` validates these boundaries; the root `npm test` includes the focused contract suite.
+
 ### Apple Shortcuts — read-only hydrology snapshot
 
 - `docs/integrations/APPLE-SHORTCUTS-READONLY-API.md` documents a user-triggered iPhone Shortcut using `GET /api/hydrologic/community`.
