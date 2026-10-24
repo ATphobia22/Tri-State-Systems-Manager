@@ -1,0 +1,141 @@
+{
+  "schema": "tsm-posey-government-evidence-boundaries-v1",
+  "version": "1.0.0",
+  "scope": {
+    "county": "Posey County",
+    "state": "Indiana",
+    "geoid": "18129",
+    "aoiApproval": "NOT_APPROVED",
+    "rule": "County-level source research does not approve a parcel/site AOI or authorize a hydraulic model run."
+  },
+  "authorityClasses": {
+    "EFFECTIVE_FEMA_NFHL": {
+      "regulatoryRole": "effective FEMA flood-hazard product; verify community/panel effective date and applicable product metadata at time of use",
+      "use": [
+        "NFIP regulatory reference"
+      ],
+      "prohibited": [
+        "substituting preliminary/pending products",
+        "claiming site-specific determination without overlay and review"
+      ]
+    },
+    "INDIANA_DNR_BAFM": {
+      "regulatoryRole": "NON_NFIP_REGULATORY",
+      "status": "UNVERIFIED_UNTIL_ACQUISITION_RECEIPT_AND_CURRENT_SOURCE_CHECK",
+      "use": [
+        "planning",
+        "screening",
+        "context"
+      ],
+      "prohibited": [
+        "flood-insurance determination",
+        "silently relabeling as effective FEMA NFHL"
+      ]
+    },
+    "FEMA_BLE": {
+      "status": "UNVERIFIED",
+      "use": [
+        "advisory only after source/version and data artifacts are verified"
+      ],
+      "prohibited": [
+        "presenting as an acquired or validated dataset based only on a catalog/manifest entry",
+        "promoting to regulatory status"
+      ]
+    },
+    "USGS_SIR_2016_5119": {
+      "identity": "Fowler, 2016, Flood-Inundation Maps for the Wabash River at New Harmony, Indiana",
+      "reachMiles": 3.68,
+      "station": "USGS 03378500",
+      "horizontalDatum": "NAD83",
+      "verticalReference": [
+        "gage stage on a gage-specific datum",
+        "elevation referenced to NAVD88"
+      ],
+      "evidenceClass": "SITE_SPECIFIC_REFERENCE_ONLY",
+      "prohibited": [
+        "transferring calibration to another reach/site without independent data and validation",
+        "treating gage stage as NAVD88 elevation"
+      ]
+    },
+    "USACE_ERDC_CHL_TR_22_4": {
+      "identity": "Wabash and Ohio River Confluence Hydraulic and Sediment Transport Model Investigation",
+      "model": "Adaptive Hydraulics (AdH), 2D shallow-water hydraulics and sediment transport",
+      "evidenceClass": "CONFLUENCE_STUDY_REFERENCE_ONLY",
+      "prohibited": [
+        "reusing study calibration as site calibration",
+        "inferring site bathymetry, bed gradation, boundary conditions, or validated output from the report alone"
+      ]
+    },
+    "FEMA_VERTICAL_DATUM_GUIDANCE_MAY_2014": {
+      "sourceType": "guidance",
+      "sourceStatus": "LEGACY_GUIDANCE_REQUIRES_CURRENT_STANDARDS_REVIEW",
+      "methodsDescribed": [
+        "passive conversion",
+        "countywide conversion",
+        "stream-based conversion"
+      ],
+      "rule": "Never apply an undocumented fixed offset. Record source and target vertical datum, method, conversion tool/model and version, geographic scope, factor(s), units, uncertainty/variation, and reviewer disposition."
+    }
+  },
+  "acquisitionGate": {
+    "allowedStates": [
+      "NOT_ACQUIRED",
+      "ACQUIRED_UNVERIFIED",
+      "VALIDATED",
+      "PUBLISHED"
+    ],
+    "requiredReceiptFields": [
+      "sourceId",
+      "authority",
+      "sourceUrl",
+      "retrievedAt",
+      "sourceVersion",
+      "mediaType",
+      "byteLength",
+      "sha256",
+      "horizontalCrs",
+      "verticalDatum",
+      "acquisitionDate",
+      "validationStatus",
+      "featureCount",
+      "geometryBounds"
+    ],
+    "requiredChecks": [
+      "HTTPS credential-free source URL",
+      "source identity and version captured",
+      "SHA-256 recomputed from acquired bytes",
+      "schema and geometry validation passed",
+      "CRS and vertical-datum semantics are explicit or explicitly UNKNOWN",
+      "AOI geometry and source coverage/bounds reconciled",
+      "required source counts reconciled; zero results fail closed when a nonzero minimum is required",
+      "atomic publication only after every required validation succeeds"
+    ],
+    "promotionRule": "NOT_ACQUIRED or ACQUIRED_UNVERIFIED data must never be presented as VALIDATED or PUBLISHED. Partial manifests must not be promoted."
+  },
+  "datumGate": {
+    "missingDatum": "BLOCK_PROMOTION",
+    "conflictingDatum": "BLOCK_PROMOTION",
+    "implicitUnitConversion": "BLOCK_PROMOTION",
+    "stageToElevationInference": "BLOCK_PROMOTION",
+    "requiredForConversion": [
+      "sourceVerticalDatum",
+      "targetVerticalDatum",
+      "method",
+      "toolAndVersion",
+      "conversionFactorOrGridReference",
+      "areaOfApplicability",
+      "units",
+      "uncertaintyOrVariation",
+      "validationEvidence",
+      "reviewerDisposition"
+    ]
+  },
+  "publicationGate": {
+    "atomic": true,
+    "failClosed": true,
+    "noSilentSkips": true,
+    "minimumFeatureCountPolicy": "Per-source explicit minimum; zero is valid only when explicitly declared and justified.",
+    "requiredStatusForRelease": "VALIDATED",
+    "engineeringUseForUnverifiedEvidence": "NOT_AUTHORIZED"
+  }
+}

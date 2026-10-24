@@ -1,0 +1,34 @@
+name: Posey Government Evidence Boundaries
+
+on:
+  pull_request:
+    paths:
+      - 'data/posey-county/government-evidence-boundaries-v1.json'
+      - 'docs/architecture/POSEY-GOVERNMENT-EVIDENCE-BOUNDARIES.md'
+      - 'tests/contracts/posey-government-evidence.test.mjs'
+      - '.github/workflows/posey-government-evidence-boundaries.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'data/posey-county/government-evidence-boundaries-v1.json'
+      - 'docs/architecture/POSEY-GOVERNMENT-EVIDENCE-BOUNDARIES.md'
+      - 'tests/contracts/posey-government-evidence.test.mjs'
+      - '.github/workflows/posey-government-evidence-boundaries.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Parse evidence contract
+        run: node -e "JSON.parse(require('node:fs').readFileSync('data/posey-county/government-evidence-boundaries-v1.json', 'utf8'))"
+      - name: Validate evidence boundaries
+        run: node --test tests/contracts/posey-government-evidence.test.mjs
