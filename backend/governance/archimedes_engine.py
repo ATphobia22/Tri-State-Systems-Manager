@@ -29,7 +29,7 @@ RULE_SOURCES: Final[dict[str, dict[str, str]]] = {
     "IN": {
         "citation": "IC 14-28-1; 312 IAC 10",
         "source_uri": "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/no-rise/",
-        "rule": "Indiana DNR uses a 0.15 ft cumulative surcharge criterion; FEMA floodway projects may separately require 0.00 ft no-rise certification or CLOMR.",
+        "rule": "Indiana DNR describes a 0.14 ft cumulative surcharge criterion for state permitting; 312 IAC 10-2-3 separately defines an adverse floodway effect at an increase of at least 0.15 ft under specified conditions. FEMA-mapped floodways separately require 0.00 ft no-rise or the applicable CLOMR/LOMR process.",
     },
     "IL": {
         "citation": "17 Ill. Adm. Code Part 3700",
@@ -130,9 +130,9 @@ class ArchimedesEngine:
         delta = floodway_delta_ft
         if delta is not None:
             if jurisdiction_code == "IN":
-                if delta > 0.15:
+                if delta > 0.14:
                     flags.append("STATE_THRESHOLD_EXCEEDED")
-                    reasons.append(f"Indiana DNR screening threshold exceeded: surcharge {delta:.3f} ft > 0.150 ft.")
+                    reasons.append(f"Indiana DNR cumulative surcharge screening ceiling exceeded: surcharge {delta:.3f} ft > 0.140 ft.")
                 if floodway_context == "FEMA" and delta > 0.0:
                     flags.append("FEMA_NO_RISE_REVIEW_REQUIRED")
                     reasons.append("FEMA floodway context requires separate no-rise/CLOMR review; this screen does not certify it.")

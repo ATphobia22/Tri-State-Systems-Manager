@@ -1,7 +1,7 @@
 from backend.governance.archimedes_engine import ArchimedesEngine
 
 
-def test_indiana_uses_dnr_015_threshold_but_requires_human_review() -> None:
+def test_indiana_state_screen_requires_human_review() -> None:
     result = ArchimedesEngine().evaluate_jurisdiction_compliance(
         "IN",
         stage_ft_navd88=374.5,
@@ -105,3 +105,17 @@ def test_review_metadata_does_not_claim_signature_or_authorization() -> None:
     assert manifest["governance_status"] == "human_review_required"
     assert manifest["human_review_status"] == "recorded_unverified"
     assert "not a digital signature" in manifest["disclaimer"]
+
+
+def test_indiana_cumulative_surcharge_ceiling_is_point_fourteen_feet() -> None:
+    engine = ArchimedesEngine()
+    at_limit = engine.evaluate_jurisdiction_compliance(
+        "IN", 374.5, 375.0, floodway_delta_ft=0.14, floodway_context="STATE",
+        authoritative_model_id="MODEL-1",
+    )
+    above_limit = engine.evaluate_jurisdiction_compliance(
+        "IN", 374.5, 375.0, floodway_delta_ft=0.145, floodway_context="STATE",
+        authoritative_model_id="MODEL-1",
+    )
+    assert "STATE_THRESHOLD_EXCEEDED" not in at_limit["flags"]
+    assert "STATE_THRESHOLD_EXCEEDED" in above_limit["flags"]
