@@ -175,6 +175,12 @@ The repository contains a multi-step forecasting pipeline with ingestion, antece
 
 **Operational-status rule:** No current precipitation condition, gage value, forecast, alert, or source-availability claim is made by this README. Check the live source and runtime health at the time of use; record observation time, source URL/identifier, units, datum, quality flags, and model version with any operational report.
 
+### Apple Shortcuts — read-only hydrology snapshot
+
+- `docs/integrations/APPLE-SHORTCUTS-READONLY-API.md` documents a user-triggered iPhone Shortcut using `GET /api/hydrologic/community`.
+- `integrations/apple-shortcuts/tsm-shortcuts-api.json` defines the safe integration contract; automatic polling, mutations, embedded credentials, and unsupported OAuth flows are explicitly disallowed.
+- `npm run test:apple-shortcuts-api` validates these boundaries. The shortcut must still be created and tested on-device; the repository does not claim an iCloud install or share link.
+
 ### Weather provenance and field waypoints
 
 - **Apple Weather provider reference registry** (`integrations/weather-provider-reference.json`): records Apple's 19 listed weather providers, distinguishes attribution references from verified API access, and treats WeatherKit as a separate optional integration candidate.

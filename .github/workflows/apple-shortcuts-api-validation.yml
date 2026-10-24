@@ -1,0 +1,33 @@
+name: Apple Shortcuts API Contract Validation
+
+on:
+  push:
+    branches: [main, feat/apple-shortcuts-readonly-api-20261024]
+    paths:
+      - 'integrations/apple-shortcuts/tsm-shortcuts-api.json'
+      - 'docs/integrations/APPLE-SHORTCUTS-READONLY-API.md'
+      - 'tests/contracts/apple-shortcuts-api.test.mjs'
+      - 'package.json'
+      - '.github/workflows/apple-shortcuts-api-validation.yml'
+  pull_request:
+    paths:
+      - 'integrations/apple-shortcuts/tsm-shortcuts-api.json'
+      - 'docs/integrations/APPLE-SHORTCUTS-READONLY-API.md'
+      - 'tests/contracts/apple-shortcuts-api.test.mjs'
+      - 'package.json'
+      - '.github/workflows/apple-shortcuts-api-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v4
+        with:
+          node-version: 22
+      - name: Validate read-only integration contract
+        run: node --test tests/contracts/apple-shortcuts-api.test.mjs
