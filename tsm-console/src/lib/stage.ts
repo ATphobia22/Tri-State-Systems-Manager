@@ -1,7 +1,7 @@
 import { siteSpatialReference, siteVerticalReference } from './geodetic';
 import { SITE } from '../types/site';
 import type { MapTwinLoaderData } from '../types/loaders';
-import { convertGageHeightToNavd88, stageVerticalMetadata } from './gage-datums';
+import { GAGE_DATUM_TABLE, convertGageHeightToNavd88, stageVerticalMetadata } from './gage-datums';
 import { tsmApiUrl } from './api-base';
 import { formatContextGapsForUi } from './authoritative-context';
 
