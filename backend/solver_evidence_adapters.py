@@ -1,6 +1,6 @@
 """Solver-specific evidence extractors that inspect artifacts, not process responses."""
 from __future__ import annotations
-import json, math
+import hashlib, json, math
 from pathlib import Path
 from typing import Any, Mapping
 from backend.engineering_evidence import ExecutionState, SolverEvidence, build_solver_evidence, sha256_file
@@ -96,7 +96,10 @@ def verify_bishop_result(*, result: Mapping[str, Any], solver_inputs: Mapping[st
     state=ExecutionState.VERIFIED if matches and converged and valid_hash else (
         ExecutionState.NON_CONVERGENT if not converged else ExecutionState.FAILED)
     messages=() if state==ExecutionState.VERIFIED else ("BISHOP_REPLAY_OR_CONVERGENCE_VERIFICATION_FAILED",)
+    result_bytes=json.dumps(dict(result),sort_keys=True,separators=(",",":"),allow_nan=False).encode("utf-8")
+    from backend.engineering_evidence import ArtifactDigest
+    inline_output=ArtifactDigest("output","inline:result.json",len(result_bytes),hashlib.sha256(result_bytes).hexdigest())
     return build_solver_evidence(run_id=run_id,solver="TSM Bishop simplified method",
         solver_version=str(result.get("method_version","unknown")),input_paths=input_artifact_paths,
-        output_paths=input_artifact_paths,convergence_evidence="deterministic replay matched solver result" if state==ExecutionState.VERIFIED else None,
+        output_paths=[],output_digests=[inline_output],convergence_evidence="deterministic replay matched solver result" if state==ExecutionState.VERIFIED else None,
         explicit_state=state,validation_messages=messages)
