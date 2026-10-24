@@ -1,0 +1,98 @@
+{
+  "title": "TSM Flood Data Sources Catalog — USGS FEMA NASA",
+  "version": "1.0.0",
+  "policy": "Technology informs people; it does not silently govern people. Human authority remains final.",
+  "site_anchor": {
+    "region": "Tri-State River Valley",
+    "county": "Posey County IN (FIPS 18129)",
+    "primary_usgs": "03378500",
+    "primary_nws": "MTVI3"
+  },
+  "use_case_matrix": [
+    {
+      "need": "Real-time flood conditions",
+      "best": "USGS National Water Dashboard",
+      "priority": 1,
+      "authority_class": "OBSERVATIONAL",
+      "tsm_status": "WIRED_PARTIAL",
+      "urls": {
+        "national_water_dashboard": "https://dashboard.waterdata.usgs.gov/app/nwd/en/",
+        "nwis_iv": "https://waterservices.usgs.gov/nwis/iv/",
+        "ogc_latest": "https://api.waterdata.usgs.gov/ogcapi/v0/"
+      },
+      "tsm_modules": ["server/ingestion/usgs-nwis.mjs", "src/lib/stage.ts"]
+    },
+    {
+      "need": "Official flood hazard maps (NFIP)",
+      "best": "FEMA NFHL",
+      "priority": 1,
+      "authority_class": "AUTHORITATIVE_REGULATORY_DIGITAL",
+      "tsm_status": "WIRED",
+      "urls": {
+        "nfhl_home": "https://www.fema.gov/flood-maps/national-flood-hazard-layer",
+        "nfhl_viewer": "https://msc.fema.gov/nfhl",
+        "mapserver": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer",
+        "msc": "https://msc.fema.gov/portal/home"
+      },
+      "tsm_modules": ["server/ingestion/fema-nfhl.mjs", "src/lib/firm-panel-ssot.ts"]
+    },
+    {
+      "need": "Upcoming map changes",
+      "best": "FEMA Flood Map Changes Viewer",
+      "priority": 1,
+      "authority_class": "INFORMATIONAL_PRELIMINARY_PENDING",
+      "tsm_status": "CATALOGED",
+      "urls": {
+        "fmcv": "https://msc.fema.gov/fmcv",
+        "guidance": "https://www.fema.gov/view-your-communitys-preliminary-flood-hazard-data"
+      },
+      "notes": "Never label Preliminary/Pending as EFFECTIVE"
+    },
+    {
+      "need": "Satellite-based global flood data",
+      "best": "NASA Earthdata FLOOD / LANCE NRT",
+      "priority": 1,
+      "authority_class": "OBSERVATIONAL_REMOTE_SENSING",
+      "tsm_status": "CATALOGED",
+      "urls": {
+        "flood_tool": "https://www.earthdata.nasa.gov/data/tools/flood",
+        "nrt": "https://www.earthdata.nasa.gov/topics/human-dimensions/floods/near-real-time-data",
+        "worldview": "https://worldview.earthdata.nasa.gov/"
+      },
+      "products": ["MCDWD_L3_NRT", "VCDWD"]
+    },
+    {
+      "need": "Flood visualization tools",
+      "best": "USGS HIVIS & NASA Worldview",
+      "priority": 2,
+      "authority_class": "PRESENTATION_OBSERVATIONAL",
+      "tsm_status": "CATALOGED",
+      "urls": {
+        "hivis": "https://apps.usgs.gov/hivis",
+        "worldview": "https://worldview.earthdata.nasa.gov/"
+      }
+    },
+    {
+      "need": "GIS flood analysis",
+      "best": "FEMA NFHL GIS Services",
+      "priority": 1,
+      "authority_class": "AUTHORITATIVE_REGULATORY_DIGITAL",
+      "tsm_status": "WIRED",
+      "urls": {
+        "mapserver": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer"
+      },
+      "priority_layers_tsm": [28, 27, 16, 23, 34, 3, 22, 32]
+    },
+    {
+      "need": "River forecasts",
+      "best": "NOAA NWPS",
+      "priority": 1,
+      "authority_class": "OBSERVATIONAL_FORECAST",
+      "tsm_status": "WIRED",
+      "urls": {
+        "nwps_api": "https://api.water.noaa.gov/nwps/v1/"
+      },
+      "tsm_modules": ["server/ingestion/noaa-nwps.mjs"]
+    }
+  ]
+}
