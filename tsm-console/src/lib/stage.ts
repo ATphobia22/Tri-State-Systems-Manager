@@ -3,6 +3,7 @@ import { SITE } from '../types/site';
 import type { MapTwinLoaderData } from '../types/loaders';
 import { convertGageHeightToNavd88, stageVerticalMetadata } from './gage-datums';
 import { tsmApiUrl } from './api-base';
+import { formatContextGapsForUi } from './authoritative-context';
 
 /**
  * Live stage fetch — call ONLY from an explicit user button press; no auto-fetch or polling.
@@ -91,6 +92,7 @@ export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
   }
 
   // Explicit missing live hydrologic context — do not invent stage values.
+  const gapSummary = formatContextGapsForUi();
   return {
     source: 'UNAVAILABLE',
     gaugeId: PRIMARY_USGS,
@@ -99,6 +101,7 @@ export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
     retrievedAt: new Date().toISOString(),
     status: 'unavailable',
     qualifier: null,
+    context_gap_summary: gapSummary || null,
     discharge_cfs: null,
     discharge_observedAt: null,
     discharge_status: 'unavailable',
@@ -124,6 +127,7 @@ export function withSiteGeodesy<T extends Record<string, unknown>>(payload: T) {
 
 /** Stable fail-closed fallback used by route loaders before a live request runs. */
 export function unavailableStage(): MapTwinLoaderData['stage'] {
+  const gapSummary = formatContextGapsForUi();
   return {
     source: 'UNAVAILABLE',
     gaugeId: PRIMARY_USGS,
@@ -132,6 +136,7 @@ export function unavailableStage(): MapTwinLoaderData['stage'] {
     retrievedAt: new Date().toISOString(),
     status: 'unavailable',
     qualifier: null,
+    context_gap_summary: gapSummary || null,
     discharge_cfs: null,
     discharge_observedAt: null,
     discharge_status: 'unavailable',
