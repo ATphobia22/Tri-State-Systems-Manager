@@ -5,6 +5,8 @@
 This directory contains working code examples and documentation for open-source
 geospatial tools evaluated for Tri-State Systems Manager integration.
 
+For the cross-project adoption matrix, license/credential boundaries, and recommended production architecture, see [Open-Source Engineering Integration Plan](../OPEN-SOURCE-ENGINEERING-INTEGRATION-PLAN.md) and the [machine-readable engine registry](../../integrations/open-source-engine-registry.json).
+
 ## Priority 1: PMTiles Workflow ✅ WORKING
 
 **Location:** `../pmtiles-workflow/` (full docs) + `geojson_to_pmtiles.py` (this dir)
