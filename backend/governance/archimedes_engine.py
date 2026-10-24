@@ -95,11 +95,10 @@ class ArchimedesEngine:
             or not math.isfinite(floodway_delta_ft)
         ):
             raise ValueError("floodway_delta_ft must be finite when supplied.")
-        if floodway_context not in {"FEMA", "STATE", "UNKNOWN"}:
+        if not isinstance(floodway_context, str) or floodway_context not in {"FEMA", "STATE", "UNKNOWN"}:
             raise ValueError("floodway_context must be FEMA, STATE, or UNKNOWN.")
 
         jurisdiction_code = self._jurisdiction(jurisdiction)
-        evaluated_at = datetime.now(timezone.utc).isoformat()
         reasons: list[str] = []
         flags: list[str] = []
 
@@ -166,7 +165,6 @@ class ArchimedesEngine:
                 "authoritative_model_id": authoritative_model_id,
                 "source_evidence_hash": source_evidence_hash,
             },
-            "evaluated_at": evaluated_at,
             "source_rule": RULE_SOURCES[jurisdiction_code],
         }
 
