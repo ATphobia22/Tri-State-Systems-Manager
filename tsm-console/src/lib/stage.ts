@@ -8,6 +8,7 @@ import { formatContextGapsForUi } from './authoritative-context';
 /**
  * Live stage fetch — always via TSM server hydrologic plane.
  * call ONLY from an explicit user button press; page loaders use unavailableStage().
+ * Provisional observations preserve the documented qualifier: 'P' or qualifier: null.
  * Never calls legacy waterservices.usgs.gov from the browser.
  * Prefer USGS modern OGC (source=usgs); NOAA MTVI3 is often obs_not_current.
  * Vertical reference remains GAGE_DATUM unless a validated gage-zero exists.
