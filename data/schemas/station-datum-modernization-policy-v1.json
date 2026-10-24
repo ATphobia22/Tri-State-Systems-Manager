@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.tsm.example/geodesy/station-datum-modernization-policy-v1.json",
+  "$id": "urn:tsm:schemas:geodesy:station-datum-modernization-policy:v1",
   "title": "TSM Station Datum Modernization Policy",
   "description": "Policy registry for accepted datum labels and future NSRS planning. This schema does not perform coordinate transformations or authorize conversion of existing observations.",
   "type": "object",
