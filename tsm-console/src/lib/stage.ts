@@ -6,7 +6,8 @@ import { tsmApiUrl } from './api-base';
 import { formatContextGapsForUi } from './authoritative-context';
 
 /**
- * Live stage fetch — always via TSM server hydrologic plane.
+ * Live stage fetch — call ONLY from an explicit user button press; no auto-fetch or polling.
+ * Always via TSM server hydrologic plane.
  * Never calls legacy waterservices.usgs.gov from the browser.
  * Prefer USGS modern OGC (source=usgs); NOAA MTVI3 is often obs_not_current.
  * Vertical reference remains GAGE_DATUM unless a validated gage-zero exists.
