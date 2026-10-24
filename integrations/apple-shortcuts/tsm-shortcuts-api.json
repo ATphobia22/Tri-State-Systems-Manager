@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "1.0.0",
+  "integrationId": "tsm.apple-shortcuts.readonly",
+  "status": "documented-user-configured",
+  "purpose": "User-triggered Apple Shortcuts request for a read-only TSM hydrology snapshot.",
+  "sourceReferences": [
+    {
+      "title": "Apple: Request your first API in Shortcuts",
+      "url": "https://support.apple.com/guide/shortcuts/request-your-first-api-apd58d46713f/ios"
+    },
+    {
+      "title": "Apple: API limitations in Shortcuts",
+      "url": "https://support.apple.com/guide/shortcuts/api-limitations-apd891a6c84e/ios"
+    },
+    {
+      "title": "TSM real-time data operations",
+      "url": "https://github.com/ATphobia22/Tri-State-Systems-Manager/blob/main/docs/REAL-TIME-DATA-OPERATIONS.md"
+    }
+  ],
+  "request": {
+    "method": "GET",
+    "path": "/api/hydrologic/community",
+    "defaultBaseUrl": "https://tsm.tristate.org",
+    "queryParameters": {
+      "stationIds": {
+        "type": "comma-separated-string",
+        "optional": true,
+        "description": "Only include station IDs supported by the deployed endpoint; verify the current API contract before using filters."
+      }
+    },
+    "accept": "application/json",
+    "body": null
+  },
+  "operatingConstraints": {
+    "userTriggeredOnly": true,
+    "automaticPollingAllowed": false,
+    "mutationsAllowed": false,
+    "alertWritesAllowed": false,
+    "ingestionWritesAllowed": false,
+    "oauth2InteractiveFlowSupportedByShortcuts": false,
+    "credentialsEmbeddedInShortcut": false,
+    "failClosedOnHttpError": true,
+    "preserveSourceTimestampsAndFreshness": true,
+    "showResponseAsUnverifiedSourceData": true
+  },
+  "setupRequirements": [
+    "Confirm the TSM API base URL is reachable from the device.",
+    "Use HTTPS and the read-only GET endpoint only.",
+    "Do not store privileged credentials or long-lived secrets in a shared shortcut.",
+    "If the deployment requires interactive OAuth 2, use a server-side supported authentication flow rather than trying to embed that flow in Shortcuts.",
+    "Run manually and inspect the JSON response before relying on it."
+  ]
+}
