@@ -50,6 +50,10 @@ export function unavailableStage(): MapTwinLoaderData['stage'] {
     wse_navd88_ft: null,
     gage_zero_navd88_ft: null,
     conversion_applied: false,
+    vertical_conversion_status: 'UNVERIFIED_CONVERSION',
+    vertical_conversion_source: null,
+    site_transfer_status: 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE',
+    hydraulic_extrusion_eligibility: 'NOT_ELIGIBLE_UNVERIFIED_SITE_TRANSFER',
     sourceUri: null,
   };
 }
@@ -104,6 +108,10 @@ export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
         wse_navd88_ft: conversion?.wseNavd88Ft ?? null,
         gage_zero_navd88_ft: conversion?.gageZeroNavd88Ft ?? null,
         conversion_applied: conversion?.conversionApplied ?? false,
+        vertical_conversion_status: conversion?.conversionPublished ? 'PUBLISHED_USGS_SIR_2016_5119' : 'UNVERIFIED_CONVERSION',
+        vertical_conversion_source: GAGE_DATUM_TABLE[PRIMARY_USGS]?.sourceUri ?? null,
+        site_transfer_status: 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE',
+        hydraulic_extrusion_eligibility: 'NOT_ELIGIBLE_UNVERIFIED_SITE_TRANSFER',
         sourceUri: typeof record.sourceUri === 'string' ? record.sourceUri : null,
         ...((conversion ? stageVerticalMetadata(PRIMARY_USGS, conversion) : {}) as Record<
           string,
