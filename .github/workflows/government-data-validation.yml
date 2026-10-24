@@ -1,6 +1,8 @@
 name: Government Data Fabric Validation
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '23 5 * * *'
   pull_request:
     paths:
       - 'packages/government/**'
@@ -28,9 +30,7 @@ jobs:
           node-version: '22'
       - run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
       - run: npx tsx --test tests/contracts/government-data-fabric.test.ts tests/contracts/government-snapshot.test.ts tests/contracts/government-source-registry.test.ts
-  # Live network validation is manual-only; pull-request CI remains deterministic and offline.
   nfhl-live-validation:
-    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
