@@ -175,6 +175,12 @@ The repository contains a multi-step forecasting pipeline with ingestion, antece
 
 **Operational-status rule:** No current precipitation condition, gage value, forecast, alert, or source-availability claim is made by this README. Check the live source and runtime health at the time of use; record observation time, source URL/identifier, units, datum, quality flags, and model version with any operational report.
 
+### Open-source ecosystem review
+
+- `docs/research/OPEN-SOURCE-ECOSYSTEM-ADOPTION-REVIEW.md` evaluates Apple open-source projects, open-source discovery portals, and relevant geospatial/hydrology libraries without treating popularity as evidence.
+- `integrations/open-source-candidate-register.json` records candidate licenses, applicability, and explicit `not-integrated` status. PROJ, GDAL, and ECMWF earthkit-hydro are evaluation candidates; pysheds is flagged for GPL-3.0 distribution review.
+- `npm run test:open-source-register` checks that candidates remain research-only until separate license, security, and engineering validation gates pass. No new geospatial runtime dependency was added.
+
 ### WWDC24 MapKit and Maps & Location review
 
 - `docs/research/WWDC24-MAPKIT-AND-MAPS-LOCATION.md` records the official WWDC24 Place ID, Place Card, search, and Maps Embed findings alongside the separate status of forum reports.
