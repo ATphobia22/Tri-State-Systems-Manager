@@ -56,6 +56,8 @@ class OpenMIContractTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             _validate_value_set(_value_set(time_semantics=""))
         with self.assertRaises(ValueError):
+            _validate_value_set(_value_set(validation_status="NON_CONVERGENT"))
+        with self.assertRaises(ValueError):
             _validate_value_set(_value_set(timestamp="2026-09-23T04:00:00"))
         with self.assertRaises(ValueError):
             _validate_value_set(_value_set(spatial_reference=SpatialReference(horizontal_crs="EPSG:2966", vertical_datum="NAVD88", horizontal_units="m", vertical_units="m")))
