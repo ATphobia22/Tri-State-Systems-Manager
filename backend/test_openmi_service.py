@@ -41,6 +41,14 @@ def _value_set(**overrides: object) -> QuantityValueSet:
 
 
 class OpenMIContractTests(unittest.TestCase):
+    def test_protobuf_schema_adds_temporal_fields_without_renumbering_existing_fields(self) -> None:
+        fields = QuantityValueSet.DESCRIPTOR.fields_by_name
+        self.assertEqual(fields["quantity_id"].number, 1)
+        self.assertEqual(fields["validation_status"].number, 14)
+        self.assertEqual(fields["time_semantics"].number, 15)
+        self.assertEqual(fields["time_step_seconds"].number, 16)
+        self.assertEqual(fields["time_convention"].number, 17)
+
     def test_valid_exchange_item_is_accepted(self) -> None:
         _validate_value_set(_value_set())
 
