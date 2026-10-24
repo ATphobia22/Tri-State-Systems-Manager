@@ -175,6 +175,12 @@ The repository contains a multi-step forecasting pipeline with ingestion, antece
 
 **Operational-status rule:** No current precipitation condition, gage value, forecast, alert, or source-availability claim is made by this README. Check the live source and runtime health at the time of use; record observation time, source URL/identifier, units, datum, quality flags, and model version with any operational report.
 
+### WWDC24 MapKit and Maps & Location review
+
+- `docs/research/WWDC24-MAPKIT-AND-MAPS-LOCATION.md` records the official WWDC24 Place ID, Place Card, search, and Maps Embed findings alongside the separate status of forum reports.
+- `schemas/apple-place-reference.schema.json` models Apple Place IDs as display/discovery references only. It explicitly prevents treating them as authoritative parcel, survey, hydrologic, or engineering evidence.
+- `npm run test:apple-mapkit-reference` validates this boundary. No MapKit token or external Apple map dependency is configured.
+
 ### Apple open-source reuse assessment and CI repairs
 
 - `docs/research/APPLE-OPEN-SOURCE-REUSE-ASSESSMENT.md` reviews Apple Open Source, Pkl, FoundationDB, SwiftNIO, and Swift Collections. It records what is applicable to TSM and why Swift-only libraries are not added to the TypeScript runtime.
