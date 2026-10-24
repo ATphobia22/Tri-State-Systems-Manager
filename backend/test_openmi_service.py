@@ -52,6 +52,14 @@ class OpenMIContractTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             _validate_value_set(_value_set(element_ids=["cell-1"]))
 
+    def test_time_semantics_and_coordinate_units_are_mandatory(self) -> None:
+        with self.assertRaises(ValueError):
+            _validate_value_set(_value_set(time_semantics=""))
+        with self.assertRaises(ValueError):
+            _validate_value_set(_value_set(timestamp="2026-09-23T04:00:00"))
+        with self.assertRaises(ValueError):
+            _validate_value_set(_value_set(spatial_reference=SpatialReference(horizontal_crs="EPSG:2966", vertical_datum="NAVD88", horizontal_units="m", vertical_units="m")))
+
     def test_router_registers_components(self) -> None:
         async def run() -> None:
             router = ExchangeRouter()
