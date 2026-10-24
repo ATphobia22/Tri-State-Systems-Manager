@@ -85,10 +85,26 @@ confirmed. Anything not verified here is NOT implemented as a data layer.
   a late-2022 snapshot — verify vintage per tile before treating it as
   current 3DEP.
 
-## Regulatory / IDTA verification
+## Regulatory / IDTA verification (verified 2026-10-24)
 
-See the verification table in the parent report for this work (Illinois
-Part 3700, Kentucky 401 KAR 4:060, IDTA template IDs, OpenMI/CSDMS-BMI
-status). Only verified rules are encoded in
-`backend/governance/archimedes_engine.py`; see
-`docs/regulatory/312-IAC-10-VERIFIED-RULES.md` for the Indiana record.
+- Illinois Part 3700 §3700.20: 0.1 ft floodway screen — VERIFIED (ILGA
+  text), with §3700.70 bridge/culvert exceptions noted in
+  `SCIENTIFIC_VALIDATION.md`.
+- Kentucky 401 KAR 4:060: §4 no-impact rule for encroachments VERIFIED,
+  alongside the separate §1/§5 1.0 ft floodway-boundary criterion.
+- Indiana IC 14-28-1 as the Flood Control Act authority behind 312 IAC 10
+  — VERIFIED (312 IAC 10-1-2 header).
+- IDTA templates: all pasted IDs verified against IDTA's hub except
+  corrections — 02015 = Type / 02016 = Instance (02017 is Asset Interfaces
+  Description), 02011-1 for Hierarchical Structures, full titles for 02045
+  and 02053, 02002 legacy/unconfirmed. Registry (types only):
+  `packages/ontology/src/idta-submodel-templates.ts`.
+- OpenMI 2.0 (OGC 11-014r3): dormant, C#/Java-only spec, no successor
+  since the 2014 adoption (spec dated 2010). CSDMS BMI + PyMT verified as
+  the Python-supported coupling path. For TSM: do not build on OpenMI in
+  Python; evaluate BMI if coupling is ever needed.
+- AAS: IEC 63278-1:2023 (IEC TC 65/WG 24 owns the standard; IDTA stewards
+  the template ecosystem).
+- Only verified rules are encoded in
+  `backend/governance/archimedes_engine.py`; see
+  `docs/regulatory/312-IAC-10-VERIFIED-RULES.md` for the Indiana record.
