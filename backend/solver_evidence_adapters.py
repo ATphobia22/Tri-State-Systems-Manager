@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib, json, math
 from pathlib import Path
 from typing import Any, Mapping
-from backend.engineering_evidence import ExecutionState, build_solver_evidence
+from backend.engineering_evidence import ArtifactDigest, ExecutionState, build_solver_evidence, sha256_file
 from backend.engineering.hecras_hdf5 import discover_water_surface_datasets
 from backend.solvers.geotech import calculate_bishop_factor_of_safety
 
@@ -65,6 +65,9 @@ def inspect_modflow6_run(*, run_id: str, solver_version: str, listing_file: str 
     else:
         try:
             balance=json.loads(report.read_text(encoding="utf-8"))
+            listing_hash=sha256_file(listing).sha256
+            if balance.get("source_listing_sha256") != listing_hash or not str(balance.get("extraction_method","")).strip():
+                raise ValueError("mass balance report is not bound to this listing or lacks extraction provenance")
             error=float(balance["relative_mass_balance_error"])
             declared_tolerance=float(balance["tolerance"])
             if not math.isfinite(error) or error<0 or not math.isfinite(declared_tolerance) or declared_tolerance<0:
@@ -98,13 +101,15 @@ def verify_bishop_result(*, result: Mapping[str, Any], solver_inputs: Mapping[st
     messages=() if state==ExecutionState.VERIFIED else ("BISHOP_REPLAY_OR_CONVERGENCE_VERIFICATION_FAILED",)
     try:
         result_bytes=json.dumps(dict(result),sort_keys=True,separators=(",",":"),allow_nan=False).encode("utf-8")
+        input_bytes=json.dumps(dict(solver_inputs),sort_keys=True,separators=(",",":"),allow_nan=False).encode("utf-8")
     except (TypeError, ValueError):
         state=ExecutionState.FAILED
         messages=("BISHOP_RESULT_NOT_CANONICAL_JSON",)
         result_bytes=b"{}"
-    from backend.engineering_evidence import ArtifactDigest
+        input_bytes=b"{}"
     inline_output=ArtifactDigest("output","inline:result.json",len(result_bytes),hashlib.sha256(result_bytes).hexdigest())
+    inline_input=ArtifactDigest("input","inline:solver-input.json",len(input_bytes),hashlib.sha256(input_bytes).hexdigest())
     return build_solver_evidence(run_id=run_id,solver="TSM Bishop simplified method",
         solver_version=str(result.get("method_version","unknown")),input_paths=input_artifact_paths,
-        output_paths=[],output_digests=[inline_output],convergence_evidence="deterministic replay matched solver result" if state==ExecutionState.VERIFIED else None,
+        output_paths=[],output_digests=[inline_output],input_digests=[inline_input],convergence_evidence="deterministic replay matched solver result" if state==ExecutionState.VERIFIED else None,
         explicit_state=state,validation_messages=messages)
