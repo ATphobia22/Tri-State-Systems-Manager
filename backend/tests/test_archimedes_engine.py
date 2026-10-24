@@ -64,3 +64,31 @@ def test_manifest_is_unsigned_without_human_review() -> None:
     manifest = ArchimedesEngine().generate_proof_manifest(result)
     assert manifest["governance_status"] == "human_review_required"
     assert manifest["proof_hash_sha256"]
+
+
+
+def test_non_finite_and_boolean_numeric_inputs_are_rejected() -> None:
+    import math
+    import pytest
+
+    engine = ArchimedesEngine()
+    for value in (math.inf, -math.inf, math.nan, True):
+        with pytest.raises(ValueError):
+            engine.evaluate_jurisdiction_compliance("IN", value, 375.0)
+    with pytest.raises(ValueError):
+        engine.evaluate_jurisdiction_compliance(
+            "IN", 374.0, 375.0, floodway_delta_ft=math.inf
+        )
+
+
+def test_proof_manifest_hashes_inputs_and_evaluation_without_claiming_solver() -> None:
+    result = ArchimedesEngine().evaluate_jurisdiction_compliance(
+        "IN", 374.0, 375.0, authoritative_model_id="MODEL-1"
+    )
+    manifest = ArchimedesEngine().generate_proof_manifest(result)
+
+    assert len(manifest["input_hash_sha256"]) == 64
+    assert len(manifest["evaluation_hash_sha256"]) == 64
+    assert manifest["solver_hash_sha256"] is None
+    assert manifest["solver_status"] == "NOT_PROVIDED"
+    assert manifest["human_review_status"] == "unsigned"
