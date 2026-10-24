@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from datetime import datetime, timezone
 from typing import Any, Final, Literal
 
@@ -28,17 +29,20 @@ RULE_SOURCES: Final[dict[str, dict[str, str]]] = {
     "IN": {
         "citation": "IC 14-28-1; 312 IAC 10",
         "source_uri": "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/no-rise/",
-        "rule": "Indiana DNR uses a 0.15 ft cumulative surcharge criterion; FEMA floodway projects may separately require 0.00 ft no-rise certification or CLOMR.",
+        "verification_status": "SOURCE_REVIEWED_RULESET_PINNING_REQUIRED",
+        "rule": "Indiana DNR cumulative surcharge criteria are distinct from FEMA/local no-rise requirements; pin applicable rule version and project context before applying a threshold.",
     },
     "IL": {
         "citation": "17 Ill. Adm. Code Part 3700",
-        "source_uri": "https://www.ilga.gov/agencies/JCAR/EntirePart?titlepart=01703700",
-        "rule": "Illinois defines the regulatory floodway using no more than a 0.1 ft increase in stage; other sections contain context-specific limits.",
+        "source_uri": "https://www.ilga.gov/commission/jcar/admincode/017/017037000000400R.html",
+        "verification_status": "NO_UNIVERSAL_THRESHOLD_CONFIGURED",
+        "rule": "Part 3700 governs floodway construction and permitting; do not treat 0.10 ft as a universal statutory project threshold without section- and context-specific verification.",
     },
     "KY": {
         "citation": "401 KAR 4:060",
         "source_uri": "https://apps.legislature.ky.gov/law/kar/titles/401/004/060/",
-        "rule": "Kentucky generally requires no-impact certification for floodway encroachments; its floodway-boundary definition uses a separate 1.0 ft maximum rise criterion.",
+        "verification_status": "DISTINCT_BOUNDARY_AND_PROJECT_CRITERIA",
+        "rule": "The rule's one-foot water-surface-rise criterion for defining regulatory floodway boundaries does not establish a universal zero-rise requirement for every project.",
     },
 }
 
@@ -77,18 +81,24 @@ class ArchimedesEngine:
         compliant boolean. A numerical screen cannot establish permit
         eligibility or regulatory compliance.
         """
-        if not all(
-            isinstance(value, (int, float)) and value == value
-            for value in (stage_ft_navd88, bfe_ft_navd88)
+        numeric_inputs = (stage_ft_navd88, bfe_ft_navd88)
+        if any(
+            isinstance(value, bool)
+            or not isinstance(value, (int, float))
+            or not math.isfinite(value)
+            for value in numeric_inputs
         ):
             raise ValueError("stage_ft_navd88 and bfe_ft_navd88 must be finite numbers.")
         if floodway_delta_ft is not None and (
-            not isinstance(floodway_delta_ft, (int, float)) or floodway_delta_ft != floodway_delta_ft
+            isinstance(floodway_delta_ft, bool)
+            or not isinstance(floodway_delta_ft, (int, float))
+            or not math.isfinite(floodway_delta_ft)
         ):
             raise ValueError("floodway_delta_ft must be finite when supplied.")
+        if not isinstance(floodway_context, str) or floodway_context not in {"FEMA", "STATE", "UNKNOWN"}:
+            raise ValueError("floodway_context must be FEMA, STATE, or UNKNOWN.")
 
         jurisdiction_code = self._jurisdiction(jurisdiction)
-        evaluated_at = datetime.now(timezone.utc).isoformat()
         reasons: list[str] = []
         flags: list[str] = []
 
@@ -106,22 +116,15 @@ class ArchimedesEngine:
             raise ValueError("source_evidence_hash must be a 64-character hexadecimal SHA-256 value.")
 
         delta = floodway_delta_ft
-        if delta is not None:
-            if jurisdiction_code == "IN":
-                if delta > 0.15:
-                    flags.append("STATE_THRESHOLD_EXCEEDED")
-                    reasons.append(f"Indiana DNR screening threshold exceeded: surcharge {delta:.3f} ft > 0.150 ft.")
-                if floodway_context == "FEMA" and delta > 0.0:
-                    flags.append("FEMA_NO_RISE_REVIEW_REQUIRED")
-                    reasons.append("FEMA floodway context requires separate no-rise/CLOMR review; this screen does not certify it.")
-            elif jurisdiction_code == "IL":
-                if delta > 0.10:
-                    flags.append("ILLINOIS_0_1_FT_THRESHOLD_EXCEEDED")
-                    reasons.append(f"Illinois Part 3700 screening threshold exceeded: stage rise {delta:.3f} ft > 0.100 ft.")
-            elif jurisdiction_code == "KY":
-                if delta > 0.0:
-                    flags.append("KENTUCKY_NO_IMPACT_NOT_MET")
-                    reasons.append(f"Kentucky no-impact screen not met: modeled rise {delta:.3f} ft > 0.000 ft.")
+        if delta is None:
+            flags.append("FLOODWAY_DELTA_NOT_PROVIDED")
+            reasons.append("Floodway model delta was not supplied; no-rise or surcharge criteria were not evaluated.")
+        elif floodway_context == "FEMA" and delta > 0.0:
+            flags.append("FEMA_NO_RISE_REVIEW_REQUIRED")
+            reasons.append("Positive modeled rise in FEMA context requires separate applicable no-rise review; this screen does not certify it.")
+        elif floodway_context == "UNKNOWN":
+            flags.append("FLOODWAY_CONTEXT_UNKNOWN")
+            reasons.append("Floodway context is unknown; federal, state, and local criteria cannot be selected safely.")
 
         if stage_ft_navd88 > bfe_ft_navd88:
             flags.append("STAGE_ABOVE_BFE")
@@ -130,6 +133,9 @@ class ArchimedesEngine:
                 "this is an engineering screening observation, not a permit determination."
             )
 
+        if not source_evidence_hash:
+            flags.append("SOURCE_EVIDENCE_HASH_MISSING")
+            reasons.append("Source evidence is not hash-pinned; provenance review is required.")
         screening_status = "SCREENED_NO_TRIGGER" if not flags else "SCREENED_WITH_TRIGGERS"
         return {
             "engine": ENGINE_VERSION,
@@ -138,6 +144,8 @@ class ArchimedesEngine:
             "jurisdiction": jurisdiction_code,
             "regulatory_determination": None,
             "human_review_required": True,
+            "governance_gate": "BLOCKED",
+            "governance_block_reasons": ["READ_ONLY_ENGINE", "QUALIFIED_HUMAN_REVIEW_REQUIRED", "NO_AUTOMATIC_PERMIT_OR_DESIGN_AUTHORIZATION"],
             "reasons": reasons,
             "flags": flags,
             "clearance_metrics": {
@@ -148,7 +156,15 @@ class ArchimedesEngine:
             },
             "authoritative_model_id": authoritative_model_id,
             "source_evidence_hash": source_evidence_hash,
-            "evaluated_at": evaluated_at,
+            "input_record": {
+                "jurisdiction": jurisdiction_code,
+                "stage_ft_navd88": stage_ft_navd88,
+                "bfe_ft_navd88": bfe_ft_navd88,
+                "floodway_delta_ft": floodway_delta_ft,
+                "floodway_context": floodway_context,
+                "authoritative_model_id": authoritative_model_id,
+                "source_evidence_hash": source_evidence_hash,
+            },
             "source_rule": RULE_SOURCES[jurisdiction_code],
         }
 
@@ -165,22 +181,33 @@ class ArchimedesEngine:
         signed = bool(reviewer_identity and reviewer_identity.strip() and review_reason and review_reason.strip())
         now = datetime.now(timezone.utc).isoformat()
 
+        canonical_json = lambda value: json.dumps(
+            value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
+        )
+        input_record = evaluation_result.get("input_record")
+        if not isinstance(input_record, dict):
+            raise ValueError("Evaluation result is missing its canonical input_record.")
+
         manifest: dict[str, Any] = {
             "manifest_type": "TSM_ARCHIMEDES_SCREENING_PROOF",
             "engine_version": ENGINE_VERSION,
             "node_id": self.node_id,
-            "governance_status": "human_authorized" if signed else "human_review_required",
-            "human_review_status": "signed" if signed else "unsigned",
+            "governance_status": "BLOCKED_HUMAN_REVIEW_REQUIRED",
+            "human_review_status": "REVIEW_METADATA_RECORDED" if signed else "unsigned",
             "reviewer_identity": reviewer_identity.strip() if signed else None,
             "review_reason": review_reason.strip() if signed else None,
             "reviewed_at": now if signed else None,
+            "input_hash_sha256": hashlib.sha256(canonical_json(input_record).encode("utf-8")).hexdigest(),
+            "evaluation_hash_sha256": hashlib.sha256(canonical_json(evaluation_result).encode("utf-8")).hexdigest(),
+            "solver_hash_sha256": None,
+            "solver_status": "NOT_EVALUATED",
             "evaluation_body": evaluation_result,
             "disclaimer": (
                 "Technology informs people; it does not silently govern people. "
-                "This artifact is screening evidence, not a regulatory determination."
+                "Integrity metadata is not authorization. This artifact is screening evidence, not a regulatory determination, permit, or approved engineering design."
             ),
         }
 
-        canonical = json.dumps(manifest, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+        canonical = canonical_json(manifest)
         manifest["proof_hash_sha256"] = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
         return manifest

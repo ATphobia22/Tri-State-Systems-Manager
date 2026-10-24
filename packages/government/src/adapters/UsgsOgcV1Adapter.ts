@@ -139,8 +139,10 @@ export class UsgsOgcV1Adapter {
   const readings:UsgsOgcV1Reading[]=[];
   const unavailable:UsgsOgcV1Unavailable[]=[];
   const queryUrls:string[]=[];
-  const evidence:EvidenceEnvelope<unknown>['evidence']=[];
-  const citations:EvidenceEnvelope<unknown>['citations']=[];
+  // EvidenceEnvelope exposes readonly arrays at the API boundary. Accumulate
+  // locally in mutable arrays, then publish them through the readonly contract.
+  const evidence: Array<EvidenceEnvelope<unknown>['evidence'][number]> = [];
+  const citations: Array<EvidenceEnvelope<unknown>['citations'][number]> = [];
 
   settlements.forEach((settlement,index)=>{
    const siteId=siteIds[index];
