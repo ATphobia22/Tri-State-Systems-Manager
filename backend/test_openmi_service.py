@@ -6,7 +6,12 @@ import asyncio
 import unittest
 
 from backend.openmi_contract import ComponentInfo, QuantityValueSet, SpatialReference
-from backend.openmi_service import ExchangeRouter, OpenMIService, _validate_value_set
+from backend.openmi_service import (
+    ExchangeRouter,
+    OpenMIService,
+    _validate_value_set,
+    compute_payload_sha256,
+)
 
 
 def _value_set(**overrides: object) -> QuantityValueSet:
@@ -26,7 +31,7 @@ def _value_set(**overrides: object) -> QuantityValueSet:
         "validation_status": "VALIDATED",
     }
     payload.update(overrides)
-    return QuantityValueSet(
+    value_set = QuantityValueSet(
         **payload,
         spatial_reference=SpatialReference(
             horizontal_crs="EPSG:2966",
@@ -35,6 +40,8 @@ def _value_set(**overrides: object) -> QuantityValueSet:
             vertical_units="m",
         ),
     )
+    value_set.payload_sha256 = compute_payload_sha256(value_set)
+    return value_set
 
 
 class OpenMIContractTests(unittest.TestCase):
@@ -48,6 +55,12 @@ class OpenMIContractTests(unittest.TestCase):
     def test_element_alignment_is_required(self) -> None:
         with self.assertRaises(ValueError):
             _validate_value_set(_value_set(element_ids=["cell-1"]))
+
+    def test_payload_digest_detects_post_seal_mutation(self) -> None:
+        value_set = _value_set()
+        value_set.values[0] = 99.0
+        with self.assertRaisesRegex(ValueError, "does not match canonical exchange payload"):
+            _validate_value_set(value_set)
 
     def test_router_registers_components(self) -> None:
         async def run() -> None:

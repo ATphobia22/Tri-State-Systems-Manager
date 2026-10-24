@@ -13,6 +13,7 @@ const schemaPaths = [
   'data/schemas/hec-coupled-run-manifest-v1.schema.json',
   'data/schemas/spatial-solver-run-manifest-v1.schema.json',
   'data/schemas/posey-site-aoi-v1.schema.json',
+  'data/schemas/aas-asset-manifest-v1.schema.json',
 ];
 const hecCoupledRunManifestExample = JSON.parse(fs.readFileSync(path.join(repoRoot, 'data/schemas/examples/hec-coupled-run-manifest-v1.example.json'), 'utf8'));
 const spatialSolverRunManifestExample = JSON.parse(fs.readFileSync(path.join(repoRoot, 'data/schemas/examples/spatial-solver-run-manifest-v1.example.json'), 'utf8'));
@@ -55,6 +56,15 @@ function validate(value, schema, at, rootSchema = schema) {
     const referenced = resolveLocalReference(rootSchema, schema.$ref, at);
     if (referenced) validate(value, referenced, at, rootSchema);
     return;
+  }
+  for (const subSchema of schema.allOf ?? []) validate(value, subSchema, at, rootSchema);
+  if (schema.if) {
+    const failureCount = failures.length;
+    validate(value, schema.if, at, rootSchema);
+    const conditionMatched = failures.length === failureCount;
+    failures.length = failureCount;
+    if (conditionMatched && schema.then) validate(value, schema.then, at, rootSchema);
+    if (!conditionMatched && schema.else) validate(value, schema.else, at, rootSchema);
   }
   if (schema.type && !typeMatches(value, schema.type)) {
     fail(at + ': expected type ' + JSON.stringify(schema.type)); return;
@@ -191,7 +201,26 @@ for (const relative of schemaPaths) {
   catch (error) { fail(relative + ': invalid JSON: ' + error.message); continue; }
   if (schema.$schema !== 'https://json-schema.org/draft/2020-12/schema') fail(relative + ': unexpected JSON Schema dialect');
   const example = relative.includes('spatial-solver-run-manifest') ? spatialSolverRunManifestExample : relative.includes('posey-site-aoi-v1') ? poseySiteAoiExample : relative.includes('hec-coupled-run-manifest') ? hecCoupledRunManifestExample : relative.includes('data-contract') ? dataExample : relative.includes('regulatory-gate') ? regulatoryGateExample : relative.includes('nfip-discrepancy') ? nfipLayer2Example : relative.includes('flood-information-federation') ? floodFederationExample : evidenceExample;
-  validate(example, schema, relative, schema);
+  if (relative.includes('aas-asset-manifest-v1')) {
+    const common = {
+      profileVersion: '1.0.0',
+      assetId: 'urn:tsm:asset:demo-type',
+      assetKind: 'Type',
+      submodels: [],
+      governance: { authority: 'human', humanReviewRequired: true, regulatoryDetermination: null },
+    };
+    validate(common, schema, relative + ':Type example', schema);
+    validate({ ...common, assetId: 'urn:tsm:asset:demo-instance', assetKind: 'Instance', derivedFrom: 'urn:tsm:asset:demo-type' }, schema, relative + ':Instance example', schema);
+    const invalidInstance = { ...common, assetId: 'urn:tsm:asset:invalid-instance', assetKind: 'Instance' };
+    const before = failures.length;
+    validate(invalidInstance, schema, relative + ':invalid Instance example', schema);
+    if (!failures.slice(before).some(message => message.includes('missing required property derivedFrom'))) {
+      fail(relative + ': Instance without derivedFrom was not rejected');
+    }
+    failures.splice(before);
+  } else {
+    validate(example, schema, relative, schema);
+  }
   // The Posey candidate AOI is a public parcel-evidence record and is validated
   // against its own schema here. Other case-specific NFIP examples remain
   // synthetic unless an explicit evidence package has been approved for release.

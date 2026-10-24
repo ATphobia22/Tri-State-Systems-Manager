@@ -28,6 +28,8 @@ message QuantityValueSet {
   string software_version = 12;
   string model_version = 13;
   string validation_status = 14;
+  // SHA-256 of deterministic protobuf serialization with this field empty.
+  string payload_sha256 = 15;
 }
 
 message ComponentInfo {

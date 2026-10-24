@@ -56,6 +56,7 @@ def _build_file_descriptor():
     _field(quantity, "software_version", 12, descriptor_pb2.FieldDescriptorProto.TYPE_STRING)
     _field(quantity, "model_version", 13, descriptor_pb2.FieldDescriptorProto.TYPE_STRING)
     _field(quantity, "validation_status", 14, descriptor_pb2.FieldDescriptorProto.TYPE_STRING)
+    _field(quantity, "payload_sha256", 15, descriptor_pb2.FieldDescriptorProto.TYPE_STRING)
 
     component = file.message_type.add()
     component.name = "ComponentInfo"

@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from datetime import datetime, timezone
 from typing import Any, Final, Literal
 
@@ -70,6 +71,7 @@ class ArchimedesEngine:
         floodway_context: Literal["FEMA", "STATE", "UNKNOWN"] = "UNKNOWN",
         authoritative_model_id: str | None = None,
         source_evidence_hash: str | None = None,
+        solver_status: Literal["SUCCEEDED", "FAILED", "NOT_RUN", "UNKNOWN"] | None = None,
     ) -> dict[str, Any]:
         """Perform a source-bound screening.
 
@@ -77,34 +79,54 @@ class ArchimedesEngine:
         compliant boolean. A numerical screen cannot establish permit
         eligibility or regulatory compliance.
         """
-        if not all(
-            isinstance(value, (int, float)) and value == value
-            for value in (stage_ft_navd88, bfe_ft_navd88)
+        numeric_inputs = (stage_ft_navd88, bfe_ft_navd88)
+        if any(
+            isinstance(value, bool)
+            or not isinstance(value, (int, float))
+            or not math.isfinite(value)
+            for value in numeric_inputs
         ):
             raise ValueError("stage_ft_navd88 and bfe_ft_navd88 must be finite numbers.")
         if floodway_delta_ft is not None and (
-            not isinstance(floodway_delta_ft, (int, float)) or floodway_delta_ft != floodway_delta_ft
+            isinstance(floodway_delta_ft, bool)
+            or not isinstance(floodway_delta_ft, (int, float))
+            or not math.isfinite(floodway_delta_ft)
         ):
             raise ValueError("floodway_delta_ft must be finite when supplied.")
 
         jurisdiction_code = self._jurisdiction(jurisdiction)
         evaluated_at = datetime.now(timezone.utc).isoformat()
-        reasons: list[str] = []
-        flags: list[str] = []
-
-        if not authoritative_model_id:
-            flags.append("AUTHORITATIVE_MODEL_NOT_ATTACHED")
-            reasons.append(
-                "Screening is provisional because no authoritative hydraulic model identifier "
-                "was supplied; no regulatory determination is produced."
-            )
-
         if source_evidence_hash is not None and (
             len(source_evidence_hash) != 64
             or any(ch not in "0123456789abcdefABCDEF" for ch in source_evidence_hash)
         ):
             raise ValueError("source_evidence_hash must be a 64-character hexadecimal SHA-256 value.")
 
+        block_reasons: list[str] = []
+        if not authoritative_model_id or not authoritative_model_id.strip():
+            block_reasons.append("FAIL_CLOSED: authoritative model identifier is missing.")
+        if solver_status is not None and solver_status != "SUCCEEDED":
+            block_reasons.append(f"FAIL_CLOSED: upstream solver status is {solver_status}.")
+        if block_reasons:
+            return {
+                "engine": ENGINE_VERSION,
+                "status": "GATE_BLOCKED_BY_SOLVER_ERROR" if solver_status == "FAILED" else "NOT_EVALUATED",
+                "screening_status": "NOT_EVALUATED",
+                "jurisdiction": jurisdiction_code,
+                "regulatory_determination": None,
+                "compliant": False,
+                "human_review_required": True,
+                "reasons": block_reasons,
+                "flags": ["GATE_BLOCKED"],
+                "clearance_metrics": None,
+                "authoritative_model_id": authoritative_model_id,
+                "source_evidence_hash": source_evidence_hash,
+                "evaluated_at": evaluated_at,
+                "source_rule": RULE_SOURCES[jurisdiction_code],
+            }
+
+        reasons: list[str] = []
+        flags: list[str] = []
         delta = floodway_delta_ft
         if delta is not None:
             if jurisdiction_code == "IN":
@@ -162,22 +184,28 @@ class ArchimedesEngine:
         """Create an integrity manifest; only human review can authorize governance."""
         if evaluation_result.get("engine") != ENGINE_VERSION:
             raise ValueError("Unsupported evaluation engine version.")
-        signed = bool(reviewer_identity and reviewer_identity.strip() and review_reason and review_reason.strip())
+        review_recorded = bool(
+            reviewer_identity and reviewer_identity.strip() and review_reason and review_reason.strip()
+        )
         now = datetime.now(timezone.utc).isoformat()
 
         manifest: dict[str, Any] = {
             "manifest_type": "TSM_ARCHIMEDES_SCREENING_PROOF",
             "engine_version": ENGINE_VERSION,
             "node_id": self.node_id,
-            "governance_status": "human_authorized" if signed else "human_review_required",
-            "human_review_status": "signed" if signed else "unsigned",
-            "reviewer_identity": reviewer_identity.strip() if signed else None,
-            "review_reason": review_reason.strip() if signed else None,
-            "reviewed_at": now if signed else None,
+            # A name and free-text reason are not an authenticated signature.
+            # This engine cannot promote an artifact to authorized status.
+            "governance_status": "human_review_required",
+            "human_review_status": "recorded_unverified" if review_recorded else "unsigned",
+            "reviewer_identity": reviewer_identity.strip() if review_recorded else None,
+            "review_reason": review_reason.strip() if review_recorded else None,
+            "reviewed_at": now if review_recorded else None,
             "evaluation_body": evaluation_result,
             "disclaimer": (
                 "Technology informs people; it does not silently govern people. "
-                "This artifact is screening evidence, not a regulatory determination."
+                "This artifact is screening evidence, not a regulatory determination. "
+                "The SHA-256 digest is an integrity checksum, not a digital signature; "
+                "reviewer identity and reason are unverified metadata."
             ),
         }
 
