@@ -37,7 +37,7 @@
     "test:apple-platform": "node --test tests/contracts/apple-developer-forums.test.mjs",
     "test:npm-workspaces": "node --test tests/contracts/npm-workspace-dependencies.test.mjs",
     "test:apple-mapkit-reference": "node --test tests/contracts/apple-mapkit-reference.test.mjs",
-    "refresh:lockfile": "npm install --package-lock-only --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org"
+    "refresh:lockfile": "npm install --package-lock-only --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org && npm --prefix tsm-console install --package-lock-only --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
