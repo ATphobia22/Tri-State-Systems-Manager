@@ -16,7 +16,7 @@ test('Apple platform research is traceable and implementation status is honest',
 
 test('waypoint heading metadata supports quality reporting without promoting authority', () => {
   const heading = waypointSchema.properties.heading;
-  assert.equal(heading.properties.accuracyDegrees.type[1], 'null');
+  assert.equal(heading.properties.accuracyDegrees.type[1], null);
   assert.equal(heading.properties.accuracyDegrees.minimum, 0);
   assert.ok(heading.properties.deviceOrientation.enum.includes('unknown'));
   assert.ok(heading.properties.activityType.enum.includes('unknown'));
