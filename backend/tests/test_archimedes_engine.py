@@ -1,13 +1,16 @@
 from backend.governance.archimedes_engine import ArchimedesEngine
 
 
-def test_indiana_uses_dnr_015_threshold_but_requires_human_review() -> None:
+def test_indiana_does_not_confuse_state_surcharge_with_fema_no_rise() -> None:
     result = ArchimedesEngine().evaluate_jurisdiction_compliance(
         "IN",
         stage_ft_navd88=374.5,
         bfe_ft_navd88=375.0,
         floodway_delta_ft=0.10,
+        floodway_context="STATE",
         authoritative_model_id="MODEL-1",
+        source_evidence_hash="a" * 64,
+        rule_set_version="IN-REVIEW-2026-10",
     )
     assert result["screening_status"] == "SCREENED_NO_TRIGGER"
     assert result["human_review_required"] is True
@@ -26,7 +29,7 @@ def test_indiana_fema_context_flags_any_positive_rise() -> None:
     assert "FEMA_NO_RISE_REVIEW_REQUIRED" in result["flags"]
 
 
-def test_illinois_uses_point_one_foot_screen() -> None:
+def test_illinois_does_not_apply_unverified_universal_point_one_threshold() -> None:
     result = ArchimedesEngine().evaluate_jurisdiction_compliance(
         "IL",
         376.0,
@@ -34,10 +37,11 @@ def test_illinois_uses_point_one_foot_screen() -> None:
         floodway_delta_ft=0.15,
         authoritative_model_id="MODEL-1",
     )
-    assert "ILLINOIS_0_1_FT_THRESHOLD_EXCEEDED" in result["flags"]
+    assert "ILLINOIS_0_1_FT_THRESHOLD_EXCEEDED" not in result["flags"]
+    assert "FLOODWAY_CONTEXT_UNKNOWN" in result["flags"]
 
 
-def test_kentucky_requires_no_impact_for_encroachment_screen() -> None:
+def test_kentucky_boundary_rise_criterion_is_not_universal_zero_rise() -> None:
     result = ArchimedesEngine().evaluate_jurisdiction_compliance(
         "KY",
         375.0,
@@ -45,7 +49,8 @@ def test_kentucky_requires_no_impact_for_encroachment_screen() -> None:
         floodway_delta_ft=0.01,
         authoritative_model_id="MODEL-1",
     )
-    assert "KENTUCKY_NO_IMPACT_NOT_MET" in result["flags"]
+    assert "KENTUCKY_NO_IMPACT_NOT_MET" not in result["flags"]
+    assert "FLOODWAY_CONTEXT_UNKNOWN" in result["flags"]
 
 
 def test_missing_model_fails_closed() -> None:
@@ -62,7 +67,7 @@ def test_manifest_is_unsigned_without_human_review() -> None:
         "IN", 374.0, 375.0, authoritative_model_id="MODEL-1"
     )
     manifest = ArchimedesEngine().generate_proof_manifest(result)
-    assert manifest["governance_status"] == "human_review_required"
+    assert manifest["governance_status"] == "BLOCKED_HUMAN_REVIEW_REQUIRED"
     assert manifest["proof_hash_sha256"]
 
 
@@ -90,5 +95,5 @@ def test_proof_manifest_hashes_inputs_and_evaluation_without_claiming_solver() -
     assert len(manifest["input_hash_sha256"]) == 64
     assert len(manifest["evaluation_hash_sha256"]) == 64
     assert manifest["solver_hash_sha256"] is None
-    assert manifest["solver_status"] == "NOT_PROVIDED"
+    assert manifest["solver_status"] == "NOT_EVALUATED"
     assert manifest["human_review_status"] == "unsigned"
