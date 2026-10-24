@@ -147,6 +147,12 @@ jobs:
         run: node scripts/ci/validate-open-source-engine-registry.mjs
       - name: Test open-source engine registry contract
         run: node --test scripts/ci/validate-open-source-engine-registry.test.mjs
+      - name: Validate hydrology engine adapter registry
+        run: node scripts/ci/validate-hydrology-engine-adapters.mjs
+      - name: Test hydrology engine adapter contract
+        run: node --test scripts/ci/validate-hydrology-engine-adapters.test.mjs
+      - name: Test culvert hydraulic power screening helper
+        run: npm run test:culvert-power
       - name: Validate Cesium Story publication manifest
         run: node scripts/ci/validate-cesium-story-manifest.mjs
       - name: Test Cesium Story publication safety gates
