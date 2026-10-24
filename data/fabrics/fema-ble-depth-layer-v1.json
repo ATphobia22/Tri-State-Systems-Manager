@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0.0",
+  "layer_id": "fema_ble_depth_1pct",
+  "status": "UNAVAILABLE_NOT_INGESTED",
+  "evidence_class": "ADVISORY_ENGINEERING_MODEL",
+  "regulatory_status": "NON_REGULATORY",
+  "legal_authority": "FEMA Base Level Engineering (advisory depth-grid product; verify specific product metadata before use)",
+  "horizontal_crs": "EPSG:3857",
+  "vertical_datum": "NAVD88",
+  "units": "feet",
+  "requested_huc8_coverage": ["05140202", "05120113"],
+  "coverage_verification": "UNVERIFIED",
+  "missing_coverage_flag": "EXPLICIT_UNAVAILABLE",
+  "publication_policy": {
+    "may_appear_in_regulatory_compliance_panel": false,
+    "required_ui_section": "Engineering Model Lab",
+    "required_label": "Advisory engineering model — non-regulatory",
+    "may_replace_effective_nfhl": false,
+    "may_supply_regulatory_bfe_without_authoritative_bfe_evidence": false
+  },
+  "provenance_requirements": [
+    "source_product_uri",
+    "source_product_version_or_retrieval_time",
+    "source_metadata_sha256",
+    "artifact_sha256",
+    "horizontal_crs",
+    "vertical_datum_or_explicitly_not_applicable",
+    "units",
+    "coverage_and_nodata_report"
+  ],
+  "notes": [
+    "This is a layer contract only; no BLE raster or service availability is asserted.",
+    "Requested HUC8 identifiers are unverified coverage targets, not proof that FEMA publishes an applicable BLE depth grid for either HUC8.",
+    "Effective FEMA NFHL/FIRM layers remain a separate regulatory source."
+  ]
+}
