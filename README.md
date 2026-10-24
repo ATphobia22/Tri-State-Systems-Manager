@@ -11,6 +11,9 @@ TSM integrates public hydrology, terrain, imagery, flood-hazard data, infrastruc
 **GitHub:** https://github.com/ATphobia22/Tri-State-Systems-Manager
 **Live site:** https://atphobia22.github.io/Tri-State-Systems-Manager/
 **3D story:** [Tri-State Systems Manager — Ohio-Wabash Confluence](https://ion.cesium.com/stories/viewer/?id=82d4a592-c33e-4239-86d5-d53c329a7f7f) (Cesium ion)
+*The hosted story is an optional presentation reference; the self-hosted/offline viewer does not require a Cesium ion account or token.*
+
+**Open-source engineering stack:** [Integration plan](docs/OPEN-SOURCE-ENGINEERING-INTEGRATION-PLAN.md) · [Engine registry](integrations/open-source-engine-registry.json)
 
 ---
 
