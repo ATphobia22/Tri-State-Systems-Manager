@@ -1,14 +1,11 @@
 {
-  "name": "@tsm-uacf/geo",
-  "version": "0.1.0",
+  "name": "@tsm/geo",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
+  "description": "Geospatial helpers — H3 policy and coordinate math",
   "exports": {
-    "./nfhl": "./src/nfhl/NfhlMetadataValidator.ts",
-    "./nfhl/registry": "./src/nfhl/nfhl-geometry-types.json"
+    "./h3": "./src/h3/index.ts"
   },
-  "scripts": {
-    "nfhl:validate": "tsx src/nfhl/cli/validate-nfhl.ts",
-    "nfhl:check": "npm run nfhl:validate"
-  }
+  "license": "Apache-2.0"
 }
