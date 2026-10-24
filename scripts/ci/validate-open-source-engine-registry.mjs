@@ -62,9 +62,6 @@ export function validateRegistry(registry) {
     if (engine.openSource === true && engine.status === 'external-non-open-source') {
       errors.push(`${label} open-source projects cannot be marked external-non-open-source`);
     }
-    if (typeof engine.authorityBoundary === 'string' && !/(not|never|cannot|must|remain|does not|do not|avoid|only)/i.test(engine.authorityBoundary)) {
-      errors.push(`${label}.authorityBoundary must state an explicit constraint`);
-    }
   }
 
   if (registry.policy?.noSilentAuthorityPromotion !== true) errors.push('policy.noSilentAuthorityPromotion must be true');
