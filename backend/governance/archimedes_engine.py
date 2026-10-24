@@ -11,6 +11,7 @@ import hashlib
 import hmac
 import json
 import math
+from datetime import datetime, timezone
 from typing import Any, Final, Literal
 
 Jurisdiction = Literal["IN", "IL", "KY"]
@@ -69,7 +70,12 @@ HUMAN_AUTHORITY_DISCLAIMER: Final = (
 
 def _is_finite_number(value: object) -> bool:
     """Reject booleans and non-finite numbers at engineering boundaries."""
-    return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        return False
+    try:
+        return math.isfinite(value)
+    except OverflowError:
+        return False
 
 
 def _canonical_json(value: Any) -> bytes:
@@ -136,6 +142,7 @@ class ArchimedesEngine:
             "solver_status": solver_status,
             "input_freshness": input_freshness,
             "source_rule": RULE_SOURCES[jurisdiction],
+            "evaluated_at": datetime.now(timezone.utc).isoformat(timespec="microseconds").replace("+00:00", "Z"),
         }
 
     def evaluate_jurisdiction_compliance(
@@ -271,6 +278,7 @@ class ArchimedesEngine:
             "input_freshness": input_freshness,
             "floodway_context": floodway_context,
             "source_rule": RULE_SOURCES[jurisdiction_code],
+            "evaluated_at": datetime.now(timezone.utc).isoformat(timespec="microseconds").replace("+00:00", "Z"),
         }
 
     def generate_proof_manifest(
