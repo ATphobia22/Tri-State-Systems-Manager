@@ -13,6 +13,8 @@ test('Apple Place IDs remain optional display references, not engineering author
   assert.equal(schema.properties.coordinateEvidence.const, 'must-be-sourced-separately');
   assert.ok(schema.required.includes('placeId'));
   assert.ok(schema.required.includes('retrievedAt'));
+  assert.ok(schema.required.includes('engineeringAuthority'));
+  assert.ok(schema.required.includes('coordinateEvidence'));
   assert.ok(!schema.required.includes('coordinate'));
   assert.ok(!schema.required.includes('parcelId'));
 });
