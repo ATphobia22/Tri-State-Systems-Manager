@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "1.0.0",
+  "researchDate": "2026-10-24",
+  "status": "research-applied-to-contracts",
+  "principles": [
+    {
+      "id": "app-intents-future-native-target",
+      "source": "https://developer.apple.com/forums/thread/809924",
+      "decision": "If a native Apple-platform target is added, expose task-level read-only App Intents; do not assume App Intents and share extensions are interchangeable.",
+      "implementationStatus": "documented-candidate-not-built"
+    },
+    {
+      "id": "heading-quality-metadata",
+      "source": "https://developer.apple.com/forums/thread/756943",
+      "decision": "Record heading accuracy, orientation, and activity context when available; missing accuracy remains unknown.",
+      "implementationStatus": "waypoint-schema-extended"
+    },
+    {
+      "id": "geodesic-coordinate-calculation",
+      "source": "https://developer.apple.com/forums/thread/710284",
+      "decision": "Do not use unbounded planar approximations for engineering coordinate derivation; require explicit geodetic method, CRS, units, and error bounds.",
+      "implementationStatus": "policy-documented"
+    },
+    {
+      "id": "idempotency-aware-retries",
+      "source": "https://developer.apple.com/library/archive/qa/qa1941/_index.html",
+      "decision": "Keep Shortcuts GET-only; future retry logic must account for idempotency and preserve error/freshness states.",
+      "implementationStatus": "existing-get-only-contract-retained"
+    }
+  ],
+  "guardrails": {
+    "userTriggeredShortcutsOnly": true,
+    "mutationRoutesAllowed": false,
+    "deviceCompassEngineeringUseAuthorized": false,
+    "nativeAppIntentsBuilt": false,
+    "forumPostsAreNormativeApiContracts": false
+  }
+}\n
