@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "build": "npm run build:uacf && npm --prefix tsm-console run build",
-    "test": "npm run verify:uacf && npm --prefix tsm-console run test:all && python3 -m pytest backend/tests -q && node tsm-console/scripts/parse-check.mjs && npm run test:weather-reference && npm run test:apple-shortcuts-api && npm run test:apple-platform && npm run test:npm-workspaces && npm run test:apple-mapkit-reference && npm run test:open-source-register",
+    "test": "npm run verify:uacf && npm --prefix tsm-console run test:all && python3 -m pytest backend/tests -q && node tsm-console/scripts/parse-check.mjs && npm run test:weather-reference && npm run test:apple-shortcuts-api && npm run test:apple-platform && npm run test:npm-workspaces && npm run test:apple-mapkit-reference && npm run test:open-source-register && npm run test:posey-government-evidence && npm run test:posey-geodetic-reference",
     "lint": "turbo run lint",
     "clean": "turbo run clean",
     "typecheck": "npm run build:uacf && npm --prefix tsm-console run check:type",
@@ -38,7 +38,9 @@
     "test:npm-workspaces": "node --test tests/contracts/npm-workspace-dependencies.test.mjs",
     "test:apple-mapkit-reference": "node --test tests/contracts/apple-mapkit-reference.test.mjs",
     "refresh:lockfile": "npm install --package-lock-only --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org && npm --prefix tsm-console install --package-lock-only --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org",
-    "test:open-source-register": "node --test tests/contracts/open-source-adoption-register.test.mjs"
+    "test:open-source-register": "node --test tests/contracts/open-source-adoption-register.test.mjs",
+    "test:posey-government-evidence": "node --test tests/contracts/posey-government-evidence.test.mjs",
+    "test:posey-geodetic-reference": "node --test tests/contracts/posey-geodetic-reference.test.mjs"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

@@ -1,0 +1,42 @@
+name: Posey Geodetic and Topographic Evidence Gates
+
+on:
+  pull_request:
+    paths:
+      - 'data/posey-county/government-evidence-boundaries-v1.json'
+      - 'docs/architecture/POSEY-GOVERNMENT-EVIDENCE-BOUNDARIES.md'
+      - 'docs/architecture/GEODETIC-REFERENCE-AND-TOPO-SOURCES.md'
+      - 'docs/architecture/images/geoid-ellipsoid-height.svg'
+      - 'tests/contracts/posey-government-evidence.test.mjs'
+      - 'tests/contracts/posey-geodetic-reference.test.mjs'
+      - 'package.json'
+      - '.github/workflows/posey-geodetic-reference-validation.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'data/posey-county/government-evidence-boundaries-v1.json'
+      - 'docs/architecture/POSEY-GOVERNMENT-EVIDENCE-BOUNDARIES.md'
+      - 'docs/architecture/GEODETIC-REFERENCE-AND-TOPO-SOURCES.md'
+      - 'docs/architecture/images/geoid-ellipsoid-height.svg'
+      - 'tests/contracts/posey-government-evidence.test.mjs'
+      - 'tests/contracts/posey-geodetic-reference.test.mjs'
+      - 'package.json'
+      - '.github/workflows/posey-geodetic-reference-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v4
+        with:
+          node-version: 22
+      - name: Parse geodetic contract
+        run: node -e "JSON.parse(require('node:fs').readFileSync('data/posey-county/government-evidence-boundaries-v1.json', 'utf8'))"
+      - name: Validate government and geodetic evidence boundaries
+        run: npm run test:posey-government-evidence && npm run test:posey-geodetic-reference

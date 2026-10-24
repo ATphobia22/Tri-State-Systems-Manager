@@ -1,0 +1,273 @@
+{
+  "schema": "tsm-posey-government-evidence-boundaries-v1",
+  "version": "1.1.0",
+  "scope": {
+    "county": "Posey County",
+    "state": "Indiana",
+    "geoid": "18129",
+    "aoiApproval": "NOT_APPROVED",
+    "rule": "County-level source research does not approve a parcel/site AOI or authorize a hydraulic model run."
+  },
+  "authorityClasses": {
+    "EFFECTIVE_FEMA_NFHL": {
+      "regulatoryRole": "effective FEMA flood-hazard product; verify community/panel effective date and applicable product metadata at time of use",
+      "use": [
+        "NFIP regulatory reference"
+      ],
+      "prohibited": [
+        "substituting preliminary/pending products",
+        "claiming site-specific determination without overlay and review"
+      ]
+    },
+    "INDIANA_DNR_BAFM": {
+      "regulatoryRole": "NON_NFIP_REGULATORY",
+      "status": "UNVERIFIED_UNTIL_ACQUISITION_RECEIPT_AND_CURRENT_SOURCE_CHECK",
+      "use": [
+        "planning",
+        "screening",
+        "context"
+      ],
+      "prohibited": [
+        "flood-insurance determination",
+        "silently relabeling as effective FEMA NFHL"
+      ]
+    },
+    "FEMA_BLE": {
+      "status": "UNVERIFIED",
+      "use": [
+        "advisory only after source/version and data artifacts are verified"
+      ],
+      "prohibited": [
+        "presenting as an acquired or validated dataset based only on a catalog/manifest entry",
+        "promoting to regulatory status"
+      ]
+    },
+    "USGS_SIR_2016_5119": {
+      "identity": "Fowler, 2016, Flood-Inundation Maps for the Wabash River at New Harmony, Indiana",
+      "reachMiles": 3.68,
+      "station": "USGS 03378500",
+      "horizontalDatum": "NAD83",
+      "verticalReference": [
+        "gage stage on a gage-specific datum",
+        "elevation referenced to NAVD88"
+      ],
+      "evidenceClass": "SITE_SPECIFIC_REFERENCE_ONLY",
+      "prohibited": [
+        "transferring calibration to another reach/site without independent data and validation",
+        "treating gage stage as NAVD88 elevation"
+      ]
+    },
+    "USACE_ERDC_CHL_TR_22_4": {
+      "identity": "Wabash and Ohio River Confluence Hydraulic and Sediment Transport Model Investigation",
+      "model": "Adaptive Hydraulics (AdH), 2D shallow-water hydraulics and sediment transport",
+      "evidenceClass": "CONFLUENCE_STUDY_REFERENCE_ONLY",
+      "prohibited": [
+        "reusing study calibration as site calibration",
+        "inferring site bathymetry, bed gradation, boundary conditions, or validated output from the report alone"
+      ]
+    },
+    "FEMA_VERTICAL_DATUM_GUIDANCE_MAY_2014": {
+      "sourceType": "guidance",
+      "sourceStatus": "LEGACY_GUIDANCE_REQUIRES_CURRENT_STANDARDS_REVIEW",
+      "methodsDescribed": [
+        "passive conversion",
+        "countywide conversion",
+        "stream-based conversion"
+      ],
+      "rule": "Never apply an undocumented fixed offset. Record source and target vertical datum, method, conversion tool/model and version, geographic scope, factor(s), units, uncertainty/variation, and reviewer disposition."
+    }
+  },
+  "acquisitionGate": {
+    "allowedStates": [
+      "NOT_ACQUIRED",
+      "ACQUIRED_UNVERIFIED",
+      "VALIDATED",
+      "PUBLISHED"
+    ],
+    "requiredReceiptFields": [
+      "sourceId",
+      "authority",
+      "sourceUrl",
+      "retrievedAt",
+      "sourceVersion",
+      "mediaType",
+      "byteLength",
+      "sha256",
+      "horizontalCrs",
+      "verticalDatum",
+      "acquisitionDate",
+      "validationStatus",
+      "featureCount",
+      "geometryBounds"
+    ],
+    "requiredChecks": [
+      "HTTPS credential-free source URL",
+      "source identity and version captured",
+      "SHA-256 recomputed from acquired bytes",
+      "schema and geometry validation passed",
+      "CRS and vertical-datum semantics are explicit or explicitly UNKNOWN",
+      "AOI geometry and source coverage/bounds reconciled",
+      "required source counts reconciled; zero results fail closed when a nonzero minimum is required",
+      "atomic publication only after every required validation succeeds"
+    ],
+    "promotionRule": "NOT_ACQUIRED or ACQUIRED_UNVERIFIED data must never be presented as VALIDATED or PUBLISHED. Partial manifests must not be promoted."
+  },
+  "datumGate": {
+    "missingDatum": "BLOCK_PROMOTION",
+    "conflictingDatum": "BLOCK_PROMOTION",
+    "implicitUnitConversion": "BLOCK_PROMOTION",
+    "stageToElevationInference": "BLOCK_PROMOTION",
+    "requiredForConversion": [
+      "sourceVerticalDatum",
+      "targetVerticalDatum",
+      "method",
+      "toolAndVersion",
+      "conversionFactorOrGridReference",
+      "areaOfApplicability",
+      "units",
+      "uncertaintyOrVariation",
+      "validationEvidence",
+      "reviewerDisposition"
+    ]
+  },
+  "publicationGate": {
+    "atomic": true,
+    "failClosed": true,
+    "noSilentSkips": true,
+    "minimumFeatureCountPolicy": "Per-source explicit minimum; zero is valid only when explicitly declared and justified.",
+    "requiredStatusForRelease": "VALIDATED",
+    "engineeringUseForUnverifiedEvidence": "NOT_AUTHORIZED"
+  },
+  "horizontalDatumGate": {
+    "currentOfficialReference": "NAD 83 (2011), epoch 2010.00 for the conterminous United States, subject to NGS regional realization rules",
+    "legacyReference": "NAD 27 and older NAD 83 realizations may occur in historic/topographic products and legacy datasets",
+    "requiredMetadata": [
+      "horizontalCrs",
+      "datumOrReferenceFrame",
+      "realization",
+      "coordinateEpochWhenApplicable",
+      "coordinateUnits",
+      "transformationMethodAndVersionWhenTransformed"
+    ],
+    "rules": [
+      "A projected CRS identifier and a horizontal reference frame are distinct metadata; preserve both.",
+      "A horizontal CRS or NAD 83 label does not identify the vertical datum or make ellipsoidal heights orthometric elevations.",
+      "Do not silently relabel NAD 27, NAD 83 realizations, WGS 84, ITRF, or modernized NSRS coordinates as interchangeable.",
+      "Record any coordinate transformation, input/output frames and epochs, operation/pipeline, grid files and versions, units, stated accuracy, and validation residuals."
+    ],
+    "missingMetadata": "BLOCK_PROMOTION",
+    "incompatibleReferenceFrame": "BLOCK_TRANSFORMATION_OR_PROMOTION"
+  },
+  "verticalHeightGate": {
+    "currentOfficialVerticalDatumCONUS": "NAVD 88 per NOAA NGS current-datum reference page; reconfirm current status and product metadata at processing time",
+    "legacyVerticalDatum": "NGVD 29",
+    "localReference": "GAGE_DATUM is station-specific and must be read from the station metadata; raw gage height is not NAVD 88 elevation",
+    "heightTypes": {
+      "ellipsoidalHeight": {
+        "symbol": "h",
+        "definition": "GNSS-derived height relative to a named reference ellipsoid and compatible geometric reference frame"
+      },
+      "orthometricHeight": {
+        "symbol": "H",
+        "definition": "Elevation relative to a named vertical datum/geopotential reference; NAVD 88 is the current CONUS example on the NGS reference page"
+      },
+      "geoidHeight": {
+        "symbol": "N",
+        "definition": "Separation/undulation between the specified ellipsoid and a compatible geoid model surface"
+      }
+    },
+    "relationship": {
+      "officialForm": "h = H + N",
+      "derivedForm": "H ≈ h - N",
+      "qualification": "Use only as the geoid-model relationship for compatible frames, datum, epoch, location, units, and model. Do not turn it into a universal constant-offset rule."
+    },
+    "missingDatumOrHeightType": "BLOCK_PROMOTION",
+    "implicitUnitConversion": "BLOCK_PROMOTION",
+    "stageToElevationInference": "BLOCK_PROMOTION",
+    "requiredForConversion": [
+      "sourceHeightType",
+      "sourceVerticalDatumOrEllipsoidAndReferenceFrame",
+      "sourceRealizationAndEpochWhenApplicable",
+      "targetVerticalDatum",
+      "geoidOrDatumTransformationModel",
+      "modelAndSoftwareVersion",
+      "modelApplicabilityAndCoverage",
+      "units",
+      "inputAndOutputUncertainty",
+      "transformationOperationAndGridFiles",
+      "validationAgainstIndependentControl",
+      "reviewerDisposition"
+    ],
+    "geoidModelCompatibility": {
+      "model": "GEOID18",
+      "role": "hybrid geoid model supporting conversion of compatible NAD 83 (2011), epoch 2010.00 ellipsoid heights to orthometric heights consistent with NAVD 88 in CONUS",
+      "incompatibleInputs": [
+        "arbitrary WGS 84 realization/epoch",
+        "ITRF realization/epoch",
+        "other NAD 83 realizations without a documented transformation",
+        "coordinates outside model's supported/applicable region"
+      ],
+      "accuracyNote": "NGS model-fit estimated uncertainty does not represent the complete accuracy of NAVD 88 heights; account for ellipsoid-height uncertainty, datum/model limitations, and independent control."
+    }
+  },
+  "datumModernizationGate": {
+    "source": "https://geodesy.noaa.gov/datums/newdatums/TrackOurProgress.shtml",
+    "observedStatusFromOfficialPage": {
+      "NAPGD2022": "BETA_PUBLIC_FEEDBACK_PERIOD_COMPLETE",
+      "NATRF2022": "BETA_PUBLIC_FEEDBACK_PERIOD_COMPLETE",
+      "NCATBeta1": "INITIAL_VERSION_RELEASED_TO_BETA; limited to SPCS2022",
+      "NCATBeta2": "PENDING_FOR_BETA_RELEASE; future transformations include current-to-modernized reference frames and vertical datums"
+    },
+    "productionAdoption": "NOT_ASSUMED",
+    "rule": "Beta feedback completion is not itself proof of operational adoption. Keep existing source datum identity until NGS publishes formal adoption/version guidance and the production transformation tools support the required operation."
+  },
+  "topographicReferenceSources": [
+    {
+      "id": "usgs-topoview",
+      "authority": "USGS National Geologic Map Database / National Geospatial Program",
+      "url": "https://ngmdb.usgs.gov/topoview/viewer/#4/39.98/-100.02",
+      "role": "HISTORICAL_AND_CURRENT_TOPOGRAPHIC_MAP_DISCOVERY",
+      "scope": "TopoView exposes US Topo-series maps from 2009 onward and historical topographic map editions; map dates/editions must be retained.",
+      "evidenceStatus": "AVAILABLE_FOR_DISCOVERY_NOT_ACQUIRED",
+      "permittedUse": [
+        "historical landscape/context review",
+        "map-edition comparison",
+        "source discovery and reference citation"
+      ],
+      "prohibitedUse": [
+        "treating the rendered/map PDF as a current bare-earth DEM",
+        "using contours or scanned map pixels as validated hydraulic terrain without separate georeferencing, datum, resolution, and accuracy validation"
+      ]
+    },
+    {
+      "id": "usgs-us-topo-map-collection",
+      "authority": "U.S. Geological Survey",
+      "catalogUrl": "https://catalog.data.gov/dataset/usgs-us-topo-map-collection",
+      "digitalDataAccess": "https://www.usgs.gov/the-national-map-data-delivery",
+      "metadataLastUpdated": "2025-03-11",
+      "dataLastModified": "2025-02-14",
+      "product": "Layered geospatial PDF 7.5-minute quadrangle map collection",
+      "contents": [
+        "orthoimagery",
+        "roads",
+        "grids",
+        "geographic names",
+        "elevation contours",
+        "hydrography",
+        "boundaries",
+        "selected other map features"
+      ],
+      "role": "CARTOGRAPHIC_REFERENCE_NOT_TERRAIN_MODEL",
+      "evidenceStatus": "AVAILABLE_FOR_DISCOVERY_NOT_ACQUIRED",
+      "permittedUse": [
+        "contextual reference",
+        "map citation",
+        "cross-check of historical names/features"
+      ],
+      "prohibitedUse": [
+        "asserting downloaded local artifacts or coverage from catalog metadata alone",
+        "substituting map graphics for source terrain rasters, surveyed bathymetry, or authoritative vertical control"
+      ]
+    }
+  ]
+}

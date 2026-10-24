@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="650" viewBox="0 0 1120 650" role="img" aria-labelledby="title desc">
+  <title id="title">Ellipsoid, geoid, and orthometric height</title>
+  <desc id="desc">A not-to-scale conceptual cross-section shows a terrain point above a reference ellipsoid and an undulating geoid surface. Ellipsoidal height h is measured from the ellipsoid to the point, orthometric height H from the geoid to the point, and geoid height N between the ellipsoid and geoid. The relationship is h equals H plus N.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="4.5" refY="4.5" orient="auto-start-reverse"><path d="M0,0 L9,4.5 L0,9 z" fill="#243447"/></marker>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7fbff"/><stop offset="1" stop-color="#eaf3fb"/></linearGradient>
+    <linearGradient id="terrainFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9ccb87"/><stop offset="1" stop-color="#dcebd1"/></linearGradient>
+  </defs>
+  <rect width="1120" height="650" rx="22" fill="url(#sky)"/>
+  <text x="52" y="52" font-family="Arial, Helvetica, sans-serif" font-size="29" font-weight="700" fill="#132d46">Ellipsoid, geoid, and elevation are different references</text>
+  <text x="54" y="82" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#38536b">Conceptual cross-section • vertical differences exaggerated • not to scale</text>
+  <path d="M48 273 L128 268 L185 235 L226 250 L281 218 L340 255 L395 247 L454 198 L505 236 L571 226 L632 253 L704 242 L761 207 L816 242 L884 229 L948 255 L1070 250 L1070 500 L48 500 Z" fill="url(#terrainFill)"/>
+  <path d="M48 273 L128 268 L185 235 L226 250 L281 218 L340 255 L395 247 L454 198 L505 236 L571 226 L632 253 L704 242 L761 207 L816 242 L884 229 L948 255 L1070 250" fill="none" stroke="#53824d" stroke-width="4" stroke-linejoin="round"/>
+  <text x="70" y="182" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" fill="#315b31">Terrain / point P</text>
+  <path d="M196 189 L268 221" fill="none" stroke="#315b31" stroke-width="2"/>
+  <path d="M48 405 C145 382 225 435 320 410 S474 388 570 414 S740 438 834 407 S976 390 1070 413" fill="none" stroke="#147d95" stroke-width="5"/>
+  <text x="74" y="449" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#09677f">Geoid / vertical reference surface</text>
+  <text x="74" y="472" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#09677f">(the specific datum/model matters)</text>
+  <path d="M48 510 C210 496 365 498 520 510 S825 525 1070 508" fill="none" stroke="#6757a7" stroke-width="5"/>
+  <text x="74" y="548" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#51428e">Reference ellipsoid</text>
+  <text x="74" y="571" font-family="Arial, Helvetica, sans-serif" font-size="15" fill="#51428e">(mathematical surface tied to a named frame)</text>
+  <line x1="365" y1="250" x2="365" y2="502" stroke="#243447" stroke-width="2.5" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <rect x="333" y="337" width="65" height="43" rx="8" fill="#fff" stroke="#b5c3cf"/>
+  <text x="365" y="366" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="700" text-anchor="middle" fill="#243447">h</text>
+  <text x="409" y="321" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#243447">Ellipsoidal height</text>
+  <text x="409" y="342" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#526577">(GNSS output, with frame/epoch)</text>
+  <line x1="626" y1="247" x2="626" y2="414" stroke="#243447" stroke-width="2.5" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <rect x="594" y="309" width="65" height="43" rx="8" fill="#fff" stroke="#b5c3cf"/>
+  <text x="626" y="338" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="700" text-anchor="middle" fill="#243447">H</text>
+  <text x="670" y="326" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#243447">Orthometric height</text>
+  <text x="670" y="347" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#526577">(elevation relative to a named vertical datum)</text>
+  <line x1="885" y1="412" x2="885" y2="517" stroke="#243447" stroke-width="2.5" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <rect x="853" y="442" width="65" height="43" rx="8" fill="#fff" stroke="#b5c3cf"/>
+  <text x="885" y="471" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="700" text-anchor="middle" fill="#243447">N</text>
+  <text x="922" y="451" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#243447">Geoid height</text>
+  <text x="922" y="472" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#526577">(ellipsoid-to-geoid separation)</text>
+  <rect x="420" y="588" width="650" height="43" rx="10" fill="#ffffff" stroke="#b7cadb"/>
+  <text x="745" y="616" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" text-anchor="middle" fill="#132d46">h = H + N   •   H ≈ h − N</text>
+</svg>
