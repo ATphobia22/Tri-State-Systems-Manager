@@ -8,6 +8,7 @@ local ordinance, exceptions, and current source revision require human review.
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
 import math
 from typing import Any, Final, Literal
@@ -323,4 +324,4 @@ class ArchimedesEngine:
             expected_hash = _sha256_json(payload)
         except (TypeError, ValueError):
             return False
-        return hashlib.compare_digest(expected_hash, supplied_hash)
+        return hmac.compare_digest(expected_hash, supplied_hash)
