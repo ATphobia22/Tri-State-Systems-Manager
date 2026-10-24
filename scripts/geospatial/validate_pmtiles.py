@@ -84,7 +84,11 @@ def parse_header(path: Path) -> dict[str, Any]:
         if previous[1] > current[0]:
             raise ValueError(f"{previous[2]} overlaps {current[2]}")
 
-    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    hasher = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            hasher.update(chunk)
+    digest = hasher.hexdigest()
     return {
         "path": str(path),
         "size_bytes": size,
