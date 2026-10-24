@@ -80,7 +80,8 @@ class PostgresEvidenceLedger:
             if link != previous:
                 return False
             payload = evidence_json if isinstance(evidence_json, dict) else json.loads(evidence_json)
-            if payload.get("evidence_sha256") != evidence_hash:
+            claimed_hash = payload.pop("evidence_sha256", None)
+            if claimed_hash != evidence_hash or sha256_bytes(_canonical_json(payload)) != evidence_hash:
                 return False
             expected = sha256_bytes(_canonical_json({
                 "run_id": run_id,
