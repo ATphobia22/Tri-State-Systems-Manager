@@ -117,3 +117,31 @@ export function withSiteGeodesy<T extends Record<string, unknown>>(payload: T) {
     vertical_reference_site: siteVerticalReference(),
   };
 }
+
+
+/**
+ * Explicitly unavailable stage state for initial render and non-live routes.
+ * This function is local-only: it performs no network request and never invents
+ * a stage value. Live refresh is reserved for explicit user-triggered actions.
+ */
+export function unavailableStage(): MapTwinLoaderData['stage'] {
+  const gapSummary = formatContextGapsForUi();
+  return {
+    source: 'UNAVAILABLE',
+    gaugeId: PRIMARY_USGS,
+    value_ft: null,
+    timestamp: null,
+    retrievedAt: new Date().toISOString(),
+    status: 'unavailable',
+    qualifier: gapSummary ? `missing_live_stage; ${gapSummary.slice(0, 240)}` : 'missing_live_stage',
+    discharge_cfs: null,
+    discharge_observedAt: null,
+    discharge_status: 'unavailable',
+    floodCategory: 'unknown',
+    vertical_reference: 'GAGE_DATUM',
+    wse_navd88_ft: null,
+    gage_zero_navd88_ft: null,
+    conversion_applied: false,
+    sourceUri: null,
+  };
+}
