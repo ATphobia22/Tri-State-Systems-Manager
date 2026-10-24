@@ -9,7 +9,10 @@ import { loadPinnedSnapshot, listPinnedSnapshots } from '../../packages/governme
 import { NwpsAdapter } from '../../packages/government/src/adapters/NwpsAdapter.ts';
 import { NwisAdapter } from '../../packages/government/src/adapters/NwisAdapter.ts';
 import { FemaAdapter } from '../../packages/government/src/adapters/FemaAdapter.ts';
+import { Hydrography3DAdapter } from '../../packages/government/src/adapters/Hydrography3DAdapter.ts';
+import { NwsFloodInundationAdapter } from '../../packages/government/src/adapters/NwsFloodInundationAdapter.ts';
 import { getLocalHolding, listLocalHoldings } from '../../packages/government/src/localHoldings.ts';
+import { getRegisteredGovernmentSource } from '../../packages/government/src/GovernmentSourceRegistry.ts';
 import { GOVERNMENT_CAPABILITIES } from '../../packages/government/src/capabilities.ts';
 import { GovernmentSourceCapabilityProvider } from '../../packages/government/src/GovernmentSourceCapabilityProvider.ts';
 
@@ -176,4 +179,86 @@ test('wrapPinnedSnapshot rejects bad manifest hashes and non-JSON bytes',()=>{
  assert.throws(()=>wrapPinnedSnapshot(ref,'{}'),/MANIFEST_HASH_INVALID/);
  const ref2={...ref,sha256:sha256('not json')};
  assert.throws(()=>wrapPinnedSnapshot(ref2,'not json'),/INVALID_JSON/);
+});
+
+test('Hydrography3D adapter reports honest coverage: tri-state UNAVAILABLE, Holston covered',()=>{
+ const adapter=new Hydrography3DAdapter();
+ assert.equal(adapter.sourceId,'usgs-3dhp');
+ assert.equal(getGovernmentSource('usgs-3dhp').endpoint,'https://3dhp.nationalmap.gov/arcgis/rest/services/usgs_3dhp_all/FeatureServer');
+ assert.equal(getRegisteredGovernmentSource('usgs.3dhp-edh').endpoint,adapter.endpoint);
+ const coverage=adapter.getCoverage();
+ assert.deepEqual(validateEvidenceEnvelope(coverage),[]);
+ assert.equal(coverage.result.new3depAlignedCoverage.hydrologicUnit,'0601010403');
+ assert.ok(/holston/i.test(coverage.result.new3depAlignedCoverage.area));
+ assert.ok(/public domain/i.test(coverage.result.license));
+ const tri=adapter.checkAOI();
+ assert.deepEqual(validateEvidenceEnvelope(tri),[]);
+ assert.equal(tri.result.status,'UNAVAILABLE');
+ assert.equal(tri.provenance.status,'UNAVAILABLE');
+ assert.ok(/0601010403/.test(tri.result.reason),'reason must name the only covered HUC');
+ assert.ok(/outside that coverage/i.test(tri.result.reason),'reason must state the AOI is outside coverage');
+ const named=adapter.checkAOI('05140201');
+ assert.equal(named.result.status,'UNAVAILABLE');
+ const holston=adapter.checkAOI('0601010403');
+ assert.deepEqual(validateEvidenceEnvelope(holston),[]);
+ assert.equal(holston.result.status,'COVERED');
+});
+
+test('Hydrography3D adapter fetches service metadata offline via injected fetcher',async()=>{
+ const adapter=new Hydrography3DAdapter();
+ const payload={serviceDescription:'3DHP',layers:[]};
+ const envelope=await adapter.getServiceMetadata({fetcher:mockFetcher(payload)});
+ assert.deepEqual(validateEvidenceEnvelope(envelope),[]);
+ assert.deepEqual(envelope.result,payload);
+ const layer=await adapter.getLayerMetadata(0,{fetcher:mockFetcher(payload)});
+ assert.deepEqual(validateEvidenceEnvelope(layer),[]);
+ await assert.rejects(()=>adapter.getLayerMetadata(-1,{fetcher:mockFetcher(payload)}),/3DHP_LAYER_INVALID/);
+ await assert.rejects(()=>queryGovernmentJson('usgs-3dhp','https://evil.example/x',{fetcher:mockFetcher(payload)}),/OUTSIDE_REGISTERED_ENDPOINT/);
+});
+
+test('NWS flood inundation adapter exposes the watched service and honest forecast discovery',async()=>{
+ const adapter=new NwsFloodInundationAdapter();
+ assert.equal(adapter.sourceId,'nws-flood-inundation');
+ assert.equal(getGovernmentSource('nws-flood-inundation').endpoint,'https://maps.water.noaa.gov/server/rest/services/fim_libs/static_stage_based_catfim/FeatureServer');
+ assert.equal(getRegisteredGovernmentSource('noaa.fim').endpoint,adapter.endpoint);
+ assert.equal(getRegisteredGovernmentSource('noaa.fim-dynamic').access,'CATALOG');
+ const meta=await adapter.getStaticServiceMetadata({fetcher:mockFetcher({serviceDescription:'static catfim'})});
+ assert.deepEqual(validateEvidenceEnvelope(meta),[]);
+ assert.deepEqual(meta.result,{serviceDescription:'static catfim'});
+ await assert.rejects(()=>queryGovernmentJson('nws-flood-inundation','https://evil.example/x',{fetcher:mockFetcher({})}),/OUTSIDE_REGISTERED_ENDPOINT/);
+ const discovery=adapter.getForecastLayers();
+ assert.deepEqual(validateEvidenceEnvelope(discovery),[]);
+ assert.equal(discovery.result.products.length,4);
+ assert.ok(discovery.result.products.some(p=>/RFC 5-day/i.test(p.name)));
+ assert.equal(discovery.result.directQuery,'UNAVAILABLE');
+ assert.ok(/not pinned/i.test(discovery.result.directQueryReason));
+ const terms=adapter.getPlatformTerms();
+ assert.deepEqual(validateEvidenceEnvelope(terms),[]);
+ assert.ok(/public domain/i.test(terms.result.dataLicense));
+ assert.ok(/Esri/i.test(terms.result.platformTerms));
+ const aoi=adapter.checkAOI();
+ assert.deepEqual(validateEvidenceEnvelope(aoi),[]);
+ assert.equal(aoi.result.directQuery,'UNAVAILABLE');
+ assert.ok(/unverified/i.test(aoi.result.coverageClaim));
+});
+
+test('capability registry lists the new adapters with honest statuses',()=>{
+ const byId=new Map(GOVERNMENT_CAPABILITIES.map(c=>[c.id,c]));
+ assert.equal(byId.get('geo.hydrography.3dhp')?.status,'registered');
+ assert.equal(byId.get('flood.inundation.static')?.status,'registered');
+ assert.equal(byId.get('flood.inundation.forecast')?.status,'discovery-only');
+ assert.ok(/UNAVAILABLE/.test(byId.get('geo.hydrography.3dhp')?.description??''));
+});
+
+test('source.fetch supports the new adapters via registry aliases',async()=>{
+ const provider=new GovernmentSourceCapabilityProvider();
+ for(const [sourceId,url] of [
+  ['usgs.3dhp-edh','https://3dhp.nationalmap.gov/arcgis/rest/services/usgs_3dhp_all/FeatureServer?f=pjson'],
+  ['noaa.fim','https://maps.water.noaa.gov/server/rest/services/fim_libs/static_stage_based_catfim/FeatureServer?f=pjson'],
+ ]){
+  const supported=await provider.supports('source.fetch',{sourceId,url});
+  assert.equal(supported.supported,true,sourceId);
+ }
+ const dynamic=await provider.supports('source.fetch',{sourceId:'noaa.fim-dynamic',url:'https://www.weather.gov/owp/operations'});
+ assert.equal(dynamic.supported,false,'CATALOG sources must not offer source.fetch');
 });

@@ -19,6 +19,7 @@ Usage:
   python run_all.py --step nowcast      # TimesFM only
   python run_all.py --step forecast     # GEOGloWS only
   python run_all.py --step antecedent   # precipitation index only
+  python run_all.py --step openhydronet # FloodHub LSTM smoke run
 
 Steps:
   ingest      → tsm_usgs_ingest.py (USGS gage heights + discharge)
@@ -26,6 +27,7 @@ Steps:
   nowcast     → timesfm-gage-nowcast.py (0-48h zero-shot forecast)
   forecast    → geoglows_forecast.py (10-day operational)
   rating      → ras2fim_tristate.py (catalog only; generation unavailable)
+  openhydronet→ openhydronet_tristate.py (FloodHub LSTM smoke, SYNTHETIC input)
 """
 
 import argparse
@@ -161,6 +163,13 @@ def step_wres():
     return run_script("wres_evaluation.py", ["--all-gages"])
 
 
+def step_openhydronet():
+    """Run the OpenHydroNet (FloodHub) model smoke test."""
+    print("\n🧠 Step 11: OpenHydroNet Smoke Run (mean-embedding LSTM)")
+    print("  Smoke inputs are SYNTHETIC — production training data not yet built.")
+    return run_script("openhydronet_tristate.py", [])
+
+
 STEPS = {
     "ingest": step_ingest,
     "antecedent": step_antecedent,
@@ -172,10 +181,11 @@ STEPS = {
     "hydromt": step_hydromt,
     "hydrofabric": step_hydrofabric,
     "wres": step_wres,
+    "openhydronet": step_openhydronet,
 }
 
 STEP_ORDER = ["ingest", "antecedent", "nowcast", "forecast", "rating", "alert", "bfe",
-              "hydromt", "hydrofabric", "wres"]
+              "hydromt", "hydrofabric", "wres", "openhydronet"]
 
 
 def main():
