@@ -88,6 +88,18 @@ class OpenMIContractTests(unittest.TestCase):
 
         asyncio.run(run())
 
+    def test_deadline_is_required_and_bounded(self) -> None:
+        class Context:
+            def __init__(self, remaining): self.remaining = remaining
+            def time_remaining(self): return self.remaining
+            async def abort(self, code, message): raise ValueError(message)
+        service = OpenMIService()
+        asyncio.run(service._require_finite_deadline(Context(10.0)))
+        with self.assertRaisesRegex(ValueError, "finite RPC deadline"):
+            asyncio.run(service._require_finite_deadline(Context(float("inf"))))
+        with self.assertRaisesRegex(ValueError, "finite RPC deadline"):
+            asyncio.run(service._require_finite_deadline(Context(90000.0)))
+
     def test_service_has_router(self) -> None:
         service = OpenMIService()
         self.assertIsNotNone(service.router)
