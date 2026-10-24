@@ -29,12 +29,21 @@ is advisory (S1) and human authority remains final.
   rule text). The pasted claims of a 1.20x compensatory-storage mandate
   and a 2.0-ft freeboard mandate under 312 IAC 10 were searched in the
   full rule text and NOT FOUND — they are not implemented.
-- Illinois: 17 Ill. Adm. Code Part 3700 floodway screen, 0.1 ft maximum
-  stage increase (as encoded in `backend/governance/archimedes_engine.py`;
-  re-verification against the current ILGA text is tracked in the
-  verification table for this work).
-- Kentucky: 401 KAR 4:060 no-impact screen for floodway encroachments,
-  with a separate 1.0 ft floodway-boundary criterion (same note as above).
+- Illinois: 17 Ill. Adm. Code Part 3700, §3700.20 "Floodway" — the
+  floodplain portion needed to store and convey the 1% annual-chance flood
+  "with no more than a 0.1 foot increase in stage". Verified 2026-10-24
+  against the ILGA text. Context exceptions (do not collapse into the
+  screen): mapped floodway lines govern where delineated; bridge/culvert
+  rules in §3700.70 allow larger at-structure rises (urban: 0.5 ft at
+  structure, 0.1 ft 1,000 ft upstream; rural: 1.0 ft / 0.5 ft).
+- Kentucky: 401 KAR 4:060, §4(1) — encroachments prohibited unless
+  certification demonstrates "no impact" (no increase in base flood
+  elevation, floodwater elevations, or floodway width). Verified 2026-10-24.
+  The §1/§5 "regulatory floodway" definition is a SEPARATE 1.0 ft boundary
+  criterion (the area required to pass the base flood without raising the
+  crest more than 1 foot); it does not override the §4 no-impact rule for
+  an actual encroachment. §4(2) exceptions exist (open-space uses, certain
+  crossings, ≤180-day RVs, 4:020/4:050 exemptions).
 
 ## Definition of scientific readiness
 
