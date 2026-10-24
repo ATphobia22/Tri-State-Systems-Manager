@@ -15,7 +15,7 @@ export interface MapTwinLoaderData {
   site: SiteConstants;
   stage: {
     source: 'NOAA' | 'USGS' | 'UNAVAILABLE'; gaugeId: string; value_ft: number | null; timestamp: string | null;
-    retrievedAt: string | null; status: 'current' | 'provisional' | 'stale' | 'unavailable'; qualifier: 'P' | string | null;
+    retrievedAt: string | null; status: 'current' | 'provisional' | 'stale' | 'unavailable'; qualifier: 'P' | string | null; context_gap_summary?: string | null;
     discharge_cfs: number | null; discharge_observedAt: string | null; discharge_status: 'current' | 'provisional' | 'stale' | 'unavailable' | null;
     floodCategory: 'normal' | 'action' | 'minor' | 'moderate' | 'major' | 'unknown';
     vertical_reference: 'GAGE_DATUM'; wse_navd88_ft: number | null; gage_zero_navd88_ft: number | null; conversion_applied: boolean; vertical_conversion_status?: string; vertical_conversion_source?: string | null; site_transfer_status?: string; hydraulic_extrusion_eligibility?: string;
