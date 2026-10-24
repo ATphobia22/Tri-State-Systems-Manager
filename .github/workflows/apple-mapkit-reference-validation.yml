@@ -1,0 +1,31 @@
+name: Apple MapKit Evidence Boundary Validation
+
+on:
+  push:
+    branches: [main, feat/apple-developer-forums-hardening-20261024]
+    paths:
+      - 'schemas/apple-place-reference.schema.json'
+      - 'docs/research/WWDC24-MAPKIT-AND-MAPS-LOCATION.md'
+      - 'tests/contracts/apple-mapkit-reference.test.mjs'
+      - '.github/workflows/apple-mapkit-reference-validation.yml'
+  pull_request:
+    paths:
+      - 'schemas/apple-place-reference.schema.json'
+      - 'docs/research/WWDC24-MAPKIT-AND-MAPS-LOCATION.md'
+      - 'tests/contracts/apple-mapkit-reference.test.mjs'
+      - '.github/workflows/apple-mapkit-reference-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v4
+        with:
+          node-version: 22
+      - name: Validate Apple MapKit evidence boundary
+        run: node --test tests/contracts/apple-mapkit-reference.test.mjs

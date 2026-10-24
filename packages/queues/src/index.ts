@@ -59,14 +59,38 @@ export interface BullMqAdapterOptions {
   redisUrl: string;
 }
 
+interface BullMqJob {
+  id?: string | number;
+  timestamp: number;
+  attemptsMade: number;
+  data: unknown;
+  remove(): Promise<void>;
+}
+
+interface BullMqQueueInstance {
+  add(name: string, data: object, options?: Record<string, unknown>): Promise<BullMqJob>;
+  getJobs(types: string[], start: number, end: number): Promise<BullMqJob[]>;
+  getJob(id: string): Promise<BullMqJob | undefined>;
+  getJobCounts(...types: string[]): Promise<Partial<Record<'waiting' | 'delayed' | 'active', number>>>;
+}
+
+interface BullMqModule {
+  Queue: new (name: string, options: { connection: { url: string } }) => BullMqQueueInstance;
+}
+
 export async function createBullMqQueue<T>(
   options: BullMqAdapterOptions,
 ): Promise<Queue<T>> {
-  const bullmq = await import("bullmq").catch(() => {
-    throw new Error(
-      "bullmq is not installed. Add peer dependency bullmq to use Redis queues, or use createMemoryQueue().",
-    );
-  });
+  // Use a variable import specifier so TypeScript can compile the optional
+  // peer dependency without requiring BullMQ in offline/CI installations.
+  const packageName: string = 'bullmq';
+  const bullmq = await import(packageName)
+    .then((module: unknown) => module as BullMqModule)
+    .catch(() => {
+      throw new Error(
+        "bullmq is not installed. Add peer dependency bullmq to use Redis queues, or use createMemoryQueue().",
+      );
+    });
   const connection = { url: options.redisUrl };
   const q = new bullmq.Queue(options.queueName, { connection });
 

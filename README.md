@@ -175,6 +175,33 @@ The repository contains a multi-step forecasting pipeline with ingestion, antece
 
 **Operational-status rule:** No current precipitation condition, gage value, forecast, alert, or source-availability claim is made by this README. Check the live source and runtime health at the time of use; record observation time, source URL/identifier, units, datum, quality flags, and model version with any operational report.
 
+### Open-source ecosystem review
+
+- `docs/research/OPEN-SOURCE-ECOSYSTEM-ADOPTION-REVIEW.md` evaluates Apple open-source projects, open-source discovery portals, and relevant geospatial/hydrology libraries without treating popularity as evidence.
+- `integrations/open-source-candidate-register.json` records candidate licenses, applicability, and explicit `not-integrated` status. PROJ, GDAL, and ECMWF earthkit-hydro are evaluation candidates; pysheds is flagged for GPL-3.0 distribution review.
+- `npm run test:open-source-register` checks that candidates remain research-only until separate license, security, and engineering validation gates pass. No new geospatial runtime dependency was added.
+
+### WWDC24 MapKit and Maps & Location review
+
+- `docs/research/WWDC24-MAPKIT-AND-MAPS-LOCATION.md` records the official WWDC24 Place ID, Place Card, search, and Maps Embed findings alongside the separate status of forum reports.
+- `schemas/apple-place-reference.schema.json` models Apple Place IDs as display/discovery references only. It explicitly prevents treating them as authoritative parcel, survey, hydrologic, or engineering evidence.
+- `npm run test:apple-mapkit-reference` validates this boundary. No MapKit token or external Apple map dependency is configured.
+- The hydrology stage fallback preserves `REQUIRES_VALIDATED_HYDRAULIC_PROFILE` and `NOT_ELIGIBLE_UNVERIFIED_SITE_TRANSFER` even when live values are unavailable.
+
+### Apple open-source reuse assessment and CI repairs
+
+- `docs/research/APPLE-OPEN-SOURCE-REUSE-ASSESSMENT.md` reviews Apple Open Source, Pkl, FoundationDB, SwiftNIO, and Swift Collections. It records what is applicable to TSM and why Swift-only libraries are not added to the TypeScript runtime.
+- `npm run test:npm-workspaces` checks that internal package dependencies use npm-compatible semver ranges and align with the local workspace versions.
+- `tsm-console/src/lib/stage.ts` exports `unavailableStage()` for non-live loaders, returning null measurements and no network side effects.
+- UACF workspace manifests now use version ranges instead of pnpm/yarn-only `workspace:*` syntax.
+
+### Apple Developer Forums findings — applied guardrails
+
+- `docs/integrations/APPLE-DEVELOPER-FORUMS-FINDINGS.md` records findings from Apple Developer Forums and official Apple networking/App Intents documentation, separating forum advice from normative API contracts.
+- `integrations/apple-platform/apple-developer-forums-findings.json` records the implementation decisions and honest status for future native App Intents, heading quality metadata, geodesic coordinate calculations, and idempotency-aware retries.
+- `schemas/compass-waypoint.schema.json` now supports optional heading accuracy, device orientation, and Core Location activity-context metadata. Missing accuracy remains unknown, and device compass data remains unauthorized for engineering use.
+- `npm run test:apple-platform` validates these boundaries; the root `npm test` includes the focused contract suite.
+
 ### Apple Shortcuts — read-only hydrology snapshot
 
 - `docs/integrations/APPLE-SHORTCUTS-READONLY-API.md` documents a user-triggered iPhone Shortcut using `GET /api/hydrologic/community`.
