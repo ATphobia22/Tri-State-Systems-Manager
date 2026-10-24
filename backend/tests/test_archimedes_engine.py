@@ -97,3 +97,38 @@ def test_proof_manifest_hashes_inputs_and_evaluation_without_claiming_solver() -
     assert manifest["solver_hash_sha256"] is None
     assert manifest["solver_status"] == "NOT_EVALUATED"
     assert manifest["human_review_status"] == "unsigned"
+
+
+
+def test_review_metadata_never_authorizes_governance() -> None:
+    result = ArchimedesEngine().evaluate_jurisdiction_compliance(
+        "IN", 374.0, 375.0, authoritative_model_id="MODEL-1",
+        source_evidence_hash="a" * 64, rule_set_version="IN-REVIEW-2026-10",
+        floodway_context="STATE", floodway_delta_ft=0.0,
+    )
+    manifest = ArchimedesEngine().generate_proof_manifest(
+        result, reviewer_identity="Reviewer A", review_reason="Reviewed inputs"
+    )
+    assert manifest["human_review_status"] == "REVIEW_METADATA_RECORDED"
+    assert manifest["governance_status"] == "BLOCKED_HUMAN_REVIEW_REQUIRED"
+    assert result["governance_gate"] == "BLOCKED"
+
+
+def test_missing_floodway_delta_is_not_treated_as_zero() -> None:
+    result = ArchimedesEngine().evaluate_jurisdiction_compliance(
+        "IN", 374.0, 375.0, authoritative_model_id="MODEL-1",
+        source_evidence_hash="a" * 64, rule_set_version="IN-REVIEW-2026-10",
+        floodway_context="STATE",
+    )
+    assert "FLOODWAY_DELTA_NOT_PROVIDED" in result["flags"]
+    assert result["clearance_metrics"]["floodway_surcharge_delta_ft"] is None
+
+
+def test_unknown_floodway_context_does_not_apply_state_threshold() -> None:
+    result = ArchimedesEngine().evaluate_jurisdiction_compliance(
+        "IL", 374.0, 375.0, floodway_delta_ft=0.15,
+        authoritative_model_id="MODEL-1", source_evidence_hash="b" * 64,
+        rule_set_version="IL-REVIEW-2026-10",
+    )
+    assert "FLOODWAY_CONTEXT_UNKNOWN" in result["flags"]
+    assert "ILLINOIS_0_1_FT_THRESHOLD_EXCEEDED" not in result["flags"]
