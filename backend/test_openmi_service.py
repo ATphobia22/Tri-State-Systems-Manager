@@ -24,6 +24,9 @@ def _value_set(**overrides: object) -> QuantityValueSet:
         "software_version": "test",
         "model_version": "test",
         "validation_status": "VALIDATED",
+        "time_semantics": "STATE_AT_STEP",
+        "time_step_seconds": 60.0,
+        "time_convention": "instant-at-step",
     }
     payload.update(overrides)
     return QuantityValueSet(
@@ -31,7 +34,7 @@ def _value_set(**overrides: object) -> QuantityValueSet:
         spatial_reference=SpatialReference(
             horizontal_crs="EPSG:2966",
             vertical_datum="NAVD88",
-            horizontal_units="m",
+            horizontal_units="ftUS",
             vertical_units="m",
         ),
     )
