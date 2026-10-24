@@ -27,6 +27,12 @@ test('canonical hash sorts nested object keys and is stable', () => {
   assert.notEqual(hash({ a: { y: 2, z: 1 }, b: 2 }), hash({ a: { y: 3, z: 1 }, b: 2 }));
 });
 
+test('artifact hashing operates on raw bytes and rejects empty artifacts', () => {
+  assert.equal(EvidenceCollector.hashArtifact(new Uint8Array([1, 2, 3])), EvidenceCollector.hashArtifact(new Uint8Array([1, 2, 3])));
+  assert.notEqual(EvidenceCollector.hashArtifact(new Uint8Array([1, 2, 3])), EvidenceCollector.hashArtifact(new Uint8Array([1, 2, 4])));
+  assert.throws(() => EvidenceCollector.hashArtifact(new Uint8Array()), /BYTES_REQUIRED/);
+});
+
 test('canonical hashing rejects circular and non-finite values', () => {
   const circular: Record<string, unknown> = {};
   circular.self = circular;
