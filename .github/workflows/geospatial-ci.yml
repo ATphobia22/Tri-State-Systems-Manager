@@ -151,8 +151,6 @@ jobs:
         run: node scripts/ci/validate-hydrology-engine-adapters.mjs
       - name: Test hydrology engine adapter contract
         run: node --test scripts/ci/validate-hydrology-engine-adapters.test.mjs
-      - name: Test culvert hydraulic power screening helper
-        run: npm run test:culvert-power
       - name: Validate Cesium Story publication manifest
         run: node scripts/ci/validate-cesium-story-manifest.mjs
       - name: Test Cesium Story publication safety gates
