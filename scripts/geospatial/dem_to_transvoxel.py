@@ -21,7 +21,10 @@ import numpy as np
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 ROOT_DIR = SCRIPT_DIR.parents[1]
-DEM_PATH = os.environ.get("TSM_DEM_PATH", str(ROOT_DIR / "data" / "posey-county" / "dem.tif"))
+DEM_PATH = os.environ.get(
+    "TSM_DEM_PATH",
+    str(ROOT_DIR / "data" / "posey-county" / "elevation" / "in2020-26850945-12-dem-2.5ft.tif"),
+)
 # Compatibility constant: load_dem_window normalizes source elevations to metres.
 FT_TO_M = 1.0
 VERTICAL_UNIT_TO_METERS = {"m": 1.0, "meter": 1.0, "meters": 1.0, "metre": 1.0, "metres": 1.0,
@@ -84,8 +87,6 @@ def load_dem_window(path: str | os.PathLike[str], wx: int, wy: int, n: int, heig
         pixel_y = abs(float(src.transform.e))
         if not math.isfinite(pixel_x) or not math.isfinite(pixel_y) or pixel_x <= 0 or pixel_y <= 0:
             raise ValueError("DEM pixel transform is invalid")
-        # Rasterio exposes the projected linear-unit conversion as a CRS property.
-        # Convert the raster's native horizontal units to metres without assuming feet.
         if abs(float(src.transform.b)) > 1e-12 or abs(float(src.transform.d)) > 1e-12:
             raise ValueError("rotated/sheared DEM transforms are unsupported by this mesher")
         try:
@@ -105,8 +106,6 @@ def load_dem_window(path: str | os.PathLike[str], wx: int, wy: int, n: int, heig
         values = np.asarray(data.filled(np.nan), dtype=np.float64) * scale
         if mask.any() or not np.isfinite(values).all():
             raise ValueError("DEM window contains NoData or non-finite elevation values; do not silently fill terrain")
-    # Preserve the source raster's affine origin in the caller's pixel indexing;
-    # px_m is the metric grid spacing required by existing consumers.
     return values, px_m
 
 
