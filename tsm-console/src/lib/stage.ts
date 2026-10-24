@@ -27,6 +27,7 @@ function categorize(ft: number | null): MapTwinLoaderData['stage']['floodCategor
 const PRIMARY_USGS = '03378500';
 const PRIMARY_NWS = 'MTVI3';
 
+/** call ONLY from an explicit user button press; loaders must use unavailableStage(). */
 export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
   const attempts = [
     `/api/hydrologic/live?source=usgs&usgs_id=${PRIMARY_USGS}&nws_id=${PRIMARY_NWS}`,
@@ -78,6 +79,8 @@ export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
         gage_zero_navd88_ft: conversion?.gageZeroNavd88Ft ?? null,
         conversion_applied: conversion?.conversionApplied ?? false,
         sourceUri: typeof record.sourceUri === 'string' ? record.sourceUri : null,
+        site_transfer_status: 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE',
+        hydraulic_extrusion_eligibility: 'NOT_ELIGIBLE_UNVERIFIED_SITE_TRANSFER',
         ...((conversion ? stageVerticalMetadata(PRIMARY_USGS, conversion) : {}) as Record<
           string,
           unknown
@@ -107,6 +110,8 @@ export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
     gage_zero_navd88_ft: null,
     conversion_applied: false,
     sourceUri: null,
+    site_transfer_status: 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE',
+    hydraulic_extrusion_eligibility: 'NOT_ELIGIBLE_UNVERIFIED_SITE_TRANSFER',
   };
 }
 
