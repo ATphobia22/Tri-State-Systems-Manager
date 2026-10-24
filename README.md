@@ -175,6 +175,13 @@ The repository contains a multi-step forecasting pipeline with ingestion, antece
 
 **Operational-status rule:** No current precipitation condition, gage value, forecast, alert, or source-availability claim is made by this README. Check the live source and runtime health at the time of use; record observation time, source URL/identifier, units, datum, quality flags, and model version with any operational report.
 
+### Apple open-source reuse assessment and CI repairs
+
+- `docs/research/APPLE-OPEN-SOURCE-REUSE-ASSESSMENT.md` reviews Apple Open Source, Pkl, FoundationDB, SwiftNIO, and Swift Collections. It records what is applicable to TSM and why Swift-only libraries are not added to the TypeScript runtime.
+- `npm run test:npm-workspaces` checks that internal package dependencies use npm-compatible semver ranges and align with the local workspace versions.
+- `tsm-console/src/lib/stage.ts` exports `unavailableStage()` for non-live loaders, returning null measurements and no network side effects.
+- UACF workspace manifests now use version ranges instead of pnpm/yarn-only `workspace:*` syntax.
+
 ### Apple Developer Forums findings — applied guardrails
 
 - `docs/integrations/APPLE-DEVELOPER-FORUMS-FINDINGS.md` records findings from Apple Developer Forums and official Apple networking/App Intents documentation, separating forum advice from normative API contracts.
