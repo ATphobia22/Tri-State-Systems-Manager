@@ -31,7 +31,7 @@ def build_solver_evidence(*,run_id:str,solver:str,solver_version:str|None,input_
     inputs=tuple(ArtifactDigest("input",d.path,d.byte_length,d.sha256) for d in map(sha256_file,input_paths))
     outputs=tuple(ArtifactDigest("output",d.path,d.byte_length,d.sha256) for d in map(sha256_file,output_paths))+tuple(output_digests)
     messages=tuple(str(m) for m in validation_messages); state=explicit_state
-    if state==ExecutionState.VERIFIED and (not outputs or not convergence_evidence or messages): state=ExecutionState.NOT_EVALUATED; messages+=("VERIFICATION_PRECONDITIONS_NOT_MET",)
+    if state==ExecutionState.VERIFIED and (not inputs or not outputs or not convergence_evidence or messages): state=ExecutionState.NOT_EVALUATED; messages+=("VERIFICATION_PRECONDITIONS_NOT_MET",)
     created=created_at_utc or datetime.now(timezone.utc).isoformat()
     parsed=datetime.fromisoformat(created.replace("Z","+00:00"))
     if parsed.tzinfo is None or parsed.utcoffset() is None: raise ValueError("EVIDENCE_TIMESTAMP_MUST_INCLUDE_TIMEZONE")
