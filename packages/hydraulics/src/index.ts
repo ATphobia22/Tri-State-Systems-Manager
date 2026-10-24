@@ -44,3 +44,6 @@ export function classifyHydraulicAuthority(seal: HydraulicRunSeal): {
     reason: 'Human-reviewed simulation still not a regulatory map or LOMA',
   };
 }
+
+export { estimateHydraulicPower } from './culvert-hydropower';
+export type { CulvertHydraulicPowerInput, CulvertHydraulicPowerEstimate } from './culvert-hydropower';
