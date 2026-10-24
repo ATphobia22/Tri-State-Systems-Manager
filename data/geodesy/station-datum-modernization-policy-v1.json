@@ -1,0 +1,18 @@
+{
+  "version": "1.0.0",
+  "supported_frames": {
+    "horizontal": ["NAD83(2011)", "NAD83(NSRS2007)", "WGS84", "NATRF2022_PRELIMINARY"],
+    "vertical": ["NAVD88", "NGVD29", "NAPGD2022_PRELIMINARY"]
+  },
+  "active_default": {
+    "horizontal": "NAD83(2011)",
+    "vertical": "NAVD88",
+    "realization_epoch": "2010.00"
+  },
+  "transformation_policy": {
+    "allow_silent_conversion": false,
+    "require_approved_grid": true,
+    "unsupported_action": "MARK_UNAVAILABLE",
+    "preliminary_frames_transformable": false
+  }
+}
