@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://tri-state-systems-manager.example/schemas/compass-waypoint.schema.json",
+  "$id": "urn:tsm:schemas:compass-waypoint:1.0.0",
   "title": "TSM Compass Waypoint",
   "description": "A candidate field waypoint recorded from a device compass or entered coordinates. Not survey-grade evidence by default.",
   "type": "object",
