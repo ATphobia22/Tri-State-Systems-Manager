@@ -148,5 +148,7 @@ export function unavailableStage(): MapTwinLoaderData['stage'] {
     gage_zero_navd88_ft: null,
     conversion_applied: false,
     sourceUri: null,
+    site_transfer_status: 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE',
+    hydraulic_extrusion_eligibility: 'NOT_ELIGIBLE_UNVERIFIED_SITE_TRANSFER',
   };
 }
