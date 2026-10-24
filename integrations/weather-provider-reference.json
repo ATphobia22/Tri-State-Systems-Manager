@@ -1,0 +1,228 @@
+{
+  "schemaVersion": "1.0.0",
+  "registryId": "tsm.weather-provider-reference",
+  "purpose": "Reference inventory of providers listed by Apple for the Weather app, plus a separately identified WeatherKit integration. This is not an authorization, endpoint catalog, service-health assertion, or proof of direct API access.",
+  "reviewedAt": "2026-10-24",
+  "authoritativeReferences": [
+    {
+      "title": "Apple Weather feature availability and data sources",
+      "url": "https://support.apple.com/en-us/105038"
+    },
+    {
+      "title": "WeatherKit overview",
+      "url": "https://developer.apple.com/weatherkit/"
+    },
+    {
+      "title": "WeatherKit API documentation",
+      "url": "https://developer.apple.com/documentation/weatherkit"
+    },
+    {
+      "title": "WeatherKit data-source attribution",
+      "url": "https://developer.apple.com/weatherkit/data-source-attribution/"
+    }
+  ],
+  "integrationRules": [
+    "Apple's Weather app source list is attribution context only; do not infer that each provider offers TSM direct API access.",
+    "Verify API terms, authentication, quotas, geographic coverage, retention, redistribution, attribution, and commercial-use rights independently before enabling ingestion.",
+    "Record provenance at the data-product level, not only at provider level.",
+    "WeatherKit is a separate optional integration; it does not replace direct NOAA/NWS or other national-authority feeds.",
+    "Never label a provider operational until endpoint behavior and current data freshness have been tested."
+  ],
+  "appleWeatherProviders": [
+    {
+      "id": "bom-australia",
+      "name": "Australian Government Bureau of Meteorology",
+      "website": "https://www.bom.gov.au/",
+      "appleListed": true,
+      "directAccessStatus": "unverified"
+    },
+    {
+      "id": "breezometer",
+      "name": "BreezoMeter",
+      "website": "https://www.breezometer.com/",
+      "appleListed": true,
+      "directAccessStatus": "unverified"
+    },
+    {
+      "id": "cma-pmsc",
+      "name": "CMA Public Meteorological Service Centre",
+      "website": "https://www.cma.gov.cn/",
+      "appleListed": true,
+      "directAccessStatus": "unverified"
+    },
+    {
+      "id": "dwd",
+      "name": "Deutscher Wetterdienst",
+      "website": "https://www.dwd.de/",
+      "appleListed": true,
+      "directAccessStatus": "unverified"
+    },
+    {
+      "id": "eccc",
+      "name": "Environment and Climate Change Canada",
+      "website": "https://www.canada.ca/en/environment-climate-change.html",
+      "appleListed": true,
+      "directAccessStatus": "unverified"
+    },
+    {
+      "id": "eumetnet-meteoalarm",
+      "name": "EUMETNET - MeteoAlarm",
+      "website": "https://www.meteoalarm.org/",
+      "appleListed": true,
+      "directAccessStatus": "unverified"
+    },
+    {
+      "id": "ecmwf",
+      "name": "European Centre for Medium-Range Weather Forecasts",
+      "website": "https://www.ecmwf.int/",
+      "appleListed": true,
+      "directAccessStatus": "unverified"
+    },
+    {
+      "id": "hong-kong-observatory",
+      "name": "Hong Kong Observatory",
+      "website": "https://www.hko.gov.hk/",
+      "appleListed": true,
+      "directAccessStatus": "unverified"
+    },
+    {
+      "id": "imd-india",
+      "name": "India Meteorological Department",
+      "website": "https://mausam.imd.gov.in/",
+      "appleListed": true,
+      "directAccessStatus": "unverified"
+    },
+    {
+      "id": "inmet-brazil",
+      "name": "Instituto Nacional de Meteorologia",
+      "website": "https://portal.inmet.gov.br/",
+      "appleListed": true,
+      "directAccessStatus": "unverified"
+    },
+    {
+      "id": "jma",
+      "name": "Japan Meteorological Agency",
+      "website": "https://www.jma.go.jp/",
+      "appleListed": true,
+      "directAccessStatus": "unverified"
+    },
+    {
+      "id": "meteo-france",
+      "name": "Météo-France",
+      "website": "https://meteofrance.com/",
+      "appleListed": true,
+      "directAccessStatus": "unverified"
+    },
+    {
+      "id": "metservice-new-zealand",
+      "name": "Meteorological Service of New Zealand Limited",
+      "website": "https://www.metservice.com/",
+      "appleListed": true,
+      "directAccessStatus": "unverified"
+    },
+    {
+      "id": "noaa-nws",
+      "name": "National Weather Service / NOAA",
+      "website": "https://www.weather.gov/",
+      "appleListed": true,
+      "directAccessStatus": "unverified",
+      "tsmExistingIntegration": "api.weather.gov; keep existing direct NWS integration independent of Apple Weather attribution"
+    },
+    {
+      "id": "qweather",
+      "name": "QWeather",
+      "website": "https://www.qweather.com/",
+      "appleListed": true,
+      "directAccessStatus": "unverified"
+    },
+    {
+      "id": "smn-argentina",
+      "name": "Servicio Meteorológico Nacional",
+      "website": "https://www.smn.gob.ar/",
+      "appleListed": true,
+      "directAccessStatus": "unverified"
+    },
+    {
+      "id": "thai-meteorological-department",
+      "name": "Thai Meteorological Department",
+      "website": "https://www.tmd.go.th/",
+      "appleListed": true,
+      "directAccessStatus": "unverified"
+    },
+    {
+      "id": "met-office-uk",
+      "name": "The Met Office",
+      "website": "https://www.metoffice.gov.uk/",
+      "appleListed": true,
+      "directAccessStatus": "unverified"
+    },
+    {
+      "id": "weather-company",
+      "name": "The Weather Channel / The Weather Company",
+      "website": "https://weather.com/",
+      "appleListed": true,
+      "directAccessStatus": "unverified"
+    }
+  ],
+  "appleWeatherFeatureNotes": [
+    {
+      "feature": "10-day forecast",
+      "note": "Available in most regions; Apple Weather is the default unless Apple specifies otherwise."
+    },
+    {
+      "feature": "Severe weather",
+      "note": "Availability and data provider vary by country/region; mainland China uses QWeather per Apple's support article."
+    },
+    {
+      "feature": "Next-hour precipitation",
+      "note": "Apple documents availability in Australia, Ireland, Japan, the United Kingdom, and the United States."
+    },
+    {
+      "feature": "Air quality",
+      "note": "Apple documents BreezoMeter for listed regions and QWeather for mainland China; regional availability varies."
+    },
+    {
+      "feature": "Temperature, precipitation, and wind maps",
+      "note": "Apple Weather is the documented default source unless otherwise specified; air-quality map attribution differs."
+    }
+  ],
+  "optionalIntegrations": [
+    {
+      "id": "apple-weatherkit",
+      "name": "Apple WeatherKit",
+      "status": "optional-candidate",
+      "accessStatus": "requires independent account, entitlement, and terms verification",
+      "docs": "https://developer.apple.com/weatherkit/",
+      "products": [
+        "current conditions",
+        "hourly forecasts",
+        "daily forecasts",
+        "next-hour precipitation in supported regions",
+        "severe weather alerts in supported regions"
+      ],
+      "constraints": [
+        "Implement as a separate adapter behind explicit configuration.",
+        "Honor WeatherKit attribution requirements in the UI and exported products.",
+        "Do not silently substitute WeatherKit for authoritative hydrology, observed gauge data, or regulatory flood products."
+      ]
+    }
+  ],
+  "productProvenanceFields": [
+    "providerId",
+    "productId",
+    "endpointOrDataset",
+    "retrievedAt",
+    "issuedAt",
+    "validFrom",
+    "validTo",
+    "observedAt",
+    "units",
+    "geometryCrs",
+    "verticalDatum",
+    "licenseReference",
+    "attributionText",
+    "payloadSha256",
+    "qualityFlags",
+    "freshnessStatus"
+  ]
+}
