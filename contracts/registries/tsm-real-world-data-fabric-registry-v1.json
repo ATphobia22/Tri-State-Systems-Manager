@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TSM Real-World Data Fabric Registry",
+  "version": "1.0.0",
+  "generated_at": "2026-10-24T09:56:40.788Z",
+  "policy": "Technology informs people; it does not silently govern people. Human authority remains final. Provisional telemetry labeled provisional.",
+  "site_anchor": {
+    "name": "13101 Bonebank Rd, Posey County IN",
+    "lat": 37.84589,
+    "lon": -88.0051,
+    "primary_usgs": "03378500",
+    "primary_nws": "MTVI3"
+  },
+  "wiring": {
+    "server_source_fabric": "tsm-console/server/ingestion/source-fabric.mjs",
+    "source_contracts": "tsm-console/server/ingestion/source-contracts.mjs",
+    "client_stage": "tsm-console/src/lib/stage.ts",
+    "indiana_catalog": "contracts/registries mirrored from tsm-indiana-data-catalog-v1.1",
+    "nfhl_priority_layers": [28, 27, 16, 23, 34, 3, 22, 32]
+  },
+  "fabrics": [
+    {
+      "id": "usgs-nwis-iv",
+      "plane": "scientific_simulation",
+      "authority": "USGS",
+      "role": "Gage height / discharge instantaneous values",
+      "endpoint": "https://waterservices.usgs.gov/nwis/iv/?format=json&sites=03378500&parameterCd=00065&siteStatus=all",
+      "ingest_module": "tsm-console/server/ingestion/usgs-nwis.mjs",
+      "client_path": "tsm-console/src/lib/stage.ts",
+      "status": "LIVE"
+    },
+    {
+      "id": "usgs-ogc-latest-continuous",
+      "plane": "scientific_simulation",
+      "authority": "USGS",
+      "role": "Modern OGC continuous observations",
+      "endpoint": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/latest-continuous/items?f=json&limit=1&monitoring_location_id=USGS-03378500",
+      "ingest_module": "tsm-console/server/ingestion/usgs-nwis.mjs",
+      "status": "LIVE"
+    },
+    {
+      "id": "noaa-nwps-api",
+      "plane": "scientific_simulation",
+      "authority": "NOAA/NWS",
+      "role": "NWPS gauges / stages (MTVI3 etc.)",
+      "endpoint": "https://api.water.noaa.gov/nwps/v1/gauges/MTVI3",
+      "ingest_module": "tsm-console/server/ingestion/noaa-nwps.mjs",
+      "status": "LIVE"
+    },
+    {
+      "id": "fema-nfhl-mapserver",
+      "plane": "evidence_governance",
+      "authority": "FEMA",
+      "role": "NFHL flood hazard layers (SFHA, BFE, FIRM, LOMC)",
+      "endpoint": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer?f=pjson",
+      "ingest_module": "tsm-console/server/ingestion/fema-nfhl.mjs",
+      "status": "LIVE"
+    },
+    {
+      "id": "usgs-3dep-elevation",
+      "plane": "scientific_simulation",
+      "authority": "USGS",
+      "role": "3DEP Elevation ImageServer",
+      "endpoint": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer?f=pjson",
+      "ingest_module": "tsm-console/server/ingestion/usgs-tnm.mjs",
+      "status": "LIVE"
+    },
+    {
+      "id": "usgs-tnm-access",
+      "plane": "scientific_simulation",
+      "authority": "USGS",
+      "role": "TNM product discovery",
+      "endpoint": "https://tnmaccess.nationalmap.gov/api/v1/datasets?f=json",
+      "ingest_module": "tsm-console/server/ingestion/usgs-tnm.mjs",
+      "status": "LIVE"
+    },
+    {
+      "id": "igio-parcels-current",
+      "plane": "public_visualization",
+      "authority": "Indiana GIO",
+      "role": "Parcel boundaries FeatureServer",
+      "endpoint": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_Current/FeatureServer/0?f=pjson",
+      "ingest_module": "tsm-console/server/ingestion/indiana-gis.mjs",
+      "status": "LIVE"
+    },
+    {
+      "id": "igio-buildings",
+      "plane": "public_visualization",
+      "authority": "Indiana GIO",
+      "role": "Building footprints FeatureServer",
+      "endpoint": "https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0?f=pjson",
+      "ingest_module": "tsm-console/server/ingestion/indiana-gis.mjs",
+      "status": "LIVE"
+    },
+    {
+      "id": "usace-nid-arcgis",
+      "plane": "evidence_governance",
+      "authority": "USACE",
+      "role": "National Inventory of Dams FeatureServer",
+      "endpoint": "https://services2.arcgis.com/FiaPA4ga0iQKduv3/arcgis/rest/services/NID_v1/FeatureServer/0?f=pjson",
+      "ingest_module": "tsm-console/server/ingestion/usace-nld.mjs",
+      "status": "LIVE"
+    },
+    {
+      "id": "nws-api-points",
+      "plane": "scientific_simulation",
+      "authority": "NWS",
+      "role": "Weather API points (Posey centroid)",
+      "endpoint": "https://api.weather.gov/points/37.8459,-88.0051",
+      "ingest_module": "tsm-console/server/ingestion/nws-weather.mjs",
+      "status": "LIVE"
+    }
+  ],
+  "summary": {
+    "total": 10,
+    "live": 10,
+    "degraded": 0
+  }
+}
