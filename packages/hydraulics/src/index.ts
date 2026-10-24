@@ -45,5 +45,5 @@ export function classifyHydraulicAuthority(seal: HydraulicRunSeal): {
   };
 }
 
-export { estimateHydraulicPower } from './culvert-hydropower';
+export { estimateHydraulicPower } from './culvert-hydropower.js';
 export type { CulvertHydraulicPowerInput, CulvertHydraulicPowerEstimate } from './culvert-hydropower';
