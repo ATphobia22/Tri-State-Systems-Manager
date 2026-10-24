@@ -102,6 +102,7 @@ export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
     status: 'unavailable',
     qualifier: null,
     context_gap_summary: gapSummary || null,
+    context_gap_code: 'missing_live_stage',
     discharge_cfs: null,
     discharge_observedAt: null,
     discharge_status: 'unavailable',
