@@ -1,12 +1,13 @@
 import { siteSpatialReference, siteVerticalReference } from './geodetic';
 import { SITE } from '../types/site';
 import type { MapTwinLoaderData } from '../types/loaders';
-import { convertGageHeightToNavd88, stageVerticalMetadata } from './gage-datums';
+import { GAGE_DATUM_TABLE, convertGageHeightToNavd88, stageVerticalMetadata } from './gage-datums';
 import { tsmApiUrl } from './api-base';
 import { formatContextGapsForUi } from './authoritative-context';
 
 /**
  * Live stage fetch — always via TSM server hydrologic plane.
+ * call ONLY from an explicit user button press; page loaders use unavailableStage().
  * Never calls legacy waterservices.usgs.gov from the browser.
  * Prefer USGS modern OGC (source=usgs); NOAA MTVI3 is often obs_not_current.
  * Vertical reference remains GAGE_DATUM unless a validated gage-zero exists.
@@ -26,6 +27,36 @@ function categorize(ft: number | null): MapTwinLoaderData['stage']['floodCategor
 
 const PRIMARY_USGS = '03378500';
 const PRIMARY_NWS = 'MTVI3';
+
+/**
+ * Fail-closed sentinel for page loaders and unavailable live telemetry.
+ * It contains no estimated or interpolated hydrologic values.
+ */
+export function unavailableStage(): MapTwinLoaderData['stage'] {
+  const gapSummary = formatContextGapsForUi();
+  return {
+    source: 'UNAVAILABLE',
+    gaugeId: PRIMARY_USGS,
+    value_ft: null,
+    timestamp: null,
+    retrievedAt: new Date().toISOString(),
+    status: 'unavailable',
+    qualifier: gapSummary ? `missing_live_stage; ${gapSummary.slice(0, 240)}` : 'missing_live_stage',
+    discharge_cfs: null,
+    discharge_observedAt: null,
+    discharge_status: 'unavailable',
+    floodCategory: 'unknown',
+    vertical_reference: 'GAGE_DATUM',
+    wse_navd88_ft: null,
+    gage_zero_navd88_ft: null,
+    conversion_applied: false,
+    vertical_conversion_status: 'UNVERIFIED_CONVERSION',
+    vertical_conversion_source: null,
+    site_transfer_status: 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE',
+    hydraulic_extrusion_eligibility: 'NOT_ELIGIBLE_UNVERIFIED_SITE_TRANSFER',
+    sourceUri: null,
+  };
+}
 
 export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
   const attempts = [
@@ -77,6 +108,10 @@ export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
         wse_navd88_ft: conversion?.wseNavd88Ft ?? null,
         gage_zero_navd88_ft: conversion?.gageZeroNavd88Ft ?? null,
         conversion_applied: conversion?.conversionApplied ?? false,
+        vertical_conversion_status: conversion?.conversionPublished ? 'PUBLISHED_USGS_SIR_2016_5119' : 'UNVERIFIED_CONVERSION',
+        vertical_conversion_source: GAGE_DATUM_TABLE[PRIMARY_USGS]?.sourceUri ?? null,
+        site_transfer_status: 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE',
+        hydraulic_extrusion_eligibility: 'NOT_ELIGIBLE_UNVERIFIED_SITE_TRANSFER',
         sourceUri: typeof record.sourceUri === 'string' ? record.sourceUri : null,
         ...((conversion ? stageVerticalMetadata(PRIMARY_USGS, conversion) : {}) as Record<
           string,
@@ -88,26 +123,7 @@ export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
     }
   }
 
-  // Explicit missing live hydrologic context — do not invent stage values.
-  const gapSummary = formatContextGapsForUi();
-  return {
-    source: 'UNAVAILABLE',
-    gaugeId: PRIMARY_USGS,
-    value_ft: null,
-    timestamp: null,
-    retrievedAt: new Date().toISOString(),
-    status: 'unavailable',
-    qualifier: gapSummary ? `missing_live_stage; ${gapSummary.slice(0, 240)}` : 'missing_live_stage',
-    discharge_cfs: null,
-    discharge_observedAt: null,
-    discharge_status: 'unavailable',
-    floodCategory: 'unknown',
-    vertical_reference: 'GAGE_DATUM',
-    wse_navd88_ft: null,
-    gage_zero_navd88_ft: null,
-    conversion_applied: false,
-    sourceUri: null,
-  };
+  return unavailableStage();
 }
 
 export function withSiteGeodesy<T extends Record<string, unknown>>(payload: T) {

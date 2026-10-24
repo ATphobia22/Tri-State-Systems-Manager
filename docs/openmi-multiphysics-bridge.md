@@ -38,10 +38,14 @@ Each `QuantityValueSet` carries:
 - source authority;
 - software/model versions;
 - a 64-character SHA-256 `source_provenance_hash`;
+- a `payload_sha256` digest of deterministic protobuf serialization with the digest field empty;
 - validation status.
 
 The bridge rejects missing provenance, missing datum metadata, non-finite
-values, malformed timestamps, and mismatched spatial element/value counts.
+values, malformed timestamps, mismatched spatial element/value counts, missing
+payload digests, and digests that do not match the canonical exchange payload.
+The payload digest is an integrity check; the separate source provenance hash
+still must resolve to the evidence/source record that produced the values.
 
 ## Intended component mapping
 
@@ -78,8 +82,11 @@ review.
 The repository's current rule binding also preserves jurisdiction-specific
 logic:
 
-- Indiana DNR uses a 0.15 ft criterion for the defined adverse floodway effect
-  under 312 IAC 10; FEMA no-rise processes are a separate control.
+- Indiana DNR describes a 0.14 ft cumulative surcharge ceiling for state
+  permitting; 312 IAC 10-2-3 separately defines an adverse floodway effect at
+  an increase of at least 0.15 ft under specified conditions. FEMA-mapped
+  floodways separately require 0.00 ft no-rise or the applicable CLOMR/LOMR
+  process. These controls are not interchangeable.
 - Illinois Part 3700 defines the floodway around a 0.1 ft stage increase, with
   context-specific construction standards.
 - Kentucky 401 KAR 4:060 defines "no impact" separately from its one-foot

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import hashlib
 import logging
 import math
 import re
@@ -120,6 +121,14 @@ class ExchangeRouter:
                 )
 
 
+def compute_payload_sha256(value_set: QuantityValueSet) -> str:
+    """Hash deterministic protobuf bytes excluding the digest field itself."""
+    canonical = type(value_set)()
+    canonical.CopyFrom(value_set)
+    canonical.payload_sha256 = ""
+    return hashlib.sha256(canonical.SerializeToString(deterministic=True)).hexdigest()
+
+
 def _validate_value_set(value_set: QuantityValueSet) -> None:
     required = {
         "quantity_id": value_set.quantity_id,
@@ -140,6 +149,10 @@ def _validate_value_set(value_set: QuantityValueSet) -> None:
 
     if not _SHA256_RE.fullmatch(value_set.source_provenance_hash):
         raise ValueError("source_provenance_hash must be a lowercase SHA-256 digest")
+    if not _SHA256_RE.fullmatch(value_set.payload_sha256):
+        raise ValueError("payload_sha256 must be a lowercase SHA-256 digest")
+    if compute_payload_sha256(value_set) != value_set.payload_sha256:
+        raise ValueError("payload_sha256 does not match canonical exchange payload")
 
     try:
         datetime.fromisoformat(value_set.timestamp.replace("Z", "+00:00"))
