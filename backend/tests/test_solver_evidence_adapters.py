@@ -4,7 +4,7 @@ from pathlib import Path
 import h5py
 import numpy as np
 from backend.solver_evidence_adapters import inspect_hecras_run, inspect_modflow6_run, verify_bishop_result
-from backend.engineering_evidence import ExecutionState
+from backend.engineering_evidence import ExecutionState, sha256_file
 from backend.solvers.geotech import calculate_bishop_factor_of_safety
 
 class SolverAdapterEvidenceTests(unittest.TestCase):
@@ -26,10 +26,10 @@ class SolverAdapterEvidenceTests(unittest.TestCase):
         listing=self.root/"model.lst"; heads=self.root/"model.hds"; budget=self.root/"model.cbc"; report=self.root/"mass.json"
         listing.write_text("NORMAL TERMINATION OF SIMULATION\\n",encoding="utf-8")
         heads.write_bytes(b"head output fixture"); budget.write_bytes(b"budget output fixture")
-        report.write_text(json.dumps({"relative_mass_balance_error":0.001,"tolerance":0.01}),encoding="utf-8")
+        report.write_text(json.dumps({"relative_mass_balance_error":0.001,"tolerance":0.01,"source_listing_sha256":sha256_file(listing).sha256,"extraction_method":"test fixture parser"}),encoding="utf-8")
         args=dict(run_id="mf-1",solver_version="fixture",listing_file=listing,head_file=heads,budget_file=budget,mass_balance_report=report,input_paths=[self.input],max_relative_mass_balance_error=0.02)
         self.assertEqual(inspect_modflow6_run(**args).state,ExecutionState.VERIFIED.value)
-        report.write_text(json.dumps({"relative_mass_balance_error":0.5,"tolerance":0.01}),encoding="utf-8")
+        report.write_text(json.dumps({"relative_mass_balance_error":0.5,"tolerance":0.01,"source_listing_sha256":sha256_file(listing).sha256,"extraction_method":"test fixture parser"}),encoding="utf-8")
         self.assertEqual(inspect_modflow6_run(**{**args,"run_id":"mf-2"}).state,ExecutionState.FAILED.value)
         listing.write_text("FAILED TO CONVERGE\\n",encoding="utf-8")
         self.assertEqual(inspect_modflow6_run(**{**args,"run_id":"mf-3"}).state,ExecutionState.NON_CONVERGENT.value)
