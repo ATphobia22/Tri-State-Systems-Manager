@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tsm.tristate.org/schemas/apple-place-reference.schema.json",
+  "title": "TSM Optional Apple Place Reference",
+  "description": "Optional display/discovery reference to an Apple Maps place. Never an authoritative parcel, survey, hydrologic, or engineering identifier.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "provider",
+    "placeId",
+    "retrievedAt",
+    "useBoundary",
+    "engineeringAuthority",
+    "coordinateEvidence"
+  ],
+  "properties": {
+    "provider": {
+      "const": "apple-mapkit"
+    },
+    "placeId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512,
+      "description": "Apple Place ID returned by a supported MapKit/MapKit JS workflow. Omit the object if no valid Place ID exists."
+    },
+    "retrievedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "displayName": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 512
+    },
+    "address": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 2048
+    },
+    "sourceApi": {
+      "enum": [
+        "MapKit",
+        "MapKitJS",
+        "MapsEmbedAPI",
+        "unknown"
+      ]
+    },
+    "useBoundary": {
+      "const": "discovery-display-only"
+    },
+    "engineeringAuthority": {
+      "const": "not-authoritative"
+    },
+    "coordinateEvidence": {
+      "const": "must-be-sourced-separately"
+    },
+    "attributionText": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 2048
+    }
+  }
+}

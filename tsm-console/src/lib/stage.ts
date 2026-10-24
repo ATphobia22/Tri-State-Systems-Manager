@@ -27,6 +27,7 @@ function categorize(ft: number | null): MapTwinLoaderData['stage']['floodCategor
 const PRIMARY_USGS = '03378500';
 const PRIMARY_NWS = 'MTVI3';
 
+/** call ONLY from an explicit user button press; loaders must use unavailableStage(). */
 export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
   const attempts = [
     `/api/hydrologic/live?source=usgs&usgs_id=${PRIMARY_USGS}&nws_id=${PRIMARY_NWS}`,
@@ -78,6 +79,8 @@ export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
         gage_zero_navd88_ft: conversion?.gageZeroNavd88Ft ?? null,
         conversion_applied: conversion?.conversionApplied ?? false,
         sourceUri: typeof record.sourceUri === 'string' ? record.sourceUri : null,
+        site_transfer_status: 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE',
+        hydraulic_extrusion_eligibility: 'NOT_ELIGIBLE_UNVERIFIED_SITE_TRANSFER',
         ...((conversion ? stageVerticalMetadata(PRIMARY_USGS, conversion) : {}) as Record<
           string,
           unknown
@@ -107,6 +110,8 @@ export async function fetchLiveStage(): Promise<MapTwinLoaderData['stage']> {
     gage_zero_navd88_ft: null,
     conversion_applied: false,
     sourceUri: null,
+    site_transfer_status: 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE',
+    hydraulic_extrusion_eligibility: 'NOT_ELIGIBLE_UNVERIFIED_SITE_TRANSFER',
   };
 }
 
@@ -115,5 +120,35 @@ export function withSiteGeodesy<T extends Record<string, unknown>>(payload: T) {
     ...payload,
     spatial_reference: siteSpatialReference(),
     vertical_reference_site: siteVerticalReference(),
+  };
+}
+
+
+/**
+ * Explicitly unavailable stage state for initial render and non-live routes.
+ * This function is local-only: it performs no network request and never invents
+ * a stage value. Live refresh is reserved for explicit user-triggered actions.
+ */
+export function unavailableStage(): MapTwinLoaderData['stage'] {
+  const gapSummary = formatContextGapsForUi();
+  return {
+    source: 'UNAVAILABLE',
+    gaugeId: PRIMARY_USGS,
+    value_ft: null,
+    timestamp: null,
+    retrievedAt: new Date().toISOString(),
+    status: 'unavailable',
+    qualifier: gapSummary ? `missing_live_stage; ${gapSummary.slice(0, 240)}` : 'missing_live_stage',
+    discharge_cfs: null,
+    discharge_observedAt: null,
+    discharge_status: 'unavailable',
+    floodCategory: 'unknown',
+    vertical_reference: 'GAGE_DATUM',
+    wse_navd88_ft: null,
+    gage_zero_navd88_ft: null,
+    conversion_applied: false,
+    sourceUri: null,
+    site_transfer_status: 'REQUIRES_VALIDATED_HYDRAULIC_PROFILE',
+    hydraulic_extrusion_eligibility: 'NOT_ELIGIBLE_UNVERIFIED_SITE_TRANSFER',
   };
 }

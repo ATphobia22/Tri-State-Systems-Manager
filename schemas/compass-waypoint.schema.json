@@ -101,6 +101,47 @@
             "magnetic-north",
             "unknown"
           ]
+        },
+        "accuracyDegrees": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Reported angular accuracy in degrees when available. Null or omitted means unknown; never treat missing accuracy as zero."
+        },
+        "deviceOrientation": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "portrait",
+            "portraitUpsideDown",
+            "landscapeLeft",
+            "landscapeRight",
+            "faceUp",
+            "faceDown",
+            "unknown",
+            null
+          ],
+          "description": "Device orientation used by the platform heading API, if known."
+        },
+        "activityType": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "other",
+            "automotiveNavigation",
+            "fitness",
+            "otherNavigation",
+            "airborne",
+            "unknown",
+            null
+          ],
+          "description": "Core Location activity context configured when capturing the heading, if known. This is metadata, not a guarantee of accuracy."
         }
       }
     },

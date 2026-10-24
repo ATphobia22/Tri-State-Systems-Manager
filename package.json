@@ -11,7 +11,7 @@
   ],
   "scripts": {
     "build": "npm run build:uacf && npm --prefix tsm-console run build",
-    "test": "npm run verify:uacf && npm --prefix tsm-console run test:all && python3 -m pytest backend/tests -q && node tsm-console/scripts/parse-check.mjs && npm run test:weather-reference && npm run test:apple-shortcuts-api",
+    "test": "npm run verify:uacf && npm --prefix tsm-console run test:all && python3 -m pytest backend/tests -q && node tsm-console/scripts/parse-check.mjs && npm run test:weather-reference && npm run test:apple-shortcuts-api && npm run test:apple-platform && npm run test:npm-workspaces && npm run test:apple-mapkit-reference",
     "lint": "turbo run lint",
     "clean": "turbo run clean",
     "typecheck": "npm run build:uacf && npm --prefix tsm-console run check:type",
@@ -33,7 +33,10 @@
     "test:government-fabric": "tsx --test tests/contracts/government-data-fabric.test.ts tests/contracts/government-snapshot.test.ts tests/contracts/government-source-registry.test.ts tests/contracts/government-snapshots.test.ts",
     "test:culvert-power": "tsx --test tests/contracts/culvert-hydropower-screening.test.ts",
     "test:weather-reference": "node --test tests/contracts/weather-provider-reference.test.mjs",
-    "test:apple-shortcuts-api": "node --test tests/contracts/apple-shortcuts-api.test.mjs"
+    "test:apple-shortcuts-api": "node --test tests/contracts/apple-shortcuts-api.test.mjs",
+    "test:apple-platform": "node --test tests/contracts/apple-developer-forums.test.mjs",
+    "test:npm-workspaces": "node --test tests/contracts/npm-workspace-dependencies.test.mjs",
+    "test:apple-mapkit-reference": "node --test tests/contracts/apple-mapkit-reference.test.mjs"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

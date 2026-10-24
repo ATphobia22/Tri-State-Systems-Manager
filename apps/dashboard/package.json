@@ -10,9 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@tsm/agent-runtime": "workspace:*",
-    "@tsm/browser": "workspace:*",
-    "@tsm/search": "workspace:*",
+    "@tsm/agent-runtime": "^1.0.0",
+    "@tsm/browser": "^1.0.0",
+    "@tsm/search": "^1.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

@@ -80,7 +80,7 @@ test('live stage telemetry is button-only: no auto-fetch, no polling, gates stay
   // USGS live path is OGC Water Data API (waterservices.usgs.gov retired 2026-02-22).
   // Assert hostname via URL-shaped literal, not an unanchored substring sanitization pattern.
   assert.match(usgs, /https:\/\/api\.waterdata\.usgs\.gov\/ogcapi\/v1\/collections\/latest-continuous/);
-  assert.match(source, /qualifier: 'P'|qualifier: null/);
+  assert.match(source, /typeof record\.qualifier === 'string' \? record\.qualifier : null/);
   assert.match(source, /REQUIRES_VALIDATED_HYDRAULIC_PROFILE/);
   assert.match(source, /NOT_ELIGIBLE_UNVERIFIED_SITE_TRANSFER/);
   assert.match(source, /source: 'UNAVAILABLE'/);
