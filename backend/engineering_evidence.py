@@ -25,10 +25,10 @@ def sha256_file(path: str | Path) -> ArtifactDigest:
     with target.open("rb") as stream:
         for block in iter(lambda:stream.read(1024*1024),b""): size+=len(block); digest.update(block)
     return ArtifactDigest("artifact",target.name,size,digest.hexdigest())
-def build_solver_evidence(*,run_id:str,solver:str,solver_version:str|None,input_paths:Iterable[str|Path],output_paths:Iterable[str|Path],convergence_evidence:str|None,explicit_state:ExecutionState,validation_messages:Iterable[str]=(),created_at_utc:str|None=None,output_digests:Iterable[ArtifactDigest]=())->SolverEvidence:
+def build_solver_evidence(*,run_id:str,solver:str,solver_version:str|None,input_paths:Iterable[str|Path],output_paths:Iterable[str|Path],convergence_evidence:str|None,explicit_state:ExecutionState,validation_messages:Iterable[str]=(),created_at_utc:str|None=None,output_digests:Iterable[ArtifactDigest]=(),input_digests:Iterable[ArtifactDigest]=())->SolverEvidence:
     """Hash real files and explicit adapter findings; never infer success from process status."""
     if not run_id.strip() or not solver.strip(): raise ValueError("RUN_ID_AND_SOLVER_REQUIRED")
-    inputs=tuple(ArtifactDigest("input",d.path,d.byte_length,d.sha256) for d in map(sha256_file,input_paths))
+    inputs=tuple(ArtifactDigest("input",d.path,d.byte_length,d.sha256) for d in map(sha256_file,input_paths))+tuple(input_digests)
     outputs=tuple(ArtifactDigest("output",d.path,d.byte_length,d.sha256) for d in map(sha256_file,output_paths))+tuple(output_digests)
     messages=tuple(str(m) for m in validation_messages); state=explicit_state
     if state==ExecutionState.VERIFIED and (not inputs or not outputs or not convergence_evidence or messages): state=ExecutionState.NOT_EVALUATED; messages+=("VERIFICATION_PRECONDITIONS_NOT_MET",)
