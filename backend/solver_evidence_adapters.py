@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib, json, math
 from pathlib import Path
 from typing import Any, Mapping
-from backend.engineering_evidence import ExecutionState, SolverEvidence, build_solver_evidence, sha256_file
+from backend.engineering_evidence import ExecutionState, build_solver_evidence
 from backend.engineering.hecras_hdf5 import discover_water_surface_datasets
 from backend.solvers.geotech import calculate_bishop_factor_of_safety
 
@@ -96,7 +96,12 @@ def verify_bishop_result(*, result: Mapping[str, Any], solver_inputs: Mapping[st
     state=ExecutionState.VERIFIED if matches and converged and valid_hash else (
         ExecutionState.NON_CONVERGENT if not converged else ExecutionState.FAILED)
     messages=() if state==ExecutionState.VERIFIED else ("BISHOP_REPLAY_OR_CONVERGENCE_VERIFICATION_FAILED",)
-    result_bytes=json.dumps(dict(result),sort_keys=True,separators=(",",":"),allow_nan=False).encode("utf-8")
+    try:
+        result_bytes=json.dumps(dict(result),sort_keys=True,separators=(",",":"),allow_nan=False).encode("utf-8")
+    except (TypeError, ValueError):
+        state=ExecutionState.FAILED
+        messages=("BISHOP_RESULT_NOT_CANONICAL_JSON",)
+        result_bytes=b"{}"
     from backend.engineering_evidence import ArtifactDigest
     inline_output=ArtifactDigest("output","inline:result.json",len(result_bytes),hashlib.sha256(result_bytes).hexdigest())
     return build_solver_evidence(run_id=run_id,solver="TSM Bishop simplified method",
