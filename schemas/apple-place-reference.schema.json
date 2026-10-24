@@ -9,7 +9,9 @@
     "provider",
     "placeId",
     "retrievedAt",
-    "useBoundary"
+    "useBoundary",
+    "engineeringAuthority",
+    "coordinateEvidence"
   ],
   "properties": {
     "provider": {
