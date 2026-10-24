@@ -128,6 +128,8 @@ def _validate_value_set(value_set: QuantityValueSet) -> None:
         "source_component": value_set.source_component,
         "model_run_id": value_set.model_run_id,
         "source_authority": value_set.source_authority,
+        "time_semantics": value_set.time_semantics,
+        "time_convention": value_set.time_convention,
     }
     missing = [name for name, value in required.items() if not value.strip()]
     if missing:
@@ -142,9 +144,17 @@ def _validate_value_set(value_set: QuantityValueSet) -> None:
         raise ValueError("source_provenance_hash must be a lowercase SHA-256 digest")
 
     try:
-        datetime.fromisoformat(value_set.timestamp.replace("Z", "+00:00"))
+        parsed_timestamp = datetime.fromisoformat(value_set.timestamp.replace("Z", "+00:00"))
     except ValueError as exc:
         raise ValueError("timestamp must be ISO-8601") from exc
+    if parsed_timestamp.tzinfo is None or parsed_timestamp.utcoffset() is None:
+        raise ValueError("timestamp must include an explicit UTC offset")
+    if value_set.time_semantics not in {"INSTANT", "INTERVAL_MEAN", "INTERVAL_SUM", "STATE_AT_STEP"}:
+        raise ValueError("time_semantics must be explicit and supported")
+    if not math.isfinite(value_set.time_step_seconds) or value_set.time_step_seconds <= 0:
+        raise ValueError("time_step_seconds must be finite and positive")
+    if not value_set.time_convention.strip():
+        raise ValueError("time_convention is required")
 
     if value_set.element_ids and len(value_set.element_ids) != len(value_set.values):
         raise ValueError("element_ids must align one-to-one with values")
@@ -153,6 +163,14 @@ def _validate_value_set(value_set: QuantityValueSet) -> None:
         raise ValueError("horizontal CRS is required")
     if not value_set.spatial_reference.vertical_datum:
         raise ValueError("vertical datum is required")
+    if not value_set.spatial_reference.horizontal_units.strip():
+        raise ValueError("horizontal coordinate units are required")
+    if not value_set.spatial_reference.vertical_units.strip():
+        raise ValueError("vertical coordinate units are required")
+    # EPSG:2966 is NAD83 / Indiana West (US survey feet); reject contradictory
+    # metadata rather than silently reprojecting or converting coordinates.
+    if value_set.spatial_reference.horizontal_crs.upper() == "EPSG:2966" and value_set.spatial_reference.horizontal_units not in {"ftUS", "US survey foot"}:
+        raise ValueError("horizontal units mismatch for EPSG:2966; expected US survey feet")
 
 
 class OpenMIService:
