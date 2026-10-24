@@ -1,0 +1,206 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:tsm:schemas:compass-waypoint:1.0.0",
+  "title": "TSM Compass Waypoint",
+  "description": "A candidate field waypoint recorded from a device compass or entered coordinates. Not survey-grade evidence by default.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "label",
+    "coordinates",
+    "coordinateReferenceSystem",
+    "source",
+    "recordedAt",
+    "reviewStatus"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "label": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "symbol": {
+      "type": "string",
+      "maxLength": 64
+    },
+    "coordinates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "latitude",
+        "longitude"
+      ],
+      "properties": {
+        "latitude": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        },
+        "longitude": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        },
+        "elevation": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "elevationUnit": {
+          "enum": [
+            "m",
+            "ft",
+            null
+          ]
+        },
+        "verticalDatum": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 128
+        },
+        "horizontalAccuracyMeters": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    "coordinateReferenceSystem": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Use an explicit CRS identifier; for geographic latitude/longitude, record EPSG:4326 or OGC:CRS84 according to the chosen axis-order convention."
+    },
+    "heading": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "degrees",
+        "reference"
+      ],
+      "properties": {
+        "degrees": {
+          "type": "number",
+          "minimum": 0,
+          "exclusiveMaximum": 360
+        },
+        "reference": {
+          "enum": [
+            "true-north",
+            "magnetic-north",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "deviceClass",
+        "method"
+      ],
+      "properties": {
+        "deviceClass": {
+          "enum": [
+            "iphone",
+            "apple-watch",
+            "manual-entry",
+            "other"
+          ]
+        },
+        "method": {
+          "enum": [
+            "device-compass",
+            "gps-location",
+            "coordinate-entry",
+            "import",
+            "other"
+          ]
+        },
+        "deviceModel": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 128
+        },
+        "operatingSystemVersion": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 64
+        },
+        "sourceReference": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 512
+        }
+      }
+    },
+    "recordedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "importedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sourceUrl": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uri"
+        },
+        "payloadSha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "operatorNote": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000
+        }
+      }
+    },
+    "reviewStatus": {
+      "enum": [
+        "candidate",
+        "unverified",
+        "accepted-for-context-only",
+        "rejected"
+      ]
+    },
+    "engineeringUse": {
+      "const": "not-authorized",
+      "description": "Device-compass waypoints are not authorized as survey, parcel-boundary, hydraulic-design, or regulatory evidence without independent validation."
+    }
+  }
+}

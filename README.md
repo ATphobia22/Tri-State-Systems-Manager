@@ -175,6 +175,13 @@ The repository contains a multi-step forecasting pipeline with ingestion, antece
 
 **Operational-status rule:** No current precipitation condition, gage value, forecast, alert, or source-availability claim is made by this README. Check the live source and runtime health at the time of use; record observation time, source URL/identifier, units, datum, quality flags, and model version with any operational report.
 
+### Weather provenance and field waypoints
+
+- **Apple Weather provider reference registry** (`integrations/weather-provider-reference.json`): records Apple's 19 listed weather providers, distinguishes attribution references from verified API access, and treats WeatherKit as a separate optional integration candidate.
+- **Product-level weather provenance** (`docs/data-sources/APPLE-WEATHERKIT-AND-COMPASS-INTEGRATION.md`): requires provider/product IDs, source and validity timestamps, units, CRS/datum where applicable, licensing/attribution, payload hash, quality flags, and freshness state.
+- **Compass waypoint contract** (`schemas/compass-waypoint.schema.json`): captures coordinate CRS, optional elevation and vertical datum, heading reference, capture method, timestamp, provenance, and review status. Device-compass points are context-only and are not authorized as survey, hydraulic-design, parcel-boundary, or regulatory evidence.
+- **Validation**: `npm run test:weather-reference` checks registry uniqueness and core safety invariants. Registry presence does not imply a live provider, successful API call, or approved field observation.
+
 ### 3D & Geospatial
 
 - **Unified 3D Twin** (`tsm-console/src/routes/UnifiedTwinView.tsx`): one "3D Twin" with Engineering Twin (MapLibre, offline-first) and Photorealistic (Cesium ion, opt-in) modes.
