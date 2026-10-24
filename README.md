@@ -180,6 +180,7 @@ The repository contains a multi-step forecasting pipeline with ingestion, antece
 - `docs/research/WWDC24-MAPKIT-AND-MAPS-LOCATION.md` records the official WWDC24 Place ID, Place Card, search, and Maps Embed findings alongside the separate status of forum reports.
 - `schemas/apple-place-reference.schema.json` models Apple Place IDs as display/discovery references only. It explicitly prevents treating them as authoritative parcel, survey, hydrologic, or engineering evidence.
 - `npm run test:apple-mapkit-reference` validates this boundary. No MapKit token or external Apple map dependency is configured.
+- The hydrology stage fallback preserves `REQUIRES_VALIDATED_HYDRAULIC_PROFILE` and `NOT_ELIGIBLE_UNVERIFIED_SITE_TRANSFER` even when live values are unavailable.
 
 ### Apple open-source reuse assessment and CI repairs
 
