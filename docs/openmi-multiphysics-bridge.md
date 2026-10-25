@@ -59,7 +59,7 @@ automatically executed by TSM.
 
 ## Provenance and evidence
 
-Every cross-model value is required to carry a source provenance hash. This
+Every cross-model value is required to carry a source provenance hash and a `payload_sha256` digest of deterministic protobuf serialization with the digest field blank. The latter is field 18; temporal fields 15–17 are preserved. Any missing or tampered payload digest is rejected. A checksum proves integrity, not origin or calibration. This
 connects the bridge to TSM's existing BFE/evidence architecture without
 pretending that a hash alone establishes engineering validity or legal
 admissibility.

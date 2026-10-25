@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:tsm:schemas:aas-asset-manifest:v1",
+  "title": "TSM Asset Administration Shell Interoperability Profile",
+  "description": "TSM application profile for recording AAS identity and links to submodels. This is not the complete IEC 63278 AAS metamodel schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profileVersion",
+    "assetId",
+    "assetKind",
+    "submodels",
+    "governance"
+  ],
+  "properties": {
+    "profileVersion": {
+      "const": "1.0.0"
+    },
+    "assetId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "assetKind": {
+      "enum": [
+        "Type",
+        "Instance"
+      ]
+    },
+    "derivedFrom": {
+      "type": "string",
+      "minLength": 1
+    },
+    "globalAssetId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "idShort": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
+    },
+    "submodels": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/submodelReference"
+      },
+      "uniqueItems": true
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "authority",
+        "humanReviewRequired",
+        "regulatoryDetermination"
+      ],
+      "properties": {
+        "authority": {
+          "const": "human"
+        },
+        "humanReviewRequired": {
+          "const": true
+        },
+        "regulatoryDetermination": {
+          "const": null
+        },
+        "reviewStatus": {
+          "enum": [
+            "human_review_required",
+            "recorded_unverified",
+            "verified_by_authorized_reviewer"
+          ]
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "assetKind": {
+            "const": "Instance"
+          }
+        },
+        "required": [
+          "assetKind"
+        ]
+      },
+      "then": {
+        "required": [
+          "derivedFrom"
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "submodelReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "semanticId",
+        "templateId",
+        "aspect"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "semanticId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "templateId": {
+          "type": "string",
+          "pattern": "^https?://|^urn:"
+        },
+        "templateVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "aspect": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceUri": {
+          "type": "string",
+          "format": "uri"
+        },
+        "contentHashSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    }
+  }
+}

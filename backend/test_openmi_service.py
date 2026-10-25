@@ -6,7 +6,7 @@ import asyncio
 import unittest
 
 from backend.openmi_contract import ComponentInfo, QuantityValueSet, SpatialReference
-from backend.openmi_service import ExchangeRouter, OpenMIService, _validate_value_set
+from backend.openmi_service import ExchangeRouter, OpenMIService, _validate_value_set, compute_payload_sha256
 
 
 def _value_set(**overrides: object) -> QuantityValueSet:
@@ -35,7 +35,9 @@ def _value_set(**overrides: object) -> QuantityValueSet:
         horizontal_units="ftUS",
         vertical_units="m",
     ))
-    return QuantityValueSet(**payload, spatial_reference=spatial_reference)
+    value_set = QuantityValueSet(**payload, spatial_reference=spatial_reference)
+    value_set.payload_sha256 = compute_payload_sha256(value_set)
+    return value_set
 
 
 class OpenMIContractTests(unittest.TestCase):
@@ -46,6 +48,7 @@ class OpenMIContractTests(unittest.TestCase):
         self.assertEqual(fields["time_semantics"].number, 15)
         self.assertEqual(fields["time_step_seconds"].number, 16)
         self.assertEqual(fields["time_convention"].number, 17)
+        self.assertEqual(fields["payload_sha256"].number, 18)
 
     def test_valid_exchange_item_is_accepted(self) -> None:
         _validate_value_set(_value_set())
@@ -53,6 +56,16 @@ class OpenMIContractTests(unittest.TestCase):
     def test_invalid_provenance_hash_fails_closed(self) -> None:
         with self.assertRaises(ValueError):
             _validate_value_set(_value_set(source_provenance_hash="not-a-hash"))
+
+    def test_payload_digest_rejects_missing_and_mutated_values(self) -> None:
+        value_set = _value_set()
+        value_set.values[0] = 99.0
+        with self.assertRaisesRegex(ValueError, "does not match canonical exchange payload"):
+            _validate_value_set(value_set)
+        value_set = _value_set()
+        value_set.payload_sha256 = ""
+        with self.assertRaisesRegex(ValueError, "payload_sha256 must be"):
+            _validate_value_set(value_set)
 
     def test_element_alignment_is_required(self) -> None:
         with self.assertRaises(ValueError):
