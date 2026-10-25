@@ -36,7 +36,7 @@ export interface FieldExposureSummary {
  * GIS preprocessing must produce disjoint *area* polygons; overlapped
  * zones are rejected when they exceed the surveyed total field area. */
 export function isSfhaZone(zone: string): boolean {
-  return /^(?:A|AE|AH|AO|AR|A99|V|VE|A(?:[1-9]|[12]\d|30)|V(?:[1-9]|[12]\d|30))$/.test(zone.toUpperCase());
+  return /^(?:A|AE|AH|AO|AR|A99|V|VE|A(?:[1-9]|[12]\d|30)|V(?:[1-9]|[12]\d|30)|AR\/(?:A|AE|AH|AO|A(?:[1-9]|[12]\d|30)|A1-30|A1-A30))$/.test(zone.toUpperCase());
 }
 function acceptedZone(zone: string): boolean {
   return isSfhaZone(zone) || ['X', 'X500', 'B', 'C', 'D'].includes(zone.toUpperCase());
@@ -140,7 +140,8 @@ export function summarizePlantingHistory(
       throw new Error('[ag-screening] reported flood-event acres must be finite and nonnegative');
     }
     const d = dateUtc(e.eventDate);
-    return d >= cutoff && d <= asOf && e.fieldId === fieldId;
+    if (d > asOf) throw new Error('[ag-screening] future flood-event dates are not valid observations');
+    return d >= cutoff && e.fieldId === fieldId;
   });
   const totalAcres = recent.reduce((sum, e) => sum + e.estimatedAcresAffected, 0);
   return {
