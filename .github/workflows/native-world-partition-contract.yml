@@ -5,6 +5,8 @@ on:
     paths:
       - 'tsm-native/Source/TSMNative/TSMWorldPartitionStreamingAnchor.*'
       - 'tsm-native/Source/TSMNative/TSMNativeGameMode.*'
+      - 'tsm-native/Source/TSMNative/TSMNativeWorldFabric.cpp'
+      - 'tsm-native/tests/native-world-contract.test.mjs'
       - 'tsm-native/Tools/Prepare-WorldPartition.ps1'
       - 'tsm-native/Tools/Create-World-Partition-Map.py'
       - 'tsm-native/docs/WORLD-PARTITION-UE58.md'
@@ -15,6 +17,8 @@ on:
     paths:
       - 'tsm-native/Source/TSMNative/TSMWorldPartitionStreamingAnchor.*'
       - 'tsm-native/Source/TSMNative/TSMNativeGameMode.*'
+      - 'tsm-native/Source/TSMNative/TSMNativeWorldFabric.cpp'
+      - 'tsm-native/tests/native-world-contract.test.mjs'
       - 'tsm-native/Tools/Prepare-WorldPartition.ps1'
       - 'tsm-native/Tools/Create-World-Partition-Map.py'
       - 'tsm-native/docs/WORLD-PARTITION-UE58.md'
@@ -34,4 +38,4 @@ jobs:
         with:
           persist-credentials: false
       - name: Verify World Partition prefetch and native asset gate
-        run: node --test tsm-native/tests/native-world-partition-contract.test.mjs
+        run: node --test tsm-native/tests/native-world-partition-contract.test.mjs tsm-native/tests/native-world-contract.test.mjs
