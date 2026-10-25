@@ -54,6 +54,17 @@ test('Cesium remains a separate offline tile loader', () => {
   assert.match(docs, /Is Spatially Loaded disabled/);
 });
 
+test('UE5.8 Python map generator uses editor-only plugin dependencies', () => {
+  const project = JSON.parse(read('TSMNative.uproject'));
+  const python = project.Plugins.find((plugin) => plugin.Name === 'PythonScriptPlugin');
+  const utilities = project.Plugins.find((plugin) => plugin.Name === 'EditorScriptingUtilities');
+  for (const plugin of [python, utilities]) {
+    assert.ok(plugin, 'required Unreal Editor plugin must be declared');
+    assert.equal(plugin.Enabled, true);
+    assert.deepEqual(plugin.TargetAllowList, ['Editor']);
+  }
+});
+
 test('engine template is not falsely asserted as a packaged map', () => {
   const config = read('Config/DefaultEngine.ini');
   const docs = read('docs/WORLD-PARTITION-UE58.md');
