@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, rmSync, mkdirSync, symlinkSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -105,7 +106,7 @@ test('local holdings reader verifies hashes and reports exact missing paths',()=
   assert.throws(()=>getLocalHolding(manifestPath,e=>e.county==='99999',{dataRoot:dir}),/ENTRY_NOT_FOUND/);
   assert.throws(()=>getLocalHolding(manifestPath,e=>e.county==='18129',{dataRoot:join(dir,'nope')}),/NOT_PRESENT/);
   writeFileSync(join(dir,fileName),'{"tampered":true}');
-  assert.throws(()=>getLocalHolding(manifestPath,e=>e.county==='18129',{dataRoot:dir}),/HASH_MISMATCH/);
+  assert.throws(()=>getLocalHolding(manifestPath,e=>e.county==='18129',{dataRoot:dir}),/HASH_MISMATCH|BYTE_LENGTH_MISMATCH/);
  }finally{rmSync(dir,{recursive:true,force:true});}
 });
 
@@ -261,4 +262,95 @@ test('source.fetch supports the new adapters via registry aliases',async()=>{
  }
  const dynamic=await provider.supports('source.fetch',{sourceId:'noaa.fim-dynamic',url:'https://www.weather.gov/owp/operations'});
  assert.equal(dynamic.supported,false,'CATALOG sources must not offer source.fetch');
+});
+
+test('locally held JSON retains source provenance but does not claim independent validation',()=>{
+ const dir=mkdtempSync(join(tmpdir(),'tsm-hold-provenance-'));
+ try{
+  const raw='{"type":"FeatureCollection","features":[]}';
+  writeFileSync(join(dir,'zones.geojson'),raw);
+  const item={id:'nfhl-flood-zones-18129',county:'18129',authority:'FEMA National Flood Hazard Layer via Esri (derived copy)',vintage:'Esri copy',url:'https://services5.arcgis.com/example',retrievedAt:'2026-10-23T00:00:00Z',path:'zones.geojson',sha256:sha256(raw),bytes:Buffer.byteLength(raw),features:0,status:'acquired'};
+  const manifest=join(dir,'manifest.json');writeFileSync(manifest,JSON.stringify([item]));
+  const envelope=getLocalHolding(manifest,()=>true,{dataRoot:dir});
+  assert.deepEqual(validateEvidenceEnvelope(envelope),[]);
+  assert.equal(envelope.provenance.provider,'fema-nfhl');
+  assert.equal(envelope.provenance.status,'UNVERIFIED');
+  assert.equal(envelope.evidence[0].sourceId,'fema-nfhl');
+  assert.match(envelope.citations[0].title,/Esri \(derived copy\)/);
+  assert.equal(envelope.citations[0].url,item.url);
+  writeFileSync(manifest,JSON.stringify([{...item,features:2}]));
+  assert.throws(()=>getLocalHolding(manifest,()=>true,{dataRoot:dir}),/FEATURE_COUNT_MISMATCH/);
+ }finally{rmSync(dir,{recursive:true,force:true});}
+});
+
+test('USDA SSURGO ZIP holding returns verified archive reference instead of fake parsed JSON or FEMA provenance',()=>{
+ const dir=mkdtempSync(join(tmpdir(),'tsm-hold-ssurgo-'));
+ try{
+  const raw=Buffer.from([0x50,0x4b,0x03,0x04,0x00,0x00]);
+  writeFileSync(join(dir,'soil.zip'),raw);
+  const item={id:'ssurgo-in129',county:'IN129',authority:'USDA NRCS via Web Soil Survey',vintage:'2026-10',url:'https://websoilsurvey.sc.egov.usda.gov/example',retrievedAt:'2026-10-23T00:00:00Z',path:'soil.zip',sha256:'0'.repeat(64),bytes:raw.byteLength,features:0,status:'acquired'};
+  // Hash the actual bytes; converting arbitrary binary bytes to UTF-8 is not allowed.
+  item.sha256=createHash('sha256').update(raw).digest('hex');
+  const manifest=join(dir,'manifest.json');writeFileSync(manifest,JSON.stringify([item]));
+  const envelope=getLocalHolding(manifest,()=>true,{dataRoot:dir});
+  assert.deepEqual(validateEvidenceEnvelope(envelope),[]);
+  assert.equal(envelope.evidence[0].sourceId,'usda-soils');
+  assert.equal(envelope.evidence[0].authority,'USDA');
+  assert.equal(envelope.provenance.status,'UNVERIFIED');
+  assert.deepEqual(envelope.result,{
+   kind:'LOCAL_ARCHIVE_REFERENCE',sourceId:'usda-soils',relativePath:'soil.zip',mediaType:'application/zip',byteLength:raw.byteLength,sha256:item.sha256,contentsValidated:false
+  });
+ }finally{rmSync(dir,{recursive:true,force:true});}
+});
+
+test('local holding never reads outside configured root via parent traversal or symlink',()=>{
+ const dir=mkdtempSync(join(tmpdir(),'tsm-hold-path-'));
+ const root=join(dir,'root');mkdirSync(root);
+ try{
+  const raw='{"type":"FeatureCollection","features":[]}';
+  writeFileSync(join(dir,'outside.geojson'),raw);
+  const item={id:'nfhl',county:'18129',authority:'FEMA',vintage:'v',url:'https://msc.fema.gov/example',retrievedAt:'2026-10-23T00:00:00Z',path:'../outside.geojson',sha256:sha256(raw),bytes:Buffer.byteLength(raw),features:0,status:'acquired'};
+  const manifest=join(root,'manifest.json');writeFileSync(manifest,JSON.stringify([item]));
+  assert.throws(()=>getLocalHolding(manifest,()=>true,{dataRoot:root}),/UNSAFE_PATH/);
+  if(process.platform!=='win32'){
+   symlinkSync(join(dir,'outside.geojson'),join(root,'linked.geojson'));
+   writeFileSync(manifest,JSON.stringify([{...item,path:'linked.geojson'}]));
+   assert.throws(()=>getLocalHolding(manifest,()=>true,{dataRoot:root}),/SYMLINK_OUTSIDE_ROOT/);
+  }
+ }finally{rmSync(dir,{recursive:true,force:true});}
+});
+
+test('holdings reconcile source bytes and hashes as an atomic pair or reject them',()=>{
+ const dir=mkdtempSync(join(tmpdir(),'tsm-hold-reconcile-'));
+ try{
+  const raw='{"type":"FeatureCollection","features":[]}';
+  writeFileSync(join(dir,'zones.geojson'),raw);
+  const item={id:'nfhl',county:'18129',authority:'FEMA',vintage:'v',url:'https://msc.fema.gov/example',retrievedAt:'2026-10-23T00:00:00Z',path:'zones.geojson',sha256:'0'.repeat(64),bytes:1,features:0,status:'acquired',bytes_reconciled:Buffer.byteLength(raw),sha256_reconciled:sha256(raw),reconciledAt:'2026-10-24T00:00:00Z'};
+  const manifest=join(dir,'manifest.json');
+  writeFileSync(manifest,JSON.stringify([item]));
+  assert.deepEqual(validateEvidenceEnvelope(getLocalHolding(manifest,()=>true,{dataRoot:dir})),[]);
+  writeFileSync(manifest,JSON.stringify([{...item,reconciledAt:undefined}]));
+  assert.throws(()=>getLocalHolding(manifest,()=>true,{dataRoot:dir}),/RECONCILIATION_INCOMPLETE/);
+ }finally{rmSync(dir,{recursive:true,force:true});}
+});
+
+test('local holdings reject unavailable sources and duplicate manifest entries',()=>{
+ const dir=mkdtempSync(join(tmpdir(),'tsm-hold-dup-'));
+ try{
+  const entry={id:'nfhl',county:'18129',authority:'FEMA',vintage:'v',url:'https://msc.fema.gov/example',retrievedAt:'2026-10-23T00:00:00Z',path:'zones.geojson',sha256:'0'.repeat(64),bytes:5,features:0,status:'unavailable'};
+  const manifest=join(dir,'manifest.json');
+  writeFileSync(manifest,JSON.stringify([entry]));
+  assert.throws(()=>getLocalHolding(manifest,()=>true,{dataRoot:dir}),/NOT_ACQUIRED/);
+  writeFileSync(manifest,JSON.stringify([entry,entry]));
+  assert.throws(()=>listLocalHoldings(manifest),/DUPLICATE_ENTRY/);
+ }finally{rmSync(dir,{recursive:true,force:true});}
+});
+
+test('pinned snapshots reject filename traversal even if a manifest claims it',()=>{
+ const dir=mkdtempSync(join(tmpdir(),'tsm-pinned-path-'));
+ try {
+  writeFileSync(join(dir,'manifest.json'),JSON.stringify([{name:'../outside.json',sourceId:'noaa-nwps',description:'unsafe',url:'https://api.water.noaa.gov/',retrievedAt:'2026-10-23T00:00:00Z',sha256:'0'.repeat(64),mediaType:'application/json',bytes:1}]));
+  assert.throws(()=>listPinnedSnapshots(dir),/UNSAFE_NAME/);
+  assert.throws(()=>loadPinnedSnapshot('noaa-nwps','../outside.json',dir),/UNSAFE_NAME/);
+ }finally {rmSync(dir,{recursive:true,force:true});}
 });
