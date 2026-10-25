@@ -82,3 +82,29 @@ marked complete by World Partition, new rendering, or additional sources.
 For the remaining public forks beyond GitHub's search-result ceiling, use
 more selective name/topic/creation-time queries and reconcile against an
 exported repository inventory before making exhaustive-coverage claims.
+
+
+## Extended date-partitioned fork search (2026 inventory)
+
+Follow-up queries split creation dates by month and week to look beyond
+GitHub's 1,000-result search window. This surfaced additional candidates,
+without assuming they are maintained, licensed for redistribution or
+production-compatible:
+
+| Fork | Possible use | Required verification |
+| --- | --- | --- |
+| ATphobia22/UEGeoCoordinates | Unreal native local/geographic transformations | UE5.8 C++ ABI, EPSG:2966 US-survey-foot and NAVD88 support, unit tests |
+| ATphobia22/BlenderGIS | Blender-based DEM / OSM authoring | original geometry license, coordinate transforms and source hashes |
+| ATphobia22/osm2pgsql | OSM street/asset ingest into PostGIS | version and ODbL attribution / database rights |
+| ATphobia22/nfie-floodmap | supplemental flood visualization technique | distinguish model output from effective FEMA maps |
+| ATphobia22/gdal | geospatial reprojection and clipping libraries | prefer official maintained GDAL binaries and PROJ grids |
+| ATphobia22/earthaccess | authenticated NASA Earthdata/STAC retrieval | offline asset caching and data-vintage receipts |
+| ATphobia22/HEC-Commander | HEC workflows and orchestration | solver version, QA reports and model input checksum |
+| ATphobia22/awesome-satellite-imagery-datasets | discovery of alternate coverage | validate each original agency and temporal resolution |
+| ATphobia22/QGIS | desktop validation workflows | no dependency on GUI inside native packaged runtime |
+| ATphobia22/segment-geospatial | geospatial segmentation for nonauthoritative LOD planning | false-positive review; never synthesize building source IDs |
+
+Several weekly windows still returned the 100-result page limit; a fully
+exhaustive fork inventory requires finer day-partition searches and an
+authenticated export. These are **candidate workflows**, not completed
+integrations. The existing TSM scientific and legal acceptance rules prevail.
