@@ -1,0 +1,35 @@
+name: Native World Partition Source Contract
+
+on:
+  pull_request:
+    paths:
+      - 'tsm-native/Source/TSMNative/TSMWorldPartitionStreamingAnchor.*'
+      - 'tsm-native/Source/TSMNative/TSMNativeGameMode.*'
+      - 'tsm-native/Tools/Prepare-WorldPartition.ps1'
+      - 'tsm-native/docs/WORLD-PARTITION-UE58.md'
+      - 'tsm-native/tests/native-world-partition-contract.test.mjs'
+      - '.github/workflows/native-world-partition-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tsm-native/Source/TSMNative/TSMWorldPartitionStreamingAnchor.*'
+      - 'tsm-native/Source/TSMNative/TSMNativeGameMode.*'
+      - 'tsm-native/Tools/Prepare-WorldPartition.ps1'
+      - 'tsm-native/docs/WORLD-PARTITION-UE58.md'
+      - 'tsm-native/tests/native-world-partition-contract.test.mjs'
+      - '.github/workflows/native-world-partition-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  world-partition-source-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify World Partition prefetch and native asset gate
+        run: node --test tsm-native/tests/native-world-partition-contract.test.mjs
