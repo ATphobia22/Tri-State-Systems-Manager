@@ -15,7 +15,7 @@ test('modern OGC daily query binds exact site, statistic, variable and UTC date 
  assert.equal(u.searchParams.get('monitoring_location_id'),'USGS-03378500');
  assert.equal(u.searchParams.get('parameter_code'),'00060');
  assert.equal(u.searchParams.get('statistic_id'),'00003');
- assert.equal(u.searchParams.get('datetime'),'2026-10-01/2026-10-03');
+ assert.equal(u.searchParams.get('time'),'2026-10-01/2026-10-03');
  assert.throws(()=>buildDailyUrl({...args,site:'wrong'}),/eight digits/);
 });
 test('two source pages preserve provenance and USGS reported approval quality',async()=>{
