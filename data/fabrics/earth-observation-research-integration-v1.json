@@ -24,7 +24,7 @@
       "sourceUrl": "https://allenai.org/blog/olmoearth-v1-3",
       "explorerUrl": "https://olmoearth.allenai.org/",
       "codeUrl": "https://github.com/allenai/olmoearth_projects",
-      "dataUrl": "https://source.coop/olmoearth/olmoearth-v1-3-embeddings",
+      "dataUrl": "https://data.source.coop/olmoearth/olmoearth-v1-3-embeddings/",
       "modelVersion": "v1.3",
       "nominalPixelResolutionMeters": 10,
       "embeddingDimensions": [64, 128],
