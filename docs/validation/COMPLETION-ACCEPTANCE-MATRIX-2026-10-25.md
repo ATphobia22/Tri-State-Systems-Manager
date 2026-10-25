@@ -39,3 +39,24 @@ Keep horizontal CRS, vertical datum, epoch, units, geoid model and source metada
 - All requirements in this acceptance matrix remain evidence-gated: no claim of 23,082-building production acceptance, LOD2 county bake, native UE5.8 distribution, hardware performance qualification, survey-grade vertical-datum evidence or regulatory approval without explicit measured artifacts.
 
 **Release classification: NOT VERIFIED GREEN / SECURITY REVIEW REQUIRED** until a current main commit has passing required checks, security alert triage, and artifact integrity attestations.
+
+## 2026-10-25: reproducible milestone evidence and outstanding hard gates
+
+### Completed, supported by artifacts
+
+- Canonical CI, visual E2E, CodeQL, Pages deployment workflow, offline-runtime packaging and source-recovery jobs were successful on commit `5d9a45096c235af8b91594b8d0fffab1d625d03a`. Individual workflow provenance is visible under https://github.com/ATphobia22/Tri-State-Systems-Manager/actions. **Do not use those runs to claim later commits green.**
+- The Windows x64 *Tauri/Vite/Node offline runtime* job uploaded artifact `12605145315` (754,398,798 bytes ZIP; archive SHA-256 `00d5db1e0148770789645af7bcfa25750a0c251b7bf8b619c3b0601eb21e4517`). This artifact is **not** a cooked UE5.8 Shipping release.
+- PR #413 remediated CodeQL's uncontrolled evidence-intake path and added replay/collision/unsafe-case ID tests; the PR-head CodeQL and canonical `build-and-test` checks passed. Confirm alert #114's current disposition in issue #412 before closing the security follow-up.
+- PR #415 removed auto-pushed `[skip ci]` OpenAPI updates and replaced them with a reviewable, read-only exact-contract validator.
+- PR #417 merged as `46fcc621ce40d9107c59616fd91019ec3c920e9c`, adding production Transvoxel API regression tests and deterministic count/OBJECTID audit. CI demonstrated 12 production-bridge/CLI tests and 7 synthetic identity tests passing. Source and published objects match on **22,815 identities**, and the archive-backed audit found **267 missing**, **0 extra** and **0 duplicate** source IDs.
+- The archived IGIO-labeled release asset has SHA-256 `d8a46b86616becfdea9c9164e7a219317d5963b86fba47e4c1f8f880ccbb559f`; the published screening GeoJSON has SHA-256 `27e3cb85de9f8bfcfc51c50488786e79d59bf3ec976855f4644fe98cea394a53`. The complete 267-ID delta and both hashes are committed in `data/buildings/POSEY-ARCHIVED-IGIO-IDENTITY-DELTA-2026-10-25.json` and checked against CI run https://github.com/ATphobia22/Tri-State-Systems-Manager/actions/runs/40211424871.
+
+### Release blockers, not to be silently cleared
+
+- **UE5.8 Shipping/Windows 11 x64:** actual packaged native executable, certified build runner, offline launch, installed data/hash chain, hardware/cinematic and signer evidence remain unverified. Track issue #414. Epic UAT `BuildCookRun` requires a working engine/toolchain on an authorized runner.
+- **Geospatial 23,082 full chain:** 267 IDs now diagnosed, but real individual height, geometry, vertical-datum evidence, LOD and stitched/GLB/HLOD production acceptance remain unfinished. Track issue #416; keep the partial screening layer `INFORMATIONAL_ONLY`.
+- **Residential AOI public data:** an owner-directed disclosure override exists in `docs/privacy/site-anchor-public-disclosure.md`. Review its continued applicability before broader anonymous distribution. Working-tree edits do not erase published assets or Git history. Track issue #418; do not reproduce private identifiers in public status reports.
+- **Security dashboard:** exact CodeQL alert disposition and all current-head workflow checks must be inspected separately. Track issue #412.
+- **Engineering/regulatory use:** survey-grade source vetting, GEOID/datum conversion tests, authoritative HEC calibration/verification, uncertainty, and licensed human determination require real records beyond CI contract tests.
+
+**Classification:** the implementation and regression/evidence gates above are complete where proven; **the overall native engineering product is not released or professionally certified** until remaining hardware, data, privacy and scientific gates have verifiable artifacts.
