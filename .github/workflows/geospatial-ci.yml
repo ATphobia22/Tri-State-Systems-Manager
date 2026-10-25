@@ -45,6 +45,9 @@ on:
       - 'tsm-console/src/lib/nfhl/**'
       - 'tsm-console/tests/mapillary-evidence-contract.test.ts'
       - 'tsm-console/tests/nfhl-registry-contract.test.mjs'
+      - 'data/fabrics/earth-observation-research-integration-v1.json'
+      - 'scripts/ci/validate-earth-observation-research-integration.mjs'
+      - 'tsm-console/tests/earth-observation-research-integration.test.ts'
       - '.github/workflows/geospatial-ci.yml'
       - 'artifacts/tsm-geospatial-tile-fabric-v1.json'
       - 'tsm-console/server/ingestion/**'
@@ -97,6 +100,9 @@ on:
       - 'tsm-console/src/lib/nfhl/**'
       - 'tsm-console/tests/nfhl-registry-contract.test.mjs'
       - 'tsm-console/tests/mapillary-evidence-contract.test.ts'
+      - 'data/fabrics/earth-observation-research-integration-v1.json'
+      - 'scripts/ci/validate-earth-observation-research-integration.mjs'
+      - 'tsm-console/tests/earth-observation-research-integration.test.ts'
       - '.github/workflows/geospatial-ci.yml'
 
 permissions:
@@ -200,6 +206,11 @@ jobs:
           docker run --rm -v "$GITHUB_WORKSPACE:/workspace:ro" "$GDAL_IMAGE"             gdalinfo /workspace/data/posey-county/elevation/posey-county-dem-30m.tif
           docker run --rm -v "$GITHUB_WORKSPACE:/workspace:ro" "$GDAL_IMAGE"             ogrinfo -ro -so /workspace/data/posey-county/parcels/posey-parcels-2025.geojson
 
+      - name: Validate satellite Earth-observation research source contract
+        run: node scripts/ci/validate-earth-observation-research-integration.mjs
+      - name: Test satellite Earth-observation research source contract
+        working-directory: tsm-console
+        run: ./node_modules/.bin/vitest run tests/earth-observation-research-integration.test.ts
       - name: Validate 3D asset manifests
         run: node scripts/ci/validate-artifact-manifests.mjs
       - name: Validate geospatial processing contract

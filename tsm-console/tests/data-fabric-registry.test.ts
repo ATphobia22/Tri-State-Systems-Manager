@@ -26,6 +26,16 @@ describe('TSM data-fabric registry', () => {
     expect(fabric?.sources).toContain('AWS_OPEN_DATA_REGISTRY');
     expect(fabric?.notes).toMatch(/never becomes survey\/FEMA certification/);
   });
+  it('registers satellite research without claiming live integration or authority', () => {
+    const fabric = TSM_DATA_FABRICS.find((f) => f.id === 'earth-observation-research-catalog');
+    expect(fabric?.authority).toBe('DERIVED');
+    expect(fabric?.implemented).toBe(true);
+    expect(fabric?.live).toBe(false);
+    expect(fabric?.persistenceAllowed).toBe(false);
+    expect(fabric?.sources).toContain('OLMOEARTH-V1-3-EMBEDDINGS');
+    expect(fabric?.sources).toContain('PLANET-TANAGER-HYPERSPECTRAL');
+    expect(fabric?.notes).toMatch(/no runtime adapter or live access is claimed/);
+  });
   it('registers the resilient engineering evidence pipeline', () => {
     expect(TSM_DATA_FABRICS.find((f) => f.id === 'engineering-evidence-pipeline')?.plane).toBe('GOVERNANCE_DECISION');
   });
