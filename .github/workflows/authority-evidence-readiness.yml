@@ -1,0 +1,72 @@
+name: TSM Survey, Mesh and Regulatory Evidence Gates
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/engineering/validate_authority_readiness.py'
+      - 'scripts/engineering/test_validate_authority_readiness.py'
+      - 'data/engineering/authority-readiness/**'
+      - 'docs/validation/AUTHORITY-ACCEPTANCE-PROTOCOL-2026-10-25.md'
+      - '.github/workflows/authority-evidence-readiness.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/engineering/validate_authority_readiness.py'
+      - 'scripts/engineering/test_validate_authority_readiness.py'
+      - 'data/engineering/authority-readiness/**'
+      - 'docs/validation/AUTHORITY-ACCEPTANCE-PROTOCOL-2026-10-25.md'
+      - '.github/workflows/authority-evidence-readiness.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  evidence-gates:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out exact commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # pinned
+        with:
+          python-version: '3.12'
+      - name: Compile Python evidence gates
+        run: |
+          python -m py_compile scripts/engineering/validate_authority_readiness.py scripts/engineering/test_validate_authority_readiness.py
+      - name: Test missing-evidence, survey, topology and regulatory logic
+        run: python -m unittest scripts.engineering.test_validate_authority_readiness -v
+      - name: Run actual Posey records in informational mode
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/authority-readiness"
+          for kind in terrain county-mesh floodway; do
+            python scripts/engineering/validate_authority_readiness.py \
+              --input "data/engineering/authority-readiness/posey-$kind-evidence.json" \
+              --root . \
+              --output "$RUNNER_TEMP/authority-readiness/$kind.json"
+          done
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          root = Path(os.environ["RUNNER_TEMP"]) / "authority-readiness"
+          for kind in ("terrain", "county-mesh", "floodway"):
+              report = json.loads((root / f"{kind}.json").read_text())
+              assert report["status"] == "INCOMPLETE", f"{kind}: unexpected evidence promotion"
+              assert report["approved"] is False, f"{kind}: prohibited automated approval"
+              assert report["regulatoryDetermination"] is None
+              assert report["professionalCertification"] is None
+              assert report["errors"], f"{kind}: must explicitly report missing evidence"
+          print("PASS: actual Posey records disclose unresolved engineering milestones")
+          PY
+      - name: Upload evidence-readiness deficiencies
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # pinned
+        with:
+          name: tsm-authority-readiness-deficiency-report-${{ github.sha }}
+          path: ${{ runner.temp }}/authority-readiness/*.json
+          if-no-files-found: error
+          retention-days: 30
