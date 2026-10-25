@@ -22,7 +22,7 @@
     "test:gates-hydrology": "tsx --test tests/contracts/gates-hydrology.test.ts",
     "test:autonomy-ladder": "tsx --test tests/contracts/autonomy-ladder.test.ts",
     "test:local-hydrology": "tsx --test tests/contracts/local-hydrology-provider.test.ts",
-    "verify:uacf": "npm run build:uacf && npm run test:uacf && npm run test:uacf-contracts && npm run test:evidence && npm run test:geodesy && npm run test:gates-hydrology && npm run test:autonomy-ladder && npm run test:local-hydrology && npm run test:twin-fabric && npm run test:uacf-agent && npm run test:uacf-providers && npm run test:uacf-apps && npm run test:government-fabric && npm run test:culvert-power",
+    "verify:uacf": "npm run build:uacf && npm run test:uacf && npm run test:uacf-contracts && npm run test:evidence && npm run test:geodesy && npm run test:agriculture && npm run test:gates-hydrology && npm run test:autonomy-ladder && npm run test:local-hydrology && npm run test:twin-fabric && npm run test:uacf-agent && npm run test:uacf-providers && npm run test:uacf-apps && npm run test:government-fabric && npm run test:culvert-power",
     "test:twin-fabric": "tsx --test tests/contracts/unified-twin-fabric.test.ts",
     "test:uacf-agent": "tsx --test tests/contracts/agent-runtime.test.ts",
     "test:uacf-providers": "tsx --test tests/contracts/provider-boundaries.test.ts",
@@ -41,7 +41,8 @@
     "test:open-source-register": "node --test tests/contracts/open-source-adoption-register.test.mjs",
     "test:posey-government-evidence": "node --test tests/contracts/posey-government-evidence.test.mjs",
     "test:posey-geodetic-reference": "node --test tests/contracts/posey-geodetic-reference.test.mjs",
-    "test:geodesy": "tsx --test tests/contracts/geodesy-validation.test.ts"
+    "test:geodesy": "tsx --test tests/contracts/geodesy-validation.test.ts",
+    "test:agriculture": "tsx --test tests/contracts/agriculture-evidence.test.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

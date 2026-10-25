@@ -1,0 +1,12 @@
+{
+  "name": "@tsm/agriculture",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Evidence-gated agricultural scientific contracts and USDA soil transformations",
+  "exports": {
+    ".": "./src/index.ts",
+    "./soil": "./src/soil.ts",
+    "./models": "./src/models.ts"
+  }
+}
