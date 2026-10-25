@@ -181,6 +181,20 @@ def main() -> int:
         record = build_record(args.areasymbol, mu_raw, co_raw, acquisition=mode, max_rows=args.max_rows)
         record["capturedAtUtc"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
         args.out.parent.mkdir(parents=True, exist_ok=True)
+        # Persist unmodified service bytes beside the derived index. A digest
+        # alone is not sufficient for an independently reproducible replay.
+        raw_paths = {}
+        for kind, raw in (("mapunits", mu_raw), ("components", co_raw)):
+            name = f"{args.out.stem}.{kind}.{hashlib.sha256(raw).hexdigest()}.raw.json"
+            frozen_path = args.out.parent / name
+            try:
+                with frozen_path.open("xb") as sink:
+                    sink.write(raw)
+            except FileExistsError:
+                if frozen_path.is_symlink() or hashlib.sha256(frozen_path.read_bytes()).digest() != hashlib.sha256(raw).digest():
+                    raise ValueError("snapshot digest path collision or untrusted symlink")
+            raw_paths[kind] = name
+        record["rawSnapshotFiles"] = raw_paths
         artifact = json.dumps(record, sort_keys=True, indent=2, ensure_ascii=False) + "\n"
         args.out.write_text(artifact, encoding="utf-8")
         sha = hashlib.sha256(artifact.encode("utf-8")).hexdigest()
