@@ -32,6 +32,7 @@ message QuantityValueSet {
   string time_semantics = 15; // INSTANT, INTERVAL_MEAN, INTERVAL_SUM, STATE_AT_STEP
   double time_step_seconds = 16;
   string time_convention = 17; // e.g. left-closed/right-open
+  string payload_sha256 = 18; // Digest with this field blank; preserve temporal fields 15-17
 }
 
 message ComponentInfo {

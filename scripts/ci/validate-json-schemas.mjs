@@ -13,6 +13,7 @@ const schemaPaths = [
   'data/schemas/hec-coupled-run-manifest-v1.schema.json',
   'data/schemas/spatial-solver-run-manifest-v1.schema.json',
   'data/schemas/posey-site-aoi-v1.schema.json',
+  'data/schemas/aas-asset-manifest-v1.schema.json',
   'packages/government/schemas/cesium-story-publication-manifest.schema.json',
 ];
 const hecCoupledRunManifestExample = JSON.parse(fs.readFileSync(path.join(repoRoot, 'data/schemas/examples/hec-coupled-run-manifest-v1.example.json'), 'utf8'));
@@ -209,7 +210,15 @@ for (const relative of schemaPaths) {
   catch (error) { fail(relative + ': invalid JSON: ' + error.message); continue; }
   if (schema.$schema !== 'https://json-schema.org/draft/2020-12/schema') fail(relative + ': unexpected JSON Schema dialect');
   const example = relative.includes('cesium-story-publication-manifest') ? cesiumStoryPublicationManifestExample : relative.includes('spatial-solver-run-manifest') ? spatialSolverRunManifestExample : relative.includes('posey-site-aoi-v1') ? poseySiteAoiExample : relative.includes('hec-coupled-run-manifest') ? hecCoupledRunManifestExample : relative.includes('data-contract') ? dataExample : relative.includes('regulatory-gate') ? regulatoryGateExample : relative.includes('nfip-discrepancy') ? nfipLayer2Example : relative.includes('flood-information-federation') ? floodFederationExample : evidenceExample;
-  validate(example, schema, relative, schema);
+  if (relative.includes('aas-asset-manifest-v1')) {
+    const common = { profileVersion: '1.0.0', assetId: 'urn:tsm:type:demo', assetKind: 'Type', submodels: [], governance: { authority: 'human', humanReviewRequired: true, regulatoryDetermination: null } };
+    validate(common, schema, relative + ':Type', schema);
+    validate({ ...common, assetId: 'urn:tsm:instance:demo', assetKind: 'Instance', derivedFrom: 'urn:tsm:type:demo' }, schema, relative + ':Instance', schema);
+    const before = failures.length;
+    validate({ ...common, assetKind: 'Instance' }, schema, relative + ':InvalidInstance', schema);
+    if (!failures.slice(before).some(x => x.includes('missing required property derivedFrom'))) fail(relative + ': missing derivedFrom was not rejected');
+    failures.splice(before);
+  } else validate(example, schema, relative, schema);
   // The Posey candidate AOI is a public parcel-evidence record and is validated
   // against its own schema here. Other case-specific NFIP examples remain
   // synthetic unless an explicit evidence package has been approved for release.
