@@ -3,7 +3,7 @@
 #include "Components/SceneComponent.h"
 #include "Engine/World.h"
 #include "WorldPartition/WorldPartition.h"
-#include "WorldPartition/WorldPartitionStreamingSourceComponent.h"
+#include "Components/WorldPartitionStreamingSourceComponent.h"
 
 ATSMWorldPartitionStreamingAnchor::ATSMWorldPartitionStreamingAnchor()
 {
