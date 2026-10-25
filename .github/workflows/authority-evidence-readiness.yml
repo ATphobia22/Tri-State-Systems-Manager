@@ -5,6 +5,8 @@ on:
     paths:
       - 'scripts/engineering/validate_authority_readiness.py'
       - 'scripts/engineering/test_validate_authority_readiness.py'
+      - 'scripts/geospatial/verify_mesh_seams.py'
+      - 'scripts/geospatial/test_verify_mesh_seams.py'
       - 'data/engineering/authority-readiness/**'
       - 'docs/validation/AUTHORITY-ACCEPTANCE-PROTOCOL-2026-10-25.md'
       - '.github/workflows/authority-evidence-readiness.yml'
@@ -13,6 +15,8 @@ on:
     paths:
       - 'scripts/engineering/validate_authority_readiness.py'
       - 'scripts/engineering/test_validate_authority_readiness.py'
+      - 'scripts/geospatial/verify_mesh_seams.py'
+      - 'scripts/geospatial/test_verify_mesh_seams.py'
       - 'data/engineering/authority-readiness/**'
       - 'docs/validation/AUTHORITY-ACCEPTANCE-PROTOCOL-2026-10-25.md'
       - '.github/workflows/authority-evidence-readiness.yml'
@@ -37,6 +41,10 @@ jobs:
           python -m py_compile scripts/engineering/validate_authority_readiness.py scripts/engineering/test_validate_authority_readiness.py
       - name: Test missing-evidence, survey, topology and regulatory logic
         run: python -m unittest scripts.engineering.test_validate_authority_readiness -v
+      - name: Verify genuine triangle-plane interfaces, split edges and six orientations
+        run: |
+          python -m py_compile scripts/geospatial/verify_mesh_seams.py scripts/geospatial/test_verify_mesh_seams.py
+          python -m unittest scripts.geospatial.test_verify_mesh_seams -v
       - name: Run actual Posey records in informational mode
         shell: bash
         run: |
