@@ -1,0 +1,32 @@
+name: Posey Offline Acquisition Integrity
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/posey/**'
+      - '.github/workflows/posey-offline-integrity-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/posey/**'
+      - '.github/workflows/posey-offline-integrity-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-acquisition-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate source integrity and USGS OGC v1 contracts
+        run: node --test scripts/posey/verify-offline-receipt.test.mjs scripts/posey/acquire-usgs-daily-ogc.test.mjs scripts/posey/acquisition-geojson-contract.test.mjs
+      - name: Enforce syntax
+        run: |
+          node --check scripts/posey/verify-offline-receipt.mjs
+          node --check scripts/posey/acquire-usgs-daily-ogc.mjs
