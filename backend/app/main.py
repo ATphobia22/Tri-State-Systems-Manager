@@ -582,16 +582,21 @@ def push_evidence(request: EvidencePushRequest) -> dict:
                 },
             )
 
-    case_id = _validated_id(request.packet.case_id, "case_id")
+    # Validate this identifier as packet metadata only. Never concatenate it
+    # into a filesystem path: even accepted caller-controlled names are not
+    # required for content-addressed storage.
+    _validated_id(request.packet.case_id, "case_id")
     storage_dir = OUTBOX_DIR if integrity_verified else OUTBOX_DIR / "quarantine"
-    storage_dir.mkdir(parents=True, exist_ok=True)
-    filename = f"{case_id}_{computed}.json"
+    storage_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+    # SHA-256 hexdigest produces exactly 64 lowercase hex characters, making
+    # the on-disk name independent of the caller's case_id and path syntax.
+    filename = f"{computed}.json"
     stored_content = canonical
     if not integrity_verified:
-        # Keep different claims about identical packet bytes distinct, and do
-        # not let a provisional intake masquerade as a verified outbox packet.
+        # A second digest keeps distinct bad claims about the same bytes apart.
+        # Quarantined packets can never share a verified-outbox filename.
         claim_id = sha256_hex(request.packet_sha256.lower())
-        filename = f"{case_id}_{computed}_{claim_id}.json"
+        filename = f"{computed}_{claim_id}.json"
         stored_content = canonical_json({
             "packet": request.packet.model_dump(),
             "integrity_verified": False,
@@ -599,8 +604,19 @@ def push_evidence(request: EvidencePushRequest) -> dict:
             "human_review_required": True,
         })
     packet_path = _contained_path(storage_dir, filename)
-    if not packet_path.exists():
-        packet_path.write_text(stored_content + "\n", encoding="utf-8")
+    try:
+        # Exclusive creation is atomic: duplicate submissions cannot truncate
+        # an existing evidence file, including a planted symlink.
+        with packet_path.open("x", encoding="utf-8") as sink:
+            sink.write(stored_content + "\n")
+    except FileExistsError:
+        # Re-validate containment in case the path changed since resolution.
+        existing_path = _contained_path(storage_dir, filename)
+        if existing_path.read_text(encoding="utf-8").rstrip("\n") != stored_content:
+            raise HTTPException(
+                status_code=409,
+                detail={"code": "EVIDENCE_DIGEST_STORAGE_COLLISION"},
+            )
 
     receipt_payload = {
         "receipt_id": sha256_hex(canonical + "|receipt"),
