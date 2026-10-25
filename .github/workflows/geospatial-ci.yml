@@ -179,6 +179,24 @@ jobs:
         run: python -m pip install --upgrade pip && python -m pip install -r backend/requirements.txt
       - name: Test HLOD geometric-error propagation
         run: python3 scripts/geospatial/test_build_hlod_geometric_error.py
+      - name: Test Transvoxel DEM production bridge and transition cell API
+        run: |
+          python3 -m py_compile scripts/geospatial/dem_to_transvoxel.py scripts/geospatial/transvoxel_complete.py scripts/geospatial/transvoxel_stitch_poc.py
+          python3 -m unittest scripts.geospatial.test_dem_to_transvoxel_api scripts.geospatial.test_dem_to_transvoxel_cli -v
+      - name: Verify published building screening count without fabricating missing IDs
+        run: |
+          python3 -m unittest scripts.geospatial.test_reconcile_published_buildings -v
+          python3 scripts/geospatial/reconcile_published_buildings.py \
+            --published tsm-console/public/3d-tiles/buildings-3d.json \
+            --expected-count 23082 \
+            --output "${RUNNER_TEMP}/posey-buildings-identity-audit.json"
+      - name: Upload deterministic building identity audit
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # pinned
+        with:
+          name: posey-screening-building-identity-audit
+          path: ${{ runner.temp }}/posey-buildings-identity-audit.json
+          if-no-files-found: error
+          retention-days: 14
       - name: Run geospatial backend contract tests
         run: python3 -m unittest backend.tests.test_geospatial_contracts backend.tests.test_hec_ras_worker backend.tests.test_hecras_geometry
       - name: Run Mapillary evidence contract tests
