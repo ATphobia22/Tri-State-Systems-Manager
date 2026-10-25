@@ -190,6 +190,28 @@ jobs:
             --published tsm-console/public/3d-tiles/buildings-3d.json \
             --expected-count 23082 \
             --output "${RUNNER_TEMP}/posey-buildings-identity-audit.json"
+      - name: Reconcile archived IGIO-labeled source identities against published screening features
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASELINE="${RUNNER_TEMP}/posey-igio-23082-baseline.geojson"
+          curl --fail --location --retry 3 --retry-all-errors \
+            --output "$BASELINE" \
+            "https://github.com/ATphobia22/Tri-State-Systems-Manager/releases/download/igio-posey-20261006/posey-buildings-igio-23082.geojson"
+          printf '%s  %s\\n' 'd8a46b86616becfdea9c9164e7a219317d5963b86fba47e4c1f8f880ccbb559f' "$BASELINE" | sha256sum --check -
+          python3 scripts/geospatial/reconcile_published_buildings.py \
+            --published tsm-console/public/3d-tiles/buildings-3d.json \
+            --authoritative "$BASELINE" \
+            --expected-count 23082 \
+            --output "${RUNNER_TEMP}/posey-archived-igio-objectid-audit.json"
+          echo 'Archived IGIO baseline compared with published screening set; this is informational only, not full feature-chain acceptance.'
+      - name: Upload archived IGIO identity audit
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # pinned
+        with:
+          name: posey-archived-igio-identity-difference
+          path: ${{ runner.temp }}/posey-archived-igio-objectid-audit.json
+          if-no-files-found: error
+          retention-days: 14
       - name: Upload deterministic building identity audit
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # pinned
         with:
