@@ -88,6 +88,43 @@ class GeodeticGateTests(unittest.TestCase):
         self.assertGreater(y, 900_000)
         self.assertLess(y, 1_000_000)
 
+    def test_streamed_las_clip_preserves_header_and_source_provenance(self):
+        import laspy
+        import numpy as np
+
+        source = self.root / "real-test-input.las"
+        target = self.root / "clipped.las"
+        report = self.root / "clip-evidence.json"
+        metadata = self.root / "source.json"
+        header = laspy.LasHeader(point_format=3, version="1.2")
+        header.add_crs(pyproj.CRS.from_epsg(2966))
+        header.scales = np.array([0.001, 0.001, 0.001])
+        header.offsets = np.array([2_680_000.0, 940_000.0, 0.0])
+        las = laspy.LasData(header)
+        las.x = np.array([2_685_000.0, 2_688_000.0, 2_710_000.0])
+        las.y = np.array([945_000.0, 948_000.0, 980_000.0])
+        las.z = np.array([380.0, 381.0, 400.0])
+        las.write(source)
+        self.write(envelope([
+            [2_680_000, 941_000], [2_690_000, 941_000],
+            [2_690_000, 951_000], [2_680_000, 951_000],
+            [2_680_000, 941_000],
+        ]))
+        metadata.write_text(json.dumps({
+            "horizontalCrs": "EPSG:2966", "verticalDatum": "NAVD88",
+            "verticalUnit": "ftUS", "sourceSha256": clipper.digest(source),
+        }), encoding="utf-8")
+        result = clipper.clip(source, target, self.aoi, metadata, report,
+                              allow_candidate=True, chunk_size=2)
+        self.assertEqual(result["retainedPointCount"], 2)
+        self.assertEqual(result["originalPointCount"], 3)
+        self.assertFalse(result["surveyGradeCertified"])
+        self.assertFalse(result["approvedForEngineering"])
+        self.assertEqual(laspy.read(target).header.parse_crs().to_epsg(), 2966)
+        self.assertEqual(laspy.read(target).x[0], 2685000.0)
+        self.assertEqual(clipper.digest(target), result["outputSha256"])
+        self.assertEqual(json.loads(report.read_text())["classification"], "INFORMATIONAL_ONLY")
+
     def test_source_hash_vertical_and_quality_claims_checked(self):
         source = self.root / "sample.las"
         source.write_bytes(b"mock input for preflight only; not a real LAS")
