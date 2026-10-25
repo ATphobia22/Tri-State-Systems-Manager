@@ -15,7 +15,7 @@ function fixture(){
   const make=(id,p,authority,relation)=>({id,path:p,authority,url:'https://example.gov/record',sha256:hash(source),bytes:Buffer.byteLength(source),featureCount:1,spatialRelation:relation,status:'acquired'});
   const receipt={schema:'tsm-posey-offline-download-receipt-v2',countyFips:'18129',countyGEOID:'18129',
     geographyPolicy:{spatialRelation:'exact-county',boundaryVintage:'2023'},files:[
-    make('posey-county-boundary','boundary\county.geojson','US_CENSUS_BUREAU','exact-boundary'),
+    make('posey-county-boundary','boundary/county.geojson','US_CENSUS_BUREAU','exact-boundary'),
     make('fema-test','fema/source.geojson','FEMA','esriSpatialRelIntersects')]};
   const requirements={county:{fips:'18129'},requiredSources:[{id:'fema-test',authority:'FEMA',required:true,minimumFeatureCount:1}]};
   const requirementsPath=path.join(tmp,'requirements.json');
