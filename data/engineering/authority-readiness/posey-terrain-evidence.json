@@ -1,0 +1,29 @@
+{
+  "kind": "terrain",
+  "scope": "POSEY_COUNTY_SCREENING_NOT_SURVEY",
+  "areaKm2": 1087,
+  "rasterCoverageKm2": null,
+  "source": {
+    "raster": null,
+    "horizontalCrs": "EPSG:26916",
+    "verticalDatum": "NAVD88",
+    "verticalUnit": "m",
+    "qualityLevel": "QL2",
+    "acquisitionDate": null,
+    "coordinateEpoch": null
+  },
+  "survey": {
+    "controlReport": null,
+    "distributionReport": null,
+    "surveyMethod": null,
+    "surveyorOfRecord": null,
+    "surveyDate": null,
+    "independenceStatement": null,
+    "checkpoints": []
+  },
+  "limitations": [
+    "County source metadata is not a site survey",
+    "No independent 2024 ASPRS-distributed checkpoint survey in this record",
+    "Horizontal/vertical metadata are context only until item-specific raster and transformation evidence is verified"
+  ]
+}
