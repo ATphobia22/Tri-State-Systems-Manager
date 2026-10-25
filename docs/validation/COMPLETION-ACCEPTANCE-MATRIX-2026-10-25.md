@@ -29,3 +29,13 @@ Do not bulk-merge open PRs. Confirm dependency compatibility, diff review, requi
 
 ## Scientific safeguards
 Keep horizontal CRS, vertical datum, epoch, units, geoid model and source metadata attached to every numerical elevation. Stage-to-WSE conversion requires verified station gage-zero evidence. Human review remains final for consequential engineering and regulatory decisions.
+
+## Integration audit — 2026-10-25 (post-merge, not release approved)
+
+- GitHub open pull requests: **0** after integrating #396, #390, #403, #404 and reconciliations #405, #406, #407, #408, #409, #410, #411. 
+- The remaining historical feature/fix branches are **behind main with 0 unique commits**; branch references are not equivalent to unmerged work.
+- CodeQL on original #410 source head `b785f18dd035717803e14a9056b20a4ef8112f06` reported **1 new high-severity alert** (check run 121203655950). Track exact rule, reproduction and remediation in issue #412: https://github.com/ATphobia22/Tri-State-Systems-Manager/issues/412. Do not assert false-positive without evidence.
+- Main's API-generated OpenAPI synchronization bot committed `c9c91e8311a8a0d39743ebff7e1c72e4b83aa78a` with `[skip ci]`; prior-parent checks cannot prove that commit green. This status-document update deliberately creates a fresh main SHA to permit the configured push checks to run.
+- All requirements in this acceptance matrix remain evidence-gated: no claim of 23,082-building production acceptance, LOD2 county bake, native UE5.8 distribution, hardware performance qualification, survey-grade vertical-datum evidence or regulatory approval without explicit measured artifacts.
+
+**Release classification: NOT VERIFIED GREEN / SECURITY REVIEW REQUIRED** until a current main commit has passing required checks, security alert triage, and artifact integrity attestations.
