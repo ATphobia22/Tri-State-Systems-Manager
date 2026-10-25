@@ -357,6 +357,8 @@ def floodway(bundle: dict[str, Any], root: Path, errors: list[str]) -> dict[str,
     maximum = max(rises) if rises else None
     fema_floodway = regulator.get("isFemaRegulatoryFloodway") is True
     positive_rise = maximum is not None and maximum > 0
+    if fema_floodway and positive_rise:
+        errors.append("FEMA regulatory floodway: any computed increase is not a no-rise finding; obtain appropriate CLOMR/LOMR and official review")
     return {
         "crossSectionsCompared": len(rises),
         "maximumComputedRiseFt": round(maximum, 8) if maximum is not None else None,
