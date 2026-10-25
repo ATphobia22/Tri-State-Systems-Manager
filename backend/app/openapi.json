@@ -248,7 +248,7 @@
     "/api/evidence/push": {
       "post": {
         "summary": "Push Evidence",
-        "description": "Accept an evidence packet into the local outbox.\n\nValidates the packet SHA-256 against the canonical (sort_keys) JSON of the\npacket body. On mismatch, accepts provisionally with integrity_unverified\nflag. The response is a signed receipt of INTAKE ONLY \u2014 it never claims FEMA\nsubmission, acceptance, or approval.",
+        "description": "Accept an evidence packet into the local outbox.\n\nValidates the packet SHA-256 against the canonical (sort_keys) JSON of the\npacket body. On mismatch, stores a quarantine record with the original\nclaimed digest and integrity warning. The response is an unsigned receipt\nof INTAKE ONLY \u2014 it never claims FEMA\nsubmission, acceptance, or approval.",
         "operationId": "push_evidence_api_evidence_push_post",
         "requestBody": {
           "content": {
