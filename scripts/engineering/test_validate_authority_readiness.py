@@ -266,6 +266,8 @@ class FloodwayGateTests(unittest.TestCase):
             r = validate({"kind": "floodway"}, Path(d))
             self.assertEqual(r["status"], "INCOMPLETE")
             self.assertFalse(r["approved"])
+            self.assertIsNone(r["metrics"]["femaFloodwayAnyIncreaseFlag"])
+            self.assertEqual(r["metrics"]["reviewPath"], "REGULATORY_APPLICABILITY_UNVERIFIED")
 
 
 if __name__ == "__main__":
