@@ -66,13 +66,34 @@ def test_evidence_push_accepts_valid_packet(tmp_path, monkeypatch):
     assert stored[0].read_text().strip() == canonical(packet)
 
 
-def test_evidence_push_rejects_hash_mismatch():
+def test_evidence_push_quarantines_hash_mismatch(tmp_path, monkeypatch):
+    outbox = tmp_path / "outbox"
+    monkeypatch.setattr("app.main.OUTBOX_DIR", outbox)
     response = client.post(
         "/api/evidence/push",
         json={"packet": sample_packet(), "packet_sha256": "0" * 64},
     )
-    assert response.status_code == 422
-    assert response.json()["detail"]["code"] == "PACKET_HASH_MISMATCH"
+    assert response.status_code == 202
+    body = response.json()
+    assert body["integrity_verified"] is False
+    assert body["integrity_warning"]["code"] == "PACKET_HASH_MISMATCH"
+    assert list(outbox.glob("*.json")) == []
+    stored = json.loads(Path(body["stored_at"]).read_text())
+    assert stored["packet"] == sample_packet()
+    assert stored["integrity_verified"] is False
+    assert stored["human_review_required"] is True
+    assert stored["integrity_warning"]["claimed_sha256"] == "0" * 64
+    assert stored["integrity_warning"]["computed_sha256"] == body["packet_sha256"]
+
+    # A corrected resubmission can enter the outbox without erasing the
+    # original mismatch or allowing it to overwrite verified content.
+    corrected = client.post("/api/evidence/push", json={
+        "packet": sample_packet(), "packet_sha256": body["packet_sha256"],
+    })
+    assert corrected.status_code == 202
+    assert corrected.json()["integrity_verified"] is True
+    assert len(list(outbox.glob("*.json"))) == 1
+    assert len(list((outbox / "quarantine").glob("*.json"))) == 1
 
 
 def test_evidence_push_rejects_empty_artifacts():

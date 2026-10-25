@@ -6,6 +6,10 @@ from __future__ import annotations
 import hashlib
 import importlib.metadata
 import json
+import platform as runtime_platform
+import re
+import struct
+import sys
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse

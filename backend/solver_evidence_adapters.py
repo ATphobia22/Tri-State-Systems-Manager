@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib, json, math
 from pathlib import Path
 from typing import Any, Mapping
-from backend.engineering_evidence import ArtifactDigest, ExecutionState, build_solver_evidence, sha256_file
+from backend.engineering_evidence import ArtifactDigest, ExecutionState, SolverEvidence, build_solver_evidence, sha256_file
 from backend.engineering.hecras_hdf5 import discover_water_surface_datasets
 from backend.solvers.geotech import calculate_bishop_factor_of_safety
 
