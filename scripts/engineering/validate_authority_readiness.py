@@ -363,15 +363,20 @@ def floodway(bundle: dict[str, Any], root: Path, errors: list[str]) -> dict[str,
     checked_file(bundle.get("engineeringReviewDocument"), root, errors, "engineeringReviewDocument")
     required_string(bundle, "licensedReviewer", errors, "floodway")
     maximum = max(rises) if rises else None
-    fema_floodway = regulator.get("isFemaRegulatoryFloodway") is True
+    applicability = regulator.get("isFemaRegulatoryFloodway")
+    fema_floodway = applicability is True
     positive_rise = maximum is not None and maximum > 0
     if fema_floodway and positive_rise:
         errors.append("FEMA regulatory floodway: any computed increase is not a no-rise finding; obtain appropriate CLOMR/LOMR and official review")
+    review_path = ("FEMA_CLOMR_LOMR_OR_NO_RISE_PROFESSIONAL_REVIEW" if applicability is True
+                   else "LOCAL_STATE_JURISDICTION_REVIEW" if applicability is False
+                   else "REGULATORY_APPLICABILITY_UNVERIFIED")
+    rise_flag = (positive_rise if fema_floodway and maximum is not None else None)
     return {
         "crossSectionsCompared": len(rises),
         "maximumComputedRiseFt": round(maximum, 8) if maximum is not None else None,
-        "femaFloodwayAnyIncreaseFlag": fema_floodway and positive_rise,
-        "reviewPath": ("FEMA_CLOMR_LOMR_OR_NO_RISE_PROFESSIONAL_REVIEW" if fema_floodway else "LOCAL_STATE_JURISDICTION_REVIEW"),
+        "femaFloodwayAnyIncreaseFlag": rise_flag,
+        "reviewPath": review_path,
         "notice": "No-rise/CLOMR/LOMR, Indiana permit and FARA are agency/professional decisions; 0.15 ft state definition is not federal no-rise permission"
     }
 
