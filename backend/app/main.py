@@ -555,8 +555,9 @@ def push_evidence(request: EvidencePushRequest) -> dict:
     """Accept an evidence packet into the local outbox.
 
     Validates the packet SHA-256 against the canonical (sort_keys) JSON of the
-    packet body. On mismatch, accepts provisionally with integrity_unverified
-    flag. The response is a signed receipt of INTAKE ONLY — it never claims FEMA
+    packet body. On mismatch, stores a quarantine record with the original
+    claimed digest and integrity warning. The response is an unsigned receipt
+    of INTAKE ONLY — it never claims FEMA
     submission, acceptance, or approval.
     """
     canonical = canonical_json(request.packet.model_dump())
@@ -581,11 +582,25 @@ def push_evidence(request: EvidencePushRequest) -> dict:
                 },
             )
 
-    OUTBOX_DIR.mkdir(parents=True, exist_ok=True)
     case_id = _validated_id(request.packet.case_id, "case_id")
-    packet_path = _contained_path(OUTBOX_DIR, f"{case_id}_{computed}.json")
+    storage_dir = OUTBOX_DIR if integrity_verified else OUTBOX_DIR / "quarantine"
+    storage_dir.mkdir(parents=True, exist_ok=True)
+    filename = f"{case_id}_{computed}.json"
+    stored_content = canonical
+    if not integrity_verified:
+        # Keep different claims about identical packet bytes distinct, and do
+        # not let a provisional intake masquerade as a verified outbox packet.
+        claim_id = sha256_hex(request.packet_sha256.lower())
+        filename = f"{case_id}_{computed}_{claim_id}.json"
+        stored_content = canonical_json({
+            "packet": request.packet.model_dump(),
+            "integrity_verified": False,
+            "integrity_warning": integrity_warning,
+            "human_review_required": True,
+        })
+    packet_path = _contained_path(storage_dir, filename)
     if not packet_path.exists():
-        packet_path.write_text(canonical + "\n", encoding="utf-8")
+        packet_path.write_text(stored_content + "\n", encoding="utf-8")
 
     receipt_payload = {
         "receipt_id": sha256_hex(canonical + "|receipt"),

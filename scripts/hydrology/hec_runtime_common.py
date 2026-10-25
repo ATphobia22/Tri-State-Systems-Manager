@@ -6,6 +6,8 @@ from __future__ import annotations
 import hashlib
 import importlib.metadata
 import json
+import re
+import sys
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse

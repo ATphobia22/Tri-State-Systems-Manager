@@ -27,7 +27,7 @@ def qualified_manifest() -> dict[str, object]:
         "schema_version": "2.0.0",
         "run_id": "test-run-001",
         "source_commit": "1" * 40,
-        "approval": {"status": "APPROVED", "approved_by": "reviewer", "evidence_uri": "https://example.invalid/approval"},
+        "approval": {"status": "APPROVED", "approved_by": "reviewer", "approved_at": "2026-10-15T00:00:00Z", "evidence_uri": "https://example.invalid/approval"},
         "aoi": {
             "geometry_sha256": digest,
             "watershed_delineation_sha256": "b" * 64,
@@ -42,6 +42,14 @@ def qualified_manifest() -> dict[str, object]:
             "units_policy": "US customary; CFS/feet",
             "datum_evidence_uri": "https://example.invalid/datum",
         },
+        "python_environment": {
+            "platform": "windows-x64",
+            "python_version": "3.12.0",
+            "lock_uri": "https://example.invalid/requirements.lock",
+            "lock_workspace_path": "inputs/requirements.lock",
+            "lock_sha256": "d" * 64,
+            "installed_packages_sha256": "e" * 64,
+        },
         "source_inputs": [{
             "quality_status": "QUALIFIED",
             "source_uri": "https://example.invalid/rainfall.csv",
@@ -53,6 +61,13 @@ def qualified_manifest() -> dict[str, object]:
             "sha256": "c" * 64,
         }],
     }
+
+
+def test_qualified_manifest_loads_without_executing_a_solver(tmp_path: Path) -> None:
+    manifest = qualified_manifest()
+    path = tmp_path / "manifest.json"
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+    assert load_approved_manifest(path) == manifest
 
 
 def test_draft_manifest_is_rejected_by_direct_stage_wrapper(tmp_path: Path) -> None:
