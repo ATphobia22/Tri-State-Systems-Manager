@@ -1,0 +1,206 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atphobia22.github.io/Tri-State-Systems-Manager/contracts/solver-exchange/v1/solver-exchange.schema.json",
+  "title": "TSM Solver Exchange Contract v1",
+  "description": "TSM-owned exchange schema; not a claim of OpenMI 2.0 conformance.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "request_id",
+    "solver_name",
+    "solver_version",
+    "evaluation_state",
+    "solver_status",
+    "spatial_reference",
+    "time_reference",
+    "input_artifacts",
+    "human_review_required",
+    "governance_authorized"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "solver_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "solver_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "adapter_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "adapter_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "evaluation_state": {
+      "enum": [
+        "NOT_EVALUATED",
+        "BLOCKED",
+        "EVALUATED"
+      ]
+    },
+    "solver_status": {
+      "enum": [
+        "NOT_EVALUATED",
+        "BLOCKED",
+        "RUNNING",
+        "CONVERGED",
+        "NOT_CONVERGED",
+        "FAILED"
+      ]
+    },
+    "spatial_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "horizontal_crs",
+        "vertical_datum",
+        "horizontal_unit",
+        "vertical_unit"
+      ],
+      "properties": {
+        "horizontal_crs": {
+          "type": "string",
+          "minLength": 1
+        },
+        "vertical_datum": {
+          "type": "string",
+          "minLength": 1
+        },
+        "horizontal_unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "vertical_unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "coordinate_epoch": {
+          "type": "string"
+        },
+        "transformation_pipeline_id": {
+          "type": "string"
+        }
+      }
+    },
+    "time_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "timestamp_rfc3339",
+        "time_zone"
+      ],
+      "properties": {
+        "timestamp_rfc3339": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "time_zone": {
+          "type": "string",
+          "minLength": 1
+        },
+        "calendar": {
+          "type": "string"
+        }
+      }
+    },
+    "input_artifacts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/artifact"
+      }
+    },
+    "output_artifacts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/artifact"
+      }
+    },
+    "quality_flags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "blocking_reasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "rule_set_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "provenance_uri": {
+      "type": "string",
+      "minLength": 1
+    },
+    "solver_configuration_hash_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "input_manifest_hash_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "output_manifest_hash_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "started_at_rfc3339": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at_rfc3339": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "human_review_required": {
+      "const": true
+    },
+    "governance_authorized": {
+      "const": false
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[A-Fa-f0-9]{64}$"
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "media_type",
+        "uri",
+        "sha256_hex",
+        "byte_length"
+      ],
+      "properties": {
+        "media_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "uri": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256_hex": {
+          "$ref": "#/$defs/sha256"
+        },
+        "byte_length": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}
