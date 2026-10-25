@@ -11,6 +11,7 @@ ATSMWorldPartitionStreamingAnchor::ATSMWorldPartitionStreamingAnchor()
     SetRootComponent(CreateDefaultSubobject<USceneComponent>(TEXT("TSMStreamingRoot")));
     StreamingSource =
         CreateDefaultSubobject<UWorldPartitionStreamingSourceComponent>(TEXT("TSMStreamingSource"));
+    StreamingSource->DisableStreamingSource(); // no temporary origin load during registration
 }
 
 void ATSMWorldPartitionStreamingAnchor::BeginPlay()
