@@ -6,6 +6,9 @@ TSM integrates public hydrology, terrain, imagery, flood-hazard data, infrastruc
 
 > **Operating principle:** Technology informs people; it does not silently govern people. Human authority remains final.
 
+> **Scientific acceptance status (2026-10-25):** TSM is a public evidence and **engineering decision-support** platform, not an independently certified land survey, a validated full-county adaptive mesh, an official FEMA/Indiana floodway determination, or a released Unreal Engine 5.8 Windows Shipping installer. The real DEM seam benchmark covers a **400 km² partial AOI**; the 23,082-feature building source and 22,815-feature screening layer still differ by **267 archived source OBJECTIDs**. Green CI confirms software/evidence gates, not survey or regulatory acceptance. [Review the exact acceptance protocol](docs/validation/AUTHORITY-ACCEPTANCE-PROTOCOL-2026-10-25.md) and the [readiness reports](data/engineering/authority-readiness/). Public screening should remain usable while unresolved sources are labeled as unavailable, never silently assumed.
+
+
 **In memory of Beverly Ann Tucker.** *This dedication is personal and is not a software specification, architecture constraint, or release gate.*
 
 **GitHub:** https://github.com/ATphobia22/Tri-State-Systems-Manager
