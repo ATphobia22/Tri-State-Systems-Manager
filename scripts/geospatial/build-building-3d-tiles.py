@@ -39,6 +39,7 @@ from shapely.ops import triangulate
 WGS84_A = 6378137.0
 WGS84_E2 = 6.6943799901413165e-3
 FT_TO_M = 0.3048
+FTUS_TO_M = 1200.0 / 3937.0
 
 # Fixed LOD1 visualization constants (documented estimates, not surveyed).
 DEFAULT_EXTRUSION_FT = 10.0
@@ -224,6 +225,8 @@ def validated_height_ft(props: dict, estimate_ft: float | None) -> tuple[float, 
     """No silent default building height: retain LiDAR provenance or explicit estimate."""
     h = props.get("lidarHeightFt")
     if props.get("lidarHeightStatus") == "OK" and props.get("heightProvenance") in ("OBSERVED", "DERIVED"):
+        if props.get("lidarHeightDatum") != "NAVD88" or props.get("lidarHeightUnit") != "ftUS":
+            raise ValueError("LiDAR height lacks explicit NAVD88/ftUS metadata")
         if isinstance(h, (int, float)) and not isinstance(h, bool) and math.isfinite(h) and 0 < h <= 328.08399:
             return float(h), str(props["heightProvenance"])
         raise ValueError("LiDAR height invalid for OBSERVED/DERIVED provenance")
@@ -237,7 +240,25 @@ def ground_elevation_ft(props) -> float | None:
         v = props.get(key)
         if isinstance(v, (int, float)) and math.isfinite(v):
             return float(v)
+    # A valid local LiDAR ground median is an evidence-backed DEM-gap
+    # recovery, not a synthetic elevation. Require explicit NAVD88 and ftUS.
+    if (props.get("lidarHeightStatus") == "OK"
+            and props.get("lidarHeightDatum") == "NAVD88"
+            and props.get("lidarHeightUnit") == "ftUS"
+            and props.get("heightProvenance") in ("OBSERVED", "DERIVED")):
+        z_m = props.get("lidarGroundElevM")
+        if isinstance(z_m, (int, float)) and not isinstance(z_m, bool) and math.isfinite(z_m):
+            return float(z_m) / FTUS_TO_M
     return None
+
+
+def ground_elevation_provenance(props) -> str:
+    for key in ("groundElevationMeanFt", "groundElevationFt",
+                "groundElevationMinFt", "groundElevationMaxFt"):
+        v = props.get(key)
+        if isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v):
+            return "FOOTPRINT_DEM"
+    return "LIDAR_GROUND_MEDIAN_NAVD88"
 
 
 def is_flooded(props) -> bool:
@@ -259,6 +280,7 @@ class BuildingTile:
     ground_ft: float
     height_ft: float
     height_provenance: str
+    ground_provenance: str
 
 
 def build_prism(polygons: list[Polygon], base_z_m: float, top_z_m: float,
@@ -450,7 +472,8 @@ def main() -> None:
                         max((max(ys) - min(ys)) / 2.0, 0.01),
                         max((max(zs) - min(zs)) / 2.0, 0.01))
                 tiles.append(BuildingTile(sid, uri, center, half, origin, axes,
-                                          flooded, elev_ft, height_ft, height_source))
+                                          flooded, elev_ft, height_ft, height_source,
+                                          ground_elevation_provenance(props)))
                 accepted_ids.add(sid)
             except (ValueError, TypeError, OverflowError) as exc:
                 reason = str(exc)
@@ -510,6 +533,7 @@ def main() -> None:
                 "groundElevationFtNavd88": t.ground_ft,
                 "lidarHeightFt": t.height_ft,
                 "heightProvenance": t.height_provenance,
+                "groundElevationProvenance": t.ground_provenance,
                 "estimatedHeight": t.height_provenance == "EXPLICIT_ESTIMATE",
                 "lod": 1,
             }},
@@ -552,6 +576,8 @@ def main() -> None:
             "rejectedSourceIds": [item["sourceObjectId"] for item in rejected],
             "heightSources": {source: sum(t.height_provenance == source for t in tiles)
                               for source in ("OBSERVED", "DERIVED", "EXPLICIT_ESTIMATE")},
+            "groundSources": {source: sum(t.ground_provenance == source for t in tiles)
+                              for source in ("FOOTPRINT_DEM", "LIDAR_GROUND_MEDIAN_NAVD88")},
         },
         "transformation": (
             "IGIO building polygon -> largest ring -> deterministic ear-clip triangulation -> "
