@@ -6,10 +6,10 @@ Status: **informational only, not an approved township boundary, licensed survey
 
 The proposed EPSG:2966 rectangle with corner (830000,930000) maps to
 approximately (-94.403,37.574) longitude/latitude, not Posey County.
-EPSG:2966 (NAD83 / Indiana West) uses **US survey feet**. A geographic
-reference point (-88.005075,37.845887) maps to approximately
-(2686588.66,947469.27) in EPSG:2966. This point is **not** a township
-polygon, field boundary, surveyed parcel or hydraulic AOI.
+EPSG:2966 (NAD83 / Indiana West) uses **US survey feet**. Generalized,
+synthetic projected coordinates in the Posey region have eastings on the
+order of 2.7 million ftUS, not 830,000 ftUS. Do not publish private site
+centroids or unreviewed parcel coordinates as example AOI inputs.
 
 RFC 7946 GeoJSON is WGS84 longitude/latitude, not projected EPSG:2966
 with an old-style crs member. Use the explicit custom projected-AOI
