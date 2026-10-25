@@ -21,6 +21,7 @@ test('the streaming source is disabled until a validated Unreal-local location i
   assert.match(header, /IsPrefetchReady/);
   assert.match(code, /CancelPrefetch\(\);/);
   assert.match(code, /StreamingSource->DisableStreamingSource\(\)/);
+  assert.match(code, /Components\/WorldPartitionStreamingSourceComponent\.h/);
   assert.match(code, /WorldPositionCm\.ContainsNaN\(\)/);
   assert.match(code, /StreamingSource->IsStreamingCompleted\(\)/);
   assert.match(code, /StreamingSource->EnableStreamingSource\(\)/);
