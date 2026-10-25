@@ -21,39 +21,36 @@
 
 `tsm-console/src/lib/buildingsService.ts` → `normalizeBuildingHeight()` prefers `height_m` before `height` / floor heuristics.
 
-## 2026-10-25 authoritative-vs-published identity gate
+## 2026-10-25 archived IGIO identity gap: IDs verified, recovery pending
 
-The difference between the expected **23,082** IGIO source features and the
-**22,815** published screening features is a **267-feature cardinality gap**.
-It does *not* identify which OBJECTIDs differ or establish that they were
-dropped during raster sampling: the source vintage, boundary, and feature
-identity sets must first be compared. Likewise, the published GeoJSON feature
-count is **not** an assertion that the same number of GLB tiles exist.
+The SHA-256-verified **archived project IGIO-labeled snapshot** contains
+**23,082** source identities and the published informational GeoJSON contains
+**22,815**. An earlier CI run computed and committed the **exact 267 missing
+OBJECTIDs** in
+`data/buildings/POSEY-ARCHIVED-IGIO-IDENTITY-DELTA-2026-10-25.json`.
+It found **no additional published OBJECTIDs and no duplicates**.
 
-Use the deterministic audit in read-only mode:
+- Identity coverage by count: **22,815 / 23,082 = 98.8433%**.
+- Source snapshot SHA-256: `d8a46b86616becfdea9c9164e7a219317d5963b86fba47e4c1f8f880ccbb559f`.
+- Published GeoJSON SHA-256: `27e3cb85de9f8bfcfc51c50488786e79d59bf3ec976855f4644fe98cea394a53`.
+- Evidence: [CI run 40211424871](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions/runs/40211424871).
+- **Source lineage and vintage are not independently certified** by this
+  archive-vs-publication diff; do not describe it as survey verification.
 
-```bash
-python scripts/geospatial/reconcile_published_buildings.py \
-  --published tsm-console/public/3d-tiles/buildings-3d.json \
-  --expected-count 23082 \
-  --output artifacts/posey-buildings-count-audit.json
-```
+To reproduce the exact pinned identity set difference, use the
+`Posey Archived IGIO Building Identity Evidence` GitHub Actions workflow,
+which fetches and checks the frozen release asset SHA-256 before running
+`scripts/geospatial/verify_archived_posey_delta.py`. The generated
+`posey-archived-objectid-remediation` artifact contains each missing
+`sourceObjectId` with `rootCause: UNDETERMINED`, explicitly unverified
+height, datum and LOD evidence, and no invented coordinates or geometry.
 
-That result reports `missingAuthoritativeObjectIds: null` until the matching
-official, vintage-pinned source GeoJSON is available. When the official source
-is present, run the strict **identity-only** comparison:
+**Still incomplete:** determine the individual exclusion reason for all 267
+from original feature/raster processing logs; acquire defensible heights,
+source geometry and vertical-datum evidence; regenerate 3D tiles; pass
+`validate_building_acceptance_chain.py`, glTF, 3D Tiles, topology and HLOD
+validation. Do not call the 22,815 GeoJSON a complete GLB tileset.
 
-```bash
-python scripts/geospatial/reconcile_published_buildings.py \
-  --published tsm-console/public/3d-tiles/buildings-3d.json \
-  --authoritative /path/to/verified-igio-source.geojson \
-  --expected-count 23082 --require-complete \
-  --output artifacts/posey-buildings-objectid-audit.json
-```
-
-Both inputs are hashed SHA-256 and original values are left unchanged. Even a
-successful identity comparison means **count and IDs only**; it does not verify
-LiDAR heights, geodetic datum conversion, roof geometry or LOD2 acceptance.
-Those require the separate `validate_building_acceptance_chain.py` and mesh
-validators. Keep incomplete visualization in the `DERIVED /
-INFORMATIONAL_ONLY` tier and never use it for survey or permit determinations.
+The public visualization remains `DERIVED / INFORMATIONAL_ONLY` with
+`engineeringUse=false` and `regulatoryUse=false`. Count/OBJECTID equality
+would not prove heights, NAVD88, rendering quality or regulatory suitability.
