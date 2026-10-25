@@ -33,6 +33,13 @@
       "TargetAllowList": [
         "Editor"
       ]
+    },
+    {
+      "Name": "EditorScriptingUtilities",
+      "Enabled": true,
+      "TargetAllowList": [
+        "Editor"
+      ]
     }
   ]
 }
