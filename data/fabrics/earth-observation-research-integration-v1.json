@@ -1,0 +1,117 @@
+{
+  "schemaVersion": "1.0.0",
+  "catalogId": "tsm-earth-observation-research-integration-v1",
+  "reviewedAt": "2026-10-25",
+  "purpose": "Register candidate satellite-derived feature and hyperspectral sources without promoting them to authoritative terrain, observations, forecasts, or engineering conclusions.",
+  "policy": {
+    "defaultAuthority": "DERIVED",
+    "requireSourceProvenance": true,
+    "requireHumanReviewBeforeEngineeringUse": true,
+    "forbidSyntheticFallback": true,
+    "forbidDirectHydraulicConclusionsFromEmbeddings": true,
+    "forbidGeneratedGeometryAsAuthoritativeElevation": true
+  },
+  "sources": [
+    {
+      "id": "olmoearth-v1-3-global-embeddings",
+      "provider": "Allen Institute for AI (Ai2)",
+      "product": "OlmoEarth v1.3 annual satellite embeddings",
+      "sourceClass": "SATELLITE_DERIVED_FEATURES",
+      "authority": "DERIVED",
+      "integrationStatus": "RESEARCH_CANDIDATE",
+      "runtimeAdapterImplemented": false,
+      "liveAccessVerifiedByTSM": false,
+      "sourceUrl": "https://allenai.org/blog/olmoearth-v1-3",
+      "explorerUrl": "https://olmoearth.allenai.org/",
+      "codeUrl": "https://github.com/allenai/olmoearth_projects",
+      "dataUrl": "https://source.coop/olmoearth/olmoearth-v1-3-embeddings",
+      "modelVersion": "v1.3",
+      "nominalPixelResolutionMeters": 10,
+      "embeddingDimensions": [64, 128],
+      "referenceYears": [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025],
+      "coveragePolicy": "Coverage varies by year. 2023-2025 are reported as global at release; 2017-2022 have selected-country coverage. Verify tile/year availability and provenance for each requested AOI before use.",
+      "inputModalities": ["Sentinel-1", "Sentinel-2", "Landsat 8/9"],
+      "provenanceRequirements": [
+        "provider and model version",
+        "reference year and exact tile identifier",
+        "source-scene provenance where supplied",
+        "retrieval timestamp and source URI",
+        "native CRS, transform, dimensions, nodata, and content checksum",
+        "label provenance and held-out validation metrics for any downstream classifier"
+      ],
+      "license": {
+        "name": "OlmoEarth Artifact License",
+        "url": "https://data.source.coop/olmoearth/olmoearth-v1-3-embeddings/LICENSE.txt",
+        "reviewRequiredBeforeDeployment": true,
+        "restrictedUseSummary": "License restricts military/defense-related uses and certain extractive activities, including planning or facilitating extraction of oil, natural gas, and minerals and deforestation. Obtain legal/compliance review for the intended TSM use and all derivative distribution."
+      },
+      "allowedInitialUses": [
+        "analyst-reviewed land-cover and surface-change screening",
+        "candidate-site similarity exploration",
+        "research classifier prototyping using independently sourced labels"
+      ],
+      "prohibitedUses": [
+        "authoritative elevation or bathymetry",
+        "direct flood depth, water-surface elevation, or hydraulic-boundary claims",
+        "parcel or building survey measurements",
+        "regulatory determinations without independent authoritative evidence",
+        "deployment before license and intended-use review"
+      ],
+      "limitations": [
+        "Embeddings are learned features, not direct physical measurements.",
+        "Global product claims do not establish AOI-specific coverage or suitability.",
+        "Downstream maps require representative labels, held-out spatial validation, uncertainty reporting, and human review."
+      ]
+    },
+    {
+      "id": "planet-tanager-hyperspectral",
+      "provider": "Planet Labs / Planet Labs Federal",
+      "product": "Tanager hyperspectral Level 1C and Level 2A products",
+      "sourceClass": "HYPERSPECTRAL_OBSERVATION",
+      "authority": "OBSERVATIONAL",
+      "integrationStatus": "EVALUATION_ONLY",
+      "runtimeAdapterImplemented": false,
+      "liveAccessVerifiedByTSM": false,
+      "sourceUrl": "https://www.businesswire.com/news/home/20261021824897/en/Planet-Awarded-NASA-Commercial-Satellite-Data-Acquisition-CSDA-Evaluation-Task-Order-for-Tanager-Hyperspectral-Data",
+      "nasaProgramUrl": "https://science.nasa.gov/earth-science/csda/vendor-planet/",
+      "announcedEvaluationAreaSquareKilometersMinimum": 250000,
+      "nominalGroundResolutionMeters": 30,
+      "spectralChannelsMinimum": 400,
+      "products": [
+        {
+          "id": "L1C",
+          "meaning": "Top-of-atmosphere reflectance",
+          "operationalUse": "research-only until calibration and product suitability are validated"
+        },
+        {
+          "id": "L2A",
+          "meaning": "Bottom-of-atmosphere surface reflectance",
+          "operationalUse": "research-only until atmospheric correction, calibration, and product suitability are validated"
+        }
+      ],
+      "accessPolicy": "NASA announced an evaluation task order. This does not establish that all Tanager data is public or that TSM has API credentials. Verify contract/access eligibility, product availability, terms, API behavior, and AOI coverage before attempting ingestion.",
+      "provenanceRequirements": [
+        "provider scene/product ID and acquisition time",
+        "sensor/platform and product processing level",
+        "spectral band centers, widths, units, and calibration metadata",
+        "atmospheric-correction and quality flags where applicable",
+        "native CRS, geotransform, nodata, QA mask, and content checksum",
+        "license/access terms, retrieval time, and API request lineage"
+      ],
+      "allowedInitialUses": [
+        "research evaluation of vegetation, surface-material, water-quality-related, and other environmental spectral indicators where product and validation support the question"
+      ],
+      "prohibitedUses": [
+        "assume public access or invent credentials",
+        "treat announcement coverage as guaranteed TSM AOI coverage",
+        "infer flood depth, hydraulic conveyance, or ground elevation from spectral reflectance alone",
+        "promote unvalidated derived classifications to authoritative engineering evidence"
+      ],
+      "limitations": [
+        "NASA's announced evaluation is not proof of operational suitability for TSM.",
+        "Spectral signatures require domain-specific calibration, atmospheric correction, ground truth, and uncertainty assessment.",
+        "The exact data-access rights and available AOI coverage must be confirmed at integration time."
+      ]
+    }
+  ]
+}
