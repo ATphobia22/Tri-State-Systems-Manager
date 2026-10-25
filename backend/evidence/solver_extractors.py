@@ -12,11 +12,12 @@ the caller decides what to do with it. Missing inputs are UNAVAILABLE, never
 interpolated.
 
 Corrections to the pasted other-AI extractors:
-- The pasted HEC-RAS "HDF check" (buffer length > 1024) is labeled simulated
-  in the paste itself. Here the check is real: HDF5 magic bytes
-  89 48 44 46 0D 0A 1A 0A at offset 0, plus an explicit caller-supplied
-  ``required_profiles_present`` flag for profile presence (a byte buffer
-  alone cannot prove profile contents).
+- An HDF5 file signature is only a byte-level preflight, not HEC-RAS output
+  validation. A caller-provided profile-presence boolean is NOT proof of
+  profile contents or numerical convergence. Non-fatal records remain
+  UNVERIFIED unless an independent parser and validated model evidence exist.
+- A MODFLOW mass-balance scalar supplied by the caller is NOT a parsed cell
+  budget. Threshold screening is advisory; passing it never yields VERIFIED.
 - Hardcoded durationMs/iterations in the paste are NOT measurements. This
   module takes no fabricated metrics: execution metrics are caller-supplied
   and labeled, or omitted.
@@ -41,6 +42,7 @@ MODFLOW_MASS_BALANCE_THRESHOLD_PCT = 1.0
 
 EVIDENCE_STATUSES = (
     "VERIFIED",
+    "UNVERIFIED",
     "FAILED",
     "NON_CONVERGENT",
     "DATA_ERROR",
@@ -99,9 +101,13 @@ def extract_hec_ras_evidence(
     elif fatal_messages:
         status = "NON_CONVERGENT"
     elif not required_profiles_present:
-        status = "NON_CONVERGENT"
+        status = "UNVERIFIED"
     else:
-        status = "VERIFIED"
+        # HDF5 magic and caller-asserted profiles do not establish that the
+        # file opens as HDF5, contains supported HEC-RAS datasets or that the
+        # hydraulic calculation converged. A separate evidence-bearing parser
+        # and independent validation are required for VERIFIED.
+        status = "UNVERIFIED"
     body: dict[str, Any] = {
         "run_id": run_id,
         "solver_name": "HEC-RAS",
@@ -113,6 +119,7 @@ def extract_hec_ras_evidence(
         "hdf_magic_present": has_hdf_magic,
         "fatal_computation_messages": fatal_messages,
         "required_profiles_present": required_profiles_present,
+        "verification_scope": "HDF5_SIGNATURE_ONLY; PROFILE_FLAG_CALLER_SUPPLIED; NO_NUMERICAL_VALIDATION",
         "spatial_metadata": _spatial_metadata(crs, vertical_datum, unit),
         "fixture_label": fixture_label,
     }
@@ -138,12 +145,19 @@ def extract_modflow_evidence(
     spatial_error = _validate_spatial(crs, vertical_datum, unit)
     if spatial_error is not None:
         status = spatial_error
-    elif not isinstance(mass_balance_error_pct, (int, float)) or not math.isfinite(float(mass_balance_error_pct)):
+    elif (not isinstance(head_bytes, bytes) or not head_bytes
+          or not isinstance(budget_bytes, bytes) or not budget_bytes):
         status = "DATA_ERROR"
-    elif abs(float(mass_balance_error_pct)) <= MODFLOW_MASS_BALANCE_THRESHOLD_PCT:
-        status = "VERIFIED"
-    else:
+    elif (not isinstance(mass_balance_error_pct, (int, float))
+          or isinstance(mass_balance_error_pct, bool)
+          or not math.isfinite(float(mass_balance_error_pct))):
+        status = "DATA_ERROR"
+    elif abs(float(mass_balance_error_pct)) > MODFLOW_MASS_BALANCE_THRESHOLD_PCT:
         status = "NON_CONVERGENT"
+    else:
+        # Caller-supplied mass balance is not verified against a parsed binary
+        # budget or solver listing. Data cannot be certified by this function.
+        status = "UNVERIFIED"
     body: dict[str, Any] = {
         "run_id": run_id,
         "solver_name": "MODFLOW-6",
@@ -157,6 +171,8 @@ def extract_modflow_evidence(
         "status": status,
         "mass_balance_error_pct": mass_balance_error_pct,
         "mass_balance_threshold_pct": MODFLOW_MASS_BALANCE_THRESHOLD_PCT,
+        "mass_balance_provenance": "CALLER_SUPPLIED_NOT_PARSED",
+        "verification_scope": "ARTIFACT_HASHES_AND_CALLER_THRESHOLD_ONLY; NO_BINARY_BUDGET_VALIDATION",
         "spatial_metadata": _spatial_metadata(crs, vertical_datum, unit),
         "fixture_label": fixture_label,
     }

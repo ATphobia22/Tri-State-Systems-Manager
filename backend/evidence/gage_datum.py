@@ -10,8 +10,10 @@ with ``status`` ``UNAVAILABLE`` and ``wse_ft_navd88`` None, and the caller
 keeps running. It never raises for a missing datum and never returns a
 fabricated elevation.
 
-Datum table: backend/governance/site_constants.py (parent-verified 2026-10-24).
-See that module for the known 352.67-vs-352.71 discrepancy on 03378500.
+Datum table: backend/governance/site_constants.py. That module separates
+station-altitude context from published gage-zero offsets. Its currently
+empty conversion table deliberately prevents conflicting or unpublished
+offsets from becoming NAVD88 WSE output.
 """
 
 from __future__ import annotations
