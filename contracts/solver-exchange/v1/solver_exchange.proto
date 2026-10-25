@@ -1,0 +1,89 @@
+syntax = "proto3";
+
+package tsm.science.solver_exchange.v1;
+
+// TSM-owned typed exchange contract. This is NOT a declaration of OpenMI 2.0
+// conformance. An OpenMI adapter must separately prove conformance to the
+// applicable OpenMI interfaces and exchange semantics.
+enum EvaluationState {
+  EVALUATION_STATE_UNSPECIFIED = 0;
+  NOT_EVALUATED = 1;
+  BLOCKED = 2;
+  EVALUATED = 3;
+}
+
+enum SolverStatus {
+  SOLVER_STATUS_UNSPECIFIED = 0;
+  SOLVER_NOT_EVALUATED = 1;
+  SOLVER_BLOCKED = 2;
+  SOLVER_RUNNING = 3;
+  SOLVER_CONVERGED = 4;
+  SOLVER_NOT_CONVERGED = 5;
+  SOLVER_FAILED = 6;
+}
+
+message Quantity {
+  double value = 1;
+  string unit_ucum = 2;
+}
+
+message TimeReference {
+  // RFC 3339 timestamp with explicit UTC offset. Do not use naive timestamps.
+  string timestamp_rfc3339 = 1;
+  string time_zone = 2;
+  string calendar = 3;
+}
+
+message SpatialReference {
+  // Horizontal CRS identifier, e.g. EPSG:2966. Never infer vertical datum from it.
+  string horizontal_crs = 1;
+  // Explicit vertical datum, e.g. NAVD88, or UNKNOWN when not verified.
+  string vertical_datum = 2;
+  string horizontal_unit = 3;
+  string vertical_unit = 4;
+  string coordinate_epoch = 5;
+  string transformation_pipeline_id = 6;
+}
+
+message ArtifactReference {
+  string media_type = 1;
+  string uri = 2;
+  string sha256_hex = 3;
+  uint64 byte_length = 4;
+}
+
+message SolverExchangeRequest {
+  string schema_version = 1; // Must be "1.0.0" for this package version.
+  string request_id = 2;
+  string solver_name = 3;
+  string solver_version = 4;
+  string adapter_name = 5;
+  string adapter_version = 6;
+  SpatialReference spatial_reference = 7;
+  TimeReference time_reference = 8;
+  repeated ArtifactReference input_artifacts = 9;
+  repeated Quantity declared_tolerances = 10;
+  string rule_set_version = 11;
+  string provenance_uri = 12;
+}
+
+message SolverExchangeResult {
+  string schema_version = 1;
+  string request_id = 2;
+  EvaluationState evaluation_state = 3;
+  SolverStatus solver_status = 4;
+  repeated ArtifactReference output_artifacts = 5;
+  repeated string quality_flags = 6;
+  repeated string blocking_reasons = 7;
+  string solver_log_uri = 8;
+  string provenance_uri = 9;
+  string solver_configuration_hash_sha256 = 10;
+  string input_manifest_hash_sha256 = 11;
+  string output_manifest_hash_sha256 = 12;
+  string started_at_rfc3339 = 13;
+  string completed_at_rfc3339 = 14;
+  // Required true for TSM integration: solver output is evidence, not approval.
+  bool human_review_required = 15;
+  // Must remain false; this contract has no design/permit authorization field.
+  bool governance_authorized = 16;
+}
