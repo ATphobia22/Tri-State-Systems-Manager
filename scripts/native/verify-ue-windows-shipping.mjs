@@ -8,6 +8,7 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import process from "node:process";
+import { fileURLToPath } from "node:url";
 
 function required(condition, message) {
   if (!condition) throw new Error(message);
@@ -20,7 +21,18 @@ function listFiles(root, current = root) {
   });
 }
 function digest(file) {
-  return crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex");
+  const hash = crypto.createHash("sha256");
+  const fd = fs.openSync(file, "r");
+  const buffer = Buffer.allocUnsafe(1024 * 1024);
+  try {
+    let count;
+    while ((count = fs.readSync(fd, buffer, 0, buffer.length, null)) > 0) {
+      hash.update(buffer.subarray(0, count));
+    }
+  } finally {
+    fs.closeSync(fd);
+  }
+  return hash.digest("hex");
 }
 function peMachine(file) {
   const fd = fs.openSync(file, "r");
@@ -121,6 +133,6 @@ function cli() {
   fs.writeFileSync(options["--output"], JSON.stringify(report, null, 2) + "\n");
   console.log(`${report.status}: ${report.inspectedFiles.length} files SHA-256 inventoried; offline clean-host launch NOT verified`);
 }
-if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname)) {
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try { cli(); } catch (error) { console.error(`UE Shipping gate: ${error.message}`); process.exitCode = 1; }
 }
