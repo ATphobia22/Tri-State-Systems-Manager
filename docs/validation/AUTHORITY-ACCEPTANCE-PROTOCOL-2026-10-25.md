@@ -40,6 +40,42 @@ The existing measured report:
 `docs/validation/transvoxel-county-run/run-report-2026-10-23.json`.
 It explicitly records partial AOI, strips-only geometry and nodata exceptions; the authoritative gate shall **reject it as county-complete**.
 
+### Independent triangle-interface seam checker
+
+A measured mesh run can supply actual adjacent chunk triangle coordinates to
+`scripts/geospatial/verify_mesh_seams.py`. The checker intersects triangles
+with the shared plane and tests **segment coverage** in both directions, so a
+coarse straight interface split into multiple fine straight edges is accepted,
+while a missing segment, unmatched line, NaN vertex, malformed face or
+non-zero open crack is reported. Example (the input **must** contain real
+geometric evidence from both neighboring meshes):
+
+```bash
+python -m unittest scripts.geospatial.test_verify_mesh_seams -v
+python scripts/geospatial/verify_mesh_seams.py \
+  --input /path/to/verified-chunk-interface-pairs.json \
+  --output /path/to/seam-geometry-audit.json \
+  --require-all-six --require-match
+```
+
+Input format is JSON object with `toleranceM` (0–0.02) and `interfaces`
+array; each interface has a unique `id`, a signed `direction`
+(`+x/-x/+y/-y/+z/-z`), `planeCoordinateM`, and `left/right` mesh
+objects containing `vertices: [[x,y,z],...]` in meters and
+`triangles: [[i,j,k],...]` indices. **No credentials, software approval or
+surveys** are embedded in this test fixture. Its output is
+`tsm.geometric-seam-audit.v1` with input hash, verified directions,
+matched pairs and failures. The full-county readiness gate requires the
+`seamAudit` record and the mesh/run report to agree in SHA-256, seam count,
+source-tile hashes and coverage metadata.
+
+**Limits:** A triangle-intersection test covers supplied interfaces only; it
+does not establish that every chunk of the county was supplied. Small errors
+within the configured tolerance are not proof of surveyed coordinates, and
+coplanar overlap, highly curved edges or complex nonmanifold geometry may
+require further topology checks. The run must also verify the exact official
+county polygon and DEM data completeness.
+
 ## Gate C — evidence-ready floodway modeling and regulatory packages
 
 1. Resolve the local floodplain administrator, study/FIRM panel effective dates, official Flood Insurance Study, regulatory floodway polygon and **Indiana FARA** where required. A parcel coordinate alone does **not** establish an approved hydrologic AOI or determine FEMA status.
