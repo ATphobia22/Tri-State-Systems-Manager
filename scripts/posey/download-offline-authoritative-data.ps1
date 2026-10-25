@@ -6,7 +6,7 @@ $OutDir = (Resolve-Path -LiteralPath (New-Item -ItemType Directory -Force -Path 
 
 $CountyFips = "18129"
 $CountyGEOID = "18129"
-$CountyBoundaryUrl = "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_ACS2026/MapServer/82"
+$CountyBoundaryUrl = "https://www2.census.gov/geo/tiger/TIGER2023/COUNTY/tl_2023_us_county.zip"
 
 function Save-Url([string]$Url,[string]$Path,[string]$RequiredId,[string]$Authority) {
   $full = Join-Path $OutDir $Path
@@ -386,7 +386,7 @@ $boundary|ConvertTo-Json -Depth 100|Set-Content $boundaryPath -Encoding utf8
 
 $results=@()
 $results += [pscustomobject]@{
-  id="posey-county-boundary"; authority="US_CENSUS_BUREAU"; path="boundary\posey-county-2026-tigerweb.geojson"
+  id="posey-county-boundary"; authority="US_CENSUS_BUREAU"; path="boundary\posey-county-exact-tigerline.geojson"
   url=$CountyBoundaryUrl; sha256=(Get-FileHash $boundaryPath -Algorithm SHA256).Hash.ToLowerInvariant()
   bytes=(Get-Item $boundaryPath).Length; featureCount=1; spatialRelation="exact-boundary"; status="acquired"
 }
