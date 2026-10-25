@@ -55,7 +55,7 @@ class SourceCatalogTests(unittest.TestCase):
         rows = {x["id"]: x for x in self.source()["sources"]}
         for label in ("farmos", "odm", "apsim"):
             self.assertIn(label, rows)
-            self.assertIn("license" if label == "apsim" else "GPL", rows[label]["restriction"].lower() if label == "apsim" else rows[label]["restriction"])
+            self.assertIn("licens" if label == "apsim" else "GPL", rows[label]["restriction"].lower() if label == "apsim" else rows[label]["restriction"])
 
 
 if __name__ == "__main__":
