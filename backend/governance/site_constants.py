@@ -14,14 +14,13 @@ material that disagrees:
   floor elevation must obtain it from a certified elevation certificate.
 - Correct freeboard of claimed LAG above corrected BFE: 377.2 - 369.1 = +8.1 ft.
 
-Gage datums below are the parent-verified datum table (2026-10-24). NOTE on a
-known discrepancy: tsm-console/src/lib/gage-datums.ts (2026-10-15) records a
-352.67 ft CANDIDATE gage-zero relationship for 03378500 from USGS SIR
-2016-5119 with an unclosed product-semantic conflict and marks conversion
-unpublished. The 352.71 ft value used here is the parent-verified datum; the
-discrepancy is flagged for reconciliation and the TS file's caution is NOT
-silently overwritten. Until reconciliation, treat WSE conversions from this
-table as verified-datum conversions, not as published product conversions.
+The listed USGS station altitudes or candidate offsets DO NOT authorize
+gage-height-to-NAVD88 conversions. In particular, New Harmony's station
+altitude (352.71 ft NAVD88) and candidate gage-zero (352.67 ft NAVD88,
+USGS SIR 2016-5119) are not interchangeable. The cross-product conflict
+remains unresolved and the TypeScript console explicitly marks conversion
+unpublished. Until a source- and product-matched surveyed gage zero is
+reviewed and published, Python also returns UNAVAILABLE.
 """
 
 from __future__ import annotations
@@ -42,16 +41,20 @@ CLAIMED_FREEBOARD_FT: Final = round(
 # FFE is intentionally absent: 382.5 ft is UNVERIFIED. Do not add it here
 # without a certified elevation certificate as source.
 
-# Verified gage datums, ft NAVD88: station id -> (station name, gage datum).
-# WSE = stage + gage datum ONLY after both datums are validated; otherwise
-# the conversion module returns UNAVAILABLE, never an estimate.
-GAGE_DATUMS_FT_NAVD88: Final[dict[str, tuple[str, float]]] = {
+# Station altitudes and reference elevations for discovery; NOT gage-zero
+# conversion values. Do not use this table in stage-to-WSE arithmetic.
+STATION_ALTITUDE_REFERENCES_FT_NAVD88: Final[dict[str, tuple[str, float]]] = {
     "03378500": ("Wabash River at New Harmony, IN", 352.71),
     "03381700": ("Ohio River at Old Shawneetown, IL", 309.10),
     "03322000": ("Ohio River at Evansville, IN", 328.32),
     "03304300": ("Ohio River at Newburgh, IN", 329.20),
     "03377500": ("Wabash River at Mt. Carmel, IL", 368.98),
 }
+
+# Only product-matched, independently reviewed and PUBLISHED gage-zero values
+# may be inserted here. Empty while provenance/semantics remain unresolved.
+# For live observations, retain GAGE_DATUM and return UNAVAILABLE WSE.
+GAGE_DATUMS_FT_NAVD88: Final[dict[str, tuple[str, float]]] = {}
 
 # Horizontal reference for the tri-state site work (kept for documentation;
 # code that needs a CRS must still pass it explicitly, never assume it).

@@ -55,11 +55,16 @@ def test_site_constants_corrected() -> None:
     assert CLAIMED_FREEBOARD_FT == 8.1
 
 
-def test_gage_conversion_uses_verified_datum() -> None:
-    result = convert_stage_to_wse("03378500", 15.0)
-    assert result["status"] == "OK"
-    assert result["wse_ft_navd88"] == 367.71  # 352.71 + 15.0
-    assert convert_stage_to_wse("03381700", 33.0)["wse_ft_navd88"] == 342.10
+def test_unpublished_gage_offsets_never_turn_station_altitude_into_water_elevation() -> None:
+    # The console likewise marks these station-specific conversions unpublished.
+    from backend.governance.site_constants import GAGE_DATUMS_FT_NAVD88
+    assert GAGE_DATUMS_FT_NAVD88 == {}
+    for station, stage in [("03378500", 15.0), ("03381700", 33.0), ("03322000", 10.0)]:
+        result = convert_stage_to_wse(station, stage)
+        assert result["status"] == "UNAVAILABLE"
+        assert result["wse_ft_navd88"] is None
+        assert result["gage_datum_ft_navd88"] is None
+        assert "GAGE_DATUM_UNAVAILABLE" in result["reason"]
 
 
 def test_gage_conversion_unavailable_never_fabricates() -> None:
@@ -77,12 +82,13 @@ def _real_hdf_bytes() -> bytes:
     return HDF5_MAGIC + b"\x00" * 2048
 
 
-def test_hec_ras_verified_on_real_magic_and_clean_messages() -> None:
+def test_hec_ras_magic_signature_and_caller_flag_do_not_prove_valid_output() -> None:
     evidence = extract_hec_ras_evidence(
         "run-hec-01", _real_hdf_bytes(), [], "EPSG:2966", "NAVD88", "feet",
         required_profiles_present=True, fixture_label="test-fixture-hdf",
     )
-    assert evidence["status"] == "VERIFIED"
+    assert evidence["status"] == "UNVERIFIED"
+    assert evidence["verification_scope"].startswith("HDF5_SIGNATURE_ONLY")
     assert evidence["hdf_magic_present"] is True
     assert evidence["fixture_label"] == "test-fixture-hdf"
     assert verify_integrity(evidence) is True
@@ -118,7 +124,8 @@ def test_modflow_mass_balance_threshold() -> None:
         "run-mf-01", b"head", b"budget", 0.5, "EPSG:2966", "NAVD88", "feet",
         fixture_label="test-fixture-mf",
     )
-    assert ok["status"] == "VERIFIED"
+    assert ok["status"] == "UNVERIFIED"
+    assert ok["mass_balance_provenance"] == "CALLER_SUPPLIED_NOT_PARSED"
     assert ok["mass_balance_threshold_pct"] == 1.0
     bad = extract_modflow_evidence(
         "run-mf-02", b"head", b"budget", 2.5, "EPSG:2966", "NAVD88", "feet",
@@ -185,3 +192,30 @@ def test_openmi_exchange_resilient_not_exception() -> None:
     assert missing["status"] == "UNAVAILABLE"
     assert missing["message"] is None
     assert "unit" in missing["reason"]
+
+def test_unparsed_hydraulic_outputs_cannot_be_promoted_even_without_fixture_label() -> None:
+    # A malicious or mistaken caller can omit fixture_label and claim profiles
+    # are present; this must not allow VERIFIED based on 8 magic bytes.
+    evidence = extract_hec_ras_evidence(
+        "run-untrusted", HDF5_MAGIC + bytes(1024), [], "EPSG:2966",
+        "NAVD88", "feet", required_profiles_present=True,
+    )
+    assert evidence["status"] == "UNVERIFIED"
+    assert evidence["fixture_label"] is None
+
+    modflow = extract_modflow_evidence(
+        "run-untrusted-mf", b"not-heads", b"not-budget", 0.0,
+        "EPSG:2966", "NAVD88", "feet",
+    )
+    assert modflow["status"] == "UNVERIFIED"
+    assert modflow["mass_balance_provenance"] == "CALLER_SUPPLIED_NOT_PARSED"
+
+
+def test_modflow_rejects_empty_outputs_and_boolean_budget_errors() -> None:
+    assert extract_modflow_evidence(
+        "mf-empty", b"", b"budget", 0.0, "EPSG:2966", "NAVD88", "feet",
+    )["status"] == "DATA_ERROR"
+    assert extract_modflow_evidence(
+        "mf-bool", b"head", b"budget", True, "EPSG:2966", "NAVD88", "feet",
+    )["status"] == "DATA_ERROR"
+
