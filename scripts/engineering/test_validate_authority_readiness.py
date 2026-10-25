@@ -97,21 +97,49 @@ class SurveyGateTests(unittest.TestCase):
 
 class TerrainSeamGateTests(unittest.TestCase):
     def mesh_bundle(self, root: Path) -> dict:
-        return {
+        directions = ["+x", "-x", "+y", "-y", "+z", "-z"]
+        artifact = evidence(root, "mesh/geometry.glb", "SYNTHETIC MESH BYTES ONLY")
+        boundary = evidence(root, "mesh/county-boundary.geojson", "SYNTHETIC BOUNDARY")
+        sources = [evidence(root, "mesh/a.tif"), evidence(root, "mesh/b.tif")]
+        seam_payload = {
+            "schemaVersion": "tsm.geometric-seam-audit.v1",
+            "status": "MEASURED_SEAM_SEGMENTS_MATCH_FOR_REVIEW",
+            "errors": [], "interfacePairsSubmitted": 6, "matchedInterfaces": 6,
+            "verifiedDirections": sorted(directions)
+        }
+        audit = evidence(root, "mesh/seam-audit.json", json.dumps(seam_payload))
+        bundle = {
             "kind": "mesh",
-            "runReport": evidence(root, "mesh/run-report.json"),
-            "sourceTiles": [evidence(root, "mesh/a.tif"), evidence(root, "mesh/b.tif")],
+            "meshArtifact": artifact,
+            "seamAudit": audit,
+            "countyBoundary": boundary,
+            "sourceTiles": sources,
             "extractionMode": "FULL_ADAPTIVE_OCTREE",
             "countyAreaKm2": 1087, "coveredAreaKm2": 1087,
             "twoToOneBalanced": True,
-            "verifiedSeamDirections": ["+x", "-x", "+y", "-y", "+z", "-z"],
-            "seamPairsChecked": 17000,
+            "verifiedSeamDirections": directions,
+            "seamPairsChecked": 6,
             "trueCrackCount": 0, "nonManifoldEdges": 0,
             "unexplainedNoDataSeams": 0, "orphanTriangles": 0,
             "meshRecomputedAgainstSource": True,
             "deterministicRepeatHashMatch": True,
             "datumAlignmentVerified": True,
         }
+        keys = ("extractionMode", "countyAreaKm2", "coveredAreaKm2", "twoToOneBalanced",
+                "verifiedSeamDirections", "seamPairsChecked", "trueCrackCount",
+                "nonManifoldEdges", "unexplainedNoDataSeams", "orphanTriangles",
+                "meshRecomputedAgainstSource", "deterministicRepeatHashMatch",
+                "datumAlignmentVerified")
+        measured = {key: bundle[key] for key in keys}
+        measured.update({
+            "schemaVersion": "tsm.full-county-mesh-measurement.v1",
+            "meshArtifactSha256": artifact["sha256"],
+            "seamAuditSha256": audit["sha256"],
+            "countyBoundarySha256": boundary["sha256"],
+            "sourceTileSha256": sorted(t["sha256"] for t in sources)
+        })
+        bundle["runReport"] = evidence(root, "mesh/run-report.json", json.dumps(measured))
+        return bundle
 
     def test_complete_technical_claim_is_still_not_certification(self):
         with tempfile.TemporaryDirectory() as d:
@@ -129,6 +157,24 @@ class TerrainSeamGateTests(unittest.TestCase):
             self.assertTrue(any("full adaptive-octree" in e for e in report["errors"]))
             self.assertTrue(any("county-wide" in e for e in report["errors"]))
             self.assertTrue(any("all six" in e for e in report["errors"]))
+
+    def test_report_does_not_match_modified_mesh_or_seam_hash(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            bundle = self.mesh_bundle(root)
+            (root / "mesh/geometry.glb").write_bytes(b"ALTERED MESH")
+            result = validate(bundle, root)
+            self.assertEqual(result["status"], "INCOMPLETE")
+            self.assertTrue(any("checksum mismatch" in x for x in result["errors"]))
+
+    def test_false_or_partial_seam_audit_is_rejected(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            bundle = self.mesh_bundle(root)
+            bundle["seamPairsChecked"] = 17162
+            result = validate(bundle, root)
+            self.assertEqual(result["status"], "INCOMPLETE")
+            self.assertTrue(any("seamAudit: actual matched interface" in x for x in result["errors"]))
 
     def test_true_crack_or_missing_source_hash_blocks(self):
         with tempfile.TemporaryDirectory() as d:
