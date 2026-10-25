@@ -5,7 +5,8 @@
   "type": "module",
   "description": "Geospatial helpers — H3 policy and coordinate math",
   "exports": {
-    "./h3": "./src/h3/index.ts"
+    "./h3": "./src/h3/index.ts",
+    "./geodesy": "./src/geodesy/index.ts"
   },
   "license": "Apache-2.0"
 }

@@ -9,7 +9,7 @@ import { queryGovernmentJson } from '../../packages/government/src/index.ts';
 
 test('source registry contains requested agencies with HTTPS provenance policies',()=>{
  assert.deepEqual(validateGovernmentSourceRegistry(),[]);
- for(const id of ['fema.nfhl','fema.riskmap','fema.loma','fema.lomr','usgs.3dep','usgs.3dhp','usgs.nhd','noaa.coastal','noaa.tides','noaa.weather','census.tiger','census.places','epa.waters','epa.facilities','usda.ssurgo','dot.nbi','army-corps.levees'])assert.ok(getRegisteredGovernmentSource(id));
+ for(const id of ['fema.nfhl','fema.riskmap','fema.loma','fema.lomr','usgs.3dep','usgs.3dhp','usgs.nhd','usgs.publications','usgs.topoview','usgs.us-topo','usgs.geologic-maps','fema.usa-structures','noaa.coastal','noaa.tides','noaa.weather','census.tiger','census.places','epa.waters','epa.facilities','usda.ssurgo','dot.nbi','army-corps.levees'])assert.ok(getRegisteredGovernmentSource(id));
  assert.equal(getRegisteredGovernmentSource('fema.nfhl').authorityLevel,SourceAuthorityLevel.AUTHORITATIVE);
  assert.equal(getRegisteredGovernmentSource('usgs.3dhp').endpoint,'https://hydro.nationalmap.gov/arcgis/rest/services/3DHP_all/FeatureServer');
  assert.equal(getRegisteredGovernmentSource('usgs.3dhp').authorityLevel,SourceAuthorityLevel.AUTHORITATIVE);
