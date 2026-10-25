@@ -123,6 +123,9 @@ jobs:
       - name: Exhaustive TypeScript Transvoxel mesher tests
         working-directory: tsm-console
         run: npx --no-install vitest run tests/transvoxel-stitcher.test.ts
+      - name: Agricultural flood and berm screening regression tests
+        working-directory: tsm-console
+        run: npx --no-install vitest run src/lib/engineering/berm-road-placement.test.ts
       - name: WebGPU capability probe tests
         working-directory: tsm-console
         run: node --experimental-strip-types --test tests/webgpu-capabilities.test.mjs tests/terrain-benchmark.test.mjs
