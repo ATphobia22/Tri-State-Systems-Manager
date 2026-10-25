@@ -81,8 +81,8 @@ export function summarizeFieldExposure(exposure: FieldExposure): FieldExposureSu
   return {
     fieldId: exposure.fieldId,
     totalAcres: exposure.totalAcres,
-    sfhaAcres: Math.round(sfhaAcres * 10) / 10,
-    sfhaPct: Math.round(sfhaPct * 10) / 10,
+    sfhaAcres: Math.round(sfhaAcres * 100) / 100,
+    sfhaPct: Math.round(sfhaPct * 100) / 100,
     worstZone: exposure.worstZone,
     // Screening heuristic only: >50% of the field in SFHA suggests the
     // parcel is worth discussing with FSA for CRP/CREP suitability.
