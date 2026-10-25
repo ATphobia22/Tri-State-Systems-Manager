@@ -64,6 +64,8 @@ def test_evidence_push_accepts_valid_packet(tmp_path, monkeypatch):
     stored = list((tmp_path / "outbox").glob("*.json"))
     assert len(stored) == 1
     assert stored[0].read_text().strip() == canonical(packet)
+    assert stored[0].name == f"{claimed}.json"
+    assert packet["case_id"] not in stored[0].name
 
 
 def test_evidence_push_quarantines_hash_mismatch(tmp_path, monkeypatch):
@@ -84,6 +86,8 @@ def test_evidence_push_quarantines_hash_mismatch(tmp_path, monkeypatch):
     assert stored["human_review_required"] is True
     assert stored["integrity_warning"]["claimed_sha256"] == "0" * 64
     assert stored["integrity_warning"]["computed_sha256"] == body["packet_sha256"]
+    assert Path(body["stored_at"]).name.startswith(f"{body['packet_sha256']}_")
+    assert sample_packet()["case_id"] not in Path(body["stored_at"]).name
 
     # A corrected resubmission can enter the outbox without erasing the
     # original mismatch or allowing it to overwrite verified content.
@@ -94,6 +98,79 @@ def test_evidence_push_quarantines_hash_mismatch(tmp_path, monkeypatch):
     assert corrected.json()["integrity_verified"] is True
     assert len(list(outbox.glob("*.json"))) == 1
     assert len(list((outbox / "quarantine").glob("*.json"))) == 1
+
+
+
+def test_evidence_push_replay_is_idempotent(tmp_path, monkeypatch):
+    outbox = tmp_path / "outbox"
+    monkeypatch.setattr("app.main.OUTBOX_DIR", outbox)
+    packet = sample_packet()
+    digest = hashlib.sha256(canonical(packet).encode()).hexdigest()
+    payload = {"packet": packet, "packet_sha256": digest}
+
+    first = client.post("/api/evidence/push", json=payload)
+    second = client.post("/api/evidence/push", json=payload)
+
+    assert first.status_code == second.status_code == 202
+    assert first.json()["stored_at"] == second.json()["stored_at"]
+    stored = list(outbox.glob("*.json"))
+    assert len(stored) == 1
+    assert stored[0].name == digest + ".json"
+    assert stored[0].read_text(encoding="utf-8").strip() == canonical(packet)
+
+
+def test_evidence_push_rejects_unsafe_case_id_before_disk_write(tmp_path, monkeypatch):
+    outbox = tmp_path / "outbox"
+    monkeypatch.setattr("app.main.OUTBOX_DIR", outbox)
+    packet = {**sample_packet(), "case_id": "../outside"}
+    digest = hashlib.sha256(canonical(packet).encode()).hexdigest()
+
+    result = client.post(
+        "/api/evidence/push",
+        json={"packet": packet, "packet_sha256": digest},
+    )
+
+    assert result.status_code == 422
+    assert result.json()["detail"]["code"] == "UNSAFE_IDENTIFIER"
+    assert not list(tmp_path.rglob("*.json"))
+
+
+def test_evidence_push_never_overwrites_digest_collision(tmp_path, monkeypatch):
+    outbox = tmp_path / "outbox"
+    outbox.mkdir()
+    monkeypatch.setattr("app.main.OUTBOX_DIR", outbox)
+    packet = sample_packet()
+    digest = hashlib.sha256(canonical(packet).encode()).hexdigest()
+    digest_path = outbox / f"{digest}.json"
+    digest_path.write_text('{"unrelated":true}\\n', encoding="utf-8")
+
+    result = client.post(
+        "/api/evidence/push",
+        json={"packet": packet, "packet_sha256": digest},
+    )
+    assert result.status_code == 409
+    assert result.json()["detail"]["code"] == "EVIDENCE_DIGEST_STORAGE_COLLISION"
+    assert digest_path.read_text(encoding="utf-8") == '{"unrelated":true}\\n'
+
+
+def test_evidence_push_separates_different_bad_claims(tmp_path, monkeypatch):
+    outbox = tmp_path / "outbox"
+    monkeypatch.setattr("app.main.OUTBOX_DIR", outbox)
+    packet = sample_packet()
+
+    first = client.post(
+        "/api/evidence/push",
+        json={"packet": packet, "packet_sha256": "0" * 64},
+    )
+    second = client.post(
+        "/api/evidence/push",
+        json={"packet": packet, "packet_sha256": "1" * 64},
+    )
+
+    assert first.status_code == second.status_code == 202
+    assert first.json()["stored_at"] != second.json()["stored_at"]
+    assert len(list((outbox / "quarantine").glob("*.json"))) == 2
+    assert not list(outbox.glob("*.json"))
 
 
 def test_evidence_push_rejects_empty_artifacts():
