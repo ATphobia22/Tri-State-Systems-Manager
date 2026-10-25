@@ -6,7 +6,7 @@ $OutDir = (Resolve-Path -LiteralPath (New-Item -ItemType Directory -Force -Path 
 
 $CountyFips = "18129"
 $CountyGEOID = "18129"
-$CountyBoundaryUrl = "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_ACS2026/MapServer/82"
+$CountyBoundaryUrl = "https://www2.census.gov/geo/tiger/TIGER2023/COUNTY/tl_2023_us_county.zip"
 
 function Save-Url([string]$Url,[string]$Path,[string]$RequiredId,[string]$Authority) {
   $full = Join-Path $OutDir $Path
@@ -386,7 +386,7 @@ $boundary|ConvertTo-Json -Depth 100|Set-Content $boundaryPath -Encoding utf8
 
 $results=@()
 $results += [pscustomobject]@{
-  id="posey-county-boundary"; authority="US_CENSUS_BUREAU"; path="boundary\posey-county-2026-tigerweb.geojson"
+  id="posey-county-boundary"; authority="US_CENSUS_BUREAU"; path="boundary\posey-county-exact-tigerline.geojson"
   url=$CountyBoundaryUrl; sha256=(Get-FileHash $boundaryPath -Algorithm SHA256).Hash.ToLowerInvariant()
   bytes=(Get-Item $boundaryPath).Length; featureCount=1; spatialRelation="exact-boundary"; status="acquired"
 }
@@ -495,47 +495,42 @@ try {
 $results += Save-Url "https://levees.sec.usace.army.mil/data-services/services/" "usace-nld\service-catalog.html" "usace-nld-service-catalog" "USACE"
 
 function Save-UsgsDailyMeanHistory() {
-  $finalPath = Join-Path $OutDir "usgs\03378500-daily-mean-history.rdb"
-  $tempDir = Join-Path $OutDir "usgs\daily-mean-chunks"
-  New-Item -ItemType Directory -Force -Path $tempDir | Out-Null
-  if (Test-Path $finalPath) { Remove-Item -Force $finalPath }
-
-  $start = [datetime]::ParseExact("1900-01-01", "yyyy-MM-dd", $null)
-  $end = [datetime]::ParseExact("2026-09-30", "yyyy-MM-dd", $null)
-  $first = $true
-  while ($start -le $end) {
-    $chunkEnd = $start.AddYears(5).AddDays(-1)
-    if ($chunkEnd -gt $end) { $chunkEnd = $end }
-    $startText = $start.ToString("yyyy-MM-dd")
-    $endText = $chunkEnd.ToString("yyyy-MM-dd")
-    $chunkPath = Join-Path $tempDir ("daily-mean-$($start.ToString('yyyyMMdd'))-$($chunkEnd.ToString('yyyyMMdd')).rdb")
-    $url = "https://waterservices.usgs.gov/nwis/dv/?format=rdb&sites=03378500&startDT=$startText&endDT=$endText&statCd=00003"
-    Write-Host "Acquiring USGS daily mean chunk $startText through $endText"
-    & curl.exe --fail --silent --show-error --location --retry 12 --retry-delay 5 --retry-max-time 300 --retry-all-errors --http1.1 -A "TSM-Posey-Offline-Acquisition/1.0" --output "$chunkPath" "$url"
-    if ($LASTEXITCODE -ne 0 -or -not (Test-Path $chunkPath) -or (Get-Item $chunkPath).Length -le 0) {
-      throw "USGS daily mean chunk download failed: $startText through $endText"
-    }
-
-    if ($first) {
-      Copy-Item -Force $chunkPath $finalPath
-      $first = $false
-    } else {
-      Get-Content $chunkPath | Where-Object {
-        $_ -notmatch '^#' -and
-        $_ -notmatch '^agency_cd\s+site_no\s+datetime'
-      } | Add-Content $finalPath -Encoding utf8
-    }
-    $start = $chunkEnd.AddDays(1)
+  # USGS WaterServices legacy /nwis/dv is scheduled for retirement in early
+  # 2027. Acquire actual daily-mean discharge via the documented OGC v1 API.
+  # The new archive preserves units, station, statistic, quality and page hashes.
+  $acquirer = Join-Path $PSScriptRoot "acquire-usgs-daily-ogc.mjs"
+  if (-not (Test-Path -LiteralPath $acquirer)) { throw "Missing USGS OGC v1 daily history acquirer" }
+  $dataRelative = "usgs\03378500-daily-mean-ogc-v1.ndjson"
+  $receiptRelative = "usgs\03378500-daily-mean-ogc-v1.provenance.json"
+  $historyFile = Join-Path $OutDir $dataRelative
+  $provenanceFile = Join-Path $OutDir $receiptRelative
+  $utcEnd = [DateTime]::UtcNow.ToString("yyyy-MM-dd")
+  & node $acquirer "--site=03378500" "--start=1900-01-01" "--end=$utcEnd" "--output=$historyFile" "--summary=$provenanceFile"
+  if ($LASTEXITCODE -ne 0) { throw "USGS OGC v1 daily history acquisition failed" }
+  if (-not (Test-Path -LiteralPath $historyFile -PathType Leaf) -or -not (Test-Path -LiteralPath $provenanceFile -PathType Leaf)) {
+    throw "USGS modern daily archive or its source provenance receipt is missing"
   }
-
-  $item = Get-Item $finalPath
-  if ($item.Length -le 0) { throw "USGS daily mean history is empty" }
-  [pscustomobject]@{
-    id="usgs-03378500-daily-mean-history"; authority="USGS"; path="usgs\03378500-daily-mean-history.rdb"
-    url="https://waterservices.usgs.gov/nwis/dv/?format=rdb&sites=03378500&statCd=00003"
-    sha256=(Get-FileHash $finalPath -Algorithm SHA256).Hash.ToLowerInvariant()
-    bytes=$item.Length; featureCount=$null; spatialRelation="history"; status="acquired"
+  $dailyReceipt = Get-Content -LiteralPath $provenanceFile -Raw | ConvertFrom-Json
+  if ($dailyReceipt.station -ne "USGS-03378500" -or $dailyReceipt.parameterCode -ne "00060" -or
+      $dailyReceipt.statisticId -ne "00003" -or $dailyReceipt.status -ne "ACQUIRED_UNVERIFIED" -or
+      [int]$dailyReceipt.observationCount -lt 1) {
+    throw "USGS daily-mean receipt did not retain identity, non-empty data and unverified status"
   }
+  $actualHash = (Get-FileHash -LiteralPath $historyFile -Algorithm SHA256).Hash.ToLowerInvariant()
+  if ($actualHash -ne $dailyReceipt.sha256) { throw "USGS daily-history source hash mismatch" }
+  $historyEntry = [pscustomobject]@{
+    id="usgs-03378500-daily-mean-history"; authority="USGS"; path=$dataRelative
+    url=$dailyReceipt.sourceUrl; sha256=$actualHash; bytes=(Get-Item -LiteralPath $historyFile).Length
+    featureCount=[int]$dailyReceipt.observationCount; spatialRelation="history"; status="acquired"
+  }
+  $provenanceEntry = [pscustomobject]@{
+    id="usgs-03378500-daily-mean-ogc-provenance"; authority="USGS"; path=$receiptRelative
+    url=$dailyReceipt.sourceUrl
+    sha256=(Get-FileHash -LiteralPath $provenanceFile -Algorithm SHA256).Hash.ToLowerInvariant()
+    bytes=(Get-Item -LiteralPath $provenanceFile).Length
+    featureCount=$null; spatialRelation="history"; status="acquired"
+  }
+  return @($historyEntry, $provenanceEntry)
 }
 
 $results += Save-UsgsDailyMeanHistory

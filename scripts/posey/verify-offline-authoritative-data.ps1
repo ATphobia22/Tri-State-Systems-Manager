@@ -15,6 +15,12 @@ if ($receipt.countyFips -ne "18129" -or $receipt.countyGEOID -ne "18129") { thro
 if ($receipt.geographyPolicy.spatialRelation -ne "exact-county") { throw "Exact-county spatial policy missing" }
 if ($receipt.geographyPolicy.boundaryVintage -ne "2023") { throw "Unexpected county boundary vintage" }
 
+# Independent byte-level verification, not simply an echo of acquisition claims.
+$receiptGate = Join-Path $PSScriptRoot "verify-offline-receipt.mjs"
+if (-not (Test-Path -LiteralPath $receiptGate)) { throw "Missing independent Posey receipt integrity verifier" }
+& node $receiptGate --root $Root --requirements $Requirements
+if ($LASTEXITCODE -ne 0) { throw "Independent source digest and completeness verification failed" }
+
 $byId = @{}
 foreach ($f in @($receipt.files)) {
   if ($byId.ContainsKey($f.id)) { throw "Duplicate receipt asset id: $($f.id)" }
@@ -33,7 +39,7 @@ foreach ($expected in @($req.requiredSources)) {
   # and no minimumBytes). If Indiana GIO is temporarily unavailable, its receipt
   # entry intentionally has no path. Record the outage as a warning rather than
   # attempting to hash the output directory. Mandatory sources still fail closed.
-  $optionalCatalogSource = ($null -ne $expected.minimumFeatureCount) -and
+  $optionalCatalogSource = ($expected.required -eq $false) -and ($null -ne $expected.minimumFeatureCount) -and
     ([int]$expected.minimumFeatureCount -eq 0) -and ($null -eq $expected.minimumBytes)
   if ($actual.status -eq "unavailable-igio-outage" -and $optionalCatalogSource) {
     Write-Warning "$($expected.id): optional catalog layer unavailable; no local file expected."
