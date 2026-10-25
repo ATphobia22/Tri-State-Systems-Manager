@@ -31,21 +31,58 @@ export interface FieldExposureSummary {
   derivation: typeof INFORM_ONLY;
 }
 
-/** Roll up per-zone exposure into a single field summary. */
+/** FEMA SFHA zone families. Zone X (including 0.2% flood fringe) and D
+ * are not counted as the 1%-annual-chance Special Flood Hazard Area.
+ * GIS preprocessing must produce disjoint *area* polygons; overlapped
+ * zones are rejected when they exceed the surveyed total field area. */
+export function isSfhaZone(zone: string): boolean {
+  return /^(?:A|AE|AH|AO|AR|A99|V|VE|A(?:[1-9]|[12]\d|30)|V(?:[1-9]|[12]\d|30)|AR\/(?:A|AE|AH|AO|A(?:[1-9]|[12]\d|30)|A1-30|A1-A30))$/.test(zone.toUpperCase());
+}
+function acceptedZone(zone: string): boolean {
+  return isSfhaZone(zone) || ['X', 'X500', 'B', 'C', 'D'].includes(zone.toUpperCase());
+}
+/** Roll up disjoint per-zone intersections into a screening estimate.
+ * Never silently discard negative/NaN/unknown zones or emit >100%. */
 export function summarizeFieldExposure(exposure: FieldExposure): FieldExposureSummary {
+  if (!exposure || typeof exposure.fieldId !== 'string' || !exposure.fieldId.trim()) {
+    throw new Error('[ag-screening] fieldId is required');
+  }
   if (!Number.isFinite(exposure.totalAcres) || exposure.totalAcres <= 0) {
     throw new Error('[ag-screening] totalAcres must be a positive finite number');
   }
-  const sfhaAcres = Object.values(exposure.sfhaAcresByZone).reduce(
-    (sum, acres) => sum + (Number.isFinite(acres) && acres > 0 ? acres : 0),
-    0,
-  );
+  if (!exposure.sfhaAcresByZone || typeof exposure.sfhaAcresByZone !== 'object' ||
+      Array.isArray(exposure.sfhaAcresByZone)) {
+    throw new Error('[ag-screening] zone-area inventory required');
+  }
+  let sfhaAcres = 0;
+  let mappedAcres = 0;
+  for (const [zone, acres] of Object.entries(exposure.sfhaAcresByZone)) {
+    if (!acceptedZone(zone)) {
+      throw new Error('[ag-screening] unknown FEMA flood zone: ' + zone);
+    }
+    if (!Number.isFinite(acres) || acres < 0) {
+      throw new Error('[ag-screening] zone acres must be finite and nonnegative');
+    }
+    mappedAcres += acres;
+    if (isSfhaZone(zone)) sfhaAcres += acres;
+  }
+  // If the caller supplies more than the actual field acreage across all
+  // mutually exclusive flood zones, it double-counted geometry.
+  if (mappedAcres > exposure.totalAcres + 1e-6) {
+    throw new Error('[ag-screening] zone intersections exceed total field area; GIS topology/overlap review required');
+  }
+  if (exposure.worstZone !== null &&
+      (!acceptedZone(exposure.worstZone) || !(exposure.worstZone.toUpperCase() in Object.fromEntries(
+        Object.entries(exposure.sfhaAcresByZone).map(([zone, acres]) => [zone.toUpperCase(), acres])
+      )))) {
+    throw new Error('[ag-screening] worstZone must be one of the provided flood zone categories');
+  }
   const sfhaPct = (sfhaAcres / exposure.totalAcres) * 100;
   return {
     fieldId: exposure.fieldId,
     totalAcres: exposure.totalAcres,
-    sfhaAcres: Math.round(sfhaAcres * 10) / 10,
-    sfhaPct: Math.round(sfhaPct * 10) / 10,
+    sfhaAcres: Math.round(sfhaAcres * 100) / 100,
+    sfhaPct: Math.round(sfhaPct * 100) / 100,
     worstZone: exposure.worstZone,
     // Screening heuristic only: >50% of the field in SFHA suggests the
     // parcel is worth discussing with FSA for CRP/CREP suitability.
@@ -84,16 +121,29 @@ export function summarizePlantingHistory(
   entries: FloodEventLogEntry[],
   asOfDate: string = new Date().toISOString().slice(0, 10),
 ): PlantingHistorySummary {
-  const cutoff = new Date(asOfDate);
-  cutoff.setFullYear(cutoff.getFullYear() - 5);
+  if (!fieldId?.trim()) throw new Error('[ag-screening] fieldId is required');
+  const dateUtc = (raw: string): Date => {
+    if (typeof raw !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+      throw new Error('[ag-screening] date must be an exact YYYY-MM-DD calendar date');
+    }
+    const date = new Date(raw + 'T00:00:00Z');
+    if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== raw) {
+      throw new Error('[ag-screening] date is not a valid calendar date');
+    }
+    return date;
+  };
+  const asOf = dateUtc(asOfDate);
+  const cutoff = new Date(asOf.getTime());
+  cutoff.setUTCFullYear(cutoff.getUTCFullYear() - 5);
   const recent = entries.filter((e) => {
-    const d = new Date(e.eventDate);
-    return Number.isFinite(d.getTime()) && d >= cutoff && e.fieldId === fieldId;
+    if (!e || !Number.isFinite(e.estimatedAcresAffected) || e.estimatedAcresAffected < 0) {
+      throw new Error('[ag-screening] reported flood-event acres must be finite and nonnegative');
+    }
+    const d = dateUtc(e.eventDate);
+    if (d > asOf) throw new Error('[ag-screening] future flood-event dates are not valid observations');
+    return d >= cutoff && e.fieldId === fieldId;
   });
-  const totalAcres = recent.reduce(
-    (sum, e) => sum + (Number.isFinite(e.estimatedAcresAffected) ? e.estimatedAcresAffected : 0),
-    0,
-  );
+  const totalAcres = recent.reduce((sum, e) => sum + e.estimatedAcresAffected, 0);
   return {
     fieldId,
     eventsInLast5Years: recent.length,

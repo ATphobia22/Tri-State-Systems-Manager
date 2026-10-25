@@ -36,6 +36,35 @@ COUNTY_NAME = "Posey"
 STATE_NAME = "Indiana"
 
 
+class TransientSourceUnavailable(RuntimeError):
+    """Retry budget exhausted for an external authority, not a data-validation failure."""
+
+
+def write_source_unavailable(output_dir: Path, reason: str) -> Path:
+    """Emit machine-readable negative evidence, never substitute synthetic terrain."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+    path = output_dir / "posey-county-47620-source-unavailable.json"
+    payload = {
+        "schemaVersion": "1.0.0",
+        "evidenceStatus": "SOURCE_UNAVAILABLE",
+        "retrievedAtUtc": datetime.now(timezone.utc).isoformat(),
+        "requestedLocation": {"zipCode": ZIP_CODE, "county": "Posey County", "state": STATE_NAME},
+        "aoiApprovalStatus": "UNAPPROVED",
+        "retriable": True,
+        "reason": reason,
+        "upstreamAuthorities": ["U.S. Census Bureau TIGERweb", "U.S. Geological Survey 3DEP"],
+        "rasterVerified": False,
+        "simulationAuthorized": False,
+        "limitations": [
+            "One or more live authoritative services were unavailable after bounded retries.",
+            "No valid 3DEP raster evidence was produced by this attempt.",
+            "Do not promote this status artifact to a terrain or engineering dataset.",
+        ],
+    }
+    path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return path
+
+
 def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
@@ -50,11 +79,17 @@ def fetch(url: str, timeout: int = 180, attempts: int = 4) -> tuple[bytes, str]:
             with urllib.request.urlopen(request, timeout=timeout) as response:
                 return response.read(), response.headers.get("Content-Type", "")
         except urllib.error.HTTPError as exc:
-            if exc.code not in (408, 425, 429, 500, 502, 503, 504) or attempt + 1 >= attempts:
+            if exc.code not in (408, 425, 429, 500, 502, 503, 504):
                 raise
-        except (urllib.error.URLError, TimeoutError, ConnectionError):
             if attempt + 1 >= attempts:
-                raise
+                raise TransientSourceUnavailable(
+                    f"Upstream HTTP {exc.code} after {attempts} attempts"
+                ) from exc
+        except (urllib.error.URLError, TimeoutError, ConnectionError) as exc:
+            if attempt + 1 >= attempts:
+                raise TransientSourceUnavailable(
+                    f"Upstream network unavailable after {attempts} attempts ({type(exc).__name__})"
+                ) from exc
         delay = min(2 ** attempt, 8)
         print(f"Transient source failure; retrying in {delay}s ({attempt + 2}/{attempts})", file=sys.stderr)
         time.sleep(delay)
@@ -236,6 +271,13 @@ def main() -> int:
 if __name__ == "__main__":
     try:
         raise SystemExit(main())
+    except TransientSourceUnavailable as exc:
+        output_parser = argparse.ArgumentParser(add_help=False)
+        output_parser.add_argument("--output-dir", required=True, type=Path)
+        args, _ = output_parser.parse_known_args()
+        marker = write_source_unavailable(args.output_dir, str(exc))
+        print(f"Posey 47620 live terrain SOURCE_UNAVAILABLE: {exc}; marker: {marker}", file=sys.stderr)
+        raise SystemExit(75) from exc  # EX_TEMPFAIL: only for exhausted external retries
     except Exception as exc:
-        print(f"Posey 47620 terrain acquisition failed closed: {exc}", file=sys.stderr)
+        print(f"Posey 47620 terrain validation/acquisition failed: {exc}", file=sys.stderr)
         raise
