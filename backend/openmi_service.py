@@ -26,7 +26,7 @@ from .openmi_contract import (
     QuantityValueSet,
 )
 
-SERVICE_VERSION = "tsm-openmi-bridge-1.0.0"
+SERVICE_VERSION = "tsm-openmi-bridge-1.1.0"
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 logger = logging.getLogger(__name__)
@@ -128,11 +128,15 @@ def _validate_value_set(value_set: QuantityValueSet) -> None:
         "source_component": value_set.source_component,
         "model_run_id": value_set.model_run_id,
         "source_authority": value_set.source_authority,
+        "time_semantics": value_set.time_semantics,
+        "time_convention": value_set.time_convention,
     }
     missing = [name for name, value in required.items() if not value.strip()]
     if missing:
         raise ValueError(f"missing required exchange metadata: {', '.join(missing)}")
 
+    if value_set.validation_status != "VALIDATED":
+        raise ValueError("exchange validation_status must be VALIDATED; solver success is a separate evidence gate")
     if not value_set.values:
         raise ValueError("exchange item must contain at least one value")
     if any(not math.isfinite(value) for value in value_set.values):
@@ -142,9 +146,17 @@ def _validate_value_set(value_set: QuantityValueSet) -> None:
         raise ValueError("source_provenance_hash must be a lowercase SHA-256 digest")
 
     try:
-        datetime.fromisoformat(value_set.timestamp.replace("Z", "+00:00"))
+        parsed_timestamp = datetime.fromisoformat(value_set.timestamp.replace("Z", "+00:00"))
     except ValueError as exc:
         raise ValueError("timestamp must be ISO-8601") from exc
+    if parsed_timestamp.tzinfo is None or parsed_timestamp.utcoffset() is None:
+        raise ValueError("timestamp must include an explicit UTC offset")
+    if value_set.time_semantics not in {"INSTANT", "INTERVAL_MEAN", "INTERVAL_SUM", "STATE_AT_STEP"}:
+        raise ValueError("time_semantics must be explicit and supported")
+    if not math.isfinite(value_set.time_step_seconds) or value_set.time_step_seconds <= 0:
+        raise ValueError("time_step_seconds must be finite and positive")
+    if not value_set.time_convention.strip():
+        raise ValueError("time_convention is required")
 
     if value_set.element_ids and len(value_set.element_ids) != len(value_set.values):
         raise ValueError("element_ids must align one-to-one with values")
@@ -153,6 +165,14 @@ def _validate_value_set(value_set: QuantityValueSet) -> None:
         raise ValueError("horizontal CRS is required")
     if not value_set.spatial_reference.vertical_datum:
         raise ValueError("vertical datum is required")
+    if not value_set.spatial_reference.horizontal_units.strip():
+        raise ValueError("horizontal coordinate units are required")
+    if not value_set.spatial_reference.vertical_units.strip():
+        raise ValueError("vertical coordinate units are required")
+    # EPSG:2966 is NAD83 / Indiana West (US survey feet); reject contradictory
+    # metadata rather than silently reprojecting or converting coordinates.
+    if value_set.spatial_reference.horizontal_crs.upper() == "EPSG:2966" and value_set.spatial_reference.horizontal_units not in {"ftUS", "US survey foot"}:
+        raise ValueError("horizontal units mismatch for EPSG:2966; expected US survey feet")
 
 
 class OpenMIService:
@@ -161,11 +181,20 @@ class OpenMIService:
     def __init__(self, router: ExchangeRouter | None = None) -> None:
         self.router = router or ExchangeRouter()
 
+    @staticmethod
+    async def _require_finite_deadline(context: grpc.aio.ServicerContext) -> None:
+        remaining = context.time_remaining()
+        # Bound the no-deadline sentinel and unbounded streams. Clients must set
+        # an explicit finite deadline; cancellation is still honored separately.
+        if remaining is None or not math.isfinite(remaining) or remaining <= 0 or remaining > 86400:
+            await context.abort(grpc.StatusCode.INVALID_ARGUMENT, "finite RPC deadline (at most 24 hours) is required")
+
     async def RegisterComponent(
         self,
         request: ComponentInfo,
         context: grpc.aio.ServicerContext,
     ) -> ExchangeResponse:
+        await self._require_finite_deadline(context)
         try:
             await self.router.register_component(request)
         except ValueError as exc:
@@ -181,7 +210,8 @@ class OpenMIService:
         request: HealthRequest,
         context: grpc.aio.ServicerContext,
     ) -> HealthResponse:
-        del request, context
+        await self._require_finite_deadline(context)
+        del request
         return HealthResponse(
             status="SERVING",
             service_version=SERVICE_VERSION,
@@ -193,6 +223,7 @@ class OpenMIService:
         request_iterator: AsyncIterator[QuantityValueSet],
         context: grpc.aio.ServicerContext,
     ) -> AsyncIterator[QuantityValueSet]:
+        await self._require_finite_deadline(context)
         queue = await self.router.subscribe()
         reader_task = asyncio.create_task(
             self._read_requests(request_iterator, context),

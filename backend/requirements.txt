@@ -28,3 +28,6 @@ h3>=4.5.0  # offline H3 hexagonal indexing for scripts/geospatial/h3_utils.py (A
 
 # HEC-HMS/HEC-RAS workflow manifest validation (JSON Schema Draft 2020-12)
 jsonschema>=4.23,<5
+
+# Verify external Ed25519 signatures only; no signing keys are stored here.
+cryptography>=44,<47
