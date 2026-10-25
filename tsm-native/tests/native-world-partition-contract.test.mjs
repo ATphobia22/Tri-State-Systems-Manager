@@ -34,6 +34,12 @@ test('native preparation refuses a fictitious map and uses the official HLOD bui
   assert.match(script, /WorldPartitionHLODsBuilder/);
   assert.match(script, /LASTEXITCODE -ne 0/);
   assert.match(script, /AdoptAsDefaultMap/);
+  assert.match(script, /GenerateMap/);
+  assert.match(script, /ExecutePythonScript/);
+  const generator = read('Tools/Create-World-Partition-Map.py');
+  assert.match(generator, /LevelEditorSubsystem/);
+  assert.match(generator, /new_level\(TARGET, is_partitioned_world=True\)/);
+  assert.match(generator, /does_asset_exist/);
   assert.match(script, /successful HLOD build/);
 });
 
