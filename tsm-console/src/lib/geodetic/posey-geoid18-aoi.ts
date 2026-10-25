@@ -60,7 +60,7 @@ export async function loadPoseyGeoid18Aoi(
   return data;
 }
 
-/** Nearest sample by great-circle distance (educational; not spatial interpolation of the full grid). */
+/** Exact-sample lookup within 2 m; no spatial extrapolation or interpolation. */
 export function nearestAoiPoint(
   catalog: Geoid18AoiCatalog,
   lat: number,
@@ -80,7 +80,9 @@ export function nearestAoiPoint(
       best = p;
     }
   }
-  return best;
+  // A nearest-neighbor point is NOT a valid interpolated geoid surface.
+  // Limit educational conversion to approximately the stored sample itself.
+  return bestD <= 2 ? best : null;
 }
 
 /**
@@ -96,7 +98,7 @@ export function convertWithAoiN(
   }
   const point = nearestAoiPoint(catalog, opts.lat, opts.lon);
   if (!point) {
-    return { ok: false, reason: 'No GEOID18 AOI sample near this location (resilient).' };
+    return { ok: false, reason: 'No recorded GEOID18 sample at this coordinate (2 m tolerance); extrapolation disabled.' };
   }
   const N = point.N_m;
   const output_m = opts.mode === 'h_to_H' ? opts.value_m - N : opts.value_m + N;
