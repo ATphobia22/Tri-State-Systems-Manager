@@ -28,6 +28,7 @@ class SurveyGateTests(unittest.TestCase):
                 "id": f"TEST-{i:03d}",
                 "horizontalCrs": "EPSG:2966",
                 "verticalDatum": "NAVD88",
+                "coordinateEpoch": "NAD83(2011) epoch 2010.00",
                 "independent": True,
                 "landCover": "VEGETATED" if i == 29 else "NONVEGETATED",
                 "rasterHeightM": 101.0,
@@ -75,6 +76,21 @@ class SurveyGateTests(unittest.TestCase):
             self.assertEqual(report["status"], "INCOMPLETE")
             self.assertTrue(any("ellipsoidal" in e for e in report["errors"]))
             self.assertTrue(any("source evidence unavailable" in e for e in report["errors"]))
+
+    def test_checkpoint_epoch_conflict_blocks_survey(self):
+        with tempfile.TemporaryDirectory() as d:
+            bundle = self.make_terrain(Path(d))
+            bundle["survey"]["checkpoints"][0]["coordinateEpoch"] = "ITRF2020 epoch 2020.00"
+            result = validate(bundle, Path(d))
+            self.assertEqual(result["status"], "INCOMPLETE")
+            self.assertTrue(any("coordinate epoch" in e for e in result["errors"]))
+
+    def test_missing_feet_normalization_evidence_blocks(self):
+        with tempfile.TemporaryDirectory() as d:
+            bundle = self.make_terrain(Path(d))
+            bundle["source"]["verticalUnit"] = "us-ft"
+            report = validate(bundle, Path(d))
+            self.assertTrue(any("heightUnitNormalizationEvidence" in e for e in report["errors"]))
 
     def test_bad_checksum_and_symlink_escape_blocked(self):
         with tempfile.TemporaryDirectory() as d:
