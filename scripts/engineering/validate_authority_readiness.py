@@ -187,14 +187,37 @@ def terrain(bundle: dict[str, Any], root: Path, errors: list[str]) -> dict[str, 
     }
 
 
+def _verified_json(entry: Any, confirmed_hash: str | None, root: Path,
+                   errors: list[str], label: str) -> dict[str, Any]:
+    if not confirmed_hash or not isinstance(entry, dict):
+        return {}
+    try:
+        source = root / entry["path"]
+        if source.stat().st_size > 20 * 1024 * 1024:
+            raise ValueError("report too large (20 MB cap)")
+        value = json.loads(source.read_text(encoding="utf-8"))
+        if not isinstance(value, dict):
+            raise ValueError("report root is not an object")
+        return value
+    except (OSError, UnicodeError, ValueError) as exc:
+        errors.append(f"{label}: invalid verified JSON evidence ({type(exc).__name__})")
+        return {}
+
+
 def mesh(bundle: dict[str, Any], root: Path, errors: list[str]) -> dict[str, Any]:
-    checked_file(bundle.get("runReport"), root, errors, "runReport")
+    run_sha = checked_file(bundle.get("runReport"), root, errors, "runReport")
+    mesh_sha = checked_file(bundle.get("meshArtifact"), root, errors, "meshArtifact")
+    audit_sha = checked_file(bundle.get("seamAudit"), root, errors, "seamAudit")
+    boundary_sha = checked_file(bundle.get("countyBoundary"), root, errors, "countyBoundary")
     sources = bundle.get("sourceTiles")
     if not isinstance(sources, list) or not sources:
         errors.append("sourceTiles: source DEM inventory required")
         sources = []
+    sources_sha = []
     for i, item in enumerate(sources):
-        checked_file(item, root, errors, f"sourceTiles[{i}]")
+        result = checked_file(item, root, errors, f"sourceTiles[{i}]")
+        if result:
+            sources_sha.append(result)
     if bundle.get("extractionMode") != "FULL_ADAPTIVE_OCTREE":
         errors.append("extractionMode: full adaptive-octree county terrain is required; transition-face strips do not qualify")
     if bundle.get("twoToOneBalanced") is not True:
@@ -213,18 +236,54 @@ def mesh(bundle: dict[str, Any], root: Path, errors: list[str]) -> dict[str, Any
         value = bundle.get(field)
         if not isinstance(value, int) or isinstance(value, bool) or value != 0:
             errors.append(f"{field}: must be measured and zero, not omitted or inferred")
-    if bundle.get("meshRecomputedAgainstSource") is not True:
-        errors.append("meshRecomputedAgainstSource: independently checked mesh/DEM agreement required")
-    if bundle.get("deterministicRepeatHashMatch") is not True:
-        errors.append("deterministicRepeatHashMatch: repeated-run hash agreement required")
-    if bundle.get("datumAlignmentVerified") is not True:
-        errors.append("datumAlignmentVerified: every tile requires explicit compatible datum/units/epoch")
+    for name in ("meshRecomputedAgainstSource", "deterministicRepeatHashMatch", "datumAlignmentVerified"):
+        if bundle.get(name) is not True:
+            errors.append(f"{name}: independently verified true value required")
+
+    # Cross-check claims against *file contents* as well as their SHA-256. This
+    # is not just a mutable status field or a copied assertion of clean seams.
+    report = _verified_json(bundle.get("runReport"), run_sha, root, errors, "runReport")
+    audit = _verified_json(bundle.get("seamAudit"), audit_sha, root, errors, "seamAudit")
+    expected_report_fields = (
+        "extractionMode", "countyAreaKm2", "coveredAreaKm2", "twoToOneBalanced",
+        "verifiedSeamDirections", "seamPairsChecked", "trueCrackCount",
+        "nonManifoldEdges", "unexplainedNoDataSeams", "orphanTriangles",
+        "meshRecomputedAgainstSource", "deterministicRepeatHashMatch",
+        "datumAlignmentVerified"
+    )
+    if report.get("schemaVersion") != "tsm.full-county-mesh-measurement.v1":
+        errors.append("runReport: measured full-county mesh report schema required")
+    for key in expected_report_fields:
+        if report.get(key) != bundle.get(key):
+            errors.append(f"runReport.{key}: source measurement does not match submission")
+    if mesh_sha is None or report.get("meshArtifactSha256") != mesh_sha:
+        errors.append("runReport.meshArtifactSha256: must match independently hashed mesh bytes")
+    if audit_sha is None or report.get("seamAuditSha256") != audit_sha:
+        errors.append("runReport.seamAuditSha256: must match independently hashed seam audit")
+    if boundary_sha is None or report.get("countyBoundarySha256") != boundary_sha:
+        errors.append("runReport.countyBoundarySha256: pinned AOI polygon required")
+    if sorted(report.get("sourceTileSha256", [])) != sorted(sources_sha) or len(sources_sha) != len(sources):
+        errors.append("runReport.sourceTileSha256: checked tile hashes do not match recorded input inventory")
+    if audit.get("schemaVersion") != "tsm.geometric-seam-audit.v1":
+        errors.append("seamAudit: measured geometrical interface report required")
+    if audit.get("status") != "MEASURED_SEAM_SEGMENTS_MATCH_FOR_REVIEW" or audit.get("errors") != []:
+        errors.append("seamAudit: any invalid or mismatched triangle segments block acceptance")
+    if (audit.get("interfacePairsSubmitted") != count or
+            audit.get("matchedInterfaces") != count):
+        errors.append("seamAudit: actual matched interface count must equal measured county seam count")
+    if not isinstance(orientations, list) or set(audit.get("verifiedDirections", [])) != set(orientations):
+        errors.append("seamAudit: geometric directions differ from declared six-direction proof")
     return {
         "coveredAreaKm2": covered,
         "countyAreaKm2": county,
         "seamPairsChecked": count,
         "testedDirections": sorted(orientations) if isinstance(orientations, list) else [],
-        "caution": "Structural evidence checks do not independently verify DEM authenticity or actual mesh topology"
+        "runReportSha256": run_sha,
+        "seamAuditSha256": audit_sha,
+        "meshArtifactSha256": mesh_sha,
+        "countyBoundarySha256": boundary_sha,
+        "sourceTileSha256": sorted(sources_sha),
+        "caution": "Reports and mesh bytes are integrity-linked; source authenticity, surveyed terrain accuracy and county polygon analysis still require independent review"
     }
 
 
