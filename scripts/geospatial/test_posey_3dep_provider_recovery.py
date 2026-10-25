@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import unittest
 import urllib.error
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 MODULE_PATH = Path(__file__).with_name("acquire-posey-47620-3dep.py")
@@ -75,11 +77,31 @@ class ProviderRecoveryTests(unittest.TestCase):
             patch.object(ACQUIRER.urllib.request, "urlopen", side_effect=failure) as open_url,
             patch.object(ACQUIRER.time, "sleep") as sleep,
         ):
-            with self.assertRaises(urllib.error.URLError):
+            with self.assertRaises(ACQUIRER.TransientSourceUnavailable):
                 ACQUIRER.fetch("https://example.invalid/unavailable", attempts=4)
         self.assertEqual(open_url.call_count, 4)
         self.assertEqual(sleep.call_count, 3)
         self.assertEqual([call.args[0] for call in sleep.call_args_list], [1, 2, 4])
+
+    def test_exhausted_502_is_classified_as_upstream_outage(self):
+        failure = urllib.error.HTTPError("https://example.invalid", 502, "gateway", {}, None)
+        with (
+            patch.object(ACQUIRER.urllib.request, "urlopen", side_effect=failure) as open_url,
+            patch.object(ACQUIRER.time, "sleep"),
+        ):
+            with self.assertRaisesRegex(ACQUIRER.TransientSourceUnavailable, "HTTP 502"):
+                ACQUIRER.fetch("https://example.invalid/metadata", attempts=4)
+        self.assertEqual(open_url.call_count, 4)
+
+    def test_source_unavailable_status_is_explicitly_not_verified_terrain(self):
+        with TemporaryDirectory() as temporary:
+            status_path = ACQUIRER.write_source_unavailable(Path(temporary), "Upstream HTTP 502 after 4 attempts")
+            status = json.loads(status_path.read_text(encoding="utf-8"))
+            self.assertEqual(status["evidenceStatus"], "SOURCE_UNAVAILABLE")
+            self.assertEqual(status["aoiApprovalStatus"], "UNAPPROVED")
+            self.assertFalse(status["rasterVerified"])
+            self.assertFalse(status["simulationAuthorized"])
+            self.assertFalse((Path(temporary) / "posey-county-47620-usgs-3dep-screening.tif").exists())
 
 
 if __name__ == "__main__":
