@@ -1,0 +1,57 @@
+name: Independent Engineering Evidence Precheck
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/engineering/independent_acceptance_gate.py'
+      - 'scripts/engineering/test_independent_acceptance_gate.py'
+      - 'data/engineering/independent-acceptance-pending-v1.json'
+      - 'docs/engineering/INDEPENDENT-ACCEPTANCE-2026-10-25.md'
+      - '.github/workflows/independent-engineering-evidence.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/engineering/independent_acceptance_gate.py'
+      - 'scripts/engineering/test_independent_acceptance_gate.py'
+      - 'data/engineering/independent-acceptance-pending-v1.json'
+      - '.github/workflows/independent-engineering-evidence.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  engineering-precheck:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # pinned
+        with:
+          python-version: '3.12'
+      - name: Validate and test three independent evidence gates
+        run: |
+          python -m py_compile scripts/engineering/independent_acceptance_gate.py
+          python -m unittest scripts.engineering.test_independent_acceptance_gate -v
+      - name: Evaluate actual evidence ledger (incomplete must remain incomplete)
+        run: |
+          python scripts/engineering/independent_acceptance_gate.py \
+            --evidence data/engineering/independent-acceptance-pending-v1.json \
+            --output "${RUNNER_TEMP}/independent-precheck.json"
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          result = json.loads((Path(os.environ["RUNNER_TEMP"]) / "independent-precheck.json").read_text())
+          assert result["overallStatus"] == "INCOMPLETE", "unverified evidence must not pass"
+          assert result["mayClaimSurveyGradeTerrain"] is False
+          assert result["mayClaimRegulatoryApproval"] is False
+          assert result["mayClaimCountyWideCrackFree"] is False
+          print("PASS: production evidence claims remain restricted until independent surveys and analysis exist")
+          PY
+      - name: Publish informative machine-readable blockers
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # pinned
+        with:
+          name: tsm-independent-engineering-precheck
+          path: ${{ runner.temp }}/independent-precheck.json
+          if-no-files-found: error
+          retention-days: 30
