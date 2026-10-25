@@ -39,7 +39,7 @@ export function isSfhaZone(zone: string): boolean {
   return /^(?:A|AE|AH|AO|AR|A99|V|VE|A(?:[1-9]|[12]\d|30)|V(?:[1-9]|[12]\d|30))$/.test(zone.toUpperCase());
 }
 function acceptedZone(zone: string): boolean {
-  return isSfhaZone(zone) || ['X', 'X500', 'D'].includes(zone.toUpperCase());
+  return isSfhaZone(zone) || ['X', 'X500', 'B', 'C', 'D'].includes(zone.toUpperCase());
 }
 /** Roll up disjoint per-zone intersections into a screening estimate.
  * Never silently discard negative/NaN/unknown zones or emit >100%. */
