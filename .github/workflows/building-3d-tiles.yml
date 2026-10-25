@@ -113,6 +113,34 @@ jobs:
             --output /tmp/tsm-igio/posey-buildings-igio-enriched.geojson \
             --expected-count 23082
           test "$(python3 -c 'import json; print(len(json.load(open("/tmp/tsm-igio/posey-buildings-igio-enriched.geojson"))["features"]))')" = "23082"
+      - name: Reconcile published footprint identity against complete IGIO snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/geospatial/reconcile_published_buildings.py \
+            --published tsm-console/public/3d-tiles/buildings-3d.json \
+            --authoritative /tmp/tsm-igio/posey-buildings-igio-enriched.geojson \
+            --expected-count 23082 \
+            --output /tmp/tsm-igio/building-objectid-source-delta.json \
+            > /tmp/tsm-igio/building-objectid-source-delta.stdout.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          j = json.loads(Path('/tmp/tsm-igio/building-objectid-source-delta.json').read_text())
+          published = j['published']['count']
+          missing = j.get('missingAuthoritativeObjectIds')
+          print(f"Published count: {published} / {j['expectedAuthoritativeFeatureCount']}")
+          print(f"Missing source IDs: {len(missing) if missing is not None else 'UNKNOWN'}")
+          print(f"Identity reconciled: {j['identityAndCountReconciled']}; not engineering acceptance")
+          PY
+      - name: Archive IGIO-to-published missing-OBJECTID evidence
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v4.6.2
+        with:
+          name: tsm-igio-objectid-reconciliation-${{ github.sha }}
+          path: /tmp/tsm-igio/building-objectid-source-delta.json
+          retention-days: 90
+          if-no-files-found: error
+          compression-level: 1
       - name: Verify authoritative EPT metadata
         shell: bash
         run: |
@@ -356,6 +384,20 @@ jobs:
           unzip -q "$zip" -d "$verify"
           (cd "$verify/3d-tiles/buildings" && sha256sum -c SHA256SUMS)
           rm -rf "$verify"
+      - name: Retain per-OBJECTID rebuild rejection and height evidence on any failure
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v4.6.2
+        with:
+          name: tsm-building-rebuild-diagnostics-${{ github.run_id }}
+          path: |
+            /tmp/tsm-buildings/flat/rejected-buildings.json
+            /tmp/tsm-buildings/flat/manifest.json
+            /tmp/tsm-igio/building-objectid-source-delta.json
+            /tmp/tsm-igio/posey-buildings-igio-enriched.geojson.receipt.json
+            /tmp/tsm-igio/copc-tile-manifest.json
+          if-no-files-found: ignore
+          retention-days: 90
+          compression-level: 1
       - name: Upload versioned artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
