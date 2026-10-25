@@ -26,6 +26,13 @@
     {
       "Name": "CesiumForUnreal",
       "Enabled": true
+    },
+    {
+      "Name": "PythonScriptPlugin",
+      "Enabled": true,
+      "TargetAllowList": [
+        "Editor"
+      ]
     }
   ]
 }
