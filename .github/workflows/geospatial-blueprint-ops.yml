@@ -56,10 +56,29 @@ jobs:
       - name: Test bounded provider retry and fail-closed behavior
         run: python3 -m unittest scripts/geospatial/test_posey_3dep_provider_recovery.py
       - name: Download real USGS 3DEP terrain for Posey County ZIP 47620
-        run: python3 scripts/geospatial/acquire-posey-47620-3dep.py --output-dir "$RUNNER_TEMP/tsm-posey-47620-evidence"
+        id: terrain
+        shell: bash
+        run: |
+          output_dir="$RUNNER_TEMP/tsm-posey-47620-evidence"
+          if python3 scripts/geospatial/acquire-posey-47620-3dep.py --output-dir "$output_dir"; then
+            echo "real_data_available=true" >> "$GITHUB_OUTPUT"
+            echo "### Live 3DEP: REAL_DATA_SCREENING_ONLY (unapproved AOI; not survey-grade)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            status=$?
+            if [[ "$status" -eq 75 && -f "$output_dir/posey-county-47620-source-unavailable.json" ]]; then
+              echo "real_data_available=false" >> "$GITHUB_OUTPUT"
+              echo "### Live 3DEP: SOURCE_UNAVAILABLE (not verified)" >> "$GITHUB_STEP_SUMMARY"
+              echo "No real-DEM benchmark is authorized. See the negative-evidence artifact. Local deterministic validations will still run." >> "$GITHUB_STEP_SUMMARY"
+              echo "::warning::Authoritative terrain acquisition unavailable after bounded retries; no terrain verification or approval claimed"
+            else
+              echo "::error::Terrain acquisition/data-validation failure (exit $status); not classified as an upstream outage"
+              exit "$status"
+            fi
+          fi
       - name: Audit complete CRS and vertical-datum catalog
         run: node scripts/geospatial/report-crs-datum-catalog.mjs "$RUNNER_TEMP/tsm-posey-47620-evidence/crs-datum-catalog-report.json"
       - name: Run real-DEM Transvoxel transition benchmark
+        if: steps.terrain.outputs.real_data_available == 'true'
         run: >-
           python3 scripts/geospatial/benchmark-real-dem-transvoxel.py
           --raster "$RUNNER_TEMP/tsm-posey-47620-evidence/posey-county-47620-usgs-3dep-screening.tif"
