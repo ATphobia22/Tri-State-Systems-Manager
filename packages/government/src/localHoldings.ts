@@ -120,7 +120,7 @@ export function getLocalHolding(manifestPath:string,match:(entry:LocalHoldingsMa
   }
  } else if(entry.path.toLowerCase().endsWith('.zip')) {
   mediaType='application/zip';
-  result={kind:'LOCAL_ARCHIVE_REFERENCE',sourceId,relativePath:entry.path,mediaType,byteLength:bytes.byteLength,sha256:actual,contentsValidated:false} satisfies VerifiedLocalArchive;
+  result={kind:'LOCAL_ARCHIVE_REFERENCE',sourceId,relativePath:entry.path,mediaType:'application/zip',byteLength:bytes.byteLength,sha256:actual,contentsValidated:false} satisfies VerifiedLocalArchive;
  } else {
   throw new Error('LOCAL_HOLDINGS_UNSUPPORTED_MEDIA_TYPE:'+entry.id);
  }
