@@ -1,6 +1,16 @@
 name: OpenAPI Contract Sync
 
+# Read-only drift validation. Generated contract changes require code review;
+# no bot commit may advance main to a [skip ci] SHA without required checks.
 on:
+  pull_request:
+    paths:
+      - "backend/app/**"
+      - "backend/api/**"
+      - "backend/gov/**"
+      - "backend/requirements.txt"
+      - "scripts/ci/generate-openapi.py"
+      - ".github/workflows/openapi-sync.yml"
   push:
     branches: [main]
     paths:
@@ -8,72 +18,43 @@ on:
       - "backend/api/**"
       - "backend/gov/**"
       - "backend/requirements.txt"
+      - "scripts/ci/generate-openapi.py"
       - ".github/workflows/openapi-sync.yml"
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: openapi-sync-main
-  cancel-in-progress: false
+  group: openapi-contract-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  sync:
-    if: ${{ github.actor != 'github-actions[bot]' }}
+  verify:
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v6.1.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
 
       - name: Install backend dependencies
         run: python -m pip install --disable-pip-version-check --no-input -r backend/requirements.txt
 
-      - name: Generate OpenAPI from the live FastAPI route tree
+      - name: Check committed contract against live FastAPI routes
         env:
           PYTHONPATH: ${{ github.workspace }}
-        run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          from backend.app.main import app
+        run: python scripts/ci/generate-openapi.py --check --candidate "$RUNNER_TEMP/tsm-openapi-generated.json"
 
-          output = Path("backend/app/openapi.json")
-          schema = app.openapi()
-          output.write_text(json.dumps(schema, indent=2) + "\n", encoding="utf-8")
-          print(f"Generated {len(schema['paths'])} OpenAPI paths -> {output}")
-          PY
-
-      - name: Verify OpenAPI route inventory
-        env:
-          PYTHONPATH: ${{ github.workspace }}
-        run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          from backend.app.main import app
-
-          committed = json.loads(Path("backend/app/openapi.json").read_text())
-          live = app.openapi()
-          assert committed["paths"] == live["paths"], "committed OpenAPI paths differ from FastAPI"
-          assert committed["components"] == live["components"], "committed OpenAPI schemas differ from FastAPI"
-          assert len(committed["paths"]) >= 17
-          print(f"OpenAPI synchronized: {len(committed['paths'])} paths")
-          PY
-
-      - name: Commit synchronized OpenAPI
-        run: |
-          if git diff --quiet -- backend/app/openapi.json; then
-            echo "OpenAPI already synchronized."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add backend/app/openapi.json
-          git commit -m "chore(api): synchronize generated OpenAPI contract [skip ci]"
-          git push
+      - name: Upload comparison artifact when drift is detected
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # pinned
+        with:
+          name: openapi-contract-candidate
+          path: ${{ runner.temp }}/tsm-openapi-generated.json
+          if-no-files-found: ignore
+          retention-days: 7
