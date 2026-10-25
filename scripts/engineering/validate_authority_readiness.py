@@ -114,13 +114,19 @@ def terrain(bundle: dict[str, Any], root: Path, errors: list[str]) -> dict[str, 
     quality = required_string(source, "qualityLevel", errors, "source")
     if quality not in ("QL0", "QL1", "QL2", "QL3"):
         errors.append("source.qualityLevel: documented USGS quality level required")
-    required_string(source, "acquisitionDate", errors, "source")
-    required_string(source, "coordinateEpoch", errors, "source")
+    acquisition_date = required_string(source, "acquisitionDate", errors, "source")
+    if acquisition_date and not DATE.fullmatch(acquisition_date):
+        errors.append("source.acquisitionDate: ISO YYYY-MM-DD acquisition date required")
+    source_epoch = required_string(source, "coordinateEpoch", errors, "source")
+    if source.get("verticalUnit") != "m":
+        checked_file(source.get("heightUnitNormalizationEvidence"), root, errors, "source.heightUnitNormalizationEvidence")
     checked_file(survey.get("controlReport"), root, errors, "survey.controlReport")
     checked_file(survey.get("distributionReport"), root, errors, "survey.distributionReport")
     required_string(survey, "surveyMethod", errors, "survey")
     required_string(survey, "surveyorOfRecord", errors, "survey")
-    required_string(survey, "surveyDate", errors, "survey")
+    survey_date = required_string(survey, "surveyDate", errors, "survey")
+    if survey_date and not DATE.fullmatch(survey_date):
+        errors.append("survey.surveyDate: ISO YYYY-MM-DD survey date required")
     required_string(survey, "independenceStatement", errors, "survey")
 
     checkpoints = survey.get("checkpoints")
@@ -140,6 +146,8 @@ def terrain(bundle: dict[str, Any], root: Path, errors: list[str]) -> dict[str, 
             ids.append(identity)
         if item.get("verticalDatum") != source.get("verticalDatum") or item.get("horizontalCrs") != source.get("horizontalCrs"):
             errors.append(f"{label}: checkpoint frame/datum differs from raster")
+        if item.get("coordinateEpoch") != source_epoch:
+            errors.append(f"{label}: explicit matching coordinate epoch is required")
         if item.get("independent") is not True:
             errors.append(f"{label}: source-independent checkpoint is required")
         if item.get("landCover") not in LABELS:
