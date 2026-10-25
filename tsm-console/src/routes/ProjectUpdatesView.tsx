@@ -62,19 +62,19 @@ const partial: React.CSSProperties = {
 };
 
 const ROADMAP = [
-  { n: '01', title: 'Authoritative Terrain', status: 'complete', note: 'AOI defined; 3DEP DEMs, 1m LiDAR, EPT indices' },
-  { n: '02', title: 'Verified Bathymetry', status: 'complete', note: 'SIR 2016-5119 + 20 USACE eHydro surveys (1.4 GB) + ERDC TR-22-4' },
-  { n: '03', title: 'Datum Control', status: 'complete', note: 'NAD83/NAVD88 documented; transformation record' },
-  { n: '04', title: 'Baseline HEC-RAS', status: 'complete', note: 'ERDC AdH confluence model + SIR 2016-5119 reference' },
-  { n: '05', title: 'Calibrated Hydraulics', status: 'complete', note: 'ERDC validation + SIR calibration + gage observations' },
-  { n: '06', title: 'Alternative Scenarios', status: 'complete', note: 'ERDC dike alternatives documented; flood-only framework' },
+  { n: '01', title: 'Authoritative Terrain', status: 'partial', note: '3DEP DEM/LiDAR context available; independent checkpoints, survey control and design-grade elevation accuracy not yet verified' },
+  { n: '02', title: 'Verified Bathymetry', status: 'partial', note: 'SIR 2016-5119 / USACE eHydro / ERDC source inventory; location, epoch and hydraulic-model sufficiency need review' },
+  { n: '03', title: 'Datum Control', status: 'partial', note: 'CRS policy installed; some historical vertical-datum evidence unavailable, so unsupported conversions remain blocked' },
+  { n: '04', title: 'Baseline HEC-RAS', status: 'partial', note: 'Regional reference models inventoried; site-specific effective and duplicate-effective model evidence unverified' },
+  { n: '05', title: 'Calibrated Hydraulics', status: 'partial', note: 'Published calibration references are available; local design-discharge, boundary and independent reviewer acceptance pending' },
+  { n: '06', title: 'Alternative Scenarios', status: 'partial', note: 'Scenario framework available; alternatives are simulations, not approved project or regulatory outcomes' },
   { n: '07', title: 'Independent Earthwork', status: 'partial', note: 'Method defined; needs independent reviewer' },
   { n: '08', title: 'Sediment Suitability', status: 'partial', note: 'ERDC sediment data in-hand; site borings need field work' },
   { n: '09', title: 'Environmental Screening', status: 'partial', note: 'Process defined; needs agency coordination' },
   { n: '10', title: 'Agency Eligibility', status: 'partial', note: 'Process defined; needs formal agency request' },
   { n: '11', title: 'Benefit-Cost Analysis', status: 'partial', note: 'Method defined; needs project definition' },
   { n: '12', title: 'Funding Application', status: 'partial', note: 'Checklist complete; needs active solicitation' },
-  { n: '13', title: 'QA / QC', status: 'complete', note: 'Framework complete; final human sign-off required' },
+  { n: '13', title: 'QA / QC', status: 'partial', note: 'Reproducible software and evidence gates implemented; field acceptance, professional review and agency determinations outstanding' },
 ];
 
 export default function ProjectUpdatesView() {
@@ -84,8 +84,9 @@ export default function ProjectUpdatesView() {
         Project Updates — October 2026
       </h1>
       <p style={{ ...p, marginBottom: '1.5rem' }}>
-        Snapshot 2 Oct 2026. Definitions and documented evidence only — not current
-        readings, not regulatory determinations. Human authority remains final.
+        Source inventory snapshot and 25 Oct 2026 acceptance review. These are
+        documented capabilities and unresolved quality gates, not live readings,
+        survey certification or regulatory determinations. Human authority remains final.
       </p>
 
       <section style={panel}>
@@ -149,6 +150,31 @@ export default function ProjectUpdatesView() {
       </section>
 
       <section style={panel}>
+        <h2 style={h2}>Engineering acceptance — evidence status</h2>
+        <p style={p}>
+          The data catalog and source checks are operational, but there is no accepted
+          independent survey, complete adaptive-octree county mesh or site-specific
+          FEMA/Indiana approval in this repository. A passed software test does not
+          establish any of those facts.
+        </p>
+        <ul style={ul}>
+          <li><strong>Terrain:</strong> independent checkpoint and datum-control survey incomplete.</li>
+          <li><strong>Geometry:</strong> 400 km² measured transition-face trial is partial; county-wide six-direction seam proof is outstanding.</li>
+          <li><strong>Floodway:</strong> effective/corrected/proposed hydraulic evidence and licensed review incomplete.</li>
+          <li><strong>Buildings:</strong> 22,815 published screening objects vs 23,082 archived IGIO-labeled source IDs; 267 identities under provenance review.</li>
+          <li><strong>Native delivery:</strong> a Windows offline runtime package is not the same as a verified, signed UE5.8 Shipping installer.</li>
+        </ul>
+        <p style={p}>
+          See the{' '}
+          <a href="https://github.com/ATphobia22/Tri-State-Systems-Manager/blob/main/docs/validation/AUTHORITY-ACCEPTANCE-PROTOCOL-2026-10-25.md"
+             target="_blank" rel="noreferrer" style={{ color: t.color.status.success }}>
+            technical acceptance protocol
+          </a>
+          {' '}for independent source requirements and professional-review boundaries.
+        </p>
+      </section>
+
+      <section style={panel}>
         <h2 style={h2}>13-Item Engineering Roadmap</h2>
         <div>
           {ROADMAP.map((item) => (
@@ -166,9 +192,9 @@ export default function ProjectUpdatesView() {
           ))}
         </div>
         <p style={{ ...p, marginTop: '1rem' }}>
-          Items 07–13 are documented with complete methodologies. Execution requires
-          field work, agency coordination, or explicit authorization — none performed
-          autonomously.
+          The documented roadmap is not the same as acceptance. Items that need
+          independently measured data, professional evaluation, agency coordination or
+          physical build evidence remain incomplete until those records are available.
         </p>
       </section>
 
