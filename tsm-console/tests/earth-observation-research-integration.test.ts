@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 describe('earth-observation research integration contract', () => {
   it('validates research sources without overstating runtime integration', () => {
-    const result = spawnSync(process.execPath, ['scripts/ci/validate-earth-observation-research-integration.mjs'], {
+    const result = spawnSync(process.execPath, ['../scripts/ci/validate-earth-observation-research-integration.mjs'], {
       encoding: 'utf8',
       cwd: process.cwd(),
     });
