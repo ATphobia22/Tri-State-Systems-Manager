@@ -28,6 +28,10 @@ message QuantityValueSet {
   string software_version = 12;
   string model_version = 13;
   string validation_status = 14;
+  // Additive fields preserve compatibility with existing protobuf readers.
+  string time_semantics = 15; // INSTANT, INTERVAL_MEAN, INTERVAL_SUM, STATE_AT_STEP
+  double time_step_seconds = 16;
+  string time_convention = 17; // e.g. left-closed/right-open
 }
 
 message ComponentInfo {
