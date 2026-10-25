@@ -6,6 +6,7 @@ from Unreal Editor > File > New Level > Open World, saved under /Game/Maps.
 param(
     [string]$EngineRoot = $env:UE_5_8_ROOT,
     [string]$MapPackage = '/Game/Maps/TSMRegion',
+    [switch]$GenerateMap,
     [switch]$BuildHLODs,
     [switch]$AdoptAsDefaultMap
 )
@@ -18,12 +19,18 @@ if ($MapPackage -notmatch '^/Game/[A-Za-z0-9_/]+$' -or $MapPackage.Contains('..'
 }
 $Relative = $MapPackage.Substring(6).Replace('/', [IO.Path]::DirectorySeparatorChar)
 $MapFile = Join-Path $ProjectRoot ('Content\' + $Relative + '.umap')
-if (-not (Test-Path -LiteralPath $MapFile -PathType Leaf)) {
-    throw "Missing native TSM partitioned map: $MapFile. Create it in UE5.8 Editor with File > New Level > Open World, and commit the generated map and external assets."
-}
 if ([string]::IsNullOrWhiteSpace($EngineRoot)) { throw 'Set UE_5_8_ROOT' }
 $Editor = Join-Path $EngineRoot 'Engine\Binaries\Win64\UnrealEditor-Cmd.exe'
 if (-not (Test-Path -LiteralPath $Editor)) { throw "Unreal editor commandlet missing: $Editor" }
+if (-not (Test-Path -LiteralPath $MapFile -PathType Leaf) -and $GenerateMap) {
+    $Python = Join-Path $PSScriptRoot 'Create-World-Partition-Map.py'
+    if (-not (Test-Path -LiteralPath $Python)) { throw "Missing UE5.8 map-generation Python script" }
+    & $Editor $Project "-ExecutePythonScript=$Python" '-unattended' '-NoP4'
+    if ($LASTEXITCODE -ne 0) { throw "UE5.8 partitioned map-generation script failed: $LASTEXITCODE" }
+}
+if (-not (Test-Path -LiteralPath $MapFile -PathType Leaf)) {
+    throw "Missing project-owned partitioned map: $MapFile. Use -GenerateMap with UE5.8 PythonScriptPlugin, or create /Game/Maps/TSMRegion through File > New Level > Open World."
+}
 $ProjectInfo = Get-Content -LiteralPath $Project -Raw | ConvertFrom-Json
 if ($ProjectInfo.EngineAssociation -ne '5.8') { throw 'EngineAssociation must be 5.8' }
 
