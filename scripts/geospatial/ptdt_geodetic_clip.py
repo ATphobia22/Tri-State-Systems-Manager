@@ -115,6 +115,14 @@ def clip(source: Path, out: Path, aoi: Path, metadata: Path, report: Path, *,
          allow_candidate: bool = False, chunk_size: int = 250_000) -> dict:
     if chunk_size < 1:
         raise EvidenceError("chunk_size must be positive")
+    # Evidence, metadata and derived artifacts must never alias one another,
+    # including through a symlink or a path with '..' segments.
+    paths = (source, out, aoi, metadata, report)
+    if len({path.resolve() for path in paths}) != len(paths):
+        raise EvidenceError("Input, output, AOI, metadata and report paths must be distinct")
+    # Do not silently destroy prior derived outputs, even on a repeated run.
+    if out.exists() or report.exists():
+        raise EvidenceError("Output or evidence report already exists; refusing overwrite")
     data, polygon = load_aoi(aoi, allow_candidate=allow_candidate)
     source_info = validate_source(source, metadata)
     try:
@@ -123,8 +131,6 @@ def clip(source: Path, out: Path, aoi: Path, metadata: Path, report: Path, *,
     except ImportError as exc:
         raise EvidenceError("Clipping requires laspy >=2 and shapely >=2") from exc
     out.parent.mkdir(parents=True, exist_ok=True)
-    if out.resolve() == source.resolve():
-        raise EvidenceError("Output must not overwrite original evidence")
     total = retained = 0
     try:
         with laspy.open(source) as reader:
