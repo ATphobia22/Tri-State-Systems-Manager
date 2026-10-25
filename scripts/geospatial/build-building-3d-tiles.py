@@ -574,6 +574,9 @@ def main() -> None:
             "tileCount": len(tiles),
             "skipped": skipped,
             "rejectedSourceIds": [item["sourceObjectId"] for item in rejected],
+            "rejectedReportSha256": hashlib.sha256(
+                (args.out_dir / "rejected-buildings.json").read_bytes()
+            ).hexdigest(),
             "heightSources": {source: sum(t.height_provenance == source for t in tiles)
                               for source in ("OBSERVED", "DERIVED", "EXPLICIT_ESTIMATE")},
             "groundSources": {source: sum(t.ground_provenance == source for t in tiles)
@@ -604,10 +607,11 @@ def main() -> None:
     }
     (args.out_dir / "manifest.json").write_text(
         json.dumps(manifest, indent=2) + "\n")
+    # Validator SHA256SUMS covers exactly referenced GLBs + tileset + manifest.
+    # The manifest separately seals the diagnostics report hash.
     write_hashes(args.out_dir,
                  paths + [args.out_dir / "tileset.json",
-                          args.out_dir / "manifest.json",
-                          args.out_dir / "rejected-buildings.json"])
+                          args.out_dir / "manifest.json"])
     print(f"generated {len(tiles)} GLBs; skipped={skipped}; out={args.out_dir}")
 
 
