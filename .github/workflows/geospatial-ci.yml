@@ -208,6 +208,9 @@ jobs:
 
       - name: Validate satellite Earth-observation research source contract
         run: node scripts/ci/validate-earth-observation-research-integration.mjs
+      - name: Test satellite Earth-observation research source contract
+        working-directory: tsm-console
+        run: ./node_modules/.bin/vitest run tests/earth-observation-research-integration.test.ts
       - name: Validate 3D asset manifests
         run: node scripts/ci/validate-artifact-manifests.mjs
       - name: Validate geospatial processing contract
