@@ -26,11 +26,15 @@ def main() -> int:
     assert len(MASTER_SEAL) == 64
     archimedes = ArchimedesEngine()
     screening = archimedes.evaluate_jurisdiction_compliance(
-        "IN", 374.0, 375.0, floodway_delta_ft=0.10, authoritative_model_id="VERIFY-ARCHIMEDES"
+        "IN", 374.0, 375.0, floodway_delta_ft=0.10, floodway_context="STATE",
+        authoritative_model_id="VERIFY-ARCHIMEDES", source_evidence_hash="a" * 64,
+        solver_status="SUCCESS", input_freshness="FRESH"
     )
     assert screening["screening_status"] == "SCREENED_NO_TRIGGER"
     assert screening["regulatory_determination"] is None
     assert screening["human_review_required"] is True
+    manifest = archimedes.generate_proof_manifest(screening)
+    assert archimedes.verify_proof_manifest(manifest)
 
     # Explicit test fixture only; these values are not application/site defaults.
     SiteElevations(
@@ -87,7 +91,7 @@ def main() -> int:
     except Exception:
         pass
 
-    print("[verify-backend-invariants] PASS — geodetic invariants and HEC-RAS resilient boundary verified")
+    print("[verify-backend-invariants] PASS — geodetic, Archimedes proof, and HEC-RAS boundaries verified")
     return 0
 
 
