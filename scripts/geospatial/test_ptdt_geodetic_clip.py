@@ -1,0 +1,120 @@
+"""Regression tests: Point Township AOI cannot be manufactured by unit mistakes."""
+from __future__ import annotations
+
+import hashlib
+import importlib.util
+import json
+import tempfile
+import unittest
+from pathlib import Path
+
+import pyproj
+
+HERE = Path(__file__).resolve().parent
+SPEC = importlib.util.spec_from_file_location("ptdt_geodetic_clip", HERE / "ptdt_geodetic_clip.py")
+assert SPEC is not None and SPEC.loader is not None
+clipper = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(clipper)
+
+
+def envelope(coords: list, *, status: str = "CANDIDATE") -> dict:
+    return {
+        "schemaVersion": "tsm.projected-aoi.v1",
+        "horizontalCrs": "EPSG:2966",
+        "horizontalUnit": "ftUS",
+        "verticalDatum": "NAVD88",
+        "approvalStatus": status,
+        "geometry": {"type": "Polygon", "coordinates": [coords]},
+    }
+
+
+class GeodeticGateTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.aoi = self.root / "aoi.json"
+
+    def write(self, payload):
+        self.aoi.write_text(json.dumps(payload), encoding="utf-8")
+
+    def test_supplied_wrong_easting_rectangle_rejected_even_when_called_approved(self):
+        self.write(envelope([
+            [830000, 930000], [865000, 930000], [865000, 975000],
+            [830000, 975000], [830000, 930000],
+        ]))
+        with self.assertRaisesRegex(clipper.EvidenceError, "outside Posey"):
+            clipper.load_aoi(self.aoi, allow_candidate=True)
+
+    def test_valid_location_still_cannot_skip_approval(self):
+        self.write(envelope([
+            [2680000, 941000], [2690000, 941000], [2690000, 951000],
+            [2680000, 951000], [2680000, 941000],
+        ]))
+        with self.assertRaisesRegex(clipper.EvidenceError, "not approved"):
+            clipper.load_aoi(self.aoi)
+        payload, polygon = clipper.load_aoi(self.aoi, allow_candidate=True)
+        self.assertGreater(polygon.area, 0)
+        self.assertEqual(payload["approvalStatus"], "CANDIDATE")
+
+    def test_approved_requires_evidence_not_just_a_label(self):
+        self.write(envelope([
+            [2680000, 941000], [2690000, 941000], [2690000, 951000],
+            [2680000, 951000], [2680000, 941000],
+        ], status="APPROVED"))
+        with self.assertRaisesRegex(clipper.EvidenceError, "human approval evidence"):
+            clipper.load_aoi(self.aoi)
+
+    def test_reject_legacy_geojson_crs_and_missing_vertical_datum(self):
+        payload = envelope([
+            [2680000, 941000], [2690000, 941000], [2690000, 951000],
+            [2680000, 951000], [2680000, 941000],
+        ])
+        payload["schemaVersion"] = "FeatureCollection"
+        self.write(payload)
+        with self.assertRaisesRegex(clipper.EvidenceError, "no legacy GeoJSON"):
+            clipper.load_aoi(self.aoi, allow_candidate=True)
+        payload["schemaVersion"] = "tsm.projected-aoi.v1"
+        payload["verticalDatum"] = "NGVD29"
+        self.write(payload)
+        with self.assertRaisesRegex(clipper.EvidenceError, "NAVD88"):
+            clipper.load_aoi(self.aoi, allow_candidate=True)
+
+    def test_reference_coordinates_derive_in_published_posey_envelope(self):
+        forward = pyproj.Transformer.from_crs("EPSG:4326", "EPSG:2966", always_xy=True)
+        x, y = forward.transform(-88.005075, 37.845887)
+        self.assertGreater(x, 2_600_000)
+        self.assertLess(x, 2_800_000)
+        self.assertGreater(y, 900_000)
+        self.assertLess(y, 1_000_000)
+
+    def test_source_hash_vertical_and_quality_claims_checked(self):
+        source = self.root / "sample.las"
+        source.write_bytes(b"mock input for preflight only; not a real LAS")
+        metadata = self.root / "meta.json"
+        payload = {
+            "horizontalCrs": "EPSG:2966",
+            "verticalDatum": "NGVD29",
+            "verticalUnit": "ftUS",
+            "sourceSha256": hashlib.sha256(source.read_bytes()).hexdigest(),
+        }
+        metadata.write_text(json.dumps(payload), encoding="utf-8")
+        with self.assertRaisesRegex(clipper.EvidenceError, "NAVD88"):
+            clipper.validate_source(source, metadata)
+        payload["verticalDatum"] = "NAVD88"
+        payload["qualityLevel"] = "QL2"
+        payload["aggregateNominalPulseDensity"] = 1.5
+        metadata.write_text(json.dumps(payload), encoding="utf-8")
+        with self.assertRaisesRegex(clipper.EvidenceError, "below 2"):
+            clipper.validate_source(source, metadata)
+        payload["aggregateNominalPulseDensity"] = 2.0
+        with self.assertRaisesRegex(clipper.EvidenceError, "accuracy report"):
+            metadata.write_text(json.dumps(payload), encoding="utf-8")
+            clipper.validate_source(source, metadata)
+        payload["independentAccuracyReportSha256"] = "a" * 64
+        metadata.write_text(json.dumps(payload), encoding="utf-8")
+        self.assertEqual(clipper.validate_source(source, metadata)["verticalDatum"], "NAVD88")
+
+
+if __name__ == "__main__":
+    unittest.main()
