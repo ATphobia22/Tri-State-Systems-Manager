@@ -46,6 +46,18 @@ export const TSM_DATA_FABRICS: readonly TsmDataFabric[] = Object.freeze([
   { id:'engineering-evidence-pipeline', plane:'GOVERNANCE_DECISION', authority:'DERIVED', implemented:true, live:false, persistenceAllowed:true, module:'data/engineering/evidence-pipeline-contract.json + scripts/ci/validate-engineering-pipeline.mjs', sources:['engineering evidence artifacts','model validation records','agency determinations'], output:['stage gates','blocking reasons','provenance graph'], notes:'Resilient sequence from authoritative terrain through QA/QC; no downstream stage may outrank an unverified upstream stage.' },
   { id:'hydraulic-modeling', plane:'SCIENTIFIC_SIMULATION', authority:'DERIVED', implemented:true, live:false, persistenceAllowed:true, module:'engineering/hec_ras_worker.py + engineering/hecras_hdf5.py', sources:['TSM terrain','USGS/NOAA boundaries'], output:['simulation results'], notes:'Isolated execution, hashes, bounded runtime, human review.' },
   { id:'geodetic-datum', plane:'EVIDENCE_DATA_GOVERNANCE', authority:'AUTHORITATIVE', implemented:true, live:false, persistenceAllowed:true, module:'lib/geodetic-pipeline.ts + server/ingestion/vertical-datum.mjs', sources:['documented CRS/datum transformations'], output:['transformed coordinates','datum provenance'], notes:'No silent vertical datum conversion.' },
+  {
+    id: 'earth-observation-research-catalog',
+    plane: 'EVIDENCE_DATA_GOVERNANCE',
+    authority: 'DERIVED',
+    implemented: true,
+    live: false,
+    persistenceAllowed: false,
+    module: 'data/fabrics/earth-observation-research-integration-v1.json + scripts/ci/validate-earth-observation-research-integration.mjs',
+    sources: ['OLMOEARTH-V1-3-EMBEDDINGS', 'PLANET-TANAGER-HYPERSPECTRAL'],
+    output: ['research source metadata', 'license/access gates', 'provenance requirements', 'research-only eligibility'],
+    notes: 'Catalog/contract implementation only; no runtime adapter or live access is claimed. OlmoEarth remains DERIVED and license-gated; Tanager remains OBSERVATIONAL and evaluation-only. Neither source may independently establish elevation, flood depth, hydraulic boundaries, or regulatory conclusions.',
+  },
 ]);
 
 export function listMissingDataFabrics(): readonly TsmDataFabric[] { return TSM_DATA_FABRICS.filter((fabric) => !fabric.implemented); }
