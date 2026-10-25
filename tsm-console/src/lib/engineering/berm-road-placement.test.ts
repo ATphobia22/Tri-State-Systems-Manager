@@ -116,11 +116,21 @@ describe('ag-screening', () => {
     expect(summary.sfhaPct).toBe(25);
   });
 
+  it('includes FEMA AR compound and restoration-era SFHA zones', () => {
+    const summary = summarizeFieldExposure({
+      fieldId: 'field-ar', parcelId: 'parcel-ar', totalAcres: 100,
+      sfhaAcresByZone: { 'AR/AE': 12, 'AR/A1-30': 8, 'AR/AH': 4, X: 76 },
+      worstZone: 'AR/AE',
+    });
+    expect(summary.sfhaAcres).toBe(24);
+    expect(summary.sfhaPct).toBe(24);
+  });
+
   it('rejects future, negative or non-finite planting events and invalid calendar dates', () => {
     const fields = { fieldId: 'field-1', source: 'owner-observation' as const, notes: '' };
     const valid = { ...fields, eventDate: '2023-07-10', estimatedAcresAffected: 5 };
     const future = { ...fields, eventDate: '2028-07-10', estimatedAcresAffected: 5 };
-    expect(summarizePlantingHistory('field-1', [valid, future], '2026-10-25').eventsInLast5Years).toBe(1);
+    expect(() => summarizePlantingHistory('field-1', [valid, future], '2026-10-25')).toThrow(/future flood-event/);
     expect(() => summarizePlantingHistory('field-1', [{ ...valid, estimatedAcresAffected: -1 }], '2026-10-25')).toThrow(/nonnegative/);
     expect(() => summarizePlantingHistory('field-1', [{ ...valid, estimatedAcresAffected: Infinity }], '2026-10-25')).toThrow(/finite/);
     expect(() => summarizePlantingHistory('field-1', [{ ...valid, eventDate: '2024-02-30' }], '2026-10-25')).toThrow(/calendar date/);
