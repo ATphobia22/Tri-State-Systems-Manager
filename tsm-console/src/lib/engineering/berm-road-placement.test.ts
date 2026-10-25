@@ -89,7 +89,7 @@ describe('ag-screening', () => {
       fieldId: 'field-2', parcelId: 'parcel-2', totalAcres: 100,
       sfhaAcresByZone: { AE: 19.75, X: 20, X500: 20, B: 5, C: 5, D: 20 }, worstZone: 'AE',
     });
-    expect(summary.sfhaAcres).toBe(19.8);
+    expect(summary.sfhaAcres).toBe(19.75);
     expect(summary.sfhaPct).toBe(19.75);
     expect(summary.chronicallyFloodedScreen).toBe(false);
   });
