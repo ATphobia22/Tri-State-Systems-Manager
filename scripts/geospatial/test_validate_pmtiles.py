@@ -68,7 +68,17 @@ class ValidatePmtilesTests(unittest.TestCase):
             raw = bytearray(archive.read_bytes())
             struct.pack_into("<Q", raw, 24, 127)
             archive.write_bytes(raw)
-            with self.assertRaisesRegex(ValueError, "overlaps the header"):
+            with self.assertRaisesRegex(ValueError, "metadata overlaps root directory"):
+                MODULE.parse_header(archive)
+
+    def test_rejects_section_overlapping_header(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            archive = Path(directory) / "fixture.pmtiles"
+            make_archive(archive)
+            raw = bytearray(archive.read_bytes())
+            struct.pack_into("<Q", raw, 24, 126)  # metadata starts inside header
+            archive.write_bytes(raw)
+            with self.assertRaisesRegex(ValueError, "metadata overlaps the header"):
                 MODULE.parse_header(archive)
 
     def test_rejects_invalid_zoom_range(self) -> None:
