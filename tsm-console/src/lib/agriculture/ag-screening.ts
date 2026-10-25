@@ -55,6 +55,7 @@ export function summarizeFieldExposure(exposure: FieldExposure): FieldExposureSu
     throw new Error('[ag-screening] zone-area inventory required');
   }
   let sfhaAcres = 0;
+  let mappedAcres = 0;
   for (const [zone, acres] of Object.entries(exposure.sfhaAcresByZone)) {
     if (!acceptedZone(zone)) {
       throw new Error('[ag-screening] unknown FEMA flood zone: ' + zone);
@@ -62,9 +63,12 @@ export function summarizeFieldExposure(exposure: FieldExposure): FieldExposureSu
     if (!Number.isFinite(acres) || acres < 0) {
       throw new Error('[ag-screening] zone acres must be finite and nonnegative');
     }
+    mappedAcres += acres;
     if (isSfhaZone(zone)) sfhaAcres += acres;
   }
-  if (sfhaAcres > exposure.totalAcres + 1e-6) {
+  // If the caller supplies more than the actual field acreage across all
+  // mutually exclusive flood zones, it double-counted geometry.
+  if (mappedAcres > exposure.totalAcres + 1e-6) {
     throw new Error('[ag-screening] zone intersections exceed total field area; GIS topology/overlap review required');
   }
   if (exposure.worstZone !== null &&
