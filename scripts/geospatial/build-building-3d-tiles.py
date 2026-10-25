@@ -230,6 +230,9 @@ class BuildingTile:
     axes: tuple[tuple[float, float, float], ...]
     flooded: bool
     ground_ft: float
+    height_ft: float
+    height_provenance: str
+    input_lod: int | None
 
 
 def build_prism(parts: list[Polygon], base_z_m: float, top_z_m: float,
@@ -436,7 +439,8 @@ def main() -> None:
                 max((max(ys) - min(ys)) / 2.0, 0.01),
                 max((max(zs) - min(zs)) / 2.0, 0.01))
         tiles.append(BuildingTile(sid, uri, center, half, origin, axes,
-                                  is_flooded(props), elev_ft))
+                                  is_flooded(props), elev_ft, height_ft,
+                                  height_provenance, props.get("achievedLod")))
 
     rejection_report = {
         "schemaVersion": "tsm.buildings.identity-rejections.v1",
@@ -491,6 +495,11 @@ def main() -> None:
                 "groundElevationFtNavd88": t.ground_ft,
                 "lod": 1,
                 "geometryMethod": "all_components_with_hole_walls",
+                "heightFt": t.height_ft,
+                "heightProvenance": t.height_provenance,
+                "sourceLodClassification": t.input_lod,
+                "meshLod": 1,
+                "lodNote": "LOD1 mesh; any classified LOD2 roof planes are not reconstructed in this generator",
             }},
         }
 
@@ -529,6 +538,8 @@ def main() -> None:
             "tileCount": len(tiles),
             "skipped": len(rejected),
             "rejectionReport": "rejected-features.json",
+            "measuredHeightCount": sum(t.height_provenance in ("OBSERVED", "DERIVED") for t in tiles),
+            "explicitScreeningEstimateCount": sum(t.height_provenance == "EXPLICIT_SCREENING_ESTIMATE" for t in tiles),
         },
         "transformation": (
             "IGIO building multipolygon and holes -> exact clipping of Delaunay roofs -> "
