@@ -41,6 +41,11 @@ test("ellipsoidal GPS height cannot be labelled as NAVD88 without sourced transf
   });
   assert.equal(result.valid, false);
   assert.ok(result.errors.includes("GPS_HEIGHT_AS_NAVD88"));
+  const operationIdOnly = validateElevation({
+    value: 100, units: "m", sourceId: "gnss-observation-3", heightType: "ELLIPSOIDAL",
+    reference: { epsg: 4326, horizontalDatum: HorizontalDatum.WGS84, verticalDatum: VerticalDatum.NAVD88, transformationOperationId: "claimed-but-not-applied" }
+  });
+  assert.equal(operationIdOnly.valid, false, "provenance metadata alone must not relabel an unchanged ellipsoidal measurement");
 });
 test("ellipsoidal height remains distinct from orthometric elevation", () => {
   const result = validateElevation({

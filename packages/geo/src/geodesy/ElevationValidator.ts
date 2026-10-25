@@ -24,8 +24,10 @@ export function validateElevation(elevation: ElevationValue): ValidationResult {
   const verticalDatum = elevation.reference?.verticalDatum;
   if (elevation.heightType === "GAGE_STAGE") errors.push("GAGE_STAGE_IS_NOT_ELEVATION");
   if (elevation.heightType === "ELLIPSOIDAL") {
-    if (verticalDatum !== VerticalDatum.ELLIPSOID && !elevation.reference?.transformationOperationId) errors.push("GPS_HEIGHT_AS_ORTHOMETRIC_WITHOUT_TRANSFORMATION");
-    if (verticalDatum === VerticalDatum.NAVD88 && !elevation.reference?.transformationOperationId) errors.push("GPS_HEIGHT_AS_NAVD88");
+    // This object still describes an ellipsoidal observation. Merely adding a
+    // transformation ID does not transform the numeric value or change its type.
+    if (verticalDatum !== VerticalDatum.ELLIPSOID) errors.push("GPS_HEIGHT_AS_ORTHOMETRIC_WITHOUT_TRANSFORMATION");
+    if (verticalDatum === VerticalDatum.NAVD88) errors.push("GPS_HEIGHT_AS_NAVD88");
   }
   if (elevation.heightType === "ORTHOMETRIC" && verticalDatum === VerticalDatum.ELLIPSOID) errors.push("ORTHOMETRIC_HEIGHT_REQUIRES_VERTICAL_DATUM");
   if (elevation.heightType === "TIDAL" && verticalDatum !== VerticalDatum.MLLW && verticalDatum !== VerticalDatum.MHW) errors.push("TIDAL_HEIGHT_REQUIRES_TIDAL_VERTICAL_DATUM");
