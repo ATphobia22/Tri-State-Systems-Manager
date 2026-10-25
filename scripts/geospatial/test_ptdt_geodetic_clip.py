@@ -48,8 +48,8 @@ class GeodeticGateTests(unittest.TestCase):
 
     def test_valid_location_still_cannot_skip_approval(self):
         self.write(envelope([
-            [2680000, 941000], [2690000, 941000], [2690000, 951000],
-            [2680000, 951000], [2680000, 941000],
+            [2700000, 960000], [2710000, 960000], [2710000, 970000],
+            [2700000, 970000], [2700000, 960000],
         ]))
         with self.assertRaisesRegex(clipper.EvidenceError, "not approved"):
             clipper.load_aoi(self.aoi)
@@ -59,16 +59,16 @@ class GeodeticGateTests(unittest.TestCase):
 
     def test_approved_requires_evidence_not_just_a_label(self):
         self.write(envelope([
-            [2680000, 941000], [2690000, 941000], [2690000, 951000],
-            [2680000, 951000], [2680000, 941000],
+            [2700000, 960000], [2710000, 960000], [2710000, 970000],
+            [2700000, 970000], [2700000, 960000],
         ], status="APPROVED"))
         with self.assertRaisesRegex(clipper.EvidenceError, "human approval evidence"):
             clipper.load_aoi(self.aoi)
 
     def test_reject_legacy_geojson_crs_and_missing_vertical_datum(self):
         payload = envelope([
-            [2680000, 941000], [2690000, 941000], [2690000, 951000],
-            [2680000, 951000], [2680000, 941000],
+            [2700000, 960000], [2710000, 960000], [2710000, 970000],
+            [2700000, 970000], [2700000, 960000],
         ])
         payload["schemaVersion"] = "FeatureCollection"
         self.write(payload)
@@ -80,9 +80,9 @@ class GeodeticGateTests(unittest.TestCase):
         with self.assertRaisesRegex(clipper.EvidenceError, "NAVD88"):
             clipper.load_aoi(self.aoi, allow_candidate=True)
 
-    def test_reference_coordinates_derive_in_published_posey_envelope(self):
+    def test_synthetic_regional_coordinates_roundtrip_in_posey_envelope(self):
         forward = pyproj.Transformer.from_crs("EPSG:4326", "EPSG:2966", always_xy=True)
-        x, y = forward.transform(-88.005075, 37.845887)
+        x, y = forward.transform(-87.9, 37.9)
         self.assertGreater(x, 2_600_000)
         self.assertLess(x, 2_800_000)
         self.assertGreater(y, 900_000)
@@ -99,16 +99,16 @@ class GeodeticGateTests(unittest.TestCase):
         header = laspy.LasHeader(point_format=3, version="1.2")
         header.add_crs(pyproj.CRS.from_epsg(2966))
         header.scales = np.array([0.001, 0.001, 0.001])
-        header.offsets = np.array([2_680_000.0, 940_000.0, 0.0])
+        header.offsets = np.array([2_700_000.0, 960_000.0, 0.0])
         las = laspy.LasData(header)
-        las.x = np.array([2_685_000.0, 2_688_000.0, 2_710_000.0])
-        las.y = np.array([945_000.0, 948_000.0, 980_000.0])
+        las.x = np.array([2_705_000.0, 2_708_000.0, 2_730_000.0])
+        las.y = np.array([965_000.0, 968_000.0, 990_000.0])
         las.z = np.array([380.0, 381.0, 400.0])
         las.write(source)
         self.write(envelope([
-            [2_680_000, 941_000], [2_690_000, 941_000],
-            [2_690_000, 951_000], [2_680_000, 951_000],
-            [2_680_000, 941_000],
+            [2_700_000, 960_000], [2_710_000, 960_000],
+            [2_710_000, 970_000], [2_700_000, 970_000],
+            [2_700_000, 960_000],
         ]))
         metadata.write_text(json.dumps({
             "horizontalCrs": "EPSG:2966", "verticalDatum": "NAVD88",
@@ -121,7 +121,7 @@ class GeodeticGateTests(unittest.TestCase):
         self.assertFalse(result["surveyGradeCertified"])
         self.assertFalse(result["approvedForEngineering"])
         self.assertEqual(laspy.read(target).header.parse_crs().to_epsg(), 2966)
-        self.assertEqual(laspy.read(target).x[0], 2685000.0)
+        self.assertEqual(laspy.read(target).x[0], 2705000.0)
         self.assertEqual(clipper.digest(target), result["outputSha256"])
         self.assertEqual(json.loads(report.read_text())["classification"], "INFORMATIONAL_ONLY")
 
