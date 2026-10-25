@@ -42,11 +42,16 @@ These are candidate tuning values, not measured performance settings.
 2. Confirm World Settings > World Partition > Enable Streaming. Create native
    Data Layers for roads, levees, infrastructure and scenario overlays. Save
    the map, HLOD layer assets, One File Per Actor packages and dependencies.
-3. With UE_5_8_ROOT pointing at the installed engine, execute:
-   pwsh -File tsm-native/Tools/Prepare-WorldPartition.ps1 -BuildHLODs -AdoptAsDefaultMap
+3. Alternatively, use the included editor script
+   Tools/Create-World-Partition-Map.py with UE5.8 PythonScriptPlugin.
+   The optional -GenerateMap switch uses the documented
+   LevelEditorSubsystem.new_level(is_partitioned_world=True) API and
+   never overwrites an existing map.
+4. With UE_5_8_ROOT pointing at the installed engine, execute:
+   pwsh -File tsm-native/Tools/Prepare-WorldPartition.ps1 -GenerateMap -BuildHLODs -AdoptAsDefaultMap
    This explicitly refuses to switch the default map when the binary map is
    missing or the HLOD commandlet fails.
-4. Commit the .umap, external actor assets and DefaultEngine.ini, and package
+5. Commit the .umap, external actor assets and DefaultEngine.ini, and package
    through tsm-native/Build-Windows.ps1. Confirm the map was cooked into the
    Windows 11 Shipping package. Internet access is for source updates only.
 
