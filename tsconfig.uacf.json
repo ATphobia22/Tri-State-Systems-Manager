@@ -57,6 +57,8 @@
     "packages/compute/src/**/*.ts",
     "packages/units/src/**/*.ts",
     "packages/validation/src/**/*.ts",
-    "packages/government/src/**/*.ts"
+    "packages/government/src/**/*.ts",
+    "packages/evidence-runtime/src/**/*.ts",
+    "packages/verification/src/**/*.ts"
   ]
 }

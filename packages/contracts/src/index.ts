@@ -179,3 +179,6 @@ export interface ModelAdapter {
     options?: Readonly<Record<string, unknown>>,
   ): AsyncIterable<unknown>;
 }
+
+export type { SolverName, SolverStatus, SolverExecutionMetrics, SolverSpatialMetadata, SolverEvidence, UnsealedSolverEvidence } from './SolverEvidence.js';
+export type { ReplayVerification } from './ReplayVerification.js';
