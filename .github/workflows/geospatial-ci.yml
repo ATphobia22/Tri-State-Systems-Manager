@@ -198,7 +198,7 @@ jobs:
           curl --fail --location --retry 3 --retry-all-errors \
             --output "$BASELINE" \
             "https://github.com/ATphobia22/Tri-State-Systems-Manager/releases/download/igio-posey-20261006/posey-buildings-igio-23082.geojson"
-          printf '%s  %s\\n' 'd8a46b86616becfdea9c9164e7a219317d5963b86fba47e4c1f8f880ccbb559f' "$BASELINE" | sha256sum --check -
+          echo "d8a46b86616becfdea9c9164e7a219317d5963b86fba47e4c1f8f880ccbb559f  $BASELINE" | sha256sum --check -
           python3 scripts/geospatial/reconcile_published_buildings.py \
             --published tsm-console/public/3d-tiles/buildings-3d.json \
             --authoritative "$BASELINE" \
