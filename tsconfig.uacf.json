@@ -25,6 +25,7 @@
     "packages/evidence/src/**/*.ts",
     "packages/gates/src/**/*.ts",
     "packages/geo/src/**/*.ts",
+    "packages/agriculture/src/**/*.ts",
     "packages/hydraulics/src/**/*.ts",
     "packages/research/src/**/*.ts",
     "packages/provider-runtime/src/**/*.ts",
