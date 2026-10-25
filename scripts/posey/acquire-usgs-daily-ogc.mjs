@@ -18,7 +18,7 @@ export function buildDailyUrl({site,start,end,limit=10000}){
  if(!Number.isSafeInteger(limit)||limit<1||limit>10000)throw Error('invalid page limit');
  const url=new URL(ENDPOINT);
  for(const [key,value] of Object.entries({f:'json',monitoring_location_id:'USGS-'+site,
-   parameter_code:'00060',statistic_id:'00003',datetime:start+'/'+end,limit:String(limit)}))
+   parameter_code:'00060',statistic_id:'00003',time:start+'/'+end,limit:String(limit)}))
    url.searchParams.set(key,value);
  return url;
 }
@@ -26,7 +26,7 @@ function nextUrl(href,current,first){
  const url=new URL(href,current);
  if(url.origin!==first.origin||url.pathname!==first.pathname||url.username||url.password)
    throw Error('USGS next link left trusted collection');
- for(const key of ['monitoring_location_id','parameter_code','statistic_id','datetime'])
+ for(const key of ['monitoring_location_id','parameter_code','statistic_id','time'])
    if(url.searchParams.get(key)!==first.searchParams.get(key))throw Error('USGS next link changed source filter');
  url.searchParams.set('f','json');
  return url;
