@@ -125,6 +125,41 @@ class GeodeticGateTests(unittest.TestCase):
         self.assertEqual(clipper.digest(target), result["outputSha256"])
         self.assertEqual(json.loads(report.read_text())["classification"], "INFORMATIONAL_ONLY")
 
+    def test_clip_refuses_path_aliases_and_overwrites(self):
+        source = self.root / "immutable-original.las"
+        source.write_bytes(b"original-source-evidence")
+        out = self.root / "derived-output.las"
+        metadata = self.root / "metadata.json"
+        report = self.root / "report.json"
+
+        # Neither source nor AOI nor sidecars may be used as an output path.
+        for bad_output, bad_report in (
+            (source, report),
+            (out, source),
+            (out, self.aoi),
+            (metadata, report),
+            (out, metadata),
+            (out, out),
+        ):
+            with self.assertRaisesRegex(clipper.EvidenceError, "must be distinct"):
+                clipper.clip(source, bad_output, self.aoi, metadata, bad_report,
+                             allow_candidate=True)
+            self.assertEqual(source.read_bytes(), b"original-source-evidence")
+
+        # Reprocessing cannot clobber old derived artifacts without explicit
+        # operator intervention, even when the source metadata is unavailable.
+        out.write_bytes(b"existing-verified-output")
+        with self.assertRaisesRegex(clipper.EvidenceError, "refusing overwrite"):
+            clipper.clip(source, out, self.aoi, metadata, report,
+                         allow_candidate=True)
+        self.assertEqual(out.read_bytes(), b"existing-verified-output")
+        out.unlink()
+        report.write_bytes(b"existing-evidence-report")
+        with self.assertRaisesRegex(clipper.EvidenceError, "refusing overwrite"):
+            clipper.clip(source, out, self.aoi, metadata, report,
+                         allow_candidate=True)
+        self.assertEqual(report.read_bytes(), b"existing-evidence-report")
+
     def test_source_hash_vertical_and_quality_claims_checked(self):
         source = self.root / "sample.las"
         source.write_bytes(b"mock input for preflight only; not a real LAS")
