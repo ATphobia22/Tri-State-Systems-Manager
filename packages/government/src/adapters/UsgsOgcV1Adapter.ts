@@ -45,28 +45,43 @@ export interface UsgsOgcV1Result {
 const SITE_RE=/^[0-9]{8}$/;
 const PARAM_RE=/^[0-9]{5}(,[0-9]{5})*$/;
 /** USGS no-data sentinel, consistent with tsm-console/src/lib/usgs-direct.ts. */
-const NO_DATA_VALUE=-999;
+/** Values reserved for missing USGS observations; none are valid stage/discharge measurements. */
+const NO_DATA_VALUES=new Set([-999,-9999,-8888]);
+const NUMERIC_RE=/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
 
-function parseFeatures(siteId:string,payload:unknown):UsgsOgcV1Reading[] {
+function parseObservationValue(raw:unknown):number|null {
+ if(typeof raw!=='number'&&typeof raw!=='string')return null;
+ if(typeof raw==='string'&&!NUMERIC_RE.test(raw.trim()))return null;
+ const value=typeof raw==='number'?raw:Number(raw.trim());
+ return Number.isFinite(value)&&!NO_DATA_VALUES.has(value)?value:null;
+}
+
+function parseFeatures(siteId:string,payload:unknown,requestedParameters:ReadonlySet<string>):UsgsOgcV1Reading[] {
  const features=(payload as {features?:unknown}|null|undefined)?.features;
  if(!Array.isArray(features))return [];
+ const expectedLocation='USGS-'+siteId;
  const out:UsgsOgcV1Reading[]=[];
  for(const feature of features){
   const props=(feature as {properties?:unknown}|null|undefined)?.properties as Record<string,unknown>|undefined;
-  if(!props||typeof props!=='object')continue;
-  const code=String(props['parameter_code']??'');
-  if(!/^[0-9]{5}$/.test(code))continue;
-  const raw=props['value'];
-  const value=typeof raw==='number'?raw:Number(raw);
-  if(!Number.isFinite(value)||value===NO_DATA_VALUE)continue;
-  const observedAt=typeof props['time']==='string'?props['time']:null;
-  if(!observedAt||!Number.isFinite(Date.parse(observedAt)))continue;
+  if(!props||typeof props!=='object'||Array.isArray(props))continue;
+  // A response's query parameters are not proof that every returned feature matches.
+  // Reject other stations and missing identities rather than silently attributing
+  // their measurements to the requested gage.
+  if(props['monitoring_location_id']!==expectedLocation)continue;
+  const code=props['parameter_code'];
+  if(typeof code!=='string'||!requestedParameters.has(code))continue;
+  const value=parseObservationValue(props['value']);
+  if(value===null)continue;
+  const observedAt=props['time'];
+  if(typeof observedAt!=='string'||!/T.*(?:Z|[+-]\d{2}:\d{2})$/i.test(observedAt)||!Number.isFinite(Date.parse(observedAt)))continue;
+  const unit=props['unit_of_measure'];
+  if(typeof unit!=='string'||!unit.trim())continue;
   out.push({
    siteId,
-   monitoringLocationId:typeof props['monitoring_location_id']==='string'?props['monitoring_location_id']:`USGS-${siteId}`,
+   monitoringLocationId:expectedLocation,
    parameterCode:code,
    value,
-   unit:typeof props['unit_of_measure']==='string'?props['unit_of_measure']:null,
+   unit,
    observedAt,
    approvalStatus:typeof props['approval_status']==='string'?props['approval_status']:null,
    verticalDatum:code==='00065'?'GAGE_DATUM':null,
@@ -157,9 +172,9 @@ export class UsgsOgcV1Adapter {
    }
    const {envelope}=settlement.value;
    evidence.push(...envelope.evidence);
-   const parsed=parseFeatures(siteId,envelope.result);
+   const parsed=parseFeatures(siteId,envelope.result,new Set(parameterCd.split(',')));
    if(parsed.length===0){
-    unavailable.push({siteId,reason:'no usable 00065/00060 observations in the latest-continuous response'});
+    unavailable.push({siteId,reason:'no usable observations matching the requested USGS station and parameter codes'});
     return;
    }
    readings.push(...parsed);

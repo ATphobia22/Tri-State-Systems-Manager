@@ -156,3 +156,41 @@ test('usgs-ogc-v1 source is registered and the legacy NWIS path is intact', () =
   assert.equal(legacy.endpoint, 'https://waterservices.usgs.gov/nwis');
   assert.equal(getGovernmentSource('usgs-nwis').endpoint, 'https://waterservices.usgs.gov/nwis');
 });
+
+test('usgs-ogc-v1 never converts missing, blank or boolean observations into zero stage',async()=>{
+ const adapter=new UsgsOgcV1Adapter();
+ const time='2026-10-23T22:30:00+00:00';
+ const values:[unknown,string][]=[[null,'null'],['','empty'],['  ','whitespace'],[false,'boolean'],[-9999,'nodata'],[-8888,'nodata'],['NaN','not number'],['Infinity','nonfinite']];
+ const features=values.map(([value])=>({type:'Feature',properties:{monitoring_location_id:'USGS-03378500',parameter_code:'00065',time,value,unit_of_measure:'ft'}}));
+ features.push({type:'Feature',properties:{monitoring_location_id:'USGS-03378500',parameter_code:'00065',time,value:0,unit_of_measure:'ft'}});
+ const output=await adapter.getLatestContinuous(['03378500'],'00065',{fetcher:(async()=>jsonResponse({type:'FeatureCollection',features})) as typeof fetch});
+ assert.equal(output.result.readings.length,1);
+ assert.equal(output.result.readings[0].value,0,'genuine numeric zero is valid; blank/null cannot become zero');
+ assert.deepEqual(validateEvidenceEnvelope(output),[]);
+});
+
+test('usgs-ogc-v1 rejects features from another station or unrequested parameter',async()=>{
+ const adapter=new UsgsOgcV1Adapter();
+ const time='2026-10-23T22:30:00+00:00';
+ const features=[
+  {properties:{monitoring_location_id:'USGS-03381700',parameter_code:'00065',time,value:'15.31',unit_of_measure:'ft'}},
+  {properties:{monitoring_location_id:'USGS-03378500',parameter_code:'00060',time,value:'255000',unit_of_measure:'ft^3/s'}},
+  {properties:{monitoring_location_id:'USGS-03378500',parameter_code:'00065',time,value:'15.31',unit_of_measure:'ft'}},
+  {properties:{parameter_code:'00065',time,value:'18.20',unit_of_measure:'ft'}},
+  {properties:{monitoring_location_id:'USGS-03378500',parameter_code:'00065',time,value:'16.00',unit_of_measure:null}}
+ ];
+ const output=await adapter.getLatestContinuous(['03378500'],'00065',{fetcher:(async()=>jsonResponse({type:'FeatureCollection',features})) as typeof fetch});
+ assert.equal(output.result.readings.length,1);
+ assert.equal(output.result.readings[0].siteId,'03378500');
+ assert.equal(output.result.readings[0].parameterCode,'00065');
+ assert.equal(output.result.readings[0].value,15.31);
+ assert.deepEqual(validateEvidenceEnvelope(output),[]);
+});
+
+test('usgs-ogc-v1 treats cross-station-only responses as unavailable rather than inventing requested station evidence',async()=>{
+ const adapter=new UsgsOgcV1Adapter();
+ const output=await adapter.getLatestContinuous(['03378500'],'00065',{fetcher:(async()=>jsonResponse(livePayload('03381700'))) as typeof fetch});
+ assert.equal(output.provenance.status,'UNAVAILABLE');
+ assert.equal(output.result.readings.length,0);
+ assert.equal(output.result.unavailable[0].siteId,'03378500');
+});
