@@ -1,0 +1,63 @@
+name: Posey Archived IGIO Building Identity Evidence
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/geospatial/verify_archived_posey_delta.py'
+      - 'scripts/geospatial/reconcile_published_buildings.py'
+      - 'scripts/geospatial/test_verify_archived_posey_delta.py'
+      - 'data/buildings/POSEY-ARCHIVED-IGIO-IDENTITY-DELTA-2026-10-25.json'
+      - '.github/workflows/posey-building-identity-evidence.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/geospatial/verify_archived_posey_delta.py'
+      - 'scripts/geospatial/reconcile_published_buildings.py'
+      - 'scripts/geospatial/test_verify_archived_posey_delta.py'
+      - 'data/buildings/POSEY-ARCHIVED-IGIO-IDENTITY-DELTA-2026-10-25.json'
+      - '.github/workflows/posey-building-identity-evidence.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  archived-identity-delta:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Test identity accounting without external data
+        run: |
+          python3 -m unittest scripts/geospatial/test_reconcile_published_buildings.py scripts/geospatial/test_verify_archived_posey_delta.py
+      - name: Fetch immutable, SHA-256-pinned archived source snapshot
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/tsm-posey"
+          curl --fail --show-error --silent --location --retry 3 --retry-delay 2 \
+            'https://github.com/ATphobia22/Tri-State-Systems-Manager/releases/download/igio-posey-20261006/posey-buildings-igio-23082.geojson' \
+            -o "$RUNNER_TEMP/tsm-posey/posey-igio-snapshot.geojson"
+          echo 'd8a46b86616becfdea9c9164e7a219317d5963b86fba47e4c1f8f880ccbb559f  '"$RUNNER_TEMP/tsm-posey/posey-igio-snapshot.geojson" | sha256sum -c -
+      - name: Prove exact published vs archived OBJECTID difference and create remediation manifest
+        run: |
+          set -euo pipefail
+          mkdir -p dist/provenance
+          python3 scripts/geospatial/verify_archived_posey_delta.py \
+            --authoritative "$RUNNER_TEMP/tsm-posey/posey-igio-snapshot.geojson" \
+            --published tsm-console/public/3d-tiles/buildings-3d.json \
+            --expected data/buildings/POSEY-ARCHIVED-IGIO-IDENTITY-DELTA-2026-10-25.json \
+            --output dist/provenance/posey-archived-building-remediation.json
+          python3 - <<'PY'
+          import json,os
+          report=json.load(open('dist/provenance/posey-archived-building-remediation.json'))
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:
+              out.write(f"## Archived Posey identity delta\nSource: {report['sourceCount']:,} | Published: {report['publishedCount']:,} | Missing: {report['missingCount']}\n\n")
+              out.write("**Informational only.** All missing OBJECTIDs identified; field-level height, NAVD88, LOD, native tile recovery and source authority approval remain unverified.\n")
+          PY
+      - name: Upload non-geometric missing-ID remediation evidence
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: posey-archived-objectid-remediation
+          path: dist/provenance/posey-archived-building-remediation.json
+          if-no-files-found: error

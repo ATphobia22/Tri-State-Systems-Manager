@@ -85,6 +85,7 @@ jobs:
           node scripts/ci/validate-runner-contract.mjs
           node scripts/ci/validate-spatial-topology.mjs
           node --test tsm-native/tests/native-spatial-provenance-contract.test.mjs
+          node --test scripts/native/verify-ue-windows-shipping.test.mjs
 
   architecture-contracts:
     runs-on: ubuntu-24.04
@@ -338,6 +339,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Validate runner capabilities
         shell: pwsh
+        env:
+          UE_ROOT: ${{ vars.UE_ROOT }}
         run: .\scripts\native\Validate-NativeRunner.ps1 -RunnerClass windows-ue5
       - name: Require UE_ROOT
         shell: pwsh
@@ -379,7 +382,32 @@ jobs:
         env:
           UE_ROOT: ${{ vars.UE_ROOT }}
           TSM_SPATIALITE_DLL: ${{ vars.TSM_SPATIALITE_DLL }}
-        run: .\scripts\native\Build-TSMNativeWindows.ps1 -UnrealRoot $env:UE_ROOT
+        run: |
+          New-Item -ItemType Directory -Force dist/provenance | Out-Null
+          Start-Transcript -Path dist/provenance/windows-ue-buildcookrun.log
+          try {
+            .\scripts\native\Build-TSMNativeWindows.ps1 -UnrealRoot $env:UE_ROOT
+            if ($LASTEXITCODE -ne 0) { throw "BuildCookRun/installer returned a nonzero exit status." }
+          } finally {
+            Stop-Transcript
+          }
+      - name: Verify genuine UE5.8 Win64 Shipping archive (static evidence only)
+        shell: pwsh
+        env:
+          UE_ROOT: ${{ vars.UE_ROOT }}
+        run: |
+          node scripts/native/verify-ue-windows-shipping.mjs `
+            --archive dist/tsm-native/Windows/TSMNative `
+            --build-log dist/provenance/windows-ue-buildcookrun.log `
+            --engine-root "$env:UE_ROOT" `
+            --commit "${{ github.sha }}" `
+            --output dist/provenance/windows-ue-shipping-static-evidence.json
+      - name: Upload static UE Shipping evidence (not an offline launch claim)
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: tsm-ue-windows-shipping-static-evidence
+          path: dist/provenance/windows-ue-shipping-static-evidence.json
+          if-no-files-found: error
       - name: Sign Windows release artifacts
         shell: pwsh
         env:
