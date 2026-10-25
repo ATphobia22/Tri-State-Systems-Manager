@@ -1,0 +1,26 @@
+{
+  "kind": "floodway",
+  "scope": "POSEY_COUNTY_ONLY_NOT_AN_AOI_DETERMINATION",
+  "regulatoryContext": {
+    "community": "Posey County, Indiana (local floodplain administrator to be confirmed per application)",
+    "effectiveFirmPanel": "18129C0300C",
+    "firmEffectiveDate": "2014-11-05",
+    "isFemaRegulatoryFloodway": null,
+    "firmOrFaraSource": null,
+    "horizontalCrs": "EPSG:2966",
+    "verticalDatum": "NAVD88",
+    "verticalUnit": "ft"
+  },
+  "models": {},
+  "waterSurfaceComparisons": [],
+  "hydrologyAndBoundaryConditionsVerified": false,
+  "modelComparisonVerified": false,
+  "engineeringReviewDocument": null,
+  "licensedReviewer": null,
+  "limitations": [
+    "Panel reference alone does not establish parcel-specific applicability",
+    "No accepted FEMA duplicate-effective, corrected-effective or proposed model",
+    "No survey-grade inputs or professional signature",
+    "FEMA zero-increase no-rise and Indiana floodway standards are distinct"
+  ]
+}
