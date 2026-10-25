@@ -93,6 +93,15 @@ def run_builder(features: list[dict], expected: int) -> tuple[subprocess.Complet
             "--out-dir", str(out), "--expected-buildings", str(expected),
         ], text=True, capture_output=True)
         if proc.returncode == 0:
+            validator = subprocess.run([
+                sys.executable, str(MODULE_PATH.with_name("validate-building-3d-tiles.py")),
+                "--tileset", str(out / "tileset.json"), "--tiles-dir", str(out),
+                "--expected-buildings", str(expected), "--expected-glbs", str(expected),
+            ], text=True, capture_output=True)
+            assert validator.returncode == 0, (
+                "Generated 3D Tiles failed production validation:\n"
+                + validator.stdout + validator.stderr
+            )
             tileset = json.loads((out / "tileset.json").read_text())
             manifest = json.loads((out / "manifest.json").read_text())
             report = json.loads((out / "rejected-buildings.json").read_text())
