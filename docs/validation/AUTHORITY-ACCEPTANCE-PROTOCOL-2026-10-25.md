@@ -28,6 +28,13 @@ USGS authoritative technical sources:
 - https://www.usgs.gov/ngp-standards-and-specifications/lidar-base-specification-data-processing-and-handling-requirements
 - https://www.vdatum.noaa.gov/
 
+### Acquiring stronger independent survey control in Indiana
+
+- **NOAA NGS OPUS** can process properly collected survey-grade GNSS observations and reference marks to the National Spatial Reference System. It is free to use, but a phone GPS reading is not equivalent to a properly collected survey; professional field collection, instrument calibration and checks remain necessary. https://www.ngs.noaa.gov/OPUS/about.jsp
+- **Geodetic migration timing:** NGS announced **January 13, 2027** as the deadline to submit OPUS Projects and differential leveling projects intended to create/update geodetic control in the *current* NAD83/NAVD88 NSRS. Existing coordinate claims must carry the observed datum and coordinate epoch through the future NSRS modernization; do not relabel legacy NAVD88 elevations as NAPGD2022. https://content.govdelivery.com/accounts/USNOAANOS/bulletins/41fc2a7
+- **Future higher-quality terrain:** USGS selected Indiana's program to collect **western Indiana QL1 lidar in 2027**. A planned campaign is not a data product that can be ingested today; compare the future accepted acquisition, accuracy report and source lineage to the 2017–2020 QL2 baseline before changing TSM production references. https://www.usgs.gov/3d-national-topography-model/fy25-3dep-data-collaboration-announcement-dca-selected-projects
+- **Reproducible ground classification:** PDAL provides public `filters.smrf` for deriving candidate ground classes from point clouds. Such derived classifications must be reviewed against source data, accepted breaklines and independent control; the presence of a PDAL pipeline alone never establishes survey suitability. https://pdal.io/en/stable/stages/filters.smrf.html
+
 ## Gate B — real county-wide crack-free mesh, not a partial strip benchmark
 
 1. Adopt an official **Posey County boundary polygon and buffered AOI**, with exact coverage measured by spatial intersection, not a rounded 1,087 km² estimate. Resolve every DEM tile intersection and nodata margin, and preserve input tile hashes and overlap source priority.
