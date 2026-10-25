@@ -18,7 +18,7 @@
     "dev": "npm --prefix tsm-console run dev",
     "build:uacf": "tsc -p tsconfig.uacf.json --noEmit",
     "test:uacf": "tsx --test tests/contracts/uacf-kernel.test.ts",
-    "test:evidence": "tsx --test tests/contracts/engineering-evidence.test.ts",
+    "test:evidence": "tsx --test tests/contracts/engineering-evidence.test.ts tests/contracts/solver-evidence-runtime.test.ts",
     "test:gates-hydrology": "tsx --test tests/contracts/gates-hydrology.test.ts",
     "test:autonomy-ladder": "tsx --test tests/contracts/autonomy-ladder.test.ts",
     "test:local-hydrology": "tsx --test tests/contracts/local-hydrology-provider.test.ts",
