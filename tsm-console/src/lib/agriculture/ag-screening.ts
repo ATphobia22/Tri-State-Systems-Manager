@@ -36,7 +36,7 @@ export interface FieldExposureSummary {
  * GIS preprocessing must produce disjoint *area* polygons; overlapped
  * zones are rejected when they exceed the surveyed total field area. */
 export function isSfhaZone(zone: string): boolean {
-  return /^(?:A|AE|AH|AO|AR|A99|V|VE|A(?:[1-9]|[12]\\d|30)|V(?:[1-9]|[12]\\d|30))$/.test(zone.toUpperCase());
+  return /^(?:A|AE|AH|AO|AR|A99|V|VE|A(?:[1-9]|[12]\d|30)|V(?:[1-9]|[12]\d|30))$/.test(zone.toUpperCase());
 }
 function acceptedZone(zone: string): boolean {
   return isSfhaZone(zone) || ['X', 'X500', 'D'].includes(zone.toUpperCase());
@@ -119,7 +119,7 @@ export function summarizePlantingHistory(
 ): PlantingHistorySummary {
   if (!fieldId?.trim()) throw new Error('[ag-screening] fieldId is required');
   const dateUtc = (raw: string): Date => {
-    if (typeof raw !== 'string' || !/^\\d{4}-\\d{2}-\\d{2}$/.test(raw)) {
+    if (typeof raw !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
       throw new Error('[ag-screening] date must be an exact YYYY-MM-DD calendar date');
     }
     const date = new Date(raw + 'T00:00:00Z');
