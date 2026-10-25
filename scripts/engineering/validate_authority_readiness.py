@@ -227,7 +227,8 @@ def mesh(bundle: dict[str, Any], root: Path, errors: list[str]) -> dict[str, Any
     if not positive_number(county) or not positive_number(covered) or covered < county:
         errors.append("coverage: county-wide coverage not established")
     orientations = bundle.get("verifiedSeamDirections")
-    if not isinstance(orientations, list) or set(orientations) != set(ORIENTATIONS) or len(orientations) != 6:
+    if (not isinstance(orientations, list) or any(not isinstance(x, str) for x in orientations)
+            or set(orientations) != set(ORIENTATIONS) or len(orientations) != 6):
         errors.append("verifiedSeamDirections: all six distinct +x/-x/+y/-y/+z/-z orientations required")
     count = bundle.get("seamPairsChecked")
     if not isinstance(count, int) or isinstance(count, bool) or count <= 0:
@@ -262,7 +263,10 @@ def mesh(bundle: dict[str, Any], root: Path, errors: list[str]) -> dict[str, Any
         errors.append("runReport.seamAuditSha256: must match independently hashed seam audit")
     if boundary_sha is None or report.get("countyBoundarySha256") != boundary_sha:
         errors.append("runReport.countyBoundarySha256: pinned AOI polygon required")
-    if sorted(report.get("sourceTileSha256", [])) != sorted(sources_sha) or len(sources_sha) != len(sources):
+    recorded_sources = report.get("sourceTileSha256")
+    if (not isinstance(recorded_sources, list)
+            or any(not isinstance(x, str) or not SHA.fullmatch(x) for x in recorded_sources)
+            or sorted(recorded_sources) != sorted(sources_sha) or len(sources_sha) != len(sources)):
         errors.append("runReport.sourceTileSha256: checked tile hashes do not match recorded input inventory")
     if audit.get("schemaVersion") != "tsm.geometric-seam-audit.v1":
         errors.append("seamAudit: measured geometrical interface report required")
@@ -271,7 +275,10 @@ def mesh(bundle: dict[str, Any], root: Path, errors: list[str]) -> dict[str, Any
     if (audit.get("interfacePairsSubmitted") != count or
             audit.get("matchedInterfaces") != count):
         errors.append("seamAudit: actual matched interface count must equal measured county seam count")
-    if not isinstance(orientations, list) or set(audit.get("verifiedDirections", [])) != set(orientations):
+    audit_directions = audit.get("verifiedDirections")
+    if (not isinstance(orientations, list) or not isinstance(audit_directions, list)
+            or any(not isinstance(x, str) for x in audit_directions + orientations)
+            or set(audit_directions) != set(orientations)):
         errors.append("seamAudit: geometric directions differ from declared six-direction proof")
     return {
         "coveredAreaKm2": covered,
