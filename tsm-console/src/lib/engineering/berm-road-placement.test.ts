@@ -100,6 +100,7 @@ describe('ag-screening', () => {
       sfhaAcresByZone: { AE: 3 }, worstZone: 'AE',
     };
     expect(() => summarizeFieldExposure({ ...base, sfhaAcresByZone: { AE: 12 } })).toThrow(/exceed total/);
+    expect(() => summarizeFieldExposure({ ...base, sfhaAcresByZone: { AE: 6, X: 6 } })).toThrow(/exceed total/);
     expect(() => summarizeFieldExposure({ ...base, sfhaAcresByZone: { AE: Number.NaN } })).toThrow(/finite/);
     expect(() => summarizeFieldExposure({ ...base, sfhaAcresByZone: { AE: -3 } })).toThrow(/nonnegative/);
     expect(() => summarizeFieldExposure({ ...base, sfhaAcresByZone: { UNSPECIFIED: 3 } })).toThrow(/unknown FEMA/);
