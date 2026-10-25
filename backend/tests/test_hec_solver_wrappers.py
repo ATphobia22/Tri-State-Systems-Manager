@@ -225,6 +225,36 @@ def test_python_environment_lock_bytes_are_verified(tmp_path: Path) -> None:
         verify_python_environment(manifest, workspace)
 
 
+def test_python_environment_checks_windows_worker_and_inventory(tmp_path: Path, monkeypatch) -> None:
+    from types import SimpleNamespace
+    import hec_runtime_common as runtime
+
+    lock_file = tmp_path / "requirements.lock"
+    lock_file.write_bytes(b"locked-dependencies\n")
+    manifest = {"python_environment": {
+        "platform": "windows-x64",
+        "python_version": "3.12.0",
+        "lock_workspace_path": "requirements.lock",
+        "lock_sha256": sha256_file(lock_file),
+        "installed_packages_sha256": "a" * 64,
+    }}
+    # Exercise the Windows-only branch without claiming to run a solver or
+    # changing the real interpreter/platform used by pytest and pathlib.
+    monkeypatch.setattr(runtime, "sys", SimpleNamespace(platform="win32"))
+    monkeypatch.setattr(runtime.struct, "calcsize", lambda fmt: 8)
+    monkeypatch.setattr(runtime.runtime_platform, "machine", lambda: "AMD64")
+    monkeypatch.setattr(runtime.runtime_platform, "python_version", lambda: "3.12.0")
+    monkeypatch.setattr(runtime, "installed_environment_fingerprint", lambda: "a" * 64)
+    assert runtime.verify_python_environment(manifest, tmp_path) == lock_file
+    manifest["python_environment"]["python_version"] = "3.12.1"
+    with pytest.raises(RuntimeError, match="patch-version mismatch"):
+        runtime.verify_python_environment(manifest, tmp_path)
+    manifest["python_environment"]["python_version"] = "3.12.0"
+    manifest["python_environment"]["installed_packages_sha256"] = "b" * 64
+    with pytest.raises(ValueError, match="fingerprint mismatch"):
+        runtime.verify_python_environment(manifest, tmp_path)
+
+
 def test_python_environment_lock_path_cannot_escape_workspace(tmp_path: Path) -> None:
     from hec_runtime_common import verify_python_environment
 
