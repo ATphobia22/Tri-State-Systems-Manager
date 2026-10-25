@@ -14,4 +14,4 @@ echo "Repository: ${REPO_ROOT}"
 
 # pytest collects both function-style tests and unittest.TestCase suites.
 # unittest discovery silently omits the function-style engineering/API tests.
-python3 -m pytest "${REPO_ROOT}/backend/tests" -v
+python3 -m pytest "${REPO_ROOT}/backend" "${REPO_ROOT}/tests/engineering" -v

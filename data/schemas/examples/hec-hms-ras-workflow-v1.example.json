@@ -30,7 +30,7 @@
     "vertical_datum": "REPLACE_WITH_AUTHORITY_VERTICAL_DATUM",
     "project_inventory": {
       "reviewed": false,
-      "evidence_ref": "",
+      "evidence_ref": "REPLACE_WITH_REVIEWED_PROJECT_INVENTORY_EVIDENCE",
       "files": [
         {
           "path": "project.hms",
@@ -57,7 +57,7 @@
     "vertical_datum": "REPLACE_WITH_AUTHORITY_VERTICAL_DATUM",
     "project_inventory": {
       "reviewed": false,
-      "evidence_ref": "",
+      "evidence_ref": "REPLACE_WITH_REVIEWED_PROJECT_INVENTORY_EVIDENCE",
       "files": [
         {
           "path": "project.prj",
