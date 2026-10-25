@@ -1,0 +1,46 @@
+name: TSM Agricultural Evidence and Agency Source Safety
+
+on:
+  pull_request:
+    paths:
+      - 'tools/agriculture/scripts/**'
+      - 'data/registries/tsm-cross-sector-source-catalog-v1.json'
+      - 'docs/agriculture/**'
+      - '.github/workflows/agriculture-evidence.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tools/agriculture/scripts/**'
+      - 'data/registries/tsm-cross-sector-source-catalog-v1.json'
+      - '.github/workflows/agriculture-evidence.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-integrity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout pinned source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set Python 3.12
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # pinned
+        with:
+          python-version: '3.12'
+      - name: Verify syntax and all offline agricultural acquisition contracts
+        run: |
+          python -m py_compile tools/agriculture/scripts/query-ssurgo-soils.py tools/agriculture/scripts/validate_source_catalog.py
+          python -m unittest discover -s tools/agriculture/scripts -p 'test_*.py' -v
+      - name: Verify every authority/OSS source is discovery only
+        run: python tools/agriculture/scripts/validate_source_catalog.py
+      - name: Verify network cannot be accessed by missing CLI opt-in
+        run: |
+          set +e
+          python tools/agriculture/scripts/query-ssurgo-soils.py --out "${RUNNER_TEMP}/should-not-exist.json" 2>"${RUNNER_TEMP}/sda-negative.txt"
+          rc=$?
+          set -e
+          if [ "$rc" -eq 0 ]; then echo "FAIL: USDA SDA fetched without --live or offline snapshots"; exit 1; fi
+          test ! -e "${RUNNER_TEMP}/should-not-exist.json"
+          echo "PASS: network access requires explicit --live, missing data remains unavailable"

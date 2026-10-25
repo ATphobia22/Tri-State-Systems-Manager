@@ -1,0 +1,253 @@
+{
+  "schemaVersion": "tsm.authority-agriculture-catalog.v1",
+  "compiledDate": "2026-10-25",
+  "status": "CATALOG_ONLY",
+  "executionStatus": "NOT_EXECUTED",
+  "humanAuthorityFinal": true,
+  "sourceDataCaptured": false,
+  "privacy": "Owner-level farming operations and field locations require opt-in private storage",
+  "sources": [
+    {
+      "id": "usgs.lidar",
+      "domain": "SURVEY",
+      "url": "https://www.usgs.gov/ngp-standards-and-specifications/lidar-base-specification-online",
+      "type": "agency",
+      "restriction": "LBS 2025 A; checkpoints and project survey report",
+      "sourceSha256": null,
+      "integrated": false,
+      "engineeringUse": false,
+      "regulatoryUse": false
+    },
+    {
+      "id": "indiana.gio",
+      "domain": "SURVEY",
+      "url": "https://elevation.gio.in.gov/",
+      "type": "agency",
+      "restriction": "QL1 program schedule is not delivered survey acceptance",
+      "sourceSha256": null,
+      "integrated": false,
+      "engineeringUse": false,
+      "regulatoryUse": false
+    },
+    {
+      "id": "noaa.ngs",
+      "domain": "SURVEY",
+      "url": "https://geodesy.noaa.gov/OPUS/",
+      "type": "agency",
+      "restriction": "GNSS solutions require datum, epoch, control and human review",
+      "sourceSha256": null,
+      "integrated": false,
+      "engineeringUse": false,
+      "regulatoryUse": false
+    },
+    {
+      "id": "indiana.dnr",
+      "domain": "FLOOD",
+      "url": "https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/state-engineering-resources/",
+      "type": "agency",
+      "restriction": "INFIP and BAFM may be informational, not effective FIRM",
+      "sourceSha256": null,
+      "integrated": false,
+      "engineeringUse": false,
+      "regulatoryUse": false
+    },
+    {
+      "id": "usgs.water",
+      "domain": "FLOOD",
+      "url": "https://api.waterdata.usgs.gov/docs/ogcapi/",
+      "type": "agency",
+      "restriction": "Require station, datum, units, time and freshness",
+      "sourceSha256": null,
+      "integrated": false,
+      "engineeringUse": false,
+      "regulatoryUse": false
+    },
+    {
+      "id": "noaa.nwps",
+      "domain": "FLOOD",
+      "url": "https://api.water.noaa.gov/about/api",
+      "type": "agency",
+      "restriction": "Official NWS forecast distinct from experimental NWM guidance",
+      "sourceSha256": null,
+      "integrated": false,
+      "engineeringUse": false,
+      "regulatoryUse": false
+    },
+    {
+      "id": "indiana.dhs",
+      "domain": "EMERGENCY",
+      "url": "https://www.in.gov/dhs/emergency-management-and-preparedness/",
+      "type": "agency",
+      "restriction": "Public alerts and emergency authority remain with officials",
+      "sourceSha256": null,
+      "integrated": false,
+      "engineeringUse": false,
+      "regulatoryUse": false
+    },
+    {
+      "id": "usda.sda",
+      "domain": "SOIL",
+      "url": "https://sdmdataaccess.sc.egov.usda.gov/WebServiceHelp.aspx",
+      "type": "agency",
+      "restriction": "Map units and horizons are not individual site measurements",
+      "sourceSha256": null,
+      "integrated": false,
+      "engineeringUse": false,
+      "regulatoryUse": false
+    },
+    {
+      "id": "usda.nass.cdl",
+      "domain": "CROP",
+      "url": "https://www.nass.usda.gov/developer/",
+      "type": "agency",
+      "restriction": "Annual classified land cover not a farmer planting declaration",
+      "sourceSha256": null,
+      "integrated": false,
+      "engineeringUse": false,
+      "regulatoryUse": false
+    },
+    {
+      "id": "usda.nass.flood",
+      "domain": "CROP",
+      "url": "https://data.nass.usda.gov/Research_and_Science/Disaster-Analysis/index.php",
+      "type": "agency",
+      "restriction": "Historic August 2026 agricultural flood assessment",
+      "sourceSha256": null,
+      "integrated": false,
+      "engineeringUse": false,
+      "regulatoryUse": false
+    },
+    {
+      "id": "usda.quickstats",
+      "domain": "CROP",
+      "url": "https://data.nass.usda.gov/Quick_Stats/",
+      "type": "agency",
+      "restriction": "County estimates must not be attributed to private fields",
+      "sourceSha256": null,
+      "integrated": false,
+      "engineeringUse": false,
+      "regulatoryUse": false
+    },
+    {
+      "id": "usda.midwest",
+      "domain": "CROP",
+      "url": "https://www.climatehubs.usda.gov/hubs/midwest",
+      "type": "agency",
+      "restriction": "Extension context only, not locally calibrated forecast",
+      "sourceSha256": null,
+      "integrated": false,
+      "engineeringUse": false,
+      "regulatoryUse": false
+    },
+    {
+      "id": "swatplus",
+      "domain": "MODEL",
+      "url": "https://github.com/swat-model/swatplus",
+      "type": "opensource",
+      "restriction": "LGPL; pinned model, calibrated watershed data required",
+      "sourceSha256": null,
+      "integrated": false,
+      "engineeringUse": false,
+      "regulatoryUse": false
+    },
+    {
+      "id": "farmos",
+      "domain": "MODEL",
+      "url": "https://github.com/farmOS/farmOS",
+      "type": "opensource",
+      "restriction": "GPL; farm boundaries and operations private by default",
+      "sourceSha256": null,
+      "integrated": false,
+      "engineeringUse": false,
+      "regulatoryUse": false
+    },
+    {
+      "id": "dssat",
+      "domain": "MODEL",
+      "url": "https://github.com/DSSAT/dssat-csm-os",
+      "type": "opensource",
+      "restriction": "BSD3; local crop-weather-soil evaluation required",
+      "sourceSha256": null,
+      "integrated": false,
+      "engineeringUse": false,
+      "regulatoryUse": false
+    },
+    {
+      "id": "farmvibes",
+      "domain": "MODEL",
+      "url": "https://github.com/microsoft/farmvibes-ai",
+      "type": "opensource",
+      "restriction": "MIT; derived satellite indices not measured yields",
+      "sourceSha256": null,
+      "integrated": false,
+      "engineeringUse": false,
+      "regulatoryUse": false
+    },
+    {
+      "id": "qgis",
+      "domain": "MODEL",
+      "url": "https://github.com/qgis/QGIS",
+      "type": "opensource",
+      "restriction": "GPL; analyst desktop GIS not professional certification",
+      "sourceSha256": null,
+      "integrated": false,
+      "engineeringUse": false,
+      "regulatoryUse": false
+    },
+    {
+      "id": "grass",
+      "domain": "MODEL",
+      "url": "https://github.com/OSGeo/grass",
+      "type": "opensource",
+      "restriction": "GPL; terrain/hydrology outputs require QA",
+      "sourceSha256": null,
+      "integrated": false,
+      "engineeringUse": false,
+      "regulatoryUse": false
+    },
+    {
+      "id": "odm",
+      "domain": "MODEL",
+      "url": "https://github.com/OpenDroneMap/ODM",
+      "type": "opensource",
+      "restriction": "AGPL; survey GCP and licence review required",
+      "sourceSha256": null,
+      "integrated": false,
+      "engineeringUse": false,
+      "regulatoryUse": false
+    },
+    {
+      "id": "rascommander",
+      "domain": "MODEL",
+      "url": "https://github.com/gpt-cmdr/ras-commander",
+      "type": "opensource",
+      "restriction": "MIT Python interface; HEC-RAS executable separately licensed",
+      "sourceSha256": null,
+      "integrated": false,
+      "engineeringUse": false,
+      "regulatoryUse": false
+    },
+    {
+      "id": "apsim",
+      "domain": "MODEL",
+      "url": "https://github.com/APSIMInitiative/ApsimX",
+      "type": "opensource",
+      "restriction": "Custom licensing; hold before redistribution",
+      "sourceSha256": null,
+      "integrated": false,
+      "engineeringUse": false,
+      "regulatoryUse": false
+    },
+    {
+      "id": "agopengps",
+      "domain": "MODEL",
+      "url": "https://github.com/AgOpenGPS-Official/AgOpenGPS",
+      "type": "opensource",
+      "restriction": "Maintenance mode on WinForms; equipment safety not certified",
+      "sourceSha256": null,
+      "integrated": false,
+      "engineeringUse": false,
+      "regulatoryUse": false
+    }
+  ]
+}
