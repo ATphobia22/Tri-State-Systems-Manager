@@ -31,6 +31,11 @@ import struct
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
+from collections import Counter
+
+from shapely.geometry import shape, Polygon, MultiPolygon
+from shapely.geometry.polygon import orient
+from shapely.ops import triangulate
 
 WGS84_A = 6378137.0
 WGS84_E2 = 6.6943799901413165e-3
@@ -151,31 +156,53 @@ def ear_clip(pts) -> list[tuple[int, int, int]]:
     return tris
 
 
-def largest_polygon_coords(geometry) -> list | None:
-    """Return the exterior ring (without closing duplicate) of the largest
-    polygon by absolute 2D area. Holes are ignored (documented)."""
-    gtype = geometry.get("type")
-    polys = []
-    if gtype == "Polygon":
-        polys = [geometry["coordinates"]]
-    elif gtype == "MultiPolygon":
-        polys = geometry["coordinates"]
-    else:
-        return None
-    best, best_area = None, -1.0
-    for poly in polys:
-        if not poly or not poly[0]:
-            continue
-        ring = poly[0]
-        if len(ring) >= 2 and ring[0] == ring[-1]:
-            ring = ring[:-1]
-        if len(ring) < 3:
-            continue
-        area = abs(signed_area_2d(ring))
-        if area > best_area:
-            best, best_area = ring, area
-    return best
+def geometry_for_feature(geometry) -> list[Polygon]:
+    """Preserve all exterior and hole rings; never silently select one multipart."""
+    if not isinstance(geometry, dict) or geometry.get("type") not in ("Polygon", "MultiPolygon"):
+        raise ValueError("unsupported footprint geometry")
+    footprint = shape(geometry)
+    if footprint.is_empty or not footprint.is_valid:
+        raise ValueError("invalid footprint topology; source correction required")
+    polygons = [footprint] if isinstance(footprint, Polygon) else list(footprint.geoms)
+    if not polygons or any(poly.is_empty or poly.area <= 0.0 for poly in polygons):
+        raise ValueError("empty or degenerate footprint")
+    return [orient(poly, sign=1.0) for poly in polygons]
 
+
+def local_polygon(poly: Polygon, origin, axes) -> Polygon:
+    """Convert polygon coordinates to tile-local ENU metres using double-precision ECEF."""
+    def ring_local(coords):
+        return [(dot(sub(surface(lon, lat), origin), axes[0]),
+                 dot(sub(surface(lon, lat), origin), axes[1])) for lon, lat in coords]
+    return Polygon(ring_local(poly.exterior.coords),
+                   [ring_local(hole.coords) for hole in poly.interiors])
+
+
+def triangulate_polygon(poly: Polygon, origin, axes) -> list[list[tuple[float, float]]]:
+    """Clip Delaunay triangles to the exact footprint, preserving holes."""
+    local = local_polygon(poly, origin, axes)
+    if not local.is_valid or local.area <= 1e-8:
+        raise ValueError("projected polygon degenerate")
+    triangles = []
+    for piece in triangulate(local):
+        clipped = piece.intersection(local)
+        polygons = ([clipped] if clipped.geom_type == "Polygon"
+                    else list(clipped.geoms) if hasattr(clipped, "geoms") else [])
+        for part in polygons:
+            if part.geom_type != "Polygon" or part.area <= 1e-9:
+                continue
+            if part.interiors:
+                raise ValueError("triangulation left an interior hole; cannot silently fill it")
+            ring = [(float(x), float(y)) for x, y in list(part.exterior.coords)[:-1]]
+            # Intersection can yield concave pieces requiring multiple triangles.
+            for ids in ear_clip(ring):
+                tri = [ring[i] for i in ids]
+                if abs(signed_area_2d(tri)) > 1e-9:
+                    triangles.append(tri)
+    area = sum(abs(signed_area_2d(t)) for t in triangles)
+    if not triangles or abs(area - local.area) > max(local.area * 1e-6, 1e-5):
+        raise ValueError(f"triangulated roof area mismatch: {area} vs {local.area}")
+    return triangles
 
 def ground_elevation_ft(props) -> float | None:
     for key in ("groundElevationMeanFt", "groundElevationFt",
@@ -205,29 +232,11 @@ class BuildingTile:
     ground_ft: float
 
 
-def build_prism(ring_lonlat, base_z_m: float, top_z_m: float,
+def build_prism(parts: list[Polygon], base_z_m: float, top_z_m: float,
                 origin, axes) -> tuple[list, list]:
-    """Build a flat-shaded extruded prism. Returns (positions, normals) as
-    non-indexed triangle lists in the tile-local ENU frame."""
-    pts2 = [(lon, lat) for lon, lat in ring_lonlat]
-    # Local ENU (x=east, y=north) for triangulation/winding decisions.
-    local = []
-    for lon, lat in pts2:
-        d = sub(surface(lon, lat), origin)
-        local.append((dot(d, axes[0]), dot(d, axes[1])))
-    # Drop near-duplicate consecutive vertices for triangulation stability.
-    clean = []
-    for p in local:
-        if not clean or math.hypot(p[0] - clean[-1][0], p[1] - clean[-1][1]) > 1e-6:
-            clean.append(p)
-    if clean and math.hypot(clean[0][0] - clean[-1][0], clean[0][1] - clean[-1][1]) < 1e-6:
-        clean.pop()
-    if len(clean) < 3:
-        return [], []
-    tris = ear_clip(clean)
-    if not tris:
-        return [], []
-
+    """Extrude every multipart component including its interior ring walls."""
+    if not (math.isfinite(base_z_m) and math.isfinite(top_z_m) and top_z_m > base_z_m):
+        raise ValueError("invalid real building height/elevation")
     positions: list = []
     normals: list = []
 
@@ -236,41 +245,34 @@ def build_prism(ring_lonlat, base_z_m: float, top_z_m: float,
         positions.extend([a, b, c])
         normals.extend([n, n, n])
 
-    n = len(clean)
-    for i0, i1, i2 in tris:
-        # Top cap (+z): ensure CCW seen from above.
-        a = (clean[i0][0], clean[i0][1], top_z_m)
-        b = (clean[i1][0], clean[i1][1], top_z_m)
-        c = (clean[i2][0], clean[i2][1], top_z_m)
-        if signed_area_2d([clean[i0], clean[i1], clean[i2]]) < 0:
-            b, c = c, b
-        emit(a, b, c)
-        # Bottom cap (-z): opposite winding.
-        a = (clean[i0][0], clean[i0][1], base_z_m)
-        b = (clean[i1][0], clean[i1][1], base_z_m)
-        c = (clean[i2][0], clean[i2][1], base_z_m)
-        if signed_area_2d([clean[i0], clean[i1], clean[i2]]) > 0:
-            b, c = c, b
-        emit(a, b, c)
-    # Sides: outward-facing quads for each edge.
-    ccw = signed_area_2d(clean) > 0.0
-    for i in range(n):
-        j = (i + 1) % n
-        x0, y0 = clean[i]
-        x1, y1 = clean[j]
-        p00 = (x0, y0, base_z_m)
-        p01 = (x0, y0, top_z_m)
-        p10 = (x1, y1, base_z_m)
-        p11 = (x1, y1, top_z_m)
-        # For CCW polygons, outward is to the right of edge i->j.
-        if ccw:
-            emit(p00, p10, p11)
-            emit(p00, p11, p01)
-        else:
-            emit(p00, p11, p10)
-            emit(p00, p01, p11)
-    return positions, normals
+    for poly in parts:
+        for triangle in triangulate_polygon(poly, origin, axes):
+            a, b, c = ((v[0], v[1], top_z_m) for v in triangle)
+            if signed_area_2d(triangle) < 0.0:
+                b, c = c, b
+            emit(a, b, c)
+            a, b, c = ((v[0], v[1], base_z_m) for v in triangle)
+            if signed_area_2d(triangle) > 0.0:
+                b, c = c, b
+            emit(a, b, c)
 
+        local = local_polygon(poly, origin, axes)
+        for ring in [local.exterior, *local.interiors]:
+            clean = list(ring.coords)[:-1]
+            ccw = signed_area_2d(clean) > 0.0
+            for i, p in enumerate(clean):
+                q = clean[(i + 1) % len(clean)]
+                p00 = (p[0], p[1], base_z_m)
+                p01 = (p[0], p[1], top_z_m)
+                p10 = (q[0], q[1], base_z_m)
+                p11 = (q[0], q[1], top_z_m)
+                if ccw:
+                    emit(p00, p10, p11)
+                    emit(p00, p11, p01)
+                else:
+                    emit(p00, p11, p10)
+                    emit(p00, p01, p11)
+    return positions, normals
 
 def pad4(data: bytes, fill: bytes = b"\0") -> bytes:
     return data + fill * ((4 - len(data) % 4) % 4)
@@ -345,14 +347,19 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--geojson", required=True, type=Path)
     ap.add_argument("--out-dir", required=True, type=Path)
-    ap.add_argument("--extrusion-ft", type=float, default=DEFAULT_EXTRUSION_FT)
+    ap.add_argument("--extrusion-ft", type=float, default=None,
+                    help="Explicit fixed-height screening override; otherwise use validated lidarHeightFt")
+    ap.add_argument("--expected-buildings", type=int, default=0,
+                    help="Require exactly this many unique source-bound GLBs; errors report rejected IDs")
     ap.add_argument("--limit", type=int, default=0,
                     help="process only the first N features (deterministic subset for testing)")
     ap.add_argument("--source-url", default="https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0")
     ap.add_argument("--source-version", default="Indiana Building Footprints 2016-2020")
     args = ap.parse_args()
-    if args.extrusion_ft <= 0:
-        raise SystemExit("--extrusion-ft must be positive")
+    if args.extrusion_ft is not None and (not math.isfinite(args.extrusion_ft) or args.extrusion_ft <= 0):
+        raise SystemExit("--extrusion-ft must be a positive finite number")
+    if args.expected_buildings < 0:
+        raise SystemExit("--expected-buildings must not be negative")
 
     data = json.loads(args.geojson.read_text())
     features = data.get("features", [])
@@ -366,39 +373,55 @@ def main() -> None:
         features = features[:args.limit]
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
-    height_m = args.extrusion_ft * FT_TO_M
+    if args.expected_buildings and len(features) != args.expected_buildings:
+        raise SystemExit(f"input feature count {len(features)} != --expected-buildings {args.expected_buildings}")
 
     tiles: list[BuildingTile] = []
     paths: list[Path] = []
-    skipped = 0
-    for ft in features:
+    rejected: list[dict] = []
+    seen_ids: set[int] = set()
+    for index, ft in enumerate(features):
         props = ft.get("properties", {}) or {}
         sid = props.get("igioObjectId", props.get("sourceObjectId"))
-        if not isinstance(sid, (int, float)):
-            skipped += 1
+        if isinstance(sid, bool) or not isinstance(sid, (int, float)) or not math.isfinite(sid) or int(sid) != sid or sid < 0:
+            rejected.append({"index": index, "sourceObjectId": None, "reason": "missing_or_invalid_source_id"})
             continue
         sid = int(sid)
-        ring = largest_polygon_coords(ft.get("geometry", {}))
-        if not ring:
-            skipped += 1
+        if sid in seen_ids:
+            rejected.append({"index": index, "sourceObjectId": sid, "reason": "duplicate_source_id"})
             continue
-        elev_ft = ground_elevation_ft(props)
-        if elev_ft is None:
-            skipped += 1
+        seen_ids.add(sid)
+        try:
+            parts = geometry_for_feature(ft.get("geometry", {}))
+            elev_ft = ground_elevation_ft(props)
+            if elev_ft is None:
+                raise ValueError("unavailable_ground_elevation")
+            if args.extrusion_ft is not None:
+                height_ft = args.extrusion_ft
+                height_provenance = "EXPLICIT_SCREENING_ESTIMATE"
+            else:
+                if props.get("lidarHeightStatus") != "OK":
+                    raise ValueError("unavailable_lidar_height")
+                if props.get("heightProvenance") not in ("OBSERVED", "DERIVED"):
+                    raise ValueError("height_source_not_verified")
+                height_ft = props.get("lidarHeightFt")
+                height_provenance = props["heightProvenance"]
+                if not isinstance(height_ft, (int, float)) or isinstance(height_ft, bool) or not math.isfinite(height_ft) or height_ft <= 0:
+                    raise ValueError("nonfinite_or_nonpositive_lidar_height")
+            lon0, lat0 = parts[0].centroid.x, parts[0].centroid.y
+            origin = surface(lon0, lat0)
+            axes = enu_basis(lon0, lat0)
+            base_z_m = elev_ft * FT_TO_M
+            top_z_m = base_z_m + height_ft * FT_TO_M
+            positions, normals_list = build_prism(parts, base_z_m, top_z_m, origin, axes)
+            if not positions:
+                raise ValueError("empty_mesh")
+        except (KeyError, ValueError, TypeError, IndexError) as exc:
+            # Expose every OBJECTID and failure category, not private geometry.
+            rejected.append({"index": index, "sourceObjectId": sid, "reason": str(exc)[:160]})
             continue
-        # Centroid of the ring for the tile-local ENU origin.
-        lon0 = sum(p[0] for p in ring) / len(ring)
-        lat0 = sum(p[1] for p in ring) / len(ring)
-        origin = surface(lon0, lat0)
-        axes = enu_basis(lon0, lat0)
-        base_z_m = elev_ft * FT_TO_M
-        top_z_m = base_z_m + height_m
-        positions, normals_list = build_prism(ring, base_z_m, top_z_m, origin, axes)
-        if not positions:
-            skipped += 1
-            continue
-        flooded = is_flooded(props)
-        color = COLOR_FLOODED if flooded else COLOR_DRY
+
+        color = COLOR_FLOODED if is_flooded(props) else COLOR_DRY
         uri = f"{sid}.glb"
         path = args.out_dir / uri
         path.write_bytes(glb(positions, normals_list, color))
@@ -413,7 +436,25 @@ def main() -> None:
                 max((max(ys) - min(ys)) / 2.0, 0.01),
                 max((max(zs) - min(zs)) / 2.0, 0.01))
         tiles.append(BuildingTile(sid, uri, center, half, origin, axes,
-                                  flooded, elev_ft))
+                                  is_flooded(props), elev_ft))
+
+    rejection_report = {
+        "schemaVersion": "tsm.buildings.identity-rejections.v1",
+        "inputFeatureCount": len(features),
+        "outputBuildingCount": len(tiles),
+        "rejectedCount": len(rejected),
+        "rejectReasonCounts": dict(sorted(Counter(x["reason"] for x in rejected).items())),
+        "rejectedSourceObjectIdsAndReasons": rejected,
+        "authorityClass": "DERIVED",
+        "engineeringUse": False,
+        "regulatoryUse": False,
+    }
+    (args.out_dir / "rejected-features.json").write_text(
+        json.dumps(rejection_report, indent=2) + "\n")
+    if args.expected_buildings and len(tiles) != args.expected_buildings:
+        raise SystemExit(
+            f"source-to-tile identity coverage {len(tiles)}/{args.expected_buildings}; "
+            f"rejected={len(rejected)}; see {args.out_dir}/rejected-features.json")
 
     if not tiles:
         raise SystemExit("no building tiles generated")
@@ -449,6 +490,7 @@ def main() -> None:
                 "flooded": t.flooded,
                 "groundElevationFtNavd88": t.ground_ft,
                 "lod": 1,
+                "geometryMethod": "all_components_with_hole_walls",
             }},
         }
 
@@ -485,18 +527,21 @@ def main() -> None:
             "geojsonSha256": geojson_sha,
             "featureCount": len(features),
             "tileCount": len(tiles),
-            "skipped": skipped,
+            "skipped": len(rejected),
+            "rejectionReport": "rejected-features.json",
         },
         "transformation": (
-            "IGIO building polygon -> largest ring -> deterministic ear-clip triangulation -> "
-            "flat-shaded LOD1 prism extruded by a fixed estimated height in a "
+            "IGIO building multipolygon and holes -> exact clipping of Delaunay roofs -> "
+            "flat-shaded LOD1 prisms extruded using source-vetted LiDAR heights in a "
             "tile-local ENU frame; WGS84 surface horizontal placement; NAVD88 "
             "ground elevation retained as visualization vertical offset without "
             "vertical datum conversion. Flooded features tinted blue, dry neutral."
         ),
         "parameters": {
             "extrusionFt": args.extrusion_ft,
-            "extrusionEstimated": True,
+            "extrusionEstimated": args.extrusion_ft is not None,
+            "heightField": "lidarHeightFt",
+            "heightPolicy": "source_OBSERVED_or_DERIVED_except_explicit_screening_override",
             "footprintGeometry": "authoritative IGIO LiDAR-derived polygon",
             "elevationSource": "IGIO footprint joined to committed Posey 3DEP-derived DEM",
             "colorFlooded": COLOR_FLOODED,
@@ -514,8 +559,8 @@ def main() -> None:
         json.dumps(manifest, indent=2) + "\n")
     write_hashes(args.out_dir,
                  paths + [args.out_dir / "tileset.json",
-                          args.out_dir / "manifest.json"])
-    print(f"generated {len(tiles)} GLBs; skipped={skipped}; out={args.out_dir}")
+                          args.out_dir / "manifest.json", args.out_dir / "rejected-features.json"])
+    print(f"generated {len(tiles)} source-bound GLBs; rejected={len(rejected)}; out={args.out_dir}")
 
 
 if __name__ == "__main__":
