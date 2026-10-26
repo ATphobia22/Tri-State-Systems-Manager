@@ -13,3 +13,14 @@ test("native contract remains offline and evidence-bound",()=>{
  assert.equal(c.flood.syntheticFrequencyMultipliersAllowed,false);
  assert.equal(c.flood.missingEvidencePolicy,"resilient");
 });
+
+test("native World-space distances convert Unreal centimeters into meters", () => {
+ const cpp=fs.readFileSync(path.join(root,"tsm-native/Source/TSMNative/TSMNativeWorldFabric.cpp"),"utf8");
+ assert.match(cpp,/TSM_UNREAL_CM_TO_METERS = 0\.01/);
+ assert.match(cpp,/R\.ElevationMeters=H\.ImpactPoint\.Z\*TSM_UNREAL_CM_TO_METERS/);
+ assert.match(cpp,/R\.DistanceMeters=D\.Size\(\)\*TSM_UNREAL_CM_TO_METERS/);
+ assert.match(cpp,/R\.HorizontalDistanceMeters=FVector\(D\.X,D\.Y,0\)\.Size\(\)\*TSM_UNREAL_CM_TO_METERS/);
+ assert.match(cpp,/R\.ElevationDifferenceMeters=D\.Z\*TSM_UNREAL_CM_TO_METERS/);
+ assert.match(cpp,/R\.GradePercent=R\.HorizontalDistanceMeters>KINDA_SMALL_NUMBER\?R\.ElevationDifferenceMeters\/R\.HorizontalDistanceMeters\*100\.0/);
+ assert.match(cpp,/FVector::Distance\(AlignmentPoints\[I-1\],AlignmentPoints\[I\]\)\*TSM_UNREAL_CM_TO_METERS/);
+});

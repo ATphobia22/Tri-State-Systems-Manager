@@ -10,8 +10,8 @@ import { resolve, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const MAX_BYTES = 5 * 1024 * 1024;
-const ALLOWED_HOSTS = new Set(["api.waterdata.usgs.gov", "hazards.fema.gov"]);
-const SOURCES = {
+const ALLOWED_HOSTS = new Set(["api.waterdata.usgs.gov", "hazards.fema.gov", "gisdata.in.gov"]);
+export const SOURCES = {
   "usgs-api-index": {
     url: "https://api.waterdata.usgs.gov/ogcapi/v1/?f=json",
     file: "usgs-water-data-api-landing.json",
@@ -26,6 +26,26 @@ const SOURCES = {
     url: "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer?f=pjson",
     file: "fema-nfhl-effective-service-metadata.json",
     purpose: "FEMA NFHL effective service metadata; not a flood-zone determination"
+  },
+  "igio-parcels-current": {
+    url: "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_Current/FeatureServer?f=pjson",
+    file: "igio-parcels-current-service-metadata.json",
+    purpose: "Mutable Indiana parcel framework service metadata only; county/year and boundaries unverified"
+  },
+  "igio-administrative-current": {
+    url: "https://gisdata.in.gov/server/rest/services/Hosted/Administrative_Boundaries_of_Indiana_Current/FeatureServer?f=pjson",
+    file: "igio-administrative-current-service-metadata.json",
+    purpose: "Mutable Indiana administrative boundaries service metadata only; county/year unverified"
+  },
+  "igio-roads-current": {
+    url: "https://gisdata.in.gov/server/rest/services/Hosted/Road_Centerlines_of_Indiana_Current/FeatureServer?f=pjson",
+    file: "igio-roads-current-service-metadata.json",
+    purpose: "Mutable Indiana road centerlines service metadata only; not surveyed geometry"
+  },
+  "igio-addresses-current": {
+    url: "https://gisdata.in.gov/server/rest/services/Hosted/Address_Points_of_Indiana_Current/FeatureServer?f=pjson",
+    file: "igio-addresses-current-service-metadata.json",
+    purpose: "Mutable Indiana address points service metadata only; do not publish private address points"
   }
 };
 
@@ -85,8 +105,17 @@ export async function fetchBoundedJson(urlInput, fetchImpl = fetch, maxBytes = M
     }
   }
   const contentType = response.headers.get("content-type") ?? "";
-  if (!/^application\/(?:[a-z0-9.+-]*\+)?json(?:\s*;|\s*$)/i.test(contentType)) {
-    throw new Error(`Unexpected content type; expected JSON, received ${contentType || "missing"}`);
+  // ArcGIS ?f=pjson service metadata may arrive as text/plain.
+  // No arbitrary host, service path, redirect or unbounded response is allowed.
+  const jsonType = /^application\/(?:[a-z0-9.+-]*\+)?json(?:\s*;|\s*$)/i.test(contentType);
+  const arcgisPlainJson = url.hostname === "gisdata.in.gov" &&
+    url.pathname.startsWith("/server/rest/services/Hosted/") &&
+    url.pathname.endsWith("_Current/FeatureServer") &&
+    url.searchParams.get("f") === "pjson" &&
+    /^text\/plain(?:\s*;|\s*$)/i.test(contentType) &&
+    Object.values(SOURCES).some(source => source.url === url.href);
+  if (!jsonType && !arcgisPlainJson) {
+    throw new Error("Unexpected content type; expected JSON, received " + (contentType || "missing"));
   }
 
   const bytes = await readBoundedBody(response, maxBytes);
@@ -124,7 +153,7 @@ export async function main(args = process.argv.slice(2)) {
     return;
   }
   if (parsed.help) {
-    console.log("Usage: node acquire-public-source-snapshot.mjs --source <usgs-api-index|usgs-monitoring-collections|fema-nfhl-service> --out <directory>");
+    console.log("Usage: node acquire-public-source-snapshot.mjs --source <usgs-api-index|usgs-monitoring-collections|fema-nfhl-service|igio-parcels-current|igio-administrative-current|igio-roads-current|igio-addresses-current> --out <directory>");
     return;
   }
   const { sourceKey, outArg } = parsed;
@@ -140,7 +169,18 @@ export async function main(args = process.argv.slice(2)) {
     return;
   }
 
-  const { response, bytes, contentType } = await fetchBoundedJson(source.url);
+  const { response, bytes, contentType, document } = await fetchBoundedJson(source.url);
+  if (sourceKey.startsWith("igio-")) {
+    const { validateHarvestCatalog, validateArcGisServiceMetadata } =
+      await import("./validate-igio-harvest-contract.mjs");
+    const { readFile } = await import("node:fs/promises");
+    const catalog = JSON.parse(await readFile(
+      new URL("../../data/registries/indiana-gio-harvest-2025-v1.json", import.meta.url), "utf8"));
+    validateHarvestCatalog(catalog);
+    const entry = catalog.sources.find(row => row.url + "?f=pjson" === source.url);
+    if (!entry) throw new Error("IGIO source not in governed catalog");
+    validateArcGisServiceMetadata(entry, document);
+  }
   const sha256 = createHash("sha256").update(bytes).digest("hex");
   const retrievedAt = new Date().toISOString();
   const outDir = resolve(outArg);
@@ -162,7 +202,10 @@ export async function main(args = process.argv.slice(2)) {
     last_modified: response.headers.get("last-modified"),
     sha256,
     snapshot_file: basename(dataPath),
-    scope_note: "Snapshot of public API/service JSON metadata only. This does not establish source currency, data suitability, or engineering authority."
+    scope_note: "Snapshot of public API/service JSON metadata only. This does not establish source currency, data suitability, or engineering authority.",
+    source_vintage_status: sourceKey.startsWith("igio-") ? "UNVERIFIED_MUTABLE_CURRENT_SERVICE" : "NOT_ESTABLISHED_FROM_METADATA_ALONE",
+    engineering_use: false,
+    regulatory_use: false
   };
 
   try {

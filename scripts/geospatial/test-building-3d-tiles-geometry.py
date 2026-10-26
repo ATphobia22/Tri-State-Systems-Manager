@@ -135,11 +135,11 @@ def test_missing_height_and_source_id_are_not_silently_skipped() -> None:
     assert result["report"]["generatedContentCount"] == 1
     assert result["report"]["rejectedCount"] == 1
     assert result["report"]["rejected"][0]["sourceObjectId"] == 6
-    assert "missing validated" in result["report"]["rejected"][0]["reason"]
+    assert "UNAVAILABLE_LIDAR_HEIGHT" in result["report"]["rejected"][0]["reason"]
     proc, result = run_builder([sample_feature(5), sample_feature(5)], expected=2)
     assert proc.returncode != 0, "duplicate OBJECTIDs must never pass acceptance"
-    assert result is not None
-    assert "duplicate" in result["report"]["rejected"][0]["reason"]
+    assert result is None
+    assert "duplicate" in proc.stderr.lower()
 
 
 def test_dem_gap_falls_back_to_measured_navad88_lidar_ground_only() -> None:

@@ -1,0 +1,36 @@
+name: Indiana GIO Data Harvest Source Contract
+
+on:
+  pull_request:
+    paths:
+      - 'data/registries/indiana-gio-harvest-2025-v1.json'
+      - 'scripts/geospatial/validate-igio-harvest-contract*'
+      - 'scripts/geospatial/acquire-public-source-snapshot*'
+      - 'scripts/geospatial/validate-tri-state-data-sources.mjs'
+      - '.github/workflows/igio-harvest-source-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'data/registries/indiana-gio-harvest-2025-v1.json'
+      - 'scripts/geospatial/validate-igio-harvest-contract*'
+      - 'scripts/geospatial/acquire-public-source-snapshot*'
+      - 'scripts/geospatial/validate-tri-state-data-sources.mjs'
+      - '.github/workflows/igio-harvest-source-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  igio-vintage:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Assert immutable-vintage and privacy data contracts
+        run: |
+          node --version
+          node --test scripts/geospatial/validate-igio-harvest-contract.test.mjs scripts/geospatial/acquire-public-source-snapshot.test.mjs
+          node scripts/geospatial/validate-tri-state-data-sources.mjs

@@ -6,19 +6,17 @@
   "verticalDatum": "NAVD88",
   "equation": "H = h - N ; h = H + N",
   "fit_uncertainty_conus_1sigma_cm": 1.27,
-  "disclaimer": "Educational AOI samples for Twin Canvas conversion playground. Not OPUS, not a survey, not LOMA input. Full CONUS grid remains server-side. Resilient: never invent N outside this table without NGS grid.",
+  "disclaimer": "Educational AOI samples for Twin Canvas conversion playground. Not OPUS, not a survey, not LOMA input. Full CONUS grid remains server-side. Resilient: never invent N outside this table without NGS grid. Only listed nonresidential regional educational samples are published; nearest-neighbor extrapolation is disabled.",
   "aoi": {
     "name": "Posey County / lower Wabash educational",
-    "bbox": [-88.2, 37.7, -87.7, 38.3]
+    "bbox": [
+      -88.2,
+      37.7,
+      -87.7,
+      38.3
+    ]
   },
   "points": [
-    {
-      "id": "bonebank-anchor",
-      "lat": 37.845887,
-      "lon": -88.005075,
-      "N_m": -30.302,
-      "note": "Project GEOID18 bilinear sample; educational"
-    },
     {
       "id": "new-harmony-gage-approx",
       "lat": 38.130891,
@@ -30,13 +28,13 @@
       "id": "poseyville-approx",
       "lat": 38.1667,
       "lon": -87.7833,
-      "N_m": -30.40,
+      "N_m": -30.4,
       "note": "Approximate regional N for UI education only"
     },
     {
       "id": "mt-vernon-approx",
       "lat": 37.9323,
-      "lon": -87.8950,
+      "lon": -87.895,
       "N_m": -30.35,
       "note": "Approximate regional N for UI education only"
     }
