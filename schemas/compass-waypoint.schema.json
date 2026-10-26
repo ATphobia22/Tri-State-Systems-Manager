@@ -57,8 +57,8 @@
           "enum": [
             "m",
             "ft",
-            "ftUS",
-            null
+            null,
+            "ftUS"
           ],
           "description": "Explicit height unit, US survey foot and international foot are distinct."
         },
@@ -67,13 +67,7 @@
             "string",
             "null"
           ],
-          "enum": [
-            "NAVD88",
-            "NGVD29",
-            "ELLIPSOIDAL_NAD83_2011",
-            "ELLIPSOIDAL_WGS84",
-            null
-          ],
+          "maxLength": 128,
           "description": "Source vertical datum only; legacy and ellipsoidal heights require an independently verified NAVD88 transformation before elevation ingest."
         },
         "horizontalAccuracyMeters": {
@@ -82,44 +76,42 @@
             "null"
           ],
           "minimum": 0
-        }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "elevation": {
-                "type": "number"
-              }
-            },
-            "required": [
-              "elevation"
-            ]
-          },
-          "then": {
-            "required": [
-              "verticalDatum",
-              "elevationUnit"
-            ],
-            "properties": {
-              "verticalDatum": {
-                "type": "string"
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "elevation": {
+                  "type": "number"
+                }
               },
-              "elevationUnit": {
-                "type": "string"
+              "required": [
+                "elevation"
+              ]
+            },
+            "then": {
+              "required": [
+                "verticalDatum",
+                "elevationUnit"
+              ],
+              "properties": {
+                "verticalDatum": {
+                  "type": "string"
+                },
+                "elevationUnit": {
+                  "type": "string"
+                }
               }
             }
           }
-        }
-      ]
+        ]
+      }
     },
     "coordinateReferenceSystem": {
       "type": "string",
-      "enum": [
-        "EPSG:4326",
-        "OGC:CRS84"
-      ],
-      "description": "Coordinates keys are geographic latitude/longitude degrees; EPSG:2966 projected US-survey-foot eastings/northings must use a distinct projected payload rather than relabeling these fields."
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Use an explicit CRS identifier; for geographic latitude/longitude, record EPSG:4326 or OGC:CRS84 according to the chosen axis-order convention. Coordinates keys are geographic latitude/longitude degrees; EPSG:2966 projected US-survey-foot eastings/northings must use a distinct projected payload rather than relabeling these fields."
     },
     "heading": {
       "type": "object",
@@ -289,7 +281,7 @@
       ],
       "minimum": 1900,
       "maximum": 2100,
-      "description": "Observation's geometric reference-frame coordinate epoch when independently supplied; not a substitute for a datum realization or transformation."
+      "description": "Declared coordinate observation epoch (decimal year), not a timestamp or a datum transformation. Required by the TSM semantic validator for NAD83(2011) waypoint frames."
     },
     "sourceHorizontalReferenceFrame": {
       "type": [

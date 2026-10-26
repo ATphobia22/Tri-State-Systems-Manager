@@ -17,10 +17,20 @@ import argparse
 import hashlib
 import json
 import math
+import os
+import shutil
 import subprocess
+import tempfile
 import time
+import urllib.request
 from pathlib import Path
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
+
+from verify_igio_footprint_cache import (
+    MAX_BYTES,
+    CachedSourceError,
+    verify_igio_snapshot,
+)
 
 import rasterio
 from shapely.geometry import MultiPolygon, Polygon, mapping, shape
@@ -223,6 +233,82 @@ class ElevationSampler:
         return None
 
 
+def publish_verified_fallback(source: Path, output: Path, expected_sha256: str,
+                              expected_count: int, source_kind: str, source_url: str | None = None) -> None:
+    """Verify source bytes/IDs/geometries first; atomically copy immutable source."""
+    receipt = verify_igio_snapshot(
+        source, expected_sha256=expected_sha256, expected_count=expected_count
+    )
+    if source.resolve() == output.resolve():
+        raise CachedSourceError("Verified fallback must not overwrite its source")
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.NamedTemporaryFile(
+        dir=output.parent, prefix=".igio-verified-", suffix=".geojson",
+        delete=False,
+    ) as tmp:
+        temp_path = Path(tmp.name)
+        try:
+            with source.open("rb") as reader:
+                shutil.copyfileobj(reader, tmp, 1024 * 1024)
+        except Exception:
+            temp_path.unlink(missing_ok=True)
+            raise
+    try:
+        os.replace(temp_path, output)
+    finally:
+        temp_path.unlink(missing_ok=True)
+    digest = receipt["sourceSha256"]
+    output.with_suffix(output.suffix + ".sha256").write_text(
+        f"{digest}  {output.name}\n", encoding="utf-8"
+    )
+    meta = {
+        **receipt,
+        "status": "acquired-from-verified-" + source_kind,
+        "fallbackOrigin": source_kind,
+        "fallbackUrl": source_url if source_kind == "github-release" else None,
+        "geojsonSha256": digest,
+        "sourceAuthority": "Indiana Geographic Information Office",
+        "sourceDataset": "Indiana Building Footprints 2016-2020",
+        "humanReviewRequired": True,
+        "releaseAcceptance": False,
+    }
+    output.with_suffix(output.suffix + ".receipt.json").write_text(
+        json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    print(f"Verified {receipt['featureCount']} unique IGIO snapshot OBJECTIDs "
+          f"from {source_kind}; cache bytes SHA-256 matched pinned digest", flush=True)
+
+
+def download_pinned_release(url: str, output_dir: Path) -> Path:
+    """Fetch only a bounded, pinned GitHub release; never an arbitrary service."""
+    parsed = urlparse(url)
+    if (parsed.scheme != "https" or parsed.hostname != "github.com" or
+        not parsed.path.startswith(
+            "/ATphobia22/Tri-State-Systems-Manager/releases/download/"
+        ) or parsed.username or parsed.password or parsed.fragment):
+        raise CachedSourceError("Fallback URL is not an approved HTTPS TSM release")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    with tempfile.NamedTemporaryFile(
+        dir=output_dir, prefix=".igio-release-", suffix=".geojson", delete=False
+    ) as tmp:
+        path = Path(tmp.name)
+        try:
+            with urllib.request.urlopen(url, timeout=120) as response:
+                size = 0
+                while True:
+                    block = response.read(1024 * 1024)
+                    if not block:
+                        break
+                    size += len(block)
+                    if size > MAX_BYTES:
+                        raise CachedSourceError("Fallback download exceeded byte limit")
+                    tmp.write(block)
+        except Exception:
+            path.unlink(missing_ok=True)
+            raise
+    return path
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--output", required=True, type=Path)
@@ -231,8 +317,25 @@ def main() -> None:
     ap.add_argument("--boundary", type=Path, default=Path("data/posey-county/boundaries/posey-county.geojson"))
     ap.add_argument("--fallback-url", default="https://github.com/ATphobia22/Tri-State-Systems-Manager/releases/download/igio-posey-20261006/posey-buildings-igio-23082.geojson")
     ap.add_argument("--fallback-sha256", default="d8a46b86616becfdea9c9164e7a219317d5963b86fba47e4c1f8f880ccbb559f")
+    ap.add_argument(
+        "--cache-snapshot", type=Path,
+        default=Path("offline_packages/igio/posey-buildings-igio-23082.geojson"),
+        help="Immutable, independently pinned local building snapshot (optional)",
+    )
+    ap.add_argument(
+        "--offline-only", action="store_true",
+        help="Use pinned local snapshot without contacting IGIO or GitHub",
+    )
     args = ap.parse_args()
     args.output.parent.mkdir(parents=True, exist_ok=True)
+    if args.offline_only:
+        if not args.cache_snapshot.is_file():
+            raise SystemExit("SOURCE_UNAVAILABLE: no staged local IGIO footprint snapshot")
+        publish_verified_fallback(
+            args.cache_snapshot, args.output, args.fallback_sha256,
+            args.expected_count, "local-offline-cache",
+        )
+        return
 
     # The live IGIO layer advertises a 2,000-feature transfer limit. Avoid a
     # metadata request here because the service intermittently rejects otherwise
@@ -341,35 +444,27 @@ def main() -> None:
                 f"expected {args.expected_count}, got {len(features)} "
                 f"unique OBJECTIDs"
             )
-    except RuntimeError as e:
-        # Live IGIO endpoint unavailable - fall back to validated snapshot
-        print(f"WARNING: Live IGIO acquisition failed: {e}", flush=True)
-        print(f"Falling back to validated snapshot from {args.fallback_url}", flush=True)
-        import urllib.request
-        tmp = args.output.with_suffix(".fallback.geojson")
-        urllib.request.urlretrieve(args.fallback_url, tmp)
-        actual = hashlib.sha256(tmp.read_bytes()).hexdigest()
-        if actual != args.fallback_sha256:
-            raise RuntimeError(f"Fallback SHA-256 mismatch: expected {args.fallback_sha256}, got {actual}")
-        doc = json.loads(tmp.read_text(encoding="utf-8"))
-        if len(doc["features"]) != args.expected_count:
-            raise RuntimeError(f"Fallback feature count mismatch")
-        print(f"Using cached IGIO snapshot: {len(doc['features'])} features, SHA-256 verified", flush=True)
-        # Write fallback to output and skip elevation join (already joined)
-        tmp.rename(args.output)
-        digest = actual
-        args.output.with_suffix(args.output.suffix + ".sha256").write_text(
-            f"{digest}  {args.output.name}\n", encoding="utf-8"
-        )
-        receipt = {
-            "source": "Indiana GIO Building_Footprints 2016-2020 (cached snapshot 2026-10-06)",
-            "fallbackUrl": args.fallback_url,
-            "featureCount": len(doc["features"]),
-            "geojsonSha256": digest,
-            "status": "acquired-from-cache",
-        }
-        args.output.with_suffix(args.output.suffix + ".receipt.json").write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
-        print(json.dumps(receipt, indent=2))
+    except RuntimeError as exc:
+        # Live IGIO unavailable/incomplete. Prefer the truly offline and
+        # independently SHA-256 pinned cache; never accept arbitrary snapshots.
+        print(f"WARNING: Live IGIO snapshot unavailable: {type(exc).__name__}", flush=True)
+        if args.cache_snapshot.is_file():
+            publish_verified_fallback(
+                args.cache_snapshot, args.output, args.fallback_sha256,
+                args.expected_count, "local-offline-cache",
+            )
+            return
+        # This is a REMOTE backup, not an offline fallback. Use only its
+        # pinned SHA-256 and object-identity verifier; never silently trust it.
+        print("WARNING: No local IGIO cache staged; attempting PINNED remote GitHub release", flush=True)
+        downloaded = download_pinned_release(args.fallback_url, args.output.parent)
+        try:
+            publish_verified_fallback(
+                downloaded, args.output, args.fallback_sha256,
+                args.expected_count, "github-release", args.fallback_url,
+            )
+        finally:
+            downloaded.unlink(missing_ok=True)
         return
 
     count = len(features)
