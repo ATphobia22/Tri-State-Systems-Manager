@@ -41,4 +41,14 @@ class AuditTests(unittest.TestCase):
   self.put('a.py','https://www.fema.gov/x https://www.fema.gov/y')
   self.put('b.md','https://www.fema.gov/z')
   r=m.inventory(self.root);self.assertEqual(r['governmentHosts'][0]['fileReferenceCount'],2)
+ def test_no_repository_file_paths_in_public_inventory(self):
+  self.put('private-history/possible-name-at-address.md','https://www.fema.gov/a?q=SECRET_PRIVATE_QUERY')
+  d=m.inventory(self.root)
+  text=__import__('json').dumps(d)
+  self.assertNotIn('private-history',text)
+  self.assertNotIn('possible-name',text)
+  self.assertNotIn('SECRET_PRIVATE_QUERY',text)
+  self.assertNotIn('sampleFilePaths',text)
+  self.assertEqual(d['governmentHosts'][0],{'host':'www.fema.gov','fileReferenceCount':1})
+
 if __name__=='__main__':unittest.main()
