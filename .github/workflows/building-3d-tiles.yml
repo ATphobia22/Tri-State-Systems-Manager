@@ -95,6 +95,7 @@ jobs:
             scripts/geospatial/extract_derived_heights_copc.py \
             scripts/geospatial/reconstruct_lod2_roofs.py \
             scripts/geospatial/validate_building_acceptance_chain.py \
+            scripts/geospatial/emit_building_height_gap_evidence.py \
             scripts/geospatial/build-implicit-tileset.py \
             scripts/geospatial/validate_spatial_coherence.py \
             scripts/geospatial/validate_feature_linkage.py \
@@ -270,6 +271,26 @@ jobs:
           path: /tmp/tsm-igio/copc-checkpoint/
           retention-days: 30
           compression-level: 1
+          if-no-files-found: ignore
+      - name: Emit per-OBJECTID height-gap evidence before hard acceptance gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/geospatial/emit_building_height_gap_evidence.py \
+            --geojson /tmp/tsm-igio/posey-buildings-height-merged.geojson \
+            --identity-delta /tmp/tsm-igio/building-objectid-source-delta.json \
+            --expected-count "$EXPECTED_BUILDINGS" \
+            --out /tmp/tsm-igio/building-height-gap-evidence.json
+      - name: Persist private height and DEM gap evidence even if later acceptance fails
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v4.6.2
+        with:
+          name: tsm-building-height-gap-evidence-${{ github.run_id }}
+          path: |
+            /tmp/tsm-igio/building-height-gap-evidence.json
+            /tmp/tsm-igio/building-height-gap-evidence.json.sha256
+          retention-days: 90
+          compression-level: 6
           if-no-files-found: ignore
       - name: Gate on 23,082 height-linked features (OBSERVED + DERIVED)
         shell: bash
