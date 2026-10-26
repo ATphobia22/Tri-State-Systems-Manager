@@ -35,6 +35,6 @@ jobs:
           cache-dependency-path: tsm-console/package-lock.json
       - name: Install locally pinned GLB codec and validator
         working-directory: tsm-console
-        run: npm ci --ignore-scripts --no-audit --no-fund
+        run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
       - name: Run real meshopt format and provenance tests
         run: node --test scripts/geospatial/test-compress-hlod-meshopt.mjs
