@@ -2,7 +2,7 @@
 
 Authoritative public catalog: https://registry.opendata.aws/in-elevation/
 
-**Bucket:** \`s3://giselevationingov\`, **Region:** \`us-east-2\`,
+**Bucket:** `s3://giselevationingov`, **Region:** `us-east-2`,
 **license:** CC0. Public read access does **not** require using or configuring
 TSM's own AWS account or creating AWS resources.
 
@@ -14,22 +14,22 @@ names in the GitHub run logs**, not from invented public source feature IDs.
 
 AWS S3 ListObjectsV2 verified exact matching keys for **446/446 of these grids**
 in each of the following alternatives. The object names were actually
-present in \`giselevationingov\` on 2026-10-26:
+present in `giselevationingov` on 2026-10-26:
 
 | Alternate product | Confirmed S3 key template | Scope |
 | --- | --- | --- |
-| 2020 normalized digital height model (NDHM) | \`ndhmoptimized/statewide/2020/SPW/5ft/IN2020_{GRID}_12_ndhm.tif\` | 446/446 |
-| 2013 QL3 COPC | \`copc/statewide/2013/SPW/ql3/in2013_{GRID}_12.copc.laz\` | 446/446 |
+| 2020 normalized digital height model (NDHM) | `ndhmoptimized/statewide/2020/SPW/5ft/IN2020_{GRID}_12_ndhm.tif` | 446/446 |
+| 2013 QL3 COPC | `copc/statewide/2013/SPW/ql3/in2013_{GRID}_12.copc.laz` | 446/446 |
 
-A separate sampled grid \`27751070\` was also positively verified by
+A separate sampled grid `27751070` was also positively verified by
 AWS HeadObject for 2020 DSM, DEM, original LAS, and 2013 NDHM:
 
-\`\`\`text
+```text
 dsmoptimized/statewide/2020/SPW/5ft/IN2020_27751070_12_dsm.tif
 demoptimized/statewide/2020/SPW/2.5ft/IN2020_27751070_12.tif
 las/statewide/2020/SPW/ql2/IN2020_27751070_12.las
 ndhmoptimized/statewide/2013/SPW/5ft/in2013_27751070_12_ndhm.tif
-\`\`\`
+```
 
 The S3 **ETag is not a SHA-256 content checksum**. Do not invent whole-file
 hashes from remote HEAD responses; download each selected tile using a
@@ -39,7 +39,7 @@ bounded, atomic process and SHA-256 hash its bytes before spatial analysis.
 
 1. Preserve the original source ID, accepted-height status and inability reason
    for every one of the 2,565 missing roofs using the newly merged
-   \`emit_building_height_gap_evidence.py\`. Do not repeat all 446 COPC jobs
+   `emit_building_height_gap_evidence.py`. Do not repeat all 446 COPC jobs
    without evidence that the extraction method will recover missing points.
 2. Plan candidate 2020 NDHM, DSM and DEM files for *affected* grids; match exact
    IGIO source IDs, not nearest addresses, parcel centroids or NSI record IDs.
@@ -63,17 +63,17 @@ bounded, atomic process and SHA-256 hash its bytes before spatial analysis.
 
 ## Bounded inventory command
 
-\`\`\`sh
+```sh
 python3 scripts/geospatial/verify_in_elevation_recovery_sources.py \
   --tile-list data/posey-county/elevation/posey-2020-copc-grid-run-40262995508.txt \
   --layers 2020_NDHM 2013_COPC \
   --verify --workers 8 --timeout 15 \
   --out /private/igio-alternate-source-availability.json
-\`\`\`
+```
 
 This issues HEAD requests against only the official public Indiana S3 bucket.
 It does **not** download LAS, COPC, DEM, DSM or NDHM; it does not validate a
-single building height. Omit \`--verify\` to generate an offline key plan.
+single building height. Omit `--verify` to generate an offline key plan.
 
 USACE modeled NSI height/ground attributes remain secondary QA and are
 never substituted for authentic LiDAR. The official 2016-2020 DEM image
