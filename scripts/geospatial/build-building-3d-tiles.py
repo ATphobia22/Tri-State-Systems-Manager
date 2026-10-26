@@ -12,7 +12,7 @@ scripts/geospatial/build-terrain-3d-tiles.py:
     without a NAVD88-to-ellipsoid transformation
 
 This is visualization data, not survey-grade engineering geometry.
-Building heights are estimated (see --extrusion-ft), footprints are LiDAR-derived
+Building heights use observed or derived LiDAR evidence when available; --extrusion-ft estimates are screening-only. Footprints are LiDAR-derived
 IGIO building polygons rather than survey-grade building geometry, and flood
 coloring reflects screening-grade depth values, not certified flood determinations.
 
@@ -234,7 +234,25 @@ def ground_elevation_ft(props) -> float | None:
         v = props.get(key)
         if isinstance(v, (int, float)) and math.isfinite(v):
             return float(v)
+    # Verified NAVD88 LiDAR ground median may fill gaps in an authoritative DEM join.
+    # Convert metres to US survey feet explicitly; no implicit ellipsoid conversion.
+    if (props.get("lidarHeightStatus") == "OK"
+            and props.get("heightProvenance") in ("OBSERVED", "DERIVED")
+            and props.get("lidarHeightDatum") == "NAVD88"
+            and props.get("lidarHeightUnit") == "ftUS"):
+        value = props.get("lidarGroundElevM")
+        if type(value) in (int, float) and math.isfinite(value):
+            return float(value) / (1200.0 / 3937.0)
     return None
+
+
+def ground_elevation_provenance(props) -> str:
+    for key in ("groundElevationMeanFt", "groundElevationFt",
+                "groundElevationMinFt", "groundElevationMaxFt"):
+        value = props.get(key)
+        if type(value) in (int, float) and math.isfinite(value):
+            return "FOOTPRINT_DEM"
+    return "LIDAR_GROUND_MEDIAN_NAVD88"
 
 
 def is_flooded(props) -> bool:
@@ -409,6 +427,7 @@ def main() -> None:
     paths: list[Path] = []
     skip_reasons: dict[str, str] = {}
     fallback_ids: list[int] = []
+    ground_sources: dict[int, str] = {}
     for ft in features:
         props = ft.get("properties", {}) or {}
         sid = int(props.get("igioObjectId", props.get("sourceObjectId")))
@@ -418,7 +437,11 @@ def main() -> None:
             continue
         elev_ft = ground_elevation_ft(props)
         if elev_ft is None:
-            skip_reasons[str(sid)] = "UNAVAILABLE_GROUND_ELEVATION"
+            skip_reasons[str(sid)] = (
+                "UNAVAILABLE_GROUND_ELEVATION: requires verified NAVD88/ftUS LiDAR ground when DEM missing"
+                if props.get("lidarGroundElevM") is not None
+                else "UNAVAILABLE_GROUND_ELEVATION"
+            )
             continue
         raw_height = props.get("lidarHeightFt")
         provenance = props.get("heightProvenance")
@@ -472,8 +495,22 @@ def main() -> None:
         tiles.append(BuildingTile(sid, uri, center, half, origin, axes,
                                   flooded, elev_ft, height_ft, height_class,
                                   len(polygons)))
+        ground_sources[sid] = ground_elevation_provenance(props)
 
     skipped = len(skip_reasons)
+    rejected = [{"sourceObjectId": int(source_id), "reason": reason}
+                for source_id, reason in sorted(skip_reasons.items(), key=lambda item: int(item[0]))]
+    rejection_report = {
+        "schemaVersion": "tsm.building-tiles-rejections.v1",
+        "sourceFeatureCount": len(features),
+        "generatedContentCount": len(tiles),
+        "rejectedCount": skipped,
+        "rejected": rejected,
+        "rejectedSourceObjectIdsAndReasons": rejected,
+    }
+    for report_name in ("rejected-buildings.json", "rejected-features.json"):
+        (args.out_dir / report_name).write_text(
+            json.dumps(rejection_report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     if args.expected_buildings is not None and len(tiles) != args.expected_buildings:
         if not args.allow_partial_informational:
             raise SystemExit(
@@ -514,6 +551,7 @@ def main() -> None:
                 "sourceObjectId": t.source_id,
                 "flooded": t.flooded,
                 "groundElevationFtNavd88": t.ground_ft,
+                "groundElevationProvenance": ground_sources[t.source_id],
                 "lod": 1,
                 "lidarHeightFt": t.height_ft,
                 "heightProvenance": t.height_provenance,
@@ -561,6 +599,9 @@ def main() -> None:
             "skipped": skipped,
             "skippedBySourceObjectId": skip_reasons,
             "screeningFallbackObjectIds": fallback_ids,
+            "heightSources": {key: sum(t.height_provenance == key for t in tiles)
+                              for key in ("OBSERVED", "DERIVED", "ESTIMATED_FALLBACK_INFORMATIONAL_ONLY")},
+            "rejectedReport": "rejected-buildings.json",
         },
         "transformation": (
             "IGIO complete polygon components and holes -> topology-verified Delaunay/clipped "
