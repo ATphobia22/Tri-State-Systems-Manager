@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readBoundedBody, fetchBoundedJson } from "./acquire-public-source-snapshot.mjs";
+import { readBoundedBody, fetchBoundedJson, SOURCES } from "./acquire-public-source-snapshot.mjs";
 
 test("bounded body reader accepts a response within the byte limit", async () => {
   const body = await readBoundedBody(new Response(JSON.stringify({ ok: true })), 64);
@@ -59,4 +59,26 @@ test("source fetch rejects unexpected content type and malformed JSON", async ()
     "https://api.waterdata.usgs.gov/ogcapi/v1/?f=json",
     async () => new Response("{broken", { headers: { "content-type": "application/json" } })
   ), /not valid JSON/);
+});
+
+test("governed IGIO metadata snapshots use exact official Current service endpoints", () => {
+  const keys = ["igio-parcels-current", "igio-administrative-current",
+                "igio-roads-current", "igio-addresses-current"];
+  for (const key of keys) {
+    const source = SOURCES[key];
+    assert.ok(source, "missing source " + key);
+    assert.match(source.url, /^https:\/\/gisdata\.in\.gov\/server\/rest\/services\/Hosted\//);
+    assert.match(source.url, /_Current\/FeatureServer\?f=pjson$/);
+    assert.ok(source.file.endsWith("-service-metadata.json"));
+  }
+});
+test("bounded IGIO fetch rejects unexpected HTTP hosts and redirects", async () => {
+  const source = SOURCES["igio-parcels-current"];
+  let requested;
+  await fetchBoundedJson(source.url, async (url,options)=>{
+    requested={url:String(url),redirect:options.redirect};
+    return new Response(JSON.stringify({layers:[]}), {headers:{"content-type":"application/json"}});
+  });
+  assert.equal(requested.url,source.url);
+  assert.equal(requested.redirect,"error");
 });
