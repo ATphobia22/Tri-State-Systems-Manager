@@ -7,11 +7,15 @@ on:
       - "scripts/geospatial/emit_building_height_gap_evidence.py"
       - "scripts/geospatial/test_emit_building_height_gap_evidence.py"
       - ".github/workflows/building-height-gap-evidence.yml"
+      - ".github/workflows/building-3d-tiles.yml"
+      - "scripts/geospatial/test_building_tiles_checkpoint_workflow.py"
   pull_request:
     paths:
       - "scripts/geospatial/emit_building_height_gap_evidence.py"
       - "scripts/geospatial/test_emit_building_height_gap_evidence.py"
       - ".github/workflows/building-height-gap-evidence.yml"
+      - ".github/workflows/building-3d-tiles.yml"
+      - "scripts/geospatial/test_building_tiles_checkpoint_workflow.py"
   workflow_dispatch:
 
 permissions:
@@ -32,3 +36,5 @@ jobs:
         run: python -m py_compile scripts/geospatial/emit_building_height_gap_evidence.py scripts/geospatial/test_emit_building_height_gap_evidence.py
       - name: Run 12 synthetic provenance and privacy tests
         run: python scripts/geospatial/test_emit_building_height_gap_evidence.py -v
+      - name: Verify heavy production workflow checkpoint and no redundant rebuilds
+        run: python scripts/geospatial/test_building_tiles_checkpoint_workflow.py -v
