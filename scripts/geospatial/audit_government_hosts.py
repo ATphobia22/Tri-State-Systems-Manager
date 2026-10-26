@@ -16,7 +16,7 @@ from urllib.parse import urlsplit
 URL=re.compile(r'https?://[^\s\'"<>`{}\\]+',re.IGNORECASE)
 TEXT={'.py','.ts','.tsx','.js','.jsx','.json','.jsonl','.md','.mdx','.txt','.html','.htm','.yml','.yaml','.xml','.sql','.toml','.ini','.cfg','.sh','.ps1','.cs','.cpp','.h','.hpp','.rs','.go','.csv'}
 SKIP={'.git','node_modules','dist','build','.venv','venv','__pycache__','.next','.cache','.turbo','target'}
-MAX_BYTES=2*1024*1024
+MAX_BYTES=16*1024*1024
 
 
 def is_official_host(host):
