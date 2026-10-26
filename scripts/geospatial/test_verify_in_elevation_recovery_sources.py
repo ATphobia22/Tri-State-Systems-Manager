@@ -86,7 +86,8 @@ class ArchiveTests(unittest.TestCase):
         with patch.object(m, "urlopen", return_value=response) as urlopen:
             result = m.head_object("ndhmoptimized/statewide/2020/SPW/5ft/test.tif")
         self.assertEqual(result["status"], "PRESENT")
-        self.assertNotIn("sha256", json.dumps(result).lower())
+        self.assertNotIn("contentSha256", result)
+        self.assertIn("etagNotSha256", result)
         self.assertEqual(urlopen.call_args.args[0].get_method(), "HEAD")
 
     def test_404_is_not_found(self):
