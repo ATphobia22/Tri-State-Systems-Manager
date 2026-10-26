@@ -242,6 +242,15 @@
     "engineeringUse": {
       "const": "not-authorized",
       "description": "Device-compass waypoints are not authorized as survey, parcel-boundary, hydraulic-design, or regulatory evidence without independent validation."
+    },
+    "coordinateEpoch": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 1900,
+      "maximum": 2100,
+      "description": "Declared coordinate observation epoch (decimal year), not a timestamp or a datum transformation. Required by the TSM semantic validator for NAD83(2011) waypoint frames."
     }
   }
 }

@@ -27,7 +27,8 @@ import { attachConfiguredPmtilesPolygonLayer } from '../lib/pmtiles-overlay';
 
 const TERRAIN_3D_TILESET_URL = `${import.meta.env.BASE_URL}3d-tiles/terrain-3dep/tileset.json`;
 
-const ANCHOR: [number, number] = [-88.005075, 37.845887];
+// Approximate city-scale starting point, never a residential parcel or site centroid.
+const REGIONAL_CENTER: [number, number] = [-87.90, 37.93];
 
 const TRI_STATE_MAX_BOUNDS: [[number, number], [number, number]] = [
   [-90.0, 36.0],
@@ -93,8 +94,8 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       map = new maplibregl.Map({
         container: containerRef.current,
         style: buildTwinStyle(),
-        center: ANCHOR,
-        zoom: 14,
+        center: REGIONAL_CENTER,
+        zoom: 12,
         pitch: initialUrl.pitch,
         bearing: initialUrl.bearing,
         maxPitch: 85,

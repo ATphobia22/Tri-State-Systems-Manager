@@ -1,0 +1,107 @@
+{
+  "schemaVersion": "tsm.igio-data-harvest-source-catalog.v1",
+  "sourcePublication": "2025-12-18",
+  "lastOfficialReview": "2026-10-26",
+  "scope": "Indiana Data Harvest 2025 and current hosted framework services",
+  "authoritativeAnnouncements": [
+    "https://www.in.gov/gis/geoinsights/posts/data-releases-data-harvest-2025-and-imagery/",
+    "https://www.in.gov/gis/geoinsights/posts/data-harvest-naming-convention-update/",
+    "https://www.in.gov/gis/geoinsights/posts/data-harvest/"
+  ],
+  "policy": {
+    "runtime": "offline-frozen-receipt-only",
+    "currentServiceRule": "Mutable _Current names resolve latest published service data; require verified vintage from released archive/metadata before claiming a specific year.",
+    "projection": "All service-level metadata must be checked at extraction time; EPSG:4326 service geometry is NOT EPSG:2966 engineering coordinates.",
+    "vertical": "2-D parcels/addresses/road/boundary services have no NAVD88 benchmark authority. Never interpret polygon Z or feature display as LAG/FFE.",
+    "privacy": "Aggregate/agency boundaries are contextual; do not publish private addresses, parcel IDs or raw feature attributes without explicit privacy review.",
+    "releaseGate": "Do not infer county completeness, legal survey precision or an adopted flood determination from a statewide Current endpoint."
+  },
+  "sources": [
+    {
+      "id": "INDIANA-GIO-PARCELS-CURRENT",
+      "kind": "parcel",
+      "url": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_Current/FeatureServer",
+      "layerCountMin": 1,
+      "geometryType": "esriGeometryPolygon",
+      "dataClass": "cadastral-context",
+      "agency": "Indiana Geographic Information Office",
+      "sourceType": "mutable-current-service",
+      "collectionCycle": "2025",
+      "countyCoverage": "verify-geometry-at-extraction",
+      "verticalDatum": "NOT_SPECIFIED",
+      "authorityClass": "INFORMATIONAL_ONLY",
+      "geometrySrid": 4326,
+      "admission": "snapshot+hash+county-filter+source-feature-IDs+metadata-vintage-proof"
+    },
+    {
+      "id": "INDIANA-GIO-ADMIN-CURRENT",
+      "kind": "administrative",
+      "url": "https://gisdata.in.gov/server/rest/services/Hosted/Administrative_Boundaries_of_Indiana_Current/FeatureServer",
+      "layerCountMin": 14,
+      "geometryType": "esriGeometryPolygon",
+      "dataClass": "administrative-context",
+      "agency": "Indiana Geographic Information Office",
+      "sourceType": "mutable-current-service",
+      "collectionCycle": "2025",
+      "countyCoverage": "verify-geometry-at-extraction",
+      "verticalDatum": "NOT_SPECIFIED",
+      "authorityClass": "INFORMATIONAL_ONLY",
+      "geometrySrid": 4326,
+      "admission": "snapshot+hash+county-filter+source-feature-IDs+metadata-vintage-proof"
+    },
+    {
+      "id": "INDIANA-GIO-ROADS-CURRENT",
+      "kind": "roads",
+      "url": "https://gisdata.in.gov/server/rest/services/Hosted/Road_Centerlines_of_Indiana_Current/FeatureServer",
+      "layerCountMin": 1,
+      "geometryType": "esriGeometryPolyline",
+      "dataClass": "transportation-context",
+      "agency": "Indiana Geographic Information Office",
+      "sourceType": "mutable-current-service",
+      "collectionCycle": "2025",
+      "countyCoverage": "verify-geometry-at-extraction",
+      "verticalDatum": "NOT_SPECIFIED",
+      "authorityClass": "INFORMATIONAL_ONLY",
+      "geometrySrid": 4326,
+      "admission": "snapshot+hash+county-filter+source-feature-IDs+metadata-vintage-proof"
+    },
+    {
+      "id": "INDIANA-GIO-ADDRESSES-CURRENT",
+      "kind": "addresses",
+      "url": "https://gisdata.in.gov/server/rest/services/Hosted/Address_Points_of_Indiana_Current/FeatureServer",
+      "layerCountMin": 1,
+      "geometryType": "esriGeometryPoint",
+      "dataClass": "address-context",
+      "agency": "Indiana Geographic Information Office",
+      "sourceType": "mutable-current-service",
+      "collectionCycle": "2025",
+      "countyCoverage": "verify-geometry-at-extraction",
+      "verticalDatum": "NOT_SPECIFIED",
+      "authorityClass": "INFORMATIONAL_ONLY",
+      "geometrySrid": 4326,
+      "admission": "snapshot+hash+county-filter+source-feature-IDs+metadata-vintage-proof"
+    }
+  ],
+  "imagery": {
+    "id": "INDIANA-GIO-CURRENT-IMAGERY",
+    "url": "https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_Current_Imagery/ImageServer",
+    "awsOpenDataCatalog": "https://registry.opendata.aws/in-imagery/",
+    "sourceType": "mutable-current-image-service",
+    "collection2025Region": "central-Indiana-tier",
+    "poseyRegion": "western-Indiana-tier",
+    "poseyCountyVintage": "UNVERIFIED",
+    "posey2025AcquisitionEvidence": false,
+    "poseyCountyDataAcceptance": "PENDING_METADATA_AND_COVERAGE_QA",
+    "authorityClass": "INFORMATIONAL_ONLY",
+    "verticalDatum": "NOT_SPECIFIED",
+    "rule": "2025 central-tier imagery release must never be represented as 2025 Posey coverage; retrieve actual county tile metadata, acquisition date, QA/QC and hash before adopting new imagery.",
+    "notes": "Unverified candidate future cycles are not accepted products."
+  },
+  "buildings": {
+    "status": "INDEPENDENT_ACCEPTANCE",
+    "publishedFeatureCount": 22815,
+    "previousSourceTarget": 23082,
+    "authority": "IGIO older lidar-derived footprints",
+    "rule": "Harvest parcel, road, address and administrative services do not contain replacement source building OBJECTIDs; 267-building delta remains unresolved until independently reconciled."
+  }
+}

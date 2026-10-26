@@ -6,7 +6,13 @@
         "authorityClass": "DERIVED",
         "engineeringUse": false,
         "regulatoryUse": false,
-        "description": "22,815 Posey County building footprints with LiDAR-derived heights. Screening-level visualization only; not survey-grade or regulatory evidence."
+        "description": "22,815 Posey County building footprints with LiDAR-derived heights. Screening-level visualization only; not survey-grade or regulatory evidence.",
+        "publishedFeatureCount": 22815,
+        "expectedAuthoritativeFeatureCount": 23082,
+        "sourceIdsReconciled": false,
+        "sourceInventoryVerified": false,
+        "coverageBasis": "Published tileset description versus 23,082-feature target; original OBJECTID set comparison and geometry/height acceptance still pending",
+        "completenessStatus": "PARTIAL_SOURCE_UNVERIFIED"
       }
     }
   },

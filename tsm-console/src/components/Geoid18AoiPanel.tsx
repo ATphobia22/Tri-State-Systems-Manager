@@ -6,7 +6,6 @@ import {
   type Geoid18AoiCatalog,
 } from '../lib/geodetic/posey-geoid18-aoi';
 
-const BONEBANK = { lat: 37.845887, lon: -88.005075 };
 
 /**
  * Educational GEOID18 conversion playground (Scope B).
@@ -17,8 +16,8 @@ export default function Geoid18AoiPanel() {
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<'h_to_H' | 'H_to_h'>('h_to_H');
   const [valueM, setValueM] = useState('100');
-  const [lat, setLat] = useState(String(BONEBANK.lat));
-  const [lon, setLon] = useState(String(BONEBANK.lon));
+  const [lat, setLat] = useState('');
+  const [lon, setLon] = useState('');
   const [result, setResult] = useState<ConversionResult | null>(null);
 
   useEffect(() => {
@@ -29,6 +28,10 @@ export default function Geoid18AoiPanel() {
 
   const run = (): void => {
     if (!catalog) return;
+    if (!lat.trim() || !lon.trim()) {
+      setResult({ ok: false, reason: 'Select a public regional sample or enter valid coordinates.' });
+      return;
+    }
     const v = Number(valueM);
     const la = Number(lat);
     const lo = Number(lon);
@@ -50,12 +53,28 @@ export default function Geoid18AoiPanel() {
       <div style={{ fontWeight: 700, color: '#f8fafc' }}>GEOID18 playground (educational)</div>
       <div style={{ color: '#94a3b8', fontSize: 11, marginTop: 4 }}>
         H = h − N · model GEOID18 · CONUS fit σ ≈ 1.27 cm (fit to GPS-on-BM, not absolute accuracy).
-        DERIVED only · not OPUS · not LOMA input · outside the verified AOI sample, conversion is unavailable.
+        DERIVED only · not OPUS · not LOMA input · conversion is only allowed at an explicitly recorded sample (within 2 m), not interpolated across the county.
       </div>
       {error && <div role="alert" style={{ color: '#fca5a5' }}>{error}</div>}
       {catalog && (
         <>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: 2, fontSize: 11 }}>
+              Public regional sample
+              <select
+                defaultValue=""
+                onChange={(event) => {
+                  const selected = catalog.points.find((point) => point.id === event.target.value);
+                  setLat(selected ? String(selected.lat) : '');
+                  setLon(selected ? String(selected.lon) : '');
+                  setResult(null);
+                }}
+                style={{ minHeight: 36, background: '#020617', color: '#e2e8f0', border: '1px solid #334155' }}
+              >
+                <option value="">Choose a sample</option>
+                {catalog.points.map((point) => <option key={point.id} value={point.id}>{point.id}</option>)}
+              </select>
+            </label>
             <label style={{ display: 'flex', flexDirection: 'column', gap: 2, fontSize: 11 }}>
               Mode
               <select
@@ -116,7 +135,7 @@ export default function Geoid18AoiPanel() {
             <div style={{ marginTop: 8, color: '#bbf7d0', fontSize: 12 }}>
               N = {result.N_m.toFixed(3)} m ({result.point.id}) → output{' '}
               <strong>{result.output_m.toFixed(3)} m</strong> ({result.output_ft.toFixed(2)} ft)
-              · fit σ {result.fit_sigma_cm} cm (CONUS)
+              · model-fit σ {result.fit_sigma_cm} cm (CONUS; not local N uncertainty)
             </div>
           )}
           {result && !result.ok && (

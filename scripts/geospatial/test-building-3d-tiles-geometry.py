@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import importlib.util
+import json
+import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 from shapely.geometry import Polygon
@@ -56,7 +59,114 @@ def test_polygon_hole_and_multipolygon() -> None:
     assert len(positions) == len(normals)
 
 
+def sample_feature(identifier: int, *, height_ft: float | None = 16.0,
+                   ground_ft: float = 382.0) -> dict:
+    props = {
+        "igioObjectId": identifier,
+        "groundElevationFt": ground_ft,
+        "lidarHeightStatus": "OK" if height_ft is not None else "UNAVAILABLE",
+        "heightProvenance": "OBSERVED" if height_ft is not None else "UNAVAILABLE",
+        "lidarHeightFt": height_ft,
+        "lidarHeightDatum": "NAVD88",
+        "lidarHeightUnit": "ftUS",
+        "lidarGroundElevM": ground_ft * (1200.0 / 3937.0),
+    }
+    return {
+        "type": "Feature",
+        "properties": props,
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": [[
+                [-87.901, 38.000], [-87.900, 38.000],
+                [-87.900, 38.001], [-87.901, 38.001],
+                [-87.901, 38.000],
+            ]],
+        },
+    }
 
+
+def run_builder(features: list[dict], expected: int) -> tuple[subprocess.CompletedProcess, dict | None]:
+    with tempfile.TemporaryDirectory(prefix="tsm-building-unit-") as d:
+        root = Path(d)
+        src = root / "input.geojson"
+        out = root / "tiles"
+        src.write_text(json.dumps({"type": "FeatureCollection", "features": features}))
+        proc = subprocess.run([
+            sys.executable, str(MODULE_PATH), "--geojson", str(src),
+            "--out-dir", str(out), "--expected-buildings", str(expected),
+        ], text=True, capture_output=True)
+        if proc.returncode == 0:
+            validator = subprocess.run([
+                sys.executable, str(MODULE_PATH.with_name("validate-building-3d-tiles.py")),
+                "--tileset", str(out / "tileset.json"), "--tiles-dir", str(out),
+                "--expected-buildings", str(expected), "--expected-glbs", str(expected),
+            ], text=True, capture_output=True)
+            assert validator.returncode == 0, (
+                "Generated 3D Tiles failed production validation:\n"
+                + validator.stdout + validator.stderr
+            )
+            tileset = json.loads((out / "tileset.json").read_text())
+            manifest = json.loads((out / "manifest.json").read_text())
+            report = json.loads((out / "rejected-buildings.json").read_text())
+            return proc, {"tileset": tileset, "manifest": manifest, "report": report,
+                          "files": sorted(x.name for x in out.glob("*.glb"))}
+        report = (out / "rejected-buildings.json")
+        return proc, {"report": json.loads(report.read_text())} if report.is_file() else None
+
+
+def test_real_height_from_feature_and_exact_source_id_count() -> None:
+    records = [sample_feature(22, height_ft=11.0), sample_feature(5, height_ft=19.5)]
+    proc, result = run_builder(records, expected=2)
+    assert proc.returncode == 0, proc.stderr
+    assert result is not None
+    assert result["files"] == ["22.glb", "5.glb"]
+    children = result["tileset"]["root"]["children"]
+    assert [ch["extras"]["tsm"]["sourceObjectId"] for ch in children] == [5, 22]
+    assert [ch["extras"]["tsm"]["lidarHeightFt"] for ch in children] == [19.5, 11.0]
+    assert all(ch["extras"]["tsm"]["heightProvenance"] == "OBSERVED" for ch in children)
+    assert result["manifest"]["input"]["heightSources"]["OBSERVED"] == 2
+    assert result["report"]["rejectedCount"] == 0
+
+
+def test_missing_height_and_source_id_are_not_silently_skipped() -> None:
+    proc, result = run_builder([sample_feature(5), sample_feature(6, height_ft=None)], expected=2)
+    assert proc.returncode != 0, "missing LiDAR height must prevent 100% acceptance"
+    assert result is not None
+    assert result["report"]["generatedContentCount"] == 1
+    assert result["report"]["rejectedCount"] == 1
+    assert result["report"]["rejected"][0]["sourceObjectId"] == 6
+    assert "UNAVAILABLE_LIDAR_HEIGHT" in result["report"]["rejected"][0]["reason"]
+    proc, result = run_builder([sample_feature(5), sample_feature(5)], expected=2)
+    assert proc.returncode != 0, "duplicate OBJECTIDs must never pass acceptance"
+    assert result is None
+    assert "duplicate" in proc.stderr.lower()
+
+
+def test_dem_gap_falls_back_to_measured_navad88_lidar_ground_only() -> None:
+    observed = sample_feature(14)
+    del observed["properties"]["groundElevationFt"]
+    proc, result = run_builder([observed], expected=1)
+    assert proc.returncode == 0, proc.stderr
+    assert result is not None
+    metadata = result["tileset"]["root"]["children"][0]["extras"]["tsm"]
+    assert metadata["groundElevationProvenance"] == "LIDAR_GROUND_MEDIAN_NAVD88"
+    assert abs(metadata["groundElevationFtNavd88"] - 382.0) < 0.005
+
+    undatumed = sample_feature(15)
+    del undatumed["properties"]["groundElevationFt"]
+    undatumed["properties"]["lidarHeightDatum"] = "NGVD29"
+    proc, result = run_builder([undatumed], expected=1)
+    assert proc.returncode != 0
+    assert result is not None
+    assert result["report"]["rejectedCount"] == 1
+    assert "NAVD88" in result["report"]["rejected"][0]["reason"]
+
+
+def test_expected_count_rejects_incomplete_source_before_mesh_generation() -> None:
+    proc, result = run_builder([sample_feature(5)], expected=2)
+    assert proc.returncode != 0
+    assert "source feature count 1 != 2" in proc.stderr
+    assert result is None
 
 
 def test_full_pipeline_uses_measured_heights_and_reconciles_ids() -> None:
@@ -108,14 +218,18 @@ def test_full_pipeline_uses_measured_heights_and_reconciles_ids() -> None:
                 module.main()
                 raise AssertionError("incomplete source unexpectedly accepted")
             except SystemExit as exc:
-                assert "source-to-tile identity coverage 1/2" in str(exc)
+                assert "incomplete source-tied building tiles: 1/2" in str(exc)
         gap = json.loads((root / "incomplete" / "rejected-features.json").read_text())
         assert gap["rejectedCount"] == 1
         assert gap["rejectedSourceObjectIdsAndReasons"][0]["sourceObjectId"] == 19
-        assert gap["rejectedSourceObjectIdsAndReasons"][0]["reason"] == "unavailable_lidar_height"
+        assert gap["rejectedSourceObjectIdsAndReasons"][0]["reason"] == "UNAVAILABLE_LIDAR_HEIGHT"
 
 
 if __name__ == "__main__":
-    test_full_pipeline_uses_measured_heights_and_reconciles_ids()
     test_polygon_hole_and_multipolygon()
-    print("building geometry regression: PASS")
+    test_full_pipeline_uses_measured_heights_and_reconciles_ids()
+    test_real_height_from_feature_and_exact_source_id_count()
+    test_missing_height_and_source_id_are_not_silently_skipped()
+    test_expected_count_rejects_incomplete_source_before_mesh_generation()
+    test_dem_gap_falls_back_to_measured_navad88_lidar_ground_only()
+    print("building geometry and source provenance regression: PASS")
