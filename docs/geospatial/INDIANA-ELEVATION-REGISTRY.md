@@ -76,3 +76,14 @@ generates a deterministic, explicitly \`NOT_PROBED\` offline plan.
 Continue following the existing strict 23,082-source OGC 3D Tiles 1.1
 acceptance criteria and keep the public visual preview informational.
 Related: https://github.com/ATphobia22/Tri-State-Systems-Manager/issues/416 .
+
+## Live GeoTIFF metadata inspection
+
+The dedicated GitHub Actions `sample-raster-metadata` job downloads **one**
+known public 2020 nDHM COG, capped at 12 MiB, to inspect its embedded CRS,
+horizontal pixel resolution, band-unit metadata, datatype, nodata flag, and
+masked subsample statistics. Only the SHA-256-pinned *metadata receipt* is
+retained; the raster is **not** uploaded. This non-acceptance QA remains
+separate from source inventory and does not establish a measured roof height.
+If unit metadata is missing, mark height units **UNVERIFIED** rather than
+assuming U.S. survey feet from the horizontal CRS.
