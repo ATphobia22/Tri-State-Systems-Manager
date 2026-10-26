@@ -6,7 +6,7 @@ TSM is qualified to receive grants.
 
 Machine-readable catalog:
 [`data/registries/tsm-official-funding-portals-2026-10-26.json`](../../data/registries/tsm-official-funding-portals-2026-10-26.json).
-It includes 24 official discovery, history, applications and agency-system
+It includes 25 official discovery, history, applications and agency-system
 entries, all flagged `specificOpportunityStatus: NOT_VERIFIED` unless
 the separate dated example explicitly reports a live official listing.
 
@@ -32,9 +32,11 @@ the separate dated example explicitly reports a live official listing.
    have their own accounts, eligibility and workflows. OCRA's 2026 construction
    program uses eGMS, IDHS has both older iGMS and newer IntelliGrants,
    and INDOT rail uses Access Indiana/ITAP/GRIP.
-6. **Grant administration:** [Indiana SBA eCivis/Euna](https://www.in.gov/sba/grants/ecivis-implementation-information/)
-   coordinates state agency/subrecipient grants, but cannot be assumed
-   to be the application portal for **every** Indiana program.
+6. **Grant administration:** [Indiana SBA eCivis implementation guidance and the current Euna/AmpliFund opportunity listing](https://www.in.gov/sba/grants/ecivis-implementation-information/)
+   describes earlier grants implementation and lifecycle, while the
+   [current SBA opportunities listing](https://www.in.gov/sba/grants/state-agency-grant-opportunities/)
+   links to **Euna Grants Powered by AmpliFund**. Neither name establishes
+   one universal application portal for all Indiana grantors.
 7. **Geospatial funding candidates:** [Indiana GIO](https://www.in.gov/gis/)
    and the [IndianaMap ATLAS page](https://www.indianamap.org/pages/atlasgrant~2536c15f8d014d0ca76a769663067653)
    are discovery/context only until an actual current solicitation is confirmed.
