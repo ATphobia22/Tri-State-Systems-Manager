@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { readFile } from 'node:fs/promises';
+import { validateFile as validateIgIoHarvest } from './validate-igio-harvest-contract.mjs';
 
 const registry = JSON.parse(await readFile(new URL('../../data/registries/tsm-tri-state-data-fabric-v2.json', import.meta.url)));
 const required = ['USGS-3DEP','USGS-TNM-NHDPLUS-HR','FEMA-NFHL','USACE-NLD','USACE-SECTION-204','USDA-NRCS-SSURGO','USDA-NASS-CDL','IND-DNR-INFIP','OVERTURE-MAPS-BUILDINGS','INDIANA-3DEP-QL2-2016-2020','INDIANA-IGIC-LIDAR-DEM-CATALOG','NOAA-OCM-2024-IN-DNR-COASTLINE-10356'];
@@ -26,4 +27,5 @@ if (coast.overlapWithPrimaryTriStatePilotAOI !== false) throw new Error('NOAA Co
 if (!/GEOID18/.test(coast.metadataSpatialReference) || !/verify each downloaded file/i.test(coast.metadataSpatialReference)) throw new Error('NOAA LiDAR spatial reference must preserve its verification gate.');
 if (registry.scope.horizontal_crs !== 'EPSG:2966') throw new Error('Tri-state horizontal engineering frame must remain EPSG:2966.');
 if (!/NAVD88/.test(registry.scope.vertical_datum_policy)) throw new Error('Vertical datum policy must explicitly preserve NAVD88 metadata.');
-console.log('Tri-state data-fabric registry validation passed.');
+await validateIgIoHarvest();
+console.log('Tri-state data-fabric registry and Indiana GIO harvest validation passed.');
