@@ -11,7 +11,7 @@ import { fileURLToPath } from "node:url";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_HOSTS = new Set(["api.waterdata.usgs.gov", "hazards.fema.gov", "gisdata.in.gov"]);
-const SOURCES = {
+export const SOURCES = {
   "usgs-api-index": {
     url: "https://api.waterdata.usgs.gov/ogcapi/v1/?f=json",
     file: "usgs-water-data-api-landing.json",
