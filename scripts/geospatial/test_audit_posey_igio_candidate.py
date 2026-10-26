@@ -78,6 +78,15 @@ class CandidateAuditTests(unittest.TestCase):
         self.assertNotIn("PRIVATE STREET", rendered)
         self.assertNotIn("SECRET_LIDAR", rendered)
 
+    def test_official_string_lidar_year_metadata_not_promoted(self):
+        raw = feature()
+        raw["properties"]["source"] = "IGIO Building_Footprints_of_Indiana_2016_2020"
+        raw["properties"]["lidaryear"] = "2020"
+        receipt, _ = self.run_audit([raw], 1)
+        self.assertEqual(receipt["declaredLidarYearsUnverified"], {"2020": 1})
+        self.assertEqual(receipt["declaredSourceLabelsUnverified"], {"DECLARED_IGIO_LIKE": 1})
+        self.assertFalse(receipt["sourceAuthorityIndependentlyVerified"])
+
     def test_sha256_pin_detects_changed_source(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "source.json"
