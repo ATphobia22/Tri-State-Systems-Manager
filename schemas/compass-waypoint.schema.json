@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:tsm:schemas:compass-waypoint:1.0.0",
   "title": "TSM Compass Waypoint",
-  "description": "A candidate field waypoint recorded from a device compass or entered coordinates. Not survey-grade evidence by default.",
+  "description": "A candidate field waypoint recorded from a device compass or entered coordinates. Not survey-grade evidence by default. Source coordinate/datum combinations are validated operationally using pyproj; schema validation alone does not establish positional accuracy.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -57,15 +57,18 @@
           "enum": [
             "m",
             "ft",
-            null
-          ]
+            null,
+            "ftUS"
+          ],
+          "description": "Explicit height unit, US survey foot and international foot are distinct."
         },
         "verticalDatum": {
           "type": [
             "string",
             "null"
           ],
-          "maxLength": 128
+          "maxLength": 128,
+          "description": "Source vertical datum only; legacy and ellipsoidal heights require an independently verified NAVD88 transformation before elevation ingest."
         },
         "horizontalAccuracyMeters": {
           "type": [
@@ -74,13 +77,41 @@
           ],
           "minimum": 0
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "elevation": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "elevation"
+            ]
+          },
+          "then": {
+            "required": [
+              "verticalDatum",
+              "elevationUnit"
+            ],
+            "properties": {
+              "verticalDatum": {
+                "type": "string"
+              },
+              "elevationUnit": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
     },
     "coordinateReferenceSystem": {
       "type": "string",
       "minLength": 1,
       "maxLength": 128,
-      "description": "Use an explicit CRS identifier; for geographic latitude/longitude, record EPSG:4326 or OGC:CRS84 according to the chosen axis-order convention."
+      "description": "Use an explicit CRS identifier; for geographic latitude/longitude, record EPSG:4326 or OGC:CRS84 according to the chosen axis-order convention. Coordinates keys are geographic latitude/longitude degrees; EPSG:2966 projected US-survey-foot eastings/northings must use a distinct projected payload rather than relabeling these fields."
     },
     "heading": {
       "type": "object",
@@ -251,6 +282,14 @@
       "minimum": 1900,
       "maximum": 2100,
       "description": "Declared coordinate observation epoch (decimal year), not a timestamp or a datum transformation. Required by the TSM semantic validator for NAD83(2011) waypoint frames."
+    },
+    "sourceHorizontalReferenceFrame": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 80,
+      "description": "Optional explicit realization, e.g. NAD83(2011); never infer this from EPSG:4326."
     }
   }
 }

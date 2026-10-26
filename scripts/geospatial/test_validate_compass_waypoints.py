@@ -99,6 +99,7 @@ class WaypointEvidenceTests(unittest.TestCase):
             cmd = [sys.executable, str(SCRIPT), "--input", str(src), "--report", str(out)]
             proc = subprocess.run(cmd, text=True, capture_output=True, check=False)
             self.assertEqual(proc.returncode, 1, proc.stderr)
+            self.assertTrue(out.is_file(), f"CLI failed to write report: {proc.stderr}")
             self.assertEqual(json.loads(out.read_text())["invalid"], 1)
             self.assertNotIn("synthetic example", proc.stdout)
 
