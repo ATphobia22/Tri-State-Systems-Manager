@@ -1,0 +1,30 @@
+name: TSM Unreal Shipping Artifact Evidence
+on:
+  pull_request:
+    paths:
+      - scripts/release/verify_unreal_shipping.py
+      - scripts/release/test_verify_unreal_shipping.py
+      - .github/workflows/unreal-shipping-evidence.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-contract:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Validate release evidence gate with synthetic fixtures
+        run: python -m unittest discover -s scripts/release -p 'test_verify_unreal_shipping.py' -v
+      - name: Explicitly reject a missing Unreal Shipping package
+        shell: bash
+        run: |
+          if python scripts/release/verify_unreal_shipping.py --root /tmp/tsm-unreal-shipping-absent --receipt /tmp/should-not-exist.json; then
+            echo 'ERROR: Unreal gate incorrectly accepted absent package' >&2
+            exit 1
+          fi
+          test ! -e /tmp/should-not-exist.json
