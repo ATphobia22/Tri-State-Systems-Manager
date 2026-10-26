@@ -19,7 +19,8 @@ import numpy as np
 import rasterio
 from rasterio.mask import mask
 from rasterio.errors import RasterioError
-from shapely.geometry import shape, mapping
+from shapely.geometry import shape, mapping, box
+from shapely.strtree import STRtree
 from shapely.ops import transform as shape_transform
 from pyproj import CRS, Transformer
 
@@ -58,11 +59,54 @@ def raster_horizontal_crs(ds):
     return crs if crs.is_projected else None
 
 
-def review_polygon(geom, rasters):
+def index_rasters(rasters):
+    """Build one bounded WGS84 index; never reopen every TIFF for every building.
+
+    Native rasters may use a compound NAD83(HARN)/NAVD88 CRS for which EPSG
+    identification is unavailable. Inspect its projected horizontal component,
+    transform bounds with densification, and conservatively pad the envelope.
+    The precise overlap/pixel mask is still evaluated against the native CRS.
+    """
+    envelopes, indexed_paths = [], []
+    rejected = 0
+    for path in rasters:
+        try:
+            with rasterio.open(path) as ds:
+                horiz = raster_horizontal_crs(ds)
+                if horiz is None or ds.count != 1 or ds.units[0] not in FTUS_UNITS:
+                    rejected += 1
+                    continue
+                trans = Transformer.from_crs(horiz, 'EPSG:4326', always_xy=True)
+                left, bottom, right, top = trans.transform_bounds(
+                    ds.bounds.left, ds.bounds.bottom,
+                    ds.bounds.right, ds.bounds.top, densify_pts=21
+                )
+                if not all(math.isfinite(x) for x in (left, bottom, right, top)):
+                    rejected += 1
+                    continue
+                if not (-180 <= left < right <= 180 and -90 <= bottom < top <= 90):
+                    rejected += 1
+                    continue
+                # Over-selection is safe; under-selection would lose evidence.
+                # The 0.001-degree pad accommodates frame differences at edges.
+                margin = 0.001
+                envelopes.append(box(left-margin, bottom-margin,
+                                     right+margin, top+margin))
+                indexed_paths.append(path)
+        except (ValueError, RasterioError, OSError):
+            rejected += 1
+    if not envelopes:
+        raise ValueError('No nDHM tiles with valid horizontal CRS and unit metadata')
+    return STRtree(envelopes), indexed_paths, rejected
+
+
+def review_polygon(geom, rasters, tile_sha_cache=None):
     """Return pixel QA candidate *only*, without admitting a roof measurement."""
     if geom.is_empty or not geom.is_valid or geom.geom_type not in ('Polygon','MultiPolygon'):
         return {'reviewStatus':'INVALID_FOOTPRINT_TOPOLOGY'}
     pixels, tile_hashes, notices = [], [], set()
+    if tile_sha_cache is None:
+        tile_sha_cache = {}
     intersects = 0
     for path in rasters:
         try:
@@ -88,7 +132,13 @@ def review_polygon(geom, rasters):
                 values=values[np.isfinite(values)]
                 if values.size:
                     pixels.extend(map(float,values))
-                    tile_hashes.append({'archiveTile':path.name,'tileSha256':sha(path)})
+                    cache_key = str(path)
+                    if cache_key not in tile_sha_cache:
+                        tile_sha_cache[cache_key] = sha(path)
+                    tile_hashes.append({
+                        'archiveTile': path.name,
+                        'tileSha256': tile_sha_cache[cache_key],
+                    })
         except (ValueError, RasterioError, OSError):
             notices.add('RASTER_READ_OR_COVERAGE_ERROR')
     if not pixels:
@@ -136,12 +186,19 @@ def audit(input_file, tile_dir, *, limit=None):
         raise ValueError('No bounded verified 2020 nDHM tiles')
     if limit is not None and not 1<=limit<=MAX_BUILDINGS:
         raise ValueError('Invalid review limit')
+    tree, indexed_paths, rejected_tiles = index_rasters(rasters)
+    sha_cache = {}
     reviewed=[]
     for oid,g in sorted(gaps)[:limit]:
         try:
             if g is None:
                 raise ValueError('Missing geometry')
-            rec=review_polygon(shape(g),rasters)
+            geom=shape(g)
+            if geom.is_empty or not geom.is_valid or geom.geom_type not in ('Polygon','MultiPolygon'):
+                rec={'reviewStatus':'INVALID_FOOTPRINT_TOPOLOGY'}
+            else:
+                candidate_paths = [indexed_paths[int(i)] for i in tree.query(geom)]
+                rec=review_polygon(geom, candidate_paths, sha_cache)
         except (ValueError,TypeError):
             rec={'reviewStatus':'INVALID_FOOTPRINT_TOPOLOGY'}
         reviewed.append({'sourceObjectId':oid,**rec})
@@ -162,6 +219,10 @@ def audit(input_file, tile_dir, *, limit=None):
         'reviewedCount':len(reviewed),
         'reviewTruncated':len(reviewed)<len(gaps),
         'rasterInputCount':len(rasters),
+        'rasterIndexedCount':len(indexed_paths),
+        'rasterMetadataRejectedCount':rejected_tiles,
+        'rasterInputStatus':'PARTIAL_SOURCE_METADATA' if rejected_tiles else 'ALL_INDEXED',
+        'uniqueRasterDigestsComputed':len(sha_cache),
         'reasonCounts':statuses,
         'reviewRows':reviewed,
         'caveat':'Relative nDHM is not uniquely roof elevation: trees, nodata, footprint mismatch, acquisition vintage and geometric uncertainty require validation against point-cloud roof evidence. No accepted heights or meshes are emitted.',
