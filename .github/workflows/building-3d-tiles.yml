@@ -216,13 +216,14 @@ jobs:
           test -s /tmp/tsm-igio/copc-tile-list.txt
       - name: Probe public IGIO Indiana 2020 nDHM and DEM recovery objects
         continue-on-error: true
+        timeout-minutes: 10
         shell: bash
         run: |
           set -euo pipefail
           python3 scripts/geospatial/verify_in_elevation_recovery_sources.py \
             --tile-list /tmp/tsm-igio/copc-tile-list.txt \
             --layers 2020_NDHM 2020_DEM \
-            --verify --workers 12 \
+            --verify --workers 16 --timeout 8 \
             --out /tmp/tsm-igio/indiana-elevation-source-inventory.json
       - name: Preserve Indiana elevation archive source inventory
         if: always()
