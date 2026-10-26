@@ -119,7 +119,11 @@ def audit(path: Path, *, expected_count: int = EXPECTED_COUNT,
         declared_sources["DECLARED_IGIO_LIKE" if properties.get("source") == DECLARED_SOURCE
                          else "OTHER_OR_UNDECLARED"] += 1
         year = properties.get("lidaryear")
-        declared_years[str(year) if type(year) is int and 2000 <= year <= 2035
+        # Official IGIO FeatureServer models lidaryear as a STRING.
+        # Accept a four-digit string or integer, never reveal arbitrary text.
+        year_text = str(year) if type(year) in (str, int) else ""
+        declared_years[year_text if len(year_text) == 4 and year_text.isascii()
+                       and year_text.isdecimal() and 2000 <= int(year_text) <= 2035
                        else "OTHER_OR_UNDECLARED"] += 1
     if len(ids) != expected_count:
         raise CandidateError("Source identity coverage differs from feature count")
