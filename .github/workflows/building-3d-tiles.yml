@@ -45,6 +45,7 @@ on:
   push:
     branches: [main]
     paths:
+      - 'scripts/release/chunk_offline_assets.py'
       - '.github/workflows/building-3d-tiles.yml'
       - 'scripts/geospatial/build-building-3d-tiles.py'
       - 'scripts/geospatial/build-hlod-tileset.py'
@@ -356,6 +357,35 @@ jobs:
           unzip -q "$zip" -d "$verify"
           (cd "$verify/3d-tiles/buildings" && sha256sum -c SHA256SUMS)
           rm -rf "$verify"
+      - name: Pack accepted implicit 3D Tiles as deterministic bounded-memory chunks
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/release/chunk_offline_assets.py pack \
+            --input-dir /tmp/tsm-buildings/implicit \
+            --output-dir /tmp/tsm-artifacts/tsm-buildings-3d-tiles-chunks \
+            --part-bytes 25165824 --compression none
+          python3 scripts/release/chunk_offline_assets.py verify \
+            --manifest /tmp/tsm-artifacts/tsm-buildings-3d-tiles-chunks/manifest.json
+          python3 scripts/release/chunk_offline_assets.py unpack \
+            --manifest /tmp/tsm-artifacts/tsm-buildings-3d-tiles-chunks/manifest.json \
+            --output-dir /tmp/tsm-buildings-chunks-verified
+          (cd /tmp/tsm-buildings-chunks-verified && sha256sum -c SHA256SUMS)
+      - name: Upload versioned lossless chunked 3D Tiles
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v4.6.2
+        with:
+          name: tsm-buildings-3d-tiles-chunks-${{ github.sha }}
+          path: /tmp/tsm-artifacts/tsm-buildings-3d-tiles-chunks/
+          retention-days: 90
+          compression-level: 0
+          if-no-files-found: error
+      - name: Download uploaded chunks for post-publication SHA-256 verification
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: tsm-buildings-3d-tiles-chunks-${{ github.sha }}
+          path: /tmp/tsm-artifact-upload-audit
+      - name: Verify chunk artifacts survived storage round trip
+        run: python3 scripts/release/chunk_offline_assets.py verify --manifest /tmp/tsm-artifact-upload-audit/manifest.json
       - name: Upload versioned artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
