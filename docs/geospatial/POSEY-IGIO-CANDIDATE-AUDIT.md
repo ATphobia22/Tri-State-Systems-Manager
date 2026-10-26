@@ -40,7 +40,7 @@ Source SHA-256: \`172c2568864b6c012dc1fdebab245e25d64d23582d548a3c5a7b8eb09d8dec
 Size 13,585,757 bytes; 23,082 features; 23,082 distinct \`objectid\` values;
 23,071 Polygon + 11 MultiPolygon; 12 invalid self-intersection footprints;
 no height or NAVD88 ground elevation attributes. The 12 invalid source IDs
-are in the [coordinate-redacted evidence receipt](../../data/evidence/posey-igio-candidate-20261026.receipt.json).
+are in the coordinate-redacted evidence receipt stored in the restricted evidence inventory.
 
 The candidate's reported \`lidaryear=2020\` and source strings are not
 independently verified source provenance. Counts are not evidence of correct
