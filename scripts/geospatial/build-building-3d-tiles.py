@@ -428,6 +428,7 @@ def main() -> None:
     skip_reasons: dict[str, str] = {}
     fallback_ids: list[int] = []
     ground_sources: dict[int, str] = {}
+    source_lod: dict[int, object] = {}
     for ft in features:
         props = ft.get("properties", {}) or {}
         sid = int(props.get("igioObjectId", props.get("sourceObjectId")))
@@ -496,6 +497,7 @@ def main() -> None:
                                   flooded, elev_ft, height_ft, height_class,
                                   len(polygons)))
         ground_sources[sid] = ground_elevation_provenance(props)
+        source_lod[sid] = props.get("achievedLod")
 
     skipped = len(skip_reasons)
     rejected = [{"sourceObjectId": int(source_id), "reason": reason}
@@ -507,6 +509,8 @@ def main() -> None:
         "rejectedCount": skipped,
         "rejected": rejected,
         "rejectedSourceObjectIdsAndReasons": rejected,
+        "rejectReasonCounts": {reason: sum(row["reason"] == reason for row in rejected)
+                               for reason in sorted({row["reason"] for row in rejected})},
     }
     for report_name in ("rejected-buildings.json", "rejected-features.json"):
         (args.out_dir / report_name).write_text(
@@ -556,6 +560,8 @@ def main() -> None:
                 "lidarHeightFt": t.height_ft,
                 "heightProvenance": t.height_provenance,
                 "geometryComponents": t.component_count,
+                "geometryMethod": "all_components_with_hole_walls",
+                "sourceLodClassification": source_lod[t.source_id],
             }},
         }
 
@@ -602,6 +608,8 @@ def main() -> None:
             "heightSources": {key: sum(t.height_provenance == key for t in tiles)
                               for key in ("OBSERVED", "DERIVED", "ESTIMATED_FALLBACK_INFORMATIONAL_ONLY")},
             "rejectedReport": "rejected-buildings.json",
+            "measuredHeightCount": sum(t.height_provenance in ("OBSERVED", "DERIVED") for t in tiles),
+            "explicitScreeningEstimateCount": len(fallback_ids),
         },
         "transformation": (
             "IGIO complete polygon components and holes -> topology-verified Delaunay/clipped "

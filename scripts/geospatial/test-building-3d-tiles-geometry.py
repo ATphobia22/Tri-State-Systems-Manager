@@ -169,8 +169,65 @@ def test_expected_count_rejects_incomplete_source_before_mesh_generation() -> No
     assert result is None
 
 
+def test_full_pipeline_uses_measured_heights_and_reconciles_ids() -> None:
+    import json
+    import tempfile
+    from unittest.mock import patch
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        source = root / "source.geojson"
+        output = root / "tiles"
+        square = [[-87.9, 38.0], [-87.899, 38.0], [-87.899, 38.001],
+                  [-87.9, 38.001], [-87.9, 38.0]]
+        def feature(sid: int, height: float, *, status: str = "OK") -> dict:
+            return {
+                "type": "Feature",
+                "properties": {
+                    "igioObjectId": sid, "groundElevationMeanFt": 375.0,
+                    "lidarHeightStatus": status, "heightProvenance": "OBSERVED",
+                    "lidarHeightFt": height,
+                },
+                "geometry": {"type": "Polygon", "coordinates": [square]},
+            }
+        payload = {"type": "FeatureCollection", "features": [feature(17, 15.0), feature(19, 22.5)]}
+        source.write_text(json.dumps(payload))
+        with patch.object(sys, "argv", ["builder", "--geojson", str(source),
+                                        "--out-dir", str(output),
+                                        "--expected-buildings", "2"]):
+            module.main()
+        manifest = json.loads((output / "manifest.json").read_text())
+        tileset = json.loads((output / "tileset.json").read_text())
+        rejected = json.loads((output / "rejected-features.json").read_text())
+        assert manifest["input"]["featureCount"] == 2
+        assert manifest["input"]["tileCount"] == 2
+        assert manifest["parameters"]["extrusionEstimated"] is False
+        assert rejected["rejectedCount"] == 0
+        assert [t["extras"]["tsm"]["sourceObjectId"] for t in tileset["root"]["children"]] == [17, 19]
+        assert (output / "17.glb").is_file() and (output / "19.glb").is_file()
+        assert (output / "SHA256SUMS").is_file()
+        assert tileset["root"]["children"][1]["boundingVolume"]["box"][11] > tileset["root"]["children"][0]["boundingVolume"]["box"][11]
+
+        # Replacing one measured height with unavailability must never allow
+        # a 2/2 claim and must produce precise non-secret ID diagnostics.
+        payload["features"][1]["properties"]["lidarHeightStatus"] = "UNAVAILABLE"
+        source.write_text(json.dumps(payload))
+        with patch.object(sys, "argv", ["builder", "--geojson", str(source),
+                                        "--out-dir", str(root / "incomplete"),
+                                        "--expected-buildings", "2"]):
+            try:
+                module.main()
+                raise AssertionError("incomplete source unexpectedly accepted")
+            except SystemExit as exc:
+                assert "incomplete source-tied building tiles: 1/2" in str(exc)
+        gap = json.loads((root / "incomplete" / "rejected-features.json").read_text())
+        assert gap["rejectedCount"] == 1
+        assert gap["rejectedSourceObjectIdsAndReasons"][0]["sourceObjectId"] == 19
+        assert gap["rejectedSourceObjectIdsAndReasons"][0]["reason"] == "UNAVAILABLE_LIDAR_HEIGHT"
+
+
 if __name__ == "__main__":
     test_polygon_hole_and_multipolygon()
+    test_full_pipeline_uses_measured_heights_and_reconciles_ids()
     test_real_height_from_feature_and_exact_source_id_count()
     test_missing_height_and_source_id_are_not_silently_skipped()
     test_expected_count_rejects_incomplete_source_before_mesh_generation()

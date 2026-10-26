@@ -87,6 +87,7 @@ jobs:
       - name: Syntax-check geospatial acceptance and tile tooling
         run: |
           python3 -m py_compile \
+            scripts/geospatial/test-building-3d-tiles-geometry.py \
             scripts/geospatial/tsm_geodesy.py \
             scripts/geospatial/build-hlod-tileset.py \
             scripts/geospatial/test-hlod-tileset.py \
