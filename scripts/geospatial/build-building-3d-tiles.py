@@ -631,9 +631,7 @@ def main() -> None:
         json.dumps(manifest, indent=2) + "\n")
     write_hashes(args.out_dir,
                  paths + [args.out_dir / "tileset.json",
-                          args.out_dir / "manifest.json",
-                           args.out_dir / "rejected-buildings.json",
-                           args.out_dir / "rejected-features.json"])
+                          args.out_dir / "manifest.json"])
     print(f"generated {len(tiles)} GLBs; skipped={skipped}; out={args.out_dir}")
 
 
