@@ -15,6 +15,9 @@ import os
 from pathlib import Path
 from typing import Any
 
+# Set before importing PROJ; do not download transformation grids implicitly.
+os.environ['PROJ_NETWORK'] = 'OFF'
+
 from jsonschema import Draft202012Validator, FormatChecker
 from pyproj import CRS
 from pyproj.exceptions import CRSError
@@ -22,7 +25,7 @@ from pyproj.exceptions import CRSError
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_SCHEMA = ROOT / "schemas" / "compass-waypoint.schema.json"
 DEFAULT_TARGET_VERTICAL_DATUM = "NAVD88"
-ALLOWED_GEOGRAPHIC_EPSG = {4326, 4979, 4269, 6318, 6319}
+ALLOWED_GEOGRAPHIC_EPSG = {4326, 4269, 6318}
 ALLOWED_CRS84 = {"OGC:CRS84", "urn:ogc:def:crs:OGC::CRS84"}
 NAVD88 = "NAVD88"
 PROJ_NETWORK_DISABLED = "OFF"
@@ -48,6 +51,8 @@ def _crs_errors(raw: Any) -> list[str]:
     if not crs.is_geographic:
         return ["PROJECTED_CRS_WITH_LATITUDE_LONGITUDE_FIELDS"]
     code = crs.to_epsg()
+    if code in (4979, 6319) or len(crs.axis_info) != 2:
+        return ['THREE_DIMENSIONAL_ELLIPSOID_CRS_WITH_NAVD88_HEIGHT_FIELD']
     if raw.upper() not in ALLOWED_CRS84 and code not in ALLOWED_GEOGRAPHIC_EPSG:
         return ["GEOGRAPHIC_CRS_NOT_IN_APPROVED_WAYPOINT_SET"]
     if len(crs.axis_info) < 2 or any(axis.unit_name.lower() not in ("degree", "degrees") for axis in crs.axis_info[:2]):
