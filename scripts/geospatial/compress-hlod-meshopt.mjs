@@ -106,7 +106,9 @@ export async function compressHlod({ inputDir, outputDir, cli = DEFAULT_ENCODER 
   if (!meta.isDirectory() || meta.isSymbolicLink()) throw new Error('Input must be a real directory');
   await assertOrdinaryFile(path.join(input, 'tileset.json'));
   await assertOrdinaryFile(path.join(input, 'manifest.json'));
-  await assertOrdinaryFile(cli);
+  // npm creates executable symlinks under node_modules/.bin. The CLI may be
+  // a symlink, but its resolved target must still be a normal local file.
+  if (!(await stat(cli)).isFile()) throw new Error('Local glTF Transform CLI is not a regular file');
   const sourceTileset = JSON.parse(await readFile(path.join(input, 'tileset.json'), 'utf8'));
   const sourceManifest = JSON.parse(await readFile(path.join(input, 'manifest.json'), 'utf8'));
   if (sourceManifest.authorityClass !== 'DERIVED' ||
