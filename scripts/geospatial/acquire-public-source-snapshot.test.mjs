@@ -82,3 +82,20 @@ test("bounded IGIO fetch rejects unexpected HTTP hosts and redirects", async () 
   assert.equal(requested.url,source.url);
   assert.equal(requested.redirect,"error");
 });
+
+test("ArcGIS text/plain JSON exception is restricted to exact cataloged URLs", async () => {
+  const official = SOURCES["igio-administrative-current"].url;
+  const good = await fetchBoundedJson(official, async () =>
+    new Response(JSON.stringify({ layers: [{ id: 0 }] }), {
+      headers: { "content-type": "text/plain; charset=utf-8" }
+    })
+  );
+  assert.equal(good.document.layers[0].id, 0);
+  await assert.rejects(fetchBoundedJson(
+    "https://gisdata.in.gov/server/rest/services/Hosted/Other_Current/FeatureServer?f=pjson",
+    async () => new Response('{"layers":[]}', { headers: { "content-type": "text/plain" } })
+  ), /expected JSON/);
+  await assert.rejects(fetchBoundedJson(
+    official, async () => new Response("<html/>", { headers: { "content-type": "text/html" } })
+  ), /expected JSON/);
+});
