@@ -76,36 +76,36 @@
             "null"
           ],
           "minimum": 0
-        },
-        "allOf": [
-          {
-            "if": {
-              "properties": {
-                "elevation": {
-                  "type": "number"
-                }
-              },
-              "required": [
-                "elevation"
-              ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "elevation": {
+                "type": "number"
+              }
             },
-            "then": {
-              "required": [
-                "verticalDatum",
-                "elevationUnit"
-              ],
-              "properties": {
-                "verticalDatum": {
-                  "type": "string"
-                },
-                "elevationUnit": {
-                  "type": "string"
-                }
+            "required": [
+              "elevation"
+            ]
+          },
+          "then": {
+            "required": [
+              "verticalDatum",
+              "elevationUnit"
+            ],
+            "properties": {
+              "verticalDatum": {
+                "type": "string"
+              },
+              "elevationUnit": {
+                "type": "string"
               }
             }
           }
-        ]
-      }
+        }
+      ]
     },
     "coordinateReferenceSystem": {
       "type": "string",
