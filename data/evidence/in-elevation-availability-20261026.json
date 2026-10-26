@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "tsm.igio-in-elevation-availability.v1",
+  "status": "S3_KEY_PRESENCE_VERIFIED_ONLY",
+  "classification": "INFORMATIONAL_ONLY",
+  "engineeringUse": false,
+  "regulatoryUse": false,
+  "heightPixelsVerified": false,
+  "sourceRegistry": "https://registry.opendata.aws/in-elevation/",
+  "sourceBucket": "giselevationingov",
+  "awsRegion": "us-east-2",
+  "sourceWorkflowRunId": 40262995508,
+  "sourceTileNamesUnique": 446,
+  "collectionYear2020": {
+    "product": "IGIO 5-foot NDHM",
+    "prefix": "ndhmoptimized/statewide/2020/SPW/5ft/",
+    "matchedTileNames": 446,
+    "expectedTileNames": 446
+  },
+  "collectionYear2013": {
+    "product": "IGIO QL3 COPC",
+    "prefix": "copc/statewide/2013/SPW/ql3/",
+    "matchedTileNames": 446,
+    "expectedTileNames": 446
+  },
+  "verificationMethod": "AWS S3 ListObjectsV2 with 24 easting-prefix groupings for each product; explicit key-name exact-match against all 446 logged 2020 COPC source-grid names.",
+  "disclaimer": "Object presence is not proof of valid height measurements, NDHM height units, temporal comparability, observed roof returns, point classification or acceptable 3D geometry; S3 ETag is not a SHA-256 content hash.",
+  "missingHeightRecordsPriorRun": 2565,
+  "approvedFullHeightAcceptance": false,
+  "identityGapPriorPublishedModel": 267,
+  "demUnavailablePriorRun": 29
+}
