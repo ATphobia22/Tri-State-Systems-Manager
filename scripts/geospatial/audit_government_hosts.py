@@ -2,8 +2,9 @@
 """Privacy-safe inventory of government/reference hosts in an entire repo.
 
 All known text file paths are traversed, not a hand-picked sample.
-Output contains host names and count of referencing files only. It never
-emits URL paths, query strings, addresses, tokens, or document contents.
+Output contains only official host names and counts of referencing files; it
+never emits local file paths, URL paths, query strings, addresses, tokens or
+source document contents.
 """
 from __future__ import annotations
 import argparse
@@ -59,9 +60,7 @@ def inventory(root):
         'nonTextFilesSkipped':skipped_nontext,
         'governmentHostCount':len(refs),
         'governmentHosts':[
-            {'host':host,'fileReferenceCount':len(paths),
-             'sampleFilePaths':sorted(paths)[:10],
-             'samplePathsTruncated':len(paths)>10}
+            {'host':host,'fileReferenceCount':len(paths)}
             for host,paths in sorted(refs.items())
         ],
         'hostsMentionedViaPlainHttp':sorted(bad_http),

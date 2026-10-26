@@ -53,8 +53,8 @@ class NdhmTests(unittest.TestCase):
         self.assertEqual(d['reviewRows'][0]['reviewStatus'],'NDHM_PIXEL_QA_UNSUITABLE')
     def test_unit_not_declared(self):
         self.write_raster(unit='metre')
-        d=m.audit(self.write_geojson([self.feature()]),self.tiles)
-        self.assertEqual(d['reviewRows'][0]['reviewStatus'],'NO_USABLE_NDHM_PIXELS')
+        with self.assertRaises(ValueError):
+            m.audit(self.write_geojson([self.feature()]),self.tiles)
     def test_only_gaps_processed(self):
         self.write_raster()
         d=m.audit(self.write_geojson([self.feature(1,'OK'),self.feature(2)]),self.tiles)
@@ -87,5 +87,42 @@ class NdhmTests(unittest.TestCase):
         self.write_raster()
         for i in range(1001): (self.tiles/f'IN2020_{i:08d}_12_ndhm.tif').touch()
         with self.assertRaises(ValueError):m.audit(self.write_geojson([self.feature()]),self.tiles)
+
+    def test_far_away_tiff_excluded_by_spatial_index(self):
+        self.write_raster()
+        second=self.tiles/'IN2020_27850945_12_ndhm.tif'
+        arr=np.full((100,100),90,dtype='float32')
+        with rasterio.open(second,'w',driver='GTiff',height=100,width=100,count=1,
+                           dtype='float32',crs='EPSG:2966',
+                           transform=from_origin(2785000,945100,1,1)) as ds:
+            ds.write(arr,1)
+            ds.set_band_unit(1,'US survey foot')
+        report=m.audit(self.write_geojson([self.feature()]),self.tiles)
+        self.assertEqual(report['rasterIndexedCount'],2)
+        self.assertEqual(report['rasterMetadataRejectedCount'],0)
+        self.assertEqual(report['uniqueRasterDigestsComputed'],1)
+        self.assertEqual(len(report['reviewRows'][0]['sourceTileDigests']),1)
+        self.assertEqual(report['reviewRows'][0]['heightCandidateMedianFtUS'],20)
+
+    def test_raster_hash_cached_across_buildings(self):
+        self.write_raster()
+        report=m.audit(self.write_geojson([self.feature(1),self.feature(2)]),self.tiles)
+        self.assertEqual(report['reviewedCount'],2)
+        self.assertEqual(report['uniqueRasterDigestsComputed'],1)
+
+    def test_invalid_source_metadata_recorded_but_valid_tile_usable(self):
+        self.write_raster()
+        second=self.tiles/'IN2020_27850945_12_ndhm.tif'
+        arr=np.full((10,10),20,dtype='float32')
+        with rasterio.open(second,'w',driver='GTiff',height=10,width=10,count=1,
+                           dtype='float32',crs='EPSG:2966',
+                           transform=from_origin(2785000,945100,1,1)) as ds:
+            ds.write(arr,1)
+            ds.set_band_unit(1,'metre')
+        report=m.audit(self.write_geojson([self.feature()]),self.tiles)
+        self.assertEqual(report['rasterMetadataRejectedCount'],1)
+        self.assertEqual(report['rasterInputStatus'],'PARTIAL_SOURCE_METADATA')
+        self.assertEqual(report['acceptedRoofHeightCount'],0)
+
 
 if __name__=='__main__':unittest.main()
