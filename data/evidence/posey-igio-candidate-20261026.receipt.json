@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "tsm.igio-posey-candidate-audit.v1",
+  "sourceClassification": "USER_SUPPLIED_UNVERIFIED_CANDIDATE",
+  "sourceSha256": "172c2568864b6c012dc1fdebab245e25d64d23582d548a3c5a7b8eb09d8dec68",
+  "sourceBytes": 13585757,
+  "sourceAuthorityIndependentlyVerified": false,
+  "surveyGradeVerified": false,
+  "engineeringUse": false,
+  "regulatoryUse": false,
+  "countywide3DTilesAccepted": false,
+  "expectedFeatureCount": 23082,
+  "featureCount": 23082,
+  "uniqueSourceObjectIds": 23082,
+  "sourceObjectIdMinimum": 740296,
+  "sourceObjectIdMaximum": 763377,
+  "sourceObjectIdsContiguous": true,
+  "geometryTypeCounts": {
+    "Polygon": 23071,
+    "MultiPolygon": 11
+  },
+  "holeRingCount": 96,
+  "invalidGeometryCount": 12,
+  "invalidGeometries": [
+    {
+      "sourceObjectId": 740366,
+      "reason": "RING_SELF-INTERSECTION"
+    },
+    {
+      "sourceObjectId": 740371,
+      "reason": "RING_SELF-INTERSECTION"
+    },
+    {
+      "sourceObjectId": 740379,
+      "reason": "RING_SELF-INTERSECTION"
+    },
+    {
+      "sourceObjectId": 740387,
+      "reason": "RING_SELF-INTERSECTION"
+    },
+    {
+      "sourceObjectId": 741040,
+      "reason": "RING_SELF-INTERSECTION"
+    },
+    {
+      "sourceObjectId": 741062,
+      "reason": "RING_SELF-INTERSECTION"
+    },
+    {
+      "sourceObjectId": 741099,
+      "reason": "RING_SELF-INTERSECTION"
+    },
+    {
+      "sourceObjectId": 744420,
+      "reason": "RING_SELF-INTERSECTION"
+    },
+    {
+      "sourceObjectId": 747272,
+      "reason": "RING_SELF-INTERSECTION"
+    },
+    {
+      "sourceObjectId": 747857,
+      "reason": "RING_SELF-INTERSECTION"
+    },
+    {
+      "sourceObjectId": 750073,
+      "reason": "RING_SELF-INTERSECTION"
+    },
+    {
+      "sourceObjectId": 761094,
+      "reason": "RING_SELF-INTERSECTION"
+    }
+  ],
+  "emptyGeometrySourceObjectIds": [],
+  "featuresWithExplicitHeight": 0,
+  "featuresWithExplicitGroundElevation": 0,
+  "declaredSourceLabelsUnverified": {
+    "DECLARED_IGIO_LIKE": 23082
+  },
+  "declaredLidarYearsUnverified": {
+    "2020": 23082
+  },
+  "geometryTopologyAccepted": false,
+  "status": "TOPOLOGY_RECONCILIATION_REQUIRED",
+  "nextStep": "Reconcile malformed polygons with official IGIO OBJECTIDs, verify provenance and height/DEM evidence, then validate 3D Tiles"
+}
