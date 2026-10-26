@@ -101,7 +101,8 @@ class EvidenceTests(unittest.TestCase):
 
     def test_true_measurement_no_issues(self):
         r = self.sample([feature(1), feature(2, "OK", "DERIVED", 8)])
-        self.assertTrue(r["completeBuildingAcceptance"])
+        self.assertTrue(r["heightAndTerrainCoverageComplete"])
+        self.assertFalse(r["completeBuildingAcceptance"])
         self.assertEqual(r["reviewQueue"], [])
 
     def test_nonfinite_heights(self):
