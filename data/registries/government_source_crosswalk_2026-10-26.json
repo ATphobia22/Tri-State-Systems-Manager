@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "tsm.official-agency-source-crosswalk.v1",
+  "asOf": "2026-10-26",
+  "region": {"countyFips": "18129", "county": "Posey", "state": "IN", "crossBorder": ["IL", "KY"]},
+  "classification": "PUBLIC_SOURCE_METADATA_ONLY",
+  "sourceEntries": [
+    {"id":"igio-elevation-archive","agency":"Indiana Geographic Information Office","url":"https://registry.opendata.aws/in-elevation/","catalogStatus":"CONFIRMED_OFFICIAL_SOURCE","integrationStatus":"CATALOG_AND_2020_NDHM_QA","role":"2020 COPC, nDHM, DSM, DEM and LAS source discovery","releaseAcceptance":false},
+    {"id":"igio-building-footprints","agency":"Indiana Geographic Information Office","url":"https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0","catalogStatus":"CONFIRMED_OFFICIAL_SOURCE","integrationStatus":"EXISTING_TSM_INGESTION","role":"Countywide IGIO building geometry; 23082 source identities not equivalent to 23082 accepted roofs","releaseAcceptance":false},
+    {"id":"fema-numerical-guidance-2021","agency":"FEMA","url":"https://www.fema.gov/sites/default/files/documents/fema_accepting-numerical-models-guidance_112021.pdf","catalogStatus":"CONFIRMED_OFFICIAL_GUIDANCE","integrationStatus":"NEW_GUIDANCE_CROSSWALK","role":"Current-over-2020-edition source reference for NFIP numerical-model acceptance","releaseAcceptance":false},
+    {"id":"fema-risk-rating-2025","agency":"FEMA","url":"https://www.fema.gov/sites/default/files/documents/fema_rr-2.0_2025.pdf","catalogStatus":"CONFIRMED_OFFICIAL_GUIDANCE","integrationStatus":"NEW_HISTORIC_POLICY_CONTEXT","role":"2018 NFIP premium advice must not be represented as current pricing or eligibility","releaseAcceptance":false},
+    {"id":"usace-indiana-regulatory","agency":"USACE Great Lakes and Ohio River Division","url":"https://www.lrd.usace.army.mil/Missions/Regulatory/Indiana/","catalogStatus":"CONFIRMED_OFFICIAL_SITE","integrationStatus":"NEW_ROUTING_REFERENCE","role":"Current district routing for Indiana work; supersedes reference-only 2009 paper map","releaseAcceptance":false},
+    {"id":"usace-wcsc-navigation","agency":"USACE Institute for Water Resources","url":"https://www.iwr.usace.army.mil/About/Technical-Centers/WCSC-Waterborne-Commerce-Statistics-Center/WCSC-Navigation-Infrastructure/","catalogStatus":"CONFIRMED_OFFICIAL_SITE","integrationStatus":"CATALOG_ONLY","role":"Navigation facility/port datasets and river context, not LiDAR roof geometry","releaseAcceptance":false},
+    {"id":"usace-ports-statistics","agency":"USACE Navigation and Civil Works Decision Support Center","url":"https://ndc.ops.usace.army.mil/wcsc/webpub/","catalogStatus":"CONFIRMED_OFFICIAL_SITE","integrationStatus":"CATALOG_ONLY","role":"Current statistics lookup; uploaded 2018 report retained as historical only","releaseAcceptance":false},
+    {"id":"usfws-national-wetlands","agency":"U.S. Fish and Wildlife Service","url":"https://www.fws.gov/program/national-wetlands-inventory/wetlands-data","catalogStatus":"CONFIRMED_OFFICIAL_SITE","integrationStatus":"NEW_DISCOVERY_CANDIDATE","role":"Wetlands context; not federal wetland-jurisdiction determination","releaseAcceptance":false},
+    {"id":"usfws-wetlands-rest","agency":"U.S. Fish and Wildlife Service","url":"https://www.fws.gov/program/national-wetlands-inventory/web-mapping-services","catalogStatus":"CONFIRMED_OFFICIAL_SITE","integrationStatus":"NEW_DISCOVERY_CANDIDATE","role":"REST/WMS mapping service discovery, source acquisition and date required","releaseAcceptance":false},
+    {"id":"usda-ssurgo","agency":"USDA Natural Resources Conservation Service","url":"https://www.nrcs.usda.gov/resources/data-and-reports/soil-survey-geographic-database-ssurgo","catalogStatus":"CONFIRMED_OFFICIAL_SITE","integrationStatus":"EXISTING_DISCOVERY_DATA_NOT_VERIFIED","role":"Soil survey map-unit data for hydraulics and land-use context","releaseAcceptance":false},
+    {"id":"usda-soil-data-access","agency":"USDA Natural Resources Conservation Service","url":"https://sdmdataaccess.nrcs.usda.gov/WebServiceHelp.aspx","catalogStatus":"CONFIRMED_OFFICIAL_SITE","integrationStatus":"NEW_API_DISCOVERY","role":"SSURGO REST/WFS actual source contracts and county clipping","releaseAcceptance":false},
+    {"id":"noaa-ngs-datasheets","agency":"NOAA National Geodetic Survey","url":"https://www.ngs.noaa.gov/datasheets/","catalogStatus":"CONFIRMED_OFFICIAL_SITE","integrationStatus":"NEW_REVIEW_CONTROL_SOURCE","role":"Geodetic control marks, not a site survey or automatic NAVD88 height","releaseAcceptance":false},
+    {"id":"noaa-ngs-ncat","agency":"NOAA National Geodetic Survey","url":"https://www.ngs.noaa.gov/web_services/ncat/index.shtml","catalogStatus":"CONFIRMED_OFFICIAL_SITE","integrationStatus":"NEW_REVIEW_CONTROL_SOURCE","role":"NADCON/VERTCON frame transformations with applicability and uncertainty","releaseAcceptance":false},
+    {"id":"usgs-3dhp","agency":"U.S. Geological Survey","url":"https://www.usgs.gov/3d-hydrography-program/access-3dhp-data-products","catalogStatus":"CONFIRMED_OFFICIAL_SITE","integrationStatus":"EXISTING_TSM_DISCOVERY_NOT_SITE_VALIDATED","role":"Current national hydrography distribution; may include historical NHD where EDH not available","releaseAcceptance":false}
+  ],
+  "uploadedEvidenceDisposition": [
+    {"sourceType":"Historic township plat pages","vintage":"historical atlas, year not established from photos","status":"ARCHIVE_ONLY_PRIVATE_OR_LICENSE_REVIEW","rawImageCommitted":false},
+    {"sourceType":"NFIP insurer correspondence","vintage":"2018","status":"PRIVATE_NO_POLICY_OR_ADDRESS_CONTENT","rawImageCommitted":false},
+    {"sourceType":"USACE district boundaries map","vintage":"2009","status":"HISTORICAL_DISTRICT_ROUTING_ONLY","rawImageCommitted":false},
+    {"sourceType":"USACE Indiana navigation report","vintage":"2018","status":"HISTORICAL_NAVIGATION_STATISTICS","rawImageCommitted":false},
+    {"sourceType":"FEMA Numerical Models Guidance 98","vintage":"2020 edition","status":"LEGACY_SUPERSEDED_BY_2021_GUIDANCE","rawImageCommitted":false},
+    {"sourceType":"USFWS Upper Mississippi navigation biological opinion","vintage":"2000","status":"OTHER_WATERSHED_PROGRAMMATIC_ARCHIVE_NOT_POSEY_SITE_FINDING","rawImageCommitted":false}
+  ],
+  "governance": {
+    "noSilentPromotion": true,
+    "privateSourceImagesNeverCommitted": true,
+    "noAutomaticRegulatoryDetermination": true,
+    "noAutomaticHeightFallbackFromMaps": true,
+    "noClaimsOfLiveDataAcquisitionFromCatalogEntries": true,
+    "currentMapAndPermitRoutingRequireLiveOfficialCheck": true
+  }
+}
