@@ -161,9 +161,12 @@ def evidence(
         "classification": "INFORMATIONAL_ONLY",
         "engineeringUse": False,
         "regulatoryUse": False,
-        "completeBuildingAcceptance": counts["UNAVAILABLE"] == 0
+        "completeBuildingAcceptance": False,
+        "heightAndTerrainCoverageComplete": (
+            counts["UNAVAILABLE"] == 0
             and ground["DEM_UNAVAILABLE"] == 0
-            and ground["DEM_COVERAGE_UNVERIFIED"] == 0,
+            and ground["DEM_COVERAGE_UNVERIFIED"] == 0
+        ),
         "inputSha256": sha256_file(source),
         "identityDeltaSha256": delta_sha,
         "expectedCount": expected_count,

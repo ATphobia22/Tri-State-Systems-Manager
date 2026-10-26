@@ -1,0 +1,113 @@
+name: Indiana Elevation Registry Source Contract
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/geospatial/verify_in_elevation_recovery_sources.py"
+      - "scripts/geospatial/test_verify_in_elevation_recovery_sources.py"
+      - ".github/workflows/in-elevation-source-inventory.yml"
+  pull_request:
+    paths:
+      - "scripts/geospatial/verify_in_elevation_recovery_sources.py"
+      - "scripts/geospatial/test_verify_in_elevation_recovery_sources.py"
+      - ".github/workflows/in-elevation-source-inventory.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Compile official registry source inventory
+        run: python3 -m py_compile scripts/geospatial/verify_in_elevation_recovery_sources.py scripts/geospatial/test_verify_in_elevation_recovery_sources.py
+      - name: Test sixteen no-network source and privacy guards
+        run: python3 scripts/geospatial/test_verify_in_elevation_recovery_sources.py -v
+
+  sample-raster-metadata:
+    name: Verify public nDHM TIFF raster metadata (non-acceptance)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Install pinned GeoTIFF reader
+        run: python -m pip install --disable-pip-version-check --no-input "rasterio==1.4.3" "numpy==2.1.3"
+      - name: Inspect actual 2020 nDHM COG CRS, unit labels and masked pixel distribution
+        continue-on-error: true
+        timeout-minutes: 4
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json, math, urllib.request
+          from pathlib import Path
+          import numpy as np
+          import rasterio
+
+          key = "ndhmoptimized/statewide/2020/SPW/5ft/IN2020_26850945_12_ndhm.tif"
+          url = "https://giselevationingov.s3.amazonaws.com/" + key
+          path = Path("/tmp/igio-2020-ndhm-metadata-probe.tif")
+          sha = hashlib.sha256()
+          downloaded = 0
+          with urllib.request.urlopen(
+              urllib.request.Request(url, headers={"User-Agent": "TSM-nDHM-Metadata-Probe/1.0"}),
+              timeout=40,
+          ) as response, path.open("wb") as out:
+              while (block := response.read(1024 * 1024)):
+                  downloaded += len(block)
+                  if downloaded > 12 * 1024 * 1024:
+                      raise SystemExit("Bounded nDHM sample download exceeded 12 MiB")
+                  sha.update(block)
+                  out.write(block)
+          with rasterio.open(path) as src:
+              if not src.crs or src.count != 1:
+                  raise SystemExit("nDHM GeoTIFF has unverified CRS or band count")
+              values = src.read(1, out_shape=(min(256, src.height), min(256, src.width)), masked=True)
+              finite = values.compressed()
+              finite = finite[np.isfinite(finite)]
+              report = {
+                  "schemaVersion": "tsm.igio-ndhm-source-metadata-probe.v1",
+                  "status": "RASTER_METADATA_REVIEW_REQUIRED",
+                  "heightAccepted": False,
+                  "S3Key": key,
+                  "sampleSha256": sha.hexdigest(),
+                  "sampleBytes": downloaded,
+                  "rasterEPSG": src.crs.to_epsg(),
+                  "rasterCRSWKT": src.crs.to_wkt(),
+                  "rasterUnitsFromBand": list(src.units),
+                  "resolutionNativeUnits": [abs(float(x)) for x in src.res],
+                  "nodataIsDeclared": src.nodata is not None,
+                  "dataType": src.dtypes[0],
+                  "validMaskedSampleCount": int(len(finite)),
+                  "negativeSampleCount": int(np.count_nonzero(finite < 0)),
+                  "validSampleMin": float(np.min(finite)) if finite.size else None,
+                  "validSampleMedian": float(np.median(finite)) if finite.size else None,
+                  "validSampleMax": float(np.max(finite)) if finite.size else None,
+                  "warnings": ["Pixel values are not building heights until physical units, vegetation contamination and footprint correspondence are reviewed."],
+              }
+          Path("/tmp/igio-2020-ndhm-source-metadata.json").write_text(
+              json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+          print(json.dumps(report, sort_keys=True))
+          PY
+      - name: Archive metadata only (never source raster)
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: tsm-igio-2020-ndhm-source-metadata
+          path: /tmp/igio-2020-ndhm-source-metadata.json
+          retention-days: 30
+          if-no-files-found: ignore
