@@ -105,8 +105,17 @@ export async function fetchBoundedJson(urlInput, fetchImpl = fetch, maxBytes = M
     }
   }
   const contentType = response.headers.get("content-type") ?? "";
-  if (!/^application\/(?:[a-z0-9.+-]*\+)?json(?:\s*;|\s*$)/i.test(contentType)) {
-    throw new Error(`Unexpected content type; expected JSON, received ${contentType || "missing"}`);
+  // ArcGIS ?f=pjson service metadata may arrive as text/plain.
+  // No arbitrary host, service path, redirect or unbounded response is allowed.
+  const jsonType = /^application\/(?:[a-z0-9.+-]*\+)?json(?:\s*;|\s*$)/i.test(contentType);
+  const arcgisPlainJson = url.hostname === "gisdata.in.gov" &&
+    url.pathname.startsWith("/server/rest/services/Hosted/") &&
+    url.pathname.endsWith("_Current/FeatureServer") &&
+    url.searchParams.get("f") === "pjson" &&
+    /^text\/plain(?:\s*;|\s*$)/i.test(contentType) &&
+    Object.values(SOURCES).some(source => source.url === url.href);
+  if (!jsonType && !arcgisPlainJson) {
+    throw new Error("Unexpected content type; expected JSON, received " + (contentType || "missing"));
   }
 
   const bytes = await readBoundedBody(response, maxBytes);
