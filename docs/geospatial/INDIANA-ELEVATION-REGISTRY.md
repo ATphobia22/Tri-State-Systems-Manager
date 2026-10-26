@@ -87,3 +87,18 @@ retained; the raster is **not** uploaded. This non-acceptance QA remains
 separate from source inventory and does not establish a measured roof height.
 If unit metadata is missing, mark height units **UNVERIFIED** rather than
 assuming U.S. survey feet from the horizontal CRS.
+
+## Empirical nDHM quality flag from public COG (2026-10-26)
+
+The GitHub runner downloaded the official
+`IN2020_26850945_12_ndhm.tif` sample (3,032,895 bytes; SHA-256
+`fd8900e92d43005064197b58d3b4567c21c747aed0030fb1be66cc419fd1a6cd`).
+Rasterio reported `float32`, **5.0 × 5.0** native pixel spacing, and
+**US survey foot** band units. It did **not** resolve an EPSG authority
+(`to_epsg() is None`) and found **no explicit nodata sentinel**.
+Its 256×256 masked sample ranged from **−6.56437 to 116.65925** ft.
+Negative normalized-height pixels and the unresolved CRS prove that
+sampling cannot safely be admitted as positive, georeferenced roof
+heights without additional metadata/CRS and error screening.
+The workflow now records original CRS WKT and negative-pixel counts to
+enable this investigation. No sampled pixel is automatically accepted.
