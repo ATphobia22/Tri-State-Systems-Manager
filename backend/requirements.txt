@@ -1,7 +1,7 @@
 # PTDT v35 Sovereign Backend
 pydantic>=2.13.5,<3
 h5py>=3.16.0,<4
-numpy>=2.5.3,<3
+numpy>=2.5.4,<3
 pyproj>=3.7.2,<4
 
 # TSM OpenMI transport profile
