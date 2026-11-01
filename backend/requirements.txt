@@ -17,7 +17,7 @@ dataretrieval==1.2.0
 # Spatial / DEM / PostGIS validation
 rasterio>=1.5.1,<2
 psycopg2-binary>=2.9.13,<3
-reportlab==5.0.1
+reportlab==5.1.0
 
 # Companion FastAPI service (backend/app) — separate process from the Node API
 fastapi>=0.141.1,<1
