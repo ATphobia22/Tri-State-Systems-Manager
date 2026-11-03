@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from verify_archived_posey_delta import verify_delta  # noqa: E402
+from verify_archived_posey_delta import verify_delta, screen_geometry  # noqa: E402
 
 
 def fc(path, ids):
@@ -48,6 +48,31 @@ class ArchivedDeltaTests(unittest.TestCase):
             self.assertFalse(report["missingBuildings"][0]["heightEvidenceVerified"])
             self.assertFalse(report["engineeringUse"])
             self.assertFalse(report["sourceLineageIndependentlyVerified"])
+
+    def test_geometry_screen_does_not_imply_measurement_or_root_cause(self):
+        closed = {"type": "Polygon", "coordinates": [[
+            [-88, 38], [-87.9, 38], [-87.9, 38.1], [-88, 38]
+        ]]}
+        self.assertEqual(screen_geometry(closed), "BASIC_STRUCTURE_OK_TOPOLOGY_UNVERIFIED")
+        self.assertEqual(screen_geometry(None), "GEOMETRY_MISSING")
+        self.assertEqual(screen_geometry({"type": "Point", "coordinates": [1, 2]}),
+                         "UNSUPPORTED_GEOMETRY_TYPE")
+        bad = {"type": "Polygon", "coordinates": [[
+            [-88, 38], [-87.9, 38], [-87.9, 38.1], [-88, 38.1]
+        ]]}
+        self.assertEqual(screen_geometry(bad), "RING_NOT_CLOSED")
+        bad["coordinates"][0][-1] = [float("nan"), 38]
+        self.assertEqual(screen_geometry(bad), "INVALID_COORDINATE")
+        with tempfile.TemporaryDirectory() as tmp:
+            src, pub, pin = self.fixture(Path(tmp))
+            result = verify_delta(pub, src, pin)
+            row = result["missingBuildings"][0]
+            self.assertEqual(row["archivedGeometryStructureScreen"],
+                             "BASIC_STRUCTURE_OK_TOPOLOGY_UNVERIFIED")
+            self.assertTrue(row["geometryStructureDoesNotEstablishRootCause"])
+            self.assertEqual(row["rootCause"], "UNDETERMINED")
+            self.assertFalse(row["heightEvidenceVerified"])
+            self.assertNotIn("coordinates", json.dumps(row).lower())
 
     def test_refuse_stale_source_or_publication_hash(self):
         with tempfile.TemporaryDirectory() as tmp:

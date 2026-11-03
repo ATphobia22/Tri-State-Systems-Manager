@@ -44,6 +44,12 @@ which fetches and checks the frozen release asset SHA-256 before running
 `posey-archived-objectid-remediation` artifact contains each missing
 `sourceObjectId` with `rootCause: UNDETERMINED`, explicitly unverified
 height, datum and LOD evidence, and no invented coordinates or geometry.
+A basic structural triage checks polygon/multipolygon coordinates for finite
+longitude/latitude values, minimum closed rings and at least three unique
+vertices. Each missing record receives `archivedGeometryStructureScreen`.
+This does **not** establish why a feature was excluded, topology validity,
+source authority, roof/ground LiDAR evidence, correct vertical datum, or mesh
+acceptance. The report emits no per-building coordinates or bounding boxes.
 
 **Still incomplete:** determine the individual exclusion reason for all 267
 from original feature/raster processing logs; acquire defensible heights,
