@@ -22,6 +22,8 @@ function fixture(t) {
   pe.writeUInt32LE(128, 0x3c);
   pe.write("PE\0\0", 128, "latin1");
   pe.writeUInt16LE(0x8664, 132);
+  pe.writeUInt16LE(0xF0, 148); // PE32+ optional header size
+  pe.writeUInt16LE(0x20b, 152); // PE32+ magic (not 0x10b PE32)
   const exe = file(archive, "TSMNative.exe", pe);
   file(archive, "TSMNative/Content/Paks/TSMNative-Windows.pak", Buffer.from("TEST ONLY - NOT AN UNREAL PAK"));
   file(archive, "Engine/Binaries/Win64/ArchimedesCore.dll", Buffer.from("TEST DLL"));
@@ -54,6 +56,20 @@ test("rejects a non-AMD64 binary", (t) => {
   bytes.writeUInt16LE(0x14c, 132);
   fs.writeFileSync(f.exe, bytes);
   assert.throws(() => verifyWindowsShipping(f), /AMD64/);
+});
+test("rejects an AMD64 PE with PE32 (not PE32+) optional-header magic", (t) => {
+  const f = fixture(t);
+  const bytes = fs.readFileSync(f.exe);
+  bytes.writeUInt16LE(0x10b, 152);
+  fs.writeFileSync(f.exe, bytes);
+  assert.throws(() => verifyWindowsShipping(f), /PE32\\+/);
+});
+test("rejects truncated PE optional-header claims", (t) => {
+  const f = fixture(t);
+  const bytes = fs.readFileSync(f.exe);
+  bytes.writeUInt16LE(0xFFFF, 148);
+  fs.writeFileSync(f.exe, bytes);
+  assert.throws(() => verifyWindowsShipping(f), /optional header/);
 });
 test("rejects a missing cook archive", (t) => {
   const f = fixture(t);
