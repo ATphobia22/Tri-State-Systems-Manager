@@ -23,7 +23,7 @@ function fixture(t) {
   pe.write("PE\0\0", 128, "latin1");
   pe.writeUInt16LE(0x8664, 132);
   pe.writeUInt16LE(0xF0, 148); // PE32+ optional header size
-  pe.writeUInt16LE(0x20b, 152); // PE32+ magic (not 0x10b PE32)
+  pe.writeUInt16LE(0x20b, 152); // PE32+ magic
   const exe = file(archive, "TSMNative.exe", pe);
   file(archive, "TSMNative/Content/Paks/TSMNative-Windows.pak", Buffer.from("TEST ONLY - NOT AN UNREAL PAK"));
   file(archive, "Engine/Binaries/Win64/ArchimedesCore.dll", Buffer.from("TEST DLL"));
@@ -31,7 +31,7 @@ function fixture(t) {
   file(engineRoot, "Engine/Build/Build.version", JSON.stringify({ MajorVersion: 5, MinorVersion: 8, PatchVersion: 0 }));
   file(engineRoot, "Engine/Plugins/Marketplace/CesiumForUnreal/CesiumForUnreal.uplugin",
     JSON.stringify({ VersionName: "2.29.1" }));
-  fs.writeFileSync(buildLog, "Running BuildCookRun -clientconfig=Shipping\nAutomationTool exiting with ExitCode=0 (Success)\n");
+  fs.writeFileSync(buildLog, "TSM_SOURCE_COMMIT=" + "a".repeat(40) + "\nRunning BuildCookRun -clientconfig=Shipping\nAutomationTool exiting with ExitCode=0 (Success)\n");
   return { archive, engineRoot, buildLog, exe, file, commit: "a".repeat(40) };
 }
 test("static proof passes correctly shaped fixture but never asserts an offline launch", (t) => {
@@ -56,20 +56,6 @@ test("rejects a non-AMD64 binary", (t) => {
   bytes.writeUInt16LE(0x14c, 132);
   fs.writeFileSync(f.exe, bytes);
   assert.throws(() => verifyWindowsShipping(f), /AMD64/);
-});
-test("rejects an AMD64 PE with PE32 (not PE32+) optional-header magic", (t) => {
-  const f = fixture(t);
-  const bytes = fs.readFileSync(f.exe);
-  bytes.writeUInt16LE(0x10b, 152);
-  fs.writeFileSync(f.exe, bytes);
-  assert.throws(() => verifyWindowsShipping(f), /PE32\+/);
-});
-test("rejects truncated PE optional-header claims", (t) => {
-  const f = fixture(t);
-  const bytes = fs.readFileSync(f.exe);
-  bytes.writeUInt16LE(0xFFFF, 148);
-  fs.writeFileSync(f.exe, bytes);
-  assert.throws(() => verifyWindowsShipping(f), /optional header/);
 });
 test("rejects a missing cook archive", (t) => {
   const f = fixture(t);
@@ -105,4 +91,35 @@ test("rejects a packaged browser/Node runtime", (t) => {
 test("requires a pinned commit", (t) => {
   const f = fixture(t);
   assert.throws(() => verifyWindowsShipping({...f, commit:"main"}), /Immutable 40-character/);
+});
+
+test("rejects absent or mismatched transcript source SHA even with successful UAT", (t) => {
+  const f = fixture(t);
+  fs.writeFileSync(f.buildLog, "BuildCookRun -clientconfig=Shipping\nAutomationTool exiting with ExitCode=0\n");
+  assert.throws(() => verifyWindowsShipping(f), /transcript.*commit/i);
+  fs.writeFileSync(f.buildLog, "TSM_SOURCE_COMMIT=" + "b".repeat(40) +
+    "\nBuildCookRun -clientconfig=Shipping\nAutomationTool exiting with ExitCode=0\n");
+  assert.throws(() => verifyWindowsShipping(f), /transcript.*commit/i);
+});
+test("rejects duplicated source SHA markers even if both agree", (t) => {
+  const f = fixture(t);
+  const stamp = "TSM_SOURCE_COMMIT=" + f.commit + "\n";
+  fs.writeFileSync(f.buildLog, stamp + stamp +
+    "BuildCookRun -clientconfig=Shipping\nAutomationTool exiting with ExitCode=0\n");
+  assert.throws(() => verifyWindowsShipping(f), /transcript.*commit/i);
+});
+
+test("rejects an AMD64 PE with PE32 (not PE32+) optional-header magic", (t) => {
+  const f = fixture(t);
+  const bytes = fs.readFileSync(f.exe);
+  bytes.writeUInt16LE(0x10b, 152);
+  fs.writeFileSync(f.exe, bytes);
+  assert.throws(() => verifyWindowsShipping(f), /PE32\+/);
+});
+test("rejects truncated PE optional-header claims", (t) => {
+  const f = fixture(t);
+  const bytes = fs.readFileSync(f.exe);
+  bytes.writeUInt16LE(0xFFFF, 148);
+  fs.writeFileSync(f.exe, bytes);
+  assert.throws(() => verifyWindowsShipping(f), /optional header/);
 });
