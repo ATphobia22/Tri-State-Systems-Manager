@@ -71,6 +71,7 @@ function validateEngine(engineRoot) {
 }
 export function verifyWindowsShipping({ archive, buildLog, engineRoot, commit }) {
   required(archive && fs.existsSync(archive) && fs.statSync(archive).isDirectory(), "UE Windows archive directory is missing");
+  required(!fs.lstatSync(archive).isSymbolicLink(), "Refusing symlinked UE archive root");
   required(buildLog && fs.existsSync(buildLog), "BuildCookRun transcript is required");
   required(engineRoot && fs.existsSync(engineRoot), "Installed Unreal Engine root is required");
   required(/^[a-f0-9]{40}$/i.test(commit ?? ""), "Immutable 40-character Git commit is required");
