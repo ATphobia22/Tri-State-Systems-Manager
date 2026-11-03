@@ -22,12 +22,18 @@ REQUIRED_EXT = {".exe", ".pak", ".ucas", ".utoc"}
 def verify(root: Path):
     if not root.is_dir():
         raise ValueError("Missing UE Shipping output directory")
+    if root.is_symlink():
+        raise ValueError("Symlink forbidden as Shipping package root")
     files = []
     for p in sorted(root.rglob("*")):
-        if not p.is_file() or any(x in EXCLUDE for x in p.relative_to(root).parts):
+        if any(x in EXCLUDE for x in p.relative_to(root).parts):
             continue
+        # A directory link could evade the old is_file() check and silently
+        # redirect packaged assets outside the inspected release tree.
         if p.is_symlink():
             raise ValueError("Symlink forbidden in release inventory")
+        if not p.is_file():
+            continue
         files.append(p)
         if len(files) > MAX_FILES:
             raise ValueError("Too many files in Shipping package")
