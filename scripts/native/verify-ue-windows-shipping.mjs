@@ -76,6 +76,12 @@ export function verifyWindowsShipping({ archive, buildLog, engineRoot, commit })
   required(/^[a-f0-9]{40}$/i.test(commit ?? ""), "Immutable 40-character Git commit is required");
   const engine = validateEngine(engineRoot);
   const log = fs.readFileSync(buildLog, "utf8");
+  // Bind the package evidence to the exact checkout printed inside the
+  // PowerShell BuildCookRun transcript. A caller-supplied --commit by itself
+  // is not evidence that the logged build used that source revision.
+  const recorded = [...log.matchAll(/^TSM_SOURCE_COMMIT=([a-f0-9]{40})\s*$/gim)].map((m) => m[1].toLowerCase());
+  required(recorded.length === 1 && recorded[0] === commit.toLowerCase(),
+    "BuildCookRun transcript missing, duplicated or mismatched immutable source commit");
   required(/BuildCookRun/i.test(log) && /clientconfig[=:\s]+Shipping/i.test(log),
     "Build log does not prove BuildCookRun with clientconfig=Shipping");
   required(/AutomationTool exiting with ExitCode=0\b/i.test(log),
