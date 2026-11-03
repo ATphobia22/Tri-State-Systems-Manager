@@ -64,12 +64,12 @@ test("rejects a missing cook archive", (t) => {
 });
 test("rejects an unsigned/absent UAT success claim", (t) => {
   const f = fixture(t);
-  fs.writeFileSync(f.buildLog, "BuildCookRun -clientconfig=Shipping\nAutomationTool exiting with ExitCode=1\n");
+  fs.writeFileSync(f.buildLog, "TSM_SOURCE_COMMIT=" + f.commit + "\nBuildCookRun -clientconfig=Shipping\nAutomationTool exiting with ExitCode=1\n");
   assert.throws(() => verifyWindowsShipping(f), /successful Unreal AutomationTool/);
 });
 test("rejects a declared non-Shipping build", (t) => {
   const f = fixture(t);
-  fs.writeFileSync(f.buildLog, "BuildCookRun -clientconfig=Development\nAutomationTool exiting with ExitCode=0\n");
+  fs.writeFileSync(f.buildLog, "TSM_SOURCE_COMMIT=" + f.commit + "\nBuildCookRun -clientconfig=Development\nAutomationTool exiting with ExitCode=0\n");
   assert.throws(() => verifyWindowsShipping(f), /clientconfig=Shipping/);
 });
 test("rejects mismatch with required installed UE 5.8", (t) => {
@@ -122,4 +122,22 @@ test("rejects truncated PE optional-header claims", (t) => {
   bytes.writeUInt16LE(0xFFFF, 148);
   fs.writeFileSync(f.exe, bytes);
   assert.throws(() => verifyWindowsShipping(f), /optional header/);
+});
+
+
+test("native workflow records a verified checkout SHA before invoking Windows BuildCookRun", () => {
+  const workflow = fs.readFileSync(new URL("../../.github/workflows/tsm-native.yml", import.meta.url), "utf8");
+  const start = workflow.indexOf("      - name: Build native Windows package");
+  const end = workflow.indexOf("      - name: Verify genuine UE5.8 Win64 Shipping archive", start);
+  assert.ok(start >= 0 && end > start, "native Windows packaging step must exist");
+  const step = workflow.slice(start, end);
+  const guard = "if ($env:GITHUB_SHA -notmatch '^[a-fA-F0-9]{40}$')";
+  const git = "$checkoutSha = (git rev-parse HEAD).Trim()";
+  const match = "if ($checkoutSha -ne $env:GITHUB_SHA)";
+  const marker = 'Write-Host "TSM_SOURCE_COMMIT=$checkoutSha"';
+  const build = "Build-TSMNativeWindows.ps1 -UnrealRoot $env:UE_ROOT";
+  const positions = [guard, git, match, marker, build].map((token) => step.indexOf(token));
+  assert.ok(positions.every((i) => i >= 0), "exact SHA preflight, stamp and BuildCookRun invocation must be present");
+  assert.deepEqual([...positions].sort((a, b) => a - b), positions,
+    "checkout must be verified and stamped before packaging");
 });
