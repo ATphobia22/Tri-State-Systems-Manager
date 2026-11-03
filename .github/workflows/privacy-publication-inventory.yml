@@ -1,0 +1,46 @@
+name: TSM Privacy Publication Risk Inventory
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/privacy/**'
+      - '.github/workflows/privacy-publication-inventory.yml'
+      - 'tsm-console/public/**'
+      - 'docs/**'
+      - 'data/**'
+      - 'artifacts/**'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/privacy/**'
+      - '.github/workflows/privacy-publication-inventory.yml'
+      - 'tsm-console/public/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  privacy-inventory:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Synthetic privacy regression checks
+        run: python -m unittest discover -s scripts/privacy -p 'test_*.py' -v
+      - name: Report aggregate publication indicators only
+        run: |
+          python scripts/privacy/publication_risk_inventory.py \
+            --output dist/provenance/publication-risk-aggregate.json
+      - name: Upload aggregate-only review summary
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: publication-risk-aggregate
+          path: dist/provenance/publication-risk-aggregate.json
+          if-no-files-found: error
+          retention-days: 14
