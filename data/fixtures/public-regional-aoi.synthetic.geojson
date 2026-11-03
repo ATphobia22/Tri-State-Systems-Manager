@@ -1,0 +1,52 @@
+{
+  "type": "FeatureCollection",
+  "metadata": {
+    "schemaVersion": "tsm.public-regional-aoi-fixture.v1",
+    "synthetic": true,
+    "authorityClass": "SYNTHETIC",
+    "engineeringUse": false,
+    "regulatoryUse": false,
+    "disclaimer": "Schematic region-scale demonstration only; not a surveyed, jurisdictional, watershed, parcel, or regulatory boundary."
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "regional-demo",
+      "properties": {
+        "label": "Tri-State River Valley demonstration extent",
+        "aoiType": "REGIONAL_DEMONSTRATION",
+        "source": "SYNTHETIC_EXAMPLE",
+        "authorityClass": "SYNTHETIC",
+        "engineeringUse": false,
+        "regulatoryUse": false
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -89,
+              37
+            ],
+            [
+              -87,
+              37
+            ],
+            [
+              -87,
+              39
+            ],
+            [
+              -89,
+              39
+            ],
+            [
+              -89,
+              37
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}
