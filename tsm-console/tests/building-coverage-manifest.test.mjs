@@ -37,14 +37,14 @@ test('public OGC 3D Tiles root uses radian bounds and a real nested mesh tileset
   assert.ok(low <= high);
   const uri = root.root.content.uri;
   assert.equal(uri, root.asset.extras.tsm.renderableMeshTileset);
-  assert.match(uri, /^buildings-lidar-12450\\/tileset\\.json$/);
-  assert.doesNotMatch(uri, /buildings-3d\\.json|\\.geojson$/i);
+  assert.equal(uri, 'buildings-lidar-12450/tileset.json');
+  assert.ok(uri !== 'buildings-3d.json' && !uri.endsWith('.geojson'));
   const nested = JSON.parse(await readFile(
     new URL('../public/3d-tiles/' + uri, import.meta.url), 'utf8',
   ));
   assert.equal(nested.asset.version, '1.1');
   assert.equal(nested.root.implicitTiling.subdivisionScheme, 'QUADTREE');
-  assert.match(nested.root.content.uri, /\\.glb$/);
+  assert.ok(nested.root.content.uri.endsWith('.glb'));
   assert.deepEqual(root.root.boundingVolume.region, nested.root.boundingVolume.region);
   assert.ok(root.root.geometricError >= nested.root.geometricError);
   assert.equal(root.asset.extras.tsm.engineeringUse, false);
