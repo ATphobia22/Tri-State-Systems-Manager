@@ -71,7 +71,7 @@ function validateEngine(engineRoot) {
   const pluginPath = path.join(engineRoot, "Engine", "Plugins", "Marketplace", "CesiumForUnreal", "CesiumForUnreal.uplugin");
   required(fs.existsSync(pluginPath), "CesiumForUnreal plugin is not installed in UE_ROOT");
   const plugin = JSON.parse(fs.readFileSync(pluginPath, "utf8"));
-  required(String(plugin.VersionName ?? "").startsWith("2.29.1"),
+  required(plugin.VersionName === "2.29.1",
     `Expected installed CesiumForUnreal 2.29.1, got ${plugin.VersionName ?? "unspecified"}`);
   return { unrealMajor: version.MajorVersion, unrealMinor: version.MinorVersion, unrealPatch: version.PatchVersion, cesiumPlugin: plugin.VersionName };
 }
