@@ -93,16 +93,16 @@ test("requires a pinned commit", (t) => {
 
 test("rejects absent or mismatched transcript source SHA even with successful UAT", (t) => {
   const f = fixture(t);
-  fs.writeFileSync(f.buildLog, "BuildCookRun -clientconfig=Shipping\\nAutomationTool exiting with ExitCode=0\\n");
+  fs.writeFileSync(f.buildLog, "BuildCookRun -clientconfig=Shipping\nAutomationTool exiting with ExitCode=0\n");
   assert.throws(() => verifyWindowsShipping(f), /transcript.*commit/i);
   fs.writeFileSync(f.buildLog, "TSM_SOURCE_COMMIT=" + "b".repeat(40) +
-    "\\nBuildCookRun -clientconfig=Shipping\\nAutomationTool exiting with ExitCode=0\\n");
+    "\nBuildCookRun -clientconfig=Shipping\nAutomationTool exiting with ExitCode=0\n");
   assert.throws(() => verifyWindowsShipping(f), /transcript.*commit/i);
 });
 test("rejects duplicated source SHA markers even if both agree", (t) => {
   const f = fixture(t);
-  const stamp = "TSM_SOURCE_COMMIT=" + f.commit + "\\n";
+  const stamp = "TSM_SOURCE_COMMIT=" + f.commit + "\n";
   fs.writeFileSync(f.buildLog, stamp + stamp +
-    "BuildCookRun -clientconfig=Shipping\\nAutomationTool exiting with ExitCode=0\\n");
+    "BuildCookRun -clientconfig=Shipping\nAutomationTool exiting with ExitCode=0\n");
   assert.throws(() => verifyWindowsShipping(f), /transcript.*commit/i);
 });
