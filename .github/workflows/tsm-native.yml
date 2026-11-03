@@ -386,7 +386,11 @@ jobs:
           New-Item -ItemType Directory -Force dist/provenance | Out-Null
           Start-Transcript -Path dist/provenance/windows-ue-buildcookrun.log
           try {
-            if ($env:GITHUB_SHA -notmatch '^[a-fA-F0-9]{40}            .\scripts\native\Build-TSMNativeWindows.ps1 -UnrealRoot $env:UE_ROOT
+            if ($env:GITHUB_SHA -notmatch '^[a-fA-F0-9]{40}$') { throw 'Immutable GITHUB_SHA is required for UE provenance.' }
+            $checkoutSha = (git rev-parse HEAD).Trim()
+            if ($checkoutSha -ne $env:GITHUB_SHA) { throw 'UE runner checkout differs from GITHUB_SHA.' }
+            Write-Host "TSM_SOURCE_COMMIT=$checkoutSha"
+            .\scripts\native\Build-TSMNativeWindows.ps1 -UnrealRoot $env:UE_ROOT
             if ($LASTEXITCODE -ne 0) { throw "BuildCookRun/installer returned a nonzero exit status." }
           } finally {
             Stop-Transcript
