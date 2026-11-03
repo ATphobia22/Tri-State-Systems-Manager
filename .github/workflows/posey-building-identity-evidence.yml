@@ -9,6 +9,9 @@ on:
       - 'scripts/geospatial/reconcile_published_buildings.py'
       - 'scripts/geospatial/test_verify_archived_posey_delta.py'
       - 'data/buildings/POSEY-ARCHIVED-IGIO-IDENTITY-DELTA-2026-10-25.json'
+      - 'tsm-console/public/3d-tiles/tileset.json'
+      - 'tsm-console/tests/building-coverage-manifest.test.mjs'
+      - 'tsm-console/src/components/BuildingCoverageNotice.tsx'
       - '.github/workflows/posey-building-identity-evidence.yml'
   pull_request:
     branches: [main]
@@ -17,6 +20,9 @@ on:
       - 'scripts/geospatial/reconcile_published_buildings.py'
       - 'scripts/geospatial/test_verify_archived_posey_delta.py'
       - 'data/buildings/POSEY-ARCHIVED-IGIO-IDENTITY-DELTA-2026-10-25.json'
+      - 'tsm-console/public/3d-tiles/tileset.json'
+      - 'tsm-console/tests/building-coverage-manifest.test.mjs'
+      - 'tsm-console/src/components/BuildingCoverageNotice.tsx'
       - '.github/workflows/posey-building-identity-evidence.yml'
 
 permissions:
@@ -28,6 +34,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Validate OGC 3D Tiles root and distinct screening counts
+        run: node --test tsm-console/tests/building-coverage-manifest.test.mjs
       - name: Test identity accounting without external data
         run: |
           python3 -m unittest scripts/geospatial/test_reconcile_published_buildings.py scripts/geospatial/test_verify_archived_posey_delta.py
