@@ -43,6 +43,17 @@ test("static proof passes correctly shaped fixture but never asserts an offline 
   assert.equal(result.engine.cesiumPlugin, "2.29.1");
   assert.match(result.inspectedFiles[0].sha256, /^[0-9a-f]{64}$/);
 });
+test("rejects a symlinked archive root even when target has otherwise valid files", (t) => {
+  const f = fixture(t);
+  if (process.platform === "win32") {
+    t.skip("Windows symlink creation may require developer mode or elevated permissions");
+    return;
+  }
+  const alias = path.join(path.dirname(f.archive), "alias-archive");
+  fs.symlinkSync(f.archive, alias, "dir");
+  assert.throws(() => verifyWindowsShipping({ ...f, archive: alias }),
+    /symlinked UE archive root/);
+});
 test("rejects a false renamed .exe", (t) => {
   const f = fixture(t);
   fs.writeFileSync(f.exe, "I am not a Windows executable");
