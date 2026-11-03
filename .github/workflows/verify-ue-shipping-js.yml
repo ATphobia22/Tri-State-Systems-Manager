@@ -1,0 +1,36 @@
+name: TSM Unreal Shipping JavaScript Static Evidence Gate
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/native/verify-ue-windows-shipping.mjs'
+      - 'scripts/native/verify-ue-windows-shipping.test.mjs'
+      - '.github/workflows/verify-ue-shipping-js.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/native/verify-ue-windows-shipping.mjs'
+      - 'scripts/native/verify-ue-windows-shipping.test.mjs'
+      - '.github/workflows/verify-ue-shipping-js.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-evidence-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '22'
+      - name: Parse shipping verifier and test source
+        run: |
+          node --check scripts/native/verify-ue-windows-shipping.mjs
+          node --check scripts/native/verify-ue-windows-shipping.test.mjs
+      - name: Exercise UE Shipping evidence fail-closed synthetic tests
+        run: node --test scripts/native/verify-ue-windows-shipping.test.mjs
