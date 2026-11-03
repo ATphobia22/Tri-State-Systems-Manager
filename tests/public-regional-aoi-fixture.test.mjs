@@ -33,7 +33,9 @@ test('public regional fixture stays synthetic, coarse, non-regulatory and withou
   }
   assert.ok(Math.max(...lng) - Math.min(...lng) >= 1);
   assert.ok(Math.max(...lat) - Math.min(...lat) >= 1);
-  assert.doesNotMatch(source, /\\b\\d{1,6}\\s+[A-Za-z]{3,}\\s+(?:Road|Street|Avenue|Drive|Lane)\\b/i);
+  const streetPattern = /\b\d{1,6}\s+[A-Za-z]{3,}\s+(?:Road|Street|Avenue|Drive|Lane)\b/i;
+  assert.match('123 Example Road', streetPattern, 'privacy pattern must detect residential street syntax');
+  assert.doesNotMatch(source, streetPattern);
   assert.equal(f.properties.noRegulatoryDetermination, true);
 });
 
