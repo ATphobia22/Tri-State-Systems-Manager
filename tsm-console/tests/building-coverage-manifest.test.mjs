@@ -50,3 +50,27 @@ test('public OGC 3D Tiles root uses radian bounds and a real nested mesh tileset
   assert.equal(root.asset.extras.tsm.engineeringUse, false);
   assert.equal(root.asset.extras.tsm.regulatoryUse, false);
 });
+
+test('public missing-OBJECTID disclosure matches archived hash-pinned identity delta exactly', async () => {
+  const [publicManifest, archived] = await Promise.all([
+    readFile(new URL('../public/3d-tiles/posey-missing-objectids.json', import.meta.url), 'utf8'),
+    readFile(new URL('../../data/buildings/POSEY-ARCHIVED-IGIO-IDENTITY-DELTA-2026-10-25.json', import.meta.url), 'utf8'),
+  ]).then(files => files.map(JSON.parse));
+  assert.equal(publicManifest.schemaVersion, 'tsm.posey.public-missing-objectids.v1');
+  assert.equal(publicManifest.classification, 'INFORMATIONAL_ONLY');
+  assert.equal(publicManifest.engineeringUse, false);
+  assert.equal(publicManifest.regulatoryUse, false);
+  assert.equal(publicManifest.sourceLineageIndependentlyVerified, false);
+  assert.equal(publicManifest.sourceVintageVerified, false);
+  assert.equal(publicManifest.rootCauseClassification, 'UNDETERMINED_PENDING_EVIDENCE');
+  assert.equal(publicManifest.sourceAssetSha256, archived.sourceAssetSha256);
+  assert.equal(publicManifest.publishedAssetSha256, archived.publishedAssetSha256);
+  assert.equal(publicManifest.sourceFeatureCount, archived.sourceFeatureCount);
+  assert.equal(publicManifest.publishedFeatureCount, archived.publishedFeatureCount);
+  assert.equal(publicManifest.missingCount, archived.idDifferenceCount);
+  assert.deepEqual(publicManifest.missingObjectIds, archived.missingArchivedSourceObjectIds);
+  assert.equal(new Set(publicManifest.missingObjectIds).size, 267);
+  assert.equal(publicManifest.missingObjectIds.length, 267);
+  assert.ok(publicManifest.missingObjectIds.every((id, i, ids) =>
+    Number.isSafeInteger(id) && id > 0 && (i === 0 || ids[i - 1] < id)));
+});
