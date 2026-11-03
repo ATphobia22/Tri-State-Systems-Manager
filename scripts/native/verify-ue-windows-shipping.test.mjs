@@ -64,12 +64,12 @@ test("rejects a missing cook archive", (t) => {
 });
 test("rejects an unsigned/absent UAT success claim", (t) => {
   const f = fixture(t);
-  fs.writeFileSync(f.buildLog, "BuildCookRun -clientconfig=Shipping\nAutomationTool exiting with ExitCode=1\n");
+  fs.writeFileSync(f.buildLog, "TSM_SOURCE_COMMIT=" + f.commit + "\nBuildCookRun -clientconfig=Shipping\nAutomationTool exiting with ExitCode=1\n");
   assert.throws(() => verifyWindowsShipping(f), /successful Unreal AutomationTool/);
 });
 test("rejects a declared non-Shipping build", (t) => {
   const f = fixture(t);
-  fs.writeFileSync(f.buildLog, "BuildCookRun -clientconfig=Development\nAutomationTool exiting with ExitCode=0\n");
+  fs.writeFileSync(f.buildLog, "TSM_SOURCE_COMMIT=" + f.commit + "\nBuildCookRun -clientconfig=Development\nAutomationTool exiting with ExitCode=0\n");
   assert.throws(() => verifyWindowsShipping(f), /clientconfig=Shipping/);
 });
 test("rejects mismatch with required installed UE 5.8", (t) => {
