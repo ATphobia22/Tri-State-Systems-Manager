@@ -154,9 +154,25 @@ def download_tile(url: str, dest: str, max_attempts: int = 3) -> str:
     return h.hexdigest()
 
 
+def load_tile_arrays(las_path: str) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Decompress a COPC/LAZ tile once; share its points across all gap footprints.
+
+    Decompression previously happened inside each per-building extraction call,
+    multiplying I/O and CPU by the number of buildings within the same tile.
+    """
+    las = laspy.read(las_path)
+    return (
+        np.array(las.x),
+        np.array(las.y),
+        np.array(las.z),
+        np.array(las.classification),
+    )
+
+
 def extract_derived_height(
     las_path: str,
     ring_spw: list[tuple[float, float]],
+    tile_arrays: tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray] | None = None,
 ) -> dict:
     """
     Extract DERIVED height for a single building footprint from a COPC tile.
@@ -178,16 +194,14 @@ def extract_derived_height(
     roof_buf = 2.0  # small buffer for roof bbox prefilter
     ground_buf = 50.0  # larger buffer for ground search
 
-    try:
-        las = laspy.read(las_path)
-    except Exception as e:
-        result["lidarHeightStatus"] = f"error:tile-read-failed:{e}"
-        return result
+    if tile_arrays is None:
+        try:
+            tile_arrays = load_tile_arrays(las_path)
+        except Exception as e:
+            result["lidarHeightStatus"] = f"error:tile-read-failed:{e}"
+            return result
 
-    xs = np.array(las.x)
-    ys = np.array(las.y)
-    zs = np.array(las.z)  # feet, NAVD88/Geoid12B
-    classes = np.array(las.classification)
+    xs, ys, zs, classes = tile_arrays  # feet, NAVD88/Geoid12B
 
     # Bounding-box prefilter with ground buffer
     in_buf = (xs >= bx1 - ground_buf) & (xs <= bx2 + ground_buf) & \
@@ -486,8 +500,22 @@ def main() -> int:
         feature_properties = {}
         tile_derived_ok = 0
         tile_unavailable = 0
+        # A single LAZ tile may contain many building footprints. Decompress
+        # once and reuse the same immutable point arrays for every footprint.
+        tile_arrays = None
+        tile_read_error = None
+        if in_tile:
+            try:
+                tile_arrays = load_tile_arrays(tile_path)
+            except Exception as exc:
+                tile_read_error = f"error:tile-read-failed:{exc}"
+                print(f"  [error] {tile_read_error}", flush=True)
         for g in in_tile:
-            result = extract_derived_height(tile_path, g["ring_spw"])
+            result = (
+                {"lidarHeightStatus": tile_read_error}
+                if tile_read_error is not None
+                else extract_derived_height(tile_path, g["ring_spw"], tile_arrays)
+            )
             g["props"].update(result)
             if result.get("lidarHeightStatus") == "OK":
                 g["props"]["lidarSource"] = url
@@ -506,6 +534,7 @@ def main() -> int:
             g["done"] = True
             buildings_processed += 1
 
+        del tile_arrays  # Release decoded point buffers before the next tile.
         manifest_entry = {
             "url": url,
             "tile": tile_name,
