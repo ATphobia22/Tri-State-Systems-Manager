@@ -62,7 +62,7 @@ test("rejects an AMD64 PE with PE32 (not PE32+) optional-header magic", (t) => {
   const bytes = fs.readFileSync(f.exe);
   bytes.writeUInt16LE(0x10b, 152);
   fs.writeFileSync(f.exe, bytes);
-  assert.throws(() => verifyWindowsShipping(f), /PE32\\+/);
+  assert.throws(() => verifyWindowsShipping(f), /PE32\+/);
 });
 test("rejects truncated PE optional-header claims", (t) => {
   const f = fixture(t);
