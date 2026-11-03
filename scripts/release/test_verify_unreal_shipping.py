@@ -43,4 +43,17 @@ class ShippingArtifactGateTests(unittest.TestCase):
         (self.root/"alias.exe").symlink_to(self.root/"TSM.exe")
         with self.assertRaisesRegex(ValueError,"Symlink"):mod.verify(self.root)
 
+    def test_symlink_directory_forbidden(self):
+        self.write("TSM.exe")
+        self.write("Content/TSM.pak")
+        (self.root/"linked-content").symlink_to(self.root/"Content", target_is_directory=True)
+        with self.assertRaisesRegex(ValueError,"Symlink"):mod.verify(self.root)
+    def test_symlink_root_forbidden(self):
+        self.write("TSM.exe")
+        self.write("Content/TSM.pak")
+        alias = self.root.parent / (self.root.name + "-alias")
+        alias.symlink_to(self.root, target_is_directory=True)
+        self.addCleanup(alias.unlink)
+        with self.assertRaisesRegex(ValueError,"Symlink"):mod.verify(alias)
+
 if __name__=="__main__":unittest.main()
