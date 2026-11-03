@@ -72,8 +72,10 @@ def validate_feature(feature: dict[str, Any], index: int, violations: list[str])
             violations.append(f"feature[{index}] OBJECTID={sid}: height provenance must be OBSERVED or DERIVED, got {source_class!r}")
         height_m = props.get("lidarHeightM")
         height_ft = props.get("lidarHeightFt")
-        if not finite_number(height_m) or not finite_number(height_ft) or height_m <= 0 or height_m > 100:
+        if not finite_number(height_m) or not finite_number(height_ft) or height_m <= 0 or height_m > 100 or height_ft <= 0:
             violations.append(f"feature[{index}] OBJECTID={sid}: height must be finite, positive, and <=100 m in both units")
+        elif abs(height_ft - height_m * 3.280839895013123) > 0.1:
+            violations.append(f"feature[{index}] OBJECTID={sid}: lidarHeightFt and lidarHeightM disagree by more than 0.1 ft")
         if not finite_number(props.get("lidarGroundElevM")) or not finite_number(props.get("lidarRoofElevM")):
             violations.append(f"feature[{index}] OBJECTID={sid}: ground and roof elevations are required")
         else:
@@ -111,10 +113,13 @@ def validate_feature(feature: dict[str, Any], index: int, violations: list[str])
             violations.append(f"feature[{index}] OBJECTID={sid}: LOD2 requires at least one reconstructed roof plane")
         else:
             for plane_index, plane in enumerate(planes):
+                if not isinstance(plane, dict):
+                    violations.append(f"feature[{index}] OBJECTID={sid}: roof plane {plane_index} must be an object")
+                    break
                 normal, d, inliers = plane.get("normal"), plane.get("d"), plane.get("inlier_count")
                 if (not isinstance(normal, list) or len(normal) != 3 or
                     not all(finite_number(v) for v in normal) or
-                    not finite_number(d) or not isinstance(inliers, int) or inliers < 100):
+                    not finite_number(d) or type(inliers) is not int or inliers < 100):
                     violations.append(f"feature[{index}] OBJECTID={sid}: roof plane {plane_index} lacks finite plane parameters or 100 inliers")
                     break
     return sid
