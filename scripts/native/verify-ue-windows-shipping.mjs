@@ -90,7 +90,7 @@ export function verifyWindowsShipping({ archive, buildLog, engineRoot, commit })
     "BuildCookRun transcript missing, duplicated or mismatched immutable source commit");
   required(/BuildCookRun/i.test(log) && /clientconfig[=:\s]+Shipping/i.test(log),
     "Build log does not prove BuildCookRun with clientconfig=Shipping");
-  const exitCodes = [...log.matchAll(/AutomationTool exiting with ExitCode=(-?\\d+)\\b/gi)]
+  const exitCodes = [...log.matchAll(/AutomationTool exiting with ExitCode=(-?\d+)\b/gi)]
     .map((match) => Number(match[1]));
   required(exitCodes.length === 1 && exitCodes[0] === 0,
     "Build log does not prove successful Unreal AutomationTool completion: expected exactly one ExitCode=0 and no failed attempts");
