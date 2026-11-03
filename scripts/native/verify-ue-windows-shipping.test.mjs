@@ -94,6 +94,31 @@ test("rejects a mismatched installed Cesium plugin", (t) => {
     '{"VersionName":"2.28.0"}');
   assert.throws(() => verifyWindowsShipping(f), /2.29.1/);
 });
+test("rejects deceptive Cesium version prefixes that are not the pinned release", (t) => {
+  const f = fixture(t);
+  const pluginFile = path.join(f.engineRoot, "Engine/Plugins/Marketplace/CesiumForUnreal/CesiumForUnreal.uplugin");
+  fs.writeFileSync(pluginFile, '{"VersionName":"2.29.10"}');
+  assert.throws(() => verifyWindowsShipping(f), /2\.29\.1/);
+  fs.writeFileSync(pluginFile, '{"VersionName":"2.29.1-local-modified"}');
+  assert.throws(() => verifyWindowsShipping(f), /2\.29\.1/);
+});
+
+test("Windows runner preflight checks installed engine, Cesium and packaging tools", () => {
+  const file = new URL("./Validate-NativeRunner.ps1", import.meta.url);
+  const preflight = fs.readFileSync(file, "utf8");
+  const required = [
+    "UE_ROOT", "native-geospatial-runtime.json", "Build.version", "RunUAT.bat",
+    "UnrealEditor.exe", "CesiumForUnreal.uplugin", "VersionName", "2.29.1",
+    "signtool.exe", "ISCC.exe",
+  ];
+  for (const token of required) {
+    assert.ok(preflight.includes(token), `Missing Windows runner preflight: ${token}`);
+  }
+  assert.match(preflight, /MajorVersion\s+-eq\s+5/);
+  assert.match(preflight, /MinorVersion\s+-eq\s+8/);
+  assert.match(preflight, /VersionName\s+-ceq\s+"2\.29\.1"/);
+});
+
 test("rejects a packaged browser/Node runtime", (t) => {
   const f = fixture(t);
   f.file(f.archive, "ThirdParty/msedgewebview2.exe", Buffer.from("runtime"));
