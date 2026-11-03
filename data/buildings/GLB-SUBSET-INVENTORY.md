@@ -15,7 +15,7 @@
 - **GeoJSON** is the complete screening set for MapLibre fill-extrusion / console (`height_m` preferred).
 - **GLB tiles** are generated only for features with valid geometry + ground elevation samples suitable for prism extrusion; filenames equal `sourceObjectId`.
 - Not every GeoJSON feature has a GLB. Do not assume 1:1.
-- `tileset.json` root content currently references `buildings-3d.json` for the published 3D Tiles 1.1 screening payload; individual GLBs support mesh viewers / offline packages.
+- `buildings-3d.json` is GeoJSON (MapLibre screening), **not** a 3D Tiles content format. The root `tileset.json` now references the renderable `buildings-lidar-12450/tileset.json` subset as an external nested tileset. Its OGC 3D Tiles 1.1 `boundingVolume.region` longitude/latitude values are in WGS 84 radians, not degrees; the region height reference is ellipsoidal metres, **not NAVD88**. No undocumented datum transformation or 22,815-to-GLB one-to-one claim is made.
 
 ## Console wiring
 
