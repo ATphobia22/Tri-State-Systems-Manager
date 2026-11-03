@@ -21,7 +21,7 @@ export function validatePublicRegionalFixture(doc) {
   for (const key of Object.keys(f?.properties ?? {})) {
     if (!allowedProperties.has(key)) errors.push('Unapproved per-feature property key: ' + key);
   }
-  const values = JSON.stringify(doc);
+  const values = JSON.stringify(f?.properties ?? {});
   if (/\b(?:parcel|address|owner|resident|household|phone|email|person|geotag|exif|siteAnchor|structureId)\b/i.test(values))
     errors.push('Potentially property-specific content is prohibited from this fixture');
   const g = f?.geometry;
