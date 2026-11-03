@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const fixtureUrl = new URL('./fixtures/public-regional-aoi.synthetic.geojson', import.meta.url);
-const prohibited = /\\b(?:address|parcelId|siteAnchor|owner)\\b/;
 
 test('public regional fixture stays synthetic, coarse, non-regulatory and without residential values', async () => {
   const source = await readFile(fixtureUrl, 'utf8');
