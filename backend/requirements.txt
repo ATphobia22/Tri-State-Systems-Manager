@@ -1,11 +1,11 @@
 # PTDT v35 Sovereign Backend
 pydantic>=2.13.5,<3
 h5py>=3.16.0,<4
-numpy>=2.5.3,<3
+numpy>=2.5.4,<3
 pyproj>=3.7.2,<4
 
 # TSM OpenMI transport profile
-grpcio>=1.84.0,<2
+grpcio>=1.85.0,<2
 protobuf>=7.36.2,<8
 
 # Optional HEC-RAS bridge (Windows + licensed HEC-RAS)
@@ -15,15 +15,15 @@ protobuf>=7.36.2,<8
 dataretrieval==1.2.0
 
 # Spatial / DEM / PostGIS validation
-rasterio>=1.5.1,<2
+rasterio>=1.5.2,<2
 psycopg2-binary>=2.9.13,<3
-reportlab==5.0.1
+reportlab==5.1.0
 
 # Companion FastAPI service (backend/app) — separate process from the Node API
 fastapi>=0.141.1,<1
 uvicorn>=0.54.0,<1
 httpx>=0.28.1,<1  # TestClient support for backend/tests/test_api.py
-pytest>=8.3,<9  # Backend test modules import pytest; required by run-backend-tests.sh
+pytest>=9.2.0,<10  # Backend test modules import pytest; required by run-backend-tests.sh
 h3>=4.5.0  # offline H3 hexagonal indexing for scripts/geospatial/h3_utils.py (Apache-2.0)
 
 # HEC-HMS/HEC-RAS workflow manifest validation (JSON Schema Draft 2020-12)
