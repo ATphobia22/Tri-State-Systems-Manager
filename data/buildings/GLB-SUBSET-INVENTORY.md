@@ -49,7 +49,7 @@ longitude/latitude values, minimum closed rings and at least three unique
 vertices. Each missing record receives `archivedGeometryStructureScreen`.
 This does **not** establish why a feature was excluded, topology validity,
 source authority, roof/ground LiDAR evidence, correct vertical datum, or mesh
-acceptance. The report emits no per-building coordinates or bounding boxes.
+acceptance. The report emits no per-building coordinates or bounding boxes. It also records an `archivedGeometryStructureBreakdown` with categorical counts, and the identity-evidence GitHub workflow prints those counts in its run summary. The counts distinguish *basic structure screening* from actual measured-height or publishability evidence.
 
 **Still incomplete:** determine the individual exclusion reason for all 267
 from original feature/raster processing logs; acquire defensible heights,

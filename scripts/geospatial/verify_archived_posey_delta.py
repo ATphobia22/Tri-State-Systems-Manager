@@ -103,6 +103,14 @@ def verify_delta(published: Path, source: Path, expected: Path) -> dict:
             "regulatoryUse": False,
         })
     records.sort(key=lambda item: item["sourceObjectId"])
+    # Only categorical diagnostics enter the report summary. Never disclose
+    # missing-feature geometry, coordinates or inferred failure causes.
+    geometry_breakdown = {
+        label: sum(row["archivedGeometryStructureScreen"] == label for row in records)
+        for label in sorted({row["archivedGeometryStructureScreen"] for row in records})
+    }
+    if sum(geometry_breakdown.values()) != len(records):
+        raise ValueError("Archived geometry screen totals do not reconcile")
     if [entry["sourceObjectId"] for entry in records] != result["missingAuthoritativeObjectIds"]:
         raise ValueError("Missing-ID records could not be reconstructed from the pinned source")
     return {
@@ -117,6 +125,7 @@ def verify_delta(published: Path, source: Path, expected: Path) -> dict:
         "sourceCount": result["authoritative"]["count"],
         "publishedCount": result["published"]["count"],
         "missingCount": len(records),
+        "archivedGeometryStructureBreakdown": geometry_breakdown,
         "coveragePercent": result["publishedCoveragePercentAgainstExpected"],
         "missingBuildings": records,
         "warning": "Archived polygon structural screening is informational only. Root cause, heights, NAVD88, topology, LOD and publishable geometry remain unverified; no source records were synthesized",
