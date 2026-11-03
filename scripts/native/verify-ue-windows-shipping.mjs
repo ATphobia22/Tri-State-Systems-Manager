@@ -42,9 +42,15 @@ function peMachine(file) {
     required(n >= 64 && header.toString("ascii", 0, 2) === "MZ",
       "Expected a Windows PE executable, not a renamed file");
     const offset = header.readUInt32LE(0x3c);
-    required(offset >= 64 && offset < n - 24 && header.toString("latin1", offset, offset + 4) === "PE\0\0",
+    required(offset >= 64 && offset + 26 <= n && header.toString("latin1", offset, offset + 4) === "PE\0\0",
       "Invalid PE header or truncated Windows executable");
-    return header.readUInt16LE(offset + 4);
+    const machine = header.readUInt16LE(offset + 4);
+    const optionalHeaderBytes = header.readUInt16LE(offset + 20);
+    required(optionalHeaderBytes >= 2 && offset + 24 + optionalHeaderBytes <= n,
+      "Missing or truncated PE optional header");
+    required(header.readUInt16LE(offset + 24) === 0x20b,
+      "Windows executable must use PE32+ optional header");
+    return machine;
   } finally {
     fs.closeSync(fd);
   }
