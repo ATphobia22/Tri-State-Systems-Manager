@@ -31,12 +31,12 @@ export default function BuildingCoverageNotice() {
   let message: string;
   if (state.status === 'ready') {
     const { published, expected, percent, gap, identityReconciled, sourceInventoryVerified } = state.summary;
-    message = `Building 3D coverage: ${published.toLocaleString()} / ${expected.toLocaleString()} (${percent.toFixed(2)}%); ` +
+    message = `Published GeoJSON building-footprint coverage: ${published.toLocaleString()} / ${expected.toLocaleString()} (${percent.toFixed(2)}%); ` +
       (gap > 0 ? `${gap.toLocaleString()} fewer than expected. ` :
         gap < 0 ? `${Math.abs(gap).toLocaleString()} more than expected; investigate. ` : '') +
       (identityReconciled && sourceInventoryVerified
-        ? 'Source IDs reported reconciled; engineering acceptance still unverified.'
-        : 'Missing source identities not yet verified; independent source comparison required.');
+        ? 'Screening identities reported reconciled; mesh coverage and engineering acceptance still unverified.'
+        : 'Renderable 3D mesh tiles cover a separate subset; authoritative source validation and engineering acceptance remain open.');
   } else {
     message = state.status === 'loading'
       ? 'Checking 3D building coverage metadata; completeness unverified.'

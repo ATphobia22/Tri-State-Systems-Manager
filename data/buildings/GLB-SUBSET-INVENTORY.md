@@ -15,7 +15,7 @@
 - **GeoJSON** is the complete screening set for MapLibre fill-extrusion / console (`height_m` preferred).
 - **GLB tiles** are generated only for features with valid geometry + ground elevation samples suitable for prism extrusion; filenames equal `sourceObjectId`.
 - Not every GeoJSON feature has a GLB. Do not assume 1:1.
-- `tileset.json` root content currently references `buildings-3d.json` for the published 3D Tiles 1.1 screening payload; individual GLBs support mesh viewers / offline packages.
+- `buildings-3d.json` is GeoJSON (MapLibre screening), **not** a 3D Tiles content format. The root `tileset.json` now references the renderable `buildings-lidar-12450/tileset.json` subset as an external nested tileset. Its OGC 3D Tiles 1.1 `boundingVolume.region` longitude/latitude values are in WGS 84 radians, not degrees; the region height reference is ellipsoidal metres, **not NAVD88**. No undocumented datum transformation or 22,815-to-GLB one-to-one claim is made.
 
 ## Console wiring
 
@@ -44,6 +44,12 @@ which fetches and checks the frozen release asset SHA-256 before running
 `posey-archived-objectid-remediation` artifact contains each missing
 `sourceObjectId` with `rootCause: UNDETERMINED`, explicitly unverified
 height, datum and LOD evidence, and no invented coordinates or geometry.
+A basic structural triage checks polygon/multipolygon coordinates for finite
+longitude/latitude values, minimum closed rings and at least three unique
+vertices. Each missing record receives `archivedGeometryStructureScreen`.
+This does **not** establish why a feature was excluded, topology validity,
+source authority, roof/ground LiDAR evidence, correct vertical datum, or mesh
+acceptance. The report emits no per-building coordinates or bounding boxes.
 
 **Still incomplete:** determine the individual exclusion reason for all 267
 from original feature/raster processing logs; acquire defensible heights,

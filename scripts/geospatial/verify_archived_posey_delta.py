@@ -9,9 +9,51 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 from pathlib import Path
 
 from reconcile_published_buildings import _identifier, reconcile
+
+
+
+def screen_geometry(geometry: object) -> str:
+    """Conservative *structural* screen, not topology, datum or provenance validation.
+
+    Never output footprint coordinates or infer that this check explains omission
+    from the 22,815-feature publication. A passed screen means only that the
+    archived GeoJSON polygon has closed, finite WGS84-like lon/lat rings.
+    """
+    if not isinstance(geometry, dict):
+        return "GEOMETRY_MISSING"
+    kind = geometry.get("type")
+    if kind not in ("Polygon", "MultiPolygon"):
+        return "UNSUPPORTED_GEOMETRY_TYPE"
+    parts = [geometry.get("coordinates")] if kind == "Polygon" else geometry.get("coordinates")
+    if not isinstance(parts, list) or not parts:
+        return "MALFORMED_POLYGON_COORDINATES"
+    for polygon in parts:
+        if not isinstance(polygon, list) or not polygon:
+            return "MALFORMED_POLYGON_COORDINATES"
+        for ring in polygon:
+            if not isinstance(ring, list) or len(ring) < 4:
+                return "RING_TOO_SHORT_OR_MISSING"
+            pts = []
+            for point in ring:
+                if not isinstance(point, (list, tuple)) or len(point) < 2:
+                    return "INVALID_COORDINATE"
+                x, y = point[:2]
+                if (isinstance(x, bool) or isinstance(y, bool) or
+                    not isinstance(x, (int, float)) or not isinstance(y, (int, float)) or
+                    not math.isfinite(x) or not math.isfinite(y) or
+                    not -180 <= x <= 180 or not -90 <= y <= 90):
+                    return "INVALID_COORDINATE"
+                pts.append((x, y))
+            if pts[0] != pts[-1]:
+                return "RING_NOT_CLOSED"
+            if len(set(pts[:-1])) < 3:
+                return "RING_DEGENERATE"
+    return "BASIC_STRUCTURE_OK_TOPOLOGY_UNVERIFIED"
+
 
 
 def verify_delta(published: Path, source: Path, expected: Path) -> dict:
@@ -52,6 +94,8 @@ def verify_delta(published: Path, source: Path, expected: Path) -> dict:
             "rootCause": "UNDETERMINED",
             "sourceGeometryType": geometry_type,
             "sourceGeometryPresent": geometry_type in ("Polygon", "MultiPolygon"),
+            "archivedGeometryStructureScreen": screen_geometry(geometry),
+            "geometryStructureDoesNotEstablishRootCause": True,
             "heightEvidenceVerified": False,
             "verticalDatumEvidenceVerified": False,
             "lodOutcomeVerified": False,
@@ -75,7 +119,7 @@ def verify_delta(published: Path, source: Path, expected: Path) -> dict:
         "missingCount": len(records),
         "coveragePercent": result["publishedCoveragePercentAgainstExpected"],
         "missingBuildings": records,
-        "warning": "Root cause, heights, NAVD88, LOD and publishable geometry are unverified; no source records were synthesized",
+        "warning": "Archived polygon structural screening is informational only. Root cause, heights, NAVD88, topology, LOD and publishable geometry remain unverified; no source records were synthesized",
     }
 
 
