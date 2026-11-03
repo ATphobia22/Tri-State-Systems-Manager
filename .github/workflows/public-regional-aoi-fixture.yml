@@ -1,34 +1,32 @@
-name: Public Regional AOI Synthetic Fixture Contract
+name: TSM Public Regional AOI Fixture Privacy Contract
+
 on:
+  pull_request:
+    paths:
+      - 'tests/fixtures/public-regional-aoi.synthetic.geojson'
+      - 'tests/public-regional-aoi-fixture.test.mjs'
+      - '.github/workflows/public-regional-aoi-fixture.yml'
   push:
     branches: [main]
     paths:
-      - 'data/fixtures/public-regional-aoi.synthetic.geojson'
-      - 'scripts/ci/validate-public-regional-fixture.mjs'
-      - 'scripts/ci/validate-public-regional-fixture.test.mjs'
-      - '.github/workflows/public-regional-aoi-fixture.yml'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'data/fixtures/public-regional-aoi.synthetic.geojson'
-      - 'scripts/ci/validate-public-regional-fixture.mjs'
-      - 'scripts/ci/validate-public-regional-fixture.test.mjs'
+      - 'tests/fixtures/public-regional-aoi.synthetic.geojson'
+      - 'tests/public-regional-aoi-fixture.test.mjs'
       - '.github/workflows/public-regional-aoi-fixture.yml'
   workflow_dispatch:
+
 permissions:
   contents: read
+
 jobs:
-  synthetic-public-aoi:
+  public-fixture:
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 8
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # pinned
         with:
           persist-credentials: false
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # pinned
         with:
-          node-version: '22'
-      - name: Validate public synthetic fixture
-        run: node scripts/ci/validate-public-regional-fixture.mjs
-      - name: Verify adversarial fixture guards
-        run: node --test scripts/ci/validate-public-regional-fixture.test.mjs
+          node-version: 22
+      - name: Validate synthetic public AOI contract
+        run: node --test tests/public-regional-aoi-fixture.test.mjs

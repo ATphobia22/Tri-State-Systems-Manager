@@ -1,0 +1,60 @@
+{
+  "type": "FeatureCollection",
+  "name": "TSM public regional AOI synthetic-only fixture",
+  "metadata": {
+    "schemaVersion": "tsm.aoi.synthetic-public-fixture.v1",
+    "synthetic": true,
+    "publicationClass": "PUBLIC_TEST_FIXTURE",
+    "sourceAuthority": "NONE_SYNTHETIC",
+    "scientificUse": false,
+    "engineeringUse": false,
+    "regulatoryUse": false,
+    "areaDefinition": "Coarse demonstration rectangle, not hydrologically delineated, not a parcel, not a residence",
+    "verticalDatum": "NOT_APPLICABLE",
+    "geometryPurpose": "REGRESSION_TEST_ONLY",
+    "privateEvidenceIncluded": false
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "synthetic-regional-demo-aoi-1",
+      "properties": {
+        "featureClass": "SYNTHETIC_REGIONAL_ENVELOPE",
+        "source": "SYNTHETIC_TEST_ONLY",
+        "parcelId": null,
+        "address": null,
+        "siteAnchor": null,
+        "owner": null,
+        "datumValidation": "NOT_APPLICABLE",
+        "noRegulatoryDetermination": true
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -89,
+              37.5
+            ],
+            [
+              -87.5,
+              37.5
+            ],
+            [
+              -87.5,
+              38.5
+            ],
+            [
+              -89,
+              38.5
+            ],
+            [
+              -89,
+              37.5
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}
