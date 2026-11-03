@@ -152,3 +152,22 @@ test("native workflow records a verified checkout SHA before invoking Windows Bu
   assert.deepEqual([...positions].sort((a, b) => a - b), positions,
     "checkout must be verified and stamped before packaging");
 });
+
+test("rejects UAT logs with a failed attempt followed by successful exit", (t) => {
+  const f = fixture(t);
+  fs.writeFileSync(f.buildLog,
+    "TSM_SOURCE_COMMIT=" + f.commit + "\n" +
+    "BuildCookRun -clientconfig=Shipping\n" +
+    "AutomationTool exiting with ExitCode=-1\n" +
+    "AutomationTool exiting with ExitCode=0\n");
+  assert.throws(() => verifyWindowsShipping(f), /expected exactly one ExitCode=0/);
+});
+test("rejects duplicated successful UAT exits in a single transcript", (t) => {
+  const f = fixture(t);
+  fs.writeFileSync(f.buildLog,
+    "TSM_SOURCE_COMMIT=" + f.commit + "\n" +
+    "BuildCookRun -clientconfig=Shipping\n" +
+    "AutomationTool exiting with ExitCode=0\n" +
+    "AutomationTool exiting with ExitCode=0\n");
+  assert.throws(() => verifyWindowsShipping(f), /expected exactly one ExitCode=0/);
+});

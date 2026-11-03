@@ -91,10 +91,10 @@ export function verifyWindowsShipping({ archive, buildLog, engineRoot, commit })
     "BuildCookRun transcript missing, duplicated or mismatched immutable source commit");
   required(/BuildCookRun/i.test(log) && /clientconfig[=:\s]+Shipping/i.test(log),
     "Build log does not prove BuildCookRun with clientconfig=Shipping");
-  required(/AutomationTool exiting with ExitCode=0\b/i.test(log),
-    "Build log does not prove successful Unreal AutomationTool completion");
-  required(!/AutomationTool exiting with ExitCode=[1-9]/i.test(log),
-    "Build log contains nonzero AutomationTool exit");
+  const exitCodes = [...log.matchAll(/AutomationTool exiting with ExitCode=(-?\d+)\b/gi)]
+    .map((match) => Number(match[1]));
+  required(exitCodes.length === 1 && exitCodes[0] === 0,
+    "Build log does not prove successful Unreal AutomationTool completion: expected exactly one ExitCode=0 and no failed attempts");
   const files = listFiles(archive);
   const exe = files.filter((f) => path.basename(f).toLowerCase() === "tsmnative.exe");
   required(exe.length === 1, `Expected exactly one packaged TSMNative.exe, found ${exe.length}`);
