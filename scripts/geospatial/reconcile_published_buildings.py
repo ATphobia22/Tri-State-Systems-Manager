@@ -35,17 +35,26 @@ def _sha256(path: Path) -> str:
 
 
 def _identifier(props: dict[str, Any]) -> int | None:
+    """Use only unambiguous source identity, even when aliases coexist.
+
+    A feature can carry historical and normalized ID keys. Disagreement is
+    an evidence error: silently choosing the first alias could hide a source
+    substitution and falsely satisfy an exact OBJECTID set comparison.
+    """
+    candidates: dict[str, int] = {}
     for key in ID_KEYS:
         value = props.get(key)
         if isinstance(value, bool):
             continue
         if isinstance(value, int) and value >= 0:
-            return value
-        if isinstance(value, float) and math.isfinite(value) and value >= 0 and value.is_integer():
-            return int(value)
-        if isinstance(value, str) and value.strip().isdigit():
-            return int(value.strip())
-    return None
+            candidates[key] = value
+        elif isinstance(value, float) and math.isfinite(value) and value >= 0 and value.is_integer():
+            candidates[key] = int(value)
+        elif isinstance(value, str) and value.strip().isdigit():
+            candidates[key] = int(value.strip())
+    if len(set(candidates.values())) > 1:
+        raise ValueError(f"conflicting source OBJECTID aliases: {candidates}")
+    return next(iter(candidates.values()), None)
 
 
 def _inventory(path: Path) -> dict[str, Any]:
@@ -80,6 +89,9 @@ def _inventory(path: Path) -> dict[str, Any]:
         "without_id": no_id,
         "invalid_features": invalid,
         "duplicate_ids": sorted(k for k, n in counts.items() if n > 1),
+        "sorted_identity_multiset_sha256": hashlib.sha256(
+            json.dumps(sorted(ids), separators=(",", ":")).encode("utf-8")
+        ).hexdigest(),
     }
 
 
@@ -113,6 +125,7 @@ def reconcile(published: Path, authoritative: Path | None, expected_count: int =
             "missingIdentityCount": inventory["without_id"],
             "invalidFeatureCount": inventory["invalid_features"],
             "duplicateSourceObjectIds": inventory["duplicate_ids"],
+            "sortedIdentityMultisetSha256": inventory["sorted_identity_multiset_sha256"],
         }
 
     return {

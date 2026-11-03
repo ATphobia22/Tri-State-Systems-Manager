@@ -7,6 +7,7 @@ on:
     paths:
       - 'scripts/geospatial/verify_archived_posey_delta.py'
       - 'scripts/geospatial/reconcile_published_buildings.py'
+      - 'scripts/geospatial/test_reconcile_published_buildings.py'
       - 'scripts/geospatial/test_verify_archived_posey_delta.py'
       - 'data/buildings/POSEY-ARCHIVED-IGIO-IDENTITY-DELTA-2026-10-25.json'
       - 'tsm-console/public/3d-tiles/tileset.json'
@@ -18,6 +19,7 @@ on:
     paths:
       - 'scripts/geospatial/verify_archived_posey_delta.py'
       - 'scripts/geospatial/reconcile_published_buildings.py'
+      - 'scripts/geospatial/test_reconcile_published_buildings.py'
       - 'scripts/geospatial/test_verify_archived_posey_delta.py'
       - 'data/buildings/POSEY-ARCHIVED-IGIO-IDENTITY-DELTA-2026-10-25.json'
       - 'tsm-console/public/3d-tiles/tileset.json'

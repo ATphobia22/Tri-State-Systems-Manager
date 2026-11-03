@@ -86,6 +86,26 @@ class BuildingIdentityAuditTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "FeatureCollection"):
                 reconcile(p, None, expected_count=1)
 
+    def test_conflicting_objectid_aliases_fail_instead_of_selecting_one(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = write_fc(Path(tmp) / "published.json", [1])
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            payload["features"][0]["properties"]["OBJECTID"] = 2
+            path.write_text(json.dumps(payload), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "conflicting source OBJECTID aliases"):
+                reconcile(path, None, expected_count=1)
+
+    def test_identity_digest_is_order_independent_but_substitution_sensitive(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            first = reconcile(write_fc(root / "a.json", [3, 1, 2]), None, expected_count=3)
+            reordered = reconcile(write_fc(root / "b.json", [1, 2, 3]), None, expected_count=3)
+            different = reconcile(write_fc(root / "c.json", [1, 2, 4]), None, expected_count=3)
+            key = "sortedIdentityMultisetSha256"
+            self.assertEqual(first["published"][key], reordered["published"][key])
+            self.assertNotEqual(first["published"][key], different["published"][key])
+            self.assertEqual(len(first["published"][key]), 64)
+
     def test_expected_count_must_be_positive(self):
         with tempfile.TemporaryDirectory() as tmp:
             pub = write_fc(Path(tmp) / "published.json", [1])
