@@ -65,6 +65,24 @@ test("rejects an unsigned/absent UAT success claim", (t) => {
   fs.writeFileSync(f.buildLog, "BuildCookRun -clientconfig=Shipping\nAutomationTool exiting with ExitCode=1\n");
   assert.throws(() => verifyWindowsShipping(f), /successful Unreal AutomationTool/);
 });
+test("rejects UAT logs with a failed attempt followed by successful exit", (t) => {
+  const f = fixture(t);
+  fs.writeFileSync(f.buildLog,
+    "TSM_SOURCE_COMMIT=" + f.commit + "\n" +
+    "BuildCookRun -clientconfig=Shipping\n" +
+    "AutomationTool exiting with ExitCode=-1\n" +
+    "AutomationTool exiting with ExitCode=0\n");
+  assert.throws(() => verifyWindowsShipping(f), /expected exactly one ExitCode=0/);
+});
+test("rejects duplicated successful UAT exits in a single transcript", (t) => {
+  const f = fixture(t);
+  fs.writeFileSync(f.buildLog,
+    "TSM_SOURCE_COMMIT=" + f.commit + "\n" +
+    "BuildCookRun -clientconfig=Shipping\n" +
+    "AutomationTool exiting with ExitCode=0\n" +
+    "AutomationTool exiting with ExitCode=0\n");
+  assert.throws(() => verifyWindowsShipping(f), /expected exactly one ExitCode=0/);
+});
 test("rejects a declared non-Shipping build", (t) => {
   const f = fixture(t);
   fs.writeFileSync(f.buildLog, "BuildCookRun -clientconfig=Development\nAutomationTool exiting with ExitCode=0\n");
