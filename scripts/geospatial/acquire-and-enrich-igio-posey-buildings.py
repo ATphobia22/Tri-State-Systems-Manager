@@ -26,6 +26,8 @@ import urllib.request
 from pathlib import Path
 from urllib.parse import urlencode, urlparse
 
+from dem_vertical_evidence import pinned_navd88_scale_to_ft
+
 from verify_igio_footprint_cache import (
     MAX_BYTES,
     CachedSourceError,
@@ -200,16 +202,26 @@ def centroid(ring: list[list[float]]) -> tuple[float, float]:
 class ElevationSampler:
     def __init__(self, paths: list[Path]) -> None:
         self.datasets = []
+        self.skipped_unverified = 0
         for path in paths:
+            # Native horizontal CRS is NOT evidence of raster Z units or datum.
+            scale_ft = pinned_navd88_scale_to_ft(path)
+            if scale_ft is None:
+                self.skipped_unverified += 1
+                continue
             ds = rasterio.open(path)
-            self.datasets.append(ds)
+            if ds.crs is None:
+                ds.close()
+                self.skipped_unverified += 1
+                continue
+            self.datasets.append((ds, scale_ft))
 
     def close(self) -> None:
-        for ds in self.datasets:
+        for ds, _scale_ft in self.datasets:
             ds.close()
 
     def sample(self, lonlat: list[tuple[float, float]]) -> tuple[float, float, float, int, str] | None:
-        for ds in self.datasets:
+        for ds, scale_ft in self.datasets:
             xs = [p[0] for p in lonlat]
             ys = [p[1] for p in lonlat]
             if ds.crs and str(ds.crs) != "EPSG:4326":
@@ -224,9 +236,9 @@ class ElevationSampler:
                     vals.append(v)
             if vals:
                 return (
-                    float(min(vals)) * FT_PER_M,
-                    float(max(vals)) * FT_PER_M,
-                    float(sum(vals) / len(vals)) * FT_PER_M,
+                    float(min(vals)) * scale_ft,
+                    float(max(vals)) * scale_ft,
+                    float(sum(vals) / len(vals)) * scale_ft,
                     len(vals),
                     str(ds.name),
                 )
@@ -479,6 +491,12 @@ def main() -> None:
             return float(dataset.res[0])
     dem_paths.sort(key=resolution)
     sampler = ElevationSampler(dem_paths)
+    if sampler.skipped_unverified:
+        print(
+            f"WARNING: {sampler.skipped_unverified} DEM rasters lack a matching pinned "
+            "NAVD88 vertical-unit sidecar or a valid horizontal CRS; their Z samples "
+            "are unavailable until source evidence is supplied", flush=True,
+        )
     try:
         enriched = []
         no_elevation = 0
@@ -550,13 +568,20 @@ def main() -> None:
         "geometryCrs": "EPSG:4326",
         "elevationAuthority": "TSM committed 3DEP-derived Posey DEM",
         "elevationMethod": "footprint centroid + boundary samples",
-        "elevationVerticalUnits": "feet",
-        "elevationVerticalDatum": "NAVD88",
+        "elevationVerticalUnits": "feet" if sampler.datasets else None,
+        "elevationVerticalDatum": "NAVD88" if sampler.datasets else None,
+        "elevationDatumEvidenceClass": "PINNED_PROJECT_SIDECAR_NOT_INDEPENDENTLY_CERTIFIED" if sampler.datasets else "UNVERIFIED",
+        "elevationUnverifiedRasterCount": sampler.skipped_unverified,
         "elevationUnavailableFeatureCount": no_elevation,
         "humanReviewRequired": True,
         "surveyGrade": False,
         "features": enriched,
     }
+    # An absent vertical source cannot be advertised as NAVD88, even in a
+    # derived visualization. The offline cache verifier also forbids null datum.
+    if not sampler.datasets:
+        document.pop("elevationVerticalUnits")
+        document.pop("elevationVerticalDatum")
     output.write_text(json.dumps(document, separators=(",", ":"), ensure_ascii=False) + "\n", encoding="utf-8")
     digest = hashlib.sha256(output.read_bytes()).hexdigest()
     output.with_suffix(output.suffix + ".sha256").write_text(f"{digest}  {output.name}\n", encoding="utf-8")
