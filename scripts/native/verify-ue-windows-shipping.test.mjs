@@ -29,7 +29,7 @@ function fixture(t) {
   file(engineRoot, "Engine/Build/Build.version", JSON.stringify({ MajorVersion: 5, MinorVersion: 8, PatchVersion: 0 }));
   file(engineRoot, "Engine/Plugins/Marketplace/CesiumForUnreal/CesiumForUnreal.uplugin",
     JSON.stringify({ VersionName: "2.29.1" }));
-  fs.writeFileSync(buildLog, "Running BuildCookRun -clientconfig=Shipping\nAutomationTool exiting with ExitCode=0 (Success)\n");
+  fs.writeFileSync(buildLog, "TSM_SOURCE_COMMIT=" + "a".repeat(40) + "\nRunning BuildCookRun -clientconfig=Shipping\nAutomationTool exiting with ExitCode=0 (Success)\n");
   return { archive, engineRoot, buildLog, exe, file, commit: "a".repeat(40) };
 }
 test("static proof passes correctly shaped fixture but never asserts an offline launch", (t) => {
@@ -89,4 +89,20 @@ test("rejects a packaged browser/Node runtime", (t) => {
 test("requires a pinned commit", (t) => {
   const f = fixture(t);
   assert.throws(() => verifyWindowsShipping({...f, commit:"main"}), /Immutable 40-character/);
+});
+
+test("rejects absent or mismatched transcript source SHA even with successful UAT", (t) => {
+  const f = fixture(t);
+  fs.writeFileSync(f.buildLog, "BuildCookRun -clientconfig=Shipping\\nAutomationTool exiting with ExitCode=0\\n");
+  assert.throws(() => verifyWindowsShipping(f), /transcript.*commit/i);
+  fs.writeFileSync(f.buildLog, "TSM_SOURCE_COMMIT=" + "b".repeat(40) +
+    "\\nBuildCookRun -clientconfig=Shipping\\nAutomationTool exiting with ExitCode=0\\n");
+  assert.throws(() => verifyWindowsShipping(f), /transcript.*commit/i);
+});
+test("rejects duplicated source SHA markers even if both agree", (t) => {
+  const f = fixture(t);
+  const stamp = "TSM_SOURCE_COMMIT=" + f.commit + "\\n";
+  fs.writeFileSync(f.buildLog, stamp + stamp +
+    "BuildCookRun -clientconfig=Shipping\\nAutomationTool exiting with ExitCode=0\\n");
+  assert.throws(() => verifyWindowsShipping(f), /transcript.*commit/i);
 });
