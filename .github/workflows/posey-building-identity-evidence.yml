@@ -8,6 +8,8 @@ on:
       - 'scripts/geospatial/verify_archived_posey_delta.py'
       - 'scripts/geospatial/reconcile_published_buildings.py'
       - 'scripts/geospatial/test_reconcile_published_buildings.py'
+      - 'scripts/geospatial/validate_building_acceptance_chain.py'
+      - 'scripts/geospatial/test_validate_building_acceptance_chain.py'
       - 'scripts/geospatial/test_verify_archived_posey_delta.py'
       - 'data/buildings/POSEY-ARCHIVED-IGIO-IDENTITY-DELTA-2026-10-25.json'
       - 'tsm-console/public/3d-tiles/tileset.json'
@@ -20,6 +22,8 @@ on:
       - 'scripts/geospatial/verify_archived_posey_delta.py'
       - 'scripts/geospatial/reconcile_published_buildings.py'
       - 'scripts/geospatial/test_reconcile_published_buildings.py'
+      - 'scripts/geospatial/validate_building_acceptance_chain.py'
+      - 'scripts/geospatial/test_validate_building_acceptance_chain.py'
       - 'scripts/geospatial/test_verify_archived_posey_delta.py'
       - 'data/buildings/POSEY-ARCHIVED-IGIO-IDENTITY-DELTA-2026-10-25.json'
       - 'tsm-console/public/3d-tiles/tileset.json'
@@ -40,7 +44,7 @@ jobs:
         run: node --test tsm-console/tests/building-coverage-manifest.test.mjs
       - name: Test identity accounting without external data
         run: |
-          python3 -m unittest scripts/geospatial/test_reconcile_published_buildings.py scripts/geospatial/test_verify_archived_posey_delta.py
+          python3 -m unittest scripts/geospatial/test_reconcile_published_buildings.py scripts/geospatial/test_verify_archived_posey_delta.py scripts/geospatial/test_validate_building_acceptance_chain.py
       - name: Fetch immutable, SHA-256-pinned archived source snapshot
         run: |
           set -euo pipefail
