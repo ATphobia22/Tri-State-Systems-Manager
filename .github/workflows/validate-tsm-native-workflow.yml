@@ -1,0 +1,38 @@
+name: TSM Native Workflow Syntax & Semantics
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/tsm-native.yml'
+      - '.github/workflows/validate-tsm-native-workflow.yml'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/tsm-native.yml'
+      - '.github/workflows/validate-tsm-native-workflow.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  actionlint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # pinned
+        with:
+          persist-credentials: false
+      - name: Download integrity-pinned actionlint 1.7.12
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/actionlint"
+          cd "$RUNNER_TEMP/actionlint"
+          curl --fail --silent --show-error --location --retry 3             https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz             -o actionlint.tar.gz
+          echo '8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  actionlint.tar.gz' | sha256sum -c -
+          tar -xzf actionlint.tar.gz actionlint
+      - name: Validate native workflow Github Actions schema and expressions
+        shell: bash
+        run: |
+          "$RUNNER_TEMP/actionlint/actionlint" -no-color .github/workflows/tsm-native.yml
