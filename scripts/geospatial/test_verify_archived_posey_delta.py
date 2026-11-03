@@ -43,6 +43,10 @@ class ArchivedDeltaTests(unittest.TestCase):
             src, pub, pin = self.fixture(Path(tmp))
             report = verify_delta(pub, src, pin)
             self.assertEqual(report["missingCount"], 1)
+            self.assertEqual(report["archivedGeometryStructureBreakdown"],
+                             {"BASIC_STRUCTURE_OK_TOPOLOGY_UNVERIFIED": 1})
+            self.assertEqual(sum(report["archivedGeometryStructureBreakdown"].values()),
+                             report["missingCount"])
             self.assertEqual(report["missingBuildings"][0]["sourceObjectId"], 11)
             self.assertEqual(report["missingBuildings"][0]["rootCause"], "UNDETERMINED")
             self.assertFalse(report["missingBuildings"][0]["heightEvidenceVerified"])

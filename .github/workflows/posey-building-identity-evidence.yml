@@ -62,6 +62,10 @@ jobs:
           with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:
               out.write(f"## Archived Posey identity delta\nSource: {report['sourceCount']:,} | Published: {report['publishedCount']:,} | Missing: {report['missingCount']}\n\n")
               out.write("**Informational only.** All missing OBJECTIDs identified; field-level height, NAVD88, LOD, native tile recovery and source authority approval remain unverified.\n")
+              out.write("\n### Archived geometry structural screen (not an exclusion root cause)\n")
+              for label, count in sorted(report["archivedGeometryStructureBreakdown"].items()):
+                  out.write(f"- {label}: {count}\n")
+              out.write("\nPassing basic geometry structure does not establish topology, heights, datum or 3D Tiles eligibility.\n")
           PY
       - name: Upload non-geometric missing-ID remediation evidence
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
