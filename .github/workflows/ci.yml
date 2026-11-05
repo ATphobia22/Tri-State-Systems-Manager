@@ -36,7 +36,9 @@ jobs:
           cache: npm
           cache-dependency-path: tsm-console/package-lock.json
           registry-url: https://registry.npmjs.org
-      - name: Pin npm CLI
+      - name: Pin npm CLI for lockfile-compatible installation
+        # This repository's lockfile is authored for npm 10; npm 11 currently
+        # rejects some cross-platform optional dependencies as absent.
         run: npm install --global npm@10.9.2 --no-audit --no-fund
       - name: Verify Node and npm versions
         run: |
@@ -67,6 +69,12 @@ jobs:
           # by scripts/ci/validate-npm-audit.mjs (see docs/security/NPM-AUDIT-EXCEPTIONS.md).
           # Any new high/critical advisory fails closed.
           node ../scripts/ci/validate-npm-audit.mjs artifacts/npm-audit.json "$status"
+      - name: Upgrade signature verifier after lockfile installation
+        # npm >=11.11 contains current keyless-attestation support. Keep npm 10
+        # only for the lockfile-compatible npm ci; do not skip provenance checks.
+        run: |
+          npm install --global npm@11.21.1 --no-audit --no-fund
+          test "$(npm --version)" = "11.21.1"
       - name: npm audit signatures evidence and gate
         run: |
           set +e
