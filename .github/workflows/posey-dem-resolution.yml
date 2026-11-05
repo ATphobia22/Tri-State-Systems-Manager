@@ -1,0 +1,27 @@
+name: Posey DEM physical resolution contract
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/geospatial/acquire-and-enrich-igio-posey-buildings.py'
+      - 'scripts/geospatial/dem_resolution.py'
+      - 'scripts/geospatial/test_dem_resolution.py'
+      - '.github/workflows/posey-dem-resolution.yml'
+  pull_request:
+    paths:
+      - 'scripts/geospatial/acquire-and-enrich-igio-posey-buildings.py'
+      - 'scripts/geospatial/dem_resolution.py'
+      - 'scripts/geospatial/test_dem_resolution.py'
+      - '.github/workflows/posey-dem-resolution.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  resolution:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Reject ambiguous horizontal DEM pixel units
+        run: python3 -m unittest discover -s scripts/geospatial -p test_dem_resolution.py -v

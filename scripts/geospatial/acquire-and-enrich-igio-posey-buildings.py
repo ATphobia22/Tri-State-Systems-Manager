@@ -32,6 +32,8 @@ from verify_igio_footprint_cache import (
     verify_igio_snapshot,
 )
 
+from dem_resolution import ground_pixel_resolution_m, RasterResolutionError
+
 import rasterio
 from shapely.geometry import MultiPolygon, Polygon, mapping, shape
 from shapely.ops import unary_union
@@ -476,7 +478,12 @@ def main() -> None:
     # acquisition job does not leak file descriptors before opening samplers.
     def resolution(path: Path) -> float:
         with rasterio.open(path) as dataset:
-            return float(dataset.res[0])
+            try:
+                return ground_pixel_resolution_m(dataset.crs, dataset.res, dataset.bounds)
+            except RasterResolutionError as exc:
+                raise SystemExit(
+                    f"Cannot prioritize DEM with ambiguous horizontal pixel units ({path.name}): {exc}"
+                ) from exc
     dem_paths.sort(key=resolution)
     sampler = ElevationSampler(dem_paths)
     try:
