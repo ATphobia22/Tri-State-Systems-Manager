@@ -43,6 +43,7 @@ NGS's status page says NAPGD2022 and NATRF2022 beta public-feedback periods are 
 - [USGS US Topo Map Collection](https://catalog.data.gov/dataset/usgs-us-topo-map-collection) is described as layered geospatial PDFs of 7.5-minute quadrangles with orthoimagery, roads, grids, geographic names, elevation contours, hydrography, boundaries, and related map features. Data delivery is through [The National Map](https://www.usgs.gov/the-national-map-data-delivery).
 - The catalog reports metadata updated 2025-03-11 and map data last modified 2025-02-14. These timestamps are source-catalog metadata, not evidence that TSM has downloaded the map product or that every local county is covered by a validated snapshot.
 - **Evidence class: cartographic reference only.** A map PDF, rendered contours, or a TopoView search result is not a substitute for a current bare-earth DEM, lidar-derived terrain, surveyed bathymetry, or authoritative vertical-control data. It can support context/history review and source discovery but must not be promoted to an engineering input without separate artifact, datum, coverage, resolution, and accuracy checks.
+- Acquired 2026-11-05 (anchor area only): 8 HTMC GeoTIFFs with provenance in `data/fabrics/historical-topo/MANIFEST.json` — Wabash Island 1953/1958/1981, Mount Vernon 1952/1981, New Haven 1906, New Harmony 1903/1959. All other TopoView/US Topo records stay in `AVAILABLE_FOR_DISCOVERY_NOT_ACQUIRED`; the acquired files are still cartographic reference only, per the evidence-class statement above.
 
 ## 6. Required TSM behavior
 

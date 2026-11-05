@@ -66,6 +66,7 @@ NGS's NAPGD2022/NATRF2022 tracking page currently marks beta public feedback as 
 - [TopoView map viewer](https://ngmdb.usgs.gov/topoview/viewer/#4/39.98/-100.02) provides historical maps and the US Topo series. Retain map edition/publication date, map identity, and source link when used.
 - [USGS US Topo Map Collection metadata](https://catalog.data.gov/dataset/usgs-us-topo-map-collection) describes layered geospatial PDFs for 7.5-minute quadrangles, including contours, hydrography, orthoimagery, roads, boundaries, and geographic names. The catalog metadata page reports metadata updated **2025-03-11**, with the map data last modified **2025-02-14**. Download access is via [The National Map data delivery](https://www.usgs.gov/the-national-map-data-delivery).
 - These are cartographic-reference products. Their existence in TopoView or Data.gov is not proof that TSM has downloaded them, and the rendered quadrangle map is **not a substitute for a current bare-earth DEM, LiDAR-derived terrain, surveyed bathymetry, or vertical-control evidence**.
+- Acquired 2026-11-05 (anchor area only): 8 HTMC GeoTIFFs listed in `data/fabrics/historical-topo/MANIFEST.json` (Wabash Island 1953/1958/1981, Mount Vernon 1952/1981, New Haven 1906, New Harmony 1903/1959). Acquisition does not change the evidence class: the files remain cartographic reference only, and every other TopoView/US Topo record stays discovery-only.
 
 ## Authoritative geodetic sources
 
