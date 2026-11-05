@@ -1,0 +1,330 @@
+{
+  "fabric": "historical-topo",
+  "description": "USGS Historical Topographic Map Collection (HTMC) GeoTIFFs for the Tri-State Systems Manager anchor area (Point Township, Posey County, Indiana, and neighboring quads). Acquired 2026-11-05.",
+  "acquiredAt": "2026-11-05",
+  "acquisitionRoute": "USGS National Map TNM Access API v1 (https://tnmaccess.nationalmap.gov/api/v1/products?datasets=Historical Topographic Maps&bbox=...&prodFormats=GeoTIFF); downloadURL fields point at the USGS prd-tnm S3 staged products used by TopoView (https://ngmdb.usgs.gov/topoview/viewer/). No sign-in required; public domain (U.S. federal).",
+  "discoveryNote": "Quad/year coverage was verified in the TopoView viewer in the browser on 2026-11-05 (see ~/workspace/research_notes/topoview-tsm-analysis-2026-11-05.md). Where TNM and TopoView disagree on an edition label, both are recorded; nothing was substituted silently.",
+  "evidenceClass": "CARTOGRAPHIC_REFERENCE_ONLY",
+  "evidenceClassStatement": "These are scanned historical map images with embedded georeferencing. They are cartographic reference only: NOT a DEM, NOT bare-earth LiDAR terrain, NOT surveyed bathymetry, NOT flood-zone or gauge data, and NOT a substitute for current bare-earth DEM, lidar-derived terrain, surveyed bathymetry, or authoritative vertical-control data. They support historical landscape/context review (river-channel, road, rail, and place-name change) and source discovery only. They must not be promoted to an engineering input without separate artifact, datum, coverage, resolution, and accuracy checks.",
+  "selectionRule": "One variant acquired per quad/year: the earliest-cataloged (2018-02-18) TNM scan, lowest file ID among that batch. TNM returns multiple records for the same quad/year (duplicate scans of the same map, identical titles and publication dates); the unacquired duplicates are listed per file under duplicateTnmRecords.",
+  "totalSizeBytes": 56090450,
+  "fileCount": 8,
+  "files": [
+    {
+      "file": "IL_Wabash_Island_308958_1953_24000_geo.tif",
+      "quad": "Wabash Island",
+      "stateLabel": "IL",
+      "publicationYear": 1953,
+      "scale": "1:24000",
+      "scaleDenominator": 24000,
+      "series": "HTMC",
+      "tnmTitle": "USGS 1:24000-scale Quadrangle for Wabash Island, IL 1953",
+      "tnmPublicationDate": "1953-01-01",
+      "tnmCatalogCreated": "2018-02-18T19:33:39.450-07:00",
+      "url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Maps/HistoricalTopo/GeoTIFF/KY/IL_Wabash%20Island_308958_1953_24000_geo.tif",
+      "width": 6583,
+      "height": 8075,
+      "bands": 3,
+      "embeddedCrs": "NAD27 (Clarke 1866), Polyconic, central meridian -88.063, latitude of origin 0",
+      "lonLatBounds": [
+        -88.1379,
+        37.734,
+        -87.9859,
+        37.8819
+      ],
+      "surveyYear": null,
+      "topoviewDatum": null,
+      "topoviewProjection": null,
+      "editionNote": null,
+      "duplicateTnmRecords": [
+        "IL_Wabash Island_468677_1953_24000_geo.tif"
+      ],
+      "sizeBytes": 4291190,
+      "sha256": "646f6b9bcccf8edb086c99e4a135d6ef498f448f8498692fedaf069f4cadbc31",
+      "verification": {
+        "method": "rasterio open + file magic",
+        "result": "TIFF image data, little-endian, JPEG-compressed, 3-band RGB, georeferenced; CRS and bounds read from the file itself"
+      }
+    },
+    {
+      "file": "IL_Wabash_Island_308959_1958_24000_geo.tif",
+      "quad": "Wabash Island",
+      "stateLabel": "IL",
+      "publicationYear": 1958,
+      "scale": "1:24000",
+      "scaleDenominator": 24000,
+      "series": "HTMC",
+      "tnmTitle": "USGS 1:24000-scale Quadrangle for Wabash Island, IL 1958",
+      "tnmPublicationDate": "1958-01-01",
+      "tnmCatalogCreated": "2018-02-18T19:33:39.649-07:00",
+      "url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Maps/HistoricalTopo/GeoTIFF/KY/IL_Wabash%20Island_308959_1958_24000_geo.tif",
+      "width": 6613,
+      "height": 8083,
+      "bands": 3,
+      "embeddedCrs": "NAD27 (Clarke 1866), Polyconic, central meridian -88.063, latitude of origin 0",
+      "lonLatBounds": [
+        -88.1384,
+        37.7343,
+        -87.9856,
+        37.8823
+      ],
+      "surveyYear": null,
+      "topoviewDatum": null,
+      "topoviewProjection": null,
+      "editionNote": "TopoView showed this sheet as 1958 (1959 ed.); TNM publication date is 1958-01-01.",
+      "duplicateTnmRecords": [
+        "IL_Wabash Island_468676_1958_24000_geo.tif"
+      ],
+      "sizeBytes": 7621925,
+      "sha256": "02628351d79c1d8dd1ea3c3569af23c2e2b57f4cea724c5e76185e0ef639822e",
+      "verification": {
+        "method": "rasterio open + file magic",
+        "result": "TIFF image data, little-endian, JPEG-compressed, 3-band RGB, georeferenced; CRS and bounds read from the file itself"
+      }
+    },
+    {
+      "file": "KY_Wabash_Island_709947_1981_24000_geo.tif",
+      "quad": "Wabash Island",
+      "stateLabel": "KY",
+      "publicationYear": 1981,
+      "scale": "1:24000",
+      "scaleDenominator": 24000,
+      "series": "HTMC",
+      "tnmTitle": "USGS 1:24000-scale Quadrangle for Wabash Island, KY 1981",
+      "tnmPublicationDate": "1981-01-01",
+      "tnmCatalogCreated": "2018-02-18T21:04:34.811-07:00",
+      "url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Maps/HistoricalTopo/GeoTIFF/KY/KY_Wabash%20Island_709947_1981_24000_geo.tif",
+      "width": 6946,
+      "height": 8267,
+      "bands": 3,
+      "embeddedCrs": "NAD27 (Clarke 1866), Polyconic, central meridian -88.0625, latitude of origin 37.75",
+      "lonLatBounds": [
+        -88.1427,
+        37.7321,
+        -87.9822,
+        37.8834
+      ],
+      "surveyYear": null,
+      "topoviewDatum": null,
+      "topoviewProjection": null,
+      "editionNote": "TNM catalogs the 1981 edition of this quad under the KY state label; the 1953 and 1958 editions are cataloged under IL. It is the same 7.5-minute Wabash Island quad.",
+      "duplicateTnmRecords": [],
+      "sizeBytes": 8578049,
+      "sha256": "3e3af0b6614ef3ba92d6dea26889547d5c8e5ece0dc39681e24b6115b43fdc18",
+      "verification": {
+        "method": "rasterio open + file magic",
+        "result": "TIFF image data, little-endian, JPEG-compressed, 3-band RGB, georeferenced; CRS and bounds read from the file itself"
+      }
+    },
+    {
+      "file": "IN_Mount_Vernon_160066_1952_24000_geo.tif",
+      "quad": "Mount Vernon",
+      "stateLabel": "IN",
+      "publicationYear": 1952,
+      "scale": "1:24000",
+      "scaleDenominator": 24000,
+      "series": "HTMC",
+      "tnmTitle": "USGS 1:24000-scale Quadrangle for Mount Vernon, IN 1952",
+      "tnmPublicationDate": "1952-01-01",
+      "tnmCatalogCreated": "2018-02-18T20:14:03.928-07:00",
+      "url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Maps/HistoricalTopo/GeoTIFF/IN/IN_Mount%20Vernon_160066_1952_24000_geo.tif",
+      "width": 6650,
+      "height": 8121,
+      "bands": 3,
+      "embeddedCrs": "NAD27 (Clarke 1866), Polyconic, central meridian -87.9375, latitude of origin 0",
+      "lonLatBounds": [
+        -88.013,
+        37.8586,
+        -87.8591,
+        38.0073
+      ],
+      "surveyYear": null,
+      "topoviewDatum": null,
+      "topoviewProjection": null,
+      "editionNote": "TopoView showed this sheet as 1952 (1953 ed.); TNM publication date is 1952-01-01.",
+      "duplicateTnmRecords": [
+        "IN_Mount Vernon_469156_1952_24000_geo.tif"
+      ],
+      "sizeBytes": 4321712,
+      "sha256": "e851a165619fb72bf4f4b2db63108c077df49fd20d25045549bfbe4ac15d87c6",
+      "verification": {
+        "method": "rasterio open + file magic",
+        "result": "TIFF image data, little-endian, JPEG-compressed, 3-band RGB, georeferenced; CRS and bounds read from the file itself"
+      }
+    },
+    {
+      "file": "IN_Mount_Vernon_160070_1981_24000_geo.tif",
+      "quad": "Mount Vernon",
+      "stateLabel": "IN",
+      "publicationYear": 1981,
+      "scale": "1:24000",
+      "scaleDenominator": 24000,
+      "series": "HTMC",
+      "tnmTitle": "USGS 1:24000-scale Quadrangle for Mount Vernon, IN 1981",
+      "tnmPublicationDate": "1981-01-01",
+      "tnmCatalogCreated": "2018-02-18T20:14:04.345-07:00",
+      "url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Maps/HistoricalTopo/GeoTIFF/IN/IN_Mount%20Vernon_160070_1981_24000_geo.tif",
+      "width": 6650,
+      "height": 8129,
+      "bands": 3,
+      "embeddedCrs": "NAD27 (Clarke 1866), Polyconic, central meridian -87.9375, latitude of origin 0",
+      "lonLatBounds": [
+        -88.0133,
+        37.8579,
+        -87.8594,
+        38.0067
+      ],
+      "surveyYear": null,
+      "topoviewDatum": null,
+      "topoviewProjection": null,
+      "editionNote": null,
+      "duplicateTnmRecords": [],
+      "sizeBytes": 9967172,
+      "sha256": "dcf78d2df24f5893d2219491ed8be0a87c4307c09ea22eefe1b87fa37b3d49da",
+      "verification": {
+        "method": "rasterio open + file magic",
+        "result": "TIFF image data, little-endian, JPEG-compressed, 3-band RGB, georeferenced; CRS and bounds read from the file itself"
+      }
+    },
+    {
+      "file": "IL_New_Haven_309807_1906_62500_geo.tif",
+      "quad": "New Haven",
+      "stateLabel": "IL",
+      "publicationYear": 1906,
+      "scale": "1:62500",
+      "scaleDenominator": 62500,
+      "series": "HTMC",
+      "tnmTitle": "USGS 1:62500-scale Quadrangle for New Haven, IL 1906",
+      "tnmPublicationDate": "1906-01-01",
+      "tnmCatalogCreated": "2018-02-18T18:10:21.785-07:00",
+      "url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Maps/HistoricalTopo/GeoTIFF/IL/IL_New%20Haven_309807_1906_62500_geo.tif",
+      "width": 4917,
+      "height": 5933,
+      "bands": 3,
+      "embeddedCrs": "NAD27 (Clarke 1866), Polyconic, central meridian -88.125, latitude of origin 0",
+      "lonLatBounds": [
+        -88.2735,
+        37.7303,
+        -87.9772,
+        38.0133
+      ],
+      "surveyYear": null,
+      "topoviewDatum": null,
+      "topoviewProjection": null,
+      "editionNote": null,
+      "duplicateTnmRecords": [
+        "IL_New Haven_309809_1906_62500_geo.tif",
+        "IL_New Haven_309810_1906_62500_geo.tif",
+        "IL_New Haven_309811_1906_62500_geo.tif"
+      ],
+      "sizeBytes": 5378398,
+      "sha256": "27b561b4dfde114a53ea0e5830f8092483522054652c96e354dd06fe4f7589b6",
+      "verification": {
+        "method": "rasterio open + file magic",
+        "result": "TIFF image data, little-endian, JPEG-compressed, 3-band RGB, georeferenced; CRS and bounds read from the file itself"
+      }
+    },
+    {
+      "file": "IN_New_Harmony_160087_1903_62500_geo.tif",
+      "quad": "New Harmony",
+      "stateLabel": "IN",
+      "publicationYear": 1903,
+      "scale": "1:62500",
+      "scaleDenominator": 62500,
+      "series": "HTMC",
+      "tnmTitle": "USGS 1:62500-scale Quadrangle for New Harmony, IN 1903",
+      "tnmPublicationDate": "1903-01-01",
+      "tnmCatalogCreated": "2018-02-18T20:40:22.614-07:00",
+      "url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Maps/HistoricalTopo/GeoTIFF/IN/IN_New%20Harmony_160087_1903_62500_geo.tif",
+      "width": 5113,
+      "height": 6304,
+      "bands": 3,
+      "embeddedCrs": "NAD27 (Clarke 1866), Polyconic, central meridian -87.875, latitude of origin 0",
+      "lonLatBounds": [
+        -88.0216,
+        37.9698,
+        -87.7124,
+        38.2705
+      ],
+      "surveyYear": 1901,
+      "topoviewDatum": "Unstated",
+      "topoviewProjection": "Unstated",
+      "editionNote": null,
+      "duplicateTnmRecords": [
+        "IN_New Harmony_160512_1903_62500_geo.tif",
+        "IN_New Harmony_469169_1903_62500_geo.tif"
+      ],
+      "sizeBytes": 7004104,
+      "sha256": "a9a71e485c78b4e08766e022e4b6d7ddeceffda760b45a5e755237f592beb275",
+      "verification": {
+        "method": "rasterio open + file magic",
+        "result": "TIFF image data, little-endian, JPEG-compressed, 3-band RGB, georeferenced; CRS and bounds read from the file itself"
+      }
+    },
+    {
+      "file": "IN_New_Harmony_159317_1959_24000_geo.tif",
+      "quad": "New Harmony",
+      "stateLabel": "IN",
+      "publicationYear": 1959,
+      "scale": "1:24000",
+      "scaleDenominator": 24000,
+      "series": "HTMC",
+      "tnmTitle": "USGS 1:24000-scale Quadrangle for New Harmony, IN 1959",
+      "tnmPublicationDate": "1959-01-01",
+      "tnmCatalogCreated": "2018-02-18T20:14:22.250-07:00",
+      "url": "https://prd-tnm.s3.amazonaws.com/StagedProducts/Maps/HistoricalTopo/GeoTIFF/IN/IN_New%20Harmony_159317_1959_24000_geo.tif",
+      "width": 6646,
+      "height": 8129,
+      "bands": 3,
+      "embeddedCrs": "NAD27 (Clarke 1866), Polyconic, central meridian -87.9375, latitude of origin 0",
+      "lonLatBounds": [
+        -88.013,
+        38.1083,
+        -87.8587,
+        38.2572
+      ],
+      "surveyYear": null,
+      "topoviewDatum": null,
+      "topoviewProjection": null,
+      "editionNote": "TopoView showed this sheet as 1959/1961; TNM publication date is 1959-01-01.",
+      "duplicateTnmRecords": [
+        "IN_New Harmony_160088_1959_24000_geo.tif",
+        "IN_New Harmony_160089_1959_24000_geo.tif",
+        "IN_New Harmony_160092_1959_24000_geo.tif"
+      ],
+      "sizeBytes": 8927900,
+      "sha256": "b7f15a2a53c9ea51e2eacc176aabf4d3b6c539872db2625516ce64405cae53b1",
+      "verification": {
+        "method": "rasterio open + file magic",
+        "result": "TIFF image data, little-endian, JPEG-compressed, 3-band RGB, georeferenced; CRS and bounds read from the file itself"
+      }
+    }
+  ],
+  "notAcquired": [
+    {
+      "quad": "New Haven",
+      "edition": "1966 (15-minute, 1:62500)",
+      "reason": "No TNM GeoTIFF product found for a 1966 New Haven edition. TNM lists only 1905 and 1906 at 1:62500 (plus 1964 1:24000 New Haven / New Haven SW quads, which are different quads) for this area. TopoView's edition list (1920/1939/1950/1958/1966) could not be matched to downloadable GeoTIFF URLs; not substituted."
+    },
+    {
+      "quad": "New Harmony",
+      "edition": "1925 (1:62500)",
+      "reason": "No TNM GeoTIFF product found. TNM lists New Harmony only as 1903, 1938, and 1959. Not substituted."
+    },
+    {
+      "quad": "New Harmony",
+      "edition": "1981 (1:24000)",
+      "reason": "No TNM GeoTIFF product found. TNM lists no 1976 or 1981 New Harmony edition; the 1:24000 series in TNM ends at 1959 for this quad. Not substituted."
+    },
+    {
+      "quad": "New Harmony",
+      "edition": "1938 (1:62500)",
+      "reason": "A TNM GeoTIFF product exists (IN_New Harmony_160044_1938_62500_geo.tif) but 1938 was not in the bounded target set; not acquired rather than substituted for the unavailable 1925 edition."
+    },
+    {
+      "quad": "Evansville (North/South) and all US Topo editions 2010-2022",
+      "edition": "various",
+      "reason": "Outside the bounded anchor-area set for this acquisition; not acquired. US Topo editions remain discovery-only."
+    }
+  ]
+}

@@ -229,6 +229,18 @@
       "role": "HISTORICAL_AND_CURRENT_TOPOGRAPHIC_MAP_DISCOVERY",
       "scope": "TopoView exposes US Topo-series maps from 2009 onward and historical topographic map editions; map dates/editions must be retained.",
       "evidenceStatus": "AVAILABLE_FOR_DISCOVERY_NOT_ACQUIRED",
+      "acquisitionManifest": "data/fabrics/historical-topo/MANIFEST.json",
+      "acquisitionNote": "Eight anchor-area HTMC GeoTIFFs acquired 2026-11-05 with provenance (source URL, size, SHA-256, embedded CRS) in the manifest. Source-level evidenceStatus stays AVAILABLE_FOR_DISCOVERY_NOT_ACQUIRED for all other quads; the acquired files remain cartographic reference only, not DEMs.",
+      "acquiredFiles": [
+        {"file": "IL_Wabash_Island_308958_1953_24000_geo.tif", "quad": "Wabash Island", "publicationYear": 1953, "scale": "1:24000"},
+        {"file": "IL_Wabash_Island_308959_1958_24000_geo.tif", "quad": "Wabash Island", "publicationYear": 1958, "scale": "1:24000"},
+        {"file": "KY_Wabash_Island_709947_1981_24000_geo.tif", "quad": "Wabash Island", "publicationYear": 1981, "scale": "1:24000"},
+        {"file": "IN_Mount_Vernon_160066_1952_24000_geo.tif", "quad": "Mount Vernon", "publicationYear": 1952, "scale": "1:24000"},
+        {"file": "IN_Mount_Vernon_160070_1981_24000_geo.tif", "quad": "Mount Vernon", "publicationYear": 1981, "scale": "1:24000"},
+        {"file": "IL_New_Haven_309807_1906_62500_geo.tif", "quad": "New Haven", "publicationYear": 1906, "scale": "1:62500"},
+        {"file": "IN_New_Harmony_160087_1903_62500_geo.tif", "quad": "New Harmony", "publicationYear": 1903, "scale": "1:62500"},
+        {"file": "IN_New_Harmony_159317_1959_24000_geo.tif", "quad": "New Harmony", "publicationYear": 1959, "scale": "1:24000"}
+      ],
       "permittedUse": [
         "historical landscape/context review",
         "map-edition comparison",
