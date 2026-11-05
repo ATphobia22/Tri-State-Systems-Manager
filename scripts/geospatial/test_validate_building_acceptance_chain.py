@@ -72,6 +72,27 @@ class BuildingAcceptanceRegressionTests(unittest.TestCase):
         feature["properties"]["achievedLod"] = True
         self.assertTrue(any("achievedLod must be 1 or 2" in msg for msg in self.validate(feature)))
 
+    def test_conflicting_objectid_aliases_are_rejected(self):
+        feature = valid_feature()
+        feature["properties"]["igioObjectId"] = 999
+        violations = []
+        sid = validator.validate_feature(feature, 0, violations)
+        self.assertIsNone(sid)
+        self.assertTrue(any("conflicting source OBJECTID aliases" in msg for msg in violations))
+
+    def test_matching_numeric_and_string_objectid_aliases_remain_accepted(self):
+        feature = valid_feature()
+        feature["properties"]["igioObjectId"] = "123"
+        feature["properties"]["sourceObjectId"] = 123.0
+        self.assertEqual(self.validate(feature), [])
+
+    def test_boolean_lidar_point_counts_are_rejected(self):
+        for field in ("lidarRoofPoints", "lidarGroundPoints"):
+            with self.subTest(field=field):
+                feature = valid_feature()
+                feature["properties"][field] = True
+                self.assertTrue(any("qualifying" in msg for msg in self.validate(feature)))
+
     def test_boolean_inlier_count_is_not_an_integer_count(self):
         feature = valid_feature()
         feature["properties"]["roofPlanes"][0]["inlier_count"] = True
