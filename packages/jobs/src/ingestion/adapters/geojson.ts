@@ -12,7 +12,7 @@ import type {
   IngestionInput,
   IngestionManifest,
   IngestionResult,
-} from '../../../contracts/src/IngestionManifest.js';
+} from '../../../../contracts/src/IngestionManifest.js';
 
 const SHA256_HEX = /^[a-f0-9]{64}$/;
 
