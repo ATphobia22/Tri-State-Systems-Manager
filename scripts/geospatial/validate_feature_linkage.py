@@ -123,8 +123,8 @@ def implicit_glb_object_ids(path: Path, violations: list[str]) -> set[int]:
                 continue
             accessor = accessors[accessor_index]
             view_index = accessor.get("bufferView")
-            if accessor.get("componentType") != 5125 or accessor.get("type") != "SCALAR" or not isinstance(view_index, int) or not (0 <= view_index < len(views)):
-                violations.append(f"{ctx}: feature IDs must be UINT32 scalar accessor")
+            if accessor.get("componentType") != 5126 or accessor.get("type") != "SCALAR" or not isinstance(view_index, int) or not (0 <= view_index < len(views)):
+                violations.append(f"{ctx}: feature IDs must be FLOAT scalar accessor")
                 continue
             feature_view = views[view_index]
             fstart = int(feature_view.get("byteOffset", 0)) + int(accessor.get("byteOffset", 0))
@@ -132,9 +132,9 @@ def implicit_glb_object_ids(path: Path, violations: list[str]) -> set[int]:
             if not isinstance(fcount, int) or fcount <= 0 or fstart < 0 or fstart + fcount * 4 > len(binary):
                 violations.append(f"{ctx}: invalid feature-ID accessor range")
                 continue
-            feature_indices = struct.unpack_from("<" + "I" * fcount, binary, fstart)
+            feature_indices = struct.unpack_from("<" + "f" * fcount, binary, fstart)
             for feature_index in feature_indices:
-                if feature_index >= count:
+                if not (0 <= feature_index < count) or not feature_index.is_integer():
                     violations.append(f"{ctx}: vertex feature index {feature_index} exceeds property-table count {count}")
                 else:
                     referenced_rows.add(feature_index)

@@ -103,6 +103,15 @@ class ImplicitTilesetContractTests(unittest.TestCase):
             for primitive in document["meshes"][0]["primitives"]:
                 self.assertIn("_FEATURE_ID_0", primitive["attributes"])
                 self.assertIn("EXT_mesh_features", primitive["extensions"])
+                accessor = document["accessors"][primitive["attributes"]["_FEATURE_ID_0"]]
+                self.assertEqual(accessor["componentType"], 5126)
+                feature_view = document["bufferViews"][accessor["bufferView"]]
+                values = struct.unpack_from("<" + "f" * accessor["count"], binary, feature_view["byteOffset"])
+                self.assertTrue(all(v == document["meshes"][0]["primitives"].index(primitive) for v in values))
+            from validate_feature_linkage import implicit_glb_object_ids
+            violations = []
+            self.assertEqual(implicit_glb_object_ids(path, violations), {101, 202})
+            self.assertEqual(violations, [])
 
 
 
