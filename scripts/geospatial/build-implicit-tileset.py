@@ -172,13 +172,17 @@ def merge_glbs(features: list[tuple[Path, int] | tuple[Path, int, list[float]] |
                         "type": "VEC3", "min": lo, "max": hi})
             acc.append({"bufferView": nvi, "componentType": 5126, "count": count, "type": "VEC3"})
             # Per-vertex local feature index, linked to the property-table row.
-            fid_bytes = struct.pack("<I", feature_index) * count
+            # glTF vertex attributes cannot use UNSIGNED_INT. Local row
+            # indices are exactly representable in FLOAT through 2**24.
+            if feature_index > 2**24:
+                raise ValueError("feature index exceeds exact FLOAT integer range")
+            fid_bytes = struct.pack("<f", feature_index) * count
             fid_offset = len(binary)
             binary.extend(fid_bytes)
             fid_view = len(views)
             views.append({"buffer": 0, "byteOffset": fid_offset, "byteLength": len(fid_bytes), "target": 34962})
             fid_accessor = len(acc)
-            acc.append({"bufferView": fid_view, "componentType": 5125, "count": count, "type": "SCALAR"})
+            acc.append({"bufferView": fid_view, "componentType": 5126, "count": count, "type": "SCALAR"})
             mi = len(mats)
             mats.append({"pbrMetallicRoughness": {"baseColorFactor": color,
                                                   "metallicFactor": 0.0, "roughnessFactor": 0.9}})
@@ -212,7 +216,7 @@ def merge_glbs(features: list[tuple[Path, int] | tuple[Path, int, list[float]] |
            "extensionsUsed": ["EXT_mesh_features", "EXT_structural_metadata"],
            "extensions": {"EXT_structural_metadata": {
                "schema": {
-                   "id": "tsm-building-feature-schema",
+                   "id": "tsm_building_feature_schema",
                    "classes": {"building": {"properties": {
                        "OBJECTID": {"type": "SCALAR", "componentType": "UINT32"},
                        "StateWord": {"type": "SCALAR", "componentType": "UINT16"}
