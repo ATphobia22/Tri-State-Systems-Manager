@@ -60,3 +60,5 @@ export function toPendingRecord(spec: JobSpec): JobRecord {
 }
 
 export const JOBS_PACKAGE_VERSION = "1.0.0" as const;
+
+export * from "./ingestion/index.js";
