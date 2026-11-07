@@ -75,5 +75,13 @@ services:
       start_period: 15s
     restart: unless-stopped
 
+  # Redis for the BullMQ queue path (packages/queues). Syntax-checked only:
+  # NOT verified running — docker is not installed on this VM.
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "127.0.0.1:6379:6379"
+    restart: unless-stopped
+
 volumes:
   evidence_data:
