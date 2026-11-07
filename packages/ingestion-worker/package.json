@@ -1,0 +1,16 @@
+{
+  "name": "@tsm/ingestion-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": { "typecheck": "tsc --noEmit" },
+  "peerDependencies": { "pg": "^8.13.0" },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/pg": "^8.11.10",
+    "typescript": "^5.7.0"
+  },
+  "description": "TSM ingestion worker foundation. Not HEC-RAS/MODFLOW solvers."
+}
