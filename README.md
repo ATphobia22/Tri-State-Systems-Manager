@@ -77,6 +77,16 @@ No connected Windows Desktop Commander device was available during this reconcil
 
 See [GitHub Actions](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions) and [open pull requests](https://github.com/ATphobia22/Tri-State-Systems-Manager/pulls) for newer state.
 
+### Release implementation progress — November 7, 2026
+
+[PR #497](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/497) is merged at `86067bba11a0eef4a5123100231f20fd90246b8a`: the native dependency probe uses macOS 15, and Windows BuildCookRun transcripts are retained on success or failure. Its 24 successful and six skipped checks were reviewed; native packaging was skipped and is still a separate gate.
+
+Three follow-up changes have separate review scopes: [#498](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/498) fixes the glTF writer/repair and feature-linkage checks; [#499](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/499) repairs manifest self-verification, protects staged data on copy failure, and stages physical files for Cesium/SQLite; [#500](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/500) publishes the reviewed 718-GLB format repair with checksums and locked independent format CI. Consult their latest heads and checks before merging; these references do not claim all three are already on main.
+
+The repaired visualization subset contains **20,517 independently recounted OBJECTIDs in 718 GLBs**. Complete before/after comparison preserves geometry, transforms and source metadata. Cesium `3d-tiles-validator@0.6.1` reports zero errors and zero warnings, with 718 information groups including unsupported-extension notices. This is scoped format/identity evidence; **2,565 accepted heights are still unavailable**, the 22,815-feature screening inventory is a different product, and whole-catalog datum, full source vintage, native rendering and full 23,082-building acceptance remain open.
+
+Local verification passed 13 snapshot-integrity/staging tests, 20 Shipping-verifier fixture tests, 12 native contract tests and 11 glTF builder/repair/layout tests. These tests do not establish an installed Windows package. [Issues #414](https://github.com/ATphobia22/Tri-State-Systems-Manager/issues/414) and [#416](https://github.com/ATphobia22/Tri-State-Systems-Manager/issues/416) remain the independent native and countywide engineering acceptance records.
+
 ## Geography and source agencies
 
 TSM focuses on the Ohio–Wabash confluence and surrounding Indiana–Illinois–Kentucky communities, with initial detailed engineering work in **Posey County, Indiana**. A regional map does **not** mean every county has equally complete datasets or validated models.
