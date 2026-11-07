@@ -181,5 +181,7 @@ export interface ModelAdapter {
 }
 
 export type { SolverName, SolverStatus, SolverExecutionMetrics, SolverSpatialMetadata, SolverEvidence, UnsealedSolverEvidence } from './SolverEvidence.js';
+export type { EvidenceBundle, EvidenceBundleValidation } from './EvidenceBundle.js';
+export { validateEvidenceBundle } from './EvidenceBundle.js';
 export type { ReplayVerification } from './ReplayVerification.js';
 export type { IngestionAssetKind, IngestionOutcome, IngestionManifest, IngestionInput, IngestionResult, AssetAdapter } from './IngestionManifest.js';
