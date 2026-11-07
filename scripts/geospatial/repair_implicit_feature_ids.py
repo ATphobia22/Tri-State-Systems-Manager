@@ -11,6 +11,8 @@ import shutil
 import struct
 from pathlib import Path
 
+from validate_feature_linkage import feature_id_values
+
 
 def repair_glb(data: bytes) -> bytes:
     if data[:4] != b'glTF' or len(data) < 20:
@@ -36,25 +38,25 @@ def repair_glb(data: bytes) -> bytes:
     schema = doc.get('extensions', {}).get('EXT_structural_metadata', {}).get('schema', {})
     changed = schema.get('id') == 'tsm-building-feature-schema'
     if changed:
-        schema['id'] = 'tsm_building_feature_schema' 
+        schema['id'] = 'tsm_building_feature_schema'
     for index in attributes:
         accessor = doc['accessors'][index]
-        if accessor['componentType'] == 5126:
+        component_type = accessor.get('componentType')
+        if component_type not in (5125, 5126):
+            raise ValueError('unsupported feature-ID component type')
+        values, start, count = feature_id_values(doc, binary, index, component_type)
+        if component_type == 5126:
             continue
-        if accessor['componentType'] != 5125 or accessor['type'] != 'SCALAR' or 'sparse' in accessor:
-            raise ValueError('unsupported feature-ID layout')
-        view = doc['bufferViews'][accessor['bufferView']]
-        count = accessor['count']
-        relative = accessor.get('byteOffset', 0)
-        start = view.get('byteOffset', 0) + relative
-        if view.get('buffer', 0) != 0 or view.get('byteStride', 4) != 4 or count < 1 or relative < 0 or relative + count * 4 > view['byteLength'] or start < 0 or start + count * 4 > len(binary):
-            raise ValueError('invalid feature-ID range or stride')
-        # Refuse aliases: converting this storage must not alter another attribute.
+        # Other views may alias the same bytes even with a different view index.
+        for other_index, other in enumerate(doc['bufferViews']):
+            if other_index == accessor['bufferView']:
+                continue
+            other_start = other.get('byteOffset', 0)
+            other_end = other_start + other['byteLength']
+            if other.get('buffer', 0) == 0 and start < other_end and other_start < start + count * 4:
+                raise ValueError('overlapping feature-ID bufferView')
         if any(a is not accessor and a.get('bufferView') == accessor['bufferView'] for a in doc['accessors']):
             raise ValueError('shared feature-ID bufferView')
-        values = struct.unpack_from('<' + 'I' * count, binary, start)
-        if any(v > 2**24 for v in values):
-            raise ValueError('feature index exceeds exact FLOAT integer range')
         struct.pack_into('<' + 'f' * count, binary, start, *values)
         accessor['componentType'] = 5126
         changed = True

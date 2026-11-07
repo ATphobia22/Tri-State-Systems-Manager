@@ -72,6 +72,34 @@ def read_glb_meta(path: Path) -> dict:
     return read_glb_parts(path)[0]
 
 
+def feature_id_values(doc: dict, binary: bytes, accessor_index: int, component_type: int = 5126):
+    """Decode the supported packed feature accessor without reading adjacent views."""
+    def integer(value):
+        return isinstance(value, int) and not isinstance(value, bool)
+    accessors, views = doc.get("accessors", []), doc.get("bufferViews", [])
+    if not integer(accessor_index) or not 0 <= accessor_index < len(accessors):
+        raise ValueError("invalid feature-ID accessor index")
+    accessor = accessors[accessor_index]
+    view_index = accessor.get("bufferView")
+    if (accessor.get("componentType") != component_type or accessor.get("type") != "SCALAR"
+            or accessor.get("normalized", False) is not False or "sparse" in accessor
+            or not integer(view_index) or not 0 <= view_index < len(views)):
+        raise ValueError("unsupported feature-ID accessor layout")
+    view = views[view_index]
+    offset, relative = view.get("byteOffset", 0), accessor.get("byteOffset", 0)
+    count, length, stride = accessor.get("count"), view.get("byteLength"), view.get("byteStride", 4)
+    if (view.get("buffer", 0) != 0 or not all(integer(v) for v in (offset, relative, count, length, stride))
+            or offset < 0 or relative < 0 or count < 1 or stride != 4
+            or offset % 4 or relative % 4 or relative + count * 4 > length
+            or offset + length > len(binary)):
+        raise ValueError("invalid feature-ID range, alignment or stride")
+    start = offset + relative
+    values = struct.unpack_from("<" + ("f" if component_type == 5126 else "I") * count, binary, start)
+    if any(not (0 <= value <= 2**24) or (isinstance(value, float) and not value.is_integer()) for value in values):
+        raise ValueError("feature IDs must be finite, nonnegative exact FLOAT integers")
+    return values, start, count
+
+
 def implicit_glb_object_ids(path: Path, violations: list[str]) -> set[int]:
     """Decode OBJECTID UINT32 values and validate every vertex feature index.
     
@@ -121,18 +149,18 @@ def implicit_glb_object_ids(path: Path, violations: list[str]) -> set[int]:
             if not (0 <= accessor_index < len(accessors)):
                 violations.append(f"{ctx}: invalid feature-ID accessor index")
                 continue
-            accessor = accessors[accessor_index]
-            view_index = accessor.get("bufferView")
-            if accessor.get("componentType") != 5126 or accessor.get("type") != "SCALAR" or not isinstance(view_index, int) or not (0 <= view_index < len(views)):
-                violations.append(f"{ctx}: feature IDs must be FLOAT scalar accessor")
+            try:
+                feature_indices, _, fcount = feature_id_values(doc, binary, accessor_index)
+            except (ValueError, KeyError, TypeError, struct.error) as exc:
+                violations.append(f"{ctx}: {exc}")
                 continue
-            feature_view = views[view_index]
-            fstart = int(feature_view.get("byteOffset", 0)) + int(accessor.get("byteOffset", 0))
-            fcount = accessor.get("count")
-            if not isinstance(fcount, int) or fcount <= 0 or fstart < 0 or fstart + fcount * 4 > len(binary):
-                violations.append(f"{ctx}: invalid feature-ID accessor range")
-                continue
-            feature_indices = struct.unpack_from("<" + "f" * fcount, binary, fstart)
+            position_index = primitive.get("attributes", {}).get("POSITION")
+            if (not isinstance(position_index, int) or isinstance(position_index, bool)
+                    or not 0 <= position_index < len(accessors)
+                    or accessors[position_index].get("count") != fcount):
+                violations.append(f"{ctx}: feature-ID and POSITION vertex counts differ")
+            if feature_ext[0].get("featureCount") != count:
+                violations.append(f"{ctx}: featureCount differs from property-table count")
             for feature_index in feature_indices:
                 if not (0 <= feature_index < count) or not feature_index.is_integer():
                     violations.append(f"{ctx}: vertex feature index {feature_index} exceeds property-table count {count}")

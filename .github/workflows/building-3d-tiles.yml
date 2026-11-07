@@ -41,6 +41,8 @@ on:
       - 'scripts/geospatial/validate_feature_linkage.py'
       - 'scripts/geospatial/validate_authority_boundary.py'
       - 'scripts/geospatial/test_build_implicit_tileset.py'
+      - 'scripts/geospatial/repair_implicit_feature_ids.py'
+      - 'scripts/geospatial/test_repair_implicit_feature_ids.py'
       - 'scripts/geospatial/point_tube.py'
       - 'scripts/geospatial/validate_building_acceptance_chain.py'
       - 'scripts/geospatial/build-implicit-tileset.py'
@@ -109,6 +111,7 @@ jobs:
             scripts/geospatial/point_tube.py \
             scripts/geospatial/test_build_implicit_tileset.py
           python3 scripts/geospatial/test_build_implicit_tileset.py
+          python3 scripts/geospatial/test_repair_implicit_feature_ids.py
           python3 scripts/geospatial/test-hlod-tileset.py
           python3 scripts/geospatial/test-validate-building-tiles-preflight.py
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1

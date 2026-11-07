@@ -12,10 +12,10 @@ The writer now encodes local row indices as exact FLOAT values (rejecting indice
 
 - 718 GLBs repaired; 20,517 distinct OBJECTIDs; zero project linkage violations.
 - Cesium 0.6.1: **0 errors, 0 warnings, 718 information groups**. Notices include unsupported glTF extension checks, so this is not exhaustive extension conformance certification.
-- Seven implicit builder tests and one repair regression test pass. Regression covers binary geometry/source-ID preservation, idempotence and invalid FLOAT index rejection.
+- Seven implicit builder tests and four repair/layout regression tests pass (11 total). Regression covers binary geometry/source-ID preservation, idempotence and invalid FLOAT index rejection.
 - [Repaired candidate and receipts](https://chatgpt.com/library?file_id=libfile_c858ec8777e08191b296c6c1452c5bb3&account_id=personal), ZIP SHA-256 `7036faafb43ae77d63f07f0294c968e30c41b736cbc755203b92e6d7b4ccd3bd`.
 
-The candidate is saved separately; **published repository GLBs are unchanged**. Replacing production content requires a reviewed publication and new package checksums. This candidate does not fill 2,565 height-evidence gaps, establish original source vintage or validate NAVD88/ECEF transformations, full 23,082 identities, a headed renderer, UE Shipping or regulatory authority.
+The original candidate was saved separately. [Artifact publication PR #500](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/500) includes all 718 repaired repository GLBs, an updated `SHA256SUMS`, and the per-file publication receipt. Source-tooling changes remain in PR #498. Every uploaded Git blob SHA was compared with the local repaired bytes. A complete source/candidate comparison confirms that only the schema identifier, feature accessor component type and corresponding feature-index bytes change; geometry, source metadata and transforms are preserved. These changes remain under review until the PR is merged, and deployment must be checked on the resulting main revision. This candidate does not fill 2,565 height-evidence gaps, establish original source vintage or validate NAVD88/ECEF transformations, full 23,082 identities, a headed renderer, UE Shipping or regulatory authority.
 
 ## Reproduce
 
