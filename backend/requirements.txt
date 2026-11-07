@@ -17,6 +17,7 @@ dataretrieval==1.2.0
 # Spatial / DEM / PostGIS validation
 rasterio>=1.5.2,<2
 psycopg2-binary>=2.9.13,<3
+sqlparse==0.6.0  # trusted migration transaction-wrapper handling
 reportlab==5.1.0
 
 # Companion FastAPI service (backend/app) — separate process from the Node API

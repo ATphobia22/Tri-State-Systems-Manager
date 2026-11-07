@@ -1,0 +1,46 @@
+name: Canonical migration runner
+on:
+  pull_request:
+    paths:
+      - 'scripts/run_migrations.py'
+      - 'backend/tests/test_migration_runner*.py'
+      - 'backend/requirements.txt'
+      - 'database/migrations/**'
+      - '.github/workflows/migration-runner.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/run_migrations.py'
+      - 'backend/tests/test_migration_runner*.py'
+      - 'backend/requirements.txt'
+      - 'database/migrations/**'
+      - '.github/workflows/migration-runner.yml'
+permissions:
+  contents: read
+jobs:
+  postgres-migrations:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: ${{ github.run_id }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Install isolated runner test dependencies
+        run: python -m pip install pytest==8.4.2 psycopg2-binary==2.9.13 sqlparse==0.6.0
+      - name: Verify unit and real PostgreSQL transactions
+        env:
+          # Disposable test service only; no production credentials or database.
+          TSM_TEST_POSTGRES_DSN: postgresql://postgres:${{ github.run_id }}@127.0.0.1:5432/postgres
+        run: python -m pytest backend/tests/test_migration_runner.py backend/tests/test_migration_runner_postgres.py -q
