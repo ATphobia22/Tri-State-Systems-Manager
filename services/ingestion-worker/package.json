@@ -1,0 +1,14 @@
+{
+  "name": "@tsm/ingestion-worker-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/main.ts",
+    "dev": "tsx watch src/main.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.0",
+    "typescript": "^5.7.0"
+  }
+}

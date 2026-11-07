@@ -1,0 +1,7 @@
+{
+  "name": "@tsm/geodesy",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/DatumValidator.ts" }
+}

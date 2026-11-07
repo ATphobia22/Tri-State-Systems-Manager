@@ -1,6 +1,7 @@
 {
-  "name": "@tsm-uacf/evidence-runtime",
+  "name": "@tsm/evidence-runtime",
   "version": "0.1.0",
   "private": true,
-  "type": "module"
+  "type": "module",
+  "exports": { ".": "./src/HashService.ts" }
 }
