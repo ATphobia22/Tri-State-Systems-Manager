@@ -1,0 +1,11 @@
+CREATE INDEX IF NOT EXISTS idx_assets_asset_type ON imported_assets (asset_type);
+CREATE INDEX IF NOT EXISTS idx_assets_source_id ON imported_assets (source_id);
+CREATE INDEX IF NOT EXISTS idx_assets_status ON imported_assets (status);
+CREATE INDEX IF NOT EXISTS idx_assets_created ON imported_assets (created_at);
+CREATE INDEX IF NOT EXISTS idx_assets_sha256 ON imported_assets (sha256);
+CREATE INDEX IF NOT EXISTS idx_runs_asset ON ingestion_runs (asset_id);
+CREATE INDEX IF NOT EXISTS idx_runs_status ON ingestion_runs (status);
+CREATE INDEX IF NOT EXISTS idx_runs_started ON ingestion_runs (started_at);
+CREATE INDEX IF NOT EXISTS idx_runs_stage ON ingestion_runs (stage);
+CREATE INDEX IF NOT EXISTS idx_evidence_asset ON evidence_bundles (asset_id);
+CREATE INDEX IF NOT EXISTS idx_spatial_layers_enabled ON spatial_layers (enabled) WHERE enabled = TRUE;
