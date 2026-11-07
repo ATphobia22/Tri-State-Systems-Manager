@@ -180,7 +180,7 @@ export interface ModelAdapter {
   ): AsyncIterable<unknown>;
 }
 
-export type { SolverName, SolverStatus, SolverExecutionMetrics, SolverSpatialMetadata, SolverEvidence, UnsealedSolverEvidence } from './SolverEvidence.js';
-export type { ReplayVerification } from './ReplayVerification.js';
 export type { SourceDataset } from './SourceDataset.js';
 export { validateSourceDataset } from './SourceDataset.js';
+export type { SolverName, SolverStatus, SolverExecutionMetrics, SolverSpatialMetadata, SolverEvidence, UnsealedSolverEvidence } from './SolverEvidence.js';
+export type { ReplayVerification } from './ReplayVerification.js';
