@@ -96,6 +96,11 @@ Sources:
   Local error is much larger on steep slopes, dense canopy residuals, and
   older non-lidar sources. These are network tests, not a per-pixel
   guarantee.
+- NSSDA 95% bounds (FGDC-STD-007.3, Accuracy_z = 1.9600 × RMSE_z): **±1.04 m**
+  for the dynamic service, **±1.61 m** for the 1/3 arc-second seamless DEM.
+  These are dataset accuracy statistics under NSSDA assumptions — engineering
+  screening bounds only, not a FEMA determination or survey certification,
+  and never a per-lot-corner elevation.
 - Datum: 3DEP bare-earth products for CONUS are referenced to NAVD88.
   Recent seamless 1 m work uses GEOID18; older projects used earlier geoids
   — the 2020 Indiana collection carries Geoid12B. Always read the product
