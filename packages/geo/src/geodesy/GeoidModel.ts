@@ -24,6 +24,19 @@ export const GEOID_MODELS: ReadonlyMap<string, GeoidModelDefinition> = new Map([
       "Not compatible with WGS84, ITRF, or other NAD83 realizations without a separately documented frame transformation.",
       "GEOID18 is not a general solution for Alaska, Hawaii, Guam, or CNMI."
     ]
+  }],
+  ["GEOID12B", {
+    id: "GEOID12B",
+    compatibleHorizontalDatum: HorizontalDatum.NAD83_2011,
+    compatibleEpoch: "2010.0",
+    supportedVerticalDatums: [VerticalDatum.NAVD88],
+    coverage: "CONUS; area-of-use must still be checked",
+    sourceUrl: "https://www.ngs.noaa.gov/GEOID/GEOID12B/g2012Brme.txt",
+    limitations: [
+      "Use with NAD83(2011) epoch 2010.0 ellipsoid heights only.",
+      "Not compatible with WGS84, ITRF, or other NAD83 realizations without a separately documented frame transformation.",
+      "GEOID12B is superseded by GEOID18 for new work; retain for legacy NAVD88/GEOID12B datasets such as the 2020 Indiana DEM and 3DEP 1 m tiles."
+    ]
   }]
 ]);
 export function validateGeoidModel(reference: CoordinateReference): ValidationResult {
