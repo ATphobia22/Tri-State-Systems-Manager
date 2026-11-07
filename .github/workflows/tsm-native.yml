@@ -244,7 +244,7 @@ jobs:
             triplet: x64-linux
           - os: windows-latest
             triplet: x64-windows
-          - os: macos-14
+          - os: macos-15
             triplet: arm64-osx
     runs-on: ${{ matrix.os }}
     steps:
