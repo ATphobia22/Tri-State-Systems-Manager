@@ -149,6 +149,10 @@ npm run test:posey-geodetic-reference
 
 Full root tests and native builds have additional environment, dependency and data prerequisites. Consult [CONTRIBUTING.md](CONTRIBUTING.md), workflow definitions in [`.github/workflows/`](.github/workflows/), and subsystem runbooks before executing hydrology or 3D production pipelines. Do not interpret a test pass as a validated flood prediction.
 
+## Survey interchange and computations
+
+The [offline survey preprocessing tool](tools/survey/README.md) imports scoped LandXML point/TIN data, preserves original survey collections, exports presentation GLBs, and provides COGO, weighted least-squares/leveling, offline PROJ and GeographicLib computations. It is separate from the native Unreal runtime. Imported data retains unverified datum/authority status until independently reviewed; external solver execution, XSD validity and renderable geometry do not confer survey acceptance.
+
 ## Project direction
 
 TSM is designed to grow toward a local-first, offline-capable, cinematic **Unreal Engine 5.8 Windows 11 x64 digital twin**, while keeping the public web console accessible without an account. Planned capabilities include richer 3D buildings and terrain, reproducible hydraulic scenarios, agricultural and ecological overlays, and exportable evidence packages. These are **goals**, not claims of completed deployment.
