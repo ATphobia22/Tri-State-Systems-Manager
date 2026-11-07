@@ -1,0 +1,262 @@
+{
+  "dataset": {
+    "csv": "/home/hatch/workspace/goals/tri-state-systems-manager-repo-fixes/hidden_files/ndhm-probe-per-id.csv",
+    "footprints": "/home/hatch/workspace/tri-state-review/repo/offline_packages/igio/posey-buildings-igio-23082.geojson",
+    "residual_definition": "diff2020MinusPurdueM = 2020 nDHM interior-median height minus Purdue NDHM 2017-2019 height, same footprint, metres. INTER-PRODUCT DISAGREEMENT between two nDHM estimates; NOT z_DEM minus z_survey \u2014 no survey control exists in this dataset.",
+    "n_points": 1893,
+    "n_joined_to_footprints": 1893,
+    "footprint_crs_verified": "GeoJSON has no crs member (RFC 7946 default WGS84 lon/lat); coordinate ranges verified as decimal degrees; centroids projected EPSG:4326 -> EPSG:2966 (NAD83 / Indiana West, ftUS) via pyproj, then ftUS -> m with the exact US survey foot 1200/3937 m.",
+    "global_stats_m": {
+      "mean": 0.0032641310089804574,
+      "median": 0.0,
+      "std_ddof1": 0.36975695115198176,
+      "rmse_vs_zero": 0.36967368500633035,
+      "min": -4.348,
+      "max": 11.999,
+      "agree_within_1m_count": 1886
+    },
+    "global_95_from_std_m": 0.7247236242578843,
+    "nssda_95_dynamic_m": 1.0388,
+    "nssda_95_seamless_m": 1.6072
+  },
+  "semivariogram": {
+    "bin_centers_m": [
+      1288.7703692997745,
+      3866.3111078993234,
+      6443.851846498872,
+      9021.392585098421,
+      11598.933323697971,
+      14176.474062297519,
+      16754.01480089707,
+      19331.555539496618,
+      21909.096278096167,
+      24486.637016695717,
+      27064.177755295266,
+      29641.718493894812
+    ],
+    "bin_edges_m": [
+      0.0,
+      2577.540738599549,
+      5155.081477199098,
+      7732.622215798647,
+      10310.162954398196,
+      12887.703692997746,
+      15465.244431597293,
+      18042.785170196843,
+      20620.325908796392,
+      23197.866647395942,
+      25775.40738599549,
+      28352.94812459504,
+      30930.488863194587
+    ],
+    "gamma_m2": [
+      0.07824545321142252,
+      0.177476592133496,
+      0.17206584342472234,
+      0.13821189124693886,
+      0.09752388923426707,
+      0.21538028414578128,
+      0.21782304346566633,
+      0.0876669552972611,
+      0.0967617755763279,
+      0.14020079909787517,
+      0.21838662353905652,
+      0.11706015963612902
+    ],
+    "counts": [
+      138816,
+      93218,
+      108855,
+      114006,
+      145898,
+      179239,
+      165464,
+      204663,
+      162064,
+      122821,
+      97455,
+      69364
+    ],
+    "usable": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "n_points": 1893,
+    "n_pairs_total": 1601863,
+    "max_dist_m": 30930.488863194587,
+    "bin_width_m": 2577.540738599549,
+    "min_pairs": 30,
+    "bbox_diagonal_m": 61860.977726389174,
+    "n_usable_bins": 12,
+    "n_unusable_bins": 0
+  },
+  "model_fits": {
+    "spherical": {
+      "model": "spherical",
+      "nugget_m2": 0.0089919551442071,
+      "sill_m2": 0.14148318239725124,
+      "total_sill_m2": 0.15047513754145836,
+      "range_m": 3797.789369371955,
+      "fit_rmse_m2": 0.046153695450982316,
+      "fit_r2": 0.1640909136957106,
+      "n_bins_fitted": 12,
+      "variance_of_binned_gamma_m2": 0.0027799851425990636
+    },
+    "exponential": {
+      "model": "exponential",
+      "nugget_m2": 3.5913644409470126e-16,
+      "sill_m2": 0.15027681371802104,
+      "total_sill_m2": 0.1502768137180214,
+      "range_m": 4136.81158778423,
+      "fit_rmse_m2": 0.04688129465288691,
+      "fit_r2": 0.1375274553605642,
+      "n_bins_fitted": 12,
+      "variance_of_binned_gamma_m2": 0.0027799851425990636
+    }
+  },
+  "selected_model": {
+    "model": "spherical",
+    "criterion": "smaller fit RMSE against binned gamma on usable bins (counts >= min_pairs)",
+    "fit_rmse_m2": 0.046153695450982316,
+    "other_model_fit_rmse_m2": 0.04688129465288691
+  },
+  "comparison_vs_global_shortcut": {
+    "global_1.96_x_std_of_r_m": 0.7247236242578843,
+    "nssda_95_dynamic_1.96_x_0.53m_rmse_m": 1.0388,
+    "localized_bounds_from_selected_model": [
+      {
+        "lag_m": 500.0,
+        "model_gamma_m2": 0.036771088780234634,
+        "localized_95_difference_bound_m": 0.5315257560234488
+      },
+      {
+        "lag_m": 2000.0,
+        "model_gamma_m2": 0.11042251200433359,
+        "localized_95_difference_bound_m": 0.9210853620765537
+      },
+      {
+        "lag_m": 5000.0,
+        "model_gamma_m2": 0.15047513754145836,
+        "localized_95_difference_bound_m": 1.0752351262670565
+      },
+      {
+        "lag_m": 10000.0,
+        "model_gamma_m2": 0.15047513754145836,
+        "localized_95_difference_bound_m": 1.0752351262670565
+      },
+      {
+        "lag_m": 3797.789369371955,
+        "model_gamma_m2": 0.15047513754145836,
+        "localized_95_difference_bound_m": 1.0752351262670565
+      },
+      {
+        "lag_m": null,
+        "note": "asymptotic (h >> range): gamma -> total sill",
+        "model_gamma_m2": 0.15047513754145836,
+        "localized_95_difference_bound_m": 1.0752351262670565
+      }
+    ],
+    "interpretation": "The localized bound is +/-1.96*sqrt(2*gamma(h)) on the CHANGE in inter-product disagreement between two footprints h apart, given the disagreement at one of them. It is not a certified elevation error and not a bound on r itself. Where gamma(h) is below the total sill, nearby footprints disagree more consistently than the global spread suggests; where bins are unusable (counts < min_pairs) the data are too sparse to support localization at that lag."
+  },
+  "scope": "ENGINEERING validation for TSM constraints only. NOT a FEMA or survey certification. NOT LOMA evidence. LOMA 26-05-2022A is NOT ISSUED (FEMA additional-information request 2026-09-22; 90-day track ends 2026-12-21). Regulatory BFE 369.1 ft NAVD88.",
+  "sensitivity_drop_large_disagreements": {
+    "variance_of_r_m2": 0.001049966046620217,
+    "std_of_r_m": 0.03240317957577955,
+    "bin_centers_m": [
+      1288.7703692997745,
+      3866.3111078993234,
+      6443.851846498872,
+      9021.392585098421,
+      11598.933323697971,
+      14176.474062297519,
+      16754.01480089707,
+      19331.555539496618,
+      21909.096278096167,
+      24486.637016695717,
+      27064.177755295266,
+      29641.718493894812
+    ],
+    "gamma_m2": [
+      0.00011221067996242753,
+      0.00022581991104843362,
+      0.0001858989129024519,
+      0.00031321204489218204,
+      0.0006353780805980903,
+      0.0005831442017542761,
+      0.0010420187955012764,
+      0.0011432714879703956,
+      0.0006152468889469268,
+      0.0008118214781929428,
+      0.001097778463606262,
+      0.001637184555429777
+    ],
+    "counts": [
+      138390,
+      92185,
+      107902,
+      113160,
+      145264,
+      177959,
+      163869,
+      203707,
+      160878,
+      121635,
+      96720,
+      68898
+    ],
+    "usable": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "model_fits": {
+      "spherical": {
+        "model": "spherical",
+        "nugget_m2": 2.7418081357609513e-05,
+        "sill_m2": 0.0017080552158088387,
+        "total_sill_m2": 0.001735473297166448,
+        "range_m": 55844.90746806275,
+        "fit_rmse_m2": 0.00021290111377870145,
+        "fit_r2": 0.7706685082783329,
+        "n_bins_fitted": 12,
+        "variance_of_binned_gamma_m2": 2.1561587428634132e-07
+      },
+      "exponential": {
+        "model": "exponential",
+        "nugget_m2": 3.5410204485304034e-21,
+        "sill_m2": 0.0018568996652454336,
+        "total_sill_m2": 0.0018568996652454336,
+        "range_m": 88925.15548168441,
+        "fit_rmse_m2": 0.00022282544957912787,
+        "fit_r2": 0.7487897174320481,
+        "n_bins_fitted": 12,
+        "variance_of_binned_gamma_m2": 2.1561587428634132e-07
+      }
+    },
+    "selected_model": "spherical",
+    "selection_criterion": "smaller fit RMSE against binned gamma on usable bins",
+    "dropped_points": 7,
+    "kept_points": 1886,
+    "drop_threshold_m": 1.0,
+    "note": "Sensitivity check only: the primary analysis above uses all points. The Matheron estimator squares differences, so a few large disagreements dominate gamma; this subset shows how much of the signal they carry. It is not a replacement analysis and no points are discarded from the primary run."
+  }
+}

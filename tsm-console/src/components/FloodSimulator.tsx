@@ -60,6 +60,11 @@ import {
   type SourceDerivedMeta,
 } from '../lib/flood-sim/index';
 import { BONEBANK_SITE_CONSTANTS } from '../lib/scientific-analytics';
+import {
+  EpqsBfeWarningModal,
+  requestTerrainModeChange,
+  type EpqsTerrainMode,
+} from './EpqsBfeWarningModal';
 
 const AXIOM =
   'Technology informs people; it does not silently govern people. Human authority remains final.';
@@ -104,6 +109,28 @@ export default function FloodSimulator(): React.JSX.Element {
   // grid (show source-unavailable status when unavailable); 'live' attempts a live tile fetch
   // with fallback to the bundled grid. No synthetic terrain is substituted.
   const [terrainMode, setTerrainMode] = useState<'auto' | 'live'>('auto');
+  // EPQS/BFE guard: a user-picked terrain source change opens the warning
+  // modal first; the mode only applies after acknowledgement. Null = no
+  // pending change, so the modal never shows on mount. Programmatic
+  // fallbacks (live-terrain effect below) call setTerrainMode directly and
+  // correctly bypass this guard — they are not user evaluation actions.
+  const [pendingTerrainMode, setPendingTerrainMode] = useState<EpqsTerrainMode | null>(null);
+
+  // Terrain selector change goes through the EPQS/BFE warning: a pick that
+  // differs from the current source opens the modal and applies only on
+  // acknowledgement; a no-op pick and every unrelated control skip it.
+  const handleTerrainModeChange = (next: EpqsTerrainMode) => {
+    const pending = requestTerrainModeChange(terrainMode, next);
+    if (pending == null) return;
+    setPendingTerrainMode(pending);
+  };
+  const acknowledgeTerrainChange = () => {
+    if (pendingTerrainMode == null) return;
+    setTerrainNotice(null);
+    setTerrainMode(pendingTerrainMode);
+    setPendingTerrainMode(null);
+  };
+  const cancelTerrainChange = () => setPendingTerrainMode(null);
   const [liveTerrain, setLiveTerrain] = useState<ResolvedLiveTerrain | null>(null);
   const [terrainNotice, setTerrainNotice] = useState<string | null>(null);
   const [liveSnapshot, setLiveSnapshot] = useState<LiveDataSnapshot | null>(null);
@@ -823,10 +850,7 @@ export default function FloodSimulator(): React.JSX.Element {
               Terrain
               <select
                 value={terrainMode}
-                onChange={(e) => {
-                  setTerrainNotice(null);
-                  setTerrainMode(e.target.value as 'auto' | 'live');
-                }}
+                onChange={(e) => handleTerrainModeChange(e.target.value as 'auto' | 'live')}
                 style={{ marginLeft: 6, padding: 4 }}
                 title="Elevation source: auto uses the bundled 3DEP-derived screening grid when available; live attempts a real-time tile fetch with fallback to the bundled grid. No synthetic terrain."
               >
@@ -835,6 +859,14 @@ export default function FloodSimulator(): React.JSX.Element {
               </select>
             </label>
           </div>
+
+          {/* EPQS/BFE warning — opens only on a user-picked terrain change */}
+          <EpqsBfeWarningModal
+            open={pendingTerrainMode != null}
+            pendingTerrainMode={pendingTerrainMode}
+            onAcknowledge={acknowledgeTerrainChange}
+            onCancel={cancelTerrainChange}
+          />
 
           {/* Live-data status badge — always names the actual source and its age */}
           <div style={{ fontSize: 11, marginBottom: 12, background: '#0d1219', border: '1px solid #222a35', borderRadius: 6, padding: '8px 10px' }}>
