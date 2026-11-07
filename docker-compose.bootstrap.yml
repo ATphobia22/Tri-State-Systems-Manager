@@ -1,0 +1,43 @@
+# Bootstrap stack — local foundation only.
+# Canonical app runtime remains tsm-console/docker-compose.yml.
+#
+#   docker compose -f docker-compose.bootstrap.yml up -d
+
+services:
+  postgis:
+    image: postgis/postgis:16-3.4
+    container_name: tsm-bootstrap-postgis
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tsm}
+      POSTGRES_USER: ${POSTGRES_USER:-tsm}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tsm}
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - tsm_bootstrap_postgis:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tsm} -d ${POSTGRES_DB:-tsm}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    container_name: tsm-bootstrap-redis
+    ports:
+      - "127.0.0.1:6379:6379"
+
+  martin:
+    image: ghcr.io/maplibre/martin:v0.14.2
+    container_name: tsm-bootstrap-martin
+    depends_on:
+      postgis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-tsm}:${POSTGRES_PASSWORD:-tsm}@postgis:5432/${POSTGRES_DB:-tsm}
+    ports:
+      - "127.0.0.1:3001:3000"
+
+volumes:
+  tsm_bootstrap_postgis:
