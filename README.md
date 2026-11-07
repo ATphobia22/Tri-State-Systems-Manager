@@ -65,7 +65,17 @@ The strict 3D-building workflow in [PR #492](https://github.com/ATphobia22/Tri-S
 
 **Model authority boundary:** HEC-HMS, HEC-RAS, MODFLOW and related integrations are informational/model-assistance tooling unless verified inputs, calibration, solver execution/status, domain-specific acceptance and accountable human approval are recorded. TSM does not make automatic floodplain, permit, design or emergency decisions.
 
-Track the current status using [GitHub Actions](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions) and [open pull requests](https://github.com/ATphobia22/Tri-State-Systems-Manager/pulls), including outstanding geospatial work [#488](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/488), [#489](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/489), [#490](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/490), [#491](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/491) and [#492](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/492). Outstanding checks or conflicting patches must be reviewed rather than presumed green.
+### Release-desk reconciliation — November 7, 2026
+
+[Release desk](https://tri-state-release-desk.flaredthyme1.chatgpt.site) tracks scoped evidence; it is a dated snapshot, not live synchronization. At inspected main [`ba0657896c95ce6a20fa74cb821a0637ddedcadf`](https://github.com/ATphobia22/Tri-State-Systems-Manager/commit/ba0657896c95ce6a20fa74cb821a0637ddedcadf), GitHub returned **zero open PRs** and **21 successful workflow runs**. Earlier references to PRs #488–#492 as outstanding are historical. Those run conclusions do not establish required-check completeness or native Shipping acceptance.
+
+The remaining `fix/transvoxel-coarse-scalar-correctness-20261023` branch at `a2c45699bac068832bb761c6687c3ee848dfb86d` is **0 commits ahead / 584 behind** that main revision, with no diff. Its work is already reachable from main; another merge is unnecessary.
+
+Local rechecks passed the native product contract and **20 Shipping-verifier tests**. They validate software behavior using fixtures; they do not prove an actual Windows launch. The explicit building validator rejects the public root external-tileset URI and rejects the child tileset's missing explicit authority flags. The root references an **implicit** tileset; those diagnostics also reveal a validator scope mismatch, not proof that external tilesets are invalid OGC content. Full external/implicit 3D Tiles and glTF validation remains required. Keep **22,815 screening footprints**, the separate **20,517 height-evidence diagnostic**, and actual mesh counts distinct.
+
+No connected Windows Desktop Commander device was available during this reconciliation, and the GitHub connector exposes no workflow-dispatch operation. Windows packaging was **not dispatched**, and runner availability was not verified. Gate #414 remains open for a genuine package, staged-data verification, disconnected clean-host launch, native missing-evidence UI, `.umap`, cinematic measurements, signing and installation receipts. The workflow now preserves any generated Windows BuildCookRun transcript as an artifact even after a failed build; absence before packaging is reported as a warning, never fabricated success.
+
+See [GitHub Actions](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions) and [open pull requests](https://github.com/ATphobia22/Tri-State-Systems-Manager/pulls) for newer state.
 
 ## Geography and source agencies
 

@@ -8,9 +8,12 @@ import { fileURLToPath } from 'node:url';
 function requireThat(condition, message) { if (!condition) throw new Error(message); }
 export function sha256(file) {
   const hash = crypto.createHash('sha256');
-  const fd = fs.openSync(file, 'r');
+  const fd = fs.openSync(file, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW ?? 0));
   const chunk = Buffer.allocUnsafe(1024 * 1024);
-  try { let n; while ((n = fs.readSync(fd, chunk, 0, chunk.length, null)) > 0) hash.update(chunk.subarray(0, n)); }
+  try {
+    requireThat(fs.fstatSync(fd).isFile(), 'Snapshot entry must be a regular file');
+    let n; while ((n = fs.readSync(fd, chunk, 0, chunk.length, null)) > 0) hash.update(chunk.subarray(0, n));
+  }
   finally { fs.closeSync(fd); }
   return hash.digest('hex');
 }
@@ -53,16 +56,25 @@ export function generateNativeDataManifest({ dataRoot, manifestPath }) {
   requireThat(files.length > 0, 'Native data snapshot must contain at least one payload file');
   const manifest = { schemaVersion: 1, integrity: 'sha256', generatedBy: 'scripts/native/native-data-manifest.mjs', files };
   fs.mkdirSync(path.dirname(output), { recursive: true });
-  // Never follow a manifest symlink during generation.
-  requireThat(!fs.existsSync(output) || !fs.lstatSync(output).isSymbolicLink(), 'Manifest must not be a symlink');
-  fs.writeFileSync(output, JSON.stringify(manifest, null, 2) + '\n');
+  // Exclusive temporary creation and rename avoid check-then-open races.
+  const temporary = fs.mkdtempSync(path.join(path.dirname(output), '.tsm-manifest-'));
+  try {
+    const staged = path.join(temporary, 'data-manifest.json');
+    fs.writeFileSync(staged, JSON.stringify(manifest, null, 2) + '\n', { flag: 'wx' });
+    fs.renameSync(staged, output);
+  } finally { fs.rmSync(temporary, { recursive: true, force: true }); }
   return manifest;
 }
 export function verifyNativeDataManifest({ dataRoot, manifestPath = path.join(dataRoot, 'data-manifest.json'), rejectExtraFiles = true }) {
   const root = checkRoot(dataRoot);
   const manifestFile = path.resolve(manifestPath);
-  requireThat(!fs.lstatSync(manifestFile).isSymbolicLink() && fs.statSync(manifestFile).isFile(), 'Manifest must be a real file');
-  const manifest = JSON.parse(fs.readFileSync(manifestFile, 'utf8').replace(/^\uFEFF/, ''));
+  const descriptor = fs.openSync(manifestFile, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW ?? 0));
+  let manifestBytes;
+  try {
+    requireThat(fs.fstatSync(descriptor).isFile(), 'Manifest must be a real file');
+    manifestBytes = fs.readFileSync(descriptor);
+  } finally { fs.closeSync(descriptor); }
+  const manifest = JSON.parse(manifestBytes.toString('utf8').replace(/^\uFEFF/, ''));
   requireThat(manifest.schemaVersion === 1 && manifest.integrity === 'sha256', 'Unsupported native data manifest format');
   requireThat(Array.isArray(manifest.files) && manifest.files.length > 0, 'Native data manifest must contain payload files');
   const actual = listSnapshotFiles(root);
@@ -86,7 +98,7 @@ export function verifyNativeDataManifest({ dataRoot, manifestPath = path.join(da
     const extras = actual.filter(({ name, file }) => path.resolve(file) !== manifestFile && !expected.has(name.toLowerCase()));
     requireThat(extras.length === 0, `Unmanifested data files: ${extras.map(f => f.name).join(', ')}`);
   }
-  return { schemaVersion: 'tsm.native.data-integrity.v1', status: 'SNAPSHOT_BYTES_VERIFIED', fileCount: manifest.files.length, manifestSha256: sha256(manifestFile), geodeticAcceptanceVerified: false, offlineLaunchVerified: false };
+  return { schemaVersion: 'tsm.native.data-integrity.v1', status: 'SNAPSHOT_BYTES_VERIFIED', fileCount: manifest.files.length, manifestSha256: crypto.createHash('sha256').update(manifestBytes).digest('hex'), geodeticAcceptanceVerified: false, offlineLaunchVerified: false };
 }
 function cli() {
   const [action, dataRoot, manifestPath, rejectExtra = 'true'] = process.argv.slice(2);
