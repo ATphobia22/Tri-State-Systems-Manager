@@ -8,7 +8,7 @@ Trusted repository SQL containing an ordinary outer BEGIN/COMMIT pair is execute
 
 `backend/tests/test_migration_runner.py` covers discovery, rollback, drift, source mutation, unsupported transaction controls and lock contention using DBAPI fakes. `backend/tests/test_migration_runner_postgres.py` creates disposable uniquely named databases on an explicitly configured test server to verify first bootstrap/rerun, drift before pending DDL, wrapped DDL rollback after a ledger-write failure, session-lock release and legacy null digest disclosure. CI supplies PostgreSQL 17; local integration tests skip when TSM_TEST_POSTGRES_DSN is absent. These tests do not claim that every application migration has been applied to a production PostGIS database.
 
-The old bootstrap and ingestion branches are still retained. Their alternate service deployment, conflicting schema definitions and transactional imported-asset promotion remain separate unresolved work; this repair does not mark them wholly merged.
+The legacy code histories are reconciled by the explicit file-by-file resolution in LEGACY-SCAFFOLD-RESOLUTION-2026-11-07.md. Alternate services and conflicting schemas are deliberately declined; the resolved canonical tree does not claim operational imported-asset promotion.
 
 PostgreSQL session-lock behavior: https://www.postgresql.org/docs/17/explicit-locking.html#ADVISORY-LOCKS
 

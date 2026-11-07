@@ -1,5 +1,6 @@
 # Legacy scaffold reconciliation follow-up
 
+Current disposition: the explicit code-history resolution in `docs/release/LEGACY-SCAFFOLD-RESOLUTION-2026-11-07.md` supersedes the historical branch statuses below.
 Baseline: main `82756c0dd88d03d504607dc3fe12edef7b225c7e`.
 
 This is a selective implementation of useful branch intent, not a whole-branch merge or deployed database claim. The three original branch heads remain retained for review.

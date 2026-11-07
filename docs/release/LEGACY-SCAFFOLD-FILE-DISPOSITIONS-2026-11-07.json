@@ -1,0 +1,163 @@
+{
+  "scope": "CODE_HISTORY_RECONCILIATION_ONLY",
+  "baseline": "44e16dcfda599964c2a827b4dd2db493ce470141",
+  "branches": [
+    {
+      "branch": "bootstrap",
+      "head": "53b7c6dd07bd6f06b6ae22d08460bc6c696eabce",
+      "mergeBase": "8e595be4cd806d0d911d2573b1c43157cba065fa",
+      "files": [
+        {
+          "path": ".env.bootstrap.example",
+          "disposition": "DECLINED_DUPLICATE_STACK_OR_NAMESPACE"
+        },
+        {
+          "path": "database/migrations/001_core.sql",
+          "disposition": "DECLINED_DUPLICATE_STACK_OR_NAMESPACE"
+        },
+        {
+          "path": "database/migrations/002_indexes.sql",
+          "disposition": "DECLINED_DUPLICATE_STACK_OR_NAMESPACE"
+        },
+        {
+          "path": "docker-compose.bootstrap.yml",
+          "disposition": "DECLINED_DUPLICATE_STACK_OR_NAMESPACE"
+        },
+        {
+          "path": "docs/BOOTSTRAP-STACK.md",
+          "disposition": "DECLINED_DUPLICATE_STACK_OR_NAMESPACE"
+        },
+        {
+          "path": "packages/contracts/package.json",
+          "disposition": "DECLINED_DUPLICATE_STACK_OR_NAMESPACE"
+        },
+        {
+          "path": "packages/contracts/src/IngestionManifest.ts",
+          "disposition": "SUPERSEDED_CANONICAL_IMPLEMENTATION"
+        },
+        {
+          "path": "packages/evidence-runtime/package.json",
+          "disposition": "DECLINED_DUPLICATE_STACK_OR_NAMESPACE"
+        },
+        {
+          "path": "packages/evidence-runtime/src/HashService.ts",
+          "disposition": "SUPERSEDED_CANONICAL_IMPLEMENTATION"
+        },
+        {
+          "path": "packages/geodesy/package.json",
+          "disposition": "DECLINED_DUPLICATE_STACK_OR_NAMESPACE"
+        },
+        {
+          "path": "packages/geodesy/src/DatumValidator.ts",
+          "disposition": "SUPERSEDED_CANONICAL_IMPLEMENTATION"
+        },
+        {
+          "path": "pnpm-workspace.yaml",
+          "disposition": "DECLINED_DUPLICATE_STACK_OR_NAMESPACE"
+        },
+        {
+          "path": "scripts/bootstrap-start.sh",
+          "disposition": "DECLINED_DUPLICATE_STACK_OR_NAMESPACE"
+        },
+        {
+          "path": "services/ingestion-worker/package.json",
+          "disposition": "DECLINED_DUPLICATE_STACK_OR_NAMESPACE"
+        },
+        {
+          "path": "services/ingestion-worker/src/main.ts",
+          "disposition": "DECLINED_DUPLICATE_STACK_OR_NAMESPACE"
+        },
+        {
+          "path": "services/migration-runner/package.json",
+          "disposition": "SUPERSEDED_CANONICAL_IMPLEMENTATION"
+        },
+        {
+          "path": "services/migration-runner/src/index.ts",
+          "disposition": "SUPERSEDED_CANONICAL_IMPLEMENTATION"
+        }
+      ]
+    },
+    {
+      "branch": "ingestion",
+      "head": "ff2df949b043a87cd578e0f7310c073262c60ccc",
+      "mergeBase": "8e595be4cd806d0d911d2573b1c43157cba065fa",
+      "files": [
+        {
+          "path": "db/migrations/120_core_ingestion.sql",
+          "disposition": "DECLINED_CONFLICTING_SCHEMA"
+        },
+        {
+          "path": "db/migrations/121_ingestion_indexes.sql",
+          "disposition": "DECLINED_CONFLICTING_SCHEMA"
+        },
+        {
+          "path": "docs/architecture/INGESTION-WORKER-SCAFFOLD-v1.md",
+          "disposition": "SUPERSEDED_CANONICAL_IMPLEMENTATION"
+        },
+        {
+          "path": "packages/ingestion-worker/package.json",
+          "disposition": "SUPERSEDED_CANONICAL_IMPLEMENTATION"
+        },
+        {
+          "path": "packages/ingestion-worker/src/adapters/ogr.ts",
+          "disposition": "SUPERSEDED_CANONICAL_IMPLEMENTATION"
+        },
+        {
+          "path": "packages/ingestion-worker/src/index.ts",
+          "disposition": "SUPERSEDED_CANONICAL_IMPLEMENTATION"
+        },
+        {
+          "path": "packages/ingestion-worker/src/jobs/pmtiles.ts",
+          "disposition": "SUPERSEDED_DIRECT_PMTILES_BUILDER"
+        },
+        {
+          "path": "packages/ingestion-worker/src/queue.ts",
+          "disposition": "SUPERSEDED_CANONICAL_IMPLEMENTATION"
+        },
+        {
+          "path": "packages/ingestion-worker/src/registry.ts",
+          "disposition": "SUPERSEDED_CANONICAL_IMPLEMENTATION"
+        },
+        {
+          "path": "packages/ingestion-worker/src/types.ts",
+          "disposition": "SUPERSEDED_CANONICAL_IMPLEMENTATION"
+        },
+        {
+          "path": "packages/ingestion-worker/src/worker.ts",
+          "disposition": "SUPERSEDED_CANONICAL_IMPLEMENTATION"
+        }
+      ]
+    },
+    {
+      "branch": "semivariogram",
+      "head": "4f85ac26532aa20d6de441fc6e64d61464142192",
+      "mergeBase": "5fdcd211b22e43fffdaf6c8bbfe56b2a4f154fa0",
+      "files": [
+        {
+          "path": "db/migrations/122_elevation_residuals_uncertainty.sql",
+          "disposition": "DECLINED_INAPPLICABLE_SURVEY_SCHEMA"
+        },
+        {
+          "path": "docs/architecture/SEMIVARIOGRAM-AND-EPQS-BFE-GATE-2026-11-07.md",
+          "disposition": "SUPERSEDED_CANONICAL_IMPLEMENTATION"
+        },
+        {
+          "path": "packages/geodesy/python/fit_semivariogram.py",
+          "disposition": "SUPERSEDED_CANONICAL_IMPLEMENTATION"
+        },
+        {
+          "path": "packages/geodesy/src/semivariogram-index.ts",
+          "disposition": "SUPERSEDED_CANONICAL_IMPLEMENTATION"
+        },
+        {
+          "path": "packages/geodesy/src/semivariogram.ts",
+          "disposition": "SUPERSEDED_CANONICAL_IMPLEMENTATION"
+        },
+        {
+          "path": "tsm-console/src/components/EpqsBfeWarningModal.tsx",
+          "disposition": "SUPERSEDED_CANONICAL_IMPLEMENTATION"
+        }
+      ]
+    }
+  ]
+}
