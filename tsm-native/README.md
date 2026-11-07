@@ -69,7 +69,7 @@ The staging pipeline is:
 
 scripts/native/stage-native-data-root.mjs
 
-Unreal packaging is configured to stage TSMData as packaged non-asset data. Epic's Unreal Engine documentation identifies DirectoriesToAlwaysStageAsUFS as the mechanism for including additional non-asset directories in packaged output.
+Unreal packaging stages TSMData as loose non-asset files using `DirectoriesToAlwaysStageAsNonUFS`. Cesium file URLs and SQLite need physical paths, so these bytes must remain outside the `.pak`. The shared Node build-time verifier checks the exact source snapshot and staged copy, including SHA-256, sizes, paths and unexpected files. Node is build tooling only; it is not part of the native application runtime. See [Epic packaging settings](https://dev.epicgames.com/documentation/unreal-engine/API/Developer/DeveloperToolSettings/UProjectPackagingSettings). A verified source/stage does not establish the final installed package or clean-host runtime gate.
 
 ## Platform targets
 

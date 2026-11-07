@@ -25,7 +25,7 @@ if (contract.operatorExperience.dashboards !== "native Slate/UMG") failures.push
 if (!Array.isArray(manifest.sources) || manifest.sources.length < 10) failures.push("Authoritative source catalog is incomplete.");
 if (!manifest.policy || manifest.policy.runtimeNetworkAccess !== false) failures.push("Source catalog must declare offline runtime policy.");
 if (!uproject.Plugins?.some((plugin) => plugin.Name === "CesiumForUnreal" && plugin.Enabled === true)) failures.push("Cesium for Unreal must be enabled.");
-if (!packageConfig.includes('DirectoriesToAlwaysStageAsUFS=(Path="TSMData")')) failures.push("TSMData must be packaged into the native build.");
+if (!packageConfig.includes('DirectoriesToAlwaysStageAsNonUFS=(Path="TSMData")')) failures.push("TSMData must be staged as loose files for Cesium/SQLite physical file access.");
 
 for (const required of [
   "tsm-native/Source/TSMNative/TSMEngineeringRuntimeSubsystem.h",
