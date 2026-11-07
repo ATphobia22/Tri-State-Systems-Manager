@@ -29,6 +29,6 @@ Source → Metadata → Hash → Validation → Evidence → Storage → Publica
 | Silent promote invalid CRS | Quarantine + evidence hash |
 | Invented BFE/WSE | Fail closed |
 
-## Buildable now
+## Integration status
 
-Bootstrap stack + contracts + registry. Live probes: `tsm-real-world-data-fabric-registry-v1.json`.
+Registry declarations only. Preserve the existing validated SourceDataset interface on main. Live acquisition, external services and native runtime acceptance require their own evidence.
