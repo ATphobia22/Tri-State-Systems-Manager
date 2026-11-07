@@ -72,13 +72,14 @@ def asof(c, series, at, known_at, max_age_seconds):
     if not math.isfinite(max_age_seconds) or max_age_seconds<0:
         raise ValueError('invalid max age')
     event,known=timestamp(at),timestamp(known_at)
-    rows=c.execute('''SELECT o.observed_at,o.value,o.unit,o.datum,o.approval,o.qualifier,o.source_sha,s.recorded_at
+    rows=c.execute('''SELECT CAST(o.observed_at AS VARCHAR),o.value,o.unit,o.datum,o.approval,o.qualifier,o.source_sha,CAST(s.recorded_at AS VARCHAR)
         FROM observations o JOIN sources s ON o.source_sha=s.sha
         WHERE o.series=? AND o.observed_at<=? AND s.recorded_at<=?
         ORDER BY o.observed_at DESC,s.recorded_at DESC,o.source_sha DESC LIMIT 1''',[series,event,known]).fetchone()
     if rows is None:
         return {'status':'SOURCE_UNAVAILABLE','value':None}
     observed,value,unit,datum,approval,qualifier,digest,recorded=rows
+    observed,recorded=timestamp(observed),timestamp(recorded)
     age=(event-observed).total_seconds()
     status='SOURCE_UNAVAILABLE' if value is None else 'STALE' if age>max_age_seconds else 'LIVE_OBSERVATION'
     return {'status':status,'value':value,'unit':unit,'datum':datum,'approval':approval,
