@@ -1,0 +1,77 @@
+name: Published 3D Tiles Format
+on:
+  pull_request:
+    paths:
+      - 'tsm-console/public/3d-tiles/buildings-lidar-12450/**'
+      - 'docs/evidence/IMPLICIT-GLTF-PUBLICATION-2026-11-07.json'
+      - 'tools/published-tiles-validator/**'
+      - '.github/workflows/published-tiles-format.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tsm-console/public/3d-tiles/buildings-lidar-12450/**'
+      - 'docs/evidence/IMPLICIT-GLTF-PUBLICATION-2026-11-07.json'
+      - 'tools/published-tiles-validator/**'
+      - '.github/workflows/published-tiles-format.yml'
+permissions:
+  contents: read
+jobs:
+  published-subset-format:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+          cache: npm
+          cache-dependency-path: tools/published-tiles-validator/package-lock.json
+      - name: Install locked format validator
+        run: npm ci --prefix tools/published-tiles-validator --no-audit --no-fund --registry=https://registry.npmjs.org
+      - name: Verify every published subset checksum
+        working-directory: tsm-console/public/3d-tiles/buildings-lidar-12450
+        run: sha256sum --check --strict SHA256SUMS
+      - name: Verify the exact GLB inventory against its scoped receipt
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          root = Path('tsm-console/public/3d-tiles/buildings-lidar-12450')
+          receipt = json.loads(Path('docs/evidence/IMPLICIT-GLTF-PUBLICATION-2026-11-07.json').read_text())
+          assert receipt['classification'] == 'FORMAT_AND_IDENTITY_LINKAGE_ONLY'
+          for key in ('full23082BuildingAcceptance', 'geodeticAcceptanceVerified', 'headedNativeRenderVerified', 'regulatoryApproved'):
+              assert receipt[key] is False, key
+          entries = receipt['files']
+          expected = {e['path'] for e in entries}
+          actual = {p.relative_to(root).as_posix() for p in root.rglob('*.glb')}
+          assert len(entries) == len(expected) == receipt['glbCount']
+          assert actual == expected, 'GLB inventory differs from reviewed subset'
+          for entry in entries:
+              relative = Path(entry['path'])
+              assert not relative.is_absolute() and '..' not in relative.parts
+              file = root / relative
+              assert not file.is_symlink()
+              assert hashlib.sha256(file.read_bytes()).hexdigest() == entry['sha256'], entry['path']
+          print(f"Verified {len(actual)} reviewed GLBs; full building/height/geodetic/native acceptance remains open")
+          PY
+      - name: Validate external implicit content with pinned Cesium validator
+        run: |
+          mkdir -p dist/provenance
+          tools/published-tiles-validator/node_modules/.bin/3d-tiles-validator \
+            --tilesetFile tsm-console/public/3d-tiles/buildings-lidar-12450/tileset.json \
+            --reportFile dist/provenance/published-tiles-format.json
+          node -e "const r=require('./dist/provenance/published-tiles-format.json'); if(r.numErrors!==0||r.numWarnings!==0) process.exit(1); console.log(JSON.stringify({errors:r.numErrors,warnings:r.numWarnings,informationGroups:r.numInfos,fullBuildingAcceptance:false,regulatoryApproved:false}))"
+      - name: Retain format report and scoped receipt
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: published-tiles-format-evidence
+          path: |
+            dist/provenance/published-tiles-format.json
+            docs/evidence/IMPLICIT-GLTF-PUBLICATION-2026-11-07.json
+            tsm-console/public/3d-tiles/buildings-lidar-12450/SHA256SUMS
+          if-no-files-found: warn
