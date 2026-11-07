@@ -332,3 +332,4 @@ export function normalizeSystemManagerPayload(input: Record<string, unknown>): P
     evidence: Array.isArray(input.evidence) ? input.evidence as EvidenceRef[] : [],
   };
 }
+export { canonicalJsonPy, hashCanonicalPayload } from "./canonicalJsonPy.js";
