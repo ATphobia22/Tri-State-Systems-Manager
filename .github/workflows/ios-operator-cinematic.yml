@@ -1,0 +1,49 @@
+name: Cinematic TSM iOS operator (source + simulator)
+on:
+  pull_request:
+    paths:
+      - 'apps/ios-operator-cinematic/**'
+      - '.github/workflows/ios-operator-cinematic.yml'
+  push:
+    paths:
+      - 'apps/ios-operator-cinematic/**'
+      - '.github/workflows/ios-operator-cinematic.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  portable-core:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: swift-actions/setup-swift@v2
+        with:
+          swift-version: '6.0'
+      - run: swift test --package-path apps/ios-operator-cinematic
+      - run: python3 -m unittest discover -s apps/ios-operator-cinematic/Tests/ExportTests -v
+  ios-simulator-build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate Xcode project
+        working-directory: apps/ios-operator-cinematic
+        run: xcodegen generate --spec project.yml
+      - name: Compile unsigned iOS simulator app
+        working-directory: apps/ios-operator-cinematic
+        run: |
+          xcodebuild -project TSMOperatorCinematic.xcodeproj \
+            -scheme TSMOperatorCinematic \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath .derivedData \
+            CODE_SIGNING_ALLOWED=NO build
+      - name: Archive unsigned simulator app
+        uses: actions/upload-artifact@v4
+        with:
+          name: tsm-operator-ios-simulator
+          path: apps/ios-operator-cinematic/.derivedData/Build/Products/Debug-iphonesimulator/TSMOperatorCinematic.app
+          if-no-files-found: error
+          retention-days: 7
