@@ -38,4 +38,12 @@ jobs:
             -configuration Debug \
             -sdk iphonesimulator \
             -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath .derivedData \
             CODE_SIGNING_ALLOWED=NO build
+      - name: Archive unsigned simulator app
+        uses: actions/upload-artifact@v4
+        with:
+          name: tsm-operator-ios-simulator
+          path: apps/ios-operator-cinematic/.derivedData/Build/Products/Debug-iphonesimulator/TSMOperatorCinematic.app
+          if-no-files-found: error
+          retention-days: 7
