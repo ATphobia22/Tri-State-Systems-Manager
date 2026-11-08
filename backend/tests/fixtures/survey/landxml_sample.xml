@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SYNTHETIC LandXML 1.2 fixture — NOT a real survey, NOT a real place.
+  All coordinates are a small synthetic local grid (northing 1000–1100,
+  easting 2000–2100, elevation ~300). It exists so the TSM LandXML
+  reader can be validated against the real LandXML 1.2 XSD from
+  landxml.org (see backend/tests/test_survey_landxml.py, which runs
+  lxml XSD validation on this file when lxml is available).
+
+  Structure follows the LandXML 1.2 schema:
+  - CgPoint / Surface P text: northing, easting, elevation.
+  - CoordGeom Line Start/End: northing, easting.
+  - CoordinateSystem is a direct child of the root with an epsgCode
+    attribute (there is no "CoordinateSystems" container in 1.2).
+  - Root requires date, time and version attributes.
+-->
+<LandXML xmlns="http://www.landxml.org/schema/LandXML-1.2"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.landxml.org/schema/LandXML-1.2 http://www.landxml.org/schema/LandXML-1.2/LandXML-1.2.xsd"
+  date="2026-11-07" time="12:00:00" version="1.2">
+  <Units>
+    <Metric areaUnit="squareMeter" linearUnit="meter" volumeUnit="cubicMeter" temperatureUnit="celsius" pressureUnit="milliBars"/>
+  </Units>
+  <CoordinateSystem name="SYNTHETIC-LOCAL" desc="Synthetic test grid; EPSG:2966 stated only so the transform path can be exercised" epsgCode="2966" horizontalDatum="NAD83 (2011)" verticalDatum="NAVD88"/>
+  <CgPoints name="SYNTHETIC">
+    <CgPoint name="A" desc="synthetic">1000.0 2000.0 300.0</CgPoint>
+    <CgPoint name="B" desc="synthetic">1000.0 2100.0 301.0</CgPoint>
+    <CgPoint name="C" desc="synthetic">1100.0 2100.0 302.0</CgPoint>
+    <CgPoint name="D" desc="synthetic">1100.0 2000.0 303.0</CgPoint>
+  </CgPoints>
+  <Parcels>
+    <Parcel name="LOT-1" area="10000.0">
+      <CoordGeom>
+        <Line><Start>1000.0 2000.0</Start><End>1000.0 2100.0</End></Line>
+        <Line><Start>1000.0 2100.0</Start><End>1100.0 2100.0</End></Line>
+        <Line><Start>1100.0 2100.0</Start><End>1100.0 2000.0</End></Line>
+        <Line><Start>1100.0 2000.0</Start><End>1000.0 2000.0</End></Line>
+      </CoordGeom>
+    </Parcel>
+  </Parcels>
+  <Surfaces>
+    <Surface name="TIN-TEST">
+      <Definition surfType="TIN">
+        <Pnts>
+          <P id="1">1000.0 2000.0 300.0</P>
+          <P id="2">1000.0 2100.0 301.0</P>
+          <P id="3">1100.0 2100.0 302.0</P>
+          <P id="4">1100.0 2000.0 303.0</P>
+        </Pnts>
+        <Faces>
+          <F>1 2 3</F>
+          <F>1 3 4</F>
+        </Faces>
+      </Definition>
+    </Surface>
+  </Surfaces>
+</LandXML>
