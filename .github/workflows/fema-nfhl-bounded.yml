@@ -1,0 +1,29 @@
+name: FEMA NFHL bounded acquisition contract
+on:
+  push:
+    paths:
+      - 'scripts/geospatial/acquire_nfhl_effective.py'
+      - 'tests/fema/**'
+      - '.github/workflows/fema-nfhl-bounded.yml'
+  pull_request:
+    paths:
+      - 'scripts/geospatial/acquire_nfhl_effective.py'
+      - 'tests/fema/**'
+      - '.github/workflows/fema-nfhl-bounded.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  nfhl-offline-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Compile
+        run: python -m py_compile scripts/geospatial/acquire_nfhl_effective.py tests/fema/test_acquire_nfhl_effective.py
+      - name: Offline contract tests
+        run: python -m unittest discover -s tests/fema -p 'test_*.py' -v
