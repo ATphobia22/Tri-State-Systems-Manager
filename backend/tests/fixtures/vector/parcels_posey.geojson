@@ -1,0 +1,104 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "parcel_id": "POSEY-01"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -88.03,
+              37.845
+            ],
+            [
+              -88.02,
+              37.845
+            ],
+            [
+              -88.02,
+              37.855
+            ],
+            [
+              -88.03,
+              37.855
+            ],
+            [
+              -88.03,
+              37.845
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "parcel_id": "POSEY-02"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -88.02,
+              37.845
+            ],
+            [
+              -88.01,
+              37.845
+            ],
+            [
+              -88.01,
+              37.855
+            ],
+            [
+              -88.02,
+              37.855
+            ],
+            [
+              -88.02,
+              37.845
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "parcel_id": "POSEY-03"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -88.01,
+              37.845
+            ],
+            [
+              -88.0,
+              37.845
+            ],
+            [
+              -88.0,
+              37.855
+            ],
+            [
+              -88.01,
+              37.855
+            ],
+            [
+              -88.01,
+              37.845
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

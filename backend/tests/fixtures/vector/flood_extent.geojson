@@ -1,0 +1,39 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "flood_zone": "AE",
+        "source": "synthetic SFHA-like extent"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -88.02,
+              37.85
+            ],
+            [
+              -88.005,
+              37.85
+            ],
+            [
+              -88.005,
+              37.86
+            ],
+            [
+              -88.02,
+              37.86
+            ],
+            [
+              -88.02,
+              37.85
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}
