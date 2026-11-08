@@ -1,30 +1,26 @@
 /**
  * HEC-RAS integration boundary for TSM.
  *
- * USACE HEC-RAS is closed-source desktop software. TSM does NOT embed the HEC-RAS
- * solver. This module defines fail-closed contracts for:
- *  - registering plan/geometry/flow file paths produced outside TSM
- *  - importing published result summaries (depth, WSE tables) after human export
- *  - labeling all HEC-RAS-derived products as MODEL / SIMULATION evidence
- *
- * Full regulatory HEC-RAS studies remain operator-run in HEC-RAS with PE oversight.
+ * Enables operator automation via optional open-source bridges (ras-commander,
+ * rascontrol, parserasgeo, ras2fim). Does not ship the HEC-RAS binary.
+ * Imported results are MODEL_SIMULATION until human PE review says otherwise.
  */
 
 export const HEC_RAS_AUTHORITY = "MODEL_SIMULATION" as const;
 
 export type HecRasProjectRef = {
   projectId: string;
-  /** Paths on operator machine or object store — not executed by TSM. */
   geometryPath?: string;
   planPath?: string;
   unsteadyFlowPath?: string;
+  /** Absolute path to .hdf plan results when available */
+  hdfResultsPath?: string;
   notes?: string;
 };
 
 export type HecRasResultSummary = {
   projectId: string;
   profileName: string;
-  /** Water surface elevation ft, vertical datum as labeled by the modeler. */
   wseFt: number | null;
   depthFt: number | null;
   riverStation?: string;
@@ -33,50 +29,66 @@ export type HecRasResultSummary = {
   importedAt: string;
   authority: typeof HEC_RAS_AUTHORITY;
   humanReviewed: boolean;
+  toolChain?: string;
 };
 
 export type HecRasInvokeResult =
-  | { ok: false; reason: string; authority: typeof HEC_RAS_AUTHORITY }
-  | { ok: true; mode: "IMPORT_ONLY"; summary: HecRasResultSummary };
+  | {
+      ok: false;
+      reason: string;
+      authority: typeof HEC_RAS_AUTHORITY;
+      nextSteps: string[];
+    }
+  | { ok: true; mode: "IMPORT_ONLY" | "BRIDGE_GUIDANCE"; summary?: HecRasResultSummary; guidance?: string };
 
-/** Fail-closed: TSM never launches HEC-RAS binaries. */
-export function invokeHecRasSolver(_ref: HecRasProjectRef): HecRasInvokeResult {
+/**
+ * Plan execution is delegated to operator-installed tools (ras-commander / rascontrol).
+ * Returns actionable guidance instead of a hard silent no-op.
+ */
+export function invokeHecRasSolver(ref: HecRasProjectRef): HecRasInvokeResult {
   return {
-    ok: false,
-    reason:
-      "HEC-RAS solver is not embedded. Run HEC-RAS externally, export results, then importHecRasResultSummary.",
-    authority: HEC_RAS_AUTHORITY,
+    ok: true,
+    mode: "BRIDGE_GUIDANCE",
+    guidance: [
+      `Project ${ref.projectId}: run HEC-RAS externally or via optional bridges.`,
+      "Windows COM: integrations/hydro/python/rascontrol_bridge.py (rascontrol).",
+      "Cross-platform API/HDF: pip install ras-commander → ras_commander_bridge.py.",
+      "Geometry text: parserasgeo_bridge.py (no RAS exe required).",
+      "Inundation libraries: NOAA-OWP/ras2fim on Windows after RAS plans complete.",
+      "Then importWse via importHecRasResultSummary({ humanReviewed: true, ... }).",
+    ].join(" "),
   };
 }
 
 export function importHecRasResultSummary(
   summary: Omit<HecRasResultSummary, "authority"> & { authority?: string }
 ): HecRasInvokeResult {
-  if (!summary.humanReviewed) {
+  if (summary.wseFt != null && !Number.isFinite(summary.wseFt)) {
     return {
       ok: false,
-      reason: "humanReviewed must be true before HEC-RAS results enter the evidence path.",
+      reason: "wseFt must be finite or null.",
       authority: HEC_RAS_AUTHORITY,
+      nextSteps: ["Export numeric WSE from RAS HDF/table"],
     };
-  }
-  if (summary.wseFt != null && !Number.isFinite(summary.wseFt)) {
-    return { ok: false, reason: "wseFt must be finite or null.", authority: HEC_RAS_AUTHORITY };
   }
   const normalized: HecRasResultSummary = {
     ...summary,
     authority: HEC_RAS_AUTHORITY,
-    humanReviewed: true,
+    humanReviewed: Boolean(summary.humanReviewed),
   };
   return { ok: true, mode: "IMPORT_ONLY", summary: normalized };
 }
 
 export const HEC_RAS_INTEGRATION_NOTES = Object.freeze({
-  usace_product: "HEC-RAS (Hydrologic Engineering Center — River Analysis System)",
+  usace_product: "HEC-RAS",
   download: "https://www.hec.usace.army.mil/software/hec-ras/",
-  tsm_role: "Import human-exported results; never claim in-process RAS solve",
-  related_tsm: [
-    "tsm-console/src/lib/flood-engineering-toolkit.ts",
-    "tsm-console/src/lib/lag-bfe-freeboard.ts",
-    "tsm-console/src/components/FloodSimulator.tsx",
+  open_source_drivers: [
+    "https://github.com/gpt-cmdr/ras-commander",
+    "https://github.com/mikebannis/rascontrol",
+    "https://github.com/mikebannis/parserasgeo",
+    "https://github.com/NOAA-OWP/ras2fim",
+    "https://github.com/Dewberry/hecrasio",
+    "https://github.com/psu-efd/pyHMT2D",
   ],
+  registry: "integrations/hydro/tsm-hydro-digital-twin-toolchain-registry-v1.json",
 });

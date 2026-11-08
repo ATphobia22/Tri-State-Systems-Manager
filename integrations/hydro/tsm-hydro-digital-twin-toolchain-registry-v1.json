@@ -1,0 +1,116 @@
+{
+  "schema_version": "1.0.0",
+  "registry_id": "tsm-hydro-digital-twin-toolchain",
+  "generated_at": "2026-11-08",
+  "policy": "Adapters enable model automation when operator-installed. Products remain MODEL_SIMULATION unless human PE review elevates evidence. Human authority remains final for LOMA/regulatory acts.",
+  "categories": {
+    "hec_ras_automation": [
+      {
+        "id": "gpt-cmdr-ras-commander",
+        "name": "ras-commander",
+        "repo": "https://github.com/gpt-cmdr/ras-commander",
+        "pip": "ras-commander",
+        "role": "HEC-RAS 6.x automation + HDF extraction",
+        "platform": ["windows", "linux", "macos"],
+        "requires_hec_ras_exe": true,
+        "tsm_adapter": "integrations/hydro/python/ras_commander_bridge.py"
+      },
+      {
+        "id": "gpt-cmdr-hec-commander",
+        "name": "HEC-Commander",
+        "repo": "https://github.com/gpt-cmdr/HEC-Commander",
+        "role": "Notebook/suite automation for HEC-RAS and HEC-HMS",
+        "requires_hec_ras_exe": true,
+        "tsm_adapter": null
+      },
+      {
+        "id": "mikebannis-rascontrol",
+        "name": "rascontrol",
+        "repo": "https://github.com/mikebannis/rascontrol",
+        "role": "win32com HEC-RAS Controller wrapper",
+        "platform": ["windows"],
+        "requires_hec_ras_exe": true,
+        "tsm_adapter": "integrations/hydro/python/rascontrol_bridge.py"
+      },
+      {
+        "id": "quantum-dan-raspy",
+        "name": "raspy",
+        "repo": "https://github.com/quantum-dan/raspy",
+        "role": "Python HEC-RAS batch runs",
+        "requires_hec_ras_exe": true,
+        "tsm_adapter": null
+      },
+      {
+        "id": "mikebannis-parserasgeo",
+        "name": "parserasgeo",
+        "repo": "https://github.com/mikebannis/parserasgeo",
+        "role": "Parse/write HEC-RAS geometry .g0x text",
+        "requires_hec_ras_exe": false,
+        "tsm_adapter": "integrations/hydro/python/parserasgeo_bridge.py"
+      },
+      {
+        "id": "psu-efd-pyhmt2d",
+        "name": "pyHMT2D",
+        "repo": "https://github.com/psu-efd/pyHMT2D",
+        "role": "2D hydraulics multi-engine post-processing",
+        "tsm_adapter": null
+      },
+      {
+        "id": "noaa-owp-ras2fim",
+        "name": "ras2fim",
+        "repo": "https://github.com/NOAA-OWP/ras2fim",
+        "role": "Inundation rasters + synthetic rating curves from HEC-RAS",
+        "platform": ["windows"],
+        "requires_hec_ras_exe": true,
+        "tsm_adapter": "integrations/hydro/python/ras2fim_bridge.py"
+      },
+      {
+        "id": "dewberry-hecrasio",
+        "name": "hecrasio",
+        "repo": "https://github.com/Dewberry/hecrasio",
+        "role": "Batch HEC-RAS output reading / PFRA QA",
+        "tsm_adapter": null
+      },
+      {
+        "id": "erpas-rivergis",
+        "name": "RiverGIS (rgis)",
+        "repo": "https://github.com/erpas/rgis",
+        "role": "QGIS geometry generation for HEC-RAS",
+        "tsm_adapter": null
+      }
+    ],
+    "usace_hec": [
+      {"id": "usace-hec-org", "name": "USACE HEC GitHub", "repo": "https://github.com/HydrologicEngineeringCenter"},
+      {"id": "hec-hms", "name": "HEC-HMS", "role": "precipitation-runoff"},
+      {"id": "hec-ras", "name": "HEC-RAS", "role": "1D/2D unsteady flow", "download": "https://www.hec.usace.army.mil/software/hec-ras/"},
+      {"id": "hec-ressim", "name": "HEC-ResSim", "role": "reservoir operations"},
+      {"id": "hec-ssp", "name": "HEC-SSP", "role": "Bulletin 17C flood frequency"}
+    ],
+    "openfoam_cfd": [
+      {"id": "openfoam-dev", "repo": "https://github.com/OpenFOAM/OpenFOAM-dev"},
+      {"id": "usv-sim-lsa", "repo": "https://github.com/disaster-robotics-proalertas/usv_sim_lsa"},
+      {"id": "wec-sim", "repo": "https://github.com/WEC-Sim/WEC-Sim"},
+      {"id": "foam-extend", "repo": "https://sourceforge.net/projects/foam-extend/"}
+    ],
+    "model_coupling": [
+      {"id": "openmi", "name": "OpenMI", "role": "runtime model linking"},
+      {"id": "fluidearth", "name": "FluidEarth / OpenMI SDK"},
+      {"id": "bmi-csdms", "name": "BMI / CSDMS", "repo": "https://github.com/csdms/bmi"}
+    ],
+    "water_resources": [
+      {"id": "epa-swmm5", "name": "EPA SWMM5"},
+      {"id": "landlab", "repo": "https://github.com/landlab/landlab"},
+      {"id": "modflow-flopy", "repo": "https://github.com/modflowpy/flopy"},
+      {"id": "pygeoapi", "repo": "https://github.com/geopython/pygeoapi"},
+      {"id": "hydropol2d", "repo": "https://github.com/marcusnobrega-eng/HydroPol2D"}
+    ],
+    "digital_twin": [
+      {"id": "maplibre", "name": "MapLibre GL JS", "status_in_tsm": "INTEGRATED"},
+      {"id": "cesium", "name": "CesiumJS", "status_in_tsm": "PARTIAL"},
+      {"id": "pygmt", "repo": "https://github.com/GenericMappingTools/pygmt"},
+      {"id": "3dfier", "repo": "https://github.com/tudelft3d/3dfier"},
+      {"id": "eclipse-ditto", "repo": "https://github.com/eclipse-ditto/ditto"},
+      {"id": "opendigitaltwins-dtdl", "repo": "https://github.com/Azure/opendigitaltwins-dtdl"}
+    ]
+  }
+}
