@@ -1,0 +1,23 @@
+{
+  "scope": "PUBLISHED_SUBSET_FORMAT_ONLY",
+  "sourceCommit": "44e16dcfda599964c2a827b4dd2db493ce470141",
+  "checkedDate": "2026-11-07",
+  "glbCount": 718,
+  "uniqueObjectIds": 20517,
+  "checksumEntriesVerified": 1797,
+  "sha256SumsSha256": "e495e89d1c560214e9b3cad2544d849d008924dd1c1143c3613eb670aec0d1c3",
+  "publicationReceiptSha256": "625a58d2b9fee371451c1cef1fb3e5d84b272b94640c61b3d65463489fe27adb",
+  "validator": {
+    "package": "3d-tiles-validator",
+    "version": "0.6.1",
+    "errors": 0,
+    "warnings": 0,
+    "informationGroups": 718,
+    "limitation": "Unsupported extension notices prevent exhaustive extension conformance certification"
+  },
+  "identityLinkageViolations": 0,
+  "full23082BuildingAcceptance": false,
+  "geodeticAcceptanceVerified": false,
+  "headedNativeRenderVerified": false,
+  "regulatoryApproved": false
+}

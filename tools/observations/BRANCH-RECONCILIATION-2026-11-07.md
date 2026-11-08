@@ -1,5 +1,6 @@
 # Remaining branch review — 2026-11-07
 
+Current disposition: the explicit code-history resolution in `docs/release/LEGACY-SCAFFOLD-RESOLUTION-2026-11-07.md` supersedes the historical branch statuses below.
 Compared against main after PR #505, `4c111153d92d13a3a06158f4efe0d014945a9045`.
 
 | Branch head | Disposition / evidence |
