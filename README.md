@@ -172,3 +172,7 @@ Community members can report broken links, unclear maps, accessibility problems,
 **License:** [Apache-2.0](LICENSE). Some external data and hosted services have their own licensing, attribution and access conditions.
 
 **Disclaimer:** TSM is research and decision-support software. It is not an official flood warning system, an elevation certificate, a licensed engineering or land-survey service, or a substitute for FEMA, state DNR, USACE, NWS, local emergency management, or other competent authorities.
+
+## Unreal authoring and training integrations
+
+See [Unreal authoring tools](docs/unreal-authoring-tools.md) for provenance-checked Blender/Houdini FBX import, local Cesium actor configuration, asset naming checks, optional human-acknowledged FlowGraph training steps, and headed cinematic capture. The FlowGraph training plugin is disabled by default. Python checks do not establish a native UE5.8 build, generated map, complete building dataset, or offline Windows release.

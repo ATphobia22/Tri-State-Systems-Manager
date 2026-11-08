@@ -1,0 +1,44 @@
+name: Unreal authoring tools
+on:
+  pull_request:
+    paths:
+      - 'scripts/configure_unreal_tools.py'
+      - 'scripts/create_unreal_asset_manifest.py'
+      - 'scripts/render_tsm_cinematic.ps1'
+      - 'tsm-native/Content/Python/**'
+      - 'tsm-native/Plugins/TSMTraining/**'
+      - 'tests/test_unreal_authoring_tools.py'
+      - '.github/workflows/unreal-authoring-tools.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/*unreal*'
+      - 'scripts/render_tsm_cinematic.ps1'
+      - 'tsm-native/Content/Python/**'
+      - 'tsm-native/Plugins/TSMTraining/**'
+      - 'tests/test_unreal_authoring_tools.py'
+      - '.github/workflows/unreal-authoring-tools.yml'
+permissions:
+  contents: read
+jobs:
+  python-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.11'
+      - run: python -m unittest discover -s tests -p test_unreal_authoring_tools.py -v
+      - run: python -m compileall -q tsm-native/Content/Python scripts/configure_unreal_tools.py scripts/create_unreal_asset_manifest.py
+  powershell-syntax:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile(
+            "$pwd/scripts/render_tsm_cinematic.ps1", [ref]$tokens, [ref]$errors
+          ) | Out-Null
+          if ($errors.Count) { throw ($errors | Out-String) }

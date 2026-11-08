@@ -1,0 +1,12 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "0.1.0",
+  "FriendlyName": "TSM Training",
+  "Description": "Optional human-acknowledged training steps; requires separately installed FlowGraph.",
+  "Category": "Simulation",
+  "EnabledByDefault": false,
+  "CanContainContent": true,
+  "Modules": [{"Name": "TSMTraining", "Type": "Runtime", "LoadingPhase": "Default"}],
+  "Plugins": [{"Name": "Flow", "Enabled": true}]
+}
