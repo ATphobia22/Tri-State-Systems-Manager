@@ -96,7 +96,7 @@ def acquire_layer(layer: int, bbox: tuple[float, float, float, float],
         for feature in features:
             props = feature.get("properties") or {}
             value = props.get(oid_field)
-            if not isinstance(value, int) or value not in expected or value in retrieved:
+            if not isinstance(value, int) or value not in expected or (value in retrieved or value in actual):
                 raise AcquisitionError("missing/duplicate/unexpected feature OBJECTID")
             actual.add(value)
         if actual != set(expected):
