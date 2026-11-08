@@ -207,3 +207,12 @@ export function EpqsBfeWarningModal({
     </div>
   );
 }
+
+export function shouldBlockEpqsBfeEligibilityCompare(args: {
+  sourceAuthority: string;
+  intent: 'eligibility' | 'screening' | 'display';
+}): boolean {
+  if (args.intent !== 'eligibility') return false;
+  const a = args.sourceAuthority.toUpperCase();
+  return a.includes('EPQS') || a.includes('3DEP') || a.includes('DEM') || a === 'DERIVED';
+}
