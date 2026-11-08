@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "registry_id": "tsm-incomplete-capability-registry",
-  "generated_at": "2026-10-23",
+  "generated_at": "2026-11-08",
   "policy": "Technology informs people; it does not silently govern people. Human authority remains final.",
   "status_enum": [
     "PLANNED",
@@ -167,13 +167,23 @@
       "id": "crs-vertical-datum-epoch-accuracy-catalog",
       "status": "PARTIAL",
       "authority_class": "DATA_QUALITY",
-      "summary": "CRS and datum validation helpers do not constitute whole-catalog evidence for CRS, vertical datum, epoch, and accuracy.",
+      "summary": "Live NCAT and VDatum clients plus GEOID model validators exist; whole-catalog inventory report still required.",
+      "code_paths": [
+        "packages/geo/src/geodesy/NcatClient.ts",
+        "packages/geo/src/geodesy/VDatumClient.ts",
+        "packages/geo/src/geodesy/GeoidModel.ts",
+        "packages/geo/src/geodesy/CrsValidator.ts",
+        "packages/geo/src/geodesy/ElevationValidator.ts",
+        "tests/contracts/ncat-live-client.test.ts",
+        "tests/contracts/vdatum-live-client.test.ts",
+        "tests/contracts/geodesy-validation.test.ts"
+      ],
       "remaining": [
         "Produce whole-catalog denominator and failure report.",
-        "Record transformation provenance and epoch/datum assumptions.",
+        "Record transformation provenance and epoch/datum assumptions for every AOI source.",
         "Fail closed for unknown or incompatible vertical references."
       ],
-      "verification_status": "OPEN"
+      "verification_status": "PARTIAL_CLIENTS_LIVE_2026-11-08"
     },
     {
       "id": "cross-device-gpu-validation",
@@ -186,5 +196,5 @@
       "verification_status": "OPEN"
     }
   ],
-  "finish_note": "Implementation and acceptance are tracked separately. CPU frustum plans, plan-only C/S scheduling, and fail-closed adapter boundaries are not full GPU/integration implementations. GPU H-Z, full transition coverage, AOI/catalog evidence, and cross-device validation remain open; human/operator gates remain human-only by design."
+  "finish_note": "NCAT/VDatum live clients closed the online vertical/horizontal service gap for point transforms. GPU H-Z, full transition coverage, AOI catalog evidence, LOMA filing, and gage-zero publication remain operator/human gated. Human authority remains final."
 }

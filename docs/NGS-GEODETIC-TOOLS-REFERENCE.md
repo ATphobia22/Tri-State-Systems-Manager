@@ -14,6 +14,15 @@ Official sources for National Geodetic Survey tools used in TSM elevation, datum
 | INVERSE / FORWARD | https://github.com/noaa-ngs/inverse , https://github.com/noaa-ngs/forward | Fortran | Geodetic inverse / forward |
 | ADJUST | https://github.com/noaa-ngs/adjust | Fortran | Least-squares adjustment (Bluebook formats) |
 
+## TSM runtime clients (live official APIs)
+| Client | Path | Endpoint |
+|--------|------|----------|
+| NCAT | `packages/geo/src/geodesy/NcatClient.ts` | `https://geodesy.noaa.gov/api/ncat/llh` |
+| VDatum | `packages/geo/src/geodesy/VDatumClient.ts` | `https://vdatum.noaa.gov/vdatumweb/api/convert` |
+
+Contract tests: `tests/contracts/ncat-live-client.test.ts`, `tests/contracts/vdatum-live-client.test.ts`  
+Skip live: `TSM_SKIP_LIVE_NCAT=1` / `TSM_SKIP_LIVE_VDATUM=1`
+
 ## HTDP / GNSSTK Scope
 - HTDP: horizontal positions/velocities only; not vertical datum.
 - GNSSTK: ellipsoidal height + geodetic↔geocentric; no GEOID18/NAVD88/tidal.
@@ -24,38 +33,38 @@ Official sources for National Geodetic Survey tools used in TSM elevation, datum
 - Next: NAPGD2022 / GEOID2022 (beta)
 - Grids: `g2018u0.bin` + tiles; https://geodesy.noaa.gov/GEOID/GEOID18/downloads.shtml
 
-## Related NGS Data Services (mostly closed / service-only)
+## VDatum integration methods
+1. **Online API** — `VDatumClient` (point convert; human-gated)
+2. **Desktop VDatum** — Java + grids from vdatum.noaa.gov
+3. **vyperdatum + PROJ** — local high-volume / rasters (`VYPER_GRIDS`)
+4. **NCAT** — horizontal + limited vertical; prefer VDatum for tidal/orthometric
+
+## Related NGS Data Services (mostly service-only)
 | Item | Status | Notes |
 |------|--------|-------|
-| Survey mark datasheets / PID | Service | https://geodesy.noaa.gov/datasheets/ — no public core API repo |
-| OPUS / OPUS Share / OPUS Projects | Closed | Web submission; limited shared-solution output |
-| NCN / CORS RINEX | Data open | https://geodesy.noaa.gov/corsdata/ + AWS; community downloaders exist |
-| ANTINFO (antenna calibrations) | Data files | NGS antinfo tables; used by processing software |
-| Bluebook validation | Partial | ADJUST accepts Bluebook formats; full Bluebook suite not fully open |
-| LOCUS (leveling) | Closed | Web service only |
-| GRAV-D | Data open | Airborne gravity products; community loaders (e.g. rockhound/ensaio) |
-| GSVS / GPS on BM | Campaign data | Used to build hybrid GEOIDs; no full open processing suite |
-| Coastal imagery / lidar / VDatum | Mixed | VDatum closed; coastal lidar via NOAA Digital Coast |
+| Survey mark datasheets / PID | Service | https://geodesy.noaa.gov/datasheets/ |
+| OPUS / OPUS Share | Closed | Web submission |
+| NCN / CORS RINEX | Data open | https://geodesy.noaa.gov/corsdata/ + AWS |
+| ANTINFO | Data files | Antenna calibrations |
+| Bluebook | Partial | ADJUST accepts Bluebook formats |
+| LOCUS | Closed | Leveling web service |
+| GRAV-D | Data open | Community loaders (ensaio / rockhound) |
+| Coastal lidar | Open data | NOAA Digital Coast |
 
-## Community Tools (CORS / gravity)
-- CORS RINEX download helpers: various small scripts (e.g. GNSS-download-tool, GOOD)
-- GRAV-D data: fatiando/rockhound (legacy) → ensaio; PFPE/shipgrav (marine)
+## Community Tools
 - VDatum + PROJ: https://github.com/noaa-ocs-hydrography/vyperdatum
-- NCAT client: https://github.com/HaydenElza/ncat-python
-- pyproj / GeodePy / GNSSTK as previously listed
+- NCAT client (Python): https://github.com/HaydenElza/ncat-python
+- pyproj / GeodePy / GNSSTK
 
 ## TSM Integration Points
-- Elevation / freeboard / LAG-BFE: GEOID18 + INTG or pyproj
-- LOMA / 13101 Bonebank: NAD83(2011) + NAVD88 via GEOID18
-- Control marks / CORS: use official NGS services; do not invent PIDs or velocities
-- Human authority final; no silent LOMA auto-file
+- Elevation / freeboard / LAG-BFE: GEOID18 validators + VDatum/NCAT clients
+- LOMA / 13101 Bonebank: NAD83(2011) + NAVD88; human authority final
+- Control marks / CORS: official NGS services only
 
 ## Official Docs
 - https://geodesy.noaa.gov/TOOLS/
 - https://geodesy.noaa.gov/NCAT/
-- https://geodesy.noaa.gov/datasheets/
-- https://geodesy.noaa.gov/corsdata/
+- https://vdatum.noaa.gov/docs/services.html
 - https://geodesy.noaa.gov/GEOID/
-- https://vdatum.noaa.gov/
 
 Human authority remains final. Presentation ≠ regulation.
