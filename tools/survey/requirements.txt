@@ -2,3 +2,7 @@ numpy==2.3.5
 lxml==6.1.1
 pyproj==3.8.0
 geographiclib==2.1
+
+ezdxf==1.4.3
+laspy==2.6.1
+lazrs==0.7.0
