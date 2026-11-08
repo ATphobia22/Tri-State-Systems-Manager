@@ -25,16 +25,18 @@ Official sources for National Geodetic Survey tools used in TSM elevation, datum
 - Interpolation: INTG (bilinear/spline). Source in noaa-ngs/intg.
 - Coverage: CONUS + PR/USVI only. Alaska/Hawaii/Guam continue on GEOID12B.
 
-## Closed / Binary-Only
-- **VDatum** — https://vdatum.noaa.gov (no official source repo). Python wrappers: vyperdatum, coastalmodeling-vdatum
+## Closed / Binary-Only (no public core source)
+- **VDatum** — https://vdatum.noaa.gov
 - **OPUS / OPUS Projects** — closed service; limited shared-solution API only
-- **LOCUS** — web service only; no public source
+- **LOCUS** — web service only
 
-## Python Bindings / Wrappers
-- NCAT API: https://github.com/HaydenElza/ncat-python (`pip install ncat`)
-- VDatum / grids: https://github.com/noaa-ocs-hydrography/vyperdatum
+## Community Toolkits & Python Wrappers
+- NCAT API client: https://github.com/HaydenElza/ncat-python (`pip install ncat`)
+- VDatum / PROJ grids: https://github.com/noaa-ocs-hydrography/vyperdatum
 - Coastal VDatum: https://github.com/oceanmodeling/coastalmodeling-vdatum
-- General geodesy: https://github.com/GeoscienceAustralia/GeodePy
+- GPSTk / GNSSTK (legacy GPS Toolkit): https://github.com/SGL-UT/GPSTk (archived; successor GNSSTK)
+- GeodePy: https://github.com/GeoscienceAustralia/GeodePy
+- Google GNSS Measurement Tools: https://github.com/google/gps-measurement-tools
 
 ## Official Docs
 - NGS Geodetic Toolkit: https://geodesy.noaa.gov/TOOLS/
