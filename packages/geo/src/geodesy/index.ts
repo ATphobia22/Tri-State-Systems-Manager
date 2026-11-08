@@ -11,3 +11,4 @@ export * from "./DatumTransform.js";
 export * from "./ElevationValidator.js";
 export * from "./GageStageConverter.js";
 export * from "./NcatClient.js";
+export * from "./VDatumClient.js";
