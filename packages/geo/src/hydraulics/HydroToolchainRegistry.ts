@@ -1,14 +1,14 @@
 /**
- * Hydro / HEC-RAS / digital-twin toolchain registry (TypeScript side).
- * Optional adapters: when operator installs Python tools, bridges report installed:true.
- * Regulatory LOMA still requires human PE/survey — not automated here.
+ * Hydro / HEC-RAS / water-resources / digital-twin toolchain registry (TypeScript).
+ * Optional Python bridges under integrations/hydro/python/.
  */
 
 export type ToolIntegrationStatus =
   | "INTEGRATED"
   | "ADAPTER_READY"
   | "EXTERNAL_OPERATOR"
-  | "REFERENCE_ONLY";
+  | "REFERENCE_ONLY"
+  | "PARTIAL";
 
 export type HydroToolEntry = {
   id: string;
@@ -26,7 +26,7 @@ export const HYDRO_TOOLCHAIN: readonly HydroToolEntry[] = Object.freeze([
     repo: "https://github.com/gpt-cmdr/ras-commander",
     status: "ADAPTER_READY",
     authority: "MODEL_SIMULATION",
-    notes: "Python bridge integrations/hydro/python/ras_commander_bridge.py; pip install ras-commander",
+    notes: "integrations/hydro/python/ras_commander_bridge.py",
   },
   {
     id: "rascontrol",
@@ -42,7 +42,7 @@ export const HYDRO_TOOLCHAIN: readonly HydroToolEntry[] = Object.freeze([
     repo: "https://github.com/mikebannis/parserasgeo",
     status: "ADAPTER_READY",
     authority: "MODEL_SIMULATION",
-    notes: "Geometry .g0x parse without RAS exe",
+    notes: "Geometry .g0x parse",
   },
   {
     id: "ras2fim",
@@ -50,7 +50,7 @@ export const HYDRO_TOOLCHAIN: readonly HydroToolEntry[] = Object.freeze([
     repo: "https://github.com/NOAA-OWP/ras2fim",
     status: "EXTERNAL_OPERATOR",
     authority: "MODEL_SIMULATION",
-    notes: "Inundation libraries from HEC-RAS; Windows operator workflow",
+    notes: "Inundation libraries from HEC-RAS",
   },
   {
     id: "hecrasio",
@@ -66,7 +66,39 @@ export const HYDRO_TOOLCHAIN: readonly HydroToolEntry[] = Object.freeze([
     repo: "https://github.com/psu-efd/pyHMT2D",
     status: "REFERENCE_ONLY",
     authority: "MODEL_SIMULATION",
-    notes: "Multi-engine 2D hydraulics Python toolkit",
+    notes: "Multi-engine 2D hydraulics",
+  },
+  {
+    id: "epa-swmm",
+    name: "EPA SWMM / pyswmm",
+    repo: "https://github.com/OpenWaterAnalytics/pyswmm",
+    status: "ADAPTER_READY",
+    authority: "MODEL_SIMULATION",
+    notes: "integrations/hydro/python/swmm_bridge.py — urban drainage",
+  },
+  {
+    id: "landlab",
+    name: "Landlab",
+    repo: "https://github.com/landlab/landlab",
+    status: "ADAPTER_READY",
+    authority: "MODEL_SIMULATION",
+    notes: "integrations/hydro/python/landlab_bridge.py",
+  },
+  {
+    id: "flopy",
+    name: "FloPy / MODFLOW",
+    repo: "https://github.com/modflowpy/flopy",
+    status: "ADAPTER_READY",
+    authority: "MODEL_SIMULATION",
+    notes: "integrations/hydro/python/flopy_bridge.py — groundwater",
+  },
+  {
+    id: "pygeoapi",
+    name: "pygeoapi",
+    repo: "https://github.com/geopython/pygeoapi",
+    status: "REFERENCE_ONLY",
+    authority: "PRESENTATION",
+    notes: "OGC API Features/Coverages/Processes",
   },
   {
     id: "maplibre",
@@ -87,7 +119,7 @@ export const HYDRO_TOOLCHAIN: readonly HydroToolEntry[] = Object.freeze([
     name: "OpenMI / BMI",
     status: "REFERENCE_ONLY",
     authority: "MODEL_SIMULATION",
-    notes: "Model coupling standards; see OPENMI notes in repo",
+    notes: "Model coupling standards",
   },
   {
     id: "hec-ras-boundary",
@@ -95,6 +127,13 @@ export const HYDRO_TOOLCHAIN: readonly HydroToolEntry[] = Object.freeze([
     status: "INTEGRATED",
     authority: "MODEL_SIMULATION",
     notes: "packages/geo/src/hydraulics/HecRasIntegrationBoundary.ts",
+  },
+  {
+    id: "digital-twin-stack",
+    name: "DigitalTwinStackRegistry",
+    status: "INTEGRATED",
+    authority: "PRESENTATION",
+    notes: "packages/geo/src/twin/DigitalTwinStackRegistry.ts",
   },
 ]);
 
