@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>  
+        <!-- Google Tag Manager -->
+            <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-WNP7MLF');</script>
+        <!-- End Google Tag Manager -->
+        <!-- process generated -->
+
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">        
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#172633"/>
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="application-name" content="NASA-FLOOD">
+        <meta name="apple-mobile-web-app-status-bar-style" content="#172633">
+        <meta name="apple-mobile-web-app-title" content="NASA Flood Info">
+        <link rel="icon" sizes="192x192" href="/flood/images/touch/icon-192x192.png">
+        <link rel="apple-touch-icon" href="/flood/images/touch/icon-192x192.png">
+        <meta name="msapplication-TileImage" content="/flood/images/touch/icon-144x144.png">
+        <meta name="msapplication-TileColor" content="#172633">
+        <meta name="theme-color" content="#172633">
+        <meta property="og:title" content="NASA-FLOOD">
+        <meta property="og:type" content="website">
+        <meta property="og:image" content="/flood/images/touch/icon-192x192.png">
+        <meta property="og:url" content="https://lance.modaps.eosdis.nasa.gov/flood/viewer/">
+        <meta property="og:description" content="FLOOD Resource Management System">
+        <meta name="twitter:card" content="summary">
+        <meta name="twitter:url" content="https://lance.modaps.eosdis.nasa.gov/flood/viewer/">
+        <meta name="twitter:title" content="NASA-FLOOD">
+        <meta name="twitter:description" content="FLOOD Resource Management System">
+        <meta name="twitter:image" content="/flood/images/touch/icon-192x192.png">
+        <meta name="twitter:creator" content="@nasa">
+        
+        <link rel="manifest" href="/flood/content/manifest/flood.json">
+        <meta name="description" content="World Flood detections">
+        <meta name="keywords" content="FLOOD">
+        <title>NASA | LANCE | FLOOD</title>
+        <link rel="shortcut icon" href="/flood/images/favicon.ico" type="image/vnd.microsoft.icon">
+        <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@200;400;600&display=swap" rel="stylesheet">
+        <style> html { background: #222; font-size:10px; } </style>    
+    </head>
+    <script>
+        window.URL_REDIRECT = '#URL_REDIRECT#';
+    </script>
+
+<link rel=stylesheet href=/flood/dist/flood_index.ea435d14.css><script type=module src=/flood/dist/flood_index.dca36bb8.js></script><link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;700&amp;display=swap" rel=stylesheet>
+<script>
+    window._hasCarousel = true;
+</script>
+<style>
+    #frontImage1 {
+        background: url("/flood/images/flood_bg.jpg") 0 0rem;
+        background-size: auto;
+        background-size:cover;
+    }
+    #frontImage2 {
+        background: url("/flood/images/flood_bg.jpg") 0 0rem;
+        background-size: auto;
+        background-size:cover;
+        opacity:0;
+    }
+    .frontImage {
+        background: url("/flood/images/flood_bg.jpg") no-repeat 0 0rem;
+    }
+    #frontContentSection1 {
+        background: url("/flood/images/fs_img1.png") no-repeat 100% 40%;
+        background-size: auto;
+    }
+
+    @media screen and (max-width: 950px) {
+        #frontImage1 {
+            background: url("/flood/images/flood_bg.jpg") 0 0rem;
+            background-size:cover;
+        }
+        #frontImage2 {
+            background: url("/flood/images/flood_bg.jpg") 0 0;
+            background-size: auto;
+            background-size:cover;
+            opacity:0;
+        }
+        .frontLabel {
+            font-size:3rem;
+		    line-height: -1rem;
+		    text-align: left;
+		    padding:1rem;
+		}
+        .frontContent {
+            padding:1rem 1rem 2rem 2rem;
+        }
+        .frontContent li {
+			font-size: 2rem;
+		    margin: 0;
+		    padding: 0.5rem 0.5rem;
+		}
+		.frontContent .title {
+	    	font-size: 2rem;  
+		    margin-top:10px;
+		}
+		.frontNASALogo {
+		    position: absolute;
+		    right: 1rem;
+		    width: 7rem;
+		    bottom: 1.1rem;
+		}
+		.subTitle h3 {
+		    font: 1.7em Titillium Web, sans-serif;
+		    text-align: center;
+		    line-height:2.9rem;
+		    background-color: rgba(255, 208, 0, 0.8);
+		    margin: 0;
+		    padding:0.5rem 0.5rem 1rem 0.5rem;
+		}
+		#frontContentSection1 {
+			background: url("/flood/images/fs_img1small.png") no-repeat 100% 25%;
+	        background-size: auto;
+		}
+        #frontContentSection2 li {
+		    font: normal 2.2rem Titillium Web, sans-serif;
+		    line-height: 1.5rem;
+			margin: 1rem 0rem 1.5rem -2.5rem;
+			padding: 0rem 2rem 2rem 3rem;
+        }
+        .mapSubsection {
+            padding-top:.5rem;
+        }
+        .mapSubsection div {
+            font-size:1.7rem;
+        }
+    }
+    @media screen and (max-width: 650px) {
+        .frontContent {
+            padding:2rem 1rem;
+        }
+        .frontContentMain {
+            padding: 0 1rem;
+        }
+        .frontNASALogo {
+		    position: absolute;
+		    right: 1rem;
+		    width: 6rem;
+		    bottom: 0.5rem;
+		}
+		#frontContentSection1 {
+			background: url("/flood/images/fs_img1small.png") no-repeat 100% 8%;
+	        background-size: auto;
+		}
+		#frontContentSection2 img.frontUSFSLogo {
+		    width: 25rem;
+		    margin: 2em 1rem .5rem -2rem;
+		    padding: 0rem 1rem 0rem 1rem;
+		}	
+        .ft-main-item {
+    		width: auto;
+    		padding: 1rem 1rem 1rem 0rem;
+		}
+    }
+    @media screen and (max-width: 350px) {
+
+        #headerTxtLabelSmall {
+            display: none;
+        }
+        .subTitle h3 {
+            font: 1.5em Titillium Web, sans-serif;
+            text-align: center;
+            line-height:2.9rem;
+            background-color: rgba(255, 208, 0, 0.8);
+            margin: 0;
+            padding:0.5rem 0.5rem 1rem 0.5rem;
+        }
+        #frontContentSection1 {
+            background: url("/flood/images/fs_img1small.png") no-repeat 100% 2%;
+            background-size: auto;
+        }
+        #frontContentSection1 h4, #frontContentSection2 h4  {
+            font-size: 2.6rem;
+        }
+        #frontContentSection2 img.frontUSFSLogo {
+            width: 20rem;
+            margin: 1.5em 1rem 0.5rem -1rem;
+            padding: 0rem 0.5rem 0rem 1rem;
+        }
+        #frontContentSection2 li {
+            font: normal 1.9rem Titillium Web, sans-serif;
+            line-height: 1.4rem;
+            margin: 1rem 0rem 1.5rem -3rem;
+            padding: 0.5rem 0.3rem 2rem 1.8rem;
+        }
+        #frontContentSection2 .frontIcon {
+            font-size: 4.2rem;
+            padding: 0.5rem 1rem 0.5rem 0rem;
+        }
+    }
+
+   
+</style>
+<body class="isMain" style="background: #284359;">
+    <section class="content" style="position:relative;min-height:40rem;">
+        <div id="frontImageBox">
+            <div id="frontImage1" class="frontImage">
+                <div id="frontImage2" class="frontImage"></div>
+                <div class="frontLabel">
+                    <div class="frontContent frontContentMain">
+                        <ul id="tour-icons">
+                            <li onclick='window.location = "/flood/viewer";'>
+                                <div class="icon"><i class="fa fa-globe fa-lg frontIcon"></i></div>
+                                <div class="title">Flood Viewer</div>
+                            </li>
+                            <li id="overviewOption" class="multiOption">
+                                <div class="icon"><i class="fa fa-circle-info fa-lg frontIcon"></i></div>
+                                <div class="title">
+                                    Overview 
+                                    <span style="padding:0 .5rem;"><i class="fas fa-caret-left" style="transform: rotate(-90deg);"></i></span>
+                                </div>
+                                <div id="overviewSubselect" class="overviewSubsection">
+                                    <a href="https://www.earthdata.nasa.gov/data/instruments/viirs/near-real-time-data/nrt-global-flood-products" target="_blank" rel="noopener"><div>Info</div></a>
+                                    <a href="https://www.earthdata.nasa.gov/s3fs-public/2025-03/MCDWD_VCDWD_UserGuide_RevE_03.24.25.pdf?VersionId=.pmxvBcF8.aKKn57.4P3wbn5VM6zFVrd" target="_blank" rel="noopener"><div>Product Guide</div></a>
+                                    <a href="https://www.earthdata.nasa.gov/data/instruments/viirs/near-real-time-data/nrt-global-flood-products#ed-flood-faq" target="_blank" rel="noopener"><div>FAQs</div></a>
+                                </div>
+                            </li>
+                            <li onclick="window.open('https://www.earthdata.nasa.gov/data/instruments/viirs/near-real-time-data/nrt-global-flood-products#ed-flood-data-download', '_blank', 'noopener');">
+                                <div class="icon"><i class="fa fa-archive fa-lg frontIcon"></i></div>
+                                <div class="title">Flood Data</div>    
+                            </li>
+                            <li onclick='window.location = "/flood/web-services";'>
+                                <div class="icon"><i class="fa fa-desktop fa-lg frontIcon"></i></div>
+                                <div class="title">Web Services</div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div class="subTitle"><h3>Flood Location Observation and Overview Dashboard</h3></div>
+    <section class="frontContent" id="frontContentSection1">
+        <p>
+            NASA's Land, Atmosphere Near real-time Capability for Earth observation (<a href="https://www.earthdata.nasa.gov/data/projects/lance" class="ext" target="_blank" rel="noopener">LANCE</a>) provides two global daily ~250 m resolution near-real 
+            time (NRT) flood products: 
+             <ul>
+                <li>MODIS product (MCDWD) generated from the Moderate Resolution Imaging Spectroradiometer (<a href="https://www.earthdata.nasa.gov/data/instruments/modis" class="ext" target="_blank" rel="noopener">MODIS</a>)
+                    instrument imagery on the Terra and Aqua platforms.</li>
+                <li>VIIRS product (VCDWD) generated from the Visible Infrared Imaging Radiometer Suite (<a href="https://www.earthdata.nasa.gov/data/instruments/viirs" class="ext" target="_blank" rel="noopener">VIIRS</a>)
+                    instrument imagery on the NOAA-20 (JPSS-1) and NOAA-21 (JPSS-2) platforms.</li>
+            </ul> 
+        </p>
+        <p>
+            The VIIRS product was released in April 2025. Apart from the difference in input data source (MODIS or VIIRS), the products are otherwise 
+            the same in algorithm and product formats. With the Terra and Aqua satellites expected to be retired in 2026-27, the VIIRS product was 
+            developed to replace the MODIS product.  
+        </p>
+        <p>
+            The FLOOD viewer facilitates the use and evaluation of these flood products by allowing the user to browse globally and over time and 
+            compare to other flood products. Initially the NOAA-GMU VIIRS flood product has been included, along with the NASA JPL OPERA surface 
+            water product (based on Landsat + Sentinel-2 imagery). 
+        </p>
+        <p>
+            In the viewer, the default “Basic” mode provides a simplified interface with fewer flood products for new users to explore (it only 
+            includes the 2-day composite product, as this is generally recommended for an initial look).  The Advanced tab adds the 1-day and 
+            3-day products, along with other flood and water products.  
+        </p>
+        <p>
+            If no clouds are present, the 1-day product is likely the most useful and up-to-date. However, in the presence of clouds, the 
+            1-day product can be contaminated with cloud-shadow false-positives, so the user must compare the source imagery 
+            (in the MODIS/VIIRS imagery group) to the flood product.  These can also occasionally affect the 2-day product, 
+            so it is always recommended to review the visible imagery in conjunction with the flood products. 
+        </p>
+    </section>
+    <div id="static_links" style="display:none;">
+<a href="/flood/content/notifications/announcements.html">Notifications</a><br/>
+<a href="/flood/content/notifications/news.html">What's new</a><br/>
+<a href="/flood/viewer/">Flood Viewer</a><br/>
+<a href="https://www.earthdata.nasa.gov/data/instruments/viirs/near-real-time-data/nrt-global-flood-products">Info</a><br/>
+<a href="https://www.earthdata.nasa.gov/s3fs-public/2025-03/MCDWD_VCDWD_UserGuide_RevE_03.24.25.pdf?VersionId=.pmxvBcF8.aKKn57.4P3wbn5VM6zFVrd">Product Guide</a><br/>
+<a href="https://www.earthdata.nasa.gov/data/instruments/viirs/near-real-time-data/nrt-global-flood-products#ed-flood-faq">FAQs</a><br/>
+<a href="/flood/resources/">Additional Resources</a><br/>
+<a href="https://www.earthdata.nasa.gov/data/instruments/viirs/near-real-time-data/nrt-global-flood-products#ed-flood-data-download">Flood Data</a><br/>
+<a href="/flood/web-services/">Web Services</a><br/>
+<a href="https://www.earthdata.nasa.gov/data/projects/lance">LANCE</a><br/>
+<a href="https://www.earthdata.nasa.gov/data/instruments/viirs/near-real-time-data/nrt-global-flood-products#ed-flood-citation">Disclaimer</a><br/>
+<a href="https://www.earthdata.nasa.gov/data/instruments/viirs/near-real-time-data/nrt-global-flood-products#ed-flood-citation">Acknowledgements & Citation</a><br/>
+<a href="/flood/mailing_list/">FLOOD Mailing List</a><br/>
+</div>
+ </body>
+<script src="https://fbm.earthdata.nasa.gov/for/LANCE/feedback.js"></script>
+
+    <!--googleon: all-->    
+    <script id="_fed_an_ua_tag" src="https://dap.digitalgov.gov/Universal-Federated-Analytics-Min.js?agency=NASA&subagency=GSFC&dclink=true"></script>  
+</html>

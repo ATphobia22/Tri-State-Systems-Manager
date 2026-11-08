@@ -194,3 +194,26 @@ test("Ogr2OgrAdapter rejects a missing targetLayer and unsupported kinds without
   assert.equal(badKind.status, "REJECTED");
   assert.match(badKind.reason ?? "", /supports geojson, geopackage, shapefile/);
 });
+
+test("Ogr2OgrAdapter redacts echoed connection credentials from failure diagnostics", async (t) => {
+  const stub = await makeStubOgr2ogr();
+  t.after(async () => { stub.restorePath(); await rm(stub.dir, { recursive: true, force: true }); });
+  await writeFile(join(stub.dir, "ogr2ogr"), `#!/bin/sh\nprintf '%s\\n' "$3" >&2\nprintf '%s\\n' 'password="other secret" postgresql://user:alternate@host/db connection failed' >&2\nexit 9\n`);
+  const dsn = "PG:host=localhost user=test password='primary secret' dbname=tsm";
+  const result = await new Ogr2OgrAdapter({ dsn }).ingest({ ...geojsonInput(1), targetLayer: "public.test_layer" });
+  assert.equal(result.status, "REJECTED");
+  assert.match(result.reason ?? "", /exited with code 9/);
+  assert.match(result.reason ?? "", /connection failed/);
+  for (const secret of [dsn, "primary secret", "other secret", "alternate"]) {
+    assert.ok(!result.reason?.includes(secret));
+  }
+});
+
+test("Ogr2OgrAdapter rejects ambiguous destination identifiers before spawning", async () => {
+  const adapter = new Ogr2OgrAdapter({ dsn: "PG:dbname=test", binary: "must-not-spawn" });
+  for (const targetLayer of ["x;DROP TABLE y", "-overwrite", "a.b.c", "a b", '"quoted"']) {
+    const result = await adapter.ingest({ ...geojsonInput(1), targetLayer });
+    assert.equal(result.status, "REJECTED");
+    assert.match(result.reason ?? "", /identifier/);
+  }
+});

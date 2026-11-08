@@ -14,7 +14,7 @@
 
 ## Rules
 
-1. Coordinates for `hypot` must be **metres** (e.g. EPSG:2966), not degrees.  
+1. Coordinates for `hypot` must be **metres** (e.g. EPSG:26916; EPSG:2966 uses US survey feet), not degrees.  
 2. `N(h) ≥ 30` required for a sufficient lag bin.  
 3. `authority_class = DERIVED` on all residual and uncertainty rows.  
 4. UI must call `shouldBlockEpqsBfeEligibilityCompare` before any EPQS−BFE eligibility path.  

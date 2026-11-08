@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en-US" class="no-js">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script>(function(html){html.className = html.className.replace(/\bno-js\b/,'js')})(document.documentElement);</script>
+<title>Harmonized Landsat Sentinel-2 &#8211; Harmonized Landsat Sentinel 2</title>
+<meta name='robots' content='max-image-preview:large' />
+<style>img:is([sizes="auto" i], [sizes^="auto," i]) { contain-intrinsic-size: 3000px 1500px }</style>
+<link rel='dns-prefetch' href='//fonts.googleapis.com' />
+<link rel="alternate" type="application/rss+xml" title="Harmonized Landsat Sentinel-2 &raquo; Feed" href="https://hls.gsfc.nasa.gov/feed/" />
+<script>
+window._wpemojiSettings = {"baseUrl":"https:\/\/s.w.org\/images\/core\/emoji\/16.0.1\/72x72\/","ext":".png","svgUrl":"https:\/\/s.w.org\/images\/core\/emoji\/16.0.1\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/hls.gsfc.nasa.gov\/wp-includes\/js\/wp-emoji-release.min.js?ver=8c56b45f1c583dbad863da76240196c2"}};
+/*! This file is auto-generated */
+!function(s,n){var o,i,e;function c(e){try{var t={supportTests:e,timestamp:(new Date).valueOf()};sessionStorage.setItem(o,JSON.stringify(t))}catch(e){}}function p(e,t,n){e.clearRect(0,0,e.canvas.width,e.canvas.height),e.fillText(t,0,0);var t=new Uint32Array(e.getImageData(0,0,e.canvas.width,e.canvas.height).data),a=(e.clearRect(0,0,e.canvas.width,e.canvas.height),e.fillText(n,0,0),new Uint32Array(e.getImageData(0,0,e.canvas.width,e.canvas.height).data));return t.every(function(e,t){return e===a[t]})}function u(e,t){e.clearRect(0,0,e.canvas.width,e.canvas.height),e.fillText(t,0,0);for(var n=e.getImageData(16,16,1,1),a=0;a<n.data.length;a++)if(0!==n.data[a])return!1;return!0}function f(e,t,n,a){switch(t){case"flag":return n(e,"\ud83c\udff3\ufe0f\u200d\u26a7\ufe0f","\ud83c\udff3\ufe0f\u200b\u26a7\ufe0f")?!1:!n(e,"\ud83c\udde8\ud83c\uddf6","\ud83c\udde8\u200b\ud83c\uddf6")&&!n(e,"\ud83c\udff4\udb40\udc67\udb40\udc62\udb40\udc65\udb40\udc6e\udb40\udc67\udb40\udc7f","\ud83c\udff4\u200b\udb40\udc67\u200b\udb40\udc62\u200b\udb40\udc65\u200b\udb40\udc6e\u200b\udb40\udc67\u200b\udb40\udc7f");case"emoji":return!a(e,"\ud83e\udedf")}return!1}function g(e,t,n,a){var r="undefined"!=typeof WorkerGlobalScope&&self instanceof WorkerGlobalScope?new OffscreenCanvas(300,150):s.createElement("canvas"),o=r.getContext("2d",{willReadFrequently:!0}),i=(o.textBaseline="top",o.font="600 32px Arial",{});return e.forEach(function(e){i[e]=t(o,e,n,a)}),i}function t(e){var t=s.createElement("script");t.src=e,t.defer=!0,s.head.appendChild(t)}"undefined"!=typeof Promise&&(o="wpEmojiSettingsSupports",i=["flag","emoji"],n.supports={everything:!0,everythingExceptFlag:!0},e=new Promise(function(e){s.addEventListener("DOMContentLoaded",e,{once:!0})}),new Promise(function(t){var n=function(){try{var e=JSON.parse(sessionStorage.getItem(o));if("object"==typeof e&&"number"==typeof e.timestamp&&(new Date).valueOf()<e.timestamp+604800&&"object"==typeof e.supportTests)return e.supportTests}catch(e){}return null}();if(!n){if("undefined"!=typeof Worker&&"undefined"!=typeof OffscreenCanvas&&"undefined"!=typeof URL&&URL.createObjectURL&&"undefined"!=typeof Blob)try{var e="postMessage("+g.toString()+"("+[JSON.stringify(i),f.toString(),p.toString(),u.toString()].join(",")+"));",a=new Blob([e],{type:"text/javascript"}),r=new Worker(URL.createObjectURL(a),{name:"wpTestEmojiSupports"});return void(r.onmessage=function(e){c(n=e.data),r.terminate(),t(n)})}catch(e){}c(n=g(i,f,p,u))}t(n)}).then(function(e){for(var t in e)n.supports[t]=e[t],n.supports.everything=n.supports.everything&&n.supports[t],"flag"!==t&&(n.supports.everythingExceptFlag=n.supports.everythingExceptFlag&&n.supports[t]);n.supports.everythingExceptFlag=n.supports.everythingExceptFlag&&!n.supports.flag,n.DOMReady=!1,n.readyCallback=function(){n.DOMReady=!0}}).then(function(){return e}).then(function(){var e;n.supports.everything||(n.readyCallback(),(e=n.source||{}).concatemoji?t(e.concatemoji):e.wpemoji&&e.twemoji&&(t(e.twemoji),t(e.wpemoji)))}))}((window,document),window._wpemojiSettings);
+</script>
+<style id='wp-emoji-styles-inline-css'>
+img.wp-smiley, img.emoji {
+display: inline !important;
+border: none !important;
+box-shadow: none !important;
+height: 1em !important;
+width: 1em !important;
+margin: 0 0.07em !important;
+vertical-align: -0.1em !important;
+background: none !important;
+padding: 0 !important;
+}
+</style>
+<link rel='stylesheet' id='wp-block-library-css' href='//hls.gsfc.nasa.gov/wp-content/cache/wpfc-minified/du7e6kuo/bx1pn.css' media='all' />
+<style id='wp-block-library-theme-inline-css'>
+.wp-block-audio :where(figcaption){color:#555;font-size:13px;text-align:center}.is-dark-theme .wp-block-audio :where(figcaption){color:#ffffffa6}.wp-block-audio{margin:0 0 1em}.wp-block-code{border:1px solid #ccc;border-radius:4px;font-family:Menlo,Consolas,monaco,monospace;padding:.8em 1em}.wp-block-embed :where(figcaption){color:#555;font-size:13px;text-align:center}.is-dark-theme .wp-block-embed :where(figcaption){color:#ffffffa6}.wp-block-embed{margin:0 0 1em}.blocks-gallery-caption{color:#555;font-size:13px;text-align:center}.is-dark-theme .blocks-gallery-caption{color:#ffffffa6}:root :where(.wp-block-image figcaption){color:#555;font-size:13px;text-align:center}.is-dark-theme :root :where(.wp-block-image figcaption){color:#ffffffa6}.wp-block-image{margin:0 0 1em}.wp-block-pullquote{border-bottom:4px solid;border-top:4px solid;color:currentColor;margin-bottom:1.75em}.wp-block-pullquote cite,.wp-block-pullquote footer,.wp-block-pullquote__citation{color:currentColor;font-size:.8125em;font-style:normal;text-transform:uppercase}.wp-block-quote{border-left:.25em solid;margin:0 0 1.75em;padding-left:1em}.wp-block-quote cite,.wp-block-quote footer{color:currentColor;font-size:.8125em;font-style:normal;position:relative}.wp-block-quote:where(.has-text-align-right){border-left:none;border-right:.25em solid;padding-left:0;padding-right:1em}.wp-block-quote:where(.has-text-align-center){border:none;padding-left:0}.wp-block-quote.is-large,.wp-block-quote.is-style-large,.wp-block-quote:where(.is-style-plain){border:none}.wp-block-search .wp-block-search__label{font-weight:700}.wp-block-search__button{border:1px solid #ccc;padding:.375em .625em}:where(.wp-block-group.has-background){padding:1.25em 2.375em}.wp-block-separator.has-css-opacity{opacity:.4}.wp-block-separator{border:none;border-bottom:2px solid;margin-left:auto;margin-right:auto}.wp-block-separator.has-alpha-channel-opacity{opacity:1}.wp-block-separator:not(.is-style-wide):not(.is-style-dots){width:100px}.wp-block-separator.has-background:not(.is-style-dots){border-bottom:none;height:1px}.wp-block-separator.has-background:not(.is-style-wide):not(.is-style-dots){height:2px}.wp-block-table{margin:0 0 1em}.wp-block-table td,.wp-block-table th{word-break:normal}.wp-block-table :where(figcaption){color:#555;font-size:13px;text-align:center}.is-dark-theme .wp-block-table :where(figcaption){color:#ffffffa6}.wp-block-video :where(figcaption){color:#555;font-size:13px;text-align:center}.is-dark-theme .wp-block-video :where(figcaption){color:#ffffffa6}.wp-block-video{margin:0 0 1em}:root :where(.wp-block-template-part.has-background){margin-bottom:0;margin-top:0;padding:1.25em 2.375em}
+</style>
+<style id='global-styles-inline-css'>
+:root{--wp--preset--aspect-ratio--square: 1;--wp--preset--aspect-ratio--4-3: 4/3;--wp--preset--aspect-ratio--3-4: 3/4;--wp--preset--aspect-ratio--3-2: 3/2;--wp--preset--aspect-ratio--2-3: 2/3;--wp--preset--aspect-ratio--16-9: 16/9;--wp--preset--aspect-ratio--9-16: 9/16;--wp--preset--color--black: #000000;--wp--preset--color--cyan-bluish-gray: #abb8c3;--wp--preset--color--white: #ffffff;--wp--preset--color--pale-pink: #f78da7;--wp--preset--color--vivid-red: #cf2e2e;--wp--preset--color--luminous-vivid-orange: #ff6900;--wp--preset--color--luminous-vivid-amber: #fcb900;--wp--preset--color--light-green-cyan: #7bdcb5;--wp--preset--color--vivid-green-cyan: #00d084;--wp--preset--color--pale-cyan-blue: #8ed1fc;--wp--preset--color--vivid-cyan-blue: #0693e3;--wp--preset--color--vivid-purple: #9b51e0;--wp--preset--color--primary: #101010;--wp--preset--color--secondary: #0bb4aa;--wp--preset--color--header-footer: #101010;--wp--preset--color--tertiary: #6C6C77;--wp--preset--color--lightgrey: #D9D9D9;--wp--preset--color--foreground: #000;--wp--preset--color--background: #f9fafd;--wp--preset--color--light-background: #ffffff;--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgba(252,185,0,1) 0%,rgba(255,105,0,1) 100%);--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgba(255,105,0,1) 0%,rgb(207,46,46) 100%);--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);--wp--preset--gradient--black-primary: linear-gradient(180deg, var(--wp--preset--color--secondary) 0%, var(--wp--preset--color--secondary) 73%, var(--wp--preset--color--background) 73%, var(--wp--preset--color--background) 100%);--wp--preset--gradient--black-secondary: linear-gradient(135deg,rgba(0,0,0,1) 50%,var(--wp--preset--color--tertiary) 100%);--wp--preset--font-size--small: clamp(14px, 0.875rem + ((1vw - 3.2px) * 0.177), 16px);--wp--preset--font-size--medium: clamp(16px, 1rem + ((1vw - 3.2px) * 0.354), 20px);--wp--preset--font-size--large: clamp(22px, 1.375rem + ((1vw - 3.2px) * 1.239), 36px);--wp--preset--font-size--x-large: clamp(30px, 1.875rem + ((1vw - 3.2px) * 1.77), 50px);--wp--preset--font-size--x-small: clamp(14px, 0.875rem + ((1vw - 3.2px) * 1), 14px);--wp--preset--font-size--max-36: clamp(24px, 1.5rem + ((1vw - 3.2px) * 1.062), 36px);--wp--preset--font-size--max-48: clamp(26px, 1.625rem + ((1vw - 3.2px) * 1.947), 48px);--wp--preset--font-size--max-60: clamp(30px, 1.875rem + ((1vw - 3.2px) * 2.655), 60px);--wp--preset--font-size--max-72: clamp(38px, 2.375rem + ((1vw - 3.2px) * 3.009), 72px);--wp--preset--spacing--20: 0.44rem;--wp--preset--spacing--30: 0.67rem;--wp--preset--spacing--40: 1rem;--wp--preset--spacing--50: 1.5rem;--wp--preset--spacing--60: 2.25rem;--wp--preset--spacing--70: 3.38rem;--wp--preset--spacing--80: 5.06rem;--wp--preset--spacing--x-small: 20px;--wp--preset--spacing--small: 40px;--wp--preset--spacing--medium: 60px;--wp--preset--spacing--large: 80px;--wp--preset--spacing--x-large: 100px;--wp--preset--shadow--natural: 6px 6px 9px rgba(0, 0, 0, 0.2);--wp--preset--shadow--deep: 12px 12px 50px rgba(0, 0, 0, 0.4);--wp--preset--shadow--sharp: 6px 6px 0px rgba(0, 0, 0, 0.2);--wp--preset--shadow--outlined: 6px 6px 0px -3px rgba(255, 255, 255, 1), 6px 6px rgba(0, 0, 0, 1);--wp--preset--shadow--crisp: 6px 6px 0px rgba(0, 0, 0, 1);--wp--custom--font-weight--black: 900;--wp--custom--font-weight--bold: 700;--wp--custom--font-weight--extra-bold: 800;--wp--custom--font-weight--light: 300;--wp--custom--font-weight--medium: 500;--wp--custom--font-weight--regular: 400;--wp--custom--font-weight--semi-bold: 600;--wp--custom--line-height--body: 1.75;--wp--custom--line-height--heading: 1.1;--wp--custom--line-height--medium: 1.5;--wp--custom--line-height--one: 1;--wp--custom--spacing--outer: 30px;}:root { --wp--style--global--content-size: 1200px;--wp--style--global--wide-size: 1450px; }:where(body) { margin: 0; }.wp-site-blocks { padding-top: var(--wp--style--root--padding-top); padding-bottom: var(--wp--style--root--padding-bottom); }.has-global-padding { padding-right: var(--wp--style--root--padding-right); padding-left: var(--wp--style--root--padding-left); }.has-global-padding > .alignfull { margin-right: calc(var(--wp--style--root--padding-right) * -1); margin-left: calc(var(--wp--style--root--padding-left) * -1); }.has-global-padding :where(:not(.alignfull.is-layout-flow) > .has-global-padding:not(.wp-block-block, .alignfull)) { padding-right: 0; padding-left: 0; }.has-global-padding :where(:not(.alignfull.is-layout-flow) > .has-global-padding:not(.wp-block-block, .alignfull)) > .alignfull { margin-left: 0; margin-right: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }:where(.wp-site-blocks) > * { margin-block-start: 20px; margin-block-end: 0; }:where(.wp-site-blocks) > :first-child { margin-block-start: 0; }:where(.wp-site-blocks) > :last-child { margin-block-end: 0; }:root { --wp--style--block-gap: 20px; }:root :where(.is-layout-flow) > :first-child{margin-block-start: 0;}:root :where(.is-layout-flow) > :last-child{margin-block-end: 0;}:root :where(.is-layout-flow) > *{margin-block-start: 20px;margin-block-end: 0;}:root :where(.is-layout-constrained) > :first-child{margin-block-start: 0;}:root :where(.is-layout-constrained) > :last-child{margin-block-end: 0;}:root :where(.is-layout-constrained) > *{margin-block-start: 20px;margin-block-end: 0;}:root :where(.is-layout-flex){gap: 20px;}:root :where(.is-layout-grid){gap: 20px;}.is-layout-flow > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}.is-layout-flow > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}.is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}.is-layout-constrained > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}.is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){max-width: var(--wp--style--global--content-size);margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > .alignwide{max-width: var(--wp--style--global--wide-size);}body .is-layout-flex{display: flex;}.is-layout-flex{flex-wrap: wrap;align-items: center;}.is-layout-flex > :is(*, div){margin: 0;}body .is-layout-grid{display: grid;}.is-layout-grid > :is(*, div){margin: 0;}body{font-size: var(--wp--preset--font-size--small);font-weight: var(--wp--custom--font-weight--regular);line-height: var(--wp--custom--line-height--body);--wp--style--root--padding-top: 0px;--wp--style--root--padding-right: 0px;--wp--style--root--padding-bottom: 0px;--wp--style--root--padding-left: 0px;}a:where(:not(.wp-element-button)){color: var(--wp--preset--color--primary);text-decoration: underline;}:root :where(.wp-element-button, .wp-block-button__link){background-color: #32373c;border-radius: 0;border-width: 0;color: #fff;font-family: inherit;font-size: inherit;line-height: inherit;padding-top: 10px;padding-right: 25px;padding-bottom: 10px;padding-left: 25px;text-decoration: none;}.has-black-color{color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-color{color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-color{color: var(--wp--preset--color--white) !important;}.has-pale-pink-color{color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-color{color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-color{color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-color{color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-color{color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-color{color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-color{color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-color{color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-color{color: var(--wp--preset--color--vivid-purple) !important;}.has-primary-color{color: var(--wp--preset--color--primary) !important;}.has-secondary-color{color: var(--wp--preset--color--secondary) !important;}.has-header-footer-color{color: var(--wp--preset--color--header-footer) !important;}.has-tertiary-color{color: var(--wp--preset--color--tertiary) !important;}.has-lightgrey-color{color: var(--wp--preset--color--lightgrey) !important;}.has-foreground-color{color: var(--wp--preset--color--foreground) !important;}.has-background-color{color: var(--wp--preset--color--background) !important;}.has-light-background-color{color: var(--wp--preset--color--light-background) !important;}.has-black-background-color{background-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-background-color{background-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.has-pale-pink-background-color{background-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-background-color{background-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-background-color{background-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-background-color{background-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-background-color{background-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-background-color{background-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-background-color{background-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-background-color{background-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-background-color{background-color: var(--wp--preset--color--vivid-purple) !important;}.has-primary-background-color{background-color: var(--wp--preset--color--primary) !important;}.has-secondary-background-color{background-color: var(--wp--preset--color--secondary) !important;}.has-header-footer-background-color{background-color: var(--wp--preset--color--header-footer) !important;}.has-tertiary-background-color{background-color: var(--wp--preset--color--tertiary) !important;}.has-lightgrey-background-color{background-color: var(--wp--preset--color--lightgrey) !important;}.has-foreground-background-color{background-color: var(--wp--preset--color--foreground) !important;}.has-background-background-color{background-color: var(--wp--preset--color--background) !important;}.has-light-background-background-color{background-color: var(--wp--preset--color--light-background) !important;}.has-black-border-color{border-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-border-color{border-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}.has-pale-pink-border-color{border-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-border-color{border-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-border-color{border-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-border-color{border-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-border-color{border-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-border-color{border-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-border-color{border-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-border-color{border-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-border-color{border-color: var(--wp--preset--color--vivid-purple) !important;}.has-primary-border-color{border-color: var(--wp--preset--color--primary) !important;}.has-secondary-border-color{border-color: var(--wp--preset--color--secondary) !important;}.has-header-footer-border-color{border-color: var(--wp--preset--color--header-footer) !important;}.has-tertiary-border-color{border-color: var(--wp--preset--color--tertiary) !important;}.has-lightgrey-border-color{border-color: var(--wp--preset--color--lightgrey) !important;}.has-foreground-border-color{border-color: var(--wp--preset--color--foreground) !important;}.has-background-border-color{border-color: var(--wp--preset--color--background) !important;}.has-light-background-border-color{border-color: var(--wp--preset--color--light-background) !important;}.has-vivid-cyan-blue-to-vivid-purple-gradient-background{background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;}.has-light-green-cyan-to-vivid-green-cyan-gradient-background{background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;}.has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;}.has-luminous-vivid-orange-to-vivid-red-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;}.has-very-light-gray-to-cyan-bluish-gray-gradient-background{background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;}.has-cool-to-warm-spectrum-gradient-background{background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;}.has-blush-light-purple-gradient-background{background: var(--wp--preset--gradient--blush-light-purple) !important;}.has-blush-bordeaux-gradient-background{background: var(--wp--preset--gradient--blush-bordeaux) !important;}.has-luminous-dusk-gradient-background{background: var(--wp--preset--gradient--luminous-dusk) !important;}.has-pale-ocean-gradient-background{background: var(--wp--preset--gradient--pale-ocean) !important;}.has-electric-grass-gradient-background{background: var(--wp--preset--gradient--electric-grass) !important;}.has-midnight-gradient-background{background: var(--wp--preset--gradient--midnight) !important;}.has-black-primary-gradient-background{background: var(--wp--preset--gradient--black-primary) !important;}.has-black-secondary-gradient-background{background: var(--wp--preset--gradient--black-secondary) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-medium-font-size{font-size: var(--wp--preset--font-size--medium) !important;}.has-large-font-size{font-size: var(--wp--preset--font-size--large) !important;}.has-x-large-font-size{font-size: var(--wp--preset--font-size--x-large) !important;}.has-x-small-font-size{font-size: var(--wp--preset--font-size--x-small) !important;}.has-max-36-font-size{font-size: var(--wp--preset--font-size--max-36) !important;}.has-max-48-font-size{font-size: var(--wp--preset--font-size--max-48) !important;}.has-max-60-font-size{font-size: var(--wp--preset--font-size--max-60) !important;}.has-max-72-font-size{font-size: var(--wp--preset--font-size--max-72) !important;}
+:root :where(.wp-block-button .wp-block-button__link){background-color: var(--wp--preset--color--primary);}
+:root :where(.wp-block-columns){border-radius: 4px;border-width: 0;margin-bottom: 0px;}
+:root :where(.wp-block-pullquote){font-size: clamp(0.984em, 0.984rem + ((1vw - 0.2em) * 0.731), 1.5em);line-height: 1.6;}
+:root :where(.wp-block-buttons-is-layout-flow) > :first-child{margin-block-start: 0;}:root :where(.wp-block-buttons-is-layout-flow) > :last-child{margin-block-end: 0;}:root :where(.wp-block-buttons-is-layout-flow) > *{margin-block-start: 10px;margin-block-end: 0;}:root :where(.wp-block-buttons-is-layout-constrained) > :first-child{margin-block-start: 0;}:root :where(.wp-block-buttons-is-layout-constrained) > :last-child{margin-block-end: 0;}:root :where(.wp-block-buttons-is-layout-constrained) > *{margin-block-start: 10px;margin-block-end: 0;}:root :where(.wp-block-buttons-is-layout-flex){gap: 10px;}:root :where(.wp-block-buttons-is-layout-grid){gap: 10px;}
+:root :where(.wp-block-column){border-radius: 4px;border-width: 0;margin-bottom: 0px;}
+:root :where(.wp-block-cover){padding-top: 30px;padding-right: 30px;padding-bottom: 30px;padding-left: 30px;}
+:root :where(.wp-block-group){padding: 0px;}
+:root :where(.wp-block-spacer){margin-top: 0 !important;}
+</style>
+<link rel='stylesheet' id='inspiro-google-fonts-css' href='https://fonts.googleapis.com/css?family=Inter%3A400%2C%2C200%2C300%2C500%2C600%7COnest%3A700%2C600%7CMontserrat%3A&#038;display=swap&#038;ver=2.1.5' media='all' />
+<link rel='stylesheet' id='inspiro-style-css' href='//hls.gsfc.nasa.gov/wp-content/cache/wpfc-minified/8a882nxu/bx1pn.css' media='all' />
+<style id='inspiro-style-inline-css'>
+body, button, input, select, textarea {
+font-family: 'Inter', sans-serif;
+font-weight: 400;
+}
+@media screen and (min-width: 782px) {
+body, button, input, select, textarea {
+font-size: 16px;
+line-height: 1.8;
+} }
+body:not(.wp-custom-logo) a.custom-logo-text {
+font-family: 'Onest', sans-serif;
+font-weight: 700;
+text-transform: uppercase;
+}
+@media screen and (min-width: 782px) {
+body:not(.wp-custom-logo) a.custom-logo-text {
+font-size: 27px;
+line-height: 1.8;
+} }
+h1, h2, h3, h4, h5, h6, .home.blog .entry-title, .page .entry-title, .page-title, #comments>h3, #respond>h3, .wp-block-button a, .entry-footer {
+font-family: 'Onest', sans-serif;
+font-weight: 600;
+line-height: 1.4;
+}
+.home.blog .entry-title, .single .entry-title, .single .entry-cover-image .entry-header .entry-title {
+font-size: 24px;
+font-weight: 600;
+line-height: 1.4;
+}
+@media screen and (min-width: 641px) and (max-width: 1024px) {
+.home.blog .entry-title, .single .entry-title, .single .entry-cover-image .entry-header .entry-title {
+font-size: 32px;
+} }
+@media screen and (min-width: 1025px) {
+.home.blog .entry-title, .single .entry-title, .single .entry-cover-image .entry-header .entry-title {
+font-size: 45px;
+} }
+.page .entry-title, .page-title, .page .entry-cover-image .entry-header .entry-title {
+font-size: 24px;
+font-weight: 600;
+line-height: 1.4;
+text-align: left;
+}
+@media screen and (min-width: 641px) and (max-width: 1024px) {
+.page .entry-title, .page-title, .page .entry-cover-image .entry-header .entry-title {
+font-size: 32px;
+} }
+@media screen and (min-width: 1025px) {
+.page .entry-title, .page-title, .page .entry-cover-image .entry-header .entry-title {
+font-size: 45px;
+} }
+.entry-content h1, .widget-area h1, h1:not(.entry-title):not(.page-title):not(.site-title) {
+font-size: 24px;
+font-weight: 600;
+line-height: 1.4;
+}
+@media screen and (min-width: 641px) and (max-width: 1024px) {
+.entry-content h1, .widget-area h1, h1:not(.entry-title):not(.page-title):not(.site-title) {
+font-size: 32px;
+} }
+@media screen and (min-width: 1025px) {
+.entry-content h1, .widget-area h1, h1:not(.entry-title):not(.page-title):not(.site-title) {
+font-size: 45px;
+} }
+.entry-content h2, .page-content h2, .comment-content h2 {
+font-size: 30px;
+font-weight: 600;
+line-height: 1.4;
+}
+.entry-content h3, .page-content h3, .comment-content h3 {
+font-size: 24px;
+font-weight: 600;
+line-height: 1.4;
+}
+.entry-content h4, .page-content h4, .comment-content h4 {
+font-size: 16px;
+font-weight: 600;
+line-height: 1.4;
+}
+.entry-content h5, .page-content h5, .comment-content h5 {
+font-size: 14px;
+font-weight: 600;
+line-height: 1.4;
+}
+.entry-content h6, .page-content h6, .comment-content h6 {
+font-size: 13px;
+font-weight: 600;
+line-height: 1.4;
+}
+.site-title {
+font-family: Arial, Helvetica, sans-serif  ;
+font-weight: 700;
+line-height: 1.25;
+}
+@media screen and (min-width: 782px) {
+.site-title {
+font-size: 56px;
+} }
+.site-description {
+font-family: 'Inter', sans-serif;
+font-weight: 700;
+line-height: 1.8;
+}
+@media screen and (min-width: 782px) {
+.site-description {
+font-size: 21px;
+} }
+.custom-header-button {
+font-family: 'Inter', sans-serif;
+line-height: 1.8;
+}
+@media screen and (min-width: 782px) {
+.custom-header-button {
+font-size: 16px;
+} }
+.navbar-nav a {
+font-family: 'Montserrat', sans-serif;
+font-weight: 600;
+line-height: 1.8;
+}
+@media screen and (min-width: 782px) {
+.navbar-nav a {
+font-size: 16px;
+} }
+@media screen and (max-width: 64em) {
+.navbar-nav li a {
+font-family: 'Onest', sans-serif;
+font-size: 16px;
+font-weight: 600;
+text-transform: uppercase;
+line-height: 1.8;
+} }
+:root {
+--container-width: 1200px;
+--container-width-narrow: 950px;
+--container-padding: 30px;
+}
+/* Dynamic responsive padding media queries */
+@media (max-width: 1260px) {
+.wrap,
+.inner-wrap,
+.page .entry-content,
+.page:not(.inspiro-front-page) .entry-footer,
+.single .entry-wrapper,
+.single.has-sidebar.page-layout-sidebar-right .entry-header .inner-wrap,
+.wp-block-group > .wp-block-group__inner-container {
+padding-left: 30px;
+padding-right: 30px;
+}
+}
+@media (max-width: 1010px) {
+.single .entry-header .inner-wrap,
+.single .entry-content,
+.single .entry-footer,
+#comments {
+padding-left: 30px;
+padding-right: 30px;
+}
+}
+</style>
+<script src="https://hls.gsfc.nasa.gov/wp-includes/js/jquery/jquery.min.js?ver=3.7.1" id="jquery-core-js"></script>
+<script src="https://hls.gsfc.nasa.gov/wp-includes/js/jquery/jquery-migrate.min.js?ver=3.4.1" id="jquery-migrate-js"></script>
+<link rel="https://api.w.org/" href="https://hls.gsfc.nasa.gov/wp-json/" /><link rel="alternate" title="JSON" type="application/json" href="https://hls.gsfc.nasa.gov/wp-json/wp/v2/pages/347" /><link rel="canonical" href="https://hls.gsfc.nasa.gov/" />
+<link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="https://hls.gsfc.nasa.gov/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fhls.gsfc.nasa.gov%2F" />
+<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="https://hls.gsfc.nasa.gov/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fhls.gsfc.nasa.gov%2F&#038;format=xml" />
+<!--Customizer CSS--> 
+<style type="text/css">
+.site-info .copyright { display:none; }</style> 
+<!--/Customizer CSS-->
+<style type="text/css" id="custom-theme-colors" data-hex="#0bb4aa" data-palette="default" data-scheme="light">
+/**
+* Inspiro Lite: Palette Color Scheme
+*/
+:root {
+--inspiro-primary-color: #0bb4aa;
+--inspiro-secondary-color: #5ec5bd;
+--inspiro-tertiary-color: #37746F;
+--inspiro-accent-color: #0bb4aa;
+}
+body {
+--wp--preset--color--secondary: #0bb4aa;
+}
+</style>
+<style id="inspiro-custom-header-styles">
+.site-title a,
+.colors-dark .site-title a,
+.site-title a,
+body.has-header-image .site-title a,
+body.has-header-video .site-title a,
+body.has-header-image.colors-dark .site-title a,
+body.has-header-video.colors-dark .site-title a,
+body.has-header-image .site-title a,
+body.has-header-video .site-title a,
+.site-description,
+.colors-dark .site-description,
+.site-description,
+body.has-header-image .site-description,
+body.has-header-video .site-description,
+body.has-header-image.colors-dark .site-description,
+body.has-header-video.colors-dark .site-description,
+body.has-header-image .site-description,
+body.has-header-video .site-description {
+color: #fff;
+}
+.custom-header-button {
+color: #ffffff;
+border-color: #ffffff;
+}
+.custom-header-button:hover {
+color: #ffffff;
+}
+.custom-header-button:hover {
+background-color: #0e95ef !important;
+border-color: #0e95ef !important;
+}
+.headroom--not-top .navbar,
+.has-header-image.home.blog .headroom--not-top .navbar,
+.has-header-image.inspiro-front-page .headroom--not-top .navbar,
+.has-header-video.home.blog .headroom--not-top .navbar,
+.has-header-video.inspiro-front-page .headroom--not-top .navbar {
+background-color: rgba(0,0,0,0.9);
+}
+a.custom-logo-text:hover {
+color: #ffffff;
+}
+/* hero section */
+#scroll-to-content:before {
+border-color: #fff;
+}
+.has-header-image .custom-header-media:before {
+background-image: linear-gradient(to bottom,
+rgba(0, 0, 0, 0.3) 0%,
+rgba(0, 0, 0, 0.5) 100%);
+/*background-image: linear-gradient(to bottom, rgba(0, 0, 0, .7) 0%, rgba(0, 0, 0, 0.5) 100%)*/
+}
+/* content */
+/* sidebar */
+/* footer */
+.site-footer {
+color: #ffffff;
+}
+/* general */
+</style>
+<!-- CJT Global Block (209) - header analytics - START -->
+<script async type="text/javascript" src="https://dap.digitalgov.gov/Universal-Federated-Analytics-Min.js?agency=NASA&subagency=GSFC" id="_fed_an_ua_tag"></script> 
+<!-- CJT Global Block (209) - header analytics - END -->
+<link rel="icon" href="https://hls.gsfc.nasa.gov/wp-content/uploads/2023/09/nasa_newlogo200px.png" sizes="32x32" />
+<link rel="icon" href="https://hls.gsfc.nasa.gov/wp-content/uploads/2023/09/nasa_newlogo200px.png" sizes="192x192" />
+<link rel="apple-touch-icon" href="https://hls.gsfc.nasa.gov/wp-content/uploads/2023/09/nasa_newlogo200px.png" />
+<meta name="msapplication-TileImage" content="https://hls.gsfc.nasa.gov/wp-content/uploads/2023/09/nasa_newlogo200px.png" />
+<style id="wp-custom-css">
+div.textwidget  {
+font-size:0.8em;
+}
+div.textwidget a {
+color: #6599CE;
+}
+div.textwidget a:hover {
+color: #11689B
+}
+.entry-content a {
+color: #6599CE;
+}
+.entry-content a:hover {
+color: #11689B
+}
+img.wp-image-816 {
+display: block;
+margin-left: auto;
+margin-right: auto
+}
+.footer-widget-3 {
+text-align:right;
+}
+#colophon.site-footer {
+height:200px;
+}
+.site-description {
+text-align:left;
+}
+</style>
+</head>
+<body data-rsssl=1 class="home wp-singular page-template page-template-page-templates page-template-no-title page-template-page-templatesno-title-php page page-id-347 wp-custom-logo wp-embed-responsive wp-theme-inspiro inspiro-front-page page-layout-full-width post-display-content-excerpt colors-light">
+<aside id="side-nav" class="side-nav" tabindex="-1">
+<div class="side-nav__scrollable-container">
+<div class="side-nav__wrap">
+<div class="side-nav__close-button">
+<button type="button" class="navbar-toggle">
+<span class="screen-reader-text">Toggle navigation</span>
+<span class="icon-bar"></span>
+<span class="icon-bar"></span>
+<span class="icon-bar"></span>
+</button>
+</div>
+<nav class="mobile-menu-wrapper" aria-label="Mobile Menu" role="navigation">
+<ul id="menu-home" class="nav navbar-nav"><li id="menu-item-836" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-home current-menu-item page_item page-item-347 current_page_item menu-item-836"><a href="https://hls.gsfc.nasa.gov/" aria-current="page">Home</a></li>
+<li id="menu-item-1436" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1436"><a href="https://hls.gsfc.nasa.gov/about-hls/">About HLS</a></li>
+<li id="menu-item-1437" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1437"><a href="https://hls.gsfc.nasa.gov/algorithms/">Algorithms</a></li>
+<li id="menu-item-1438" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1438"><a href="https://hls.gsfc.nasa.gov/data-products/">Data Products</a></li>
+<li id="menu-item-1439" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1439"><a href="https://hls.gsfc.nasa.gov/data-access-and-tools/">Data Access and Tools</a></li>
+<li id="menu-item-1392" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1392"><a href="https://hls.gsfc.nasa.gov/publications/">Publications</a></li>
+</ul>				</nav>
+</div>
+</div>
+</aside>
+<div class="side-nav-overlay"></div>
+<div id="page" class="site">
+<a class="skip-link screen-reader-text" href="#content">Skip to content</a>
+<header id="masthead" class="site-header" role="banner">
+<div id="site-navigation" class="navbar">
+<div class="header-inner inner-wrap wpz_layout_full ">
+<div class="header-logo-wrapper">
+<a href="https://hls.gsfc.nasa.gov/" class="custom-logo-link" rel="home" aria-current="page"><img width="512" height="512" src="https://hls.gsfc.nasa.gov/wp-content/uploads/2023/09/nasa_newlogo.png" class="custom-logo" alt="NASA Logo" decoding="async" fetchpriority="high" sizes="100vw" /></a>		</div>
+<div class="header-navigation-wrapper">
+<nav class="primary-menu-wrapper navbar-collapse collapse" aria-label="Top Horizontal Menu" role="navigation">
+<ul id="menu-home-1" class="nav navbar-nav dropdown sf-menu"><li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-home current-menu-item page_item page-item-347 current_page_item menu-item-836"><a href="https://hls.gsfc.nasa.gov/" aria-current="page">Home</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1436"><a href="https://hls.gsfc.nasa.gov/about-hls/">About HLS</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1437"><a href="https://hls.gsfc.nasa.gov/algorithms/">Algorithms</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1438"><a href="https://hls.gsfc.nasa.gov/data-products/">Data Products</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1439"><a href="https://hls.gsfc.nasa.gov/data-access-and-tools/">Data Access and Tools</a></li>
+<li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1392"><a href="https://hls.gsfc.nasa.gov/publications/">Publications</a></li>
+</ul>            </nav>
+</div>
+<div class="header-widgets-wrapper">
+<div id="sb-search" class="sb-search" style="display: block;">
+<form method="get" id="searchform" action="https://hls.gsfc.nasa.gov/">
+<label for="search-form-input">
+<span class="screen-reader-text">Search for:</span>
+<input type="search" class="sb-search-input" placeholder="Type your keywords and hit Enter..." name="s" id="search-form-input" autocomplete="off" />
+</label>
+<button class="sb-search-button-open" aria-expanded="false">
+<span class="sb-icon-search">
+<svg class="svg-icon svg-icon-search" aria-hidden="true" role="img" focusable="false" xmlns="https://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 23 23"><path d="M38.710696,48.0601792 L43,52.3494831 L41.3494831,54 L37.0601792,49.710696 C35.2632422,51.1481185 32.9839107,52.0076499 30.5038249,52.0076499 C24.7027226,52.0076499 20,47.3049272 20,41.5038249 C20,35.7027226 24.7027226,31 30.5038249,31 C36.3049272,31 41.0076499,35.7027226 41.0076499,41.5038249 C41.0076499,43.9839107 40.1481185,46.2632422 38.710696,48.0601792 Z M36.3875844,47.1716785 C37.8030221,45.7026647 38.6734666,43.7048964 38.6734666,41.5038249 C38.6734666,36.9918565 35.0157934,33.3341833 30.5038249,33.3341833 C25.9918565,33.3341833 22.3341833,36.9918565 22.3341833,41.5038249 C22.3341833,46.0157934 25.9918565,49.6734666 30.5038249,49.6734666 C32.7048964,49.6734666 34.7026647,48.8030221 36.1716785,47.3875844 C36.2023931,47.347638 36.2360451,47.3092237 36.2726343,47.2726343 C36.3092237,47.2360451 36.347638,47.2023931 36.3875844,47.1716785 Z" transform="translate(-20 -31)" /></svg>		</span>
+</button>
+<button class="sb-search-button-close" aria-expanded="false">
+<span class="sb-icon-search">
+<svg class="svg-icon svg-icon-cross" aria-hidden="true" role="img" focusable="false" xmlns="https://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><polygon fill="" fill-rule="evenodd" points="6.852 7.649 .399 1.195 1.445 .149 7.899 6.602 14.352 .149 15.399 1.195 8.945 7.649 15.399 14.102 14.352 15.149 7.899 8.695 1.445 15.149 .399 14.102" /></svg>		</span>
+</button>
+</form>
+</div>
+<button type="button" class="navbar-toggle">
+<span class="screen-reader-text">Toggle sidebar &amp; navigation</span>
+<span class="icon-bar"></span>
+<span class="icon-bar"></span>
+<span class="icon-bar"></span>
+</button>
+</div>
+</div><!-- .inner-wrap -->
+</div><!-- #site-navigation -->
+</header><!-- #masthead -->
+<div class="site-content-contain">
+<div id="content" class="site-content">
+<main id="main" class="site-main" role="main">
+<article id="post-347" class="post-347 page type-page status-publish hentry">
+<div class="entry-content">
+<div class="wp-block-cover is-light" style="margin-top:0px;margin-bottom:0px;padding-top:0;padding-right:0;padding-bottom:0;padding-left:0;min-height:300px;aspect-ratio:unset;"><img decoding="async" width="4999" height="1080" class="wp-block-cover__image-background wp-image-1014 size-full" alt="" src="https://hls.gsfc.nasa.gov/wp-content/uploads/2025/07/HLS-Banner-1.png" style="object-position:0% 43%" data-object-fit="cover" data-object-position="0% 43%"/><span aria-hidden="true" class="wp-block-cover__background has-background-dim-0 has-background-dim" style="background-color:#acb589"></span><div class="wp-block-cover__inner-container has-global-padding is-layout-constrained wp-container-core-cover-is-layout-1f092923 wp-block-cover-is-layout-constrained">
+<p class="has-text-align-center has-large-font-size"></p>
+</div></div>
+<h1 class="wp-block-heading"><strong>Harmonized Landsat and Sentinel-2 (HLS)</strong></h1>
+<p>The Harmonized Landsat and Sentinel-2 (HLS) project is an extension of research conducted at NASA GSFC (Goddard Space Flight Center) in Greenbelt, MD, and produced at NASA MSFC (Marshall Space Flight Center)<strong>,</strong> that takes input data from the joint NASA/USGS Landsat 8 and Landsat 9 and the ESA (European Space Agency) Sentinel-2A, Sentinel-2B, and Sentinel-2C satellites to generate a harmonized, analysis-ready surface reflectance data product with a global observation frequency of 2–3 days. The temporal coverage of the HLS dataset extends from the first Landsat 8 acquisitions in 2013 and the first Sentinel-2 acquisitions in 2015 to the present.</p>
+<div class="wp-block-columns is-layout-flex wp-container-core-columns-is-layout-63a7c540 wp-block-columns-is-layout-flex" style="padding-top:var(--wp--preset--spacing--x-small);padding-right:0;padding-bottom:var(--wp--preset--spacing--x-small);padding-left:0">
+<div class="wp-block-column is-layout-flow wp-block-column-is-layout-flow" style="flex-basis:100%">
+<p>The HLS project is a major outcome of the <a href="https://www.earthdata.nasa.gov/about/nasa-support-snwg" target="_blank" rel="noreferrer noopener">Satellite Needs Working Group</a> (SNWG) assessment in 2016. In that assessment, federal agencies and end users identified a need for more frequent Landsat-like observations to track short-term changes in vegetation and other land components to support agricultural monitoring and land cover classification at moderate to high resolution in both the visible and thermal components of the electromagnetic spectrum. Spectral similarities between the Landsat 8 Operational Land Imager (<a href="https://www.earthdata.nasa.gov/data/instruments/oli" target="_blank" rel="noreferrer noopener">OLI</a>), the Landsat 9 OLI-2, and the Sentinel-2 Multispectral Imager (<a href="https://www.earthdata.nasa.gov/data/instruments/sentinel-2-msi" target="_blank" rel="noreferrer noopener">MSI</a>) enables the harmonization of data from these sensors to generate higher-frequency imagery products for land surface monitoring and applications.</p>
+<p>Previous versions of HLS data products produced by the HLS Science Group at Goddard had limited spatial coverage — only covering North America and other select global locations. The current version (v2.0) of the HLS algorithm is a cloud-based software stack that expands the spatial coverage to include all land masses globally, except for Antarctica.</p>
+</div>
+<div class="wp-block-column is-layout-flow wp-block-column-is-layout-flow" style="flex-basis:100%">
+<figure class="wp-block-embed is-type-video is-provider-youtube wp-block-embed-youtube wp-embed-aspect-16-9 wp-has-aspect-ratio"><div class="wp-block-embed__wrapper">
+<iframe title="Data in Harmony: NASA&#039;s Harmonized Landsat and Sentinel-2 Project" width="1200" height="675" src="https://www.youtube.com/embed/63ljR84c85M?feature=oembed" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+</div></figure>
+<p style="font-size:10px">NASA’s Harmonized Landsat and Sentinel-2 (HLS) project is a groundbreaking initiative that combines data from Landsats 8 &amp; 9 with the European Space Agency’s Sentinel-2A &amp; 2B satellites, circa 2024, and currently includes Sentinel-2 C. Let’s take a look at how HLS data is revolutionizing Earth observation, from aiding search and rescue operations in the aftermath of hurricanes to helping farmers optimize crop yields. Join us on a journey through the cutting-edge world of remote sensing and explore the future of monitoring our planet’s health with HLS.</p>
+</div>
+</div>
+<p>Two primary surface reflectance data products are generated as part of the HLS project: the <a href="https://hls.gsfc.nasa.gov/data-products/#HLSL30" target="_blank" rel="noreferrer noopener">L30</a> data product generated with Landsat data, and the <a href="https://hls.gsfc.nasa.gov/data-products/#HLSS30" target="_blank" rel="noreferrer noopener">S30</a> product generated with Sentinel-2 data. A Vegetation Indices products suite (<a href="https://hls.gsfc.nasa.gov/data-products/#HLS-VI" target="_blank" rel="noreferrer noopener">HLS-VI</a>), derived from the L30 and S30 products, was introduced in February 2025, and HLS low-latency (<a href="https://hls.gsfc.nasa.gov/data-products/#HLS-LL" target="_blank" rel="noreferrer noopener">HLS-LL</a>) products are anticipated to be available in early 2027. These data products can be accessed via <a href="https://search.earthdata.nasa.gov/search?q=HLS" target="_blank" rel="noreferrer noopener">Earthdata</a>, NASA&#8217;s Land Processes Distributed Active Archive Center (<a href="https://www.earthdata.nasa.gov/centers/lp-daac" target="_blank" rel="noreferrer noopener">LP DAAC</a>), and <a href="https://hls.gsfc.nasa.gov/data-access-and-tools/" target="_blank" rel="noreferrer noopener">other platforms</a>.</p>
+<h2 class="wp-block-heading has-text-align-left"><strong>Improving Land Monitoring Capabilities</strong></h2>
+<div class="wp-block-columns are-vertically-aligned-top is-layout-flex wp-container-core-columns-is-layout-5069ec6e wp-block-columns-is-layout-flex" style="padding-right:0;padding-left:0">
+<div class="wp-block-column is-vertically-aligned-top is-layout-flow wp-block-column-is-layout-flow" style="flex-basis:50%">
+<figure class="wp-block-video"><video autoplay controls loop muted src="https://hls.gsfc.nasa.gov/wp-content/uploads/2026/04/Salton-Sea-Web.mp4" playsinline></video></figure>
+<p style="font-size:10px">A one-year time series showing agriculture land use intensity around the Salton Sea, California, from October 12, 2024 through October 16, 2025. <br>Credit: NASA / Ross Walter</p>
+</div>
+<div class="wp-block-column is-vertically-aligned-top is-layout-flow wp-block-column-is-layout-flow" style="flex-basis:50%">
+<p>HLS data products greatly improve current publicly-available remote sensing land monitoring capabilities, particularly in terms of the frequency of land surface observations through time. The harmonization of HLS ensures that the Landsat 8 and Landsat 9 collection (30-meter spatial resolution with a 16-day repeat period) and the Sentinel-2A/B/C collection (10 to 20-meter spatial resolution with a five-day repeat period) can be used as if they were a single collection. Through HLS, land surface observations can be acquired at an unprecedented 30-meter spatial resolution at a global median repeat frequency of 2 days with 5 satellites (Landsat 8/9, Sentinel-2 A/B/C). </p>
+</div>
+</div>
+<div class="wp-block-columns is-layout-flex wp-container-core-columns-is-layout-5069ec6e wp-block-columns-is-layout-flex" style="padding-right:0;padding-left:0">
+<div class="wp-block-column is-layout-flow wp-block-column-is-layout-flow" style="flex-basis:50%">
+<p>The frequent revisit times of HLS supports monitoring of dynamic phenomena—including wildfire recovery, crop cycles, and storm damage—more effectively than Landsat or Sentinel-2 alone. Data from the Sentinel-2C mission (launched in 2024) is now active and incorporated into HLS v2.0 data products, further improving revisit times and land monitoring capabilities.</p>
+</div>
+<div class="wp-block-column is-layout-flow wp-block-column-is-layout-flow" style="flex-basis:50%">
+<figure class="wp-block-image size-full is-resized"><a href="https://hls.gsfc.nasa.gov/wp-content/uploads/2026/03/Landsat-and-Sentinel-2-satellites-included-in-HLS-1.png"><img decoding="async" width="1200" height="675" src="https://hls.gsfc.nasa.gov/wp-content/uploads/2026/03/Landsat-and-Sentinel-2-satellites-included-in-HLS-1.png" alt="Chart showing the changes in HLS global mean revisit frequency as satellites became operational from 2013 to 2024. With just Landsat 8 data, the revisit frequency for HLS is 16 days. The frequency reduced with each new satellite added to the constellation: 8 days with Sentinel-2A, 4 days with Sentinel-2B, 1.6 days with Landsat 9, and 1.4 days with Sentinel-2C." class="wp-image-1234" style="width:578px;height:auto"/></a></figure>
+<p style="font-size:10px">The temporal frequency of HLS revisit times has improved with the launch of each satellite. This virtual constellation harmonization achieved a temporal revisit from 1.6 days in 2022 with four satellites and 1.4 days in 2025 with five satellites. Credit: HLS Science Group.</p>
+</div>
+</div>
+</div><!-- .entry-content -->
+</article><!-- #post-347 -->
+</main><!-- #main -->
+
+</div><!-- #content -->
+<footer id="colophon" class="site-footer has-footer-widgets" role="contentinfo">
+<div class="inner-wrap">
+<aside class="footer-widgets widgets widget-columns-3" role="complementary" aria-label="Footer">
+<div class="widget-column footer-widget-1">
+<section id="text-3" class="widget widget_text">			<div class="textwidget"><p>NASA Official: <a href="mailto:christopher.s.neigh@nasa.gov">Chris Neigh</a></p>
+<p>Webmaster: <a href="mailto:ross.k.walter@nasa.gov">Ross Walter</a></p>
+<p>Curators: <a href="mailto:ross.k.walter@nasa.gov">Ross Walter</a></p>
+<p>Copyright: Contains modified Copernicus Sentinel data (2026)</p>
+</div>
+</section>					</div>
+<div class="widget-column footer-widget-2">
+<section id="media_image-3" class="widget widget_media_image"><img width="80" height="80" src="https://hls.gsfc.nasa.gov/wp-content/uploads/2023/09/nasa_newlogo.png" class="image wp-image-816  attachment-80x80 size-80x80" alt="NASA Logo" style="max-width: 100%; height: auto;" decoding="async" loading="lazy" sizes="100vw" /></section>					</div>
+<div class="widget-column footer-widget-3">
+<section id="text-4" class="widget widget_text">			<div class="textwidget"><p>Last Updated: April 10, 2026</p>
+<p><a href="http://www.nasa.gov/about/highlights/HP_Privacy.html" target="_new">Privacy Policy &amp; Important Notices</a></p>
+<p><a href="https://hls.gsfc.nasa.gov/">Contact Us</a></p>
+</div>
+</section>					</div>
+</aside><!-- .widget-area -->
+<div class="site-footer-separator"></div>
+<div class="site-info">
+<span class="copyright">
+<span>
+Copyright &copy; 2026 Harmonized Landsat Sentinel-2					</span>
+<span>
+<a href="https://www.wpzoom.com/themes/inspiro/?utm_source=inspiro-lite&utm_medium=theme&utm_campaign=inspiro-lite-footer" target="_blank" rel="nofollow">Inspiro Theme</a>
+by			<a href="https://www.wpzoom.com/" target="_blank" rel="nofollow">WPZOOM</a>
+</span>
+</span>
+</div><!-- .site-info -->
+</div><!-- .inner-wrap -->
+</footer><!-- #colophon -->
+</div><!-- .site-content-contain -->
+</div><!-- #page -->
+<script type="speculationrules">
+{"prefetch":[{"source":"document","where":{"and":[{"href_matches":"\/*"},{"not":{"href_matches":["\/wp-*.php","\/wp-admin\/*","\/wp-content\/uploads\/*","\/wp-content\/*","\/wp-content\/plugins\/*","\/wp-content\/themes\/inspiro\/*","\/*\\?(.+)"]}},{"not":{"selector_matches":"a[rel~=\"nofollow\"]"}},{"not":{"selector_matches":".no-prefetch, .no-prefetch a"}}]},"eagerness":"conservative"}]}
+</script>
+<style id='core-block-supports-inline-css'>
+.wp-container-core-cover-is-layout-1f092923 > :where(:not(.alignleft):not(.alignright):not(.alignfull)){max-width:100%;margin-left:auto !important;margin-right:auto !important;}.wp-container-core-cover-is-layout-1f092923 > .alignwide{max-width:100%;}.wp-container-core-cover-is-layout-1f092923 .alignfull{max-width:none;}.wp-container-core-cover-is-layout-1f092923 > .alignfull{margin-right:calc(0px * -1);margin-left:calc(0px * -1);}.wp-container-core-cover-is-layout-1f092923 > *{margin-block-start:0;margin-block-end:0;}.wp-container-core-cover-is-layout-1f092923 > * + *{margin-block-start:0px;margin-block-end:0;}.wp-container-core-columns-is-layout-63a7c540{flex-wrap:nowrap;}.wp-container-core-columns-is-layout-5069ec6e{flex-wrap:nowrap;gap:2em var(--wp--preset--spacing--x-small);}
+</style>
+<script src="https://hls.gsfc.nasa.gov/wp-content/themes/inspiro/assets/js/minified/plugins.min.js?ver=2.1.5" id="inspiro-lite-js-plugins-js"></script>
+<script src="https://hls.gsfc.nasa.gov/wp-content/themes/inspiro/assets/js/minified/scripts.min.js?ver=2.1.5" id="inspiro-lite-script-js"></script>
+</body>
+</html><!-- WP Fastest Cache file was created in 0.240 seconds, on August 12, 2026 @ 7:33 pm --><!-- via php -->

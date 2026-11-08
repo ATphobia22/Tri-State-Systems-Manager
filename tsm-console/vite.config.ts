@@ -62,7 +62,7 @@ function cspPlugin() {
   };
 }
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, command }) => {
   Object.assign(process.env, loadEnv(mode, process.cwd(), 'VITE_'));
   return {
     resolve: {
@@ -71,7 +71,11 @@ export default defineConfig(({ mode }) => {
       },
     },
     base: isGitHubPagesBuild ? githubPagesBasePath : '/',
-    plugins: [react(), cspPlugin()],
+    // The CSP meta tag blocks @vitejs/plugin-react's inline Fast Refresh
+    // preamble in dev (script-src has no 'unsafe-inline'), so the app never
+    // mounts ("can't detect preamble"). The CSP is a production hardening
+    // measure, so it only applies to builds.
+    plugins: [react(), ...(command === 'build' ? [cspPlugin()] : [])],
     server: {
       port: 5173,
       proxy: {

@@ -1,0 +1,32 @@
+name: Survey reconciliation guards
+on:
+  pull_request:
+    paths:
+      - 'packages/geo/src/geodesy/semivariogram.ts'
+      - 'packages/jobs/src/ingestion/**'
+      - 'packages/contracts/src/IngestionManifest.ts'
+      - 'tests/contracts/ingestion-worker.test.ts'
+      - 'tests/contracts/semivariogram-reconciliation.test.ts'
+      - '.github/workflows/survey-reconciliation.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'packages/geo/src/geodesy/semivariogram.ts'
+      - 'packages/jobs/src/ingestion/**'
+      - 'tests/contracts/ingestion-worker.test.ts'
+      - 'tests/contracts/semivariogram-reconciliation.test.ts'
+      - '.github/workflows/survey-reconciliation.yml'
+permissions:
+  contents: read
+jobs:
+  guards:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '22'
+      - name: Install isolated TypeScript loader
+        run: npm install --prefix "$RUNNER_TEMP/survey-guards" --ignore-scripts --no-audit --no-fund tsx@4.20.6
+      - name: Test unit conversion and ingestion diagnostics
+        run: node --import "$RUNNER_TEMP/survey-guards/node_modules/tsx/dist/loader.mjs" --test tests/contracts/ingestion-worker.test.ts tests/contracts/semivariogram-reconciliation.test.ts

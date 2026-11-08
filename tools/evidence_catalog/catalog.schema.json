@@ -1,0 +1,380 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TSM source metadata catalog",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "generatedAt",
+    "records"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "category",
+          "sourceUrl",
+          "recordType",
+          "fields",
+          "limitations"
+        ],
+        "properties": {
+          "fields": {
+            "type": "object",
+            "required": [
+              "serviceId",
+              "layerId",
+              "geographicCoverage",
+              "acquisitionDate",
+              "publicationDate",
+              "retrievalTime",
+              "crs",
+              "verticalDatum",
+              "units",
+              "accessRequirements",
+              "checksum",
+              "verificationStatus"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "serviceId": {
+                "type": "object",
+                "required": [
+                  "value",
+                  "status",
+                  "source"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "value": {},
+                  "status": {
+                    "enum": [
+                      "UNKNOWN",
+                      "SOURCE_REPORTED",
+                      "CONFIGURED",
+                      "RECORDED",
+                      "COMPUTED"
+                    ]
+                  },
+                  "source": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "layerId": {
+                "type": "object",
+                "required": [
+                  "value",
+                  "status",
+                  "source"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "value": {},
+                  "status": {
+                    "enum": [
+                      "UNKNOWN",
+                      "SOURCE_REPORTED",
+                      "CONFIGURED",
+                      "RECORDED",
+                      "COMPUTED"
+                    ]
+                  },
+                  "source": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "geographicCoverage": {
+                "type": "object",
+                "required": [
+                  "value",
+                  "status",
+                  "source"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "value": {},
+                  "status": {
+                    "enum": [
+                      "UNKNOWN",
+                      "SOURCE_REPORTED",
+                      "CONFIGURED",
+                      "RECORDED",
+                      "COMPUTED"
+                    ]
+                  },
+                  "source": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "acquisitionDate": {
+                "type": "object",
+                "required": [
+                  "value",
+                  "status",
+                  "source"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "value": {},
+                  "status": {
+                    "enum": [
+                      "UNKNOWN",
+                      "SOURCE_REPORTED",
+                      "CONFIGURED",
+                      "RECORDED",
+                      "COMPUTED"
+                    ]
+                  },
+                  "source": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "publicationDate": {
+                "type": "object",
+                "required": [
+                  "value",
+                  "status",
+                  "source"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "value": {},
+                  "status": {
+                    "enum": [
+                      "UNKNOWN",
+                      "SOURCE_REPORTED",
+                      "CONFIGURED",
+                      "RECORDED",
+                      "COMPUTED"
+                    ]
+                  },
+                  "source": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "retrievalTime": {
+                "type": "object",
+                "required": [
+                  "value",
+                  "status",
+                  "source"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "value": {},
+                  "status": {
+                    "enum": [
+                      "UNKNOWN",
+                      "SOURCE_REPORTED",
+                      "CONFIGURED",
+                      "RECORDED",
+                      "COMPUTED"
+                    ]
+                  },
+                  "source": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "crs": {
+                "type": "object",
+                "required": [
+                  "value",
+                  "status",
+                  "source"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "value": {},
+                  "status": {
+                    "enum": [
+                      "UNKNOWN",
+                      "SOURCE_REPORTED",
+                      "CONFIGURED",
+                      "RECORDED",
+                      "COMPUTED"
+                    ]
+                  },
+                  "source": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "verticalDatum": {
+                "type": "object",
+                "required": [
+                  "value",
+                  "status",
+                  "source"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "value": {},
+                  "status": {
+                    "enum": [
+                      "UNKNOWN",
+                      "SOURCE_REPORTED",
+                      "CONFIGURED",
+                      "RECORDED",
+                      "COMPUTED"
+                    ]
+                  },
+                  "source": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "units": {
+                "type": "object",
+                "required": [
+                  "value",
+                  "status",
+                  "source"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "value": {},
+                  "status": {
+                    "enum": [
+                      "UNKNOWN",
+                      "SOURCE_REPORTED",
+                      "CONFIGURED",
+                      "RECORDED",
+                      "COMPUTED"
+                    ]
+                  },
+                  "source": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "accessRequirements": {
+                "type": "object",
+                "required": [
+                  "value",
+                  "status",
+                  "source"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "value": {},
+                  "status": {
+                    "enum": [
+                      "UNKNOWN",
+                      "SOURCE_REPORTED",
+                      "CONFIGURED",
+                      "RECORDED",
+                      "COMPUTED"
+                    ]
+                  },
+                  "source": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "checksum": {
+                "type": "object",
+                "required": [
+                  "value",
+                  "status",
+                  "source"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "value": {},
+                  "status": {
+                    "enum": [
+                      "UNKNOWN",
+                      "SOURCE_REPORTED",
+                      "CONFIGURED",
+                      "RECORDED",
+                      "COMPUTED"
+                    ]
+                  },
+                  "source": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              },
+              "verificationStatus": {
+                "type": "object",
+                "required": [
+                  "value",
+                  "status",
+                  "source"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "value": {},
+                  "status": {
+                    "enum": [
+                      "UNKNOWN",
+                      "SOURCE_REPORTED",
+                      "CONFIGURED",
+                      "RECORDED",
+                      "COMPUTED"
+                    ]
+                  },
+                  "source": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

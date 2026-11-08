@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0.0",
+  "registry_id": "tsm-sos-authoritative-fabric-v1",
+  "policy": "Authoritative data, geodesy, evidence, provenance, reproducibility over feature count. Human authority remains final.",
+  "ingest_path": ["Source", "Metadata", "Hash", "Validation", "Evidence", "Storage", "Publication"],
+  "families": {
+    "FEMA": ["fema.nfhl.layers", "fema.nfhl.query", "fema.flood.zones", "fema.levees", "fema.boundaries"],
+    "NOAA": ["noaa.datums", "noaa.geoid", "noaa.tides", "noaa.weather"],
+    "USGS": ["usgs.dem", "usgs.3dep", "usgs.topo", "usgs.geology", "usgs.hydrology"]
+  },
+  "controls": {
+    "gps_height_is_not_navd88_without_geoid": true,
+    "gage_stage_is_not_elevation_without_datum": true
+  },
+  "live_status_note": "See tsm-real-world-data-fabric-registry-v1.json for probe results; this registry defines capabilities, not continuous uptime.",
+  "doc": "docs/architecture/TSM-SOS-AUTHORITATIVE-DATA-FABRIC-v1.md"
+}

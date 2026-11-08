@@ -5,6 +5,7 @@ import { t } from '../lib/design-tokens';
 import { toH3Cell } from '../lib/h3-spatial-fabric';
 import { fetchLiveStage } from '../lib/stage';
 import { NanitePlanePanel } from '../components/NanitePlanePanel';
+import { AoiCoveragePanel } from '../components/AoiCoveragePanel';
 
 function MapTwinView() {
   const data = useLoaderData() as MapTwinLoaderData;
@@ -94,7 +95,7 @@ function MapTwinView() {
           One-time USGS snapshot on press. No automatic polling. Provisional values; site transfer stays resilient.
         </p>
       </div>
-      <div style={{ background: t.color.surface.base, borderRadius: t.radius.lg, padding: '1rem', border: `1px solid ${t.color.surface.card}` }}>
+      <div style={{ background: t.color.surface.base, borderRadius: t.radius.lg, padding: '1rem', border: `1px solid ${t.color.surface.card}`, marginBottom: 12 }}>
         <h3 style={{ color: t.color.status.info, margin: '0 0 0.5rem', fontSize: t.font.size.xl }}>
           Community gauges — on-demand snapshots
         </h3>
@@ -103,6 +104,9 @@ function MapTwinView() {
           explicit "Fetch live snapshot" press. No gauges are polled and nothing
           is fabricated to fill the gap; see River Watch for the multi-gauge board.
         </p>
+      </div>
+      <div style={{ marginBottom: 12 }}>
+        <AoiCoveragePanel />
       </div>
       <NanitePlanePanel centerLng={centerLon} centerLat={centerLat} />
       <p style={{ marginTop: '1rem', fontSize: t.font.size.sm, color: t.color.text.secondary }}>

@@ -80,6 +80,9 @@ export class Ogr2OgrAdapter {
     if (!targetLayer) {
       return { status: 'REJECTED', reason: 'Ogr2OgrAdapter requires a targetLayer (destination table name)' };
     }
+    if (!/^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)?$/.test(targetLayer)) {
+      return { status: 'REJECTED', reason: 'targetLayer must be an unquoted table or schema.table identifier' };
+    }
     const dir = await mkdtemp(join(tmpdir(), 'tsm-ogr2ogr-'));
     const sourcePath = join(dir, `source${SOURCE_SUFFIX[input.assetKind]}`);
     try {
@@ -133,7 +136,11 @@ export class Ogr2OgrAdapter {
         if (code === 0) {
           resolve({ status: 'ok' });
         } else {
-          const tail = stderr.trim().slice(-500);
+          // Redact before truncation: an echoed DSN can straddle output chunks.
+          const safe = stderr.split(this.#dsn).join('[REDACTED_DSN]')
+            .replace(/(?:postgres(?:ql)?:\/\/|PG:)[^\s]+/gi, '[REDACTED_CONNECTION]')
+            .replace(/(?:password|passwd|pwd)\s*=\s*(?:'[^']*'|"[^"]*"|[^\s]+)/gi, '[REDACTED_PASSWORD]');
+          const tail = safe.trim().slice(-500);
           resolve({
             status: 'REJECTED',
             reason: `ogr2ogr exited with code ${code}${tail ? `: ${tail}` : ''}`,

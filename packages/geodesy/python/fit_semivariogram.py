@@ -41,7 +41,9 @@ def exponential(h, nugget, sill, range_m):
 def fit(lags: Sequence[float], gamma: Sequence[float], model: str = "spherical"):
     lags_a = np.asarray(lags, dtype=float)
     gamma_a = np.asarray(gamma, dtype=float)
-    mask = np.isfinite(gamma_a) & (lags_a > 0)
+    if model not in ('spherical', 'exponential'):
+        raise ValueError('Unsupported model')
+    mask = np.isfinite(gamma_a) & np.isfinite(lags_a) & (lags_a > 0) & (gamma_a >= 0)
     lags_a, gamma_a = lags_a[mask], gamma_a[mask]
     if lags_a.size < 3:
         raise ValueError("Need at least 3 finite bins")

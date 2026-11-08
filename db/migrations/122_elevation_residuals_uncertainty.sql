@@ -43,6 +43,6 @@ CREATE TABLE IF NOT EXISTS elevation_uncertainty_surfaces (
 );
 
 COMMENT ON TABLE elevation_residual_checkpoints IS
-  'Survey-minus-DEM residuals for geostatistics. DERIVED. Do not copy into certified_lag.';
+  'DEM-minus-survey residuals for geostatistics. DERIVED. Do not copy into certified_lag.';
 COMMENT ON TABLE elevation_uncertainty_surfaces IS
   'Semivariogram / NSSDA reporting artifacts. Zero LOMA certification authority.';

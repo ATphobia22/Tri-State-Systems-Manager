@@ -1,0 +1,54 @@
+{
+  "@context": "dtmi:dtdl:context;3",
+  "@id": "dtmi:tsm:posey:BonebankSite;1",
+  "@type": "Interface",
+  "displayName": "13101 Bonebank Road site twin",
+  "description": "PRESENTATION schema for TSM digital twin — not a regulatory LOMA record.",
+  "contents": [
+    {
+      "@type": "Property",
+      "name": "apn",
+      "schema": "string",
+      "writable": false
+    },
+    {
+      "@type": "Property",
+      "name": "horizontalCrs",
+      "schema": "string",
+      "comment": "e.g. EPSG:2966"
+    },
+    {
+      "@type": "Property",
+      "name": "verticalDatum",
+      "schema": "string",
+      "comment": "NAVD88"
+    },
+    {
+      "@type": "Telemetry",
+      "name": "modeledBfeFt",
+      "schema": "double"
+    },
+    {
+      "@type": "Telemetry",
+      "name": "modeledLagFt",
+      "schema": "double"
+    },
+    {
+      "@type": "Telemetry",
+      "name": "freeboardFt",
+      "schema": "double"
+    },
+    {
+      "@type": "Telemetry",
+      "name": "gageStageFt",
+      "schema": "double",
+      "comment": "GAGE_DATUM unless conversion published"
+    },
+    {
+      "@type": "Property",
+      "name": "authorityClass",
+      "schema": "string",
+      "comment": "PRESENTATION | MODEL_SIMULATION"
+    }
+  ]
+}

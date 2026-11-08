@@ -1,0 +1,44 @@
+{
+  "query": "NFHL MapServer/3 and /28 at lon=-88.00510 lat=37.84589",
+  "endpoint_base": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer",
+  "firm_panels_intersecting": [
+    {
+      "FIRM_PAN": "18129C0300C",
+      "PANEL": "0300",
+      "SUFFIX": "C",
+      "DFIRM_ID": "18129C",
+      "ST_FIPS": "18",
+      "EFF_DATE_UTC": "2014-11-05",
+      "PANEL_TYP": "Countywide, Panel Printed",
+      "SCALE": "24000"
+    },
+    {
+      "FIRM_PAN": "17059C0150D",
+      "PANEL": "0150",
+      "SUFFIX": "D",
+      "DFIRM_ID": "17059C",
+      "ST_FIPS": "17",
+      "EFF_DATE_UTC": "2011-12-02",
+      "PANEL_TYP": "Countywide, Panel Printed",
+      "SCALE": "24000",
+      "note": "Illinois Gallatin County panel also intersects the query point geometry (river boundary context); Indiana structure panel is 18129C0300C"
+    }
+  ],
+  "flood_hazard_zone": {
+    "FLD_ZONE": "AE",
+    "SFHA_TF": "T",
+    "STATIC_BFE": null,
+    "STATIC_BFE_raw": -9999.0,
+    "DFIRM_ID": "18129C",
+    "SOURCE_CIT": "18129C_STUDY3"
+  },
+  "panel_0265C_at_point": false,
+  "operator_firmette_alignment": "18129C0300C matches NFHL FIRM Panels layer at scientific site pin",
+  "queried_at": "2026-11-08T20:00:00Z",
+  "evidence_sha256_of_this_file": "05ef768da6129b0b5a052309beacb88ff3dab6aec5d2d1b1598d2d5b0e33960b",
+  "limitations": [
+    "NFHL REST is supporting digital evidence; operator should still download MSC FIRMette/PDF and hash it for the case file.",
+    "STATIC_BFE -9999 means BFE not carried as static attribute on this zone polygon; use FIS / cross-sections / certified elevations.",
+    "This does not complete A1-A3 human documents or issue a LOMA."
+  ]
+}

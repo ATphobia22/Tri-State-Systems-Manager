@@ -21,20 +21,20 @@ export interface SemivariogramResult {
 }
 
 export interface MetricCrsGuard {
-  /** Must be a projected metric CRS (e.g. EPSG:2966), not geographic degrees. */
+  /** Must be a projected metric CRS (e.g. EPSG:26916), not geographic degrees. */
   readonly epsg: number;
   readonly units: 'metre' | 'meter';
 }
 
-const METRIC_EPSG_ALLOW = new Set([2965, 2966, 26915, 26916, 6458, 6459]);
+const METRIC_EPSG_ALLOW = new Set([26915, 26916]);
 
 export function assertMetricCrs(crs: MetricCrsGuard): void {
   if (crs.units !== 'metre' && crs.units !== 'meter') {
     throw new Error('Semivariogram requires metric CRS units (metres), not degrees');
   }
-  if (!METRIC_EPSG_ALLOW.has(crs.epsg) && crs.epsg < 2000) {
+  if (!METRIC_EPSG_ALLOW.has(crs.epsg)) {
     throw new Error(
-      `Refusing geographic or unlisted CRS EPSG:${crs.epsg}. Reproject to metric (e.g. EPSG:2966) before hypot(dx,dy).`,
+      `Refusing geographic or unlisted CRS EPSG:${crs.epsg}. Reproject to metric (e.g. EPSG:26916) before hypot(dx,dy).`,
     );
   }
 }
@@ -54,6 +54,9 @@ export function empiricalSemivariogram(
   const minPairs = options.minPairs ?? 30;
   if (options.crs) assertMetricCrs(options.crs);
 
+  if (!Number.isInteger(nLags) || nLags < 1 || !Number.isInteger(minPairs) || minPairs < 1) throw new Error('Positive integer lag/pair limits required');
+  if (![...x, ...y, ...z].every(Number.isFinite)) throw new Error('Finite coordinates and residuals required');
+  if (options.maxDistM !== undefined && (!Number.isFinite(options.maxDistM) || options.maxDistM <= 0)) throw new Error('Positive finite maxDistM required');
   const n = z.length;
   if (x.length !== n || y.length !== n) throw new Error('x, y, z length mismatch');
   if (n < 2) {

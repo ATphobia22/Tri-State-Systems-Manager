@@ -1,0 +1,21 @@
+name: Geospatial exchange verification
+on:
+  push:
+    branches: [main]
+    paths: ['tools/geospatial_exchange/**', 'tests/geospatial_exchange/**', '.github/workflows/geospatial-exchange.yml']
+  pull_request:
+    paths: ['tools/geospatial_exchange/**', 'tests/geospatial_exchange/**', '.github/workflows/geospatial-exchange.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exchange:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r tools/geospatial_exchange/requirements.txt
+      - run: python -m unittest discover -s tests/geospatial_exchange -v
+      - run: python -m compileall -q tools/geospatial_exchange
