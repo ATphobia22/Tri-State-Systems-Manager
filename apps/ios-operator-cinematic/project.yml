@@ -17,8 +17,6 @@ targets:
       - path: Sources/App
       - path: Sources/Scene
       - path: Sources/Core
-      - path: Resources
-        buildPhase: resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: org.tristate.TSMOperatorCinematic
