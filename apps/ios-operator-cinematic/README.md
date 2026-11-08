@@ -67,3 +67,15 @@ python3 apps/ios-operator-cinematic/scripts/export_offline_scene.py \
 **Replace the two example zero-origin values with the actual source-data origin.** They are command placeholders, not surveyed coordinates. Review `scene-inventory.json`, all skipped geometries, feature IDs, source checksum, and alignment before import. Use the iOS **IMPORT CHECKED TILE** control to import one `.tsm-scene.json` tile. This subset preview is local and remains `UNREVIEWED`. SceneKit drawing is not evidence of county coverage or LiDAR validation.
 
 For device diagnostics, capture Xcode Organizer energy/memory performance and headed screenshots. The first macOS simulator build on GitHub Actions remains independently required; local Linux validation cannot compile SwiftUI/SceneKit.
+
+
+## Extended local-metric terrain package (additional format)
+
+The optional `TSMWorldPacker` command creates a checksum-verified `.tsmworld` package from **already prepared** `LOCAL_ENU_METERS` terrain grids, building footprints and river centerlines. Source CRS/vertical datum/units are explicit; no datum conversion is inferred. The deterministic synthetic example at `Resources/demo-world.tsmworld` is **not** Posey County terrain. Run:
+
+```bash
+swift test --package-path apps/ios-operator-cinematic
+swift run --package-path apps/ios-operator-cinematic TSMWorldPacker --verify apps/ios-operator-cinematic/Resources/demo-world.tsmworld
+```
+
+The existing app's `OfflineScene` import path remains unchanged. The additional terrain package is an independently tested **preparation contract**; full native renderer/UI integration and authoritative countywide assets remain separate gates. The CI workflow uses immutable GitHub Action SHAs.
