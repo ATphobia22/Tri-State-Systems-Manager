@@ -47,9 +47,9 @@ These constants support digital-twin / PTDT science. **They do not replace** a l
 |--------|--------|
 | Operator FIRMette (structure pin) | **18129C0300C** · effective **2014-11-05** · Zone **AE** (as shown on that product) |
 | Prior case / TSM FIRM bundle citations | **18129C0265C** |
-| NFHL manifest (repo) | Lists **18129C0300C** as NFHL_REST_VERIFIED; **18129C0265C** PENDING_SOURCE_VERIFICATION |
+| NFHL REST (2026-11-08 at pin) | **18129C0300C** returned; **0265C not at pin** |
 
-**Required before send:** FEMA MSC FIRMette/NFHL at structure coordinates; save product; SHA-256; align tax map and narrative to **MSC-only** panel. Do not assert 0265C if MSC shows 0300C.
+**Required before send:** FEMA MSC FIRMette/NFHL at structure coordinates; save product; SHA-256; align tax map and narrative to **MSC-only** panel.
 
 ---
 
@@ -79,11 +79,33 @@ These constants support digital-twin / PTDT science. **They do not replace** a l
 | USGS NWIS / OGC gauges (e.g. 03378500) | USGS | Stage as **GAGE_DATUM**; NAVD88 conversion **unpublished** until product-matched survey |
 | NOAA NWPS | NWS | Operational gauge context (e.g. MTVI3) |
 
-### Parcel / site
-| Source | Authority | How TSM uses it |
-|--------|-----------|-----------------|
-| Posey County parcel / assessor context | Local | AOI geometry; **assessor map for FEMA must be official county product with FIRM intersection** |
-| Site constants package | Owner / TSM | Modeling anchors — disclosed as scientific |
+---
+
+## 3A. Tri-State Systems Manager (GitHub) — purpose and features
+
+**Repository:** https://github.com/ATphobia22/Tri-State-Systems-Manager
+
+### Purpose
+TSM is an open-source, public-interest information system for the Tri-State River Valley (Indiana–Illinois–Kentucky confluence region). It organizes flood, elevation, geodetic, and community evidence so operators and neighbors can **see** federal and state data in one place.
+
+**Core rule:** Technology informs people; it does not silently govern people. **Human authority remains final.** TSM does not auto-file LOMAs, does not issue regulatory determinations, and does not replace a licensed surveyor or PE.
+
+### Features and functions (relevant to Case 26-05-2022A)
+
+| Area | Capabilities |
+|------|----------------|
+| **LOMA / case packaging** | Case record JSON, Layer-2 checklists, claim controls (no false approval/denial claims), FEMA letter SHA-256 preservation, panel-mismatch flags |
+| **FEMA map fabric** | NFHL layer registry, FIRM panel SSOT notes, REST panel/zone queries (e.g. **18129C0300C** at site pin), MSC-oriented operator procedures |
+| **Elevation screening** | USGS 3DEP Terrain-RGB / coverage–nodata reports; labeled **DERIVED / non-FIRM** (not certified LAG) |
+| **Geodesy** | NGS-oriented clients and models: NCAT transforms, VDatum checks, GEOID18 constraints; CRS/datum provenance reports |
+| **Hydrology (context)** | USGS/NWS stage on demand; gage heights kept in **GAGE_DATUM** unless a published conversion exists |
+| **Site science** | 13101 Bonebank constants (BFE 375.0 / LAG 377.2 / FFE 382.5 ft NAVD88) for modeling — not PE-sealed LOMA elevations |
+| **Digital twin UI** | Map and 3D twin views, AOI coverage panel, live stage only on explicit user fetch |
+| **Trust / governance** | Fail-closed gates, simulation vs observation labels, evidence-store patterns with human authorization, Zero-Trust-oriented auth design |
+| **Open source** | Public repository; reproducible scripts and contract tests |
+
+### What to tell FEMA about the repo
+Cite it only as the **system used to organize supporting evidence and map citations**. Do **not** claim the repository proves a LOMA without certified elevations, deed/plat, and tax map required by the additional-information letter.
 
 ---
 
@@ -92,72 +114,20 @@ These constants support digital-twin / PTDT science. **They do not replace** a l
 | Artifact | Path / identifier |
 |----------|-------------------|
 | Case record JSON | `artifacts/04_flood/lomc/26-05-2022A/TSM_FEMA_LOMA_Case_Record_26-05-2022A.json` |
-| FEMA letter hash | SHA-256 above; source filename reference `26-05-2022A-092226.pdf` |
-| Layer-2 checklist | `LAYER2_FILING_CHECKLIST_2026-11-07.md` / `LOMA-26-05-2022A-LAYER2-CHECKLIST.md` |
+| FEMA letter hash | SHA-256 above |
+| NFHL panel query | `NFHL_REST_PANEL_QUERY_2026-11-08.json` |
+| Layer-2 checklist | Layer-2 filing checklists under case folder |
 | Panel mismatch flag | `FLAG_FIRM_PANEL_MISMATCH_0300C_vs_0265C.md` |
-| Evidence register CSV | `TSM_Evidence_Layer2_Evidence_Register.csv` |
 | Site constants | `tsm-site-constants-13101-bonebank.json` |
-| NFHL/FIRM manifest | `data-sources/manifests/fema-nfhl-firm.json` |
-| 3DEP terrain manifest | `data-sources/manifests/usgs-3dep-terrain.json` |
-| AOI coverage report | `scripts/reports/aoi-terrain-coverage-nodata-report.mjs` outputs |
-| CRS provenance report | `scripts/reports/crs-provenance-per-source-report.mjs` outputs |
-| NCAT / VDatum clients | `packages/geo/src/geodesy/NcatClient.ts`, `VDatumClient.ts` |
-| Gage-zero gate | `conversionPublished: false` for local gauges |
 
 ---
 
-## 5. Email draft (copy into operator mail client)
+## 5. Email draft — include purpose/features briefly
 
-**To:** [FEMA MT-1 contact from 2026-09-22 letter]  
-**Cc:** [Posey County floodplain administrator / counsel]  
-**Subject:** Case 26-05-2022A — Additional Information Response — Posey County IN (CID 180209) — 13101 Bonebank Road
+When writing FEMA, use a short paragraph:
 
-Dear FEMA MT-1 Reviewer,
+> Evidence and map citations for this property are organized in the open technical system Tri-State Systems Manager (https://github.com/ATphobia22/Tri-State-Systems-Manager). TSM is a public-interest information system for the Tri-State River Valley. It aggregates FEMA NFHL/MSC references, USGS 3DEP screening products, and NOAA NGS geodetic tools; preserves case hashes and claim controls; and presents digital-twin views for operator review. **Human authority remains final.** TSM does not auto-file LOMAs or replace licensed surveyor/PE elevation certification.
 
-This submission responds to the Additional Information request dated **22 September 2026** for Case **26-05-2022A**.
-
-**Property:** 13101 Bonebank Road, Point Township, Posey County, Indiana (Unincorporated Areas), NFIP Community Number **180209**, described as Section 35, Township 7 South, Range 14 West.
-
-**Case status acknowledged:** Additional Information Requested; Letter of Map Amendment determination **not** issued as of this writing.
-
-### Enclosures (check only items physically attached)
-
-- [ ] **A1** — Recorded property deed **or** recorded subdivision plat (recordation data and Recorder stamp)
-- [ ] **A2** — Local tax assessor map locating the property and including a street intersection shown on the applicable FIRM panel
-- [ ] **A3** — Elevation documentation certified by a licensed land surveyor or registered professional engineer (MT-1 Form 2, **or** Elevation Certificate accepted in lieu for a structure request)
-- [ ] **A4** — Written confirmation of the currently accepted elevation form/procedure for this case (if obtained; observed file materials include DHS-FEMA Form 086-0-26A with printed expiration 2014-02-28)
-- [ ] **B1** — MSC-confirmed FIRM panel product for the structure (operator FIRMette indicates **18129C0300C**, effective 2014-11-05, Zone AE on that product; case materials have cited **18129C0265C** — this response uses the MSC-confirmed panel only)
-- [ ] Copy of the original FEMA letter dated 22 September 2026 (unchanged)
-
-### Panel reconciliation request
-
-Please confirm the **effective FIRM panel** governing the structure. We will align all location exhibits to the MSC/NFHL single source of truth and will not assert a panel ID that MSC does not support for the structure coordinates.
-
-### Form version request
-
-Please confirm in writing the **currently accepted** elevation data form or Elevation Certificate procedure for Case 26-05-2022A so that certified elevations are submitted on the correct instrument.
-
-### Supporting technical context (explicitly non-regulatory)
-
-The owner maintains a technical evidence system (Tri-State Systems Manager) that organizes FEMA NFHL/MSC references, USGS 3DEP screening elevation products, NOAA NGS geodetic tools (GEOID18, NCAT, VDatum), and site modeling constants (including BFE 375.0 ft NAVD88 and LAG 377.2 ft NAVD88 as **modeling context only**). That material is **not** offered as a substitute for certified elevations or the effective FIRM/FIS. Human professional certification and FEMA determination remain controlling.
-
-Please identify any remaining deficiencies prior to the **21 December 2026** response target.
-
-Respectfully,  
-[Name]  
-[Title]  
-[Phone]  
-[Email]  
-Case: 26-05-2022A · CID 180209 · 13101 Bonebank Road, Posey County, IN
-
----
-
-## 6. Operator checklist before send
-
-1. Collect A1, A2, A3 (and A4 if available).  
-2. Pull MSC FIRMette/NFHL at 37.84589, -88.00510 (or surveyed structure point); hash file.  
-3. Check only true enclosures on the email.  
-4. Do not attach unverified DEM/EPQS as “certified LAG.”  
-5. Send from operator account; log tracking ID; update case JSON only after real submission.
+Then attach A1–A3 + MSC PDF when available.
 
 Human authority remains final.
