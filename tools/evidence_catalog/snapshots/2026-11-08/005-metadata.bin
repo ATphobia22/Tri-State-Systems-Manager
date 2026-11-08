@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+	<!--The MIT License (MIT)
+
+	Copyright (c) 2013 Bryan McBride
+
+	Permission is hereby granted, free of charge, to any person obtaining a copy of
+	this software and associated documentation files (the "Software"), to deal in
+	the Software without restriction, including without limitation the rights to
+	use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+	the Software, and to permit persons to whom the Software is furnished to do so,
+	subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be included in all
+	copies or substantial portions of the Software-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>2025 Emergency Response Imagery</title>
+        <!-- Core CSS -->
+		<link href="js/bootstrap-3.3.2/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+	    <link href="js/font-awesome-4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+		<link href="js/maplibregl-2.1.7/maplibre-gl.css" rel="stylesheet"/>
+		<link href="js/maplibre-geocoder/maplibre-gl-geocoder.css" rel="stylesheet" type='text/css' />
+		 <link href="js/hummingbird/hummingbird-treeview.min.css" rel="stylesheet">
+		<link href="css/app.css" rel="stylesheet" type="text/css" />
+	</head>
+	<body>
+	    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+	        <a class="logo" href="http://www.noaa.gov">
+	            <img src="images/noaa-logo.png">
+	        </a>
+	        <div class="navbar-header">
+	            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse" style="height: 34px; padding: 5px 10px; margin-right: 10px;">
+	                <span class="icon-bar"></span>
+	                <span class="icon-bar"></span>
+	                <span class="icon-bar"></span>
+	            </button>
+                         <a class="navbar-brand hidden-xs" href="#">2025 Emergency Response Imagery</a>
+			             <a class="navbar-brand visible-xs" href="#">2025 ER Imagery</a>
+	        </div>
+
+	        <div class="navbar-collapse collapse">
+	            <ul class="nav navbar-nav">
+	                <li><a href="#aboutModal" data-toggle="modal"><i class="fa fa-question-circle" style="color:#418bca"></i>&nbsp;&nbsp;About</a>
+	                </li>
+
+	                <li class="dropdown">
+                	<a class="dropdown-toggle" id="downloadDrop" href="#" role="button" data-toggle="dropdown"><i class="fa fa-cloud-download white" style="color:#418bca"></i>&nbsp;&nbsp;Download <b class="caret"></b></a>
+                		<ul class="dropdown-menu">
+                			<!--li style='display: inline-flex !important;'><a href='https://www.maxar.com/open-data/california-wildfires'><i class='fa fa-download' style='color:#418bca'></i>&nbsp;&nbsp;Maxar Open Data Program&nbsp;</a><a href="https://www.maxar.com/open-data/california-wildfires">(Download)</a></li-->
+                			<li style='display: inline-flex !important;'><a href='#'><i class='fa fa-download' style='color:#418bca'></i>&nbsp;&nbsp;January 28 2025&nbsp;Flight 1</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_California_Fires/downloads/20250128a_RGB.tar" style='TEXT-DECORATION: underline'>(TIF)</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_California_Fires/downloads/20250128a_jpgs.tar" style='TEXT-DECORATION: underline'>(RAW JPEG)</a></li>
+                			<li style='display: inline-flex !important;'><a href='#'><i class='fa fa-download' style='color:#418bca'></i>&nbsp;&nbsp;April 10 2025&nbsp;Flight A</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Midwest_Flood/downloads/20250410a_RGB.tar" style='TEXT-DECORATION: underline'>(TIF)</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Midwest_Flood/downloads/20250410a_jpgs.tar" style='TEXT-DECORATION: underline'>(RAW JPEG)</a></li>
+                			<li style='display: inline-flex !important;'><a href='#'><i class='fa fa-download' style='color:#418bca'></i>&nbsp;&nbsp;April 12 2025&nbsp;Flight A</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Midwest_Flood/downloads/20250412a_RGB.tar" style='TEXT-DECORATION: underline'>(TIF)</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Midwest_Flood/downloads/20250412a_jpgs.tar" style='TEXT-DECORATION: underline'>(RAW JPEG)</a></li>
+                			<li style='display: inline-flex !important;'><a href='#'><i class='fa fa-download' style='color:#418bca'></i>&nbsp;&nbsp;April 12 2025&nbsp;Flight B</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Midwest_Flood/downloads/20250412b_RGB.tar" style='TEXT-DECORATION: underline'>(TIF)</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Midwest_Flood/downloads/20250412b_jpgs.tar" style='TEXT-DECORATION: underline'>(RAW JPEG)</a></li>
+                			<li style='display: inline-flex !important;'><a href='#'><i class='fa fa-download' style='color:#418bca'></i>&nbsp;&nbsp;April 12 2025&nbsp;Flight C</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Midwest_Flood/downloads/20250412c_RGB.tar" style='TEXT-DECORATION: underline'>(TIF)</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Midwest_Flood/downloads/20250412c_jpgs.tar" style='TEXT-DECORATION: underline'>(RAW JPEG)</a></li>
+                			<li style='display: inline-flex !important;'><a href='#'><i class='fa fa-download' style='color:#418bca'></i>&nbsp;&nbsp;April 12 2025&nbsp;Flight D</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Midwest_Flood/downloads/20250412d_RGB.tar" style='TEXT-DECORATION: underline'>(TIF)</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Midwest_Flood/downloads/20250412d_jpgs.tar" style='TEXT-DECORATION: underline'>(RAW JPEG)</a></li>
+                			<li style='display: inline-flex !important;'><a href='#'><i class='fa fa-download' style='color:#418bca'></i>&nbsp;&nbsp;April 13 2025&nbsp;Flight A</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Midwest_Flood/downloads/20250413a_RGB.tar" style='TEXT-DECORATION: underline'>(TIF)</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Midwest_Flood/downloads/20250413a_jpgs.tar" style='TEXT-DECORATION: underline'>(RAW JPEG)</a></li>
+                			<li style='display: inline-flex !important;'><a href='#'><i class='fa fa-download' style='color:#418bca'></i>&nbsp;&nbsp;July 10 2025&nbsp;Flight A</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Texas_Flood/downloads/20250710a_RGB.tar" style='TEXT-DECORATION: underline'>(TIF)</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Texas_Flood/downloads/20250710a_jpgs.tar" style='TEXT-DECORATION: underline'>(RAW JPEG)</a></li>
+                			<li style='display: inline-flex !important;'><a href='#'><i class='fa fa-download' style='color:#418bca'></i>&nbsp;&nbsp;July 11 2025&nbsp;Flight A</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Texas_Flood/downloads/20250711a_RGB.tar" style='TEXT-DECORATION: underline'>(TIF)</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Texas_Flood/downloads/20250711a_jpgs.tar" style='TEXT-DECORATION: underline'>(RAW JPEG)</a></li>
+                			<li style='display: inline-flex !important;'><a href='#'><i class='fa fa-download' style='color:#418bca'></i>&nbsp;&nbsp;July 11 2025&nbsp;Flight B</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Texas_Flood/downloads/20250711b_RGB.tar" style='TEXT-DECORATION: underline'>(TIF)</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Texas_Flood/downloads/20250711b_jpgs.tar" style='TEXT-DECORATION: underline'>(RAW JPEG)</a></li>
+                			<li style='display: inline-flex !important;'><a href='#'><i class='fa fa-download' style='color:#418bca'></i>&nbsp;&nbsp;July 12 2025&nbsp;Flight A</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Texas_Flood/downloads/20250712a_RGB.tar" style='TEXT-DECORATION: underline'>(TIF)</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Texas_Flood/downloads/20250712a_jpgs.tar" style='TEXT-DECORATION: underline'>(RAW JPEG)</a></li>
+                			<li style='display: inline-flex !important;'><a href='#'><i class='fa fa-download' style='color:#418bca'></i>&nbsp;&nbsp;July 12 2025&nbsp;Flight B</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Texas_Flood/downloads/20250712b_RGB.tar" style='TEXT-DECORATION: underline'>(TIF)</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Texas_Flood/downloads/20250712b_jpgs.tar" style='TEXT-DECORATION: underline'>(RAW JPEG)</a></li>
+                			<li style='display: inline-flex !important;'><a href='#'><i class='fa fa-download' style='color:#418bca'></i>&nbsp;&nbsp;July 14 2025&nbsp;Flight A</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Texas_Flood/downloads/20250714a_RGB.tar" style='TEXT-DECORATION: underline'>(TIF)</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Texas_Flood/downloads/20250714a_jpgs.tar" style='TEXT-DECORATION: underline'>(RAW JPEG)</a></li>
+                			<li style='display: inline-flex !important;'><a href='#'><i class='fa fa-download' style='color:#418bca'></i>&nbsp;&nbsp;July 16 2025&nbsp;Flight A</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Texas_Flood/downloads/20250716a_RGB.tar" style='TEXT-DECORATION: underline'>(TIF)</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Texas_Flood/downloads/20250716a_jpgs.tar" style='TEXT-DECORATION: underline'>(RAW JPEG)</a></li>
+                			<li style='display: inline-flex !important;'><a href='#'><i class='fa fa-download' style='color:#418bca'></i>&nbsp;&nbsp;July 17 2025&nbsp;Flight A</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Texas_Flood/downloads/20250717a_RGB.tar" style='TEXT-DECORATION: underline'>(TIF)</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Texas_Flood/downloads/20250717a_jpgs.tar" style='TEXT-DECORATION: underline'>(RAW JPEG)</a></li>
+                			<li style='display: inline-flex !important;'><a href='#'><i class='fa fa-download' style='color:#418bca'></i>&nbsp;&nbsp;July 19 2025&nbsp;Flight A</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Texas_Flood/downloads/20250719a_RGB.tar" style='TEXT-DECORATION: underline'>(TIF)</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Texas_Flood/downloads/20250719a_jpgs.tar" style='TEXT-DECORATION: underline'>(RAW JPEG)</a></li>
+                			<li style='display: inline-flex !important;'><a href='#'><i class='fa fa-download' style='color:#418bca'></i>&nbsp;&nbsp;July 19 2025&nbsp;Flight B</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Texas_Flood/downloads/20250719b_RGB.tar" style='TEXT-DECORATION: underline'>(TIF)</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Texas_Flood/downloads/20250719b_jpgs.tar" style='TEXT-DECORATION: underline'>(RAW JPEG)</a></li>
+                			<li style='display: inline-flex !important;'><a href='#'><i class='fa fa-download' style='color:#418bca'></i>&nbsp;&nbsp;July 20 2025&nbsp;Flight A</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Texas_Flood/downloads/20250720a_RGB.tar" style='TEXT-DECORATION: underline'>(TIF)</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Texas_Flood/downloads/20250720a_jpgs.tar" style='TEXT-DECORATION: underline'>(RAW JPEG)</a></li>
+                			<li style='display: inline-flex !important;'><a href='#'><i class='fa fa-download' style='color:#418bca'></i>&nbsp;&nbsp;July 21 2025&nbsp;Flight A</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Texas_Flood/downloads/20250721a_RGB.tar" style='TEXT-DECORATION: underline'>(TIF)</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Texas_Flood/downloads/20250721a_jpgs.tar" style='TEXT-DECORATION: underline'>(RAW JPEG)</a></li>
+                			<li style='display: inline-flex !important;'><a href='#'><i class='fa fa-download' style='color:#418bca'></i>&nbsp;&nbsp;July 21 2025&nbsp;Flight B</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Texas_Flood/downloads/20250721b_RGB.tar" style='TEXT-DECORATION: underline'>(TIF)</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Texas_Flood/downloads/20250721b_jpgs.tar" style='TEXT-DECORATION: underline'>(RAW JPEG)</a></li>
+                			<li style='display: inline-flex !important;'><a href='#'><i class='fa fa-download' style='color:#418bca'></i>&nbsp;&nbsp;July 22 2025&nbsp;Flight A</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Texas_Flood/downloads/20250722a_RGB.tar" style='TEXT-DECORATION: underline'>(TIF)</a><a href="https://noaa-eri-pds.s3.amazonaws.com/2025_Texas_Flood/downloads/20250722a_jpgs.tar" style='TEXT-DECORATION: underline'>(RAW JPEG)</a></li>
+
+                		</ul>
+                		
+            		</li-->
+            		<li><a href="#contactModal" data-toggle="modal"><i class="fa fa-envelope" style="color:#418bca"></i>&nbsp;&nbsp;Contact</a>
+	                </li>
+	            </ul>
+	        </div>
+	        <!--/.navbar-collapse -->
+
+	    </div>
+
+	    <div class="col-sm-9 col-lg-9" id="map">
+	    	<a href="https://www.maptiler.com" style="position:absolute;right:10px;bottom:40px;z-index:999;">
+      		<img src="https://api.maptiler.com/resources/logo.svg" alt="MapTiler logo"></a>
+	    </div>
+	    <div id="mousecoords" style="display: block;"></div>
+	    <div id="geocoder" class="geocoder" style="display: none;"></div>
+	    <div id="layer-switcher" style="display: none">  
+  		<div id="treeview_container" class="hummingbird-treeview"  style="overflow: visible; max-height: 75vh">
+	  	<ul id="treeview" class="hummingbird-base" style="padding-left: 10px">
+	    <li data-id="0">
+	      <i class="fa fa-plus"></i>
+	      <label>
+	      Base Maps
+	      </label>
+	      <ul>
+	        <li data-id="1">
+	          <label>
+	          <input class="hummingbird-end-node" id="streets" data-id="streets" type="radio" checked /> Streets
+	          </label>
+	        </li>
+	        <li data id="2">
+	          <label>
+	          <input class="hummingbird-end-node" id="satellite" data-id="satellite" type="radio" /> Satellite
+	          </label>
+	        </li>
+	        <li data id="3">
+	          <label>
+	          <input class="hummingbird-end-node" id="labels" data-id="labels" type="checkbox"  checked/> Labels
+	          </label>
+	        </li>
+	      </ul>
+	    </li><!--dataid 0-->
+	    </ul><!--treeview-->
+	    </div><!--treeview_container-->
+	    </div><!--layerswitcher-->
+	    <div id="loading" style="display: block;">
+	        <div class="loading-indicator">
+	            <div class="progress progress-striped active">
+	                <div class="progress-bar progress-bar-info" style="width: 100%;"></div>
+	            </div>
+	        </div>
+	    </div>
+
+    <div class="modal fade" id="aboutModal">
+	        <div class="modal-dialog">
+	            <div class="modal-content">
+	                <div class="modal-header">
+	                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+	                    <h4 class="modal-title"><i class="fa fa-question fa-lg" style="color:#418bca"></i>&nbsp;&nbsp; 2025 Emergency Response Imagery</h4>
+	                </div>
+
+	                <div class="modal-body">
+	                    <ul id="aboutTabs" class="nav nav-tabs">
+	                        <li class="active"><a href="#about" data-toggle="tab"><i class="fa fa-question"></i>&nbsp;About the data</a>
+	                        </li>
+	                        <li><a href="#services" data-toggle="tab"><i class="fa fa-globe"></i>&nbsp;Web Services</a>
+	                        </li>
+	                        <li><a href="#disclaimer" data-toggle="tab"><i class="fa fa-exclamation"></i>&nbsp;License Disclaimer</a>
+	                        </li>
+	                        <li><a href="#metadata" data-toggle="tab"><i class="fa fa-globe"></i>&nbsp;Metadata</a>
+	                        </li>
+	                    </ul>
+	                    <div id="aboutTabsContent" class="tab-content" style="padding-top: 10px;">
+	                        <div class="tab-pane fade active in" id="about">
+	                            
+	                            <div class="panel panel-primary">
+	                                <div class="panel-heading">
+	                                    About
+	                                </div>
+	                                <ul class="list-group">
+	                                	<li class="list-group-item"><b>Texas Flood Imagery</b><br>
+										This imagery was acquired on July 10 2025 by the NOAA Remote Sensing Division to support NOAA homeland security and emergency response requirements. In addition, it will be used for ongoing research efforts for testing and developing standards for airborne digital imagery. Individual images have been combined into a larger mosaic and tiled for distribution. The approximate ground sample distance (GSD) for each pixel is 15 - 30 cm / zoom level 20 - 19.
+										</li>
+	                                	<li class="list-group-item"><b>Midwest U.S. Flood Imagery</b><br>
+										This imagery was acquired on April 10-13 2025 by the NOAA Remote Sensing Division to support NOAA homeland security and emergency response requirements. In addition, it will be used for ongoing research efforts for testing and developing standards for airborne digital imagery. Individual images have been combined into a larger mosaic and tiled for distribution. The approximate ground sample distance (GSD) for each pixel is 15 - 30 cm / zoom level 20 - 19.
+										</li>
+	                                    <li class="list-group-item"><b>California Fire Imagery</b><br>
+	                            		The imagery from January 8-20 2025 was downloaded from Maxar's Open Data Program. The following command will list the available
+	                                    directories containing pre and post event imagery on Amazon S3. The approximate ground sample distance (GSD) for each pixel is 30 cm / zoom level 19.
+	                                    <br>
+	                                    <br>
+	                                    aws s3 --no-sign-request ls s3://maxar-opendata/events/WildFires-LosAngeles-Jan-2025/ard/11/
+	                                    <br>
+	                                    <br>
+	                                    This imagery from January 28 2025 was acquired by the NOAA Remote Sensing Division to support emergency response requirements. Individual images have been combined into a larger mosaic and tiled for distribution. The approximate ground sample distance (GSD) for each pixel is 7.5 cm / zoom level 21.
+										</li>
+										
+	                                </ul>
+	                            </div>
+	                        </div>
+	                        <div class="tab-pane fade" id="services">
+								   <ul class="fa-ul">
+								   </ul>
+	                        </div>
+	                        <div class="tab-pane fade" id="metadata">
+	                            <ul class="fa-ul">
+	                            <li><i class='fa-li fa fa-square'></i> View NOAA <a href="https://www.fisheries.noaa.gov/inport/item/76335" target='_blank'>metadata</a> for the Texas flood event (2025).</li><br>	
+	                            <li><i class='fa-li fa fa-square'></i> View NOAA <a href="https://www.fisheries.noaa.gov/inport/item/74399" target='_blank'>metadata</a> for the California Fire Imagery (2025).</li><br>
+	                            <li><i class='fa-li fa fa-square'></i> View NOAA <a href="https://www.fisheries.noaa.gov/inport/item/75532" target='_blank'>metadata</a> for the Midwest U.S. flood event (2025).</li><br>
+	                        	</ul>
+	                        </div>
+	                        <div class="tab-pane fade" id="disclaimer">
+	                            <p class="text-danger">The data provided on this site is for informational and planning purposes only.</p>
+	                            <p class="text-danger">Absolutely no accuracy or completeness guarantee is implied or intended.</p>
+	                            <p>NAIP imagery provided by USDA Farm Service Agency.</p>
+	                            <p>Contains modified Copernicus Sentinel data 2019-2023.</p> 
+	                            <p><a href="https://maxar-marketing.s3.amazonaws.com/files/downloads/119757_opendataprotocol_2020_04.pdf" target='_blank'>Maxar Open Data</a> licensed under Creative Commons Attribution Non Commercial 4.0.</p>
+	                        </div>
+	                    </div>
+	                </div>
+	            </div>
+	            <!-- /.modal-content -->
+	        </div>
+	        <!-- /.modal-dialog -->
+	    </div>
+	    <!-- /.modal -->
+
+    <div class="modal fade" id="contactModal">
+		        <div class="modal-dialog">
+		            <div class="modal-content">
+		                <div class="modal-header">
+		                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				    		<h4 class="modal-title"><i class="fa fa-envelope fa-lg" style="color:#418bca"></i>&nbsp;&nbsp;Contact</h4>
+		                </div><!-- /.modal-header -->
+		                <div class="modal-body">
+		                    <div class="row">
+					    <h5>&nbsp;&nbsp;Content and technical issues contact: <a href="http://www.ngs.noaa.gov/cgi-bin/redirectNOAA.prl?u=ngs.hurricane1">&nbsp;ngs.hurricane1</a></h5>
+					    <h5>&nbsp;&nbsp;Comments and policy questions contact: <a href="http://www.ngs.noaa.gov/cgi-bin/redirectNOAA.prl?u=ngs.hurricane2">&nbsp;ngs.hurricane2</a></h5>
+				    </div><!-- end .row -->
+				</div><!-- end .modal-body -->
+		            </div><!-- /.modal-content -->
+		        </div><!-- /.modal-dialog -->
+		    </div><!-- /.contactmodal -->
+
+
+		<div id="footer" class="container">
+			    <nav class="navbar-footer navbar-default navbar-fixed-bottom hidden-xs" style="min-height: 15px;">
+			        <div class="navbar-inner navbar-content-center">
+						<p class="text-muted credit center" style="text-align: center;">
+					    <a href="https://oceanservice.noaa.gov/" target="_blank"><small>NOS Home</small></a>&nbsp;&nbsp;<i class="fa fa-circle" style="font-size: 0.4em; vertical-align: middle;"></i>&nbsp;
+					    <a href="https://www8.nos.noaa.gov/survey/index.aspx?Location=ngsstorms" target="_blank"><small>User Survey</small></a>&nbsp;&nbsp;<i class="fa fa-circle" style="font-size: 0.4em; vertical-align: middle;"></i>&nbsp;
+					    <a href="https://www.ngs.noaa.gov/disclaimer.html" target="_blank"><small>Disclaimer</small></a>&nbsp;&nbsp;<i class="fa fa-circle" style="font-size: 0.4em; vertical-align: middle;"></i>&nbsp;
+					    <a href="https://www.ngs.noaa.gov/privacy.shtml" target="_blank"><small>Privacy Policy</small></a>&nbsp;&nbsp;<i class="fa fa-circle" style="font-size: 0.4em; vertical-align: middle;"></i>&nbsp;
+					    <a href="https://www.usa.gov/" target="_blank"><small>USA.gov</small></a>&nbsp;&nbsp;<i class="fa fa-circle" style="font-size: 0.4em; vertical-align: middle;"></i>&nbsp;
+					    <a href="https://www.ngs.noaa.gov/cgi-bin/redirectNOAA.prl?u=ngs.webmaster" target="_blank"><small>Contact Us</small></a>
+					    </p>
+			        </div>
+			    </nav>
+		</div><!-- footer -->
+        <!--JS files-->
+        		<script type="text/javascript" src="/ngsstandard/ga/ga.js"></script>
+				<!-- Global site tag (gtag.js) - Google Analytics -->
+				<script async src="https://www.googletagmanager.com/gtag/js?id=UA-113818459-1"></script>
+				<script>
+				  window.dataLayer = window.dataLayer || [];
+				  function gtag(){dataLayer.push(arguments);}
+				  gtag('js', new Date());
+
+				  gtag('config', 'UA-113818459-1');
+				</script>
+				<script type="text/javascript" src="js/jquery-3.2.1/jquery-3.2.1.min.js"></script>
+                <script type="text/javascript" src="js/bootstrap-3.3.2/js/bootstrap.min.js"></script>
+                <script src='js/maplibregl-2.1.7/maplibre-gl.js'></script>
+                <script src='js/maplibre-geocoder/maplibre-gl-geocoder.min.js'></script>
+                <script src="js/hummingbird/hummingbird-treeview.min.js"></script>
+                <script type="text/javascript" src='js/include.js'></script>
+                <script type="text/javascript" src="js/app.js"></script>
+	</body>
+</html>
