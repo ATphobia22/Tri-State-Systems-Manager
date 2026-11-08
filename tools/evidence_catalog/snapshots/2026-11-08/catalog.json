@@ -1,0 +1,776 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-11-08T17:41:26.498139Z",
+  "records": [
+    {
+      "id": "in-buildings",
+      "title": "Indiana Building Footprints 2016\u20132020",
+      "category": "buildings",
+      "sourceUrl": "https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0?f=json",
+      "resolvedUrl": "https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0?f=json",
+      "recordType": "arcgis-layer",
+      "fields": {
+        "serviceId": {
+          "value": "Hosted/Building_Footprints",
+          "status": "CONFIGURED",
+          "source": "source-registry"
+        },
+        "layerId": {
+          "value": 0,
+          "status": "SOURCE_REPORTED",
+          "source": "https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0?f=json#id"
+        },
+        "geographicCoverage": {
+          "value": {
+            "ymin": 4547458.600427121,
+            "xmin": -9806273.480066868,
+            "ymax": 5125201.542003341,
+            "xmax": -9438249.733344086,
+            "spatialReference": {
+              "falseM": -100000,
+              "xyTolerance": 0.001,
+              "mUnits": 10000,
+              "zUnits": 10000,
+              "latestWkid": 3857,
+              "zTolerance": 0.001,
+              "wkid": 102100,
+              "xyUnits": 148923141.92838538,
+              "mTolerance": 0.001,
+              "falseX": -20037700,
+              "falseY": -30241100,
+              "falseZ": -100000
+            }
+          },
+          "status": "SOURCE_REPORTED",
+          "source": "https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0?f=json#extent"
+        },
+        "acquisitionDate": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "publicationDate": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "retrievalTime": {
+          "value": "2026-11-08T17:40:54.901552Z",
+          "status": "RECORDED",
+          "source": "harvester-clock"
+        },
+        "crs": {
+          "value": {
+            "wkt": "PROJCS[\"WGS_1984_Web_Mercator_Auxiliary_Sphere\",GEOGCS[\"GCS_WGS_1984\",DATUM[\"D_WGS_1984\",SPHEROID[\"WGS_1984\",6378137.0,298.257223563]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Mercator_Auxiliary_Sphere\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",0.0],PARAMETER[\"Standard_Parallel_1\",0.0],PARAMETER[\"Auxiliary_Sphere_Type\",0.0],UNIT[\"Meter\",1.0]]",
+            "falseM": 0,
+            "mUnits": 1,
+            "zUnits": 1,
+            "zTolerance": 0.001,
+            "wkid": 3857,
+            "xyUnits": 148923141.92838538,
+            "mTolerance": 0.001,
+            "falseX": -20037700,
+            "falseY": -30241100,
+            "falseZ": 0
+          },
+          "status": "SOURCE_REPORTED",
+          "source": "https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0?f=json#spatialReference"
+        },
+        "verticalDatum": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "units": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "accessRequirements": {
+          "value": {
+            "metadata": "retrieved without credentials",
+            "dataDownload": null,
+            "license": null
+          },
+          "status": "SOURCE_REPORTED",
+          "source": "https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0?f=json"
+        },
+        "checksum": {
+          "value": {
+            "algorithm": "SHA-256",
+            "hex": "9637ccb3c7a1326122429d56b80d405f1baf930f684763bbbdb6e1a300d9ca35",
+            "scope": "metadata-response",
+            "bytes": 7697
+          },
+          "status": "COMPUTED",
+          "source": "retrieved-response-bytes"
+        },
+        "verificationStatus": {
+          "value": "METADATA_PARSED",
+          "status": "SOURCE_REPORTED",
+          "source": "https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0?f=json"
+        }
+      },
+      "limitations": [
+        "Metadata verification does not establish dataset completeness, accuracy, currency or regulatory acceptance.",
+        "Checksums cover retrieved metadata bytes, not dataset assets."
+      ],
+      "sourceMetadata": {
+        "name": "Indiana Building Footprints 2016-2020",
+        "type": "Feature Layer",
+        "description": "",
+        "maxRecordCount": 2000,
+        "hasZ": false,
+        "capabilities": "Query,Extract",
+        "supportedQueryFormats": "JSON, geoJSON, PBF",
+        "editingInfo": {
+          "lastEditDate": 1776627426353
+        }
+      },
+      "responseFile": "000-metadata.bin"
+    },
+    {
+      "id": "in-parcels",
+      "title": "Indiana Current Parcels",
+      "category": "parcels",
+      "sourceUrl": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_Current/FeatureServer?f=json",
+      "resolvedUrl": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_Current/FeatureServer?f=json",
+      "recordType": "arcgis-service",
+      "fields": {
+        "serviceId": {
+          "value": "Hosted/Parcel_Boundaries_of_Indiana_Current",
+          "status": "CONFIGURED",
+          "source": "source-registry"
+        },
+        "layerId": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "geographicCoverage": {
+          "value": {
+            "ymin": 37.77246869800007,
+            "xmin": -88.09730638099995,
+            "ymax": 41.76068322000003,
+            "xmax": -84.78565264399998,
+            "spatialReference": {
+              "falseM": -100000,
+              "xyTolerance": 8.983152841195215e-09,
+              "mUnits": 10000,
+              "zUnits": 10000,
+              "latestWkid": 4326,
+              "zTolerance": 0.001,
+              "wkid": 4326,
+              "xyUnits": 999999999.9999999,
+              "mTolerance": 0.001,
+              "falseX": -400,
+              "falseY": -400,
+              "falseZ": -100000
+            }
+          },
+          "status": "SOURCE_REPORTED",
+          "source": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_Current/FeatureServer?f=json#extent"
+        },
+        "acquisitionDate": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "publicationDate": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "retrievalTime": {
+          "value": "2026-11-08T17:40:58.494307Z",
+          "status": "RECORDED",
+          "source": "harvester-clock"
+        },
+        "crs": {
+          "value": {
+            "falseM": -100000,
+            "xyTolerance": 8.983152841195215e-09,
+            "mUnits": 10000,
+            "zUnits": 10000,
+            "latestWkid": 4326,
+            "zTolerance": 0.001,
+            "wkid": 4326,
+            "xyUnits": 999999999.9999999,
+            "mTolerance": 0.001,
+            "falseX": -400,
+            "falseY": -400,
+            "falseZ": -100000
+          },
+          "status": "SOURCE_REPORTED",
+          "source": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_Current/FeatureServer?f=json#spatialReference"
+        },
+        "verticalDatum": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "units": {
+          "value": {
+            "horizontalServiceUnits": "esriDecimalDegrees",
+            "verticalUnits": null
+          },
+          "status": "SOURCE_REPORTED",
+          "source": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_Current/FeatureServer?f=json#units"
+        },
+        "accessRequirements": {
+          "value": {
+            "metadata": "retrieved without credentials",
+            "dataDownload": null,
+            "license": null
+          },
+          "status": "SOURCE_REPORTED",
+          "source": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_Current/FeatureServer?f=json"
+        },
+        "checksum": {
+          "value": {
+            "algorithm": "SHA-256",
+            "hex": "7497eaca01174fbdd15c4f77bfe81317bc49c8f766b218277474df3dc12afe42",
+            "scope": "metadata-response",
+            "bytes": 3430
+          },
+          "status": "COMPUTED",
+          "source": "retrieved-response-bytes"
+        },
+        "verificationStatus": {
+          "value": "METADATA_PARSED",
+          "status": "SOURCE_REPORTED",
+          "source": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_Current/FeatureServer?f=json"
+        }
+      },
+      "limitations": [
+        "Metadata verification does not establish dataset completeness, accuracy, currency or regulatory acceptance.",
+        "Checksums cover retrieved metadata bytes, not dataset assets."
+      ],
+      "sourceMetadata": {
+        "description": "This dataset was developed to provide accurate parcel boundaries for Indiana, as part of Indiana's annual GIS Data harvest Data Sharing Initiative (IDSI) of the Indiana Geographic Information Office (IGIO).This data layer is an Esri file geodatabase polygon feature class that contains parcel boundaries maintained by county agencies in Indiana. It was released by the Indiana Geographic Information Office (IGIO) on November 13, 2024. The IGIO compiled the data as part of the Indiana Data Harvest program between the Indiana Geographic Information Council (IGIC) and Indiana local governments to provide the most accurate framework data for the citizens of Indiana. These layers include address points, street centerlines, land parcels, and governmental boundaries.",
+        "maxRecordCount": 2000,
+        "capabilities": "Query,Extract",
+        "supportedQueryFormats": "JSON"
+      },
+      "responseFile": "001-metadata.bin"
+    },
+    {
+      "id": "fema-nfhl",
+      "title": "FEMA NFHL",
+      "category": "regulatory-flood",
+      "sourceUrl": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer?f=json",
+      "resolvedUrl": null,
+      "recordType": "arcgis-service",
+      "fields": {
+        "serviceId": {
+          "value": "public/NFHL",
+          "status": "CONFIGURED",
+          "source": "source-registry"
+        },
+        "layerId": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "geographicCoverage": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "acquisitionDate": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "publicationDate": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "retrievalTime": {
+          "value": "2026-11-08T17:41:03.332179Z",
+          "status": "RECORDED",
+          "source": "harvester-clock"
+        },
+        "crs": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "verticalDatum": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "units": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "accessRequirements": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "checksum": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "verificationStatus": {
+          "value": "FETCH_FAILED",
+          "status": "RECORDED",
+          "source": "harvester"
+        }
+      },
+      "limitations": [
+        "Metadata verification does not establish dataset completeness, accuracy, currency or regulatory acceptance.",
+        "Checksums cover retrieved metadata bytes, not dataset assets."
+      ],
+      "error": {
+        "type": "HTTPError",
+        "message": "HTTP Error 503: Service Unavailable"
+      }
+    },
+    {
+      "id": "nfhl-viewer",
+      "title": "NFHL Web Experience",
+      "category": "viewer",
+      "sourceUrl": "https://www.arcgis.com/sharing/rest/content/items/9d22cdae8b7542b88e0d555a3eb92949?f=json",
+      "resolvedUrl": "https://www.arcgis.com/sharing/rest/content/items/9d22cdae8b7542b88e0d555a3eb92949?f=json",
+      "recordType": "arcgis-item",
+      "fields": {
+        "serviceId": {
+          "value": "9d22cdae8b7542b88e0d555a3eb92949",
+          "status": "CONFIGURED",
+          "source": "source-registry"
+        },
+        "layerId": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "geographicCoverage": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "acquisitionDate": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "publicationDate": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "retrievalTime": {
+          "value": "2026-11-08T17:41:08.221644Z",
+          "status": "RECORDED",
+          "source": "harvester-clock"
+        },
+        "crs": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "verticalDatum": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "units": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "accessRequirements": {
+          "value": {
+            "metadata": "retrieved without credentials",
+            "dataDownload": null,
+            "license": null
+          },
+          "status": "SOURCE_REPORTED",
+          "source": "https://www.arcgis.com/sharing/rest/content/items/9d22cdae8b7542b88e0d555a3eb92949?f=json"
+        },
+        "checksum": {
+          "value": {
+            "algorithm": "SHA-256",
+            "hex": "227f159b760702608377da5d987cf89bdd14dfd1f1d03e319f24e750ecbac77c",
+            "scope": "metadata-response",
+            "bytes": 7689
+          },
+          "status": "COMPUTED",
+          "source": "retrieved-response-bytes"
+        },
+        "verificationStatus": {
+          "value": "METADATA_PARSED",
+          "status": "SOURCE_REPORTED",
+          "source": "https://www.arcgis.com/sharing/rest/content/items/9d22cdae8b7542b88e0d555a3eb92949?f=json"
+        }
+      },
+      "limitations": [
+        "Metadata verification does not establish dataset completeness, accuracy, currency or regulatory acceptance.",
+        "Checksums cover retrieved metadata bytes, not dataset assets."
+      ],
+      "sourceMetadata": {
+        "name": null,
+        "title": "PROD Cloud - NFHL - WE",
+        "type": "Web Experience",
+        "description": "<p style='background-color:rgb(255, 255, 255); color:rgb(77, 77, 77); font-family:&quot;Avenir Next W01&quot;, &quot;Avenir Next W00&quot;, &quot;Avenir Next&quot;, Avenir, &quot;Helvetica Neue&quot;, sans-serif; font-size:14px; margin-bottom:1.55rem; margin-top:0px; padding:0px;'><span style='color:#4169e1; font-size:large;'><font style='font-family:&quot;Avenir Next W01&quot;, &quot;Avenir Next W00&quot;, &quot;Avenir Next&quot;, Avenir, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif !important;'>Overview</font></span></p><p style='background-color:rgb(255, 255, 255); color:rgb(77, 77, 77); font-family:&quot;Avenir Next W01&quot;, &quot;Avenir Next W00&quot;, &quot;Avenir Next&quot;, Avenir, &quot;Helvetica Neue&quot;, sans-serif; font-size:14px; margin-bottom:1.55rem; margin-top:0px; padding:0px;'>This Web Mapping Application provides the ability to print maps based on FEMA's National Flood Hazard Layer (NFHL) dataset. This application should only be used for areas where digital Flood Insurance Rate Map (FIRM) data is available; for other areas it is recommended that users use&nbsp;<a target='_blank' href='https://msc.fema.gov/portal/search' rel='nofollow ugc noopener noreferrer'>printing tools available at the MSC</a>.</p><p style='background-color:rgb(255, 255, 255); font-family:&quot;Avenir Next W01&quot;, &quot;Avenir Next W00&quot;, &quot;Avenir Next&quot;, Avenir, &quot;Helvetica Neue&quot;, sans-serif; font-size:17px; margin-bottom:1.55rem; margin-top:0px; padding:0px;'><span style='color:#4169e1; font-size:large;'><font style='font-family:&quot;Avenir Next W01&quot;, &quot;Avenir Next W00&quot;, &quot;Avenir Next&quot;, Avenir, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif !important;'>FEMA's National Flood Hazard Layer</font></span></p><p style='background-color:rgb(255, 255, 255); color:rgb(77, 77, 77); font-family:&quot;Avenir Next W01&quot;, &quot;Avenir Next W00&quot;, &quot;Avenir Next&quot;, Avenir, &quot;Helvetica Neue&quot;, sans-serif; font-size:14px; margin-bottom:1.55rem; margin-top:0px; padding:0px;'>The National Flood Hazard Layer (NFHL) dataset represents the current effective flood data for the country, where maps have been modernized.&nbsp; It is a compilation of effective Flood Insurance Rate Map (FIRM) databases and Letters of Map Change (LOMCs). The NFHL is updated as studies go effective. For more information, visit FEMA's Map Service Center (MSC).&nbsp;</p><p style='background-color:rgb(255, 255, 255); color:rgb(77, 77, 77); font-family:&quot;Avenir Next W01&quot;, &quot;Avenir Next W00&quot;, &quot;Avenir Next&quot;, Avenir, &quot;Helvetica Neue&quot;, sans-serif; font-size:14px; margin-bottom:1.55rem; margin-top:0px; padding:0px;'><span style='color:#4169e1; font-size:large;'><font style='font-family:&quot;Avenir Next W01&quot;, &quot;Avenir Next W00&quot;, &quot;Avenir Next&quot;, Avenir, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif !important;'>Base Map Considerations</font></span></p><p style='margin-bottom:1.55rem; margin-top:0px; padding:0px;'><span style='color:#4d4d4d; font-family:Avenir Next W01, Avenir Next W00, Avenir Next, Avenir, Helvetica Neue, sans-serif; font-size:14px;'>The default base map is from a USGS service and conforms to FEMA's specification for horizontal accuracy.&nbsp; This base map&nbsp; from The National Map (TNM) consists of National Agriculture Imagery Program (NAIP) and high resolution orthoimagery (HRO) that combine the visual attributes of an aerial photograph with the spatial accuracy and reliability of a map.&nbsp; &nbsp;This map should be considered the best online resource to use for official National Flood Insurance Program (NFIP) purposes when determining locations in relation to regulatory flood hazard information.&nbsp; If a different base map is used with the NFHL, the accuracy specification may not be met and the resulting map should be used for general reference only, and not official NFIP purposes.</span></p><p style='margin-bottom:1.55rem; margin-top:0px; padding:0px;'><span style='color:#4d4d4d; font-family:Avenir Next W01, Avenir Next W00, Avenir Next, Avenir, Helvetica Neue, sans-serif; font-size:14px;'>Users can download a simplified base map from the USGS service via:&nbsp;</span><a target='_blank' href='https://viewer.nationalmap.gov/services/' rel='nofollow ugc noopener noreferrer'>https://viewer.nationalmap.gov/services/&nbsp;</a></p><p style='margin-bottom:1.55rem; margin-top:0px; padding:0px;'><span style='color:#4d4d4d; font-family:Avenir Next W01, Avenir Next W00, Avenir Next, Avenir, Helvetica Neue, sans-serif; font-size:14px;'>For the specifics of FEMA\u2019s policy on the use of digital flood hazard data for NFIP purposes see standards 605 and 606 in FEMA Policy: Standards for Flood Risk Analysis and Mapping available from&nbsp;</span><a target='_blank' href='https://www.fema.gov/flood-maps/guidance-reports/guidelines-standards' rel='nofollow ugc noopener noreferrer'>Guidelines and Standards for Flood Risk Analysis and Mapping Activities Under the Risk MAP Program | FEMA.gov</a></p><p style='background-color:rgb(255, 255, 255); color:rgb(77, 77, 77); font-family:&quot;Avenir Next W01&quot;, &quot;Avenir Next W00&quot;, &quot;Avenir Next&quot;, Avenir, &quot;Helvetica Neue&quot;, sans-serif; font-size:14px; margin-bottom:1.55rem; margin-top:0px; padding:0px;'><span style='color:rgb(65,105,225); font-family:&quot;Avenir Next W01&quot;, &quot;Avenir Next W00&quot;, &quot;Avenir Next&quot;, Avenir, &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; font-size:large;'>Further Information</span></p><p style='background-color:rgb(255, 255, 255); color:rgb(77, 77, 77); font-family:&quot;Avenir Next W01&quot;, &quot;Avenir Next W00&quot;, &quot;Avenir Next&quot;, Avenir, &quot;Helvetica Neue&quot;, sans-serif; font-size:14px; margin-bottom:1.55rem; margin-top:0px; padding:0px;'>For more flood map data, tool, and viewing options, visit&nbsp;<a style='font-family:Calibri, sans-serif; font-size:11pt;' target='_blank' href='https://www.fema.gov/flood-maps/national-flood-hazard-layer' rel='nofollow ugc noopener noreferrer'>National Flood Hazard Layer | FEMA.gov</a></p>",
+        "created": 1771949493000,
+        "modified": 1788275117000,
+        "access": "public",
+        "licenseInfo": null
+      },
+      "responseFile": "003-metadata.bin"
+    },
+    {
+      "id": "indianamap",
+      "title": "IndianaMap Dashboard",
+      "category": "dashboard",
+      "sourceUrl": "https://www.arcgis.com/sharing/rest/content/items/10d377fea85d4a8a8a378617766d9f92?f=json",
+      "resolvedUrl": "https://www.arcgis.com/sharing/rest/content/items/10d377fea85d4a8a8a378617766d9f92?f=json",
+      "recordType": "arcgis-item",
+      "fields": {
+        "serviceId": {
+          "value": "10d377fea85d4a8a8a378617766d9f92",
+          "status": "CONFIGURED",
+          "source": "source-registry"
+        },
+        "layerId": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "geographicCoverage": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "acquisitionDate": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "publicationDate": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "retrievalTime": {
+          "value": "2026-11-08T17:41:12.992752Z",
+          "status": "RECORDED",
+          "source": "harvester-clock"
+        },
+        "crs": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "verticalDatum": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "units": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "accessRequirements": {
+          "value": {
+            "metadata": "retrieved without credentials",
+            "dataDownload": null,
+            "license": null
+          },
+          "status": "SOURCE_REPORTED",
+          "source": "https://www.arcgis.com/sharing/rest/content/items/10d377fea85d4a8a8a378617766d9f92?f=json"
+        },
+        "checksum": {
+          "value": {
+            "algorithm": "SHA-256",
+            "hex": "78e859d650d6930ad8c949a19dfe786ba25c717852a677d4a37cc43a6cd8cc06",
+            "scope": "metadata-response",
+            "bytes": 1022
+          },
+          "status": "COMPUTED",
+          "source": "retrieved-response-bytes"
+        },
+        "verificationStatus": {
+          "value": "METADATA_PARSED",
+          "status": "SOURCE_REPORTED",
+          "source": "https://www.arcgis.com/sharing/rest/content/items/10d377fea85d4a8a8a378617766d9f92?f=json"
+        }
+      },
+      "limitations": [
+        "Metadata verification does not establish dataset completeness, accuracy, currency or regulatory acceptance.",
+        "Checksums cover retrieved metadata bytes, not dataset assets."
+      ],
+      "sourceMetadata": {
+        "name": null,
+        "title": "IndianaMap Dashboard",
+        "type": "Dashboard",
+        "description": "",
+        "created": 1749137225000,
+        "modified": 1750268307000,
+        "access": "public",
+        "licenseInfo": ""
+      },
+      "responseFile": "004-metadata.bin"
+    },
+    {
+      "id": "ngs-2025",
+      "title": "NGS 2025 Emergency Imagery",
+      "category": "event-imagery",
+      "sourceUrl": "https://storms.ngs.noaa.gov/storms/2025_eri/index.html",
+      "resolvedUrl": "https://storms.ngs.noaa.gov/storms/2025_eri/index.html",
+      "recordType": "page",
+      "fields": {
+        "serviceId": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "layerId": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "geographicCoverage": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "acquisitionDate": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "publicationDate": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "retrievalTime": {
+          "value": "2026-11-08T17:41:17.937371Z",
+          "status": "RECORDED",
+          "source": "harvester-clock"
+        },
+        "crs": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "verticalDatum": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "units": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "accessRequirements": {
+          "value": {
+            "metadata": "retrieved without credentials",
+            "dataDownload": null,
+            "license": null
+          },
+          "status": "SOURCE_REPORTED",
+          "source": "https://storms.ngs.noaa.gov/storms/2025_eri/index.html"
+        },
+        "checksum": {
+          "value": {
+            "algorithm": "SHA-256",
+            "hex": "ef6fbff600e5895727d98181b4667b633025ff1ac698330306a172d5992d51c2",
+            "scope": "metadata-response",
+            "bytes": 24761
+          },
+          "status": "COMPUTED",
+          "source": "retrieved-response-bytes"
+        },
+        "verificationStatus": {
+          "value": "PAGE_RETRIEVED_NOT_INTERPRETED",
+          "status": "SOURCE_REPORTED",
+          "source": "https://storms.ngs.noaa.gov/storms/2025_eri/index.html"
+        }
+      },
+      "limitations": [
+        "Metadata verification does not establish dataset completeness, accuracy, currency or regulatory acceptance.",
+        "Checksums cover retrieved metadata bytes, not dataset assets."
+      ],
+      "responseFile": "005-metadata.bin"
+    },
+    {
+      "id": "lance-flood",
+      "title": "NASA LANCE Flood",
+      "category": "observed-flood",
+      "sourceUrl": "https://lance.modaps.eosdis.nasa.gov/flood/",
+      "resolvedUrl": "https://lance.modaps.eosdis.nasa.gov/flood/",
+      "recordType": "page",
+      "fields": {
+        "serviceId": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "layerId": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "geographicCoverage": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "acquisitionDate": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "publicationDate": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "retrievalTime": {
+          "value": "2026-11-08T17:41:22.106675Z",
+          "status": "RECORDED",
+          "source": "harvester-clock"
+        },
+        "crs": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "verticalDatum": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "units": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "accessRequirements": {
+          "value": {
+            "metadata": "retrieved without credentials",
+            "dataDownload": null,
+            "license": null
+          },
+          "status": "SOURCE_REPORTED",
+          "source": "https://lance.modaps.eosdis.nasa.gov/flood/"
+        },
+        "checksum": {
+          "value": {
+            "algorithm": "SHA-256",
+            "hex": "020ce34b96519e8a4a68a2679de6408cb0ef07eaed6520f538022d70e1ca452e",
+            "scope": "metadata-response",
+            "bytes": 14492
+          },
+          "status": "COMPUTED",
+          "source": "retrieved-response-bytes"
+        },
+        "verificationStatus": {
+          "value": "PAGE_RETRIEVED_NOT_INTERPRETED",
+          "status": "SOURCE_REPORTED",
+          "source": "https://lance.modaps.eosdis.nasa.gov/flood/"
+        }
+      },
+      "limitations": [
+        "Metadata verification does not establish dataset completeness, accuracy, currency or regulatory acceptance.",
+        "Checksums cover retrieved metadata bytes, not dataset assets."
+      ],
+      "responseFile": "006-metadata.bin"
+    },
+    {
+      "id": "hls",
+      "title": "NASA HLS",
+      "category": "reflectance",
+      "sourceUrl": "https://hls.gsfc.nasa.gov/",
+      "resolvedUrl": "https://hls.gsfc.nasa.gov/",
+      "recordType": "page",
+      "fields": {
+        "serviceId": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "layerId": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "geographicCoverage": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "acquisitionDate": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "publicationDate": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "retrievalTime": {
+          "value": "2026-11-08T17:41:26.497910Z",
+          "status": "RECORDED",
+          "source": "harvester-clock"
+        },
+        "crs": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "verticalDatum": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "units": {
+          "value": null,
+          "status": "UNKNOWN",
+          "source": null
+        },
+        "accessRequirements": {
+          "value": {
+            "metadata": "retrieved without credentials",
+            "dataDownload": null,
+            "license": null
+          },
+          "status": "SOURCE_REPORTED",
+          "source": "https://hls.gsfc.nasa.gov/"
+        },
+        "checksum": {
+          "value": {
+            "algorithm": "SHA-256",
+            "hex": "77e2256c072d2560b286bdf55747dc869dc620fb40b3204fd04fb82c7ea6876f",
+            "scope": "metadata-response",
+            "bytes": 53929
+          },
+          "status": "COMPUTED",
+          "source": "retrieved-response-bytes"
+        },
+        "verificationStatus": {
+          "value": "PAGE_RETRIEVED_NOT_INTERPRETED",
+          "status": "SOURCE_REPORTED",
+          "source": "https://hls.gsfc.nasa.gov/"
+        }
+      },
+      "limitations": [
+        "Metadata verification does not establish dataset completeness, accuracy, currency or regulatory acceptance.",
+        "Checksums cover retrieved metadata bytes, not dataset assets."
+      ],
+      "responseFile": "007-metadata.bin"
+    }
+  ]
+}

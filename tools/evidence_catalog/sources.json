@@ -1,0 +1,74 @@
+[
+  {
+    "id": "in-buildings",
+    "title": "Indiana Building Footprints 2016\u20132020",
+    "category": "buildings",
+    "type": "arcgis-layer",
+    "url": "https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0?f=json",
+    "serviceId": "Hosted/Building_Footprints",
+    "layerId": 0
+  },
+  {
+    "id": "in-parcels",
+    "title": "Indiana Current Parcels",
+    "category": "parcels",
+    "type": "arcgis-service",
+    "url": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_Current/FeatureServer?f=json",
+    "serviceId": "Hosted/Parcel_Boundaries_of_Indiana_Current",
+    "layerId": null
+  },
+  {
+    "id": "fema-nfhl",
+    "title": "FEMA NFHL",
+    "category": "regulatory-flood",
+    "type": "arcgis-service",
+    "url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer?f=json",
+    "serviceId": "public/NFHL",
+    "layerId": null
+  },
+  {
+    "id": "nfhl-viewer",
+    "title": "NFHL Web Experience",
+    "category": "viewer",
+    "type": "arcgis-item",
+    "url": "https://www.arcgis.com/sharing/rest/content/items/9d22cdae8b7542b88e0d555a3eb92949?f=json",
+    "serviceId": "9d22cdae8b7542b88e0d555a3eb92949",
+    "layerId": null
+  },
+  {
+    "id": "indianamap",
+    "title": "IndianaMap Dashboard",
+    "category": "dashboard",
+    "type": "arcgis-item",
+    "url": "https://www.arcgis.com/sharing/rest/content/items/10d377fea85d4a8a8a378617766d9f92?f=json",
+    "serviceId": "10d377fea85d4a8a8a378617766d9f92",
+    "layerId": null
+  },
+  {
+    "id": "ngs-2025",
+    "title": "NGS 2025 Emergency Imagery",
+    "category": "event-imagery",
+    "type": "page",
+    "url": "https://storms.ngs.noaa.gov/storms/2025_eri/index.html",
+    "serviceId": null,
+    "layerId": null
+  },
+  {
+    "id": "lance-flood",
+    "title": "NASA LANCE Flood",
+    "category": "observed-flood",
+    "type": "page",
+    "url": "https://lance.modaps.eosdis.nasa.gov/flood/",
+    "serviceId": null,
+    "layerId": null
+  },
+  {
+    "id": "hls",
+    "title": "NASA HLS",
+    "category": "reflectance",
+    "type": "page",
+    "url": "https://hls.gsfc.nasa.gov/",
+    "serviceId": null,
+    "layerId": null
+  }
+]
