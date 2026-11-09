@@ -98,3 +98,69 @@ binary and it is not automatically a public production deployment.
 - Park & Guldmann (2019), *Creating 3D city models with building footprints
   and LIDAR point cloud classification*, Computers, Environment and Urban
   Systems 75, 76–89. Rooftop filtering matters for height quality.
+
+## Stage C: independent rooftop checkpoint residuals (proposed gate)
+
+`scripts/geospatial/validate_mount_vernon_roof_checkpoints.py` compares
+**representative median rooftop elevations** against independently supplied
+control values on the same NAVD88 orthometric basis. A roof ridge, eave, one
+surveyed point, or top-of-parapet measurement cannot be compared directly with
+a footprint's representative median. Independent control acquisition and
+methodological equivalence must be reviewed by a qualified geospatial
+professional.
+
+The checkpoint JSON input must contain `schema:
+tsm.mount-vernon-roof-checkpoints.v1`, `vertical_datum: NAVD88`,
+`height_type: ORTHOMETRIC`, `measurement_target:
+ROOF_REPRESENTATIVE_MEDIAN`, `units: m` or `ftUS`, a distinct
+`survey_source_sha256`, `survey_datum_metadata_sha256`, and a
+`checkpoints` array of `point_id`, `tsm_id`, and
+`roof_elevation`. The source hash must differ from both the
+roof and ground dataset hashes. The tool rejects duplicates, missing
+identities, unsupported measurement targets, non-finite heights, and
+undocumented units.
+
+Example, with **project-approved thresholds chosen from an external
+accuracy specification** (the numeric arguments here are illustrative
+ONLY, not engineering acceptance criteria):
+
+```bash
+python scripts/geospatial/validate_mount_vernon_roof_checkpoints.py \
+  --derived derived.json --checkpoints independent-checkpoints.json \
+  --output roof-control-report.json \
+  --min-checkpoints 30 --min-coverage-fraction 0.05 \
+  --max-rmse-m 0.30 --max-abs-error-m 1.0
+```
+
+The report gives RMSE, signed mean error (bias), maximum absolute error,
+empirical P95 absolute error, number of checks, and fraction of modeled
+buildings independently checked. **P95 is not LE95**, and neither
+statistical acceptance nor self-declared source hashes authenticate a survey
+or establish a regulatory grade. Checkpoint sampling must be spatially
+stratified, independent, and appropriate for the engineering use case;
+a handful of synthetic passing tests proves only program logic.
+
+The script exits with status 2 if thresholds are not met, and always
+emits `engineering_approved: false` and
+`source_provenance_authenticated: false`. No real field checkpoint
+file has been processed in CI.
+
+## Actual 2020 Posey data acquisition
+
+The Indiana Spatial Data Portal lists the **2020 MOUNT VERNON quadrangle**
+classified LiDAR in LAS format (Posey County, USGS quad `37087-h8`).
+Its item currently says a login is required to submit a download request:
+https://gis.iu.edu/s/isdp/item/86442
+
+The program-level catalog lists Posey among the **2020** acquisition
+counties and describes county mosaicked hydro-flattened bare-earth DEMs,
+LAS point clouds and breaklines:
+https://gis.iu.edu/s/isdp/page/20162020elevation
+
+The 2020 acquisition year and catalog horizontal CRS are **not** enough
+to establish a particular LAS tile's vertical datum, survey quality,
+roof classification suitability, or redistributability. A map or
+research memo is not a substitute for the actual DEM and LAS files.
+Before generating LOD2, obtain the actual source bytes, survey/flight
+metadata and LAS headers, validate the source-specific vertical datum,
+and record independent field-control evidence.
