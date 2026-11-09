@@ -1,0 +1,68 @@
+name: TSM Merkle Evidence and Integrity
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/merkle_evidence.py'
+      - 'backend/tests/test_merkle_evidence.py'
+      - 'backend/regulatory_authority_boundary.py'
+      - 'backend/tests/test_regulatory_authority_boundary.py'
+      - 'docs/evidence/POSEY-LIVE-CANDIDATE-RETRIEVAL-2026-11-09.json'
+      - 'docs/governance/SCIENTIFIC-AUTHORITY-AND-AGENCY-DECISION-GATES.md'
+      - '.github/workflows/merkle-evidence.yml'
+  pull_request:
+    paths:
+      - 'backend/merkle_evidence.py'
+      - 'backend/tests/test_merkle_evidence.py'
+      - 'backend/regulatory_authority_boundary.py'
+      - 'backend/tests/test_regulatory_authority_boundary.py'
+      - '.github/workflows/merkle-evidence.yml'
+permissions:
+  contents: read
+jobs:
+  evidence-merkle:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Compile Python Merkle and regulatory modules
+        run: python -m py_compile backend/merkle_evidence.py backend/regulatory_authority_boundary.py
+      - name: Run standard Merkle and agency boundary contract tests
+        run: python -m unittest backend.tests.test_merkle_evidence backend.tests.test_regulatory_authority_boundary -v
+      - name: Commit available source, science, governance and receipt artifacts
+        run: |
+          python -m backend.merkle_evidence build --root . \
+            --artifact source data/buildings/POSEY-ARCHIVED-IGIO-IDENTITY-DELTA-2026-10-25.json \
+            --artifact source docs/evidence/POSEY-LIVE-CANDIDATE-RETRIEVAL-2026-11-09.json \
+            --artifact science backend/hydrologic_coupling_acceptance.py \
+            --artifact governance backend/regulatory_authority_boundary.py \
+            --artifact geospatial scripts/geospatial/reconcile_published_buildings.py \
+            --artifact governance docs/governance/SCIENTIFIC-AUTHORITY-AND-AGENCY-DECISION-GATES.md \
+            --output "${RUNNER_TEMP}/tsm-evidence-merkle.json"
+          python -m backend.merkle_evidence verify --root . \
+            --manifest "${RUNNER_TEMP}/tsm-evidence-merkle.json"
+          python -m backend.merkle_evidence prove \
+            --manifest "${RUNNER_TEMP}/tsm-evidence-merkle.json" \
+            --role source --path docs/evidence/POSEY-LIVE-CANDIDATE-RETRIEVAL-2026-11-09.json \
+            --output "${RUNNER_TEMP}/posey-receipt-inclusion-proof.json"
+          python - <<'PY'
+          import json,os,pathlib
+          from backend.merkle_evidence import verify_item_proof
+          root=pathlib.Path(os.environ["RUNNER_TEMP"])
+          proof=json.loads((root/"posey-receipt-inclusion-proof.json").read_text())
+          assert verify_item_proof(proof), "Merkle inclusion proof failed"
+          print("MERKLE_PROOF_PASS", proof["rootSha256"])
+          PY
+      - name: Publish deterministic Merkle manifest and inclusion proof
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: tsm-merkle-evidence-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/tsm-evidence-merkle.json
+            ${{ runner.temp }}/posey-receipt-inclusion-proof.json
+          retention-days: 90
+          if-no-files-found: error
