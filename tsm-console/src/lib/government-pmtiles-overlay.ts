@@ -20,14 +20,23 @@ import {
  * camera and all independent layers continue when these checks do not pass.
  */
 type AvailableArchive = GovernmentSnapshotDescriptor & {historical: boolean};
-type SourceEvent = {
-  status: GovernmentSnapshotPresentation;
+export const GOVERNMENT_SCENE_STATUS_EVENT = 'tsm:government-scene-status';
+export type GovernmentSceneDetail = {
+  status: GovernmentSnapshotPresentation | 'CHECKING_GOVERNMENT_SNAPSHOT';
   source: string|null;
   capturedAt: string|null;
   agency: string|null;
+  sourceVersion: string|null;
+  datasetId: string|null;
+  validation: string|null;
+  tilesSha256: string|null;
+  sourceSha256: string|null;
   merkleRootSha256: string|null;
+  archiveBytesVerified: boolean;
+  sourceBytesIndependentlyVerified: boolean;
   authoritativeEngineeringUse: false;
   regulatoryApproval: false;
+  reason: string;
 };
 const SHA=/^[0-9a-f]{64}$/;
 
@@ -66,22 +75,34 @@ function environmentFallbacks():AvailableArchive[]{
   }
 }
 
-function announce(event:SourceEvent):void{
-  window.dispatchEvent(new CustomEvent<SourceEvent>('tsm:government-scene-status',{detail:event}));
+function announce(event:GovernmentSceneDetail):void{
+  window.dispatchEvent(new CustomEvent<GovernmentSceneDetail>(GOVERNMENT_SCENE_STATUS_EVENT,{detail:event}));
 }
 
 function statusDetail(
   status:GovernmentSnapshotPresentation,
   context?:AvailableArchive,
-  root?:string
-):SourceEvent{
+  manifest?:GovernmentTileManifest & GovernmentReleaseReceipt,
+  archiveVerified=false
+):GovernmentSceneDetail{
   return {
     status,source:context?.sourceRecordUrl??null,
     capturedAt:context?.capturedAt??null,
     agency:context?.agency??null,
-    merkleRootSha256:root??null,
-    authoritativeEngineeringUse:false,
-    regulatoryApproval:false,
+    sourceVersion:manifest?.sourceVersion??null,
+    datasetId:manifest?.datasetId??null,
+    validation:manifest?.validation??null,
+    tilesSha256:manifest?.tilesSha256??null,
+    sourceSha256:manifest?.sourceSha256??null,
+    merkleRootSha256:manifest?.merkleRootSha256??null,
+    archiveBytesVerified:archiveVerified,
+    sourceBytesIndependentlyVerified:false,
+    authoritativeEngineeringUse:false,regulatoryApproval:false,
+    reason:status==='HISTORICAL_GOVERNMENT_FALLBACK'
+      ?'Older government archive selected using a versioned release receipt and build-pinned Merkle root. Not live or a regulatory determination.'
+      :status==='CURRENT_GOVERNMENT_SNAPSHOT'
+        ?'Dated government snapshot available. Dataset content and live agency status are evaluated separately.'
+        :'Government archive unavailable; the 3D scene, offline tiles and other layers remain usable.',
   };
 }
 
@@ -142,7 +163,7 @@ export function attachGovernmentPmtilesLayer(map:MapLibreMap):()=>void{
         });
         sourceId=ids.sourceId;layerId=ids.layerId;
         announce(statusDetail(historical?'HISTORICAL_GOVERNMENT_FALLBACK':'CURRENT_GOVERNMENT_SNAPSHOT',
-                              context,manifest.merkleRootSha256));
+                              context,manifest));
         return;
       }catch(error){
         if(!controller.signal.aborted)
