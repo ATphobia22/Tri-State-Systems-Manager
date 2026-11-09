@@ -34,11 +34,11 @@ def _sha(data: bytes) -> bytes:
 
 
 def _node(left: bytes, right: bytes) -> bytes:
-    return _sha(b"\\x01" + left + right)
+    return _sha(b"\x01" + left + right)
 
 
 def _leaf(data: bytes) -> bytes:
-    return _sha(b"\\x00" + data)
+    return _sha(b"\x00" + data)
 
 
 def _cut(size: int) -> int:
@@ -248,7 +248,7 @@ def main() -> int:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         with args.output.open("x", encoding="utf8") as stream:
             json.dump(manifest, stream, sort_keys=True, indent=2)
-            stream.write("\\n")
+            stream.write("\n")
         print(manifest["merkleRootSha256"])
         return 0
     if args.command == "verify":
@@ -259,7 +259,7 @@ def main() -> int:
                         role=args.role, path=args.path)
     with args.output.open("x", encoding="utf8") as stream:
         json.dump(result, stream, sort_keys=True, indent=2)
-        stream.write("\\n")
+        stream.write("\n")
     return 0
 
 
