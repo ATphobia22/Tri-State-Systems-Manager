@@ -85,7 +85,7 @@ jobs:
           cache-dependency-path: tsm-console/package-lock.json
       - name: Install pinned client dependencies
         working-directory: tsm-console
-        run: npm ci --no-audit --no-fund
+        run: npm ci --no-audit --no-fund --registry=https://registry.npmjs.org
       - name: Validate cross-language Merkle inclusion proofs
         working-directory: tsm-console
         run: npm exec -- vitest run tests/merkle-evidence-verifier.test.ts
