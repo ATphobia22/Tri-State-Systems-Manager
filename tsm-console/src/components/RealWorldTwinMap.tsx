@@ -443,24 +443,24 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
             {governmentScene.status === 'HISTORICAL_GOVERNMENT_FALLBACK'
               ? 'HISTORICAL GOVERNMENT SNAPSHOT — NOT LIVE'
               : governmentScene.status === 'CURRENT_GOVERNMENT_SNAPSHOT'
-                ? 'DATED GOVERNMENT SNAPSHOT — ARCHIVE VERIFIED'
+                ? 'DATED GOVERNMENT SNAPSHOT — VIEWING CONTEXT'
                 : governmentScene.status === 'CHECKING_GOVERNMENT_SNAPSHOT'
                   ? 'Checking government archives…'
                   : 'Government archive unavailable — 3D twin remains usable'}
           </strong>
           <div>{governmentScene.reason}</div>
-          {governmentScene.archiveBytesVerified && (
+          {governmentScene.status !== 'NO_GOVERNMENT_SNAPSHOT' && governmentScene.status !== 'CHECKING_GOVERNMENT_SNAPSHOT' && (
             <>
               <div><strong>Source:</strong> {governmentScene.agency ?? 'Unspecified agency'} · {governmentScene.datasetId ?? 'Unknown dataset'}</div>
               <div><strong>Retrieved:</strong> {governmentScene.capturedAt ?? 'Not evidenced'} · <strong>Source version:</strong> {governmentScene.sourceVersion ?? 'Not evidenced'}</div>
-              <div><strong>Archive integrity:</strong> SHA-256 verified · <strong>Field validation:</strong> {governmentScene.validation ?? 'Not evidenced'}</div>
+              <div><strong>Archive integrity:</strong> {governmentScene.archiveBytesVerified ? 'Runtime SHA-256 verified' : 'Build-pinned Merkle receipt; runtime bytes not independently hashed'} · <strong>Field validation:</strong> {governmentScene.validation ?? 'Not evidenced'}</div>
               {governmentScene.source && <a href={governmentScene.source} target="_blank" rel="noopener noreferrer"
                 style={{ color: '#93c5fd' }}>Source record / provenance</a>}
               <details style={{ marginTop: 4 }}>
                 <summary>Exact provenance digests</summary>
                 <div>Archive SHA-256: <code>{governmentScene.tilesSha256}</code></div>
                 <div>Source digest (declared; original bytes not re-verified): <code>{governmentScene.sourceSha256}</code></div>
-                <div>Merkle root (if supplied; trust anchor not authenticated): <code>{governmentScene.merkleRootSha256 ?? 'Not supplied'}</code></div>
+                <div>Merkle root (release pin expected for historical snapshots): <code>{governmentScene.merkleRootSha256 ?? 'Not supplied'}</code></div>
               </details>
             </>
           )}
