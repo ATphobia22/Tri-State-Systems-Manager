@@ -118,6 +118,8 @@ def collect_layer(kind: str, service: str, bbox: tuple[float, float, float, floa
             identity = f"IGIO:{kind}:{raw_oid}"
             source_hash = digest(canonical(feature))
             name = props.get("st_name", props.get("ST_NAME")) if kind == "road" else None
+            source_lidar_year = props.get("lidaryear", props.get("LidarYear")) if kind == "building" else None
+            source_county = props.get("county", props.get("County"))
             results.append({
                 "type": "Feature", "id": identity, "geometry": feature["geometry"],
                 "properties": {
@@ -125,6 +127,8 @@ def collect_layer(kind: str, service: str, bbox: tuple[float, float, float, floa
                     "source_objectid": raw_oid,
                     "kind": kind,
                     "name": str(name)[:180] if name is not None else None,
+                    "source_lidar_year": str(source_lidar_year)[:32] if source_lidar_year is not None else None,
+                    "source_county": str(source_county)[:80] if source_county is not None else None,
                     "height_m": None, "height_status": "NOT_EVIDENCED",
                     "source_url": service, "source_feature_sha256": source_hash,
                     "evidence_status": "SOURCE_OBSERVED_UNREVIEWED",
@@ -142,6 +146,7 @@ def collect_layer(kind: str, service: str, bbox: tuple[float, float, float, floa
         "output_crs": "EPSG:4326",
         "acquisition_date": "2016-2020" if kind == "building" else "2024",
         "vertical_datum": "NOT_APPLICABLE_2D",
+        "data_use_terms": "REQUIRE_SOURCE_TERMS_CONFIRMATION_BEFORE_REDISTRIBUTION",
         "approval": "NOT_EVIDENCED",
     }
 
