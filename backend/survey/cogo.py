@@ -15,6 +15,7 @@ and do not guess a frame.
 
 from __future__ import annotations
 
+import math
 from collections.abc import Sequence
 from typing import Any
 
@@ -40,7 +41,7 @@ def _point(value: Sequence[float] | Point2D, name: str) -> Point2D:
     if len(value) < 2:
         raise ValueError(f"{name} must contain x and y")
     x, y = float(value[0]), float(value[1])
-    if x != x or y != y:  # NaN guard — never let a NaN become a coordinate
+    if not (math.isfinite(x) and math.isfinite(y)):  # Reject NaN and +/-Infinity
         raise ValueError(f"{name} contains a non-finite coordinate")
     return (x, y)
 
@@ -76,6 +77,8 @@ def forward(
     """Forward: point at ``distance`` along ``azimuth_deg`` from ``point``."""
     ps = load_pysurveying()
     origin = _point(point, "point")
+    if not math.isfinite(float(azimuth_deg)) or not math.isfinite(float(distance)):
+        raise ValueError("azimuth_deg and distance must be finite")
     if distance < 0:
         raise ValueError("distance must be non-negative")
     x, y = ps.basic.forward_coordinate(
