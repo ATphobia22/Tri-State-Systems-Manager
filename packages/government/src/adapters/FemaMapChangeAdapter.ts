@@ -1,4 +1,4 @@
-import { queryGovernmentJson, type EvidenceEnvelope } from '../index.ts';
+import { queryGovernmentJson, sha256, type EvidenceEnvelope } from '../index.ts';
 
 /** FEMA effective NFHL map-layer discovery; NOT a determination or full MSC case search. */
 export class FemaMapChangeAdapter {
@@ -12,7 +12,8 @@ export class FemaMapChangeAdapter {
    (kind==='LOMR'?/LOMR|letter.*map.*revision/i:/LOMA|letter.*map.*amendment/i).test(l.name));
   const result={kind,matches,service:this.endpoint};
   // Reuse evidence from the source metadata fetch; source output is still UNVERIFIED.
-  return {...catalog,result,hash:catalog.hashes.output} as unknown as EvidenceEnvelope<typeof result>;
+  const outputHash=sha256(result);
+  return {...catalog,result,hash:outputHash,hashes:{...catalog.hashes,output:outputHash},provenance:{...catalog.provenance,outputHash}};
  }
  async queryCase(kind:'LOMA'|'LOMR',layerId:number,field:string,value:string,options:{fetcher?:typeof fetch;signal?:AbortSignal;timeoutMs?:number}={}):Promise<EvidenceEnvelope<Record<string,unknown>>> {
   const catalog=await this.discover(kind,options);
