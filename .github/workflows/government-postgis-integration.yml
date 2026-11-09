@@ -1,0 +1,122 @@
+name: Government PostGIS and GDAL Integration
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/government/sql/**'
+      - 'packages/government/scripts/verify-postgis.py'
+      - 'packages/government/scripts/persist_verified_geojson.py'
+      - 'packages/government/scripts/transform_geojson_gdal.py'
+      - 'backend/tests/test_government_postgis_import.py'
+      - 'backend/tests/test_government_gdal_transform.py'
+      - '.github/workflows/government-postgis-integration.yml'
+permissions:
+  contents: read
+concurrency:
+  group: government-postgis-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  postgis-integration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgis:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: tsm_government
+          POSTGRES_DB: tsm_government
+          POSTGRES_PASSWORD: tsm-test-only-${{ github.run_id }}
+        ports:
+          - 5439:5432
+        options: >-
+          --health-cmd "pg_isready -U tsm_government -d tsm_government"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      TSM_POSTGIS_DSN: postgresql://tsm_government:tsm-test-only-${{ github.run_id }}@127.0.0.1:5439/tsm_government
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # pinned
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # pinned
+        with:
+          python-version: '3.12'
+      - run: python -m pip install 'psycopg[binary]>=3.2,<4' pytest
+      - name: Compile source and tests
+        run: |
+          python -m py_compile packages/government/scripts/{verify-postgis,persist_verified_geojson,transform_geojson_gdal}.py
+          python -m py_compile backend/tests/{test_government_postgis_import,test_government_gdal_transform}.py
+      - name: Apply both source and append-only evidence migrations
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import os, psycopg
+          with psycopg.connect(os.environ['TSM_POSTGIS_DSN']) as conn:
+              for version in ('001_government_fabric_postgis.sql','002_government_evidence_ledger.sql'):
+                  conn.execute((Path('packages/government/sql') / version).read_text())
+          print('MIGRATIONS_APPLIED')
+          PY
+      - name: Run live PostGIS and unit contract tests
+        run: |
+          python packages/government/scripts/verify-postgis.py
+          python -m pytest -q backend/tests/test_government_postgis_import.py backend/tests/test_government_gdal_transform.py
+      - name: Verify source feature and immutable evidence transaction
+        run: |
+          python - <<'PY'
+          import hashlib,json,os,pathlib,tempfile,subprocess,sys
+          import psycopg
+          with tempfile.TemporaryDirectory() as d:
+              root=pathlib.Path(d)
+              feature={'type':'FeatureCollection','features':[{'type':'Feature','id':'ci-fixture','properties':{'synthetic':True},'geometry':{'type':'Point','coordinates':[-87.9,37.9]}}]}
+              raw=json.dumps(feature,separators=(',',':')).encode()
+              src=root/'fixture.geojson'; src.write_bytes(raw)
+              meta={'datasetId':'tsm-ci-synthetic-fixture','authority':'FEMA','sourceId':'fema-nfhl','sourceVersion':'CI_ONLY_SYNTHETIC_NOT_GOVERNMENT_DATA','classification':'DERIVED','sourceUrl':'https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer','retrievedAt':'2026-11-09T00:00:00Z','horizontalCrs':'EPSG:4326','validationStatus':'PASS','mediaType':'application/geo+json','attribution':'Synthetic CI test only; NOT FEMA data','license':'Test fixture','byteLength':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}
+              manifest=root/'fixture.manifest.json';manifest.write_text(json.dumps(meta))
+              subprocess.run([sys.executable,'packages/government/scripts/persist_verified_geojson.py',str(src),str(manifest)],check=True)
+              with psycopg.connect(os.environ['TSM_POSTGIS_DSN']) as db:
+                  a=db.execute("SELECT validation_status,authorization_status FROM government.dataset WHERE dataset_id='tsm-ci-synthetic-fixture'").fetchone()
+                  assert a==('PASS','NOT_EVIDENCED'),a
+                  n=db.execute("SELECT count(*) FROM government.feature WHERE dataset_id='tsm-ci-synthetic-fixture'").fetchone()[0]
+                  assert n==1,n
+                  m=db.execute("SELECT count(*) FROM government.evidence_event WHERE dataset_id='tsm-ci-synthetic-fixture'").fetchone()[0]
+                  assert m==1,m
+                  try:
+                      db.execute("DELETE FROM government.evidence_event WHERE dataset_id='tsm-ci-synthetic-fixture'")
+                  except psycopg.errors.RaiseException as ex:
+                      assert 'EVIDENCE_EVENTS_ARE_APPEND_ONLY' in str(ex)
+                      db.rollback()
+                  else:
+                      raise AssertionError('evidence ledger permitted deletion')
+              print('PASS: transaction committed, SRID evidence persisted and ledger remains append only')
+          PY
+
+  gdal-vector-integration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # pinned
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # pinned
+        with:
+          python-version: '3.12'
+      - name: Install system GDAL
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y gdal-bin
+          ogr2ogr --version
+      - name: Execute real GDAL conversion of synthetic CI geometry
+        run: |
+          python - <<'PY'
+          import hashlib,json,pathlib,subprocess,sys,tempfile
+          with tempfile.TemporaryDirectory() as d:
+              root=pathlib.Path(d)
+              payload={'type':'FeatureCollection','features':[{'type':'Feature','properties':{'ci_only':True},'geometry':{'type':'Point','coordinates':[-87.9,37.9]}}]}
+              raw=json.dumps(payload).encode()
+              f=root/'in.geojson';f.write_bytes(raw)
+              manifest={'horizontalCrs':'EPSG:4326','sourceVersion':'CI_SYNTHETIC','sha256':hashlib.sha256(raw).hexdigest(),'byteLength':len(raw)}
+              meta=root/'in.manifest.json';meta.write_text(json.dumps(manifest))
+              output=root/'out.geojson'
+              subprocess.run([sys.executable,'packages/government/scripts/transform_geojson_gdal.py',str(f),str(meta),str(output)],check=True)
+              outmeta=json.loads(pathlib.Path(str(output)+'.manifest.json').read_text())
+              assert outmeta['validationStatus']=='UNVERIFIED'
+              assert outmeta['horizontalCrs']=='EPSG:4326'
+              assert outmeta['derivedFromSha256']==manifest['sha256']
+              print('PASS: ogr2ogr executed; new output remains UNVERIFIED')
+          PY
