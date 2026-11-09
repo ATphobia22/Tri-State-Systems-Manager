@@ -5,6 +5,7 @@ export type CitySelection = {
   id: string; kind: 'building' | 'road'; objectid: number; name: string | null;
   source: string; sourceFeatureSha256: string; sourceSceneSha256: string;
   heightM: number | null; evidenceStatus: string; engineeringApproved: false;
+  county: string | null; lidarYear: string | null;
 };
 export const MOUNT_VERNON_CITY_EVENT = 'tsm:mount-vernon-city';
 export type CityEvent = { status: CitySceneStatus; reason: string; counts?: { buildings: number; roads: number }; selection?: CitySelection | null };
@@ -178,6 +179,8 @@ export async function attachMountVernonCityScene(map: MapLibreMap, baseUrl: stri
         name: typeof p.name === 'string' ? p.name : null, source: String(p.source_url),
         sourceFeatureSha256: String(p.source_feature_sha256), sourceSceneSha256: receipt.sha256,
         heightM: null, evidenceStatus: String(p.evidence_status), engineeringApproved: false,
+        county: typeof p.source_county === 'string' ? p.source_county : null,
+        lidarYear: typeof p.source_lidar_year === 'string' ? p.source_lidar_year : null,
       };
       emit({ status: 'READY_REFERENCE', reason: 'Selected government source geometry; not surveyed.', selection });
     };
