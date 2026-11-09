@@ -82,7 +82,7 @@ export class GovernmentFabric {
   }
   getAlerts(state){return this.request("noaa.alerts",`https://api.weather.gov/alerts/active?area=${assertState(state)}`);}
   getLatestObservation(stationId){return this.request("noaa.observations",`https://api.weather.gov/stations/${assertStation(stationId)}/observations/latest`);}
-  getStation(stationId){return this.request("usgs.streamgages",`https://waterservices.usgs.gov/nwis/site/?format=rdb&sites=${assertStation(stationId)}`);}
+  getStation(stationId){return this.request("usgs.streamgages",`https://waterservices.usgs.gov/nwis/site/?format=json&sites=${assertStation(stationId)}`);}
   getInstantaneousValues(stationId){return this.request("usgs.streamgages",`https://waterservices.usgs.gov/nwis/iv/?format=json&sites=${assertStation(stationId)}`);}
   searchElevationProducts(bbox){
     const nums=Array.isArray(bbox)?bbox:String(bbox).split(",").map(Number);
