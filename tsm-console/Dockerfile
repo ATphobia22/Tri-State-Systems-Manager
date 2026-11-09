@@ -23,6 +23,9 @@ COPY data/schemas/flood-sim-scenario.schema.json /app/data/schemas/flood-sim-sce
 COPY artifacts/tsm-geospatial-tile-fabric-v1.json \
      artifacts/tsm-river-valley-realtime-stations-v1.json \
      /app/artifacts/
+# Vite's government PMTiles overlay imports the canonical root package;
+# mirror this source into the build stage, preserving its relative import path.
+COPY packages/government/src/ /app/packages/government/src/
 RUN npm run build
 
 FROM node:22-alpine AS runtime
