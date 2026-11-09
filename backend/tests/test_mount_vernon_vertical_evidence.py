@@ -80,3 +80,25 @@ def test_duplicate_objectids_fail():
     data["records"].append(copy.deepcopy(data["records"][0]))
     with pytest.raises(ValueError, match="DUPLICATE"):
         m.reconcile(data)
+
+
+def test_scene_source_identity_and_hash_required():
+    data = fixture()
+    scene = {"schema": "tsm.mount-vernon-city-scene.v1",
+             "buildings": {"type": "FeatureCollection", "features": [{
+                 "type": "Feature", "id": "IGIO:building:42",
+                 "properties": {"tsm_id": "IGIO:building:42",
+                                "source_feature_sha256": "d" * 64},
+             }]}}
+    m.validate_scene_bindings(data, scene)
+    data["records"][0]["source_feature_sha256"] = "e" * 64
+    with pytest.raises(ValueError, match="SCENE_SOURCE_ID_OR_HASH_MISMATCH"):
+        m.validate_scene_bindings(data, scene)
+
+
+def test_scene_missing_building_id_rejected():
+    data = fixture()
+    scene = {"schema": "tsm.mount-vernon-city-scene.v1",
+             "buildings": {"type": "FeatureCollection", "features": []}}
+    with pytest.raises(ValueError, match="SCENE_SOURCE_ID_OR_HASH_MISMATCH"):
+        m.validate_scene_bindings(data, scene)
