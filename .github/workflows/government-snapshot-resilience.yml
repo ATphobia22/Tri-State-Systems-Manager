@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - 'tsm-console/src/lib/government-snapshot-policy.ts'
+      - 'tsm-console/src/lib/government-snapshot-byte-verifier.ts'
+      - 'tsm-console/tests/government-snapshot-byte-verifier.test.mjs'
       - 'tsm-console/src/lib/government-pmtiles-overlay.ts'
       - 'tsm-console/src/components/RealWorldTwinMap.tsx'
       - 'tsm-console/tests/government-snapshot-policy.test.mjs'
@@ -12,6 +14,8 @@ on:
   pull_request:
     paths:
       - 'tsm-console/src/lib/government-snapshot-policy.ts'
+      - 'tsm-console/src/lib/government-snapshot-byte-verifier.ts'
+      - 'tsm-console/tests/government-snapshot-byte-verifier.test.mjs'
       - 'tsm-console/src/lib/government-pmtiles-overlay.ts'
       - 'tsm-console/src/components/RealWorldTwinMap.tsx'
       - 'tsm-console/tests/government-snapshot-policy.test.mjs'
@@ -28,7 +32,7 @@ jobs:
         with:
           node-version: '22'
       - name: Execute no-promotion, date, source and Merkle-pinning tests
-        run: node --experimental-strip-types --test tsm-console/tests/government-snapshot-policy.test.mjs
+        run: node --experimental-strip-types --test tsm-console/tests/government-snapshot-policy.test.mjs tsm-console/tests/government-snapshot-byte-verifier.test.mjs
       - name: Verify UI binds real provenance
         run: |
           python3 - <<'PY'
