@@ -52,6 +52,31 @@ class CouplingAcceptanceContractTests(unittest.TestCase):
         self.assertFalse(checked["regulatoryApproval"])
         self.assertEqual(len(checked["solverChecks"]), 3)
         self.assertEqual(len(checked["exchangeChecks"]), 2)
+        self.assertEqual(len(checked["merkleRootSha256"]), 64)
+        self.assertEqual(checked["merkleAlgorithm"], "RFC9162-SHA256")
+        self.assertEqual(len(checked["merkleEvidenceLeaves"]), 7)
+        self.assertEqual(evaluate_coupling(copy.deepcopy(self.manifest))["merkleRootSha256"], checked["merkleRootSha256"])
+
+    def test_merkle_root_changes_when_report_changes(self):
+        first = evaluate_coupling(self.manifest)
+        changed = copy.deepcopy(self.manifest)
+        changed["runs"][1]["validation"]["benchmark"]["predicted"] = [1.12, 2.12, 3.12]
+        second = evaluate_coupling(changed)
+        self.assertNotEqual(first["merkleRootSha256"], second["merkleRootSha256"])
+
+    def test_merkle_root_ignores_workspace_parent_for_identical_model_data(self):
+        first = evaluate_coupling(self.manifest)
+        with tempfile.TemporaryDirectory() as other:
+            changed = copy.deepcopy(self.manifest)
+            for model in changed["runs"]:
+                for direction in ("inputs", "outputs"):
+                    for record in model[direction]:
+                        old = Path(record["path"])
+                        fresh = Path(other) / old.name
+                        fresh.write_bytes(old.read_bytes())
+                        record["path"] = str(fresh)
+            self.assertEqual(first["merkleRootSha256"],
+                             evaluate_coupling(changed)["merkleRootSha256"])
 
     def test_mass_balance_failure_blocks_coupling(self):
         payload = copy.deepcopy(self.manifest)
