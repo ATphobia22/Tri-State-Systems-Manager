@@ -41,6 +41,15 @@ class PoseyOfficialCandidateTests(unittest.TestCase):
         self.assertFalse(report["regulatoryUse"])
         self.assertEqual(report["validationStatus"], "UNVERIFIED")
         self.assertTrue(Path(str(self.out) + ".provenance.json").is_file())
+        from backend.merkle_evidence import canonical, verify_inclusion, tree_hash
+        leaves = report["merkleLeaves"]
+        root = tree_hash([canonical(x) for x in leaves]).hex()
+        self.assertEqual(root, report["merkleRootSha256"])
+        proof = report["candidateMerkleInclusionProof"]
+        candidate = leaves[proof["leafIndex"]]
+        self.assertEqual(candidate["sha256"], __import__("hashlib").sha256(self.out.read_bytes()).hexdigest())
+        self.assertTrue(verify_inclusion(canonical(candidate), proof["leafIndex"],
+                                         proof["treeSize"], proof["inclusionPath"], root))
 
     def test_wrong_county_is_rejected(self):
         def fetch(url: str) -> bytes:
