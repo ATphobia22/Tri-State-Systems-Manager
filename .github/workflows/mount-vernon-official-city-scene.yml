@@ -5,6 +5,18 @@ on:
   push:
     paths:
       - 'scripts/geospatial/build_mount_vernon_scene.py'
+      - 'scripts/geospatial/verify_mount_vernon_deployment.py'
+      - 'scripts/geospatial/reconcile_mount_vernon_vertical_evidence.py'
+      - 'backend/tests/test_mount_vernon_deployment.py'
+      - 'backend/tests/test_mount_vernon_vertical_evidence.py'
+      - '.github/workflows/mount-vernon-official-city-scene.yml'
+  pull_request:
+    paths:
+      - 'scripts/geospatial/build_mount_vernon_scene.py'
+      - 'scripts/geospatial/verify_mount_vernon_deployment.py'
+      - 'scripts/geospatial/reconcile_mount_vernon_vertical_evidence.py'
+      - 'backend/tests/test_mount_vernon_deployment.py'
+      - 'backend/tests/test_mount_vernon_vertical_evidence.py'
       - '.github/workflows/mount-vernon-official-city-scene.yml'
 
 permissions:
