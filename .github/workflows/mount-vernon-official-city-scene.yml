@@ -74,13 +74,13 @@ jobs:
 
       - name: Install console dependencies from lockfile
         working-directory: tsm-console
-        run: npm ci --no-audit --no-fund
+        run: npm ci --no-audit --no-fund --registry=https://registry.npmjs.org
 
       - name: Verify TypeScript city viewer contracts
         working-directory: tsm-console
         run: |
           npm run check:type
-          npx vitest run tests/mount-vernon-city-scene.test.ts
+          ./node_modules/.bin/vitest run tests/mount-vernon-city-scene.test.ts
           node --test tests/mount-vernon-city-scene-contract.test.mjs
 
       - name: Build playable web scene with embedded source archive
