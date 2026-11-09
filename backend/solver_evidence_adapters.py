@@ -113,3 +113,67 @@ def verify_bishop_result(*, result: Mapping[str, Any], solver_inputs: Mapping[st
         solver_version=str(result.get("method_version","unknown")),input_paths=input_artifact_paths,
         output_paths=[],output_digests=[inline_output],input_digests=[inline_input],convergence_evidence="deterministic replay matched solver result" if state==ExecutionState.VERIFIED else None,
         explicit_state=state,validation_messages=messages)
+
+
+def inspect_swmm_run(*, run_id: str, solver_version: str, input_file: str | Path,
+                     report_file: str | Path, output_file: str | Path,
+                     max_runoff_continuity_error_percent: float,
+                     max_routing_continuity_error_percent: float) -> SolverEvidence:
+    """Inspect actual EPA SWMM .rpt continuity sections and a nonempty .out.
+
+    Require unique numerical continuity errors and terminal Analysis ended marker;
+    an exit code alone is not evidence of conservation or a calibrated model.
+    Reported errors are percentages; configured tolerances are absolute percentages.
+    """
+    import re
+    source, report, output = map(Path, (input_file, report_file, output_file))
+    paths = (source, report, output)
+    if not all(p.is_file() and p.stat().st_size > 0 for p in paths):
+        return build_solver_evidence(
+            run_id=run_id, solver="EPA SWMM", solver_version=solver_version,
+            input_paths=[p for p in (source,) if p.is_file()],
+            output_paths=[p for p in (report, output) if p.is_file()],
+            convergence_evidence=None, explicit_state=ExecutionState.NOT_EVALUATED,
+            validation_messages=("SWMM_INPUT_REPORT_OR_OUTPUT_MISSING",))
+    try:
+        tolerances = (float(max_runoff_continuity_error_percent), float(max_routing_continuity_error_percent))
+        if not all(math.isfinite(t) and t >= 0 for t in tolerances):
+            raise ValueError("invalid SWMM continuity tolerances")
+        report_text = report.read_text(encoding="utf8", errors="replace")
+        if len(report_text) > 20_000_000:
+            raise ValueError("SWMM_REPORT_TOO_LARGE")
+        if re.search(r"(?im)^\s*(?:ERROR\s+\d+|Simulation\s+failed|Analysis\s+was\s+not\s+completed)", report_text):
+            raise ValueError("SWMM_REPORT_EXPLICIT_ERROR")
+        if not re.search(r"(?im)^\s*Analysis\s+ended\s+on\s*:", report_text):
+            raise ValueError("SWMM_COMPLETION_MARKER_MISSING")
+        errors = []
+        for section in ("Runoff Quantity Continuity", "Flow Routing Continuity"):
+            positions = list(re.finditer(re.escape(section), report_text, re.IGNORECASE))
+            if len(positions) != 1:
+                raise ValueError("SWMM_REQUIRED_CONTINUITY_SECTION_MISSING_OR_DUPLICATED:" + section)
+            tail = report_text[positions[0].end():]
+            end = re.search(r"(?m)^\s*\*{5,}", tail)
+            # Continuity table ends at the next decorated section, not at arbitrary log text.
+            block = tail[:end.start()] if end else tail[:8000]
+            values = re.findall(r"(?im)^\s*Continuity\s+Error\s*\(%\)\s*\.+\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?)", block)
+            if len(values) != 1:
+                raise ValueError("SWMM_CONTINUITY_ERROR_NOT_UNIQUE:" + section)
+            errors.append(abs(float(values[0])))
+        if not all(math.isfinite(e) for e in errors):
+            raise ValueError("SWMM_CONTINUITY_NONFINITE")
+        passed = all(e <= t for e, t in zip(errors, tolerances))
+        state = ExecutionState.VERIFIED if passed else ExecutionState.FAILED
+        messages = () if passed else ("SWMM_CONTINUITY_THRESHOLD_EXCEEDED",)
+        convergence = (
+            f"SWMM report Analysis ended; runoff error={errors[0]:.6f}%; "
+            f"routing error={errors[1]:.6f}%; thresholds={tolerances}%"
+        ) if passed else None
+    except (ValueError, OSError) as exc:
+        state = ExecutionState.NOT_EVALUATED
+        messages = (f"SWMM_REPORT_UNVERIFIABLE:{exc}",)
+        convergence = None
+    return build_solver_evidence(
+        run_id=run_id, solver="EPA SWMM", solver_version=solver_version,
+        input_paths=[source], output_paths=[report, output],
+        convergence_evidence=convergence, explicit_state=state,
+        validation_messages=messages)
