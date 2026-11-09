@@ -30,7 +30,7 @@
     "test:uacf-contracts": "tsx --test tests/contracts/canonical-contract-exports.test.ts",
     "nfhl:validate": "node packages/geo/src/nfhl/cli/validate-nfhl.mjs",
     "nfhl:check": "npm run nfhl:validate",
-    "test:government-fabric": "tsx --test tests/contracts/government-data-fabric.test.ts tests/contracts/government-snapshot.test.ts tests/contracts/government-source-registry.test.ts tests/contracts/government-snapshots.test.ts tests/contracts/government-specialized-adapters.test.ts",
+    "test:government-fabric": "tsx --test tests/contracts/government-data-fabric.test.ts tests/contracts/government-snapshot.test.ts tests/contracts/government-source-registry.test.ts tests/contracts/government-snapshots.test.ts tests/contracts/government-specialized-adapters.test.ts tests/contracts/government-live-ingestion.test.ts",
     "test:culvert-power": "tsx --test tests/contracts/culvert-hydropower-screening.test.ts",
     "test:weather-reference": "node --test tests/contracts/weather-provider-reference.test.mjs",
     "test:apple-shortcuts-api": "node --test tests/contracts/apple-shortcuts-api.test.mjs",
