@@ -32,13 +32,13 @@ class MerkleEvidenceTests(unittest.TestCase):
     def test_rfc9162_tree_hash_vectors(self):
         values = [b"one", b"two", b"three", b"four", b"five"]
         self.assertEqual(tree_hash([]), sha(b""))
-        self.assertEqual(tree_hash(values[:1]), sha(b"\\x00" + b"one"))
-        leaf_a = sha(b"\\x00" + b"one")
-        leaf_b = sha(b"\\x00" + b"two")
-        leaf_c = sha(b"\\x00" + b"three")
-        self.assertEqual(tree_hash(values[:2]), sha(b"\\x01" + leaf_a + leaf_b))
+        self.assertEqual(tree_hash(values[:1]), sha(b"\x00" + b"one"))
+        leaf_a = sha(b"\x00" + b"one")
+        leaf_b = sha(b"\x00" + b"two")
+        leaf_c = sha(b"\x00" + b"three")
+        self.assertEqual(tree_hash(values[:2]), sha(b"\x01" + leaf_a + leaf_b))
         self.assertEqual(tree_hash(values[:3]),
-                         sha(b"\\x01" + sha(b"\\x01" + leaf_a + leaf_b) + leaf_c))
+                         sha(b"\x01" + sha(b"\x01" + leaf_a + leaf_b) + leaf_c))
         for total in range(1, 6):
             for index in range(total):
                 proof = inclusion_path(values[:total], index)
