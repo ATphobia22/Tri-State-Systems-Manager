@@ -75,7 +75,38 @@ def recover_missing_ids(delta_path: Path, output: Path, fetch=None) -> dict:
     features = sorted(results, key=lambda f: f["properties"]["objectid"])
     body = json.dumps({"type": "FeatureCollection", "features": features},
                       sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
+    # Merkle-bind source reconciliation delta, live response and exact query
+    # request. This is an integrity receipt, NOT a source-vintage approval.
+    import sys
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    from backend.merkle_evidence import canonical, tree_hash, inclusion_path
+    delta_raw = delta_path.read_bytes()
+    query_raw = canonical({
+        "sourceLayer": SERVICE, "sourceItemId": ITEM_ID,
+        "urls": query_urls, "retrievalCrs": "EPSG:4326",
+    })
+    merkle_items = [
+        {"role": "source", "path": "posey/archived-identity-delta.json",
+         "sha256": hashlib.sha256(delta_raw).hexdigest(), "byteLength": len(delta_raw)},
+        {"role": "candidate", "path": "posey/official-candidates.geojson",
+         "sha256": hashlib.sha256(body).hexdigest(), "byteLength": len(body)},
+        {"role": "request", "path": "posey/retrieval-query.json",
+         "sha256": hashlib.sha256(query_raw).hexdigest(), "byteLength": len(query_raw)},
+    ]
+    merkle_items.sort(key=lambda x: (x["role"], x["path"]))
+    merkle_leaves = [canonical(x) for x in merkle_items]
+    candidate_index = next(i for i, entry in enumerate(merkle_items)
+                           if entry["role"] == "candidate")
+    merkle_root = tree_hash(merkle_leaves).hex()
+    merkle_proof = inclusion_path(merkle_leaves, candidate_index)
     provenance = {
+        "merkleAlgorithm": "RFC9162-SHA256",
+        "merkleRootSha256": merkle_root,
+        "merkleLeaves": merkle_items,
+        "candidateMerkleInclusionProof": {
+            "leafIndex": candidate_index, "treeSize": len(merkle_items),
+            "inclusionPath": merkle_proof,
+        },
         "schemaVersion": "tsm.posey.live-building-candidate.v1",
         "sourceLayer": SERVICE.rsplit("/", 1)[0], "sourceItemId": ITEM_ID,
         "retrievedAt": datetime.now(timezone.utc).isoformat(),
