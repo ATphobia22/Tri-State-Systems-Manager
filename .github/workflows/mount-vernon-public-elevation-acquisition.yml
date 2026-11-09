@@ -71,7 +71,7 @@ jobs:
                   if size!=nbytes:raise RuntimeError('Remote byte count changed '+key)
                   if key.endswith(('.las','.copc.laz')) and start!=b'LASF':
                       raise RuntimeError('LAS signature mismatch '+key)
-                  if key.endswith('.tif') and start not in (b'II*\\x00',b'MM\\x00*'):
+                  if key.endswith('.tif') and start not in (b'II*\x00',b'MM\x00*'):
                       raise RuntimeError('TIFF signature mismatch '+key)
                   if key.endswith(('.json','.geojson')):
                       json.loads(dest.read_text())
@@ -88,9 +88,9 @@ jobs:
           receipt['vertical_reference_claim']='SOURCE_METADATA_NAVD88_GEOID12B_FTUS'
           receipt['source_authenticated']=False
           receipt['as_of_utc']=datetime.datetime.now(datetime.timezone.utc).isoformat()
-          (root/'download-receipt.json').write_text(json.dumps(receipt,indent=2,sort_keys=True)+'\\n')
+          (root/'download-receipt.json').write_text(json.dumps(receipt,indent=2,sort_keys=True)+'\n')
           (root/'SHA256SUMS.txt').write_text(''.join(
-               f"{x['sha256']}  {Path(x['key']).name}\\n" for x in receipt['objects']))
+               f"{x['sha256']}  {Path(x['key']).name}\n" for x in receipt['objects']))
           print('Official source bytes downloaded, sizes and SHA256 verified; NOT an engineering release')
           PY
       - name: Upload downloaded public 2020 Mount Vernon elevation tile
