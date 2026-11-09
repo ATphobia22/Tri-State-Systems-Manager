@@ -68,11 +68,11 @@ def _numbers(text: str | None, *, minimum: int, what: str) -> list[float]:
         raise ValueError(f"{what} needs at least {minimum} numbers, got {parts!r}")
     try:
         values = [float(p) for p in parts]
-        if not all(math.isfinite(v) for v in values):
-            raise ValueError(f"{what} contains a non-finite coordinate")
-        return values
     except ValueError as exc:
         raise ValueError(f"{what} has a non-numeric coordinate: {parts!r}") from exc
+    if not all(math.isfinite(v) for v in values):
+        raise ValueError(f"{what} contains a non-finite coordinate")
+    return values
 
 
 def _north_east(text: str | None, what: str) -> tuple[float, float, float | None]:
