@@ -98,9 +98,13 @@ def make_visual(feature: dict, addresses: dict[int, str]) -> tuple[dict, bool]:
     if height_source not in HEIGHT_CLASSES or type(height) not in (int, float) or not math.isfinite(height) or not 0 < height <= 300:
         raise ValueError("UNSUPPORTED_OR_MISSING_ESTIMATED_HEIGHT")
     geom = shape(feature["geometry"])
-    if geom.is_empty or geom.area <= 0:
+    if geom.is_empty:
         raise ValueError("EMPTY_SOURCE_FOOTPRINT")
+    # Self-intersecting ring polygons can have zero signed area before
+    # topology repair; allow derived make_valid, but never change source data.
     render_changed = not geom.is_valid
+    if not render_changed and geom.area <= 0:
+        raise ValueError("EMPTY_SOURCE_FOOTPRINT")
     if render_changed:
         parts = [part for part in polygons(make_valid(geom)) if part.is_valid and not part.is_empty and part.area > 0]
         if not parts:
