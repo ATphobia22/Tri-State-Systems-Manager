@@ -1,0 +1,31 @@
+name: TSM Regulatory Authority Boundary
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/regulatory_authority_boundary.py'
+      - 'backend/tests/test_regulatory_authority_boundary.py'
+      - 'docs/governance/SCIENTIFIC-AUTHORITY-AND-AGENCY-DECISION-GATES.md'
+      - '.github/workflows/regulatory-authority-boundary.yml'
+  pull_request:
+    paths:
+      - 'backend/regulatory_authority_boundary.py'
+      - 'backend/tests/test_regulatory_authority_boundary.py'
+      - 'docs/governance/SCIENTIFIC-AUTHORITY-AND-AGENCY-DECISION-GATES.md'
+      - '.github/workflows/regulatory-authority-boundary.yml'
+permissions:
+  contents: read
+jobs:
+  boundary-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Compile authority boundary
+        run: python -m py_compile backend/regulatory_authority_boundary.py backend/tests/test_regulatory_authority_boundary.py
+      - name: Test scientific versus regulatory decision boundary
+        run: python -m unittest backend.tests.test_regulatory_authority_boundary -v
