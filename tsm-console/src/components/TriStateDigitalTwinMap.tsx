@@ -5,6 +5,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { MAP_PLANE_FABRIC, type MapPlaneLayer } from '../lib/map-plane-fabric';
 import { buildArcGisExportTemplate, buildArcGisFeatureQueryUrl, getMapLibreFabricLayer } from '../lib/maplibre-layer-fabric';
 import { getTerrainRgbStatus } from '../lib/twin-map-style';
+import { BuildingInspectionPanel } from './BuildingInspectionPanel';
 import { createPoseyScreeningExtrusionLayer } from '../lib/posey-screening-building-style';
 import { TERRAIN_RGB_SOURCE_ID } from '../lib/terrain-rgb-contract';
 import { FeatureLayerRequestCoordinator } from '../lib/feature-layer-request-coordinator';
@@ -210,7 +211,7 @@ export interface TriStateDigitalTwinMapProps {
 }
 
 export function defaultMapPlaneVisibility(): Record<string, boolean> {
-  return Object.fromEntries(MAP_PLANE_FABRIC.map((item) => [item.id, item.defaultVisible]));
+  return Object.fromEntries(MAP_PLANE_FABRIC.map((item) => [item.id, item.id === 'indiana-buildings' && Boolean(import.meta.env.VITE_TSM_POSEY_SCREENING_GEOJSON_PATH) ? true : item.defaultVisible]));
 }
 
 export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProps): JSX.Element {
@@ -225,6 +226,7 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
   const [terrainEnabled, setTerrainEnabled] = useState(false);
   const [status, setStatus] = useState('Initializing MapLibre plane…');
   const [picked, setPicked] = useState<string | null>(null);
+  const [selectedBuilding, setSelectedBuilding] = useState<Record<string, unknown> | null>(null);
   const [floodOverlayOn, setFloodOverlayOn] = useState(false);
   const [floodBusy, setFloodBusy] = useState(false);
   const floodOverlayRef = useRef<FloodDeckOverlay | null>(null);
@@ -408,13 +410,19 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
         const features = map.queryRenderedFeatures(event.point, { layers: pickable });
         if (features.length === 0) {
           setPicked(null);
+          setSelectedBuilding(null);
           return;
         }
         const feature = features[0];
         const layerId = feature.layer.id;
         const props = feature.properties ?? {};
-        const summary = describePickedFeature(layerId, props);
-        setPicked(summary);
+        if (layerId === 'indiana-buildings-extrusion' || layerId === 'indiana-buildings-footprint') {
+          setSelectedBuilding(props);
+          setPicked(null);
+        } else {
+          setSelectedBuilding(null);
+          setPicked(describePickedFeature(layerId, props));
+        }
       });
       map.on('mousemove', (event) => {
         const pickable = [
@@ -477,6 +485,9 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
     <section aria-label="TSM MapLibre twelve-layer plane" style={{ position: 'relative', height: '100%', minHeight: 560, background: '#05080f', color: '#e2e8f0' }}>
       <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
       <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: mistVisible ? 0.18 : 0, transition: 'opacity 180ms ease', background: 'radial-gradient(ellipse at 50% 45%, transparent 35%, rgba(148,163,184,.55) 100%)', mixBlendMode: 'screen' }} />
+      {selectedBuilding && (
+        <BuildingInspectionPanel properties={selectedBuilding} onClose={() => setSelectedBuilding(null)} />
+      )}
       {picked && (
         <div role="status" style={{ position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)', zIndex: 15, maxWidth: 'min(92%, 560px)', padding: '8px 14px', borderRadius: 10, border: '1px solid rgba(34,211,238,.4)', background: 'rgba(5,8,15,.92)', fontSize: 12, color: '#e2e8f0', backdropFilter: 'blur(8px)' }}>
           <span style={{ color: '#22d3ee', fontWeight: 700 }}>▸ </span>{picked}
