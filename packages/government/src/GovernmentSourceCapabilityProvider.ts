@@ -8,6 +8,7 @@ import { FemaMapChangeAdapter } from './adapters/FemaMapChangeAdapter.ts';
 import { EchoAdapter } from './adapters/EchoAdapter.ts';
 import { NldAdapter } from './adapters/NldAdapter.ts';
 import { TigerwebAdapter } from './adapters/TigerwebAdapter.ts';
+import { NoaaAdapter } from './adapters/NoaaAdapter.ts';
 import type { GovernmentDataset } from './types/GovernmentDataset.ts';
 
 const definitions:readonly CapabilityDefinition[]=[
@@ -24,7 +25,7 @@ export class GovernmentSourceCapabilityProvider implements CapabilityProvider {
  async health():Promise<ProviderHealth>{return{healthy:true,lastChecked:new Date().toISOString()};}
  async supports(capability:CapabilityId,input:unknown){const definition=definitions.find(x=>x.id===capability);if(!definition)return{supported:false,reason:'Capability is not implemented; source.ingest and source.publish require durable storage adapters.'};try{const value=objectInput(input);if(capability==='source.lookup'){
    if(typeof value.sourceId!=='string'||typeof value.action!=='string')throw new Error('SOURCE_LOOKUP_ARGUMENTS_REQUIRED');
-   if(!['usda.ssurgo:point','fema.loma:discover','fema.lomr:discover','fema.loma:case','fema.lomr:case','epa.facilities:zip','army-corps.levees:metadata','census.tiger:metadata'].includes(value.sourceId+':'+value.action))throw new Error('SOURCE_LOOKUP_UNSUPPORTED');
+   if(!['usda.ssurgo:point','fema.loma:discover','fema.lomr:discover','fema.loma:case','fema.lomr:case','epa.facilities:zip','army-corps.levees:metadata','census.tiger:metadata','noaa.weather:forecast'].includes(value.sourceId+':'+value.action))throw new Error('SOURCE_LOOKUP_UNSUPPORTED');
   }else if(capability==='source.fetch'){if(typeof value.sourceId!=='string'||typeof value.url!=='string')throw new Error('SOURCE_ID_AND_URL_REQUIRED');const source=getRegisteredGovernmentSource(value.sourceId);if(source.access!=='REST_JSON')throw new Error('SOURCE_REQUIRES_SPECIALIZED_DOWNLOAD_OR_CATALOG_ADAPTER');const alias=idAliases[source.id];if(!alias||!REST_SOURCES.some(s=>s.id===alias))throw new Error('SOURCE_REST_ADAPTER_NOT_CONFIGURED');}else if(capability==='source.validate'){if(!value.dataset||typeof value.dataset!=='object'||Array.isArray(value.dataset))throw new Error('DATASET_REQUIRED');}else if(capability==='source.hash'){if(!('value' in value))throw new Error('HASH_VALUE_REQUIRED');}else if(capability==='source.register'){if(typeof value.sourceId!=='string')throw new Error('SOURCE_ID_REQUIRED');getRegisteredGovernmentSource(value.sourceId);}return{supported:true};}catch(error){return{supported:false,reason:error instanceof Error?error.message:'Invalid source capability input'};}}
  async execute(request:CapabilityRequest):Promise<CapabilityResult>{const traceId=request.context.requestId||randomUUID(),startedAt=new Date().toISOString(),events:ExecutionEvent[]=[{type:'capability.started',traceId,timestamp:startedAt,capability:request.capability}];try{
   const input=objectInput(request.input);let output:unknown;
@@ -37,6 +38,7 @@ export class GovernmentSourceCapabilityProvider implements CapabilityProvider {
    else if(key==='epa.facilities:zip')output=await new EchoAdapter().getFacilitiesByZip(String(input.zip??''));
    else if(key==='army-corps.levees:metadata')output=await new NldAdapter().getServiceMetadata();
    else if(key==='census.tiger:metadata')output=await new TigerwebAdapter().getServiceMetadata(String(input.service??'State_County'));
+   else if(key==='noaa.weather:forecast')output=await new NoaaAdapter().getPointForecast(Number(input.latitude),Number(input.longitude));
    else throw new Error('SOURCE_LOOKUP_UNSUPPORTED');
   }else if(request.capability==='source.fetch'){
    if(typeof input.sourceId!=='string'||typeof input.url!=='string')throw new Error('SOURCE_ID_AND_URL_REQUIRED');
