@@ -157,7 +157,7 @@ def main() -> None:
     remaining = args.max_total_mib * 1024 * 1024
     for name, (url, host, _) in SOURCES.items():
         path = root / (name + "-posey-manifest.csv")
-        record = download(url, path, max_bytes=MAX_CSV_BYTES,\n                          allowed_hostname=urlparse(url).hostname or "")
+        record = download(url, path, max_bytes=MAX_CSV_BYTES, allowed_hostname=urlparse(url).hostname or "")
         objects.append(dict(record, role="county_inventory"))
         inventories[name], raw_count = read_inventory(name, path.read_bytes())
         record["raw_url_rows"] = raw_count
