@@ -22,7 +22,9 @@ export class PostgisGovernmentRepository {
  }):Promise<{datasetId:string;featureCount:number;sha256:string}> {
   const {manifest,rawBytes,features}=input;
   const source=getRegisteredGovernmentSource(input.sourceId);
-  if(!source.agency.toUpperCase().includes(manifest.authority.toUpperCase()) && !(input.sourceId==='army-corps.levees'&&manifest.authority==='USACE'))throw new Error('GOVERNMENT_AUTHORITY_MISMATCH');
+  const agencyPrefix=input.sourceId.split('.')[0];
+  const expectedAuthority=agencyPrefix==='army-corps'?'USACE':agencyPrefix.toUpperCase();
+  if(expectedAuthority!==manifest.authority||!source.endpoint.startsWith('https://'))throw new Error('GOVERNMENT_AUTHORITY_MISMATCH');
   assertPromotableSnapshot(manifest);
   if(!(rawBytes instanceof Uint8Array)||createHash('sha256').update(rawBytes).digest('hex')!==manifest.sha256||rawBytes.length!==manifest.byteLength)
    throw new Error('GOVERNMENT_RAW_BYTES_HASH_MISMATCH');
