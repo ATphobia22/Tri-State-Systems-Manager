@@ -55,3 +55,63 @@ jobs:
           path: city-artifact/mount-vernon-scene/
           if-no-files-found: error
           retention-days: 30
+
+      # This stage puts the exact source-acquisition bytes in the actual viewer
+      # build. It does not upgrade source geometry to surveyed status.
+      - name: Stage verified-byte city reference archive in the viewer
+        run: |
+          set -euo pipefail
+          install -d tsm-console/public/mount-vernon-scene
+          cp city-artifact/mount-vernon-scene/scene.json tsm-console/public/mount-vernon-scene/scene.json
+          cp city-artifact/mount-vernon-scene/scene.receipt.json tsm-console/public/mount-vernon-scene/scene.receipt.json
+          cmp city-artifact/mount-vernon-scene/scene.json tsm-console/public/mount-vernon-scene/scene.json
+          cmp city-artifact/mount-vernon-scene/scene.receipt.json tsm-console/public/mount-vernon-scene/scene.receipt.json
+
+      - name: Setup pinned Node runtime
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '22.16.0'
+
+      - name: Install console dependencies from lockfile
+        working-directory: tsm-console
+        run: npm ci --no-audit --no-fund
+
+      - name: Verify TypeScript city viewer contracts
+        working-directory: tsm-console
+        run: |
+          npm run check:type
+          npx vitest run tests/mount-vernon-city-scene.test.ts
+          node --test tests/mount-vernon-city-scene-contract.test.mjs
+
+      - name: Build playable web scene with embedded source archive
+        working-directory: tsm-console
+        env:
+          VITE_PAGES_BASE_PATH: /Tri-State-Systems-Manager/
+        run: npm run build
+
+      - name: Validate immutable scene is present in the built viewer
+        run: |
+          set -euo pipefail
+          test -s tsm-console/dist/index.html
+          python - <<'PY'
+          import json, hashlib
+          from pathlib import Path
+          root=Path('tsm-console/dist/mount-vernon-scene')
+          raw=(root/'scene.json').read_bytes()
+          receipt=json.loads((root/'scene.receipt.json').read_bytes())
+          scene=json.loads(raw)
+          assert len(raw)==receipt['byte_length']
+          assert hashlib.sha256(raw).hexdigest()==receipt['sha256']
+          for name in ('buildings','roads'):
+              assert len(scene[name]['features'])==receipt['feature_counts'][name]
+          assert receipt['review']=='NOT_EVIDENCED' and receipt['regulatory_approval'] is False
+          print('Built city viewer includes exactly verified-bytes reference scene',receipt['feature_counts'])
+          PY
+
+      - name: Upload standalone Mount Vernon viewer build
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: mount-vernon-city-viewer-with-official-source-context
+          path: tsm-console/dist/
+          if-no-files-found: error
+          retention-days: 30
