@@ -137,8 +137,39 @@ def evaluate_coupling(manifest: dict[str, Any]) -> dict[str, Any]:
         delta = abs(source_volume - target_volume)
         exchange_checks.append({"from": src, "to": dst, "absoluteVolumeDifference": delta,
                                 "maxAbsoluteVolumeDifference": tolerance, "passed": delta <= tolerance})
+    # A reproducible Merkle commitment binds every verified file digest together
+    # with solver versions, benchmark observations, convergence declarations and
+    # exchanged fluxes. Use stable logical evidence paths rather than runner-local
+    # absolute paths, so identical data yields the same root on another machine.
+    from backend.merkle_evidence import canonical, tree_hash
+
+    normalized = json.loads(json.dumps(manifest, allow_nan=False))
+    leaves = []
+    for run_index, run in enumerate(normalized["runs"]):
+        engine_key = run["engine"].lower().replace("-", "_")
+        for direction in ("inputs", "outputs"):
+            for index, artifact in enumerate(run[direction]):
+                disk_path = Path(artifact["path"])
+                logical_path = f"{engine_key}/{direction}/{index:04d}"
+                artifact["path"] = logical_path
+                leaves.append({
+                    "role": "artifact", "path": logical_path,
+                    "sha256": artifact["sha256"],
+                    "byteLength": disk_path.stat().st_size,
+                })
+    envelope = canonical(normalized)
+    leaves.append({
+        "role": "run_manifest", "path": "hydrology/coupling.json",
+        "sha256": hashlib.sha256(envelope).hexdigest(), "byteLength": len(envelope),
+    })
+    leaves.sort(key=lambda x: (x["role"], x["path"]))
+    merkle_root = tree_hash([canonical(x) for x in leaves]).hex()
     return {
         "schemaVersion": "tsm.hydrologic-coupling-acceptance.v1",
+        "merkleRootSha256": merkle_root,
+        "merkleAlgorithm": "RFC9162-SHA256",
+        "merkleEvidenceLeaves": leaves,
+        "numericalEvidenceScope": "Artifact integrity and declared validation metrics; not independent site calibration.",
         "solverChecks": checks, "exchangeChecks": exchange_checks,
         "verified": all(c["passed"] for c in checks + exchange_checks),
         "regulatoryApproval": False,
