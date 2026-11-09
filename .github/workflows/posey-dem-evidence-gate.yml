@@ -1,0 +1,26 @@
+name: Posey DEM Evidence Gate
+on:
+  pull_request:
+    paths:
+      - 'scripts/geospatial/verify_posey_dem_gate.py'
+      - 'scripts/geospatial/test_verify_posey_dem_gate.py'
+      - '.github/workflows/posey-dem-evidence-gate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  dem-gate-contract:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.11'
+      - name: Install test dependencies
+        run: python -m pip install pytest numpy rasterio
+      - name: Assert non-certifying DEM gate contract
+        run: python -m pytest -q scripts/geospatial/test_verify_posey_dem_gate.py
+# Private source DEMs are deliberately not downloaded or committed in CI.
+# This workflow validates software behavior, not NAVD88/survey certification.

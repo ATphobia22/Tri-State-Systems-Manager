@@ -8,6 +8,20 @@
 
 > **Our principle:** Technology informs people; it does not silently govern them. People and responsible agencies retain decision-making authority.
 
+## Posey and Mount Vernon evidence update — November 9, 2026
+
+The government-sourced Posey County footprint inventory and the enriched building GeoJSON were independently compared from recovered Google Drive files: **23,082 OBJECTIDs**, no duplicate/missing IDs, and **23,082 exact footprint geometry matches**. This verifies source identity and footprint correspondence only: 12,155 building heights use a default rural median and 10,927 derive from nearest Overture attributes, **not independently surveyed heights**.
+
+Two recovered 2020 DEM TIFFs matched their pinned SHA-256 acquisition hashes. Their embedded horizontal CRS is **EPSG:2968 (NAD83 HARN / Indiana West)**, whereas the project baseline is **EPSG:2966 (NAD83 / Indiana West)**. Raster vertical-datum and vertical-unit evidence remains insufficient; no NAVD88 engineering elevation determination follows from these checks.
+
+- [Building and DEM source verification](docs/engineering-development/POSEY-DRIVE-SOURCE-VERIFICATION-2026-11-09.md)
+- [DEM source authority and datum crosswalk](docs/engineering-development/POSEY-DEM-AUTHORITY-CROSSWALK-2026-11-09.md)
+- [LOD2 roof and interior evidence limits](docs/MOUNT-VERNON-LOD-EVIDENCE.md)
+- [Posey DEM integrity gate](scripts/geospatial/verify_posey_dem_gate.py) and [synthetic gate tests](scripts/geospatial/test_verify_posey_dem_gate.py)
+- [Private Drive evidence receipts](https://drive.google.com/drive/folders/1QvSnec14KQOcdz3-GpFx7dmmf_2YTAZf) — source files are not committed to public Git
+
+**Release boundaries:** Passing repository CI proves only the exercised software checks. It does not prove a complete native `.umap`, a verified Windows UE5.8 Shipping executable that launches offline on clean Windows 11 x64, full measured building-height coverage, a certified hydrologic model, or FEMA/survey approval. The 3D scene's discoverability extent is not a legally verified Mount Vernon city boundary.
+
 ## For families in the Tri-State River Valley
 
 The Ohio and Wabash Rivers connect our towns, farms, roads, homes, wetlands and businesses. They also bring flooding and other challenges. TSM is being built to help people **see public information about the places they care about, understand where that information comes from, and explore possible conditions** in one place.
