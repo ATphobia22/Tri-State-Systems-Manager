@@ -67,7 +67,10 @@ def _numbers(text: str | None, *, minimum: int, what: str) -> list[float]:
     if len(parts) < minimum:
         raise ValueError(f"{what} needs at least {minimum} numbers, got {parts!r}")
     try:
-        return [float(p) for p in parts]
+        values = [float(p) for p in parts]
+        if not all(math.isfinite(v) for v in values):
+            raise ValueError(f"{what} contains a non-finite coordinate")
+        return values
     except ValueError as exc:
         raise ValueError(f"{what} has a non-numeric coordinate: {parts!r}") from exc
 
@@ -281,6 +284,11 @@ def parse_landxml(path_or_text: str | Path) -> dict[str, Any]:
         text = Path(path_or_text).read_text(encoding="utf-8")
     else:
         text = str(path_or_text)
+    # A bounded XML parser must reject DTD/entity expansion and oversized inputs.
+    if len(text.encode('utf-8')) > 50_000_000:
+        raise ValueError('LANDXML_INPUT_TOO_LARGE')
+    if re.search(r'<!\s*(?:DOCTYPE|ENTITY)\b', text, re.IGNORECASE):
+        raise ValueError('LANDXML_DTD_NOT_ALLOWED')
     try:
         root = ET.fromstring(text)
     except ET.ParseError as exc:
