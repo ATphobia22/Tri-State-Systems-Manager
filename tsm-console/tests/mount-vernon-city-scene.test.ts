@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { validateMountVernonScene, verifySceneBytes } from '../src/lib/mount-vernon-city-scene';
 
 const sourceSha = 'b'.repeat(64);
-function specimen() {
+function specimen(): any {
   return {
     schema: 'tsm.mount-vernon-city-scene.v1', crs: 'EPSG:4326', sources: {},
     buildings: { type: 'FeatureCollection', features: [
