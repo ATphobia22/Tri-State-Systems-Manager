@@ -1,6 +1,7 @@
 import type {Map as MapLibreMap} from 'maplibre-gl';
 import {ensureProtocolRegistered} from './pmtiles-overlay';
 import {toPmtilesSourceUrl} from './pmtiles-fabric';
+import {verifyGovernmentArchiveBytes} from './government-snapshot-byte-verifier';
 import {registerGovernmentVectorLayer, type GovernmentTileManifest} from '../../../packages/government/src/layers/maplibreGovernmentLayers';
 import {
   isVerifiedHistoricalSnapshot, parseGovDate, parseTrustedMerkleRoots,
@@ -149,8 +150,25 @@ export function attachGovernmentPmtilesLayer(map:MapLibreMap):()=>void{
           ?source:{...source,capturedAt:snapshotTime,agency:manifest.attribution,sourceRecordUrl:manifestUrl,historical:stale};
         if(historical && !isVerifiedHistoricalSnapshot(context,manifest,Date.now(),roots))
           throw Error('GOVERNMENT_HISTORICAL_RELEASE_PROOF_NOT_VERIFIED');
-        if(!(await archiveReachable(archiveUrl,controller.signal)))
-          throw Error('GOVERNMENT_ARCHIVE_NOT_REACHABLE');
+        // Verify the actual archive bytes on ordinary-size artifacts. A large
+        // government snapshot can still render through a separately CI-verified,
+        // build-pinned Merkle release receipt, but must be labelled NOT
+        // byte-verified at runtime. A digest mismatch never promotes the data.
+        let archiveBytesVerified = false;
+        try {
+          await verifyGovernmentArchiveBytes(archiveUrl, manifest.tilesSha256, {
+            signal: controller.signal,
+          });
+          archiveBytesVerified = true;
+        } catch(error) {
+          const overBudget = error instanceof Error &&
+            error.message === 'GOV_ARCHIVE_EXCEEDS_VERIFICATION_BUDGET';
+          if (!overBudget || (historical && !isVerifiedHistoricalSnapshot(context,manifest,Date.now(),roots))) {
+            throw error;
+          }
+          if(!(await archiveReachable(archiveUrl,controller.signal)))
+            throw Error('GOVERNMENT_ARCHIVE_NOT_REACHABLE');
+        }
 
         if(controller.signal.aborted)return;
         ensureProtocolRegistered();
@@ -163,7 +181,7 @@ export function attachGovernmentPmtilesLayer(map:MapLibreMap):()=>void{
         });
         sourceId=ids.sourceId;layerId=ids.layerId;
         announce(statusDetail(historical?'HISTORICAL_GOVERNMENT_FALLBACK':'CURRENT_GOVERNMENT_SNAPSHOT',
-                              context,manifest));
+                              context,manifest,archiveBytesVerified));
         return;
       }catch(error){
         if(!controller.signal.aborted)
