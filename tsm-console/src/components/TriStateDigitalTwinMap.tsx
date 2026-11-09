@@ -5,6 +5,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { MAP_PLANE_FABRIC, type MapPlaneLayer } from '../lib/map-plane-fabric';
 import { buildArcGisExportTemplate, buildArcGisFeatureQueryUrl, getMapLibreFabricLayer } from '../lib/maplibre-layer-fabric';
 import { getTerrainRgbStatus } from '../lib/twin-map-style';
+import { createPoseyScreeningExtrusionLayer } from '../lib/posey-screening-building-style';
 import { TERRAIN_RGB_SOURCE_ID } from '../lib/terrain-rgb-contract';
 import { FeatureLayerRequestCoordinator } from '../lib/feature-layer-request-coordinator';
 import { getCinematicLighting, type CinematicLightPreset } from '../lib/cinematic/light-presets';
@@ -136,33 +137,10 @@ function addFeatureSource(map: Map, item: MapPlaneLayer): void {
       layout: { visibility: 'none' },
       paint: { 'fill-color': '#94a3b8', 'fill-opacity': 0.28, 'fill-outline-color': '#cbd5e1' },
     });
-    map.addLayer({
-      id: `${item.id}-extrusion`,
-      type: 'fill-extrusion',
-      source: item.id,
-      minzoom: 14,
-      layout: { visibility: 'none' },
-      paint: {
-        // Height-based color ramp (gray to blue), following ember-maplibre-gl pattern
-        'fill-extrusion-color': [
-          'interpolate', ['linear'], ['coalesce', ['to-number', ['get', 'height_m']], 0],
-          0, '#d9dee4',
-          15, '#aeb6c2',
-          30, '#6baed6',
-          50, '#08519c'
-        ],
-        // Zoom-based height interpolation: 0 at zoom 14, full height at zoom 15+
-        // This prevents visual popping and improves mobile performance
-        'fill-extrusion-height': [
-          'interpolate', ['linear'], ['zoom'],
-          14, 0,
-          15, ['coalesce', ['to-number', ['get', 'height_m']], 0]
-        ],
-        'fill-extrusion-base': 0,
-        'fill-extrusion-opacity': 0.85,
-        'fill-extrusion-vertical-gradient': true,
-      },
-    });
+    // The live IGIO source carries footprints, not a verified height contract.
+    // Its extrusions stay hidden until a separately normalized, source-pinned
+    // screening GeoJSON is supplied. Unqualified height_m is not renderable.
+    map.addLayer(createPoseyScreeningExtrusionLayer(item.id, `${item.id}-extrusion`));
     return;
   }
   map.addLayer({
