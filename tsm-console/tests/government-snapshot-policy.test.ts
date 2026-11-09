@@ -29,13 +29,16 @@ describe('missing/stale government source leaves the twin usable',()=>{
     expect(snapshotIsStale('2026-11-08T12:00:00Z',now,30)).toBe(false);
   });
   it('admits a dated receipt only when provenance and SHA bindings agree',()=>{
-    expect(isVerifiedHistoricalSnapshot(descriptor,receipt,now)).toBe(true);
+    // A historical archive may only be admitted by a reviewed build-pinned trust root.
+    expect(isVerifiedHistoricalSnapshot(descriptor,receipt,now)).toBe(false);
+    const trustedRoots = new Set([hash('c')]);
+    expect(isVerifiedHistoricalSnapshot(descriptor,receipt,now,trustedRoots)).toBe(true);
     expect(isVerifiedHistoricalSnapshot(descriptor,{
       ...receipt,releaseVerification:{...receipt.releaseVerification!,archiveSha256:hash('d')},
-    },now)).toBe(false);
+    },now,trustedRoots)).toBe(false);
     expect(isVerifiedHistoricalSnapshot(descriptor,{
       ...receipt,capturedAt:'2026-10-01T12:00:00Z',
-    },now)).toBe(false);
+    },now,trustedRoots)).toBe(false);
   });
   it('rejects unknown issuer, future acquisition and absent release evidence',()=>{
     expect(isVerifiedHistoricalSnapshot({...descriptor,agency:'PRIVATE_COMPANY'},receipt,now)).toBe(false);
