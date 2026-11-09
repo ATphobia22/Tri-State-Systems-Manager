@@ -56,9 +56,24 @@ jobs:
         run: |
           set -euo pipefail
           BASELINE="${RUNNER_TEMP}/posey-archived-23082.geojson"
-          curl --fail --location --retry 3 --retry-all-errors \
-            --output "$BASELINE" \
-            "https://github.com/ATphobia22/Tri-State-Systems-Manager/releases/download/igio-posey-20261006/posey-buildings-igio-23082.geojson"
+          # The anonymous release CDN occasionally responds with 504 even when
+          # the release asset exists. Prefer authenticated GitHub API download.
+          downloaded=0
+          for attempt in 1 2 3; do
+            if GH_TOKEN="${{ github.token }}" gh release download igio-posey-20261006 \
+                --repo ATphobia22/Tri-State-Systems-Manager \
+                --pattern posey-buildings-igio-23082.geojson \
+                --dir "${RUNNER_TEMP}" --clobber; then
+              mv "${RUNNER_TEMP}/posey-buildings-igio-23082.geojson" "$BASELINE"
+              downloaded=1
+              break
+            fi
+            sleep $((attempt * 5))
+          done
+          if [ "$downloaded" -ne 1 ]; then
+            echo "::error::Archived official Posey baseline release asset unavailable after authenticated retries; screening inventory NOT verified"
+            exit 1
+          fi
           echo "d8a46b86616becfdea9c9164e7a219317d5963b86fba47e4c1f8f880ccbb559f  $BASELINE" | sha256sum --check -
           python scripts/geospatial/stage_posey_screening_inventory.py \
             --published tsm-console/public/3d-tiles/buildings-3d.json \
