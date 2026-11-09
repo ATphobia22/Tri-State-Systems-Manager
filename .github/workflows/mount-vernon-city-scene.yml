@@ -11,6 +11,9 @@ on:
       - '.github/workflows/mount-vernon-city-scene.yml'
   pull_request:
   workflow_dispatch:
+permissions:
+  contents: read
+
 jobs:
   city-scene-contract:
     runs-on: ubuntu-latest
