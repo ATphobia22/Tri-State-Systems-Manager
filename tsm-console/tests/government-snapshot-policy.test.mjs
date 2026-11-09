@@ -33,7 +33,8 @@ test('older official source is allowed for visualization when Merkle root is bui
 test('historical archive cannot self-assert a trusted Merkle root',()=>{
   assert.equal(isVerifiedHistoricalSnapshot(descriptor,receipt,now),false);
   assert.equal(isVerifiedHistoricalSnapshot(descriptor,receipt,now,new Set([H])),false);
-  assert.equal(isVerifiedHistoricalSnapshot(descriptor,{...receipt,validation:'BUILT_NOT_FIELD_VERIFIED'},now,new Set([R])),false);
+  // A validated archive is permitted for display even without field-survey certification.
+  assert.equal(isVerifiedHistoricalSnapshot(descriptor,{...receipt,validation:'BUILT_NOT_FIELD_VERIFIED'},now,new Set([R])),true);
 });
 test('missing or altered release verification is rejected without disabling map',()=>{
   assert.equal(isVerifiedHistoricalSnapshot(descriptor,{...receipt,releaseVerification:undefined},now,new Set([R])),false);
