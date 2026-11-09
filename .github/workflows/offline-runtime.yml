@@ -47,13 +47,16 @@ jobs:
           set -euo pipefail
           while IFS= read -r lock; do
             dir="$(dirname "$lock")"
-            if [ "$dir" = "tsm-console" ]; then continue; fi
+            if [ "$dir" = "./tsm-console" ] || [ "$dir" = "tsm-console" ]; then continue; fi
+            # 3D Tiles validation is a build/CI tool, not part of the offline app.
+            # Its legacy sharp dependency downloads libvips during npm install.
+            if [ "$dir" = "./tools/published-tiles-validator" ]; then continue; fi
             if [ -f "$dir/package.json" ]; then
               npm install --prefix "$dir" --no-package-lock --no-audit --no-fund --cache "$PWD/offline-runtime/npm-cache"
               rm -rf "$dir/node_modules"
               npm install --prefix "$dir" --offline --no-package-lock --no-audit --no-fund --cache "$PWD/offline-runtime/npm-cache"
             fi
-          done < <(find . -name package-lock.json -not -path './node_modules/*' -print)
+          done < <(find . -type d -name node_modules -prune -o -name package-lock.json -print)
       - name: Download Python wheels for offline installation
         run: |
           python3 -m pip download --requirement packages/hydraulics/python/requirements.txt --dest offline-runtime/python-wheels
