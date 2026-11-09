@@ -108,7 +108,7 @@ export async function queryGovernmentJson<T=unknown>(sourceId:string,url:string,
  else options.signal?.addEventListener('abort',abort,{once:true});
  try {
    if(controller.signal.aborted) throw controller.signal.reason??new Error('GOVERNMENT_REQUEST_ABORTED');
-   const response=await (options.fetcher??fetch)(requested,{signal:controller.signal,headers:sourceId==='noaa-weather'?{accept:'application/geo+json, application/json','user-agent':'Tri-State-Systems-Manager/1.0 (+https://github.com/ATphobia22/Tri-State-Systems-Manager)'}:{accept:'application/json'}});
+   const response=await (options.fetcher??fetch)(requested,{signal:controller.signal,redirect:'error',headers:sourceId==='noaa-weather'?{accept:'application/geo+json, application/json','user-agent':'Tri-State-Systems-Manager/1.0 (+https://github.com/ATphobia22/Tri-State-Systems-Manager)'}:{accept:'application/json'}});
    if(!response.ok) throw new Error('GOVERNMENT_SOURCE_HTTP_'+response.status);
    const mediaType=response.headers.get('content-type')??'';
    if(!/json/i.test(mediaType)) throw new Error('GOVERNMENT_SOURCE_NON_JSON_RESPONSE');
