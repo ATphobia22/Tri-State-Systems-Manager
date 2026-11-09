@@ -25,6 +25,8 @@ import { readTwinUrlState, writeTwinUrlState } from '../lib/geodetic/twin-url-st
 import { attachSupabaseParcelBboxLayer } from '../lib/supabase-parcel-bbox';
 import { attachConfiguredPmtilesPolygonLayer } from '../lib/pmtiles-overlay';
 import { attachGovernmentPmtilesLayer, GOVERNMENT_SCENE_STATUS_EVENT, type GovernmentSceneDetail } from '../lib/government-pmtiles-overlay';
+import { attachMountVernonCityScene } from '../lib/mount-vernon-city-scene';
+import MountVernonCityInspector from './MountVernonCityInspector';
 
 const TERRAIN_3D_TILESET_URL = `${import.meta.env.BASE_URL}3d-tiles/terrain-3dep/tileset.json`;
 
@@ -108,6 +110,8 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
     let disposeParcelBboxLayer: (() => void) | null = null;
     let disposePmtilesLayer: (() => void) | null = null;
     let disposeGovernmentPmtilesLayer: (() => void) | null = null;
+    let disposeMountVernonScene: (() => void) | null = null;
+    let mountVernonUnmounted = false;
     let map: maplibregl.Map;
     try {
       map = new maplibregl.Map({
@@ -185,6 +189,10 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       try {
         disposePmtilesLayer = attachConfiguredPmtilesPolygonLayer(map);
         disposeGovernmentPmtilesLayer = attachGovernmentPmtilesLayer(map);
+        void attachMountVernonCityScene(map, `${import.meta.env.BASE_URL}mount-vernon-scene/`).then(dispose => {
+          if (mountVernonUnmounted) dispose();
+          else disposeMountVernonScene = dispose;
+        });
       } catch {
         setMapInitializationError('Optional PMTiles layer unavailable; the base map remains usable.');
       }
@@ -240,6 +248,8 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       disposeParcelBboxLayer?.();
       disposePmtilesLayer?.();
       disposeGovernmentPmtilesLayer?.();
+      mountVernonUnmounted = true;
+      disposeMountVernonScene?.();
       map.remove();
       mapRef.current = null;
       markerRef.current = null;
@@ -467,6 +477,8 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
           <div style={{ color: '#fbbf24' }}>Snapshot display is not a new FEMA determination, live observation, surveyed control or engineering approval.</div>
         </div>
 
+        <MountVernonCityInspector />
+
         <VerticalContextHud
           stage={liveStage}
           site={data.site}
@@ -506,6 +518,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
             { id: 'dams', pressed: damsVisible, onClick: () => setDamsVisible((v) => !v), label: `Local Dams ${damsVisible ? 'ON' : 'OFF'}` },
             { id: '3d', pressed: tiles3DVisible, onClick: () => setTiles3DVisible((v) => !v), label: `3D Terrain ${tiles3DVisible ? 'ON' : 'OFF'}` },
             { id: 'review', pressed: reviewPitch, onClick: applyReviewPitch, label: reviewPitch ? 'Review pitch set' : 'Review pitch (55\u00b0)' },
+            { id: 'mount-vernon', pressed: false, onClick: () => mapRef.current?.flyTo({ center: [-87.895, 37.932], zoom: 15, pitch: 60, bearing: -18, duration: 1600 }), label: 'Explore Mount Vernon' },
             { id: 'cinematic', pressed: cinematicActive, onClick: toggleCinematicTour, label: cinematicActive ? 'Stop cinematic' : 'Cinematic fly-through' },
           ] as const).map((btn) => (
             <button
