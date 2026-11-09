@@ -22,7 +22,7 @@ jobs:
       - name: Install bounded test dependency
         run: python -m pip install 'pytest>=8,<10'
       - name: Verify scene generator contracts (offline)
-        run: python -m pytest -q backend/tests/test_mount_vernon_scene.py
+        run: python -m pytest -q backend/tests/test_mount_vernon_scene.py backend/tests/test_mount_vernon_deployment.py
       - name: Acquire official Indiana GIO planimetric context for Mount Vernon
         run: |
           python scripts/geospatial/build_mount_vernon_scene.py --output city-artifact/mount-vernon-scene
@@ -107,6 +107,14 @@ jobs:
           assert receipt['review']=='NOT_EVIDENCED' and receipt['regulatory_approval'] is False
           print('Built city viewer includes exactly verified-bytes reference scene',receipt['feature_counts'])
           PY
+
+      - name: Generate and independently verify reproducible viewer deployment manifest
+        run: |
+          set -euo pipefail
+          python scripts/geospatial/verify_mount_vernon_deployment.py --viewer-dir tsm-console/dist
+          python scripts/geospatial/verify_mount_vernon_deployment.py --viewer-dir tsm-console/dist --verify
+          test -s tsm-console/dist/mount-vernon-deployment.manifest.json
+          echo 'Scope: verified byte-integrity web reference viewer; no native, terrain datum, or surveyed-height claim.'
 
       - name: Upload standalone Mount Vernon viewer build
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
