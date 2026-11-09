@@ -37,7 +37,8 @@ export function parseGovDate(value:string):number {
 }
 export function isVerifiedHistoricalSnapshot(descriptor:GovernmentSnapshotDescriptor,
                                              receipt:GovernmentReleaseReceipt,
-                                             now=Date.now()):boolean {
+                                             now=Date.now(),
+                                             trustedMerkleRoots:ReadonlySet<string>=new Set()):boolean {
   if(!descriptor||!receipt) return false;
   const agency=descriptor.agency?.trim().toUpperCase();
   if(!ALLOWED_GOVERNMENT_AGENCIES.has(agency))return false;
@@ -45,7 +46,7 @@ export function isVerifiedHistoricalSnapshot(descriptor:GovernmentSnapshotDescri
   const verification=receipt.releaseVerification;
   if(!Number.isFinite(captured)||captured>now||
      receipt.validation!=='VERIFIED'||!SHA.test(receipt.tilesSha256)||!SHA.test(receipt.sourceSha256)||
-     !SHA.test(receipt.merkleRootSha256??'')||!verification||
+     !SHA.test(receipt.merkleRootSha256??'')||!trustedMerkleRoots.has(receipt.merkleRootSha256??'')||!verification||
      verification.status!=='PASS'||verification.archiveSha256!==receipt.tilesSha256||
      verification.sourceSha256!==receipt.sourceSha256||
      verification.merkleRootSha256!==receipt.merkleRootSha256) return false;
@@ -67,4 +68,10 @@ export function snapshotIsStale(capturedAt:string,now=Date.now(),maxAgeDays=30):
   const timestamp=parseGovDate(capturedAt);
   return !Number.isFinite(timestamp)||timestamp>now||
     now-timestamp>maxAgeDays*86_400_000;
+}
+
+/** Roots must be distributed with a reviewed build, not accepted from an HTTP manifest. */
+export function parseTrustedMerkleRoots(value:string|undefined):ReadonlySet<string> {
+  if(!value)return new Set();
+  return new Set(value.split(',').map(v=>v.trim()).filter(v=>SHA.test(v)));
 }
