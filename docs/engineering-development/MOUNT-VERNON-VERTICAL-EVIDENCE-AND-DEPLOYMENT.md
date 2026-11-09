@@ -44,7 +44,7 @@ No missing height, geoid correction, roof geometry, or regulatory status is gues
 4. Only after the ground datum and measurement methods are established, prepare
    a JSON input following the schema described in
    `scripts/geospatial/reconcile_mount_vernon_vertical_evidence.py`.
-5. Run `python scripts/geospatial/reconcile_mount_vernon_vertical_evidence.py --input input.json --output derived.json`.
+5. Run `python scripts/geospatial/reconcile_mount_vernon_vertical_evidence.py --input input.json --scene city-artifact/mount-vernon-scene/scene.json --output derived.json`.
    The result is `DERIVED_UNREVIEWED` even when the input says NAVD88.
    Human/source cross-checks and independent benchmarks are separate gates.
 6. For PostGIS, transform horizontal footprint and sample point coordinates
