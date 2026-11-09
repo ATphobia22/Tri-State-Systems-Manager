@@ -1,200 +1,427 @@
 # Tri-State Systems Manager (TSM)
 
-**An open-source river-valley information, mapping and engineering research platform for communities along the Ohio and Wabash Rivers in Indiana, Illinois and Kentucky.**
+**A digital twin and scientific engineering workbench for the Ohio–Wabash River Valley.**
 
-**Project stage: active development and scientific validation — not a finished or certified public-safety product.**
+TSM brings **maps, terrain, rivers, buildings, land parcels, environmental information, engineering calculations, and traceable government evidence** into one open-source system. Its primary study area is the Ohio and Wabash River confluence across **Indiana, Illinois, and Kentucky**, with detailed source-data work in **Posey County and Mount Vernon, Indiana**.
 
-[Explore the public console](https://atphobia22.github.io/Tri-State-Systems-Manager/) · [See the code](https://github.com/ATphobia22/Tri-State-Systems-Manager) · [Report a problem](https://github.com/ATphobia22/Tri-State-Systems-Manager/issues) · [Read the engineering assurance standard](docs/architecture/ENGINEERING-ASSURANCE-STANDARD.md)
+**The idea is simple:** make complex river-valley information easier to see, understand, test, and explain—while preserving the mathematics and evidence that scientists and engineers need to review it.
 
-> **Our principle:** Technology informs people; it does not silently govern them. People and responsible agencies retain decision-making authority.
+[Explore the public console](https://atphobia22.github.io/Tri-State-Systems-Manager/) · [Browse the source code](https://github.com/ATphobia22/Tri-State-Systems-Manager) · [Engineering assurance standard](docs/architecture/ENGINEERING-ASSURANCE-STANDARD.md) · [Government source catalog](docs/DATA-SOURCE-CATALOG.md)
 
-## Posey and Mount Vernon evidence update — November 9, 2026
+> **Foundational principle:** Technology informs people; human authority remains final. TSM provides scientific information and decision support, not official emergency instructions, a professional certification, or an agency determination.
 
-The government-sourced Posey County footprint inventory and the enriched building GeoJSON were independently compared from recovered Google Drive files: **23,082 OBJECTIDs**, no duplicate/missing IDs, and **23,082 exact footprint geometry matches**. This verifies source identity and footprint correspondence only: 12,155 building heights use a default rural median and 10,927 derive from nearest Overture attributes, **not independently surveyed heights**.
+## 1. What TSM can do
 
-Two recovered 2020 DEM TIFFs matched their pinned SHA-256 acquisition hashes. Their embedded horizontal CRS is **EPSG:2968 (NAD83 HARN / Indiana West)**, whereas the project baseline is **EPSG:2966 (NAD83 / Indiana West)**. Raster vertical-datum and vertical-unit evidence remains insufficient; no NAVD88 engineering elevation determination follows from these checks.
-
-- [Building and DEM source verification](docs/engineering-development/POSEY-DRIVE-SOURCE-VERIFICATION-2026-11-09.md)
-- [DEM source authority and datum crosswalk](docs/engineering-development/POSEY-DEM-AUTHORITY-CROSSWALK-2026-11-09.md)
-- [LOD2 roof and interior evidence limits](docs/MOUNT-VERNON-LOD-EVIDENCE.md)
-- [Posey DEM integrity gate](scripts/geospatial/verify_posey_dem_gate.py) and [synthetic gate tests](scripts/geospatial/test_verify_posey_dem_gate.py)
-- [Private Drive evidence receipts](https://drive.google.com/drive/folders/1QvSnec14KQOcdz3-GpFx7dmmf_2YTAZf) — source files are not committed to public Git
-
-**Release boundaries:** Passing repository CI proves only the exercised software checks. It does not prove a complete native `.umap`, a verified Windows UE5.8 Shipping executable that launches offline on clean Windows 11 x64, full measured building-height coverage, a certified hydrologic model, or FEMA/survey approval. The 3D scene's discoverability extent is not a legally verified Mount Vernon city boundary.
-
-## For families in the Tri-State River Valley
-
-The Ohio and Wabash Rivers connect our towns, farms, roads, homes, wetlands and businesses. They also bring flooding and other challenges. TSM is being built to help people **see public information about the places they care about, understand where that information comes from, and explore possible conditions** in one place.
-
-You do not need to be an engineer to explore the public-facing parts of the project. Public reading is intended to be free and anonymous; privileged changes and agency decisions require appropriate authorization. Some screens and datasets are still experimental, incomplete or unavailable.
-
-### What can you use it for?
-
-| Question | How TSM can help | What it cannot promise |
+| Capability | What it means in everyday language | Technical foundation |
 |---|---|---|
-| **How high is the river?** | Show or retrieve published river-gage observations, including USGS and NOAA sources, with station and observation context. | The map is **not** an emergency alert service. Readings can be delayed, missing or on different gage datums. |
-| **Is my neighborhood in a mapped flood area?** | Display available FEMA flood-map layers and Indiana floodplain information alongside roads, terrain and other context. | Only the appropriate agency can provide an official determination. A map screenshot is not an elevation certificate. |
-| **What could flooding look like?** | Explore mapped scenarios and engineering-model outputs when their input data and validation status are available. | A scenario is **not** a prediction for your house, a guarantee of safety, or an approved hydraulic study. |
-| **What does our valley look like in 3D?** | Explore terrain and a partial 3D-building visualization, with source and height-evidence information. | Some buildings and heights are missing or unverified; 3D appearance does not prove survey accuracy. |
-| **Where did this information come from?** | Inspect evidence/provenance records and links to public agencies where implemented. | A listed source is not proof that its newest data was downloaded, validated or refreshed. |
+| **Interactive digital twin** | Explore terrain, rivers, roads, parcels, buildings, and flood-related layers together. | React/TypeScript, MapLibre, Three.js, geospatial tiles and source-aware map layers |
+| **Cinematic 3D engineering scenes** | View landscape and infrastructure in 3D, inspect elevations, and explore scene and camera tools. | Building geometry, GLB/3D Tiles tooling, Unreal Engine 5.8 native source and Cesium integration contracts |
+| **River observations** | Inspect named river stations, water levels, flow observations, and timestamps. | USGS Water Data, NOAA National Water Prediction Service, gage-datum validation |
+| **Flood-hazard mapping** | Compare published flood information with parcels, roads, structures, and terrain. | FEMA National Flood Hazard Layer, effective map products, Indiana DNR flood-hazard layers |
+| **Rainfall and runoff** | Estimate the runoff generated by a defined rainfall event and watershed. | USDA NRCS Curve Number method and time-step runoff calculations |
+| **Water movement and inundation** | Explore depth and spread of water over terrain for declared scenario inputs. | 2D diffusion-wave screening, Manning friction and explicit numerical time stepping |
+| **Hydraulic-model evidence** | Bring hydraulic-model inputs, results, and review records into a traceable workflow. | HEC-RAS-related tools, HDF5/result adapters, model and manifest contracts |
+| **Ground and building elevation analysis** | Compare elevation surfaces and identify geometry or datum inconsistencies. | LiDAR/DEM ingestion, geodesy, GEOID18 references, 3D-building source reconciliation |
+| **Earthworks and slope stability** | Evaluate berm sections, volumes, cut/fill quantities, and simplified stability factors. | Trapezoidal geometry, volume integration, Bishop simplified-method solver |
+| **Surveying and land geometry** | Import survey geometry, transform coordinates, perform COGO and adjust observations. | LandXML, PROJ, GeographicLib, weighted least squares and leveling |
+| **Farms and environmental context** | Cross-reference soils, agricultural land, wetlands, waterways, and flood exposure. | USDA soils/cropland, USGS hydrography, USFWS wetlands, parcel overlays |
+| **Infrastructure and community context** | Study roads, bridges, levees, structures, jurisdictions, and public datasets. | Indiana GIO, Census TIGER, USACE levees, FHWA inventory and agency registries |
+| **Research and funding evidence** | Organize technical context for community improvement and funding research. | Source registries, documented program references, evidence reports and grant matrices |
+| **Audit-friendly results** | Understand which source, formula, inputs, units, version, and timestamp produced a result. | Provenance records, checksums, validation rules, manifests, human-review states |
 
-**During a flood or other emergency:** follow local emergency management, the National Weather Service and official evacuation instructions. Do not use TSM as the sole basis for emergency action. [National Weather Service](https://www.weather.gov/) · [FEMA Flood Map Service Center](https://msc.fema.gov/portal/home)
+The repository contains both the **public web console** and **native engineering application source**, along with independent scientific, geospatial, surveying, ingestion, and validation modules. Each function operates within its own input and evidence requirements.
 
-### The difference between a river reading and a property elevation
+## 2. Explore the system
 
-A gage's **stage** is measured relative to that gage's own reference zero. A building's **ground elevation** and a floodplain's **base flood elevation** use specified vertical reference systems. Those numbers cannot safely be compared until their datums and units are verified. TSM is designed to show this distinction rather than silently combine incompatible measurements.
+### Maps, 3D landscapes, and infrastructure
 
-## What exists today, and what is still being built?
+TSM's mapping and visualization modules support:
 
-| Area | Evidence-backed current description | Release boundary |
+- Terrain models, hillshades, elevation inspection, and source-attributed imagery.
+- Buildings and infrastructure linked to their original spatial identifiers.
+- Parcel, road, flood-zone, hydrography, and jurisdiction overlays.
+- 3D geometry workflows involving GeoJSON, GLB, 3D Tiles, and hierarchical level of detail.
+- Water-depth visualization, scenario layers, in-world inspection controls, and cinematic scene tooling.
+- Both local/offline data packaging contracts and separate public web visualization paths.
+
+**Posey County building example:** Two recovered GeoJSON inventories were reconciled by government building identifier. They contain **23,082 matching building OBJECTIDs and 23,082 matching footprint geometries**, with no missing or duplicate IDs in that comparison. This establishes footprint identity across those two files; derived building-height attributes have their own evidence classification.
+
+Read the [Posey source verification](docs/engineering-development/POSEY-DRIVE-SOURCE-VERIFICATION-2026-11-09.md), [Mount Vernon city-scene runbook](docs/engineering-development/MOUNT-VERNON-CITY-SCENE-RUNBOOK.md), and [LOD roof-evidence methods](docs/MOUNT-VERNON-LOD-EVIDENCE.md).
+
+### Rivers, flooding, and property context
+
+The hydrology and mapping systems help users:
+
+- Find the original river station and observation time rather than reading an unexplained water-level number.
+- Keep **gage stage** separate from an actual elevation referenced to a vertical datum.
+- Inspect effective FEMA flood-hazard information independently from Indiana's best-available flood-hazard planning information.
+- Evaluate user-defined rainfall, runoff, flood-depth, and conveyance scenarios.
+- Compare site elevations, first-floor elevations, and water surfaces **only when units and datums are compatible**.
+- Preserve source inputs and model results for subsequent scientific or professional review.
+
+### Survey, construction, and geotechnical work
+
+Engineering modules provide coordinate geometry (COGO), geodesic distance calculations, coordinate transformations, LandXML point/TIN import, weighted least-squares adjustment, leveling, earthwork quantity calculations, and simplified Bishop slope stability. These produce calculation records—not a survey seal or permit.
+
+Survey documentation: [Offline survey tools](tools/survey/README.md) · [Survey computational methods](docs/survey/SURVEY-COMPUTATION-NOTES.md) · [Geotechnical solver](backend/solvers/geotech.py).
+
+## 3. Mathematics and scientific methods
+
+This section lists **equations represented in the repository**, their input meanings, and where the implementation can be reviewed. Units must remain consistent within each calculation. Empirical screening formulas and numerical models have defined assumptions and are not interchangeable with calibrated hydraulic studies.
+
+### 3.1 River stage and water-surface elevation
+
+A river gage measures the water level **relative to its own reference zero**. Where a verified gage-zero elevation is supplied:
+
+$$
+\mathrm{WSE}_{NAVD88}=\mathrm{stage}_{gage}+\mathrm{gageZero}_{NAVD88}
+$$
+
+All three quantities must use compatible units. The station, parameter, reference datum, and documented gage zero are part of the evidence record.
+
+Implementation: [Gage-datum evidence](backend/evidence/gage_datum.py) · [Stage and datum explanation](docs/engineering/GAGE_DATUM_AND_STAGE.md).
+
+### 3.2 Geodesy: ellipsoid height, orthometric height, and geoid separation
+
+$$
+H=h-N \qquad\text{or equivalently}\qquad h=H+N
+$$
+
+- **H:** orthometric height (for example, NAVD88 when supported by the appropriate model).
+- **h:** ellipsoidal height.
+- **N:** geoid separation from the appropriate geoid model.
+
+TSM identifies horizontal reference systems and vertical datums separately. The Posey workflow uses NAD83 / Indiana West reference systems and NGS GEOID18 evidence where applicable. A valid conversion also depends on a compatible frame, epoch, geoid grid, and stated units.
+
+Implementation: [Geoid model](packages/geo/src/geodesy/GeoidModel.ts) · [GEOID18 evidence](data/geo/geoid18/README.md).
+
+### 3.3 Rainfall to runoff: USDA NRCS Curve Number
+
+For event precipitation **P**, watershed Curve Number **CN**, potential retention **S**, and initial abstraction **Ia**, with rainfall and retention expressed in inches:
+
+$$
+S=\frac{1000}{CN}-10,\qquad I_a=0.2S
+$$
+
+$$
+Q=\begin{cases}
+0 & P\le I_a\\
+\frac{(P-I_a)^2}{P-I_a+S} & P>I_a
+\end{cases}
+$$
+
+Here **Q** is estimated *direct runoff depth*, not river discharge. The implementation also converts the change in runoff depth across time intervals into an area-weighted discharge rate. It uses a lumped watershed representation and explicitly records modeled provenance.
+
+Implementation: [SCS Curve Number runoff module](tsm-console/src/lib/hydrology-runoff.ts).
+
+### 3.4 River/channel conveyance: Manning equation
+
+In SI units, average open-channel velocity and discharge can be estimated as:
+
+$$
+V=\frac{1}{n}R^{2/3}S_f^{1/2},\qquad Q=AV
+$$
+
+- **n:** Manning roughness coefficient.
+- **R:** hydraulic radius, in metres.
+- **S_f:** energy/friction slope, dimensionless.
+- **A:** flow area, in square metres.
+- **V** and **Q:** velocity (m/s) and discharge (m³/s).
+
+Engineering modules use the corresponding unit-specific formulations for other unit systems. A defensible result depends on measured or justified geometry, roughness, and slope.
+
+Implementation: [Engineering kernel](integrations/engineering-fabric/engineering_kernel.py) · [Native engineering runtime](tsm-native/Source/TSMNative/TSMEngineeringRuntimeSubsystem.cpp).
+
+### 3.5 Two-dimensional inundation: diffusion-wave approximation
+
+The 2D screening solver updates cell water depth from precipitation and intercell flow:
+
+$$
+h^{t+\Delta t}=\max\left(0,\ h^t+\Delta t\,[r-\nabla\cdot\mathbf q]\right)
+$$
+
+The implementation calculates face fluxes using water-surface slope and Manning friction, with closed domain boundaries. It checks an explicit diffusion time-step condition of the form:
+
+$$
+\Delta t\le\frac{\Delta x^2}{4D_{\max}}
+$$
+
+This is a **diffusion-wave approximation**, not a full shallow-water momentum solution. Results are interpreted for their stated model assumptions.
+
+Implementation: [2D hydraulics](tsm-console/src/lib/hydraulics-diffusion2d.ts).
+
+### 3.6 Flood depth and freeboard
+
+For a water-surface elevation and terrain elevation in the **same** vertical datum:
+
+$$
+d=\max(0,\ \mathrm{WSE}-z_{ground})
+$$
+
+For a building or property screening comparison:
+
+$$
+\mathrm{freeboard}_{LAG}=\mathrm{LAG}-\mathrm{BFE}
+$$
+
+**LAG** is lowest adjacent grade; **BFE** is base flood elevation. The same general subtraction can be applied to a properly documented first-floor elevation, but that is a different property quantity.
+
+Implementation: [Freeboard methodology](docs/simulation/LAG-BFE-FREEBOARD-AND-HEC-RAS.md).
+
+### 3.7 Geotechnical stability: Bishop simplified method
+
+For slope slices with weight **W**, slice width **b**, pore pressure **u**, cohesion **c**, friction angle **φ**, and slip-base inclination **α**, the code iteratively evaluates:
+
+$$
+F=\frac{\sum_i\frac{c b_i+(W_i-u_i b_i)\tan\phi}{m_{\alpha,i}}}{\sum_i W_i\sin\alpha_i},
+\qquad
+m_{\alpha,i}=\cos\alpha_i+\frac{\sin\alpha_i\tan\phi}{F}
+$$
+
+The solver records convergence, iteration count, a configurable screening threshold, and an input SHA-256 digest. Geotechnical parameters must come from justified inputs.
+
+Implementation: [Bishop solver](backend/solvers/geotech.py).
+
+### 3.8 Earthwork quantities and compensatory storage
+
+For gridded existing and proposed terrain, an approximate cut/fill volume is the sum of positive elevation differences multiplied by cell area:
+
+$$
+V_{\mathrm{fill}}=\sum_i\max(0,z_{proposed,i}-z_{existing,i})A_i
+$$
+
+$$
+V_{\mathrm{cut}}=\sum_i\max(0,z_{existing,i}-z_{proposed,i})A_i
+$$
+
+For an **explicitly supplied** storage ratio **r**:
+
+$$
+V_{\mathrm{required\ excavation}}=r\,V_{\mathrm{fill}}
+$$
+
+The required ratio is a project or authority-specific **input**, not a universal statutory constant.
+
+Implementation: [Engineering kernel](integrations/engineering-fabric/engineering_kernel.py) · [Storage screening evaluator](tsm-console/server/engineering/compensatory-storage.mjs).
+
+### 3.9 Survey adjustment: weighted least squares
+
+Survey observations can be represented as a linear system with design matrix **A**, observations **l**, and weight matrix **W**:
+
+$$
+\hat{x}=\arg\min_x (Ax-l)^T W(Ax-l)
+$$
+
+For full-rank systems, the conventional normal-equation representation is:
+
+$$
+\hat{x}=(A^TWA)^{-1}A^TWl
+$$
+
+TSM's survey tool uses numerical linear-algebra methods, including SVD, and records residuals, covariance, and diagnostic information to support review.
+
+Implementation: [Survey adjustment](backend/survey/adjustment.py) · [Offline survey pipeline](tools/survey/README.md).
+
+### 3.10 Depth-damage research screening
+
+The depth-damage module relates **water depth above first floor** to an occupancy-specific damage fraction. In simplified form:
+
+$$
+\mathrm{estimated\ loss}=f(d,\mathrm{occupancy})\times\mathrm{replacement\ value}
+$$
+
+The repository's curves include illustrative adaptations of published FEMA Hazus/USACE generic relationships. They are labeled modeled estimates and require appropriate local calibration for consequential use.
+
+Implementation: [Depth-damage module](tsm-console/src/lib/hazus-depth-damage.ts).
+
+## 4. Government data and authoritative reference sources
+
+TSM's source registry and scientific workflows name **official agencies, data services, and technical references**. Some entries are directly queried by adapters; others are source catalogs, acquired snapshots, or reference methods. A link in this table identifies the **source of record**, not proof that the service is continuously online or that a particular dataset is current.
+
+### Floodplains, maps, property, and infrastructure
+
+| Agency | Government source / official link | Role in TSM |
 |---|---|---|
-| **Public web console** | Source code and public GitHub Pages deployment are available. Mapping, evidence and engineering screens are implemented. | A deployed screen does not establish every feature or external service is working now. |
-| **River data and forecasting** | USGS/NOAA data adapters and forecasting scripts exist, including TimesFM and GEOGloWS integration paths. | A script or prior successful test is not a current verified forecast, official warning or operational service-level guarantee. |
-| **Engineering 3D twin** | A published GeoJSON screening inventory includes **22,815** footprints and derived height attributes, versus **23,082** identities in the pinned, project-archived IGIO-labeled source. The public viewer now exposes the **267 missing OBJECTIDs** for inspection and JSON download. | The renderable 3D mesh is a separate, smaller dataset; neither the screening count nor the archived identity comparison proves 3D Tiles/HLOD completeness, valid elevation provenance or agency-certified source vintage. |
-| **2020 Indiana LiDAR recovery** | Official Indiana GIO public S3 source paths for COPC, nDHM, DSM and DEM have been inventoried. Source candidates and diagnostic QA are recorded. | Raster availability and tile coverage do **not** prove roof height or ground elevation for each building. |
-| **Hydrology and hydraulics** | The repo contains scenario/model integration, HEC-related tooling and evidence contracts. | No automatic No-Rise, LOMA, floodway, levee-safety or permit determination. Model-specific inputs and expert review remain necessary. |
-| **Government data fabric** | Adapters, source registries, validation tests and provenance structures cover federal and state datasets. | Freshness, completeness, licensing and agency authority must be checked for each dataset. |
-| **Windows 11 native/offline goal** | Unreal Engine 5.8 source/contracts and a self-hosted Windows Shipping packaging workflow exist. Web/Tauri preview builds are **separate deliverables**. | No verified Windows 11 x64 UE 5.8 Shipping `.exe`/installer, clean-host network-disabled boot, headed FPS/VRAM evidence, artifact attestation or signing trust classification has been established. See [native release gate #414](https://github.com/ATphobia22/Tri-State-Systems-Manager/issues/414). |
-| **Photorealistic presentation** | Optional Cesium-hosted presentation and viewer paths are documented. | Third-party tiles, account requirements and connectivity differ from the self-hosted/offline engineering twin. |
+| FEMA | [Flood Map Service Center](https://msc.fema.gov/portal/home) | Effective FIRM/FIS flood-map search and reference |
+| FEMA | [National Flood Hazard Layer — REST](https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer) | Effective flood-hazard GIS layer discovery and queries |
+| FEMA | [FEMA GIS Hub](https://gis-fema.hub.arcgis.com/) | Agency geospatial datasets and map discovery |
+| Indiana GIO | [2016–2020 building footprints](https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0) | Government building polygons and identifiers |
+| Indiana GIO | [2024 road centerlines](https://gisdata.in.gov/server/rest/services/Hosted/Road_Centerlines_of_Indiana_2024/FeatureServer/0) | Road network geometry and mapping context |
+| Indiana GIO | [Current parcel boundaries](https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_Current/FeatureServer) | State parcel mapping references |
+| Indiana GIO | [PLSS reference layer](https://gisdata.in.gov/server/rest/services/Hosted/PLSS_Indiana_State_Boundary/FeatureServer) | Public Land Survey System reference geometry |
+| Indiana DNR | [Division of Water](https://www.in.gov/dnr/water/) | Floodplain information, review, and state guidance |
+| Indiana DNR | [Floodplain Information Portal (INFIP)](https://infip.dnr.in.gov/) | Effective and best-available floodplain research |
+| Indiana DNR / GIO | [Best Available Flood Hazard Layer](https://gisdata.in.gov/server/rest/services/Best_Available_Flood_Hazard_Layer/MapServer) | State flood-hazard planning layer, distinct from FEMA effective data |
+| USACE | [National Levee Database](https://levees.sec.usace.army.mil/) | Levee inventory and levee-system context |
+| USACE | [National Structure Inventory](https://nsi.sec.usace.army.mil/) | Structure inventory and consequences-analysis context |
+| USACE | [Indiana Regulatory Program](https://www.lrd.usace.army.mil/Missions/Regulatory/Indiana/) | Federal regulatory reference and agency routing |
+| U.S. Census Bureau | [TIGERweb GIS services](https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb) | Counties, places, and statistical geography |
+| FHWA / USDOT | [National Bridge Inventory](https://www.fhwa.dot.gov/bridge/nbi.cfm) | Bridge inventory reference |
+| Illinois DNR | [Office of Water Resources](https://dnr.illinois.gov/waterresources.html) | Illinois floodway and water-resource context |
+| Kentucky legislature | [401 KAR 4:060](https://apps.legislature.ky.gov/law/kar/titles/401/004/060/) | Kentucky regulatory reference |
 
-**These are different evidence levels:** an **observation** is a measurement from a named source; a **derived value** is calculated from source data; a **scenario** explores assumptions; a **regulatory determination** is made by an authorized agency or qualified professional. The software must never relabel one as another.
+### Terrain, geodesy, hydrography, and surveying
 
-### 3D buildings: the current acceptance gap
+| Agency | Government source / official link | Role in TSM |
+|---|---|---|
+| USGS | [3D Elevation Program (3DEP)](https://www.usgs.gov/3d-elevation-program) | National terrain, elevation, and LiDAR products |
+| USGS | [The National Map products API](https://tnmaccess.nationalmap.gov/api/v1/) | Elevation, maps, and orthoimagery product discovery |
+| USGS | [3D Hydrography Program](https://www.usgs.gov/3d-hydrography-program) | Stream-network and hydrography references |
+| Indiana / ISDP | [2016–2020 statewide elevation archive](https://gis.iu.edu/s/isdp/page/20162020elevation) | Indiana LiDAR and DEM acquisition documentation |
+| Indiana GIO | [Indiana elevation resources](https://www.in.gov/gis/geoinsights/elevation/) | State elevation program and dataset provenance |
+| NOAA / NGS | [GEOID18 technical details](https://www.ngs.noaa.gov/GEOID/GEOID18/geoid18_tech_details.shtml) | Ellipsoid-to-orthometric height relationship |
+| NOAA / NGS | [NCAT coordinate transformation tool](https://www.ngs.noaa.gov/NCAT/) | Official coordinate and datum transformation reference |
+| USGS | [USGS Publications Warehouse](https://pubs.usgs.gov/) | Scientific reports and methods documentation |
 
-The full Posey County source inventory contains **23,082** IGIO building footprint identities. The earlier public screening layer contains **22,815** entries, leaving **267 source identities** to reconcile. A separate LiDAR height-recovery diagnostic reported **11,821 observed heights**, **8,696 derived heights** and **2,565 unavailable accepted heights**, plus **29 terrain-sampling gaps**. Those figures come from different versioned products and **must not be combined as if they were one accepted build**.
+### Water, weather, rainfall, and hydraulic science
 
-Before declaring the countywide 3D product complete, the project must verify source-ID reconciliation, valid polygon topology, horizontal and vertical reference systems, per-building roof and ground evidence, GLB geometry, hierarchical levels of detail, 3D Tiles schema/content and reproducible validation receipts.
+| Agency | Government source / official link | Role in TSM |
+|---|---|---|
+| USGS | [Water Data OGC API](https://api.waterdata.usgs.gov/ogcapi/v1/) | Streamgage stage, discharge, and station observations |
+| USGS | [Water Data for the Nation](https://waterdata.usgs.gov/) | Source observations and station metadata |
+| NOAA / NWS | [National Water Prediction Service](https://water.noaa.gov/) | River forecast and threshold information |
+| NOAA / NWS | [NWPS API](https://api.water.noaa.gov/nwps/v1/) | Gauge observations, forecasts, and metadata |
+| NOAA / NWS | [Weather API](https://api.weather.gov/) | Alerts, forecast data, and grid information |
+| NOAA / NWS | [CloudGIS web services](https://www.weather.gov/gis/cloudgiswebservices) | Official GIS weather, warnings, and radar overlays |
+| NOAA / NCEP | [OpenGeo service directory](https://opengeo.ncep.noaa.gov/geoserver/www/index.html) | GIS service catalogs and radar products |
+| NOAA / NWS | [Precipitation Frequency Data Server](https://hdsc.nws.noaa.gov/pfds/) | Design-storm precipitation frequency references |
+| USACE HEC | [HEC-RAS](https://www.hec.usace.army.mil/software/hec-ras/) | Hydraulic-model methodology and external solver interface |
+| EPA | [Storm Water Management Model (SWMM)](https://www.epa.gov/water-research/storm-water-management-model-swmm) | Urban stormwater and drainage modeling reference |
 
-[Historical building acceptance issue #416 (closed; scientific acceptance still unverified)](https://github.com/ATphobia22/Tri-State-Systems-Manager/issues/416) · [Public missing-OBJECTID inventory](tsm-console/public/3d-tiles/posey-missing-objectids.json) · [Indiana Elevation Registry research](docs/geospatial/INDIANA-ELEVATION-REGISTRY.md) · [Formal acceptance protocol](docs/validation/AUTHORITY-ACCEPTANCE-PROTOCOL-2026-10-25.md)
+### Agriculture, ecology, climate, and environmental context
 
-### Verification snapshot — November 3, 2026
+| Agency | Government source / official link | Role in TSM |
+|---|---|---|
+| USDA NRCS | [Web Soil Survey](https://websoilsurvey.nrcs.usda.gov/) | Soil map units, drainage and soil properties |
+| USDA NRCS | [Soil Data Access / SSURGO](https://sdmdataaccess.sc.egov.usda.gov/) | Soil database access and quantitative attributes |
+| USDA NASS | [Cropland Data Layer](https://www.nass.usda.gov/Research_and_Science/Cropland/) | Agricultural land-cover classifications |
+| USFWS | [National Wetlands Inventory](https://www.fws.gov/program/national-wetlands-inventory/wetlands-data) | Wetlands mapping and ecological context |
+| EPA | [WATERS / water data](https://www.epa.gov/waterdata) | Watershed and water-quality program information |
+| EPA | [ECHO](https://echo.epa.gov/) | Environmental facility and compliance-reporting context |
+| NASA | [POWER agroclimatology](https://power.larc.nasa.gov/) | Solar and meteorological observations/products for agricultural analysis |
+| NASA | [LANCE near-real-time Earth observation](https://www.earthdata.nasa.gov/data/projects/lance) | Satellite product discovery and environmental context |
 
-This is a **dated evidence snapshot**, not a live CI dashboard or a certified release. The public missing-ID disclosure was merged in [PR #493](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/493) (commit [`f1de9a5`](https://github.com/ATphobia22/Tri-State-Systems-Manager/commit/f1de9a5ff7b1130c3e301892100e6fa725bbcc6a)). It retains **22,815 / 23,082 (98.84%)** screening coverage with an expandable list of the **267 absent archived OBJECTIDs** and a downloadable, informational-only JSON manifest. The [pinned archived source-vs-publication difference](data/buildings/POSEY-ARCHIVED-IGIO-IDENTITY-DELTA-2026-10-25.json) includes source and published SHA-256 values; the archive's **original agency vintage remains independently unverified**. A set-difference proof is **not** a mesh or height acceptance receipt.
+### Government funding and program research
 
-The strict 3D-building workflow in [PR #492](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/492) reported **2,565 buildings without required accepted height evidence** and failed its 23,082-building gate. A separate user-supplied 23,082-feature GeoJSON candidate was inspected on November 3: its identity count is complete, but an initial geometry audit found **12 self-intersecting polygons** (including `740387` and `741040` in the archived missing-ID list) and **12,155 default 4 m height values**. This uploaded file is **not part of the repository's pinned authoritative source**, and its Overture-derived heights, OpenTopoData ground elevations, horizontal/vertical transformations, source vintage and licensing need independent verification. Never treat it as 23,082 validated buildings or silently use default heights to pass the scientific gate. Those topology findings are observations about the separate candidate file, **not proven omission causes**.
+| Source | Official link | Purpose |
+|---|---|---|
+| U.S. government | [Grants.gov](https://www.grants.gov/) | Federal grant opportunity discovery |
+| U.S. government | [Simpler.Grants.gov](https://simpler.grants.gov/search) | Public federal funding search |
+| U.S. government | [SAM.gov](https://sam.gov/) | Assistance listings and federal registrations |
+| FEMA | [Hazard Mitigation Assistance](https://www.fema.gov/grants/mitigation) | Hazard-mitigation program references |
+| USDA NRCS | [Conservation programs](https://www.nrcs.usda.gov/programs-initiatives) | Land, soil, and conservation program references |
 
-[Issue #416](https://github.com/ATphobia22/Tri-State-Systems-Manager/issues/416) is administratively **closed**, but that issue state does not provide the missing scientific release evidence. Countywide acceptance still requires one source-bound record per verified OBJECTID; explicit topology and no-data/raster-window diagnosis; horizontal EPSG, vertical **NAVD88**, geoid and unit provenance; method-quality and LOD1/LOD2 fallback outcomes; validated glTF/3D Tiles/HLOD content; reproducible SHA-256 inventories; and independent expert review. Do not disable provenance warnings to make a partial scene appear complete.
+More detailed authority classifications, dataset vintages, restrictions, and endpoint records are maintained in the [Government Source Registry](packages/government/src/index.ts), [Native Source Catalog](tsm-native/config/authoritative-source-catalog.json), and [Authoritative Data Source Catalog](docs/DATA-SOURCE-CATALOG.md).
 
-**Native release gate:** [Issue #414](https://github.com/ATphobia22/Tri-State-Systems-Manager/issues/414) remains open. The self-hosted `[windows,x64,ue5]` runner must have a properly licensed UE 5.8 installation, `UE_ROOT`, Cesium/SQLite plugins and MSVC. A reviewed immutable `main` SHA must be packaged with `package_windows: true`, followed by full BuildCookRun logs, clean Windows 11 network-disabled boot, **no WebView/Node/localhost** dependency, staged TSMData checksums and datum metadata, missing-evidence UI checks, headed cinematic screenshots and FPS/VRAM/hardware receipts, installer/uninstaller smoke tests and trusted signing/attestation. A green source-contract job or a **Web/Tauri** artifact cannot satisfy this independent UE Shipping gate.
+## 5. Data integrity and peer-review approach
 
-**Model authority boundary:** HEC-HMS, HEC-RAS, MODFLOW and related integrations are informational/model-assistance tooling unless verified inputs, calibration, solver execution/status, domain-specific acceptance and accountable human approval are recorded. TSM does not make automatic floodplain, permit, design or emergency decisions.
+A technical result is useful only if another person can understand **where it came from** and **how it was produced**.
 
-### Historical release-desk checkpoint — November 7, 2026
+TSM's [Engineering Assurance Standard](docs/architecture/ENGINEERING-ASSURANCE-STANDARD.md) distinguishes four evidence classes:
 
-[Release desk](https://tri-state-release-desk.flaredthyme1.chatgpt.site) tracks scoped evidence; it is a dated snapshot, not live synchronization. At inspected main [`ba0657896c95ce6a20fa74cb821a0637ddedcadf`](https://github.com/ATphobia22/Tri-State-Systems-Manager/commit/ba0657896c95ce6a20fa74cb821a0637ddedcadf), GitHub returned **zero open PRs** and **21 successful workflow runs**. Earlier references to PRs #488–#492 as outstanding are historical. Those run conclusions do not establish required-check completeness or native Shipping acceptance.
+| Evidence class | Meaning | Example |
+|---|---|---|
+| **Observed** | Published measurement from a named source with time and units | USGS river stage |
+| **Derived** | Computation using identified inputs and a named method | Calculated runoff depth |
+| **Scenario** | A modeled result under explicit assumptions | Flood depth for a specified design event |
+| **Regulatory** | A decision or document issued by the authorized body | Effective FEMA map or issued agency determination |
 
-At that checkpoint, the remaining `fix/transvoxel-coarse-scalar-correctness-20261023` branch at `a2c45699bac068832bb761c6687c3ee848dfb86d` is **0 commits ahead / 584 behind** that main revision, with no diff. Its work is already reachable from main; another merge is unnecessary.
+Relevant outputs can retain the issuing agency, source URL, observation/acquisition time, coordinate reference system, vertical datum, units, software/method version, input parameters, and SHA-256 digests.
 
-Local rechecks passed the native product contract and **20 Shipping-verifier tests**. They validate software behavior using fixtures; they do not prove an actual Windows launch. The explicit building validator rejects the public root external-tileset URI and rejects the child tileset's missing explicit authority flags. The root references an **implicit** tileset; those diagnostics also reveal a validator scope mismatch, not proof that external tilesets are invalid OGC content. The later scoped format result is recorded below; whole-catalog geodetic and native-render acceptance remain required. Keep **22,815 screening footprints**, the separate **20,517 height-evidence diagnostic**, and actual mesh counts distinct.
+The engineering design separates **source evidence** from **derived calculations** and **visual presentation**. This allows a cinematic scene to explain engineering data without changing the authoritative source record.
 
-No connected Windows Desktop Commander device was available during this reconciliation, and the GitHub connector exposes no workflow-dispatch operation. Windows packaging was **not dispatched**, and runner availability was not verified. Gate #414 remains open for a genuine package, staged-data verification, disconnected clean-host launch, native missing-evidence UI, `.umap`, cinematic measurements, signing and installation receipts. The workflow now preserves any generated Windows BuildCookRun transcript as an artifact even after a failed build; absence before packaging is reported as a warning, never fabricated success.
+### Example: independently checked Posey source files
 
-See [GitHub Actions](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions) and [open pull requests](https://github.com/ATphobia22/Tri-State-Systems-Manager/pulls) for newer state.
+The building-inventory reconciliation compares original source IDs and exact polygon coordinate arrays. Its result and file hashes can be reviewed independently of any rendered 3D building. The DEM source gate also checks the acquired TIFF bytes against their SHA-256 receipts and reports the embedded horizontal reference system separately from vertical-elevation claims.
 
-### Release implementation progress — November 7, 2026
+- [Building reconciliation code](scripts/geospatial/reconcile_posey_building_inventories.py)
+- [DEM evidence gate](scripts/geospatial/verify_posey_dem_gate.py)
+- [Posey source-verification report](docs/engineering-development/POSEY-DRIVE-SOURCE-VERIFICATION-2026-11-09.md)
+- [Official DEM reference crosswalk](docs/engineering-development/POSEY-DEM-AUTHORITY-CROSSWALK-2026-11-09.md)
+- [Scientific validation methods](docs/engineering/SCIENTIFIC_VALIDATION.md)
 
-[PR #497](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/497) is merged at `86067bba11a0eef4a5123100231f20fd90246b8a`: the native dependency probe uses macOS 15, and Windows BuildCookRun transcripts are retained on success or failure. Its 24 successful and six skipped checks were reviewed; native packaging was skipped and is still a separate gate.
+## 6. Software architecture
 
-Three follow-up changes are merged with separate evidence scopes: [#498](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/498) fixes the glTF writer/repair and feature-linkage checks; [#499](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/499) repairs manifest self-verification, protects staged data on copy failure, and stages physical files for Cesium/SQLite; [#500](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/500) publishes the reviewed 718-GLB format repair with checksums and locked independent format CI. Their merge commits are `4ac3da6214f091b43b98d16ad24ae71fef11e4e9`, `420d4b025cde8b15569007559dcd48e27efddcc5` and `8e595be4cd806d0d911d2573b1c43157cba065fa`, respectively.
+~~~text
+OFFICIAL GOVERNMENT DATA & DOCUMENTS
+                  |
+          Acquisition / catalogs
+                  |
+      Source IDs + date + CRS + units
+                  |
+       Integrity / provenance checks
+                  |
+     Scientific and engineering modules
+     |         |          |         |
+   Survey   Hydrology  Hydraulics  Geotech
+     |         |          |         |
+             Evidence records
+                  |
+      Maps / 3D scenes / reports
+                  |
+           Human interpretation
+~~~
 
-The repaired visualization subset contains **20,517 independently recounted OBJECTIDs in 718 GLBs**. Complete before/after comparison preserves geometry, transforms and source metadata. Cesium `3d-tiles-validator@0.6.1` reports zero errors and zero warnings, with 718 information groups including unsupported-extension notices. This is scoped format/identity evidence; **2,565 accepted heights are still unavailable**, the 22,815-feature screening inventory is a different product, and whole-catalog datum, full source vintage, native rendering and full 23,082-building acceptance remain open.
-
-Local verification passed 13 snapshot-integrity/staging tests, 20 Shipping-verifier fixture tests, 12 native contract tests and 11 glTF builder/repair/layout tests. These tests do not establish an installed Windows package. [Issues #414](https://github.com/ATphobia22/Tri-State-Systems-Manager/issues/414) and [#416](https://github.com/ATphobia22/Tri-State-Systems-Manager/issues/416) remain the independent native and countywide engineering acceptance records.
-
-### Canonical stack and format recheck — November 7, 2026
-
-At inspected main `44e16dcfda599964c2a827b4dd2db493ce470141`, [#506](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/506) adds offline survey/LandXML tooling, [#507](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/507) adds DuckDB observation history, [#508](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/508) adds the scoped fabric registry, and [#509](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/509) adds OGR diagnostic redaction and unit-aware semivariogram math.
-
-[PR #510](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/510) records the [explicit legacy scaffold resolution](docs/release/LEGACY-SCAFFOLD-RESOLUTION-2026-11-07.md) and repairs canonical migration integrity. Original branch commits remain merge parents; duplicate schemas/services, package renames and placeholder database IDs are deliberately declined. The [migration guide](docs/release/MIGRATION-RUNNER-RECONCILIATION-2026-11-07.md) explains fresh-ledger bootstrap, checksum-drift rejection, session locking and atomic SQL/ledger writes. The dedicated PostgreSQL CI job passed 18 tests; 38 targeted local TypeScript tests and four PMTiles tests also passed. Legacy null checksums remain explicitly unverified, and this is not a production database deployment receipt.
-
-The [published subset recheck](docs/evidence/IMPLICIT-FORMAT-RECHECK-2026-11-07.json) verifies **1,797 checksum entries**, all **718 committed GLBs** and **20,517 unique OBJECTIDs** against the existing publication receipt. The pinned validator reports **0 errors, 0 warnings and 718 information groups**. This closes the scoped format recheck, while full 23,082-building, height/geodetic and headed native acceptance remain open. The Release Desk is a dated snapshot; consult exact PR heads and current main for later changes.
-
-## Geography and source agencies
-
-TSM focuses on the Ohio–Wabash confluence and surrounding Indiana–Illinois–Kentucky communities, with initial detailed engineering work in **Posey County, Indiana**. A regional map does **not** mean every county has equally complete datasets or validated models.
-
-Key public-information authorities and products include:
-
-| Source | Why it matters |
+| Layer | Technologies and repository paths |
 |---|---|
-| [USGS Water Data](https://waterdata.usgs.gov/) | River observations and station metadata |
-| [NOAA / National Weather Service](https://water.noaa.gov/) | River forecasts, weather warnings and official flood-stage context |
-| [FEMA Flood Map Service Center](https://msc.fema.gov/portal/home) | Effective flood insurance rate maps and related map products |
-| [Indiana DNR Division of Water](https://www.in.gov/dnr/water/) | Indiana floodplain information, analyses and permitting context |
-| [Indiana GIO elevation catalog](https://registry.opendata.aws/in-elevation/) | Public elevation and LiDAR source archives |
-| [U.S. Army Corps of Engineers](https://www.lrd.usace.army.mil/Missions/Regulatory/Indiana/) | Applicable regulatory and water-resources information |
-| [USDA NRCS](https://www.nrcs.usda.gov/) | Soil surveys and agricultural land information |
-| [USFWS National Wetlands Inventory](https://www.fws.gov/program/national-wetlands-inventory) | Wetland mapping for screening, not jurisdictional delineation |
+| Public mapping console | [React, TypeScript and Vite](tsm-console/) |
+| Mapping and 3D rendering | MapLibre, Three.js, [3D building/tiles tooling](scripts/geospatial/) |
+| Native 3D engineering source | [Unreal Engine 5.8 application and plugins](tsm-native/) |
+| Scientific computing | [Python engineering backend](backend/), [engineering fabric](integrations/engineering-fabric/), TypeScript hydrology/hydraulics |
+| Survey and geodetic calculations | [Survey preprocessing](tools/survey/), [geodesy package](packages/geo/) |
+| Government adapters | [Government source package](packages/government/), [official-source catalog](docs/DATA-SOURCE-CATALOG.md) |
+| Spatial information | GeoJSON, GeoTIFF, LiDAR, PostGIS, SQLite/SpatiaLite, PMTiles, GLB and 3D Tiles paths |
+| Evidence and reproducibility | JSON/JSON Schema contracts, SHA-256 manifests, source snapshots, tests and review metadata |
 
-See the [government agency source audit](docs/evidence/GOVERNMENT-AGENCY-SOURCE-GAP-REVIEW-2026-10-26.md) for data status and agency authority boundaries. Historical plat books and insurance correspondence are **context only**; they are not current property surveys or flood determinations. Personal addresses, policy identifiers and other private evidence must not be published.
+The software uses **source-bound input parameters** rather than treating an attractive rendering or computed number as proof of a regulatory outcome.
 
-## For researchers, engineers and peer reviewers
+## 7. Get started and reproduce calculations
 
-TSM's goal is **reproducible evidence, not unexplained map confidence**. A peer review should be able to identify the source vintage, spatial reference system, vertical datum, units, geometry/measurement methods, transformations, assumptions, tests, failure states and accountable human reviewer.
+**Requirements for the web console:** Git, Node.js **22+**, and npm. Domain-specific Python tasks have their own dependencies.
 
-**Start with:**
-
-1. [Engineering Assurance Standard](docs/architecture/ENGINEERING-ASSURANCE-STANDARD.md) — evidence classes, numerical verification and review requirements.
-2. [Authority Acceptance Protocol](docs/validation/AUTHORITY-ACCEPTANCE-PROTOCOL-2026-10-25.md) — scientific and jurisdictional acceptance boundaries.
-3. [Technical Release Gates](docs/architecture/TECHNICAL-RELEASE-GATES.md) — software checks versus hydraulic/geodetic authority.
-4. [Government source gap review](docs/evidence/GOVERNMENT-AGENCY-SOURCE-GAP-REVIEW-2026-10-26.md) — official sources and limits.
-5. [Open issues](https://github.com/ATphobia22/Tri-State-Systems-Manager/issues) and [CI workflows](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions) — current failures, build receipts and unresolved work.
-
-### Reproducibility and trust boundaries
-
-- **Provenance:** capture source identifier, download/snapshot date, dataset vintage, checksum, transformations, software version and review decision.
-- **Geodesy:** state horizontal CRS, vertical datum, units and transformation method. Do not treat gage stage as NAVD88 elevation without verified station-zero metadata.
-- **Scientific honesty:** label `OBSERVED`, `DERIVED`, `SCENARIO`, `UNAVAILABLE` and review-required states; missing evidence cannot be synthesized into regulatory truth.
-- **Geometry:** preserve original building identifiers and topology, record invalid or absent source polygons and distinguish visual approximations from measured structures.
-- **Testing:** a green software CI run is necessary but **not sufficient** for scientific, survey, environmental or regulatory certification.
-- **Human oversight:** floodway, No-Rise, LOMA, design, permitting and evacuation decisions stay with the appropriate professionals and agencies.
-- **Privacy:** public outputs must exclude private household and insurance identifiers, credentials and unauthorized parcel-owner information.
-
-### Build and test the software
-
-Prerequisites: Git, **Node.js 22+**, npm, and the separate Python/model dependencies required by whichever subsystem you are testing.
-
-```bash
+~~~bash
 git clone https://github.com/ATphobia22/Tri-State-Systems-Manager.git
-cd Tri-State-Systems-Manager
+cd Tri-State-Systems-Manager/tsm-console
 
-# Install and run the public web console locally
-cd tsm-console
 npm ci
 npm run dev
+~~~
 
-# In a second shell, from the repository root:
-npm ci
-npm run test:posey-government-evidence
-npm run test:posey-geodetic-reference
-```
+Open the local address printed by Vite.
 
-Full root tests and native builds have additional environment, dependency and data prerequisites. Consult [CONTRIBUTING.md](CONTRIBUTING.md), workflow definitions in [`.github/workflows/`](.github/workflows/), and subsystem runbooks before executing hydrology or 3D production pipelines. Do not interpret a test pass as a validated flood prediction.
+For code-quality and reproducibility checks:
 
-## Survey interchange and computations
+~~~bash
+cd tsm-console
+npm run check:type
+npm run build
 
-The [offline survey preprocessing tool](tools/survey/README.md) imports scoped LandXML point/TIN data, preserves original survey collections, exports presentation GLBs, and provides COGO, weighted least-squares/leveling, offline PROJ and GeographicLib computations. It is separate from the native Unreal runtime. Imported data retains unverified datum/authority status until independently reviewed; external solver execution, XSD validity and renderable geometry do not confer survey acceptance.
+# From the repository root, with pytest/rasterio/numpy installed:
+cd ..
+python -m pytest -q \
+  scripts/geospatial/test_reconcile_posey_building_inventories.py \
+  scripts/geospatial/test_verify_posey_dem_gate.py
+~~~
 
-## Project direction
+For LandXML, COGO, least-squares adjustment and leveling:
 
-TSM is designed to grow toward a local-first, offline-capable, cinematic **Unreal Engine 5.8 Windows 11 x64 digital twin**, while keeping the public web console accessible without an account. Planned capabilities include richer 3D buildings and terrain, reproducible hydraulic scenarios, agricultural and ecological overlays, and exportable evidence packages. These are **goals**, not claims of completed deployment.
+~~~bash
+python -m pip install -r tools/survey/requirements.txt
+python -m unittest discover -s tests/survey -v
+~~~
 
-Priority release work includes full 23,082-building acceptance, authoritative height/terrain reconciliation, validated 3D Tiles and LODs, tested Windows distribution, and independent scientific review. Status can change as new evidence arrives; inspect linked CI and issue records rather than relying on a static README as a live status dashboard.
+Review the [survey tool guide](tools/survey/README.md), [engineering assurance standard](docs/architecture/ENGINEERING-ASSURANCE-STANDARD.md), [repository testing workflows](.github/workflows/), and [contribution guidelines](CONTRIBUTING.md) for method-specific instructions.
 
-## Participate and review
+## 8. Public-interest use and contributions
 
-Community members can report broken links, unclear maps, accessibility problems, incorrect source attribution or local context that needs verification. Researchers can propose reproducible tests and source corrections. Do **not** post private addresses, insurance letters, identifying household records, or sensitive infrastructure details in public issues.
+TSM is built around **free public access to information, traceable sources, accessible explanations, transparent science, and responsible human review**. Community members can contribute map corrections, reproducible tests, better documentation, scientific methods, accessibility improvements, and official-source references.
 
-[Contribution guide](CONTRIBUTING.md) · [Security reporting](SECURITY.md) · [Open issues](https://github.com/ATphobia22/Tri-State-Systems-Manager/issues)
+[Contributing](CONTRIBUTING.md) · [Security policy](SECURITY.md) · [License](LICENSE) · [GitHub issues](https://github.com/ATphobia22/Tri-State-Systems-Manager/issues)
+
+**License:** Apache-2.0 for repository code, subject to third-party component and dataset terms.
+
+**Scientific and regulatory use:** TSM is an information, research, and engineering decision-support system. Source data, calculations, simulations, and visualizations must be evaluated in their stated domain; they do not themselves replace a licensed survey, a sealed engineering deliverable, an official flood warning, or an authorized agency decision.
 
 ---
 
-**In memory of Beverly Ann Tucker.** This dedication is personal and does not constitute engineering or regulatory evidence.
-
-**License:** [Apache-2.0](LICENSE). Some external data and hosted services have their own licensing, attribution and access conditions.
-
-**Disclaimer:** TSM is research and decision-support software. It is not an official flood warning system, an elevation certificate, a licensed engineering or land-survey service, or a substitute for FEMA, state DNR, USACE, NWS, local emergency management, or other competent authorities.
-
-## Unreal authoring and training integrations
-
-See [Unreal authoring tools](docs/unreal-authoring-tools.md) for provenance-checked Blender/Houdini FBX import, local Cesium actor configuration, asset naming checks, optional human-acknowledged FlowGraph training steps, and headed cinematic capture. The FlowGraph training plugin is disabled by default. Python checks do not establish a native UE5.8 build, generated map, complete building dataset, or offline Windows release.
+**In memory of Beverly Ann Tucker.**
