@@ -11,8 +11,14 @@ export interface PmtilesSource {
 
 function validateArchiveUrl(url: string): string {
   const parsed = new URL(url);
-  if (parsed.protocol !== 'https:') {
-    throw new Error('PMTiles archives must use HTTPS.');
+  // Packaged, immutable same-origin snapshots also work on local development
+  // HTTP origins. Remote HTTP remains prohibited (and no localhost server is
+  // required by the final native offline application).
+  const sameOriginLocalHttp = parsed.protocol === 'http:'
+    && typeof window !== 'undefined'
+    && parsed.origin === window.location.origin;
+  if (parsed.username || parsed.password || (parsed.protocol !== 'https:' && !sameOriginLocalHttp)) {
+    throw new Error('PMTiles archives must use HTTPS or same-origin local HTTP.');
   }
   return parsed.toString();
 }
