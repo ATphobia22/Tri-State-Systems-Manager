@@ -70,7 +70,9 @@ export function BuildingInspectionPanel({ properties, onClose }: BuildingInspect
       </div>
       <h4 style={{ fontSize: 12, marginTop: 14, marginBottom: 8 }}>Available feature attributes and provenance</h4>
       <div style={{ display: 'grid', gap: 4 }}>
-        {Object.entries(properties).sort(([a], [b]) => a.localeCompare(b)).map(([key, value]) => (
+        {Object.entries(properties)
+          .filter(([key]) => /^tsm_[a-z0-9_]+$/i.test(key) || ['objectid', 'OBJECTID', 'igio_objectid'].includes(key))
+          .sort(([a], [b]) => a.localeCompare(b)).map(([key, value]) => (
           <div key={key} style={{ display: 'grid', gridTemplateColumns: 'minmax(105px, 45%) 1fr', gap: 7, borderBottom: '1px solid rgba(148,163,184,.14)', padding: '4px 0', wordBreak: 'break-word' }}>
             <span style={{ color: '#94a3b8' }}>{key}</span>
             <span>{printable(value)}</span>
