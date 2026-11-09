@@ -73,14 +73,8 @@ jobs:
           TSM_DEM_VERTICAL_UNIT: us-ft
         run: |
           set -euo pipefail
-          python scripts/geospatial/mount_vernon_multi_dem_camera_sweep.py \
-            --raster dem/IN2020_26700930_12.tiff \
-            --sha256 1a321bc386e0de8b7cca74ec903fb35ea8fb54e8cdd7e835428210562e173ebb \
-            --grid 4 --output results/tile-26700930-camera-sweep.json --preview-only
-          python scripts/geospatial/mount_vernon_multi_dem_camera_sweep.py \
-            --raster dem/IN2020_26850945_12.tiff \
-            --sha256 78f987ad4f93d3680d4500ad0b74542872f83529861b5500863addb61c00d124 \
-            --grid 4 --output results/tile-26850945-camera-sweep.json --preview-only
+          python scripts/geospatial/mount_vernon_multi_dem_camera_sweep.py --raster dem/IN2020_26700930_12.tiff --sha256 1a321bc386e0de8b7cca74ec903fb35ea8fb54e8cdd7e835428210562e173ebb --grid 4 --output results/tile-26700930-camera-sweep.json --preview-only
+          python scripts/geospatial/mount_vernon_multi_dem_camera_sweep.py --raster dem/IN2020_26850945_12.tiff --sha256 78f987ad4f93d3680d4500ad0b74542872f83529861b5500863addb61c00d124 --grid 4 --output results/tile-26850945-camera-sweep.json --preview-only
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: always()
         with:
