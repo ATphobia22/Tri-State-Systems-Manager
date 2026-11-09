@@ -5,6 +5,8 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { MAP_PLANE_FABRIC, type MapPlaneLayer } from '../lib/map-plane-fabric';
 import { buildArcGisExportTemplate, buildArcGisFeatureQueryUrl, getMapLibreFabricLayer } from '../lib/maplibre-layer-fabric';
 import { getTerrainRgbStatus } from '../lib/twin-map-style';
+import { BuildingInspectionPanel } from './BuildingInspectionPanel';
+import { createPoseyScreeningExtrusionLayer } from '../lib/posey-screening-building-style';
 import { TERRAIN_RGB_SOURCE_ID } from '../lib/terrain-rgb-contract';
 import { FeatureLayerRequestCoordinator } from '../lib/feature-layer-request-coordinator';
 import { getCinematicLighting, type CinematicLightPreset } from '../lib/cinematic/light-presets';
@@ -15,9 +17,11 @@ import {
 } from '../lib/flood-deck-overlay';
 
 const INITIAL_CENTER: [number, number] = [-88.005075, 37.845887];
+// Covers the audited 23,082 Posey candidates (source bounds approximately
+// -88.0913/37.7734 to -87.6883/38.2301), not only Mount Vernon.
 const MAX_BOUNDS: [[number, number], [number, number]] = [
-  [-88.08, 37.75],
-  [-87.92, 37.90],
+  [-88.13, 37.72],
+  [-87.64, 38.28],
 ];
 
 const layerColor = (id: string): string => {
@@ -136,33 +140,19 @@ function addFeatureSource(map: Map, item: MapPlaneLayer): void {
       layout: { visibility: 'none' },
       paint: { 'fill-color': '#94a3b8', 'fill-opacity': 0.28, 'fill-outline-color': '#cbd5e1' },
     });
-    map.addLayer({
-      id: `${item.id}-extrusion`,
-      type: 'fill-extrusion',
-      source: item.id,
-      minzoom: 14,
-      layout: { visibility: 'none' },
-      paint: {
-        // Height-based color ramp (gray to blue), following ember-maplibre-gl pattern
-        'fill-extrusion-color': [
-          'interpolate', ['linear'], ['coalesce', ['to-number', ['get', 'height_m']], 0],
-          0, '#d9dee4',
-          15, '#aeb6c2',
-          30, '#6baed6',
-          50, '#08519c'
-        ],
-        // Zoom-based height interpolation: 0 at zoom 14, full height at zoom 15+
-        // This prevents visual popping and improves mobile performance
-        'fill-extrusion-height': [
-          'interpolate', ['linear'], ['zoom'],
-          14, 0,
-          15, ['coalesce', ['to-number', ['get', 'height_m']], 0]
-        ],
-        'fill-extrusion-base': 0,
-        'fill-extrusion-opacity': 0.85,
-        'fill-extrusion-vertical-gradient': true,
-      },
-    });
+    // The live IGIO source is always 2D. Only a separately staged, SHA-pinned
+    // local screening GeoJSON may supply *estimated* LoD1 massing. No arbitrary
+    // remote URL, query string, parent traversal or network dependency.
+    const screeningRelative = import.meta.env.VITE_TSM_POSEY_SCREENING_GEOJSON_PATH?.trim() || '';
+    if (/^data\/screening\/[A-Za-z0-9_./-]+\.geojson$/.test(screeningRelative)
+        && !screeningRelative.includes('..') && !screeningRelative.includes('//')) {
+      const screenedSourceId = 'tsm-posey-screening-buildings';
+      map.addSource(screenedSourceId, {
+        type: 'geojson',
+        data: `${import.meta.env.BASE_URL}${screeningRelative}`,
+      });
+      map.addLayer(createPoseyScreeningExtrusionLayer(screenedSourceId, `${item.id}-extrusion`));
+    }
     return;
   }
   map.addLayer({
@@ -180,14 +170,19 @@ function describePickedFeature(layerId: string, props: Record<string, unknown>):
     const value = props[key];
     return typeof value === 'string' && value.length > 0 ? value : null;
   };
-  if (layerId === 'indiana-buildings-extrusion' || layerId === 'indiana-buildings-footprint') {
+  if (layerId === 'indiana-buildings-extrusion') {
+    const h = props.tsm_visual_height_m;
+    const origin = str('tsm_height_evidence') ?? 'UNKNOWN';
+    return typeof h === 'number' && Number.isFinite(h)
+      ? `Estimated LoD1 building · ${h.toFixed(1)} m AGL · ${origin} · NOT SURVEYED`
+      : 'Estimated building · vertical data unavailable · NOT SURVEYED';
+  }
+  if (layerId === 'indiana-buildings-footprint') {
     const county = str('county') ?? 'unknown county';
     const lidarYear = str('lidaryear') ?? 'unknown vintage';
-    const rawHeight = props.height_m;
-    const height = typeof rawHeight === 'number' && Number.isFinite(rawHeight) && rawHeight > 0
-      ? `LiDAR height: ${rawHeight.toFixed(2)} m`
-      : 'height unavailable; footprint retained without extrusion';
-    return `Building footprint · ${county} · lidar ${lidarYear} · ${height}`;
+    // A bare "height_m" attribute is not proof of LiDAR observation.
+    // Only a separately source-pinned screening layer can display estimates.
+    return `Building footprint · ${county} · source vintage ${lidarYear} · roof height not independently verified`;
   }
   if (layerId === 'indiana-roads-line') {
     const name = str('STREET_NAME') ?? str('FULLNAME') ?? str('name') ?? 'unnamed road';
@@ -218,7 +213,7 @@ export interface TriStateDigitalTwinMapProps {
 }
 
 export function defaultMapPlaneVisibility(): Record<string, boolean> {
-  return Object.fromEntries(MAP_PLANE_FABRIC.map((item) => [item.id, item.defaultVisible]));
+  return Object.fromEntries(MAP_PLANE_FABRIC.map((item) => [item.id, item.id === 'indiana-buildings' && Boolean(import.meta.env.VITE_TSM_POSEY_SCREENING_GEOJSON_PATH) ? true : item.defaultVisible]));
 }
 
 export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProps): JSX.Element {
@@ -233,6 +228,7 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
   const [terrainEnabled, setTerrainEnabled] = useState(false);
   const [status, setStatus] = useState('Initializing MapLibre plane…');
   const [picked, setPicked] = useState<string | null>(null);
+  const [selectedBuilding, setSelectedBuilding] = useState<Record<string, unknown> | null>(null);
   const [floodOverlayOn, setFloodOverlayOn] = useState(false);
   const [floodBusy, setFloodBusy] = useState(false);
   const floodOverlayRef = useRef<FloodDeckOverlay | null>(null);
@@ -416,17 +412,24 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
         const features = map.queryRenderedFeatures(event.point, { layers: pickable });
         if (features.length === 0) {
           setPicked(null);
+          setSelectedBuilding(null);
           return;
         }
         const feature = features[0];
         const layerId = feature.layer.id;
         const props = feature.properties ?? {};
-        const summary = describePickedFeature(layerId, props);
-        setPicked(summary);
+        if (layerId === 'indiana-buildings-extrusion' || layerId === 'indiana-buildings-footprint') {
+          setSelectedBuilding(props);
+          setPicked(null);
+        } else {
+          setSelectedBuilding(null);
+          setPicked(describePickedFeature(layerId, props));
+        }
       });
       map.on('mousemove', (event) => {
         const pickable = [
           'indiana-buildings-extrusion',
+          'indiana-buildings-footprint',
           'indiana-roads-line',
           'indiana-parcels-fill',
           'usgs-quad-index-line',
@@ -485,6 +488,9 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
     <section aria-label="TSM MapLibre twelve-layer plane" style={{ position: 'relative', height: '100%', minHeight: 560, background: '#05080f', color: '#e2e8f0' }}>
       <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
       <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: mistVisible ? 0.18 : 0, transition: 'opacity 180ms ease', background: 'radial-gradient(ellipse at 50% 45%, transparent 35%, rgba(148,163,184,.55) 100%)', mixBlendMode: 'screen' }} />
+      {selectedBuilding && (
+        <BuildingInspectionPanel properties={selectedBuilding} onClose={() => setSelectedBuilding(null)} />
+      )}
       {picked && (
         <div role="status" style={{ position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)', zIndex: 15, maxWidth: 'min(92%, 560px)', padding: '8px 14px', borderRadius: 10, border: '1px solid rgba(34,211,238,.4)', background: 'rgba(5,8,15,.92)', fontSize: 12, color: '#e2e8f0', backdropFilter: 'blur(8px)' }}>
           <span style={{ color: '#22d3ee', fontWeight: 700 }}>▸ </span>{picked}
@@ -518,6 +524,11 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
             );
           })}
         </div>
+        {import.meta.env.VITE_TSM_POSEY_SCREENING_GEOJSON_PATH && (
+          <div style={{ fontSize: 10, color: '#fbbf24', marginTop: 8 }}>
+            Building prisms are LoD1 *estimates* only — not LiDAR-measured roof models or NAVD88 design elevations.
+          </div>
+        )}
         <div style={{ marginTop: 8, display: 'grid', gap: 6 }}>
           <label style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 8, alignItems: 'start', padding: 8, borderRadius: 8, background: floodOverlayOn ? 'rgba(56,189,248,.08)' : 'rgba(15,23,42,.45)', border: '1px dashed rgba(56,189,248,.35)' }}>
             <input
