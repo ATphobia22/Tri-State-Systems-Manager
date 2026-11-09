@@ -10,6 +10,7 @@ services:
     volumes:
       - government_pgdata:/var/lib/postgresql/data
       - ./sql/001_government_fabric_postgis.sql:/docker-entrypoint-initdb.d/001_government_fabric_postgis.sql:ro
+      - ./sql/002_government_evidence_ledger.sql:/docker-entrypoint-initdb.d/002_government_evidence_ledger.sql:ro
     ports:
       - "127.0.0.1:5439:5432"
     healthcheck:
