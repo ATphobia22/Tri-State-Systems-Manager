@@ -8,6 +8,8 @@ on:
       - 'backend/tests/test_merkle_evidence.py'
       - 'backend/merkle_transparency_log.py'
       - 'backend/tests/test_merkle_transparency_log.py'
+      - 'tsm-console/src/lib/merkle-evidence-verifier.ts'
+      - 'tsm-console/tests/merkle-evidence-verifier.test.ts'
       - 'backend/survey/independent_control_gate.py'
       - 'backend/tests/test_merkle_survey_checkpoint.py'
       - 'backend/regulatory_authority_boundary.py'
@@ -70,3 +72,23 @@ jobs:
             ${{ runner.temp }}/posey-receipt-inclusion-proof.json
           retention-days: 90
           if-no-files-found: error
+
+  client-proof-verifier:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: tsm-console/package-lock.json
+      - name: Install pinned client dependencies
+        working-directory: tsm-console
+        run: npm ci --no-audit --no-fund
+      - name: Validate cross-language Merkle inclusion proofs
+        working-directory: tsm-console
+        run: npm exec -- vitest run tests/merkle-evidence-verifier.test.ts
+      - name: Type-check public twin Merkle verification
+        working-directory: tsm-console
+        run: npm run check:type
