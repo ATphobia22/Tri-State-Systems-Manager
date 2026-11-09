@@ -1,0 +1,64 @@
+name: Posey 2025 Official Leaf-On and DSM Acquisition
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/geospatial/acquire_posey_2025_leafon.py'
+      - 'backend/tests/test_posey_2025_leafon_acquisition.py'
+      - '.github/workflows/posey-2025-leafon-dsm-acquisition.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/geospatial/acquire_posey_2025_leafon.py'
+      - 'backend/tests/test_posey_2025_leafon_acquisition.py'
+      - '.github/workflows/posey-2025-leafon-dsm-acquisition.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  acquire-official-imagery-and-dsm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Install GIS inspector and test dependencies
+        run: |
+          python -m pip install --disable-pip-version-check rasterio==1.4.3 pytest==8.3.5
+      - name: Reject malformed source inventories and download bypasses
+        run: |
+          python -m pytest -q backend/tests/test_posey_2025_leafon_acquisition.py
+      - name: Download and inspect one paired public Posey tile
+        run: |
+          python scripts/geospatial/acquire_posey_2025_leafon.py \
+            --output posey-2025-official \
+            --tile-stem in2025_27179775_06 \
+            --max-tiles 1 \
+            --max-total-mib 200 \
+            --max-file-mib 150 \
+            --raster-inspect
+      - name: Assert evidence labels and paired source receipts
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('posey-2025-official/acquisition-receipt.json').read_text())
+          assert r['tile_stems_verified_countywide']==2179
+          assert r['selected_tile_stems']==['in2025_27179775_06']
+          assert len(r['downloaded_objects'])==4
+          assert r['engineering_approved'] is False
+          assert r['complete_city_coverage_verified'] is False
+          assert r['source_authenticity_independently_attested'] is False
+          assert len(r['raster_metadata']['in2025_27179775_06'])==2
+          PY
+      - name: Upload official raster pair and SHA256 receipts
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: posey-2025-official-imagery-and-dsm-one-tile
+          path: posey-2025-official/
+          retention-days: 14
+          if-no-files-found: error

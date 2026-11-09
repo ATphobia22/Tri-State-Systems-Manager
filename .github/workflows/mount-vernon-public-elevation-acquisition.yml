@@ -1,0 +1,102 @@
+name: Mount Vernon 2020 Public Elevation Acquisition
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/mount-vernon-public-elevation-acquisition.yml'
+permissions:
+  contents: read
+jobs:
+  download-official-tile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Download all eight public objects for one Mount Vernon-area 2020 tile
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          from urllib.request import Request, urlopen
+          import hashlib, json, os, tempfile, datetime
+          root=Path('official-mount-vernon-2020')
+          root.mkdir()
+          name='IN2020_27150975_12'
+          keys=[
+            f'las/statewide/2020/SPW/ql2/{name}.las',
+            f'las/statewide/2020/SPW/ql2/{name}.metadata.json',
+            f'las/statewide/2020/SPW/ql2/{name}_footprint.geojson',
+            f'copc/statewide/2020/SPW/ql2/{name}.copc.laz',
+            f'copc/statewide/2020/SPW/ql2/{name}.copc.metadata.json',
+            f'copc/statewide/2020/SPW/ql2/{name}.copc_footprint.geojson',
+            f'demoptimized/statewide/2020/SPW/2.5ft/{name}.tif',
+            f'demraw/statewide/2020/SPW/2.5ft/{name}.img',
+          ]
+          # Size pins verified independently from S3 HeadObject.
+          expected=[289340053,49092,1032,56648699,48802,1038,14550093,16799843]
+          budget=450_000_000
+          receipt={'schema':'tsm.mount-vernon-s3-acquisition.v1',
+                   'source':'https://registry.opendata.aws/in-elevation/',
+                   'iu_item':'https://gis.iu.edu/s/isdp/item/86442',
+                   'tile':name,'full_quad_coverage':False,
+                   'engineering_approved':False,
+                   'objects':[]}
+          for key,nbytes in zip(keys,expected):
+              if nbytes>budget:
+                  raise RuntimeError('Artifact budget exceeded')
+              url='https://giselevationingov.s3.us-east-2.amazonaws.com/'+key
+              dest=root/Path(key).name
+              req=Request(url,headers={'User-Agent':'TSM-Public-OpenData/1.0'})
+              with urlopen(req,timeout=120) as response:
+                  length=response.headers.get('Content-Length')
+                  if length and int(length)!=nbytes:
+                      raise RuntimeError('Remote size changed for '+key)
+                  digest=hashlib.sha256()
+                  size=0
+                  start=b''
+                  with dest.open('wb') as output:
+                      while True:
+                          block=response.read(1024*1024)
+                          if not block:break
+                          if len(start)<4:start+=block[:4-len(start)]
+                          size+=len(block)
+                          if size>nbytes:
+                              raise RuntimeError('Oversized file '+key)
+                          digest.update(block)
+                          output.write(block)
+                  if size!=nbytes:raise RuntimeError('Remote byte count changed '+key)
+                  if key.endswith(('.las','.copc.laz')) and start!=b'LASF':
+                      raise RuntimeError('LAS signature mismatch '+key)
+                  if key.endswith('.tif') and start not in (b'II*\x00',b'MM\x00*'):
+                      raise RuntimeError('TIFF signature mismatch '+key)
+                  if key.endswith(('.json','.geojson')):
+                      json.loads(dest.read_text())
+                  receipt['objects'].append({'key':key,'bytes':size,'sha256':digest.hexdigest(),
+                                             'etag_not_sha256':response.headers.get('ETag'),
+                                             'url':url})
+                  budget-=size
+                  print('Verified:',key,size,digest.hexdigest(),flush=True)
+          metadata=json.loads((root/f'{name}.metadata.json').read_text())
+          vertical=metadata.get('metadata',{}).get('srs',{}).get('vertical','')
+          if 'NAVD88' not in vertical or 'US survey foot' not in vertical:
+              raise RuntimeError('Source vertical datum declaration changed')
+          receipt['las_vertical_wkt']=vertical
+          receipt['vertical_reference_claim']='SOURCE_METADATA_NAVD88_GEOID12B_FTUS'
+          receipt['source_authenticated']=False
+          receipt['as_of_utc']=datetime.datetime.now(datetime.timezone.utc).isoformat()
+          (root/'download-receipt.json').write_text(json.dumps(receipt,indent=2,sort_keys=True)+'\n')
+          (root/'SHA256SUMS.txt').write_text(''.join(
+               f"{x['sha256']}  {Path(x['key']).name}\n" for x in receipt['objects']))
+          print('Official source bytes downloaded, sizes and SHA256 verified; NOT an engineering release')
+          PY
+      - name: Upload downloaded public 2020 Mount Vernon elevation tile
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: mount-vernon-2020-public-las-copc-dem-and-receipts
+          path: official-mount-vernon-2020/
+          if-no-files-found: error
+          retention-days: 14
