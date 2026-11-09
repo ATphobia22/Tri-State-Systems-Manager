@@ -7,6 +7,7 @@ on:
       - 'tests/contracts/mount-vernon-dem-manifest.test.mjs'
       - 'docs/evidence/mount-vernon-3dtiles-dem-preview-2026-11-09.json'
       - '.github/workflows/mount-vernon-real-dem-adapter.yml'
+      - 'scripts/geospatial/stage_mount_vernon_preview.py'
   push:
     paths:
       - 'scripts/geospatial/mount_vernon_dem_transvoxel_gate.py'
@@ -29,6 +30,7 @@ jobs:
         run: |
           node --test tests/contracts/mount-vernon-dem-manifest.test.mjs
           python -m py_compile scripts/geospatial/mount_vernon_dem_transvoxel_gate.py
+          python -m py_compile scripts/geospatial/stage_mount_vernon_preview.py
 
   real_dem_transition_pairs:
     runs-on: ubuntu-latest
