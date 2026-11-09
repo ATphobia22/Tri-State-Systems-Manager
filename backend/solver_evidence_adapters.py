@@ -155,10 +155,10 @@ def inspect_swmm_run(*, run_id: str, solver_version: str, input_file: str | Path
             # Stop before the next named report section. Decorative star lines
             # immediately below each title belong to the current section.
             boundary = re.search(
-                r"(?im)^\\s*(?:Runoff Quantity Continuity|Flow Routing Continuity|"
+                r"(?im)^\s*(?:Runoff Quantity Continuity|Flow Routing Continuity|"
                 r"Runoff Quality Continuity|Groundwater Continuity|"
                 r"Quality Routing Continuity|Highest Flow Instability Indexes|"
-                r"Routing Time Step Summary|Analysis ended on:)\\b", tail
+                r"Routing Time Step Summary|Analysis ended on:)\b", tail
             )
             block = tail[:boundary.start()] if boundary else tail[:4000]
             values = re.findall(r"(?im)^\s*Continuity\s+Error\s*\(%\)\s*\.+\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?)", block)
