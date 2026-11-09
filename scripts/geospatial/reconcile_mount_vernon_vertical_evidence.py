@@ -5,6 +5,7 @@ This does NOT infer roof heights, sample rasters, reproject coordinates, perform
 geoid transformations, certify accuracy, or create LOD2 geometry. It combines
 independently sourced, datum-declared ground and above-ground roof measurements,
 and refuses missing datum/units/provenance instead of inventing heights.
+The CLI requires a pinned city scene and exact source-feature hash matching.
 
 Input schema tsm.mount-vernon-vertical-samples.v1:
 {
@@ -144,10 +145,40 @@ def reconcile(payload: dict) -> dict:
     }
 
 
+
+def validate_scene_bindings(payload: dict, scene: dict) -> None:
+    """Require exact building ID + source-feature hash in the pinned 2D scene."""
+    if scene.get("schema") != "tsm.mount-vernon-city-scene.v1":
+        raise ValueError("SCENE_SCHEMA_INVALID")
+    buildings = scene.get("buildings")
+    if not isinstance(buildings, dict) or buildings.get("type") != "FeatureCollection":
+        raise ValueError("SCENE_BUILDINGS_INVALID")
+    features = buildings.get("features")
+    if not isinstance(features, list):
+        raise ValueError("SCENE_BUILDINGS_INVALID")
+    identity_hash: dict[str, str] = {}
+    for feature in features:
+        if not isinstance(feature, dict):
+            raise ValueError("SCENE_FEATURE_INVALID")
+        props = feature.get("properties")
+        if not isinstance(props, dict):
+            raise ValueError("SCENE_FEATURE_PROPERTIES_INVALID")
+        ident = props.get("tsm_id")
+        digest = props.get("source_feature_sha256")
+        if (not isinstance(ident, str) or not IDENTITY.fullmatch(ident)
+                or ident in identity_hash):
+            raise ValueError("SCENE_DUPLICATE_OR_INVALID_ID")
+        identity_hash[ident] = require_hash(digest, "scene_source_feature_sha256")
+    for row in payload.get("records", []):
+        if (row["tsm_id"] not in identity_hash
+                or row["source_feature_sha256"] != identity_hash[row["tsm_id"]]):
+            raise ValueError(f"SCENE_SOURCE_ID_OR_HASH_MISMATCH: {row['tsm_id']}")
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--scene", type=Path, required=True, help="Pinned city scene.json with matching source-feature hashes")
     args = parser.parse_args()
     if args.input.is_symlink() or not args.input.is_file():
         raise ValueError("INPUT_NOT_REGULAR_FILE")
@@ -155,7 +186,16 @@ def main() -> None:
         raw = file.read(MAX_INPUT_BYTES + 1)
     if len(raw) > MAX_INPUT_BYTES:
         raise ValueError("INPUT_TOO_LARGE")
-    result = reconcile(json.loads(raw))
+    payload = json.loads(raw)
+    result = reconcile(payload)
+    if args.scene.is_symlink() or not args.scene.is_file():
+        raise ValueError("SCENE_NOT_REGULAR_FILE")
+    with args.scene.open("rb") as file:
+        scene_raw = file.read(MAX_INPUT_BYTES + 1)
+    if len(scene_raw) > MAX_INPUT_BYTES:
+        raise ValueError("SCENE_TOO_LARGE")
+    validate_scene_bindings(payload, json.loads(scene_raw))
+    result["source_scene_sha256"] = hashlib.sha256(scene_raw).hexdigest()
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, sort_keys=True, indent=2, allow_nan=False) + "\n", encoding="utf-8")
     print(json.dumps({"output": str(args.output), "count": len(result["records"]),
