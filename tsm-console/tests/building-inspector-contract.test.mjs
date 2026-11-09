@@ -26,6 +26,8 @@ test('building detail panel displays provenance and never invents a street addre
   assert.ok(panel.includes('Indiana GIO footprint record'));
   assert.ok(panel.includes('Indiana GIO address-points dataset (2025)'));
   assert.ok(panel.includes('Object.entries(properties)'));
+  assert.ok(panel.includes("/^tsm_[a-z0-9_]+$/i.test(key)"));
+  assert.ok(panel.includes("['objectid', 'OBJECTID', 'igio_objectid']"));
   assert.ok(panel.includes('Not available'));
   assert.ok(panel.includes('not verified LiDAR roof measurements'));
 });
