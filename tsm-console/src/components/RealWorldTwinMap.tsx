@@ -24,7 +24,7 @@ import { damsToGeoJson, type LocalDamsCatalog } from '../lib/local-dams';
 import { readTwinUrlState, writeTwinUrlState } from '../lib/geodetic/twin-url-state';
 import { attachSupabaseParcelBboxLayer } from '../lib/supabase-parcel-bbox';
 import { attachConfiguredPmtilesPolygonLayer } from '../lib/pmtiles-overlay';
-import { attachGovernmentPmtilesLayer } from '../lib/government-pmtiles-overlay';
+import { attachGovernmentPmtilesLayer, GOVERNMENT_SCENE_STATUS_EVENT, type GovernmentSceneDetail } from '../lib/government-pmtiles-overlay';
 
 const TERRAIN_3D_TILESET_URL = `${import.meta.env.BASE_URL}3d-tiles/terrain-3dep/tileset.json`;
 
@@ -81,10 +81,27 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
   const [cinematicActive, setCinematicActive] = useState(false);
   const [tiles3DVisible, setTiles3DVisible] = useState(initialUrl.tiles3d);
   const [tiles3DStatus, setTiles3DStatus] = useState<'loading' | 'ready' | 'error' | 'disabled'>('disabled');
+  const [governmentScene, setGovernmentScene] = useState<GovernmentSceneDetail>({
+    status: 'CHECKING_GOVERNMENT_SNAPSHOT', agency: null, capturedAt: null,
+    source: null, sourceVersion: null, datasetId: null, validation: null,
+    tilesSha256: null, sourceSha256: null, merkleRootSha256: null,
+    archiveBytesVerified: false, sourceBytesIndependentlyVerified: false,
+    authoritativeEngineeringUse: false, regulatoryApproval: false,
+    reason: 'Checking previously verified government snapshots.',
+  });
   const [mapReady, setMapReady] = useState(false);
   const [mapInitializationError, setMapInitializationError] = useState<string | null>(null);
   const [reviewPitch, setReviewPitch] = useState(false);
   const cinematicStopRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    const onStatus = (event: Event) => {
+      const detail = (event as CustomEvent<GovernmentSceneDetail>).detail;
+      if (detail?.status) setGovernmentScene(detail);
+    };
+    window.addEventListener(GOVERNMENT_SCENE_STATUS_EVENT, onStatus);
+    return () => window.removeEventListener(GOVERNMENT_SCENE_STATUS_EVENT, onStatus);
+  }, []);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -418,6 +435,37 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
         <div>Indiana Current Imagery \u00b7 USGS 3DEP hillshade (visualization DERIVED)</div>
         <div>FEMA NFHL: effective / insurance \u00b7 Indiana BAFM: planning / Flood Control Act \u00b7 NOAA/NWS: alerts/radar context only</div>
         <div role="note" aria-label="Model evidence limitation" style={{ marginTop: 4, color: '#fbbf24' }}>HEC-RAS layers: SIMULATION_DEMO / MODEL_OUTPUT \u00b7 Visualization/model context only; not a regulatory determination.</div>
+        <div role="status" aria-live="polite" aria-label="Government snapshot provenance"
+          style={{ marginTop: 8, padding: '8px 10px', background: 'rgba(15,23,42,.95)', borderRadius: 8,
+            border: '1px solid rgba(251,191,36,.35)', overflowWrap: 'anywhere' }}>
+          <strong style={{ color: governmentScene.status === 'CURRENT_GOVERNMENT_SNAPSHOT' ? '#86efac'
+            : governmentScene.status === 'HISTORICAL_GOVERNMENT_FALLBACK' ? '#fbbf24' : '#cbd5e1' }}>
+            {governmentScene.status === 'HISTORICAL_GOVERNMENT_FALLBACK'
+              ? 'HISTORICAL GOVERNMENT SNAPSHOT — NOT LIVE'
+              : governmentScene.status === 'CURRENT_GOVERNMENT_SNAPSHOT'
+                ? 'DATED GOVERNMENT SNAPSHOT — ARCHIVE VERIFIED'
+                : governmentScene.status === 'CHECKING_GOVERNMENT_SNAPSHOT'
+                  ? 'Checking government archives…'
+                  : 'Government archive unavailable — 3D twin remains usable'}
+          </strong>
+          <div>{governmentScene.reason}</div>
+          {governmentScene.archiveBytesVerified && (
+            <>
+              <div><strong>Source:</strong> {governmentScene.agency ?? 'Unspecified agency'} · {governmentScene.datasetId ?? 'Unknown dataset'}</div>
+              <div><strong>Retrieved:</strong> {governmentScene.capturedAt ?? 'Not evidenced'} · <strong>Source version:</strong> {governmentScene.sourceVersion ?? 'Not evidenced'}</div>
+              <div><strong>Archive integrity:</strong> SHA-256 verified · <strong>Field validation:</strong> {governmentScene.validation ?? 'Not evidenced'}</div>
+              {governmentScene.source && <a href={governmentScene.source} target="_blank" rel="noopener noreferrer"
+                style={{ color: '#93c5fd' }}>Source record / provenance</a>}
+              <details style={{ marginTop: 4 }}>
+                <summary>Exact provenance digests</summary>
+                <div>Archive SHA-256: <code>{governmentScene.tilesSha256}</code></div>
+                <div>Source digest (declared; original bytes not re-verified): <code>{governmentScene.sourceSha256}</code></div>
+                <div>Merkle root (if supplied; trust anchor not authenticated): <code>{governmentScene.merkleRootSha256 ?? 'Not supplied'}</code></div>
+              </details>
+            </>
+          )}
+          <div style={{ color: '#fbbf24' }}>Snapshot display is not a new FEMA determination, live observation, surveyed control or engineering approval.</div>
+        </div>
 
         <VerticalContextHud
           stage={liveStage}
