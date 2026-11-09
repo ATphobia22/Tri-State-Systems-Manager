@@ -24,6 +24,7 @@ import { damsToGeoJson, type LocalDamsCatalog } from '../lib/local-dams';
 import { readTwinUrlState, writeTwinUrlState } from '../lib/geodetic/twin-url-state';
 import { attachSupabaseParcelBboxLayer } from '../lib/supabase-parcel-bbox';
 import { attachConfiguredPmtilesPolygonLayer } from '../lib/pmtiles-overlay';
+import { attachGovernmentPmtilesLayer } from '../lib/government-pmtiles-overlay';
 
 const TERRAIN_3D_TILESET_URL = `${import.meta.env.BASE_URL}3d-tiles/terrain-3dep/tileset.json`;
 
@@ -89,6 +90,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
     if (!containerRef.current || mapRef.current) return;
     let disposeParcelBboxLayer: (() => void) | null = null;
     let disposePmtilesLayer: (() => void) | null = null;
+    let disposeGovernmentPmtilesLayer: (() => void) | null = null;
     let map: maplibregl.Map;
     try {
       map = new maplibregl.Map({
@@ -165,6 +167,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       // Optional immutable vector archive; configured .pmtiles URL only.
       try {
         disposePmtilesLayer = attachConfiguredPmtilesPolygonLayer(map);
+        disposeGovernmentPmtilesLayer = attachGovernmentPmtilesLayer(map);
       } catch {
         setMapInitializationError('Optional PMTiles layer unavailable; the base map remains usable.');
       }
@@ -219,6 +222,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       cinematicStopRef.current = null;
       disposeParcelBboxLayer?.();
       disposePmtilesLayer?.();
+      disposeGovernmentPmtilesLayer?.();
       map.remove();
       mapRef.current = null;
       markerRef.current = null;
