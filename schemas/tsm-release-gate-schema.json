@@ -1,0 +1,200 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ATphobia22/Tri-State-Systems-Manager/blob/main/schemas/tsm-release-gate-schema.json",
+  "title": "TSM Evidence-Gated Hydrology Release Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "createdAt",
+    "classification",
+    "source",
+    "checks",
+    "authorization"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "classification": {
+      "enum": [
+        "OBSERVED",
+        "DERIVED",
+        "SCENARIO_SIMULATION_DEMO",
+        "REGULATORY"
+      ]
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "uri",
+        "retrievedAt",
+        "sha256"
+      ],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "format": "uri"
+        },
+        "retrievedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "stationId": {
+          "type": "string"
+        },
+        "observationTime": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "spatial": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "horizontalCrs": {
+          "type": "string",
+          "pattern": "^EPSG:[0-9]+$"
+        },
+        "verticalDatum": {
+          "type": "string"
+        },
+        "geoidModel": {
+          "type": "string"
+        },
+        "units": {
+          "enum": [
+            "m",
+            "ft",
+            "ftUS"
+          ]
+        },
+        "aoiEvidenceSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "aoi",
+        "terrain",
+        "datum",
+        "integrity",
+        "humanReview"
+      ],
+      "properties": {
+        "aoi": {
+          "enum": [
+            "VERIFIED",
+            "PENDING",
+            "BLOCKED",
+            "NOT_EVIDENCED"
+          ]
+        },
+        "terrain": {
+          "enum": [
+            "VERIFIED",
+            "PENDING",
+            "BLOCKED",
+            "NOT_EVIDENCED"
+          ]
+        },
+        "datum": {
+          "enum": [
+            "VERIFIED",
+            "PENDING",
+            "BLOCKED",
+            "NOT_EVIDENCED"
+          ]
+        },
+        "integrity": {
+          "enum": [
+            "VERIFIED",
+            "PENDING",
+            "BLOCKED",
+            "NOT_EVIDENCED"
+          ]
+        },
+        "humanReview": {
+          "enum": [
+            "VERIFIED",
+            "PENDING",
+            "BLOCKED",
+            "NOT_EVIDENCED"
+          ]
+        }
+      }
+    },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "humanAuthorityFinal",
+        "approvedForRegulatoryUse"
+      ],
+      "properties": {
+        "humanAuthorityFinal": {
+          "const": true
+        },
+        "approvedForRegulatoryUse": {
+          "type": "boolean"
+        },
+        "reviewerId": {
+          "type": "string"
+        },
+        "reviewedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "reviewEvidenceSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "classification": {
+            "const": "REGULATORY"
+          }
+        },
+        "required": [
+          "classification"
+        ]
+      },
+      "then": {
+        "properties": {
+          "authorization": {
+            "required": [
+              "reviewerId",
+              "reviewedAt",
+              "reviewEvidenceSha256"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
