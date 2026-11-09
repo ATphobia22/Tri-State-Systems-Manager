@@ -119,7 +119,7 @@ export async function attachMountVernonCityScene(map: MapLibreMap, baseUrl: stri
       map.getCanvas().style.cursor = '';
     };
     const onHover = (ev: MapMouseEvent) => {
-      const current = ev.features?.[0]?.id;
+      const current = map.queryRenderedFeatures(ev.point, { layers: [LAYER_BUILDINGS] })[0]?.id;
       if (current === undefined || current === null) return;
       if (hoveredId !== current) {
         if (hoveredId !== null) map.setFeatureState({ source: SRC_BUILDINGS, id: hoveredId }, { hover: false });
