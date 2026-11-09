@@ -2,6 +2,7 @@ name: Mount Vernon real DEM Transvoxel acceptance
 on:
   pull_request:
     paths:
+      - 'scripts/geospatial/mount_vernon_multi_dem_camera_sweep.py'
       - 'scripts/geospatial/mount_vernon_dem_transvoxel_gate.py'
       - 'tests/contracts/mount-vernon-dem-manifest.test.mjs'
       - 'docs/evidence/mount-vernon-3dtiles-dem-preview-2026-11-09.json'
@@ -66,6 +67,20 @@ jobs:
             --raster dem/IN2020_26850945_12.tiff \
             --expected-sha256 78f987ad4f93d3680d4500ad0b74542872f83529861b5500863addb61c00d124 \
             --out results/tile-26850945-transition-pair.json --acknowledge-preview-only
+      - name: Sweep production mesher across both DEMs (16 windows each)
+        shell: bash
+        env:
+          TSM_DEM_VERTICAL_UNIT: us-ft
+        run: |
+          set -euo pipefail
+          python scripts/geospatial/mount_vernon_multi_dem_camera_sweep.py \\
+            --raster dem/IN2020_26700930_12.tiff \\
+            --sha256 1a321bc386e0de8b7cca74ec903fb35ea8fb54e8cdd7e835428210562e173ebb \\
+            --grid 4 --output results/tile-26700930-camera-sweep.json --preview-only
+          python scripts/geospatial/mount_vernon_multi_dem_camera_sweep.py \\
+            --raster dem/IN2020_26850945_12.tiff \\
+            --sha256 78f987ad4f93d3680d4500ad0b74542872f83529861b5500863addb61c00d124 \\
+            --grid 4 --output results/tile-26850945-camera-sweep.json --preview-only
       - uses: actions/upload-artifact@v4
         if: always()
         with:
