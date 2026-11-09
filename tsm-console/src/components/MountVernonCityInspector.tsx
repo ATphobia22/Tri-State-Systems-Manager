@@ -24,6 +24,7 @@ export default function MountVernonCityInspector() {
         <dl style={{ margin: '8px 0 0', overflowWrap: 'anywhere' }}>
           <dt>Government source object</dt><dd>{chosen.id}</dd>
           <dt>Type / name</dt><dd>{chosen.kind} · {chosen.name ?? 'Unlabeled'}</dd>
+          <dt>County / source LiDAR year</dt><dd>{chosen.county ?? 'Not supplied'} · {chosen.lidarYear ?? 'Not supplied'}</dd>
           <dt>Measured roof height</dt><dd>NOT EVIDENCED — no synthetic extrusion</dd>
           <dt>Source layer</dt><dd><a target="_blank" rel="noopener noreferrer" href={chosen.source}>Indiana GIO source</a></dd>
           <dt>Source feature SHA-256</dt><dd><code>{chosen.sourceFeatureSha256}</code></dd>
