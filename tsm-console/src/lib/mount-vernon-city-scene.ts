@@ -20,6 +20,20 @@ const LAYER_BUILDINGS = 'tsm-mount-vernon-building-footprints';
 const LAYER_ROADS = 'tsm-mount-vernon-road-centrelines';
 const MAX_SCENE_BYTES = 42_000_000;
 const HEX_SHA = /^[a-f0-9]{64}$/;
+const OFFICIAL_LAYERS = {
+  building: 'https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0',
+  road: 'https://gisdata.in.gov/server/rest/services/Hosted/Road_Centerlines_of_Indiana_2024/FeatureServer/0',
+} as const;
+
+function allCoordinatesValid(value: unknown): boolean {
+  if (!Array.isArray(value) || value.length === 0) return false;
+  if (typeof value[0] === 'number') {
+    return value.length >= 2 && Number.isFinite(value[0]) && Number.isFinite(value[1]) &&
+      value[0] >= -180 && value[0] <= 180 && value[1] >= -90 && value[1] <= 90;
+  }
+  return value.every(allCoordinatesValid);
+}
+
 
 function emit(detail: CityEvent): void {
   if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent<CityEvent>(MOUNT_VERNON_CITY_EVENT, { detail }));
@@ -37,6 +51,9 @@ function assertCollection(collection: unknown, kind: 'building' | 'road'): asser
         !((kind === 'building' ? ['Polygon', 'MultiPolygon'] : ['LineString', 'MultiLineString']).includes(feature.geometry.type)) ||
         !Number.isSafeInteger(oid) || oid < 0 || p?.tsm_id !== expected || feature.id !== expected ||
         ids.has(expected) || !HEX_SHA.test(p?.source_feature_sha256 ?? '') ||
+        p?.source_url !== OFFICIAL_LAYERS[kind] || p?.kind !== kind ||
+        p?.evidence_status !== 'SOURCE_OBSERVED_UNREVIEWED' ||
+        !allCoordinatesValid((feature.geometry as GeoJSON.Geometry & { coordinates?: unknown }).coordinates) ||
         p?.engineering_approved !== false || p?.height_m !== null) throw new Error('INVALID_SOURCE_FEATURE_IDENTITY');
     ids.add(expected);
   }
@@ -45,8 +62,13 @@ export function validateMountVernonScene(input: unknown): asserts input is Scene
   if (!input || typeof input !== 'object') throw new Error('SCENE_MISSING');
   const scene = input as SceneShape;
   if (scene.schema !== 'tsm.mount-vernon-city-scene.v1' || scene.crs !== 'EPSG:4326') throw new Error('SCENE_CRS_OR_SCHEMA_INVALID');
+  const sources = scene.sources as Record<string, { layer_url?: string; source_object_count?: number }> | null;
+  if (!sources || sources.buildings?.layer_url !== OFFICIAL_LAYERS.building ||
+      sources.roads?.layer_url !== OFFICIAL_LAYERS.road) throw new Error('SCENE_OFFICIAL_SOURCE_INVALID');
   assertCollection(scene.buildings, 'building');
   assertCollection(scene.roads, 'road');
+  if (sources.buildings.source_object_count !== scene.buildings.features.length ||
+      sources.roads.source_object_count !== scene.roads.features.length) throw new Error('SCENE_SOURCE_COUNT_MISMATCH');
 }
 export async function verifySceneBytes(bytes: Uint8Array, receipt: SceneReceipt): Promise<boolean> {
   if (!receipt || receipt.schema !== 'tsm.mount-vernon-city-receipt.v1' || receipt.review !== 'NOT_EVIDENCED' ||
@@ -57,16 +79,32 @@ export async function verifySceneBytes(bytes: Uint8Array, receipt: SceneReceipt)
   const hash = await crypto.subtle.digest('SHA-256', copy.buffer);
   return Array.from(new Uint8Array(hash), b => b.toString(16).padStart(2, '0')).join('') === receipt.sha256;
 }
-async function fetchBounded(url: string): Promise<Uint8Array> {
-  const response = await fetch(url, { cache: 'no-store', credentials: 'omit', redirect: 'error' });
+async function fetchBounded(url: string, signal?: AbortSignal): Promise<Uint8Array> {
+  const response = await fetch(url, { cache: 'no-store', credentials: 'omit', redirect: 'error', signal });
   if (!response.ok) throw new Error(response.status === 404 ? 'SCENE_FILE_MISSING' : 'SCENE_FETCH_FAILED');
   const declared = Number(response.headers.get('content-length'));
   if (declared > MAX_SCENE_BYTES) throw new Error('SCENE_EXCEEDS_BYTE_LIMIT');
-  const bytes = new Uint8Array(await response.arrayBuffer());
-  if (bytes.byteLength > MAX_SCENE_BYTES) throw new Error('SCENE_EXCEEDS_BYTE_LIMIT');
+  if (!response.body) throw new Error('SCENE_RESPONSE_NOT_STREAMABLE');
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const chunk = await reader.read();
+      if (chunk.done) break;
+      total += chunk.value.byteLength;
+      if (total > MAX_SCENE_BYTES) throw new Error('SCENE_EXCEEDS_BYTE_LIMIT');
+      chunks.push(chunk.value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
   return bytes;
 }
-export async function attachMountVernonCityScene(map: MapLibreMap, baseUrl: string): Promise<() => void> {
+export async function attachMountVernonCityScene(map: MapLibreMap, baseUrl: string, signal?: AbortSignal): Promise<() => void> {
   let removed = false;
   const release = () => {
     removed = true;
@@ -77,13 +115,13 @@ export async function attachMountVernonCityScene(map: MapLibreMap, baseUrl: stri
   try {
     const prefix = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
     // Fixed, build-owned relative location: do not accept arbitrary user URLs.
-    const receiptBytes = await fetchBounded(prefix + 'scene.receipt.json');
+    const receiptBytes = await fetchBounded(prefix + 'scene.receipt.json', signal);
     const receipt = JSON.parse(new TextDecoder().decode(receiptBytes)) as SceneReceipt;
-    const sceneBytes = await fetchBounded(prefix + 'scene.json');
+    const sceneBytes = await fetchBounded(prefix + 'scene.json', signal);
     if (!(await verifySceneBytes(sceneBytes, receipt))) throw new Error('SCENE_SHA256_MISMATCH');
     const scene: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(sceneBytes));
     validateMountVernonScene(scene);
-    if (removed) return release;
+    if (removed || signal?.aborted) return release;
     const data = scene as SceneShape;
     if (!map.getSource(SRC_BUILDINGS)) map.addSource(SRC_BUILDINGS, { type: 'geojson', data: data.buildings });
     if (!map.getSource(SRC_ROADS)) map.addSource(SRC_ROADS, { type: 'geojson', data: data.roads });
@@ -154,6 +192,7 @@ export async function attachMountVernonCityScene(map: MapLibreMap, baseUrl: stri
       release();
     };
   } catch (err) {
+    if (removed || signal?.aborted) return release;
     const reason = err instanceof Error ? err.message : 'SCENE_UNAVAILABLE';
     emit({ status: reason === 'SCENE_FILE_MISSING' ? 'MISSING' :
       reason === 'SCENE_SHA256_MISMATCH' ? 'INTEGRITY_FAILED' : 'INVALID', reason });
