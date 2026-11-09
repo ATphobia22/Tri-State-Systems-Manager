@@ -15,7 +15,7 @@ export function createPoseyScreeningExtrusionLayer(
     id: layerId,
     type: 'fill-extrusion',
     source: sourceId,
-    minzoom: 14,
+    minzoom: 12,
     // Never read a generic third-party height_m. Only sanitized properties
     // from prepare_posey_screening_extrusions.py can enter this layer.
     filter: [
@@ -36,7 +36,7 @@ export function createPoseyScreeningExtrusionLayer(
       ],
       'fill-extrusion-height': [
         'interpolate', ['linear'], ['zoom'],
-        14, 0, 15, ['get', 'tsm_visual_height_m'],
+        12, 0, 13, ['get', 'tsm_visual_height_m'],
       ],
       'fill-extrusion-base': ['get', 'tsm_visual_base_m'],
       'fill-extrusion-opacity': 0.7,
