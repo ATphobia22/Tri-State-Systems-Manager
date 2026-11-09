@@ -41,15 +41,55 @@ def test_bad_header_rejected():
     with pytest.raises(ValueError,match="HEADER"):
         m.read_inventory("dsm2025",("url_tif\n"+DSM+"\n").encode())
 
-def test_crs_mismatch_and_overlap_contract():
-    a={"horizontal_crs_embedded":"EPSG:2966","bounds_native_units":[0,0,5,5]}
+def test_equivalent_horizontal_crs_overlap_and_nonoverlap():
+    a={"horizontal_crs_embedded":"EPSG:2968","bounds_native_units":[0,0,5,5]}
     b={"horizontal_crs_embedded":"EPSG:2968","bounds_native_units":[1,1,4,4]}
-    with pytest.raises(ValueError,match="CRS_MISMATCH"):
-        m.require_raster_footprint_overlap(a,b)
-    b["horizontal_crs_embedded"]=a["horizontal_crs_embedded"]
-    assert m.require_raster_footprint_overlap(a,b)
+    evidence=m.horizontal_raster_footprint_evidence(a,b)
+    assert evidence["overlap"] is True
+    assert evidence["operation"]=="EQUIVALENT_HORIZONTAL_CRS"
+    assert evidence["vertical_datum_conversion_performed"] is False
     b["bounds_native_units"]=[5,5,10,10]
     assert not m.require_raster_footprint_overlap(a,b)
+
+
+def test_distinct_horizontal_crs_uses_bounded_coordinate_transform():
+    from rasterio.warp import transform_bounds
+    a={"horizontal_crs_embedded":"EPSG:4326",
+       "bounds_native_units":[-87.95,37.85,-87.90,37.90]}
+    transformed=transform_bounds("EPSG:4326","EPSG:3857",
+                                  *a["bounds_native_units"],densify_pts=21)
+    b={"horizontal_crs_embedded":"EPSG:3857",
+       "bounds_native_units":list(transformed)}
+    evidence=m.horizontal_raster_footprint_evidence(a,b)
+    assert evidence["overlap"] is True
+    assert evidence["operation"]=="HORIZONTAL_BOUNDS_TRANSFORMED_TO_DSM_CRS"
+    assert evidence["imagery_horizontal_epsg"]==4326
+    assert evidence["dsm_horizontal_epsg"]==3857
+    assert evidence["vertical_datum_conversion_performed"] is False
+    b["bounds_native_units"]=[v+1e6 for v in transformed]
+    assert not m.require_raster_footprint_overlap(a,b)
+
+
+@pytest.mark.parametrize("bad",[
+    [0,0,0,5],
+    [5,0,0,5],
+    [0,float("nan"),5,5],
+    [0,0,5],
+])
+def test_invalid_bounds_rejected(bad):
+    a={"horizontal_crs_embedded":"EPSG:2968","bounds_native_units":bad}
+    b={"horizontal_crs_embedded":"EPSG:2968","bounds_native_units":[0,0,5,5]}
+    with pytest.raises(ValueError,match="BOUNDS"):
+        m.horizontal_raster_footprint_evidence(a,b)
+
+def test_unparseable_crs_rejected():
+    a={"horizontal_crs_embedded":"NOT_A_CRS",
+       "bounds_native_units":[0,0,5,5]}
+    b={"horizontal_crs_embedded":"EPSG:2968",
+       "bounds_native_units":[0,0,5,5]}
+    with pytest.raises(ValueError,match="CRS"):
+        m.horizontal_raster_footprint_evidence(a,b)
+
 
 def test_download_sha256_and_tiff_signature(tmp_path):
     class FakeResponse:
