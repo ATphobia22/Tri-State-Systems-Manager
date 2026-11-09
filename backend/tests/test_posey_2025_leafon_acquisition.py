@@ -79,3 +79,10 @@ def test_oversize_refused_before_writing_file(tmp_path):
             m.download(IMAGE,tmp_path/"one.tif",max_bytes=10,
                 allowed_hostname="gisimageryleafoningov.s3.amazonaws.com")
     assert not (tmp_path/"one.tif").exists()
+
+
+def test_manifest_host_is_imagery_bucket_for_both_products():
+    from urllib.parse import urlparse
+    assert all(urlparse(source[0]).hostname == "gisimageryleafoningov.s3.amazonaws.com"
+               for source in m.SOURCES.values())
+    assert m.SOURCES["dsm2025"][1] == "giselevationingov.s3.amazonaws.com"
