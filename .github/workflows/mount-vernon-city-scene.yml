@@ -1,0 +1,28 @@
+name: Mount Vernon City Scene Contracts
+on:
+  push:
+    paths:
+      - 'scripts/geospatial/build_mount_vernon_scene.py'
+      - 'tests/test_mount_vernon_scene_builder.py'
+      - 'tsm-console/src/lib/mount-vernon-city-scene.ts'
+      - 'tsm-console/src/components/MountVernonCityInspector.tsx'
+      - 'tsm-console/src/components/RealWorldTwinMap.tsx'
+      - 'tsm-console/tests/mount-vernon-city-scene-contract.test.mjs'
+      - '.github/workflows/mount-vernon-city-scene.yml'
+  pull_request:
+  workflow_dispatch:
+jobs:
+  city-scene-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test deterministic government-feature ingestion
+        run: python -m unittest discover -s tests -p test_mount_vernon_scene_builder.py -v
+      - name: Test runtime layer presence and non-regulatory behavior
+        run: node --test tsm-console/tests/mount-vernon-city-scene-contract.test.mjs
+      - name: Syntax check importer
+        run: python -m py_compile scripts/geospatial/build_mount_vernon_scene.py
