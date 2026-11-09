@@ -56,6 +56,25 @@ The Drive `verify-navd88-geoid18.py` is a **historical prototype**, not an indep
 
 **Separate engineering/release evidence:** verify the actual executable/version, plan, geometry (`.g01`), unsteady-flow input (`.u01`, not automatically `.f01`), `.p01`, project `.prj`, terrain, unsteady log and `.p01.hdf`. Validate boundary hydrographs, bridge/levee geometry, 2D mesh/breaklines, solver stability, mass balance, calibration to independent observations, time-step/mesh sensitivity and sign-off appropriate to intended regulatory use. Only then publish qualified conclusions. A successful metadata hash alone **does not** prove that HEC-RAS ran.
 
+### Local HEC artifact inventory added in this branch
+
+`scripts/geospatial/audit_hec_ras_unsteady_artifacts.py` reads actual files from a specified project root, requires a `.prj`, `.pXX`, `.gXX`, **unsteady** `.uXX`, matching `.pXX.hdf` and `.comp_msgs.txt`. It checks extension and plan/result number, validates an HDF5 file signature (including standard userblocks), hashes every file using streamed SHA-256 and records log warning markers. It rejects missing, empty, symlinked, outside-root or mismatched artifacts. It is an **integrity receipt**, and does not authenticate a real solver execution or the scientific validity of the HDF5 datasets. The HDF5 signature alone is not HDF5 schema validation.
+
+```bash
+python scripts/geospatial/audit_hec_ras_unsteady_artifacts.py \
+  --project-root /secure/hec/Model \
+  --project /secure/hec/Model/Model.prj \
+  --plan /secure/hec/Model/Model.p01 \
+  --geometry /secure/hec/Model/Model.g01 \
+  --unsteady /secure/hec/Model/Model.u01 \
+  --results /secure/hec/Model/Model.p01.hdf \
+  --messages /secure/hec/Model/Model.p01.comp_msgs.txt \
+  --receipt /secure/hec/receipts/model-artifact-audit.json
+python -m pytest -q backend/tests/test_hec_ras_unsteady_artifact_audit.py
+```
+
+For engineering promotion still require source-authenticated configuration, real solver start/end/runtime provenance, HDF5 dataset inspection, mass balance, numerical convergence, calibration and appropriate human review. The inventory cannot confer any of these.
+
 Treat absence as an explicitly *unavailable* gate; contradictory evidence and datum/hash mismatch as *blocked*. Never upgrade "ready for engineering review" to "regulatory approved." The Drive `hec-gate-schema.json` is a descriptive object but **not a valid enforcement-grade JSON Schema**: its `properties` values are literals/arrays rather than schema definitions. Do not load it as an authority or runtime gate.
 
 ## Repository selection
