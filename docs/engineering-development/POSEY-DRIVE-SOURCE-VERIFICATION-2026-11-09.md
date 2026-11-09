@@ -31,3 +31,18 @@ Both raw-file hashes matched the stored download receipt. EPSG:2968 is **NAD83(H
 - Validate measured-building heights and mesh topology independently.
 - Verify Windows UE5.8 Shipping and the offline executable separately.
 - Do not substitute this source inspection for survey or flood-regulatory certification.
+
+## Independently regenerated receipts (retry, 2026-11-09)
+
+Re-read the Drive source files in an isolated Python/rasterio environment. The OBJECTID/geometry reconciliation again returned **23,082 exact matches**, zero changed geometry objects, zero unilateral IDs and zero duplicates. All source-file hashes matched the prior source-validation record.
+
+The two DEM TIFFs each contain a single 2000×2000 float32 band with all 4,000,000 pixels valid. Native raster-value ranges were 335.85–350.59 and 343.05–372.18 respectively. These are **uninterpreted stored raster values**; TIFF tags supply neither a vertical datum nor a vertical unit. EPSG:2968 and its US survey-foot horizontal units describe horizontal coordinates only and do not identify the units or datum of raster values.
+
+Reproducible receipts, plus a SHA-256 sidecar for each generated receipt, were uploaded to the user's Drive folder:
+
+- [Verified Evidence folder](https://drive.google.com/drive/folders/1QvSnec14KQOcdz3-GpFx7dmmf_2YTAZf)
+- [Building reconciliation JSON](https://drive.google.com/file/d/1PZh9r4bsmt_6mDjqkMvu13cDxl7QWGF2/view)
+- [DEM inspection JSON](https://drive.google.com/file/d/1yfeLmH9OUzHn9pqdWIYmQDoIdgGdVgLI/view)
+- [Original source-validation JSON](https://drive.google.com/file/d/1Kl1KvOmN5ubztau_bWrD59ErWJ3nfpL9/view)
+
+No raw private dataset was committed to the repository. These Drive-hosted receipts are evidence artifacts, **not a green native Windows release gate**.
