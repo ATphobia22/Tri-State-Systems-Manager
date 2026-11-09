@@ -1,0 +1,22 @@
+# Opt-in local engineering PostGIS; never launched by the offline Windows runtime.
+# POSTGIS_PASSWORD must be set in the environment. No default credentials.
+services:
+  postgis:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: tsm_government
+      POSTGRES_DB: tsm_government
+      POSTGRES_PASSWORD: ${POSTGIS_PASSWORD:?Set POSTGIS_PASSWORD before starting}
+    volumes:
+      - government_pgdata:/var/lib/postgresql/data
+      - ./sql/001_government_fabric_postgis.sql:/docker-entrypoint-initdb.d/001_government_fabric_postgis.sql:ro
+    ports:
+      - "127.0.0.1:5439:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tsm_government -d tsm_government"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+volumes:
+  government_pgdata:
