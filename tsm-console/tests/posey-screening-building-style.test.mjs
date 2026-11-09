@@ -30,7 +30,11 @@ test('screening style never allows estimated visual source to claim engineer app
 
 test('map component no longer treats IGIO raw height_m as a measured extrusion height', () => {
   const source = readFileSync(new URL('../src/components/TriStateDigitalTwinMap.tsx', import.meta.url), 'utf8');
-  assert.ok(source.includes('createPoseyScreeningExtrusionLayer(item.id'));
+  assert.ok(source.includes('createPoseyScreeningExtrusionLayer(screenedSourceId'));
+  assert.ok(source.includes('VITE_TSM_POSEY_SCREENING_GEOJSON_PATH'));
+  assert.ok(source.includes("screeningRelative.includes('..')"));
+  assert.ok(source.includes('NOT SURVEYED'));
+  assert.ok(source.includes("const screenedSourceId = 'tsm-posey-screening-buildings'"));
   assert.equal(source.includes("['get', 'height_m']"), false);
 });
 
