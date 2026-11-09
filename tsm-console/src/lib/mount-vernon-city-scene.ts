@@ -70,7 +70,7 @@ export async function attachMountVernonCityScene(map: MapLibreMap, baseUrl: stri
   let removed = false;
   const release = () => {
     removed = true;
-    for (const id of [LAYER_ROADS, LAYER_BUILDINGS]) if (map.getLayer(id)) map.removeLayer(id);
+    for (const id of [LAYER_ROADS, 'tsm-mount-vernon-footprint-outline', LAYER_BUILDINGS]) if (map.getLayer(id)) map.removeLayer(id);
     for (const id of [SRC_ROADS, SRC_BUILDINGS]) if (map.getSource(id)) map.removeSource(id);
   };
   emit({ status: 'LOADING', reason: 'Checking staged governmental city-scene archive.' });
@@ -90,12 +90,46 @@ export async function attachMountVernonCityScene(map: MapLibreMap, baseUrl: stri
     // Unknown building heights are deliberately not extruded.
     if (!map.getLayer(LAYER_BUILDINGS)) map.addLayer({
       id: LAYER_BUILDINGS, type: 'fill', source: SRC_BUILDINGS,
-      paint: { 'fill-color': '#38bdf8', 'fill-opacity': 0.3, 'fill-outline-color': '#0ea5e9' },
+      paint: {
+        'fill-color': '#4A5568',
+        'fill-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 0.65, 0.40],
+        'fill-antialias': true,
+      },
+    });
+    const outlineId = 'tsm-mount-vernon-footprint-outline';
+    if (!map.getLayer(outlineId)) map.addLayer({
+      id: outlineId, type: 'line', source: SRC_BUILDINGS,
+      layout: { 'line-join': 'round', 'line-cap': 'round' },
+      paint: {
+        'line-color': '#CBD5E1',
+        'line-width': ['interpolate', ['linear'], ['zoom'], 13, 0.5, 18, 2],
+        'line-opacity': 0.8,
+      },
     });
     if (!map.getLayer(LAYER_ROADS)) map.addLayer({
       id: LAYER_ROADS, type: 'line', source: SRC_ROADS,
       paint: { 'line-color': '#fbbf24', 'line-width': 1.9, 'line-opacity': 0.88 },
     });
+    let hoveredId: string | number | null = null;
+    const clearHover = () => {
+      if (hoveredId !== null) {
+        map.setFeatureState({ source: SRC_BUILDINGS, id: hoveredId }, { hover: false });
+        hoveredId = null;
+      }
+      map.getCanvas().style.cursor = '';
+    };
+    const onHover = (ev: MapMouseEvent) => {
+      const current = ev.features?.[0]?.id;
+      if (current === undefined || current === null) return;
+      if (hoveredId !== current) {
+        if (hoveredId !== null) map.setFeatureState({ source: SRC_BUILDINGS, id: hoveredId }, { hover: false });
+        hoveredId = current;
+        map.setFeatureState({ source: SRC_BUILDINGS, id: current }, { hover: true });
+      }
+      map.getCanvas().style.cursor = 'pointer';
+    };
+    map.on('mousemove', LAYER_BUILDINGS, onHover);
+    map.on('mouseleave', LAYER_BUILDINGS, clearHover);
     const onClick = (ev: MapMouseEvent) => {
       const candidates = map.queryRenderedFeatures(ev.point, { layers: [LAYER_BUILDINGS, LAYER_ROADS] });
       const f = candidates[0]; if (!f) return;
@@ -112,7 +146,13 @@ export async function attachMountVernonCityScene(map: MapLibreMap, baseUrl: stri
     map.on('click', onClick);
     emit({ status: 'READY_REFERENCE', reason: 'Integrity checked; source geometry not independently surveyed or approved.',
       counts: { buildings: data.buildings.features.length, roads: data.roads.features.length } });
-    return () => { map.off('click', onClick); release(); };
+    return () => {
+      map.off('click', onClick);
+      map.off('mousemove', LAYER_BUILDINGS, onHover);
+      map.off('mouseleave', LAYER_BUILDINGS, clearHover);
+      clearHover();
+      release();
+    };
   } catch (err) {
     const reason = err instanceof Error ? err.message : 'SCENE_UNAVAILABLE';
     emit({ status: reason === 'SCENE_FILE_MISSING' ? 'MISSING' :
