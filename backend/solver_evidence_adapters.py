@@ -152,9 +152,9 @@ def inspect_swmm_run(*, run_id: str, solver_version: str, input_file: str | Path
             if len(positions) != 1:
                 raise ValueError("SWMM_REQUIRED_CONTINUITY_SECTION_MISSING_OR_DUPLICATED:" + section)
             tail = report_text[positions[0].end():]
-            end = re.search(r"(?m)^\s*\*{5,}", tail)
-            # Continuity table ends at the next decorated section, not at arbitrary log text.
-            block = tail[:end.start()] if end else tail[:8000]
+            # Search the bounded table region; the immediately following separator
+            # belongs to the section header, so it is NOT an end-of-table marker.
+            block = tail[:4000]
             values = re.findall(r"(?im)^\s*Continuity\s+Error\s*\(%\)\s*\.+\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?)", block)
             if len(values) != 1:
                 raise ValueError("SWMM_CONTINUITY_ERROR_NOT_UNIQUE:" + section)
