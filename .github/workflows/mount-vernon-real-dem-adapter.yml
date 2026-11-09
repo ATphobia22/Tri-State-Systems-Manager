@@ -1,0 +1,34 @@
+name: Mount Vernon real DEM adapter contracts
+on:
+  push:
+    paths:
+      - 'scripts/geospatial/mount_vernon_dem_transvoxel_gate.py'
+      - 'tests/contracts/mount-vernon-dem-manifest.test.mjs'
+      - 'docs/evidence/mount-vernon-3dtiles-dem-preview-2026-11-09.json'
+      - '.github/workflows/mount-vernon-real-dem-adapter.yml'
+  pull_request:
+    paths:
+      - 'scripts/geospatial/mount_vernon_dem_transvoxel_gate.py'
+      - 'tests/contracts/mount-vernon-dem-manifest.test.mjs'
+      - 'docs/evidence/mount-vernon-3dtiles-dem-preview-2026-11-09.json'
+      - '.github/workflows/mount-vernon-real-dem-adapter.yml'
+  workflow_dispatch:
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check contract and actual adapter source syntax
+        run: |
+          node --test tests/contracts/mount-vernon-dem-manifest.test.mjs
+          python -m py_compile scripts/geospatial/mount_vernon_dem_transvoxel_gate.py
+      - name: State actual terrain acceptance boundary
+        run: echo "No live/real DEM or headed UE was executed by this lightweight contract job"
