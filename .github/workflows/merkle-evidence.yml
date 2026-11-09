@@ -6,6 +6,8 @@ on:
     paths:
       - 'backend/merkle_evidence.py'
       - 'backend/tests/test_merkle_evidence.py'
+      - 'backend/survey/independent_control_gate.py'
+      - 'backend/tests/test_merkle_survey_checkpoint.py'
       - 'backend/regulatory_authority_boundary.py'
       - 'backend/tests/test_regulatory_authority_boundary.py'
       - 'docs/evidence/POSEY-LIVE-CANDIDATE-RETRIEVAL-2026-11-09.json'
@@ -32,7 +34,7 @@ jobs:
       - name: Compile Python Merkle and regulatory modules
         run: python -m py_compile backend/merkle_evidence.py backend/regulatory_authority_boundary.py
       - name: Run standard Merkle and agency boundary contract tests
-        run: python -m unittest backend.tests.test_merkle_evidence backend.tests.test_regulatory_authority_boundary -v
+        run: python -m unittest backend.tests.test_merkle_evidence backend.tests.test_regulatory_authority_boundary backend.tests.test_merkle_survey_checkpoint -v
       - name: Commit available source, science, governance and receipt artifacts
         run: |
           python -m backend.merkle_evidence build --root . \
