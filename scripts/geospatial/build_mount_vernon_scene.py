@@ -10,6 +10,7 @@ import argparse
 import hashlib
 import json
 import math
+from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
@@ -155,6 +156,7 @@ def build_scene(bbox: tuple[float, float, float, float], build: tuple[list[dict]
     return {
         "schema": "tsm.mount-vernon-city-scene.v1",
         "scene_name": "Mount Vernon, Indiana — governmental planimetric context",
+        "assembled_at_utc": datetime.now(timezone.utc).isoformat(),
         "aoi_bbox_wgs84": list(bbox),
         "crs": "EPSG:4326", "vertical_datum": "NOT_ESTABLISHED_FOR_GEOMETRY",
         "accuracy_claim": "REFERENCE_ONLY_NOT_SURVEY_OR_ENGINEERING",
