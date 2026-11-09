@@ -61,7 +61,11 @@ jobs:
         shell: pwsh
         run: |
           $locks = Get-ChildItem -Recurse -Filter package-lock.json |
-            Where-Object { $_.FullName -notmatch '\\node_modules\\' -and $_.DirectoryName -ne (Resolve-Path 'tsm-console').Path }
+            Where-Object {
+              $_.FullName -notmatch '\\node_modules\\' -and
+              $_.DirectoryName -ne (Resolve-Path 'tsm-console').Path -and
+              $_.DirectoryName -ne (Join-Path $PWD 'tools/published-tiles-validator')
+            }
           foreach ($lock in $locks) {
             $dir = $lock.DirectoryName
             if (Test-Path (Join-Path $dir 'package.json')) {
