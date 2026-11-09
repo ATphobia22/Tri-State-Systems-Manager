@@ -1,6 +1,7 @@
 """Synthetic EPA SWMM report integrity tests; not a real solver run."""
 import tempfile
 import unittest
+import struct
 from pathlib import Path
 from backend.solver_evidence_adapters import inspect_swmm_run
 from backend.engineering_evidence import ExecutionState
@@ -15,7 +16,14 @@ class SwmmEvidenceTests(unittest.TestCase):
         self.rpt = root / "model.rpt"
         self.out = root / "model.out"
         self.model.write_text("[TITLE]\nSynthetic fixture\n")
-        self.out.write_bytes(b"CI-SYNTHETIC-OUTPUT-NOT-SWMM")
+        magic = 516114522
+        # Minimal SWMM-shaped synthetic header/period/footer for parser guard tests;
+        # this is NOT a real EPA SWMM results file or calibrated model.
+        self.out.write_bytes(
+            struct.pack("<7i", magic, 52004, 0, 0, 0, 0, 0) +
+            bytes(24) +
+            struct.pack("<6i", 28, 28, 28, 1, 0, magic)
+        )
         self.report(0.5, -0.25)
 
     def report(self, runoff: float, routing: float):
@@ -63,6 +71,10 @@ class SwmmEvidenceTests(unittest.TestCase):
 
     def test_unfinished_report_not_verified(self):
         self.rpt.write_text(self.rpt.read_text().replace("Analysis ended on:", "Analysis never ended on:"))
+        self.assertEqual(self.check().state, ExecutionState.NOT_EVALUATED.value)
+
+    def test_bad_binary_magic_blocks_verification(self):
+        self.out.write_bytes(b"Z" * 76)
         self.assertEqual(self.check().state, ExecutionState.NOT_EVALUATED.value)
 
     def test_errors_are_not_convergence(self):
