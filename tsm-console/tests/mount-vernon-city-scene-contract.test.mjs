@@ -10,7 +10,7 @@ const producer = readFileSync(new URL('../../scripts/geospatial/build_mount_vern
 test('map mounts city scene without blocking existing 3D terrain and hydrology', () => {
   assert.match(map, /attachMountVernonCityScene\(map,/);
   assert.match(map, /MountVernonCityInspector/);
-  assert.match(map, /disposeMountVernonCity/);
+  assert.match(map, /mountVernonCityCleanup/);
   assert.match(map, /applyTwinTerrain/);
   assert.match(map, /ThreeDTilesLayer/);
 });
