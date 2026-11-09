@@ -9,7 +9,10 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from backend.merkle_evidence import build_manifest, verify_manifest, _safe_path
 from scripts.geospatial.reconcile_published_buildings import _identifier
