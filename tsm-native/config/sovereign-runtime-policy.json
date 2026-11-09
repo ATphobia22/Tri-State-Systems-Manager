@@ -10,7 +10,22 @@
   "data": {
     "mode": "signed-local-snapshot",
     "mutableRuntimeData": false,
-    "requireSha256Manifest": true
+    "requireSha256Manifest": true,
+    "governmentSnapshotResilience": {
+      "schemaVersion": "tsm.native.government-fallback.v1",
+      "onMissingOrStaleGovernmentData": "CONTINUE_3D_TWIN_WITH_VERIFIED_LOCAL_SNAPSHOT_WHEN_AVAILABLE",
+      "ifNoVerifiedSnapshot": "KEEP_INDEPENDENT_3D_SCENE_AVAILABLE_HIDE_UNVERIFIED_GOVERNMENT_LAYER",
+      "preferCurrentVerifiedSnapshot": true,
+      "allowHistoricalSnapshotDisplay": true,
+      "requireSHA256VerifiedSourceAndArchive": true,
+      "requireMerkleDossierProofWhenPresent": true,
+      "preserveSourceVersionRetrievalTimeAndProvenance": true,
+      "labelHistoricalAsNotLive": true,
+      "neverSubstituteOldWaterLevelsForLiveTelemetry": true,
+      "neverInferFEMAMapEffectivenessFromAgeOrIntegrity": true,
+      "requireProfessionalOrAgencyApprovalForRegulatoryActions": true,
+      "allowNetworkAcquisitionInsideNativeRuntime": false
+    }
   },
   "geospatial": {
     "horizontalCrs": "EPSG:2966",
