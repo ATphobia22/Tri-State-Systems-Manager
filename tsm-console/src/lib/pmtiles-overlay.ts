@@ -24,7 +24,7 @@ function getConfiguredSource(): {
   return { archiveUrl, sourceLayer, attribution };
 }
 
-function ensureProtocolRegistered(): void {
+export function ensureProtocolRegistered(): void {
   if (protocolRegistered) return;
   const protocol = createPmtilesProtocol();
   maplibregl.addProtocol('pmtiles', protocol.tile);
