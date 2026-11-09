@@ -35,7 +35,7 @@ export async function ingestGovernmentJson(request:IngestRequest,options:{fetche
  // response bytes; this snapshot hash covers normalized JSON serialization instead.
  const bytes=new TextEncoder().encode(JSON.stringify(evidence.result));
  const manifest=createSnapshotManifest({
-  datasetId:request.datasetId,authority:source.authority,sourceUrl:request.url,
+  datasetId:request.datasetId,authority:source.authority,sourceId:source.id,sourceUrl:request.url,
   retrievedAt:evidence.evidence[0].retrievedAt,sourceVersion:request.sourceVersion,
   mediaType:'application/json',attribution:request.attribution,license:request.license,
   horizontalCrs:request.horizontalCrs,verticalDatum:request.verticalDatum,
