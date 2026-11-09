@@ -19,6 +19,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Install bounded test dependency
+        run: python -m pip install 'pytest>=8,<10'
       - name: Verify scene generator contracts (offline)
         run: python -m pytest -q backend/tests/test_mount_vernon_scene.py
       - name: Acquire official Indiana GIO planimetric context for Mount Vernon
