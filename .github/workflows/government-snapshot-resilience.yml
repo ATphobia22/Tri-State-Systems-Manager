@@ -1,0 +1,46 @@
+name: Government Snapshot Resilience Contract
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'tsm-console/src/lib/government-snapshot-policy.ts'
+      - 'tsm-console/src/lib/government-pmtiles-overlay.ts'
+      - 'tsm-console/src/components/RealWorldTwinMap.tsx'
+      - 'tsm-console/tests/government-snapshot-policy.test.mjs'
+      - '.github/workflows/government-snapshot-resilience.yml'
+  pull_request:
+    paths:
+      - 'tsm-console/src/lib/government-snapshot-policy.ts'
+      - 'tsm-console/src/lib/government-pmtiles-overlay.ts'
+      - 'tsm-console/src/components/RealWorldTwinMap.tsx'
+      - 'tsm-console/tests/government-snapshot-policy.test.mjs'
+      - '.github/workflows/government-snapshot-resilience.yml'
+permissions:
+  contents: read
+jobs:
+  fallback-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '22'
+      - name: Execute no-promotion, date, source and Merkle-pinning tests
+        run: node --experimental-strip-types --test tsm-console/tests/government-snapshot-policy.test.mjs
+      - name: Verify UI binds real provenance
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          ui=Path('tsm-console/src/components/RealWorldTwinMap.tsx').read_text()
+          overlay=Path('tsm-console/src/lib/government-pmtiles-overlay.ts').read_text()
+          assert 'HISTORICAL GOVERNMENT SNAPSHOT' in ui
+          assert 'governmentScene.capturedAt' in ui
+          assert 'governmentScene.source' in ui
+          assert 'governmentScene.merkleRootSha256' in ui
+          assert 'isVerifiedHistoricalSnapshot' in overlay
+          assert 'NO_GOVERNMENT_SNAPSHOT' in overlay
+          assert 'GOVERNMENT_SCENE_STATUS_EVENT' in overlay
+          print('HISTORICAL_GOVERNMENT_UI_PROVENANCE_CONTRACT_PASS')
+          PY
