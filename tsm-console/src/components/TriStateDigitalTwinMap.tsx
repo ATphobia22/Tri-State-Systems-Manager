@@ -17,9 +17,11 @@ import {
 } from '../lib/flood-deck-overlay';
 
 const INITIAL_CENTER: [number, number] = [-88.005075, 37.845887];
+// Covers the audited 23,082 Posey candidates (source bounds approximately
+// -88.0913/37.7734 to -87.6883/38.2301), not only Mount Vernon.
 const MAX_BOUNDS: [[number, number], [number, number]] = [
-  [-88.08, 37.75],
-  [-87.92, 37.90],
+  [-88.13, 37.72],
+  [-87.64, 38.28],
 ];
 
 const layerColor = (id: string): string => {
@@ -427,6 +429,7 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
       map.on('mousemove', (event) => {
         const pickable = [
           'indiana-buildings-extrusion',
+          'indiana-buildings-footprint',
           'indiana-roads-line',
           'indiana-parcels-fill',
           'usgs-quad-index-line',
