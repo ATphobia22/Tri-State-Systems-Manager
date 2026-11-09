@@ -111,9 +111,8 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
     let disposePmtilesLayer: (() => void) | null = null;
     let disposeGovernmentPmtilesLayer: (() => void) | null = null;
     const mountVernonCityCleanup: { dispose: (() => void) | null } = { dispose: null };
+    const mountVernonSceneAbort = new AbortController();
     let citySceneDisposed = false;
-    let disposeMountVernonScene: (() => void) | null = null;
-    let mountVernonUnmounted = false;
     let map: maplibregl.Map;
     try {
       map = new maplibregl.Map({
@@ -191,13 +190,14 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       try {
         disposePmtilesLayer = attachConfiguredPmtilesPolygonLayer(map);
         disposeGovernmentPmtilesLayer = attachGovernmentPmtilesLayer(map);
-        void attachMountVernonCityScene(map, `${import.meta.env.BASE_URL}mount-vernon-scene/`).then(dispose => {
-          if (mountVernonUnmounted) dispose();
-          else disposeMountVernonScene = dispose;
-        });
       } catch {
         setMapInitializationError('Optional PMTiles layer unavailable; the base map remains usable.');
       }
+      // The city scene is independent of the optional PMTiles transport.
+      void attachMountVernonCityScene(map, `${import.meta.env.BASE_URL}mount-vernon-scene/`, mountVernonSceneAbort.signal).then(dispose => {
+        if (citySceneDisposed) dispose();
+        else mountVernonCityCleanup.dispose = dispose;
+      });
 
       const noaaWarningsSource = 'noaa-cloudgis-warnings';
       if (!map.getSource(noaaWarningsSource)) {
@@ -251,9 +251,8 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       disposePmtilesLayer?.();
       disposeGovernmentPmtilesLayer?.();
       citySceneDisposed = true;
+      mountVernonSceneAbort.abort();
       mountVernonCityCleanup.dispose?.();
-      mountVernonUnmounted = true;
-      disposeMountVernonScene?.();
       map.remove();
       mapRef.current = null;
       markerRef.current = null;
