@@ -3,6 +3,12 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '23 5 * * *'
+  push:
+    branches: [main]
+    paths:
+      - 'packages/government/src/liveIngestion.ts'
+      - 'packages/government/scripts/ingest-live.ts'
+      - '.github/workflows/government-data-validation.yml'
   pull_request:
     paths:
       - 'packages/government/**'
@@ -42,3 +48,52 @@ jobs:
         env:
           TSM_NFHL_REQUIRE_LIVE: 'true'
         run: node packages/geo/src/nfhl/cli/validate-nfhl.mjs
+
+  agency-live-snapshots:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # pinned
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # pinned
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
+      - name: Configure immutable discovery snapshots
+        shell: bash
+        run: |
+          mkdir -p "${RUNNER_TEMP}/tsm-government-live"
+          node - <<'NODE'
+          const fs=require('node:fs');
+          const dir=process.env.RUNNER_TEMP+'/tsm-government-live';
+          const entries=[
+           {datasetId:'fema-nfhl-metadata',sourceId:'fema-nfhl',
+            url:'https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer?f=json',
+            attribution:'FEMA NFHL',license:'Public US federal government data; verify per-layer restrictions'},
+           {datasetId:'usgs-3dep-metadata',sourceId:'usgs-3dep',
+            url:'https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer?f=json',
+            attribution:'USGS 3DEP',license:'Public US federal government data; verify per-dataset restrictions'},
+           {datasetId:'noaa-weather-point-metadata',sourceId:'noaa-weather',
+            url:'https://api.weather.gov/points/37.93,-87.90',
+            attribution:'NOAA National Weather Service',license:'Public US federal government data; verify per-product restrictions'}
+          ];
+          for(const e of entries)fs.writeFileSync(dir+'/'+e.datasetId+'.config.json',JSON.stringify({
+           ...e,sourceVersion:'LIVE_METADATA_DISCOVERY_NOT_DATASET_VERSION',
+           outputDirectory:dir,schemaVersion:'1.0.0'
+          }));
+          NODE
+      - name: Fetch provenance-bound official agency metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          for source in fema-nfhl-metadata usgs-3dep-metadata noaa-weather-point-metadata; do
+            ./node_modules/.bin/tsx packages/government/scripts/ingest-live.ts               "${RUNNER_TEMP}/tsm-government-live/${source}.config.json"
+          done
+      - name: Upload unverified ingestion artifacts
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # pinned
+        with:
+          name: tsm-government-live-evidence-${{ github.run_id }}
+          path: ${{ runner.temp }}/tsm-government-live/
+          if-no-files-found: warn
+          retention-days: 14
