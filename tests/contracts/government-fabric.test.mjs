@@ -21,8 +21,8 @@ test("NWS disallows foreign forecast URLs",async()=>{
 });
 test("station, bbox and state parameters validated",async()=>{
  const f=new GovernmentFabric({userAgent,fetchImpl:async()=>{throw Error("network must not run")}});
- assert.throws(()=>f.getAlerts("IN&x=1"),/state/);
- assert.throws(()=>f.getLatestObservation("../secrets"),/station/);
+ await assert.rejects(f.getAlerts("IN&x=1"),/state/);
+ await assert.rejects(f.getLatestObservation("../secrets"),/station/);
  assert.throws(()=>f.searchElevationProducts("1,2,0,3"),/bbox/);
 });
 test("source catalog contains key authoritative datasets",()=>{
