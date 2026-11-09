@@ -6,6 +6,8 @@ on:
     paths:
       - 'scripts/geospatial/recover_posey_missing_building_candidates.py'
       - 'backend/tests/test_posey_live_building_candidates.py'
+      - 'backend/tests/test_posey_screening_inventory_staging.py'
+      - 'scripts/geospatial/stage_posey_screening_inventory.py'
       - '.github/workflows/posey-official-building-candidates.yml'
   schedule:
     - cron: '41 7 * * 1'
@@ -23,8 +25,8 @@ jobs:
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
         with:
           python-version: '3.12'
-      - run: python -m py_compile scripts/geospatial/recover_posey_missing_building_candidates.py backend/tests/test_posey_live_building_candidates.py
-      - run: python -m unittest backend.tests.test_posey_live_building_candidates -v
+      - run: python -m py_compile scripts/geospatial/recover_posey_missing_building_candidates.py scripts/geospatial/stage_posey_screening_inventory.py backend/tests/test_posey_live_building_candidates.py backend/tests/test_posey_screening_inventory_staging.py
+      - run: python -m unittest backend.tests.test_posey_live_building_candidates backend.tests.test_posey_screening_inventory_staging -v
   retrieve-unverified-candidates:
     needs: contract-tests
     runs-on: ubuntu-24.04
@@ -47,6 +49,31 @@ jobs:
           assert manifest['validationStatus']=='UNVERIFIED'
           print('OFFICIAL_SOURCE_CANDIDATES_RETRIEVED_NOT_PUBLISHED')
           PY
+      - name: Acquire hash-pinned archived baseline and stage complete 2D ID coverage
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASELINE="${RUNNER_TEMP}/posey-archived-23082.geojson"
+          curl --fail --location --retry 3 --retry-all-errors \
+            --output "$BASELINE" \
+            "https://github.com/ATphobia22/Tri-State-Systems-Manager/releases/download/igio-posey-20261006/posey-buildings-igio-23082.geojson"
+          echo "d8a46b86616becfdea9c9164e7a219317d5963b86fba47e4c1f8f880ccbb559f  $BASELINE" | sha256sum --check -
+          python scripts/geospatial/stage_posey_screening_inventory.py \
+            --published tsm-console/public/3d-tiles/buildings-3d.json \
+            --archived "$BASELINE" \
+            --candidates "${RUNNER_TEMP}/posey-official-missing-candidates.geojson" \
+            --delta data/buildings/POSEY-ARCHIVED-IGIO-IDENTITY-DELTA-2026-10-25.json \
+            --output "${RUNNER_TEMP}/posey-2d-screening-23082.geojson"
+      - name: Upload 2D screening-only inventory and candidate review evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: posey-2d-screening-coverage-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/posey-2d-screening-23082.geojson
+            ${{ runner.temp }}/posey-2d-screening-23082.geojson.manifest.json
+          if-no-files-found: warn
+          retention-days: 30
       - name: Upload official candidates for geometry and lineage review
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
