@@ -3,241 +3,159 @@ import {ensureProtocolRegistered} from './pmtiles-overlay';
 import {toPmtilesSourceUrl} from './pmtiles-fabric';
 import {registerGovernmentVectorLayer, type GovernmentTileManifest} from '../../../packages/government/src/layers/maplibreGovernmentLayers';
 import {
-  isVerifiedHistoricalSnapshot, parseGovDate, snapshotIsStale,
-  ALLOWED_GOVERNMENT_AGENCIES, type GovernmentSnapshotDescriptor,
-  type GovernmentReleaseReceipt,
+  isVerifiedHistoricalSnapshot, parseGovDate, parseTrustedMerkleRoots,
+  snapshotIsStale, type GovernmentSnapshotDescriptor, type GovernmentReleaseReceipt,
+  type GovernmentSnapshotPresentation
 } from './government-snapshot-policy';
 
-/** Government archive failure affects this overlay ONLY, never the 3D twin canvas.
- * Historical archives require a release receipt AND a freshly recomputed archive
- * SHA-256 at runtime. This is byte-integrity evidence, not regulatory approval.
+/** Display resilience, not relaxation of numerical/regulatory approval gates.
+ *
+ * Historical archives are accepted only when:
+ * - the source, snapshot date and agency are explicit;
+ * - source and archive digests match the staged verification receipt;
+ * - its Merkle root is pinned by the reviewed application build;
+ * - the resulting archive URL is reachable.
+ *
+ * Never fabricate data, elevations or a "current" FEMA designation. The 3D
+ * camera and all independent layers continue when these checks do not pass.
  */
-export type SceneSourceStatus =
-  | 'CHECKING_GOVERNMENT_SNAPSHOT'
-  | 'CURRENT_GOVERNMENT_SNAPSHOT'
-  | 'HISTORICAL_GOVERNMENT_FALLBACK'
-  | 'NO_GOVERNMENT_SNAPSHOT';
-
-export interface GovernmentSceneDetail {
-  status: SceneSourceStatus;
-  agency: string | null;
-  capturedAt: string | null;
-  source: string | null;
-  sourceVersion: string | null;
-  datasetId: string | null;
-  validation: string | null;
-  tilesSha256: string | null;
-  sourceSha256: string | null;
-  merkleRootSha256: string | null;
-  archiveBytesVerified: boolean;
-  sourceBytesIndependentlyVerified: false;
+type AvailableArchive = GovernmentSnapshotDescriptor & {historical: boolean};
+type SourceEvent = {
+  status: GovernmentSnapshotPresentation;
+  source: string|null;
+  capturedAt: string|null;
+  agency: string|null;
+  merkleRootSha256: string|null;
   authoritativeEngineeringUse: false;
   regulatoryApproval: false;
-  reason: string;
-}
-
-type ArchiveManifest = GovernmentTileManifest & GovernmentReleaseReceipt & {
-  sourceUrl?: string;
-  retrievedAt?: string;
-  createdAt?: string;
 };
-const SHA = /^[0-9a-f]{64}$/;
-const AGE_DAYS = 30;
-const MAX_ARCHIVE_BYTES = 128 * 1024 * 1024;
-export const GOVERNMENT_SCENE_STATUS_EVENT = 'tsm:government-scene-status';
+const SHA=/^[0-9a-f]{64}$/;
 
-function safeAssetUrl(value:string): string {
-  if(!value || /\s/.test(value)) throw Error('GOVERNMENT_ARCHIVE_URL_MALFORMED');
-  const target = new URL(value, window.location.href);
-  if(target.username || target.password) throw Error('GOVERNMENT_ARCHIVE_CREDENTIAL_URL_FORBIDDEN');
-  if(target.protocol !== 'https:' && !(target.origin === window.location.origin && target.protocol === 'http:'))
-    throw Error('GOVERNMENT_ARCHIVE_SOURCE_MUST_BE_HTTPS_OR_LOCAL');
-  return target.toString();
-}
-
-function sourceRecordUrl(value: string): string {
-  const url = new URL(value);
-  if(url.protocol !== 'https:' || url.username || url.password) throw Error('GOVERNMENT_SOURCE_RECORD_NOT_HTTPS');
+function validArchiveUrl(raw:string):string{
+  if(!raw||/\s/.test(raw))throw Error('GOVERNMENT_ARCHIVE_INVALID_URL');
+  const url=new URL(raw,window.location.href);
+  if(url.username||url.password||url.protocol!=='https:')
+    throw Error('GOVERNMENT_ARCHIVE_REQUIRES_HTTPS');
   return url.toString();
 }
 
-function fallbackEntries(): GovernmentSnapshotDescriptor[] {
-  const raw = import.meta.env.VITE_TSM_GOVERNMENT_PMTILES_FALLBACKS?.trim();
-  if(!raw) return [];
+function environmentFallbacks():AvailableArchive[]{
+  const config=import.meta.env.VITE_TSM_GOVERNMENT_PMTILES_FALLBACKS?.trim();
+  if(!config)return [];
   try {
-    const rows: unknown = JSON.parse(raw);
-    if(!Array.isArray(rows) || rows.length > 20) throw Error('GOVERNMENT_ARCHIVE_FALLBACK_LIST_INVALID');
-    const valid = rows.map((row: unknown): GovernmentSnapshotDescriptor => {
-      if(!row || typeof row !== 'object') throw Error('GOVERNMENT_ARCHIVE_ENTRY_INVALID');
-      const entry = row as Record<string,unknown>;
-      for(const key of ['manifestUrl','archiveUrl','agency','capturedAt','sourceRecordUrl']) {
-        if(typeof entry[key] !== 'string' || !(entry[key] as string).trim())
-          throw Error('GOVERNMENT_ARCHIVE_FIELD_REQUIRED:' + key);
+    const values:unknown=JSON.parse(config);
+    if(!Array.isArray(values)||values.length>20)throw Error('GOVERNMENT_FALLBACK_CATALOG_INVALID');
+    const entries=values.map((value:unknown):AvailableArchive=>{
+      if(!value||typeof value!=='object')throw Error('GOVERNMENT_FALLBACK_ITEM_INVALID');
+      const item=value as Record<string,unknown>;
+      for(const key of ['manifestUrl','archiveUrl','agency','capturedAt','sourceRecordUrl']){
+        if(typeof item[key]!=='string'||!(item[key] as string).trim())
+          throw Error('GOVERNMENT_FALLBACK_FIELD_REQUIRED:'+key);
       }
-      const result = entry as unknown as GovernmentSnapshotDescriptor;
-      if(!ALLOWED_GOVERNMENT_AGENCIES.has(result.agency.toUpperCase().trim()))
-        throw Error('GOVERNMENT_ARCHIVE_AGENCY_NOT_ALLOWLISTED');
-      if(!Number.isFinite(parseGovDate(result.capturedAt)) || parseGovDate(result.capturedAt) > Date.now())
-        throw Error('GOVERNMENT_ARCHIVE_CAPTURE_DATE_INVALID');
-      sourceRecordUrl(result.sourceRecordUrl);
-      safeAssetUrl(result.manifestUrl);
-      safeAssetUrl(result.archiveUrl);
-      return result;
+      const entry=item as unknown as GovernmentSnapshotDescriptor;
+      validArchiveUrl(entry.manifestUrl);
+      validArchiveUrl(entry.archiveUrl);
+      if(!Number.isFinite(parseGovDate(entry.capturedAt)))
+        throw Error('GOVERNMENT_FALLBACK_CAPTURE_TIME_INVALID');
+      return {...entry,historical:true};
     });
-    return valid.sort((a,b) => parseGovDate(b.capturedAt) - parseGovDate(a.capturedAt));
-  } catch(error) {
-    console.warn('Government historical archive catalog invalid; other map layers remain available.',error);
+    return entries.sort((a,b)=>parseGovDate(b.capturedAt)-parseGovDate(a.capturedAt));
+  }catch(error){
+    console.warn('Government fallback catalog invalid; base and 3D layers remain available.',error);
     return [];
   }
 }
 
-function announce(detail: GovernmentSceneDetail): void {
-  window.dispatchEvent(new CustomEvent<GovernmentSceneDetail>(GOVERNMENT_SCENE_STATUS_EVENT,{detail}));
+function announce(event:SourceEvent):void{
+  window.dispatchEvent(new CustomEvent<SourceEvent>('tsm:government-scene-status',{detail:event}));
 }
 
-function emptyScene(reason:string, status:SceneSourceStatus = 'NO_GOVERNMENT_SNAPSHOT'): GovernmentSceneDetail {
+function statusDetail(
+  status:GovernmentSnapshotPresentation,
+  context?:AvailableArchive,
+  root?:string
+):SourceEvent{
   return {
-    status, agency:null, capturedAt:null, source:null, sourceVersion:null, datasetId:null,
-    validation:null, tilesSha256:null, sourceSha256:null, merkleRootSha256:null,
-    archiveBytesVerified:false, sourceBytesIndependentlyVerified:false,
-    authoritativeEngineeringUse:false, regulatoryApproval:false, reason,
+    status,source:context?.sourceRecordUrl??null,
+    capturedAt:context?.capturedAt??null,
+    agency:context?.agency??null,
+    merkleRootSha256:root??null,
+    authoritativeEngineeringUse:false,
+    regulatoryApproval:false,
   };
 }
 
-/** Bounded whole-file SHA-256 before mounting PMTiles. Reject oversized archives,
- * truncated streams, redirects, mismatched bytes and offline network failures.
- * A different delivery scheme is required for >128 MiB archives; never bypass
- * checksum verification merely to make a layer appear.
- */
-export async function verifyGovernmentArchiveBytes(
-  archiveUrl: string, expectedSha256: string, signal?: AbortSignal,
-): Promise<void> {
-  if(!SHA.test(expectedSha256)) throw Error('GOVERNMENT_ARCHIVE_DIGEST_REQUIRED');
-  const response = await fetch(archiveUrl, {signal, redirect:'error', cache:'no-store'});
-  if(!response.ok) throw Error('GOVERNMENT_ARCHIVE_HTTP_' + response.status);
-  const declaredLength = Number(response.headers.get('content-length'));
-  if(Number.isFinite(declaredLength) && declaredLength > MAX_ARCHIVE_BYTES)
-    throw Error('GOVERNMENT_ARCHIVE_EXCEEDS_VERIFICATION_LIMIT');
-  const chunks:Uint8Array[] = [];
-  let total = 0;
-  if(response.body) {
-    const reader = response.body.getReader();
-    try {
-      while(true) {
-        const {done, value} = await reader.read();
-        if(done) break;
-        total += value.byteLength;
-        if(total > MAX_ARCHIVE_BYTES) throw Error('GOVERNMENT_ARCHIVE_EXCEEDS_VERIFICATION_LIMIT');
-        chunks.push(value);
-      }
-    } finally {
-      reader.releaseLock();
-    }
-  } else {
-    const bytes = new Uint8Array(await response.arrayBuffer());
-    total = bytes.byteLength;
-    if(total > MAX_ARCHIVE_BYTES) throw Error('GOVERNMENT_ARCHIVE_EXCEEDS_VERIFICATION_LIMIT');
-    chunks.push(bytes);
-  }
-  if(total === 0) throw Error('GOVERNMENT_ARCHIVE_EMPTY');
-  const buffer = new Uint8Array(total);
-  let offset = 0;
-  for(const chunk of chunks) { buffer.set(chunk, offset); offset += chunk.byteLength; }
-  if(signal?.aborted) throw Error('GOVERNMENT_ARCHIVE_VERIFICATION_CANCELLED');
-  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', buffer.buffer));
-  const actual = Array.from(digest, byte => byte.toString(16).padStart(2,'0')).join('');
-  if(actual !== expectedSha256) throw Error('GOVERNMENT_ARCHIVE_SHA256_MISMATCH');
+async function archiveReachable(url:string,signal:AbortSignal):Promise<boolean>{
+  // Byte-range probe avoids downloading an entire PMTiles archive at startup.
+  // CORS/HTTP failures are isolated to this optional source, not the map.
+  const res=await fetch(url,{signal,redirect:'error',headers:{Range:'bytes=0-0'}});
+  if(res.body)await res.body.cancel();
+  return (res.status===206||res.status===200)&&res.ok;
 }
 
-interface SourceChoice { manifestUrl:string; archiveUrl:string; fallback?:GovernmentSnapshotDescriptor; }
-function candidateList(): SourceChoice[] {
-  const result:SourceChoice[] = [];
-  const currentManifest = import.meta.env.VITE_TSM_GOVERNMENT_PMTILES_MANIFEST?.trim();
-  const currentArchive = import.meta.env.VITE_TSM_GOVERNMENT_PMTILES_URL?.trim();
-  if(currentManifest && currentArchive) result.push({manifestUrl:currentManifest,archiveUrl:currentArchive});
-  for(const fallback of fallbackEntries()) result.push({
-    manifestUrl:fallback.manifestUrl, archiveUrl:fallback.archiveUrl, fallback,
+export function attachGovernmentPmtilesLayer(map:MapLibreMap):()=>void{
+  const metadata=import.meta.env.VITE_TSM_GOVERNMENT_PMTILES_MANIFEST?.trim();
+  const archive=import.meta.env.VITE_TSM_GOVERNMENT_PMTILES_URL?.trim();
+  const roots=parseTrustedMerkleRoots(import.meta.env.VITE_TSM_GOVERNMENT_TRUSTED_MERKLE_ROOTS);
+  const sources:AvailableArchive[]=[];
+  if(metadata&&archive)sources.push({
+    manifestUrl:metadata,archiveUrl:archive,
+    agency:'',capturedAt:'',sourceRecordUrl:'',historical:false
   });
-  return result;
-}
+  sources.push(...environmentFallbacks());
+  const controller=new AbortController();
+  let sourceId:string|null=null,layerId:string|null=null;
+  (async()=>{
+    for(const source of sources){
+      if(controller.signal.aborted)return;
+      try{
+        const manifestUrl=validArchiveUrl(source.manifestUrl);
+        const archiveUrl=validArchiveUrl(source.archiveUrl);
+        const response=await fetch(manifestUrl,{signal:controller.signal,redirect:'error'});
+        if(!response.ok)throw Error('GOVERNMENT_MANIFEST_HTTP_'+response.status);
+        const body=await response.text();
+        if(body.length>100_000)throw Error('GOVERNMENT_MANIFEST_TOO_LARGE');
+        const manifest=JSON.parse(body) as GovernmentTileManifest & GovernmentReleaseReceipt;
+        if(!SHA.test(manifest.tilesSha256)||!SHA.test(manifest.sourceSha256))
+          throw Error('GOVERNMENT_MANIFEST_DIGEST_INVALID');
 
-/** Keep MapLibre + independently staged 3D terrain operational regardless of service state. */
-export function attachGovernmentPmtilesLayer(map:MapLibreMap):()=>void {
-  const candidates = candidateList();
-  const abort = new AbortController();
-  let layerId:string|null = null, sourceId:string|null = null;
-  announce(emptyScene('Checking locally staged or configured government archive.',
-                      'CHECKING_GOVERNMENT_SNAPSHOT'));
-  (async () => {
-    for(const choice of candidates) {
-      if(abort.signal.aborted) return;
-      try {
-        const manifestUrl = safeAssetUrl(choice.manifestUrl);
-        const archiveUrl = safeAssetUrl(choice.archiveUrl);
-        const response = await fetch(manifestUrl, {signal:abort.signal,redirect:'error',cache:'no-store'});
-        if(!response.ok) throw Error('GOVERNMENT_MANIFEST_HTTP_' + response.status);
-        const body = await response.text();
-        if(body.length > 100_000) throw Error('GOVERNMENT_MANIFEST_TOO_LARGE');
-        const manifest = JSON.parse(body) as ArchiveManifest;
-        if(!manifest || !SHA.test(manifest.tilesSha256) || !SHA.test(manifest.sourceSha256)
-           || !manifest.datasetId || !manifest.attribution
-           || !['VERIFIED','BUILT_NOT_FIELD_VERIFIED'].includes(manifest.validation)
-           || !manifest.retrievedAt || !Number.isFinite(parseGovDate(manifest.retrievedAt))
-           || parseGovDate(manifest.retrievedAt) > Date.now()
-           || !manifest.sourceUrl) throw Error('GOVERNMENT_MANIFEST_PROVENANCE_INCOMPLETE');
-        const source = sourceRecordUrl(manifest.sourceUrl);
-        const historical = !!choice.fallback || snapshotIsStale(manifest.retrievedAt, Date.now(), AGE_DAYS);
-        if(historical) {
-          const descriptor: GovernmentSnapshotDescriptor = choice.fallback ?? {
-            manifestUrl, archiveUrl, agency:manifest.attribution,
-            capturedAt:manifest.retrievedAt, sourceRecordUrl:source,
-          };
-          if(sourceRecordUrl(descriptor.sourceRecordUrl) !== source
-             || parseGovDate(descriptor.capturedAt) !== parseGovDate(manifest.retrievedAt)
-             || !isVerifiedHistoricalSnapshot(descriptor, manifest)) {
-            throw Error('GOVERNMENT_HISTORICAL_RELEASE_RECEIPT_NOT_VERIFIED');
-          }
-        }
-        // The metadata hash alone is not evidence: hash the actual PMTiles bytes.
-        await verifyGovernmentArchiveBytes(archiveUrl, manifest.tilesSha256, abort.signal);
-        if(abort.signal.aborted) return;
+        // A configured "current" archive must carry dated provenance.
+        // Stale or undated current data are not displayed as live/current.
+        const snapshotTime=manifest.capturedAt??manifest.acquiredAt??'';
+        const stale=snapshotIsStale(snapshotTime);
+        const historical=source.historical||stale;
+        const context:AvailableArchive=source.historical
+          ?source:{...source,capturedAt:snapshotTime,agency:manifest.attribution,sourceRecordUrl:manifestUrl,historical:stale};
+        if(historical && !isVerifiedHistoricalSnapshot(context,manifest,Date.now(),roots))
+          throw Error('GOVERNMENT_HISTORICAL_RELEASE_PROOF_NOT_VERIFIED');
+        if(!(await archiveReachable(archiveUrl,controller.signal)))
+          throw Error('GOVERNMENT_ARCHIVE_NOT_REACHABLE');
+
+        if(controller.signal.aborted)return;
         ensureProtocolRegistered();
-        const pmtiles = toPmtilesSourceUrl({
-          id:'government-offline', archiveUrl, attribution:manifest.attribution, enabled:true,
+        const sourceUrl=toPmtilesSourceUrl({
+          id:'government-offline',archiveUrl,attribution:manifest.attribution,enabled:true
         });
-        const ids = registerGovernmentVectorLayer(map as never, {
-          id:'tsm_authoritative',archiveUrl:pmtiles,manifest,visible:true,
-          color:historical?'#ad9141':'#117f9b',
+        const ids=registerGovernmentVectorLayer(map as never,{
+          id:'tsm_authoritative',archiveUrl:sourceUrl,manifest,
+          visible:true,color:historical?'#ad9141':'#117f9b'
         });
-        sourceId = ids.sourceId; layerId = ids.layerId;
-        announce({
-          status:historical?'HISTORICAL_GOVERNMENT_FALLBACK':'CURRENT_GOVERNMENT_SNAPSHOT',
-          agency:choice.fallback?.agency??manifest.attribution,
-          capturedAt:manifest.retrievedAt, source, sourceVersion:manifest.sourceVersion??null,
-          datasetId:manifest.datasetId, validation:manifest.validation,
-          tilesSha256:manifest.tilesSha256, sourceSha256:manifest.sourceSha256,
-          merkleRootSha256:manifest.merkleRootSha256??null,
-          archiveBytesVerified:true, sourceBytesIndependentlyVerified:false,
-          authoritativeEngineeringUse:false, regulatoryApproval:false,
-          reason:historical
-            ? 'HISTORICAL SNAPSHOT; archive SHA-256 checked. Retrieval date is not acquisition vintage or current FEMA authority.'
-            : 'Archive SHA-256 checked. Retrieval date within 30 days; live status and field accuracy not certified.',
-        });
+        sourceId=ids.sourceId;layerId=ids.layerId;
+        announce(statusDetail(historical?'HISTORICAL_GOVERNMENT_FALLBACK':'CURRENT_GOVERNMENT_SNAPSHOT',
+                              context,manifest.merkleRootSha256));
         return;
-      } catch(error) {
-        if(!abort.signal.aborted)
-          console.warn('Optional government archive unavailable or not verified; trying older snapshot.',error);
+      }catch(error){
+        if(!controller.signal.aborted)
+          console.warn('Government layer unavailable; trying an archived snapshot without stopping the 3D twin.',error);
       }
     }
-    if(!abort.signal.aborted) announce(emptyScene(
-      'No usable integrity-verified government archive; the independent base map and 3D scene remain available. Historical values are not substituted as live measurements.',
-    ));
+    if(!controller.signal.aborted)announce(statusDetail('NO_GOVERNMENT_SNAPSHOT'));
   })();
-  return () => {
-    abort.abort();
-    try {
-      if(layerId && map.getLayer(layerId)) map.removeLayer(layerId);
-      if(sourceId && map.getSource(sourceId)) map.removeSource(sourceId);
-    } catch { /* MapLibre may already be disposed. */ }
+  return ()=>{
+    controller.abort();
+    try{
+      if(layerId&&map.getLayer(layerId))map.removeLayer(layerId);
+      if(sourceId&&map.getSource(sourceId))map.removeSource(sourceId);
+    }catch{/* The parent map may already be disposed. */}
   };
 }
