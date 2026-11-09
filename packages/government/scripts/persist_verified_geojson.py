@@ -17,6 +17,15 @@ AUTHORIZED = {
     "CENSUS": {"census-tiger"}, "USDA": {"usda-soils"},
     "EPA": {"epa-waters"},
 }
+SOURCE_PREFIXES = {
+    "fema-nfhl": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer",
+    "usgs-3dep": "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
+    "usgs-hydrography": "https://hydro.nationalmap.gov/arcgis/rest/services/3DHP_all/FeatureServer",
+    "usace-levees": "https://geospatial.sec.usace.army.mil/dls/rest/services/NLD/Public/FeatureServer",
+    "noaa-weather": "https://api.weather.gov/",
+    "census-tiger": "https://api.census.gov/data/",
+    "usda-soils": "https://SDMDataAccess.sc.egov.usda.gov/",
+}
 MAX_BYTES = 100_000_000
 
 
@@ -44,12 +53,24 @@ def prepare(geojson_path: str, manifest_path: str) -> tuple[dict, list[dict], by
     if not isinstance(manifest.get("datasetId"), str) or not manifest["datasetId"]:
         raise ValueError("DATASET_ID_REQUIRED")
     url = manifest.get("sourceUrl", "")
-    if not isinstance(url, str) or not url.startswith("https://") or "@" in url.split("/", 3)[2]:
+    from urllib.parse import urlsplit
+    if not isinstance(url, str) or not url.startswith("https://"):
         raise ValueError("SOURCE_URL_INVALID")
+    parsed = urlsplit(url)
+    base = SOURCE_PREFIXES.get(source_id)
+    if not base:
+        raise ValueError("SOURCE_ENDPOINT_ALLOWLIST_MISSING")
+    base_parsed = urlsplit(base)
+    if (parsed.scheme != "https" or parsed.netloc != base_parsed.netloc
+            or parsed.username or parsed.password or parsed.fragment
+            or not (parsed.path == base_parsed.path.rstrip("/")
+                    or parsed.path.startswith(base_parsed.path.rstrip("/") + "/"))):
+        raise ValueError("SOURCE_URL_OUTSIDE_AGENCY_ENDPOINT")
     for field in ("retrievedAt", "sourceVersion", "attribution", "license"):
         if not isinstance(manifest.get(field), str) or not manifest[field].strip():
             raise ValueError("MISSING_MANIFEST_FIELD_" + field)
-    if manifest.get("classification") not in {"OBSERVED", "DERIVED"}:
+    # Classification describes source authority only; stored authorization remains NOT_EVIDENCED.
+    if manifest.get("classification") not in {"OBSERVED", "DERIVED", "REGULATORY"}:
         raise ValueError("GOVERNMENT_INGEST_CLASSIFICATION_NOT_ALLOWED")
     data = json.loads(raw)
     if data.get("type") != "FeatureCollection" or not isinstance(data.get("features"), list):
