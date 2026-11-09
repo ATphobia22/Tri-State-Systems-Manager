@@ -11,7 +11,7 @@ const THRESHOLD = 16;
 const FOV = Math.PI / 3;
 const VIEWPORT = 1080;
 const ROOT_SIZE = 256;
-const MAX_DEPTH = 5;
+const MAX_DEPTH = 3;
 const EPS = 1e-9;
 
 export function sse(errorMeters, distanceMeters, viewport = VIEWPORT, fov = FOV) {
