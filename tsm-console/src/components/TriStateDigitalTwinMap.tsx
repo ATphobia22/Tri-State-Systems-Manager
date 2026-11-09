@@ -137,10 +137,19 @@ function addFeatureSource(map: Map, item: MapPlaneLayer): void {
       layout: { visibility: 'none' },
       paint: { 'fill-color': '#94a3b8', 'fill-opacity': 0.28, 'fill-outline-color': '#cbd5e1' },
     });
-    // The live IGIO source carries footprints, not a verified height contract.
-    // Its extrusions stay hidden until a separately normalized, source-pinned
-    // screening GeoJSON is supplied. Unqualified height_m is not renderable.
-    map.addLayer(createPoseyScreeningExtrusionLayer(item.id, `${item.id}-extrusion`));
+    // The live IGIO source is always 2D. Only a separately staged, SHA-pinned
+    // local screening GeoJSON may supply *estimated* LoD1 massing. No arbitrary
+    // remote URL, query string, parent traversal or network dependency.
+    const screeningRelative = import.meta.env.VITE_TSM_POSEY_SCREENING_GEOJSON_PATH?.trim() || '';
+    if (/^data\/screening\/[A-Za-z0-9_./-]+\.geojson$/.test(screeningRelative)
+        && !screeningRelative.includes('..') && !screeningRelative.includes('//')) {
+      const screenedSourceId = 'tsm-posey-screening-buildings';
+      map.addSource(screenedSourceId, {
+        type: 'geojson',
+        data: `${import.meta.env.BASE_URL}${screeningRelative}`,
+      });
+      map.addLayer(createPoseyScreeningExtrusionLayer(screenedSourceId, `${item.id}-extrusion`));
+    }
     return;
   }
   map.addLayer({
@@ -158,7 +167,14 @@ function describePickedFeature(layerId: string, props: Record<string, unknown>):
     const value = props[key];
     return typeof value === 'string' && value.length > 0 ? value : null;
   };
-  if (layerId === 'indiana-buildings-extrusion' || layerId === 'indiana-buildings-footprint') {
+  if (layerId === 'indiana-buildings-extrusion') {
+    const h = props.tsm_visual_height_m;
+    const origin = str('tsm_height_evidence') ?? 'UNKNOWN';
+    return typeof h === 'number' && Number.isFinite(h)
+      ? `Estimated LoD1 building · ${h.toFixed(1)} m AGL · ${origin} · NOT SURVEYED`
+      : 'Estimated building · vertical data unavailable · NOT SURVEYED';
+  }
+  if (layerId === 'indiana-buildings-footprint') {
     const county = str('county') ?? 'unknown county';
     const lidarYear = str('lidaryear') ?? 'unknown vintage';
     // A bare "height_m" attribute is not proof of LiDAR observation.
@@ -494,6 +510,11 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
             );
           })}
         </div>
+        {import.meta.env.VITE_TSM_POSEY_SCREENING_GEOJSON_PATH && (
+          <div style={{ fontSize: 10, color: '#fbbf24', marginTop: 8 }}>
+            Building prisms are LoD1 *estimates* only — not LiDAR-measured roof models or NAVD88 design elevations.
+          </div>
+        )}
         <div style={{ marginTop: 8, display: 'grid', gap: 6 }}>
           <label style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 8, alignItems: 'start', padding: 8, borderRadius: 8, background: floodOverlayOn ? 'rgba(56,189,248,.08)' : 'rgba(15,23,42,.45)', border: '1px dashed rgba(56,189,248,.35)' }}>
             <input
