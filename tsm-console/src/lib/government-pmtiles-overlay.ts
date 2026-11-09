@@ -25,7 +25,7 @@ export function attachGovernmentPmtilesLayer(map:MapLibreMap):()=>void {
    const manifest=JSON.parse(body) as GovernmentTileManifest;
    if(abort.signal.aborted)return;
    ensureProtocolRegistered();
-   const sourceUrl=toPmtilesSourceUrl({id:manifest.datasetId,archiveUrl:archiveAddress.toString(),attribution:manifest.attribution,enabled:true});
+   const sourceUrl=toPmtilesSourceUrl({id:'government-offline',archiveUrl:archiveAddress.toString(),attribution:manifest.attribution,enabled:true});
    const ids=registerGovernmentVectorLayer(map as never,{
     id:'tsm_authoritative',archiveUrl:sourceUrl,manifest,
     visible:true,color:'#117f9b'
