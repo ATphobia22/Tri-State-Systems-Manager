@@ -6,6 +6,8 @@ on:
     paths:
       - 'scripts/geospatial/recover_posey_missing_building_candidates.py'
       - 'backend/tests/test_posey_live_building_candidates.py'
+      - 'scripts/geospatial/verify_posey_candidate_reconciliation.py'
+      - 'backend/tests/test_posey_merkle_reconciliation.py'
       - 'backend/tests/test_posey_screening_inventory_staging.py'
       - 'scripts/geospatial/stage_posey_screening_inventory.py'
       - '.github/workflows/posey-official-building-candidates.yml'
