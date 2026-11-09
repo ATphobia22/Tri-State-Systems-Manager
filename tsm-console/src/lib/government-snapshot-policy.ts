@@ -1,6 +1,7 @@
 /** Display-only resilience policy. Engineering authority is never inferred from an old archive.
  * A government snapshot can be used for historical *viewing* when its release
- * validation receipt is present and its version/date/CRS are consistent.
+ * verification receipt is present and its version/date/CRS are consistent.
+ * Archive-byte integrity does not require or imply field-survey validation.
  */
 export type GovernmentSnapshotPresentation = 'CURRENT_GOVERNMENT_SNAPSHOT'|'HISTORICAL_GOVERNMENT_FALLBACK'|'NO_GOVERNMENT_SNAPSHOT';
 export interface GovernmentSnapshotDescriptor {
@@ -45,7 +46,7 @@ export function isVerifiedHistoricalSnapshot(descriptor:GovernmentSnapshotDescri
   const captured=parseGovDate(descriptor.capturedAt);
   const verification=receipt.releaseVerification;
   if(!Number.isFinite(captured)||captured>now||
-     receipt.validation!=='VERIFIED'||!SHA.test(receipt.tilesSha256)||!SHA.test(receipt.sourceSha256)||
+     !['VERIFIED','BUILT_NOT_FIELD_VERIFIED'].includes(receipt.validation)||!SHA.test(receipt.tilesSha256)||!SHA.test(receipt.sourceSha256)||
      !SHA.test(receipt.merkleRootSha256??'')||!trustedMerkleRoots.has(receipt.merkleRootSha256??'')||!verification||
      verification.status!=='PASS'||verification.archiveSha256!==receipt.tilesSha256||
      verification.sourceSha256!==receipt.sourceSha256||
