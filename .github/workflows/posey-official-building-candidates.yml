@@ -1,0 +1,57 @@
+name: Posey Official Building Identity Recovery Candidates
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/geospatial/recover_posey_missing_building_candidates.py'
+      - 'backend/tests/test_posey_live_building_candidates.py'
+      - '.github/workflows/posey-official-building-candidates.yml'
+  schedule:
+    - cron: '41 7 * * 1'
+permissions:
+  contents: read
+concurrency:
+  group: posey-official-building-candidates-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  contract-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - run: python -m py_compile scripts/geospatial/recover_posey_missing_building_candidates.py backend/tests/test_posey_live_building_candidates.py
+      - run: python -m unittest backend.tests.test_posey_live_building_candidates -v
+  retrieve-unverified-candidates:
+    needs: contract-tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Fetch exact missing IDs from official Indiana Geoportal
+        run: |
+          python scripts/geospatial/recover_posey_missing_building_candidates.py \
+            --output "${RUNNER_TEMP}/posey-official-missing-candidates.geojson"
+          python - <<'PY'
+          import hashlib,json,os,pathlib
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'posey-official-missing-candidates.geojson'
+          manifest=json.loads(pathlib.Path(str(p)+'.provenance.json').read_text())
+          assert hashlib.sha256(p.read_bytes()).hexdigest()==manifest['sha256']
+          assert manifest['regulatoryUse'] is False and manifest['engineeringUse'] is False
+          assert manifest['validationStatus']=='UNVERIFIED'
+          print('OFFICIAL_SOURCE_CANDIDATES_RETRIEVED_NOT_PUBLISHED')
+          PY
+      - name: Upload official candidates for geometry and lineage review
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: posey-building-candidates-${{ github.run_id }}
+          path: ${{ runner.temp }}/posey-official-missing-candidates.geojson*
+          if-no-files-found: warn
+          retention-days: 30
