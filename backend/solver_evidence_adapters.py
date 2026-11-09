@@ -139,6 +139,29 @@ def inspect_swmm_run(*, run_id: str, solver_version: str, input_file: str | Path
         tolerances = (float(max_runoff_continuity_error_percent), float(max_routing_continuity_error_percent))
         if not all(math.isfinite(t) and t >= 0 for t in tolerances):
             raise ValueError("invalid SWMM continuity tolerances")
+        # EPA SWMM binary output uses a 7-int little-endian header and a
+        # six-int trailer with matching magic number (USEPA consts.h).
+        # This is an integrity precheck, not a complete physics/output parser.
+        import struct
+        with output.open("rb") as stream:
+            if output.stat().st_size < 76:
+                raise ValueError("SWMM_BINARY_OUTPUT_TOO_SMALL")
+            header = struct.unpack("<7i", stream.read(28))
+            stream.seek(-24, 2)
+            offsets_and_status = struct.unpack("<6i", stream.read(24))
+        magic = 516114522
+        if header[0] != magic or offsets_and_status[-1] != magic:
+            raise ValueError("SWMM_OUTPUT_MAGIC_INVALID")
+        if header[1] < 50000 or header[2] not in range(6):
+            raise ValueError("SWMM_OUTPUT_VERSION_OR_UNITS_INVALID")
+        if any(x < 0 for x in header[3:]):
+            raise ValueError("SWMM_OUTPUT_NEGATIVE_FEATURE_COUNT")
+        if offsets_and_status[-3] <= 0 or offsets_and_status[-2] != 0:
+            raise ValueError("SWMM_OUTPUT_NO_PERIODS_OR_ERROR_CODE")
+        size = output.stat().st_size
+        starts = offsets_and_status[:3]
+        if not (28 <= starts[0] <= starts[1] <= starts[2] < size - 24):
+            raise ValueError("SWMM_OUTPUT_OFFSETS_INVALID")
         report_text = report.read_text(encoding="utf8", errors="replace")
         if len(report_text) > 20_000_000:
             raise ValueError("SWMM_REPORT_TOO_LARGE")
