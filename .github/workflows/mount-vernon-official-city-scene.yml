@@ -1,0 +1,55 @@
+name: Mount Vernon Official City Scene Snapshot
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/geospatial/build_mount_vernon_scene.py'
+      - '.github/workflows/mount-vernon-official-city-scene.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  acquire-source-city:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify scene generator contracts (offline)
+        run: python -m pytest -q backend/tests/test_mount_vernon_scene.py
+      - name: Acquire official Indiana GIO planimetric context for Mount Vernon
+        run: |
+          python scripts/geospatial/build_mount_vernon_scene.py --output city-artifact/mount-vernon-scene
+      - name: Validate archive checksum, counts, source IDs, and no structural-height assertion
+        run: |
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          root=Path('city-artifact/mount-vernon-scene')
+          raw=(root/'scene.json').read_bytes()
+          receipt=json.loads((root/'scene.receipt.json').read_bytes())
+          scene=json.loads(raw)
+          assert hashlib.sha256(raw).hexdigest()==receipt['sha256']
+          assert len(raw)==receipt['byte_length']
+          assert scene['crs']=='EPSG:4326'
+          for layer,kind in [('buildings','building'),('roads','road')]:
+              collection=scene[layer]['features']
+              assert len(collection)==receipt['feature_counts'][layer]
+              assert all(f['properties']['tsm_id']==f'IGIO:{kind}:{f["properties"]["source_objectid"]}' for f in collection)
+              assert all(f['properties']['engineering_approved'] is False and f['properties']['height_m'] is None for f in collection)
+          print('Archive SHA-256:',receipt['sha256'])
+          print('Reference-only official building geometries:',receipt['feature_counts']['buildings'])
+          print('Reference-only official road geometries:',receipt['feature_counts']['roads'])
+          print('No survey, structural height, vertical datum, regulatory, or engineering validation claimed.')
+          PY
+      - name: Upload unsigned governmental reference scene as evidence artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mount-vernon-governmental-reference-scene
+          path: city-artifact/mount-vernon-scene/
+          if-no-files-found: error
+          retention-days: 30
