@@ -161,11 +161,9 @@ function describePickedFeature(layerId: string, props: Record<string, unknown>):
   if (layerId === 'indiana-buildings-extrusion' || layerId === 'indiana-buildings-footprint') {
     const county = str('county') ?? 'unknown county';
     const lidarYear = str('lidaryear') ?? 'unknown vintage';
-    const rawHeight = props.height_m;
-    const height = typeof rawHeight === 'number' && Number.isFinite(rawHeight) && rawHeight > 0
-      ? `LiDAR height: ${rawHeight.toFixed(2)} m`
-      : 'height unavailable; footprint retained without extrusion';
-    return `Building footprint · ${county} · lidar ${lidarYear} · ${height}`;
+    // A bare "height_m" attribute is not proof of LiDAR observation.
+    // Only a separately source-pinned screening layer can display estimates.
+    return `Building footprint · ${county} · source vintage ${lidarYear} · roof height not independently verified`;
   }
   if (layerId === 'indiana-roads-line') {
     const name = str('STREET_NAME') ?? str('FULLNAME') ?? str('name') ?? 'unnamed road';
