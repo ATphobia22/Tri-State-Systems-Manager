@@ -15,16 +15,17 @@ jobs:
   portable-core:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: swift-actions/setup-swift@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: swift-actions/setup-swift@7ca6abe6b3b0e8b5421b88be48feee39cbf52c6a
         with:
           swift-version: '6.0'
       - run: swift test --package-path apps/ios-operator-cinematic
+      - run: swift run --package-path apps/ios-operator-cinematic TSMWorldPacker --verify apps/ios-operator-cinematic/Resources/demo-world.tsmworld
       - run: python3 -m unittest discover -s apps/ios-operator-cinematic/Tests/ExportTests -v
   ios-simulator-build:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - name: Install XcodeGen
         run: brew install xcodegen
       - name: Generate Xcode project
@@ -41,7 +42,7 @@ jobs:
             -derivedDataPath .derivedData \
             CODE_SIGNING_ALLOWED=NO build
       - name: Archive unsigned simulator app
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: tsm-operator-ios-simulator
           path: apps/ios-operator-cinematic/.derivedData/Build/Products/Debug-iphonesimulator/TSMOperatorCinematic.app

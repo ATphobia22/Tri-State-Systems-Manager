@@ -82,6 +82,16 @@ public struct ScenarioSettings: Equatable, Codable, Sendable {
         return min(high, max(low, value))
     }
 
+    private enum CodingKeys: String, CodingKey {
+        case bermRiseMeters, roadRiseMeters, waterVisualOffsetMeters
+    }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(bermRiseMeters: try c.decode(Double.self, forKey: .bermRiseMeters),
+                  roadRiseMeters: try c.decode(Double.self, forKey: .roadRiseMeters),
+                  waterVisualOffsetMeters: try c.decode(Double.self, forKey: .waterVisualOffsetMeters))
+    }
+
     public var bermRiseFeet: Double { bermRiseMeters * 3.280839895 }
     public var roadRiseFeet: Double { roadRiseMeters * 3.280839895 }
 }
