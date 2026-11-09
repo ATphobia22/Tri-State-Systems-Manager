@@ -22,7 +22,7 @@ jobs:
       - name: Install bounded test dependency
         run: python -m pip install 'pytest>=8,<10'
       - name: Verify scene generator contracts (offline)
-        run: python -m pytest -q backend/tests/test_mount_vernon_scene.py backend/tests/test_mount_vernon_deployment.py
+        run: python -m pytest -q backend/tests/test_mount_vernon_scene.py backend/tests/test_mount_vernon_deployment.py backend/tests/test_mount_vernon_vertical_evidence.py
       - name: Acquire official Indiana GIO planimetric context for Mount Vernon
         run: |
           python scripts/geospatial/build_mount_vernon_scene.py --output city-artifact/mount-vernon-scene
