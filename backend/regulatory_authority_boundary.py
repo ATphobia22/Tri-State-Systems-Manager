@@ -67,7 +67,52 @@ def _verify_local_artifact(artifact: dict) -> None:
         raise ValueError("EVIDENCE_ARTIFACT_TAMPERED")
 
 
-def evaluate_authority_packet(packet: dict[str, Any]) -> dict[str, Any]:
+def _check_merkle_bindings(packet: dict[str, Any], root: Path,
+                           manifest: dict[str, Any]) -> str:
+    """Require an exact, physically verified Merkle leaf for each claim artifact."""
+    from backend.merkle_evidence import verify_manifest
+
+    if not verify_manifest(root, manifest):
+        raise ValueError("AUTHORITY_MERKLE_EVIDENCE_INVALID")
+    reported = packet.get("evidenceMerkleRootSha256")
+    if reported != manifest["merkleRootSha256"]:
+        raise ValueError("AUTHORITY_MERKLE_ROOT_MISMATCH")
+    bindings = packet.get("evidenceBindings")
+    if not isinstance(bindings, dict) or not isinstance(bindings.get("sources"), dict):
+        raise ValueError("AUTHORITY_MERKLE_BINDINGS_REQUIRED")
+    lookup = {(item["role"], item["path"]): item for item in manifest["items"]}
+    for source in packet["sources"]:
+        path = bindings["sources"].get(source["sourceId"])
+        if not isinstance(path, str):
+            raise ValueError("AUTHORITY_SOURCE_MERKLE_BINDING_MISSING")
+        item = lookup.get(("source", path))
+        if item is None or item["sha256"] != source["sha256"]:
+            raise ValueError("AUTHORITY_SOURCE_MERKLE_DIGEST_MISMATCH")
+    technical = packet["technicalEvidence"]
+    required = {
+        "inputManifest": ("technical_input", "inputManifestSha256"),
+        "outputManifest": ("technical_output", "outputManifestSha256"),
+        "validationReport": ("technical_validation", "validationReportSha256"),
+    }
+    for bind_key, (role, sha_key) in required.items():
+        path = bindings.get(bind_key)
+        if not isinstance(path, str):
+            raise ValueError("AUTHORITY_TECHNICAL_MERKLE_BINDING_MISSING")
+        item = lookup.get((role, path))
+        if item is None or item["sha256"] != technical[sha_key]:
+            raise ValueError("AUTHORITY_TECHNICAL_MERKLE_DIGEST_MISMATCH")
+    decision = packet.get("agencyDecision")
+    if decision is not None:
+        path = bindings.get("agencyDecision")
+        item = lookup.get(("agency_decision", path))
+        if item is None or item["sha256"] != decision["document"]["sha256"]:
+            raise ValueError("AUTHORITY_DECISION_MERKLE_BINDING_INVALID")
+    return manifest["merkleRootSha256"]
+
+
+def evaluate_authority_packet(packet: dict[str, Any], *,
+                              evidence_root: Path | None = None,
+                              evidence_manifest: dict[str, Any] | None = None) -> dict[str, Any]:
     """Inspect source lineage and decision *documents*, never grant legal authority.
 
     The result distinguishes an evidence packet from an independently confirmed
@@ -133,7 +178,13 @@ def evaluate_authority_packet(packet: dict[str, Any]) -> dict[str, Any]:
         _date(decision.get("effectiveAt"))
         _verify_local_artifact(decision.get("document"))
         decision_document_present = True
+    if evidence_root is None or evidence_manifest is None:
+        raise ValueError("AUTHORITY_MERKLE_EVIDENCE_REQUIRED")
+    merkle_root = _check_merkle_bindings(packet, evidence_root, evidence_manifest)
     return {
+        "merkleEvidenceVerified": True,
+        "merkleRootSha256": merkle_root,
+        "merkleAlgorithm": "RFC9162-SHA256",
         "schemaVersion": "tsm.authority-evaluation.v1",
         "claimId": packet["claimId"],
         "sourceLineageRecorded": True,
