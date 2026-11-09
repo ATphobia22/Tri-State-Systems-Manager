@@ -110,6 +110,8 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
     let disposeParcelBboxLayer: (() => void) | null = null;
     let disposePmtilesLayer: (() => void) | null = null;
     let disposeGovernmentPmtilesLayer: (() => void) | null = null;
+    let disposeMountVernonCity: (() => void) | null = null;
+    let citySceneDisposed = false;
     let disposeMountVernonScene: (() => void) | null = null;
     let mountVernonUnmounted = false;
     let map: maplibregl.Map;
@@ -248,6 +250,8 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       disposeParcelBboxLayer?.();
       disposePmtilesLayer?.();
       disposeGovernmentPmtilesLayer?.();
+      citySceneDisposed = true;
+      disposeMountVernonCity?.();
       mountVernonUnmounted = true;
       disposeMountVernonScene?.();
       map.remove();
