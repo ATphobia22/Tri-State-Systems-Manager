@@ -6,6 +6,8 @@ on:
       - 'scripts/geospatial/test_verify_posey_dem_gate.py'
       - '.github/workflows/posey-dem-evidence-gate.yml'
   workflow_dispatch:
+permissions:
+  contents: read
 jobs:
   dem-gate-contract:
     runs-on: ubuntu-latest
