@@ -19,8 +19,6 @@ import EngineeringSectionView from '../routes/EngineeringSectionView';
 import LoginView from '../routes/LoginView';
 import LoginCallbackView from '../routes/LoginCallbackView';
 import PublicDataFabricDashboard from '../components/PublicDataFabricDashboard';
-// TwinCanvasView (unified 2D + 3D twin) pulls in maplibre-gl (~1 MB vendor chunk + 82 KB CSS).
-// Lazy-load it so map code leaves the critical path for non-map visitors.
 import type { RootLoaderData, MemorialLoaderData, ArchitectureLoaderData, NeedsLoaderData, LedgerLoaderData, LineageLoaderData, BenefitLoaderData, MapTwinLoaderData, EvidenceBlock, InterventionRecord, DataContractSummary } from '../types/loaders';
 
 let interventions: InterventionRecord[] = [];
@@ -71,10 +69,8 @@ async function ledgerAction({ request }: ActionFunctionArgs) {
   const source_org = String(form.get('source_org') || '').trim();
   const source_uri = String(form.get('source_uri') || '').trim();
   const tier = Number.parseInt(String(form.get('tier') || '1'), 10);
-  const human_authorized = form.get('human_authorization') === 'true';
   const reviewer_identity = String(form.get('reviewer_identity') || '').trim();
   const review_reason = String(form.get('review_reason') || '').trim();
-  // Resilient: proceed even if fields incomplete; merkle.ts marks as provisional
   await appendEvidence({
     source_org,
     source_uri,
@@ -124,6 +120,11 @@ export const appRoutes = [
   { path: 'map', loader: mapTwinLoader, hydrateFallbackElement: <RouteLoadingFallback label="the hydraulic map" />, lazy: async () => ({ Component: (await import('../routes/MapLibreMap')).default }) },
   { path: 'map-plane', hydrateFallbackElement: <RouteLoadingFallback label="the twelve-layer MapLibre plane" />, lazy: async () => ({ Component: (await import('../routes/MapPlaneView')).default }) },
   { path: 'cinematic', hydrateFallbackElement: <RouteLoadingFallback label="the cinematic 3D twin" />, lazy: async () => ({ Component: (await import('../routes/CinematicView')).default }) },
+  { path: 'cinematic-engineering', hydrateFallbackElement: <RouteLoadingFallback label="the cinematic engineering experience" />, lazy: async () => ({ Component: (await import('../routes/CinematicEngineeringExperienceView')).default }) },
+  { path: 'workspaces', hydrateFallbackElement: <RouteLoadingFallback label="workspace shell" />, lazy: async () => ({ Component: (await import('../workspaces/WorkspaceShell')).default }) },
+  { path: 'experience/living-river', hydrateFallbackElement: <RouteLoadingFallback label="Living River Valley" />, lazy: async () => ({ Component: (await import('../experiences/LivingRiverValleyView')).default }) },
+  { path: 'experience/scenario-sandbox', hydrateFallbackElement: <RouteLoadingFallback label="scenario sandbox" />, lazy: async () => ({ Component: (await import('../experiences/EngineeringScenarioSandboxView')).default }) },
+  { path: 'experience/evidence-storyboard', hydrateFallbackElement: <RouteLoadingFallback label="evidence storyboard" />, lazy: async () => ({ Component: (await import('../experiences/EvidenceCinemaStoryboardView')).default }) },
   { path: 'eoc', loader: mapTwinLoader, hydrateFallbackElement: <RouteLoadingFallback label="the EOC surface" />, lazy: async () => ({ Component: (await import('../routes/MapLibreEocView')).default }) },
   { path: 'twin', loader: mapTwinLoader, hydrateFallbackElement: <RouteLoadingFallback label="the twin canvas" />, lazy: async () => ({ Component: (await import('../routes/TwinCanvasView')).default }) },
   { path: 'digital-twin', loader: mapTwinLoader, hydrateFallbackElement: <RouteLoadingFallback label="the twin summary" />, lazy: async () => ({ Component: (await import('../routes/MapTwinView')).default }) },
