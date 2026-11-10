@@ -64,6 +64,10 @@ bool FTSMNativeExperienceStoryboardsTest::RunTest(const FString& Parameters)
     Shots.Add(Unsourced);
     TestFalse(TEXT("No source-less evidence-backed shot"),
         Experience->ExportEvidenceStoryboard(TEXT("test-no-source"), Shots, Path, Reason));
+    Shots[0].bCinematicOnly = true;
+    Shots[0].SourceId = TEXT("unverified-observation");
+    TestFalse(TEXT("Cinematic-only shot cannot impersonate source-backed material"),
+        Experience->ExportEvidenceStoryboard(TEXT("test-artistic-source"), Shots, Path, Reason));
     return true;
 }
 #endif
