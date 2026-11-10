@@ -1,0 +1,816 @@
+{
+  "schema": "tsm.geospatial-upstream-discovery.v1",
+  "status": "RESEARCH_INVENTORY_NOT_RUNTIME_VERIFIED",
+  "generatedUtc": "2026-11-10T15:50:00Z",
+  "policy": {
+    "publicAccessFree": true,
+    "noAutomaticRegulatoryElevation": true,
+    "noAutomaticFetchOrInstallation": true,
+    "copyUpstreamCode": false,
+    "nativeOfflineIndependent": true,
+    "modelWeightsRequireReview": true
+  },
+  "forks": [
+    {
+      "repository": "ATphobia22/rasuwa-flood",
+      "commit": "a942163046643b661564df3344a15d11f74175dd",
+      "branch": "main",
+      "licenseReview": "NO_LICENSE_FILE_FOUND_IN_GIT_TREE",
+      "reuse": "DESIGN_PATTERN_ONLY_NO_DATA_COPY"
+    },
+    {
+      "repository": "ATphobia22/awesome-geospatial-data-sources",
+      "commit": "9a07ad2d93361a0f54ea3a9eda6cfd9a2bb91e90",
+      "branch": "master",
+      "licenseReview": "NO_LICENSE_FILE_FOUND_IN_GIT_TREE",
+      "reuse": "SOURCE_LINK_DISCOVERY_ONLY"
+    }
+  ],
+  "candidates": [
+    {
+      "name": "awesome-geospatial-data-sources",
+      "upstream": "https://github.com/iamtekson/awesome-geospatial-data-sources",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "DISCOVERY_ONLY",
+      "note": "Index links only; licensing belongs to each dataset/provider",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "rasuwa-flood",
+      "upstream": "https://github.com/iamtekson/rasuwa-flood",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "CONCEPT_ONLY",
+      "note": "No LICENSE found in fork tree; Nepal source data out of AOI",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "GeoAgent",
+      "upstream": "https://github.com/iamtekson/GeoAgent",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "QGIS_PLUGIN_OPTIONAL",
+      "note": "MIT; QGIS host and associated dependencies have separate licenses",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "segment-geospatial",
+      "upstream": "https://github.com/iamtekson/segment-geospatial",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "OFFLINE_SEGMENTATION_RESEARCH",
+      "note": "model weights and training data require separate rights/checksum review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "maplibre-tutorials",
+      "upstream": "https://github.com/iamtekson/maplibre-tutorials",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "iamtekson",
+      "upstream": "https://github.com/iamtekson/iamtekson",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "ArcGIS-with-open-source",
+      "upstream": "https://github.com/iamtekson/ArcGIS-with-open-source",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "earth-observations-with-gee-and-AI",
+      "upstream": "https://github.com/iamtekson/earth-observations-with-gee-and-AI",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "tracking-snow-and-ice-in-gee",
+      "upstream": "https://github.com/iamtekson/tracking-snow-and-ice-in-gee",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "leaflet-geojson-vt",
+      "upstream": "https://github.com/iamtekson/leaflet-geojson-vt",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "Prithvi-EO-2.0",
+      "upstream": "https://github.com/iamtekson/Prithvi-EO-2.0",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "MODEL_REVIEW_REQUIRED",
+      "note": "NASA/IBM foundation model requires model license and domain validation",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "Leaflet-from-basic-to-advance",
+      "upstream": "https://github.com/iamtekson/Leaflet-from-basic-to-advance",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "landslide_susceptibility",
+      "upstream": "https://github.com/iamtekson/landslide_susceptibility",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "earth-observation-using-GEE",
+      "upstream": "https://github.com/iamtekson/earth-observation-using-GEE",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "SZ",
+      "upstream": "https://github.com/iamtekson/SZ",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "SRT",
+      "upstream": "https://github.com/iamtekson/SRT",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "MintPy-tutorial",
+      "upstream": "https://github.com/iamtekson/MintPy-tutorial",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "download-imerg-precipitation-dataset",
+      "upstream": "https://github.com/iamtekson/download-imerg-precipitation-dataset",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "xarray",
+      "upstream": "https://github.com/iamtekson/xarray",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "OPTIONAL_ANALYSIS_ADAPTER",
+      "note": "No need to bundle data cubes into UE Shipping",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "SciPy2024-GitHubActionsTutorial",
+      "upstream": "https://github.com/iamtekson/SciPy2024-GitHubActionsTutorial",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "pySLD",
+      "upstream": "https://github.com/iamtekson/pySLD",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "OPTIONAL_STYLE_EXPORT",
+      "note": "GeoServer service not required for native desktop",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "geospatial-data-analysis-python",
+      "upstream": "https://github.com/iamtekson/geospatial-data-analysis-python",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "geemap",
+      "upstream": "https://github.com/iamtekson/geemap",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "OPTIONAL_CLOUD_RESEARCH",
+      "note": "Earth Engine access and licensing vary; not needed at offline runtime",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "postgres-helper",
+      "upstream": "https://github.com/iamtekson/postgres-helper",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "mexopencv",
+      "upstream": "https://github.com/iamtekson/mexopencv",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "georaster-layer-for-leaflet",
+      "upstream": "https://github.com/iamtekson/georaster-layer-for-leaflet",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "Leaflet.VideoMaps",
+      "upstream": "https://github.com/iamtekson/Leaflet.VideoMaps",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "deep-learning-for-earth-observation",
+      "upstream": "https://github.com/iamtekson/deep-learning-for-earth-observation",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "RESEARCH_ONLY",
+      "note": "No autonomous risk decisions",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "geodjango-from-dev-to-deployment",
+      "upstream": "https://github.com/iamtekson/geodjango-from-dev-to-deployment",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "Leaflet",
+      "upstream": "https://github.com/iamtekson/Leaflet",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "geospatial-machine-learning",
+      "upstream": "https://github.com/iamtekson/geospatial-machine-learning",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "RESEARCH_ONLY",
+      "note": "Validate domain, performance and model licensing",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "geoserver-training",
+      "upstream": "https://github.com/iamtekson/geoserver-training",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "rasterio",
+      "upstream": "https://github.com/iamtekson/rasterio",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "EXISTING_VECTOR_RASTER_STACK",
+      "note": "Review exact upstream dependency and versions before upgrade",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "Geo-SInC",
+      "upstream": "https://github.com/iamtekson/Geo-SInC",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "GLOF-simulation",
+      "upstream": "https://github.com/iamtekson/GLOF-simulation",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "OUT_OF_REGION_METHOD_REFERENCE",
+      "note": "Glacial lake hazard process is not the Wabash/Ohio flood model",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "WRC-webmap",
+      "upstream": "https://github.com/iamtekson/WRC-webmap",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "obs-StreamFX",
+      "upstream": "https://github.com/iamtekson/obs-StreamFX",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "Geo-Cooker",
+      "upstream": "https://github.com/iamtekson/Geo-Cooker",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "RESEARCH_ONLY",
+      "note": "Inspect license and deterministic processing",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "arcgis-python-api",
+      "upstream": "https://github.com/iamtekson/arcgis-python-api",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "leaflet-geoserver-request",
+      "upstream": "https://github.com/iamtekson/leaflet-geoserver-request",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "Vector-Tiles-Google-Maps",
+      "upstream": "https://github.com/iamtekson/Vector-Tiles-Google-Maps",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "summa",
+      "upstream": "https://github.com/iamtekson/summa",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "geoserver",
+      "upstream": "https://github.com/iamtekson/geoserver",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "OPTIONAL_BACKEND_NOT_NATIVE",
+      "note": "Avoid always-on GeoServer for offline UE",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "SAFE-python",
+      "upstream": "https://github.com/iamtekson/SAFE-python",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "Python-Hydrology-Tools",
+      "upstream": "https://github.com/iamtekson/Python-Hydrology-Tools",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "RESEARCH_ONLY",
+      "note": "Check hydrologic assumptions prior to solver acceptance",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "geopandas",
+      "upstream": "https://github.com/iamtekson/geopandas",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "EXISTING_VECTOR_RASTER_STACK",
+      "note": "Existing backend/geospatial/vector_io.py",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "developer-portfolios",
+      "upstream": "https://github.com/iamtekson/developer-portfolios",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "json2Geojson",
+      "upstream": "https://github.com/iamtekson/json2Geojson",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "geotile-feedstock",
+      "upstream": "https://github.com/iamtekson/geotile-feedstock",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "staged-recipes",
+      "upstream": "https://github.com/iamtekson/staged-recipes",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "landslide4sense-solution",
+      "upstream": "https://github.com/iamtekson/landslide4sense-solution",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "docker-geoserver",
+      "upstream": "https://github.com/iamtekson/docker-geoserver",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "datacube-core",
+      "upstream": "https://github.com/iamtekson/datacube-core",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "OPTIONAL_BACKEND_NOT_NATIVE",
+      "note": "Use only if coverage and workloads justify extra service",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "Deep-learning-for-satellite-imagery",
+      "upstream": "https://github.com/iamtekson/Deep-learning-for-satellite-imagery",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "python_for_microscopists",
+      "upstream": "https://github.com/iamtekson/python_for_microscopists",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "documentation",
+      "upstream": "https://github.com/iamtekson/documentation",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "DL-for-LULC-prediction",
+      "upstream": "https://github.com/iamtekson/DL-for-LULC-prediction",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "leaflet-training",
+      "upstream": "https://github.com/iamtekson/leaflet-training",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "react-csv",
+      "upstream": "https://github.com/iamtekson/react-csv",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "datacube-notebooks",
+      "upstream": "https://github.com/iamtekson/datacube-notebooks",
+      "listedByUser": "USER_LIST_1_TO_60",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "GIS-portal",
+      "upstream": "https://github.com/iamtekson/GIS-portal",
+      "listedByUser": "PAGE_3_PUBLIC_DISCOVERY",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "DjangoDashboardCorona",
+      "upstream": "https://github.com/iamtekson/DjangoDashboardCorona",
+      "listedByUser": "PAGE_3_PUBLIC_DISCOVERY",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "geoserver-rest-feedstock",
+      "upstream": "https://github.com/iamtekson/geoserver-rest-feedstock",
+      "listedByUser": "PAGE_3_PUBLIC_DISCOVERY",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "awesome-gis",
+      "upstream": "https://github.com/iamtekson/awesome-gis",
+      "listedByUser": "PAGE_3_PUBLIC_DISCOVERY",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "geodjango-app",
+      "upstream": "https://github.com/iamtekson/geodjango-app",
+      "listedByUser": "PAGE_3_PUBLIC_DISCOVERY",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "GESAN-Website",
+      "upstream": "https://github.com/iamtekson/GESAN-Website",
+      "listedByUser": "PAGE_3_PUBLIC_DISCOVERY",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "RiskChanges",
+      "upstream": "https://github.com/iamtekson/RiskChanges",
+      "listedByUser": "PAGE_3_PUBLIC_DISCOVERY",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "geoserver-rest",
+      "upstream": "https://github.com/iamtekson/geoserver-rest",
+      "listedByUser": "PAGE_3_PUBLIC_DISCOVERY",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "geodjango-udemy",
+      "upstream": "https://github.com/iamtekson/geodjango-udemy",
+      "listedByUser": "PAGE_3_PUBLIC_DISCOVERY",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "spacechallenges",
+      "upstream": "https://github.com/iamtekson/spacechallenges",
+      "listedByUser": "PAGE_3_PUBLIC_DISCOVERY",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    },
+    {
+      "name": "deep-housing-webGIS",
+      "upstream": "https://github.com/iamtekson/deep-housing-webGIS",
+      "listedByUser": "PAGE_3_PUBLIC_DISCOVERY",
+      "decision": "REFERENCE_ONLY_NOT_EVALUATED",
+      "note": "Not installed; license, compatibility and relevance require project-specific review",
+      "bundled": false,
+      "codeCopied": false
+    }
+  ],
+  "officialDiscoverySources": [
+    {
+      "id": "fema-nfhl",
+      "name": "FEMA National Flood Hazard Layer",
+      "url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer",
+      "authority": "REGULATORY_DISPLAY",
+      "geometry": "polygons/lines",
+      "horizontalCrs": null,
+      "verticalDatum": null,
+      "acquisitionDate": null,
+      "license": "FEDERAL_SOURCE_RIGHTS_VERIFY",
+      "usage": "Existing NFHL adapter; authoritative only with effective FIRM/FIS confirmation"
+    },
+    {
+      "id": "usgs-3dep",
+      "name": "USGS 3DEP",
+      "url": "https://www.usgs.gov/the-national-map-data-delivery",
+      "authority": "OBSERVATION",
+      "geometry": "DEM/LiDAR",
+      "horizontalCrs": null,
+      "verticalDatum": null,
+      "acquisitionDate": null,
+      "license": "FEDERAL_SOURCE_RIGHTS_VERIFY",
+      "usage": "Terrain source candidate; datum metadata mandatory"
+    },
+    {
+      "id": "usgs-water",
+      "name": "USGS Water Data OGC",
+      "url": "https://api.waterdata.usgs.gov/ogcapi/v1/collections/latest-continuous/items",
+      "authority": "OBSERVATION",
+      "geometry": "gauges",
+      "horizontalCrs": "EPSG:4326",
+      "verticalDatum": null,
+      "acquisitionDate": null,
+      "license": "FEDERAL_SOURCE_RIGHTS_VERIFY",
+      "usage": "On-demand snapshot only; no simulated forecasts"
+    },
+    {
+      "id": "noaa-nwps",
+      "name": "NOAA National Water Prediction Service",
+      "url": "https://api.water.noaa.gov/nwps/v1/",
+      "authority": "OBSERVATION_FORECAST",
+      "geometry": "time series",
+      "horizontalCrs": null,
+      "verticalDatum": null,
+      "acquisitionDate": null,
+      "license": "FEDERAL_SOURCE_RIGHTS_VERIFY",
+      "usage": "Clearly separate forecast vs observed stages"
+    },
+    {
+      "id": "usace-nld",
+      "name": "USACE National Levee Database",
+      "url": "https://nld.sec.usace.army.mil/data-services/services/",
+      "authority": "CONTEXT",
+      "geometry": "levees",
+      "horizontalCrs": null,
+      "verticalDatum": null,
+      "acquisitionDate": null,
+      "license": "FEDERAL_SOURCE_RIGHTS_VERIFY",
+      "usage": "No inference of accredited flood protection"
+    },
+    {
+      "id": "indiana-gio",
+      "name": "Indiana Geographic Information Office",
+      "url": "https://www.in.gov/gis/",
+      "authority": "GOVERNMENT_DATA",
+      "geometry": "parcels/buildings/elevation",
+      "horizontalCrs": null,
+      "verticalDatum": null,
+      "acquisitionDate": null,
+      "license": "PROVIDER_TERMS_REVIEW",
+      "usage": "Per-layer source service and imagery metadata required"
+    },
+    {
+      "id": "indiana-dnr-bafl",
+      "name": "Indiana Best Available Floodplain",
+      "url": "https://www.in.gov/dnr/water/surface-water/",
+      "authority": "PLANNING",
+      "geometry": "flood hazard",
+      "horizontalCrs": null,
+      "verticalDatum": null,
+      "acquisitionDate": null,
+      "license": "PROVIDER_TERMS_REVIEW",
+      "usage": "Planning only; never equivalent to effective FEMA FIRM"
+    },
+    {
+      "id": "illinois-isgs",
+      "name": "Illinois State Geological Survey",
+      "url": "https://clearinghouse.isgs.illinois.edu/",
+      "authority": "GOVERNMENT_DATA",
+      "geometry": "imagery/terrain",
+      "horizontalCrs": null,
+      "verticalDatum": null,
+      "acquisitionDate": null,
+      "license": "PROVIDER_TERMS_REVIEW",
+      "usage": "Per-provider license and vertical datum review"
+    },
+    {
+      "id": "kentucky-geonet",
+      "name": "Kentucky GeoNet",
+      "url": "https://kygeonet.ky.gov/",
+      "authority": "GOVERNMENT_DATA",
+      "geometry": "imagery/terrain",
+      "horizontalCrs": null,
+      "verticalDatum": null,
+      "acquisitionDate": null,
+      "license": "PROVIDER_TERMS_REVIEW",
+      "usage": "Coordinate reference and terms must be recorded before use"
+    },
+    {
+      "id": "nasa-earthdata",
+      "name": "NASA Earthdata",
+      "url": "https://www.earthdata.nasa.gov/",
+      "authority": "OBSERVATION_REMOTE_SENSING",
+      "geometry": "rasters",
+      "horizontalCrs": null,
+      "verticalDatum": null,
+      "acquisitionDate": null,
+      "license": "PRODUCT_SPECIFIC_RIGHTS_REVIEW",
+      "usage": "Observation, not FEMA certification"
+    },
+    {
+      "id": "copernicus",
+      "name": "Copernicus Data Space Ecosystem",
+      "url": "https://dataspace.copernicus.eu/",
+      "authority": "OBSERVATION_REMOTE_SENSING",
+      "geometry": "Sentinel raster",
+      "horizontalCrs": null,
+      "verticalDatum": null,
+      "acquisitionDate": null,
+      "license": "PRODUCT_SPECIFIC_RIGHTS_REVIEW",
+      "usage": "Acquisition credentials, terms and date must be recorded"
+    },
+    {
+      "id": "osm-geofabrik",
+      "name": "Geofabrik OSM extracts",
+      "url": "https://download.geofabrik.de/north-america/us.html",
+      "authority": "CONTEXT",
+      "geometry": "roads/buildings",
+      "horizontalCrs": "EPSG:4326",
+      "verticalDatum": null,
+      "acquisitionDate": null,
+      "license": "ODbL_REVIEW_REQUIRED",
+      "usage": "OSM attribution and database obligations apply"
+    }
+  ]
+}
