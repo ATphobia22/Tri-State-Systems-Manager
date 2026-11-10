@@ -109,6 +109,7 @@ def setup_cycles():
     """Configure Cycles for baking."""
     scene = bpy.context.scene
     scene.render.engine = "CYCLES"  # Switch to Cycles (required for bake)
+    scene.cycles.use_denoising = False  # CPU baking must work without OpenImageDenoiser
     scene.cycles.samples = args.samples
     scene.cycles.device = "CPU"  # CPU for headless reliability
     print(f"Cycles configured: {args.samples} samples, CPU")
