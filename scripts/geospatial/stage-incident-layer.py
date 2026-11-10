@@ -7,7 +7,6 @@ import hashlib
 import json
 import os
 from pathlib import Path
-import shutil
 import sys
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -40,8 +39,10 @@ def build_parser() -> argparse.ArgumentParser:
 
 def stage(args: argparse.Namespace) -> dict:
     root = args.root.resolve()
+    if args.source_file.is_symlink():
+        raise IncidentLayerError("symlinked staging input is not allowed")
     source = args.source_file.resolve(strict=True)
-    if source.is_symlink() or not source.is_file() or source.stat().st_size > MAX_GEOJSON_BYTES:
+    if not source.is_file() or source.stat().st_size > MAX_GEOJSON_BYTES:
         raise IncidentLayerError("staging requires a small, regular local GeoJSON file")
     if not (args.approved_for_display and args.license_reviewed):
         raise IncidentLayerError("explicit --license-reviewed and --approved-for-display are required")
@@ -85,6 +86,7 @@ def stage(args: argparse.Namespace) -> dict:
     if destination.exists():
         raise IncidentLayerError("destination exists; no silent replacement allowed")
     temporary = root / (entry["file"] + ".staging")
+    completed = False
     try:
         with temporary.open("xb") as handle:
             handle.write(raw)
@@ -96,11 +98,12 @@ def stage(args: argparse.Namespace) -> dict:
             json.dump(candidate, handle, indent=2, sort_keys=True)
             handle.write("\n")
         os.replace(manifest_tmp, manifest)
+        completed = True
     except Exception:
         temporary.unlink(missing_ok=True)
         (root / "layers.json.staging").unlink(missing_ok=True)
-        # Do not delete pre-existing catalog; only clean the new payload.
-        if not manifest.exists():
+        # Roll back only the new payload if catalog commit was not completed.
+        if not completed:
             destination.unlink(missing_ok=True)
         raise
     return {"status": "STAGED_LOCAL_REQUIRES_HUMAN_RUNTIME_REVIEW",
