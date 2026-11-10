@@ -12,10 +12,13 @@ $editorCmd = Join-Path $root 'Engine\Binaries\Win64\UnrealEditor-Cmd.exe'
 $script = (Resolve-Path -LiteralPath "$PSScriptRoot\..\..\tsm-native\Content\Python\tsm_generate_native_map.py").Path
 if (-not (Test-Path -LiteralPath $editorBuild -PathType Leaf)) { throw "UE Build.bat absent" }
 if (-not (Test-Path -LiteralPath $editorCmd -PathType Leaf)) { throw "UE UnrealEditor-Cmd.exe absent" }
-if ([string]::IsNullOrWhiteSpace($TilesetPath) -or -not (Test-Path -LiteralPath $TilesetPath -PathType Leaf)) {
-    throw "TSM_LOCAL_TILESET must point to a verified local tileset.json inside staged TSMData."
+if ([string]::IsNullOrWhiteSpace($TilesetPath)) {
+    throw "TSM_LOCAL_TILESET must be a relative tileset.json path inside staged TSMData."
 }
-$env:TSM_LOCAL_TILESET = (Resolve-Path -LiteralPath $TilesetPath).Path
+$staged = (Resolve-Path -LiteralPath (Join-Path (Split-Path $project -Parent) 'Content\\TSMData')).Path
+$tilesetCandidate = if ([IO.Path]::IsPathRooted($TilesetPath)) { $TilesetPath } else { Join-Path $staged $TilesetPath }
+if (-not (Test-Path -LiteralPath $tilesetCandidate -PathType Leaf)) { throw "Staged local tileset not found: $tilesetCandidate" }
+$env:TSM_LOCAL_TILESET = (Resolve-Path -LiteralPath $tilesetCandidate).Path
 & $editorBuild TSMNativeEditor Win64 Development "-Project=$project" -WaitMutex
 if ($LASTEXITCODE -ne 0) { throw "TSMNativeEditor compilation failed: $LASTEXITCODE" }
 & $editorCmd $project '-run=pythonscript' "-script=$script" -unattended -nosplash -stdout -FullStdOutLogOutput
