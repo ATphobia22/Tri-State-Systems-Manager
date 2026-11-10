@@ -21,7 +21,9 @@ if (-not (Test-Path -LiteralPath $tilesetCandidate -PathType Leaf)) { throw "Sta
 $env:TSM_LOCAL_TILESET = (Resolve-Path -LiteralPath $tilesetCandidate).Path
 & $editorBuild TSMNativeEditor Win64 Development "-Project=$project" -WaitMutex
 if ($LASTEXITCODE -ne 0) { throw "TSMNativeEditor compilation failed: $LASTEXITCODE" }
-& $editorCmd $project '-run=pythonscript' "-script=$script" -unattended -nosplash -stdout -FullStdOutLogOutput
+# Full Editor scripting waits for level/editor subsystems; commandlet mode may not
+# expose World Partition authoring and EditorActorSubsystem reliably.
+& $editorCmd $project "-ExecutePythonScript=$script" -unattended -nosplash -stdout -FullStdOutLogOutput
 if ($LASTEXITCODE -ne 0) { throw "Native map generation failed: $LASTEXITCODE" }
 $map = Join-Path (Split-Path $project -Parent) "Content\TSM\Maps\TSMNative.umap"
 if (-not (Test-Path -LiteralPath $map -PathType Leaf) -or (Get-Item -LiteralPath $map).Length -le 0) {
