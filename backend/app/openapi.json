@@ -47,6 +47,96 @@
         }
       }
     },
+    "/api/geospatial/incident-layers": {
+      "get": {
+        "tags": [
+          "incident-layers"
+        ],
+        "summary": "Incident Index",
+        "operationId": "incident_index_api_geospatial_incident_layers_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Incident Index Api Geospatial Incident Layers Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/geospatial/incident-layers/{layer_id}/geojson": {
+      "get": {
+        "tags": [
+          "incident-layers"
+        ],
+        "summary": "Incident Geojson",
+        "operationId": "incident_geojson_api_geospatial_incident_layers__layer_id__geojson_get",
+        "parameters": [
+          {
+            "name": "layer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Layer Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Incident Geojson Api Geospatial Incident Layers  Layer Id  Geojson Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/geospatial/source-discovery": {
+      "get": {
+        "tags": [
+          "source-discovery"
+        ],
+        "summary": "Source Discovery",
+        "operationId": "source_discovery_api_geospatial_source_discovery_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Source Discovery Api Geospatial Source Discovery Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/geospatial/posey/manifest": {
       "get": {
         "summary": "Posey Manifest",
@@ -248,7 +338,7 @@
     "/api/evidence/push": {
       "post": {
         "summary": "Push Evidence",
-        "description": "Accept an evidence packet into the local outbox.\n\nValidates the packet SHA-256 against the canonical (sort_keys) JSON of the\npacket body. On mismatch, stores a quarantine record with the original\nclaimed digest and integrity warning. The response is an unsigned receipt\nof INTAKE ONLY \u2014 it never claims FEMA\nsubmission, acceptance, or approval.",
+        "description": "Accept an evidence packet into the local outbox.\n\nValidates the packet SHA-256 against the canonical (sort_keys) JSON of the\npacket body. On mismatch, stores a quarantine record with the original\nclaimed digest and integrity warning. The response is an unsigned receipt\nof INTAKE ONLY — it never claims FEMA\nsubmission, acceptance, or approval.",
         "operationId": "push_evidence_api_evidence_push_post",
         "requestBody": {
           "content": {
@@ -373,7 +463,7 @@
     "/api/hydrologic/snapshot": {
       "post": {
         "summary": "Hydrologic Snapshot",
-        "description": "Fetch a one-time live snapshot of all registry gauges.\n\nUser-initiated only: this route performs no polling, keeps no schedule,\nand persists nothing. Values are USGS instantaneous observations as of\nthe fetch moment, marked provisional. Stations the upstream service does\nnot return are reported unavailable \u2014 never invented.",
+        "description": "Fetch a one-time live snapshot of all registry gauges.\n\nUser-initiated only: this route performs no polling, keeps no schedule,\nand persists nothing. Values are USGS instantaneous observations as of\nthe fetch moment, marked provisional. Stations the upstream service does\nnot return are reported unavailable — never invented.",
         "operationId": "hydrologic_snapshot_api_hydrologic_snapshot_post",
         "responses": {
           "200": {
@@ -632,14 +722,14 @@
         "properties": {
           "lag_navd88": {
             "type": "number",
-            "maximum": 450.0,
-            "minimum": 300.0,
+            "maximum": 450,
+            "minimum": 300,
             "title": "Lag Navd88"
           },
           "bfe_navd88": {
             "type": "number",
-            "maximum": 450.0,
-            "minimum": 300.0,
+            "maximum": 450,
+            "minimum": 300,
             "title": "Bfe Navd88"
           },
           "panel_number": {
@@ -899,7 +989,7 @@
           },
           "depth_ft": {
             "type": "number",
-            "minimum": 0.0,
+            "minimum": 0,
             "title": "Depth Ft"
           },
           "wse_ft": {
