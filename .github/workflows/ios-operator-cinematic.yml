@@ -16,6 +16,11 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Import official Swift release signing keys
+        run: |
+          curl --fail --location --retry 3 https://www.swift.org/keys/all-keys.asc -o "$RUNNER_TEMP/swift-release-keys.asc"
+          gpg --batch --import "$RUNNER_TEMP/swift-release-keys.asc"
+          gpg --batch --fingerprint E813C892820A6FA13755B268F167DF1ACF9CE069
       - uses: swift-actions/setup-swift@364295d9c23900ce04d4e5cc708387921b4e50f9
         with:
           swift-version: '6.0'
