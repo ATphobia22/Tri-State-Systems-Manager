@@ -414,6 +414,12 @@ python -m unittest discover -s tests/survey -v
 
 Review the [survey tool guide](tools/survey/README.md), [engineering assurance standard](docs/architecture/ENGINEERING-ASSURANCE-STANDARD.md), [repository testing workflows](.github/workflows/), and [contribution guidelines](CONTRIBUTING.md) for method-specific instructions.
 
+## Optional community sponsorship
+
+Tri-State Systems Manager is **free and open-source**. Public access to the console, scientific information and source code does **not** require a donation, sponsorship, subscription or GitHub account.
+
+If you would like to help cover project maintenance, data processing and reproducible native build infrastructure, you can [sponsor ATphobia22 on GitHub](https://github.com/sponsors/ATphobia22). Sponsoring is entirely voluntary; it does not confer privileged data access, regulatory authority, or influence over scientific findings.
+
 ## 8. Public-interest use and contributions
 
 TSM is built around **free public access to information, traceable sources, accessible explanations, transparent science, and responsible human review**. Community members can contribute map corrections, reproducible tests, better documentation, scientific methods, accessibility improvements, and official-source references.
