@@ -80,3 +80,43 @@ bind assets, run on authorized UE hardware and prove its render outputs.
 - Local gauge and historical timeline adapters with acquisition/freshness labels.
 - Unreal camera/lighting Sequencer authored shots linked to exported evidence.
 - Per-object metadata, scene telemetry and guided public explanations.
+
+## Strict local provenance checking for evidence-backed film shots
+
+The packaged native subsystem writes a *draft* storyboard and intentionally
+does not assert source-byte integrity. To validate its referenced files on
+an offline workstation, run:
+
+```powershell
+node scripts/native/verify-evidence-storyboard.mjs `
+  --storyboard "C:\\TSMData\\storyboard\\river-tour.json" `
+  --catalog "C:\\TSMData\\source-catalog.json" `
+  --data-root "C:\\TSMData\\approved" `
+  --report "C:\\TSMData\\evidence\\river-tour-verified.json"
+```
+
+The source catalog is an **operator-reviewed** JSON document with
+`schema: "tsm.native.reviewed-source-catalog.v1"`, a `sources` array,
+and for every referenced source the keys `sourceId`, `relativePath`,
+`sha256`, `authorityClass`, `acquisitionUtc`, `horizontalCrs`,
+`verticalDatum`, `approvedForDisplay: true` and
+`licenseReviewed: true`. The catalog alone is not evidence of regulatory
+authority. The validator refuses traversal, symlinks, inconsistent authority
+claims, incomplete dates, unchecked local source hashes and any attempt
+to label an artistic-only shot as an observation. It reads no remote URLs
+and does not overwrite a previous report.
+
+A successful receipt proves only **local byte integrity and metadata
+consistency at verification time**; it does not establish geographic
+accuracy, source provenance authenticity, validated modeling, approved
+flood elevations or a rendered final movie. Run
+`node --test scripts/native/verify-evidence-storyboard.test.mjs`
+for synthetic fail-closed tests.
+
+Official datum and input provenance references:
+- USGS 3DEP DEM projection / datum guidance:
+  https://www.usgs.gov/faqs/what-projection-horizontal-datum-vertical-datum-and-resolution-a-usgs-digital-elevation-model
+- USGS 3DEP metadata and work-unit provenance:
+  https://www.usgs.gov/3d-elevation-program/3dep-spatial-metadata
+- Unreal 5.8 GameInstance subsystem lifecycle:
+  https://dev.epicgames.com/documentation/unreal-engine/programming-subsystems-in-unreal-engine
