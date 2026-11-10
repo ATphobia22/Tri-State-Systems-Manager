@@ -7,6 +7,8 @@ on:
       - 'tsm-native/Source/TSMNative/TSMEngineeringHUD.cpp'
       - 'scripts/native/three-experiences-source-contract.test.mjs'
       - '.github/workflows/tsm-native-three-experiences.yml'
+      - 'scripts/native/verify-evidence-storyboard*.mjs'
+      - 'schemas/native/tsm-evidence-storyboard.schema.json'
   push:
     branches: [main]
     paths:
@@ -32,7 +34,7 @@ jobs:
         with:
           node-version: '22'
       - name: Check native experience source contract
-        run: node --test scripts/native/three-experiences-source-contract.test.mjs
+        run: node --test scripts/native/three-experiences-source-contract.test.mjs scripts/native/verify-evidence-storyboard.test.mjs
       - name: Explicit gate boundary
         shell: bash
         run: |
