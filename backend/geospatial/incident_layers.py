@@ -69,16 +69,8 @@ def _filename(name: Any) -> str:
     return name
 
 
-def _manifest(root: Path) -> list[dict[str, Any]]:
-    manifest_path = root / "layers.json"
-    raw = _regular_file(manifest_path, root, MAX_MANIFEST_BYTES)
-    try:
-        object_ = json.loads(raw)
-    except (UnicodeError, json.JSONDecodeError) as exc:
-        raise IncidentLayerError("invalid manifest JSON") from exc
-    if not isinstance(object_, dict) or object_.get("schema") != "tsm.offline-incident-layers.v1":
-        raise IncidentLayerError("invalid incident manifest schema")
-    layers = object_.get("layers")
+def validate_entries(layers: Any) -> list[dict[str, Any]]:
+    """Validate a complete manifest before any operator staging or API access."""
     if not isinstance(layers, list) or len(layers) > MAX_LAYERS:
         raise IncidentLayerError("invalid incident layer list")
     seen: set[str] = set()
@@ -113,6 +105,18 @@ def _manifest(root: Path) -> list[dict[str, Any]]:
         ) or len(fields) != len(set(fields)):
             raise IncidentLayerError("unsafe or duplicated display field allowlist")
     return layers
+
+
+def _manifest(root: Path) -> list[dict[str, Any]]:
+    manifest_path = root / "layers.json"
+    raw = _regular_file(manifest_path, root, MAX_MANIFEST_BYTES)
+    try:
+        object_ = json.loads(raw)
+    except (UnicodeError, json.JSONDecodeError) as exc:
+        raise IncidentLayerError("invalid manifest JSON") from exc
+    if not isinstance(object_, dict) or object_.get("schema") != "tsm.offline-incident-layers.v1":
+        raise IncidentLayerError("invalid incident manifest schema")
+    return validate_entries(object_.get("layers"))
 
 
 def _coords(coordinates: Any, depth: int = 0) -> None:
