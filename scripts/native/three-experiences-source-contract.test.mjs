@@ -61,3 +61,16 @@ test("cinematic exports never certify scenes or overwrite previous source data",
   assert.match(cpp, /FileExists\(\*Target\)/);
   assert.match(cpp, /IsSha256\(Shot\.SourceSha256\)/);
 });
+
+test("storyboard schema enforces disclosure and per-shot provenance", () => {
+  const schema = JSON.parse(readFileSync(path.join(repo,
+    "schemas/native/tsm-evidence-storyboard.schema.json"), "utf8"));
+  assert.equal(schema.properties.schema.const, "tsm.native.evidence-storyboard.v1");
+  assert.equal(schema.properties.regulatoryDetermination.const, false);
+  assert.equal(schema.properties.modelOutputAltered.const, false);
+  assert.equal(schema.properties.shots.maxItems, 64);
+  const shot = schema.properties.shots.items;
+  assert.equal(shot.properties.sourceContentVerifiedByThisOperation.const, false);
+  assert.equal(shot.properties.agencyApproved.const, false);
+  assert.match(JSON.stringify(shot.allOf), /sourceSha256/);
+});
