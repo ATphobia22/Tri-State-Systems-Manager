@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from backend.geospatial.incident_layers import (  # noqa: E402
     IncidentLayerError, _filename, _manifest, _regular_file,
-    _sanitized_features, incident_root, MAX_GEOJSON_BYTES,
+    _sanitized_features, validate_entries, incident_root, MAX_GEOJSON_BYTES,
 )
 
 
@@ -76,8 +76,7 @@ def stage(args: argparse.Namespace) -> dict:
         raise IncidentLayerError("layer already exists; no silent overwrite allowed")
     # Validate EVERY candidate before writing to disk.
     candidate = {"schema": "tsm.offline-incident-layers.v1", "layers": [*existing, entry]}
-    if len(candidate["layers"]) > 32:
-        raise IncidentLayerError("catalog capacity exceeded")
+    validate_entries(candidate["layers"])
     if args.dry_run:
         return {"status": "DRY_RUN_VERIFIED_NO_WRITE", "sha256": sha, "feature_count": len(doc["features"]),
                 "layer_id": args.id}
