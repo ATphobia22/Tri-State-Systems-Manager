@@ -374,6 +374,12 @@ jobs:
         env:
           TSM_NATIVE_DATA_ROOT: ${{ vars.TSM_NATIVE_DATA_ROOT }}
         run: node scripts/native/stage-native-data-root.mjs
+      - name: Generate real World Partition scene with verified local tiles
+        shell: pwsh
+        env:
+          UE_ROOT: ${{ vars.UE_ROOT }}
+          TSM_LOCAL_TILESET: ${{ vars.TSM_LOCAL_TILESET }}
+        run: .\\scripts\\native\\Generate-TSMNativeMap.ps1 -UnrealRoot $env:UE_ROOT -TilesetPath $env:TSM_LOCAL_TILESET
       - name: Require packaged SpatiaLite
         shell: pwsh
         env:
