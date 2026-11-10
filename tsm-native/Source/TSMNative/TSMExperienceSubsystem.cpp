@@ -52,6 +52,9 @@ FTSMLivingRiverState UTSMExperienceSubsystem::InspectLivingRiverValley(
     FTSMLivingRiverState State;
     State.Clock = SelectedClock;
     State.ClockUtcIso8601 = ClockUtcIso8601;
+    FDateTime ParsedUtc;
+    State.bClockTimestampValid = ClockUtcIso8601.EndsWith(TEXT("Z"))
+        && FDateTime::ParseIso8601(*ClockUtcIso8601, ParsedUtc);
     // This is the packaged snapshot location; it must not trigger HTTP requests.
     State.DataRoot = FPaths::Combine(FPaths::ProjectContentDir(), TEXT("TSMData"));
     const FString Manifest = FPaths::Combine(State.DataRoot, TEXT("data-manifest.json"));
@@ -59,9 +62,11 @@ FTSMLivingRiverState UTSMExperienceSubsystem::InspectLivingRiverValley(
     // Mere existence is not verification. Native release gate checks each file
     // against its provenance manifest independently before the scene is trusted.
     State.bDataManifestContentsVerified = false;
-    State.DataState = State.bDataManifestPresent
-        ? TEXT("MANIFEST_PRESENT_CONTENTS_UNVERIFIED")
-        : TEXT("SOURCE_UNAVAILABLE");
+    State.DataState = !State.bClockTimestampValid
+        ? TEXT("INVALID_UTC_SCENE_CLOCK")
+        : (State.bDataManifestPresent
+            ? TEXT("MANIFEST_PRESENT_CONTENTS_UNVERIFIED")
+            : TEXT("SOURCE_UNAVAILABLE"));
     return State;
 }
 
