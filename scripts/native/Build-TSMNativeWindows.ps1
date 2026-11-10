@@ -35,18 +35,11 @@ if ($LASTEXITCODE -ne 0) { throw "UE native map generation failed." }
 & "$PSScriptRoot\Build-TSMNative.ps1" -UnrealRoot $UnrealRoot -ProjectFile $ProjectFile -Platform Win64 -Configuration Shipping -ArchiveDirectory $ArchiveDirectory
 if ($LASTEXITCODE -ne 0) { throw "Unreal packaging failed." }
 
-# Sign the cooked executable BEFORE Inno Setup embeds it. Signing only the
-# installer leaves its extracted UE Shipping executable unsigned.
+# Sign cooked executable BEFORE Inno Setup embeds it. The installer
+# also gets signed separately after its own compilation in GitHub Actions.
 $signSha = $env:TSM_WINDOWS_SIGNING_CERT_SHA1
 $timestampUrl = $env:TSM_WINDOWS_TIMESTAMP_URL
-if ([string]::IsNullOrWhiteSpace($signSha) -or $signSha -notmatch '^[A-Fa-f0-9]{40}
-if (-not $iscc) { throw "Inno Setup 7 ISCC.exe is required to produce the standalone installer." }
-
-& $iscc.Source $InstallerScript
-if ($LASTEXITCODE -ne 0) { throw "Inno Setup compilation failed with exit code $LASTEXITCODE." }
-
-Write-Host "TSM native Windows installer created in dist\installer."
-) {
+if ([string]::IsNullOrWhiteSpace($signSha) -or $signSha -notmatch '^[A-Fa-f0-9]{40}$') {
     throw "TSM_WINDOWS_SIGNING_CERT_SHA1 must be a valid certificate thumbprint."
 }
 if ($timestampUrl -notmatch '^https://') { throw "HTTPS timestamp service URL is required." }
