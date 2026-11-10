@@ -19,8 +19,11 @@ test("Win64 Shipping build explicitly cooks locally generated partitioned map", 
   const py = read("tsm-native/Content/Python/tsm_generate_native_map.py");
   const native = workflow.split(/^  package-windows:\s*$/m)[1]?.split(/^  package-macos:\s*$/m)[0];
   assert.ok(native);
-  assert.match(native, /Generate-TSMNativeMap\.ps1/);
-  assert.ok(native.indexOf("Generate-TSMNativeMap.ps1") < native.indexOf("Build native Windows package"));
+  const nativeBuilder = read("scripts/native/Build-TSMNativeWindows.ps1");
+  assert.match(native, /TSM_LOCAL_TILESET/);
+  assert.match(nativeBuilder, /Generate-TSMNativeMap\.ps1/);
+  assert.ok(nativeBuilder.indexOf("mod_spatialite.dll") < nativeBuilder.indexOf("Generate-TSMNativeMap.ps1"));
+  assert.ok(nativeBuilder.indexOf("Generate-TSMNativeMap.ps1") < nativeBuilder.indexOf("Build-TSMNative.ps1"));
   assert.match(cook, /-map=\/Game\/TSM\/Maps\/TSMNative/);
   assert.match(generate, /TSMNative\.umap/);
   assert.match(py, /is_partitioned_world=True/);
