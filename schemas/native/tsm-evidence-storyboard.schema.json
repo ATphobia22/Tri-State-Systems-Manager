@@ -1,0 +1,151 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tri-state-systems-manager.local/schemas/native/tsm-evidence-storyboard.schema.json",
+  "title": "TSM Native Evidence-to-Cinema Storyboard v1",
+  "description": "Narrative shot plans. Validated metadata is not verification of source content or a rendered film.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "storyboardId",
+    "state",
+    "regulatoryDetermination",
+    "modelOutputAltered",
+    "shots",
+    "notice"
+  ],
+  "properties": {
+    "schema": {
+      "const": "tsm.native.evidence-storyboard.v1"
+    },
+    "storyboardId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{1,64}$"
+    },
+    "state": {
+      "const": "REVIEW_REQUIRED_NOT_RENDERED"
+    },
+    "regulatoryDetermination": {
+      "const": false
+    },
+    "modelOutputAltered": {
+      "const": false
+    },
+    "notice": {
+      "type": "string",
+      "minLength": 1
+    },
+    "shots": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "shotId",
+          "title",
+          "narrative",
+          "sourceId",
+          "sourceSha256",
+          "authorityClass",
+          "acquisitionUtc",
+          "cinematicOnly",
+          "sourceContentVerifiedByThisOperation",
+          "agencyApproved"
+        ],
+        "properties": {
+          "shotId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,64}$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 180
+          },
+          "narrative": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "sourceId": {
+            "type": "string"
+          },
+          "sourceSha256": {
+            "type": "string"
+          },
+          "authorityClass": {
+            "type": "string"
+          },
+          "acquisitionUtc": {
+            "type": "string"
+          },
+          "cinematicOnly": {
+            "type": "boolean"
+          },
+          "sourceContentVerifiedByThisOperation": {
+            "const": false
+          },
+          "agencyApproved": {
+            "const": false
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "cinematicOnly": {
+                  "const": false
+                }
+              },
+              "required": [
+                "cinematicOnly"
+              ]
+            },
+            "then": {
+              "properties": {
+                "sourceId": {
+                  "minLength": 1
+                },
+                "sourceSha256": {
+                  "pattern": "^[A-Fa-f0-9]{64}$"
+                },
+                "authorityClass": {
+                  "minLength": 1
+                },
+                "acquisitionUtc": {
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "cinematicOnly": {
+                  "const": true
+                }
+              },
+              "required": [
+                "cinematicOnly"
+              ]
+            },
+            "then": {
+              "properties": {
+                "sourceId": {
+                  "const": ""
+                },
+                "sourceSha256": {
+                  "const": ""
+                },
+                "authorityClass": {
+                  "const": ""
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

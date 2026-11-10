@@ -1,0 +1,42 @@
+name: TSM Native Three Experiences Contracts
+
+on:
+  pull_request:
+    paths:
+      - 'tsm-native/Source/TSMNative/TSMExperienceSubsystem.*'
+      - 'tsm-native/Source/TSMNative/TSMEngineeringHUD.cpp'
+      - 'scripts/native/three-experiences-source-contract.test.mjs'
+      - '.github/workflows/tsm-native-three-experiences.yml'
+      - 'scripts/native/verify-evidence-storyboard*.mjs'
+      - 'schemas/native/tsm-evidence-storyboard.schema.json'
+  push:
+    branches: [main]
+    paths:
+      - 'tsm-native/Source/TSMNative/TSMExperienceSubsystem.*'
+      - 'tsm-native/Source/TSMNative/TSMEngineeringHUD.cpp'
+      - 'scripts/native/three-experiences-source-contract.test.mjs'
+      - '.github/workflows/tsm-native-three-experiences.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  three-experiences-source:
+    name: Three Experience Source Contract (not Shipping)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check native experience source contract
+        run: node --test scripts/native/three-experiences-source-contract.test.mjs scripts/native/verify-evidence-storyboard.test.mjs
+      - name: Explicit gate boundary
+        shell: bash
+        run: |
+          echo 'PASS: static source integration and mathematical screening contract'
+          echo 'NOT VERIFIED: Unreal Header Tool, UE 5.8 C++ compile, cook, Win64 Shipping, signing, clean offline Windows 11 runtime'
