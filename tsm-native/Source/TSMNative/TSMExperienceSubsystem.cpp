@@ -153,6 +153,12 @@ bool UTSMExperienceSubsystem::ExportEvidenceStoryboard(
             return false;
         }
         Seen.Add(Shot.ShotId);
+        if (Shot.bCinematicOnly &&
+            (!Shot.SourceId.IsEmpty() || !Shot.SourceSha256.IsEmpty() || !Shot.AuthorityClass.IsEmpty()))
+        {
+            OutReason = TEXT("Cinematic-only shots cannot impersonate observed source material");
+            return false;
+        }
         if (!Shot.bCinematicOnly &&
             (Shot.SourceId.IsEmpty() || !IsSha256(Shot.SourceSha256)
                 || Shot.AuthorityClass.IsEmpty() || Shot.AcquisitionUtc.IsEmpty()))
