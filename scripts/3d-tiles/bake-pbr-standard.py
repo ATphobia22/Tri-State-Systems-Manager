@@ -37,6 +37,7 @@ Requirements:
 import argparse
 import sys
 import os
+import math
 from pathlib import Path
 
 # Parse args after "--"
@@ -80,25 +81,25 @@ BAKE_CONFIGS = {
     "normal": {
         "type": "NORMAL",
         "pass_filter": set(),
-        "colorspace": "Linear",
+        "colorspace": "Non-Color",
         "description": "Tangent-space normal map (OpenGL)",
     },
     "roughness": {
         "type": "ROUGHNESS",
         "pass_filter": set(),
-        "colorspace": "Linear",
+        "colorspace": "Non-Color",
         "description": "Roughness (grayscale)",
     },
     "metallic": {
         "type": "EMIT",  # Trick: bake metallic via emission
         "pass_filter": set(),
-        "colorspace": "Linear",
+        "colorspace": "Non-Color",
         "description": "Metallic (grayscale)",
     },
     "ao": {
         "type": "AO",
         "pass_filter": set(),
-        "colorspace": "Linear",
+        "colorspace": "Non-Color",
         "description": "Ambient occlusion",
     },
 }
@@ -107,8 +108,8 @@ BAKE_CONFIGS = {
 def setup_cycles():
     """Configure Cycles for baking."""
     scene = bpy.context.scene
-    scene.render.engine = "BLENDER_EEVEE"  # Start with Eevee
     scene.render.engine = "CYCLES"  # Switch to Cycles (required for bake)
+    scene.cycles.use_denoising = False  # CPU baking must work without OpenImageDenoiser
     scene.cycles.samples = args.samples
     scene.cycles.device = "CPU"  # CPU for headless reliability
     print(f"Cycles configured: {args.samples} samples, CPU")
@@ -121,7 +122,7 @@ def ensure_uvs(obj):
         bpy.context.view_layer.objects.active = obj
         obj.select_set(True)
         bpy.ops.object.mode_set(mode="EDIT")
-        bpy.ops.uv.smart_project(angle_limit=66, island_margin=0.02)
+        bpy.ops.uv.smart_project(angle_limit=math.radians(66), island_margin=0.02)
         bpy.ops.object.mode_set(mode="OBJECT")
         print(f"  UVs generated")
     else:
@@ -145,38 +146,49 @@ def bake_map(obj, map_name: str, output_dir: Path):
     img.filepath_raw = str(output_dir / f"{img_name}.png")
     img.file_format = "PNG"
 
-    # Ensure material has an Image Texture node pointing to our image
-    mat = obj.active_material
-    if not mat:
-        mat = bpy.data.materials.new(f"{obj.name}_baked")
-        mat.use_nodes = True
-        obj.data.materials.append(mat)
-
-    nodes = mat.node_tree.nodes
-    tex_node = nodes.new("ShaderNodeTexImage")
-    tex_node.image = img
-    # Make it the active node (bake target)
-    nodes.active = tex_node
-
-    # Select and activate object
-    bpy.ops.object.select_all(action="DESELECT")
-    obj.select_set(True)
-    bpy.context.view_layer.objects.active = obj
-
-    # Bake
-    bpy.ops.object.bake(
-        type=config["type"],
-        pass_filter=config["pass_filter"],
-        use_clear=True,
-        margin=16,  # Bleed margin to avoid seams
-    )
-
-    # Save
-    img.save()
-    print(f"  Saved: {img.filepath_raw}")
-
-    # Cleanup node
-    nodes.remove(tex_node)
+    # Work on temporary copies so source node graphs survive every failure.
+    original_materials = list(obj.data.materials)
+    copies = []
+    try:
+        if not original_materials or any(mat is None for mat in original_materials):
+            raise ValueError("Every mesh material slot must have an explicit material")
+        for index, original in enumerate(original_materials):
+            mat = original.copy()
+            copies.append(mat)
+            mat.use_nodes = True
+            obj.data.materials[index] = mat
+            nodes = mat.node_tree.nodes
+            links = mat.node_tree.links
+            if map_name == "metallic":
+                outputs = [n for n in nodes if n.type == "OUTPUT_MATERIAL" and n.is_active_output]
+                if len(outputs) != 1 or not outputs[0].inputs["Surface"].is_linked:
+                    raise ValueError("Metallic bake requires an active connected material output")
+                output = outputs[0]
+                shader = output.inputs["Surface"].links[0].from_node
+                if shader.type != "BSDF_PRINCIPLED":
+                    raise ValueError("Metallic bake requires a direct Principled surface shader")
+                metallic = shader.inputs["Metallic"]
+                emission = nodes.new("ShaderNodeEmission")
+                if metallic.is_linked:
+                    links.new(metallic.links[0].from_socket, emission.inputs["Color"])
+                else:
+                    value = metallic.default_value
+                    emission.inputs["Color"].default_value = (value, value, value, 1)
+                links.new(emission.outputs["Emission"], output.inputs["Surface"])
+            target = nodes.new("ShaderNodeTexImage")
+            target.image = img
+            nodes.active = target
+        bpy.ops.object.select_all(action="DESELECT")
+        obj.select_set(True)
+        bpy.context.view_layer.objects.active = obj
+        bpy.ops.object.bake(type=config["type"], pass_filter=config["pass_filter"],
+                            use_clear=True, margin=16)
+        img.save()
+    finally:
+        for index, original in enumerate(original_materials):
+            obj.data.materials[index] = original
+        for mat in copies:
+            bpy.data.materials.remove(mat)
 
     return img.filepath_raw
 
@@ -226,6 +238,7 @@ def main():
     )
 
     results = {}
+    failures = []
     for obj in meshes:
         print(f"\nProcessing: {obj.name}")
         ensure_uvs(obj)
@@ -235,12 +248,19 @@ def main():
                 results[f"{obj.name}_{map_name}"] = path
             except Exception as e:
                 print(f"  FAILED {map_name}: {e}")
+                failures.append((obj.name, map_name))
 
     print("\n" + "=" * 60)
     print(f"Baking complete: {len(results)} maps")
     for name, path in results.items():
         print(f"  {name}: {path}")
 
+    return 1 if failures else 0
+
 
 if __name__ == "__main__":
-    main()
+    try:
+        sys.exit(main())
+    except Exception as exc:
+        print(f"BAKE FAILED: {exc}", file=sys.stderr)
+        sys.exit(1)

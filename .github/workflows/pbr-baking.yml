@@ -1,0 +1,18 @@
+name: PBR baking regression
+on:
+  pull_request:
+    paths: ['scripts/3d-tiles/bake-pbr-standard.py', 'scripts/3d-tiles/test_bake_pbr_blender.py', '.github/workflows/pbr-baking.yml']
+  push:
+    branches: [main]
+    paths: ['scripts/3d-tiles/bake-pbr-standard.py', 'scripts/3d-tiles/test_bake_pbr_blender.py', '.github/workflows/pbr-baking.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  blender:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - run: sudo apt-get update && sudo apt-get install -y blender
+      - run: blender -b --python-exit-code 1 --python scripts/3d-tiles/test_bake_pbr_blender.py -- scripts/3d-tiles/bake-pbr-standard.py
