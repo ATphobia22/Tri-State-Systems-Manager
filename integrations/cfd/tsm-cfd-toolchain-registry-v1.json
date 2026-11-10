@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0.0",
+  "registry_id": "tsm-cfd-toolchain",
+  "generated_at": "2026-11-10",
+  "policy": "CFD adapters are MODEL_SIMULATION. No output is a FIRM, LOMA, or PE certification.",
+  "tools": [
+    {
+      "id": "sdf",
+      "name": "SDF (signed distance fields / geometry)",
+      "role": "Implicit surface geometry for meshing and level-set style interfaces",
+      "status": "ADAPTER_READY",
+      "authority": "MODEL_SIMULATION",
+      "notes": "Library-agnostic SDF helpers in packages/geo/src/cfd/SdfGeometry.ts"
+    },
+    {
+      "id": "fenicsx",
+      "name": "FEniCSx",
+      "repo": "https://github.com/FEniCS/dolfinx",
+      "role": "Finite-element PDE (Python/C++)",
+      "status": "ADAPTER_READY",
+      "authority": "MODEL_SIMULATION",
+      "bridge": "integrations/cfd/python/fenicsx_bridge.py",
+      "install": "conda/pip dolfinx stack per FEniCS docs"
+    },
+    {
+      "id": "openfoam",
+      "name": "OpenFOAM",
+      "repo": "https://github.com/OpenFOAM/OpenFOAM-dev",
+      "role": "Finite-volume CFD (interFoam, shallowWaterFoam, etc.)",
+      "status": "ADAPTER_READY",
+      "authority": "MODEL_SIMULATION",
+      "bridge": "integrations/cfd/python/openfoam_bridge.py",
+      "install": "System or container OpenFOAM; not vendored in TSM"
+    },
+    {
+      "id": "simscale",
+      "name": "SimScale",
+      "role": "Cloud CAE platform API (operator account)",
+      "status": "ADAPTER_READY",
+      "authority": "MODEL_SIMULATION",
+      "bridge": "integrations/cfd/python/simscale_bridge.py",
+      "docs": "https://www.simscale.com/"
+    }
+  ]
+}
