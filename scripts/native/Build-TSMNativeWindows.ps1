@@ -27,6 +27,11 @@ New-Item -ItemType Directory -Force -Path $binaryDir | Out-Null
 Copy-Item $cmakeDll.FullName (Join-Path $binaryDir "ArchimedesCore.dll") -Force
 Copy-Item $SpatiaLiteDllPath (Join-Path $binaryDir "mod_spatialite.dll") -Force
 
+# Generate native map only after ArchimedesCore and SpatiaLite are staged so
+# UnrealEditor-Cmd can load the actual native modules during asset authoring.
+& "$PSScriptRoot\Generate-TSMNativeMap.ps1" -UnrealRoot $UnrealRoot -ProjectFile $ProjectFile -TilesetPath $env:TSM_LOCAL_TILESET
+if ($LASTEXITCODE -ne 0) { throw "UE native map generation failed." }
+
 & "$PSScriptRoot\Build-TSMNative.ps1" -UnrealRoot $UnrealRoot -ProjectFile $ProjectFile -Platform Win64 -Configuration Shipping -ArchiveDirectory $ArchiveDirectory
 if ($LASTEXITCODE -ne 0) { throw "Unreal packaging failed." }
 

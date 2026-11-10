@@ -3,6 +3,8 @@
 #include "Engine/Engine.h"
 #include "Styling/CoreStyle.h"
 #include "Engine/GameInstance.h"
+#include "HAL/FileManager.h"
+#include "Misc/Paths.h"
 #include "TSMEngineeringRuntimeSubsystem.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/SCompoundWidget.h"
@@ -48,8 +50,20 @@ public:
                     + SHorizontalBox::Slot().AutoWidth().Padding(0, 0, 8, 0)
                     [
                         SNew(SButton)
-                        .Text(FText::FromString(TEXT("RUN 100-YEAR")))
+                        .Text(FText::FromString(TEXT("100-YEAR EVIDENCE")))
                         .OnClicked(this, &STSMEngineeringDashboard::Run100Year)
+                    ]
+                    + SHorizontalBox::Slot().AutoWidth().Padding(0, 0, 8, 0)
+                    [
+                        SNew(SButton)
+                        .Text(FText::FromString(TEXT("LOCAL DATA")))
+                        .OnClicked(this, &STSMEngineeringDashboard::ShowLocalData)
+                    ]
+                    + SHorizontalBox::Slot().AutoWidth().Padding(0, 0, 8, 0)
+                    [
+                        SNew(SButton)
+                        .Text(FText::FromString(TEXT("ENGINEERING LIMITS")))
+                        .OnClicked(this, &STSMEngineeringDashboard::ShowLimitations)
                     ]
                     + SHorizontalBox::Slot().AutoWidth()
                     [
@@ -71,32 +85,53 @@ public:
 private:
     FReply Run100Year()
     {
-        if (!OwnerHUD.IsValid())
+        // Never evaluate FTSMEngineeringInputs' illustrative defaults as an
+        // observed 100-year water surface or a site-specific engineering design.
+        // A verified scenario binding must be supplied before enabling a solver.
+        if (ResultText.IsValid())
         {
-            return FReply::Handled();
+            ResultText->SetText(FText::FromString(TEXT(
+                "SOURCE_UNAVAILABLE // 100-YEAR RUN NOT AUTHORIZED\\n"
+                "No verified rainfall, calibrated hydraulics, WSE NAVD88 or parcel-based "
+                "scenario evidence is bound to this native HUD. No flood elevations "
+                "or quantities have been computed. Human authority remains final.")));
         }
+        return FReply::Handled();
+    }
 
-        if (UGameInstance* GameInstance = OwnerHUD->GetGameInstance())
+    FReply ShowLocalData()
+    {
+        if (!ResultText.IsValid()) { return FReply::Handled(); }
+        const FString Manifest = FPaths::Combine(
+            FPaths::ProjectContentDir(), TEXT("TSMData"), TEXT("data-manifest.json"));
+        if (IFileManager::Get().FileExists(*Manifest))
         {
-            if (UTSMEngineeringRuntimeSubsystem* Runtime =
-                GameInstance->GetSubsystem<UTSMEngineeringRuntimeSubsystem>())
-            {
-                FTSMEngineeringInputs Inputs;
-                const FTSMEngineeringResult Result =
-                    Runtime->EvaluateScenario(Inputs, ETSMFloodScenario::Design100Year);
-
-                const FString Summary = FString::Printf(
-                    TEXT("100-YEAR SCREENING RESULT\nPeak flow: %.2f m^3/s\nManning capacity: %.2f m^3/s\nFlood depth: %.2f m\nRequired design elevation: %.2f m\nBerm fill: %.0f m^3"),
-                    Result.RationalPeakFlowCubicMetersPerSecond,
-                    Result.ManningCapacityCubicMetersPerSecond,
-                    Result.FloodDepthMeters,
-                    Result.RequiredDesignElevationMeters,
-                    Result.BermFillVolumeCubicMeters);
-
-                ResultText->SetText(FText::FromString(Summary));
-            }
+            ResultText->SetText(FText::FromString(TEXT(
+                "LOCAL DATA PRESENT // INTEGRITY NOT YET VERIFIED HERE\\n"
+                "A packaged TSMData manifest is present. Inspect its SHA-256 validation, "
+                "EPSG/vertical datum, source date, license and tile coverage before "
+                "authorizing engineering conclusions.")));
         }
+        else
+        {
+            ResultText->SetText(FText::FromString(TEXT(
+                "SOURCE_UNAVAILABLE // NO PACKAGED DATA MANIFEST\\n"
+                "No verified TSMData snapshot is accessible. Cinematic placeholders "
+                "must never be treated as surveying or hydraulic observations.")));
+        }
+        return FReply::Handled();
+    }
 
+    FReply ShowLimitations()
+    {
+        if (ResultText.IsValid())
+        {
+            ResultText->SetText(FText::FromString(TEXT(
+                "ENGINEERING LIMITS\\n"
+                "Local visualization is informational. Flood levels, profiles, parcel "
+                "coordinates and 100-/500-year events require validated source provenance, "
+                "datum transforms, calibrated models and human review. No automatic agency filings.")));
+        }
         return FReply::Handled();
     }
 

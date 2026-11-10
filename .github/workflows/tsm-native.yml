@@ -87,6 +87,8 @@ jobs:
           node scripts/ci/validate-spatial-topology.mjs
           node --test tsm-native/tests/native-spatial-provenance-contract.test.mjs
           node --test scripts/native/verify-ue-windows-shipping.test.mjs
+          node --test scripts/native/one-shot-shipping-trigger.test.mjs
+          node --test scripts/native/native-map-pipeline.test.mjs
           node --test scripts/native/native-data-manifest.test.mjs
 
   architecture-contracts:
@@ -335,7 +337,8 @@ jobs:
       id-token: write
       attestations: write
       artifact-metadata: write
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.package_windows }}
+    # One-shot operator-authorized main push trigger. Normal pushes and PRs cannot request a UE Shipping package.
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.package_windows) || (github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[TSM-UE-PACKAGE]')) }}
     runs-on: [self-hosted, windows, x64, ue5]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -359,6 +362,14 @@ jobs:
           if (-not (Test-Path $plugin)) { throw "Cesium for Unreal is required on the UE5 runner." }
           $manifest = Get-Content "tsm-native\config\native-geospatial-runtime.json" -Raw | ConvertFrom-Json
           if ($manifest.geospatial.pluginVersion -ne "2.29.1") { throw "Unexpected Cesium version contract." }
+      - name: Restore oversized immutable TSMData snapshot from private Drive
+        if: ${{ vars.TSM_DATA_DRIVE_REMOTE != '' }}
+        shell: pwsh
+        env:
+          TSM_DATA_DRIVE_REMOTE: ${{ vars.TSM_DATA_DRIVE_REMOTE }}
+          TSM_NATIVE_DATA_ROOT: ${{ vars.TSM_NATIVE_DATA_ROOT }}
+        run: |
+          .\\scripts\\native\\Restore-TSMDataFromDrive.ps1 -RemoteName "$env:TSM_DATA_DRIVE_REMOTE" -DataRoot "$env:TSM_NATIVE_DATA_ROOT"
       - name: Verify immutable native data snapshot
         shell: pwsh
         env:
@@ -384,6 +395,7 @@ jobs:
         env:
           UE_ROOT: ${{ vars.UE_ROOT }}
           TSM_SPATIALITE_DLL: ${{ vars.TSM_SPATIALITE_DLL }}
+          TSM_LOCAL_TILESET: ${{ vars.TSM_LOCAL_TILESET }}
         run: |
           New-Item -ItemType Directory -Force dist/provenance | Out-Null
           Start-Transcript -Path dist/provenance/windows-ue-buildcookrun.log
@@ -468,6 +480,14 @@ jobs:
           name: tsm-native-windows-installer
           path: dist/installer/TSM-Native-Setup-*-windows-x64.exe
           if-no-files-found: error
+
+      - name: Archive signed Unreal installer and provenance in dedicated private Google Drive folder
+        if: ${{ vars.TSM_DRIVE_REMOTE != '' }}
+        shell: pwsh
+        env:
+          TSM_DRIVE_REMOTE: ${{ vars.TSM_DRIVE_REMOTE }}
+        run: |
+          .\\scripts\\native\\Publish-TSMNativeToDrive.ps1 -CommitSha "$env:GITHUB_SHA" -RemoteName "$env:TSM_DRIVE_REMOTE"
 
   package-macos:
     permissions:
