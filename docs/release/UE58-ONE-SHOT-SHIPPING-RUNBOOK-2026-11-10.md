@@ -30,3 +30,21 @@ Keep `STATIC_PACKAGE_VERIFIED_OFFLINE_LAUNCH_PENDING`, `CLEAN_HOST_OFFLINE_VERIF
 ## Oversized artifact storage
 
 Store verified, distributable build archives and immutable SHA256SUMS outside Git. A dedicated Google Drive folder has been prepared: https://drive.google.com/drive/folders/1qc7cSiAplGakgBwrjwiFQ4yNy9TV7gwF . Each upload should include a sidecar `.sha256`, source commit, artifact size, uploader/time, source licensing and release-gate status. Verify hash after download. Do not upload sensitive raw parcel or private survey data to a broadly shared folder.
+
+
+## Google Drive binary-data handoff
+
+Two separate **private** folders are intentionally used:
+
+- Input snapshots: https://drive.google.com/drive/folders/1efwQlV1D3Aat4rhcmYPoo_kNtCRMNUt3
+- Signed installers and provenance: https://drive.google.com/drive/folders/1qc7cSiAplGakgBwrjwiFQ4yNy9TV7gwF
+
+Put the complete immutable, licensed TSMData payload and its real `data-manifest.json` in the input folder. The optional Windows job step runs `Restore-TSMDataFromDrive.ps1` when `TSM_DATA_DRIVE_REMOTE` names a pre-authorized rclone Drive remote. It copies the files to the `TSM_NATIVE_DATA_ROOT` runner directory, then verifies every manifest-declared SHA-256 and rejects unexpected entries. The subsequent mandatory native data verification remains in place, whether or not Drive is configured.
+
+Set `TSM_LOCAL_TILESET` to a **relative** path inside staged `Content/TSMData` (for example `buildings/tileset.json`) rather than the original Drive URL. A missing tileset or invalid root aborts map generation. The builder stages the ArchimedesCore and SpatiaLite native DLLs before generating the Unreal level; a real TSMNative.umap must be saved before BuildCookRun. Full terrain coverage and a camera-centred, geodetically correct scene still require headed acceptance.
+
+When `TSM_DRIVE_REMOTE` names an rclone Drive remote, `Publish-TSMNativeToDrive.ps1` archives the signed installer, SBOM, BuildCookRun log and static evidence in a per-commit subfolder, and verifies source/destination hashes. Auth tokens must reside in protected runner configuration, never in Git or packaged assets. The destination remains private. If no remote is configured, artifacts remain available only through GitHub Actions; no Drive upload is claimed.
+
+The November 9, 2026 source audit showed 23,082 matched footprint identities and exact geometry objects but **unverified measured heights**. Two Posey DEMs passed source checksums but had horizontal EPSG:2968 instead of project EPSG:2966, with **unverified vertical datum and vertical units**. Therefore neither the DEMs nor derived building attributes may be promoted to NAVD88 engineering proof without an independently reviewed transformation and provenance record.
+
+A source-byte integrity PASS is not a geodesy PASS, and a UE Shipping build PASS is not a clean-host offline PASS.
