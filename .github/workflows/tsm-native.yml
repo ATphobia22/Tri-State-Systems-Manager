@@ -400,6 +400,8 @@ jobs:
           UE_ROOT: ${{ vars.UE_ROOT }}
           TSM_SPATIALITE_DLL: ${{ vars.TSM_SPATIALITE_DLL }}
           TSM_LOCAL_TILESET: ${{ vars.TSM_LOCAL_TILESET }}
+          TSM_WINDOWS_SIGNING_CERT_SHA1: ${{ secrets.TSM_WINDOWS_SIGNING_CERT_SHA1 }}
+          TSM_WINDOWS_TIMESTAMP_URL: ${{ vars.TSM_WINDOWS_TIMESTAMP_URL }}
         run: |
           New-Item -ItemType Directory -Force dist/provenance | Out-Null
           Start-Transcript -Path dist/provenance/windows-ue-buildcookrun.log
