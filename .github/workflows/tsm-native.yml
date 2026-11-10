@@ -478,6 +478,14 @@ jobs:
           path: dist/installer/TSM-Native-Setup-*-windows-x64.exe
           if-no-files-found: error
 
+      - name: Archive signed Unreal installer and provenance in dedicated private Google Drive folder
+        if: ${{ vars.TSM_DRIVE_REMOTE != '' }}
+        shell: pwsh
+        env:
+          TSM_DRIVE_REMOTE: ${{ vars.TSM_DRIVE_REMOTE }}
+        run: |
+          .\\scripts\\native\\Publish-TSMNativeToDrive.ps1 -CommitSha "$env:GITHUB_SHA" -RemoteName "$env:TSM_DRIVE_REMOTE"
+
   package-macos:
     permissions:
       contents: read
