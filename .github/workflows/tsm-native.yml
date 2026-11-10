@@ -87,6 +87,7 @@ jobs:
           node scripts/ci/validate-spatial-topology.mjs
           node --test tsm-native/tests/native-spatial-provenance-contract.test.mjs
           node --test scripts/native/verify-ue-windows-shipping.test.mjs
+          node --test scripts/native/one-shot-shipping-trigger.test.mjs
           node --test scripts/native/native-data-manifest.test.mjs
 
   architecture-contracts:
