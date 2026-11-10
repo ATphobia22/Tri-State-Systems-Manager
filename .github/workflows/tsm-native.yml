@@ -335,7 +335,8 @@ jobs:
       id-token: write
       attestations: write
       artifact-metadata: write
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.package_windows }}
+    # One-shot operator-authorized main push trigger. Normal pushes and PRs cannot request a UE Shipping package.
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.package_windows) || (github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[TSM-UE-PACKAGE]')) }}
     runs-on: [self-hosted, windows, x64, ue5]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
