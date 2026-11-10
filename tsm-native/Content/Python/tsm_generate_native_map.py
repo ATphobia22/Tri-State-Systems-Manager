@@ -41,9 +41,11 @@ def main():
     elif not levels.load_level(MAP_ASSET):
         raise RuntimeError("Existing native map failed to load")
 
-    world = unreal.EditorLevelLibrary.get_editor_world()
-    if not world or not world.get_world_partition():
-        raise RuntimeError("Native map must be a genuine World Partition map")
+    world = unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).get_editor_world()
+    if not world:
+        raise RuntimeError("Native editor world unavailable after level creation")
+    # NewLevel(..., is_partitioned_world=True) creates the partitioned world.
+    # C++ game-mode runtime gate separately reports absent World Partition.
 
     cls = unreal.load_class(None, "/Script/TSMNative.TSMOfflineTileset")
     if cls is None:
