@@ -34,6 +34,8 @@ test("four clocks remain disjoint and data existence is not verified evidence", 
     assert.match(h, new RegExp(clock));
   }
   assert.match(cpp, /bDataManifestContentsVerified = false/);
+  assert.match(cpp, /FDateTime::ParseIso8601/);
+  assert.match(cpp, /INVALID_UTC_SCENE_CLOCK/);
   assert.match(cpp, /MANIFEST_PRESENT_CONTENTS_UNVERIFIED/);
   assert.doesNotMatch(cpp, /FHttpModule|ProcessRequest\(/);
 });
