@@ -1,0 +1,51 @@
+{
+  "schema": "tsm.evidence.mount-vernon-preview.v1",
+  "sourceScope": "TWO_PARTIAL_RASTER_PATCHES_NOT_FULL_MOUNT_VERNON",
+  "sourceAuthority": "Indiana Geographic Information Office / 2016-2020 DEM",
+  "horizontalCRS": "EPSG:2968",
+  "nativePixelSize": "2.5 US survey feet",
+  "sourceVerticalUnits": "PENDING_EVIDENCE",
+  "verticalDatum": "PENDING_EVIDENCE",
+  "previewVerticalScaleAssumption": "us-ft; explicitly not validated",
+  "regulatoryStatus": "NOT_A_REGULATORY_DETERMINATION",
+  "sources": [
+    {
+      "filename": "IN2020_26700930_12.tiff",
+      "sha256": "1a321bc386e0de8b7cca74ec903fb35ea8fb54e8cdd7e835428210562e173ebb",
+      "width": 2000,
+      "height": 2000
+    },
+    {
+      "filename": "IN2020_26850945_12.tiff",
+      "sha256": "78f987ad4f93d3680d4500ad0b74542872f83529861b5500863addb61c00d124",
+      "width": 2000,
+      "height": 2000
+    }
+  ],
+  "preview": {
+    "glbTiles": 32,
+    "glTFVersion": "2.0",
+    "tilesVersion": "1.1",
+    "hillshades": 2,
+    "demExtentGeoJSON": 1,
+    "adjacentSameLODMeshEdges": 48,
+    "maximumEdgeGapMeters": 0.00001784593141257705,
+    "toleranceMeters": 0.005,
+    "passedPreviewEdgeCheck": true,
+    "mixedLODTransvoxelValidation": "NOT_EVIDENCED",
+    "headedUE58": "NOT_EVIDENCED",
+    "ueMap": "NOT_GENERATED"
+  },
+  "packages": [
+    {
+      "filename": "TSM-Mount-Vernon-Real-DEM-3DTiles-UE58-PREVIEW.zip",
+      "sha256": "b7ab0636129af947bc5389f72a76b946e58721b62f9469ae7e3df30d00608833"
+    },
+    {
+      "filename": "TSM-Mount-Vernon-Two-Source-DEM-TIFFs-Evidence.zip",
+      "sha256": "c7b293a04f1c26217d2c2bb25cc494dfc2dea8390d16a31d22a95f313a68485f"
+    }
+  ],
+  "privateStorage": "Google Drive (restricted; object IDs are not embedded in public repository)",
+  "note": "Actual visual terrain geometry was generated from two locally available COG TIFFs; all 3D elevations remain derived previews until project-specific vertical provenance verified. Mixed-LOD seams not tested."
+}

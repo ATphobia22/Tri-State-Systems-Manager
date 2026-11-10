@@ -1,4 +1,5 @@
 #include "TSMSpatialValidator.h"
+#include "TSMLoDReconstructionSolver.h"
 
 #include "Dom/JsonObject.h"
 #include "Misc/FileHelper.h"
@@ -6,6 +7,34 @@
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 #include "TsmSha256.h"
+
+bool UTSMSpatialValidator::CalculateRoofVerticalRMSE(
+    const TArray<FVector>& PointsLocalMetres, const FVector& PlaneNormal,
+    double PlaneOffsetMetres, double& OutRMSEMetres)
+{
+    std::vector<tsm::geometry::Point3D> Points;
+    Points.reserve(static_cast<size_t>(PointsLocalMetres.Num()));
+    for (const FVector& Point : PointsLocalMetres)
+    {
+        Points.push_back({Point.X, Point.Y, Point.Z});
+    }
+    return tsm::geometry::TSMLoDReconstructionSolver().CalculateVerticalRMSE(
+        Points, {PlaneNormal.X, PlaneNormal.Y, PlaneNormal.Z, PlaneOffsetMetres}, OutRMSEMetres);
+}
+
+bool UTSMSpatialValidator::ComputeUnboundedRoofPlaneIntersection(
+    const FVector& FirstNormal, double FirstOffsetMetres,
+    const FVector& SecondNormal, double SecondOffsetMetres,
+    FVector& OutAnchorLocalMetres, FVector& OutDirection)
+{
+    tsm::geometry::Point3D Anchor{}, Direction{};
+    const bool bAvailable = tsm::geometry::TSMLoDReconstructionSolver().ComputePlaneIntersection(
+        {FirstNormal.X, FirstNormal.Y, FirstNormal.Z, FirstOffsetMetres},
+        {SecondNormal.X, SecondNormal.Y, SecondNormal.Z, SecondOffsetMetres}, Anchor, Direction);
+    OutAnchorLocalMetres = FVector(Anchor.x, Anchor.y, Anchor.z);
+    OutDirection = FVector(Direction.x, Direction.y, Direction.z);
+    return bAvailable;
+}
 
 namespace
 {

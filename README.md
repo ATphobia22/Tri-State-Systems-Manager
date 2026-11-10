@@ -48,6 +48,8 @@ TSM's mapping and visualization modules support:
 
 Read the [Posey source verification](docs/engineering-development/POSEY-DRIVE-SOURCE-VERIFICATION-2026-11-09.md), [Mount Vernon city-scene runbook](docs/engineering-development/MOUNT-VERNON-CITY-SCENE-RUNBOOK.md), and [LOD roof-evidence methods](docs/MOUNT-VERNON-LOD-EVIDENCE.md).
 
+[Roof-plane and terrain-alignment diagnostics](docs/engineering-development/LOD-RECONSTRUCTION-METHODS-AND-ALIGNMENT.md) provide native plane-intersection/vertical-residual helpers and a non-mutating GeoTIFF contact comparison. They preserve missing-evidence states and do not certify LoD, source accuracy, facade openings, or interiors.
+
 ### Rivers, flooding, and property context
 
 The hydrology and mapping systems help users:
