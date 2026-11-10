@@ -91,6 +91,7 @@ jobs:
           node --test tsm-native/tests/native-spatial-provenance-contract.test.mjs
           node --test scripts/native/verify-ue-windows-shipping.test.mjs
           node --test scripts/native/one-shot-shipping-trigger.test.mjs
+          node --test scripts/native/release-queue-and-signing.test.mjs
           node --test scripts/native/native-map-pipeline.test.mjs
           node --test scripts/native/windows11-runner-preflight.test.mjs
           node --test scripts/native/native-data-manifest.test.mjs
