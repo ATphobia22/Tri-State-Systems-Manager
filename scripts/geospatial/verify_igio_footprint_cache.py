@@ -107,7 +107,9 @@ def verify_igio_snapshot(path: Path, *, expected_sha256: str, expected_count: in
         props = feature.get("properties")
         if not isinstance(props, dict):
             raise CachedSourceError("IGIO source footprint has no properties")
-        sid = props.get("igioObjectId")
+        sid = props.get("igioObjectId", props.get("objectid"))
+        if "igioObjectId" in props and "objectid" in props and props["igioObjectId"] != props["objectid"]:
+            raise CachedSourceError("Conflicting IGIO OBJECTID aliases")
         if not isinstance(sid, int) or isinstance(sid, bool) or sid < 0:
             raise CachedSourceError("IGIO OBJECTID must be a nonnegative integer")
         if props.get("county") not in (None, "Posey"):

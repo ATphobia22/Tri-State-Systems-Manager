@@ -66,6 +66,17 @@ class PinnedIGIOCacheTests(unittest.TestCase):
         self.assertFalse(report["heightsVerified"])
         self.assertFalse(report["engineeringUse"])
 
+    def test_pinned_release_objectid_alias_and_conflicts(self):
+        item = feature(123)
+        item["properties"]["objectid"] = item["properties"].pop("igioObjectId")
+        sha = self.write(snapshot([item]))
+        report = verify.verify_igio_snapshot(self.file, expected_sha256=sha, expected_count=1)
+        self.assertEqual(report["uniqueSourceObjectIds"], 1)
+        item["properties"]["igioObjectId"] = 999
+        sha = self.write(snapshot([item]))
+        with self.assertRaisesRegex(verify.CachedSourceError, "Conflicting"):
+            verify.verify_igio_snapshot(self.file, expected_sha256=sha, expected_count=1)
+
     def test_mismatched_digest_fails_before_parsing(self):
         self.write(snapshot([feature()]))
         with self.assertRaisesRegex(verify.CachedSourceError, "SHA-256"):
