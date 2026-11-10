@@ -27,6 +27,27 @@ Health check: `curl http://127.0.0.1:8790/health`
 | POST | `/api/engineering/ras-results` | Validate and persist operator-supplied HEC-RAS depth cells as provisional MODEL_OUTPUT evidence. Maximum 100,000 cells; no regulatory status is inferred. |
 | POST | `/api/ledger/append` | Append an accepted model artifact to the local audit ledger only after a configured human reviewer allowlist authorizes it. Returns an explicit authorization error when `TSM_REVIEWER_SUBJECTS` is absent or the reviewer is unauthorized. |
 
+## Governed external GIS discovery and incident overlays
+
+The companion service now exposes read-only, offline-safe GIS source discovery
+and operator-approved local incident layers:
+
+- `GET /api/geospatial/source-discovery` — 71 candidate repositories and 12
+  source links, with SHA-256 registry evidence; no automatic imports/downloads.
+- `GET /api/geospatial/incident-layers` — approved local display metadata,
+  never implicitly verified as regulatory or hydrologic ground truth.
+- `GET /api/geospatial/incident-layers/{id}/geojson` — local GeoJSON with
+  checksum, bounded WGS84 coordinates, geometry/style validation and
+  allowlisted public attributes.
+
+To stage a verified, legally reusable local incident file, use
+`scripts/geospatial/stage-incident-layer.py` with explicit approval and
+source metadata. Full guidance:
+[`docs/geospatial/UPSTREAM-REUSE-AND-INCIDENT-LAYERS-2026-11-10.md`](../docs/geospatial/UPSTREAM-REUSE-AND-INCIDENT-LAYERS-2026-11-10.md).
+
+These companion endpoints are **not** automatically wired into the Node
+public map or Unreal executable; do not count them as Windows release evidence.
+
 ## Relation to the Node API
 
 `tsm-console/server/token-proxy.mjs` is the primary TSM API (auth, proxying,
