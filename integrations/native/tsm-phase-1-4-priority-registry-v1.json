@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-11-10",
+  "phases": [
+    {
+      "id": 1,
+      "name": "Native application shell",
+      "capabilities": [
+        "persistent_3d_scene",
+        "six_workspaces",
+        "settings_storage",
+        "camera_navigation",
+        "object_selection",
+        "layer_browser",
+        "clock_selector",
+        "keyboard_shortcuts",
+        "accessibility_controls",
+        "command_search"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Engineering interaction",
+      "capabilities": [
+        "parcel_selection",
+        "surveying_tools",
+        "measurement",
+        "elevations",
+        "asset_inspector",
+        "source_verification",
+        "approved_local_overlays",
+        "scenario_management",
+        "readonly_hec_ras_playback"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Cinematic production",
+      "capabilities": [
+        "solar_time_controls",
+        "camera_paths",
+        "weather_visualization",
+        "cinematic_presets",
+        "scenario_playback",
+        "sequencer_integration",
+        "render_worker_jobs",
+        "presentation_exports"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Release and validation",
+      "capabilities": [
+        "win64_shipping_packaging",
+        "clean_offline_startup",
+        "input_menu_interaction_tests",
+        "authoritative_data_checksums",
+        "benchmarked_cinematic_scenes",
+        "signed_binaries",
+        "reproducible_builds",
+        "public_friendly_documentation"
+      ]
+    }
+  ]
+}
