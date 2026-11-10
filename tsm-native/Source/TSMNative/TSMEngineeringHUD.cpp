@@ -6,6 +6,7 @@
 #include "HAL/FileManager.h"
 #include "Misc/Paths.h"
 #include "TSMEngineeringRuntimeSubsystem.h"
+#include "TSMExperienceSubsystem.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/Input/SButton.h"
@@ -72,6 +73,28 @@ public:
                         .OnClicked(this, &STSMEngineeringDashboard::Collapse)
                     ]
                 ]
+                + SVerticalBox::Slot().AutoHeight().Padding(0, 8, 0, 0)
+                [
+                    SNew(SHorizontalBox)
+                    + SHorizontalBox::Slot().AutoWidth().Padding(0, 0, 8, 0)
+                    [
+                        SNew(SButton)
+                        .Text(FText::FromString(TEXT("LIVING RIVER VALLEY")))
+                        .OnClicked(this, &STSMEngineeringDashboard::OpenLivingRiver)
+                    ]
+                    + SHorizontalBox::Slot().AutoWidth().Padding(0, 0, 8, 0)
+                    [
+                        SNew(SButton)
+                        .Text(FText::FromString(TEXT("SCENARIO SANDBOX")))
+                        .OnClicked(this, &STSMEngineeringDashboard::OpenScenarioSandbox)
+                    ]
+                    + SHorizontalBox::Slot().AutoWidth()
+                    [
+                        SNew(SButton)
+                        .Text(FText::FromString(TEXT("EVIDENCE STORYBOARD")))
+                        .OnClicked(this, &STSMEngineeringDashboard::OpenEvidenceStoryboard)
+                    ]
+                ]
                 + SVerticalBox::Slot().AutoHeight().Padding(0, 12, 0, 0)
                 [
                     SAssignNew(ResultText, STextBlock)
@@ -83,6 +106,59 @@ public:
     }
 
 private:
+    UTSMExperienceSubsystem* Experience() const
+    {
+        if (!OwnerHUD.IsValid()) { return nullptr; }
+        const UGameInstance* Instance = OwnerHUD->GetGameInstance();
+        return Instance ? Instance->GetSubsystem<UTSMExperienceSubsystem>() : nullptr;
+    }
+
+    FReply OpenLivingRiver()
+    {
+        if (UTSMExperienceSubsystem* Subsystem = Experience())
+        {
+            Subsystem->SetWorkspace(ETSMExperienceWorkspace::LivingRiverValley);
+            const FTSMLivingRiverState Scene = Subsystem->InspectLivingRiverValley(
+                ETSMExperienceClock::Cinematic, FDateTime::UtcNow().ToIso8601());
+            ResultText->SetText(FText::FromString(FString::Printf(
+                TEXT("LIVING RIVER // %s\\nLocal snapshot: %s\\n")
+                TEXT("Clock: cinematic (not observation). Manifest presence alone is not integrity verification."),
+                *Scene.DataState, *Scene.DataRoot)));
+        }
+        return FReply::Handled();
+    }
+
+    FReply OpenScenarioSandbox()
+    {
+        if (UTSMExperienceSubsystem* Subsystem = Experience())
+        {
+            Subsystem->SetWorkspace(ETSMExperienceWorkspace::EngineeringScenarioSandbox);
+            // No site measurements or placeholder rainfall are passed as real inputs.
+            const FTSMScenarioScreenInput MissingInputs;
+            const FTSMScenarioScreenResult Result = Subsystem->ScreenBermConcept(MissingInputs);
+            ResultText->SetText(FText::FromString(FString::Printf(
+                TEXT("SCENARIO SANDBOX // %s\\n")
+                TEXT("Requires source SHA-256, CRS, vertical datum and operator-entered SI geometry. ")
+                TEXT("Bind through the Blueprint-callable experience subsystem; no scenario was simulated."),
+                *Result.Status)));
+        }
+        return FReply::Handled();
+    }
+
+    FReply OpenEvidenceStoryboard()
+    {
+        if (UTSMExperienceSubsystem* Subsystem = Experience())
+        {
+            Subsystem->SetWorkspace(ETSMExperienceWorkspace::EvidenceToCinemaStoryboard);
+            ResultText->SetText(FText::FromString(TEXT(
+                "EVIDENCE STORYBOARD // REVIEW_REQUIRED\\n")
+                TEXT("Add source-attributed shots and cinematic-only shots using the native ")
+                TEXT("experience subsystem. Export produces a JSON shot plan, not a rendered film, ")
+                TEXT("and cannot certify source content or alter model outputs.")));
+        }
+        return FReply::Handled();
+    }
+
     FReply Run100Year()
     {
         // Never evaluate FTSMEngineeringInputs' illustrative defaults as an
