@@ -24,6 +24,7 @@ struct FTSMLivingRiverState
 
     UPROPERTY(BlueprintReadOnly) ETSMExperienceClock Clock = ETSMExperienceClock::Cinematic;
     UPROPERTY(BlueprintReadOnly) FString ClockUtcIso8601;
+    UPROPERTY(BlueprintReadOnly) bool bClockTimestampValid = false;
     UPROPERTY(BlueprintReadOnly) FString DataRoot;
     UPROPERTY(BlueprintReadOnly) bool bDataManifestPresent = false;
     UPROPERTY(BlueprintReadOnly) bool bDataManifestContentsVerified = false;
