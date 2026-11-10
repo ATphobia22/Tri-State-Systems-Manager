@@ -120,3 +120,28 @@ Official datum and input provenance references:
   https://www.usgs.gov/3d-elevation-program/3dep-spatial-metadata
 - Unreal 5.8 GameInstance subsystem lifecycle:
   https://dev.epicgames.com/documentation/unreal-engine/programming-subsystems-in-unreal-engine
+
+## Unreal-specific automation (not executed by the static Node contract job)
+
+The C++ tests under `tsm-native/Source/TSMNative/Tests/` are compiled by
+the UE build pipeline when `WITH_DEV_AUTOMATION_TESTS` is enabled. They
+exercise the real native `UGameInstanceSubsystem` implementation, including
+the exact 2,000 m³ trapezoidal test case, missing/negative inputs,
+invalid UTC strings and unsourced evidence-backed shots.
+
+On an authorized UE5.8 Windows development runner with an Editor target,
+run the tests under Unreal Automation Framework using a command line in the
+form:
+
+```powershell
+& "$env:UE_ROOT\\Engine\\Binaries\\Win64\\UnrealEditor-Cmd.exe" `
+  "$PWD\\tsm-native\\TSMNative.uproject" `
+  -unattended -nop4 -nosplash -NullRHI `
+  '-ExecCmds=Automation RunTests TSM.Experiences; Quit' `
+  -log
+```
+
+An actual job must capture the UE test-result summary and process exit
+status; the command above is a proposed execution instruction, not proof
+it has run. The standard Shipping build is not an editor automation
+execution and does not prove these tests have passed.
