@@ -94,7 +94,30 @@ export default function RootLayout() {
         <aside id="tsm-sidebar" className={`tsm-sidebar${menuOpen ? ' open' : ''}`} style={{ width: 280, background: t.color.surface.deep, borderRight: `1px solid ${t.color.surface.card}`, padding: '1rem 0.75rem', flexShrink: 0, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <nav aria-label="Primary navigation" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>{nav.map((item) => <NavLink key={item.to} to={item.to} end={item.end} onClick={closeMenu} style={({ isActive }) => ({ display: 'flex', alignItems: 'center', minHeight: 44, padding: '0.5rem 0.75rem', borderRadius: t.radius.sm, fontSize: '0.8rem', fontWeight: 600, textDecoration: 'none', color: isActive ? t.color.accent.brand : t.color.text.secondary, background: isActive ? t.color.accent.brandSoft : 'transparent', border: isActive ? `1px solid ${t.color.accent.brandHairline}` : '1px solid transparent' })}>{item.label}</NavLink>)}</nav>
           <div style={{ marginTop: 4 }}><EngineeringSimSettings /></div>
-          <div style={{ marginTop: 'auto', padding: '0.75rem', fontSize: '0.65rem', color: t.color.text.secondary, borderTop: `1px solid ${t.color.surface.card}` }}><div style={{ color: t.color.status.success, marginBottom: 4 }}>● Trust Fabric Active</div><div>Technology informs.</div><div>Humans decide.</div><div style={{ marginTop: 6, color: t.color.text.secondary }}>Public scope: community river valley. No private property is an engineering anchor.</div></div>
+          <div style={{ marginTop: 'auto', padding: '0.75rem', fontSize: '0.65rem', color: t.color.text.secondary, borderTop: `1px solid ${t.color.surface.card}` }}>
+            <div style={{ color: t.color.status.success, marginBottom: 4 }}>● Trust Fabric Active</div>
+            <div>Technology informs.</div>
+            <div>Humans decide.</div>
+            <div style={{ marginTop: 6 }}>Public scope: community river valley. No private property is an engineering anchor.</div>
+            <div style={{ marginTop: 12, paddingTop: 10, borderTop: `1px solid ${t.color.surface.card}` }}>
+              <a href="https://github.com/sponsors/ATphobia22" target="_blank" rel="noopener noreferrer" style={{ color: t.color.accent.brand, fontWeight: 600, fontSize: '0.75rem' }}>
+                Support this open-source project (optional)
+              </a>
+              <div style={{ marginTop: 4 }}>The console is free. No contribution is needed to access public features.</div>
+              <details style={{ marginTop: 8 }}>
+                <summary style={{ cursor: 'pointer', minHeight: 32 }}>View GitHub Sponsors card</summary>
+                <iframe
+                  title="Sponsor ATphobia22 on GitHub"
+                  src="https://github.com/sponsors/ATphobia22/card"
+                  loading="lazy"
+                  referrerPolicy="no-referrer"
+                  width="600"
+                  height="225"
+                  style={{ width: '100%', maxWidth: '600px', height: 225, border: 0, marginTop: 8 }}
+                />
+              </details>
+            </div>
+          </div>
         </aside>
         <main id="main-content" tabIndex={-1} style={{ flex: 1, overflow: 'auto', background: t.color.surface.base, minWidth: 0 }}>
           <div style={{ padding: '0.75rem 1rem 0' }}><StageAuthorityBanner provisional={provisional} isSimulationDemo={false} verticalReference="GAGE_DATUM" conversionApplied={stage?.conversion_applied ?? false} disclaimer={stageDisclaimer} finding={stage?.qualifier === 'P' ? `USGS qualifier P — subject to revision. Discharge: ${stage.discharge_cfs ?? 'unavailable'} cfs.` : undefined} /></div>
