@@ -118,6 +118,31 @@
                 }
               }
             }
+          },
+          {
+            "if": {
+              "properties": {
+                "cinematicOnly": {
+                  "const": true
+                }
+              },
+              "required": [
+                "cinematicOnly"
+              ]
+            },
+            "then": {
+              "properties": {
+                "sourceId": {
+                  "const": ""
+                },
+                "sourceSha256": {
+                  "const": ""
+                },
+                "authorityClass": {
+                  "const": ""
+                }
+              }
+            }
           }
         ]
       }
