@@ -60,9 +60,12 @@ on:
         type: boolean
 permissions:
   contents: read
+# A deliberately requested UE Shipping run must not be cancelled when
+# routine CI, README or other source updates arrive while its runner is queued.
+# Other CI retains per-ref cancellation to reduce wasted runner time.
 concurrency:
-  group: tsm-native-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ format('tsm-native-{0}-{1}', github.ref, ((github.event_name == 'workflow_dispatch' && inputs.package_windows) || (github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[TSM-UE-PACKAGE]'))) && github.run_id || 'ci') }}
+  cancel-in-progress: ${{ !((github.event_name == 'workflow_dispatch' && inputs.package_windows) || (github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[TSM-UE-PACKAGE]'))) }}
 jobs:
   workflow-structure:
     runs-on: ubuntu-24.04
@@ -88,6 +91,7 @@ jobs:
           node --test tsm-native/tests/native-spatial-provenance-contract.test.mjs
           node --test scripts/native/verify-ue-windows-shipping.test.mjs
           node --test scripts/native/one-shot-shipping-trigger.test.mjs
+          node --test scripts/native/release-queue-and-signing.test.mjs
           node --test scripts/native/native-map-pipeline.test.mjs
           node --test scripts/native/windows11-runner-preflight.test.mjs
           node --test scripts/native/native-data-manifest.test.mjs
@@ -397,6 +401,8 @@ jobs:
           UE_ROOT: ${{ vars.UE_ROOT }}
           TSM_SPATIALITE_DLL: ${{ vars.TSM_SPATIALITE_DLL }}
           TSM_LOCAL_TILESET: ${{ vars.TSM_LOCAL_TILESET }}
+          TSM_WINDOWS_SIGNING_CERT_SHA1: ${{ secrets.TSM_WINDOWS_SIGNING_CERT_SHA1 }}
+          TSM_WINDOWS_TIMESTAMP_URL: ${{ vars.TSM_WINDOWS_TIMESTAMP_URL }}
         run: |
           New-Item -ItemType Directory -Force dist/provenance | Out-Null
           Start-Transcript -Path dist/provenance/windows-ue-buildcookrun.log
