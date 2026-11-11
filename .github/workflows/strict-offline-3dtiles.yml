@@ -1,0 +1,41 @@
+name: TSM Strict Offline GLB Tileset Staging
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/geospatial/tsm_tileset_packager.py'
+      - 'scripts/geospatial/test_tsm_tileset_packager.py'
+      - '.github/workflows/strict-offline-3dtiles.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/geospatial/tsm_tileset_packager.py'
+      - 'scripts/geospatial/test_tsm_tileset_packager.py'
+      - '.github/workflows/strict-offline-3dtiles.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-tileset:
+    name: Existing GLB structural and local-asset validation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout without persisted credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Setup Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+      - name: Compile strict offline stager
+        run: python -m py_compile scripts/geospatial/tsm_tileset_packager.py scripts/geospatial/test_tsm_tileset_packager.py
+      - name: Reject fake or unsafe tiles and verify local GLB bytes
+        run: python -m unittest scripts.geospatial.test_tsm_tileset_packager -v
+      - name: Report scientific acceptance boundary
+        run: |
+          echo 'PASS: structural local GLB byte staging using synthetic test files'
+          echo 'NOT VERIFIED: surveyed building geometry, LOD2/LOD3, control-point placement, datum transform, headed UE5.8 render or Shipping package'

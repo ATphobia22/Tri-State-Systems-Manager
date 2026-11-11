@@ -29,9 +29,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install pyproj requests shapely pytest
 
-      - name: Step 1 - Run Tileset Packager & Staging
+      # Fixture-only ECEF checks; not a source-validated building inventory.
+      - name: Step 1 - Create clearly labeled CI geometry envelope
         run: |
-          python scripts/geospatial/tsm_tileset_packager.py
+          python scripts/geospatial/tsm_tileset_ci_fixture.py
+
+      - name: Step 1b - Validate strict offline tileset stager
+        run: |
+          python -m unittest scripts.geospatial.test_tsm_tileset_packager -v
 
       - name: Step 2 - Run ECEF Spatial Correctness Validator
         run: |
