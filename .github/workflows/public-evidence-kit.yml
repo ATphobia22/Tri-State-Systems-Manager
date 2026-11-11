@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - 'scripts/public_interest/**'
+      - 'scripts/geospatial/tsm_tileset_packager.py'
+      - 'scripts/geospatial/test_tsm_tileset_packager.py'
       - 'docs/public-interest/EVIDENCE-TIME-MACHINE-PASSPORT-2026-11-11.md'
       - '.github/workflows/public-evidence-kit.yml'
   push:
@@ -32,9 +34,9 @@ jobs:
         with:
           python-version: '3.12'
       - name: Compile offline program and tests
-        run: python -m py_compile scripts/public_interest/evidence_kit.py scripts/public_interest/test_evidence_kit.py
+        run: python -m py_compile scripts/public_interest/evidence_kit.py scripts/public_interest/test_evidence_kit.py scripts/geospatial/tsm_tileset_packager.py scripts/geospatial/test_tsm_tileset_packager.py
       - name: Test checksums, version diffs, uncertainty and information-only reports
-        run: python -m unittest scripts.public_interest.test_evidence_kit -v
+        run: python -m unittest scripts.public_interest.test_evidence_kit scripts.geospatial.test_tsm_tileset_packager -v
       - name: Preserve release-authority boundary
         run: |
           echo 'PASSED: synthetic offline evidence-integrity and report-contract tests'
