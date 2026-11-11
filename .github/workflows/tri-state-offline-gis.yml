@@ -34,6 +34,10 @@ jobs:
         run: |
           python scripts/geospatial/compile_tri_state_offline_layers.py \
             --repo-root . --output "${{ runner.temp }}/tsm-eight-county-offline-gis"
+      - name: Combine eight-county line layers into offline GeoPackage
+        run: |
+          python scripts/geospatial/build_tri_state_geopackage.py \
+            --manifest "${{ runner.temp }}/tsm-eight-county-offline-gis/offline-layers-manifest.json"
       - name: Verify all produced files against manifest SHA-256
         run: |
           python scripts/geospatial/verify_tri_state_offline_layers.py \
