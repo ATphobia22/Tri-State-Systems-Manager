@@ -1,4 +1,4 @@
 # CI-only optional government evidence acquisition environment.
 # Do not bundle in UE5.8 Windows Shipping; freeze reviewed wheels and hashes before redistribution.
-requests==2.32.5
+requests==2.33.0
 pyproj==3.7.2
