@@ -26,6 +26,10 @@ COPY artifacts/tsm-geospatial-tile-fabric-v1.json \
 # Vite's government PMTiles overlay imports the canonical root package;
 # mirror this source into the build stage, preserving its relative import path.
 COPY packages/government/src/ /app/packages/government/src/
+# New workspaces and engineering experiences import the canonical geo contracts.
+# Keep these inputs rooted at /app/packages/geo so Vite resolves the same
+# paths as the full repository checkout.
+COPY packages/geo/src/ /app/packages/geo/src/
 RUN npm run build
 
 FROM node:22-alpine AS runtime

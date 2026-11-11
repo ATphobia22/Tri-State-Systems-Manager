@@ -92,7 +92,7 @@ node scripts/native/verify-evidence-storyboard.mjs `
   --storyboard "C:\\TSMData\\storyboard\\river-tour.json" `
   --catalog "C:\\TSMData\\source-catalog.json" `
   --data-root "C:\\TSMData\\approved" `
-  --report "C:\\TSMData\\evidence\\river-tour-verified.json"
+  --report "C:\\TSMReceipts\\river-tour-verified.json"
 ```
 
 The source catalog is an **operator-reviewed** JSON document with
