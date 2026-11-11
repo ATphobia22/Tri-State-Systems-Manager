@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0.0",
+  "description": "Template for pinning individual 3DEP/vector tiles after local download. Copy fields into the main immutable manifest or a linked tile index.",
+  "example_entry": {
+    "id": "usgs-3dep-posey-tile-REPLACE",
+    "agency": "USGS",
+    "title": "REPLACE with product title",
+    "url": "https://apps.nationalmap.gov/",
+    "sha256": null,
+    "crs": "product-native",
+    "vertical_datum": "confirm_product_metadata",
+    "geoid_model": null,
+    "verification_state": "PENDING_DOWNLOAD",
+    "notes": "Set sha256 after sha256sum; never invent hashes"
+  }
+}
