@@ -17,8 +17,9 @@ python scripts/geospatial/verify_tri_state_offline_layers.py \
 
 Pull requests launch `.github/workflows/tri-state-offline-gis.yml`, uploading
 an **unreviewed** generated artifact (not adding generated binary files to Git).
-The artifact contains 16 EPSG:4326 GeoJSON vector layers, a clipped native
-CRS GeoTIFF, a visualization-only PNG, and a SHA-256 manifest. Integrate
+The artifact contains 16 EPSG:4326 GeoJSON vector layers, a combined OGC GeoPackage
+with source-count-checked roads and linear waterways, a clipped native-CRS
+GeoTIFF, a visualization-only transparent PNG, and a SHA-256 manifest. Integrate
 GeoJSON with a **local file or native tile reader** after independent device
 tests; MapLibre cannot consume this output as PMTiles unless the existing
 Tippecanoe PMTiles conversion is separately executed. Unreal and SceneKit
@@ -44,3 +45,16 @@ Source URLs and independently acquired checksums must be reconciled against
 official US Census TIGER, Indiana GIO, FEMA and state GIS metadata. Manifest
 SHA-256 checks verify local bytes only; they are not scientific validation,
 survey control or permit eligibility.
+
+## Native offline data package
+
+The `vector/tri-state-roads-water-2024.gpkg` contains two EPSG:4326 layers:
+`roads_2024` and `linearwater_2024`. All 34,880 source features are
+preserved with county GEOID and source-feature identifiers. The final bundle
+verifier checks the table row counts, GeoPackage CRS, all file byte counts,
+and all SHA-256 digests. The package can be opened by OGC GeoPackage clients,
+GDAL/QGIS and a properly configured SpatiaLite/GDAL native adapter.
+
+**Important:** GeoPackage/GeoJSON are *inputs* to cinematic rendering. Neither
+an Unreal `.umap` nor a SceneKit mesh nor a MapLibre PMTiles archive is built
+by this stage; those renderer-specific steps are still separate release gates.
