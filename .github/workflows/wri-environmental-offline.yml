@@ -1,0 +1,28 @@
+name: WRI environmental offline acquisition contract
+on:
+  push:
+    paths:
+      - 'data/registries/wri-environmental-catalog-v1.json'
+      - 'scripts/wri/**'
+      - 'tests/wri/**'
+      - '.github/workflows/wri-environmental-offline.yml'
+  pull_request:
+    paths:
+      - 'data/registries/wri-environmental-catalog-v1.json'
+      - 'scripts/wri/**'
+      - 'tests/wri/**'
+      - '.github/workflows/wri-environmental-offline.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  wri-offline-contract:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Validate registry and Python source
+        run: |
+          python3 -m json.tool data/registries/wri-environmental-catalog-v1.json > /dev/null
+          python3 -m py_compile scripts/wri/acquire_offline_asset.py tests/wri/test_acquire_offline_asset.py
+      - name: Exercise acquisition safety tests offline
+        run: python3 -m unittest discover -s tests/wri -p 'test_*.py' -v
