@@ -64,3 +64,25 @@ regulatory pipelines. A matching digest is not proof of provenance.
 
 **No WRI geospatial asset or tile is claimed staged, clipped, rendered or
 published on `main` by this catalog alone.**
+
+
+## Staging a verified downloaded file as an inactive scene layer
+
+After acquiring a WRI asset with the downloader and recording its receipt,
+run the separate offline staging verifier:
+
+```bash
+python scripts/wri/stage_layer_manifest.py \
+  --registry data/registries/wri-environmental-catalog-v1.json \
+  --asset /external/tsm-staging/wri/aqueduct40.zip \
+  --receipt /external/tsm-staging/wri/aqueduct40.zip.evidence.json \
+  --output /external/tsm-staging/wri/aqueduct40.layer.json
+```
+
+The verifier re-hashes the **actual staged bytes**, checks the acquisition
+receipt against the catalog ID, rejects unapproved external URLs and missing,
+oversize, or modified assets, and emits `tsm.wri.offline-layer.v1`. The
+result is **disabled, unreviewed, and not render-ready**. It does not turn
+a ZIP or raster into MapLibre, Unreal or SceneKit geometry; source-CRS,
+units, coverage and license gates still require review, AOI clipping, and
+separate tile-generation validation. It does not claim a file was acquired.
