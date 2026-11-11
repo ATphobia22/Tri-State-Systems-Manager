@@ -17,6 +17,23 @@ test("metrics API defaults to simulation demo and blocks OBSERVATION", async () 
   assert.equal(blocked.status, 403);
 });
 
+
+test("metrics auto IDs are unique and numeric input is validated", async () => {
+  resetMetricsStoreForTests();
+  const h = createMetricsHandlers();
+  const a = await h.postCreate({ title: "A" });
+  const b = await h.postCreate({ title: "B" });
+  assert.equal(a.status, 201);
+  assert.equal(b.status, 201);
+  assert.notEqual(a.body.id, b.body.id);
+  assert.equal((await h.getAll()).body.length, 2);
+  assert.equal((await h.postCreate({ title: "invalid", trendPercentage: "NaN" })).status, 422);
+  assert.equal((await h.postCreate({ title: "infinite", trendPercentage: "Infinity" })).status, 422);
+  assert.equal((await h.postCreate(null)).status, 422);
+  assert.equal((await h.postCreate({ id: 42, trendPercentage: 0 })).body.id, "42");
+  assert.equal((await h.getById("42")).status, 200);
+});
+
 test("external adapters remain fail-closed BOUNDARY_READY", () => {
   const status = listExternalAdapterStatus();
   assert.equal(status.length, 4);
