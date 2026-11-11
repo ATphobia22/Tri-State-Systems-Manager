@@ -10,6 +10,35 @@ TSM brings **maps, terrain, rivers, buildings, land parcels, environmental infor
 
 > **Foundational principle:** Technology informs people; human authority remains final. TSM provides scientific information and decision support, not official emergency instructions, a professional certification, or an agency determination.
 
+## Native Unreal Engine 5.8 application
+
+The native engineering experience uses [`TSMNative.uproject`](tsm-native/TSMNative.uproject) and the **TSMNative** C++ module. Its Mount Vernon and Point Township scenes are part of the Tri-State digital twin, alongside the separately maintained public web console.
+
+### Native features and functions
+
+| System | Implemented source and functionality |
+|---|---|
+| **Engineering command dashboard** | Native Slate-based [engineering HUD](tsm-native/Source/TSMNative/TSMEngineeringHUD.cpp) with runtime inspection and engineering status controls |
+| **World Partition scene support** | [GameMode](tsm-native/Source/TSMNative/TSMNativeGameMode.cpp) initializes the native HUD and creates a streaming prefetch anchor when the active map supports World Partition |
+| **Scientific engineering runtime** | [Engineering runtime subsystem](tsm-native/Source/TSMNative/TSMEngineeringRuntimeSubsystem.cpp) provides native engineering calculation and inspection integration |
+| **Native experience lifecycle** | [Experience subsystem](tsm-native/Source/TSMNative/TSMExperienceSubsystem.cpp) organizes application experience state |
+| **Terrain and building workflows** | Geospatial source acquisition, terrain and 3D building geometry preparation, GLB/3D Tiles tooling, source-identity reconciliation and validation |
+| **Hydrology and flood analysis** | Gage-datum validation, runoff and diffusion-wave screening, hydraulic-model evidence contracts, flood-zone and elevation comparisons |
+| **Geodesy and surveying** | Coordinate transformations, NAVD88/GEOID18 evidence, COGO, LandXML import, weighted least-squares adjustment and earthwork quantities |
+| **Evidence and review** | Source manifests, checksums, provenance records, missing-evidence states and human-reviewed engineering calculations |
+
+These are **repository source capabilities**, not a claim that every GIS layer is populated in a packaged scene or that every subsystem has been independently exercised in a Shipping executable. Additional scene-layer toggles, inspection screening, review-package tooling and offline startup smoke testing are being developed separately and are not described here as merged main-branch features.
+
+### Build and offline distribution
+
+The canonical Windows entry points are [`Build-TSMNativeWindows.ps1`](scripts/native/Build-TSMNativeWindows.ps1) and [`Build-TSMShipping.ps1`](scripts/build/Build-TSMShipping.ps1). The pipeline is designed to stage native dependencies, generate the native map, compile/cook/archive the UE5.8 Win64 Shipping application, and prepare an offline distribution. A successful script invocation must still be corroborated by its actual build logs and output artifacts.
+
+Release verification includes a real native map, packaged executable, TSMData manifest hashes, compatible CRS and vertical-datum metadata, headed terrain/building screenshots and performance measurements, and startup on a clean Windows 11 x64 system with networking disabled. **A process surviving startup is not proof of correct graphics, scientific data or complete offline operation.**
+
+### Scientific and regulatory boundaries
+
+TSM separates **observed water levels**, **modeled flood scenarios**, **FEMA effective flood-hazard data**, and **Indiana DNR planning layers**. Flood calculations and elevation comparisons require verified units, coordinate reference systems, vertical datums, timestamps and source provenance. Engineering reports support review; they are not automatically certified surveys, FEMA/USACE determinations, or authorized regulatory submissions.
+
 ## 1. What TSM can do
 
 | Capability | What it means in everyday language | Technical foundation |
