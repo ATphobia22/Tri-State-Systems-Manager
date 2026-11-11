@@ -23,7 +23,7 @@
       "verticalDatum": "NOT_APPLICABLE",
       "units": "INDICATOR_DEPENDENT",
       "license": "CC-BY-4.0",
-      "downloadPolicy": "OFFICIAL_ZIP_MANUAL_URL_SELECTION",
+      "downloadPolicy": "OFFICIAL_ZIP_DIRECT_DOWNLOAD_AVAILABLE",
       "renderLayer": "wri.water-risk",
       "authorityClass": "SUPPLEMENTARY_NONREGULATORY",
       "limitations": [
@@ -33,7 +33,9 @@
       ],
       "state": "CATALOG_ONLY",
       "downloaded": false,
-      "sha256": null
+      "sha256": null,
+      "officialDownloadURL": "https://files.wri.org/aqueduct/aqueduct-4-0-water-risk-data.zip",
+      "downloadURLVerification": "LINKED_FROM_WRI_OFFICIAL_DATA_PAGE_2026-11-11"
     },
     {
       "id": "wri.aqueduct.floods.v2",
