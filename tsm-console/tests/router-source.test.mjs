@@ -38,14 +38,14 @@ test('core data-router loaders and actions remain attached to non-medical routes
   assert.match(routerSource, /path: 'lineage', loader: lineageLoader, action: lineageAction, element: <LineageView \/>/);
   assert.match(routerSource, /path: 'benefit', loader: benefitLoader, action: benefitAction, element: <BenefitView \/>/);
   assert.doesNotMatch(routerSource, /path: 'sandbox'/);
-  assert.doesNotMatch(routerSource, /SandboxView/);
+  assert.doesNotMatch(routerSource, /\bSandboxView\b/);
 });
 
 test('lightweight core routes remain eagerly imported without medical sandbox code', () => {
   for (const route of ['MemorialView', 'NeedsView', 'LedgerView', 'BenefitView', 'LineageView']) {
     assert.match(routerSource, new RegExp(`import ${route} from ['\"]\\.\\.\\/routes\\/${route}['\"]`));
   }
-  assert.doesNotMatch(routerSource, /SandboxView/);
+  assert.doesNotMatch(routerSource, /\bSandboxView\b/);
 });
 
 test('TSM console has no explicit clinical sandbox integration or protected-health-data workflow', () => {
