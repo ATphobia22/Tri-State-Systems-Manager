@@ -84,5 +84,58 @@ class OfflineTilesetStageTests(unittest.TestCase):
                 stage(root / "tileset.json", root / "out")
 
 
+    def test_refuses_placeholder_tileset_without_content(self):
+        t = tileset()
+        t["root"]["children"] = []
+        with self.assertRaisesRegex(ValueError, "real local GLB"):
+            walk_tileset(t)
+
+    def test_refuses_implicit_tiling_until_subtrees_are_reviewed(self):
+        t = tileset()
+        t["root"]["implicitTiling"] = {"subdivisionScheme": "QUADTREE"}
+        with self.assertRaisesRegex(ValueError, "Implicit"):
+            walk_tileset(t)
+
+    def test_external_resources_inside_glb_are_not_claimed_offline(self):
+        doc = {"asset": {"version": "2.0"},
+               "buffers": [{"byteLength": 10, "uri": "https://remote.example/buffer.bin"}]}
+        raw = json.dumps(doc).encode()
+        raw += b" " * ((4 - len(raw) % 4) % 4)
+        glb = b"glTF" + struct.pack("<II", 2, 20 + len(raw))
+        glb += struct.pack("<I", len(raw)) + b"JSON" + raw
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "tile.glb").write_bytes(glb)
+            (root / "tileset.json").write_text(json.dumps(tileset()))
+            with self.assertRaisesRegex(ValueError, "external resource"):
+                stage(root / "tileset.json", root / "out")
+            self.assertFalse((root / "out").exists())
+
+    def test_nonexistent_and_symlinked_content_are_rejected(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "tileset.json").write_text(json.dumps(tileset()))
+            with self.assertRaisesRegex(ValueError, "Missing referenced tile"):
+                stage(root / "tileset.json", root / "missing")
+            (root / "target.glb").write_bytes(glb_bytes())
+            (root / "tile.glb").symlink_to(root / "target.glb")
+            with self.assertRaisesRegex(ValueError, "symlink"):
+                stage(root / "tileset.json", root / "symlink-out")
+
+    def test_stage_does_not_claim_validation_of_ecef_or_shipping(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "tile.glb").write_bytes(glb_bytes())
+            (root / "tileset.json").write_text(json.dumps(tileset()))
+            stage(root / "tileset.json", root / "out")
+            manifest = json.loads((root / "out" / "offline-asset-manifest.json").read_text())
+            self.assertEqual(manifest["authorityClass"], "DERIVED_STAGING")
+            self.assertFalse(manifest["geospatialPlacementIndependentlyVerified"])
+            self.assertFalse(manifest["verticalDatumVerified"])
+            self.assertFalse(manifest["sourceGeometrySurveyed"])
+            self.assertFalse(manifest["windowsShippingRuntimeVerified"])
+            self.assertFalse(manifest["regulatoryApproval"])
+
+
 if __name__ == "__main__":
     unittest.main()
