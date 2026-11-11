@@ -1,0 +1,12 @@
+Add under children of root (already partially present on main):
+
+  { path: 'experiences', hydrateFallbackElement: <RouteLoadingFallback label="experience hub" />, lazy: async () => ({ Component: (await import('../experiences/ExperienceHubView')).default }) },
+  { path: 'cinematic-engineering', ... CinematicEngineeringExperienceView },
+  { path: 'workspaces', ... WorkspaceShell },
+  { path: 'experience/living-river', ... },
+  { path: 'experience/scenario-sandbox', ... },
+  { path: 'experience/evidence-storyboard', ... },
+
+If /experiences 404s after pull, run:
+  node scripts/native/wire-experience-routes.mjs
+and ensure ExperienceHubView route is present (see ExperienceHubView.tsx).
