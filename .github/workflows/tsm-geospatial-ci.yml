@@ -1,0 +1,39 @@
+name: TSM Geospatial Pipeline & ECEF Validation CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  geospatial-validation:
+    name: Validate Tileset, ECEF Spatial Bounds & Asset Integrity
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Geospatial Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyproj requests shapely
+
+      - name: Step 1 - Run Tileset Packager & Staging
+        run: |
+          python scripts/geospatial/tsm_tileset_packager.py
+
+      - name: Step 2 - Run ECEF Spatial Correctness Validator
+        run: |
+          python scripts/geospatial/tsm_ecef_validator.py tiles/posey_county_offline/tileset.json
+
+      - name: Step 3 - Run Binary Integrity & Structure Tests
+        run: |
+          python tests/geospatial/test_tsm_tileset_validator.py
