@@ -15,6 +15,7 @@ import LocalDamsPanel from './LocalDamsPanel';
 import ScenarioStudioPanel from './ScenarioStudioPanel';
 import LiveShadowPanel from './LiveShadowPanel';
 import FacilityStatusDashboard from './FacilityStatusDashboard';
+import PublicEvidenceLens from './PublicEvidenceLens';
 import { SessionLiveShadow, type LiveShadowStatus } from '../lib/session-live-shadow';
 import { applyScenarioCascadeLayer } from '../lib/scenario-cascade-layer';
 import type { ScenarioStudioResult } from '../lib/scenario-studio';
@@ -82,6 +83,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
   const [damsVisible, setDamsVisible] = useState(true);
   const [cinematicActive, setCinematicActive] = useState(false);
   const [tiles3DVisible, setTiles3DVisible] = useState(initialUrl.tiles3d);
+  const [evidenceLensVisible, setEvidenceLensVisible] = useState(false);
   const [tiles3DStatus, setTiles3DStatus] = useState<'loading' | 'ready' | 'error' | 'disabled'>('disabled');
   const [governmentScene, setGovernmentScene] = useState<GovernmentSceneDetail>({
     status: 'CHECKING_GOVERNMENT_SNAPSHOT', agency: null, capturedAt: null,
@@ -520,6 +522,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
             { id: 'noaa-radar', pressed: noaaRadarVisible, onClick: () => setNoaaRadarVisible((v) => !v), label: `NOAA Radar ${noaaRadarVisible ? 'ON' : 'OFF'}` },
             { id: 'dams', pressed: damsVisible, onClick: () => setDamsVisible((v) => !v), label: `Local Dams ${damsVisible ? 'ON' : 'OFF'}` },
             { id: '3d', pressed: tiles3DVisible, onClick: () => setTiles3DVisible((v) => !v), label: `3D Terrain ${tiles3DVisible ? 'ON' : 'OFF'}` },
+            { id: 'evidence-lens', pressed: evidenceLensVisible, onClick: () => setEvidenceLensVisible((v) => !v), label: evidenceLensVisible ? 'Hide evidence lens' : 'Show evidence lens' },
             { id: 'review', pressed: reviewPitch, onClick: applyReviewPitch, label: reviewPitch ? 'Review pitch set' : 'Review pitch (55\u00b0)' },
             { id: 'mount-vernon', pressed: false, onClick: () => mapRef.current?.flyTo({ center: [-87.895, 37.932], zoom: 15, pitch: 60, bearing: -18, duration: 1600 }), label: 'Explore Mount Vernon' },
             { id: 'cinematic', pressed: cinematicActive, onClick: toggleCinematicTour, label: cinematicActive ? 'Stop cinematic' : 'Cinematic fly-through' },
@@ -545,6 +548,13 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
             </button>
           ))}
         </div>
+        {evidenceLensVisible && (
+          <PublicEvidenceLens
+            stage={liveStage}
+            government={governmentScene}
+            tiles={{ enabled: tiles3DVisible, status: tiles3DStatus }}
+          />
+        )}
         <div style={{ marginTop: 6, color: '#86efac' }}>
           Live water: button-only by default; opt-in session shadow available (auto-stops). Local dams = registry awareness only. Scenario cascade pins = SIMULATION_DEMO screening only. Facility dashboard = screening context, not SCADA. HEC-RAS remains SIMULATION_DEMO until evidence gates pass. Source required for verified datum conversion; unavailable stays unavailable. Human authority remains final.
         </div>
