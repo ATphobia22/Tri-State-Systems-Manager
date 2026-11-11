@@ -3,7 +3,7 @@
 import argparse
 import hashlib
 import json
-import math
+from datetime import datetime
 from pathlib import Path
 
 def within(root, value):
@@ -47,7 +47,11 @@ def validate(root, manifest):
                 raise ValueError("Hydraulic quantity missing/invalid")
             if not isinstance(asset.get("time_utc"), str) or not asset["time_utc"].endswith("Z"):
                 raise ValueError("Hydraulic frame requires UTC timestamp")
-            if not asset.get("model_id") or not asset.get("nodata"):
+            try:
+                datetime.fromisoformat(asset["time_utc"].replace("Z", "+00:00"))
+            except ValueError as exc:
+                raise ValueError("Hydraulic frame has malformed UTC timestamp") from exc
+            if not isinstance(asset.get("model_id"), str) or not asset["model_id"].strip() or asset.get("nodata") is None:
                 raise ValueError("Hydraulic frame requires model ID and explicit NoData")
             if asset.get("units") not in ("ftUS", "m", "ftUS/s", "m/s"):
                 raise ValueError("Hydraulic frame units invalid")
