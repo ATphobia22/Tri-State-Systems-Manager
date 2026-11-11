@@ -1,0 +1,41 @@
+name: TSM Public Evidence Time Machine and Passport
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/public_interest/**'
+      - 'docs/public-interest/EVIDENCE-TIME-MACHINE-PASSPORT-2026-11-11.md'
+      - '.github/workflows/public-evidence-kit.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/public_interest/**'
+      - 'docs/public-interest/EVIDENCE-TIME-MACHINE-PASSPORT-2026-11-11.md'
+      - '.github/workflows/public-evidence-kit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  public-evidence:
+    name: Offline evidence snapshots, uncertainty and parcel passports
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository without persistent credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Use pinned Python toolchain setup
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+      - name: Compile offline program and tests
+        run: python -m py_compile scripts/public_interest/evidence_kit.py scripts/public_interest/test_evidence_kit.py
+      - name: Test checksums, version diffs, uncertainty and information-only reports
+        run: python -m unittest scripts.public_interest.test_evidence_kit -v
+      - name: Preserve release-authority boundary
+        run: |
+          echo 'PASSED: synthetic offline evidence-integrity and report-contract tests'
+          echo 'NOT PROVED: downloads of current government datasets, geographic accuracy, parcel verification, survey/regulatory decisions, native UE Shipping packaging'
