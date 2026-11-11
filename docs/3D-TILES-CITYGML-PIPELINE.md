@@ -24,6 +24,32 @@ The repo's existing IGIO building-prism and tile packages are separate
 derived-visualization paths and must retain their own source-count and
 datum verification gates.
 
+## Strict offline GLB packaging gate
+
+Use `scripts/geospatial/tsm_tileset_packager.py` only with a **previously
+generated, physically present, locally referenced 3D Tiles 1.1 GLB tree**:
+
+```bash
+python3 scripts/geospatial/tsm_tileset_packager.py \
+  --tileset ./verified-glb-build/tileset.json \
+  --out ./new-offline-tileset/
+python3 -m unittest scripts.geospatial.test_tsm_tileset_packager -v
+```
+
+The source `tileset.json` and every referenced self-contained `.glb` must exist.
+The stager rejects unsafe paths, external URLs, missing content, symlinks,
+malformed GLB headers, degenerate bounds/transforms and unreviewed implicit
+subtrees. It produces a new `tileset.json`, copies the GLB bytes, and writes
+`offline-asset-manifest.json` with SHA-256 per file.
+
+**It no longer emits a placeholder Posey tileset or invents content.**
+Structural GLB staging does **not** validate feature coverage, geometry accuracy,
+NAVD88↔ellipsoid transformations, material provenance or UE5.8 rendering.
+These flags remain false in the manifest until independently demonstrated.
+For implicit 3D Tiles or external glTF resources, use a separately reviewed
+asset-closure/validator workflow. Do not claim Windows Shipping acceptance
+from this package alone.
+
 ## Toolchain
 
 | Tool | License | Role |
