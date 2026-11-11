@@ -1,0 +1,117 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-11-11T14:58:09.570Z",
+  "milestone": "A_SCIENTIFIC_PUBLIC_INTEREST",
+  "manifest_id": "tsm-immutable-source-manifest",
+  "manifest_sha256": "9bd9be44ba5889a2c576d7989491b9c37c9cadf067a8a59a0812b9ae0945aabd",
+  "source_count": 10,
+  "verification_state_counts": {
+    "REGISTERED": 8,
+    "PRODUCT_TABLE_VERIFIED": 1,
+    "ADAPTER_READONLY": 1
+  },
+  "sources": [
+    {
+      "id": "usgs-water-data-api-v1",
+      "agency": "USGS",
+      "title": "Water Data APIs v1",
+      "url": "https://api.waterdata.usgs.gov/",
+      "verification_state": "REGISTERED",
+      "sha256": null,
+      "vertical_datum": "station/product specific"
+    },
+    {
+      "id": "usgs-stac-parquet-archive",
+      "agency": "USGS",
+      "title": "STAC/Parquet historical water data service",
+      "url": "https://waterdata.usgs.gov/",
+      "verification_state": "REGISTERED",
+      "sha256": null,
+      "vertical_datum": null
+    },
+    {
+      "id": "noaa-nwps",
+      "agency": "NOAA/NWS",
+      "title": "National Water Prediction Service",
+      "url": "https://api.water.noaa.gov/",
+      "verification_state": "REGISTERED",
+      "sha256": null,
+      "vertical_datum": "GAGE_DATUM for stage; product tables for zeros"
+    },
+    {
+      "id": "noaa-nwps-mtvi3",
+      "agency": "NOAA/NWS",
+      "title": "Ohio River at Mount Vernon (MTVI3)",
+      "url": "https://water.noaa.gov/gauges/mtvi3",
+      "verification_state": "PRODUCT_TABLE_VERIFIED",
+      "sha256": null,
+      "vertical_datum": "Gage zero 318.59 ft NAVD88 (product table)"
+    },
+    {
+      "id": "usgs-3dep-lidarexplorer",
+      "agency": "USGS",
+      "title": "3DEP / LidarExplorer",
+      "url": "https://apps.nationalmap.gov/lidar-explorer/",
+      "verification_state": "REGISTERED",
+      "sha256": null,
+      "vertical_datum": "typically NAVD88 for CONUS DEMs — confirm product"
+    },
+    {
+      "id": "fema-nfhl-msc",
+      "agency": "FEMA",
+      "title": "NFHL / MSC FIRM FIS",
+      "url": "https://msc.fema.gov",
+      "verification_state": "REGISTERED",
+      "sha256": null,
+      "vertical_datum": null
+    },
+    {
+      "id": "ngs-geoid18",
+      "agency": "NOAA NGS",
+      "title": "GEOID18",
+      "url": "https://geodesy.noaa.gov/GEOID/GEOID18/",
+      "verification_state": "REGISTERED",
+      "sha256": null,
+      "vertical_datum": "ellipsoidal ↔ orthometric path"
+    },
+    {
+      "id": "ngs-vdatum",
+      "agency": "NOAA NGS",
+      "title": "VDatum",
+      "url": "https://vdatum.noaa.gov/",
+      "verification_state": "REGISTERED",
+      "sha256": null,
+      "vertical_datum": null
+    },
+    {
+      "id": "indiana-igio",
+      "agency": "State of Indiana / IGIO",
+      "title": "Indiana geospatial / parcels / imagery services",
+      "url": "https://www.in.gov/iot/gis/",
+      "verification_state": "REGISTERED",
+      "sha256": null,
+      "vertical_datum": null
+    },
+    {
+      "id": "usace-hec-ras-hdf5",
+      "agency": "USACE HEC",
+      "title": "HEC-RAS HDF5 results (imported)",
+      "url": "https://www.hec.usace.army.mil/software/hec-ras/",
+      "verification_state": "ADAPTER_READONLY",
+      "sha256": null,
+      "vertical_datum": null
+    }
+  ],
+  "limitations": [
+    "Manifest registration is not full binary hash verification of multi-GB products",
+    "Assembling sources does not validate engineering conclusions",
+    "HEC-RAS entries are read-only import contracts",
+    "Milestone B (UE Shipping offline) is separate"
+  ],
+  "policy": {
+    "human_authority_final": true,
+    "assembling_evidence_is_not_validating_conclusions": true,
+    "no_auto_loma": true,
+    "gage_zero_requires_product_match": true
+  }
+}
