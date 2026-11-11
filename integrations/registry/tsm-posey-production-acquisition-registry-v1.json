@@ -1,0 +1,92 @@
+{
+  "schema_version": "1.0.0",
+  "manifest_id": "tsm-posey-production-acquisition",
+  "generated_at": "2026-11-11",
+  "policy": {
+    "no_invented_sha256": true,
+    "no_hardcoded_site_geoid_as_truth": true,
+    "hlod_requires_glb_not_json_receipts": true,
+    "human_authority_final": true
+  },
+  "note": "Portal URLs are registered for operator download. sha256 remains null until files are measured locally after download. Fake hex strings are forbidden.",
+  "datasets": [
+    {
+      "id": "indiana-3dep-2016-2020-posey",
+      "category": "usgs_3dep_lidar_dem",
+      "source_name": "Indiana Statewide QL2 3DEP LiDAR / DEM (Posey collected 2020)",
+      "portals": [
+        {
+          "name": "Purdue Digital Forestry / Indiana LiDAR tile portal",
+          "url": "https://lidar.digitalforestry.org/"
+        },
+        {
+          "name": "IGIC countywide LiDAR and DEM tiles",
+          "url": "https://www.igic.org/countywide-lidar-and-dem-tiles"
+        },
+        {
+          "name": "USGS LidarExplorer",
+          "url": "https://apps.nationalmap.gov/lidar-explorer/"
+        },
+        {
+          "name": "USGS The National Map download",
+          "url": "https://apps.nationalmap.gov/downloader/"
+        }
+      ],
+      "target_path": "data/raw_usgs/",
+      "formats": ["laz", "las", "tif", "img"],
+      "vertical_datum": "confirm product metadata (often NAVD88 for CONUS DEM)",
+      "geoid_model": null,
+      "geoid_offset_m": null,
+      "sha256": null,
+      "verification_state": "PORTAL_REGISTERED_PENDING_DOWNLOAD"
+    },
+    {
+      "id": "indiana-building-footprints",
+      "category": "building_footprints",
+      "source_name": "IndianaMap / IGIO building footprints programs",
+      "portals": [
+        {
+          "name": "IndianaMap",
+          "url": "https://www.indianamap.org/"
+        },
+        {
+          "name": "Indiana GIS / IGIO",
+          "url": "https://www.in.gov/iot/gis/"
+        }
+      ],
+      "target_path": "data/raw_vectors/",
+      "formats": ["geojson", "shp"],
+      "coordinate_system": "confirm product (often State Plane or WGS84)",
+      "sha256": null,
+      "verification_state": "PORTAL_REGISTERED_PENDING_DOWNLOAD",
+      "notes": "Unknown heights remain null; no invented LOD2 roofs"
+    },
+    {
+      "id": "usace-hec-ras-readonly",
+      "category": "hydrodynamic",
+      "source_name": "HEC-RAS 2D results (agency models when available)",
+      "portals": [
+        {
+          "name": "USACE HEC-RAS",
+          "url": "https://www.hec.usace.army.mil/software/hec-ras/"
+        }
+      ],
+      "target_path": "tiles/posey_county_offline/hec_ras/",
+      "formats": ["hdf", "hdf5"],
+      "sha256": null,
+      "verification_state": "ADAPTER_READONLY",
+      "notes": "Read-only visualization; TSM does not calibrate hydraulics"
+    }
+  ],
+  "gate4": {
+    "hlod_production_certified_requires": [
+      "tiles/posey_county_offline/tileset.json authority not DERIVED_STAGING",
+      "one or more .glb under tiles/posey_county_offline/",
+      "ECEF validator exit 0"
+    ],
+    "ue58_shipping_airgap_certified_requires": [
+      "Win64 Shipping executable on disk",
+      "air-gap acceptance log from Test-TSMShippingRuntime.ps1"
+    ]
+  }
+}
