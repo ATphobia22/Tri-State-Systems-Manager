@@ -89,7 +89,7 @@ def inspect_model(model, source: dict, declared_vertical_datum: str | None = Non
             "eastings": _numeric(getattr(operation, "Eastings", None), "Eastings"),
             "northings": _numeric(getattr(operation, "Northings", None), "Northings"),
             "orthogonalHeight": _numeric(getattr(operation, "OrthogonalHeight", None), "OrthogonalHeight"),
-            "scale": _numeric(getattr(operation, "Scale", None) or 1.0, "Scale"),
+            "scale": _numeric(getattr(operation, "Scale", None) if getattr(operation, "Scale", None) is not None else 1.0, "Scale"),
             "axisAbscissa": _numeric(getattr(operation, "XAxisAbscissa", None) if getattr(operation, "XAxisAbscissa", None) is not None else 1.0, "XAxisAbscissa"),
             "axisOrdinate": _numeric(getattr(operation, "XAxisOrdinate", None) if getattr(operation, "XAxisOrdinate", None) is not None else 0.0, "XAxisOrdinate"),
         }
