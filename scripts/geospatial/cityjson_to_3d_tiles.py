@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
-"""Blueprint P1.5 — CityJSON → Space graph GeoJSON → minimal 3D Tiles 1.1 tileset.
+"""CityJSON → evidence-first 3D Tiles staging, NOT an automatic renderable tileset.
 
-Chains citygml_compiler outputs into a DERIVED tileset shell that existing
-build-building-3d-tiles / implicit builders can consume or replace content URIs.
+The previous implementation advertised a .geojson file as OGC 3D Tiles 1.1
+renderable tile content and treated raw Z as ellipsoidal height. GeoJSON is
+an intermediate footprint representation, not glTF/GLB tile content. Until
+actual geometry, CRS, units, datum and placement are independently validated,
+write a candidate manifest rather than a misleading tileset.json.
 
-Usage:
-  python3 cityjson_to_3d_tiles.py input.city.json -o out_dir/
-  python3 cityjson_to_3d_tiles.py --self-test
+Usage: python scripts/geospatial/cityjson_to_3d_tiles.py input.city.json -o out/
+       python scripts/geospatial/cityjson_to_3d_tiles.py --self-test
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
-import math
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -45,54 +47,55 @@ def _bbox_from_features(fc: Dict[str, Any]) -> Optional[Tuple[float, float, floa
     return min(xs), min(ys), min(zs), max(xs), max(ys), max(zs)
 
 
-def _region_radians(west: float, south: float, east: float, north: float, zmin: float, zmax: float) -> List[float]:
-    return [
-        math.radians(west),
-        math.radians(south),
-        math.radians(east),
-        math.radians(north),
-        zmin,
-        max(zmax, zmin + 1.0),
-    ]
+def build_candidate_manifest(fc: Dict[str, Any]) -> Dict[str, Any]:
+    """Stage data for a *future* 3D Tiles build. This is not a tileset.
 
-
-def build_tileset_from_geojson(fc: Dict[str, Any], content_uri: str = "buildings.geojson") -> Dict[str, Any]:
+    Never interpret raw projected X/Y as longitude/latitude or NAVD88 Z as
+    ellipsoidal height. The actual GLB, source-to-ECEF transformation, datum
+    provenance, geometric error and material inputs require separate gates.
+    """
+    if fc.get("type") != "FeatureCollection":
+        raise ValueError("Expected GeoJSON FeatureCollection")
+    features = fc.get("features")
+    if not isinstance(features, list):
+        raise ValueError("GeoJSON features must be an array")
+    geo_crs = (fc.get("crs") or {}).get("properties") or {}
+    source_crs = geo_crs.get("name")
     bbox = _bbox_from_features(fc)
-    if bbox is None:
-        region = _region_radians(-88.1, 37.7, -87.7, 38.2, 0.0, 200.0)
-        ge = 1000.0
-    else:
-        west, south, zmin, east, north, zmax = bbox
-        region = _region_radians(west, south, east, north, zmin, zmax)
-        span = max(east - west, north - south)
-        ge = max(50.0, span * 111_000.0 * 0.25)
-
-    n = len(fc.get("features") or [])
+    ids = [str((f.get("properties") or {}).get("id") or "")
+           for f in features if isinstance(f, dict)]
+    lods: Dict[str, int] = {}
+    for f in features:
+        lod = str((f.get("properties") or {}).get("lod") or "UNKNOWN")
+        lods[lod] = lods.get(lod, 0) + 1
+    canonical_geojson = json.dumps(fc, separators=(",", ":"), sort_keys=True,
+                                   ensure_ascii=True, allow_nan=False).encode("utf-8")
     return {
-        "asset": {
-            "version": "1.1",
-            "tilesetVersion": "1.0.0",
-            "extras": {
-                "tsm": {
-                    "authorityClass": "DERIVED",
-                    "source": "cityjson_to_3d_tiles",
-                    "featureCount": n,
-                    "engineeringUse": False,
-                    "regulatoryUse": False,
-                }
-            },
-        },
-        "geometricError": ge,
-        "root": {
-            "boundingVolume": {"region": region},
-            "geometricError": ge * 0.5,
-            "refine": "REPLACE",
-            "content": {"uri": content_uri},
-            "extras": {
-                "tsmStateWordLayoutVersion": 1,
-                "authorityClass": "DERIVED",
-            },
-        },
+        "schema": "tsm.geospatial.cityjson-tiles-candidate.v1",
+        "authorityClass": "DERIVED",
+        "renderable": False,
+        "regulatoryUse": False,
+        "engineeringUse": False,
+        "sourceCrs": source_crs,
+        "sourceGeojsonSha256": hashlib.sha256(canonical_geojson).hexdigest(),
+        "sourceFeatureCount": len(features),
+        "sourceIdCount": len({identifier for identifier in ids if identifier}),
+        "lodCounts": dict(sorted(lods.items())),
+        "rawInputBounds": list(bbox) if bbox is not None else None,
+        "geodeticPlacementVerified": False,
+        "verticalDatumVerified": False,
+        "lengthUnitsVerified": False,
+        "geometryExported": False,
+        "materialsVerified": False,
+        "renderableContentUri": None,
+        "requiredNextGates": [
+            "IFC/CityJSON identity and geometry topology",
+            "horizontal CRS and explicit transformation to WGS84/ECEF",
+            "source vertical datum and geoid-backed height transformation",
+            "verified linear units and reference control points",
+            "actual glTF/GLB mesh export with source metadata",
+            "OGC 3D Tiles 1.1 validation and headed rendering",
+        ],
     }
 
 
@@ -105,10 +108,13 @@ def convert_cityjson_file(path: Path, out_dir: Path) -> Dict[str, Any]:
         fc_path.write_text(json.dumps(fc, separators=(",", ":")), encoding="utf-8")
     else:
         fc = json.loads(fc_path.read_text(encoding="utf-8"))
-    tileset = build_tileset_from_geojson(fc, content_uri="buildings.geojson")
-    tileset_path = out_dir / "tileset.json"
-    tileset_path.write_text(json.dumps(tileset, indent=2), encoding="utf-8")
-    return {"tileset": str(tileset_path), "geojson": str(fc_path), "features": len(fc.get("features") or [])}
+    candidate = build_candidate_manifest(fc)
+    candidate["sourceCityjsonSha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
+    candidate_path = out_dir / "tileset-candidate.json"
+    candidate_path.write_text(json.dumps(candidate, indent=2, sort_keys=True) + "\\n", encoding="utf-8")
+    return {"tileset": None, "candidate": str(candidate_path),
+            "geojson": str(fc_path), "features": len(fc.get("features") or []),
+            "renderable": False}
 
 
 def self_test() -> None:
@@ -141,14 +147,17 @@ def self_test() -> None:
         }
         result = compile_cityjson(doc)
         fc = result_to_geojson(result)
-        ts = build_tileset_from_geojson(fc)
-        assert ts["asset"]["version"] == "1.1"
-        assert ts["root"]["content"]["uri"] == "buildings.geojson"
+        ts = build_candidate_manifest(fc)
+        assert ts["renderable"] is False
+        assert ts["renderableContentUri"] is None
+        assert "root" not in ts
         print("cityjson_to_3d_tiles self-test OK (inline)", result.stats)
         return
     out = Path("/tmp/cityjson_tiles_test")
     info = convert_cityjson_file(fixture, out)
-    print("cityjson_to_3d_tiles self-test OK", info)
+    assert info["renderable"] is False
+    assert not (out / "tileset.json").exists()
+    print("cityjson_to_3d_tiles candidate self-test OK", info)
 
 
 def main(argv: Optional[List[str]] = None) -> int:
