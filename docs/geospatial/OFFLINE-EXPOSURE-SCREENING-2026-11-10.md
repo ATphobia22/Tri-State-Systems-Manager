@@ -26,7 +26,7 @@ python scripts/geospatial/screen-offline-exposure.py `
   --root "C:\TSMData\regional\incidents" `
   --hazard "reviewed-hazard-polygon-layer" `
   --assets "reviewed-asset-layer" `
-  --output "C:\TSMData\evidence\screening-receipt.json"
+  --output "C:\TSMReceipts\screening-receipt.json"
 ```
 
 The example layer IDs must correspond to operator-approved entries in
