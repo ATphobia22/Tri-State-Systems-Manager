@@ -17,9 +17,12 @@ def verify(manifest_path: Path) -> dict:
         raise ValueError("Unreviewed sources cannot imply regulatory authority")
     source = data.get("vector_assets", [])
     raster = data.get("posey_raster", {})
-    rows = source + [raster.get("geoTIFF"), raster.get("previewPNG")]
-    if len(source) != 16 or len(rows) != 18 or any(not isinstance(v, dict) for v in rows):
-        raise ValueError("Expected 16 county line layers and two Posey raster outputs")
+    geopackage = data.get("geopackage")
+    rows = source + [raster.get("geoTIFF"), raster.get("previewPNG"), geopackage]
+    if len(source) != 16 or len(rows) != 19 or any(not isinstance(v, dict) for v in rows):
+        raise ValueError("Expected 16 county line layers, 2 raster outputs and one GeoPackage")
+    if geopackage.get("format") != "OGC_GPKG" or geopackage.get("crs") != "EPSG:4326":
+        raise ValueError("Incorrect GeoPackage metadata")
     expected = {(c, k) for c in data.get("counties", {}) for k in ("roads", "linearwater")}
     actual = {(row.get("county_geoid"), Path(row["path"]).stem.split("-")[-1]) for row in source}
     if len(expected) != 16 or expected != actual:
@@ -43,6 +46,24 @@ def verify(manifest_path: Path) -> dict:
             raise ValueError(f"Checksum mismatch: {rel}")
         if row.get("enabled") is not False:
             raise ValueError("Unreviewed offline layer enabled unexpectedly")
+    import sqlite3
+    db_path = root / geopackage["path"]
+    counts = data.get("vector_counts", {})
+    expected_roads = sum(row.get("roads", 0) for row in counts.values())
+    expected_water = sum(row.get("linearwater", 0) for row in counts.values())
+    if geopackage.get("layers") != {
+        "roads_2024": expected_roads, "linearwater_2024": expected_water
+    }:
+        raise ValueError("GeoPackage feature inventory differs from sources")
+    with sqlite3.connect(f"file:{db_path}?mode=ro", uri=True) as db:
+        for layer, count in (("roads_2024", expected_roads),
+                             ("linearwater_2024", expected_water)):
+            registered = db.execute("SELECT srs_id FROM gpkg_contents WHERE table_name=?", (layer,)).fetchone()
+            if registered != (4326,):
+                raise ValueError("GeoPackage layer CRS not EPSG:4326")
+            actual_count = db.execute(f"SELECT COUNT(*) FROM {layer}").fetchone()[0]
+            if actual_count != count:
+                raise ValueError("GeoPackage row count mismatch")
     return {"status": "INTEGRITY_ONLY_VERIFIED", "layers": len(rows),
             "review": "SOURCE_UNREVIEWED", "regulatory_use": False}
 
