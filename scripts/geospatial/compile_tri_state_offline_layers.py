@@ -160,22 +160,29 @@ def build_posey_terrain(root: Path, out: Path) -> dict:
         if not src.crs or src.count < 1:
             raise ValueError("DEM has no CRS or data bands")
         polygon = transform_geom("EPSG:4326", src.crs, features[0]["geometry"])
-        arr, transform_out = mask(src, [polygon], crop=True, indexes=1, filled=True)
-        if arr.size == 0 or arr.size > MAX_RASTER_PIXELS:
+        masked, transform_out = mask(src, [polygon], crop=True, indexes=1, filled=False)
+        if masked.size == 0 or masked.size > MAX_RASTER_PIXELS:
             raise ValueError("Unsafe or empty DEM clip")
-        nodata = src.nodata
-        valid = np.isfinite(arr)
-        if nodata is not None:
-            valid &= arr != nodata
+        source_data = np.ma.getdata(masked)
+        valid = (~np.ma.getmaskarray(masked)) & np.isfinite(source_data)
+        if src.nodata is not None:
+            valid &= source_data != src.nodata
         if not np.any(valid):
             raise ValueError("No real DEM samples intersect the Posey boundary")
-        if arr.shape[0] < 2 or arr.shape[1] < 2:
+        if masked.shape[0] < 2 or masked.shape[1] < 2:
             raise ValueError("DEM clip is too small")
+        # Fill all pixels outside the exact county polygon with a declared
+        # nodata marker. Never fabricate zero elevation around the boundary.
+        nodata = -9999.0
+        if np.any(source_data[valid] == nodata):
+            raise ValueError("Chosen nodata marker conflicts with source heights")
+        arr = np.where(valid, source_data, nodata).astype("float32")
         path = out / "raster" / "posey-dem-screening-2020.tif"
         path.parent.mkdir(parents=True, exist_ok=True)
         profile = src.profile.copy()
         profile.update(driver="GTiff", count=1, height=arr.shape[0], width=arr.shape[1],
-                       transform=transform_out, compress="deflate", tiled=True)
+                       transform=transform_out, compress="deflate", tiled=True,
+                       dtype="float32", nodata=nodata)
         with rasterio.open(path, "w", **profile) as dst:
             dst.write(arr, 1)
             dst.update_tags(TSM_REVIEW_STATE="UNREVIEWED", TSM_CLASS="SCREENING_ONLY",
