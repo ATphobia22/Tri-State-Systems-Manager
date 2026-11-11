@@ -60,6 +60,27 @@ def _numeric(value, label: str) -> float:
     return result
 
 
+def inspect_length_unit(model) -> dict:
+    """Recognize only unambiguous IFC SI length units; no inferred ft conversion."""
+    assignments = model.by_type("IfcUnitAssignment")
+    if len(assignments) != 1:
+        return {"sourceUnit": None, "metersPerModelUnit": None, "verified": False}
+    lengths = [u for u in getattr(assignments[0], "Units", [])
+               if getattr(u, "UnitType", None) == "LENGTHUNIT"]
+    if len(lengths) != 1:
+        return {"sourceUnit": None, "metersPerModelUnit": None, "verified": False}
+    unit = lengths[0]
+    if unit.is_a() != "IfcSIUnit" or getattr(unit, "Name", None) != "METRE":
+        return {"sourceUnit": str(getattr(unit, "Name", "unknown")),
+                "metersPerModelUnit": None, "verified": False}
+    prefix = getattr(unit, "Prefix", None)
+    factors = {None: 1.0, "MILLI": 0.001, "CENTI": 0.01, "DECI": 0.1, "KILO": 1000.0}
+    if prefix not in factors:
+        return {"sourceUnit": "METRE", "metersPerModelUnit": None, "verified": False}
+    return {"sourceUnit": "METRE" if prefix is None else str(prefix) + "METRE",
+            "metersPerModelUnit": factors[prefix], "verified": True}
+
+
 def inspect_model(model, source: dict, declared_vertical_datum: str | None = None,
                   expected_crs: str | None = None) -> dict:
     """Testable core: consume an actual IfcOpenShell model object, never heuristics."""
@@ -137,7 +158,8 @@ def inspect_model(model, source: dict, declared_vertical_datum: str | None = Non
             "verticalDatumSourceVerified": False,
             "placementState": placement,
             "controlPointsVerified": False,
-            "lengthUnitsVerified": False,
+            "lengthUnitsVerified": units["verified"],
+            "lengthUnits": units,
         },
         "geometry": {
             "meshesExported": 0,
