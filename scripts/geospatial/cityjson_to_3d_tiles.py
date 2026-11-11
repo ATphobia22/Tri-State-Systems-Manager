@@ -57,8 +57,8 @@ def build_candidate_manifest(fc: Dict[str, Any]) -> Dict[str, Any]:
     if fc.get("type") != "FeatureCollection":
         raise ValueError("Expected GeoJSON FeatureCollection")
     features = fc.get("features")
-    if not isinstance(features, list):
-        raise ValueError("GeoJSON features must be an array")
+    if not isinstance(features, list) or any(not isinstance(f, dict) for f in features):
+        raise ValueError("GeoJSON features must be an array of objects")
     geo_crs = (fc.get("crs") or {}).get("properties") or {}
     source_crs = geo_crs.get("name")
     bbox = _bbox_from_features(fc)
@@ -101,6 +101,8 @@ def build_candidate_manifest(fc: Dict[str, Any]) -> Dict[str, Any]:
 
 def convert_cityjson_file(path: Path, out_dir: Path) -> Dict[str, Any]:
     out_dir.mkdir(parents=True, exist_ok=True)
+    if (out_dir / "tileset.json").exists():
+        raise ValueError("Existing tileset.json may contain unverified renderable GeoJSON; use a clean output directory")
     result = compile_file(path, out_dir)
     fc_path = out_dir / "buildings.geojson"
     if not fc_path.is_file():
@@ -111,7 +113,7 @@ def convert_cityjson_file(path: Path, out_dir: Path) -> Dict[str, Any]:
     candidate = build_candidate_manifest(fc)
     candidate["sourceCityjsonSha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
     candidate_path = out_dir / "tileset-candidate.json"
-    candidate_path.write_text(json.dumps(candidate, indent=2, sort_keys=True) + "\\n", encoding="utf-8")
+    candidate_path.write_text(json.dumps(candidate, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return {"tileset": None, "candidate": str(candidate_path),
             "geojson": str(fc_path), "features": len(fc.get("features") or []),
             "renderable": False}
