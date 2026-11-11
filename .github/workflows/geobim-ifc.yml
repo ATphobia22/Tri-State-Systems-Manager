@@ -58,4 +58,4 @@ jobs:
       - name: Explicit release boundary
         run: |
           echo 'PASS: no-network IFC preflight metadata contracts'
-          echo 'NOT VERIFIED: installed IfcOpenShell IFC parser, mesh export, building LoD, 3D Tiles, Windows UE5.8 Shipping, agency or survey certification'
+          echo 'NOT VERIFIED: production IFC placement, mesh export, building LoD, 3D Tiles, Windows UE5.8 Shipping, agency or survey certification'
