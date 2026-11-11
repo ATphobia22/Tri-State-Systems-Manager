@@ -10,6 +10,29 @@ TSM brings **maps, terrain, rivers, buildings, land parcels, environmental infor
 
 > **Foundational principle:** Technology informs people; human authority remains final. TSM provides scientific information and decision support, not official emergency instructions, a professional certification, or an agency determination.
 
+## Native UE5.8 release and verification status (November 2026)
+
+The **canonical native application** is [`tsm-native/TSMNative.uproject`](tsm-native/TSMNative.uproject), with the `TSMNative` runtime module. Point Township and Mount Vernon are regional scenes within TSM, **not** a second Unreal project or `PointTownship` build target. Native Windows 11 x64 is designed for local/offline operation; the public web console is a separate experience.
+
+**Verified repository state:** [PR #553](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/553) merged immutable GitHub Actions pins into main at `4e322da993678c8643e462fb5a358f52d3d33dc8`. This commit is a CI-workflow change, **not** proof of a native Shipping executable. CI and branch status change after every commit; check [GitHub Actions](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions) and [open pull requests](https://github.com/ATphobia22/Tri-State-Systems-Manager/pulls) for the current result.
+
+| Native workstream | Location / review | Evidence boundary |
+|---|---|---|
+| Mount Vernon semantic scene layers, native HUD controls, offline visibility profiles and headed-build wrapper | [PR #559](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/559) | Source changes under review; do not infer real GIS scene population or a completed UE build |
+| Native inspection evidence validator | [PR #558](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/558) | JSON evidence screening; not a professional or agency compliance decision |
+| Elevation screening and reproducible review packages | [PR #557](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/557) | Requires verified parcel/source inputs; does not submit to FEMA or USACE |
+| Native cinematic HUD and headless evidence PDF work | [PR #556](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/556) | Under review; native visual/runtime acceptance remains separate |
+| Strict offline 3D Tiles packaging | [PR #555](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/555) | Needs independently passing geometry and packaging checks |
+| GeoBIM source evaluation | [PR #554](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/554) | Source evaluation is not verified building geometry or LoD certification |
+
+### Building and testing on an authorized Windows UE5.8 machine
+
+The main-branch pipeline entry points are [`scripts/native/Build-TSMNativeWindows.ps1`](scripts/native/Build-TSMNativeWindows.ps1) and [`scripts/build/Build-TSMShipping.ps1`](scripts/build/Build-TSMShipping.ps1). The additional headed build wrapper and startup smoke-test script are proposed in PR #559; **do not assume they exist on main before merging**. The full Windows release pipeline also requires native dependencies, map generation, packaging, signing and installer creation. An eight- or thirty-second process-survival check is only a startup smoke test.
+
+A **release-ready** claim requires separate evidence for all of the following: successful UE5.8 C++ compilation and BuildCookRun logs; a real native `.umap`; local source-attributed terrain/buildings/3D Tiles; staged TSMData file hashes and horizontal/vertical datum metadata; headed screenshots with FPS, VRAM and hardware details; and a clean Windows 11 x64 launch **with network disabled** and without Node, WebView or localhost services. None is established merely by passing TypeScript, Python, CI contract or source-static checks.
+
+**Scientific boundary:** FEMA NFHL effective mapping and Indiana DNR planning layers must remain distinguishable. Flood depths, HEC-RAS time-series, building freeboard and grant-review reports must preserve NoData, units, CRS, vertical datum, timestamps, source hashes and human review. A rendered flood scenario or generated PDF is not a regulatory determination, a certified survey, or an authorized agency filing.
+
 ## 1. What TSM can do
 
 | Capability | What it means in everyday language | Technical foundation |
