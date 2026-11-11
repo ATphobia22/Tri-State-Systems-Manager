@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Idempotent local/CI helper: ensure experience routes appear in router.tsx */
+/** Idempotent local/CI helper: ensure experience + public-interest routes appear in router.tsx */
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,21 +13,34 @@ if (!existsSync(routerPath)) {
 let text = readFileSync(routerPath, "utf8");
 let changed = false;
 
-const hubNeedle =
-  "{ path: 'cinematic-engineering', hydrateFallbackElement: <RouteLoadingFallback label=\"the cinematic engineering experience\" />, lazy: async () => ({ Component: (await import('../routes/CinematicEngineeringExperienceView')).default }) },";
-
-if (!text.includes("path: 'experiences'")) {
-  if (text.includes(hubNeedle)) {
-    const hubRoute =
-      "{ path: 'experiences', hydrateFallbackElement: <RouteLoadingFallback label=\"experience hub\" />, lazy: async () => ({ Component: (await import('../experiences/ExperienceHubView')).default }) },\n  " +
-      hubNeedle;
-    text = text.replace(hubNeedle, hubRoute);
+function ensureRoute(marker, block) {
+  if (text.includes(marker)) return;
+  const cinematic =
+    "{ path: 'cinematic', hydrateFallbackElement: <RouteLoadingFallback label=\"the cinematic 3D twin\" />, lazy: async () => ({ Component: (await import('../routes/CinematicView')).default }) },";
+  if (text.includes(cinematic)) {
+    text = text.replace(cinematic, `${cinematic}\n  ${block}`);
     changed = true;
-    console.log("wired /experiences hub");
-  } else if (text.includes("cinematic-engineering")) {
-    console.warn("cinematic-engineering present but hub needle mismatch — add experiences route manually");
+    console.log("wired", marker);
+    return;
+  }
+  const eng =
+    "{ path: 'cinematic-engineering', hydrateFallbackElement: <RouteLoadingFallback label=\"the cinematic engineering experience\" />, lazy: async () => ({ Component: (await import('../routes/CinematicEngineeringExperienceView')).default }) },";
+  if (text.includes(eng)) {
+    text = text.replace(eng, `${block}\n  ${eng}`);
+    changed = true;
+    console.log("wired", marker);
   }
 }
+
+ensureRoute(
+  "path: 'public-interest'",
+  "{ path: 'public-interest', hydrateFallbackElement: <RouteLoadingFallback label=\"public-interest finish\" />, lazy: async () => ({ Component: (await import('../routes/PublicInterestFinishView')).default }) },"
+);
+
+ensureRoute(
+  "path: 'experiences'",
+  "{ path: 'experiences', hydrateFallbackElement: <RouteLoadingFallback label=\"experience hub\" />, lazy: async () => ({ Component: (await import('../experiences/ExperienceHubView')).default }) },"
+);
 
 if (!text.includes("cinematic-engineering")) {
   const needle =
@@ -37,6 +50,7 @@ if (!text.includes("cinematic-engineering")) {
     process.exit(1);
   }
   const insert = `${needle}
+  { path: 'public-interest', hydrateFallbackElement: <RouteLoadingFallback label="public-interest finish" />, lazy: async () => ({ Component: (await import('../routes/PublicInterestFinishView')).default }) },
   { path: 'experiences', hydrateFallbackElement: <RouteLoadingFallback label="experience hub" />, lazy: async () => ({ Component: (await import('../experiences/ExperienceHubView')).default }) },
   { path: 'cinematic-engineering', hydrateFallbackElement: <RouteLoadingFallback label="the cinematic engineering experience" />, lazy: async () => ({ Component: (await import('../routes/CinematicEngineeringExperienceView')).default }) },
   { path: 'workspaces', hydrateFallbackElement: <RouteLoadingFallback label="workspace shell" />, lazy: async () => ({ Component: (await import('../workspaces/WorkspaceShell')).default }) },
