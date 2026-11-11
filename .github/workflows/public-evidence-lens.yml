@@ -1,0 +1,52 @@
+name: TSM Accessible Public Evidence Lens
+
+on:
+  pull_request:
+    paths:
+      - 'tsm-console/src/lib/public-evidence-lens.ts'
+      - 'tsm-console/src/components/PublicEvidenceLens.tsx'
+      - 'tsm-console/src/components/RealWorldTwinMap.tsx'
+      - 'tsm-console/tests/public-evidence-lens.test.ts'
+      - '.github/workflows/public-evidence-lens.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tsm-console/src/lib/public-evidence-lens.ts'
+      - 'tsm-console/src/components/PublicEvidenceLens.tsx'
+      - 'tsm-console/src/components/RealWorldTwinMap.tsx'
+      - 'tsm-console/tests/public-evidence-lens.test.ts'
+      - '.github/workflows/public-evidence-lens.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  uncertainty-lens:
+    name: Verify map evidence semantics and TypeScript
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout without credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tsm-console/package-lock.json
+      - name: Install pinned console dependencies
+        working-directory: tsm-console
+        run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
+      - name: Test source-status semantics without live external data
+        working-directory: tsm-console
+        run: ./node_modules/.bin/vitest run tests/public-evidence-lens.test.ts
+      - name: Typecheck map UI and shared packages
+        working-directory: tsm-console
+        run: ./node_modules/.bin/tsc --noEmit
+      - name: State release limitation
+        run: |
+          echo 'PASS: browser/MapLibre evidence-status UI contract, not actual government validation'
+          echo 'NOT VERIFIED: UE5.8 Shipping, native material hatching, parcel certification or real-time source availability'
