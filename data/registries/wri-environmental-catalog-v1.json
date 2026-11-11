@@ -1,0 +1,138 @@
+{
+  "schema": "tsm.wri.environmental-source-catalog.v1",
+  "compiledAtUTC": "2026-11-11",
+  "status": "CATALOG_ONLY",
+  "dataAcquired": false,
+  "engineeringUse": false,
+  "regulatoryUse": false,
+  "humanAuthorityFinal": true,
+  "authority": "World Resources Institute",
+  "licensePolicy": "Review per-dataset terms; Aqueduct 4.0 CC BY 4.0 with WRI attribution; verify third-party data restrictions.",
+  "delivery": "Online staging only; no iOS/Windows runtime network requests",
+  "aoiPolicy": "Clipping requires a verified IN/IL/KY county/AOI boundary; no unverified bounding box treated as county coverage.",
+  "datasets": [
+    {
+      "id": "wri.aqueduct40.basins",
+      "title": "Aqueduct 4.0 Current and Future Global Maps Data",
+      "page": "https://datasets.wri.org/datasets/aqueduct-global-maps-40-data",
+      "upstreamRepo": "https://github.com/wri/Aqueduct40",
+      "upstreamDictionary": "https://github.com/wri/Aqueduct40/blob/master/data_dictionary_water-risk-atlas.md",
+      "lastUpdated": "2026-09-22",
+      "coverage": "GLOBAL_HYDROBASIN_LEVEL_6",
+      "crs": "SOURCE_UNVERIFIED",
+      "verticalDatum": "NOT_APPLICABLE",
+      "units": "INDICATOR_DEPENDENT",
+      "license": "CC-BY-4.0",
+      "downloadPolicy": "OFFICIAL_ZIP_DIRECT_DOWNLOAD_AVAILABLE",
+      "renderLayer": "wri.water-risk",
+      "authorityClass": "SUPPLEMENTARY_NONREGULATORY",
+      "limitations": [
+        "Composite scores are lossy",
+        "Not a calibrated site water model",
+        "Use baseline annual/monthly and future annual fields per data dictionary"
+      ],
+      "state": "CATALOG_ONLY",
+      "downloaded": false,
+      "sha256": null,
+      "officialDownloadURL": "https://files.wri.org/aqueduct/aqueduct-4-0-water-risk-data.zip",
+      "downloadURLVerification": "LINKED_FROM_WRI_OFFICIAL_DATA_PAGE_2026-11-11"
+    },
+    {
+      "id": "wri.aqueduct.floods.v2",
+      "title": "Aqueduct Floods Hazard Maps Version 2",
+      "page": "https://datasets.wri.org/datasets/aqueduct-floods-hazard-maps",
+      "earthEngine": "WRI/Aqueduct_Flood_Hazard_Maps/V2",
+      "lastUpdated": "2026-09-22",
+      "modelVintage": "2020",
+      "coverage": "GLOBAL",
+      "resolutionMeters": 1000,
+      "crs": "SOURCE_UNVERIFIED",
+      "verticalDatum": "UNVERIFIED",
+      "units": "INUNDATION_DEPTH_METERS",
+      "license": "DATASET_LICENSE_REVIEW_REQUIRED",
+      "downloadPolicy": "MANUAL_OFFICIAL_RASTER_URL_SELECTION",
+      "renderLayer": "wri.regional-flood-scenario",
+      "authorityClass": "SUPPLEMENTARY_NONREGULATORY",
+      "limitations": [
+        "No flood-defense effects simulated",
+        "Do not use for backwater-dominated lowland rivers",
+        "No parcel-level flood determinations or levee engineering",
+        "Not effective FEMA FIRM or calibrated HEC-RAS"
+      ],
+      "state": "CATALOG_ONLY",
+      "downloaded": false,
+      "sha256": null
+    },
+    {
+      "id": "wri.dynamic-world",
+      "title": "Dynamic World land cover",
+      "page": "https://datasets.wri.org/datasets/dynamic-world",
+      "earthEngine": "GOOGLE/DYNAMICWORLD/V1",
+      "lastUpdated": "2024-10-10",
+      "coverage": "GLOBAL_S2_SCENES",
+      "resolutionMeters": 10,
+      "crs": "PER_EXPORT_UNVERIFIED",
+      "verticalDatum": "NOT_APPLICABLE",
+      "units": "CLASS_PROBABILITY_AND_CATEGORY",
+      "license": "DATASET_LICENSE_REVIEW_REQUIRED",
+      "downloadPolicy": "EARTH_ENGINE_AUTHENTICATED_EXPORT_REQUIRED",
+      "renderLayer": "wri.land-cover",
+      "authorityClass": "SUPPLEMENTARY_NONREGULATORY",
+      "limitations": [
+        "WRI catalog reports zero downloadable data files",
+        "Cloud and shadow masks required",
+        "Use confidence thresholds and source dates"
+      ],
+      "state": "CATALOG_ONLY",
+      "downloaded": false,
+      "sha256": null
+    },
+    {
+      "id": "wri.global-water-watch",
+      "title": "Global Water Watch",
+      "page": "https://www.globalwaterwatch.earth/",
+      "catalog": "https://www.wri.org/initiatives/global-water-watch",
+      "coverage": "GLOBAL_WATER_BODIES",
+      "crs": "SOURCE_UNVERIFIED",
+      "verticalDatum": "NOT_APPLICABLE",
+      "units": "SOURCE_DEPENDENT",
+      "license": "PER_PRODUCT_REVIEW_REQUIRED",
+      "downloadPolicy": "API_OR_BULK_ACCESS_NOT_VERIFIED",
+      "renderLayer": "wri.water-body-observation",
+      "authorityClass": "SUPPLEMENTARY_NONREGULATORY",
+      "limitations": [
+        "Satellite-derived water body observations, not USGS river stage",
+        "Update frequency and local coverage require verification"
+      ],
+      "state": "CATALOG_ONLY",
+      "downloaded": false,
+      "sha256": null
+    }
+  ],
+  "resources": [
+    {
+      "name": "WRI Resources",
+      "url": "https://www.wri.org/resources",
+      "topics": [
+        "Freshwater",
+        "Forests",
+        "Climate",
+        "Energy",
+        "Food",
+        "Land Use"
+      ]
+    },
+    {
+      "name": "WRI Data Applications",
+      "url": "https://www.wri.org/data/data-applications"
+    },
+    {
+      "name": "WRI Data Explorer",
+      "url": "https://datasets.wri.org/"
+    },
+    {
+      "name": "Aqueduct 4.0 official methods",
+      "url": "https://www.wri.org/research/aqueduct-40-updated-decision-relevant-global-water-risk-indicators"
+    }
+  ]
+}
