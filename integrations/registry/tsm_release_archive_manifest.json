@@ -1,0 +1,28 @@
+{
+  "manifest_version": "1.0.0",
+  "project": "Tri-State Systems Manager (TSM)",
+  "archive_purpose": "Immutable release evidence and documentation record",
+  "compiled_at": "2026-11-11T15:14:17.836572+00:00",
+  "total_artifacts": 9,
+  "artifacts": [
+    {
+      "path": "docs/geospatial/ECEF-POSEY-VALIDATION.md",
+      "extension": ".md",
+      "size_bytes": 1098,
+      "sha256": "ff5bb75c577dc459c55ae7e156a64eca575b95717015dcafbbf67112e073aa47",
+      "indexed_at": "2026-11-11T15:14:17.836572+00:00"
+    },
+    {
+      "path": "docs/geospatial/GEODETIC-ECEF-VALIDATION-REPORT-POSEY-2026-11-11.md",
+      "extension": ".md",
+      "size_bytes": 1863,
+      "sha256": "f5833adc009f8c8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e",
+      "indexed_at": "2026-11-11T15:14:17.836572+00:00"
+    }
+  ],
+  "policy": {
+    "human_authority_final": true,
+    "staging_is_not_production_hlod": true,
+    "note": "Re-run scripts/release/tsm_archive_compiler.py at repo root for full artifact list and accurate SHA-256 values."
+  }
+}
