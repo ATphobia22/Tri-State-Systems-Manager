@@ -65,6 +65,20 @@ class PreflightTests(unittest.TestCase):
         result = module.inspect_model(model, self.source, "NAVD88", "EPSG:2966")
         self.assertEqual(result["georeferencing"]["placementState"], "UNRESOLVED_DATUM_OR_CRS")
 
+    def test_si_length_units_meters_and_millimeters(self):
+        class UnitsModel:
+            def __init__(self, prefix):
+                self.prefix = prefix
+            def by_type(self, entity):
+                if entity == "IfcUnitAssignment":
+                    unit = SimpleNamespace(UnitType="LENGTHUNIT", Name="METRE", Prefix=self.prefix,
+                                           is_a=lambda: "IfcSIUnit")
+                    return [SimpleNamespace(Units=[unit])]
+                return []
+        self.assertEqual(module.inspect_length_unit(UnitsModel(None))["metersPerModelUnit"], 1.0)
+        self.assertEqual(module.inspect_length_unit(UnitsModel("MILLI"))["metersPerModelUnit"], 0.001)
+        self.assertFalse(module.inspect_length_unit(UnitsModel("MICRO"))["verified"])
+
     def test_duplicate_and_malformed_guid_rejected(self):
         for products in ([FakeProduct(A), FakeProduct(A)], [FakeProduct("bad")]):
             with self.assertRaises(module.PreflightError):
