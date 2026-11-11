@@ -33,3 +33,39 @@ This is an **evaluation record**, not a claim that external code has been instal
 
 ## Release boundary
 No new runtime service, cloud requirement, login, web view, or mandatory external package is introduced. This inventory is non-executable until a separate reviewed implementation PR and its tests pass.
+
+
+## Implemented offline IFC evidence preflight (separate integration slice)
+
+The executable source contract is `scripts/geospatial/ifc_preflight.py`; the focused tests are
+`scripts/geospatial/test_ifc_preflight.py`. They establish a bounded, hash-verified
+STEP IFC input inventory and emit a *derived metadata report*, not meshes.
+
+Install a reviewed, pinned IfcOpenShell wheel in a **separate optional conversion environment**
+before invoking this against real IFC files. No Python dependency was added to
+TSM's packaged native Windows runtime, and CI intentionally uses test doubles
+rather than claiming that a real IFC parser or geometry conversion was executed.
+
+Example with operator-supplied known source hash:
+
+```powershell
+python scripts/geospatial/ifc_preflight.py C:\TSMInput\reviewed.ifc `
+  --expected-sha256 <64-lowercase-hex-SHA256> `
+  --expected-crs EPSG:2966 `
+  --declared-vertical-datum NAVD88 `
+  --output C:\TSMReceipts\ifc-preflight.json
+```
+
+The output parent must exist; an existing report is never overwritten. IfcOpenShell
+must be available for live parsing. The command does not assume that an IFC CRS
+implies a vertical datum, verify survey control, convert length units, compute
+LOD2/LOD3 roofs, or generate glTF/GLB/3D Tiles. Its output explicitly preserves
+these as not verified. Source model placement cannot advance beyond
+`CANDIDATE_FOR_CONTROL_POINT_REVIEW` until independent engineering controls are established.
+
+**Next implementation gates:** pin an approved IfcOpenShell revision and license,
+verify real IFC4 and IFC2x3 fixtures, extract and verify length units and
+IfcMapConversion, perform surveyed control-point fit, and only then construct
+deterministic object-ID-preserving CityJSON/GLB/3D Tiles with collision, texture,
+material, level-of-detail and topology checks on real source data. Keep the
+native UE5.8 Shipping pipeline separately gated.
