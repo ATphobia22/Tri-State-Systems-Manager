@@ -1,0 +1,63 @@
+{
+  "registry_version": "2026-11-11-research-candidates-v1",
+  "authorityScope": "government-source-discovery",
+  "notice": "Endpoint registration is not evidence of live availability, data coverage, actual native CRS, or vertical datum. Review captured snapshots.",
+  "sources": [
+    {
+      "dataset_id": "usgs_3dep_tnm_catalog",
+      "agency": "USGS National Geospatial Program",
+      "layer_id": "TNMAccess datasets",
+      "source_url": "https://tnmaccess.nationalmap.gov/api/v1/datasets",
+      "resource_kind": "service_metadata_json",
+      "declared_epsg": null,
+      "vertical_datum": null,
+      "vertical_units": null,
+      "transformation_model": null,
+      "coverage": "USGS national catalog; Posey County coverage NOT asserted",
+      "license": "USGS public product information; review product-specific rights",
+      "notes": "Discovery only: use TNMAccess products and product metadata before selecting DEM or lidar files. Do NOT mistake XML product metadata for a DEM."
+    },
+    {
+      "dataset_id": "noaa_nwps_mtvi3",
+      "agency": "NOAA/NWS National Water Prediction Service",
+      "layer_id": "MTVI3",
+      "source_url": "https://api.water.noaa.gov/nwps/v1/gauges/MTVI3",
+      "resource_kind": "service_metadata_json",
+      "declared_epsg": null,
+      "vertical_datum": "GAGE_DATUM (station/product interpretation required)",
+      "vertical_units": "stage reported by product; not assumed NAVD88",
+      "transformation_model": null,
+      "coverage": "Ohio River at Mount Vernon, Indiana, metadata candidate",
+      "license": "US federal public service; source citation required",
+      "notes": "Corrected identifier MTVI3 (not MTTV2). No WSE NAVD88 or current observation without matching station product and verified gage-zero metadata."
+    },
+    {
+      "dataset_id": "fema_nfhl_effective_metadata",
+      "agency": "FEMA National Flood Hazard Layer",
+      "layer_id": "NFHL MapServer",
+      "source_url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer?f=pjson",
+      "resource_kind": "service_metadata_json",
+      "declared_epsg": null,
+      "vertical_datum": null,
+      "vertical_units": null,
+      "transformation_model": null,
+      "coverage": "National effective NFHL service; parcel applicability requires a bounded spatial query",
+      "license": "FEMA federal public data; verify layer terms",
+      "notes": "ArcGIS service metadata is not a regulatory determination or full FEMA spatial data download. Inspect layer-specific spatial reference."
+    },
+    {
+      "dataset_id": "indiana_igio_parcels_metadata",
+      "agency": "Indiana Geographic Information Office",
+      "layer_id": "Parcel_Boundaries_of_Indiana_Current FeatureServer",
+      "source_url": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_Current/FeatureServer?f=pjson",
+      "resource_kind": "service_metadata_json",
+      "declared_epsg": null,
+      "vertical_datum": null,
+      "vertical_units": null,
+      "transformation_model": null,
+      "coverage": "Statewide Indiana service; local boundary and record vintage unverified",
+      "license": "Review service-specific Indiana open-data terms",
+      "notes": "Do not treat parcel outline or ID as a surveyed property boundary; do not publish protected ownership metadata."
+    }
+  ]
+}

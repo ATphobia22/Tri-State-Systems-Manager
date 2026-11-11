@@ -1,0 +1,73 @@
+name: TSM Immutable Government Snapshot Evidence
+on:
+  pull_request:
+    paths:
+      - 'scripts/geospatial/tsm_manifest_builder.py'
+      - 'scripts/geospatial/test_tsm_manifest_builder.py'
+      - 'scripts/geospatial/requirements-source-manifest.txt'
+      - 'data/registries/tsm-government-harvest-candidates-2026-11-11.json'
+      - '.github/workflows/government-source-manifest.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/geospatial/tsm_manifest_builder.py'
+      - 'scripts/geospatial/test_tsm_manifest_builder.py'
+      - 'scripts/geospatial/requirements-source-manifest.txt'
+      - 'data/registries/tsm-government-harvest-candidates-2026-11-11.json'
+      - '.github/workflows/government-source-manifest.yml'
+  workflow_dispatch:
+    inputs:
+      fetch_live:
+        description: 'Explicit opt-in to fetch small government service JSON metadata'
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  manifest-evidence:
+    name: Source manifest safety, provenance and CRS contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout pinned source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Setup Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+      - name: Install isolated evidence dependencies
+        run: python -m pip install --disable-pip-version-check --no-input -r scripts/geospatial/requirements-source-manifest.txt
+      - name: Compile evidence harvester
+        run: python -m py_compile scripts/geospatial/tsm_manifest_builder.py scripts/geospatial/test_tsm_manifest_builder.py
+      - name: Run no-network security and scientific-claims tests
+        run: python -m unittest scripts.geospatial.test_tsm_manifest_builder -v
+      - name: Generate immutable offline inventory (no network)
+        run: |
+          python scripts/geospatial/tsm_manifest_builder.py \
+            --mode plan \
+            --registry data/registries/tsm-government-harvest-candidates-2026-11-11.json \
+            --out "${RUNNER_TEMP}/tsm-source-manifest-plan.json"
+      - name: Opt-in live official metadata capture
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.fetch_live == true }}
+        run: |
+          python scripts/geospatial/tsm_manifest_builder.py \
+            --mode fetch \
+            --registry data/registries/tsm-government-harvest-candidates-2026-11-11.json \
+            --out "${RUNNER_TEMP}/tsm-source-manifest-captured.json" \
+            --snapshot-dir "${RUNNER_TEMP}/government-source-snapshots"
+      - name: Upload inspectable evidence receipts
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: tsm-government-source-manifest-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/tsm-source-manifest-plan.json
+            ${{ runner.temp }}/tsm-source-manifest-captured.json
+            ${{ runner.temp }}/government-source-snapshots/*.json
+          if-no-files-found: warn
+          retention-days: 30
