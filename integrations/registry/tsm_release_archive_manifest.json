@@ -16,13 +16,61 @@
       "path": "docs/geospatial/GEODETIC-ECEF-VALIDATION-REPORT-POSEY-2026-11-11.md",
       "extension": ".md",
       "size_bytes": 1863,
-      "sha256": "f5833adc009f8c8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e",
+      "sha256": "f5833adc009f8d1f4de0145138b7a18ff84351f684d96b98052f4857bdd467a0",
+      "indexed_at": "2026-11-11T15:14:17.836572+00:00"
+    },
+    {
+      "path": "docs/geospatial/GEODETIC-TO-ECEF.md",
+      "extension": ".md",
+      "size_bytes": 1068,
+      "sha256": "1f83fe56747871a7e0d9b82da8a806e2e7b0a579c0e143a6275cb9e851f9c0bd",
+      "indexed_at": "2026-11-11T15:14:17.836572+00:00"
+    },
+    {
+      "path": "docs/release/MILESTONE-B-AIRGAP-SHIPPING-GATE.md",
+      "extension": ".md",
+      "size_bytes": 1560,
+      "sha256": "372328731122838966d5bf3e7b68dcfb64fa85f0dd25f8bb66b8f394ed6faaa1",
+      "indexed_at": "2026-11-11T15:14:17.836572+00:00"
+    },
+    {
+      "path": "integrations/registry/tsm-immutable-source-manifest-v1.json",
+      "extension": ".json",
+      "size_bytes": 4606,
+      "sha256": "9bd9be44ba5889a2c576d7989491b9c37c9cadf067a8a59a0812b9ae0945aabd",
+      "indexed_at": "2026-11-11T15:14:17.836572+00:00"
+    },
+    {
+      "path": "tests/geospatial/test_posey_ecef_bounds.py",
+      "extension": ".py",
+      "size_bytes": 2896,
+      "sha256": "c8228e6eaba5abfa3c9513453b0dffeb94b16f5a1f065a57d3dd0e1ea96a9b84",
+      "indexed_at": "2026-11-11T15:14:17.836572+00:00"
+    },
+    {
+      "path": "tests/geospatial/test_posey_ecef_regression.py",
+      "extension": ".py",
+      "size_bytes": 2659,
+      "sha256": "c4145764b6b0150a58eff3e8e169bae0ca62ebf11cc4ddac6879065a4c877c66",
+      "indexed_at": "2026-11-11T15:14:17.836572+00:00"
+    },
+    {
+      "path": "scripts/geospatial/tsm_ecef_validator.py",
+      "extension": ".py",
+      "size_bytes": 8566,
+      "sha256": "daed52e95a87636c354de1ce135fa531f13e97f42d4cfa00e6cd10957f886168",
+      "indexed_at": "2026-11-11T15:14:17.836572+00:00"
+    },
+    {
+      "path": "scripts/geospatial/tsm_tileset_packager.py",
+      "extension": ".py",
+      "size_bytes": 2896,
+      "sha256": "a93aed3e32afe46624a068dc3214bb28c7f4bd5cc74d988435c1b3f047158e80",
       "indexed_at": "2026-11-11T15:14:17.836572+00:00"
     }
   ],
   "policy": {
     "human_authority_final": true,
-    "staging_is_not_production_hlod": true,
-    "note": "Re-run scripts/release/tsm_archive_compiler.py at repo root for full artifact list and accurate SHA-256 values."
+    "staging_is_not_production_hlod": true
   }
 }
