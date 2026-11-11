@@ -7,7 +7,7 @@ import {
   MTVI3_GAGE_ZERO_NAVD88,
   MTVI3_HISTORIC_1937_CREST_STAGE_FT,
   stageToWseFt,
-} from "../hydrology/GageDatumDiscipline";
+} from "../hydrology/GageDatumDiscipline.js";
 
 export type AuthorityClass =
   | "REGULATORY"
