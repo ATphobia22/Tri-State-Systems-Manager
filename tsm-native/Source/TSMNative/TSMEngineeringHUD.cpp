@@ -7,6 +7,8 @@
 #include "Misc/Paths.h"
 #include "TSMEngineeringRuntimeSubsystem.h"
 #include "TSMExperienceSubsystem.h"
+#include "TSMSceneLayerSubsystem.h"
+#include "Engine/World.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/Input/SButton.h"
@@ -95,6 +97,35 @@ public:
                         .OnClicked(this, &STSMEngineeringDashboard::OpenEvidenceStoryboard)
                     ]
                 ]
+                + SVerticalBox::Slot().AutoHeight().Padding(0, 8)
+                [
+                    SNew(SHorizontalBox)
+                    + SHorizontalBox::Slot().AutoWidth().Padding(0, 0, 8, 0)
+                    [
+                        SNew(SButton).Text(FText::FromString(TEXT("BUILDINGS")))
+                        .OnClicked(this, &STSMEngineeringDashboard::ToggleBuildings)
+                    ]
+                    + SHorizontalBox::Slot().AutoWidth().Padding(0, 0, 8, 0)
+                    [
+                        SNew(SButton).Text(FText::FromString(TEXT("FLOODPLAIN")))
+                        .OnClicked(this, &STSMEngineeringDashboard::ToggleFloodplain)
+                    ]
+                    + SHorizontalBox::Slot().AutoWidth().Padding(0, 0, 8, 0)
+                    [
+                        SNew(SButton).Text(FText::FromString(TEXT("UTILITIES")))
+                        .OnClicked(this, &STSMEngineeringDashboard::ToggleUtilities)
+                    ]
+                    + SHorizontalBox::Slot().AutoWidth().Padding(0, 0, 8, 0)
+                    [
+                        SNew(SButton).Text(FText::FromString(TEXT("SAVE LAYERS")))
+                        .OnClicked(this, &STSMEngineeringDashboard::SaveLayers)
+                    ]
+                    + SHorizontalBox::Slot().AutoWidth()
+                    [
+                        SNew(SButton).Text(FText::FromString(TEXT("LOAD LAYERS")))
+                        .OnClicked(this, &STSMEngineeringDashboard::LoadLayers)
+                    ]
+                ]
                 + SVerticalBox::Slot().AutoHeight().Padding(0, 12, 0, 0)
                 [
                     SAssignNew(ResultText, STextBlock)
@@ -111,6 +142,62 @@ private:
         if (!OwnerHUD.IsValid()) { return nullptr; }
         const UGameInstance* Instance = OwnerHUD->GetGameInstance();
         return Instance ? Instance->GetSubsystem<UTSMExperienceSubsystem>() : nullptr;
+    }
+
+    UTSMSceneLayerSubsystem* SceneLayers() const
+    {
+        if (!OwnerHUD.IsValid() || !OwnerHUD->GetWorld()) return nullptr;
+        return OwnerHUD->GetWorld()->GetSubsystem<UTSMSceneLayerSubsystem>();
+    }
+
+    FReply ToggleOneLayer(ETSMSceneLayer Layer, const TCHAR* LayerName)
+    {
+        if (UTSMSceneLayerSubsystem* Subsystem = SceneLayers())
+        {
+            const bool bNewVisible = !Subsystem->GetLayerState(Layer).bRequestedVisible;
+            Subsystem->SetLayerVisibility(Layer, bNewVisible);
+            const FTSMSceneLayerState State = Subsystem->GetLayerState(Layer);
+            if (ResultText.IsValid())
+            {
+                ResultText->SetText(FText::FromString(FString::Printf(
+                    TEXT("%s // %s\\n%s\\nActor visibility changed; this does not load missing GIS evidence."),
+                    LayerName, bNewVisible ? TEXT("ON") : TEXT("OFF"), *State.Status)));
+            }
+        }
+        return FReply::Handled();
+    }
+
+    FReply ToggleBuildings() { return ToggleOneLayer(ETSMSceneLayer::Buildings, TEXT("BUILDINGS")); }
+    FReply ToggleFloodplain() { return ToggleOneLayer(ETSMSceneLayer::Floodplain, TEXT("FLOODPLAIN")); }
+    FReply ToggleUtilities()
+    {
+        if (UTSMSceneLayerSubsystem* Subsystem = SceneLayers())
+        {
+            const bool bNewVisible = !Subsystem->GetLayerState(ETSMSceneLayer::SanitarySewer).bRequestedVisible;
+            for (int32 I = static_cast<int32>(ETSMSceneLayer::SanitarySewer);
+                 I <= static_cast<int32>(ETSMSceneLayer::Telecom); ++I)
+            {
+                Subsystem->SetLayerVisibility(static_cast<ETSMSceneLayer>(I), bNewVisible);
+            }
+            if (ResultText.IsValid())
+                ResultText->SetText(FText::FromString(TEXT(
+                    "UTILITIES // VISIBILITY TOGGLED\\nNo missing or unverified subsurface infrastructure was synthesized.")));
+        }
+        return FReply::Handled();
+    }
+    FReply SaveLayers()
+    {
+        const bool bSaved = SceneLayers() && SceneLayers()->SaveVisibilityProfile(TEXT("operator-default"));
+        if (ResultText.IsValid()) ResultText->SetText(FText::FromString(
+            bSaved ? TEXT("LAYER PROFILE // SAVED OFFLINE") : TEXT("LAYER PROFILE // SAVE FAILED")));
+        return FReply::Handled();
+    }
+    FReply LoadLayers()
+    {
+        const bool bLoaded = SceneLayers() && SceneLayers()->LoadVisibilityProfile(TEXT("operator-default"));
+        if (ResultText.IsValid()) ResultText->SetText(FText::FromString(
+            bLoaded ? TEXT("LAYER PROFILE // RESTORED") : TEXT("LAYER PROFILE // NOT FOUND OR INVALID")));
+        return FReply::Handled();
     }
 
     FReply OpenLivingRiver()
