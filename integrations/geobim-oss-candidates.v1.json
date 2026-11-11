@@ -1,0 +1,154 @@
+{
+  "schemaVersion": "tsm.geobim.oss-candidates.v1",
+  "reviewDate": "2026-11-11",
+  "releaseStatus": "research-only-no-dependencies-added",
+  "forks": [
+    {
+      "name": "xtool",
+      "fork": "ATphobia22/xtool",
+      "upstream": "xtool-org/xtool",
+      "sourceCommit": "a2875dd9ac311aa14c0a1fa3207733da51241376",
+      "reportedLicense": "MIT",
+      "role": "ios-build-tooling",
+      "decision": "evaluate-separate-ios-ci",
+      "status": "candidate-not-integrated",
+      "evidence": "https://github.com/ATphobia22/xtool"
+    },
+    {
+      "name": "map3d",
+      "fork": "ATphobia22/map3d",
+      "upstream": "cartesiancs/map3d",
+      "sourceCommit": "e708fd55e6457995b22056b1e959e00b55ef14ab",
+      "reportedLicense": "MIT",
+      "role": "web-city-scene-reference",
+      "decision": "evaluate-procedural-scene-adapter",
+      "status": "candidate-not-integrated",
+      "evidence": "https://github.com/ATphobia22/map3d"
+    },
+    {
+      "name": "img2threejs",
+      "fork": "ATphobia22/img2threejs",
+      "upstream": "img2threejs/img2threejs",
+      "sourceCommit": "0c0c49bc168e648dbaf9c8c080474de0b3a941b6",
+      "reportedLicense": "Apache-2.0",
+      "role": "procedural-image-to-3d",
+      "decision": "research-only-never-authoritative-geometry",
+      "status": "candidate-not-integrated",
+      "evidence": "https://github.com/ATphobia22/img2threejs"
+    },
+    {
+      "name": "artcraft",
+      "fork": "ATphobia22/artcraft",
+      "upstream": "storytold/artcraft",
+      "sourceCommit": "55e6e5cabbff1466153bb6ce59a1424ed5747eb4",
+      "reportedLicense": "Apache-2.0",
+      "role": "cinematic-content-authoring",
+      "decision": "evaluate-offline-artistic-export-only",
+      "status": "candidate-not-integrated",
+      "evidence": "https://github.com/ATphobia22/artcraft"
+    },
+    {
+      "name": "rea",
+      "fork": "ATphobia22/rea",
+      "upstream": "morluto/rea",
+      "sourceCommit": "160d2ecdb5cfc65f531df4a6f6dca7b905a8a288",
+      "reportedLicense": "MIT",
+      "role": "reverse-engineering-research",
+      "decision": "exclude-from-production-runtime",
+      "status": "candidate-not-integrated",
+      "evidence": "https://github.com/ATphobia22/rea"
+    },
+    {
+      "name": "ingetrazo",
+      "fork": "ATphobia22/ingetrazo",
+      "upstream": "ingelibre/ingetrazo",
+      "sourceCommit": "ffc7187bbaf8222ea5f5f19e33f6c4ed81ad4ad5",
+      "reportedLicense": "GPL-3.0",
+      "role": "bim-authoring-reference",
+      "decision": "license-review-isolated-app-only",
+      "status": "candidate-not-integrated",
+      "evidence": "https://github.com/ATphobia22/ingetrazo"
+    },
+    {
+      "name": "openBIMstudio",
+      "fork": "ATphobia22/openBIMstudio",
+      "upstream": "amdghedy/openBIMstudio",
+      "sourceCommit": "5f1278e08c546c9ce3d1016766bcf6375095280d",
+      "reportedLicense": "MIT",
+      "role": "ifc-bcf-authoring-reference",
+      "decision": "evaluate-separate-bim-workspace",
+      "status": "candidate-not-integrated",
+      "evidence": "https://github.com/ATphobia22/openBIMstudio"
+    }
+  ],
+  "priorities": [
+    {
+      "project": "IfcOpenShell",
+      "upstream": "https://github.com/IfcOpenShell/IfcOpenShell",
+      "decision": "priority-1-python-ifc-validator-adapter",
+      "status": "evaluate",
+      "license": "LGPL-3.0-or-later; component licenses vary"
+    },
+    {
+      "project": "CityJSON",
+      "upstream": "https://www.cityjson.org/specs/",
+      "decision": "priority-1-3d-city-interchange-not-direct-runtime",
+      "status": "evaluate",
+      "license": "specification CC0; implementation licenses vary"
+    },
+    {
+      "project": "PDAL",
+      "upstream": "https://github.com/PDAL/PDAL",
+      "decision": "priority-2-offline-lidar-worker",
+      "status": "evaluate",
+      "license": "verify-upstream-before-import"
+    },
+    {
+      "project": "Potree",
+      "upstream": "https://github.com/potree/potree",
+      "decision": "priority-2-point-cloud-review-not-native-runtime",
+      "status": "evaluate",
+      "license": "verify-upstream-before-import"
+    },
+    {
+      "project": "xeokit",
+      "upstream": "https://github.com/xeokit/xeokit-sdk",
+      "decision": "license-hold-AGPL-before-embedding",
+      "status": "blocked-license-review",
+      "license": "AGPL-3.0"
+    },
+    {
+      "project": "FreeCAD",
+      "upstream": "https://github.com/FreeCAD/FreeCAD",
+      "decision": "optional-external-authoring-tool",
+      "status": "evaluate",
+      "license": "verify-component-licenses"
+    },
+    {
+      "project": "QGIS",
+      "upstream": "https://github.com/qgis/QGIS",
+      "decision": "existing-geospatial-workflow-preferred",
+      "status": "reference",
+      "license": "verify-component-licenses"
+    },
+    {
+      "project": "PostGIS",
+      "upstream": "https://github.com/postgis/postgis",
+      "decision": "reuse-existing-persistence-no-new-database",
+      "status": "reference",
+      "license": "verify-component-licenses"
+    }
+  ],
+  "mandatoryGates": [
+    "canonical-upstream-verified",
+    "license-and-notices-reviewed",
+    "exact-commit-or-package-digest",
+    "sbom-and-transitive-dependency-review",
+    "no-network-required-by-shipping-runtime",
+    "explicit-horizontal-crs-units-and-vertical-datum",
+    "source-identity-and-sha256",
+    "derived-geometry-never-regulatory-authority",
+    "deterministic-fixtures-and-independent-validation",
+    "packaged-unreal-shipping-evidence-separate"
+  ]
+}
