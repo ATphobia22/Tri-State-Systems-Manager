@@ -1,0 +1,125 @@
+{
+  "schema_version": "1.0.0",
+  "manifest_id": "tsm-immutable-source-manifest",
+  "generated_at": "2026-11-11",
+  "purpose": "Single inspectable inventory of primary public sources for Tri-State evidence. Retrieval time is not product vintage.",
+  "policy": {
+    "human_authority_final": true,
+    "assembling_evidence_is_not_validating_conclusions": true,
+    "no_auto_loma": true,
+    "gage_zero_requires_product_match": true
+  },
+  "sources": [
+    {
+      "id": "usgs-water-data-api-v1",
+      "agency": "USGS",
+      "title": "Water Data APIs v1",
+      "url": "https://api.waterdata.usgs.gov/",
+      "layer_or_collection": "modernized water data API",
+      "license": "US government public information (see USGS terms)",
+      "crs": "varies by product",
+      "vertical_datum": "station/product specific",
+      "units": "varies",
+      "sha256": null,
+      "verification_state": "REGISTERED",
+      "notes": "Prefer over legacy WaterServices before planned early-2027 retirement"
+    },
+    {
+      "id": "usgs-stac-parquet-archive",
+      "agency": "USGS",
+      "title": "STAC/Parquet historical water data service",
+      "url": "https://waterdata.usgs.gov/",
+      "license": "USGS",
+      "sha256": null,
+      "verification_state": "REGISTERED",
+      "notes": "Cloud-native bulk historical access (2026)"
+    },
+    {
+      "id": "noaa-nwps",
+      "agency": "NOAA/NWS",
+      "title": "National Water Prediction Service",
+      "url": "https://api.water.noaa.gov/",
+      "layer_or_collection": "observations, forecasts, flood categories, NWM",
+      "license": "NOAA",
+      "vertical_datum": "GAGE_DATUM for stage; product tables for zeros",
+      "sha256": null,
+      "verification_state": "REGISTERED",
+      "notes": "Forecast layer separate from USGS observed; never silent substitute"
+    },
+    {
+      "id": "noaa-nwps-mtvi3",
+      "agency": "NOAA/NWS",
+      "title": "Ohio River at Mount Vernon (MTVI3)",
+      "url": "https://water.noaa.gov/gauges/mtvi3",
+      "layer_or_collection": "gage + vertical datum table",
+      "vertical_datum": "Gage zero 318.59 ft NAVD88 (product table)",
+      "units": "ft",
+      "sha256": null,
+      "verification_state": "PRODUCT_TABLE_VERIFIED",
+      "notes": "Do not apply zero to other station IDs"
+    },
+    {
+      "id": "usgs-3dep-lidarexplorer",
+      "agency": "USGS",
+      "title": "3DEP / LidarExplorer",
+      "url": "https://apps.nationalmap.gov/lidar-explorer/",
+      "layer_or_collection": "lidar, DEM, project metadata, coverage",
+      "crs": "product-native",
+      "vertical_datum": "typically NAVD88 for CONUS DEMs — confirm product",
+      "sha256": null,
+      "verification_state": "REGISTERED",
+      "notes": "Reconcile terrain/building coverage; do not invent heights"
+    },
+    {
+      "id": "fema-nfhl-msc",
+      "agency": "FEMA",
+      "title": "NFHL / MSC FIRM FIS",
+      "url": "https://msc.fema.gov",
+      "layer_or_collection": "effective flood hazard products",
+      "license": "FEMA public products",
+      "sha256": null,
+      "verification_state": "REGISTERED",
+      "notes": "Regulatory source of truth for SFHA/FIRM context"
+    },
+    {
+      "id": "ngs-geoid18",
+      "agency": "NOAA NGS",
+      "title": "GEOID18",
+      "url": "https://geodesy.noaa.gov/GEOID/GEOID18/",
+      "layer_or_collection": "geoid model grids",
+      "vertical_datum": "ellipsoidal ↔ orthometric path",
+      "sha256": null,
+      "verification_state": "REGISTERED",
+      "notes": "Record model, coverage, uncertainty on every transform"
+    },
+    {
+      "id": "ngs-vdatum",
+      "agency": "NOAA NGS",
+      "title": "VDatum",
+      "url": "https://vdatum.noaa.gov/",
+      "layer_or_collection": "vertical datum transformation",
+      "sha256": null,
+      "verification_state": "REGISTERED",
+      "notes": "Do not merely label a number NAVD88 without model evidence"
+    },
+    {
+      "id": "indiana-igio",
+      "agency": "State of Indiana / IGIO",
+      "title": "Indiana geospatial / parcels / imagery services",
+      "url": "https://www.in.gov/iot/gis/",
+      "sha256": null,
+      "verification_state": "REGISTERED",
+      "notes": "Posey County cadastre and state layers"
+    },
+    {
+      "id": "usace-hec-ras-hdf5",
+      "agency": "USACE HEC",
+      "title": "HEC-RAS HDF5 results (imported)",
+      "url": "https://www.hec.usace.army.mil/software/hec-ras/",
+      "layer_or_collection": "WSE, velocity, geometry exports",
+      "sha256": null,
+      "verification_state": "ADAPTER_READONLY",
+      "notes": "Read-only import; TSM does not validate the hydraulic model"
+    }
+  ]
+}
