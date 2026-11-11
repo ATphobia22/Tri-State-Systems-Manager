@@ -1,0 +1,51 @@
+name: TSM Offline GeoBIM IFC Contract
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/geospatial/ifc_preflight.py'
+      - 'scripts/geospatial/test_ifc_preflight.py'
+      - 'artifacts/tsm-geobim-source-evaluation-v1.json'
+      - 'tests/geobim-source-evaluation.test.mjs'
+      - '.github/workflows/geobim-ifc.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/geospatial/ifc_preflight.py'
+      - 'scripts/geospatial/test_ifc_preflight.py'
+      - 'artifacts/tsm-geobim-source-evaluation-v1.json'
+      - 'tests/geobim-source-evaluation.test.mjs'
+      - '.github/workflows/geobim-ifc.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-ifc-preflight:
+    name: Offline IFC metadata safety and provenance contracts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Setup Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+      - name: Validate source syntax
+        run: python -m py_compile scripts/geospatial/ifc_preflight.py scripts/geospatial/test_ifc_preflight.py
+      - name: Exercise offline georeference and identity contracts
+        run: python -m unittest scripts.geospatial.test_ifc_preflight -v
+      - name: Validate third-party inventory honesty
+        run: node --test tests/geobim-source-evaluation.test.mjs
+      - name: Explicit release boundary
+        run: |
+          echo 'PASS: no-network IFC preflight metadata contracts'
+          echo 'NOT VERIFIED: installed IfcOpenShell IFC parser, mesh export, building LoD, 3D Tiles, Windows UE5.8 Shipping, agency or survey certification'
