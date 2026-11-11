@@ -1,0 +1,36 @@
+name: TSM Scientific Math Validation
+
+on:
+  pull_request:
+    paths:
+      - "scripts/geospatial/tsm_math_engine.py"
+      - "scripts/geospatial/tsm_lidar_h3_obb.py"
+      - "tests/geospatial/test_tsm_math_engine.py"
+      - ".github/workflows/tsm-scientific-math.yml"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/geospatial/tsm_math_engine.py"
+      - "scripts/geospatial/tsm_lidar_h3_obb.py"
+      - "tests/geospatial/test_tsm_math_engine.py"
+      - ".github/workflows/tsm-scientific-math.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  math-verification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.11"
+      - name: Install numeric dependency
+        run: python -m pip install numpy
+      - name: Compile modules
+        run: python -m py_compile scripts/geospatial/tsm_math_engine.py scripts/geospatial/tsm_lidar_h3_obb.py tests/geospatial/test_tsm_math_engine.py
+      - name: Run scientific mathematical assertions
+        run: python -m unittest discover -s tests/geospatial -p test_tsm_math_engine.py -v

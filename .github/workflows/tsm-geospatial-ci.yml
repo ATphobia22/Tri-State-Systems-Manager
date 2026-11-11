@@ -6,6 +6,9 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   geospatial-validation:
     name: Validate Tileset, ECEF Spatial Bounds & Asset Integrity
@@ -13,10 +16,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Python 3.11
-        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.11"
           cache: "pip"
@@ -24,11 +27,16 @@ jobs:
       - name: Install Geospatial Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyproj requests shapely
+          pip install pyproj requests shapely pytest
 
-      - name: Step 1 - Run Tileset Packager & Staging
+      # Fixture-only ECEF checks; not a source-validated building inventory.
+      - name: Step 1 - Create clearly labeled CI geometry envelope
         run: |
-          python scripts/geospatial/tsm_tileset_packager.py
+          python scripts/geospatial/tsm_tileset_ci_fixture.py
+
+      - name: Step 1b - Validate strict offline tileset stager
+        run: |
+          python -m unittest scripts.geospatial.test_tsm_tileset_packager -v
 
       - name: Step 2 - Run ECEF Spatial Correctness Validator
         run: |
@@ -37,3 +45,19 @@ jobs:
       - name: Step 3 - Run Binary Integrity & Structure Tests
         run: |
           python tests/geospatial/test_tsm_tileset_validator.py
+
+      - name: Step 4 - Pytest ECEF bounds and regression fixtures
+        run: |
+          python -m pytest tests/geospatial/test_posey_ecef_bounds.py tests/geospatial/test_posey_ecef_regression.py -v
+
+      - name: Step 5 - Recompile release archive manifest
+        run: |
+          python scripts/release/tsm_archive_compiler.py
+
+      - name: Step 6 - Verify Release Archive Manifest Integrity
+        run: |
+          python scripts/release/tsm_verify_archive_manifest.py
+
+      - name: Step 7 - Master Verification Suite
+        run: |
+          python scripts/release/tsm_master_verification_suite.py

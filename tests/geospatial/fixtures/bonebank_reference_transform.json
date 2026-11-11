@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0.0",
+  "anchor": {
+    "name": "Bonebank / Posey County",
+    "latitude_deg": 37.84589,
+    "longitude_deg": -88.00510,
+    "ellipsoidal_height_m": 120.0,
+    "note": "Ellipsoidal h is not NAVD88 without GEOID18/VDatum"
+  },
+  "expected_ecef": {
+    "x": 175550.84,
+    "y": -5039980.67,
+    "z": 3892024.17
+  },
+  "bounds": {
+    "x_min": 150000.0,
+    "x_max": 210000.0,
+    "y_min": -5060000.0,
+    "y_max": -5000000.0,
+    "z_min": 3870000.0,
+    "z_max": 3940000.0
+  },
+  "transform_matrix": [
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 0.0,
+    0.0, 0.0, 1.0, 0.0,
+    175550.84, -5039980.67, 3892024.17, 1.0
+  ],
+  "policy": {
+    "midwest_x_must_be_positive": true,
+    "staging_is_not_production_hlod": true
+  }
+}
