@@ -5,12 +5,22 @@ on:
     branches: [main, feat/apple-developer-forums-hardening-20261024]
     paths:
       - 'integrations/open-source-candidate-register.json'
+      - 'integrations/geobim-oss-candidates.v1.json'
+      - 'docs/adoption/GEOBIM-OSS-ADOPTION-2026-11-11.md'
+      - 'tests/contracts/geobim-oss-candidates.test.mjs'
+      - 'scripts/geospatial/verify_geobim_ifc_intake.py'
+      - 'scripts/geospatial/test_verify_geobim_ifc_intake.py'
       - 'docs/research/OPEN-SOURCE-ECOSYSTEM-ADOPTION-REVIEW.md'
       - 'tests/contracts/open-source-adoption-register.test.mjs'
       - '.github/workflows/open-source-adoption-register-validation.yml'
   pull_request:
     paths:
       - 'integrations/open-source-candidate-register.json'
+      - 'integrations/geobim-oss-candidates.v1.json'
+      - 'docs/adoption/GEOBIM-OSS-ADOPTION-2026-11-11.md'
+      - 'tests/contracts/geobim-oss-candidates.test.mjs'
+      - 'scripts/geospatial/verify_geobim_ifc_intake.py'
+      - 'scripts/geospatial/test_verify_geobim_ifc_intake.py'
       - 'docs/research/OPEN-SOURCE-ECOSYSTEM-ADOPTION-REVIEW.md'
       - 'tests/contracts/open-source-adoption-register.test.mjs'
       - '.github/workflows/open-source-adoption-register-validation.yml'
@@ -28,4 +38,6 @@ jobs:
         with:
           node-version: 22
       - name: Validate candidate register and adoption gates
-        run: node --test tests/contracts/open-source-adoption-register.test.mjs
+        run: node --test tests/contracts/open-source-adoption-register.test.mjs tests/contracts/geobim-oss-candidates.test.mjs
+      - name: Validate offline IFC source integrity intake
+        run: python3 -m unittest scripts/geospatial/test_verify_geobim_ifc_intake.py -v
