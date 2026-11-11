@@ -1,0 +1,107 @@
+{
+  "schema": "tsm.geobim.source-evaluation.v1",
+  "generatedDate": "2026-11-11",
+  "authorityClass": "REFERENCE_ONLY",
+  "sourcePolicy": "No unreviewed source code, external binaries, remote services, or derived geometry are bundled by this manifest.",
+  "adoptionGates": [
+    "license-and-transitive-dependency-review",
+    "immutable-upstream-revision-and-checksum",
+    "offline-operation-and-data-privacy",
+    "IFC-georeference-and-vertical-datum-validation",
+    "building-identity-and-geometry-roundtrip",
+    "reproducible-tests-and-human-review"
+  ],
+  "repositories": [
+    {
+      "fork": "ATphobia22/xtool",
+      "upstream": "xtool-org/xtool",
+      "reportedLicense": "MIT",
+      "role": "ios-build-tooling",
+      "disposition": "evaluation",
+      "note": "Do not embed in native Windows application; investigate CI-only SwiftPM iOS build path.",
+      "revision": null,
+      "checksumSha256": null,
+      "licenseReviewed": false,
+      "integrated": false,
+      "releaseVerified": false
+    },
+    {
+      "fork": "ATphobia22/map3d",
+      "upstream": "cartesiancs/map3d",
+      "reportedLicense": "MIT",
+      "role": "city-visualization",
+      "disposition": "prototype",
+      "note": "Reference R3F city-scene interaction patterns; no authoritative parcel or building data inferred.",
+      "revision": null,
+      "checksumSha256": null,
+      "licenseReviewed": false,
+      "integrated": false,
+      "releaseVerified": false
+    },
+    {
+      "fork": "ATphobia22/img2threejs",
+      "upstream": "img2threejs/img2threejs",
+      "reportedLicense": "Apache-2.0",
+      "role": "procedural-3d",
+      "disposition": "prototype",
+      "note": "Allow only clearly marked artistic/procedural assets; never substitute for surveyed geometry.",
+      "revision": null,
+      "checksumSha256": null,
+      "licenseReviewed": false,
+      "integrated": false,
+      "releaseVerified": false
+    },
+    {
+      "fork": "ATphobia22/artcraft",
+      "upstream": "storytold/artcraft",
+      "reportedLicense": "Apache-2.0 OR MIT",
+      "role": "cinematic-authoring",
+      "disposition": "evaluation",
+      "note": "Assess offline asset generation and licensing; not an engineering solver.",
+      "revision": null,
+      "checksumSha256": null,
+      "licenseReviewed": false,
+      "integrated": false,
+      "releaseVerified": false
+    },
+    {
+      "fork": "ATphobia22/rea",
+      "upstream": "morluto/rea",
+      "reportedLicense": "MIT",
+      "role": "reverse-engineering",
+      "disposition": "defer",
+      "note": "Not required for public-interest GeoBIM pipeline; security and licensing review before any use.",
+      "revision": null,
+      "checksumSha256": null,
+      "licenseReviewed": false,
+      "integrated": false,
+      "releaseVerified": false
+    },
+    {
+      "fork": "ATphobia22/ingetrazo",
+      "upstream": "ingelibre/ingetrazo",
+      "reportedLicense": "GPL-3.0",
+      "role": "bim-authoring",
+      "disposition": "external-tool",
+      "note": "Use as separately installed authoring tool; do not vendor GPL code into TSM without review.",
+      "revision": null,
+      "checksumSha256": null,
+      "licenseReviewed": false,
+      "integrated": false,
+      "releaseVerified": false
+    },
+    {
+      "fork": "ATphobia22/openBIMstudio",
+      "upstream": "amdghedy/openBIMstudio",
+      "reportedLicense": "MIT",
+      "role": "ifc-authoring",
+      "disposition": "prototype",
+      "note": "Evaluate standalone IFC authoring/BCF coordination; require IFC import roundtrip and geometry checks.",
+      "revision": null,
+      "checksumSha256": null,
+      "licenseReviewed": false,
+      "integrated": false,
+      "releaseVerified": false
+    }
+  ]
+}
