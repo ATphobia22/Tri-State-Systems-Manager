@@ -40,7 +40,7 @@ def fixture(root: Path):
     boundary = {"type": "FeatureCollection", "features": [{
         "type": "Feature", "properties": {"GEOID": "18129"},
         "geometry": {"type": "Polygon", "coordinates": [[
-            [-88.0, 38.0], [-87.8, 38.0], [-87.8, 37.8],
+            [-88.0, 38.0], [-87.8, 37.8],
             [-88.0, 37.8], [-88.0, 38.0]]]}}]}
     aoi.write_text(json.dumps(boundary))
     dem = root / "data/fabrics/downloads/indiana-dem-2020/posey-dem-2020-2k.tif"
@@ -77,8 +77,16 @@ class RegionalOfflineBuildTests(unittest.TestCase):
                 self.assertEqual(src.crs.to_epsg(), 4326)
                 self.assertGreater(src.width * src.height, 0)
                 self.assertEqual(src.tags()["TSM_REVIEW_STATE"], "UNREVIEWED")
+                self.assertEqual(src.nodata, -9999.0)
+                sampled = src.read(1)
+                self.assertGreater((sampled == src.nodata).sum(), 0)
+                self.assertGreater((sampled != src.nodata).sum(), 0)
             im = Image.open(out / raster["previewPNG"]["path"])
             self.assertEqual(im.mode, "RGBA")
+            import numpy as np
+            alphas = np.asarray(im)[:, :, 3]
+            self.assertGreater((alphas == 0).sum(), 0)
+            self.assertGreater((alphas == 255).sum(), 0)
 
     def test_missing_county_asset_blocks_completion(self):
         with tempfile.TemporaryDirectory() as temp:
