@@ -7,6 +7,8 @@ on:
       - 'tsm-console/src/components/PublicEvidenceLens.tsx'
       - 'tsm-console/src/components/RealWorldTwinMap.tsx'
       - 'tsm-console/tests/public-evidence-lens.test.ts'
+      - 'tsm-console/tests/parcel-provenance-unit.test.ts'
+      - 'tsm-console/src/lib/parcel-provenance.ts'
       - '.github/workflows/public-evidence-lens.yml'
   push:
     branches: [main]
@@ -15,6 +17,8 @@ on:
       - 'tsm-console/src/components/PublicEvidenceLens.tsx'
       - 'tsm-console/src/components/RealWorldTwinMap.tsx'
       - 'tsm-console/tests/public-evidence-lens.test.ts'
+      - 'tsm-console/tests/parcel-provenance-unit.test.ts'
+      - 'tsm-console/src/lib/parcel-provenance.ts'
       - '.github/workflows/public-evidence-lens.yml'
   workflow_dispatch:
 
@@ -42,7 +46,7 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
       - name: Test source-status semantics without live external data
         working-directory: tsm-console
-        run: ./node_modules/.bin/vitest run tests/public-evidence-lens.test.ts
+        run: ./node_modules/.bin/vitest run tests/public-evidence-lens.test.ts tests/parcel-provenance-unit.test.ts
       - name: Typecheck map UI and shared packages
         working-directory: tsm-console
         run: ./node_modules/.bin/tsc --noEmit
