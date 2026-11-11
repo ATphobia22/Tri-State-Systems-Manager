@@ -2,8 +2,27 @@
 
 **Research basis:** mapping-planes-lod-integration-20261018-0426
 
-Production-proven, permissively-licensed pipeline. No Cesium ion, no commercial
-services — plain static files served from any web server.
+Reference pipeline using open-source tools; production implementation, licensing,
+georeferencing and artifact validation remain separate release gates. A successful
+conversion contract test is not evidence of a renderable or surveyed city twin.
+
+## Local CityJSON stage versus real 3D Tiles
+
+`scripts/geospatial/cityjson_to_3d_tiles.py` creates a space graph,
+GeoJSON intermediate, and `tileset-candidate.json` with `renderable=false`.
+It intentionally **does not** emit `tileset.json` or claim a working 3D Tiles
+package: GeoJSON is not the supported renderable tile payload. A subsequent
+independently validated 3D Tiles 1.1 builder must create a glTF/GLB asset
+with approved CRS, vertical datum/geoid, units, ECEF placement, bounds,
+feature identities, materials and geometric-error thresholds.
+
+Do not infer WGS84 longitude/latitude from raw CityJSON X/Y when the input
+uses EPSG:2966 or another projected CRS. Do not equate NAVD88 heights to
+WGS84 ellipsoidal heights.
+
+The repo's existing IGIO building-prism and tile packages are separate
+derived-visualization paths and must retain their own source-count and
+datum verification gates.
 
 ## Toolchain
 
