@@ -137,6 +137,7 @@ def inspect_model(model, source: dict, declared_vertical_datum: str | None = Non
         raise PreflightError("expected CRS must be an EPSG code")
     if declared_vertical_datum is not None and not declared_vertical_datum.strip():
         raise PreflightError("vertical datum cannot be empty")
+    units = inspect_length_unit(model)
     # A vertical datum declaration is not source evidence of coordinate alignment.
     placement = "CANDIDATE_FOR_CONTROL_POINT_REVIEW" if (
         crs_supported and matches_expected and declared_vertical_datum and map_conversion
