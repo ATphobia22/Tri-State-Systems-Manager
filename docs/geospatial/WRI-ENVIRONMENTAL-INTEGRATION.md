@@ -31,13 +31,13 @@ download URL and a filename in an external offline-staging directory:
 ```bash
 python scripts/wri/acquire_offline_asset.py \
   --source-id wri.aqueduct40.basins \
-  --url 'https://files.wri.org/ACTUAL-WRI-ASSET-PATH.zip' \
+  --url 'https://files.wri.org/aqueduct/aqueduct-4-0-water-risk-data.zip' \
   --output /external/tsm-staging/wri/aqueduct40.zip \
   --acknowledge-license-review
 python -m unittest discover -s tests/wri -v
 ```
 
-The asset path above is deliberately a **placeholder**; the downloader
+The ZIP link above was verified as the direct download target on WRI's official Aqueduct 4.0 page (2026-11-11). The downloader
 requires a user-reviewed exact URL and enforces known WRI download hosts.
 A successfully downloaded file gets a SHA-256, byte count and receipt marked
 `ACQUIRED_UNREVIEWED`. It is **not** automatically imported into render or
