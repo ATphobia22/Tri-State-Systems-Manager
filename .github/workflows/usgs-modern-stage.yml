@@ -1,0 +1,39 @@
+name: Modern USGS OGC Stage Source Contract
+
+on:
+  pull_request:
+    paths:
+      - 'packages/hydrology/src/usgs-stage-adapter.mjs'
+      - 'tests/contracts/usgs-stage-adapter.test.mjs'
+      - '.github/workflows/usgs-modern-stage.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'packages/hydrology/src/usgs-stage-adapter.mjs'
+      - 'tests/contracts/usgs-stage-adapter.test.mjs'
+      - '.github/workflows/usgs-modern-stage.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  modern-usgs-stage:
+    name: Modern USGS observations, missing-data and datum guards
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Checkout pinned action without persistent credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Setup Node 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+      - name: Test offline simulated USGS OGC source contract
+        run: node --test tests/contracts/usgs-stage-adapter.test.mjs
+      - name: State evidence boundaries
+        run: |
+          echo 'PASS: synthetic OGC v1 stage, staleness, source identity and no automatic NAVD88 conversion'
+          echo 'NOT VERIFIED: current live USGS station data, regulatory parcel elevations or native Shipping runtime'
