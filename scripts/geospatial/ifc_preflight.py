@@ -10,7 +10,6 @@ import argparse
 import hashlib
 import json
 import math
-import os
 from pathlib import Path
 import re
 import sys
@@ -78,8 +77,19 @@ def inspect_model(model, source: dict, declared_vertical_datum: str | None = Non
                       "hasRepresentation": getattr(product, "Representation", None) is not None})
     items.sort(key=lambda item: item["globalId"])
 
-    crs_entities = model.by_type("IfcProjectedCRS")
-    conversion_entities = model.by_type("IfcMapConversion")
+    # IFC2X3 predates IfcProjectedCRS and IfcMapConversion. In that
+    # schema their absence must remain an unresolved georeference, rather
+    # than making the CLI fail before producing the evidence inventory.
+    def optional_entities(entity: str):
+        try:
+            return model.by_type(entity)
+        except RuntimeError:
+            if str(getattr(model, "schema", "")).upper().startswith("IFC2X3"):
+                return []
+            raise
+
+    crs_entities = optional_entities("IfcProjectedCRS")
+    conversion_entities = optional_entities("IfcMapConversion")
     crs_name = None
     map_conversion = None
     if len(crs_entities) == 1 and len(conversion_entities) == 1:
@@ -150,8 +160,15 @@ def preflight(path: Path, output: Path, expected_sha256: str,
         import ifcopenshell
     except ImportError as exc:
         raise PreflightError("IfcOpenShell is required; install separately after license review") from exc
-    model = ifcopenshell.open(str(path))
-    report = inspect_model(model, source, vertical_datum, expected_crs)
+    try:
+        model = ifcopenshell.open(str(path))
+        if model is None:
+            raise PreflightError("IfcOpenShell could not parse the STEP IFC model")
+        report = inspect_model(model, source, vertical_datum, expected_crs)
+    except (RuntimeError, TypeError) as exc:
+        raise PreflightError("Unable to parse or inspect IFC model: " + str(exc)) from exc
+    if inspect_source(path, max_bytes=max_bytes) != source:
+        raise PreflightError("IFC source changed during model parsing")
     if output.is_symlink() or output.exists():
         raise PreflightError("output exists or is a symlink; refusing overwrite")
     if output.parent.is_symlink() or not output.parent.is_dir():
