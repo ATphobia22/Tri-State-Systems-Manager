@@ -50,9 +50,7 @@ jobs:
       - name: Validate third-party inventory honesty
         run: node --test tests/geobim-source-evaluation.test.mjs
       - name: Install optional isolated IFC parser for real IFC4 smoke tests
-        run: |
-          python -m pip install --disable-pip-version-check --no-input \\
-            -r scripts/geospatial/requirements-geobim-optional.txt
+        run: python -m pip install --disable-pip-version-check --no-input -r scripts/geospatial/requirements-geobim-optional.txt
       - name: Test real synthetic IFC4 parser and output receipt
         run: python -m unittest scripts.geospatial.test_ifc_real_parser -v
       - name: Explicit release boundary
