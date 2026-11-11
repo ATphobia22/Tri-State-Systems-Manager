@@ -209,8 +209,13 @@ def _check_glb(path):
             document = json.loads(raw.decode("utf-8"))
         except (UnicodeDecodeError, json.JSONDecodeError) as exc:
             raise ValueError("Invalid GLB JSON") from exc
-        require(isinstance(document, dict) and document.get("asset", {}).get("version") == "2.0",
+        require(isinstance(document, dict) and isinstance(document.get("asset"), dict)
+                and document["asset"].get("version") == "2.0",
                 "Invalid GLB glTF asset version")
+        for group in ("buffers", "images", "shaders"):
+            for entry in document.get(group, []):
+                require(isinstance(entry, dict) and "uri" not in entry,
+                        "GLB contains external resource references; no offline bundle claim permitted")
     finally:
         os.close(descriptor)
 
@@ -218,12 +223,22 @@ def _check_glb(path):
 def _copy_verified(src, dest):
     digest = hashlib.sha256()
     byte_count = 0
-    with src.open("rb") as reader, dest.open("xb") as writer:
-        while chunk := reader.read(1024*1024):
-            byte_count += len(chunk)
-            require(byte_count <= MAX_ASSET_BYTES, "Asset size bound exceeded")
-            writer.write(chunk)
-            digest.update(chunk)
+    descriptor = os.open(src, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+    try:
+        before = os.fstat(descriptor)
+        require(stat.S_ISREG(before.st_mode) and 0 < before.st_size <= MAX_ASSET_BYTES,
+                "Invalid staged input file")
+        with os.fdopen(descriptor, "rb", closefd=False) as reader, dest.open("xb") as writer:
+            while chunk := reader.read(1024*1024):
+                byte_count += len(chunk)
+                require(byte_count <= MAX_ASSET_BYTES, "Asset size bound exceeded")
+                writer.write(chunk)
+                digest.update(chunk)
+        after = os.fstat(descriptor)
+        require(byte_count == before.st_size == after.st_size
+                and before.st_mtime_ns == after.st_mtime_ns, "Asset changed during staging")
+    finally:
+        os.close(descriptor)
     return {"path": dest.as_posix(), "sha256": digest.hexdigest(), "sizeBytes": byte_count}
 
 
@@ -251,11 +266,11 @@ def stage(tileset_path: Path, destination: Path) -> int:
                 _check_glb(original)
             target = temporary / name
             target.parent.mkdir(parents=True, exist_ok=True)
-            _copy_verified(original, target)
+            copied = _copy_verified(original, target)
             entries.append({
                 "path": name,
-                "sha256": hashlib.sha256(target.read_bytes()).hexdigest(),
-                "sizeBytes": target.stat().st_size,
+                "sha256": copied["sha256"],
+                "sizeBytes": copied["sizeBytes"],
             })
         manifest = {
             "schema": "tsm.offline-3dtiles-staging.v1",
