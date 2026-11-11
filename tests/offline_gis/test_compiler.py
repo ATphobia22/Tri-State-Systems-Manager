@@ -62,6 +62,16 @@ class RegionalOfflineBuildTests(unittest.TestCase):
             fixture(root)
             out = Path(temp) / "artifacts"
             manifest = mod.build(root, out)
+            spec_gpkg = importlib.util.spec_from_file_location(
+                "tsm_gpkg", MODULE.parent / "build_tri_state_geopackage.py")
+            gpkg_mod = importlib.util.module_from_spec(spec_gpkg)
+            spec_gpkg.loader.exec_module(gpkg_mod)
+            gpkg = gpkg_mod.build(out / "offline-layers-manifest.json")
+            self.assertEqual(gpkg["layers"], {"roads_2024": 8, "linearwater_2024": 8})
+            import sqlite3
+            with sqlite3.connect(out / gpkg["path"]) as connection:
+                self.assertEqual(connection.execute(
+                    "SELECT COUNT(*) FROM roads_2024").fetchone()[0], 8)
             self.assertEqual(len(manifest["vector_assets"]), 16)
             self.assertEqual(sum(sum(row.values()) for row in manifest["vector_counts"].values()), 16)
             self.assertFalse(manifest["hydrologic_aoi_approved"])
