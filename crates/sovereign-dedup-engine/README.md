@@ -40,3 +40,23 @@ This excludes manifest, filesystem and encryption overhead, so actual on-disk sa
 - Integration adapter and end-to-end provenance validation
 
 The current crate is a bounded initial implementation, not yet wired to TSM's evidence ledger or UE runtime.
+
+
+## Integrated reasoning and ledger modules (v1)
+
+- `graph::canonical_graph`: validates node identities and edge references, sorts unordered graph collections and emits versioned deterministic JSON bytes. This is **not** a complete RFC 8785 JCS implementation; cross-language producers must follow the same serialization contract. Schema `tsm.reasoning-graph.v1`.
+- `evidence::ingest_graph`: hashes canonical graphs, deduplicates chunks and atomically publishes a content-addressed, append-only JSON ledger record, marked `UNVERIFIED`. Caller supplies nonempty provenance bytes; cryptographic linkage does not establish scientific correctness or regulatory authority.
+- `parallel::evaluate_parallel`: bounded worker orchestration for independent reasoning candidates, deterministic result ordering and pluggable `Reasoner` inference adapters. **No neural model or GPU inference runtime is bundled**; the included reasoner is only a test stub.
+- Object and ledger files are written to unique temporary files and published by atomic hard-link; a failed publish leaves only an orphan temp file, never a partially published target. Recovery should delete stale `.tmp-*` files only after confirming no active writers. Safe garbage collection and multi-process leases are not implemented.
+
+## Representative-corpus benchmark
+
+```bash
+cargo run --release --manifest-path crates/sovereign-dedup-engine/Cargo.toml --bin sde-benchmark -- ./sde-cache ./sde-report.json ./evidence-graph-1.json ./evidence-graph-2.json
+```
+
+Provide actual project evidence graphs to measure deduplication. The benchmark reports elapsed time, logical bytes, unique chunk bytes and physical object-file bytes. Do not reuse a cache containing unrelated objects when interpreting corpus-only storage totals. Benchmark outputs are not automatically a release certification.
+
+## Outstanding production dependencies
+
+A fully deployed neural system still requires a selected/licensed local model, inference runtime, calibration and evaluation data, GPU/CPU resource limits, security review, model/version provenance, a human-review UI and integration with the existing TSM evidence API. A repository-local append-only JSON ledger is a **proposed adapter**, not proof that existing application evidence endpoints are wired. Crash-recovery integration tests, process-level concurrency stress tests, Windows CI and authentic corpus metrics remain release gates.
