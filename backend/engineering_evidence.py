@@ -1,6 +1,7 @@
 """Fail-closed scientific solver evidence, durable ledger, and signature verification."""
 from __future__ import annotations
 import hashlib, json, math, sqlite3
+from contextlib import closing
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from enum import StrEnum
@@ -52,7 +53,7 @@ class SQLiteEvidenceLedger:
     """Local durable append-only ledger; production multi-instance use should use PostgreSQL."""
     def __init__(self,database_path:str|Path)->None:
         self.database_path=str(database_path)
-        with self._connect() as c:
+        with closing(self._connect()) as c, c:
             c.execute("PRAGMA journal_mode=WAL")
             c.execute("""CREATE TABLE IF NOT EXISTS solver_evidence_ledger(sequence INTEGER PRIMARY KEY AUTOINCREMENT,run_id TEXT NOT NULL UNIQUE,evidence_json TEXT NOT NULL,evidence_sha256 TEXT NOT NULL,previous_record_sha256 TEXT,record_sha256 TEXT NOT NULL UNIQUE,inserted_at_utc TEXT NOT NULL)""")
     def _connect(self):
@@ -60,13 +61,13 @@ class SQLiteEvidenceLedger:
     def append(self,e:SolverEvidence)->str:
         if not verify_evidence_hash(e): raise ValueError("EVIDENCE_HASH_INVALID")
         payload=_canonical_json(asdict(e)).decode("utf-8")
-        with self._connect() as c:
+        with closing(self._connect()) as c, c:
             row=c.execute("SELECT record_sha256 FROM solver_evidence_ledger ORDER BY sequence DESC LIMIT 1").fetchone(); previous=row[0] if row else None
             record={"run_id":e.run_id,"evidence_json":payload,"evidence_sha256":e.evidence_sha256,"previous_record_sha256":previous}; digest=sha256_bytes(_canonical_json(record))
             c.execute("INSERT INTO solver_evidence_ledger(run_id,evidence_json,evidence_sha256,previous_record_sha256,record_sha256,inserted_at_utc) VALUES(?,?,?,?,?,?)",(e.run_id,payload,e.evidence_sha256,previous,digest,datetime.now(timezone.utc).isoformat()))
         return digest
     def verify_chain(self)->bool:
-        with self._connect() as c: rows=c.execute("SELECT run_id,evidence_json,evidence_sha256,previous_record_sha256,record_sha256 FROM solver_evidence_ledger ORDER BY sequence").fetchall()
+        with closing(self._connect()) as c, c: rows=c.execute("SELECT run_id,evidence_json,evidence_sha256,previous_record_sha256,record_sha256 FROM solver_evidence_ledger ORDER BY sequence").fetchall()
         previous=None
         for run_id,payload,evidence_hash,link,record_hash in rows:
             if link!=previous: return False
