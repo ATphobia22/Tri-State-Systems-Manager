@@ -90,7 +90,7 @@ jobs:
               sha256=(Get-FileHash $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
             }
           }
-          if (@($received | Sort-Object) -join ',' -ne @($expected | Sort-Object) -join ',') {
+          if ((@($received | Sort-Object) -join ',') -ne (@($expected | Sort-Object) -join ',')) {
             throw 'The downloaded county identities do not match the approved six-county scope.'
           }
           $receipt = [ordered]@{
