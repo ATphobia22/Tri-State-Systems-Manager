@@ -160,7 +160,7 @@ def audit(manifest: dict, data_root: Path, scope: str, minimum_footprint: float 
                 by_kind[kind].append(footprint)
                 if kind == "terrain":
                     for fld in ("vertical_datum", "vertical_units", "geoid_model"):
-                        require(isinstance(entry.get(fld), str) and entry[fld].strip(),
+                        require(isinstance(entry.get(fld), str) and entry[fld].strip() and entry[fld].upper() not in ("UNKNOWN", "NONE", "N/A", "UNSPECIFIED"),
                                 "terrain vertical source metadata is required: " + fld)
                     receipt = entry.get("vertical_evidence")
                     checked_file(root, receipt)
@@ -171,9 +171,12 @@ def audit(manifest: dict, data_root: Path, scope: str, minimum_footprint: float 
                 # This proves a source asset exists, not its complete feature coverage.
                 # A distinct identity/count/geometry audit is always required.
                 index = entry.get("coverage_index")
-                checked_file(root, index)
+                index_path = checked_file(root, index)
                 checked += 1
-                status_by_kind[kind] = "FILE_AND_COVERAGE_INDEX_HASHED_FEATURE_COMPLETENESS_PENDING"
+                vector_footprint = feature_geom(index_path, fips)
+                require(vector_footprint.intersects(original_boundary),
+                        "source index does not intersect the selected county: " + fips)
+                status_by_kind[kind] = "FILE_AND_COUNTY_INDEX_INTERSECTION_CHECKED_COMPLETENESS_PENDING"
         row = {"county_fips": fips, "layers": {}, "terrain_bounds_coverage": 0.0}
         for kind in REQUIRED_LAYER_KINDS:
             if kind in ("terrain", "imagery"):
