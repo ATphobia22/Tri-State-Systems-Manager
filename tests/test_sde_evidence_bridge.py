@@ -1,5 +1,6 @@
 """Integration tests: real Rust SDE CLI + existing TSM SQLite evidence ledger."""
 import json
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import closing
 import os
 from pathlib import Path
@@ -56,6 +57,23 @@ class SDEBridgeIntegrationTest(unittest.TestCase):
         evidence = json.loads(row[0])
         self.assertEqual(evidence["state"], "NOT_EVALUATED")
         self.assertIn("NEURAL_INFERENCE_NOT_EVIDENCED", evidence["validation_messages"])
+
+    def test_concurrent_ingests_do_not_fork_scientific_evidence_chain(self):
+        def one(index):
+            return self.adapter.ingest(
+                self.graph,
+                self.prov,
+                self.root / f"concurrent-{index}.json",
+                run_id=f"sde-concurrent-{index}",
+            )
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            outcomes = list(pool.map(one, range(6)))
+        self.assertEqual(len(outcomes), 6)
+        self.assertEqual(len({x["ledger_record_sha256"] for x in outcomes}), 6)
+        self.assertTrue(self.adapter.ledger.verify_chain())
+        with closing(sqlite3.connect(self.root / "scientific-evidence.sqlite")) as connection:
+            count = connection.execute("SELECT COUNT(*) FROM solver_evidence_ledger").fetchone()[0]
+        self.assertEqual(count, 6)
 
     def test_reconstruction_rejects_modified_provenance_chunk(self):
         record_file = self.root / "record2.json"
