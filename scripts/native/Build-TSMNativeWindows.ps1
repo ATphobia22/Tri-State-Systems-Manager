@@ -35,6 +35,11 @@ if ($LASTEXITCODE -ne 0) { throw "UE native map generation failed." }
 & "$PSScriptRoot\Build-TSMNative.ps1" -UnrealRoot $UnrealRoot -ProjectFile $ProjectFile -Platform Win64 -Configuration Shipping -ArchiveDirectory $ArchiveDirectory
 if ($LASTEXITCODE -ne 0) { throw "Unreal packaging failed." }
 
+# Stage the offline, content-addressed Rust evidence companion in the
+# UE archive before Inno Setup compiles its recursive [Files] payload.
+& "$PSScriptRoot\\Stage-SovereignDedupEngine.ps1" -ArchiveDirectory $ArchiveDirectory
+if ($LASTEXITCODE -ne 0) { throw "SDE staging failed." }
+
 # Sign cooked executable BEFORE Inno Setup embeds it. The installer
 # also gets signed separately after its own compilation in GitHub Actions.
 $signSha = $env:TSM_WINDOWS_SIGNING_CERT_SHA1
@@ -53,6 +58,20 @@ if ($LASTEXITCODE -ne 0) { throw "Cooked executable Authenticode verification fa
 $auth = Get-AuthenticodeSignature -LiteralPath $exes[0].FullName
 if ($auth.Status -ne 'Valid') { throw "Cooked executable Authenticode status: $($auth.Status)" }
 Write-Host "SIGNED_COOKED_EXE_SHA256=$((Get-FileHash -LiteralPath $exes[0].FullName -Algorithm SHA256).Hash.ToLowerInvariant())"
+
+# Sign and verify the SDE companion independently; an unsigned CLI must
+# not be embedded into the signed native installer.
+$sdeBinary = Join-Path $ArchiveDirectory "Windows\\TSMNative\\Tools\\sde-graph.exe"
+if (-not (Test-Path -LiteralPath $sdeBinary -PathType Leaf)) {
+    throw "Staged SDE executable is required before installer compilation."
+}
+& $signTool.Source sign /sha1 $signSha /fd SHA256 /tr $timestampUrl /td SHA256 $sdeBinary
+if ($LASTEXITCODE -ne 0) { throw "SDE companion signing failed." }
+& $signTool.Source verify /pa /all $sdeBinary
+if ($LASTEXITCODE -ne 0) { throw "SDE companion Authenticode verification failed." }
+$sdeAuth = Get-AuthenticodeSignature -LiteralPath $sdeBinary
+if ($sdeAuth.Status -ne 'Valid') { throw "SDE Authenticode status: $($sdeAuth.Status)" }
+Write-Host "SIGNED_SDE_SHA256=$((Get-FileHash -LiteralPath $sdeBinary -Algorithm SHA256).Hash.ToLowerInvariant())"
 
 $iscc = Get-Command ISCC.exe -ErrorAction SilentlyContinue
 if (-not $iscc) { throw "Inno Setup 7 ISCC.exe is required to produce the standalone installer." }
