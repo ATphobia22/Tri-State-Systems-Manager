@@ -4,23 +4,45 @@ on:
     branches: [main]
     paths:
       - 'crates/sovereign-dedup-engine/**'
+      - 'backend/sde_evidence_adapter.py'
+      - 'tests/test_sde_evidence_bridge.py'
       - '.github/workflows/sovereign-dedup-engine.yml'
   push:
     branches: [main]
     paths:
       - 'crates/sovereign-dedup-engine/**'
+      - 'backend/sde_evidence_adapter.py'
+      - 'tests/test_sde_evidence_bridge.py'
       - '.github/workflows/sovereign-dedup-engine.yml'
 permissions:
   contents: read
 jobs:
-  rust-test:
+  rust-and-ledger-integration:
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-24.04, windows-2022]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Pin Rust toolchain
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.11'
+      - name: Install pinned Rust compiler
         shell: bash
         run: rustup toolchain install 1.85.1 --profile minimal
-      - run: cargo test --manifest-path crates/sovereign-dedup-engine/Cargo.toml
+      - name: Build SDE CLI and run Rust suite
+        shell: bash
+        run: |
+          cargo +1.85.1 test --manifest-path crates/sovereign-dedup-engine/Cargo.toml --all-targets
+          cargo +1.85.1 build --manifest-path crates/sovereign-dedup-engine/Cargo.toml --bin sde-graph
+      - name: Run real Rust-to-Python-to-SQLite evidence integration
+        shell: bash
+        run: |
+          suffix=''
+          if [ "$RUNNER_OS" = 'Windows' ]; then suffix='.exe'; fi
+          export TSM_SDE_GRAPH_BIN="$PWD/crates/sovereign-dedup-engine/target/debug/sde-graph$suffix"
+          test -f "$TSM_SDE_GRAPH_BIN"
+          python -m unittest discover -s tests -p test_sde_evidence_bridge.py -v
