@@ -1,0 +1,68 @@
+name: Posey 2025 Offline Parcel Snapshot
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feat/offline-scene-evidence-gate-20261112
+    paths:
+      - .github/workflows/posey-parcel-offline-snapshot.yml
+      - scripts/geospatial/download_posey_2025_parcels.py
+      - scripts/geospatial/build_posey_offline_parcels.py
+
+permissions:
+  contents: read
+
+concurrency:
+  group: posey-2025-parcels-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  acquire-and-transform:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned geospatial transform dependency
+        run: python -m pip install pyproj==3.7.2
+      - name: Retrieve verified Posey 2025 parcels
+        run: |
+          python scripts/geospatial/download_posey_2025_parcels.py --output TSMData/parcels/posey/2025/source --batch-size 500
+      - name: Build offline Indiana West coordinates
+        run: |
+          python scripts/geospatial/build_posey_offline_parcels.py --source TSMData/parcels/posey/2025/source --output TSMData/parcels/posey/2025/offline
+      - name: Validate parity, checksums and CRS round trip
+        run: |
+          python - <<'PY'
+          import hashlib, json, pathlib
+          from pyproj import Transformer
+          root=pathlib.Path('TSMData/parcels/posey/2025')
+          src=json.loads((root/'source/manifest.json').read_text())
+          dst=json.loads((root/'offline/layer-manifest.json').read_text())
+          assert src['source_crs']=='EPSG:4326'
+          assert dst['target_crs']=='EPSG:2966'
+          assert src['feature_count_expected']==dst['total_features']
+          assert len(src['batches'])==len(dst['batches'])
+          ids=set()
+          for kind,manifest in (('source',src),('offline',dst)):
+            for batch in manifest['batches']:
+              path=root/kind/batch['file']
+              assert hashlib.sha256(path.read_bytes()).hexdigest()==batch['sha256']
+              data=json.loads(path.read_text())
+              assert len(data['features'])==batch['features']
+          convert=Transformer.from_crs('EPSG:2966','EPSG:4326',always_xy=True,allow_ballpark=False)
+          sample=json.loads((root/'offline'/dst['batches'][0]['file']).read_text())['features'][0]
+          xy=sample['geometry']['coordinates'][0][0]
+          lon,lat=convert.transform(xy[0],xy[1])
+          assert -88.3<lon<-87.3 and 37.7<lat<38.3, (lon,lat)
+          print('VERIFIED',dst['total_features'],'PARCELS',len(dst['batches']),'BATCHES')
+          PY
+      - name: Archive reproducible source and transformed layers
+        uses: actions/upload-artifact@v4
+        with:
+          name: posey-2025-parcels-epsg2966
+          path: TSMData/parcels/posey/2025/
+          retention-days: 30
+          if-no-files-found: error
