@@ -4,7 +4,7 @@ Rust-only offline content-defined chunking for **canonical serialized reasoning 
 
 ## Design
 
-- Rabin-Karp rolling polynomial fingerprint, 64-byte rolling window, modulo 2^64, for **boundary selection**.
+- Rabin GF(2) rolling polynomial fingerprint (degree-53 polynomial `0x3DA3358B4DC173`), 64-byte rolling window, for **boundary selection**.
 - Default minimum / target / maximum chunk lengths: 4 / 16 / 64 KiB.
 - SHA-256 cryptographic identities for each chunk and for the full input.
 - Content-addressed objects stored in `objects/<first-two-hex>/<sha256>`.
@@ -20,7 +20,7 @@ cargo run --manifest-path crates/sovereign-dedup-engine/Cargo.toml -- store ./sd
 cargo run --manifest-path crates/sovereign-dedup-engine/Cargo.toml -- restore ./sde-cache ./subgraph.manifest.json ./subgraph-restored.json
 ```
 
-Use a deterministic canonicalization scheme such as RFC 8785 JSON Canonicalization Scheme for JSON graphs, with explicit ordering for unordered graph collections. Track graph schema, canonicalizer version and evidence provenance outside the chunk manifest. Encrypt sensitive records at rest according to project policy; hashes alone do not provide confidentiality. The current store is not transactional across multiple files, and the CLI reads the complete input into memory: **do not use it for multi-GB DEM/LAZ files without adding bounded streaming and crash recovery**.
+Use a deterministic canonicalization scheme such as RFC 8785 JSON Canonicalization Scheme for JSON graphs, with explicit ordering for unordered graph collections. Track graph schema, canonicalizer version and evidence provenance outside the chunk manifest. Encrypt sensitive records at rest according to project policy; hashes alone do not provide confidentiality. The store publishes individual objects atomically, but is not transactional across multiple files, and the CLI reads the complete input into memory: **do not use it for multi-GB DEM/LAZ files without adding bounded streaming and crash recovery**.
 
 ## Compression and performance
 
