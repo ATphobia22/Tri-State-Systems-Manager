@@ -1,7 +1,7 @@
 //! Sovereign Deduplication Engine (SDE).
 //!
-//! Offline, content-defined chunking using a Rabin-Karp rolling polynomial
-//! fingerprint (modulo 2^64), with SHA-256 object identities. The rolling
+//! Offline, content-defined chunking using a GF(2) Rabin rolling polynomial
+//! fingerprint (degree 53), with SHA-256 object identities. The rolling
 //! fingerprint selects boundaries; it is NOT a cryptographic content hash.
 //! Feed canonical serialized subgraph bytes to get stable cross-run identities.
 
@@ -137,11 +137,7 @@ pub fn store(root: &Path, source: &[u8], cfg: ChunkConfig) -> io::Result<Manifes
             })();
             let _ = fs::remove_file(&temp);
             publish?;
-            if fs::read(&path)? != chunk {
-                return Err(io::Error::new(io::ErrorKind::InvalidData,
-                    "object hash collision or corruption"));
-            }
-            }
+        }
         // Even if another writer published during our staging, verify bytes.
         if fs::read(&path)? != chunk {
             return Err(io::Error::new(io::ErrorKind::InvalidData,
@@ -230,6 +226,24 @@ mod tests {
         let path = object_path(tmp.path(), &a.chunks[0].sha256);
         fs::write(path, b"bad").unwrap();
         assert!(restore(tmp.path(), &a).is_err());
+    }
+    #[test]
+    fn rabin_window_matches_recalculation() {
+        let stream: Vec<u8> = (0..512).map(|n| ((n * 73) % 251) as u8).collect();
+        let outgoing = rabin_out_table();
+        let mut fp = 0u64;
+        let mut ring = [0u8; WINDOW];
+        for (i, byte) in stream.iter().copied().enumerate() {
+            let idx = i % WINDOW;
+            if i >= WINDOW { fp ^= outgoing[ring[idx] as usize]; }
+            fp = rabin_append(fp, byte);
+            ring[idx] = byte;
+            let start = (i + 1).saturating_sub(WINDOW);
+            let recomputed = stream[start..=i].iter().fold(
+                0u64, |hash, b| rabin_append(hash, *b)
+            );
+            assert_eq!(fp, recomputed, "window ending at {i}");
+        }
     }
     #[test]
     fn stable_boundaries_and_empty() {
