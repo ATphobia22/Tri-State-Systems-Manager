@@ -8,7 +8,7 @@ $ErrorActionPreference = "Stop"
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $manifest = (Resolve-Path -LiteralPath $ManifestPath).Path
 $cargo = Get-Command cargo.exe -ErrorAction Stop
-& $cargo.Source "+1.85.1" build --release --manifest-path $manifest --bin sde-graph
+& $cargo.Source "+1.85.1" build --release --locked --manifest-path $manifest --bin sde-graph
 if ($LASTEXITCODE -ne 0) { throw "SDE Rust release build failed." }
 
 $crateRoot = Split-Path -Parent $manifest
