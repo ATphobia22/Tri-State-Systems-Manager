@@ -1,0 +1,69 @@
+{
+  "schema_version": "1.0.0",
+  "record_type": "gis_source_discovery",
+  "county_fips": "18129",
+  "scope": "Posey County Indiana",
+  "reference_site": {
+    "url": "https://gismap.land/county/indiana/posey",
+    "authority_class": "third_party_viewer",
+    "verified_page_content": true,
+    "contains_official_county_parcel_records": false,
+    "capabilities_observed": [
+      "FEMA NFHL visualization",
+      "USGS 3DEP contours and hillshade",
+      "NLCD land cover",
+      "Census TIGER geographic boundaries",
+      "point inspector",
+      "draw and measure",
+      "PNG export"
+    ],
+    "reuse_policy": "Use public feature behavior as a design reference; do not copy proprietary frontend code or scraped third-party tiles without licensing verification."
+  },
+  "official_services": [
+    {
+      "name": "Indiana GIO current parcel boundaries",
+      "url": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_Current/FeatureServer",
+      "source": "Indiana Geographic Information Office",
+      "expected_format": "ArcGIS REST FeatureServer",
+      "status": "OFFICIAL_URL_PUBLISHED_UNTESTED_IN_RUNTIME",
+      "spatial_reference": "inspect service metadata; never assume 2966"
+    },
+    {
+      "name": "Indiana GIO parcel boundaries 2025 layer 0",
+      "url": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer/0",
+      "source": "Indiana Geographic Information Office",
+      "expected_format": "ArcGIS REST FeatureServer",
+      "reported_crs": "EPSG:4326",
+      "max_record_count": 2000,
+      "filter_expression": "county_fips='18129'",
+      "status": "METADATA_RESEARCHED_FILTER_UNVERIFIED"
+    },
+    {
+      "name": "Posey County official parcel GIS",
+      "url": "https://poseyin.wthgis.com/",
+      "source": "Posey County",
+      "status": "OFFICIAL_VIEWER_NOT_OPEN_DATA_ENDPOINT"
+    },
+    {
+      "name": "Indiana Spatial Data Portal",
+      "url": "https://gis.iu.edu/s/isdp/page/home",
+      "source": "Indiana University",
+      "status": "PUBLISHED_CATALOG"
+    }
+  ],
+  "separation_of_concerns": {
+    "parcels": "not legal boundary survey",
+    "nfhl": "regulatory hazard context; check effective panels",
+    "three_dep": "visual elevation context, not substitute for tile-specific source DEM validation",
+    "rendered_third_party_tiles": "not ingestible without express reuse rights"
+  },
+  "implementation_candidate": [
+    "layer source adapters",
+    "layer attribution and acquisition timestamp",
+    "CRS-aware distance and area tool",
+    "source inspection panel",
+    "sketch/export PNG"
+  ],
+  "scene_contract_acceptance": "NOT_EVIDENCED",
+  "native_runtime_acceptance": "NOT_EVIDENCED"
+}
