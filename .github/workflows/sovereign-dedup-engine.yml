@@ -46,6 +46,13 @@ jobs:
           export TSM_SDE_GRAPH_BIN="$PWD/crates/sovereign-dedup-engine/target/debug/sde-graph$suffix"
           test -f "$TSM_SDE_GRAPH_BIN"
           python -m unittest discover -s tests -p test_sde_evidence_bridge.py -v
+      - name: Expose dependency lockfile for audited source pinning
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          echo 'BEGIN_SDE_CARGO_LOCK'
+          cat crates/sovereign-dedup-engine/Cargo.lock
+          echo 'END_SDE_CARGO_LOCK'
       - name: Benchmark real TSM data-plane manifests (metadata proxy corpus)
         shell: bash
         run: |
