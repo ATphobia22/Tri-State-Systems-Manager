@@ -1,0 +1,28 @@
+name: Offline Parcel Evidence Integrity
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/geospatial/audit_offline_parcel_manifest.py'
+      - 'scripts/geospatial/build_posey_offline_parcels.py'
+      - 'tests/geospatial/test_offline_parcel_manifest.py'
+      - '.github/workflows/offline-parcel-evidence-integrity.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/geospatial/audit_offline_parcel_manifest.py'
+      - 'scripts/geospatial/build_posey_offline_parcels.py'
+      - 'tests/geospatial/test_offline_parcel_manifest.py'
+      - '.github/workflows/offline-parcel-evidence-integrity.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test-auditor:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.11'
+      - run: python -m unittest discover -s tests/geospatial -p test_offline_parcel_manifest.py -v

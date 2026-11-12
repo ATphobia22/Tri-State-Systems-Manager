@@ -27,7 +27,7 @@ def build(source, output):
         raise ValueError("Unexpected source CRS or county filter")
     transformer = Transformer.from_crs("EPSG:4326", "EPSG:2966", always_xy=True, allow_ballpark=False)
     output.mkdir(parents=True, exist_ok=True)
-    index = {"schema_version":"1.0.0","layer":"posey_parcels_2025","source_crs":"EPSG:4326","target_crs":"EPSG:2966","vertical_datum":"NOT_APPLICABLE","source":manifest["source"],"batches":[],"total_features":0,"status":"OFFLINE_PARCEL_GEOMETRY_NOT_SURVEY_CERTIFIED"}
+    index = {"schema_version":"1.0.0","layer":"posey_parcels_2025","source_crs":"EPSG:4326","target_crs":"EPSG:2966","format":"TSM_PROJECTED_FEATURE_COLLECTION_V1","vertical_datum":"NOT_APPLICABLE","source":manifest["source"],"batches":[],"total_features":0,"status":"OFFLINE_PARCEL_GEOMETRY_NOT_SURVEY_CERTIFIED"}
     seen=set()
     for item in manifest["batches"]:
         filename = Path(item["file"]).name
@@ -47,7 +47,7 @@ def build(source, output):
             features.append({"type":"Feature","id":oid,"properties":properties,"geometry":convert_geometry(feature["geometry"],transformer)})
         if len(features) != item["features"]:
             raise ValueError("Feature count mismatch")
-        target=filename.replace(".geojson",".epsg2966.geojson")
+        target=filename.replace(".geojson",".epsg2966.json")
         payload=(json.dumps({"type":"FeatureCollection","features":features},separators=(",",":"))+"\n").encode()
         (output/target).write_bytes(payload)
         index["batches"].append({"file":target,"features":len(features),"sha256":hashlib.sha256(payload).hexdigest()})
