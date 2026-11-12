@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0.0",
+  "status": "SOURCE_METADATA_VERIFIED_ONLY",
+  "project": "Indiana Statewide LiDAR 2017 B17 West",
+  "source_horizontal_crs": "EPSG:2968",
+  "source_horizontal_datum": "NAD83(HARN)",
+  "source_vertical_datum": "NAVD88",
+  "source_geoid": "GEOID12B",
+  "source_elevation_units": "US survey feet",
+  "dem_resolution_ft": 2.5,
+  "source_dem_uploaded": false,
+  "posey_tile_index": {
+    "format": "ESRI Shapefile",
+    "feature_count": 598,
+    "bounds_source_crs": [
+      2655000,
+      915000,
+      2780000,
+      1090000
+    ],
+    "tile_name_example": "in2018_26750915_12",
+    "component_sha256": {
+      "shp": "40223357250f71aee31eda11a1fbf12a49bb0703eeae17e62d334d346effb9c0",
+      "shx": "77a0034aec0a66a69e76ecd9cfed527b765bc2df8589a15e44d0068886f43f39",
+      "dbf": "0a60eb81c2aaa9bb45cbdbde58b486898ca7ea529bcc82de145b60e296328f62",
+      "prj": "9d395a50a5bd90b4ee28db46f60a3185dc6a6f4c63babc75f6745149bec6089e"
+    }
+  },
+  "metadata_sha256": {
+    "classified_point_cloud": "bc64f894c1d60f7ee84677424a3cd01bcaee4d6a1b8d0d401189305a6ee29192",
+    "hydro_flattened_dem": "e9655f8414ffa0a4269b48d67256871910cfaee78751c27b7ad1d55828c05e8f",
+    "intensity": "8206e1ac97a3ad32445cdff831b1571c92d05a3bc387baf41d4ba85044bbf148"
+  },
+  "verification": {
+    "horizontal_transform_to_epsg2966": false,
+    "posey_dem_raster_verified": false,
+    "posey_tile_accuracy_verified": false,
+    "native_render_verified": false
+  },
+  "note": "Index polygons and metadata are not actual DEM raster elevation data. Do not apply GEOID18 to NAVD88 heights as a blanket correction."
+}
