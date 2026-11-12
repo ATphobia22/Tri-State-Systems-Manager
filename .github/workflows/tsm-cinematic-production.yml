@@ -8,6 +8,15 @@ on:
       - 'tsm-native/Content/Python/tsm_author_verified_cinematic.py'
       - 'tsm-native/TSMNative.uproject'
       - 'docs/cinema/**'
+      - 'packages/survey/**'
+      - 'packages/cogo/**'
+      - 'packages/least-squares/**'
+      - 'packages/landxml/**'
+      - 'packages/openmi/**'
+      - 'packages/forecasting/**'
+      - 'packages/release-gates/**'
+      - 'packages/approval-workflows/**'
+      - 'data/cinematic/**'
       - '.github/workflows/tsm-cinematic-production.yml'
   push:
     branches: [main]
@@ -17,6 +26,15 @@ on:
       - 'tsm-native/Content/Python/tsm_author_verified_cinematic.py'
       - 'tsm-native/TSMNative.uproject'
       - 'docs/cinema/**'
+      - 'packages/survey/**'
+      - 'packages/cogo/**'
+      - 'packages/least-squares/**'
+      - 'packages/landxml/**'
+      - 'packages/openmi/**'
+      - 'packages/forecasting/**'
+      - 'packages/release-gates/**'
+      - 'packages/approval-workflows/**'
+      - 'data/cinematic/**'
       - '.github/workflows/tsm-cinematic-production.yml'
 permissions:
   contents: read
