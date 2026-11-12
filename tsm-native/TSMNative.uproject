@@ -40,6 +40,27 @@
       "TargetAllowList": [
         "Editor"
       ]
+    },
+    {
+      "Name": "MovieRenderPipeline",
+      "Enabled": true,
+      "TargetAllowList": [
+        "Editor"
+      ]
+    },
+    {
+      "Name": "SequencerScripting",
+      "Enabled": true,
+      "TargetAllowList": [
+        "Editor"
+      ]
+    },
+    {
+      "Name": "LevelSequenceEditor",
+      "Enabled": true,
+      "TargetAllowList": [
+        "Editor"
+      ]
     }
   ]
 }

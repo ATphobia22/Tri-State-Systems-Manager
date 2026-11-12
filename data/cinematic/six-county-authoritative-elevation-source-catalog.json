@@ -1,0 +1,136 @@
+{
+  "schema": "tsm.cinematic.county-source-catalog.v1",
+  "created_at": "2026-11-12",
+  "scope": "six counties only; no bbox-only downloads",
+  "source_policy": "Discovery listings are not downloaded/validated DEMs. Validate source metadata CRS, realization, vertical datum, geoid model, units, acquisition vintage and checksum per downloaded tile.",
+  "county_fips": [
+    {
+      "fips": "18129",
+      "name": "Posey",
+      "state": "IN",
+      "preferred": "Indiana Spatial Data Portal + USGS 3DEP",
+      "elevation_status": "CATALOG_DISCOVERED_TILE_NOT_VERIFIED",
+      "vertical_datum": "UNKNOWN_UNTIL_TILE_XML_INSPECTION",
+      "geoid_model": "UNKNOWN_UNTIL_TILE_XML_INSPECTION",
+      "units": "UNKNOWN_UNTIL_TILE_XML_INSPECTION"
+    },
+    {
+      "fips": "21101",
+      "name": "Henderson",
+      "state": "KY",
+      "preferred": "KyFromAbove STAC and USGS 3DEP",
+      "elevation_status": "CATALOG_DISCOVERED_TILE_NOT_VERIFIED",
+      "vertical_datum": "UNKNOWN_UNTIL_TILE_XML_INSPECTION",
+      "geoid_model": "UNKNOWN_UNTIL_TILE_XML_INSPECTION",
+      "units": "UNKNOWN_UNTIL_TILE_XML_INSPECTION"
+    },
+    {
+      "fips": "21225",
+      "name": "Union",
+      "state": "KY",
+      "preferred": "KyFromAbove STAC and USGS 3DEP",
+      "elevation_status": "CATALOG_DISCOVERED_TILE_NOT_VERIFIED",
+      "vertical_datum": "UNKNOWN_UNTIL_TILE_XML_INSPECTION",
+      "geoid_model": "UNKNOWN_UNTIL_TILE_XML_INSPECTION",
+      "units": "UNKNOWN_UNTIL_TILE_XML_INSPECTION"
+    },
+    {
+      "fips": "17193",
+      "name": "White",
+      "state": "IL",
+      "preferred": "ISGS ILHMP 2020 + USGS 3DEP",
+      "elevation_status": "CATALOG_DISCOVERED_TILE_NOT_VERIFIED",
+      "vertical_datum": "UNKNOWN_UNTIL_TILE_XML_INSPECTION",
+      "geoid_model": "UNKNOWN_UNTIL_TILE_XML_INSPECTION",
+      "units": "UNKNOWN_UNTIL_TILE_XML_INSPECTION"
+    },
+    {
+      "fips": "17185",
+      "name": "Wabash",
+      "state": "IL",
+      "preferred": "ISGS ILHMP 2020 + USGS 3DEP",
+      "elevation_status": "CATALOG_DISCOVERED_TILE_NOT_VERIFIED",
+      "vertical_datum": "UNKNOWN_UNTIL_TILE_XML_INSPECTION",
+      "geoid_model": "UNKNOWN_UNTIL_TILE_XML_INSPECTION",
+      "units": "UNKNOWN_UNTIL_TILE_XML_INSPECTION"
+    },
+    {
+      "fips": "17059",
+      "name": "Gallatin",
+      "state": "IL",
+      "preferred": "ISGS ILHMP 2020/2011 + USGS 3DEP",
+      "elevation_status": "CATALOG_DISCOVERED_TILE_NOT_VERIFIED",
+      "vertical_datum": "UNKNOWN_UNTIL_TILE_XML_INSPECTION",
+      "geoid_model": "UNKNOWN_UNTIL_TILE_XML_INSPECTION",
+      "units": "UNKNOWN_UNTIL_TILE_XML_INSPECTION"
+    }
+  ],
+  "providers": [
+    {
+      "id": "ISGS_ILHMP",
+      "url": "https://clearinghouse.isgs.illinois.edu/data/elevation/lidar/",
+      "county_fips": [
+        "17059",
+        "17185",
+        "17193"
+      ],
+      "products": [
+        "LAS",
+        "DTM/DEM",
+        "DSM",
+        "tile index",
+        "metadata XML"
+      ],
+      "description": "County releases; Gallatin 2020 and 2011 collections; no blanket NAVD88 claim."
+    },
+    {
+      "id": "KYFROMABOVE_STAC",
+      "url": "https://spved5ihrl.execute-api.us-west-2.amazonaws.com/",
+      "catalog": "https://kyfromabove.ky.gov/",
+      "county_fips": [
+        "21101",
+        "21225"
+      ],
+      "products": [
+        "LAZ",
+        "DEM",
+        "imagery",
+        "STAC item metadata"
+      ],
+      "description": "Select exact intersecting tiles; STAC API published by Kentucky DGI."
+    },
+    {
+      "id": "USGS_3DEP",
+      "url": "https://apps.nationalmap.gov/3depdem/",
+      "metadata": "https://www.usgs.gov/3d-elevation-program/3dep-spatial-metadata",
+      "county_fips": [
+        "18129",
+        "21101",
+        "21225",
+        "17193",
+        "17185",
+        "17059"
+      ],
+      "products": [
+        "1m DEM where available",
+        "Lidar",
+        "WESM metadata"
+      ],
+      "description": "Work-unit products must be matched to actual source metadata and CRS."
+    },
+    {
+      "id": "IGIO_IN",
+      "url": "https://www.in.gov/gis/",
+      "county_fips": [
+        "18129"
+      ],
+      "products": [
+        "LiDAR/DEM",
+        "footprints",
+        "imagery"
+      ],
+      "description": "Possibly source acquisitions with NAD83(HARN) EPSG:2968; do not equate to EPSG:2966."
+    }
+  ],
+  "license_notice": "Validate per-dataset reuse/attribution conditions before external distribution; no repository bulk archive embeds proprietary datasets."
+}
