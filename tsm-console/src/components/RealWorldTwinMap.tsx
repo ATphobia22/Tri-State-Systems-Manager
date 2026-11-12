@@ -438,6 +438,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
   const mapForInventory = mapReady ? mapRef.current : null;
   const openWorldPlanes = inspectOpenWorldPlanes({
     hasMapLayer: id => !!mapForInventory?.getLayer(id),
+    isMapLayerVisible: id => !!mapForInventory?.getLayer(id) && mapForInventory.getLayoutProperty(id, 'visibility') !== 'none',
     terrainEnabled: !!mapForInventory?.getTerrain(),
     gaugeMarkerAvailable: !!markerRef.current && mapReady,
     featureStates: {
@@ -446,6 +447,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       buildings: indianaStates.buildings?.status,
     },
     presentationEnabled: true,
+    buildingTiles3DStatus: buildingTiles3DVisible ? buildingTiles3DStatus : 'disabled',
   });
 
   const toggleCinematicTour = (): void => {
