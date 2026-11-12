@@ -28,6 +28,8 @@ import { attachConfiguredPmtilesPolygonLayer } from '../lib/pmtiles-overlay';
 import { attachGovernmentPmtilesLayer, GOVERNMENT_SCENE_STATUS_EVENT, type GovernmentSceneDetail } from '../lib/government-pmtiles-overlay';
 import { attachMountVernonCityScene } from '../lib/mount-vernon-city-scene';
 import MountVernonCityInspector from './MountVernonCityInspector';
+import { attachIndianaFeatureFabric, type IndianaFeatureFabric, type IndianaFeatureKind, type IndianaFeatureState } from '../lib/open-world-feature-fabric';
+import { inspectOpenWorldPlanes } from '../lib/open-world-layer-inventory';
 
 const TERRAIN_3D_TILESET_URL = `${import.meta.env.BASE_URL}3d-tiles/terrain-3dep/tileset.json`;
 
@@ -56,6 +58,11 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markerRef = useRef<maplibregl.Marker | null>(null);
+  const indianaFeatureRef = useRef<IndianaFeatureFabric | null>(null);
+  const [indianaVisibility, setIndianaVisibility] = useState<Record<IndianaFeatureKind, boolean>>({
+    parcels: false, roads: false, buildings: false,
+  });
+  const [indianaStates, setIndianaStates] = useState<Partial<Record<IndianaFeatureKind, IndianaFeatureState>>>({});
 
   const [liveStage, setLiveStage] = useState(data.stage);
   const [fetchBusy, setFetchBusy] = useState(false);
@@ -242,6 +249,14 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       applyLiveStageMetadata(map, { ...data, stage: liveStage });
       addMartinHydraulicLayer(map, liveStage.hydraulic_extrusion_eligibility === 'SITE_WSE_VERIFIED_FOR_EXTRUSION' ? liveStage.wse_navd88_ft : null);
       if (map.getLayer('tsm-hydraulic-extrusion')) setupParcelProvenanceInspector(map);
+      try {
+        indianaFeatureRef.current = attachIndianaFeatureFabric(map, next => {
+          setIndianaStates(previous => ({ ...previous, [next.kind]: next }));
+        });
+      } catch (error) {
+        setMapInitializationError('Reference geometry fabric unavailable: ' +
+          (error instanceof Error ? error.message : 'map layers could not initialize'));
+      }
       markerRef.current = new maplibregl.Marker().setLngLat(NEW_HARMONY_GAGE).setPopup(buildGagePopup(liveStage)).addTo(map);
       mapRef.current = map;
       setMapReady(true);
@@ -252,6 +267,8 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       disposeParcelBboxLayer?.();
       disposePmtilesLayer?.();
       disposeGovernmentPmtilesLayer?.();
+      indianaFeatureRef.current?.dispose();
+      indianaFeatureRef.current = null;
       citySceneDisposed = true;
       mountVernonSceneAbort.abort();
       mountVernonCityCleanup.dispose?.();
@@ -260,6 +277,13 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       markerRef.current = null;
     };
   }, [data]);
+
+  useEffect(() => {
+    if (!mapReady || !indianaFeatureRef.current) return;
+    for (const kind of ['parcels', 'roads', 'buildings'] as const) {
+      indianaFeatureRef.current.setEnabled(kind, indianaVisibility[kind]);
+    }
+  }, [mapReady, indianaVisibility]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -401,6 +425,18 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
 
   const terrainStatus = getTerrainRgbStatus();
   const terrainMessage = terrainRgbBlockMessage(terrainStatus);
+  const mapForInventory = mapReady ? mapRef.current : null;
+  const openWorldPlanes = inspectOpenWorldPlanes({
+    hasMapLayer: id => !!mapForInventory?.getLayer(id),
+    terrainEnabled: !!mapForInventory?.getTerrain(),
+    gaugeMarkerAvailable: !!markerRef.current && mapReady,
+    featureStates: {
+      parcels: indianaStates.parcels?.status,
+      roads: indianaStates.roads?.status,
+      buildings: indianaStates.buildings?.status,
+    },
+    presentationEnabled: true,
+  });
 
   const toggleCinematicTour = (): void => {
     const map = mapRef.current;
@@ -482,6 +518,25 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
           <div style={{ color: '#fbbf24' }}>Snapshot display is not a new FEMA determination, live observation, surveyed control or engineering approval.</div>
         </div>
 
+        <details style={{ marginTop: 10, marginBottom: 8, padding: 8, border: '1px solid #334155', borderRadius: 8 }}>
+          <summary style={{ cursor: 'pointer', fontWeight: 650 }}>Open-world structural planes (12) · runtime evidence</summary>
+          <div role="note" style={{ color: '#fbbf24', margin: '6px 0' }}>
+            Layer registration proves neither successful source download nor surveyed/engineering accuracy.
+            Missing planes stay explicitly unavailable; cinematic outputs cannot become evidence.
+          </div>
+          <div style={{ display: 'grid', gap: 6 }}>
+            {openWorldPlanes.map(entry => (
+              <div key={entry.plane.id} style={{ padding: '5px 7px', background: '#0f172a', borderRadius: 4 }}>
+                <div><strong>{String(entry.plane.index).padStart(2, '0')} · {entry.plane.title}</strong></div>
+                <div style={{ color: entry.readiness === 'NOT_RENDERED' || entry.readiness === 'SOURCE_UNAVAILABLE' ? '#fbbf24' : '#93c5fd' }}>
+                  {entry.plane.authority} · {entry.readiness}
+                </div>
+                <div style={{ color: '#94a3b8' }}>{entry.plane.limitation}</div>
+              </div>
+            ))}
+          </div>
+        </details>
+
         <MountVernonCityInspector />
 
         <VerticalContextHud
@@ -522,6 +577,12 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
             { id: 'noaa-radar', pressed: noaaRadarVisible, onClick: () => setNoaaRadarVisible((v) => !v), label: `NOAA Radar ${noaaRadarVisible ? 'ON' : 'OFF'}` },
             { id: 'dams', pressed: damsVisible, onClick: () => setDamsVisible((v) => !v), label: `Local Dams ${damsVisible ? 'ON' : 'OFF'}` },
             { id: '3d', pressed: tiles3DVisible, onClick: () => setTiles3DVisible((v) => !v), label: `3D Terrain ${tiles3DVisible ? 'ON' : 'OFF'}` },
+            ...(['parcels', 'roads', 'buildings'] as const).map(kind => ({
+              id: kind,
+              pressed: indianaVisibility[kind],
+              onClick: () => setIndianaVisibility(current => ({ ...current, [kind]: !current[kind] })),
+              label: `IGIO ${kind} ${indianaVisibility[kind] ? 'ON' : 'OFF'}`,
+            })),
             { id: 'evidence-lens', pressed: evidenceLensVisible, onClick: () => setEvidenceLensVisible((v) => !v), label: evidenceLensVisible ? 'Hide evidence lens' : 'Show evidence lens' },
             { id: 'review', pressed: reviewPitch, onClick: applyReviewPitch, label: reviewPitch ? 'Review pitch set' : 'Review pitch (55\u00b0)' },
             { id: 'mount-vernon', pressed: false, onClick: () => mapRef.current?.flyTo({ center: [-87.895, 37.932], zoom: 15, pitch: 60, bearing: -18, duration: 1600 }), label: 'Explore Mount Vernon' },
@@ -547,6 +608,15 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
               {btn.label}
             </button>
           ))}
+        </div>
+        <div aria-live="polite" style={{ marginTop: 8, color: '#cbd5e1' }}>
+          {(['parcels', 'roads', 'buildings'] as const).map(kind => (
+            <div key={kind}>IGIO {kind}: {indianaStates[kind]?.status ?? 'DISABLED'}
+              {indianaStates[kind]?.count ? ` · ${indianaStates[kind]?.count} features` : ''}
+              {' · '}{indianaStates[kind]?.detail ?? 'Opt-in, bounded 2D reference geometry; zoom 14+ required.'}
+            </div>
+          ))}
+          <div style={{ color: '#fbbf24' }}>IGIO coverage is Indiana only; no IL/KY parcel, road or building completeness is implied.</div>
         </div>
         {evidenceLensVisible && (
           <PublicEvidenceLens
