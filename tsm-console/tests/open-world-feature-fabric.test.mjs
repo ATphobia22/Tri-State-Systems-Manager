@@ -165,3 +165,23 @@ test('native 3D buildings are opt-in and explicitly derived/subset, not full cou
   assert.equal(rootTileset.asset.extras.tsm.regulatoryUse, false);
   assert.equal(rootTileset.asset.extras.tsm.geojsonCountIsNotMeshCount, true);
 });
+
+test('plane inspection respects hidden overlays and does not claim JSON-only buildings as verified', () => {
+  const runtime = {
+    hasMapLayer: id => id === 'fema-nfhl-overlay',
+    isMapLayerVisible: () => false,
+    terrainEnabled: false,
+    gaugeMarkerAvailable: false,
+    featureStates: {},
+    presentationEnabled: false,
+    buildingTiles3DStatus: 'ready',
+  };
+  const planes = inspectOpenWorldPlanes(runtime);
+  const fema = planes.find(x => x.plane.id === 'fema');
+  const buildings = planes.find(x => x.plane.id === 'buildings');
+  assert.equal(fema.readiness, 'RENDERER_REGISTERED');
+  assert.equal(fema.visible, false);
+  assert.equal(buildings.readiness, 'DERIVED_TILESET_JSON_LOADED');
+  assert.equal(buildings.visible, true);
+  assert.equal(planes.find(x => x.plane.id === 'cinematic').visible, false);
+});
