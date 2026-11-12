@@ -1,0 +1,46 @@
+name: TSM Cinematic Source and Sequencer Contracts
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/cinema/**'
+      - 'tests/cinema/**'
+      - 'tsm-native/Content/Python/tsm_author_verified_cinematic.py'
+      - 'tsm-native/TSMNative.uproject'
+      - 'docs/cinema/**'
+      - '.github/workflows/tsm-cinematic-production.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/cinema/**'
+      - 'tests/cinema/**'
+      - 'tsm-native/Content/Python/tsm_author_verified_cinematic.py'
+      - 'tsm-native/TSMNative.uproject'
+      - 'docs/cinema/**'
+      - '.github/workflows/tsm-cinematic-production.yml'
+permissions:
+  contents: read
+jobs:
+  cinematic-contracts:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.11'
+      - name: Test source integrity and five-minute shot contracts
+        run: python -m unittest discover -s tests/cinema -p 'test_*.py' -v
+      - name: Parse editor-only Sequencer authoring code without Unreal import
+        run: python -m py_compile tsm-native/Content/Python/tsm_author_verified_cinematic.py scripts/cinema/validate_cinematic_production.py
+      - name: Verify render plugins are editor-only and project uses UE5.8
+        run: |
+          python - <<'PY'
+          import json
+          p=json.load(open('tsm-native/TSMNative.uproject', encoding='utf-8'))
+          assert p['EngineAssociation']=='5.8'
+          d={x['Name']:x for x in p['Plugins']}
+          for name in ('MovieRenderPipeline','SequencerScripting','LevelSequenceEditor'):
+              assert d[name]['Enabled'] and d[name]['TargetAllowList']==['Editor'], name
+          PY
