@@ -1,0 +1,76 @@
+name: TSM Cross-State Native Release Preflight
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/geospatial/audit_cross_state_release_data.py'
+      - 'tests/geospatial/test_cross_state_release_data.py'
+      - 'data/regional/native-county-scope-policy-v1.json'
+      - 'scripts/native/Assert-CrossStateReleaseData.ps1'
+      - 'scripts/native/Assert-SignedReleaseArtifacts.ps1'
+      - 'docs/release/CROSS-STATE-NATIVE-OFFLINE-ACCEPTANCE.md'
+      - '.github/workflows/tsm-native.yml'
+      - '.github/workflows/cross-state-native-release.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/geospatial/audit_cross_state_release_data.py'
+      - 'tests/geospatial/test_cross_state_release_data.py'
+      - 'data/regional/native-county-scope-policy-v1.json'
+      - 'scripts/native/Assert-CrossStateReleaseData.ps1'
+      - 'scripts/native/Assert-SignedReleaseArtifacts.ps1'
+      - '.github/workflows/cross-state-native-release.yml'
+permissions:
+  contents: read
+jobs:
+  synthetic-geospatial-contracts:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.11'
+      - name: Install pinned GIS verifier libraries for test fixtures only
+        run: python -m pip install --disable-pip-version-check --only-binary=:all: 'shapely==2.1.2' 'pyproj==3.7.2' 'rasterio==1.4.3'
+      - name: Parse regional policy and verify explicit county scope differences
+        run: |
+          python - <<'PY'
+          import json
+          obj=json.load(open('data/regional/native-county-scope-policy-v1.json'))
+          policy=obj['scopes']
+          core={row['fips'] for row in policy['community-six']}
+          engineering={row['fips'] for row in policy['engineering-eight']}
+          union={row['fips'] for row in policy['combined-nine']}
+          assert len(core)==6 and len(engineering)==8 and len(union)==9
+          assert '17185' in core and '17185' not in engineering
+          assert {'18163', '18051', '18173'} <= engineering and not {'18163','18051','18173'} & core
+          assert core | engineering == union
+          PY
+      - name: Exercise real raster-extent and byte-integrity algorithms on synthetic data
+        run: python -m unittest discover -s tests/geospatial -p 'test_cross_state_release_data.py' -v
+      - name: Python static syntax
+        run: python -m py_compile scripts/geospatial/audit_cross_state_release_data.py
+  powershell-release-contracts:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Parse release PowerShell scripts without executing system changes
+        shell: pwsh
+        run: |
+          foreach ($path in @('scripts/native/Assert-CrossStateReleaseData.ps1','scripts/native/Assert-SignedReleaseArtifacts.ps1')) {
+            $tokens=$null; $errors=$null
+            [void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $path).Path, [ref]$tokens, [ref]$errors)
+            if ($errors.Count -gt 0) { throw "PowerShell syntax invalid in $path : $($errors[0])" }
+          }
+      - name: Ensure shipping workflow wires real source and signature gates
+        shell: pwsh
+        run: |
+          $workflow = Get-Content '.github/workflows/tsm-native.yml' -Raw
+          foreach ($part in @('Assert-CrossStateReleaseData.ps1','Assert-SignedReleaseArtifacts.ps1','tsm-native-signed-artifacts-evidence','cross-state-release-preflight.json')) {
+            if (-not $workflow.Contains($part)) { throw "Missing Windows Shipping gate: $part" }
+          }
+          Write-Host 'STATIC_NATIVE_RELEASE_CONTRACTS_PRESENT_NOT_NATIVE_SHIPPING_VERIFIED'
