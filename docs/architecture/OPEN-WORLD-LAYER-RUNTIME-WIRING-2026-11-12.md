@@ -44,3 +44,13 @@ The `open-world-twin.yml` pull-request workflow runs type checking and these new
 6. **Tri-state breadth** — governed Illinois and Kentucky roads/parcels/buildings, comparable coverage and source authorities; these are not supplied by Indiana GIO services.
 
 Human authority remains final, and cinematic presentation cannot modify or certify regulated engineering evidence.
+
+## Opt-in 3D building tile subset
+
+The canvas also exposes `3D Buildings (partial)`, sourcing the already-committed `tsm-console/public/3d-tiles/buildings-lidar-12450/tileset.json` as a separate Three.js 3D Tiles overlay. The source is a **derived subset**, not full Posey County LoD2–4 production evidence. Its `ready` status means only that the **tileset metadata loaded**, not that child GLBs rendered correctly or were independently validated. The tile-set's root registry explicitly records `sourceIdsReconciled=false`, `regulatoryUse=false` and `geojsonCountIsNotMeshCount=true`. Two 3D overlays can increase GPU load; both start disabled unless explicitly enabled by users. Offline availability requires those static assets to be included in the deployed bundle and an independent file-integrity check.
+
+## Runtime checksum hardening
+
+`scripts/offline/verify-installed-runtime.mjs` now recomputes SHA-256 values for every file listed in the staged `SHA256SUMS` (and optional `manifest.files`) instead of checking only whether the manifest exists. Invalid checksum syntax, missing files, changed bytes, symlinks, path traversal, incorrect lengths and conflicting records cause failure. The Windows and Linux offline build manifests are accepted only with their required structure; Windows must identify `windows-x64`. `scripts/offline/runtime-integrity.test.mjs` tests common tampering and ambiguity cases, and `open-world-twin.yml` executes these tests. `offline-runtime.yml` now invokes the verifier before packaging.
+
+This is **integrity verification, not a digital signature**. Release signing and independent attestations are separate in `.github/workflows/tsm-native.yml` and require actual authorized Windows UE5.8 builds and credentials.
