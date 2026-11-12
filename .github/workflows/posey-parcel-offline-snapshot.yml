@@ -59,6 +59,8 @@ jobs:
           assert -88.3<lon<-87.3 and 37.7<lat<38.3, (lon,lat)
           print('VERIFIED',dst['total_features'],'PARCELS',len(dst['batches']),'BATCHES')
           PY
+      - name: Audit projected parcel evidence manifest
+        run: python scripts/geospatial/audit_offline_parcel_manifest.py --root TSMData/parcels/posey/2025/offline --require-parcels
       - name: Archive reproducible source and transformed layers
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
