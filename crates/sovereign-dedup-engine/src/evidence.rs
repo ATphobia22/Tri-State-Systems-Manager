@@ -3,7 +3,8 @@
 use crate::{graph::{canonical_graph, ReasoningGraph}, store, ChunkConfig, Manifest};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::{fs, io, path::Path};
+use std::{fs, io, path::Path, sync::atomic::{AtomicU64, Ordering}};
+static NEXT_LEDGER_TEMP: AtomicU64 = AtomicU64::new(0);
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EvidenceRecord {
@@ -36,25 +37,28 @@ pub fn ingest_graph(root: &Path, graph: &ReasoningGraph, provenance: &[u8],
     let name = format!("{}-{}.json", record.graph_sha256, record.provenance_sha256);
     let target = ledger.join(name);
     let serialized = serde_json::to_vec_pretty(&record)?;
-    // create_new is atomic: simultaneous identical ingests cannot overwrite.
-    // The write is not transactionally durable until sync_all completes.
-    match fs::OpenOptions::new().write(true).create_new(true).open(&target) {
-        Ok(mut f) => {
-            use std::io::Write;
-            if let Err(err) = f.write_all(&serialized).and_then(|_| f.sync_all()) {
-                let _ = fs::remove_file(&target);
-                return Err(err);
-            }
+    // Publish complete ledger JSON atomically; no reader observes partial data.
+    let sequence = NEXT_LEDGER_TEMP.fetch_add(1, Ordering::Relaxed);
+    let temp = target.with_extension(format!("tmp-{}-{sequence}", std::process::id()));
+    let publish = (|| -> io::Result<()> {
+        use std::io::Write;
+        let mut file = fs::OpenOptions::new().write(true).create_new(true).open(&temp)?;
+        file.write_all(&serialized)?;
+        file.sync_all()?;
+        drop(file);
+        match fs::hard_link(&temp, &target) {
+            Ok(()) => Ok(()),
+            Err(err) if err.kind() == io::ErrorKind::AlreadyExists => Ok(()),
+            Err(err) => Err(err),
         }
-        Err(err) if err.kind() == io::ErrorKind::AlreadyExists => {
-            let existing: EvidenceRecord = serde_json::from_slice(&fs::read(&target)?)?;
-            if existing.graph_sha256 != record.graph_sha256
-                || existing.provenance_sha256 != record.provenance_sha256
-                || existing.storage_manifest.source_sha256 != record.storage_manifest.source_sha256 {
-                return Err(io::Error::new(io::ErrorKind::InvalidData, "conflicting ledger record"));
-            }
-        }
-        Err(err) => return Err(err),
+    })();
+    let _ = fs::remove_file(&temp);
+    publish?;
+    let existing: EvidenceRecord = serde_json::from_slice(&fs::read(&target)?)?;
+    if existing.graph_sha256 != record.graph_sha256
+        || existing.provenance_sha256 != record.provenance_sha256
+        || existing.storage_manifest.source_sha256 != record.storage_manifest.source_sha256 {
+        return Err(io::Error::new(io::ErrorKind::InvalidData, "conflicting ledger record"));
     }
     Ok(record)
 }
