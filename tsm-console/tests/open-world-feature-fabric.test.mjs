@@ -151,3 +151,17 @@ test('all twelve structural planes are accounted for without merging authority c
   assert.equal(assessed.find(x => x.plane.id === 'terrain').readiness, 'SOURCE_UNAVAILABLE');
   assert.equal(assessed.find(x => x.plane.id === 'cinematic').readiness, 'PRESENTATION_ONLY');
 });
+
+test('native 3D buildings are opt-in and explicitly derived/subset, not full county', async () => {
+  const { readFileSync } = await import('node:fs');
+  const component = readFileSync(new URL('../src/components/RealWorldTwinMap.tsx', import.meta.url), 'utf8');
+  const tileset = JSON.parse(readFileSync(new URL('../public/3d-tiles/buildings-lidar-12450/tileset.json', import.meta.url), 'utf8'));
+  const rootTileset = JSON.parse(readFileSync(new URL('../public/3d-tiles/tileset.json', import.meta.url), 'utf8'));
+  assert.match(component, /buildings-lidar-12450\/tileset\.json/);
+  assert.match(component, /setBuildingTiles3DVisible/);
+  assert.match(component, /3D Buildings \(partial\)/);
+  assert.equal(tileset.asset.extras.tsm.authorityClass, 'DERIVED');
+  assert.equal(rootTileset.asset.extras.tsm.sourceIdsReconciled, false);
+  assert.equal(rootTileset.asset.extras.tsm.regulatoryUse, false);
+  assert.equal(rootTileset.asset.extras.tsm.geojsonCountIsNotMeshCount, true);
+});
