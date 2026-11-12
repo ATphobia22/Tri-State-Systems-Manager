@@ -21,4 +21,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo test --manifest-path crates/sovereign-dedup-engine/Cargo.toml --locked
+      - run: cargo test --manifest-path crates/sovereign-dedup-engine/Cargo.toml
