@@ -31,7 +31,11 @@ pub fn evaluate_parallel(
     }
     let mut ids = std::collections::HashSet::new();
     for c in &candidates {
-        if c.id.is_empty() || c.hypothesis.len() > 64 * 1024 || !ids.insert(c.id.clone()) {
+        if c.id.is_empty() || c.id.len() > 256 || c.hypothesis.is_empty()
+            || c.hypothesis.len() > 64 * 1024
+            || c.graph_digest.len() != 64
+            || !c.graph_digest.bytes().all(|b| b.is_ascii_hexdigit())
+            || !ids.insert(c.id.clone()) {
             return Err(io::Error::new(io::ErrorKind::InvalidInput, "invalid candidate"));
         }
     }
@@ -40,13 +44,20 @@ pub fn evaluate_parallel(
         let mut handles = Vec::new();
         for candidate in batch.iter().cloned() {
             let model = Arc::clone(&reasoner);
-            handles.push(thread::spawn(move || model.evaluate(&candidate)));
+            handles.push(thread::spawn(move || {
+                let expected_id = candidate.id.clone();
+                (expected_id, model.evaluate(&candidate))
+            }));
         }
         for handle in handles {
-            let evaluation = handle.join().map_err(|_| io::Error::other("reasoning worker panicked"))?
-                .map_err(io::Error::other)?;
-            if !evaluation.score.is_finite() || evaluation.model_id.is_empty() {
-                return Err(io::Error::new(io::ErrorKind::InvalidData, "invalid model evaluation"));
+            let (expected_id, response) =
+                handle.join().map_err(|_| io::Error::other("reasoning worker panicked"))?;
+            let evaluation = response.map_err(io::Error::other)?;
+            if evaluation.candidate_id != expected_id || evaluation.model_id.is_empty()
+                || evaluation.model_id.len() > 256 || evaluation.rationale.len() > 64 * 1024
+                || !evaluation.score.is_finite()
+                || !(0.0..=1.0).contains(&evaluation.score) {
+                return Err(io::Error::new(io::ErrorKind::InvalidData, "invalid or mislabeled model evaluation"));
             }
             results.push(evaluation);
         }
@@ -67,7 +78,7 @@ mod tests {
     #[test]
     fn stable_parallel_order() {
         let candidates = (0..12).rev().map(|n| Candidate {
-            id: format!("{n:02}"), graph_digest:"test".into(), hypothesis:"test".into()
+            id: format!("{n:02}"), graph_digest:"a".repeat(64), hypothesis:"test".into()
         }).collect();
         let results = evaluate_parallel(candidates, Arc::new(Stub), 4).unwrap();
         assert_eq!(results[0].candidate_id, "00");
