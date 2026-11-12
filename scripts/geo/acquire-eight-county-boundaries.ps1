@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([string]$OutRoot=".\data\regional\boundaries")
+param([string]$OutRoot=".\data\regional\boundaries", [ValidateSet("community-six","engineering-eight","combined-nine")][string]$Scope="engineering-eight")
 $ErrorActionPreference="Stop"
 $base="https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_ACS2026/MapServer/82/query"
 $counties=@(
@@ -10,8 +10,17 @@ $counties=@(
  @{state="IL";fips="17193";geoid="17193";name="white"},
  @{state="IL";fips="17059";geoid="17059";name="gallatin"},
  @{state="KY";fips="21101";geoid="21101";name="henderson"},
- @{state="KY";fips="21225";geoid="21225";name="union"}
+ @{state="KY";fips="21225";geoid="21225";name="union"},
+ @{state="IL";fips="17185";geoid="17185";name="wabash"}
 )
+$scopeFips = switch ($Scope) {
+  "community-six" { @("18129","21101","21225","17193","17185","17059") }
+  "engineering-eight" { @("18129","18163","18051","18173","17193","17059","21101","21225") }
+  "combined-nine" { @("18129","21101","21225","17193","17185","17059","18163","18051","18173") }
+}
+$counties = @($counties | Where-Object { $_.fips -in $scopeFips })
+if ($counties.Count -ne $scopeFips.Count) { throw "County scope selection is incomplete" }
+Write-Host "TIGER_SCOPE=$Scope counties=$($counties.Count)"
 New-Item -ItemType Directory -Force -Path $OutRoot|Out-Null
 foreach($c in $counties){
   $path=Join-Path $OutRoot "$($c.state.ToLowerInvariant())-$($c.fips)-$($c.name).geojson"
