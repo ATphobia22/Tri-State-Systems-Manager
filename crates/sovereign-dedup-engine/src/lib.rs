@@ -14,11 +14,34 @@ static NEXT_TEMP: AtomicU64 = AtomicU64::new(0);
 use std::io;
 use std::path::{Path, PathBuf};
 
-const BASE: u64 = 257;
+// Degree-53 irreducible polynomial (used for GF(2) Rabin rolling digests).
+// Boundary rolling hashes are NOT cryptographic hashes; SHA-256 identifies data.
+const RABIN_POLYNOMIAL: u64 = 0x3DA3358B4DC173;
+const RABIN_DEGREE: usize = 53;
 const WINDOW: usize = 64;
 pub mod graph;
 pub mod evidence;
 pub mod parallel;
+
+fn rabin_append(fp: u64, byte: u8) -> u64 {
+    let mut value = (fp << 8) ^ u64::from(byte);
+    for bit in (RABIN_DEGREE..=(RABIN_DEGREE + 7)).rev() {
+        if value & (1u64 << bit) != 0 {
+            value ^= RABIN_POLYNOMIAL << (bit - RABIN_DEGREE);
+        }
+    }
+    value
+}
+
+fn rabin_out_table() -> [u64; 256] {
+    let mut table = [0u64; 256];
+    for (byte, value) in table.iter_mut().enumerate() {
+        let mut fp = rabin_append(0, byte as u8);
+        for _ in 1..WINDOW { fp = rabin_append(fp, 0); }
+        *value = fp;
+    }
+    table
+}
 
 #[derive(Debug, Clone, Copy)]
 pub struct ChunkConfig {
@@ -54,21 +77,21 @@ pub struct Manifest {
 
 fn hash(bytes: &[u8]) -> String { format!("{:x}", Sha256::digest(bytes)) }
 
-/// Rabin-Karp rolling polynomial over the last 64 bytes, wrapping at 2^64.
+/// Sliding-window Rabin fingerprint in GF(2), with polynomial reduction.
+/// The final boundary is forced at the end of the byte stream.
 pub fn boundaries(bytes: &[u8], cfg: ChunkConfig) -> io::Result<Vec<(usize, usize)>> {
     let cfg = cfg.validate()?;
+    let outgoing = rabin_out_table();
     let mut result = Vec::new();
     let mut start = 0;
     let mut fp = 0u64;
     let mut ring = [0u8; WINDOW];
-    let mut factor = 1u64;
-    for _ in 1..WINDOW { factor = factor.wrapping_mul(BASE); }
     for (i, &byte) in bytes.iter().enumerate() {
         let idx = i % WINDOW;
         if i >= WINDOW {
-            fp = fp.wrapping_sub((ring[idx] as u64).wrapping_mul(factor));
+            fp ^= outgoing[ring[idx] as usize];
         }
-        fp = fp.wrapping_mul(BASE).wrapping_add(byte as u64);
+        fp = rabin_append(fp, byte);
         ring[idx] = byte;
         let length = i + 1 - start;
         if length >= cfg.min && ((fp & ((cfg.avg - 1) as u64)) == 0 || length >= cfg.max) {
@@ -94,25 +117,32 @@ pub fn store(root: &Path, source: &[u8], cfg: ChunkConfig) -> io::Result<Manifes
         let digest = hash(chunk);
         let path = object_path(root, &digest);
         fs::create_dir_all(path.parent().unwrap())?;
-        // Stage a complete, fsynced object under a unique temporary name.
-        // Atomic hard-link publish prevents readers seeing partially written
-        // chunks and never replaces an existing content-addressed object.
-        let sequence = NEXT_TEMP.fetch_add(1, Ordering::Relaxed);
-        let temp = path.with_extension(format!("tmp-{}-{sequence}", std::process::id()));
-        let publish = (|| -> io::Result<()> {
-            use std::io::Write;
-            let mut file = fs::OpenOptions::new().write(true).create_new(true).open(&temp)?;
-            file.write_all(chunk)?;
-            file.sync_all()?;
-            drop(file);
-            match fs::hard_link(&temp, &path) {
-                Ok(()) => Ok(()),
-                Err(err) if err.kind() == io::ErrorKind::AlreadyExists => Ok(()),
-                Err(err) => Err(err),
+        if !path.exists() {
+            // Stage a complete, fsynced object under a unique temporary name.
+            // Atomic hard-link publish prevents readers seeing partially written
+            // chunks and never replaces an existing content-addressed object.
+            let sequence = NEXT_TEMP.fetch_add(1, Ordering::Relaxed);
+            let temp = path.with_extension(format!("tmp-{}-{sequence}", std::process::id()));
+            let publish = (|| -> io::Result<()> {
+                use std::io::Write;
+                let mut file = fs::OpenOptions::new().write(true).create_new(true).open(&temp)?;
+                file.write_all(chunk)?;
+                file.sync_all()?;
+                drop(file);
+                match fs::hard_link(&temp, &path) {
+                    Ok(()) => Ok(()),
+                    Err(err) if err.kind() == io::ErrorKind::AlreadyExists => Ok(()),
+                    Err(err) => Err(err),
+                }
+            })();
+            let _ = fs::remove_file(&temp);
+            publish?;
+            if fs::read(&path)? != chunk {
+                return Err(io::Error::new(io::ErrorKind::InvalidData,
+                    "object hash collision or corruption"));
             }
-        })();
-        let _ = fs::remove_file(&temp);
-        publish?;
+            }
+        // Even if another writer published during our staging, verify bytes.
         if fs::read(&path)? != chunk {
             return Err(io::Error::new(io::ErrorKind::InvalidData,
                 "object hash collision or corruption"));
