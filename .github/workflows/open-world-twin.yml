@@ -67,6 +67,9 @@ jobs:
       - name: Real-source twin contract tests
         working-directory: tsm-console
         run: npm run test:twin
+      - name: Bounded open-world feature loading and 12-plane evidence tests
+        working-directory: tsm-console
+        run: node --experimental-strip-types --test tests/open-world-feature-fabric.test.mjs
       - name: HEC-RAS contract tests
         working-directory: tsm-console
         run: npm run test:hec-ras
