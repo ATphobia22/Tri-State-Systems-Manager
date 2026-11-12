@@ -95,6 +95,34 @@ public:
                         .OnClicked(this, &STSMEngineeringDashboard::OpenEvidenceStoryboard)
                     ]
                 ]
+                + SVerticalBox::Slot().AutoHeight().Padding(0, 10, 0, 0)
+                [
+                    SNew(STextBlock).Text(FText::FromString(TEXT("CITY SYSTEMS // INFRASTRUCTURE & DESIGN")))
+                ]
+                + SVerticalBox::Slot().AutoHeight().Padding(0, 6)
+                [
+                    SNew(SHorizontalBox)
+                    + SHorizontalBox::Slot().AutoWidth().Padding(0, 0, 6, 0)
+                    [
+                        SNew(SButton).Text(FText::FromString(TEXT("UTILITY LAYERS")))
+                        .OnClicked(this, &STSMEngineeringDashboard::ShowUtilityLayers)
+                    ]
+                    + SHorizontalBox::Slot().AutoWidth().Padding(0, 0, 6, 0)
+                    [
+                        SNew(SButton).Text(FText::FromString(TEXT("CITY MATERIALS")))
+                        .OnClicked(this, &STSMEngineeringDashboard::ShowCityMaterials)
+                    ]
+                    + SHorizontalBox::Slot().AutoWidth().Padding(0, 0, 6, 0)
+                    [
+                        SNew(SButton).Text(FText::FromString(TEXT("WEATHER & LIGHTING")))
+                        .OnClicked(this, &STSMEngineeringDashboard::ShowWeatherSettings)
+                    ]
+                    + SHorizontalBox::Slot().AutoWidth()
+                    [
+                        SNew(SButton).Text(FText::FromString(TEXT("EVIDENCE / GRANTS")))
+                        .OnClicked(this, &STSMEngineeringDashboard::ShowEvidenceWorkflow)
+                    ]
+                ]
                 + SVerticalBox::Slot().AutoHeight().Padding(0, 12, 0, 0)
                 [
                     SAssignNew(ResultText, STextBlock)
@@ -155,6 +183,66 @@ private:
                 TEXT("Add source-attributed shots and cinematic-only shots using the native ")
                 TEXT("experience subsystem. Export produces a JSON shot plan, not a rendered film, ")
                 TEXT("and cannot certify source content or alter model outputs.")));
+        }
+        return FReply::Handled();
+    }
+
+    FReply ShowUtilityLayers()
+    {
+        if (ResultText.IsValid())
+        {
+            ResultText->SetText(FText::FromString(TEXT(
+                "UTILITY & CONSTRUCTION LAYER CATALOG\\n"
+                "Storm sewer | sanitary sewer | potable water | electric | gas | telecom | drainage | "
+                "roads | right-of-way | parcels | proposed construction.\\n"
+                "These are layer categories, NOT verified utility locations. Import survey/as-built GIS "
+                "with horizontal CRS, vertical datum, units, authority and SHA-256 before displaying "
+                "real infrastructure. No excavation clearance or design approval is implied.")));
+        }
+        return FReply::Handled();
+    }
+
+    FReply ShowCityMaterials()
+    {
+        if (ResultText.IsValid())
+        {
+            ResultText->SetText(FText::FromString(TEXT(
+                "MOUNT VERNON // CITY MATERIALS & VISUAL FIDELITY\\n"
+                "Road surfaces, building facade materials, roof geometry, street furniture, "
+                "riverfront, sidewalks and vegetation require licensed, georeferenced source assets. "
+                "Missing assets must display as UNVERIFIED VISUAL PROXY, not photogrammetric truth. "
+                "Native UE scene materials and streaming must be checked in a headed GPU run.")));
+        }
+        return FReply::Handled();
+    }
+
+    FReply ShowWeatherSettings()
+    {
+        if (ResultText.IsValid())
+        {
+            ResultText->SetText(FText::FromString(TEXT(
+                "CINEMATIC WEATHER & LIGHTING // VISUAL CONTROLS\\n"
+                "Day/night, precipitation particles, cloud layers, fog, reflections, wind and "
+                "storm lighting belong to the Unreal headed renderer. "
+                "Weather animation is cinematic until bound to time-stamped observations; "
+                "no forecast, flood depth or rainfall rate is implied. "
+                "This panel is a configuration guide; it does not change active GPU effects.")));
+        }
+        return FReply::Handled();
+    }
+
+    FReply ShowEvidenceWorkflow()
+    {
+        if (ResultText.IsValid())
+        {
+            ResultText->SetText(FText::FromString(TEXT(
+                "HEADLESS EVIDENCE / GRANT PACKAGING\\n"
+                "Export provenance-aware registers using scripts/native/export-engineering-evidence-pdf.py "
+                "--input evidence.json --output evidence.pdf. "
+                "A PDF is a review artifact, not a verified blueprint, grant award, "
+                "regulatory determination or construction approval. "
+                "Each VERIFIED record requires source SHA-256, acquisition UTC, CRS, "
+                "vertical datum, units and verification method.")));
         }
         return FReply::Handled();
     }
