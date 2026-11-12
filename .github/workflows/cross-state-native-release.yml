@@ -8,6 +8,7 @@ on:
       - 'data/regional/native-county-scope-policy-v1.json'
       - 'scripts/native/Assert-CrossStateReleaseData.ps1'
       - 'scripts/native/Assert-SignedReleaseArtifacts.ps1'
+      - 'scripts/native/Test-AirGappedWindows11Runtime.ps1'
       - 'docs/release/CROSS-STATE-NATIVE-OFFLINE-ACCEPTANCE.md'
       - '.github/workflows/tsm-native.yml'
       - '.github/workflows/cross-state-native-release.yml'
@@ -19,6 +20,7 @@ on:
       - 'data/regional/native-county-scope-policy-v1.json'
       - 'scripts/native/Assert-CrossStateReleaseData.ps1'
       - 'scripts/native/Assert-SignedReleaseArtifacts.ps1'
+      - 'scripts/native/Test-AirGappedWindows11Runtime.ps1'
       - '.github/workflows/cross-state-native-release.yml'
 permissions:
   contents: read
@@ -61,7 +63,7 @@ jobs:
       - name: Parse release PowerShell scripts without executing system changes
         shell: pwsh
         run: |
-          foreach ($path in @('scripts/native/Assert-CrossStateReleaseData.ps1','scripts/native/Assert-SignedReleaseArtifacts.ps1')) {
+          foreach ($path in @('scripts/native/Assert-CrossStateReleaseData.ps1','scripts/native/Assert-SignedReleaseArtifacts.ps1','scripts/native/Test-AirGappedWindows11Runtime.ps1')) {
             $tokens=$null; $errors=$null
             [void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $path).Path, [ref]$tokens, [ref]$errors)
             if ($errors.Count -gt 0) { throw "PowerShell syntax invalid in $path : $($errors[0])" }
