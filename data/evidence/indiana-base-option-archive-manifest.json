@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "archive": "IN_Base_Option.zip",
+  "sha256": "edc8f0b1bb528b12a9f9e52401fd6ad89e48712fecc4c72dfcddeea8e5ef59b9",
+  "size_bytes": 240520739,
+  "zip_entries": 230,
+  "zip_integrity": "PASS",
+  "contents": [
+    "project and survey PDF reports",
+    "metadata XML",
+    "swath reports",
+    "shapefile survey control and flightlines"
+  ],
+  "sample_prj": "NAD_1983_HARN_StatePlane_Indiana_East_FIPS_1301_Feet",
+  "contains_dem_raster": false,
+  "contains_lidar_point_cloud": false,
+  "posey_dem_accepted": false,
+  "verification_status": "DOCUMENTATION_ONLY_NOT_POSEY_TERRAIN_EVIDENCE"
+}
