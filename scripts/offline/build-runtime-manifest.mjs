@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
 import { existsSync, readdirSync, statSync, writeFileSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { join, relative, sep } from 'node:path';
 
 const root = process.cwd();
 const runtimeRoot = join(root, 'offline-runtime');
@@ -41,7 +41,7 @@ const paths = walk(runtimeRoot)
 const files = [];
 for (const path of paths) {
   files.push({
-    path: relative(root, path).replaceAll('\\\\', '/'),
+    path: relative(root, path).split(sep).join('/'),
     bytes: statSync(path).size,
     sha256: await hash(path),
   });
