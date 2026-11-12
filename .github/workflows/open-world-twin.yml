@@ -11,6 +11,8 @@ on:
       - 'tsm-console/src/lib/hec-ras-contracts.ts'
       - 'tsm-console/src/lib/geospatial-tile-*.ts'
       - 'tsm-console/src/lib/open-world-*.ts'
+      - 'scripts/offline/runtime-integrity*.mjs'
+      - 'scripts/offline/verify-installed-runtime.mjs'
       - 'tsm-console/src/components/OpenWorld*.tsx'
       - 'tsm-console/src/routes/TwinCanvasView.tsx'
       - 'tsm-console/server/tiles/**'
@@ -70,6 +72,8 @@ jobs:
       - name: Bounded open-world feature loading and 12-plane evidence tests
         working-directory: tsm-console
         run: node --experimental-strip-types --test tests/open-world-feature-fabric.test.mjs
+      - name: Offline runtime checksum integrity regression
+        run: node --test scripts/offline/runtime-integrity.test.mjs
       - name: HEC-RAS contract tests
         working-directory: tsm-console
         run: npm run test:hec-ras
