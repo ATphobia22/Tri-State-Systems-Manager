@@ -16,11 +16,13 @@ def audit(root: Path, require_parcels=False):
             findings.append(f"{manifest_path}: unexpected target CRS {target!r}")
         if manifest.get("vertical_datum") != "NOT_APPLICABLE":
             findings.append(f"{manifest_path}: parcel geometries must not claim a vertical datum")
+        if manifest.get("format") != "TSM_PROJECTED_FEATURE_COLLECTION_V1":
+            findings.append(f"{manifest_path}: projected feature collection format not declared")
         seen = set()
         count = 0
         for batch in manifest.get("batches", []):
             filename = batch.get("file", "")
-            if not filename or Path(filename).name != filename:
+            if not filename or Path(filename).name != filename or not filename.endswith(".epsg2966.json"):
                 findings.append(f"{manifest_path}: unsafe batch filename {filename!r}")
                 continue
             path = manifest_path.parent / filename
