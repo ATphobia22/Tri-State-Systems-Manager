@@ -33,7 +33,7 @@ The three metadata files are a **proxy corpus**, not production reasoning subgra
 
 ## Remaining independent release gates
 
-- Build/review a `Cargo.lock` for reproducible dependency resolution and create release SBOM/signature evidence for Rust and Unreal artifacts.
+- The generated `Cargo.lock` is now source-controlled and builds use `--locked`; complete dependency-license/vulnerability review and create release SBOM/signature evidence for Rust and Unreal artifacts.
 - Verify power-loss durability (directory fsync/NTFS recovery), multi-process writer stress, orphan temp cleanup, documented garbage collection/retention and backup restoration.
 - Integrate and evaluate a licensed, pinned offline neural model with bounded CPU/GPU resources, reproducible inference inputs and provenance; current parallel trait and test stub are not a trained model.
 - Connect the evidence/parallel tools to production UE menus or sanctioned IPC, with human-review UX and signed output reports. The staged CLI is not a native UI integration.
