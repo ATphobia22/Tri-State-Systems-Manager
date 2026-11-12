@@ -569,6 +569,9 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
           stations={multiStations}
         />
 
+        <details style={{ marginTop: 10, border: '1px solid #334155', borderRadius: 8, padding: 8 }}>
+          <summary style={{ cursor: 'pointer', fontWeight: 650 }}>Map overlays and camera controls</summary>
+          <p style={{ color: '#94a3b8', margin: '6px 0' }}>Turn reference layers on or off; requests occur only after enabling them.</p>
         <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
           {([
             { id: 'fema', pressed: femaVisible, onClick: () => setFemaVisible((v) => !v), label: `FEMA NFHL ${femaVisible ? 'ON' : 'OFF'}` },
@@ -618,6 +621,7 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
           ))}
           <div style={{ color: '#fbbf24' }}>IGIO coverage is Indiana only; no IL/KY parcel, road or building completeness is implied.</div>
         </div>
+        </details>
         {evidenceLensVisible && (
           <PublicEvidenceLens
             stage={liveStage}
