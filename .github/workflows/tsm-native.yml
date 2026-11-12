@@ -383,6 +383,26 @@ jobs:
           if (-not $env:TSM_NATIVE_DATA_ROOT) { throw "TSM_NATIVE_DATA_ROOT repository variable is required." }
           if (-not (Test-Path -LiteralPath (Join-Path $env:TSM_NATIVE_DATA_ROOT "data-manifest.json") -PathType Leaf)) { throw "data-manifest.json is required beside the sovereign data snapshot." }
           .\scripts\native\Verify-NativeDataManifest.ps1 -DataRoot $env:TSM_NATIVE_DATA_ROOT -ManifestPath (Join-Path $env:TSM_NATIVE_DATA_ROOT "data-manifest.json") -RejectExtraFiles
+      - name: Verify cross-state data scope before UE cooking
+        shell: pwsh
+        env:
+          TSM_NATIVE_DATA_ROOT: ${{ vars.TSM_NATIVE_DATA_ROOT }}
+          TSM_RELEASE_COUNTY_SCOPE: ${{ vars.TSM_RELEASE_COUNTY_SCOPE }}
+        run: |
+          $scope = if ($env:TSM_RELEASE_COUNTY_SCOPE) { $env:TSM_RELEASE_COUNTY_SCOPE } else { 'community-six' }
+          $manifest = Join-Path $env:TSM_NATIVE_DATA_ROOT 'regional-release-snapshot.json'
+          .\scripts\native\Assert-CrossStateReleaseData.ps1 `
+            -DataRoot $env:TSM_NATIVE_DATA_ROOT `
+            -ManifestPath $manifest `
+            -ReportPath 'dist/provenance/cross-state-release-preflight.json' `
+            -Scope $scope
+      - name: Retain county source coverage receipt
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: tsm-cross-state-release-preflight
+          path: dist/provenance/cross-state-release-preflight.json
+          if-no-files-found: warn
       - name: Stage immutable data into UE package
         shell: pwsh
         env:
@@ -455,6 +475,23 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Windows Authenticode signing failed." }
           & $signtool.Source verify /pa /all $installer.FullName
           if ($LASTEXITCODE -ne 0) { throw "Windows Authenticode verification failed." }
+      - name: Verify all three signed Windows release binaries
+        shell: pwsh
+        env:
+          TSM_WINDOWS_SIGNING_CERT_SHA1: ${{ secrets.TSM_WINDOWS_SIGNING_CERT_SHA1 }}
+        run: |
+          .\scripts\native\Assert-SignedReleaseArtifacts.ps1 `
+            -ArchiveRoot 'dist/tsm-native/Windows/TSMNative' `
+            -InstallerDirectory 'dist/installer' `
+            -CertificateThumbprint $env:TSM_WINDOWS_SIGNING_CERT_SHA1 `
+            -SourceCommit '${{ github.sha }}' `
+            -OutputPath 'dist/provenance/native-signed-artifact-evidence.json'
+      - name: Retain signed binary verification evidence
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: tsm-native-signed-artifacts-evidence
+          path: dist/provenance/native-signed-artifact-evidence.json
+          if-no-files-found: error
       - name: Attest signed Windows artifact
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
