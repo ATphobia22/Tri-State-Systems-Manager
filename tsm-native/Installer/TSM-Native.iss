@@ -42,5 +42,6 @@ Root: HKCR; Subkey: "TSMNative.PMTiles"; ValueType: string; ValueName: ""; Value
 Root: HKCR; Subkey: "TSMNative.PMTiles\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\{#MyAppExeName},0"
 Root: HKCR; Subkey: "TSMNative.PMTiles\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""
 
-[UninstallDelete]
-Type: filesandordirs; Name: "{app}\Saved"
+; User-created and engineering evidence data must survive uninstall by default.
+; Do not delete {app}\\Saved or other project/evidence directories implicitly.
+; A separately reviewed, explicit data-erasure workflow is required.
