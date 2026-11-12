@@ -9,11 +9,16 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::HashSet;
 use std::fs;
+use std::sync::atomic::{AtomicU64, Ordering};
+static NEXT_TEMP: AtomicU64 = AtomicU64::new(0);
 use std::io;
 use std::path::{Path, PathBuf};
 
 const BASE: u64 = 257;
 const WINDOW: usize = 64;
+pub mod graph;
+pub mod evidence;
+pub mod parallel;
 
 #[derive(Debug, Clone, Copy)]
 pub struct ChunkConfig {
@@ -88,27 +93,29 @@ pub fn store(root: &Path, source: &[u8], cfg: ChunkConfig) -> io::Result<Manifes
         let chunk = &source[start..end];
         let digest = hash(chunk);
         let path = object_path(root, &digest);
-        if path.exists() {
-            let existing = fs::read(&path)?;
-            if existing != chunk {
-                return Err(io::Error::new(io::ErrorKind::InvalidData, "object hash collision or corruption"));
+        fs::create_dir_all(path.parent().unwrap())?;
+        // Stage a complete, fsynced object under a unique temporary name.
+        // Atomic hard-link publish prevents readers seeing partially written
+        // chunks and never replaces an existing content-addressed object.
+        let sequence = NEXT_TEMP.fetch_add(1, Ordering::Relaxed);
+        let temp = path.with_extension(format!("tmp-{}-{sequence}", std::process::id()));
+        let publish = (|| -> io::Result<()> {
+            use std::io::Write;
+            let mut file = fs::OpenOptions::new().write(true).create_new(true).open(&temp)?;
+            file.write_all(chunk)?;
+            file.sync_all()?;
+            drop(file);
+            match fs::hard_link(&temp, &path) {
+                Ok(()) => Ok(()),
+                Err(err) if err.kind() == io::ErrorKind::AlreadyExists => Ok(()),
+                Err(err) => Err(err),
             }
-        } else {
-            fs::create_dir_all(path.parent().unwrap())?;
-            // create_new prevents replacement of a concurrently created object.
-            match fs::OpenOptions::new().write(true).create_new(true).open(&path) {
-                Ok(mut file) => {
-                    use std::io::Write;
-                    file.write_all(chunk)?;
-                    file.sync_all()?;
-                }
-                Err(err) if err.kind() == io::ErrorKind::AlreadyExists => {
-                    if fs::read(&path)? != chunk {
-                        return Err(io::Error::new(io::ErrorKind::InvalidData, "concurrent object mismatch"));
-                    }
-                }
-                Err(err) => return Err(err),
-            }
+        })();
+        let _ = fs::remove_file(&temp);
+        publish?;
+        if fs::read(&path)? != chunk {
+            return Err(io::Error::new(io::ErrorKind::InvalidData,
+                "object hash collision or corruption"));
         }
         refs.push(ChunkRef { sha256: digest, bytes: chunk.len() });
     }
