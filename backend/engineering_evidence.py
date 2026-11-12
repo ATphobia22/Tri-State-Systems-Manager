@@ -62,6 +62,9 @@ class SQLiteEvidenceLedger:
         if not verify_evidence_hash(e): raise ValueError("EVIDENCE_HASH_INVALID")
         payload=_canonical_json(asdict(e)).decode("utf-8")
         with closing(self._connect()) as c, c:
+            # BEGIN IMMEDIATE serializes chain-head reads across processes,
+            # preventing two writers from referencing the same previous hash.
+            c.execute("BEGIN IMMEDIATE")
             row=c.execute("SELECT record_sha256 FROM solver_evidence_ledger ORDER BY sequence DESC LIMIT 1").fetchone(); previous=row[0] if row else None
             record={"run_id":e.run_id,"evidence_json":payload,"evidence_sha256":e.evidence_sha256,"previous_record_sha256":previous}; digest=sha256_bytes(_canonical_json(record))
             c.execute("INSERT INTO solver_evidence_ledger(run_id,evidence_json,evidence_sha256,previous_record_sha256,record_sha256,inserted_at_utc) VALUES(?,?,?,?,?,?)",(e.run_id,payload,e.evidence_sha256,previous,digest,datetime.now(timezone.utc).isoformat()))
