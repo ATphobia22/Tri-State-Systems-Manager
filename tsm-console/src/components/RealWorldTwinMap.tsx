@@ -8,6 +8,7 @@ import { buildArcGisImageServerExportTemplate, INDIANA_CURRENT_IMAGERY_WMS, USGS
 import { setupParcelProvenanceInspector } from '../lib/parcel-provenance';
 import { playCinematicTour } from '../lib/cinematic/camera-tour';
 import ThreeDTilesLayer from './ThreeDTilesLayer';
+import type { ThreeDTilesSource } from '../lib/martin-tile-fabric';
 import VerticalContextHud from './VerticalContextHud';
 import Geoid18AoiPanel from './Geoid18AoiPanel';
 import MultiStationWaterPanel from './MultiStationWaterPanel';
@@ -32,6 +33,13 @@ import { attachIndianaFeatureFabric, type IndianaFeatureFabric, type IndianaFeat
 import { inspectOpenWorldPlanes } from '../lib/open-world-layer-inventory';
 
 const TERRAIN_3D_TILESET_URL = `${import.meta.env.BASE_URL}3d-tiles/terrain-3dep/tileset.json`;
+const BUILDING_3D_TILESET_URL = `${import.meta.env.BASE_URL}3d-tiles/buildings-lidar-12450/tileset.json`;
+const TERRAIN_3D_SOURCE: ThreeDTilesSource = {
+  id: 'tsm-3d-terrain', tilesetUrl: TERRAIN_3D_TILESET_URL, enabled: true,
+};
+const BUILDING_3D_SOURCE: ThreeDTilesSource = {
+  id: 'tsm-3d-buildings-derived-subset', tilesetUrl: BUILDING_3D_TILESET_URL, enabled: true,
+};
 
 // Approximate city-scale starting point, never a residential parcel or site centroid.
 const REGIONAL_CENTER: [number, number] = [-87.90, 37.93];
@@ -90,8 +98,10 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
   const [damsVisible, setDamsVisible] = useState(true);
   const [cinematicActive, setCinematicActive] = useState(false);
   const [tiles3DVisible, setTiles3DVisible] = useState(initialUrl.tiles3d);
+  const [buildingTiles3DVisible, setBuildingTiles3DVisible] = useState(false);
   const [evidenceLensVisible, setEvidenceLensVisible] = useState(false);
   const [tiles3DStatus, setTiles3DStatus] = useState<'loading' | 'ready' | 'error' | 'disabled'>('disabled');
+  const [buildingTiles3DStatus, setBuildingTiles3DStatus] = useState<'loading' | 'ready' | 'error' | 'disabled'>('disabled');
   const [governmentScene, setGovernmentScene] = useState<GovernmentSceneDetail>({
     status: 'CHECKING_GOVERNMENT_SNAPSHOT', agency: null, capturedAt: null,
     source: null, sourceVersion: null, datasetId: null, validation: null,
@@ -471,13 +481,17 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
       )}
       {tiles3DVisible && mapReady && mapRef.current && (
         <ThreeDTilesLayer
-          source={{
-            id: 'tsm-3d-terrain',
-            tilesetUrl: TERRAIN_3D_TILESET_URL,
-            enabled: true,
-          }}
+          source={TERRAIN_3D_SOURCE}
           map={mapRef.current}
           onStatusChange={setTiles3DStatus}
+          overlay
+        />
+      )}
+      {buildingTiles3DVisible && mapReady && mapRef.current && (
+        <ThreeDTilesLayer
+          source={BUILDING_3D_SOURCE}
+          map={mapRef.current}
+          onStatusChange={setBuildingTiles3DStatus}
           overlay
         />
       )}
@@ -580,6 +594,8 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
             { id: 'noaa-radar', pressed: noaaRadarVisible, onClick: () => setNoaaRadarVisible((v) => !v), label: `NOAA Radar ${noaaRadarVisible ? 'ON' : 'OFF'}` },
             { id: 'dams', pressed: damsVisible, onClick: () => setDamsVisible((v) => !v), label: `Local Dams ${damsVisible ? 'ON' : 'OFF'}` },
             { id: '3d', pressed: tiles3DVisible, onClick: () => setTiles3DVisible((v) => !v), label: `3D Terrain ${tiles3DVisible ? 'ON' : 'OFF'}` },
+            { id: 'buildings3d', pressed: buildingTiles3DVisible, onClick: () => setBuildingTiles3DVisible(v => !v),
+              label: `3D Buildings (partial) ${buildingTiles3DVisible ? 'ON' : 'OFF'}` },
             ...(['parcels', 'roads', 'buildings'] as const).map(kind => ({
               id: kind,
               pressed: indianaVisibility[kind],
@@ -634,6 +650,12 @@ export default function RealWorldTwinMap({ data }: RealWorldTwinMapProps) {
         </div>
         {tiles3DVisible && (
           <div style={{ marginTop: 6, color: '#94a3b8' }}>3D terrain: self-hosted OGC 3D Tiles 1.1 \u00b7 status: {tiles3DStatus}</div>
+        )}
+        {buildingTiles3DVisible && (
+          <div style={{ marginTop: 6, color: '#fbbf24' }}>
+            3D buildings: LiDAR-derived pilot tile subset · tileset state: {buildingTiles3DStatus}.
+            No claim of all 23,082 identities, LoD2–4 acceptance, verified vertical datum or complete Posey coverage.
+          </div>
         )}
       </div>
     </section>
