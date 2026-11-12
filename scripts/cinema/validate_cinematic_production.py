@@ -17,7 +17,7 @@ SHA256 = re.compile(r"^[0-9a-f]{64}$")
 SHOTS = {"regional", "county_map", "terrain", "buildings", "water", "timeline",
          "provenance", "community", "outro"}
 EVIDENCE = {"OBSERVED", "DERIVED", "SCENARIO", "PRESENTATION"}
-COUNTIES = {"18129", "21091", "21225", "17193", "17185", "17059"}  # Posey; Henderson; Union; White; Wabash; Gallatin
+COUNTIES = {"18129", "21101", "21225", "17193", "17185", "17059"}  # Posey; Henderson; Union; White; Wabash; Gallatin
 
 
 class ContractError(ValueError):
