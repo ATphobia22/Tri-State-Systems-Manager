@@ -1,4 +1,4 @@
-import type { GeoJSONSource, LayerSpecification, Map } from 'maplibre-gl';
+import type { GeoJSONSource, LayerSpecification, Map as MapLibreMap } from 'maplibre-gl';
 
 /**
  * On-demand, viewport-bounded reference geometry from Indiana GIO.
@@ -116,7 +116,7 @@ export interface IndianaFeatureFabric {
  * Cancellation protects map teardown and rapid camera moves.
  */
 export function attachIndianaFeatureFabric(
-  map: Map,
+  map: MapLibreMap,
   report: (state: IndianaFeatureState) => void,
   fetcher: FetchFeatures = (url, init) => fetch(url, init),
 ): IndianaFeatureFabric {
