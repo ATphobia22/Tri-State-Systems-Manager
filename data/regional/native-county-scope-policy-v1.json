@@ -1,0 +1,161 @@
+{
+  "schema": "tsm.native.county-scope-policy.v1",
+  "date": "2026-11-12",
+  "interpretation": "Scopes are explicit and not interchangeable. Listed counties describe required geography, not measured local asset coverage.",
+  "scopes": {
+    "community-six": [
+      {
+        "fips": "18129",
+        "county": "Posey",
+        "state": "IN"
+      },
+      {
+        "fips": "21101",
+        "county": "Henderson",
+        "state": "KY"
+      },
+      {
+        "fips": "21225",
+        "county": "Union",
+        "state": "KY"
+      },
+      {
+        "fips": "17193",
+        "county": "White",
+        "state": "IL"
+      },
+      {
+        "fips": "17185",
+        "county": "Wabash",
+        "state": "IL"
+      },
+      {
+        "fips": "17059",
+        "county": "Gallatin",
+        "state": "IL"
+      }
+    ],
+    "engineering-eight": [
+      {
+        "fips": "18129",
+        "county": "Posey",
+        "state": "IN"
+      },
+      {
+        "fips": "18163",
+        "county": "Vanderburgh",
+        "state": "IN"
+      },
+      {
+        "fips": "18051",
+        "county": "Gibson",
+        "state": "IN"
+      },
+      {
+        "fips": "18173",
+        "county": "Warrick",
+        "state": "IN"
+      },
+      {
+        "fips": "17193",
+        "county": "White",
+        "state": "IL"
+      },
+      {
+        "fips": "17059",
+        "county": "Gallatin",
+        "state": "IL"
+      },
+      {
+        "fips": "21101",
+        "county": "Henderson",
+        "state": "KY"
+      },
+      {
+        "fips": "21225",
+        "county": "Union",
+        "state": "KY"
+      }
+    ],
+    "combined-nine": [
+      {
+        "fips": "18129",
+        "county": "Posey",
+        "state": "IN"
+      },
+      {
+        "fips": "21101",
+        "county": "Henderson",
+        "state": "KY"
+      },
+      {
+        "fips": "21225",
+        "county": "Union",
+        "state": "KY"
+      },
+      {
+        "fips": "17193",
+        "county": "White",
+        "state": "IL"
+      },
+      {
+        "fips": "17185",
+        "county": "Wabash",
+        "state": "IL"
+      },
+      {
+        "fips": "17059",
+        "county": "Gallatin",
+        "state": "IL"
+      },
+      {
+        "fips": "18163",
+        "county": "Vanderburgh",
+        "state": "IN"
+      },
+      {
+        "fips": "18051",
+        "county": "Gibson",
+        "state": "IN"
+      },
+      {
+        "fips": "18173",
+        "county": "Warrick",
+        "state": "IN"
+      }
+    ]
+  },
+  "sources": {
+    "IN": [
+      "https://www.usgs.gov/3d-elevation-program/",
+      "https://gisdata.in.gov/"
+    ],
+    "IL": [
+      "https://clearinghouse.isgs.illinois.edu/data/elevation/lidar/",
+      "https://www.usgs.gov/the-national-map-data-delivery/gis-data-download"
+    ],
+    "KY": [
+      "https://kygeonet.ky.gov/catalogexplorer/",
+      "https://registry.opendata.aws/kyfromabove/"
+    ]
+  },
+  "requiredLayerKinds": [
+    "terrain",
+    "imagery",
+    "buildings",
+    "roads",
+    "hydrography"
+  ],
+  "optionalLayerKinds": [
+    "parcels",
+    "pointclouds",
+    "geology",
+    "soils",
+    "agriculture",
+    "flood_hazards",
+    "hydraulic_results",
+    "material_textures"
+  ],
+  "verification": "NOT_MEASURED_FROM_REAL_DATA",
+  "datumPolicy": "Horizontal CRS, NAVD88 orthometric datum, vertical unit, geoid model and elevation-to-ECEF transform must be independently traced per tile. Metadata declaration alone is insufficient."
+}
