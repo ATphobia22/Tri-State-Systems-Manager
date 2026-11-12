@@ -19,6 +19,8 @@ jobs:
         os: [ubuntu-24.04, windows-2022]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Pin Rust toolchain
+        shell: bash
+        run: rustup toolchain install 1.85.1 --profile minimal
       - run: cargo test --manifest-path crates/sovereign-dedup-engine/Cargo.toml
