@@ -46,3 +46,18 @@ jobs:
           export TSM_SDE_GRAPH_BIN="$PWD/crates/sovereign-dedup-engine/target/debug/sde-graph$suffix"
           test -f "$TSM_SDE_GRAPH_BIN"
           python -m unittest discover -s tests -p test_sde_evidence_bridge.py -v
+      - name: Benchmark real TSM data-plane manifests (metadata proxy corpus)
+        shell: bash
+        run: |
+          cargo +1.85.1 run --release --manifest-path crates/sovereign-dedup-engine/Cargo.toml --bin sde-benchmark -- \
+            "$RUNNER_TEMP/sde-corpus-store" \
+            "$RUNNER_TEMP/sde-benchmark-report.json" \
+            data/acquisitions/tsm-authoritative-source-manifest-v1.json \
+            data/acquisitions/tsm-data-plane-integration-v1.json \
+            tsm-native/config/native-geospatial-runtime.json
+      - name: Retain SDE metadata-corpus metrics
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sde-metadata-corpus-${{ runner.os }}
+          path: ${{ runner.temp }}/sde-benchmark-report.json
+          if-no-files-found: error
