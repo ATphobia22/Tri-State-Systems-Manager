@@ -4,12 +4,14 @@ on:
     branches: [main]
     paths:
       - 'scripts/geospatial/audit_offline_parcel_manifest.py'
+      - 'scripts/geospatial/build_posey_offline_parcels.py'
       - 'tests/geospatial/test_offline_parcel_manifest.py'
       - '.github/workflows/offline-parcel-evidence-integrity.yml'
   pull_request:
     branches: [main]
     paths:
       - 'scripts/geospatial/audit_offline_parcel_manifest.py'
+      - 'scripts/geospatial/build_posey_offline_parcels.py'
       - 'tests/geospatial/test_offline_parcel_manifest.py'
       - '.github/workflows/offline-parcel-evidence-integrity.yml'
   workflow_dispatch:
