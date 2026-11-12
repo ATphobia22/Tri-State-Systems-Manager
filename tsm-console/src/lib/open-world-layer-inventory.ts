@@ -54,7 +54,7 @@ export const OPEN_WORLD_PLANES: readonly OpenWorldPlane[] = [
 
 export type PlaneReadiness =
   | 'RENDERER_REGISTERED' | 'REFERENCE_FEATURES_DISPLAYED'
-  | 'REFERENCE_LOCATION_ONLY' | 'PRESENTATION_ONLY'
+  | 'REFERENCE_LOCATION_ONLY' | 'DERIVED_TILESET_JSON_LOADED' | 'PRESENTATION_ONLY'
   | 'NOT_RENDERED' | 'SOURCE_UNAVAILABLE' | 'MODEL_EVIDENCE_REQUIRED';
 
 export interface PlaneAssessment {
@@ -65,10 +65,13 @@ export interface PlaneAssessment {
 
 export interface PlaneRuntime {
   readonly hasMapLayer: (id: string) => boolean;
+  readonly isMapLayerVisible?: (id: string) => boolean;
   readonly terrainEnabled: boolean;
   readonly gaugeMarkerAvailable: boolean;
   readonly featureStates: Partial<Record<IndianaFeatureKind, IndianaFeatureStatus>>;
   readonly presentationEnabled: boolean;
+  /** 'ready' means only the tileset JSON loaded; not that meshes were verified or rendered. */
+  readonly buildingTiles3DStatus?: 'loading' | 'ready' | 'error' | 'disabled';
 }
 
 /** Rendering registration is deliberately not called verification of source data. */
@@ -81,9 +84,12 @@ export function inspectOpenWorldPlanes(runtime: PlaneRuntime): readonly PlaneAss
     }
     if (binding.kind === 'feature') {
       const state = runtime.featureStates[binding.feature] ?? 'DISABLED';
+      const isBuilding = binding.feature === 'buildings';
+      const buildingTilesetLoaded = isBuilding && runtime.buildingTiles3DStatus === 'ready';
       return { plane, readiness: state === 'DISPLAYED_UNVERIFIED' ? 'REFERENCE_FEATURES_DISPLAYED'
-        : state === 'SOURCE_UNAVAILABLE' ? 'SOURCE_UNAVAILABLE' : 'NOT_RENDERED',
-        visible: state === 'DISPLAYED_UNVERIFIED' } as const;
+        : buildingTilesetLoaded ? 'DERIVED_TILESET_JSON_LOADED'
+          : state === 'SOURCE_UNAVAILABLE' ? 'SOURCE_UNAVAILABLE' : 'NOT_RENDERED',
+        visible: state === 'DISPLAYED_UNVERIFIED' || buildingTilesetLoaded } as const;
     }
     if (binding.kind === 'reference-marker') {
       return { plane, readiness: runtime.gaugeMarkerAvailable ? 'REFERENCE_LOCATION_ONLY' : 'NOT_RENDERED',
@@ -94,11 +100,11 @@ export function inspectOpenWorldPlanes(runtime: PlaneRuntime): readonly PlaneAss
     }
     if (binding.kind === 'model') {
       return { plane, readiness: 'MODEL_EVIDENCE_REQUIRED',
-        visible: runtime.hasMapLayer(binding.layerId) } as const;
+        visible: runtime.isMapLayerVisible?.(binding.layerId) ?? runtime.hasMapLayer(binding.layerId) } as const;
     }
     if (binding.kind === 'map') {
       return { plane, readiness: runtime.hasMapLayer(binding.layerId) ? 'RENDERER_REGISTERED' : 'NOT_RENDERED',
-        visible: runtime.hasMapLayer(binding.layerId) } as const;
+        visible: runtime.isMapLayerVisible?.(binding.layerId) ?? runtime.hasMapLayer(binding.layerId) } as const;
     }
     return { plane, readiness: 'NOT_RENDERED', visible: false } as const;
   });
