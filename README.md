@@ -27,13 +27,41 @@ The native engineering experience uses [`TSMNative.uproject`](tsm-native/TSMNati
 | **Geodesy and surveying** | Coordinate transformations, NAVD88/GEOID18 evidence, COGO, LandXML import, weighted least-squares adjustment and earthwork quantities |
 | **Evidence and review** | Source manifests, checksums, provenance records, missing-evidence states and human-reviewed engineering calculations |
 
-These are **repository source capabilities**, not a claim that every GIS layer is populated in a packaged scene or that every subsystem has been independently exercised in a Shipping executable. Additional scene-layer toggles, inspection screening, review-package tooling and offline startup smoke testing are being developed separately and are not described here as merged main-branch features.
+These are **repository source capabilities**, not a claim that every GIS layer is populated in a packaged scene or that every subsystem has been independently exercised in a Shipping executable. The [native scene-layer subsystem](tsm-native/Source/TSMNative/TSMSceneLayerSubsystem.cpp) and [engineering HUD](tsm-native/Source/TSMNative/TSMEngineeringHUD.cpp) now include source-aware BUILDINGS/FLOODPLAIN/UTILITIES visibility controls and local save/load profiles; [offline startup smoke-test tooling](scripts/native/Verify-TSMOfflineLaunch.ps1) also exists on `main`. These source-level features do **not** prove that a complete native map, verified geometry, or headed Shipping runtime has been tested.
 
 ### Build and offline distribution
 
 The canonical Windows entry points are [`Build-TSMNativeWindows.ps1`](scripts/native/Build-TSMNativeWindows.ps1) and [`Build-TSMShipping.ps1`](scripts/build/Build-TSMShipping.ps1). The pipeline is designed to stage native dependencies, generate the native map, compile/cook/archive the UE5.8 Win64 Shipping application, and prepare an offline distribution. A successful script invocation must still be corroborated by its actual build logs and output artifacts.
 
 Release verification includes a real native map, packaged executable, TSMData manifest hashes, compatible CRS and vertical-datum metadata, headed terrain/building screenshots and performance measurements, and startup on a clean Windows 11 x64 system with networking disabled. **A process surviving startup is not proof of correct graphics, scientific data or complete offline operation.**
+
+### Sovereign Deduplication Engine and parallel reasoning
+
+The [Sovereign Deduplication Engine (SDE)](crates/sovereign-dedup-engine/) is merged into `main` through [PR #572](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/572) (squash commit `4faf56dfb96eda3dd9ab8bb7319b613a9ed85aba`). It is an **offline Rust content-addressed store** for versioned, deterministic reasoning-subgraph JSON and its provenance, not a replacement for the authoritative engineering evidence ledger.
+
+- **Chunking and integrity:** GF(2) Rabin rolling fingerprints define content-dependent chunk boundaries; SHA-256 identifies and verifies stored objects. Graph and provenance payloads can be reconstructed and checked.
+- **Evidence bridge:** [Python adapter](backend/sde_evidence_adapter.py) connects the Rust CLI to TSM's existing SQLite scientific-evidence ledger, retaining its own chain and recording outcomes as **not evaluated** until separately reviewed. SQLite chain-head writes are serialized to prevent concurrent-writer forks.
+- **Parallel reasoning:** the bounded [Rust reasoning interface](crates/sovereign-dedup-engine/src/parallel.rs) evaluates independently supplied candidate hypotheses and validates response identity and score. **No trained, pinned offline neural model is supplied or certified by this interface.**
+- **Build integration:** the [Windows native build](scripts/native/Build-TSMNativeWindows.ps1) stages the [Rust companion](scripts/native/Stage-SovereignDedupEngine.ps1) for the offline archive and requires separate Authenticode signing and verification before installer compilation. `Cargo.lock` and `--locked` support reproducible Rust dependency resolution.
+- **Validation:** [SDE CI](.github/workflows/sovereign-dedup-engine.yml) exercises Rust tests, Rust → Python → SQLite integration, concurrent ingestion and metadata-corpus benchmarks on Windows and Linux. The first three-file TSM metadata proxy corpus measured **0% byte deduplication** (15,910 logical input bytes; 15,910 unique chunk bytes). **No 40–70% storage-savings claim is established**; representative reasoning-graph benchmarks and complete on-disk accounting remain required.
+
+Read the [SDE production integration and outstanding acceptance gates](docs/native/SDE-PRODUCTION-INTEGRATION.md). Neural scores, chunk hashes, or successful CI tests are not engineering or regulatory certification.
+
+### Release status and independent acceptance gates (2026-11-12)
+
+The code merges for [installer evidence retention (#570)](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/570), [Shipping artifact inventory (#571)](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/571), and [SDE integration (#572)](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/572) are complete. PR #572 passed **14/14 reported PR-head workflows** before merge. That is distinct from post-merge `main` CI and from actual native application release evidence.
+
+| Gate | Evidence / state at the 2026-11-12 check |
+|---|---|
+| SDE source and cross-platform PR CI | **Verified:** merged and PR-head checks passed |
+| Post-merge `main` CI | **Pending verification:** new push workflows started; do not infer green from PR checks |
+| UE5.8 Win64 Shipping and offline installer | **Queued / not yet verified:** [TSM Native run 43227217501](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions/runs/43227217501) has a `package-windows` job queued; signed binary and installer not evidenced |
+| Clean Windows 11 x64 air-gapped startup | **Not evidenced:** needs executable launch, no external service dependency, headed screenshots, FPS/VRAM/hardware and logs |
+| Terrain, buildings and scientific provenance | **Partially evidenced:** source identity checks do not establish full county DEM coverage, vertical-datum correctness, cooked .umap, all 3D tiles or regulatory approval |
+| Offline neural inference | **Not evidenced:** reasoning interface exists; trained model and audited inference runtime absent |
+| SDE production-size storage savings | **Not evidenced:** metadata proxy benchmark is not representative of repeated reasoning subgraphs |
+
+The [Shipping artifact inventory](scripts/native/) and [offline launch smoke test](scripts/native/Verify-TSMOfflineLaunch.ps1) help capture evidence but cannot replace physical, network-disabled runtime validation. A green static workflow does not prove a signed Unreal Shipping package. **Human authority remains final.**
 
 ### Scientific and regulatory boundaries
 
