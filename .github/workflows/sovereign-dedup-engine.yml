@@ -36,8 +36,8 @@ jobs:
       - name: Build SDE CLI and run Rust suite
         shell: bash
         run: |
-          cargo +1.85.1 test --manifest-path crates/sovereign-dedup-engine/Cargo.toml --all-targets
-          cargo +1.85.1 build --manifest-path crates/sovereign-dedup-engine/Cargo.toml --bin sde-graph
+          cargo +1.85.1 test --locked --manifest-path crates/sovereign-dedup-engine/Cargo.toml --all-targets
+          cargo +1.85.1 build --locked --manifest-path crates/sovereign-dedup-engine/Cargo.toml --bin sde-graph
       - name: Run real Rust-to-Python-to-SQLite evidence integration
         shell: bash
         run: |
@@ -46,17 +46,10 @@ jobs:
           export TSM_SDE_GRAPH_BIN="$PWD/crates/sovereign-dedup-engine/target/debug/sde-graph$suffix"
           test -f "$TSM_SDE_GRAPH_BIN"
           python -m unittest discover -s tests -p test_sde_evidence_bridge.py -v
-      - name: Expose dependency lockfile for audited source pinning
-        if: runner.os == 'Linux'
-        shell: bash
-        run: |
-          echo 'BEGIN_SDE_CARGO_LOCK'
-          cat crates/sovereign-dedup-engine/Cargo.lock
-          echo 'END_SDE_CARGO_LOCK'
       - name: Benchmark real TSM data-plane manifests (metadata proxy corpus)
         shell: bash
         run: |
-          cargo +1.85.1 run --release --manifest-path crates/sovereign-dedup-engine/Cargo.toml --bin sde-benchmark -- \
+          cargo +1.85.1 run --locked --release --manifest-path crates/sovereign-dedup-engine/Cargo.toml --bin sde-benchmark -- \
             "$RUNNER_TEMP/sde-corpus-store" \
             "$RUNNER_TEMP/sde-benchmark-report.json" \
             data/acquisitions/tsm-authoritative-source-manifest-v1.json \
