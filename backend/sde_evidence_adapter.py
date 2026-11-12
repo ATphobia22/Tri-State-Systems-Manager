@@ -7,7 +7,6 @@ evidence ledger under NOT_EVALUATED, never VERIFIED/approved automatically.
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 import subprocess
 from typing import Any
@@ -30,11 +29,12 @@ class SDEEvidenceAdapter:
         timeout_seconds: int = 120,
     ) -> None:
         self.executable = Path(executable).resolve(strict=True)
-        self.object_root = Path(object_root).resolve()
+        untrusted_root = Path(object_root)
+        if untrusted_root.is_symlink():
+            raise ValueError("SDE_STORE_SYMLINK_REJECTED")
+        self.object_root = untrusted_root.resolve()
         if not self.executable.is_file() or timeout_seconds < 1 or timeout_seconds > 3600:
             raise ValueError("SDE_EXECUTABLE_OR_TIMEOUT_INVALID")
-        if self.object_root.exists() and self.object_root.is_symlink():
-            raise ValueError("SDE_STORE_SYMLINK_REJECTED")
         self.object_root.mkdir(parents=True, exist_ok=True)
         self.ledger = SQLiteEvidenceLedger(sqlite_ledger)
         self.timeout_seconds = timeout_seconds
@@ -62,6 +62,9 @@ class SDEEvidenceAdapter:
     ) -> dict[str, Any]:
         if not run_id or not run_id.strip():
             raise ValueError("SDE_RUN_ID_REQUIRED")
+        for original in (Path(graph_path), Path(provenance_path)):
+            if original.is_symlink():
+                raise ValueError("SDE_INPUT_SYMLINK_REJECTED")
         graph = Path(graph_path).resolve(strict=True)
         provenance = Path(provenance_path).resolve(strict=True)
         record = Path(record_output).resolve()
