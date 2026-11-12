@@ -1,0 +1,25 @@
+name: Native Installer Offline Policy
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tsm-native/Installer/TSM-Native.iss'
+      - 'tests/native/test_installer_offline_policy.py'
+      - '.github/workflows/native-installer-offline-policy.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tsm-native/Installer/TSM-Native.iss'
+      - 'tests/native/test_installer_offline_policy.py'
+      - '.github/workflows/native-installer-offline-policy.yml'
+permissions:
+  contents: read
+jobs:
+  installer-policy:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.11'
+      - run: python -m unittest discover -s tests/native -p test_installer_offline_policy.py -v
