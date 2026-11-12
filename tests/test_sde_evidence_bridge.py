@@ -1,5 +1,6 @@
 """Integration tests: real Rust SDE CLI + existing TSM SQLite evidence ledger."""
 import json
+from contextlib import closing
 import os
 from pathlib import Path
 import sqlite3
@@ -47,7 +48,7 @@ class SDEBridgeIntegrationTest(unittest.TestCase):
         self.assertEqual(record["schema"], "tsm.sde.evidence-record.v2")
         self.assertEqual(len(record["provenance_manifest"]["chunks"]) > 0, True)
         self.assertTrue(self.adapter.ledger.verify_chain())
-        with sqlite3.connect(self.root / "scientific-evidence.sqlite") as conn:
+        with closing(sqlite3.connect(self.root / "scientific-evidence.sqlite")) as conn:
             row = conn.execute(
                 "SELECT evidence_json FROM solver_evidence_ledger WHERE run_id=?",
                 ("sde-ci-fixture-001",),
