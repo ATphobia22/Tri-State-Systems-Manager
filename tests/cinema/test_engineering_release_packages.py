@@ -1,5 +1,6 @@
 """Regression tests for release and human decision boundaries."""
 import importlib.util
+import sys
 from pathlib import Path
 import unittest
 
@@ -9,12 +10,14 @@ ROOT = Path(__file__).resolve().parents[2]
 def load(relative, name):
     spec = importlib.util.spec_from_file_location(name, ROOT / relative)
     mod = importlib.util.module_from_spec(spec)
+    sys.modules[name] = mod
     spec.loader.exec_module(mod)
     return mod
 
 
 release = load("packages/release-gates/evaluate.py", "tsm_release_gates")
 approval = load("packages/approval-workflows/approval.py", "tsm_human_approval")
+urban = load("packages/forecasting/urban_runoff.py", "tsm_urban_runoff")
 
 
 class GateTests(unittest.TestCase):
@@ -62,6 +65,28 @@ class GateTests(unittest.TestCase):
         data["reviewer"]["identity_verification_evidence_uri"] = ""
         with self.assertRaises(ValueError):
             approval.inspect_approval(data)
+
+
+class UrbanScreeningTests(unittest.TestCase):
+    def test_volume_mass_balance(self):
+        result = urban.screen(urban.ScreeningInput(
+            roof_area_m2=100.0,
+            rainfall_depth_mm=50.0,
+            impervious_runoff_coefficient=1.0,
+            green_roof_fraction=0.5,
+            green_roof_storage_mm=20.0,
+            green_roof_runoff_coefficient=0.5,
+            source_evidence_id="TEST_ONLY"
+        ))
+        self.assertAlmostEqual(result["baseline_roof_runoff_m3"], 5.0)
+        self.assertAlmostEqual(result["scenario_roof_runoff_m3"], 3.25)
+        self.assertEqual(result["status"], "ILLUSTRATIVE_UNCALIBRATED_SCREENING_ONLY")
+
+    def test_invalid_coefficient_rejected(self):
+        with self.assertRaisesRegex(ValueError, "INVALID_FRACTION"):
+            urban.screen(urban.ScreeningInput(
+                100, 50, 1.5, 0.2, 10, 0.1, "TEST_ONLY"
+            ))
 
 
 if __name__ == "__main__":
