@@ -36,7 +36,7 @@ pub fn ingest_graph(root: &Path, graph: &ReasoningGraph, provenance: &[u8],
     fs::create_dir_all(&ledger)?;
     let name = format!("{}-{}.json", record.graph_sha256, record.provenance_sha256);
     let target = ledger.join(name);
-    let serialized = serde_json::to_vec_pretty(&record)?;
+    let serialized = serde_json::to_vec_pretty(&record).map_err(io::Error::other)?;
     // Publish complete ledger JSON atomically; no reader observes partial data.
     let sequence = NEXT_LEDGER_TEMP.fetch_add(1, Ordering::Relaxed);
     let temp = target.with_extension(format!("tmp-{}-{sequence}", std::process::id()));
@@ -54,7 +54,7 @@ pub fn ingest_graph(root: &Path, graph: &ReasoningGraph, provenance: &[u8],
     })();
     let _ = fs::remove_file(&temp);
     publish?;
-    let existing: EvidenceRecord = serde_json::from_slice(&fs::read(&target)?)?;
+    let existing: EvidenceRecord = serde_json::from_slice(&fs::read(&target)?).map_err(io::Error::other)?;
     if existing.graph_sha256 != record.graph_sha256
         || existing.provenance_sha256 != record.provenance_sha256
         || existing.storage_manifest.source_sha256 != record.storage_manifest.source_sha256 {
