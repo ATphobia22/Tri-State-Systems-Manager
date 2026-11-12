@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0.0",
+  "archive_name": "IN_West_Option.zip",
+  "archive_sha256": "cb95ebe3fd3aeb95ddc72799b2911240aa44db7329a1ccb1a6b9a9a5cd9b79fb",
+  "archive_bytes_approx": 7500000,
+  "inspection_status": "ARCHIVE_READABLE",
+  "source_zone": "Indiana West",
+  "contains_project_report": true,
+  "contains_metadata_xml": true,
+  "contains_posey_tile_index_components": [
+    "POSEY_IN_TILE5000.shp",
+    "POSEY_IN_TILE5000.shx",
+    "POSEY_IN_TILE5000.dbf",
+    "POSEY_IN_TILE5000.prj"
+  ],
+  "contains_dem_raster": false,
+  "contains_las_laz": false,
+  "terrain_validation_status": "PENDING_DEM_RASTER",
+  "native_runtime_status": "NOT_EVIDENCED",
+  "notes": "Documentation and index are not elevation data; do not treat source documentation as proof of scene alignment or elevation accuracy."
+}

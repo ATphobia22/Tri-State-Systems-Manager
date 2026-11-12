@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0.0",
+  "archive_name": "Shapefiles.zip",
+  "archive_sha256": "43f88f61f9f53ce4cfbbb30b41c67d60b4caab598e35370485199b53b0ee60f0",
+  "classification": "QUARANTINED_NOT_POSEY_EVIDENCE",
+  "source_crs_wkt_name": "NAD_1983_HARN_StatePlane_Indiana_East_FIPS_1301_Feet",
+  "datasets": [
+    {
+      "name": "NVA",
+      "features": 84,
+      "geometry": "POINTZ"
+    },
+    {
+      "name": "VVA",
+      "features": 64,
+      "geometry": "POINTZ"
+    },
+    {
+      "name": "Calibration_Control",
+      "features": 265,
+      "geometry": "POINTZ"
+    },
+    {
+      "name": "Flightline_LIDAR",
+      "features": 264,
+      "geometry": "POLYGONZ"
+    }
+  ],
+  "dem_raster_present": false,
+  "posey_control_accepted": false,
+  "reason": "All four shapefile .prj files specify Indiana East; do not associate these checkpoints with Indiana West Posey DEM without independent geographic and source verification."
+}

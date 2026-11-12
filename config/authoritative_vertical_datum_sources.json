@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0.0",
+  "purpose": "Authoritative references, not evidence that any particular DEM is NAVD88",
+  "sources": [
+    {"id":"noaa-ngs-vertical-datums","url":"https://geodesy.noaa.gov/datums/vertical/index.shtml","role":"datum_definitions","authority":"NOAA NGS"},
+    {"id":"noaa-ngs-vertcon3","url":"https://geodesy.noaa.gov/VERTCON3/index.shtml","role":"ngvd29_navd88_grid_reference","authority":"NOAA NGS"},
+    {"id":"noaa-vdatum","url":"https://vdatum.noaa.gov/","role":"supported_transformation_engine","authority":"NOAA NOS","warning":"regional and tidal grid coverage must be checked"},
+    {"id":"usgs-3dep-product-metadata","url":"https://www.usgs.gov/ngp-standards-and-specifications/3dep-product-metadata","role":"individual_dem_source_metadata","authority":"USGS"}
+  ],
+  "source_dem_acceptance": {
+    "required": ["source_product_id","source_metadata_uri","source_metadata_sha256","horizontal_crs","vertical_datum","vertical_units","coverage_geometry","acquisition_date","transform_method","transform_grid_version","independent_checkpoint_report"],
+    "unknown_vertical_datum": "BLOCKED",
+    "missing_metadata": "NOT_EVIDENCED",
+    "no_automatic_datum_inference_from_geoid": true,
+    "not_a_regulatory_certification": true
+  }
+}
