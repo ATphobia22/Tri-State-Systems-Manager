@@ -163,7 +163,7 @@ export function attachIndianaFeatureFabric(
       const countRes = await fetcher(buildIndianaFeatureQuery(kind, box, true), { signal: controller.signal });
       if (!countRes.ok) throw new Error('ArcGIS count request returned HTTP ' + countRes.status);
       const countPayload = await countRes.json() as { count?: unknown; error?: unknown };
-      if (countPayload.error || !Number.isSafeInteger(countPayload.count) || (countPayload.count as number) < 0) {
+      if (countPayload.error || typeof countPayload.count !== 'number' || !Number.isSafeInteger(countPayload.count) || (countPayload.count as number) < 0) {
         throw new Error('ArcGIS did not return a valid feature count.');
       }
       const count = countPayload.count as number;
