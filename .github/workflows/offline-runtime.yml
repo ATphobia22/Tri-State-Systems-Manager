@@ -125,6 +125,8 @@ jobs:
             backend/requirements.txt \
             offline-runtime/manifests/runtime-manifest.json \
             > offline-runtime/manifests/SHA256SUMS
+      - name: Verify runtime SHA-256 manifest against staged bytes
+        run: node scripts/offline/verify-installed-runtime.mjs
       - name: Remove test virtual environment
         run: rm -rf offline-runtime/python-test
       - name: Package offline runtime
