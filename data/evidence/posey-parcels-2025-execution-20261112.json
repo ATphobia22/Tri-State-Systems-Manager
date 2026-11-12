@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "source": "Indiana Geographic Information Office / 2025 Parcel Boundaries",
+  "source_url": "https://gisdata.in.gov/server/rest/services/Hosted/Parcel_Boundaries_of_Indiana_2025/FeatureServer/0",
+  "county_fips": "18129",
+  "observed_source_features": 20448,
+  "downloaded_features": 20448,
+  "converted_features": 20448,
+  "source_crs": "EPSG:4326",
+  "target_crs": "EPSG:2966",
+  "source_batches": 41,
+  "converted_batches": 41,
+  "checksum_verification": "ALL_BATCHES_MATCHED",
+  "sample_round_trip": "ZERO_DIFFERENCE_AT_DISPLAYED_PRECISION",
+  "source_manifest_sha256": "399de9f84e03560f534276d609a5c8767ce0da2ba076b26eccc1fa3107ea1a77",
+  "output_manifest_sha256": "0515a2656023d5a769139697e5ab765eea5b192d5dca0db6827bb762467a9a11",
+  "temporary_zip_sha256": "8ebcb1c0369b754d77e19c927c346f3a8c63c48f7c3e066789d066c60add39e0",
+  "temporary_zip_bytes": 11633950,
+  "execution_location": "isolated ephemeral Firecrawl browser execution",
+  "persistent_artifact_status": "NOT_VERIFIED_AT_TIME_OF_RECORD",
+  "source_data_regulatory_status": "NOT_SURVEY_CERTIFIED",
+  "offline_native_rendering": "NOT_EVIDENCED"
+}
