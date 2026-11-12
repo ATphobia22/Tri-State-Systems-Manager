@@ -2,6 +2,10 @@ name: TSM Offline Runtime Build
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/offline/**'
+      - '.github/workflows/offline-runtime.yml'
   push:
     branches:
       - main
@@ -31,6 +35,8 @@ jobs:
           registry-url: https://registry.npmjs.org
       - name: Pin npm CLI
         run: npm install --global npm@10.9.2 --no-audit --no-fund
+      - name: Integrity and path safety unit tests
+        run: node --test scripts/offline/runtime-integrity.test.mjs
       - name: Prepare offline directories
         run: mkdir -p offline-runtime/npm-cache offline-runtime/python-wheels offline-runtime/build offline-runtime/native offline-runtime/manifests
       - name: Install console dependencies and populate offline npm cache
