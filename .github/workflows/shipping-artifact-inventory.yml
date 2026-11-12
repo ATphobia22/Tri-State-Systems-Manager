@@ -1,0 +1,25 @@
+name: Shipping Artifact Inventory Contract
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - scripts/native/audit_shipping_artifacts.py
+      - tests/native/test_shipping_artifact_audit.py
+      - .github/workflows/shipping-artifact-inventory.yml
+  push:
+    branches: [main]
+    paths:
+      - scripts/native/audit_shipping_artifacts.py
+      - tests/native/test_shipping_artifact_audit.py
+      - .github/workflows/shipping-artifact-inventory.yml
+permissions:
+  contents: read
+jobs:
+  inventory-contract:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m unittest discover -s tests/native -p test_shipping_artifact_audit.py -v
