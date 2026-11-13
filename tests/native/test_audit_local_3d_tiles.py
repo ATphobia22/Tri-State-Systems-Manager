@@ -189,7 +189,7 @@ class LocalTilesAuditTests(unittest.TestCase):
             "childSubtreeAvailability": {"constant": 0}
         }))
         (subtree_path.parent / "bits.bin").write_bytes(
-            b"\\x41\\x00" + b"\\x00" * 6 + b"\\x41\\x00" + b"\\x00" * 6)
+            bytes([0x41, 0x00]) + bytes(6) + bytes([0x41, 0x00]) + bytes(6))
         for level, x, y, z in ((0, 0, 0, 0), (1, 1, 0, 1)):
             target = self.root / f"content/{level}/{x}/{y}/{z}.glb"
             target.parent.mkdir(parents=True, exist_ok=True)
