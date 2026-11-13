@@ -5,8 +5,12 @@ import argparse
 import hashlib
 import json
 import struct
+import sys
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from audit_implicit_subtrees import traverse_implicit
 
 
 def clean_uri(value: str) -> str:
@@ -32,6 +36,7 @@ def audit(root: Path, index: Path) -> dict:
         raise ValueError("tileset index must be within staged root")
     seen: set[Path] = set()
     content_files: set[Path] = set()
+    implicit_summary = {"subtrees": 0, "tiles": 0, "contents": 0}
 
     def asset(parent: Path, uri: str) -> Path:
         candidate = parent / clean_uri(uri)
@@ -106,8 +111,12 @@ def audit(root: Path, index: Path) -> dict:
                         content_files.add(f)
                         if f.suffix.lower() == ".glb":
                             inspect_glb(f)
-            if "implicitTiling" in value or "3DTILES_implicit_tiling" in value.get("extensions", {}):
-                raise ValueError("implicit tiling requires subtree audit; cannot certify static references")
+            if "implicitTiling" in value:
+                counters = traverse_implicit(path, value, asset, content_files, inspect_glb, visit)
+                for key in implicit_summary:
+                    implicit_summary[key] += counters[key]
+            elif "3DTILES_implicit_tiling" in value.get("extensions", {}):
+                raise ValueError("legacy implicit tiling extension unsupported")
             children = value.get("children", [])
             if not isinstance(children, list):
                 raise ValueError("invalid children")
@@ -127,7 +136,10 @@ def audit(root: Path, index: Path) -> dict:
     return {"schema": "tsm.native.local-3dtiles-static-audit.v1",
             "status": "STATIC_REFERENCES_VERIFIED", "releaseCertified": False,
             "offlineRuntimeVerified": False, "tilesets": len(seen),
-            "payloads": len(content_files), "files": inventory}
+            "payloads": len(content_files), "files": inventory,
+            "implicitSubtrees": implicit_summary["subtrees"],
+            "implicitAvailableTiles": implicit_summary["tiles"],
+            "implicitContents": implicit_summary["contents"]}
 
 
 def main() -> None:
