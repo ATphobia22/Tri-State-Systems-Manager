@@ -57,6 +57,14 @@ class LocalTilesAuditTests(unittest.TestCase):
         self.assertEqual(out["tilesets"], 2)
         self.assertEqual(out["payloads"], 1)
 
+    def test_ue_map_authoring_runs_staged_content_audit(self):
+        script = (SCRIPT.parent / "Generate-TSMNativeMap.ps1").read_text(encoding="utf-8")
+        self.assertIn("audit_local_3d_tiles.py", script)
+        self.assertIn("TSM_LOCAL_TERRAIN_TILESET", script)
+        self.assertIn("TSM_LOCAL_TILESET", script)
+        self.assertIn("if ($LASTEXITCODE -ne 0)", script)
+        self.assertLess(script.index("audit_local_3d_tiles.py"), script.index("& $editorBuild TSMNativeEditor"))
+
     def test_symlink_denied(self):
         link = self.root / "tiles/link.glb"
         try:
