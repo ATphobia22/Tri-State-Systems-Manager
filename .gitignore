@@ -1,6 +1,9 @@
 # Project-specific generated artifacts
 TuckerInc.82 Loves the TriState.pdf
 tsm-console/data/geospatial/cache/
+# Master verification suite Gate 4 sidecar (regenerated on every suite run;
+# CI artifact, not source — nothing in-repo reads it back)
+integrations/registry/tsm_master_verification_gate4_status.json
 # Generated 3D Tiles (CI regenerates from scripts/geospatial/; never commit GLBs)
 
 # Node / frontend build outputs

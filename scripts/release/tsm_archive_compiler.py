@@ -7,6 +7,7 @@ computes SHA-256; writes immutable manifest.
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import logging
@@ -113,7 +114,21 @@ def compile_release_manifest(target_dirs: List[Path], output_manifest_path: Path
 
 
 def main() -> int:
-    output = ROOT / "integrations" / "registry" / "tsm_release_archive_manifest.json"
+    parser = argparse.ArgumentParser(
+        description="Compile the TSM release archive manifest by scanning "
+        "the curated target directories. NOTE: this rewrites the manifest "
+        "to cover EVERY matching file in those directories — it is not a "
+        "refresh of the curated 11-artifact list. To re-hash just the "
+        "curated list, use scripts/release/refresh_archive_manifest.py."
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=ROOT / "integrations" / "registry" / "tsm_release_archive_manifest.json",
+        help="manifest path to write (default: the curated manifest path)",
+    )
+    args = parser.parse_args()
+    output = args.output
     try:
         n = compile_release_manifest(ARCHIVE_TARGET_PATHS, output)
         return 0 if n >= 0 else 1
