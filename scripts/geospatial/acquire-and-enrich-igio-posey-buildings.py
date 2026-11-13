@@ -519,6 +519,8 @@ def main() -> None:
             result = sampler.sample(sample_points)
             props = feature["properties"]
             props.update(ground_elevation_fields(result))
+            if props["elevationCoverage"] == "UNAVAILABLE":
+                no_elevation += 1
             props["sourceAuthority"] = "Indiana Geographic Information Office"
             props["authorityClass"] = "DERIVED"
             props["geometrySource"] = "Indiana Building Footprints 2016-2020"
