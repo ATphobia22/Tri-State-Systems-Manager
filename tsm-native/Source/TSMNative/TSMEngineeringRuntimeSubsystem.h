@@ -108,12 +108,36 @@ struct FTSMEngineeringResult
     FString UncertaintyNote = TEXT("Screening-level deterministic calculation; not a substitute for a calibrated hydraulic model or regulatory determination.");
 };
 
+USTRUCT(BlueprintType)
+struct FTSMSurfaceExchangeResult
+{
+    GENERATED_BODY()
+    UPROPERTY(BlueprintReadOnly, Category = "TSM|Physics")
+    bool bValid = false;
+    UPROPERTY(BlueprintReadOnly, Category = "TSM|Physics")
+    double TransferCubicMeters = 0.0;
+    UPROPERTY(BlueprintReadOnly, Category = "TSM|Physics")
+    double FirstCellVolumeCubicMeters = 0.0;
+    UPROPERTY(BlueprintReadOnly, Category = "TSM|Physics")
+    double SecondCellVolumeCubicMeters = 0.0;
+};
+
 UCLASS()
 class TSMNATIVE_API UTSMEngineeringRuntimeSubsystem final : public UGameInstanceSubsystem
 {
     GENERATED_BODY()
 
 public:
+    // Two-way, mass-conserving numerical screening only. Input elevations
+    // must be prevalidated against the same vertical datum.
+    UFUNCTION(BlueprintCallable, Category = "TSM|Engineering|Physics")
+    static FTSMSurfaceExchangeResult ComputeTwoWaySurfaceExchange(
+        double FirstAreaSquareMeters, double FirstGroundElevationMeters,
+        double FirstVolumeCubicMeters, double SecondAreaSquareMeters,
+        double SecondGroundElevationMeters, double SecondVolumeCubicMeters,
+        double InterfaceWidthMeters, double ConductanceMetersPerSecond,
+        double TimeStepSeconds);
+
     UFUNCTION(BlueprintCallable, Category = "TSM|Engineering")
     FTSMEngineeringResult EvaluateScenario(
         const FTSMEngineeringInputs& Inputs,
