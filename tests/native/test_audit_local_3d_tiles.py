@@ -203,6 +203,12 @@ class LocalTilesAuditTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "missing"):
             module.audit(self.root, self.index)
 
+    def test_unsupported_explicit_payload_does_not_false_pass(self):
+        (self.root / "tiles/one.b3dm").write_bytes(b"legacy content not parsed")
+        self.write("tiles/one.b3dm")
+        with self.assertRaisesRegex(ValueError, "unsupported explicit tile"):
+            module.audit(self.root, self.index)
+
     def test_corrupt_glb_rejected(self):
         (self.root / "tiles/one.glb").write_bytes(b"glTF fixture")
         with self.assertRaisesRegex(ValueError, "invalid GLB"):
