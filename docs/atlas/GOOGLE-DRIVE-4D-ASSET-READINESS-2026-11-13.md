@@ -33,7 +33,7 @@ The Drive aggregate manifest contains 15 separately packaged units: a Posey repa
 
 - The Pages-only root route now redirects to the source-backed `/atlas` experience. The regular app root is unchanged; the memorial is available under `/memorial`.
 - The Atlas reuses the existing MapLibre map and its source registry. OpenFreeMap's vector style gives the scene contextual roads across IN/IL/KY, whereas Indiana aerial imagery must be suppressed outside Indiana.
-- Local GeoJSON overlays draw 10 USGS monitoring-location coordinates and 20 USACE eHydro survey rectangles. The station board requests hydrology through the separate TSM API only on user action; a GitHub Pages build without the API must surface **UNAVAILABLE**.
+- Local GeoJSON overlays draw 10 USGS monitoring-location coordinates and 20 USACE eHydro survey rectangles. The Pages Atlas offers two separately labeled observation paths: a **user-triggered direct USGS OGC API v1 gage-height reader** (subject to public API/browser access) and an **optional** TSM API/NOAA advanced station board. Neither silently polls or invents NAVD88 water levels; unavailable requests remain explicitly unavailable.
 - The hour slider changes visual lighting only. Genuine 4D hydrologic replay needs time-indexed observations and/or versioned scenario model outputs with independent authority and calibration gates.
 - Scene sketches are explicitly unverified planning geometries; no edit, flood model, regulatory filing, or professional sign-off occurs from a browser click.
 
