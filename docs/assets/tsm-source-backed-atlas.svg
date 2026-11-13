@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="830" viewBox="0 0 1600 830" role="img" aria-labelledby="title desc">
+<title id="title">Tri-State 4D Engineering Atlas — registered real-world source geometry</title>
+<desc id="desc">Static data-derived overview of 6 USGS gage location markers in the depicted bounding box and survey extents from a 20-feature USACE eHydro dataset. Positions are plotted using EPSG:4326 source coordinates. The diagram is not a hydrologic observation, real-time feed, elevation model or flood simulation.</desc>
+<defs>
+  <linearGradient id="background" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#071222"/><stop offset=".6" stop-color="#0E2B3D"/><stop offset="1" stop-color="#071523"/></linearGradient>
+  <linearGradient id="banner" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#16465C"/><stop offset="1" stop-color="#0D2634"/></linearGradient>
+  <radialGradient id="halo"><stop stop-color="#2AC8C1" stop-opacity=".22"/><stop offset="1" stop-color="#2AC8C1" stop-opacity="0"/></radialGradient>
+  <clipPath id="mapframe"><rect x="46" y="173" width="980" height="565" rx="17"/></clipPath>
+</defs>
+<rect width="1600" height="830" fill="url(#background)"/>
+<circle cx="740" cy="448" r="540" fill="url(#halo)"/>
+<rect x="30" y="23" width="1540" height="126" rx="22" fill="url(#banner)" stroke="#3F7B85"/>
+<g transform="translate(57,53)"><rect width="65" height="65" rx="13" fill="#0A2638" stroke="#5BE1D3" stroke-width="2"/><path d="M14 46l15-24 13 17 11-22" fill="none" stroke="#73F7E8" stroke-width="5" stroke-linecap="round"/></g>
+<text x="142" y="76" fill="#F0FDFF" font-family="Arial,sans-serif" font-size="37" font-weight="900" letter-spacing="2.5">TRI-STATE SYSTEMS MANAGER</text>
+<text x="145" y="113" fill="#B4DEE4" font-family="Arial,sans-serif" font-size="23" letter-spacing="3">REAL SOURCE GEOMETRY · 4D ENGINEERING ATLAS</text>
+<rect x="1168" y="52" width="355" height="68" rx="16" fill="#0B2332" stroke="#498D94"/>
+<text x="1193" y="79" fill="#79EADD" font-family="Arial,sans-serif" font-size="20" font-weight="800">EXPLORE   /   ENGINEER</text>
+<text x="1193" y="107" fill="#F1CE88" font-family="Arial,sans-serif" font-size="19" font-weight="700">VERIFY · HUMAN AUTHORITY</text>
+<rect x="30" y="160" width="1023" height="621" rx="22" fill="#0A1E2C" stroke="#47788A" stroke-width="2"/>
+<g clip-path="url(#mapframe)">
+<rect x="46" y="173" width="980" height="565" fill="#113143"/>
+<g><g><path d="M176.7 173V738" stroke="#749CAF" stroke-width="1" stroke-opacity=".22" stroke-dasharray="4 8"/><text x="176.7" y="761" text-anchor="middle" fill="#93BFCB" font-family="Arial,sans-serif" font-size="15">89.0° W</text></g><g><path d="M410.0 173V738" stroke="#749CAF" stroke-width="1" stroke-opacity=".22" stroke-dasharray="4 8"/><text x="410.0" y="761" text-anchor="middle" fill="#93BFCB" font-family="Arial,sans-serif" font-size="15">88.5° W</text></g><g><path d="M643.3 173V738" stroke="#749CAF" stroke-width="1" stroke-opacity=".22" stroke-dasharray="4 8"/><text x="643.3" y="761" text-anchor="middle" fill="#93BFCB" font-family="Arial,sans-serif" font-size="15">88.0° W</text></g><g><path d="M876.7 173V738" stroke="#749CAF" stroke-width="1" stroke-opacity=".22" stroke-dasharray="4 8"/><text x="876.7" y="761" text-anchor="middle" fill="#93BFCB" font-family="Arial,sans-serif" font-size="15">87.5° W</text></g><g><path d="M46 725.9H1026" stroke="#749CAF" stroke-width="1" stroke-opacity=".22" stroke-dasharray="4 8"/><text x="38" y="730.9" text-anchor="end" fill="#93BFCB" font-family="Arial,sans-serif" font-size="15">37.0° N</text></g><g><path d="M46 524.1H1026" stroke="#749CAF" stroke-width="1" stroke-opacity=".22" stroke-dasharray="4 8"/><text x="38" y="529.1" text-anchor="end" fill="#93BFCB" font-family="Arial,sans-serif" font-size="15">37.5° N</text></g><g><path d="M46 322.3H1026" stroke="#749CAF" stroke-width="1" stroke-opacity=".22" stroke-dasharray="4 8"/><text x="38" y="327.3" text-anchor="end" fill="#93BFCB" font-family="Arial,sans-serif" font-size="15">38.0° N</text></g></g>
+<g><path d="M93.0 705.7 L148.0 704.4 L145.4 652.7 L90.3 654.1 L93.0 705.7 Z" fill="#48BBBE" fill-opacity=".19" stroke="#6AF3DD" stroke-opacity=".62" stroke-width="1.7"/>
+<path d="M640.1 405.0 L646.5 404.9 L646.4 402.3 L640.1 402.4 L640.1 405.0 Z" fill="#48BBBE" fill-opacity=".19" stroke="#6AF3DD" stroke-opacity=".62" stroke-width="1.7"/>
+<path d="M648.1 416.2 L731.7 414.9 L729.6 350.7 L645.9 352.0 L648.1 416.2 Z" fill="#48BBBE" fill-opacity=".19" stroke="#6AF3DD" stroke-opacity=".62" stroke-width="1.7"/>
+<path d="M700.2 378.2 L775.9 377.0 L775.2 354.8 L699.5 355.9 L700.2 378.2 Z" fill="#48BBBE" fill-opacity=".19" stroke="#6AF3DD" stroke-opacity=".62" stroke-width="1.7"/>
+<path d="M788.7 396.9 L827.8 396.4 L827.2 373.1 L788.0 373.7 L788.7 396.9 Z" fill="#48BBBE" fill-opacity=".19" stroke="#6AF3DD" stroke-opacity=".62" stroke-width="1.7"/>
+<path d="M912.4 350.0 L935.3 349.7 L935.1 344.2 L912.2 344.5 L912.4 350.0 Z" fill="#48BBBE" fill-opacity=".19" stroke="#6AF3DD" stroke-opacity=".62" stroke-width="1.7"/>
+<path d="M835.9 342.0 L842.4 341.9 L842.1 332.5 L835.7 332.5 L835.9 342.0 Z" fill="#48BBBE" fill-opacity=".19" stroke="#6AF3DD" stroke-opacity=".62" stroke-width="1.7"/>
+<path d="M871.0 361.9 L888.3 361.6 L888.0 352.8 L870.7 353.0 L871.0 361.9 Z" fill="#48BBBE" fill-opacity=".19" stroke="#6AF3DD" stroke-opacity=".62" stroke-width="1.7"/>
+<path d="M154.2 649.7 L159.0 649.6 L158.8 647.3 L154.1 647.4 L154.2 649.7 Z" fill="#48BBBE" fill-opacity=".19" stroke="#6AF3DD" stroke-opacity=".62" stroke-width="1.7"/>
+<path d="M313.9 672.7 L317.8 672.6 L317.7 670.9 L313.8 671.0 L313.9 672.7 Z" fill="#48BBBE" fill-opacity=".19" stroke="#6AF3DD" stroke-opacity=".62" stroke-width="1.7"/>
+<path d="M255.4 659.1 L277.4 658.6 L276.9 646.9 L254.9 647.4 L255.4 659.1 Z" fill="#48BBBE" fill-opacity=".19" stroke="#6AF3DD" stroke-opacity=".62" stroke-width="1.7"/>
+<path d="M256.6 659.1 L278.1 658.7 L277.5 646.9 L256.1 647.3 L256.6 659.1 Z" fill="#48BBBE" fill-opacity=".19" stroke="#6AF3DD" stroke-opacity=".62" stroke-width="1.7"/>
+<path d="M148.8 651.9 L227.2 650.0 L226.4 632.0 L147.9 633.9 L148.8 651.9 Z" fill="#48BBBE" fill-opacity=".19" stroke="#6AF3DD" stroke-opacity=".62" stroke-width="1.7"/>
+<path d="M423.1 700.2 L448.3 699.7 L446.7 660.3 L421.5 660.8 L423.1 700.2 Z" fill="#48BBBE" fill-opacity=".19" stroke="#6AF3DD" stroke-opacity=".62" stroke-width="1.7"/>
+<path d="M374.0 700.5 L385.6 700.2 L385.2 692.0 L373.7 692.2 L374.0 700.5 Z" fill="#48BBBE" fill-opacity=".19" stroke="#6AF3DD" stroke-opacity=".62" stroke-width="1.7"/>
+<path d="M440.2 659.2 L442.4 659.2 L442.3 656.0 L440.0 656.0 L440.2 659.2 Z" fill="#48BBBE" fill-opacity=".19" stroke="#6AF3DD" stroke-opacity=".62" stroke-width="1.7"/>
+<path d="M570.5 537.7 L651.0 536.3 L646.3 401.5 L565.5 402.9 L570.5 537.7 Z" fill="#48BBBE" fill-opacity=".19" stroke="#6AF3DD" stroke-opacity=".62" stroke-width="1.7"/>
+<path d="M598.1 512.7 L611.6 512.5 L611.2 503.0 L597.8 503.3 L598.1 512.7 Z" fill="#48BBBE" fill-opacity=".19" stroke="#6AF3DD" stroke-opacity=".62" stroke-width="1.7"/>
+<path d="M597.3 438.7 L639.3 438.0 L638.0 401.6 L596.0 402.3 L597.3 438.7 Z" fill="#48BBBE" fill-opacity=".19" stroke="#6AF3DD" stroke-opacity=".62" stroke-width="1.7"/>
+<path d="M575.9 494.6 L587.7 494.4 L587.3 482.0 L575.4 482.2 L575.9 494.6 Z" fill="#48BBBE" fill-opacity=".19" stroke="#6AF3DD" stroke-opacity=".62" stroke-width="1.7"/></g>
+<g><g><circle cx="670.7" cy="269.5" r="18" fill="#66EFD8" opacity=".13"/><circle cx="670.7" cy="269.5" r="8" fill="#09202D" stroke="#70FAEA" stroke-width="3"/><circle cx="670.7" cy="269.5" r="2.5" fill="#FFF3C5"/><g transform="translate(684.7,250.5)"><rect x="-3" y="-19" width="154" height="33" rx="8" fill="#071624" stroke="#6BE9D2" stroke-opacity=".62"/><text x="9" y="2" fill="#F3FFFF" font-size="17" font-family="Arial,sans-serif" font-weight="800">NEW HARMONY</text></g></g>
+<g><circle cx="841.0" cy="333.5" r="18" fill="#66EFD8" opacity=".13"/><circle cx="841.0" cy="333.5" r="8" fill="#09202D" stroke="#70FAEA" stroke-width="3"/><circle cx="841.0" cy="333.5" r="2.5" fill="#FFF3C5"/><g transform="translate(855.0,314.5)"><rect x="-3" y="-19" width="142" height="33" rx="8" fill="#071624" stroke="#6BE9D2" stroke-opacity=".62"/><text x="9" y="2" fill="#F3FFFF" font-size="17" font-family="Arial,sans-serif" font-weight="800">EVANSVILLE</text></g></g>
+<g><circle cx="935.0" cy="351.2" r="18" fill="#66EFD8" opacity=".13"/><circle cx="935.0" cy="351.2" r="8" fill="#09202D" stroke="#70FAEA" stroke-width="3"/><circle cx="935.0" cy="351.2" r="2.5" fill="#FFF3C5"/></g>
+<g><circle cx="644.1" cy="404.2" r="18" fill="#66EFD8" opacity=".13"/><circle cx="644.1" cy="404.2" r="8" fill="#09202D" stroke="#70FAEA" stroke-width="3"/><circle cx="644.1" cy="404.2" r="2.5" fill="#FFF3C5"/><g transform="translate(658.1,385.2)"><rect x="-3" y="-19" width="130" height="33" rx="8" fill="#071624" stroke="#6BE9D2" stroke-opacity=".62"/><text x="9" y="2" fill="#F3FFFF" font-size="17" font-family="Arial,sans-serif" font-weight="800">UNIONTOWN</text></g></g>
+<g><circle cx="443.9" cy="661.6" r="18" fill="#66EFD8" opacity=".13"/><circle cx="443.9" cy="661.6" r="8" fill="#09202D" stroke="#70FAEA" stroke-width="3"/><circle cx="443.9" cy="661.6" r="2.5" fill="#FFF3C5"/></g>
+<g><circle cx="149.4" cy="653.6" r="18" fill="#66EFD8" opacity=".13"/><circle cx="149.4" cy="653.6" r="8" fill="#09202D" stroke="#70FAEA" stroke-width="3"/><circle cx="149.4" cy="653.6" r="2.5" fill="#FFF3C5"/></g></g>
+</g>
+<rect x="46" y="173" width="980" height="565" rx="17" fill="none" stroke="#638E9D"/>
+<rect x="1072" y="160" width="498" height="621" rx="22" fill="#0B2233" stroke="#47788A" stroke-width="2"/>
+<g font-family="Arial,sans-serif">
+  <text x="1110" y="222" fill="#E9FCFF" font-size="31" font-weight="800">ENGINEERING EVIDENCE</text>
+  <text x="1110" y="254" fill="#9FCCDA" font-size="18">SOURCE-REGISTERED SNAPSHOT</text>
+  <path d="M1110 281H1525" stroke="#366075"/>
+  <text x="1110" y="328" fill="#72EFDE" font-size="50" font-weight="850">10</text>
+  <text x="1210" y="312" fill="#E3F5F8" font-size="21" font-weight="750">USGS station points</text>
+  <text x="1210" y="336" fill="#B8D6DD" font-size="17">Georeferenced source snapshot</text>
+  <text x="1110" y="405" fill="#F3C982" font-size="50" font-weight="850">20</text>
+  <text x="1210" y="390" fill="#E3F5F8" font-size="21" font-weight="750">USACE eHydro survey extents</text>
+  <text x="1210" y="415" fill="#B8D6DD" font-size="17">Footprints, not continuous depths</text>
+  <path d="M1110 449H1525" stroke="#366075"/>
+  <circle cx="1130" cy="492" r="9" fill="#091724" stroke="#70FAEA" stroke-width="3"/><text x="1155" y="499" fill="#D5EEF0" font-size="20">Static gauge location</text>
+  <rect x="1120" y="526" width="21" height="16" rx="2" fill="#4BBFBD" fill-opacity=".35" stroke="#6AF3DD"/><text x="1155" y="542" fill="#D5EEF0" font-size="20">eHydro survey footprint</text>
+  <text x="1110" y="598" fill="#82BCCA" font-size="17" font-weight="700">EPSG:4326 · Geospatial positions</text>
+  <text x="1110" y="630" fill="#B8D6DD" font-size="17">USGS station review: 2026-10-18</text>
+  <text x="1110" y="662" fill="#B8D6DD" font-size="17">eHydro snapshot: 2026-10-09</text>
+  <text x="1110" y="709" fill="#EFC892" font-size="18" font-weight="800">NO LIVE WATER VALUES IN THIS IMAGE</text>
+  <text x="1110" y="739" fill="#B8D6DD" font-size="16">Open the interactive atlas to inspect layers.</text>
+</g>
+<text x="37" y="815" fill="#A7CBD6" font-family="Arial,sans-serif" font-size="15">REPO SOURCE GEOMETRY ONLY · NOAA/USGS OBSERVATIONS FETCHED SEPARATELY ON USER REQUEST · NOT A FLOOD MODEL OR OFFICIAL MAP</text>
+</svg>
