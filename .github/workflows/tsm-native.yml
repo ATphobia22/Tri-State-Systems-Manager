@@ -367,6 +367,11 @@ jobs:
           if (-not (Test-Path $plugin)) { throw "Cesium for Unreal is required on the UE5 runner." }
           $manifest = Get-Content "tsm-native\config\native-geospatial-runtime.json" -Raw | ConvertFrom-Json
           if ($manifest.geospatial.pluginVersion -ne "2.29.1") { throw "Unexpected Cesium version contract." }
+          $installed = Get-Content -LiteralPath $plugin -Raw | ConvertFrom-Json
+          if ($installed.VersionName -cne $manifest.geospatial.pluginVersion) {
+            throw "Installed Cesium plugin version $($installed.VersionName) differs from pinned $($manifest.geospatial.pluginVersion)."
+          }
+          Write-Host "CESIUM_PLUGIN_VERSION_VERIFIED=$($installed.VersionName)"
       - name: Restore oversized immutable TSMData snapshot from private Drive
         if: ${{ vars.TSM_DATA_DRIVE_REMOTE != '' }}
         shell: pwsh
