@@ -7,6 +7,7 @@ import type { GeoJSONSource } from 'maplibre-gl';
 import { Link } from 'react-router';
 import TriStateDigitalTwinMap, { defaultMapPlaneVisibility } from '../components/TriStateDigitalTwinMap';
 import RiverGaugeBoard from '../components/RiverGaugeBoard';
+import PagesUSGSGaugeReader from '../components/PagesUSGSGaugeReader';
 import CommunityGrantMatrix from '../components/CommunityGrantMatrix';
 import CommunityFloodHistory from '../components/CommunityFloodHistory';
 import ScenarioStudioPanel from '../components/ScenarioStudioPanel';
@@ -291,16 +292,17 @@ export default function TriStateAtlasView(): JSX.Element {
           </div>
         </div>
         <div className="tsm-atlas-panel">
-          <h2>River Watch — live on request</h2>
-          <p>Retrieve USGS/NOAA hydrologic observations through the existing TSM server API only when you press the existing fetch button. There is no polling, no default water-level number and no invented NAVD88 conversion.</p>
+          <PagesUSGSGaugeReader />
+          <h2>Advanced NOAA/USGS server feed (optional)</h2>
+          <p>The separate repository forecast and multi-station board uses the TSM server API after a user request. GitHub Pages cannot host that server. The USGS reader above requests a public federal API directly; neither reader invents NAVD88 water surfaces.</p>
           <button type="button" className="tsm-atlas-reset" onClick={() => setRiverOpen((current) => !current)} aria-expanded={riverOpen} aria-controls="tsm-atlas-gauge-board">
             {riverOpen ? 'Close station board' : 'Open real station board'}
           </button>
           <div id="tsm-atlas-gauge-board">
             {riverOpen ? <RiverGaugeBoard /> :
-              <p className="tsm-atlas-note">Station observations have not been requested in this view. Open the board, then request an authoritative snapshot. An unavailable API remains visibly unavailable.</p>}
+              <p className="tsm-atlas-note">Advanced server-side observations have not been requested in this view. Open the board if an external TSM backend is configured.</p>}
           </div>
-          <p className="tsm-atlas-note">GitHub Pages alone cannot host the server API. Public imagery/GIS source tiles may be accessible while on-demand gauge results still require the configured backend.</p>
+          <p className="tsm-atlas-note">GitHub Pages can directly request USGS observations through the user-triggered reader above, subject to provider access and browser CORS. NOAA forecasts and the advanced TSM server board still require a configured backend.</p>
         </div>
       </section>
       <div className="tsm-atlas-community-panels" aria-label="Community flood history and infrastructure funding">
