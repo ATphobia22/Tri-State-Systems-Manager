@@ -43,6 +43,27 @@ These are Google Maps semantics; TSM's explicit local terrain and model loaders 
 
 The independently fetched [AWS Open Data Registry entry](https://github.com/awslabs/open-data-registry/blob/main/datasets/in-elevation.yaml) identifies **IGIO/IOT management, CC0 licensing, bucket `arn:aws:s3:::giselevationingov`, region `us-east-2`, and the original tile lower-left-coordinate naming convention**. It also names [the state's S3 browser](https://giselevationingov.s3.amazonaws.com/index.html). Registry membership, S3 HEAD success, and a matching object size are **availability checks**, not source-file SHA-256, raster-value, feature-linkage, or vertical-transform certification.
 
+## New authoritative IndianaMap ImageServer and real tile-footprint cross-check
+
+The [Indiana 2016–2020 DEM catalog](https://www.indianamap.org/datasets/indiana-2016-2020-dem/about) and its [official dynamic imagery service](https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_2016_2020_DEM/ImageServer) identify a statewide hydro-flattened **bare-earth** QL2 DEM, not building roof elevations. The service's display CRS is Web Mercator EPSG:3857; its live public properties may reflect image-service mosaic resolution and are **not** proof that source tiles share the same native resolution/vertical CRS. Hillshade, slope, and aspect functions must never be sampled as literal elevation.
+
+An independent [Indiana GIO 2016–2020 DEM tile-footprints layer](https://gisdata.in.gov/server/rest/services/Hosted/Indiana_DEM_Tile_Footprints/FeatureServer/0) exposes `filename`, `urlpath`, `county`, and `image_year` with actual published tile polygons. **Prefer the actual exported polygons and filename keys** to the 5000-ft formula when reconciling coverage. The earlier `plan_posey_dem_recovery.py` remains a deterministic *candidate* tile plan only.
+
+Export the authoritative layer to GeoJSON using ArcGIS FeatureServer `/0/query` with `where=county='Posey' AND image_year=2020`, `outFields=filename,urlpath,county,image_year`, `returnGeometry=true`, `outSR=4326`, `f=geojson`. Paginate or partition the result if it exceeds the service's `maxRecordCount=2000`; do not treat a truncated response as a complete tile catalog. Preserve the exact downloaded bytes and retrieval timestamp in an external acquisition receipt.
+
+```bash
+python scripts/geospatial/reconcile_posey_official_dem_tiles.py \
+  --buildings /path/to/verified-posey-buildings-igio.geojson \
+  --tile-footprints /path/to/official-posey-2020-dem-tile-footprints.geojson \
+  --expected-buildings 23082 \
+  --require-covered \
+  --output /path/to/official-dem-tile-coverage.json
+```
+
+This separate audit (a) validates all 23,082 OBJECTIDs, (b) uses geographic polygon intersections **and full polygon coverage**, including multipart buildings, (c) rejects unsafe filenames and mismatched year/county, (d) emits the list of required *published* filenames, and (e) explicitly refuses to call raster values, vertical datums or heights verified. **No actual exported Tile Footprints GeoJSON has been acquired during this PR**; the numerical coverage result remains unverified.
+
+The supplied `Indiana 2016-2020 DEM.jpg` is a 400x400 shaded-relief picture, **not** a georeferenced raster or source DEM. It may illustrate relief in a nonauthoritative legend, but cannot supply Z samples or validate CRS, cloud-optimized GeoTIFF contents or ground elevation.
+
 ## Runbook: rebuild source inventory before accepting heights
 
 The tile planner reads **actual** authoritative footprint geometry (not a county bounding-box guess), checks every stable source identity, preserves multipart polygons, projects WGS84 source footprints into the 2020 Indiana West grid, and enumerates every intersecting 5000-foot source tile.
