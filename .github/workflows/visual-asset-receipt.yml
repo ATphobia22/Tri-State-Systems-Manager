@@ -1,0 +1,20 @@
+name: TSM Visual Asset Receipt Integrity
+on:
+  pull_request:
+    paths:
+      - 'scripts/geospatial/validate_visual_asset_receipt.py'
+      - 'tests/geospatial/test_visual_asset_receipt.py'
+      - '.github/workflows/visual-asset-receipt.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  visual-receipt-tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Verify visual provenance receipts
+        run: python -m unittest discover -s tests/geospatial -p test_visual_asset_receipt.py -v
