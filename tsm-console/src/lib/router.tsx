@@ -107,9 +107,11 @@ export const appRoutes = [
   { path: 'login', element: <LoginView /> },
   { path: 'login/callback', element: <LoginCallbackView /> },
   { id: 'root', path: '/', loader: rootLoader, element: <RootLayout />, errorElement: <RouteErrorPage />, children: [
-  { index: true, loader: memorialLoader, element: <MemorialView /> },
+  { index: true, loader: import.meta.env.VITE_TSM_PAGES_ATLAS_HOME === 'true' ? async () => redirect('/atlas') : memorialLoader, element: <MemorialView /> },
+  { path: 'memorial', loader: memorialLoader, element: <MemorialView /> },
   { path: 'index.html', loader: memorialLoader, element: <MemorialView /> },
   { path: 'architecture', loader: architectureLoader, element: <ArchitectureView /> },
+  { path: 'atlas', hydrateFallbackElement: <RouteLoadingFallback label="the real-world 4D engineering atlas" />, lazy: async () => ({ Component: (await import('../routes/TriStateAtlasView')).default }) },
   { path: 'data-fabric', element: <PublicDataFabricDashboard /> },
   { path: 'river-watch', element: <RiverWatchView /> },
   { path: 'engineering-section', element: <EngineeringSectionView /> },

@@ -1,14 +1,72 @@
-# Tri-State Systems Manager (TSM)
+# TRI-STATE SYSTEMS MANAGER
+### The Ohio–Wabash River Valley, seen in four dimensions
 
-**A digital twin and scientific engineering workbench for the Ohio–Wabash River Valley.**
+**A free, open-source digital twin and scientific engineering workbench for Indiana, Illinois, and Kentucky.** Explore the landscape, examine water and infrastructure, test explicitly defined scenarios, and follow every result back to its sources.
 
-TSM brings **maps, terrain, rivers, buildings, land parcels, environmental information, engineering calculations, and traceable government evidence** into one open-source system. Its primary study area is the Ohio and Wabash River confluence across **Indiana, Illinois, and Kentucky**, with detailed source-data work in **Posey County and Mount Vernon, Indiana**.
+<p align="center">
+  <a href="https://atphobia22.github.io/Tri-State-Systems-Manager/atlas" title="Open the live application 4D Atlas route when the updated console is deployed">
+    <img src="docs/assets/tsm-source-backed-atlas.svg" width="100%" alt="Source-derived cinematic GIS overview: actual EPSG:4326 locations from 10 repo-registered USGS river stations and 20 USACE eHydro survey extent polygons, with six station points within the displayed map region. This is static source geometry, not live observations, a flood simulation or an application screenshot. Select to open the interactive 4D Atlas once deployed." />
+  </a>
+</p>
 
-**The idea is simple:** make complex river-valley information easier to see, understand, test, and explain—while preserving the mathematics and evidence that scientists and engineers need to review it.
+> **Source-backed preview, not invented geography.** This SVG plots real georeferenced station points and survey footprints from [USGS gauge locations](tsm-console/public/data/tsm-river-gauge-locations.geojson) and [USACE eHydro survey extents](tsm-console/public/data/ehydro-survey-extents.geojson) already committed in TSM; its cinematic styling is purely presentational. It is **not live telemetry**, a DEM, a river depth surface, or proof of a validated simulation. The interactive [**4D Atlas**](tsm-console/src/routes/TriStateAtlasView.tsx) uses the actual [MapLibre twin](tsm-console/src/components/TriStateDigitalTwinMap.tsx), [geospatial data fabric](tsm-console/src/lib/data-fabric-registry.ts), [layer registry](tsm-console/src/lib/map-plane-fabric.ts), and [on-demand river board](tsm-console/src/components/RiverGaugeBoard.tsx).
 
-[Explore the public console](https://atphobia22.github.io/Tri-State-Systems-Manager/) · [Browse the source code](https://github.com/ATphobia22/Tri-State-Systems-Manager) · [Engineering assurance standard](docs/architecture/ENGINEERING-ASSURANCE-STANDARD.md) · [Government source catalog](docs/DATA-SOURCE-CATALOG.md)
+**[Launch the 4D Atlas (when deployed)](https://atphobia22.github.io/Tri-State-Systems-Manager/atlas)** · **[Explore the public console](https://atphobia22.github.io/Tri-State-Systems-Manager/)** · **[Study the source](https://github.com/ATphobia22/Tri-State-Systems-Manager)** · **[Scientific evidence](docs/architecture/ENGINEERING-ASSURANCE-STANDARD.md)** · **[Public data sources](docs/DATA-SOURCE-CATALOG.md)** · **[Experience blueprint](docs/UX-CINEMATIC-4D-ATLAS.md)** · **[Releases and CI](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions)**
 
-> **Foundational principle:** Technology informs people; human authority remains final. TSM provides scientific information and decision support, not official emergency instructions, a professional certification, or an agency determination.
+*GitHub READMEs do not execute interactive React applications. The clickable source-derived map leads to the project's GitHub Pages application route **after** this change is merged and successfully deployed. Pages itself cannot run the TSM Node API; on-demand river data require a separately configured service and will show unavailable if absent. The route, public-console availability and deployed features have not been independently browser-verified in this update.*
+
+---
+
+## Choose your view of the valley
+
+| Journey | For whom | What you can discover | Current implementation boundary |
+|---|---|---|---|
+| **01 · EXPLORE** | Residents, students, families, new map users and older adults | Rivers, terrain, communities, roads, land, vocabulary and agency-linked context | Public mapping and layer code exists; the guided, simplified experience is a **UX target** |
+| **02 · ENGINEER** | Students, planners, builders, scientists and engineers | Real MapLibre layers, site calculations, flood/placement screening workbenches and cinematic navigation | Existing engineering routes are linked; **complete 4D timeline, model calibration and native runtime acceptance remain separate gates** |
+| **03 · PEER REVIEW** | Peer reviewers, surveyors, researchers and public agencies | Registered government GIS sources, adapter paths, authority classes, metadata, limitations and evidence links | Source contracts and inspection are wired; **source live connectivity and regulatory/professional certification require independent verification** |
+
+**One landscape. Multiple audiences. The same scientific honesty.** The new [interactive Atlas route](tsm-console/src/routes/TriStateAtlasView.tsx) provides Explore, Engineer and Peer Review lenses, actual map-layer toggles, visual lighting presets, source and data-fabric inspection, access to existing engineering tools and an embedded **request-only** hydrology board. It is designed for keyboard access, responsive display and readable source explanations. Further accessibility audits and advanced guided learning remain [tracked UX acceptance work](docs/UX-CINEMATIC-4D-ATLAS.md).
+
+## What makes this a 4D engineering twin?
+
+**3D** connects terrain, buildings, parcels, infrastructure and water. **The fourth dimension is time:** the date of a measurement, the version of a data source and the time of a modeled scenario must remain distinct. A beautifully rendered flood layer is not automatically an observed event or an agency-approved boundary.
+
+| Explore the world | Interrogate the engineering | Verify its trustworthiness |
+|---|---|---|
+| [MapLibre / Three.js console](tsm-console/) | [Native Unreal Engine 5.8 scene](tsm-native/) | [Engineering assurance standard](docs/architecture/ENGINEERING-ASSURANCE-STANDARD.md) |
+| [3D Tiles and building workflows](scripts/geospatial/) | [Hydraulic evidence and simulation](docs/ENGINEERING-EVIDENCE-PIPELINE.md) | [Data source catalog](docs/DATA-SOURCE-CATALOG.md) |
+| [Official data adapters](packages/government/) | [Geodesy and surveying](tools/survey/) | [Posey building-source verification](docs/engineering-development/POSEY-DRIVE-SOURCE-VERIFICATION-2026-11-09.md) |
+
+### Read the map correctly
+
+- **Observed:** a named observation with source and timestamp; **derived:** a calculation with documented input lineage; **scenario:** a model result under declared assumptions; **regulatory:** information actually issued by a competent authority.
+- **LIVE, STALE, or SOURCE UNAVAILABLE** must be visibly distinguished. A missing height, datum or water level remains missing; a shader or interpolation cannot turn it into measured evidence.
+- FEMA effective flood-hazard information, Indiana DNR planning layers and simulated flood extents need distinct legends, provenance and authority descriptions.
+- Camera modes, particles, atmosphere and cinematic lighting should improve understanding, **never silently alter measurements**.
+
+### Evidence snapshot — November 13, 2026
+
+This is a dated engineering summary, **not** a live build-status badge:
+
+| Workstream | Status established by linked evidence |
+|---|---|
+| Building source identity | The documented reconciliation matches **23,082 Posey County building footprint IDs** in two source inventories; this does **not** establish 23,082 valid, height-linked, cooked 3D meshes |
+| Building-height completeness | **Open blocker:** [PR #580](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/580) cites a failed-run tally of 20,516 valid heights and 2,566 unavailable; [PR #586](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/586) separately describes a visualization archive containing 20,517 identifiers. These are **different evidence sets**, not interchangeable certifications |
+| Terrain and vertical datum | **Partial / unresolved:** [PR #581](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/581) tracks DEM recovery; [PR #586](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/586) reports matching TIFF byte hashes but unresolved per-tile vertical CRS and band units |
+| Native UE5.8 Shipping and offline Windows 11 | **Not independently evidenced as complete:** successful clean, network-disabled Windows startup, packaged scene, signed artifacts, headed screenshots and hardware/FPS/VRAM measurements still require actual runtime proof |
+| Peer review and government authority | **Human-reviewed, source-specific:** no automatic FEMA determination, certified survey, PE seal, regulatory acceptance or emergency instruction is implied |
+
+For current status, inspect the [main branch](https://github.com/ATphobia22/Tri-State-Systems-Manager/tree/main), [open pull requests](https://github.com/ATphobia22/Tri-State-Systems-Manager/pulls), [workflow runs](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions) and original evidence receipts. Documentation and PR-head checks alone do not establish that `main` is green or the native binary is releasable.
+
+## Built for everyone, without sacrificing rigor
+
+**Community first:** public information is intended to be free, with no required visitor account, paywall or sponsorship. **Professional review next:** formulas, geodetic references, source dates and quality limits remain visible even in beginner-friendly experiences. **Offline where needed:** the native Windows 11 x64 target is a locally packaged application, not a claim that the offline installer is ready today.
+
+> **Technology informs people. Human authority remains final.** TSM is decision-support software, not a substitute for official flood warnings, certified surveys, professional engineering judgment, sealed deliverables or regulatory agency determinations.
+
+**Explore the original engineering documentation below** for implementation detail, scientific methods, entry points, official sources and release boundaries.
+
+---
 
 ## Native Unreal Engine 5.8 application
 
@@ -47,9 +105,9 @@ The [Sovereign Deduplication Engine (SDE)](crates/sovereign-dedup-engine/) is me
 
 Read the [SDE production integration and outstanding acceptance gates](docs/native/SDE-PRODUCTION-INTEGRATION.md). Neural scores, chunk hashes, or successful CI tests are not engineering or regulatory certification.
 
-### Release status and independent acceptance gates (2026-11-12)
+### Historical release snapshot and independent acceptance gates (2026-11-12)
 
-The code merges for [installer evidence retention (#570)](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/570), [Shipping artifact inventory (#571)](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/571), and [SDE integration (#572)](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/572) are complete. PR #572 passed **14/14 reported PR-head workflows** before merge. That is distinct from post-merge `main` CI and from actual native application release evidence.
+The following is a **historical November 12 snapshot**; for more recent source-evidence blockers see the dated November 13 summary above. The code merges for [installer evidence retention (#570)](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/570), [Shipping artifact inventory (#571)](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/571), and [SDE integration (#572)](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/572) are complete. PR #572 passed **14/14 reported PR-head workflows** before merge. That is distinct from post-merge `main` CI and from actual native application release evidence.
 
 | Gate | Evidence / state at the 2026-11-12 check |
 |---|---|

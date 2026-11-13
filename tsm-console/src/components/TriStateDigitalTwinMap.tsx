@@ -23,6 +23,9 @@ const MAX_BOUNDS: [[number, number], [number, number]] = [
   [-88.13, 37.72],
   [-87.64, 38.28],
 ];
+// A separate, explicit regional envelope is used only for the public Atlas.
+// It covers the source-derived eHydro extents; the normal Posey map remains bounded.
+const REGIONAL_MAX_BOUNDS: [[number, number], [number, number]] = [[-89.6, 36.9], [-86.8, 38.8]];
 
 const layerColor = (id: string): string => {
   if (id === 'indiana-parcels') return '#38bdf8';
@@ -210,6 +213,21 @@ export interface TriStateDigitalTwinMapProps {
   onVisibleChange?: (next: Record<string, boolean>) => void;
   /** Visual-only MapLibre light and sky preset; never used as environmental evidence. */
   lightPreset?: CinematicLightPreset;
+  /** Forward actual MapLibre adapter state to an accessible external status panel. */
+  onStatusChange?: (status: string) => void;
+  /** Atlas-only regional map mode; uses OpenFreeMap vector basemap across state lines. */
+  regionalAtlas?: boolean;
+  /** Atlas-only camera preset; location is navigation, never survey evidence. */
+  regionalView?: { id: string; center: [number, number]; zoom: number; pitch?: number; bearing?: number };
+  /** Source-derived, locally committed point locations and eHydro survey rectangles. */
+  regionalLayers?: { gauges: boolean; surveys: boolean; historic: boolean };
+  /** Indiana aerial imagery is only offered over its own coverage. */
+  showIndianaImagery?: boolean;
+  /** Human proposed, uncalibrated intervention geometry. Never used as a flood result. */
+  proposalOverlay?: Parameters<GeoJSONSource['setData']>[0];
+  /** Active drawing class. Map clicks are forwarded as WGS84 waypoints only. */
+  proposalDrawMode?: 'berm' | 'road' | 'retention' | null;
+  onProposalPoint?: (point: [number, number]) => void;
 }
 
 export function defaultMapPlaneVisibility(): Record<string, boolean> {
@@ -227,6 +245,7 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
   const visible = controlled ? (props.visible as Record<string, boolean>) : internalVisible;
   const [terrainEnabled, setTerrainEnabled] = useState(false);
   const [status, setStatus] = useState('Initializing MapLibre plane…');
+  useEffect(() => { props.onStatusChange?.(status); }, [status, props.onStatusChange]);
   const [picked, setPicked] = useState<string | null>(null);
   const [selectedBuilding, setSelectedBuilding] = useState<Record<string, unknown> | null>(null);
   const [floodOverlayOn, setFloodOverlayOn] = useState(false);
@@ -236,6 +255,53 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
   const visibleRef = useRef(visible);
   visibleRef.current = visible;
   const previousVisibleRef = useRef(visible);
+  const regionalLayersRef = useRef(props.regionalLayers);
+  regionalLayersRef.current = props.regionalLayers;
+  const showIndianaImageryRef = useRef(props.showIndianaImagery);
+  showIndianaImageryRef.current = props.showIndianaImagery;
+  const proposalModeRef = useRef(props.proposalDrawMode);
+  proposalModeRef.current = props.proposalDrawMode;
+  const proposalCallbackRef = useRef(props.onProposalPoint);
+  proposalCallbackRef.current = props.onProposalPoint;
+  const proposalOverlayRef = useRef(props.proposalOverlay);
+  proposalOverlayRef.current = props.proposalOverlay;
+  const npsLoadedRef = useRef(false);
+  const npsAbortRef = useRef<AbortController | null>(null);
+  const loadHistoricSites = useCallback(async (map: Map): Promise<void> => {
+    if (npsLoadedRef.current || !map.getSource('atlas-nps-historic')) return;
+    npsAbortRef.current?.abort();
+    const controller = new AbortController();
+    npsAbortRef.current = controller;
+    // NPS public data excludes restricted/sensitive sites. This bounding
+    // envelope is only a contextual map query, not a preservation determination.
+    const url = new URL('https://mapservices.nps.gov/arcgis/rest/services/cultural_resources/nrhp_locations/MapServer/0/query');
+    url.searchParams.set('where', '1=1');
+    url.searchParams.set('geometry', '-88.5,37.5,-87.1,38.5');
+    url.searchParams.set('geometryType', 'esriGeometryEnvelope');
+    url.searchParams.set('spatialRel', 'esriSpatialRelIntersects');
+    url.searchParams.set('inSR', '4326');
+    url.searchParams.set('outSR', '4326');
+    url.searchParams.set('outFields', 'RESNAME,NRIS_Refnum,ResType,County,State');
+    url.searchParams.set('returnGeometry', 'true');
+    url.searchParams.set('resultRecordCount', '1000');
+    url.searchParams.set('f', 'geojson');
+    try {
+      const response = await fetch(url.toString(), { signal: controller.signal });
+      if (!response.ok) throw new Error(`NPS HTTP ${response.status}`);
+      const data = await response.json() as { type?: string; features?: unknown[] };
+      if (data.type !== 'FeatureCollection' || !Array.isArray(data.features)) {
+        throw new Error('NPS returned no GeoJSON feature collection');
+      }
+      if (mapRef.current !== map) return;
+      const source = map.getSource('atlas-nps-historic') as GeoJSONSource | undefined;
+      source?.setData(data as Parameters<GeoJSONSource['setData']>[0]);
+      npsLoadedRef.current = true;
+      setStatus(`NPS unrestricted historic-place points received: ${data.features.length}; 1,000-record limit, location precision may vary.`);
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') return;
+      setStatus(`NPS historic places unavailable: ${error instanceof Error ? error.message : String(error)}. No substitute points were invented.`);
+    }
+  }, []);
 
   const setVisible = useCallback((updater: (current: Record<string, boolean>) => Record<string, boolean>): void => {
     if (controlled) {
@@ -324,15 +390,15 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
     if (!containerRef.current || mapRef.current) return;
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: baseStyle(),
-      center: INITIAL_CENTER,
-      zoom: 13,
-      pitch: 58,
-      bearing: -15,
+      style: props.regionalAtlas ? 'https://tiles.openfreemap.org/styles/liberty' : baseStyle(),
+      center: props.regionalView?.center ?? INITIAL_CENTER,
+      zoom: props.regionalView?.zoom ?? 13,
+      pitch: props.regionalView?.pitch ?? 58,
+      bearing: props.regionalView?.bearing ?? -15,
       maxPitch: 85,
-      minZoom: 9,
+      minZoom: props.regionalAtlas ? 6 : 9,
       maxZoom: 19,
-      maxBounds: MAX_BOUNDS,
+      maxBounds: props.regionalAtlas ? REGIONAL_MAX_BOUNDS : MAX_BOUNDS,
       cooperativeGestures: true,
       fadeDuration: 300,
     });
@@ -343,9 +409,74 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
       const lighting = getCinematicLighting(lightPresetRef.current);
       map.setLight(lighting.light);
       map.setSky(lighting.sky);
+      if (props.regionalAtlas) {
+        // OpenFreeMap vector style is the cross-state basemap. Preserve native
+        // Indiana imagery as an optional overlaid raster, never an IL/KY source.
+        const imagery = getMapLibreFabricLayer('indiana-imagery').endpoint;
+        map.addSource('indiana-imagery', {
+          type: 'raster',
+          tiles: [buildArcGisExportTemplate(imagery, [], { format: 'jpg', transparent: false, compressionQuality: 90 })],
+          tileSize: 512,
+          attribution: 'Indiana Geographic Information Office',
+        });
+        map.addLayer({
+          id: 'indiana-imagery-layer',
+          type: 'raster',
+          source: 'indiana-imagery',
+          layout: { visibility: showIndianaImageryRef.current ? 'visible' : 'none' },
+        });
+        // These GeoJSON sources are committed and WGS84-checked. Neither
+        // source supplies a live river level, bathymetric depth raster, or BFE.
+        const base = import.meta.env.BASE_URL;
+        map.addSource('atlas-usgs-gauges', { type: 'geojson', data: `${base}data/tsm-river-gauge-locations.geojson` });
+        map.addLayer({
+          id: 'atlas-usgs-gauge-points', type: 'circle', source: 'atlas-usgs-gauges',
+          layout: { visibility: regionalLayersRef.current?.gauges ? 'visible' : 'none' },
+          paint: { 'circle-color': '#5de8da', 'circle-radius': 7,
+            'circle-stroke-color': '#061823', 'circle-stroke-width': 2 },
+        });
+        // Public NPS National Register points are requested only when the
+        // visitor enables this layer, with explicit failure visibility.
+        map.addSource('atlas-nps-historic', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+        map.addLayer({
+          id: 'atlas-nps-historic-points', type: 'circle', source: 'atlas-nps-historic',
+          layout: { visibility: regionalLayersRef.current?.historic ? 'visible' : 'none' },
+          paint: { 'circle-radius': 5, 'circle-color': '#d8b4fe',
+            'circle-stroke-color': '#281442', 'circle-stroke-width': 1.5 },
+        });
+        if (regionalLayersRef.current?.historic) void loadHistoricSites(map);
+        map.addSource('atlas-proposals', {
+          type: 'geojson',
+          data: proposalOverlayRef.current ?? { type: 'FeatureCollection', features: [] },
+        });
+        map.addLayer({
+          id: 'atlas-proposals-fill', type: 'fill', source: 'atlas-proposals',
+          paint: { 'fill-color': '#fb923c', 'fill-opacity': 0.17 },
+        });
+        map.addLayer({
+          id: 'atlas-proposals-line', type: 'line', source: 'atlas-proposals',
+          paint: { 'line-color': '#fb923c', 'line-width': 4, 'line-dasharray': [2, 1] },
+        });
+        map.addLayer({
+          id: 'atlas-proposals-waypoints', type: 'circle', source: 'atlas-proposals',
+          paint: { 'circle-radius': 6, 'circle-color': '#fff7ed', 'circle-stroke-color': '#fb923c', 'circle-stroke-width': 2 },
+        });
+        map.addSource('atlas-usace-ehydro', { type: 'geojson', data: `${base}data/ehydro-survey-extents.geojson` });
+        map.addLayer({
+          id: 'atlas-usace-ehydro-fill', type: 'fill', source: 'atlas-usace-ehydro',
+          layout: { visibility: regionalLayersRef.current?.surveys ? 'visible' : 'none' },
+          paint: { 'fill-color': '#ffca85', 'fill-opacity': 0.09 },
+        });
+        map.addLayer({
+          id: 'atlas-usace-ehydro-outline', type: 'line', source: 'atlas-usace-ehydro',
+          layout: { visibility: regionalLayersRef.current?.surveys ? 'visible' : 'none' },
+          paint: { 'line-color': '#ffca85', 'line-width': 2, 'line-dasharray': [4, 2] },
+        });
+      }
       const terrain = getTerrainRgbStatus();
-      setTerrainEnabled(terrain.enabled);
-      setStatus(terrain.enabled ? 'Terrain-RGB connected; source fabric online.' : 'Terrain-RGB unavailable; continuing with the base map and available layers. Configure VITE_TSM_TERRAIN_RGB_URL_TEMPLATE to enable terrain.');
+      const terrainAllowed = !props.regionalAtlas || Boolean(showIndianaImageryRef.current);
+      setTerrainEnabled(terrain.enabled && terrainAllowed);
+      setStatus(terrain.enabled && terrainAllowed ? 'Terrain-RGB template configured for this view; tile coverage and vertical datum require verification.' : 'Terrain unavailable or outside the configured regional preview coverage; continuing with the basemap and available GIS layers.');
 
       if (terrain.enabled && !map.getSource(TERRAIN_RGB_SOURCE_ID)) {
         map.addSource(TERRAIN_RGB_SOURCE_ID, {
@@ -355,13 +486,14 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
           encoding: 'mapbox',
           maxzoom: 14,
         });
-        map.setTerrain({ source: TERRAIN_RGB_SOURCE_ID, exaggeration: 1 });
+        if (terrainAllowed && visibleRef.current['terrain-rgb']) map.setTerrain({ source: TERRAIN_RGB_SOURCE_ID, exaggeration: 1 });
         // Hillshade layer for 3D terrain visualization (per maplibre-agent-skills guide)
         if (!map.getLayer('terrain-hillshade')) {
           map.addLayer({
             id: 'terrain-hillshade',
             type: 'hillshade',
             source: TERRAIN_RGB_SOURCE_ID,
+            layout: { visibility: terrainAllowed && visibleRef.current['terrain-rgb'] ? 'visible' : 'none' },
             paint: {
               'hillshade-exaggeration': 0.5,
               'hillshade-shadow-color': '#473B2B',
@@ -399,8 +531,14 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
         setStatus(`Layer warning: ${message}. The map remains available; affected data may be unavailable.`);
       });
 
-      // Object picking (raycast selection): click buildings, roads, parcels, quads.
+      // Drafting receives click coordinates only when the user selected a
+      // proposal mode. It has NO hydraulic/agency effect.
+      // Object picking (raycast selection) continues when drafting is off.
       map.on('click', (event) => {
+        if (props.regionalAtlas && proposalModeRef.current) {
+          proposalCallbackRef.current?.([event.lngLat.lng, event.lngLat.lat]);
+          return;
+        }
         const pickable = [
           'indiana-buildings-extrusion',
           'indiana-buildings-footprint',
@@ -408,6 +546,9 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
           'indiana-parcels-fill',
           'usgs-quad-index-line',
           'posey-cslf-fill',
+          'atlas-usgs-gauge-points',
+          'atlas-usace-ehydro-outline',
+          'atlas-nps-historic-points',
         ].filter((id) => map.getLayer(id));
         const features = map.queryRenderedFeatures(event.point, { layers: pickable });
         if (features.length === 0) {
@@ -417,13 +558,23 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
         }
         const feature = features[0];
         const layerId = feature.layer.id;
-        const props = feature.properties ?? {};
-        if (layerId === 'indiana-buildings-extrusion' || layerId === 'indiana-buildings-footprint') {
-          setSelectedBuilding(props);
+        const featureProps = feature.properties ?? {};
+        if (layerId === 'atlas-nps-historic-points') {
+          setSelectedBuilding(null);
+          setPicked(`NPS National Register listing · ${String(featureProps.RESNAME ?? 'Unnamed resource')} · ${String(featureProps.County ?? 'county unavailable')} · not survey-grade coordinates`);
+        } else if (layerId === 'atlas-usgs-gauge-points') {
+          const name = String(featureProps.name ?? featureProps.stationId ?? 'USGS station');
+          setSelectedBuilding(null);
+          setPicked(`${name} · station location only; fetch observations separately`);
+        } else if (layerId === 'atlas-usace-ehydro-outline') {
+          setSelectedBuilding(null);
+          setPicked(`USACE eHydro survey extent · ${String(featureProps.surveyDate ?? 'undated')} · Ohio River Datum; no NAVD88 offset asserted`);
+        } else if (layerId === 'indiana-buildings-extrusion' || layerId === 'indiana-buildings-footprint') {
+          setSelectedBuilding(featureProps);
           setPicked(null);
         } else {
           setSelectedBuilding(null);
-          setPicked(describePickedFeature(layerId, props));
+          setPicked(describePickedFeature(layerId, featureProps));
         }
       });
       map.on('mousemove', (event) => {
@@ -433,14 +584,18 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
           'indiana-roads-line',
           'indiana-parcels-fill',
           'usgs-quad-index-line',
+          'atlas-usgs-gauge-points',
+          'atlas-usace-ehydro-outline',
         ].filter((id) => map.getLayer(id));
         const features = map.queryRenderedFeatures(event.point, { layers: pickable });
-        map.getCanvas().style.cursor = features.length > 0 ? 'pointer' : '';
+        map.getCanvas().style.cursor = proposalModeRef.current ? 'crosshair' : features.length > 0 ? 'pointer' : '';
       });
     });
 
     return () => {
       featureRequestsRef.current.cancelAll();
+      npsAbortRef.current?.abort();
+      npsLoadedRef.current = false;
       floodOverlayRef.current?.dispose();
       floodOverlayRef.current = null;
       map.remove();
@@ -473,13 +628,77 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
       }
     }
     const terrain = getTerrainRgbStatus();
-    if (terrain.enabled && visible['terrain-rgb'] && !map.getTerrain()) {
+    const terrainAllowed = !props.regionalAtlas || Boolean(props.showIndianaImagery);
+    if (terrain.enabled && terrainAllowed && visible['terrain-rgb'] && !map.getTerrain()) {
       map.setTerrain({ source: TERRAIN_RGB_SOURCE_ID, exaggeration: 1 });
-    } else if ((!terrain.enabled || !visible['terrain-rgb']) && map.getTerrain()) {
+    } else if ((!terrain.enabled || !terrainAllowed || !visible['terrain-rgb']) && map.getTerrain()) {
       map.setTerrain(null);
     }
-    setTerrainEnabled(terrain.enabled);
-  }, [refreshFeatureLayer, setLayerVisibility, visible]);
+    if (map.getLayer('terrain-hillshade')) {
+      map.setLayoutProperty('terrain-hillshade', 'visibility', terrain.enabled && terrainAllowed && visible['terrain-rgb'] ? 'visible' : 'none');
+    }
+    setTerrainEnabled(terrain.enabled && terrainAllowed);
+  }, [refreshFeatureLayer, setLayerVisibility, visible, props.regionalAtlas, props.showIndianaImagery]);
+
+  useEffect(() => {
+    if (!props.regionalAtlas || !props.regionalView) return;
+    const map = mapRef.current;
+    if (!map) return;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    map.easeTo({
+      center: props.regionalView.center,
+      zoom: props.regionalView.zoom,
+      pitch: props.regionalView.pitch ?? 58,
+      bearing: props.regionalView.bearing ?? -15,
+      duration: reduced ? 0 : 1400,
+    });
+  }, [props.regionalAtlas, props.regionalView]);
+
+  useEffect(() => {
+    if (!props.regionalAtlas) return;
+    const map = mapRef.current;
+    if (!map?.isStyleLoaded()) return;
+    const layer = 'indiana-imagery-layer';
+    if (map.getLayer(layer)) map.setLayoutProperty(layer, 'visibility', props.showIndianaImagery ? 'visible' : 'none');
+  }, [props.regionalAtlas, props.showIndianaImagery]);
+
+  useEffect(() => {
+    if (!props.regionalAtlas) return;
+    const map = mapRef.current;
+    if (!map?.isStyleLoaded()) return;
+    for (const [key, ids] of [
+      ['gauges', ['atlas-usgs-gauge-points']],
+      ['surveys', ['atlas-usace-ehydro-fill', 'atlas-usace-ehydro-outline']],
+      ['historic', ['atlas-nps-historic-points']],
+    ] as const) {
+      for (const id of ids) {
+        if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', props.regionalLayers?.[key] ? 'visible' : 'none');
+      }
+    }
+  }, [props.regionalAtlas, props.regionalLayers]);
+
+  useEffect(() => {
+    if (!props.regionalAtlas || !props.regionalLayers?.historic) {
+      npsAbortRef.current?.abort();
+      return;
+    }
+    const map = mapRef.current;
+    if (map?.isStyleLoaded()) void loadHistoricSites(map);
+  }, [props.regionalAtlas, props.regionalLayers?.historic, loadHistoricSites]);
+
+  useEffect(() => {
+    if (!props.regionalAtlas) return;
+    const map = mapRef.current;
+    if (!map?.isStyleLoaded()) return;
+    const source = map.getSource('atlas-proposals') as GeoJSONSource | undefined;
+    if (source) source.setData(props.proposalOverlay ?? { type: 'FeatureCollection', features: [] });
+  }, [props.regionalAtlas, props.proposalOverlay]);
+
+  useEffect(() => {
+    if (!props.regionalAtlas) return;
+    const map = mapRef.current;
+    if (map) map.getCanvas().style.cursor = props.proposalDrawMode ? 'crosshair' : '';
+  }, [props.regionalAtlas, props.proposalDrawMode]);
 
   const terrain = getTerrainRgbStatus();
   const mistVisible = Boolean(visible['cinematic-volumetric-mist']);
