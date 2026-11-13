@@ -42,6 +42,22 @@ if (-not [string]::IsNullOrWhiteSpace($RoadsTilesetPath)) {
 } else {
     Remove-Item Env:TSM_LOCAL_ROADS_TILESET -ErrorAction SilentlyContinue
 }
+# Reject network-dependent, missing or unsafe staged Cesium content before authoring the map.
+$auditor = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot 'audit_local_3d_tiles.py')).Path
+$pythonExe = Get-Command python -ErrorAction SilentlyContinue
+if (-not $pythonExe) { throw 'Python is required for offline staged 3D Tiles content verification.' }
+$reportRoot = Join-Path $PSScriptRoot '..\..\dist\evidence'
+New-Item -Path $reportRoot -ItemType Directory -Force | Out-Null
+$tileInputs = @(
+    @{ Name = 'buildings'; Tileset = $env:TSM_LOCAL_TILESET },
+    @{ Name = 'terrain'; Tileset = $env:TSM_LOCAL_TERRAIN_TILESET }
+)
+if ($env:TSM_LOCAL_ROADS_TILESET) { $tileInputs += @{ Name = 'roads'; Tileset = $env:TSM_LOCAL_ROADS_TILESET } }
+foreach ($item in $tileInputs) {
+    $report = Join-Path $reportRoot ("native-" + $item.Name + "-tiles-static-audit.json")
+    & $pythonExe.Source $auditor --root $staged --tileset $item.Tileset --output $report
+    if ($LASTEXITCODE -ne 0) { throw ("Local " + $item.Name + " 3D Tiles content reference audit failed.") }
+}
 & $editorBuild TSMNativeEditor Win64 Development "-Project=$project" -WaitMutex
 if ($LASTEXITCODE -ne 0) { throw "TSMNativeEditor compilation failed: $LASTEXITCODE" }
 # Full Editor scripting waits for level/editor subsystems; commandlet mode may not
