@@ -60,7 +60,7 @@ def _polygon_exteriors(geometry: dict):
 
 
 def plan(data: dict, *, expected_count: int = EXPECTED_BUILDINGS,
-         projected: bool = False) -> dict:
+         projected: bool = False, quarantine_invalid_geometry: bool = False) -> dict:
     if (not isinstance(data, dict) or data.get("type") != "FeatureCollection"
             or not isinstance(data.get("features"), list)):
         raise ValueError("input must be GeoJSON FeatureCollection")
@@ -69,6 +69,7 @@ def plan(data: dict, *, expected_count: int = EXPECTED_BUILDINGS,
         raise ValueError("authoritative building inventory count mismatch")
     transformer = None if projected else Transformer.from_crs("EPSG:4326", "EPSG:2968", always_xy=True)
     ids, tiles = set(), set()
+    invalid_geometry_ids = []
     for feature in features:
         if not isinstance(feature, dict) or feature.get("type") != "Feature":
             raise ValueError("invalid IGIO building feature")
@@ -80,7 +81,15 @@ def plan(data: dict, *, expected_count: int = EXPECTED_BUILDINGS,
         if oid in ids:
             raise ValueError("duplicate authoritative igioObjectId")
         ids.add(oid)
-        for exterior in _polygon_exteriors(feature.get("geometry")):
+        try:
+            exteriors = _polygon_exteriors(feature.get("geometry"))
+        except ValueError:
+            if not quarantine_invalid_geometry:
+                raise
+            invalid_geometry_ids.append(oid)
+            continue
+        feature_tiles = set()
+        for exterior in exteriors:
             xs, ys = [], []
             for item in exterior:
                 x, y = item[0], item[1]
@@ -95,14 +104,28 @@ def plan(data: dict, *, expected_count: int = EXPECTED_BUILDINGS,
                     raise ValueError("untransformable projected coordinates")
                 xs.append(x)
                 ys.append(y)
-            tiles.update(tile_names_for_bounds((min(xs), min(ys), max(xs), max(ys))))
-            if len(tiles) > MAX_SOURCE_TILES:
-                raise ValueError("unbounded county DEM tile plan")
+            try:
+                feature_tiles.update(tile_names_for_bounds((min(xs), min(ys), max(xs), max(ys))))
+            except ValueError:
+                if not quarantine_invalid_geometry:
+                    raise
+                invalid_geometry_ids.append(oid)
+                feature_tiles.clear()
+                break
+        if len(tiles | feature_tiles) > MAX_SOURCE_TILES:
+            raise ValueError("unbounded county DEM tile plan")
+        tiles.update(feature_tiles)
+    if not tiles:
+        raise ValueError("no valid geometry available for a source tile plan")
     names = sorted(tiles)
     return {
         "schemaVersion": "tsm.posey-dem-recovery-plan.v1",
         "authoritativeObjectIdCount": len(ids),
         "expectedBuildingCount": expected_count,
+        "candidateCoveredSourceGeometryCount": len(ids) - len(invalid_geometry_ids),
+        "invalidGeometryCount": len(invalid_geometry_ids),
+        "invalidGeometryObjectIds": sorted(invalid_geometry_ids),
+        "fullSourceGeometryValid": not invalid_geometry_ids,
         "tileCount": len(names),
         "tileNames": names,
         "sourceBucket": SOURCE_BUCKET,
@@ -112,6 +135,7 @@ def plan(data: dict, *, expected_count: int = EXPECTED_BUILDINGS,
         "heightVerticalDatumRequired": "NAVD88 (GEOID12B source metadata; verify each raster)",
         "sourceObjectAvailabilityVerified": False,
         "rasterPixelCoverageVerified": False,
+        "fullSourceTileCoverageVerified": False,
         "heightsVerified": False,
         "regulatoryUse": False,
         "warning": "Tile selection does not verify raster pixels, survey datum or any building height.",
@@ -147,7 +171,8 @@ def audit_staged_tiles(report: dict, root: Path) -> dict:
         "missingTileNames": missing,
         "unpinnedTileNames": unpinned,
         "invalidTileNames": invalid,
-        "stagedMetadataAuditPassed": not (missing or unpinned or invalid),
+        "stagedMetadataAuditPassed": (not (missing or unpinned or invalid)
+                                       and report.get("fullSourceGeometryValid") is True),
         "rasterPixelCoverageVerified": False,
         "heightsVerified": False,
     }
@@ -160,6 +185,8 @@ def main() -> int:
     ap.add_argument("--expected-count", type=int, default=EXPECTED_BUILDINGS)
     ap.add_argument("--staged-dem-dir", type=Path)
     ap.add_argument("--require-complete-staging", action="store_true")
+    ap.add_argument("--quarantine-invalid-geometry", action="store_true",
+                    help="Emit a non-certifying candidate plan and invalid source IDs instead of rejecting every valid footprint")
     args = ap.parse_args()
     try:
         if args.out.exists() or args.out.resolve() == args.geojson.resolve():
@@ -169,13 +196,16 @@ def main() -> int:
         raw = args.geojson.read_bytes()
         if len(raw) > 200 * 1024 * 1024:
             raise ValueError("input exceeds bounded source size")
-        report = plan(json.loads(raw), expected_count=args.expected_count)
+        report = plan(json.loads(raw), expected_count=args.expected_count,
+                      quarantine_invalid_geometry=args.quarantine_invalid_geometry)
         report["inputSha256"] = hashlib.sha256(raw).hexdigest()
         if args.staged_dem_dir is not None:
             report["staging"] = audit_staged_tiles(report, args.staged_dem_dir)
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         print(json.dumps({"tilesRequired": report["tileCount"],
+                          "invalidGeometryCount": report["invalidGeometryCount"],
+                          "fullSourceGeometryValid": report["fullSourceGeometryValid"],
                           "staging": report.get("staging", {})}, sort_keys=True))
         return 2 if (args.require_complete_staging and
                      not report["staging"]["stagedMetadataAuditPassed"]) else 0
