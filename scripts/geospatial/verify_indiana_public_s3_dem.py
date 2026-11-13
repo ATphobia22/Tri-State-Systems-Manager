@@ -46,11 +46,13 @@ def required_names(report: dict) -> list[str]:
         raise ValueError("source polygon coverage is not verified for 23,082 Posey buildings")
     names = report.get("requiredFilenames")
     if (not isinstance(names, list) or not 1 <= len(names) <= MAX_TILES
-            or report.get("requiredFilenameCount") != len(names)
-            or names != sorted(set(names))):
-        raise ValueError("invalid or noncanonical authoritative tile inventory")
+            or type(report.get("requiredFilenameCount")) is not int
+            or report["requiredFilenameCount"] != len(names)):
+        raise ValueError("invalid authoritative tile inventory size")
     if any(not isinstance(n, str) or not NAME.fullmatch(n) for n in names):
         raise ValueError("unsafe or unexpected 2020 DEM source filename")
+    if names != sorted(set(names)):
+        raise ValueError("duplicate or noncanonical authoritative tile inventory")
     return names
 
 
