@@ -117,6 +117,9 @@ export default function TriStateAtlasView(): JSX.Element {
   const selectedSource: MapPlaneLayer | undefined = MAP_PLANE_FABRIC.find((layer) => layer.id === sourceId);
   const terrain = getTerrainRgbStatus();
   const region = REGIONAL_VIEWS.find((item) => item.id === regionId) ?? REGIONAL_VIEWS[0]!;
+  const visibleForRegion = useMemo(() => region.imagery ? layers : Object.fromEntries(
+    Object.entries(layers).map(([id, enabled]) => [id, id.startsWith('indiana-') ? false : enabled]),
+  ), [region.imagery, layers]);
   const visibleFabric = TSM_DATA_FABRICS.filter((item) => item.plane === fabricPlane);
   const changeLens = (next: Lens) => {
     setLens(next);
@@ -189,11 +192,11 @@ export default function TriStateAtlasView(): JSX.Element {
           <p>Registered layers come from TSM's existing spatial fabric. Switch sources on/off; unavailable endpoints are not replaced with invented geometry.</p>
           <div className="tsm-atlas-map-layers">
             {MAP_PLANE_FABRIC.map((item) => {
-              const blocked = !item.mapRenderable || (item.id === 'terrain-rgb' && !terrain.enabled);
+              const blocked = !item.mapRenderable || (item.id === 'terrain-rgb' && !terrain.enabled) || (item.id.startsWith('indiana-') && !region.imagery);
               return <label key={item.id} className="tsm-atlas-layer">
                 <input type="checkbox"
                   disabled={blocked}
-                  checked={!blocked && Boolean(layers[item.id])}
+                  checked={!blocked && Boolean(visibleForRegion[item.id])}
                   onChange={(event) => setLayers((current) => ({ ...current, [item.id]: event.target.checked }))} />
                 <span><strong>{item.title}</strong>
                   <small>{item.authority} · {blocked ? 'Unavailable / not map-renderable' : 'Configured source'}</small></span>
@@ -220,10 +223,10 @@ export default function TriStateAtlasView(): JSX.Element {
             <small>4D presentation time only: does not advance USGS observations, hydrology, land cover, or hydraulic simulations.</small>
           </div>
           <div className="tsm-atlas-map">
-            <TriStateDigitalTwinMap hideSidebar visible={layers} onVisibleChange={setLayers}
+            <TriStateDigitalTwinMap hideSidebar visible={visibleForRegion} onVisibleChange={setLayers}
               regionalAtlas regionalView={region} regionalLayers={regionalLayers}
               proposalDrawMode={drawMode} onProposalPoint={addProposalPoint} proposalOverlay={proposalOverlay}
-              showIndianaImagery={region.imagery} lightPreset={light} onStatusChange={onMapStatus} />
+              showIndianaImagery={region.imagery && Boolean(visibleForRegion['indiana-imagery'])} lightPreset={light} onStatusChange={onMapStatus} />
           </div>
           <div className="tsm-atlas-map-status" role="status" aria-live="polite">
             <strong>Map adapter:</strong> {mapStatus}
