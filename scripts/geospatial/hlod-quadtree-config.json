@@ -1,0 +1,30 @@
+{
+  "schema": "tsm.hlod.quadtree.v1",
+  "partition": "quadtree-ecef-derived-enu",
+  "maxItemsPerLeaf": 50,
+  "maxDepth": 6,
+  "boundsPaddingMeters": 0.5,
+  "geometricErrorPolicy": "conservative-contentless-node-inherits-error-floor",
+  "screenSpaceError": {
+    "targetPixels": 16,
+    "minimumPixels": 2,
+    "maximumPixels": 64,
+    "viewportHeightPixels": 1080,
+    "verticalFovDegrees": 60,
+    "interpretation": "diagnostic only: SSE = geometricErrorMeters * viewportHeightPixels / (2 * distanceMeters * tan(verticalFovRadians/2)); renderer owns actual refinement"
+  },
+  "buildingHeightPolicy": "unknown-height-2d-only",
+  "nanite": {
+    "enabledInUnrealConfig": true,
+    "meshImportAcceptanceRequired": true
+  },
+  "draco": {
+    "requireValidatedKHRDracoOnCompressedRelease": true
+  },
+  "h3": {
+    "role": "spatial indexing and rollups only; not geometric quadtree replacement",
+    "maxResolution": 15
+  },
+  "authority": "DERIVED",
+  "regulatoryUse": false
+}
