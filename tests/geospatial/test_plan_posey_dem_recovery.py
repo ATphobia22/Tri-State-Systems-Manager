@@ -77,6 +77,44 @@ class TestTilePlan(unittest.TestCase):
         with self.assertRaises(ValueError):
             mod.plan(doc, expected_count=1, projected=True)
 
+    def test_quarantined_invalid_footprint_preserves_ids_without_coverage_claim(self):
+        good = {"type": "Feature", "properties": {"igioObjectId": 100},
+                "geometry": {"type": "Polygon", "coordinates": [[
+                    [2670001, 930001], [2670101, 930001],
+                    [2670101, 930101], [2670001, 930001]]]}}
+        bowtie = {"type": "Feature", "properties": {"igioObjectId": 101},
+                  "geometry": {"type": "Polygon", "coordinates": [[
+                      [2675101, 935101], [2675201, 935201],
+                      [2675101, 935201], [2675201, 935101],
+                      [2675101, 935101]]]}}
+        doc = {"type": "FeatureCollection", "features": [good, bowtie]}
+        with self.assertRaises(ValueError):
+            mod.plan(doc, expected_count=2, projected=True)
+        report = mod.plan(doc, expected_count=2, projected=True,
+                          quarantine_invalid_geometry=True)
+        self.assertEqual(report["authoritativeObjectIdCount"], 2)
+        self.assertEqual(report["candidateCoveredSourceGeometryCount"], 1)
+        self.assertEqual(report["invalidGeometryObjectIds"], [101])
+        self.assertEqual(report["invalidGeometryCount"], 1)
+        self.assertFalse(report["fullSourceGeometryValid"])
+        self.assertFalse(report["fullSourceTileCoverageVerified"])
+        self.assertFalse(report["heightsVerified"])
+        self.assertEqual(report["tileNames"], ["IN2020_26700930_12.tif"])
+
+    def test_quarantine_catches_invalid_wgs84_aoi_without_partial_tile_guess(self):
+        def row(oid, coordinates):
+            return {"type":"Feature", "properties":{"igioObjectId":oid},
+                    "geometry":{"type":"Polygon","coordinates":[coordinates]}}
+        valid = row(1, [[-87.9, 37.9], [-87.899, 37.9],
+                        [-87.899, 37.901], [-87.9, 37.9]])
+        wrong_aoi = row(2, [[-50, 37.9], [-49.9, 37.9],
+                            [-49.9, 38.0], [-50, 37.9]])
+        doc={"type":"FeatureCollection","features":[valid,wrong_aoi]}
+        report=mod.plan(doc, expected_count=2, quarantine_invalid_geometry=True)
+        self.assertEqual(report["invalidGeometryObjectIds"], [2])
+        self.assertEqual(report["candidateCoveredSourceGeometryCount"],1)
+        self.assertFalse(report["fullSourceGeometryValid"])
+
     def test_staging_missing_is_not_a_height_proof(self):
         from tempfile import TemporaryDirectory
         with TemporaryDirectory() as d:
