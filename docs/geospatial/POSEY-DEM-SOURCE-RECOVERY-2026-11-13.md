@@ -26,6 +26,23 @@ Missing heights: 2,269 tree-confounded, 273 insufficient ground, 24 insufficient
 
 2020 DEM source prefix: `s3://giselevationingov/demoptimized/statewide/2020/SPW/2.5ft/`. Public objects `IN2020_26700930_12.tif` (15,170,693 bytes) and `IN2020_26850945_12.tif` (21,064,965 bytes) were independently HEAD-verified on Nov. 13, 2026 via AWS. **Two objects do not constitute full Posey coverage.** The matching Google Drive folder holds one of these TIFFs and a manifest listing two object hashes; it is not a certified archive.
 
+## Altitude-mode interoperability and noninterchangeable geoid frames
+
+Google's [3D Maps altitude modes](https://developers.google.com/maps/architecture/3d-understand-altitude-modes?hl=en) are useful **semantic references**, not a datum conversion recipe for TSM native UE or Cesium assets:
+
+| Google 3D Maps mode | Semantic target | TSM policy |
+| --- | --- | --- |
+| `CLAMP_TO_GROUND` | Bare-earth terrain, ignoring the input altitude | May be used for **2D footprint/reference overlays only**; missing height remains `UNAVAILABLE` |
+| `RELATIVE_TO_GROUND` | Offset above digital terrain | Only after a verified relative height and the same referenced ground model are available; never invent a default extrusion |
+| `RELATIVE_TO_MESH` | Offset above visible surface, including buildings/trees | Not suitable for inferring an authoritative roof height or ground elevation; risks double-counting structure/canopy |
+| `ABSOLUTE` | Google 3D Maps' EGM96 mean-sea-level altitude | **Must not** receive a TSM NAVD88/GEOID12B/GEOID18 elevation directly; verify and apply the proper vertical transformation before cross-platform rendering |
+
+These are Google Maps semantics; TSM's explicit local terrain and model loaders require their **own tested placement contracts**. In particular, Google's EGM96 reference is *not* interchangeable with NAVD88 or an ellipsoid height. Horizontal reprojection alone cannot reconcile these Z frames. For local UE/Cesium ECEF, use the documented regional geoid relationship `h = H_NAVD88 + N` only when the precise source datum, geoid model, units, and epoch are applicable and independently verified.
+
+### Public source registry verification
+
+The independently fetched [AWS Open Data Registry entry](https://github.com/awslabs/open-data-registry/blob/main/datasets/in-elevation.yaml) identifies **IGIO/IOT management, CC0 licensing, bucket `arn:aws:s3:::giselevationingov`, region `us-east-2`, and the original tile lower-left-coordinate naming convention**. It also names [the state's S3 browser](https://giselevationingov.s3.amazonaws.com/index.html). Registry membership, S3 HEAD success, and a matching object size are **availability checks**, not source-file SHA-256, raster-value, feature-linkage, or vertical-transform certification.
+
 ## Runbook: rebuild source inventory before accepting heights
 
 The tile planner reads **actual** authoritative footprint geometry (not a county bounding-box guess), checks every stable source identity, preserves multipart polygons, projects WGS84 source footprints into the 2020 Indiana West grid, and enumerates every intersecting 5000-foot source tile.
