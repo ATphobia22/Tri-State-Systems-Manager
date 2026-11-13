@@ -29,7 +29,8 @@ def validate(receipt_path: Path, root: Path) -> dict:
     if any(part in ("..", ".", "") for part in rel.split("/")):
         raise ReceiptError("Asset path traversal")
     asset = root.joinpath(*Path(rel).parts)
-    if (not asset.is_file() or any(part.is_symlink() for part in (asset, *asset.parents) if part != root)
+    staged_parts = [root.joinpath(*rel.split("/")[:index]) for index in range(1, len(rel.split("/")) + 1)]
+    if (not asset.is_file() or any(part.is_symlink() for part in staged_parts)
             or not asset.resolve().is_relative_to(root)):
         raise ReceiptError("Asset missing, symlinked, or outside staged root")
     if not isinstance(receipt["sha256"], str) or re.fullmatch(r"[0-9a-fA-F]{64}", receipt["sha256"]) is None:
