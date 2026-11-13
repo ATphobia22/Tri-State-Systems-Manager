@@ -9,7 +9,7 @@
 
 > **Design concept, not a software screenshot.** This original vector illustration is an *aspirational interface direction* based on map-first visualization patterns. It is not an authoritative map, a live sensor feed, a tested 3D scene or proof of a completed application. [Read the experience design and implementation gates](docs/UX-CINEMATIC-4D-ATLAS.md).
 
-**[Explore the public console](https://atphobia22.github.io/Tri-State-Systems-Manager/)** · **[Study the source](https://github.com/ATphobia22/Tri-State-Systems-Manager)** · **[Scientific evidence](docs/architecture/ENGINEERING-ASSURANCE-STANDARD.md)** · **[Public data sources](docs/DATA-SOURCE-CATALOG.md)** · **[Experience blueprint](docs/UX-CINEMATIC-4D-ATLAS.md)** · **[Releases and CI](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions)**
+**[Interactive UI concept (source)](tsm-console/public/experience-preview.html)** · **[Explore the public console](https://atphobia22.github.io/Tri-State-Systems-Manager/)** · **[Study the source](https://github.com/ATphobia22/Tri-State-Systems-Manager)** · **[Scientific evidence](docs/architecture/ENGINEERING-ASSURANCE-STANDARD.md)** · **[Public data sources](docs/DATA-SOURCE-CATALOG.md)** · **[Experience blueprint](docs/UX-CINEMATIC-4D-ATLAS.md)** · **[Releases and CI](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions)**
 
 *The public-console link is a configured project destination; availability and actual deployed features must be checked independently. The repository and source documentation can be browsed without an account.*
 
