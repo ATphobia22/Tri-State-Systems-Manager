@@ -1,9 +1,12 @@
 import importlib.util
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
 MODULE = Path(__file__).resolve().parents[2] / "scripts/geospatial/acquire_indiana_dem_tiles.py"
+# The loader executes a script by path; make its sibling validator importable.
+sys.path.insert(0, str(MODULE.parent))
 spec = importlib.util.spec_from_file_location("indiana_dem_acquire", MODULE)
 acquisition = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(acquisition)
