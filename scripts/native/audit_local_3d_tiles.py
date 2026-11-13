@@ -119,10 +119,11 @@ def audit(root: Path, index: Path) -> dict:
                     f = asset(path.parent, uri)
                     if f.suffix.lower() == ".json":
                         visit(f)
-                    else:
+                    elif f.suffix.lower() == ".glb":
                         content_files.add(f)
-                        if f.suffix.lower() == ".glb":
-                            inspect_glb(f)
+                        inspect_glb(f)
+                    else:
+                        raise ValueError("unsupported explicit tile payload format not independently audited")
             children = value.get("children", [])
             if not isinstance(children, list):
                 raise ValueError("invalid children")
