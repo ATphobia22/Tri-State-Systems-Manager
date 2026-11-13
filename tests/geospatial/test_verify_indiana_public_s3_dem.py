@@ -57,6 +57,11 @@ class PublicDemReceiptTests(unittest.TestCase):
             with self.subTest(names=names), self.assertRaises(ValueError):
                 mod.required_names(plan(names=names))
 
+    def test_dem_bucket_is_not_lidar_catalog_bucket(self):
+        self.assertEqual(mod.BUCKET, "gisimageryingov")
+        self.assertNotEqual(mod.BUCKET, "giselevationingov")
+        self.assertEqual(mod.PREFIX, "demoptimized/statewide/2020/SPW/2.5ft/")
+
     def test_head_only_is_not_hash_or_datum_evidence(self):
         client=FakeS3(bytes((0x49,0x49,0x2A,0x00))+bytes(12))
         receipt=mod.survey_s3_objects(plan(),client)
@@ -64,7 +69,7 @@ class PublicDemReceiptTests(unittest.TestCase):
         self.assertFalse(receipt["allBytesAcquiredAndSha256Verified"])
         self.assertFalse(receipt["verticalDatumVerified"])
         self.assertFalse(receipt["rasterPixelValuesVerified"])
-        self.assertEqual(client.requested[0][0],"giselevationingov")
+        self.assertEqual(client.requested[0][0],"gisimageryingov")
         self.assertEqual(client.requested[0][1],
                          "demoptimized/statewide/2020/SPW/2.5ft/IN2020_26700930_12.tif")
 
