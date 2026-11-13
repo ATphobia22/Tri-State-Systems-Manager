@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import struct
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
@@ -45,6 +46,35 @@ def audit(root: Path, index: Path) -> dict:
             raise ValueError("missing/unsafe local tile content: " + uri)
         return candidate
 
+    def inspect_glb(path: Path) -> None:
+        data = path.read_bytes()
+        if len(data) < 20 or data[:4] != b"glTF":
+            raise ValueError("invalid GLB header")
+        magic, version, declared = struct.unpack_from("<4sII", data)
+        if version != 2 or declared != len(data):
+            raise ValueError("invalid GLB version or length")
+        chunk_length, chunk_type = struct.unpack_from("<I4s", data, 12)
+        if chunk_type != b"JSON" or 20 + chunk_length > len(data):
+            raise ValueError("invalid GLB JSON chunk")
+        try:
+            gltf = json.loads(data[20:20 + chunk_length].decode("utf-8"))
+        except (UnicodeError, json.JSONDecodeError) as exc:
+            raise ValueError("invalid GLB glTF JSON") from exc
+        if not isinstance(gltf, dict):
+            raise ValueError("invalid GLB glTF document")
+        for key in ("buffers", "images", "shaders"):
+            records = gltf.get(key, [])
+            if not isinstance(records, list):
+                raise ValueError("invalid GLB resources")
+            for record in records:
+                if not isinstance(record, dict):
+                    raise ValueError("invalid GLB resource")
+                if "uri" in record:
+                    uri = record["uri"]
+                    if not isinstance(uri, str) or uri.startswith("data:"):
+                        raise ValueError("embedded or invalid GLB resource URI requires separate verification")
+                    content_files.add(asset(path.parent, uri))
+
     def visit(path: Path) -> None:
         if path in seen:
             return
@@ -74,6 +104,10 @@ def audit(root: Path, index: Path) -> dict:
                         visit(f)
                     else:
                         content_files.add(f)
+                        if f.suffix.lower() == ".glb":
+                            inspect_glb(f)
+            if "implicitTiling" in value or "3DTILES_implicit_tiling" in value.get("extensions", {}):
+                raise ValueError("implicit tiling requires subtree audit; cannot certify static references")
             children = value.get("children", [])
             if not isinstance(children, list):
                 raise ValueError("invalid children")
