@@ -1,0 +1,21 @@
+name: TSM Offline 3D Tiles Reference Audit
+on:
+  pull_request:
+    paths:
+      - 'scripts/native/audit_local_3d_tiles.py'
+      - 'scripts/native/audit_implicit_subtrees.py'
+      - 'tests/native/test_audit_local_3d_tiles.py'
+      - '.github/workflows/local-3dtiles-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  static-local-asset-tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # pinned
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # pinned
+        with:
+          python-version: '3.12'
+      - name: Verify local 3D Tiles references
+        run: python -m unittest discover -s tests/native -p test_audit_local_3d_tiles.py -v
