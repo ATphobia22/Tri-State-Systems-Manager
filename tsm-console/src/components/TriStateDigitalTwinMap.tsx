@@ -478,7 +478,7 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
       setTerrainEnabled(terrain.enabled && terrainAllowed);
       setStatus(terrain.enabled && terrainAllowed ? 'Terrain-RGB template configured for this view; tile coverage and vertical datum require verification.' : 'Terrain unavailable or outside the configured regional preview coverage; continuing with the basemap and available GIS layers.');
 
-      if (terrain.enabled && terrainAllowed && !map.getSource(TERRAIN_RGB_SOURCE_ID)) {
+      if (terrain.enabled && !map.getSource(TERRAIN_RGB_SOURCE_ID)) {
         map.addSource(TERRAIN_RGB_SOURCE_ID, {
           type: 'raster-dem',
           tiles: [terrain.template],
@@ -486,13 +486,14 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
           encoding: 'mapbox',
           maxzoom: 14,
         });
-        map.setTerrain({ source: TERRAIN_RGB_SOURCE_ID, exaggeration: 1 });
+        if (terrainAllowed && visibleRef.current['terrain-rgb']) map.setTerrain({ source: TERRAIN_RGB_SOURCE_ID, exaggeration: 1 });
         // Hillshade layer for 3D terrain visualization (per maplibre-agent-skills guide)
         if (!map.getLayer('terrain-hillshade')) {
           map.addLayer({
             id: 'terrain-hillshade',
             type: 'hillshade',
             source: TERRAIN_RGB_SOURCE_ID,
+            layout: { visibility: terrainAllowed && visibleRef.current['terrain-rgb'] ? 'visible' : 'none' },
             paint: {
               'hillshade-exaggeration': 0.5,
               'hillshade-shadow-color': '#473B2B',
@@ -632,6 +633,9 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
       map.setTerrain({ source: TERRAIN_RGB_SOURCE_ID, exaggeration: 1 });
     } else if ((!terrain.enabled || !terrainAllowed || !visible['terrain-rgb']) && map.getTerrain()) {
       map.setTerrain(null);
+    }
+    if (map.getLayer('terrain-hillshade')) {
+      map.setLayoutProperty('terrain-hillshade', 'visibility', terrain.enabled && terrainAllowed && visible['terrain-rgb'] ? 'visible' : 'none');
     }
     setTerrainEnabled(terrain.enabled && terrainAllowed);
   }, [refreshFeatureLayer, setLayerVisibility, visible, props.regionalAtlas, props.showIndianaImagery]);
