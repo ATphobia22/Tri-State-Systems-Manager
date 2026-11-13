@@ -87,6 +87,10 @@ python scripts/geospatial/plan_posey_dem_recovery.py \
 
 A complete *staging metadata* audit still does **not** validate actual footprint raster samples, native UE geometry, datum transformation, or roof-height precision. A new full acquisition/DEM sampling run plus a fresh LiDAR derivation run (with corrected MultiPolygon/hole clipping from PR #580) must produce an exact inventory. Require `23,082/23,082` accepted heights, verified datum/provenance, geometry and texture validation, packaging, and independent headed offline test before declaring that strict release gate complete. If unavailable, the partial public viewer must identify missing values explicitly.
 
+## ImageServer TIFF acquisition defect corrected
+
+The pre-existing `scripts/geospatial/acquire_indiana_dem_tiles.py` tested downloaded headers against double-escaped byte strings such as `b"II*\\\\x00"`, which cannot match the first four bytes of a valid ordinary TIFF. It also reused any nonempty local cache file without checking whether it was an HTML/JSON error response. This PR replaces those comparisons with explicit 4-byte integer signatures for little/big endian TIFF and BigTIFF and verifies cached files before reuse. A matched signature is only **file-type plausibility**, not raster integrity, CRS, Z-unit, datum, no-data, spatial completeness, or checksum provenance. Regression tests reject malformed/short cached responses and accept the four TIFF signatures.
+
 ## Misleading metadata corrected
 
 The acquisition source previously set `groundElevationSource = "TSM committed Posey 3DEP-derived DEM"` even for unsampled buildings and even though runtime files need not be committed. The `posey_ground_sample.ground_elevation_fields` helper now:
