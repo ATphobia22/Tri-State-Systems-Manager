@@ -108,7 +108,10 @@ def main():
                 height = max(1, math.ceil((top-bottom)/args.resolution_m))
                 name = f"dem_{iy:04d}_{ix:04d}.tif"
                 dest = args.out / name
-                if not is_tiff_candidate(dest):
+                # Never silently replace a corrupted or tampered cached source.
+                # Existing files are decoded and checked against the exact
+                # requested pixel grid before any reuse (see inspect_export below).
+                if not dest.exists():
                     params = {
                         "f": "image", "bbox": f"{left},{bottom},{right},{top}",
                         "bboxSR": 3857, "imageSR": 3857,
