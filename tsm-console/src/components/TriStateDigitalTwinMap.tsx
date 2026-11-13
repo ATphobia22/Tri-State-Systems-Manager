@@ -474,10 +474,11 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
         });
       }
       const terrain = getTerrainRgbStatus();
-      setTerrainEnabled(terrain.enabled);
-      setStatus(terrain.enabled ? 'Terrain-RGB connected; source fabric online.' : 'Terrain-RGB unavailable; continuing with the base map and available layers. Configure VITE_TSM_TERRAIN_RGB_URL_TEMPLATE to enable terrain.');
+      const terrainAllowed = !props.regionalAtlas || Boolean(showIndianaImageryRef.current);
+      setTerrainEnabled(terrain.enabled && terrainAllowed);
+      setStatus(terrain.enabled && terrainAllowed ? 'Terrain-RGB template configured for this view; tile coverage and vertical datum require verification.' : 'Terrain unavailable or outside the configured regional preview coverage; continuing with the basemap and available GIS layers.');
 
-      if (terrain.enabled && !map.getSource(TERRAIN_RGB_SOURCE_ID)) {
+      if (terrain.enabled && terrainAllowed && !map.getSource(TERRAIN_RGB_SOURCE_ID)) {
         map.addSource(TERRAIN_RGB_SOURCE_ID, {
           type: 'raster-dem',
           tiles: [terrain.template],
@@ -626,13 +627,14 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
       }
     }
     const terrain = getTerrainRgbStatus();
-    if (terrain.enabled && visible['terrain-rgb'] && !map.getTerrain()) {
+    const terrainAllowed = !props.regionalAtlas || Boolean(props.showIndianaImagery);
+    if (terrain.enabled && terrainAllowed && visible['terrain-rgb'] && !map.getTerrain()) {
       map.setTerrain({ source: TERRAIN_RGB_SOURCE_ID, exaggeration: 1 });
-    } else if ((!terrain.enabled || !visible['terrain-rgb']) && map.getTerrain()) {
+    } else if ((!terrain.enabled || !terrainAllowed || !visible['terrain-rgb']) && map.getTerrain()) {
       map.setTerrain(null);
     }
-    setTerrainEnabled(terrain.enabled);
-  }, [refreshFeatureLayer, setLayerVisibility, visible]);
+    setTerrainEnabled(terrain.enabled && terrainAllowed);
+  }, [refreshFeatureLayer, setLayerVisibility, visible, props.regionalAtlas, props.showIndianaImagery]);
 
   useEffect(() => {
     if (!props.regionalAtlas || !props.regionalView) return;
