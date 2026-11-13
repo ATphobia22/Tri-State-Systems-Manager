@@ -59,6 +59,28 @@ def _polygon_exteriors(geometry: dict):
         raise ValueError("invalid IGIO polygon geometry") from exc
 
 
+def _feature_tile_names(exteriors, transformer, projected: bool) -> set[str]:
+    """Plan one complete source geometry atomically, never partial parts."""
+    names = set()
+    for exterior in exteriors:
+        xs, ys = [], []
+        for item in exterior:
+            x, y = item[0], item[1]
+            if not all(isinstance(v, (int, float)) and not isinstance(v, bool)
+                       and math.isfinite(v) for v in (x, y)):
+                raise ValueError("non-finite input coordinates")
+            if not projected:
+                if not (-90 <= x <= -86 and 36 <= y <= 40):
+                    raise ValueError("building outside bounded southwestern Indiana AOI")
+                x, y = transformer.transform(x, y)
+            if not (math.isfinite(x) and math.isfinite(y)):
+                raise ValueError("untransformable projected coordinates")
+            xs.append(x)
+            ys.append(y)
+        names.update(tile_names_for_bounds((min(xs), min(ys), max(xs), max(ys))))
+    return names
+
+
 def plan(data: dict, *, expected_count: int = EXPECTED_BUILDINGS,
          projected: bool = False, quarantine_invalid_geometry: bool = False) -> dict:
     if (not isinstance(data, dict) or data.get("type") != "FeatureCollection"
@@ -82,36 +104,14 @@ def plan(data: dict, *, expected_count: int = EXPECTED_BUILDINGS,
             raise ValueError("duplicate authoritative igioObjectId")
         ids.add(oid)
         try:
-            exteriors = _polygon_exteriors(feature.get("geometry"))
+            feature_tiles = _feature_tile_names(
+                _polygon_exteriors(feature.get("geometry")), transformer, projected
+            )
         except ValueError:
             if not quarantine_invalid_geometry:
                 raise
             invalid_geometry_ids.append(oid)
             continue
-        feature_tiles = set()
-        for exterior in exteriors:
-            xs, ys = [], []
-            for item in exterior:
-                x, y = item[0], item[1]
-                if not all(isinstance(v, (int, float)) and not isinstance(v, bool)
-                           and math.isfinite(v) for v in (x, y)):
-                    raise ValueError("non-finite input coordinates")
-                if not projected:
-                    if not (-90 <= x <= -86 and 36 <= y <= 40):
-                        raise ValueError("building outside bounded southwestern Indiana AOI")
-                    x, y = transformer.transform(x, y)
-                if not (math.isfinite(x) and math.isfinite(y)):
-                    raise ValueError("untransformable projected coordinates")
-                xs.append(x)
-                ys.append(y)
-            try:
-                feature_tiles.update(tile_names_for_bounds((min(xs), min(ys), max(xs), max(ys))))
-            except ValueError:
-                if not quarantine_invalid_geometry:
-                    raise
-                invalid_geometry_ids.append(oid)
-                feature_tiles.clear()
-                break
         if len(tiles | feature_tiles) > MAX_SOURCE_TILES:
             raise ValueError("unbounded county DEM tile plan")
         tiles.update(feature_tiles)
