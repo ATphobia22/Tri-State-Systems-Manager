@@ -223,6 +223,11 @@ export interface TriStateDigitalTwinMapProps {
   regionalLayers?: { gauges: boolean; surveys: boolean };
   /** Indiana aerial imagery is only offered over its own coverage. */
   showIndianaImagery?: boolean;
+  /** Human proposed, uncalibrated intervention geometry. Never used as a flood result. */
+  proposalOverlay?: Parameters<GeoJSONSource['setData']>[0];
+  /** Active drawing class. Map clicks are forwarded as WGS84 waypoints only. */
+  proposalDrawMode?: 'berm' | 'road' | 'retention' | null;
+  onProposalPoint?: (point: [number, number]) => void;
 }
 
 export function defaultMapPlaneVisibility(): Record<string, boolean> {
@@ -254,6 +259,12 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
   regionalLayersRef.current = props.regionalLayers;
   const showIndianaImageryRef = useRef(props.showIndianaImagery);
   showIndianaImageryRef.current = props.showIndianaImagery;
+  const proposalModeRef = useRef(props.proposalDrawMode);
+  proposalModeRef.current = props.proposalDrawMode;
+  const proposalCallbackRef = useRef(props.onProposalPoint);
+  proposalCallbackRef.current = props.onProposalPoint;
+  const proposalOverlayRef = useRef(props.proposalOverlay);
+  proposalOverlayRef.current = props.proposalOverlay;
 
   const setVisible = useCallback((updater: (current: Record<string, boolean>) => Record<string, boolean>): void => {
     if (controlled) {
@@ -387,6 +398,22 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
           paint: { 'circle-color': '#5de8da', 'circle-radius': 7,
             'circle-stroke-color': '#061823', 'circle-stroke-width': 2 },
         });
+        map.addSource('atlas-proposals', {
+          type: 'geojson',
+          data: proposalOverlayRef.current ?? { type: 'FeatureCollection', features: [] },
+        });
+        map.addLayer({
+          id: 'atlas-proposals-fill', type: 'fill', source: 'atlas-proposals',
+          paint: { 'fill-color': '#fb923c', 'fill-opacity': 0.17 },
+        });
+        map.addLayer({
+          id: 'atlas-proposals-line', type: 'line', source: 'atlas-proposals',
+          paint: { 'line-color': '#fb923c', 'line-width': 4, 'line-dasharray': [2, 1] },
+        });
+        map.addLayer({
+          id: 'atlas-proposals-waypoints', type: 'circle', source: 'atlas-proposals',
+          paint: { 'circle-radius': 6, 'circle-color': '#fff7ed', 'circle-stroke-color': '#fb923c', 'circle-stroke-width': 2 },
+        });
         map.addSource('atlas-usace-ehydro', { type: 'geojson', data: `${base}data/ehydro-survey-extents.geojson` });
         map.addLayer({
           id: 'atlas-usace-ehydro-fill', type: 'fill', source: 'atlas-usace-ehydro',
@@ -455,8 +482,14 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
         setStatus(`Layer warning: ${message}. The map remains available; affected data may be unavailable.`);
       });
 
-      // Object picking (raycast selection): click buildings, roads, parcels, quads.
+      // Drafting receives click coordinates only when the user selected a
+      // proposal mode. It has NO hydraulic/agency effect.
+      // Object picking (raycast selection) continues when drafting is off.
       map.on('click', (event) => {
+        if (props.regionalAtlas && proposalModeRef.current) {
+          proposalCallbackRef.current?.([event.lngLat.lng, event.lngLat.lat]);
+          return;
+        }
         const pickable = [
           'indiana-buildings-extrusion',
           'indiana-buildings-footprint',
@@ -583,6 +616,20 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
       }
     }
   }, [props.regionalAtlas, props.regionalLayers]);
+
+  useEffect(() => {
+    if (!props.regionalAtlas) return;
+    const map = mapRef.current;
+    if (!map?.isStyleLoaded()) return;
+    const source = map.getSource('atlas-proposals') as GeoJSONSource | undefined;
+    if (source) source.setData(props.proposalOverlay ?? { type: 'FeatureCollection', features: [] });
+  }, [props.regionalAtlas, props.proposalOverlay]);
+
+  useEffect(() => {
+    if (!props.regionalAtlas) return;
+    const map = mapRef.current;
+    if (map) map.getCanvas().style.cursor = props.proposalDrawMode ? 'crosshair' : '';
+  }, [props.regionalAtlas, props.proposalDrawMode]);
 
   const terrain = getTerrainRgbStatus();
   const mistVisible = Boolean(visible['cinematic-volumetric-mist']);
