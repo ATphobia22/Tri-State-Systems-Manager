@@ -1,0 +1,134 @@
+name: TSM Cross-State Native Release Preflight
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/geospatial/audit_cross_state_release_data.py'
+      - 'scripts/geo/acquire-eight-county-boundaries.ps1'
+      - 'tests/geospatial/test_cross_state_release_data.py'
+      - 'data/regional/native-county-scope-policy-v1.json'
+      - 'scripts/native/Assert-CrossStateReleaseData.ps1'
+      - 'scripts/native/Assert-SignedReleaseArtifacts.ps1'
+      - 'scripts/native/Test-AirGappedWindows11Runtime.ps1'
+      - 'docs/release/CROSS-STATE-NATIVE-OFFLINE-ACCEPTANCE.md'
+      - '.github/workflows/tsm-native.yml'
+      - '.github/workflows/cross-state-native-release.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/geospatial/audit_cross_state_release_data.py'
+      - 'scripts/geo/acquire-eight-county-boundaries.ps1'
+      - 'tests/geospatial/test_cross_state_release_data.py'
+      - 'data/regional/native-county-scope-policy-v1.json'
+      - 'scripts/native/Assert-CrossStateReleaseData.ps1'
+      - 'scripts/native/Assert-SignedReleaseArtifacts.ps1'
+      - 'scripts/native/Test-AirGappedWindows11Runtime.ps1'
+      - '.github/workflows/cross-state-native-release.yml'
+permissions:
+  contents: read
+jobs:
+  synthetic-geospatial-contracts:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.11'
+      - name: Install pinned GIS verifier libraries for test fixtures only
+        run: |
+          python -m pip install --disable-pip-version-check --only-binary=:all: 'shapely==2.1.2' 'pyproj==3.7.2' 'rasterio==1.4.3'
+      - name: Parse regional policy and verify explicit county scope differences
+        run: |
+          python - <<'PY'
+          import json
+          obj=json.load(open('data/regional/native-county-scope-policy-v1.json'))
+          policy=obj['scopes']
+          core={row['fips'] for row in policy['community-six']}
+          engineering={row['fips'] for row in policy['engineering-eight']}
+          union={row['fips'] for row in policy['combined-nine']}
+          assert len(core)==6 and len(engineering)==8 and len(union)==9
+          assert '17185' in core and '17185' not in engineering
+          assert {'18163', '18051', '18173'} <= engineering and not {'18163','18051','18173'} & core
+          assert core | engineering == union
+          PY
+      - name: Exercise real raster-extent and byte-integrity algorithms on synthetic data
+        run: python -m unittest discover -s tests/geospatial -p 'test_cross_state_release_data.py' -v
+      - name: Python static syntax
+        run: python -m py_compile scripts/geospatial/audit_cross_state_release_data.py
+  official-six-county-boundaries:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Acquire exact 2026 Census TIGER county polygons for six-county release scope
+        shell: pwsh
+        run: |
+          .\scripts\geo\acquire-eight-county-boundaries.ps1 -Scope community-six -OutRoot dist\authoritative-boundaries
+      - name: Verify official GEOIDs and write actual SHA-256 evidence index
+        shell: pwsh
+        run: |
+          $root = 'dist\authoritative-boundaries'
+          $expected = @('18129','21101','21225','17193','17185','17059')
+          $files = @(Get-ChildItem $root -Filter '*.geojson' -File)
+          if ($files.Count -ne 6) { throw 'Expected exactly six acquired authoritative county polygons.' }
+          $received = @()
+          $index = foreach ($file in $files) {
+            $json = Get-Content $file.FullName -Raw | ConvertFrom-Json
+            $features = @($json.features)
+            if ($features.Count -ne 1 -or $features[0].geometry.type -notin @('Polygon','MultiPolygon')) {
+              throw "Invalid TIGER geometry for $($file.Name)"
+            }
+            $fips = [string]$features[0].properties.GEOID
+            if ($fips -notin $expected -or $fips -in $received) { throw "Unexpected/duplicate GEOID $fips" }
+            $received += $fips
+            [ordered]@{
+              county_fips=$fips
+              filename=$file.Name
+              size_bytes=$file.Length
+              sha256=(Get-FileHash $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            }
+          }
+          if ((@($received | Sort-Object) -join ',') -ne (@($expected | Sort-Object) -join ',')) {
+            throw 'The downloaded county identities do not match the approved six-county scope.'
+          }
+          $receipt = [ordered]@{
+            schema='tsm.census.tiger-six-county-boundaries.v1'
+            source='US Census TIGERweb ACS 2026 Counties layer 82'
+            source_url='https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_ACS2026/MapServer/82'
+            retrieved_utc=(Get-Date).ToUniversalTime().ToString('o')
+            status='SOURCE_POLYGONS_HASHED_ONLY_NOT_TERRAIN_OR_RUNTIME_COVERAGE'
+            counties=@($index)
+          }
+          $receipt | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $root 'boundary-source-index.json') -Encoding utf8
+      - name: Retain official six county geometry and source receipts
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: tsm-official-tiger-six-county-2026
+          path: dist/authoritative-boundaries/
+          if-no-files-found: error
+          retention-days: 30
+  powershell-release-contracts:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Parse release PowerShell scripts without executing system changes
+        shell: pwsh
+        run: |
+          foreach ($path in @('scripts/native/Assert-CrossStateReleaseData.ps1','scripts/native/Assert-SignedReleaseArtifacts.ps1','scripts/native/Test-AirGappedWindows11Runtime.ps1')) {
+            $tokens=$null; $errors=$null
+            [void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $path).Path, [ref]$tokens, [ref]$errors)
+            if ($errors.Count -gt 0) { throw "PowerShell syntax invalid in $path : $($errors[0])" }
+          }
+      - name: Ensure shipping workflow wires real source and signature gates
+        shell: pwsh
+        run: |
+          $workflow = Get-Content '.github/workflows/tsm-native.yml' -Raw
+          foreach ($part in @('Assert-CrossStateReleaseData.ps1','Assert-SignedReleaseArtifacts.ps1','tsm-native-signed-artifacts-evidence','cross-state-release-preflight.json')) {
+            if (-not $workflow.Contains($part)) { throw "Missing Windows Shipping gate: $part" }
+          }
+          Write-Host 'STATIC_NATIVE_RELEASE_CONTRACTS_PRESENT_NOT_NATIVE_SHIPPING_VERIFIED'
