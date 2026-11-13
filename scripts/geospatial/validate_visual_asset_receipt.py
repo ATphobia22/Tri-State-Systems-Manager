@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 
 REQUIRED = ("schema", "asset", "sha256", "source_uri", "license",
@@ -15,6 +16,8 @@ class ReceiptError(ValueError):
 def validate(receipt_path: Path, root: Path) -> dict:
     root = root.resolve(strict=True)
     receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    if not isinstance(receipt, dict):
+        raise ReceiptError("Receipt must be a JSON object")
     missing = [field for field in REQUIRED if field not in receipt]
     if missing:
         raise ReceiptError("Missing receipt fields: " + ", ".join(missing))
@@ -23,12 +26,13 @@ def validate(receipt_path: Path, root: Path) -> dict:
     rel = receipt["asset"]
     if not isinstance(rel, str) or not rel or "\\" in rel or ":" in rel or rel.startswith("/"):
         raise ReceiptError("Asset must be a local relative POSIX path")
-    if any(part in ("..", ".") for part in Path(rel).parts):
+    if any(part in ("..", ".", "") for part in rel.split("/")):
         raise ReceiptError("Asset path traversal")
     asset = root.joinpath(*Path(rel).parts)
-    if not asset.is_file() or asset.is_symlink() or not asset.resolve().is_relative_to(root):
+    if (not asset.is_file() or any(part.is_symlink() for part in (asset, *asset.parents) if part != root)
+            or not asset.resolve().is_relative_to(root)):
         raise ReceiptError("Asset missing, symlinked, or outside staged root")
-    if not isinstance(receipt["sha256"], str) or len(receipt["sha256"]) != 64:
+    if not isinstance(receipt["sha256"], str) or re.fullmatch(r"[0-9a-fA-F]{64}", receipt["sha256"]) is None:
         raise ReceiptError("Invalid SHA-256 digest")
     with asset.open("rb") as stream:
         digest = hashlib.file_digest(stream, "sha256").hexdigest()
