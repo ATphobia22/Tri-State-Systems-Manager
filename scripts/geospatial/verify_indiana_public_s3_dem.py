@@ -96,8 +96,9 @@ def survey_s3_objects(report: dict, client, *, output_dir: Path | None = None) -
                         client.download_fileobj(BUCKET, key, handle)
                         handle.flush()
                         os.fsync(handle.fileno())
-                    if (temporary.stat().st_size != size
-                            or temporary.open("rb").read(4) not in TIFF_MAGIC):
+                    with temporary.open("rb") as source:
+                        magic = source.read(4)
+                    if temporary.stat().st_size != size or magic not in TIFF_MAGIC:
                         raise ValueError("downloaded source is incomplete or not TIFF")
                     digest = sha256_file(temporary)
                     os.replace(temporary, dest)
@@ -165,7 +166,10 @@ def main() -> int:
     print(json.dumps({k: receipt[k] for k in
                       ("requiredObjectCount", "verifiedObjectCount",
                        "allBytesAcquiredAndSha256Verified")}))
-    return 0 if receipt["allBytesAcquiredAndSha256Verified"] else 2
+    status_ok = (receipt["allBytesAcquiredAndSha256Verified"]
+                 if args.download_dir is not None
+                 else receipt["sourceObjectsHeadVerified"])
+    return 0 if status_ok else 2
 
 
 if __name__ == "__main__":
