@@ -78,18 +78,74 @@ def point_in_polygon(x: float, y: float, poly: list[tuple[float, float]]) -> boo
     return inside
 
 
-def get_footprint_ring_spw(geom: dict) -> list[tuple[float, float]]:
-    """Extract the exterior ring of a Polygon/MultiPolygon, converted to SPW feet."""
+def get_footprint_polygons_spw(
+    geom: dict,
+) -> list[list[list[tuple[float, float]]]]:
+    """Return all Polygon/MultiPolygon parts and interior holes in SPW ftUS.
+
+    Discarding holes or secondary parts can falsely classify canopy as roof
+    returns. Reject invalid coordinates rather than inventing geometry.
+    """
     gtype = geom.get("type")
     coords = geom.get("coordinates", [])
     if gtype == "Polygon":
-        ring = coords[0]
+        parts = [coords]
     elif gtype == "MultiPolygon":
-        # Use the largest ring
-        ring = max((p[0] for p in coords), key=len)
+        parts = coords
     else:
         raise ValueError(f"Unsupported geometry type: {gtype}")
-    return [lonlat_to_spw(c[0], c[1]) for c in ring]
+    if not isinstance(parts, list) or not parts:
+        raise ValueError("Empty footprint geometry")
+    result = []
+    for part in parts:
+        if not isinstance(part, list) or not part:
+            raise ValueError("Empty polygon")
+        polygon = []
+        for ring in part:
+            if not isinstance(ring, list) or len(ring) < 4:
+                raise ValueError("Invalid footprint ring")
+            transformed = []
+            for coordinate in ring:
+                if not isinstance(coordinate, (list, tuple)) or len(coordinate) < 2:
+                    raise ValueError("Invalid footprint coordinate")
+                lon, lat = coordinate[:2]
+                if not all(isinstance(v, (float, int)) and
+                           not isinstance(v, bool) and np.isfinite(v)
+                           for v in (lon, lat)) or not (-180 <= lon <= 180 and -90 <= lat <= 90):
+                    raise ValueError("Nonfinite or out-of-range WGS84 footprint")
+                x, y = lonlat_to_spw(lon, lat)
+                if not (np.isfinite(x) and np.isfinite(y)):
+                    raise ValueError("Nonfinite projected footprint")
+                transformed.append((float(x), float(y)))
+            if len(set(transformed)) < 3:
+                raise ValueError("Degenerate footprint ring")
+            polygon.append(transformed)
+        result.append(polygon)
+    return result
+
+
+def get_footprint_ring_spw(geom: dict) -> list[tuple[float, float]]:
+    """Compatibility helper: largest exterior by projected area, not vertex count."""
+    polygons = get_footprint_polygons_spw(geom)
+    def area(ring: list[tuple[float, float]]) -> float:
+        return abs(sum(
+            ring[i][0] * ring[(i + 1) % len(ring)][1]
+            - ring[(i + 1) % len(ring)][0] * ring[i][1]
+            for i in range(len(ring))
+        ))
+    return max((p[0] for p in polygons), key=area)
+
+
+def point_in_footprint(
+    x: float, y: float,
+    polygons: list[list[list[tuple[float, float]]]],
+) -> bool:
+    """Test every exterior ring, excluding interior holes and detached parts."""
+    return any(
+        point_in_polygon(x, y, part[0]) and
+        not any(point_in_polygon(x, y, hole) for hole in part[1:])
+        for part in polygons
+    )
 
 
 def download_tile(url: str, dest: str, max_attempts: int = 3) -> str:
@@ -171,7 +227,7 @@ def load_tile_arrays(las_path: str) -> tuple[np.ndarray, np.ndarray, np.ndarray,
 
 def extract_derived_height(
     las_path: str,
-    ring_spw: list[tuple[float, float]],
+    ring_spw: list[tuple[float, float]] | list[list[list[tuple[float, float]]]],
     tile_arrays: tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray] | None = None,
 ) -> dict:
     """
@@ -181,9 +237,16 @@ def extract_derived_height(
     """
     result = {"lidarHeightStatus": "UNAVAILABLE"}
 
-    # Bounding box of footprint in SPW feet
-    xs_ring = [p[0] for p in ring_spw]
-    ys_ring = [p[1] for p in ring_spw]
+    # Existing callers may supply a single ring; the production path supplies
+    # all exterior/interior rings of every MultiPolygon part.
+    polygons = [[ring_spw]] if ring_spw and isinstance(ring_spw[0], tuple) else ring_spw
+    if not polygons or not all(isinstance(part, list) and part for part in polygons):
+        return {"lidarHeightStatus": "error:footprint-crs:empty"}
+    perimeter = [point for part in polygons for point in part[0]]
+    if not perimeter:
+        return {"lidarHeightStatus": "error:footprint-crs:empty"}
+    xs_ring = [p[0] for p in perimeter]
+    ys_ring = [p[1] for p in perimeter]
     bx1, bx2 = min(xs_ring), max(xs_ring)
     by1, by2 = min(ys_ring), max(ys_ring)
 
@@ -229,9 +292,9 @@ def extract_derived_height(
             # Roof candidates must be within footprint (with tiny bbox prefilter)
             if (bx1 - roof_buf <= x <= bx2 + roof_buf and
                     by1 - roof_buf <= y <= by2 + roof_buf):
-                if point_in_polygon(x, y, ring_spw):
+                if point_in_footprint(x, y, polygons):
                     roof_z.append(z)
-        elif c == 5 and point_in_polygon(x, y, ring_spw):
+        elif c == 5 and point_in_footprint(x, y, polygons):
             canopy_count += 1
 
     if len(ground_z) < MIN_GROUND_POINTS:
@@ -351,14 +414,15 @@ def main() -> int:
         if props.get("lidarHeightStatus") != "OK":
             # Pre-compute footprint ring in SPW feet
             try:
-                ring_spw = get_footprint_ring_spw(feat["geometry"])
+                ring_spw = get_footprint_polygons_spw(feat["geometry"])
             except Exception as e:
                 props["lidarHeightStatus"] = f"error:footprint-crs:{e}"
                 props["heightProvenance"] = "UNAVAILABLE"
                 continue
             # Centroid in SPW for tile matching
-            xs = [p[0] for p in ring_spw]
-            ys = [p[1] for p in ring_spw]
+            exterior = [p for polygon in ring_spw for p in polygon[0]]
+            xs = [p[0] for p in exterior]
+            ys = [p[1] for p in exterior]
             cx = sum(xs) / len(xs)
             cy = sum(ys) / len(ys)
             gaps.append({
