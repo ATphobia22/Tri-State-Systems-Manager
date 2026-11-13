@@ -220,7 +220,7 @@ export interface TriStateDigitalTwinMapProps {
   /** Atlas-only camera preset; location is navigation, never survey evidence. */
   regionalView?: { id: string; center: [number, number]; zoom: number; pitch?: number; bearing?: number };
   /** Source-derived, locally committed point locations and eHydro survey rectangles. */
-  regionalLayers?: { gauges: boolean; surveys: boolean };
+  regionalLayers?: { gauges: boolean; surveys: boolean; historic: boolean };
   /** Indiana aerial imagery is only offered over its own coverage. */
   showIndianaImagery?: boolean;
   /** Human proposed, uncalibrated intervention geometry. Never used as a flood result. */
@@ -265,6 +265,43 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
   proposalCallbackRef.current = props.onProposalPoint;
   const proposalOverlayRef = useRef(props.proposalOverlay);
   proposalOverlayRef.current = props.proposalOverlay;
+  const npsLoadedRef = useRef(false);
+  const npsAbortRef = useRef<AbortController | null>(null);
+  const loadHistoricSites = useCallback(async (map: Map): Promise<void> => {
+    if (npsLoadedRef.current || !map.getSource('atlas-nps-historic')) return;
+    npsAbortRef.current?.abort();
+    const controller = new AbortController();
+    npsAbortRef.current = controller;
+    // NPS public data excludes restricted/sensitive sites. This bounding
+    // envelope is only a contextual map query, not a preservation determination.
+    const url = new URL('https://mapservices.nps.gov/arcgis/rest/services/cultural_resources/nrhp_locations/MapServer/0/query');
+    url.searchParams.set('where', '1=1');
+    url.searchParams.set('geometry', '-88.5,37.5,-87.1,38.5');
+    url.searchParams.set('geometryType', 'esriGeometryEnvelope');
+    url.searchParams.set('spatialRel', 'esriSpatialRelIntersects');
+    url.searchParams.set('inSR', '4326');
+    url.searchParams.set('outSR', '4326');
+    url.searchParams.set('outFields', 'RESNAME,NRIS_Refnum,ResType,County,State');
+    url.searchParams.set('returnGeometry', 'true');
+    url.searchParams.set('resultRecordCount', '1000');
+    url.searchParams.set('f', 'geojson');
+    try {
+      const response = await fetch(url.toString(), { signal: controller.signal });
+      if (!response.ok) throw new Error(`NPS HTTP ${response.status}`);
+      const data = await response.json() as { type?: string; features?: unknown[] };
+      if (data.type !== 'FeatureCollection' || !Array.isArray(data.features)) {
+        throw new Error('NPS returned no GeoJSON feature collection');
+      }
+      if (mapRef.current !== map) return;
+      const source = map.getSource('atlas-nps-historic') as GeoJSONSource | undefined;
+      source?.setData(data as Parameters<GeoJSONSource['setData']>[0]);
+      npsLoadedRef.current = true;
+      setStatus(`NPS unrestricted historic-place points received: ${data.features.length}; 1,000-record limit, location precision may vary.`);
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') return;
+      setStatus(`NPS historic places unavailable: ${error instanceof Error ? error.message : String(error)}. No substitute points were invented.`);
+    }
+  }, []);
 
   const setVisible = useCallback((updater: (current: Record<string, boolean>) => Record<string, boolean>): void => {
     if (controlled) {
@@ -398,6 +435,16 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
           paint: { 'circle-color': '#5de8da', 'circle-radius': 7,
             'circle-stroke-color': '#061823', 'circle-stroke-width': 2 },
         });
+        // Public NPS National Register points are requested only when the
+        // visitor enables this layer, with explicit failure visibility.
+        map.addSource('atlas-nps-historic', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+        map.addLayer({
+          id: 'atlas-nps-historic-points', type: 'circle', source: 'atlas-nps-historic',
+          layout: { visibility: regionalLayersRef.current?.historic ? 'visible' : 'none' },
+          paint: { 'circle-radius': 5, 'circle-color': '#d8b4fe',
+            'circle-stroke-color': '#281442', 'circle-stroke-width': 1.5 },
+        });
+        if (regionalLayersRef.current?.historic) void loadHistoricSites(map);
         map.addSource('atlas-proposals', {
           type: 'geojson',
           data: proposalOverlayRef.current ?? { type: 'FeatureCollection', features: [] },
@@ -499,6 +546,7 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
           'posey-cslf-fill',
           'atlas-usgs-gauge-points',
           'atlas-usace-ehydro-outline',
+          'atlas-nps-historic-points',
         ].filter((id) => map.getLayer(id));
         const features = map.queryRenderedFeatures(event.point, { layers: pickable });
         if (features.length === 0) {
@@ -509,7 +557,10 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
         const feature = features[0];
         const layerId = feature.layer.id;
         const props = feature.properties ?? {};
-        if (layerId === 'atlas-usgs-gauge-points') {
+        if (layerId === 'atlas-nps-historic-points') {
+          setSelectedBuilding(null);
+          setPicked(`NPS National Register listing · ${String(props.RESNAME ?? 'Unnamed resource')} · ${String(props.County ?? 'county unavailable')} · not survey-grade coordinates`);
+        } else if (layerId === 'atlas-usgs-gauge-points') {
           const name = String(props.name ?? props.stationId ?? 'USGS station');
           setSelectedBuilding(null);
           setPicked(`${name} · station location only; fetch observations separately`);
@@ -535,12 +586,14 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
           'atlas-usace-ehydro-outline',
         ].filter((id) => map.getLayer(id));
         const features = map.queryRenderedFeatures(event.point, { layers: pickable });
-        map.getCanvas().style.cursor = features.length > 0 ? 'pointer' : '';
+        map.getCanvas().style.cursor = proposalModeRef.current ? 'crosshair' : features.length > 0 ? 'pointer' : '';
       });
     });
 
     return () => {
       featureRequestsRef.current.cancelAll();
+      npsAbortRef.current?.abort();
+      npsLoadedRef.current = false;
       floodOverlayRef.current?.dispose();
       floodOverlayRef.current = null;
       map.remove();
@@ -610,12 +663,22 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
     for (const [key, ids] of [
       ['gauges', ['atlas-usgs-gauge-points']],
       ['surveys', ['atlas-usace-ehydro-fill', 'atlas-usace-ehydro-outline']],
+      ['historic', ['atlas-nps-historic-points']],
     ] as const) {
       for (const id of ids) {
         if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', props.regionalLayers?.[key] ? 'visible' : 'none');
       }
     }
   }, [props.regionalAtlas, props.regionalLayers]);
+
+  useEffect(() => {
+    if (!props.regionalAtlas || !props.regionalLayers?.historic) {
+      npsAbortRef.current?.abort();
+      return;
+    }
+    const map = mapRef.current;
+    if (map?.isStyleLoaded()) void loadHistoricSites(map);
+  }, [props.regionalAtlas, props.regionalLayers?.historic, loadHistoricSites]);
 
   useEffect(() => {
     if (!props.regionalAtlas) return;
