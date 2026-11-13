@@ -94,6 +94,18 @@ def audit(root: Path, index: Path) -> dict:
         def node(value: object) -> None:
             if not isinstance(value, dict):
                 raise ValueError("invalid tile object")
+            if "implicitTiling" in value:
+                counters = traverse_implicit(path, value, asset, content_files, inspect_glb, visit)
+                for key in implicit_summary:
+                    implicit_summary[key] += counters[key]
+                children = value.get("children", [])
+                if not isinstance(children, list):
+                    raise ValueError("invalid children")
+                for child in children:
+                    node(child)
+                return
+            if "3DTILES_implicit_tiling" in value.get("extensions", {}):
+                raise ValueError("legacy implicit tiling extension unsupported")
             for key in ("content", "contents"):
                 if key not in value:
                     continue
@@ -111,12 +123,6 @@ def audit(root: Path, index: Path) -> dict:
                         content_files.add(f)
                         if f.suffix.lower() == ".glb":
                             inspect_glb(f)
-            if "implicitTiling" in value:
-                counters = traverse_implicit(path, value, asset, content_files, inspect_glb, visit)
-                for key in implicit_summary:
-                    implicit_summary[key] += counters[key]
-            elif "3DTILES_implicit_tiling" in value.get("extensions", {}):
-                raise ValueError("legacy implicit tiling extension unsupported")
             children = value.get("children", [])
             if not isinstance(children, list):
                 raise ValueError("invalid children")
