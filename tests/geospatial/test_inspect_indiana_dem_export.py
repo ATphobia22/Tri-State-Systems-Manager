@@ -71,7 +71,10 @@ class TestDEMExport(unittest.TestCase):
             self.inspect()
 
 
-class TestAcquisitionIntegration(TestDEMExport):
+class TestAcquisitionIntegration(unittest.TestCase):
+    setUp = TestDEMExport.setUp
+    create = TestDEMExport.create
+
     """Exercise actual acquisition entry point with a no-network TIFF response."""
 
     def _run_acquisition(self, output, response_bytes, calls):
