@@ -463,20 +463,26 @@ jobs:
           path: dist/provenance/windows-ue-shipping-static-evidence.json
           if-no-files-found: error
       - name: Sign Windows release artifacts
+        # ISCC signs Setup, Uninstall, and temp self-copies in Build-TSMNativeWindows.ps1.
+        # This step independently verifies that output; never post-sign Setup only.
         shell: pwsh
         env:
           TSM_WINDOWS_SIGNING_CERT_SHA1: ${{ secrets.TSM_WINDOWS_SIGNING_CERT_SHA1 }}
-          TSM_WINDOWS_TIMESTAMP_URL: ${{ vars.TSM_WINDOWS_TIMESTAMP_URL }}
         run: |
-          if (-not $env:TSM_WINDOWS_SIGNING_CERT_SHA1) { throw "TSM_WINDOWS_SIGNING_CERT_SHA1 secret is required for release signing." }
-          if (-not $env:TSM_WINDOWS_TIMESTAMP_URL) { throw "TSM_WINDOWS_TIMESTAMP_URL repository variable is required." }
+          if ($env:TSM_WINDOWS_SIGNING_CERT_SHA1 -notmatch '^[A-Fa-f0-9]{40}$') {
+            throw "Pinned certificate SHA-1 secret is required."
+          }
           $signtool = Get-Command signtool.exe -ErrorAction Stop
-          $installer = Get-ChildItem "dist/installer" -Filter "TSM-Native-Setup-*-windows-x64.exe" -File | Select-Object -First 1
-          if (-not $installer) { throw "Windows installer was not produced." }
-          & $signtool.Source sign /sha1 $env:TSM_WINDOWS_SIGNING_CERT_SHA1 /fd SHA256 /tr $env:TSM_WINDOWS_TIMESTAMP_URL /td SHA256 $installer.FullName
-          if ($LASTEXITCODE -ne 0) { throw "Windows Authenticode signing failed." }
-          & $signtool.Source verify /pa /all $installer.FullName
-          if ($LASTEXITCODE -ne 0) { throw "Windows Authenticode verification failed." }
+          $installers = @(Get-ChildItem "dist/installer" -Filter "TSM-Native-Setup-*-windows-x64.exe" -File)
+          if ($installers.Count -ne 1) { throw "Exactly one Inno Setup release installer required." }
+          & $signtool.Source verify /pa /all $installers[0].FullName
+          if ($LASTEXITCODE -ne 0) { throw "Compiled Windows installer Authenticode verification failed." }
+          $auth = Get-AuthenticodeSignature -LiteralPath $installers[0].FullName
+          if ($auth.Status -ne 'Valid' -or $null -eq $auth.SignerCertificate -or
+              $auth.SignerCertificate.Thumbprint -ne $env:TSM_WINDOWS_SIGNING_CERT_SHA1 -or
+              $null -eq $auth.TimeStamperCertificate) {
+            throw "Installer signature/certificate/timestamp does not match release policy."
+          }
       - name: Verify all three signed Windows release binaries
         shell: pwsh
         env:

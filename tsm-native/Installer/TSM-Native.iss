@@ -14,6 +14,12 @@ OutputDir=..\..\dist\installer
 OutputBaseFilename=TSM-Native-Setup-{#MyAppVersion}-windows-x64
 Compression=lzma2
 SolidCompression=yes
+; The compiler must provide tsmrelease via --signtool; signs Setup,
+; the uninstaller, and any temporary self-copies. Never post-sign Setup only.
+SignTool=tsmrelease
+SignedUninstaller=yes
+DiskSpanning=no
+; Source payload is fully embedded: no internet access while installing.
 SetupArchitecture=x64
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible

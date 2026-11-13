@@ -76,7 +76,40 @@ Write-Host "SIGNED_SDE_SHA256=$((Get-FileHash -LiteralPath $sdeBinary -Algorithm
 $iscc = Get-Command ISCC.exe -ErrorAction SilentlyContinue
 if (-not $iscc) { throw "Inno Setup 7 ISCC.exe is required to produce the standalone installer." }
 
-& $iscc.Source $InstallerScript
-if ($LASTEXITCODE -ne 0) { throw "Inno Setup compilation failed with exit code $LASTEXITCODE." }
+# The Inno [Setup] SignTool signs Setup, the uninstaller and temporary self-copies.
+# Never sign Setup only after compilation; that leaves the other copies unsigned.
+$timestampUri = $null
+if (-not [Uri]::TryCreate($timestampUrl, [UriKind]::Absolute, [ref]$timestampUri) -or
+    $timestampUri.Scheme -ne "https" -or
+    $timestampUri.Host -notmatch '^[A-Za-z0-9.-]+$' -or
+    $timestampUrl.Contains('"')) {
+    throw "Invalid HTTPS timestamp URL for installer signing."
+}
+if (-not (Test-Path -LiteralPath $InstallerScript -PathType Leaf)) {
+    throw "Inno Setup release script not found."
+}
+$installerDirectory = Join-Path $PSScriptRoot '..\\..\\dist\\installer'
+New-Item -Path $installerDirectory -ItemType Directory -Force | Out-Null
+$previous = @(Get-ChildItem -LiteralPath $installerDirectory -File -Filter 'TSM-Native-Setup-*-windows-x64.exe')
+if ($previous.Count -ne 0) {
+    throw "Refusing to reuse an old release installer; isolate or clear old output explicitly."
+}
+# Keep literal Inno placeholder $f for the file being signed.
+$signatureCommand = ('"{0}" sign /sha1 {1} /fd SHA256 /tr "{2}" /td SHA256 $f' -f
+    $signTool.Source, $signSha, $timestampUrl)
+$signToolOption = '--signtool=tsmrelease=' + $signatureCommand
+& $iscc.Source $signToolOption '--no-ide-signtools' $InstallerScript
+if ($LASTEXITCODE -ne 0) { throw "Inno Setup compilation/signing failed with exit code $LASTEXITCODE." }
 
-Write-Host "TSM native Windows installer created in dist\installer."
+$installers = @(Get-ChildItem -LiteralPath $installerDirectory -File -Filter 'TSM-Native-Setup-*-windows-x64.exe')
+if ($installers.Count -ne 1) { throw "Exactly one compiled native installer is required." }
+& $signTool.Source verify /pa /all $installers[0].FullName
+if ($LASTEXITCODE -ne 0) { throw "Compiled installer signature chain verification failed." }
+$installerAuth = Get-AuthenticodeSignature -LiteralPath $installers[0].FullName
+if ($installerAuth.Status -ne 'Valid' -or $null -eq $installerAuth.SignerCertificate -or
+    $installerAuth.SignerCertificate.Thumbprint -ne $signSha -or
+    $null -eq $installerAuth.TimeStamperCertificate) {
+    throw "Installer was not signed and timestamped by the pinned release certificate."
+}
+Write-Host "SIGNED_INSTALLER_SHA256=$((Get-FileHash -LiteralPath $installers[0].FullName -Algorithm SHA256).Hash.ToLowerInvariant())"
+Write-Host "TSM signed native offline Windows installer created in dist\\installer."
