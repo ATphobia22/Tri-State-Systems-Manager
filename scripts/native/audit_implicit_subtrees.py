@@ -65,13 +65,19 @@ def _template(value: object, coords: tuple[int, int, int, int], octree: bool) ->
     if not isinstance(value, str) or not value:
         raise ValueError("missing implicit resource template")
     level, x, y, z = coords
-    try:
-        uri = value.format(level=level, x=x, y=y, z=z)
-    except (KeyError, ValueError, IndexError, AttributeError) as exc:
-        raise ValueError("invalid implicit resource template") from exc
-    # Forbid silently leaving unknown placeholders in a generated reference.
+    # Do not use Python str.format here: its width specifiers and attribute
+    # access are not part of the OGC URI-template grammar and can allocate
+    # unbounded strings from untrusted tileset metadata.
+    required = ("{level}", "{x}", "{y}", "{z}") if octree else ("{level}", "{x}", "{y}")
+    if any(token not in value for token in required):
+        raise ValueError("missing implicit URI template coordinate")
+    uri = value
+    for token, number in zip(("{level}", "{x}", "{y}", "{z}"), (level, x, y, z)):
+        if token == "{z}" and not octree and token in uri:
+            raise ValueError("unexpected z in quadtree template")
+        uri = uri.replace(token, str(number))
     if "{" in uri or "}" in uri:
-        raise ValueError("unresolved implicit template placeholder")
+        raise ValueError("unsupported implicit URI template syntax")
     return uri
 
 
@@ -96,6 +102,12 @@ def traverse_implicit(
     fanout = 8 if octree else 4
     subtree_levels = _positive_int(implicit.get("subtreeLevels"), "subtreeLevels", MAX_SUBTREE_LEVELS)
     available_levels = _positive_int(implicit.get("availableLevels"), "availableLevels", 24)
+    if "children" in node:
+        raise ValueError("implicit root must omit explicit children")
+    if "content" in node and "contents" in node:
+        raise ValueError("implicit root cannot mix content and contents")
+    if "content" in node and not isinstance(node["content"], dict):
+        raise ValueError("invalid implicit content template")
     subtree_def = implicit.get("subtrees")
     if not isinstance(subtree_def, dict):
         raise ValueError("implicit subtrees definition missing")
@@ -131,7 +143,7 @@ def traverse_implicit(
         if not isinstance(buffers, list) or not isinstance(views, list):
             raise ValueError("invalid implicit subtree buffer metadata")
         loaded: list[bytes] = []
-        for buffer in buffers:
+        for buffer_index, buffer in enumerate(buffers):
             if not isinstance(buffer, dict):
                 raise ValueError("invalid subtree buffer")
             count = buffer.get("byteLength")
@@ -139,9 +151,13 @@ def traverse_implicit(
                 raise ValueError("invalid subtree buffer length")
             if "uri" in buffer:
                 path = asset(subtree_file.parent, buffer["uri"])
+                if path.stat().st_size > MAX_SUBTREE_BYTES:
+                    raise ValueError("external subtree buffer exceeds byte limit")
                 content_files.add(path)
                 raw = path.read_bytes()
             else:
+                if buffer_index != 0 or not subtree_file.read_bytes().startswith(b"subt"):
+                    raise ValueError("only binary subtree buffer zero may be internal")
                 raw = internal
             if len(raw) < count:
                 raise ValueError("truncated subtree buffer")
@@ -233,7 +249,7 @@ def traverse_implicit(
                     if enabled[bit]:
                         target = asset(index_path.parent, _template(template["uri"], here, octree))
                         if target.suffix.lower() == ".json":
-                            visit_tileset(target)
+                            raise ValueError("implicit tile content cannot be an external tileset")
                         elif target.suffix.lower() == ".glb":
                             content_files.add(target)
                             inspect_glb(target)
