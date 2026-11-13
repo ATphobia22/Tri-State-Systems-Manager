@@ -52,5 +52,28 @@ class ReceiptTests(unittest.TestCase):
         del self.data["coordinate_epoch"]
         with self.assertRaises(module.ReceiptError): self.check()
 
+    def test_non_object_receipt(self):
+        self.path.write_text("[]", encoding="utf-8")
+        with self.assertRaises(module.ReceiptError): module.validate(self.path, self.root)
+
+    def test_invalid_hex_digest(self):
+        self.data["sha256"] = "z" * 64
+        with self.assertRaises(module.ReceiptError): self.check()
+
+    def test_dot_segment(self):
+        self.data["asset"] = "./scene.glb"
+        with self.assertRaises(module.ReceiptError): self.check()
+
+    def test_nested_symlink(self):
+        target = self.root / "actual"
+        target.mkdir()
+        (target / "scene.glb").write_bytes(b"synthetic fixture")
+        try:
+            (self.root / "alias").symlink_to(target, target_is_directory=True)
+        except (OSError, NotImplementedError):
+            self.skipTest("Symlink creation not permitted")
+        self.data["asset"] = "alias/scene.glb"
+        with self.assertRaises(module.ReceiptError): self.check()
+
 if __name__ == "__main__":
     unittest.main()
