@@ -58,7 +58,7 @@ test('regional atlas uses a state-spanning vector style, source-backed geometry 
   assert.match(atlas, /Visual day\/night cycle/);
   assert.match(atlas, /does not advance USGS observations/);
   assert.match(map, /REGIONAL_MAX_BOUNDS/);
-  assert.match(map, /https:\/\/tiles\.openfreemap\.org\/styles\/liberty/);
+  assert.ok(map.includes("'https://tiles.openfreemap.org/styles/liberty'"), 'regional basemap must use exact OpenFreeMap style URL');
   assert.match(map, /data\/tsm-river-gauge-locations\.geojson/);
   assert.match(map, /data\/ehydro-survey-extents\.geojson/);
   assert.match(map, /atlas-usgs-gauge-points/);
