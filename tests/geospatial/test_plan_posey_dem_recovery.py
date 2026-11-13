@@ -1,9 +1,11 @@
 """Synthetic source-identity and 5000-ft DEM tile-lattice regression tests."""
 import importlib.util
+import sys
 import unittest
 from pathlib import Path
 
 MODULE = Path(__file__).resolve().parents[2] / "scripts/geospatial/plan_posey_dem_recovery.py"
+sys.path.insert(0, str(MODULE.parent))
 spec = importlib.util.spec_from_file_location("posey_dem_plan", MODULE)
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
