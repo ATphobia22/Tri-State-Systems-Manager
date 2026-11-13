@@ -3,10 +3,12 @@ on:
   pull_request:
     paths:
       - 'scripts/geospatial/plan_posey_dem_recovery.py'
+      - 'scripts/geospatial/acquire_indiana_dem_tiles.py'
       - 'scripts/geospatial/reconcile_posey_official_dem_tiles.py'
       - 'scripts/geospatial/posey_ground_sample.py'
       - 'scripts/geospatial/acquire-and-enrich-igio-posey-buildings.py'
       - 'tests/geospatial/test_plan_posey_dem_recovery.py'
+      - 'tests/geospatial/test_acquire_indiana_dem_tiles.py'
       - 'tests/geospatial/test_reconcile_posey_official_dem_tiles.py'
       - 'tests/geospatial/test_posey_ground_sample.py'
       - '.github/workflows/posey-dem-recovery-plan.yml'
@@ -22,10 +24,11 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install geospatial geometry and datum tooling
-        run: python -m pip install 'shapely==2.1.2' 'pyproj==3.7.2' 'rasterio==1.5.0'
+        run: python -m pip install 'shapely==2.1.2' 'pyproj==3.7.2' 'rasterio==1.5.0' 'requests==2.32.5'
       - name: Compile and test Posey source tile planning
         run: |
-          python -m py_compile scripts/geospatial/plan_posey_dem_recovery.py scripts/geospatial/reconcile_posey_official_dem_tiles.py scripts/geospatial/posey_ground_sample.py scripts/geospatial/acquire-and-enrich-igio-posey-buildings.py
+          python -m py_compile scripts/geospatial/acquire_indiana_dem_tiles.py scripts/geospatial/plan_posey_dem_recovery.py scripts/geospatial/reconcile_posey_official_dem_tiles.py scripts/geospatial/posey_ground_sample.py scripts/geospatial/acquire-and-enrich-igio-posey-buildings.py
           python -m unittest discover -s tests/geospatial -p test_posey_ground_sample.py -v
           python -m unittest discover -s tests/geospatial -p test_plan_posey_dem_recovery.py -v
+          python -m unittest discover -s tests/geospatial -p test_acquire_indiana_dem_tiles.py -v
           python -m unittest discover -s tests/geospatial -p test_reconcile_posey_official_dem_tiles.py -v
