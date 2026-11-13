@@ -15,6 +15,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import requests
+from inspect_indiana_dem_export import inspect_export
 
 SERVICE = "https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_2016_2020_DEM/ImageServer"
 
@@ -66,7 +67,10 @@ def main():
         "requested_resolution_m": args.resolution_m,
         "retrieved_at_utc": datetime.now(timezone.utc).isoformat(),
         "vertical_datum_verified": False, "vertical_transform_applied": False,
-        "engineering_accuracy_verified": False, "tiles": []
+        "engineering_accuracy_verified": False,
+        "source_native_resolution_verified": False,
+        "height_units_verified": False,
+        "source_pixel_accuracy_verified": False, "tiles": []
     }
     total = 0
     try:
@@ -98,14 +102,21 @@ def main():
                                 total += len(chunk)
                                 if total > args.max_bytes:
                                     raise RuntimeError("Download exceeded --max-bytes")
-                    with open(temp, "rb") as f:
-                        if f.read(4) not in (b"II*\\x00", b"MM\\x00*"):
-                            raise RuntimeError(f"{name} is not a TIFF; inspect ImageServer response")
+                    # Validate the *actual* little-/big-endian TIFF signature,
+                    # float32 raster, CRS, bounds and non-nodata pixels first.
+                    # Never promote a download containing a styled hillshade or
+                    # an ArcGIS JSON/HTML response into the terrain directory.
+                    inspect_export(temp, bbox_3857=(left, bottom, right, top),
+                                   width=width, height=height)
                     os.replace(temp, dest)
                     time.sleep(args.delay)
+                # Always re-audit resumed files; a nonzero byte count is not
+                # adequate evidence of an intact raster or correct grid.
+                evidence = inspect_export(dest, bbox_3857=(left, bottom, right, top),
+                                          width=width, height=height)
                 manifest["tiles"].append({
                     "name": name, "bbox_3857": [left,bottom,right,top],
-                    "bytes": dest.stat().st_size, "sha256": sha256(dest)
+                    **evidence,
                 })
     finally:
         manifest["tile_count"] = len(manifest["tiles"])
