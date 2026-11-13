@@ -1,0 +1,25 @@
+; TSM UE 5.8 — Nanite cluster hierarchy + Virtual Shadow Maps
+; Paste into Config/DefaultEngine.ini or apply via console / Scalability
+
+[/Script/Engine.RendererSettings]
+r.Shadow.Virtual.Enable=1
+r.Nanite.ProjectEnabled=1
+
+[SystemSettings]
+; Nanite culling
+r.Nanite.Culling.Frustum=1
+r.Nanite.Culling.HZB=1
+r.Nanite.Culling.TwoPass=1
+r.Nanite.Culling.DrawDistance=1
+r.Nanite.MaxCandidateClusters=16777216
+r.Nanite.MaxVisibleClusters=16777216
+; Streaming pool (MB); raise for dense twin scenes
+r.Nanite.Streaming.StreamingPoolSize=512
+
+; Virtual Shadow Maps
+r.Shadow.Virtual.OnePassProjection=1
+r.Shadow.Virtual.MaxPhysicalPages=4096
+r.Shadow.Virtual.NormalBias=0.5
+; Debug (disable in shipping)
+; r.Shadow.Virtual.Stats=1
+; Nanitestats
