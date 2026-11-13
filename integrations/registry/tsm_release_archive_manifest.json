@@ -2,7 +2,7 @@
   "manifest_version": "1.0.0",
   "project": "Tri-State Systems Manager (TSM)",
   "archive_purpose": "Immutable release evidence and documentation record",
-  "compiled_at": "2026-11-11T15:17:23.610648+00:00",
+  "compiled_at": "2026-11-13T14:35:50.642558+00:00",
   "total_artifacts": 11,
   "artifacts": [
     {
@@ -78,9 +78,9 @@
     {
       "path": "scripts/geospatial/tsm_tileset_packager.py",
       "extension": ".py",
-      "size_bytes": 2896,
-      "sha256": "a93aed3e32afe46624a068dc3214bb28c7f4bd5cc74d988435c1b3f047158e80",
-      "indexed_at": "2026-11-11T15:17:23.610648+00:00"
+      "size_bytes": 13192,
+      "sha256": "4f332cceea17bd5cf1660b1ab49cf04c76c5b26ea22ae3842b902f8515778871",
+      "indexed_at": "2026-11-13T14:35:50.642558+00:00"
     }
   ],
   "policy": {
