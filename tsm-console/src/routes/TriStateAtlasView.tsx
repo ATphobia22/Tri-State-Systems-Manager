@@ -2,21 +2,37 @@
  * This is NOT a demo map: the component uses the normal MapLibre source adapters, with
  * authority metadata; no simulated river readings, fake heights or auto-polling.
  */
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import type { GeoJSONSource } from 'maplibre-gl';
 import { Link } from 'react-router';
 import TriStateDigitalTwinMap, { defaultMapPlaneVisibility } from '../components/TriStateDigitalTwinMap';
 import RiverGaugeBoard from '../components/RiverGaugeBoard';
+import CommunityGrantMatrix from '../components/CommunityGrantMatrix';
+import CommunityFloodHistory from '../components/CommunityFloodHistory';
+import ScenarioStudioPanel from '../components/ScenarioStudioPanel';
 import { MAP_PLANE_FABRIC, type MapPlaneLayer } from '../lib/map-plane-fabric';
 import { TSM_DATA_FABRICS, type FabricPlane } from '../lib/data-fabric-registry';
 import { getTerrainRgbStatus } from '../lib/twin-map-style';
 import './TriStateAtlasView.css';
 
 type Lens = 'explore' | 'engineer' | 'review';
+type ProposalMode = 'berm' | 'road' | 'retention';
+type Coordinates = [number, number];
+type ProposalGeometry =
+  | { type: 'LineString'; coordinates: Coordinates[] }
+  | { type: 'Polygon'; coordinates: Coordinates[][] }
+  | { type: 'MultiPoint'; coordinates: Coordinates[] };
+type ProposalFeature = {
+  type: 'Feature';
+  geometry: ProposalGeometry;
+  properties: { intervention: string; authority: string; createdAt: string; note: string };
+};
 type Light = 'day' | 'golden' | 'night';
 type RegionView = { id: string; label: string; center: [number, number]; zoom: number; pitch: number; bearing: number; imagery: boolean; notes: string };
 // Navigation-only geocoding. These coordinates are NOT survey control points.
 const REGIONAL_VIEWS: readonly RegionView[] = [
   { id: 'posey', label: 'Mount Vernon · Posey IN', center: [-87.895591, 37.932132], zoom: 11.5, pitch: 57, bearing: -18, imagery: true, notes: 'Indiana imagery can be layered over regional OpenFreeMap roads.' },
+  { id: 'evansville', label: 'Evansville · Ohio River IN', center: [-87.57640285193835, 37.97228264107407], zoom: 11.5, pitch: 56, bearing: -18, imagery: true, notes: 'Ohio River context near the registered Evansville USGS station. Historic stage values are separate.' },
   { id: 'new-harmony', label: 'New Harmony · Wabash IN', center: [-87.934995, 38.129801], zoom: 12, pitch: 55, bearing: -12, imagery: true, notes: 'USGS gauge locations can be inspected here; no station readings are prefilled.' },
   { id: 'henderson', label: 'Henderson · Kentucky', center: [-87.5925, 37.839489], zoom: 12, pitch: 52, bearing: -14, imagery: false, notes: 'Regional street basemap only. Indiana aerial coverage is not relabeled as Kentucky.' },
   { id: 'shawneetown', label: 'Shawneetown · Illinois', center: [-88.187197, 37.715479], zoom: 11.5, pitch: 53, bearing: -22, imagery: false, notes: 'Regional street basemap only; local authoritative GIS detail requires separate sources.' },
@@ -46,6 +62,52 @@ export default function TriStateAtlasView(): JSX.Element {
   const [sceneHour, setSceneHour] = useState(17);
   const [regionId, setRegionId] = useState('posey');
   const [regionalLayers, setRegionalLayers] = useState({ gauges: true, surveys: false });
+  const [drawMode, setDrawMode] = useState<ProposalMode | null>(null);
+  const [waypoints, setWaypoints] = useState<Coordinates[]>([]);
+  const [proposals, setProposals] = useState<ProposalFeature[]>([]);
+  const [scenarioOpen, setScenarioOpen] = useState(false);
+  const addProposalPoint = useCallback((point: Coordinates) => setWaypoints((existing) => [...existing, point]), []);
+  const proposalOverlay = useMemo(() => {
+    const draftGeometry: ProposalGeometry = waypoints.length < 2
+      ? { type: 'MultiPoint', coordinates: waypoints }
+      : drawMode === 'retention' && waypoints.length >= 3
+        ? { type: 'Polygon', coordinates: [[...waypoints, waypoints[0]!]] }
+        : { type: 'LineString', coordinates: waypoints };
+    const unfinished: ProposalFeature[] = waypoints.length
+      ? [{ type: 'Feature', geometry: draftGeometry, properties: {
+        intervention: drawMode ?? 'not selected', authority: 'HUMAN_DRAFT',
+        createdAt: '', note: 'In-progress shape only; not an engineering model',
+      } }]
+      : [];
+    return { type: 'FeatureCollection' as const, features: [...proposals, ...unfinished] } as Parameters<GeoJSONSource['setData']>[0];
+  }, [drawMode, proposals, waypoints]);
+  const finishProposal = (): void => {
+    if (!drawMode || waypoints.length < (drawMode === 'retention' ? 3 : 2)) return;
+    const geometry: ProposalGeometry = drawMode === 'retention'
+      ? { type: 'Polygon', coordinates: [[...waypoints, waypoints[0]!] ] }
+      : { type: 'LineString', coordinates: [...waypoints] };
+    setProposals((existing) => [...existing, { type: 'Feature', geometry, properties: {
+      intervention: drawMode, authority: 'HUMAN_PROPOSED_UNVERIFIED',
+      createdAt: new Date().toISOString(),
+      note: 'Sketch only. No surveyed elevation, hydraulic coupling, permit, design or construction authority.',
+    } }]);
+    setWaypoints([]);
+    setDrawMode(null);
+  };
+  const exportProposals = (): void => {
+    if (!proposals.length) return;
+    const payload = { type: 'FeatureCollection', schemaVersion: '1.0.0',
+      crs: 'EPSG:4326', evidenceClass: 'HUMAN_PROPOSED_UNVERIFIED',
+      warning: 'Planning sketches only. No hydraulic model or engineering approval. No user account or server upload.',
+      generatedAt: new Date().toISOString(), features: proposals };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/geo+json' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'tsm-community-proposals-unverified.geojson';
+    anchor.click();
+    URL.revokeObjectURL(url);
+  };
   const [layers, setLayers] = useState<Record<string, boolean>>(defaultMapPlaneVisibility);
   const [sourceId, setSourceId] = useState(MAP_PLANE_FABRIC[0]?.id ?? '');
   const [fabricPlane, setFabricPlane] = useState<FabricPlane>('EVIDENCE_DATA_GOVERNANCE');
@@ -103,6 +165,26 @@ export default function TriStateAtlasView(): JSX.Element {
               onChange={(event) => setRegionalLayers((prev) => ({ ...prev, surveys: event.target.checked }))} />
               USACE eHydro extents <small>(20 survey footprints, not flood water)</small></label>
           </fieldset>
+          <h2>Sketch a solution</h2>
+          <p>Mark a proposed berm, road reroute or retention area directly on the community map. Every shape is explicitly unverified planning geometry. It is not yet connected to a flood solver.</p>
+          <div className="tsm-atlas-draft-tools" role="group" aria-label="Proposed infrastructure geometry">
+            {(['berm', 'road', 'retention'] as const).map((id) =>
+              <button key={id} type="button" aria-pressed={drawMode === id}
+                className={drawMode === id ? 'active' : ''} onClick={() => { setDrawMode(id); setWaypoints([]); }}>
+                {id === 'berm' ? 'Berm line' : id === 'road' ? 'Road reroute' : 'Retention area'}
+              </button>)}
+          </div>
+          <p className="tsm-atlas-note" role="status">
+            {drawMode ? `Click the map for ${drawMode} vertices · ${waypoints.length} points recorded.` :
+              'Select a sketch tool to begin placing vertices on the map.'}
+          </p>
+          <div className="tsm-atlas-draft-actions">
+            <button type="button" disabled={!drawMode || waypoints.length < (drawMode === 'retention' ? 3 : 2)} onClick={finishProposal}>Finish sketch</button>
+            <button type="button" onClick={() => { setDrawMode(null); setWaypoints([]); }}>Cancel sketch</button>
+            <button type="button" disabled={!proposals.length} onClick={exportProposals}>Export GeoJSON ({proposals.length})</button>
+            <button type="button" disabled={!proposals.length} onClick={() => setProposals([])}>Clear proposals</button>
+          </div>
+          <p className="tsm-atlas-note">WGS84 plan-view shapes; height, cost, property consent, hydraulic performance and regulatory authority are NOT calculated. GeoJSON download stays on your device.</p>
           <h2>Real map layers</h2>
           <p>Registered layers come from TSM's existing spatial fabric. Switch sources on/off; unavailable endpoints are not replaced with invented geometry.</p>
           <div className="tsm-atlas-map-layers">
@@ -140,6 +222,7 @@ export default function TriStateAtlasView(): JSX.Element {
           <div className="tsm-atlas-map">
             <TriStateDigitalTwinMap hideSidebar visible={layers} onVisibleChange={setLayers}
               regionalAtlas regionalView={region} regionalLayers={regionalLayers}
+              proposalDrawMode={drawMode} onProposalPoint={addProposalPoint} proposalOverlay={proposalOverlay}
               showIndianaImagery={region.imagery} lightPreset={light} onStatusChange={onMapStatus} />
           </div>
           <div className="tsm-atlas-map-status" role="status" aria-live="polite">
@@ -216,6 +299,19 @@ export default function TriStateAtlasView(): JSX.Element {
           </div>
           <p className="tsm-atlas-note">GitHub Pages alone cannot host the server API. Public imagery/GIS source tiles may be accessible while on-demand gauge results still require the configured backend.</p>
         </div>
+      </section>
+      <div className="tsm-atlas-community-panels" aria-label="Community flood history and infrastructure funding">
+        <div className="tsm-atlas-panel"><CommunityFloodHistory /></div>
+        <div className="tsm-atlas-panel"><CommunityGrantMatrix /></div>
+      </div>
+      <section className="tsm-atlas-panel tsm-atlas-screening" aria-label="Optional illustrative scenario studio">
+        <h2>Explore flood-reduction ideas</h2>
+        <p>The repository includes an optional <strong>SIMULATION_DEMO</strong> screening model for teaching and comparing assumed adaptations. It does not consume your map sketches, reconstruct historic flooding, or calculate site-specific engineering outcomes.</p>
+        <button type="button" className="tsm-atlas-reset"
+          onClick={() => setScenarioOpen((current) => !current)} aria-expanded={scenarioOpen}>
+          {scenarioOpen ? 'Close illustrative model' : 'Open illustrative scenario studio'}
+        </button>
+        {scenarioOpen && <ScenarioStudioPanel />}
       </section>
       <footer className="tsm-atlas-footer">
         <strong>Human authority final.</strong> No automatic filing or professional certification. FEMA effective mapping, Indiana DNR planning products and model scenarios retain separate authority and evidence chains. If data are missing, they stay missing.
