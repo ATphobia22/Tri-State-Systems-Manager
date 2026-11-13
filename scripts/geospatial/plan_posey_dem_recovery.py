@@ -18,7 +18,7 @@ EXPECTED_BUILDINGS = 23082
 TILE_FEET = 5000
 MAX_TILES_PER_POLYGON = 256
 MAX_SOURCE_TILES = 1500
-SOURCE_BUCKET = "giselevationingov"
+SOURCE_BUCKET = "gisimageryingov"
 SOURCE_PREFIX = "demoptimized/statewide/2020/SPW/2.5ft/"
 
 
