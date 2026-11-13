@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'scripts/native/audit_local_3d_tiles.py'
+      - 'scripts/native/audit_implicit_subtrees.py'
       - 'tests/native/test_audit_local_3d_tiles.py'
       - '.github/workflows/local-3dtiles-audit.yml'
   workflow_dispatch:
