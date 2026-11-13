@@ -22,7 +22,7 @@ EXPECTED_POSEY_BUILDINGS = 23082
 SOURCE_URL = ("https://gisdata.in.gov/server/rest/services/Hosted/"
               "Indiana_DEM_Tile_Footprints/FeatureServer/0")
 MAX_BYTES = 220 * 1024 * 1024
-FILENAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,180}\\.tif$", re.I)
+FILENAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,180}\.tif$", re.I)
 
 
 def read_source(path: Path) -> tuple[dict, str]:
@@ -144,7 +144,7 @@ def main() -> int:
         result["buildingInputSha256"] = bh
         result["tileFootprintsInputSha256"] = th
         a.output.parent.mkdir(parents=True,exist_ok=True)
-        a.output.write_text(json.dumps(result,indent=2,sort_keys=True)+"\\n")
+        a.output.write_text(json.dumps(result,indent=2,sort_keys=True)+"\n")
         print(json.dumps({"tileCount":result["requiredFilenameCount"],
                           "uncovered":result["buildingsWithoutCompletePolygonCoverage"]}))
         return 2 if a.require_covered and not result["polygonCoverageVerified"] else 0
