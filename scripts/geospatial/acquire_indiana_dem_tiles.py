@@ -17,6 +17,30 @@ from urllib.parse import urlparse
 import requests
 
 SERVICE = "https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_2016_2020_DEM/ImageServer"
+# Classic TIFF and BigTIFF magic. Construct as integers to avoid
+# accidental doubled-backslash escape bugs in generated source files.
+TIFF_HEADERS = {
+    bytes((0x49, 0x49, 0x2A, 0x00)),  # classic little endian
+    bytes((0x4D, 0x4D, 0x00, 0x2A)),  # classic big endian
+    bytes((0x49, 0x49, 0x2B, 0x00)),  # BigTIFF little endian
+    bytes((0x4D, 0x4D, 0x00, 0x2B)),  # BigTIFF big endian
+}
+
+
+def has_tiff_magic(header: bytes) -> bool:
+    return isinstance(header, bytes) and header in TIFF_HEADERS
+
+
+def is_tiff_candidate(path: Path) -> bool:
+    """Signature check only; complete raster/CRS/datum QA is a separate gate."""
+    try:
+        if not path.is_file() or path.is_symlink() or path.stat().st_size < 8:
+            return False
+        with path.open("rb") as handle:
+            return has_tiff_magic(handle.read(4))
+    except OSError:
+        return False
+
 
 def sha256(path):
     h = hashlib.sha256()
@@ -80,7 +104,7 @@ def main():
                 height = max(1, math.ceil((top-bottom)/args.resolution_m))
                 name = f"dem_{iy:04d}_{ix:04d}.tif"
                 dest = args.out / name
-                if not dest.exists() or dest.stat().st_size == 0:
+                if not is_tiff_candidate(dest):
                     params = {
                         "f": "image", "bbox": f"{left},{bottom},{right},{top}",
                         "bboxSR": 3857, "imageSR": 3857,
@@ -99,7 +123,7 @@ def main():
                                 if total > args.max_bytes:
                                     raise RuntimeError("Download exceeded --max-bytes")
                     with open(temp, "rb") as f:
-                        if f.read(4) not in (b"II*\\x00", b"MM\\x00*"):
+                        if not has_tiff_magic(f.read(4)):
                             raise RuntimeError(f"{name} is not a TIFF; inspect ImageServer response")
                     os.replace(temp, dest)
                     time.sleep(args.delay)
