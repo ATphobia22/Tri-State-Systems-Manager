@@ -111,6 +111,18 @@ Do not call a visualization *live* when no active authoritative update was actua
 4. Make sunrise, fog, rain and bloom visual-only toggles. Measurement views default to clear, reproducible illumination and unambiguous units.
 5. Show offline state and last staged snapshot with version, checksum and timestamp. Do not silently connect the native offline installer to a service.
 
+## Implementation notes grounded in research
+
+- **Map engine:** Keep the existing MapLibre + PMTiles stack as the default public/offline-capable base. For actual rendered layers, use `map.getLayer(id)` followed by `map.setLayoutProperty(id, "visibility", enabled ? "visible" : "none")`, not direct mutation of layer object fields. Reapply saved visibility after a style reload; do not hide a missing layer error by implying it is present. See [MapLibre API](https://maplibre.org/maplibre-gl-js/docs/API/classes/Map/#setlayoutproperty) and [style layers](https://maplibre.org/maplibre-style-spec/layers/).
+- **Tile provenance:** Each source and style layer must link to an evidence receipt, authority class, effective/publication/retrieval date, units and datum. Serve self-hosted PMTiles or local files only when license, attribution, offline support and range requests are verified. See [Protomaps PMTiles integration](https://docs.protomaps.com/pmtiles/maplibre).
+- **Mapbox is optional:** The Mapbox plugin can help prototype a basemap or geocode place names, but a proprietary online style, unreleased secret token or uncached third-party tiles must **not** become a required dependency for the free no-login console or Windows offline Shipping build. Any chosen web token must be **public-scoped and URL-restricted**, with attribution and license review; never place a secret token in client code.
+- **Citizen-centered choices:** A 2025 [citizen-centric digital-twin study](https://doi.org/10.1108/sasbe-02-2025-0067) highlights trust, accessibility/help, resilience and feedback. Ship progressively disclosed complexity, tooltips, plain language and multi-format help instead of expecting residents to understand GIS jargon.
+- **Digital thread:** [OGC's Urban Digital Twins discussion paper](https://docs.ogc.org/dp/24-025.html) describes an interoperable, human-centered bridge between infrastructure, natural environment and people. This is a **discussion paper, not a normative OGC standard**. [Local Digital Twin MIM8 guidance](https://mims.oascities.org/mims-specification-v9.0/local-digital-twins/mim8-local-digital-twins/capabilities-and-requirements) emphasizes source, timestamp, scenario assumptions and workflow provenance.
+- **Accessibility:** Target WCAG 2.2 AA; choose **44 × 44 CSS px** for important interactive buttons as a usability target aligned with WCAG 2.5.5 AAA enhanced target size (the WCAG 2.2 AA minimum is 24 × 24, subject to exceptions). Provide keyboard interaction, focus indicators and non-visual geographic descriptions. See [W3C WCAG 2.2](https://www.w3.org/TR/WCAG22/) and [GeoVisA11y](https://www.alphaxiv.org/abs/2603.07446).
+- **Risk communication:** [Research on uncertainty in thematic maps](https://www.alphaxiv.org/abs/2602.00248) underscores the importance of not reducing confidence to a dramatic flood-color gradient; show unverified or uncalibrated areas with text, pattern and metadata instead.
+
+These references motivate proposed engineering decisions. They are not proof of installed functionality, populated data, runtime accessibility, or professional acceptance.
+
 ## Delivery order / acceptance
 
 - **P0:** Evidence state and honest labels; source receipts; 2D navigation; public/no-login access; keyboard/touch/list equivalents; clear FEMA/DNR/scenario distinctions.
