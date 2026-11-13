@@ -71,5 +71,62 @@ class TestDEMExport(unittest.TestCase):
             self.inspect()
 
 
+class TestAcquisitionIntegration(TestDEMExport):
+    """Exercise actual acquisition entry point with a no-network TIFF response."""
+
+    def _run_acquisition(self, output, response_bytes, calls):
+        import acquire_indiana_dem_tiles as acquire
+        import json
+        from unittest.mock import patch
+
+        class FakeResponse:
+            def raise_for_status(self):
+                pass
+
+            def iter_content(self, _chunk_size):
+                yield response_bytes
+
+        class FakeSession:
+            def __init__(self):
+                self.headers = {}
+
+            def get(self, url, **_kwargs):
+                calls.append(url)
+                return FakeResponse()
+
+        args = [
+            "acquire_indiana_dem_tiles.py", "--bbox-3857",
+            "1000", "2000", "1004", "2003", "--tile-pixels", "128",
+            "--resolution-m", "1", "--delay", "0", "--out", str(output),
+        ]
+        with patch.object(acquire.requests, "Session", return_value=FakeSession()), \
+             patch.object(acquire, "fetch_json", return_value={
+                 "pixelType": "F32", "extent": {"spatialReference": {"wkid": 3857}}}), \
+             patch.object(sys, "argv", args):
+            acquire.main()
+        return json.loads((output / "acquisition-manifest.json").read_text())
+
+    def test_new_download_is_promoted_only_after_raster_validation(self):
+        self.create()
+        output = Path(self.tmp.name) / "output"
+        calls = []
+        manifest = self._run_acquisition(output, self.file.read_bytes(), calls)
+        self.assertEqual(len(calls), 1)
+        self.assertTrue(manifest["complete"])
+        self.assertTrue(manifest["tiles"][0]["localExportStructureVerified"])
+        self.assertFalse(manifest["tiles"][0]["sourceVerticalDatumVerified"])
+
+    def test_corrupt_resumed_tiff_is_never_reported_complete(self):
+        self.create()
+        output = Path(self.tmp.name) / "output"
+        calls = []
+        self._run_acquisition(output, self.file.read_bytes(), calls)
+        target = output / "dem_0000_0000.tif"
+        target.write_bytes(b"invalid legacy resume payload")
+        with self.assertRaisesRegex(ValueError, "not a supported"):
+            self._run_acquisition(output, self.file.read_bytes(), calls)
+        self.assertEqual(len(calls), 1)
+
+
 if __name__ == '__main__':
     unittest.main()
