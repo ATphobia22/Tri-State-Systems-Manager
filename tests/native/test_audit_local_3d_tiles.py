@@ -170,6 +170,39 @@ class LocalTilesAuditTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "subtreeLevels"):
             module.audit(self.root, self.index)
 
+    def test_octree_morton_coordinates_and_external_buffers(self):
+        # OCTREE Morton child (x=1,y=0,z=1) has index 5. With the
+        # root at index 0, the child availability bit is index 6.
+        self.index.write_text(json.dumps({"asset": {"version": "1.1"}, "root": {
+            "implicitTiling": {"subdivisionScheme": "OCTREE",
+                               "subtreeLevels": 2, "availableLevels": 2,
+                               "subtrees": {"uri": "subtrees/{level}/{x}/{y}/{z}.json"}},
+            "content": {"uri": "content/{level}/{x}/{y}/{z}.glb"}}}))
+        subtree_path = self.root / "subtrees/0/0/0/0.json"
+        subtree_path.parent.mkdir(parents=True)
+        subtree_path.write_text(json.dumps({
+            "buffers": [{"uri": "bits.bin", "byteLength": 16}],
+            "bufferViews": [{"buffer": 0, "byteOffset": 0, "byteLength": 2},
+                            {"buffer": 0, "byteOffset": 8, "byteLength": 2}],
+            "tileAvailability": {"bitstream": 0, "availableCount": 2},
+            "contentAvailability": [{"bitstream": 1, "availableCount": 2}],
+            "childSubtreeAvailability": {"constant": 0}
+        }))
+        (subtree_path.parent / "bits.bin").write_bytes(
+            b"\\x41\\x00" + b"\\x00" * 6 + b"\\x41\\x00" + b"\\x00" * 6)
+        for level, x, y, z in ((0, 0, 0, 0), (1, 1, 0, 1)):
+            target = self.root / f"content/{level}/{x}/{y}/{z}.glb"
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(self.glb({"asset": {"version": "2.0"}}))
+        result = module.audit(self.root, self.index)
+        self.assertEqual(result["implicitSubtrees"], 1)
+        self.assertEqual(result["implicitAvailableTiles"], 2)
+        self.assertEqual(result["implicitContents"], 2)
+        self.assertEqual(result["payloads"], 4)
+        (self.root / "content/1/1/0/1.glb").unlink()
+        with self.assertRaisesRegex(ValueError, "missing"):
+            module.audit(self.root, self.index)
+
     def test_corrupt_glb_rejected(self):
         (self.root / "tiles/one.glb").write_bytes(b"glTF fixture")
         with self.assertRaisesRegex(ValueError, "invalid GLB"):
