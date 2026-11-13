@@ -10,6 +10,8 @@ on:
       - 'scripts/geospatial/acquire-and-enrich-igio-posey-buildings.py'
       - 'tests/geospatial/test_plan_posey_dem_recovery.py'
       - 'tests/geospatial/test_verify_indiana_public_s3_dem.py'
+      - 'tests/geospatial/test_native_indiana_elevation_catalog.py'
+      - 'tsm-native/config/authoritative-source-catalog.json'
       - 'tests/geospatial/test_acquire_indiana_dem_tiles.py'
       - 'tests/geospatial/test_reconcile_posey_official_dem_tiles.py'
       - 'tests/geospatial/test_posey_ground_sample.py'
@@ -34,4 +36,5 @@ jobs:
           python -m unittest discover -s tests/geospatial -p test_plan_posey_dem_recovery.py -v
           python -m unittest discover -s tests/geospatial -p test_acquire_indiana_dem_tiles.py -v
           python -m unittest discover -s tests/geospatial -p test_verify_indiana_public_s3_dem.py -v
+          python -m unittest discover -s tests/geospatial -p test_native_indiana_elevation_catalog.py -v
           python -m unittest discover -s tests/geospatial -p test_reconcile_posey_official_dem_tiles.py -v
