@@ -22,7 +22,6 @@ On November 13, both Drive rasters matched the full SHA-256 of the exact Indiana
 - [Official tile IN2020_26700930_12](https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26700930_12.tif)
 - [Official tile IN2020_26850945_12](https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26850945_12.tif)
 - [USGS West Option delivery report](https://rockyweb.usgs.gov/vdelivery/Datasets/Staged/Elevation/metadata/IN_Indiana_Statewide_LiDAR_2017_B17/IN_Statewide_Opt2_B6_2017/reports/IN_Statewide_Lidar_Lidar_Report_West_AOI.pdf)
-- [West Option and Posey grid crosswalk](../../data/evidence/indiana-west-lidar-posey-source.json)
 
 ## Release hold / required next evidence
 
