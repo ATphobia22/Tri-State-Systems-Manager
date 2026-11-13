@@ -31,8 +31,8 @@ def box(lo,hi,p=.5):
 @dataclass(frozen=True)
 class Item: tile:dict; sid:int|None; center:V; lo:V; hi:V
 class Q:
- def __init__(self,items,depth,max_items,max_depth,fallback_error):
-  self.items=sorted(items,key=lambda i:(i.center.x,i.center.y,i.center.z,i.sid if i.sid is not None else -1)); self.depth=depth
+ def __init__(self,items,depth,max_items,max_depth,fallback_error,padding):
+  self.items=sorted(items,key=lambda i:(i.center.x,i.center.y,i.center.z,i.sid if i.sid is not None else -1)); self.depth=depth; self.padding=padding
   # Internal ADD tiles carry no simplified geometry. Keep the source-root
   # fallback as a floor and preserve any larger declared descendant error.
   # A depth-based reduction would imply an accuracy improvement for which no
@@ -50,13 +50,21 @@ class Q:
   if len(items)>max_items and depth<max_depth:
    mx=(self.lo.x+self.hi.x)/2; my=(self.lo.y+self.hi.y)/2; q=[[] for _ in range(4)]
    for i in self.items:q[(0 if i.center.y<my else 1)*2+(0 if i.center.x<mx else 1)].append(i)
-   self.children=[Q(x,depth+1,max_items,max_depth,self.geometric_error) for x in q if x]
+   self.children=[Q(x,depth+1,max_items,max_depth,self.geometric_error,padding) for x in q if x]
  def tile(self,ge):
-  r={"boundingVolume":{"box":box(self.lo,self.hi)},"geometricError":self.geometric_error,"refine":"ADD"}
+  r={"boundingVolume":{"box":box(self.lo,self.hi,self.padding)},"geometricError":self.geometric_error,"refine":"ADD"}
   r["children"]=[x.tile(ge) for x in self.children] if self.children else [i.tile for i in self.items]; return r
 def main():
- ap=argparse.ArgumentParser(); ap.add_argument("--input",required=True,type=Path); ap.add_argument("--output",required=True,type=Path); ap.add_argument("--max-items",type=int,default=50); ap.add_argument("--max-depth",type=int,default=6); a=ap.parse_args()
- if a.max_items<1 or a.max_depth<0: raise SystemExit("invalid HLOD limits")
+ ap=argparse.ArgumentParser(); ap.add_argument("--input",required=True,type=Path); ap.add_argument("--output",required=True,type=Path); ap.add_argument("--max-items",type=int,default=50); ap.add_argument("--max-depth",type=int,default=None); ap.add_argument("--config",type=Path); a=ap.parse_args()
+ cfg=json.loads(a.config.read_text()) if a.config else {}
+ if cfg and cfg.get("schema")!="tsm.hlod.quadtree.v1": raise SystemExit("invalid HLOD configuration schema")
+ if cfg:
+  a.max_items=cfg["maxItemsPerLeaf"] if a.max_items==50 else a.max_items
+  a.max_depth=cfg["maxDepth"] if a.max_depth is None else a.max_depth
+ elif a.max_depth is None: a.max_depth=6
+ padding=cfg.get("boundsPaddingMeters",0.5)
+ if isinstance(padding,bool) or not isinstance(padding,(int,float)) or not math.isfinite(padding) or padding<0 or padding>100: raise SystemExit("invalid bounds padding")
+ if a.max_items<1 or a.max_depth<0 or a.max_depth>32: raise SystemExit("invalid HLOD limits")
  ts=json.loads(a.input.read_text()); children=ts.get("root",{}).get("children")
  if not isinstance(children,list) or not children: raise SystemExit("flat tileset has no children")
  centers=[]
@@ -76,9 +84,9 @@ def main():
   raise SystemExit("invalid source root geometricError")
  source_root_error=float(raw_source_root_error)
  ge=max(source_root_error,1)
- q=Q(items,0,a.max_items,a.max_depth,ge); nr=q.tile(ge); nr["transform"]=rt
+ q=Q(items,0,a.max_items,a.max_depth,ge,padding); nr=q.tile(ge); nr["transform"]=rt
  ge=max(ge,q.geometric_error)
- out={"asset":ts["asset"],"geometricError":ge,"root":nr,"extras":{"tsm":{"hlod":True,"partition":"quadtree-ecef-derived-enu","maxItemsPerLeaf":a.max_items,"maxDepth":a.max_depth,"leafCountTarget":"derived","geometricErrorPolicy":"contentless-nodes-inherit-parent-error-floor-v1","geometricErrorInterpretation":"conservative traversal proxy on empty partition nodes; not measured mesh-simplification error"}}}
+ out={"asset":ts["asset"],"geometricError":ge,"root":nr,"extras":{"tsm":{"hlod":True,"partition":"quadtree-ecef-derived-enu","maxItemsPerLeaf":a.max_items,"maxDepth":a.max_depth,"boundsPaddingMeters":padding,"leafCountTarget":"derived","geometricErrorPolicy":"contentless-nodes-inherit-parent-error-floor-v1","geometricErrorInterpretation":"conservative traversal proxy on empty partition nodes; not measured mesh-simplification error"}}}
  a.output.parent.mkdir(parents=True,exist_ok=True); a.output.write_text(json.dumps(out,separators=(",",":"))+"\n")
  print(json.dumps({"buildings":len(items),"rootFrame":"ENU@ECEF-centroid","output":str(a.output)}))
 if __name__=="__main__":main()
