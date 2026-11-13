@@ -6,7 +6,7 @@ const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
 
 test('all Posey buildings can be clicked and inspected through a dedicated panel', () => {
   const view = read('../src/components/TriStateDigitalTwinMap.tsx');
-  assert.ok(view.includes('setSelectedBuilding(props)'));
+  assert.match(view, /setSelectedBuilding\((?:featureProps|props)\)/);
   assert.ok(view.includes('<BuildingInspectionPanel properties={selectedBuilding}'));
   assert.ok(view.includes('indiana-buildings-extrusion'));
   assert.ok(view.includes('indiana-buildings-footprint'));
