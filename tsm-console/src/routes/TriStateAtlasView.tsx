@@ -62,7 +62,7 @@ export default function TriStateAtlasView(): JSX.Element {
   const [light, setLight] = useState<Light>('golden');
   const [sceneHour, setSceneHour] = useState(17);
   const [regionId, setRegionId] = useState('posey');
-  const [regionalLayers, setRegionalLayers] = useState({ gauges: true, surveys: false });
+  const [regionalLayers, setRegionalLayers] = useState({ gauges: true, surveys: false, historic: false });
   const [drawMode, setDrawMode] = useState<ProposalMode | null>(null);
   const [waypoints, setWaypoints] = useState<Coordinates[]>([]);
   const [proposals, setProposals] = useState<ProposalFeature[]>([]);
@@ -168,6 +168,10 @@ export default function TriStateAtlasView(): JSX.Element {
             <label><input type="checkbox" checked={regionalLayers.surveys}
               onChange={(event) => setRegionalLayers((prev) => ({ ...prev, surveys: event.target.checked }))} />
               USACE eHydro extents <small>(20 survey footprints, not flood water)</small></label>
+            <label><input type="checkbox" checked={regionalLayers.historic}
+              onChange={(event) => setRegionalLayers((prev) => ({ ...prev, historic: event.target.checked }))} />
+              Historic places <small>(NPS public register; source coordinates may need corrections)</small></label>
+            <a href="https://www.nps.gov/subjects/nationalregister/data-downloads.htm" target="_blank" rel="noopener noreferrer">National Park Service cultural-resource data notes</a>
           </fieldset>
           <h2>Sketch a solution</h2>
           <p>Mark a proposed berm, road reroute or retention area directly on the community map. Every shape is explicitly unverified planning geometry. It is not yet connected to a flood solver.</p>
