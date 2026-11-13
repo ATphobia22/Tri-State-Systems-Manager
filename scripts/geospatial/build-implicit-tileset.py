@@ -13,10 +13,8 @@ Template URIs (per OGC 3D Tiles 1.1 spec):
 The legacy "3DTILES_implicit_tiling" extensionsUsed declaration is REMOVED:
 implicit tiling is core in 3D Tiles 1.1 (per Cesium spec repo).
 
-Quadtree is built in lon/lat space over building centroids. Leaf tiles merge
-their buildings' GLBs via the TSM stitcher. Subtree files carry explicit
-availability bitstreams; the converter validates that every available tile
-has its content file present (subtree availability consistency).
+The quadtree partitions full building bounds in the source root frame.
+Buildings that cross a split stay at the parent with additive refinement.
 """
 
 from __future__ import annotations
@@ -27,10 +25,17 @@ import math
 import struct
 import sys
 from pathlib import Path
+from typing import NamedTuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from validate_spatial_coherence import aabb, box_corners
+
 SUBTREE_LEVELS = 2  # levels per subtree file
+IDENTITY = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+# Column-major matrices for the glTF Y-up and 3D Tiles Z-up conventions.
+GLTF_TO_TILE = [1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1]
+TILE_TO_GLTF = [1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1]
 
 # Presentation-only baseline: B=1, D=1, C=1, T=3, S=1, R=0.
 # This does not assert hydraulic meaning or a measured source LOD.
@@ -105,12 +110,11 @@ def validate_state_word(value: object) -> int:
 def merge_glbs(features: list[tuple[Path, int] | tuple[Path, int, list[float]] | tuple[Path, int, list[float], int]]) -> bytes:
     """Merge GLBs and preserve feature metadata; two-tuples use an identity transform.
 
+    Each optional matrix maps the source glTF frame to the merged glTF frame.
     Each property-table row carries a presentation-only StateWord. Callers may
     supply it as the fourth tuple element; legacy callers receive the published
     TSM baseline profile, not inferred engineering/hydraulic semantics.
     """
-    identity = [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
-                0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
     binary = bytearray()
     views, acc, mats, prims = [], [], [], []
     object_ids: list[int] = []
@@ -119,14 +123,14 @@ def merge_glbs(features: list[tuple[Path, int] | tuple[Path, int, list[float]] |
         if not isinstance(feature, (tuple, list)) or len(feature) not in (2, 3, 4):
             raise ValueError("each feature must be (path, OBJECTID[, transform[, state_word]])")
         p, source_object_id = feature[0], feature[1]
-        tile_transform = identity if len(feature) == 2 else feature[2]
+        source_to_merged = IDENTITY if len(feature) == 2 else feature[2]
         state_word = validate_state_word(feature[3]) if len(feature) == 4 else DEFAULT_STATE_WORD
         if isinstance(source_object_id, bool) or not isinstance(source_object_id, int) or source_object_id < 0 or source_object_id > 0xFFFFFFFF:
             raise ValueError(f"invalid UINT32 source OBJECTID: {source_object_id!r}")
         if not isinstance(p, Path):
             p = Path(p)
-        if (not isinstance(tile_transform, list) or len(tile_transform) != 16 or
-            not all(isinstance(value, (int, float)) and math.isfinite(float(value)) for value in tile_transform)):
+        if (not isinstance(source_to_merged, list) or len(source_to_merged) != 16 or
+            not all(isinstance(value, (int, float)) and math.isfinite(float(value)) for value in source_to_merged)):
             raise ValueError(f"invalid tile transform for {p}")
         object_ids.append(source_object_id)
         state_words.append(state_word)
@@ -135,10 +139,10 @@ def merge_glbs(features: list[tuple[Path, int] | tuple[Path, int, list[float]] |
         mesh_nodes = [node for node in nodes if isinstance(node, dict) and "mesh" in node]
         if len(mesh_nodes) != 1:
             raise ValueError(f"expected one mesh node in {p}, found {len(mesh_nodes)}")
-        node_matrix = mesh_nodes[0].get("matrix", [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1])
+        node_matrix = mesh_nodes[0].get("matrix", IDENTITY)
         if len(node_matrix) != 16 or not all(math.isfinite(float(v)) for v in node_matrix):
             raise ValueError(f"invalid glTF node matrix in {p}")
-        content_transform = matmul(tile_transform, [float(v) for v in node_matrix])
+        content_transform = matmul(source_to_merged, [float(v) for v in node_matrix])
         for prim in doc["meshes"][mesh_nodes[0]["mesh"]]["primitives"]:
             pa = doc["accessors"][prim["attributes"]["POSITION"]]
             na = doc["accessors"][prim["attributes"]["NORMAL"]]
@@ -245,11 +249,19 @@ def merge_glbs(features: list[tuple[Path, int] | tuple[Path, int, list[float]] |
             struct.pack("<I4s", len(binary), b"BIN\x00") + binary)
 
 
+class BuildingContent(NamedTuple):
+    path: Path
+    object_id: int
+    bounds: tuple[float, float, float, float, float, float]
+    gltf_transform: list[float]
+    state_word: int
+
+
 class QuadNode:
     def __init__(self, level, x, y, bounds):
         self.level, self.x, self.y = level, x, y
-        self.bounds = bounds  # (w, s, e, n) lon/lat
-        self.items = []  # (glb_path, centroid_lon, centroid_lat, sid, root_local_transform)
+        self.bounds = bounds  # (min_x, min_y, max_x, max_y) in root-local coordinates
+        self.items: list[BuildingContent] = []
         self.children = []
 
     def subdivide(self, max_depth, max_items):
@@ -261,29 +273,21 @@ class QuadNode:
                  (self.x*2+1, self.y*2, (mw, s, e, mn)),
                  (self.x*2, self.y*2+1, (w, mn, mw, n)),
                  (self.x*2+1, self.y*2+1, (mw, mn, e, n))]
-        for cx, cy, cb in quads:
-            child = QuadNode(self.level + 1, cx, cy, cb)
-            for item in self.items:
-                _, lon, lat, _, _, _ = item
-                if cb[0] <= lon <= cb[2] and cb[1] <= lat <= cb[3]:
-                    child.items.append(item)
-            if child.items:
-                self.children.append(child)
-        # Only keep subdivision if every item went to exactly one child
-        assigned = sum(len(c.items) for c in self.children)
-        if assigned != len(self.items):
-            self.children = []  # keep as leaf on boundary ambiguity
-            return
-        self.items = []  # internal node
-        for c in self.children:
-            c.subdivide(max_depth, max_items)
-
-    def leaves(self):
-        if not self.children:
-            yield self
-        else:
-            for c in self.children:
-                yield from c.leaves()
+        candidates = [QuadNode(self.level + 1, cx, cy, bounds) for cx, cy, bounds in quads]
+        retained = []
+        for item in self.items:
+            x0, y0, _, x1, y1, _ = item.bounds
+            child = next((node for node in candidates
+                          if node.bounds[0] <= x0 <= x1 <= node.bounds[2]
+                          and node.bounds[1] <= y0 <= y1 <= node.bounds[3]), None)
+            if child is None:
+                retained.append(item)
+            else:
+                child.items.append(item)
+        self.items = retained
+        self.children = [child for child in candidates if child.items]
+        for child in self.children:
+            child.subdivide(max_depth, max_items)
 
     def all_nodes(self):
         yield self
@@ -346,15 +350,14 @@ def write_subtree(
                 data[index // 8] |= 1 << (index % 8)
         return bytes(data)
 
-    tile_bytes = to_bitstream(tile_bits)
-    content_bytes = to_bitstream(content_bits)
-    child_bytes = to_bitstream(child_bits)
-    binary = tile_bytes + content_bytes + child_bytes
-    views = [
-        {"buffer": 0, "byteOffset": 0, "byteLength": len(tile_bytes)},
-        {"buffer": 0, "byteOffset": len(tile_bytes), "byteLength": len(content_bytes)},
-        {"buffer": 0, "byteOffset": len(tile_bytes) + len(content_bytes), "byteLength": len(child_bytes)},
-    ]
+    binary = bytearray()
+    views = []
+    for bits in (tile_bits, content_bits, child_bits):
+        payload = to_bitstream(bits)
+        # 3D Tiles 1.1 requires 8-byte-aligned offsets. The view excludes padding.
+        binary.extend(b"\0" * (-len(binary) % 8))
+        views.append({"buffer": 0, "byteOffset": len(binary), "byteLength": len(payload)})
+        binary.extend(payload)
     subtree = {
         "buffers": [{"uri": path.with_suffix(".bin").name, "byteLength": len(binary)}],
         "bufferViews": views,
@@ -377,59 +380,68 @@ def main():
     ap.add_argument("--max-items", type=int, default=50)
     ap.add_argument("--geometric-error", type=float, default=1000.0)
     args = ap.parse_args()
+    if args.max_depth < 0 or args.max_items < 1:
+        ap.error("max-depth must be nonnegative and max-items must be positive")
+    if not math.isfinite(args.geometric_error) or args.geometric_error < 0:
+        ap.error("geometric-error must be finite and nonnegative")
 
     ts = json.loads(args.input.read_text())
     children = ts.get("root", {}).get("children", [])
     if not children:
         raise SystemExit("flat tileset has no children")
 
-    # Preserve the HLOD root frame. Leaf tile transforms are relative to
-    # that frame; content vertices are flattened into the same frame before
-    # merging so individual building placements are not lost.
-    identity = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
-    root_node = ts.get("root", {})
-    root_transform = root_node.get("transform", identity)
-    if not isinstance(root_transform, list) or len(root_transform) != 16:
-        raise SystemExit("invalid root transform")
-    items = []
+    # Keep the HLOD root transform and flatten descendants into that frame.
+    root_node = ts["root"]
+    root_transform = root_node.get("transform", IDENTITY)
+    items: list[BuildingContent] = []
+    source_ids: set[int] = set()
 
-    def visit(node: dict, parent_local: list[float], is_root: bool = False):
-        local = parent_local if is_root else matmul(parent_local, node.get("transform", identity))
+    def visit(node: dict, local: list[float]):
         content = node.get("content", {})
         uri = content.get("uri")
-        sid = node.get("extras", {}).get("tsm", {}).get("sourceObjectId")
+        metadata = node.get("extras", {}).get("tsm", {})
+        sid = metadata.get("sourceObjectId")
         if uri and isinstance(sid, int) and not isinstance(sid, bool):
+            if sid in source_ids:
+                raise SystemExit(f"duplicate source OBJECTID: {sid}")
             glb_path = args.tiles_dir / uri
             if not glb_path.is_file():
                 raise SystemExit(f"missing source GLB: {glb_path}")
-            world_transform = matmul(root_transform, local)
-            ox, oy, oz = world_transform[12], world_transform[13], world_transform[14]
-            lon = math.degrees(math.atan2(oy, ox))
-            lat = math.degrees(math.atan2(oz, math.hypot(ox, oy)))
-            state_word = node.get("extras", {}).get("tsm", {}).get("stateWord")
-            if state_word is not None:
-                try:
-                    state_word = validate_state_word(state_word)
-                except ValueError as exc:
-                    raise SystemExit(f"invalid StateWord on source object {sid}: {exc}") from exc
-            items.append((glb_path, lon, lat, sid, local, state_word))
+            box = node.get("boundingVolume", {}).get("box")
+            if (not isinstance(box, list) or len(box) != 12
+                    or not all(isinstance(value, (int, float)) and math.isfinite(value) for value in box)):
+                raise SystemExit(f"source OBJECTID {sid} requires a finite boundingVolume.box")
+            bounds = aabb([transform_point(local, corner) for corner in box_corners(box)])
+            # Leave enough room for the merged float32 POSITION values at this magnitude.
+            bounds = tuple(v + (-1 if i < 3 else 1) * max(0.001, abs(v) * 2**-23)
+                           for i, v in enumerate(bounds))
+            word = metadata.get("stateWord")
+            try:
+                state_word = DEFAULT_STATE_WORD if word is None else validate_state_word(word)
+            except ValueError as exc:
+                raise SystemExit(f"invalid StateWord on source object {sid}: {exc}") from exc
+            gltf_transform = matmul(TILE_TO_GLTF, matmul(local, GLTF_TO_TILE))
+            items.append(BuildingContent(glb_path, sid, bounds, gltf_transform, state_word))
+            source_ids.add(sid)
         for child in node.get("children", []):
-            visit(child, local)
+            transform = child.get("transform", IDENTITY)
+            if (not isinstance(transform, list) or len(transform) != 16
+                    or not all(isinstance(value, (int, float)) and math.isfinite(value) for value in transform)):
+                raise SystemExit("invalid descendant tile transform")
+            visit(child, matmul(local, transform))
 
-    visit(root_node, identity, is_root=True)
+    if (not isinstance(root_transform, list) or len(root_transform) != 16
+            or not all(isinstance(value, (int, float)) and math.isfinite(value) for value in root_transform)):
+        raise SystemExit("invalid root transform")
+    visit(root_node, IDENTITY)
     if not items:
         raise SystemExit("no source building tiles with content and sourceObjectId were found")
 
-    lons = [i[1] for i in items]
-    lats = [i[2] for i in items]
-    root_bounds = (min(lons), min(lats), max(lons), max(lats))
-    # Pad slightly
-    pw = (root_bounds[2] - root_bounds[0]) * 0.01 + 1e-6
-    ph = (root_bounds[3] - root_bounds[1]) * 0.01 + 1e-6
-    root_bounds = (root_bounds[0] - pw, root_bounds[1] - ph,
-                   root_bounds[2] + pw, root_bounds[3] + ph)
-
-    root = QuadNode(0, 0, 0, root_bounds)
+    lo = [min(item.bounds[i] for item in items) for i in range(3)]
+    hi = [max(item.bounds[i + 3] for item in items) for i in range(3)]
+    center = [(a + b) / 2 for a, b in zip(lo, hi)]
+    half = [(b - a) / 2 for a, b in zip(lo, hi)]
+    root = QuadNode(0, 0, 0, (lo[0], lo[1], hi[0], hi[1]))
     root.items = items
     root.subdivide(args.max_depth, args.max_items)
 
@@ -437,29 +449,22 @@ def main():
     content_dir = out_dir / "content"
     subtree_dir = out_dir / "subtrees"
 
-    nodes = {}  # (level, x, y) -> {"has_content": bool}
+    nodes = {}
     leaf_count = 0
-    for leaf in root.leaves():
-        lvl, x, y = leaf.level, leaf.x, leaf.y
+    for node in root.all_nodes():
+        lvl, x, y = node.level, node.x, node.y
+        nodes[(lvl, x, y)] = {"has_content": bool(node.items)}
+        leaf_count += not node.children
+        if not node.items:
+            continue
         glb_path = content_dir / str(lvl) / str(x) / f"{y}.glb"
         glb_path.parent.mkdir(parents=True, exist_ok=True)
         merged = merge_glbs([
-            (it[0], int(it[3]), it[4], it[5]) if it[5] is not None
-            else (it[0], int(it[3]), it[4])
-            for it in leaf.items
+            (item.path, item.object_id, item.gltf_transform, item.state_word)
+            for item in node.items
         ])
         glb_path.write_bytes(merged)
-        nodes[(lvl, x, y)] = {"has_content": True,
-                              "sids": [it[3] for it in leaf.items]}
-        # Register ancestors
-        cl, cx, cy = lvl, x, y
-        while cl > 0:
-            cl -= 1
-            cx //= 2
-            cy //= 2
-            if (cl, cx, cy) not in nodes:
-                nodes[(cl, cx, cy)] = {"has_content": False}
-        leaf_count += 1
+        nodes[(lvl, x, y)]["sids"] = [item.object_id for item in node.items]
 
     # Write subtree files (grouped by SUBTREE_LEVELS)
     subtree_roots = set()
@@ -474,7 +479,6 @@ def main():
         write_subtree(spath, nodes, subtree_roots, sl, sx, sy)
 
     # Root tileset.json with implicitTiling (NO legacy extension)
-    w, s, e, n = root_bounds
     tileset = {
         "asset": {
             "version": "1.1",
@@ -483,6 +487,8 @@ def main():
             # implicit tiling is core in 3D Tiles 1.1.
             "extras": {"tsm": {
                 "authorityClass": "DERIVED",
+                "engineeringUse": False,
+                "regulatoryUse": False,
                 "implicitTiling": "QUADTREE",
                 "subtreeLevels": SUBTREE_LEVELS,
             }},
@@ -491,12 +497,10 @@ def main():
         "root": {
             "transform": root_transform,
             "boundingVolume": {
-                "region": [math.radians(w), math.radians(s),
-                           math.radians(e), math.radians(n),
-                           0, 500]
+                "box": [*center, half[0], 0, 0, 0, half[1], 0, 0, 0, half[2]],
             },
             "geometricError": args.geometric_error,
-            "refine": "REPLACE",
+            "refine": "ADD",
             "content": {"uri": "content/{level}/{x}/{y}.glb"},
             "implicitTiling": {
                 "subdivisionScheme": "QUADTREE",

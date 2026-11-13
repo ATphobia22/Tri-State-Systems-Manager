@@ -3,6 +3,8 @@ from __future__ import annotations
 import importlib.util
 import json
 import struct
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -69,8 +71,13 @@ class ImplicitTilesetContractTests(unittest.TestCase):
             self.assertEqual(subtree["contentAvailability"], [{"bitstream": 1}])
             self.assertEqual(subtree["childSubtreeAvailability"], {"bitstream": 2})
             raw = (subtree_path.parent / "0.bin").read_bytes()
-            self.assertEqual(len(raw), 4)  # 1 byte tile + 1 byte content + 2 bytes child subtrees
-            self.assertEqual(raw[2], 0b00000011)
+            self.assertEqual(subtree["buffers"][0]["byteLength"], len(raw))
+            views = subtree["bufferViews"]
+            self.assertEqual([view["byteLength"] for view in views], [1, 1, 2])
+            self.assertTrue(all(view["byteOffset"] % 8 == 0 for view in views))
+            payloads = [raw[view["byteOffset"]:view["byteOffset"] + view["byteLength"]]
+                        for view in views]
+            self.assertEqual(payloads, [b"\x1f", b"\x0a", b"\x03\x00"])
 
     def test_merged_glb_keeps_objectid_property_table_and_feature_ids(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -148,16 +155,64 @@ class ImplicitTilesetContractTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "invalid tile transform"):
                 MODULE.merge_glbs([(source, 101, [1.0, 0.0])])
 
-    def test_quadtree_subdivision_handles_six_field_items(self):
+    def test_quadtree_subdivision_keeps_every_building(self):
         node = MODULE.QuadNode(0, 0, 0, (0.0, 0.0, 1.0, 1.0))
         identity = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
         points = [(0.15, 0.15), (0.35, 0.15), (0.65, 0.15), (0.85, 0.15),
                   (0.15, 0.85), (0.35, 0.85), (0.65, 0.85), (0.85, 0.85)]
-        node.items = [(Path(f"{index}.glb"), x, y, 100 + index, identity[:], None)
+        node.items = [MODULE.BuildingContent(Path(f"{index}.glb"), 100 + index,
+                      (x - 0.02, y - 0.02, 0, x + 0.02, y + 0.02, 1),
+                      identity, MODULE.DEFAULT_STATE_WORD)
                       for index, (x, y) in enumerate(points)]
         node.subdivide(max_depth=2, max_items=2)
         self.assertTrue(node.children)
-        self.assertEqual(sum(len(leaf.items) for leaf in node.leaves()), 8)
+        self.assertEqual(sum(len(child.items) for child in node.all_nodes()), 8)
+
+    def test_cli_keeps_split_crossing_content_at_parent_and_rotates_gltf(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            # Two separated footprints and one that crosses the split.
+            children = []
+            for sid, x, y, width in ((101, -6, -6, 1), (102, 6, 6, 1), (103, 0, -2, 2)):
+                uri = f"{sid}.glb"
+                make_fixture_glb(root / uri)
+                children.append({
+                    "boundingVolume": {"box": [0, 0, 0.5, width, 0, 0, 0, 1, 0, 0, 0, 0.6]},
+                    "content": {"uri": uri},
+                    "extras": {"tsm": {"sourceObjectId": sid}},
+                    "transform": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, x, y, 3, 1],
+                })
+            source = root / "source.json"
+            root_transform = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 25, 50, 100, 1]
+            source.write_text(json.dumps({"root": {"transform": root_transform, "children": children}}))
+            output = root / "implicit" / "tileset.json"
+            subprocess.run(
+                [sys.executable, str(SCRIPT), "--input", str(source), "--tiles-dir", str(root),
+                 "--output", str(output), "--max-depth", "2", "--max-items", "1"],
+                check=True, capture_output=True, text=True,
+            )
+            tileset = json.loads(output.read_text())
+            result = tileset["root"]
+            self.assertEqual(result["transform"], root_transform)
+            self.assertIn("box", result["boundingVolume"])
+            self.assertEqual(result["refine"], "ADD")
+            from validate_feature_linkage import implicit_glb_object_ids
+            parent_content = output.parent / "content/0/0/0.glb"
+            violations = []
+            self.assertEqual(implicit_glb_object_ids(parent_content, violations), {103})
+            self.assertEqual(violations, [])
+            self.assertEqual(len(list(output.parent.rglob("*.glb"))), 3)
+            doc, binary = MODULE.read_glb(parent_content)
+            accessor = doc["accessors"][doc["meshes"][0]["primitives"][0]["attributes"]["POSITION"]]
+            pos = doc["bufferViews"][accessor["bufferView"]]["byteOffset"]
+            # A standard glTF Y-up vertex (0, 1, 0) is height +1 in a tile at (0, -2, 3).
+            self.assertEqual(struct.unpack_from("<3f", binary, pos + 24), (0.0, 4.0, 2.0))
+            from validate_spatial_coherence import check_implicit
+            check_implicit(tileset, output.parent, violations)
+            self.assertEqual(violations, [])
+            result["boundingVolume"]["box"][0] += 100
+            check_implicit(tileset, output.parent, violations)
+            self.assertTrue(any("POSITION bounds extend" in message for message in violations))
 
 if __name__ == "__main__":
     unittest.main()

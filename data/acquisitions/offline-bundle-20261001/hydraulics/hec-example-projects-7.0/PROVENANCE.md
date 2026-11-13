@@ -23,6 +23,11 @@ ships with 1D and 2D variants). No example models the confluence reach itself.
 - No public HEC-RAS model file for the Wabash–Ohio confluence reach exists on
   USACE publication channels (verified 2026-10-01).
 - ERDC/CHL TR-22-4 (confluence study) publishes only its PDF report, not model files.
-- The Ohio River Community HEC-RAS Model (operational, NWS OHRFC) is not
-  publicly downloadable; obtainable only by request to NWS OHRFC or USACE.
+- The uploaded **Ohio River Community HEC-RAS Model** conference paper
+  (Adams et al., 2010) documents a historical 1D unsteady Ohio River model and
+  its calibration. Use it as a reference for datum harmonization, calibration
+  and coordinated forecast inputs. The paper supplies no `.prj`, geometry,
+  flow, or plan HDF files. Those files are still needed to import or re-run a
+  model for the Ohio–Wabash reach. [Paper DOI](https://doi.org/10.1061/41114(371)160) ·
+  [USACE HEC-RAS project file reference](https://www.hec.usace.army.mil/confluence/rasdocs/rasum/6.5/working-with-projects)
 - USACE Levee Screening Tool (LST2) requires approved account registration.
