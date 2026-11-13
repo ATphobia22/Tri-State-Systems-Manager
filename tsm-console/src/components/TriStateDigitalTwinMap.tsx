@@ -365,16 +365,16 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
         // OpenFreeMap vector style is the cross-state basemap. Preserve native
         // Indiana imagery as an optional overlaid raster, never an IL/KY source.
         const imagery = getMapLibreFabricLayer('indiana-imagery').endpoint;
-        map.addSource('atlas-indiana-imagery', {
+        map.addSource('indiana-imagery', {
           type: 'raster',
           tiles: [buildArcGisExportTemplate(imagery, [], { format: 'jpg', transparent: false, compressionQuality: 90 })],
           tileSize: 512,
           attribution: 'Indiana Geographic Information Office',
         });
         map.addLayer({
-          id: 'atlas-indiana-imagery-layer',
+          id: 'indiana-imagery-layer',
           type: 'raster',
-          source: 'atlas-indiana-imagery',
+          source: 'indiana-imagery',
           layout: { visibility: showIndianaImageryRef.current ? 'visible' : 'none' },
         });
         // These GeoJSON sources are committed and WGS84-checked. Neither
@@ -566,7 +566,7 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
     if (!props.regionalAtlas) return;
     const map = mapRef.current;
     if (!map?.isStyleLoaded()) return;
-    const layer = 'atlas-indiana-imagery-layer';
+    const layer = 'indiana-imagery-layer';
     if (map.getLayer(layer)) map.setLayoutProperty(layer, 'visibility', props.showIndianaImagery ? 'visible' : 'none');
   }, [props.regionalAtlas, props.showIndianaImagery]);
 
