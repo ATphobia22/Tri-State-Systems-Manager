@@ -83,7 +83,7 @@ export default function TriStateAtlasView(): JSX.Element {
                   checked={!blocked && Boolean(layers[item.id])}
                   onChange={(event) => setLayers((current) => ({ ...current, [item.id]: event.target.checked }))} />
                 <span><strong>{item.title}</strong>
-                  <small>{item.sourceAuthority} · {blocked ? 'Unavailable / not map-renderable' : 'Configured source'}</small></span>
+                  <small>{item.authority} · {blocked ? 'Unavailable / not map-renderable' : 'Configured source'}</small></span>
               </label>;
             })}
           </div>
@@ -137,7 +137,7 @@ export default function TriStateAtlasView(): JSX.Element {
           {selectedSource && <div className="tsm-atlas-evidence">
             <h3>{selectedSource.title}</h3>
             <dl>
-              <dt>Source authority</dt><dd>{selectedSource.sourceAuthority}</dd>
+              <dt>Source authority</dt><dd>{selectedSource.authority}</dd>
               <dt>Fabric layer</dt><dd><code>{selectedSource.id}</code></dd>
               <dt>Adapter type</dt><dd>{selectedSource.kind}</dd>
               <dt>Map capable</dt><dd>{selectedSource.mapRenderable ? 'Registered as renderable, not runtime-verified' : 'No map renderer registered'}</dd>
