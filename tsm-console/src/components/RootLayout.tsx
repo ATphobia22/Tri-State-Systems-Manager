@@ -11,6 +11,7 @@ import { TourOnboardingHint } from './TourOnboardingHint';
 import BackgroundMusic from './BackgroundMusic';
 
 const nav = [
+  { to: '/atlas', label: '4D Engineering Atlas' },
   { to: '/', label: 'Memorial', end: true }, { to: '/architecture', label: 'Trust Planes' }, { to: '/experiences', label: 'Experiences' },
   { to: '/cinematic-engineering', label: 'Cinema Eng' }, { to: '/workspaces', label: 'Workspaces' },
   { to: '/river-watch', label: 'River Watch' },
