@@ -197,7 +197,7 @@ export default function TriStateAtlasView(): JSX.Element {
           <p>Registered layers come from TSM's existing spatial fabric. Switch sources on/off; unavailable endpoints are not replaced with invented geometry.</p>
           <div className="tsm-atlas-map-layers">
             {MAP_PLANE_FABRIC.map((item) => {
-              const blocked = !item.mapRenderable || (item.id === 'terrain-rgb' && !terrain.enabled) || (item.id.startsWith('indiana-') && !region.imagery);
+              const blocked = !item.mapRenderable || (item.id === 'terrain-rgb' && (!terrain.enabled || !region.imagery)) || (item.id.startsWith('indiana-') && !region.imagery);
               return <label key={item.id} className="tsm-atlas-layer">
                 <input type="checkbox"
                   disabled={blocked}
