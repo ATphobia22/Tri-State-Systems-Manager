@@ -68,3 +68,45 @@ The output sidecar \`.json.sha256\` verifies the generated receipt.
 Maintain the user-facing *informational-only* partial viewer when the strict
 production acceptance gate is unsatisfied. Track remaining obligations in
 [issue #416](https://github.com/ATphobia22/Tri-State-Systems-Manager/issues/416).
+
+
+## November 13, 2026 observed acceptance (run 43386782972)
+
+The latest reviewed build completed all COPC downloads and retained the
+**23,082 source-footprint identities**, but its strict production gate failed:
+
+| Evidence state | Count |
+| --- | ---: |
+| OBSERVED from 3DEP EPT Class 6 | 11,823 |
+| DERIVED from Indiana 2020 COPC Class 1 | 8,693 |
+| UNAVAILABLE | **2,566** |
+| Source identities | **23,082** |
+
+The private, hash-pinned gap receipt classifies the 2,566 unavailable heights:
+
+- 2,269 ROOF_RETURNS_TREE_CONFOUNDED
+- 273 INSUFFICIENT_GROUND_RETURNS
+- 24 INSUFFICIENT_ROOF_RETURNS
+
+**Separate terrain evidence:** this run's gap receipt reported only 246
+DEM_SAMPLED and 22,836 DEM_UNAVAILABLE entries; this is NOT a declaration
+that all these parcels lack terrain in the real world. Review footprint DEM
+sampling and raster AOI CRS, nodata and source coverage independently.
+
+This change corrects a genuine COPC footprint clipping defect: the prior
+code used only one exterior ring of a MultiPolygon (selected by vertex count,
+not area), and ignored all interior holes. That could make detached roofs
+unavailable or include canopy within an excluded courtyard. The new
+get_footprint_polygons_spw preserves all parts, excludes holes and rejects
+nonfinite WGS84 input, without modifying confidence thresholds or accepting
+synthetic heights. The change requires a **fresh derived-extraction checkpoint**
+because the source script hash is intentionally pinned in the checkpoint.
+
+**This is a geometric correctness repair, not evidence of recovered heights.**
+Neither the remaining 2,566 nor the DEM coverage gap can be marked resolved
+until the rerun produces an exact per-OBJECTID source-linked record with a
+verified source hash and the original hard gate passes. A successful footprint
+join by itself never establishes roof geometry/height validity.
+
+See: [Building 3D Tiles failed run 43386782972](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions/runs/43386782972)
+and the tsm-building-height-gap-evidence-43386782972 artifact.
