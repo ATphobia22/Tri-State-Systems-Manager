@@ -37,7 +37,8 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install pinned GIS verifier libraries for test fixtures only
-        run: python -m pip install --disable-pip-version-check --only-binary=:all: 'shapely==2.1.2' 'pyproj==3.7.2' 'rasterio==1.4.3'
+        run: |
+          python -m pip install --disable-pip-version-check --only-binary=:all: 'shapely==2.1.2' 'pyproj==3.7.2' 'rasterio==1.4.3'
       - name: Parse regional policy and verify explicit county scope differences
         run: |
           python - <<'PY'
