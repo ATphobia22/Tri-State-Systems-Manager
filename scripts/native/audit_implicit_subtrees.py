@@ -195,7 +195,7 @@ def traverse_implicit(
         tile_avail = availability(subtree.get("tileAvailability"), tile_bits)
         child_avail = availability(subtree.get("childSubtreeAvailability"), child_bits)
         content_def = subtree.get("contentAvailability", [])
-        if len(contents) != len(content_def) or not isinstance(content_def, list):
+        if not isinstance(content_def, list) or len(contents) != len(content_def):
             raise ValueError("implicit content availability does not match templates")
         content_avail = [availability(record, tile_bits) for record in content_def]
         if not tile_avail[0]:
