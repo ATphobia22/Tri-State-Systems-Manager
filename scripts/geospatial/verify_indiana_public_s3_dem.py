@@ -16,7 +16,10 @@ import re
 from datetime import datetime, timezone
 from pathlib import Path
 
-BUCKET = "giselevationingov"
+# Official IGIO DEM tile `urlpath` records in the committed Posey manifest
+# point to gisimageryingov (distinct from the giselevationingov LiDAR catalog).
+# Object existence is still checked with anonymous HEAD and per-byte hashes.
+BUCKET = "gisimageryingov"
 REGION = "us-east-2"
 PREFIX = "demoptimized/statewide/2020/SPW/2.5ft/"
 SERVICE = ("https://gisdata.in.gov/server/rest/services/Hosted/"
