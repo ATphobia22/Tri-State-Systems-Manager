@@ -109,7 +109,8 @@ export default function TriStateAtlasView(): JSX.Element {
     anchor.click();
     URL.revokeObjectURL(url);
   };
-  const [layers, setLayers] = useState<Record<string, boolean>>(defaultMapPlaneVisibility);
+  const atlasDefaultLayers = (): Record<string, boolean> => ({ ...defaultMapPlaneVisibility(), 'indiana-imagery': true });
+  const [layers, setLayers] = useState<Record<string, boolean>>(atlasDefaultLayers);
   const [sourceId, setSourceId] = useState(MAP_PLANE_FABRIC[0]?.id ?? '');
   const [fabricPlane, setFabricPlane] = useState<FabricPlane>('EVIDENCE_DATA_GOVERNANCE');
   const [riverOpen, setRiverOpen] = useState(false);
@@ -208,7 +209,7 @@ export default function TriStateAtlasView(): JSX.Element {
               </label>;
             })}
           </div>
-          <button type="button" className="tsm-atlas-reset" onClick={() => setLayers(defaultMapPlaneVisibility())}>Reset repository layer defaults</button>
+          <button type="button" className="tsm-atlas-reset" onClick={() => setLayers(atlasDefaultLayers())}>Reset repository layer defaults</button>
         </aside>
 
         <section className="tsm-atlas-stage" aria-label="Actual TSM MapLibre digital twin">
