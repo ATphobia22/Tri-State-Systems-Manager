@@ -556,23 +556,23 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
         }
         const feature = features[0];
         const layerId = feature.layer.id;
-        const props = feature.properties ?? {};
+        const featureProps = feature.properties ?? {};
         if (layerId === 'atlas-nps-historic-points') {
           setSelectedBuilding(null);
-          setPicked(`NPS National Register listing · ${String(props.RESNAME ?? 'Unnamed resource')} · ${String(props.County ?? 'county unavailable')} · not survey-grade coordinates`);
+          setPicked(`NPS National Register listing · ${String(featureProps.RESNAME ?? 'Unnamed resource')} · ${String(featureProps.County ?? 'county unavailable')} · not survey-grade coordinates`);
         } else if (layerId === 'atlas-usgs-gauge-points') {
-          const name = String(props.name ?? props.stationId ?? 'USGS station');
+          const name = String(featureProps.name ?? featureProps.stationId ?? 'USGS station');
           setSelectedBuilding(null);
           setPicked(`${name} · station location only; fetch observations separately`);
         } else if (layerId === 'atlas-usace-ehydro-outline') {
           setSelectedBuilding(null);
-          setPicked(`USACE eHydro survey extent · ${String(props.surveyDate ?? 'undated')} · Ohio River Datum; no NAVD88 offset asserted`);
+          setPicked(`USACE eHydro survey extent · ${String(featureProps.surveyDate ?? 'undated')} · Ohio River Datum; no NAVD88 offset asserted`);
         } else if (layerId === 'indiana-buildings-extrusion' || layerId === 'indiana-buildings-footprint') {
-          setSelectedBuilding(props);
+          setSelectedBuilding(featureProps);
           setPicked(null);
         } else {
           setSelectedBuilding(null);
-          setPicked(describePickedFeature(layerId, props));
+          setPicked(describePickedFeature(layerId, featureProps));
         }
       });
       map.on('mousemove', (event) => {
