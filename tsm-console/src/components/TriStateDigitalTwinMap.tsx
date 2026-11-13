@@ -210,6 +210,8 @@ export interface TriStateDigitalTwinMapProps {
   onVisibleChange?: (next: Record<string, boolean>) => void;
   /** Visual-only MapLibre light and sky preset; never used as environmental evidence. */
   lightPreset?: CinematicLightPreset;
+  /** Forward actual MapLibre adapter state to an accessible external status panel. */
+  onStatusChange?: (status: string) => void;
 }
 
 export function defaultMapPlaneVisibility(): Record<string, boolean> {
@@ -227,6 +229,7 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
   const visible = controlled ? (props.visible as Record<string, boolean>) : internalVisible;
   const [terrainEnabled, setTerrainEnabled] = useState(false);
   const [status, setStatus] = useState('Initializing MapLibre plane…');
+  useEffect(() => { props.onStatusChange?.(status); }, [status, props.onStatusChange]);
   const [picked, setPicked] = useState<string | null>(null);
   const [selectedBuilding, setSelectedBuilding] = useState<Record<string, unknown> | null>(null);
   const [floodOverlayOn, setFloodOverlayOn] = useState(false);
