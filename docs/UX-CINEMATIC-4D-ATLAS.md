@@ -18,6 +18,10 @@ The experience should **feel like a cinematic city builder** without presenting 
 
 Source code existing is not proof of a working, complete, signed, or validated distributed application.
 
+## Interactive prototype
+
+A keyboard-accessible, responsive, dependency-free [experience preview](../tsm-console/public/experience-preview.html) is included in the Vite public directory. When running the web console locally, open `/experience-preview.html` under the Vite development origin (taking its configured base path into account when hosted). Explore/Simulate/Verify tabs, conceptual layer switches, reset and a visual-only scenario-frame slider work in the browser. This prototype intentionally contains no measurements, downloaded datasets, real world positions or scientific solver calls. GitHub file preview does not execute this HTML; it must be served or opened in a browser.
+
 ## Design system
 
 | Token | Value | Application |
