@@ -28,7 +28,7 @@ test('Pages grant inventory is a byte-identical repository source snapshot', () 
 });
 
 test('Pages direct USGS reader is user-triggered, on official API and datum-aware', () => {
-  assert.match(gauge, /https:\/\/api\.waterdata\.usgs\.gov\/ogcapi\/v1\/collections\/latest-continuous\/items/);
+  assert.ok(gauge.includes("const ENDPOINT = 'https://api.waterdata.usgs.gov/ogcapi/v1/collections/latest-continuous/items';"), 'gauge reader must use the exact official USGS endpoint');
   assert.match(gauge, /parameter_code', '00065'/);
   assert.match(gauge, /onClick=\{\(\) => void getReading\(\)\}/);
   assert.doesNotMatch(gauge, /setInterval\s*\(/);
@@ -50,7 +50,7 @@ test('Historic flood events are cited stages, never spatial inundation surfaces'
 test('NPS layer and USACE survey footprints are source labeled, opt-in and non-regulatory', () => {
   assert.equal(surveys.features.length, 20);
   assert.match(map, /https:\/\/mapservices\.nps\.gov\/arcgis\/rest\/services\/cultural_resources\/nrhp_locations\/MapServer\/0\/query/);
-  assert.match(vite, /https:\/\/mapservices\.nps\.gov/);
+  assert.ok(vite.includes("'https://mapservices.nps.gov'"), 'CSP must explicitly allow official NPS GIS origin');
   assert.match(view, /historic: false/);
   assert.match(view, /checked=\{regionalLayers\.historic\}/);
   assert.match(map, /not survey-grade coordinates/);
