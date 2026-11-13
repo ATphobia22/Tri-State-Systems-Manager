@@ -52,18 +52,18 @@ test('README map illustration is generated from real checked-in sources, not a f
 
 test('regional atlas uses a state-spanning vector style, source-backed geometry and actual camera controls', () => {
   assert.match(atlas, /REGIONAL_VIEWS/);
-  assert.match(atlas, /regionalView=\\{region\\}/);
-  assert.match(atlas, /regionalLayers=\\{regionalLayers\\}/);
+  assert.match(atlas, /regionalView=\{region\}/);
+  assert.match(atlas, /regionalLayers=\{regionalLayers\}/);
   assert.match(atlas, /type="range"/);
-  assert.match(atlas, /Visual day\\/night cycle/);
+  assert.match(atlas, /Visual day\/night cycle/);
   assert.match(atlas, /does not advance USGS observations/);
   assert.match(map, /REGIONAL_MAX_BOUNDS/);
-  assert.match(map, /https:\\/\\/tiles\\.openfreemap\\.org\\/styles\\/liberty/);
-  assert.match(map, /data\\/tsm-river-gauge-locations\\.geojson/);
-  assert.match(map, /data\\/ehydro-survey-extents\\.geojson/);
+  assert.match(map, /https:\/\/tiles\.openfreemap\.org\/styles\/liberty/);
+  assert.match(map, /data\/tsm-river-gauge-locations\.geojson/);
+  assert.match(map, /data\/ehydro-survey-extents\.geojson/);
   assert.match(map, /atlas-usgs-gauge-points/);
   assert.match(map, /atlas-usace-ehydro-outline/);
-  assert.doesNotMatch(map, /data\\/leveed-areas-wabash-v1\\.geojson/);
+  assert.doesNotMatch(map, /data\/leveed-areas-wabash-v1\.geojson/);
   assert.equal(stations.features.length, 10);
   assert.equal(hydro.features.length, 20);
 });
