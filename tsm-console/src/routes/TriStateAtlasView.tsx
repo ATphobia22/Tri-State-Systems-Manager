@@ -13,6 +13,18 @@ import './TriStateAtlasView.css';
 
 type Lens = 'explore' | 'engineer' | 'review';
 type Light = 'day' | 'golden' | 'night';
+type RegionView = { id: string; label: string; center: [number, number]; zoom: number; pitch: number; bearing: number; imagery: boolean; notes: string };
+// Navigation-only geocoding. These coordinates are NOT survey control points.
+const REGIONAL_VIEWS: readonly RegionView[] = [
+  { id: 'posey', label: 'Mount Vernon · Posey IN', center: [-87.895591, 37.932132], zoom: 11.5, pitch: 57, bearing: -18, imagery: true, notes: 'Indiana imagery can be layered over regional OpenFreeMap roads.' },
+  { id: 'new-harmony', label: 'New Harmony · Wabash IN', center: [-87.934995, 38.129801], zoom: 12, pitch: 55, bearing: -12, imagery: true, notes: 'USGS gauge locations can be inspected here; no station readings are prefilled.' },
+  { id: 'henderson', label: 'Henderson · Kentucky', center: [-87.5925, 37.839489], zoom: 12, pitch: 52, bearing: -14, imagery: false, notes: 'Regional street basemap only. Indiana aerial coverage is not relabeled as Kentucky.' },
+  { id: 'shawneetown', label: 'Shawneetown · Illinois', center: [-88.187197, 37.715479], zoom: 11.5, pitch: 53, bearing: -22, imagery: false, notes: 'Regional street basemap only; local authoritative GIS detail requires separate sources.' },
+  { id: 'regional', label: 'Three-state overview', center: [-87.99, 37.96], zoom: 9.3, pitch: 40, bearing: 0, imagery: false, notes: 'Multi-state context view; survey rectangles are not mapped flood or river depths.' },
+];
+function lightForHour(hour: number): Light {
+  return hour < 6 || hour >= 20 ? 'night' : hour >= 16 ? 'golden' : 'day';
+}
 const LENSES: readonly { id: Lens; label: string; description: string }[] = [
   { id: 'explore', label: 'Explore', description: 'See real mapped places, public GIS layers, rivers and buildings.' },
   { id: 'engineer', label: 'Engineer', description: 'Inspect maps, open scientific workbenches and compare authority layers.' },
@@ -31,6 +43,9 @@ const mapCount = MAP_PLANE_FABRIC.length;
 export default function TriStateAtlasView(): JSX.Element {
   const [lens, setLens] = useState<Lens>('explore');
   const [light, setLight] = useState<Light>('golden');
+  const [sceneHour, setSceneHour] = useState(17);
+  const [regionId, setRegionId] = useState('posey');
+  const [regionalLayers, setRegionalLayers] = useState({ gauges: true, surveys: false });
   const [layers, setLayers] = useState<Record<string, boolean>>(defaultMapPlaneVisibility);
   const [sourceId, setSourceId] = useState(MAP_PLANE_FABRIC[0]?.id ?? '');
   const [fabricPlane, setFabricPlane] = useState<FabricPlane>('EVIDENCE_DATA_GOVERNANCE');
@@ -39,6 +54,7 @@ export default function TriStateAtlasView(): JSX.Element {
   const onMapStatus = useCallback((status: string) => setMapStatus(status), []);
   const selectedSource: MapPlaneLayer | undefined = MAP_PLANE_FABRIC.find((layer) => layer.id === sourceId);
   const terrain = getTerrainRgbStatus();
+  const region = REGIONAL_VIEWS.find((item) => item.id === regionId) ?? REGIONAL_VIEWS[0]!;
   const visibleFabric = TSM_DATA_FABRICS.filter((item) => item.plane === fabricPlane);
   const changeLens = (next: Lens) => {
     setLens(next);
@@ -72,6 +88,21 @@ export default function TriStateAtlasView(): JSX.Element {
 
       <div className="tsm-atlas-workspace">
         <aside className="tsm-atlas-panel tsm-atlas-controls" aria-label="Real source layer controls">
+          <h2>Explore the river valley</h2>
+          <label htmlFor="tsm-atlas-region">Travel to a community</label>
+          <select id="tsm-atlas-region" value={regionId} onChange={(event) => setRegionId(event.target.value)}>
+            {REGIONAL_VIEWS.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
+          </select>
+          <p className="tsm-atlas-region-note">{region.notes}</p>
+          <fieldset className="tsm-atlas-regional-layers">
+            <legend>Repository-staged regional evidence</legend>
+            <label><input type="checkbox" checked={regionalLayers.gauges}
+              onChange={(event) => setRegionalLayers((prev) => ({ ...prev, gauges: event.target.checked }))} />
+              USGS gauge points <small>(10 locations, not live stage)</small></label>
+            <label><input type="checkbox" checked={regionalLayers.surveys}
+              onChange={(event) => setRegionalLayers((prev) => ({ ...prev, surveys: event.target.checked }))} />
+              USACE eHydro extents <small>(20 survey footprints, not flood water)</small></label>
+          </fieldset>
           <h2>Real map layers</h2>
           <p>Registered layers come from TSM's existing spatial fabric. Switch sources on/off; unavailable endpoints are not replaced with invented geometry.</p>
           <div className="tsm-atlas-map-layers">
@@ -92,16 +123,24 @@ export default function TriStateAtlasView(): JSX.Element {
 
         <section className="tsm-atlas-stage" aria-label="Actual TSM MapLibre digital twin">
           <div className="tsm-atlas-stage-toolbar">
-            <div><strong>3D map canvas</strong><small>Source-linked MapLibre · visual coordinates EPSG:3857</small></div>
+            <div><strong>3D map canvas</strong><small>OpenFreeMap regional context + authority layers · EPSG:3857</small></div>
             <fieldset className="tsm-atlas-lighting">
               <legend>Visual lighting only</legend>
               {(['day', 'golden', 'night'] as const).map((preset) =>
                 <label key={preset}><input type="radio" name="tsm-atlas-light" value={preset}
-                  checked={light === preset} onChange={() => setLight(preset)} />{preset}</label>)}
+                  checked={light === preset} onChange={() => { setLight(preset); setSceneHour(preset === 'day' ? 12 : preset === 'golden' ? 18 : 22); }} />{preset}</label>)}
             </fieldset>
           </div>
+          <div className="tsm-atlas-timebar">
+            <label htmlFor="tsm-atlas-hour">Visual day/night cycle <strong>{String(sceneHour).padStart(2, '0')}:00</strong></label>
+            <input id="tsm-atlas-hour" type="range" min={0} max={23} step={1} value={sceneHour}
+              onChange={(event) => { const next = Number(event.target.value); setSceneHour(next); setLight(lightForHour(next)); }} />
+            <small>4D presentation time only: does not advance USGS observations, hydrology, land cover, or hydraulic simulations.</small>
+          </div>
           <div className="tsm-atlas-map">
-            <TriStateDigitalTwinMap hideSidebar visible={layers} onVisibleChange={setLayers} lightPreset={light} onStatusChange={onMapStatus} />
+            <TriStateDigitalTwinMap hideSidebar visible={layers} onVisibleChange={setLayers}
+              regionalAtlas regionalView={region} regionalLayers={regionalLayers}
+              showIndianaImagery={region.imagery} lightPreset={light} onStatusChange={onMapStatus} />
           </div>
           <div className="tsm-atlas-map-status" role="status" aria-live="polite">
             <strong>Map adapter:</strong> {mapStatus}
