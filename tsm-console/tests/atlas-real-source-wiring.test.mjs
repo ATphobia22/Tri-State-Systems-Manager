@@ -48,3 +48,42 @@ test('README map illustration is generated from real checked-in sources, not a f
   assert.match(svg, /USACE eHydro survey extents/);
   assert.match(svg, /NO LIVE WATER VALUES IN THIS IMAGE/);
 });
+
+
+test('regional atlas uses a state-spanning vector style, source-backed geometry and actual camera controls', () => {
+  assert.match(atlas, /REGIONAL_VIEWS/);
+  assert.match(atlas, /regionalView=\\{region\\}/);
+  assert.match(atlas, /regionalLayers=\\{regionalLayers\\}/);
+  assert.match(atlas, /type="range"/);
+  assert.match(atlas, /Visual day\\/night cycle/);
+  assert.match(atlas, /does not advance USGS observations/);
+  assert.match(map, /REGIONAL_MAX_BOUNDS/);
+  assert.match(map, /https:\\/\\/tiles\\.openfreemap\\.org\\/styles\\/liberty/);
+  assert.match(map, /data\\/tsm-river-gauge-locations\\.geojson/);
+  assert.match(map, /data\\/ehydro-survey-extents\\.geojson/);
+  assert.match(map, /atlas-usgs-gauge-points/);
+  assert.match(map, /atlas-usace-ehydro-outline/);
+  assert.doesNotMatch(map, /data\\/leveed-areas-wabash-v1\\.geojson/);
+  assert.equal(stations.features.length, 10);
+  assert.equal(hydro.features.length, 20);
+});
+
+test('regional static source geometries are WGS84, not elevations or simulated flood maps', () => {
+  for (const feature of stations.features) {
+    assert.equal(feature.geometry.type, 'Point');
+    const [lon, lat] = feature.geometry.coordinates;
+    assert.ok(Number.isFinite(lon) && Math.abs(lon) <= 180);
+    assert.ok(Number.isFinite(lat) && Math.abs(lat) <= 90);
+    assert.equal(feature.properties.locationOnly, true);
+  }
+  assert.equal(hydro.properties.verticalDatum, 'Ohio River Datum');
+  for (const feature of hydro.features) {
+    assert.equal(feature.geometry.type, 'Polygon');
+    for (const ring of feature.geometry.coordinates) {
+      for (const [lon, lat] of ring) {
+        assert.ok(Number.isFinite(lon) && Math.abs(lon) <= 180);
+        assert.ok(Number.isFinite(lat) && Math.abs(lat) <= 90);
+      }
+    }
+  }
+});
