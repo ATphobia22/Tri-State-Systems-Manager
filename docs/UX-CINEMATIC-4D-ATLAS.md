@@ -1,6 +1,6 @@
 # TSM | Cinematic 4D Atlas Experience Design
 
-> **Status:** UX implementation blueprint, 2026-11-13. This document defines proposed interaction behavior and acceptance criteria; it does **not** assert that the behaviors have been implemented or released. The README illustration is original concept art, not terrain, a map, an engineering model, or authoritative data.
+> **Status:** UX implementation blueprint, 2026-11-13. This document defines proposed interaction behavior and acceptance criteria; it does **not** assert that the behaviors have been implemented or released. The README preview is drawn from static, repo-staged source geometry; it is not live telemetry, an engineering model or authoritative hydrologic interpretation.
 
 ## Intent
 
@@ -18,9 +18,25 @@ The experience should **feel like a cinematic city builder** without presenting 
 
 Source code existing is not proof of a working, complete, signed, or validated distributed application.
 
-## Interactive prototype
+## Actual repository-connected implementation
 
-A keyboard-accessible, responsive, dependency-free [experience preview](../tsm-console/public/experience-preview.html) is included in the Vite public directory. When running the web console locally, open `/experience-preview.html` under the Vite development origin (taking its configured base path into account when hosted). Explore/Simulate/Verify tabs, conceptual layer switches, reset and a visual-only scenario-frame slider work in the browser. This prototype intentionally contains no measurements, downloaded datasets, real world positions or scientific solver calls. GitHub file preview does not execute this HTML; it must be served or opened in a browser.
+The [4D Atlas route](../tsm-console/src/routes/TriStateAtlasView.tsx), registered as `/atlas` in [React Router](../tsm-console/src/lib/router.tsx), now composes the **real** [TriStateDigitalTwinMap](../tsm-console/src/components/TriStateDigitalTwinMap.tsx) and [RiverGaugeBoard](../tsm-console/src/components/RiverGaugeBoard.tsx). No second mock map or fake flood timeline is used.
+
+- **Actual map:** existing MapLibre source adapters, MapPlane Fabric controls, IGIO imagery/roads/parcels/building footprints, FEMA NFHL effective, Indiana DNR planning, 3DEP indexes and provenance-aware optional terrain. Runtime availability depends on source access and deployment environment; layer registration is not proof of retrieval.
+- **Real-time on demand:** the station board calls the existing TSM hydrology API `/api/hydrologic/community` **only after the user presses Fetch live snapshot**. Each response retains site, provider, units, observation and retrieval timestamps, qualifier and provisional status. It fails visibly if the TSM backend is not configured or reachable. No live values are guessed and the browser does not directly contact providers.
+- **Cinematic:** selectable visual lighting presets on an actual geospatial map, with no claim that lighting is atmospheric measurement.
+- **Scientific work:** direct navigation into the existing flood-sim, engineering section, cinematic engineering, site-calculation and evidence routes. No new undocumented solver or reclassification of simulated output.
+- **Data fabrics:** actual exported `TSM_DATA_FABRICS` and `MAP_PLANE_FABRIC` inventories, with source/authority/module/limitations revealed in the UI. Flags `implemented` and `live` describe registered capability, **not** live source health or validation of delivered data.
+- **Accessibility:** responsive layout, accessible keyboard controls, map alternative descriptions, visible focus, minimum touch-target design, high contrast and `prefers-reduced-motion` styling. Screen-reader and hands-on acceptance still require headed verification.
+
+The [README hero](assets/tsm-source-backed-atlas.svg) is a **static, source-derived preview**, built by projecting existing committed georeferenced station coordinates and USACE eHydro survey extents. It explicitly contains no live values or synthetic river channels. This is distinct from the web Atlas itself.
+
+### Runtime and publishing boundaries
+
+GitHub repository READMEs render as static documents. The live React route runs in the built Vite console, not inside the README. The linked Pages destination is `https://atphobia22.github.io/Tri-State-Systems-Manager/atlas` **after a successful deployment**. The route should be smoke-tested as a deep link with the configured Vite base and existing Pages SPA fallback. GitHub Pages alone cannot run the TSM Node API. A same-origin reverse proxy or `VITE_TSM_API_BASE_URL`/runtime configuration is required for live hydrology.
+
+**Not yet independently verified here:** full browser run, mobile/assistive tech acceptance, deployed Pages deep-link behavior, backend connectivity, live USGS snapshots, data licensing/retrieval success, full building height reconciliation, vertical datum, or UE5.8 Shipping/air-gapped installer acceptance.
+
 
 ## Design system
 
