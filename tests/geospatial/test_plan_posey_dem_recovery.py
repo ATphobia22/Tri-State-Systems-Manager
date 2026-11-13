@@ -12,6 +12,13 @@ spec.loader.exec_module(mod)
 
 
 class TestTilePlan(unittest.TestCase):
+    def test_dem_plan_uses_distinct_official_imagery_bucket(self):
+        from verify_indiana_public_s3_dem import BUCKET, PREFIX
+        self.assertEqual(mod.SOURCE_BUCKET, "gisimageryingov")
+        self.assertEqual(mod.SOURCE_BUCKET, BUCKET)
+        self.assertEqual(mod.SOURCE_PREFIX, PREFIX)
+        self.assertNotEqual(mod.SOURCE_BUCKET, "giselevationingov")
+
     def test_single_tile_and_grid_boundary(self):
         self.assertEqual(
             mod.tile_names_for_bounds((2670001, 930001, 2674999, 934999)),
