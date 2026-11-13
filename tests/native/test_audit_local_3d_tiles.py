@@ -109,6 +109,51 @@ class LocalTilesAuditTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "header"):
             module.audit(self.root, self.index)
 
+    def test_implicit_rejects_unsafe_python_format_expansion(self):
+        self.implicit_fixture()
+        spec = json.loads(self.index.read_text())
+        spec["root"]["content"]["uri"] = "content/{level}/{x:>999999999}/{y}.glb"
+        self.index.write_text(json.dumps(spec))
+        with self.assertRaisesRegex(ValueError, "template"):
+            module.audit(self.root, self.index)
+
+    def test_implicit_rejects_missing_coordinate_in_template(self):
+        self.implicit_fixture()
+        spec = json.loads(self.index.read_text())
+        spec["root"]["implicitTiling"]["subtrees"]["uri"] = "subtrees/{level}/{x}.subtree"
+        self.index.write_text(json.dumps(spec))
+        with self.assertRaisesRegex(ValueError, "template"):
+            module.audit(self.root, self.index)
+
+    def test_implicit_rejects_explicit_children(self):
+        self.implicit_fixture()
+        spec = json.loads(self.index.read_text())
+        spec["root"]["children"] = []
+        self.index.write_text(json.dumps(spec))
+        with self.assertRaisesRegex(ValueError, "children"):
+            module.audit(self.root, self.index)
+
+    def test_implicit_rejects_external_tileset_content(self):
+        self.implicit_fixture()
+        spec = json.loads(self.index.read_text())
+        spec["root"]["content"]["uri"] = "content/{level}/{x}/{y}.json"
+        self.index.write_text(json.dumps(spec))
+        (self.root / "content/0/0/0.json").write_text('{"root":{}}')
+        with self.assertRaisesRegex(ValueError, "external tileset"):
+            module.audit(self.root, self.index)
+
+    def test_implicit_rejects_second_internal_buffer(self):
+        self.implicit_fixture()
+        subtree = self.root / "subtrees/1/0/0.subtree"
+        subtree.write_text(json.dumps({
+            "buffers": [{"byteLength": 0}, {"byteLength": 0}],
+            "tileAvailability": {"constant": 1},
+            "contentAvailability": [{"constant": 1}],
+            "childSubtreeAvailability": {"constant": 0}
+        }))
+        with self.assertRaisesRegex(ValueError, "internal"):
+            module.audit(self.root, self.index)
+
     def test_implicit_uri_traversal_fails(self):
         self.implicit_fixture()
         spec = json.loads(self.index.read_text())
