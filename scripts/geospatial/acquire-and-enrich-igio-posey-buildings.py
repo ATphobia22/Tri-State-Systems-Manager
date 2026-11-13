@@ -27,6 +27,7 @@ from pathlib import Path
 from urllib.parse import urlencode, urlparse
 
 from dem_vertical_evidence import pinned_navd88_scale_to_ft
+from posey_ground_sample import ground_elevation_fields
 
 from verify_igio_footprint_cache import (
     MAX_BYTES,
@@ -517,25 +518,7 @@ def main() -> None:
             sample_points = [c] + [(float(p[0]), float(p[1])) for p in ring[::max(1, len(ring)//16)]]
             result = sampler.sample(sample_points)
             props = feature["properties"]
-            props["groundElevationSource"] = "TSM committed Posey 3DEP-derived DEM"
-            props["groundElevationMethod"] = "IGIO-footprint centroid+boundary sampling"
-            props["groundElevationReference"] = result[4] if result else None
-            if result:
-                props["groundElevationMinFt"] = result[0]
-                props["groundElevationMaxFt"] = result[1]
-                props["groundElevationMeanFt"] = result[2]
-                props["groundElevationFt"] = result[2]
-                props["groundElevationSampleCount"] = result[3]
-                props["elevationCoverage"] = "SAMPLED"
-            else:
-                no_elevation += 1
-                props["groundElevationMinFt"] = None
-                props["groundElevationMaxFt"] = None
-                props["groundElevationMeanFt"] = None
-                props["groundElevationFt"] = None
-                props["groundElevationSampleCount"] = 0
-                props["groundElevationReference"] = None
-                props["elevationCoverage"] = "UNAVAILABLE"
+            props.update(ground_elevation_fields(result))
             props["sourceAuthority"] = "Indiana Geographic Information Office"
             props["authorityClass"] = "DERIVED"
             props["geometrySource"] = "Indiana Building Footprints 2016-2020"
