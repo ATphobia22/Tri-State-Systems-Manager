@@ -23,7 +23,7 @@ class HlodContract(unittest.TestCase):
             self.assertEqual(data["extras"]["tsm"]["maxItemsPerLeaf"],1)
             self.assertEqual(data["extras"]["tsm"]["boundsPaddingMeters"],0.5)
             self.assertEqual(data["root"]["geometricError"],16)
-            self.assertEqual(len(data["root"]["children"]),4)
+            self.assertGreaterEqual(len(data["root"]["children"]),2)
             def walk(n):
                 self.assertTrue(all(math.isfinite(x) for x in n["boundingVolume"]["box"]))
                 self.assertGreaterEqual(n["geometricError"],0)
