@@ -31,7 +31,7 @@ def box(lo,hi,p=.5):
 @dataclass(frozen=True)
 class Item: tile:dict; sid:int|None; center:V; lo:V; hi:V
 class Q:
- def __init__(self,items,depth,max_items,max_depth,fallback_error,padding):
+ def __init__(self,items,depth,max_items,max_depth,fallback_error,padding=0.5):
   self.items=sorted(items,key=lambda i:(i.center.x,i.center.y,i.center.z,i.sid if i.sid is not None else -1)); self.depth=depth; self.padding=padding
   # Internal ADD tiles carry no simplified geometry. Keep the source-root
   # fallback as a floor and preserve any larger declared descendant error.
@@ -48,9 +48,20 @@ class Q:
   self.geometric_error=max([float(fallback_error), *errors])
   self.lo=V(min(i.lo.x for i in items),min(i.lo.y for i in items),min(i.lo.z for i in items)); self.hi=V(max(i.hi.x for i in items),max(i.hi.y for i in items),max(i.hi.z for i in items)); self.children=[]
   if len(items)>max_items and depth<max_depth:
-   mx=(self.lo.x+self.hi.x)/2; my=(self.lo.y+self.hi.y)/2; q=[[] for _ in range(4)]
-   for i in self.items:q[(0 if i.center.y<my else 1)*2+(0 if i.center.x<mx else 1)].append(i)
-   self.children=[Q(x,depth+1,max_items,max_depth,self.geometric_error,padding) for x in q if x]
+   # A horizontal XY-only split collapses when sources lie on a narrow
+   # vertical/ECEF-aligned axis. Split along the two locally widest ENU axes,
+   # retaining original 3D OBBs, and never manufacture empty child geometry.
+   ranges=[self.hi.x-self.lo.x,self.hi.y-self.lo.y,self.hi.z-self.lo.z]
+   first,second=sorted(range(3),key=lambda k:(-ranges[k],k))[:2]
+   names=("x","y","z")
+   mids=[(getattr(self.lo,n)+getattr(self.hi,n))/2 for n in names]
+   groups=[[] for _ in range(4)]
+   for item in self.items:
+    a=1 if getattr(item.center,names[first])>=mids[first] else 0
+    b=1 if getattr(item.center,names[second])>=mids[second] else 0
+    groups[b*2+a].append(item)
+   if sum(bool(group) for group in groups)>1:
+    self.children=[Q(x,depth+1,max_items,max_depth,self.geometric_error,padding) for x in groups if x]
  def tile(self,ge):
   r={"boundingVolume":{"box":box(self.lo,self.hi,self.padding)},"geometricError":self.geometric_error,"refine":"ADD"}
   r["children"]=[x.tile(ge) for x in self.children] if self.children else [i.tile for i in self.items]; return r
