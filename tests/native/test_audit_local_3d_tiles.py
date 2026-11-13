@@ -1,5 +1,6 @@
 import importlib.util
 import json
+import struct
 import tempfile
 import unittest
 from pathlib import Path
@@ -16,9 +17,34 @@ class LocalTilesAuditTests(unittest.TestCase):
         self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name) / "TSMData"
         (self.root / "tiles").mkdir(parents=True)
-        (self.root / "tiles/one.glb").write_bytes(b"glTF fixture")
+        (self.root / "tiles/one.glb").write_bytes(self.glb({}))
         self.index = self.root / "tileset.json"
         self.write("tiles/one.glb")
+
+    @staticmethod
+    def glb(document):
+        payload = json.dumps(document).encode("utf-8")
+        payload += b" " * ((-len(payload)) % 4)
+        return struct.pack("<4sII", b"glTF", 2, 20 + len(payload)) + struct.pack("<I4s", len(payload), b"JSON") + payload
+
+    def test_external_glb_dependency(self):
+        (self.root / "tiles/texture.png").write_bytes(b"texture fixture")
+        (self.root / "tiles/one.glb").write_bytes(self.glb({"images": [{"uri": "texture.png"}]}))
+        out = module.audit(self.root, self.index)
+        self.assertEqual(out["payloads"], 2)
+        (self.root / "tiles/texture.png").unlink()
+        with self.assertRaisesRegex(ValueError, "missing"):
+            module.audit(self.root, self.index)
+
+    def test_implicit_tiles_rejected_until_subtree_support(self):
+        self.index.write_text(json.dumps({"root": {"implicitTiling": {"subdivisionScheme": "QUADTREE"}}}))
+        with self.assertRaisesRegex(ValueError, "implicit tiling"):
+            module.audit(self.root, self.index)
+
+    def test_corrupt_glb_rejected(self):
+        (self.root / "tiles/one.glb").write_bytes(b"glTF fixture")
+        with self.assertRaisesRegex(ValueError, "invalid GLB"):
+            module.audit(self.root, self.index)
 
     def write(self, ref):
         self.index.write_text(json.dumps({"asset": {"version": "1.1"},
