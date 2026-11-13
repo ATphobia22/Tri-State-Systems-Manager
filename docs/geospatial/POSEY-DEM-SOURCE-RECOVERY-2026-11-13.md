@@ -24,7 +24,7 @@ Missing heights: 2,269 tree-confounded, 273 insufficient ground, 24 insufficient
 - [Indiana Statewide Elevation S3 registry](https://registry.opendata.aws/in-elevation/): public bucket `giselevationingov`, region `us-east-2`, CC0, anonymous listing.
 - [Indiana GIO elevation access](https://elevation.gio.in.gov/pages/access): classified point clouds and DEM/DSM/NDHM, with different strengths and canopy confounders.
 
-2020 DEM source prefix: `s3://giselevationingov/demoptimized/statewide/2020/SPW/2.5ft/`. Public objects `IN2020_26700930_12.tif` (15,170,693 bytes) and `IN2020_26850945_12.tif` (21,064,965 bytes) were independently HEAD-verified on Nov. 13, 2026 via AWS. **Two objects do not constitute full Posey coverage.** The matching Google Drive folder holds one of these TIFFs and a manifest listing two object hashes; it is not a certified archive.
+2020 DEM tile source prefix, as recorded by Indiana GIO's `urlpath` layer: `s3://gisimageryingov/demoptimized/statewide/2020/SPW/2.5ft/`. This imagery bucket is **distinct** from the AWS Open Data Registry LiDAR bucket `giselevationingov`; the candidate planner and verified-object acquisition must agree on the imagery bucket. Public objects `IN2020_26700930_12.tif` (15,170,693 bytes) and `IN2020_26850945_12.tif` (21,064,965 bytes) were independently HEAD-verified on Nov. 13, 2026 via AWS. **Two objects do not constitute full Posey coverage.** The matching Google Drive folder holds one of these TIFFs and a manifest listing two object hashes; it is not a certified archive.
 
 ## Altitude-mode interoperability and noninterchangeable geoid frames
 
@@ -75,7 +75,7 @@ python scripts/geospatial/plan_posey_dem_recovery.py \
   --out /path/to/posey-2020-dem-tile-plan.json
 ```
 
-The resulting `tileNames` are public S3 object *candidates*, NOT a claim that all files are present. Before use, compare each required key with the public bucket, acquire the actual raster bytes into isolated storage (Google Drive can store bulky source files), hash the files with SHA-256, and inspect each TIFF's true CRS, nodata, Z units, pixel values, and provenance. Generate `<DEM>.provenance.json` only from reviewed original source metadata; never manufacture NAVD88 sidecars just to satisfy the hash gate. For a staged directory:
+The resulting `tileNames` are public S3 object *candidates*, NOT a claim that all files are present. Before use, compare each required key with the official GIO DEM `urlpath` and the separate public imagery bucket, acquire the actual raster bytes into isolated storage (Google Drive can store bulky source files), hash the files with SHA-256, and inspect each TIFF's true CRS, nodata, Z units, pixel values, and provenance. Generate `<DEM>.provenance.json` only from reviewed original source metadata; never manufacture NAVD88 sidecars just to satisfy the hash gate. For a staged directory:
 
 ```bash
 python scripts/geospatial/plan_posey_dem_recovery.py \
