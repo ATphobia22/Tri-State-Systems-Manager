@@ -75,6 +75,8 @@ python scripts/geospatial/plan_posey_dem_recovery.py \
   --out /path/to/posey-2020-dem-tile-plan.json
 ```
 
+The input source may contain topologically invalid polygons. Strict mode rejects these rather than computing a misleading countywide inventory. For an explicitly **non-certifying recovery diagnostic**, run with `--quarantine-invalid-geometry`: the planner preserves every unique source ID, includes candidate tile names for valid footprints only, and emits `invalidGeometryCount`, `invalidGeometryObjectIds`, `candidateCoveredSourceGeometryCount`, and `fullSourceGeometryValid=false`. Do not overwrite or simplify the authoritative source polygons to force them through the gate; re-acquire or correct each affected ID with documented source lineage. With quarantined geometry, `stagedMetadataAuditPassed` remains false even if all candidate tiles are staged, and `--require-complete-staging` does not accept the partial source.
+
 The resulting `tileNames` are public S3 object *candidates*, NOT a claim that all files are present. Before use, compare each required key with the official GIO DEM `urlpath` and the separate public imagery bucket, acquire the actual raster bytes into isolated storage (Google Drive can store bulky source files), hash the files with SHA-256, and inspect each TIFF's true CRS, nodata, Z units, pixel values, and provenance. Generate `<DEM>.provenance.json` only from reviewed original source metadata; never manufacture NAVD88 sidecars just to satisfy the hash gate. For a staged directory:
 
 ```bash
