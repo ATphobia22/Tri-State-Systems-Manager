@@ -29,7 +29,7 @@ const fixture = () => {
 };
 test('patents are prior art only, never a legal clearance', () => {
   assert.equal(inspectPatents(patents).freedom_to_operate,'NOT_ASSESSED');
-  assert.equal(inspectPatents(patents).count,4);
+  assert.equal(inspectPatents(patents).count,7);
   const fabricated = clone(patents);
   fabricated.patents[0].freedom_to_operate='CLEARED';
   assert.throws(()=>inspectPatents(fabricated),/PATENT_NOT_CLEARED/);
