@@ -16,11 +16,16 @@ This document distinguishes *source-family* documentation from the **file-specif
 | `IN2020_26700930_12.tiff` | `1a321bc386e0de8b7cca74ec903fb35ea8fb54e8cdd7e835428210562e173ebb` | EPSG:2968 (NAD83 HARN / Indiana West, ftUS) | 2.5 native coordinate units | not present |
 | `IN2020_26850945_12.tiff` | `78f987ad4f93d3680d4500ad0b74542872f83529861b5500863addb61c00d124` | EPSG:2968 (NAD83 HARN / Indiana West, ftUS) | 2.5 native coordinate units | not present |
 
-These raster hashes match the two-source acquisition receipt. The statewide portal's EPSG:2966 reference **does not override** either TIFF's EPSG:2968 header. The archive's exact vertical unit, NAVD88 realization, geoid model, and origin/tile product lineage remain unverified.
+On November 13, both Drive rasters matched the full SHA-256 of the exact Indiana GIO objects, including the copies in both public Indiana buckets. The raster headers resolve the horizontal CRS to EPSG:2968. Project-level documentation for the West Option states NAVD88, GEOID12B, and U.S. survey foot heights. The published COGs still lack explicit elevation band unit and vertical CRS metadata. Use the source crosswalk when choosing retrieval keys and keep the engineering elevation gate open pending tile-specific vertical documentation.
+
+- [Indiana GIO DEM tile layer](https://gisdata.in.gov/server/rest/services/Hosted/Indiana_DEM_Tile_Footprints/FeatureServer/0)
+- [Official tile IN2020_26700930_12](https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26700930_12.tif)
+- [Official tile IN2020_26850945_12](https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26850945_12.tif)
+- [USGS West Option delivery report](https://rockyweb.usgs.gov/vdelivery/Datasets/Staged/Elevation/metadata/IN_Indiana_Statewide_LiDAR_2017_B17/IN_Statewide_Opt2_B6_2017/reports/IN_Statewide_Lidar_Lidar_Report_West_AOI.pdf)
 
 ## Release hold / required next evidence
 
-1. Obtain authoritative tile-specific COG metadata or acquisition documentation that matches **both file hashes or original tile object keys**, and states the raster-value vertical units/datum.
+1. Obtain authoritative COG conversion or tile-specific metadata that names both published keys and establishes vertical units, datum, and geoid.
 2. Confirm whether these COGs were reprojected/repacked relative to the Indiana Spatial Data Portal's county mosaic; reconcile EPSG:2968 versus EPSG:2966.
 3. Record an approved, reproducible horizontal frame transformation with software/grid versions when translating to project EPSG:2966. **Never** apply a guessed horizontal transform to fill gaps.
 4. Preserve the source DEM raw values and block engineering BFE/WSE/FFE comparisons until geodetic and vertical metadata are verified.
@@ -28,4 +33,4 @@ These raster hashes match the two-source acquisition receipt. The statewide port
 
 ## Evidence
 
-[Drive verification receipts](https://drive.google.com/drive/folders/1QvSnec14KQOcdz3-GpFx7dmmf_2YTAZf) contain hashes, raster inspection, and exact building geometry reconciliation. This is an integrity milestone, **not** a successful native Windows UE5.8 release.
+The [Drive verification receipts](https://drive.google.com/drive/folders/1QvSnec14KQOcdz3-GpFx7dmmf_2YTAZf) cover inspection of the source rasters and datasets. Windows UE5.8 Shipping and clean offline startup require separate packaged-application evidence.

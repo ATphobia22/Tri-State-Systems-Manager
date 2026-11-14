@@ -6,7 +6,8 @@ Per OGC 3D Tiles 1.1, spatial coherence requires:
   2. Every content geometry ⊆ its declared tile bounds.
 
 Checks both explicit tilesets (boundingVolume.box hierarchies) and
-implicit tilesets (region subdivision + subtree availability).
+implicit tilesets (box/region subdivision and subtree availability). For
+axis-aligned implicit boxes, also verify merged GLB bounds in the root frame.
 
 Bounding volume types handled: box (12 numbers), region (6 numbers),
 sphere (4 numbers). All comparisons in a common frame: boxes/spheres are
@@ -22,6 +23,8 @@ import json
 import math
 import sys
 from pathlib import Path
+
+from validate_feature_linkage import read_glb_meta
 
 WGS84_A = 6378137.0
 WGS84_E2 = 6.6943799901413165e-3
@@ -185,6 +188,34 @@ def check_explicit(node: dict, parent_aabb: tuple | None, path: str,
         check_explicit(child, my_aabb, f"{path}/child[{i}]", violations, tile_dir)
 
 
+def check_implicit_box_content(box: list, glbs: list[Path], content_dir: Path,
+                               available_levels: int, violations: list):
+    """Check TSM's root-local axis-aligned quadtree against packed Y-up geometry."""
+    cx, cy, cz, hx, _, _, _, hy, _, _, _, hz = box
+    for path in glbs:
+        parts = path.relative_to(content_dir).parts
+        if len(parts) != 3 or not all(part.isdecimal() for part in (*parts[:2], path.stem)):
+            violations.append(f"{path}: expected content/level/x/y.glb")
+            continue
+        level, x, y = (int(v) for v in (*parts[:2], path.stem))
+        if level >= available_levels or x >= 2**level or y >= 2**level:
+            violations.append(f"{path}: GLB coordinates outside the implicit quadtree")
+            continue
+        dx, dy = 2 * hx / 2**level, 2 * hy / 2**level
+        bounds = (cx - hx + dx*x, cy - hy + dy*y, cz - hz,
+                  cx - hx + dx*(x + 1), cy - hy + dy*(y + 1), cz + hz)
+        doc = read_glb_meta(path)
+        for mesh in doc["meshes"]:
+            for primitive in mesh["primitives"]:
+                accessor = doc["accessors"][primitive["attributes"]["POSITION"]]
+                lo, hi = accessor["min"], accessor["max"]
+                # Packed merged GLBs use identity nodes. 3D Tiles applies (x, -z, y).
+                bounds_in_tile_space = (lo[0], -hi[2], lo[1], hi[0], -lo[2], hi[1])
+                if not contains(bounds, bounds_in_tile_space):
+                    violations.append(f"{path}: GLB POSITION bounds extend outside implicit tile")
+                    break
+
+
 def check_implicit(tileset: dict, tile_dir: Path, violations: list):
     root = tileset.get("root", {})
     impl = root.get("implicitTiling")
@@ -205,10 +236,16 @@ def check_implicit(tileset: dict, tile_dir: Path, violations: list):
     if "3DTILES_implicit_tiling" in ext_used:
         violations.append("legacy 3DTILES_implicit_tiling in extensionsUsed "
                           "(implicit tiling is core in 1.1; remove it)")
-    # Region subdivision coherence: verify root region exists
     vol = root.get("boundingVolume", {})
-    if "region" not in vol:
-        violations.append("implicit root should use region boundingVolume for clean subdivision")
+    if "box" not in vol and "region" not in vol:
+        violations.append("implicit root requires a box or region boundingVolume")
+        return
+    if not valid_volume(vol, "implicit root", violations):
+        return
+    available_levels = impl.get("availableLevels")
+    if type(available_levels) is not int or available_levels < 1:
+        violations.append("implicit availableLevels must be a positive integer")
+        return
     # Content existence spot-check: walk subtree files if present
     subtree_dir = tile_dir / "subtrees"
     content_dir = tile_dir / "content"
@@ -223,13 +260,13 @@ def check_implicit(tileset: dict, tile_dir: Path, violations: list):
                 avail = sub.get(key)
                 if avail is None:
                     violations.append(f"{spath}: missing {key}")
-    # Verify at least one content file matches the template pattern
-    if content_dir.exists():
-        glbs = list(content_dir.rglob("*.glb"))
-        if not glbs:
-            violations.append(f"{content_dir}: no content GLBs found")
-    else:
-        violations.append(f"missing content dir {content_dir}")
+    glbs = sorted(content_dir.rglob("*.glb"))
+    if not glbs:
+        violations.append(f"{content_dir}: no content GLBs found")
+    box = vol.get("box")
+    if (box and all(box[i] > 0 for i in (3, 7, 11))
+            and all(box[i] == 0 for i in (4, 5, 6, 8, 9, 10))):
+        check_implicit_box_content(box, glbs, content_dir, available_levels, violations)
 
 
 def main():

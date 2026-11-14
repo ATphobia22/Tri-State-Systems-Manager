@@ -35,7 +35,44 @@
     "horizontal_transform_to_epsg2966": false,
     "posey_dem_raster_verified": false,
     "posey_tile_accuracy_verified": false,
-    "native_render_verified": false
+    "native_render_verified": false,
+    "posey_dem_raster_bytes_match_official": [
+      "IN2020_26700930_12",
+      "IN2020_26850945_12"
+    ],
+    "posey_dem_file_specific_vertical_metadata_verified": false
   },
-  "note": "Index polygons and metadata are not actual DEM raster elevation data. Do not apply GEOID18 to NAVD88 heights as a blanket correction."
+  "note": "Project-level datum and units describe the source family. The two exact byte-matched COGs have horizontal EPSG:2968 and omit vertical CRS and band units. Engineering elevations require a documented raster lineage and an approved horizontal/vertical treatment.",
+  "posey_current_dem_publication": {
+    "checked_on": "2026-11-13",
+    "tile_service": "https://gisdata.in.gov/server/rest/services/Hosted/Indiana_DEM_Tile_Footprints/FeatureServer/0",
+    "live_record_count": 581,
+    "grid_count": 558,
+    "image_year_counts": {
+      "2019": 23,
+      "2020": 558
+    },
+    "legacy_west_option_unmatched_grid_count": 40,
+    "description": "The 598-grid West Option shapefile uses in2018 names. The 558 current Posey grids all match it by numeric grid identifier. Use the live 2020 publication paths for the corresponding 2020 DEMs. Keep the 23 overlapping older products as distinct catalog records.",
+    "checked_in_manifest": "data/posey-county/elevation/posey-dem-tile-manifest-2020.json",
+    "manifest_rows_match_live_service": true,
+    "source_tiles_matching_drive_sha256": {
+      "IN2020_26700930_12": {
+        "sha256": "1a321bc386e0de8b7cca74ec903fb35ea8fb54e8cdd7e835428210562e173ebb",
+        "officialUrls": [
+          "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26700930_12.tif",
+          "https://giselevationingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26700930_12.tif"
+        ],
+        "embeddedHorizontalCrs": "EPSG:2968"
+      },
+      "IN2020_26850945_12": {
+        "sha256": "78f987ad4f93d3680d4500ad0b74542872f83529861b5500863addb61c00d124",
+        "officialUrls": [
+          "https://gisimageryingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26850945_12.tif",
+          "https://giselevationingov.s3.us-east-2.amazonaws.com/demoptimized/statewide/2020/SPW/2.5ft/IN2020_26850945_12.tif"
+        ],
+        "embeddedHorizontalCrs": "EPSG:2968"
+      }
+    }
+  }
 }
