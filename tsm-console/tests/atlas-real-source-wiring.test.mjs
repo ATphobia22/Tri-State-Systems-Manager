@@ -89,6 +89,15 @@ test('regional static source geometries are WGS84, not elevations or simulated f
 });
 
 
+test('real regional LoD1 tiles are opt-in and partial, not fabricated full county LoD3', () => {
+  assert.match(atlas, /3D building meshes/);
+  assert.match(atlas, /regionalBuildingMeshes=\{showPartialBuildingMeshes\}/);
+  assert.match(map, /void import\('\.\.\/lib\/tiles-3d-renderer-layer'\)/);
+  assert.match(map, /buildings-lidar-12450\/tileset\.json/);
+  assert.match(map, /props\.regionalBuildingMeshes/);
+  assert.doesNotMatch(map, /\bLO[Dd]4\b/);
+});
+
 test('Wabash cinematic flight is user-controlled and honors OS reduced motion', () => {
   const tour = read('src/lib/cinematic/camera-tour.ts');
   assert.match(atlas, /Play Wabash flyover/);
