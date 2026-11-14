@@ -50,6 +50,17 @@ export function regionalSiteQuery(kind: CivicSiteKind): string {
   }
   return url.toString();
 }
+const ILLINOIS_CLASSIFICATION: Readonly<Record<string, string>> = {
+  NC: 'Not classified', SBAA: 'State boat access area', SF: 'State forest',
+  SFWA: 'State fish and wildlife area', SHA: 'State habitat area',
+  SM: 'State memorial', SNA: 'State natural area', SP: 'State park',
+  SRA: 'State recreation area', SWA: 'State wildlife area',
+  FH: 'Fish hatchery', GPC: 'Game propagation center',
+  ODP: 'Other departmental property', SCA: 'State conservation area',
+  SMP: 'State museum property', ST: 'State trail and greenway',
+  STN: 'State tree nursery', NWR: 'National wildlife refuge',
+};
+
 const read = (p: Properties,key: string): string => typeof p[key] === 'string' ? (p[key] as string).trim().slice(0,600) : '';
 function httpsLink(value: string): string | null {
   try {
@@ -69,7 +80,7 @@ export function civicSiteInfo(kind: CivicSiteKind,p: Properties): CivicSiteInfo 
     category: kind === 'historic' ? read(p,'ResType') || 'National Register historic place'
       : kind === 'dnr' ? read(p,'category') || 'Indiana DNR recreation site'
       : kind === 'preserve' ? 'Indiana nature preserve'
-      : kind === 'illinois' ? read(p,'CLASSIFICATION') || 'Illinois DNR managed land'
+      : kind === 'illinois' ? ILLINOIS_CLASSIFICATION[read(p,'CLASSIFICATION')] || 'Illinois DNR managed land'
       : read(p,'PARK_TYPE') || 'Kentucky State Park',
     county: kind === 'historic' ? read(p,'County') : kind === 'preserve' ? read(p,'county') : '',
     description: kind === 'dnr' ? read(p,'activities') : kind === 'preserve' ? read(p,'description') : '',
