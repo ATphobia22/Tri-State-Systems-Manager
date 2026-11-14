@@ -4,16 +4,16 @@
 **A free, open-source digital twin and scientific engineering workbench for Indiana, Illinois, and Kentucky.** Explore the landscape, examine water and infrastructure, test explicitly defined scenarios, and follow every result back to its sources.
 
 <p align="center">
-  <a href="https://atphobia22.github.io/Tri-State-Systems-Manager/atlas" title="Open the live application 4D Atlas route when the updated console is deployed">
+  <a href="https://atphobia22.github.io/Tri-State-Systems-Manager/atlas/" title="Open the public 4D Atlas">
     <img src="docs/assets/tsm-source-backed-atlas.svg" width="100%" alt="Source-derived cinematic GIS overview: actual EPSG:4326 locations from 10 repo-registered USGS river stations and 20 USACE eHydro survey extent polygons, with six station points within the displayed map region. This is static source geometry, not live observations, a flood simulation or an application screenshot. Select to open the interactive 4D Atlas once deployed." />
   </a>
 </p>
 
 > **Source-backed preview, not invented geography.** This SVG plots real georeferenced station points and survey footprints from [USGS gauge locations](tsm-console/public/data/tsm-river-gauge-locations.geojson) and [USACE eHydro survey extents](tsm-console/public/data/ehydro-survey-extents.geojson) already committed in TSM; its cinematic styling is purely presentational. It is **not live telemetry**, a DEM, a river depth surface, or proof of a validated simulation. The interactive [**4D Atlas**](tsm-console/src/routes/TriStateAtlasView.tsx) uses the actual [MapLibre twin](tsm-console/src/components/TriStateDigitalTwinMap.tsx), [geospatial data fabric](tsm-console/src/lib/data-fabric-registry.ts), [layer registry](tsm-console/src/lib/map-plane-fabric.ts), and [on-demand river board](tsm-console/src/components/RiverGaugeBoard.tsx).
 
-**[Launch the 4D Atlas (when deployed)](https://atphobia22.github.io/Tri-State-Systems-Manager/atlas)** · **[Explore the public console](https://atphobia22.github.io/Tri-State-Systems-Manager/)** · **[Study the source](https://github.com/ATphobia22/Tri-State-Systems-Manager)** · **[Scientific evidence](docs/architecture/ENGINEERING-ASSURANCE-STANDARD.md)** · **[Public data sources](docs/DATA-SOURCE-CATALOG.md)** · **[Experience blueprint](docs/UX-CINEMATIC-4D-ATLAS.md)** · **[Releases and CI](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions)**
+**[Launch the 4D Atlas](https://atphobia22.github.io/Tri-State-Systems-Manager/atlas/)** · **[Explore the public console](https://atphobia22.github.io/Tri-State-Systems-Manager/)** · **[Study the source](https://github.com/ATphobia22/Tri-State-Systems-Manager)** · **[Scientific evidence](docs/architecture/ENGINEERING-ASSURANCE-STANDARD.md)** · **[Public data sources](docs/DATA-SOURCE-CATALOG.md)** · **[Flood mapping and gage history](docs/flood/MULTI-AGENCY-FLOOD-MAPPING-ERA-TABLE-2026-11-14.md)** · **[Experience blueprint](docs/UX-CINEMATIC-4D-ATLAS.md)** · **[Releases and CI](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions)**
 
-*GitHub READMEs do not execute interactive React applications. The clickable source-derived map leads to the project's GitHub Pages application route **after** this change is merged and successfully deployed. Pages itself cannot run the TSM Node API; on-demand river data require a separately configured service and will show unavailable if absent. The route, public-console availability and deployed features have not been independently browser-verified in this update.*
+*The public Atlas runs on GitHub Pages. Historical crest records ship with the Atlas and can be explored without a live data request. Live USGS readings use the public agency endpoint. Features backed by the TSM Node API require a configured service.*
 
 ---
 
