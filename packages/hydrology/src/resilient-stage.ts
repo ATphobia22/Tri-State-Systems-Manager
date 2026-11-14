@@ -1,6 +1,6 @@
 /**
- * Resilient stage fetch — retries, last-known-good snapshots, auto-correct sentinels.
- * Per product direction: NOT fail-closed on gauges; prefer recovery.
+ * Resilient stage fetch — full-jitter backoff, circuit breaker, LKG snapshots, sentinel auto-correct.
+ * Prefer recovery over fail-closed.
  */
 
 export type StageSource = "usgs_ogc" | "nwps" | "lkg_snapshot" | "community";
@@ -23,21 +23,65 @@ export interface StageSnapshot {
 const SENTINELS = new Set([-999, -9999, 999, 9999]);
 const MAX_RETRIES = 4;
 const BASE_MS = 250;
+const MAX_BACKOFF_MS = 8_000;
 
 function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-/** Auto-correct known bad numeric codes; clamp absurd magnitudes. */
+/** Full jitter: uniform random in [0, min(cap, BASE * 2^attempt)]. */
+export function fullJitterDelayMs(attempt: number, baseMs = BASE_MS, capMs = MAX_BACKOFF_MS): number {
+  const exp = Math.min(capMs, baseMs * 2 ** attempt);
+  return Math.floor(Math.random() * (exp + 1));
+}
+
 export function autoCorrectStage(raw: number): { value: number; corrected: boolean; note?: string } {
   if (!Number.isFinite(raw) || SENTINELS.has(raw)) {
     return { value: Number.NaN, corrected: true, note: "sentinel_or_nonfinite" };
   }
-  // Stage feet outside plausible river range for lower Wabash/Ohio → flag, keep value labeled
   if (raw < -5 || raw > 80) {
     return { value: raw, corrected: true, note: "out_of_plausible_range" };
   }
   return { value: raw, corrected: false };
+}
+
+/** Simple per-source circuit breaker. */
+export type CircuitState = "closed" | "open" | "half_open";
+
+export class CircuitBreaker {
+  private failures = 0;
+  private state: CircuitState = "closed";
+  private openedAt = 0;
+
+  constructor(
+    private readonly failureThreshold = 5,
+    private readonly coolDownMs = 30_000,
+  ) {}
+
+  getStatus(): CircuitState {
+    if (this.state === "open" && Date.now() - this.openedAt >= this.coolDownMs) {
+      this.state = "half_open";
+    }
+    return this.state;
+  }
+
+  allow(): boolean {
+    const s = this.getStatus();
+    return s === "closed" || s === "half_open";
+  }
+
+  recordSuccess(): void {
+    this.failures = 0;
+    this.state = "closed";
+  }
+
+  recordFailure(): void {
+    this.failures += 1;
+    if (this.failures >= this.failureThreshold) {
+      this.state = "open";
+      this.openedAt = Date.now();
+    }
+  }
 }
 
 export type FetchStageFn = (siteId: string) => Promise<{ stageFt: number; observedAt: string; source: StageSource }>;
@@ -47,27 +91,35 @@ export interface ResilientStageOptions {
   getSnapshot?: (siteId: string) => StageSnapshot | null;
   saveSnapshot?: (snap: StageSnapshot) => void;
   maxRetries?: number;
+  /** Optional breakers keyed by fetcher index or source label */
+  breakers?: readonly CircuitBreaker[];
+  useFullJitter?: boolean;
 }
 
-/**
- * Try fetchers in order with exponential backoff. On success, snapshot LKG.
- * If all fail, return LKG snapshot if present (stale). Never hard-fail empty.
- */
 export async function fetchStageResilient(
   siteId: string,
   opts: ResilientStageOptions,
 ): Promise<StageReading> {
   const retries = opts.maxRetries ?? MAX_RETRIES;
+  const jitter = opts.useFullJitter !== false;
   const errors: string[] = [];
 
-  for (const fetch of opts.fetchers) {
+  for (let fi = 0; fi < opts.fetchers.length; fi++) {
+    const fetch = opts.fetchers[fi];
+    const breaker = opts.breakers?.[fi];
+    if (breaker && !breaker.allow()) {
+      errors.push(`breaker_open:${fi}`);
+      continue;
+    }
+
     for (let attempt = 0; attempt < retries; attempt++) {
       try {
         const raw = await fetch(siteId);
         const { value, corrected, note } = autoCorrectStage(raw.stageFt);
         if (!Number.isFinite(value)) {
           errors.push(`${raw.source}:bad_value`);
-          break; // next fetcher
+          breaker?.recordFailure();
+          break;
         }
         const reading: StageReading = {
           siteId,
@@ -77,6 +129,7 @@ export async function fetchStageResilient(
           quality: corrected ? "corrected" : "ok",
           notes: note,
         };
+        breaker?.recordSuccess();
         opts.saveSnapshot?.({
           siteId,
           reading,
@@ -85,7 +138,9 @@ export async function fetchStageResilient(
         return reading;
       } catch (e) {
         errors.push(String(e));
-        await sleep(BASE_MS * 2 ** attempt);
+        breaker?.recordFailure();
+        const delay = jitter ? fullJitterDelayMs(attempt) : Math.min(MAX_BACKOFF_MS, BASE_MS * 2 ** attempt);
+        await sleep(delay);
       }
     }
   }
@@ -100,7 +155,6 @@ export async function fetchStageResilient(
     };
   }
 
-  // Soft empty — estimated placeholder so UI can still render; labeled
   return {
     siteId,
     stageFt: Number.NaN,
@@ -111,4 +165,4 @@ export async function fetchStageResilient(
   };
 }
 
-export const RESILIENT_STAGE_VERSION = "1.0.0" as const;
+export const RESILIENT_STAGE_VERSION = "1.1.0" as const;
