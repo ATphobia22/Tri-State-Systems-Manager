@@ -233,7 +233,7 @@ export interface TriStateDigitalTwinMapProps {
   /** Human proposed, uncalibrated intervention geometry. Never used as a flood result. */
   proposalOverlay?: Parameters<GeoJSONSource['setData']>[0];
   /** Active drawing class. Map clicks are forwarded as WGS84 waypoints only. */
-  proposalDrawMode?: 'berm' | 'road' | 'retention' | null;
+  proposalDrawMode?: 'berm' | 'road' | 'retention' | 'sewer' | 'water' | 'power' | 'broadband' | 'stormwater' | null;
   onProposalPoint?: (point: [number, number]) => void;
 }
 
