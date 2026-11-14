@@ -108,3 +108,8 @@
 @media(max-width:1100px){.tsm-atlas-community-panels{grid-template-columns:1fr}}
 @media(max-width:600px){.tsm-atlas-grant-filters{grid-template-columns:1fr}.tsm-atlas-draft-actions{grid-template-columns:1fr}}
 @media(forced-colors:active){.tsm-atlas-draft-tools button.active{outline:3px solid Highlight}}
+
+/* Accessible opt-in camera route: animated only when user requests it. */
+.tsm-atlas-tour{min-height:44px;border:1px solid #79ddd2;border-radius:12px;padding:9px 13px;background:#183c51;color:#d5fff4;font-weight:800;cursor:pointer}
+.tsm-atlas-tour:hover,.tsm-atlas-tour[aria-pressed="true"]{background:#1a6572;border-color:#b2fff2}
+@media(prefers-reduced-motion:reduce){.tsm-atlas-tour{transition:none}}

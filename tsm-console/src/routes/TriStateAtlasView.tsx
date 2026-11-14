@@ -60,6 +60,9 @@ const mapCount = MAP_PLANE_FABRIC.length;
 export default function TriStateAtlasView(): JSX.Element {
   const [lens, setLens] = useState<Lens>('explore');
   const [light, setLight] = useState<Light>('golden');
+  const [cinematicTour, setCinematicTour] = useState(false);
+  const [showPartialBuildingMeshes, setShowPartialBuildingMeshes] = useState(false);
+  const stopTourForReducedMotion = useCallback(() => setCinematicTour(false), []);
   const [sceneHour, setSceneHour] = useState(17);
   const [regionId, setRegionId] = useState('posey');
   const [regionalLayers, setRegionalLayers] = useState({ gauges: true, surveys: false, historic: false });
@@ -157,7 +160,7 @@ export default function TriStateAtlasView(): JSX.Element {
         <aside className="tsm-atlas-panel tsm-atlas-controls" aria-label="Real source layer controls">
           <h2>Explore the river valley</h2>
           <label htmlFor="tsm-atlas-region">Travel to a community</label>
-          <select id="tsm-atlas-region" value={regionId} onChange={(event) => setRegionId(event.target.value)}>
+          <select id="tsm-atlas-region" value={regionId} onChange={(event) => { setCinematicTour(false); setRegionId(event.target.value); }}>
             {REGIONAL_VIEWS.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
           </select>
           <p className="tsm-atlas-region-note">{region.notes}</p>
@@ -215,6 +218,14 @@ export default function TriStateAtlasView(): JSX.Element {
         <section className="tsm-atlas-stage" aria-label="Actual TSM MapLibre digital twin">
           <div className="tsm-atlas-stage-toolbar">
             <div><strong>3D map canvas</strong><small>OpenFreeMap regional context + authority layers · EPSG:3857</small></div>
+            <button type="button" className="tsm-atlas-tour" aria-pressed={cinematicTour}
+              onClick={() => { if (cinematicTour) { setCinematicTour(false); } else { setRegionId('new-harmony'); setCinematicTour(true); } }}>
+              {cinematicTour ? 'Stop Wabash flyover' : 'Play Wabash flyover'}
+            </button>
+            <label className="tsm-atlas-mesh-toggle">
+              <input type="checkbox" checked={showPartialBuildingMeshes} onChange={(event) => setShowPartialBuildingMeshes(event.target.checked)} />
+              3D building meshes <small>Optional, source-backed Posey LoD1 subset only; independently unverified placement</small>
+            </label>
             <fieldset className="tsm-atlas-lighting">
               <legend>Visual lighting only</legend>
               {(['day', 'golden', 'night'] as const).map((preset) =>
@@ -231,6 +242,8 @@ export default function TriStateAtlasView(): JSX.Element {
           <div className="tsm-atlas-map">
             <TriStateDigitalTwinMap hideSidebar visible={visibleForRegion} onVisibleChange={setLayers}
               regionalAtlas regionalView={region} regionalLayers={regionalLayers}
+              cinematicTour={cinematicTour} onTourReducedMotion={stopTourForReducedMotion}
+              regionalBuildingMeshes={showPartialBuildingMeshes}
               proposalDrawMode={drawMode} onProposalPoint={addProposalPoint} proposalOverlay={proposalOverlay}
               showIndianaImagery={region.imagery && Boolean(visibleForRegion['indiana-imagery'])} lightPreset={light} onStatusChange={onMapStatus} />
           </div>
