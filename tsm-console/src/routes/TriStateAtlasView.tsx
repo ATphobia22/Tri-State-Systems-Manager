@@ -9,6 +9,7 @@ import TriStateDigitalTwinMap, { defaultMapPlaneVisibility } from '../components
 import RiverGaugeBoard from '../components/RiverGaugeBoard';
 import PagesUSGSGaugeReader from '../components/PagesUSGSGaugeReader';
 import CommunityGrantMatrix from '../components/CommunityGrantMatrix';
+import MountVernonUtilityDesk from '../components/MountVernonUtilityDesk';
 import CommunityFloodHistory from '../components/CommunityFloodHistory';
 import ScenarioStudioPanel from '../components/ScenarioStudioPanel';
 import { MAP_PLANE_FABRIC, type MapPlaneLayer } from '../lib/map-plane-fabric';
@@ -17,7 +18,7 @@ import { getTerrainRgbStatus } from '../lib/twin-map-style';
 import './TriStateAtlasView.css';
 
 type Lens = 'explore' | 'engineer' | 'review';
-type ProposalMode = 'berm' | 'road' | 'retention';
+type ProposalMode = 'berm' | 'road' | 'retention' | 'sewer' | 'water' | 'power' | 'broadband' | 'stormwater';
 type Coordinates = [number, number];
 type ProposalGeometry =
   | { type: 'LineString'; coordinates: Coordinates[] }
@@ -29,6 +30,7 @@ type ProposalFeature = {
   properties: { intervention: string; authority: string; createdAt: string; note: string };
 };
 type Light = 'day' | 'golden' | 'night';
+type VisualFx = 'clear' | 'river-mist' | 'cinematic-rain' | 'historical-film';
 type RegionView = { id: string; label: string; center: [number, number]; zoom: number; pitch: number; bearing: number; imagery: boolean; notes: string };
 // Navigation-only geocoding. These coordinates are NOT survey control points.
 const REGIONAL_VIEWS: readonly RegionView[] = [
@@ -60,16 +62,20 @@ const mapCount = MAP_PLANE_FABRIC.length;
 export default function TriStateAtlasView(): JSX.Element {
   const [lens, setLens] = useState<Lens>('explore');
   const [light, setLight] = useState<Light>('golden');
+  const [visualFx, setVisualFx] = useState<VisualFx>('clear');
   const [cinematicTour, setCinematicTour] = useState(false);
   const [showPartialBuildingMeshes, setShowPartialBuildingMeshes] = useState(false);
   const stopTourForReducedMotion = useCallback(() => setCinematicTour(false), []);
   const [sceneHour, setSceneHour] = useState(17);
   const [regionId, setRegionId] = useState('posey');
-  const [regionalLayers, setRegionalLayers] = useState({ gauges: true, surveys: false, historic: false });
+  const [regionalLayers, setRegionalLayers] = useState({ gauges: true, surveys: false, historic: true, dnr: true, preserves: false, illinois: false, kentucky: false });
   const [drawMode, setDrawMode] = useState<ProposalMode | null>(null);
   const [waypoints, setWaypoints] = useState<Coordinates[]>([]);
   const [proposals, setProposals] = useState<ProposalFeature[]>([]);
   const [scenarioOpen, setScenarioOpen] = useState(false);
+  const [leftOpen, setLeftOpen] = useState(true);
+  const [rightOpen, setRightOpen] = useState(true);
+  const [largeType, setLargeType] = useState(false);
   const addProposalPoint = useCallback((point: Coordinates) => setWaypoints((existing) => [...existing, point]), []);
   const proposalOverlay = useMemo(() => {
     const draftGeometry: ProposalGeometry = waypoints.length < 2
@@ -133,12 +139,13 @@ export default function TriStateAtlasView(): JSX.Element {
   };
 
   return (
-    <div className="tsm-atlas">
+    <div className={largeType ? 'tsm-atlas tsm-atlas-large-type' : 'tsm-atlas'}>
       <div className="tsm-atlas-heading">
         <div>
-          <p className="tsm-atlas-kicker">Ohio–Wabash River Valley · Indiana / Illinois / Kentucky</p>
-          <h1>Explore the 4D engineering twin</h1>
-          <p>The mapped landscape is from TSM's actual repository source adapters. Lighting is cinematic; spatial positions, layers, observations and mathematical results retain their own evidence requirements.</p>
+          <p className="tsm-atlas-kicker">TRI-STATE 4D ATLAS · MOUNT VERNON, INDIANA</p>
+          <h1>Build a more resilient river city.</h1>
+          <p>Explore Mount Vernon in cinematic 3D. Sketch better water, sewer, power, broadband and flood projects, explore river conditions, and find public funding — with evidence clearly labeled.</p>
+          <p className="tsm-civic-welcome">Free for everyone · No account needed to explore · Planning sketches are not surveyed engineering designs.</p>
         </div>
         <div className="tsm-atlas-links">
           <Link to="/river-watch">River Watch</Link>
@@ -156,8 +163,36 @@ export default function TriStateAtlasView(): JSX.Element {
         ><strong>{item.label}</strong><span>{item.description}</span></button>)}
       </nav>
 
-      <div className="tsm-atlas-workspace">
-        <aside className="tsm-atlas-panel tsm-atlas-controls" aria-label="Real source layer controls">
+      <div className="tsm-civic-actionbar" aria-label="Atlas quick actions">
+        <a href="#tsm-river-watch">◉ River gauges</a>
+        <a href="#tsm-grants">◇ Find grants</a>
+        <a href="#tsm-utility-plan">ϟ Plan utilities</a>
+        <a href="#tsm-simulation">◈ Try scenarios</a>
+        <button type="button" onClick={() => setLeftOpen((value) => !value)}
+          aria-expanded={leftOpen} aria-controls="tsm-atlas-layer-drawer">{leftOpen ? 'Hide' : 'Show'} map tools</button>
+        <button type="button" onClick={() => setRightOpen((value) => !value)}
+          aria-expanded={rightOpen} aria-controls="tsm-atlas-evidence-drawer">{rightOpen ? 'Hide' : 'Show'} evidence</button>
+        <button type="button" aria-pressed={largeType} onClick={() => setLargeType((value) => !value)}>
+          {largeType ? 'Standard text' : 'Larger text'}
+        </button>
+      </div>
+      <section className="tsm-civic-watch" id="tsm-river-watch" aria-label="Understand river gauge readings">
+        <div className="tsm-civic-watch-intro">
+          <span className="tsm-civic-eyebrow">RIVER WATCH · LIVE WHEN REQUESTED</span>
+          <h2>How high is the river?</h2>
+          <p>Choose a gauge and fetch an official reading. We show the measurement time and whether the observation is available — never guess a water level.</p>
+          <p className="tsm-civic-explainer"><strong>Gauge height</strong> measures water relative to the station's own reference point. It is <strong>not</strong> ground elevation or NAVD88 flood height.</p>
+        </div>
+        <div className="tsm-civic-watch-reader"><PagesUSGSGaugeReader /></div>
+      </section>
+      <section id="tsm-utility-plan">
+        <MountVernonUtilityDesk selected={drawMode}
+          onSelect={(mode) => { setDrawMode(mode); setWaypoints([]); setLeftOpen(true); }}
+          onCancel={() => { setDrawMode(null); setWaypoints([]); }}
+          vertexCount={waypoints.length} />
+      </section>
+      <div className={'tsm-atlas-workspace' + (!leftOpen ? ' tsm-civic-left-closed' : '') + (!rightOpen ? ' tsm-civic-right-closed' : '')}>
+        <aside id="tsm-atlas-layer-drawer" className="tsm-atlas-panel tsm-atlas-controls" aria-label="Real source layer controls" hidden={!leftOpen}>
           <h2>Explore the river valley</h2>
           <label htmlFor="tsm-atlas-region">Travel to a community</label>
           <select id="tsm-atlas-region" value={regionId} onChange={(event) => { setCinematicTour(false); setRegionId(event.target.value); }}>
@@ -174,10 +209,23 @@ export default function TriStateAtlasView(): JSX.Element {
               USACE eHydro extents <small>(20 survey footprints, not flood water)</small></label>
             <label><input type="checkbox" checked={regionalLayers.historic}
               onChange={(event) => setRegionalLayers((prev) => ({ ...prev, historic: event.target.checked }))} />
-              Historic places <small>(NPS public register; source coordinates may need corrections)</small></label>
+              Historic places · IN / IL / KY <small>(NPS public National Register points; sensitive sites excluded)</small></label>
+            <label><input type="checkbox" checked={regionalLayers.dnr}
+              onChange={(event) => setRegionalLayers((prev) => ({ ...prev, dnr: event.target.checked }))} />
+              Indiana DNR recreation sites <small>(public state parks, trails and recreation site records)</small></label>
+            <label><input type="checkbox" checked={regionalLayers.preserves}
+              onChange={(event) => setRegionalLayers((prev) => ({ ...prev, preserves: event.target.checked }))} />
+              Indiana nature preserves <small>(public DNR records; visiting access may be restricted)</small></label>
+            <label><input type="checkbox" checked={regionalLayers.illinois}
+              onChange={(event) => setRegionalLayers((prev) => ({ ...prev, illinois: event.target.checked }))} />
+              Illinois DNR properties <small>(state GIS polygon previews; not survey boundaries)</small></label>
+            <label><input type="checkbox" checked={regionalLayers.kentucky}
+              onChange={(event) => setRegionalLayers((prev) => ({ ...prev, kentucky: event.target.checked }))} />
+              Kentucky state parks <small>(state GIS public site locations and visitor links)</small></label>
+            <p className="tsm-atlas-note">Explore historic sites across all three states in the regional map envelope. Indiana DNR, Illinois DNR and Kentucky State Parks are separate official agency feeds; their coverage and access rules differ. Markers show source locations, not safe excavation routes.</p>
             <a href="https://www.nps.gov/subjects/nationalregister/data-downloads.htm" target="_blank" rel="noopener noreferrer">National Park Service cultural-resource data notes</a>
           </fieldset>
-          <h2>Sketch a solution</h2>
+          <h2>Draw and export a proposed project</h2>
           <p>Mark a proposed berm, road reroute or retention area directly on the community map. Every shape is explicitly unverified planning geometry. It is not yet connected to a flood solver.</p>
           <div className="tsm-atlas-draft-tools" role="group" aria-label="Proposed infrastructure geometry">
             {(['berm', 'road', 'retention'] as const).map((id) =>
@@ -188,7 +236,7 @@ export default function TriStateAtlasView(): JSX.Element {
           </div>
           <p className="tsm-atlas-note" role="status">
             {drawMode ? `Click the map for ${drawMode} vertices · ${waypoints.length} points recorded.` :
-              'Select a sketch tool to begin placing vertices on the map.'}
+              'Choose a project tile above, or a flood / road sketch tool below.'}
           </p>
           <div className="tsm-atlas-draft-actions">
             <button type="button" disabled={!drawMode || waypoints.length < (drawMode === 'retention' ? 3 : 2)} onClick={finishProposal}>Finish sketch</button>
@@ -217,7 +265,7 @@ export default function TriStateAtlasView(): JSX.Element {
 
         <section className="tsm-atlas-stage" aria-label="Actual TSM MapLibre digital twin">
           <div className="tsm-atlas-stage-toolbar">
-            <div><strong>3D map canvas</strong><small>OpenFreeMap regional context + authority layers · EPSG:3857</small></div>
+            <div><strong>Mount Vernon · 4D city builder</strong><small>Source-backed terrain, imagery and infrastructure planning · EPSG:3857</small></div>
             <button type="button" className="tsm-atlas-tour" aria-pressed={cinematicTour}
               onClick={() => { if (cinematicTour) { setCinematicTour(false); } else { setRegionId('new-harmony'); setCinematicTour(true); } }}>
               {cinematicTour ? 'Stop Wabash flyover' : 'Play Wabash flyover'}
@@ -225,6 +273,14 @@ export default function TriStateAtlasView(): JSX.Element {
             <label className="tsm-atlas-mesh-toggle">
               <input type="checkbox" checked={showPartialBuildingMeshes} onChange={(event) => setShowPartialBuildingMeshes(event.target.checked)} />
               3D building meshes <small>Optional, source-backed Posey LoD1 subset only; independently unverified placement</small>
+            </label>
+            <label className="tsm-civic-fx-label" htmlFor="tsm-civic-scene-fx">Virtual atmosphere · visual only
+              <select id="tsm-civic-scene-fx" value={visualFx} onChange={(event) => setVisualFx(event.target.value as VisualFx)}>
+                <option value="clear">Clear · original map colors</option>
+                <option value="river-mist">River mist · cinematic fog</option>
+                <option value="cinematic-rain">Movie rain · visual illustration</option>
+                <option value="historical-film">History · vintage film look</option>
+              </select>
             </label>
             <fieldset className="tsm-atlas-lighting">
               <legend>Visual lighting only</legend>
@@ -237,9 +293,10 @@ export default function TriStateAtlasView(): JSX.Element {
             <label htmlFor="tsm-atlas-hour">Visual day/night cycle <strong>{String(sceneHour).padStart(2, '0')}:00</strong></label>
             <input id="tsm-atlas-hour" type="range" min={0} max={23} step={1} value={sceneHour}
               onChange={(event) => { const next = Number(event.target.value); setSceneHour(next); setLight(lightForHour(next)); }} />
-            <small>4D presentation time only: does not advance USGS observations, hydrology, land cover, or hydraulic simulations.</small>
+            <small>4D presentation time does not advance USGS observations, weather or hydraulic simulations. Movie FX are visual-only layers; they do not change flood extents or terrain.</small>
           </div>
-          <div className="tsm-atlas-map">
+          <div className={`tsm-atlas-map tsm-civic-fx-${visualFx}`}>
+            <div className="tsm-civic-fx-overlay" aria-hidden="true" />
             <TriStateDigitalTwinMap hideSidebar visible={visibleForRegion} onVisibleChange={setLayers}
               regionalAtlas regionalView={region} regionalLayers={regionalLayers}
               cinematicTour={cinematicTour} onTourReducedMotion={stopTourForReducedMotion}
@@ -253,7 +310,7 @@ export default function TriStateAtlasView(): JSX.Element {
           <p className="tsm-atlas-note">Source map features are observational, contextual, planning, regulatory, or derived depending on their registry authority. Visible does not mean validated; 3D roof estimates and flood screening must not be interpreted as engineering measurements.</p>
         </section>
 
-        <aside className="tsm-atlas-panel tsm-atlas-inspector" aria-label="Data and evidence inspector">
+        <aside id="tsm-atlas-evidence-drawer" className="tsm-atlas-panel tsm-atlas-inspector" aria-label="Data and evidence inspector" hidden={!rightOpen}>
           <h2>{lens === 'explore' ? 'Discover the valley' : lens === 'engineer' ? 'Engineering desk' : 'Source provenance desk'}</h2>
           <p>{lens === 'explore'
             ? 'Start with a mapped feature, then open the official source. Large controls and plain-language explanations are available in this panel.'
@@ -292,7 +349,7 @@ export default function TriStateAtlasView(): JSX.Element {
         </aside>
       </div>
 
-      <section className="tsm-atlas-bottom" aria-label="Data fabrics and real-time observations">
+      <section className="tsm-atlas-bottom" aria-label="Data fabrics and authoritative engineering sources">
         <div className="tsm-atlas-panel">
           <h2>Source fabric inventory</h2>
           <p><strong>{sourceCount}</strong> documented data-fabric contracts and <strong>{mapCount}</strong> map-plane definitions are loaded from repository code, not hardcoded display claims. A contract marked live-capable is not proof of a successful source request.</p>
@@ -310,9 +367,8 @@ export default function TriStateAtlasView(): JSX.Element {
           </div>
         </div>
         <div className="tsm-atlas-panel">
-          <PagesUSGSGaugeReader />
           <h2>Advanced NOAA/USGS server feed (optional)</h2>
-          <p>The separate repository forecast and multi-station board uses the TSM server API after a user request. GitHub Pages cannot host that server. The USGS reader above requests a public federal API directly; neither reader invents NAVD88 water surfaces.</p>
+          <p>The advanced forecast and multi-station board requires a configured TSM server. The public river-gauge reader at the top of this page makes a direct on-demand USGS request. Neither mode invents NAVD88 water surfaces.</p>
           <button type="button" className="tsm-atlas-reset" onClick={() => setRiverOpen((current) => !current)} aria-expanded={riverOpen} aria-controls="tsm-atlas-gauge-board">
             {riverOpen ? 'Close station board' : 'Open real station board'}
           </button>
@@ -325,9 +381,9 @@ export default function TriStateAtlasView(): JSX.Element {
       </section>
       <div className="tsm-atlas-community-panels" aria-label="Community flood history and infrastructure funding">
         <div className="tsm-atlas-panel"><CommunityFloodHistory /></div>
-        <div className="tsm-atlas-panel"><CommunityGrantMatrix /></div>
+        <div id="tsm-grants" className="tsm-atlas-panel tsm-civic-grant-panel"><CommunityGrantMatrix /></div>
       </div>
-      <section className="tsm-atlas-panel tsm-atlas-screening" aria-label="Optional illustrative scenario studio">
+      <section id="tsm-simulation" className="tsm-atlas-panel tsm-atlas-screening" aria-label="Optional illustrative scenario studio">
         <h2>Explore flood-reduction ideas</h2>
         <p>The repository includes an optional <strong>SIMULATION_DEMO</strong> screening model for teaching and comparing assumed adaptations. It does not consume your map sketches, reconstruct historic flooding, or calculate site-specific engineering outcomes.</p>
         <button type="button" className="tsm-atlas-reset"

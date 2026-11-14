@@ -9,6 +9,7 @@ import { BuildingInspectionPanel } from './BuildingInspectionPanel';
 import { createPoseyScreeningExtrusionLayer } from '../lib/posey-screening-building-style';
 import { TERRAIN_RGB_SOURCE_ID } from '../lib/terrain-rgb-contract';
 import { FeatureLayerRequestCoordinator } from '../lib/feature-layer-request-coordinator';
+import { civicSiteInfo, regionalSiteQuery, type CivicSiteInfo, type CivicSiteKind } from '../lib/regional-civic-sites';
 import { getCinematicLighting, type CinematicLightPreset } from '../lib/cinematic/light-presets';
 import { playCinematicTour } from '../lib/cinematic/camera-tour';
 import {
@@ -227,13 +228,13 @@ export interface TriStateDigitalTwinMapProps {
   /** Atlas-only camera preset; location is navigation, never survey evidence. */
   regionalView?: { id: string; center: [number, number]; zoom: number; pitch?: number; bearing?: number };
   /** Source-derived, locally committed point locations and eHydro survey rectangles. */
-  regionalLayers?: { gauges: boolean; surveys: boolean; historic: boolean };
+  regionalLayers?: { gauges: boolean; surveys: boolean; historic: boolean; dnr: boolean; preserves: boolean; illinois: boolean; kentucky: boolean };
   /** Indiana aerial imagery is only offered over its own coverage. */
   showIndianaImagery?: boolean;
   /** Human proposed, uncalibrated intervention geometry. Never used as a flood result. */
   proposalOverlay?: Parameters<GeoJSONSource['setData']>[0];
   /** Active drawing class. Map clicks are forwarded as WGS84 waypoints only. */
-  proposalDrawMode?: 'berm' | 'road' | 'retention' | null;
+  proposalDrawMode?: 'berm' | 'road' | 'retention' | 'sewer' | 'water' | 'power' | 'broadband' | 'stormwater' | null;
   onProposalPoint?: (point: [number, number]) => void;
 }
 
@@ -255,6 +256,22 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
   const [status, setStatus] = useState('Initializing MapLibre plane…');
   useEffect(() => { props.onStatusChange?.(status); }, [status, props.onStatusChange]);
   const [picked, setPicked] = useState<string | null>(null);
+  const [selectedSite, setSelectedSite] = useState<CivicSiteInfo | null>(null);
+  const [siteSearch, setSiteSearch] = useState('');
+  const [siteIndex, setSiteIndex] = useState<Array<{ key: string; kind: CivicSiteKind; info: CivicSiteInfo; point: [number, number] }>>([]);
+  const registerSiteIndex = useCallback((kind: CivicSiteKind, data: { features?: unknown[] }) => {
+    const fresh = (data.features ?? []).flatMap((value, i) => {
+      if (!value || typeof value !== 'object') return [];
+      const f = value as { geometry?: { type?: string; coordinates?: unknown }; properties?: Record<string, unknown> };
+      if (f.geometry?.type !== 'Point' || !Array.isArray(f.geometry.coordinates) || f.geometry.coordinates.length < 2) return [];
+      const [lng,lat] = f.geometry.coordinates;
+      if (typeof lng !== 'number' || typeof lat !== 'number' || !Number.isFinite(lng) || !Number.isFinite(lat) ||
+        lng < -180 || lng > 180 || lat < -90 || lat > 90) return [];
+      const info = civicSiteInfo(kind, f.properties ?? {});
+      return [{ key: `${kind}-${info.reference || i}`, kind, info, point: [lng,lat] as [number,number] }];
+    });
+    setSiteIndex((old) => [...old.filter((item) => item.kind !== kind), ...fresh]);
+  }, []);
   const [selectedBuilding, setSelectedBuilding] = useState<Record<string, unknown> | null>(null);
   const [floodOverlayOn, setFloodOverlayOn] = useState(false);
   const [floodBusy, setFloodBusy] = useState(false);
@@ -274,6 +291,30 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
   const proposalOverlayRef = useRef(props.proposalOverlay);
   proposalOverlayRef.current = props.proposalOverlay;
   const npsLoadedRef = useRef(false);
+  const civicLoadedRef = useRef<Record<'dnr' | 'preserve' | 'illinois' | 'kentucky', boolean>>({ dnr: false, preserve: false, illinois: false, kentucky: false });
+  const civicAbortRef = useRef<Record<'dnr' | 'preserve' | 'illinois' | 'kentucky', AbortController | null>>({ dnr: null, preserve: null, illinois: null, kentucky: null });
+  const loadDnrSites = useCallback(async (map: Map, kind: 'dnr' | 'preserve' | 'illinois' | 'kentucky'): Promise<void> => {
+    const sourceId = `atlas-civic-${kind}`;
+    if (civicLoadedRef.current[kind] || !map.getSource(sourceId)) return;
+    civicAbortRef.current[kind]?.abort();
+    const controller = new AbortController();
+    civicAbortRef.current[kind] = controller;
+    try {
+      const response = await fetch(regionalSiteQuery(kind), { signal: controller.signal });
+      if (!response.ok) throw new Error(`Indiana DNR HTTP ${response.status}`);
+      const data = await response.json() as { type?: string; features?: unknown[] };
+      if (data.type !== 'FeatureCollection' || !Array.isArray(data.features)) throw new Error('Expected GeoJSON FeatureCollection');
+      if (mapRef.current !== map || controller.signal.aborted) return;
+      const source = map.getSource(sourceId) as GeoJSONSource | undefined;
+      source?.setData(data as Parameters<GeoJSONSource['setData']>[0]);
+      civicLoadedRef.current[kind] = true;
+      registerSiteIndex(kind, data);
+      setStatus(`${kind === 'illinois' ? 'Illinois DNR' : kind === 'kentucky' ? 'Kentucky state parks' : 'Indiana DNR'} ${kind} records loaded: ${data.features.length}; site locations are contextual, not surveyed.`);
+    } catch (error: unknown) {
+      if (controller.signal.aborted) return;
+      setStatus(`${kind} public GIS layer unavailable: ${error instanceof Error ? error.message : String(error)}. No substitute locations were generated.`);
+    }
+  }, [registerSiteIndex]);
   const npsAbortRef = useRef<AbortController | null>(null);
   const loadHistoricSites = useCallback(async (map: Map): Promise<void> => {
     if (npsLoadedRef.current || !map.getSource('atlas-nps-historic')) return;
@@ -282,9 +323,10 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
     npsAbortRef.current = controller;
     // NPS public data excludes restricted/sensitive sites. This bounding
     // envelope is only a contextual map query, not a preservation determination.
-    const url = new URL('https://mapservices.nps.gov/arcgis/rest/services/cultural_resources/nrhp_locations/MapServer/0/query');
+    const url = new URL(regionalSiteQuery('historic'));
+    // Registry excludes restricted or sensitive NPS archaeological sites.
     url.searchParams.set('where', '1=1');
-    url.searchParams.set('geometry', '-88.5,37.5,-87.1,38.5');
+    url.searchParams.set('geometry', '-89.6,36.9,-86.8,38.8');
     url.searchParams.set('geometryType', 'esriGeometryEnvelope');
     url.searchParams.set('spatialRel', 'esriSpatialRelIntersects');
     url.searchParams.set('inSR', '4326');
@@ -304,12 +346,13 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
       const source = map.getSource('atlas-nps-historic') as GeoJSONSource | undefined;
       source?.setData(data as Parameters<GeoJSONSource['setData']>[0]);
       npsLoadedRef.current = true;
+      registerSiteIndex('historic', data);
       setStatus(`NPS unrestricted historic-place points received: ${data.features.length}; 1,000-record limit, location precision may vary.`);
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') return;
       setStatus(`NPS historic places unavailable: ${error instanceof Error ? error.message : String(error)}. No substitute points were invented.`);
     }
-  }, []);
+  }, [registerSiteIndex]);
 
   const setVisible = useCallback((updater: (current: Record<string, boolean>) => Record<string, boolean>): void => {
     if (controlled) {
@@ -464,6 +507,23 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
             'circle-stroke-color': '#281442', 'circle-stroke-width': 1.5 },
         });
         if (regionalLayersRef.current?.historic) void loadHistoricSites(map);
+        for (const kind of ['dnr', 'preserve', 'illinois', 'kentucky'] as const) {
+          const source = `atlas-civic-${kind}`;
+          const layer = `${source}-${kind === 'illinois' ? 'fill' : 'points'}`;
+          map.addSource(source, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+          const enabled = Boolean(regionalLayersRef.current?.[kind === 'preserve' ? 'preserves' : kind]);
+          if (kind === 'illinois') {
+            map.addLayer({ id: layer, type: 'fill', source, layout: { visibility: enabled ? 'visible' : 'none' },
+              paint: { 'fill-color': '#e879f9', 'fill-opacity': 0.18, 'fill-outline-color': '#a21caf' } });
+          } else {
+            map.addLayer({ id: layer, type: 'circle', source,
+              layout: { visibility: enabled ? 'visible' : 'none' },
+              paint: { 'circle-radius': 7, 'circle-color': kind === 'dnr' ? '#f59e0b' : kind === 'preserve' ? '#33d0a0' : '#e879f9',
+                'circle-stroke-width': 2, 'circle-stroke-color': '#123346' },
+            });
+          }
+          if (enabled) void loadDnrSites(map, kind);
+        }
         map.addSource('atlas-proposals', {
           type: 'geojson',
           data: proposalOverlayRef.current ?? { type: 'FeatureCollection', features: [] },
@@ -568,20 +628,31 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
           'atlas-usgs-gauge-points',
           'atlas-usace-ehydro-outline',
           'atlas-nps-historic-points',
+          'atlas-civic-dnr-points',
+          'atlas-civic-preserve-points',
+          'atlas-civic-illinois-fill',
+          'atlas-civic-kentucky-points',
         ].filter((id) => map.getLayer(id));
         const features = map.queryRenderedFeatures(event.point, { layers: pickable });
         if (features.length === 0) {
           setPicked(null);
           setSelectedBuilding(null);
+          setSelectedSite(null);
           return;
         }
         const feature = features[0];
         const layerId = feature.layer.id;
         const featureProps = feature.properties ?? {};
-        if (layerId === 'atlas-nps-historic-points') {
+        if (layerId === 'atlas-nps-historic-points' || layerId.startsWith('atlas-civic-')) {
+          const kind: CivicSiteKind = layerId === 'atlas-nps-historic-points' ? 'historic'
+            : layerId === 'atlas-civic-dnr-points' ? 'dnr'
+            : layerId === 'atlas-civic-preserve-points' ? 'preserve'
+            : layerId === 'atlas-civic-illinois-fill' ? 'illinois' : 'kentucky';
+          setSelectedSite(civicSiteInfo(kind, featureProps));
           setSelectedBuilding(null);
-          setPicked(`NPS National Register listing · ${String(featureProps.RESNAME ?? 'Unnamed resource')} · ${String(featureProps.County ?? 'county unavailable')} · not survey-grade coordinates`);
+          setPicked(null);
         } else if (layerId === 'atlas-usgs-gauge-points') {
+          setSelectedSite(null);
           const name = String(featureProps.name ?? featureProps.stationId ?? 'USGS station');
           setSelectedBuilding(null);
           setPicked(`${name} · station location only; fetch observations separately`);
@@ -591,9 +662,11 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
         } else if (layerId === 'indiana-buildings-extrusion' || layerId === 'indiana-buildings-footprint') {
           setSelectedBuilding(featureProps);
           setPicked(null);
+          setSelectedSite(null);
         } else {
           setSelectedBuilding(null);
           setPicked(describePickedFeature(layerId, featureProps));
+          setSelectedSite(null);
         }
       });
       map.on('mousemove', (event) => {
@@ -605,6 +678,11 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
           'usgs-quad-index-line',
           'atlas-usgs-gauge-points',
           'atlas-usace-ehydro-outline',
+          'atlas-nps-historic-points',
+          'atlas-civic-dnr-points',
+          'atlas-civic-preserve-points',
+          'atlas-civic-illinois-fill',
+          'atlas-civic-kentucky-points',
         ].filter((id) => map.getLayer(id));
         const features = map.queryRenderedFeatures(event.point, { layers: pickable });
         map.getCanvas().style.cursor = proposalModeRef.current ? 'crosshair' : features.length > 0 ? 'pointer' : '';
@@ -615,6 +693,7 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
       featureRequestsRef.current.cancelAll();
       npsAbortRef.current?.abort();
       npsLoadedRef.current = false;
+      for (const kind of ['dnr','preserve','illinois','kentucky'] as const) { civicAbortRef.current[kind]?.abort(); civicLoadedRef.current[kind] = false; }
       floodOverlayRef.current?.dispose();
       floodOverlayRef.current = null;
       map.remove();
@@ -689,6 +768,10 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
       ['gauges', ['atlas-usgs-gauge-points']],
       ['surveys', ['atlas-usace-ehydro-fill', 'atlas-usace-ehydro-outline']],
       ['historic', ['atlas-nps-historic-points']],
+      ['dnr', ['atlas-civic-dnr-points']],
+      ['preserves', ['atlas-civic-preserve-points']],
+      ['illinois', ['atlas-civic-illinois-fill']],
+      ['kentucky', ['atlas-civic-kentucky-points']],
     ] as const) {
       for (const id of ids) {
         if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', props.regionalLayers?.[key] ? 'visible' : 'none');
@@ -704,6 +787,16 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
     const map = mapRef.current;
     if (map?.isStyleLoaded()) void loadHistoricSites(map);
   }, [props.regionalAtlas, props.regionalLayers?.historic, loadHistoricSites]);
+
+  useEffect(() => {
+    if (!props.regionalAtlas) return;
+    const map = mapRef.current;
+    if (!map?.isStyleLoaded()) return;
+    for (const [kind, enabled] of [['dnr', props.regionalLayers?.dnr], ['preserve', props.regionalLayers?.preserves], ['illinois', props.regionalLayers?.illinois], ['kentucky', props.regionalLayers?.kentucky]] as const) {
+      if (enabled) void loadDnrSites(map, kind);
+      else civicAbortRef.current[kind]?.abort();
+    }
+  }, [props.regionalAtlas, props.regionalLayers?.dnr, props.regionalLayers?.preserves, props.regionalLayers?.illinois, props.regionalLayers?.kentucky, loadDnrSites]);
 
   useEffect(() => {
     if (!props.regionalAtlas) return;
@@ -766,6 +859,50 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
     <section aria-label="TSM MapLibre twelve-layer plane" style={{ position: 'relative', height: '100%', minHeight: 560, background: '#05080f', color: '#e2e8f0' }}>
       <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
       <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: mistVisible ? 0.18 : 0, transition: 'opacity 180ms ease', background: 'radial-gradient(ellipse at 50% 45%, transparent 35%, rgba(148,163,184,.55) 100%)', mixBlendMode: 'screen' }} />
+      {props.regionalAtlas && <details className="tsm-civic-site-index">
+        <summary>Explore historic &amp; natural places ({siteIndex.length})</summary>
+        <label htmlFor="tsm-civic-site-search">Find a place by name
+          <input id="tsm-civic-site-search" type="search" value={siteSearch}
+            onChange={(event) => setSiteSearch(event.target.value)}
+            placeholder="Harmonie, New Harmony, Twin Swamps…" />
+        </label>
+        <div className="tsm-civic-site-results">
+          {siteIndex.filter((item) => {
+            if (item.kind === 'historic' && !props.regionalLayers?.historic) return false;
+            if (item.kind === 'dnr' && !props.regionalLayers?.dnr) return false;
+            if (item.kind === 'preserve' && !props.regionalLayers?.preserves) return false;
+            if (item.kind === 'illinois' && !props.regionalLayers?.illinois) return false;
+            if (item.kind === 'kentucky' && !props.regionalLayers?.kentucky) return false;
+            return [item.info.title,item.info.county,item.info.category].join(' ').toLowerCase().includes(siteSearch.trim().toLowerCase());
+          }).sort((a,b) => a.info.title.localeCompare(b.info.title)).slice(0,24).map((item) =>
+            <button key={item.key} type="button" onClick={() => {
+              setSelectedSite(item.info);
+              const map = mapRef.current;
+              if (map) {
+                const camera = { center: item.point, zoom: Math.max(map.getZoom(), 13), pitch: 50 };
+                if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) map.jumpTo(camera);
+                else map.flyTo({ ...camera, duration: 750 });
+              }
+            }}>
+              <strong>{item.info.title}</strong><small>{item.info.kind === 'historic' ? 'Historic register' : item.info.kind === 'illinois' ? 'Illinois DNR' : item.info.kind === 'kentucky' ? 'Kentucky parks' : 'Indiana DNR'}{item.info.county ? ` · ${item.info.county}` : ''}</small>
+            </button>
+          )}
+        </div>
+        <p>Showing up to 24 matches. Filter by name. These are public locator records, not property boundaries.</p>
+      </details>}
+      {selectedSite && <aside className="tsm-civic-site-card" aria-label="Selected historic or natural site information">
+        <button type="button" className="tsm-civic-site-close" onClick={() => setSelectedSite(null)} aria-label="Close site details">×</button>
+        <span className="tsm-civic-eyebrow">{selectedSite.kind === 'historic' ? 'NPS NATIONAL REGISTER' : selectedSite.kind === 'illinois' ? 'ILLINOIS DNR PUBLIC DATA' : selectedSite.kind === 'kentucky' ? 'KENTUCKY PARKS PUBLIC DATA' : 'INDIANA DNR PUBLIC DATA'}</span>
+        <h2>{selectedSite.title}</h2>
+        <p><strong>{selectedSite.category}</strong>{selectedSite.county ? ` · ${selectedSite.county}` : ''}</p>
+        {selectedSite.description && <p>{selectedSite.description}</p>}
+        <p className="tsm-civic-site-access">{selectedSite.access} This map location is approximate, not an engineering reference.</p>
+        <div className="tsm-civic-site-links">
+          <a href={selectedSite.sourceUrl} target="_blank" rel="noopener noreferrer">Official source layer</a>
+          {selectedSite.website && <a href={selectedSite.website} target="_blank" rel="noopener noreferrer">Visit site website</a>}
+        </div>
+        {selectedSite.reference && <small>Source record: {selectedSite.reference}</small>}
+      </aside>}
       {selectedBuilding && (
         <BuildingInspectionPanel properties={selectedBuilding} onClose={() => setSelectedBuilding(null)} />
       )}

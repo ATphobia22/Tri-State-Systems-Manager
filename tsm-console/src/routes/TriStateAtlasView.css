@@ -116,3 +116,154 @@
 .tsm-atlas-tour{min-height:44px;border:1px solid #79ddd2;border-radius:12px;padding:9px 13px;background:#183c51;color:#d5fff4;font-weight:800;cursor:pointer}
 .tsm-atlas-tour:hover,.tsm-atlas-tour[aria-pressed="true"]{background:#1a6572;border-color:#b2fff2}
 @media(prefers-reduced-motion:reduce){.tsm-atlas-tour{transition:none}}
+
+/* Mount Vernon cinematic civic workspace — bright, legible, progressive disclosure. */
+.tsm-atlas {
+  --atlas-bg:#e9f6fc;--atlas-card:#fff;--atlas-line:#b6d5e4;--atlas-teal:#086d79;
+  --atlas-ink:#142b40;--atlas-muted:#355b70;
+  color:var(--atlas-ink);
+  background:radial-gradient(circle at 85% 3%,#fce7af 0,transparent 29%),
+    radial-gradient(circle at 7% 20%,#a5e9f1 0,transparent 35%),linear-gradient(165deg,#d7f6ff 0%,#f1f8ff 45%,#e7f8ef 100%);
+  color-scheme:light;
+}
+.tsm-atlas [hidden]{display:none!important}
+.tsm-atlas .tsm-atlas-heading{padding:clamp(22px,4vw,54px) clamp(12px,2vw,28px);margin-bottom:16px;border-radius:28px;background:
+ linear-gradient(105deg,rgba(9,42,67,.95) 0%,rgba(8,71,99,.91) 58%,rgba(7,116,121,.80) 100%);
+ box-shadow:0 24px 70px #10567a33;position:relative;overflow:hidden;color:#fff}
+.tsm-atlas .tsm-atlas-heading::after{content:'';position:absolute;width:390px;height:390px;right:-75px;bottom:-225px;border:80px solid #ffffff16;border-radius:50%;pointer-events:none}
+.tsm-atlas .tsm-atlas-heading h1{font-size:clamp(2.1rem,4.4vw,4.5rem);max-width:16ch;color:#fff;line-height:1.08}
+.tsm-atlas .tsm-atlas-heading p{color:#e5faff;max-width:70ch}
+.tsm-atlas .tsm-atlas-heading .tsm-atlas-kicker{color:#a9f7e8}
+.tsm-atlas .tsm-civic-welcome{display:inline-block;margin-top:15px!important;padding:8px 13px;border:1px solid #b1ecea66;border-radius:12px;background:#ffffff19;font-weight:650;font-size:.9rem}
+.tsm-atlas .tsm-atlas-links a{background:#ffffff24;border-color:#b5fbeb77;color:#fff}
+.tsm-atlas .tsm-atlas-links a:hover{background:#ffffff3f}
+.tsm-atlas .tsm-atlas-lenses button{color:#16354b;border:1px solid #bbdce7;background:#ffffffea;box-shadow:0 12px 25px #0c648212}
+.tsm-atlas .tsm-atlas-lenses button span{color:#3c6072}
+.tsm-atlas .tsm-atlas-lenses button.selected{background:linear-gradient(130deg,#cdfcf1,#e6f7ff);border:2px solid #108b8c}
+.tsm-atlas .tsm-atlas-panel,.tsm-atlas .tsm-atlas-stage{background:#fffefef7;border:1px solid #b6d8e5;box-shadow:0 13px 35px #22627b19;color:#16344a}
+.tsm-atlas .tsm-atlas-panel h2,.tsm-atlas .tsm-atlas-panel h3{color:#11364d}
+.tsm-atlas .tsm-atlas-panel p,.tsm-atlas .tsm-atlas-note{color:#3c5e72}
+.tsm-atlas .tsm-atlas-panel a{color:#09627a}
+.tsm-atlas .tsm-atlas-reset{background:#086f84;color:#fff}
+.tsm-atlas .tsm-atlas-reset:hover{background:#094e60}
+.tsm-atlas .tsm-atlas-stage-toolbar{background:linear-gradient(125deg,#173b55,#1b6780);color:#fff}
+.tsm-atlas .tsm-atlas-stage-toolbar strong,.tsm-atlas .tsm-atlas-stage-toolbar small{color:#fff}
+.tsm-atlas .tsm-atlas-timebar{background:#e7f7fd;color:#163d56}
+.tsm-atlas .tsm-atlas-map-status{background:#f0fbff;color:#163d56}
+.tsm-atlas .tsm-atlas-layer{border-bottom-color:#d2e7ef}
+.tsm-atlas .tsm-atlas-layer small{color:#3f6277}
+.tsm-atlas .tsm-atlas-layer input{accent-color:#087b91}
+.tsm-atlas .tsm-atlas-evidence,.tsm-atlas .tsm-atlas-fabrics details,.tsm-atlas .tsm-atlas-grant{background:#f2faff;color:#163d56}
+.tsm-atlas .tsm-atlas-footer{color:#265169}
+.tsm-civic-actionbar{position:sticky;z-index:20;top:0;display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+ border:1px solid #b3d5df;border-radius:16px;padding:10px;margin:0 0 18px;background:#fffffff2;box-shadow:0 14px 28px #0b48551d}
+.tsm-atlas .tsm-civic-actionbar a,.tsm-atlas .tsm-civic-actionbar button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;
+ font-size:.94rem;color:#16445b;text-decoration:none;font-weight:750;background:#eef8fc;border:1px solid #bddce6;border-radius:11px;padding:9px 13px;cursor:pointer}
+.tsm-atlas .tsm-civic-actionbar a:hover,.tsm-atlas .tsm-civic-actionbar button:hover{background:#ccefff}
+.tsm-atlas .tsm-civic-actionbar a:first-child{color:#fff;background:#087d93}
+.tsm-civic-eyebrow{display:block;font-size:.78rem;letter-spacing:.12em;font-weight:850;color:#087c86}
+.tsm-civic-watch{scroll-margin-top:92px;display:grid;grid-template-columns:minmax(220px,.85fr) minmax(280px,1.15fr);gap:18px;padding:24px;
+ border:1px solid #aacddf;border-radius:21px;background:linear-gradient(120deg,#e0fbff,#fff);margin-bottom:20px;box-shadow:0 10px 28px #266a8420}
+.tsm-civic-watch h2,.tsm-civic-utilities h2{font-size:clamp(1.6rem,2.5vw,2.4rem);letter-spacing:-.035em;line-height:1.15;margin:5px 0 13px;color:#123951}
+.tsm-civic-watch p,.tsm-civic-utilities p{color:#355a71;line-height:1.6}
+.tsm-civic-watch-reader{background:#fff;border:1px solid #b7d8e7;border-radius:17px;padding:18px;min-width:0}
+.tsm-civic-watch-reader h2{font-size:1.25rem}
+.tsm-civic-explainer{padding:13px;border-radius:12px;background:#fff7df;border-left:5px solid #df9a21}
+.tsm-civic-watch-reader label,.tsm-civic-watch-reader select{display:block;width:100%}
+.tsm-civic-watch-reader select{margin-top:7px;min-height:48px;padding:10px;border-radius:9px;background:#f3fbff;color:#193c50;border:1px solid #9cc0cf}
+.tsm-civic-watch-reader .tsm-atlas-history-record strong{font-size:clamp(1.55rem,2.8vw,2.5rem);color:#075b77}
+.tsm-civic-utilities{background:#fff;border:1px solid #b7d8e5;border-radius:22px;padding:clamp(16px,2.6vw,26px);margin-bottom:20px;box-shadow:0 10px 25px #246a8a15}
+.tsm-civic-utilities .tsm-civic-section-title{max-width:78ch}
+.tsm-civic-utility-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0}
+.tsm-atlas .tsm-civic-utility{display:flex;align-items:center;text-align:left;gap:12px;padding:13px 10px;min-width:0;min-height:88px;
+ border-radius:15px;border:2px solid #cee2ea;background:#f5fbff;color:#19394e;cursor:pointer}
+.tsm-atlas .tsm-civic-utility:hover{background:#e5f5ff;border-color:var(--utility-accent)}
+.tsm-atlas .tsm-civic-utility.selected{background:#e7fdf7;border-color:var(--utility-accent);box-shadow:0 0 0 2px #00000010}
+.tsm-civic-utility-symbol{font-size:1.8rem;line-height:1;min-width:40px;height:44px;border-radius:12px;background:var(--utility-accent);color:#082639;
+ display:inline-flex;align-items:center;justify-content:center;flex:none}
+.tsm-civic-utility strong,.tsm-civic-utility small{display:block}
+.tsm-civic-utility small{font-size:.77rem;line-height:1.35;margin-top:5px;color:#46687b}
+.tsm-civic-draft-status{background:#eaf8f8;border:1px dashed #78aebe;border-radius:12px;padding:12px 14px;color:#16435a}
+.tsm-atlas .tsm-civic-draft-status button{padding:8px 14px;min-height:44px;border-radius:9px;border:1px solid #7db2bb;color:#0a5060;background:#fff;cursor:pointer}
+.tsm-atlas-workspace.tsm-civic-left-closed{grid-template-columns:minmax(0,1fr) minmax(240px,320px)}
+.tsm-atlas-workspace.tsm-civic-right-closed{grid-template-columns:minmax(235px,300px) minmax(0,1fr)}
+.tsm-atlas-workspace.tsm-civic-left-closed.tsm-civic-right-closed{grid-template-columns:minmax(0,1fr)}
+.tsm-civic-grant-panel{scroll-margin-top:92px}
+.tsm-atlas-large-type{font-size:19px}
+.tsm-atlas-large-type button,.tsm-atlas-large-type select,.tsm-atlas-large-type input{font-size:1em}
+#tsm-utility-plan,#tsm-simulation{scroll-margin-top:92px}
+@media(max-width:1200px){
+ .tsm-civic-utility-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .tsm-atlas-workspace,.tsm-atlas-workspace.tsm-civic-left-closed,.tsm-atlas-workspace.tsm-civic-right-closed{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:700px){
+ .tsm-civic-watch{grid-template-columns:minmax(0,1fr);padding:14px}
+ .tsm-civic-utility-grid{grid-template-columns:minmax(0,1fr)}
+ .tsm-atlas .tsm-atlas-heading{padding:23px 15px;border-radius:17px}
+ .tsm-atlas .tsm-atlas-heading h1{font-size:clamp(2rem,8vw,3rem)}
+ .tsm-civic-actionbar{position:static}
+ .tsm-civic-watch-reader{padding:13px}
+ .tsm-civic-utilities{padding:14px}
+}
+@media(prefers-reduced-motion:reduce){.tsm-atlas *{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}}
+
+/* Always put the 3D map before the long source drawer on tablet and phone. */
+@media(max-width:1200px){.tsm-atlas-workspace>.tsm-atlas-stage{order:-1}.tsm-atlas-workspace>.tsm-atlas-controls{order:0}.tsm-atlas-workspace>.tsm-atlas-inspector{order:1}}
+
+.tsm-civic-authority-links{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 16px}
+.tsm-atlas .tsm-civic-authority-links a{display:inline-flex;align-items:center;min-height:44px;padding:9px 13px;border:1px solid #acc9d5;border-radius:10px;background:#ebf9fc;color:#075c75;font-size:.91rem;font-weight:700;text-decoration:none}
+.tsm-atlas .tsm-civic-authority-links a:hover{background:#cceef7}
+.tsm-civic-excavation-note{font-size:.86rem;margin:10px 0 0!important;line-height:1.45}
+
+/* Accessible, keyboard-operable site detail cards for historic and DNR markers. */
+.tsm-civic-site-card{position:absolute;right:14px;bottom:20px;z-index:30;
+ width:min(385px,calc(100% - 28px));max-height:min(72vh,500px);overflow-y:auto;
+ padding:19px;border-radius:17px;background:#fffffff7;color:#153b51;
+ border:2px solid #77bfc9;box-shadow:0 22px 65px #031826a8;font-size:16px;line-height:1.5}
+.tsm-civic-site-card h2{font-size:clamp(1.2rem,2vw,1.65rem);line-height:1.2;margin:7px 40px 12px 0;color:#123b52}
+.tsm-civic-site-card p{margin:0 0 11px}
+.tsm-civic-site-card .tsm-civic-site-access{padding:11px;border-radius:10px;background:#fff2d4;color:#654c18}
+.tsm-civic-site-card .tsm-civic-eyebrow{color:#126f7f}
+.tsm-civic-site-links{display:flex;flex-wrap:wrap;gap:9px;margin:10px 0}
+.tsm-civic-site-links a{display:inline-flex;align-items:center;min-height:44px;padding:9px 12px;border-radius:9px;
+ background:#087c8f;color:#fff!important;text-decoration:none;font-weight:700}
+.tsm-civic-site-close{position:absolute;top:7px;right:7px;min-height:44px;min-width:44px;border:0;border-radius:11px;
+ background:#edf7fa;color:#163b50;cursor:pointer;font-size:1.6rem}
+.tsm-civic-site-card a:focus-visible,.tsm-civic-site-card button:focus-visible{outline:3px solid #e3940e;outline-offset:3px}
+@media(max-width:650px){.tsm-civic-site-card{left:10px;right:10px;bottom:10px;width:auto;max-height:52vh;padding:15px}}
+
+/* Film FX are composited above the source map, never into analytical raster layers. */
+.tsm-civic-fx-label{display:grid;gap:5px;font-size:.82rem;font-weight:800;color:#e7fbff}
+.tsm-civic-fx-label select{min-height:44px;border:1px solid #84bdc6;border-radius:9px;background:#f0fcff;color:#194158;padding:6px 10px;max-width:100%}
+.tsm-civic-fx-overlay{position:absolute;inset:0;pointer-events:none;z-index:10;opacity:0}
+.tsm-civic-fx-river-mist .tsm-civic-fx-overlay{
+ opacity:.35;background:radial-gradient(ellipse 95% 40% at 40% 88%,#e8f9ffb8,transparent 80%),
+ linear-gradient(180deg,transparent 50%,#a9d4ed50 100%)}
+.tsm-civic-fx-cinematic-rain .tsm-civic-fx-overlay{
+ opacity:.28;background:repeating-linear-gradient(112deg,transparent 0 25px,#ecf6ff 26px,#ecf6ff 27px,transparent 28px 48px);
+ background-size:220px 220px;animation:tsm-atlas-screen-rain 3s linear infinite}
+.tsm-civic-fx-historical-film .tsm-civic-fx-overlay{
+ opacity:.4;background:linear-gradient(90deg,#d3a95f52,#d3a95f1a),
+ repeating-linear-gradient(0deg,transparent 0 9px,#3b2b1e19 10px)}
+@keyframes tsm-atlas-screen-rain{from{background-position:0 0}to{background-position:110px 440px}}
+@media(prefers-reduced-motion:reduce){.tsm-civic-fx-cinematic-rain .tsm-civic-fx-overlay{animation:none}}
+
+/* Source-backed place directory is keyboard accessible even when map canvas is not. */
+.tsm-civic-site-index{position:absolute;top:12px;left:12px;z-index:25;
+ width:min(345px,calc(100% - 24px));max-height:min(72vh,590px);overflow:auto;
+ border:1px solid #77c0cc;border-radius:14px;background:#fffffff7;color:#153b51;
+ box-shadow:0 16px 45px #011b3190;font-size:14px}
+.tsm-civic-site-index summary{display:flex;align-items:center;min-height:48px;padding:10px 13px;
+ cursor:pointer;font-weight:800;font-size:.94rem;color:#103e56;list-style:inside}
+.tsm-civic-site-index[open] summary{border-bottom:1px solid #c7e0e8}
+.tsm-civic-site-index label{display:block;padding:11px;font-weight:800}
+.tsm-civic-site-index input{display:block;width:100%;min-height:44px;margin-top:6px;padding:9px;
+ border:1px solid #97bdc9;border-radius:9px;color:#183d52;background:#fff}
+.tsm-civic-site-results{max-height:290px;overflow:auto;padding:0 10px}
+.tsm-civic-site-results button{display:block;width:100%;text-align:left;padding:10px;min-height:49px;
+ border:0;border-bottom:1px solid #dcecf1;background:#fff;color:#143950;cursor:pointer}
+.tsm-civic-site-results button:hover,.tsm-civic-site-results button:focus-visible{background:#e4f7fd}
+.tsm-civic-site-results strong,.tsm-civic-site-results small{display:block}
+.tsm-civic-site-results small{margin-top:2px;color:#457086}
+.tsm-civic-site-index p{padding:6px 12px;font-size:.8rem;color:#375d71}
+@media(max-width:650px){.tsm-civic-site-index{width:min(320px,calc(100% - 22px));max-height:50vh;top:8px;left:8px}}

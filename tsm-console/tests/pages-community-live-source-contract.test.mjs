@@ -47,14 +47,35 @@ test('Historic flood events are cited stages, never spatial inundation surfaces'
   assert.match(view, /<CommunityFloodHistory\s*\/>/);
 });
 
-test('NPS layer and USACE survey footprints are source labeled, opt-in and non-regulatory', () => {
+test('NPS and Indiana DNR layers are official, source-labeled and site-tappable', () => {
   assert.equal(surveys.features.length, 20);
-  assert.match(map, /https:\/\/mapservices\.nps\.gov\/arcgis\/rest\/services\/cultural_resources\/nrhp_locations\/MapServer\/0\/query/);
-  assert.ok(vite.includes("'https://mapservices.nps.gov'"), 'CSP must explicitly allow official NPS GIS origin');
-  assert.match(view, /historic: false/);
-  assert.match(view, /checked=\{regionalLayers\.historic\}/);
-  assert.match(map, /not survey-grade coordinates/);
-  assert.match(map, /Ohio River Datum; no NAVD88 offset asserted/);
+  const registry = read('src/lib/regional-civic-sites.ts');
+  const npsSource = registry.match(/historic:\s*'([^']+)'/)?.[1];
+  assert.ok(npsSource, 'NPS authority source must be registered');
+  assert.equal(new URL(npsSource).origin, 'https://mapservices.nps.gov');
+  assert.equal(new URL(npsSource).pathname, '/arcgis/rest/services/cultural_resources/nrhp_locations/MapServer/0');
+  assert.ok(registry.includes('Sites_StateParks/FeatureServer/8'));
+  assert.ok(registry.includes('DNRGIS_DnrNPSites_DNR_IN_1/FeatureServer/18'));
+  assert.ok(registry.includes('maps.dnr.illinois.gov/geoservices/rest/services/BaseLayers/MapServer/11'));
+  assert.ok(registry.includes('kygisserver.ky.gov/arcgis/rest/services/WGS84WM_Services/Ky_State_Parks_Features_WGS84WM/MapServer/5'));
+  assert.ok(registry.includes('maxAllowableOffset'));
+  assert.ok(map.includes('atlas-civic-illinois-fill'));
+  assert.ok(map.includes('atlas-civic-kentucky-points'));
+  assert.ok(registry.includes('returnGeometry'));
+  assert.ok(registry.includes('esriSpatialRelIntersects'));
+  assert.ok(registry.includes('httpsLink'));
+  assert.ok(vite.includes("'https://mapservices.nps.gov'"));
+  assert.ok(vite.includes("'https://gisdata.in.gov'"));
+  assert.ok(vite.includes("'https://maps.dnr.illinois.gov'"));
+  assert.ok(vite.includes("'https://kygisserver.ky.gov'"));
+  assert.ok(view.includes('historic: true, dnr: true, preserves: false'));
+  assert.ok(view.includes('checked={regionalLayers.historic}'));
+  assert.ok(view.includes('checked={regionalLayers.dnr}'));
+  assert.ok(view.includes('checked={regionalLayers.illinois}'));
+  assert.ok(view.includes('checked={regionalLayers.kentucky}'));
+  assert.ok(map.includes('setSelectedSite(civicSiteInfo(kind, featureProps))'));
+  assert.ok(map.includes('This map location is approximate'));
+  assert.ok(map.includes('Ohio River Datum; no NAVD88 offset asserted'));
 });
 
 test('Berm/road/retention sketches remain client-only WGS84 planning geometry', () => {
