@@ -6,6 +6,8 @@ on:
       - 'scripts/geospatial/ifc_preflight.py'
       - 'scripts/geospatial/test_ifc_preflight.py'
       - 'scripts/geospatial/test_ifc_real_parser.py'
+      - 'scripts/geospatial/export_reviewed_ifc_glb.py'
+      - 'scripts/geospatial/test_export_reviewed_ifc_glb.py'
       - 'scripts/geospatial/requirements-geobim-optional.txt'
       - 'artifacts/tsm-geobim-source-evaluation-v1.json'
       - 'tests/geobim-source-evaluation.test.mjs'
@@ -16,6 +18,8 @@ on:
       - 'scripts/geospatial/ifc_preflight.py'
       - 'scripts/geospatial/test_ifc_preflight.py'
       - 'scripts/geospatial/test_ifc_real_parser.py'
+      - 'scripts/geospatial/export_reviewed_ifc_glb.py'
+      - 'scripts/geospatial/test_export_reviewed_ifc_glb.py'
       - 'scripts/geospatial/requirements-geobim-optional.txt'
       - 'artifacts/tsm-geobim-source-evaluation-v1.json'
       - 'tests/geobim-source-evaluation.test.mjs'
@@ -44,9 +48,11 @@ jobs:
         with:
           node-version: '22'
       - name: Validate source syntax
-        run: python -m py_compile scripts/geospatial/ifc_preflight.py scripts/geospatial/test_ifc_preflight.py
+        run: python -m py_compile scripts/geospatial/ifc_preflight.py scripts/geospatial/test_ifc_preflight.py scripts/geospatial/export_reviewed_ifc_glb.py scripts/geospatial/test_export_reviewed_ifc_glb.py
       - name: Exercise offline georeference and identity contracts
         run: python -m unittest scripts.geospatial.test_ifc_preflight -v
+      - name: Check reviewed IFC-to-GLB candidate-link contract
+        run: python -m unittest scripts.geospatial.test_export_reviewed_ifc_glb -v
       - name: Validate third-party inventory honesty
         run: node --test tests/geobim-source-evaluation.test.mjs
       - name: Install optional isolated IFC parser for real IFC4 smoke tests
