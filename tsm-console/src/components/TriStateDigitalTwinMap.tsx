@@ -417,6 +417,16 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
       map.setLight(lighting.light);
       map.setSky(lighting.sky);
       if (props.regionalAtlas) {
+        // Cartographic styling of EXISTING OpenFreeMap water polygons only.
+        // Never synthesize a water-surface elevation, bathymetric depth or flood footprint.
+        const waterLayers = (map.getStyle().layers ?? []).filter(
+          (item) => item.type === 'fill' && /(^|[-_])(water|river|lake)($|[-_])/i.test(item.id),
+        );
+        for (const layer of waterLayers) {
+          map.setPaintProperty(layer.id, 'fill-color', '#236b81');
+          map.setPaintProperty(layer.id, 'fill-opacity', 0.88);
+        }
+        // Renders navigable water context; official river stages remain in USGS reader.
         // OpenFreeMap vector style is the cross-state basemap. Preserve native
         // Indiana imagery as an optional overlaid raster, never an IL/KY source.
         const imagery = getMapLibreFabricLayer('indiana-imagery').endpoint;
