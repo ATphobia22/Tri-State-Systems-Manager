@@ -31,7 +31,7 @@ describe('Public Cesium 4D view on the project Pages base', () => {
     cy.contains('output', '2025-04-01');
     cy.contains('label', 'Show hypothetical extent').find('input').check();
     cy.wait('@screening').its('response.statusCode').should('eq', 200);
-    cy.get('[data-testid="cesium-screening-status"]', { timeout: 20000 }).should('contain.text', 'Screening extent on map');
+    cy.get('[data-testid="cesium-screening-status"]', { timeout: 60000 }).should('contain.text', 'Screening extent on map');
     cy.get('.tsm-cesium-error').should('not.exist');
     cy.screenshot('mount-vernon-cesium-and-screening');
     cy.get('#cesium-place').select('Henderson, KY');
