@@ -30,6 +30,7 @@ type ProposalFeature = {
   properties: { intervention: string; authority: string; createdAt: string; note: string };
 };
 type Light = 'day' | 'golden' | 'night';
+type VisualFx = 'clear' | 'river-mist' | 'cinematic-rain' | 'historical-film';
 type RegionView = { id: string; label: string; center: [number, number]; zoom: number; pitch: number; bearing: number; imagery: boolean; notes: string };
 // Navigation-only geocoding. These coordinates are NOT survey control points.
 const REGIONAL_VIEWS: readonly RegionView[] = [
@@ -61,6 +62,7 @@ const mapCount = MAP_PLANE_FABRIC.length;
 export default function TriStateAtlasView(): JSX.Element {
   const [lens, setLens] = useState<Lens>('explore');
   const [light, setLight] = useState<Light>('golden');
+  const [visualFx, setVisualFx] = useState<VisualFx>('clear');
   const [cinematicTour, setCinematicTour] = useState(false);
   const [showPartialBuildingMeshes, setShowPartialBuildingMeshes] = useState(false);
   const stopTourForReducedMotion = useCallback(() => setCinematicTour(false), []);
@@ -266,6 +268,14 @@ export default function TriStateAtlasView(): JSX.Element {
               <input type="checkbox" checked={showPartialBuildingMeshes} onChange={(event) => setShowPartialBuildingMeshes(event.target.checked)} />
               3D building meshes <small>Optional, source-backed Posey LoD1 subset only; independently unverified placement</small>
             </label>
+            <label className="tsm-civic-fx-label" htmlFor="tsm-civic-scene-fx">Virtual atmosphere · visual only
+              <select id="tsm-civic-scene-fx" value={visualFx} onChange={(event) => setVisualFx(event.target.value as VisualFx)}>
+                <option value="clear">Clear · original map colors</option>
+                <option value="river-mist">River mist · cinematic fog</option>
+                <option value="cinematic-rain">Movie rain · visual illustration</option>
+                <option value="historical-film">History · vintage film look</option>
+              </select>
+            </label>
             <fieldset className="tsm-atlas-lighting">
               <legend>Visual lighting only</legend>
               {(['day', 'golden', 'night'] as const).map((preset) =>
@@ -277,9 +287,10 @@ export default function TriStateAtlasView(): JSX.Element {
             <label htmlFor="tsm-atlas-hour">Visual day/night cycle <strong>{String(sceneHour).padStart(2, '0')}:00</strong></label>
             <input id="tsm-atlas-hour" type="range" min={0} max={23} step={1} value={sceneHour}
               onChange={(event) => { const next = Number(event.target.value); setSceneHour(next); setLight(lightForHour(next)); }} />
-            <small>4D presentation time only: does not advance USGS observations, hydrology, land cover, or hydraulic simulations.</small>
+            <small>4D presentation time and movie FX are visual only: neither changes actual USGS observations, weather, flood extents, terrain, or hydraulic simulations.</small>
           </div>
-          <div className="tsm-atlas-map">
+          <div className={`tsm-atlas-map tsm-civic-fx-${visualFx}`}>
+            <div className="tsm-civic-fx-overlay" aria-hidden="true" />
             <TriStateDigitalTwinMap hideSidebar visible={visibleForRegion} onVisibleChange={setLayers}
               regionalAtlas regionalView={region} regionalLayers={regionalLayers}
               cinematicTour={cinematicTour} onTourReducedMotion={stopTourForReducedMotion}
