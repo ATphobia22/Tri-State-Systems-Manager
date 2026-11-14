@@ -43,3 +43,7 @@ export function resolveBuildingsAssetId(poseyStatus: IonAssetStatus): number {
 export function resolveTerrainAssetId(poseyStatus: IonAssetStatus): number {
   return poseyStatus === "COMPLETE" ? ION_TSM.posey3depTerrain : ION_CATALOG.worldTerrain;
 }
+
+/** Local-vs-cloud resolver; callers must supply verified, SHA-pinned evidence. */
+export { chooseCesiumAsset } from './cesium-asset-evidence-guard';
+export type { VerifiedIonReceipt, LocalAssetReceipt, SceneChoice, TsmIonAssetKey } from './cesium-asset-evidence-guard';

@@ -69,3 +69,17 @@ viewer.camera.flyTo({
 ## Non-claims
 
 Ion tiles are visualization. FIRM / BAFL / survey remain regulatory authority.
+
+## Offline and provenance decision boundary (2026-11-14)
+
+The Open Source Software page at ion.cesium.com is a **third-party notice**, not a prescription to add the entire Cesium ion server dependency tree to TSM. The existing MapLibre/Three.js web Atlas and native Unreal rendering are retained. Do not add AWS, Azure, Bentley, React or authentication packages solely because ion lists them; adopt selectively with license, security, runtime and redundancy review.
+
+TSM has a source-evidence resolver in `tsm-console/src/lib/cesium-asset-evidence-guard.ts`. The resolver is **not a replacement for a filesystem hash verifier or a live ion API check**: its inputs must originate from verified manifests and completed source/tiling receipts.
+
+- For network-disabled native/offline use, select only a packaged, SHA-pinned local tileset. No ion fallback, CDNs, localhost or server requirement is permitted.
+- For online Pages, permit Cesium ion only when a public-scoped ion token is configured. If Posey user assets lack completed tiling and provenance receipts, keep them `AWAITING_FILES`, using world assets for contextual imagery/geometry only.
+- Do not treat the built-in global imagery/terrain IDs as always available offline or as regulatory/survey evidence.
+- Reject local traversal/absolute URLs, unreviewed licenses, and missing SHA256 evidence. Independently verify the staged local content against that SHA before use.
+- Do not treat Google Photorealistic 3D Tiles as distributable offline assets without a separately verified license allowing that distribution.
+
+The `tests/cesium-asset-evidence-guard.test.mjs` regression suite checks these boundaries. A full headed Unreal Windows Shipping test and offline data staging remain separate release gates.
