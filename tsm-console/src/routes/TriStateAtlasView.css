@@ -231,3 +231,19 @@
  background:#edf7fa;color:#163b50;cursor:pointer;font-size:1.6rem}
 .tsm-civic-site-card a:focus-visible,.tsm-civic-site-card button:focus-visible{outline:3px solid #e3940e;outline-offset:3px}
 @media(max-width:650px){.tsm-civic-site-card{left:10px;right:10px;bottom:10px;width:auto;max-height:52vh;padding:15px}}
+
+/* Film FX are composited above the source map, never into analytical raster layers. */
+.tsm-civic-fx-label{display:grid;gap:5px;font-size:.82rem;font-weight:800;color:#e7fbff}
+.tsm-civic-fx-label select{min-height:44px;border:1px solid #84bdc6;border-radius:9px;background:#f0fcff;color:#194158;padding:6px 10px;max-width:100%}
+.tsm-civic-fx-overlay{position:absolute;inset:0;pointer-events:none;z-index:10;opacity:0}
+.tsm-civic-fx-river-mist .tsm-civic-fx-overlay{
+ opacity:.35;background:radial-gradient(ellipse 95% 40% at 40% 88%,#e8f9ffb8,transparent 80%),
+ linear-gradient(180deg,transparent 50%,#a9d4ed50 100%)}
+.tsm-civic-fx-cinematic-rain .tsm-civic-fx-overlay{
+ opacity:.28;background:repeating-linear-gradient(112deg,transparent 0 25px,#ecf6ff 26px,#ecf6ff 27px,transparent 28px 48px);
+ background-size:220px 220px;animation:tsm-atlas-screen-rain 3s linear infinite}
+.tsm-civic-fx-historical-film .tsm-civic-fx-overlay{
+ opacity:.4;background:linear-gradient(90deg,#d3a95f52,#d3a95f1a),
+ repeating-linear-gradient(0deg,transparent 0 9px,#3b2b1e19 10px)}
+@keyframes tsm-atlas-screen-rain{from{background-position:0 0}to{background-position:110px 440px}}
+@media(prefers-reduced-motion:reduce){.tsm-civic-fx-cinematic-rain .tsm-civic-fx-overlay{animation:none}}
