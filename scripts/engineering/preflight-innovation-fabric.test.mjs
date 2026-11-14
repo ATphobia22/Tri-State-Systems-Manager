@@ -82,9 +82,10 @@ test('unconfigured or modified runner cannot be treated as executed or available
 test('cross-root symlinks and traversal are rejected', t => {
   const f=fixture();t.after(f.cleanup);
   assert.throws(()=>relativeFile(f.folder,'../elsewhere'),/UNSAFE_RELATIVE_PATH/);
-  const outside=path.join(os.tmpdir(),'tsm-escape-'+process.pid);
+  const outsideDir=fs.mkdtempSync(path.join(os.tmpdir(),'tsm-escape-'));
+  const outside=path.join(outsideDir,'secret');
   fs.writeFileSync(outside,'secret');
-  t.after(()=>fs.rmSync(outside,{force:true}));
+  t.after(()=>fs.rmSync(outsideDir,{recursive:true,force:true}));
   try{fs.symlinkSync(outside,path.join(f.folder,'data/link.bin'));}
   catch{return;}
   assert.throws(()=>relativeFile(f.folder,'data/link.bin'),/SYMLINK_OUTSIDE_ROOT/);
