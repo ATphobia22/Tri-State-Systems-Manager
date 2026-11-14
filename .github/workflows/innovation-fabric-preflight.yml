@@ -1,0 +1,46 @@
+name: TSM Innovation Fabric — Patent Screen and Headless Worker Contracts
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'integrations/patent-prior-art-screen-2026-11-14.json'
+      - 'integrations/innovation-fabric-stages-v1.json'
+      - 'scripts/engineering/preflight-innovation-fabric.mjs'
+      - 'scripts/engineering/preflight-innovation-fabric.test.mjs'
+      - '.github/workflows/innovation-fabric-preflight.yml'
+  pull_request:
+    paths:
+      - 'integrations/patent-prior-art-screen-2026-11-14.json'
+      - 'integrations/innovation-fabric-stages-v1.json'
+      - 'scripts/engineering/preflight-innovation-fabric.mjs'
+      - 'scripts/engineering/preflight-innovation-fabric.test.mjs'
+      - '.github/workflows/innovation-fabric-preflight.yml'
+permissions:
+  contents: read
+jobs:
+  evidence-preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout immutable source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # pinned
+      - name: Pin Node 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # pinned
+        with:
+          node-version: '22'
+      - name: Parse and run failure-denial tests with no installed engines
+        run: |
+          node --check scripts/engineering/preflight-innovation-fabric.mjs
+          node --test scripts/engineering/preflight-innovation-fabric.test.mjs
+      - name: Headless non-publishing readiness summary
+        run: |
+          node scripts/engineering/preflight-innovation-fabric.mjs --out ${{ runner.temp }}/innovation-readiness.json
+          node -e "const d=require(process.argv[1]);if(d.summary.verified_execution!==0||d.summary.public_model_outputs!==0||d.patent_screen.freedom_to_operate!=='NOT_ASSESSED')process.exit(1);console.log(JSON.stringify(d.summary))" "${{ runner.temp }}/innovation-readiness.json"
+      - name: Strict publication gate must not pass without real model evidence
+        run: |
+          set +e
+          node scripts/engineering/preflight-innovation-fabric.mjs --strict > ${{ runner.temp }}/strict-readiness.json
+          status=$?
+          set -e
+          test "$status" -eq 2
