@@ -72,6 +72,14 @@ class USGSHistoryTests(unittest.TestCase):
             import_snapshot(json.dumps(payload()).encode(), build_registry_snapshot(),
                             URL.replace("api.waterdata.usgs.gov", "untrusted.example"), CAPTURE)
 
+    def test_official_v1_timeseries_identifier_and_legacy_alias(self):
+        data = payload()
+        data["features"][0]["properties"]["time_series_id"] = data["features"][0]["properties"].pop("timeseries_id")
+        self.assertEqual(convert(data)["observations"][0]["timeseriesId"], "test-source-series")
+        data["features"][0]["properties"]["timeseries_id"] = "different-source-series"
+        with self.assertRaisesRegex(ObservationError, "CONFLICTING_TIMESERIES_IDENTIFIERS"):
+            convert(data)
+
     def test_duplicate_events_are_not_silently_de_duplicated(self):
         duplicate = payload()
         duplicate["features"].append(dict(duplicate["features"][0]))
