@@ -37,4 +37,24 @@ describe('Public Cesium 4D view on the project Pages base', () => {
     cy.get('#cesium-place').select('Henderson, KY');
     cy.get('.tsm-cesium-place').should('contain.text', 'Henderson, KY');
   });
+  it('supports IN/IL/KY camera selection on a mobile Pages viewport', () => {
+    cy.viewport(390, 844);
+    cy.visit('atlas/');
+    cy.get('#tsm-atlas-region').should('exist');
+    cy.get('canvas.maplibregl-canvas', { timeout: 30000 }).should('exist');
+
+    cy.get('#tsm-atlas-region').select('shawneetown');
+    cy.get('[data-testid="atlas-region-title"]').should('contain.text', 'Shawneetown · Illinois');
+    cy.get('.tsm-atlas-region-note').should('contain.text', 'Regional street basemap only');
+    cy.contains('.tsm-atlas-map-layers label', 'Indiana').find('input').should('be.disabled');
+
+    cy.get('#tsm-atlas-region').select('henderson');
+    cy.get('[data-testid="atlas-region-title"]').should('contain.text', 'Henderson · Kentucky');
+    cy.contains('.tsm-atlas-map-layers label', 'Indiana').find('input').should('be.disabled');
+
+    cy.get('#tsm-atlas-region').select('posey');
+    cy.get('[data-testid="atlas-region-title"]').should('contain.text', 'Mount Vernon · Posey IN');
+    cy.screenshot('atlas-three-state-mobile-regions');
+  });
+
 });
