@@ -147,7 +147,10 @@ def collect_layer(kind: str, service: str, bbox: tuple[float, float, float, floa
         "output_crs": "EPSG:4326",
         "acquisition_date": "2016-2020" if kind == "building" else "2024",
         "vertical_datum": "NOT_APPLICABLE_2D",
-        "data_use_terms": "REQUIRE_SOURCE_TERMS_CONFIRMATION_BEFORE_REDISTRIBUTION",
+        "data_use_terms": "PUBLISHER_REFERENCE_USE" if kind == "building" else "PUBLISHER_REQUESTS_ATTRIBUTION",
+        "data_use_terms_url": "https://www.arcgis.com/sharing/rest/content/items/" + (
+            "384f2d5041a14c34bd9e807c568784da" if kind == "building" else "5d57e7f449d0435891666dc11a7162b1"
+        ) + "?f=pjson",
         "approval": "NOT_EVIDENCED",
     }
 

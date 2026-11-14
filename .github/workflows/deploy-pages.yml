@@ -40,6 +40,7 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       VITE_TSM_API_BASE_URL: ${{ vars.TSM_API_BASE_URL }}
+      CYPRESS_INSTALL_BINARY: '0'
       # Pages-only landing; native and local app roots keep the existing memorial route.
       VITE_TSM_PAGES_ATLAS_HOME: 'true'
       VITE_TSM_TERRAIN_RGB_URL_TEMPLATE: https://atphobia22.github.io/Tri-State-Systems-Manager/terrain_3dep/{z}/{x}/{y}.png
@@ -79,7 +80,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install pinned geospatial acquisition dependencies
-        run: python3 -m pip install --disable-pip-version-check --no-input --no-cache-dir "numpy==2.1.3" "rasterio==1.4.3" "shapely==2.0.6" "laspy==2.6.1" "lazrs==0.7.0" "pyproj==3.8.0"
+        run: python3 -m pip install --disable-pip-version-check --no-input --no-cache-dir "numpy==2.1.3" "rasterio==1.4.3" "shapely==2.0.6" "laspy==2.6.1" "lazrs==0.7.0" "pyproj==3.8.0" "pyshp==2.3.1"
+      - name: Cache the four pinned USGS source rasters
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: ${{ runner.temp }}/tsm-cesium-dem
+          key: cesium-3dep-${{ hashFiles('scripts/geospatial/build_cesium_regional_scene.py') }}
+      - name: Generate the Cesium 4D terrain, roads, observation replay and city screening
+        run: |
+          python3 -m unittest discover -s scripts/geospatial -p 'test_cesium_regional_scene.py'
+          python3 scripts/geospatial/build_cesium_regional_scene.py \
+            --cache "${{ runner.temp }}/tsm-cesium-dem" \
+            --output tsm-console/public/data/cesium-regional
+      - name: Stage Indiana GIO Mount Vernon footprints and street centerlines
+        run: python3 scripts/geospatial/build_mount_vernon_scene.py --output tsm-console/public/mount-vernon-scene
       - name: Acquire and elevation-join all Posey IGIO building footprints
         shell: bash
         run: |
@@ -173,6 +187,8 @@ jobs:
       - name: Production Vite build
         working-directory: ${{ env.CONSOLE_DIR }}
         run: npm run build
+      - name: Validate the built Cesium scene and source coverage
+        run: python3 scripts/geospatial/verify_cesium_regional_scene.py tsm-console/dist
       - name: Validate committed 3D Tiles payload in dist
         run: |
           set -euo pipefail
@@ -196,8 +212,32 @@ jobs:
         working-directory: ${{ env.CONSOLE_DIR }}
         run: |
           node scripts/generate-spa-fallback.mjs --out dist/404.html --base "${{ env.VITE_PAGES_BASE_PATH }}"
-          mkdir -p dist/atlas
+          mkdir -p dist/atlas dist/cesium
           cp dist/index.html dist/atlas/index.html
+          cp dist/index.html dist/cesium/index.html
+      - name: Install Cypress for the headed Cesium rendering check
+        working-directory: ${{ env.CONSOLE_DIR }}
+        run: node_modules/.bin/cypress install
+      - name: Verify the production Cesium view in headed Chrome
+        working-directory: ${{ env.CONSOLE_DIR }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run preview -- --host 127.0.0.1 --port 5173 >"${RUNNER_TEMP}/cesium-preview.log" 2>&1 &
+          preview=$!
+          trap 'kill "$preview" 2>/dev/null || true' EXIT
+          curl --silent --show-error --fail --retry 10 --retry-all-errors --retry-delay 1 "http://127.0.0.1:5173${VITE_PAGES_BASE_PATH}cesium/" >/dev/null
+          CYPRESS_BASE_URL="http://127.0.0.1:5173${VITE_PAGES_BASE_PATH}" \
+            xvfb-run -a --server-args="-screen 0 1440x1000x24" \
+            node_modules/.bin/cypress run --browser chrome --headed --spec cypress/cesium/cesium-pages.cy.ts \
+              --config 'specPattern=cypress/cesium/*.cy.ts,video=false,viewportWidth=1440,viewportHeight=1000'
+      - name: Upload headed Cesium verification images
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: tsm-cesium-render-${{ github.run_id }}
+          path: tsm-console/cypress/screenshots/
+          if-no-files-found: ignore
       - name: Validate production artifact
         working-directory: ${{ env.CONSOLE_DIR }}
         shell: bash
@@ -281,6 +321,11 @@ jobs:
           grep -Eiq '<title>[^<]+</title>' /tmp/tsm-pages-response.html
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${PAGE_URL%/}/atlas/" --output /tmp/tsm-pages-atlas.html
           grep -Eiq '<title>[^<]+</title>' /tmp/tsm-pages-atlas.html
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${PAGE_URL%/}/cesium/" --output /tmp/tsm-pages-cesium.html
+          grep -Eiq '<title>[^<]+</title>' /tmp/tsm-pages-cesium.html
+          for asset in data/cesium-regional/terrain/layer.json data/cesium-regional/replay.json data/cesium-regional/screening.json mount-vernon-scene/scene.receipt.json vendor/cesium/Workers/createVerticesFromHeightmap.js; do
+            curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${PAGE_URL%/}/${asset}" >/dev/null
+          done
           base="${PAGE_URL%/}/3d-tiles"
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${base}/tileset.json" -o /tmp/published-tileset.json
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${base}/buildings-3d.json" -o /tmp/published-buildings-3d.json

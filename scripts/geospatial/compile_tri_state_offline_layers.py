@@ -40,12 +40,13 @@ def output_record(out: Path, path: Path, source_sha: str, **fields) -> dict:
             "sha256": sha256(path), "source_sha256": source_sha, **fields}
 
 
-def read_tiger(path: Path, county: str, kind: str) -> list[dict]:
+def read_tiger(path: Path, county: str, kind: str, *, state: str | None = None) -> list[dict]:
     import shapefile
     from shapely.geometry import shape, mapping
     from shapely.ops import transform
     from pyproj import CRS, Transformer
 
+    state = state or COUNTIES[county][0]
     if not path.is_file() or path.is_symlink() or path.stat().st_size > MAX_SOURCE_BYTES:
         raise ValueError(f"Missing or invalid source ZIP: {path}")
     with zipfile.ZipFile(path) as archive:
@@ -93,7 +94,9 @@ def read_tiger(path: Path, county: str, kind: str) -> list[dict]:
                 "type": "Feature", "id": f"TIGER2024:{county}:{kind}:{identifier}",
                 "properties": {
                     "source_id": identifier, "county_geoid": county,
-                    "state": COUNTIES[county][0], "kind": kind,
+                    "state": state, "kind": kind,
+                    **({"name": props.get("FULLNAME") or None, "mtfcc": props.get("MTFCC") or None}
+                       if kind == "roads" else {}),
                     "source_authority": "U.S. Census Bureau",
                     "source_vintage": "2024", "source_review": "UNREVIEWED",
                 },

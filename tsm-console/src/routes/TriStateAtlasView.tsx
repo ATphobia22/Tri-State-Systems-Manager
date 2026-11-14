@@ -148,6 +148,7 @@ export default function TriStateAtlasView(): JSX.Element {
           <p className="tsm-civic-welcome">Free for everyone · No account needed to explore · Planning sketches are not surveyed engineering designs.</p>
         </div>
         <div className="tsm-atlas-links">
+          <Link to="/cesium">Cesium 4D twin</Link>
           <Link to="/river-watch">River Watch</Link>
           <Link to="/flood-sim">Flood workbench</Link>
           <Link to="/cinematic">Cinematic view</Link>

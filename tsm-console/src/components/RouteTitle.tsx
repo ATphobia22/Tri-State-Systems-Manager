@@ -29,6 +29,7 @@ const ROUTE_TITLES: Record<string, string> = {
   '/digital-twin': 'Twin Summary',
   '/digital-twin-v2': '3D Twin',
   '/photorealistic-3d': 'Photorealistic 3D',
+  '/cesium': 'Cesium 4D Twin',
   '/flood-sim': 'Flood Simulator',
   '/login': 'Sign in',
   '/login/callback': 'Sign in',
