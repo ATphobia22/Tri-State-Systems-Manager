@@ -33,6 +33,11 @@ export interface TilesFetchBridgeOptions {
   lifecycle?: TileResourceLifecycle;
   /** Optional bandwidth controller. */
   bandwidth?: BandwidthAdaptiveFetchController;
+  /**
+   * Opt-in, synchronous, bounded priority selection over lifecycle-approved
+   * tile IDs. No network queue or WebRTC control is implied.
+   */
+  planLoadOrder?: (eligibleIds: readonly string[], concurrency: number) => readonly string[];
 }
 
 export interface BridgeFrameStats {
@@ -68,6 +73,7 @@ export class TilesFetchBridge {
   private readonly onDegradedWord?: (word: number) => void;
   private readonly lifecycle: TileResourceLifecycle;
   private readonly bandwidth: BandwidthAdaptiveFetchController;
+  private readonly planLoadOrder?: TilesFetchBridgeOptions['planLoadOrder'];
   private evictedTotal = 0;
   private disposed = false;
   private lastCacheBytes = 0;
@@ -94,6 +100,7 @@ export class TilesFetchBridge {
     this.onDegradedWord = options.onDegradedWord;
     this.lifecycle = options.lifecycle ?? new TileResourceLifecycle({ maxInFlight: maxQueuedItems });
     this.bandwidth = options.bandwidth ?? new BandwidthAdaptiveFetchController();
+    this.planLoadOrder = options.planLoadOrder;
   }
 
   update(camera: LodCamera): BridgeFrameStats {
@@ -125,8 +132,17 @@ export class TilesFetchBridge {
     if (this.resolveTile) {
       const cache = this.renderer.lruCache;
       const loadCap = Math.min(plan.load.length, this.bandwidth.getConcurrency());
-      for (let i = 0; i < loadCap; i++) {
-        const nodeId = plan.load[i]!;
+      const approvedIds = this.planLoadOrder ? lifePlan.toFetch : plan.load;
+      const cap = Math.min(approvedIds.length, loadCap);
+      const loadIds = this.planLoadOrder
+        ? this.planLoadOrder(approvedIds, cap)
+        : plan.load.slice(0, loadCap);
+      if (!Array.isArray(loadIds) || loadIds.length > cap ||
+          new Set(loadIds).size !== loadIds.length ||
+          loadIds.some((id) => !approvedIds.includes(id))) {
+        throw new Error('[TilesFetchBridge] invalid or unapproved priority plan');
+      }
+      for (const nodeId of loadIds) {
         this.lifecycle.markFetching(nodeId);
         const tile = this.resolveTile(nodeId);
         if (tile !== null && tile !== undefined && cache.has(tile)) cache.markUsed(tile);
