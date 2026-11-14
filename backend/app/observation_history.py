@@ -116,7 +116,13 @@ def import_snapshot(
         observed = parse_time(props.get("time"))
         if observed > captured + timedelta(minutes=5):
             raise ObservationError("OBSERVATION_IN_FUTURE")
-        tsid = props.get("timeseries_id")
+        # USGS OGC v1 schema declares time_series_id; examples and legacy
+        # versions also emit timeseries_id. Accept either, never two conflicts.
+        canonical_id = props.get("time_series_id")
+        legacy_id = props.get("timeseries_id")
+        if canonical_id is not None and legacy_id is not None and canonical_id != legacy_id:
+            raise ObservationError("CONFLICTING_TIMESERIES_IDENTIFIERS")
+        tsid = canonical_id if canonical_id is not None else legacy_id
         if not isinstance(tsid, str) or not (1 <= len(tsid) <= 128):
             raise ObservationError("TIMESERIES_ID_REQUIRED")
         key = (source["station"], tsid, observed.isoformat())
