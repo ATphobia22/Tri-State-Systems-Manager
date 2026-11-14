@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 /** Civic infrastructure sketch tools. Every route is a local, unverified proposal. */
 type UtilityKind = 'sewer' | 'water' | 'power' | 'broadband' | 'stormwater' | 'road' | 'berm' | 'retention';
 type Utility = { id: UtilityKind; symbol: string; label: string; purpose: string; color: string };
@@ -28,7 +29,7 @@ export default function MountVernonUtilityDesk({ selected, onSelect, onCancel, v
       {utilities.map((item) => <button key={item.id} type="button"
         className={selected === item.id ? 'tsm-civic-utility selected' : 'tsm-civic-utility'}
         aria-pressed={selected === item.id} title={item.purpose}
-        style={{ '--utility-accent': item.color } as React.CSSProperties}
+        style={{ '--utility-accent': item.color } as CSSProperties}
         onClick={() => onSelect(item.id)}>
         <span className="tsm-civic-utility-symbol" aria-hidden="true">{item.symbol}</span>
         <span><strong>{item.label}</strong><small>{item.purpose}</small></span>
