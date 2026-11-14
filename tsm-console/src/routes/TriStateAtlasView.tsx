@@ -61,6 +61,7 @@ export default function TriStateAtlasView(): JSX.Element {
   const [lens, setLens] = useState<Lens>('explore');
   const [light, setLight] = useState<Light>('golden');
   const [cinematicTour, setCinematicTour] = useState(false);
+  const [showPartialBuildingMeshes, setShowPartialBuildingMeshes] = useState(false);
   const stopTourForReducedMotion = useCallback(() => setCinematicTour(false), []);
   const [sceneHour, setSceneHour] = useState(17);
   const [regionId, setRegionId] = useState('posey');
@@ -221,6 +222,10 @@ export default function TriStateAtlasView(): JSX.Element {
               onClick={() => { if (cinematicTour) { setCinematicTour(false); } else { setRegionId('new-harmony'); setCinematicTour(true); } }}>
               {cinematicTour ? 'Stop Wabash flyover' : 'Play Wabash flyover'}
             </button>
+            <label className="tsm-atlas-mesh-toggle">
+              <input type="checkbox" checked={showPartialBuildingMeshes} onChange={(event) => setShowPartialBuildingMeshes(event.target.checked)} />
+              3D building meshes <small>Optional, source-backed Posey LoD1 subset only; independently unverified placement</small>
+            </label>
             <fieldset className="tsm-atlas-lighting">
               <legend>Visual lighting only</legend>
               {(['day', 'golden', 'night'] as const).map((preset) =>
@@ -238,6 +243,7 @@ export default function TriStateAtlasView(): JSX.Element {
             <TriStateDigitalTwinMap hideSidebar visible={visibleForRegion} onVisibleChange={setLayers}
               regionalAtlas regionalView={region} regionalLayers={regionalLayers}
               cinematicTour={cinematicTour} onTourReducedMotion={stopTourForReducedMotion}
+              regionalBuildingMeshes={showPartialBuildingMeshes}
               proposalDrawMode={drawMode} onProposalPoint={addProposalPoint} proposalOverlay={proposalOverlay}
               showIndianaImagery={region.imagery && Boolean(visibleForRegion['indiana-imagery'])} lightPreset={light} onStatusChange={onMapStatus} />
           </div>
