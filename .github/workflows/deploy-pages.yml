@@ -230,7 +230,10 @@ jobs:
           if (!cssContent.includes('.maplibregl-map')) {
             throw new Error('MapLibre stylesheet missing from eager entry CSS');
           }
-          console.log('PASS: Pages entry stylesheets exist; MapLibre styling is eagerly loaded');
+          if (!cssContent.includes('.tsm-atlas')) {
+            throw new Error('TriStateAtlasView stylesheet missing from eager entry CSS');
+          }
+          console.log('PASS: Pages entry stylesheets exist; MapLibre + Atlas CSS eagerly loaded');
           NODE
       - name: Upload production artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
