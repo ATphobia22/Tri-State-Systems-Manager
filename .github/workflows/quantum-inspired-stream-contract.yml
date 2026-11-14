@@ -3,9 +3,11 @@ on:
   pull_request:
     paths:
       - 'tsm-console/src/lib/quantum-inspired-stream-priority.ts'
+      - 'tsm-console/src/lib/research-parallel-stream-neurons.ts'
       - 'tsm-console/src/lib/tiles-fetch-bridge.ts'
       - 'tsm-console/src/lib/tiles-fetch-bridge.test.ts'
       - 'tsm-console/tests/quantum-inspired-stream-priority.test.mjs'
+      - 'tsm-console/tests/research-parallel-stream-neurons.test.mjs'
       - 'integrations/quantum/research/**'
       - 'docs/architecture/QUANTUM-INSPIRED-PIXEL-STREAMING-2026-11-14.md'
       - '.github/workflows/quantum-inspired-stream-contract.yml'
@@ -13,8 +15,10 @@ on:
     branches: [main]
     paths:
       - 'tsm-console/src/lib/quantum-inspired-stream-priority.ts'
+      - 'tsm-console/src/lib/research-parallel-stream-neurons.ts'
       - 'tsm-console/src/lib/tiles-fetch-bridge.ts'
       - 'tsm-console/tests/quantum-inspired-stream-priority.test.mjs'
+      - 'tsm-console/tests/research-parallel-stream-neurons.test.mjs'
       - 'integrations/quantum/research/**'
       - '.github/workflows/quantum-inspired-stream-contract.yml'
   workflow_dispatch:
@@ -32,7 +36,7 @@ jobs:
         with:
           node-version: '22'
       - name: Deterministic headless stream optimization and denial tests
-        run: node --experimental-strip-types --test tsm-console/tests/quantum-inspired-stream-priority.test.mjs
+        run: node --experimental-strip-types --test tsm-console/tests/quantum-inspired-stream-priority.test.mjs tsm-console/tests/research-parallel-stream-neurons.test.mjs
       - name: Quantum research receipt cannot claim hardware, authority or speedup
         run: |
           node -e "const r=require('./integrations/quantum/research/qbraid-bell-simulator-2026-11-14.json'); if(r.hardware_executed!==false||r.authoritative_mutation!==false||r.output_classification!=='research-only'||r.speedup_claim!=='NONE'||Math.abs(Object.values(r.probabilities).reduce((a,b)=>a+b,0)-1)>1e-12)process.exit(1)"
