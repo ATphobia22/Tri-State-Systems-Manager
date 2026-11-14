@@ -1,6 +1,6 @@
 # Quantum-Inspired Pixel Streaming Priority — Evidence-First Integration
 
-**Date:** 2026-11-14. **Status:** bounded classical optimizer, tested headless, opt-in 3D Tiles bridge seam; **not** a deployed UE5.8 Pixel Streaming 2 server, quantum speedup, or trained neural model.
+**Date:** 2026-11-14. **Status:** bounded classical optimizer, research-only two-head neural training, opt-in 3D Tiles bridge seam; **not** a deployed UE5.8 Pixel Streaming 2 server, quantum speedup, or production neural model.
 
 ## System separation
 
@@ -48,14 +48,17 @@ const bridge = new TilesFetchBridge(renderer, lodScheduler, {
 
 The byte budget is a **per-call estimate** and not a real measured WebRTC bitrate cap. For actual streaming, derive the budget from telemetry, instrument the renderer's queue, and enforce a separate network cap.
 
-## Parallel neural prediction (future opt-in; NOT implemented)
+## Parallel neural prediction — implemented research-only, NOT deployed
 
-An artificial neural network could predict tile visibility, motion and bandwidth pressure from *consented, non-identifying, bounded* client telemetry, but no network is trained or inferred by this PR. The current scores are explicit caller inputs. Before deploying any predictor:
+`tsm-console/src/lib/research-parallel-stream-neurons.ts` now contains **two small parallel logistic neural heads** trained only when a caller explicitly supplies normalized, non-identifying examples. One head predicts next-frame visibility demand, the other network congestion pressure. Training is bounded (10–2,048 rows, up to 300 epochs), deterministic and in-memory, with a disjoint 20% holdout. A model is admitted for **research inference only** if both heads beat the training-mean baseline on holdout. Otherwise inference uses a deterministic feature fallback. The returned model includes weights and validation losses, **not training rows**.
 
-1. Use only timestamped, opt-in, non-identifying features; no coordinates tied to individuals, IPs or user IDs in training artifacts.
-2. Keep a deterministic classical baseline, and deny model outputs when weights, training data, model-card version, validation holdout or drift threshold are unverified.
-3. Compare accuracy and total wall-clock latency against the existing SSE scheduler and bandwidth-adaptive controller. A higher ML score is not a substitute for a source-hash or license review.
-4. Isolate model training in a headless worker; the browser and Unreal GPU only consume reviewed inference scores and render frames.
+The included tests train on synthetic examples, not actual viewer telemetry, and verify directional predictions, holdout improvement, policy refusal, no data retention and deterministic fallback. No real user data were collected, no inference is connected to the production renderer, and no external model training or physical quantum processor was used.
+
+Before deployment:
+1. Require explicit consent and documented non-identifying feature schema; never log viewer identifiers, IP addresses or sensitive geolocation as training data.
+2. Require independently verified dataset provenance, model weights SHA-256, a model card, held-out error, drift threshold and runtime version before using any learned score.
+3. Compare total inference latency, frame time, cache hit ratio and user QoE against the existing SSE and bandwidth-adaptive baseline. A neural score cannot override source-hash/license checks or scientific evidence.
+4. Keep training headless; Unreal and the browser may consume only validated inference output, never raw training data.
 
 ## Quantum algorithm experiments (separate, non-authoritative)
 
