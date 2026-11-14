@@ -220,6 +220,8 @@ export interface TriStateDigitalTwinMapProps {
   regionalAtlas?: boolean;
   /** Atlas-only Wabash cinematic camera flight, presentation/navigation only. */
   cinematicTour?: boolean;
+  /** Stream the existing published 12,450-derived LoD1 tile subset; not the full county census. */
+  regionalBuildingMeshes?: boolean;
   /** Reports that an OS reduced-motion preference converted the tour to a static frame. */
   onTourReducedMotion?: () => void;
   /** Atlas-only camera preset; location is navigation, never survey evidence. */
@@ -716,6 +718,33 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
     const map = mapRef.current;
     if (map) map.getCanvas().style.cursor = props.proposalDrawMode ? 'crosshair' : '';
   }, [props.regionalAtlas, props.proposalDrawMode]);
+
+  // User-initiated, lazy-loaded true 3D Tiles. The committed tileset is
+  // explicitly PARTIAL_SOURCE_UNVERIFIED; not a certified building inventory.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!mapReady || !map || !props.regionalAtlas || !props.regionalBuildingMeshes) return;
+    const layerId = 'tsm-regional-mesh-tiles';
+    let cancelled = false;
+    void import('../lib/tiles-3d-renderer-layer').then(({ Tiles3DRendererLayer }) => {
+      if (cancelled || mapRef.current !== map || map.getLayer(layerId)) return;
+      try {
+        map.addLayer(new Tiles3DRendererLayer({
+          id: layerId,
+          tilesetUrl: `${import.meta.env.BASE_URL}3d-tiles/buildings-lidar-12450/tileset.json`,
+          maxSse: 20,
+        }));
+      } catch (error) {
+        console.warn('[TSM Atlas] Partial 3D building tiles could not be added:', error);
+      }
+    }).catch((error: unknown) => {
+      console.warn('[TSM Atlas] 3D building renderer module unavailable:', error);
+    });
+    return () => {
+      cancelled = true;
+      if (mapRef.current === map && map.getLayer(layerId)) map.removeLayer(layerId);
+    };
+  }, [mapReady, props.regionalAtlas, props.regionalBuildingMeshes]);
 
   // The map exists only after its asynchronous load callback; tying the tour to
   // that readiness prevents pressing Play before map creation from doing nothing.
