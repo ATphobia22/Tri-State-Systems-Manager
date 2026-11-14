@@ -110,3 +110,19 @@ join by itself never establishes roof geometry/height validity.
 
 See: [Building 3D Tiles failed run 43386782972](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions/runs/43386782972)
 and the tsm-building-height-gap-evidence-43386782972 artifact.
+
+## Adjacent 2020 COPC tiles
+
+The primary extraction considers one tile per footprint. A subsequent pass
+now retries unresolved footprints whenever a multipart roof or its 50-foot
+ground search crosses a tile edge. It includes diagonal neighbors, checks
+Indiana West and NAVD88 US survey foot CRS metadata, uses half-open grid cells
+to assign overlapping returns once, and records each source tile's SHA-256.
+Each retry uses the original roof and ground point thresholds, with courtyard
+holes excluded. Incomplete windows retain their unresolved status. The production
+workflow runs this pass before it writes the height-gap receipt or checks the
+required 23,082 heights.
+
+The input to the retry must be the merged point-height GeoJSON. Run with a
+new tile directory, distinct output and receipt. The receipt identifies the
+compared GeoJSON files by hash and includes any missing source tile URLs.

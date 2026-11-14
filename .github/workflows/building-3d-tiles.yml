@@ -34,6 +34,8 @@ on:
       - 'scripts/geospatial/extract_lidar_heights.py'
       - 'scripts/geospatial/extract_derived_heights_copc.py'
       - 'scripts/geospatial/test_extract_derived_heights_copc.py'
+      - 'scripts/geospatial/retry_adjacent_copc_heights.py'
+      - 'scripts/geospatial/test_retry_adjacent_copc_heights.py'
       - 'scripts/geospatial/reconstruct_lod2_roofs.py'
       - 'scripts/geospatial/validate_building_acceptance_chain.py'
       - 'scripts/geospatial/build-implicit-tileset.py'
@@ -69,6 +71,8 @@ on:
       - 'scripts/geospatial/extract_lidar_heights.py'
       - 'scripts/geospatial/extract_derived_heights_copc.py'
       - 'scripts/geospatial/test_extract_derived_heights_copc.py'
+      - 'scripts/geospatial/retry_adjacent_copc_heights.py'
+      - 'scripts/geospatial/test_retry_adjacent_copc_heights.py'
       - 'scripts/geospatial/reconstruct_lod2_roofs.py'
       - 'tsm-console/public/data/posey-buildings-derived.geojson'
 
@@ -100,6 +104,7 @@ jobs:
             scripts/geospatial/test-hlod-tileset.py \
             scripts/geospatial/extract_lidar_heights.py \
             scripts/geospatial/extract_derived_heights_copc.py \
+            scripts/geospatial/retry_adjacent_copc_heights.py \
             scripts/geospatial/reconstruct_lod2_roofs.py \
             scripts/geospatial/validate_building_acceptance_chain.py \
             scripts/geospatial/emit_building_height_gap_evidence.py \
@@ -122,7 +127,9 @@ jobs:
       - name: Install pinned geospatial acquisition dependencies
         run: python -m pip install --disable-pip-version-check --no-input --no-cache-dir "numpy==2.1.3" "rasterio==1.4.3" "shapely==2.0.6" "laspy==2.6.1" "lazrs==0.7.0" "pyproj==3.8.0"
       - name: Prove COPC LAZ tile decompression is shared across footprints
-        run: python3 -m unittest scripts.geospatial.test_extract_derived_heights_copc -v
+        run: |
+          python3 -m unittest scripts.geospatial.test_extract_derived_heights_copc -v
+          python3 -m unittest scripts.geospatial.test_retry_adjacent_copc_heights -v
       - name: Prove source-to-LOD topology, hole preservation, per-OBJECTID height provenance
         run: |
           python3 scripts/geospatial/test-building-3d-tiles-geometry.py
@@ -306,6 +313,16 @@ jobs:
           retention-days: 30
           compression-level: 1
           if-no-files-found: ignore
+      - name: Retry buildings whose COPC search crosses tile boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/geospatial/retry_adjacent_copc_heights.py \
+            --geojson /tmp/tsm-igio/posey-buildings-height-merged.geojson \
+            --tile-dir /tmp/tsm-igio/copc-tiles \
+            --out /tmp/tsm-igio/posey-buildings-height-retried.geojson \
+            --receipt /tmp/tsm-igio/adjacent-copc-height-recovery.json
+          mv /tmp/tsm-igio/posey-buildings-height-retried.geojson /tmp/tsm-igio/posey-buildings-height-merged.geojson
       - name: Emit per-OBJECTID height-gap evidence before hard acceptance gate
         shell: bash
         run: |
@@ -323,6 +340,7 @@ jobs:
           path: |
             /tmp/tsm-igio/building-height-gap-evidence.json
             /tmp/tsm-igio/building-height-gap-evidence.json.sha256
+            /tmp/tsm-igio/adjacent-copc-height-recovery.json
           retention-days: 90
           compression-level: 6
           if-no-files-found: ignore
