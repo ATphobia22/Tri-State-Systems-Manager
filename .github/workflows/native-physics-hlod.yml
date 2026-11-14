@@ -1,0 +1,27 @@
+name: TSM Native Physics and HLOD Contracts
+on:
+  pull_request:
+    paths:
+      - 'tsm-native/Source/TSMNative/TSMBidirectionalSurfacePhysics.h'
+      - 'tsm-native/Source/TSMNative/TSMEngineeringRuntimeSubsystem.*'
+      - 'tsm-native/tests/bidirectional-surface-physics.test.cpp'
+      - 'scripts/geospatial/build-hlod-tileset.py'
+      - 'scripts/geospatial/hlod-quadtree-config.json'
+      - 'tests/geospatial/test_hlod_quadtree_contract.py'
+      - '.github/workflows/native-physics-hlod.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  portable-kernel-and-hlod:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Compile and execute portable conservative physics
+        run: |
+          g++ -std=c++17 -Wall -Wextra -Werror -O2 -o /tmp/tsm-two-way-physics tsm-native/tests/bidirectional-surface-physics.test.cpp
+          /tmp/tsm-two-way-physics
+      - name: Verify HLOD spatial configuration and OBBs
+        run: python3 -m unittest discover -s tests/geospatial -p test_hlod_quadtree_contract.py -v
+      - name: Python syntax gate
+        run: python3 -m py_compile scripts/geospatial/build-hlod-tileset.py

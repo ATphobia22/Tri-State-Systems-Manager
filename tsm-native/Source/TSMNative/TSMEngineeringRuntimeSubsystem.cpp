@@ -1,4 +1,5 @@
 #include "TSMEngineeringRuntimeSubsystem.h"
+#include "TSMBidirectionalSurfacePhysics.h"
 
 #include "HAL/FileManager.h"
 #include "Misc/FileHelper.h"
@@ -8,6 +9,25 @@ namespace TSMEngineeringConstants
 {
     constexpr double AcresToSquareMeters = 4046.8564224;
     constexpr double InchesPerHourToMetersPerSecond = 0.0254 / 3600.0;
+}
+
+FTSMSurfaceExchangeResult UTSMEngineeringRuntimeSubsystem::ComputeTwoWaySurfaceExchange(
+    const double FirstAreaSquareMeters, const double FirstGroundElevationMeters,
+    const double FirstVolumeCubicMeters, const double SecondAreaSquareMeters,
+    const double SecondGroundElevationMeters, const double SecondVolumeCubicMeters,
+    const double InterfaceWidthMeters, const double ConductanceMetersPerSecond,
+    const double TimeStepSeconds)
+{
+    const TSMPhysics::Cell A{FirstAreaSquareMeters, FirstGroundElevationMeters, FirstVolumeCubicMeters};
+    const TSMPhysics::Cell B{SecondAreaSquareMeters, SecondGroundElevationMeters, SecondVolumeCubicMeters};
+    const TSMPhysics::Exchange E = TSMPhysics::stepPair(
+        A, B, InterfaceWidthMeters, ConductanceMetersPerSecond, TimeStepSeconds);
+    FTSMSurfaceExchangeResult Result;
+    Result.bValid = E.valid;
+    Result.TransferCubicMeters = E.transferM3;
+    Result.FirstCellVolumeCubicMeters = E.aAfterM3;
+    Result.SecondCellVolumeCubicMeters = E.bAfterM3;
+    return Result;
 }
 
 double UTSMEngineeringRuntimeSubsystem::ComputeRationalPeakFlow(
