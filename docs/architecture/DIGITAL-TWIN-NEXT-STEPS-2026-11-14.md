@@ -1,58 +1,45 @@
 # Digital Twin — Next Steps & Gap Closure (2026-11-14)
 
-**Status:** operational roadmap. Does not claim Shipping UE5.8, full 23,082 verified building heights, or regulatory determination.
+**Updated:** resilient gauges (retries / LKG snapshots / auto-correct) — **not** fail-closed.
 
-## Current twin surfaces (implemented)
+## Current twin surfaces
 
 | Route | Role |
 |-------|------|
-| `/map` | Hydraulic Map — MapLibre + stage/jurisdiction |
-| `/twin` | Twin Canvas — full-bleed cinematic host |
-| `/digital-twin` | Twin Summary — card elevations; user-triggered gauges |
-| `/digital-twin-v2` | Digital Twin 3D — immersive, lazy-loaded |
+| `/map` | Hydraulic Map |
+| `/twin` | Twin Canvas |
+| `/digital-twin` | Twin Summary |
+| `/digital-twin-v2` | Digital Twin 3D |
 
-Planes: Experience · Operations/API · Authoritative data fabric · Model boundary · Evidence · Human review.
+## Priority stack
 
-## Priority gap stack (complete in order)
-
-### P0 — Unblock main (draft PRs)
-1. **#581** Posey DEM staging recovery + honest ground-elevation provenance  
-2. **#580** COPC multipart / interior-hole roof sampling  
-3. **#577** UE5.8 two-way physics, governed HLOD/SSE, Cesium pin  
-
-*Action:* Mark ready → CI green → squash to main.
+### P0 — Unblock main (draft PRs — user must mark ready)
+1. **#581** DEM staging recovery  
+2. **#580** COPC multipart roof sampling  
+3. **#577** UE5.8 physics / HLOD / Cesium pin  
 
 ### P1 — Terrain & building truth
-- Finish DEM tile recovery planner against IGIO + 3DEP; null unsampled heights (no invented elevation).
-- Re-run COPC roof sampling after #580; record OBSERVED / DERIVED / UNAVAILABLE counts; do not claim 23,082 complete until measured.
-- Align 3D Tiles implicit quadtree + glTF Y-up / tile Z-up (already partially on main via #586).
+- DEM recovery planner; null unsampled heights  
+- Re-run COPC after #580; publish OBSERVED/DERIVED/UNAVAILABLE counts  
 
-### P2 — Live fabric
-- USGS-first stage (03378500, 03322000, …) via OGC + NWPS; reject sentinel −999 / obs_not_current.
-- NLD overlay read-only (NAD83/NAVD88); no accreditation claims.
-- TimesFM / GEOGloWS behind `packages/forecasting` — label SIMULATION_DEMO; never replace NWPS/e-FARA.
+### P2 — Live fabric (resilient, not fail-closed)
+- **Implemented:** `@tsm/hydrology` `fetchStageResilient` — multi-fetcher retries, exponential backoff, sentinel auto-correct, LKG snapshot fallback, soft estimated if no LKG  
+- Wire USGS OGC → NWPS → community → LKG  
+- NLD overlay read-only  
+- TimesFM screening only (SIMULATION_DEMO)  
 
-### P3 — Visualization / cinematic
-- ACEScg path per `docs/cinema/ACES-OCIO-COLOR-PIPELINE.md` + `ACESCG-GAMUT-MAPPING-v1.md`.
-- Lumen gates per `docs/native/UE58-LUMEN-INTEGRATION-GATES-v1.md` — cinematic only.
-- MRQ / Sequencer receipts; science channels never through ODT.
+### P3 — Cinematic
+- ACEScg + Lumen gates (docs already on main)  
 
-### P4 — Evidence & LOMA
-- Case 26-05-2022A: human-gated package only; no auto LOMA.
-- validateEvidenceArtifact: human_authorized requires reviewer_identity / reason / reviewed_at.
-- FIRM → BAFL → certified survey hierarchy enforced in policy engine.
+### P4 — Evidence / LOMA
+- Case 26-05-2022A human-gated  
+- FIRM → BAFL → survey  
 
-### P5 — Engineering packages (wired)
-`@tsm/survey` · `cogo` · `least-squares` · `landxml` · `openmi` · `forecasting` · `release-gates` · `approval-workflows` — extend adapters; no silent evidence promotion.
+### P5 — Engineering packages
+- survey / cogo / least-squares / landxml / openmi / forecasting / release-gates / approval-workflows  
 
-## Explicit non-goals this cycle
-- Universal hydraulic solver or automatic permitting.
-- Hardcoded anchor parcel/elevations as design constants.
-- Treating Lumen GI or cinematic flood as LOMA evidence.
-
-## Acceptance for “twin complete enough”
-1. Draft PRs 577/580/581 on main.  
-2. Height inventory: counts + sources published; unsampled = null.  
-3. Live gage path fail-closed in CI.  
-4. Human authority gates green in production-gates tests.  
-5. Cinematic path labeled; science path raw.
+## Gauge policy (product direction 2026-11-14)
+- Prefer **recovery** over fail-closed.  
+- Auto-retry failed sources; auto-correct −999/nonfinite; serve last-known-good snapshot when live fails.  
+- Always label quality: `ok` | `corrected` | `stale` | `estimated`.  
+- Still **not** regulatory BFE or NFIP determination.
