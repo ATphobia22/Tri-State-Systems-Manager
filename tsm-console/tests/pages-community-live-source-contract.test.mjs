@@ -86,3 +86,9 @@ test('MapLibre CSS must load eagerly to prevent lazy-route stylesheet preload er
   assert.match(workflow, /MapLibre stylesheet missing from eager entry CSS/);
   assert.match(workflow, /Missing built stylesheet/);
 });
+
+test('Pages Atlas route CSS is linked eagerly, not deferred to route-time preload', () => {
+  const main = read('src/main.tsx');
+  assert.match(main, /import '\.\/routes\/TriStateAtlasView\.css'/);
+  assert.match(workflow, /TriStateAtlasView stylesheet missing from eager entry CSS/);
+});
