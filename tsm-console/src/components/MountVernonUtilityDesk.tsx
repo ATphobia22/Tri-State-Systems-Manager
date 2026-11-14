@@ -35,10 +35,17 @@ export default function MountVernonUtilityDesk({ selected, onSelect, onCancel, v
         <span><strong>{item.label}</strong><small>{item.purpose}</small></span>
       </button>)}
     </div>
+    <nav className="tsm-civic-authority-links" aria-label="Official local utility planning resources">
+      <a href="https://www.mountvernonin.gov/225/Wastewater-Department" target="_blank" rel="noopener noreferrer">Mount Vernon wastewater department</a>
+      <a href="https://www.mountvernonin.gov/215/Water-Department" target="_blank" rel="noopener noreferrer">Mount Vernon water department</a>
+      <a href="https://www.in.gov/indianabroadband/maps/" target="_blank" rel="noopener noreferrer">Indiana broadband coverage maps</a>
+      <a href="https://indiana811.org/" target="_blank" rel="noopener noreferrer">Indiana 811: locate before excavation</a>
+    </nav>
     <div className="tsm-civic-draft-status" role="status" aria-live="polite">
       {selected
         ? <><strong>{utilities.find((item) => item.id === selected)?.label} draft active.</strong> Click the map to add points ({vertexCount} placed). Complete and export the sketch from the map toolbox. <button type="button" onClick={onCancel}>Cancel draft</button></>
         : <><strong>No sketch active.</strong> Utility locations are not asserted: drawings are proposals, not surveyed underground lines or permitted designs.</>}
     </div>
+    <p className="tsm-civic-excavation-note">Concept drawings do not identify buried facilities. Actual excavation requires authorized utility coordination and Indiana 811 notification; no map here is a utility locate.</p>
   </section>;
 }
