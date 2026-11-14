@@ -140,6 +140,7 @@ export function mountCesiumRegionalScene(
       geometryInstances: items,
       appearance: new PolylineColorAppearance({ translucent: true }),
       show: visibility[layer],
+      classificationType: ClassificationType.TERRAIN,
     });
     scene.groundPrimitives.add(primitive);
     graphics.set(layer, [...(graphics.get(layer) ?? []), primitive]);
@@ -233,7 +234,7 @@ export function mountCesiumRegionalScene(
   holder.setInputAction(({ position }: { position: Parameters<typeof scene.pick>[0] }) => {
     const hit = scene.pick(position);
     if (hit instanceof Cesium3DTileFeature) {
-      const id = hit.getProperty('sourceObjectId') ?? hit.getProperty('source_object_id');
+      const id = hit.getProperty('OBJECTID') ?? hit.getProperty('sourceObjectId') ?? hit.getProperty('source_object_id');
       onPick({ title: 'Posey LiDAR building mesh', detail: id == null ? 'Derived LoD1 preview' : `OBJECTID ${String(id)} · Derived LoD1 preview` });
     } else {
       onPick(hit?.id?.title ? hit.id as PickedFeature : null);

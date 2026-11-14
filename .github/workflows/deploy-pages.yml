@@ -217,7 +217,7 @@ jobs:
           cp dist/index.html dist/cesium/index.html
       - name: Install Cypress for the headed Cesium rendering check
         working-directory: ${{ env.CONSOLE_DIR }}
-        run: node_modules/.bin/cypress install
+        run: env -u CYPRESS_INSTALL_BINARY node_modules/.bin/cypress install
       - name: Verify the production Cesium view in headed Chrome
         working-directory: ${{ env.CONSOLE_DIR }}
         shell: bash
