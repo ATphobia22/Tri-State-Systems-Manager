@@ -1,0 +1,373 @@
+{
+  "sourceAgency": "NOAA / National Weather Service, National Water Prediction Service (NWPS)",
+  "retrievedOn": "2026-11-14",
+  "verticalReference": "GAGE_DATUM",
+  "units": "ft",
+  "stations": [
+    {
+      "nwsId": "NHRI3",
+      "usgsId": "03378500",
+      "location": "Wabash at New Harmony, IN",
+      "sourceUrl": "https://api.water.noaa.gov/nwps/v1/gauges/NHRI3"
+    },
+    {
+      "nwsId": "MCRI2",
+      "usgsId": "03377500",
+      "location": "Wabash at Mount Carmel, IL",
+      "sourceUrl": "https://api.water.noaa.gov/nwps/v1/gauges/MCRI2"
+    },
+    {
+      "nwsId": "EVVI3",
+      "usgsId": "03322000",
+      "location": "Ohio at Evansville, IN",
+      "sourceUrl": "https://api.water.noaa.gov/nwps/v1/gauges/EVVI3"
+    },
+    {
+      "nwsId": "MTVI3",
+      "usgsId": null,
+      "location": "Ohio at Mount Vernon, IN",
+      "sourceUrl": "https://api.water.noaa.gov/nwps/v1/gauges/MTVI3"
+    }
+  ],
+  "events": [
+    {
+      "id": "1913",
+      "label": "March–April 1913",
+      "startsOn": "1913-03-01",
+      "endsOn": "1913-04-30",
+      "crests": {
+        "NHRI3": {
+          "sourceDate": "1913-03-31",
+          "gageHeightFt": 27.7,
+          "sourceFlag": "R",
+          "olderDatum": false
+        },
+        "MCRI2": {
+          "sourceDate": "1913-03-30",
+          "gageHeightFt": 33,
+          "sourceFlag": "O",
+          "olderDatum": false
+        },
+        "EVVI3": {
+          "sourceDate": "1913-04-05",
+          "gageHeightFt": 48.4,
+          "sourceFlag": "O",
+          "olderDatum": false
+        },
+        "MTVI3": {
+          "sourceDate": "1913-04-05",
+          "gageHeightFt": 52.9,
+          "sourceFlag": "O",
+          "olderDatum": false
+        }
+      }
+    },
+    {
+      "id": "1937",
+      "label": "January–February 1937",
+      "startsOn": "1937-01-01",
+      "endsOn": "1937-02-28",
+      "crests": {
+        "NHRI3": {
+          "sourceDate": "1937-01-31",
+          "gageHeightFt": 24.4,
+          "sourceFlag": "O",
+          "olderDatum": false
+        },
+        "MCRI2": {
+          "sourceDate": "1937-01-22",
+          "gageHeightFt": 25.27,
+          "sourceFlag": "O",
+          "olderDatum": false
+        },
+        "EVVI3": {
+          "sourceDate": "1937-01-31",
+          "gageHeightFt": 53.75,
+          "sourceFlag": "R",
+          "olderDatum": false
+        },
+        "MTVI3": {
+          "sourceDate": "1937-02-01",
+          "gageHeightFt": 59.21,
+          "sourceFlag": "R",
+          "olderDatum": false
+        }
+      }
+    },
+    {
+      "id": "1943",
+      "label": "May 1943",
+      "startsOn": "1943-05-01",
+      "endsOn": "1943-05-31",
+      "crests": {
+        "NHRI3": {
+          "sourceDate": "1943-05-26",
+          "gageHeightFt": 23.84,
+          "sourceFlag": "O",
+          "olderDatum": false
+        },
+        "MCRI2": {
+          "sourceDate": "1943-05-25",
+          "gageHeightFt": 27.54,
+          "sourceFlag": "O",
+          "olderDatum": false
+        },
+        "EVVI3": null,
+        "MTVI3": null
+      }
+    },
+    {
+      "id": "1950",
+      "label": "January 1950",
+      "startsOn": "1950-01-01",
+      "endsOn": "1950-01-31",
+      "crests": {
+        "NHRI3": {
+          "sourceDate": "1950-01-14",
+          "gageHeightFt": 23.4,
+          "sourceFlag": "O",
+          "olderDatum": false
+        },
+        "MCRI2": {
+          "sourceDate": "1950-01-13",
+          "gageHeightFt": 27.06,
+          "sourceFlag": "O",
+          "olderDatum": false
+        },
+        "EVVI3": null,
+        "MTVI3": {
+          "sourceDate": "1950-01-18",
+          "gageHeightFt": 49.8,
+          "sourceFlag": "O",
+          "olderDatum": false
+        }
+      }
+    },
+    {
+      "id": "1964",
+      "label": "March 1964",
+      "startsOn": "1964-03-01",
+      "endsOn": "1964-03-31",
+      "crests": {
+        "NHRI3": null,
+        "MCRI2": null,
+        "EVVI3": {
+          "sourceDate": "1964-03-16",
+          "gageHeightFt": 47.72,
+          "sourceFlag": "O",
+          "olderDatum": false
+        },
+        "MTVI3": {
+          "sourceDate": "1964-03-18",
+          "gageHeightFt": 50.05,
+          "sourceFlag": "O",
+          "olderDatum": false
+        }
+      }
+    },
+    {
+      "id": "1997",
+      "label": "March 1997",
+      "startsOn": "1997-03-01",
+      "endsOn": "1997-03-31",
+      "crests": {
+        "NHRI3": {
+          "sourceDate": "1997-03-09",
+          "gageHeightFt": 18.96,
+          "sourceFlag": "O",
+          "olderDatum": false
+        },
+        "MCRI2": {
+          "sourceDate": "1997-03-07",
+          "gageHeightFt": 27.09,
+          "sourceFlag": "O",
+          "olderDatum": false
+        },
+        "EVVI3": {
+          "sourceDate": "1997-03-10",
+          "gageHeightFt": 47.52,
+          "sourceFlag": "O",
+          "olderDatum": false
+        },
+        "MTVI3": {
+          "sourceDate": "1997-03-12",
+          "gageHeightFt": 50,
+          "sourceFlag": "O",
+          "olderDatum": false
+        }
+      }
+    },
+    {
+      "id": "2005",
+      "label": "January 2005",
+      "startsOn": "2005-01-01",
+      "endsOn": "2005-01-31",
+      "crests": {
+        "NHRI3": {
+          "sourceDate": "2005-01-13",
+          "gageHeightFt": 23.14,
+          "sourceFlag": "O",
+          "olderDatum": false
+        },
+        "MCRI2": {
+          "sourceDate": "2005-01-13",
+          "gageHeightFt": 33.95,
+          "sourceFlag": "O",
+          "olderDatum": false
+        },
+        "EVVI3": {
+          "sourceDate": "2005-01-15",
+          "gageHeightFt": 44.14,
+          "sourceFlag": "O",
+          "olderDatum": false
+        },
+        "MTVI3": {
+          "sourceDate": "2005-01-17",
+          "gageHeightFt": 47.2,
+          "sourceFlag": "O",
+          "olderDatum": false
+        }
+      }
+    },
+    {
+      "id": "2008",
+      "label": "June 2008",
+      "startsOn": "2008-06-01",
+      "endsOn": "2008-06-30",
+      "crests": {
+        "NHRI3": {
+          "sourceDate": "2008-06-15",
+          "gageHeightFt": 22.45,
+          "sourceFlag": "O",
+          "olderDatum": false
+        },
+        "MCRI2": {
+          "sourceDate": "2008-06-14",
+          "gageHeightFt": 33.24,
+          "sourceFlag": "O",
+          "olderDatum": false
+        },
+        "EVVI3": null,
+        "MTVI3": null
+      }
+    },
+    {
+      "id": "2011",
+      "label": "April–May 2011",
+      "startsOn": "2011-04-01",
+      "endsOn": "2011-05-31",
+      "crests": {
+        "NHRI3": {
+          "sourceDate": "2011-05-04",
+          "gageHeightFt": 23.67,
+          "sourceFlag": "O",
+          "olderDatum": false
+        },
+        "MCRI2": {
+          "sourceDate": "2011-05-03",
+          "gageHeightFt": 34.02,
+          "sourceFlag": "R",
+          "olderDatum": false
+        },
+        "EVVI3": {
+          "sourceDate": "2011-05-05",
+          "gageHeightFt": 46.78,
+          "sourceFlag": "O",
+          "olderDatum": false
+        },
+        "MTVI3": {
+          "sourceDate": "2011-05-05",
+          "gageHeightFt": 51.8,
+          "sourceFlag": "O",
+          "olderDatum": false
+        }
+      }
+    },
+    {
+      "id": "2013",
+      "label": "April 2013",
+      "startsOn": "2013-04-01",
+      "endsOn": "2013-04-30",
+      "crests": {
+        "NHRI3": {
+          "sourceDate": "2013-04-29",
+          "gageHeightFt": 20.94,
+          "sourceFlag": "O",
+          "olderDatum": false
+        },
+        "MCRI2": {
+          "sourceDate": "2013-04-28",
+          "gageHeightFt": 30.24,
+          "sourceFlag": "O",
+          "olderDatum": false
+        },
+        "EVVI3": null,
+        "MTVI3": null
+      }
+    },
+    {
+      "id": "2018",
+      "label": "February–March 2018",
+      "startsOn": "2018-02-01",
+      "endsOn": "2018-03-31",
+      "crests": {
+        "NHRI3": {
+          "sourceDate": "2018-03-04",
+          "gageHeightFt": 21.21,
+          "sourceFlag": "O",
+          "olderDatum": false
+        },
+        "MCRI2": {
+          "sourceDate": "2018-03-03",
+          "gageHeightFt": 29.68,
+          "sourceFlag": "P",
+          "olderDatum": false
+        },
+        "EVVI3": {
+          "sourceDate": "2018-03-01",
+          "gageHeightFt": 46.87,
+          "sourceFlag": "O",
+          "olderDatum": false
+        },
+        "MTVI3": {
+          "sourceDate": "2018-03-04",
+          "gageHeightFt": 49,
+          "sourceFlag": "O",
+          "olderDatum": false
+        }
+      }
+    },
+    {
+      "id": "2025",
+      "label": "April 2025",
+      "startsOn": "2025-04-01",
+      "endsOn": "2025-04-30",
+      "crests": {
+        "NHRI3": {
+          "sourceDate": "2025-04-14",
+          "gageHeightFt": 22.59,
+          "sourceFlag": "O",
+          "olderDatum": false
+        },
+        "MCRI2": {
+          "sourceDate": "2025-04-13",
+          "gageHeightFt": 31.35,
+          "sourceFlag": "P",
+          "olderDatum": false
+        },
+        "EVVI3": {
+          "sourceDate": "2025-04-12",
+          "gageHeightFt": 47.67,
+          "sourceFlag": "O",
+          "olderDatum": false
+        },
+        "MTVI3": {
+          "sourceDate": "2025-04-13",
+          "gageHeightFt": 50.1,
+          "sourceFlag": "O",
+          "olderDatum": false
+        }
+      }
+    }
+  ]
+}

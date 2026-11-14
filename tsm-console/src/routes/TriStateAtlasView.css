@@ -99,7 +99,10 @@
 .tsm-atlas-grant-filters{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
 .tsm-atlas-grant-filters label{font-size:.9rem}
 .tsm-atlas-grant-list{max-height:630px;overflow-y:auto;overscroll-behavior:contain;display:grid;gap:11px}
+.tsm-atlas-history-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px;margin:16px 0}
 .tsm-atlas-grant,.tsm-atlas-history-record{padding:14px;border:1px solid #456c7c;border-radius:12px;background:#103044;margin:12px 0;overflow-wrap:anywhere}
+.tsm-atlas-history-grid .tsm-atlas-history-record{margin:0}
+.tsm-atlas-history-grid .tsm-atlas-history-record p{margin:0 0 8px}
 .tsm-atlas-grant dl,.tsm-atlas-history-record dl{display:grid;grid-template-columns:minmax(105px,31%) minmax(0,1fr);gap:6px 10px;font-size:.82rem;margin:10px 0}
 .tsm-atlas-grant dt,.tsm-atlas-history-record dt{font-weight:700;color:#c3e8eb}
 .tsm-atlas-grant dd,.tsm-atlas-history-record dd{margin:0}
