@@ -5,6 +5,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { TilesRenderer } from '3d-tiles-renderer';
 import { TilesFetchBridge } from '../lib/tiles-fetch-bridge';
+import { createQuantumInspiredLoadPlanner } from '../lib/quantum-inspired-stream-priority';
 import type { LodCamera, LodFetchPlan, LodScheduler } from '../lib/lod-scheduler';
 import { decodeStateWord } from '../lib/state-word-codec';
 
@@ -148,6 +149,37 @@ describe('TilesFetchBridge', () => {
     const stats = bridge.update(camera);
     expect(stats.plan.load).toEqual([]);
     expect(stats.loadProgress).toBe(1);
+  });
+
+  it('uses opt-in, evidence-gated quantum-inspired priority over lifecycle-approved IDs', () => {
+    const renderer = makeRenderer();
+    const scheduler = makeScheduler(plan);
+    const tiles: Record<string, object> = { n1: {id:'n1'}, n2: {id:'n2'} };
+    const trusted = (id: string, estimatedBytes: number, qualityGain: number) => ({
+      id,estimatedBytes,qualityGain,freshness:0,motionPriority:0,
+      classification:'DERIVED' as const,sourceSha256:'a'.repeat(64),
+      sourceVerified:true,licenseReviewed:true,
+    });
+    const planner = createQuantumInspiredLoadPlanner(
+      [trusted('n1',2,1),trusted('n2',1,0.6)],{maxBytes:1,strategy:'greedy'},
+    );
+    const bridge = new TilesFetchBridge(renderer,scheduler,{
+      resolveTile: id=>tiles[id]??null,planLoadOrder:planner,
+    });
+    bridge.update(camera);
+    const cache = renderer.lruCache as unknown as {markUsed:ReturnType<typeof vi.fn>};
+    expect(cache.markUsed).toHaveBeenCalledWith(tiles.n2);
+    expect(cache.markUsed).not.toHaveBeenCalledWith(tiles.n1);
+  });
+
+  it('rejects unknown or duplicated opt-in tile priority plans', () => {
+    const renderer = makeRenderer();
+    const scheduler = makeScheduler(plan);
+    const bridge = new TilesFetchBridge(renderer,scheduler,{
+      resolveTile: id=>({id}),
+      planLoadOrder:()=>['n1','n1'],
+    });
+    expect(()=>bridge.update(camera)).toThrow(/invalid or unapproved priority plan/);
   });
 
   it('rejects bad constructor arguments', () => {
