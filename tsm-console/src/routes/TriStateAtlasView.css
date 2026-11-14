@@ -214,3 +214,20 @@
 .tsm-atlas .tsm-civic-authority-links a{display:inline-flex;align-items:center;min-height:44px;padding:9px 13px;border:1px solid #acc9d5;border-radius:10px;background:#ebf9fc;color:#075c75;font-size:.91rem;font-weight:700;text-decoration:none}
 .tsm-atlas .tsm-civic-authority-links a:hover{background:#cceef7}
 .tsm-civic-excavation-note{font-size:.86rem;margin:10px 0 0!important;line-height:1.45}
+
+/* Accessible, keyboard-operable site detail cards for historic and DNR markers. */
+.tsm-civic-site-card{position:absolute;right:14px;bottom:20px;z-index:30;
+ width:min(385px,calc(100% - 28px));max-height:min(72vh,500px);overflow-y:auto;
+ padding:19px;border-radius:17px;background:#fffffff7;color:#153b51;
+ border:2px solid #77bfc9;box-shadow:0 22px 65px #031826a8;font-size:16px;line-height:1.5}
+.tsm-civic-site-card h2{font-size:clamp(1.2rem,2vw,1.65rem);line-height:1.2;margin:7px 40px 12px 0;color:#123b52}
+.tsm-civic-site-card p{margin:0 0 11px}
+.tsm-civic-site-card .tsm-civic-site-access{padding:11px;border-radius:10px;background:#fff2d4;color:#654c18}
+.tsm-civic-site-card .tsm-civic-eyebrow{color:#126f7f}
+.tsm-civic-site-links{display:flex;flex-wrap:wrap;gap:9px;margin:10px 0}
+.tsm-civic-site-links a{display:inline-flex;align-items:center;min-height:44px;padding:9px 12px;border-radius:9px;
+ background:#087c8f;color:#fff!important;text-decoration:none;font-weight:700}
+.tsm-civic-site-close{position:absolute;top:7px;right:7px;min-height:44px;min-width:44px;border:0;border-radius:11px;
+ background:#edf7fa;color:#163b50;cursor:pointer;font-size:1.6rem}
+.tsm-civic-site-card a:focus-visible,.tsm-civic-site-card button:focus-visible{outline:3px solid #e3940e;outline-offset:3px}
+@media(max-width:650px){.tsm-civic-site-card{left:10px;right:10px;bottom:10px;width:auto;max-height:52vh;padding:15px}}
