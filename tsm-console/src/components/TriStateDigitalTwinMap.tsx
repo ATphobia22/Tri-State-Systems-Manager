@@ -10,6 +10,7 @@ import { createPoseyScreeningExtrusionLayer } from '../lib/posey-screening-build
 import { TERRAIN_RGB_SOURCE_ID } from '../lib/terrain-rgb-contract';
 import { FeatureLayerRequestCoordinator } from '../lib/feature-layer-request-coordinator';
 import { getCinematicLighting, type CinematicLightPreset } from '../lib/cinematic/light-presets';
+import { playCinematicTour } from '../lib/cinematic/camera-tour';
 import {
   FLOOD_OVERLAY_METADATA,
   FloodDeckOverlay,
@@ -217,6 +218,10 @@ export interface TriStateDigitalTwinMapProps {
   onStatusChange?: (status: string) => void;
   /** Atlas-only regional map mode; uses OpenFreeMap vector basemap across state lines. */
   regionalAtlas?: boolean;
+  /** Atlas-only Wabash cinematic camera flight, presentation/navigation only. */
+  cinematicTour?: boolean;
+  /** Reports that an OS reduced-motion preference converted the tour to a static frame. */
+  onTourReducedMotion?: () => void;
   /** Atlas-only camera preset; location is navigation, never survey evidence. */
   regionalView?: { id: string; center: [number, number]; zoom: number; pitch?: number; bearing?: number };
   /** Source-derived, locally committed point locations and eHydro survey rectangles. */
@@ -237,6 +242,7 @@ export function defaultMapPlaneVisibility(): Record<string, boolean> {
 export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProps): JSX.Element {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<Map | null>(null);
+  const [mapReady, setMapReady] = useState(false);
   const [internalVisible, setInternalVisible] = useState<Record<string, boolean>>(defaultMapPlaneVisibility);
   const lightPreset = props.lightPreset ?? 'day';
   const lightPresetRef = useRef(lightPreset);
@@ -406,6 +412,7 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
 
     map.on('load', () => {
       mapRef.current = map;
+      setMapReady(true);
       const lighting = getCinematicLighting(lightPresetRef.current);
       map.setLight(lighting.light);
       map.setSky(lighting.sky);
@@ -699,6 +706,19 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
     const map = mapRef.current;
     if (map) map.getCanvas().style.cursor = props.proposalDrawMode ? 'crosshair' : '';
   }, [props.regionalAtlas, props.proposalDrawMode]);
+
+  // The map exists only after its asynchronous load callback; tying the tour to
+  // that readiness prevents pressing Play before map creation from doing nothing.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!mapReady || !map || !props.regionalAtlas || !props.cinematicTour) return;
+    const stop = playCinematicTour(map);
+    if (stop === null) {
+      props.onTourReducedMotion?.();
+      return;
+    }
+    return () => stop();
+  }, [mapReady, props.regionalAtlas, props.cinematicTour, props.onTourReducedMotion]);
 
   const terrain = getTerrainRgbStatus();
   const mistVisible = Boolean(visible['cinematic-volumetric-mist']);
