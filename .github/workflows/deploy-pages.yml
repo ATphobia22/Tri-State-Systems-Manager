@@ -211,6 +211,27 @@ jobs:
           test -s dist/3d-tiles/buildings-3d.json
           test -d dist/3d-tiles/buildings
           grep -Fq '/Tri-State-Systems-Manager/' dist/index.html
+          # Assert MapLibre CSS belongs to the eager HTML entry rather than a lazy
+          # route preload. Check every HTML stylesheet reference exists in dist.
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import path from 'node:path';
+          const html = fs.readFileSync('dist/index.html', 'utf8');
+          const base = '/Tri-State-Systems-Manager/';
+          const cssHrefs = [...html.matchAll(/href="([^"]+\.css)"/g)].map((match) => match[1]);
+          if (cssHrefs.length === 0) throw new Error('No HTML entry stylesheets');
+          const cssContent = cssHrefs.map((href) => {
+            if (!href.startsWith(base)) throw new Error('Unexpected Pages CSS base: ' + href);
+            const absolutePath = path.resolve('dist', href.slice(base.length));
+            if (!absolutePath.startsWith(path.resolve('dist') + path.sep)) throw new Error('Unexpected stylesheet path');
+            if (!fs.existsSync(absolutePath)) throw new Error('Missing built stylesheet: ' + href);
+            return fs.readFileSync(absolutePath, 'utf8');
+          }).join('\n');
+          if (!cssContent.includes('.maplibregl-map')) {
+            throw new Error('MapLibre stylesheet missing from eager entry CSS');
+          }
+          console.log('PASS: Pages entry stylesheets exist; MapLibre styling is eagerly loaded');
+          NODE
       - name: Upload production artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
