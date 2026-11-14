@@ -287,7 +287,7 @@ export default function TriStateAtlasView(): JSX.Element {
             <label htmlFor="tsm-atlas-hour">Visual day/night cycle <strong>{String(sceneHour).padStart(2, '0')}:00</strong></label>
             <input id="tsm-atlas-hour" type="range" min={0} max={23} step={1} value={sceneHour}
               onChange={(event) => { const next = Number(event.target.value); setSceneHour(next); setLight(lightForHour(next)); }} />
-            <small>4D presentation time and movie FX are visual only: neither changes actual USGS observations, weather, flood extents, terrain, or hydraulic simulations.</small>
+            <small>4D presentation time does not advance USGS observations, weather or hydraulic simulations. Movie FX are visual-only layers; they do not change flood extents or terrain.</small>
           </div>
           <div className={`tsm-atlas-map tsm-civic-fx-${visualFx}`}>
             <div className="tsm-civic-fx-overlay" aria-hidden="true" />
