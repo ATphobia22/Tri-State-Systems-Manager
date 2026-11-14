@@ -68,7 +68,7 @@ export default function TriStateAtlasView(): JSX.Element {
   const stopTourForReducedMotion = useCallback(() => setCinematicTour(false), []);
   const [sceneHour, setSceneHour] = useState(17);
   const [regionId, setRegionId] = useState('posey');
-  const [regionalLayers, setRegionalLayers] = useState({ gauges: true, surveys: false, historic: true, dnr: true, preserves: false });
+  const [regionalLayers, setRegionalLayers] = useState({ gauges: true, surveys: false, historic: true, dnr: true, preserves: false, illinois: false, kentucky: false });
   const [drawMode, setDrawMode] = useState<ProposalMode | null>(null);
   const [waypoints, setWaypoints] = useState<Coordinates[]>([]);
   const [proposals, setProposals] = useState<ProposalFeature[]>([]);
@@ -216,7 +216,13 @@ export default function TriStateAtlasView(): JSX.Element {
             <label><input type="checkbox" checked={regionalLayers.preserves}
               onChange={(event) => setRegionalLayers((prev) => ({ ...prev, preserves: event.target.checked }))} />
               Indiana nature preserves <small>(public DNR records; visiting access may be restricted)</small></label>
-            <p className="tsm-atlas-note">Explore historic sites across all three states in the regional map envelope. The DNR feeds only cover Indiana; equivalent Illinois and Kentucky agency catalogs require separate verified layers. Markers show source locations, not safe excavation routes.</p>
+            <label><input type="checkbox" checked={regionalLayers.illinois}
+              onChange={(event) => setRegionalLayers((prev) => ({ ...prev, illinois: event.target.checked }))} />
+              Illinois DNR properties <small>(state GIS polygon previews; not survey boundaries)</small></label>
+            <label><input type="checkbox" checked={regionalLayers.kentucky}
+              onChange={(event) => setRegionalLayers((prev) => ({ ...prev, kentucky: event.target.checked }))} />
+              Kentucky state parks <small>(state GIS public site locations and visitor links)</small></label>
+            <p className="tsm-atlas-note">Explore historic sites across all three states in the regional map envelope. Indiana DNR, Illinois DNR and Kentucky State Parks are separate official agency feeds; their coverage and access rules differ. Markers show source locations, not safe excavation routes.</p>
             <a href="https://www.nps.gov/subjects/nationalregister/data-downloads.htm" target="_blank" rel="noopener noreferrer">National Park Service cultural-resource data notes</a>
           </fieldset>
           <h2>Draw and export a proposed project</h2>
