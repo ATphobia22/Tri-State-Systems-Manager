@@ -9,6 +9,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 HERE = Path(__file__).resolve().parent
 ACQUIRE = HERE / "acquire-and-enrich-igio-posey-buildings.py"
@@ -149,6 +150,34 @@ class PinnedIGIOCacheTests(unittest.TestCase):
         ], capture_output=True, text=True, check=False, timeout=30)
         self.assertNotEqual(proc.returncode, 0)
         self.assertFalse(corrupt.exists())
+
+    def test_dem_sampling_skips_outside_cells_and_uses_valid_fallback(self):
+        import numpy as np
+        import rasterio
+        from rasterio.transform import from_origin
+
+        spec = importlib.util.spec_from_file_location("posey_acquisition", ACQUIRE)
+        acquisition = importlib.util.module_from_spec(spec)
+        with patch.object(sys, "path", [str(HERE), *sys.path]):
+            spec.loader.exec_module(acquisition)
+        all_paths = []
+        for name, west, cell, value in (("remote", -87.0, 0.01, 100),
+                                        ("fine", -88.0, 0.01, -9999),
+                                        ("fallback", -88.0, 0.02, 360)):
+            path = self.root / f"{name}.tif"
+            with rasterio.open(path, "w", driver="GTiff", crs="EPSG:4326",
+                               transform=from_origin(west, 38.0, cell, cell),
+                               count=1, width=2, height=2, dtype="float32", nodata=-9999) as ds:
+                ds.write(np.full((2, 2), value, dtype="float32"), 1)
+            all_paths.append(path)
+        with patch.object(acquisition, "pinned_navd88_scale_to_ft", return_value=1.0):
+            sampler = acquisition.ElevationSampler(all_paths)
+        try:
+            result = sampler.sample([(-87.995, 37.995), (-87.7, 37.7)])
+            self.assertEqual(result, (360.0, 360.0, 360.0, 1, str(all_paths[-1])))
+            self.assertIsNone(sampler.sample([(-87.7, 37.7)]))
+        finally:
+            sampler.close()
 
 
 if __name__ == "__main__":

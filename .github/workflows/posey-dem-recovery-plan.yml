@@ -1,0 +1,40 @@
+name: Posey DEM Source Coverage Planning
+on:
+  pull_request:
+    paths:
+      - 'scripts/geospatial/plan_posey_dem_recovery.py'
+      - 'scripts/geospatial/verify_indiana_public_s3_dem.py'
+      - 'scripts/geospatial/acquire_indiana_dem_tiles.py'
+      - 'scripts/geospatial/reconcile_posey_official_dem_tiles.py'
+      - 'scripts/geospatial/posey_ground_sample.py'
+      - 'scripts/geospatial/acquire-and-enrich-igio-posey-buildings.py'
+      - 'tests/geospatial/test_plan_posey_dem_recovery.py'
+      - 'tests/geospatial/test_verify_indiana_public_s3_dem.py'
+      - 'tests/geospatial/test_native_indiana_elevation_catalog.py'
+      - 'tsm-native/config/authoritative-source-catalog.json'
+      - 'tests/geospatial/test_acquire_indiana_dem_tiles.py'
+      - 'tests/geospatial/test_reconcile_posey_official_dem_tiles.py'
+      - 'tests/geospatial/test_posey_ground_sample.py'
+      - '.github/workflows/posey-dem-recovery-plan.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-tile-plan-tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Install geospatial geometry and datum tooling
+        run: python -m pip install 'shapely==2.1.2' 'pyproj==3.7.2' 'rasterio==1.5.0' 'requests==2.32.5'
+      - name: Compile and test Posey source tile planning
+        run: |
+          python -m py_compile scripts/geospatial/acquire_indiana_dem_tiles.py scripts/geospatial/plan_posey_dem_recovery.py scripts/geospatial/verify_indiana_public_s3_dem.py scripts/geospatial/reconcile_posey_official_dem_tiles.py scripts/geospatial/posey_ground_sample.py scripts/geospatial/acquire-and-enrich-igio-posey-buildings.py
+          python -m unittest discover -s tests/geospatial -p test_posey_ground_sample.py -v
+          python -m unittest discover -s tests/geospatial -p test_plan_posey_dem_recovery.py -v
+          python -m unittest discover -s tests/geospatial -p test_acquire_indiana_dem_tiles.py -v
+          python -m unittest discover -s tests/geospatial -p test_verify_indiana_public_s3_dem.py -v
+          python -m unittest discover -s tests/geospatial -p test_native_indiana_elevation_catalog.py -v
+          python -m unittest discover -s tests/geospatial -p test_reconcile_posey_official_dem_tiles.py -v

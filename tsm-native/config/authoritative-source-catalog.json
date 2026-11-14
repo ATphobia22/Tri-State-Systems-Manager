@@ -21,6 +21,27 @@
       "endpoint": "https://di-ingov.img.arcgis.com/arcgis/rest/services/DynamicWebMercator/Indiana_2016_2020_DEM/ImageServer"
     },
     {
+      "id": "indiana-dem-tile-footprints-2016-2020",
+      "authority": "Indiana Geographic Information Office",
+      "type": "state-dem-source-tile-footprints",
+      "endpoint": "https://gisdata.in.gov/server/rest/services/Hosted/Indiana_DEM_Tile_Footprints/FeatureServer/0",
+      "sourceDatasetYears": "2016–2020",
+      "dataRole": "source-catalog-not-height-measurement",
+      "runtimeNetworkAllowed": false
+    },
+    {
+      "id": "indiana-elevation-public-s3-archive",
+      "authority": "Indiana Geographic Information Office / Indiana Office of Technology",
+      "type": "state-elevation-archive",
+      "endpoint": "https://giselevationingov.s3.amazonaws.com/index.html",
+      "bucket": "giselevationingov",
+      "region": "us-east-2",
+      "license": "CC0",
+      "sourceRegistry": "https://github.com/awslabs/open-data-registry/blob/main/datasets/in-elevation.yaml",
+      "dataRole": "acquisition-only; no online runtime dependency",
+      "runtimeNetworkAllowed": false
+    },
+    {
       "id": "usgs-water-ogc",
       "authority": "USGS",
       "type": "water-observations",
