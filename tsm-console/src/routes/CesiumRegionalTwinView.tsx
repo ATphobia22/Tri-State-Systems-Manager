@@ -246,7 +246,7 @@ export default function CesiumRegionalTwinView() {
         </aside>
       </div>
       <footer className="tsm-cesium-note">
-        Screening visualization. Road lines represent approximate centerlines. Building coverage is partial. The river replay displays station measurements.
+        Screening visualization. Roads are approximate centerlines. Posey buildings without preview heights are shown as outlines. The river replay displays station measurements.
       </footer>
     </article>
   );

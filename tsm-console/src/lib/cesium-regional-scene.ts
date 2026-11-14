@@ -1,5 +1,5 @@
 import {
-  ArcType, Cartesian3, Cesium3DTileFeature, ClassificationType, ConstantProperty, Cesium3DTileset, CesiumTerrainProvider, CesiumWidget,
+  ArcType, Cartesian3, type Cesium3DTile, Cesium3DTileFeature, ClassificationType, ConstantProperty, Cesium3DTileset, CesiumTerrainProvider, CesiumWidget,
   Color, ColorGeometryInstanceAttribute, Credit, EllipsoidTerrainProvider, GeoJsonDataSource, GeometryInstance,
   GroundPolylineGeometry, GroundPolylinePrimitive, HeightReference, JulianDate, LabelCollection,
   LabelStyle, Math as CesiumMath, PolylineColorAppearance, ScreenSpaceEventHandler,
@@ -25,7 +25,7 @@ export type Replay = {
 };
 const BASE = import.meta.env.BASE_URL;
 const VECTORS = `${BASE}data/cesium-regional/`;
-const BUILDINGS = `${BASE}3d-tiles/buildings-lidar-12450/tileset.json`;
+const BUILDINGS = `${VECTORS}posey-buildings/`;
 const IMAGERY = 'https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer';
 export type SceneLayer = 'terrain' | 'buildings' | 'roads' | 'city';
 export type LayerState = { state: 'loading' | 'ready' | 'unavailable'; detail: string };
@@ -81,14 +81,14 @@ function roadLines(feature: GeoJSON.Feature, city = false): GeometryInstance[] {
       { title, detail: `${source} · ${properties?.source_objectid ?? properties?.source_id ?? ''}` }));
 }
 
-function footprintLines(feature: GeoJSON.Feature): GeometryInstance[] {
+function footprintLines(feature: GeoJSON.Feature, detail = 'Roof height not supplied'): GeometryInstance[] {
   const { geometry, properties } = feature;
   const polygons = geometry.type === 'MultiPolygon' ? geometry.coordinates
     : geometry.type === 'Polygon' ? [geometry.coordinates] : [];
   return polygons.flatMap((polygon) => polygon.filter((ring) => ring.length >= 4).map((ring) =>
     line(ring, Color.fromCssColorString('#8ed1ff').withAlpha(0.78), 1.4, {
       title: 'Indiana GIO building footprint',
-      detail: `OBJECTID ${properties?.source_objectid ?? ''} · Roof height not supplied`,
+      detail: `OBJECTID ${properties?.source_objectid ?? ''} · ${detail}`,
     })));
 }
 
@@ -113,7 +113,10 @@ export function mountCesiumRegionalScene(
     targetFrameRate: 45, scene3DOnly: true, showRenderLoopErrors: false,
   });
   const { scene, camera } = widget;
-  scene.renderError.addEventListener(() => onError('Cesium stopped rendering. Reload this view to try again.'));
+  scene.renderError.addEventListener((_scene: unknown, error: unknown) => {
+    console.error('Cesium render loop failed', error);
+    onError('Cesium stopped rendering. Reload this view to try again.');
+  });
   scene.globe!.depthTestAgainstTerrain = true;
   scene.globe!.baseColor = Color.fromCssColorString('#545f50');
   scene.globe!.enableLighting = true;
@@ -134,12 +137,13 @@ export function mountCesiumRegionalScene(
     if (!stopped) onLayer(layer, { state, detail });
   };
 
-  const addLines = (layer: 'roads' | 'city', items: GeometryInstance[]) => {
+  const addLines = (layer: 'roads' | 'city' | 'buildings', items: GeometryInstance[]) => {
     if (!items.length) throw new Error('Empty line layer');
     const primitive = new GroundPolylinePrimitive({
       geometryInstances: items,
       appearance: new PolylineColorAppearance({ translucent: true }),
       show: visibility[layer],
+      classificationType: ClassificationType.TERRAIN,
     });
     scene.groundPrimitives.add(primitive);
     graphics.set(layer, [...(graphics.get(layer) ?? []), primitive]);
@@ -169,17 +173,36 @@ export function mountCesiumRegionalScene(
   const loadBuildings = async () => {
     update('buildings', 'loading', 'Posey LoD1 tiles are loading');
     try {
-      const tileset = await Cesium3DTileset.fromUrl(BUILDINGS, {
+      const response = await fetch(`${BUILDINGS}missing-height-footprints.json`, { signal: abort.signal });
+      if (!response.ok) throw new Error('Posey footprint overlay unavailable');
+      const data = await response.json() as { features: GeoJSON.Feature[]; metadata: { featureCount: number } };
+      if (stopped) return;
+      if (!Array.isArray(data.features) || data.features.length !== data.metadata.featureCount) {
+        throw new Error('Posey footprint overlay count mismatch');
+      }
+      addLines('buildings', data.features.flatMap((feature) => footprintLines(feature, '3D height unavailable in this preview')));
+      const tileset = await Cesium3DTileset.fromUrl(`${BUILDINGS}tileset.json`, {
         maximumScreenSpaceError: 18, cacheBytes: 96 * 1024 * 1024,
         maximumCacheOverflowBytes: 64 * 1024 * 1024, preloadWhenHidden: false,
       });
       if (stopped) { tileset.destroy(); return; }
       buildings = scene.primitives.add(tileset) as Cesium3DTileset;
       buildings.show = visibility.buildings;
-      buildings.tileFailed.addEventListener(() => update('buildings', 'unavailable', 'A Posey building tile failed to load'));
-      update('buildings', 'ready', 'Posey County · 20,517 LoD1 building IDs · partial');
+      let failed = false;
+      const removeVisible = buildings.tileVisible.addEventListener((tile: Cesium3DTile) => {
+        if (tile.content.featuresLength === 0) return;
+        removeVisible();
+        if (!failed) update('buildings', 'ready', 'Posey County · 20,517 LoD1 meshes and 2,565 footprint-only IDs');
+      });
+      buildings.tileFailed.addEventListener((error: { url: string; message: string }) => {
+        if (failed) return;
+        failed = true;
+        console.error('Posey building tile failed', error.url, error.message);
+        update('buildings', 'unavailable', 'A Posey building tile failed to load');
+      });
       scene.requestRender();
-    } catch {
+    } catch (error) {
+      if (!stopped) console.error('Posey building layer failed', error);
       update('buildings', 'unavailable', 'Posey mesh tiles unavailable');
     }
   };
@@ -215,7 +238,7 @@ export function mountCesiumRegionalScene(
       const { scene: city } = await loadMountVernonCityScene(`${BASE}mount-vernon-scene/`, abort.signal);
       if (stopped) return;
       addLines('city', city.roads.features.flatMap((feature) => roadLines(feature, true)));
-      addLines('city', city.buildings.features.flatMap(footprintLines));
+      addLines('city', city.buildings.features.flatMap((feature) => footprintLines(feature)));
       update('city', 'ready', `${city.buildings.features.length.toLocaleString()} footprints and ${city.roads.features.length.toLocaleString()} roads · Mount Vernon area`);
     } catch {
       cityStarted = false;
@@ -233,7 +256,7 @@ export function mountCesiumRegionalScene(
   holder.setInputAction(({ position }: { position: Parameters<typeof scene.pick>[0] }) => {
     const hit = scene.pick(position);
     if (hit instanceof Cesium3DTileFeature) {
-      const id = hit.getProperty('sourceObjectId') ?? hit.getProperty('source_object_id');
+      const id = hit.getProperty('OBJECTID') ?? hit.getProperty('sourceObjectId') ?? hit.getProperty('source_object_id');
       onPick({ title: 'Posey LiDAR building mesh', detail: id == null ? 'Derived LoD1 preview' : `OBJECTID ${String(id)} · Derived LoD1 preview` });
     } else {
       onPick(hit?.id?.title ? hit.id as PickedFeature : null);

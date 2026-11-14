@@ -1,17 +1,20 @@
 describe('Public Cesium 4D view on the project Pages base', () => {
   it('streams terrain and buildings, draws local sources and switches replay and screening', () => {
     cy.intercept('GET', '**/data/cesium-regional/terrain/**/*.terrain').as('terrainTile');
-    cy.intercept('GET', '**/buildings-lidar-12450/content/**/*.glb').as('buildingTile');
+    cy.intercept({ method: 'GET', pathname: '**/posey-buildings/content/**/*.glb' }).as('buildingTile');
+    cy.intercept({ method: 'GET', pathname: '**/posey-buildings/subtrees/**/*.subtree' }).as('buildingSubtree');
+    cy.intercept('GET', '**/posey-buildings/missing-height-footprints.json').as('poseyFootprints');
     cy.intercept('GET', '**/mount-vernon-scene/scene.json').as('city');
     cy.intercept('GET', '**/data/cesium-regional/screening/*.json').as('screening');
     cy.visit('cesium/');
     cy.contains('h1', 'Tri-State River Valley').should('be.visible');
     cy.get('.tsm-cesium-viewport canvas', { timeout: 30000 }).should('be.visible');
-    cy.wait(['@terrainTile', '@buildingTile'], { requestTimeout: 60000 }).each((hit) => {
+    cy.wait(['@terrainTile', '@poseyFootprints', '@buildingSubtree', '@buildingTile'], { requestTimeout: 60000 }).each((hit) => {
       expect(hit.response?.statusCode).to.eq(200);
     });
+    cy.get('@poseyFootprints').its('response.body.metadata.featureCount').should('eq', 2565);
     cy.get('[data-testid="cesium-terrain-status"]').should('have.attr', 'data-state', 'ready');
-    cy.get('[data-testid="cesium-buildings-status"]').should('have.attr', 'data-state', 'ready');
+    cy.get('[data-testid="cesium-buildings-status"]', { timeout: 45000 }).should('have.attr', 'data-state', 'ready');
     cy.contains('[data-testid="cesium-roads-status"]', '29,461 centerlines', { timeout: 45000 });
     cy.get('.tsm-cesium-error').should('not.exist');
     cy.contains('label', 'Mount Vernon detail').find('input').check();
