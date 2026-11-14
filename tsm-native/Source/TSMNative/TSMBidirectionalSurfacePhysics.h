@@ -23,8 +23,8 @@ inline bool validCell(const Cell& c) {
     std::isfinite(c.groundM) && std::isfinite(c.volumeM3) && c.volumeM3 >= 0.0;
 }
 // Bounded bidirectional two-cell flux. The water-surface head difference drives
-// flow in either direction; flux cannot exceed donor volume. Conservation is
-// enforced algebraically, with no hidden runoff or artificial mass creation.
+// flow in either direction. The equilibrium and donor limits keep one step
+// from reversing the head difference or making a donor volume negative.
 inline Exchange stepPair(const Cell& a, const Cell& b, double interfaceWidthM,
                          double conductanceMPerS, double dtSeconds) {
   Exchange out{};
@@ -35,8 +35,12 @@ inline Exchange stepPair(const Cell& a, const Cell& b, double interfaceWidthM,
                     - (b.groundM + b.volumeM3 / b.areaM2);
   const double demand = head * interfaceWidthM * conductanceMPerS * dtSeconds;
   if (!std::isfinite(demand)) return out;
-  const double transfer = demand >= 0.0 ? std::min(demand, a.volumeM3)
-                                        : -std::min(-demand, b.volumeM3);
+  const double smallArea = std::min(a.areaM2, b.areaM2);
+  const double largeArea = std::max(a.areaM2, b.areaM2);
+  const double equilibriumVolume = std::abs(head) * (smallArea / (1.0 + smallArea / largeArea));
+  const double donorVolume = demand >= 0.0 ? a.volumeM3 : b.volumeM3;
+  const double magnitude = std::min({std::abs(demand), equilibriumVolume, donorVolume});
+  const double transfer = std::copysign(magnitude, demand);
   out.transferM3 = transfer;
   out.aAfterM3 = a.volumeM3 - transfer;
   out.bAfterM3 = b.volumeM3 + transfer;

@@ -66,16 +66,16 @@ class Q:
   r={"boundingVolume":{"box":box(self.lo,self.hi,self.padding)},"geometricError":self.geometric_error,"refine":"ADD"}
   r["children"]=[x.tile(ge) for x in self.children] if self.children else [i.tile for i in self.items]; return r
 def main():
- ap=argparse.ArgumentParser(); ap.add_argument("--input",required=True,type=Path); ap.add_argument("--output",required=True,type=Path); ap.add_argument("--max-items",type=int,default=50); ap.add_argument("--max-depth",type=int,default=None); ap.add_argument("--config",type=Path); a=ap.parse_args()
+ ap=argparse.ArgumentParser(); ap.add_argument("--input",required=True,type=Path); ap.add_argument("--output",required=True,type=Path); ap.add_argument("--max-items",type=int); ap.add_argument("--max-depth",type=int); ap.add_argument("--config",type=Path); a=ap.parse_args()
  cfg=json.loads(a.config.read_text()) if a.config else {}
- if cfg and cfg.get("schema")!="tsm.hlod.quadtree.v1": raise SystemExit("invalid HLOD configuration schema")
- if cfg:
-  a.max_items=cfg["maxItemsPerLeaf"] if a.max_items==50 else a.max_items
-  a.max_depth=cfg["maxDepth"] if a.max_depth is None else a.max_depth
- elif a.max_depth is None: a.max_depth=6
+ if a.config and (not isinstance(cfg,dict) or cfg.get("schema")!="tsm.hlod.quadtree.v1"):
+  ap.error("invalid HLOD configuration schema")
+ a.max_items=cfg.get("maxItemsPerLeaf",50) if a.max_items is None else a.max_items
+ a.max_depth=cfg.get("maxDepth",6) if a.max_depth is None else a.max_depth
  padding=cfg.get("boundsPaddingMeters",0.5)
  if isinstance(padding,bool) or not isinstance(padding,(int,float)) or not math.isfinite(padding) or padding<0 or padding>100: raise SystemExit("invalid bounds padding")
- if a.max_items<1 or a.max_depth<0 or a.max_depth>32: raise SystemExit("invalid HLOD limits")
+ if type(a.max_items) is not int or type(a.max_depth) is not int or a.max_items<1 or not 0<=a.max_depth<=32:
+  ap.error("invalid HLOD limits")
  ts=json.loads(a.input.read_text()); children=ts.get("root",{}).get("children")
  if not isinstance(children,list) or not children: raise SystemExit("flat tileset has no children")
  centers=[]

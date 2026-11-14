@@ -39,4 +39,18 @@ class HlodContract(unittest.TestCase):
             self.assertNotEqual(p.returncode,0)
             self.assertIn("invalid bounds padding",p.stderr+p.stdout)
 
+    def test_explicit_default_size_overrides_config(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source, output, config = [Path(directory) / name for name in ("flat.json", "hlod.json", "config.json")]
+            source.write_text(json.dumps({"asset": {"version": "1.1"}, "root": {"children": [
+                {"boundingVolume": {"box": [6378137, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1]},
+                 "content": {"uri": "tile.glb"}},
+            ]}}))
+            config.write_text(json.dumps({"schema": "tsm.hlod.quadtree.v1", "maxItemsPerLeaf": 5, "maxDepth": 0}))
+            subprocess.run([sys.executable, str(SCRIPT), "--input", str(source), "--output", str(output),
+                "--config", str(config), "--max-items", "50"], check=True, capture_output=True)
+            settings = json.loads(output.read_text())["extras"]["tsm"]
+            self.assertEqual(settings["maxItemsPerLeaf"], 50)
+            self.assertEqual(settings["maxDepth"], 0)
+
 if __name__=="__main__": unittest.main()
