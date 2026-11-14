@@ -19,7 +19,7 @@ const obj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 
 export function relativeFile(root, value) {
   if (typeof value !== 'string' || !value || value.includes('\\') ||
-      path.isAbsolute(value) || value.includes('\\0') ||
+      path.isAbsolute(value) || value.includes('\0') ||
       value.split('/').some(p => p === '..' || p === '.' || !p)) {
     throw new Error('UNSAFE_RELATIVE_PATH');
   }
@@ -80,7 +80,7 @@ export function inspectPatents(record) {
     throw new Error('PATENT_RESEARCH_NOT_REVIEWED');
   }
   for (const p of record.patents) {
-    if (!/^US\\d{6,9}[A-C]\\d?$/.test(p.patent) || !p.official_record?.startsWith('https://ppubs.uspto.gov/') ||
+    if (!/^US\d{6,9}[A-C]\d?$/.test(p.patent) || !p.official_record?.startsWith('https://ppubs.uspto.gov/') ||
         p.freedom_to_operate !== 'NOT_ASSESSED' || p.implementation !== 'IDEA_ONLY' ||
         p.expiration_independently_verified !== false) {
       throw new Error('PATENT_NOT_CLEARED:' + String(p.patent));
@@ -96,7 +96,7 @@ async function inspectSource(row, root) {
       row.license_review !== 'REVIEWED' || row.verified !== true) {
     return { id: row.id, status: 'PROVENANCE_INCOMPLETE' };
   }
-  if (ELEVATION_ROLES.has(row.role) && (!/^EPSG:\\d{4,6}$/.test(row.horizontal_crs ?? '') ||
+  if (ELEVATION_ROLES.has(row.role) && (!/^EPSG:\d{4,6}$/.test(row.horizontal_crs ?? '') ||
       !row.vertical_datum || !row.vertical_units)) return { id: row.id, status: 'DATUM_NOT_EVIDENCED' };
   let file;
   try { file = relativeFile(root,row.path); }
@@ -169,7 +169,7 @@ async function cli() {
   const root = get('--root') ?? repo;
   const report = await inspectFabric(JSON.parse(fs.readFileSync(input,'utf8')),root,
     JSON.parse(fs.readFileSync(priorArt,'utf8')));
-  const result = JSON.stringify(report,null,2) + '\\n';
+  const result = JSON.stringify(report,null,2) + '\n';
   const out = get('--out');
   if (out) fs.writeFileSync(out,result,'utf8');
   else process.stdout.write(result);
