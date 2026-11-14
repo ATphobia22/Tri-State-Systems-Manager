@@ -9,18 +9,20 @@ Scope: public `/atlas/` and its MapLibre viewer. Mount Vernon, Indiana is the na
 | National Register public historic points | NPS `https://mapservices.nps.gov/arcgis/rest/services/cultural_resources/nrhp_locations/MapServer/0` | `RESNAME,NRIS_Refnum,ResType,County,State`; NPS excludes restricted/sensitive site locations | Tappable markers with site-detail panel; enabled on public regional view |
 | Indiana DNR state parks | Indiana DNR `https://gisdata.in.gov/server/rest/services/Hosted/Sites_StateParks/FeatureServer/8` | `site,category,activities,website` | Tappable park markers; enabled |
 | Indiana DNR nature preserves | Indiana DNR `https://gisdata.in.gov/server/rest/services/Hosted/DNRGIS_DnrNPSites_DNR_IN_1/FeatureServer/18` | `npname,county,description,ownership,externalurl,link` | Tappable markers; opt-in |
+| Illinois DNR managed property polygons | Illinois DNR `https://maps.dnr.illinois.gov/geoservices/rest/services/BaseLayers/MapServer/11` | `SITE_NAME,CLASSIFICATION,REGION`; geometry generalized for preview only | Tappable semi-transparent area fill; opt-in |
+| Kentucky State Parks | Kentucky GIS `https://kygisserver.ky.gov/arcgis/rest/services/WGS84WM_Services/Ky_State_Parks_Features_WGS84WM/MapServer/5` | `PUBLIC_NAM,PARK_TYPE,HYPERLINK` | Tappable points; opt-in |
 
-**Count probes, November 14, 2026:** NPS 436, state parks 2, nature preserves 12 for WGS84 envelope `-89.6,36.9,-86.8,38.8`, using official ArcGIS `returnCountOnly=true` queries. These are *not* county-level complete inventories; the geographic envelope includes extra areas and services can omit sites. API queries are on demand and return GeoJSON. Per-request result limit: 1,000; count probes are below that threshold, but source changes require recounting. No private location or restricted archaeology coordinates are generated.
+**Count probes, November 14, 2026:** NPS 436, Indiana state parks 2, Indiana nature preserves 12, Illinois DNR properties 73, Kentucky parks 6 for WGS84 envelope `-89.6,36.9,-86.8,38.8`, using official ArcGIS `returnCountOnly=true` queries. These are *not* county-level complete inventories; the geographic envelope includes extra areas and services can omit sites. API queries are on demand and return GeoJSON. Per-request result limit: 1,000; count probes are below that threshold, but source changes require recounting. No private location or restricted archaeology coordinates are generated.
 
 ### Visual/UI behaviors
 - Icon/color distinguishes public National Register records, parks, preserves; tapping reveals source-backed facts and official links.
-- Popups are React text (escaped), URLs use HTTPS validation. Public map remains anonymous.
+- React cards render escaped text and validate optional HTTPS website URLs; the source registry uses publicly accessible ArcGIS REST services. Public map remains anonymous.
 - Accessibility: 44px-close/touch targets, visible heading, text contrast and reduced-motion options. Full screen-reader / keyboard feature-picking certification **not yet demonstrated**.
 - Cinematic only: selectable river mist, rain overlay, vintage film treatment. Effects have no hydraulic/meteorological authority and never change spatial source records or USGS observations.
 - Historic listing **does not imply public entry**, survey accuracy, safe digging, construction permission, or historic-property clearance. Check owner and preservation office.
 
 ### Source QA and integration limits
-- Indiana DNR sites cover Indiana only. Obtain separate official Illinois DNR and Kentucky tourism/parks/preservation inventories with compatible schema and explicit licensing before claiming equivalent coverage.
+- All three state-run park/managed-property services are now registered separately: Indiana DNR points, Illinois DNR polygons and Kentucky park points. Their feature types, definitions, dates and access policies differ, so this is **not** a reconciled three-state natural-area census. An additional verified Kentucky protected-lands inventory and Illinois historic resources data are still useful for comprehensive site coverage.
 - WGS84 point coordinates are locator points, not legal site boundaries or survey control; critical infrastructure work needs cultural-resources consultation, Section 106 applicability assessment, and on-site surveys if required.
 - A future headless pipeline should record layer ID, retrieved timestamp, source release date, county join, geometry validity, coordinate reference system, sensitive-site policy, license and SHA-256 for every materialized snapshot.
 - Avoid persisting source-internal state or claiming this source data constitutes an approved engineering design.
