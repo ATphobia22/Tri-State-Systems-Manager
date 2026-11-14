@@ -257,6 +257,21 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
   useEffect(() => { props.onStatusChange?.(status); }, [status, props.onStatusChange]);
   const [picked, setPicked] = useState<string | null>(null);
   const [selectedSite, setSelectedSite] = useState<CivicSiteInfo | null>(null);
+  const [siteSearch, setSiteSearch] = useState('');
+  const [siteIndex, setSiteIndex] = useState<Array<{ key: string; kind: CivicSiteKind; info: CivicSiteInfo; point: [number, number] }>>([]);
+  const registerSiteIndex = useCallback((kind: CivicSiteKind, data: { features?: unknown[] }) => {
+    const fresh = (data.features ?? []).flatMap((value, i) => {
+      if (!value || typeof value !== 'object') return [];
+      const f = value as { geometry?: { type?: string; coordinates?: unknown }; properties?: Record<string, unknown> };
+      if (f.geometry?.type !== 'Point' || !Array.isArray(f.geometry.coordinates) || f.geometry.coordinates.length < 2) return [];
+      const [lng,lat] = f.geometry.coordinates;
+      if (typeof lng !== 'number' || typeof lat !== 'number' || !Number.isFinite(lng) || !Number.isFinite(lat) ||
+        lng < -180 || lng > 180 || lat < -90 || lat > 90) return [];
+      const info = civicSiteInfo(kind, f.properties ?? {});
+      return [{ key: `${kind}-${info.reference || i}`, kind, info, point: [lng,lat] as [number,number] }];
+    });
+    setSiteIndex((old) => [...old.filter((item) => item.kind !== kind), ...fresh]);
+  }, []);
   const [selectedBuilding, setSelectedBuilding] = useState<Record<string, unknown> | null>(null);
   const [floodOverlayOn, setFloodOverlayOn] = useState(false);
   const [floodBusy, setFloodBusy] = useState(false);
@@ -293,12 +308,13 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
       const source = map.getSource(sourceId) as GeoJSONSource | undefined;
       source?.setData(data as Parameters<GeoJSONSource['setData']>[0]);
       civicLoadedRef.current[kind] = true;
+      registerSiteIndex(kind, data);
       setStatus(`Indiana DNR ${kind === 'dnr' ? 'recreation' : 'nature preserve'} locations loaded: ${data.features.length}; source positions are not surveyed.`);
     } catch (error: unknown) {
       if (controller.signal.aborted) return;
       setStatus(`Indiana DNR ${kind} layer unavailable: ${error instanceof Error ? error.message : String(error)}. No substitute locations were generated.`);
     }
-  }, []);
+  }, [registerSiteIndex]);
   const npsAbortRef = useRef<AbortController | null>(null);
   const loadHistoricSites = useCallback(async (map: Map): Promise<void> => {
     if (npsLoadedRef.current || !map.getSource('atlas-nps-historic')) return;
@@ -330,12 +346,13 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
       const source = map.getSource('atlas-nps-historic') as GeoJSONSource | undefined;
       source?.setData(data as Parameters<GeoJSONSource['setData']>[0]);
       npsLoadedRef.current = true;
+      registerSiteIndex('historic', data);
       setStatus(`NPS unrestricted historic-place points received: ${data.features.length}; 1,000-record limit, location precision may vary.`);
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') return;
       setStatus(`NPS historic places unavailable: ${error instanceof Error ? error.message : String(error)}. No substitute points were invented.`);
     }
-  }, []);
+  }, [registerSiteIndex]);
 
   const setVisible = useCallback((updater: (current: Record<string, boolean>) => Record<string, boolean>): void => {
     if (controlled) {
@@ -827,6 +844,31 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
     <section aria-label="TSM MapLibre twelve-layer plane" style={{ position: 'relative', height: '100%', minHeight: 560, background: '#05080f', color: '#e2e8f0' }}>
       <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
       <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: mistVisible ? 0.18 : 0, transition: 'opacity 180ms ease', background: 'radial-gradient(ellipse at 50% 45%, transparent 35%, rgba(148,163,184,.55) 100%)', mixBlendMode: 'screen' }} />
+      {props.regionalAtlas && <details className="tsm-civic-site-index">
+        <summary>Explore historic &amp; natural places ({siteIndex.length})</summary>
+        <label htmlFor="tsm-civic-site-search">Find a place by name
+          <input id="tsm-civic-site-search" type="search" value={siteSearch}
+            onChange={(event) => setSiteSearch(event.target.value)}
+            placeholder="Harmonie, New Harmony, Twin Swamps…" />
+        </label>
+        <div className="tsm-civic-site-results">
+          {siteIndex.filter((item) => {
+            if (item.kind === 'historic' && !props.regionalLayers?.historic) return false;
+            if (item.kind === 'dnr' && !props.regionalLayers?.dnr) return false;
+            if (item.kind === 'preserve' && !props.regionalLayers?.preserves) return false;
+            return [item.info.title,item.info.county,item.info.category].join(' ').toLowerCase().includes(siteSearch.trim().toLowerCase());
+          }).sort((a,b) => a.info.title.localeCompare(b.info.title)).slice(0,24).map((item) =>
+            <button key={item.key} type="button" onClick={() => {
+              setSelectedSite(item.info);
+              const map = mapRef.current;
+              if (map) map.flyTo({ center: item.point, zoom: Math.max(map.getZoom(), 13), pitch: 50, duration: 750 });
+            }}>
+              <strong>{item.info.title}</strong><small>{item.info.kind === 'historic' ? 'Historic register' : 'Indiana DNR'}{item.info.county ? ` · ${item.info.county}` : ''}</small>
+            </button>
+          )}
+        </div>
+        <p>Showing up to 24 matches. Filter by name. These are public locator records, not property boundaries.</p>
+      </details>}
       {selectedSite && <aside className="tsm-civic-site-card" aria-label="Selected historic or natural site information">
         <button type="button" className="tsm-civic-site-close" onClick={() => setSelectedSite(null)} aria-label="Close site details">×</button>
         <span className="tsm-civic-eyebrow">{selectedSite.kind === 'historic' ? 'NPS NATIONAL REGISTER' : 'INDIANA DNR PUBLIC DATA'}</span>
