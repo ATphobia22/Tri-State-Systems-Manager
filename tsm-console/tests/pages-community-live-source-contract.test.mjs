@@ -79,3 +79,10 @@ test('Pages publishes a direct Atlas entry on the same base path as the console'
   assert.match(workflow, /curl --fail [^\n]+\/atlas\//);
   assert.match(read('../README.md'), /https:\/\/atphobia22\.github\.io\/Tri-State-Systems-Manager\/atlas\//);
 });
+
+test('MapLibre CSS must load eagerly to prevent lazy-route stylesheet preload errors on Pages', () => {
+  const main = read('src/main.tsx');
+  assert.match(main, /import 'maplibre-gl\/dist\/maplibre-gl\.css'/);
+  assert.match(workflow, /MapLibre stylesheet missing from eager entry CSS/);
+  assert.match(workflow, /Missing built stylesheet/);
+});
