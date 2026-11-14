@@ -72,3 +72,10 @@ test('Pages root selects the Atlas without removing the memorial route', () => {
   assert.match(router, /path: 'memorial'/);
   assert.match(router, /path: 'atlas'/);
 });
+
+test('Pages publishes a direct Atlas entry on the same base path as the console', () => {
+  assert.match(workflow, /cp dist\/index\.html dist\/atlas\/index\.html/);
+  assert.match(workflow, /cmp -s dist\/index\.html dist\/atlas\/index\.html/);
+  assert.match(workflow, /curl --fail [^\n]+\/atlas\//);
+  assert.match(read('../README.md'), /https:\/\/atphobia22\.github\.io\/Tri-State-Systems-Manager\/atlas\//);
+});

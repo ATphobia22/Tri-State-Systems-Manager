@@ -194,7 +194,10 @@ jobs:
           if-no-files-found: error
       - name: Prepare GitHub Pages SPA fallback
         working-directory: ${{ env.CONSOLE_DIR }}
-        run: node scripts/generate-spa-fallback.mjs --out dist/404.html --base "${{ env.VITE_PAGES_BASE_PATH }}"
+        run: |
+          node scripts/generate-spa-fallback.mjs --out dist/404.html --base "${{ env.VITE_PAGES_BASE_PATH }}"
+          mkdir -p dist/atlas
+          cp dist/index.html dist/atlas/index.html
       - name: Validate production artifact
         working-directory: ${{ env.CONSOLE_DIR }}
         shell: bash
@@ -202,6 +205,7 @@ jobs:
           set -euo pipefail
           test -s dist/index.html
           test -s dist/404.html
+          cmp -s dist/index.html dist/atlas/index.html
           test -s dist/spa-redirect.js
           test -s dist/3d-tiles/tileset.json
           test -s dist/3d-tiles/buildings-3d.json
@@ -251,6 +255,8 @@ jobs:
           [[ -n "${PAGE_URL}" ]] || exit 1
           curl --fail --silent --show-error --location --max-time 30 "${PAGE_URL}" --output /tmp/tsm-pages-response.html
           grep -Eiq '<title>[^<]+</title>' /tmp/tsm-pages-response.html
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${PAGE_URL%/}/atlas/" --output /tmp/tsm-pages-atlas.html
+          grep -Eiq '<title>[^<]+</title>' /tmp/tsm-pages-atlas.html
           base="${PAGE_URL%/}/3d-tiles"
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${base}/tileset.json" -o /tmp/published-tileset.json
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 3 --max-time 60 "${base}/buildings-3d.json" -o /tmp/published-buildings-3d.json
