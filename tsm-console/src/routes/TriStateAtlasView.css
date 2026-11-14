@@ -206,3 +206,6 @@
  .tsm-civic-utilities{padding:14px}
 }
 @media(prefers-reduced-motion:reduce){.tsm-atlas *{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}}
+
+/* Always put the 3D map before the long source drawer on tablet and phone. */
+@media(max-width:1200px){.tsm-atlas-workspace>.tsm-atlas-stage{order:-1}.tsm-atlas-workspace>.tsm-atlas-controls{order:0}.tsm-atlas-workspace>.tsm-atlas-inspector{order:1}}
