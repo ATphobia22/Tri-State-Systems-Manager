@@ -209,3 +209,8 @@
 
 /* Always put the 3D map before the long source drawer on tablet and phone. */
 @media(max-width:1200px){.tsm-atlas-workspace>.tsm-atlas-stage{order:-1}.tsm-atlas-workspace>.tsm-atlas-controls{order:0}.tsm-atlas-workspace>.tsm-atlas-inspector{order:1}}
+
+.tsm-civic-authority-links{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 16px}
+.tsm-atlas .tsm-civic-authority-links a{display:inline-flex;align-items:center;min-height:44px;padding:9px 13px;border:1px solid #acc9d5;border-radius:10px;background:#ebf9fc;color:#075c75;font-size:.91rem;font-weight:700;text-decoration:none}
+.tsm-atlas .tsm-civic-authority-links a:hover{background:#cceef7}
+.tsm-civic-excavation-note{font-size:.86rem;margin:10px 0 0!important;line-height:1.45}
