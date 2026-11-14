@@ -28,6 +28,7 @@ from fastapi import FastAPI, HTTPException, Request, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field, ValidationError
 from backend.api.v1.evidence_lock import router as evidence_lock_router
+from backend.api.v1.asset_registry import router as asset_registry_router
 from backend.geospatial.incident_layers import router as incident_layer_router
 from backend.geospatial.source_discovery import router as geospatial_source_discovery_router
 
@@ -201,6 +202,7 @@ app = FastAPI(
 )
 
 app.include_router(evidence_lock_router)
+app.include_router(asset_registry_router)
 app.include_router(incident_layer_router)
 app.include_router(geospatial_source_discovery_router)
 

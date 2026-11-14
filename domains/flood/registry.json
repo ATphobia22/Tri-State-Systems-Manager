@@ -1,0 +1,16 @@
+{
+  "domain": "flood",
+  "version": "1.0.0",
+  "anchors": {
+    "site": "13101 Bonebank Rd, Posey Co IN",
+    "apn": "65-19-08-100-008.001-010",
+    "bfe_ft_navd88": 375.0,
+    "lag_ft_navd88": 377.2,
+    "ffe_ft_navd88": 382.5
+  },
+  "sources": ["NFHL", "USGS", "NOAA NWPS", "FEMA LOMC", "IGIO"],
+  "soft_labels": ["STAGE_INVALID", "GAGE_DATUM_UNVERIFIED", "ELEVATION_SOURCE_NON_CERTIFIED", "NFHL_STALE"],
+  "loma_case": "26-05-2022A",
+  "status": "ADDITIONAL_INFORMATION_REQUESTED",
+  "blocks_system": false
+}

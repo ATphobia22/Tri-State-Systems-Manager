@@ -80,3 +80,38 @@ The API surface is now treated as executable contract rather than documentation.
 - HEC-RAS payloads are capped at 100,000 cells and persist with both the supplied source-file SHA-256 and a canonical-payload SHA-256.
 - Ledger mutation is unavailable until `TSM_REVIEWER_SUBJECTS` is explicitly configured. Human authorization is required and recorded; the ledger does not represent agency approval.
 - No endpoint guesses CRS or vertical datum. Posey raster responses expose the registered CRS and whether the manifest has verified vertical-datum metadata.
+
+
+## Regional asset and twin read API (source-staged MVP)
+
+The companion process also mounts an authenticated-by-source **read-only**
+asset/twin inventory, using the checked-in
+`tsm-console/public/data/tsm-river-gauge-locations.geojson` (ten USGS
+station **locations**, not telemetry):
+
+| Method | Path | What is actually available |
+|---|---|---|
+| GET | `/api/assets` | Bounded source-backed asset list, SHA-256 source receipt, metadata |
+| GET | `/api/assets/{asset_id}` | One `USGS-XXXXXXXX` location and evidence class |
+| GET | `/api/twins/{asset_id}` | Twin *reference* with no invented observations or current state |
+
+Unknown station IDs return 404; missing, malformed or unsafe source snapshots
+return 503 with `ASSET_SOURCE_UNAVAILABLE`. There is **no** MQTT broker,
+scheduled polling, public write API, inferred NAVD88 elevation, or fake
+predictive-maintenance health score in these routes.
+
+Produce an offline snapshot for a local GIS/Unreal or other consumer:
+
+```bash
+python -m backend.app.asset_registry --output /tmp/tsm-station-assets.json
+python -m pytest backend/tests/test_asset_registry_api.py -q
+```
+
+The exported JSON is contract-checked against
+`schemas/regional-asset-snapshot-v1.schema.json` and carries an input
+file SHA-256 and the source-declared review date, not a guessed retrieval
+timestamp. This is an optional localhost API. GitHub Pages remains static
+and does not automatically connect to this process.
+
+See `docs/architecture/REGIONAL-OPERATING-SYSTEM-MVP-IMPLEMENTATION-2026-11-13.md`
+for the broader BIM/GIS/IoT/AI/Unreal deployment map and unresolved gates.

@@ -10,18 +10,49 @@ import argparse
 import hashlib
 import json
 import math
+import sys
 from pathlib import Path
 from collections import defaultdict
 
 import numpy as np
 
+# Allow direct execution as `python scripts/geospatial/tsm_lidar_h3_obb.py`
+# from the repo root (and from anywhere) without PYTHONPATH: the module
+# below is imported by absolute package path, so the repo root must be on
+# sys.path. `python -m scripts.geospatial.tsm_lidar_h3_obb` also works.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 from scripts.geospatial.tsm_math_engine import TSMMathEngine as E
+
+
+def is_geographic_3d(crs) -> bool:
+    """True exactly for 3D geographic CRSs (e.g. EPSG:4979).
+
+    pyproj's CRS has no ``is_geographic_3d`` attribute (verified on pyproj
+    3.8.0); a geographic CRS is 3D exactly when it carries three axes.
+    ``is_geographic`` alone would wrongly accept 2D EPSG:4326, so the axis
+    count is the discriminator. A projected 3D CRS is NOT accepted here:
+    the script's contract is geographic-3D, geocentric, or compound input.
+    """
+    return bool(crs.is_geographic) and len(crs.axis_info) == 3
+
+
+def require_3d_source_crs(source_crs: str):
+    """Parse and gate a source CRS: it must explicitly encode horizontal AND
+    vertical datums — compound, geographic 3D, or geocentric. A 2D CRS
+    (e.g. EPSG:4326, EPSG:3857) raises ValueError instead of being silently
+    treated as ellipsoidal height. Split out of run() so the gate is unit
+    testable without a LAS file or laspy."""
+    from pyproj import CRS
+
+    crs = CRS.from_user_input(source_crs)
+    if not crs.is_compound and not is_geographic_3d(crs) and not crs.is_geocentric:
+        raise ValueError("Source CRS must explicitly encode horizontal AND vertical datums")
+    return crs
 
 
 def run(source: Path, source_crs: str, resolution: int, output: Path,
         max_points: int = 2_000_000) -> dict:
-    import h3
-    import laspy
     from pyproj import CRS, Transformer
 
     if not source.is_file():
@@ -30,9 +61,9 @@ def run(source: Path, source_crs: str, resolution: int, output: Path,
         raise ValueError("H3 resolution must be in [0, 15]")
     if max_points < 1:
         raise ValueError("max_points must be positive")
-    crs = CRS.from_user_input(source_crs)
-    if not crs.is_compound and not crs.is_geographic_3d and not crs.is_geocentric:
-        raise ValueError("Source CRS must explicitly encode horizontal AND vertical datums")
+    crs = require_3d_source_crs(source_crs)
+    import h3
+    import laspy
     # allow_ballpark=False blocks unsupported datum substitutions; only_best
     # raises when high-accuracy operations or required transformation grids are unavailable.
     transform = Transformer.from_crs(crs, CRS.from_epsg(4979),
