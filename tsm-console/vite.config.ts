@@ -25,6 +25,8 @@ function cspPlugin() {
         'https://elevation.nationalmap.gov',
         'https://di-ingov.img.arcgis.com',
         'https://gisdata.in.gov',
+        'https://maps.dnr.illinois.gov',
+        'https://kygisserver.ky.gov',
         'https://hazards.fema.gov',
         'https://mapservices.nps.gov',
         'https://*.arcgis.com',
