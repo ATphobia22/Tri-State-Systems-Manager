@@ -1,0 +1,18 @@
+{
+  "schema": "tsm.quantum.research-simulation.v1",
+  "date": "2026-11-14",
+  "backend": "qBraid built-in state-vector simulator",
+  "execution": "ideal-simulator",
+  "qubits": 2,
+  "probabilities": {
+    "11": 0.4999999999999999,
+    "00": 0.4999999999999999
+  },
+  "qasm_path": "integrations/quantum/research/bell-state-qasm3.qasm",
+  "hardware_executed": false,
+  "credits_spent": 0,
+  "authoritative_mutation": false,
+  "output_classification": "research-only",
+  "speedup_claim": "NONE",
+  "note": "A Bell-state sanity check is not a benchmark for TSM stream scheduling, neural inference, or graphics rendering."
+}
