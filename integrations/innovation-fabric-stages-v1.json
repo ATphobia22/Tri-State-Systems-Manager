@@ -1,0 +1,131 @@
+{
+  "schema": "tsm.innovation.fabric.v1",
+  "description": "Proposed headless stage catalog. Not a claim of installed runtimes or executed solver runs.",
+  "county_fips": [
+    "18129",
+    "21101",
+    "21225",
+    "17193",
+    "17185",
+    "17059"
+  ],
+  "stage_kinds": {
+    "government_snapshot": {
+      "mode": "headless",
+      "runner": "scripts/hydrology/validate-hec-run-manifest.mjs",
+      "output": "SOURCE_MANIFEST"
+    },
+    "terrain_normalization": {
+      "mode": "headless",
+      "runner": "scripts/engineering/independent_acceptance_gate.py",
+      "output": "TERRAIN_EVIDENCE"
+    },
+    "hec_ras": {
+      "mode": "headless",
+      "runner": "scripts/hydrology/run-hec-coupled-workflow.mjs",
+      "output": "HEC_HDF5",
+      "boundary": "Win64 native executable pinned and approved; no simulated outputs without model evidence"
+    },
+    "epa_swmm": {
+      "mode": "headless",
+      "runner": "backend/solver_evidence_adapters.py",
+      "output": "SWMM_OUTPUT",
+      "boundary": "Parser/evidence inspector, not a standalone SWMM executable; runner must be provisioned independently"
+    },
+    "coupling_review": {
+      "mode": "headless",
+      "runner": "backend/hydrologic_coupling_acceptance.py",
+      "output": "REVIEW_RECEIPT",
+      "boundary": "Requires actual HEC-RAS, MODFLOW-6, EPA-SWMM artifacts and calibration"
+    },
+    "tiles_hlod": {
+      "mode": "headless",
+      "runner": "scripts/3d-tiles",
+      "output": "TILESET",
+      "boundary": "3D tiles source completeness and height provenance independent of tile syntax"
+    },
+    "houdini_bake": {
+      "mode": "headless",
+      "runner": "scripts/native",
+      "output": "USD_SCENE",
+      "boundary": "Editor plugin and matching Houdini/UE5.8 binaries must be verified"
+    },
+    "unreal_shot": {
+      "mode": "headed",
+      "runner": "scripts/cinema/validate_cinematic_production.py",
+      "output": "CINEMATIC_FRAME",
+      "boundary": "Headed movie render only, never treated as hydraulic output"
+    }
+  },
+  "proposal": {
+    "sources": [],
+    "stages": [
+      {
+        "id": "acquire",
+        "kind": "government_snapshot",
+        "needs": [],
+        "inputs": []
+      },
+      {
+        "id": "terrain",
+        "kind": "terrain_normalization",
+        "needs": [
+          "acquire"
+        ],
+        "inputs": []
+      },
+      {
+        "id": "river",
+        "kind": "hec_ras",
+        "needs": [
+          "terrain"
+        ],
+        "inputs": []
+      },
+      {
+        "id": "sewer",
+        "kind": "epa_swmm",
+        "needs": [
+          "terrain"
+        ],
+        "inputs": []
+      },
+      {
+        "id": "coupling",
+        "kind": "coupling_review",
+        "needs": [
+          "river",
+          "sewer"
+        ],
+        "inputs": []
+      },
+      {
+        "id": "tiles",
+        "kind": "tiles_hlod",
+        "needs": [
+          "terrain"
+        ],
+        "inputs": []
+      },
+      {
+        "id": "procedural",
+        "kind": "houdini_bake",
+        "needs": [
+          "tiles"
+        ],
+        "inputs": []
+      },
+      {
+        "id": "movie",
+        "kind": "unreal_shot",
+        "needs": [
+          "coupling",
+          "procedural"
+        ],
+        "inputs": []
+      }
+    ]
+  },
+  "status": "NOT_EVIDENCED",
+  "output_claims": []
+}
