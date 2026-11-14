@@ -51,7 +51,7 @@ test('NPS and Indiana DNR layers are official, source-labeled and site-tappable'
   assert.equal(surveys.features.length, 20);
   const registry = read('src/lib/regional-civic-sites.ts');
   assert.ok(registry.includes('https://mapservices.nps.gov/arcgis/rest/services/cultural_resources/nrhp_locations/MapServer/0'));
-  assert.ok(registry.includes('Sites_NaturePreserves/FeatureServer/8'));
+  assert.ok(registry.includes('Sites_StateParks/FeatureServer/8'));
   assert.ok(registry.includes('DNRGIS_DnrNPSites_DNR_IN_1/FeatureServer/18'));
   assert.ok(registry.includes('returnGeometry'));
   assert.ok(registry.includes('esriSpatialRelIntersects'));
