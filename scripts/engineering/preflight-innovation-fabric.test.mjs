@@ -51,6 +51,15 @@ test('verified hash, datum, authority and pinned worker mean ready, not executed
   assert.equal(report.stages[0].executed,false);
   assert.equal(report.summary.verified_execution,0);
 });
+test('spoofed patent and agency hosts do not pass the authority gate', async t => {
+  const f=fixture();t.after(f.cleanup);
+  f.plan.proposal.sources[0].source_uri='https://www.usgs.gov.attacker.example/';
+  const badSource=await inspectFabric(f.plan,f.folder,patents);
+  assert.equal(badSource.source_evidence[0].status,'GOVERNMENT_SOURCE_HOST_NOT_CONFIRMED');
+  const badPatent=clone(patents);
+  badPatent.patents[0].official_record='https://ppubs.uspto.gov.attacker.example/patent';
+  assert.throws(()=>inspectPatents(badPatent),/PATENT_NOT_CLEARED/);
+});
 test('source hash mismatch is visible, not silently overwritten', async t => {
   const f=fixture();t.after(f.cleanup);
   f.plan.proposal.sources[0].sha256=sha('fabricated data');
