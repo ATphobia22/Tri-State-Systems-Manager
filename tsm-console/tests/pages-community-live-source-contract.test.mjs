@@ -47,13 +47,22 @@ test('Historic flood events are cited stages, never spatial inundation surfaces'
   assert.match(view, /<CommunityFloodHistory\s*\/>/);
 });
 
-test('NPS layer and USACE survey footprints are source labeled, opt-in and non-regulatory', () => {
+test('NPS and Indiana DNR layers are official, source-labeled and site-tappable', () => {
   assert.equal(surveys.features.length, 20);
-  assert.match(map, /https:\/\/mapservices\.nps\.gov\/arcgis\/rest\/services\/cultural_resources\/nrhp_locations\/MapServer\/0\/query/);
-  assert.ok(vite.includes("'https://mapservices.nps.gov'"), 'CSP must explicitly allow official NPS GIS origin');
-  assert.match(view, /historic: false/);
-  assert.match(view, /checked=\{regionalLayers\.historic\}/);
-  assert.match(map, /not survey-grade coordinates/);
+  const registry = read('src/lib/regional-civic-sites.ts');
+  assert.match(registry, /mapservices\\.nps\\.gov\\/arcgis\\/rest\\/services\\/cultural_resources\\/nrhp_locations\\/MapServer\\/0/);
+  assert.match(registry, /Sites_NaturePreserves\\/FeatureServer\\/8/);
+  assert.match(registry, /DNRGIS_DnrNPSites_DNR_IN_1\\/FeatureServer\\/18/);
+  assert.match(registry, /returnGeometry/);
+  assert.match(registry, /esriSpatialRelIntersects/);
+  assert.match(registry, /httpsLink/);
+  assert.ok(vite.includes("'https://mapservices.nps.gov'"));
+  assert.ok(vite.includes("'https://gisdata.in.gov'"));
+  assert.match(view, /historic: true, dnr: true, preserves: false/);
+  assert.match(view, /checked=\\{regionalLayers\\.historic\\}/);
+  assert.match(view, /checked=\\{regionalLayers\\.dnr\\}/);
+  assert.match(map, /setSelectedSite\\(civicSiteInfo\\(kind, featureProps\\)\\)/);
+  assert.match(map, /This map location is approximate/);
   assert.match(map, /Ohio River Datum; no NAVD88 offset asserted/);
 });
 
