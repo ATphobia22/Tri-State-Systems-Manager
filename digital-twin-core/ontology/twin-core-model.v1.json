@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TSM Twin Core Model v1",
+  "description": "Soft ontology for Tri-State digital twin. Human authority final. Soft-label only.",
+  "type": "object",
+  "properties": {
+    "region": { "type": "string", "const": "Tri-State River Valley" },
+    "counties": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": ["Posey", "Gibson", "Vanderburgh", "Warrick", "Henderson", "Union"]
+    },
+    "systems": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["transportation", "water", "energy", "communications", "flood", "governance"]
+      }
+    },
+    "asset": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "format": "uuid" },
+        "type": { "type": "string" },
+        "geometry": { "type": "object" },
+        "gis_feature_id": { "type": "string" },
+        "bim_ref": { "type": "string" },
+        "sensors": { "type": "array", "items": { "type": "string" } },
+        "state": { "type": "string" },
+        "health_score": { "type": "number" },
+        "labels": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Soft labels only (STAGE_INVALID, GAGE_DATUM_UNVERIFIED, etc.)"
+        }
+      },
+      "required": ["id", "type"]
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": { "type": "string", "enum": ["weather", "incident", "maintenance", "simulation"] },
+          "at": { "type": "string", "format": "date-time" },
+          "payload": { "type": "object" }
+        }
+      }
+    }
+  }
+}
