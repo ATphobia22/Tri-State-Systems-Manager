@@ -8,6 +8,8 @@ on:
       - 'backend/solver_evidence_adapters.py'
       - 'backend/tests/test_hydrologic_coupling_acceptance.py'
       - 'backend/tests/test_swmm_solver_evidence.py'
+      - 'backend/engineering/stage_calibration_gate.py'
+      - 'backend/tests/test_stage_calibration_gate.py'
       - '.github/workflows/hydrologic-coupling-evidence.yml'
   pull_request:
     paths:
@@ -15,6 +17,8 @@ on:
       - 'backend/solver_evidence_adapters.py'
       - 'backend/tests/test_hydrologic_coupling_acceptance.py'
       - 'backend/tests/test_swmm_solver_evidence.py'
+      - 'backend/engineering/stage_calibration_gate.py'
+      - 'backend/tests/test_stage_calibration_gate.py'
       - '.github/workflows/hydrologic-coupling-evidence.yml'
 permissions:
   contents: read
@@ -32,7 +36,7 @@ jobs:
       - name: Compile contracts
         run: |
           python -m py_compile backend/hydrologic_coupling_acceptance.py backend/solver_evidence_adapters.py
-          python -m py_compile backend/tests/test_hydrologic_coupling_acceptance.py backend/tests/test_swmm_solver_evidence.py
+          python -m py_compile backend/tests/test_hydrologic_coupling_acceptance.py backend/tests/test_swmm_solver_evidence.py backend/engineering/stage_calibration_gate.py backend/tests/test_stage_calibration_gate.py
       - name: Run synthetic known-answer and failure-denial suites
         run: |
-          python -m unittest backend.tests.test_hydrologic_coupling_acceptance backend.tests.test_swmm_solver_evidence -v
+          python -m unittest backend.tests.test_hydrologic_coupling_acceptance backend.tests.test_swmm_solver_evidence backend.tests.test_stage_calibration_gate -v
