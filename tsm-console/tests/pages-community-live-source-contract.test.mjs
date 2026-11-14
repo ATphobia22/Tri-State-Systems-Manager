@@ -50,20 +50,20 @@ test('Historic flood events are cited stages, never spatial inundation surfaces'
 test('NPS and Indiana DNR layers are official, source-labeled and site-tappable', () => {
   assert.equal(surveys.features.length, 20);
   const registry = read('src/lib/regional-civic-sites.ts');
-  assert.match(registry, /mapservices\\.nps\\.gov\\/arcgis\\/rest\\/services\\/cultural_resources\\/nrhp_locations\\/MapServer\\/0/);
-  assert.match(registry, /Sites_NaturePreserves\\/FeatureServer\\/8/);
-  assert.match(registry, /DNRGIS_DnrNPSites_DNR_IN_1\\/FeatureServer\\/18/);
-  assert.match(registry, /returnGeometry/);
-  assert.match(registry, /esriSpatialRelIntersects/);
-  assert.match(registry, /httpsLink/);
+  assert.ok(registry.includes('https://mapservices.nps.gov/arcgis/rest/services/cultural_resources/nrhp_locations/MapServer/0'));
+  assert.ok(registry.includes('Sites_NaturePreserves/FeatureServer/8'));
+  assert.ok(registry.includes('DNRGIS_DnrNPSites_DNR_IN_1/FeatureServer/18'));
+  assert.ok(registry.includes('returnGeometry'));
+  assert.ok(registry.includes('esriSpatialRelIntersects'));
+  assert.ok(registry.includes('httpsLink'));
   assert.ok(vite.includes("'https://mapservices.nps.gov'"));
   assert.ok(vite.includes("'https://gisdata.in.gov'"));
-  assert.match(view, /historic: true, dnr: true, preserves: false/);
-  assert.match(view, /checked=\\{regionalLayers\\.historic\\}/);
-  assert.match(view, /checked=\\{regionalLayers\\.dnr\\}/);
-  assert.match(map, /setSelectedSite\\(civicSiteInfo\\(kind, featureProps\\)\\)/);
-  assert.match(map, /This map location is approximate/);
-  assert.match(map, /Ohio River Datum; no NAVD88 offset asserted/);
+  assert.ok(view.includes('historic: true, dnr: true, preserves: false'));
+  assert.ok(view.includes('checked={regionalLayers.historic}'));
+  assert.ok(view.includes('checked={regionalLayers.dnr}'));
+  assert.ok(map.includes('setSelectedSite(civicSiteInfo(kind, featureProps))'));
+  assert.ok(map.includes('This map location is approximate'));
+  assert.ok(map.includes('Ohio River Datum; no NAVD88 offset asserted'));
 });
 
 test('Berm/road/retention sketches remain client-only WGS84 planning geometry', () => {
