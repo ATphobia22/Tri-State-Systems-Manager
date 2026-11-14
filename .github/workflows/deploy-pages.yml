@@ -94,6 +94,15 @@ jobs:
             --output tsm-console/public/data/cesium-regional
       - name: Stage Indiana GIO Mount Vernon footprints and street centerlines
         run: python3 scripts/geospatial/build_mount_vernon_scene.py --output tsm-console/public/mount-vernon-scene
+      - name: Stage geometry-verified Posey building tiles and footprints
+        run: |
+          set -euo pipefail
+          footprints="${RUNNER_TEMP}/posey-buildings-igio-23082.geojson"
+          curl --silent --show-error --fail --location --retry 3 --max-time 90 \
+            'https://github.com/ATphobia22/Tri-State-Systems-Manager/releases/download/igio-posey-20261006/posey-buildings-igio-23082.geojson' \
+            --output "$footprints"
+          python3 scripts/geospatial/stage_cesium_posey_buildings.py \
+            --footprints "$footprints" --output tsm-console/public/data/cesium-regional/posey-buildings
       - name: Acquire and elevation-join all Posey IGIO building footprints
         shell: bash
         run: |

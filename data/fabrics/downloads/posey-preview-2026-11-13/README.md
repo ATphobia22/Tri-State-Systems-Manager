@@ -1,0 +1,5 @@
+# Posey building preview source
+
+This XZ archive contains the unchanged `tileset.json`, `content/` and `subtrees/` bytes from the November 13 geometry-verified Posey preview. The source is the user-provided `TSM-Drive-Verified-Posey-Preview-2026-11-13 2.zip` (SHA-256 `ee0fcc542c6b17469e4e949608dc6aab60191552349a05c18652979fe8e880ee`). The original tileset SHA-256 is `c0b76826ac97079b59064c57dd56eced9500b45dbd7f346dbd076bca957ee784`. The nine tracked parts concatenate in numeric order to the archive with SHA-256 `b82c1bca02e176f57e97ef7b5d46830091f02564ad4898c46ad30f6f0ff3b7ac`.
+
+The 861 content GLBs represent 20,517 unique `OBJECTID` values from [Indiana GIO Building Footprints 2016–2020](https://gisdata.in.gov/server/rest/services/Hosted/Building_Footprints/FeatureServer/0). The archive is a LoD1 preview with partial height coverage. [The Pages staging script](../../../../scripts/geospatial/stage_cesium_posey_buildings.py) verifies the archive, tile bounds and IDs, reconciles the [23,082-ID footprint inventory](https://github.com/ATphobia22/Tri-State-Systems-Manager/releases/tag/igio-posey-20261006), and applies one GEOID18 display offset to the tileset root.

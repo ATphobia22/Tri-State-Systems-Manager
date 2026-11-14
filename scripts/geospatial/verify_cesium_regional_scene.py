@@ -11,6 +11,7 @@ import struct
 import sys
 
 from build_cesium_regional_scene import DEM_SOURCES, POSTS, REPLAY, SCREEN_LEVELS_M
+from stage_cesium_posey_buildings import ARCHIVE_DIGEST, FOOTPRINT_COUNT, FOOTPRINT_DIGEST, MESH_COUNT, mesh_ids
 
 
 def verify(root: Path) -> None:
@@ -99,11 +100,29 @@ def verify(root: Path) -> None:
     for entry in (buildings / "SHA256SUMS").read_text().splitlines():
         digest, name = entry.split(maxsplit=1)
         need(sha256((buildings / name).read_bytes()).hexdigest() == digest, f"Building tiles checksum: {name}")
+
+    preview = data + "posey-buildings/"
+    preview_tileset = read(preview + "tileset.json")
+    visual_ids = mesh_ids(root / preview, preview_tileset)
+    posey = read(preview + "sources.json")
+    missing = read(preview + "missing-height-footprints.json")
+    outline_ids = {item["properties"]["source_objectid"] for item in missing["features"]}
+    need(posey["previewArchiveSha256"] == ARCHIVE_DIGEST and posey["sourceFootprintSha256"] == FOOTPRINT_DIGEST,
+         "Posey preview source digests")
+    need(posey["meshCount"] == len(visual_ids) == MESH_COUNT and posey["footprintCount"] == FOOTPRINT_COUNT,
+         "Posey 3D and source counts")
+    need(posey["footprintOnlyCount"] == len(outline_ids) == len(missing["features"]) == FOOTPRINT_COUNT - MESH_COUNT
+         and visual_ids.isdisjoint(outline_ids), "Posey footprint-only coverage")
+    alignment = preview_tileset["asset"]["extras"]["tsm"]["displayAlignment"]
+    need(alignment == posey["displayAlignment"] and alignment["geoidSha256"] == sources["geoid18Sha256"]
+         and -32 < alignment["rootLocalUpOffsetM"] < -29 and not posey["engineeringUse"],
+         "Posey alignment and authority boundary")
     for name in ("Workers/createVerticesFromHeightmap.js", "Workers/createGroundPolylineGeometry.js",
                  "Assets/approximateTerrainHeights.json", "LICENSE.md"):
         need((root / "vendor/cesium" / name).stat().st_size > 0, f"Cesium runtime asset {name}")
     print(f"Cesium build verified: {len(road_ids)} road segments, {len(expected_files)} terrain tiles, "
-          f"{sum(len(s['rows']) for s in replay['series'])} observations, {len(counts)} screening frames, city and building tile checksums")
+          f"{sum(len(s['rows']) for s in replay['series'])} observations, {len(counts)} screening frames, "
+          f"{len(visual_ids)} Posey meshes and {len(outline_ids)} footprint-only IDs")
 
 
 if __name__ == "__main__":
