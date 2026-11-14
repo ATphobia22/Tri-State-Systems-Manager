@@ -40,11 +40,15 @@ def _required_text(value: Any, field: str, maximum: int = 256) -> str:
 
 def _source_uri(value: Any, station_id: str) -> str:
     uri = _required_text(value, "source_uri", 512)
-    parsed = urlsplit(uri)
+    try:
+        parsed = urlsplit(uri)
+        port = parsed.port  # Raises ValueError on malformed/overflowing ports.
+    except ValueError as exc:
+        raise AssetRegistrySourceError("UNTRUSTED_STATION_SOURCE_URI") from exc
     if (
         parsed.scheme != "https"
         or parsed.hostname != "waterdata.usgs.gov"
-        or parsed.port is not None
+        or port is not None
         or parsed.username is not None
         or parsed.password is not None
         or parsed.query
@@ -95,7 +99,7 @@ def build_registry_snapshot(source: Path | None = None) -> dict[str, Any]:
     if document.get("crs") != "EPSG:4326":
         raise AssetRegistrySourceError("SOURCE_CRS_NOT_EPSG_4326")
     features = document.get("features")
-    if not isinstance(features, list) or len(features) > MAX_FEATURES:
+    if not isinstance(features, list) or not features or len(features) > MAX_FEATURES:
         raise AssetRegistrySourceError("INVALID_FEATURE_COUNT")
 
     records: list[dict[str, Any]] = []
