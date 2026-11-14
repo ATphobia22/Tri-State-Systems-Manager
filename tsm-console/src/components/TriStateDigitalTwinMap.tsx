@@ -861,7 +861,11 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
             <button key={item.key} type="button" onClick={() => {
               setSelectedSite(item.info);
               const map = mapRef.current;
-              if (map) map.flyTo({ center: item.point, zoom: Math.max(map.getZoom(), 13), pitch: 50, duration: 750 });
+              if (map) {
+                const camera = { center: item.point, zoom: Math.max(map.getZoom(), 13), pitch: 50 };
+                if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) map.jumpTo(camera);
+                else map.flyTo({ ...camera, duration: 750 });
+              }
             }}>
               <strong>{item.info.title}</strong><small>{item.info.kind === 'historic' ? 'Historic register' : 'Indiana DNR'}{item.info.county ? ` · ${item.info.county}` : ''}</small>
             </button>
