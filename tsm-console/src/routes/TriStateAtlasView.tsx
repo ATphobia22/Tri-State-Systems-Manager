@@ -266,7 +266,7 @@ export default function TriStateAtlasView(): JSX.Element {
 
         <section className="tsm-atlas-stage" aria-label="Actual TSM MapLibre digital twin">
           <div className="tsm-atlas-stage-toolbar">
-            <div><strong>Mount Vernon · 4D city builder</strong><small>Source-backed terrain, imagery and infrastructure planning · EPSG:3857</small></div>
+            <div aria-live="polite"><strong data-testid="atlas-region-title">{region.label} · 4D regional twin</strong><small>Source-backed basemap and infrastructure planning · EPSG:3857</small></div>
             <button type="button" className="tsm-atlas-tour" aria-pressed={cinematicTour}
               onClick={() => { if (cinematicTour) { setCinematicTour(false); } else { setRegionId('new-harmony'); setCinematicTour(true); } }}>
               {cinematicTour ? 'Stop Wabash flyover' : 'Play Wabash flyover'}
