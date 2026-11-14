@@ -79,7 +79,7 @@ function safeHttps(value, requiredOrigin = null) {
   try {
     const url = new URL(value);
     if (url.protocol !== 'https:' || !url.hostname || url.username || url.password ||
-        /[\\r\\n]/.test(value) || (requiredOrigin && url.origin !== requiredOrigin)) return null;
+        /[\r\n]/.test(value) || (requiredOrigin && url.origin !== requiredOrigin)) return null;
     return url;
   } catch { return null; }
 }
