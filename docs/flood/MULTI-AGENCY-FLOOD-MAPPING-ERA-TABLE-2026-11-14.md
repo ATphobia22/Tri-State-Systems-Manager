@@ -1,32 +1,35 @@
-# Multi-Agency Flood Mapping Governance — Era Table (Tri-State)
+# Flood-mapping history and authorities in the Wabash–Ohio River Valley
 
-**Committed 2026-11-14.** Authority hierarchy for TSM remains: FEMA NFHL/FIRM → IDNR BAFL when FIRM incomplete → certified site survey. Human authority final.
+## Historical mapping
 
-## Historical mapping evolution
+| Period | Public evidence in the region | How to read it |
+| --- | --- | --- |
+| 1913–1937 | Historical gage crests, surveyed high-water marks, and agency flood reports. The USGS Water-Supply Paper 838 documents the Ohio and Mississippi floods of January–February 1937. | A measured or reconstructed water level describes a particular location and flood. Use documented historical coordinates and vertical reference before comparing it with terrain. [USGS Water-Supply Paper 838](https://pubs.usgs.gov/publication/wsp838) |
+| Paper flood maps | FEMA FIRM and FIS editions became available by community as the NFIP developed. Study methods and the level of detail vary by edition and reach. Zone A generally lacks a published BFE. Zone AE identifies an area with a detailed BFE. | Use the historical panel and FIS for the correct community and effective date. Panel revisions and the dates of a survey, map, policy and flood can differ. [FEMA map products](https://msc.fema.gov/portal/) · [Indiana DNR floodplain management guide](https://www.in.gov/dnr/water/files/wa-FP_Management_Indiana_QuickGuide.pdf) |
+| 2013–2014 Posey County update | FEMA published proposed determinations on May 16, 2013 (78 FR 28888, FEMA-B-1315), listing Mount Vernon, Cynthiana, Griffin, New Harmony and unincorporated Posey County. Court records document the November 5, 2014 effective date for the New Harmony update. | Use the effective FIRM/FIS and any applicable Letters of Map Change for a present-day regulatory lookup. [Proposed determinations](https://www.federalregister.gov/documents/2013/05/16/2013-11586/proposed-flood-hazard-determinations) · [Federal district court record, pp. 2–4](https://www.govinfo.gov/content/pkg/USCOURTS-insd-3_14-cv-00144/pdf/USCOURTS-insd-3_14-cv-00144-0.pdf) · [FEMA Map Service Center](https://msc.fema.gov/portal/) |
+| 2016 New Harmony inundation study | USGS SIR 2016-5119 used **one-dimensional, steady step-backwater HEC-RAS 4.1.0**. It reports 17 stage profiles spanning 10.0–25.4 ft at gage **03378500** over 3.68 river miles. The study lidar DEM had 4.9-ft horizontal resolution and 0.98-ft vertical accuracy at 95% confidence in open terrain. | Use a stage profile within the modeled reach and range, with the study's calibration and uncertainty. [USGS SIR 2016-5119](https://pubs.usgs.gov/publication/sir20165119) |
+| 2018 Grayville / I-64 inundation study | USGS SIR 2017-5140, published January 16, 2018, used a **two-dimensional finite-volume** model on a 30-mile Wabash reach. It published 27 stage profiles spanning 9–35 ft referenced to Mount Carmel gage **03377500**. Both Mount Carmel and New Harmony contributed calibration data. | Use this study's coverage, gage, calibration and stage range together. [USGS SIR 2017-5140](https://pubs.usgs.gov/publication/sir20175140) |
+| Digital state and federal services | Indiana's INFIP displays FEMA effective layers and DNR's Best Available Flood Hazard Layer (BAFL). The portal can generate a Floodplain Analysis and Regulatory Assessment (FARA) for a selected Indiana site. | Check the source layer and the community's ordinance before applying the result to a parcel. [Indiana DNR INFIP and FARA](https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/indiana-floodplain-information-portal/) · [BAFL service metadata](https://gisdata.in.gov/server/rest/services/Best_Available_Flood_Hazard_Layer/MapServer) |
 
-| Era | FEMA / NFIP | Indiana DNR (IDNR) | USGS / USACE |
-|-----|-------------|--------------------|--------------|
-| Pre-1970s (Observational) | No FIRMs / FIS | 1945 Flood Control Act; manual surveys | River stage/discharge; paper topo & high-water marks |
-| 1970s–1990s (Paper FIRM) | Coarse paper FIRMs; 1D HEC-2 | 1973 Floodplain Act; local 2 ft freeboard | 1D HEC-2; navigation pool management |
-| 2000s–2013 (Modernization) | Map Modernization & Preliminary FIS | Preliminary BAFL development | Early LiDAR; 1D HEC-RAS profiles |
-| 2014–2020 (Digital DFIRM) | Countywide DFIRMs (Risk MAP) | INFIP & e-FARA (>22,000 stream mi) | Gauge-calibrated 2D FV models; 1 m QL3 LiDAR |
-| 2021–Present (RR 2.0) | Risk Rating 2.0 (decoupled rates) | Statewide BAFL + 5 return periods | Multi-model FIM; 3D LOD2 / terrain engines |
+## Which authority answers which question?
 
-## Authority stack (operational)
+| Question | Source and decision owner |
+| --- | --- |
+| What FEMA zone, BFE or floodway is effective? | Use the effective FIRM/FIS, NFHL and applicable map-change records. Effective maps support participating communities' NFIP floodplain management and federal mandatory purchase rules for qualifying loans in the SFHA. [FEMA Map Service Center](https://msc.fema.gov/portal/) · [44 CFR § 60.3](https://www.ecfr.gov/current/title-44/chapter-I/subchapter-B/part-60/subpart-A/section-60.3) · [42 USC § 4012a](https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title42-section4012a) |
+| What floodplain information applies to Indiana development or a floodway permit? | Check Indiana DNR and the local floodplain administrator. DNR's instructions describe when a FARA is required for Zone A work, unmapped areas, or a site known to be flood prone. Indiana defines Flood Protection Grade as 2 ft above the applicable regulatory flood elevation. Confirm the local ordinance, project type, controlling BFE and datum before using that grade. Apply Illinois or Kentucky requirements for sites in those states. [Indiana DNR quick guide](https://www.in.gov/dnr/water/files/wa-FP_Management_Indiana_QuickGuide.pdf) · [Indiana DNR INFIP](https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/indiana-floodplain-information-portal/) · [312 IAC 10-2-23](https://iar.iga.in.gov/code/current/312/10) |
+| What supports a FEMA map change? | A survey and a controlling BFE in compatible units and vertical datum can support FEMA review. For a structure, FEMA generally compares its lowest adjacent grade with the BFE. Use LOMA for the applicable natural-ground request and LOMR-F when qualifying fill is involved. FEMA issues the determination. A survey can also support a separate Indiana DNR review of a FARA. [FEMA map-change guidance](https://www.fema.gov/flood-maps/change-your-flood-zone) · [Indiana DNR FARA review process](https://www.in.gov/dnr/water/surface-water/indiana-floodplain-mapping/indiana-floodplain-information-portal/) |
+| How is an NFIP premium established? | Use the FEMA manual in force for the policy effective date and the carrier's rating record. Risk Rating 2.0 began for new policies on October 1, 2021 and applied to all renewals beginning April 1, 2022. FEMA describes property risk factors such as distance to water, types of flooding and building characteristics, along with coverage and rating rules. A change in the mapped zone and a change in the total premium are insufficient to isolate the effect of a map revision. [FEMA October 2021 manual](https://www.fema.gov/sites/default/files/documents/fema_nfip-flood-insurance-manual-sections-1-6_oct2021.pdf) · [FEMA Risk Rating 2.0 fact sheet](https://www.fema.gov/sites/default/files/documents/fema_rr-2.0_2025.pdf) |
+| What happened during a flood, and what might a model predict? | USGS gages, high-water marks, NOAA stage observations and USACE records of surveys, structures and levees support historical interpretation and hydraulic modeling. Compare dated readings at the same station before applying a surveyed conversion. A parcel estimate requires a validated model and datum-matched terrain. [USGS Flood Inundation Mapping](https://www.usgs.gov/mission-areas/water-resources/science/flood-inundation-mapping-fim-program) · [USACE National Levee Database](https://levees.sec.usace.army.mil/) · [USACE eHydro](https://navigation.usace.army.mil/Survey/Hydro)
 
-1. **FEMA NFHL / effective FIRM+FIS** — regulatory SFHA and published BFEs (44 CFR 59–78).
-2. **IDNR BAFL / INFIP e-FARA** — must-use when FIRM lacks detailed BFE/floodway (312 IAC 10); FPG = BFE + 2 ft.
-3. **Certified survey** — LAG/FFE vs BFE for LOMA/LOMR-F.
-4. **USGS gages / USACE NLD / HEC-RAS** — observational and modeling support; not substitute for FIRM zones.
+## Atlas historical crests
 
-## Posey County anchors
+The Atlas bundles 12 event windows from 1913–2025. For each row and station, it displays the highest listed value in the dated window from NOAA NWPS `flood.crests.historic`, together with the source date and any preliminary or older-datum flags. Empty cells mean no crest was listed for that station in the event window. Use the source links to check any later revisions.
 
-- CID 180209; panel family 18129C; DFIRM effective 2014-11-05.
-- Case 26-05-2022A (13101 Bonebank Rd) — LOMA path; ADDITIONAL_INFORMATION_REQUESTED as of prior evidence package.
-- Gages: 03378500 (New Harmony), 03377500 (Mt. Carmel), 03322000 (Evansville).
+| River and location | NWS | USGS | Source |
+| --- | --- | --- | --- |
+| Wabash at New Harmony, Indiana | NHRI3 | 03378500 | [NOAA NWPS station record](https://api.water.noaa.gov/nwps/v1/gauges/NHRI3) |
+| Wabash at Mount Carmel, Illinois | MCRI2 | 03377500 | [NOAA NWPS station record](https://api.water.noaa.gov/nwps/v1/gauges/MCRI2) |
+| Ohio at Evansville, Indiana | EVVI3 | 03322000 | [NOAA NWPS station record](https://api.water.noaa.gov/nwps/v1/gauges/EVVI3) |
+| Ohio at Mount Vernon, Indiana | MTVI3 | Unlisted by NOAA | [NOAA NWPS station record](https://api.water.noaa.gov/nwps/v1/gauges/MTVI3) |
 
-## Non-claims
-
-- Risk Rating 2.0 prices risk; FIRM still drives mandatory purchase in SFHA.
-- TSM screening/FIM is **not** regulatory mapping.
-- Historical policy declarations (e.g. SF00287515 Zone AE Pre-FIRM) are context only.
+NOAA lists the Mount Carmel record as 34.02 ft on May 3, 2011, ahead of 33.95 ft on January 13, 2005. For April 2025, the snapshot gives 22.59 ft at New Harmony, 31.35 ft at Mount Carmel (preliminary), 47.67 ft at Evansville and 50.10 ft at Mount Vernon. The Atlas displays station-relative stage. Transfer to NAVD88, discharge validation and reconstruction of a historical flood surface require independent evidence.

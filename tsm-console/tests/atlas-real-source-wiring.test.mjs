@@ -110,3 +110,38 @@ test('Wabash cinematic flight is user-controlled and honors OS reduced motion', 
   assert.match(tour, /map\.stop\(\)/);
   assert.doesNotMatch(tour, /Math\.random/);
 });
+
+test('historical event navigation works from a bundled station-relative snapshot', () => {
+  const component = read('src/components/CommunityFloodHistory.tsx');
+  const snapshot = JSON.parse(read('src/data/community-flood-history.json'));
+  const stationIds = ['NHRI3', 'MCRI2', 'EVVI3', 'MTVI3'];
+  assert.match(atlas, /<CommunityFloodHistory\s*\/>/);
+  assert.match(component, /import history from '\.\.\/data\/community-flood-history\.json'/);
+  assert.doesNotMatch(component, /fetch\s*\(|wseNavd88Ft|setInterval\s*\(/);
+  assert.equal(snapshot.verticalReference, 'GAGE_DATUM');
+  assert.equal(snapshot.units, 'ft');
+  assert.deepEqual(snapshot.stations.map(({ nwsId }) => nwsId), stationIds);
+  assert.deepEqual(snapshot.stations.map(({ usgsId }) => usgsId), ['03378500', '03377500', '03322000', null]);
+  for (const station of snapshot.stations) {
+    assert.equal(station.sourceUrl, `https://api.water.noaa.gov/nwps/v1/gauges/${station.nwsId}`);
+  }
+  assert.equal(snapshot.events.length, 12);
+  for (const event of snapshot.events) {
+    assert.deepEqual(Object.keys(event.crests), stationIds);
+    for (const crest of Object.values(event.crests)) {
+      if (crest === null) continue;
+      assert.ok(crest.sourceDate >= event.startsOn && crest.sourceDate <= event.endsOn);
+      assert.ok(Number.isFinite(crest.gageHeightFt));
+      assert.ok(['O', 'P', 'R'].includes(crest.sourceFlag));
+      assert.equal(typeof crest.olderDatum, 'boolean');
+    }
+  }
+  const event = (id) => snapshot.events.find((entry) => entry.id === id).crests;
+  assert.equal(event('2011').MCRI2.gageHeightFt, 34.02);
+  assert.equal(event('2011').MCRI2.sourceFlag, 'R');
+  assert.equal(event('2005').MCRI2.gageHeightFt, 33.95);
+  assert.equal(event('2008').MTVI3, null);
+  assert.equal(event('2013').EVVI3, null);
+  assert.deepEqual(stationIds.map((id) => event('2025')[id].gageHeightFt), [22.59, 31.35, 47.67, 50.1]);
+  assert.equal(event('2025').MCRI2.sourceFlag, 'P');
+});
