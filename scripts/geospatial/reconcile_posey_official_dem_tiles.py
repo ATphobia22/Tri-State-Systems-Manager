@@ -70,7 +70,8 @@ def reconcile(buildings: dict, tiles: dict, expected_count: int=EXPECTED_POSEY_B
     tile_geoms, tile_names = [], []
     for row in tiles["features"]:
         p = _props(row)
-        if str(p.get("county","")).strip().casefold() != "posey" or str(p.get("image_year")) != "2020":
+        counties = {county.strip().casefold() for county in str(p.get("county", "")).split(",")}
+        if "posey" not in counties or str(p.get("image_year")) != "2020":
             continue
         name = p.get("filename")
         if not isinstance(name, str) or not FILENAME.fullmatch(name) or name in (".",".."):

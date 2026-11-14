@@ -49,7 +49,7 @@ The [Indiana 2016–2020 DEM catalog](https://www.indianamap.org/datasets/indian
 
 An independent [Indiana GIO 2016–2020 DEM tile-footprints layer](https://gisdata.in.gov/server/rest/services/Hosted/Indiana_DEM_Tile_Footprints/FeatureServer/0) exposes `filename`, `urlpath`, `county`, and `image_year` with actual published tile polygons. **Prefer the actual exported polygons and filename keys** to the 5000-ft formula when reconciling coverage. The earlier `plan_posey_dem_recovery.py` remains a deterministic *candidate* tile plan only.
 
-Export the authoritative layer to GeoJSON using ArcGIS FeatureServer `/0/query` with `where=county='Posey' AND image_year=2020`, `outFields=filename,urlpath,county,image_year`, `returnGeometry=true`, `outSR=4326`, `f=geojson`. Paginate or partition the result if it exceeds the service's `maxRecordCount=2000`; do not treat a truncated response as a complete tile catalog. Preserve the exact downloaded bytes and retrieval timestamp in an external acquisition receipt.
+Export the authoritative layer to GeoJSON using ArcGIS FeatureServer `/0/query` with `where=image_year=2020 AND UPPER(county) LIKE '%POSEY%'`, `outFields=filename,urlpath,county,image_year`, `returnGeometry=true`, `outSR=4326`, `f=geojson`. Paginate or partition the result if it exceeds the service's `maxRecordCount=2000`; do not treat a truncated response as a complete tile catalog. Preserve the exact downloaded bytes and retrieval timestamp in an external acquisition receipt.
 
 ```bash
 python scripts/geospatial/reconcile_posey_official_dem_tiles.py \
@@ -60,7 +60,14 @@ python scripts/geospatial/reconcile_posey_official_dem_tiles.py \
   --output /path/to/official-dem-tile-coverage.json
 ```
 
-This separate audit (a) validates all 23,082 OBJECTIDs, (b) uses geographic polygon intersections **and full polygon coverage**, including multipart buildings, (c) rejects unsafe filenames and mismatched year/county, (d) emits the list of required *published* filenames, and (e) explicitly refuses to call raster values, vertical datums or heights verified. **No actual exported Tile Footprints GeoJSON has been acquired during this PR**; the numerical coverage result remains unverified.
+This separate audit (a) validates all 23,082 OBJECTIDs, (b) uses geographic polygon intersections **and full polygon coverage**, including multipart buildings, (c) rejects unsafe filenames and mismatched year/county, (d) emits the list of required *published* filenames, and (e) explicitly refuses to call raster values, vertical datums or heights verified. The reconciler compares exact, comma-delimited county names after export. Shared-county tiles are necessary for complete coverage.
+
+On November 14, 2026, the official county-tag query returned **558** 2020 tile footprints, including 43 shared with neighboring counties. The strict audit found **471** required TIFF objects and complete polygon coverage for all **23,082** IGIO building identities. With the older exact-county filter, 1,071 buildings lacked full coverage. All 471 official S3 object URLs returned HTTP 200 to HEAD (9,542,417,099 bytes total).
+
+- Building input SHA-256: `bc1d7eb8372b780c9259019b455eab816007d697a45f39d7c0ca51786a4a4bb9`
+- DEM tile footprint input SHA-256: `cd035da585cf943b0c4c6abae3d835a8a76bb583a47496a87f25ffdf641f9880`
+
+Polygon coverage and S3 availability are source selection evidence. The TIFF sample inspected on the same date reported EPSG:2968 and 2.5-ft horizontal spacing, with no declared Z band unit. Match the exact raster product to vertical datum and unit documentation before admitting absolute elevations.
 
 The supplied `Indiana 2016-2020 DEM.jpg` is a 400x400 shaded-relief picture, **not** a georeferenced raster or source DEM. It may illustrate relief in a nonauthoritative legend, but cannot supply Z samples or validate CRS, cloud-optimized GeoTIFF contents or ground elevation.
 

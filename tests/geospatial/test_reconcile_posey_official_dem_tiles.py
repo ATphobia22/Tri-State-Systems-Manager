@@ -59,6 +59,13 @@ class TestOfficialDemTiles(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"lacks"):
             mod.reconcile(self.buildings,self.tiles,1)
 
+    def test_posey_shares_dem_tiles_with_neighboring_counties(self):
+        self.tiles["features"][0]["properties"]["county"] = "Gibson, Posey, Vanderburgh"
+        self.assertTrue(mod.reconcile(self.buildings, self.tiles, 1)["polygonCoverageVerified"])
+        self.tiles["features"][0]["properties"]["image_year"] = 2019
+        with self.assertRaisesRegex(ValueError, "lacks"):
+            mod.reconcile(self.buildings, self.tiles, 1)
+
     def test_invalid_filename_fails(self):
         self.tiles["features"][0]["properties"]["filename"]="../bad.tif"
         with self.assertRaisesRegex(ValueError,"unsafe"):
