@@ -14,7 +14,7 @@ const gauge = read('src/components/PagesUSGSGaugeReader.tsx');
 const historic = read('src/components/CommunityFloodHistory.tsx');
 const stations = JSON.parse(read('public/data/tsm-river-gauge-locations.geojson'));
 const surveys = JSON.parse(read('public/data/ehydro-survey-extents.geojson'));
-const floods = JSON.parse(read('public/data/community-flood-history.json'));
+const floods = JSON.parse(read('src/data/community-flood-history.json'));
 const workflow = read('../.github/workflows/deploy-pages.yml');
 const router = read('src/lib/router.tsx');
 const vite = read('vite.config.ts');
@@ -39,11 +39,11 @@ test('Pages direct USGS reader is user-triggered, on official API and datum-awar
 });
 
 test('Historic flood events are cited stages, never spatial inundation surfaces', () => {
-  assert.ok(floods.records.length >= 3);
-  assert.ok(floods.records.every((item) => item.sourceUrl.startsWith('https://')));
-  assert.ok(floods.records.every((item) => /UNVERIFIED/.test(item.gageDatum)));
-  assert.match(floods.spatialLimitations, /no flood extent polygons/i);
-  assert.match(historic, /NOT NAVD88/);
+  assert.ok(floods.events.length >= 3);
+  assert.ok(floods.stations.every(({ sourceUrl }) => new URL(sourceUrl).hostname === 'api.water.noaa.gov'));
+  assert.equal(floods.verticalReference, 'GAGE_DATUM');
+  assert.match(historic, /Each station uses its own gage datum/);
+  assert.match(historic, /Flood depth at a parcel requires separate terrain and hydraulic evidence/);
   assert.match(view, /<CommunityFloodHistory\s*\/>/);
 });
 
