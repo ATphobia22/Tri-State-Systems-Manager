@@ -9,6 +9,7 @@ import { BuildingInspectionPanel } from './BuildingInspectionPanel';
 import { createPoseyScreeningExtrusionLayer } from '../lib/posey-screening-building-style';
 import { TERRAIN_RGB_SOURCE_ID } from '../lib/terrain-rgb-contract';
 import { FeatureLayerRequestCoordinator } from '../lib/feature-layer-request-coordinator';
+import { civicSiteInfo, regionalSiteQuery, type CivicSiteInfo, type CivicSiteKind } from '../lib/regional-civic-sites';
 import { getCinematicLighting, type CinematicLightPreset } from '../lib/cinematic/light-presets';
 import { playCinematicTour } from '../lib/cinematic/camera-tour';
 import {
@@ -227,7 +228,7 @@ export interface TriStateDigitalTwinMapProps {
   /** Atlas-only camera preset; location is navigation, never survey evidence. */
   regionalView?: { id: string; center: [number, number]; zoom: number; pitch?: number; bearing?: number };
   /** Source-derived, locally committed point locations and eHydro survey rectangles. */
-  regionalLayers?: { gauges: boolean; surveys: boolean; historic: boolean };
+  regionalLayers?: { gauges: boolean; surveys: boolean; historic: boolean; dnr: boolean; preserves: boolean };
   /** Indiana aerial imagery is only offered over its own coverage. */
   showIndianaImagery?: boolean;
   /** Human proposed, uncalibrated intervention geometry. Never used as a flood result. */
@@ -255,6 +256,7 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
   const [status, setStatus] = useState('Initializing MapLibre plane…');
   useEffect(() => { props.onStatusChange?.(status); }, [status, props.onStatusChange]);
   const [picked, setPicked] = useState<string | null>(null);
+  const [selectedSite, setSelectedSite] = useState<CivicSiteInfo | null>(null);
   const [selectedBuilding, setSelectedBuilding] = useState<Record<string, unknown> | null>(null);
   const [floodOverlayOn, setFloodOverlayOn] = useState(false);
   const [floodBusy, setFloodBusy] = useState(false);
@@ -274,6 +276,29 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
   const proposalOverlayRef = useRef(props.proposalOverlay);
   proposalOverlayRef.current = props.proposalOverlay;
   const npsLoadedRef = useRef(false);
+  const civicLoadedRef = useRef<Record<'dnr' | 'preserve', boolean>>({ dnr: false, preserve: false });
+  const civicAbortRef = useRef<Record<'dnr' | 'preserve', AbortController | null>>({ dnr: null, preserve: null });
+  const loadDnrSites = useCallback(async (map: Map, kind: 'dnr' | 'preserve'): Promise<void> => {
+    const sourceId = kind === 'dnr' ? 'atlas-idnr-sites' : 'atlas-idnr-preserves';
+    if (civicLoadedRef.current[kind] || !map.getSource(sourceId)) return;
+    civicAbortRef.current[kind]?.abort();
+    const controller = new AbortController();
+    civicAbortRef.current[kind] = controller;
+    try {
+      const response = await fetch(regionalSiteQuery(kind), { signal: controller.signal });
+      if (!response.ok) throw new Error(`Indiana DNR HTTP ${response.status}`);
+      const data = await response.json() as { type?: string; features?: unknown[] };
+      if (data.type !== 'FeatureCollection' || !Array.isArray(data.features)) throw new Error('Expected GeoJSON FeatureCollection');
+      if (mapRef.current !== map || controller.signal.aborted) return;
+      const source = map.getSource(sourceId) as GeoJSONSource | undefined;
+      source?.setData(data as Parameters<GeoJSONSource['setData']>[0]);
+      civicLoadedRef.current[kind] = true;
+      setStatus(`Indiana DNR ${kind === 'dnr' ? 'recreation' : 'nature preserve'} locations loaded: ${data.features.length}; source positions are not surveyed.`);
+    } catch (error: unknown) {
+      if (controller.signal.aborted) return;
+      setStatus(`Indiana DNR ${kind} layer unavailable: ${error instanceof Error ? error.message : String(error)}. No substitute locations were generated.`);
+    }
+  }, []);
   const npsAbortRef = useRef<AbortController | null>(null);
   const loadHistoricSites = useCallback(async (map: Map): Promise<void> => {
     if (npsLoadedRef.current || !map.getSource('atlas-nps-historic')) return;
@@ -282,9 +307,10 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
     npsAbortRef.current = controller;
     // NPS public data excludes restricted/sensitive sites. This bounding
     // envelope is only a contextual map query, not a preservation determination.
-    const url = new URL('https://mapservices.nps.gov/arcgis/rest/services/cultural_resources/nrhp_locations/MapServer/0/query');
+    const url = new URL(regionalSiteQuery('historic'));
+    // Registry excludes restricted or sensitive NPS archaeological sites.
     url.searchParams.set('where', '1=1');
-    url.searchParams.set('geometry', '-88.5,37.5,-87.1,38.5');
+    url.searchParams.set('geometry', '-89.6,36.9,-86.8,38.8');
     url.searchParams.set('geometryType', 'esriGeometryEnvelope');
     url.searchParams.set('spatialRel', 'esriSpatialRelIntersects');
     url.searchParams.set('inSR', '4326');
@@ -464,6 +490,17 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
             'circle-stroke-color': '#281442', 'circle-stroke-width': 1.5 },
         });
         if (regionalLayersRef.current?.historic) void loadHistoricSites(map);
+        for (const kind of ['dnr', 'preserve'] as const) {
+          const source = kind === 'dnr' ? 'atlas-idnr-sites' : 'atlas-idnr-preserves';
+          const layer = `${source}-points`;
+          map.addSource(source, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+          map.addLayer({ id: layer, type: 'circle', source,
+            layout: { visibility: regionalLayersRef.current?.[kind === 'dnr' ? 'dnr' : 'preserves'] ? 'visible' : 'none' },
+            paint: { 'circle-radius': 7, 'circle-color': kind === 'dnr' ? '#f59e0b' : '#33d0a0',
+              'circle-stroke-width': 2, 'circle-stroke-color': '#123346' },
+          });
+          if (regionalLayersRef.current?.[kind === 'dnr' ? 'dnr' : 'preserves']) void loadDnrSites(map, kind);
+        }
         map.addSource('atlas-proposals', {
           type: 'geojson',
           data: proposalOverlayRef.current ?? { type: 'FeatureCollection', features: [] },
@@ -568,20 +605,26 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
           'atlas-usgs-gauge-points',
           'atlas-usace-ehydro-outline',
           'atlas-nps-historic-points',
+          'atlas-idnr-sites-points',
+          'atlas-idnr-preserves-points',
         ].filter((id) => map.getLayer(id));
         const features = map.queryRenderedFeatures(event.point, { layers: pickable });
         if (features.length === 0) {
           setPicked(null);
           setSelectedBuilding(null);
+          setSelectedSite(null);
           return;
         }
         const feature = features[0];
         const layerId = feature.layer.id;
         const featureProps = feature.properties ?? {};
-        if (layerId === 'atlas-nps-historic-points') {
+        if (layerId === 'atlas-nps-historic-points' || layerId === 'atlas-idnr-sites-points' || layerId === 'atlas-idnr-preserves-points') {
+          const kind: CivicSiteKind = layerId === 'atlas-nps-historic-points' ? 'historic' : layerId === 'atlas-idnr-sites-points' ? 'dnr' : 'preserve';
+          setSelectedSite(civicSiteInfo(kind, featureProps));
           setSelectedBuilding(null);
-          setPicked(`NPS National Register listing · ${String(featureProps.RESNAME ?? 'Unnamed resource')} · ${String(featureProps.County ?? 'county unavailable')} · not survey-grade coordinates`);
+          setPicked(null);
         } else if (layerId === 'atlas-usgs-gauge-points') {
+          setSelectedSite(null);
           const name = String(featureProps.name ?? featureProps.stationId ?? 'USGS station');
           setSelectedBuilding(null);
           setPicked(`${name} · station location only; fetch observations separately`);
@@ -591,9 +634,11 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
         } else if (layerId === 'indiana-buildings-extrusion' || layerId === 'indiana-buildings-footprint') {
           setSelectedBuilding(featureProps);
           setPicked(null);
+          setSelectedSite(null);
         } else {
           setSelectedBuilding(null);
           setPicked(describePickedFeature(layerId, featureProps));
+          setSelectedSite(null);
         }
       });
       map.on('mousemove', (event) => {
@@ -605,6 +650,9 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
           'usgs-quad-index-line',
           'atlas-usgs-gauge-points',
           'atlas-usace-ehydro-outline',
+          'atlas-nps-historic-points',
+          'atlas-idnr-sites-points',
+          'atlas-idnr-preserves-points',
         ].filter((id) => map.getLayer(id));
         const features = map.queryRenderedFeatures(event.point, { layers: pickable });
         map.getCanvas().style.cursor = proposalModeRef.current ? 'crosshair' : features.length > 0 ? 'pointer' : '';
@@ -615,6 +663,7 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
       featureRequestsRef.current.cancelAll();
       npsAbortRef.current?.abort();
       npsLoadedRef.current = false;
+      for (const kind of ['dnr','preserve'] as const) { civicAbortRef.current[kind]?.abort(); civicLoadedRef.current[kind] = false; }
       floodOverlayRef.current?.dispose();
       floodOverlayRef.current = null;
       map.remove();
@@ -689,6 +738,8 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
       ['gauges', ['atlas-usgs-gauge-points']],
       ['surveys', ['atlas-usace-ehydro-fill', 'atlas-usace-ehydro-outline']],
       ['historic', ['atlas-nps-historic-points']],
+      ['dnr', ['atlas-idnr-sites-points']],
+      ['preserves', ['atlas-idnr-preserves-points']],
     ] as const) {
       for (const id of ids) {
         if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', props.regionalLayers?.[key] ? 'visible' : 'none');
@@ -704,6 +755,16 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
     const map = mapRef.current;
     if (map?.isStyleLoaded()) void loadHistoricSites(map);
   }, [props.regionalAtlas, props.regionalLayers?.historic, loadHistoricSites]);
+
+  useEffect(() => {
+    if (!props.regionalAtlas) return;
+    const map = mapRef.current;
+    if (!map?.isStyleLoaded()) return;
+    for (const [kind, enabled] of [['dnr', props.regionalLayers?.dnr], ['preserve', props.regionalLayers?.preserves]] as const) {
+      if (enabled) void loadDnrSites(map, kind);
+      else civicAbortRef.current[kind]?.abort();
+    }
+  }, [props.regionalAtlas, props.regionalLayers?.dnr, props.regionalLayers?.preserves, loadDnrSites]);
 
   useEffect(() => {
     if (!props.regionalAtlas) return;
@@ -766,6 +827,19 @@ export default function TriStateDigitalTwinMap(props: TriStateDigitalTwinMapProp
     <section aria-label="TSM MapLibre twelve-layer plane" style={{ position: 'relative', height: '100%', minHeight: 560, background: '#05080f', color: '#e2e8f0' }}>
       <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
       <div aria-hidden="true" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: mistVisible ? 0.18 : 0, transition: 'opacity 180ms ease', background: 'radial-gradient(ellipse at 50% 45%, transparent 35%, rgba(148,163,184,.55) 100%)', mixBlendMode: 'screen' }} />
+      {selectedSite && <aside className="tsm-civic-site-card" aria-label="Selected historic or natural site information">
+        <button type="button" className="tsm-civic-site-close" onClick={() => setSelectedSite(null)} aria-label="Close site details">×</button>
+        <span className="tsm-civic-eyebrow">{selectedSite.kind === 'historic' ? 'NPS NATIONAL REGISTER' : 'INDIANA DNR PUBLIC DATA'}</span>
+        <h2>{selectedSite.title}</h2>
+        <p><strong>{selectedSite.category}</strong>{selectedSite.county ? ` · ${selectedSite.county}` : ''}</p>
+        {selectedSite.description && <p>{selectedSite.description}</p>}
+        <p className="tsm-civic-site-access">{selectedSite.access} This map location is approximate, not an engineering reference.</p>
+        <div className="tsm-civic-site-links">
+          <a href={selectedSite.sourceUrl} target="_blank" rel="noopener noreferrer">Official source layer</a>
+          {selectedSite.website && <a href={selectedSite.website} target="_blank" rel="noopener noreferrer">Visit site website</a>}
+        </div>
+        {selectedSite.reference && <small>Source record: {selectedSite.reference}</small>}
+      </aside>}
       {selectedBuilding && (
         <BuildingInspectionPanel properties={selectedBuilding} onClose={() => setSelectedBuilding(null)} />
       )}
