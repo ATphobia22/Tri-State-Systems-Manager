@@ -74,13 +74,23 @@ export function orderStages(stages, stageKinds) {
   return ordered;
 }
 
+function safeHttps(value, requiredOrigin = null) {
+  if (typeof value !== 'string') return null;
+  try {
+    const url = new URL(value);
+    if (url.protocol !== 'https:' || !url.hostname || url.username || url.password ||
+        /[\\r\\n]/.test(value) || (requiredOrigin && url.origin !== requiredOrigin)) return null;
+    return url;
+  } catch { return null; }
+}
+
 export function inspectPatents(record) {
   if (!obj(record) || record.schema !== 'tsm.patent.prior-art-screen.v1' ||
       record.legal_clearance !== 'NOT_ASSESSED' || !Array.isArray(record.patents) || record.patents.length === 0) {
     throw new Error('PATENT_RESEARCH_NOT_REVIEWED');
   }
   for (const p of record.patents) {
-    if (!/^US\d{6,9}[A-C]\d?$/.test(p.patent) || !p.official_record?.startsWith('https://ppubs.uspto.gov/') ||
+    if (!/^US\d{6,9}[A-C]\d?$/.test(p.patent) || !safeHttps(p.official_record, 'https://ppubs.uspto.gov') ||
         p.freedom_to_operate !== 'NOT_ASSESSED' || p.implementation !== 'IDEA_ONLY' ||
         p.expiration_independently_verified !== false) {
       throw new Error('PATENT_NOT_CLEARED:' + String(p.patent));
@@ -92,9 +102,14 @@ export function inspectPatents(record) {
 async function inspectSource(row, root) {
   if (!obj(row) || !SOURCE_CLASSES.has(row.classification)) return { id: row?.id ?? null, status: 'PROVENANCE_INCOMPLETE' };
   if (!SHA.test(row.sha256 ?? '') || typeof row.authority !== 'string' || !row.authority.trim() ||
-      typeof row.source_uri !== 'string' || !row.source_uri.startsWith('https://') ||
+      !safeHttps(row.source_uri) ||
       row.license_review !== 'REVIEWED' || row.verified !== true) {
     return { id: row.id, status: 'PROVENANCE_INCOMPLETE' };
+  }
+  const sourceHost = safeHttps(row.source_uri)?.hostname ?? '';
+  // Host is a useful agency-host check, never proof that the content itself was published by that agency.
+  if (!(sourceHost.endsWith('.gov') || sourceHost.endsWith('.mil'))) {
+    return { id: row.id, status: 'GOVERNMENT_SOURCE_HOST_NOT_CONFIRMED' };
   }
   if (ELEVATION_ROLES.has(row.role) && (!/^EPSG:\d{4,6}$/.test(row.horizontal_crs ?? '') ||
       !row.vertical_datum || !row.vertical_units)) return { id: row.id, status: 'DATUM_NOT_EVIDENCED' };
@@ -103,7 +118,7 @@ async function inspectSource(row, root) {
   catch (error) { return { id: row.id, status: String(error.message) }; }
   if (!fs.existsSync(file) || !fs.statSync(file).isFile()) return { id: row.id, status: 'SOURCE_NOT_EVIDENCED' };
   if (await sha256(file) !== row.sha256) return { id: row.id, status: 'HASH_MISMATCH' };
-  return { id: row.id, status: 'HASH_VERIFIED', size_bytes: fs.statSync(file).size };
+  return { id: row.id, status: 'HASH_VERIFIED', government_host: sourceHost, authority_verification: 'HOST_AND_LOCAL_DIGEST_ONLY', size_bytes: fs.statSync(file).size };
 }
 
 async function inspectRuntime(descriptor, root) {
