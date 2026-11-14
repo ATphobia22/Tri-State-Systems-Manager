@@ -12,6 +12,7 @@ from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
+from jsonschema import Draft202012Validator
 
 from backend.app import asset_registry
 from backend.app.main import app
@@ -100,6 +101,42 @@ def test_invalid_source_never_yields_partial_assets(tmp_path, mutator, reason) -
     with pytest.raises(asset_registry.AssetRegistrySourceError, match=reason):
         asset_registry.build_registry_snapshot(candidate)
 
+
+
+
+def test_machine_readable_schema_accepts_export_contract() -> None:
+    root = Path(__file__).resolve().parents[2]
+    schema = json.loads((root / "schemas/regional-asset-snapshot-v1.schema.json").read_text(encoding="utf-8"))
+    Draft202012Validator.check_schema(schema)
+    Draft202012Validator(schema).validate(asset_registry.build_registry_snapshot())
+
+
+def test_cli_exports_deterministic_offline_asset_json(tmp_path) -> None:
+    import subprocess
+    import sys
+
+    root = Path(__file__).resolve().parents[2]
+    out = tmp_path / "offline-stations.json"
+    subprocess.run(
+        [sys.executable, "-m", "backend.app.asset_registry", "--output", str(out)],
+        cwd=root, check=True, capture_output=True, text=True,
+    )
+    exported = json.loads(out.read_text(encoding="utf-8"))
+    assert exported == asset_registry.build_registry_snapshot()
+
+
+def test_empty_and_malformed_port_sources_reject_entire_file(tmp_path) -> None:
+    empty = _source_document()
+    empty["features"] = []
+    with pytest.raises(asset_registry.AssetRegistrySourceError, match="INVALID_FEATURE_COUNT"):
+        asset_registry.build_registry_snapshot(_write_source(tmp_path, empty))
+
+    malformed = _source_document()
+    malformed["features"][0]["properties"]["sourceUri"] = (
+        "https://waterdata.usgs.gov:badport/monitoring-location/USGS-03378500/"
+    )
+    with pytest.raises(asset_registry.AssetRegistrySourceError, match="UNTRUSTED_STATION_SOURCE_URI"):
+        asset_registry.build_registry_snapshot(_write_source(tmp_path, malformed))
 
 def test_unavailable_source_reports_503_without_lying_about_health(tmp_path, monkeypatch) -> None:
     monkeypatch.setattr(asset_registry, "SOURCE_PATH", tmp_path / "missing.geojson")
