@@ -247,3 +247,23 @@
  repeating-linear-gradient(0deg,transparent 0 9px,#3b2b1e19 10px)}
 @keyframes tsm-atlas-screen-rain{from{background-position:0 0}to{background-position:110px 440px}}
 @media(prefers-reduced-motion:reduce){.tsm-civic-fx-cinematic-rain .tsm-civic-fx-overlay{animation:none}}
+
+/* Source-backed place directory is keyboard accessible even when map canvas is not. */
+.tsm-civic-site-index{position:absolute;top:12px;left:12px;z-index:25;
+ width:min(345px,calc(100% - 24px));max-height:min(72vh,590px);overflow:auto;
+ border:1px solid #77c0cc;border-radius:14px;background:#fffffff7;color:#153b51;
+ box-shadow:0 16px 45px #011b3190;font-size:14px}
+.tsm-civic-site-index summary{display:flex;align-items:center;min-height:48px;padding:10px 13px;
+ cursor:pointer;font-weight:800;font-size:.94rem;color:#103e56;list-style:inside}
+.tsm-civic-site-index[open] summary{border-bottom:1px solid #c7e0e8}
+.tsm-civic-site-index label{display:block;padding:11px;font-weight:800}
+.tsm-civic-site-index input{display:block;width:100%;min-height:44px;margin-top:6px;padding:9px;
+ border:1px solid #97bdc9;border-radius:9px;color:#183d52;background:#fff}
+.tsm-civic-site-results{max-height:290px;overflow:auto;padding:0 10px}
+.tsm-civic-site-results button{display:block;width:100%;text-align:left;padding:10px;min-height:49px;
+ border:0;border-bottom:1px solid #dcecf1;background:#fff;color:#143950;cursor:pointer}
+.tsm-civic-site-results button:hover,.tsm-civic-site-results button:focus-visible{background:#e4f7fd}
+.tsm-civic-site-results strong,.tsm-civic-site-results small{display:block}
+.tsm-civic-site-results small{margin-top:2px;color:#457086}
+.tsm-civic-site-index p{padding:6px 12px;font-size:.8rem;color:#375d71}
+@media(max-width:650px){.tsm-civic-site-index{width:min(320px,calc(100% - 22px));max-height:50vh;top:8px;left:8px}}
