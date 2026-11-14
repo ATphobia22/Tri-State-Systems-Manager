@@ -19,7 +19,7 @@ type Properties = Record<string, unknown>;
 export const REGIONAL_SITE_BOUNDS = '-89.6,36.9,-86.8,38.8';
 export const REGIONAL_SITE_SOURCES = {
   historic: 'https://mapservices.nps.gov/arcgis/rest/services/cultural_resources/nrhp_locations/MapServer/0',
-  dnr: 'https://gisdata.in.gov/server/rest/services/Hosted/Sites_NaturePreserves/FeatureServer/8',
+  dnr: 'https://gisdata.in.gov/server/rest/services/Hosted/Sites_StateParks/FeatureServer/8',
   preserve: 'https://gisdata.in.gov/server/rest/services/Hosted/DNRGIS_DnrNPSites_DNR_IN_1/FeatureServer/18',
 } as const;
 const fieldSets: Record<CivicSiteKind,string> = {
