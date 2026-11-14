@@ -1,0 +1,63 @@
+name: TSM 4D Twin Source/Evidence Contracts
+
+on:
+  pull_request:
+    paths:
+      - 'backend/app/observation_history.py'
+      - 'backend/app/signed_twin_history.py'
+      - 'backend/engineering/stage_calibration_gate.py'
+      - 'backend/tests/test_observation_history.py'
+      - 'backend/tests/test_signed_twin_history.py'
+      - 'backend/tests/test_stage_calibration_gate.py'
+      - 'scripts/geospatial/export_reviewed_ifc_glb.py'
+      - 'scripts/geospatial/test_export_reviewed_ifc_glb.py'
+      - 'scripts/geospatial/audit_posey_3d_archive.py'
+      - 'scripts/geospatial/test_audit_posey_3d_archive.py'
+      - '.github/workflows/tsm-twin-evidence-contracts.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'backend/app/observation_history.py'
+      - 'backend/app/signed_twin_history.py'
+      - 'backend/engineering/stage_calibration_gate.py'
+      - 'backend/tests/test_observation_history.py'
+      - 'backend/tests/test_signed_twin_history.py'
+      - 'backend/tests/test_stage_calibration_gate.py'
+      - 'scripts/geospatial/export_reviewed_ifc_glb.py'
+      - 'scripts/geospatial/test_export_reviewed_ifc_glb.py'
+      - 'scripts/geospatial/audit_posey_3d_archive.py'
+      - 'scripts/geospatial/test_audit_posey_3d_archive.py'
+      - '.github/workflows/tsm-twin-evidence-contracts.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  evidence-contracts:
+    name: Signed sensor, stage history, IFC, archive and calibration boundaries
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+      - name: Compile tested source and fixtures without optional network packages
+        run: |
+          python -m py_compile backend/app/observation_history.py backend/app/signed_twin_history.py backend/engineering/stage_calibration_gate.py
+          python -m py_compile scripts/geospatial/export_reviewed_ifc_glb.py scripts/geospatial/audit_posey_3d_archive.py
+      - name: Execute offline source and evidence contracts
+        run: |
+          python -m unittest \
+            backend.tests.test_observation_history \
+            backend.tests.test_signed_twin_history \
+            backend.tests.test_stage_calibration_gate \
+            scripts.geospatial.test_export_reviewed_ifc_glb \
+            scripts.geospatial.test_audit_posey_3d_archive -v
+      - name: Truthful scope of release evidence
+        run: |
+          echo 'Verified: deterministic offline contract tests; no network or credentials required.'
+          echo 'NOT VERIFIED: commissioned IoT devices, HEC-RAS runs, independent flood forecast skill, full 23,082 building inventory, survey datum/control, native render frames.'
