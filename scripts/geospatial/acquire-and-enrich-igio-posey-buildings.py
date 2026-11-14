@@ -38,8 +38,10 @@ from verify_igio_footprint_cache import (
 from dem_resolution import ground_pixel_resolution_m, RasterResolutionError
 
 import rasterio
-from shapely.geometry import MultiPolygon, Polygon, mapping, shape
+from numpy.ma import is_masked
+from shapely.geometry import MultiPolygon, Point, Polygon, box, mapping, shape
 from shapely.ops import unary_union
+from shapely.strtree import STRtree
 from shapely.validation import make_valid
 from rasterio.warp import transform as warp_transform
 
@@ -205,6 +207,7 @@ def centroid(ring: list[list[float]]) -> tuple[float, float]:
 class ElevationSampler:
     def __init__(self, paths: list[Path]) -> None:
         self.datasets = []
+        footprints = {}
         self.skipped_unverified = 0
         for path in paths:
             # Native horizontal CRS is NOT evidence of raster Z units or datum.
@@ -217,25 +220,45 @@ class ElevationSampler:
                 ds.close()
                 self.skipped_unverified += 1
                 continue
+            indices, boxes = footprints.setdefault(ds.crs, ([], []))
+            indices.append(len(self.datasets))
+            boxes.append(box(*ds.bounds))
             self.datasets.append((ds, scale_ft))
+        self.indices = {
+            crs: (indices, STRtree(boxes))
+            for crs, (indices, boxes) in footprints.items()
+        }
 
     def close(self) -> None:
         for ds, _scale_ft in self.datasets:
             ds.close()
 
     def sample(self, lonlat: list[tuple[float, float]]) -> tuple[float, float, float, int, str] | None:
-        for ds, scale_ft in self.datasets:
-            xs = [p[0] for p in lonlat]
-            ys = [p[1] for p in lonlat]
-            if ds.crs and str(ds.crs) != "EPSG:4326":
-                xs, ys = warp_transform("EPSG:4326", ds.crs, xs, ys)
-            coords = list(zip(xs, ys))
-            if not coords:
-                continue
+        if not lonlat:
+            return None
+        longitudes, latitudes = zip(*lonlat)
+        candidates = {}
+        for crs, (indices, spatial_index) in self.indices.items():
+            xs, ys = longitudes, latitudes
+            if crs.to_epsg() != 4326:
+                xs, ys = warp_transform("EPSG:4326", crs, xs, ys)
+            coordinates = list(zip(xs, ys))
+            point_indices, hits = spatial_index.query([Point(*point) for point in coordinates])
+            for point_index, hit in zip(point_indices, hits):
+                index = indices[hit]
+                ds, _ = self.datasets[index]
+                x, y = coordinates[point_index]
+                row, column = ds.index(x, y)
+                if 0 <= row < ds.height and 0 <= column < ds.width:
+                    candidates.setdefault(index, []).append((x, y))
+        for index, coordinates in sorted(candidates.items()):
+            ds, scale_ft = self.datasets[index]
             vals = []
-            for value in ds.sample(coords):
+            for value in ds.sample(coordinates, masked=True):
+                if is_masked(value[0]):
+                    continue
                 v = float(value[0])
-                if math.isfinite(v) and (ds.nodata is None or not math.isclose(v, float(ds.nodata))):
+                if math.isfinite(v):
                     vals.append(v)
             if vals:
                 return (
@@ -558,7 +581,7 @@ def main() -> None:
         "sourceFeatureCount": count,
         "elevationJoinedFeatureCount": count - no_elevation,
         "geometryCrs": "EPSG:4326",
-        "elevationAuthority": "TSM committed 3DEP-derived Posey DEM",
+        "elevationAuthority": "Sources documented in the staged NAVD88 DEM provenance records" if sampler.datasets else None,
         "elevationMethod": "footprint centroid + boundary samples",
         "elevationVerticalUnits": "feet" if sampler.datasets else None,
         "elevationVerticalDatum": "NAVD88" if sampler.datasets else None,
@@ -586,7 +609,7 @@ def main() -> None:
         "objectIdMin": object_ids[0],
         "objectIdMax": object_ids[-1],
         "geometryCrs": "EPSG:4326",
-        "elevationMethod": "IGIO footprint centroid + boundary samples against highest-resolution covering committed Posey DEM",
+        "elevationMethod": "IGIO footprint centroid and boundary samples against the highest-resolution applicable staged DEM",
         "elevationSampleCountField": "groundElevationSampleCount",
         "elevationSource": [str(p) for p in dem_paths],
         "geojsonSha256": digest,
