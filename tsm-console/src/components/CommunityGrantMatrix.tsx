@@ -43,6 +43,8 @@ export default function CommunityGrantMatrix(): JSX.Element {
   const [loadStatus, setLoadStatus] = useState('Loading locally staged grant inventory…');
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
+  const [priority, setPriority] = useState('all');
+  const [showAll, setShowAll] = useState(false);
   useEffect(() => {
     const controller = new AbortController();
     fetch(`${import.meta.env.BASE_URL}data/community-grant-matrix-2026-10-08.csv`, { signal: controller.signal })
@@ -61,14 +63,17 @@ export default function CommunityGrantMatrix(): JSX.Element {
   const categories = useMemo(() => [...new Set(programs.map((p) => p.Category))].sort(), [programs]);
   const visible = useMemo(() => programs.filter((p) => {
     const matchesCategory = category === 'all' || p.Category === category;
+    const matchesPriority = priority === 'all' || p.Priority === priority;
     const text = [p.Agency, p.Program_Name, p.Category, p.Notes, p.Status].join(' ').toLowerCase();
-    return matchesCategory && text.includes(search.toLowerCase().trim());
-  }), [category, programs, search]);
+    return matchesCategory && matchesPriority && text.includes(search.toLowerCase().trim());
+  }), [category, priority, programs, search]);
+  const priorities = useMemo(() => [...new Set(programs.map((p) => p.Priority).filter(Boolean))].sort(), [programs]);
 
   return (
     <section aria-label="Community and flood resiliency grant inventory">
-      <h2>Pay for solutions — community grant matrix</h2>
-      <p>Find public-funding programs for roads, flood resilience, water infrastructure and public works. This is a dated planning inventory, not a current funding notice or eligibility determination.</p>
+      <span className="tsm-civic-eyebrow">MOUNT VERNON · INFRASTRUCTURE FUNDING</span>
+      <h2>Find funding for a better river city</h2>
+      <p>Search programs by project type, agency or priority. Compare recorded programs, then check the current opportunity with the funding agency. <strong>These records are from October 8, 2026 — not confirmed open grants.</strong></p>
       <div className="tsm-atlas-grant-filters">
         <label htmlFor="tsm-grant-query">Search funding opportunities
           <input id="tsm-grant-query" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="flood, bridge, USDA, levee…" />
@@ -79,10 +84,17 @@ export default function CommunityGrantMatrix(): JSX.Element {
             {categories.map((key) => <option key={key} value={key}>{key}</option>)}
           </select>
         </label>
+        <label htmlFor="tsm-grant-priority">Recorded priority
+          <select id="tsm-grant-priority" value={priority} onChange={(e) => setPriority(e.target.value)}>
+            <option value="all">All priorities</option>
+            {priorities.map((key) => <option key={key} value={key}>{key}</option>)}
+          </select>
+        </label>
+        <button type="button" className="tsm-civic-reset-filter" onClick={() => { setSearch(''); setCategory('all'); setPriority('all'); setShowAll(false); }}>Clear filters</button>
       </div>
-      <p className="tsm-atlas-note" role="status" aria-live="polite">{loadStatus} · {visible.length} matching entries.</p>
+      <p className="tsm-atlas-note" role="status" aria-live="polite">{loadStatus} · <strong>{visible.length} matching programs</strong>.</p>
       <div className="tsm-atlas-grant-list">
-        {visible.slice(0, 60).map((grant) => <article key={grant.Program_ID} className="tsm-atlas-grant">
+        {visible.slice(0, showAll ? visible.length : 12).map((grant) => <article key={grant.Program_ID} className="tsm-atlas-grant">
           <h3>{grant.Program_Name}</h3>
           <p><strong>{grant.Agency}</strong> · {grant.Category} · Priority as recorded: {grant.Priority || 'unspecified'}</p>
           <dl>
@@ -93,11 +105,12 @@ export default function CommunityGrantMatrix(): JSX.Element {
           {grant.Notes && <p>{grant.Notes}</p>}
         </article>)}
       </div>
-      {programs.length > 0 && visible.length === 0 && <p>No entries match these filters.</p>}
+      {visible.length > 12 && <button type="button" className="tsm-atlas-reset" onClick={() => setShowAll((value) => !value)}>{showAll ? 'Show first 12 programs' : `Show all ${visible.length} matching programs`}</button>}
+      {programs.length > 0 && visible.length === 0 && <p>No entries match these filters. Try clearing a filter or using broader terms.</p>}
       <p className="tsm-atlas-note">
         Verify every deadline, award round and eligibility with the issuing agency before applying. Reopening a closed round is never inferred.
         {' '}<a href={sourceHref} rel="noopener noreferrer" target="_blank">Inspect the source CSV and provenance</a>
-        {' '}· <a href="https://www.grants.gov/search-grants" rel="noopener noreferrer" target="_blank">Check official federal opportunities</a>
+        {' '}· <a href="https://simpler.grants.gov/search" rel="noopener noreferrer" target="_blank">Find currently listed federal opportunities</a>
       </p>
     </section>
   );
