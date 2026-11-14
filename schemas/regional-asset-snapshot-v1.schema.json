@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ATphobia22/Tri-State-Systems-Manager/blob/main/schemas/regional-asset-snapshot-v1.schema.json",
+  "title": "TSM source-backed regional gauge station asset snapshot",
+  "description": "Read-only, source-staged USGS location metadata. This schema intentionally cannot carry current telemetry, survey heights, or predicted flood state.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "datasetId", "sourceFile", "sourceSha256", "sourceDeclaredLastReviewedAt", "sourceDeclaredAuthority", "authorityLimit", "count", "assets"],
+  "properties": {
+    "schemaVersion": {"const": "1.0.0"},
+    "datasetId": {"const": "tsm-river-gauge-locations-v1"},
+    "sourceFile": {"const": "tsm-console/public/data/tsm-river-gauge-locations.geojson"},
+    "sourceSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "sourceDeclaredLastReviewedAt": {"type": ["string", "null"]},
+    "sourceDeclaredAuthority": {"type": ["string", "null"]},
+    "authorityLimit": {"type": "string", "minLength": 1},
+    "count": {"type": "integer", "minimum": 0, "maximum": 1000},
+    "assets": {
+      "type": "array",
+      "maxItems": 1000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["assetId", "assetType", "ontologyKind", "name", "riverName", "geometry", "spatialReference", "sourceDatasetIds", "sourceUri", "sourceReportedStatus", "evidenceClass", "currentObservation", "observationTimestamp", "instrumentHealth"],
+        "properties": {
+          "assetId": {"type": "string", "pattern": "^USGS-[0-9]{8}$"},
+          "assetType": {"const": "river_gauge_station"},
+          "ontologyKind": {"const": "sensor"},
+          "name": {"type": "string", "minLength": 1, "maxLength": 256},
+          "riverName": {"type": "string", "minLength": 1, "maxLength": 256},
+          "geometry": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type", "coordinates"],
+            "properties": {
+              "type": {"const": "Point"},
+              "coordinates": {
+                "type": "array",
+                "prefixItems": [
+                  {"type": "number", "minimum": -180, "maximum": 180},
+                  {"type": "number", "minimum": -90, "maximum": 90}
+                ],
+                "minItems": 2,
+                "maxItems": 2
+              }
+            }
+          },
+          "spatialReference": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["crs", "verticalDatum"],
+            "properties": {"crs": {"const": "EPSG:4326"}, "verticalDatum": {"const": null}}
+          },
+          "sourceDatasetIds": {
+            "type": "array",
+            "prefixItems": [{"const": "tsm-river-gauge-locations-v1"}],
+            "minItems": 1,
+            "maxItems": 1
+          },
+          "sourceUri": {"type": "string", "pattern": "^https://waterdata\\.usgs\\.gov/monitoring-location/USGS-[0-9]{8}/$"},
+          "sourceReportedStatus": {"type": ["string", "null"]},
+          "evidenceClass": {"const": "SOURCE_STAGED_LOCATION_ONLY"},
+          "currentObservation": {"const": null},
+          "observationTimestamp": {"const": null},
+          "instrumentHealth": {"const": null}
+        }
+      }
+    }
+  }
+}
