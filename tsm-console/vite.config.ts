@@ -2,6 +2,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defineConfig, loadEnv, type IndexHtmlTransformResult } from 'vite';
 import react from '@vitejs/plugin-react';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -23,6 +24,7 @@ function cspPlugin() {
         'https://water.noaa.gov',
         'https://api.water.noaa.gov',
         'https://elevation.nationalmap.gov',
+        'https://basemap.nationalmap.gov',
         'https://di-ingov.img.arcgis.com',
         'https://gisdata.in.gov',
         'https://maps.dnr.illinois.gov',
@@ -67,18 +69,33 @@ function cspPlugin() {
 
 export default defineConfig(({ mode, command }) => {
   Object.assign(process.env, loadEnv(mode, process.cwd(), 'VITE_'));
+  const base = isGitHubPagesBuild ? githubPagesBasePath : '/';
   return {
     resolve: {
       alias: {
         '@': path.resolve(rootDir, 'src'),
       },
     },
-    base: isGitHubPagesBuild ? githubPagesBasePath : '/',
+    base,
+    define: { CESIUM_BASE_URL: JSON.stringify(base + 'vendor/cesium/') },
     // The CSP meta tag blocks @vitejs/plugin-react's inline Fast Refresh
     // preamble in dev (script-src has no 'unsafe-inline'), so the app never
     // mounts ("can't detect preamble"). The CSP is a production hardening
     // measure, so it only applies to builds.
-    plugins: [react(), ...(command === 'build' ? [cspPlugin()] : [])],
+    plugins: [
+      react(),
+      viteStaticCopy({
+        targets: [
+          ...['Assets', 'ThirdParty', 'Workers'].map((dir) => ({
+            src: `node_modules/cesium/Build/Cesium/${dir}/**/*`,
+            dest: `vendor/cesium/${dir}`,
+            rename: { stripBase: 5 },
+          })),
+          { src: 'node_modules/cesium/LICENSE.md', dest: 'vendor/cesium', rename: { stripBase: true } },
+        ],
+      }),
+      ...(command === 'build' ? [cspPlugin()] : []),
+    ],
     server: {
       port: 5173,
       proxy: {

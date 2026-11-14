@@ -13,6 +13,8 @@
 
 **[Launch the 4D Atlas](https://atphobia22.github.io/Tri-State-Systems-Manager/atlas/)** · **[Explore the public console](https://atphobia22.github.io/Tri-State-Systems-Manager/)** · **[Study the source](https://github.com/ATphobia22/Tri-State-Systems-Manager)** · **[Scientific evidence](docs/architecture/ENGINEERING-ASSURANCE-STANDARD.md)** · **[Public data sources](docs/DATA-SOURCE-CATALOG.md)** · **[Flood mapping and gage history](docs/flood/MULTI-AGENCY-FLOOD-MAPPING-ERA-TABLE-2026-11-14.md)** · **[Experience blueprint](docs/UX-CINEMATIC-4D-ATLAS.md)** · **[Releases and CI](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions)**
 
+**[Open the Cesium 4D twin](https://atphobia22.github.io/Tri-State-Systems-Manager/cesium/)** · Explore nine counties with USGS terrain, 2024 Census roads, partial Posey building meshes, a cinematic flyover and April 2025 USGS river replay. The Mount Vernon flood screen compares hypothetical NAVD88 levels against terrain connected to the Ohio River. See [source and coverage details](docs/cesium-ion/REGIONAL-CESIUM-4D-VIEW.md).
+
 *The public Atlas runs on GitHub Pages. Historical crest records ship with the Atlas and can be explored without a live data request. Live USGS readings use the public agency endpoint. Features backed by the TSM Node API require a configured service.*
 
 ---

@@ -134,6 +134,7 @@ export const appRoutes = [
   { path: 'globe', hydrateFallbackElement: <RouteLoadingFallback label="the 3D map (MapLibre GL)" />, lazy: async () => ({ Component: (await import('../routes/GlobeView')).default }) },
   { path: 'terrain-3d', hydrateFallbackElement: <RouteLoadingFallback label="3D terrain (MapLibre)" />, lazy: async () => ({ Component: (await import('../routes/GlobeView')).default }) },
   { path: 'photorealistic-3d', hydrateFallbackElement: <RouteLoadingFallback label="photorealistic 3D (Cesium ion, opt-in)" />, lazy: async () => ({ Component: (await import('../routes/CesiumPhotorealisticView')).default }) },
+  { path: 'cesium', hydrateFallbackElement: <RouteLoadingFallback label="the Cesium 4D twin" />, lazy: async () => ({ Component: (await import('../routes/CesiumRegionalTwinView')).default }) },
   { path: 'platform', hydrateFallbackElement: <RouteLoadingFallback label="platform capabilities index" />, lazy: async () => ({ Component: (await import('../routes/PlatformCapabilitiesView')).default }) },
   { path: 'flood-sim', hydrateFallbackElement: <RouteLoadingFallback label="the flood simulator" />, lazy: async () => ({ Component: (await import('../components/FloodSimulator')).default }) },
   { path: 'spatial-planes', hydrateFallbackElement: <RouteLoadingFallback label="the spatial data fabric" />, lazy: async () => ({ Component: (await import('../components/TriStateRiverValleyMap')).default }) },

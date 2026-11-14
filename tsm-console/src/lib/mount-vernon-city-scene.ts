@@ -105,6 +105,17 @@ async function fetchBounded(url: string, signal?: AbortSignal): Promise<Uint8Arr
   for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
   return bytes;
 }
+export async function loadMountVernonCityScene(baseUrl: string, signal?: AbortSignal) {
+  const prefix = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
+  const receiptBytes = await fetchBounded(prefix + 'scene.receipt.json', signal);
+  const receipt = JSON.parse(new TextDecoder().decode(receiptBytes)) as SceneReceipt;
+  const sceneBytes = await fetchBounded(prefix + 'scene.json', signal);
+  if (!(await verifySceneBytes(sceneBytes, receipt))) throw new Error('SCENE_SHA256_MISMATCH');
+  const scene: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(sceneBytes));
+  validateMountVernonScene(scene);
+  return { scene, receipt };
+}
+
 export async function attachMountVernonCityScene(map: MapLibreMap, baseUrl: string, signal?: AbortSignal): Promise<() => void> {
   let removed = false;
   const release = () => {
@@ -114,16 +125,8 @@ export async function attachMountVernonCityScene(map: MapLibreMap, baseUrl: stri
   };
   emit({ status: 'LOADING', reason: 'Checking staged governmental city-scene archive.' });
   try {
-    const prefix = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
-    // Fixed, build-owned relative location: do not accept arbitrary user URLs.
-    const receiptBytes = await fetchBounded(prefix + 'scene.receipt.json', signal);
-    const receipt = JSON.parse(new TextDecoder().decode(receiptBytes)) as SceneReceipt;
-    const sceneBytes = await fetchBounded(prefix + 'scene.json', signal);
-    if (!(await verifySceneBytes(sceneBytes, receipt))) throw new Error('SCENE_SHA256_MISMATCH');
-    const scene: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(sceneBytes));
-    validateMountVernonScene(scene);
+    const { scene: data, receipt } = await loadMountVernonCityScene(baseUrl, signal);
     if (removed || signal?.aborted) return release;
-    const data = scene as SceneShape;
     if (!map.getSource(SRC_BUILDINGS)) map.addSource(SRC_BUILDINGS, { type: 'geojson', data: data.buildings });
     if (!map.getSource(SRC_ROADS)) map.addSource(SRC_ROADS, { type: 'geojson', data: data.roads });
     // Unknown building heights are deliberately not extruded.

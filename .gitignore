@@ -68,3 +68,7 @@ tools/terrain/.tile-cache/
 
 # TimesFM nowcast run outputs (regenerated per run; venv + model live outside git)
 timesfm-forecasts/
+
+# Reproducible public viewer assets staged during the Pages build
+/tsm-console/public/data/cesium-regional/
+/tsm-console/public/mount-vernon-scene/
