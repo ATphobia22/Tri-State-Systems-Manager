@@ -87,3 +87,17 @@ test('regional static source geometries are WGS84, not elevations or simulated f
     }
   }
 });
+
+
+test('Wabash cinematic flight is user-controlled and honors OS reduced motion', () => {
+  const tour = read('src/lib/cinematic/camera-tour.ts');
+  assert.match(atlas, /Play Wabash flyover/);
+  assert.match(atlas, /Stop Wabash flyover/);
+  assert.match(atlas, /cinematicTour=\{cinematicTour\}/);
+  assert.match(map, /playCinematicTour\(map\)/);
+  assert.match(map, /setMapReady\(true\)/);
+  assert.match(tour, /prefersReducedMotion\(\)/);
+  assert.match(tour, /map\.easeTo\(/);
+  assert.match(tour, /map\.stop\(\)/);
+  assert.doesNotMatch(tour, /Math\.random/);
+});
