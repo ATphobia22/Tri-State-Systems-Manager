@@ -104,7 +104,7 @@ class IntakeTests(unittest.TestCase):
                 validate_registry(case)
         case = registry()
         case["assets"][0]["engineeringUse"] = True
-        with self.assertRaisesRegex(IntakeError, "engineering authority"):
+        with self.assertRaisesRegex(IntakeError, "non-authoritative"):
             validate_registry(case)
 
     def test_url_policy(self):
