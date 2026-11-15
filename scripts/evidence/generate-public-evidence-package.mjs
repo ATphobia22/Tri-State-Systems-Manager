@@ -42,6 +42,7 @@ const report = {
     agency: s.agency,
     title: s.title,
     url: s.url,
+    url_kind: s.url_kind ?? null,
     verification_state: s.verification_state,
     sha256: s.sha256,
     vertical_datum: s.vertical_datum ?? null,

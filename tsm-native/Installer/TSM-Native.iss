@@ -32,7 +32,9 @@ UninstallDisplayIcon={app}\{#MyAppExeName}
 WizardStyle=modern
 
 [Files]
-Source: "{#TSMPayloadRoot}\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion
+; Extract the bundled Epic prerequisite installer before unpacking the game.
+Source: "{#TSMPayloadRoot}\Engine\Extras\Redist\en-us\UEPrereqSetup_x64.exe"; Flags: dontcopy
+Source: "{#TSMPayloadRoot}\*"; DestDir: "{app}"; Excludes: "Engine\Extras\Redist\en-us\UEPrereqSetup_x64.exe"; Flags: recursesubdirs createallsubdirs ignoreversion
 
 [Icons]
 Name: "{autoprograms}\Tri-State Systems Manager"; Filename: "{app}\{#MyAppExeName}"
@@ -54,3 +56,29 @@ Root: HKCR; Subkey: "TSMNative.PMTiles\shell\open\command"; ValueType: string; V
 ; User-created and engineering evidence data must survive uninstall by default.
 ; Do not delete {app}\\Saved or other project/evidence directories implicitly.
 ; A separately reviewed, explicit data-erasure workflow is required.
+
+
+[Code]
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+var
+  ExitCode: Integer;
+begin
+  ExtractTemporaryFile('UEPrereqSetup_x64.exe');
+  if not Exec(ExpandConstant('{tmp}\UEPrereqSetup_x64.exe'), '/quiet /norestart',
+      '', SW_HIDE, ewWaitUntilTerminated, ExitCode) then
+  begin
+    Result := Format('Could not start the bundled Unreal prerequisites (error %d).', [ExitCode]);
+    Exit;
+  end;
+
+  case ExitCode of
+    0: Result := '';
+    1641, 3010:
+      begin
+        NeedsRestart := True;
+        Result := 'Restart Windows and run Tri-State Systems Manager Setup again.';
+      end;
+  else
+    Result := Format('Bundled Unreal prerequisites failed (exit code %d).', [ExitCode]);
+  end;
+end;

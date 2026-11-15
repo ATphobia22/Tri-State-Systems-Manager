@@ -16,6 +16,16 @@ if (Test-Path -LiteralPath $windowsRoot) {
     throw "Windows archive output already exists. Use an empty archive directory."
 }
 
+$signSha = $env:TSM_WINDOWS_SIGNING_CERT_SHA1
+$timestampUrl = $env:TSM_WINDOWS_TIMESTAMP_URL
+if ($signSha -notmatch '^[A-Fa-f0-9]{40}$') {
+    throw "TSM_WINDOWS_SIGNING_CERT_SHA1 must be a valid certificate thumbprint."
+}
+if ($timestampUrl -notmatch '^https://') { throw "HTTPS timestamp service URL is required." }
+$signTool = Get-Command signtool.exe -ErrorAction Stop
+$iscc = Get-Command ISCC.exe -ErrorAction SilentlyContinue
+if (-not $iscc) { throw "Inno Setup 7 ISCC.exe is required to produce the standalone installer." }
+
 & "$PSScriptRoot\Build-ArchimedesCore.ps1" -SourceDir $ArchimedesSource -Configuration Release
 if ($LASTEXITCODE -ne 0) { throw "ArchimedesCore build failed." }
 
@@ -47,13 +57,6 @@ if ($LASTEXITCODE -ne 0) { throw "SDE staging failed." }
 
 # UAT emits a root bootstrap executable and an inner game executable.
 # Both ship in Setup and must be signed before installer compilation.
-$signSha = $env:TSM_WINDOWS_SIGNING_CERT_SHA1
-$timestampUrl = $env:TSM_WINDOWS_TIMESTAMP_URL
-if ($signSha -notmatch '^[A-Fa-f0-9]{40}$') {
-    throw "TSM_WINDOWS_SIGNING_CERT_SHA1 must be a valid certificate thumbprint."
-}
-if ($timestampUrl -notmatch '^https://') { throw "HTTPS timestamp service URL is required." }
-$signTool = Get-Command signtool.exe -ErrorAction Stop
 foreach ($relativePath in @('TSMNative.exe', 'TSMNative/Binaries/Win64/TSMNative-Win64-Shipping.exe')) {
     $exe = (Resolve-Path -LiteralPath (Join-Path $windowsRoot $relativePath)).Path
     & $signTool.Source sign /sha1 $signSha /fd SHA256 /tr $timestampUrl /td SHA256 $exe
@@ -77,8 +80,13 @@ $sdeAuth = Get-AuthenticodeSignature -LiteralPath $sdeBinary
 if ($sdeAuth.Status -ne 'Valid') { throw "SDE Authenticode status: $($sdeAuth.Status)" }
 Write-Host "SIGNED_SDE_SHA256=$((Get-FileHash -LiteralPath $sdeBinary -Algorithm SHA256).Hash.ToLowerInvariant())"
 
-$iscc = Get-Command ISCC.exe -ErrorAction SilentlyContinue
-if (-not $iscc) { throw "Inno Setup 7 ISCC.exe is required to produce the standalone installer." }
+$prerequisite = Join-Path $windowsRoot 'Engine/Extras/Redist/en-us/UEPrereqSetup_x64.exe'
+if (-not (Test-Path -LiteralPath $prerequisite -PathType Leaf)) {
+    throw 'The staged Unreal offline prerequisite installer is missing.'
+}
+if ((Get-AuthenticodeSignature -LiteralPath $prerequisite).Status -ne 'Valid') {
+    throw 'The staged Unreal prerequisite installer has an invalid signature.'
+}
 
 # The Inno [Setup] SignTool signs Setup, the uninstaller and temporary self-copies.
 # Never sign Setup only after compilation; that leaves the other copies unsigned.

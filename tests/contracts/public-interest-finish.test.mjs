@@ -18,6 +18,12 @@ test("immutable source manifest has core federal sources", () => {
   assert.ok(ids.includes("noaa-nwps"));
   assert.ok(ids.includes("fema-nfhl-msc"));
   assert.ok(ids.includes("ngs-vdatum"));
+  assert.equal(new Set(ids).size, ids.length);
+  for (const id of ["indiana-igio", "illinois-ilhmp-lidar", "kentucky-kyfromabove-catalog"]) {
+    assert.equal(m.sources.find((source) => source.id === id)?.verification_state, "REGISTERED");
+  }
+  assert.equal(m.sources.find((source) => source.id === "fema-nfhl-msc").url_kind, "DISCOVERY_PAGE");
+  assert.equal(m.sources.find((source) => source.id === "fema-nfhl-map-service").url_kind, "ARCGIS_MAP_SERVICE");
   assert.equal(m.policy.human_authority_final, true);
 });
 

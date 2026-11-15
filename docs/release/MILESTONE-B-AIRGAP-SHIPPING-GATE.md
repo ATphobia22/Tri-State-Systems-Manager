@@ -16,7 +16,7 @@ ECEF gate: `python scripts/geospatial/tsm_ecef_validator.py`
 
 Run [TSM Native](../../.github/workflows/tsm-native.yml) with `package_windows: true` at the reviewed commit. The workflow checks the engine and Cesium versions, verifies and stages the immutable TSMData snapshot, authors the native map, cooks the project, and signs the Unreal executables and evidence companion before compiling Setup.
 
-The package root is `dist/tsm-native/Windows`. Keep `TSMNative.exe` at that root together with the `Engine`, `TSMNative`, and `Tools` directories. The Shipping game lives under `TSMNative/Binaries/Win64`. Inno Setup embeds the entire package root. The static evidence report checks both PE executables, loose runtime DLLs, cooked content and the packaged TSMData manifest.
+The package root is `dist/tsm-native/Windows`. Keep `TSMNative.exe` at that root together with the `Engine`, `TSMNative`, and `Tools` directories. The Shipping game lives under `TSMNative/Binaries/Win64`. Inno Setup embeds the package root and runs its signed prerequisite bundle before installation. The static evidence report checks both PE executables, loose runtime DLLs, cooked content and the packaged TSMData manifest.
 
 ## Phase 3 — Install and launch offline
 

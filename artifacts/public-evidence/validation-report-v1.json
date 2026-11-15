@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0.0",
-  "generated_at": "2026-11-11T14:58:09.570Z",
+  "generated_at": "2026-11-15T21:27:20.849Z",
   "milestone": "A_SCIENTIFIC_PUBLIC_INTEREST",
   "manifest_id": "tsm-immutable-source-manifest",
-  "manifest_sha256": "9bd9be44ba5889a2c576d7989491b9c37c9cadf067a8a59a0812b9ae0945aabd",
-  "source_count": 10,
+  "manifest_sha256": "408edce2328273bd59dd1b2be62632262c5749aa4e66cd7c448a3cb39445dbd7",
+  "source_count": 13,
   "verification_state_counts": {
-    "REGISTERED": 8,
+    "REGISTERED": 11,
     "PRODUCT_TABLE_VERIFIED": 1,
     "ADAPTER_READONLY": 1
   },
@@ -16,6 +16,7 @@
       "agency": "USGS",
       "title": "Water Data APIs v1",
       "url": "https://api.waterdata.usgs.gov/",
+      "url_kind": null,
       "verification_state": "REGISTERED",
       "sha256": null,
       "vertical_datum": "station/product specific"
@@ -25,6 +26,7 @@
       "agency": "USGS",
       "title": "STAC/Parquet historical water data service",
       "url": "https://waterdata.usgs.gov/",
+      "url_kind": null,
       "verification_state": "REGISTERED",
       "sha256": null,
       "vertical_datum": null
@@ -34,6 +36,7 @@
       "agency": "NOAA/NWS",
       "title": "National Water Prediction Service",
       "url": "https://api.water.noaa.gov/",
+      "url_kind": null,
       "verification_state": "REGISTERED",
       "sha256": null,
       "vertical_datum": "GAGE_DATUM for stage; product tables for zeros"
@@ -43,6 +46,7 @@
       "agency": "NOAA/NWS",
       "title": "Ohio River at Mount Vernon (MTVI3)",
       "url": "https://water.noaa.gov/gauges/mtvi3",
+      "url_kind": null,
       "verification_state": "PRODUCT_TABLE_VERIFIED",
       "sha256": null,
       "vertical_datum": "Gage zero 318.59 ft NAVD88 (product table)"
@@ -52,6 +56,7 @@
       "agency": "USGS",
       "title": "3DEP / LidarExplorer",
       "url": "https://apps.nationalmap.gov/lidar-explorer/",
+      "url_kind": null,
       "verification_state": "REGISTERED",
       "sha256": null,
       "vertical_datum": "typically NAVD88 for CONUS DEMs — confirm product"
@@ -61,6 +66,17 @@
       "agency": "FEMA",
       "title": "NFHL / MSC FIRM FIS",
       "url": "https://msc.fema.gov",
+      "url_kind": "DISCOVERY_PAGE",
+      "verification_state": "REGISTERED",
+      "sha256": null,
+      "vertical_datum": null
+    },
+    {
+      "id": "fema-nfhl-map-service",
+      "agency": "FEMA",
+      "title": "National Flood Hazard Layer MapServer",
+      "url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer",
+      "url_kind": "ARCGIS_MAP_SERVICE",
       "verification_state": "REGISTERED",
       "sha256": null,
       "vertical_datum": null
@@ -70,6 +86,7 @@
       "agency": "NOAA NGS",
       "title": "GEOID18",
       "url": "https://geodesy.noaa.gov/GEOID/GEOID18/",
+      "url_kind": null,
       "verification_state": "REGISTERED",
       "sha256": null,
       "vertical_datum": "ellipsoidal ↔ orthometric path"
@@ -79,6 +96,7 @@
       "agency": "NOAA NGS",
       "title": "VDatum",
       "url": "https://vdatum.noaa.gov/",
+      "url_kind": null,
       "verification_state": "REGISTERED",
       "sha256": null,
       "vertical_datum": null
@@ -88,6 +106,7 @@
       "agency": "State of Indiana / IGIO",
       "title": "Indiana geospatial / parcels / imagery services",
       "url": "https://www.in.gov/iot/gis/",
+      "url_kind": null,
       "verification_state": "REGISTERED",
       "sha256": null,
       "vertical_datum": null
@@ -97,7 +116,28 @@
       "agency": "USACE HEC",
       "title": "HEC-RAS HDF5 results (imported)",
       "url": "https://www.hec.usace.army.mil/software/hec-ras/",
+      "url_kind": null,
       "verification_state": "ADAPTER_READONLY",
+      "sha256": null,
+      "vertical_datum": null
+    },
+    {
+      "id": "illinois-ilhmp-lidar",
+      "agency": "Illinois State Geological Survey",
+      "title": "Illinois Height Modernization Program lidar and elevation catalog",
+      "url": "https://clearinghouse.isgs.illinois.edu/data/elevation/lidar/",
+      "url_kind": "DISCOVERY_PAGE",
+      "verification_state": "REGISTERED",
+      "sha256": null,
+      "vertical_datum": null
+    },
+    {
+      "id": "kentucky-kyfromabove-catalog",
+      "agency": "Kentucky Division of Geographic Information",
+      "title": "KyFromAbove Catalog Explorer",
+      "url": "https://kygeonet.ky.gov/catalogexplorer/",
+      "url_kind": "DISCOVERY_PAGE",
+      "verification_state": "REGISTERED",
       "sha256": null,
       "vertical_datum": null
     }
