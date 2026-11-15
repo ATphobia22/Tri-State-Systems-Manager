@@ -14,7 +14,7 @@ import os
 import re
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode, urlparse
-from urllib.request import Request, urlopen
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 TOKEN_ENDPOINT = "https://apis.usps.com/oauth2/v3/token"
 ADDRESS_ENDPOINT = "https://apis.usps.com/addresses/v3/address"
@@ -24,6 +24,12 @@ SAFE_TEXT = re.compile(r"^[\w #,.'\-/]{1,120}$", re.UNICODE)
 
 class USPSAdapterError(ValueError):
     pass
+
+
+class NoPostalRedirect(HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        # OAuth credentials/bearer tokens must never follow third-party redirects.
+        raise USPSAdapterError("USPS endpoint redirect prohibited")
 
 
 def checked_address(street: str, city: str, state: str, zip_code: str = "") -> dict[str, str]:
@@ -80,10 +86,11 @@ def _request(req: Request, *, opener, timeout: int) -> dict:
 
 
 def standardize(street: str, city: str, state: str, zip_code: str = "",
-                *, env=None, opener=urlopen, timeout: int = 12) -> dict:
+                *, env=None, opener=None, timeout: int = 12) -> dict:
     """One on-demand lookup. Not a bulk-address harvester or a geocoder."""
     env = os.environ if env is None else env
     client_id, client_secret = require_entitlement(env)
+    opener = opener or build_opener(NoPostalRedirect()).open
     params = checked_address(street, city, state, zip_code)
     if timeout < 1 or timeout > 30:
         raise USPSAdapterError("Invalid network timeout")
