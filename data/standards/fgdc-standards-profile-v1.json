@@ -1,0 +1,121 @@
+{
+  "schema": "tsm-fgdc-standards-profile",
+  "version": "1.0.0",
+  "reviewedOn": "2026-11-15",
+  "catalogUrl": "https://www.fgdc.gov/resources/download-geospatial-standards",
+  "policy": {
+    "networkRequiredForValidation": false,
+    "licensedStandardsRedistribution": false,
+    "automaticRegulatoryCertification": false,
+    "unknownVerticalDatum": "BLOCK_ELEVATION_TRANSFORMATION_NOT_DISCOVERY",
+    "authorityRule": "A standards reference or parsed metadata record never confers survey, engineering, or regulatory authority."
+  },
+  "standards": [
+    {
+      "id": "FGDC-STD-001-1998",
+      "title": "Content Standard for Digital Geospatial Metadata (CSDGM)",
+      "version": "2 (1998)",
+      "status": "LEGACY_INGEST",
+      "url": "https://www.fgdc.gov/metadata/csdgm-standard",
+      "use": [
+        "FEMA NFHL legacy XML ingestion",
+        "metadata provenance retention"
+      ]
+    },
+    {
+      "id": "ISO-19115-1",
+      "title": "Geographic information — Metadata — Fundamentals",
+      "version": "19115-1:2014 (FGDC endorsed; check revision before export)",
+      "status": "REFERENCE_ACTIVE",
+      "url": "https://www.fgdc.gov/metadata/iso-standards",
+      "use": [
+        "dataset identification",
+        "lineage and distribution metadata"
+      ]
+    },
+    {
+      "id": "ISO-19111",
+      "title": "Geographic information — Referencing by coordinates",
+      "version": "family reference; edition not pinned",
+      "status": "REFERENCE_ACTIVE",
+      "url": "https://www.fgdc.gov/resources/download-geospatial-standards",
+      "use": [
+        "horizontal CRS",
+        "datum/coordinate transformation provenance"
+      ]
+    },
+    {
+      "id": "ISO-19110",
+      "title": "Geographic information — Methodology for feature cataloguing",
+      "version": "family reference; edition not pinned",
+      "status": "REFERENCE_ACTIVE",
+      "url": "https://www.fgdc.gov/resources/download-geospatial-standards",
+      "use": [
+        "parcel, road, building feature dictionaries"
+      ]
+    },
+    {
+      "id": "ISO-19157-1-2023",
+      "title": "Geographic information — Data quality — General requirements",
+      "version": "2023",
+      "status": "REFERENCE_ACTIVE",
+      "url": "https://www.iso.org/standard/78900.html",
+      "use": [
+        "source quality descriptors",
+        "evaluation method and result provenance"
+      ]
+    },
+    {
+      "id": "OGC-GEOTIFF-1.1",
+      "title": "OGC GeoTIFF Standard",
+      "version": "1.1 (19-008r4)",
+      "status": "REFERENCE_ACTIVE",
+      "url": "https://docs.ogc.org/is/19-008r4/19-008r4.html",
+      "use": [
+        "DEM/imagery georeferencing",
+        "raster CRS metadata"
+      ]
+    },
+    {
+      "id": "OGC-GEOPACKAGE",
+      "title": "OGC GeoPackage Encoding Standard",
+      "version": "edition not pinned",
+      "status": "REFERENCE_ACTIVE",
+      "url": "https://www.ogc.org/standards/geopackage/",
+      "use": [
+        "offline spatial vector/raster exchange"
+      ]
+    },
+    {
+      "id": "OGC-WATERML-2.0",
+      "title": "OGC WaterML 2.0 — Time series",
+      "version": "2.0",
+      "status": "REFERENCE_ACTIVE",
+      "url": "https://www.ogc.org/standards/waterml/",
+      "use": [
+        "hydrologic observation interchange"
+      ]
+    },
+    {
+      "id": "HDF5",
+      "title": "Hierarchical Data Format version 5",
+      "version": "format family; library not pinned",
+      "status": "REFERENCE_ACTIVE",
+      "url": "https://www.hdfgroup.org/solutions/hdf5/",
+      "use": [
+        "read-only HEC-RAS result exchange",
+        "scientific array provenance"
+      ]
+    },
+    {
+      "id": "NETCDF",
+      "title": "Network Common Data Form",
+      "version": "format family; library not pinned",
+      "status": "REFERENCE_ACTIVE",
+      "url": "https://www.unidata.ucar.edu/software/netcdf/",
+      "use": [
+        "time-indexed gridded model output"
+      ]
+    }
+  ]
+}
