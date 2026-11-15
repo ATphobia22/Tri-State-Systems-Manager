@@ -107,6 +107,30 @@ class IntakeTests(unittest.TestCase):
         with self.assertRaisesRegex(IntakeError, "non-authoritative"):
             validate_registry(case)
 
+    def test_symlink_stage_destination_is_rejected_without_download(self):
+        outside = self.root / "outside"
+        outside.mkdir()
+        link = self.root / "shortcut"
+        link.symlink_to(outside, target_is_directory=True)
+        with self.assertRaisesRegex(IntakeError, "Symlink destinations"):
+            acquire(registry(), "demo-hdri", link / "result",
+                    opener=lambda request, timeout: self.fail("network must not start"))
+
+    def test_missing_url_reports_clean_intake_error(self):
+        case = registry()
+        del case["assets"][0]["files"][0]["download_url"]
+        with self.assertRaisesRegex(IntakeError, "Missing asset download URL"):
+            validate_registry(case)
+
+    def test_reject_malformed_content_length(self):
+        class InvalidLength(FakeResponse):
+            def __init__(self):
+                super().__init__()
+                self.headers["Content-Length"] = "NaN"
+        with self.assertRaisesRegex(IntakeError, "Invalid source Content-Length"):
+            acquire(registry(), "demo-hdri", self.root / "invalid-length",
+                    opener=lambda request, timeout: InvalidLength())
+
     def test_url_policy(self):
         for url in ("http://dl.polyhaven.org/file/a", "https://evil.example/a",
                     "https://dl.polyhaven.org.evil.example/a",
