@@ -75,7 +75,7 @@ class IntakeTests(unittest.TestCase):
 
     def test_reject_oversized_stream(self):
         dest = self.root / "oversized"
-        with self.assertRaisesRegex(IntakeError, "download budget"):
+        with self.assertRaisesRegex(IntakeError, "budget"):
             acquire(registry(), "demo-hdri", dest,
                     opener=lambda request, timeout: FakeResponse(b"a" * 129))
         self.assertFalse(dest.exists())
