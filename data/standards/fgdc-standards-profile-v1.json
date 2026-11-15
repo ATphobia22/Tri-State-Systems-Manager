@@ -116,6 +116,87 @@
       "use": [
         "time-indexed gridded model output"
       ]
+    },
+    {
+      "id": "FGDC-STD-013-2006",
+      "title": "Digital Cartographic Standard for Geologic Map Symbolization",
+      "version": "2006",
+      "status": "REFERENCE_ACTIVE",
+      "url": "https://www.fgdc.gov/standards/projects/geo-symbol/",
+      "use": [
+        "attributed geological polygon symbology",
+        "geologic-map legend mapping"
+      ]
+    },
+    {
+      "id": "FGDC-STD-014.1-2008",
+      "title": "Geographic information Framework Data Standard — Cadastral",
+      "version": "2008",
+      "status": "REFERENCE_ACTIVE",
+      "url": "https://www.fgdc.gov/standards/list",
+      "use": [
+        "cadastral / parcel feature definitions"
+      ]
+    },
+    {
+      "id": "FGDC-STD-014.3-2008",
+      "title": "Geographic information Framework Data Standard — Elevation",
+      "version": "2008",
+      "status": "REFERENCE_ACTIVE",
+      "url": "https://www.fgdc.gov/standards/list",
+      "use": [
+        "terrain/elevation data content reference"
+      ]
+    },
+    {
+      "id": "FGDC-STD-014.4-2008",
+      "title": "Geographic information Framework Data Standard — Geodetic Control",
+      "version": "2008",
+      "status": "REFERENCE_ACTIVE",
+      "url": "https://www.fgdc.gov/standards/list",
+      "use": [
+        "control-station source metadata reference"
+      ]
+    },
+    {
+      "id": "FGDC-STD-014.6-2008",
+      "title": "Geographic information Framework Data Standard — Hydrography",
+      "version": "2008",
+      "status": "REFERENCE_ACTIVE",
+      "url": "https://www.fgdc.gov/standards/list",
+      "use": [
+        "river and drainage feature content reference"
+      ]
+    },
+    {
+      "id": "FGDC-STD-014.7-2008",
+      "title": "Geographic information Framework Data Standard — Transportation Base",
+      "version": "2008",
+      "status": "REFERENCE_ACTIVE",
+      "url": "https://www.fgdc.gov/standards/list",
+      "use": [
+        "road and transport feature content reference"
+      ]
+    },
+    {
+      "id": "FGDC-STD-016-2011",
+      "title": "United States Thoroughfare, Landmark and Postal Address Data Standard",
+      "version": "2011",
+      "status": "REFERENCE_ACTIVE",
+      "url": "https://www.fgdc.gov/standards/list",
+      "use": [
+        "street address validation terminology and interoperability"
+      ]
+    },
+    {
+      "id": "ISO-19139",
+      "title": "Geographic information — Metadata — XML schema implementation",
+      "version": "family reference; edition not pinned",
+      "status": "REFERENCE_ACTIVE",
+      "url": "https://www.fgdc.gov/metadata/iso-standards",
+      "use": [
+        "ISO 19139 legacy metadata XML parsing"
+      ]
     }
   ]
 }
