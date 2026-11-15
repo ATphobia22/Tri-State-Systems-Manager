@@ -134,7 +134,7 @@ def acquire(registry: dict, asset_id: str, destination: Path, *,
     opener = opener or build_opener(PinnedRedirect(asset["provider"])).open
     receipt_files = []
     total = 0
-    with tempfile.TemporaryDirectory(prefix=".tsm-asset-", dir=dest.parent) as tmp:
+    with tempfile.TemporaryDirectory(prefix=".tsm-asset-", dir=dest.parent, ignore_cleanup_errors=True) as tmp:
         temp_root = Path(tmp)
         for f in asset["files"]:
             validate_url(f["download_url"], asset["provider"])
