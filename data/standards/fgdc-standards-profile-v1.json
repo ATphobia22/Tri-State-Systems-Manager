@@ -133,7 +133,7 @@
       "title": "Geographic information Framework Data Standard — Cadastral",
       "version": "2008",
       "status": "REFERENCE_ACTIVE",
-      "url": "https://www.fgdc.gov/standards/list",
+      "url": "https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part1_Cadastral.pdf",
       "use": [
         "cadastral / parcel feature definitions"
       ]
@@ -143,7 +143,7 @@
       "title": "Geographic information Framework Data Standard — Elevation",
       "version": "2008",
       "status": "REFERENCE_ACTIVE",
-      "url": "https://www.fgdc.gov/standards/list",
+      "url": "https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part3_Elevation.pdf",
       "use": [
         "terrain/elevation data content reference"
       ]
@@ -153,7 +153,7 @@
       "title": "Geographic information Framework Data Standard — Geodetic Control",
       "version": "2008",
       "status": "REFERENCE_ACTIVE",
-      "url": "https://www.fgdc.gov/standards/list",
+      "url": "https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part4_GeodeticControl.pdf",
       "use": [
         "control-station source metadata reference"
       ]
@@ -163,7 +163,7 @@
       "title": "Geographic information Framework Data Standard — Hydrography",
       "version": "2008",
       "status": "REFERENCE_ACTIVE",
-      "url": "https://www.fgdc.gov/standards/list",
+      "url": "https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part6_Hydrography.pdf",
       "use": [
         "river and drainage feature content reference"
       ]
@@ -173,7 +173,7 @@
       "title": "Geographic information Framework Data Standard — Transportation Base",
       "version": "2008",
       "status": "REFERENCE_ACTIVE",
-      "url": "https://www.fgdc.gov/standards/list",
+      "url": "https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part7_Transportation_Base.pdf",
       "use": [
         "road and transport feature content reference"
       ]
@@ -183,7 +183,7 @@
       "title": "United States Thoroughfare, Landmark and Postal Address Data Standard",
       "version": "2011",
       "status": "REFERENCE_ACTIVE",
-      "url": "https://www.fgdc.gov/standards/list",
+      "url": "https://www.fgdc.gov/standards/projects/address-data/index_html",
       "use": [
         "street address validation terminology and interoperability"
       ]
@@ -196,6 +196,28 @@
       "url": "https://www.fgdc.gov/metadata/iso-standards",
       "use": [
         "ISO 19139 legacy metadata XML parsing"
+      ]
+    },
+    {
+      "id": "FGDC-STD-014.7c-2008",
+      "title": "Geographic Information Framework Data Standard — Transportation Road",
+      "version": "2008",
+      "status": "REFERENCE_ACTIVE",
+      "url": "https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part7c_Transportation_Road.pdf",
+      "use": [
+        "retained road centerline identities and classifications",
+        "cross-county road exchange"
+      ]
+    },
+    {
+      "id": "OGC-3D-TILES-1.1",
+      "title": "OGC 3D Tiles Specification",
+      "version": "1.1 (22-025r4)",
+      "status": "REFERENCE_ACTIVE",
+      "url": "https://docs.ogc.org/cs/22-025r4/22-025r4.html",
+      "use": [
+        "building tileset hierarchy and implicit availability",
+        "bounding volumes and glTF payload structure"
       ]
     }
   ]

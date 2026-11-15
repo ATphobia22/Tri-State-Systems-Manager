@@ -1,8 +1,12 @@
+from pathlib import Path
+import struct
+from tempfile import TemporaryDirectory
 import unittest
 
 import numpy as np
 
-from build_cesium_regional_scene import river_access_elevation
+from build_cesium_regional_scene import POSTS, river_access_elevation
+from verify_cesium_regional_scene import verify_terrain_level
 
 
 class CityScreeningTests(unittest.TestCase):
@@ -24,3 +28,31 @@ class CityScreeningTests(unittest.TestCase):
             river_access_elevation(np.array([[2]]), seed)
         with self.assertRaises(ValueError):
             river_access_elevation(np.array([[np.nan]]), ~seed)
+
+
+class RegionalTerrainVerificationTests(unittest.TestCase):
+    def test_checks_both_terrain_axes_and_rejects_a_single_bad_shared_post(self):
+        area = {"startX": 2, "endX": 3, "startY": 5, "endY": 6}
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for x in range(2, 4):
+                (root / str(x)).mkdir()
+                for y in range(5, 7):
+                    posts = [
+                        x * (POSTS - 1) + column + (y + 1) * (POSTS - 1) - row
+                        for row in range(POSTS)
+                        for column in range(POSTS)
+                    ]
+                    (root / str(x) / f"{y}.terrain").write_bytes(
+                        struct.pack(f"<{len(posts)}H", *posts) + b"\0\0",
+                    )
+            files, edges = verify_terrain_level(root, area, None)
+            self.assertEqual((len(files), edges), (4, 4))
+            tile = root / "3/6.terrain"
+            original = tile.read_bytes()
+            for offset, axis in ((0, "East-west"), (2 * (POSTS*POSTS - 1), "North-south")):
+                corrupt = bytearray(original)
+                corrupt[offset] ^= 1
+                tile.write_bytes(corrupt)
+                with self.assertRaisesRegex(ValueError, axis):
+                    verify_terrain_level(root, area, None)
