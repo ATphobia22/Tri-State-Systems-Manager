@@ -1,0 +1,33 @@
+name: FGDC metadata and standards reference gate
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'data/standards/**'
+      - 'data/regulatory/nfhl-indiana-20260706-metadata.xml'
+      - 'data/tsm-fgdc-tristate-geospatial-registry-v1.json'
+      - 'scripts/geospatial/fgdc_metadata_gate.py'
+      - 'tests/geospatial/test_fgdc_metadata_gate.py'
+      - '.github/workflows/fgdc-metadata-gate.yml'
+  pull_request:
+    paths:
+      - 'data/standards/**'
+      - 'data/regulatory/nfhl-indiana-20260706-metadata.xml'
+      - 'data/tsm-fgdc-tristate-geospatial-registry-v1.json'
+      - 'scripts/geospatial/fgdc_metadata_gate.py'
+      - 'tests/geospatial/test_fgdc_metadata_gate.py'
+      - '.github/workflows/fgdc-metadata-gate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  metadata:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - run: python -m unittest discover -s tests/geospatial -p test_fgdc_metadata_gate.py -v
+      - run: python scripts/geospatial/fgdc_metadata_gate.py
+      - run: python -m compileall -q scripts/geospatial/fgdc_metadata_gate.py
