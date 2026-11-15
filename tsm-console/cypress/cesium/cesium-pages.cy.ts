@@ -25,15 +25,15 @@ describe('Public Cesium 4D view on the project Pages base', () => {
       const report = win.console.error.bind(win.console);
       win.console.error = (message, ...details) => {
         if (message === 'Cesium render loop failed') {
-          renderErrors.push(...details.map((detail) => String(detail?.stack ?? detail)));
+          renderErrors.push(...details.map((detail) => detail?.message ? `${detail.message}\n${detail.stack ?? ''}` : String(detail)));
         }
         report(message, ...details);
       };
     } });
     cy.contains('h1', 'Tri-State River Valley').should('be.visible');
     cy.get('.tsm-cesium-viewport canvas', { timeout: 30000 }).should('be.visible');
-    cy.wait(['@terrainTile', '@poseyFootprints', '@buildingSubtree', '@buildingTile'], { requestTimeout: 60000 }).each((hit) => {
-      expect(hit.response?.statusCode).to.eq(200);
+    cy.wait(['@terrainTile', '@poseyFootprints', '@buildingSubtree', '@buildingTile'], { requestTimeout: 60000 }).then((hits) => {
+      for (const hit of hits) expect(hit.response?.statusCode).to.eq(200);
     });
     cy.get('@poseyFootprints').its('response.body.metadata.featureCount').should('eq', 2565);
     cy.get('[data-testid="cesium-terrain-status"]').should('have.attr', 'data-state', 'ready');
@@ -60,6 +60,25 @@ describe('Public Cesium 4D view on the project Pages base', () => {
     cy.get('#cesium-shot-frame').should('have.attr', 'max', '143');
     setRange('#cesium-shot-frame', '143');
     cy.get('label[for="cesium-shot-frame"] output').should('have.text', '5.96 s');
+    cy.get('.tsm-cesium-error').should('not.exist');
+
+    cy.get<HTMLCanvasElement>('.tsm-cesium-viewport canvas').then(([$canvas]) => {
+      const extension = $canvas!.getContext('webgl2')?.getExtension('WEBGL_lose_context');
+      expect(extension, 'Chrome WebGL context loss test extension').to.exist;
+      extension!.loseContext();
+      cy.get('.tsm-cesium-error').should('contain.text', 'Graphics paused');
+      cy.get('#cesium-film-shot').should('be.disabled');
+      cy.then(() => extension!.restoreContext());
+      cy.get<HTMLCanvasElement>('.tsm-cesium-viewport canvas', { timeout: 30000 }).should(([canvas]) => {
+        expect(canvas).not.to.eq($canvas);
+        expect(canvas?.getContext('webgl2')?.drawingBufferWidth).to.be.greaterThan(0);
+      });
+    });
+    cy.get('.tsm-cesium-error').should('not.exist');
+    cy.get('#cesium-film-shot').should('have.value', '03-new-harmony');
+    cy.get('label[for="cesium-day"] output').should('have.text', '2025-04-01');
+    cy.get('label[for="cesium-shot-frame"] output').should('have.text', '5.96 s');
+    cy.contains('label', 'Mount Vernon detail').find('input').should('be.checked');
     cy.get('#cesium-film-shot').select('04-flood-comparison');
     cy.get('#cesium-shot-frame').should('not.exist');
     cy.contains('Flood comparison requires a calibrated model and verified water-surface provenance.');
