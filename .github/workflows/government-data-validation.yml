@@ -6,11 +6,13 @@ on:
   push:
     branches: [main]
     paths:
+      - 'package-lock.json'
       - 'packages/government/src/liveIngestion.ts'
       - 'packages/government/scripts/ingest-live.ts'
       - '.github/workflows/government-data-validation.yml'
   pull_request:
     paths:
+      - 'package-lock.json'
       - 'packages/government/**'
       - 'packages/geo/src/nfhl/**'
       - 'packages/research/src/government-research-fabric.ts'

@@ -10,6 +10,7 @@ from pathlib import Path, PurePosixPath
 import re
 import tarfile
 import tempfile
+from zipfile import ZipFile
 
 from pyproj import Transformer
 
@@ -21,6 +22,7 @@ from validate_spatial_coherence import check_implicit
 
 ARCHIVE_DIR = ROOT / "data/fabrics/downloads/posey-preview-2026-11-13"
 ARCHIVE_DIGEST = "b82c1bca02e176f57e97ef7b5d46830091f02564ad4898c46ad30f6f0ff3b7ac"
+DRIVE_PREVIEW_DIGEST = "ee0fcc542c6b17469e4e949608dc6aab60191552349a05c18652979fe8e880ee"
 TILESET_DIGEST = "c0b76826ac97079b59064c57dd56eced9500b45dbd7f346dbd076bca957ee784"
 FOOTPRINT_DIGEST = "d8a46b86616becfdea9c9164e7a219317d5963b86fba47e4c1f8f880ccbb559f"
 FOOTPRINT_SOURCE = ("https://github.com/ATphobia22/Tri-State-Systems-Manager/releases/download/"
@@ -31,6 +33,23 @@ FOOTPRINT_COUNT = 23082
 MESH_FILE_COUNT = 861
 SUBTREE_COUNT = 493
 ASSET_PATH = re.compile(r"tileset\.json|content/\d+/\d+/\d+\.glb|subtrees/\d+/\d+/\d+\.(subtree|bin)")
+
+
+def unpack_drive_preview(archive_path: Path, output: Path) -> None:
+    if file_sha256(archive_path) != DRIVE_PREVIEW_DIGEST:
+        raise ValueError("Posey Drive preview ZIP digest mismatch")
+    with ZipFile(archive_path) as archive:
+        files = set()
+        for member in archive.infolist():
+            if member.is_dir() or not member.filename.startswith("tiles/"):
+                continue
+            name = member.filename.removeprefix("tiles/")
+            if not ASSET_PATH.fullmatch(name) or name in files:
+                raise ValueError(f"Unexpected preview ZIP entry: {member.filename}")
+            files.add(name)
+            target = output / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(archive.read(member))
 
 
 def unpack_preview(output: Path) -> None:
@@ -54,8 +73,6 @@ def unpack_preview(output: Path) -> None:
                 target.parent.mkdir(parents=True, exist_ok=True)
                 with archive.extractfile(member) as payload:
                     target.write_bytes(payload.read())
-    if file_sha256(output / "tileset.json") != TILESET_DIGEST:
-        raise ValueError("Original Posey preview tileset digest mismatch")
 
 
 def mesh_ids(directory: Path, tileset: dict) -> set[int]:
@@ -103,14 +120,21 @@ def align_for_terrain(tileset: dict) -> dict:
     }
 
 
-def stage(footprints: Path, output: Path) -> None:
+def stage(footprints: Path, output: Path, preview_zip: Path | None = None) -> None:
     if file_sha256(footprints) != FOOTPRINT_DIGEST:
         raise ValueError("Posey footprint inventory digest mismatch")
     source = json.loads(footprints.read_bytes())["features"]
     source_ids = {f["properties"]["objectid"] for f in source}
     if len(source) != len(source_ids) or len(source_ids) != FOOTPRINT_COUNT:
         raise ValueError("Posey footprint inventory or identity count mismatch")
-    unpack_preview(output)
+    archive_digest = ARCHIVE_DIGEST
+    if preview_zip is None:
+        unpack_preview(output)
+    else:
+        unpack_drive_preview(preview_zip, output)
+        archive_digest = DRIVE_PREVIEW_DIGEST
+    if file_sha256(output / "tileset.json") != TILESET_DIGEST:
+        raise ValueError("Original Posey preview tileset digest mismatch")
     tileset = json.loads((output / "tileset.json").read_bytes())
     seen = mesh_ids(output, tileset)
     if seen - source_ids:
@@ -138,7 +162,7 @@ def stage(footprints: Path, output: Path) -> None:
         "sourceLayer": FOOTPRINT_LAYER, "sourceFootprintArchive": FOOTPRINT_SOURCE,
         "sourceFootprintSha256": FOOTPRINT_DIGEST, "footprintCount": len(source_ids),
         "meshCount": len(seen), "footprintOnlyCount": len(missing),
-        "previewArchiveSha256": ARCHIVE_DIGEST, "originalTilesetSha256": TILESET_DIGEST,
+        "previewArchiveSha256": archive_digest, "originalTilesetSha256": TILESET_DIGEST,
         "displayAlignment": alignment,
     })
     print(f"Posey {len(seen)} preview meshes and {len(missing)} footprint-only IDs reconciled to {len(source_ids)} source IDs")
@@ -148,8 +172,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--footprints", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument("--preview-zip", type=Path, help="Use the pinned Posey Drive preview ZIP")
     args = parser.parse_args()
-    stage(args.footprints, args.output)
+    stage(args.footprints, args.output, args.preview_zip)
 
 
 if __name__ == "__main__":

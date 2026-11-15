@@ -1,3 +1,13 @@
+function setRange(selector: string, value: string) {
+  cy.get(selector).then(($range) => {
+    const input = $range[0] as HTMLInputElement;
+    const ownerWindow = input.ownerDocument.defaultView!;
+    Object.getOwnPropertyDescriptor(ownerWindow.HTMLInputElement.prototype, 'value')!.set!.call(input, value);
+    input.dispatchEvent(new ownerWindow.Event('input', { bubbles: true }));
+    input.dispatchEvent(new ownerWindow.Event('change', { bubbles: true }));
+  });
+}
+
 describe('Public Cesium 4D view on the project Pages base', () => {
   it('streams terrain and buildings, draws local sources and switches replay and screening', () => {
     cy.intercept('GET', '**/data/cesium-regional/terrain/**/*.terrain').as('terrainTile');
@@ -21,13 +31,7 @@ describe('Public Cesium 4D view on the project Pages base', () => {
     cy.wait('@city', { requestTimeout: 30000 }).its('response.statusCode').should('eq', 200);
     cy.get('[data-testid="cesium-city-status"]', { timeout: 30000 }).should('have.attr', 'data-state', 'ready');
     cy.contains('.tsm-cesium-reading a', 'Evansville, IN').should('exist');
-    cy.get('#cesium-day').then(($range) => {
-      const input = $range[0] as HTMLInputElement;
-      const ownerWindow = input.ownerDocument.defaultView!;
-      Object.getOwnPropertyDescriptor(ownerWindow.HTMLInputElement.prototype, 'value')!.set!.call(input, '0');
-      input.dispatchEvent(new ownerWindow.Event('input', { bubbles: true }));
-      input.dispatchEvent(new ownerWindow.Event('change', { bubbles: true }));
-    });
+    setRange('#cesium-day', '0');
     cy.contains('output', '2025-04-01');
     cy.contains('label', 'Show hypothetical extent').find('input').check();
     cy.wait('@screening').its('response.statusCode').should('eq', 200);
@@ -36,6 +40,16 @@ describe('Public Cesium 4D view on the project Pages base', () => {
     cy.screenshot('mount-vernon-cesium-and-screening');
     cy.get('#cesium-place').select('Henderson, KY');
     cy.get('.tsm-cesium-place').should('contain.text', 'Henderson, KY');
+
+    cy.get('#cesium-film-shot').select('03-new-harmony');
+    cy.get('.tsm-cesium-place').should('contain.text', 'New Harmony, IN');
+    cy.get('label[for="cesium-day"] output').should('have.text', '2025-04-01');
+    cy.get('#cesium-shot-frame').should('have.attr', 'max', '143');
+    setRange('#cesium-shot-frame', '143');
+    cy.get('label[for="cesium-shot-frame"] output').should('have.text', '5.96 s');
+    cy.get('#cesium-film-shot').select('04-flood-comparison');
+    cy.get('#cesium-shot-frame').should('not.exist');
+    cy.contains('Flood comparison requires a calibrated model and verified water-surface provenance.');
   });
   it('supports IN/IL/KY camera selection on a mobile Pages viewport', () => {
     cy.viewport(390, 844);

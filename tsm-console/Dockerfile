@@ -20,6 +20,7 @@ COPY data/scenarios/1937-ohio-river-flood.json \
      data/scenarios/q100-design-event.json \
      /app/data/scenarios/
 COPY data/schemas/flood-sim-scenario.schema.json /app/data/schemas/flood-sim-scenario.schema.json
+COPY data/cinematic/film-shot-plan.v1.json /app/data/cinematic/film-shot-plan.v1.json
 COPY artifacts/tsm-geospatial-tile-fabric-v1.json \
      artifacts/tsm-river-valley-realtime-stations-v1.json \
      /app/artifacts/
