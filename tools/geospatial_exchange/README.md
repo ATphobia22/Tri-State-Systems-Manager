@@ -119,3 +119,20 @@ GoldSrc game editor assets, or browser-based runtime was installed.
 
 **Gate result:** structural/metadata interoperability only. Headed MapLibre
 styling and offline Windows Shipping require their own evidence.
+
+
+### Offline searchable metadata catalog
+
+After normalizing one or more saved agency XML documents, use the lightweight
+Geoportal-inspired discovery adapter:
+
+```bash
+python tools/geospatial_exchange/metadata_catalog_query.py nfhl-metadata-normalized.json --keyword flood --family FGDC_CSDGM
+python tools/geospatial_exchange/metadata_catalog_query.py nfhl-metadata-normalized.json --bbox -88.5 37.5 -87.5 38.5
+```
+
+The spatial query filters only **bounds reported in descriptive XML**, not
+actual feature extents, verified county footprints, surveys or live layers.
+It does not run STAC harvesting (the existing `stac-plan` tool owns that
+flow), Geoportal/Elasticsearch, WFS, CSW or a web API. Use the existing
+authority registry and snapshot adapters for separately approved acquisitions.
