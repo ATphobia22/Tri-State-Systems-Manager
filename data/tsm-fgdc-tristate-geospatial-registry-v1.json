@@ -1,0 +1,206 @@
+{
+  "schema": "tsm-fgdc-tristate-geospatial-registry",
+  "version": "1.0.0",
+  "dated": "2026-11-15",
+  "authority_note": "Discovery and adapter targets only. Not regulatory determinations.",
+  "directories": [
+    {
+      "id": "geoplatform",
+      "name": "GeoPlatform.gov",
+      "url": "https://www.geoplatform.gov/",
+      "role": "FGDC federal geospatial catalog / NGDA"
+    },
+    {
+      "id": "data-gov-geospatial",
+      "name": "Data.gov Geospatial Catalog",
+      "url": "https://catalog.data.gov/dataset?metadata_type=geospatial",
+      "role": "Aggregated open geospatial datasets"
+    },
+    {
+      "id": "fgdc-data-services",
+      "name": "FGDC Data and Services",
+      "url": "https://www.fgdc.gov/dataandservices",
+      "role": "Entry to GeoPlatform search"
+    }
+  ],
+  "federal": {
+    "core_cartography": [
+      {
+        "agency": "USGS",
+        "products": ["The National Map", "3DEP", "NHD", "3DHP", "topo quadrangles"],
+        "urls": [
+          "https://www.usgs.gov/3d-elevation-program",
+          "https://apps.nationalmap.gov/"
+        ],
+        "tsm_priority": "P0"
+      },
+      {
+        "agency": "BLM",
+        "products": ["PLSS", "federal land ownership", "GLO plats"],
+        "urls": ["https://www.blm.gov/services/land-records"],
+        "tsm_priority": "P3"
+      },
+      {
+        "agency": "US Census Bureau",
+        "products": ["TIGER/Line"],
+        "urls": ["https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html"],
+        "tsm_priority": "P1"
+      },
+      {
+        "agency": "NPS",
+        "products": ["park boundaries", "trails", "cultural resource GIS"],
+        "urls": ["https://www.nps.gov/subjects/gisandmapping/"],
+        "tsm_priority": "P3"
+      }
+    ],
+    "water_weather_flood": [
+      {
+        "agency": "FEMA",
+        "products": ["MSC", "NFHL", "FIRM", "BFE", "LOMA", "LOMR"],
+        "urls": [
+          "https://msc.fema.gov/",
+          "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer"
+        ],
+        "tsm_priority": "P0",
+        "notes": "Effective NFHL REST; hardcopy FIRM+FIS control under 44 CFR when conflict"
+      },
+      {
+        "agency": "NOAA NGS",
+        "products": ["NSRS", "datums", "benchmarks"],
+        "urls": ["https://geodesy.noaa.gov/"],
+        "tsm_priority": "P0"
+      },
+      {
+        "agency": "NOAA NWS",
+        "products": ["radar", "warnings", "river forecasts"],
+        "urls": ["https://water.weather.gov/", "https://www.weather.gov/"],
+        "tsm_priority": "P0"
+      },
+      {
+        "agency": "NOAA Coast Survey",
+        "products": ["nautical charts", "bathymetry"],
+        "urls": ["https://nauticalcharts.noaa.gov/"],
+        "tsm_priority": "P2"
+      },
+      {
+        "agency": "USACE",
+        "products": ["NLD", "eHydro", "dams", "navigation"],
+        "urls": ["https://www.nld.usace.army.mil/"],
+        "tsm_priority": "P1"
+      }
+    ],
+    "environment": [
+      {
+        "agency": "USDA NRCS",
+        "products": ["Web Soil Survey"],
+        "urls": ["https://websoilsurvey.nrcs.usda.gov/"],
+        "tsm_priority": "P2"
+      },
+      {
+        "agency": "USDA FSA",
+        "products": ["NAIP"],
+        "urls": ["https://naip-usdaonline.hub.arcgis.com/"],
+        "tsm_priority": "P2"
+      },
+      {
+        "agency": "USFWS",
+        "products": ["NWI", "critical habitat"],
+        "urls": ["https://www.fws.gov/program/national-wetlands-inventory"],
+        "tsm_priority": "P2"
+      },
+      {
+        "agency": "EPA",
+        "products": ["EnviroAtlas", "ECHO", "Superfund boundaries"],
+        "urls": ["https://www.epa.gov/enviroatlas", "https://echo.epa.gov/"],
+        "tsm_priority": "P2"
+      }
+    ],
+    "infrastructure": [
+      {
+        "agency": "USDOT BTS",
+        "products": ["National Transportation Atlas"],
+        "urls": ["https://www.bts.gov/"],
+        "tsm_priority": "P1"
+      },
+      {
+        "agency": "HUD",
+        "products": ["QCT", "Opportunity Zones"],
+        "urls": ["https://www.huduser.gov/"],
+        "tsm_priority": "P3"
+      },
+      {
+        "agency": "HRSA",
+        "products": ["MUA", "HPSA"],
+        "urls": ["https://data.hrsa.gov/"],
+        "tsm_priority": "P3"
+      }
+    ]
+  },
+  "tri_state": {
+    "indiana": [
+      {
+        "entity": "IGIO",
+        "products": ["IndianaMap", "Elevation Hub", "ortho", "LiDAR QL2-QL1"],
+        "urls": [
+          "https://www.indianamap.org/",
+          "https://elevation.gio.in.gov/",
+          "https://imagery.gio.in.gov/",
+          "https://registry.opendata.aws/in-elevation/"
+        ],
+        "license_note": "State elevation/imagery often CC0; verify per product",
+        "tsm_priority": "P0"
+      },
+      {
+        "entity": "IGWS",
+        "products": ["geology", "coal mines", "karst", "water resources"],
+        "urls": ["https://igws.indiana.edu/"],
+        "tsm_priority": "P2"
+      },
+      {
+        "entity": "IDNR",
+        "products": ["INFIP", "Best Available Flood Hazard"],
+        "urls": [],
+        "tsm_priority": "P1",
+        "notes": "Distinct from effective FEMA FIRM"
+      }
+    ],
+    "illinois": [
+      {
+        "entity": "ISGS Clearinghouse",
+        "products": ["ILHMP LiDAR", "DEM", "DTM", "DSM", "geology"],
+        "urls": [
+          "https://clearinghouse.isgs.illinois.edu/",
+          "https://clearinghouse.isgs.illinois.edu/data/elevation/lidar/"
+        ],
+        "tsm_priority": "P0"
+      }
+    ],
+    "kentucky": [
+      {
+        "entity": "DGI KyFromAbove",
+        "products": ["ortho", "LiDAR LAZ", "DEM", "oblique imagery"],
+        "urls": [
+          "https://kyfromabove.ky.gov/",
+          "https://kygeonet.ky.gov/catalogexplorer/",
+          "https://registry.opendata.aws/kyfromabove/"
+        ],
+        "license_note": "Public domain / free distribution per program",
+        "tsm_priority": "P0"
+      }
+    ]
+  },
+  "nfhl_layers_reference": {
+    "service": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer",
+    "notable_layer_ids": {
+      "0": "NFHL Availability",
+      "1": "LOMRs",
+      "3": "FIRM Panels",
+      "14": "Cross-Sections",
+      "16": "Base Flood Elevations",
+      "22": "Political Jurisdictions",
+      "23": "Levees",
+      "28": "Flood Hazard Zones",
+      "34": "LOMAs"
+    }
+  }
+}
