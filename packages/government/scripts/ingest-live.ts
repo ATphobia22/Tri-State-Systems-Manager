@@ -4,7 +4,25 @@
  * No live HTTP is called by the offline Windows/Unreal application.
  */
 import { readFile } from 'node:fs/promises';
+import { setTimeout as delay } from 'node:timers/promises';
 import { ingestGovernmentJson,type IngestRequest } from '../src/liveIngestion.ts';
+
+async function captureWithRetries(config: IngestRequest) {
+ const retryDelays = [2000, 5000];
+ for (let attempt = 0; ; attempt += 1) {
+  try {
+   return await ingestGovernmentJson(config, { timeoutMs: 20000 });
+  } catch (error) {
+   const wait = retryDelays[attempt];
+   const message = error instanceof Error ? error.message : '';
+   if (wait === undefined || !/^(fetch failed|timeout|GOVERNMENT_SOURCE_HTTP_(429|500|502|503|504))$/.test(message)) {
+    throw error;
+   }
+   process.stderr.write(`Retrying ${config.datasetId} after ${message}\n`);
+   await delay(wait);
+  }
+ }
+}
 
 async function main():Promise<void>{
  const file=process.argv[2];
@@ -13,7 +31,7 @@ async function main():Promise<void>{
  if(raw.byteLength>16_384)throw new Error('INGEST_CONFIG_TOO_LARGE');
  const config=JSON.parse(raw.toString('utf8')) as IngestRequest;
  if(!config||typeof config!=='object'||Array.isArray(config))throw new Error('INGEST_CONFIG_REQUIRED');
- const snapshot=await ingestGovernmentJson(config,{timeoutMs:20000});
+ const snapshot=await captureWithRetries(config);
  process.stdout.write(JSON.stringify({datasetId:snapshot.manifest.datasetId,
    validationStatus:snapshot.manifest.validationStatus,sha256:snapshot.manifest.sha256,
    files:[snapshot.bytesPath,snapshot.manifestPath,snapshot.envelopePath]},null,2)+'\n');
