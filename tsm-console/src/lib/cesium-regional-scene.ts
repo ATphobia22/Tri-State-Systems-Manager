@@ -6,6 +6,7 @@ import {
   ScreenSpaceEventType, UrlTemplateImageryProvider, GroundPrimitive,
 } from 'cesium';
 import { loadMountVernonCityScene } from './mount-vernon-city-scene';
+import { ContextRecoveryManager } from './webgl-context-recovery';
 
 export const CESIUM_VIEWS = [
   { id: 'mount-vernon', name: 'Mount Vernon, IN', lon: -87.898, lat: 37.932, range: 4300, heading: 15 },
@@ -107,16 +108,36 @@ export function mountCesiumRegionalScene(
   onPick: (feature: PickedFeature | null) => void,
   onError: (message: string) => void,
   onImageryError: () => void,
+  onContextStatus: (state: 'lost' | 'restored') => void,
 ) {
   const abort = new AbortController();
+  let stopped = false;
   const widget = new CesiumWidget(element, {
     baseLayer: false, requestRenderMode: true, maximumRenderTimeChange: Infinity,
+    // Keep globe depth buffers single-sampled for the streamed layers.
+    msaaSamples: 1,
     targetFrameRate: 45, scene3DOnly: true, showRenderLoopErrors: false,
   });
   const { scene, camera } = widget;
+  const gl = widget.canvas.getContext('webgl2');
+  const recovery = new ContextRecoveryManager({
+    onStateChange(state) {
+      if (stopped) return;
+      if (state === 'lost') {
+        widget.useDefaultRenderLoop = false;
+        onContextStatus('lost');
+      } else if (state === 'restored') {
+        onContextStatus('restored');
+      }
+    },
+  });
+  recovery.attach(widget.canvas);
   scene.renderError.addEventListener((_scene: unknown, error: unknown) => {
-    console.error('Cesium render loop failed', error);
-    onError('Cesium stopped rendering. Reload this view to try again.');
+    widget.useDefaultRenderLoop = false;
+    // The browser's context loss event drives a full widget rebuild on restoration.
+    if (gl?.isContextLost()) return;
+    console.error('Cesium render loop failed', error, `Drawing buffer ${scene.drawingBufferWidth} × ${scene.drawingBufferHeight}`);
+    onError('Cesium stopped rendering.');
   });
   scene.globe!.depthTestAgainstTerrain = true;
   scene.globe!.baseColor = Color.fromCssColorString('#545f50');
@@ -133,7 +154,6 @@ export function mountCesiumRegionalScene(
   let cityStarted = false;
   let screening: GeoJsonDataSource | undefined;
   let screeningRequest: AbortController | undefined;
-  let stopped = false;
   const update = (layer: SceneLayer, state: LayerState['state'], detail: string) => {
     if (!stopped) onLayer(layer, { state, detail });
   };
@@ -251,7 +271,7 @@ export function mountCesiumRegionalScene(
     url: `${IMAGERY}/tile/{z}/{y}/{x}`, maximumLevel: 16,
     credit: new Credit('USGS The National Map · USDA orthoimagery', true),
   });
-  imagery.errorEvent.addEventListener(onImageryError);
+  imagery.errorEvent.addEventListener(() => { if (!stopped) onImageryError(); });
   const aerial = widget.imageryLayers.addImageryProvider(imagery);
   const holder = new ScreenSpaceEventHandler(widget.canvas);
   holder.setInputAction(({ position }: { position: Parameters<typeof scene.pick>[0] }) => {
@@ -272,7 +292,6 @@ export function mountCesiumRegionalScene(
     scene.requestRender();
   };
 
-  fly(0, 0);
   void loadTerrain();
   void loadBuildings();
   void loadRoads();
@@ -350,6 +369,7 @@ export function mountCesiumRegionalScene(
       stopped = true;
       abort.abort();
       screeningRequest?.abort();
+      recovery.dispose();
       holder.destroy();
       widget.destroy();
     },

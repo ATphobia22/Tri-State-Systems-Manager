@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import 'cesium/Build/Cesium/Widgets/widgets.css';
 import { FILM_PREVIEW_FPS, FILM_SHOTS, lastShotFrame, sampleShotCamera } from '../lib/cesium-film-shots';
@@ -24,6 +24,8 @@ export default function CesiumRegionalTwinView() {
   const timer = useRef<number | undefined>(undefined);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState('');
+  const [graphicsPaused, setGraphicsPaused] = useState(false);
+  const [sceneVersion, setSceneVersion] = useState(0);
   const [place, setPlace] = useState(0);
   const [tour, setTour] = useState(false);
   const [shotId, setShotId] = useState('');
@@ -49,6 +51,12 @@ export default function CesiumRegionalTwinView() {
   const shot = FILM_SHOTS.find(({ id }) => id === shotId);
   const preview = shot?.preview;
 
+  const restoreSceneSelections = useEffectEvent((next: Scene) => {
+    next.fly(place, 0);
+    for (const { id, initial } of LAYERS) next.setLayer(id, visible[id] ?? initial);
+    next.setImagery(aerial);
+  });
+
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
     const update = () => {
@@ -67,18 +75,47 @@ export default function CesiumRegionalTwinView() {
 
   useEffect(() => {
     if (!host.current) return;
+    setStatus({});
+    setImageryError(false);
+    const pause = () => {
+      window.clearTimeout(timer.current);
+      setTour(false);
+      setShotPlayStart(null);
+      setReady(false);
+    };
     try {
-      scene.current = mountCesiumRegionalScene(
+      const next = mountCesiumRegionalScene(
         host.current,
         (id, layer) => setStatus((current) => ({ ...current, [id]: layer })),
         setPicked,
-        setError,
+        (message) => { pause(); setError(message); },
         () => setImageryError(true),
+        (state) => {
+          if (state === 'restored') {
+            setSceneVersion((version) => version + 1);
+          } else {
+            pause();
+            setGraphicsPaused(true);
+          }
+        },
       );
+      scene.current = next;
+      restoreSceneSelections(next);
       setReady(true);
+      setError('');
     } catch {
+      setReady(false);
       setError('Cesium could not start. A browser with WebGL 2 is required.');
     }
+    setGraphicsPaused(false);
+    return () => {
+      window.clearTimeout(timer.current);
+      scene.current?.destroy();
+      scene.current = null;
+    };
+  }, [sceneVersion]);
+
+  useEffect(() => {
     const abort = new AbortController();
     loadCesiumReplay(abort.signal).then(setReplay).catch(() => {
       if (!abort.signal.aborted) setReplayError(true);
@@ -86,23 +123,18 @@ export default function CesiumRegionalTwinView() {
     loadCityScreening(abort.signal).then(setScreening).catch(() => {
       if (!abort.signal.aborted) setScreeningStatus('Mount Vernon screening archive unavailable.');
     });
-    return () => {
-      abort.abort();
-      window.clearTimeout(timer.current);
-      scene.current?.destroy();
-      scene.current = null;
-    };
+    return () => abort.abort();
   }, []);
 
   useEffect(() => {
-    scene.current?.setTime(date, hour, replay);
-  }, [date, hour, replay, ready]);
+    if (ready) scene.current?.setTime(date, hour, replay);
+  }, [date, hour, replay, ready, sceneVersion]);
 
   useEffect(() => {
     if (!ready || !preview) return;
     const { headingOffsetDeg, rangeScale } = sampleShotCamera(preview, shotFrame);
     scene.current?.setShotCamera(preview.view, headingOffsetDeg, rangeScale);
-  }, [preview, ready, shotFrame]);
+  }, [preview, ready, sceneVersion, shotFrame]);
 
   useEffect(() => {
     if (!ready || error || reducedMotion || !preview || shotPlayStart === null) return;
@@ -132,7 +164,7 @@ export default function CesiumRegionalTwinView() {
       if (current) setScreeningStatus('Screening extent unavailable.');
     });
     return () => { current = false; };
-  }, [ready, screeningOn, frame, screening.length]);
+  }, [ready, sceneVersion, screeningOn, frame, screening.length]);
 
   useEffect(() => {
     if (!playing) return;
@@ -216,7 +248,11 @@ export default function CesiumRegionalTwinView() {
             <strong>{CESIUM_VIEWS[place]?.name}</strong>
             {picked && <p>{picked.title}<small>{picked.detail}</small></p>}
           </div>
-          {error && <p className="tsm-cesium-error" role="alert">{error} <Link to="/atlas">Open Atlas</Link></p>}
+          {(graphicsPaused || error) && <div className="tsm-cesium-error" role="alert">
+            <p>{graphicsPaused ? 'Graphics paused. Waiting for WebGL to recover.' : error}</p>
+            <button type="button" onClick={() => setSceneVersion((version) => version + 1)}>Restart 3D view</button>{' '}
+            <Link to="/atlas">Open Atlas</Link>
+          </div>}
         </div>
         <aside className="tsm-cesium-controls" aria-label="Scene controls">
           <section>
@@ -240,11 +276,11 @@ export default function CesiumRegionalTwinView() {
             {preview && <>
               <label htmlFor="cesium-shot-frame">Camera time <output>{(shotFrame / FILM_PREVIEW_FPS).toFixed(2)} s</output></label>
               <input id="cesium-shot-frame" type="range" min={0} max={lastShotFrame(preview)} value={shotFrame}
-                disabled={Boolean(error)} onChange={(event) => {
+                disabled={!ready} onChange={(event) => {
                   setShotPlayStart(null);
                   setShotFrame(Number(event.target.value));
                 }} />
-              <button type="button" disabled={reducedMotion || Boolean(error)} onClick={() => {
+              <button type="button" disabled={reducedMotion || !ready} onClick={() => {
                 if (shotPlayStart !== null) setShotPlayStart(null);
                 else setShotPlayStart(shotFrame === lastShotFrame(preview) ? 0 : shotFrame);
               }}>{shotPlayStart === null ? 'Play camera preview' : 'Pause camera preview'}</button>
