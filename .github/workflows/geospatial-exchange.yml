@@ -20,4 +20,6 @@ jobs:
       - run: python -m unittest discover -s tests/geospatial_exchange -v
       - run: python tools/geospatial_exchange/metadata_interop.py data/regulatory/nfhl-indiana-20260706-metadata.xml --output /tmp/tsm-nfhl-metadata-normalized.json
       - run: python -m json.tool /tmp/tsm-nfhl-metadata-normalized.json > /dev/null
+      - run: python tools/geospatial_exchange/metadata_catalog_query.py /tmp/tsm-nfhl-metadata-normalized.json --keyword flood --family FGDC_CSDGM > /tmp/tsm-nfhl-metadata-search.json
+      - run: python -m json.tool /tmp/tsm-nfhl-metadata-search.json > /dev/null
       - run: python -m compileall -q tools/geospatial_exchange
