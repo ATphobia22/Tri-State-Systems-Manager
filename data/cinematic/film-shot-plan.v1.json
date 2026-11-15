@@ -1,0 +1,133 @@
+{
+  "schemaVersion": "tsm.cinematic-shot-plan.v1",
+  "authority": "VISUALIZATION_ONLY",
+  "engineeringUse": false,
+  "regulatoryUse": false,
+  "spatialReference": {
+    "horizontal": "SOURCE_VERIFIED_REQUIRED",
+    "vertical": "NAVD88_SOURCE_VERIFIED_REQUIRED",
+    "geoid": "GEOID18_WHEN_APPLICABLE"
+  },
+  "shots": [
+    {
+      "id": "01-river-confluence",
+      "label": "Ohio–Wabash confluence establishing shot",
+      "mode": "ORBIT",
+      "layers": [
+        "verified-terrain",
+        "hydrography",
+        "buildings"
+      ],
+      "effects": [
+        "golden-hour",
+        "atmospheric-haze"
+      ],
+      "requiredEvidence": [
+        "terrain-datum",
+        "building-tileset",
+        "hydrography-source"
+      ]
+    },
+    {
+      "id": "02-mount-vernon",
+      "label": "Mount Vernon downtown aerial",
+      "mode": "DRONE",
+      "layers": [
+        "verified-terrain",
+        "buildings",
+        "roads"
+      ],
+      "effects": [
+        "late-afternoon",
+        "soft-shadows"
+      ],
+      "requiredEvidence": [
+        "building-tileset",
+        "roads-source",
+        "terrain-datum"
+      ]
+    },
+    {
+      "id": "03-new-harmony",
+      "label": "New Harmony Wabash corridor",
+      "mode": "CINEMA",
+      "layers": [
+        "verified-terrain",
+        "hydrography",
+        "roads"
+      ],
+      "effects": [
+        "morning-mist"
+      ],
+      "requiredEvidence": [
+        "terrain-datum",
+        "hydrography-source",
+        "roads-source"
+      ]
+    },
+    {
+      "id": "04-flood-comparison",
+      "label": "Observed versus modeled flood scenario",
+      "mode": "CINEMA",
+      "layers": [
+        "verified-terrain",
+        "water-surface",
+        "flood-depth"
+      ],
+      "effects": [
+        "split-screen"
+      ],
+      "requiredEvidence": [
+        "terrain-datum",
+        "water-surface-provenance",
+        "model-calibration"
+      ]
+    },
+    {
+      "id": "05-transport",
+      "label": "Cross-state road and bridge network",
+      "mode": "DRONE",
+      "layers": [
+        "verified-terrain",
+        "roads",
+        "bridges"
+      ],
+      "effects": [
+        "daylight"
+      ],
+      "requiredEvidence": [
+        "roads-source",
+        "bridge-inventory",
+        "terrain-datum"
+      ]
+    },
+    {
+      "id": "06-night-infrastructure",
+      "label": "Industrial waterfront night sequence",
+      "mode": "CINEMA",
+      "layers": [
+        "verified-terrain",
+        "buildings",
+        "roads"
+      ],
+      "effects": [
+        "night-lighting"
+      ],
+      "requiredEvidence": [
+        "building-tileset",
+        "roads-source",
+        "terrain-datum"
+      ]
+    }
+  ],
+  "pipeline": {
+    "sceneInterchange": "OpenUSD optional adapter",
+    "editorial": "OpenTimelineIO optional adapter",
+    "color": "OpenColorIO with reviewed ACES configuration",
+    "frames": "OpenEXR",
+    "volumes": "OpenVDB optional",
+    "realTime": "Unreal Engine 5.8 Movie Render Queue",
+    "offline": "no runtime remote dependency"
+  },
+  "releaseGate": "NOT_RENDER_VERIFIED"
+}
