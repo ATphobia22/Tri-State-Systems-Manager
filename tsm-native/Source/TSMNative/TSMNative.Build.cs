@@ -20,7 +20,7 @@ public class TSMNative : ModuleRules
 
 		// Optional Archimedes / survey math headers (present when native/archimedes is checked out).
 		var archimedesInclude = Path.GetFullPath(
-			Path.Combine(ModuleDirectory, "../../../../native/archimedes/include"));
+			Path.Combine(ModuleDirectory, "../../../native/archimedes/include"));
 		if (Directory.Exists(archimedesInclude))
 		{
 			PublicIncludePaths.Add(archimedesInclude);
@@ -52,6 +52,12 @@ public class TSMNative : ModuleRules
 			{
 				"SQLiteSupport"
 			});
+
+		if (Target.Platform == UnrealTargetPlatform.Win64 && Target.Configuration == UnrealTargetConfiguration.Shipping)
+		{
+			RuntimeDependencies.Add("$(ProjectDir)/Binaries/ArchimedesCore.dll", StagedFileType.NonUFS);
+			RuntimeDependencies.Add("$(ProjectDir)/Binaries/mod_spatialite.dll", StagedFileType.NonUFS);
+		}
 
 		PublicDefinitions.Add("TSM_NATIVE_OFFLINE_RUNTIME=1");
 	}

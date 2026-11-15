@@ -19,7 +19,7 @@
 
 ## Recent features and functions on `main` (November 15, 2026)
 
-`main` HEAD reference at documentation time: [`80d8279`](https://github.com/ATphobia22/Tri-State-Systems-Manager/commit/80d82795b0636a2673cb880fc26b9aba85570caa) and later README commits. These are **merged source capabilities**. Cinema and materials never replace observed gages, effective FIRMs, or human authority.
+See the [current main history](https://github.com/ATphobia22/Tri-State-Systems-Manager/commits/main/) and [CI runs](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions/workflows/ci.yml?query=branch%3Amain) for exact revisions and build status. These are **merged source capabilities**. Cinema and materials never replace observed gages, effective FIRMs, or human authority.
 
 ### Public web twin (MapLibre + Cesium)
 
@@ -55,7 +55,7 @@
 
 ### Branches not yet on `main`
 
-`fix/nwis-ogc-v1-migration`, `feat/geobim-source-evaluation-20261111`, `feat/mount-vernon-scene-layer-runtime-20261111`, and a Dependabot Actions branch remain separate until PR merge.
+Current branch and pull request status is available in [Branches](https://github.com/ATphobia22/Tri-State-Systems-Manager/branches) and [Pull requests](https://github.com/ATphobia22/Tri-State-Systems-Manager/pulls).
 
 ---
 
@@ -92,7 +92,7 @@ This is a dated engineering summary, **not** a live build-status badge.
 
 | Workstream | Status established by linked evidence |
 |---|---|
-| Building geometry (Posey) | Drive-verified LOD1 archive (**~20,517 height-verified buildings**); heights **DERIVED** from LiDAR vs footprints; unbuilt = no verified height. Not LOD2/LOD3 or regulatory mesh accuracy |
+| Building geometry (Posey) | Drive LOD1 preview contains **20,517** LiDAR-derived building meshes. The [strict height run](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions/runs/43587135679) accepted **20,518 of 23,082** source footprints, with **2,564** unresolved. See the [regional scene evidence](docs/cesium-ion/REGIONAL-CESIUM-4D-VIEW.md) for scope and method |
 | DEM / terrain | DEM recovery merged ([#581](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/581)); ion terrain may still error until a clean GeoTIFF is accepted; World Terrain is the public fallback |
 | COPC roof sampling | Multipart footprint and interior-hole fixes merged ([#580](https://github.com/ATphobia22/Tri-State-Systems-Manager/pull/580)) |
 | Cesium 4D twin | Regional view, Mount Vernon screening, cinematic playback, official 3DEP PJSON, render recovery on `main` |

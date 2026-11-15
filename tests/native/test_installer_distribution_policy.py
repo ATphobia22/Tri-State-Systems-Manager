@@ -43,7 +43,7 @@ class OfflineSetupTests(unittest.TestCase):
     def test_workflow_does_not_resign_setup_after_compilation(self):
         workflow=WORKFLOW.read_text(encoding="utf-8")
         block=workflow.split("- name: Sign Windows release artifacts",1)[1].split(
-            "- name: Verify all three signed Windows release binaries",1)[0]
+            "- name: Verify signed Windows release binaries",1)[0]
         self.assertIn("verify /pa /all",block)
         self.assertNotIn("sign /sha1",block)
 

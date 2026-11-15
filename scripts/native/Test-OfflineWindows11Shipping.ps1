@@ -6,20 +6,21 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path -LiteralPath $PackageRoot).Path
-$exe = @(Get-ChildItem -LiteralPath $root -Filter 'TSMNative.exe' -File -Recurse)
-if ($exe.Count -ne 1) { throw "Expected one cooked TSMNative.exe; found $($exe.Count)" }
+$launcher = Get-Item -LiteralPath (Join-Path $root 'TSMNative.exe')
+$exe = Get-Item -LiteralPath (Join-Path $root 'TSMNative/Binaries/Win64/TSMNative-Win64-Shipping.exe')
 $evidence = New-Item -ItemType Directory -Path $EvidenceDirectory -Force
 $log = Join-Path $evidence.FullName 'packaged-first-launch.log'
 $ruleName = "TSM-OffLine-Smoke-$PID"
-$hash = (Get-FileHash -LiteralPath $exe[0].FullName -Algorithm SHA256).Hash.ToLowerInvariant()
-$signature = (Get-AuthenticodeSignature -LiteralPath $exe[0].FullName)
+$hash = (Get-FileHash -LiteralPath $exe.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+$signature = (Get-AuthenticodeSignature -LiteralPath $exe.FullName)
 $summary = [ordered]@{
     schema = 'tsm.ue58.windows11.offline-smoke.v1'
     classification = 'NOT_VERIFIED'
     sourcePackageRoot = $root
-    executable = $exe[0].FullName
+    executable = $exe.FullName
     executableSha256 = $hash
     authenticode = [string]$signature.Status
+    launcherSha256 = (Get-FileHash -LiteralPath $launcher.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
     observationSeconds = $ObservationSeconds
     startedUtc = (Get-Date).ToUniversalTime().ToString('o')
     firewallIsolationApplied = $false
@@ -37,10 +38,13 @@ try {
     # Use a disposable CLEAN Windows 11 machine, elevated PowerShell and
     # disconnect its physical network in addition to these executable rules.
     # Firewall isolation alone does not prove the whole machine is offline.
-    New-NetFirewallRule -DisplayName "$ruleName-out" -Direction Outbound -Program $exe[0].FullName -Action Block -Profile Any | Out-Null
-    New-NetFirewallRule -DisplayName "$ruleName-in" -Direction Inbound -Program $exe[0].FullName -Action Block -Profile Any | Out-Null
+    if ($signature.Status -ne 'Valid' -or (Get-AuthenticodeSignature -LiteralPath $launcher.FullName).Status -ne 'Valid') {
+        throw 'The launcher and Shipping game must have valid signatures.'
+    }
+    New-NetFirewallRule -DisplayName "$ruleName-out" -Direction Outbound -Program $exe.FullName -Action Block -Profile Any | Out-Null
+    New-NetFirewallRule -DisplayName "$ruleName-in" -Direction Inbound -Program $exe.FullName -Action Block -Profile Any | Out-Null
     $summary.firewallIsolationApplied = $true
-    $process = Start-Process -FilePath $exe[0].FullName -ArgumentList @('-log', "-abslog=$log") -WorkingDirectory $exe[0].DirectoryName -PassThru
+    $process = Start-Process -FilePath $exe.FullName -ArgumentList ('-log -abslog="{0}"' -f $log) -WorkingDirectory $exe.DirectoryName -PassThru
     $summary.processStarted = ($null -ne $process)
     Start-Sleep -Seconds $ObservationSeconds
     $process.Refresh()

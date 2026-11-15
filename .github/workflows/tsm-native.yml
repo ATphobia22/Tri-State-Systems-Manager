@@ -456,7 +456,7 @@ jobs:
           UE_ROOT: ${{ vars.UE_ROOT }}
         run: |
           node scripts/native/verify-ue-windows-shipping.mjs `
-            --archive dist/tsm-native/Windows/TSMNative `
+            --archive dist/tsm-native/Windows `
             --build-log dist/provenance/windows-ue-buildcookrun.log `
             --engine-root "$env:UE_ROOT" `
             --commit "${{ github.sha }}" `
@@ -488,13 +488,13 @@ jobs:
               $null -eq $auth.TimeStamperCertificate) {
             throw "Installer signature/certificate/timestamp does not match release policy."
           }
-      - name: Verify all three signed Windows release binaries
+      - name: Verify signed Windows release binaries
         shell: pwsh
         env:
           TSM_WINDOWS_SIGNING_CERT_SHA1: ${{ secrets.TSM_WINDOWS_SIGNING_CERT_SHA1 }}
         run: |
           .\scripts\native\Assert-SignedReleaseArtifacts.ps1 `
-            -ArchiveRoot 'dist/tsm-native/Windows/TSMNative' `
+            -ArchiveRoot 'dist/tsm-native/Windows' `
             -InstallerDirectory 'dist/installer' `
             -CertificateThumbprint $env:TSM_WINDOWS_SIGNING_CERT_SHA1 `
             -SourceCommit '${{ github.sha }}' `

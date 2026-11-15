@@ -16,8 +16,8 @@ $source = Join-Path $crateRoot "target\release\sde-graph.exe"
 if (-not (Test-Path -LiteralPath $source -PathType Leaf)) {
     throw "Rust SDE release executable missing: $source"
 }
-$staged = Join-Path $ArchiveDirectory "Windows\TSMNative\Tools"
-if (-not (Test-Path -LiteralPath (Join-Path $ArchiveDirectory "Windows\TSMNative\TSMNative.exe"))) {
+$staged = Join-Path $ArchiveDirectory 'Windows/Tools'
+if (-not (Test-Path -LiteralPath (Join-Path $ArchiveDirectory 'Windows/TSMNative.exe'))) {
     throw "UE Shipping archive must exist before SDE staging."
 }
 New-Item -ItemType Directory -Force -Path $staged | Out-Null

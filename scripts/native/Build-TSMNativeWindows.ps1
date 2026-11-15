@@ -10,6 +10,11 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$ArchiveDirectory = [IO.Path]::GetFullPath($ArchiveDirectory)
+$windowsRoot = Join-Path $ArchiveDirectory 'Windows'
+if (Test-Path -LiteralPath $windowsRoot) {
+    throw "Windows archive output already exists. Use an empty archive directory."
+}
 
 & "$PSScriptRoot\Build-ArchimedesCore.ps1" -SourceDir $ArchimedesSource -Configuration Release
 if ($LASTEXITCODE -ne 0) { throw "ArchimedesCore build failed." }
@@ -40,28 +45,27 @@ if ($LASTEXITCODE -ne 0) { throw "Unreal packaging failed." }
 & "$PSScriptRoot\\Stage-SovereignDedupEngine.ps1" -ArchiveDirectory $ArchiveDirectory
 if ($LASTEXITCODE -ne 0) { throw "SDE staging failed." }
 
-# Sign cooked executable BEFORE Inno Setup embeds it. The installer
-# also gets signed separately after its own compilation in GitHub Actions.
+# UAT emits a root bootstrap executable and an inner game executable.
+# Both ship in Setup and must be signed before installer compilation.
 $signSha = $env:TSM_WINDOWS_SIGNING_CERT_SHA1
 $timestampUrl = $env:TSM_WINDOWS_TIMESTAMP_URL
-if ([string]::IsNullOrWhiteSpace($signSha) -or $signSha -notmatch '^[A-Fa-f0-9]{40}$') {
+if ($signSha -notmatch '^[A-Fa-f0-9]{40}$') {
     throw "TSM_WINDOWS_SIGNING_CERT_SHA1 must be a valid certificate thumbprint."
 }
 if ($timestampUrl -notmatch '^https://') { throw "HTTPS timestamp service URL is required." }
 $signTool = Get-Command signtool.exe -ErrorAction Stop
-$exes = @(Get-ChildItem -LiteralPath $ArchiveDirectory -Recurse -File -Filter TSMNative.exe)
-if ($exes.Count -ne 1) { throw "Expected exactly one cooked TSMNative.exe, found $($exes.Count)." }
-& $signTool.Source sign /sha1 $signSha /fd SHA256 /tr $timestampUrl /td SHA256 $exes[0].FullName
-if ($LASTEXITCODE -ne 0) { throw "Signing cooked TSMNative.exe failed." }
-& $signTool.Source verify /pa /all $exes[0].FullName
-if ($LASTEXITCODE -ne 0) { throw "Cooked executable Authenticode verification failed." }
-$auth = Get-AuthenticodeSignature -LiteralPath $exes[0].FullName
-if ($auth.Status -ne 'Valid') { throw "Cooked executable Authenticode status: $($auth.Status)" }
-Write-Host "SIGNED_COOKED_EXE_SHA256=$((Get-FileHash -LiteralPath $exes[0].FullName -Algorithm SHA256).Hash.ToLowerInvariant())"
+foreach ($relativePath in @('TSMNative.exe', 'TSMNative/Binaries/Win64/TSMNative-Win64-Shipping.exe')) {
+    $exe = (Resolve-Path -LiteralPath (Join-Path $windowsRoot $relativePath)).Path
+    & $signTool.Source sign /sha1 $signSha /fd SHA256 /tr $timestampUrl /td SHA256 $exe
+    if ($LASTEXITCODE -ne 0) { throw "Signing failed: $relativePath" }
+    & $signTool.Source verify /pa /all $exe
+    if ($LASTEXITCODE -ne 0) { throw "Authenticode verification failed: $relativePath" }
+    Write-Host "SIGNED_EXE_SHA256=$((Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash.ToLowerInvariant()) $relativePath"
+}
 
 # Sign and verify the SDE companion independently; an unsigned CLI must
 # not be embedded into the signed native installer.
-$sdeBinary = Join-Path $ArchiveDirectory "Windows\\TSMNative\\Tools\\sde-graph.exe"
+$sdeBinary = Join-Path $windowsRoot 'Tools/sde-graph.exe'
 if (-not (Test-Path -LiteralPath $sdeBinary -PathType Leaf)) {
     throw "Staged SDE executable is required before installer compilation."
 }
@@ -98,7 +102,9 @@ if ($previous.Count -ne 0) {
 $signatureCommand = ('"{0}" sign /sha1 {1} /fd SHA256 /tr "{2}" /td SHA256 $f' -f
     $signTool.Source, $signSha, $timestampUrl)
 $signToolOption = '--signtool=tsmrelease=' + $signatureCommand
-& $iscc.Source $signToolOption '--no-ide-signtools' $InstallerScript
+$outputOption = '--output-dir=' + (Resolve-Path -LiteralPath $installerDirectory).Path
+$payloadOption = '--define=TSMPayloadRoot=' + $windowsRoot
+& $iscc.Source $outputOption $payloadOption $signToolOption '--no-ide-signtools' $InstallerScript
 if ($LASTEXITCODE -ne 0) { throw "Inno Setup compilation/signing failed with exit code $LASTEXITCODE." }
 
 $installers = @(Get-ChildItem -LiteralPath $installerDirectory -File -Filter 'TSM-Native-Setup-*-windows-x64.exe')

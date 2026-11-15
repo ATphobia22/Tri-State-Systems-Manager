@@ -18,16 +18,16 @@ if (Test-Path -LiteralPath $OutputPath) {
 }
 $archive = (Resolve-Path -LiteralPath $ArchiveRoot).Path
 $installerRoot = (Resolve-Path -LiteralPath $InstallerDirectory).Path
-$native = @(Get-ChildItem -LiteralPath $archive -Recurse -File -Filter 'TSMNative.exe')
-$engine = @(Get-ChildItem -LiteralPath $archive -Recurse -File -Filter 'sde-graph.exe')
+$bootstrap = Get-Item -LiteralPath (Join-Path $archive 'TSMNative.exe')
+$native = Get-Item -LiteralPath (Join-Path $archive 'TSMNative/Binaries/Win64/TSMNative-Win64-Shipping.exe')
+$engine = Get-Item -LiteralPath (Join-Path $archive 'Tools/sde-graph.exe')
 $setup = @(Get-ChildItem -LiteralPath $installerRoot -File -Filter 'TSM-Native-Setup-*-windows-x64.exe')
-if ($native.Count -ne 1 -or $engine.Count -ne 1 -or $setup.Count -ne 1) {
-    throw "Require exactly one native executable, SDE companion and signed setup; found $($native.Count)/$($engine.Count)/$($setup.Count)."
-}
+if ($setup.Count -ne 1) { throw "Require exactly one signed installer; found $($setup.Count)." }
 $signTool = Get-Command signtool.exe -ErrorAction Stop
 $files = @(
-    [pscustomobject]@{ role = 'native_shipping_exe'; file = $native[0] },
-    [pscustomobject]@{ role = 'sovereign_dedup_companion'; file = $engine[0] },
+    [pscustomobject]@{ role = 'native_launch_exe'; file = $bootstrap },
+    [pscustomobject]@{ role = 'native_shipping_exe'; file = $native },
+    [pscustomobject]@{ role = 'sovereign_dedup_companion'; file = $engine },
     [pscustomobject]@{ role = 'offline_installer'; file = $setup[0] }
 )
 $expected = $CertificateThumbprint.ToUpperInvariant()

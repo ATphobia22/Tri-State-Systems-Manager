@@ -2,6 +2,9 @@
 #define MyAppVersion "1.0.0"
 #define MyAppPublisher "Tri-State Systems Manager"
 #define MyAppExeName "TSMNative.exe"
+#ifndef TSMPayloadRoot
+  #define TSMPayloadRoot "..\..\dist\tsm-native\Windows"
+#endif
 
 [Setup]
 AppId={{8D31A4E8-6B8C-4C4C-A6F5-000000000001}}
@@ -29,7 +32,7 @@ UninstallDisplayIcon={app}\{#MyAppExeName}
 WizardStyle=modern
 
 [Files]
-Source: "..\..\dist\tsm-native\Windows\TSMNative\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion
+Source: "{#TSMPayloadRoot}\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion
 
 [Icons]
 Name: "{autoprograms}\Tri-State Systems Manager"; Filename: "{app}\{#MyAppExeName}"
