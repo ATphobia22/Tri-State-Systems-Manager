@@ -42,6 +42,8 @@ def safe_name(value: str) -> bool:
 
 
 def validate_url(url: str, provider: str) -> None:
+    if not isinstance(url, str):
+        raise IntakeError("Missing asset download URL")
     parsed = urlsplit(url)
     if (parsed.scheme != "https" or parsed.hostname not in HOSTS.get(provider, ())
             or parsed.username or parsed.password or parsed.port
@@ -124,11 +126,13 @@ def acquire(registry: dict, asset_id: str, destination: Path, *,
     if not eligibility["eligible_for_cc0_intake"]:
         raise IntakeError("Asset not approved for automatic CC0 acquisition")
     asset = next(a for a in registry["assets"] if a["id"] == asset_id)
-    dest = destination.resolve()
+    # Inspect the caller-supplied path BEFORE resolve(): a symlink to an
+    # existing directory must never silently redirect the acquisition.
+    if destination.is_symlink() or any(p.is_symlink() for p in destination.parents):
+        raise IntakeError("Symlink destinations prohibited")
+    dest = destination.absolute()
     if dest.exists():
         raise IntakeError("Immutable staged destination already exists")
-    if dest.is_symlink():
-        raise IntakeError("Symlink destinations prohibited")
     if not dest.parent.is_dir():
         raise IntakeError("Stage root must exist (no implicit directory creation)")
     opener = opener or build_opener(PinnedRedirect(asset["provider"])).open
@@ -145,8 +149,13 @@ def acquire(registry: dict, asset_id: str, destination: Path, *,
                 with opener(request, timeout=60) as response:
                     validate_url(response.geturl(), asset["provider"])
                     declared = response.headers.get("Content-Length")
-                    if declared and int(declared) > f["max_bytes"]:
-                        raise IntakeError("Content length exceeds file budget")
+                    if declared:
+                        try:
+                            declared_bytes = int(declared)
+                        except ValueError:
+                            raise IntakeError("Invalid source Content-Length") from None
+                        if declared_bytes < 0 or declared_bytes > f["max_bytes"]:
+                            raise IntakeError("Content length exceeds file budget")
                     sha256, md5 = hashlib.sha256(), hashlib.md5()
                     count = 0
                     with local.open("xb") as out:
@@ -163,7 +172,7 @@ def acquire(registry: dict, asset_id: str, destination: Path, *,
                             out.write(part)
                         out.flush()
                         os.fsync(out.fileno())
-            except (HTTPError, URLError, TimeoutError, OSError) as exc:
+            except (HTTPError, URLError, TimeoutError, OSError):
                 raise IntakeError("Asset download unavailable") from None
             if count == 0:
                 raise IntakeError("Empty asset download")
