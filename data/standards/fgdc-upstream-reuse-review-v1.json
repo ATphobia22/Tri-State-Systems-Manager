@@ -1,0 +1,90 @@
+{
+  "schema": "tsm-fgdc-upstream-reuse-review",
+  "version": "1.0.0",
+  "reviewedOn": "2026-11-15",
+  "copyrightBoundary": "Only explicitly licensed CC0 asset bundled; no copied third-party application code. All other references are conceptual adapters and public documentation.",
+  "runtimePolicy": "All nonvisual metadata processing headless and offline. Visual asset loading only in headed renderer. No new server or WebView requirements.",
+  "repositories": [
+    {
+      "name": "Esri/geoportal-server",
+      "url": "https://github.com/Esri/geoportal-server",
+      "license": "Apache-2.0",
+      "status": "REJECT_RETIRE",
+      "notes": "v1.x retired. No embed or service deployment; historical reference only"
+    },
+    {
+      "name": "Esri/geoportal-server-catalog",
+      "url": "https://github.com/Esri/geoportal-server-catalog",
+      "license": "Apache-2.0",
+      "status": "ADAPT_INTERFACE",
+      "notes": "Use STAC/CSW/faceted discovery design; v4.0 has Java 25, Tomcat 11, Elasticsearch 8/OpenSearch 3 footprint. No service installed."
+    },
+    {
+      "name": "davenquinn/geologic-patterns",
+      "url": "https://github.com/davenquinn/geologic-patterns",
+      "license": "CC0-1.0",
+      "status": "BUNDLE_SINGLE_ASSET",
+      "notes": "101-C SVG vendored for optional offline map rendering; meaning requires official map legend"
+    },
+    {
+      "name": "DOI-USGS/fort-pymdwizard",
+      "url": "https://github.com/DOI-USGS/fort-pymdwizard",
+      "license": "CC0-1.0",
+      "status": "ADAPT_METADATA_FIELDS",
+      "notes": "CSDGM extraction/validation reference; GUI and Python dependencies not installed"
+    },
+    {
+      "name": "adiwg/mdEditor",
+      "url": "https://github.com/adiwg/mdEditor",
+      "license": "GPL-3.0",
+      "status": "REFERENCE_ONLY",
+      "notes": "Workflow reference; GPL application not embedded in TSM native runtime"
+    },
+    {
+      "name": "rclark/geocarto",
+      "url": "https://github.com/rclark/geocarto",
+      "license": "LICENSE_NOT_FOUND",
+      "status": "REFERENCE_ONLY",
+      "notes": "Historical CartoCSS reference; no code or assets copied"
+    },
+    {
+      "name": "cecgeology/USGS-FGDC",
+      "url": "https://github.com/cecgeology/USGS-FGDC",
+      "license": "MIT",
+      "status": "OPTIONAL_REVIEW",
+      "notes": "QGIS recolorable SVG source option; preserve MIT notices if assets are imported"
+    },
+    {
+      "name": "BC-Consulting/FGDC-4-QGIS",
+      "url": "https://github.com/BC-Consulting/FGDC-4-QGIS",
+      "license": "LICENSE_NOT_VERIFIED",
+      "status": "HOLD",
+      "notes": "QGIS symbol packs not vendored pending explicit distribution license"
+    },
+    {
+      "name": "consbio/gis-metadata-parser",
+      "url": "https://github.com/consbio/gis-metadata-parser",
+      "license": "BSD-3-Clause",
+      "status": "ADAPT_METADATA_FIELDS",
+      "notes": "FGDC ISO19139 ArcGIS normalized extraction; old Python compatibility, no package dependency or copied code"
+    },
+    {
+      "name": "twhl-community/GoldSrcFGDCollection",
+      "url": "https://github.com/twhl-community/GoldSrcFGDCollection",
+      "license": "LICENSE_NOT_VERIFIED",
+      "status": "EXCLUDE_IRRELEVANT",
+      "notes": "GoldSrc FGD game entity definitions, not FGDC"
+    }
+  ],
+  "bundledAssets": [
+    {
+      "id": "fgdc-101-C",
+      "path": "tsm-console/public/geology/fgdc/101-C.svg",
+      "origin": "https://github.com/davenquinn/geologic-patterns/blob/master/assets/svg/101-C.svg",
+      "originGitBlobSha1": "3a97cc9f514cf6a644cef3daf31c68aedc9160f5",
+      "license": "CC0-1.0",
+      "geometryMeaning": "NOT_ASSERTED",
+      "verification": "SOURCE_BYTES_TRACKED_RENDER_NOT_EVIDENCED"
+    }
+  ]
+}
