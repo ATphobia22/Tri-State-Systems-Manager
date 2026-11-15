@@ -4,7 +4,7 @@ The [FGDC download catalog](https://www.fgdc.gov/resources/download-geospatial-s
 
 ## Implemented
 
-- `data/standards/fgdc-standards-profile-v1.json` records 18 federal/ISO/OGC standards references, explicit editions where confirmed, project uses and legacy-ingest status for CSDGM.
+- `data/standards/fgdc-standards-profile-v1.json` records 20 federal/ISO/OGC standards references, explicit editions where confirmed, project uses and legacy-ingest status for CSDGM.
 - `scripts/geospatial/fgdc_metadata_gate.py` validates the profile, existing Tri-State agency registry and **parses the checked-in FEMA CSDGM XML** as descriptive source metadata. It computes the current file SHA-256; this is local file integrity information, not proof that a dataset has been independently verified.
 - Optional `--manifest path/to/metadata.json` checks declared source metadata records without network access. Schema is `tsm-geospatial-source-metadata` with nonempty `records`. Required per record: `datasetId`, `name`, `agency`, `sourceUri`, `sourceVersion`, `horizontalCrs` (EPSG), `verticalDatum`, `units`, `limitations`, `authorityClass`, and `verificationStatus`. Acquired records also need `retrievedAtUtc` UTC, `contentSha256`, and `localPath` pointing to an existing file beneath the repository root. The gate recomputes its checksum. `INDEPENDENTLY_REVIEWED` also requires reviewer, review timestamp and evidence URI.
 - `tests/geospatial/test_fgdc_metadata_gate.py` covers actual XML parsing and evidence boundaries; `.github/workflows/fgdc-metadata-gate.yml` runs the checks headlessly.
@@ -18,6 +18,16 @@ python scripts/geospatial/fgdc_metadata_gate.py --manifest path/to/metadata.json
 ```
 
 The source-reuse review and actual CC0 geology asset are tracked in [`data/standards/fgdc-upstream-reuse-review-v1.json`](../../data/standards/fgdc-upstream-reuse-review-v1.json). The official cartographic reference is [FGDC-STD-013-2006](https://www.fgdc.gov/standards/projects/geo-symbol/). Neither the asset nor the reference establishes geological map-layer authority, legend mappings or visual acceptance.
+
+## Cesium data checks
+
+| Source format or feature class | Repository check |
+| --- | --- |
+| [OGC GeoTIFF 1.1](https://docs.ogc.org/is/19-008r4/19-008r4.html) and FGDC elevation | Verify the pinned raster bytes and native CRS. Generate the viewer heightmaps and compare every shared tile edge in both axes. |
+| [OGC 3D Tiles 1.1](https://docs.ogc.org/cs/22-025r4/22-025r4.html) | Check tile availability, building IDs and payload checksums against the published preview receipts. |
+| [FGDC transportation roads](https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part7c_Transportation_Road.pdf) | Preserve county and road source IDs and check published centerline counts for the nine-county scene. |
+
+The [download inventory](../../data/standards/fgdc-download-catalog-2026-11-15.json) records all 105 catalog rows, including repeated listings and publisher references. It lists retrieval outcomes, original and alternate URLs, and checksums for files in the separately packaged reference bundle. The listed paths are relative to that bundle. The engineering pipeline pins its own source data and records which formats it actually uses.
 
 ## Operational gates still required
 

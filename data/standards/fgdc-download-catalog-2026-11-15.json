@@ -1,0 +1,2101 @@
+{
+  "schemaVersion": 1,
+  "source": "https://www.fgdc.gov/resources/download-geospatial-standards",
+  "retrievedUtc": "2026-11-15T21:32:00.582022+00:00",
+  "catalogSha256": "80c4516e6ebe36b79aa557af313702b331296d1c4abd5c1ee0a1ff03bca21f8b",
+  "entries": [
+    {
+      "title": "GeoTIFF Revision 1.0, GeoTIFF Revision 1.0",
+      "catalogLink": "http://www.remotesensing.org/geotiff/spec/geotiffhome.html",
+      "url": "https://www.remotesensing.org/geotiff/spec/geotiffhome.html",
+      "retrieval": {
+        "status": "RETRIEVAL_FAILED",
+        "httpStatus": "404",
+        "detail": ""
+      },
+      "alternativePublisherOrReferenceUrls": [
+        {
+          "url": "https://geotiff.maptools.org/spec/geotiffhome.html",
+          "status": "RETRIEVAL_FAILED",
+          "httpStatus": "503",
+          "detail": ""
+        },
+        {
+          "url": "https://gis-lab.info/docs/geotiff-1.8.2.pdf",
+          "sourceKind": "Public-domain historical specification mirror",
+          "status": "DOWNLOADED",
+          "httpStatus": "200",
+          "finalUrl": "https://gis-lab.info/docs/geotiff-1.8.2.pdf",
+          "contentType": "application/pdf",
+          "file": "documents/geotiff-1.8.2-7b83f6416702.pdf",
+          "bytes": 349372,
+          "sha256": "7b83f641670285b024eee10054897146cda8db8acf6bcb9a28c32ee15e8be6b2"
+        }
+      ]
+    },
+    {
+      "title": "HDF 5, Hierarchical Data Format V 5.0",
+      "catalogLink": "http://www.hdfgroup.org/HDF5/",
+      "url": "https://www.hdfgroup.org/HDF5/",
+      "retrieval": {
+        "status": "LANDING_PAGE_ONLY",
+        "httpStatus": "200",
+        "finalUrl": "https://www.hdfgroup.org/solutions/hdf5/",
+        "contentType": "text/html; charset=UTF-8"
+      },
+      "linkedDownloads": []
+    },
+    {
+      "title": "INCITS 145 - 1986 [R2007], Codes for Identification of Hydrologic Units in the U.S. and the Caribbean (Outlying) Areas",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=ANSI+INCITS+145-1986+(R2007)",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=ANSI+INCITS+145-1986+(R2007)",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/incits/ANSIINCITS1451986R2007",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "INCITS 31-2009, Information technology - Codes for the Identification of Counties and Equivalent Areas of the United States, Puerto Rico, and the Insular Areas",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=INCITS+31-2009",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=INCITS+31-2009",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/incits/INCITS312009",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "INCITS 38-2009, Information technology - Codes for the Identification of the States and Equivalent Areas within the United States, Puerto Rico, and the Insular Areas",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=INCITS+38-2009",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=INCITS+38-2009",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/incits/INCITS382009",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "INCITS 446-2008, Information technology - Identifying Attributes for Named Physical and Cultural Geographic Features (Except Roads and Highways) of the United States, Its Territories, Outlying Areas, and Freely Associated Areas, and the Waters of the Same to the Limit of the Twelve-Mile Statutory Zone",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=ANSI+INCITS+446-2008",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=ANSI+INCITS+446-2008",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/incits/ANSIINCITS4462008",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "INCITS 453 - 2009, Information technology - North American Profile of ISO 19115:2003 - Geographic information - Metadata (NAP - Metadata)",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=INCITS+453-2009",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=INCITS+453-2009",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/incits/INCITS4532009",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "INCITS 454 - 2009, Information technology - Codes for the Identification of Metropolitan and Micropolitan Statistical Areas and Related Statistical Areas of the United States and Puerto Rico",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=INCITS+454-2009",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=INCITS+454-2009",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/incits/INCITS4542009",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "INCITS 455 - 2009, Information technology - Codes for the Identification of Congressional Districts and Equivalent Areas of the United States, Puerto Rico, and the Insular Areas",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=INCITS+455-2009",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=INCITS+455-2009",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/incits/INCITS4552009",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "INCITS/ISO 19107:2003[R2008], Geographic Information - Spatial schema",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO+19107-2003",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO+19107-2003",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/incits/INCITSISO191072003",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "INCITS/ISO 19108:2002[R2008] ISO 19108:2002 w/ Cor 1:2006, Geographic information - Temporal schema w/Corrigendum 1",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO+19108%3a2002",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO+19108%3a2002",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/incits/INCITSISO191082002",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "INCITS/ISO 19110:2005 [R2010], Geographic information - Methodology for Feature Cataloguing",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO+19110-2005",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO+19110-2005",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/incits/INCITSISO191102005",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "INCITS/ISO 19111:2007 [2007], Geographic information - Spatial referencing by coordinates",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO+19111-2007",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO+19111-2007",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/incits/INCITSISO191112007",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "INCITS/ISO 19111-2:2007, Georgraphic information - Spatial referencing by coordinates - extension for parametric values",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO+19111-2-2010",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO+19111-2-2010",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/incits/INCITSISO191112010",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "INCITS/ISO 19112:2003 [2004], Geographic information - Spatial referencing by geographic identifiers",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO+19112-2003",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO+19112-2003",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/incits/INCITSISO191122003",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "INCITS/ISO 19115:2003 [R2008] ISO 19115:2003 w/ ISO 19115 Cor. 1:2006, Geographic information - Metadata + Corrigendum 1",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO+19115-2003",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO+19115-2003",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/incits/INCITSISO191152003",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "INCITS/ISO 19115-2:2009 [2009], Geographic information - Metadata - Part 2: Extensions for imagery and gridded data",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO+19115-2%3a2009%5bR2014%5d",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO+19115-2%3a2009%5bR2014%5d",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/incits/INCITSISO191152009R2014",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "INCITS/ISO 19118:2005 [2006], Geographic information - Encoding",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO%2fIEC+19118-2005",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO%2fIEC+19118-2005",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/incits/INCITSISOIEC191182005",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "INCITS/ISO 19119:2005 [R2010], Geographic information - Services",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO+19119-2005",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO+19119-2005",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/incits/INCITSISO191192005",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "INCITS/ISO 19119:2005/AM 1:2008 [2008], Geographic information - Services - Amendment 1: Extensions of the service metadata model",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO%c3%bf19119%3a2005%2fAmd.1%3a2008",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO%c3%bf19119%3a2005%2fAmd.1%3a2008",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "500",
+        "detail": ""
+      }
+    },
+    {
+      "title": "INCITS/ISO 19123:2005 [2006], Geographic information - Schema for coverage geometry and functions",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO%2fIEC+19123-2005",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO%2fIEC+19123-2005",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/incits/INCITSISOIEC191232005",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "INCITS/ISO 19132:2007 [2008], Geographic information - Location Based Services - Reference model",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO+19132%3a2007%5b2008%5d",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO+19132%3a2007%5b2008%5d",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/incits/INCITSISO1913220072008",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "INCITS/ISO 19133:2005 [2006], Geographic information - Location Based Services - Tracking and navigation",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO%2fIEC+19133-2005",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO%2fIEC+19133-2005",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/incits/INCITSISOIEC191332005",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "INCITS/ISO 19134:2007 [2007], Geographic information - Location Based Services - Multimodal routing and navigation",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO+19134-2007",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO+19134-2007",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/incits/INCITSISO191342007",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "INCITS/ISO 19135:2005 [2006], Geographic information - Procedures for registration of geographical information items",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=ISO+19135%3a2005",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=ISO+19135%3a2005",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/iso/ISO191352005",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "INCITS/ISO 19141:2008 [2008], Geographic information - Schema for moving features",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO+19141-2008%5b2008%5d",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO+19141-2008%5b2008%5d",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/incits/INCITSISO191412008",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "ISO 19109:2005, Geographic information - Rules for application schema",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=ISO+19109%3a2005",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=ISO+19109%3a2005",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/iso/ISO191092005",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "ISO 19127:2005, Geographic information - Geodetic codes and parameters",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=ISO%2fTS+19127%3a2005",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=ISO%2fTS+19127%3a2005",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/iso/ISOTS191272005",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "ISO 19131:2007, Geographic information - Data product specifications + Amendment 1",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=ISO+19131%3a2007",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=ISO+19131%3a2007",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/iso/ISO191312007",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "ISO 19136:2007, Geographic information - Geographic Markup Language",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO+19136-2010",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO+19136-2010",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/incits/INCITSISO191362010",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "ISO 19144-1:2009, Geographic information -- Classification Systems -- Part 1: Classification system structure",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=ISO+19144-1%3a2009",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=ISO+19144-1%3a2009",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/iso/ISO191442009",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "ISO 6709:2008/Corrigendum 1:2009, Standards representation of geographic point locations by coordinates w/Corrigendum 1",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=ISO+6709%3a2008",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=ISO+6709%3a2008",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/iso/ISO67092008",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "ISO/IEC 13818-2:2000, Information technology -- Generic coding of moving pictures and associated audio information: Video",
+      "catalogLink": "http://www.iso.org/iso/iso_catalogue/catalogue_tc/catalogue_detail.htm?csnumber=31539",
+      "url": "https://www.iso.org/iso/iso_catalogue/catalogue_tc/catalogue_detail.htm?csnumber=31539",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.iso.org/standard/31539.html",
+        "contentType": "text/html;charset=UTF-8"
+      }
+    },
+    {
+      "title": "ISO/IEC 13818-3:1998, Information technology -- Generic coding of moving pictures and associated audio information -- Part 3: Audio",
+      "catalogLink": "http://www.iso.org/iso/iso_catalogue/catalogue_tc/catalogue_detail.htm?csnumber=26797",
+      "url": "https://www.iso.org/iso/iso_catalogue/catalogue_tc/catalogue_detail.htm?csnumber=26797",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.iso.org/standard/26797.html",
+        "contentType": "text/html;charset=UTF-8"
+      }
+    },
+    {
+      "title": "ISO/IEC 15444-1:2004 | ITU-T Rec. T.800, Information technology -- JPEG 2000 image coding system: Core coding system",
+      "catalogLink": "http://www.iso.org/iso/iso_catalogue/catalogue_tc/catalogue_detail.htm?csnumber=37674",
+      "url": "https://www.iso.org/iso/iso_catalogue/catalogue_tc/catalogue_detail.htm?csnumber=37674",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.iso.org/standard/37674.html",
+        "contentType": "text/html;charset=UTF-8"
+      }
+    },
+    {
+      "title": "ISO/IEC 10918-1:1994, Information technology -- Digital compression and coding of continuous-tone still images: Requirements and guidelines",
+      "catalogLink": "http://www.iso.org/iso/catalogue_detail.htm?csnumber=18902",
+      "url": "https://www.iso.org/iso/catalogue_detail.htm?csnumber=18902",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.iso.org/standard/18902.html",
+        "contentType": "text/html;charset=UTF-8"
+      }
+    },
+    {
+      "title": "ISO/TS 19103:2004, Geographic information - Conceptual schema language",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=ISO%2fTS+19103%3a2005",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=ISO%2fTS+19103%3a2005",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/iso/ISOTS191032005",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "ISO/TS 19104:2008, Geographic information - Terminology",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=ISO%2fTS+19104%3a2008",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=ISO%2fTS+19104%3a2008",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/iso/ISOTS191042008",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "ISO/TS 19138:2006, Geographic information -- Data quality measures",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO+TS+19138-2010",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO+TS+19138-2010",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/incits/INCITSISOTS191382010",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "ISO/TS 19139:2007, Geographic information -- Metadata -- XML schema implementation",
+      "catalogLink": "http://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO+TS+19139-2010",
+      "url": "https://webstore.ansi.org/RecordDetail.aspx?sku=INCITS%2fISO+TS+19139-2010",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/standards/incits/INCITSISOTS191392010",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "NetCDF, NetCDF (Network Common Data Form)",
+      "catalogLink": "http://www.unidata.ucar.edu/software/netcdf/",
+      "url": "https://www.unidata.ucar.edu/software/netcdf/",
+      "retrieval": {
+        "status": "LANDING_PAGE_ONLY",
+        "httpStatus": "200",
+        "finalUrl": "https://www.unidata.ucar.edu/software/netcdf",
+        "contentType": "text/html; charset=utf-8"
+      },
+      "linkedDownloads": []
+    },
+    {
+      "title": "OGC 04-094; OGC 06-027r1, OpenGIS® Web Feature Service Implementation Specification, version 1.1.0 with Corrigendum 1",
+      "catalogLink": "http://www.opengeospatial.org/standards/wfs",
+      "url": "https://www.ogc.org/standards/wfs",
+      "retrieval": {
+        "status": "LANDING_PAGE_ONLY",
+        "httpStatus": "200",
+        "finalUrl": "https://www.ogc.org/standards/wfs/",
+        "contentType": "text/html; charset=UTF-8"
+      },
+      "linkedDownloads": [
+        {
+          "url": "https://docs.ogc.org/is/04-094r1/04-094r1.html",
+          "status": "DOWNLOADED",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/is/04-094r1/04-094r1.html",
+          "contentType": "text/html",
+          "file": "documents/04-094r1-cc355afe7dc9.html",
+          "bytes": 921053,
+          "sha256": "cc355afe7dc9b22e87fefaac115ad079cce5594f9759a1933a202f54eeeef7f4"
+        },
+        {
+          "url": "https://docs.ogc.org/is/04-094/04-094/pdf",
+          "status": "PUBLISHER_REDIRECT_PAGE",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/is/04-094/04-094/pdf",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/pdf-ab5bf86d5020.html",
+          "bytes": 1362,
+          "sha256": "ab5bf86d502010927f8fd3fa6ffe140a04efded8fc80988a74f74a0d32c11bfd",
+          "document": {
+            "url": "https://docs.ogc.org/is/04-094/04-094.pdf",
+            "status": "DOWNLOADED",
+            "httpStatus": "200",
+            "finalUrl": "https://docs.ogc.org/is/04-094/04-094.pdf",
+            "contentType": "application/pdf",
+            "file": "documents/04-094-886a7f593822.pdf",
+            "bytes": 1559903,
+            "sha256": "886a7f593822e1156c26607a250a21bf43baf9b7717ee1298fd2345c9ee5e878"
+          }
+        },
+        {
+          "url": "https://docs.ogc.org/is/06-027r1/06-027r1/pdf",
+          "status": "PUBLISHER_REDIRECT_PAGE",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/is/06-027r1/06-027r1/pdf",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/pdf-6aab796f3081.html",
+          "bytes": 1372,
+          "sha256": "6aab796f3081c927946cdd0f111448e87bab11234f072e608edd9fea6b8d6804",
+          "document": {
+            "url": "https://docs.ogc.org/is/06-027r1/06-027r1.pdf",
+            "status": "DOWNLOADED",
+            "httpStatus": "200",
+            "finalUrl": "https://docs.ogc.org/is/06-027r1/06-027r1.pdf",
+            "contentType": "application/pdf",
+            "file": "documents/06-027r1-95067381e45c.pdf",
+            "bytes": 188476,
+            "sha256": "95067381e45c10032bab8e535df471fb819b44dcc2c19b0b985192a7c1324d63"
+          }
+        }
+      ]
+    },
+    {
+      "title": "OGC 04-095, OpenGIS® Filter Encoding Implementation Specification, version 1.1",
+      "catalogLink": "http://www.opengeospatial.org/standards/filter",
+      "url": "https://www.ogc.org/standards/filter",
+      "retrieval": {
+        "status": "LANDING_PAGE_ONLY",
+        "httpStatus": "200",
+        "finalUrl": "https://www.ogc.org/standards/filter/",
+        "contentType": "text/html; charset=UTF-8"
+      },
+      "linkedDownloads": [
+        {
+          "url": "https://docs.ogc.org/is/04-095c1/04-095c1/pdf",
+          "status": "PUBLISHER_REDIRECT_PAGE",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/is/04-095c1/04-095c1/pdf",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/pdf-66ad0ce4febd.html",
+          "bytes": 1372,
+          "sha256": "66ad0ce4febd330be80677ff69e8311126886d1d1cadf3d5526784a19b17058b",
+          "document": {
+            "url": "https://docs.ogc.org/is/04-095c1/04-095c1.pdf",
+            "status": "DOWNLOADED",
+            "httpStatus": "200",
+            "finalUrl": "https://docs.ogc.org/is/04-095c1/04-095c1.pdf",
+            "contentType": "application/pdf",
+            "file": "documents/04-095c1-80e626579f4a.pdf",
+            "bytes": 449682,
+            "sha256": "80e626579f4a79e9d9acefaccecb58807be9d9d7038be9c2d6e2d5d763aac462"
+          }
+        },
+        {
+          "url": "https://docs.ogc.org/is/04-095/04-095/pdf",
+          "status": "PUBLISHER_REDIRECT_PAGE",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/is/04-095/04-095/pdf",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/pdf-7098a2c7dedb.html",
+          "bytes": 1362,
+          "sha256": "7098a2c7dedb4e7b86859bd2529ccc1dfe4e287812fd05d36abb49946d8b02d2",
+          "document": {
+            "url": "https://docs.ogc.org/is/04-095/04-095.pdf",
+            "status": "DOWNLOADED",
+            "httpStatus": "200",
+            "finalUrl": "https://docs.ogc.org/is/04-095/04-095.pdf",
+            "contentType": "application/pdf",
+            "file": "documents/04-095-ca4c771d8276.pdf",
+            "bytes": 635567,
+            "sha256": "ca4c771d82763ed5dad6505f09f10c87d41543757d86688b121ab24729756676"
+          }
+        }
+      ]
+    },
+    {
+      "title": "OGC 05-005; OGC 08-050, OpenGIS® Web Map Context (WMC) Documents Implementation Specification, Version 1.1.0 w/Corrigendum 1",
+      "catalogLink": "http://www.opengeospatial.org/standards/wmc",
+      "url": "https://www.ogc.org/standards/wmc",
+      "retrieval": {
+        "status": "LANDING_PAGE_ONLY",
+        "httpStatus": "200",
+        "finalUrl": "https://www.ogc.org/standards/wmc/",
+        "contentType": "text/html; charset=UTF-8"
+      },
+      "linkedDownloads": [
+        {
+          "url": "https://docs.ogc.org/is/05-005/05-005/pdf",
+          "status": "PUBLISHER_REDIRECT_PAGE",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/is/05-005/05-005/pdf",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/pdf-f934c0e69860.html",
+          "bytes": 1362,
+          "sha256": "f934c0e69860ddecd589d01bdb20bdcfb4e2cbff767169cb4be1c12a440af8bd",
+          "document": {
+            "url": "https://docs.ogc.org/is/05-005/05-005.pdf",
+            "status": "DOWNLOADED",
+            "httpStatus": "200",
+            "finalUrl": "https://docs.ogc.org/is/05-005/05-005.pdf",
+            "contentType": "application/pdf",
+            "file": "documents/05-005-0a1e08850c70.pdf",
+            "bytes": 549066,
+            "sha256": "0a1e08850c70f2e9b42e9f3cf98f008bf70b4d9fc824a3c17cd6562ed87bffc7"
+          }
+        },
+        {
+          "url": "https://docs.ogc.org/is/08-050/08-050/pdf",
+          "status": "PUBLISHER_REDIRECT_PAGE",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/is/08-050/08-050/pdf",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/pdf-95245fadd311.html",
+          "bytes": 1362,
+          "sha256": "95245fadd311cc9d7d5d9caef7fd6f8ab11f8bca905fc34bf9f84e0ab4ef5c81",
+          "document": {
+            "url": "https://docs.ogc.org/is/08-050/08-050.pdf",
+            "status": "DOWNLOADED",
+            "httpStatus": "200",
+            "finalUrl": "https://docs.ogc.org/is/08-050/08-050.pdf",
+            "contentType": "application/pdf",
+            "file": "documents/08-050-306789bab21c.pdf",
+            "bytes": 182980,
+            "sha256": "306789bab21cc779bda747475197be51f07f9b4b4f46910832c4322f8cada483"
+          }
+        }
+      ]
+    },
+    {
+      "title": "OGC 05-007r7; OGC 08-091r6, OpenGIS® Web Processing Service, Version: 1.0.0 w/ Corrigendum",
+      "catalogLink": "http://www.opengeospatial.org/standards/wps",
+      "url": "https://www.ogc.org/standards/wps",
+      "retrieval": {
+        "status": "LANDING_PAGE_ONLY",
+        "httpStatus": "200",
+        "finalUrl": "https://www.ogc.org/standards/wps/",
+        "contentType": "text/html; charset=UTF-8"
+      },
+      "linkedDownloads": [
+        {
+          "url": "https://docs.ogc.org/is/05-007r7/05-007r7/pdf",
+          "status": "PUBLISHER_REDIRECT_PAGE",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/is/05-007r7/05-007r7/pdf",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/pdf-51cc6ecec97f.html",
+          "bytes": 1372,
+          "sha256": "51cc6ecec97fd58ab0d311e7f21a0a15ea1db9c53b95072c21ea815e49628191",
+          "document": {
+            "url": "https://docs.ogc.org/is/05-007r7/05-007r7.pdf",
+            "status": "DOWNLOADED",
+            "httpStatus": "200",
+            "finalUrl": "https://docs.ogc.org/is/05-007r7/05-007r7.pdf",
+            "contentType": "application/pdf",
+            "file": "documents/05-007r7-4941301faa2e.pdf",
+            "bytes": 852815,
+            "sha256": "4941301faa2eb9997240c6df2d4eb09b4a255c7d1428b035ac65107ba5b07381"
+          }
+        },
+        {
+          "url": "https://docs.ogc.org/is/08-091r6/08-091r6/pdf",
+          "status": "PUBLISHER_REDIRECT_PAGE",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/is/08-091r6/08-091r6/pdf",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/pdf-d21acc722392.html",
+          "bytes": 1372,
+          "sha256": "d21acc72239244d035b70a6b31ffc0a6d51f82d1997a77f008ee4e9bdbe189af",
+          "document": {
+            "url": "https://docs.ogc.org/is/08-091r6/08-091r6.pdf",
+            "status": "DOWNLOADED",
+            "httpStatus": "200",
+            "finalUrl": "https://docs.ogc.org/is/08-091r6/08-091r6.pdf",
+            "contentType": "application/pdf",
+            "file": "documents/08-091r6-1cc88f5361b7.pdf",
+            "bytes": 540848,
+            "sha256": "1cc88f5361b76a867ba594d3029ba23e477887f5dcfdc6ddcbbbbb5dcfc0c9ae"
+          }
+        }
+      ]
+    },
+    {
+      "title": "OGC 05-077r4, OpenGIS® Symbology Encoding Implementation Specification, version 1.1.0",
+      "catalogLink": "http://www.opengeospatial.org/standards/symbol",
+      "url": "https://www.ogc.org/standards/symbol",
+      "retrieval": {
+        "status": "LANDING_PAGE_ONLY",
+        "httpStatus": "200",
+        "finalUrl": "https://www.ogc.org/standards/symbology-conceptual-core-model/",
+        "contentType": "text/html; charset=UTF-8"
+      },
+      "linkedDownloads": [],
+      "alternativePublisherOrReferenceUrls": [
+        {
+          "url": "https://docs.ogc.org/is/05-077r4/05-077r4/pdf",
+          "status": "PUBLISHER_REDIRECT_PAGE",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/is/05-077r4/05-077r4/pdf",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/pdf-87fd62395dac.html",
+          "bytes": 1372,
+          "sha256": "87fd62395dacc525e82b813558a55f4e73d61d37620cc0269184810de48a784c",
+          "document": {
+            "url": "https://docs.ogc.org/is/05-077r4/05-077r4.pdf",
+            "status": "DOWNLOADED",
+            "httpStatus": "200",
+            "finalUrl": "https://docs.ogc.org/is/05-077r4/05-077r4.pdf",
+            "contentType": "application/pdf",
+            "file": "documents/05-077r4-908a61ea7504.pdf",
+            "bytes": 368691,
+            "sha256": "908a61ea7504cf81cb1f9c86f81884917d3c1943633bf35f5cec40440d1fec99"
+          }
+        }
+      ]
+    },
+    {
+      "title": "OGC 05-078r4, Styled Layer Descriptor profile of the Web Map Service Implementation Specification, version 1.1.0",
+      "catalogLink": "http://www.opengeospatial.org/standards/sld",
+      "url": "https://www.ogc.org/standards/sld",
+      "retrieval": {
+        "status": "LANDING_PAGE_ONLY",
+        "httpStatus": "200",
+        "finalUrl": "https://www.ogc.org/standards/sld/",
+        "contentType": "text/html; charset=UTF-8"
+      },
+      "linkedDownloads": [
+        {
+          "url": "https://docs.ogc.org/is/05-078r4/05-078r4/pdf",
+          "status": "PUBLISHER_REDIRECT_PAGE",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/is/05-078r4/05-078r4/pdf",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/pdf-0c40bffed937.html",
+          "bytes": 1372,
+          "sha256": "0c40bffed937498d66d1def357c8247a24862b172d9f791268a509dd83164c90",
+          "document": {
+            "url": "https://docs.ogc.org/is/05-078r4/05-078r4.pdf",
+            "status": "DOWNLOADED",
+            "httpStatus": "200",
+            "finalUrl": "https://docs.ogc.org/is/05-078r4/05-078r4.pdf",
+            "contentType": "application/pdf",
+            "file": "documents/05-078r4-1dde74259844.pdf",
+            "bytes": 581089,
+            "sha256": "1dde74259844b67df0458d0a965aacb907a9b79a9f7b2a5da9d8af7aca9d0d03"
+          }
+        }
+      ]
+    },
+    {
+      "title": "OGC 06-009r6, OpenGIS® Sensor Observation Service Interface Standard, version 1.0.0",
+      "catalogLink": "http://www.opengeospatial.org/standards/sos",
+      "url": "https://www.ogc.org/standards/sos",
+      "retrieval": {
+        "status": "LANDING_PAGE_ONLY",
+        "httpStatus": "200",
+        "finalUrl": "https://www.ogc.org/standards/sos/",
+        "contentType": "text/html; charset=UTF-8"
+      },
+      "linkedDownloads": [
+        {
+          "url": "https://docs.ogc.org/is/06-009r6/06-009r6/pdf",
+          "status": "PUBLISHER_REDIRECT_PAGE",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/is/06-009r6/06-009r6/pdf",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/pdf-8751031f6f82.html",
+          "bytes": 1372,
+          "sha256": "8751031f6f824a17f013ec1b797ca208de67fe72204d9c65d36f876bb7fe99a9",
+          "document": {
+            "url": "https://docs.ogc.org/is/06-009r6/06-009r6.pdf",
+            "status": "DOWNLOADED",
+            "httpStatus": "200",
+            "finalUrl": "https://docs.ogc.org/is/06-009r6/06-009r6.pdf",
+            "contentType": "application/pdf",
+            "file": "documents/06-009r6-53dd89b5aa3f.pdf",
+            "bytes": 629582,
+            "sha256": "53dd89b5aa3fd2671285ba4cf678551b71e3522f4113d36bbc728be942c89711"
+          }
+        }
+      ]
+    },
+    {
+      "title": "OGC 06-024r4, OpenGIS® Location Services: Tracking Service Interface Standard",
+      "catalogLink": "http://www.opengeospatial.org/standards/ols",
+      "url": "https://www.ogc.org/standards/ols",
+      "retrieval": {
+        "status": "LANDING_PAGE_ONLY",
+        "httpStatus": "200",
+        "finalUrl": "https://www.ogc.org/standards/ols/",
+        "contentType": "text/html; charset=UTF-8"
+      },
+      "linkedDownloads": [
+        {
+          "url": "https://docs.ogc.org/is/06-024r4/06-024r4/pdf",
+          "status": "PUBLISHER_REDIRECT_PAGE",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/is/06-024r4/06-024r4/pdf",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/pdf-eb83855572e2.html",
+          "bytes": 1372,
+          "sha256": "eb83855572e21b0ca8a246e8020615e0d740903acda423417de070c3138fe2e5",
+          "document": {
+            "url": "https://docs.ogc.org/is/06-024r4/06-024r4.pdf",
+            "status": "DOWNLOADED",
+            "httpStatus": "200",
+            "finalUrl": "https://docs.ogc.org/is/06-024r4/06-024r4.pdf",
+            "contentType": "application/pdf",
+            "file": "documents/06-024r4-3d1320dbff58.pdf",
+            "bytes": 482238,
+            "sha256": "3d1320dbff581d6feb7d146e0d7ad733a56a958e4a13e483b897fc9900579882"
+          }
+        }
+      ]
+    },
+    {
+      "title": "OGC 06-042, OpenGIS® Web Map Service Implementation Specification, Version 1.3.0",
+      "catalogLink": "http://www.opengeospatial.org/standards/wms",
+      "url": "https://www.ogc.org/standards/wms",
+      "retrieval": {
+        "status": "LANDING_PAGE_ONLY",
+        "httpStatus": "200",
+        "finalUrl": "https://www.ogc.org/standards/wms/",
+        "contentType": "text/html; charset=UTF-8"
+      },
+      "linkedDownloads": [
+        {
+          "url": "https://docs.ogc.org/is/06-042/06-042/pdf",
+          "status": "PUBLISHER_REDIRECT_PAGE",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/is/06-042/06-042/pdf",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/pdf-17fe0784af01.html",
+          "bytes": 1362,
+          "sha256": "17fe0784af0162be498c301650da11a4bf56b2837a0a1fb60f88aac0e1ec5c6e",
+          "document": {
+            "url": "https://docs.ogc.org/is/06-042/06-042.pdf",
+            "status": "DOWNLOADED",
+            "httpStatus": "200",
+            "finalUrl": "https://docs.ogc.org/is/06-042/06-042.pdf",
+            "contentType": "application/pdf",
+            "file": "documents/06-042-decb8bf74b67.pdf",
+            "bytes": 776825,
+            "sha256": "decb8bf74b67ea2b601612abffaedc10b77b176f6493c3a1eb8c22d5b88b2116"
+          }
+        }
+      ]
+    },
+    {
+      "title": "OGC 07-000, OGC 07-122r2, OpenGIS® SensorML Encoding Standard v 1.0 w/Schema Corregendum 1 (1.01)",
+      "catalogLink": "http://www.opengeospatial.org/standards/sensorml",
+      "url": "https://www.ogc.org/standards/sensorml",
+      "retrieval": {
+        "status": "LANDING_PAGE_ONLY",
+        "httpStatus": "200",
+        "finalUrl": "https://www.ogc.org/standards/sensorml/",
+        "contentType": "text/html; charset=UTF-8"
+      },
+      "linkedDownloads": [
+        {
+          "url": "https://docs.ogc.org/is/07-000/07-000/pdf",
+          "status": "PUBLISHER_REDIRECT_PAGE",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/is/07-000/07-000/pdf",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/pdf-c50c95773b10.html",
+          "bytes": 1362,
+          "sha256": "c50c95773b10464e76ca682e61a5d2568d4cfbd60f5758fe2310114f69322d26",
+          "document": {
+            "url": "https://docs.ogc.org/is/07-000/07-000.pdf",
+            "status": "DOWNLOADED",
+            "httpStatus": "200",
+            "finalUrl": "https://docs.ogc.org/is/07-000/07-000.pdf",
+            "contentType": "application/pdf",
+            "file": "documents/07-000-5da0736f89e1.pdf",
+            "bytes": 1960872,
+            "sha256": "5da0736f89e18e69603fcfbfc4fc7e3129251734b9c41f52bb81bc639433be78"
+          }
+        },
+        {
+          "url": "https://docs.ogc.org/is/07-122r2/07-122r2/pdf",
+          "status": "PUBLISHER_REDIRECT_PAGE",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/is/07-122r2/07-122r2/pdf",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/pdf-bcb24738a282.html",
+          "bytes": 1372,
+          "sha256": "bcb24738a2829e12177ce21fd64018edcde1e924cb7c0191c42ff15041a4cc2b",
+          "document": {
+            "url": "https://docs.ogc.org/is/07-122r2/07-122r2.pdf",
+            "status": "DOWNLOADED",
+            "httpStatus": "200",
+            "finalUrl": "https://docs.ogc.org/is/07-122r2/07-122r2.pdf",
+            "contentType": "application/pdf",
+            "file": "documents/07-122r2-577b58d24a98.pdf",
+            "bytes": 181600,
+            "sha256": "577b58d24a98f93d0b14a16dc0d676aa85fc1ad951bdc79d7d01a665781ae356"
+          }
+        },
+        {
+          "url": "https://docs.ogc.org/dp/08-127/08-127/zip",
+          "status": "DOWNLOADED",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/dp/08-127/08-127/zip",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/zip-c4556580564d.html",
+          "bytes": 1362,
+          "sha256": "c4556580564d4fa9ac2b1e52946aed9e23e778141db0db4cca0a91f034d24611"
+        }
+      ]
+    },
+    {
+      "title": "OGC 07-006r1; OGC 07-010, OpenGIS® Catalogue Service (CAT) Implementation Specification (2.0.2) + Corrigendum for OpenGIS Implementation Specification 07-006: Catalogue Services, Version 2.0.2",
+      "catalogLink": "http://www.opengeospatial.org/standards/specifications/catalog",
+      "url": "https://www.ogc.org/standards/specifications/catalog",
+      "retrieval": {
+        "status": "RETRIEVAL_FAILED",
+        "httpStatus": "404",
+        "detail": ""
+      },
+      "alternativePublisherOrReferenceUrls": [
+        {
+          "url": "https://docs.ogc.org/is/07-006r1/07-006r1/pdf",
+          "status": "PUBLISHER_REDIRECT_PAGE",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/is/07-006r1/07-006r1/pdf",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/pdf-f86ae1c4802e.html",
+          "bytes": 1372,
+          "sha256": "f86ae1c4802e6bef9667f9cad96f5d4e247dc0fbde29030d1751e2da17cced18",
+          "document": {
+            "url": "https://docs.ogc.org/is/07-006r1/07-006r1.pdf",
+            "status": "DOWNLOADED",
+            "httpStatus": "200",
+            "finalUrl": "https://docs.ogc.org/is/07-006r1/07-006r1.pdf",
+            "contentType": "application/pdf",
+            "file": "documents/07-006r1-5d0d6a3fc2b4.pdf",
+            "bytes": 1367970,
+            "sha256": "5d0d6a3fc2b408dad2ff54b998537ce6ce6a14c00dd2c329980a77c1b927f00b"
+          }
+        },
+        {
+          "url": "https://docs.ogc.org/is/07-010/07-010/pdf",
+          "status": "PUBLISHER_REDIRECT_PAGE",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/is/07-010/07-010/pdf",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/pdf-335ad1a1a1a6.html",
+          "bytes": 1362,
+          "sha256": "335ad1a1a1a6d4f4af323e2b3bc86c945fa99c7a66a38281542cc438d6ad2aa0",
+          "document": {
+            "url": "https://docs.ogc.org/is/07-010/07-010.pdf",
+            "status": "DOWNLOADED",
+            "httpStatus": "200",
+            "finalUrl": "https://docs.ogc.org/is/07-010/07-010.pdf",
+            "contentType": "application/pdf",
+            "file": "documents/07-010-c5c2cf651992.pdf",
+            "bytes": 455858,
+            "sha256": "c5c2cf6519922e8b1614435d4fa0dd5a3d2943d820acb1c2acb9ad4285339954"
+          }
+        }
+      ]
+    },
+    {
+      "title": "OGC 07-045, OpenGIS® Catalogue Services Specification 2.0.2 - ISO Metadata Application Profile",
+      "catalogLink": "http://www.opengeospatial.org/standards/specifications/catalog",
+      "url": "https://www.ogc.org/standards/specifications/catalog",
+      "retrieval": {
+        "status": "RETRIEVAL_FAILED",
+        "httpStatus": "404",
+        "detail": ""
+      },
+      "alternativePublisherOrReferenceUrls": [
+        {
+          "url": "https://docs.ogc.org/is/07-045r2/07-045r2/pdf",
+          "status": "PUBLISHER_REDIRECT_PAGE",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/is/07-045r2/07-045r2/pdf",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/pdf-49bd6ece376d.html",
+          "bytes": 1372,
+          "sha256": "49bd6ece376dbaa8d259cfde8031a5bd286de34e3b4354c0b83e05a1b739c7b4",
+          "document": {
+            "url": "https://docs.ogc.org/is/07-045r2/07-045r2.pdf",
+            "status": "DOWNLOADED",
+            "httpStatus": "200",
+            "finalUrl": "https://docs.ogc.org/is/07-045r2/07-045r2.pdf",
+            "contentType": "application/pdf",
+            "file": "documents/07-045r2-a917276a8803.pdf",
+            "bytes": 1686122,
+            "sha256": "a917276a880302fe5e23817f132f878876df5e4805f1a935ed9c72037bf44ce5"
+          }
+        },
+        {
+          "url": "https://docs.ogc.org/is/07-045r1/07-045r1/pdf",
+          "status": "PUBLISHER_REDIRECT_PAGE",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/is/07-045r1/07-045r1/pdf",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/pdf-c72749b6f8e4.html",
+          "bytes": 1372,
+          "sha256": "c72749b6f8e425653368f02401e8f25b11df6a73cff361ff6a179369995e3e3d",
+          "document": {
+            "url": "https://docs.ogc.org/is/07-045r1/07-045r1.pdf",
+            "status": "DOWNLOADED",
+            "httpStatus": "200",
+            "finalUrl": "https://docs.ogc.org/is/07-045r1/07-045r1.pdf",
+            "contentType": "application/pdf",
+            "file": "documents/07-045r1-1a409447305d.pdf",
+            "bytes": 2187213,
+            "sha256": "1a409447305d2f3f946266e0d1aa3bcdfc281657e600cade494dca0bf165130f"
+          }
+        },
+        {
+          "url": "https://docs.ogc.org/sap/07-045/07-045/pdf",
+          "status": "PUBLISHER_REDIRECT_PAGE",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/sap/07-045/07-045/pdf",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/pdf-f01ae0d315b3.html",
+          "bytes": 1364,
+          "sha256": "f01ae0d315b304d9e33eb7e1de3ae2511189db14ccf83640ac8110be73aa9078",
+          "document": {
+            "url": "https://docs.ogc.org/sap/07-045/07-045.pdf",
+            "status": "RETRIEVAL_FAILED",
+            "httpStatus": "503",
+            "detail": "Publisher response did not contain a PDF"
+          }
+        },
+        {
+          "url": "https://docs.ogc.org/is/07-045/07-045.pdf",
+          "status": "RETRIEVAL_FAILED",
+          "httpStatus": "404",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "title": "OGC 07-057r7, OpenGIS® Web Map Tile Service Implementation Standard, version 1.0.0",
+      "catalogLink": "http://www.opengeospatial.org/standards/wmts",
+      "url": "https://www.ogc.org/standards/wmts",
+      "retrieval": {
+        "status": "LANDING_PAGE_ONLY",
+        "httpStatus": "200",
+        "finalUrl": "https://www.ogc.org/standards/wmts/",
+        "contentType": "text/html; charset=UTF-8"
+      },
+      "linkedDownloads": [
+        {
+          "url": "https://docs.ogc.org/is/07-057r7/07-057r7/pdf",
+          "status": "PUBLISHER_REDIRECT_PAGE",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/is/07-057r7/07-057r7/pdf",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/pdf-1ddb3a4b346f.html",
+          "bytes": 1372,
+          "sha256": "1ddb3a4b346f1e0b8d104ce3801c384392685232d8a7f0792edab75315ba9b39",
+          "document": {
+            "url": "https://docs.ogc.org/is/07-057r7/07-057r7.pdf",
+            "status": "DOWNLOADED",
+            "httpStatus": "200",
+            "finalUrl": "https://docs.ogc.org/is/07-057r7/07-057r7.pdf",
+            "contentType": "application/pdf",
+            "file": "documents/07-057r7-d4df82b99545.pdf",
+            "bytes": 1214419,
+            "sha256": "d4df82b995452aa9ef11b5cd31edeadb10420e575af68d31cad1af35aac303bf"
+          }
+        }
+      ]
+    },
+    {
+      "title": "OGC 07-067r5, 07-066r5, OpenGIS® Web Coverage Service (WCS) Implementation Standard, version 1.1.2 w/Corregindum 2",
+      "catalogLink": "http://www.opengeospatial.org/standards/wcs",
+      "url": "https://www.ogc.org/standards/wcs",
+      "retrieval": {
+        "status": "LANDING_PAGE_ONLY",
+        "httpStatus": "200",
+        "finalUrl": "https://www.ogc.org/standards/wcs/",
+        "contentType": "text/html; charset=UTF-8"
+      },
+      "linkedDownloads": [
+        {
+          "url": "https://portal.ogc.org/files/07-067r5",
+          "status": "DOWNLOADED",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/is/07-067r5/07-067r5/pdf",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/07-067r5-16afbe38fd53.html",
+          "bytes": 1372,
+          "sha256": "16afbe38fd53cf9445fa69ab635180c7d3cde0e24a22e7cccdf39d4b9166e917"
+        },
+        {
+          "url": "https://portal.ogc.org/files/07-066r5",
+          "status": "DOWNLOADED",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/note/07-066r5/07-066r5/pdf",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/07-066r5-af057a8e57a6.html",
+          "bytes": 1376,
+          "sha256": "af057a8e57a64fdd27a054071573fa66333d5c5e369a73a9b5f005098a1efd1d"
+        }
+      ]
+    },
+    {
+      "title": "OGC 07-074, OpenGIS® Location Services (OpenLS): Core Services, version 1.2",
+      "catalogLink": "http://www.opengeospatial.org/standards/ols",
+      "url": "https://www.ogc.org/standards/ols",
+      "retrieval": {
+        "status": "LANDING_PAGE_ONLY",
+        "httpStatus": "200",
+        "finalUrl": "https://www.ogc.org/standards/ols/",
+        "contentType": "text/html; charset=UTF-8"
+      },
+      "linkedDownloads": [
+        {
+          "url": "https://docs.ogc.org/is/07-074/07-074/pdf",
+          "status": "PUBLISHER_REDIRECT_PAGE",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/is/07-074/07-074/pdf",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/pdf-c178b6c1227a.html",
+          "bytes": 1362,
+          "sha256": "c178b6c1227a6ec53dd62108dca81423e00647cd770924350160504907a30ce9",
+          "document": {
+            "url": "https://docs.ogc.org/is/07-074/07-074.pdf",
+            "status": "DOWNLOADED",
+            "httpStatus": "200",
+            "finalUrl": "https://docs.ogc.org/is/07-074/07-074.pdf",
+            "contentType": "application/pdf",
+            "file": "documents/07-074-bf490a1f676b.pdf",
+            "bytes": 5595345,
+            "sha256": "bf490a1f676ba546842a15221c38230316c109fdb5fc81db2631f4bbd09ac91d"
+          }
+        }
+      ]
+    },
+    {
+      "title": "OGC 07-147r2, OpenGIS® KML, version 2.2.0",
+      "catalogLink": "http://www.opengeospatial.org/standards/kml",
+      "url": "https://www.ogc.org/standards/kml",
+      "retrieval": {
+        "status": "LANDING_PAGE_ONLY",
+        "httpStatus": "200",
+        "finalUrl": "https://www.ogc.org/standards/kml/",
+        "contentType": "text/html; charset=UTF-8"
+      },
+      "linkedDownloads": [
+        {
+          "url": "https://docs.ogc.org/is/07-147r2/07-147r2/pdf",
+          "status": "PUBLISHER_REDIRECT_PAGE",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/is/07-147r2/07-147r2/pdf",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/pdf-0c6e3b68855c.html",
+          "bytes": 1372,
+          "sha256": "0c6e3b68855c7b500e14dee12908664bd68ee207b543e9f1e3ec9427f130174a",
+          "document": {
+            "url": "https://docs.ogc.org/is/07-147r2/07-147r2.pdf",
+            "status": "DOWNLOADED",
+            "httpStatus": "200",
+            "finalUrl": "https://docs.ogc.org/is/07-147r2/07-147r2.pdf",
+            "contentType": "application/pdf",
+            "file": "documents/07-147r2-fcad423c7700.pdf",
+            "bytes": 1270490,
+            "sha256": "fcad423c7700c13e4a25bcf1c305ee241d8470e94128b7185c377c47d6b82b77"
+          }
+        }
+      ]
+    },
+    {
+      "title": "OGC 08-028r7, OpenGIS® Location Services (OpenLS): Part 6-Navigation Service",
+      "catalogLink": "http://www.opengeospatial.org/standards/ols",
+      "url": "https://www.ogc.org/standards/ols",
+      "retrieval": {
+        "status": "LANDING_PAGE_ONLY",
+        "httpStatus": "200",
+        "finalUrl": "https://www.ogc.org/standards/ols/",
+        "contentType": "text/html; charset=UTF-8"
+      },
+      "linkedDownloads": [
+        {
+          "url": "https://docs.ogc.org/is/08-028r7/08-028r7/pdf",
+          "status": "PUBLISHER_REDIRECT_PAGE",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/is/08-028r7/08-028r7/pdf",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/pdf-d67694bf3c01.html",
+          "bytes": 1372,
+          "sha256": "d67694bf3c011d0771a5873a8c824b31a09d4caadc5ba2b44fd7d6441d26c4fd",
+          "document": {
+            "url": "https://docs.ogc.org/is/08-028r7/08-028r7.pdf",
+            "status": "DOWNLOADED",
+            "httpStatus": "200",
+            "finalUrl": "https://docs.ogc.org/is/08-028r7/08-028r7.pdf",
+            "contentType": "application/pdf",
+            "file": "documents/08-028r7-37497f161591.pdf",
+            "bytes": 3144832,
+            "sha256": "37497f1615915ddbf565847ed4d83f720a5a471704f5f335c67df2690843abc2"
+          }
+        }
+      ]
+    },
+    {
+      "title": "OGC 06-024r4, OpenGIS® Location Services: Tracking Service Interface Standard",
+      "catalogLink": "http://www.opengeospatial.org/standards/ols",
+      "url": "https://www.ogc.org/standards/ols",
+      "retrieval": {
+        "status": "LANDING_PAGE_ONLY",
+        "httpStatus": "200",
+        "finalUrl": "https://www.ogc.org/standards/ols/",
+        "contentType": "text/html; charset=UTF-8"
+      },
+      "linkedDownloads": [
+        {
+          "url": "https://docs.ogc.org/is/06-024r4/06-024r4/pdf",
+          "status": "PUBLISHER_REDIRECT_PAGE",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/is/06-024r4/06-024r4/pdf",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/pdf-eb83855572e2.html",
+          "bytes": 1372,
+          "sha256": "eb83855572e21b0ca8a246e8020615e0d740903acda423417de070c3138fe2e5",
+          "document": {
+            "url": "https://docs.ogc.org/is/06-024r4/06-024r4.pdf",
+            "status": "DOWNLOADED",
+            "httpStatus": "200",
+            "finalUrl": "https://docs.ogc.org/is/06-024r4/06-024r4.pdf",
+            "contentType": "application/pdf",
+            "file": "documents/06-024r4-3d1320dbff58.pdf",
+            "bytes": 482238,
+            "sha256": "3d1320dbff581d6feb7d146e0d7ad733a56a958e4a13e483b897fc9900579882"
+          }
+        }
+      ]
+    },
+    {
+      "title": "OGC® 07-014r3, OpenGIS® Sensor Planning Service Implementation Specification, version 1.0.0",
+      "catalogLink": "http://www.opengeospatial.org/standards/sps",
+      "url": "https://www.ogc.org/standards/sps",
+      "retrieval": {
+        "status": "LANDING_PAGE_ONLY",
+        "httpStatus": "200",
+        "finalUrl": "https://www.ogc.org/standards/sps/",
+        "contentType": "text/html; charset=UTF-8"
+      },
+      "linkedDownloads": [
+        {
+          "url": "https://docs.ogc.org/is/07-014r3/07-014r3/pdf",
+          "status": "PUBLISHER_REDIRECT_PAGE",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/is/07-014r3/07-014r3/pdf",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/pdf-6ed337c71490.html",
+          "bytes": 1372,
+          "sha256": "6ed337c714906fada826faec7a35cc20db611e1053048d457c61dde8bc69af44",
+          "document": {
+            "url": "https://docs.ogc.org/is/07-014r3/07-014r3.pdf",
+            "status": "DOWNLOADED",
+            "httpStatus": "200",
+            "finalUrl": "https://docs.ogc.org/is/07-014r3/07-014r3.pdf",
+            "contentType": "application/pdf",
+            "file": "documents/07-014r3-0ace5c19867c.pdf",
+            "bytes": 2978673,
+            "sha256": "0ace5c19867c4c330f51bedb9f455fd7c1d7a36b0b8318138f16493db66f6ff4"
+          }
+        }
+      ]
+    },
+    {
+      "title": "TIFF Revision 6.0, Tagged Image File Format (TIFF)",
+      "catalogLink": "http://partners.adobe.com/public/developer/en/tiff/TIFF6.pdf",
+      "url": "https://partners.adobe.com/public/developer/en/tiff/TIFF6.pdf",
+      "retrieval": {
+        "status": "RETRIEVAL_FAILED",
+        "httpStatus": "404",
+        "detail": ""
+      },
+      "alternativePublisherOrReferenceUrls": [
+        {
+          "url": "https://pdfa.org/wp-content/uploads/2020/07/TIFF6.pdf",
+          "status": "DOWNLOADED",
+          "httpStatus": "200",
+          "finalUrl": "https://pdfa.org/wp-content/uploads/2020/07/TIFF6.pdf",
+          "contentType": "application/pdf",
+          "file": "documents/TIFF6-8cb1e1a2226e.pdf",
+          "bytes": 398722,
+          "sha256": "8cb1e1a2226e423ba8b88f57366a30ef1b7ad6109443ebdda072b952739a8d76"
+        }
+      ]
+    },
+    {
+      "title": "UML 2.2, Unified Model Language (UML) 2.2",
+      "catalogLink": "http://www.omg.org/spec/UML/2.2/",
+      "url": "https://www.omg.org/spec/UML/2.2/",
+      "retrieval": {
+        "status": "LANDING_PAGE_ONLY",
+        "httpStatus": "200",
+        "finalUrl": "https://www.omg.org/spec/UML/2.2/",
+        "contentType": "text/html;charset=UTF-8"
+      },
+      "linkedDownloads": [],
+      "alternativePublisherOrReferenceUrls": [
+        {
+          "url": "https://www.omg.org/spec/UML/2.2/Infrastructure/PDF",
+          "status": "DOWNLOADED",
+          "httpStatus": "200",
+          "finalUrl": "https://www.omg.org/spec/UML/2.2/Infrastructure/PDF",
+          "contentType": "application/pdf",
+          "file": "documents/PDF-d2a34e95cd08.pdf",
+          "bytes": 1883016,
+          "sha256": "d2a34e95cd08174a6697150569a507f9fc40b7e081aa69712a55eb02876e3a01"
+        },
+        {
+          "url": "https://www.omg.org/spec/UML/2.2/Superstructure/PDF",
+          "status": "DOWNLOADED",
+          "httpStatus": "200",
+          "finalUrl": "https://www.omg.org/spec/UML/2.2/Superstructure/PDF",
+          "contentType": "application/pdf",
+          "file": "documents/PDF-a40826d804fa.pdf",
+          "bytes": 6697068,
+          "sha256": "a40826d804fad054875bae5c061e27e55c55b5a2ef83c1181931572bc91a3626"
+        }
+      ]
+    },
+    {
+      "title": "ISO 19156:2011, ISO 19156:2011, Geographic information - Observations and Measurements",
+      "catalogLink": "http://www.iso.org/iso/iso_catalogue/catalogue_tc/catalogue_detail.htm?csnumber=32574",
+      "url": "https://www.iso.org/iso/iso_catalogue/catalogue_tc/catalogue_detail.htm?csnumber=32574",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.iso.org/standard/32574.html",
+        "contentType": "text/html;charset=UTF-8"
+      }
+    },
+    {
+      "title": "OGC 10-126r3, OGC® WaterML 2.0: Part 1- Time series",
+      "catalogLink": "http://www.opengeospatial.org/standards/waterml",
+      "url": "https://www.ogc.org/standards/waterml",
+      "retrieval": {
+        "status": "LANDING_PAGE_ONLY",
+        "httpStatus": "200",
+        "finalUrl": "https://www.ogc.org/standards/waterml/",
+        "contentType": "text/html; charset=UTF-8"
+      },
+      "linkedDownloads": [
+        {
+          "url": "https://docs.ogc.org/is/10-126r3/10-126r3/pdf",
+          "status": "PUBLISHER_REDIRECT_PAGE",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/is/10-126r3/10-126r3/pdf",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/pdf-e704cdf3f1c6.html",
+          "bytes": 1372,
+          "sha256": "e704cdf3f1c6b408bcc0b23127160e91f8b8f394f8a3b46ee88f98632996a810",
+          "document": {
+            "url": "https://docs.ogc.org/is/10-126r3/10-126r3.pdf",
+            "status": "DOWNLOADED",
+            "httpStatus": "200",
+            "finalUrl": "https://docs.ogc.org/is/10-126r3/10-126r3.pdf",
+            "contentType": "application/pdf",
+            "file": "documents/10-126r3-42f3f0e5001f.pdf",
+            "bytes": 2806552,
+            "sha256": "42f3f0e5001fd8bbc0995dc92279290ecfcc65a7a43c117e8d6a6eff5d184ea8"
+          }
+        }
+      ]
+    },
+    {
+      "title": "TSPI Version 2.0, Time-Space-Position Information (TSPI), Version 2.0, (2012-04-05)",
+      "catalogLink": "https://nsgreg.nga.mil/doc/view?i=1433",
+      "url": "https://nsgreg.nga.mil/doc/view?i=1433",
+      "retrieval": {
+        "status": "RETRIEVAL_FAILED",
+        "httpStatus": "503",
+        "detail": ""
+      },
+      "alternativePublisherOrReferenceUrls": [
+        {
+          "url": "https://nsgreg.nga.mil/doc/view?i=1433",
+          "status": "RETRIEVAL_FAILED",
+          "httpStatus": "503",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "title": "GeoRSS, GeoRSS-Simple and GeoRSS-GML",
+      "catalogLink": "http://www.georss.org/",
+      "url": "https://www.georss.org/",
+      "retrieval": {
+        "status": "LANDING_PAGE_ONLY",
+        "httpStatus": "200",
+        "finalUrl": "https://georss.org/",
+        "contentType": "text/html; charset=UTF-8"
+      },
+      "linkedDownloads": []
+    },
+    {
+      "title": "12-128r10, OGC GeoPackage 1.0",
+      "catalogLink": "http://www.opengeospatial.org/standards/geopackage",
+      "url": "https://www.ogc.org/standards/geopackage",
+      "retrieval": {
+        "status": "LANDING_PAGE_ONLY",
+        "httpStatus": "200",
+        "finalUrl": "https://www.ogc.org/standards/geopackage/",
+        "contentType": "text/html; charset=UTF-8"
+      },
+      "linkedDownloads": [
+        {
+          "url": "https://docs.ogc.org/is/12-128r10/12-128r10/pdf",
+          "status": "PUBLISHER_REDIRECT_PAGE",
+          "httpStatus": "200",
+          "finalUrl": "https://docs.ogc.org/is/12-128r10/12-128r10/pdf",
+          "contentType": "text/html; charset=UTF-8",
+          "file": "documents/pdf-3962829daa2e.html",
+          "bytes": 1377,
+          "sha256": "3962829daa2e9d7a5a4f2cabf08096f12f993e94c96ccbf0cf8b04e3cf4f30bd",
+          "document": {
+            "url": "https://docs.ogc.org/is/12-128r10/12-128r10.pdf",
+            "status": "DOWNLOADED",
+            "httpStatus": "200",
+            "finalUrl": "https://docs.ogc.org/is/12-128r10/12-128r10.pdf",
+            "contentType": "application/pdf",
+            "file": "documents/12-128r10-0b8038cceca3.pdf",
+            "bytes": 2347750,
+            "sha256": "0b8038cceca35d34ac0ef42b927213a1be2ec8f1ce9f54e6a0aa5132489013ec"
+          }
+        }
+      ]
+    },
+    {
+      "title": "ISO/IEC 15444-1:2004 Technical Corrigenda 1:2007 and 2:2008 JPEG 2000, ISO/IEC 15444-1:2004 Technical Corrigenda 1:2007 and 2:2008 JPEG 2000 image coding system: Core coding system",
+      "catalogLink": "http://webstore.ansi.org/",
+      "url": "https://webstore.ansi.org/",
+      "retrieval": {
+        "status": "PUBLISHER_CATALOG_OR_LICENSE_REQUIRED",
+        "httpStatus": "200",
+        "finalUrl": "https://webstore.ansi.org/",
+        "contentType": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "title": "GENC Edition 2, Geopolitical Entities, Names, and Codes (GENC) Standard, Edition 2.0, 31 March 2014",
+      "catalogLink": "https://nsgreg.nga.mil/doc/view?i=2379",
+      "url": "https://nsgreg.nga.mil/doc/view?i=2379",
+      "retrieval": {
+        "status": "RETRIEVAL_FAILED",
+        "httpStatus": "503",
+        "detail": ""
+      },
+      "alternativePublisherOrReferenceUrls": [
+        {
+          "url": "https://nsgreg.nga.mil/doc/view?i=2379",
+          "status": "RETRIEVAL_FAILED",
+          "httpStatus": "503",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "title": "AIXM 5.1, Aeronautical Information Exchange Model (AIXM) 5.1",
+      "catalogLink": "http://www.aixm.aero/",
+      "url": "https://www.aixm.aero/",
+      "retrieval": {
+        "status": "LANDING_PAGE_ONLY",
+        "httpStatus": "200",
+        "finalUrl": "https://aixm.aero/",
+        "contentType": "text/html; charset=utf-8"
+      },
+      "linkedDownloads": []
+    },
+    {
+      "title": "Content Standard for Digital Geospatial Metadata (version 2.0), FGDC-STD-001-1998",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/metadata/base-metadata/v2_0698.pdf",
+      "url": "https://www.fgdc.gov/standards/projects/metadata/base-metadata/v2_0698.pdf",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/metadata/base-metadata/v2_0698.pdf",
+        "contentType": "application/pdf",
+        "file": "documents/v2_0698-b608ec5721af.pdf",
+        "bytes": 220566,
+        "sha256": "b608ec5721afd8764c72774f52ca97953c3a05e6e2ef6c6fe40a285737efebe3"
+      }
+    },
+    {
+      "title": "Content Standard for Digital Geospatial Metadata: Part 1, Biological Data Profile, FGDC-STD-001.1-1999",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/metadata/biometadata/biodatap.pdf",
+      "url": "https://www.fgdc.gov/standards/projects/metadata/biometadata/biodatap.pdf",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/metadata/biometadata/biodatap.pdf",
+        "contentType": "application/pdf",
+        "file": "documents/biodatap-25122509d9ba.pdf",
+        "bytes": 275541,
+        "sha256": "25122509d9bab9fb2329fb8500b0bed5c896cb4a1c9e0e7cee82a9df9efb00a4"
+      }
+    },
+    {
+      "title": "Content Standard for Digital Geosptial Metadata: Part 2, Metadata Profile for Shoreline Data, FGDC-STD-001.2-2001",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/metadata/shoreline-metadata/sp_endorsed.pdf",
+      "url": "https://www.fgdc.gov/standards/projects/metadata/shoreline-metadata/sp_endorsed.pdf",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/metadata/shoreline-metadata/sp_endorsed.pdf",
+        "contentType": "application/pdf",
+        "file": "documents/sp_endorsed-fa077760b4df.pdf",
+        "bytes": 488467,
+        "sha256": "fa077760b4dff456d68d48bbf8fa617c2f872431fc2842491cedd44aaa1c3dfe"
+      }
+    },
+    {
+      "title": "Cadastral Data Content Standard, FGDC-STD-003",
+      "catalogLink": "https://www.fgdc.gov/standards/projects/cadastral/cadastral-data-standard-v1-4.pdf",
+      "url": "https://www.fgdc.gov/standards/projects/cadastral/cadastral-data-standard-v1-4.pdf",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/cadastral/cadastral-data-standard-v1-4.pdf",
+        "contentType": "application/pdf",
+        "file": "documents/cadastral-data-standard-v1-4-3bcab4dff811.pdf",
+        "bytes": 2352229,
+        "sha256": "3bcab4dff811fe6ea34155af2a4d002ec0b25477d8d2b4592a0db0624e6ad42c"
+      }
+    },
+    {
+      "title": "Classification of Wetlands and Deepwater Habitats in the United States, FGDC-STD-004-2013",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/wetlands/nvcs-2013",
+      "url": "https://www.fgdc.gov/standards/projects/wetlands/nvcs-2013",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/wetlands/nwcs-2013",
+        "contentType": "application/pdf",
+        "file": "documents/nvcs-2013-89bf4cfd167c.pdf",
+        "bytes": 2202945,
+        "sha256": "89bf4cfd167cde41c1d01d137981387faa2d888b0e586208ec693d7cddda364d"
+      }
+    },
+    {
+      "title": "National Vegetation Classification Standard (Version 2), FGDC-STD-005-2008",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/vegetation/NVCS_V2_FINAL_2008-02.pdf",
+      "url": "https://www.fgdc.gov/standards/projects/vegetation/NVCS_V2_FINAL_2008-02.pdf",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/vegetation/NVCS_V2_FINAL_2008-02.pdf",
+        "contentType": "application/pdf",
+        "file": "documents/NVCS_V2_FINAL_2008-02-a4daa6ddc3f7.pdf",
+        "bytes": 1321454,
+        "sha256": "a4daa6ddc3f7ea077ae9c98577e551c1084baa592e6595437052ce2b3aae22ea"
+      }
+    },
+    {
+      "title": "Soil Geographic Data Standard, FGDC-STD-006",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/soils/soil997.PDF",
+      "url": "https://www.fgdc.gov/standards/projects/soils/soil997.PDF",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/soils/soil997.PDF",
+        "contentType": "application/pdf",
+        "file": "documents/soil997-f30991522621.pdf",
+        "bytes": 489132,
+        "sha256": "f309915226210c2a5f0478850ef49b2c873d2555fc62f3436dec2aa32722250b"
+      }
+    },
+    {
+      "title": "Geospatial Positioning Accuracy Standards, Part 1: Reporting Methodology, FGDC-STD-007.1-1998",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/accuracy/part1/chapter1",
+      "url": "https://www.fgdc.gov/standards/projects/accuracy/part1/chapter1",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/accuracy/part1/chapter1",
+        "contentType": "application/pdf",
+        "file": "documents/chapter1-27d4e9bfc8db.pdf",
+        "bytes": 36979,
+        "sha256": "27d4e9bfc8db7f207810c0339bfa0170433105faef246c8c70365840bde8f73d"
+      }
+    },
+    {
+      "title": "Geospatial Positioning Accuracy Standards, Part 2: Standards for Geodetic Networks, FGDC-STD-007.2-1998",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/accuracy/part2/chapter2",
+      "url": "https://www.fgdc.gov/standards/projects/accuracy/part2/chapter2",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/accuracy/part2/chapter2",
+        "contentType": "application/pdf",
+        "file": "documents/chapter2-9c855b1107e9.pdf",
+        "bytes": 26649,
+        "sha256": "9c855b1107e98f1ed41a68c85808539e824524bc1b2fbbe8692aa25b9577a4b3"
+      }
+    },
+    {
+      "title": "Geospatial Positioning Accuracy Standards, Part 3: National Standard for Spatial Data Accuracy, FGDC-STD-007.3-1998",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/accuracy/part3/chapter3",
+      "url": "https://www.fgdc.gov/standards/projects/accuracy/part3/chapter3",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/accuracy/part3/chapter3",
+        "contentType": "application/pdf",
+        "file": "documents/chapter3-60af97467505.pdf",
+        "bytes": 84183,
+        "sha256": "60af974675053c07b82d37dc4e45672f7c8a21003866298eda173015caefd93c"
+      }
+    },
+    {
+      "title": "Geospatial Positioning Accuracy Standards, Part 4: Architecture, Engineering, Construction, and Facilities Management, FGDC-STD-007.4-2002",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/accuracy/part4/FGDC-endorsed-standard",
+      "url": "https://www.fgdc.gov/standards/projects/accuracy/part4/FGDC-endorsed-standard",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/accuracy/part4/FGDC-endorsed-standard",
+        "contentType": "application/pdf",
+        "file": "documents/FGDC-endorsed-standard-bd90494c1083.pdf",
+        "bytes": 80470,
+        "sha256": "bd90494c108376a8b4acf6621b4aa69ebe7bd4751e81a9d64c5122b46c968fff"
+      }
+    },
+    {
+      "title": "Geospatial Positioning Accuracy Standards, Part 5: Standards for Nautical Charting Hydrographic Surveys, FGDC-STD-007.5-2005",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/accuracy/part5/FGDC-STD-007.5-2005.pdf",
+      "url": "https://www.fgdc.gov/standards/projects/accuracy/part5/FGDC-STD-007.5-2005.pdf",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/accuracy/part5/FGDC-STD-007.5-2005.pdf",
+        "contentType": "application/pdf",
+        "file": "documents/FGDC-STD-007.5-2005-82fe78c99c75.pdf",
+        "bytes": 84572,
+        "sha256": "82fe78c99c757c345689b6d278c2b066910e7e7c71b9354b215036c035b62337"
+      }
+    },
+    {
+      "title": "Content Standard for Digital Orthoimagery, FGDC-STD-008-1999",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/orthoimagery/orth_299.pdf",
+      "url": "https://www.fgdc.gov/standards/projects/orthoimagery/orth_299.pdf",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/orthoimagery/orth_299.pdf",
+        "contentType": "application/pdf",
+        "file": "documents/orth_299-16902b621deb.pdf",
+        "bytes": 99683,
+        "sha256": "16902b621debe6ab8ad57a4ee996bcaf9ff046cbb9712942a9d619aac2b2a81f"
+      }
+    },
+    {
+      "title": "Content Standard for Remote Sensing Swath Data, FGDC-STD-009-1999",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/swath_data/FGDC-STD-009-1999.doc",
+      "url": "https://www.fgdc.gov/standards/projects/swath_data/FGDC-STD-009-1999.doc",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/swath_data/FGDC-STD-009-1999.doc",
+        "contentType": "application/msword",
+        "file": "documents/FGDC-STD-009-1999-a9a86518a000.doc",
+        "bytes": 312320,
+        "sha256": "a9a86518a00053d3c914054c8bd3abee0f6b24be80ac8ad965fa2e393e0b3f31"
+      }
+    },
+    {
+      "title": "Utilities Data Content Standard, FGDC-STD-010-2000",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/utilities/index_html",
+      "url": "https://www.fgdc.gov/standards/projects/utilities/index_html",
+      "retrieval": {
+        "status": "OFFICIAL_REFERENCE_PAGE",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/utilities/index_html",
+        "contentType": "text/html;charset=utf-8",
+        "file": "documents/index_html-204162c2969a.html",
+        "bytes": 31963,
+        "sha256": "204162c2969a83fbbbf1cb5fc8a6579b21cbf69af8b9d35dc58946792a6a4275"
+      },
+      "linkedDownloads": [
+        {
+          "url": "https://www.fgdc.gov/standards/projects/utilities/public-review.zip",
+          "status": "DOWNLOADED",
+          "httpStatus": "200",
+          "finalUrl": "https://www.fgdc.gov/standards/projects/utilities/public-review.zip",
+          "contentType": "application/zip",
+          "file": "documents/public-review-56f1cbc7bd65.zip",
+          "bytes": 685041,
+          "sha256": "56f1cbc7bd65b6e2e860a9b28830ac283319d5f070582d4b46ae7b6a24631de2"
+        },
+        {
+          "url": "https://www.fgdc.gov/standards/projects/utilities/utilities.pdf",
+          "status": "DOWNLOADED",
+          "httpStatus": "200",
+          "finalUrl": "https://www.fgdc.gov/standards/projects/utilities/utilities.pdf",
+          "contentType": "application/pdf",
+          "file": "documents/utilities-a3943a78e293.pdf",
+          "bytes": 780542,
+          "sha256": "a3943a78e2935e098136ee0151b0a54ae710fdeaff90d5858f8c65fd0d70c57e"
+        },
+        {
+          "url": "https://www.fgdc.gov/standards/projects/utilities/standards/projects/utilities/utilitiesdb.zip",
+          "status": "DOWNLOADED",
+          "httpStatus": "200",
+          "finalUrl": "https://www.fgdc.gov/standards/projects/utilities/standards/projects/utilities/utilitiesdb.zip",
+          "contentType": "application/zip",
+          "file": "documents/utilitiesdb-a9066b314b1c.zip",
+          "bytes": 719832,
+          "sha256": "a9066b314b1cb58d88d625c65e886fdc669b7404fb2e738ef1a1c1a85b09a56d"
+        }
+      ]
+    },
+    {
+      "title": "Standard for a U.S. National Grid,FGDC-STD-011-2001",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/usng/fgdc_std_011_2001_usng.pdf",
+      "url": "https://www.fgdc.gov/standards/projects/usng/fgdc_std_011_2001_usng.pdf",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/usng/fgdc_std_011_2001_usng.pdf",
+        "contentType": "application/pdf",
+        "file": "documents/fgdc_std_011_2001_usng-12781a322843.pdf",
+        "bytes": 1031194,
+        "sha256": "12781a32284379dc0087d48f17f2a4a6f8a23ea647eb7a832b18cf2c69c78818"
+      }
+    },
+    {
+      "title": "Content Standard for Digital Geospatial Metadata: Extensions for Remote Sensing Metadata, FGDC-STD-012-2002",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/csdgm_rs_ex/remote-sensing-metadata",
+      "url": "https://www.fgdc.gov/standards/projects/csdgm_rs_ex/remote-sensing-metadata",
+      "retrieval": {
+        "status": "OFFICIAL_REFERENCE_PAGE",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/csdgm_rs_ex/remote-sensing-metadata",
+        "contentType": "text/html;charset=utf-8",
+        "file": "documents/remote-sensing-metadata-0f65a240253c.html",
+        "bytes": 31788,
+        "sha256": "0f65a240253c1a0f16e096a32636d4f70eff6020114789df704e1860003a2a6f"
+      },
+      "linkedDownloads": [
+        {
+          "url": "https://www.fgdc.gov/standards/projects/csdgm_rs_ex/standards/projects/csdgm_rs_ex/csdgm_rs_ex_pro.pdf",
+          "status": "DOWNLOADED",
+          "httpStatus": "200",
+          "finalUrl": "https://www.fgdc.gov/standards/projects/csdgm_rs_ex/standards/projects/csdgm_rs_ex/csdgm_rs_ex_pro.pdf",
+          "contentType": "application/pdf",
+          "file": "documents/csdgm_rs_ex_pro-f4488b58a42d.pdf",
+          "bytes": 15983,
+          "sha256": "f4488b58a42d30b9bad675feba3367ef2299a11f7a48378177ece3a00136e044"
+        },
+        {
+          "url": "https://www.fgdc.gov/standards/projects/csdgm_rs_ex/Extensions_PublicReviewDraft.pdf",
+          "status": "DOWNLOADED",
+          "httpStatus": "200",
+          "finalUrl": "https://www.fgdc.gov/standards/projects/csdgm_rs_ex/Extensions_PublicReviewDraft.pdf",
+          "contentType": "application/pdf",
+          "file": "documents/Extensions_PublicReviewDraft-9d9ab8b5f81b.pdf",
+          "bytes": 613964,
+          "sha256": "9d9ab8b5f81b22628b5104af41cc0beed0f876c78636f422e36e4bbe05fca372"
+        },
+        {
+          "url": "https://www.fgdc.gov/standards/projects/csdgm_rs_ex/MetadataRemoteSensingExtens.pdf",
+          "status": "DOWNLOADED",
+          "httpStatus": "200",
+          "finalUrl": "https://www.fgdc.gov/standards/projects/csdgm_rs_ex/MetadataRemoteSensingExtens.pdf",
+          "contentType": "application/pdf",
+          "file": "documents/MetadataRemoteSensingExtens-0c6ef79ce780.pdf",
+          "bytes": 335849,
+          "sha256": "0c6ef79ce780748f68ec7957a8395425651703d1ed63aedc41057144645ed411"
+        }
+      ]
+    },
+    {
+      "title": "Digital Cartographic Standard for Geologic Map Symbolization, FGDC-STD-13-2006",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/geo-symbol/index_html",
+      "url": "https://www.fgdc.gov/standards/projects/geo-symbol/index_html",
+      "retrieval": {
+        "status": "OFFICIAL_REFERENCE_PAGE",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/geo-symbol/index_html",
+        "contentType": "text/html;charset=utf-8",
+        "file": "documents/index_html-ab54b8306974.html",
+        "bytes": 34627,
+        "sha256": "ab54b8306974186e6b1793f550636b2916c5c6a6fbe9c7fbbc0741acfa95bea2"
+      },
+      "linkedDownloads": [
+        {
+          "url": "https://www.fgdc.gov/standards/projects/geo-symbol/FGDC_swg_DigCartoStd-all.pdf",
+          "status": "DOWNLOADED",
+          "httpStatus": "200",
+          "finalUrl": "https://www.fgdc.gov/standards/projects/geo-symbol/FGDC_swg_DigCartoStd-all.pdf",
+          "contentType": "application/pdf",
+          "file": "documents/FGDC_swg_DigCartoStd-all-17b345bf8d63.pdf",
+          "bytes": 17895247,
+          "sha256": "17b345bf8d63b7a240e82caf5d97936d357f92c6ae0f29239fc4aa9745b5e65b"
+        },
+        {
+          "url": "https://www.fgdc.gov/standards/projects/geo-symbol/FGDC-GeolSymFinalDraft.pdf",
+          "status": "DOWNLOADED",
+          "httpStatus": "200",
+          "finalUrl": "https://www.fgdc.gov/standards/projects/geo-symbol/FGDC-GeolSymFinalDraft.pdf",
+          "contentType": "application/pdf",
+          "file": "documents/FGDC-GeolSymFinalDraft-aababc1056df.pdf",
+          "bytes": 10891442,
+          "sha256": "aababc1056dfd2a7ea5534e334abfe05698f46f3093fabe694510bdd8422bbbe"
+        }
+      ]
+    },
+    {
+      "title": "Geographic information Framework Data Standard - Part 0, Base document, FGDC-STD-014-2008",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part0_Base.pdf",
+      "url": "https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part0_Base.pdf",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part0_Base.pdf",
+        "contentType": "application/pdf",
+        "file": "documents/GI_FrameworkDataStandard_Part0_Base-1e7b3eae2867.pdf",
+        "bytes": 240091,
+        "sha256": "1e7b3eae2867f70a07b858080a87f1b081595f56890923589f972c07ba8999f7"
+      }
+    },
+    {
+      "title": "Geographic Information Framework Data Standard - Part 1, Cadastral, FGDC-STD-014.1-2008",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part1_Cadastral.pdf",
+      "url": "https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part1_Cadastral.pdf",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part1_Cadastral.pdf",
+        "contentType": "application/pdf",
+        "file": "documents/GI_FrameworkDataStandard_Part1_Cadastral-e71a4ca30829.pdf",
+        "bytes": 70640,
+        "sha256": "e71a4ca30829927f7bac535d6b0a08a3b503ac47cbaa5aadfaecd05076c201a3"
+      }
+    },
+    {
+      "title": "Geographic Information - Part 2, Digital Orthoimagery, FGDC-STD-014.2-2015",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part2",
+      "url": "https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part2",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part2",
+        "contentType": "application/pdf",
+        "file": "documents/GI_FrameworkDataStandard_Part2-efa2a9b75213.pdf",
+        "bytes": 553871,
+        "sha256": "efa2a9b7521385b50032c16c2523370cbb1ed5a3e2b1c0a46d0aec35dfd3ea9c"
+      }
+    },
+    {
+      "title": "Geographic Information Framework Data Standard - Part 3, Elevation, FGDC-STD-014.3-2008",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part3_Elevation.pdf",
+      "url": "https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part3_Elevation.pdf",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part3_Elevation.pdf",
+        "contentType": "application/pdf",
+        "file": "documents/GI_FrameworkDataStandard_Part3_Elevation-b88c966c9633.pdf",
+        "bytes": 609528,
+        "sha256": "b88c966c963387d5efbff502b942d029440a5ca07f0bff1a18a528e5c0eff229"
+      }
+    },
+    {
+      "title": "Geographic Information Framework Data Standard - Part 4, Geodetic Control, FGDC-STD-014.4-2008",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part4_GeodeticControl.pdf",
+      "url": "https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part4_GeodeticControl.pdf",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part4_GeodeticControl.pdf",
+        "contentType": "application/pdf",
+        "file": "documents/GI_FrameworkDataStandard_Part4_GeodeticControl-a441cd6bbc8e.pdf",
+        "bytes": 212184,
+        "sha256": "a441cd6bbc8e7c4e20df12343e827dda24d32f8a4b2a31f3e6b715c6a355eec7"
+      }
+    },
+    {
+      "title": "Part 5, Governmental Unit and Other Geographic Area boundaries, FGDC-STD-014.5-2008",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part5_GovernmentalUnitBoundaries.pdf",
+      "url": "https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part5_GovernmentalUnitBoundaries.pdf",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part5_GovernmentalUnitBoundaries.pdf",
+        "contentType": "application/pdf",
+        "file": "documents/GI_FrameworkDataStandard_Part5_GovernmentalUnitBound-3516abfc6297.pdf",
+        "bytes": 382315,
+        "sha256": "3516abfc62975672867130e9b11c40eb94c00d2dc673b37fd4f7d8ccf26115b5"
+      }
+    },
+    {
+      "title": "Part 6, Hydrography, FGDC-STD-014.6-2008",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part6_Hydrography.pdf",
+      "url": "https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part6_Hydrography.pdf",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part6_Hydrography.pdf",
+        "contentType": "application/pdf",
+        "file": "documents/GI_FrameworkDataStandard_Part6_Hydrography-40856dcc0f0e.pdf",
+        "bytes": 201713,
+        "sha256": "40856dcc0f0e6d39257e334a71adaf0d62c9e3bb44dd53ad72ae5426211ac06f"
+      }
+    },
+    {
+      "title": "Geographic Information Framework Data Standard - Part 7, Transportation Base, FGDC-STD-014.7-2008",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part7_Transportation_Base.pdf",
+      "url": "https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part7_Transportation_Base.pdf",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part7_Transportation_Base.pdf",
+        "contentType": "application/pdf",
+        "file": "documents/GI_FrameworkDataStandard_Part7_Transportation_Base-e7a6fa44656c.pdf",
+        "bytes": 178874,
+        "sha256": "e7a6fa44656ce2c0735a18ae51197a02b1ba6ffe4c407ef37c736ba072b347d1"
+      }
+    },
+    {
+      "title": "Geographic Information Framework Data Standard - Part 7b, Transportation - Rail",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part7b_Transportation_Rail.pdf",
+      "url": "https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part7b_Transportation_Rail.pdf",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part7b_Transportation_Rail.pdf",
+        "contentType": "application/pdf",
+        "file": "documents/GI_FrameworkDataStandard_Part7b_Transportation_Rail-3e84efc23324.pdf",
+        "bytes": 376157,
+        "sha256": "3e84efc2332449dc7d38eeb1d728c9881da8933ec25bebd18458a04ca08c0f97"
+      }
+    },
+    {
+      "title": "Geographic Information Framework Data Standard - Part 7c, Transportation - Road, FGDC-STD-014.7c-2008",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part7c_Transportation_Road.pdf",
+      "url": "https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part7c_Transportation_Road.pdf",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part7c_Transportation_Road.pdf",
+        "contentType": "application/pdf",
+        "file": "documents/GI_FrameworkDataStandard_Part7c_Transportation_Road-6dc9c41856b8.pdf",
+        "bytes": 172487,
+        "sha256": "6dc9c41856b853254079eab509d0020ae27a2528e6f5e57a5fb121e89aa0f876"
+      }
+    },
+    {
+      "title": "Geographic Information Framework Data Standard - Part 7d, Transportation - Transit, FGDC-STD-014.7d-2008",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part7d_Transportation_Transit.pdf",
+      "url": "https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part7d_Transportation_Transit.pdf",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part7d_Transportation_Transit.pdf",
+        "contentType": "application/pdf",
+        "file": "documents/GI_FrameworkDataStandard_Part7d_Transportation_Trans-0aa783664d86.pdf",
+        "bytes": 399303,
+        "sha256": "0aa783664d861fa840542d645fe2a4c8b0f597b7a4204d45cdc2861834fdc46b"
+      }
+    },
+    {
+      "title": "Geographic Information Framework Data Standard - Part 7e, Transportation - Inland Waterways, FGDC-STD-014.7e-2008",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part7e_Transportation_Waterways.pdf",
+      "url": "https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part7e_Transportation_Waterways.pdf",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/framework-data-standard/GI_FrameworkDataStandard_Part7e_Transportation_Waterways.pdf",
+        "contentType": "application/pdf",
+        "file": "documents/GI_FrameworkDataStandard_Part7e_Transportation_Water-95117b5bff08.pdf",
+        "bytes": 59066,
+        "sha256": "95117b5bff08632439a8da3ce1d1ed8a5f2dab9c74b1c138b08729ca412f1c85"
+      }
+    },
+    {
+      "title": "Wetlands Mapping Standard, FGDC-STD-015-2009",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/wetlands-mapping/2009-08%20FGDC%20Wetlands%20Mapping%20Standard_final.pdf",
+      "url": "https://www.fgdc.gov/standards/projects/wetlands-mapping/2009-08%20FGDC%20Wetlands%20Mapping%20Standard_final.pdf",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/wetlands-mapping/2009-08%20FGDC%20Wetlands%20Mapping%20Standard_final.pdf",
+        "contentType": "application/pdf",
+        "file": "documents/2009-08-20FGDC-20Wetlands-20Mapping-20Standard_final-433678c4a3e3.pdf",
+        "bytes": 421652,
+        "sha256": "433678c4a3e38cc506007529cee0989838111b940a6bf408c458e294e3713520"
+      }
+    },
+    {
+      "title": "United States Thoroughfare, Landmark, and Postal Address Data Standard, FGDC-STD-016-2011",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/street-address/FGDC_endorsedAddressStandard.zip",
+      "url": "https://www.fgdc.gov/standards/projects/street-address/FGDC_endorsedAddressStandard.zip",
+      "retrieval": {
+        "status": "RETRIEVAL_FAILED",
+        "httpStatus": "404",
+        "detail": ""
+      },
+      "alternativePublisherOrReferenceUrls": [
+        {
+          "url": "https://www.fgdc.gov/standards/projects/address-data/FGDC_endorsedAddressStandard.zip",
+          "status": "DOWNLOADED",
+          "httpStatus": "200",
+          "finalUrl": "https://www.fgdc.gov/standards/projects/address-data/FGDC_endorsedAddressStandard.zip",
+          "contentType": "application/zip",
+          "file": "documents/FGDC_endorsedAddressStandard-792f3e3d44b4.zip",
+          "bytes": 4368918,
+          "sha256": "792f3e3d44b479873c08e9ffade27fb71e76e8156542b20b559d62c4b78c7757"
+        }
+      ]
+    },
+    {
+      "title": "Federal Trails Data Standards, FGDC-STD-017-2011",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/trail-data-standard/Federal_Trail_Data_Standards_FGDC-STD-017-2011.pdf",
+      "url": "https://www.fgdc.gov/standards/projects/trail-data-standard/Federal_Trail_Data_Standards_FGDC-STD-017-2011.pdf",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/trail-data-standard/Federal_Trail_Data_Standards_FGDC-STD-017-2011.pdf",
+        "contentType": "application/pdf",
+        "file": "documents/Federal_Trail_Data_Standards_FGDC-STD-017-2011-ff1e682f6ccd.pdf",
+        "bytes": 480413,
+        "sha256": "ff1e682f6ccd4f612214f32bedb64791f8c34f8d47fe801378e7dc6224d2f837"
+      }
+    },
+    {
+      "title": "Coastal and Marine Ecological Classification Standard (CMECS), FGDC-STD-018-2012",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/cmecs-folder/CMECS_Version_06-2012_FINAL.pdf",
+      "url": "https://www.fgdc.gov/standards/projects/cmecs-folder/CMECS_Version_06-2012_FINAL.pdf",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/cmecs-folder/CMECS_Version_06-2012_FINAL.pdf",
+        "contentType": "application/pdf",
+        "file": "documents/CMECS_Version_06-2012_FINAL-5defb83d0d0e.pdf",
+        "bytes": 8375001,
+        "sha256": "5defb83d0d0e07b7a9d67ef1d3099ce6fe1ae9cbe853a5fa96f8f92419a5d758"
+      }
+    },
+    {
+      "title": "Real Property Asset Data Standard (RPADS), FGDC-STD-019-2014",
+      "catalogLink": "http://www.fgdc.gov/standards/projects/RPADS/RPADS_final",
+      "url": "https://www.fgdc.gov/standards/projects/RPADS/RPADS_final",
+      "retrieval": {
+        "status": "DOWNLOADED",
+        "httpStatus": "200",
+        "finalUrl": "https://www.fgdc.gov/standards/projects/RPADS/RPADS_final",
+        "contentType": "application/pdf",
+        "file": "documents/RPADS_final-51f8457766d3.pdf",
+        "bytes": 121089,
+        "sha256": "51f8457766d3af4f7f4a6120ff1cd04f1c7ebdbbb2584102a84151ce3f9d1db2"
+      }
+    }
+  ],
+  "implementationReferences": [
+    {
+      "title": "OGC 3D Tiles 1.1",
+      "url": "https://docs.ogc.org/cs/22-025r4/22-025r4.html",
+      "status": "RETRIEVAL_FAILED",
+      "httpStatus": "200",
+      "detail": "curl: (63) Maximum file size exceeded"
+    },
+    {
+      "title": "OGC GeoTIFF 1.1",
+      "url": "https://docs.ogc.org/is/19-008r4/19-008r4.html",
+      "status": "DOWNLOADED",
+      "httpStatus": "200",
+      "finalUrl": "https://docs.ogc.org/is/19-008r4/19-008r4.html",
+      "contentType": "text/html",
+      "file": "documents/19-008r4-11bdc2ae93be.html",
+      "bytes": 564429,
+      "sha256": "11bdc2ae93beba691276f94294d8e4c61c7953c53c6522a45d269127b85d9beb"
+    },
+    {
+      "title": "Urban Digital Twin Interoperability Pilot",
+      "url": "https://docs.ogc.org/per/24-067r1.html",
+      "status": "RETRIEVAL_FAILED",
+      "httpStatus": "200",
+      "detail": "curl: (63) Maximum file size exceeded"
+    }
+  ]
+}

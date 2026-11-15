@@ -28,6 +28,6 @@ npm --prefix tsm-console run build
 python scripts/geospatial/verify_cesium_regional_scene.py tsm-console/dist
 ```
 
-The production workflow checks terrain inventory, child masks and seams, mesh bounds, building-to-footprint IDs, city archive checksums, nine-county roads, the historical series and monotonic screening coverage. Headed Chrome checks that Cesium selects building content for rendering under the actual Pages base path.
+The production workflow checks terrain inventory, child masks and every same-level shared terrain edge, mesh bounds, building-to-footprint IDs, city archive checksums, nine-county roads, the historical series and monotonic screening coverage. Headed Chrome checks that Cesium selects building content for rendering under the actual Pages base path.
 
 The separate [Building 3D Tiles run](https://github.com/ATphobia22/Tri-State-Systems-Manager/actions/runs/43587135679) reached 20,518 height-linked features of 23,082. It rejected 2,564 with missing or ambiguous ground or roof returns. The validated published subset above remains independent. The custom Cesium ion imports and native Unreal Shipping verification are tracked by their own release gates.

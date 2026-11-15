@@ -16,6 +16,43 @@ from stage_cesium_posey_buildings import (
 )
 
 
+def verify_terrain_level(folder: Path, area: dict, children: dict | None) -> tuple[set[Path], int]:
+    """Check the TMS payload and every same-level shared height edge."""
+    expected: set[Path] = set()
+    shared_edges = 0
+    stride = POSTS * 2
+    previous_column: dict[int, bytes] = {}
+    for x in range(area["startX"], area["endX"] + 1):
+        next_column: dict[int, bytes] = {}
+        previous_north = None
+        for y in range(area["startY"], area["endY"] + 1):
+            path = folder / str(x) / f"{y}.terrain"
+            raw = path.read_bytes()
+            expected.add(path)
+            mask = 0
+            if children:
+                for i in range(4):
+                    if (children["startX"] <= 2*x + i % 2 <= children["endX"]
+                            and children["startY"] <= 2*y + i // 2 <= children["endY"]):
+                        mask |= 1 << i
+            if len(raw) != POSTS * stride + 2 or raw[-2:] != bytes([mask, 0]):
+                raise ValueError(f"Terrain bytes: {path}")
+            posts = raw[:-2]
+            if y in previous_column:
+                west = b"".join(posts[i:i+2] for i in range(0, len(posts), stride))
+                if west != previous_column[y]:
+                    raise ValueError(f"East-west terrain seam mismatch at {path}")
+                shared_edges += 1
+            if previous_north is not None:
+                if posts[-stride:] != previous_north:
+                    raise ValueError(f"North-south terrain seam mismatch at {path}")
+                shared_edges += 1
+            previous_north = posts[:stride]
+            next_column[y] = b"".join(posts[i-2:i] for i in range(stride, len(posts) + 1, stride))
+        previous_column = next_column
+    return expected, shared_edges
+
+
 def verify(root: Path) -> None:
     def read(relative: str) -> dict:
         return json.loads((root / relative).read_bytes())
@@ -45,22 +82,14 @@ def verify(root: Path) -> None:
     need([s["sha256"] for s in sources["sources"]] == [source[3] for source in DEM_SOURCES], "USGS DEM source hashes")
     need(sources["sourceVerticalDatum"] == "NAVD88" and sources["engineeringUse"] is False, "Terrain provenance")
     expected_files = set()
+    shared_edges = 0
     available = [ranges[0] for ranges in layer["available"]]
-    need(len(available) == layer["maxzoom"] + 1 and layer["maxzoom"] >= 11, "Terrain level inventory")
+    need(len(available) == layer["maxzoom"] + 1 and layer["maxzoom"] >= 13, "Terrain level inventory")
     for level, area in enumerate(available):
-        next_area = available[level + 1] if level + 1 < len(available) else None
-        for x in range(area["startX"], area["endX"] + 1):
-            for y in range(area["startY"], area["endY"] + 1):
-                path = root / terrain / f"{level}/{x}/{y}.terrain"
-                raw = path.read_bytes()
-                expected_files.add(path)
-                mask = 0
-                if next_area:
-                    for i in range(4):
-                        if (next_area["startX"] <= 2*x + i % 2 <= next_area["endX"]
-                                and next_area["startY"] <= 2*y + i // 2 <= next_area["endY"]):
-                            mask |= 1 << i
-                need(len(raw) == POSTS * POSTS * 2 + 2 and raw[-2:] == bytes([mask, 0]), f"Terrain bytes: {path}")
+        children = available[level + 1] if level + 1 < len(available) else None
+        level_files, level_edges = verify_terrain_level(root / terrain / str(level), area, children)
+        expected_files.update(level_files)
+        shared_edges += level_edges
     need(expected_files == set((root / terrain).rglob("*.terrain")), "Unindexed terrain tile")
     width = 180 / (1 << 13)
     x = int((-87.898 + 180) / width)
@@ -68,10 +97,6 @@ def verify(root: Path) -> None:
     tile = root / terrain / f"13/{x}/{y}.terrain"
     posts = struct.unpack(f"<{POSTS * POSTS}H", tile.read_bytes()[:-2])
     need(max(posts) - min(posts) > 20 and min(posts) > 5000, "Mount Vernon relief is missing")
-    # Verify shared posts on a real high-detail tile boundary.
-    adjacent = struct.unpack(f"<{POSTS * POSTS}H", (root / terrain / f"13/{x+1}/{y}.terrain").read_bytes()[:-2])
-    need(posts[POSTS - 1::POSTS] == adjacent[::POSTS], "Terrain seam mismatch")
-
     screening = read(data + "screening.json")
     counts = [f["connectedCells"] for f in screening["frames"]]
     need(screening["classification"] == "SCENARIO" and screening["engineeringUse"] is False, "Screening authority")
@@ -123,7 +148,7 @@ def verify(root: Path) -> None:
     for name in ("Workers/createVerticesFromHeightmap.js", "Workers/createGroundPolylineGeometry.js",
                  "Assets/approximateTerrainHeights.json", "LICENSE.md"):
         need((root / "vendor/cesium" / name).stat().st_size > 0, f"Cesium runtime asset {name}")
-    print(f"Cesium build verified: {len(road_ids)} road segments, {len(expected_files)} terrain tiles, "
+    print(f"Cesium build verified: {len(road_ids)} road segments, {len(expected_files)} terrain tiles, {shared_edges} shared terrain edges, "
           f"{sum(len(s['rows']) for s in replay['series'])} observations, {len(counts)} screening frames, "
           f"{len(visual_ids)} Posey meshes and {len(outline_ids)} footprint-only IDs")
 
