@@ -73,7 +73,7 @@ jobs:
             url:'https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer?f=pjson',
             attribution:'FEMA NFHL',license:'Public US federal government data; verify per-layer restrictions'},
            {datasetId:'usgs-3dep-metadata',sourceId:'usgs-3dep',
-            url:'https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer?f=json',
+            url:'https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer?f=pjson',
             attribution:'USGS 3DEP',license:'Public US federal government data; verify per-dataset restrictions'},
            {datasetId:'noaa-weather-point-metadata',sourceId:'noaa-weather',
             url:'https://api.weather.gov/points/37.93,-87.90',
@@ -102,7 +102,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # pinned
         with:
-          name: tsm-government-live-evidence-${{ github.run_id }}
+          name: tsm-government-live-evidence-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/tsm-government-live/
           if-no-files-found: warn
           retention-days: 14
