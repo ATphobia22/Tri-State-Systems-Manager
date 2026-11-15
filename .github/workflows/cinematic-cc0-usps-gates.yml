@@ -1,0 +1,84 @@
+name: Cinematic CC0 Intake and USPS License Gates
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/cinematic-cc0-usps-gates.yml'
+      - 'scripts/address/usps_address_adapter.py'
+      - 'scripts/address/test_usps_address_adapter.py'
+      - 'scripts/cinema/curate_visual_assets.py'
+      - 'scripts/cinema/test_curate_visual_assets.py'
+      - 'data/cinematic/cc0-visual-asset-source-registry.json'
+      - 'docs/cinema/OPEN-VISUAL-ASSETS-USPS-2026-11-14.md'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/cinematic-cc0-usps-gates.yml'
+      - 'scripts/address/usps_address_adapter.py'
+      - 'scripts/address/test_usps_address_adapter.py'
+      - 'scripts/cinema/curate_visual_assets.py'
+      - 'scripts/cinema/test_curate_visual_assets.py'
+      - 'data/cinematic/cc0-visual-asset-source-registry.json'
+      - 'docs/cinema/OPEN-VISUAL-ASSETS-USPS-2026-11-14.md'
+  workflow_dispatch:
+    inputs:
+      download_cc0_sample:
+        description: 'Download only the vetted CC0 1K HDRI into a disposable Actions artifact'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  license-and-offline-contracts:
+    name: Offline USPS and CC0 visual asset contracts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+      - name: Compile and parse all source-gated adapters
+        run: |
+          python -m py_compile scripts/address/usps_address_adapter.py scripts/address/test_usps_address_adapter.py
+          python -m py_compile scripts/cinema/curate_visual_assets.py scripts/cinema/test_curate_visual_assets.py
+          python -m json.tool data/cinematic/cc0-visual-asset-source-registry.json > /dev/null
+      - name: USPS is disabled, license-gated and excludes private delivery data
+        run: python -m unittest discover -s scripts/address -p 'test_usps_address_adapter.py' -v
+      - name: Asset intake is CC0-only, atomic, bounded and hash pinned
+        run: python -m unittest discover -s scripts/cinema -p 'test_curate_visual_assets.py' -v
+      - name: Check approved and restricted asset catalog decisions without network
+        run: |
+          python scripts/cinema/curate_visual_assets.py --asset polyhaven-sunset-jhbcentral-hdri-1k
+          python scripts/cinema/curate_visual_assets.py --asset fab-megascans-curated-import
+
+  optional-vetted-cc0-sample:
+    name: Optional pinned Poly Haven CC0 HDRI receipt
+    if: github.event_name == 'workflow_dispatch' && inputs.download_cc0_sample
+    needs: license-and-offline-contracts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+      - name: Acquire only the exact hash-pinned, provider-reviewed CC0 HDRI
+        run: |
+          mkdir -p artifacts/cc0
+          python scripts/cinema/curate_visual_assets.py \
+            --asset polyhaven-sunset-jhbcentral-hdri-1k \
+            --stage-dir artifacts/cc0/polyhaven-sunset \
+            --download
+      - name: Upload verified CC0 receipt and raw HDRI as non-repository artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: tsm-pinned-polyhaven-cc0-hdri
+          path: artifacts/cc0/polyhaven-sunset/
+          retention-days: 7
