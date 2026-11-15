@@ -1,0 +1,29 @@
+name: Film shot contract gate
+on:
+  pull_request:
+    paths:
+      - 'data/cinematic/film-shot-plan.v1.json'
+      - 'scripts/cinema/validate_film_shots.py'
+      - 'scripts/cinema/test_validate_film_shots.py'
+      - '.github/workflows/film-shot-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'data/cinematic/film-shot-plan.v1.json'
+      - 'scripts/cinema/validate_film_shots.py'
+      - 'scripts/cinema/test_validate_film_shots.py'
+      - '.github/workflows/film-shot-contract.yml'
+permissions:
+  contents: read
+jobs:
+  film-shot-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate six evidence-gated scenes
+        run: |
+          python scripts/cinema/validate_film_shots.py
+          python -m unittest discover -s scripts/cinema -p 'test_validate_film_shots.py' -v
