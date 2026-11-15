@@ -4,7 +4,7 @@ on:
     branches: [main]
     paths: ['tools/geospatial_exchange/**', 'tests/geospatial_exchange/**', 'data/standards/**', 'data/regulatory/nfhl-indiana-20260706-metadata.xml', 'tsm-console/public/geology/fgdc/**', '.github/workflows/geospatial-exchange.yml']
   pull_request:
-    paths: ['tools/geospatial_exchange/**', 'tests/geospatial_exchange/**', '.github/workflows/geospatial-exchange.yml']
+    paths: ['tools/geospatial_exchange/**', 'tests/geospatial_exchange/**', 'data/standards/**', 'data/regulatory/nfhl-indiana-20260706-metadata.xml', 'tsm-console/public/geology/fgdc/**', 'tsm-console/src/lib/fgdc-geology-pattern.ts', '.github/workflows/geospatial-exchange.yml']
   workflow_dispatch:
 permissions:
   contents: read
