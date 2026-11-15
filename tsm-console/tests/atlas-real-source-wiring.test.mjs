@@ -68,6 +68,28 @@ test('regional atlas uses a state-spanning vector style, source-backed geometry 
   assert.equal(hydro.features.length, 20);
 });
 
+test('regional presets fit the three-state envelope and the selected community is announced', () => {
+  const match = map.match(/const REGIONAL_MAX_BOUNDS:[^\n]+?=\s*(\[\[[^\]]+\],\s*\[[^\]]+\]\])/);
+  assert.ok(match, 'regional map envelope must remain explicit');
+  const [[west, south], [east, north]] = JSON.parse(match[1]);
+  assert.ok(west < east && south < north);
+  const presets = [...atlas.matchAll(/\{\s*id:\s*'([^']+)',\s*label:\s*'[^']+',\s*center:\s*\[(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)\]/g)];
+  assert.equal(presets.length, 6, 'review camera presets when changing the regional list');
+  assert.deepEqual(new Set(presets.map((item) => item[1])),
+    new Set(['posey', 'evansville', 'new-harmony', 'henderson', 'shawneetown', 'regional']));
+  for (const [, id, lon, lat] of presets) {
+    assert.ok(Number(lon) >= west && Number(lon) <= east &&
+      Number(lat) >= south && Number(lat) <= north,
+    `Regional camera preset ${id} exceeds the source-navigation envelope`);
+  }
+  assert.match(map, /maxBounds: props\.regionalAtlas \? REGIONAL_MAX_BOUNDS : MAX_BOUNDS/);
+  assert.match(atlas, /<label htmlFor="tsm-atlas-region">/);
+  assert.match(atlas, /<select id="tsm-atlas-region"/);
+  assert.match(atlas, /aria-live="polite"><strong data-testid="atlas-region-title">\{region\.label\}/);
+  assert.match(atlas, /region\.imagery \? layers/);
+  assert.match(atlas, /id\.startsWith\('indiana-'\) \? false/);
+});
+
 test('regional static source geometries are WGS84, not elevations or simulated flood maps', () => {
   for (const feature of stations.features) {
     assert.equal(feature.geometry.type, 'Point');
