@@ -81,3 +81,58 @@ survey accuracy or regional georeferencing. Dependencies retain their own licens
 ## Verification in this session
 
 Four unit tests passed. Python bytecode compilation passed. Blender 4.3.2 imported a synthetic one-triangle GLB (3 vertices, 1 polygon). Live daily STAC discovery for USGS-03378500 completed, its Parquet asset downloaded, and 65,863 rows imported into DuckDB with all source columns retained. This is the station file, not a date-filtered observation result. No Windows UE build, vendor application compilation, 3D Tiles streaming or cinematic render was verified.
+
+
+## FGDC/ISO/ArcGIS metadata interoperability (2026-11-15)
+
+The same **offline, headless** exchange process now accepts three metadata
+document families: legacy FGDC CSDGM, ISO 19139/19115 (gmd namespace), and
+ArcGIS XML descriptive metadata. Inspired by the field-mapping approaches in
+USGS MetadataWizard and the BSD-licensed ConsBio GIS metadata parser, the TSM
+implementation uses Python 3.12 stdlib without copying their application code,
+installing historical Python packages, invoking a GUI, or reaching the network.
+
+```bash
+python tools/geospatial_exchange/metadata_interop.py data/regulatory/nfhl-indiana-20260706-metadata.xml --output nfhl-metadata-normalized.json
+python -m unittest discover -s tests/geospatial_exchange -v
+```
+
+The generated file contains reported title, source organization, publication
+date, keywords and **source-reported/unverified** geographic extent, alongside
+SHA-256 of source metadata bytes. CRS, vertical datum, regulatory authority and
+engineering acceptance remain unknown/not established. **Do not use the FEMA
+metadata template bounding box as the Posey County coverage**. Parsing XML is
+not a scientific accuracy test, coordinate transformation, or proof of current
+NFHL feature coverage. Validate actual data against official service, FIRM/FIS
+and independent controls.
+
+One license-cleared CC0 SVG style asset is bundled at
+`tsm-console/public/geology/fgdc/101-C.svg`. The optional
+headed-renderer registration API is
+`tsm-console/src/lib/fgdc-geology-pattern.ts`; it does not invent or
+activate a geology layer. The map layer must already have an authoritative
+geology polygon source, classification and legend. Tested repository-source
+provenance is tracked in
+`data/standards/fgdc-upstream-reuse-review-v1.json`.
+No Geoportal Java service, GPL mdEditor embed, unlicensed style packs,
+GoldSrc game editor assets, or browser-based runtime was installed.
+
+**Gate result:** structural/metadata interoperability only. Headed MapLibre
+styling and offline Windows Shipping require their own evidence.
+
+
+### Offline searchable metadata catalog
+
+After normalizing one or more saved agency XML documents, use the lightweight
+Geoportal-inspired discovery adapter:
+
+```bash
+python tools/geospatial_exchange/metadata_catalog_query.py nfhl-metadata-normalized.json --keyword flood --family FGDC_CSDGM
+python tools/geospatial_exchange/metadata_catalog_query.py nfhl-metadata-normalized.json --bbox -88.5 37.5 -87.5 38.5
+```
+
+The spatial query filters only **bounds reported in descriptive XML**, not
+actual feature extents, verified county footprints, surveys or live layers.
+It does not run STAC harvesting (the existing `stac-plan` tool owns that
+flow), Geoportal/Elasticsearch, WFS, CSW or a web API. Use the existing
+authority registry and snapshot adapters for separately approved acquisitions.
