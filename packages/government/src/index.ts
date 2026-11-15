@@ -111,7 +111,10 @@ export async function queryGovernmentJson<T=unknown>(sourceId:string,url:string,
    const response=await (options.fetcher??fetch)(requested,{signal:controller.signal,redirect:'error',headers:sourceId==='noaa-weather'?{accept:'application/geo+json, application/json','user-agent':'Tri-State-Systems-Manager/1.0 (+https://github.com/ATphobia22/Tri-State-Systems-Manager)'}:{accept:'application/json'}});
    if(!response.ok) throw new Error('GOVERNMENT_SOURCE_HTTP_'+response.status);
    const mediaType=response.headers.get('content-type')??'';
-   if(!/json/i.test(mediaType)) throw new Error('GOVERNMENT_SOURCE_NON_JSON_RESPONSE');
+   // ArcGIS explicitly supports pretty JSON responses with a text/plain media type.
+   const prettyArcgisJson=requested.pathname.startsWith('/arcgis/rest/services/')
+     && requested.searchParams.get('f')==='pjson' && /^text\/plain(?:\s*;|$)/i.test(mediaType);
+   if(!/json/i.test(mediaType)&&!prettyArcgisJson) throw new Error('GOVERNMENT_SOURCE_NON_JSON_RESPONSE');
    const raw=await readBoundedResponseText(response,25_000_000);
    let result:T; try { result=JSON.parse(raw) as T; } catch { throw new Error('GOVERNMENT_SOURCE_INVALID_JSON'); }
    const outputHash=sha256(result);

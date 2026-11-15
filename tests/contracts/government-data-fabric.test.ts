@@ -36,6 +36,16 @@ test('government adapter rejects non-JSON and oversized responses before parsing
  await assert.rejects(()=>queryGovernmentJson('fema-nfhl','https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer',{fetcher:async()=>new Response('html',{headers:{'content-type':'text/html'}})}),/NON_JSON/);
  await assert.rejects(()=>queryGovernmentJson('fema-nfhl','https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer',{fetcher:async()=>new Response('{}',{headers:{'content-type':'application/json','content-length':'25000001'}})}),/TOO_LARGE/);
 });
+test('government adapter parses ArcGIS pretty JSON served as text', async () => {
+ const endpoint = getGovernmentSource('fema-nfhl').endpoint;
+ const fetcher = async () => new Response('{ "layers": [] }', {
+  headers: { 'content-type': 'text/plain; charset=UTF-8' },
+ });
+ const snapshot = await queryGovernmentJson('fema-nfhl', `${endpoint}?f=pjson`, { fetcher });
+ assert.deepEqual(snapshot.result, { layers: [] });
+ assert.deepEqual(validateEvidenceEnvelope(snapshot), []);
+ await assert.rejects(() => queryGovernmentJson('fema-nfhl', `${endpoint}?f=json`, { fetcher }), /NON_JSON/);
+});
 test('research fabric marks retrieved sources unverified and validates source hashes',async()=>{
  const text='official source text';
  const provider:ResearchProvider={id:'government-api',async search(){return [{url:'https://example.gov/data',title:'Dataset',text,retrievedAt:'2026-10-23T00:00:00Z',provider:'government-api',sha256:sha256(text)}]}};

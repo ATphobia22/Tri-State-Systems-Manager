@@ -10,13 +10,26 @@ function setRange(selector: string, value: string) {
 
 describe('Public Cesium 4D view on the project Pages base', () => {
   it('streams terrain and buildings, draws local sources and switches replay and screening', () => {
+    const renderErrors: string[] = [];
+    cy.on('fail', (error) => {
+      if (renderErrors.length) error.message += `\nCesium render diagnostics:\n${renderErrors.join('\n')}`;
+      throw error;
+    });
     cy.intercept('GET', '**/data/cesium-regional/terrain/**/*.terrain').as('terrainTile');
     cy.intercept({ method: 'GET', pathname: '**/posey-buildings/content/**/*.glb' }).as('buildingTile');
     cy.intercept({ method: 'GET', pathname: '**/posey-buildings/subtrees/**/*.subtree' }).as('buildingSubtree');
     cy.intercept('GET', '**/posey-buildings/missing-height-footprints.json').as('poseyFootprints');
     cy.intercept('GET', '**/mount-vernon-scene/scene.json').as('city');
     cy.intercept('GET', '**/data/cesium-regional/screening/*.json').as('screening');
-    cy.visit('cesium/');
+    cy.visit('cesium/', { onBeforeLoad(win) {
+      const report = win.console.error.bind(win.console);
+      win.console.error = (message, ...details) => {
+        if (message === 'Cesium render loop failed') {
+          renderErrors.push(...details.map((detail) => String(detail?.stack ?? detail)));
+        }
+        report(message, ...details);
+      };
+    } });
     cy.contains('h1', 'Tri-State River Valley').should('be.visible');
     cy.get('.tsm-cesium-viewport canvas', { timeout: 30000 }).should('be.visible');
     cy.wait(['@terrainTile', '@poseyFootprints', '@buildingSubtree', '@buildingTile'], { requestTimeout: 60000 }).each((hit) => {
