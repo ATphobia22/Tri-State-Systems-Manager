@@ -37,7 +37,7 @@ class IntakeError(ValueError):
 def safe_name(value: str) -> bool:
     return (isinstance(value, str) and bool(value) and
             not value.startswith(("/", ".")) and "\\" not in value and ":" not in value
-            and all(p not in ("", ".", "..") for p in PurePosixPath(value).parts)
+            and all(p not in ("", ".", "..") for p in value.split("/"))
             and bool(re.fullmatch(r"[a-zA-Z0-9_./-]+", value)))
 
 
