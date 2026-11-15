@@ -1,0 +1,121 @@
+{
+  "schemaVersion": "tsm.cinematic-asset-sources.v1",
+  "purpose": "Visual-only asset sources; not scientific or regulatory data. Download is always opt-in.",
+  "reviewedAt": "2026-11-14",
+  "sources": {
+    "polyhaven": {
+      "license_uri": "https://polyhaven.com/license",
+      "api_uri": "https://polyhaven.com/our-api",
+      "api_note": "A unique User-Agent and visible provider attribution are required when using the live API."
+    },
+    "ambientcg": {
+      "license_uri": "https://docs.ambientcg.com/license/",
+      "api_uri": "https://docs.ambientcg.com/api/v3/assets/",
+      "api_note": "Respect published API availability and rate limits; v3 is preferred."
+    },
+    "fab": {
+      "license_uri": "https://www.fab.com/eula",
+      "announcement_uri": "https://quixel.com/news/update-megascans-are-going-free-again",
+      "api_note": "License does not allow standalone redistribution of source assets."
+    },
+    "blenderkit": {
+      "license_status": "PER_ITEM_REVIEW_REQUIRED",
+      "api_note": "No download or redistribution allowed from this registry pending per-item checks."
+    }
+  },
+  "assets": [
+    {
+      "id": "polyhaven-sunset-jhbcentral-hdri-1k",
+      "name": "Joburg Central Sunset HDRI 1K",
+      "provider": "polyhaven",
+      "source_uri": "https://polyhaven.com/a/sunset_jhbcentral",
+      "license": "CC0-1.0",
+      "license_reviewed": true,
+      "classification": "VISUALIZATION_ONLY",
+      "engineeringUse": false,
+      "regulatoryUse": false,
+      "creative_roles": [
+        "cinematic-lighting",
+        "environment-hdri"
+      ],
+      "geographic_coverage": "ART_ASSET_NO_REGIONAL_EVIDENCE",
+      "source_digest_note": "MD5 is the provider-published file digest; intake additionally computes SHA256.",
+      "files": [
+        {
+          "name": "sunset_jhbcentral_1k.hdr",
+          "download_url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/sunset_jhbcentral_1k.hdr",
+          "max_bytes": 8388608,
+          "md5": "97335a81ba615beb6f6ae0da707ecd75"
+        }
+      ]
+    },
+    {
+      "id": "ambientcg-pavingstones036-catalog",
+      "name": "PavingStones036 material candidate",
+      "provider": "ambientcg",
+      "source_uri": "https://ambientcg.com/a/PavingStones036",
+      "license": "CC0-1.0",
+      "license_reviewed": true,
+      "classification": "VISUALIZATION_ONLY",
+      "engineeringUse": false,
+      "regulatoryUse": false,
+      "creative_roles": [
+        "roadsides",
+        "pedestrian-scene"
+      ],
+      "geographic_coverage": "ART_ASSET_NO_REGIONAL_EVIDENCE",
+      "files": [],
+      "status": "METADATA_ONLY_DIRECT_URL_AND_HASH_NOT_PINNED"
+    },
+    {
+      "id": "fab-megascans-curated-import",
+      "name": "Quixel Megascans Fab review queue",
+      "provider": "fab",
+      "source_uri": "https://quixel.com/news/update-megascans-are-going-free-again",
+      "license": "FAB_STANDARD",
+      "license_reviewed": false,
+      "classification": "VISUALIZATION_ONLY",
+      "engineeringUse": false,
+      "regulatoryUse": false,
+      "creative_roles": [
+        "riverbanks",
+        "rock",
+        "vegetation",
+        "industrial-props"
+      ],
+      "files": [],
+      "status": "MANUAL_EPIC_ACQUISITION_AND_LICENSE_REVIEW_REQUIRED"
+    },
+    {
+      "id": "blenderkit-free-catalog",
+      "name": "BlenderKit free-tier candidate",
+      "provider": "blenderkit",
+      "source_uri": "https://www.blenderkit.com/",
+      "license": "PER_ITEM_REVIEW_REQUIRED",
+      "license_reviewed": false,
+      "classification": "VISUALIZATION_ONLY",
+      "engineeringUse": false,
+      "regulatoryUse": false,
+      "creative_roles": [
+        "urban-props"
+      ],
+      "files": [],
+      "status": "MANUAL_AUTHOR_LICENSE_AND_REDISTRIBUTION_REVIEW_REQUIRED"
+    }
+  ],
+  "prohibited_operations": [
+    "unlicensed_bulk_scrape",
+    "public_source_file_mirroring_of_fab_or_blenderkit",
+    "unverified_geospatial_alignment",
+    "treat_visuals_as_survey_or_flood_source",
+    "embedding_credentials_in_public_frontend"
+  ],
+  "recommended_workflow": [
+    "plan",
+    "operator-check-license-and-file-digest",
+    "download-to-private-staging",
+    "verify-receipt",
+    "review-camera-placement-in-headed-renderer",
+    "package-approved-binary-with-checksums"
+  ]
+}

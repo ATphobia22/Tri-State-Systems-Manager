@@ -47,3 +47,91 @@ The Drive aggregate manifest contains 15 separately packaged units: a Posey repa
 6. Promote only after CI artifact tests **and** a separate headed, published Pages smoke test pass. Keep Unreal Windows Shipping, HEC-RAS coupling and full 23,082 verified height-linked Posey features as independent release gates.
 
 Public map geometry, source provenance, and browser lighting must remain distinct from engineering calculations and from administrative determinations.
+
+
+## Independent Posey compressed-archive verification (2026-11-14)
+
+This subsection supersedes the **manifest-only** qualification for the single
+Posey repaired part, not for the other 14 Drive inventory units. The connected
+Drive raw-file action successfully downloaded the exact part
+*posey-fixed-part01.tar.zst* (24,767,064 bytes) into a verification runtime.
+A fresh local SHA-256 and MD5 computed directly over the downloaded bytes:
+
+| Property | Independently observed value |
+| --- | --- |
+| SHA-256 | 218cc1dd334f9b2eebd33429cb14a48cebcda1ef980c16384d2dfd4f104e57f8 |
+| MD5 | 667b3dce9cb6b90d70346b5e82f34fdb |
+| Compressed byte count | 24,767,064 |
+| zstd decode | Exit code 0 |
+| Tar members scanned | 42,837 |
+| Regular members / symbolic links | 22,320 / 20,517 |
+| Flat building GLBs | 20,517 |
+| Additional implicit-local GLBs | 718 |
+| Flat-local symlinks | 20,517; all target paths exist within the archive |
+| Tileset descriptors | flat/tileset.json; flat-local/tileset.json; implicit-local/tileset.json |
+
+The downloaded hashes match the Drive Posey manifest, including the source
+MD5 reported by Google Drive. The streamed archive scan found no absolute,
+parent-traversal or duplicate member names and no symbolic links escaping the
+archive root. Five sampled GLBs started with the expected binary glTF
+signature. The flat and flat-local tileset metadata each report 20,517
+DERIVED height-linked building records and explicitly set engineeringUse and
+regulatoryUse false. This is useful structural evidence, **not** an
+independent survey of those heights.
+
+**Outstanding inventory discrepancy:** The Drive manifest's
+total_raw_bytes is 202,874,754 while summing the sizes of regular file
+payloads in the tar scan produces 157,329,790. The differing accounting of
+symbolic link targets and source inventory must be explained before using
+the manifest's raw byte count as a reproducibility assertion. The compressed
+part byte count and SHA-256 are independently verified.
+
+**Windows portability gate:** The flat-local variant stores 20,517 UNIX-style
+symlinks to flat mesh files. A Windows 11 offline packaging step must either
+safely materialize these links or use a variant with ordinary files and then
+recompute the final installer hashes. A tar archive passing an integrity scan
+does **not** prove Windows symlink extraction, Cesium HTTP tile loading, ECEF
+placement, or UE5.8 Shipping runtime validity.
+
+No bulk archive extraction into a public Pages directory was performed. The
+other building and terrain archives remain manifest-only evidence until each
+part is downloaded and independently verified. Preserve the original
+23,082-footprint target separately: 20,517 verified-height LoD1 meshes do not
+establish 23,082 LoD2/LoD3/LoD4 models.
+
+
+## Independently inspected Illinois and Kentucky archive parts (2026-11-14)
+
+Two additional original Drive archive parts were downloaded and independently
+SHA-256 / MD5 verified, decompressed with zstd (exit 0), and scanned for
+unsafe member names and escaped or dangling symlink targets. These checks
+apply to the exact listed part only; do not extrapolate to all counties.
+
+| State / package | Measured compressed bytes | Verified SHA-256 | Tar members | Source-linked LoD1 building IDs | Source-link count |
+| --- | ---: | --- | ---: | ---: | ---: |
+| Illinois / gallatin-buildings-part01.tar.zst | 9,873,199 | 2a80f774dc11531c48a3fafca40b1d66b27220bac3849c5de41a5c6624cdd6ab | 10,131 | 4,550 | 4,550 |
+| Kentucky / henderson-buildings-part01.tar.zst | 40,425,262 | 2bc5e97baf2eb644d968775d6f0750cfa38ecdd76f46c5cc5e653a7aef6aa2fa | 42,417 | 19,981 | 19,981 |
+
+Observed archive structure:
+- Gallatin: 5,581 regular files and 4,550 internal symlinks, with
+  4,924 regular GLBs across flat and implicit variants.
+- Henderson: 22,436 regular files and 19,981 internal symlinks,
+  with 20,903 regular GLBs across flat and implicit variants.
+- Both have 3D Tiles version 1.1 roots for flat, flat-local,
+  implicit and implicit-local variants. Flat tilesets report 4,550
+  Gallatin and 19,981 Henderson height-linked DERIVED buildings.
+- Both have zero scanned absolute/parent-traversal archive members,
+  zero escaped symbolic links and zero missing symlink targets.
+
+**Combined inspected regional subset:** Posey IN (20,517),
+Gallatin IL (4,550) and Henderson KY (19,981) provide 45,048
+archive-declared LoD1 building identities across three counties. This
+sum is not a count of authoritative parcel objects, full regional
+building coverage or distinct GLBs across duplicate tile variants.
+
+No archive was independently visually rendered or certified against
+the county-wide LiDAR/DEM in this verification. Remaining counties and
+all terrain archive families still require their own byte and
+geospatial checks before promotion to a verified source-backed 4D
+scene or offline Windows asset bundle. The public scene may represent
+these as SOURCE_STAGED only, not as READY or production certified.
