@@ -3,12 +3,13 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { generateNativeDataManifest } from "./native-data-manifest.mjs";
 import { verifyWindowsShipping } from "./verify-ue-windows-shipping.mjs";
 
 function fixture(t) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "tsm-ue-shipping-"));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
-  const archive = path.join(root, "Windows", "TSMNative");
+  const archive = path.join(root, "Windows");
   const engineRoot = path.join(root, "Unreal");
   const buildLog = path.join(root, "uat.log");
   const file = (base, relative, data) => {
@@ -25,14 +26,18 @@ function fixture(t) {
   pe.writeUInt16LE(0xF0, 148); // PE32+ optional header size
   pe.writeUInt16LE(0x20b, 152); // PE32+ magic
   const exe = file(archive, "TSMNative.exe", pe);
+  const game = file(archive, "TSMNative/Binaries/Win64/TSMNative-Win64-Shipping.exe", pe);
+  const dataRoot = path.join(archive, "TSMNative/Content/TSMData");
+  const data = file(dataRoot, "sample.bin", Buffer.from("fixture"));
+  generateNativeDataManifest({ dataRoot, manifestPath: path.join(dataRoot, "data-manifest.json") });
   file(archive, "TSMNative/Content/Paks/TSMNative-Windows.pak", Buffer.from("TEST ONLY - NOT AN UNREAL PAK"));
-  file(archive, "Engine/Binaries/Win64/ArchimedesCore.dll", Buffer.from("TEST DLL"));
-  file(archive, "Engine/Binaries/Win64/mod_spatialite.dll", Buffer.from("TEST DLL"));
+  file(archive, "TSMNative/Binaries/ArchimedesCore.dll", Buffer.from("TEST DLL"));
+  file(archive, "TSMNative/Binaries/mod_spatialite.dll", Buffer.from("TEST DLL"));
   file(engineRoot, "Engine/Build/Build.version", JSON.stringify({ MajorVersion: 5, MinorVersion: 8, PatchVersion: 0 }));
   file(engineRoot, "Engine/Plugins/Marketplace/CesiumForUnreal/CesiumForUnreal.uplugin",
     JSON.stringify({ VersionName: "2.29.1" }));
   fs.writeFileSync(buildLog, "TSM_SOURCE_COMMIT=" + "a".repeat(40) + "\nRunning BuildCookRun -clientconfig=Shipping\nAutomationTool exiting with ExitCode=0 (Success)\n");
-  return { archive, engineRoot, buildLog, exe, file, commit: "a".repeat(40) };
+  return { archive, engineRoot, buildLog, exe, game, data, file, commit: "a".repeat(40) };
 }
 test("static proof passes correctly shaped fixture but never asserts an offline launch", (t) => {
   const f = fixture(t);
@@ -40,8 +45,8 @@ test("static proof passes correctly shaped fixture but never asserts an offline 
   assert.equal(result.status, "STATIC_PACKAGE_VERIFIED_OFFLINE_LAUNCH_PENDING");
   assert.equal(result.releaseCertified, false);
   assert.equal(result.cleanWindows11OfflineLaunchVerified, false);
-  assert.equal(result.runtimeDataManifestVerified, false);
-  assert.equal(result.inspectedFiles.length, 4);
+  assert.equal(result.runtimeDataManifestVerified, true);
+  assert.equal(result.inspectedFiles.length, 5);
   assert.equal(result.engine.cesiumPlugin, "2.29.1");
   assert.match(result.inspectedFiles[0].sha256, /^[0-9a-f]{64}$/);
 });
@@ -195,4 +200,17 @@ test("rejects duplicated successful UAT exits in a single transcript", (t) => {
     "AutomationTool exiting with ExitCode=0\n" +
     "AutomationTool exiting with ExitCode=0\n");
   assert.throws(() => verifyWindowsShipping(f), /expected exactly one ExitCode=0/);
+});
+
+
+test("rejects an archive with a launcher but no nested Shipping game", (t) => {
+  const f = fixture(t);
+  fs.rmSync(f.game);
+  assert.throws(() => verifyWindowsShipping(f), /Missing packaged executable/);
+});
+
+test("rejects modified loose data in the final archive", (t) => {
+  const f = fixture(t);
+  fs.writeFileSync(f.data, "changed");
+  assert.throws(() => verifyWindowsShipping(f), /SHA-256 mismatch/);
 });

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "manifest_id": "tsm-immutable-source-manifest",
-  "generated_at": "2026-11-11",
+  "generated_at": "2026-11-15",
   "purpose": "Single inspectable inventory of primary public sources for Tri-State evidence. Retrieval time is not product vintage.",
   "policy": {
     "human_authority_final": true,
@@ -79,7 +79,19 @@
       "license": "FEMA public products",
       "sha256": null,
       "verification_state": "REGISTERED",
-      "notes": "Regulatory source of truth for SFHA/FIRM context"
+      "notes": "Official map product discovery entry point. Retrieve and verify the exact effective panel and FIS separately.",
+      "url_kind": "DISCOVERY_PAGE"
+    },
+    {
+      "id": "fema-nfhl-map-service",
+      "agency": "FEMA",
+      "title": "National Flood Hazard Layer MapServer",
+      "url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer",
+      "url_kind": "ARCGIS_MAP_SERVICE",
+      "layer_or_collection": "Effective NFHL map service",
+      "sha256": null,
+      "verification_state": "REGISTERED",
+      "notes": "Service endpoint. Pin the layer, product vintage and query or export receipt before using feature bytes."
     },
     {
       "id": "ngs-geoid18",
@@ -120,6 +132,28 @@
       "sha256": null,
       "verification_state": "ADAPTER_READONLY",
       "notes": "Read-only import; TSM does not validate the hydraulic model"
+    },
+    {
+      "id": "illinois-ilhmp-lidar",
+      "agency": "Illinois State Geological Survey",
+      "title": "Illinois Height Modernization Program lidar and elevation catalog",
+      "url": "https://clearinghouse.isgs.illinois.edu/data/elevation/lidar/",
+      "url_kind": "DISCOVERY_PAGE",
+      "layer_or_collection": "County and statewide lidar and elevation products",
+      "sha256": null,
+      "verification_state": "REGISTERED",
+      "notes": "Confirm county coverage, acquisition epoch, source CRS, vertical datum and units on the exact product."
+    },
+    {
+      "id": "kentucky-kyfromabove-catalog",
+      "agency": "Kentucky Division of Geographic Information",
+      "title": "KyFromAbove Catalog Explorer",
+      "url": "https://kygeonet.ky.gov/catalogexplorer/",
+      "url_kind": "DISCOVERY_PAGE",
+      "layer_or_collection": "KyFromAbove lidar, DEM and imagery collections",
+      "sha256": null,
+      "verification_state": "REGISTERED",
+      "notes": "Pin the STAC collection, item and asset for the area of interest and verify source CRS, vertical datum and units."
     }
   ]
 }

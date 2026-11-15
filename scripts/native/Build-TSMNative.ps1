@@ -10,5 +10,9 @@ $ErrorActionPreference = "Stop"
 $uat = if ($Platform -eq "Win64") { Join-Path $UnrealRoot "Engine\Build\BatchFiles\RunUAT.bat" } else { Join-Path $UnrealRoot "Engine/Build/BatchFiles/RunUAT.sh" }
 if (-not (Test-Path $uat)) { throw "Unreal Automation Tool not found: $uat" }
 New-Item -ItemType Directory -Force -Path $ArchiveDirectory | Out-Null
-& $uat BuildCookRun "-project=$ProjectFile" -noP4 -build -cook -stage -pak -package -archive "-archivedirectory=$ArchiveDirectory" "-platform=$Platform" "-clientconfig=$Configuration" "-map=/Game/TSM/Maps/TSMNative" -utf8output
+$prerequisites = @()
+if ($Platform -eq 'Win64' -and $Configuration -eq 'Shipping') {
+    $prerequisites = @('-prereqs')
+}
+& $uat BuildCookRun "-project=$ProjectFile" -noP4 -build -cook -stage -pak -package -archive "-archivedirectory=$ArchiveDirectory" "-platform=$Platform" "-clientconfig=$Configuration" "-map=/Game/TSM/Maps/TSMNative" -utf8output @prerequisites
 if ($LASTEXITCODE -ne 0) { throw "UE5 BuildCookRun failed with exit code $LASTEXITCODE." }

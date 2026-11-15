@@ -14,9 +14,9 @@ After reviewing and passing the PR's required checks, merge with commit title co
 
 Do not store service credentials or machine paths in Git. Google Drive serves as a human-controlled archive, not as a runtime dependency. Never require Google sign-in or cloud availability to start the released executable.
 
-## Missing cooked map warning
+## Native map generation
 
-On the audited source tree, `tsm-native/Content/` contains editor Python scripts but no checked-in `.umap`. `Config/DefaultEngine.ini` points at `/Engine/Maps/Templates/OpenWorld`, while `Config/DefaultGame.ini` points at `/Game/TSM/Maps/TSMNative`. Resolve these settings, generate the actual project-level map using UE5.8 editor tools, and ensure the map is present in the cooked output. Do not treat an engine template map as a verified Tri-State terrain scene.
+The startup map settings point to `/Game/TSM/Maps/TSMNative`. The Windows build generates and checks the project map after staging its local terrain and building sources, then cooks that map explicitly. Verify the produced archive and real scene on the target. See the [installation and first-launch procedure](MILESTONE-B-AIRGAP-SHIPPING-GATE.md).
 
 ## Acceptance and classification
 

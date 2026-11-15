@@ -9,6 +9,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { verifyNativeDataManifest } from "./native-data-manifest.mjs";
 
 function required(condition, message) {
   if (!condition) throw new Error(message);
@@ -96,31 +97,41 @@ export function verifyWindowsShipping({ archive, buildLog, engineRoot, commit })
   required(exitCodes.length === 1 && exitCodes[0] === 0,
     "Build log does not prove successful Unreal AutomationTool completion: expected exactly one ExitCode=0 and no failed attempts");
   const files = listFiles(archive);
-  const exe = files.filter((f) => path.basename(f).toLowerCase() === "tsmnative.exe");
-  required(exe.length === 1, `Expected exactly one packaged TSMNative.exe, found ${exe.length}`);
-  required(peMachine(exe[0]) === 0x8664, "Packaged TSMNative.exe is not a PE32+ AMD64 executable");
-  const relative = (f) => path.relative(archive, f).split(path.sep).join("/").toLowerCase();
-  const cook = files.filter((f) => /\/content\/paks\/.*\.(pak|utoc|ucas)$/i.test("/" + relative(f)));
+  const relative = (file) => path.relative(archive, file).split(path.sep).join("/").toLowerCase();
+  const byPath = new Map(files.map((file) => [relative(file), file]));
+  const executablePaths = [
+    "tsmnative.exe",
+    "tsmnative/binaries/win64/tsmnative-win64-shipping.exe",
+  ];
+  const executables = executablePaths.map((name) => {
+    const file = byPath.get(name);
+    required(file, `Missing packaged executable: ${name}`);
+    required(peMachine(file) === 0x8664, `Packaged ${name} is not a PE32+ AMD64 executable`);
+    return file;
+  });
+  const cook = files.filter((file) => /^tsmnative\/content\/paks\/.*\.(pak|utoc|ucas)$/i.test(relative(file)));
   const hasPak = cook.some((f) => f.toLowerCase().endsWith(".pak"));
   const hasIoStore = cook.some((f) => f.toLowerCase().endsWith(".utoc")) &&
     cook.some((f) => f.toLowerCase().endsWith(".ucas"));
   required(hasPak || hasIoStore, "No UE cooked .pak or paired .utoc/.ucas content found");
   const dlls = ["archimedescore.dll", "mod_spatialite.dll"].map((name) => {
-    const matches = files.filter((f) => path.basename(f).toLowerCase() === name);
-    required(matches.length === 1, `Expected one packaged ${name}, found ${matches.length}`);
-    return matches[0];
+    const file = byPath.get(`tsmnative/binaries/${name}`);
+    required(file, `Missing packaged runtime library: ${name}`);
+    return file;
   });
   const banned = files.filter((f) => /^(node|electron|msedgewebview2|chrome)\.exe$|^webview2loader\.dll$/i.test(path.basename(f)));
   required(banned.length === 0, "Browser/Node runtime present in native package");
-  const selected = [exe[0], ...dlls, ...cook].sort((a, b) => relative(a).localeCompare(relative(b)));
+  const data = verifyNativeDataManifest({ dataRoot: path.join(archive, "TSMNative", "Content", "TSMData") });
+  const selected = [...executables, ...dlls, ...cook].sort((a, b) => relative(a).localeCompare(relative(b)));
   required(selected.every((f) => fs.statSync(f).size > 0), "Zero-byte cooked executable, DLL or content");
   return {
     schemaVersion: "tsm.native.win64-shipping-static-evidence.v1",
     status: "STATIC_PACKAGE_VERIFIED_OFFLINE_LAUNCH_PENDING",
     releaseCertified: false,
     cleanWindows11OfflineLaunchVerified: false,
-    runtimeDataManifestVerified: false,
-    warning: "PE header, cooked assets, libraries, engine installation and UAT transcript are static evidence only; they do not prove offline launch, interactive cinematic rendering or bundled data verification",
+    runtimeDataManifestVerified: true,
+    runtimeDataManifestSha256: data.manifestSha256,
+    warning: "PE header, cooked assets, libraries, engine installation and UAT transcript are static evidence only; they do not prove offline launch, interactive cinematic rendering or engineering acceptance",
     sourceCommit: commit,
     engine,
     buildLog: inventory(buildLog, path.dirname(buildLog)),

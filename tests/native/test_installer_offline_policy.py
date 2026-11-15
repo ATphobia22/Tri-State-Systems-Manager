@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Static release guard for native offline Inno Setup configuration."""
 from pathlib import Path
-import re
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -29,8 +28,19 @@ class NativeInstallerPolicyTests(unittest.TestCase):
         self.assertNotRegex(self.active.lower(), r"\[uninstalldelete\]")
         self.assertNotIn("deltree(", self.active.lower())
 
+    def test_prerequisites_are_embedded_and_failures_stop_installation(self):
+        self.assertIn("UEPrereqSetup_x64.exe", self.active)
+        self.assertIn("Flags: dontcopy", self.active)
+        self.assertIn("function PrepareToInstall", self.active)
+        self.assertIn("ewWaitUntilTerminated", self.active)
+        self.assertIn("NeedsRestart := True", self.active)
+
     def test_shipping_source_is_required(self):
-        self.assertRegex(self.active, r'Source:\s*"\.\.\\\.\.\\dist\\tsm-native\\Windows\\TSMNative\\\*"')
+        self.assertIn(r'#define TSMPayloadRoot "..\..\dist\tsm-native\Windows"', self.active)
+        self.assertIn(r'Source: "{#TSMPayloadRoot}\*"; DestDir: "{app}"; Excludes: "Engine\Extras\Redist\en-us\UEPrereqSetup_x64.exe"; Flags: recursesubdirs', self.active)
+        builder = (ROOT / "scripts/native/Build-TSMNativeWindows.ps1").read_text(encoding="utf-8")
+        self.assertIn("'--define=TSMPayloadRoot=' + $windowsRoot", builder)
+        self.assertIn("TSMNative/Binaries/Win64/TSMNative-Win64-Shipping.exe", builder)
 
 if __name__ == "__main__":
     unittest.main()

@@ -5,7 +5,7 @@
 This patch fixes two independent release defects:
 
 1. A deliberately authorized `[TSM-UE-PACKAGE]` push (or `workflow_dispatch` with `package_windows=true`) receives an isolated run-specific concurrency group and `cancel-in-progress=false`. Routine CI continues to cancel superseded same-ref runs. The previous Shipping run #42765030903 was cancelled while waiting for a matching runner; **do not classify it as a build failure or success**.
-2. `Build-TSMNativeWindows.ps1` now requires a certificate thumbprint and HTTPS timestamp server, signs the **cooked `TSMNative.exe` before invoking Inno Setup**, then verifies Authenticode and prints a SHA-256 digest. The existing workflow separately signs the finished installer. Both must pass; a signed wrapper is not proof of a signed executable.
+2. `Build-TSMNativeWindows.ps1` signs and verifies the launcher and nested Shipping game before compiling the installer. Inno Setup signs Setup and its uninstaller. The workflow independently checks the installed signer policy and hashes the archive executables and installer.
 
 ## Required private runner setup
 

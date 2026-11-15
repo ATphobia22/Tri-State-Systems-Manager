@@ -10,6 +10,21 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$ArchiveDirectory = [IO.Path]::GetFullPath($ArchiveDirectory)
+$windowsRoot = Join-Path $ArchiveDirectory 'Windows'
+if (Test-Path -LiteralPath $windowsRoot) {
+    throw "Windows archive output already exists. Use an empty archive directory."
+}
+
+$signSha = $env:TSM_WINDOWS_SIGNING_CERT_SHA1
+$timestampUrl = $env:TSM_WINDOWS_TIMESTAMP_URL
+if ($signSha -notmatch '^[A-Fa-f0-9]{40}$') {
+    throw "TSM_WINDOWS_SIGNING_CERT_SHA1 must be a valid certificate thumbprint."
+}
+if ($timestampUrl -notmatch '^https://') { throw "HTTPS timestamp service URL is required." }
+$signTool = Get-Command signtool.exe -ErrorAction Stop
+$iscc = Get-Command ISCC.exe -ErrorAction SilentlyContinue
+if (-not $iscc) { throw "Inno Setup 7 ISCC.exe is required to produce the standalone installer." }
 
 & "$PSScriptRoot\Build-ArchimedesCore.ps1" -SourceDir $ArchimedesSource -Configuration Release
 if ($LASTEXITCODE -ne 0) { throw "ArchimedesCore build failed." }
@@ -40,28 +55,20 @@ if ($LASTEXITCODE -ne 0) { throw "Unreal packaging failed." }
 & "$PSScriptRoot\\Stage-SovereignDedupEngine.ps1" -ArchiveDirectory $ArchiveDirectory
 if ($LASTEXITCODE -ne 0) { throw "SDE staging failed." }
 
-# Sign cooked executable BEFORE Inno Setup embeds it. The installer
-# also gets signed separately after its own compilation in GitHub Actions.
-$signSha = $env:TSM_WINDOWS_SIGNING_CERT_SHA1
-$timestampUrl = $env:TSM_WINDOWS_TIMESTAMP_URL
-if ([string]::IsNullOrWhiteSpace($signSha) -or $signSha -notmatch '^[A-Fa-f0-9]{40}$') {
-    throw "TSM_WINDOWS_SIGNING_CERT_SHA1 must be a valid certificate thumbprint."
+# UAT emits a root bootstrap executable and an inner game executable.
+# Both ship in Setup and must be signed before installer compilation.
+foreach ($relativePath in @('TSMNative.exe', 'TSMNative/Binaries/Win64/TSMNative-Win64-Shipping.exe')) {
+    $exe = (Resolve-Path -LiteralPath (Join-Path $windowsRoot $relativePath)).Path
+    & $signTool.Source sign /sha1 $signSha /fd SHA256 /tr $timestampUrl /td SHA256 $exe
+    if ($LASTEXITCODE -ne 0) { throw "Signing failed: $relativePath" }
+    & $signTool.Source verify /pa /all $exe
+    if ($LASTEXITCODE -ne 0) { throw "Authenticode verification failed: $relativePath" }
+    Write-Host "SIGNED_EXE_SHA256=$((Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash.ToLowerInvariant()) $relativePath"
 }
-if ($timestampUrl -notmatch '^https://') { throw "HTTPS timestamp service URL is required." }
-$signTool = Get-Command signtool.exe -ErrorAction Stop
-$exes = @(Get-ChildItem -LiteralPath $ArchiveDirectory -Recurse -File -Filter TSMNative.exe)
-if ($exes.Count -ne 1) { throw "Expected exactly one cooked TSMNative.exe, found $($exes.Count)." }
-& $signTool.Source sign /sha1 $signSha /fd SHA256 /tr $timestampUrl /td SHA256 $exes[0].FullName
-if ($LASTEXITCODE -ne 0) { throw "Signing cooked TSMNative.exe failed." }
-& $signTool.Source verify /pa /all $exes[0].FullName
-if ($LASTEXITCODE -ne 0) { throw "Cooked executable Authenticode verification failed." }
-$auth = Get-AuthenticodeSignature -LiteralPath $exes[0].FullName
-if ($auth.Status -ne 'Valid') { throw "Cooked executable Authenticode status: $($auth.Status)" }
-Write-Host "SIGNED_COOKED_EXE_SHA256=$((Get-FileHash -LiteralPath $exes[0].FullName -Algorithm SHA256).Hash.ToLowerInvariant())"
 
 # Sign and verify the SDE companion independently; an unsigned CLI must
 # not be embedded into the signed native installer.
-$sdeBinary = Join-Path $ArchiveDirectory "Windows\\TSMNative\\Tools\\sde-graph.exe"
+$sdeBinary = Join-Path $windowsRoot 'Tools/sde-graph.exe'
 if (-not (Test-Path -LiteralPath $sdeBinary -PathType Leaf)) {
     throw "Staged SDE executable is required before installer compilation."
 }
@@ -73,8 +80,13 @@ $sdeAuth = Get-AuthenticodeSignature -LiteralPath $sdeBinary
 if ($sdeAuth.Status -ne 'Valid') { throw "SDE Authenticode status: $($sdeAuth.Status)" }
 Write-Host "SIGNED_SDE_SHA256=$((Get-FileHash -LiteralPath $sdeBinary -Algorithm SHA256).Hash.ToLowerInvariant())"
 
-$iscc = Get-Command ISCC.exe -ErrorAction SilentlyContinue
-if (-not $iscc) { throw "Inno Setup 7 ISCC.exe is required to produce the standalone installer." }
+$prerequisite = Join-Path $windowsRoot 'Engine/Extras/Redist/en-us/UEPrereqSetup_x64.exe'
+if (-not (Test-Path -LiteralPath $prerequisite -PathType Leaf)) {
+    throw 'The staged Unreal offline prerequisite installer is missing.'
+}
+if ((Get-AuthenticodeSignature -LiteralPath $prerequisite).Status -ne 'Valid') {
+    throw 'The staged Unreal prerequisite installer has an invalid signature.'
+}
 
 # The Inno [Setup] SignTool signs Setup, the uninstaller and temporary self-copies.
 # Never sign Setup only after compilation; that leaves the other copies unsigned.
@@ -98,7 +110,9 @@ if ($previous.Count -ne 0) {
 $signatureCommand = ('"{0}" sign /sha1 {1} /fd SHA256 /tr "{2}" /td SHA256 $f' -f
     $signTool.Source, $signSha, $timestampUrl)
 $signToolOption = '--signtool=tsmrelease=' + $signatureCommand
-& $iscc.Source $signToolOption '--no-ide-signtools' $InstallerScript
+$outputOption = '--output-dir=' + (Resolve-Path -LiteralPath $installerDirectory).Path
+$payloadOption = '--define=TSMPayloadRoot=' + $windowsRoot
+& $iscc.Source $outputOption $payloadOption $signToolOption '--no-ide-signtools' $InstallerScript
 if ($LASTEXITCODE -ne 0) { throw "Inno Setup compilation/signing failed with exit code $LASTEXITCODE." }
 
 $installers = @(Get-ChildItem -LiteralPath $installerDirectory -File -Filter 'TSM-Native-Setup-*-windows-x64.exe')

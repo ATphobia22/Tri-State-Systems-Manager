@@ -18,16 +18,17 @@ export const FGDC_GEOLOGY_101_C = Object.freeze({
 });
 
 export async function registerLocalFGDCGeologyPattern(
-  map: Pick<MapLibreMap, 'hasImage' | 'loadImage' | 'addImage'>,
+  map: Pick<MapLibreMap, 'hasImage' | 'addImage'>,
 ): Promise<string> {
   if (!map.hasImage(FGDC_GEOLOGY_101_C.id)) {
-    // Resolves through the application's own base path. No external network
-    // dependency or remote imagery request is introduced.
-    const base = import.meta.env.BASE_URL;
-    const image = await map.loadImage(
-      base + FGDC_GEOLOGY_101_C.localAsset,
-    );
-    map.addImage(FGDC_GEOLOGY_101_C.id, image.data);
+    // MapLibre's loadImage accepts raster URLs. Decode the local SVG with
+    // the browser and register its image without an external asset request.
+    const image = new Image();
+    image.src = import.meta.env.BASE_URL + FGDC_GEOLOGY_101_C.localAsset;
+    await image.decode();
+    if (!map.hasImage(FGDC_GEOLOGY_101_C.id)) {
+      map.addImage(FGDC_GEOLOGY_101_C.id, image);
+    }
   }
   return FGDC_GEOLOGY_101_C.id;
 }

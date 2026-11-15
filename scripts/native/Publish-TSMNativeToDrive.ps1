@@ -4,7 +4,7 @@ param(
     [Parameter(Mandatory=$true)][string]$RemoteName,
     [string]$DriveFolderId = '1qc7cSiAplGakgBwrjwiFQ4yNy9TV7gwF',
     [string]$InstallerDirectory = 'dist/installer',
-    [string]$ArchiveDirectory = 'dist/tsm-native/Windows/TSMNative',
+    [string]$ArchiveDirectory = 'dist/tsm-native/Windows',
     [string]$ProvenanceDirectory = 'dist/provenance'
 )
 $ErrorActionPreference = 'Stop'
@@ -14,15 +14,16 @@ if ($DriveFolderId -notmatch '^[A-Za-z0-9_-]+$') { throw 'Invalid Drive folder I
 $rclone = Get-Command rclone -ErrorAction Stop
 $installer = @(Get-ChildItem -LiteralPath $InstallerDirectory -File -Filter 'TSM-Native-Setup-*-windows-x64.exe')
 if ($installer.Count -ne 1) { throw "Expected exactly one signed UE Windows installer; got $($installer.Count)" }
-$nativeExe = @(Get-ChildItem -LiteralPath $ArchiveDirectory -Recurse -File -Filter 'TSMNative.exe')
-if ($nativeExe.Count -ne 1) { throw "Expected one cooked TSMNative.exe in native archive; got $($nativeExe.Count)" }
-foreach ($binary in @($installer[0], $nativeExe[0])) {
+$launcher = Get-Item -LiteralPath (Join-Path $ArchiveDirectory 'TSMNative.exe')
+$nativeExe = Get-Item -LiteralPath (Join-Path $ArchiveDirectory 'TSMNative/Binaries/Win64/TSMNative-Win64-Shipping.exe')
+foreach ($binary in @($installer[0], $launcher, $nativeExe)) {
     $sig = Get-AuthenticodeSignature -LiteralPath $binary.FullName
     if ($sig.Status -ne 'Valid') { throw "Refusing to archive unsigned or invalid-signature file: $($binary.Name) [$($sig.Status)]" }
 }
 $mustHave = @(
     'windows-ue-buildcookrun.log',
     'windows-ue-shipping-static-evidence.json',
+    'native-signed-artifact-evidence.json',
     'windows-release-manifest.json',
     'windows-native.spdx.json'
 )
@@ -33,7 +34,7 @@ foreach ($file in $mustHave) {
 }
 $tmp = Join-Path $env:RUNNER_TEMP "tsm-drive-$CommitSha"
 New-Item -ItemType Directory -Path $tmp -Force | Out-Null
-foreach ($file in @($installer[0].FullName, $nativeExe[0].FullName) + @($mustHave | ForEach-Object { Join-Path $ProvenanceDirectory $_ })) {
+foreach ($file in @($installer[0].FullName, $launcher.FullName, $nativeExe.FullName) + @($mustHave | ForEach-Object { Join-Path $ProvenanceDirectory $_ })) {
     Copy-Item -LiteralPath $file -Destination $tmp -Force
 }
 $files = @(Get-ChildItem -LiteralPath $tmp -File | Sort-Object Name)
