@@ -26,7 +26,23 @@
         "terrain-datum",
         "building-tileset",
         "hydrography-source"
-      ]
+      ],
+      "preview": {
+        "view": "confluence",
+        "lightingHourCdt": 17,
+        "keyframes": [
+          {
+            "frame": 0,
+            "headingOffsetDeg": -38,
+            "rangeScale": 1.3
+          },
+          {
+            "frame": 167,
+            "headingOffsetDeg": 33,
+            "rangeScale": 1.05
+          }
+        ]
+      }
     },
     {
       "id": "02-mount-vernon",
@@ -45,7 +61,23 @@
         "building-tileset",
         "roads-source",
         "terrain-datum"
-      ]
+      ],
+      "preview": {
+        "view": "mount-vernon",
+        "lightingHourCdt": 16,
+        "keyframes": [
+          {
+            "frame": 0,
+            "headingOffsetDeg": -18,
+            "rangeScale": 1.35
+          },
+          {
+            "frame": 143,
+            "headingOffsetDeg": 4,
+            "rangeScale": 0.76
+          }
+        ]
+      }
     },
     {
       "id": "03-new-harmony",
@@ -63,7 +95,23 @@
         "terrain-datum",
         "hydrography-source",
         "roads-source"
-      ]
+      ],
+      "preview": {
+        "view": "new-harmony",
+        "lightingHourCdt": 7,
+        "keyframes": [
+          {
+            "frame": 0,
+            "headingOffsetDeg": -15,
+            "rangeScale": 1.23
+          },
+          {
+            "frame": 143,
+            "headingOffsetDeg": 12,
+            "rangeScale": 0.9
+          }
+        ]
+      }
     },
     {
       "id": "04-flood-comparison",
@@ -81,7 +129,8 @@
         "terrain-datum",
         "water-surface-provenance",
         "model-calibration"
-      ]
+      ],
+      "preview": null
     },
     {
       "id": "05-transport",
@@ -99,7 +148,23 @@
         "roads-source",
         "bridge-inventory",
         "terrain-datum"
-      ]
+      ],
+      "preview": {
+        "view": "overview",
+        "lightingHourCdt": 13,
+        "keyframes": [
+          {
+            "frame": 0,
+            "headingOffsetDeg": -12,
+            "rangeScale": 1.18
+          },
+          {
+            "frame": 191,
+            "headingOffsetDeg": 20,
+            "rangeScale": 0.84
+          }
+        ]
+      }
     },
     {
       "id": "06-night-infrastructure",
@@ -117,7 +182,23 @@
         "building-tileset",
         "roads-source",
         "terrain-datum"
-      ]
+      ],
+      "preview": {
+        "view": "mount-vernon",
+        "lightingHourCdt": 21,
+        "keyframes": [
+          {
+            "frame": 0,
+            "headingOffsetDeg": 14,
+            "rangeScale": 1.12
+          },
+          {
+            "frame": 143,
+            "headingOffsetDeg": 38,
+            "rangeScale": 0.85
+          }
+        ]
+      }
     }
   ],
   "pipeline": {
@@ -129,5 +210,6 @@
     "realTime": "Unreal Engine 5.8 Movie Render Queue",
     "offline": "no runtime remote dependency"
   },
-  "releaseGate": "NOT_RENDER_VERIFIED"
+  "releaseGate": "NOT_RENDER_VERIFIED",
+  "previewFrameRate": 24
 }

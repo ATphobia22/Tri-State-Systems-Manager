@@ -28,6 +28,17 @@ for (const workspaceRoot of workspaceRoots) {
   try { collect(path); } catch { /* Optional workspace directory. */ }
 }
 
+test('the root lockfile records each direct npm workspace and its link', () => {
+  const lock = JSON.parse(readFileSync(join(root, 'package-lock.json'), 'utf8')).packages;
+  for (const { path, manifest } of manifests) {
+    const segments = path.split('/');
+    if (segments.length !== 3 || typeof manifest.name !== 'string') continue;
+    const directory = segments.slice(0, -1).join('/');
+    assert.equal(lock[directory]?.version, manifest.version, `locked version for ${directory}`);
+    assert.equal(lock[`node_modules/${manifest.name}`]?.resolved, directory, `lock link for ${manifest.name}`);
+  }
+});
+
 test('local workspace dependency declarations are npm-compatible and version-aligned', () => {
   const localPackages = new Map();
   for (const { path, manifest } of manifests) {

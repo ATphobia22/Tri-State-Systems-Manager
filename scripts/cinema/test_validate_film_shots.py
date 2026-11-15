@@ -31,5 +31,17 @@ class ShotPlanTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate(bad)
 
+    def test_flood_comparison_with_camera_preview_is_rejected(self):
+        bad = copy.deepcopy(self.plan)
+        bad["shots"][3]["preview"] = bad["shots"][0]["preview"]
+        with self.assertRaisesRegex(ValueError, "flood comparison"):
+            validate(bad)
+
+    def test_out_of_range_camera_key_is_rejected(self):
+        bad = copy.deepcopy(self.plan)
+        bad["shots"][0]["preview"]["keyframes"][-1]["rangeScale"] = 0.1
+        with self.assertRaisesRegex(ValueError, "rangeScale"):
+            validate(bad)
+
 if __name__ == "__main__":
     unittest.main()

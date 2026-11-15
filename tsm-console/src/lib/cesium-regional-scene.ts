@@ -8,13 +8,13 @@ import {
 import { loadMountVernonCityScene } from './mount-vernon-city-scene';
 
 export const CESIUM_VIEWS = [
-  { name: 'Mount Vernon, IN', lon: -87.898, lat: 37.932, range: 4300, heading: 15 },
-  { name: 'Ohio–Wabash confluence', lon: -88.023, lat: 37.799, range: 8200, heading: 26 },
-  { name: 'New Harmony, IN', lon: -87.941, lat: 38.128, range: 4600, heading: 335 },
-  { name: 'Evansville, IN', lon: -87.573, lat: 37.975, range: 6500, heading: 340 },
-  { name: 'Henderson, KY', lon: -87.594, lat: 37.841, range: 6500, heading: 353 },
-  { name: 'Shawneetown, IL', lon: -88.187, lat: 37.716, range: 7300, heading: 12 },
-  { name: 'Tri-State overview', lon: -87.79, lat: 37.99, range: 82000, heading: 352 },
+  { id: 'mount-vernon', name: 'Mount Vernon, IN', lon: -87.898, lat: 37.932, range: 4300, heading: 15 },
+  { id: 'confluence', name: 'Ohio–Wabash confluence', lon: -88.023, lat: 37.799, range: 8200, heading: 26 },
+  { id: 'new-harmony', name: 'New Harmony, IN', lon: -87.941, lat: 38.128, range: 4600, heading: 335 },
+  { id: 'evansville', name: 'Evansville, IN', lon: -87.573, lat: 37.975, range: 6500, heading: 340 },
+  { id: 'henderson', name: 'Henderson, KY', lon: -87.594, lat: 37.841, range: 6500, heading: 353 },
+  { id: 'shawneetown', name: 'Shawneetown, IL', lon: -88.187, lat: 37.716, range: 7300, heading: 12 },
+  { id: 'overview', name: 'Tri-State overview', lon: -87.79, lat: 37.99, range: 82000, heading: 352 },
 ] as const;
 
 export const REPLAY_DATES = Array.from({ length: 30 }, (_, i) => `2025-04-${String(i + 1).padStart(2, '0')}`);
@@ -44,14 +44,15 @@ export async function loadCityScreening(signal: AbortSignal): Promise<ScreeningF
   return data.frames;
 }
 
-function cameraLocation(view: typeof CESIUM_VIEWS[number]) {
+function cameraLocation(view: typeof CESIUM_VIEWS[number], headingOffsetDeg = 0, rangeScale = 1) {
   const pitch = -CesiumMath.PI / 3;
-  const heading = CesiumMath.toRadians(view.heading);
-  const distance = view.range * Math.cos(pitch);
+  const heading = CesiumMath.toRadians(view.heading + headingOffsetDeg);
+  const range = view.range * rangeScale;
+  const distance = range * Math.cos(pitch);
   const lat = view.lat - distance * Math.cos(heading) / 111_133;
   const lon = view.lon - distance * Math.sin(heading) / (111_320 * Math.cos(CesiumMath.toRadians(view.lat)));
   return {
-    destination: Cartesian3.fromDegrees(lon, lat, view.range * -Math.sin(pitch) + 100),
+    destination: Cartesian3.fromDegrees(lon, lat, range * -Math.sin(pitch) + 100),
     orientation: { heading, pitch, roll: 0 },
   };
 }
@@ -278,6 +279,12 @@ export function mountCesiumRegionalScene(
 
   return {
     fly,
+    setShotCamera(viewId: string, headingOffsetDeg: number, rangeScale: number) {
+      const view = CESIUM_VIEWS.find(({ id }) => id === viewId);
+      if (!view || stopped) return;
+      camera.setView(cameraLocation(view, headingOffsetDeg, rangeScale));
+      scene.requestRender();
+    },
     stopFlight() { camera.cancelFlight(); },
     setLayer(layer: SceneLayer, show: boolean) {
       visibility[layer] = show;

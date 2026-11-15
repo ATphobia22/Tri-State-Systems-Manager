@@ -40,6 +40,30 @@ python scripts/geospatial/audit_posey_3d_archive.py \
 
 Archive hashes do not cover every locally reconstructed implicit subtree or independent terrain source. The archive is **not** auto-published to GitHub Pages; the already checked-in partial source tileset is the only asset selected by the Atlas toggle. A future upload must respect public storage permissions, licensing, source geography and repeatable integrity checks.
 
+### Stage the verified Drive ZIP into Cesium
+
+The November 13 Posey preview ZIP and the repository’s split preview archive
+contain the same original tileset and 1,847 matching GLB and subtree payloads.
+The stager can use a local copy of the pinned Drive ZIP with the pinned
+[Indiana GIO footprint export](https://github.com/ATphobia22/Tri-State-Systems-Manager/releases/tag/igio-posey-20261006).
+
+```bash
+python scripts/geospatial/stage_cesium_posey_buildings.py \
+  --footprints /path/to/posey-buildings-igio-23082.geojson \
+  --preview-zip /path/to/TSM-Drive-Verified-Posey-Preview-2026-11-13.zip \
+  --output tsm-console/public/data/cesium-regional/posey-buildings
+```
+
+The output receipt records the selected archive’s SHA-256. The stager checks
+the original tileset, mesh identities and height-missing footprint overlay
+against the same source export for either archive. Both sources produce
+20,517 preview meshes and 2,565 footprint-only identities.
+
+The older Drive copy of the footprint GeoJSON shares all 23,082 OBJECTIDs with
+the pinned release export. With ring order and orientation normalized, 23,081
+geometries match exactly. OBJECTID 740387 differs. The Cesium stager keeps the
+release export’s pinned hash and geometry as its footprint source.
+
 ## 3. GeoBIM IFC-to-geospatial relationships
 
 The existing `scripts/geospatial/ifc_preflight.py` checks source IFC STEP structure, checksum, product GUIDs, declared map conversion, projected CRS and length units using an explicitly installed IfcOpenShell parser. The new `scripts/geospatial/export_reviewed_ifc_glb.py` calls a separately installed, reviewed **IfcConvert** CLI to make a real GLB (no downloads or auto-install), validates GLB header/content, attaches the IFC receipt and registry SHA-256, and accepts only **independently reviewed candidate** IFC GlobalId↔GIS asset links with an evidence digest.

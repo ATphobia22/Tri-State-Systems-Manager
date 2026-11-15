@@ -11,7 +11,9 @@ import struct
 import sys
 
 from build_cesium_regional_scene import DEM_SOURCES, POSTS, REPLAY, SCREEN_LEVELS_M
-from stage_cesium_posey_buildings import ARCHIVE_DIGEST, FOOTPRINT_COUNT, FOOTPRINT_DIGEST, MESH_COUNT, mesh_ids
+from stage_cesium_posey_buildings import (
+    ARCHIVE_DIGEST, DRIVE_PREVIEW_DIGEST, FOOTPRINT_COUNT, FOOTPRINT_DIGEST, MESH_COUNT, TILESET_DIGEST, mesh_ids,
+)
 
 
 def verify(root: Path) -> None:
@@ -107,7 +109,8 @@ def verify(root: Path) -> None:
     posey = read(preview + "sources.json")
     missing = read(preview + "missing-height-footprints.json")
     outline_ids = {item["properties"]["source_objectid"] for item in missing["features"]}
-    need(posey["previewArchiveSha256"] == ARCHIVE_DIGEST and posey["sourceFootprintSha256"] == FOOTPRINT_DIGEST,
+    need(posey["previewArchiveSha256"] in {ARCHIVE_DIGEST, DRIVE_PREVIEW_DIGEST}
+         and posey["originalTilesetSha256"] == TILESET_DIGEST and posey["sourceFootprintSha256"] == FOOTPRINT_DIGEST,
          "Posey preview source digests")
     need(posey["meshCount"] == len(visual_ids) == MESH_COUNT and posey["footprintCount"] == FOOTPRINT_COUNT,
          "Posey 3D and source counts")

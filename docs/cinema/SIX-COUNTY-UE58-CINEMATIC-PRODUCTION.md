@@ -19,6 +19,19 @@ The [AWS Open Data registry](https://registry.opendata.aws/kyfromabove/) documen
 
 ## Cinematic shot plan
 
+The public Cesium viewer reuses [the six-shot plan](../../data/cinematic/film-shot-plan.v1.json)
+for selectable camera previews. Each preview has its own opening and closing poses
+on a 24 fps timeline and a scene-lighting hour. The viewer preserves the selected
+USGS observation date when a shot changes. Reduced-motion users can inspect a single
+frame by scrubbing. The flood comparison needs a calibrated model and verified
+water-surface provenance before a preview can be added.
+
+Use one stable asset source across shots, plan cuts in a low-cost preview, and
+render production footage to per-shot image sequences so a failed shot can be
+rerendered independently. Rendered footage and optional composited characters or
+atmosphere remain presentation layers. The UE pipeline below requires independent
+source, placement, and render receipts.
+
 The contract supports 24, 30 or 60 fps and 1080p/4K, with at least 300 seconds of contiguous shots. The editor script authors real CineCameraActor transform tracks and camera cuts, but requires a real native UE map and authoritative world-space camera coordinates. Suggested 9-shot narrative, **40 seconds per shot / 360 seconds**:
 
 1. Regional aerial opening over the Ohio–Wabash confluence
