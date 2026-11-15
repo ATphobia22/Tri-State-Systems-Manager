@@ -1,0 +1,26 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 1
+    upAxis = "Z"
+    doc = "TSM Tri-State example stage — sublayers only; replace payloads with county assets"
+    subLayers = [
+        @./00_geospatial.usda@,
+        @./10_terrain.usda@,
+        @./20_buildings.usda@,
+        @./30_hydro_live.usda@,
+        @./40_flood_history.usda@,
+        @./50_evidence.usda@,
+        @./90_cinematic.usda@,
+    ]
+)
+
+def Xform "World"
+{
+    def Xform "Geospatial" {}
+    def Xform "Terrain" {}
+    def Xform "Buildings" {}
+    def Xform "Hydro" {}
+    def Xform "Evidence" {}
+    def Xform "Cinematic" {}
+}
