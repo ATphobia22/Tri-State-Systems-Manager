@@ -78,6 +78,7 @@ class AccuracyTests(unittest.TestCase):
                 "checkpointIndependenceDeclared": True,
                 "representativeCoverageDeclared": True,
                 "sameCoordinateFrameDeclared": True,
+                "coordinateOperationEvidence": "SYNTHETIC_FIXTURE_NOT_REAL_PROJECTION",
                 "surveyMethod": "SYNTHETIC_TEST",
                 "surveyRMSE_H2_m": 0.03, "surveyRMSE_V2_m": 0.04,
                 "systematicErrorsReviewed": True,
