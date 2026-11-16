@@ -266,3 +266,5 @@ Deliberately NOT implemented (recorded gaps, not oversights):
 ## USGS Lidar Base Specification class 21 and 22 recognition (2025 rev. A)
 
 Official [USGS LBS classification Table 5](https://www.usgs.gov/ngp-standards-and-specifications/lidar-base-specification-tables) includes **21 = Snow (if present and identifiable)** and **22 = Temporal exclusion (typically nonfavored intertidal data)**. TSM's packages/geo/src/lidar/LidarClasses.ts now recognizes both codes **without** treating either as class 2 bare-earth ground. Recognizing a class code does **not** establish that any Posey LAS file has points of that class or prove current LBS compliance. Always preserve the acquisition project's applicable LBS edition and return flags, dataset inventory and actual QA results. Do not replace historical lidar codes or create snow observations.
+
+The [raster metadata check](../../scripts/geospatial/lbs_raster_pair_gate.py) compares DEM and MSHR grid, CRS, NoData, and AREA_OR_POINT metadata. Check actual project assets and the applicable Lidar Mapping Report before recording conformance.

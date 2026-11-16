@@ -1,0 +1,49 @@
+{
+  "schema": "tsm-geologist-licensing-authority-index",
+  "version": "1.0.0",
+  "reviewedOn": "2026-11-16",
+  "purpose": "Jurisdiction-specific authority references; not active-license verification or legal opinion",
+  "asbog": {
+    "officialUrl": "https://www.asbog.org/licensure.php",
+    "issuesLicenses": false,
+    "providesExaminations": true
+  },
+  "authorities": [
+    {
+      "state": "IN",
+      "licensingBoard": "Indiana Board of Licensure for Professional Geologists",
+      "boardReference": "https://igws.iu.edu/services/lpg",
+      "lawCitation": "Indiana Code 25-17.6; 305 IAC",
+      "lawUrl": "https://iga.in.gov/laws/2026/ic/titles/25",
+      "jurisdiction": "Indiana, United States",
+      "liveLicenseVerified": false,
+      "tsmMayIssueLicense": false,
+      "verificationStatus": "AUTHORITY_DIRECTORY_ONLY",
+      "boardNote": "IGWS is the managing agency for the separate professional-geologist board; research institution itself does not license."
+    },
+    {
+      "state": "IL",
+      "licensingBoard": "Illinois Department of Financial and Professional Regulation (Geology)",
+      "boardReference": "https://idfpr.illinois.gov/profs/geology.html",
+      "lawCitation": "225 ILCS 745/25",
+      "lawUrl": "https://www.ilga.gov/legislation/ilcs/fulltext?DocName=022507450K25",
+      "jurisdiction": "Illinois, United States",
+      "liveLicenseVerified": false,
+      "tsmMayIssueLicense": false,
+      "verificationStatus": "AUTHORITY_DIRECTORY_ONLY",
+      "boardNote": "Under the Professional Geologist Licensing Act, the Illinois Department issues applicable licenses; official verification needed for individual work."
+    },
+    {
+      "state": "KY",
+      "licensingBoard": "Kentucky Board of Registration for Professional Geologists",
+      "boardReference": "https://bpg.ky.gov/",
+      "lawCitation": "KRS Chapter 322A",
+      "lawUrl": "https://apps.legislature.ky.gov/law/Statutes/chapter.aspx?id=38848",
+      "jurisdiction": "Kentucky, United States",
+      "liveLicenseVerified": false,
+      "tsmMayIssueLicense": false,
+      "verificationStatus": "AUTHORITY_DIRECTORY_ONLY",
+      "boardNote": "License, registration, any statutory exemptions and scope must be confirmed with Kentucky's board for the specific work."
+    }
+  ]
+}

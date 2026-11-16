@@ -1,0 +1,154 @@
+{
+  "schema": "tsm-igws-historical-geologic-publications",
+  "version": "1.0.0",
+  "reviewedOn": "2026-11-16",
+  "scope": "Bibliographic metadata and source links only; not digitized strata, surveyed observations, site-scale geology or map-use license clearance",
+  "authorityPolicy": {
+    "automaticRegulatoryApproval": false,
+    "automaticProfessionalCertification": false,
+    "historicalMapsMayEstablishSiteObservations": false,
+    "originalMapImagesBundled": false
+  },
+  "publications": [
+    {
+      "id": "IGWS-B61-1987",
+      "title": "A Geological Reconnoisance and Survey of the State of Indiana in 1837 and 1838",
+      "authors": [
+        "Owen, David Dale",
+        "Gray, Henry H."
+      ],
+      "publishedYear": 1987,
+      "originalObservationPeriod": "1837–1838",
+      "series": "Geological Survey Bulletin",
+      "seriesNumber": "61",
+      "mapScaleDenominator": null,
+      "scope": "Historical Indiana reconnaissance; Gray's later introduction and commentary",
+      "poseyCoverageStatus": "HISTORICAL_STATEWIDE_CONTEXT",
+      "catalogUrl": "https://scholarworks.iu.edu/dspace/items/e343aca5-df8c-49b7-8cbe-4853376d9e8e",
+      "rightsStatus": "CONFLICTING_NOTICES",
+      "rightsNote": "Item describes CC BY-NC-SA 4.0 and separately links BY-SA; do not assume an unrestricted reuse grant.",
+      "metadataReviewStatus": "CATALOG_METADATA_VERIFIED",
+      "sourceArtifactSha256": null,
+      "georeferencedFootprintVerified": false,
+      "publicMapRedistributionApproved": false,
+      "siteGeotechnicalObservation": false
+    },
+    {
+      "id": "IGWS-MM48-1987",
+      "title": "Bedrock geologic map of Indiana",
+      "authors": [
+        "Gray, Henry H.",
+        "Ault, Curtis H.",
+        "Keller, Stanley J."
+      ],
+      "publishedYear": 1987,
+      "originalObservationPeriod": null,
+      "series": "Miscellaneous Map",
+      "seriesNumber": "48",
+      "mapScaleDenominator": 500000,
+      "scope": "Statewide bedrock lithostratigraphic interpretation at 1:500,000",
+      "poseyCoverageStatus": "STATEWIDE_REGIONAL_CONTEXT",
+      "catalogUrl": "https://scholarworks.iu.edu/dspace/items/398b76a6-593f-4604-8e77-001c17022bf8",
+      "rightsStatus": "CONFLICTING_NOTICES",
+      "rightsNote": "IU record reports noncommercial/share-alike text and a different linked license; require curator rights review.",
+      "metadataReviewStatus": "CATALOG_METADATA_VERIFIED",
+      "sourceArtifactSha256": null,
+      "georeferencedFootprintVerified": false,
+      "publicMapRedistributionApproved": false,
+      "siteGeotechnicalObservation": false
+    },
+    {
+      "id": "IGWS-B20-1960",
+      "title": "Geology of the Huron Area, South-central Indiana",
+      "authors": [
+        "Gray, Henry H.",
+        "Jenkins, Robert D.",
+        "Weidman, Robert M."
+      ],
+      "publishedYear": 1960,
+      "originalObservationPeriod": null,
+      "series": "Geological Survey Bulletin",
+      "seriesNumber": "20",
+      "mapScaleDenominator": 48000,
+      "scope": "Huron and Hillham area; south-central Indiana, not the Ohio–Wabash confluence",
+      "poseyCoverageStatus": "OUTSIDE_CORE_AOI",
+      "catalogUrl": "https://scholarworks.iu.edu/dspace/items/ece2b4ea-bf61-427b-b637-b7146a5da67e",
+      "rightsStatus": "NOT_VERIFIED",
+      "rightsNote": "A reusable license grant has not been verified for these source bytes.",
+      "metadataReviewStatus": "CATALOG_METADATA_VERIFIED",
+      "sourceArtifactSha256": null,
+      "georeferencedFootprintVerified": false,
+      "publicMapRedistributionApproved": false,
+      "siteGeotechnicalObservation": false
+    },
+    {
+      "id": "IGWS-RGM01-1961",
+      "title": "Geologic map of the 1° x 2° Indianapolis quadrangle, Indiana and Illinois, showing bedrock and unconsolidated deposits",
+      "authors": [
+        "Wier, C. E.",
+        "Gray, Henry H."
+      ],
+      "publishedYear": 1961,
+      "originalObservationPeriod": null,
+      "series": "Regional Geologic Map",
+      "seriesNumber": "Indianapolis Sheet (RGM01)",
+      "mapScaleDenominator": 250000,
+      "scope": "Indianapolis regional quadrangle; separate from Posey County site geology",
+      "poseyCoverageStatus": "OUTSIDE_CORE_AOI",
+      "catalogUrl": "https://scholarworks.iu.edu/dspace/items/96bb20d2-a954-42c4-a1a0-a51551736eb4",
+      "rightsStatus": "NOT_VERIFIED",
+      "rightsNote": "Catalog links provide bibliography; reuse of original map needs rights review.",
+      "metadataReviewStatus": "CATALOG_METADATA_VERIFIED",
+      "sourceArtifactSha256": null,
+      "georeferencedFootprintVerified": false,
+      "publicMapRedistributionApproved": false,
+      "siteGeotechnicalObservation": false
+    },
+    {
+      "id": "IGWS-MM49-1989",
+      "title": "Quaternary Geologic Map of Indiana",
+      "authors": [
+        "Gray, Henry H."
+      ],
+      "publishedYear": 1989,
+      "originalObservationPeriod": null,
+      "series": "Miscellaneous Map",
+      "seriesNumber": "49",
+      "mapScaleDenominator": 500000,
+      "scope": "Statewide surficial Quaternary-geology interpretation at 1:500,000",
+      "poseyCoverageStatus": "STATEWIDE_REGIONAL_CONTEXT",
+      "catalogUrl": "https://scholarworks.iu.edu/dspace/items/b5e7e16d-e590-4f8f-8379-1688b99ed722",
+      "rightsStatus": "NONCOMMERCIAL_REPORTED",
+      "rightsNote": "IU record links Creative Commons BY-NC 4.0; source use terms must be checked before visual redistribution.",
+      "metadataReviewStatus": "CATALOG_METADATA_VERIFIED",
+      "sourceArtifactSha256": null,
+      "georeferencedFootprintVerified": false,
+      "publicMapRedistributionApproved": false,
+      "siteGeotechnicalObservation": false
+    },
+    {
+      "id": "IGWS-RGM03-1970",
+      "title": "Geologic map of the 1° x 2° Vincennes quadrangle and parts of adjoining quadrangles, Indiana and Illinois, showing bedrock and unconsolidated deposits",
+      "authors": [
+        "Gray, Henry H.",
+        "Wayne, William John",
+        "Wier, C. E."
+      ],
+      "publishedYear": 1970,
+      "originalObservationPeriod": null,
+      "series": "Regional Geologic Map",
+      "seriesNumber": "03",
+      "mapScaleDenominator": 250000,
+      "scope": "Vincennes regional map; overlap with an individual Posey parcel is not established without polygon inspection",
+      "poseyCoverageStatus": "FOOTPRINT_NOT_GEOREFERENCED",
+      "catalogUrl": "https://scholarworks.iu.edu/dspace/items/2d98d5c9-cea9-4eaf-a78f-ef3600812d10",
+      "rightsStatus": "CONFLICTING_NOTICES",
+      "rightsNote": "IU rights text reports BY-NC-SA while rights URI points to BY-NC. Catalog metadata also spells Wier as Weir; official citation uses Wier.",
+      "metadataReviewStatus": "CATALOG_METADATA_VERIFIED",
+      "sourceArtifactSha256": null,
+      "georeferencedFootprintVerified": false,
+      "publicMapRedistributionApproved": false,
+      "siteGeotechnicalObservation": false
+    }
+  ]
+}
