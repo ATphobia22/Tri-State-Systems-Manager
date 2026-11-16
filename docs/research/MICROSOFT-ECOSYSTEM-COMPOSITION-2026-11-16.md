@@ -109,7 +109,23 @@ python -m unittest discover -s tests/government \
 
 Existing official dataset catalog shape: `data/schemas/tsm-indiana-data-catalog-v1.json`. Empty changes only mean **no field differences between the two inputs**. They do not demonstrate source freshness, public API availability, scientific validity or actual parcel/terrain geometry equality. The dedicated research workflow runs synthetic tests and a snapshot-to-itself fixture; it does not run a Windows release, update source data, or install cloud services.
 
-**Next feature PR needed:** map this advisory report into the existing evidence ledger and twelve-plane status UI, add verified live agency snapshots with correct acquisition times, then require human review before promoting any changed source. Do not make the advisory analysis a mandatory release gate.
+### Declared data-plane impact crosswalk (same research PR)
+
+The source-contract prototype also accepts TSM's existing data-plane integration manifest. This is a **declaration-to-declaration crosswalk**, not proof that a downstream asset really consumed data or that geometry changed:
+
+```sh
+python scripts/government/source_contract_impact.py \
+  --before older-catalog.json \
+  --after newer-catalog.json \
+  --plane-map data/acquisitions/tsm-data-plane-integration-v1.json \
+  --output dist/research/agency-plane-impact.json
+```
+
+The JSON adds `plane_impact.impacted_planes`, `plane_impact.unresolved_plane_source_ids` and `plane_impact.unmapped_changed_source_ids`, plus the SHA-256 of the declared plane manifest. Matches are **exact ID only**; no synonym inference is applied. Each impacted plane's engineering/runtime effect is explicitly `geometry_or_runtime_impact_verified: false`. The existing source- and parcel-evidence tooling remains canonical: `scripts/public_interest/evidence_kit.py`, `packages/geo/src/public-interest/CommunityEvidencePassport.ts` and `architecture/contracts/lineage-registry.json`.
+
+**Observed source-ID inconsistency:** the 26-source `data/schemas/tsm-indiana-data-catalog-v1.json` contains `fema-nfhl` and `indiana-parcels-harvest`, but the declared `flood` and `parcels` planes reference `fema-nfhl-public` and `indiana-parcels-current`, respectively. These are unresolved identifiers unless a human-verified source ID migration/crosswalk is supplied. **Do not silently rename** them, mark them equivalent, or promote their lineage to verified. Unchanged catalog-to-itself fixtures will naturally have no impacted planes while still showing unresolved references.
+
+**Next feature PR needed:** bind advisory crosswalk records to verified lineage/evidence receipts and twelve-plane source status UI, add timestamped government service snapshots with acquisition checks, then require human review before any source promotion. Do not make advisory analysis a mandatory Windows release gate.
 
 ## Cross-product composition
 
