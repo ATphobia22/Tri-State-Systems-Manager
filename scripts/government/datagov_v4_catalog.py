@@ -169,8 +169,10 @@ def ingest(*, query: str, output_dir: Path, fixture_paths: list[Path] | None = N
         rows, next_cursor = parse_page(raw)
         raw_pages.append(raw)
         page_receipts.append({
-            "page_index": idx, "request_url": url, "bytes": len(raw),
-            "sha256": digest(raw), "records_returned": len(rows)
+            "page_index": idx,
+            "live_request_url": url if live else None,
+            "fixture_reconstructed_query_url": None if live else url,
+            "bytes": len(raw), "sha256": digest(raw), "records_returned": len(rows)
         })
         for row in rows:
             normalized = normalize_dataset(row)
@@ -211,7 +213,9 @@ def ingest(*, query: str, output_dir: Path, fixture_paths: list[Path] | None = N
             "api_root": "https://api.gsa.gov/technology/datagov/v4/",
             "role": "DATASET_DISCOVERY_METADATA_ONLY",
             "query": query,
-            "retrieved_at_utc": datetime.now(timezone.utc).isoformat(),
+            "snapshot_processed_at_utc": datetime.now(timezone.utc).isoformat(),
+            "source_retrieved_at_utc": datetime.now(timezone.utc).isoformat() if live else None,
+            "fixture_origin_verified": False if not live else None,
             "used_live_api": live,
             "page_receipts": page_receipts,
             "candidate_count": len(candidates),
