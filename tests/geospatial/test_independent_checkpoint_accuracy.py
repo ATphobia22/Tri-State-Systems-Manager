@@ -68,6 +68,8 @@ class AccuracyTests(unittest.TestCase):
             report.write_text("SYNTHETIC TEST FIXTURE — NO REAL SURVEY\n")
             source = root / "test-derived-dataset.bin"
             source.write_bytes(b"synthetic only")
+            operation = root / "test-coordinate-operation.txt"
+            operation.write_text("SYNTHETIC METRIC REFERENCE ONLY\n", encoding="utf-8")
             manifest = {
                 "schema": "tsm-independent-checkpoint-input-v1",
                 "datasetId": "TEST_FIXTURE_NOT_REAL",
@@ -78,7 +80,8 @@ class AccuracyTests(unittest.TestCase):
                 "checkpointIndependenceDeclared": True,
                 "representativeCoverageDeclared": True,
                 "sameCoordinateFrameDeclared": True,
-                "coordinateOperationEvidence": "SYNTHETIC_FIXTURE_NOT_REAL_PROJECTION",
+                "coordinateOperationPath": operation.name,
+                "coordinateOperationSha256": accuracy.file_sha256(operation),
                 "surveyMethod": "SYNTHETIC_TEST",
                 "surveyRMSE_H2_m": 0.03, "surveyRMSE_V2_m": 0.04,
                 "systematicErrorsReviewed": True,
