@@ -1,0 +1,84 @@
+name: OpenFEMA evidence and bounded pagination
+on:
+  pull_request:
+    paths:
+      - 'backend/geospatial/fema/openfema_client.py'
+      - 'backend/tests/test_openfema_client.py'
+      - 'scripts/government/openfema_posey_snapshot.py'
+      - 'tests/government/test_openfema_posey_snapshot.py'
+      - 'tsm-console/server/ingestion/openfema.mjs'
+      - 'tsm-console/tests/openfema.test.mjs'
+      - 'data/fema/openfema-catalog.json'
+      - 'docs/geospatial/OPENFEMA-INTEGRATION.md'
+      - '.github/workflows/openfema-evidence.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'backend/geospatial/fema/openfema_client.py'
+      - 'backend/tests/test_openfema_client.py'
+      - 'scripts/government/openfema_posey_snapshot.py'
+      - 'tests/government/test_openfema_posey_snapshot.py'
+      - 'tsm-console/server/ingestion/openfema.mjs'
+      - 'tsm-console/tests/openfema.test.mjs'
+      - 'data/fema/openfema-catalog.json'
+      - 'docs/geospatial/OPENFEMA-INTEGRATION.md'
+      - '.github/workflows/openfema-evidence.yml'
+  workflow_dispatch:
+    inputs:
+      acquire_posey_declarations:
+        description: 'Explicitly fetch live FEMA administrative history and archive JSON/SHA receipt'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  evidence-contracts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Compile headless Python adapters
+        run: |
+          python -m py_compile backend/geospatial/fema/openfema_client.py
+          python -m py_compile scripts/government/openfema_posey_snapshot.py
+      - name: Test OpenFEMA bounded Python client
+        run: python -m unittest backend.tests.test_openfema_client -v
+      - name: Test Posey snapshot fields, provenance and SHA-256 receipts
+        run: python -m unittest discover -s tests/government -p test_openfema_posey_snapshot.py -v
+      - name: Test Node adapter and explicit partial paging contract
+        run: node --test tsm-console/tests/openfema.test.mjs
+      - name: Validate catalog coverage and module contracts
+        run: node scripts/ci/validate-openfema.mjs
+      - name: Confirm historical IGWS geological evidence remains separate
+        run: python scripts/geospatial/igws_scholarworks_catalog.py
+
+  posey-live-acquisition:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.acquire_posey_declarations }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Fetch bounded FEMA source and create immutable digest receipt
+        run: |
+          mkdir -p "$RUNNER_TEMP/openfema"
+          python scripts/government/openfema_posey_snapshot.py --out "$RUNNER_TEMP/openfema/posey-declarations-${{ github.run_id }}.json"
+          (cd "$RUNNER_TEMP/openfema" && sha256sum -c "posey-declarations-${{ github.run_id }}.json.sha256")
+      - name: Archive FEMA-derived source snapshot and receipt
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: tsm-openfema-posey-${{ github.sha }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/openfema/
+          if-no-files-found: error
+          retention-days: 30
