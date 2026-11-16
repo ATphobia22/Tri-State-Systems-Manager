@@ -103,7 +103,9 @@ function validateVegetationBands(bands: VegetationBands): void {
  * Band non-ground points into low / medium / high vegetation (classes 3/4/5)
  * by height above ground.
  *
- * - Ground (class 2) points are returned unchanged.
+ * - Already classified ground, water, buildings, vegetation, noise, snow,
+ *   ignored ground and temporal-exclusion points are returned unchanged.
+ * - Only class 0/1 unassigned points are eligible for this optional banding.
  * - Points whose ground elevation is unknown (`groundZ` returns null) are
  *   returned unchanged — no height is invented.
  * - Points with height above ground below `lowMinM` are returned unchanged.
@@ -119,7 +121,9 @@ export function classifyVegetationByHag(
 ): LidarPoint[] {
   validateVegetationBands(bands);
   return points.map((p) => {
-    if (p.classification === LIDAR_CLASS.GROUND) return p;
+    // Never overwrite official or upstream classified classes (2, 6, 9, 20, 21, 22, etc.).
+    // This helper is a *suggestion* only for unclassified data.
+    if (p.classification !== LIDAR_CLASS.NEVER_CLASSIFIED && p.classification !== LIDAR_CLASS.UNASSIGNED) return p;
     const gz = groundZ(p);
     if (gz === null || !Number.isFinite(gz)) return p;
     const hag = p.z - gz;

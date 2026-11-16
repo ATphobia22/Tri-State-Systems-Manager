@@ -93,6 +93,39 @@ class DemPipelineTests(unittest.TestCase):
         self.assertEqual(writer["data_type"], "float32")
         self.assertEqual(writer["nodata"], -9999)
 
+
+    def test_usgs_2025_nodata_opt_in_preserves_generic_historical_default(self):
+        generic = _stages(dem_pipeline("tile.laz", "legacy.tif"))[-1]
+        strict = _stages(dem_pipeline("tile.laz", "lbs2025.tif", lbs_2025_nodata=True))[-1]
+        self.assertEqual(generic["nodata"], -9999)
+        self.assertEqual(strict["nodata"], -999999)
+        self.assertEqual(strict["data_type"], "float32")
+        self.assertEqual(strict["gdaldriver"], "GTiff")
+
+    def test_perennial_snow_requires_explicit_dataset_evidence_and_spec_mode(self):
+        with self.assertRaisesRegex(ValueError, "Perennial snow inclusion"):
+            dem_pipeline("tile.laz", "snow.tif", include_verified_perennial_snow=True)
+        stages = _stages(dem_pipeline("tile.laz", "snow.tif", lbs_2025_nodata=True,
+                                      include_verified_perennial_snow=True))
+        ranges = [stage["limits"] for stage in stages if stage.get("type") == "filters.range"]
+        self.assertEqual(ranges, ["Classification[2:2],Classification[21:21]"])
+        self.assertEqual(stages[-1]["nodata"], -999999)
+        self.assertNotIn("Classification[20:20]", ranges[0])
+        self.assertNotIn("Classification[22:22]", ranges[0])
+
+    def test_dem_opt_in_does_not_silently_produce_non_ground_lbs_raster(self):
+        with self.assertRaisesRegex(ValueError, "ground_only=True"):
+            dem_pipeline("tile.laz", "not_bare_earth.tif", ground_only=False, lbs_2025_nodata=True)
+        for resolution in (0.0, float("inf"), float("nan"), -1.0):
+            with self.subTest(resolution=resolution):
+                with self.assertRaisesRegex(ValueError, "finite positive"):
+                    dem_pipeline("tile.laz", "bad.tif", resolution=resolution)
+
+    def test_smrf_explicitly_excludes_special_upstream_lidar_classes(self):
+        stages = _stages(dem_pipeline("tile.laz", "dem.tif"))
+        smrf = next(stage for stage in stages if stage.get("type") == "filters.smrf")
+        self.assertEqual(smrf["where"], "Classification == 0 || Classification == 1 || Classification == 2")
+
     def test_ground_only_false_skips_classification_entirely(self):
         stages = _stages(dem_pipeline("tile.laz", "dem.tif", ground_only=False))
         self.assertEqual(_smrf_stages({"pipeline": stages}), [])
@@ -112,14 +145,22 @@ class BuildingVegetationPipelineTests(unittest.TestCase):
         assigns = [s for s in stages if s.get("type") == "filters.assign"]
         self.assertEqual(len(assigns), 1)
         self.assertEqual(
-            assigns[0]["assignment"],
-            "Classification[6:6] WHERE HeightAboveGround > 2.0",
+            assigns[0]["value"],
+            "Classification = 6 WHERE (Classification == 0 || Classification == 1) && HeightAboveGround > 2.0",
         )
 
     def test_custom_hag_threshold_is_used_verbatim(self):
         stages = _stages(building_vegetation_pipeline("tile.laz", "out.laz", hag_threshold_m=6.56))
         assigns = [s for s in stages if s.get("type") == "filters.assign"]
-        self.assertIn("HeightAboveGround > 6.56", assigns[0]["assignment"])
+        self.assertIn("HeightAboveGround > 6.56", assigns[0]["value"])
+
+    def test_building_reclassification_is_constrained_to_unclassified_inputs(self):
+        stages = _stages(building_vegetation_pipeline("tile.laz", "cand.laz"))
+        smrf = next(stage for stage in stages if stage.get("type") == "filters.smrf")
+        self.assertEqual(smrf["where"], "Classification == 0 || Classification == 1 || Classification == 2")
+        expression = next(stage["value"] for stage in stages if stage.get("type") == "filters.assign")
+        self.assertIn("(Classification == 0 || Classification == 1)", expression)
+        self.assertNotIn("Classification[6:6]", expression)
 
     def test_smrf_runs_before_hag(self):
         stages = _stages(building_vegetation_pipeline("tile.laz", "out.laz"))

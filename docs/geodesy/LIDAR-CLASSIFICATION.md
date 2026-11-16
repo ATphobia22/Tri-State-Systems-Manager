@@ -31,7 +31,7 @@ class 7 "Low noise". Both labels are legitimate; neither is an error.
 |---|---|
 | 0 | Created, never classified |
 | 1 | Unassigned / Processed, but unclassified |
-| 2 | Ground / Bare earth — the only class a bare-earth DEM is built from |
+| 2 | Ground / Bare earth — normal DEM input; class 21 perennial snow is also permitted under documented 2025 LBS conditions |
 | 3 | Low Vegetation |
 | 4 | Medium Vegetation |
 | 5 | High Vegetation |
@@ -40,7 +40,9 @@ class 7 "Low noise". Both labels are legitimate; neither is an error.
 | 9 | Water |
 | 17 | Bridge Deck |
 | 18 | High Noise |
-| 20 | Ignored Ground (typically breakline proximity) |
+| 20 | Ignored Ground (typically breakline proximity) — exclude from bare-earth interpolation |
+| 21 | Snow (if identifiable); **perennial** class 21 used in DEM only when explicitly verified per LBS 2025 rev. A |
+| 22 | Temporal exclusion — not ordinary bare-earth ground |
 
 In LAS 1.4, codes 8 and 12 are reserved (use class flags instead);
 LAS 1.1–1.3 support only 0–31. Code implemented in TypeScript:
@@ -50,18 +52,26 @@ Sources:
 - https://www.usgs.gov/ngp-standards-and-specifications/lidar-base-specification-tables
 - https://pro.arcgis.com/en/pro-app/3.0/help/data/las-dataset/storing-lidar-data.htm
 
+## Updated 2025 LBS and headless PDAL source preservation (2026-11-16)
+
+[Official 2025 rev. A](https://www.usgs.gov/ngp-standards-and-specifications/lidar-base-specification-online) adds classes 21/22 and a required DEM/MSHR NoData match. The [PDAL JSON builders](../../scripts/geospatial/pdal_pipelines.py) expose an **opt-in** LBS 2025 raster NoData selection (`lbs_2025_nodata=True` uses **-999999** rather than the generic **-9999**); this **does not** demonstrate full LAS/LAZ/GeoTIFF, checkpoint, geoid, breakline or scientific conformance. Ground candidate class 21 is included only with `include_verified_perennial_snow=True` and matching edition selection; classes 20 and 22 remain excluded. PDAL's SMRF stage is scoped to classes 0/1/2 and the height-based potential-building assignment only edits unclassified points, preserving previously assigned water, snow, excluded and other classes. Actual PDAL execution and original source-artifact tests are still required.
+
+For official-source authority, interpretive USGS review, GeMS and legal licensure distinctions see [Geoscience authority, Nov 16](../geospatial/GEOSCIENCE-AUTHORITY-2026-11-16.md).
+
 ## Quality levels (QL0–QL3)
 
 Lidar QL requirements, USGS LBS Table 4 (2025 rev. A) and the USGS QL page.
 Terminology: LBS 2024 rev. A renamed `RMSEz` to `RMSEv` under ASPRS
 Positional Accuracy Standards Ed. 2; values unchanged.
 
-| Level | RMSEv non-veg | NVA 95% | VVA | Max NPS | Min NPD | DEM cell |
-|---|---|---|---|---|---|---|
-| QL0 | ≤ 0.050 m | 0.098 m | 0.15 m | ≤ 0.35 m | ≥ 8 pts/m² | 0.5 m |
-| QL1 | ≤ 0.100 m | 0.196 m | 0.30 m | ≤ 0.35 m | ≥ 8 pts/m² | 0.5 m |
-| QL2 | ≤ 0.100 m | 0.196 m | 0.30 m | ≤ 0.71 m | ≥ 2 pts/m² | 1 m |
-| QL3 | ≤ 0.200 m | 0.392 m | 0.60 m | ≤ 1.41 m | ≥ 0.5 pts/m² | 2 m |
+| Level | RMSEv nonvegetated, official 2025 Table 4 | Maximum ANPS | Minimum ANPD | DEM minimum cell size |
+|---|---|---|---|---|
+| QL0 | ≤ 0.050 m | ≤ 0.35 m | ≥ 8 pulses/m² | 0.5 m |
+| QL1 | ≤ 0.100 m | ≤ 0.35 m | ≥ 8 pulses/m² | 0.5 m |
+| QL2 | ≤ 0.100 m | ≤ 0.71 m | ≥ 2 pulses/m² | 1 m |
+| QL3 | ≤ 0.200 m | ≤ 1.41 m | ≥ 0.5 pulses/m² | 2 m |
+
+**2025 Table 4 does not specify a 95%-confidence NVA column or a universal VVA = 3 × RMSEv threshold.** Earlier TSM values obtained by multiplying RMSEv by 1.96 or 3 were historical statistical approximations, not published 2025 LBS requirements; they have been removed from the present quality-level API. Report vegetation-class errors and uncertainty separately from *measured* checkpoints under the applicable edition. [Official USGS Table 4](https://www.usgs.gov/ngp-standards-and-specifications/lidar-base-specification-tables).
 
 QL0 and QL1 share pulse density and differ only in accuracy. QL4 (imagery)
 and QL5 (IfSAR) are not lidar levels. These are **dataset QA metrics**, not

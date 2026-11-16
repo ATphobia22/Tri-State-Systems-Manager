@@ -18,6 +18,11 @@
  * deliberately not in this model. QL0 and QL1 share pulse density
  * (>= 8 pts/m^2, ANPS <= 0.35 m) and differ only in accuracy.
  *
+ * Table 4 (LBS 2025 rev. A) specifies RMSEv nonvegetated only;
+ * it does NOT supply 95%-confidence NVA or a universal vegetated VVA
+ * multiplier. Historical NSSDA bounds, if needed, must be calculated
+ * explicitly by a versioned historical method, NOT mislabeled as 2025 LBS.
+ *
  * These are dataset QA metrics, not per-point filters: a QL2 collection
  * (Posey County 2020) means the collection was specified to 10 cm
  * non-vegetated RMSEv at >= 2 pulses/m^2 — it does not certify any single
@@ -29,10 +34,6 @@ export interface QualityLevelDefinition {
   level: LidarQualityLevel;
   /** Non-vegetated absolute vertical accuracy, RMSEv, in metres. */
   rmseVNonVegetatedM: number;
-  /** Non-vegetated vertical accuracy at 95% confidence, in metres (RMSEv x 1.96). */
-  nva95M: number;
-  /** Vegetated vertical accuracy, in metres (RMSEv x 3). */
-  vvaM: number;
   /** Aggregate nominal pulse spacing, maximum, in metres. */
   maxNominalPulseSpacingM: number;
   /** Aggregate nominal pulse density, minimum, in points per square metre. */
@@ -49,8 +50,6 @@ export const QUALITY_LEVELS: Readonly<Record<LidarQualityLevel, QualityLevelDefi
   QL0: {
     level: "QL0",
     rmseVNonVegetatedM: 0.05,
-    nva95M: 0.098,
-    vvaM: 0.15,
     maxNominalPulseSpacingM: 0.35,
     minNominalPulseDensityPerSqM: 8,
     demCellSizeM: 0.5,
@@ -59,8 +58,6 @@ export const QUALITY_LEVELS: Readonly<Record<LidarQualityLevel, QualityLevelDefi
   QL1: {
     level: "QL1",
     rmseVNonVegetatedM: 0.1,
-    nva95M: 0.196,
-    vvaM: 0.3,
     maxNominalPulseSpacingM: 0.35,
     minNominalPulseDensityPerSqM: 8,
     demCellSizeM: 0.5,
@@ -69,8 +66,6 @@ export const QUALITY_LEVELS: Readonly<Record<LidarQualityLevel, QualityLevelDefi
   QL2: {
     level: "QL2",
     rmseVNonVegetatedM: 0.1,
-    nva95M: 0.196,
-    vvaM: 0.3,
     maxNominalPulseSpacingM: 0.71,
     minNominalPulseDensityPerSqM: 2,
     demCellSizeM: 1.0,
@@ -79,8 +74,6 @@ export const QUALITY_LEVELS: Readonly<Record<LidarQualityLevel, QualityLevelDefi
   QL3: {
     level: "QL3",
     rmseVNonVegetatedM: 0.2,
-    nva95M: 0.392,
-    vvaM: 0.6,
     maxNominalPulseSpacingM: 1.41,
     minNominalPulseDensityPerSqM: 0.5,
     demCellSizeM: 2.0,

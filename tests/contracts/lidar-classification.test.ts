@@ -4,6 +4,7 @@ import {
   LIDAR_CLASS,
   lidarClassDefinition,
   isGroundClass,
+  isDemSurfaceCandidate,
   isVegetationClass,
   isNoiseClass,
   qualityLevelDefinition,
@@ -76,6 +77,22 @@ test("class predicates: ground, vegetation, noise", () => {
   assert.equal(isNoiseClass(1), false);
 });
 
+test("USGS 2025 LBS DEM candidates explicitly include known perennial snow, never excluded/noise", () => {
+  assert.equal(isDemSurfaceCandidate(2), true);
+  assert.equal(isDemSurfaceCandidate(21), false); // project has not supplied perennial-snow evidence
+  assert.equal(isDemSurfaceCandidate(21, true), true); // explicit verified perennial snow inclusion
+  for (const cls of [0, 1, 6, 9, 17, 20, 22]) {
+    assert.equal(isDemSurfaceCandidate(cls, true), false);
+  }
+});
+
+test("vegetation banding never overwrites already-classified LBS snow, exclusion, ground or buildings", () => {
+  const pts: LidarPoint[] = [2, 6, 9, 20, 21, 22, 3, 4, 5].map((classification, i) =>
+    ({ x: i, y: 0, z: 120, classification }));
+  const result = classifyVegetationByHag(pts, () => 100);
+  assert.deepEqual(result.map((p) => p.classification), pts.map((p) => p.classification));
+});
+
 // --- Quality levels (verified against USGS LBS Table 4 / QL page) ---
 
 test("QL table: QL0 5 cm, QL1/QL2 10 cm, QL3 20 cm non-vegetated RMSEv", () => {
@@ -85,13 +102,14 @@ test("QL table: QL0 5 cm, QL1/QL2 10 cm, QL3 20 cm non-vegetated RMSEv", () => {
   assert.equal(rmseVNonVegetatedM("QL3"), 0.2);
 });
 
-test("QL definitions carry pulse density, spacing, NVA and VVA", () => {
+test("LBS 2025 QL definitions carry official pulse density, spacing, RMSEv and DEM cell size only", () => {
   const ql2 = qualityLevelDefinition("QL2");
   assert.equal(ql2?.minNominalPulseDensityPerSqM, 2);
   assert.equal(ql2?.maxNominalPulseSpacingM, 0.71);
   assert.equal(ql2?.demCellSizeM, 1.0);
-  assert.equal(ql2?.nva95M, 0.196);
-  assert.equal(ql2?.vvaM, 0.3);
+  assert.equal(ql2?.rmseVNonVegetatedM, 0.1);
+  assert.equal("nva95M" in (ql2 ?? {}), false);
+  assert.equal("vvaM" in (ql2 ?? {}), false);
   const ql0 = qualityLevelDefinition("QL0");
   assert.equal(ql0?.minNominalPulseDensityPerSqM, 8);
   assert.equal(ql0?.maxNominalPulseSpacingM, 0.35);

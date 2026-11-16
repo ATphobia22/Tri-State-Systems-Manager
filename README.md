@@ -79,7 +79,7 @@ The following lists **implemented modules and documented integrations**, with di
 
 TSM aggregates official U.S. federal and state records; however, **“registered,” “adapter available,” “downloaded,” and “rendered on public Pages” are four different states**. Every real claim should identify the actual service/layer ID and acquisition receipt.
 
-The [FGDC/Tri-State machine registry](data/tsm-fgdc-tristate-geospatial-registry-v1.json), [full data-source catalog](docs/DATA-SOURCE-CATALOG.md), [FGDC catalog notes](docs/DATA-SOURCE-CATALOG-FGDC-TRISTATE-2026-11-15.md), [government adapter code](packages/government/src/adapters/) and [acquisition manifests](data-sources/manifests/) are the auditable inventories. The registry also catalogs *candidates* that have not been verified for this scene.
+The [new federal geology, USGS FSP/LBS and IN/IL/KY professional authority crosswalk](docs/geospatial/GEOSCIENCE-AUTHORITY-2026-11-16.md) separates current standards and scientific review policy from state licensing. The [FGDC/Tri-State machine registry](data/tsm-fgdc-tristate-geospatial-registry-v1.json), [full data-source catalog](docs/DATA-SOURCE-CATALOG.md), [FGDC catalog notes](docs/DATA-SOURCE-CATALOG-FGDC-TRISTATE-2026-11-15.md), [government adapter code](packages/government/src/adapters/) and [acquisition manifests](data-sources/manifests/) are the auditable inventories. The registry also catalogs *candidates* that have not been verified for this scene.
 
 ### Principal source families represented by code, snapshots or data workflows
 
@@ -287,4 +287,3 @@ See the [checkpoint input contract](docs/geodesy/INDEPENDENT-CHECKPOINT-ACCURACY
 **Do not use TSM alone** for an emergency evacuation, flood insurance or LOMA decision, legal parcel boundary, public-works design, construction/slope safety, grant award or eligibility claim. Always confirm current authoritative agency records and obtain licensed professional judgment where required.
 
 **In memory of Beverly Ann Tucker.**
-
