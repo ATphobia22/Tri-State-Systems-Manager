@@ -48,6 +48,10 @@ class SnapshotTests(unittest.TestCase):
         self.assertEqual(result["spatialAuthority"], "NONE_OPENFEMA_ADMINISTRATIVE_CONTEXT")
         self.assertFalse(result["regulatoryFloodGeometry"])
 
+    def test_empty_source_requires_manual_review(self):
+        with self.assertRaisesRegex(ValueError, "empty Posey"):
+            MOD.make_snapshot(lambda *a, **k: fake_result([]))
+
     def test_partial_response_must_not_publish_as_complete(self):
         with self.assertRaisesRegex(ValueError, "Refusing partial"):
             MOD.make_snapshot(lambda *a, **k: fake_result([GOOD], status="PARTIAL", complete=False))
