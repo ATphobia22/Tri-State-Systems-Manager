@@ -53,6 +53,7 @@ test('newly registered v3 NFIP and v2 HMA endpoints do not silently use obsolete
 
 test('missing/malformed API collection must not silently mean an empty successful query', () => {
   assert.throws(() => normalizeOpenFemaResponse({ metadata: {} }, 'FemaRegions'), /missing or invalid/);
+  assert.throws(() => normalizeOpenFemaResponse({ data: [{ id: 'wrong envelope' }] }, 'FemaRegions'), /missing or invalid/);
   assert.throws(() => normalizeOpenFemaResponse({ FemaRegions: [null] }, 'FemaRegions'), /invalid record/);
 });
 
