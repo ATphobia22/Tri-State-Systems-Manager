@@ -89,7 +89,7 @@ def event_metrics(observed: dict[datetime, float], modeled: dict[datetime, float
     if denominator <= 1e-12:
         raise CalibrationError("NSE_UNDEFINED_FOR_CONSTANT_OBSERVATIONS")
     nse = 1.0 - sum(e * e for e in errors) / denominator
-    return {"count": n, "bias": round(bias, 6), "rmse": round(rmse, 6), "nse": round(nse, 6)}
+    return {"count": n, "bias": bias, "rmse": rmse, "nse": nse}
 
 
 def evaluate(manifest: dict) -> dict:
@@ -118,7 +118,8 @@ def evaluate(manifest: dict) -> dict:
     if not isinstance(events, list) or not 2 <= len(events) <= 20:
         raise CalibrationError("TWO_TO_TWENTY_EVENTS_REQUIRED")
     seen_ids: set[str] = set()
-    seen_times: set[datetime] = set()
+    event_windows: list[tuple[datetime, datetime]] = []
+    policy_units = None
     seen_roles: set[str] = set()
     results = []
     for event in events:
@@ -133,6 +134,10 @@ def evaluate(manifest: dict) -> dict:
         seen_roles.add(role)
         if event.get("units") not in ("ft", "m"):
             raise CalibrationError("UNITS_UNRESOLVED")
+        if policy_units is None:
+            policy_units = event["units"]
+        elif event["units"] != policy_units:
+            raise CalibrationError("MIXED_EVENT_UNITS_REQUIRE_SEPARATE_POLICIES")
         for k in ("observedDatum", "modeledDatum"):
             if not isinstance(event.get(k), str) or not event[k].strip():
                 raise CalibrationError("VERTICAL_DATUM_REQUIRED")
@@ -143,9 +148,10 @@ def evaluate(manifest: dict) -> dict:
         digest(Path(event["datumControlPath"]), event.get("datumControlSha256"))
         obs = series(Path(event["observedCsv"]), event.get("observedSha256"))
         sim = series(Path(event["modeledCsv"]), event.get("modeledSha256"))
-        if seen_times.intersection(obs):
+        start, end = min(obs), max(obs)
+        if any(start <= earlier_end and earlier_start <= end for earlier_start, earlier_end in event_windows):
             raise CalibrationError("EVENTS_ARE_NOT_INDEPENDENT")
-        seen_times.update(obs)
+        event_windows.append((start, end))
         scores = event_metrics(obs, sim)
         passed = (
             scores["rmse"] <= max_rmse and

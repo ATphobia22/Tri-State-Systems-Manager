@@ -86,6 +86,29 @@ class CalibrationTests(unittest.TestCase):
         with self.assertRaisesRegex(module.CalibrationError, "EVENTS_ARE_NOT_INDEPENDENT"):
             module.evaluate(self.policy)
 
+    def test_rejects_interleaved_samples_from_same_event_window(self):
+        validation = self.policy["events"][1]
+        for path_key, hash_key in (("observedCsv", "observedSha256"), ("modeledCsv", "modeledSha256")):
+            path = Path(validation[path_key])
+            path.write_text("time,stage\n2026-01-01T01:30:00Z,1\n2026-01-01T02:30:00Z,2\n2026-01-01T03:30:00Z,3\n")
+            validation[hash_key] = sha(path)
+        with self.assertRaisesRegex(module.CalibrationError, "EVENTS_ARE_NOT_INDEPENDENT"):
+            module.evaluate(self.policy)
+
+    def test_rejects_mixed_units_under_one_numeric_policy(self):
+        self.policy["events"][1]["units"] = "m"
+        with self.assertRaisesRegex(module.CalibrationError, "MIXED_EVENT_UNITS"):
+            module.evaluate(self.policy)
+
+    def test_threshold_uses_unrounded_values(self):
+        validation = self.policy["events"][1]
+        model = Path(validation["modeledCsv"])
+        model.write_text("time,stage\n2026-02-01T01:00:00Z,1.1000001\n2026-02-01T02:00:00Z,2.1000001\n2026-02-01T03:00:00Z,3.1000001\n")
+        validation["modeledSha256"] = sha(model)
+        result = module.evaluate(self.policy)
+        self.assertGreater(result["events"][1]["rmse"], 0.1)
+        self.assertEqual(result["assessmentState"], "FAILED_USER_DECLARED_POLICY")
+
     def test_policy_failure_is_not_promoted_to_certified_forecast(self):
         self.policy["thresholds"]["minNse"] = 1
         self.policy["events"][1]["modeledCsv"] = str(self.root / "biased.csv")

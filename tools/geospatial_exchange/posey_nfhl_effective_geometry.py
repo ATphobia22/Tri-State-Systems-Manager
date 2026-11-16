@@ -14,10 +14,12 @@ import hashlib
 import json
 import math
 from pathlib import Path
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode, urlsplit
 from urllib.request import Request, urlopen
 
 BASE = "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer"
+ALTERNATE_BASE = "https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer"
 DFIRM = "18129C"
 LAYERS = {"firm_panels": 3, "flood_hazard_zones": 28}
 REQUIRED_FIELDS = {
@@ -49,7 +51,20 @@ def encoded(value: dict) -> bytes:
 
 def get_json(url: str, params: dict) -> dict:
     insist(url.startswith(BASE + "/"), "Unexpected FEMA endpoint")
-    address = url + "?" + urlencode(params)
+    suffix = url[len(BASE):] + "?" + urlencode(params)
+    for base in (BASE, ALTERNATE_BASE, BASE):
+        try:
+            return read_json(base + suffix)
+        except HTTPError as exc:
+            if exc.code != 429 and not 500 <= exc.code <= 599:
+                raise
+            last_error = exc
+        except (URLError, TimeoutError, ConnectionError) as exc:
+            last_error = exc
+    raise EvidenceError("FEMA transport unavailable on both official routes") from last_error
+
+
+def read_json(address: str) -> dict:
     req = Request(address, headers={
         "Accept": "application/json", "User-Agent": "TSM-Posey-NFHL-evidence/1.0"
     })
@@ -238,36 +253,41 @@ def safe_shape(feature: dict):
 
 
 def analyze_parcels(parcels: list[dict], panels: list[dict], zones: list[dict],
-                    inventory: dict) -> dict:
+                    inventory: dict, *, buildings: bool = False) -> dict:
     from shapely.ops import unary_union
+    from shapely.prepared import prep
     from shapely.strtree import STRtree
 
     panel_shapes = [safe_shape(x) for x in panels]
     zone_shapes = [safe_shape(x) for x in zones]
     insist(all(g is not None for g in panel_shapes + zone_shapes),
            "FEMA geometry invalid; cannot infer absence of flood hazard")
-    panel_union, zone_union = unary_union(panel_shapes), unary_union(zone_shapes)
+    panel_union, zone_union = prep(unary_union(panel_shapes)), prep(unary_union(zone_shapes))
     panel_tree, zone_tree = STRtree(panel_shapes), STRtree(zone_shapes)
     ids = set()
     rows = []
     counts = Counter()
-    for parcel in parcels:
-        props = parcel.get("properties") or {}
-        insist(props.get("county_fips") == "18129", "Non-Posey parcel in source snapshot")
+    kind = "building" if buildings else "parcel"
+    id_property = "buildingSourceObjectId" if buildings else "parcelObjectId"
+    for subject in parcels:
+        props = subject.get("properties") or {}
+        is_posey = props.get("county") == "Posey" if buildings else props.get("county_fips") == "18129"
+        insist(is_posey, f"Non-Posey {kind} in source snapshot")
         parcel_oid = props.get("objectid")
-        insist(type(parcel_oid) is int and parcel_oid not in ids, "Missing/duplicate parcel geometry OBJECTID")
+        insist(type(parcel_oid) is int and parcel_oid not in ids, f"Missing/duplicate {kind} geometry OBJECTID")
         ids.add(parcel_oid)
-        geom = safe_shape(parcel)
+        geom = safe_shape(subject)
         row = {
-            "parcelObjectId": parcel_oid,
-            "stateParcelId": props.get("state_parcel_id"),
+            id_property: parcel_oid,
             "firmPanelIds": [], "femaFloodZones": [],
             "femaSfhaAreaOverlap": None, "femaFloodwayReviewed": False,
             "bfeNavd88Ft": None, "lowestAdjacentGradeNavd88Ft": None,
             "femaDetermination": None, "reviewStatus": "INSUFFICIENT_EVIDENCE",
         }
+        if not buildings:
+            row["stateParcelId"] = props.get("state_parcel_id")
         if geom is None:
-            status = "PARCEL_GEOMETRY_UNAVAILABLE"
+            status = f"{kind.upper()}_GEOMETRY_UNAVAILABLE"
         elif inventory["status"] != "MATCH":
             status = "FEMA_PANEL_INVENTORY_CHANGED_REVIEW"
         elif not panel_union.covers(geom):
@@ -299,16 +319,17 @@ def analyze_parcels(parcels: list[dict], panels: list[dict], zones: list[dict],
         counts[status] += 1
         rows.append(row)
     return {
-        "schema": "tsm.posey.fema-parcel-evidence-review.v1",
+        "schema": f"tsm.posey.fema-{kind}-evidence-review.v1",
         "screeningOnly": True,
         "regulatoryEligibilityEstablished": False,
         "sourcePanelInventory": inventory,
         "statusCounts": dict(sorted(counts.items())),
-        "rows": sorted(rows, key=lambda r: r["parcelObjectId"]),
+        "rows": sorted(rows, key=lambda r: r[id_property]),
     }
 
 
-def screen(snapshot: Path, parcel_path: Path, registry_path: Path) -> dict:
+def screen(snapshot: Path, parcel_path: Path, registry_path: Path, *,
+           footprint_path: Path | None = None, footprint_sha256: str | None = None) -> dict:
     panels, pm, ph = load_layer(snapshot / "firm_panels", "firm_panels")
     zones, zm, zh = load_layer(snapshot / "flood_hazard_zones", "flood_hazard_zones")
     registry_bytes, parcel_bytes = registry_path.read_bytes(), parcel_path.read_bytes()
@@ -326,6 +347,20 @@ def screen(snapshot: Path, parcel_path: Path, registry_path: Path) -> dict:
         "femaPanelReceipt": ph,
         "femaZoneReceipt": zh,
     }
+    if footprint_path is not None:
+        footprint_bytes = footprint_path.read_bytes()
+        insist(digest(footprint_bytes) == footprint_sha256, "Building source SHA-256 does not match")
+        footprints = json.loads(footprint_bytes)
+        insist(footprints.get("type") == "FeatureCollection"
+               and isinstance(footprints.get("features"), list)
+               and len(footprints["features"]) == 23082,
+               "Expected the full 23,082-record Posey IGIO footprint archive")
+        footprint_crs = (footprints.get("crs") or {}).get("properties", {}).get("name")
+        insist(footprint_crs in (None, "EPSG:4326", "urn:ogc:def:crs:OGC:1.3:CRS84"),
+               "Building source must be CRS84 longitude/latitude")
+        report["buildingScreen"] = analyze_parcels(
+            footprints["features"], panels, zones, inventory, buildings=True)
+        report["sourceSha256"]["buildingGeoJson"] = footprint_sha256
     report["nfhlLayerCounts"] = {"firmPanels": pm["featureCount"],
                                  "floodHazardZones": zm["featureCount"]}
     report["elevationEvidence"] = "NOT_INCLUDED_NO_FEMA_LOMA_ELIGIBILITY_INFERENCE"
@@ -346,6 +381,8 @@ def main() -> int:
     review.add_argument("--parcels", type=Path, required=True)
     review.add_argument("--registry", type=Path, required=True)
     review.add_argument("--out", type=Path, required=True)
+    review.add_argument("--footprints", type=Path, help="Archived full Posey IGIO footprint GeoJSON")
+    review.add_argument("--footprint-sha256", help="Expected SHA-256 of the footprint archive")
     args = parser.parse_args()
     if args.command == "acquire":
         insist(not args.out.exists(), "Snapshot output already exists; no overwrite")
@@ -359,7 +396,10 @@ def main() -> int:
             print(f"{name}: {len(features)} features SHA-256 verified; not survey certified")
     else:
         insist(not args.out.exists(), "Screening output already exists; no overwrite")
-        result = screen(args.snapshot, args.parcels, args.registry)
+        if (args.footprints is None) != (args.footprint_sha256 is None):
+            parser.error("--footprints and --footprint-sha256 must be supplied together")
+        result = screen(args.snapshot, args.parcels, args.registry,
+                        footprint_path=args.footprints, footprint_sha256=args.footprint_sha256)
         args.out.write_bytes(encoded(result))
         print(json.dumps({"status": "REVIEW_ONLY", "counts": result["statusCounts"],
                           "panelInventory": result["sourcePanelInventory"]}))
