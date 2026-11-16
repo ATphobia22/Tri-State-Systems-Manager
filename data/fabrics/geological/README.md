@@ -48,7 +48,7 @@ Illinois East — that is VN-2000/UTM 48N (Vietnam); the correct code is EPSG:34
 
 The [2026 USGS State Geologic Map Compilation release](https://www.usgs.gov/data/geologic-map-schema-gems-version-state-geologic-map-compilation-sgmc-geodatabase-conterminous) (DOI 10.5066/P1A3DQZK, published June 8, 2026, CC0) has been added to the geological source manifest as **official-release-catalog-verified-not-downloaded**. It summarizes 48 state maps at mixed scales, **does not reconcile units across state borders**, and covers **bedrock only** where states maintain both bedrock and surficial geology. There are no downloaded geodatabase bytes, GeMS schema tests, site boreholes, or geotechnical findings from this reference.
 
-For the exact [USGS/FSP, 3DEP LBS, GeMS and state-professional authority matrix](../../docs/geospatial/GEOSCIENCE-AUTHORITY-2026-11-16.md), use the dated separate registry and the offline evidence gate. Its classification labels are not professional certification.
+For the exact [USGS/FSP, 3DEP LBS, GeMS and state-professional authority matrix](../../../docs/geospatial/GEOSCIENCE-AUTHORITY-2026-11-16.md), use the dated separate registry and the offline evidence gate. Its classification labels are not professional certification.
 
 ## Tri-state geological context (published, general)
 
