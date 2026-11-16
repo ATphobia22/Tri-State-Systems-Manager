@@ -124,6 +124,21 @@ class ScholarWorksCatalogTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "rights URI changed"):
             MODULE.verify_dspace_item(self.record, json.dumps(data).encode())
 
+    def test_injected_second_rights_uri_is_not_accepted(self):
+        data = json.loads(self.make_api_bytes())
+        data["metadata"]["dc.rights.uri"].append(
+            {"value": "https://attacker.example/creativecommons.org/licenses/by/4.0/"})
+        with self.assertRaisesRegex(ValueError, "rights URI changed"):
+            MODULE.verify_dspace_item(self.record, json.dumps(data).encode())
+
+    def test_conflicting_rights_notice_cannot_silently_disappear(self):
+        record = next(x for x in self.catalog["records"]
+                      if x["rightsMetadataStatus"] == "CONFLICTING_RIGHTS_METADATA")
+        data = json.loads(self.make_api_bytes(record))
+        data["metadata"]["dc.rights"][0]["value"] = "Rights unknown"
+        with self.assertRaisesRegex(ValueError, "noncommercial notice missing"):
+            MODULE.verify_dspace_item(record, json.dumps(data).encode())
+
     def test_record_missing_rights_and_withdrawn_record_rejected(self):
         data = json.loads(self.make_api_bytes())
         data["metadata"]["dc.rights"] = []
