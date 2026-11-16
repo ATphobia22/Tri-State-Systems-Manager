@@ -89,6 +89,28 @@
 - **Claim boundary:** public Windows trusted signing requires independent chain validation; a self-signed test certificate is not public publisher trust. Release trust reporting can remain non-blocking but must never silently claim certified or tamper-proof.
 - **Acceptance:** independent clean Windows 11 run, air-gapped native launch, packages include valid TSMData hashes and no WebView/localhost/mandatory sign-in.
 
+## First executable vertical slice — source contract drift
+
+This research PR also introduces **one real headless, standard-library-only prototype**, not eight finished products: [`scripts/government/source_contract_impact.py`](../../scripts/government/source_contract_impact.py).
+
+It compares existing `sources` entries in two **local** JSON catalogs by stable source ID, detects added/removed sources and changed service URL/layer ID, CRS, vertical datum, units, coverage, source version, publication/acquisition times and checksum fields. It emits a transparent JSON assessment including source hashes, unresolved metadata and **advisory** parcel-to-terrain impact hints. It makes no network calls, downloads no datasets, creates no accounts, and cannot certify geometry.
+
+Run without dependencies:
+
+```sh
+python scripts/government/source_contract_impact.py \
+  --before /path/to/older-catalog.json \
+  --after /path/to/newer-catalog.json \
+  --output dist/research/agency-drift-advisory.json
+
+python -m unittest discover -s tests/government \
+  -p test_source_contract_impact.py -v
+```
+
+Existing official dataset catalog shape: `data/schemas/tsm-indiana-data-catalog-v1.json`. Empty changes only mean **no field differences between the two inputs**. They do not demonstrate source freshness, public API availability, scientific validity or actual parcel/terrain geometry equality. The dedicated research workflow runs synthetic tests and a snapshot-to-itself fixture; it does not run a Windows release, update source data, or install cloud services.
+
+**Next feature PR needed:** map this advisory report into the existing evidence ledger and twelve-plane status UI, add verified live agency snapshots with correct acquisition times, then require human review before promoting any changed source. Do not make the advisory analysis a mandatory release gate.
+
 ## Cross-product composition
 
 ```text
