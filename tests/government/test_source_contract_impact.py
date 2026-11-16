@@ -100,6 +100,92 @@ class SourceContractImpactTests(unittest.TestCase):
         self.assertEqual(report["change_count"], 0)
         self.assertGreater(report["old_source_count"], 1)
 
+    def test_exact_source_ids_map_changes_to_declared_plane_only(self):
+        after = json.loads(json.dumps(self.before))
+        after["sources"][1]["url"] = "https://example.gov/new-nfhl"
+        report = mod.compare(self.before, after)
+        plane_map = {"planes": [
+            {"id": "flood", "sourceIds": ["fema-nfhl"],
+             "validation": ["geometry", "crs", "authority-class"]},
+            {"id": "legacy", "sourceIds": ["fema-nfhl-public"],
+             "validation": ["manual-source-id-crosswalk"]},
+        ]}
+        result = mod.map_plane_impacts(
+            report, plane_map, {"fema-nfhl", "in-gio-elevation"})
+        self.assertEqual([x["plane_id"] for x in result["impacted_planes"]],
+                         ["flood"])
+        self.assertEqual(result["impacted_planes"][0]["review_state"], "REVIEW_REQUIRED")
+        self.assertFalse(result["impacted_planes"][0]["geometry_or_runtime_impact_verified"])
+        self.assertEqual(result["unresolved_plane_source_ids"], [
+            {"plane_id": "legacy", "unresolved_source_id": "fema-nfhl-public"}])
+        self.assertEqual(result["mapping_state"], "INCOMPLETE_REFERENCES")
+        self.assertEqual(result["unmapped_changed_source_ids"], [])
+
+    def test_unmapped_changed_source_is_reported_not_silently_ignored(self):
+        after = json.loads(json.dumps(self.before))
+        after["sources"][0]["crs"] = "EPSG:26916"
+        report = mod.compare(self.before, after)
+        result = mod.map_plane_impacts(
+            report, {"planes": [{"id": "flood", "sourceIds": ["fema-nfhl"]}]},
+            {"fema-nfhl", "in-gio-elevation"})
+        self.assertEqual(result["impacted_planes"], [])
+        self.assertEqual(result["unmapped_changed_source_ids"], ["in-gio-elevation"])
+        self.assertEqual(result["mapping_state"], "PARTIAL_CHANGED_SOURCE_COVERAGE")
+
+    def test_invalid_or_ambiguous_plane_mapping_rejected(self):
+        report = mod.compare(self.before, self.before)
+        with self.assertRaisesRegex(ValueError, "duplicate sourceIds"):
+            mod.map_plane_impacts(
+                report, {"planes": [{"id": "x", "sourceIds": ["a", "a"]}]},
+                {"a"})
+        with self.assertRaisesRegex(ValueError, "duplicate id"):
+            mod.map_plane_impacts(
+                report, {"planes": [{"id": "x", "sourceIds": []},
+                                   {"id": "x", "sourceIds": []}]}, set())
+
+    def test_actual_tsm_plane_manifest_exposes_unmatched_identifiers(self):
+        catalog = json.loads(
+            (ROOT / "data/schemas/tsm-indiana-data-catalog-v1.json")
+            .read_text(encoding="utf-8"))
+        plane_map = json.loads(
+            (ROOT / "data/acquisitions/tsm-data-plane-integration-v1.json")
+            .read_text(encoding="utf-8"))
+        report = mod.compare(catalog, catalog)
+        result = mod.map_plane_impacts(
+            report, plane_map, {s["id"] for s in catalog["sources"]})
+        self.assertEqual(result["impacted_planes"], [])
+        self.assertIn(
+            {"plane_id": "flood", "unresolved_source_id": "fema-nfhl-public"},
+            result["unresolved_plane_source_ids"])
+        self.assertIn(
+            {"plane_id": "parcels",
+             "unresolved_source_id": "indiana-parcels-current"},
+            result["unresolved_plane_source_ids"])
+        self.assertEqual(result["mapping_state"], "INCOMPLETE_REFERENCES")
+
+    def test_cli_optional_plane_map_emits_hashed_advisory(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            before = root / "before.json"
+            after = root / "after.json"
+            plane_file = root / "planes.json"
+            output = root / "out.json"
+            before.write_text(json.dumps(self.before), encoding="utf-8")
+            updated = json.loads(json.dumps(self.before))
+            updated["sources"][0]["crs"] = "EPSG:26916"
+            after.write_text(json.dumps(updated), encoding="utf-8")
+            plane_file.write_text(json.dumps({
+                "planes": [{"id": "terrain", "sourceIds": ["in-gio-elevation"],
+                            "validation": ["datum-provenance"]}]}), encoding="utf-8")
+            self.assertEqual(mod.main([
+                "--before", str(before), "--after", str(after),
+                "--plane-map", str(plane_file), "--output", str(output)]), 0)
+            result = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(result["plane_impact"]["impacted_planes"][0]["plane_id"],
+                             "terrain")
+            self.assertEqual(len(result["plane_map_sha256"]), 64)
+            self.assertFalse(result["plane_impact"]["release_blocking"])
+
     def test_cli_reports_json_and_real_sha256(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
