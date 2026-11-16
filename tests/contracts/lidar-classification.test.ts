@@ -100,13 +100,14 @@ test("QL table: QL0 5 cm, QL1/QL2 10 cm, QL3 20 cm non-vegetated RMSEv", () => {
   assert.equal(rmseVNonVegetatedM("QL3"), 0.2);
 });
 
-test("QL definitions carry pulse density, spacing, NVA and VVA", () => {
+test("LBS 2025 QL definitions carry official pulse density, spacing, RMSEv and DEM cell size only", () => {
   const ql2 = qualityLevelDefinition("QL2");
   assert.equal(ql2?.minNominalPulseDensityPerSqM, 2);
   assert.equal(ql2?.maxNominalPulseSpacingM, 0.71);
   assert.equal(ql2?.demCellSizeM, 1.0);
-  assert.equal(ql2?.nva95M, 0.196);
-  assert.equal(ql2?.vvaM, 0.3);
+  assert.equal(ql2?.rmseVNonVegetatedM, 0.1);
+  assert.equal("nva95M" in (ql2 ?? {}), false);
+  assert.equal("vvaM" in (ql2 ?? {}), false);
   const ql0 = qualityLevelDefinition("QL0");
   assert.equal(ql0?.minNominalPulseDensityPerSqM, 8);
   assert.equal(ql0?.maxNominalPulseSpacingM, 0.35);
