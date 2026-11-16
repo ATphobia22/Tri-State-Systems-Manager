@@ -225,6 +225,7 @@ def building_vegetation_pipeline(
     stages += [
         {
             "type": "filters.smrf",
+            "where": "Classification == 0 || Classification == 1 || Classification == 2",
             "window": 18,
             "slope": 0.2,
             "threshold": 0.45,
