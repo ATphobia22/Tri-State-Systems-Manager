@@ -97,7 +97,7 @@ def check_registry(root: Path = ROOT) -> dict:
     require(indexed["FGDC-NGAC-ADVISORY"]["role"] == "ADVISORY_ONLY", "NGAC cannot become a licensing authority")
     require(indexed["ASBOG-EXAM"]["role"] == "EXAM_PROVIDER", "ASBOG does not grant licenses")
     require(indexed["AIPG-CPG"]["role"] == "VOLUNTARY_CERTIFICATION", "AIPG is not a state license board")
-    require(all(indexed[f"{s}-LPG-BOARD"]["role"] == "STATE_LICENSE_AUTHORITY" for s in ("IN",))
+    require(indexed["IN-LPG-BOARD"]["role"] == "STATE_LICENSE_AUTHORITY"
             and indexed["IL-LPG-IDFPR"]["role"] == "STATE_LICENSE_AUTHORITY"
             and indexed["KY-PG-BOARD"]["role"] == "STATE_LICENSE_AUTHORITY",
             "tri-state licensure authority role misclassified")
@@ -117,7 +117,8 @@ def hashed_local_file(root: Path, entry: object, context: str) -> dict:
     local = (base / path).resolve()
     require(local.is_relative_to(base), f"{context}: escaped repository root")
     require(local.is_file() and not (base / path).is_symlink(), f"{context}: evidence file missing or symlink")
-    digest = hashlib.sha256(local.read_bytes()).hexdigest()
+    with local.open("rb") as stream:
+        digest = hashlib.file_digest(stream, "sha256").hexdigest()
     require(digest == sha, f"{context}: SHA-256 mismatch")
     return {"localPath": path, "sha256": digest, "sizeBytes": local.stat().st_size}
 
@@ -139,7 +140,10 @@ def check_manifest(manifest: dict, root: Path, references: dict) -> dict:
     if manifest["subjectType"] in expected_role:
         require(reference["role"] == expected_role[manifest["subjectType"]], "inapplicable standard role for dataset type")
     else:
-        require(reference["role"] != "STATE_LICENSE_AUTHORITY", "licensing board is not a scientific-data standard")
+        require(reference["role"] in {"AGENCY_POLICY", "PROGRAM_SPECIFICATION", "PROGRAM_SCHEMA",
+                                      "FEDERAL_STANDARD", "FEDERAL_GUIDANCE",
+                                      "THIRD_PARTY_CONSENSUS_STANDARD"},
+                "advisory, exam, voluntary credential or licensing board is not a scientific-data standard")
     for field in ("id", "issuer", "standardEdition", "coverage", "horizontalCrs", "verticalDatum", "units", "limitations"):
         require(isinstance(source.get(field), str) and source[field].strip(), f"source.{field} required")
     require(https_url(source.get("sourceUri")), "source.sourceUri must be HTTPS")
@@ -170,6 +174,8 @@ def check_manifest(manifest: dict, root: Path, references: dict) -> dict:
         if manifest["interpretive"]:
             peers = {r["reviewerRef"] for r in reviews if r["kind"] == "SCIENTIFIC_PEER_REVIEW"}
             require(len(peers) >= 2, "interpretive peer review needs at least two separately documented reviewers")
+            peer_files = {r["artifact"]["sha256"] for r in reviews if r["kind"] == "SCIENTIFIC_PEER_REVIEW"}
+            require(len(peer_files) >= 2, "interpretive peer review needs separately hashed review records")
     else:
         require(not manifest["reviewEvidence"], "reviewEvidence requires REVIEW_DOCUMENTS_PRESENT level")
     # A source's collection-era edition is not silently overwritten by today's latest spec.
