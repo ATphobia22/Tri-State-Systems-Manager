@@ -31,7 +31,7 @@ class 7 "Low noise". Both labels are legitimate; neither is an error.
 |---|---|
 | 0 | Created, never classified |
 | 1 | Unassigned / Processed, but unclassified |
-| 2 | Ground / Bare earth — the only class a bare-earth DEM is built from |
+| 2 | Ground / Bare earth — normal DEM input; class 21 perennial snow is also permitted under documented 2025 LBS conditions |
 | 3 | Low Vegetation |
 | 4 | Medium Vegetation |
 | 5 | High Vegetation |
@@ -40,7 +40,9 @@ class 7 "Low noise". Both labels are legitimate; neither is an error.
 | 9 | Water |
 | 17 | Bridge Deck |
 | 18 | High Noise |
-| 20 | Ignored Ground (typically breakline proximity) |
+| 20 | Ignored Ground (typically breakline proximity) — exclude from bare-earth interpolation |
+| 21 | Snow (if identifiable); **perennial** class 21 used in DEM only when explicitly verified per LBS 2025 rev. A |
+| 22 | Temporal exclusion — not ordinary bare-earth ground |
 
 In LAS 1.4, codes 8 and 12 are reserved (use class flags instead);
 LAS 1.1–1.3 support only 0–31. Code implemented in TypeScript:
@@ -49,6 +51,12 @@ LAS 1.1–1.3 support only 0–31. Code implemented in TypeScript:
 Sources:
 - https://www.usgs.gov/ngp-standards-and-specifications/lidar-base-specification-tables
 - https://pro.arcgis.com/en/pro-app/3.0/help/data/las-dataset/storing-lidar-data.htm
+
+## Updated 2025 LBS and headless PDAL source preservation (2026-11-16)
+
+[Official 2025 rev. A](https://www.usgs.gov/ngp-standards-and-specifications/lidar-base-specification-online) adds classes 21/22 and a required DEM/MSHR NoData match. The [PDAL JSON builders](../../scripts/geospatial/pdal_pipelines.py) expose an **opt-in** LBS 2025 raster NoData selection (`lbs_2025_nodata=True` uses **-999999** rather than the generic **-9999**); this **does not** demonstrate full LAS/LAZ/GeoTIFF, checkpoint, geoid, breakline or scientific conformance. Ground candidate class 21 is included only with `include_verified_perennial_snow=True` and matching edition selection; classes 20 and 22 remain excluded. PDAL's SMRF stage is scoped to classes 0/1/2 and the height-based potential-building assignment only edits unclassified points, preserving previously assigned water, snow, excluded and other classes. Actual PDAL execution and original source-artifact tests are still required.
+
+For official-source authority, interpretive USGS review, GeMS and legal licensure distinctions see [Geoscience authority, Nov 16](../geospatial/GEOSCIENCE-AUTHORITY-2026-11-16.md).
 
 ## Quality levels (QL0–QL3)
 
