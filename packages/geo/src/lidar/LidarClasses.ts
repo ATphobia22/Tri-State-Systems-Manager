@@ -32,7 +32,7 @@ export const LIDAR_CLASS = {
   BRIDGE_DECK: 17,
   HIGH_NOISE: 18,
   IGNORED_GROUND: 20,
-  PERENNIAL_SNOW: 21,
+  SNOW: 21,
   TEMPORAL_EXCLUSION: 22,
 } as const;
 
@@ -74,7 +74,7 @@ export function isGroundClass(code: number): boolean {
 
 /**
  * USGS LBS 2025 rev. A: regular ground-class points enter bare-earth DEMs.
- * Identifiable PERENNIAL snow points (class 21) also enter when the collection
+ * Identifiable perennial snowpack points (class 21) also enter when the collection
  * actually includes verified perennial snowpack. This is an explicit project
  * decision, never inferred from class code alone; ignore class 20 and class 22.
  * Source: https://www.usgs.gov/ngp-standards-and-specifications/lidar-base-specification-deliverables
@@ -83,7 +83,7 @@ export function isGroundClass(code: number): boolean {
  */
 export function isDemSurfaceCandidate(code: number, includeVerifiedPerennialSnow = false): boolean {
   return code === LIDAR_CLASS.GROUND
-    || (includeVerifiedPerennialSnow && code === LIDAR_CLASS.PERENNIAL_SNOW);
+    || (includeVerifiedPerennialSnow && code === LIDAR_CLASS.SNOW);
 }
 
 /** True for ASPRS classes 3, 4, 5 (low / medium / high vegetation). */
