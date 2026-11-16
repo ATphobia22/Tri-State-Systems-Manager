@@ -58,7 +58,7 @@ node scripts/ci/validate-openfema.mjs
 All tests run headlessly using synthetic records. To verify a completed snapshot:
 
 ~~~bash
-sha256sum -c artifacts/openfema/posey-declarations-2026-11-16.json.sha256
+cd artifacts/openfema && sha256sum -c posey-declarations-2026-11-16.json.sha256
 ~~~
 
 **Required before promoting a live data layer:** official dataset version/fields, query scope, successful complete bounded harvest, checked raw hashes, metadata vintage and retrieved UTC, independent geographic join policy, appropriate disclosure/aggregation, no private owner joins, no implied FEMA effective map or permit. For floodplain geometry, use the [FEMA NFHL evidence chain](../fema/NFHL-BOUNDED-ACQUISITION.md); for geodetic accuracy, use [independent checkpoints](../geodesy/INDEPENDENT-CHECKPOINT-ACCURACY-2026-11-15.md).
