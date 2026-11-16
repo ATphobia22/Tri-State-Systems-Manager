@@ -283,3 +283,7 @@ See the [checkpoint input contract](docs/geodesy/INDEPENDENT-CHECKPOINT-ACCURACY
 **Do not use TSM alone** for an emergency evacuation, flood insurance or LOMA decision, legal parcel boundary, public-works design, construction/slope safety, grant award or eligibility claim. Always confirm current authoritative agency records and obtain licensed professional judgment where required.
 
 **In memory of Beverly Ann Tucker.**
+
+### Historical Indiana geological publication archive
+
+The [historical geology source browser](https://atphobia22.github.io/Tri-State-Systems-Manager/geology-sources.html) presents nine curated Indiana Geological Survey / IU ScholarWorks bibliographic records for Posey County, the Lower Wabash, and Gray's statewide geological work. [Source catalog](data/fabrics/geological/igws-scholarworks-priority-v1.json) and [source/license limits](data/fabrics/geological/SCHOLARWORKS-PRIORITY-2026-11-16.md) distinguish historical interpretation from currently surveyed terrain and geology. PDFs are **not mirrored**; noncommercial/conflicting source rights remain for human review. Source UI and catalog publication require a successful matching Pages deployment after this branch merges.
