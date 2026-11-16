@@ -55,12 +55,21 @@ jobs:
         run: |
           python tools/geospatial_exchange/posey_nfhl_effective_geometry.py verify \
             --snapshot "$RUNNER_TEMP/posey-nfhl-effective-geometry"
-      - name: Screen 2025 Posey parcels against effective FEMA polygon geometry
+      - name: Download and verify the Posey IGIO footprint archive
+        run: |
+          curl --fail --location --retry 3 --max-time 120 \
+            'https://github.com/ATphobia22/Tri-State-Systems-Manager/releases/download/igio-posey-20261006/posey-buildings-igio-23082.geojson' \
+            --output "$RUNNER_TEMP/posey-buildings-igio.geojson"
+          printf '%s  %s\n' d8a46b86616becfdea9c9164e7a219317d5963b86fba47e4c1f8f880ccbb559f \
+            "$RUNNER_TEMP/posey-buildings-igio.geojson" | sha256sum --check
+      - name: Screen Posey parcels and buildings against effective FEMA polygons
         run: |
           python tools/geospatial_exchange/posey_nfhl_effective_geometry.py screen \
             --snapshot "$RUNNER_TEMP/posey-nfhl-effective-geometry" \
             --parcels data/posey-county/parcels/posey-parcels-2025.geojson \
             --registry data/posey-county/offline/2026-09-30/fema-effective-firm-panels-18129C.json \
+            --footprints "$RUNNER_TEMP/posey-buildings-igio.geojson" \
+            --footprint-sha256 d8a46b86616becfdea9c9164e7a219317d5963b86fba47e4c1f8f880ccbb559f \
             --out "$RUNNER_TEMP/posey-nfhl-parcel-review.json"
       - name: Keep source inventory drift visible
         run: |
@@ -74,6 +83,10 @@ jobs:
           print("Observed source layer counts:", counts)
           print("Panel registry reconciliation:", a["sourcePanelInventory"])
           print("Parcel screening status counts:", a["statusCounts"])
+          building = a["buildingScreen"]
+          print("Building screening status counts:", building["statusCounts"])
+          if sum(building["statusCounts"].values()) != 23082:
+              raise SystemExit("Incomplete Posey building screening inventory")
           if a["sourcePanelInventory"]["status"] != "MATCH":
               raise SystemExit("FEMA live panel inventory changed from pinned 35-panel registry; manual review needed")
           if counts["firmPanels"] != 35:

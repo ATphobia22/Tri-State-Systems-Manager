@@ -61,6 +61,18 @@ class FEMAEffectiveGeometryTests(unittest.TestCase):
         self.assertTrue(all(x["femaDetermination"] is None for x in report["rows"]))
         self.assertTrue(all(x["bfeNavd88Ft"] is None for x in report["rows"]))
 
+    def test_buildings_keep_source_identity_and_do_not_inherit_a_parcel_result(self):
+        buildings = [
+            feature(1, (.2, .1, .8, .9), county="Posey", objectid=101),
+            feature(2, (1, .1, 1.5, .9), county="Posey", objectid=102),
+        ]
+        result = nfhl.analyze_parcels(buildings, self.panels, self.zones,
+                                     nfhl.compare_panels(self.panels, self.registry), buildings=True)
+        self.assertEqual([row["buildingSourceObjectId"] for row in result["rows"]], [101, 102])
+        self.assertEqual([row["femaSfhaAreaOverlap"] for row in result["rows"]], [True, False])
+        self.assertFalse(result["regulatoryEligibilityEstablished"])
+        self.assertNotIn("stateParcelId", result["rows"][0])
+
     def test_touches_sfha_at_boundary_only_not_area_overlap(self):
         report = nfhl.analyze_parcels([parcel(2, (1, 0.1, 1.5, .9))],
                                      self.panels, self.zones, nfhl.compare_panels(self.panels, self.registry))

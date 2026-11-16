@@ -15,7 +15,7 @@ The production WSE conversion therefore remains:
 
 For a 4.31-ft gage-height observation, the station WSE is **356.98 ft NAVD88**.
 
-The 352.71-ft metadata altitude must not silently replace the published 352.67-ft streamgage datum. The four-centimeter difference is retained as provenance rather than discarded.
+The 352.71-ft metadata altitude must not silently replace the published 352.67-ft streamgage datum. The 0.04-ft difference (about 1.22 cm) is retained as provenance rather than discarded.
 
 ## Flood thresholds
 
