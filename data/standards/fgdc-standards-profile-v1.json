@@ -221,6 +221,28 @@
       ]
     },
     {
+      "id": "USGS-GEMS-2020",
+      "title": "USGS GeMS — Geologic Map Schema (Techniques and Methods 11-B10)",
+      "version": "2020, official GeMS publication (check later implementation/submission guidance separately)",
+      "status": "REFERENCE_ACTIVE",
+      "url": "https://ngmdb.usgs.gov/Info/standards/GeMS/",
+      "use": [
+        "machine-readable geologic map database structure and map-unit identity",
+        "check actual GeMS schema evidence, not simply FGDC symbolization or PDF mapping"
+      ]
+    },
+    {
+      "id": "USGS-FSP-502.7-2026",
+      "title": "USGS Fundamental Science Practices: Metadata for USGS Scientific Data",
+      "version": "Survey Manual 502.7, issued 2026-06-01",
+      "status": "REFERENCE_ACTIVE",
+      "url": "https://www.usgs.gov/survey-manual/5027-fundamental-science-practices-metadata-usgs-scientific-data",
+      "use": [
+        "metadata source provenance and documented review as an analogous TSM QA practice",
+        "recognize that this is mandatory USGS internal policy, not certification conferred on TSM"
+      ]
+    },
+    {
       "id": "USGS-3DEP-LBS-2025-REV-A",
       "title": "USGS 3DEP Lidar Base Specification",
       "version": "2025 rev. A (2025-06-10)",

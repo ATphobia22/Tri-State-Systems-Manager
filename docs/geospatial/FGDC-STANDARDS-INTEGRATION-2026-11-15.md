@@ -46,3 +46,9 @@ The [download inventory](../../data/standards/fgdc-download-catalog-2026-11-15.j
 - OGC GeoTIFF 1.1: https://docs.ogc.org/is/19-008r4/19-008r4.html
 
 **Gate category:** Offline headless descriptive-metadata compatibility, not federal standards conformance certification.
+
+## Geology publication schema and scientific release practice (reviewed 2026-11-16)
+
+- [USGS GeMS (2020)](https://ngmdb.usgs.gov/Info/standards/GeMS/) is the **geologic map database schema**, not the 2006 FGDC cartographic symbolization standard. TSM references its authoritative specification; this does **not** attest that scanned IU ScholarWorks historical PDF maps have been converted to, or validated against, GeMS. The geodatabase schema and its submission guidance are independent evidence requirements.
+- [USGS Survey Manual 502.7, issued 2026-06-01](https://www.usgs.gov/survey-manual/5027-fundamental-science-practices-metadata-usgs-scientific-data) requires metadata review for USGS scientific data. TSM adopts the *principle* of a documented source/metadata review and independent QA; TSM is **not** a USGS bureau and cannot assert USGS FSP compliance or product approval merely from a descriptive metadata record.
+- [IU ScholarWorks historical geology catalog](../../data/fabrics/geological/SCHOLARWORKS-PRIORITY-2026-11-16.md) preserves original source handles, year, scale and noncommercial/conflicting rights metadata. No georeferenced vectors, surveyed subsurface points or source PDF binary hashes are created from bibliography records. The optional DSpace JSON downloader has a separate source receipt; the offline gate is not a live IU site check.

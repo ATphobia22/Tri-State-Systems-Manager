@@ -1,0 +1,66 @@
+name: Geoscience authority and 2025 USGS LiDAR reference gates
+on:
+  pull_request:
+    paths:
+      - 'data/standards/geoscience-authority-profile-v1.json'
+      - 'data/fabrics/geological/**'
+      - 'scripts/geospatial/geoscience_authority_gate.py'
+      - 'scripts/geospatial/pdal_pipelines.py'
+      - 'scripts/geospatial/test_pdal_pipelines.py'
+      - 'tests/geospatial/test_geoscience_authority_gate.py'
+      - 'packages/geo/src/lidar/QualityLevel.ts'
+      - 'packages/geo/src/lidar/LidarClasses.ts'
+      - 'packages/geo/src/lidar/PointClassification.ts'
+      - 'tests/contracts/lidar-classification.test.ts'
+      - 'docs/geospatial/GEOSCIENCE-AUTHORITY-2026-11-16.md'
+      - '.github/workflows/geoscience-authority.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'data/standards/geoscience-authority-profile-v1.json'
+      - 'data/fabrics/geological/**'
+      - 'scripts/geospatial/geoscience_authority_gate.py'
+      - 'tests/geospatial/test_geoscience_authority_gate.py'
+      - 'packages/geo/src/lidar/LidarClasses.ts'
+      - 'packages/geo/src/lidar/PointClassification.ts'
+      - 'tests/contracts/lidar-classification.test.ts'
+      - 'docs/geospatial/GEOSCIENCE-AUTHORITY-2026-11-16.md'
+      - '.github/workflows/geoscience-authority.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  headless-scientific-evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out reviewed commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Pin Python 3.12
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Compile the standards evidence validator
+        run: python -m py_compile scripts/geospatial/geoscience_authority_gate.py tests/geospatial/test_geoscience_authority_gate.py
+      - name: Reproduce synthetic evidence and role-boundary tests
+        run: python -m unittest discover -s tests/geospatial -p test_geoscience_authority_gate.py -v
+      - name: Validate official-role reference manifest offline
+        run: python scripts/geospatial/geoscience_authority_gate.py
+      - name: Check PDAL builder syntax, class-preservation and explicit LBS mode (no external PDAL needed)
+        run: |
+          python -m py_compile scripts/geospatial/pdal_pipelines.py scripts/geospatial/test_pdal_pipelines.py
+          (cd scripts/geospatial && python -m unittest test_pdal_pipelines.py -v)
+  lidar-reference-classes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out reviewed commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Pin Node 22
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '22'
+      - name: Install locked npm dependencies without postinstall scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
+      - name: Validate LBS class 20/21/22 semantics and preservation
+        run: npm run test:lidar

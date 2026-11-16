@@ -2,9 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   LIDAR_CLASS,
-  isBareEarthDemSourceClass,
   lidarClassDefinition,
   isGroundClass,
+  isDemSurfaceCandidate,
   isVegetationClass,
   isNoiseClass,
   qualityLevelDefinition,
@@ -29,6 +29,8 @@ import {
 test("verified class codes: ground is 2, ignored ground is 20, noise is 7 and 18", () => {
   assert.equal(LIDAR_CLASS.GROUND, 2);
   assert.equal(LIDAR_CLASS.IGNORED_GROUND, 20);
+  assert.equal(LIDAR_CLASS.SNOW, 21);
+  assert.equal(LIDAR_CLASS.TEMPORAL_EXCLUSION, 22);
   assert.equal(LIDAR_CLASS.LOW_NOISE, 7);
   assert.equal(LIDAR_CLASS.HIGH_NOISE, 18);
   assert.equal(LIDAR_CLASS.WATER, 9);
@@ -51,6 +53,8 @@ test("class definitions carry both ASPRS and LBS wording where they differ", () 
   const two = lidarClassDefinition(2);
   assert.equal(two?.asprsLabel, "Ground");
   assert.equal(two?.lbsLabel, "Bare earth");
+  assert.equal(lidarClassDefinition(21)?.lbsLabel, "Snow (if present and identifiable)");
+  assert.match(lidarClassDefinition(22)?.lbsLabel ?? "", /Temporal exclusion/i);
 });
 
 test("unknown class codes return null, never a guessed definition", () => {
@@ -62,6 +66,8 @@ test("unknown class codes return null, never a guessed definition", () => {
 test("class predicates: ground, vegetation, noise", () => {
   assert.equal(isGroundClass(2), true);
   assert.equal(isGroundClass(20), false);
+  assert.equal(isGroundClass(21), false);
+  assert.equal(isGroundClass(22), false);
   assert.equal(isVegetationClass(3), true);
   assert.equal(isVegetationClass(4), true);
   assert.equal(isVegetationClass(5), true);
@@ -69,6 +75,22 @@ test("class predicates: ground, vegetation, noise", () => {
   assert.equal(isNoiseClass(7), true);
   assert.equal(isNoiseClass(18), true);
   assert.equal(isNoiseClass(1), false);
+});
+
+test("USGS 2025 LBS DEM candidates explicitly include known perennial snow, never excluded/noise", () => {
+  assert.equal(isDemSurfaceCandidate(2), true);
+  assert.equal(isDemSurfaceCandidate(21), false); // project has not supplied perennial-snow evidence
+  assert.equal(isDemSurfaceCandidate(21, true), true); // explicit verified perennial snow inclusion
+  for (const cls of [0, 1, 6, 9, 17, 20, 22]) {
+    assert.equal(isDemSurfaceCandidate(cls, true), false);
+  }
+});
+
+test("vegetation banding never overwrites already-classified LBS snow, exclusion, ground or buildings", () => {
+  const pts: LidarPoint[] = [2, 6, 9, 20, 21, 22, 3, 4, 5].map((classification, i) =>
+    ({ x: i, y: 0, z: 120, classification }));
+  const result = classifyVegetationByHag(pts, () => 100);
+  assert.deepEqual(result.map((p) => p.classification), pts.map((p) => p.classification));
 });
 
 // --- Quality levels (verified against USGS LBS Table 4 / QL page) ---
@@ -80,13 +102,14 @@ test("QL table: QL0 5 cm, QL1/QL2 10 cm, QL3 20 cm non-vegetated RMSEv", () => {
   assert.equal(rmseVNonVegetatedM("QL3"), 0.2);
 });
 
-test("QL definitions carry pulse density, spacing and deprecated historical accuracy fields", () => {
+test("LBS 2025 QL definitions carry official pulse density, spacing, RMSEv and DEM cell size only", () => {
   const ql2 = qualityLevelDefinition("QL2");
   assert.equal(ql2?.minNominalPulseDensityPerSqM, 2);
   assert.equal(ql2?.maxNominalPulseSpacingM, 0.71);
   assert.equal(ql2?.demCellSizeM, 1.0);
-  assert.equal(ql2?.nva95M, 0.196);
-  assert.equal(ql2?.vvaM, 0.3);
+  assert.equal(ql2?.rmseVNonVegetatedM, 0.1);
+  assert.equal("nva95M" in (ql2 ?? {}), false);
+  assert.equal("vvaM" in (ql2 ?? {}), false);
   const ql0 = qualityLevelDefinition("QL0");
   assert.equal(ql0?.minNominalPulseDensityPerSqM, 8);
   assert.equal(ql0?.maxNominalPulseSpacingM, 0.35);
@@ -257,22 +280,4 @@ test("flatten constraints keep lakes and rivers only, and reject an uphill river
 test("enforce constraints keep culvert cuts, rivers and lakes — not bridges", () => {
   const out = buildHydroEnforceConstraints([lake, downhill, bridge, culvert]);
   assert.deepEqual(out.map((b) => b.id), ["l1", "r1", "c1"]);
-});
-
-// USGS Lidar Base Specification 2025 revision A, Table 5 + revision history.
-test("snow 21 and temporal exclusion 22 use USGS 2025 LBS labels", () => {
-  assert.equal(LIDAR_CLASS.SNOW, 21);
-  assert.equal(LIDAR_CLASS.TEMPORAL_EXCLUSION, 22);
-  assert.match(lidarClassDefinition(21)?.lbsLabel ?? "", /Snow/);
-  assert.match(lidarClassDefinition(22)?.lbsLabel ?? "", /Temporal exclusion/);
-});
-
-test("bare-earth DEM source class includes class-21 snow only with explicit approval", () => {
-  assert.equal(isBareEarthDemSourceClass(2), true);
-  assert.equal(isBareEarthDemSourceClass(21), false);
-  assert.equal(isBareEarthDemSourceClass(21, true), true);
-  for (const x of [0, 1, 7, 9, 18, 20, 22, 99]) {
-    assert.equal(isBareEarthDemSourceClass(x, true), false);
-  }
-  assert.equal(isGroundClass(21), false);
 });

@@ -1,0 +1,169 @@
+{
+  "schema": "tsm-geoscience-authority-profile",
+  "version": "1.0.0",
+  "reviewedOn": "2026-11-16",
+  "disclaimer": "Official references are research pointers, not downloaded datasets or endorsements of TSM. Historical products retain acquisition-era standard editions; TSM cannot issue state professional licenses or USGS Bureau approval.",
+  "policy": {
+    "automaticScientificCertification": false,
+    "automaticRegulatoryApproval": false,
+    "automaticProfessionalLicensing": false,
+    "undocumentedConformance": "NOT_EVIDENCED",
+    "dataProcessing": "HEADLESS_OFFLINE"
+  },
+  "entries": [
+    {
+      "id": "USGS-FSP-502.3-2026",
+      "title": "Fundamental Science Practices: Peer Review",
+      "issuer": "USGS",
+      "role": "AGENCY_POLICY",
+      "appliesTo": "USGS_INFORMATION_PRODUCTS",
+      "edition": "2026-07-24",
+      "issuedAt": "2026-07-24",
+      "officialUrl": "https://www.usgs.gov/survey-manual/5023-fundamental-science-practices-peer-review",
+      "note": "USGS scientific information products subject to peer review normally require at least two qualified, independent reviews; this does not itself bind non-USGS TSM outputs."
+    },
+    {
+      "id": "USGS-FSP-502.7-2026",
+      "title": "Fundamental Science Practices: Metadata for USGS Scientific Data",
+      "issuer": "USGS",
+      "role": "AGENCY_POLICY",
+      "appliesTo": "USGS_SCIENTIFIC_DATA",
+      "edition": "2026-06-01",
+      "issuedAt": "2026-06-01",
+      "officialUrl": "https://www.usgs.gov/survey-manual/5027-fundamental-science-practices-metadata-usgs-scientific-data",
+      "note": "USGS requires FGDC-endorsed CSDGM or ISO 191xx metadata, metadata review and Science Data Catalog indexing for its own scientific data."
+    },
+    {
+      "id": "USGS-FSP-502.8-2026",
+      "title": "Fundamental Science Practices: Review, Approval, and Release of USGS Scientific Data",
+      "issuer": "USGS",
+      "role": "AGENCY_POLICY",
+      "appliesTo": "USGS_SCIENTIFIC_DATA",
+      "edition": "2026-06-01",
+      "issuedAt": "2026-06-01",
+      "officialUrl": "https://www.usgs.gov/survey-manual/5028-fundamental-science-practices-review-approval-and-release-usgs-scientific-data",
+      "note": "Data review, metadata review and authorized Bureau approval apply to USGS releases. TSM cannot issue Bureau approval or a DOI on behalf of USGS."
+    },
+    {
+      "id": "USGS-3DEP-LBS-2025A",
+      "title": "Lidar Base Specification 2025 revision A",
+      "issuer": "USGS",
+      "role": "PROGRAM_SPECIFICATION",
+      "appliesTo": "USGS_3DEP_COLLECTIONS",
+      "edition": "2025 rev. A",
+      "issuedAt": "2025-06-10",
+      "officialUrl": "https://www.usgs.gov/ngp-standards-and-specifications/lidar-base-specification-online",
+      "note": "Preserve historical collection's original applicable edition. Includes classes 20 ignored ground, 21 identifiable snow, 22 temporal exclusion, FGDC XML deliverables, survey/checkpoint report and hydroflattened DEM."
+    },
+    {
+      "id": "USGS-GEMS-2020",
+      "title": "Geologic Map Schema (GeMS), USGS Techniques and Methods 11-B10",
+      "issuer": "USGS",
+      "role": "PROGRAM_SCHEMA",
+      "appliesTo": "USGS_NCGMP_GEOLOGIC_MAPS",
+      "edition": "2020",
+      "issuedAt": "2020-09-02",
+      "officialUrl": "https://pubs.usgs.gov/publication/tm11B10",
+      "note": "GeMS is the USGS NCGMP single-map database publication schema; separate from the FGDC geologic cartographic symbol standard. TSM has not validated a complete GeMS database."
+    },
+    {
+      "id": "FGDC-GEOLOGIC-SYMBOLOGY-2006",
+      "title": "FGDC Digital Cartographic Standard for Geologic Map Symbolization",
+      "issuer": "FGDC",
+      "role": "FEDERAL_STANDARD",
+      "appliesTo": "FEDERAL_GEOLOGIC_MAP_PRESENTATION",
+      "edition": "FGDC-STD-013-2006",
+      "issuedAt": null,
+      "officialUrl": "https://ngmdb.usgs.gov/fgdc_gds/geolsymstd.php",
+      "note": "Map symbols, patterns and legend conventions; not proof that underlying stratigraphy, geometry or schema is GeMS-compliant."
+    },
+    {
+      "id": "FGDC-METADATA-CSDGM-ISO",
+      "title": "FGDC-endorsed geospatial metadata standards and transition guidance",
+      "issuer": "FGDC",
+      "role": "FEDERAL_GUIDANCE",
+      "appliesTo": "FEDERAL_DATA_DOCUMENTATION",
+      "edition": "CSDGM 1998 / ISO 191xx",
+      "issuedAt": null,
+      "officialUrl": "https://www.fgdc.gov/metadata/us-national-profile-iso19115/geospatial-metadata-standards",
+      "note": "ISO transition is encouraged; legacy FGDC CSDGM remains important for USGS 3DEP deliverables. Metadata parsing is not full ISO conformance."
+    },
+    {
+      "id": "FGDC-NGAC-ADVISORY",
+      "title": "National Geospatial Advisory Committee",
+      "issuer": "FGDC/DOI",
+      "role": "ADVISORY_ONLY",
+      "appliesTo": "FEDERAL_GEODATA_POLICY_ADVICE",
+      "edition": "Geospatial Data Act 2018",
+      "issuedAt": null,
+      "officialUrl": "https://www.fgdc.gov/ngac",
+      "note": "Advises the FGDC/Interior; not a source of geology professional licenses, regulatory permits or automatic data conformance."
+    },
+    {
+      "id": "IN-LPG-BOARD",
+      "title": "Indiana Board of Licensure for Professional Geologists",
+      "issuer": "Indiana",
+      "role": "STATE_LICENSE_AUTHORITY",
+      "appliesTo": "GEOLOGIC_PUBLIC_PRACTICE_IN",
+      "edition": "IC 25-17.6; 305 IAC",
+      "issuedAt": null,
+      "officialUrl": "https://igws.iu.edu/services/lpg",
+      "note": "Indiana board regulates public geological practice; IGWS administers the web program but is not itself the licensing board."
+    },
+    {
+      "id": "IL-LPG-IDFPR",
+      "title": "Illinois Department of Financial and Professional Regulation - Licensed Geologist",
+      "issuer": "Illinois",
+      "role": "STATE_LICENSE_AUTHORITY",
+      "appliesTo": "GEOLOGIC_PUBLIC_PRACTICE_IL",
+      "edition": "Illinois Geology Act / Rules",
+      "issuedAt": null,
+      "officialUrl": "https://idfpr.illinois.gov/profs/geology.html",
+      "note": "Use IDFPR official license lookup and operative law/rules for scope, current status and exceptions."
+    },
+    {
+      "id": "KY-PG-BOARD",
+      "title": "Kentucky Board of Registration for Professional Geologists",
+      "issuer": "Kentucky",
+      "role": "STATE_LICENSE_AUTHORITY",
+      "appliesTo": "GEOLOGIC_PUBLIC_PRACTICE_KY",
+      "edition": "KRS Chapter 322A",
+      "issuedAt": null,
+      "officialUrl": "https://bpg.ky.gov/",
+      "note": "Kentucky board enforces KRS 322A and independently verifies registration; source metadata is not a practice license."
+    },
+    {
+      "id": "ASBOG-EXAM",
+      "title": "National Association of State Boards of Geology examination program",
+      "issuer": "ASBOG",
+      "role": "EXAM_PROVIDER",
+      "appliesTo": "PROFESSIONAL_EXAMINATIONS",
+      "edition": "FG / PG national exams",
+      "issuedAt": null,
+      "officialUrl": "https://www.asbog.org/governance/mission.php",
+      "note": "ASBOG develops licensure examinations; state boards issue legal licenses."
+    },
+    {
+      "id": "AIPG-CPG",
+      "title": "American Institute of Professional Geologists Certified Professional Geologist",
+      "issuer": "AIPG",
+      "role": "VOLUNTARY_CERTIFICATION",
+      "appliesTo": "PROFESSIONAL_MEMBERSHIP_CREDENTIAL",
+      "edition": "CPG program",
+      "issuedAt": null,
+      "officialUrl": "https://aipg.org/page/FAQs",
+      "note": "AIPG CPG is a professional certification independent of state licensure; it is not a substitute for a required state license."
+    },
+    {
+      "id": "ASPRS-POSACC-2024-2V2",
+      "title": "ASPRS Positional Accuracy Standards for Digital Geospatial Data, Edition 2 Version 2",
+      "issuer": "ASPRS",
+      "role": "THIRD_PARTY_CONSENSUS_STANDARD",
+      "appliesTo": "GEOSPATIAL_POSITIONAL_ACCURACY",
+      "edition": "Edition 2 Version 2 (2024)",
+      "issuedAt": null,
+      "officialUrl": "https://www.usgs.gov/ngp-standards-and-specifications/adopt-updated-accuracy-standards",
+      "note": "Modern RMSE approach includes checkpoint survey uncertainty; 30 minimum checkpoints is only one criterion and never automatic product certification."
+    }
+  ]
+}

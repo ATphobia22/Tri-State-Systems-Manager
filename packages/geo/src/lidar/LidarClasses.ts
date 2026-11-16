@@ -14,6 +14,8 @@
  * recorded here; neither is treated as an error. In LAS 1.4, codes 8 and 12
  * are reserved (use class flags instead); LAS 1.1–1.3 support only 0–31.
  *
+ * LBS 2025 rev. A Table 5 also specifies class 21 (identifiable snow)
+ * and 22 (temporal exclusion); neither is an ordinary ground point.
  * Only the verified codes are listed. Do not invent codes: an unknown code
  * is unknown, never silently remapped.
  */
@@ -57,7 +59,7 @@ export const LIDAR_CLASS_DEFINITIONS: ReadonlyMap<number, LidarClassDefinition> 
   [18, { code: 18, asprsLabel: "High Noise", lbsLabel: "High noise" }],
   [20, { code: 20, asprsLabel: "Ignored Ground", lbsLabel: "Ignored ground (typically breakline proximity)" }],
   [21, { code: 21, asprsLabel: "Snow", lbsLabel: "Snow (if present and identifiable)" }],
-  [22, { code: 22, asprsLabel: "Temporal Exclusion", lbsLabel: "Temporal exclusion (typically nonfavored intertidal data)" }],
+  [22, { code: 22, asprsLabel: "Temporal Exclusion", lbsLabel: "Temporal exclusion (typically nonfavored data in intertidal zones)" }],
 ]);
 
 /** Definition for a code, or null when the code is not in the verified set. */
@@ -65,9 +67,23 @@ export function lidarClassDefinition(code: number): LidarClassDefinition | null 
   return LIDAR_CLASS_DEFINITIONS.get(code) ?? null;
 }
 
-/** True for ASPRS class 2 ground; class 21 snow is distinct and conditional for 2025-rev-A DEMs. */
+/** True only for class 2 ground, not class 21 perennial snow. */
 export function isGroundClass(code: number): boolean {
   return code === LIDAR_CLASS.GROUND;
+}
+
+/**
+ * USGS LBS 2025 rev. A: regular ground-class points enter bare-earth DEMs.
+ * Identifiable perennial snowpack points (class 21) also enter when the collection
+ * actually includes verified perennial snowpack. This is an explicit project
+ * decision, never inferred from class code alone; ignore class 20 and class 22.
+ * Source: https://www.usgs.gov/ngp-standards-and-specifications/lidar-base-specification-deliverables
+ * Selection does not by itself create an LBS-compliant DEM (withheld flags,
+ * QA/QC, 32-bit float GeoTIFF, hydroflattening and metadata still required).
+ */
+export function isDemSurfaceCandidate(code: number, includeVerifiedPerennialSnow = false): boolean {
+  return code === LIDAR_CLASS.GROUND
+    || (includeVerifiedPerennialSnow && code === LIDAR_CLASS.SNOW);
 }
 
 /** True for ASPRS classes 3, 4, 5 (low / medium / high vegetation). */
@@ -82,14 +98,4 @@ export function isVegetationClass(code: number): boolean {
 /** True for ASPRS classes 7 and 18 (low / high noise). */
 export function isNoiseClass(code: number): boolean {
   return code === LIDAR_CLASS.LOW_NOISE || code === LIDAR_CLASS.HIGH_NOISE;
-}
-
-/** Bare-earth DEM source classification. 2025 rev. A allows class-21 perennial snow
- * only when identifiable and explicitly authorised by the source dataset policy.
- * Never reinterpret class 22 (temporal exclusion) or class 20 as valid ground.
- * Historical collections must retain their original source specification.
- * Source: https://www.usgs.gov/ngp-standards-and-specifications/lidar-base-specification-revision-history
- */
-export function isBareEarthDemSourceClass(code: number, includeIdentifiablePerennialSnow = false): boolean {
-  return code === LIDAR_CLASS.GROUND || (includeIdentifiablePerennialSnow && code === LIDAR_CLASS.SNOW);
 }

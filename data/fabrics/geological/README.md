@@ -44,6 +44,12 @@ Illinois East — that is VN-2000/UTM 48N (Vietnam); the correct code is EPSG:34
 | USGS National Geologic Map Database (NGMDB) | National | National-scale geologic map index and GeMS data |
 | NRCS Web Soil Survey / Soil Data Access | National | SSURGO county soil surveys (sand/silt/clay, soil depth) — referenced as TODO in `scripts/flood-forecasting/prepare-static-attributes.py`; not yet assembled |
 
+## New USGS GeMS compilation reference (2026)
+
+The [2026 USGS State Geologic Map Compilation release](https://www.usgs.gov/data/geologic-map-schema-gems-version-state-geologic-map-compilation-sgmc-geodatabase-conterminous) (DOI 10.5066/P1A3DQZK, published June 8, 2026, CC0) has been added to the geological source manifest as **official-release-catalog-verified-not-downloaded**. It summarizes 48 state maps at mixed scales, **does not reconcile units across state borders**, and covers **bedrock only** where states maintain both bedrock and surficial geology. There are no downloaded geodatabase bytes, GeMS schema tests, site boreholes, or geotechnical findings from this reference.
+
+For the exact [USGS/FSP, 3DEP LBS, GeMS and state-professional authority matrix](../../../docs/geospatial/GEOSCIENCE-AUTHORITY-2026-11-16.md), use the dated separate registry and the offline evidence gate. Its classification labels are not professional certification.
+
 ## Tri-state geological context (published, general)
 
 The tri-state anchor region (Posey County, IN and surroundings) sits on the
@@ -69,6 +75,10 @@ the surface. This is general published context, NOT a site determination.
 - Kentucky KGS: public research products of the University of Kentucky.
 - USGS NGMDB: public domain (U.S. federal).
 - NRCS SSURGO: public domain (U.S. federal).
+
+## Historical IU ScholarWorks bibliography (2026-11-16)
+
+The [original Indiana Geological Survey community](https://scholarworks.iu.edu/dspace/communities/762d9abf-72d7-4962-818e-b1c0baf1defa) and nine verified bibliographic records are cataloged in [igws-scholarworks-priority-v1.json](igws-scholarworks-priority-v1.json). The [source-method and rights audit](SCHOLARWORKS-PRIORITY-2026-11-16.md) explains their historical applications, geographic limits and conflicting/noncommercial reuse notices. The public citation-only browser is at [geology-sources.html](../../../tsm-console/public/geology-sources.html). This does not assert binary PDF download, georeferenced data, boreholes, or completed professional review. Run the headless source-gate script scripts/geospatial/igws_scholarworks_catalog.py or explicitly download **metadata JSON only** with its --fetch-metadata flag.
 
 ## Historical Indiana geology reference index (2026-11-16)
 

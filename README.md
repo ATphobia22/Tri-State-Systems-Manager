@@ -79,7 +79,7 @@ The following lists **implemented modules and documented integrations**, with di
 
 TSM aggregates official U.S. federal and state records; however, **“registered,” “adapter available,” “downloaded,” and “rendered on public Pages” are four different states**. Every real claim should identify the actual service/layer ID and acquisition receipt.
 
-The [FGDC/Tri-State machine registry](data/tsm-fgdc-tristate-geospatial-registry-v1.json), [full data-source catalog](docs/DATA-SOURCE-CATALOG.md), [FGDC catalog notes](docs/DATA-SOURCE-CATALOG-FGDC-TRISTATE-2026-11-15.md), [government adapter code](packages/government/src/adapters/) and [acquisition manifests](data-sources/manifests/) are the auditable inventories. The registry also catalogs *candidates* that have not been verified for this scene.
+The [new federal geology, USGS FSP/LBS and IN/IL/KY professional authority crosswalk](docs/geospatial/GEOSCIENCE-AUTHORITY-2026-11-16.md) separates current standards and scientific review policy from state licensing. The [FGDC/Tri-State machine registry](data/tsm-fgdc-tristate-geospatial-registry-v1.json), [full data-source catalog](docs/DATA-SOURCE-CATALOG.md), [FGDC catalog notes](docs/DATA-SOURCE-CATALOG-FGDC-TRISTATE-2026-11-15.md), [government adapter code](packages/government/src/adapters/) and [acquisition manifests](data-sources/manifests/) are the auditable inventories. The registry also catalogs *candidates* that have not been verified for this scene.
 
 ### Principal source families represented by code, snapshots or data workflows
 
@@ -106,6 +106,10 @@ The discovery and government-adapter registries additionally include **[Illinois
 Catalog discovery references **[FGDC](https://www.fgdc.gov/)**, **[GeoPlatform](https://www.geoplatform.gov/)** and **[Data.gov](https://catalog.data.gov/)**. A catalog entry does not establish either upstream or downstream licensing, data quality or operational availability.
 
 **Minimum per-dataset record for review:** source agency, dataset/product, service/layer ID, geography and extent, effective/acquisition/publication/retrieval dates as different fields, source license, horizontal CRS/EPSG, coordinate epoch, vertical datum/geoid, axis order, units, grid resolution, nodata, source/transformed file hashes, transformation lineage, validation class and missing-evidence reason. **Unknown must remain unknown**.
+
+### Historical Indiana geological publication archive
+
+The [historical geology source browser](https://atphobia22.github.io/Tri-State-Systems-Manager/geology-sources.html) presents nine curated Indiana Geological Survey / IU ScholarWorks bibliographic records for Posey County, the Lower Wabash, and Gray's statewide geological work. [Source catalog](data/fabrics/geological/igws-scholarworks-priority-v1.json) and [source/license limits](data/fabrics/geological/SCHOLARWORKS-PRIORITY-2026-11-16.md) distinguish historical interpretation from currently surveyed terrain and geology. PDFs are **not mirrored**; noncommercial/conflicting source rights remain for human review. The public page requires a successful corresponding GitHub Pages deployment; do not infer public availability from source files alone.
 
 ---
 
