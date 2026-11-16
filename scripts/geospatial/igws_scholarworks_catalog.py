@@ -94,6 +94,8 @@ def verify_catalog(document: dict) -> dict:
         demand(item.get("applicability") in APPLICABILITY, f"{prefix}: invalid applicability")
         demand(item.get("rightsMetadataStatus") in RIGHTS, f"{prefix}: rights status missing")
         demand("NC" in item.get("rightsStatement", ""), f"{prefix}: noncommercial rights not recorded")
+        demand(trusted_url(item.get("sourceRightsUri"), "creativecommons.org", "/licenses/"),
+               f"{prefix}: license metadata URI not pinned")
         demand(item.get("catalogVerification") == "ITEM_RECORD_READ_2026_11_16",
                f"{prefix}: no record-level metadata evidence")
         demand(item.get("evidenceClass") == "HISTORICAL_PUBLISHED_CONTEXT",
@@ -175,6 +177,10 @@ def verify_dspace_item(record: dict, raw: bytes) -> dict:
     demand(rights, "No DSpace rights metadata: human clearance required")
     demand(any("creativecommons.org" in s or "creative commons" in s.lower() for s in rights),
            "Unrecognized rights metadata: manual review required")
+    # Do not turn an unresolved license discrepancy into permission to bundle PDFs.
+    rights_uris = metadata_values(metadata, "dc.rights.uri")
+    demand(record["sourceRightsUri"] in rights_uris,
+           "DSpace rights URI changed: manual clearance is required")
     return {
         "id": record["id"],
         "source": record["metadataApi"],
