@@ -19,6 +19,7 @@ from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[2]
 CATALOG = ROOT / "data/fabrics/geological/igws-scholarworks-priority-v1.json"
+PUBLIC_CATALOG = ROOT / "tsm-console/public/data/igws-scholarworks-priority-v1.json"
 UUID = re.compile(r"[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\Z")
 YEAR = re.compile(r"(?:1[6-9]\d{2}|20\d{2})\Z")
 RIGHTS = {"CONFLICTING_RIGHTS_METADATA", "SINGLE_NONCOMMERCIAL_NOTICE"}
@@ -128,11 +129,22 @@ def verify_catalog(document: dict) -> dict:
     }
 
 
+def verify_public_mirror(source: Path, public_copy: Path) -> None:
+    """Prevent a published catalog from diverging from the reviewed source."""
+    demand(source.is_file() and public_copy.is_file() and
+           not source.is_symlink() and not public_copy.is_symlink(),
+           "Public and source catalog files must exist without symlinks")
+    demand(source.read_bytes() == public_copy.read_bytes(),
+           "Static public IGWS catalog drift: mirror exact source bytes")
+
+
 def load_catalog(path: Path = CATALOG) -> dict:
     if path.is_symlink() or not path.is_file():
         raise ValueError("Source catalog missing or symlinked")
     data = json.loads(path.read_text(encoding="utf-8"))
     verify_catalog(data)
+    if path.resolve() == CATALOG.resolve():
+        verify_public_mirror(path, PUBLIC_CATALOG)
     return data
 
 
