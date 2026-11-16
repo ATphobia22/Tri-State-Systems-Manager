@@ -4,6 +4,7 @@ import {
   LIDAR_CLASS,
   lidarClassDefinition,
   isGroundClass,
+  isDemSurfaceCandidate,
   isVegetationClass,
   isNoiseClass,
   qualityLevelDefinition,
@@ -28,6 +29,8 @@ import {
 test("verified class codes: ground is 2, ignored ground is 20, noise is 7 and 18", () => {
   assert.equal(LIDAR_CLASS.GROUND, 2);
   assert.equal(LIDAR_CLASS.IGNORED_GROUND, 20);
+  assert.equal(LIDAR_CLASS.PERENNIAL_SNOW, 21);
+  assert.equal(LIDAR_CLASS.TEMPORAL_EXCLUSION, 22);
   assert.equal(LIDAR_CLASS.LOW_NOISE, 7);
   assert.equal(LIDAR_CLASS.HIGH_NOISE, 18);
   assert.equal(LIDAR_CLASS.WATER, 9);
@@ -50,6 +53,8 @@ test("class definitions carry both ASPRS and LBS wording where they differ", () 
   const two = lidarClassDefinition(2);
   assert.equal(two?.asprsLabel, "Ground");
   assert.equal(two?.lbsLabel, "Bare earth");
+  assert.equal(lidarClassDefinition(21)?.lbsLabel, "Snow (if present and identifiable)");
+  assert.match(lidarClassDefinition(22)?.lbsLabel ?? "", /Temporal exclusion/i);
 });
 
 test("unknown class codes return null, never a guessed definition", () => {
@@ -68,6 +73,22 @@ test("class predicates: ground, vegetation, noise", () => {
   assert.equal(isNoiseClass(7), true);
   assert.equal(isNoiseClass(18), true);
   assert.equal(isNoiseClass(1), false);
+});
+
+test("USGS 2025 LBS DEM candidates explicitly include known perennial snow, never excluded/noise", () => {
+  assert.equal(isDemSurfaceCandidate(2), true);
+  assert.equal(isDemSurfaceCandidate(21), false); // project has not supplied perennial-snow evidence
+  assert.equal(isDemSurfaceCandidate(21, true), true); // explicit verified perennial snow inclusion
+  for (const cls of [0, 1, 6, 9, 17, 20, 22]) {
+    assert.equal(isDemSurfaceCandidate(cls, true), false);
+  }
+});
+
+test("vegetation banding never overwrites already-classified LBS snow, exclusion, ground or buildings", () => {
+  const pts: LidarPoint[] = [2, 6, 9, 20, 21, 22, 3, 4, 5].map((classification, i) =>
+    ({ x: i, y: 0, z: 120, classification }));
+  const result = classifyVegetationByHag(pts, () => 100);
+  assert.deepEqual(result.map((p) => p.classification), pts.map((p) => p.classification));
 });
 
 // --- Quality levels (verified against USGS LBS Table 4 / QL page) ---
