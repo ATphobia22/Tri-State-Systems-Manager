@@ -162,6 +162,21 @@ class GeoscienceAuthorityGateTests(unittest.TestCase):
             with self.subTest(authority=authority), self.assertRaisesRegex(ValueError, "inapplicable standard role"):
                 gate.check_manifest(sample, self.root, self.refs)
 
+    def test_state_plane_us_survey_feet_are_enforced_for_known_frames(self):
+        self.manifest["subjectType"] = "LIDAR_COLLECTION"
+        self.manifest["source"]["standardId"] = "USGS-3DEP-LBS-2025A"
+        self.manifest["source"]["standardEdition"] = "2025 rev. A"
+        for epsg in ("EPSG:2966", "EPSG:3435"):
+            for wrong_unit in ("m", "ft", "UNKNOWN"):
+                with self.subTest(crs=epsg, unit=wrong_unit):
+                    self.manifest["source"]["horizontalCrs"] = epsg
+                    self.manifest["source"]["units"] = wrong_unit
+                    with self.assertRaisesRegex(ValueError, "require US survey feet"):
+                        gate.check_manifest(self.manifest, self.root, self.refs)
+            self.manifest["source"]["units"] = "ftUS"
+            self.assertEqual(gate.check_manifest(self.manifest, self.root, self.refs)["status"],
+                             "DISCOVERY_REFERENCE_ONLY")
+
     def test_elevation_source_requires_explicit_crs_and_vertical_datums(self):
         self.manifest["subjectType"] = "LIDAR_COLLECTION"
         self.manifest["source"]["standardId"] = "USGS-3DEP-LBS-2025A"
