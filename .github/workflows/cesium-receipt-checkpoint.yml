@@ -1,0 +1,41 @@
+name: Cesium published receipt and independent checkpoint calculations
+
+on:
+  pull_request:
+    paths:
+      - scripts/release/cesium_published_receipt.py
+      - scripts/geospatial/independent_checkpoint_accuracy.py
+      - tests/release/test_cesium_published_receipt.py
+      - tests/geospatial/test_independent_checkpoint_accuracy.py
+      - docs/geodesy/INDEPENDENT-CHECKPOINT-ACCURACY-2026-11-15.md
+      - docs/release/CESIUM-DOWNLOADABLE-RECEIPT-2026-11-15.md
+      - .github/workflows/deploy-pages.yml
+      - .github/workflows/cesium-receipt-checkpoint.yml
+  push:
+    branches: [main]
+    paths:
+      - scripts/release/cesium_published_receipt.py
+      - scripts/geospatial/independent_checkpoint_accuracy.py
+      - tests/release/test_cesium_published_receipt.py
+      - tests/geospatial/test_independent_checkpoint_accuracy.py
+      - .github/workflows/deploy-pages.yml
+      - .github/workflows/cesium-receipt-checkpoint.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v6.0.0
+        with:
+          python-version: '3.12'
+      - name: Compile fail-closed verification tools
+        run: python -m py_compile scripts/release/cesium_published_receipt.py scripts/geospatial/independent_checkpoint_accuracy.py
+      - name: Reconcile local and remote receipt algorithm with tampered fixtures
+        run: python -m unittest discover -s tests/release -p test_cesium_published_receipt.py -v
+      - name: Test synthetic checkpoint calculations (not survey evidence)
+        run: python -m unittest discover -s tests/geospatial -p test_independent_checkpoint_accuracy.py -v
