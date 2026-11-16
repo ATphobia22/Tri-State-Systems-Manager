@@ -92,6 +92,20 @@ The Indiana service directory and service records document these 2025 framework 
 
 Historical scans, 2017–2020 LiDAR, and older source packages remain useful for change detection and reconciliation, but they are explicitly superseded by newer authoritative products when a newer agency vintage exists.
 
+### Indiana Geological Survey archive at IU ScholarWorks
+
+These records document historical conditions and interpretations. Their catalog metadata and record links are suitable for source discovery. Current DEMs, surveyed subsurface and bathymetric measurements, current SSURGO, and calibrated flood models require their own evidence.
+
+| Publication | Historical context for TSM | IU rights fields |
+| --- | --- | --- |
+| [Geologic Story of the Lower Wabash Valley with Emphasis on the New Harmony Area (1979)](https://hdl.handle.net/2022/243) | Floodplain evolution and historical river morphology | [BY-NC-SA 2.5](https://creativecommons.org/licenses/by-nc-sa/2.5/) |
+| [Vincennes Quadrangle geologic map (1970)](https://hdl.handle.net/2022/28676) | Bedrock and unconsolidated deposits at 1:250,000 | [BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) in the text, [BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) in the URI |
+| [Posey County Springfield Coal Member structure map (1997)](https://hdl.handle.net/2022/28038) | Historical structure of one coal member | [BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) in the text, [BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) in the URI |
+| [Geology of Posey County (1884)](https://hdl.handle.net/2022/3724) | Historical geology, drainage, and coal measures | [BY-NC-SA 3.0](https://creativecommons.org/licenses/by-nc-sa/3.0/) |
+| [Soil Survey of Posey County (1916)](https://hdl.handle.net/2022/6901) | Historical descriptions of soils and land use | [BY-NC-SA 3.0](https://creativecommons.org/licenses/by-nc-sa/3.0/) |
+
+TSM records the rights as reported by IU. Where the fields conflict, confirm the applicable terms with IU before reproducing or adapting the map. These entries have catalog-level verification. Binary assets, checksums, georeferencing, and layer integration are pending separate evidence.
+
 ## Snapshot rules
 
 1. Store source identifier, official URL, product identifier, publication/acquisition date, retrieval timestamp, native CRS, vertical datum, model/software version, and SHA-256.
