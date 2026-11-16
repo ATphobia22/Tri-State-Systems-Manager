@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Historical geology sources | Tri-State Systems Manager</title>
+  <meta name="description" content="Original Indiana Geological Survey publication records for the Ohio–Wabash Valley, with source links, historical scales, rights and science disclaimers.">
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #0e1725; color: #edf3fa; }
+    * { box-sizing: border-box; }
+    body { margin: 0; line-height: 1.6; }
+    a { color: #9ed8fc; }
+    a:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #f2c276; outline-offset: 3px; }
+    header, main, footer { max-width: 1050px; padding: 24px; margin: auto; }
+    header { border-bottom: 1px solid #395069; }
+    h1 { line-height: 1.2; letter-spacing: -.02em; margin: 10px 0; }
+    h2 { margin: 0 0 8px; font-size: 1.13rem; }
+    .subtitle { color: #b2bfd1; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 16px; margin: 24px 0; align-items: end; }
+    .toolbar label { flex: 1 1 260px; display: flex; flex-direction: column; gap: 5px; font-weight: 600; }
+    input, select { width: 100%; min-height: 44px; border: 1px solid #607893; border-radius: 6px; padding: 10px; color: inherit; background: #14283d; font: inherit; }
+    .notes { margin: 18px 0; padding: 16px; border-left: 3px solid #a4bacb; background: #172b3c; }
+    .references { list-style: none; padding: 0; display: grid; gap: 12px; }
+    .reference { background: #182c3d; border: 1px solid #34516d; border-radius: 9px; padding: 18px; }
+    .details { color: #b8c8db; font-size: .91rem; }
+    .source { margin-top: 10px; font-weight: 600; }
+    .status { display: inline-block; border-radius: 3px; border: 1px solid #6887a4; padding: 1px 7px; margin: 0 8px 4px 0; font-size: .82rem; color: #d9e8f7; }
+    footer { border-top: 1px solid #395069; font-size: .9rem; color: #a7b9ca; }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="./">Tri-State Systems Manager — public console</a>
+    <h1>Historical geology and survey sources</h1>
+    <p class="subtitle">Ohio–Wabash / Posey County reference bibliography from Indiana Geological Survey records hosted by Indiana University.</p>
+    <p><a href="https://scholarworks.iu.edu/dspace/communities/762d9abf-72d7-4962-818e-b1c0baf1defa" rel="noopener noreferrer">Original Indiana Geological Survey community</a> · <a href="./data/igws-scholarworks-priority-v1.json" download>Download catalog metadata JSON</a></p>
+  </header>
+  <main>
+    <div class="notes">
+      <strong>Evidence and licensing:</strong> These are historical citations, not current terrain, mapped flood risk, surveyed stratigraphy, boreholes, or regulatory determinations. Original publications have noncommercial or conflicting rights notices. The PDFs are <strong>not bundled</strong> with this site. Source dates and scales are not present-day accuracy guarantees.
+    </div>
+    <section aria-label="Filter historical publications">
+      <div class="toolbar">
+        <label>Search titles and authors
+          <input id="search" type="search" placeholder="e.g. Wabash, Posey, Gray" autocomplete="off">
+        </label>
+        <label>Source area
+          <select id="area">
+            <option value="all">All cataloged references</option>
+            <option value="local">Posey / Lower Wabash explicit</option>
+            <option value="regional">Regional coverage — verify AOI</option>
+            <option value="statewide">Statewide / historical context</option>
+          </select>
+        </label>
+      </div>
+    </section>
+    <p id="status" role="status" aria-live="polite">Loading local source references…</p>
+    <ol id="references" class="references" aria-label="Source references"></ol>
+    <section class="notes" aria-label="Method limits">
+      <h2>How to use these sources</h2>
+      <p>Open the official item record to inspect the publisher, original document and rights. For terrain or engineering analysis, obtain a separately licensed georeferenced source, verify its footprint, CRS, geoid, units and accuracy, and obtain independent site control. A historical map title is not proof it covers a particular parcel.</p>
+      <p>For present-day soils, consult <a href="https://websoilsurvey.nrcs.usda.gov/" rel="noopener noreferrer">USDA NRCS</a>. For modern elevation, consult <a href="https://apps.nationalmap.gov/" rel="noopener noreferrer">USGS The National Map</a>. Neither dataset is created from these historical citations.</p>
+    </section>
+  </main>
+  <footer>Source category: HISTORICAL_PUBLISHED_CONTEXT · No professional certification, regulatory determination or automated rights clearance.</footer>
+  <script>
+    "use strict";
+    const status = document.getElementById("status");
+    const list = document.getElementById("references");
+    const search = document.getElementById("search");
+    const area = document.getElementById("area");
+    let records = [];
+
+    function isRelevant(item, preference) {
+      if (preference === "all") return true;
+      if (preference === "local") return ["LOWER_WABASH_EXPLICIT", "POSEY_COUNTY_EXPLICIT", "NORTHERN_POSEY_EXPLICIT"].includes(item.applicability);
+      if (preference === "regional") return item.applicability === "REGIONAL_EXTENT_REVIEW_REQUIRED";
+      return item.applicability.startsWith("STATEWIDE_");
+    }
+    function el(tag, text, className) {
+      const node = document.createElement(tag);
+      if (text !== undefined) node.textContent = text;
+      if (className) node.className = className;
+      return node;
+    }
+    function render() {
+      const term = search.value.trim().toLocaleLowerCase();
+      const visible = records.filter(function (item) {
+        return isRelevant(item, area.value) &&
+          (item.title + " " + item.authors.join(" ") + " " + item.series).toLocaleLowerCase().includes(term);
+      });
+      list.replaceChildren();
+      for (const item of visible) {
+        const row = el("li", undefined, "reference");
+        row.append(el("h2", item.title));
+        const parts = [item.authors.join(", "), String(item.publicationYear), item.series];
+        if (item.scaleDenominator !== null) parts.push("1:" + item.scaleDenominator.toLocaleString("en-US"));
+        else parts.push("map scale not recorded");
+        row.append(el("div", parts.join(" · "), "details"));
+        const source = el("p", undefined, "source");
+        const link = el("a", "View original catalog record");
+        link.href = item.sourcePage;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        source.append(link);
+        row.append(source);
+        row.append(el("span", "HISTORICAL / REFERENCE ONLY", "status"));
+        row.append(el("span", item.rightsMetadataStatus === "CONFLICTING_RIGHTS_METADATA" ? "CONFLICTING RIGHTS — REVIEW REQUIRED" : "NONCOMMERCIAL RIGHTS — REVIEW REQUIRED", "status"));
+        row.append(el("p", item.applicability.replaceAll("_", " ") + " · No verified georeferenced geometry or survey control.", "details"));
+        list.append(row);
+      }
+      status.textContent = visible.length + " historical references shown of " + records.length + " cataloged. No source PDFs have been bundled.";
+    }
+    async function load() {
+      try {
+        const response = await fetch("./data/igws-scholarworks-priority-v1.json", { cache: "no-store" });
+        if (!response.ok) throw new Error("Catalog unavailable (HTTP " + response.status + ")");
+        const catalog = await response.json();
+        if (catalog.schema !== "tsm-igws-scholarworks-priority-v1" || !Array.isArray(catalog.records)) {
+          throw new Error("Unexpected source catalog version");
+        }
+        records = catalog.records;
+        render();
+      } catch (error) {
+        status.textContent = "SOURCE_UNAVAILABLE: historical reference catalog could not be verified. " + String(error.message || error);
+      }
+    }
+    search.addEventListener("input", render);
+    area.addEventListener("change", render);
+    load();
+  </script>
+</body>
+</html>

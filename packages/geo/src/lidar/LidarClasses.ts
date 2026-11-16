@@ -30,6 +30,8 @@ export const LIDAR_CLASS = {
   BRIDGE_DECK: 17,
   HIGH_NOISE: 18,
   IGNORED_GROUND: 20,
+  SNOW: 21,
+  TEMPORAL_EXCLUSION: 22,
 } as const;
 
 export interface LidarClassDefinition {
@@ -54,6 +56,8 @@ export const LIDAR_CLASS_DEFINITIONS: ReadonlyMap<number, LidarClassDefinition> 
   [17, { code: 17, asprsLabel: "Bridge Deck", lbsLabel: "Bridge deck" }],
   [18, { code: 18, asprsLabel: "High Noise", lbsLabel: "High noise" }],
   [20, { code: 20, asprsLabel: "Ignored Ground", lbsLabel: "Ignored ground (typically breakline proximity)" }],
+  [21, { code: 21, asprsLabel: "Snow", lbsLabel: "Snow (if present and identifiable)" }],
+  [22, { code: 22, asprsLabel: "Temporal Exclusion", lbsLabel: "Temporal exclusion (typically nonfavored intertidal returns)" }],
 ]);
 
 /** Definition for a code, or null when the code is not in the verified set. */

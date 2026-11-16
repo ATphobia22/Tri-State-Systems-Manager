@@ -32,6 +32,16 @@ class FGDCGateTests(unittest.TestCase):
         self.assertEqual(source["csdgm"], "PARSED_LEGACY_SOURCE_METADATA_ONLY")
         self.assertEqual(len(source["xmlSha256"]), 64)
 
+    def test_geologic_schema_and_usgs_review_policy_are_references_not_certificates(self):
+        import json
+        profile = json.loads((ROOT / "data/standards/fgdc-standards-profile-v1.json").read_text())
+        indexed = {item["id"]: item for item in profile["standards"]}
+        self.assertIn("USGS-GEMS-2020", indexed)
+        self.assertIn("USGS-FSP-502.7-2026", indexed)
+        self.assertIn("geologic map database", " ".join(indexed["USGS-GEMS-2020"]["use"]))
+        self.assertIn("not certification", " ".join(indexed["USGS-FSP-502.7-2026"]["use"]))
+        self.assertFalse(profile["policy"]["automaticRegulatoryCertification"])
+
     def test_discovery_fixture_is_not_evidence(self):
         self.assertEqual(fgdc.check_records(SAMPLE)["sourceRecordsChecked"], 1)
 
