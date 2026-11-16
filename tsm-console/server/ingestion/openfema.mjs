@@ -25,6 +25,8 @@ const ENTITY_VERSIONS = Object.freeze({
   FimaNfipResidentialPenetrationRates: 1,
 });
 
+const DEPRECATED_ENTITIES = new Set(['FimaNfipPolicies', 'FimaNfipClaims']);
+
 function assertEntity(entity) {
   if (!Object.hasOwn(ENTITY_VERSIONS, entity)) throw new TypeError('OpenFEMA entity is not allowlisted: ' + entity);
   return ENTITY_VERSIONS[entity];
@@ -74,6 +76,7 @@ export async function queryOpenFema(entity, options = {}) {
   });
   return Object.freeze({
     ...normalizeOpenFemaResponse(payload, entity),
+    deprecatedDataset: DEPRECATED_ENTITIES.has(entity),
     sourceUri: url,
     retrievedAt: new Date().toISOString(),
   });
@@ -126,6 +129,7 @@ export async function pageOpenFema(entity, options = {}) {
     sourceUris: Object.freeze(sourceUris),
     retrievedAt: new Date().toISOString(),
     pageCount: sourceUris.length,
+    deprecatedDataset: DEPRECATED_ENTITIES.has(entity),
     complete,
     status: complete ? 'COMPLETE' : 'PARTIAL',
     reason,
