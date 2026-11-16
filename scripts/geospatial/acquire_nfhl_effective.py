@@ -19,7 +19,7 @@ from datetime import datetime, timezone
 SERVICE = "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer"
 LAYERS = {"firm_panels": 3, "bfe": 16, "cross_sections": 14,
           "flood_hazard_zones": 28, "flood_hazard_boundaries": 27,
-          "levees": 23, "lomas": 2, "lomrs": 1}
+          "levees": 23, "lomas": 34, "lomrs": 1}
 MAX_IDS = 100_000
 MAX_CHUNK = 500
 
