@@ -34,7 +34,8 @@
       "sourceCoordinateAccuracy": null,
       "independentSurveyEvidence": false,
       "regulatoryUse": false,
-      "publicationPdfBundlingPermitted": false
+      "publicationPdfBundlingPermitted": false,
+      "sourceRightsUri": "http://creativecommons.org/licenses/by-nc-sa/2.5/"
     },
     {
       "id": "IGWS-RGM03-1970",
@@ -65,7 +66,8 @@
       "sourceCoordinateAccuracy": null,
       "independentSurveyEvidence": false,
       "regulatoryUse": false,
-      "publicationPdfBundlingPermitted": false
+      "publicationPdfBundlingPermitted": false,
+      "sourceRightsUri": "https://creativecommons.org/licenses/by-nc/4.0/"
     },
     {
       "id": "IGWS-MM60-1997",
@@ -94,7 +96,8 @@
       "sourceCoordinateAccuracy": null,
       "independentSurveyEvidence": false,
       "regulatoryUse": false,
-      "publicationPdfBundlingPermitted": false
+      "publicationPdfBundlingPermitted": false,
+      "sourceRightsUri": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "IGWS-MM33-1981",
@@ -125,7 +128,8 @@
       "sourceCoordinateAccuracy": null,
       "independentSurveyEvidence": false,
       "regulatoryUse": false,
-      "publicationPdfBundlingPermitted": false
+      "publicationPdfBundlingPermitted": false,
+      "sourceRightsUri": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "IGWS-POSEY-1884",
@@ -154,7 +158,8 @@
       "sourceCoordinateAccuracy": null,
       "independentSurveyEvidence": false,
       "regulatoryUse": false,
-      "publicationPdfBundlingPermitted": false
+      "publicationPdfBundlingPermitted": false,
+      "sourceRightsUri": "http://creativecommons.org/licenses/by-nc-sa/3.0/"
     },
     {
       "id": "IGWS-POSEY-SOILS-1916",
@@ -183,7 +188,8 @@
       "sourceCoordinateAccuracy": null,
       "independentSurveyEvidence": false,
       "regulatoryUse": false,
-      "publicationPdfBundlingPermitted": false
+      "publicationPdfBundlingPermitted": false,
+      "sourceRightsUri": "http://creativecommons.org/licenses/by-nc-sa/3.0/"
     },
     {
       "id": "IGWS-MM48-1987",
@@ -214,7 +220,8 @@
       "sourceCoordinateAccuracy": null,
       "independentSurveyEvidence": false,
       "regulatoryUse": false,
-      "publicationPdfBundlingPermitted": false
+      "publicationPdfBundlingPermitted": false,
+      "sourceRightsUri": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "IGWS-MM49-1989",
@@ -243,7 +250,8 @@
       "sourceCoordinateAccuracy": null,
       "independentSurveyEvidence": false,
       "regulatoryUse": false,
-      "publicationPdfBundlingPermitted": false
+      "publicationPdfBundlingPermitted": false,
+      "sourceRightsUri": "https://creativecommons.org/licenses/by-nc/4.0/"
     },
     {
       "id": "IGWS-B61-1987",
@@ -273,7 +281,8 @@
       "sourceCoordinateAccuracy": null,
       "independentSurveyEvidence": false,
       "regulatoryUse": false,
-      "publicationPdfBundlingPermitted": false
+      "publicationPdfBundlingPermitted": false,
+      "sourceRightsUri": "https://creativecommons.org/licenses/by-sa/4.0/"
     }
   ]
 }
