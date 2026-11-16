@@ -42,6 +42,8 @@ python3 scripts/government/openfema_posey_snapshot.py \
   --out artifacts/openfema/posey-declarations-2026-11-16.json
 ~~~
 
+For a reviewable Actions download, open [OpenFEMA evidence workflow](../../.github/workflows/openfema-evidence.yml) in GitHub Actions, choose Run workflow, and explicitly enable acquire_posey_declarations. This runs a separate live job, validates the checksum, and uploads a 30-day downloadable artifact. PR and main-push CI run only offline synthetic tests and do not download live FEMA data.
+
 The exporter requires the literal source filter for Posey **state=IN**, **fipsCountyCode=129**. It selects a limited set of declaration/history fields, refuses a partial result, confirms the returned state and county **per row**, and writes a non-overwriting JSON snapshot with an independent .sha256 sidecar. It includes the SHA-256 hash, size, requested URI and record count of each page, retrieval timestamp, limitations and provenance. The historical archive is left unchanged.
 
 **Security:** A source-provided @odata.nextLink is not followed. Each next request is generated locally from a fixed HTTPS host, an allowlisted dataset and bounded $top/$skip. The client rejects redirects, malformed collection payloads, oversized pages and unsupported datasets. Network failures do not manufacture empty successful results. The supplied ordering can still change during concurrent FEMA updates; page hashes and retrieval times record this provenance limitation.
