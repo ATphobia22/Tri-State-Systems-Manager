@@ -132,8 +132,9 @@ def evidence(manifest_path: Path | None, checkpoints_path: Path, mode: str) -> d
     # metric projected X/Y columns without a separately documented conversion.
     if p["horizontalCrs"] in {"EPSG:4326", "EPSG:4269", "EPSG:4979", "EPSG:2966"}:
         raise ValueError("Use a metre-based calculation CRS (e.g. EPSG:26916); validate upstream coordinate operations")
-    if p.get("sameCoordinateFrameDeclared") is True and not p.get("coordinateOperationEvidence"):
-        raise ValueError("Declared common coordinate frame needs coordinateOperationEvidence reference")
+    if p.get("sameCoordinateFrameDeclared") is True and not (
+            p.get("coordinateOperationPath") and p.get("coordinateOperationSha256")):
+        raise ValueError("Declared common coordinate frame requires hash-pinned operation record")
     if mode != "horizontal" and p.get("verticalDatum") in (None, "", "UNKNOWN", "NOT_APPLICABLE"):
         raise ValueError("Vertical datum must be explicitly stated for elevation comparisons")
     expected = p.get("checkpointCsvSha256")
@@ -143,6 +144,7 @@ def evidence(manifest_path: Path | None, checkpoints_path: Path, mode: str) -> d
         raise ValueError("Checkpoint CSV SHA-256 mismatch")
     src_verified = documented_file(manifest_path, p, "sourceDatasetPath", "sourceDatasetSha256")
     survey_verified = documented_file(manifest_path, p, "surveyReportPath", "surveyReportSha256")
+    operation_verified = documented_file(manifest_path, p, "coordinateOperationPath", "coordinateOperationSha256")
     h2, v2 = p.get("surveyRMSE_H2_m"), p.get("surveyRMSE_V2_m")
     for name, rmse in (("surveyRMSE_H2_m", h2), ("surveyRMSE_V2_m", v2)):
         if rmse is not None:
@@ -160,6 +162,7 @@ def evidence(manifest_path: Path | None, checkpoints_path: Path, mode: str) -> d
         "verticalDatumReported": p.get("verticalDatum"),
         "coordinateUnits": "m",
         "coordinateFrameVerifiedBySoftware": False,
+        "coordinateOperationRecordHashVerified": operation_verified,
         "sameCoordinateFrameDeclared": p.get("sameCoordinateFrameDeclared") is True,
         "checkpointIndependenceDeclared": p.get("checkpointIndependenceDeclared") is True,
         "representativeCoverageDeclared": p.get("representativeCoverageDeclared") is True,
@@ -199,8 +202,14 @@ def calculate(rows: list[dict], mode: str, provenance: dict) -> dict:
     v2 = provenance.get("surveyRMSE_V2_m")
     # Record 2024 correction only when survey report is hash-checked AND the
     # operator declares the coordinate frame is identical. Still not certification.
-    valid_adjustment = (provenance.get("surveyReportHashVerified") is True
-                        and provenance.get("sameCoordinateFrameDeclared") is True)
+    valid_adjustment = (
+        provenance.get("surveyReportHashVerified") is True
+        and provenance.get("sourceDataHashVerified") is True
+        and provenance.get("coordinateOperationRecordHashVerified") is True
+        and provenance.get("sameCoordinateFrameDeclared") is True
+        and provenance.get("checkpointIndependenceDeclared") is True
+        and provenance.get("representativeCoverageDeclared") is True
+    )
     rh = math.hypot(rh1, h2) if have_h and valid_adjustment and h2 is not None else None
     rv = math.hypot(rv1, v2) if have_v and valid_adjustment and v2 is not None else None
     r3d = math.hypot(rh, rv) if rh is not None and rv is not None else None
@@ -243,6 +252,7 @@ def calculate(rows: list[dict], mode: str, provenance: dict) -> dict:
             "ASPRS_2024_ED2_V2": {
                 "reference": SOURCES["ASPRS_2024"], "minimumCheckpoints": 30,
                 "minimumCountCriterionMet": n >= 30,
+                "largeProject120CheckpointGuidelineExceeded": n > 120,
                 "surveyErrorIncluded": rh is not None or rv is not None,
                 "formalComplianceClaim": False,
             },
