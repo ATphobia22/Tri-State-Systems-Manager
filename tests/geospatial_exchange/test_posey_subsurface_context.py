@@ -26,3 +26,10 @@ class ContextTests(unittest.TestCase):
         self.assertEqual(left["soil"]["sourceIds"], ["100"])
         self.assertEqual(right["soil"]["status"], "NO_OVERLAP_IN_SUPPLIED_SNAPSHOT")
         self.assertEqual(right["controls"]["status"], "SOURCE_UNAVAILABLE")
+
+    def test_invalid_overlay_is_not_clean_no_overlap(self):
+        bad = {"properties": {"mukey": "100"}, "geometry": {"type": "Polygon",
+               "coordinates": [[[-88, 37], [-87, 38], [-87, 37], [-88, 38], [-88, 37]]]}}
+        result = contexts([parcel(1, -88)], [], [("soil", [bad], "mukey")])
+        self.assertEqual(result["excludedOverlayGeometries"]["soil"], 1)
+        self.assertEqual(result["parcels"][0]["soil"]["status"], "INCOMPLETE_GEOMETRY_COVERAGE")

@@ -24,7 +24,7 @@ overlaps and estimated points are counted separately. The public project parcel 
 portal](https://poseyin.wthgis.com/) supply cadastral context. The join does not establish a surveyed legal boundary.
 
 - For USDA-NRCS [SSURGO](https://www.nrcs.usda.gov/resources/data-and-reports/soil-survey-geographic-database-ssurgo),
-  pass a CRS84 polygon export with `--soils` and retain the `mukey`. Component and horizon properties have a different row grain. Map-unit overlap does not assign Ksat, USCS, or a foundation parameter to the entire parcel.
+  pass a CRS84 polygon export with `--soils` and retain the `mukey`. The [Indiana GIO map-unit service](https://gisdata.in.gov/server/rest/services/Hosted/Soil_Map_Units_SSURGO/FeatureServer/4) provides those polygons. Component and horizon properties have a different row grain. Map-unit overlap does not assign Ksat, USCS, or a foundation parameter to the entire parcel.
 - For [IDEM institutional controls](https://www.in.gov/idem/cleanups/investigation-and-cleanup-programs/institutional-controls/),
   pass a CRS84 polygon export with `--controls` and identify its ID field with `--control-id-field`. An overlap is a record to review against the underlying registry and instrument. A missing source or absent overlap cannot establish clearance.
 - The DNR [Posey bedrock aquifer map](https://www.in.gov/dnr/water/files/posey_bedrock.pdf) is regional context. The
@@ -33,4 +33,4 @@ portal](https://poseyin.wthgis.com/) supply cadastral context. The join does not
   units and vertical reference. Neither source is automatically substituted for a site boring.
 
 The output records input SHA-256 values and distinguishes a missing polygon source from an acquired snapshot with no
-overlap. It contains no inferred parcel-wide stratigraphy, groundwater surface or engineering design values.
+overlap. Invalid source geometry is excluded and its bounding envelope flags potentially incomplete parcel results. It contains no inferred parcel-wide stratigraphy, groundwater surface or engineering design values.

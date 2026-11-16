@@ -81,26 +81,40 @@ def contexts(parcels, wells, overlays):
     rows = {key: {"parcelObjectId": key, "stateParcelId": parcel["properties"].get("state_parcel_id"),
                   "geometryStatus": "INVALID_OR_MISSING" if key in excluded else "VALID",
                   "sourceWellReferences": matches[key]} for key, parcel in zip(ids, parcels)}
+    excluded_overlays = {}
     for name, features, field in overlays:
-        found = defaultdict(set)
+        found, uncertain = defaultdict(set), set()
+        rejected = 0
         if features is not None:
             for feature in features:
-                polygon = geometry(feature, {"Polygon", "MultiPolygon"})
+                try:
+                    polygon = geometry(feature, {"Polygon", "MultiPolygon"})
+                except ValueError:
+                    rejected += 1
+                    if feature["geometry"] is None:
+                        uncertain.update(usable)
+                    else:
+                        envelope = shape(feature["geometry"]).envelope
+                        uncertain.update(usable[i] for i in tree.query(envelope, predicate="intersects"))
+                    continue
                 source_id = feature["properties"][field]
                 if type(source_id) not in (str, int) or not str(source_id).strip():
                     raise ValueError(f"{name}: invalid source ID")
                 for index in tree.query(polygon, predicate="intersects"):
                     if polygon.intersection(polygons[index]).area > 0:
                         found[usable[index]].add(str(source_id))
+        excluded_overlays[name] = rejected if features is not None else None
         for key in ids:
             keys = sorted(found[key])
             rows[key][name] = {
                 "status": ("SOURCE_UNAVAILABLE" if features is None else
                            "PARCEL_GEOMETRY_UNAVAILABLE" if key in excluded else
+                           "INCOMPLETE_GEOMETRY_COVERAGE" if key in uncertain else
                            "GEOMETRY_OVERLAP" if keys else "NO_OVERLAP_IN_SUPPLIED_SNAPSHOT"),
                 "sourceIds": keys,
             }
-    return {"excludedParcelGeometries": len(excluded), "wellCounts": dict(method_counts), "parcels": [rows[key] for key in sorted(ids)]}
+    return {"excludedParcelGeometries": len(excluded), "excludedOverlayGeometries": excluded_overlays,
+            "wellCounts": dict(method_counts), "parcels": [rows[key] for key in sorted(ids)]}
 
 
 def main():
