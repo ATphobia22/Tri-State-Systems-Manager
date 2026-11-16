@@ -44,6 +44,12 @@ Illinois East — that is VN-2000/UTM 48N (Vietnam); the correct code is EPSG:34
 | USGS National Geologic Map Database (NGMDB) | National | National-scale geologic map index and GeMS data |
 | NRCS Web Soil Survey / Soil Data Access | National | SSURGO county soil surveys (sand/silt/clay, soil depth) — referenced as TODO in `scripts/flood-forecasting/prepare-static-attributes.py`; not yet assembled |
 
+## New USGS GeMS compilation reference (2026)
+
+The [2026 USGS State Geologic Map Compilation release](https://www.usgs.gov/data/geologic-map-schema-gems-version-state-geologic-map-compilation-sgmc-geodatabase-conterminous) (DOI 10.5066/P1A3DQZK, published June 8, 2026, CC0) has been added to the geological source manifest as **official-release-catalog-verified-not-downloaded**. It summarizes 48 state maps at mixed scales, **does not reconcile units across state borders**, and covers **bedrock only** where states maintain both bedrock and surficial geology. There are no downloaded geodatabase bytes, GeMS schema tests, site boreholes, or geotechnical findings from this reference.
+
+For the exact [USGS/FSP, 3DEP LBS, GeMS and state-professional authority matrix](../../docs/geospatial/GEOSCIENCE-AUTHORITY-2026-11-16.md), use the dated separate registry and the offline evidence gate. Its classification labels are not professional certification.
+
 ## Tri-state geological context (published, general)
 
 The tri-state anchor region (Posey County, IN and surroundings) sits on the
