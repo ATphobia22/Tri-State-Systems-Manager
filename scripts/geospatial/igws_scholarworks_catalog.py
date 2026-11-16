@@ -94,7 +94,11 @@ def verify_catalog(document: dict) -> dict:
         demand(item.get("applicability") in APPLICABILITY, f"{prefix}: invalid applicability")
         demand(item.get("rightsMetadataStatus") in RIGHTS, f"{prefix}: rights status missing")
         demand("NC" in item.get("rightsStatement", ""), f"{prefix}: noncommercial rights not recorded")
-        demand(trusted_url(item.get("sourceRightsUri"), "creativecommons.org", "/licenses/"),
+        source_rights = urlsplit(item.get("sourceRightsUri") or "")
+        demand(source_rights.scheme in {"http", "https"} and
+               source_rights.hostname == "creativecommons.org" and
+               source_rights.path.startswith("/licenses/") and
+               not source_rights.query and not source_rights.fragment,
                f"{prefix}: license metadata URI not pinned")
         demand(item.get("catalogVerification") == "ITEM_RECORD_READ_2026_11_16",
                f"{prefix}: no record-level metadata evidence")
