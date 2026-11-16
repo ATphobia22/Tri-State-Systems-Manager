@@ -66,6 +66,8 @@ test("unknown class codes return null, never a guessed definition", () => {
 test("class predicates: ground, vegetation, noise", () => {
   assert.equal(isGroundClass(2), true);
   assert.equal(isGroundClass(20), false);
+  assert.equal(isGroundClass(21), false);
+  assert.equal(isGroundClass(22), false);
   assert.equal(isVegetationClass(3), true);
   assert.equal(isVegetationClass(4), true);
   assert.equal(isVegetationClass(5), true);

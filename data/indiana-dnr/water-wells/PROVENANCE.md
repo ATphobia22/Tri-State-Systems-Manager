@@ -1,36 +1,36 @@
-# Provenance — Indiana DNR Water Well Records (Posey County)
+# Posey County subsurface reference context
 
-## Identity
+The Indiana DNR [Water Well Record Database](https://www.in.gov/dnr/water/ground-water-wells/water-well-record-database/)
+and its [location-method documentation](https://www.in.gov/dnr/water/ground-water-wells/water-well-record-database/database-search-help/)
+describe field-verified UTM locations and estimated PLSS-based placements. A field-located label records the agency's location method. It does not establish survey accuracy or current conditions.
 
-| Field | Value |
-|---|---|
-| Authority | Indiana Department of Natural Resources (IDNR), Division of Water |
-| Source | ArcGIS FeatureServer — `https://gisdata.in.gov/server/rest/services/Hosted/WaterWells_DNR_Water_IN_1/FeatureServer` |
-| Query | Layer `0/query`, Posey County bbox (-88.15, 37.75, -87.85, 38.05), EPSG:4326 |
-| Data class | **reference** — subsurface/hydrogeology evidence plane (well logs) |
-| Acquisition script | `tools/acquisition/indiana/fetch-idnr-wells.mjs` (Node stdlib only, resilient, paged) |
-| Output | `idnr-water-wells-posey-v1.geojson` + `.sha256` sidecar + `.receipt.json` |
+The [ArcGIS layer](https://gisdata.in.gov/server/rest/services/Hosted/WaterWells_DNR_Water_IN_1/FeatureServer/0) supplies
+county-reported well headers, source record numbers, coordinates and location method. The acquisition tool queries all
+records attributed to Posey by default and checks the ordered page results against the service count. It omits owner names
+and addresses. A separate download of the agency lithology records is needed to join layer intervals to the well record
+number. Raw depth and elevation fields in the snapshot retain their source names and values.
 
-## Location-quality classification — read before use
+```bash
+node tools/acquisition/indiana/fetch-idnr-wells.mjs --out /tmp/posey-wells.geojson
+python -m pip install -r tools/geospatial_exchange/requirements.txt
+python tools/geospatial_exchange/posey_subsurface_context.py \
+  --parcels data/posey-county/parcels/posey-parcels-2025.geojson \
+  --wells /tmp/posey-wells.geojson --out /tmp/posey-context.json
+```
 
-The IDNR water-well dataset (~407,000 statewide records) mixes three kinds of
-locations: **field-located** (GPS/survey), **geocoded** (address-matched), and
-**PLSS-estimated** (derived from township/range/section). The acquisition
-script classifies every record into one of `field-located`, `geocoded`,
-`plss-estimated`, or `unknown` from the service fields and stores it as the
-`location_quality` property on each feature.
+The export uses one row per parcel geometry OBJECTID because a state parcel identifier can describe multiple geometries.
+It retains a well reference only if the field-located point is inside exactly one geometry. Boundary points, ambiguous
+overlaps and estimated points are counted separately. The public project parcel snapshot and the county [WTH GIS
+portal](https://poseyin.wthgis.com/) supply cadastral context. The join does not establish a surveyed legal boundary.
 
-**Explicit warnings:**
+- For USDA-NRCS [SSURGO](https://www.nrcs.usda.gov/resources/data-and-reports/soil-survey-geographic-database-ssurgo),
+  pass a CRS84 polygon export with `--soils` and retain the `mukey`. The [Indiana GIO map-unit service](https://gisdata.in.gov/server/rest/services/Hosted/Soil_Map_Units_SSURGO/FeatureServer/4) provides those polygons. Component and horizon properties have a different row grain. Map-unit overlap does not assign Ksat, USCS, or a foundation parameter to the entire parcel.
+- For [IDEM institutional controls](https://www.in.gov/idem/cleanups/investigation-and-cleanup-programs/institutional-controls/),
+  pass a CRS84 polygon export with `--controls` and identify its ID field with `--control-id-field`. An overlap is a record to review against the underlying registry and instrument. A missing source or absent overlap cannot establish clearance.
+- The DNR [Posey bedrock aquifer map](https://www.in.gov/dnr/water/files/posey_bedrock.pdf) is regional context. The
+  [Oil and Gas Well Records Viewer](https://secure.in.gov/dnr/oil-and-gas/permits-and-forms/permits/well-records-search)
+  is a separate source for wells and logs. Link an individual log only after matching its source identifier, method, depth
+  units and vertical reference. Neither source is automatically substituted for a site boring.
 
-1. **PLSS-estimated and geocoded locations are NOT survey-grade geometry.**
-   They must be labeled as estimated wherever displayed, mapped, or joined.
-2. **Never silently promote** an estimated well location to a survey point in
-   derivatives (setbacks, buffers, floodplain overlays).
-3. Unknown-quality records are `unknown` — never defaulted to field-located.
-
-## Acquisition controls
-
-- Fail-closed: throws and writes nothing on non-2xx HTTP, invalid JSON, or
-  paging errors. Paging continues (`resultOffset`) until a short page returns.
-- Every acquisition records a validation receipt JSON (source URL, HTTP
-  status, retrieval timestamp, content type, feature count, SHA-256, CRS).
+The output records input SHA-256 values and distinguishes a missing polygon source from an acquired snapshot with no
+overlap. Invalid source geometry is excluded and its bounding envelope flags potentially incomplete parcel results. It contains no inferred parcel-wide stratigraphy, groundwater surface or engineering design values.

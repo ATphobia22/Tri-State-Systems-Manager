@@ -105,6 +105,10 @@ Catalog discovery references **[FGDC](https://www.fgdc.gov/)**, **[GeoPlatform](
 
 **Minimum per-dataset record for review:** source agency, dataset/product, service/layer ID, geography and extent, effective/acquisition/publication/retrieval dates as different fields, source license, horizontal CRS/EPSG, coordinate epoch, vertical datum/geoid, axis order, units, grid resolution, nodata, source/transformed file hashes, transformation lineage, validation class and missing-evidence reason. **Unknown must remain unknown**.
 
+### Historical Indiana geological publication archive
+
+The [historical geology source browser](https://atphobia22.github.io/Tri-State-Systems-Manager/geology-sources.html) presents nine curated Indiana Geological Survey / IU ScholarWorks bibliographic records for Posey County, the Lower Wabash, and Gray's statewide geological work. [Source catalog](data/fabrics/geological/igws-scholarworks-priority-v1.json) and [source/license limits](data/fabrics/geological/SCHOLARWORKS-PRIORITY-2026-11-16.md) distinguish historical interpretation from currently surveyed terrain and geology. PDFs are **not mirrored**; noncommercial/conflicting source rights remain for human review. The public page requires a successful corresponding GitHub Pages deployment; do not infer public availability from source files alone.
+
 ---
 
 ## 4. Math and science: what the calculations actually mean

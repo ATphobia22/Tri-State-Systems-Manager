@@ -1,0 +1,37 @@
+name: IGWS ScholarWorks live metadata receipt
+on:
+  pull_request:
+    paths:
+      - 'data/fabrics/geological/**'
+      - 'scripts/geospatial/igws_scholarworks_catalog.py'
+      - '.github/workflows/igws-scholarworks-live-metadata.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  capture-official-dspace-metadata:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Checkout reviewed repository source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Python stdlib environment
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Download and validate exact bounded IU DSpace JSON only
+        run: |
+          mkdir -p /tmp/igws-scholarworks-metadata
+          python scripts/geospatial/igws_scholarworks_catalog.py \
+            --fetch-metadata \
+            --save-metadata-dir /tmp/igws-scholarworks-metadata/raw \
+            --output /tmp/igws-scholarworks-metadata/receipt.json
+      - name: Upload official metadata bytes and exact SHA-256 receipt
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: igws-scholarworks-official-metadata
+          path: /tmp/igws-scholarworks-metadata/
+          retention-days: 14
+          if-no-files-found: error

@@ -75,3 +75,7 @@ the surface. This is general published context, NOT a site determination.
 - Kentucky KGS: public research products of the University of Kentucky.
 - USGS NGMDB: public domain (U.S. federal).
 - NRCS SSURGO: public domain (U.S. federal).
+
+## Historical IU ScholarWorks bibliography (2026-11-16)
+
+The [original Indiana Geological Survey community](https://scholarworks.iu.edu/dspace/communities/762d9abf-72d7-4962-818e-b1c0baf1defa) and nine verified bibliographic records are cataloged in [igws-scholarworks-priority-v1.json](igws-scholarworks-priority-v1.json). The [source-method and rights audit](SCHOLARWORKS-PRIORITY-2026-11-16.md) explains their historical applications, geographic limits and conflicting/noncommercial reuse notices. The public citation-only browser is at [geology-sources.html](../../../tsm-console/public/geology-sources.html). This does not assert binary PDF download, georeferenced data, boreholes, or completed professional review. Run the headless source-gate script scripts/geospatial/igws_scholarworks_catalog.py or explicitly download **metadata JSON only** with its --fetch-metadata flag.
