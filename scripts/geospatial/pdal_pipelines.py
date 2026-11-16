@@ -25,6 +25,7 @@ Install: conda install -c conda-forge pdal  (or apt install pdal on Ubuntu)
 from __future__ import annotations
 
 import json
+import math
 import shutil
 import subprocess
 import sys
@@ -116,6 +117,7 @@ def ground_filter_pipeline(
         },
         {
             "type": "filters.smrf",
+            "where": "Classification == 0 || Classification == 1 || Classification == 2",
             "window": 18,
             "slope": 0.2,
             "threshold": 0.45,
@@ -133,6 +135,8 @@ def dem_pipeline(
     resolution: float = 1.0,
     bounds: str | None = None,
     ground_only: bool = True,
+    lbs_2025_nodata: bool = False,
+    include_verified_perennial_snow: bool = False,
 ) -> dict[str, Any]:
     """
     Rasterize a DEM GeoTIFF from point cloud data.
@@ -148,7 +152,18 @@ def dem_pipeline(
             feet for EPSG:2968 — Indiana State Plane West is in feet).
         bounds: optional PDAL bounds string to clip the area of interest.
         ground_only: classify ground first (recommended for DEMs).
+        lbs_2025_nodata: opt into LBS 2025 rev. A raster NoData -999999.
+            This does NOT certify a 3DEP deliverable (other QA applies).
+        include_verified_perennial_snow: explicitly include class 21 returns
+            only when verified perennial snow exists and LBS 2025 is selected.
+            Class 20 ignored ground and class 22 temporal exclusion are excluded.
     """
+    if not math.isfinite(resolution) or resolution <= 0:
+        raise ValueError("DEM resolution must be a finite positive value in source CRS units")
+    if include_verified_perennial_snow and (not lbs_2025_nodata or not ground_only):
+        raise ValueError("Perennial snow inclusion needs explicit LBS 2025 mode and ground-only DEM")
+    if lbs_2025_nodata and not ground_only:
+        raise ValueError("LBS 2025 bare-earth output requires ground_only=True")
     stages: list[dict[str, Any]] = [_reader_for(input)]
     if bounds:
         stages.append({"type": "filters.crop", "bounds": bounds})
@@ -156,12 +171,14 @@ def dem_pipeline(
         stages += [
             {
                 "type": "filters.smrf",
+                # Preserve upstream source classes (water, noise, snow, excluded).
+                "where": "Classification == 0 || Classification == 1 || Classification == 2",
                 "window": 18,
                 "slope": 0.2,
                 "threshold": 0.45,
                 "scalar": 1.2,
             },
-            {"type": "filters.range", "limits": "Classification[2:2]"},
+            {"type": "filters.range", "limits": "Classification[2:2],Classification[21:21]" if include_verified_perennial_snow else "Classification[2:2]"},
         ]
     stages.append(
         {
@@ -171,7 +188,7 @@ def dem_pipeline(
             "output_type": "idw",
             "gdaldriver": "GTiff",
             "data_type": "float32",
-            "nodata": -9999,
+            "nodata": -999999 if lbs_2025_nodata else -9999,
         }
     )
     return {"pipeline": stages}
@@ -188,10 +205,11 @@ def building_vegetation_pipeline(
     Separate buildings/vegetation from ground using height-above-ground.
 
     Computes HeightAboveGround for every point (filters.hag_nn against the
-    SMRF ground surface), then splits the stream: points above the threshold
-    are tagged Classification=6 (building, ASPRS) when they form planar
-    clusters — here approximated by height alone; a downstream step can
-    refine with filters.planefit. Ground keeps Classification=2.
+    SMRF ground surface), then proposes class 6 for *unclassified* elevated
+    points only. Source classifications 2/3/4/5/6/7/9/18/20/21/22 must not
+    be overwritten. This is a crude height candidate only, not a building
+    classifier or evidence of planar geometry; use planefit and validation
+    downstream. Ground keeps Classification=2.
 
     Args:
         input: LAS/LAZ/COPC/EPT path or URL.
@@ -217,7 +235,7 @@ def building_vegetation_pipeline(
         # Tag tall non-ground points as buildings (ASPRS class 6).
         {
             "type": "filters.assign",
-            "assignment": f"Classification[6:6] WHERE HeightAboveGround > {hag_threshold_m}",
+            "value": f"Classification = 6 WHERE (Classification == 0 || Classification == 1) && HeightAboveGround > {hag_threshold_m}",
         },
         {"type": "writers.las", "filename": output},
     ]
