@@ -104,6 +104,18 @@ class FederalRegisterIngestTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 fr.parse_page(raw)
 
+    def test_oversized_offline_fixture_never_creates_manifest(self):
+        with TemporaryDirectory() as tmp:
+            folder = Path(tmp)
+            fixture = folder / "oversized.json"
+            fixture.write_bytes(b" " * (fr.MAX_RESPONSE_BYTES + 1))
+            output = folder / "manifest.json"
+            args = argparse.Namespace(live=False, fixture=fixture, term="flood",
+                since=None, until=None, per_page=20, max_pages=1, output=output)
+            with self.assertRaisesRegex(ValueError, "4 MiB"):
+                fr.run(args)
+            self.assertFalse(output.exists())
+
     def test_response_size_cap(self):
         with self.assertRaisesRegex(ValueError, "4 MiB"):
             fr.parse_page(b" " * (fr.MAX_RESPONSE_BYTES + 1))
