@@ -5,6 +5,8 @@ on:
       - 'data/standards/geoscience-authority-profile-v1.json'
       - 'data/fabrics/geological/**'
       - 'scripts/geospatial/geoscience_authority_gate.py'
+      - 'scripts/geospatial/pdal_pipelines.py'
+      - 'scripts/geospatial/test_pdal_pipelines.py'
       - 'tests/geospatial/test_geoscience_authority_gate.py'
       - 'packages/geo/src/lidar/LidarClasses.ts'
       - 'packages/geo/src/lidar/PointClassification.ts'
@@ -43,6 +45,10 @@ jobs:
         run: python -m unittest discover -s tests/geospatial -p test_geoscience_authority_gate.py -v
       - name: Validate official-role reference manifest offline
         run: python scripts/geospatial/geoscience_authority_gate.py
+      - name: Check PDAL builder syntax, class-preservation and explicit LBS mode (no external PDAL needed)
+        run: |
+          python -m py_compile scripts/geospatial/pdal_pipelines.py scripts/geospatial/test_pdal_pipelines.py
+          (cd scripts/geospatial && python -m unittest test_pdal_pipelines.py -v)
   lidar-reference-classes:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
