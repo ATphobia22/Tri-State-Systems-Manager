@@ -136,3 +136,27 @@ actual feature extents, verified county footprints, surveys or live layers.
 It does not run STAC harvesting (the existing `stac-plan` tool owns that
 flow), Geoportal/Elasticsearch, WFS, CSW or a web API. Use the existing
 authority registry and snapshot adapters for separately approved acquisitions.
+
+### Posey County LOMA research screen
+
+Run an offline footprint intersection using the shipped building, parcel, and Indiana DNR BAFL snapshots.
+
+```sh
+python tools/geospatial_exchange/posey_loma_screen.py \
+  --summary /tmp/posey_loma_screening_receipt.json \
+  --screening-csv /tmp/posey_footprints_sfha_screening.csv
+```
+
+The receipt includes input checksums, geometry exclusions, overlap counts and
+township totals. The CSV uses one row per building footprint whose interior
+overlaps an SFHA polygon in the BAFL extract (`dfirm_id=18129C`, `sfha=T`).
+The match status describes how many usable parcel polygons overlap that footprint
+by area. A unique parcel can supply its tax township. Ambiguous or unmatched
+footprints remain unassigned. The rounded BAFL snapshot can generate small
+boundary slivers. Review underlying map evidence for individual cases.
+
+Use the export to organize case review. The screen performs no elevation
+comparison and cannot establish LOMA eligibility or be filed with FEMA as an
+application. Casework requires effective FEMA map evidence, site-specific flood
+elevation evidence, and certified ground elevations from an authorized
+professional where applicable.
