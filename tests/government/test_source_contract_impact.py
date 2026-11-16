@@ -186,6 +186,43 @@ class SourceContractImpactTests(unittest.TestCase):
             self.assertEqual(len(result["plane_map_sha256"]), 64)
             self.assertFalse(result["plane_impact"]["release_blocking"])
 
+    def test_reject_duplicate_json_keys_and_nonfinite_values(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            before = root / "before.json"
+            after = root / "after.json"
+            output = root / "impact.json"
+            after.write_text(json.dumps(self.before), encoding="utf-8")
+            for invalid in (
+                '{"sources":[{"id":"a","id":"b"}]}',
+                '{"sources":[{"id":"a","version":NaN}]}',
+            ):
+                before.write_text(invalid, encoding="utf-8")
+                self.assertEqual(mod.main([
+                    "--before", str(before), "--after", str(after),
+                    "--output", str(output)]), 2)
+                self.assertFalse(output.exists())
+
+    def test_cli_does_not_replace_input_or_existing_output(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            before = root / "before.json"
+            after = root / "after.json"
+            output = root / "impact.json"
+            content = json.dumps(self.before)
+            before.write_text(content, encoding="utf-8")
+            after.write_text(content, encoding="utf-8")
+            self.assertEqual(mod.main([
+                "--before", str(before), "--after", str(after),
+                "--output", str(before)]), 2)
+            self.assertEqual(before.read_text(encoding="utf-8"), content)
+            output.write_text("KEEP_THIS_EVIDENCE", encoding="utf-8")
+            self.assertEqual(mod.main([
+                "--before", str(before), "--after", str(after),
+                "--output", str(output)]), 2)
+            self.assertEqual(output.read_text(encoding="utf-8"),
+                             "KEEP_THIS_EVIDENCE")
+
     def test_cli_reports_json_and_real_sha256(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
