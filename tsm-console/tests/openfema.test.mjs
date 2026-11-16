@@ -100,3 +100,20 @@ test('pager rejects non-bounded page options', async () => {
   await assert.rejects(pageOpenFema('FimaNfipPolicies', { maxRecords: 100001 }), /maxRecords/);
   await assert.rejects(pageOpenFema('FimaNfipPolicies', { skip: -1 }), /skip/);
 });
+
+
+test('legacy NFIP endpoints are marked deprecated in runtime outputs', async () => {
+  const query = await queryOpenFema('FimaNfipPolicies', {
+    request: async () => ({ FimaNfipPolicies: [] }),
+  });
+  assert.equal(query.deprecatedDataset, true);
+  const page = await pageOpenFema('FimaNfipClaims', {
+    pageSize: 2,
+    request: async () => ({ FimaNfipClaims: [] }),
+  });
+  assert.equal(page.deprecatedDataset, true);
+  const current = await queryOpenFema('NfipPolicies', {
+    request: async () => ({ NfipPolicies: [] }),
+  });
+  assert.equal(current.deprecatedDataset, false);
+});
