@@ -11,6 +11,10 @@ SPEC.loader.exec_module(mod)
 
 
 class NFHLTests(unittest.TestCase):
+    def test_loma_and_lomr_use_distinct_published_layers(self):
+        self.assertEqual(mod.LAYERS["lomas"], 34)
+        self.assertEqual(mod.LAYERS["lomrs"], 1)
+
     def test_rejects_bad_bbox(self):
         for bbox in [(0, 0, 0, 1), (0, 0, 3, 1), (float("nan"), 0, 1, 1)]:
             with self.assertRaises(ValueError):
